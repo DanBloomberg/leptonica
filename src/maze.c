@@ -246,7 +246,7 @@ PQUEUE    *pq;
                 }
             }
         }
-        FREE((void *)elp);
+        FREE(elp);
     }
 
     pqueueDestroy(&pq, TRUE);
@@ -339,6 +339,7 @@ PTA       *pta;
 
     PROCNAME("searchBinaryMaze");
 
+    if (ppixd) *ppixd = NULL;
     if (!pixs)
         return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
@@ -382,7 +383,7 @@ PTA       *pta;
         y = elp->y;
         if (x == xf && y == yf) {
             found = TRUE;
-            FREE((void *)elp);
+            FREE(elp);
             break;
         }
             
@@ -434,7 +435,7 @@ PTA       *pta;
                 }
             }
         }
-        FREE((void *)elp);
+        FREE(elp);
     }
 
     pqueueDestroy(&pq, TRUE);
@@ -712,6 +713,7 @@ PTA      *pta;
 
     PROCNAME("searchGrayMaze");
 
+    if (ppixd) *ppixd = NULL;
     if (!pixs)
         return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
@@ -751,7 +753,7 @@ PTA      *pta;
         x = elp->x;
         y = elp->y;
         if (x == xf && y == yf) {  /* exit condition */
-            FREE((void *)elp);
+            FREE(elp);
             break;
         }
         distparent = (l_int32)elp->distance;
@@ -818,7 +820,7 @@ PTA      *pta;
                 pheapAdd(ph, el);
             }
         }
-        FREE((void *)elp);
+        FREE(elp);
     }
 
     pheapDestroy(&ph, TRUE);
@@ -970,7 +972,7 @@ PTA       *pta;
         ptaDestroy(&pta);
     }
 
-    FREE((void *)pixela);
+    FREE(pixela);
     return pixd;
 }
 

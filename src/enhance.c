@@ -247,7 +247,7 @@ numaGammaTRC(l_float32  gamma,
              l_int32    maxval)
 {
 l_int32    i, val;
-l_float64  x, invgamma;
+l_float32  x, invgamma;
 NUMA      *na;
 
     PROCNAME("numaGammaTRC");
@@ -266,8 +266,8 @@ NUMA      *na;
     for (i = minval; i <= maxval; i++) {
         if (i < 0) continue;
         if (i > 255) continue;
-        x = (l_float64)(i - minval) / (l_float64)(maxval - minval);
-        val = (l_int32)(255. * pow(x, invgamma) + 0.5);
+        x = (l_float32)(i - minval) / (l_float32)(maxval - minval);
+        val = (l_int32)(255. * powf(x, invgamma) + 0.5);
         val = L_MAX(val, 0);
         val = L_MIN(val, 255);
         numaAddNumber(na, val);
@@ -582,7 +582,7 @@ l_uint32  *data, *datam, *line, *linem;
         }
     }
 
-    FREE((void *)tab);
+    FREE(tab);
     return 0;
 }
 

@@ -13,25 +13,22 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  binreduce.c
  *
- *         Subsampled reduction
+ *      Subsampled reduction
  *
- *                  PIX    *pixReduceBinary2()
+ *           PIX    *pixReduceBinary2()
  *
- *         Rank filtered reductions
+ *      Rank filtered reductions
  *
- *                  PIX    *pixReduceRankBinaryCascade()
- *                  PIX    *pixReduceRankBinary2()
- *
+ *           PIX    *pixReduceRankBinaryCascade()
+ *           PIX    *pixReduceRankBinary2()
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
 #include "allheaders.h"
 
 
@@ -41,11 +38,10 @@
 /*!
  *  pixReduceBinary2()
  *
- *     Input:  pixs
- *             tab (<optional>; if null, a table is made here
- *                  and destroyed before exit)
- *     Return: pixd (subsampled pix), or null on error
- *
+ *      Input:  pixs
+ *              tab (<optional>; if null, a table is made here
+ *                   and destroyed before exit)
+ *      Return: pixd (2x subsampled), or null on error
  */
 PIX *
 pixReduceBinary2(PIX      *pixs,
@@ -88,30 +84,25 @@ PIX       *pixd;
     reduceBinary2Low(datad, wpld, datas, hs, wpls, tab);
 
     if (intab == NULL)
-        FREE((void *)tab);
+        FREE(tab);
 
     return pixd;
 }
 
 
-
 /*------------------------------------------------------------------*
- *                   Rank filtered  binary reductions               *
+ *                   Rank filtered binary reductions                *
  *------------------------------------------------------------------*/
 /*!
  *  pixReduceRankBinaryCascade()
  *
- *         Input: pixs (1 bpp)
- *                four threshold level parameters, one for each
- *                    reduction, each of which must be in the
- *                    set {0,1,2,3,4}
- *         Return:  pixd, or null on error
+ *      Input:  pixs (1 bpp)
+ *              level1, ... level 4 (thresholds, in the set {0, 1, 2, 3, 4})
+ *      Return: pixd, or null on error
  *
- *         Action:  performs cascaded threshold reduction, for a total
- *                  of 2, 4, 8 or 16x reduction, depending on the
- *                  number of nonzero factors.  Use level = 0 to truncate
- *                  the cascade.
- *
+ *  Notes:
+ *      (1) This performs up to four cascaded 2x rank reductions.
+ *      (2) Use level = 0 to truncate the cascade.
  */
 PIX *
 pixReduceRankBinaryCascade(PIX     *pixs,
@@ -129,60 +120,40 @@ l_uint8  *tab;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be binary", procName, NULL);
+    if (level1 > 4 || level2 > 4 || level3 > 4 || level4 > 4)
+        return (PIX *)ERROR_PTR("levels must not exceed 4", procName, NULL);
 
     if (level1 <= 0) {
         L_WARNING("no reduction because level1 not > 0", procName);
         return pixCopy(NULL, pixs);
     }
 
-    if (level1 > 4)
-        return (PIX *)ERROR_PTR("level1 must be in {1,2,3,4}", procName, NULL);
-    if (level2 < 0 || level2 > 4) {
-        L_WARNING("level2 invalid; truncating after 1 reduction", procName);
-        level2 = 0;
-    }
-    else if (level3 < 0 || level3 > 4) {
-        L_WARNING("level3 invalid; truncating after 2 reductions", procName);
-        level3 = 0;
-    }
-    else if (level4 < 0 || level4 > 4) {
-        L_WARNING("level4 invalid; truncating after 3 reductions", procName);
-        level4 = 0;
-    }
-
     if ((tab = makeSubsampleTab2x()) == NULL)
         return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     
-    if ((pix1 = pixReduceRankBinary2(pixs, level1, tab)) == NULL)
-        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
-    if (level2 == 0) {
-        FREE((void *)tab);
+    pix1 = pixReduceRankBinary2(pixs, level1, tab);
+    if (level2 <= 0) {
+        FREE(tab);
         return pix1;
     }
 
     pix2 = pixReduceRankBinary2(pix1, level2, tab);
     pixDestroy(&pix1);
-    if (!pix2)
-        return (PIX *)ERROR_PTR("pix2 not made", procName, NULL);
-    if (level3 == 0) {
-        FREE((void *)tab);
+    if (level3 <= 0) {
+        FREE(tab);
         return pix2;
     }
 
     pix3 = pixReduceRankBinary2(pix2, level3, tab);
     pixDestroy(&pix2);
-    if (!pix3)
-        return (PIX *)ERROR_PTR("pix3 not made", procName, NULL);
-    if (level4 == 0) {
-        FREE((void *)tab);
+    if (level4 <= 0) {
+        FREE(tab);
         return pix3;
     }
 
     pix4 = pixReduceRankBinary2(pix3, level4, tab);
     pixDestroy(&pix3);
-    if (!pix4)
-        return (PIX *)ERROR_PTR("pix4 not made", procName, NULL);
-    FREE((void *)tab);
+    FREE(tab);
     return pix4;
 }
 
@@ -190,12 +161,17 @@ l_uint8  *tab;
 /*!
  *  pixReduceRankBinary2()
  *
- *     Input:  pixs
- *             level (threshold: 1, 2, 3, 4)
- *             intab (<optional>; if null, a table is made here
- *                    and destroyed before exit)
- *     Return: pixd (threshold reduced pix), or null on error
+ *      Input:  pixs (1 bpp)
+ *              level (rank threshold: 1, 2, 3, 4)
+ *              intab (<optional>; if null, a table is made here
+ *                     and destroyed before exit)
+ *      Return: pixd (1 bpp, 2x rank threshold reduced), or null on error
  *
+ *  Notes:
+ *      (1) pixd is downscaled by 2x from pixs.
+ *      (2) The rank threshold specifies the minimum number of ON
+ *          pixels in each 2x2 region of pixs that are required to
+ *          set the corresponding pixel ON in pixd.
  */
 PIX *
 pixReduceRankBinary2(PIX      *pixs,
@@ -241,8 +217,8 @@ PIX       *pixd;
 
     reduceRankBinary2Low(datad, wpld, datas, hs, wpls, tab, level);
 
-    if (intab == NULL)
-        FREE((void *)tab);
+    if (!intab)
+        FREE(tab);
 
     return pixd;
 }

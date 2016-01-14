@@ -51,21 +51,21 @@ static char  mainName[] = "cmapquant_reg";
          * adding these colors to the colormap */
     box = boxCreate(120, 30, 200, 200);
     pixColorGray(pixt1, box, L_PAINT_DARK, 220, 0, 0, 255);
-    pixWrite("junkpixt1", pixt1, IFF_PNG);
+    pixDisplayWrite(pixt1, 1);
     boxDestroy(&box);
 
         /* Scale up by 1.5; losing the colormap */
     startTimer();
     pixt2 = pixScale(pixt1, 1.5, 1.5);
     fprintf(stderr, "Time to scale by 1.5x = %7.3f sec\n", stopTimer());
-    pixWrite("junkpixt2", pixt2, IFF_PNG);
+    pixDisplayWrite(pixt2, 1);
 
         /* Re-quantize using the same colormap */
     startTimer();
     cmap = pixGetColormap(pixt1);
     pixt3 = pixOctcubeQuantFromCmap(pixt2, cmap, LEVEL, L_EUCLIDEAN_DISTANCE);
     fprintf(stderr, "Time to requantize to cmap = %7.3f sec\n", stopTimer());
-    pixWrite("junkpixt3", pixt3, IFF_PNG);
+    pixDisplayWrite(pixt3, 1);
 
         /* Re-quantize first making the tables and then 
          * using the lower-level function */
@@ -76,7 +76,7 @@ static char  mainName[] = "cmapquant_reg";
     startTimer();
     pixt4 = pixOctcubeQuantFromCmapLUT(pixt2, cmap, cmaptab, rtab, gtab, btab);
     fprintf(stderr, "Time for lowlevel re-quant = %7.3f sec\n", stopTimer());
-    pixWrite("junkpixt4", pixt4, IFF_PNG);
+    pixDisplayWrite(pixt4, 1);
 
     pixEqual(pixt3, pixt4, &same);
     if (same)
@@ -87,6 +87,8 @@ static char  mainName[] = "cmapquant_reg";
     FREE(rtab);
     FREE(gtab);
     FREE(btab);
+
+    system("/usr/bin/gthumb junk_write_display* &");
 
     pixDestroy(&pixs);
     pixDestroy(&pixt1);

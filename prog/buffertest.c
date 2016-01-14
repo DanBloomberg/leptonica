@@ -49,6 +49,7 @@ static char  mainName[] = "buffertest";
 	exit(ERROR_INT("array not made", mainName, 1));
     fprintf(stderr, " Bytes read from file: %d\n", nbytes);
 
+        /* Application of byte buffer ops: compress/decompress in memory */
 #if 1
     dataout = zlibCompress(array1, nbytes, &nout);
     arrayWrite(fileout, "w", dataout, nout);
@@ -58,10 +59,11 @@ static char  mainName[] = "buffertest";
 
     fprintf(stderr, "nbytes in = %d, nbytes comp = %d, nbytes uncomp = %d\n",
                      nbytes, nout, nout2);
-    FREE((void *)dataout);
-    FREE((void *)dataout2);
+    FREE(dataout);
+    FREE(dataout2);
 #endif
 
+        /* Low-level byte buffer read/write test */
 #if 0
     bb = bbufferCreate(array1, nbytes);
     bbufferRead(bb, array1, nbytes);
@@ -86,10 +88,10 @@ static char  mainName[] = "buffertest";
 	    
     bbufferDestroy(&bb);
     bbufferDestroy(&bb2);
-    FREE((void *)array2);
+    FREE(array2);
 #endif
 
-    FREE((void *)array1);
+    FREE(array1);
     exit(0);
 }
 

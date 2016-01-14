@@ -25,8 +25,11 @@
  *     Utility function for getting sorted full pathnames
  *        SARRAY    *getSortedPathnamesInDirectory()
  *
- *     Note: These function work on unix, not on windows
+ *     Note: These functions work with the unix libraries, not
+ *           with windows.
  */
+
+#ifndef  CYGWIN_ENVIRON
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -295,6 +298,7 @@ struct dirent  *pdirentry;
  *  getSortedPathnamesInDirectory()
  *
  *      Input:  directory name
+ *              substr (<optional> substring filter on filenames; can be NULL)
  *              firstpage (0-based)
  *              npages (use 0 for all to the end)
  *      Return: sarray of sorted pathnames, or NULL on error
@@ -302,28 +306,37 @@ struct dirent  *pdirentry;
  *  Notes:
  *      (1) This implicitly uses the Posix C library commands for
  *          handling directories.  It will NOT work on Windows.
- *      (2) The files in the directory are lexically sorted, and
- *          the full pathnames (i.e., including the directory) are
- *          returned for the requested sequence.
+ *      (2) If 'substr' is not NULL, only filenames that contain
+ *          the substring can be returned.  If 'substr' is NULL,
+ *          none of the filenames are filtered out.
+ *      (3) The files in the directory, after optional filtering by
+ *          the substring, are lexically sorted in increasing order.
+ *          The full pathnames are returned for the requested sequence.
  */
 SARRAY *
 getSortedPathnamesInDirectory(const char  *dirname,
+                              const char  *substr,
                               l_int32      firstpage,
                               l_int32      npages)
 {
 char    *fname, *fullname;
 l_int32  i, nfiles, lastpage;
-SARRAY  *safiles, *saout;
+SARRAY  *sa, *safiles, *saout;
 
     PROCNAME("getSortedPathnamesInDirectory");
 
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    if ((safiles = getFilenamesInDirectory(dirname)) == NULL)
-        return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
-    sarraySort(safiles, safiles, L_SORT_INCREASING);
+    if ((sa = getFilenamesInDirectory(dirname)) == NULL)
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+    safiles = sarraySelectBySubstring(sa, substr);
+    sarrayDestroy(&sa);
     nfiles = sarrayGetCount(safiles);
+    if (nfiles == 0)
+        return (SARRAY *)ERROR_PTR("no files found", procName, NULL);
+
+    sarraySort(safiles, safiles, L_SORT_INCREASING);
 
     firstpage = L_MIN(L_MAX(firstpage, 0), nfiles - 1);
     if (npages == 0)
@@ -340,5 +353,7 @@ SARRAY  *safiles, *saout;
     sarrayDestroy(&safiles);
     return saout;
 }
+
+#endif  /* ~CYGWIN_ENVIRON */
 
 

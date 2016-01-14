@@ -344,7 +344,7 @@ PIX     *pixt;
         }
     }
 
-        /* clear near edges */
+        /* Clear near edges */
     selFindMaxTranslations(sel, &xp, &yp, &xn, &yn);
     if (xp > 0)
         pixRasterop(pixd, 0, 0, xp, h, PIX_CLR, NULL, 0, 0);
@@ -479,7 +479,7 @@ PIX     *pixt1, *pixt2;
             L_WARNING("pix src and dest sizes unequal", procName);
     }
 
-        /* symmetric b.c. handles correctly without added pixels */
+        /* Symmetric b.c. handles correctly without added pixels */
     if (MORPH_BC == SYMMETRIC_MORPH_BC)
         return pixClose(pixd, pixs, sel);
 
@@ -939,13 +939,13 @@ l_int32  factor1, factor2;
 
     PROCNAME("selectComposableSels");
 
+    if (!psel1 || !psel2)
+        return ERROR_INT("&sel1 or &sel2 not defined", procName, 1);
+    *psel1 = *psel2 = NULL;
     if (size < 1 || size > 250 * 250)
         return ERROR_INT("size < 1", procName, 1);
     if (direction != L_HORIZ && direction != L_VERT)
         return ERROR_INT("invalid direction", procName, 1);
-    if (!psel1 || !psel2)
-        return ERROR_INT("&sel1 or &sel2 not defined", procName, 1);
-    *psel1 = *psel2 = NULL;
 
     if (selectComposableSizes(size, &factor1, &factor2))
         return ERROR_INT("factors not found", procName, 1);
@@ -1503,7 +1503,7 @@ getMorphBorderPixelColor(l_int32  type,
     if (MORPH_BC == ASYMMETRIC_MORPH_BC || type == L_MORPH_DILATE)
         return 0;
 
-        /* symmetric & erosion */
+        /* Symmetric & erosion */
     if (depth < 32)
         return ((1 << depth) - 1);
     if (depth == 32)
@@ -1536,6 +1536,9 @@ l_int32  sx, sy;
 
     PROCNAME("processMorphArgs1");
 
+    if (!ppixt)
+        return (PIX *)ERROR_PTR("&pixt not defined", procName, pixd);
+    *ppixt = NULL;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (!sel)
@@ -1591,15 +1594,10 @@ l_int32  sx, sy;
     if (sx == 0 || sy == 0)
         return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
 
-    if (!pixd) {
-        if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
-    else {
-        if (!pixSizesEqual(pixs, pixd))
-            return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
-    }
-
+    if (!pixd)
+        return pixCreateTemplate(pixs);
+    if (!pixSizesEqual(pixs, pixd))
+        return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
     return pixd;
 }
 

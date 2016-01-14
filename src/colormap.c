@@ -290,11 +290,11 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
 {
     PROCNAME("pixcmapAddNewColor");
 
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
     if (!pindex)
         return ERROR_INT("&index not defined", procName, 1);
-    *pindex = 0;  /* init for safety if caller doesn't check return val */
+    *pindex = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
 
     if (!pixcmapGetIndex(cmap, rval, gval, bval, pindex))  /* found */
         return 0;
@@ -330,10 +330,11 @@ pixcmapAddBlackOrWhite(PIXCMAP  *cmap,
 {
     PROCNAME("pixcmapAddBlackOrWhite");
 
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
     if (!pindex)
         return ERROR_INT("&index not defined", procName, 1);
+    *pindex = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
 
     if (color == 0) {  /* black */
         if (pixcmapGetFreeCount(cmap) > 0)
@@ -430,10 +431,11 @@ RGBA_QUAD  *cta;
 
     PROCNAME("pixcmapGetColor");
 
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
     if (!prval || !pgval || !pbval)
         return ERROR_INT("&rval, &gval, &bval not all defined", procName, 1);
+    *prval = *pgval = *pbval = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
     if (index >= cmap->n)
         return ERROR_INT("index out of bounds", procName, 1);
 
@@ -504,11 +506,11 @@ RGBA_QUAD  *cta;
 
     PROCNAME("pixcmapGetIndex");
 
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
     if (!pindex)
         return ERROR_INT("&index not defined", procName, 1);
-    *pindex = 0;  /* init; not very meaningful */
+    *pindex = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
     n = pixcmapGetCount(cmap);
 
     cta = (RGBA_QUAD *)cmap->array;
@@ -581,10 +583,11 @@ NUMA    *na, *nasort;
 
     PROCNAME("pixcmapGetRankIntensity");
 
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
     if (!pindex)
         return ERROR_INT("&index not defined", procName, 1);
+    *pindex = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
     if (rankval < 0.0 || rankval > 1.0)
         return ERROR_INT("rankval not in [0.0 ... 1.0]", procName, 1);
 
@@ -707,14 +710,13 @@ RGBA_QUAD  *cta;
 
     PROCNAME("pixcmapToArrays");
 
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
     if (!prmap || !pgmap || !pbmap)
         return ERROR_INT("&rmap, &gmap, &bmap not all defined", procName, 1);
-
     *prmap = *pgmap = *pbmap = NULL;
-    ncolors = pixcmapGetCount(cmap);
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
 
+    ncolors = pixcmapGetCount(cmap);
     if (((rmap = (l_int32 *)CALLOC(ncolors, sizeof(l_int32))) == NULL) ||
         ((gmap = (l_int32 *)CALLOC(ncolors, sizeof(l_int32))) == NULL) ||
         ((bmap = (l_int32 *)CALLOC(ncolors, sizeof(l_int32))) == NULL))

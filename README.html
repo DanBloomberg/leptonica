@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (1 May 07)
+README  (28 June 07)
 --------------------
 
-gunzip leptonlib-1.44.tar.gz
-tar -xvf leptonlib-1.44.tar
+gunzip leptonlib-1.46.tar.gz
+tar -xvf leptonlib-1.46.tar
 
 
 1.  This tar includes library source, function prototypes,
@@ -83,7 +83,7 @@ tar -xvf leptonlib-1.44.tar
     as described in 2, 3 and 4, respectively.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.44'.  In that directory you will
+    subdirectory 'leptonlib-1.46'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -303,9 +303,10 @@ tar -xvf leptonlib-1.44.tar
 10. This is also a source for simple and relatively efficient
     implementations of image scaling, shear and rotation.
 
-    There are many different scaling operations.  Grayscale and color
-    image scaling are done by sampling, lowpass filtering followed
-    by sampling, area mapping, and linear interpolation.
+    There are many different scaling operations, some of which
+    are listed here.  Grayscale and color image scaling are done
+    by sampling, lowpass filtering followed by sampling,
+    area mapping, and linear interpolation.
     Scaling operations with antialiased sampling, area mapping,
     and linear interpolation are limited to 2, 4 and 8 bpp gray,
     24 bpp full RGB color, and 2, 4 and 8 bpp colormapped
@@ -326,8 +327,8 @@ tar -xvf leptonlib-1.44.tar
     For binary scaling, the dest pixel can be selected from the
     closest corresponding source pixel.  For the special case of 
     power-of-2 binary reduction, low-pass rank-order filtering can be
-    done in advance.  Power-of-2 binary expansion is done by
-    pixel replication.
+    done in advance.  Isotropic integer expansion is done by pixel
+    replication.
 
     We also provide 2x, 3x, 4x, 6x, 8x, and 16x scale-to-gray reduction
     on binary images, to produce high quality reduced grayscale images.

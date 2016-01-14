@@ -16,15 +16,21 @@
 /*
  *   numafunc.c
  *
+ *      Arithmetic
+ *          NUMA        *numaArithOp()
+ *
  *      Simple extractions
  *          l_int32      numaGetMin()
  *          l_int32      numaGetMax()
  *          l_int32      numaGetSum()
  *          NUMA        *numaGetPartialSums()
  *          l_int32      numaGetSumOnInterval()
+ *          NUMA        *numaSubsample()
  *          NUMA        *numaMakeSequence()
+ *          NUMA        *numaMakeConstant()
  *          l_int32      numaGetNonzeroRange()
  *          NUMA        *numaClipToInterval()
+ *          NUMA        *numaMakeThresholdIndicator()
  *
  *      Interpolation
  *          l_int32      numaInterpolateEqxVal()
@@ -99,6 +105,78 @@ static const l_int32 NBinSizes = 24;
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_HISTO    0
 #endif  /* ~NO_CONSOLE_IO */
+
+
+/*----------------------------------------------------------------------*
+ *                         Arithmetic on Numas                          *
+ *----------------------------------------------------------------------*/
+/*!
+ *  numaArithOp()
+ *
+ *      Input:  na1
+ *              na2
+ *              op (L_ARITH_ADD, L_ARITH_SUBTRACT,
+ *                  L_ARITH_MULTIPLY, L_ARITH_DIVIDE)
+ *      Return: nad (operation applied to na1 and na2), or null on error
+ *
+ *  Notes:
+ *      (1) The input numa sizes must be equal.
+ *      (2) To add a constant to a numa, or to multipy a numa by
+ *          a constant, use numaTransform().
+ */
+NUMA *
+numaArithOp(NUMA    *na1,
+            NUMA    *na2,
+            l_int32  op)
+{
+l_int32    i, n;
+l_float32  val1, val2;
+NUMA      *nad;
+
+    PROCNAME("numaArithOp");
+
+    if (!na1 || !na2)
+        return (NUMA *)ERROR_PTR("na1, na2 not both defined", procName, NULL);
+    n = numaGetCount(na1);
+    if (n != numaGetCount(na2))
+        return (NUMA *)ERROR_PTR("na1, na2 sizes differ", procName, NULL);
+    if (op != L_ARITH_ADD && op != L_ARITH_SUBTRACT &&
+        op != L_ARITH_MULTIPLY && op != L_ARITH_DIVIDE)
+        return (NUMA *)ERROR_PTR("invalid op", procName, NULL);
+    if (op == L_ARITH_DIVIDE) {
+        for (i = 0; i < n; i++) {
+            numaGetFValue(na2, i, &val2);
+            if (val2 == 0.0)
+                return (NUMA *)ERROR_PTR("na2 has 0 element", procName, NULL);
+        }
+    }
+            
+    nad = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        numaGetFValue(na1, i, &val1);
+        numaGetFValue(na2, i, &val2);
+        switch (op) {
+        case L_ARITH_ADD:
+            numaAddNumber(nad, val1 + val2);
+            break;
+        case L_ARITH_SUBTRACT:
+            numaAddNumber(nad, val1 - val2);
+            break;
+        case L_ARITH_MULTIPLY:
+            numaAddNumber(nad, val1 * val2);
+            break;
+        case L_ARITH_DIVIDE:
+            numaAddNumber(nad, val1 / val2);
+            break;
+        default:
+            numaDestroy(&nad);
+            fprintf(stderr, " Unknown arith op: %d\n", op);
+            return NULL;
+        }
+    }
+
+    return nad;
+}
 
 
 /*----------------------------------------------------------------------*
@@ -298,6 +376,40 @@ l_float32  val, sum;
 
 
 /*!
+ *  numaSubsample()
+ *
+ *      Input:  nas
+ *              subfactor (subsample factor, >= 1)
+ *      Return: nad (evenly sampled values from nas), or null on error
+ */
+NUMA *
+numaSubsample(NUMA    *nas,
+              l_int32  subfactor)
+{
+l_int32    i, n;
+l_float32  val;
+NUMA      *nad;
+
+    PROCNAME("numaSubsample");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (subfactor < 1)
+        return (NUMA *)ERROR_PTR("subfactor < 1", procName, NULL);
+
+    nad = numaCreate(0);
+    n = numaGetCount(nas);
+    for (i = 0; i < n; i++) {
+        if (i % subfactor != 0) continue;
+        numaGetFValue(nas, i, &val);
+        numaAddNumber(nad, val);
+    }
+
+    return nad;
+}
+
+
+/*!
  *  numaMakeSequence()
  *
  *      Input:  startval
@@ -325,6 +437,22 @@ NUMA      *na;
     }
 
     return na;
+}
+
+
+/*!
+ *  numaMakeConstant()
+ *
+ *      Input:  val
+ *              size (of numa)
+ *      Return: numa of given size with all entries equal to 'val',
+ *              or null on error
+ */
+NUMA *
+numaMakeConstant(l_float32  val,
+                 l_int32    size)
+{
+    return numaMakeSequence(val, 0.0, size);
 }
 
 
@@ -419,6 +547,61 @@ NUMA      *nad;
     }
     
     return nad;
+}
+
+
+/*!
+ *  numaMakeThresholdIndicator()
+ *
+ *      Input:  nas (input numa)
+ *              thresh (threshold value)
+ *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
+ *      Output: nad (indicator array: values are 0 and 1)
+ *
+ *  Notes:
+ *      (1) For each element in nas, if the constraint given by 'type'
+ *          correctly specifies its relation to thresh, a value of 1
+ *          is recorded in nad.
+ */
+NUMA *
+numaMakeThresholdIndicator(NUMA      *nas,
+                           l_float32  thresh,
+                           l_int32    type)
+{
+l_int32    n, i, ival;
+l_float32  fval;
+NUMA      *nai;
+
+    PROCNAME("numaMakeThresholdIndicator");
+
+    n = numaGetCount(nas);
+    nai = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        numaGetFValue(nas, i, &fval);
+        ival = 0;
+        switch (type)
+        {
+        case L_SELECT_IF_LT:
+            if (fval < thresh) ival = 1;
+            break;
+        case L_SELECT_IF_GT:
+            if (fval > thresh) ival = 1;
+            break;
+        case L_SELECT_IF_LTE:
+            if (fval <= thresh) ival = 1;
+            break;
+        case L_SELECT_IF_GTE:
+            if (fval >= thresh) ival = 1;
+            break;
+        default:
+            numaDestroy(&nai);
+            return (NUMA *)ERROR_PTR("invalid type", procName, NULL);
+        }
+        numaAddNumber(nai, ival);
+    }
+
+    return nai;
 }
 
 
@@ -670,11 +853,10 @@ NUMA       *nax, *nay;
 
     PROCNAME("numaInterpolateEqxInterval");
 
+    if (pnax) *pnax = NULL;
     if (!pnay)
         return ERROR_INT("&nay not defined", procName, 1);
     *pnay = NULL;
-    if (pnax)
-        *pnax = NULL;
     if (!nasy)
         return ERROR_INT("nasy not defined", procName, 1);
     if (deltax <= 0.0)
@@ -754,10 +936,10 @@ NUMA       *nasx, *nasy, *nadx, *nady;
 
     PROCNAME("numaInterpolateArbxInterval");
 
+    if (pnadx) *pnadx = NULL;
     if (!pnady)
         return ERROR_INT("&nady not defined", procName, 1);
     *pnady = NULL;
-    if (pnadx) *pnadx = NULL;
     if (!nay)
         return ERROR_INT("nay not defined", procName, 1);
     if (!nax)
@@ -799,7 +981,7 @@ NUMA       *nasx, *nasy, *nadx, *nady;
     if ((index = (l_int32 *)CALLOC(npts, sizeof(l_int32))) == NULL)
         return ERROR_INT("ind not made", procName, 1);
     del = (x1 - x0) / (npts - 1.0);
-    for (i = 0, j = 0; j < nx, i < npts; i++) {
+    for (i = 0, j = 0; j < nx && i < npts; i++) {
         xval = x0 + i * del;
         while (j < nx - 1 && xval > fax[j])
             j++;
@@ -1014,10 +1196,10 @@ NUMA       *nady, *naiy;
 
     PROCNAME("numaDifferentiateInterval");
 
+    if (pnadx) *pnadx = NULL;
     if (!pnady)
         return ERROR_INT("&nady not defined", procName, 1);
     *pnady = NULL;
-    if (pnadx) *pnadx = NULL;
     if (!nay)
         return ERROR_INT("nay not defined", procName, 1);
     if (!nax)
@@ -1917,6 +2099,10 @@ NUMA      *nan, *nar;
 
     PROCNAME("numaMakeRankFromHistogram");
 
+    if (pnax) *pnax = NULL;
+    if (!pnay)
+        return ERROR_INT("&nay not defined", procName, 1);
+    *pnay = NULL;
     if (!nasy)
         return ERROR_INT("nasy not defined", procName, 1);
     if (!pnay)

@@ -22,15 +22,13 @@
  *            thumbwidth: width of thumb images, in pixels; use 0 for default
  *            viewwidth: max width of view images, in pixels; use 0 for default
  *
- *    Note: this program is Unix only; it will not link to
- *          pixHtmlViewer() under cygwin,
- *
+ *    Note: This program is Unix only; it will not link to pixHtmlViewer()
+ *          under cygwin.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
@@ -51,7 +49,6 @@ static char  mainName[] = "viewertest";
     viewwidth = atoi(argv[5]);
 
     pixHtmlViewer(dirin, dirout, rootname, thumbwidth, viewwidth, 0);
-
-    exit(0);
+    return 0;
 }
 

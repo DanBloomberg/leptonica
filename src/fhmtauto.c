@@ -210,13 +210,13 @@ static char   *wplstrm[] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
  *              fileindex
  *      Return: 0 if OK; 1 on error
  *
- *  Action: this function writes two C source files to carry out a
+ *  Notes:
+ *      (1) This function writes two C source files to carry out a
  *          hit-miss transform by the fast dwa method, using all sels
  *          in the input array.  The output filenames are composed
  *          using the fileindex.
- *
- *  Note: each sel must have at least one hit.  A sel with only misses
- *        generates code that will abort the operation if it is called.
+ *      (2) Each sel must have at least one hit.  A sel with only misses
+ *          generates code that will abort the operation if it is called.
  */
 l_int32
 fhmtautogen(SELA    *sela,
@@ -240,10 +240,10 @@ SEL     *sel;
         return ERROR_INT("no sels in sela", procName, 1);
     
     /* --------------------------------------------------------------*
-     *                    generate data for first file               *
+     *                    Generate data for first file               *
      * --------------------------------------------------------------*/
 
-        /* make array of sel names */
+        /* Make array of sel names */
     if ((sa1 = sarrayCreate(nsels)) == NULL)
         return ERROR_INT("sa1 not made", procName, 1);
     for (i = 0; i < nsels; i++) {
@@ -255,16 +255,16 @@ SEL     *sel;
 
 /*    sarrayWriteStream(stderr, sa1); */
 
-        /* get textlines from hmttemplate1.txt */
+        /* Get textlines from hmttemplate1.txt */
     if ((filestr = (char *)arrayRead(TEMPLATE1, &nbytes)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa2 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa2 not made", procName, 1);
-    FREE((void *)filestr);
+    FREE(filestr);
 
 /*    sarrayWriteStream(stderr, sa2); */
 
-        /* special function call strings */
+        /* Special function call strings */
     sprintf(bigbuf, "pixFHMTGen_%d(PIX    *pixd,", fileindex);
     toplevelcall = stringNew(bigbuf);
     sprintf(bigbuf,
@@ -276,18 +276,18 @@ SEL     *sel;
         fileindex);
     lowlevelcall2 = stringNew(bigbuf);
 
-        /* output to this sa */
+        /* Output to this sa */
     if ((sa3 = sarrayCreate(0)) == NULL)
         return ERROR_INT("sa3 not made", procName, 1);
 
-        /* copyright notice and info header: lines 1-24  */
+        /* Copyright notice and info header: lines 1-24  */
     for (i = NSTART1; i <= NSTOP1; i++) {
         if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa3, linestr, 0);
     }
         
-        /* static globals */
+        /* Static globals */
     sprintf(bigbuf, "static l_int32   NUM_SELS_GENERATED = %d;\n", nsels);
     sarrayAddString(sa3, bigbuf, 1);
     sprintf(bigbuf, "static char  *SEL_NAMES[] = {");
@@ -299,37 +299,37 @@ SEL     *sel;
     sprintf(bigbuf, "                             \"%s\"};\n", sarrayGetString(sa1, i, 0));
     sarrayAddString(sa3, bigbuf, 1);
 
-        /* descriptive function header: lines 32-44 */
+        /* Descriptive function header: lines 32-44 */
     for (i = NSTART2; i <= NSTOP2; i++) {
         if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa3, linestr, 0);
     }
 
-        /* incorporate first line of toplevel function call */
+        /* Incorporate first line of toplevel function call */
     sarrayAddString(sa3, toplevelcall, 0);
 
-        /* next patch of function: lines 46-95 */
+        /* Next patch of function: lines 46-95 */
     for (i = NSTART3; i <= NSTOP3; i++) {
         if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa3, linestr, 0);
     }
 
-        /* incorporate first lowlevel function call */
+        /* Incorporate first lowlevel function call */
     sarrayAddString(sa3, lowlevelcall1, 0);
 
-        /* next patch of function: lines 97-99 */
+        /* Next patch of function: lines 97-99 */
     for (i = NSTART4; i <= NSTOP4; i++) {
         if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa3, linestr, 0);
     }
 
-        /* incorporate second lowlevel function call */
+        /* Incorporate second lowlevel function call */
     sarrayAddString(sa3, lowlevelcall2, 0);
 
-        /* rest of hmttemplate1.txt: lines 101-105 */
+        /* Rest of hmttemplate1.txt: lines 101-105 */
     for (i = NSTART5; i <= NSTOP5; i++) {
         if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
@@ -337,7 +337,7 @@ SEL     *sel;
     }
 
     /* --------------------------------------------------------------*
-     *                       output to first file                    *
+     *                       Output to first file                    *
      * --------------------------------------------------------------*/
 
     if ((filestr = sarrayToString(sa3, 1)) == NULL)
@@ -348,20 +348,20 @@ SEL     *sel;
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
-    FREE((void *)filestr);
+    FREE(filestr);
         
     /* --------------------------------------------------------------*
-     *                   generate data for second file               *
+     *                   Generate data for second file               *
      * --------------------------------------------------------------*/
 
-        /* get textlines from hmttemplate2.txt */
+        /* Get textlines from hmttemplate2.txt */
     if ((filestr = (char *)arrayRead(TEMPLATE2, &nbytes)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa1 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa1 not made", procName, 1);
-    FREE((void *)filestr);
+    FREE(filestr);
 
-        /* make the static function names */
+        /* Make the static function names */
     if ((sa2 = sarrayCreate(nsels)) == NULL)
         return ERROR_INT("sa2 not made", procName, 1);
     for (i = 0; i < nsels; i++) {
@@ -369,7 +369,7 @@ SEL     *sel;
         sarrayAddString(sa2, bigbuf, 1);
     }
 
-        /* make the static prototype strings */
+        /* Make the static prototype strings */
     if ((sa3 = sarrayCreate(2 * nsels)) == NULL)
         return ERROR_INT("sa3 not made", procName, 1);
     for (i = 0; i < nsels; i++) {
@@ -378,46 +378,46 @@ SEL     *sel;
         sarrayAddString(sa3, bigbuf, 1);
     }
 
-        /* make the dispatcher first line */
+        /* Make the dispatcher first line */
     sprintf(bigbuf, "fhmtgen_low_%d(l_uint32  *datad,", fileindex);
     lowleveldefine = stringNew(bigbuf);
 
-        /* output to this sa */
+        /* Output to this sa */
     if ((sa4 = sarrayCreate(0)) == NULL)
         return ERROR_INT("sa4 not made", procName, 1);
 
-        /* copyright notice and info header: lines 1-28  */
+        /* Copyright notice and info header: lines 1-28  */
     for (i = NSTART6; i <= NSTOP6; i++) {
         if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa4, linestr, 0);
     }
         
-        /* insert static protos */
+        /* Insert static protos */
     for (i = 0; i < nsels; i++) {
         if ((linestr = sarrayGetString(sa3, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa4, linestr, 0);
     }
         
-        /* function info header: lines 32-42  */
+        /* Function info header: lines 32-42  */
     for (i = NSTART7; i <= NSTOP7; i++) {
         if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa4, linestr, 0);
     }
         
-        /* incorporate first line of dispatcher */
+        /* Incorporate first line of dispatcher */
     sarrayAddString(sa4, lowleveldefine, 0);
 
-        /* beginning of function body: lines 44-55  */
+        /* Beginning of function body: lines 44-55  */
     for (i = NSTART8; i <= NSTOP8; i++) {
         if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa4, linestr, 0);
     }
 
-        /* make the dispatcher code */
+        /* Make the dispatcher code */
     for (i = 0; i < nsels; i++) {
         sprintf(bigbuf, "    case %d:", i);
         sarrayAddString(sa4, bigbuf, 1);
@@ -427,14 +427,14 @@ SEL     *sel;
         sarrayAddString(sa4, "        break;", 1);
     }
 
-        /* intro to static function routines: lines 59-76  */
+        /* Intro to static function routines: lines 59-76  */
     for (i = NSTART9; i <= NSTOP9; i++) {
         if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
         sarrayAddString(sa4, linestr, 0);
     }
 
-        /* do all the static functions */
+        /* Do all the static functions */
     for (i = 0; i < nsels; i++) {
 
         sarrayAddString(sa4, "static void", 1);
@@ -442,14 +442,14 @@ SEL     *sel;
         sprintf(bigbuf, "%s(l_uint32  *datad,", fname);
         sarrayAddString(sa4, bigbuf, 1);
 
-            /* finish function header:  lines 79-87 */
+            /* Finish function header:  lines 79-87 */
         for (j = NSTART10; j <= NSTOP10; j++) {
             if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
                 return ERROR_INT("linestr not retrieved", procName, 1);
             sarrayAddString(sa4, linestr, 0);
         }
 
-            /* declare and define wplsN args, as necessary */
+            /* Declare and define wplsN args, as necessary */
         if ((sel = selaGetSel(sela, i)) == NULL)
             return ERROR_INT("sel not returned", procName, 1);
         if ((sa5 = sarrayMakeWplsCode(sel)) == NULL) 
@@ -457,7 +457,7 @@ SEL     *sel;
         sarrayConcatenate(sa4, sa5);
         sarrayDestroy(&sa5);
         
-            /* make sure sel has at least one hit */
+            /* Make sure sel has at least one hit */
         nhits = 0;
         nmisses = 0;
         for (k = 0; k < sel->sy; k++) {
@@ -474,20 +474,20 @@ SEL     *sel;
             continue;
         }
 
-            /* start function loop definition:  lines 92-97 */
+            /* Start function loop definition:  lines 92-97 */
         for (j = NSTART11; j <= NSTOP11; j++) {
             if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
                 return ERROR_INT("linestr not retrieved", procName, 1);
             sarrayAddString(sa4, linestr, 0);
         }
 
-            /* insert barrel-op code for *dptr */
+            /* Insert barrel-op code for *dptr */
         if ((sa6 = sarrayMakeInnerLoopDWACode(sel, nhits, nmisses)) == NULL)
             return ERROR_INT("sa6 not made", procName, 1);
         sarrayConcatenate(sa4, sa6);
         sarrayDestroy(&sa6);
 
-            /* finish function loop definition:  lines 101-105 */
+            /* Finish function loop definition:  lines 101-105 */
         for (j = NSTART12; j <= NSTOP12; j++) {
             if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
                 return ERROR_INT("linestr not retrieved", procName, 1);
@@ -497,7 +497,7 @@ SEL     *sel;
     }
 
     /* --------------------------------------------------------------*
-     *                     output to second file                     *
+     *                     Output to second file                     *
      * --------------------------------------------------------------*/
 
     if ((filestr = sarrayToString(sa4, 1)) == NULL)
@@ -509,7 +509,7 @@ SEL     *sel;
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
-    FREE((void *)filestr);
+    FREE(filestr);
         
     return 0;
 }
@@ -549,7 +549,7 @@ SARRAY  *sa;
     if ((sa = sarrayCreate(0)) == NULL)
         return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
 
-        /* declarations */
+        /* Declarations */
     if (ymax > 4)
         sarrayAddString(sa, wpldecls[2], 1);
     if (ymax > 8)
@@ -569,7 +569,7 @@ SARRAY  *sa;
 
     sarrayAddString(sa, "    ", 1);
 
-        /* definitions */
+        /* Definitions */
     for (i = 2; i <= ymax; i++)
         sarrayAddString(sa, wpldefs[i - 2], 1);
 
@@ -622,7 +622,7 @@ SARRAY  *sa;
                 else  /* nfound == ntot */
                     sprintf(bigbuf, "                    %s;", string);
                 sarrayAddString(sa, bigbuf, 1);
-                FREE((void *)string);
+                FREE(string);
             }
         }
     }

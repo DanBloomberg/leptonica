@@ -14,7 +14,10 @@
  *====================================================================*/
 
 /*
- *  numatest2.c
+ *  extrematest.c
+ *
+ *     Tests procedure for locating extrema (minima and maxima)
+ *     of a sampled function.
  */
 
 #include <stdio.h>
@@ -30,12 +33,11 @@ l_int32      i, ival, n;
 l_float32    f, val;
 GPLOT       *gplot;
 NUMA        *na1, *na2, *na3;
-static char  mainName[] = "numatest2";
+static char  mainName[] = "extrematest";
 
     if (argc != 1)
-        return ERROR_INT("Syntax: numatest", mainName, 1);
+        return ERROR_INT("Syntax: extrematest", mainName, 1);
 
-#if 1  /* test extrema */
     na1 = numaCreate(500);
     for (i = 0; i < 500; i++) {
         f = 48.3 * sin(0.13 * (l_float32)i);
@@ -44,6 +46,7 @@ static char  mainName[] = "numatest2";
     }
     gplot = gplotCreate("junktest", GPLOT_X11, "Extrema test", "x", "y");
     gplotAddPlot(gplot, NULL, na1, GPLOT_LINES, "plot 1");
+
     na2 = numaFindExtrema(na1, 38.3);
     n = numaGetCount(na2);
     na3 = numaCreate(n);
@@ -58,7 +61,6 @@ static char  mainName[] = "numatest2";
     numaDestroy(&na1);
     numaDestroy(&na2);
     numaDestroy(&na3);
-#endif
 
-	return 0;
+    return 0;
 }

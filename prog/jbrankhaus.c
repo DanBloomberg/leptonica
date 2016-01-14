@@ -101,7 +101,7 @@ static char  mainName[] = "jbrankhaus";
 
     /*--------------------------------------------------------------*/
 
-    safiles = getSortedPathnamesInDirectory(dirin, firstpage, npages);
+    safiles = getSortedPathnamesInDirectory(dirin, NULL, firstpage, npages);
     nfiles = sarrayGetCount(safiles);
 
 /*    sarrayWriteStream(stderr, safiles); */

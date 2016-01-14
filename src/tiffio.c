@@ -50,7 +50,7 @@ static const l_int32  DEFAULT_RESOLUTION = 300;   /* ppi */
 static const l_int32  MAX_PAGES_IN_TIFF_FILE = 1000;  /* should be enough */
 
 
-    /* all functions with TIFF interfaces are static */
+    /* All functions with TIFF interfaces are static */
 static TIFF      *fopenTiff(FILE *fp, const char *modestr); 
 static PIX       *pixReadFromTiffStream(TIFF *tif);
 static l_int32    writeCustomTiffTags(TIFF *tif, NUMA *natags,
@@ -94,8 +94,9 @@ static struct tiff_transform tiff_orientation_transforms[] = {
  *              page number (0 based)
  *      Return: pix, or null on error
  *
- *  Note: this is a version of pixRead(), specialized for tiff
- *        files, that allows specification of the page to be returned
+ *  Notes:
+ *      (1) This is a version of pixRead(), specialized for tiff
+ *          files, that allows specification of the page to be returned
  */
 PIX *
 pixReadTiff(const char  *filename,
@@ -283,7 +284,7 @@ PIXCMAP   *cmap;
         }
     }
 
-    FREE((char *)linebuf);
+    FREE(linebuf);
     return pix;
 }
 
@@ -376,8 +377,8 @@ TIFF    *tif;
  *              modestring ("a" or "w")
  *      Return: 0 if OK, 1 on error
  *
- *  Usage: write the first pix with "w" and all subsequent
- *         ones with "a".
+ *  Notes:
+ *      (1) Write the first pix with "w" and all subsequent ones with "a".
  */
 l_int32
 pixWriteTiff(const char  *filename,
@@ -417,17 +418,18 @@ TIFF    *tif;
  *                        IFF_TIFF_G3, IFF_TIFF_G4)
  *      Return: 0 if OK, 1 on error
  *
- *  Notes: For images with bpp > 1, this resets the comptype, if
- *         necessary, to write uncompressed data.  G3 and G4
- *         are only defined for 1 bpp.  We only allow PACKBITS
- *         for bpp = 1, because for bpp > 1 it typically expands
- *         images that are not synthetically generated.
- *         G4 compression is typically about twice as good as G3.
- *         G4 is excellent for binary compression of text/line-art,
- *         but terrible for halftones and dithered patterns.  (In
- *         fact, G4 on halftones can give a file that is larger
- *         than uncompressed!)  If a binary image has dithered
- *         regions, it is usually better to compress with png.
+ *  Notes:
+ *      (1) For images with bpp > 1, this resets the comptype, if
+ *          necessary, to write uncompressed data.
+ *      (2) G3 and G4 are only defined for 1 bpp.
+ *      (3) We only allow PACKBITS for bpp = 1, because for bpp > 1
+ *          it typically expands images that are not synthetically generated.
+ *      (4) G4 compression is typically about twice as good as G3.
+ *          G4 is excellent for binary compression of text/line-art,
+ *          but terrible for halftones and dithered patterns.  (In
+ *          fact, G4 on halftones can give a file that is larger
+ *          than uncompressed!)  If a binary image has dithered
+ *          regions, it is usually better to compress with png.
  */
 l_int32
 pixWriteStreamTiff(FILE    *fp,
@@ -556,9 +558,9 @@ char      *text;
         }
         for (i = ncolors; i < cmapsize; i++)  /* init, even though not used */
             redmap[i] = greenmap[i] = bluemap[i] = 0;
-        FREE((void *)rmap);
-        FREE((void *)gmap);
-        FREE((void *)bmap);
+        FREE(rmap);
+        FREE(gmap);
+        FREE(bmap);
 
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_PALETTE);
         TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)1);
@@ -602,7 +604,7 @@ char      *text;
 
     if (d != 32) {
         if ((pixt = pixEndianByteSwapNew(pix)) == NULL) {
-            FREE((char *)linebuf);
+            FREE(linebuf);
             return ERROR_INT("pixt not made", procName, 1);
         }
         data = (l_uint8 *)pixGetData(pixt);
@@ -629,7 +631,7 @@ char      *text;
     }
 
 /*    TIFFWriteDirectory(tif); */
-    FREE((char *)linebuf);
+    FREE(linebuf);
 
     return 0;
 }
@@ -645,7 +647,7 @@ char      *text;
  *              nasizes (<optional> NUMA of sizes)
  *      Return: 0 if OK, 1 on error
  *
- *  Usage:
+ *  Notes: 
  *      (1) This static function should be called indirectly through
  *          higher level functions, such as pixWriteTiffCustom(),
  *          which call pixWriteToTiffStream().  See details in
@@ -850,7 +852,8 @@ TIFF        *tif;
  *              &cmap (<optional return>; colormap exists; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  * 
- *  Note: if there is a colormap, cmap is returned as 1; else 0.
+ *  Notes:
+ *      (1) If there is a colormap, cmap is returned as 1; else 0.
  */
 l_int32
 readHeaderTiff(const char *filename,

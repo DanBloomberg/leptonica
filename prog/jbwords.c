@@ -19,6 +19,7 @@
  *     jbwords dirin thresh weight rootname [firstpage npages]
  *
  *         dirin:  directory of input pages
+ *         reduction: 1 (full res) or 2 (half-res)
  *         thresh: 0.80 is a reasonable compromise between accuracy
  *                 and number of classes, for characters
  *         weight: 0.6 seems to work reasonably with thresh = 0.8.
@@ -35,7 +36,7 @@
 
     /* Eliminate very large "words" */
 static const l_int32  MAX_WORD_WIDTH = 500;
-static const l_int32  MAX_WORD_HEIGHT = 100;
+static const l_int32  MAX_WORD_HEIGHT = 200;
 
 #define   BUF_SIZE                  512
 
@@ -49,7 +50,7 @@ main(int    argc,
 {
 char         filename[BUF_SIZE];
 char        *dirin, *rootname, *fname;
-l_int32      i, firstpage, npages, nfiles;
+l_int32      reduction, i, firstpage, npages, nfiles;
 l_float32    thresh, weight;
 JBDATA      *data;
 JBCLASSER   *classer;
@@ -59,27 +60,29 @@ PIX         *pix;
 PIXA        *pixa, *pixadb;
 static char  mainName[] = "jbwords";
 
-    if (argc != 5 && argc != 7)
+    if (argc != 6 && argc != 8)
 	exit(ERROR_INT(
-	     " Syntax: jbwords dirin thresh weight rootname [firstpage, npages]",
+ " Syntax: jbwords dirin reduction thresh weight rootname [firstpage, npages]",
 	     mainName, 1));
 
     dirin = argv[1];
-    thresh = atof(argv[2]);
-    weight = atof(argv[3]);
-    rootname = argv[4];
+    reduction = atoi(argv[2]);
+    thresh = atof(argv[3]);
+    weight = atof(argv[4]);
+    rootname = argv[5];
 
-    if (argc == 5) {
+    if (argc == 6) {
         firstpage = 0;
 	npages = 0;
     }
     else {
-        firstpage = atoi(argv[5]);
-        npages = atoi(argv[6]);
+        firstpage = atoi(argv[6]);
+        npages = atoi(argv[7]);
     }
 
-    classer = jbWordsInTextlines(dirin, MAX_WORD_WIDTH, MAX_WORD_HEIGHT,
-	                         thresh, weight, &natl, firstpage, npages);
+    classer = jbWordsInTextlines(dirin, reduction, MAX_WORD_WIDTH,
+                                 MAX_WORD_HEIGHT, thresh, weight,
+                                 &natl, firstpage, npages);
 
         /* Save and write out the result */
     data = jbDataSave(classer);

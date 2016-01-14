@@ -54,7 +54,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "allheaders.h"
 
 #define  NFONTS  9
@@ -255,11 +254,11 @@ l_int32  bl;
 
     PROCNAME("bmfGetBaseline");
 
-    if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
     if (!pbaseline)
         return ERROR_INT("&baseline not defined", procName, 1);
-    *pbaseline = 0;  /* init */
+    *pbaseline = 0;
+    if (!bmf)
+        return ERROR_INT("bmf not defined", procName, 1);
     bl = bmf->baselinetab[(l_int32)chr];
     if (bl == UNDEF)
         return ERROR_INT("no bitmap representation", procName, 1);
@@ -313,7 +312,6 @@ PIXA     *pixa;
 
     if (!pixa)
         ERROR_PTR("pixa of char bitmaps not found", procName, NULL);
-
     return pixa;
 }
 
@@ -366,11 +364,11 @@ PIXA    *pixa;
 /*!
  *  pixaGenerateFont()
  *
- *      Input: dir (directory holding image of character set)
- *             size (4, 6, 8, ... , 20, in pts at 300 ppi)
- *             &bl1 (<return> baseline of row 1)
- *             &bl2 (<return> baseline of row 2)
- *             &bl3 (<return> baseline of row 3)
+ *      Input:  dir (directory holding image of character set)
+ *              size (4, 6, 8, ... , 20, in pts at 300 ppi)
+ *              &bl1 (<return> baseline of row 1)
+ *              &bl2 (<return> baseline of row 2)
+ *              &bl3 (<return> baseline of row 3)
  *      Return: pixa of font bitmaps for 95 characters, or null on error
  *
  *  These font generation functions use 9 sets, each with bitmaps
@@ -546,7 +544,8 @@ PIXA     *pixa;
  *  Notes:
  *      (1) Method: find the largest difference in pixel sums from one
  *          raster line to the next one below it.  The baseline is the
- *          upper line for the line pair that maximizes this function.
+ *          upper raster line for the pair of raster lines that
+ *          maximizes this function.
  */
 static l_int32
 pixGetTextBaseline(PIX      *pixs,
@@ -579,7 +578,7 @@ NUMA     *na;
         diff = L_MAX(0, val1 - val2);
         if (diff > diffmax) {
             diffmax = diff;
-            ymax = i - 1;
+            ymax = i - 1;  /* upper raster line */
         }
     }
     *py = ymax;
@@ -597,30 +596,29 @@ NUMA     *na;
  *      Input:  bmf
  *      Return: 0 if OK, 1 on error
  *
- *  Makes three tables, each of size 128, as follows:
- *     - fonttab is a table containing the index of the Pix
- *       that corresponds to each input ascii character;
- *       it maps (ascii-index) --> Pixa index
- *     - baselinetab is a table containing the baseline offset
- *       for the Pix that corresponds to each input ascii character;
- *       it maps (ascii-index) --> baseline offset
- *     - widthtab is a table containing the character width in
- *       pixels for the Pix that corresponds to that character;
- *       it maps (ascii-index) --> bitmap width
- *  Also computes
- *     - lineheight (sum of maximum character extensions above and
- *                   below the baseline)
- *     - kernwidth (spacing between characters within a word)
- *     - spacewidth (space between words)
- *     - vertlinesep (extra vertical spacing between textlines)
- *
- *  The baselines apply as follows:
- *       baseline1   (ascii 32 - 57), ascii 92
- *       baseline2   (ascii 58 - 91)
- *       baseline3   (ascii 93 - 126)
- *
- *  Note that the only array in bmf that is not ascii-based is
- *  the array of bitmaps in the pixa, which starts at ascii 32.
+ *  Notes:
+ *      (1) This makes three tables, each of size 128, as follows:
+ *          - fonttab is a table containing the index of the Pix
+ *            that corresponds to each input ascii character;
+ *            it maps (ascii-index) --> Pixa index
+ *          - baselinetab is a table containing the baseline offset
+ *            for the Pix that corresponds to each input ascii character;
+ *            it maps (ascii-index) --> baseline offset
+ *          - widthtab is a table containing the character width in
+ *            pixels for the Pix that corresponds to that character;
+ *            it maps (ascii-index) --> bitmap width
+ *     (2) This also computes
+ *          - lineheight (sum of maximum character extensions above and
+ *                        below the baseline)
+ *          - kernwidth (spacing between characters within a word)
+ *          - spacewidth (space between words)
+ *          - vertlinesep (extra vertical spacing between textlines)
+ *     (3) The baselines apply as follows:
+ *          baseline1   (ascii 32 - 57), ascii 92
+ *          baseline2   (ascii 58 - 91)
+ *          baseline3   (ascii 93 - 126)
+ *     (4) The only array in bmf that is not ascii-based is the
+ *         array of bitmaps in the pixa, which starts at ascii 32.
  */
 static l_int32
 bmfMakeAsciiTables(BMF  *bmf)

@@ -51,15 +51,16 @@ static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
  *              &nout  (<return> number of bytes of output data)
  *      Return: dataout (compressed data), or null on error
  *
- *  Note: We repeatedly read in and fill up an input buffer,
- *        compress the data, and read it back out.  zlib
- *        uses two byte buffers internally in the z_stream
- *        data structure.  We use the bbuffers to feed data
- *        into the fixed bufferin, and feed it out of bufferout,
- *        in the same way that a pair of streams would normally
- *        be used if the data were being read from one file
- *        and written to another.  This is done iteratively,
- *        compressing L_BUF_SIZE bytes of input data at a time.
+ *  Notes:
+ *      (1) We repeatedly read in and fill up an input buffer,
+ *          compress the data, and read it back out.  zlib
+ *          uses two byte buffers internally in the z_stream
+ *          data structure.  We use the bbuffers to feed data
+ *          into the fixed bufferin, and feed it out of bufferout,
+ *          in the same way that a pair of streams would normally
+ *          be used if the data were being read from one file
+ *          and written to another.  This is done iteratively,
+ *          compressing L_BUF_SIZE bytes of input data at a time.
  */
 l_uint8 *
 zlibCompress(l_uint8  *datain,
@@ -77,13 +78,13 @@ z_stream  z;
     if (!datain)
         return (l_uint8 *)ERROR_PTR("datain not defined", procName, NULL);
 
-        /* set up fixed size buffers used in z_stream */
+        /* Set up fixed size buffers used in z_stream */
     if ((bufferin = (l_uint8 *)CALLOC(L_BUF_SIZE, sizeof(l_uint8))) == NULL)
         return (l_uint8 *)ERROR_PTR("bufferin not made", procName, NULL);
     if ((bufferout = (l_uint8 *)CALLOC(L_BUF_SIZE, sizeof(l_uint8))) == NULL)
         return (l_uint8 *)ERROR_PTR("bufferout not made", procName, NULL);
 
-        /* set up bbuffers and load bbin with the data */
+        /* Set up bbuffers and load bbin with the data */
     if ((bbin = bbufferCreate(datain, nin)) == NULL)
         return (l_uint8 *)ERROR_PTR("bbin not made", procName, NULL);
     if ((bbout = bbufferCreate(NULL, 0)) == NULL)
@@ -126,8 +127,8 @@ z_stream  z;
     bbufferDestroy(&bbin);
     dataout = bbufferDestroyAndSaveData(&bbout, pnout);
 
-    FREE((void *)bufferin);
-    FREE((void *)bufferout);
+    FREE(bufferin);
+    FREE(bufferout);
     return dataout;
 }
         
@@ -140,7 +141,8 @@ z_stream  z;
  *              &nout  (<return> number of bytes of output data)
  *      Return: dataout (uncompressed data), or null on error
  *
- *  Note: see comments in zlibCompress()
+ *  Notes:
+ *      (1) See zlibCompress().
  */
 l_uint8 *
 zlibUncompress(l_uint8  *datain,
@@ -204,8 +206,8 @@ z_stream  z;
     bbufferDestroy(&bbin);
     dataout = bbufferDestroyAndSaveData(&bbout, pnout);
 
-    FREE((void *)bufferin);
-    FREE((void *)bufferout);
+    FREE(bufferin);
+    FREE(bufferout);
     return dataout;
 }
 

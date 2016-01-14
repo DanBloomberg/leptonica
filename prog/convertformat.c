@@ -48,7 +48,7 @@ main(int    argc,
 {
 PIX         *pixs;
 char        *filein, *fileout, *format, *base, *ext;
-char         error_msg[] = "Valid formats: BMP, JPEG, PNG, TIFF, TIFF_G4, PNM.";
+char         error_msg[] = "Valid formats: BMP, JPEG, PNG, TIFF, TIFF_G4, PNM";
 l_int32      d;
 static char  mainName[] = "convertformat";
 
@@ -78,7 +78,7 @@ static char  mainName[] = "convertformat";
             format = "PNM";
         else
             return ERROR_INT(error_msg, mainName, 1);
-        FREE((void *)ext);
+        FREE(ext);
     }
     else
         format = argv[3];

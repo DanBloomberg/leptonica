@@ -50,7 +50,7 @@ static char  mainName[] = "binmazetest";
     pathout = argv[2];
 
     pixm = generateBinaryMaze(WIDTH, HEIGHT, XINIT, YINIT, WALLPS, RANIS);
-    pixex = pixExpandBinary(pixm, 4);
+    pixex = pixExpandBinaryPower2(pixm, 4);
     pixDisplay(pixex, 50, 50);
     pixDestroy(&pixex);
     pixWrite(mazeout, pixm, IFF_PNG);

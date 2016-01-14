@@ -18,6 +18,7 @@
  *
  *      Numa creation, destruction, copy, clone, etc.
  *          NUMA        *numaCreate()
+ *          NUMA        *numaCreateWithIArray()
  *          void        *numaDestroy()
  *          NUMA        *numaCopy()
  *          NUMA        *numaClone()
@@ -148,6 +149,37 @@ NUMA  *na;
     na->nalloc = n;
     na->n = 0;
     na->refcount = 1;
+
+    return na;
+}
+
+
+/*!
+ *  numaCreateWithIArray()
+ *
+ *      Input:  int array
+ *              size (of the array)
+ *      Return: na, or null on error
+ *
+ *  Notes:
+ *      (1) This just copies the data from the int array into the numa.
+ *      (2) The input array is NOT owned by the numa.
+ */
+NUMA *
+numaCreateWithIArray(l_int32  *array,
+                     l_int32   size)
+{
+l_int32  i;
+NUMA    *na;
+
+    PROCNAME("numaCreateWithIArray");
+
+    if (!array)
+        return (NUMA *)ERROR_PTR("array not defined", procName, NULL);
+
+    na = numaCreate(size);
+    for (i = 0; i < size; i++)
+        numaAddNumber(na, array[i]);
 
     return na;
 }
@@ -505,7 +537,11 @@ numaSetValue(NUMA      *na,
  *              by rounding, or null on error
  *  Notes:
  *      (1) A copy is always made, because we need to generate an
- *          integer array from the bare float array.
+ *          integer array from the bare float array.  The caller
+ *          is responsible for freeing the array.
+ *      (2) This function is provided to simplify calculations
+ *          using the bare internal array (rather than continually
+ *          calling accessors on the numa).
  */
 l_int32 *
 numaGetIArray(NUMA  *na)
@@ -535,11 +571,21 @@ l_int32  *array;
  *
  *      Input:  na
  *              copyflag (L_NOCOPY or L_COPY)
- *      Return: the bare internal array, or null on error
+ *      Return: either the bare internal array or a copy of it,
+ *              or null on error
  *
  *  Notes:
  *      (1) If copyflag == L_COPY, it makes a copy which the caller
- *          is responsible for destroying.
+ *          is responsible for freeing.  Otherwise, it operates
+ *          directly on the bare array of the numa.
+ *      (2) Very important: remember that the count field is, in general,
+ *          less than the size of the array (the alloc field).  If
+ *          you are accessing the bare array of a numa, you must be
+ *          sure that the count field equals the size of the array.
+ *          Otherwise, operations on array elements beyond the count
+ *          will not be accessable from the numa.  If the count field
+ *          is less than the array size, it is increased to the array size
+ *          and a warning is issued.
  */
 l_float32 *
 numaGetFArray(NUMA    *na,
@@ -554,8 +600,13 @@ l_float32  *array;
         return (l_float32 *)ERROR_PTR("na not defined", procName, NULL);
 
     n = numaGetCount(na);
-    if (copyflag == L_NOCOPY)
+    if (copyflag == L_NOCOPY) {
+        if (n < na->nalloc) { 
+            na->n = na->nalloc;
+            L_WARNING("count field increased to nalloc!", procName);
+        }
         array = na->array;
+    }
     else {  /* copyflag == L_COPY */
         if ((array = (l_float32 *)CALLOC(n, sizeof(l_float32))) == NULL)
             return (l_float32 *)ERROR_PTR("array not made", procName, NULL);

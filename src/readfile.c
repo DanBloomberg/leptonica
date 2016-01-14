@@ -57,70 +57,57 @@ static const char *FILE_JPG =  "/usr/tmp/junkout.jpg";
 /*---------------------------------------------------------------------*
  *         Top-level procedures for reading images from file           *
  *---------------------------------------------------------------------*/
+
+#ifndef CYGWIN_ENVIRON  /* this uses unix-type directory lookup */
+
 /*!
  *  pixaReadFiles()
  *
  *      Input:  dirname
- *              root
+ *              substr (<optional> substring filter on filenames; can be NULL)
  *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) 'dirname' is the full path for the directory.
- *      (2) 'root' is the part of the file name (excluding
+ *      (2) 'substr' is the part of the file name (excluding
  *          the directory) that is to be matched.  All matching
- *          filenames are read into the Pixa.
+ *          filenames are read into the Pixa.  If substr is NULL,
+ *          all filenames are read into the Pixa.
  */
 PIXA *
 pixaReadFiles(const char  *dirname,
-              const char  *root)
+              const char  *substr)
 {
 char    *str;
-l_int32  i, n1, n2, len;
+l_int32  i, n;
 PIX     *pix;
 PIXA    *pixa;
-SARRAY  *sa1, *sa2, *sa3;
+SARRAY  *sa;
 
     PROCNAME("pixaReadFiles");
 
     if (!dirname)
         return (PIXA *)ERROR_PTR("dirname not defined", procName, NULL);
-    if (!root)
-        return (PIXA *)ERROR_PTR("rootname not defined", procName, NULL);
-    len = strlen(root);
 
-    if ((sa1 = getFilenamesInDirectory(dirname)) == NULL)
-        return (PIXA *)ERROR_PTR("sa1 not made", procName, NULL);
+    if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
+        return (PIXA *)ERROR_PTR("sa not made", procName, NULL);
 
-        /* Save the matching files */
-    sa2 = sarrayCreate(0);
-    n1 = sarrayGetCount(sa1);
-    for (i = 0; i < n1; i++) {
-        str = sarrayGetString(sa1, i, L_NOCOPY);
-        if (!strncmp(str, root, len))
-            sarrayAddString(sa2, str, L_COPY);
-    }
-    sarrayDestroy(&sa1);
-
-    if ((n2 = sarrayGetCount(sa2)) == 0) {
-        L_WARNING("no matching filenames", procName);
-	return pixaCreate(1);   /* empty */
-    }
-    
-        /* Sort the filenames and read the files */
-    sa3 = sarraySort(NULL, sa2, L_SORT_INCREASING);
-    if ((pixa = pixaCreate(n2)) == NULL)
-        return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
-    for (i = 0; i < n2; i++) {
-        str = sarrayGetString(sa3, i, L_NOCOPY);
-        if ((pix = pixRead(str)) == NULL)
-            L_WARNING("pix not read from file", procName);
+    n = sarrayGetCount(sa);
+    pixa = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        if ((pix = pixRead(str)) == NULL) {
+            L_WARNING_STRING("pix not read from file %s", procName, str);
+            continue;
+        }
 	pixaAddPix(pixa, pix, L_INSERT);
     }
 
-    sarrayDestroy(&sa2);
-    sarrayDestroy(&sa3);
+    sarrayDestroy(&sa);
     return pixa;
 }
+
+#endif  /* ~CYGWIN_ENVIRON */
 
 
 /*!

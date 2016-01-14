@@ -86,11 +86,13 @@ enum {
 };
 
 /*
- *  Use in grayscale arithmetic
+ *  Use in arithmetic on 2 grayscale images or on 2 numas
  */
 enum {
     L_ARITH_ADD       = 1,
-    L_ARITH_SUBTRACT  = 2
+    L_ARITH_SUBTRACT  = 2,
+    L_ARITH_MULTIPLY  = 3,   /* on numas only               */
+    L_ARITH_DIVIDE    = 4    /* on numas only               */
 };
 
 /*

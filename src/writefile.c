@@ -111,11 +111,12 @@ PIX     *pix;
  *              format  (defined in imageio.h)
  *      Return: 0 if OK; 1 on error
  *
- *  Note: We open for write using binary mode (with the "b" flag)
- *        to avoid having Windows automatically translate the NL
- *        into CRLF, which corrupts image files.  On non-windows
- *        systems this flag should be ignored, per ISO C90.
- *        Thanks to Dave Bryan for pointing this out.
+ *  Notes:
+ *      (1) Open for write using binary mode (with the "b" flag)
+ *          to avoid having Windows automatically translate the NL
+ *          into CRLF, which corrupts image files.  On non-windows
+ *          systems this flag should be ignored, per ISO C90.
+ *          Thanks to Dave Bryan for pointing this out.
  */
 l_int32
 pixWrite(const char  *filename, 
@@ -147,10 +148,10 @@ FILE  *fp;
 /*!
  *  pixWriteStream()
  *
- *       Input:  stream
- *               pix
- *               format
- *       Return: 0 if OK; 1 on error.
+ *      Input:  stream
+ *              pix
+ *              format
+ *      Return: 0 if OK; 1 on error.
  */
 l_int32
 pixWriteStream(FILE    *fp, 
@@ -223,7 +224,8 @@ pixWriteStream(FILE    *fp,
  *      Input:  pix
  *      Return: output format, or 0 on error
  *
- *  Note: this should only be called if the requested format is IFF_DEFAULT.
+ *  Notes:
+ *      (1) This should only be called if the requested format is IFF_DEFAULT.
  */
 l_int32
 pixChooseOutputFormat(PIX  *pix)
@@ -238,7 +240,7 @@ l_int32  d, format;
     d = pixGetDepth(pix);
     format = pixGetInputFormat(pix);
     if (format == IFF_UNKNOWN) {
-        if (d <= 4)
+        if (d < 8)
             format = IFF_PNG;
         else
             format = IFF_JFIF_JPEG;
@@ -275,7 +277,7 @@ pixDisplay(PIX     *pixs,
            l_int32  x,
            l_int32  y)
 {
-    return pixDisplayWithTitle(pixs, x, y, NULL);
+    return pixDisplayWithTitle(pixs, x, y, NULL, 1);
 }
 
 
@@ -285,16 +287,19 @@ pixDisplay(PIX     *pixs,
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
  *              x, y  (location of xv frame)
  *              title (<optional> on xv window; can be NULL);
+ *              dispflag (0 to disable; 1 to write)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) See notes for pixDisplay()
+ *      (1) See notes for pixDisplay().
+ *      (2) This displays the image if dispflag == 1.
  */
 l_int32
 pixDisplayWithTitle(PIX         *pixs,
                     l_int32      x,
                     l_int32      y,
-                    const char  *title)
+                    const char  *title,
+		    l_int32      dispflag)
 {
 char           *tempname;
 char            buffer[L_BUF_SIZE];
@@ -305,12 +310,11 @@ PIX            *pixt;
 
     PROCNAME("pixDisplayWithTitle");
 
+    if (dispflag == 0) return 0;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (w <= MAX_DISPLAY_WIDTH && h <= MAX_DISPLAY_HEIGHT)
         pixt = pixClone(pixs);
     else {
@@ -366,27 +370,31 @@ PIX            *pixt;
  *  pixDisplayWrite()
  *
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
- *              writeflag (1 to enable; 0 to disable)
+ *              reduction (0 to disable; otherwise this is a reduction factor)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This writes files if writeflag == TRUE.  These can be
+ *      (1) This writes files if reduction > 0.  These can be
  *          displayed, ordered in a tiled representation, with,
- *          for example, gthumbs.
- *      (2) This function uses a static internal variable to number
+ *          for example, gthumb.
+ *      (2) If reduction > 1 and depth == 1, this does a scale-to-gray
+ *          reduction.
+ *      (3) This function uses a static internal variable to number
  *          output files written by a single process.  Behavior
  *          with a shared library may be unpredictable.
  */
 l_int32
 pixDisplayWrite(PIX     *pixs,
-                l_int32  writeflag)
+                l_int32  reduction)
 {
 char            buffer[L_BUF_SIZE];
+l_float32       scale;
+PIX            *pixt;
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     PROCNAME("pixDisplayWrite");
 
-    if (!writeflag) return 0;
+    if (reduction <= 0) return 0;
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
@@ -398,14 +406,25 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
     }
     index++;
 
-    if (pixGetDepth(pixs) < 8) {
+    if (reduction == 1)
+        pixt = pixClone(pixs);
+    else {
+        scale = 1. / (l_float32)reduction;
+	if (pixGetDepth(pixs) == 1)
+            pixt = pixScaleToGray(pixs, scale);
+        else
+            pixt = pixScale(pixs, scale, scale);
+    }
+
+    if (pixGetDepth(pixt) < 8) {
         snprintf(buffer, L_BUF_SIZE, "junk_write_display.%03d.png", index);
-        pixWrite(buffer, pixs, IFF_PNG);
+        pixWrite(buffer, pixt, IFF_PNG);
     }
     else {
         snprintf(buffer, L_BUF_SIZE, "junk_write_display.%03d.jpg", index);
-        pixWrite(buffer, pixs, IFF_JFIF_JPEG);
+        pixWrite(buffer, pixt, IFF_JFIF_JPEG);
     }
+    pixDestroy(&pixt);
 
     return 0;
 }

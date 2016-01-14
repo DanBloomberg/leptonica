@@ -45,38 +45,38 @@ static char  mainName[] = "lineremoval";
         /* threshold to binary, extracting much of the lines */
     pix1 = pixThresholdToBinary(pixs, 170);
     pixWrite("dave-proc1.png", pix1, IFF_PNG);
-    pixDisplay(pix1, 100, 100);
+    pixDisplayWrite(pix1, 1);
 
 	/* find the skew angle and deskew using an interpolated
 	 * rotator for anti-aliasing (to avoid jaggies) */
     pixFindSkew(pix1, &angle, &conf);
     pix2 = pixRotateAMGray(pixs, deg2rad * angle, 255);
     pixWrite("dave-proc2.png", pix2, IFF_PNG);
-    pixDisplay(pix2, 300, 300);
+    pixDisplayWrite(pix2, 1);
 
         /* extract the lines to be removed */
     pix3 = pixCloseGray(pix2, 51, 1);
     pixWrite("dave-proc3.png", pix3, IFF_PNG);
-    pixDisplay(pix3, 500, 500);
+    pixDisplayWrite(pix3, 1);
 
         /* solidify the lines to be removed */
     pix4 = pixErodeGray(pix3, 1, 5);
     pixWrite("dave-proc4.png", pix4, IFF_PNG);
-    pixDisplay(pix4, 700, 700);
+    pixDisplayWrite(pix4, 1);
 
         /* clean the background of those lines */
     pix5 = pixThresholdToValue(NULL, pix4, 210, 255);
     pixWrite("dave-proc5.png", pix5, IFF_PNG);
-    pixDisplay(pix5, 0, 0);
+    pixDisplayWrite(pix5, 1);
 
     pix6 = pixThresholdToValue(NULL, pix5, 200, 0);
     pixWrite("dave-proc6.png", pix6, IFF_PNG);
-    pixDisplay(pix6, 0, 0);
+    pixDisplayWrite(pix6, 1);
 
         /* get paint-through mask for changed pixels */
     pix7 = pixThresholdToBinary(pix6, 210);
     pixWrite("dave-proc7.png", pix7, IFF_PNG);
-    pixDisplay(pix7, 200, 200);
+    pixDisplayWrite(pix7, 1);
 
         /* add the inverted, cleaned lines to orig.  Because 
 	 * the background was cleaned, the inversion is 0,
@@ -85,16 +85,18 @@ static char  mainName[] = "lineremoval";
     pixInvert(pix6, pix6);
     pix8 = pixAddGray(NULL, pix2, pix6);
     pixWrite("dave-proc8.png", pix8, IFF_PNG);
-    pixDisplay(pix8, 400, 400);
+    pixDisplayWrite(pix8, 1);
 
     pix9 = pixOpenGray(pix8, 1, 9);
     pixWrite("dave-proc9.png", pix9, IFF_PNG);
-    pixDisplay(pix9, 600, 600);
+    pixDisplayWrite(pix9, 1);
 
     pixCombineMasked(pix8, pix9, pix7);
     pixWrite("dave-result.png", pix8, IFF_PNG);
-    pixDisplay(pix8, 800, 800);
+    pixDisplayWrite(pix8, 1);
 
-    exit(0);
+    system("/usr/bin/gthumb junk_write_display* &");
+
+    return 0;
 }
 

@@ -23,8 +23,10 @@
  *           void      *l_errorPtr()
  *           void       l_errorVoid()
  *           void       l_warning()
+ *           void       l_warningString()
  *           void       l_warningInt()
  *           void       l_info()
+ *           void       l_infoString()
  *           void       l_infoInt()
  *           void       l_infoInt2()
  *           void       l_infoFloat()
@@ -175,15 +177,50 @@ l_warning(const char  *msg,
 
 
 /*!
+ *  l_warningString()
+ *
+ *      Input: msg (warning message; must include '%s')
+ *             procname
+ *             str (embedded in warning message via %s)
+ */
+void
+l_warningString(const char  *msg,
+                const char  *procname,
+                const char  *str)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname || !str) {
+        ERROR_VOID("msg, procname or str not defined in l_warningString()",
+                   procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        ERROR_VOID("charbuf not made in l_warningString()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Warning in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, str);
+
+    FREE(charbuf);
+    return;
+}
+
+
+/*!
  *  l_warningInt()
  *
- *      Input: msg (warning message)
+ *      Input: msg (warning message; must include '%d')
  *             procname
  *             ival (embedded in warning message via %d)
  */
 void
 l_warningInt(const char  *msg,
-             const char  *procname, 
+             const char  *procname,
              l_int32      ival)
 {
 l_int32  bufsize;
@@ -224,9 +261,44 @@ l_info(const char  *msg,
 
 
 /*!
+ *  l_infoString()
+ *
+ *      Input: msg (info message; must include '%s')
+ *             procname
+ *             str (embedded in warning message via %s)
+ */
+void
+l_infoString(const char  *msg,
+             const char  *procname,
+             const char  *str)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname || !str) {
+        ERROR_VOID("msg, procname or str not defined in l_infoString()",
+                   procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        ERROR_VOID("charbuf not made in l_infoString()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Info in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, str);
+
+    FREE(charbuf);
+    return;
+}
+
+
+/*!
  *  l_infoInt()
  *
- *      Input: msg (info message)
+ *      Input: msg (info message; must include '%d')
  *             procname
  *             ival (embedded in info message via %d)
  */
@@ -260,7 +332,7 @@ char    *charbuf;
 /*!
  *  l_infoInt2()
  *
- *      Input: msg (info message)
+ *      Input: msg (info message; must include two '%d')
  *             procname
  *             ival1, ival2 (two args, embedded in info message via %d)
  */
@@ -295,7 +367,7 @@ char    *charbuf;
 /*!
  *  l_infoFloat()
  *
- *      Input: msg (info message)
+ *      Input: msg (info message; must include '%f')
  *             procname
  *             fval (embedded in info message via %f)
  */
@@ -329,7 +401,7 @@ char    *charbuf;
 /*!
  *  l_infoFloat2()
  *
- *      Input: msg (info message)
+ *      Input: msg (info message; must include two '%f')
  *             procname
  *             fval1, fval2 (two args, embedded in info message via %f)
  */
@@ -1147,10 +1219,12 @@ char  *cpathname, *lastslash;
 
     PROCNAME("splitPathAtDirectory");
 
-    if (!pathname)
-        return ERROR_INT("pathname not defined", procName, 1);
     if (!pdir && !ptail)
         return ERROR_INT("null input for both strings", procName, 1);
+    if (pdir) *pdir = NULL;
+    if (ptail) *ptail = NULL;
+    if (!pathname)
+        return ERROR_INT("pathname not defined", procName, 1);
 
     cpathname = stringNew(pathname);
     if ((lastslash = strrchr(cpathname, '/'))) {
@@ -1208,10 +1282,12 @@ char   empty[4] = "";
 
     PROCNAME("splitPathExtension");
 
-    if (!pathname)
-        return ERROR_INT("pathname not defined", procName, 1);
     if (!pbasename && !pextension)
         return ERROR_INT("null input for both strings", procName, 1);
+    if (pbasename) *pbasename = NULL;
+    if (pextension) *pextension = NULL;
+    if (!pathname)
+        return ERROR_INT("pathname not defined", procName, 1);
 
         /* Split out the directory first */
     splitPathAtDirectory(pathname, &dir, &tail);

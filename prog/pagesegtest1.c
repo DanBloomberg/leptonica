@@ -49,7 +49,7 @@ static char  mainName[] = "pagesegtest1";
 
         /* Display intermediate images in a single image */
     pixa = pixaReadFiles(".", "junk_write");
-    pixd = pixaDisplayTiledAndScaled(pixa, 8, 400, 4, 0, 20, 3);
+    pixd = pixaDisplayTiledAndScaled(pixa, 32, 400, 4, 0, 20, 3);
     pixWrite("junkpixd", pixd, IFF_PNG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);

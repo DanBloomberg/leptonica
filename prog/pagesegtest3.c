@@ -48,6 +48,7 @@ static const char *seed_sequence = "r1143 + o5.5+ x4";
     /* Simple dilation */
 static const char *dilation_sequence = "d3.3";
 
+#define  DFLAG     1
 
 main(int    argc,
      char **argv)
@@ -85,18 +86,16 @@ static char  mainName[] = "pagesegtest3";
     pixd4 = pixMorphSequence(pixsf4, dilation_sequence, 0);
 
         /* Mask at full resolution */
-    pixd = pixExpandBinary(pixd4, 4);
+    pixd = pixExpandBinaryPower2(pixd4, 4);
     pixWrite(fileout, pixd, IFF_TIFF_G4);
 
         /* Extract non-image parts (e.g., text) at full resolution */
     pixSubtract(pixb, pixb, pixd);
 
-#if 1
-    pixDisplayWithTitle(pixseed4, 400, 100, "halftone seed");
-    pixDisplayWithTitle(pixmask4, 100, 100, "halftone seed mask");
-    pixDisplayWithTitle(pixd4, 700, 100, "halftone mask");
-    pixDisplayWithTitle(pixb, 1000, 100, "non-halftone");
-#endif
+    pixDisplayWithTitle(pixseed4, 400, 100, "halftone seed", DFLAG);
+    pixDisplayWithTitle(pixmask4, 100, 100, "halftone seed mask", DFLAG);
+    pixDisplayWithTitle(pixd4, 700, 100, "halftone mask", DFLAG);
+    pixDisplayWithTitle(pixb, 1000, 100, "non-halftone", DFLAG);
 
 #if 1
     pixWrite("junkseed", pixseed4, IFF_TIFF_G4);

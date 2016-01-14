@@ -14,9 +14,9 @@
  *====================================================================*/
 
 /*
- * stringtest.c
+ * string_reg.c
  *
- *    this tests several sarray functions
+ *    This tests several sarray functions.
  */
 
 #include <stdio.h>
@@ -31,10 +31,10 @@ l_int32      nbytesin, nbytesout;
 char        *infile, *outfile, *instring, *outstring;
 SARRAY      *sa1, *sa2, *sa3, *sa4, *sa5;
 char         buf[256];
-static char  mainName[] = "stringtest";
+static char  mainName[] = "string_reg";
 
     if (argc != 2)
-	exit(ERROR_INT(" Syntax:  stringtest infile", mainName, 1));
+	exit(ERROR_INT(" Syntax:  string_reg infile", mainName, 1));
 
     infile = argv[1];
     instring = (char *)arrayRead(infile, &nbytesin);
@@ -46,32 +46,32 @@ static char  mainName[] = "stringtest";
     outstring = sarrayToString(sa1, 0);
     nbytesout = strlen(outstring);
     arrayWrite("junkout1", "w", outstring, nbytesout);
-    FREE((void *)outstring);
+    FREE(outstring);
 
     outstring = sarrayToString(sa1, 1);
     nbytesout = strlen(outstring);
     arrayWrite("junkout2", "w", outstring, nbytesout);
-    FREE((void *)outstring);
+    FREE(outstring);
 
     outstring = sarrayToString(sa2, 0);
     nbytesout = strlen(outstring);
     arrayWrite("junkout3", "w", outstring, nbytesout);
-    FREE((void *)outstring);
+    FREE(outstring);
 
     outstring = sarrayToString(sa2, 1);
     nbytesout = strlen(outstring);
     arrayWrite("junkout4", "w", outstring, nbytesout);
-    FREE((void *)outstring);
+    FREE(outstring);
 
     outstring = sarrayToString(sa3, 0);
     nbytesout = strlen(outstring);
     arrayWrite("junkout5", "w", outstring, nbytesout);
-    FREE((void *)outstring);
+    FREE(outstring);
 
     outstring = sarrayToString(sa3, 1);
     nbytesout = strlen(outstring);
     arrayWrite("junkout6", "w", outstring, nbytesout);
-    FREE((void *)outstring);
+    FREE(outstring);
     sprintf(buf, "diff -s junkout6 %s", infile);
     system(buf);
 
@@ -89,8 +89,8 @@ static char  mainName[] = "stringtest";
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
     sarrayDestroy(&sa5);
-    FREE((void *)instring);
+    FREE(instring);
 
-    exit(0);
+    return 0;
 }
 

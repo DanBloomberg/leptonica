@@ -75,7 +75,7 @@
  *  pixConnComp()
  *
  *      Input:  pixs (1 bpp)
- *              &pixa   (<optional> pixa of each c.c.)
+ *              &pixa   (<optional return> pixa of each c.c.)
  *              connectivity (4 or 8)
  *      Return: boxa, or null on error
  *
@@ -91,6 +91,7 @@ pixConnComp(PIX     *pixs,
 
     PROCNAME("pixConnComp");
 
+    if (ppixa) *ppixa = NULL;
     if (!pixs)
         return (BOXA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
@@ -109,7 +110,7 @@ pixConnComp(PIX     *pixs,
  *  pixConnCompPixa()
  *
  *      Input:  pixs (1 bpp)
- *              &pixa (return pixa of each c.c.)
+ *              &pixa (<return> pixa of each c.c.)
  *              connectivity (4 or 8)
  *      Return: boxa, or null on error
  *
@@ -139,16 +140,16 @@ STACK   *stack, *auxstack;
 
     PROCNAME("pixConnCompPixa");
 
+    if (!ppixa)
+        return (BOXA *)ERROR_PTR("&pixa not defined", procName, NULL);
+    *ppixa = NULL;
     if (!pixs)
         return (BOXA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (BOXA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    if (!ppixa)
-        return (BOXA *)ERROR_PTR("&pixa not defined", procName, NULL);
     if (connectivity != 4 && connectivity != 8)
         return (BOXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
 
-    *ppixa = NULL;  /* init */
     pixZero(pixs, &iszero);
     if (iszero)
         return boxaCreate(1);  /* return empty boxa */

@@ -35,6 +35,8 @@
  *
  *      (6) Playing around: extract the feynman diagrams from
  *          the stamp, using the tophat.
+ *
+ *   For input, use e.g., aneurisms8.jpg
  */
 
 #include <stdio.h>
@@ -52,23 +54,26 @@ static void pixCompare(PIX *pix, PIX *pix2, char *msg1, char *msg2);
 main(int    argc,
      char **argv)
 {
-char            dilateseq[BUF_SIZE], erodeseq[BUF_SIZE];
-char            openseq[BUF_SIZE], closeseq[BUF_SIZE];
-char            wtophatseq[BUF_SIZE], btophatseq[BUF_SIZE];
-l_int32         w, h;
-PIX            *pixs, *pixt, *pixt2, *pixt3, *pixt3a, *pixt4;
-PIX            *pixg, *pixd, *pixd1, *pixd2, *pixd3;
-PIXACC         *pacc;
-PIXCMAP        *cmap;
-static char     mainName[] = "graymorph_reg";
+char         dilateseq[BUF_SIZE], erodeseq[BUF_SIZE];
+char         openseq[BUF_SIZE], closeseq[BUF_SIZE];
+char         wtophatseq[BUF_SIZE], btophatseq[BUF_SIZE];
+char        *filein;
+l_int32      w, h, d;
+PIX         *pixs, *pixt, *pixt2, *pixt3, *pixt3a, *pixt4;
+PIX         *pixg, *pixd, *pixd1, *pixd2, *pixd3;
+PIXACC      *pacc;
+PIXCMAP     *cmap;
+static char  mainName[] = "graymorph_reg";
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  graymorph_reg", mainName, 1));
+    if (argc != 2)
+	exit(ERROR_INT(" Syntax:  graymorph_reg filein", mainName, 1));
 
-    if ((pixs = pixRead("aneurisms8.jpg")) == NULL)
-	exit(ERROR_INT("pix not made", mainName, 1));
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    filein = argv[1];
+    if ((pixs = pixRead(filein)) == NULL)
+	exit(ERROR_INT("pixs not made", mainName, 1));
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+	exit(ERROR_INT("pixs not 8 bpp", mainName, 1));
 
     /* -------- Test gray morph, including interpreter ------------ */
     pixd = pixDilateGray(pixs, WSIZE, HSIZE);
@@ -164,7 +169,7 @@ static char     mainName[] = "graymorph_reg";
     pixd2 = pixGrayMorphSequence(pixs, "C9.9 + TW9.9", 0, 0);
     pixCompare(pixd1, pixd2, "correct: same", "wrong: different");
     pixd3 = pixMaxDynamicRange(pixd1, L_LINEAR_SCALE);
-    pixDisplay(pixd3, 100, 100);
+    pixDisplayWrite(pixd3, 1);
     pixDestroy(&pixd);
     pixDestroy(&pixd1);
     pixDestroy(&pixd2);
@@ -174,7 +179,7 @@ static char     mainName[] = "graymorph_reg";
     pixd2 = pixGrayMorphSequence(pixs, "C29.29 + Tw29.29", 0, 0);
     pixCompare(pixd1, pixd2, "correct: same", "wrong: different");
     pixd3 = pixMaxDynamicRange(pixd1, L_LINEAR_SCALE);
-    pixDisplay(pixd3, 100, 400);
+    pixDisplayWrite(pixd3, 1);
     pixDestroy(&pixd);
     pixDestroy(&pixd1);
     pixDestroy(&pixd2);
@@ -183,7 +188,7 @@ static char     mainName[] = "graymorph_reg";
     /* --------- hdome with parameter height = 100 ------------*/
     pixd = pixHDome(pixs, 100, 4);
     pixd2 = pixMaxDynamicRange(pixd, L_LINEAR_SCALE);
-    pixDisplay(pixd2, 100, 400);
+    pixDisplayWrite(pixd2, 1);
     pixDestroy(&pixd2);
 
     /* ----- Contrast enhancement with morph parameters 9, 9 -------*/
@@ -197,7 +202,7 @@ static char     mainName[] = "graymorph_reg";
     pixAccumulate(pixd1, pixd2, L_ARITH_SUBTRACT);
     pixDestroy(&pixd2);
     pixd = pixFinalAccumulate(pixd1, 0x8000, 8);
-    pixDisplay(pixd, 200, 200);
+    pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd1);
 
         /* Do the same thing with the Pixacc */
@@ -212,7 +217,7 @@ static char     mainName[] = "graymorph_reg";
     pixDestroy(&pixd1);
     pixd2 = pixaccFinal(pacc, 8);
     pixaccDestroy(&pacc);
-    pixDisplay(pixd2, 500, 200);
+    pixDisplayWrite(pixd2, 1);
 
     pixCompare(pixd, pixd2, "Correct: same", "Wrong: different");
     pixDestroy(&pixd);
@@ -270,14 +275,16 @@ static char     mainName[] = "graymorph_reg";
     pixt4 = pixConvertTo32(pixt3);
     pixRasterop(pixd, 4 * w + 15, 3, w, h, PIX_SRC, pixt4, 0, 0);  /* 5th */
     pixWrite("junkbininvert", pixt3, IFF_PNG);
-    pixDisplay(pixd, 100, 100);
+    pixDisplayWrite(pixd, 1);
 /*    pixWrite("junkall", pixd, IFF_JFIF_JPEG); */
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
     pixDestroy(&pixd);
 
+    system("gthumb junk_write_display* &");
+
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 
 
@@ -288,15 +295,16 @@ static void pixCompare(PIX   *pix1,
                        char  *msg1,
                        char  *msg2)
 {
-l_int32  same, w;
+l_int32  same;
     pixEqual(pix1, pix2, &same);
-    if (same)
+    if (same) {
 	fprintf(stderr, "%s\n", msg1);
+	pixDisplayWrite(pix1, 1);
+    }
     else {
 	fprintf(stderr, "%s\n", msg2);
-	w = pixGetWidth(pix1);
-	pixDisplay(pix1, 100, 300);
-	pixDisplay(pix2, 125 + w, 300);
+	pixDisplayWrite(pix1, 1);
+	pixDisplayWrite(pix2, 1);
     }
     return;
 }

@@ -18,7 +18,7 @@
  *  binexpandlow.c
  *
  *      Low level power-of-2 binary expansion
- *              l_int32      expandBinaryLow()
+ *              l_int32      expandBinaryPower2Low()
  *
  *      Expansion tables
  *              l_uint16    *makeExpandTab2x()
@@ -40,18 +40,18 @@ static  l_uint32 expandtab16[] = {
  *              Low level power-of-2 binary expansion                *
  *-------------------------------------------------------------------*/
 /*!
- *  expandBinaryLow()
+ *  expandBinaryPower2Low()
  */
 l_int32
-expandBinaryLow(l_uint32  *datad,
-                l_int32    wd,
-                l_int32    hd,
-                l_int32    wpld,
-                l_uint32  *datas,
-                l_int32    ws,
-                l_int32    hs,
-                l_int32    wpls,
-                l_int32    factor)
+expandBinaryPower2Low(l_uint32  *datad,
+                      l_int32    wd,
+                      l_int32    hd,
+                      l_int32    wpld,
+                      l_uint32  *datas,
+                      l_int32    ws,
+                      l_int32    hs,
+                      l_int32    wpls,
+                      l_int32    factor)
 {
 l_int32    i, j, k, sdibits, sqbits, sbytes;
 l_uint8    sval;
@@ -59,7 +59,7 @@ l_uint16  *tab2;
 l_uint32  *tab4, *tab8;
 l_uint32  *lines, *lined;
 
-    PROCNAME("expandBinaryLow");
+    PROCNAME("expandBinaryPower2Low");
 
     switch (factor)
     {
@@ -76,7 +76,7 @@ l_uint32  *lines, *lined;
             }
             memcpy((char *)(lined + wpld), (char *)lined, 2 * sbytes);
         }
-        FREE((void *)tab2);
+        FREE(tab2);
         break;
     case 4:
         if ((tab4 = makeExpandTab4x()) == NULL)
@@ -92,7 +92,7 @@ l_uint32  *lines, *lined;
             for (k = 1; k < 4; k++) 
                 memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sbytes);
         }
-        FREE((void *)tab4);
+        FREE(tab4);
         break;
     case 8:
         if ((tab8 = makeExpandTab8x()) == NULL)
@@ -110,7 +110,7 @@ l_uint32  *lines, *lined;
             for (k = 1; k < 8; k++) 
                 memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sqbits);
         }
-        FREE((void *)tab8);
+        FREE(tab8);
         break;
     case 16:
         sdibits = (ws + 1) / 2;

@@ -80,11 +80,11 @@ static char  mainName[] = "heaptest";
     for (i = 0; pheapGetCount(ph) > 0; i++) {
         item = (HEAPEL *)pheapRemove(ph);
 	fprintf(stderr, "item %d: %f\n", i, item->distance);
-	FREE((void *)item);
+	FREE(item);
     }
 
     pheapDestroy(&ph, 1);
     numaDestroy(&na);
-    exit(0);
+    return 0;
 }
 

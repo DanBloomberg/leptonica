@@ -225,6 +225,7 @@ static char  mainName[] = "numa_reg";
         numaIntegrateInterval(nadx, nady, x0, xval, 2 * i + 1, &yval);
         numaAddNumber(nay, y0 + yval);
     }
+    fprintf(stderr, "It's required to get a 'npts < 2' error here!\n");
     gplotAddPlot(gplot, nafx, nay, GPLOT_LINES, "anti-derivative");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);

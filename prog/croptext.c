@@ -50,7 +50,7 @@ static char  mainName[] = "croptext";
     border = atoi(argv[2]);
     dirout = argv[3];
 
-    safiles = getSortedPathnamesInDirectory(dirin, 0, 0);
+    safiles = getSortedPathnamesInDirectory(dirin, NULL, 0, 0);
     nfiles = sarrayGetCount(safiles);
 
     for (i = 0; i < nfiles; i++) {

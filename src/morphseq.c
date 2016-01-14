@@ -13,7 +13,6 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  morphseq.c
  *
@@ -32,12 +31,13 @@
  *      Run a sequence of grayscale morphological operations
  *            PIX     *pixGrayMorphSequence()
  *
+ *      Run a sequence of color morphological operations
+ *            PIX     *pixColorMorphSequence()
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
-
 
 
 /*-------------------------------------------------------------------------*
@@ -210,7 +210,7 @@ SARRAY  *sa;
         case 'x':
         case 'X':
             sscanf(&op[1], "%d", &fact);
-            pixt2 = pixExpandBinary(pixt1, fact);
+            pixt2 = pixExpandReplicate(pixt1, fact);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
@@ -390,7 +390,7 @@ SARRAY  *sa;
         case 'x':
         case 'X':
             sscanf(&op[1], "%d", &fact);
-            pixt2 = pixExpandBinary(pixt1, fact);
+            pixt2 = pixExpandReplicate(pixt1, fact);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
@@ -551,7 +551,7 @@ SARRAY  *sa;
         case 'x':
         case 'X':
             sscanf(&op[1], "%d", &fact);
-            pixt2 = pixExpandBinary(pixt1, fact);
+            pixt2 = pixExpandReplicate(pixt1, fact);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
@@ -590,6 +590,9 @@ SARRAY  *sa;
 }
 
 
+/*-------------------------------------------------------------------------*
+ *            Parser verifier for binary morphological operations          *
+ *-------------------------------------------------------------------------*/
 /*!
  *  morphSequenceVerify()
  *
@@ -597,7 +600,9 @@ SARRAY  *sa;
  *      Return: TRUE if valid; FALSE otherwise or on error
  *
  *  Notes:
- *      (1) See pixMorphSequence() for notes on valid operations
+ *      (1) This does verification of valid binary morphological
+ *          operation sequences.
+ *      (2) See pixMorphSequence() for notes on valid operations
  *          in the sequence.
  */
 l_int32
@@ -762,8 +767,9 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
  *            - The args to the morphological operations are bricks of hits,
  *              and are formatted as a.b, where a and b are horizontal and
  *              vertical dimensions, rsp. (each must be an odd number)
- *            - The arg to the tophat is w or W (for white tophat),
- *              or b or B (for black tophat)
+ *            - The args to the tophat are w or W (for white tophat)
+ *              or b or B (for black tophat), followed by a.b as for
+ *              the dilation, erosion, opening and closing.
  *           Example valid sequences are:
  *             "c5.3 + o7.5"
  *             "c9.9 + tw9.9"
@@ -914,6 +920,179 @@ SARRAY  *sa;
                 pixt2 = pixTophat(pixt1, w, h, L_TOPHAT_WHITE);
             else   /* 'b' or 'B' */
                 pixt2 = pixTophat(pixt1, w, h, L_TOPHAT_BLACK);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, dispy);
+                x += dispsep;
+            }
+            break;
+        default:
+            /* All invalid ops are caught in the first pass */
+            break;
+        }
+        FREE(op);
+    }
+
+    sarrayDestroy(&sa);
+    return pixt1;
+}
+
+
+/*-----------------------------------------------------------------*
+ *         Run a sequence of color morphological operations        *
+ *-----------------------------------------------------------------*/
+/*!
+ *  pixColorMorphSequence()
+ *
+ *      Input:  pixs
+ *              sequence (string specifying sequence)
+ *              dispsep (horizontal separation in pixels between
+ *                       successive displays; use zero to suppress display)
+ *              dispy (if dispsep != 0, this gives the y-value of the
+ *                     UL corner for display; otherwise it is ignored)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This works on 32 bpp rgb images.
+ *      (2) Each component is processed separately.
+ *      (3) This runs a pipeline of operations; no branching is allowed.
+ *      (4) This only uses brick SELs.
+ *      (5) A new image is always produced; the input image is not changed.
+ *      (6) This contains an interpreter, allowing sequences to be
+ *          generated and run.
+ *      (7) Sel sizes (width, height) must each be odd numbers.
+ *      (8) The format of the sequence string is defined below.
+ *      (9) Intermediate results can optionally be displayed.
+ *      (10) The sequence string is formatted as follows:
+ *            - An arbitrary number of operations,  each separated
+ *              by a '+' character.  White space is ignored.
+ *            - Each operation begins with a case-independent character
+ *              specifying the operation:
+ *                 d or D  (dilation)
+ *                 e or E  (erosion)
+ *                 o or O  (opening)
+ *                 c or C  (closing)
+ *            - The args to the morphological operations are bricks of hits,
+ *              and are formatted as a.b, where a and b are horizontal and
+ *              vertical dimensions, rsp. (each must be an odd number)
+ *           Example valid sequences are:
+ *             "c5.3 + o7.5"
+ *             "D9.1"
+ */
+PIX *
+pixColorMorphSequence(PIX         *pixs,
+                      const char  *sequence,
+                      l_int32      dispsep,
+                      l_int32      dispy)
+{
+char    *rawop, *op;
+l_int32  nops, i, valid, w, h, x;
+PIX     *pixt1, *pixt2;
+SARRAY  *sa;
+
+    PROCNAME("pixColorMorphSequence");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!sequence)
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+
+        /* Split sequence into individual operations */
+    sa = sarrayCreate(0);
+    sarraySplitString(sa, sequence, "+");
+    nops = sarrayGetCount(sa);
+
+        /* Verify that the operation sequence is valid */
+    valid = TRUE;
+    for (i = 0; i < nops; i++) {
+        rawop = sarrayGetString(sa, i, 0);
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+        case 'e':
+        case 'E':
+        case 'o':
+        case 'O':
+        case 'c':
+        case 'C':
+            if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
+                fprintf(stderr, "*** op: %s invalid\n", op);
+                valid = FALSE;
+                break;
+            }
+            if (w < 1 || (w & 1) == 0 || h < 1 || (h & 1) == 0 ) {
+                fprintf(stderr,
+                        "*** op: %s; w = %d, h = %d; must both be odd\n",
+                        op, w, h);
+                valid = FALSE;
+                break;
+            }
+/*            fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
+            break;
+        default:
+            fprintf(stderr, "*** nonexistent op = %s\n", op);
+            valid = FALSE;
+        }
+        FREE(op);
+    }
+    if (!valid) {
+        sarrayDestroy(&sa);
+        return (PIX *)ERROR_PTR("sequence invalid", procName, NULL);
+    }
+
+        /* Parse and operate */
+    pixt1 = pixCopy(NULL, pixs);
+    pixt2 = NULL;
+    x = 0;
+    for (i = 0; i < nops; i++) {
+        rawop = sarrayGetString(sa, i, 0);
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixColorMorph(pixt1, L_MORPH_DILATE, w, h);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, dispy);
+                x += dispsep;
+            }
+            break;
+        case 'e':
+        case 'E':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixColorMorph(pixt1, L_MORPH_ERODE, w, h);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, dispy);
+                x += dispsep;
+            }
+            break;
+        case 'o':
+        case 'O':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixColorMorph(pixt1, L_MORPH_OPEN, w, h);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, dispy);
+                x += dispsep;
+            }
+            break;
+        case 'c':
+        case 'C':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixColorMorph(pixt1, L_MORPH_CLOSE, w, h);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);

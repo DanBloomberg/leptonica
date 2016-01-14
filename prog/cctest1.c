@@ -26,13 +26,15 @@
  *                    boxa: returned array of boxes of c.c.
  *
  *        Use NULL for &pixa if you don't want the pixa array.
+ *
+ *    It also demonstrates a few display modes.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define  NTIMES             50
+#define  NTIMES             5
 
 
 main(int    argc,
@@ -55,9 +57,10 @@ static char  mainName[] = "cctest1";
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
+    if (pixGetDepth(pixs) != 1)
+	exit(ERROR_INT("pixs not 1 bpp", mainName, 1));
 	    
-#if 1
-	/* test speed of pixConnComp(), with only boxa output  */
+	/* Test speed of pixConnComp(), with only boxa output  */
     startTimer();
     for (i = 0; i < NTIMES; i++) {
 	boxa = pixConnComp(pixs, NULL, 4);
@@ -70,9 +73,7 @@ static char  mainName[] = "cctest1";
 	boxaDestroy(&boxa);
     }
     fprintf(stderr, "Time to compute 8-cc: %6.3f sec\n", stopTimer()/NTIMES);
-#endif
 
-#if 0
 	/* Draw outline of each c.c. box */
     boxa = pixConnComp(pixs, NULL, 4);
     n = boxaGetCount(boxa);
@@ -81,11 +82,9 @@ static char  mainName[] = "cctest1";
 	pixRenderBox(pixs, box, 3, L_FLIP_PIXELS);
 	boxDestroy(&box);   /* remember, clones need to be destroyed */
     }
-    pixWrite("junkout3", pixs, IFF_PNG);
+    pixDisplayWrite(pixs, 1);
     boxaDestroy(&boxa);
-#endif
 
-#if 1
         /* Display each component as a random color in cmapped 8 bpp.
          * Background is color 0; it is set to white. */
     boxa = pixConnComp(pixs, &pixa, 4);
@@ -93,15 +92,13 @@ static char  mainName[] = "cctest1";
     cmap = pixGetColormap(pixd);
     pixcmapResetColor(cmap, 0, 255, 255, 255);  /* reset background to white */
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkout4", pixd, IFF_PNG);
+    pixDisplayWrite(pixd, 1);
     boxaDestroy(&boxa);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
-#endif
 
     pixDestroy(&pixs);
-
-    exit(0);
+    return 0;
 }
 
 

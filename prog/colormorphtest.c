@@ -22,41 +22,80 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
+static void pixCompare(PIX *pix, PIX *pix2, char *msg1, char *msg2);
+static const l_int32  BUFSIZE = 256;
+
 
 main(int    argc,
      char **argv)
 {
-char        *filein, *fileout;
+char        *filein;
+char         buf[BUFSIZE];
 l_int32      size;
-PIX         *pixs, *pixd;
+PIX         *pixs, *pixt1, *pixt2;
 static char  mainName[] = "colormorphtest";
 
-    if (argc != 4)
-        exit(ERROR_INT(" Syntax:  colormorphtest filein size fileout",
+    if (argc != 3)
+        exit(ERROR_INT(" Syntax:  colormorphtest filein size",
              mainName, 1));
 
     filein = argv[1];
     size = atoi(argv[2]);
-    fileout = argv[3];
 
     if ((pixs = pixRead(filein)) == NULL)
         exit(ERROR_INT("pixs not read", mainName, 1));
 
-    pixd = pixMorphColor(pixs, size, size, L_MORPH_DILATE);
-    pixDisplayWithTitle(pixd, 100, 100, "Dilated");
-    pixDestroy(&pixd);
-    pixd = pixMorphColor(pixs, size, size, L_MORPH_ERODE);
-    pixDisplayWithTitle(pixd, 300, 100, "Eroded");
-    pixDestroy(&pixd);
-    pixd = pixMorphColor(pixs, size, size, L_MORPH_OPEN);
-    pixDisplayWithTitle(pixd, 500, 100, "Opened");
-    pixDestroy(&pixd);
-    pixd = pixMorphColor(pixs, size, size, L_MORPH_CLOSE);
-    pixDisplayWithTitle(pixd, 700, 100, "Closed");
+    pixt1 = pixColorMorph(pixs, L_MORPH_DILATE, size, size);
+    sprintf(buf, "d%d.%d", size, size);
+    pixt2 = pixColorMorphSequence(pixs, buf, 0, 0);
+    pixCompare(pixt1, pixt2, "Correct for dilation", "Error on dilation");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
 
-    pixWrite(fileout, pixd, IFF_PNG);
+    pixt1 = pixColorMorph(pixs, L_MORPH_ERODE, size, size);
+    sprintf(buf, "e%d.%d", size, size);
+    pixt2 = pixColorMorphSequence(pixs, buf, 0, 0);
+    pixCompare(pixt1, pixt2, "Correct for erosion", "Error on erosion");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+    pixt1 = pixColorMorph(pixs, L_MORPH_OPEN, size, size);
+    sprintf(buf, "o%d.%d", size, size);
+    pixt2 = pixColorMorphSequence(pixs, buf, 0, 0);
+    pixCompare(pixt1, pixt2, "Correct for opening", "Error on opening");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+    pixt1 = pixColorMorph(pixs, L_MORPH_CLOSE, size, size);
+    sprintf(buf, "c%d.%d", size, size);
+    pixt2 = pixColorMorphSequence(pixs, buf, 0, 0);
+    pixCompare(pixt1, pixt2, "Correct for closing", "Error on closing");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+    system("/usr/bin/gthumb junk_write_display* &");
+
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
-    exit(0);
+    return 0;
+}
+
+    /* Simple comparison function */
+static void pixCompare(PIX   *pix1,
+                       PIX   *pix2,
+                       char  *msg1,
+                       char  *msg2)
+{
+l_int32  same;
+    pixEqual(pix1, pix2, &same);
+    if (same) {
+        fprintf(stderr, "%s\n", msg1);
+        pixDisplayWrite(pix1, 1);
+    }
+    else {
+        fprintf(stderr, "%s\n", msg2);
+        pixDisplayWrite(pix1, 1);
+        pixDisplayWrite(pix2, 1);
+    }
+    return;
 }
 

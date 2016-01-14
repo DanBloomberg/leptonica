@@ -21,7 +21,6 @@
  *
  *              PIX       *pixReadStreamBmp()
  *              l_int32    pixWriteStreamBmp()
- *
  */
 
 #include <stdio.h>
@@ -39,8 +38,8 @@ RGBA_QUAD   bwmap[2] = { {255,255,255,0}, {0,0,0,0} };
 /*!
  *  pixReadStreamBmp()
  *
- *     Input:  stream opened for read
- *     Return: pix, or null on error
+ *      Input:  stream opened for read
+ *      Return: pix, or null on error
  */
 PIX *
 pixReadStreamBmp(FILE  *fp)
@@ -51,11 +50,11 @@ l_int16    bfType, bfSize, bfFill1, bfReserved1, bfReserved2;
 l_int16    offset, bfFill2, biPlanes, depth, d;
 l_int32    biSize, width, height, xres, yres, compression;
 l_int32    imagebytes, biClrUsed, biClrImportant;
-l_uint8    *colormapBuf;
-l_int32           colormapEntries;
-l_int32           fileBpl, extrabytes, readerror;
-l_int32           pixWpl, pixBpl;
-l_int32           i, j, k;
+l_uint8   *colormapBuf;
+l_int32    colormapEntries;
+l_int32    fileBpl, extrabytes, readerror;
+l_int32    pixWpl, pixBpl;
+l_int32    i, j, k;
 l_uint8    pel[4];
 l_uint8   *data;
 l_uint32  *line, *pword;
@@ -67,7 +66,7 @@ PIXCMAP   *cmap;
     if (!fp)
         return (PIX *)ERROR_PTR("fp not defined", procName, NULL);
 
-        /* read bitmap file header */
+        /* Read bitmap file header */
     fread((char *)&sval, 1, 2, fp);
     bfType = convertOnBigEnd16(sval);
     if (bfType != BMP_ID)
@@ -86,7 +85,7 @@ PIXCMAP   *cmap;
     fread((char *)&sval, 1, 2, fp);
     bfFill2 = convertOnBigEnd16(sval);
 
-        /* read bitmap info header */
+        /* Read bitmap info header */
     fread((char *)&ival, 1, 4, fp);
     biSize = convertOnBigEnd32(ival);
     fread((char *)&ival, 1, 4, fp);
@@ -120,15 +119,15 @@ PIXCMAP   *cmap;
                                              sizeof(RGBA_QUAD))) == NULL)
             return (PIX *)ERROR_PTR("colormapBuf alloc fail", procName, NULL );
 
-            /* read colormap */
+            /* Read colormap */
         if (fread(colormapBuf, sizeof(RGBA_QUAD), colormapEntries, fp) 
                  != colormapEntries) {
-            FREE((void *)colormapBuf);
+            FREE(colormapBuf);
             return (PIX *)ERROR_PTR( "colormap read fail", procName, NULL);
         }
     }
 
-        /* make a 32 bpp pix if depth is 24 bpp */
+        /* Make a 32 bpp pix if depth is 24 bpp */
     d = depth;
     if (depth == 24)
         d = 32;
@@ -142,7 +141,7 @@ PIXCMAP   *cmap;
         L_WARNING("more than 256 colormap entries!", procName);
     if (colormapEntries > 0) {  /* import the colormap to the pix cmap */
         cmap = pixcmapCreate(L_MIN(d, 8));
-        FREE((void *)cmap->array);  /* remove generated cmap array */
+        FREE(cmap->array);  /* remove generated cmap array */
         cmap->array  = (void *)colormapBuf;  /* and replace */
         cmap->n = L_MIN(colormapEntries, 256);
     }
@@ -152,7 +151,7 @@ PIXCMAP   *cmap;
     pixWpl = pixGetWpl(pix);
     pixBpl = 4 * pixWpl;
 
-        /* seek to the start of the bitmap in the file */
+        /* Seek to the start of the bitmap in the file */
     fseek(fp, offset, 0);
 
     if (depth != 24) {  /* typ. 1 or 8 bpp */
@@ -229,7 +228,7 @@ PIXCMAP   *cmap;
     pixEndianByteSwap(pix);
 
         /* ----------------------------------------------
-         * the bmp colormap determines the values of black
+         * The bmp colormap determines the values of black
          * and white pixels for binary in the following way:
          * if black = 1 (255), white = 0
          *      255, 255, 255, 0, 0, 0, 0, 0
@@ -257,10 +256,10 @@ PIXCMAP   *cmap;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      - We position fp at the beginning of the stream, so it
- *        truncates any existing data
- *      - 2 bpp Bmp files are apparently not valid (!)  We can
- *        write and read them, but nobody else can read ours.
+ *      (1) We position fp at the beginning of the stream, so it
+ *          truncates any existing data
+ *      (2) 2 bpp Bmp files are apparently not valid!.  We can
+ *          write and read them, but nobody else can read ours.
  */
 l_int32
 pixWriteStreamBmp(FILE  *fp,
@@ -355,7 +354,7 @@ RGBA_QUAD  *pquad;
 
     fseek(fp, 0L, 0);
 
-        /* convert to little-endian and write the file header data */
+        /* Convert to little-endian and write the file header data */
     bfType = convertOnBigEnd16(BMP_ID);
     offbytes = BMP_FHBYTES + BMP_IHBYTES + cmaplen;
     filebytes = offbytes + fileimagebytes;
@@ -377,7 +376,7 @@ RGBA_QUAD  *pquad;
     fwrite(&bfOffBits, 1, 2, fp);
     fwrite(&bfFill2, 1, 2, fp);
 
-        /* convert to little-endian and write the info header data */
+        /* Convert to little-endian and write the info header data */
     biSize = convertOnBigEnd32(BMP_IHBYTES);
     biWidth = convertOnBigEnd32(width);
     biHeight = convertOnBigEnd32(height);
@@ -401,18 +400,18 @@ RGBA_QUAD  *pquad;
     fwrite(&biClrUsed, 1, 4, fp);
     fwrite(&biClrImportant, 1, 4, fp);
 
-        /* write the colormap data */
+        /* Write the colormap data */
     if (ncolors > 0) {
         if (fwrite(cta, 1, cmaplen, fp) != cmaplen) {
             if (heapcm)
-                FREE((void *)cta);
+                FREE(cta);
             return ERROR_INT("colormap write fail", procName, 1);
         }
         if (heapcm)
-            FREE((void *)cta);
+            FREE(cta);
     }
 
-        /* when you write a binary image with a colormap
+        /* When you write a binary image with a colormap
          * that sets BLACK to 0, you must invert the data */
     if (depth == 1 && cmap && ((l_uint8 *)(cmap->array))[0] == 0x0) {
         pixInvert(pix, pix);
@@ -457,7 +456,7 @@ RGBA_QUAD  *pquad;
         }
     }
 
-        /* restore to original state */
+        /* Restore to original state */
     pixEndianByteSwap(pix);
     if (depth == 1 && cmap && ((l_uint8 *)(cmap->array))[0] == 0x0)
         pixInvert(pix, pix);

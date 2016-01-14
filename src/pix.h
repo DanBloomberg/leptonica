@@ -41,9 +41,11 @@
  *       blending flags
  *       graphics pixel setting flags
  *       size filtering flags
- *       rotation pixel flags
+ *       rotation and shear flags
+ *       grayscale filling flags
  *       dithering flags
  *       distance flags
+ *       text orientation flags
  */
 
 
@@ -463,10 +465,17 @@ enum {
  *                           Size filter flags                             *
  *-------------------------------------------------------------------------*/
 enum {
-    L_REMOVE_IF_EITHER = 1,       /* remove component if either constraint */
-                                  /* is not met                            */
-    L_REMOVE_IF_BOTH = 2          /* remove component only if both         */
-                                  /* constraints are not met               */
+    L_SELECT_WIDTH = 1,           /* width must satisfy constraint         */
+    L_SELECT_HEIGHT = 2,          /* height must satisfy constraint        */
+    L_SELECT_IF_EITHER = 3,       /* either width or height can satisfy    */
+    L_SELECT_IF_BOTH = 4          /* both width and height must satisfy    */
+};
+
+enum {
+    L_SELECT_IF_LT = 1,           /* save if value is less than threshold  */
+    L_SELECT_IF_GT = 2,           /* save if value is more than threshold  */
+    L_SELECT_IF_LTE = 3,          /* save if value is <= to the threshold  */
+    L_SELECT_IF_GTE = 4           /* save if value is >= to the threshold  */
 };
 
 
@@ -481,6 +490,15 @@ enum {
 enum {
     L_BRING_IN_WHITE = 1,        /* bring in white pixels from the outside */
     L_BRING_IN_BLACK = 2         /* bring in black pixels from the outside */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                         Grayscale fill flags                            *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_FILL_WHITE = 1,           /* fill white pixels (e.g, in fg map)      */
+    L_FILL_BLACK = 2            /* fill black pixels (e.g., in bg map)     */
 };
 
 
@@ -503,6 +521,27 @@ enum {
 enum {
     L_MANHATTAN_DISTANCE = 1,    /* L1 distance (e.g., in color space)     */
     L_EUCLIDEAN_DISTANCE = 2     /* L2 distance                            */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                            Average measures                             *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_MEAN_ABSVAL = 1,           /* average of abs values                  */
+    L_ROOT_MEAN_SQUARE = 2       /* rms of values                          */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                         Text orientation flags                          *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_TEXT_ORIENT_UNKNOWN = 0,   /* low confidence on text orientation     */
+    L_TEXT_ORIENT_UP = 1,        /* portrait, text rightside-up            */
+    L_TEXT_ORIENT_LEFT = 2,      /* landscape, text up to left             */
+    L_TEXT_ORIENT_DOWN = 3,      /* portrait, text upside-down             */
+    L_TEXT_ORIENT_RIGHT = 4      /* landscape, text up to right            */
 };
 
 

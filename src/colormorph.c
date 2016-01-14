@@ -18,10 +18,11 @@
  *
  *      Top-level color morphological operations
  *
- *            PIX     *pixMorphColor()
+ *            PIX     *pixColorMorph()
  *
  *      Method: Algorithm by van Herk and Gil and Werman, 1992
- *              Apply grayscale operations separately to each component.
+ *              Apply grayscale morphological operations separately
+ *              to each component.
  */
 
 #include <stdio.h>
@@ -33,7 +34,7 @@
  *              Top-level color morphological operations           *
  *-----------------------------------------------------------------*/
 /*!
- *  pixMorphColor()
+ *  pixColorMorph()
  *
  *      Input:  pixs
  *              type  (L_MORPH_DILATE, L_MORPH_ERODE, L_MORPH_OPEN,
@@ -43,19 +44,20 @@
  *      Return: pixd
  *
  *  Notes:
- *      (1) This erodes each component separately and recombines the result.
- *      (2) Sel is a brick with all elements being hits
+ *      (1) This does the morph operation on each component separately,
+ *          and recombines the result.
+ *      (2) Sel is a brick with all elements being hits.
  *      (3) If hsize = vsize = 1, just returns a copy.
  */
 PIX *
-pixMorphColor(PIX     *pixs,
+pixColorMorph(PIX     *pixs,
               l_int32  type,
               l_int32  hsize,
               l_int32  vsize)
 {
 PIX  *pixr, *pixg, *pixb, *pixrm, *pixgm, *pixbm, *pixd;
 
-    PROCNAME("pixMorphColor");
+    PROCNAME("pixColorMorph");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);

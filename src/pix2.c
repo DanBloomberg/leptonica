@@ -105,8 +105,7 @@ l_uint32  *line, *data;
         return ERROR_INT("pval not defined", procName, 1);
     *pval = 0;
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, &d);
     if (x < 0 || x >= w)
         return ERROR_INT("x out of bounds", procName, 1);
     if (y < 0 || y >= h)
@@ -115,8 +114,6 @@ l_uint32  *line, *data;
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
     line = data + y * wpl;
-
-    d = pixGetDepth(pix);
     switch (d)
     {
     case 1:
@@ -171,7 +168,7 @@ l_uint32  *line, *data;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    pixGetDimensions(pix, &w, &h, NULL);
+    pixGetDimensions(pix, &w, &h, &d);
     if (x < 0 || x >= w)
         return ERROR_INT("x out of bounds", procName, 1);
     if (y < 0 || y >= h)
@@ -180,8 +177,6 @@ l_uint32  *line, *data;
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
     line = data + y * wpl;
-
-    d = pixGetDepth(pix);
     switch (d)
     {
     case 1:
@@ -234,7 +229,7 @@ l_uint32  *line, *data;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    pixGetDimensions(pix, &w, &h, NULL);
+    pixGetDimensions(pix, &w, &h, &d);
     if (x < 0 || x >= w)
         return ERROR_INT("x out of bounds", procName, 1);
     if (y < 0 || y >= h)
@@ -243,8 +238,6 @@ l_uint32  *line, *data;
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
     line = data + y * wpl;
-
-    d = pixGetDepth(pix);
     switch (d)
     {
     case 1:
@@ -294,7 +287,7 @@ l_uint32  *line, *data;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    pixGetDimensions(pix, &w, &h, NULL);
+    pixGetDimensions(pix, &w, &h, &d);
     if (x < 0 || x >= w)
         return ERROR_INT("x out of bounds", procName, 1);
     if (y < 0 || y >= h)
@@ -303,8 +296,6 @@ l_uint32  *line, *data;
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
     line = data + y * wpl;
-
-    d = pixGetDepth(pix);
     switch (d)
     {
     case 1:
@@ -969,7 +960,7 @@ pixCreateRGBImage(PIX  *pixr,
                   PIX  *pixg,
                   PIX  *pixb)
 {
-l_int32  w, h;
+l_int32  wr, wg, wb, hr, hg, hb, dr, dg, db;
 PIX     *pixd;
 
     PROCNAME("pixCreateRGBImage");
@@ -980,20 +971,17 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("pixg not defined", procName, NULL);
     if (!pixb)
         return (PIX *)ERROR_PTR("pixb not defined", procName, NULL);
-    if (pixGetDepth(pixr) != 8)
-        return (PIX *)ERROR_PTR("pixr not 8 bpp", procName, NULL);
-    if (pixGetDepth(pixg) != 8)
-        return (PIX *)ERROR_PTR("pixg not 8 bpp", procName, NULL);
-    if (pixGetDepth(pixb) != 8)
-        return (PIX *)ERROR_PTR("pixb not 8 bpp", procName, NULL);
- 
-    pixGetDimensions(pixr, &w, &h, NULL);
-    if (w != pixGetWidth(pixg) || w != pixGetWidth(pixb))
+    pixGetDimensions(pixr, &wr, &hr, &dr);
+    pixGetDimensions(pixg, &wg, &hg, &dg);
+    pixGetDimensions(pixb, &wb, &hb, &db);
+    if (dr != 8 || dg != 8 || db != 8)
+        return (PIX *)ERROR_PTR("input pix not all 8 bpp", procName, NULL);
+    if (wr != wg || wr != wb)
         return (PIX *)ERROR_PTR("widths not the same", procName, NULL);
-    if (h != pixGetHeight(pixg) || h != pixGetHeight(pixb))
+    if (hr != hg || hr != hb)
         return (PIX *)ERROR_PTR("heights not the same", procName, NULL);
 
-    if ((pixd = pixCreate(w, h, 32)) == NULL)
+    if ((pixd = pixCreate(wr, hr, 32)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixr);
     pixSetRGBComponent(pixd, pixr, COLOR_RED);

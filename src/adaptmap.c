@@ -36,6 +36,9 @@
  *          PIX       *pixExtendByReplication()         8 bpp
  *          l_int32    pixSmoothConnectedRegions()      8 bpp
  *
+ *      Measurement of local foreground
+ *          l_int32    pixGetForegroundGrayMap()        8 bpp
+ *
  *      Generate inverted background map for each component
  *          PIX       *pixGetInvBackgroundMap()   16 bpp
  *
@@ -508,7 +511,7 @@ PIX     *pixmr, *pixmg, *pixmb;
 
     if (!ppixr || !ppixg || !ppixb)
         return ERROR_INT("&pixr, &pixg, &pixb not all defined", procName, 1);
-    *ppixr = *ppixg = *ppixb;
+    *ppixr = *ppixg = *ppixb = NULL;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 32)
@@ -646,7 +649,7 @@ PIX     *pixmr, *pixmg, *pixmb;
 
     if (!ppixr || !ppixg || !ppixb)
         return ERROR_INT("&pixr, &pixg, &pixb not all defined", procName, 1);
-    *ppixr = *ppixg = *ppixb;
+    *ppixr = *ppixg = *ppixb = NULL;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 32)
@@ -698,6 +701,11 @@ PIX     *pixmr, *pixmg, *pixmb;
  *              mincount (min threshold on counts in a tile)
  *              &pixd (<return> 8 bpp grayscale map)
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The background is measured in regions that don't have
+ *          images.  It is then propagated into the image regions,
+ *          and finally smoothed in each image region.
  */
 l_int32
 pixGetBackgroundGrayMap(PIX     *pixs,
@@ -714,7 +722,7 @@ l_int32    count, sum, val8;
 l_int32    empty, fgpixels;
 l_uint32  *datas, *dataim, *datad, *dataf, *lines, *lineim, *lined, *linef;
 l_float32  scalex, scaley;
-PIX       *pixd, *pixb, *pixf, *pixims;
+PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
 
     PROCNAME("pixGetBackgroundGrayMap");
 
@@ -734,33 +742,36 @@ PIX       *pixd, *pixb, *pixf, *pixims;
         mincount = (sx * sy) / 3;
     }
 
-        /* Evaluate the mask pixim and make sure it is not all foreground */
-    fgpixels = 0;  /* boolean for existence of fg mask pixels */
+        /* Evaluate the 'image' mask, pixim, and make sure
+         * it is not all fg. */
+    fgpixels = 0;  /* boolean for existence of fg pixels in the image mask. */
     if (pixim) {
-        pixInvert(pixim, pixim);  /* set background pixels to 1 */
-        pixZero(pixim, &empty);
+        piximi = pixInvert(NULL, pixim);  /* set non-'image' pixels to 1 */
+        pixZero(piximi, &empty);
+        pixDestroy(&piximi);
         if (empty)
             return ERROR_INT("pixim all fg; no background", procName, 1);
-        pixInvert(pixim, pixim);  /* revert to original mask */
         pixZero(pixim, &empty);
         if (!empty)  /* there are fg pixels in pixim */
             fgpixels = 1;
     }
 
-        /* Generate the foreground mask.  These pixels will be
-         * ignored when computing the background values. */
+        /* Generate the foreground mask, pixf, which is at
+         * full resolution.  These pixels will be ignored when
+         * computing the background values. */
     pixb = pixThresholdToBinary(pixs, thresh);
     pixf = pixMorphSequence(pixb, "d7.1 + d1.7", 0);
     pixDestroy(&pixb);
 
-        /* Generate the output mask image */
+
+    /* ------------- Set up the output map pixd --------------- */
+        /* Generate pixd, which is reduced by the factors (sx, sy). */
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     wd = (w + sx - 1) / sx;
     hd = (h + sy - 1) / sy;
     pixd = pixCreate(wd, hd, 8);
 
-    /* ------------- Set up the mapping image --------------- */
         /* Note: we only compute map values in tiles that are complete.
          * In general, tiles at right and bottom edges will not be
          * complete, and we must fill them in later. */
@@ -799,7 +810,13 @@ PIX       *pixd, *pixb, *pixf, *pixims;
         /* If there is an optional mask with fg pixels, erase the previous
          * calculation for the corresponding map pixels, setting the
          * map values to 0.   Then, when all the map holes are filled,
-         * these erased pixels will be set by the surrounding map values. */
+         * these erased pixels will be set by the surrounding map values.
+         *
+         * The calculation here is relatively efficient: for each pixel
+         * in pixd (which corresponds to a tile of mask pixels in pixim)
+         * we look only at the pixel in pixim that is at the center
+         * of the tile.  If the mask pixel is ON, we reset the map
+         * pixel in pixd to 0, so that it can later be filled in. */
     pixims = NULL;
     if (pixim && fgpixels) {
         wim = pixGetWidth(pixim);
@@ -822,13 +839,16 @@ PIX       *pixd, *pixb, *pixf, *pixims;
     }
 
         /* Fill all the holes in the map. */
-    if (pixFillMapHoles(pixd, nx, ny)) {
+    if (pixFillMapHoles(pixd, nx, ny, L_FILL_BLACK)) {
         pixDestroy(&pixd);
         return ERROR_INT("fill error", procName, 1);
     }
 
         /* Finally, for each connected region corresponding to the
-         * fg mask, reset all pixels to their average value. */
+         * 'image' mask, reset all pixels to their average value.
+         * Each of these components represents an image (or part of one)
+         * in the input, and this smooths the background values
+         * in each of these regions. */
     if (pixim && fgpixels) {
         scalex = 1. / (l_float32)sx;
         scaley = 1. / (l_float32)sy;
@@ -880,7 +900,7 @@ l_int32    empty, fgpixels;
 l_uint32   pixel;
 l_uint32  *datas, *dataim, *dataf, *lines, *lineim, *linef;
 l_float32  scalex, scaley;
-PIX       *pixgc, *pixb, *pixf, *pixims;
+PIX       *piximi, *pixgc, *pixb, *pixf, *pixims;
 PIX       *pixmr, *pixmg, *pixmb;
 
     PROCNAME("pixGetBackgroundRGBMap");
@@ -904,11 +924,11 @@ PIX       *pixmr, *pixmg, *pixmb;
         /* Evaluate the mask pixim and make sure it is not all foreground */
     fgpixels = 0;  /* boolean for existence of fg mask pixels */
     if (pixim) {
-        pixInvert(pixim, pixim);  /* set background pixels to 1 */
-        pixZero(pixim, &empty);
+        piximi = pixInvert(NULL, pixim);  /* set non-'image' pixels to 1 */
+        pixZero(piximi, &empty);
+        pixDestroy(&piximi);
         if (empty)
             return ERROR_INT("pixim all fg; no background", procName, 1);
-        pixInvert(pixim, pixim);  /* revert to original mask */
         pixZero(pixim, &empty);
         if (!empty)  /* there are fg pixels in pixim */
             fgpixels = 1;
@@ -1003,9 +1023,9 @@ PIX       *pixmr, *pixmg, *pixmb;
     }
 
     /* ----------------- Now fill in the holes ----------------------- */
-    if (pixFillMapHoles(pixmr, nx, ny) ||
-        pixFillMapHoles(pixmg, nx, ny) ||
-        pixFillMapHoles(pixmb, nx, ny)) {
+    if (pixFillMapHoles(pixmr, nx, ny, L_FILL_BLACK) ||
+        pixFillMapHoles(pixmg, nx, ny, L_FILL_BLACK) ||
+        pixFillMapHoles(pixmb, nx, ny, L_FILL_BLACK)) {
         pixDestroy(&pixmr);
         pixDestroy(&pixmg);
         pixDestroy(&pixmb);
@@ -1101,7 +1121,7 @@ PIX       *pixm, *pixt1, *pixt2, *pixt3, *pixims;
         /* Fill all the holes in the map. */
     nx = pixGetWidth(pixs) / reduction;
     ny = pixGetHeight(pixs) / reduction;
-    if (pixFillMapHoles(pixm, nx, ny)) {
+    if (pixFillMapHoles(pixm, nx, ny, L_FILL_BLACK)) {
         pixDestroy(&pixm);
         return ERROR_INT("fill error", procName, 1);
     }
@@ -1220,9 +1240,9 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         /* Fill all the holes in the three maps. */
     nx = pixGetWidth(pixs) / reduction;
     ny = pixGetHeight(pixs) / reduction;
-    pixFillMapHoles(pixmr, nx, ny);
-    pixFillMapHoles(pixmg, nx, ny);
-    pixFillMapHoles(pixmb, nx, ny);
+    pixFillMapHoles(pixmr, nx, ny, L_FILL_BLACK);
+    pixFillMapHoles(pixmg, nx, ny, L_FILL_BLACK);
+    pixFillMapHoles(pixmb, nx, ny, L_FILL_BLACK);
 
         /* Finally, for each connected region corresponding to the
          * fg mask in each component, reset all pixels to their
@@ -1241,53 +1261,65 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
 /*!
  *  pixFillMapHoles()
  *
- *      Input:  pix (8 bpp)
- *              nx (number of horizontal pixel tiles that entirely cover
- *                  pixels in the original source image)
+ *      Input:  pix (8 bpp; a map, with one pixel for each tile in
+ *              a larger image)
+ *              nx (number of horizontal pixel tiles that are entirely
+ *                  covered with pixels in the original source image)
  *              ny (ditto for the number of vertical pixel tiles)
+ *              filltype (L_FILL_WHITE or L_FILL_BLACK)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This is an in-place operation on pix (the map)
- *      (2) If w is the map width, nx = w or nx = w - 1; ditto for h and ny.
- *      (3) The "holes" come from two sources.  The first is when there
- *          are not enough background pixels in a tile; in that case,
- *          the tile value remains 0, and we fill it here.  The second
- *          is when a tile is at least partially covered by an image
- *          mask; in that case, 
- *      (3) This is done with two passes.  In the first pass, we
- *          replicate the data into the "hole" down and to the left.
- *          In the second pass, we compute the average value of the
- *          replaced pixels, and replace them AGAIN, but this time
- *          all with the average value.
+ *      (1) This is an in-place operation on pix (the map).  pix is 
+ *          typically a low-resolution version of some other image
+ *          from which it was derived, where each pixel in pix
+ *          corresponds to a rectangular tile (say, m x n) of pixels
+ *          in the larger image.  All we need to know about the larger
+ *          image is whether or not the rightmost column and bottommost
+ *          row of pixels in pix correspond to tiles that are
+ *          only partially covered by pixels in the larger image.
+ *      (2) Typically, some number of pixels in the input map are
+ *          not known, and their values must be determined by near
+ *          pixels that are known.  These unknown pixels are the 'holes'.
+ *          They can take on only two values, 0 and 255, and the
+ *          instruction about which to fill is given by the filltype flag.
+ *      (3) The "holes" can come from two sources.  The first is when there
+ *          are not enough foreground or background pixels in a tile;
+ *          the second is when a tile is at least partially covered
+ *          by an image mask.  If we're filling holes in a fg mask,
+ *          the holes are initialized to black (0) and use L_FILL_BLACK.
+ *          For filling holes in a bg mask, initialize the holes to
+ *          white (255) and use L_FILL_WHITE.
+ *      (4) If w is the map width, nx = w or nx = w - 1; ditto for h and ny.
  */
 l_int32
 pixFillMapHoles(PIX     *pix,
                 l_int32  nx,
-                l_int32  ny)
+                l_int32  ny,
+                l_int32  filltype)
 {
-l_int32   w, h, y, nmiss, goodcol, i, j, found, ival;
+l_int32   w, h, d, y, nmiss, goodcol, i, j, found, ival, valtest;
 l_uint32  val, lastval;
-NUMA     *na;
+NUMA     *na;  /* indicates if there is any data in the column */
 PIX      *pixt;
 
     PROCNAME("pixFillMapHoles");
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (pixGetDepth(pix) != 8)
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 8)
         return ERROR_INT("pix not 8 bpp", procName, 1);
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
 
     /* ------------- Fill holes in the mapping image columns ----------- */
     na = numaCreate(0);  /* holds flag for which columns have data */
     nmiss = 0;
+    valtest = (filltype == L_FILL_WHITE) ? 255 : 0;
     for (j = 0; j < nx; j++) {  /* do it by columns */
         found = FALSE;
         for (i = 0; i < ny; i++) {
             pixGetPixel(pix, j, i, &val);
-            if (val != 0) {
+            if (val != valtest) {
                 y = i;
                 found = TRUE;
                 break;
@@ -1298,13 +1330,13 @@ PIX      *pixt;
             nmiss++;
         }
         else {
-            numaAddNumber(na, 1);
-            for (i = y - 1; i >= 0; i--)  /* fill up to top */
+            numaAddNumber(na, 1);  /* data in the column */
+            for (i = y - 1; i >= 0; i--)  /* replicate upwards to top */
                 pixSetPixel(pix, j, i, val);
             pixGetPixel(pix, j, 0, &lastval);
             for (i = 1; i < h; i++) {  /* set going down to bottom */
                 pixGetPixel(pix, j, i, &val);
-                if (val == 0)
+                if (val == valtest)
                     pixSetPixel(pix, j, i, lastval);
                 else
                     lastval = val;
@@ -1321,7 +1353,7 @@ PIX      *pixt;
     /* ---------- Fill in missing columns by replication ----------- */
     if (nmiss > 0) {  /* replicate columns */
         pixt = pixCopy(NULL, pix);
-            /* find the first good column */
+            /* Find the first good column */
         goodcol = 0;
         for (j = 0; j < w; j++) {
             numaGetIValue(na, j, &ival);
@@ -1339,7 +1371,7 @@ PIX      *pixt;
         for (j = goodcol + 1; j < w; j++) {   /* copy cols forward */
             numaGetIValue(na, j, &ival);
             if (ival == 0) {
-                    /* copy the column to the left of j */
+                    /* Copy the column to the left of j */
                 pixRasterop(pix, j, 0, 1, h, PIX_SRC, pixt, j - 1, 0);
                 pixRasterop(pixt, j, 0, 1, h, PIX_SRC, pix, j, 0);
             }
@@ -1354,7 +1386,6 @@ PIX      *pixt;
     }
     
     numaDestroy(&na);
-            
     return 0;
 }
 
@@ -1429,6 +1460,9 @@ PIX      *pixd;
  *      (2) This is required for adaptive mapping to avoid the
  *          generation of stripes in the background map, due to
  *          variations in the pixel values near the edges of mask regions.
+ *      (3) This function is optimized for background smoothing, where
+ *          there are a relatively small number of components.  It will
+ *          be inefficient if used where there are many small components.
  */
 l_int32
 pixSmoothConnectedRegions(PIX     *pixs,
@@ -1467,13 +1501,142 @@ PIXA      *pixa;
             continue;
         }
         boxaGetBoxGeometry(boxa, i, &x, &y, NULL, NULL);
-        pixGetAverageMasked(pixs, pixmc, x, y, factor, &aveval);
+        pixGetAverageMasked(pixs, pixmc, x, y, factor, L_MEAN_ABSVAL, &aveval);
         pixPaintThroughMask(pixs, pixmc, x, y, (l_int32)aveval);
         pixDestroy(&pixmc);
     }
 
     boxaDestroy(&boxa);
     pixaDestroy(&pixa);
+    return 0;
+}
+
+
+/*------------------------------------------------------------------*
+ *                 Measurement of local foreground                  *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixGetForegroundGrayMap()
+ *
+ *      Input:  pixs (8 bpp)
+ *              pixim (<optional> 1 bpp 'image' mask; can be null)
+ *              sx, sy (src tile size, in pixels)
+ *              thresh (threshold for determining foreground)
+ *              &pixd (<return> 8 bpp grayscale map)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Each (sx, sy) tile of pixs gets mapped to one pixel in pixd.
+ *      (2) pixd is the estimate of the fg (darkest) value within each tile.
+ *      (3) All pixels in pixd that are in 'image' regions, as specified
+ *          by pixim, are given the background value 0.
+ *      (4) For pixels in pixd that can't directly be given a fg value,
+ *          the value is inferred by propagating from neighboring pixels.
+ *      (5) In practice, pixd can be used to normalize the fg, and
+ *          it can be done after background normalization.
+ *      (6) The overall procedure is:
+ *            - reduce 2x by sampling
+ *            - paint all 'image' pixels white, so that they don't
+ *              participate in the Min reduction
+ *            - do a further (sx, sy) Min reduction -- think of
+ *              it as a large opening followed by subsampling by the
+ *              reduction factors
+ *            - threshold the result to identify fg, and set the
+ *              bg pixels to 255 (these are 'holes')
+ *            - fill holes by propagation from fg values
+ *            - replicatively expand by 2x, arriving at the final
+ *              resolution of pixd
+ *            - smooth with a 17x17 kernel
+ *            - paint the 'image' regions black
+ */
+l_int32
+pixGetForegroundGrayMap(PIX     *pixs,
+                        PIX     *pixim,
+                        l_int32  sx,
+                        l_int32  sy,
+                        l_int32  thresh,
+                        PIX    **ppixd)
+{
+l_int32  w, h, d, wd, hd;
+l_int32  empty, fgpixels;
+PIX     *pixd, *piximi, *pixim2, *pixims, *pixs2, *pixb, *pixt1, *pixt2, *pixt3;
+
+    PROCNAME("pixGetForegroundGrayMap");
+
+    if (!ppixd)
+        return ERROR_INT("&pixd not defined", procName, 1);
+    *ppixd = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (pixim && pixGetDepth(pixim) != 1)
+        return ERROR_INT("pixim not 1 bpp", procName, 1);
+    if (sx < 2 || sy < 2)
+        return ERROR_INT("sx and sy must be >= 2", procName, 1);
+
+        /* Generate pixd, which is reduced by the factors (sx, sy). */
+    wd = (w + sx - 1) / sx;
+    hd = (h + sy - 1) / sy;
+    pixd = pixCreate(wd, hd, 8);
+    *ppixd = pixd;
+
+        /* Evaluate the 'image' mask, pixim.  If it is all fg,
+         * the output pixd has all pixels with value 0. */
+    fgpixels = 0;  /* boolean for existence of fg pixels in the image mask. */
+    if (pixim) {
+        piximi = pixInvert(NULL, pixim);  /* set non-image pixels to 1 */
+        pixZero(piximi, &empty);
+        pixDestroy(&piximi);
+        if (empty)  /* all 'image'; return with all pixels set to 0 */
+            return 0;
+        pixZero(pixim, &empty);
+        if (!empty)  /* there are fg pixels in pixim */
+            fgpixels = 1;
+    }
+
+        /* 2x subsampling; paint white through 'image' mask. */
+    pixs2 = pixScaleBySampling(pixs, 0.5, 0.5);
+    if (pixim && fgpixels) {
+        pixim2 = pixReduceBinary2(pixim, NULL);
+        pixPaintThroughMask(pixs2, pixim2, 0, 0, 255);
+        pixDestroy(&pixim2);
+    }
+
+        /* Min (erosion) downscaling; total reduction (4 sx, 4 sy). */
+    pixt1 = pixScaleGrayMinMax(pixs2, sx, sy, L_CHOOSE_MIN);
+
+/*    pixDisplay(pixt1, 300, 200); */
+
+        /* Threshold to identify fg; paint bg pixels to white. */
+    pixb = pixThresholdToBinary(pixt1, thresh);  /* fg pixels */
+    pixInvert(pixb, pixb);
+    pixPaintThroughMask(pixt1, pixb, 0, 0, 255);
+    pixDestroy(&pixb);
+
+        /* Replicative expansion by 2x to (sx, sy). */
+    pixt2 = pixExpandReplicate(pixt1, 2);
+
+/*    pixDisplay(pixt2, 500, 200); */
+
+        /* Fill holes in the fg by propagation */
+    pixFillMapHoles(pixt2, w / sx, h / sy, L_FILL_WHITE);
+
+/*    pixDisplay(pixt2, 700, 200); */
+
+        /* Smooth with 17x17 kernel. */
+    pixt3 = pixBlockconv(pixt2, 8, 8);
+    pixRasterop(pixd, 0, 0, wd, hd, PIX_SRC, pixt3, 0, 0);
+
+        /* Paint the image parts black. */
+    pixims = pixScaleBySampling(pixim, 1. / sx, 1. / sy);
+    pixPaintThroughMask(pixd, pixims, 0, 0, 0);
+
+    pixDestroy(&pixs2);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    pixDestroy(&pixt3);
     return 0;
 }
 

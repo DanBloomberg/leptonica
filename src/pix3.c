@@ -52,7 +52,10 @@
  *           NUMA       *pixGetHistogramMasked()
  *           l_int32     pixGetRankValMasked()
  *           l_int32     pixGetAverageMasked()
- *           l_int32     pixGetRMSMasked()
+ *           PIX        *pixGetAverageTiled()
+ *
+ *      Measurement of properties
+ *           l_int32     pixFindAreaPerimRatio()
  *
  *      Extract rectangle
  *           PIX        *pixClipRectangle()
@@ -1145,17 +1148,23 @@ l_int32  *tab;
  *      Return: na (histogram), or null on error
  *
  *  Notes:
- *      (1) The output histogram is of minimal size to express
- *          the range of pixel values in pixs.
+ *      (1) This generates a histogram of gray or cmapped pixels.
+ *          The image must not be rgb.
+ *      (2) The output histogram is of size 2^d, where d = depth.
+ *      (3) If pixs has a gray (r=g=b) colormap, it is removed
+ *          and the histogram is of size 256.
+ *      (4) If pixs has a colormap with color entries, it is not
+ *          removed, and the histogram of cmap indices is generated.
  */
 NUMA *
 pixGetHistogram(PIX  *pixs)
 {
-l_int32     i, j, w, h, d, wpl, val, size, count;
+l_int32     i, j, w, h, d, wpl, val, size, count, colorfound;
 l_uint32   *data, *line;
 l_float32  *array;
 NUMA       *na;
 PIX        *pixg;
+PIXCMAP    *cmap;
 
     PROCNAME("pixGetHistogram");
 
@@ -1165,8 +1174,10 @@ PIX        *pixg;
     if (d > 16)
         return (NUMA *)ERROR_PTR("depth not in {1,2,4,8,16}", procName, NULL);
 
-    if (pixGetColormap(pixs))
-        pixg = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+    if ((cmap = pixGetColormap(pixs)) != NULL)
+        pixcmapHasColor(cmap, &colorfound);
+    if (cmap && !colorfound)
+        pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     else
         pixg = pixClone(pixs);
 
@@ -1239,7 +1250,7 @@ PIX        *pixg;
  *
  *  Notes:
  *      (1) If pixs is cmapped, it is converted to 8 bpp gray.
- *      (2) Always returns a 256-value histogram of pixel values.
+ *      (2) This always returns a 256-value histogram of pixel values.
  *      (3) Set the subsampling factor > 1 to reduce the amount of computation.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (5) Input x,y are ignored unless pixm exists.
@@ -1359,6 +1370,8 @@ NUMA  *na;
 
     PROCNAME("pixGetRankValMasked");
 
+    if (pna)
+        *pna = NULL;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
@@ -1394,16 +1407,20 @@ NUMA  *na;
  *              x, y (UL corner of pixm relative to the UL corner of pixs; 
  *                    can be < 0)
  *              factor (subsampling factor; >= 1)
- *              &val (<return> average value)
+ *              type (L_MEAN_ABSVAL or L_ROOT_MEAN_SQUARE)
+ *              &val (<return> measured value of given 'type')
  *      Return: 0 if OK, 1 on error
+ *
  *  Notes:
- *      (1) Computes the average value of pixels in pixs that are under
- *          the fg of the optional mask.  If the mask is null, it
- *          computes the average of the pixels in pixs.
- *      (2) Set the subsampling factor > 1 to reduce the amount of
+ *      (1) Use L_MEAN_ABSVAL to get the average value of pixels in pixs
+ *          that are under the fg of the optional mask.  If the mask
+ *          is null, it finds the average of the pixels in pixs.
+ *      (2) Likewise, use L_ROOT_MEAN_SQUARE to get the rms value of
+ *          pixels in pixs, either masked or not.
+ *      (3) Set the subsampling factor > 1 to reduce the amount of
  *          computation.
- *      (3) Clipping of pixm (if it exists) to pixs is done in the inner loop.
- *      (4) Input x,y are ignored unless pixm exists.
+ *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
+ *      (5) Input x,y are ignored unless pixm exists.
  */
 l_int32
 pixGetAverageMasked(PIX        *pixs,
@@ -1411,10 +1428,12 @@ pixGetAverageMasked(PIX        *pixs,
                     l_int32     x,
                     l_int32     y,
                     l_int32     factor,
+                    l_int32     type,
                     l_float32  *pval)
 {
-l_int32    i, j, w, h, wm, hm, wplg, wplm, sum, count;
+l_int32    i, j, w, h, wm, hm, wplg, wplm, val, count;
 l_uint32  *datag, *datam, *lineg, *linem;
+l_float64  sum;
 PIX       *pixg;
 
     PROCNAME("pixGetAverageMasked");
@@ -1426,99 +1445,7 @@ PIX       *pixg;
     if (pixm && pixGetDepth(pixm) != 1)
         return ERROR_INT("pixm not 1 bpp", procName, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor < 1", procName, 1);
-    if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
-    *pval = 0.0;  /* init */
-
-    if (pixGetColormap(pixs))
-        pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-    else
-        pixg = pixClone(pixs);
-    pixGetDimensions(pixg, &w, &h, NULL);
-    datag = pixGetData(pixg);
-    wplg = pixGetWpl(pixg);
-
-    sum = count = 0;
-    if (!pixm) {
-        for (i = 0; i < h; i += factor) {
-            lineg = datag + i * wplg;
-            for (j = 0; j < w; j += factor) {
-                sum += GET_DATA_BYTE(lineg, j);
-                count++;
-            }
-        }
-    }
-    else {
-        pixGetDimensions(pixm, &wm, &hm, NULL);
-        datam = pixGetData(pixm);
-        wplm = pixGetWpl(pixm);
-        for (i = 0; i < hm; i += factor) {
-            if (y + i < 0 || y + i >= h) continue;
-            lineg = datag + (y + i) * wplg;
-            linem = datam + i * wplm;
-            for (j = 0; j < wm; j += factor) {
-                if (x + j < 0 || x + j >= w) continue;
-                if (GET_DATA_BIT(linem, j)) {
-                    sum += GET_DATA_BYTE(lineg, x + j);
-                    count++;
-                }
-            }
-        }
-    }
-
-    pixDestroy(&pixg);
-    if (count == 0)
-        return ERROR_INT("no pixels sampled", procName, 1);
-    *pval = (l_float32)sum / (l_float32)count;
-
-    return 0;
-}
-
-
-/*!
- *  pixGetRMSMasked()
- *
- *      Input:  pixs (8 bpp, or colormapped)
- *              pixm (<optional> 1 bpp mask over which average is to be taken;
- *                    use all pixels if null)
- *              x, y (UL corner of pixm relative to the UL corner of pixs; 
- *                    can be < 0)
- *              factor (subsampling factor; >= 1)
- *              &val (<return> RMS value)
- *      Return: 0 if OK, 1 on error
- *  Notes:
- *      (1) Computes the RMS (root mean squared) value of pixels in pixs
- *          that are under the fg of the optional mask.  If the mask
- *          is null, it computes the RMS of the pixels in pixs.
- *      (2) Set the subsampling factor > 1 to reduce the amount of
- *          computation.
- *      (3) Clipping of pixm (if it exists) to pixs is done in the inner loop.
- *      (4) Input x,y are ignored unless pixm exists.
- */
-l_int32
-pixGetRMSMasked(PIX        *pixs,
-                PIX        *pixm,
-                l_int32     x,
-                l_int32     y,
-                l_int32     factor,
-                l_float32  *pval)
-{
-l_int32    i, j, w, h, wm, hm, wplg, wplm, val, count;
-l_float32  sum;
-l_uint32  *datag, *datam, *lineg, *linem;
-PIX       *pixg;
-
-    PROCNAME("pixGetRMSMasked");
-
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
-        return ERROR_INT("pixs neither 8 bpp nor colormapped", procName, 1);
-    if (pixm && pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
-    if (factor < 1)
-        return ERROR_INT("sampling factor < 1", procName, 1);
+        return ERROR_INT("subsampling factor < 1", procName, 1);
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0.0;  /* init */
@@ -1538,7 +1465,10 @@ PIX       *pixg;
             lineg = datag + i * wplg;
             for (j = 0; j < w; j += factor) {
                 val = GET_DATA_BYTE(lineg, j);
-                sum += val * val;
+                if (type == L_MEAN_ABSVAL)
+                    sum += val;
+                else  /* type == L_ROOT_MEAN_SQUARE */
+                    sum += val * val;
                 count++;
             }
         }
@@ -1555,7 +1485,10 @@ PIX       *pixg;
                 if (x + j < 0 || x + j >= w) continue;
                 if (GET_DATA_BIT(linem, j)) {
                     val = GET_DATA_BYTE(lineg, x + j);
-                    sum += val * val;
+                    if (type == L_MEAN_ABSVAL)
+                        sum += val;
+                    else  /* type == L_ROOT_MEAN_SQUARE */
+                        sum += val * val;
                     count++;
                 }
             }
@@ -1565,8 +1498,142 @@ PIX       *pixg;
     pixDestroy(&pixg);
     if (count == 0)
         return ERROR_INT("no pixels sampled", procName, 1);
-    *pval = (l_float32)sqrt(sum / (l_float32)count);
+    if (type == L_MEAN_ABSVAL)
+        *pval = (l_float32)(sum / (l_float64)count);
+    else  /* type == L_ROOT_MEAN_SQUARE */
+        *pval = (l_float32)sqrt(sum / (l_float64)count);
 
+    return 0;
+}
+
+
+/*!
+ *  pixGetAverageTiled()
+ *
+ *      Input:  pixs (8 bpp, or colormapped)
+ *              sx, sy (tile size; must be at least 2 x 2)
+ *              type (L_MEAN_ABSVAL or L_ROOT_MEAN_SQUARE)
+ *      Return: pixd (average values in each tile), or null on error
+ *
+ *  Notes:
+ *      (1) Only computes for tiles that are entirely contained in pixs.
+ *      (2) Use L_MEAN_ABSVAL to get the average abs value within the tile;
+ *          L_ROOT_MEAN_SQUARE to get the rms value within each tile.
+ *      (3) If colormapped, converts to 8 bpp gray.
+ */
+PIX *
+pixGetAverageTiled(PIX        *pixs,
+                   l_int32     sx,
+                   l_int32     sy,
+                   l_int32     type)
+{
+l_int32    i, j, k, m, w, h, wd, hd, d, pos, wplt, wpld, valt, rmsval, aveval;
+l_uint32  *datat, *datad, *linet, *lined, *startt;
+l_float64  sum, normfact;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixGetAverageTiled");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && !pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or cmapped", procName, NULL);
+    if (sx < 2 || sy < 2)
+        return (PIX *)ERROR_PTR("sx and sy not both > 1", procName, NULL);
+    wd = w / sx;
+    hd = h / sy;
+    if (wd < 1 || hd < 1)
+        return (PIX *)ERROR_PTR("wd or hd == 0", procName, NULL);
+    if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE)
+        return (PIX *)ERROR_PTR("invalid measure type", procName, NULL);
+
+    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    pixd = pixCreate(wd, hd, 8);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    normfact = 1. / (l_float64)(sx * sy);
+    for (i = 0; i < hd; i++) {
+        lined = datad + i * wpld;
+        linet = datat + i * sy * wplt;
+        for (j = 0; j < wd; j++) {
+            sum = 0.0;
+            if (type == L_MEAN_ABSVAL) {
+                for (k = 0; k < sy; k++) {
+                    startt = linet + k * wplt;
+                    for (m = 0; m < sx; m++) {
+                        pos = j * sx + m;
+                        valt = GET_DATA_BYTE(startt, pos);
+                        sum += valt;
+                    }
+                }
+                aveval = (l_int32)(normfact * sum);
+                SET_DATA_BYTE(lined, j, aveval);
+            }
+            else {  /* type == L_ROOT_MEAN_SQUARE */
+                for (k = 0; k < sy; k++) {
+                    startt = linet + k * wplt;
+                    for (m = 0; m < sx; m++) {
+                        pos = j * sx + m;
+                        valt = GET_DATA_BYTE(startt, pos);
+                        sum += valt * valt;
+                    }
+                }
+                rmsval = (l_int32)(sqrt(normfact * sum));
+                SET_DATA_BYTE(lined, j, rmsval);
+            }
+        }
+    }
+
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*-------------------------------------------------------------*
+ *                 Measurement of properties                   *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixFindAreaPerimRatio()
+ *
+ *      Input:  pixs (1 bpp)
+ *              tab (<optional> pixel sum table, can be NULL)
+ *              &fract (<return> area/perimeter ratio)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixFindAreaPerimRatio(PIX        *pixs,
+                      l_int32    *tab,
+                      l_float32  *pfract)
+{
+l_int32  *tab8;
+l_int32   nin, nbound;
+PIX      *pixt;
+
+    PROCNAME("pixFindAreaPerimRatio");
+
+    if (!pfract)
+        return ERROR_INT("&fract not defined", procName, 1);
+    *pfract = 0.0;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+    if (!tab)
+        tab8 = makePixelSumTab8();
+    else
+        tab8 = tab;
+
+    pixt = pixErodeBrick(NULL, pixs, 3, 3);
+    pixCountPixels(pixt, &nin, tab8);
+    pixXor(pixt, pixt, pixs);
+    pixCountPixels(pixt, &nbound, tab8);
+    *pfract = (l_float32)nin / (l_float32)nbound;
+
+    if (!tab)
+        FREE(tab8);
+    pixDestroy(&pixt);
     return 0;
 }
 
@@ -1665,12 +1732,12 @@ PIX     *pixd;
 
     PROCNAME("pixClipRectangle");
 
+    if (pboxc)
+        *pboxc = NULL;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!box)
         return (PIX *)ERROR_PTR("box not defined", procName, NULL);
-    if (pboxc)
-        *pboxc = NULL;
 
     pixGetDimensions(pixs, &w, &h, NULL);
     boxc = boxCopy(box);
@@ -1744,12 +1811,16 @@ BOX       *box;
 
     PROCNAME("pixClipToForeground");
 
+    if (!ppixd && !pbox)
+        return ERROR_INT("neither &pixd nor &pbox defined", procName, 1);
+    if (ppixd)
+        *ppixd = NULL;
+    if (pbox)
+        *pbox = NULL;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if ((d = pixGetDepth(pixs)) != 1)
         return ERROR_INT("pixs not binary", procName, 1);
-    if (!ppixd && !pbox)
-        return ERROR_INT("neither &pixd nor &pbox defined", procName, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     nfullwords = w / 32;
@@ -1768,13 +1839,8 @@ BOX       *box;
         if (result)
             break;
     }
-    if (miny == h) {  /* no ON pixels */
-        if (ppixd)
-            *ppixd = NULL;
-        if (pbox)
-            *pbox = NULL;
+    if (miny == h)  /* no ON pixels */
         return 1;
-    }
 
     result = 0;
     for (i = h - 1, maxy = h - 1; i >= 0; i--, maxy--) {

@@ -29,6 +29,7 @@
  *           l_int32     pixCompareGrayOrRGB()
  *           l_int32     pixCompareGray()
  *           l_int32     pixCompareRGB()
+ *           l_int32     pixCompareTiled()
  *
  *      Difference of two images as rank array 
  *           NUMA       *pixCompareRankDifference
@@ -495,6 +496,7 @@ PIX      *pixt;
 
     PROCNAME("pixCompareBinary");
 
+    if (ppixdiff) *ppixdiff = NULL;
     if (!pfract)
         return ERROR_INT("&pfract not defined", procName, 1);
     *pfract = 0.0;
@@ -571,6 +573,7 @@ PIX     *pixt1, *pixt2;
 
     PROCNAME("pixCompareGrayOrRGB");
 
+    if (ppixdiff) *ppixdiff = NULL;
     if (!pix1)
         return ERROR_INT("pix1 not defined", procName, 1);
     if (!pix2)
@@ -608,8 +611,8 @@ PIX     *pixt1, *pixt2;
 /*!
  *  pixCompareGray()
  *
- *      Input:  pix1 (8 bpp)
- *              pix2 (8 bpp)
+ *      Input:  pix1 (8 bpp, not cmapped)
+ *              pix2 (8 bpp, not cmapped)
  *              comptype (L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF)
  *              plottype (gplot plot output type, or 0 for no plot)
  *              &same (<optional return> 1 if pixel values are identical)
@@ -620,6 +623,7 @@ PIX     *pixt1, *pixt2;
  *
  *  Notes:
  *      (1) See pixCompareGrayOrRGB() for details.
+ *      (2) Use pixCompareGrayOrRGB() if the input pix are colormapped.
  */
 l_int32
 pixCompareGray(PIX        *pix1,
@@ -638,10 +642,13 @@ PIX     *pixt;
 
     PROCNAME("pixCompareGray");
 
+    if (ppixdiff) *ppixdiff = NULL;
     if (!pix1 || pixGetDepth(pix1) != 8)
         return ERROR_INT("pix1 not defined or not 8 bpp", procName, 1);
     if (!pix2 || pixGetDepth(pix2) != 8)
         return ERROR_INT("pix2 not defined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pix1) || pixGetColormap(pix2))
+        return ERROR_INT("pix1 and/or pix2 are colormapped", procName, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
         return ERROR_INT("invalid comptype", procName, 1);
     if (plottype > NUM_GPLOT_OUTPUTS)
@@ -656,7 +663,7 @@ PIX     *pixt;
         pixZero(pixt, psame);
 
     if (pdiff)
-        pixGetAverageMasked(pixt, NULL, 0, 0, 1, pdiff);
+        pixGetAverageMasked(pixt, NULL, 0, 0, 1, L_MEAN_ABSVAL, pdiff);
 
     if (plottype) {
         na = pixGetHistogram(pixt);
@@ -680,7 +687,7 @@ PIX     *pixt;
             pixDestroy(&pixt);
             pixt = pixAbsDifference(pix1, pix2);
         }
-        pixGetRMSMasked(pixt, NULL, 0, 0, 1, prmsdiff);
+        pixGetAverageMasked(pixt, NULL, 0, 0, 1, L_ROOT_MEAN_SQUARE, prmsdiff);
     }
 
     pixDestroy(&pixt);
@@ -722,6 +729,7 @@ PIX       *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2, *pixr, *pixg, *pixb;
 
     PROCNAME("pixCompareRGB");
 
+    if (ppixdiff) *ppixdiff = NULL;
     if (!pix1 || pixGetDepth(pix1) != 32)
         return ERROR_INT("pix1 not defined or not 32 bpp", procName, 1);
     if (!pix2 || pixGetDepth(pix2) != 32)
@@ -759,9 +767,9 @@ PIX       *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2, *pixr, *pixg, *pixb;
     }
 
     if (pdiff) {
-        pixGetAverageMasked(pixr, NULL, 0, 0, 1, &rdiff);
-        pixGetAverageMasked(pixg, NULL, 0, 0, 1, &gdiff);
-        pixGetAverageMasked(pixb, NULL, 0, 0, 1, &bdiff);
+        pixGetAverageMasked(pixr, NULL, 0, 0, 1, L_MEAN_ABSVAL, &rdiff);
+        pixGetAverageMasked(pixg, NULL, 0, 0, 1, L_MEAN_ABSVAL, &gdiff);
+        pixGetAverageMasked(pixb, NULL, 0, 0, 1, L_MEAN_ABSVAL, &bdiff);
         *pdiff = (rdiff + gdiff + bdiff) / 3.0;
     }
 
@@ -805,9 +813,9 @@ PIX       *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2, *pixr, *pixg, *pixb;
             pixg = pixAbsDifference(pixg1, pixg2);
             pixb = pixAbsDifference(pixb1, pixb2);
         }
-        pixGetRMSMasked(pixr, NULL, 0, 0, 1, &rdiff);
-        pixGetRMSMasked(pixg, NULL, 0, 0, 1, &gdiff);
-        pixGetRMSMasked(pixb, NULL, 0, 0, 1, &bdiff);
+        pixGetAverageMasked(pixr, NULL, 0, 0, 1, L_ROOT_MEAN_SQUARE, &rdiff);
+        pixGetAverageMasked(pixg, NULL, 0, 0, 1, L_ROOT_MEAN_SQUARE, &gdiff);
+        pixGetAverageMasked(pixb, NULL, 0, 0, 1, L_ROOT_MEAN_SQUARE, &bdiff);
         *prmsdiff = (rdiff + gdiff + bdiff) / 3.0;
     }
 
@@ -820,6 +828,93 @@ PIX       *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2, *pixr, *pixg, *pixb;
     pixDestroy(&pixr);
     pixDestroy(&pixg);
     pixDestroy(&pixb);
+    return 0;
+}
+
+
+/*!
+ *  pixCompareTiled()
+ *
+ *      Input:  pix1 (8 bpp or 32 bpp rgb)
+ *              pix2 (8 bpp 32 bpp rgb)
+ *              sx, sy (tile size; must be > 1)
+ *              type (L_MEAN_ABSVAL or L_ROOT_MEAN_SQUARE)
+ *              &pixdiff (<return> pix of difference)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) With L_MEAN_ABSVAL, we compute for each tile the
+ *          average abs value of the pixel component difference between
+ *          the two (aligned) images.  With L_ROOT_MEAN_SQUARE, we
+ *          compute instead the rms difference over all components.
+ *      (2) The two input pix must be the same depth.  Comparison is made
+ *          using UL corner alignment.
+ *      (3) For 32 bpp, the distance between corresponding tiles
+ *          is found by averaging the measured difference over all three
+ *          components of each pixel in the tile.
+ *      (4) The result, pixdiff, contains one pixel for each source tile.
+ */
+l_int32
+pixCompareTiled(PIX     *pix1,
+                PIX     *pix2,
+                l_int32  sx,
+                l_int32  sy,
+                l_int32  type,
+                PIX    **ppixdiff)
+{
+l_int32    d1, d2, w, h;
+PIX       *pixt, *pixr, *pixg, *pixb;
+PIX       *pixrdiff, *pixgdiff, *pixbdiff;
+PIXACC    *pixacc;
+
+    PROCNAME("pixCompareTiled");
+
+    if (!ppixdiff)
+        return ERROR_INT("&pixdiff not defined", procName, 1);
+    *ppixdiff = NULL;
+    if (!pix1)
+        return ERROR_INT("pix1 not defined", procName, 1);
+    if (!pix2)
+        return ERROR_INT("pix2 not defined", procName, 1);
+    d1 = pixGetDepth(pix1);
+    d2 = pixGetDepth(pix2);
+    if (d1 != d2)
+        return ERROR_INT("depths not equal", procName, 1);
+    if (d1 != 8 && d1 != 32)
+        return ERROR_INT("pix1 not 8 or 32 bpp", procName, 1);
+    if (d2 != 8 && d2 != 32)
+        return ERROR_INT("pix2 not 8 or 32 bpp", procName, 1);
+    if (sx < 2 || sy < 2)
+        return ERROR_INT("sx and sy not both > 1", procName, 1);
+    if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE)
+        return ERROR_INT("invalid type", procName, 1);
+
+    pixt = pixAbsDifference(pix1, pix2);
+    if (d1 == 8)
+        *ppixdiff = pixGetAverageTiled(pixt, sx, sy, type);
+    else {  /* d1 == 32 */
+        pixr = pixGetRGBComponent(pixt, COLOR_RED);
+        pixg = pixGetRGBComponent(pixt, COLOR_GREEN);
+        pixb = pixGetRGBComponent(pixt, COLOR_BLUE);
+        pixrdiff = pixGetAverageTiled(pixr, sx, sy, type);
+        pixgdiff = pixGetAverageTiled(pixg, sx, sy, type);
+        pixbdiff = pixGetAverageTiled(pixb, sx, sy, type);
+        pixGetDimensions(pixrdiff, &w, &h, NULL);
+        pixacc = pixaccCreate(w, h, 0);
+        pixaccAdd(pixacc, pixrdiff);
+        pixaccAdd(pixacc, pixgdiff);
+        pixaccAdd(pixacc, pixbdiff);
+        pixaccMultConst(pixacc, 1. / 3.);
+        *ppixdiff = pixaccFinal(pixacc, 8);
+        pixDestroy(&pixr);
+        pixDestroy(&pixg);
+        pixDestroy(&pixb);
+        pixDestroy(&pixrdiff);
+        pixDestroy(&pixgdiff);
+        pixDestroy(&pixbdiff);
+        pixaccDestroy(&pixacc);
+    }
+    pixDestroy(&pixt);
     return 0;
 }
 

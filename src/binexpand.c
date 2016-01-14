@@ -16,8 +16,11 @@
 /*
  *  binexpand.c
  *
- *      Power of 2 expansion
- *         PIX     *pixExpandBinary()
+ *      Replicated expansion (integer scaling)
+ *         PIX     *pixExpandBinaryReplicate()
+ *
+ *      Special case: power of 2 replicated expansion
+ *         PIX     *pixExpandBinaryPower2()
  */
 
 #include <stdio.h>
@@ -27,41 +30,42 @@
 
 
 /*------------------------------------------------------------------*
- *                      Power of 2 expansion                        *
+ *              Replicated expansion (integer scaling)              *
  *------------------------------------------------------------------*/
 /*!
- *  pixExpandBinary()
+ *  pixExpandBinaryReplicate()
  *
  *      Input:  pixs (1 bpp)
- *              factor (reduction factor: 1, 2, 4, 8, 16)
- *      Return: pixd (expanded 1 bpp by replication), or null on error
+ *              factor (integer scale factor for replicative expansion)
+ *      Return: pixd (scaled up), or null on error
  */
 PIX *
-pixExpandBinary(PIX     *pixs,
-                l_int32  factor)
+pixExpandBinaryReplicate(PIX     *pixs,
+                         l_int32  factor)
 {
-l_int32    ws, hs, wd, hd, wpls, wpld;
-l_uint32  *datas, *datad;
+l_int32    w, h, d, wd, hd, wpls, wpld, i, j, k, start;
+l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixExpandBinary");
+    PROCNAME("pixExpandBinaryReplicate");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 1)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1)
         return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
+    if (factor <= 0)
+        return (PIX *)ERROR_PTR("factor <= 0; invalid", procName, NULL);
+
     if (factor == 1)
         return pixCopy(NULL, pixs);
-    if (factor != 2 && factor != 4 && factor != 8 && factor != 16)
-        return (PIX *)ERROR_PTR("factor must be in {2,4,8,16}", procName, NULL);
+    if (factor == 2 || factor == 4 || factor == 8 || factor == 16)
+        return pixExpandBinaryPower2(pixs, factor);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
-
-    wd = factor * ws;
-    hd = factor * hs;
+    wd = factor * w;
+    hd = factor * h;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -69,7 +73,66 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
 
-    expandBinaryLow(datad, wd, hd, wpld, datas, ws, hs, wpls, factor);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + factor * i * wpld;
+        for (j = 0; j < w; j++) {
+            if (GET_DATA_BIT(lines, j)) {
+                start = factor * j;
+                for (k = 0; k < factor; k++)
+                    SET_DATA_BIT(lined, start + k);
+            }
+        }
+        for (k = 1; k < factor; k++)
+            memcpy(lined + k * wpld, lined, 4 * wpld);
+    }
+
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------*
+ *                      Power of 2 expansion                        *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixExpandBinaryPower2()
+ *
+ *      Input:  pixs (1 bpp)
+ *              factor (expansion factor: 1, 2, 4, 8, 16)
+ *      Return: pixd (expanded 1 bpp by replication), or null on error
+ */
+PIX *
+pixExpandBinaryPower2(PIX     *pixs,
+                      l_int32  factor)
+{
+l_int32    w, h, d, wd, hd, wpls, wpld;
+l_uint32  *datas, *datad;
+PIX       *pixd;
+
+    PROCNAME("pixExpandBinaryPower2");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1)
+        return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
+    if (factor == 1)
+        return pixCopy(NULL, pixs);
+    if (factor != 2 && factor != 4 && factor != 8 && factor != 16)
+        return (PIX *)ERROR_PTR("factor must be in {2,4,8,16}", procName, NULL);
+
+    wpls = pixGetWpl(pixs);
+    datas = pixGetData(pixs);
+    wd = factor * w;
+    hd = factor * h;
+    if ((pixd = pixCreate(wd, hd, 1)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    pixScaleResolution(pixd, (l_float32)factor, (l_float32)factor);
+    wpld = pixGetWpl(pixd);
+    datad = pixGetData(pixd);
+
+    expandBinaryPower2Low(datad, wd, hd, wpld, datas, w, h, wpls, factor);
 
     return pixd;
 }

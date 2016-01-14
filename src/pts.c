@@ -74,6 +74,7 @@
  *           l_int32   ptaContainsPt()
  *           l_int32   ptaTestIntersection()
  *           PTA      *ptaTransform()
+ *           PTA      *ptaSubsample()
  *           l_int32   ptaGetLinearLSF()
  *           PTA      *ptaGetPixelsFromPix()
  *           PIX      *pixGenerateFromPta()
@@ -171,7 +172,7 @@ ptaCopy(PTA  *pta)
 {
 l_int32    i;
 l_float32  x, y;
-PTA  *npta;
+PTA       *npta;
 
     PROCNAME("ptaCopy");
 
@@ -1542,6 +1543,40 @@ PTA     *ptad;
         ptaGetIPt(ptas, i, &x, &y);
         x = (l_int32)(scalex * (x + shiftx) + 0.5);
         y = (l_int32)(scaley * (y + shifty) + 0.5);
+        ptaAddPt(ptad, x, y);
+    }
+
+    return ptad;
+}
+
+
+/*!
+ *  ptaSubsample()
+ *
+ *      Input:  ptas 
+ *              subfactor (subsample factor, >= 1)
+ *      Return: ptad (evenly sampled pt values from ptas, or null on error
+ */
+PTA *
+ptaSubsample(PTA     *ptas,
+             l_int32  subfactor)
+{
+l_int32    n, i;
+l_float32  x, y;
+PTA       *ptad;
+
+    PROCNAME("pixSubsample");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+    if (subfactor < 1)
+        return (PTA *)ERROR_PTR("subfactor < 1", procName, NULL);
+
+    ptad = ptaCreate(0);
+    n = ptaGetCount(ptas);
+    for (i = 0; i < n; i++) {
+        if (i % subfactor != 0) continue;
+        ptaGetPt(ptas, i, &x, &y);
         ptaAddPt(ptad, x, y);
     }
 

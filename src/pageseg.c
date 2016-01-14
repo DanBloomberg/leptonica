@@ -71,52 +71,58 @@ PIX     *pixhm2;   /* halftone mask; 2x reduction */
 PIX     *pixhm;    /* halftone mask;  */
 PIX     *pixtm2;   /* textline mask; 2x reduction */
 PIX     *pixtm;    /* textline mask */
+PIX     *pixvws;   /* vertical white space mask */
 PIX     *pixtb2;   /* textblock mask; 2x reduction */
 PIX     *pixtbf2;  /* textblock mask; 2x reduction; small comps filtered */
 PIX     *pixtb;    /* textblock mask */
 
     PROCNAME("pixGetRegionsBinary");
 
+    if (ppixhm) *ppixhm = NULL;
+    if (ppixtm) *ppixtm = NULL;
+    if (ppixtb) *ppixtb = NULL;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 1)
         return ERROR_INT("pixs not 1 bpp", procName, 1);
 
         /* 2x reduce, to 150 -200 ppi */
-    pixr = pixReduceRankBinaryCascade(pixs, 2, 0, 0, 0);
+    pixr = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
     pixDisplayWrite(pixr, debug);
 
         /* Get the halftone mask */
     pixhm2 = pixGenHalftoneMask(pixr, &pixtext, &htfound, debug);
 
         /* Get the textline mask from the text pixels */
-    pixtm2 = pixGenTextlineMask(pixtext, &tlfound, debug);
+    pixtm2 = pixGenTextlineMask(pixtext, &pixvws, &tlfound, debug);
 
         /* Get the textblock mask from the textline mask */
-    pixtb2 = pixGenTextblockMask(pixtm2, debug);
+    pixtb2 = pixGenTextblockMask(pixtm2, pixvws, debug);
     pixDestroy(&pixr);
     pixDestroy(&pixtext);
+    pixDestroy(&pixvws);
 
-        /* Remove small components from the mask */
-    pixtbf2 = pixRemoveSmallComponents(pixtb2, 60, 60, 4, L_REMOVE_IF_BOTH,
-                                       L_CLONE, NULL);
+        /* Remove small components from the mask, where a small
+         * component is defined as one with both width and height < 60 */
+    pixtbf2 = pixSelectBySize(pixtb2, 60, 60, 4, L_SELECT_IF_EITHER,
+                              L_SELECT_IF_GTE, NULL);
     pixDestroy(&pixtb2);
     pixDisplayWrite(pixtbf2, debug);
 
         /* Expand all masks to full resolution, and do filling or
          * small dilations for better coverage. */
-    pixhm = pixExpandBinary(pixhm2, 2);
+    pixhm = pixExpandReplicate(pixhm2, 2);
     pixt1 = pixSeedfillBinary(NULL, pixhm, pixs, 8);
     pixOr(pixhm, pixhm, pixt1);
     pixDestroy(&pixt1);
     pixDisplayWrite(pixhm, debug);
 
-    pixt1 = pixExpandBinary(pixtm2, 2);
+    pixt1 = pixExpandReplicate(pixtm2, 2);
     pixtm = pixDilateBrick(NULL, pixt1, 3, 3);
     pixDestroy(&pixt1);
     pixDisplayWrite(pixtm, debug);
 
-    pixt1 = pixExpandBinary(pixtbf2, 2);
+    pixt1 = pixExpandReplicate(pixtbf2, 2);
     pixtb = pixDilateBrick(NULL, pixt1, 3, 3);
     pixDestroy(&pixt1);
     pixDisplayWrite(pixtb, debug);
@@ -129,7 +135,7 @@ PIX     *pixtb;    /* textblock mask */
     if (debug) {
         pixt1 = pixSubtract(NULL, pixs, pixtm);  /* remove text pixels */
         pixt2 = pixSubtract(NULL, pixt1, pixhm);  /* remove halftone pixels */
-        pixDisplayWrite(pixt2, debug);
+        pixDisplayWrite(pixt2, 1);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
@@ -156,11 +162,11 @@ PIX     *pixtb;    /* textblock mask */
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
 	ptaaWrite("/usr/tmp/junk_tb_outlines.ptaa", ptaa, 1);
-        pixt1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 16);
+        pixt1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 16, 1);
         cmap = pixGetColormap(pixt1);
         pixcmapResetColor(cmap, 0, 130, 130, 130);
         pixDisplay(pixt1, 500, 100);
-        pixDisplayWrite(pixt1, debug);
+        pixDisplayWrite(pixt1, 1);
         pixDestroy(&pixt1);
         ptaaDestroy(&ptaa);
     }
@@ -219,6 +225,7 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
 
     PROCNAME("pixGenHalftoneMask");
 
+    if (ppixtext) *ppixtext = NULL;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
@@ -227,7 +234,7 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
         /* Compute seed for halftone parts at 8x reduction */
     pixt1 = pixReduceRankBinaryCascade(pixs, 4, 4, 3, 0);
     pixt2 = pixOpenBrick(NULL, pixt1, 5, 5);
-    pixhs = pixExpandBinary(pixt2, 8);  /* back to 2x reduction */
+    pixhs = pixExpandReplicate(pixt2, 8);  /* back to 2x reduction */
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDisplayWrite(pixhs, debug);
@@ -239,11 +246,11 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
         /* Fill seed into mask to get halftone mask */
     pixd = pixSeedfillBinary(NULL, pixhs, pixhm, 4);
 
+#if 0
         /* Moderate opening to remove thin lines, etc. */
     pixOpenBrick(pixd, pixd, 10, 10);
     pixDisplayWrite(pixd, debug);
-    pixDestroy(&pixhs);
-    pixDestroy(&pixhm);
+#endif
 
         /* Check if mask is empty */
     pixZero(pixd, &empty);
@@ -262,6 +269,8 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
         pixDisplayWrite(*ppixtext, debug);
     }
 
+    pixDestroy(&pixhs);
+    pixDestroy(&pixhm);
     return pixd;
 }
 
@@ -273,6 +282,7 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
  *  pixGenTextlineMask()
  *
  *      Input:  pixs (1 bpp, assumed to be 150 to 200 ppi)
+ *              &pixvws (<return> vertical whitespace mask)
  *              &tlfound (<optional return> 1 if the mask is not empty)
  *              debug (flag: 1 for debug output)
  *      Return: pixd (textline mask), or null on error
@@ -285,6 +295,7 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
  */
 PIX *
 pixGenTextlineMask(PIX      *pixs,
+                   PIX     **ppixvws,
                    l_int32  *ptlfound,
                    l_int32   debug)
 {
@@ -295,28 +306,33 @@ PIX     *pixt1, *pixt2, *pixvws, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!ppixvws)
+        return (PIX *)ERROR_PTR("&pixvws not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
-        /* Find vertical whitespace by opening with an inverted image
-         * o5.1 removes thin vertical white lines in the original
-         * o1.200 extracts long vertical white lines in the original. */
+        /* First we need a vertical whitespace mask.  Invert the image. */
     pixt1 = pixInvert(NULL, pixs);
-    pixvws = pixMorphCompSequence(pixt1, "o5.1 + o1.200", 0);
-    pixDisplayWrite(pixvws, debug);
 
-        /* This whitespace mask will break textlines where there
+        /* The whitespace mask will break textlines where there
          * is a large amount of white space below or above.
-         * We can prevent this by identifying regions of the
-         * inverted image that have large horizontal (bigger than
+         * This can be prevented by identifying regions of the
+         * inverted image that have large horizontal extent (bigger than
 	 * the separation between columns) and significant
          * vertical extent (bigger than the separation between
-	 * textlines), and subtracting this from the whitespace mask. */
+	 * textlines), and subtracting this from the bg. */
     pixt2 = pixMorphCompSequence(pixt1, "o80.60", 0);
-    pixSubtract(pixvws, pixvws, pixt2);
+    pixSubtract(pixt1, pixt1, pixt2);
+    pixDisplayWrite(pixt1, debug);
+    pixDestroy(&pixt2);
+
+        /* Identify vertical whitespace by opening the remaining bg.
+         * o5.1 removes thin vertical bg lines and o1.200 extracts
+         * long vertical bg lines. */
+    pixvws = pixMorphCompSequence(pixt1, "o5.1 + o1.200", 0);
+    *ppixvws = pixvws;
     pixDisplayWrite(pixvws, debug);
     pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
 
         /* Three steps to getting text line mask:
          *   (1) close the characters and words in the textlines
@@ -328,9 +344,8 @@ PIX     *pixt1, *pixt2, *pixvws, *pixd;
     pixOpenBrick(pixd, pixd, 3, 3);
     pixDisplayWrite(pixd, debug);
     pixDestroy(&pixt1);
-    pixDestroy(&pixvws);
 
-        /* Check if mask is empty */
+        /* Check if text line mask is empty */
     if (ptlfound) {
         *ptlfound = 0;
         pixZero(pixd, &empty);
@@ -349,20 +364,22 @@ PIX     *pixt1, *pixt2, *pixvws, *pixd;
  *  pixGenTextblockMask()
  *
  *      Input:  pixs (1 bpp, textline mask, assumed to be 150 to 200 ppi)
+ *              pixvws (vertical white space mask) 
  *              debug (flag: 1 for debug output)
  *      Return: pixd (textblock mask), or null on error
  *
  *  Notes:
- *      (1) Both the input textline mask and returned textblock mask
- *          are at the same resolution.
+ *      (1) Both the input masks (textline and vertical white space) and
+ *          the returned textblock mask are at the same resolution.
  *      (2) The result is somewhat noisy, in that small "blocks" of
  *          text may be included.  These can be removed by post-processing,
  *          using, e.g.,
- *             pixRemoveSmallComponents(pix, 60, 60, 4, L_REMOVE_IF_BOTH,
- *                                      L_CLONE, NULL);
+ *             pixSelectBySize(pix, 60, 60, 4, L_SELECT_IF_EITHER,
+ *                             L_SELECT_IF_GTE, NULL);
  */
 PIX *
 pixGenTextblockMask(PIX     *pixs,
+                    PIX     *pixvws,
                     l_int32  debug)
 {
 PIX  *pixt1, *pixt2, *pixt3, *pixd;
@@ -371,20 +388,28 @@ PIX  *pixt1, *pixt2, *pixt3, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixvws)
+        return (PIX *)ERROR_PTR("pixvws not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
         /* Join pixels vertically to make a textblock mask */
-    pixt1 = pixCloseBrick(NULL, pixs, 1, 10);
+    pixt1 = pixMorphSequence(pixs, "c1.10 + o4.1", 0);
     pixDisplayWrite(pixt1, debug);
 
         /* Solidify the textblock mask and remove noise: 
-         *   (1) Close the blocks and dilate slightly to form a solid mask.
-         *   (2) Open the result to form a seed.
-         *   (3) Fill from seed into mask, to remove the noise. */
+         *   (1) For each cc, close the blocks and dilate slightly
+	 *       to form a solid mask.
+         *   (2) Small horizontal closing between components.
+         *   (3) Open the white space between columns, again.
+         *   (4) Remove small components. */
     pixt2 = pixMorphSequenceByComponent(pixt1, "c30.30 + d3.3", 8, 0, 0, NULL);
-    pixt3 = pixMorphSequenceByComponent(pixt2, "o20.20", 8, 0, 0, NULL);
-    pixd = pixSeedfillBinary(NULL, pixt2, pixt3, 8);
+    pixCloseSafeBrick(pixt2, pixt2, 10, 1);
+    pixDisplayWrite(pixt2, debug);
+    pixt3 = pixSubtract(NULL, pixt2, pixvws);
+    pixDisplayWrite(pixt3, debug);
+    pixd = pixSelectBySize(pixt3, 25, 5, 8, L_SELECT_IF_BOTH,
+                            L_SELECT_IF_GTE, NULL);
     pixDisplayWrite(pixd, debug);
 
     pixDestroy(&pixt1);

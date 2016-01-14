@@ -169,7 +169,8 @@
  *             // Initialize and save data in the classer
  *         JBCLASSER *classer =
  *             jbCorrelationInit(JB_CONN_COMPS, 0, 0, 0.8, 0.7);
- *         SARRAY *safiles = getSortedPathnamesInDirectory(directory, 0, 0);
+ *         SARRAY *safiles = getSortedPathnamesInDirectory(directory,
+ *                                                         NULL, 0, 0);
  *         jbAddPages(classer, safiles);
  *
  *             // Save the data in a data structure for serialization,
@@ -226,16 +227,19 @@ static const l_int32  MAX_CHAR_COMP_WIDTH = 350;  /* default max char width */
 static const l_int32  MAX_WORD_COMP_WIDTH = 1000;  /* default max word width */
 static const l_int32  MAX_COMP_HEIGHT = 120;  /* default max component height */
 
+    /* Max allowed dilation to merge characters into words */
+static const l_int32  MAX_ALLOWED_DILATION = 14;
+
     /* This stores the state of a state machine which fetches
      * similar sized templates */
 struct JbFindTemplatesState
 {
-  JBCLASSER       *classer;    /* classer                               */
-  l_int32          w;          /* desired width                         */
-  l_int32          h;          /* desired height                        */
-  l_int32          i;          /* index into two_by_two step array      */
-  NUMA            *numa;       /* current number array                  */
-  l_int32          n;          /* current element of numa               */
+    JBCLASSER       *classer;    /* classer                               */
+    l_int32          w;          /* desired width                         */
+    l_int32          h;          /* desired height                        */
+    l_int32          i;          /* index into two_by_two step array      */
+    NUMA            *numa;       /* current number array                  */
+    l_int32          n;          /* current element of numa               */
 };
 typedef struct JbFindTemplatesState JBFINDCTX;
 
@@ -252,6 +256,10 @@ static void findSimilarSizedTemplatesDestroy(JBFINDCTX **pcontext);
 static l_int32 finalPositioningForAlignment(PIX *pixs, l_int32 x, l_int32 y,
                              l_int32 idelx, l_int32 idely, PIX *pixt,
                              l_int32 *sumtab, l_int32 *pdx, l_int32 *pdy);
+
+#ifndef NO_CONSOLE_IO
+#define  DEBUG_PLOT_CC    0
+#endif  /* ~NO_CONSOLE_IO */
 
 
 /*----------------------------------------------------------------------*
@@ -1290,12 +1298,14 @@ PIXA      *pixa, *pixat;
 
     PROCNAME("jbGetComponents");
 
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
     if (!pboxad)
         return ERROR_INT("&boxad not defined", procName, 1);
+    *pboxad = NULL;
     if (!ppixad)
         return ERROR_INT("&pixad not defined", procName, 1);
+    *ppixad = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
         return ERROR_INT("invalid components", procName, 1);
@@ -1351,10 +1361,10 @@ PIXA      *pixa, *pixat;
             pixt1 = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
         }
 
-        pixt2 = pixWordMaskByDilation(pixt1, NULL);
+        pixt2 = pixWordMaskByDilation(pixt1, 0, NULL);
 
             /* Expand the optimally dilated word mask to full res. */
-        pixt3 = pixExpandBinary(pixt2, redfactor);
+        pixt3 = pixExpandReplicate(pixt2, redfactor);
 
             /* Pull out the pixels in pixs corresponding to the mask
              * components in pixt3.  Note that above we used threshold
@@ -1375,10 +1385,10 @@ PIXA      *pixa, *pixat;
     }
 
         /* Remove large components, and save the results.  */
-    *ppixad = pixaRemoveLargeComponents(pixa, maxwidth, maxheight,
-                                        L_REMOVE_IF_EITHER, NULL);
-    *pboxad = boxaRemoveLargeComponents(boxa, maxwidth, maxheight,
-                                        L_REMOVE_IF_EITHER, NULL);
+    *ppixad = pixaSelectBySize(pixa, maxwidth, maxheight, L_SELECT_IF_BOTH,
+                               L_SELECT_IF_LTE, NULL);
+    *pboxad = boxaSelectBySize(boxa, maxwidth, maxheight, L_SELECT_IF_BOTH,
+                               L_SELECT_IF_LTE, NULL);
     pixaDestroy(&pixa);
     boxaDestroy(&boxa);
 
@@ -1390,20 +1400,26 @@ PIXA      *pixa, *pixat;
  *  pixWordMaskByDilation()
  *
  *      Input:  pixs (1 bpp; typ. at 75 to 150 ppi)
+ *              maxsize (use 0 for default; not to exceed 14)
  *              &size (<optional return> size of optimal horiz Sel)
  *      Return: pixd (dilated word mask), or null on error
  *
  *  Notes:
- *      (1) In practice, one can usually stop dilating after 7 dilations,
- *          so we cut it off there explicitly.
+ *      (1) For 75 to 150 ppi, the optimal dilation should not exceed 7.
+ *          This is the default size chosen if maxsize <= 0.
+ *      (2) To run this on images at resolution between 200 and 300, it
+ *          is advisable to use a larger maxsize, say between 10 and 14.
+ *      (3) The best size for dilating to get word masks is optionally returned.
  */
 PIX *
 pixWordMaskByDilation(PIX      *pixs,
+                      l_int32   maxsize,
                       l_int32  *psize)
 {
 l_int32  i, diffmin, ndiff, imin;
-l_int32  ncc[12];
+l_int32  ncc[MAX_ALLOWED_DILATION + 1];
 BOXA    *boxa;
+NUMA    *nacc;
 PIX     *pixt1, *pixt2;
 PIXA    *pixa;
 
@@ -1424,16 +1440,24 @@ PIXA    *pixa;
     pixt1 = pixCopy(NULL, pixs);
     pixaAddPix(pixa, pixt1, L_COPY); 
 
-    for (i = 0; i < 7; i++) {
+    if (maxsize <= 0)
+        maxsize = 7;  /* default */
+    if (maxsize > MAX_ALLOWED_DILATION)
+        maxsize = MAX_ALLOWED_DILATION;
+    nacc = numaCreate(maxsize);
+    for (i = 0; i <= maxsize; i++) {
         if (i == 0)     /* first one not dilated */
             pixt2 = pixCopy(NULL, pixt1); 
         else    /* successive dilation by sel_2h */
             pixt2 = pixMorphSequence(pixt1, "d2.1", 0);
         boxa = pixConnCompBB(pixt2, 4);
         ncc[i] = boxaGetCount(boxa);
+	numaAddNumber(nacc, ncc[i]);
         if (i > 0) {
             ndiff = ncc[i - 1] - ncc[i];
-/*          fprintf(stderr, "ndiff[%d] = %d\n", i - 1, ndiff); */
+#if  DEBUG_PLOT_CC
+            fprintf(stderr, "ndiff[%d] = %d\n", i - 1, ndiff);
+#endif  /* DEBUG_PLOT_CC */
             if (ndiff < diffmin) {
                 imin = i;
                 diffmin = ndiff;
@@ -1446,12 +1470,27 @@ PIXA    *pixa;
     }
     pixDestroy(&pixt1);
 
+#if  DEBUG_PLOT_CC
+    {GPLOT *gplot;
+     NUMA  *naseq;
+        naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
+        gplot = gplotCreate("junk_cc_output", GPLOT_PNG,
+			    "Number of cc vs. horizontal dilation",
+			    "Sel horiz", "Number of cc");
+        gplotAddPlot(gplot, naseq, nacc, GPLOT_LINES, "");
+        gplotMakeOutput(gplot);
+        gplotDestroy(&gplot);
+	numaDestroy(&naseq);
+    }
+#endif  /* DEBUG_PLOT_CC */
+
         /* Save the result of the optimal dilation */
     pixt2 = pixaGetPix(pixa, imin, L_CLONE);
     pixaDestroy(&pixa);
     if (psize)
         *psize = imin + 1;
 
+    numaDestroy(&nacc);
     return pixt2;
 }
 
@@ -1464,7 +1503,7 @@ PIXA    *pixa;
  *
  *      Input:  pixaa (one pixa for each class)
  *              &pna (<return> number of samples used to build each composite)
- *              &ptad (<return> centroids of bordered composites)
+ *              &ptat (<return> centroids of bordered composites)
  *      Return: pixad (accumulated sum of samples in each class),
  *                     or null on error
  *
@@ -1483,12 +1522,14 @@ PTA       *ptat, *pta;
 
     PROCNAME("jbAccumulateComposites");
 
-    if (!pixaa)
-        return (PIXA *)ERROR_PTR("pixaa not defined", procName, NULL);
     if (!pptat)
         return (PIXA *)ERROR_PTR("&ptat not defined", procName, NULL);
+    *pptat = NULL;
     if (!pna)
         return (PIXA *)ERROR_PTR("&na not defined", procName, NULL);
+    *pna = NULL;
+    if (!pixaa)
+        return (PIXA *)ERROR_PTR("pixaa not defined", procName, NULL);
 
     n = pixaaGetCount(pixaa);
     if ((ptat = ptaCreate(n)) == NULL)
@@ -1757,7 +1798,8 @@ JBDATA  *data;
  *              jbdata
  *      Return: 0 if OK, 1 on error
  *
- *  Note: Writes data in jbdata to file.
+ *  Notes:
+ *      (1) Serialization function that writes data in jbdata to file.
  */
 l_int32
 jbDataWrite(const char  *rootout,
@@ -1835,6 +1877,9 @@ SARRAY   *sa;
     
     PROCNAME("jbDataRead");
 
+    if (!rootname)
+        return (JBDATA *)ERROR_PTR("rootname not defined", procName, NULL);
+
     snprintf(fname, L_BUF_SIZE, "%s%s", rootname, JB_TEMPLATE_EXT);
     if ((pixs = pixRead(fname)) == NULL)
         return (JBDATA *)ERROR_PTR("pix not read", procName, NULL);
@@ -1905,7 +1950,7 @@ SARRAY   *sa;
  *  jbDataRender()
  *
  *      Input:  jbdata
- *              debugflag (if TRUE, writes into 4 bpp pix and adds 
+ *              debugflag (if TRUE, writes into 2 bpp pix and adds 
  *                         component outlines in color)
  *      Return: pixa (reconstruction of original images, using templates) or
  *              null on error
@@ -1925,6 +1970,9 @@ PIXCMAP  *cmap;
 PTA      *ptaul;
     
     PROCNAME("jbDataRender");
+
+    if (!data)
+        return (PIXA *)ERROR_PTR("data not defined", procName, NULL);
 
     npages = data->npages;
     w = data->w;
@@ -1993,7 +2041,8 @@ PTA      *ptaul;
  *  jbGetULCorners()
  *
  *      Input:  jbclasser
- *              boxa  (of c.c. bounding rectangles for this page)
+ *              pixs (full res image)
+ *              boxa (of c.c. bounding rectangles for this page)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -2028,6 +2077,8 @@ PTA       *ptac, *ptact, *ptaul;
 
     if (!classer)
         return ERROR_INT("classer not defined", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 

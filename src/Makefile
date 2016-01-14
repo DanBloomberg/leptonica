@@ -130,19 +130,16 @@ LIBRARIAN_SHARED =	gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 44
+MINOR_REV = 46
 
 #########################################################
 
 # Libraries
 
 LEPTLIB =		liblept.a
-
 LEPTLIB_SHARED =	liblept.so
 
 #########################################################
-
-# Source:   (on cygwin, comment out viewfiles.c)
 
 LEPTLIB_C =	adaptmap.c \
 		affine.c \
@@ -154,7 +151,7 @@ LEPTLIB_C =	adaptmap.c \
 		binexpand.c binexpandlow.c \
 		binreduce.c binreducelow.c \
 		blend.c bmf.c bmpio.c \
-		box.c \
+		boxbasic.c boxfunc.c \
 		ccbord.c classapp.c \
 		colorcontent.c colormap.c colormorph.c \
 		colorquant.c colorseg.c \
@@ -175,8 +172,8 @@ LEPTLIB_C =	adaptmap.c \
 		numabasic.c numafunc.c \
 		pageseg.c paintcmap.c \
 		parseprotos.c pheap.c \
-		pix1.c pix2.c pix3.c pixa.c \
-		pixacc.c pixarith.c pixconv.c \
+		pix1.c pix2.c pix3.c pixabasic.c \
+		pixacc.c pixafunc.c pixarith.c pixconv.c \
 		pngio.c pnmio.c pqueue.c \
 		projective.c psio.c \
 		pts.c \

@@ -26,6 +26,7 @@
 main(int    argc,
      char **argv)
 {
+char       *filein, *fileout;
 l_int32     d;
 BOX        *box1, *box2, *box3, *box4;
 BOXA       *boxa;
@@ -33,11 +34,16 @@ PIX        *pixs, *pixt1, *pixt2, *pixt3;
 PTA        *pta;
 static char     mainName[] = "graphicstest";
 
-/*    pixs = pixRead("lucasta.jpg"); */
-    pixs = pixRead("test24.jpg");
+    if (argc != 3)
+        exit(ERROR_INT(" Syntax: graphicstest filein fileout", mainName, 1));
+
+    filein = argv[1];
+    fileout = argv[2];
+    if ((pixs = pixRead(filein)) == NULL)
+        exit(ERROR_INT(" Syntax: pixs not made", mainName, 1));
     d = pixGetDepth(pixs);
-    if (d == 8)
-        pixt1 = pixConvert8To32(pixs);
+    if (d <= 8)
+        pixt1 = pixConvertTo32(pixs);
     else
         pixt1 = pixClone(pixs);
 
@@ -64,8 +70,8 @@ static char     mainName[] = "graphicstest";
     ptaAddPt(pta, 400, 600);
     ptaAddPt(pta, 212, 512);
     ptaAddPt(pta, 180, 375);
-    pixRenderPolylineBlend(pixt1, pta, 17, 25, 200, 200, 0.5, 1);
-    pixWrite("junkpixt1", pixt1, IFF_JFIF_JPEG);
+    pixRenderPolylineBlend(pixt1, pta, 17, 25, 200, 200, 0.5, 1, 1);
+    pixWrite(fileout, pixt1, IFF_JFIF_JPEG);
     pixDisplay(pixt1, 200, 200);
 
     pixDestroy(&pixs);
@@ -73,7 +79,6 @@ static char     mainName[] = "graphicstest";
     boxDestroy(&box1);
     boxaDestroy(&boxa);
     ptaDestroy(&pta);
-
     pixDestroy(&pixs);
 }
 

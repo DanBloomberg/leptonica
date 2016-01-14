@@ -14,41 +14,53 @@
  *====================================================================*/
 
 /*
- * trctest.c
+ * removecmap.c
+ *
+ *      removecmap filein type fileout
+ *
+ *          type:  1 for conversion to 8 bpp gray
+ *                 2 for conversion to 24 bpp full color
+ *                 3 for conversion depending on src
+ *
+ *      Removes the colormap and does the conversion
+ *      Works on palette images of 2, 4 and 8 bpp
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-
 main(int    argc,
      char **argv)
 {
-PIX         *pixs, *pixd;
-l_int32      minval, maxval;
 char        *filein, *fileout;
-static char  mainName[] = "trctest";
+l_int32      d, type, numcolors;
+PIX         *pixs, *pixd;
+PIXCMAP     *cmap;
+static char  mainName[] = "removecmap";
 
-    if (argc != 5)
-	exit(ERROR_INT(" Syntax:  trctest filein minval maxval fileout",
-	    mainName, 1));
+    if (argc != 4)
+	exit(ERROR_INT("Syntax:  removecmap filein type fileout", mainName, 1));
 
     filein = argv[1];
-    minval = atoi(argv[2]);
-    maxval = atoi(argv[3]);
-    fileout = argv[4];
+    type = atoi(argv[2]);
+    fileout = argv[3];
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 	    
-    pixd = pixLinearTRC(pixs, minval, maxval);
-/*    pixd = pixLinearTRCGray(pixs, minval, maxval, NULL); */
+    fprintf(stderr, " depth = %d\n", pixGetDepth(pixs));
+    if (cmap = pixGetColormap(pixs)) {
+	numcolors = pixcmapGetCount(cmap);
+	pixcmapWriteStream(stderr, cmap);
+	fprintf(stderr, " colormap found; num colors = %d\n", numcolors);
+    }
+    else
+	fprintf(stderr, " no colormap\n");
 
+    pixd = pixRemoveColormap(pixs, type);
     pixWrite(fileout, pixd, IFF_PNG);
-    pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-    exit(0);
+    return 0;
 }
 

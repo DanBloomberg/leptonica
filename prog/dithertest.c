@@ -15,6 +15,9 @@
 
 /*
  * dithertest.c
+ *
+ *    Input is 8 bpp grayscale
+ *    Output file is PostScript, 2 bpp dithered
  */
 
 #include <stdio.h>
@@ -48,33 +51,29 @@ static char  mainName[] = "dithertest";
 	exit(ERROR_INT("pix not 8 bpp", mainName, 1));
     pixs = pixGammaTRC(NULL, pix, GAMMA, 0, 255);
 
-#if 1
     startTimer();
     pixd = pixDitherToBinary(pixs);
     fprintf(stderr, " time for binarized dither = %7.3f sec\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_PNG);
+    pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
-#endif
 
-#if 1   /* dither to 2 bpp, with colormap */
+         /* Dither to 2 bpp, with colormap */
     startTimer();
     pixd = pixDitherTo2bpp(pixs, 1);
     fprintf(stderr, " time for dither = %7.3f sec\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_PNG);
+    pixDisplayWrite(pixd, 1);
     cmap = pixGetColormap(pixd);
     pixcmapWriteStream(stderr, cmap);
     pixDestroy(&pixd);
-#endif
 
-#if 1   /* dither to 2 bpp, without colormap */
+         /* Dither to 2 bpp, without colormap */
     startTimer();
     pixd = pixDitherTo2bpp(pixs, 0);
     fprintf(stderr, " time for dither = %7.3f sec\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_PNG);
+    pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
-#endif
 
-#if 1
+         /* Dither to 2 bpp, without colormap; output in PostScript */
     pixd = pixDitherTo2bpp(pixs, 0);
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -83,26 +82,25 @@ static char  mainName[] = "dithertest";
     pixWriteStreamPS(fp, pixd, NULL, 300, scale);
     fclose(fp);
     pixDestroy(&pixd);
-#endif
 
-#if 1    /* dither 2x upscale to 1 bpp; e.g., use test8.jpg */
+        /* Dither 2x upscale to 1 bpp */
     startTimer();
     pixd = pixScaleGray2xLIDither(pixs);
     fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_PNG);
+    pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
-#endif
 
-#if 1    /* dither 4x upscale to 1 bpp; e.g., use test8.jpg */
+        /* Dither 4x upscale to 1 bpp */
     startTimer();
     pixd = pixScaleGray4xLIDither(pixs);
     fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_PNG);
+    pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
-#endif
+
+    system("/usr/bin/gthumb junk_write_display* &");
 
     pixDestroy(&pix);
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 

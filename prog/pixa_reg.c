@@ -50,13 +50,13 @@ static char  mainName[] = "pixa_reg";
     nay2 = numaCreate(51);
     boxaDestroy(&boxa);
 
-    fprintf(stderr, "\n Remove if Either\n");
+    fprintf(stderr, "\n Select Large if Both\n");
     fprintf(stderr, "Iter 0: n = %d\n", n0);
     numaAddNumber(nay1, n0);
     for (i = 1; i <= 50; i++) {
         size = 2 * i;
-        pixd = pixRemoveSmallComponents(pixs, size, size, CONNECTIVITY,
-                                        L_REMOVE_IF_EITHER, L_CLONE, NULL);
+        pixd = pixSelectBySize(pixs, size, size, CONNECTIVITY,
+                               L_SELECT_IF_BOTH, L_SELECT_IF_GTE, NULL);
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay1, n);
@@ -65,13 +65,13 @@ static char  mainName[] = "pixa_reg";
         pixDestroy(&pixd);
     }
 
-    fprintf(stderr, "\n Remove if Both\n");
+    fprintf(stderr, "\n Select Large if Either\n");
     fprintf(stderr, "Iter 0: n = %d\n", n0);
     numaAddNumber(nay2, n0);
     for (i = 1; i <= 50; i++) {
         size = 2 * i;
-        pixd = pixRemoveSmallComponents(pixs, size, size, CONNECTIVITY,
-                                        L_REMOVE_IF_BOTH, L_CLONE, NULL);
+        pixd = pixSelectBySize(pixs, size, size, CONNECTIVITY,
+                               L_SELECT_IF_EITHER, L_SELECT_IF_GTE, NULL);
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay2, n);
@@ -81,10 +81,10 @@ static char  mainName[] = "pixa_reg";
     }
 
     gplot = gplotCreate("junkplot1", GPLOT_X11,
-                        "Remove small: number of cc vs size removed",
+                        "Select large: number of cc vs size removed",
                         "min size", "number of c.c.");
-    gplotAddPlot(gplot, nax, nay1, GPLOT_LINES, "remove if either");
-    gplotAddPlot(gplot, nax, nay2, GPLOT_LINES, "remove if both");
+    gplotAddPlot(gplot, nax, nay1, GPLOT_LINES, "select if both");
+    gplotAddPlot(gplot, nax, nay2, GPLOT_LINES, "select if either");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
 
@@ -92,13 +92,13 @@ static char  mainName[] = "pixa_reg";
     numaEmpty(nay1);
     numaEmpty(nay2);
 
-    fprintf(stderr, "\n Remove if Either\n");
+    fprintf(stderr, "\n Select Small if Both\n");
     fprintf(stderr, "Iter 0: n = %d\n", 0);
     numaAddNumber(nay1, 0);
     for (i = 1; i <= 50; i++) {
         size = 2 * i;
-        pixd = pixRemoveLargeComponents(pixs, size, size, CONNECTIVITY,
-                                        L_REMOVE_IF_EITHER, L_CLONE, NULL);
+        pixd = pixSelectBySize(pixs, size, size, CONNECTIVITY,
+                               L_SELECT_IF_BOTH, L_SELECT_IF_LTE, NULL);
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay1, n);
@@ -107,13 +107,13 @@ static char  mainName[] = "pixa_reg";
         pixDestroy(&pixd);
     }
 
-    fprintf(stderr, "\n Remove if Both\n");
+    fprintf(stderr, "\n Select Small if Either\n");
     fprintf(stderr, "Iter 0: n = %d\n", 0);
     numaAddNumber(nay2, 0);
     for (i = 1; i <= 50; i++) {
         size = 2 * i;
-        pixd = pixRemoveLargeComponents(pixs, size, size, CONNECTIVITY,
-                                        L_REMOVE_IF_BOTH, L_CLONE, NULL);
+        pixd = pixSelectBySize(pixs, size, size, CONNECTIVITY,
+                               L_SELECT_IF_EITHER, L_SELECT_IF_LTE, NULL);
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay2, n);
@@ -125,8 +125,8 @@ static char  mainName[] = "pixa_reg";
     gplot = gplotCreate("junkplot2", GPLOT_X11,
                         "Remove large: number of cc vs size removed",
                         "min size", "number of c.c.");
-    gplotAddPlot(gplot, nax, nay1, GPLOT_LINES, "remove if either");
-    gplotAddPlot(gplot, nax, nay2, GPLOT_LINES, "remove if both");
+    gplotAddPlot(gplot, nax, nay1, GPLOT_LINES, "select if both");
+    gplotAddPlot(gplot, nax, nay2, GPLOT_LINES, "select if either");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
 

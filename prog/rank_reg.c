@@ -13,55 +13,51 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
- * mazetest.c
+ * rank_reg.c
  *
- *    Generates and traverses maze with breadth-first algorithms
+ *   Tests grayscale MinMax and rank
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define   WIDTH     200
-#define   HEIGHT    200
-#define   XINIT     20
-#define   YINIT     20
-#define   XEND      170
-#define   YEND      170
-#define   WALLPS    0.65
-#define   RANIS     0.25
-/*  #define   RANIS     0.35 */   /* no path found */
-
 
 main(int    argc,
      char **argv)
 {
-char        *mazeout, *pathout;
-PIX         *pixm, *pixex, *pixd;
-static char  mainName[] = "mazetest";
+l_int32       i, j;
+PIX          *pixs, *pixt0, *pixt1;
+static char   mainName[] = "rank_reg";
 
-    if (argc != 3)
-	exit(ERROR_INT(" Syntax:  mazetest mazeout pathout", mainName, 1));
+    if (argc != 1)
+	exit(ERROR_INT(" Syntax: rank_reg", mainName, 1));
 
-    mazeout = argv[1];
-    pathout = argv[2];
+    pixs = pixRead("test8.jpg");
+    for (i = 1; i <= 4; i++) {
+        pixt1 = pixScaleGrayRank2(pixs, i);
+        pixDisplay(pixt1, 300 * (i - 1), 100);
+        pixDestroy(&pixt1);
+    }
+    pixDestroy(&pixs);
 
-    pixm = generateMaze(WIDTH, HEIGHT, XINIT, YINIT, WALLPS, RANIS);
-    pixex = pixExpandBinary(pixm, 4);
-    pixDisplay(pixex, 50, 50);
-    pixDestroy(&pixex);
-    pixWrite(mazeout, pixm, IFF_PNG);
+    pixs = pixRead("test24.jpg");
+    pixt1 = pixConvertRGBToLuminance(pixs);
+    pixt0 = pixScale(pixt1, 1.5, 1.5);
+    pixDestroy(&pixt1);
+    for (i = 1; i <= 4; i++) {
+        for (j = 1; j <= 4; j++) {
+            pixt1 = pixScaleGrayRankCascade(pixt0, i, j, 0, 0);
+            pixDisplayWrite(pixt1, 1);
+	    pixDestroy(&pixt1);
+	}
+    }
+    pixDestroy(&pixt0);
+    pixDestroy(&pixs);
 
-    pixd = searchMaze(pixm, XINIT, YINIT, XEND, YEND);
-    pixex = pixScaleBySampling(pixd, 4., 4.);
-    pixDisplay(pixex, 450, 50);
-    pixDestroy(&pixex);
-    pixWrite(pathout, pixd, IFF_PNG);
+    system("gthumb junk_write_display* &");
 
-    pixDestroy(&pixm);
-    pixDestroy(&pixd);
-    exit(0);
+    return 0;
 }
 

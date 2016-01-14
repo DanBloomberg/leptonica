@@ -41,8 +41,8 @@ main(int    argc,
      char **argv)
 {
 char        *mazein, *pathout;
-l_int32      i;
-PIX         *pixex, *pixs, *pixd;
+l_int32      i, w, h;
+PIX         *pixex, *pix, *pixs, *pixd;
 PTA         *pta;
 PTAA        *ptaa;
 static char  mainName[] = "graymazetest";
@@ -53,13 +53,22 @@ static char  mainName[] = "graymazetest";
     mazein = argv[1];
     pathout = argv[2];
 
-    if ((pixs = pixRead(mazein)) == NULL)
+    if ((pix = pixRead(mazein)) == NULL)
 	exit(ERROR_INT("pixs not read", mainName, 1));
+    if (pixGetDepth(pix) != 8)
+        pixs = pixConvertTo8(pix, FALSE);
+    else
+        pixs = pixClone(pix);
+    pixGetDimensions(pixs, &w, &h, NULL);
 
 #if 1  /* multiple paths */ 
 
     ptaa = ptaaCreate(NPATHS);
     for (i = 0; i < NPATHS; i++) {
+        if (xinit[i] >= w || xend[i] >= w || yinit[i] >= h || yend[i] >= h) {
+            fprintf(stderr, "path %d extends beyond image; skipping\n", i);
+            continue;
+        }
         pta = searchGrayMaze(pixs, xinit[i], yinit[i], xend[i], yend[i],
 	                     NULL);
         ptaaAddPta(ptaa, pta, L_INSERT);

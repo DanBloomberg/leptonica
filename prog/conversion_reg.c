@@ -20,6 +20,8 @@
  *    including some of the octcube quantization.
  */
 
+#define  DFLAG    1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
@@ -63,8 +65,8 @@ static char  mainName[] = "convert_rt";
     pixt2 = pixThreshold8(pixt1, 1, 0, 0);
     pixEqual(pixs1, pixt2, &same);
     if (!same) {
-        pixDisplayWithTitle(pixs1, 100, 100, "1 bpp, no cmap");
-        pixDisplayWithTitle(pixt2, 500, 100, "1 bpp, no cmap");
+        pixDisplayWithTitle(pixs1, 100, 100, "1 bpp, no cmap", DFLAG);
+        pixDisplayWithTitle(pixt2, 500, 100, "1 bpp, no cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 1 bpp <==> 8 bpp", L_COPY);
     }
@@ -79,8 +81,8 @@ static char  mainName[] = "convert_rt";
     pixt4 = pixThreshold8(pixt3, 2, 4, 0);
     pixEqual(pixt2, pixt4, &same);
     if (!same) {
-        pixDisplayWithTitle(pixt2, 100, 100, "2 bpp, no cmap");
-        pixDisplayWithTitle(pixt4, 500, 100, "2 bpp, no cmap");
+        pixDisplayWithTitle(pixt2, 100, 100, "2 bpp, no cmap", DFLAG);
+        pixDisplayWithTitle(pixt4, 500, 100, "2 bpp, no cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 2 bpp <==> 8 bpp", L_COPY);
     }
@@ -88,8 +90,8 @@ static char  mainName[] = "convert_rt";
     pixt6 = pixThreshold8(pixt5, 2, 4, 1);
     pixEqual(pixs2, pixt6, &same);
     if (!same) {
-        pixDisplayWithTitle(pixs2, 100, 100, "2 bpp, cmap");
-        pixDisplayWithTitle(pixt6, 500, 100, "2 bpp, cmap");
+        pixDisplayWithTitle(pixs2, 100, 100, "2 bpp, cmap", DFLAG);
+        pixDisplayWithTitle(pixt6, 500, 100, "2 bpp, cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 2 bpp <==> 8 bpp; cmap", L_COPY);
     }
@@ -108,8 +110,8 @@ static char  mainName[] = "convert_rt";
     pixt4 = pixThreshold8(pixt3, 4, 16, 0);
     pixEqual(pixt2, pixt4, &same);
     if (!same) {
-        pixDisplayWithTitle(pixt2, 100, 100, "4 bpp, no cmap");
-        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, no cmap");
+        pixDisplayWithTitle(pixt2, 100, 100, "4 bpp, no cmap", DFLAG);
+        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, no cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 4 bpp <==> 8 bpp", L_COPY);
     }
@@ -117,8 +119,8 @@ static char  mainName[] = "convert_rt";
     pixt6 = pixThreshold8(pixt5, 4, 16, 1);
     pixEqual(pixs4, pixt6, &same);
     if (!same) {
-        pixDisplayWithTitle(pixs4, 100, 100, "4 bpp, cmap");
-        pixDisplayWithTitle(pixt6, 500, 100, "4 bpp, cmap");
+        pixDisplayWithTitle(pixs4, 100, 100, "4 bpp, cmap", DFLAG);
+        pixDisplayWithTitle(pixt6, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 4 bpp <==> 8 bpp, cmap", L_COPY);
     }
@@ -136,8 +138,8 @@ static char  mainName[] = "convert_rt";
     pixt4 = pixThresholdTo2bpp(pixt3, 4, 1);
     pixEqual(pixt1, pixt4, &same);
     if (!same) {
-        pixDisplayWithTitle(pixs2, 100, 100, "2 bpp, cmap");
-        pixDisplayWithTitle(pixt4, 500, 100, "2 bpp, cmap");
+        pixDisplayWithTitle(pixs2, 100, 100, "2 bpp, cmap", DFLAG);
+        pixDisplayWithTitle(pixt4, 500, 100, "2 bpp, cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 2 bpp <==> 2 bpp", L_COPY);
     }
@@ -153,8 +155,8 @@ static char  mainName[] = "convert_rt";
     pixt4 = pixThresholdTo4bpp(pixt3, 16, 1);
     pixEqual(pixt1, pixt4, &same);
     if (!same) {
-        pixDisplayWithTitle(pixs4, 100, 100, "4 bpp, cmap");
-        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap");
+        pixDisplayWithTitle(pixs4, 100, 100, "4 bpp, cmap", DFLAG);
+        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 4 bpp <==> 4 bpp", L_COPY);
     }
@@ -169,8 +171,8 @@ static char  mainName[] = "convert_rt";
     pixt2 = pixConvertTo8(pixt1, FALSE);
     pixEqual(pixs8, pixt2, &same);
     if (!same) {
-        pixDisplayWithTitle(pixt1, 100, 100, "8 bpp, cmap");
-        pixDisplayWithTitle(pixt2, 500, 100, "8 bpp, no cmap");
+        pixDisplayWithTitle(pixt1, 100, 100, "8 bpp, cmap", DFLAG);
+        pixDisplayWithTitle(pixt2, 500, 100, "8 bpp, no cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 8 bpp <==> 8 bpp", L_COPY);
     }
@@ -183,8 +185,8 @@ static char  mainName[] = "convert_rt";
     pixt3 = pixConvertTo32(pixc2);
     pixEqual(pixt2, pixt3, &same);
     if (!same) {
-        pixDisplayWithTitle(pixt2, 100, 100, "32 bpp");
-        pixDisplayWithTitle(pixt3, 500, 100, "32 bpp");
+        pixDisplayWithTitle(pixt2, 100, 100, "32 bpp", DFLAG);
+        pixDisplayWithTitle(pixt3, 500, 100, "32 bpp", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 2 bpp ==> 32 bpp", L_COPY);
     }
@@ -192,8 +194,8 @@ static char  mainName[] = "convert_rt";
     pixt4 = pixOctcubeQuantFromCmap(pixt3, cmap, 4, L_EUCLIDEAN_DISTANCE);
     pixEqual(pixc2, pixt4, &same);
     if (!same) {
-        pixDisplayWithTitle(pixc2, 100, 100, "4 bpp, cmap");
-        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap");
+        pixDisplayWithTitle(pixc2, 100, 100, "4 bpp, cmap", DFLAG);
+        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 2 bpp <==> 32 bpp", L_COPY);
     }
@@ -208,8 +210,8 @@ static char  mainName[] = "convert_rt";
     pixt3 = pixConvertTo32(pixc4);
     pixEqual(pixt2, pixt3, &same);
     if (!same) {
-        pixDisplayWithTitle(pixt2, 100, 100, "32 bpp");
-        pixDisplayWithTitle(pixt3, 500, 100, "32 bpp");
+        pixDisplayWithTitle(pixt2, 100, 100, "32 bpp", DFLAG);
+        pixDisplayWithTitle(pixt3, 500, 100, "32 bpp", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 4 bpp ==> 32 bpp", L_COPY);
     }
@@ -217,8 +219,8 @@ static char  mainName[] = "convert_rt";
     pixt4 = pixOctcubeQuantFromCmap(pixt3, cmap, 4, L_EUCLIDEAN_DISTANCE);
     pixEqual(pixc4, pixt4, &same);
     if (!same) {
-        pixDisplayWithTitle(pixc4, 100, 100, "4 bpp, cmap");
-        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap");
+        pixDisplayWithTitle(pixc4, 100, 100, "4 bpp, cmap", DFLAG);
+        pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 4 bpp <==> 32 bpp", L_COPY);
     }
@@ -232,8 +234,8 @@ static char  mainName[] = "convert_rt";
     pixt2 = pixConvertTo8(pixt1, FALSE);
     pixEqual(pixs8, pixt2, &same);
     if (!same) {
-        pixDisplayWithTitle(pixs8, 100, 100, "8 bpp");
-        pixDisplayWithTitle(pixt2, 500, 100, "8 bpp");
+        pixDisplayWithTitle(pixs8, 100, 100, "8 bpp", DFLAG);
+        pixDisplayWithTitle(pixt2, 500, 100, "8 bpp", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 8 bpp <==> 32 bpp", L_COPY);
     }
@@ -247,8 +249,8 @@ static char  mainName[] = "convert_rt";
     pixt2 = pixOctcubeQuantFromCmap(pixt1, cmap, 6, L_EUCLIDEAN_DISTANCE);
     pixEqual(pixc8, pixt2, &same);
     if (!same) {
-        pixDisplayWithTitle(pixc8, 100, 100, "8 bpp cmap");
-        pixDisplayWithTitle(pixt2, 500, 100, "8 bpp cmap");
+        pixDisplayWithTitle(pixc8, 100, 100, "8 bpp cmap", DFLAG);
+        pixDisplayWithTitle(pixt2, 500, 100, "8 bpp cmap", DFLAG);
         error = TRUE;
         sarrayAddString(sa, "conversion 8 bpp cmap <==> 32 bpp cmap", L_COPY);
     }

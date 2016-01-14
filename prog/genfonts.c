@@ -42,7 +42,7 @@ const char  *outputfonts[] = {"chars-4.pixa", "chars-6.pixa",
 
 const l_int32 sizes[] = { 4, 6, 8, 10, 12, 14, 16, 18, 20 };
 
-#define  DEBUG            0
+#define  DEBUG            1
 
 
 main(int    argc,
@@ -57,12 +57,11 @@ static char  mainName[] = "genfonts";
     if (argc != 1)
 	exit(ERROR_INT(" Syntax:  genfonts", mainName, 1));
 
-
 #if 1   /* Generate all the pixa char bitmap files */
     for (i = 0; i < 9; i++) { 
         pixaSaveFont(DIRECTORY, DIRECTORY, sizes[i]);
 #if DEBUG
-        pathname = genPathname(OUTDIR, outputfonts[i]);
+        pathname = genPathname(DIRECTORY, outputfonts[i]);
 	pixa = pixaRead(pathname);
 	fprintf(stderr, "Found %d chars in font size %d\n",
 	        pixaGetCount(pixa), sizes[i]);
@@ -71,7 +70,7 @@ static char  mainName[] = "genfonts";
 	pixDisplay(pixd, 100 * i, 200);
 	pixDestroy(&pixd);
 	pixaDestroy(&pixa);
-	FREE((void *)pathname);
+	FREE(pathname);
 #endif  /* DEBUG */
     }
 #endif
@@ -84,7 +83,7 @@ static char  mainName[] = "genfonts";
     fprintf(stderr, "Time for font gen = %7.3f sec\n", stopTimer());
 #endif
 
-#if 0   /* Use pixaGetFont() and write the result out */
+#if 1   /* Use pixaGetFont() and write the result out */
     pixa = pixaGetFont(DIRECTORY, 10, &bl1, &bl2, &bl3);
     pixaWrite("junkchars16", pixa);
 #if DEBUG

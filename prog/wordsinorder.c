@@ -79,7 +79,7 @@ static char  mainName[] = "wordsinorder";
 
         /* Compute the word bounding boxes at 2x reduction, along with
          * the textlines that they are in. */
-    safiles = getSortedPathnamesInDirectory(dirin, firstpage, npages);
+    safiles = getSortedPathnamesInDirectory(dirin, NULL, firstpage, npages);
     nfiles = sarrayGetCount(safiles);
     baa = boxaaCreate(nfiles);
     naa = numaaCreate(nfiles);
@@ -89,7 +89,7 @@ static char  mainName[] = "wordsinorder";
             L_WARNING_INT("image file %d not read", mainName, i);
             continue;
         }
-        pixGetWordBoxesInTextlines(pixs, MIN_WORD_WIDTH, MIN_WORD_HEIGHT,
+        pixGetWordBoxesInTextlines(pixs, 2, MIN_WORD_WIDTH, MIN_WORD_HEIGHT,
 			           MAX_WORD_WIDTH, MAX_WORD_HEIGHT,
 				   &boxa, &nai);
         boxaaAddBoxa(baa, boxa, L_INSERT);

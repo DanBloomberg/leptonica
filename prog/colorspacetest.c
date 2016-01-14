@@ -37,41 +37,39 @@ static char  mainName[] = "colorspacetest";
     if ((pixs = pixRead(argv[1])) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 	    
-        /* Space conversion in rgb */
-    pixDisplay(pixs, 0, 75);
-    pixWrite("/usr/tmp/junkrgb1", pixs, IFF_PNG);
+        /* Colorspace conversion in rgb */
+    pixDisplayWrite(pixs, 1);
     pixt = pixConvertRGBToHSV(NULL, pixs);
-    pixDisplay(pixt, 600, 75);
+    pixDisplayWrite(pixt, 1);
     pixConvertHSVToRGB(pixt, pixt);
-    pixDisplay(pixt, 1200, 75);
-    pixWrite("/usr/tmp/junkrgb2", pixt, IFF_PNG);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
 
-        /* Space conversion on a colormap */
+        /* Colorspace conversion on a colormap */
     pixt = pixOctreeQuant(pixs, 25, 0);
-    pixWrite("/usr/tmp/junkcmap1", pixt, IFF_PNG);
-    pixDisplay(pixt, 0, 575);
+    pixDisplayWrite(pixt, 1);
     cmap = pixGetColormap(pixt);
     pixcmapWriteStream(stderr, cmap);
     pixcmapConvertRGBToHSV(cmap);
     pixcmapWriteStream(stderr, cmap);
-    pixDisplay(pixt, 600, 575);
+    pixDisplayWrite(pixt, 1);
     pixcmapConvertHSVToRGB(cmap);
-    pixWrite("/usr/tmp/junkcmap2", pixt, IFF_PNG);
     pixcmapWriteStream(stderr, cmap);
-    pixDisplay(pixt, 1200, 575);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
 
         /* Color content extraction */
     pixColorContent(pixs, &pixr, &pixg, &pixb);
-    pixWrite("/usr/tmp/junkpixr", pixr, IFF_JFIF_JPEG);
-    pixWrite("/usr/tmp/junkpixg", pixg, IFF_JFIF_JPEG);
-    pixWrite("/usr/tmp/junkpixb", pixb, IFF_JFIF_JPEG);
+    pixDisplayWrite(pixr, 1);
+    pixDisplayWrite(pixg, 1);
+    pixDisplayWrite(pixb, 1);
     pixDestroy(&pixr);
     pixDestroy(&pixg);
     pixDestroy(&pixb);
 
+    system("gthumb junk_write_display* &");
+
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 

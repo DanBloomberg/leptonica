@@ -30,6 +30,7 @@
 #include "allheaders.h"
 
 #define   INDEX      3
+#define   DFLAG      1
 
     /* Sels for pixPageFlipDetectDWA() */
 static const char *textsel1 = "x  oo "
@@ -80,19 +81,19 @@ static char  mainName[] = "flipselgen";
 
     pixa = pixaCreate(4);
     pix = selDisplayInPix(sel1, 23, 2);
-    pixDisplayWithTitle(pix, 100, 100, "sel1");
+    pixDisplayWithTitle(pix, 100, 100, "sel1", DFLAG);
     pixaAddPix(pixa, pix, L_INSERT);
     pix = selDisplayInPix(sel2, 23, 2);
-    pixDisplayWithTitle(pix, 275, 100, "sel2");
+    pixDisplayWithTitle(pix, 275, 100, "sel2", DFLAG);
     pixaAddPix(pixa, pix, L_INSERT);
     pix = selDisplayInPix(sel3, 23, 2);
-    pixDisplayWithTitle(pix, 450, 100, "sel3");
+    pixDisplayWithTitle(pix, 450, 100, "sel3", DFLAG);
     pixaAddPix(pixa, pix, L_INSERT);
     pix = selDisplayInPix(sel4, 23, 2);
-    pixDisplayWithTitle(pix, 625, 100, "sel4");
+    pixDisplayWithTitle(pix, 625, 100, "sel4", DFLAG);
     pixaAddPix(pixa, pix, L_INSERT);
     pix = pixaDisplayTiled(pixa, 800, 0, 15);
-    pixDisplayWithTitle(pix, 100, 300, "allsels");
+    pixDisplayWithTitle(pix, 100, 300, "allsels", DFLAG);
     pixaDestroy(&pixa);
 
     if (fhmtautogen(sela, INDEX))

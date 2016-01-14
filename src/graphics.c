@@ -322,6 +322,7 @@ PTA     *ptad, *ptat, *pta;
  *
  *      Input:  pta (vertices of polyline)
  *              width
+ *              closeflag (1 to close the contour; 0 otherwise)
  *              removedups  (1 to remove, 0 to leave)
  *      Return: ptad, or null on error
  *
@@ -334,6 +335,7 @@ PTA     *ptad, *ptat, *pta;
 PTA  *
 ptaGeneratePolyline(PTA     *ptas,
                     l_int32  width,
+                    l_int32  closeflag,
                     l_int32  removedups)
 {
 l_int32  i, n, x1, y1, x2, y2;
@@ -359,11 +361,12 @@ PTA     *ptad, *ptat, *pta;
         y1 = y2;
     }
 
-        /* Close the contour */
-    ptaGetIPt(ptas, 0, &x2, &y2);
-    pta = ptaGenerateWideLine(x1, y1, x2, y2, width);
-    ptaJoin(ptat, pta, 0, 0);
-    ptaDestroy(&pta);
+    if (closeflag) {
+        ptaGetIPt(ptas, 0, &x2, &y2);
+        pta = ptaGenerateWideLine(x1, y1, x2, y2, width);
+        ptaJoin(ptat, pta, 0, 0);
+        ptaDestroy(&pta);
+    }
 
     if (removedups)
         ptad = ptaRemoveDuplicates(ptat, 0);
@@ -994,6 +997,7 @@ PTA  *pta;
  *              ptas
  *              width  (thickness of line)
  *              op  (one of L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS)
+ *              closeflag (1 to close the contour; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Note: this renders a closed contour.
@@ -1002,7 +1006,8 @@ l_int32
 pixRenderPolyline(PIX     *pix,
                   PTA     *ptas,
                   l_int32  width,
-                  l_int32  op)
+                  l_int32  op,
+                  l_int32  closeflag)
 {
 PTA  *pta;
 
@@ -1015,7 +1020,7 @@ PTA  *pta;
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
         return ERROR_INT("invalid op", procName, 1);
 
-    if ((pta = ptaGeneratePolyline(ptas, width, 0)) == NULL)
+    if ((pta = ptaGeneratePolyline(ptas, width, closeflag, 0)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
@@ -1030,6 +1035,7 @@ PTA  *pta;
  *              ptas
  *              width  (thickness of line)
  *              rval, gval, bval
+ *              closeflag (1 to close the contour; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Note: this renders a closed contour.
@@ -1040,7 +1046,8 @@ pixRenderPolylineArb(PIX     *pix,
                      l_int32  width,
                      l_uint8  rval,
                      l_uint8  gval,
-                     l_uint8  bval)
+                     l_uint8  bval,
+                     l_int32  closeflag)
 {
 PTA  *pta;
 
@@ -1051,7 +1058,7 @@ PTA  *pta;
     if (!ptas)
         return ERROR_INT("ptas not defined", procName, 1);
 
-    if ((pta = ptaGeneratePolyline(ptas, width, 0)) == NULL)
+    if ((pta = ptaGeneratePolyline(ptas, width, closeflag, 0)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
@@ -1068,6 +1075,7 @@ PTA  *pta;
  *              rval, gval, bval
  *              fract (in [0.0 - 1.0]; complete transparency (no effect)
  *                     if 0.0; no transparency if 1.0)
+ *              closeflag (1 to close the contour; 0 otherwise)
  *              removedups  (1 to remove; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  */
@@ -1079,6 +1087,7 @@ pixRenderPolylineBlend(PIX       *pix,
                        l_uint8    gval,
                        l_uint8    bval,
                        l_float32  fract,
+                       l_int32    closeflag,
                        l_int32    removedups)
 {
 PTA  *pta;
@@ -1090,7 +1099,7 @@ PTA  *pta;
     if (!ptas)
         return ERROR_INT("ptas not defined", procName, 1);
 
-    if ((pta = ptaGeneratePolyline(ptas, width, removedups)) == NULL)
+    if ((pta = ptaGeneratePolyline(ptas, width, closeflag, removedups)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
@@ -1104,6 +1113,7 @@ PTA  *pta;
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
  *              ptaa
  *              width  (thickness of line)
+ *              closeflag (1 to close the contour; 0 otherwise)
  *      Return: pixd (cmapped, 8 bpp) or null on error
  *
  *  Notes:
@@ -1117,7 +1127,8 @@ PTA  *pta;
 PIX  *
 pixRenderRandomCmapPtaa(PIX     *pix,
                         PTAA    *ptaa,
-                        l_int32  width)
+                        l_int32  width,
+                        l_int32  closeflag)
 {
 l_int32   i, n, index, rval, gval, bval;
 PIXCMAP  *cmap;
@@ -1142,7 +1153,7 @@ PIX      *pixd;
         index = 1 + (i % 255);
         pixcmapGetColor(cmap, index, &rval, &gval, &bval);
         pta = ptaaGetPta(ptaa, i, L_CLONE);
-        ptat = ptaGeneratePolyline(pta, width, 0);
+        ptat = ptaGeneratePolyline(pta, width, closeflag, 0);
         pixRenderPtaArb(pixd, ptat, rval, gval, bval);
         ptaDestroy(&pta);
         ptaDestroy(&ptat);

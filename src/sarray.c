@@ -51,6 +51,9 @@
  *      Split string on separator list
  *          SARRAY    *sarraySplitString()
  *
+ *      Filter sarray
+ *          SARRAY    *sarraySelectBySubstring()
+ *
  *      Sort
  *          SARRAY    *sarraySort()
  *          l_int32    stringCompareLexical()
@@ -875,6 +878,52 @@ char  *cstr, *substr, *saveptr;
     FREE(cstr);
 
     return 0;
+}
+
+
+/*----------------------------------------------------------------------*
+ *                              Filter sarray                           *
+ *----------------------------------------------------------------------*/
+/*!
+ *  sarraySelectBySubstring()
+ *
+ *      Input:  sain (input sarray)
+ *              substr (<optional> substring for matching; can be NULL)
+ *      Return: saout (output sarray, filtered with substring) or null on error
+ *
+ *  Notes:
+ *      (1) This selects all strings in sain that have substr as a substring.
+ *          Note that we can't use strncmp() because we're looking for
+ *          a match to the substring anywhere within each filename.
+ *      (2) If substr == NULL, returns a copy of the sarray.
+ */
+SARRAY *
+sarraySelectBySubstring(SARRAY      *sain,
+                        const char  *substr)
+{
+char      *str;
+l_int32    n, i, offset, found;
+SARRAY    *saout;
+
+    PROCNAME("sarraySelectBySubstring");
+
+    if (!sain)
+        return (SARRAY *)ERROR_PTR("sain not defined", procName, NULL);
+
+    n = sarrayGetCount(sain);
+    if (!substr || n == 0)
+        return sarrayCopy(sain);
+
+    saout = sarrayCreate(n);
+    for (i = 0; i < n; i++) {
+        str = sarrayGetString(sain, i, L_NOCOPY);
+        arrayFindSequence((l_uint8 *)str, strlen(str), (l_uint8 *)substr,
+                          strlen(substr), &offset, &found);
+        if (found)
+            sarrayAddString(saout, str, L_COPY);
+    }
+
+    return saout;
 }
 
 

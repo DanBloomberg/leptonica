@@ -23,6 +23,7 @@
  *           PIX             *pixBlendColor()
  *           PIX             *pixBlendColorByChannel()
  *           static l_uint8   blendComponentValues()
+ *           PIX             *pixFadeWithGray()   ***
  *
  *      Blending two colormapped images
  *           l_int32          pixBlendCmap()
@@ -34,6 +35,7 @@
  *           PIX             *pixSnapColor()
  *           PIX             *pixSnapColorCmap()
  *           
+ *      *** indicates implicit assumption about RGB component ordering
  *
  *  In blending operations a new pix is produced where typically
  *  a subset of pixels in src1 are changed by the set of pixels
@@ -75,7 +77,8 @@
  *         are bg (OFF).
  *     The blending function is pixBlendMask().
  *
- *   - If src2 is 8 bpp grayscale, we can do one of two things:
+ *   - If src2 is 8 bpp grayscale, we can do one of two things
+ *     (but see pixFadeWithGray() below):
  *     (1) L_BLEND_GRAY: If src1 is 8 bpp, mix the two values, using
  *         a fraction of src2 and (1 - fraction) of src1.
  *         If src1 is 32 bpp (rgb), mix the fraction of src2 with
@@ -98,6 +101,13 @@
  *
  *   - We remove colormaps from src1 and src2 before blending.
  *     Any quantization would have to be done after blending.
+ *
+ *  We include another function, pixFadeWithGray(), that blends
+ *  a gray or color src1 with a gray src2.  It does one of these things:
+ *     (1) L_BLEND_TO_WHITE: Fade the src1 pixels toward white by
+ *         a number times the value in src2.
+ *     (2) L_BLEND_TO_BLACK: Fade the src1 pixels toward black by
+ *         a number times the value in src2.
  */
 
 
@@ -842,6 +852,106 @@ blendComponentValues(l_uint8 a,
     return (l_uint8)((1. - f) * a + f * b);
 }
 
+
+/*!
+ *  pixFadeWithGray()
+ *
+ *      Input:  pixs (colormapped or 8 bpp or 32 bpp)
+ *              pixb (8 bpp blender)
+ *              factor (multiplicative factor to apply to blender value)
+ *              type (L_BLEND_TO_WHITE, L_BLEND_TO_BLACK)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This function combines two pix aligned to the UL corner; they
+ *          need not be the same size.
+ *      (2) Each pixel in pixb is multiplied by 'factor' divided by 255, and
+ *          clipped to the range [0 ... 1].  This gives the fade fraction
+ *          to be appied to pixs.  Fade either to white (L_BLEND_TO_WHITE)
+ *          or to black (L_BLEND_TO_BLACK).
+ *      (3) Implicit assumption about RGB component ordering.
+ */
+PIX *
+pixFadeWithGray(PIX       *pixs,
+                PIX       *pixb,
+                l_float32  factor,
+                l_int32    type)
+{
+l_int32    i, j, w, h, d, wb, hb, db, wd, hd, wplb, wpld;
+l_int32    valb, vald, nvald, rval, gval, bval, nrval, ngval, nbval;
+l_float32  nfactor, fract;
+l_uint32   val32, nval32;
+l_uint32  *lined, *datad, *lineb, *datab;
+PIX       *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixFadeWithGray");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixb)
+        return (PIX *)ERROR_PTR("pixb not defined", procName, NULL);
+    cmap = pixGetColormap(pixs);
+    d = pixGetDepth(pixs);
+    if (d < 8 && !cmap)
+        return (PIX *)ERROR_PTR("pixs not cmapped and < 8bpp", procName, NULL);
+    pixGetDimensions(pixb, &wb, &hb, &db);
+    if (db != 8)
+        return (PIX *)ERROR_PTR("pixb not 8bpp", procName, NULL);
+    if (type != L_BLEND_TO_WHITE && type != L_BLEND_TO_BLACK)
+        return (PIX *)ERROR_PTR("invalid fade type", procName, NULL);
+
+    if (cmap)
+        pixd = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+    else
+        pixd = pixCopy(NULL, pixs);
+    pixGetDimensions(pixd, &wd, &hd, &d);
+    w = L_MIN(wb, wd);
+    h = L_MIN(hb, hd);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datab = pixGetData(pixb);
+    wplb = pixGetWpl(pixb);
+
+    nfactor = factor / 255.;
+    for (i = 0; i < h; i++) {
+        lineb = datab + i * wplb;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            valb = GET_DATA_BYTE(lineb, j);
+            fract = nfactor * (l_float32)valb;
+            fract = L_MIN(fract, 1.0);
+            if (d == 8) {
+                vald = GET_DATA_BYTE(lined, j);
+                if (type == L_BLEND_TO_WHITE)
+                    nvald = vald + (l_int32)(fract * (255. - (l_float32)vald));
+                else  /* L_BLEND_TO_BLACK */
+                    nvald = vald - (l_int32)(fract * (l_float32)vald);
+                SET_DATA_BYTE(lined, j, nvald);
+            }
+            else {  /* d == 32 */
+                val32 = lined[j];
+                rval = val32 >> 24;
+                gval = (val32 >> 16) & 0xff;
+                bval = (val32 >> 8) & 0xff;
+                if (type == L_BLEND_TO_WHITE) {
+                    nrval = rval + (l_int32)(fract * (255. - (l_float32)rval));
+                    ngval = gval + (l_int32)(fract * (255. - (l_float32)gval));
+                    nbval = bval + (l_int32)(fract * (255. - (l_float32)bval));
+                }
+                else {
+                    nrval = rval - (l_int32)(fract * (l_float32)rval);
+                    ngval = gval - (l_int32)(fract * (l_float32)gval);
+                    nbval = bval - (l_int32)(fract * (l_float32)bval);
+                }
+                nval32 = (nrval << 24) | (ngval << 16) | (nbval << 8);
+                lined[j] = nval32;
+            }
+        }
+    }
+    
+    return pixd;
+}
 
 
 /*-------------------------------------------------------------*

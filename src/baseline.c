@@ -250,7 +250,6 @@ PTA       *pta;
     numaDestroy(&nasum);
     numaDestroy(&nadiff);
     numaDestroy(&naval);
-
     return naloc;
 }
 
@@ -378,10 +377,11 @@ PTA       *ptas, *ptad;
 
     PROCNAME("pixGetLocalSkewTransform");
 
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
     if (!pptas || !pptad)
         return ERROR_INT("&ptas and &ptad not defined", procName, 1);
+    *pptas = *pptad = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
     if (nslices < 2 || nslices > 20)
         nslices = DEFAULT_SLICES;
     if (redsweep < 1 || redsweep > 8)

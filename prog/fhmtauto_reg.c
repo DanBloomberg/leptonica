@@ -17,11 +17,13 @@
 /*
  * fhmtauto_reg.c
  *
+ *    Basic regression test for hit-miss transform: rasterops & dwa.
+ *
  *    Tests hmt from all hmt structuring elements
  *    by comparing the full image rasterop results with the
  *    automatically generated dwa results.
  *
- *    Results must be identical for all operations.
+ *    Results are identical for all operations.
  */
 
 #include <stdio.h>
@@ -33,16 +35,18 @@ main(int    argc,
      char **argv)
 {
 l_int32      i, nsels, same, xorcount;
-char        *selname;
+char        *filein, *selname;
 PIX         *pixs, *pixs1, *pixt1, *pixt2, *pixt3, *pixt4;
 SEL         *sel;
 SELA        *sela;
 static char  mainName[] = "fhmtauto_reg";
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  fhmtauto_reg", mainName, 1));
+    if (argc != 2)
+	exit(ERROR_INT(" Syntax:  fhmtauto_reg filein", mainName, 1));
 
-    if ((pixs = pixRead("feyn.tif")) == NULL)
+    filein = argv[1];
+
+    if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 
     sela = selaAddHitMiss(NULL);

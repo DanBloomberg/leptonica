@@ -75,6 +75,9 @@
  *         Grayscale scaling using mipmap
  *               PIX    *pixScaleMipmap()
  *
+ *         Replicated (integer) expansion (all depths)
+ *               PIX    *pixExpandReplicate()
+ *
  *         Upscale 2x followed by binarization
  *               PIX    *pixScaleGray2xLIThresh()
  *               PIX    *pixScaleGray2xLIDither()
@@ -87,6 +90,9 @@
  *               PIX    *pixScaleGrayMinMax()
  *               PIX    *pixScaleGrayMinMax2()
  *
+ *         Grayscale downscaling using rank value
+ *               PIX    *pixScaleGrayRankCascade()
+ *               PIX    *pixScaleGrayRank2()
  *
  *  *** Note: these functions make an implicit assumption about RGB
  *            component ordering.
@@ -95,9 +101,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "allheaders.h"
-
 
 
 /*------------------------------------------------------------------*
@@ -1958,7 +1962,7 @@ pixScaleMipmap(PIX       *pixs1,
                PIX       *pixs2,
                l_float32  scale)
 {
-l_int32    ws1, hs1, ws2, hs2, wd, hd, wpls1, wpls2, wpld;
+l_int32    ws1, hs1, ds1, ws2, hs2, ds2, wd, hd, wpls1, wpls2, wpld;
 l_uint32  *datas1, *datas2, *datad;
 PIX       *pixd;
 
@@ -1968,18 +1972,16 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
     if (!pixs2)
         return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
-    if (pixGetDepth(pixs1) != 8 || pixGetDepth(pixs2) != 8)
+    pixGetDimensions(pixs1, &ws1, &hs1, &ds1);
+    pixGetDimensions(pixs2, &ws2, &hs2, &ds2);
+    if (ds1 != 8 || ds2 != 8)
         return (PIX *)ERROR_PTR("pixs1, pixs2 not both 8 bpp", procName, NULL);
     if (scale > 1.0 || scale < 0.5)
         return (PIX *)ERROR_PTR("scale not in [0.5, 1.0]", procName, NULL);
     if (pixGetColormap(pixs1) || pixGetColormap(pixs2))
         L_WARNING("pixs1 or pixs2 has colormap", procName);
-    ws1 = pixGetWidth(pixs1);
-    ws2 = pixGetWidth(pixs2);
     if (ws1 < 2 * ws2)
         return (PIX *)ERROR_PTR("invalid width ratio", procName, NULL);
-    hs1 = pixGetHeight(pixs1);
-    hs2 = pixGetHeight(pixs2);
     if (hs1 < 2 * hs2)
         return (PIX *)ERROR_PTR("invalid height ratio", procName, NULL);
 
@@ -2002,6 +2004,134 @@ PIX       *pixd;
     return pixd;
 }
 
+
+/*------------------------------------------------------------------*
+ *                  Replicated (integer) expansion                  *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixExpandReplicate()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp)
+ *              factor (integer scale factor for replicative expansion)
+ *      Return: pixd (scaled up), or null on error.
+ */
+PIX *
+pixExpandReplicate(PIX     *pixs,
+                   l_int32  factor)
+{
+l_int32    w, h, d, wd, hd, wpls, wpld, bpld, start, i, j, k;
+l_uint8    sval;
+l_uint16   sval16;
+l_uint32   sval32;
+l_uint32  *lines, *datas, *lined, *datad;
+PIX       *pixd;
+
+    PROCNAME("pixExpandReplicate");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
+        return (PIX *)ERROR_PTR("depth not in {1,2,4,8,16,32}", procName, NULL);
+    if (factor <= 0)
+        return (PIX *)ERROR_PTR("factor <= 0; invalid", procName, NULL);
+    if (factor == 1)
+        return pixCopy(NULL, pixs);
+
+    if (d == 1)
+        return pixExpandBinaryReplicate(pixs, factor);
+
+    wd = factor * w;
+    hd = factor * h;
+    if ((pixd = pixCreate(wd, hd, d)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyColormap(pixd, pixs);
+    pixCopyResolution(pixd, pixs);
+    pixScaleResolution(pixd, (l_float32)factor, (l_float32)factor);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+    switch (d) {
+    case 2:
+        bpld = (wd + 3) / 4;  /* occupied bytes only */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + factor * i * wpld;
+            for (j = 0; j < w; j++) {
+                sval = GET_DATA_DIBIT(lines, j);
+                start = factor * j;
+                for (k = 0; k < factor; k++)
+                    SET_DATA_DIBIT(lined, start + k, sval);
+            }
+            for (k = 1; k < factor; k++)
+                memcpy(lined + k * wpld, lined, bpld);
+        }
+        break;
+    case 4:
+        bpld = (wd + 1) / 2;  /* occupied bytes only */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + factor * i * wpld;
+            for (j = 0; j < w; j++) {
+                sval = GET_DATA_QBIT(lines, j);
+                start = factor * j;
+                for (k = 0; k < factor; k++)
+                    SET_DATA_QBIT(lined, start + k, sval);
+            }
+            for (k = 1; k < factor; k++)
+                memcpy(lined + k * wpld, lined, bpld);
+        }
+        break;
+    case 8:
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + factor * i * wpld;
+            for (j = 0; j < w; j++) {
+                sval = GET_DATA_BYTE(lines, j);
+                start = factor * j;
+                for (k = 0; k < factor; k++)
+                    SET_DATA_BYTE(lined, start + k, sval);
+            }
+            for (k = 1; k < factor; k++)
+                memcpy(lined + k * wpld, lined, wd);
+        }
+        break;
+    case 16:
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + factor * i * wpld;
+            for (j = 0; j < w; j++) {
+                sval16 = GET_DATA_TWO_BYTES(lines, j);
+                start = factor * j;
+                for (k = 0; k < factor; k++)
+                    SET_DATA_TWO_BYTES(lined, start + k, sval16);
+            }
+            for (k = 1; k < factor; k++)
+                memcpy(lined + k * wpld, lined, 2 * wd);
+        }
+        break;
+    case 32:
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + factor * i * wpld;
+            for (j = 0; j < w; j++) {
+                sval32 = *(lines + j);
+                start = factor * j;
+                for (k = 0; k < factor; k++)
+                    *(lined + start + k) = sval32;
+            }
+            for (k = 1; k < factor; k++)
+                memcpy(lined + k * wpld, lined, 4 * wd);
+        }
+        break;
+    default:
+        fprintf(stderr, "invalid depth\n");
+    }
+
+    return pixd;
+}
 
 
 /*------------------------------------------------------------------*
@@ -2409,7 +2539,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (8 bpp)
  *              xfact (x downscaling factor; integer)
- *              yfact (x downscaling factor; integer)
+ *              yfact (y downscaling factor; integer)
  *              type (L_CHOOSE_MIN, L_CHOOSE_MAX)
  *      Return: pixd (8 bpp)
  *
@@ -2429,7 +2559,7 @@ pixScaleGrayMinMax(PIX     *pixs,
                    l_int32  yfact,
                    l_int32  type)
 {
-l_int32    ws, hs, wd, hd, wpls, wpld, i, j, k, m;
+l_int32    ws, hs, d, wd, hd, wpls, wpld, i, j, k, m;
 l_int32    extval, val;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
@@ -2438,13 +2568,12 @@ PIX       *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
     wd = ws / xfact;
     hd = hs / yfact;
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
@@ -2497,17 +2626,23 @@ PIX       *pixd;
  *      (1) Special version for 2x reduction.  The downscaled pixels
  *          in pixd are the min or max of the corresponding set of
  *          4 pixels in pixs.
- *      (2) This is the grayscale analog to the binary rank scaling operation
- *          pixReduceRankBinary2(), where the erosion-like L_CHOOSE_MIN
- *          corresponds to a threshold level 4 in the binary case,
- *          and L_CHOOSE_MAX corresponds to a threshold level of 1.
- *      (3) This runs at about 70 MPix/sec/GHz of source data.
+ *      (2) This is a special case (for levels 1 and 4) of
+ *          grayscale analog to the binary rank scaling operation
+ *          pixReduceRankBinary2().  Note, however, that because of
+ *          the photometric definition that higher gray values are
+ *          lighter, the erosion-like L_CHOOSE_MIN will darken
+ *          the resulting image, corresponding to a threshold level 1
+ *          in the binary case.  Likewise, L_CHOOSE_MAX will lighten
+ *          the pixd, corresponding to a threshold level of 4.
+ *      (3) To choose any of the four rank levels in a 2x reduction,
+ *          use pixScaleGrayRank2().
+ *      (4) This runs at about 70 MPix/sec/GHz of source data.
  */
 PIX *
 pixScaleGrayMinMax2(PIX     *pixs,
                     l_int32  type)
 {
-l_int32    ws, hs, wd, hd, wpls, wpld, i, j, k;
+l_int32    ws, hs, d, wd, hd, wpls, wpld, i, j, k;
 l_int32    extval;
 l_int32    val[4];
 l_uint32  *datas, *datad, *lines, *lined;
@@ -2517,13 +2652,12 @@ PIX       *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
     wd = ws / 2;
     hd = hs / 2;
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
@@ -2555,6 +2689,157 @@ PIX       *pixd;
                 }
             }
             SET_DATA_BYTE(lined, j, extval);
+        }
+    }
+            
+    return pixd;
+}
+
+
+/*-----------------------------------------------------------------------*
+ *                  Grayscale downscaling using rank value               *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  pixScaleGrayRankCascade()
+ *
+ *      Input:  pixs (8 bpp)
+ *              level1, ... level4 (rank thresholds, in set {0, 1, 2, 3, 4})
+ *      Return: pixd (8 bpp, downscaled by up to 16x)
+ *
+ *  Notes:
+ *      (1) This performs up to four cascaded 2x rank reductions.
+ *      (2) Use level = 0 to truncate the cascade.
+ */
+PIX *
+pixScaleGrayRankCascade(PIX     *pixs,
+                        l_int32  level1,
+                        l_int32  level2,
+                        l_int32  level3,
+                        l_int32  level4)
+{
+PIX  *pixt1, *pixt2, *pixt3, *pixt4;
+
+    PROCNAME("pixScaleGrayRankCascade");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (level1 > 4 || level2 > 4 || level3 > 4 || level4 > 4)
+        return (PIX *)ERROR_PTR("levels must not exceed 4", procName, NULL);
+
+    if (level1 <= 0) {
+        L_WARNING("no reduction because level1 not > 0", procName);
+        return pixCopy(NULL, pixs);
+    }
+
+    pixt1 = pixScaleGrayRank2(pixs, level1);
+    if (level2 <= 0)
+        return pixt1;
+
+    pixt2 = pixScaleGrayRank2(pixt1, level2);
+    pixDestroy(&pixt1);
+    if (level3 <= 0)
+        return pixt2;
+
+    pixt3 = pixScaleGrayRank2(pixt2, level3);
+    pixDestroy(&pixt2);
+    if (level4 <= 0)
+        return pixt3;
+
+    pixt4 = pixScaleGrayRank2(pixt3, level4);
+    pixDestroy(&pixt3);
+    return pixt4;
+}
+
+
+/*!
+ *  pixScaleGrayRank2()
+ *
+ *      Input:  pixs (8 bpp)
+ *              rank (1 (darkest), 2, 3, 4 (lightest))
+ *      Return: pixd (8 bpp, downscaled by 2x)
+ *
+ *  Notes:
+ *      (1) Rank 2x reduction.  If rank == 1(4), the downscaled pixels
+ *          in pixd are the min(max) of the corresponding set of
+ *          4 pixels in pixs.  Values 2 and 3 are intermediate.
+ *      (2) This is the grayscale analog to the binary rank scaling operation
+ *          pixReduceRankBinary2().  Here, because of the photometric
+ *          definition that higher gray values are lighter, rank 1 gives
+ *          the darkest pixel, whereas rank 4 gives the lightest pixel.
+ *          This is opposite to the binary rank operation.
+ *      (3) For rank = 1 and 4, this calls pixScaleGrayMinMax2(),
+ *          which runs at about 70 MPix/sec/GHz of source data.
+ *          For rank 2 and 3, this runs 3x slower, at about 25 MPix/sec/GHz.
+ */
+PIX *
+pixScaleGrayRank2(PIX     *pixs,
+                  l_int32  rank)
+{
+l_int32    d, ws, hs, wd, hd, wpls, wpld, i, j, k, m;
+l_int32    minval, maxval, rankval, minindex, maxindex;
+l_int32    val[4];
+l_int32    midval[4];  /* should only use 2 of these */
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixScaleGrayRank2");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (rank < 1 || rank > 4)
+        return (PIX *)ERROR_PTR("invalid rank", procName, NULL);
+
+    if (rank == 1)
+        return pixScaleGrayMinMax2(pixs, L_CHOOSE_MIN);
+    if (rank == 4)
+        return pixScaleGrayMinMax2(pixs, L_CHOOSE_MAX);
+
+    wd = ws / 2;
+    hd = hs / 2;
+    if ((pixd = pixCreate(wd, hd, 8)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < hd; i++) {
+        lines = datas + 2 * i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < wd; j++) {
+            val[0] = GET_DATA_BYTE(lines, 2 * j);
+            val[1] = GET_DATA_BYTE(lines, 2 * j + 1);
+            val[2] = GET_DATA_BYTE(lines + wpls, 2 * j);
+            val[3] = GET_DATA_BYTE(lines + wpls, 2 * j + 1);
+            minval = maxval = val[0];
+	    minindex = maxindex = 0;
+            for (k = 1; k < 4; k++) {
+                if (val[k] < minval) {
+                    minval = val[k];
+                    minindex = k;
+		    continue;
+                }
+                if (val[k] > maxval) {
+                    maxval = val[k];
+                    maxindex = k;
+                }
+            }
+            for (k = 0, m = 0; k < 4; k++) {
+                if (k == minindex || k == maxindex)
+                    continue;
+                midval[m++] = val[k];
+            }
+	    if (m > 2)  /* minval == maxval; all val[k] are the same */
+                rankval = minval;
+	    else if (rank == 2)
+                rankval = L_MIN(midval[0], midval[1]);
+            else  /* rank == 3 */
+                rankval = L_MAX(midval[0], midval[1]);
+            SET_DATA_BYTE(lined, j, rankval);
         }
     }
             

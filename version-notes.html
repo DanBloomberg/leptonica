@@ -18,6 +18,27 @@
 
 <pre>
 
+1.46   28 Jun 07
+       Added interpreted mode for color morphology (morphseq.c).
+       In functions, make effort to consistently do early initialization
+       of ptrs to objects returned on the heap.  This is to try to
+       avoid letting functions return uninitialized objects, even if
+       the return early because of bad input.
+       Split pixa.c into 2 files; revised the component filtering
+       in both pixafunc.c and boxfunc.c.  Added component filtering
+       for "thin" components.
+       Added subsampling functions for numa and pta.
+       Word segmentation now works at both full and half resolution.
+       Better methods for displaying and tiling (for debugging),
+       using pixDisplayWrite(), pixaReadFiles() and pixaDisplayTiledAndScaled().
+
+1.45   27 May 07
+       Further improvements of orientation and mirror flip detection
+       (flipdetect.c).  Added 2x rank downscaling and general integer
+       replicative expansion (scale.c).  Simplified interface for
+       averaging, and included tiled averaging, which is yet another
+       integer reduction scaling function (pix3.c).
+
 1.44   1 May 07
        Split pix2.c into (pix2.c, pix3.c), with basic housekeeping
        functions (e.g., ops on borders, padding) in pix2.c.

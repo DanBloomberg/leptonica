@@ -915,7 +915,7 @@ pixConvertGrayToFalseColor(PIX       *pixs,
 {
 l_int32    d, i, rval, bval, gval;
 l_int32   *curve;
-l_float64  invgamma, x;
+l_float32  invgamma, x;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
@@ -948,8 +948,8 @@ PIXCMAP   *cmap;
     if (gamma == 0.0) gamma = 1.0;
     invgamma = 1. / gamma;
     for (i = 0; i < 64; i++) {
-        x = (l_float64)i / 64.;
-        curve[i] = (l_int32)(255. * pow(x, invgamma) + 0.5);
+        x = (l_float32)i / 64.;
+        curve[i] = (l_int32)(255. * powf(x, invgamma) + 0.5);
     }
 
     for (i = 0; i < 256; i++) {

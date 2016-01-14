@@ -55,6 +55,17 @@
  *
  *              l_int32  *makeGrayQuantIndexTable()
  *              l_int32  *makeGrayQuantTargetTable()
+ *
+ *      Thresholding from 32 bpp rgb to 1 bpp
+ *      (really color quantization, but it's better placed in this file)
+ *
+ *              PIX    *pixGenerateMaskByBand32()     ***
+ *              PIX    *pixGenerateMaskByDiscr32()    ***
+ *
+ *  *** Note: these functions make an implicit assumption about RGB
+ *            component ordering.
+ *
+ *
  */
 
 #include <stdio.h>
@@ -434,8 +445,6 @@ PIX       *pixg, *pixd;
     pixDestroy(&pixg);
     return pixd;
 }
-
-
 
 
 /*------------------------------------------------------------------*
@@ -938,6 +947,162 @@ l_int32    i, j, thresh, maxval, quantval;
         }
     }
     return tab;
+}
+
+
+/*--------------------------------------------------------------------*
+ *                 Thresholding from 32 bpp rgb to 1 bpp              *
+ *--------------------------------------------------------------------*/
+/*!
+ *  pixGenerateMaskByBand32()
+ *
+ *      Input:  pixs (32 bpp)
+ *              refval (reference rgb value)
+ *              delm (max amount below the ref value for any component)
+ *              delp (max amount above the ref value for any component)
+ *      Return: pixd (1 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) Generates a 1 bpp mask pixd, the same size as pixs, where
+ *          the fg pixels in the mask are those where each component
+ *          is within -delm to +delp of the reference value.
+ */
+PIX *
+pixGenerateMaskByBand32(PIX    *pixs,
+                      l_uint32  refval,
+                      l_int32   delm,
+                      l_int32   delp)
+{
+l_int32    i, j, w, h, d, wpls, wpld;
+l_int32    rref, gref, bref, rval, gval, bval;
+l_uint32   pixel;
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixGenerateMaskByBand32");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 32)
+        return (PIX *)ERROR_PTR("not 32 bpp", procName, NULL);
+    if (delm < 0 || delp < 0)
+        return (PIX *)ERROR_PTR("delm and delp must be >= 0", procName, NULL);
+
+    rref = GET_DATA_BYTE(&refval, COLOR_RED);
+    gref = GET_DATA_BYTE(&refval, COLOR_GREEN);
+    bref = GET_DATA_BYTE(&refval, COLOR_BLUE);
+    pixd = pixCreate(w, h, 1);
+    pixCopyResolution(pixd, pixs);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pixel = lines[j];
+            rval = pixel >> 24;
+            if (rval < rref - delm || rval > rref + delp)
+                continue;
+            gval = (pixel >> 16) & 0xff;
+            if (gval < gref - delm || gval > gref + delp)
+                continue;
+            bval = (pixel >> 8) & 0xff;
+            if (bval < bref - delm || bval > bref + delp)
+                continue;
+            SET_DATA_BIT(lined, j);
+        }
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixGenerateMaskByDiscr32()
+ *
+ *      Input:  pixs (32 bpp)
+ *              refval1 (reference rgb value)
+ *              refval2 (reference rgb value)
+ *              distflag (L_MANHATTAN_DISTANCE, L_EUCLIDEAN_DISTANCE)
+ *      Return: pixd (1 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) Generates a 1 bpp mask pixd, the same size as pixs, where
+ *          the fg pixels in the mask are those where the pixel in pixs
+ *          is "closer" to refval1 than to refval2.
+ *      (2) "Closer" can be defined in several ways, such as:
+ *            - manhattan distance (L1)
+ *            - euclidean distance (L2)
+ *            - majority vote of the individual components
+ *          Here, we have a choice of L1 or L2.
+ */
+PIX *
+pixGenerateMaskByDiscr32(PIX      *pixs,
+                         l_uint32  refval1,
+                         l_uint32  refval2,
+			 l_int32   distflag)
+{
+l_int32    i, j, w, h, d, wpls, wpld;
+l_int32    rref1, gref1, bref1, rref2, gref2, bref2, rval, gval, bval;
+l_uint32   pixel, dist1, dist2;
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixGenerateMaskByDiscr32");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 32)
+        return (PIX *)ERROR_PTR("not 32 bpp", procName, NULL);
+    if (distflag != L_MANHATTAN_DISTANCE && distflag != L_EUCLIDEAN_DISTANCE)
+        return (PIX *)ERROR_PTR("invalid distflag", procName, NULL);
+
+    rref1 = GET_DATA_BYTE(&refval1, COLOR_RED);
+    gref1 = GET_DATA_BYTE(&refval1, COLOR_GREEN);
+    bref1 = GET_DATA_BYTE(&refval1, COLOR_BLUE);
+    rref2 = GET_DATA_BYTE(&refval2, COLOR_RED);
+    gref2 = GET_DATA_BYTE(&refval2, COLOR_GREEN);
+    bref2 = GET_DATA_BYTE(&refval2, COLOR_BLUE);
+    pixd = pixCreate(w, h, 1);
+    pixCopyResolution(pixd, pixs);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pixel = lines[j];
+            rval = pixel >> 24;
+            gval = (pixel >> 16) & 0xff;
+            bval = (pixel >> 8) & 0xff;
+            if (distflag == L_MANHATTAN_DISTANCE) {
+                dist1 = L_ABS(rref1 - rval);
+                dist2 = L_ABS(rref2 - rval);
+                dist1 += L_ABS(gref1 - gval);
+                dist2 += L_ABS(gref2 - gval);
+                dist1 += L_ABS(bref1 - bval);
+                dist2 += L_ABS(bref2 - bval);
+            }
+            else {
+                dist1 = (rref1 - rval) * (rref1 - rval);
+                dist2 = (rref2 - rval) * (rref2 - rval);
+                dist1 += (gref1 - gval) * (gref1 - gval);
+                dist2 += (gref2 - gval) * (gref2 - gval);
+                dist1 += (bref1 - bval) * (bref1 - bval);
+                dist2 += (bref2 - bval) * (bref2 - bval);
+            }
+            if (dist1 < dist2)
+                SET_DATA_BIT(lined, j);
+        }
+    }
+
+    return pixd;
 }
 
 

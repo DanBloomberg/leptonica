@@ -150,6 +150,7 @@ SEL       *seld, *sel;
 
     PROCNAME("pixGenerateSelWithRuns");
 
+    if (ppixe) *ppixe = NULL;
     if (!pixs)
         return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
@@ -334,6 +335,7 @@ SEL       *seld, *sel;
 
     PROCNAME("pixGenerateSelRandom");
 
+    if (ppixe) *ppixe = NULL;
     if (!pixs)
         return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
@@ -485,6 +487,7 @@ PTA     *ptah, *ptam;
 
     PROCNAME("pixGenerateSelBoundary");
 
+    if (ppixe) *ppixe = NULL;
     if (!pixs)
         return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)

@@ -14,7 +14,7 @@
  *====================================================================*/
 
 /*
- * fliptest.c
+ * flipdetect_reg.c
  *
  *   Tests 90 degree orientation of text and whether the text is
  *   mirror reversed.  Compares the rasterop with dwa implementations
@@ -34,10 +34,10 @@ char        *filein;
 l_int32      i;
 l_float32    upconf1, upconf2, leftconf1, leftconf2, conf1, conf2;
 PIX         *pixs, *pixt1, *pixt2;
-static char  mainName[] = "fliptest";
+static char  mainName[] = "flipdetect_reg";
 
     if (argc != 2)
-	exit(ERROR_INT(" Syntax: fliptest filein", mainName, 1));
+	exit(ERROR_INT(" Syntax: flipdetect_reg filein", mainName, 1));
 
     filein = argv[1];
 
@@ -46,11 +46,11 @@ static char  mainName[] = "fliptest";
 	    
     fprintf(stderr, "\nTest orientation detection\n");
     startTimer();
-    pixOrientDetect(pixs, &upconf1, &leftconf1, 0);
+    pixOrientDetect(pixs, &upconf1, &leftconf1, 0, 0);
     fprintf(stderr, "Time for rop orient test: %7.3f sec\n", stopTimer());
 
     startTimer();
-    pixOrientDetectDwa(pixs, &upconf2, &leftconf2, 0);
+    pixOrientDetectDwa(pixs, &upconf2, &leftconf2, 0, 0);
     fprintf(stderr, "Time for dwa orient test: %7.3f sec\n", stopTimer());
 
     if (upconf1 == upconf2 && leftconf1 == leftconf2) {
@@ -65,10 +65,10 @@ static char  mainName[] = "fliptest";
                 leftconf1, leftconf2);
     }
 
-    pixt1 = pixClone(pixs);
+    pixt1 = pixCopy(NULL, pixs);
     fprintf(stderr, "\nTest orient detection for 4 orientations\n");
     for (i = 0; i < 4; i++) {
-        pixOrientDetectDwa(pixt1, &upconf2, &leftconf2, 0);
+        pixOrientDetectDwa(pixt1, &upconf2, &leftconf2, 0, 0);
         fprintf(stderr, "upconf2 = %7.3f, leftconf2 = %7.3f\n",
                 upconf2, leftconf2);
         if (i == 3) break;
@@ -80,11 +80,11 @@ static char  mainName[] = "fliptest";
 
     fprintf(stderr, "\nTest mirror reverse detection\n");
     startTimer();
-    pixMirrorDetect(pixs, &conf1, 0);
+    pixMirrorDetect(pixs, &conf1, 0, 0);
     fprintf(stderr, "Time for rop mirror flip test: %7.3f sec\n", stopTimer());
 
     startTimer();
-    pixMirrorDetectDwa(pixs, &conf2, 0);
+    pixMirrorDetectDwa(pixs, &conf2, 0, 0);
     fprintf(stderr, "Time for dwa mirror flip test: %7.3f sec\n", stopTimer());
 
     if (conf1 == conf2) {
@@ -95,6 +95,11 @@ static char  mainName[] = "fliptest";
         fprintf(stderr, "Mirror results differ\n");
         fprintf(stderr, "conf1 = %7.3f, conf2 = %7.3f\n", conf1, conf2);
     }
+
+#if 0
+        /* Debug only */
+    pixUpDownDetect(pixs, &conf1, 0);
+#endif
 
     pixDestroy(&pixs);
     exit(0);

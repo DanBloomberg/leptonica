@@ -13,6 +13,7 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+
 /*
  * seedfilltest.c
  *
@@ -27,6 +28,7 @@
 #define  XS                 150
 #define  YS                 150
 
+#define  DFLAG              1
 
 main(int    argc,
      char **argv)
@@ -100,7 +102,7 @@ static char  mainName[] = "seedfilltest";
     pixAddConstantGray(pixd, -50);
     pixDisplay(pixd, 0, 100);
 /*    pixt1 = pixThresholdToBinary(pixd, 20);
-    pixDisplayWithTitle(pixt1, 600, 600, "pixt1"); */
+    pixDisplayWithTitle(pixt1, 600, 600, "pixt1", DFLAG); */
     pixSeedfillGray(pixd, pixmi, CONNECTIVITY);
 /*    pixInvert(pixd, pixd); */
     pixDisplay(pixmi, 500, 100);

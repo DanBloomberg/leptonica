@@ -34,14 +34,26 @@
  *    3 component color images are read into a 32 bpp Pix with
  *    rgb samples.  On output (compression to file), palette color
  *    images are written as 8 bpp with the colormap, and 32 bpp
- *    full color images are written compressed as a set of three
- *    8 bpp (rgb) images.
+ *    full color images are written compressed as a 24 bpp,
+ *    3 component color image.
+ *
+ *    Note these particular limitations, which are invoked by
+ *    two transform flags in pixReadStreamPng():
+ *
+ *       bpc == bit/component
+ *       cpp == component/pixel
+ *       bpp == bits/pixel of image in Pix (memory)
+ *
+ *    (1) 16 bpc input images are read into a Pix with 8 bpc.
+ *        - For 16 bpc rgb (16 bpc, 3 cpp) --> 32 bpp rgb Pix
+ *        - For 16 bpc gray (16 bpc, 1 cpp) --> 8 bpp grayscale Pix
+ *    (2) The alpha layer is stripped out
+ *        - For 8 bpc rgba (8 bpc, 4 cpp) --> 32 bpp rgb Pix
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "allheaders.h"
 
 #ifndef  NO_CONSOLE_IO
@@ -58,7 +70,7 @@
  *      Input:  stream
  *      Return: pix, or null on error
  *
- *  Usage notes:
+ *  Notes:
  *      (1) If called from pixReadStream(), the stream is positioned
  *          at the beginning of the file.
  *      (2) To do sequential reads of png format images from a stream,
@@ -68,7 +80,7 @@ PIX *
 pixReadStreamPng(FILE  *fp)
 {
 l_uint8      rval, gval, bval;
-l_int32             i, j, k;
+l_int32      i, j, k;
 l_int32      wpl, d, spp, cindex;
 l_uint32     png_transforms;
 l_uint32    *data, *line, *ppixel;
@@ -117,7 +129,7 @@ PIXCMAP     *cmap;
          * DO NOT invert binary using PNG_TRANSFORM_INVERT_MONO!!
          * To remove alpha channel, use PNG_TRANSFORM_STRIP_ALPHA
          * To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
-#if 0  /* this does both */
+#if 1  /* this does both */
     png_transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_STRIP_ALPHA;
 #else  /* this just strips alpha */
     png_transforms = PNG_TRANSFORM_STRIP_ALPHA;
@@ -133,7 +145,6 @@ PIXCMAP     *cmap;
     rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     color_type = png_get_color_type(png_ptr, info_ptr);
     channels = png_get_channels(png_ptr, info_ptr);
-
     spp = channels;
 
     if (spp == 1)
@@ -256,10 +267,11 @@ PIXCMAP     *cmap;
  *              &height (<return>)
  *              &bpc (<return>, bits/component)
  *              &cpp (<return>, components/pixel)
- *              &cmap (<optional return>; input NULL to ignore)
+ *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: if there is a colormap, cmap is returned as 1; else 0.
+ *  Notes:
+ *      (1) If there is a colormap, iscmap is returned as 1; else 0.
  */
 l_int32
 readHeaderPng(const char *filename,
@@ -267,7 +279,7 @@ readHeaderPng(const char *filename,
               l_int32    *pheight,
               l_int32    *pbpc,
               l_int32    *pcpp,
-              l_int32    *pcmap)
+              l_int32    *piscmap)
 {
 l_int32  ret;
 FILE    *fp;
@@ -280,7 +292,7 @@ FILE    *fp;
         return ERROR_INT("input ptr(s) not defined", procName, 1);
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    ret = freadHeaderPng(fp, pwidth, pheight, pbpc, pcpp, pcmap);
+    ret = freadHeaderPng(fp, pwidth, pheight, pbpc, pcpp, piscmap);
     fclose(fp);
     return ret;
 }
@@ -294,10 +306,11 @@ FILE    *fp;
  *              &height (<return>)
  *              &bpc (<return>, bits/component)
  *              &cpp (<return>, components/pixel)
- *              &cmap (<optional return>; input NULL to ignore)
+ *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: if there is a colormap, cmap is returned as 1; else 0.
+ *  Notes:
+ *      (1) If there is a colormap, iscmap is returned as 1; else 0.
  */
 l_int32
 freadHeaderPng(FILE     *fp,
@@ -305,7 +318,7 @@ freadHeaderPng(FILE     *fp,
                l_int32  *pheight,
                l_int32  *pbpc,
                l_int32  *pcpp,
-               l_int32  *pcmap)
+               l_int32  *piscmap)
 {
 l_int32   nbytes, ret;
 l_uint8  *data;
@@ -323,7 +336,7 @@ l_uint8  *data;
     if ((data = (l_uint8 *)CALLOC(40, sizeof(l_uint8))) == NULL)
         return ERROR_INT("CALLOC fail for data", procName, 1);
     fread(data, 40, 1, fp);
-    ret = sreadHeaderPng(data, pwidth, pheight, pbpc, pcpp, pcmap);
+    ret = sreadHeaderPng(data, pwidth, pheight, pbpc, pcpp, piscmap);
     FREE(data);
     return ret;
 }
@@ -337,10 +350,11 @@ l_uint8  *data;
  *              &height (<return>)
  *              &bpc (<return>, bits/component)
  *              &cpp (<return>, components/pixel)
- *              &cmap (<optional return>; input NULL to ignore)
+ *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: if there is a colormap, cmap is returned as 1; else 0.
+ *  Notes:
+ *      (1) If there is a colormap, iscmap is returned as 1; else 0.
  */
 l_int32
 sreadHeaderPng(const l_uint8  *data,
@@ -348,7 +362,7 @@ sreadHeaderPng(const l_uint8  *data,
                l_int32        *pheight,
                l_int32        *pbpc,
                l_int32        *pcpp,
-               l_int32        *pcmap)
+               l_int32        *piscmap)
 {
 l_uint8    colortype, bpc;
 l_uint16   twobytes;
@@ -362,8 +376,8 @@ l_uint32  *pword;
     if (!pwidth || !pheight || !pbpc || !pcpp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
     *pwidth = *pheight = *pbpc = *pcpp = 0;
-    if (pcmap)
-      *pcmap = 0;
+    if (piscmap)
+      *piscmap = 0;
     
         /* Check password */
     if (data[0] != 137 || data[1] != 80 || data[2] != 78 ||
@@ -386,11 +400,11 @@ l_uint32  *pword;
         *pcpp = 4;
     else   /* palette or gray */
         *pcpp = 1;
-    if (pcmap) {
+    if (piscmap) {
         if (colortype & 1)  /* palette: see png.h, PNG_COLOR_TYPE_... */
-            *pcmap = 1;
+            *piscmap = 1;
         else
-            *pcmap = 0;
+            *piscmap = 0;
     }
 
     return 0;
@@ -447,7 +461,7 @@ FILE  *fp;
  *              gamma (use 0.0 if gamma is not defined)
  *      Return: 0 if OK; 1 on error
  *
- *  Usage notes:
+ *  Notes:
  *      (1) If called from pixWriteStream(), the stream is positioned
  *          at the beginning of the file.
  *      (2) To do sequential writes of png format images to a stream,
@@ -494,7 +508,7 @@ pixWriteStreamPng(FILE      *fp,
                   PIX       *pix,
                   l_float32  gamma)
 {
-l_int32             i, j, k;
+l_int32      i, j, k;
 l_int32      wpl, d, cmflag;
 l_int32      ncolors;
 l_int32     *rmap, *gmap, *bmap;
@@ -588,7 +602,6 @@ char        *text;
         }
 
         png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
-
         FREE(rmap);
         FREE(gmap);
         FREE(bmap);
@@ -686,6 +699,5 @@ char        *text;
     return 0;
 
 }
-
 
 

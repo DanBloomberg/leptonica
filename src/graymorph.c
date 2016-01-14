@@ -31,14 +31,11 @@
  *      for a horizontal or vertical erosion or dilation.  The 
  *      computation time doubles for opening or closing, or for a
  *      square SE, as expected, and is independent of the size of the SE.
- *      
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "allheaders.h"
-
 
 
 /*-----------------------------------------------------------------*
@@ -146,9 +143,8 @@ PIX       *pixb, *pixt, *pixd;
                 leftpix, rightpix, toppix, bottompix)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    FREE((void *)buffer);
-    FREE((void *)minarray);
-
+    FREE(buffer);
+    FREE(minarray);
     pixDestroy(&pixb);
     pixDestroy(&pixt);
     return pixd;
@@ -257,9 +253,8 @@ PIX       *pixb, *pixt, *pixd;
                 leftpix, rightpix, toppix, bottompix)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    FREE((void *)buffer);
-    FREE((void *)maxarray);
-
+    FREE(buffer);
+    FREE(maxarray);
     pixDestroy(&pixb);
     pixDestroy(&pixt);
     return pixd;
@@ -385,9 +380,8 @@ PIX       *pixb, *pixt, *pixd;
                 leftpix, rightpix, toppix, bottompix)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    FREE((void *)buffer);
-    FREE((void *)array);
-
+    FREE(buffer);
+    FREE(array);
     pixDestroy(&pixb);
     pixDestroy(&pixt);
     return pixd;
@@ -513,9 +507,8 @@ PIX       *pixb, *pixt, *pixd;
                 leftpix, rightpix, toppix, bottompix)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    FREE((void *)buffer);
-    FREE((void *)array);
-
+    FREE(buffer);
+    FREE(array);
     pixDestroy(&pixb);
     pixDestroy(&pixt);
     return pixd;
