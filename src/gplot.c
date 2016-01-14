@@ -244,6 +244,7 @@ gplotAddPlot(GPLOT       *gplot,
              const char  *plottitle)
 {
 char       buf[L_BUF_SIZE];
+char       emptystring[] = "";
 char      *datastr, *title;
 l_int32    n, i;
 l_float32  valx, valy, startx, delx;
@@ -274,7 +275,7 @@ SARRAY    *sa;
         sarrayAddString(gplot->plottitles, title, L_INSERT);
     }
     else
-        sarrayAddString(gplot->plottitles, "", L_COPY);
+        sarrayAddString(gplot->plottitles, emptystring, L_COPY);
 
         /* Generate and save data filename */
     gplot->nplots++;

@@ -123,7 +123,7 @@ char     buf[256];
         /* Flatten the ptraa to a ptra containing all the boxes
          * in sorted order, and put them in a boxa */
     pad = ptraaFlattenToPtra(paa);
-    ptraaDestroy(&paa, FALSE);
+    ptraaDestroy(&paa, FALSE, FALSE);
     ptraGetActualCount(pad, &m);
     if (m != n)
         fprintf(stderr, "n(orig) = %d, m(new) = %d\n", n, m);
@@ -132,7 +132,7 @@ char     buf[256];
         box = (BOX *)ptraRemove(pad, i, L_NO_COMPACTION);
         boxaAddBox(boxa3, box, L_INSERT);
     }
-    ptraDestroy(&pad, FALSE);
+    ptraDestroy(&pad, FALSE, FALSE);
 
         /* Extract the data from the ptra of Numa, putting it into
          * a single Numa */
@@ -154,7 +154,7 @@ char     buf[256];
     boxaDestroy(&boxa2);
     boxaDestroy(&boxa3);
     numaDestroy(&nad3);
-    ptraDestroy(&paindex, FALSE);
+    ptraDestroy(&paindex, FALSE, FALSE);
 
     pixDestroy(&pixs);
     boxaDestroy(&boxa);

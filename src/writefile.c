@@ -76,7 +76,7 @@ const char *ImageFileFormatExtensions[] = {"unknown",
     /* Local map of image file name extension to output format */
 struct ExtensionMap
 {
-    char    *extension;
+    char     extension[8];
     l_int32  format;
 }; 
 static const struct ExtensionMap extension_map[] = 

@@ -578,6 +578,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pixalloc.c"
+				>
+			</File>
+			<File
 				RelativePath=".\pixarith.c"
 				>
 			</File>

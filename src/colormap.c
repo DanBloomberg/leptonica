@@ -27,6 +27,8 @@
  *           l_int32     pixcmapAddBlackOrWhite()
  *           l_int32     pixcmapSetBlackAndWhite()
  *           l_int32     pixcmapGetCount()
+ *           l_int32     pixcmapGetDepth()
+ *           l_int32     pixcmapGetMinDepth()
  *           l_int32     pixcmapGetFreeCount()
  *           l_int32     pixcmapClear()
  *
@@ -38,6 +40,7 @@
  *           l_int32     pixcmapCountGrayColors()
  *           l_int32     pixcmapGetRankIntensity()
  *           l_int32     pixcmapGetNearestIndex()
+ *           l_int32     pixcmapGetNearestGrayIndex()
  *           l_int32     pixcmapGetExtremeValue()
  *
  *      Colormap conversion
@@ -450,6 +453,60 @@ pixcmapGetFreeCount(PIXCMAP  *cmap)
 
 
 /*!
+ *  pixcmapGetDepth()
+ *
+ *      Input:  cmap
+ *      Return: depth, or 0 on error
+ */
+l_int32
+pixcmapGetDepth(PIXCMAP  *cmap)
+{
+    PROCNAME("pixcmapGetDepth");
+
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 0);
+
+    return cmap->depth;
+}
+
+
+/*!
+ *  pixcmapGetMinDepth()
+ *
+ *      Input:  cmap
+ *              &mindepth (<return> minimum depth to support the colormap)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) On error, &mindepth is returned as 0.
+ */
+l_int32
+pixcmapGetMinDepth(PIXCMAP  *cmap,
+                   l_int32  *pmindepth)
+{
+l_int32  ncolors;
+
+    PROCNAME("pixcmapGetMinDepth");
+
+    if (!pmindepth)
+        return ERROR_INT("&mindepth not defined", procName, 1);
+    *pmindepth = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+
+    ncolors = pixcmapGetCount(cmap);
+    if (ncolors <= 4)
+        *pmindepth = 2;
+    else if (ncolors <= 16)
+        *pmindepth = 4;
+    else  /* ncolors > 16 */
+        *pmindepth = 8;
+
+    return 0;
+}
+
+
+/*!
  *  pixcmapClear()
  *
  *      Input:  cmap
@@ -756,6 +813,58 @@ RGBA_QUAD  *cta;
         dist += delta * delta;
         if (dist < mindist) {
             *pindex = i; 
+            if (dist == 0)
+                break;
+            mindist = dist;
+        }
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  pixcmapGetNearestGrayIndex()
+ *
+ *      Input:  cmap
+ *              val (gray value to search for; in range [0, ... 255])
+ *              &index (<return> the index of the nearest color)
+ *      Return: 0 if OK, 1 on error (caller must check)
+ *
+ *  Notes:
+ *      (1) This should be used on gray colormaps.  It uses only the
+ *          green value of the colormap.
+ *      (2) Returns the index of the exact color if possible, otherwise the
+ *          index of the color closest to the target color.
+ */
+l_int32
+pixcmapGetNearestGrayIndex(PIXCMAP  *cmap,
+                           l_int32   val,
+                           l_int32  *pindex)
+{
+l_int32     i, n, dist, mindist;
+RGBA_QUAD  *cta;
+
+    PROCNAME("pixcmapGetNearestGrayIndex");
+
+    if (!pindex)
+        return ERROR_INT("&index not defined", procName, 1);
+    *pindex = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+    if (val < 0 || val > 255)
+        return ERROR_INT("val not in [0 ... 255]", procName, 1);
+
+    if ((cta = (RGBA_QUAD *)cmap->array) == NULL)
+        return ERROR_INT("cta not defined(!)", procName, 1);
+    n = pixcmapGetCount(cmap);
+
+    mindist = 256;
+    for (i = 0; i < n; i++) {
+        dist = cta[i].green - val;
+        dist = L_ABS(dist);
+        if (dist < mindist) {
+            *pindex = i;
             if (dist == 0)
                 break;
             mindist = dist;

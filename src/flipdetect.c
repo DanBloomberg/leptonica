@@ -653,6 +653,10 @@ pixUpDownDetectGeneralDwa(PIX        *pixs,
                           l_int32     npixels,
                           l_int32     debug)
 {
+char       flipsel1[] = "flipsel1";
+char       flipsel2[] = "flipsel2";
+char       flipsel3[] = "flipsel3";
+char       flipsel4[] = "flipsel4";
 l_int32    countup, countdown, nmax;
 l_float32  nup, ndown;
 PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3, *pixm;
@@ -706,8 +710,8 @@ PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3, *pixm;
         /* Find the ascenders and optionally filter with pixm.
          * For an explanation of the procedure used for counting the result
          * of the HMT, see comments in pixUpDownDetectGeneral().  */
-    pixt1 = pixFlipFHMTGen(NULL, pixt0, "flipsel1");
-    pixt2 = pixFlipFHMTGen(NULL, pixt0, "flipsel2");
+    pixt1 = pixFlipFHMTGen(NULL, pixt0, flipsel1);
+    pixt2 = pixFlipFHMTGen(NULL, pixt0, flipsel2);
     pixOr(pixt1, pixt1, pixt2);
     if (pixm)
         pixAnd(pixt1, pixt1, pixm);
@@ -718,8 +722,8 @@ PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3, *pixm;
     pixDestroy(&pixt3);
 
         /* Find the ascenders and optionally filter with pixm. */
-    pixt1 = pixFlipFHMTGen(NULL, pixt0, "flipsel3");
-    pixt2 = pixFlipFHMTGen(NULL, pixt0, "flipsel4");
+    pixt1 = pixFlipFHMTGen(NULL, pixt0, flipsel3);
+    pixt2 = pixFlipFHMTGen(NULL, pixt0, flipsel4);
     pixOr(pixt1, pixt1, pixt2);
     if (pixm)
         pixAnd(pixt1, pixt1, pixm);
@@ -891,6 +895,8 @@ pixMirrorDetectDwa(PIX        *pixs,
                    l_int32     mincount,
                    l_int32     debug)
 {
+char       flipsel1[] = "flipsel1";
+char       flipsel2[] = "flipsel2";
 l_int32    count1, count2, nmax;
 l_float32  nleft, nright;
 PIX       *pixt0, *pixt1, *pixt2, *pixt3;
@@ -918,14 +924,14 @@ PIX       *pixt0, *pixt1, *pixt2, *pixt3;
     pixDestroy(&pixt3);
 
         /* Filter the right-facing characters. */
-    pixt1 = pixFlipFHMTGen(NULL, pixt0, "flipsel1");
+    pixt1 = pixFlipFHMTGen(NULL, pixt0, flipsel1);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &count1, NULL);
     pixDestroy(&pixt1);
     pixDestroy(&pixt3);
 
         /* Filter the left-facing characters. */
-    pixt2 = pixFlipFHMTGen(NULL, pixt0, "flipsel2");
+    pixt2 = pixFlipFHMTGen(NULL, pixt0, flipsel2);
     pixt3 = pixReduceRankBinaryCascade(pixt2, 1, 1, 0, 0);
     pixCountPixels(pixt3, &count2, NULL);
     pixDestroy(&pixt2);

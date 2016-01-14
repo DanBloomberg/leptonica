@@ -31,12 +31,12 @@ main(int    argc,
 {
 char        *errorstr;
 l_int32      same, error;
-PIX         *pixs1, *pixs2, *pixs4, *pixs8, *pixs32,  *pixd;
+PIX         *pixs1, *pixs2, *pixs4, *pixs8, *pixs16, *pixs32,  *pixd;
 PIX         *pixc2, *pixc4, *pixc8;
 PIX         *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6;
 PIXCMAP     *cmap;
 SARRAY      *sa;
-static char  mainName[] = "convert_rt";
+static char  mainName[] = "convert_reg";
 
     if (argc != 1)
         exit(ERROR_INT(" Syntax:  convert_rt", mainName, 1));
@@ -55,6 +55,8 @@ static char  mainName[] = "convert_rt";
 	exit(ERROR_INT("pixs8 not made", mainName, 1));
     if ((pixc8 = pixRead("weasel8.240c.png")) == NULL)
 	exit(ERROR_INT("pixc8 not made", mainName, 1));
+    if ((pixs16 = pixRead("test16.tif")) == NULL)
+	exit(ERROR_INT("pixs16 not made", mainName, 1));
     if ((pixs32 = pixRead("marge.jpg")) == NULL)
 	exit(ERROR_INT("pixs32 not made", mainName, 1));
     error = FALSE;
@@ -68,8 +70,9 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixs1, 100, 100, "1 bpp, no cmap", DFLAG);
         pixDisplayWithTitle(pixt2, 500, 100, "1 bpp, no cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 1 bpp <==> 8 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 1 bpp <==> 8 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 1 bpp <==> 8 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
@@ -84,8 +87,9 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixt2, 100, 100, "2 bpp, no cmap", DFLAG);
         pixDisplayWithTitle(pixt4, 500, 100, "2 bpp, no cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 2 bpp <==> 8 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 2 bpp <==> 8 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 2 bpp <==> 8 bpp\n");
     pixt5 = pixConvertTo8(pixs2, TRUE);
     pixt6 = pixThreshold8(pixt5, 2, 4, 1);
     pixEqual(pixs2, pixt6, &same);
@@ -93,8 +97,10 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixs2, 100, 100, "2 bpp, cmap", DFLAG);
         pixDisplayWithTitle(pixt6, 500, 100, "2 bpp, cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 2 bpp <==> 8 bpp; cmap", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 2 bpp <==> 8 bpp; cmap",
+                        L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 2 bpp <==> 8 bpp; cmap\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -113,8 +119,9 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixt2, 100, 100, "4 bpp, no cmap", DFLAG);
         pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, no cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 4 bpp <==> 8 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 4 bpp <==> 8 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 4 bpp <==> 8 bpp\n");
     pixt5 = pixConvertTo8(pixs4, TRUE);
     pixt6 = pixThreshold8(pixt5, 4, 16, 1);
     pixEqual(pixs4, pixt6, &same);
@@ -122,8 +129,10 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixs4, 100, 100, "4 bpp, cmap", DFLAG);
         pixDisplayWithTitle(pixt6, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 4 bpp <==> 8 bpp, cmap", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 4 bpp <==> 8 bpp, cmap",
+                        L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 4 bpp <==> 8 bpp; cmap\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -141,8 +150,9 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixs2, 100, 100, "2 bpp, cmap", DFLAG);
         pixDisplayWithTitle(pixt4, 500, 100, "2 bpp, cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 2 bpp <==> 2 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 2 bpp <==> 2 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 2 bpp <==> 2 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -158,8 +168,9 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixs4, 100, 100, "4 bpp, cmap", DFLAG);
         pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 4 bpp <==> 4 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 4 bpp <==> 4 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 4 bpp <==> 4 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -174,8 +185,9 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixt1, 100, 100, "8 bpp, cmap", DFLAG);
         pixDisplayWithTitle(pixt2, 500, 100, "8 bpp, no cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 8 bpp <==> 8 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 8 bpp <==> 8 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 8 bpp <==> 8 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
@@ -188,17 +200,19 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixt2, 100, 100, "32 bpp", DFLAG);
         pixDisplayWithTitle(pixt3, 500, 100, "32 bpp", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 2 bpp ==> 32 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 2 bpp ==> 32 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 2 bpp <==> 32 bpp\n");
     cmap = pixGetColormap(pixc2);
-    pixt4 = pixOctcubeQuantFromCmap(pixt3, cmap, 4, L_EUCLIDEAN_DISTANCE);
+    pixt4 = pixOctcubeQuantFromCmap(pixt3, cmap, 2, 4, L_EUCLIDEAN_DISTANCE);
     pixEqual(pixc2, pixt4, &same);
     if (!same) {
         pixDisplayWithTitle(pixc2, 100, 100, "4 bpp, cmap", DFLAG);
         pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 2 bpp <==> 32 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 2 bpp <==> 32 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 2 bpp <==> 32 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -213,17 +227,19 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixt2, 100, 100, "32 bpp", DFLAG);
         pixDisplayWithTitle(pixt3, 500, 100, "32 bpp", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 4 bpp ==> 32 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 4 bpp ==> 32 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 4 bpp <==> 32 bpp\n");
     cmap = pixGetColormap(pixc4);
-    pixt4 = pixOctcubeQuantFromCmap(pixt3, cmap, 4, L_EUCLIDEAN_DISTANCE);
+    pixt4 = pixOctcubeQuantFromCmap(pixt3, cmap, 2, 4, L_EUCLIDEAN_DISTANCE);
     pixEqual(pixc4, pixt4, &same);
     if (!same) {
         pixDisplayWithTitle(pixc4, 100, 100, "4 bpp, cmap", DFLAG);
         pixDisplayWithTitle(pixt4, 500, 100, "4 bpp, cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 4 bpp <==> 32 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 4 bpp <==> 32 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 4 bpp <==> 32 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -237,8 +253,38 @@ static char  mainName[] = "convert_rt";
         pixDisplayWithTitle(pixs8, 100, 100, "8 bpp", DFLAG);
         pixDisplayWithTitle(pixt2, 500, 100, "8 bpp", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 8 bpp <==> 32 bpp", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 8 bpp <==> 32 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 8 bpp <==> 32 bpp\n");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+        /* Conversion: 8 bpp --> 16 bpp --> 8 bpp */
+    pixt1 = pixConvert8To16(pixs8, 8);
+    pixt2 = pixConvertTo8(pixt1, FALSE);
+    pixEqual(pixs8, pixt2, &same);
+    if (!same) {
+        pixDisplayWithTitle(pixs8, 100, 100, "8 bpp", DFLAG);
+        pixDisplayWithTitle(pixt2, 500, 100, "8 bpp", DFLAG);
+        error = TRUE;
+        sarrayAddString(sa, (char *)"conversion 8 bpp <==> 16 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 8 bpp <==> 16 bpp\n");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+        /* Conversion: 16 bpp --> 8 bpp --> 16 bpp */
+    pixt1 = pixConvert16To8(pixs16, 1);
+    pixt2 = pixConvertTo16(pixt1);
+    pixWrite("junkpix", pixt2, IFF_PNG);
+    pixEqual(pixs16, pixt2, &same);
+    if (!same) {
+        pixDisplayWithTitle(pixs16, 100, 100, "16 bpp", DFLAG);
+        pixDisplayWithTitle(pixt2, 500, 100, "16 bpp", DFLAG);
+        error = TRUE;
+        sarrayAddString(sa, (char *)"conversion 16 bpp <==> 8 bpp", L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 16 bpp <==> 8 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
@@ -246,14 +292,16 @@ static char  mainName[] = "convert_rt";
         /* Required to go to level 6 of octcube to get identical result */
     pixt1 = pixConvertTo32(pixc8);
     cmap = pixGetColormap(pixc8);
-    pixt2 = pixOctcubeQuantFromCmap(pixt1, cmap, 6, L_EUCLIDEAN_DISTANCE);
+    pixt2 = pixOctcubeQuantFromCmap(pixt1, cmap, 2, 6, L_EUCLIDEAN_DISTANCE);
     pixEqual(pixc8, pixt2, &same);
     if (!same) {
         pixDisplayWithTitle(pixc8, 100, 100, "8 bpp cmap", DFLAG);
         pixDisplayWithTitle(pixt2, 500, 100, "8 bpp cmap", DFLAG);
         error = TRUE;
-        sarrayAddString(sa, "conversion 8 bpp cmap <==> 32 bpp cmap", L_COPY);
-    }
+        sarrayAddString(sa, (char *)"conversion 8 bpp cmap <==> 32 bpp cmap",
+                        L_COPY);
+    } else
+        fprintf(stderr, "OK: conversion 8 bpp <==> 32 bpp\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
@@ -274,6 +322,7 @@ static char  mainName[] = "convert_rt";
     pixDestroy(&pixc4);
     pixDestroy(&pixs8);
     pixDestroy(&pixc8);
+    pixDestroy(&pixs16);
     pixDestroy(&pixs32);
     exit(0);
 }

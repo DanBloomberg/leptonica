@@ -140,7 +140,7 @@ LIBRARIAN_SHARED =	gcc -shared
 #   Links are created among the files <libname>.X.Y,
 #   <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 61
+MINOR_REV = 62
 
 #########################################################
 
@@ -181,7 +181,8 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		parseprotos.c partition.c \
 		pix1.c pix2.c pix3.c pix4.c \
 		pixabasic.c pixacc.c \
-		pixafunc1.c pixafunc2.c pixarith.c \
+		pixafunc1.c pixafunc2.c \
+		pixalloc.c pixarith.c \
 		pixconv.c pixtiling.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
 		projective.c psio.c psiostub.c \
@@ -247,14 +248,14 @@ allprotos:	leptprotos
 
 leptprotos:	$(LEPTLIB_C)
 		@$(TEST) -f xtractprotos || echo "First run 'make xtractprotos'"
-		./xtractprotos $(LEPTLIB_C) > tempprotos.h
+		./xtractprotos -prestring=LEPT_DLL $(LEPTLIB_C) > tempprotos.h
 		mv tempprotos.h $(PROTOTYPE_DIR)/$@.h
 
 ##################################################################
 
 #  xtractprotos
 #
-xtractprotos:	leptlib xtractprotos.o
+xtractprotos:	dirs leptlib xtractprotos.o
 	$(CC) -o xtractprotos xtractprotos.o $(LIB_NODEBUG)/liblept.a
 
 xtractprotos.o:	xtractprotos.c

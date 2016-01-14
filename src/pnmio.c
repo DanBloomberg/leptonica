@@ -95,6 +95,7 @@ PIX *
 pixReadStreamPnm(FILE  *fp)
 {
 l_uint8    val8, rval8, gval8, bval8;
+l_uint16   val16;
 l_int32    w, h, d, bpl, wpl, i, j, type;
 l_int32    maxval, val, rval, gval, bval;
 l_uint32   rgbval;
@@ -171,14 +172,40 @@ PIX       *pix;
         return pix;
     }
 
-        /* "raw" format; binary and grayscale */
-    if (type == 4 || type == 5) {
+        /* "raw" format for 1 bpp */
+    if (type == 4) {
         bpl = (d * w + 7) / 8;
         for (i = 0; i < h; i++) {
             line = data + i * wpl;
             for (j = 0; j < bpl; j++) {
                 fread(&val8, 1, 1, fp);
                 SET_DATA_BYTE(line, j, val8);
+            }
+        }
+        return pix;
+    }
+
+        /* "raw" format for grayscale */
+    if (type == 5) {
+        bpl = (d * w + 7) / 8;
+        for (i = 0; i < h; i++) {
+            line = data + i * wpl;
+            if (d != 16) {
+                for (j = 0; j < w; j++) {
+                    fread(&val8, 1, 1, fp);
+                    if (d == 2)
+                        SET_DATA_DIBIT(line, j, val8);
+                    else if (d == 4)
+                        SET_DATA_QBIT(line, j, val8);
+                    else  /* d == 8 */
+                        SET_DATA_BYTE(line, j, val8);
+                }
+            }
+            else {  /* d == 16 */
+                for (j = 0; j < w; j++) {
+                    fread(&val16, 2, 1, fp);
+                    SET_DATA_TWO_BYTES(line, j, val16);
+                }
             }
         }
         return pix;
@@ -218,8 +245,9 @@ l_int32
 pixWriteStreamPnm(FILE  *fp,
                   PIX   *pix)
 {
-l_uint8    byteval;
+l_uint8    val8;
 l_uint8    pel[4];
+l_uint16   val16;
 l_int32    h, w, d, ds, i, j, wpls, bpl, filebpl, writeerror, maxval;
 l_uint32  *pword, *datas, *lines;
 PIX       *pixs;
@@ -252,8 +280,8 @@ PIX       *pixs;
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
             for (j = 0; j < bpl; j++) {
-                byteval = GET_DATA_BYTE(lines, j);
-                fwrite(&byteval, 1, 1, fp);
+                val8 = GET_DATA_BYTE(lines, j);
+                fwrite(&val8, 1, 1, fp);
             }
         }
     }
@@ -261,12 +289,27 @@ PIX       *pixs;
         maxval = (1 << ds) - 1;
         fprintf(fp, "P5\n# Raw PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
-        bpl = (ds * w + 7) / 8;
-        for (i = 0; i < h; i++) {
-            lines = datas + i * wpls;
-            for (j = 0; j < bpl; j++) {
-                byteval = GET_DATA_BYTE(lines, j);
-                fwrite(&byteval, 1, 1, fp);
+        if (ds != 16) {
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                for (j = 0; j < w; j++) {
+                    if (ds == 2)
+                        val8 = GET_DATA_DIBIT(lines, j);
+                    else if (ds == 4)
+                        val8 = GET_DATA_QBIT(lines, j);
+                    else  /* ds == 8 */
+                        val8 = GET_DATA_BYTE(lines, j);
+                    fwrite(&val8, 1, 1, fp);
+                }
+            }
+        }
+        else {  /* ds == 16 */
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                for (j = 0; j < w; j++) {
+                    val16 = GET_DATA_TWO_BYTES(lines, j);
+                    fwrite(&val16, 2, 1, fp);
+                }
             }
         }
     }

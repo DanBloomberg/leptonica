@@ -249,6 +249,7 @@ pixReadBarcodes(PIXA     *pixa,
                 l_int32   debugflag)
 {
 char      *barstr, *data;
+char       emptystring[] = "";
 l_int32    i, j, n, nbars, ival;
 NUMA      *na;
 PIX       *pixt;
@@ -291,7 +292,7 @@ SARRAY    *saw, *sad;
         data = barcodeDispatchDecoder(barstr, format, debugflag);
         if (!data) {
 	    ERROR_INT("barcode not decoded", procName, 1);
-            sarrayAddString(sad, "", L_COPY);
+            sarrayAddString(sad, emptystring, L_COPY);
             continue;
 	}
         sarrayAddString(sad, data, L_INSERT);

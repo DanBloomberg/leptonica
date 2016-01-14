@@ -68,6 +68,8 @@ static l_int32 getOffsetForMatchingRP(SARRAY *sa, l_int32 start,
  *  parseForProtos()
  *
  *      Input:  filein (output of cpp)
+ *              prestring (<optional> string that prefaces each decl;
+ *                        use NULL to omit)
  *      Return: parsestr (string of function prototypes), or NULL on error
  *
  *  Notes:
@@ -121,13 +123,20 @@ static l_int32 getOffsetForMatchingRP(SARRAY *sa, l_int32 start,
  *      (6) When a prototype is extracted, it is put in a canonical
  *          form (i.e., cleaned up).  Finally, we check that it is
  *          not static and save it.  (If static, it is ignored).
+ *      (7) The @prestring for unix is NULL; it is included here so that
+ *          you can use Microsoft's declaration for importing or
+ *          exporting to a dll.  See environ.h for examples of use.
+ *          Here, we set: @prestring = "LEPT_DLL ".  Note in particular
+ *          the space character that will separate 'LEPT_DLL' from
+ *          the standard unix prototype that follows.
  */
 char *
-parseForProtos(const char *filein)
+parseForProtos(const char *filein,
+               const char *prestring)
 {
-char     *strdata, *str, *parsestr, *secondword;
-l_int32   nbytes, start, next, stop, charindex, found;
-SARRAY    *sa, *saout, *satest;
+char    *strdata, *str, *newstr, *parsestr, *secondword;
+l_int32  nbytes, start, next, stop, charindex, found;
+SARRAY  *sa, *saout, *satest;
 
     PROCNAME("parseForProtos");
 
@@ -154,8 +163,15 @@ SARRAY    *sa, *saout, *satest;
              * keyword, if it exists, would be the second word. */
         satest = sarrayCreateWordsFromString(str);
         secondword = sarrayGetString(satest, 1, 0);
-        if (strcmp(secondword, "static"))  /* not static */
-            sarrayAddString(saout, str, 0);
+        if (strcmp(secondword, "static")) {  /* not static */
+            if (prestring) {  /* prepend it to the prototype */
+                newstr = stringJoin(prestring, str);
+                sarrayAddString(saout, newstr, L_INSERT);
+                FREE(str);
+            }
+            else
+                sarrayAddString(saout, str, L_INSERT);
+        }
         else
             FREE(str);
         sarrayDestroy(&satest);
@@ -511,6 +527,7 @@ cleanProtoSignature(char *instr)
 {
 char    *str, *cleanstr;
 char     buf[L_BUF_SIZE];
+char     externstring[] = "extern";
 l_int32  i, j, nwords, nchars, index, len;
 SARRAY  *sa, *saout;
 
@@ -522,7 +539,7 @@ SARRAY  *sa, *saout;
     sa = sarrayCreateWordsFromString(instr);
     nwords = sarrayGetCount(sa);
     saout = sarrayCreate(0);
-    sarrayAddString(saout, "extern", 1);
+    sarrayAddString(saout, externstring, 1);
     for (i = 0; i < nwords; i++) {
         str = sarrayGetString(sa, i, 0);
         nchars = strlen(str);

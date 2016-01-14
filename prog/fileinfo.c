@@ -40,16 +40,17 @@ static char  mainName[] = "fileinfo";
 	exit(ERROR_INT(" Syntax:  fileinfo filein", mainName, 1));
     filein = argv[1];
 
+    l_pngSetStrip16To8(0);  /* to preserve 16 bpp if format is png */
     if ((pix = pixRead(filein)) == NULL)
 	exit(ERROR_INT("image not returned from file", mainName, 1));
 
     format = pixGetInputFormat(pix);
     fprintf(stderr, "Input image format type: %s\n",
             ImageFileFormatExtensions[format]);
-
     pixGetDimensions(pix, &w, &h, &d);
     wpl = pixGetWpl(pix);
     fprintf(stderr, "w = %d, h = %d, d = %d, wpl = %d\n", w, h, d, wpl);
+    fprintf(stderr, "xres = %d, yres = %d\n", pixGetXRes(pix), pixGetYRes(pix));
 
     text = pixGetText(pix);
     if (text)  /*  not null */

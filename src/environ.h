@@ -16,7 +16,35 @@
 #ifndef  LEPTONICA_ENVIRON_H
 #define  LEPTONICA_ENVIRON_H
 
+#if defined(WIN32) || defined(WIN64)
+/* WINDOWS_SPECIFICS */
+/* Provide intptr_t from the non-existent stdint.h. */
+#if defined(WIN32)
+typedef int intptr_t;
+typedef unsigned int uintptr_t;
+#else
+typedef long int intptr_t;
+typedef unsigned long int uintptr_t;
+#endif
+
+/* VC++6 doesn't seem to have powf, expf. */
+#if (_MSC_VER <= 1400)
+#define powf(x, y) (float)pow((double)(x), (double)(y))
+#define expf(x) (float)exp((double)(x))
+#endif
+
+/* DLL EXPORT/IMPORT */
+#ifdef LEPTONLIB_EXPORTS
+#define LEPT_DLL __declspec(dllexport)
+#elif defined(LEPTONLIB_IMPORTS)
+#define LEPT_DLL __declspec(dllimport)
+#else
+#define LEPT_DLL
+#endif
+#else  /* non-WINDOWS-SPECIFICS */
 #include <stdint.h>
+#define LEPT_DLL
+#endif
 
 typedef intptr_t l_intptr_t;
 typedef uintptr_t l_uintptr_t;
@@ -212,7 +240,7 @@ enum {
 /*------------------------------------------------------------------------*
  *                        snprintf() renamed in MSVC                      *
  *------------------------------------------------------------------------*/
-#if defined(__MINGW32__) || defined(_WIN32)
+#if defined(__MINGW32__) || defined(WIN32)
 #define snprintf _snprintf
 #endif
 

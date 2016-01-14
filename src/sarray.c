@@ -67,6 +67,11 @@
  *          l_int32    sarrayWriteStream()
  *          l_int32    sarrayAppend()
  *
+ *      Directory filenames
+ *          SARRAY    *getSortedPathnamesInDirectory()
+ *          SARRAY    *getFilenamesInDirectory()
+ *
+ *
  *      Comments on usage:
  *
  *          These functions are important for efficient manipulation
@@ -108,6 +113,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifndef COMPILER_MSVC
+#include <dirent.h>     /* unix only */
+#endif  /* !COMPILER_MSVC */
 #include "allheaders.h"
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;     /* n'importe quoi */
@@ -159,8 +167,8 @@ SARRAY  *sa;
 SARRAY *
 sarrayCreateWordsFromString(const char  *string)
 {
+char     separators[] = " \n\t";
 l_int32  i, nsub, size, inword;
-char    *separators;
 SARRAY  *sa;
 
     PROCNAME("sarrayCreateWordsFromString");
@@ -171,7 +179,6 @@ SARRAY  *sa;
         /* Find the number of words */
     size = strlen(string);
     nsub = 0;
-    separators = " \n\t";
     inword = FALSE;
     for (i = 0; i < size; i++) {
         if (inword == FALSE &&
@@ -407,8 +414,8 @@ sarrayExtendArray(SARRAY  *sa)
         return ERROR_INT("sa not defined", procName, 1);
 
     if ((sa->array = (char **)reallocNew((void **)&sa->array,
-                              sizeof(l_intptr_t) * sa->nalloc,
-                              2 * sizeof(l_intptr_t) * sa->nalloc)) == NULL)
+                              sizeof(char *) * sa->nalloc,
+                              2 * sizeof(char *) * sa->nalloc)) == NULL)
             return ERROR_INT("new ptr array not returned", procName, 1);
 
     sa->nalloc *= 2;
@@ -848,6 +855,7 @@ sarrayConvertWordsToLines(SARRAY  *sa,
                           l_int32  linesize)
 {
 char    *wd, *strl;
+char     emptystring[] = "";
 l_int32  n, i, len, totlen;
 SARRAY  *sal, *saout;
 
@@ -874,7 +882,7 @@ SARRAY  *sal, *saout;
                 strl = sarrayToString(sal, 2);
                 sarrayAddString(saout, strl, L_INSERT);
             }
-            sarrayAddString(saout, "", L_COPY);
+            sarrayAddString(saout, emptystring, L_COPY);
             sarrayDestroy(&sal);
             totlen = 0;
         }
@@ -1397,4 +1405,184 @@ FILE  *fp;
     fclose(fp);
     return 0;
 }
+
+
+/*---------------------------------------------------------------------*
+ *                           Directory filenames                       *
+ *---------------------------------------------------------------------*/
+/*!
+ *  getSortedPathnamesInDirectory()
+ *
+ *      Input:  directory name
+ *              substr (<optional> substring filter on filenames; can be NULL)
+ *              firstpage (0-based)
+ *              npages (use 0 for all to the end)
+ *      Return: sarray of sorted pathnames, or NULL on error
+ *
+ *  Notes:
+ *      (1) If 'substr' is not NULL, only filenames that contain
+ *          the substring can be returned.  If 'substr' is NULL,
+ *          none of the filenames are filtered out.
+ *      (2) The files in the directory, after optional filtering by
+ *          the substring, are lexically sorted in increasing order.
+ *          The full pathnames are returned for the requested sequence.
+ *          If no files are found after filtering, returns an empty sarray.
+ */
+SARRAY *
+getSortedPathnamesInDirectory(const char  *dirname,
+                              const char  *substr,
+                              l_int32      firstpage,
+                              l_int32      npages)
+{
+char    *fname, *fullname;
+l_int32  i, nfiles, lastpage;
+SARRAY  *sa, *safiles, *saout;
+
+    PROCNAME("getSortedPathnamesInDirectory");
+
+    if (!dirname)
+        return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
+
+    if ((sa = getFilenamesInDirectory(dirname)) == NULL)
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+    safiles = sarraySelectBySubstring(sa, substr);
+    sarrayDestroy(&sa);
+    nfiles = sarrayGetCount(safiles);
+    if (nfiles == 0) {
+        L_WARNING("no files found", procName);
+        return safiles;
+    }
+
+    sarraySort(safiles, safiles, L_SORT_INCREASING);
+
+    firstpage = L_MIN(L_MAX(firstpage, 0), nfiles - 1);
+    if (npages == 0)
+        npages = nfiles - firstpage;
+    lastpage = L_MIN(firstpage + npages - 1, nfiles - 1);
+
+    saout = sarrayCreate(lastpage - firstpage + 1);
+    for (i = firstpage; i <= lastpage; i++) {
+        fname = sarrayGetString(safiles, i, L_NOCOPY);
+        fullname = genPathname(dirname, fname);
+        sarrayAddString(saout, fullname, L_INSERT);
+    }
+
+    sarrayDestroy(&safiles);
+    return saout;
+}
+
+
+/*!
+ *  getFilenamesInDirectory()
+ *
+ *      Input:  directory name
+ *      Return: sarray of file names, or NULL on error
+ *
+ *  Notes:
+ *      (1) The versions compiled under unix and cygwin use the POSIX C
+ *          library commands for handling directories.  For windows,
+ *          there is a separate implementation.
+ *      (2) It returns an array of filename tails; i.e., only the part of
+ *          the path after the last slash.
+ *      (3) Use of the d_type field of dirent is not portable:
+ *          "According to POSIX, the dirent structure contains a field
+ *          char d_name[] of unspecified size, with at most NAME_MAX
+ *          characters preceding the terminating null character.  Use
+ *          of other fields will harm the portability of your programs."
+ *      (4) As a consequence of (3), we note several things:
+ *           - MINGW doesn't have a d_type member.
+ *           - Older versions of gcc (e.g., 2.95.3) return DT_UNKNOWN
+ *             for d_type from all files.
+ *          On these systems, this function will return directories
+ *          (except for '.' and '..', which are eliminated using
+ *          the d_name field).
+ */
+#ifndef COMPILER_MSVC
+
+SARRAY *
+getFilenamesInDirectory(const char  *dirname)
+{
+char           *name;
+l_int32         len;
+SARRAY         *safiles;
+DIR            *pdir;
+struct dirent  *pdirentry;
+
+    PROCNAME("getFilenamesInDirectory");
+
+    if (!dirname)
+        return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
+
+    if ((safiles = sarrayCreate(0)) == NULL)
+        return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
+    if ((pdir = opendir(dirname)) == NULL)
+        return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
+    while ((pdirentry = readdir(pdir)))  {
+
+        /* It's nice to ignore directories.  For this it is necessary to
+         * define _BSD_SOURCE in the CC command, because the DT_DIR
+         * flag is non-standard.  */ 
+#if !defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(__SOLARIS__)
+        if (pdirentry->d_type == DT_DIR)
+            continue;
+#endif
+
+            /* Filter out "." and ".." if they're passed through */
+        name = pdirentry->d_name;
+        len = strlen(name);
+        if (len == 1 && name[len - 1] == '.') continue;
+        if (len == 2 && name[len - 1] == '.' && name[len - 2] == '.') continue;
+        sarrayAddString(safiles, name, L_COPY);
+    }
+    closedir(pdir);
+
+    return safiles;
+}
+
+#else  /* COMPILER_MSVC */
+
+    /* http://msdn2.microsoft.com/en-us/library/aa365200(VS.85).aspx */
+#include <windows.h>
+#include <tchar.h>
+SARRAY *
+getFilenamesInDirectory(const char  *dirname)
+{
+SARRAY           *safiles;
+WIN32_FIND_DATAA  ffd;
+size_t            length_of_path;
+CHAR              szDir[MAX_PATH];  /* MAX_PATH is defined in stdlib.h */
+HANDLE            hFind = INVALID_HANDLE_VALUE;
+
+    PROCNAME("getFilenamesInDirectory");
+
+    if (!dirname)
+        return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
+
+    length_of_path = strlen(dirname);
+    if (length_of_path > (MAX_PATH - 2))
+        return (SARRAY *)ERROR_PTR("dirname is to long", procName, NULL);
+
+    strncpy(szDir, dirname, MAX_PATH);
+    szDir[MAX_PATH - 1] = '\0';
+    strncat(szDir, TEXT("\\*"), MAX_PATH - strlen(szDir));
+
+    if ((safiles = sarrayCreate(0)) == NULL)
+        return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
+    hFind = FindFirstFileA(szDir, &ffd);
+    if (INVALID_HANDLE_VALUE == hFind) {
+        sarrayDestroy(&safiles);
+        return (SARRAY *)ERROR_PTR("hFind not opened", procName, NULL);
+    }
+
+    while (FindNextFileA(hFind, &ffd) != 0) {
+        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)  /* skip dirs */
+            continue;
+        sarrayAddString(safiles, ffd.cFileName, L_COPY);
+    }
+
+    FindClose(hFind);
+    return safiles;
+}
+
+#endif  /* COMPILER_MSVC */
 

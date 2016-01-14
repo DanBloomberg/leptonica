@@ -48,8 +48,10 @@
 
 #define   BMP_FILE      "test1.bmp"
 #define   FILE_1BPP     "feyn.tif"
-#define   FILE_2BPP     "weasel2.4g.png"
-#define   FILE_4BPP     "weasel4.16c.png"
+#define   FILE_2BPP     "speckle2.png"
+#define   FILE_2BPP_C   "weasel2.4g.png"
+#define   FILE_4BPP     "speckle4.png"
+#define   FILE_4BPP_C   "weasel4.16c.png"
 #define   FILE_8BPP_1   "dreyfus8.png"
 #define   FILE_8BPP_2   "weasel8.240c.png"
 #define   FILE_8BPP_3   "test8.jpg"
@@ -89,8 +91,12 @@ static char  mainName[] = "ioformats_reg";
     if (ioFormatTest(FILE_1BPP)) success = FALSE;
     fprintf(stderr, "\nTest 2 bpp file:\n");
     if (ioFormatTest(FILE_2BPP)) success = FALSE;
+    fprintf(stderr, "\nTest 2 bpp file with cmap:\n");
+    if (ioFormatTest(FILE_2BPP_C)) success = FALSE;
     fprintf(stderr, "\nTest 4 bpp file:\n");
     if (ioFormatTest(FILE_4BPP)) success = FALSE;
+    fprintf(stderr, "\nTest 4 bpp file with cmap:\n");
+    if (ioFormatTest(FILE_4BPP_C)) success = FALSE;
     fprintf(stderr, "\nTest 8 bpp grayscale file with cmap:\n");
     if (ioFormatTest(FILE_8BPP_1)) success = FALSE;
     fprintf(stderr, "\nTest 8 bpp color file with cmap:\n");

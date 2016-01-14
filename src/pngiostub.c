@@ -60,6 +60,22 @@ l_int32 pixWriteStreamPng(FILE *fp, PIX *pix, l_float32 gamma)
     return ERROR_INT("function not present", "pixWriteStreamPng", 1);
 }
 
+void l_pngSetStrip16To8(l_int32 flag)
+{
+    return ERROR_INT("function not present", "l_pngSetSTrip16To8", 1);
+}
+
+void l_pngSetStripAlpha(l_int32 flag)
+{
+    return ERROR_INT("function not present", "l_pngSetStripAlpha", 1);
+}
+
+void l_pngSetZlibCompression(l_int32 val)
+
+{
+    return ERROR_INT("function not present", "l_pngSetZlibCompression", 1);
+}
+
 PIX * pixReadMemPng(const l_uint8 *cdata, size_t size)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadMemPng", NULL);

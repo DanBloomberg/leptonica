@@ -15,19 +15,35 @@
 
 /*
  *  psio.c
+ *
+ *    |=============================================================|
+ *    |                         Important note                      |
+ *    |=============================================================|
+ *    |Some of these functions require libtiff and libjpeg.         |
+ *    |If you do not have both of these libraries, you must set     |
+ *    |     #define  USE_PSIO     0                                 |
+ *    |in environ.h.  This will link psiostub.c                     |
+ *    |=============================================================|
  *                     
  *     This is a PostScript "device driver" for wrapping images
  *     in PostScript.  The images can be rendered by a PostScript
  *     interpreter for viewing, using evince or gv.  They can also be
  *     rasterized for printing, using gs or an embedded interpreter
- *     in a PostScript printer.
+ *     in a PostScript printer.  And they can be converted to a pdf
+ *     using gs (ps2pdf).
  *
  *     Convert specified files to PS
- *          l_int32          convertFilesToPS()    [unix only]
+ *          l_int32          convertFilesToPS()
  *          l_int32          sarrayConvertFilesToPS()
- *          l_int32          convertFilesFittedToPS()    [unix only]
+ *          l_int32          convertFilesFittedToPS()
  *          l_int32          sarrayConvertFilesFittedToPS()
  *          static l_int32   writeImageCompressedToPSFile()
+ *
+ *     Convert mixed text/image files to PS
+ *          l_int32          convertSegmentedPagesToPS()
+ *          l_int32          pixWriteSegmentedPageToPS()
+ *          l_int32          pixWriteMixedToPS()
+ *          NUMA            *sarrayFindMaskAndPagePairings()
  *
  *     Convert any image file to PS for embedding
  *          l_int32          convertToPSEmbed()
@@ -85,6 +101,13 @@
  *  (3) For printing a page image or a set of page images, at a
  *      resolution that optimally fills the page.  Here we use
  *      a bounding box and scale the image appropriately.
+ *
+ *  The top-level calls of utilities in category 2, which can compose
+ *  multiple images on a page, and which generate a PostScript file for
+ *  printing or display (e.g., conversion to pdf), are:
+ *      convertFilesToPS()
+ *      convertFilesFittedToPS()
+ *      convertSegmentedPagesToPS()
  */
 
 #include <stdio.h>
@@ -128,8 +151,9 @@ static const l_uint32  power85[5] = {1,
                                      85 * 85 * 85 * 85};
 
 #ifndef  NO_CONSOLE_IO
-#define  DEBUG_JPEG     0
-#define  DEBUG_G4       0
+#define  DEBUG_MIXED_PS   0
+#define  DEBUG_JPEG       0
+#define  DEBUG_G4         0
 #endif  /* ~NO_CONSOLE_IO */
 
     /* This should be false for documents that are composited from
@@ -154,15 +178,15 @@ static const l_uint32  power85[5] = {1,
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This generates a PS file for all files in a specified directory
- *          that contain the substr pattern to be matched.
- *      (2) Colormaps are removed.
+ *      (1) This generates a PS file for all image files in a specified
+ *          directory that contain the substr pattern to be matched.
+ *      (2) Each image is written to a separate page in the output PS file.
  *      (3) All images are written with level 2 compression.
  *          If the image is 1 bpp, use G4.  Otherwise, use DCT.
- *          If the image is not 1 bpp and not jpeg compressed,
- *          it is jpeg compressed with quality = 75, which will
- *          in general cause some degradation in the image.
- *      (4) The resolution is always confusing.  It is interpreted
+ *          All colormaps are removed.  If the image is neither 1 bpp nor
+ *          initially jpeg compressed, it is jpeg compressed with
+ *          quality = 75, which will in general cause some degradation.
+ *      (4) The resolution is often confusing.  It is interpreted
  *          as the resolution of the output display device:  "If the
  *          input image were digitized at 300 ppi, what would it
  *          look like when displayed at res ppi."  So, for example,
@@ -181,9 +205,6 @@ static const l_uint32  power85[5] = {1,
  *          compressed string; otherwise it is necessary to decompress
  *          it, remove any existing colormap, and write it out in
  *          a temp file in one of these two formats.
- *      (8) This is unix only; it does not work on Windows.  However,
- *          sarrayConvertFilesToPS(), which does the real work,
- *          compiles on all platforms.
  */
 l_int32
 convertFilesToPS(const char  *dirin,
@@ -302,12 +323,12 @@ PIX     *pix, *pixt;
  *  Notes:
  *      (1) This generates a PS file for all files in a specified directory
  *          that contain the substr pattern to be matched.
- *      (2) Colormaps are removed.
+ *      (2) Each image is written to a separate page in the output PS file.
  *      (3) All images are written with level 2 compression.
  *          If the image is 1 bpp, use G4.  Otherwise, use DCT.
- *          If the image is not 1 bpp and not jpeg compressed,
- *          it is jpeg compressed with quality = 75, which will
- *          in general cause some degradation in the image.
+ *          All colormaps are removed.  If the image is neither 1 bpp nor
+ *          initially jpeg compressed, it is jpeg compressed with
+ *          quality = 75, which will in general cause some degradation.
  *      (4) The resolution is internally determined such that the images
  *          are rendered, in at least one direction, at 100% of the given
  *          size in printer points.  Use 0.0 for xpts or ypts to get
@@ -319,9 +340,6 @@ PIX     *pix, *pixt;
  *          compressed string; otherwise it is necessary to decompress
  *          it, remove any existing colormap, and write it out in
  *          a temp file in one of these two formats.
- *      (7) This is unix only; it does not work on Windows.  However,
- *          sarrayConvertFilesToPSFit(), which does the real work,
- *          compiles on all platforms.
  */
 l_int32
 convertFilesFittedToPS(const char  *dirin,
@@ -409,8 +427,10 @@ PIX     *pix, *pixt;
         fclose(fp);
         if (!pix)
             continue;
+
+            /* Be sure the entire image is contained in the result */
         pixGetDimensions(pix, &w, &h, &d);
-        if (xpts / ypts > (612.0 / 792.0))
+        if (xpts * h <  ypts * w)
             res = (l_int32)((l_float32)w * 72.0 / xpts);
         else
             res = (l_int32)((l_float32)h * 72.0 / ypts);
@@ -455,6 +475,9 @@ PIX     *pix, *pixt;
  *              &index (<input and return> index of image in output ps file)
  *      Return: 0 if OK, 1 on error
  *
+ *  Notes:
+ *      (1) This assumes the compressed format is either tiffg4 or jpeg.
+ *      (2) @index is incremented if the page is successfully written.
  */
 static l_int32
 writeImageCompressedToPSFile(const char *filein,
@@ -487,7 +510,7 @@ l_int32  retval;
                 (*pindex)++;
         }
     }
-    else {  /* format == IFF_TIFF_G4) */
+    else if (format == IFF_TIFF_G4) {
         if (*pfirstfile) {
             retval = convertTiffG4ToPS(filein, fileout, "w", 0, 0,
                                        res, 1.0, *pindex + 1, FALSE, TRUE);
@@ -503,10 +526,452 @@ l_int32  retval;
                 (*pindex)++;
         }
     }
+    else
+        return ERROR_INT("file format not tiffg4 or jpeg", procName, 1);
     
     return retval;
 }
 
+
+/*-------------------------------------------------------------*
+ *              Convert mixed text/image files to PS           *
+ *-------------------------------------------------------------*/
+/*
+ *  convertSegmentedPagesToPS()
+ *
+ *      Input:  pagedir (input page image directory)
+ *              maskdir (input mask image directory)
+ *              textscale (scale of text output relative to pixs)
+ *              imagescale (scale of image output relative to pixs)
+ *              threshold (for binarization; typ. about 190; 0 for default)
+ *              numpre (number of characters in name before number)
+ *              numpost (number of characters in name after number)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a PS file for all page image and mask files in two
+ *          specified directories that contain the page numbers as
+ *          specified below.  The page images are taken in lexicographic order.
+ *          Mask images whose numbers match the page images are used to
+ *          segment the page images.  Page imaes without a matching 
+ *          mask image are scaled, thresholded and rendered entirely as text.
+ *      (2) Each PS page is generated as a compressed representation of
+ *          the page image, where the part of the image under the mask
+ *          is suitably scaled and compressed as DCT (i.e., jpeg), and
+ *          the remaining part of the page is suitably scaled, thresholded,
+ *          compressed as G4 (i.e., tiff g4), and rendered by painting
+ *          black through the resulting text mask.
+ *      (3) The scaling is typically 2x down for the DCT component
+ *          (@imagescale = 0.5) and 2x up for the G4 component
+ *          (@textscale = 2.0).
+ *      (4) The resolution is automatically set to fit to a
+ *          letter-size (8.5 x 11 inch) page.
+ *      (5) Both the DCT and the G4 encoding are PostScript level 2.
+ *      (6) It is assumed that the page number is contained within
+ *          the basename (the filename without directory or extension).
+ *          @numpre is the number of characters in the basename
+ *          preceeding the actual page numer; @numpost is the number
+ *          following the page number. 
+ */
+l_int32
+convertSegmentedPagesToPS(const char  *pagedir,
+                          const char  *maskdir,
+                          l_float32    textscale,
+                          l_float32    imagescale,
+                          l_int32      threshold,
+                          l_int32      numpre,
+                          l_int32      numpost,
+                          const char  *fileout)
+{
+char       *pagefile, *maskfile; 
+l_int32     pageno, i, npages;
+l_int32     pageindex, maskindex;
+NUMA       *naindex;
+PIX        *pixs, *pixm;
+SARRAY     *sapage, *samask;
+
+    PROCNAME("convertSegmentedPagesToPS");
+
+    if (!pagedir)
+        return ERROR_INT("pagedir not defined", procName, 1);
+    if (!maskdir)
+        return ERROR_INT("maskdir not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (threshold <= 0) {
+        L_INFO("setting threshold to 190", procName);
+        threshold = 190;
+    }
+
+        /* Get sorted full pathnames. */
+    sapage = getSortedPathnamesInDirectory(pagedir, NULL, 0, 0);
+    samask = getSortedPathnamesInDirectory(maskdir, NULL, 0, 0);
+
+        /* Go through the filenames, locating the page numbers
+         * and matching page images with mask images. */
+    naindex = sarrayFindMaskAndPagePairings(sapage, samask, numpre,
+                                            numpost, 10000);
+    npages = numaGetCount(naindex) / 2;
+
+        /* Generate the PS file. */
+    pageno = 1;
+    for (i = 0; i < 2 * npages; i += 2) {
+        numaGetIValue(naindex, i, &pageindex);
+        numaGetIValue(naindex, i + 1, &maskindex);
+        pagefile = sarrayGetString(sapage, pageindex, L_NOCOPY);
+        pixs = pixRead(pagefile);
+        pixm = NULL;
+        if (maskindex != -1) {
+            maskfile = sarrayGetString(samask, maskindex, L_NOCOPY);
+            pixm = pixRead(maskfile);
+        }
+#if DEBUG_MIXED_PS
+        fprintf(stderr, "pageindex[%d] = %d, maskindex[%d] = %d\n",
+                i, pageindex, i, maskindex);
+        fprintf(stderr, "  pagefile[%d]: %s\n", i / 2, pagefile);
+        if (pixm)
+            fprintf(stderr, "  maskfile[%d]: %s\n", i / 2, maskfile);
+#endif  /* DEBUG_MIXED_PS */
+
+        pixWriteSegmentedPageToPS(pixs, pixm, textscale, imagescale,
+                                  threshold, pageno, fileout);
+        pixDestroy(&pixs);
+        pixDestroy(&pixm);
+        pageno++;
+    }
+
+    sarrayDestroy(&sapage);
+    sarrayDestroy(&samask);
+    numaDestroy(&naindex);
+    return 0;
+}
+
+
+/*
+ *  pixWriteSegmentedPageToPS()
+ *
+ *      Input:  pixs (grayscale or color; colormap ok)
+ *              pixm (<optional> 1 bpp segmentation mask over image region)
+ *              textscale (scale of text output relative to pixs)
+ *              imagescale (scale of image output relative to pixs)
+ *              threshold (threshold for binarization; typ. 190)
+ *              pageno (page number in set; use 1 for new output file)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates the PS string for a mixed text/image page,
+ *          and adds it to an existing file if @pageno > 1.
+ *          The PS output is determined by fitting the result to
+ *          a letter-size (8.5 x 11 inch) page.
+ *      (2) The two images (pixs and pixm) are at the same resolution
+ *          (typically 300 ppi).  They are used to generate two compressed
+ *          images, pixb and pixc, that are put directly into the output
+ *          PS file.
+ *      (3) pixb is the text component.  In the PostScript world, we think of
+ *          it as a mask through which we paint black.  It is produced by
+ *          scaling pixs by @textscale, and thresholding to 1 bpp.
+ *      (4) pixc is the image component, which is that part of pixs under
+ *          the mask pixm.  It is scaled from pixs by @imagescale.
+ *      (5) Typical values are textscale = 2.0 and imagescale = 0.5.
+ *      (6) If pixm == NULL, the page has only text.  If it is all black,
+ *          the page is all image and has no text.
+ *      (7) This can be used to write a multi-page PS file, by using
+ *          sequential page numbers with the same output file.  It can
+ *          also be used to write separate PS files for each page,
+ *          by using different output files with @pageno = 0 or 1.
+ */
+l_int32
+pixWriteSegmentedPageToPS(PIX         *pixs,
+                          PIX         *pixm,
+                          l_float32    textscale,
+                          l_float32    imagescale,
+                          l_int32      threshold,
+                          l_int32      pageno,
+                          const char  *fileout)
+{
+l_int32    alltext, notext, d, ret;
+l_float32  scaleratio;
+PIX       *pixmi, *pixt, *pixg, *pixsc, *pixb, *pixc;
+ 
+    PROCNAME("pixWriteSegmentedPageToPS");
+
+    if (!pixs || pixGetDepth(pixs) == 1)
+        return ERROR_INT("pixs is 1 bpp or not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (imagescale <= 0.0 || textscale <= 0.0)
+        return ERROR_INT("relative scales must be > 0.0", procName, 1);
+
+        /* Analyze the page.  Determine the ratio by which the
+         * binary text mask is scaled relative to the image part.
+         * If there is no image region (alltext == TRUE), the
+         * text mask will be rendered directly to fit the page,
+         * and scaleratio = 1.0.  */
+    alltext = TRUE;
+    notext = FALSE;
+    scaleratio = 1.0;
+    if (pixm) {
+        pixZero(pixm, &alltext);  /* pixm empty: all text */
+        if (alltext)
+            pixm = NULL;  /* treat it as not existing here */
+        else {
+            pixmi = pixInvert(NULL, pixm);
+            pixZero(pixmi, &notext);  /* pixm full; no text */
+            pixDestroy(&pixmi);
+            scaleratio = textscale / imagescale;
+        }
+    }
+
+    pixt = pixConvertTo8Or32(pixs, 0, 0);
+
+        /* Get the binary text mask */
+    pixb = NULL;
+    if (notext == FALSE) {
+        d = pixGetDepth(pixt);
+        if (d == 8)
+            pixg = pixClone(pixt);
+        else  /* d == 32 */
+            pixg = pixConvertRGBToLuminance(pixt);
+        if (pixm)  /* clear out the image parts */
+            pixSetMasked(pixg, pixm, 255);
+        if (textscale == 1.0)
+            pixsc = pixClone(pixg);
+        else if (textscale >= 0.7)
+            pixsc = pixScaleGrayLI(pixg, textscale, textscale);
+        else
+            pixsc = pixScaleAreaMap(pixg, textscale, textscale);
+        pixb = pixThresholdToBinary(pixsc, threshold);
+        pixDestroy(&pixg);
+        pixDestroy(&pixsc);
+    }
+
+        /* Get the scaled image region */
+    pixc = NULL;
+    if (pixm) {
+        if (imagescale == 1.0)
+            pixc = pixClone(pixt);
+        else
+            pixc = pixScale(pixt, imagescale, imagescale);
+    }
+    pixDestroy(&pixt);
+
+    ret = pixWriteMixedToPS(pixb, pixc, scaleratio, pageno, fileout);
+    pixDestroy(&pixb);
+    pixDestroy(&pixc);
+    return ret;
+}
+
+
+/*
+ *  pixWriteMixedToPS()
+ *
+ *      Input:  pixb (<optionall> 1 bpp "mask"; typically for text)
+ *              pixc (<optional> 8 or 32 bpp image regions)
+ *              scale (relative scale factor for rendering pixb
+ *                    relative to pixc; typ. 4.0)
+ *              pageno (page number in set; use 1 for new output file)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This low level function generates the PS string for a mixed
+ *          text/image page, and adds it to an existing file if
+ *          @pageno > 1.
+ *      (2) The two images (pixb and pixc) are typically generated at the
+ *          resolution that they will be rendered in the PS file.
+ *      (3) pixb is the text component.  In the PostScript world, we think of
+ *          it as a mask through which we paint black.
+ *      (4) pixc is the (typically halftone) image component.  It is
+ *          white in the rest of the page.  To minimize the size of the
+ *          PS file, it should be rendered at a resolution that is at
+ *          least equal to its actual resolution.
+ *      (5) @scale gives the ratio of resolution of pixb to pixc.
+ *          Typical resolutions are: 600 ppi for pixb, 150 ppi for pixc;
+ *          so @scale = 4.0.  If one of the images is not defined,
+ *          the value of @scale is ignored.
+ *      (6) We write pixc with DCT compression (jpeg).  This is followed
+ *          by painting the text as black through the mask pixb.  If
+ *          pixc doesn't exist (alltext), we write the text with the
+ *          PS "image" operator instead of the "imagemask" operator,
+ *          because ghostscript's ps2pdf is flaky when the latter is used.
+ *      (7) The actual output resolution is determined by fitting the
+ *          result to a letter-size (8.5 x 11 inch) page.
+ */
+l_int32
+pixWriteMixedToPS(PIX         *pixb,
+                  PIX         *pixc,
+                  l_float32    scale,
+                  l_int32      pageno,
+                  const char  *fileout)
+{
+char        *tnameb, *tnamec;
+const char  *op;
+l_int32      resb, resc, endpage, maskop, ret;
+ 
+    PROCNAME("pixWriteMixedToPS");
+
+    if (!pixb && !pixc)
+        return ERROR_INT("pixb and pixc both undefined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+
+        /* Compute the resolution that fills a letter-size page. */
+    if (!pixc)
+       resb = getResLetterPage(pixGetWidth(pixb), pixGetHeight(pixb), 0);
+    else {
+       resc = getResLetterPage(pixGetWidth(pixc), pixGetHeight(pixc), 0);
+       if (pixb)
+           resb = (l_int32)(scale * resc);
+    }
+
+        /* Write the jpeg image first */
+    if (pixc) {
+        tnamec = genTempFilename("/tmp", ".jpg");
+        pixWrite(tnamec, pixc, IFF_JFIF_JPEG);
+        endpage = (pixb) ? FALSE : TRUE;
+        op = (pageno <= 1) ? "w" : "a";
+        ret = convertJpegToPS(tnamec, fileout, op, 0, 0, resc, 1.0,
+                              pageno, endpage);
+        FREE(tnamec);
+        if (ret)
+            return ERROR_INT("jpeg data not written", procName, 1);
+    }
+
+        /* Write the binary data, either directly or, if there is
+         * a jpeg image on the page, through the mask. */
+    if (pixb) {
+        tnameb = genTempFilename("/tmp", ".tif");
+        pixWrite(tnameb, pixb, IFF_TIFF_G4);
+        op = (pageno <= 1 && !pixc) ? "w" : "a";
+        maskop = (pixc) ? 1 : 0;
+        ret = convertTiffG4ToPS(tnameb, fileout, op, 0, 0, resb, 1.0,
+              pageno, maskop, 1);
+        FREE(tnameb);
+        if (ret)
+            return ERROR_INT("tiff data not written", procName, 1);
+    }
+
+    return 0;
+}
+
+
+/*
+ *  sarrayFindMaskAndPagePairings()
+ *
+ *      Input:  sapage (array of full pathnames for page images)
+ *              samask (array of full pathnames for mask images)
+ *              numpre (number of characters in name before number)
+ *              numpost (number of characters in name after number)
+ *              maxnum (only consider page numbers up to this value)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The pages and masks are matched by the located numbers, so
+ *          their order in @sapage and @samask doesn't matter.
+ *      (2) It is assumed that the page number is contained within
+ *          the basename (the filename without directory or extension).
+ *          @numpre is the number of characters in the basename
+ *          preceeding the actual page numer; @numpost is the number
+ *          following the page number. 
+ *      (3) To use a O(n) matching algorithm, the largest page number
+ *          is found and two internal arrays of this size are created.
+ *          This maximum is constrained not to exceed @maxsum,
+ *          to make sure that an unrealistically large number is not
+ *          accidentally used to determine the array sizes.
+ */
+NUMA *
+sarrayFindMaskAndPagePairings(SARRAY  *sapage,
+                              SARRAY  *samask,
+                              l_int32  numpre,
+                              l_int32  numpost,
+                              l_int32  maxnum)
+{
+char      *pagename, *maskname;
+l_int32    i, npage, nmask, ipage, imask, num, max, ret;
+l_int32   *arraypage, *arraymask;
+l_float32  fmax;
+NUMA      *napage, *namask, *naindex;
+
+    PROCNAME("sarrayFindMaskAndPagePairings");
+
+    if (!sapage)
+        return (NUMA *)ERROR_PTR("sapage not defined", procName, NULL);
+    if (!samask)
+        return (NUMA *)ERROR_PTR("samask not defined", procName, NULL);
+
+        /* First generate two arrays, corresponding to the filename
+         * arrays, that contain the page number extracted from each name. */
+    npage = sarrayGetCount(sapage);
+    nmask = sarrayGetCount(samask);
+    napage = numaCreate(npage);
+    namask = numaCreate(nmask);
+    for (i = 0; i < npage; i++) {
+         pagename = sarrayGetString(sapage, i, L_NOCOPY);
+         num = extractNumberFromFilename(pagename, numpre, numpost);
+         if (num >= 0)
+             numaAddNumber(napage, num);
+    }
+    for (i = 0; i < nmask; i++) {
+         maskname = sarrayGetString(samask, i, L_NOCOPY);
+         num = extractNumberFromFilename(maskname, numpre, numpost);
+         if (num >= 0)
+             numaAddNumber(namask, num);
+    }
+
+        /* Generate two new arrays with the page number as the
+         * array index and the index of the filename in the sarray
+         * as the array content.  If there is no file with
+         * a page number, the content is -1.  */
+    numaGetMax(napage, &fmax, NULL);
+    max = L_MIN(10000, (l_int32)fmax);
+    arraypage = (l_int32 *)CALLOC(max + 1, sizeof(l_int32));
+    arraymask = (l_int32 *)CALLOC(max + 1, sizeof(l_int32));
+    for (i = 0; i <= max; i++) {  /* initialize to -1 */
+        arraypage[i] = -1;
+        arraymask[i] = -1;
+    }
+    for (i = 0; i < npage; i++) {
+         ret = numaGetIValue(napage, i, &ipage);
+         if (ret == 1 || ipage > max) {
+             pagename = sarrayGetString(sapage, i, L_NOCOPY);
+             L_WARNING_STRING("bad page name: %s", procName, pagename);
+         }
+         else
+             arraypage[ipage] = i;
+    }
+    for (i = 0; i < nmask; i++) {
+         ret = numaGetIValue(namask, i, &imask);
+         if (ret == 1 || imask > max) {
+             maskname = sarrayGetString(samask, i, L_NOCOPY);
+             L_WARNING_STRING("bad mask name = %s", procName, maskname);
+         }
+         else
+             arraymask[imask] = i;
+    }
+
+
+        /* Store the result in a single array that holds each
+         * pair of page indices.  There should be no situation where
+         * the mask exists and the page doesn't, so if the page
+         * is not found, we don't store anything.  */
+    naindex = numaCreate(2 * (max + 1));
+    for (i = 0; i <= max; i++) {
+        ipage = arraypage[i];
+        imask = arraymask[i];
+        if (ipage == -1) continue;
+        numaAddNumber(naindex, ipage);
+        numaAddNumber(naindex, imask);
+    }
+
+    numaDestroy(&napage);
+    numaDestroy(&namask);
+    FREE(arraypage);
+    FREE(arraymask);
+    return naindex;
+}
+ 
 
 /*-------------------------------------------------------------*
  *            Convert any image file to PS for embedding       *
@@ -841,7 +1306,7 @@ SARRAY    *sa;
     if ((sa = sarrayCreate(0)) == NULL)
         return (char *)ERROR_PTR("sa not made", procName, NULL);
 
-    sarrayAddString(sa, "%!Adobe-PS", 1);
+    sarrayAddString(sa, (char *)"%!Adobe-PS", 1);
     if (boxflag == 0) {
         sprintf(bigbuf,
             "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
@@ -849,10 +1314,11 @@ SARRAY    *sa;
         sarrayAddString(sa, bigbuf, 1);
     }
     else    /* boxflag == 1 */
-        sarrayAddString(sa, "gsave", 1);
+        sarrayAddString(sa, (char *)"gsave", 1);
 
     if (d == 1)
-        sarrayAddString(sa, "{1 exch sub} settransfer    %invert binary", 1);
+        sarrayAddString(sa,
+              (char *)"{1 exch sub} settransfer    %invert binary", 1);
 
     sprintf(bigbuf, "/bpl %d string def         %%bpl as a string", psbpl);
     sarrayAddString(sa, bigbuf, 1);
@@ -873,27 +1339,29 @@ SARRAY    *sa;
 
     if (boxflag == 0) {
         if (d == 1 || d == 8)
-            sarrayAddString(sa, "{currentfile bpl readhexstring pop} image", 1);
+            sarrayAddString(sa,
+                (char *)"{currentfile bpl readhexstring pop} image", 1);
         else  /* d == 32 */
             sarrayAddString(sa,
-                "{currentfile bpl readhexstring pop} false 3 colorimage", 1);
+              (char *)"{currentfile bpl readhexstring pop} false 3 colorimage",
+              1);
     }
     else {  /* boxflag == 1 */
         if (d == 1 || d == 8)
             sarrayAddString(sa,
-                "{currentfile bpl readhexstring pop} bind image", 1);
+                (char *)"{currentfile bpl readhexstring pop} bind image", 1);
         else  /* d == 32 */
             sarrayAddString(sa,
-                "{currentfile bpl readhexstring pop} bind false 3 colorimage",
+          (char *)"{currentfile bpl readhexstring pop} bind false 3 colorimage",
                  1);
     }
 
     sarrayAddString(sa, hexdata, 0);
 
     if (boxflag == 0)
-        sarrayAddString(sa, "\nshowpage", 1);
+        sarrayAddString(sa, (char *)"\nshowpage", 1);
     else  /* boxflag == 1 */
-        sarrayAddString(sa, "\ngrestore", 1);
+        sarrayAddString(sa, (char *)"\ngrestore", 1);
 
     if ((pstring = sarrayToString(sa, 1)) == NULL)
         return (char *)ERROR_PTR("pstring not made", procName, NULL);
@@ -1093,22 +1561,23 @@ SARRAY    *sa;
     if ((sa = sarrayCreate(50)) == NULL)
         return ERROR_INT("sa not made", procName, 1);
 
-    sarrayAddString(sa, "%!PS-Adobe-3.0", 1);
-    sarrayAddString(sa, "%%Creator: leptonica", 1);
+    sarrayAddString(sa, (char *)"%!PS-Adobe-3.0", 1);
+    sarrayAddString(sa, (char *)"%%Creator: leptonica", 1);
     sprintf(bigbuf, "%%%%Title: %s", filein);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf,
         "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                    xpt, ypt, xpt + wpt, ypt + hpt);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "%%DocumentData: Clean7Bit", 1);
-    sarrayAddString(sa, "%%LanguageLevel: 2", 1);
-    sarrayAddString(sa, "%%EndComments", 1);
-    sarrayAddString(sa, "%%Page: 1 1", 1);
+    sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", 1);
+    sarrayAddString(sa, (char *)"%%LanguageLevel: 2", 1);
+    sarrayAddString(sa, (char *)"%%EndComments", 1);
+    sarrayAddString(sa, (char *)"%%Page: 1 1", 1);
 
-    sarrayAddString(sa, "save", 1);
-    sarrayAddString(sa, "/RawData currentfile /ASCII85Decode filter def", 1);
-    sarrayAddString(sa, "/Data RawData << >> /DCTDecode filter def", 1);
+    sarrayAddString(sa, (char *)"save", 1);
+    sarrayAddString(sa,
+                 (char *)"/RawData currentfile /ASCII85Decode filter def", 1);
+    sarrayAddString(sa, (char *)"/Data RawData << >> /DCTDecode filter def", 1);
 
     sprintf(bigbuf,
         "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
@@ -1119,36 +1588,36 @@ SARRAY    *sa;
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-        sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
+        sarrayAddString(sa, (char *)"/DeviceGray setcolorspace", 1);
     else if (spp == 3)
-        sarrayAddString(sa, "/DeviceRGB setcolorspace", 1);
+        sarrayAddString(sa, (char *)"/DeviceRGB setcolorspace", 1);
     else  /*spp == 4 */
-        sarrayAddString(sa, "/DeviceCMYK setcolorspace", 1);
+        sarrayAddString(sa, (char *)"/DeviceCMYK setcolorspace", 1);
     
-    sarrayAddString(sa, "{ << /ImageType 1", 1);
+    sarrayAddString(sa, (char *)"{ << /ImageType 1", 1);
     sprintf(bigbuf, "     /Width %d", w);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "     /Height %d", h);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "     /ImageMatrix [ %d 0 0 %d 0 %d ]", w, -h, h);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "     /DataSource Data", 1);
+    sarrayAddString(sa, (char *)"     /DataSource Data", 1);
     sprintf(bigbuf, "     /BitsPerComponent %d", bps);
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-        sarrayAddString(sa, "     /Decode [0 1]", 1);
+        sarrayAddString(sa, (char *)"     /Decode [0 1]", 1);
     else if (spp == 3)
-        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, (char *)"     /Decode [0 1 0 1 0 1]", 1);
     else   /* spp == 4 */
-        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, (char *)"     /Decode [0 1 0 1 0 1 0 1]", 1);
     
-    sarrayAddString(sa, "  >> image", 1);
-    sarrayAddString(sa, "  Data closefile", 1);
-    sarrayAddString(sa, "  RawData flushfile", 1);
-    sarrayAddString(sa, "  showpage", 1);
-    sarrayAddString(sa, "  restore", 1);
-    sarrayAddString(sa, "} exec", 1);
+    sarrayAddString(sa, (char *)"  >> image", 1);
+    sarrayAddString(sa, (char *)"  Data closefile", 1);
+    sarrayAddString(sa, (char *)"  RawData flushfile", 1);
+    sarrayAddString(sa, (char *)"  showpage", 1);
+    sarrayAddString(sa, (char *)"  restore", 1);
+    sarrayAddString(sa, (char *)"} exec", 1);
 
     if ((pstring = sarrayToString(sa, 1)) == NULL)
         return ERROR_INT("pstring not made", procName, 1);
@@ -1366,8 +1835,8 @@ SARRAY    *sa;
     if ((sa = sarrayCreate(50)) == NULL)
         return ERROR_INT("sa not made", procName, 1);
 
-    sarrayAddString(sa, "%!PS-Adobe-3.0", 1);
-    sarrayAddString(sa, "%%Creator: leptonica", 1);
+    sarrayAddString(sa, (char *)"%!PS-Adobe-3.0", 1);
+    sarrayAddString(sa, (char *)"%%Creator: leptonica", 1);
     sprintf(bigbuf, "%%%%Title: %s", filein);
     sarrayAddString(sa, bigbuf, 1);
 
@@ -1378,15 +1847,16 @@ SARRAY    *sa;
     sarrayAddString(sa, bigbuf, 1);
 #endif  /* PRINT_BOUNDING_BOX */
 
-    sarrayAddString(sa, "%%DocumentData: Clean7Bit", 1);
-    sarrayAddString(sa, "%%LanguageLevel: 2", 1);
-    sarrayAddString(sa, "%%EndComments", 1);
+    sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", 1);
+    sarrayAddString(sa, (char *)"%%LanguageLevel: 2", 1);
+    sarrayAddString(sa, (char *)"%%EndComments", 1);
     sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
     sarrayAddString(sa, bigbuf, 1);
 
-    sarrayAddString(sa, "save", 1);
-    sarrayAddString(sa, "/RawData currentfile /ASCII85Decode filter def", 1);
-    sarrayAddString(sa, "/Data RawData << >> /DCTDecode filter def", 1);
+    sarrayAddString(sa, (char *)"save", 1);
+    sarrayAddString(sa,
+                  (char *)"/RawData currentfile /ASCII85Decode filter def", 1);
+    sarrayAddString(sa, (char *)"/Data RawData << >> /DCTDecode filter def", 1);
 
     sprintf(bigbuf,
         "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
@@ -1397,37 +1867,37 @@ SARRAY    *sa;
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-        sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
+        sarrayAddString(sa, (char *)"/DeviceGray setcolorspace", 1);
     else if (spp == 3)
-        sarrayAddString(sa, "/DeviceRGB setcolorspace", 1);
+        sarrayAddString(sa, (char *)"/DeviceRGB setcolorspace", 1);
     else  /*spp == 4 */
-        sarrayAddString(sa, "/DeviceCMYK setcolorspace", 1);
+        sarrayAddString(sa, (char *)"/DeviceCMYK setcolorspace", 1);
     
-    sarrayAddString(sa, "{ << /ImageType 1", 1);
+    sarrayAddString(sa, (char *)"{ << /ImageType 1", 1);
     sprintf(bigbuf, "     /Width %d", w);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "     /Height %d", h);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "     /ImageMatrix [ %d 0 0 %d 0 %d ]", w, -h, h);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "     /DataSource Data", 1);
+    sarrayAddString(sa, (char *)"     /DataSource Data", 1);
     sprintf(bigbuf, "     /BitsPerComponent %d", bps);
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-        sarrayAddString(sa, "     /Decode [0 1]", 1);
+        sarrayAddString(sa, (char *)"     /Decode [0 1]", 1);
     else if (spp == 3)
-        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, (char *)"     /Decode [0 1 0 1 0 1]", 1);
     else   /* spp == 4 */
-        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, (char *)"     /Decode [0 1 0 1 0 1 0 1]", 1);
     
-    sarrayAddString(sa, "  >> image", 1);
-    sarrayAddString(sa, "  Data closefile", 1);
-    sarrayAddString(sa, "  RawData flushfile", 1);
+    sarrayAddString(sa, (char *)"  >> image", 1);
+    sarrayAddString(sa, (char *)"  Data closefile", 1);
+    sarrayAddString(sa, (char *)"  RawData flushfile", 1);
     if (endpage == TRUE)
-        sarrayAddString(sa, "  showpage", 1);
-    sarrayAddString(sa, "  restore", 1);
-    sarrayAddString(sa, "} exec", 1);
+        sarrayAddString(sa, (char *)"  showpage", 1);
+    sarrayAddString(sa, (char *)"  restore", 1);
+    sarrayAddString(sa, (char *)"} exec", 1);
 
     if ((pstring = sarrayToString(sa, 1)) == NULL)
         return ERROR_INT("pstring not made", procName, 1);
@@ -1520,22 +1990,22 @@ SARRAY    *sa, *sa2;
     if ((sa = sarrayCreate(50)) == NULL)
         return ERROR_INT("sa not made", procName, 1);
 
-    sarrayAddString(sa, "%!PS-Adobe-3.0", 1);
-    sarrayAddString(sa, "%%Creator: leptonica", 1);
+    sarrayAddString(sa, (char *)"%!PS-Adobe-3.0", 1);
+    sarrayAddString(sa, (char *)"%%Creator: leptonica", 1);
     sprintf(bigbuf, "%%%%Title: %s", filein);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "%%DocumentData: Clean7Bit", 1);
+    sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", 1);
     sprintf(bigbuf,
         "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                 xpt, ypt, xpt + wpt, ypt + hpt);
     sarrayAddString(sa, bigbuf, 1);
 
-    sarrayAddString(sa, "%%LanguageLevel: 2", 1);
-    sarrayAddString(sa, "%%EndComments", 1);
-    sarrayAddString(sa, "%%Page: 1 1", 1);
+    sarrayAddString(sa, (char *)"%%LanguageLevel: 2", 1);
+    sarrayAddString(sa, (char *)"%%EndComments", 1);
+    sarrayAddString(sa, (char *)"%%Page: 1 1", 1);
 
-    sarrayAddString(sa, "save", 1);
-    sarrayAddString(sa, "100 dict begin", 1);
+    sarrayAddString(sa, (char *)"save", 1);
+    sarrayAddString(sa, (char *)"100 dict begin", 1);
 
     sprintf(bigbuf,
         "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
@@ -1545,39 +2015,40 @@ SARRAY    *sa, *sa2;
         "%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
     sarrayAddString(sa, bigbuf, 1);
 
-    sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
+    sarrayAddString(sa, (char *)"/DeviceGray setcolorspace", 1);
 
-    sarrayAddString(sa, "{", 1);
-    sarrayAddString(sa, "  /RawData currentfile /ASCII85Decode filter def", 1);
-    sarrayAddString(sa, "  << ", 1);
-    sarrayAddString(sa, "    /ImageType 1", 1);
+    sarrayAddString(sa, (char *)"{", 1);
+    sarrayAddString(sa,
+                 (char *)"  /RawData currentfile /ASCII85Decode filter def", 1);
+    sarrayAddString(sa, (char *)"  << ", 1);
+    sarrayAddString(sa, (char *)"    /ImageType 1", 1);
     sprintf(bigbuf, "    /Width %d", w);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "    /Height %d", h);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "    /ImageMatrix [ %d 0 0 %d 0 %d ]", w, -h, h);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "    /BitsPerComponent 1", 1);
-    sarrayAddString(sa, "    /Interpolate true", 1);
+    sarrayAddString(sa, (char *)"    /BitsPerComponent 1", 1);
+    sarrayAddString(sa, (char *)"    /Interpolate true", 1);
     if (minisblack)
-        sarrayAddString(sa, "    /Decode [1 0]", 1);
+        sarrayAddString(sa, (char *)"    /Decode [1 0]", 1);
     else  /* miniswhite; typical for 1 bpp */
-        sarrayAddString(sa, "    /Decode [0 1]", 1);
-    sarrayAddString(sa, "    /DataSource RawData", 1);
-    sarrayAddString(sa, "        <<", 1);
-    sarrayAddString(sa, "          /K -1", 1);
+        sarrayAddString(sa, (char *)"    /Decode [0 1]", 1);
+    sarrayAddString(sa, (char *)"    /DataSource RawData", 1);
+    sarrayAddString(sa, (char *)"        <<", 1);
+    sarrayAddString(sa, (char *)"          /K -1", 1);
     sprintf(bigbuf, "          /Columns %d", w);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "          /Rows %d", h);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "        >> /CCITTFaxDecode filter", 1);
-    sarrayAddString(sa, "  >> imagemask", 1);
-    sarrayAddString(sa, "  RawData flushfile", 1);
-    sarrayAddString(sa, "  showpage", 1);
-    sarrayAddString(sa, "}", 1);
+    sarrayAddString(sa, (char *)"        >> /CCITTFaxDecode filter", 1);
+    sarrayAddString(sa, (char *)"  >> imagemask", 1);
+    sarrayAddString(sa, (char *)"  RawData flushfile", 1);
+    sarrayAddString(sa, (char *)"  showpage", 1);
+    sarrayAddString(sa, (char *)"}", 1);
 
-    sarrayAddString(sa, "%%BeginData:", 1);
-    sarrayAddString(sa, "exec", 1);
+    sarrayAddString(sa, (char *)"%%BeginData:", 1);
+    sarrayAddString(sa, (char *)"exec", 1);
 
     if ((pstring = sarrayToString(sa, 1)) == NULL)
         return ERROR_INT("pstring not made", procName, 1);
@@ -1586,9 +2057,9 @@ SARRAY    *sa, *sa2;
 
         /* Concat the trailing data */
     sa2 = sarrayCreate(10);
-    sarrayAddString(sa2, "%%EndData", 1);
-    sarrayAddString(sa2, "end", 1);
-    sarrayAddString(sa2, "restore", 1);
+    sarrayAddString(sa2, (char *)"%%EndData", 1);
+    sarrayAddString(sa2, (char *)"end", 1);
+    sarrayAddString(sa2, (char *)"restore", 1);
     if ((pstring2 = sarrayToString(sa2, 1)) == NULL)
         return ERROR_INT("pstring2 not made", procName, 1);
     psbytes2 = strlen(pstring2);
@@ -1805,11 +2276,11 @@ SARRAY    *sa, *sa2;
     if ((sa = sarrayCreate(50)) == NULL)
         return ERROR_INT("sa not made", procName, 1);
 
-    sarrayAddString(sa, "%!PS-Adobe-3.0", 1);
-    sarrayAddString(sa, "%%Creator: leptonica", 1);
+    sarrayAddString(sa, (char *)"%!PS-Adobe-3.0", 1);
+    sarrayAddString(sa, (char *)"%%Creator: leptonica", 1);
     sprintf(bigbuf, "%%%%Title: %s", filein);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "%%DocumentData: Clean7Bit", 1);
+    sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", 1);
 
 #if  PRINT_BOUNDING_BOX
     sprintf(bigbuf,
@@ -1818,13 +2289,13 @@ SARRAY    *sa, *sa2;
     sarrayAddString(sa, bigbuf, 1);
 #endif  /* PRINT_BOUNDING_BOX */
 
-    sarrayAddString(sa, "%%LanguageLevel: 2", 1);
-    sarrayAddString(sa, "%%EndComments", 1);
+    sarrayAddString(sa, (char *)"%%LanguageLevel: 2", 1);
+    sarrayAddString(sa, (char *)"%%EndComments", 1);
     sprintf(bigbuf, "%%%%Page: %d %d", pageno, pageno);
     sarrayAddString(sa, bigbuf, 1);
 
-    sarrayAddString(sa, "save", 1);
-    sarrayAddString(sa, "100 dict begin", 1);
+    sarrayAddString(sa, (char *)"save", 1);
+    sarrayAddString(sa, (char *)"100 dict begin", 1);
 
     sprintf(bigbuf,
         "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
@@ -1834,43 +2305,44 @@ SARRAY    *sa, *sa2;
         "%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
     sarrayAddString(sa, bigbuf, 1);
 
-    sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
+    sarrayAddString(sa, (char *)"/DeviceGray setcolorspace", 1);
 
-    sarrayAddString(sa, "{", 1);
-    sarrayAddString(sa, "  /RawData currentfile /ASCII85Decode filter def", 1);
-    sarrayAddString(sa, "  << ", 1);
-    sarrayAddString(sa, "    /ImageType 1", 1);
+    sarrayAddString(sa, (char *)"{", 1);
+    sarrayAddString(sa,
+                 (char *)"  /RawData currentfile /ASCII85Decode filter def", 1);
+    sarrayAddString(sa, (char *)"  << ", 1);
+    sarrayAddString(sa, (char *)"    /ImageType 1", 1);
     sprintf(bigbuf, "    /Width %d", w);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "    /Height %d", h);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "    /ImageMatrix [ %d 0 0 %d 0 %d ]", w, -h, h);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "    /BitsPerComponent 1", 1);
-    sarrayAddString(sa, "    /Interpolate true", 1);
+    sarrayAddString(sa, (char *)"    /BitsPerComponent 1", 1);
+    sarrayAddString(sa, (char *)"    /Interpolate true", 1);
     if (minisblack)
-        sarrayAddString(sa, "    /Decode [1 0]", 1);
+        sarrayAddString(sa, (char *)"    /Decode [1 0]", 1);
     else  /* miniswhite; typical for 1 bpp */
-        sarrayAddString(sa, "    /Decode [0 1]", 1);
-    sarrayAddString(sa, "    /DataSource RawData", 1);
-    sarrayAddString(sa, "        <<", 1);
-    sarrayAddString(sa, "          /K -1", 1);
+        sarrayAddString(sa, (char *)"    /Decode [0 1]", 1);
+    sarrayAddString(sa, (char *)"    /DataSource RawData", 1);
+    sarrayAddString(sa, (char *)"        <<", 1);
+    sarrayAddString(sa, (char *)"          /K -1", 1);
     sprintf(bigbuf, "          /Columns %d", w);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf, "          /Rows %d", h);
     sarrayAddString(sa, bigbuf, 1);
-    sarrayAddString(sa, "        >> /CCITTFaxDecode filter", 1);
+    sarrayAddString(sa, (char *)"        >> /CCITTFaxDecode filter", 1);
     if (mask == TRUE)  /* just paint through the fg */
-        sarrayAddString(sa, "  >> imagemask", 1);
+        sarrayAddString(sa, (char *)"  >> imagemask", 1);
     else  /* paint full image */
-        sarrayAddString(sa, "  >> image", 1);
-    sarrayAddString(sa, "  RawData flushfile", 1);
+        sarrayAddString(sa, (char *)"  >> image", 1);
+    sarrayAddString(sa, (char *)"  RawData flushfile", 1);
     if (endpage == TRUE)
-        sarrayAddString(sa, "  showpage", 1);
-    sarrayAddString(sa, "}", 1);
+        sarrayAddString(sa, (char *)"  showpage", 1);
+    sarrayAddString(sa, (char *)"}", 1);
 
-    sarrayAddString(sa, "%%BeginData:", 1);
-    sarrayAddString(sa, "exec", 1);
+    sarrayAddString(sa, (char *)"%%BeginData:", 1);
+    sarrayAddString(sa, (char *)"exec", 1);
 
     if ((pstring = sarrayToString(sa, 1)) == NULL)
         return ERROR_INT("pstring not made", procName, 1);
@@ -1878,9 +2350,9 @@ SARRAY    *sa, *sa2;
 
         /* Concat the trailing data */
     sa2 = sarrayCreate(10);
-    sarrayAddString(sa2, "%%EndData", 1);
-    sarrayAddString(sa2, "end", 1);
-    sarrayAddString(sa2, "restore", 1);
+    sarrayAddString(sa2, (char *)"%%EndData", 1);
+    sarrayAddString(sa2, (char *)"end", 1);
+    sarrayAddString(sa2, (char *)"restore", 1);
     if ((pstring2 = sarrayToString(sa2, 1)) == NULL)
         return ERROR_INT("pstring2 not made", procName, 1);
     psbytes2 = strlen(pstring2);

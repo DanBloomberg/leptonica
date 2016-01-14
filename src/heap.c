@@ -98,7 +98,7 @@ L_HEAP  *lh;
         /* Allocate ptr array and initialize counters. */
     if ((lh = (L_HEAP *)CALLOC(1, sizeof(L_HEAP))) == NULL)
         return (L_HEAP *)ERROR_PTR("lh not made", procName, NULL);
-    if ((lh->array = (void **)CALLOC(nalloc, sizeof(l_intptr_t))) == NULL)
+    if ((lh->array = (void **)CALLOC(nalloc, sizeof(void *))) == NULL)
         return (L_HEAP *)ERROR_PTR("ptr array not made", procName, NULL);
     lh->nalloc = nalloc;
     lh->n = 0;
@@ -204,8 +204,8 @@ lheapExtendArray(L_HEAP  *lh)
         return ERROR_INT("lh not defined", procName, 1);
 
     if ((lh->array = (void **)reallocNew((void **)&lh->array,
-                                sizeof(l_intptr_t) * lh->nalloc,
-                                2 * sizeof(l_intptr_t) * lh->nalloc)) == NULL)
+                                sizeof(void *) * lh->nalloc,
+                                2 * sizeof(void *) * lh->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
     lh->nalloc = 2 * lh->nalloc;

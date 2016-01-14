@@ -34,6 +34,7 @@
  *           l_int32     pixGetAverageTiledRGB()
  *           PIX        *pixGetAverageTiled()
  *           l_int32     pixGetExtremeValue()
+ *           l_int32     pixGetMaxValueInRect()
  *
  *    Pixelwise aligned statistics
  *           PIX        *pixaGetAlignedStats()
@@ -731,7 +732,7 @@ PIXCMAP  *cmap;
 /*!
  *  pixGetAverageMasked()
  *
- *      Input:  pixs (8 bpp, or colormapped)
+ *      Input:  pixs (8 or 16 bpp, or colormapped)
  *              pixm (<optional> 1 bpp mask over which average is to be taken;
  *                    use all pixels if null)
  *              x, y (UL corner of pixm relative to the UL corner of pixs; 
@@ -767,7 +768,7 @@ pixGetAverageMasked(PIX        *pixs,
                     l_int32     type,
                     l_float32  *pval)
 {
-l_int32    i, j, w, h, wm, hm, wplg, wplm, val, count;
+l_int32    i, j, w, h, d, wm, hm, wplg, wplm, val, count;
 l_uint32  *datag, *datam, *lineg, *linem;
 l_float64  sumave, summs, ave, meansq, var;
 PIX       *pixg;
@@ -776,8 +777,9 @@ PIX       *pixg;
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
-        return ERROR_INT("pixs neither 8 bpp nor colormapped", procName, 1);
+    d = pixGetDepth(pixs);
+    if (d != 8 && d != 16 && !pixGetColormap(pixs))
+        return ERROR_INT("pixs not 8 or 16 bpp or colormapped", procName, 1);
     if (pixm && pixGetDepth(pixm) != 1)
         return ERROR_INT("pixm not 1 bpp", procName, 1);
     if (factor < 1)
@@ -793,7 +795,7 @@ PIX       *pixg;
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     else
         pixg = pixClone(pixs);
-    pixGetDimensions(pixg, &w, &h, NULL);
+    pixGetDimensions(pixg, &w, &h, &d);
     datag = pixGetData(pixg);
     wplg = pixGetWpl(pixg);
 
@@ -803,7 +805,10 @@ PIX       *pixg;
         for (i = 0; i < h; i += factor) {
             lineg = datag + i * wplg;
             for (j = 0; j < w; j += factor) {
-                val = GET_DATA_BYTE(lineg, j);
+                if (d == 8)
+                    val = GET_DATA_BYTE(lineg, j);
+                else  /* d == 16 */
+                    val = GET_DATA_TWO_BYTES(lineg, j);
                 if (type != L_ROOT_MEAN_SQUARE)
                     sumave += val;
                 if (type != L_MEAN_ABSVAL)
@@ -823,7 +828,10 @@ PIX       *pixg;
             for (j = 0; j < wm; j += factor) {
                 if (x + j < 0 || x + j >= w) continue;
                 if (GET_DATA_BIT(linem, j)) {
-                    val = GET_DATA_BYTE(lineg, x + j);
+                    if (d == 8)
+                        val = GET_DATA_BYTE(lineg, x + j);
+                    else  /* d == 16 */
+                        val = GET_DATA_TWO_BYTES(lineg, x + j);
                     if (type != L_ROOT_MEAN_SQUARE)
                         sumave += val;
                     if (type != L_MEAN_ABSVAL)
@@ -1132,6 +1140,89 @@ PIXCMAP   *cmap;
     if (prval) *prval = extrval;
     if (pgval) *pgval = extgval;
     if (pbval) *pbval = extbval;
+    return 0;
+}
+
+
+/*!
+ *  pixGetMaxValueInRect()
+ *
+ *      Input:  pixs (8 bpp or 32 bpp grayscale; no color space components)
+ *              box (<optional> region; set box = NULL to use entire pixs)
+ *              &maxval (<optional return> max value in region)
+ *              &xmax (<optional return> x location of max value)
+ *              &ymax (<optional return> y location of max value)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This can be used to find the maximum and its location
+ *          in a 2-dimensional histogram, where the x and y directions
+ *          represent two color components (e.g., saturation and hue).
+ *      (2) Note that here a 32 bpp pixs has pixel values that are simply
+ *          numbers.  They are not 8 bpp components in a colorspace.
+ */
+l_int32
+pixGetMaxValueInRect(PIX       *pixs,
+                     BOX       *box,
+                     l_uint32  *pmaxval,
+                     l_int32   *pxmax,
+                     l_int32   *pymax)
+{
+l_int32    i, j, w, h, d, wpl, bw, bh;
+l_int32    xstart, ystart, xend, yend, xmax, ymax;
+l_uint32   val, maxval;
+l_uint32  *data, *line;
+
+    PROCNAME("pixGetMaxValueInRect");
+
+    if (!pmaxval && !pxmax && !pymax)
+        return ERROR_INT("nothing to do", procName, 1);
+    if (pmaxval) *pmaxval = 0;
+    if (pxmax) *pxmax = 0;
+    if (pymax) *pymax = 0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (pixGetColormap(pixs) != NULL)
+        return ERROR_INT("pixs has colormap", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
+
+    xstart = ystart = 0;
+    xend = w - 1;
+    yend = h - 1;
+    if (box) {
+        boxGetGeometry(box, &xstart, &ystart, &bw, &bh);
+        xend = xstart + bw - 1;
+        yend = ystart + bh - 1;
+    }
+
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    maxval = 0;
+    xmax = ymax = 0;
+    for (i = ystart; i <= yend; i++) {
+        line = data + i * wpl;
+        for (j = xstart; j <= xend; j++) {
+            if (d == 8)
+                val = GET_DATA_BYTE(line, j);
+            else  /* d == 32 */
+                val = line[j];
+            if (val > maxval) {
+                maxval = val;
+                xmax = j;
+                ymax = i;
+            }
+        }
+    }
+    if (maxval == 0) {  /* no counts; pick the center of the rectangle */
+        xmax = (xstart + xend) / 2;
+        ymax = (ystart + yend) / 2;
+    }
+
+    if (pmaxval) *pmaxval = maxval;
+    if (pxmax) *pxmax = xmax;
+    if (pymax) *pymax = ymax;
     return 0;
 }
 

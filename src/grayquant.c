@@ -67,8 +67,11 @@
  *              PIX      *pixGenerateMaskByDiscr32()
  *
  *      Histogram-based grayscale quantization
- *              PIX      *pixGrayQuantizeFromHisto()
+ *              PIX      *pixGrayQuantFromHisto()
  *       static l_int32   numaFillCmapFromHisto()
+ *
+ *      Color quantize grayscale image using existing colormap
+ *              PIX      *pixGrayQuantFromCmap()
  */
 
 #include <stdio.h>
@@ -1482,7 +1485,7 @@ PIX       *pixd;
  *                Histogram-based grayscale quantization                *
  *----------------------------------------------------------------------*/
 /*!
- *  pixGrayQuantizeFromHisto()
+ *  pixGrayQuantFromHisto()
  *
  *      Input:  pixd (<optional> quantized pix with cmap; can be null)
  *              pixs (8 bpp gray input pix; not cmapped)
@@ -1530,11 +1533,11 @@ PIX       *pixd;
  *          if it exceeds 255, return null.
  */
 PIX *
-pixGrayQuantizeFromHisto(PIX       *pixd,
-                         PIX       *pixs,
-                         PIX       *pixm,
-                         l_float32  minfract,
-                         l_int32    maxsize)
+pixGrayQuantFromHisto(PIX       *pixd,
+                      PIX       *pixs,
+                      PIX       *pixm,
+                      l_float32  minfract,
+                      l_int32    maxsize)
 {
 l_int32    w, h, wd, hd, wm, hm, wpls, wplm, wpld;
 l_int32    nc, nestim, i, j, vals, vald;
@@ -1544,7 +1547,7 @@ NUMA      *na;
 PIX       *pixmr;  /* resized mask */
 PIXCMAP   *cmap;
 
-    PROCNAME("pixGrayQuantizeFromHisto");
+    PROCNAME("pixGrayQuantFromHisto");
 
     if (!pixs || pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
@@ -1656,7 +1659,7 @@ PIXCMAP   *cmap;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This static function must be called from pixGrayQuantizeFromHisto()
+ *      (1) This static function must be called from pixGrayQuantFromHisto()
  */
 static l_int32
 numaFillCmapFromHisto(NUMA      *na,
@@ -1729,6 +1732,97 @@ l_float32  total;
 
     FREE(iahisto);
     return ret;
+}
+
+
+/*----------------------------------------------------------------------*
+ *        Color quantize grayscale image using existing colormap        *
+ *----------------------------------------------------------------------*/
+/*!
+ *  pixGrayQuantFromCmap()
+ *
+ *      Input:  pixs (8 bpp grayscale without cmap)
+ *              cmap (to quantize to; of dest pix)
+ *              mindepth (minimum depth of pixd: can be 2, 4 or 8 bpp)
+ *      Return: pixd (2, 4 or 8 bpp, colormapped), or null on error
+ *
+ *  Notes:
+ *      (1) In use, pixs is an 8 bpp grayscale image without a colormap.
+ *          If there is an existing colormap, a warning is issued and
+ *          a copy of the input pixs is returned.
+ */
+PIX *
+pixGrayQuantFromCmap(PIX      *pixs,
+                     PIXCMAP  *cmap,
+                     l_int32   mindepth)
+{
+l_int32    i, j, index, w, h, d, depth, wpls, wpld;
+l_int32    hascolor, vals, vald;
+l_int32   *tab;
+l_uint32  *datas, *datad, *lines, *lined;
+PIXCMAP   *cmapd;
+PIX       *pixd;
+
+    PROCNAME("pixGrayQuantFromCmap");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetColormap(pixs) != NULL) {
+        L_WARNING("pixs already has a colormap; returning a copy", procName);
+        return pixCopy(NULL, pixs);
+    }
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (!cmap)
+        return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+    if (mindepth != 2 && mindepth != 4 && mindepth != 8)
+        return (PIX *)ERROR_PTR("invalid mindepth", procName, NULL);
+
+        /* Make sure the colormap is gray */
+    pixcmapHasColor(cmap, &hascolor);
+    if (hascolor) {
+        L_WARNING("Converting colormap colors to gray", procName);
+        cmapd = pixcmapColorToGray(cmap, 0.3, 0.5, 0.2);
+    }
+    else
+        cmapd = pixcmapCopy(cmap);
+
+        /* Make LUT into colormap */
+    if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
+        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    for (i = 0; i < 256; i++) {
+        pixcmapGetNearestGrayIndex(cmapd, i, &index);
+        tab[i] = index;
+    }
+
+    pixcmapGetMinDepth(cmap, &depth);
+    depth = L_MAX(depth, mindepth);
+    pixd = pixCreate(w, h, depth); 
+    pixSetColormap(pixd, cmapd);
+    pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            vals = GET_DATA_BYTE(lines, j);
+            vald = tab[vals];
+            if (depth == 2)
+                SET_DATA_DIBIT(lined, j, vald);
+            else if (depth == 4)
+                SET_DATA_QBIT(lined, j, vald);
+            else  /* depth == 8 */
+                SET_DATA_BYTE(lined, j, vald);
+        }
+    }
+
+    FREE(tab);
+    return pixd;
 }
 
 

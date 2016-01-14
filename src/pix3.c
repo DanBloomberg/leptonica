@@ -20,8 +20,9 @@
  *
  *      (1) Mask-directed operations
  *      (2) Full-image bit-logical operations
- *      (3) Pixel counting operations
- *      (4) Mirrored tiling of a smaller image
+ *      (3) Foreground pixel counting operations on 1 bpp images
+ *      (4) Sum of pixel values
+ *      (5) Mirrored tiling of a smaller image
  *
  *
  *    Masked operations
@@ -39,7 +40,7 @@
  *           PIX        *pixXor()
  *           PIX        *pixSubtract()
  *
- *    Pixel counting
+ *    Foreground pixel counting in 1 bpp images
  *           l_int32     pixZero()
  *           l_int32     pixCountPixels()
  *           NUMA       *pixaCountPixels()
@@ -48,6 +49,9 @@
  *           l_int32     pixThresholdPixels()
  *           l_int32    *makePixelSumTab8()
  *           l_int32    *makePixelCentroidTab8()
+ *
+ *    Sum of pixel values
+ *           l_int32     pixSumPixelValues()
  *
  *    Mirrored tiling
  *           PIX        *pixMirroredTiling()
@@ -1122,21 +1126,20 @@ l_uint32  *data, *line;
 
     PROCNAME("pixZero");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
     if (!pempty)
         return ERROR_INT("pempty not defined", procName, 1);
+    *pempty = 1;
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
 
     w = pixGetWidth(pix) * pixGetDepth(pix);
     h = pixGetHeight(pix);
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
-
     fullwords = w / 32;
     endbits = w & 31;
     endmask = 0xffffffff << (32 - endbits);
 
-    *pempty = 1;
     for (i = 0; i < h; i++) {
         line = data + wpl * i;
         for (j = 0; j < fullwords; j++)
@@ -1177,25 +1180,20 @@ l_uint32  *data;
 
     PROCNAME("pixCountPixels");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
     if (!pcount)
         return ERROR_INT("pcount not defined", procName, 1);
-    if (pixGetDepth(pix) != 1)
-        return ERROR_INT("pix not 1 bpp", procName, 1);
-
     *pcount = 0;
+    if (!pix || pixGetDepth(pix) != 1)
+        return ERROR_INT("pix not defined or not 1 bpp", procName, 1);
 
     if (!tab8)
         tab = makePixelSumTab8();
     else
         tab = tab8;
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, NULL);
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
-
     fullwords = w >> 5;
     endbits = w & 31;
     endmask = 0xffffffff << (32 - endbits);
@@ -1295,22 +1293,17 @@ l_uint32  *line;
 
     PROCNAME("pixCountPixelsInRow");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
     if (!pcount)
         return ERROR_INT("pcount not defined", procName, 1);
-    if (pixGetDepth(pix) != 1)
-        return ERROR_INT("pix not 1 bpp", procName, 1);
-
     *pcount = 0;
+    if (!pix || pixGetDepth(pix) != 1)
+        return ERROR_INT("pix not defined or not 1 bpp", procName, 1);
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, NULL);
     if (row < 0 || row >= h)
         return ERROR_INT("row out of bounds", procName, 1);
     wpl = pixGetWpl(pix);
     line = pixGetData(pix) + row * wpl;
-
     fullwords = w >> 5;
     endbits = w & 31;
     endmask = 0xffffffff << (32 - endbits);
@@ -1358,19 +1351,14 @@ NUMA *
 pixCountPixelsByRow(PIX      *pix,
                     l_int32  *tab8)
 {
-l_int32   w, h, i, count;
+l_int32   h, i, count;
 l_int32  *tab;
 NUMA     *na;
 
     PROCNAME("pixCountPixelsByRow");
 
-    if (!pix)
-        return (NUMA *)ERROR_PTR("pix not defined", procName, NULL);
-    if (pixGetDepth(pix) != 1)
-        return (NUMA *)ERROR_PTR("pix not 1 bpp", procName, NULL);
-
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    if (!pix || pixGetDepth(pix) != 1)
+        return (NUMA *)ERROR_PTR("pix undefined or not 1 bpp", procName, NULL);
 
     if (!tab8)
         tab = makePixelSumTab8();
@@ -1380,6 +1368,7 @@ NUMA     *na;
     if ((na = numaCreate(h)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
 
+    h = pixGetHeight(pix);
     for (i = 0; i < h; i++) {
         pixCountPixelsInRow(pix, i, &count, tab);
         numaAddNumber(na, count);
@@ -1423,24 +1412,20 @@ l_uint32  *line, *data;
 
     PROCNAME("pixThresholdPixels");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
-    if (pixGetDepth(pix) != 1)
-        return ERROR_INT("pix not 1 bpp", procName, 1);
     if (!pabove)
         return ERROR_INT("pabove not defined", procName, 1);
-    *pabove = 0;  /* init */
+    *pabove = 0;
+    if (!pix || pixGetDepth(pix) != 1)
+        return ERROR_INT("pix not defined or not 1 bpp", procName, 1);
 
     if (!tab8)
         tab = makePixelSumTab8();
     else
         tab = tab8;
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, NULL);
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
-
     fullwords = w >> 5;
     endbits = w & 31;
     endmask = 0xffffffff << (32 - endbits);
@@ -1571,6 +1556,83 @@ l_int32  *tab;
 
     return tab;
 }
+
+
+/*-------------------------------------------------------------*
+ *                       Sum of pixel values                   *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixSumPixelValues()
+ *
+ *      Input:  pix (1, 2, 4, 8, 16, 32 bpp; not cmapped)
+ *              box (<optional> if null, use entire image)
+ *              &sum (<return> sum of pixel values in region)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+pixSumPixelValues(PIX        *pix,
+                  BOX        *box,
+                  l_float64  *psum)
+{
+l_int32    w, h, d, wpl, i, j, xstart, xend, ystart, yend, bw, bh;
+l_uint32  *data, *line;
+l_float64  sum;
+BOX       *boxc;
+
+    PROCNAME("pixSumPixelValues");
+
+    if (!psum)
+        return ERROR_INT("psum not defined", procName, 1);
+    *psum = 0;
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (pixGetColormap(pix) != NULL)
+        return ERROR_INT("pix is colormapped", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
+        return ERROR_INT("pix not 1, 2, 4, 8, 16 or 32 bpp", procName, 1);
+
+    wpl = pixGetWpl(pix);
+    data = pixGetData(pix);
+    boxc = NULL;
+    if (box) {
+        boxc = boxClipToRectangle(box, w, h);
+        if (!boxc)
+            return ERROR_INT("box outside image", procName, 1);
+    }
+    xstart = ystart = 0;
+    xend = w;
+    yend = h;
+    if (boxc) {
+        boxGetGeometry(boxc, &xstart, &ystart, &bw, &bh);
+        xend = xstart + bw;  /* 1 past the end */
+        yend = ystart + bh;  /* 1 past the end */
+        boxDestroy(&boxc);
+    }
+
+    sum = 0;
+    for (i = ystart; i < yend; i++) {
+        line = data + i * wpl;
+        for (j = xstart; j < xend; j++) {
+            if (d == 1)
+                sum += GET_DATA_BIT(line, j);
+            else if (d == 2)
+                sum += GET_DATA_DIBIT(line, j);
+            else if (d == 4)
+                sum += GET_DATA_QBIT(line, j);
+            else if (d == 8)
+                sum += GET_DATA_BYTE(line, j);
+            else if (d == 16)
+                sum += GET_DATA_TWO_BYTES(line, j);
+            else if (d == 32)
+                sum += line[j];
+        }
+    }
+    *psum = sum;
+
+    return 0;
+}
+
 
 
 /*-------------------------------------------------------------*

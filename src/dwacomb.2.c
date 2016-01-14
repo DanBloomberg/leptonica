@@ -32,7 +32,7 @@ l_int32 fmorphopgen_low_2(l_uint32 *datad, l_int32 w,
                           l_int32 index);
 
 static l_int32   NUM_SELS_GENERATED = 76;
-static char  *SEL_NAMES[] = {
+static char  SEL_NAMES[][80] = {
                              "sel_comb_4h",
                              "sel_comb_4v",
                              "sel_comb_5h",

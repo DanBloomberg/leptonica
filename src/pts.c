@@ -861,8 +861,8 @@ ptaaExtendArray(PTAA  *ptaa)
         return ERROR_INT("ptaa not defined", procName, 1);
 
     if ((ptaa->pta = (PTA **)reallocNew((void **)&ptaa->pta,
-                             sizeof(l_intptr_t) * ptaa->nalloc,
-                             2 * sizeof(l_intptr_t) * ptaa->nalloc)) == NULL)
+                             sizeof(PTA *) * ptaa->nalloc,
+                             2 * sizeof(PTA *) * ptaa->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
     ptaa->nalloc = 2 * ptaa->nalloc;

@@ -25,7 +25,8 @@
 
 static void count_pieces(PIX  *pix, l_int32 nexp);
 static void count_pieces2(BOXA *boxa, l_int32 nexp);
-static l_int32 count_ones(NUMA  *na, l_int32 nexp, l_int32 index, char *name);
+static l_int32 count_ones(NUMA  *na, l_int32 nexp, l_int32 index,
+                          const char *name);
 
 static const l_float32 edges[13] = {0.0, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5,
                                     0.55, 0.6, 0.7, 0.8, 0.9, 1.0};
@@ -300,7 +301,7 @@ l_int32  n;
     boxaDestroy(&boxa);
 }
 
-l_int32 count_ones(NUMA  *na, l_int32 nexp, l_int32 index, char *name)
+l_int32 count_ones(NUMA  *na, l_int32 nexp, l_int32 index, const char *name)
 {
 l_int32  i, n, val, sum;
 

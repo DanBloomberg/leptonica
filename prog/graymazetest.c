@@ -73,7 +73,7 @@ static char  mainName[] = "graymazetest";
             fprintf(stderr, "path %d extends beyond image; skipping\n", i);
             continue;
         }
-        pta = searchGrayMaze(pixs, xinit[i], yinit[i], xend[i], yend[i],
+        pta = pixSearchGrayMaze(pixs, xinit[i], yinit[i], xend[i], yend[i],
 	                     NULL);
         ptaaAddPta(ptaa, pta, L_INSERT);
     }
@@ -86,7 +86,7 @@ static char  mainName[] = "graymazetest";
 
 #else  /* one path */
 
-    pta = searchGrayMaze(pixs, XINIT, YINIT, XEND, YEND, &pixt);
+    pta = pixSearchGrayMaze(pixs, XINIT, YINIT, XEND, YEND, &pixt);
     pixd = pixDisplayPta(pixs, pta);
     pixex = pixScaleBySampling(pixd, 4., 4.);
     pixDisplay(pixex, 450, 50);
@@ -98,7 +98,7 @@ static char  mainName[] = "graymazetest";
 
     startTimer();
     for (i = 0; i < 10; i++) {
-        pta = searchGrayMaze(pixs, XINIT, YINIT, XEND, YEND, NULL);
+        pta = pixSearchGrayMaze(pixs, XINIT, YINIT, XEND, YEND, NULL);
         ptaDestroy(&pta);
     }
     fprintf(stderr, "Time: %7.3f sec\n", stopTimer());

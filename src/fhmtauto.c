@@ -94,7 +94,7 @@ static char * makeBarrelshiftString(l_int32 delx, l_int32 dely, l_int32 type);
 static SARRAY * sarrayMakeInnerLoopDWACode(SEL *sel, l_int32 nhits, l_int32 nmisses);
 static SARRAY * sarrayMakeWplsCode(SEL *sel);
 
-static  char   *wpldecls[] = {
+static char wpldecls[][60] = {
             "l_int32             wpls2;",
             "l_int32             wpls2, wpls3;",
             "l_int32             wpls2, wpls3, wpls4;",
@@ -126,7 +126,7 @@ static  char   *wpldecls[] = {
             "l_int32             wpls29, wpls30;",
             "l_int32             wpls29, wpls30, wpls31;"};
 
-static  char   *wpldefs[] = {
+static char wpldefs[][24] = {
             "    wpls2 = 2 * wpls;",
             "    wpls3 = 3 * wpls;",
             "    wpls4 = 4 * wpls;",
@@ -158,23 +158,23 @@ static  char   *wpldefs[] = {
             "    wpls30 = 30 * wpls;",
             "    wpls31 = 31 * wpls;"};
 
-static char   *wplstrp[] = {"+ wpls", "+ wpls2", "+ wpls3", "+ wpls4",
-                            "+ wpls5", "+ wpls6", "+ wpls7", "+ wpls8",
-                            "+ wpls9", "+ wpls10", "+ wpls11", "+ wpls12",
-                            "+ wpls13", "+ wpls14", "+ wpls15", "+ wpls16",
-                            "+ wpls17", "+ wpls18", "+ wpls19", "+ wpls20",
-                            "+ wpls21", "+ wpls22", "+ wpls23", "+ wpls24",
-                            "+ wpls25", "+ wpls26", "+ wpls27", "+ wpls28",
-                            "+ wpls29", "+ wpls30", "+ wpls31"};
+static char wplstrp[][10] = {"+ wpls", "+ wpls2", "+ wpls3", "+ wpls4",
+                             "+ wpls5", "+ wpls6", "+ wpls7", "+ wpls8",
+                             "+ wpls9", "+ wpls10", "+ wpls11", "+ wpls12",
+                             "+ wpls13", "+ wpls14", "+ wpls15", "+ wpls16",
+                             "+ wpls17", "+ wpls18", "+ wpls19", "+ wpls20",
+                             "+ wpls21", "+ wpls22", "+ wpls23", "+ wpls24",
+                             "+ wpls25", "+ wpls26", "+ wpls27", "+ wpls28",
+                             "+ wpls29", "+ wpls30", "+ wpls31"};
 
-static char   *wplstrm[] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
-                            "- wpls5", "- wpls6", "- wpls7", "- wpls8",
-                            "- wpls9", "- wpls10", "- wpls11", "- wpls12",
-                            "- wpls13", "- wpls14", "- wpls15", "- wpls16",
-                            "- wpls17", "- wpls18", "- wpls19", "- wpls20",
-                            "- wpls21", "- wpls22", "- wpls23", "- wpls24",
-                            "- wpls25", "- wpls26", "- wpls27", "- wpls28",
-                            "- wpls29", "- wpls30", "- wpls31"};
+static char wplstrm[][10] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
+                             "- wpls5", "- wpls6", "- wpls7", "- wpls8",
+                             "- wpls9", "- wpls10", "- wpls11", "- wpls12",
+                             "- wpls13", "- wpls14", "- wpls15", "- wpls16",
+                             "- wpls17", "- wpls18", "- wpls19", "- wpls20",
+                             "- wpls21", "- wpls22", "- wpls23", "- wpls24",
+                             "- wpls25", "- wpls26", "- wpls27", "- wpls28",
+                             "- wpls29", "- wpls30", "- wpls31"};
 
 
 /*!
@@ -328,7 +328,7 @@ SARRAY  *sa1, *sa2, *sa3;
         /* Add static globals */
     sprintf(bigbuf, "\nstatic l_int32   NUM_SELS_GENERATED = %d;", nsels);
     sarrayAddString(sa3, bigbuf, L_COPY);
-    sprintf(bigbuf, "static char  *SEL_NAMES[] = {");
+    sprintf(bigbuf, "static char  SEL_NAMES[][80] = {");
     sarrayAddString(sa3, bigbuf, L_COPY);
     for (i = 0; i < nsels - 1; i++) {
         sprintf(bigbuf,
@@ -419,6 +419,8 @@ fhmtautogen2(SELA        *sela,
 char    *filestr, *fname, *linestr;
 char    *str_doc1, *str_doc2, *str_doc3, *str_def1;
 char     bigbuf[BUFFER_SIZE];
+char     breakstring[] = "        break;";
+char     staticstring[] = "static void";
 l_int32  i, k, l, nsels, nbytes, nhits, nmisses;
 l_int32  actstart, end, newstart;
 l_int32  argstart, argend, loopstart, loopend, finalstart, finalend;
@@ -509,7 +511,7 @@ SEL     *sel;
         sprintf(bigbuf, "        %s(datad, w, h, wpld, datas, wpls);",
                sarrayGetString(sa2, i, L_NOCOPY));
         sarrayAddString(sa4, bigbuf, L_COPY);
-        sarrayAddString(sa4, "        break;", L_COPY);
+        sarrayAddString(sa4, breakstring, L_COPY);
     }
 
         /* Finish the dispatcher and introduce the low-level code */
@@ -528,7 +530,7 @@ SEL     *sel;
         /* Do all the static functions */
     for (i = 0; i < nsels; i++) {
             /* Generate the function header and add the common args */
-        sarrayAddString(sa4, "static void", L_COPY);
+        sarrayAddString(sa4, staticstring, L_COPY);
         fname = sarrayGetString(sa2, i, L_NOCOPY);
         sprintf(bigbuf, "%s(l_uint32  *datad,", fname);
         sarrayAddString(sa4, bigbuf, L_COPY);
@@ -601,6 +603,7 @@ SEL     *sel;
 static SARRAY *
 sarrayMakeWplsCode(SEL  *sel)
 {
+char     spacestring[] = "    ";
 l_int32  i, j, ymax, dely;
 SARRAY  *sa;
 
@@ -644,7 +647,7 @@ SARRAY  *sa;
     if (ymax > 1)
         sarrayAddString(sa, wpldecls[ymax - 2], 1);
 
-    sarrayAddString(sa, "    ", 1);
+    sarrayAddString(sa, spacestring, 1);
 
         /* Definitions */
     for (i = 2; i <= ymax; i++)

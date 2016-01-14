@@ -77,6 +77,8 @@
  *           l_int32    splitPathAtDirectory()
  *           l_int32    splitPathAtExtension()
  *           char      *genPathname()
+ *           char      *genTempFilename()
+ *           l_int32    extractNumberFromFilename()
  *
  *       timing
  *           void       startTimer()
@@ -86,6 +88,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "allheaders.h"
 
 #if COMPILER_MSVC
@@ -1632,8 +1635,8 @@ char *
 genPathname(const char  *dir,
             const char  *fname)
 {
-l_int32  dirlen, namelen;
 char    *charbuf;
+l_int32  dirlen, namelen;
     
     PROCNAME("genPathname");
 
@@ -1659,6 +1662,95 @@ char    *charbuf;
     strcat(charbuf, fname);
     return charbuf;
 }
+
+
+/*! 
+ *  genTempFilename()
+ *
+ *      Input:  dir (directory name; use '.' for local dir; no trailing '/')
+ *              extension (<optional> filename extention with '.'; can be null)
+ *      Return: tempname (with pid embedded in file name), or null on error
+ *
+ *  Notes:
+ *      (1) This function is useful when there can be more than one
+ *          process writing and reading temporary files.  It will not
+ *          work properly when multiple threads from a single process call
+ *          this function.  Furthermore, as with any function that
+ *          provides easily guessed temporary filenames, it is not designed
+ *          to be safe from an attack where the intruder is logged onto
+ *          the server.
+ */
+char *
+genTempFilename(const char  *dir,
+                const char  *extension)
+{
+char     buf[256];
+char    *tempname;
+l_int32  pid, nchars;
+    
+    PROCNAME("genTempFilename");
+
+    if (!dir)
+        return (char *)ERROR_PTR("dir not defined", procName, NULL);
+    pid = getpid();
+    if (extension)
+        nchars = strlen(extension);
+    else
+        nchars = 0;
+
+#if COMPILER_MSVC
+    snprintf(buf, 255 - nchars, "%s\\%d", dir, pid);
+#else
+    snprintf(buf, 25 - nchars, "%s/%d", dir, pid);
+#endif
+
+    tempname = stringJoin(buf, extension);
+    return tempname;
+}
+
+
+/*! 
+ *  extractNumberFromFilename()
+ *
+ *      Input:  fname
+ *              numpre (number of characters before the digits to be found)
+ *              numpost (number of characters after the digits to be found)
+ *      Return: num (number embedded in the filename); -1 on error or if
+ *                   not found
+ */
+l_int32
+extractNumberFromFilename(const char  *fname,
+                          l_int32      numpre,
+                          l_int32      numpost)
+{
+char    *tail, *basename;
+l_int32  len, nret, num;
+    
+    PROCNAME("extractNumberFromFilename");
+
+    if (!fname)
+        return ERROR_INT("fname not defined", procName, -1);
+
+    splitPathAtDirectory(fname, NULL, &tail);
+    splitPathAtExtension(tail, &basename, NULL);
+    FREE(tail);
+
+    len = strlen(basename);
+    if (numpre + numpost > len - 1) {
+        FREE(basename);
+        return ERROR_INT("numpre + numpost too big", procName, -1);
+    }
+
+    basename[len - numpost] = '\n';
+    nret = sscanf(basename + numpre, "%d", &num);
+    FREE(basename);
+
+    if (nret == 1)
+        return num;
+    else
+        return ERROR_INT("no number found", procName, -1);
+}
+
 
 
 /*---------------------------------------------------------------------*

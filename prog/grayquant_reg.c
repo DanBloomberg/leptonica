@@ -31,7 +31,7 @@ static const l_int32  NLEVELS = 4;
 main(int    argc,
      char **argv)
 {
-char        *str;
+const char  *str;
 l_int32      equal, index, w, h;
 BOX         *box;
 PIX         *pixs, *pixd, *pixt, *pixd1, *pixd2, *pixd3;

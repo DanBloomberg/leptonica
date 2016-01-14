@@ -27,7 +27,8 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define  LEVEL    3
+#define  LEVEL       3
+#define  MIN_DEPTH   4
 
 main(int    argc,
      char **argv)
@@ -63,7 +64,8 @@ static char  mainName[] = "cmapquant_reg";
         /* Re-quantize using the same colormap */
     startTimer();
     cmap = pixGetColormap(pixt1);
-    pixt3 = pixOctcubeQuantFromCmap(pixt2, cmap, LEVEL, L_EUCLIDEAN_DISTANCE);
+    pixt3 = pixOctcubeQuantFromCmap(pixt2, cmap, MIN_DEPTH,
+                                    LEVEL, L_EUCLIDEAN_DISTANCE);
     fprintf(stderr, "Time to requantize to cmap = %7.3f sec\n", stopTimer());
     pixDisplayWrite(pixt3, 1);
 
@@ -74,7 +76,8 @@ static char  mainName[] = "cmapquant_reg";
     cmaptab = pixcmapToOctcubeLUT(cmap, LEVEL, L_EUCLIDEAN_DISTANCE);
     fprintf(stderr, "Time to make tables = %7.3f sec\n", stopTimer());
     startTimer();
-    pixt4 = pixOctcubeQuantFromCmapLUT(pixt2, cmap, cmaptab, rtab, gtab, btab);
+    pixt4 = pixOctcubeQuantFromCmapLUT(pixt2, cmap, MIN_DEPTH,
+                                       cmaptab, rtab, gtab, btab);
     fprintf(stderr, "Time for lowlevel re-quant = %7.3f sec\n", stopTimer());
     pixDisplayWrite(pixt4, 1);
 

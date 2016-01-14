@@ -37,6 +37,7 @@
  *          l_int32      numaGetIValue()
  *          l_int32      numaGetFValue()
  *          l_int32      numaSetValue()
+ *          l_int32      numaShiftValue()
  *          l_int32     *numaGetIArray()
  *          l_float32   *numaGetFArray()
  *          l_int32      numaGetRefcount()
@@ -98,14 +99,16 @@
  *    (2) The number array holds l_float32 values.  It can also
  *        be used to store l_int32 values.
  *
- *    (3) Storing and retrieving integer values:
+ *    (3) Storing and retrieving numbers:
  *
- *       * to append a new int val to the array, use numaAddNumber() with
- *         the integer input.  The type will automatically be converted
+ *       * to append a new number to the array, use numaAddNumber().  If
+ *         the number is an int, it will will automatically be converted
  *         to l_float32 and stored.
  *
- *       * to reset a value stored in the array, use numaSetValue() with
- *         the integer input.  It will be converted to l_float32 and stored.
+ *       * to reset a value stored in the array, use numaSetValue().
+ *
+ *       * to increment or decrement a value stored in the array,
+ *         use numaShiftValue().
  *
  *       * to obtain a value from the array, use either numaGetIValue()
  *         or numaGetFValue(), depending on whether you are retrieving
@@ -124,7 +127,16 @@
  *        to go from l_float32 --> l_int32 because you're truncating
  *        to the integer value.
  *
- *    (5) In situations where the data in a numa correspond to a function
+ *    (5) As with other arrays in leptonica, the numa has both an allocated
+ *        size and a count of the stored numbers.  When you add a number, it
+ *        goes on the end of the array, and causes a realloc if the array
+ *        is already filled.  However, in situations where you want to
+ *        add numbers randomly into an array, such as when you build a
+ *        histogram, you must set the count of stored numbers in advance.
+ *        This is done with numaSetCount().  If you set a count larger
+ *        than the allocated array, it does a realloc to the size requested.
+ *
+ *    (6) In situations where the data in a numa correspond to a function
  *        y(x), the values can be either at equal spacings in x or at
  *        arbitrary spacings.  For the former, we can represent all x values
  *        by two parameters: startx (corresponding to y[0]) and delx
@@ -133,7 +145,7 @@
  *        For arbitrary spacings, we use a second numa, and the two
  *        numas are typically denoted nay and nax.
  *
- *    (6) The numa is also the basic struct used for histograms.  Every numa
+ *    (7) The numa is also the basic struct used for histograms.  Every numa
  *        has startx and delx fields, initialized to 0.0 and 1.0, that can
  *        be used to represent the "x" value for the location of the
  *        first bin and the bin width, respectively.  Accessors are the
@@ -541,8 +553,12 @@ numaSetCount(NUMA    *na,
  *
  *      Input:  na
  *              index (into numa)
- *              &val  (<return> float value)
+ *              &val  (<return> float value; 0.0 on error)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Caller may need to check the function return value to
+ *          decide if a 0.0 in the returned ival is valid.
  */
 l_int32
 numaGetFValue(NUMA       *na,
@@ -551,11 +567,11 @@ numaGetFValue(NUMA       *na,
 {
     PROCNAME("numaGetFValue");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0.0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
 
     if (index < 0 || index >= na->n)
         return ERROR_INT("index not valid", procName, 1);
@@ -570,26 +586,33 @@ numaGetFValue(NUMA       *na,
  *
  *      Input:  na
  *              index (into numa)
- *              &ival  (<return> integer value)
+ *              &ival  (<return> integer value; 0 on error)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Caller may need to check the function return value to
+ *          decide if a 0 in the returned ival is valid.
  */
 l_int32
 numaGetIValue(NUMA     *na,
               l_int32   index,
               l_int32  *pival)
 {
+l_float32  val;
+
     PROCNAME("numaGetIValue");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
     if (!pival)
         return ERROR_INT("&ival not defined", procName, 1);
     *pival = 0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
 
     if (index < 0 || index >= na->n)
         return ERROR_INT("index not valid", procName, 1);
 
-    *pival = (l_int32)(na->array[index] + 0.5);
+    val = na->array[index];
+    *pival = (l_int32)(val + L_SIGN(val) * 0.5);
     return 0;
 }
 
@@ -615,6 +638,31 @@ numaSetValue(NUMA      *na,
         return ERROR_INT("index not valid", procName, 1);
 
     na->array[index] = val;
+    return 0;
+}
+
+
+/*!
+ *  numaShiftValue()
+ *
+ *      Input:  na
+ *              index (to element to change relative to the current value)
+ *              diff  (increment if diff > 0 or decrement if diff < 0)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+numaShiftValue(NUMA      *na,
+               l_int32    index,
+               l_float32  diff)
+{
+    PROCNAME("numaShiftValue");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (index < 0 || index >= na->n)
+        return ERROR_INT("index not valid", procName, 1);
+
+    na->array[index] += diff;
     return 0;
 }
 
@@ -1082,8 +1130,8 @@ numaaExtendArray(NUMAA  *naa)
         return ERROR_INT("naa not defined", procName, 1);
 
     if ((naa->numa = (NUMA **)reallocNew((void **)&naa->numa,
-                              sizeof(l_intptr_t) * naa->nalloc,
-                              2 * sizeof(l_intptr_t) * naa->nalloc)) == NULL)
+                              sizeof(NUMA *) * naa->nalloc,
+                              2 * sizeof(NUMA *) * naa->nalloc)) == NULL)
             return ERROR_INT("new ptr array not returned", procName, 1);
 
     naa->nalloc *= 2;

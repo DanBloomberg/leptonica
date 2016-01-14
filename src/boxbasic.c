@@ -481,8 +481,8 @@ boxaExtendArray(BOXA  *boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 
     if ((boxa->box = (BOX **)reallocNew((void **)&boxa->box,
-                               sizeof(l_intptr_t) * boxa->nalloc,
-                               2 * sizeof(l_intptr_t) * boxa->nalloc)) == NULL)
+                               sizeof(BOX *) * boxa->nalloc,
+                               2 * sizeof(BOX *) * boxa->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
     boxa->nalloc = 2 * boxa->nalloc;
@@ -859,8 +859,8 @@ boxaaExtendArray(BOXAA  *baa)
         return ERROR_INT("baa not defined", procName, 1);
 
     if ((baa->boxa = (BOXA **)reallocNew((void **)&baa->boxa,
-                              sizeof(l_intptr_t) * baa->nalloc,
-                              2 * sizeof(l_intptr_t) * baa->nalloc)) == NULL)
+                              sizeof(BOXA *) * baa->nalloc,
+                              2 * sizeof(BOXA *) * baa->nalloc)) == NULL)
             return ERROR_INT("new ptr array not returned", procName, 1);
 
     baa->nalloc *= 2;

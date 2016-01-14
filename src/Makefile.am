@@ -49,7 +49,8 @@ liblept_a_SOURCES = adaptmap.c \
  partition.c \
  pix1.c pix2.c pix3.c pix4.c \
  pixabasic.c pixacc.c \
- pixafunc1.c pixafunc2.c pixarith.c \
+ pixafunc1.c pixafunc2.c \
+ pixalloc.c pixarith.c \
  pixconv.c pixtiling.c \
  pngio.c pngiostub.c \
  pnmio.c pnmiostub.c \
@@ -79,6 +80,6 @@ include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
 
 EXTRA_DIST = Makefile.mingw arrayaccess.h.vc arrayaccess.h.vc60 \
  hmttemplate1.txt hmttemplate2.txt leptonica-license.txt \
- leptonlib.sln leptonlib.vcproj morphtemplate1.txt morphtemplate2.txt \
- xtractprotos.c
+ leptonlib.sln leptonlib.vcproj leptonlib.dsp leptonlib.dsw \
+ morphtemplate1.txt morphtemplate2.txt xtractprotos.c
 

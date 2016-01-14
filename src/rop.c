@@ -214,7 +214,7 @@ l_int32  dd;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-        /* Check depth of src and depth; these must agree */
+        /* Check depth of src and dest; these must agree */
     if (dd != pixGetDepth(pixs))
         return ERROR_INT("depths of pixs and pixd differ", procName, 1);
 

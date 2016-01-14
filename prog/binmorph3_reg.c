@@ -234,12 +234,6 @@ static char  mainName[] = "binmorph3_reg";
             /* ----------------- Closing ----------------- */
         fprintf(stderr, "Testing closing\n");
         pixref = pixClose(NULL, pixs, sel);
-        pixt1 = pixCloseBrick(NULL, pixs, w, h);
-        pixEqual(pixref, pixt1, &same);
-        if (!same) {
-            fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
-        }
-        pixDestroy(&pixt1);
 
 	    /* Note: L_MORPH_CLOSE for h==1 or w==1 gives safe closing,
 	     * so we can't use it here. */

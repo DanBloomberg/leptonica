@@ -289,6 +289,14 @@ L_WSHED  *wshed;
 l_int32
 wshedApply(L_WSHED  *wshed)
 {
+char      two_new_watersheds[] = "Two new watersheds";
+char      seed_absorbed_into_seeded_basin[] = "Seed absorbed into seeded basin";
+char      one_new_watershed_label[] = "One new watershed (label)";
+char      one_new_watershed_index[] = "One new watershed (index)";
+char      minima_absorbed_into_seeded_basin[] =
+                 "Minima absorbed into seeded basin";
+char      minima_absorbed_by_filler_or_another[] =
+                 "Minima absorbed by filler or another";
 l_int32   nseeds, nother, nboth, arraysize;
 l_int32   i, j, val, x, y, w, h, index, mindepth;
 l_int32   imin, imax, jmin, jmax, cindex, clabel, nindex;
@@ -428,8 +436,9 @@ PTA      *ptas, *ptao;
                     if (hmin < mindepth)
                         fprintf(stderr, "Too shallow!\n");
                 }
+
                 if (hmin >= mindepth) {
-                    debugWshedMerge(wshed, "Two new watersheds",
+                    debugWshedMerge(wshed, two_new_watersheds,
                                     x, y, clabel, cindex);
                     wshedSaveBasin(wshed, cindex, val - 1);
                     wshedSaveBasin(wshed, clabel, val - 1);
@@ -445,7 +454,7 @@ PTA      *ptas, *ptao;
                     nindex++;
                 }
                 else  /* extraneous seed within seeded basin; absorb */
-                    debugWshedMerge(wshed, "Seed absorbed into seeded basin",
+                    debugWshedMerge(wshed, seed_absorbed_into_seeded_basin,
                                     x, y, clabel, cindex);
                     maxhindex = clabel;
                     minhindex = cindex;
@@ -459,14 +468,14 @@ PTA      *ptas, *ptao;
                 /* If one index is a seed and the other is a merge of
                  * 2 watersheds, generate a single watershed. */
             else if (clabel < nseeds && cindex >= nboth) {
-                debugWshedMerge(wshed, "One new watershed (label)",
+                debugWshedMerge(wshed, one_new_watershed_label,
                                 x, y, clabel, cindex);
                 wshedSaveBasin(wshed, clabel, val - 1);
                 numaSetValue(nasi, clabel, 0);
                 mergeLookup(wshed, clabel, cindex); 
             }
             else if (cindex < nseeds && clabel >= nboth) {
-                debugWshedMerge(wshed, "One new watershed (index)",
+                debugWshedMerge(wshed, one_new_watershed_index,
                                 x, y, clabel, cindex);
                 wshedSaveBasin(wshed, cindex, val - 1);
                 numaSetValue(nasi, cindex, 0);
@@ -475,18 +484,18 @@ PTA      *ptas, *ptao;
                 /* If one index is a seed and the other is from a minimum,
                  * merge the minimum wshed into the seed wshed. */
             else if (clabel < nseeds) {  /* cindex from minima; absorb */
-                debugWshedMerge(wshed, "Minima absorbed into seeded basin",
+                debugWshedMerge(wshed, minima_absorbed_into_seeded_basin,
                                 x, y, clabel, cindex);
                 mergeLookup(wshed, cindex, clabel); 
             }
             else if (cindex < nseeds) {  /* clabel from minima; absorb */
-                debugWshedMerge(wshed, "Minima absorbed into seeded basin",
+                debugWshedMerge(wshed, minima_absorbed_into_seeded_basin,
                                 x, y, clabel, cindex);
                 mergeLookup(wshed, clabel, cindex); 
             }
                 /* If neither index is a seed, just merge */
             else {
-                debugWshedMerge(wshed, "Minima absorbed by filler or another",
+                debugWshedMerge(wshed, minima_absorbed_by_filler_or_another,
                                 x, y, clabel, cindex);
                 mergeLookup(wshed, clabel, cindex); 
             }

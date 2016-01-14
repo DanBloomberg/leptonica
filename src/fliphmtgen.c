@@ -34,10 +34,10 @@
 #include "allheaders.h"
 
 static l_int32   NUM_SELS_GENERATED = 4;
-static char  *SEL_NAMES[] = {"flipsel1",
-                             "flipsel2",
-                             "flipsel3",
-                             "flipsel4"};
+static char  SEL_NAMES[][10] = {"flipsel1",
+                                "flipsel2",
+                                "flipsel3",
+                                "flipsel4"};
 
 static l_int32 flipfhmtgen_low(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32, l_int32);
 

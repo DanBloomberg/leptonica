@@ -24,8 +24,8 @@
 
 
 static PIXA *
-TestHardlight(char  *file1,
-              char  *file2)
+TestHardlight(const char  *file1,
+              const char  *file2)
 {
 PIX   *pixs1, *pixs2, *pixr, *pixt1, *pixt2, *pixd;
 PIXA  *pixa;
@@ -35,8 +35,10 @@ PIXA  *pixa;
         /* Read in images */
     pixs1 = pixRead(file1);
     pixs2 = pixRead(file2);
-    if (!pixs1 || !pixs2)
-        return (PIXA *)ERROR_PTR("not all files read", procName, NULL);
+    if (!pixs1)
+        return (PIXA *)ERROR_PTR("pixs1 not read", procName, NULL);
+    if (!pixs2)
+        return (PIXA *)ERROR_PTR("pixs2 not read", procName, NULL);
 
     pixa = pixaCreate(0);
 
@@ -62,7 +64,8 @@ PIXA  *pixa;
     if (pixGetDepth(pixs2) == 8)
         pixt2 = pixConvertGrayToColormap8(pixs2, 8);
     else
-        pixt2 = pixConvertTo8(pixs2, 1);
+/*        pixt2 = pixConvertTo8(pixs2, 1); */
+        pixt2 = pixMedianCutQuant(pixs2, 0);
     pixSaveTiled(pixt1, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
 
@@ -110,7 +113,7 @@ main(int    argc,
 {
 PIX   *pix;
 PIXA  *pixa;
-static char  mainName[] = "hardlighttest";
+static char  mainName[] = "hardlight_reg";
 
     pixa = TestHardlight("hardlight1_1.jpg", "hardlight1_2.jpg");
     pix = pixaDisplay(pixa, 0, 0);

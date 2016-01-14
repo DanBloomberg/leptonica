@@ -64,12 +64,12 @@ static char  mainName[] = "kernel_reg";
 
         /* Test creating from a file */
     sa = sarrayCreate(0);
-    sarrayAddString(sa, "# small 3x3 kernel", L_COPY);
-    sarrayAddString(sa, "3 5", L_COPY);
-    sarrayAddString(sa, "1 2", L_COPY);
-    sarrayAddString(sa, "20.5   50   80    50   20", L_COPY);
-    sarrayAddString(sa, "82.    120  180   120  80", L_COPY);
-    sarrayAddString(sa, "22.1   50   80    50   20", L_COPY);
+    sarrayAddString(sa, (char *)"# small 3x3 kernel", L_COPY);
+    sarrayAddString(sa, (char *)"3 5", L_COPY);
+    sarrayAddString(sa, (char *)"1 2", L_COPY);
+    sarrayAddString(sa, (char *)"20.5   50   80    50   20", L_COPY);
+    sarrayAddString(sa, (char *)"82.    120  180   120  80", L_COPY);
+    sarrayAddString(sa, (char *)"22.1   50   80    50   20", L_COPY);
     str = sarrayToString(sa, 1);
     arrayWrite("junkkernfile", "w", str, strlen(str));
     kel2 = kernelCreateFromFile("junkkernfile");

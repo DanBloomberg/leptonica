@@ -49,10 +49,11 @@
  *           l_int32     pixSetPadBits()
  *           l_int32     pixSetPadBitsBand()
  *
- *      Set border pixels to arbitrary value
+ *      Assign border pixels
  *           l_int32     pixSetOrClearBorder()
  *           l_int32     pixSetBorderVal()
  *           l_int32     pixSetMirroredBorder()
+ *           PIX        *pixCopyBorder()
  *
  *      Add and remove border
  *           PIX        *pixAddBorder()
@@ -60,6 +61,8 @@
  *           PIX        *pixRemoveBorder()
  *           PIX        *pixRemoveBorderGeneral()
  *           PIX        *pixAddMirroredBorder()
+ *           PIX        *pixAddRepeatedBorder()
+ *           PIX        *pixAddMixedBorder()
  *
  *      Color sample setting and extraction
  *           PIX        *pixCreateRGBImage()
@@ -73,6 +76,7 @@
  *      Conversion between big and little endians
  *           PIX        *pixEndianByteSwapNew()
  *           l_int32     pixEndianByteSwap()
+ *           l_int32     lineEndianByteSwap()
  *           PIX        *pixEndianTwoByteSwapNew()
  *           l_int32     pixEndianTwoByteSwap()
  *
@@ -1306,6 +1310,60 @@ l_int32  i, j, w, h;
 }
      
 
+/*!
+ *  pixCopyBorder()
+ *
+ *      Input:  pixd (all depths; colormap ok; can be NULL)
+ *              pixs (same depth and size as pixd)
+ *              left, right, top, bot (number of pixels to copy)
+ *      Return: pixd, or null on error if pixd is not defined
+ *
+ *  Notes:
+ *      (1) pixd can be null, but otherwise it must be the same size
+ *          and depth as pixs.  Always returns pixd.
+ *      (1) This is useful in situations where by setting a few border
+ *          pixels we can avoid having to copy all pixels in pixs into
+ *          pixd as an initialization step for some operation.
+ */
+PIX *
+pixCopyBorder(PIX     *pixd,
+              PIX     *pixs,
+              l_int32  left,
+              l_int32  right,
+              l_int32  top,
+              l_int32  bot)
+{
+l_int32  w, h;
+
+    PROCNAME("pixCopyBorder");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+
+    if (pixd) {
+        if (pixd == pixs) {
+            L_WARNING("same: nothing to do", procName);
+            return pixd;
+        }
+        else if (!pixSizesEqual(pixs, pixd))
+            return (PIX *)ERROR_PTR("pixs and pixd sizes differ",
+                                    procName, pixd);
+    }
+    else {
+        if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
+    }
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixRasterop(pixd, 0, 0, left, h, PIX_SRC, pixs, 0, 0);
+    pixRasterop(pixd, w - right, 0, right, h, PIX_SRC, pixs, w - right, 0);
+    pixRasterop(pixd, 0, 0, w, top, PIX_SRC, pixs, 0, 0);
+    pixRasterop(pixd, 0, h - bot, w, bot, PIX_SRC, pixs, 0, h - bot);
+
+    return pixd;
+}
+
+
 
 /*-------------------------------------------------------------*
  *                     Add and remove border                   *
@@ -1502,9 +1560,12 @@ PIX     *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixd = pixAddBorderGeneral(pixs, left, right, top, bot, 0);
-
     pixGetDimensions(pixs, &w, &h, NULL);
+    if (left > w || right > w || top > h || bot > h)
+        return (PIX *)ERROR_PTR("border too large", procName, NULL);
+
+        /* Set pixels on left, right, top and bottom, in that order */
+    pixd = pixAddBorderGeneral(pixs, left, right, top, bot, 0);
     for (j = 0; j < left; j++)
         pixRasterop(pixd, left - 1 - j, top, 1, h, PIX_SRC,
                     pixd, left + j, top);
@@ -1517,6 +1578,107 @@ PIX     *pixd;
     for (i = 0; i < bot; i++)
         pixRasterop(pixd, 0, top + h + i, left + w + right, 1, PIX_SRC,
                     pixd, 0, top + h - 1 - i);
+
+    return pixd;
+}
+     
+/*!
+ *  pixAddRepeatedBorder()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              left, right, top, bot (number of pixels added)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This applies a repeated border, as if the central part of
+ *          the image is tiled over the plane.  So, for example, the
+ *          pixels in the left border come from the right side of the image.
+ *      (2) The general pixRasterop() is used for an in-place operation here
+ *          because there is no overlap between the src and dest rectangles.
+ */
+PIX  *
+pixAddRepeatedBorder(PIX      *pixs,
+                     l_int32  left,
+                     l_int32  right,
+                     l_int32  top,
+                     l_int32  bot)
+{
+l_int32  w, h;
+PIX     *pixd;
+
+    PROCNAME("pixAddRepeatedBorder");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (left > w || right > w || top > h || bot > h)
+        return (PIX *)ERROR_PTR("border too large", procName, NULL);
+
+    pixd = pixAddBorderGeneral(pixs, left, right, top, bot, 0);
+
+        /* Set pixels on left, right, top and bottom, in that order */
+    pixRasterop(pixd, 0, top, left, h, PIX_SRC, pixd, w, top);
+    pixRasterop(pixd, left + w, top, right, h, PIX_SRC, pixd, left, top);
+    pixRasterop(pixd, 0, 0, left + w + right, top, PIX_SRC, pixd, 0, h);
+    pixRasterop(pixd, 0, top + h, left + w + right, bot, PIX_SRC, pixd, 0, top);
+
+    return pixd;
+}
+     
+
+/*!
+ *  pixAddMixedBorder()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              left, right, top, bot (number of pixels added)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This applies mirrored boundary conditions horizontally
+ *          and repeated b.c. vertically.
+ *      (2) It is specifically used for avoiding special operations
+ *          near boundaries when convolving a hue-saturation histogram
+ *          with a given window size.  The repeated b.c. are used
+ *          vertically for hue, and the mirrored b.c. are used
+ *          horizontally for saturation.  The number of pixels added
+ *          on each side is approximately (but not quite) half the
+ *          filter dimension.  The image processing operations can
+ *          then proceed over a region equal to the size of the original
+ *          image, and write directly into a dest pix of the same
+ *          size as pixs.
+ *      (3) The general pixRasterop() can be used for an in-place
+ *          operation here because there is no overlap between the
+ *          src and dest rectangles.
+ */
+PIX  *
+pixAddMixedBorder(PIX      *pixs,
+                  l_int32  left,
+                  l_int32  right,
+                  l_int32  top,
+                  l_int32  bot)
+{
+l_int32  j, w, h;
+PIX     *pixd;
+
+    PROCNAME("pixAddMixedBorder");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (left > w || right > w || top > h || bot > h)
+        return (PIX *)ERROR_PTR("border too large", procName, NULL);
+
+        /* Set mirrored pixels on left and right;
+         * then set repeated pixels on top and bottom. */
+    pixd = pixAddBorderGeneral(pixs, left, right, top, bot, 0);
+    for (j = 0; j < left; j++)
+        pixRasterop(pixd, left - 1 - j, top, 1, h, PIX_SRC,
+                    pixd, left + j, top);
+    for (j = 0; j < right; j++)
+        pixRasterop(pixd, left + w + j, top, 1, h, PIX_SRC,
+                    pixd, left + w - 1 - j, top);
+    pixRasterop(pixd, 0, 0, left + w + right, top, PIX_SRC, pixd, 0, h);
+    pixRasterop(pixd, 0, top + h, left + w + right, bot, PIX_SRC, pixd, 0, top);
 
     return pixd;
 }
@@ -2008,6 +2170,58 @@ l_uint32   word;
         }
     }
 
+    return 0;
+
+#endif   /* L_BIG_ENDIAN */
+
+}
+
+
+/*!
+ *  lineEndianByteSwap()
+ *
+ *      Input   datad (dest byte array data, reordered on little-endians)
+ *              datas (a src line of pix data)
+ *              wpl (number of 32 bit words in the line)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is used on little-endian platforms to swap
+ *          the bytes within each word in the line of image data.
+ *          Bytes 0 <==> 3 and 1 <==> 2 are swapped in the dest
+ *          byte array data8d, relative to the pix data in datas.
+ *      (2) The bytes represent 8 bit pixel values.  They are swapped
+ *          for little endians so that when the dest array (char *)datad
+ *          is addressed by bytes, the pixels are chosen sequentially
+ *          from left to right in the image.
+ */
+l_int32
+lineEndianByteSwap(l_uint32  *datad,
+                   l_uint32  *datas,
+                   l_int32    wpl)
+{
+l_int32   j;
+l_uint32  word;
+
+    PROCNAME("lineEndianByteSwap");
+
+    if (!datad || !datas)
+        return ERROR_INT("datad and datas not both defined", procName, 1);
+
+#ifdef L_BIG_ENDIAN
+
+    memcpy((char *)datad, (char *)datas, 4 * wpl);
+    return 0;
+
+#else   /* L_LITTLE_ENDIAN */
+
+    for (j = 0; j < wpl; j++, datas++, datad++) {
+        word = *datas;
+        *datad = (word >> 24) |
+                 ((word >> 8) & 0x0000ff00) |
+                 ((word << 8) & 0x00ff0000) |
+                 (word << 24);
+    }
     return 0;
 
 #endif   /* L_BIG_ENDIAN */

@@ -48,7 +48,7 @@
 #define     BUF_SIZE           512
 
 
-static void pixCompare(PIX *pix, PIX *pix2, char *msg1, char *msg2);
+static void pixCompare(PIX *pix, PIX *pix2, const char *msg1, const char *msg2);
 
 
 main(int    argc,
@@ -290,10 +290,10 @@ static char  mainName[] = "graymorph_reg";
 
 
     /* simple comparison function */
-static void pixCompare(PIX   *pix1,
-                       PIX   *pix2,
-                       char  *msg1,
-                       char  *msg2)
+static void pixCompare(PIX         *pix1,
+                       PIX         *pix2,
+                       const char  *msg1,
+                       const char  *msg2)
 {
 l_int32  same;
     pixEqual(pix1, pix2, &same);

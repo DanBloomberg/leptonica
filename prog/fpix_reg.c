@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -74,8 +75,8 @@ static char  mainName[] = "fpix_reg";
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 8);
 
         /* Convolution indirectly with fpix */
-    fpixs = pixConvertToFPix(pixs);
-    fpixs2 = pixConvertToFPix(pixs2);
+    fpixs = pixConvertToFPix(pixs, 3);
+    fpixs2 = pixConvertToFPix(pixs2, 3);
     fpixRasterop(fpixs, 150, 125, 150, 100, fpixs2, 75, 100);
     fpixt1 = fpixConvolve(fpixs, kel, 1);
     pixt3 = fpixConvertToPix(fpixt1, 8, L_CLIP_TO_ZERO, 1);
@@ -103,7 +104,7 @@ static char  mainName[] = "fpix_reg";
 
         /* Test arithmetic operations; add in a fraction rotated by 180 */
     pixs3 = pixRotate180(NULL, pixs);
-    fpixs3 = pixConvertToFPix(pixs3);
+    fpixs3 = pixConvertToFPix(pixs3, 3);
     fpixd = fpixLinearCombination(NULL, fpixs, fpixs3, 20.0, 5.0);
     fpixAddMultConstant(fpixd, 0.0, 23.174);   /* multiply up in magnitude */
     pixd = fpixDisplayMaxDynamicRange(fpixd);  /* bring back to 8 bpp */
@@ -113,6 +114,7 @@ static char  mainName[] = "fpix_reg";
     pixDestroy(&pixd);
 
         /* Save the comparison graph; gnuplot should have made it by now! */
+    sleep(1);
     fprintf(stderr, "NOT an error if the next line is\n"
             "    Error in findFileFormat: truncated file\n");
     pixt5 = pixRead("/tmp/junkgrayroot.png");

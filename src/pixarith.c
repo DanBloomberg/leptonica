@@ -740,7 +740,7 @@ l_uint32  *datas, *datad, *lines, *lined;
 /*!
  *  pixMaxDynamicRange()
  *
- *      Input:  pixs  (4, 8 or 16 bpp source)
+ *      Input:  pixs  (4, 8, 16 or 32 bpp source)
  *              type  (L_LINEAR_SCALE or L_LOG_SCALE)
  *      Return: pixd (8 bpp), or null on error
  *
@@ -766,8 +766,8 @@ PIX        *pixd;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     d = pixGetDepth(pixs);
-    if (d != 4 && d != 8 && d != 16)
-        return (PIX *)ERROR_PTR("pixs must be 4, 8 or 16 bpp", procName, NULL);
+    if (d != 4 && d != 8 && d != 16 && d != 32)
+        return (PIX *)ERROR_PTR("pixs not in {4,8,16,32} bpp", procName, NULL);
     if (type != L_LINEAR_SCALE && type != L_LOG_SCALE)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
@@ -800,9 +800,11 @@ PIX        *pixd;
                 max = L_MAX(max, (word >> 16) & 0xff);
                 max = L_MAX(max, (word >> 8) & 0xff);
                 max = L_MAX(max, word & 0xff);
-            } else {   /* d == 16 */
+            } else if (d == 16) {
                 max = L_MAX(max, word >> 16);
                 max = L_MAX(max, word & 0xffff);
+            } else {  /* d == 32 */
+                max = L_MAX(max, word);
             }
         }
     }
@@ -860,7 +862,7 @@ PIX        *pixd;
             }
             FREE(tab);
         }
-    } else {  /* d == 16 */
+    } else if (d == 16) {
         if (type == L_LINEAR_SCALE) {
             factor = 255. / (l_float32)max;
             for (i = 0; i < h; i++) {
@@ -880,6 +882,32 @@ PIX        *pixd;
                 lined = datad + i * wpld;
                 for (j = 0; j < w; j++) {
                     sval = GET_DATA_TWO_BYTES(lines, j);
+                    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
+                    SET_DATA_BYTE(lined, j, dval);
+                }
+            }
+            FREE(tab);
+        }
+    } else {  /* d == 32 */
+        if (type == L_LINEAR_SCALE) {
+            factor = 255. / (l_float32)max;
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    sval = lines[j];
+                    dval = (l_uint8)(factor * (l_float32)sval + 0.5);
+                    SET_DATA_BYTE(lined, j, dval);
+                }
+            }
+        } else {  /* type == L_LOG_SCALE) */
+            tab = makeLogBase2Tab();
+            factor = 255. / getLogBase2(max, tab);
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    sval = lines[j];
                     dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
                     SET_DATA_BYTE(lined, j, dval);
                 }

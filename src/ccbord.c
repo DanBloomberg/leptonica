@@ -470,8 +470,8 @@ ccbaExtendArray(CCBORDA  *ccba)
         return ERROR_INT("ccba not defined", procName, 1);
 
     if ((ccba->ccb = (CCBORD **)reallocNew((void **)&ccba->ccb,
-                                sizeof(l_intptr_t) * ccba->nalloc,
-                                2 * sizeof(l_intptr_t) * ccba->nalloc)) == NULL)
+                                sizeof(CCBORD *) * ccba->nalloc,
+                                2 * sizeof(CCBORD *) * ccba->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
     ccba->nalloc = 2 * ccba->nalloc;
@@ -2192,6 +2192,10 @@ PTA      *pta;
 
     PROCNAME("ccbaWriteStream");
 
+#if  !HAVE_LIBZ  /* defined in environ.h */
+    return ERROR_INT("no libz: can't write data", procName, 1);
+#else
+
     if (!fp)
         return ERROR_INT("stream not open", procName, 1);
     if (!ccba)
@@ -2258,6 +2262,8 @@ PTA      *pta;
     FREE(datain);
     FREE(dataout);
     return 0;
+
+#endif  /* !HAVE_LIBZ */
 }
 
 
@@ -2328,6 +2334,10 @@ NUMA     *na;
 NUMAA    *step;
 
     PROCNAME("ccbaReadStream");
+
+#if  !HAVE_LIBZ  /* defined in environ.h */
+    return (CCBORDA *)ERROR_PTR("no libz: can't read data", procName, NULL);
+#else
 
     if (!fp)
         return (CCBORDA *)ERROR_PTR("stream not open", procName, NULL);
@@ -2413,6 +2423,8 @@ NUMAA    *step;
     FREE(dataout);
 
     return ccba;
+
+#endif  /* !HAVE_LIBZ */
 }
 
 
@@ -2469,6 +2481,7 @@ char     line2[] = "<svg>";
 char     line3[] = "<polygon style=\"stroke-width:1;stroke:black;\" points=\"";
 char     line4[] = "\" />";
 char     line5[] = "</svg>";
+char     space[] = " ";
 l_int32  i, j, ncc, npt, x, y;
 CCBORD  *ccb;
 PTA     *pta;
@@ -2504,7 +2517,7 @@ SARRAY  *sa;
         ccbDestroy(&ccb);
     }
     sarrayAddString(sa, line5, 1);
-    sarrayAddString(sa, " ", 1);
+    sarrayAddString(sa, space, 1);
 
     svgstr = sarrayToString(sa, 1);
 /*    fprintf(stderr, "%s", svgstr); */

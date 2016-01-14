@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (26 Apr 09)
+README  (26 Jul 09)
 --------------------
 
-gunzip leptonlib-1.61.tar.gz
-tar -xvf leptonlib-1.61.tar
+gunzip leptonlib-1.62.tar.gz
+tar -xvf leptonlib-1.62.tar
 
 
 1.  This tar includes:
@@ -86,7 +86,7 @@ tar -xvf leptonlib-1.61.tar
     Libraries, executables and prototypes are easily made, as described below.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.61'.  In that directory you will
+    subdirectory 'leptonlib-1.62'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -118,9 +118,14 @@ tar -xvf leptonlib-1.61.tar
 
     You can use src/makefile.mingw for cross-compiling for windows in linux.
 
-    We also provide two files for compiling the library in windows under MSVC:
-        src/leptonlib.sln
-        src/leptonlib.vcproj
+    We also provide project files for compiling the library under MSVC:
+       (1)  With VC++ 2008:
+              src/leptonlib.sln
+              src/leptonlib.vcproj
+       (2)  With VC++ Version 6:
+              src/leptonlib.dsw
+              src/leptonlib.dsp
+    The second can be used to generate a liblept DLL.
 
 3.  When you compile liblept using the supplied makefile (not autoconf),
     object code is by default put into a tree whose root is also the parent
@@ -143,7 +148,7 @@ tar -xvf leptonlib-1.61.tar
 4.  To make the programs in the prog directory, first make liblept in src
     and then do 'make' in the prog directory.
 
-    VERY IMPORTANT: the 100+ programs in the prog directory are
+    VERY IMPORTANT: the 170+ programs in the prog directory are
     an integral part of this package.  These can be divided into
     three types:
       (1) Programs that are complete regression tests.  The most
@@ -174,11 +179,12 @@ tar -xvf leptonlib-1.61.tar
           that reason, a local version of jmorecfg.h is included that has
           the comment elided.
       (3) You can output the prototypes for any C file by running:
-                xtractprotos <cfile>
+                xtractprotos <cfile>     or
+                xtractprotos -prestring=[string] <cfile>
       (4) The source for xtractprotos has been packaged up into a tar
           containing just the leptonica files necessary for building it
           in linux.  The tar file is available at:
-               www.leptonica.com/source/xtractlib-1.3.tar.gz
+               www.leptonica.com/source/xtractlib-1.4.tar.gz
 
 6.  New with 1.56, you can now build liblept with autoconf.  Do the
     following in the root directory (the directory with configure):
@@ -281,21 +287,24 @@ tar -xvf leptonlib-1.61.tar
            jbrankhaus, maketile and viewertest).
 
     (d) Windows via MS VC++
-        (1) Two project files are provided for building liblept under MSVC:
-              leptonlib.sln
-              leptonlib.vcproj
-            These were made with VC++ Version 9, and VC++ Express.  VS2008
-            is required to use them.
+        (1) Project files are provided for building liblept under MSVC:
+              (a) leptonlib.sln, leptonlib.vcproj
+                  [Made with VC++ Version 9, and VC++ Express.  VS2008
+                   is required to use it]
+              (b) leptonlib.dsw, leptonlib.dsp
+                  [Made with VC++ Version 6; supports building a DLL]
         (2) Because VC++ does not conform to the 1999 C++ standard,
-            which specifies stdint.h, you will need to include Paul Hsieh's
-            pstdint.h, a portable version of stdint.h, which can be found at
+            which specifies stdint.h, we have defined it in environ.h.
+            Otherwise you would need to include Paul Hsieh's pstdint.h,
+            a portable version of stdint.h, which can be found at
                 http://www.azillionmonkeys.com/qed/pstdint.h           
 
 10. Provides for your own memory management (allocator, deallocator).
     For pix, which tend to be large, the alloc/dealloc functions
     can be set programmatically.  For all other structs and arrays,
     the allocators are specified in environ.h.  Default functions
-    are malloc and free.
+    are malloc and free.  We have also provided a sample custom
+    allocator/deallocator in pixalloc.c.
 
 11  Unlike many other open source packages, Leptonica uses packed
     data for images with all bit/pixel (bpp) depths, allowing us
@@ -431,7 +440,7 @@ tar -xvf leptonlib-1.61.tar
     and vertical shearing about an arbitrary point (really, a line),
     both in-place and from source to dest.
 
-    There are two different types of general image rotators:
+    There are three different types of general image rotators:
 
 	a.  Grayscale rotation using area mapping
 	    - pixRotateAM() for 8 bit gray and 24 bit color, about center
@@ -444,6 +453,10 @@ tar -xvf leptonlib-1.61.tar
 	    from source to dest or in-place; e.g.
 	    - pixRotateShear()
 	    - pixRotateShearIP()
+
+        c.  Rotation by sampling.  This can be used on images
+            of arbitrary depth, and done about an arbitrary point.
+            Colormaps are retained.
 
 	The area mapping rotations are slower and more accurate,
 	because each new pixel is composed using an average of four
@@ -481,7 +494,9 @@ tar -xvf leptonlib-1.61.tar
 17. A number of standard image processing operations are also
     included, such as block convolution, binary block rank filtering,
     grayscale and rgb rank order filtering, and edge and local
-    minimum/maximum extraction. 
+    minimum/maximum extraction.   Generic convolution is included,
+    for both separable and non-separable kernels, using float arrays
+    in the Pix.
 
 18. Some functions have been included specifically to help with
     document image analysis.  These include skew and text orientation
@@ -525,7 +540,7 @@ tar -xvf leptonlib-1.61.tar
         - BMP has (until recently) had no compression.  It is a simple
 	  format with colormaps that requires no external libraries.
 	  It is commonly used because it is a Microsoft standard,
-	  but has little else to recommend it.  See bmpio.c.
+	  but has little besides simplicity to recommend it.  See bmpio.c.
 
 	- PNM is a very simple, old format that still has surprisingly
 	  wide use in the image processing community.  It does not
@@ -543,10 +558,10 @@ tar -xvf leptonlib-1.61.tar
         - All formats except JPEG support 1 bpp binary.
 	- All formats support 8 bpp grayscale (GIF must have a colormap).
 	- All formats except GIF support 24 bpp rgb color.
-	- All formats except PNM support 8 bpp palette. 
+	- All formats except PNM support 8 bpp colormap. 
 	- PNG and PNM support 2 and 4 bpp images.
-	- PNG supports 2 and 4 bpp palette, and 16 bpp without palette.
-	- PNG, JPEG, TIFF and GIF support image compression; PNM and BMP do not.
+	- PNG supports 2 and 4 bpp colormap, and 16 bpp without colormap.
+        - PNG, JPEG, TIFF and GIF support image compression; PNM and BMP do not.
     Use prog/ioformats_reg for a regression test on all but GIF.
     Use prog/gifio_reg for testing GIF.
 
@@ -577,8 +592,8 @@ tar -xvf leptonlib-1.61.tar
     for conversion to 24 bpp full color, as well as conversion
     from RGB to 8 bpp grayscale.  We also provide the inverse
     function to colormap removal; namely, color quantization
-    from 24 bpp full color to 8 bpp palette with some number
-    of palette colors.  Several versions are provided, some that
+    from 24 bpp full color to 8 bpp colormap with some number
+    of colormap colors.  Several versions are provided, some that
     use a fast octree vector quantizer and others that use
     a variation of the median cut quantizer.  For high-level interfaces,
     see for example: pixConvertRGBToColormap(), pixOctreeColorQuant(),
@@ -597,10 +612,11 @@ tar -xvf leptonlib-1.61.tar
     pixaDisplayTiledAndScaled().  These files can also be gathered up
     into a compressed PostScript file, using prog/convertfilestops,
     and viewed with evince, or converted to pdf.  Common image display
-    programs are: xv, display, gthumb, gqview, evince, gv, xpdf and acroread.
-    The leptonica program xvdisp generates nice quality images for
-    display with xv.  Finally, the images can be saved into a pixa 
-    (array of pix), specifying the eventual layout, using pixSaveTiled().
+    programs are: xv, display, gthumb, gqview, xli, evince, gv,
+    xpdf and acroread.  The leptonica program xvdisp generates
+    nice quality images for display with xv.  Finally, a set of images
+    can be saved into a pixa (array of pix), specifying the eventual
+    layout into a single pix, using pixSaveTiled().
 
 20. Simple data structures are provided for safe and
     efficient handling of arrays of numbers, strings, pointers,

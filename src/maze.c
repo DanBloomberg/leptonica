@@ -29,14 +29,14 @@
  *          PIX             *generateBinaryMaze()
  *          static MAZEEL   *mazeelCreate()
  *
- *          PIX             *searchBinaryMaze()
+ *          PIX             *pixSearchBinaryMaze()
  *          static l_int32   localSearchForBackground()
  *
  *      Generalizing a maze to a grayscale image, the search is
  *      now for the "shortest" or least cost path, for some given
  *      cost function.
  *
- *          PIX             *searchGrayMaze()
+ *          PIX             *pixSearchGrayMaze()
  *
  *      Display functions
  *          PIX             *pixDisplayPta()
@@ -274,7 +274,7 @@ MAZEEL *el;
  *                           Binary maze search                        *
  *---------------------------------------------------------------------*/
 /*!
- *  searchBinaryMaze()
+ *  pixSearchBinaryMaze()
  *
  *      Input:  pixs (1 bpp, maze)
  *              xi, yi  (beginning point; use same initial point
@@ -321,12 +321,12 @@ MAZEEL *el;
  *
  */
 PTA *
-searchBinaryMaze(PIX     *pixs,
-                 l_int32  xi,
-                 l_int32  yi, 
-                 l_int32  xf,
-                 l_int32  yf,
-                 PIX    **ppixd)
+pixSearchBinaryMaze(PIX     *pixs,
+                    l_int32  xi,
+                    l_int32  yi, 
+                    l_int32  xf,
+                    l_int32  yf,
+                    PIX    **ppixd)
 {
 l_int32    i, j, x, y, w, h, d, found;
 l_uint32   val, rpixel, gpixel, bpixel;
@@ -338,7 +338,7 @@ PIX       *pixp;  /* for bookkeeping, to indicate direction to parent */
 L_QUEUE   *lq;
 PTA       *pta;
 
-    PROCNAME("searchBinaryMaze");
+    PROCNAME("pixSearchBinaryMaze");
 
     if (ppixd) *ppixd = NULL;
     if (!pixs)
@@ -555,7 +555,7 @@ l_uint32  val;
  *                            Gray maze search                         *
  *---------------------------------------------------------------------*/
 /*!
- *  searchGrayMaze()
+ *  pixSearchGrayMaze()
  *
  *      Input:  pixs (1 bpp, maze)
  *              xi, yi  (beginning point; use same initial point
@@ -566,11 +566,6 @@ l_uint32  val;
  *                     that was searched)
  *      Return: pta (shortest path), or null if either no path
  *              exists or on error
- *
- *  Note: Because here is a considerable amount of overhead in calling
- *        pixGetPixel() and pixSetPixel(), this function can be sped
- *        up with little effort using raster line pointers and the
- *        GET_DATA* and SET_DATA* macros.
  *
  *  Commentary:
  *      Consider first a slight generalization of the binary maze
@@ -605,7 +600,7 @@ l_uint32  val;
  *      This continues until the destination pixel is popped off
  *      a stack.   The minimum path is then derived from the distance map,
  *      going back from the end point as before.  This is just Dijkstra's
- *      algorithm for a directed graph; here, the underlyaing graph
+ *      algorithm for a directed graph; here, the underlying graph
  *      (consisting of the pixels and four edges connecting each pixel
  *      to its 4-neighbor) is a special case of a directed graph, where
  *      each edge is bi-directional.  The implementation of this generalized
@@ -630,7 +625,7 @@ l_uint32  val;
  *      Rather than using an array of stacks, a more practical
  *      approach is to implement with a priority queue, which is
  *      a queue that is sorted so that the elements with the largest
- *      (or smallest) key values always comes off first.  The
+ *      (or smallest) key values always come off first.  The
  *      priority queue is efficiently implemented as a heap, and
  *      this is how we do it.  Suppose you run the algorithm
  *      using a priority queue, doing the bookkeeping with an
@@ -647,7 +642,7 @@ l_uint32  val;
  *
  *      Do we really have to use a sorted queue?  Can we solve this
  *      generalized maze with an unsorted queue of pixels?  (Or even
- *      an unsorted stack, doing a depth-first search?)
+ *      an unsorted stack, doing a depth-first search (DFS)?)
  *      Consider a different algorithm for this generalized maze, where
  *      we travel again breadth first, but this time use a single,
  *      unsorted queue.  An auxiliary image is used as before to
@@ -683,10 +678,21 @@ l_uint32  val;
  *      Because the shortest path can theoretically go anywhere,
  *      we must keep going.  How do we know when to stop?   Dijkstra
  *      uses an ordered queue to systematically remove nodes from
- *      further consideration.  With an unordered queue, the brute
- *      force answer is: stop when the queue (or stack) is empty,
- *      because then every pixel in the image has been assigned its
- *      minimum "distance" from the start pixel.
+ *      further consideration.  (Each time a pixel is popped, we're
+ *      done with it; it's "finalized" in the Dijkstra sense because
+ *      we know the shortest path to it.)  However, with an unordered
+ *      queue, the brute force answer is: stop when the queue
+ *      (or stack) is empty, because then every pixel in the image
+ *      has been assigned its minimum "distance" from the start pixel.
+ *
+ *      This is similar to the situation when you use a stack for the
+ *      simpler uniform-step problem: with breadth-first search (BFS)
+ *      the pixels on the queue are automatically ordered, so you are
+ *      done when you locate the end pixel as a neighbor of a popped pixel;
+ *      whereas depth-first search (DFS), using a stack, requires,
+ *      in general, a search of every accessible pixel.  Further, if
+ *      a pixel is revisited with a smaller distance, that distance is
+ *      recorded and the pixel is put on the stack again.
  *
  *      But surely, you ask, can't we stop sooner?  What if the
  *      start and end pixels are very close to each other?
@@ -697,17 +703,17 @@ l_uint32  val;
  *      could be just over a wall from the start.  With the unordered
  *      queue, you very quickly get a high distance for the end
  *      pixel, which will be relaxed to the minimum distance only
- *      after all the pixels of the path have been visited, many
- *      of them multiple times.  So that's the price for not ordering
- *      the queue!
+ *      after all the pixels of the path have been visited and placed
+ *      on the queue, multiple times for many of them.  So that's the
+ *      price for not ordering the queue!
  */
 PTA *
-searchGrayMaze(PIX     *pixs,
-               l_int32  xi,
-               l_int32  yi, 
-               l_int32  xf,
-               l_int32  yf,
-               PIX    **ppixd)
+pixSearchGrayMaze(PIX     *pixs,
+                  l_int32  xi,
+                  l_int32  yi, 
+                  l_int32  xf,
+                  l_int32  yf,
+                  PIX    **ppixd)
 {
 l_int32   x, y, w, h, d;
 l_uint32  val, valr, vals, rpixel, gpixel, bpixel;
@@ -721,7 +727,7 @@ PIX      *pixp;  /* for bookkeeping, to indicate direction to parent */
 L_HEAP   *lh;
 PTA      *pta;
 
-    PROCNAME("searchGrayMaze");
+    PROCNAME("pixSearchGrayMaze");
 
     if (ppixd) *ppixd = NULL;
     if (!pixs)

@@ -27,7 +27,7 @@
  *
  *    This file has the basic constructors, destructors and field accessors
  *
- *    Pix memory management
+ *    Pix memory management (allows custom allocator and deallocator)
  *          static void  *pix_malloc()
  *          static void   pix_free()
  *          void          setPixMemoryManager()
@@ -96,8 +96,28 @@
  *
  *
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- *  Important notes on low-level management of pix image data 
+ *      Important notes on direct management of pix image data 
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ *
+ *  Custom allocator and deallocator
+ *  --------------------------------
+ *
+ *  At the lowest level, you can specify the function that does the
+ *  allocation and deallocation of the data field in the pix.
+ *  By default, this is malloc and free.  However, by calling
+ *  setPixMemoryManager(), custom functions can be substituted.
+ *  When using this, keep two things in mind:
+ *
+ *   (1) Call setPixMemoryManager() before any pix have been allocated
+ *   (2) Destroy all pix as usual, in order to prevent leaks.
+ *
+ *  In pixalloc.c, we provide an example custom allocator and deallocator.
+ *  To use it, you must call pmsCreate() before any pix have been allocated
+ *  and pmsDestroy() at the end after all pix have been destroyed.
+ *
+ *
+ *  Direct manipulation of the pix data field
+ *  -----------------------------------------
  *
  *  Memory management of the (image) data field in the pix is
  *  handled differently from that in the colormap or text fields.
@@ -139,9 +159,9 @@
  *  sufficient so that you can do anything you want without
  *  explicitly referencing any of the pix member fields.
  *
- *  However, to avoid memory smashes and leaks when doing low-level memory
- *  management operations on the pix, look carefully at the behavior of the
- *  image data accessors and keep in mind that when you invoke pixDestroy(),
+ *  However, to avoid memory smashes and leaks when doing special operations
+ *  on the pix data field, look carefully at the behavior of the image
+ *  data accessors and keep in mind that when you invoke pixDestroy(),
  *  the pix considers itself the owner of all its heap data.
  */
 
@@ -283,7 +303,7 @@ l_uint32  *data;
     if (!pixd) return NULL;
     wpl = pixGetWpl(pixd);
     if ((data = (l_uint32 *)pix_malloc(4 * wpl * height)) == NULL)
-        return (PIX *)ERROR_PTR("MALLOC fail for data", procName, NULL);
+        return (PIX *)ERROR_PTR("pix_malloc fail for data", procName, NULL);
     pixSetData(pixd, data);
     pixSetPadBits(pixd, 0);
     return pixd;
@@ -550,7 +570,8 @@ l_uint32  *datas, *datad;
     }
 
         /* Reallocate image data if sizes are different */
-    pixResizeImageData(pixd, pixs);
+    if (pixResizeImageData(pixd, pixs) == 1)
+        return (PIX *)ERROR_PTR("reallocation of data failed", procName, NULL);
 
         /* Copy non-image data fields */
     pixCopyColormap(pixd, pixs);
@@ -604,7 +625,7 @@ l_uint32  *data;
     bytes = 4 * wpl * h;
     pixFreeData(pixd);  /* free any existing image data */
     if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
-        return ERROR_INT("MALLOC fail for data", procName, 1);
+        return ERROR_INT("pix_malloc fail for data", procName, 1);
     pixSetData(pixd, data);
     return 0;
 }

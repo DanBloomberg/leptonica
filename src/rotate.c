@@ -264,7 +264,7 @@ PIX       *pixd;
 /*!
  *  pixRotateBySampling()
  *
- *      Input:  pixs (1, 2, 4, 8, 32 bpp rgb)
+ *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp rgb; can be cmapped)
  *              xcen (x value of center of rotation)
  *              ycen (y value of center of rotation)
  *              angle (radians; clockwise is positive)
@@ -272,11 +272,10 @@ PIX       *pixd;
  *      Return: pixd, or null on error
  *
  *  Notes:
- *      (1) Rotation is about the center of the image.
- *      (2) For very small rotations, just return a clone.
- *      (3) Rotation brings either white or black pixels in
+ *      (1) For very small rotations, just return a clone.
+ *      (2) Rotation brings either white or black pixels in
  *          from outside the image.
- *      (4) Colormaps are retained.
+ *      (3) Colormaps are retained.
  */
 PIX *
 pixRotateBySampling(PIX       *pixs,

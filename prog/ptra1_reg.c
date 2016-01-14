@@ -64,8 +64,8 @@ static char  mainName[] = "ptra1_reg";
     fprintf(stderr, "Fill with clones and reconstruct\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_CLONE);
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 1);
 
         /* Remove every other one for the first half;
@@ -81,8 +81,8 @@ static char  mainName[] = "ptra1_reg";
         }
     }
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 0);
 
         /* Remove every other one for the entire set,
@@ -101,8 +101,8 @@ static char  mainName[] = "ptra1_reg";
     ptraCompactArray(papix);  /* now do the compaction */
     ptraCompactArray(pabox);
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 0);
 
         /* Fill ptras using insert at head, and reconstruct */
@@ -116,8 +116,8 @@ static char  mainName[] = "ptra1_reg";
         ptraInsert(pabox, 0, box, L_FULL_DOWNSHIFT);
     }
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 1);
 
         /* Reverse the arrays by swapping */
@@ -130,8 +130,8 @@ static char  mainName[] = "ptra1_reg";
     ptraCompactArray(papix);  /* already compact; shouldn't do anything */
     ptraCompactArray(pabox);
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 0);
 
         /* Remove at the top of the array and push the hole to the end
@@ -158,12 +158,12 @@ static char  mainName[] = "ptra1_reg";
     ptraCompactArray(papix);  /* should be empty */
     ptraCompactArray(pabox);  /* ditto */
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 1);  /* nothing there */
     pixat = ReconstructPixa(papix2, pabox2, CHOOSE_RECON);
-    ptraDestroy(&papix2, 0);
-    ptraDestroy(&pabox2, 0);
+    ptraDestroy(&papix2, 0, 1);
+    ptraDestroy(&pabox2, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 0);
 
         /* Remove and insert one position above, allowing minimum downshift.
@@ -180,8 +180,8 @@ static char  mainName[] = "ptra1_reg";
         ptraInsert(pabox, i - 1, box, L_MIN_DOWNSHIFT);
     }
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 1);
 
         /* Remove and insert one position above, but this time
@@ -197,8 +197,8 @@ static char  mainName[] = "ptra1_reg";
 /*    ptraCompactArray(papix);
     ptraCompactArray(pabox); */
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
-    ptraDestroy(&papix, 0);
-    ptraDestroy(&pabox, 0);
+    ptraDestroy(&papix, 0, 1);
+    ptraDestroy(&pabox, 0, 1);
     DisplayResult(pixac, &pixat, w, h, 0);
 
     pixd = pixaDisplay(pixac, 0, 0);

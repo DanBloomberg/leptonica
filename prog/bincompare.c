@@ -25,9 +25,9 @@
 #include "allheaders.h"
 
     /* set one of these to 1 */
-#define   XOR                   0
+#define   XOR                   1
 #define   SUBTRACT_1_FROM_2     0
-#define   SUBTRACT_2_FROM_1     1
+#define   SUBTRACT_2_FROM_1     0
 
 main(int    argc,
      char **argv)
@@ -83,6 +83,6 @@ static char  mainName[] = "bincompare";
     fprintf(stderr, "no comparison selected\n");
 #endif
 
-    exit(0);
+    return 0;
 }
 

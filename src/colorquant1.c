@@ -80,6 +80,7 @@
  *          PIX              *pixFixedOctcubeQuantGenRGB()
  *
  *  (8) Color quantize RGB image using existing colormap
+ *          PIX              *pixQuantFromCmap()  [high-level wrapper]
  *          PIX              *pixOctcubeQuantFromCmap()
  *          PIX              *pixOctcubeQuantFromCmapLUT()
  *
@@ -629,6 +630,7 @@ PIXCMAP   *cmap;
         /* Attach colormap and copy res */
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
 
     cqcellTreeDestroy(&cqcaa);
     pixDestroy(&pixsub);
@@ -940,6 +942,7 @@ PIX       *pixd;
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
@@ -1690,6 +1693,7 @@ PIXCMAP        *cmap;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     cmap = pixcmapCreate(depth);
     pixSetColormap(pixd, cmap);
 
@@ -2229,6 +2233,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("maxcolors not in {8...256}", procName, NULL);
 
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
 
         /*----------------------------------------------------------*
          * If we're using the minimum number of colors, it is       *
@@ -2553,6 +2558,7 @@ PIXCMAP   *cmap;
     if ((pixd = pixCreate(w, h, depth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     cmap = pixcmapCreate(depth);
     for (j = 0; j < size; j++)  /* reserve octcube colors */
         pixcmapAddColor(cmap, 1, 1, 1);  /* a color that won't be used */
@@ -2761,6 +2767,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
@@ -2924,9 +2931,9 @@ PIXCMAP   *cmap;
     pixd = pixCreate(w, h, depth);
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
@@ -3054,6 +3061,7 @@ PIXCMAP   *cmap;
     if ((pixd = pixCreate(w, h, depth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
@@ -3266,7 +3274,7 @@ PIXCMAP   *cmap, *cmapd;
         /* Fill in the gray values.  Use a grayscale version of pixs
          * as input, along with the mask over the actual gray pixels. */
     pixg = pixConvertTo8(pixs, 0);
-    pixGrayQuantizeFromHisto(pixd, pixg, pixm, minfract, maxspan);
+    pixGrayQuantFromHisto(pixd, pixg, pixm, minfract, maxspan);
 
     FREE(lut);
     pixDestroy(&pixc);
@@ -3319,11 +3327,11 @@ PIX       *pixd;
     pixGetDimensions(pixs, &w, &h, NULL);
     pixd = pixCreate(w, h, 32);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
@@ -3346,10 +3354,57 @@ PIX       *pixd;
  *          Color quantize RGB image using existing colormap        *
  *------------------------------------------------------------------*/
 /*!
+ *  pixQuantFromCmap()
+ *
+ *      Input:  pixs  (8 bpp grayscale without cmap, or 32 bpp rgb)
+ *              cmap  (to quantize to; insert copy into dest pix)
+ *              mindepth (minimum depth of pixd: can be 2, 4 or 8 bpp)
+ *              level (of octcube used for finding nearest color in cmap)
+ *              metric (L_MANHATTAN_DISTANCE, L_EUCLIDEAN_DISTANCE)
+ *      Return: pixd  (2, 4 or 8 bpp, colormapped), or null on error
+ *
+ *  Notes:
+ *      (1) This is a top-level wrapper for quantizing either grayscale
+ *          or rgb images to a specified colormap.
+ *      (2) The actual output depth is constrained by @mindepth and
+ *          by the number of colors in @cmap.
+ *      (3) For grayscale, @level and @metric are ignored.
+ *      (4) If the cmap has color and pixs is grayscale, the color is
+ *          removed from the cmap before quantizing pixs.
+ */
+PIX *
+pixQuantFromCmap(PIX      *pixs,
+                 PIXCMAP  *cmap,
+                 l_int32   mindepth,
+                 l_int32   level,
+                 l_int32   metric)
+{
+l_int32  d;
+
+    PROCNAME("pixQuantFromCmap");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (mindepth != 2 && mindepth != 4 && mindepth != 8)
+        return (PIX *)ERROR_PTR("invalid mindepth", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d == 8)
+        return pixGrayQuantFromCmap(pixs, cmap, mindepth);
+    else if (d == 32)
+        return pixOctcubeQuantFromCmap(pixs, cmap, mindepth,
+                                       level, metric);
+    else
+        return (PIX *)ERROR_PTR("d not 8 or 32 bpp", procName, NULL);
+}
+
+
+
+/*!
  *  pixOctcubeQuantFromCmap()
  *
  *      Input:  pixs  (32 bpp rgb)
- *              cmap  (to quantize to; of dest pix)
+ *              cmap  (to quantize to; insert copy into dest pix)
+ *              mindepth (minimum depth of pixd: can be 2, 4 or 8 bpp)
  *              level (of octcube used for finding nearest color in cmap)
  *              metric (L_MANHATTAN_DISTANCE, L_EUCLIDEAN_DISTANCE)
  *      Return: pixd  (2, 4 or 8 bpp, colormapped), or null on error
@@ -3389,8 +3444,9 @@ PIX       *pixd;
  *          of any cube (of which the octcubes are special cases)
  *          are all within a cell, then every point in the cube will
  *          lie within the cell.
- *      (4) The depth of the output pixd is the minimum (2, 4 or 8 bpp)
- *          necessary to hold the indices in the colormap.
+ *      (4) The depth of the output pixd is equal to the maximum of
+ *          (a) @mindepth and (b) the minimum (2, 4 or 8 bpp) necessary
+ *          to hold the indices in the colormap.
  *      (5) We build a mapping table from octcube to colormap index so
  *          that this function can run in a time (otherwise) independent
  *          of the number of colors in the colormap.  This avoids a
@@ -3406,6 +3462,7 @@ PIX       *pixd;
 PIX *
 pixOctcubeQuantFromCmap(PIX      *pixs,
                         PIXCMAP  *cmap,
+                        l_int32   mindepth,
                         l_int32   level,
                         l_int32   metric)
 {
@@ -3421,6 +3478,8 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (!cmap)
         return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+    if (mindepth != 2 && mindepth != 4 && mindepth != 8)
+        return (PIX *)ERROR_PTR("invalid mindepth", procName, NULL);
     if (level < 1 || level > 6)
         return (PIX *)ERROR_PTR("level not in {1...6}", procName, NULL);
     if (metric != L_MANHATTAN_DISTANCE && metric != L_EUCLIDEAN_DISTANCE)
@@ -3432,7 +3491,8 @@ PIX       *pixd;
     if ((cmaptab = pixcmapToOctcubeLUT(cmap, level, metric)) == NULL)
         return (PIX *)ERROR_PTR("cmaptab not made", procName, NULL);
 
-    pixd = pixOctcubeQuantFromCmapLUT(pixs, cmap, cmaptab, rtab, gtab, btab);
+    pixd = pixOctcubeQuantFromCmapLUT(pixs, cmap, mindepth,
+                                      cmaptab, rtab, gtab, btab);
 
     FREE(cmaptab);
     FREE(rtab);
@@ -3446,9 +3506,10 @@ PIX       *pixd;
  *  pixOctcubeQuantFromCmapLUT()
  *
  *      Input:  pixs  (32 bpp rgb)
- *              cmap (for the dest)
- *              cmaptab  (from octindex to colormap index)
- *              rtab, gtab, btab (from RGB to octindex)
+ *              cmap  (to quantize to; insert copy into dest pix)
+ *              mindepth (minimum depth of pixd: can be 2, 4 or 8 bpp)
+ *              cmaptab  (table mapping from octindex to colormap index)
+ *              rtab, gtab, btab (tables mapping from RGB to octindex)
  *      Return: pixd  (2, 4 or 8 bpp, colormapped), or null on error
  *
  *  Notes:
@@ -3466,12 +3527,13 @@ PIX       *pixd;
 PIX *
 pixOctcubeQuantFromCmapLUT(PIX       *pixs,
                            PIXCMAP   *cmap,
+                           l_int32    mindepth,
                            l_int32   *cmaptab,
                            l_uint32  *rtab,
                            l_uint32  *gtab,
                            l_uint32  *btab)
 {
-l_int32    i, j, w, h, ncolors, depth, wpls, wpld;
+l_int32    i, j, w, h, depth, wpls, wpld;
 l_int32    rval, gval, bval, index;
 l_uint32   octindex;
 l_uint32  *lines, *lined, *datas, *datad;
@@ -3486,23 +3548,21 @@ PIXCMAP   *cmapc;
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (!cmap)
         return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+    if (mindepth != 2 && mindepth != 4 && mindepth != 8)
+        return (PIX *)ERROR_PTR("invalid mindepth", procName, NULL);
     if (!rtab || !gtab || !btab || !cmaptab)
         return (PIX *)ERROR_PTR("tables not all defined", procName, NULL);
 
         /* Init dest pix (with minimum bpp depending on cmap) */
-    ncolors = pixcmapGetCount(cmap);
-    if (ncolors <= 4)
-        depth = 2;
-    else if (ncolors <= 16)
-        depth = 4;
-    else
-        depth = 8;
+    pixcmapGetMinDepth(cmap, &depth);
+    depth = L_MAX(depth, mindepth);
     pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     cmapc = pixcmapCopy(cmap);
     pixSetColormap(pixd, cmapc);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
 
         /* Insert the colormap index of the color nearest to the input pixel */
     datas = pixGetData(pixs);
@@ -3640,7 +3700,17 @@ NUMA       *na;
  *          do two table lookups: first to generate the octcube index
  *          from rgb and second to use this table to read out the
  *          colormap index.
- *      (2) Here are the actual function calls:
+ *      (2) Do a slight modification for white and black.  For level = 4,
+ *          each octcube size is 16.  The center of the whitest octcube
+ *          is at (248, 248, 248), which is closer to 242 than 255.
+ *          Consequently, any gray color between 242 and 254 will
+ *          be selected, even if white (255, 255, 255) exists.  This is
+ *          typically not optimal, because the original color was
+ *          likely white.  Therefore, if white exists in the colormap,
+ *          use it for any rgb color that falls into the most white octcube.
+ *          Do the similar thing for black.
+ *      (3) Here are the actual function calls for quantizing to a
+ *          specified colormap:
  *            - first make the tables that map from rgb --> octcube index
  *                     makeRGBToIndexTables()
  *            - then for each pixel:
@@ -3648,20 +3718,20 @@ NUMA       *na;
  *                     getOctcubeIndexFromRGB()
  *                * use this table to get the nearest color in the colormap
  *                     cmap_index = tab[index]
- *      (3) Distance can be either manhattan or euclidean.
- *      (4) When this function is used within color segmentation,
- *          there are typically a small number of colors and the
- *          number of levels can be small (e.g., 3).
+ *      (4) Distance can be either manhattan or euclidean.
+ *      (5) In typical use, level = 4 gives reasonable results, and
+ *          level = 5 is slightly better.  When this function is used
+ *          for color segmentation, there are typically a small number
+ *          of colors and the number of levels can be small (e.g., level = 3).
  */
 l_int32 *
 pixcmapToOctcubeLUT(PIXCMAP  *cmap,
                     l_int32   level,
                     l_int32   metric)
 {
-l_int32   i, k, size, ncolors, mindist, dist, mincolor;
-l_int32   rval, gval, bval;  /* color at center of the octcube */
-l_int32  *rmap, *gmap, *bmap;
-l_int32  *tab;
+l_int32    i, k, size, ncolors, mindist, dist, mincolor, index;
+l_int32    rval, gval, bval;  /* color at center of the octcube */
+l_int32   *rmap, *gmap, *bmap, *tab;
 
     PROCNAME("pixcmapToOctcubeLUT");
 
@@ -3680,6 +3750,7 @@ l_int32  *tab;
     ncolors = pixcmapGetCount(cmap);
     pixcmapToArrays(cmap, &rmap, &gmap, &bmap);
 
+        /* Assign based on the closest octcube center to the cmap color */
     for (i = 0; i < size; i++) {
         getRGBFromOctcube(i, level, &rval, &gval, &bval);
         mindist = 1000000;
@@ -3700,6 +3771,20 @@ l_int32  *tab;
             }
         }
         tab[i] = mincolor;
+    }
+
+        /* Reset black and white if available in the colormap.
+         * The darkest octcube is at octindex 0.
+         * The lightest octcube is at the max octindex. */
+    pixcmapGetNearestIndex(cmap, 0, 0, 0, &index);
+    pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+    if (rval < 7 && gval < 7 && bval < 7) {
+        tab[0] = index;
+    }
+    pixcmapGetNearestIndex(cmap, 255, 255, 255, &index);
+    pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+    if (rval > 248 && gval > 248 && bval > 248) {
+        tab[(1 << (3 * level)) - 1] = index;
     }
 
     FREE(rmap);

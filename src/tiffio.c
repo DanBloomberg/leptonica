@@ -299,7 +299,7 @@ PIXCMAP   *cmap;
             pixDestroy(&pix);
             return (PIX *)ERROR_PTR("calloc fail for tiffdata", procName, NULL);
         }
-        if (!TIFFReadRGBAImageOriented(tif, w, h, tiffdata,
+        if (!TIFFReadRGBAImageOriented(tif, w, h, (uint32 *)tiffdata,
                                        ORIENTATION_TOPLEFT, 0)) {
             FREE(tiffdata);
             pixDestroy(&pix);

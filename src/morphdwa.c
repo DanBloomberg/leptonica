@@ -28,6 +28,13 @@
  *         PIX     *pixOpenCompBrickDwa()
  *         PIX     *pixCloseCompBrickDwa()
  *
+ *    Binary extended composite morphological (dwa) ops with brick Sels
+ *         PIX     *pixDilateCompBrickExtendDwa()
+ *         PIX     *pixErodeCompBrickExtendDwa()
+ *         PIX     *pixOpenCompBrickExtendDwa()
+ *         PIX     *pixCloseCompBrickExtendDwa()
+ *         l_int32  getExtendedCompositeParameters()
+ *
  *    These are higher-level interfaces for dwa morphology with brick Sels.
  *    Because many morphological operations are performed using
  *    separable brick Sels, it is useful to have a simple interface
@@ -36,9 +43,29 @@
  *    We have included all 58 of the brick Sels that are generated
  *    by selaAddBasic().  These are sufficient for all the decomposable
  *    bricks up to size 63, which is the limit for dwa Sels with
- *    origins at the center of the Sel.  If you try to apply a 
- *    non-decomposable operation with a Sel size that doesn't exist,
- *    the default is to call a decomposable operation instead.
+ *    origins at the center of the Sel.
+ *
+ *    All three sets can be used as the basic interface for general
+ *    brick operations.  Here are the internal calling sequences:
+ *
+ *      (1) If you try to apply a non-decomposable operation, such as
+ *          pixErodeBrickDwa(), with a Sel size that doesn't exist,
+ *          this calls a decomposable operation, pixErodeCompBrickDwa(),
+ *          instead.  This can differ in linear Sel size by up to
+ *          2 pixels from the request.
+ *
+ *      (2) If either Sel brick dimension is greater than 63, the extended
+ *          composite function is called.
+ *
+ *      (3) The extended composite function calls the composite function
+ *          a number of times with size 63, and once with size < 63.
+ *          Because each operation with a size of 63 is done compositely
+ *          with 7 x 9 (exactly 63), the net result is correct in
+ *          length to within 2 pixels.
+ *
+ *    For composite operations, both using a comb and extended (beyond 63),
+ *    horizontal and vertical operations are composed separately
+ *    and sequentially.
  *
  *    We have also included use of all the 76 comb Sels that are generated
  *    by selaAddDwaCombs().  The generated code is in dwacomb.2.c
@@ -46,9 +73,8 @@
  *    brick operations.
  *
  *    The non-composite brick operations, such as pixDilateBrickDwa(),
- *    will automatically default to the associated composite
- *    operation in situations where the requisite brick Sel has
- *    not been compiled into fmorphgen*.1.c.
+ *    will call the associated composite operation in situations where
+ *    the requisite brick Sel has not been compiled into fmorphgen*.1.c.
  *
  *    If you want to use brick Sels that are not represented in the
  *    basic set of 58, you must generate the dwa code to implement them.
@@ -129,6 +155,8 @@
  *          (b) pixDilateBrickDwa(pixs, pixs, ...);
  *          (c) pixDilateBrickDwa(pixd, pixs, ...);
  *      (8) The size of pixd is determined by pixs.
+ *      (9) If either linear Sel is not found, this calls
+ *          the appropriate decomposible function.
  */
 PIX *
 pixDilateBrickDwa(PIX     *pixd,
@@ -155,6 +183,7 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     sela = selaAddBasic(NULL);
     found = TRUE;
+    selnameh = selnamev = NULL;
     if (hsize > 1) {
         selnameh = selaGetBrickName(sela, hsize, 1);
         if (!selnameh) found = FALSE;
@@ -192,8 +221,8 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt2;
-    pixCopy(pixd, pixt2);
-    pixDestroy(&pixt2);
+
+    pixTransferAllData(pixd, &pixt2, 0, 0);
     return pixd;
 }
 
@@ -228,6 +257,8 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          (b) pixErodeBrickDwa(pixs, pixs, ...);
  *          (c) pixErodeBrickDwa(pixd, pixs, ...);
  *      (9) The size of the result is determined by pixs.
+ *      (10) If either linear Sel is not found, this calls
+ *           the appropriate decomposible function.
  */
 PIX *
 pixErodeBrickDwa(PIX     *pixd,
@@ -254,6 +285,7 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     sela = selaAddBasic(NULL);
     found = TRUE;
+    selnameh = selnamev = NULL;
     if (hsize > 1) {
         selnameh = selaGetBrickName(sela, hsize, 1);
         if (!selnameh) found = FALSE;
@@ -291,8 +323,8 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt2;
-    pixCopy(pixd, pixt2);
-    pixDestroy(&pixt2);
+
+    pixTransferAllData(pixd, &pixt2, 0, 0);
     return pixd;
 }
 
@@ -327,6 +359,8 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          (b) pixOpenBrickDwa(pixs, pixs, ...);
  *          (c) pixOpenBrickDwa(pixd, pixs, ...);
  *      (9) The size of the result is determined by pixs.
+ *      (10) If either linear Sel is not found, this calls
+ *           the appropriate decomposible function.
  */
 PIX *
 pixOpenBrickDwa(PIX     *pixd,
@@ -353,6 +387,7 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     sela = selaAddBasic(NULL);
     found = TRUE;
+    selnameh = selnamev = NULL;
     if (hsize > 1) {
         selnameh = selaGetBrickName(sela, hsize, 1);
         if (!selnameh) found = FALSE;
@@ -393,8 +428,8 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt3;
-    pixCopy(pixd, pixt3);
-    pixDestroy(&pixt3);
+
+    pixTransferAllData(pixd, &pixt3, 0, 0);
     return pixd;
 }
 
@@ -431,6 +466,8 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          (b) pixCloseBrickDwa(pixs, pixs, ...);
  *          (c) pixCloseBrickDwa(pixd, pixs, ...);
  *      (10) The size of the result is determined by pixs.
+ *      (11) If either linear Sel is not found, this calls
+ *           the appropriate decomposible function.
  */
 PIX *
 pixCloseBrickDwa(PIX     *pixd,
@@ -457,6 +494,7 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     sela = selaAddBasic(NULL);
     found = TRUE;
+    selnameh = selnamev = NULL;
     if (hsize > 1) {
         selnameh = selaGetBrickName(sela, hsize, 1);
         if (!selnameh) found = FALSE;
@@ -507,8 +545,8 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt3;
-    pixCopy(pixd, pixt3);
-    pixDestroy(&pixt3);
+
+    pixTransferAllData(pixd, &pixt3, 0, 0);
     return pixd;
 }
 
@@ -577,7 +615,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     if (hsize < 1 || vsize < 1)
         return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
     if (hsize > 63 || vsize > 63)
-        return (PIX *)ERROR_PTR("hsize and vsize not <= 63", procName, pixd);
+        return pixDilateCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -643,8 +681,8 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt1;
-    pixCopy(pixd, pixt1);
-    pixDestroy(&pixt1);
+
+    pixTransferAllData(pixd, &pixt1, 0, 0);
     return pixd;
 }
 
@@ -698,7 +736,7 @@ pixErodeCompBrickDwa(PIX     *pixd,
                      l_int32  vsize)
 {
 char    *selnameh1, *selnameh2, *selnamev1, *selnamev2;
-l_int32  hsize1, hsize2, vsize1, vsize2;
+l_int32  hsize1, hsize2, vsize1, vsize2, bordercolor;
 PIX     *pixt1, *pixt2, *pixt3;
 
     PROCNAME("pixErodeCompBrickDwa");
@@ -710,7 +748,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     if (hsize < 1 || vsize < 1)
         return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
     if (hsize > 63 || vsize > 63)
-        return (PIX *)ERROR_PTR("hsize and vsize not <= 63", procName, pixd);
+        return pixErodeCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -724,7 +762,10 @@ PIX     *pixt1, *pixt2, *pixt3;
         getCompositeParameters(vsize, &vsize1, &vsize2, NULL, NULL,
                                &selnamev1, &selnamev2);
 
-    pixt1 = pixAddBorder(pixs, 64, 0);
+        /* For symmetric b.c., bordercolor == 1 for erosion */
+    bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
+    pixt1 = pixAddBorder(pixs, 64, bordercolor);
+
     if (vsize == 1) {
         if (hsize2 == 1) 
             pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh1);
@@ -769,8 +810,8 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt1;
-    pixCopy(pixd, pixt1);
-    pixDestroy(&pixt1);
+
+    pixTransferAllData(pixd, &pixt1, 0, 0);
     return pixd;
 }
 
@@ -824,7 +865,7 @@ pixOpenCompBrickDwa(PIX     *pixd,
                     l_int32  vsize)
 {
 char    *selnameh1, *selnameh2, *selnamev1, *selnamev2;
-l_int32  hsize1, hsize2, vsize1, vsize2;
+l_int32  hsize1, hsize2, vsize1, vsize2, bordercolor;
 PIX     *pixt1, *pixt2, *pixt3;
 
     PROCNAME("pixOpenCompBrickDwa");
@@ -836,7 +877,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     if (hsize < 1 || vsize < 1)
         return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
     if (hsize > 63 || vsize > 63)
-        return (PIX *)ERROR_PTR("hsize and vsize not <= 63", procName, pixd);
+        return pixOpenCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -850,15 +891,22 @@ PIX     *pixt1, *pixt2, *pixt3;
         getCompositeParameters(vsize, &vsize1, &vsize2, NULL, NULL,
                                &selnamev1, &selnamev2);
 
-    pixt1 = pixAddBorder(pixs, 64, 0);
+        /* For symmetric b.c., initialize erosion with bordercolor == 1 */
+    bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
+    pixt1 = pixAddBorder(pixs, 64, bordercolor);
+
     if (vsize == 1) {
         if (hsize2 == 1) {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh1);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt3, 64, 64, 64, 64, PIX_CLR);
             pixt2 = pixFMorphopGen_1(NULL, pixt3, L_MORPH_DILATE, selnameh1);
         }
         else {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh1);
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_ERODE, selnameh2);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_CLR);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnameh1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_DILATE, selnameh2);
         }
@@ -866,11 +914,15 @@ PIX     *pixt1, *pixt2, *pixt3;
     else if (hsize == 1) {
         if (vsize2 == 1)  {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnamev1);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt3, 64, 64, 64, 64, PIX_CLR);
             pixt2 = pixFMorphopGen_1(NULL, pixt3, L_MORPH_DILATE, selnamev1);
 	}
        	else {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnamev1);
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_ERODE, selnamev2);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_CLR);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnamev1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_DILATE, selnamev2);
         }
@@ -879,6 +931,8 @@ PIX     *pixt1, *pixt2, *pixt3;
         if (hsize2 == 1 && vsize2 == 1) {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh1);
             pixt2 = pixFMorphopGen_1(NULL, pixt3, L_MORPH_ERODE, selnamev1);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_CLR);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnameh1);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_DILATE, selnamev1);
         }
@@ -886,6 +940,8 @@ PIX     *pixt1, *pixt2, *pixt3;
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh1);
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_ERODE, selnameh2);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnamev1);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt3, 64, 64, 64, 64, PIX_CLR);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_DILATE, selnameh1);
             pixFMorphopGen_2(pixt3, pixt2, L_MORPH_DILATE, selnameh2);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_DILATE, selnamev1);
@@ -894,6 +950,8 @@ PIX     *pixt1, *pixt2, *pixt3;
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh1);
             pixt2 = pixFMorphopGen_1(NULL, pixt3, L_MORPH_ERODE, selnamev1);
             pixFMorphopGen_2(pixt3, pixt2, L_MORPH_ERODE, selnamev2);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt3, 64, 64, 64, 64, PIX_CLR);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_DILATE, selnameh1);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnamev1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_DILATE, selnamev2);
@@ -903,6 +961,8 @@ PIX     *pixt1, *pixt2, *pixt3;
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_ERODE, selnameh2);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnamev1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_ERODE, selnamev2);
+            if (bordercolor == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_CLR);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnameh1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_DILATE, selnameh2);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnamev1);
@@ -921,8 +981,8 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt1;
-    pixCopy(pixd, pixt1);
-    pixDestroy(&pixt1);
+
+    pixTransferAllData(pixd, &pixt1, 0, 0);
     return pixd;
 }
 
@@ -977,7 +1037,7 @@ pixCloseCompBrickDwa(PIX     *pixd,
                      l_int32  vsize)
 {
 char    *selnameh1, *selnameh2, *selnamev1, *selnamev2;
-l_int32  hsize1, hsize2, vsize1, vsize2;
+l_int32  hsize1, hsize2, vsize1, vsize2, setborder;
 PIX     *pixt1, *pixt2, *pixt3;
 
     PROCNAME("pixCloseCompBrickDwa");
@@ -989,7 +1049,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     if (hsize < 1 || vsize < 1)
         return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
     if (hsize > 63 || vsize > 63)
-        return (PIX *)ERROR_PTR("hsize and vsize not <= 63", procName, pixd);
+        return pixCloseCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -1004,13 +1064,18 @@ PIX     *pixt1, *pixt2, *pixt3;
                                &selnamev1, &selnamev2);
 
     pixt3 = NULL;
+        /* For symmetric b.c., PIX_SET border for erosions */
+    setborder = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
     pixt1 = pixAddBorder(pixs, 64, 0);
+
     if (vsize == 1) {
         if (hsize2 == 1)
             pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_CLOSE, selnameh1);
         else {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh1);
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_DILATE, selnameh2);
+            if (setborder == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_SET);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnameh1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_ERODE, selnameh2);
         }
@@ -1021,6 +1086,8 @@ PIX     *pixt1, *pixt2, *pixt3;
        	else {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnamev1);
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_DILATE, selnamev2);
+            if (setborder == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_SET);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnamev1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_ERODE, selnamev2);
         }
@@ -1029,6 +1096,8 @@ PIX     *pixt1, *pixt2, *pixt3;
         if (hsize2 == 1 && vsize2 == 1) {
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh1);
             pixt2 = pixFMorphopGen_1(NULL, pixt3, L_MORPH_DILATE, selnamev1);
+            if (setborder == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_SET);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnameh1);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_ERODE, selnamev1);
         }
@@ -1036,6 +1105,8 @@ PIX     *pixt1, *pixt2, *pixt3;
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh1);
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_DILATE, selnameh2);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnamev1);
+            if (setborder == 1)
+                pixSetOrClearBorder(pixt3, 64, 64, 64, 64, PIX_SET);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_ERODE, selnameh1);
             pixFMorphopGen_2(pixt3, pixt2, L_MORPH_ERODE, selnameh2);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_ERODE, selnamev1);
@@ -1044,6 +1115,8 @@ PIX     *pixt1, *pixt2, *pixt3;
             pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh1);
             pixt2 = pixFMorphopGen_1(NULL, pixt3, L_MORPH_DILATE, selnamev1);
             pixFMorphopGen_2(pixt3, pixt2, L_MORPH_DILATE, selnamev2);
+            if (setborder == 1)
+                pixSetOrClearBorder(pixt3, 64, 64, 64, 64, PIX_SET);
             pixFMorphopGen_1(pixt2, pixt3, L_MORPH_ERODE, selnameh1);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnamev1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_ERODE, selnamev2);
@@ -1053,6 +1126,8 @@ PIX     *pixt1, *pixt2, *pixt3;
             pixt2 = pixFMorphopGen_2(NULL, pixt3, L_MORPH_DILATE, selnameh2);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnamev1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_DILATE, selnamev2);
+            if (setborder == 1)
+                pixSetOrClearBorder(pixt2, 64, 64, 64, 64, PIX_SET);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnameh1);
             pixFMorphopGen_2(pixt2, pixt3, L_MORPH_ERODE, selnameh2);
             pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnamev1);
@@ -1071,9 +1146,447 @@ PIX     *pixt1, *pixt2, *pixt3;
 
     if (!pixd)
         return pixt1;
-    pixCopy(pixd, pixt1);
-    pixDestroy(&pixt1);
+
+    pixTransferAllData(pixd, &pixt1, 0, 0);
     return pixd;
+}
+
+
+/*--------------------------------------------------------------------------*
+ *    Binary expanded composite morphological (dwa) ops with brick Sels     *
+ *--------------------------------------------------------------------------*/
+/*!
+ *  pixDilateCompBrickExtendDwa()
+ *
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ * 
+ *  Notes:
+ *      (1) Ankur Jain suggested and implemented extending the composite
+ *          DWA operations beyond the 63 pixel limit.  This is a
+ *          simplified and approximate implementation of the extension.
+ *          This allows arbitrary Dwa morph operations using brick Sels,
+ *          by decomposing the horizontal and vertical dilations into
+ *          a sequence of 63-element dilations plus a dilation of size
+ *          between 3 and 62.
+ *      (2) The 63-element dilations are exact, whereas the extra dilation
+ *          is approximate, because the underlying decomposition is
+ *          in pixDilateCompBrickDwa().  See there for further details.
+ *      (3) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (4) There is no need to call this directly:  pixDilateCompBrickDwa()
+ *          calls this function if either brick dimension exceeds 63.
+ */
+PIX *
+pixDilateCompBrickExtendDwa(PIX     *pixd,
+                            PIX     *pixs,
+                            l_int32  hsize,
+                            l_int32  vsize)
+{
+l_int32  i, nops, nh, extrah, nv, extrav;
+PIX     *pixt1, *pixt2, *pixt3;
+
+    PROCNAME("pixDilateCompBrickExtendDwa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    if (hsize < 64 && vsize < 64)
+        return pixDilateCompBrickDwa(pixd, pixs, hsize, vsize);
+
+    if (hsize > 63)
+        getExtendedCompositeParameters(hsize, &nh, &extrah, NULL);
+    if (vsize > 63)
+        getExtendedCompositeParameters(vsize, &nv, &extrav, NULL);
+
+        /* Horizontal dilation first: pixs --> pixt2.  Do not alter pixs. */
+    pixt1 = pixCreateTemplateNoInit(pixs);  /* temp image */
+    if (hsize == 1)
+        pixt2 = pixClone(pixs);
+    else if (hsize < 64)
+        pixt2 = pixDilateCompBrickDwa(NULL, pixs, hsize, 1);
+    else if (hsize == 64)  /* approximate */
+        pixt2 = pixDilateCompBrickDwa(NULL, pixs, 63, 1);
+    else {
+        nops = (extrah < 3) ? nh : nh + 1;
+        if (nops & 1) {  /* odd */
+            if (extrah > 2)
+                pixt2 = pixDilateCompBrickDwa(NULL, pixs, extrah, 1);
+            else
+                pixt2 = pixDilateCompBrickDwa(NULL, pixs, 63, 1);
+            for (i = 0; i < nops / 2; i++) {
+                pixDilateCompBrickDwa(pixt1, pixt2, 63, 1);
+                pixDilateCompBrickDwa(pixt2, pixt1, 63, 1);
+            }
+        }
+        else {  /* nops even */
+            if (extrah > 2) {
+                pixDilateCompBrickDwa(pixt1, pixs, extrah, 1);
+                pixt2 = pixDilateCompBrickDwa(NULL, pixt1, 63, 1);
+            }
+            else {  /* they're all 63s */
+                pixDilateCompBrickDwa(pixt1, pixs, 63, 1);
+                pixt2 = pixDilateCompBrickDwa(NULL, pixt1, 63, 1);
+            }
+            for (i = 0; i < nops / 2 - 1; i++) {
+                pixDilateCompBrickDwa(pixt1, pixt2, 63, 1);
+                pixDilateCompBrickDwa(pixt2, pixt1, 63, 1);
+            }
+        }
+    }
+
+        /* Vertical dilation: pixt2 --> pixt3.  */
+    if (vsize == 1)
+        pixt3 = pixClone(pixt2);
+    else if (vsize < 64)
+        pixt3 = pixDilateCompBrickDwa(NULL, pixt2, 1, vsize);
+    else if (vsize == 64)  /* approximate */
+        pixt3 = pixDilateCompBrickDwa(NULL, pixt2, 1, 63);
+    else {
+        nops = (extrav < 3) ? nv : nv + 1;
+        if (nops & 1) {  /* odd */
+            if (extrav > 2)
+                pixt3 = pixDilateCompBrickDwa(NULL, pixt2, 1, extrav);
+            else
+                pixt3 = pixDilateCompBrickDwa(NULL, pixt2, 1, 63);
+            for (i = 0; i < nops / 2; i++) {
+                pixDilateCompBrickDwa(pixt1, pixt3, 1, 63);
+                pixDilateCompBrickDwa(pixt3, pixt1, 1, 63);
+            }
+        }
+        else {  /* nops even */
+            if (extrav > 2) {
+                pixDilateCompBrickDwa(pixt1, pixt2, 1, extrav);
+                pixt3 = pixDilateCompBrickDwa(NULL, pixt1, 1, 63);
+            }
+            else {  /* they're all 63s */
+                pixDilateCompBrickDwa(pixt1, pixt2, 1, 63);
+                pixt3 = pixDilateCompBrickDwa(NULL, pixt1, 1, 63);
+            }
+            for (i = 0; i < nops / 2 - 1; i++) {
+                pixDilateCompBrickDwa(pixt1, pixt3, 1, 63);
+                pixDilateCompBrickDwa(pixt3, pixt1, 1, 63);
+            }
+        }
+    }
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+    if (!pixd)
+        return pixt3;
+
+    pixTransferAllData(pixd, &pixt3, 0, 0);
+    return pixd;
+}
+
+
+/*!
+ *  pixErodeCompBrickExtendDwa()
+ *
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ * 
+ *  Notes:
+ *      (1) See pixDilateCompBrickExtendDwa() for usage.
+ *      (2) There is no need to call this directly:  pixErodeCompBrickDwa()
+ *          calls this function if either brick dimension exceeds 63.
+ */
+PIX *
+pixErodeCompBrickExtendDwa(PIX     *pixd,
+                           PIX     *pixs,
+                           l_int32  hsize,
+                           l_int32  vsize)
+{
+l_int32  i, nops, nh, extrah, nv, extrav;
+PIX     *pixt1, *pixt2, *pixt3;
+
+    PROCNAME("pixErodeCompBrickExtendDwa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    if (hsize < 64 && vsize < 64)
+        return pixErodeCompBrickDwa(pixd, pixs, hsize, vsize);
+
+    if (hsize > 63)
+        getExtendedCompositeParameters(hsize, &nh, &extrah, NULL);
+    if (vsize > 63)
+        getExtendedCompositeParameters(vsize, &nv, &extrav, NULL);
+
+        /* Horizontal erosion first: pixs --> pixt2.  Do not alter pixs. */
+    pixt1 = pixCreateTemplateNoInit(pixs);  /* temp image */
+    if (hsize == 1)
+        pixt2 = pixClone(pixs);
+    else if (hsize < 64)
+        pixt2 = pixErodeCompBrickDwa(NULL, pixs, hsize, 1);
+    else if (hsize == 64)  /* approximate */
+        pixt2 = pixErodeCompBrickDwa(NULL, pixs, 63, 1);
+    else {
+        nops = (extrah < 3) ? nh : nh + 1;
+        if (nops & 1) {  /* odd */
+            if (extrah > 2)
+                pixt2 = pixErodeCompBrickDwa(NULL, pixs, extrah, 1);
+            else
+                pixt2 = pixErodeCompBrickDwa(NULL, pixs, 63, 1);
+            for (i = 0; i < nops / 2; i++) {
+                pixErodeCompBrickDwa(pixt1, pixt2, 63, 1);
+                pixErodeCompBrickDwa(pixt2, pixt1, 63, 1);
+            }
+        }
+        else {  /* nops even */
+            if (extrah > 2) {
+                pixErodeCompBrickDwa(pixt1, pixs, extrah, 1);
+                pixt2 = pixErodeCompBrickDwa(NULL, pixt1, 63, 1);
+            }
+            else {  /* they're all 63s */
+                pixErodeCompBrickDwa(pixt1, pixs, 63, 1);
+                pixt2 = pixErodeCompBrickDwa(NULL, pixt1, 63, 1);
+            }
+            for (i = 0; i < nops / 2 - 1; i++) {
+                pixErodeCompBrickDwa(pixt1, pixt2, 63, 1);
+                pixErodeCompBrickDwa(pixt2, pixt1, 63, 1);
+            }
+        }
+    }
+
+        /* Vertical erosion: pixt2 --> pixt3.  */
+    if (vsize == 1)
+        pixt3 = pixClone(pixt2);
+    else if (vsize < 64)
+        pixt3 = pixErodeCompBrickDwa(NULL, pixt2, 1, vsize);
+    else if (vsize == 64)  /* approximate */
+        pixt3 = pixErodeCompBrickDwa(NULL, pixt2, 1, 63);
+    else {
+        nops = (extrav < 3) ? nv : nv + 1;
+        if (nops & 1) {  /* odd */
+            if (extrav > 2)
+                pixt3 = pixErodeCompBrickDwa(NULL, pixt2, 1, extrav);
+            else
+                pixt3 = pixErodeCompBrickDwa(NULL, pixt2, 1, 63);
+            for (i = 0; i < nops / 2; i++) {
+                pixErodeCompBrickDwa(pixt1, pixt3, 1, 63);
+                pixErodeCompBrickDwa(pixt3, pixt1, 1, 63);
+            }
+        }
+        else {  /* nops even */
+            if (extrav > 2) {
+                pixErodeCompBrickDwa(pixt1, pixt2, 1, extrav);
+                pixt3 = pixErodeCompBrickDwa(NULL, pixt1, 1, 63);
+            }
+            else {  /* they're all 63s */
+                pixErodeCompBrickDwa(pixt1, pixt2, 1, 63);
+                pixt3 = pixErodeCompBrickDwa(NULL, pixt1, 1, 63);
+            }
+            for (i = 0; i < nops / 2 - 1; i++) {
+                pixErodeCompBrickDwa(pixt1, pixt3, 1, 63);
+                pixErodeCompBrickDwa(pixt3, pixt1, 1, 63);
+            }
+        }
+    }
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+    if (!pixd)
+        return pixt3;
+
+    pixTransferAllData(pixd, &pixt3, 0, 0);
+    return pixd;
+}
+
+
+/*!
+ *  pixOpenCompBrickExtendDwa()
+ *
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ * 
+ *      (1) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (2) There is no need to call this directly:  pixOpenCompBrickDwa()
+ *          calls this function if either brick dimension exceeds 63.
+ */
+PIX *
+pixOpenCompBrickExtendDwa(PIX     *pixd,
+                          PIX     *pixs,
+                          l_int32  hsize,
+                          l_int32  vsize)
+{
+PIX     *pixt;
+
+    PROCNAME("pixOpenCompBrickExtendDwa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    pixt = pixErodeCompBrickExtendDwa(NULL, pixs, hsize, vsize);
+    pixd = pixDilateCompBrickExtendDwa(pixd, pixt, hsize, vsize);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixCloseCompBrickExtendDwa()
+ *
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ * 
+ *      (1) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (2) There is no need to call this directly:  pixCloseCompBrickDwa()
+ *          calls this function if either brick dimension exceeds 63.
+ */
+PIX *
+pixCloseCompBrickExtendDwa(PIX     *pixd,
+                           PIX     *pixs,
+                           l_int32  hsize,
+                           l_int32  vsize)
+{
+l_int32  bordercolor, borderx, bordery;
+PIX     *pixt1, *pixt2, *pixt3;
+
+    PROCNAME("pixCloseCompBrickExtendDwa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+        /* For "safe closing" with ASYMMETRIC_MORPH_BC, we always need
+         * an extra 32 OFF pixels around the image (in addition to 
+         * the 32 added pixels for all dwa operations), whereas with
+         * SYMMETRIC_MORPH_BC this is not necessary. */
+    bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
+    if (bordercolor == 0) {  /* asymmetric b.c. */
+        borderx = 32 + (hsize / 64) * 32;
+        bordery = 32 + (vsize / 64) * 32;
+    }
+    else   /* symmetric b.c. */
+        borderx = bordery = 32;
+    pixt1 = pixAddBorderGeneral(pixs, borderx, borderx, bordery, bordery, 0);
+
+    pixt2 = pixDilateCompBrickExtendDwa(NULL, pixt1, hsize, vsize);
+    pixErodeCompBrickExtendDwa(pixt1, pixt2, hsize, vsize);
+
+    pixt3 = pixRemoveBorderGeneral(pixt1, borderx, borderx, bordery, bordery);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+    if (!pixd)
+        return pixt3;
+
+    pixTransferAllData(pixd, &pixt3, 0, 0);
+    return pixd;
+}
+
+
+/*!
+ *  getExtendedCompositeParameters()
+ *
+ *      Input:  size (of linear Sel)
+ *              &pn (<return> number of 63 wide convolutions)
+ *              &pextra (<return> size of extra Sel)
+ *              &actualsize (<optional return> actual size used in operation)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The DWA implementation allows Sels to be used with hits
+ *          up to 31 pixels from the origin, either horizontally or
+ *          vertically.  Larger Sels can be used if decomposed into
+ *          a set of operations with Sels not exceeding 63 pixels
+ *          in either width or height (and with the origin as close
+ *          to the center of the Sel as possible).
+ *      (2) This returns the decomposition of a linear Sel of length
+ *          @size into a set of @n Sels of length 63 plus an extra
+ *          Sel of length @extra.
+ *      (3) For notation, let w == @size, n == @n, and e == @extra.
+ *          We have 1 < e < 63.
+ *
+ *          Then if w < 64, we have n = 0 and e = w.
+ *          The general formula for w > 63 is:
+ *             w = 63 + (n - 1) * 62 + (e - 1)
+ *
+ *          Where did this come from?  Each successive convolution with
+ *          a Sel of length L adds a total length (L - 1) to w.
+ *          This accounts for using 62 for each additional Sel of size 63,
+ *          and using (e - 1) for the additional Sel of size e.
+ *
+ *          Solving for n and e for w > 63:
+ *             n = 1 + Int((w - 63) / 62)
+ *             e = w - 63 - (n - 1) * 62 + 1
+ *
+ *          The extra part is decomposed into two factors f1 and f2,
+ *          and the actual size of the extra part is
+ *             e' = f1 * f2
+ *          Then the actual width is:
+ *             w' = 63 + (n - 1) * 62 + f1 * f2 - 1
+ */
+l_int32
+getExtendedCompositeParameters(l_int32   size,
+                               l_int32  *pn,
+                               l_int32  *pextra,
+                               l_int32  *pactualsize)
+{
+l_int32  n, extra, fact1, fact2;
+
+    PROCNAME("getExtendedCompositeParameters");
+
+    if (!pn || !pextra)
+        return ERROR_INT("&n and &extra not both defined", procName, 1);
+
+    if (size <= 63) {
+        n = 0;
+        extra = L_MIN(1, size);
+    }
+    else {  /* size > 63 */
+        n = 1 + (l_int32)((size - 63) / 62);
+        extra = size - 63 - (n - 1) * 62 + 1;
+    }
+
+    if (pactualsize) {
+        selectComposableSizes(extra, &fact1, &fact2);
+        *pactualsize = 63 + (n - 1) * 62 + fact1 * fact2 - 1;
+    }
+
+    *pn = n;
+    *pextra = extra;
+    return 0;
 }
 
 

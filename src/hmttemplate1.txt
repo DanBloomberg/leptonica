@@ -35,7 +35,7 @@
 ---
 ---             We need to input two static globals here:
 ---   static l_int32     NUM_SELS_GENERATED =  <some number>;
----   static char  *SEL_NAMES[] =    {"<string1>", "<string2>", ...};
+---   static char  SEL_NAMES[][80] =    {"<string1>", "<string2>", ...};
 
 /*
 --- *  pixHMTDwa_*()

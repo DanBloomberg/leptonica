@@ -50,16 +50,22 @@
 /*!
  *  pixConvertToFPix()
  *
- *      Input:  pix
+ *      Input:  pix (1, 2, 4, 8, 16 or 32 bpp)
+ *              ncomps (number of components: 3 for RGB, 1 otherwise)
  *      Return: fpix, or null on error
  *
  *  Notes:
- *      (1) If colormapped or RGB, remove to gray.
+ *      (1) If colormapped, remove to grayscale.
+ *      (2) If 32 bpp and @ncomps == 3, this is RGB; convert to luminance.
+ *          In all other cases the src image is treated as having a single
+ *          component of pixel values.
  */
 FPIX *
-pixConvertToFPix(PIX  *pixs)
+pixConvertToFPix(PIX     *pixs,
+                 l_int32  ncomps)
 {
 l_int32     w, h, d, i, j, val, wplt, wpld;
+l_uint32    uval;
 l_uint32   *datat, *linet;
 l_float32  *datad, *lined;
 PIX        *pixt;
@@ -72,7 +78,7 @@ FPIX       *fpixd;
 
     if (pixGetColormap(pixs))
         pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-    else if (pixGetDepth(pixs) == 32)
+    else if (pixGetDepth(pixs) == 32 && ncomps == 3)
         pixt = pixConvertRGBToLuminance(pixs);
     else
         pixt = pixClone(pixs);
@@ -117,6 +123,12 @@ FPIX       *fpixd;
                 lined[j] = (l_float32)val;
             }
         }
+        else if (d == 32) {
+            for (j = 0; j < w; j++) {
+                uval = GET_DATA_FOUR_BYTES(linet, j);
+                lined[j] = (l_float32)uval;
+            }
+        }
     }
 
     pixDestroy(&pixt);
@@ -128,7 +140,7 @@ FPIX       *fpixd;
  *  fpixConvertToPix()
  *
  *      Input:  fpixs 
- *              outdepth (0, 8 or 16 bpp)
+ *              outdepth (0, 8, 16 or 32 bpp)
  *              negvals (L_CLIP_TO_ZERO, L_TAKE_ABSVAL)
  *              errorflag (1 to output error stats; 0 otherwise)
  *      Return: pixd, or null on error
@@ -136,13 +148,14 @@ FPIX       *fpixd;
  *  Notes:
  *      (1) Use @outdepth = 0 to programmatically determine the
  *          output depth.  If no values are greater than 255,
- *          it will set outdepth = 8; otherwise to 16.
+ *          it will set outdepth = 8; otherwise to 16 or 32.
  *      (2) Because we are converting a float to an unsigned int
- *          with a specified dynamic range (8 or 16 bits), errors
+ *          with a specified dynamic range (8, 16 or 32 bits), errors
  *          can occur.  If errorflag == TRUE, output the number
  *          of values out of range, both negative and positive.
  *      (3) If a pixel value is positive and out of range, clip to
- *          the maximum value represented at the outdepth of 8 or 16 bits.
+ *          the maximum value represented at the outdepth of 8, 16
+ *          or 32 bits.
  */
 PIX *
 fpixConvertToPix(FPIX    *fpixs,
@@ -150,7 +163,8 @@ fpixConvertToPix(FPIX    *fpixs,
                  l_int32  negvals,
                  l_int32  errorflag)
 {
-l_int32     w, h, i, j, wpls, wpld, maxval, vald;
+l_int32     w, h, i, j, wpls, wpld, maxval;
+l_uint32    vald;
 l_float32   val;
 l_float32  *datas, *lines;
 l_uint32   *datad, *lined;
@@ -162,8 +176,8 @@ PIX        *pixd;
         return (PIX *)ERROR_PTR("fpixs not defined", procName, NULL);
     if (negvals != L_CLIP_TO_ZERO && negvals != L_TAKE_ABSVAL)
         return (PIX *)ERROR_PTR("invalid negvals", procName, NULL);
-    if (outdepth != 0 && outdepth != 8 && outdepth != 16)
-        return (PIX *)ERROR_PTR("outdepth not in {0,8,16}", procName, NULL);
+    if (outdepth != 0 && outdepth != 8 && outdepth != 16 && outdepth != 32)
+        return (PIX *)ERROR_PTR("outdepth not in {0,8,16,32}", procName, NULL);
 
     fpixGetDimensions(fpixs, &w, &h);
     datas = fpixGetData(fpixs);
@@ -175,12 +189,14 @@ PIX        *pixd;
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
             for (j = 0; j < w; j++) {
-                if (lines[j] > 255.5) {
-                    outdepth = 16;
+                if (lines[j] > 65535.5) {
+                    outdepth = 32;
                     break;
                 }
+                if (lines[j] > 255.5)
+                    outdepth = 16;
             }
-            if (outdepth == 16) break;
+            if (outdepth == 32) break;
         }
     }
     maxval = (1 << outdepth) - 1;
@@ -216,19 +232,21 @@ PIX        *pixd;
 	for (j = 0; j < w; j++) {
 	    val = lines[j];
             if (val >= 0.0)
-                vald = (l_int32)(val + 0.5);
+                vald = (l_uint32)(val + 0.5);
             else {  /* val < 0.0 */
                 if (negvals == L_CLIP_TO_ZERO)
                     vald = 0;
                 else
-                    vald = (l_int32)(-val + 0.5);
+                    vald = (l_uint32)(-val + 0.5);
             }
             if (vald > maxval)
                 vald = maxval;
             if (outdepth == 8)
                 SET_DATA_BYTE(lined, j, vald);
-            else  /* outdepth == 16 */
+            else if (outdepth == 16)
                 SET_DATA_TWO_BYTES(lined, j, vald);
+            else  /* outdepth == 32 */
+                SET_DATA_FOUR_BYTES(lined, j, vald);
         }  
     }
 

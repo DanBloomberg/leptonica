@@ -201,9 +201,9 @@ l_uint32  *linemina, *linemaxa, *line;
 /*
  *  blockconvAccumLow()
  *
- *      Input:  datad  (of 32 bpp dest)
+ *      Input:  datad  (32 bpp dest)
  *              w, h, wpld (of 32 bpp dest)
- *              datas (of 1 or 8 bpp src)
+ *              datas (1, 8 or 32 bpp src)
  *              d (bpp of src)
  *              wpls (of src)
  *      Return: void
@@ -227,6 +227,7 @@ blockconvAccumLow(l_uint32  *datad,
 {
 l_uint8    val;
 l_int32    i, j;
+l_uint32   val32;
 l_uint32  *lines, *lined, *linedp;
 
     PROCNAME("blockconvAccumLow");
@@ -282,8 +283,32 @@ l_uint32  *lines, *lined, *linedp;
             }
         }
     }
+    else if (d == 32) {
+            /* Do the first line */
+        for (j = 0; j < w; j++) {
+            val32 = lines[j];
+            if (j == 0)
+                lined[0] = val32;
+            else
+                lined[j] = lined[j - 1] + val32;
+        }
+
+            /* Do the other lines */
+        for (i = 1; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;  /* curr dest line */
+            linedp = lined - wpld;   /* prev dest line */
+            for (j = 0; j < w; j++) {
+                val32 = lines[j];
+                if (j == 0)
+                    lined[0] = val32 + linedp[0];
+                else 
+                    lined[j] = val32 + lined[j - 1] + linedp[j] - linedp[j - 1];
+            }
+        }
+    }
     else
-        ERROR_VOID("depth not 1 or 8 bpp", procName);
+        ERROR_VOID("depth not 1, 8 or 32 bpp", procName);
 
     return;
 }

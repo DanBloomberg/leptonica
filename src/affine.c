@@ -360,8 +360,8 @@ PIXCMAP    *cmap;
                 continue;
             lines = datas + y * wpls;
             if (d == 1) {
-                if (GET_DATA_BIT(lines, x))
-                    SET_DATA_BIT(lined, j);
+                val = GET_DATA_BIT(lines, x);
+                SET_DATA_BIT_VAL(lined, j, val);
             }
             else if (d == 8) {
                 val = GET_DATA_BYTE(lines, x);

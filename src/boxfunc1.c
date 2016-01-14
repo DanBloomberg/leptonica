@@ -40,6 +40,7 @@
  *
  *      Other boxa functions
  *           l_int32   boxaGetExtent()
+ *           l_int32   boxaGetCoverage()
  *           l_int32   boxaSizeRange()
  *           l_int32   boxaLocationRange()
  *           BOXA     *boxaSelectBySize()
@@ -936,6 +937,79 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin;
     if (pbox)
       *pbox = boxCreate(xmin, ymin, xmax - xmin, ymax - ymin);
 
+    return 0;
+}
+
+
+/*!
+ *  boxaGetCoverage()
+ *
+ *      Input:  boxa
+ *              wc, hc (dimensions of overall clipping rectangle with UL
+ *                      corner at (0, 0) that is covered by the boxes.
+ *              exactflag (1 for guaranteeing an exact result; 0 for getting
+ *                         an exact result only if the boxes do not overlap)
+ *              &fract (<return> sum of box area as fraction of w * h)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The boxes in boxa are clipped to the input rectangle.
+ *      (2) * When @exactflag == 1, we generate a 1 bpp pix of size
+ *            wc x hc, paint all the boxes black, and count the fg pixels.
+ *            This can take 1 msec on a large page with many boxes.
+ *          * When @exactflag == 0, we clip each box to the wc x hc region
+ *            and sum the resulting areas.  This is faster.
+ *          * The results are the same when none of the boxes overlap
+ *            within the wc x hc region.
+ */
+l_int32
+boxaGetCoverage(BOXA       *boxa,
+                l_int32     wc,
+                l_int32     hc,
+                l_int32     exactflag,
+                l_float32  *pfract)
+{
+l_int32  i, n, x, y, w, h, sum;
+BOX     *box, *boxc;
+PIX     *pixt;
+
+    PROCNAME("boxaGetCoverage");
+
+    if (!pfract)
+        return ERROR_INT("&fract not defined", procName, 1);
+    *pfract = 0.0;
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    n = boxaGetCount(boxa);
+    if (n == 0)
+        return ERROR_INT("no boxes in boxa", procName, 1);
+
+    if (exactflag == 0) {  /* quick and dirty */
+        sum = 0;
+        for (i = 0; i < n; i++) {
+            box = boxaGetBox(boxa, i, L_CLONE);
+            if ((boxc = boxClipToRectangle(box, wc, hc)) != NULL) {
+                boxGetGeometry(boxc, NULL, NULL, &w, &h);
+                sum += w * h;
+                boxDestroy(&boxc);
+            }
+            boxDestroy(&box);
+        }
+    }
+    else {  /* slower and exact */
+        pixt = pixCreate(wc, hc, 1);
+        for (i = 0; i < n; i++) {
+            box = boxaGetBox(boxa, i, L_CLONE);
+            boxGetGeometry(box, &x, &y, &w, &h);
+            pixRasterop(pixt, x, y, w, h, PIX_SET, NULL, 0, 0);
+            boxDestroy(&box);
+        }
+        pixCountPixels(pixt, &sum, NULL);
+        pixDestroy(&pixt);
+    }
+
+    *pfract = (l_float32)sum / (l_float32)(wc * hc);
     return 0;
 }
 

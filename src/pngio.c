@@ -26,6 +26,11 @@
  *          l_int32     pixWritePng()  [ special top level ]
  *          l_int32     pixWriteStreamPng()
  *          
+ *    Setting flags for special modes
+ *          void        l_pngSetStrip16To8()
+ *          void        l_pngSetStripAlpha()
+ *          void        l_pngSetZlibCompression()
+ *
  *    Read/write to memory   [not on windows]
  *          PIX        *pixReadMemPng()
  *          l_int32     pixWriteMemPng()
@@ -40,18 +45,28 @@
  *    full color images are written compressed as a 24 bpp,
  *    3 component color image.
  *
- *    Note these particular limitations, which are invoked by
- *    two transform flags in pixReadStreamPng():
- *
+ *    In the following, we use these abbreviations:
  *       bpc == bit/component
  *       cpp == component/pixel
  *       bpp == bits/pixel of image in Pix (memory)
  *
- *    (1) 16 bpc input images are read into a Pix with 8 bpc.
- *        - For 16 bpc rgb (16 bpc, 3 cpp) --> 32 bpp rgb Pix
- *        - For 16 bpc gray (16 bpc, 1 cpp) --> 8 bpp grayscale Pix
- *    (2) The alpha layer is stripped out
- *        - For 8 bpc rgba (8 bpc, 4 cpp) --> 32 bpp rgb Pix
+ *    Flags can be set for special reading from png compression
+ *    into a pix, with either 16 bpc or 32 bpp with alpha channel.
+ *    Otherwise, the default reading values are as follows:
+ *      (1) 16 bpc input images are read into a Pix with 8 bpc.
+ *         - For 16 bpc rgb (16 bpc, 3 cpp) --> 32 bpp rgb Pix
+ *         - For 16 bpc gray (16 bpc, 1 cpp) --> 8 bpp grayscale Pix
+ *      (2) The alpha layer is stripped out
+ *         - For 8 bpc rgba (8 bpc, 4 cpp) --> 32 bpp rgb Pix
+ *
+ *    The zlib compression value can be set [0 ... 9], with
+ *         0     no compression (huge files)
+ *         1     fastest compression
+ *         6     default compression
+ *         9     best compression
+ *    If not set, we use the default compression in zlib.
+ *    Note that if you are using the defined constants in zlib instead
+ *    of the compression integers given above, you must include zlib.h.
  */
 
 #include <stdio.h>
@@ -68,6 +83,15 @@
 /* --------------------------------------------*/
 
 #include "png.h"
+
+/* ----------------Set defaults for read/write options ----------------- */
+    /* strip 16 bpp --> 8 bpp on reading png; default is for stripping */
+static l_int32   L_PNG_STRIP_16_TO_8 = 1;
+    /* strip alpha on reading png; default is for stripping */
+static l_int32   L_PNG_STRIP_ALPHA = 1;
+    /* zlib compression in png; default (5) is for standard compression */
+static l_int32   L_ZLIB_COMPRESSION = Z_DEFAULT_COMPRESSION;
+
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
@@ -139,17 +163,20 @@ PIXCMAP     *cmap;
 
     png_init_io(png_ptr, fp);
 
-        /* Set the transforms flags.  Whatever you do here,
-         * DO NOT invert binary using PNG_TRANSFORM_INVERT_MONO!!
-         * To remove alpha channel, use PNG_TRANSFORM_STRIP_ALPHA
-         * To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
-#if 1  /* this does both */
-    png_transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_STRIP_ALPHA;
-#else  /* this just strips alpha */
-    png_transforms = PNG_TRANSFORM_STRIP_ALPHA;
-#endif
+        /* ---------------------------------------------------------- *
+         *  Set the transforms flags.  Whatever happens here,
+         *  NEVER invert 1 bpp using PNG_TRANSFORM_INVERT_MONO.
+         * ---------------------------------------------------------- */
+        /* To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
+    if (L_PNG_STRIP_16_TO_8 == 1)   /* our default */
+        png_transforms = PNG_TRANSFORM_STRIP_16;
+    else
+        png_transforms = PNG_TRANSFORM_IDENTITY;
+        /* To remove alpha channel, use PNG_TRANSFORM_STRIP_ALPHA */
+    if (L_PNG_STRIP_ALPHA == 1)   /* our default */
+        png_transforms |= PNG_TRANSFORM_STRIP_ALPHA;
 
-        /* Do it! */
+        /* Read it */
     png_read_png(png_ptr, info_ptr, png_transforms, NULL);
 
     row_pointers = png_get_rows(png_ptr, info_ptr);
@@ -537,6 +564,7 @@ pixWriteStreamPng(FILE      *fp,
                   PIX       *pix,
                   l_float32  gamma)
 {
+char         commentstring[] = "Comment";
 l_int32      i, j, k;
 l_int32      wpl, d, cmflag;
 l_int32      ncolors;
@@ -578,6 +606,11 @@ char        *text;
     }
 
     png_init_io(png_ptr, fp);
+
+        /* With best zlib compression (9), get between 1 and 10% improvement
+         * over default (5), but the compression is 3 to 10 times slower.
+         * Our default compression is the zlib default (5). */
+    png_set_compression_level(png_ptr, L_ZLIB_COMPRESSION);
 
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
@@ -645,7 +678,7 @@ char        *text;
     if ((text = pixGetText(pix))) {
         png_text text_chunk;
         text_chunk.compression = PNG_TEXT_COMPRESSION_NONE;
-        text_chunk.key = "Comment";
+        text_chunk.key = commentstring;
         text_chunk.text = text;
         text_chunk.text_length = strlen(text);
 #ifdef PNG_ITXT_SUPPORTED
@@ -737,6 +770,72 @@ char        *text;
     return 0;
 
 }
+
+
+/*---------------------------------------------------------------------*
+ *                   Setting flags for special modes                   *
+ *---------------------------------------------------------------------*/
+/*!
+ *  l_pngSetStrip16To8()
+ *
+ *      Input:  flag (1 for stripping 16 bpp to 8 bpp; 0 for leaving 16 bpp)
+ *      Return: void
+ */
+void
+l_pngSetStrip16To8(l_int32  flag)
+{
+    if (flag == 1)
+        L_PNG_STRIP_16_TO_8 = 1;
+    else
+        L_PNG_STRIP_16_TO_8 = 0;
+}
+
+
+/*!
+ *  l_pngSetStripAlpha()
+ *
+ *      Input:  flag (1 for stripping alpha channel on read; 0 for leaving it)
+ *      Return: void
+ */
+void
+l_pngSetStripAlpha(l_int32  flag)
+{
+    if (flag == 1)
+        L_PNG_STRIP_ALPHA = 1;
+    else
+        L_PNG_STRIP_ALPHA = 0;
+}
+
+
+/*!
+ *  l_pngSetZlibCompression()
+ *
+ *      Input:  val (zlib compression value)
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) Valid zlib compression values are in the interval [0 ... 9],
+ *          where, as defined in zlib.h:
+ *            0         Z_NO_COMPRESSION
+ *            1         Z_BEST_SPEED    (poorest compression)
+ *            9         Z_BEST_COMPRESSION
+ *          For the default value, use either of these:
+ *            6         Z_DEFAULT_COMPRESSION
+ *           -1         (resolves to Z_DEFAULT_COMPRESSION)
+ *      (2) If you use the defined constants in zlib.h instead of the
+ *          compression integers given above, you must include zlib.h.
+ */
+void
+l_pngSetZlibCompression(l_int32  val)
+{
+    PROCNAME("l_pngSetZlibCompression");
+    if (val < -1 || val > 9) {
+        L_ERROR("Invalid zlib comp val; using default", procName);
+        val = Z_DEFAULT_COMPRESSION;
+    }
+    L_ZLIB_COMPRESSION = val;
+}
+
 
 
 /*---------------------------------------------------------------------*

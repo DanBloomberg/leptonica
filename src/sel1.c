@@ -145,10 +145,10 @@ struct CompParameterMap
     l_int32  size;
     l_int32  size1;
     l_int32  size2;
-    char    *selnameh1;
-    char    *selnameh2;
-    char    *selnamev1;
-    char    *selnamev2;
+    char     selnameh1[20];
+    char     selnameh2[20];
+    char     selnamev1[20];
+    char     selnamev2[20];
 };
 static const struct CompParameterMap  comp_parameter_map[] =
     { { 2, 2, 1, "sel_2h", "", "sel_2v", "" },
@@ -581,8 +581,8 @@ selaExtendArray(SELA  *sela)
         return ERROR_INT("sela not defined", procName, 1);
     
     if ((sela->sel = (SEL **)reallocNew((void **)&sela->sel,
-                              sizeof(l_intptr_t) * sela->nalloc,
-                              2 * sizeof(l_intptr_t) * sela->nalloc)) == NULL)
+                              sizeof(SEL *) * sela->nalloc,
+                              2 * sizeof(SEL *) * sela->nalloc)) == NULL)
             return ERROR_INT("new ptr array not returned", procName, 1);
 
     sela->nalloc = 2 * sela->nalloc;

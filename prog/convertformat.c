@@ -48,7 +48,8 @@ main(int    argc,
      char **argv)
 {
 PIX         *pixs;
-char        *filein, *fileout, *format, *base, *ext;
+char        *filein, *fileout, *base, *ext;
+const char  *format;
 char         error_msg[] = "Valid formats: BMP, JPEG, PNG, TIFF, TIFF_G4, PNM";
 l_int32      d;
 static char  mainName[] = "convertformat";

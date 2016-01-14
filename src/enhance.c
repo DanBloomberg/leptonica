@@ -35,13 +35,20 @@
  *
  *      Unsharp-masking
  *           PIX     *pixUnsharpMasking()
- *           PIX     *pixUnsharpMaskingColor()
  *           PIX     *pixUnsharpMaskingGray()
+ *           PIX     *pixUnsharpMaskingFast()
+ *           PIX     *pixUnsharpMaskingGrayFast()
+ *           PIX     *pixUnsharpMaskingGray1D()
+ *           PIX     *pixUnsharpMaskingGray2D()
  *
  *      Hue and saturation modification
  *           PIX     *pixModifyHue()
  *           PIX     *pixModifySaturation()
  *           l_int32  pixMeasureSaturation()
+ *
+ *      General multiplicative constant color transform
+ *           PIX     *pixMultConstantColor()
+ *           PIX     *pixMultMatrixColor()
  *
  *      Edge by bandpass
  *           PIX     *pixHalfEdgeByBandpass()
@@ -738,119 +745,69 @@ l_uint32  *data, *datam, *line, *linem;
 
 
 
-/*-------------------------------------------------------------*
- *                        Unsharp masking                      *
- *-------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*
+ *                             Unsharp masking                           *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixUnsharpMasking()
  *
- *      Input:  pix (8 or 32 bpp; or 2, 4 or 8 bpp with colormap)
- *              smooth  ("half-width" of smoothing filter)
- *              fract  (fraction of edge added back into image)
- *      Return: pixd, or null on error
- *
- *  Note: (1) We use symmetric smoothing filters of odd dimension,
- *            typically use 3, 5, 7, etc.  The smooth parameter
- *            for these is (size - 1)/2; i.e., 1, 2, 3, etc.
- *        (2) The fract parameter is typically taken in the
- *            range:  0.2 < fract < 0.7
- */
-PIX *
-pixUnsharpMasking(PIX       *pix,
-                  l_int32    smooth,
-                  l_float32  fract)
-{
-l_int32  d;
-PIX     *pixs, *pixd;
-
-    PROCNAME("pixUnsharpMasking");
-
-    if (!pix)
-        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
-    if (fract <= 0.0) {
-        L_WARNING("no fraction added back in", procName);
-        return pixClone(pix);
-    }
-
-        /* Remove colormap if necessary */
-    d = pixGetDepth(pix);
-    if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
-        L_WARNING("pix has colormap; removing", procName);
-        pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-        d = pixGetDepth(pixs);
-    }
-    else
-        pixs = pixClone(pix);
-
-    if (d != 8 && d != 32) {
-        pixDestroy(&pixs);
-        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, NULL);
-    }
-
-    if (d == 8)
-        pixd = pixUnsharpMaskingGray(pixs, smooth, fract);
-    else  /* d == 32 */
-        pixd = pixUnsharpMaskingColor(pixs, smooth, fract);
-    pixDestroy(&pixs);
-    
-    return pixd;
-}
-
-
-/*!
- *  pixUnsharpMaskingColor()
- *
- *      Input:  pixs (32 bpp; 24 bpp RGB color)
- *              smooth  ("half-width" of smoothing filter)
+ *      Input:  pixs (all depths except 1 bpp; with or without colormaps)
+ *              halfwidth  ("half-width" of smoothing filter)
  *              fract  (fraction of edge added back into image)
  *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) We use symmetric smoothing filters of odd dimension,
- *          typically use 3, 5, 7, etc.  The smooth parameter
+ *          typically use sizes of 3, 5, 7, etc.  The @halfwidth parameter
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
- *      (2) The fract parameter is typically taken in the range:
- *           0.2 < fract < 0.7
+ *      (2) The fract parameter is typically taken in the
+ *          range:  0.2 < fract < 0.7
  */
 PIX *
-pixUnsharpMaskingColor(PIX       *pixs,
-                       l_int32    smooth,
-                       l_float32  fract)
+pixUnsharpMasking(PIX       *pixs,
+                  l_int32    halfwidth,
+                  l_float32  fract)
 {
-PIX  *pixRed, *pixGreen, *pixBlue;
-PIX  *pixRedSharp, *pixGreenSharp, *pixBlueSharp;
-PIX  *pixd;
+l_int32  d;
+PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
 
-    PROCNAME("pixUnsharpMaskingColor");
+    PROCNAME("pixUnsharpMasking");
 
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
-
-    if (fract <= 0.0) {
-        L_WARNING("no fraction added back in", procName);
+    if (!pixs || (pixGetDepth(pixs) == 1))
+        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", procName, NULL);
+    if (fract <= 0.0 || halfwidth <= 0) {
+        L_WARNING("no sharpening requested; clone returned", procName);
         return pixClone(pixs);
     }
 
-    pixRed = pixGetRGBComponent(pixs, COLOR_RED);
-    pixRedSharp = pixUnsharpMaskingGray(pixRed, smooth, fract);
-    pixDestroy(&pixRed);
-    pixGreen = pixGetRGBComponent(pixs, COLOR_GREEN);
-    pixGreenSharp = pixUnsharpMaskingGray(pixGreen, smooth, fract);
-    pixDestroy(&pixGreen);
-    pixBlue = pixGetRGBComponent(pixs, COLOR_BLUE);
-    pixBlueSharp = pixUnsharpMaskingGray(pixBlue, smooth, fract);
-    pixDestroy(&pixBlue);
+    if (halfwidth == 1 || halfwidth == 2)
+        return pixUnsharpMaskingFast(pixs, halfwidth, fract, L_BOTH_DIRECTIONS);
 
-    if ((pixd = pixCreateRGBImage(pixRedSharp, pixGreenSharp, pixBlueSharp))
-            == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
+    if ((pixt = pixConvertTo8Or32(pixs, 0, 1)) == NULL)
+        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
-    pixDestroy(&pixRedSharp);
-    pixDestroy(&pixGreenSharp);
-    pixDestroy(&pixBlueSharp);
+        /* Sharpen */
+    d = pixGetDepth(pixt);
+    if (d == 8)
+        pixd = pixUnsharpMaskingGray(pixt, halfwidth, fract);
+    else {  /* d == 32 */
+        pixr = pixGetRGBComponent(pixs, COLOR_RED);
+        pixrs = pixUnsharpMaskingGray(pixr, halfwidth, fract);
+        pixDestroy(&pixr);
+        pixg = pixGetRGBComponent(pixs, COLOR_GREEN);
+        pixgs = pixUnsharpMaskingGray(pixg, halfwidth, fract);
+        pixDestroy(&pixg);
+        pixb = pixGetRGBComponent(pixs, COLOR_BLUE);
+        pixbs = pixUnsharpMaskingGray(pixb, halfwidth, fract);
+        pixDestroy(&pixb);
+        pixd = pixCreateRGBImage(pixrs, pixgs, pixbs);
+        pixDestroy(&pixrs);
+        pixDestroy(&pixgs);
+        pixDestroy(&pixbs);
+    }
 
+    pixDestroy(&pixt);
     return pixd;
 }
 
@@ -858,21 +815,21 @@ PIX  *pixd;
 /*!
  *  pixUnsharpMaskingGray()
  *
- *      Input:  pixs (8 bpp)
- *              smooth  ("half-width" of smoothing filter)
+ *      Input:  pixs (8 bpp; no colormap)
+ *              halfwidth  ("half-width" of smoothing filter)
  *              fract  (fraction of edge added back into image)
  *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) We use symmetric smoothing filters of odd dimension,
- *          typically use 3, 5, 7, etc.  The smooth parameter
+ *          typically use sizes of 3, 5, 7, etc.  The @halfwidth parameter
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
  *      (2) The fract parameter is typically taken in the range:
  *          0.2 < fract < 0.7
  */
 PIX *
 pixUnsharpMaskingGray(PIX       *pixs,
-                      l_int32    smooth,
+                      l_int32    halfwidth,
                       l_float32  fract)
 {
 l_int32  w, h, d;
@@ -884,15 +841,17 @@ PIXACC  *pixacc;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
-
-    if (fract <= 0.0) {
-        L_WARNING("no fraction added back in", procName);
+    if (d != 8 || pixGetColormap(pixs) != NULL)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+    if (fract <= 0.0 || halfwidth <= 0) {
+        L_WARNING("no sharpening requested; clone returned", procName);
         return pixClone(pixs);
     }
+    if (halfwidth == 1 || halfwidth == 2)
+        return pixUnsharpMaskingGrayFast(pixs, halfwidth, fract,
+                                         L_BOTH_DIRECTIONS);
 
-    if ((pixc = pixBlockconvGray(pixs, NULL, smooth, smooth)) == NULL)
+    if ((pixc = pixBlockconvGray(pixs, NULL, halfwidth, halfwidth)) == NULL)
         return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
 
         /* Steps:
@@ -926,9 +885,406 @@ PIXACC  *pixacc;
     return pixd;
 }
 
-/*-------------------------------------------------------------*
- *               Hue and saturation modification               *
- *-------------------------------------------------------------*/
+
+/*!
+ *  pixUnsharpMaskingFast()
+ *
+ *      Input:  pixs (all depths except 1 bpp; with or without colormaps)
+ *              halfwidth  ("half-width" of smoothing filter; 1 and 2 only)
+ *              fract  (fraction of high frequency added to image)
+ *              direction (L_HORIZ, L_VERT, L_BOTH_DIRECTIONS)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The fast version uses separable 1-D filters directly on
+ *          the input image.  The halfwidth is either 1 (full width = 3)
+ *          or 2 (full width = 5).
+ *      (2) The fract parameter is typically taken in the
+ *            range:  0.2 < fract < 0.7
+ *      (3) To skip horizontal sharpening, use @fracth = 0.0; ditto for @fractv
+ *      (4) For one dimensional filtering (as an example):
+ *          For @halfwidth = 1, the low-pass filter is
+ *              L:    1/3    1/3   1/3
+ *          and the high-pass filter is
+ *              H = I - L:   -1/3   2/3   -1/3
+ *          For @halfwidth = 2, the low-pass filter is
+ *              L:    1/5    1/5   1/5    1/5    1/5
+ *          and the high-pass filter is
+ *              H = I - L:   -1/5  -1/5   4/5  -1/5   -1/5
+ *          The new sharpened pixel value is found by adding some fraction
+ *          of the high-pass filter value (which sums to 0) to the
+ *          initial pixel value:
+ *              N = I + fract * H
+ *      (5) For 2D, the sharpening filter is not separable, because the
+ *          vertical filter depends on the horizontal location relative
+ *          to the filter origin, and v.v.   So we either do the full
+ *          2D filter (for @halfwidth == 1) or do the low-pass
+ *          convolution separably and then compose with the original pix.
+ */
+PIX *
+pixUnsharpMaskingFast(PIX       *pixs,
+                      l_int32    halfwidth,
+                      l_float32  fract,
+                      l_int32    direction)
+{
+l_int32  d;
+PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
+
+    PROCNAME("pixUnsharpMaskingFast");
+
+    if (!pixs || (pixGetDepth(pixs) == 1))
+        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", procName, NULL);
+    if (fract <= 0.0 || halfwidth <= 0) {
+        L_WARNING("no sharpening requested; clone returned", procName);
+        return pixClone(pixs);
+    }
+    if (halfwidth != 1 && halfwidth != 2)
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+    if (direction != L_HORIZ && direction != L_VERT &&
+        direction != L_BOTH_DIRECTIONS)
+        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+
+        /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
+    if ((pixt = pixConvertTo8Or32(pixs, 0, 1)) == NULL)
+        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+
+        /* Sharpen */
+    d = pixGetDepth(pixt);
+    if (d == 8)
+        pixd = pixUnsharpMaskingGrayFast(pixt, halfwidth, fract, direction);
+    else {  /* d == 32 */
+        pixr = pixGetRGBComponent(pixs, COLOR_RED);
+        pixrs = pixUnsharpMaskingGrayFast(pixr, halfwidth, fract, direction);
+        pixDestroy(&pixr);
+        pixg = pixGetRGBComponent(pixs, COLOR_GREEN);
+        pixgs = pixUnsharpMaskingGrayFast(pixg, halfwidth, fract, direction);
+        pixDestroy(&pixg);
+        pixb = pixGetRGBComponent(pixs, COLOR_BLUE);
+        pixbs = pixUnsharpMaskingGrayFast(pixb, halfwidth, fract, direction);
+        pixDestroy(&pixb);
+        pixd = pixCreateRGBImage(pixrs, pixgs, pixbs);
+        pixDestroy(&pixrs);
+        pixDestroy(&pixgs);
+        pixDestroy(&pixbs);
+    }
+
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+
+/*!
+ *  pixUnsharpMaskingGrayFast()
+ *
+ *      Input:  pixs (8 bpp; no colormap)
+ *              halfwidth  ("half-width" of smoothing filter: 1 or 2)
+ *              fract  (fraction of high frequency added to image)
+ *              direction (L_HORIZ, L_VERT, L_BOTH_DIRECTIONS)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) For usage and explanation of the algorithm, see notes
+ *          in pixUnsharpMaskingFast().
+ */
+PIX *
+pixUnsharpMaskingGrayFast(PIX       *pixs,
+                          l_int32    halfwidth,
+                          l_float32  fract,
+                          l_int32    direction)
+{
+PIX  *pixd;
+
+    PROCNAME("pixUnsharpMaskingGrayFast");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 8 || pixGetColormap(pixs) != NULL)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+    if (fract <= 0.0 || halfwidth <= 0) {
+        L_WARNING("no sharpening requested; clone returned", procName);
+        return pixClone(pixs);
+    }
+    if (halfwidth != 1 && halfwidth != 2)
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+    if (direction != L_HORIZ && direction != L_VERT &&
+        direction != L_BOTH_DIRECTIONS)
+        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+
+    if (direction != L_BOTH_DIRECTIONS)
+        pixd = pixUnsharpMaskingGray1D(pixs, halfwidth, fract, direction);
+    else  /* 2D sharpening */
+        pixd = pixUnsharpMaskingGray2D(pixs, halfwidth, fract);
+
+    return pixd;
+}
+
+
+/*!
+ *  pixUnsharpMaskingGray1D()
+ *
+ *      Input:  pixs (8 bpp; no colormap)
+ *              halfwidth  ("half-width" of smoothing filter: 1 or 2)
+ *              fract  (fraction of high frequency added to image)
+ *              direction (of filtering; use L_HORIZ or L_VERT)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) For usage and explanation of the algorithm, see notes
+ *          in pixUnsharpMaskingFast().
+ */
+PIX *
+pixUnsharpMaskingGray1D(PIX       *pixs,
+                        l_int32    halfwidth,
+                        l_float32  fract,
+                        l_int32    direction)
+{
+l_int32    w, h, d, wpls, wpld, i, j, ival;
+l_uint32  *datas, *datad;
+l_uint32  *lines, *lines0, *lines1, *lines2, *lines3, *lines4, *lined;
+l_float32  val, a[5];
+PIX       *pixd;
+
+    PROCNAME("pixUnsharpMaskingGray1D");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 || pixGetColormap(pixs) != NULL)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+    if (fract <= 0.0 || halfwidth <= 0) {
+        L_WARNING("no sharpening requested; clone returned", procName);
+        return pixClone(pixs);
+    }
+    if (halfwidth != 1 && halfwidth != 2)
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+
+        /* Initialize pixd with pixels from pixs that will not be
+         * set when computing the sharpened values. */
+    pixd = pixCopyBorder(NULL, pixs, halfwidth, halfwidth,
+                         halfwidth, halfwidth);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+
+    if (halfwidth == 1) {
+        a[0] = -fract / 3.0;
+        a[1] = 1.0 + fract * 2.0 / 3.0;
+        a[2] = a[0];
+    }
+    else {  /* halfwidth == 2 */
+        a[0] = -fract / 5.0;
+        a[1] = a[0];
+        a[2] = 1.0 + fract * 4.0 / 5.0;
+        a[3] = a[0];
+        a[4] = a[0];
+    }
+
+    if (direction == L_HORIZ) {
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
+            if (halfwidth == 1) {
+                for (j = 1; j < w - 1; j++) {
+                    val = a[0] * GET_DATA_BYTE(lines, j - 1) +
+                          a[1] * GET_DATA_BYTE(lines, j) +
+                          a[2] * GET_DATA_BYTE(lines, j + 1);
+                    ival = (l_int32)val;
+                    ival = L_MAX(0, ival);
+                    ival = L_MIN(255, ival);
+                    SET_DATA_BYTE(lined, j, ival);
+                }
+            }
+            else {  /* halfwidth == 2 */
+                for (j = 2; j < w - 2; j++) {
+                    val = a[0] * GET_DATA_BYTE(lines, j - 2) +
+                          a[1] * GET_DATA_BYTE(lines, j - 1) +
+                          a[2] * GET_DATA_BYTE(lines, j) +
+                          a[3] * GET_DATA_BYTE(lines, j + 1) +
+                          a[4] * GET_DATA_BYTE(lines, j + 2);
+                    ival = (l_int32)val;
+                    ival = L_MAX(0, ival);
+                    ival = L_MIN(255, ival);
+                    SET_DATA_BYTE(lined, j, ival);
+                }
+            }
+        }
+    }
+    else {  /* direction == L_VERT */
+        if (halfwidth == 1) {
+            for (i = 1; i < h - 1; i++) {
+                lines0 = datas + (i - 1) * wpls;
+                lines1 = datas + i * wpls;
+                lines2 = datas + (i + 1) * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    val = a[0] * GET_DATA_BYTE(lines0, j) +
+                          a[1] * GET_DATA_BYTE(lines1, j) +
+                          a[2] * GET_DATA_BYTE(lines2, j);
+                    ival = (l_int32)val;
+                    ival = L_MAX(0, ival);
+                    ival = L_MIN(255, ival);
+                    SET_DATA_BYTE(lined, j, ival);
+                }
+            }
+        }
+        else {  /* halfwidth == 2 */
+            for (i = 2; i < h - 2; i++) {
+                lines0 = datas + (i - 2) * wpls;
+                lines1 = datas + (i - 1) * wpls;
+                lines2 = datas + i * wpls;
+                lines3 = datas + (i + 1) * wpls;
+                lines4 = datas + (i + 2) * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    val = a[0] * GET_DATA_BYTE(lines0, j) +
+                          a[1] * GET_DATA_BYTE(lines1, j) +
+                          a[2] * GET_DATA_BYTE(lines2, j) +
+                          a[3] * GET_DATA_BYTE(lines3, j) +
+                          a[4] * GET_DATA_BYTE(lines4, j);
+                    ival = (l_int32)val;
+                    ival = L_MAX(0, ival);
+                    ival = L_MIN(255, ival);
+                    SET_DATA_BYTE(lined, j, ival);
+                }
+            }
+        }
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixUnsharpMaskingGray2D()
+ *
+ *      Input:  pixs (8 bpp; no colormap)
+ *              halfwidth  ("half-width" of smoothing filter: 1 or 2)
+ *              fract  (fraction of high frequency added to image)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) For halfwidth == 1, we implement the full sharpening filter
+ *          directly.  For halfwidth == 2, we implement the the lowpass
+ *          filter separably and then compute the sharpening result locally.
+ */
+PIX *
+pixUnsharpMaskingGray2D(PIX       *pixs,
+                        l_int32    halfwidth,
+                        l_float32  fract)
+{
+l_int32     w, h, d, wpls, wpld, wplf, i, j, ival, sval;
+l_uint32   *datas, *datad, *lines, *lines0, *lines1, *lines2, *lined;
+l_float32   val, a[9];
+l_float32  *dataf, *linef, *linef0, *linef1, *linef2, *linef3, *linef4;
+PIX        *pixd;
+FPIX       *fpix;
+
+    PROCNAME("pixUnsharpMaskingGray2D");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 || pixGetColormap(pixs) != NULL)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+    if (fract <= 0.0 || halfwidth <= 0) {
+        L_WARNING("no sharpening requested; clone returned", procName);
+        return pixClone(pixs);
+    }
+    if (halfwidth != 1 && halfwidth != 2)
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+
+    pixd = pixCopyBorder(NULL, pixs, halfwidth, halfwidth,
+                         halfwidth, halfwidth);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+
+    if (halfwidth == 1) {
+        for (i = 0; i < 9; i++)
+            a[i] = -fract / 9.0;
+        a[4] = 1.0 + fract * 8.0 / 9.0;
+        for (i = 1; i < h - 1; i++) {
+            lines0 = datas + (i - 1) * wpls;
+            lines1 = datas + i * wpls;
+            lines2 = datas + (i + 1) * wpls;
+            lined = datad + i * wpld;
+            for (j = 1; j < w - 1; j++) {
+                val = a[0] * GET_DATA_BYTE(lines0, j - 1) +
+                      a[1] * GET_DATA_BYTE(lines0, j) +
+                      a[2] * GET_DATA_BYTE(lines0, j + 1) +
+                      a[3] * GET_DATA_BYTE(lines1, j - 1) +
+                      a[4] * GET_DATA_BYTE(lines1, j) +
+                      a[5] * GET_DATA_BYTE(lines1, j + 1) +
+                      a[6] * GET_DATA_BYTE(lines2, j - 1) +
+                      a[7] * GET_DATA_BYTE(lines2, j) +
+                      a[8] * GET_DATA_BYTE(lines2, j + 1);
+                ival = (l_int32)(val + 0.5);
+                ival = L_MAX(0, ival);
+                ival = L_MIN(255, ival);
+                SET_DATA_BYTE(lined, j, ival);
+            }
+        }
+
+        return pixd;
+    }
+
+        /* For halfwidth == 2, do the low pass separably.  Store
+         * the result of horizontal smoothing in an intermediate fpix. */
+    fpix = fpixCreate(w, h);
+    dataf = fpixGetData(fpix);
+    wplf = fpixGetWpl(fpix);
+    for (i = 2; i < h - 2; i++) {
+        lines = datas + i * wpls;
+        linef = dataf + i * wplf;
+        for (j = 2; j < w - 2; j++) {
+            val = GET_DATA_BYTE(lines, j - 2) +
+                  GET_DATA_BYTE(lines, j - 1) +
+                  GET_DATA_BYTE(lines, j) +
+                  GET_DATA_BYTE(lines, j + 1) +
+                  GET_DATA_BYTE(lines, j + 2);
+            linef[j] = val;
+        }
+    }
+
+        /* Do vertical smoothing to finish the low-pass filter.
+         * At each pixel, if L is the lowpass value, I is the
+         * src pixel value and f is the fraction of highpass to
+         * be added to I, then the highpass filter value is
+         *     H = I - L
+         * and the new sharpened value is
+         *     N = I + f * H.
+         */
+    for (i = 2; i < h - 2; i++) {
+        linef0 = dataf + (i - 2) * wplf;
+        linef1 = dataf + (i - 1) * wplf;
+        linef2 = dataf + i * wplf;
+        linef3 = dataf + (i + 1) * wplf;
+        linef4 = dataf + (i + 2) * wplf;
+        lined = datad + i * wpld;
+        lines = datas + i * wpls;
+        for (j = 2; j < w - 2; j++) {
+            val = 0.04 * (linef0[j] + linef1[j] + linef2[j] +
+                          linef3[j] + linef4[j]);  /* L: lowpass filter value */
+            sval = GET_DATA_BYTE(lines, j);   /* I: source pixel */
+            ival = (l_int32)(sval + fract * (sval - val) + 0.5);
+            ival = L_MAX(0, ival);
+            ival = L_MIN(255, ival);
+            SET_DATA_BYTE(lined, j, ival);
+        }
+    }
+
+    fpixDestroy(&fpix);
+    return pixd;
+}
+
+
+
+/*-----------------------------------------------------------------------*
+ *                    Hue and saturation modification                    *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixModifyHue()
  *
@@ -1096,6 +1452,197 @@ l_uint32  *data, *line;
 }
 
 
+/*-----------------------------------------------------------------------*
+ *            General multiplicative constant color transform            *
+ *-----------------------------------------------------------------------*/
+/*
+ *  pixMultConstantColor()
+ *
+ *      Input:  pixs (colormapped or rgb)
+ *              rfact, gfact, bfact (multiplicative factors on each component)
+ *      Return: pixd (colormapped or rgb, with colors scaled), or null on error
+ *
+ *  Notes:
+ *      (1) rfact, gfact and bfact can only have non-negative values.
+ *          They can be greater than 1.0.  All transformed component
+ *          values are clipped to the interval [0, 255].
+ *      (2) For multiplication with a general 3x3 matrix of constants,
+ *          use pixMultMatrixColor().
+ */
+PIX *
+pixMultConstantColor(PIX       *pixs,
+                     l_float32  rfact,
+                     l_float32  gfact,
+                     l_float32  bfact)
+{
+l_int32    i, j, w, h, d, wpls, wpld;
+l_int32    ncolors, rval, gval, bval, nrval, ngval, nbval;
+l_uint32   nval;
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixMultConstantColor");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    cmap = pixGetColormap(pixs);
+    if (!cmap && d != 32)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+    rfact = L_MAX(0.0, rfact);
+    gfact = L_MAX(0.0, gfact);
+    bfact = L_MAX(0.0, bfact);
+
+    if (cmap) {
+        if ((pixd = pixCopy(NULL, pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        cmap = pixGetColormap(pixd);
+        ncolors = pixcmapGetCount(cmap);
+        for (i = 0; i < ncolors; i++) {
+            pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+            nrval = (l_int32)(rfact * rval);
+            ngval = (l_int32)(gfact * gval);
+            nbval = (l_int32)(bfact * bval);
+            nrval = L_MIN(255, nrval);
+            ngval = L_MIN(255, ngval);
+            nbval = L_MIN(255, nbval);
+            pixcmapResetColor(cmap, i, nrval, ngval, nbval);
+        }
+        return pixd;
+    }
+
+    if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            nrval = (l_int32)(rfact * rval);
+            ngval = (l_int32)(gfact * gval);
+            nbval = (l_int32)(bfact * bval);
+            nrval = L_MIN(255, nrval);
+            ngval = L_MIN(255, ngval);
+            nbval = L_MIN(255, nbval);
+            composeRGBPixel(nrval, ngval, nbval, &nval);
+            *(lined + j) = nval;
+        }
+    }
+
+    return pixd;
+}
+
+
+/*
+ *  pixMultMatrixColor()
+ *
+ *      Input:  pixs (colormapped or rgb)
+ *              kernel (3x3 matrix of floats)
+ *      Return: pixd (colormapped or rgb), or null on error
+ *
+ *  Notes:
+ *      (1) The kernel is a data structure used mostly for floating point
+ *          convolution.  Here it is a 3x3 matrix of floats that are used
+ *          to transform the pixel values by matrix multiplication:
+ *            nrval = a[0,0] * rval + a[0,1] * gval + a[0,2] * bval
+ *            ngval = a[1,0] * rval + a[1,1] * gval + a[1,2] * bval
+ *            nbval = a[2,0] * rval + a[2,1] * gval + a[2,2] * bval
+ *      (2) The matrix can be generated in several ways.
+ *          See kernel.c for details.  Here are two of them:
+ *            (a) kel = kernelCreate(3, 3);
+ *                kernelSetElement(kel, 0, 0, val00);
+ *                kernelSetElement(kel, 0, 1, val01);
+ *                ...
+ *            (b) from a static string; e.g.,:
+ *                const char *kdata = " 0.6  0.3 -0.2 "
+ *                                    " 0.1  1.2  0.4 "
+ *                                    " -0.4 0.2  0.9 ";
+ *                kel = kernelCreateFromString(3, 3, 0, 0, kdata);
+ *      (3) For the special case where the matrix is diagonal, it is easier
+ *          to use pixMultConstantColor().
+ *      (4) Matrix entries can have positive and negative values, and can
+ *          be larger than 1.0.  All transformed component values
+ *          are clipped to [0, 255].
+ */
+PIX *
+pixMultMatrixColor(PIX       *pixs,
+                   L_KERNEL  *kel)
+{
+l_int32    i, j, index, kw, kh, w, h, d, wpls, wpld;
+l_int32    ncolors, rval, gval, bval, nrval, ngval, nbval;
+l_uint32   nval;
+l_uint32  *datas, *datad, *lines, *lined;
+l_float32  v[9];  /* use linear array for convenience */
+PIX       *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixMultMatrixColor");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!kel)
+        return (PIX *)ERROR_PTR("kel not defined", procName, NULL);
+    kernelGetParameters(kel, &kw, &kh, NULL, NULL);
+    if (kw != 3 || kh != 3)
+        return (PIX *)ERROR_PTR("matrix not 3x3", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    cmap = pixGetColormap(pixs);
+    if (!cmap && d != 32)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+
+    for (i = 0, index = 0; i < 3; i++)
+        for (j = 0; j < 3; j++, index++)
+            kernelGetElement(kel, i, j, v + index);
+
+    if (cmap) {
+        if ((pixd = pixCopy(NULL, pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        cmap = pixGetColormap(pixd);
+        ncolors = pixcmapGetCount(cmap);
+        for (i = 0; i < ncolors; i++) {
+            pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+            nrval = (l_int32)(v[0] * rval + v[1] * gval + v[2] * bval);
+            ngval = (l_int32)(v[3] * rval + v[4] * gval + v[5] * bval);
+            nbval = (l_int32)(v[6] * rval + v[7] * gval + v[8] * bval);
+            nrval = L_MAX(0, L_MIN(255, nrval));
+            ngval = L_MAX(0, L_MIN(255, ngval));
+            nbval = L_MAX(0, L_MIN(255, nbval));
+            pixcmapResetColor(cmap, i, nrval, ngval, nbval);
+        }
+        return pixd;
+    }
+
+    if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            nrval = (l_int32)(v[0] * rval + v[1] * gval + v[2] * bval);
+            ngval = (l_int32)(v[3] * rval + v[4] * gval + v[5] * bval);
+            nbval = (l_int32)(v[6] * rval + v[7] * gval + v[8] * bval);
+            nrval = L_MAX(0, L_MIN(255, nrval));
+            ngval = L_MAX(0, L_MIN(255, ngval));
+            nbval = L_MAX(0, L_MIN(255, nbval));
+            composeRGBPixel(nrval, ngval, nbval, &nval);
+            *(lined + j) = nval;
+        }
+    }
+
+    return pixd;
+}
+
+
 /*-------------------------------------------------------------*
  *                    Half-edge by bandpass                    *
  *-------------------------------------------------------------*/
@@ -1169,3 +1716,5 @@ PIX     *pixg, *pixacc, *pixc1, *pixc2;
     pixDestroy(&pixc2);
     return pixc1;
 }
+
+

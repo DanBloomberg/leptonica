@@ -26,6 +26,7 @@
  *          l_int32      ptraInsert()
  *          void        *ptraGetHandle()
  *          void        *ptraRemove()
+ *          void        *ptraRemoveLast()
  *          void        *ptraReplace()
  *          l_int32      ptraSwap()
  *          l_int32      ptraCompactArray()
@@ -151,22 +152,28 @@ L_PTRA  *pa;
  *  ptraDestroy()
  *
  *      Input:  &ptra (<to be nulled>)
- *              freeflag (TRUE to free each remaining struct in the array)
+ *              freeflag (TRUE to free each remaining item in the array)
+ *              warnflag (TRUE to warn if any remaining items are not destroyed)
  *      Return: void
  *
  *  Notes:
- *      (1) If freeflag is TRUE, frees each struct in the array.
- *      (2) If freeflag is FALSE but there are elements on the array,
- *          gives a warning and destroys the array.  This will
- *          cause a memory leak of all the items that were on the array.
- *          So if the items require their own destroy function, they
- *          must be destroyed before the ptra.
- *      (3) To destroy the ptra, we destroy the ptr array, then
+ *      (1) If @freeflag == TRUE, frees each item in the array.
+ *      (2) If @freeflag == FALSE and warnflag == TRUE, and there are
+ *          items on the array, this gives a warning and destroys the array.
+ *          If these items are not owned elsewhere, this will cause
+ *          a memory leak of all the items that were on the array.
+ *          So if the items are not owned elsewhere and require their
+ *          own destroy function, they must be destroyed before the ptra.
+ *      (3) If warnflag == FALSE, no warnings will be issued.  This is
+ *          useful if the items are owned elsewhere, such as a
+ *          PixMemoryStore().
+ *      (4) To destroy the ptra, we destroy the ptr array, then
  *          the ptra, and then null the contents of the input ptr.
  */
 void
 ptraDestroy(L_PTRA  **ppa,
-            l_int32   freeflag)
+            l_int32   freeflag,
+            l_int32   warnflag)
 {
 l_int32  i, nactual;
 void    *item;
@@ -189,8 +196,9 @@ L_PTRA  *pa;
                     FREE(item);
             }
         }
-        else
-            L_WARNING_INT("memory leak of %d items in ptra", procName, nactual);
+        else if (warnflag)
+            L_WARNING_INT("potential memory leak of %d items in ptra",
+                          procName, nactual);
     }
 
     FREE(pa->array);
@@ -255,8 +263,8 @@ ptraExtendArray(L_PTRA  *pa)
         return ERROR_INT("pa not defined", procName, 1);
 
     if ((pa->array = (void **)reallocNew((void **)&pa->array,
-                                sizeof(l_intptr_t) * pa->nalloc,
-                                2 * sizeof(l_intptr_t) * pa->nalloc)) == NULL)
+                                sizeof(void *) * pa->nalloc,
+                                2 * sizeof(void *) * pa->nalloc)) == NULL)
             return ERROR_INT("new ptr array not returned", procName, 1);
 
     pa->nalloc *= 2;
@@ -480,6 +488,31 @@ void    *item;
 
 
 /*!
+ *  ptraRemoveLast()
+ *
+ *      Input:  ptra
+ *      Return: item, or null on error or if the array is empty
+ */
+void *
+ptraRemoveLast(L_PTRA  *pa)
+{
+l_int32  imax;
+
+    PROCNAME("ptraRemoveLast");
+
+    if (!pa)
+        return (void *)ERROR_PTR("pa not defined", procName, NULL);
+
+        /* Remove the last item in the array.  No compaction is required. */
+    ptraGetMaxIndex(pa, &imax);
+    if (imax >= 0)
+        return ptraRemove(pa, imax, L_NO_COMPACTION);
+    else  /* empty */
+        return NULL;
+}
+
+
+/*!
  *  ptraReplace()
  *
  *      Input:  ptra
@@ -665,11 +698,12 @@ void    *item;
  *          in the array if there were no null pointers between 0
  *          and @maxindex - 1.  However, because the internal ptr array
  *          need not be compacted, there may be null pointers at
- *          indices below @maxindex - 1; for example, if items have
+ *          indices below @maxindex; for example, if items have
  *          been removed.
  *      (2) When an item is added to the end of the array, it goes
  *          into pa->array[maxindex + 1], and maxindex is then
  *          incremented by 1.
+ *      (3) If there are no items in the array, this returns @maxindex = -1.
  */
 l_int32
 ptraGetMaxIndex(L_PTRA   *pa,
@@ -776,22 +810,19 @@ L_PTRAA  *paa;
  *  ptraaDestroy()
  *
  *      Input:  &paa (<to be nulled>)
- *              freeflag (TRUE to free each remaining struct in each ptra)
+ *              freeflag (TRUE to free each remaining item in each ptra)
+ *              warnflag (TRUE to warn if any remaining items are not destroyed)
  *      Return: void
  *
  *  Notes:
- *      (1) If freeflag is TRUE, frees each struct in each ptra.
- *      (2) If freeflag is FALSE but there are elements remaining in
- *          the ptra, it gives a warning and destroys the ptra.  This will
- *          cause a memory leak of all the items that were on the ptra.
- *          So if the items require their own destroy function, they
- *          must be destroyed before calling this function.
- *      (3) To destroy the ptraa, we destroy each ptra, then the ptr array,
+ *      (1) See ptraDestroy() for use of @freeflag and @warnflag.
+ *      (2) To destroy the ptraa, we destroy each ptra, then the ptr array,
  *          then the ptraa, and then null the contents of the input ptr.
  */
 void
 ptraaDestroy(L_PTRAA  **ppaa,
-             l_int32    freeflag)
+             l_int32    freeflag,
+             l_int32    warnflag)
 {
 l_int32   i, n;
 L_PTRA   *pa;
@@ -809,7 +840,7 @@ L_PTRAA  *paa;
     ptraaGetSize(paa, &n);
     for (i = 0; i < n; i++) {
         pa = ptraaGetPtra(paa, i, L_REMOVE);
-        ptraDestroy(&pa, freeflag);
+        ptraDestroy(&pa, freeflag, warnflag);
     }
 
     FREE(paa->ptra);
@@ -956,7 +987,7 @@ L_PTRA    *pat, *pad;
         pat = ptraaGetPtra(paa, i, L_REMOVE);
         if (!pat) continue;
         ptraJoin(pad, pat);
-        ptraDestroy(&pat, FALSE);  /* they're all empty */
+        ptraDestroy(&pat, FALSE, FALSE);  /* they're all empty */
     }
 
     return pad;
@@ -1036,7 +1067,7 @@ L_PTRA    *paindex;
         }
     }
 
-    ptraDestroy(&paindex, 0);
+    ptraDestroy(&paindex, FALSE, FALSE);
     return nad;
 }
 

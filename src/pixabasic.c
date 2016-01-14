@@ -482,8 +482,8 @@ pixaExtendArray(PIXA  *pixa)
         return ERROR_INT("pixa not defined", procName, 1);
 
     if ((pixa->pix = (PIX **)reallocNew((void **)&pixa->pix,
-                             sizeof(l_intptr_t) * pixa->nalloc,
-                             2 * sizeof(l_intptr_t) * pixa->nalloc)) == NULL)
+                             sizeof(PIX *) * pixa->nalloc,
+                             2 * sizeof(PIX *) * pixa->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
     pixa->nalloc = 2 * pixa->nalloc;
     boxaExtendArray(pixa->boxa);
@@ -1197,8 +1197,8 @@ pixaaExtendArray(PIXAA  *pixaa)
         return ERROR_INT("pixaa not defined", procName, 1);
 
     if ((pixaa->pixa = (PIXA **)reallocNew((void **)&pixaa->pixa,
-                             sizeof(l_intptr_t) * pixaa->nalloc,
-                             2 * sizeof(l_intptr_t) * pixaa->nalloc)) == NULL)
+                             sizeof(PIXA *) * pixaa->nalloc,
+                             2 * sizeof(PIXA *) * pixaa->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
     pixaa->nalloc = 2 * pixaa->nalloc;
@@ -1378,6 +1378,10 @@ PIXA    *pixa;
 
     PROCNAME("pixaReadStream");
 
+#if  !HAVE_LIBPNG  /* defined in environ.h */
+    return (PIXA *)ERROR_PTR("no libpng: can't read data", procName, NULL);
+#else
+
     if (!fp)
         return (PIXA *)ERROR_PTR("stream not defined", procName, NULL);
 
@@ -1407,6 +1411,8 @@ PIXA    *pixa;
     }
 
     return pixa;
+
+#endif  /* !HAVE_LIBPNG */
 }
 
 
@@ -1459,6 +1465,10 @@ PIX     *pix;
 
     PROCNAME("pixaWriteStream");
 
+#if  !HAVE_LIBPNG  /* defined in environ.h */
+    return ERROR_INT("no libpng: can't write data", procName, 1);
+#else
+
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
     if (!pixa)
@@ -1477,6 +1487,8 @@ PIX     *pix;
         pixDestroy(&pix);
     }
     return 0;
+
+#endif  /* !HAVE_LIBPNG */
 }
 
 

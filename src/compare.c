@@ -532,8 +532,8 @@ PIX      *pixt;
 /*!
  *  pixCompareGrayOrRGB()
  *
- *      Input:  pix1 (8 or 32 bpp, or colormapped)
- *              pix2 (8 or 32 bpp, or colormapped)
+ *      Input:  pix1 (8 or 16 bpp gray, 32 bpp rgb, or colormapped)
+ *              pix2 (8 or 16 bpp gray, 32 bpp rgb, or colormapped)
  *              comptype (L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF)
  *              plottype (gplot plot output type, or 0 for no plot)
  *              &same (<optional return> 1 if pixel values are identical)
@@ -602,7 +602,7 @@ PIX     *pixt1, *pixt2;
         return ERROR_INT("intrinsic depths are not equal", procName, 1);
     }
 
-    if (d == 8)
+    if (d == 8 || d == 16)
         retval = pixCompareGray(pixt1, pixt2, comptype, plottype, psame,
                                 pdiff, prmsdiff, ppixdiff);
     else  /* d == 32 */
@@ -617,8 +617,8 @@ PIX     *pixt1, *pixt2;
 /*!
  *  pixCompareGray()
  *
- *      Input:  pix1 (8 bpp, not cmapped)
- *              pix2 (8 bpp, not cmapped)
+ *      Input:  pix1 (8 or 16 bpp, not cmapped)
+ *              pix2 (8 or 16 bpp, not cmapped)
  *              comptype (L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF)
  *              plottype (gplot plot output type, or 0 for no plot)
  *              &same (<optional return> 1 if pixel values are identical)
@@ -641,18 +641,25 @@ pixCompareGray(PIX        *pix1,
                l_float32  *prmsdiff,
                PIX       **ppixdiff)
 {
-l_int32  first, last;
+l_int32  d1, d2, first, last;
 GPLOT   *gplot;
 NUMA    *na, *nac;
 PIX     *pixt;
 
     PROCNAME("pixCompareGray");
 
+    if (psame) *psame = 0;
+    if (pdiff) *pdiff = 0.0;
+    if (prmsdiff) *prmsdiff = 0.0;
     if (ppixdiff) *ppixdiff = NULL;
-    if (!pix1 || pixGetDepth(pix1) != 8)
-        return ERROR_INT("pix1 not defined or not 8 bpp", procName, 1);
-    if (!pix2 || pixGetDepth(pix2) != 8)
-        return ERROR_INT("pix2 not defined or not 8 bpp", procName, 1);
+    if (!pix1)
+        return ERROR_INT("pix1 not defined", procName, 1);
+    if (!pix2)
+        return ERROR_INT("pix2 not defined", procName, 1);
+    d1 = pixGetDepth(pix1);
+    d2 = pixGetDepth(pix2);
+    if ((d1 != d2) || (d1 != 8 && d1 != 16))
+        return ERROR_INT("depths unequal or not 8 or 16 bpp", procName, 1);
     if (pixGetColormap(pix1) || pixGetColormap(pix2))
         return ERROR_INT("pix1 and/or pix2 are colormapped", procName, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
@@ -928,8 +935,8 @@ PIXACC    *pixacc;
 /*!
  *  pixCompareRankDifference()
  *
- *      Input:  pix1 (8 or 32 bpp, or colormapped)
- *              pix2 (8 or 32 bpp, or colormapped)
+ *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
  *      Return: narank (numa of rank difference), or null on error
  *
  *  Notes:
@@ -966,10 +973,14 @@ PIX        *pixt1, *pixt2;
         return (NUMA *)ERROR_PTR("pix1 not defined", procName, NULL);
     if (!pix2)
         return (NUMA *)ERROR_PTR("pix2 not defined", procName, NULL);
-    if (pixGetDepth(pix1) < 8 && !pixGetColormap(pix1))
+    d1 = pixGetDepth(pix1);
+    d2 = pixGetDepth(pix2);
+    if (d1 == 16 || d2 == 16)
+        return (NUMA *)ERROR_PTR("d == 16 not supported", procName, NULL);
+    if (d1 < 8 && !pixGetColormap(pix1))
         return (NUMA *)ERROR_PTR("pix1 depth < 8 bpp and not cmapped",
                                  procName, NULL);
-    if (pixGetDepth(pix2) < 8 && !pixGetColormap(pix2))
+    if (d2 < 8 && !pixGetColormap(pix2))
         return (NUMA *)ERROR_PTR("pix2 depth < 8 bpp and not cmapped",
                                  procName, NULL);
     pixt1 = pixRemoveColormap(pix1, REMOVE_CMAP_BASED_ON_SRC);

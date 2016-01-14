@@ -33,7 +33,7 @@ static const l_int32    MODSIZE = 7;  /* set to 7 for display */
 static const l_float32  ANGLE1 = 3.14159265 / 12;
 static const l_int32    NTIMES = 24;
 
-void rotateTest(char *fname);
+void rotateTest(const char *fname);
 
 
 main(int    argc,
@@ -59,7 +59,7 @@ static char  mainName[] = "rotatetest2";
 
 
 void
-rotateTest(char *fname)
+rotateTest(const char *fname)
 {
 l_int32   w, h, d, i;
 PIX      *pixs, *pixt, *pixd1, *pixd2;

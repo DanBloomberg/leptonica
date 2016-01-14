@@ -66,6 +66,7 @@ static char  mainName[] = "comparetest";
     type = atoi(argv[3]);
     pixd = NULL;
     fileout = argv[4];
+    l_pngSetStrip16To8(0);
 
     if ((pixs1 = pixRead(filein1)) == NULL)
 	exit(ERROR_INT("pixs1 not made", mainName, 1));
@@ -113,25 +114,30 @@ static char  mainName[] = "comparetest";
                 fprintf(stderr, "               <rmsdiff> = %10.6f\n", rmsdiff);
             }
         }
-        pixWrite(fileout, pixd, IFF_JFIF_JPEG);
+        if (d1 != 16)
+            pixWrite(fileout, pixd, IFF_JFIF_JPEG);
+        else 
+            pixWrite(fileout, pixd, IFF_PNG);
 
-        na1 = pixCompareRankDifference(pixs1, pixs2);
-        if (na1) {
-            fprintf(stderr, "na1[150] = %20.10f\n", na1->array[150]);
-            fprintf(stderr, "na1[200] = %20.10f\n", na1->array[200]);
-            fprintf(stderr, "na1[250] = %20.10f\n", na1->array[250]);
-            numaGetNonzeroRange(na1, 0.00005, &first, &last);
-            fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n",
-                    first, last);
-            na2 = numaClipToInterval(na1, first, last);
-            gplot = gplotCreate("/tmp/junkrank", GPLOT_X11,
-                                "Pixel Rank Difference", "pixel val",
-                                "rank");
-            gplotAddPlot(gplot, NULL, na2, GPLOT_LINES, "rank");
-            gplotMakeOutput(gplot);
-            gplotDestroy(&gplot);
-            numaDestroy(&na1);
-            numaDestroy(&na2);
+        if (d1 != 16) {
+            na1 = pixCompareRankDifference(pixs1, pixs2);
+            if (na1) {
+                fprintf(stderr, "na1[150] = %20.10f\n", na1->array[150]);
+                fprintf(stderr, "na1[200] = %20.10f\n", na1->array[200]);
+                fprintf(stderr, "na1[250] = %20.10f\n", na1->array[250]);
+                numaGetNonzeroRange(na1, 0.00005, &first, &last);
+                fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n",
+                        first, last);
+                na2 = numaClipToInterval(na1, first, last);
+                gplot = gplotCreate("/tmp/junkrank", GPLOT_X11,
+                                    "Pixel Rank Difference", "pixel val",
+                                    "rank");
+                gplotAddPlot(gplot, NULL, na2, GPLOT_LINES, "rank");
+                gplotMakeOutput(gplot);
+                gplotDestroy(&gplot);
+                numaDestroy(&na1);
+                numaDestroy(&na2);
+            }
         }
     } 
 

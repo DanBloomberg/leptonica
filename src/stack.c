@@ -211,8 +211,8 @@ lstackExtendArray(L_STACK  *lstack)
         return ERROR_INT("lstack not defined", procName, 1);
 
     if ((lstack->array = (void **)reallocNew((void **)&lstack->array,
-                              sizeof(l_intptr_t) * lstack->nalloc,
-                              2 * sizeof(l_intptr_t) * lstack->nalloc)) == NULL)
+                              sizeof(void *) * lstack->nalloc,
+                              2 * sizeof(void *) * lstack->nalloc)) == NULL)
         return ERROR_INT("new lstack array not defined", procName, 1);
 
     lstack->nalloc = 2 * lstack->nalloc;

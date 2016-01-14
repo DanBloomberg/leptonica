@@ -78,7 +78,12 @@ static char  mainName[] = "binmorph1_reg";
 	exit(ERROR_INT("pix not made", mainName, 1));
 
 #if TEST_SYMMETRIC
+        /* This works properly if there is an added border */
     resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
+#if 1
+    pixt1 = pixAddBorder(pixs, 32, 0);
+    pixTransferAllData(pixs, &pixt1, 0, 0);
+#endif
 #endif  /* TEST_SYMMETRIC */
 
         /* This is our test sel */
@@ -246,14 +251,6 @@ static char  mainName[] = "binmorph1_reg";
         fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
     }
     
-#if 0
-    pixWrite("junkref", pixref, IFF_PNG);
-    pixWrite("junk11", pixt11, IFF_PNG);
-    pixt12 = pixXor(NULL, pixref, pixt11);
-    pixWrite("junk12", pixt12, IFF_PNG);
-    pixDestroy(&pixt12);
-#endif
-
     sprintf(sequence, "e%d.%d", WIDTH, HEIGHT);
     pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
     pixEqual(pixref, pixt12, &same);
@@ -354,6 +351,15 @@ static char  mainName[] = "binmorph1_reg";
     if (!same) {
         fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
     }
+
+#if 0
+    pixWrite("junkref", pixref, IFF_PNG);
+    pixWrite("junk12", pixt12, IFF_PNG);
+    pixt13 = pixXor(NULL, pixref, pixt12);
+    pixWrite("junk12a", pixt13, IFF_PNG);
+    pixDestroy(&pixt13);
+#endif
+
     pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
     pixEqual(pixref, pixt13, &same);
     if (!same) {
@@ -365,6 +371,7 @@ static char  mainName[] = "binmorph1_reg";
     if (!same) {
         fprintf(stderr, "pixref != pixt14 !\n"); ok = FALSE;
     }
+
     pixDestroy(&pixref);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -520,6 +527,15 @@ static char  mainName[] = "binmorph1_reg";
     if (!same) {
         fprintf(stderr, "pixref != pixt14 !\n"); ok = FALSE;
     }
+
+#if 0
+    pixWrite("junkref", pixref, IFF_PNG);
+    pixWrite("junk12", pixt12, IFF_PNG);
+    pixt13 = pixXor(NULL, pixref, pixt12);
+    pixWrite("junk12a", pixt13, IFF_PNG);
+    pixDestroy(&pixt13);
+#endif
+
     pixDestroy(&pixref);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);

@@ -36,7 +36,6 @@ static  l_uint32 expandtab16[] = {
             0x00000000, 0x0000ffff, 0xffff0000, 0xffffffff};
 
 
-
 /*-------------------------------------------------------------------*
  *              Low level power-of-2 binary expansion                *
  *-------------------------------------------------------------------*/
@@ -75,7 +74,7 @@ l_uint32  *lines, *lined;
                 sval = GET_DATA_BYTE(lines, j);
                 SET_DATA_TWO_BYTES(lined, j, tab2[sval]);
             }
-            memcpy((char *)(lined + wpld), (char *)lined, 2 * sbytes);
+            memcpy((char *)(lined + wpld), (char *)lined, 4 * wpld);
         }
         FREE(tab2);
         break;
@@ -91,7 +90,7 @@ l_uint32  *lines, *lined;
                 lined[j] = tab4[sval];
             }
             for (k = 1; k < 4; k++) 
-                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sbytes);
+                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * wpld);
         }
         FREE(tab4);
         break;
@@ -109,7 +108,7 @@ l_uint32  *lines, *lined;
                 lined[j] = tab8[sval];
             }
             for (k = 1; k < 8; k++) 
-                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sqbits);
+                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * wpld);
         }
         FREE(tab8);
         break;
@@ -123,7 +122,7 @@ l_uint32  *lines, *lined;
                 lined[j] = expandtab16[sval];
             }
             for (k = 1; k < 16; k++) 
-                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sdibits);
+                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * wpld);
         }
         break;
     default:

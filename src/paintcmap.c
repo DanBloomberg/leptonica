@@ -263,7 +263,7 @@ PIXCMAP   *cmap, *cmapc;
     map = numaGetIArray(na);
     
         /* Determine the region of substitution */
-    pixGetDimensions(pixs, &w, &h, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);  /* d may be different */
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
     if (!box) {

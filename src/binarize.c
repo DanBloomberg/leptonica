@@ -38,13 +38,20 @@
  *          l_int32    pixSauvolaBinarize()
  *          PIX       *pixSauvolaGetThreshold()
  *          PIX       *pixApplyLocalThreshold();
- *          PIX       *pixWindowedMean()
- *          PIX       *pixWindowedMeanSquare()
- *          DPIX      *pixMeanSquareAccum()
  *
- *   pixOtsuAdaptiveThreshold() computes a global threshold over each
- *   tile and performs the threshold operation, resulting in a
- *   binary image for each tile.  These are stitched into the final result.
+ *  Notes:
+ *      (1) pixOtsuAdaptiveThreshold() computes a global threshold over each
+ *          tile and performs the threshold operation, resulting in a
+ *          binary image for each tile.  These are stitched into the
+ *          final result.
+ *      (2) pixOtsuThreshOnBackgroundNorm() and
+ *          pixMaskedThreshOnBackgroundNorm() are binarization functions
+ *          that use background normalization with other techniques.
+ *      (3) Sauvola binarization computes a local threshold based on
+ *          the local average and square average.  It takes two constants:
+ *          the window size for the measurment at each pixel and a
+ *          parameter that determines the amount of normalized local
+ *          standard deviation to subtract from the local average value.
  */
 
 #include <stdio.h>
@@ -587,7 +594,7 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
 
         /* All these functions strip off the border pixels. */
     if (ppixm || ppixth || ppixd)
-        pixm = pixWindowedMean(pixg, whsize);
+        pixm = pixWindowedMean(pixg, whsize, whsize, 1);
     if (ppixsd || ppixth || ppixd)
         pixms = pixWindowedMeanSquare(pixg, whsize);
     if (ppixth || ppixd)
@@ -767,210 +774,6 @@ PIX       *pixd;
     }
 
     return pixd;
-}
-
-
-/*!
- *  pixWindowedMean()
- *
- *      Input:  pixs (8 bpp grayscale)
- *              size (halfwidth of convolution kernel)
- *      Return: pixd (8 bpp, average over window of size (2 * size + 1))
- *
- *  Notes:
- *      (1) A set of border pixels of width (size + 1) is included
- *          in pixs.  The output pixd (after convolution) has this
- *          border removed.
- */
-PIX *
-pixWindowedMean(PIX     *pixs,
-                l_int32  size)
-{
-l_int32    i, j, w, h, wd, hd, wplc, wpld, incr;
-l_uint32   val;
-l_uint32  *datac, *datad, *linec1, *linec2, *lined;
-l_float32  norm;
-PIX       *pixc, *pixd;
-
-    PROCNAME("pixWindowedMean");
-    
-    if (!pixs || (pixGetDepth(pixs) != 8))
-        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, NULL);
-    if (size < 2)
-        return (PIX *)ERROR_PTR("size not >= 2", procName, NULL);
-
-    if ((pixc = pixBlockconvAccum(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
-
-        /* Strip off 2 * (size + 1) border pixels */
-    wd = w - 2 * (size + 1);
-    hd = h - 2 * (size + 1);
-    if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    wplc = pixGetWpl(pixc);
-    wpld = pixGetWpl(pixd);
-    datad = pixGetData(pixd);
-    datac = pixGetData(pixc);
-
-    incr = 2 * size + 1;
-    norm = 1.0 / (incr * incr);
-    for (i = 0; i < hd; i++) {
-        linec1 = datac + i * wplc;
-        linec2 = datac + (i + incr) * wplc;
-        lined = datad + i * wpld;
-        for (j = 0; j < wd; j++) {
-            val = linec2[j + incr] - linec2[j] - linec1[j + incr] + linec1[j];
-            val = (l_uint8)(norm * val);
-            SET_DATA_BYTE(lined, j, val);
-        } 
-    }
-            
-    pixDestroy(&pixc);
-    return pixd;
-}
-
-
-/*!
- *  pixWindowedMeanSquare()
- *
- *      Input:  pixs (8 bpp grayscale)
- *              size (halfwidth of convolution kernel)
- *      Return: pixd (32 bpp, average over window of size (2 * size + 1))
- *
- *  Notes:
- *      (1) A set of border pixels of width (size + 1) is included
- *          in pixs.  The output pixd (after convolution) has this
- *          border removed.
- *      (2) The advantage is that we are unaffected by the boundary, and
- *          it is not necessary to treat pixels within @size of the
- *          border differently.  This is because processing for pixd
- *          only takes place for pixels in pixs for which the
- *          kernel is entirely contained in pixs.
- *      (3) Why do we have an added border of width (@size + 1), when
- *          we only need @size pixels to satisfy this condition?
- *          Answer: the accumulators are asymmetric, requiring an
- *          extra row and column of pixels at top and left to work
- *          accurately.
- */
-PIX *
-pixWindowedMeanSquare(PIX     *pixs,
-                      l_int32  size)
-{
-l_int32     i, j, w, h, wd, hd, wpl, wpld, incr;
-l_uint32    ival;
-l_uint32   *datad, *lined;
-l_float64   norm;
-l_float64   val;
-l_float64  *data, *line1, *line2;
-DPIX       *dpix;
-PIX        *pixd;
-
-    PROCNAME("pixWindowedMeanSquare");
-
-    
-    if (!pixs || (pixGetDepth(pixs) != 8))
-        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, NULL);
-    if (size < 2)
-        return (PIX *)ERROR_PTR("size not >= 2", procName, NULL);
-
-    if ((dpix = pixMeanSquareAccum(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("dpix not made", procName, NULL);
-    wpl = dpixGetWpl(dpix);
-    data = dpixGetData(dpix);
-
-        /* Strip off 2 * (size + 1) border pixels */
-    wd = w - 2 * (size + 1);
-    hd = h - 2 * (size + 1);
-    if ((pixd = pixCreate(wd, hd, 32)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    wpld = pixGetWpl(pixd);
-    datad = pixGetData(pixd);
-
-    incr = 2 * size + 1;
-    norm = 1.0 / (incr * incr);
-    for (i = 0; i < hd; i++) {
-        line1 = data + i * wpl;
-        line2 = data + (i + incr) * wpl;
-        lined = datad + i * wpld;
-        for (j = 0; j < wd; j++) {
-            val = line2[j + incr] - line2[j] - line1[j + incr] + line1[j];
-            ival = (l_uint32)(norm * val);
-            lined[j] = ival;
-        } 
-    }
-            
-    dpixDestroy(&dpix);
-    return pixd;
-}
-
-
-/*!
- *  pixMeanSquareAccum()
- *
- *      Input:  pixs (8 bpp grayscale)
- *      Return: dpix (64 bit array), or null on error
- *
- *  Notes:
- *      (1) Similar to pixBlockconvAccum(), this computes the
- *          sum of the squares of the pixel values in such a way
- *          that the value at (i,j) is the sum of all squares in
- *          the rectangle from the origin to (i,j).
- *      (2) The general recursion relation (v are squared pixel values) is
- *            a(i,j) = v(i,j) + a(i-1, j) + a(i, j-1) - a(i-1, j-1)
- *          For the first line, this reduces to the special case
- *            a(i,j) = v(i,j) + a(i, j-1)
- *          For the first column, the special case is
- *            a(i,j) = v(i,j) + a(i-1, j)
- */
-DPIX *
-pixMeanSquareAccum(PIX  *pixs)
-{
-l_int32     i, j, w, h, wpl, wpls, val;
-l_uint32   *datas, *lines;
-l_float64  *data, *line, *linep;
-DPIX       *dpix;
-
-    PROCNAME("pixMeanSquareAccum");
-
-    
-    if (!pixs || (pixGetDepth(pixs) != 8))
-        return (DPIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, NULL);
-    if ((dpix = dpixCreate(w, h)) ==  NULL)
-        return (DPIX *)ERROR_PTR("dpix not made", procName, NULL);
-
-    datas = pixGetData(pixs);
-    wpls = pixGetWpl(pixs);
-    data = dpixGetData(dpix);
-    wpl = dpixGetWpl(dpix);
-
-    lines = datas;
-    line = data;
-    for (j = 0; j < w; j++) {   /* first line */
-        val = GET_DATA_BYTE(lines, j);
-        if (j == 0)
-            line[0] = val * val;
-        else
-            line[j] = line[j - 1] + val * val;
-    }
-
-        /* Do the other lines */
-    for (i = 1; i < h; i++) {
-        lines = datas + i * wpls;
-        line = data + i * wpl;  /* current dest line */
-        linep = line - wpl;;  /* prev dest line */
-        for (j = 0; j < w; j++) {
-            val = GET_DATA_BYTE(lines, j);
-            if (j == 0)
-                line[0] = linep[0] + val * val;
-            else
-                line[j] = line[j - 1] + linep[j] - linep[j - 1] + val * val;
-        }
-    }
-
-    return dpix;
 }
 
 

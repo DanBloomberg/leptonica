@@ -16,7 +16,7 @@
 /*
  *  colorseg.c
  *                     
- *      Unsupervised color segmentation
+ *    Unsupervised color segmentation
  *
  *               PIX     *pixColorSegment()
  *               PIX     *pixColorSegmentCluster()
@@ -25,6 +25,16 @@
  *               l_int32  pixColorSegmentClean()
  *               l_int32  pixColorSegmentRemoveColors()
  *
+ *    Selection and display of range of colors in HSV space
+ *
+ *               PIX     *pixMakeRangeMaskHS()
+ *               PIX     *pixMakeRangeMaskHV()
+ *               PIX     *pixMakeRangeMaskSV()
+ *               PIX     *pixMakeHistoHS()
+ *               PIX     *pixMakeHistoHV()
+ *               PIX     *pixMakeHistoSV()
+ *               PIX     *pixFindHistoPeaksHSV()
+ *               PIX     *displayHSVColorRange()
  */
 
 #include <stdio.h>
@@ -47,6 +57,10 @@ static const l_int32  LEVEL_IN_OCTCUBE = 4;
 static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
                                          l_int32 maxdist, l_int32 maxcolors);
 
+
+#ifndef  NO_CONSOLE_IO
+#define  DEBUG_HISTO       1
+#endif  /* ~NO_CONSOLE_IO */
 
 
 /*------------------------------------------------------------------*
@@ -610,4 +624,726 @@ PIXCMAP   *cmap;
     numaDestroy(&nasi);
     return 0;
 }
+
+
+/*------------------------------------------------------------------*
+ *       Selection and display of range of colors in HSV space      *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixMakeRangeMaskHS()
+ *
+ *      Input:  pixs  (24 bpp rgb)
+ *              huecenter (center value of hue range)
+ *              huehw (half-width of hue range)
+ *              satcenter (center value of saturation range)
+ *              sathw (half-width of saturation range)
+ *              regionflag (L_INCLUDE_REGION, L_EXCLUDE_REGION)
+ *      Return: pixd (1 bpp mask over selected pixels), or null on error
+ *
+ *  Notes:
+ *      (1) The pixels are selected based on the specified ranges of
+ *          hue and saturation.  For selection or exclusion, the pixel
+ *          HS component values must be within both ranges.  Care must
+ *          be taken in finding the hue range because of wrap-around.
+ *      (2) Use @regionflag == L_INCLUDE_REGION to take only those
+ *          pixels within the rectangular region specified in HS space.
+ *          Use @regionflag == L_EXCLUDE_REGION to take all pixels except
+ *          those within the rectangular region specified in HS space.
+ */
+PIX *
+pixMakeRangeMaskHS(PIX     *pixs,
+                   l_int32  huecenter,
+                   l_int32  huehw,
+                   l_int32  satcenter,
+                   l_int32  sathw,
+                   l_int32  regionflag)
+{
+l_int32    i, j, w, h, wplt, wpld, hstart, hend, sstart, send, hval, sval;
+l_int32   *hlut, *slut;
+l_uint32   pixel;
+l_uint32  *datat, *datad, *linet, *lined;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixMakeRangeMaskHS");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (regionflag != L_INCLUDE_REGION && regionflag != L_EXCLUDE_REGION)
+        return (PIX *)ERROR_PTR("invalid regionflag", procName, NULL);
+
+        /* Set up LUTs for hue and saturation.  These have the value 1
+         * within the specified intervals of hue and saturation. */
+    hlut = (l_int32 *)CALLOC(240, sizeof(l_int32));
+    slut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    sstart = L_MAX(0, satcenter - sathw);
+    send = L_MIN(255, satcenter + sathw);
+    for (i = sstart; i <= send; i++)
+        slut[i] = 1;
+    hstart = (huecenter - huehw + 240) % 240;
+    hend = (huecenter + huehw + 240) % 240;
+    if (hstart < hend) {
+        for (i = hstart; i <= hend; i++)
+            hlut[i] = 1;
+    }
+    else {  /* wrap */
+        for (i = hstart; i < 240; i++)
+            hlut[i] = 1;
+        for (i = 0; i <= hend; i++)
+            hlut[i] = 1;
+    }
+
+        /* Generate the mask */
+    pixt = pixConvertRGBToHSV(NULL, pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreateNoInit(w, h, 1);
+    if (regionflag == L_INCLUDE_REGION)
+        pixClearAll(pixd);
+    else  /* L_EXCLUDE_REGION */
+        pixSetAll(pixd);
+    datat = pixGetData(pixt);
+    datad = pixGetData(pixd);
+    wplt = pixGetWpl(pixt);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pixel = linet[j];
+            hval = (pixel >> L_RED_SHIFT) & 0xff;
+            sval = (pixel >> L_GREEN_SHIFT) & 0xff;
+            if (hlut[hval] == 1 && slut[sval] == 1) {
+                if (regionflag == L_INCLUDE_REGION)
+                    SET_DATA_BIT(lined, j);
+                else  /* L_EXCLUDE_REGION */
+                    CLEAR_DATA_BIT(lined, j);
+            }
+        }
+    }
+
+    FREE(hlut);
+    FREE(slut);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixMakeRangeMaskHV()
+ *
+ *      Input:  pixs  (24 bpp rgb)
+ *              huecenter (center value of hue range)
+ *              huehw (half-width of hue range)
+ *              valcenter (center value of max intensity range)
+ *              valhw (half-width of max intensity range)
+ *              regionflag (L_INCLUDE_REGION, L_EXCLUDE_REGION)
+ *      Return: pixd (1 bpp mask over selected pixels), or null on error
+ *
+ *  Notes:
+ *      (1) The pixels are selected based on the specified ranges of
+ *          hue and max intensity values.  For selection or exclusion,
+ *          the pixel HV component values must be within both ranges.
+ *          Care must be taken in finding the hue range because of wrap-around.
+ *      (2) Use @regionflag == L_INCLUDE_REGION to take only those
+ *          pixels within the rectangular region specified in HV space.
+ *          Use @regionflag == L_EXCLUDE_REGION to take all pixels except
+ *          those within the rectangular region specified in HV space.
+ */
+PIX *
+pixMakeRangeMaskHV(PIX     *pixs,
+                   l_int32  huecenter,
+                   l_int32  huehw,
+                   l_int32  valcenter,
+                   l_int32  valhw,
+                   l_int32  regionflag)
+{
+l_int32    i, j, w, h, wplt, wpld, hstart, hend, vstart, vend, hval, vval;
+l_int32   *hlut, *vlut;
+l_uint32   pixel;
+l_uint32  *datat, *datad, *linet, *lined;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixMakeRangeMaskHV");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (regionflag != L_INCLUDE_REGION && regionflag != L_EXCLUDE_REGION)
+        return (PIX *)ERROR_PTR("invalid regionflag", procName, NULL);
+
+        /* Set up LUTs for hue and maximum intensity (val).  These have
+         * the value 1 within the specified intervals of hue and value. */
+    hlut = (l_int32 *)CALLOC(240, sizeof(l_int32));
+    vlut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    vstart = L_MAX(0, valcenter - valhw);
+    vend = L_MIN(255, valcenter + valhw);
+    for (i = vstart; i <= vend; i++)
+        vlut[i] = 1;
+    hstart = (huecenter - huehw + 240) % 240;
+    hend = (huecenter + huehw + 240) % 240;
+    if (hstart < hend) {
+        for (i = hstart; i <= hend; i++)
+            hlut[i] = 1;
+    }
+    else {
+        for (i = hstart; i < 240; i++)
+            hlut[i] = 1;
+        for (i = 0; i <= hend; i++)
+            hlut[i] = 1;
+    }
+
+        /* Generate the mask */
+    pixt = pixConvertRGBToHSV(NULL, pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreateNoInit(w, h, 1);
+    if (regionflag == L_INCLUDE_REGION)
+        pixClearAll(pixd);
+    else  /* L_EXCLUDE_REGION */
+        pixSetAll(pixd);
+    datat = pixGetData(pixt);
+    datad = pixGetData(pixd);
+    wplt = pixGetWpl(pixt);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pixel = linet[j];
+            hval = (pixel >> L_RED_SHIFT) & 0xff;
+            vval = (pixel >> L_BLUE_SHIFT) & 0xff;
+            if (hlut[hval] == 1 && vlut[vval] == 1) {
+                if (regionflag == L_INCLUDE_REGION)
+                    SET_DATA_BIT(lined, j);
+                else  /* L_EXCLUDE_REGION */
+                    CLEAR_DATA_BIT(lined, j);
+            }
+        }
+    }
+
+    FREE(hlut);
+    FREE(vlut);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixMakeRangeMaskSV()
+ *
+ *      Input:  pixs  (24 bpp rgb)
+ *              satcenter (center value of saturation range)
+ *              sathw (half-width of saturation range)
+ *              valcenter (center value of max intensity range)
+ *              valhw (half-width of max intensity range)
+ *              regionflag (L_INCLUDE_REGION, L_EXCLUDE_REGION)
+ *      Return: pixd (1 bpp mask over selected pixels), or null on error
+ *
+ *  Notes:
+ *      (1) The pixels are selected based on the specified ranges of
+ *          saturation and max intensity (val).  For selection or
+ *          exclusion, the pixel SV component values must be within both ranges.
+ *      (2) Use @regionflag == L_INCLUDE_REGION to take only those
+ *          pixels within the rectangular region specified in SV space.
+ *          Use @regionflag == L_EXCLUDE_REGION to take all pixels except
+ *          those within the rectangular region specified in SV space.
+ */
+PIX *
+pixMakeRangeMaskSV(PIX     *pixs,
+                   l_int32  satcenter,
+                   l_int32  sathw,
+                   l_int32  valcenter,
+                   l_int32  valhw,
+                   l_int32  regionflag)
+{
+l_int32    i, j, w, h, wplt, wpld, sval, vval, sstart, send, vstart, vend;
+l_int32   *slut, *vlut;
+l_uint32   pixel;
+l_uint32  *datat, *datad, *linet, *lined;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixMakeRangeMaskSV");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (regionflag != L_INCLUDE_REGION && regionflag != L_EXCLUDE_REGION)
+        return (PIX *)ERROR_PTR("invalid regionflag", procName, NULL);
+
+        /* Set up LUTs for saturation and max intensity (val). 
+         * These have the value 1 within the specified intervals of
+         * saturation and max intensity. */
+    slut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    vlut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    sstart = L_MAX(0, satcenter - sathw);
+    send = L_MIN(255, satcenter + sathw);
+    vstart = L_MAX(0, valcenter - valhw);
+    vend = L_MIN(255, valcenter + valhw);
+    for (i = sstart; i <= send; i++)
+        slut[i] = 1;
+    for (i = vstart; i <= vend; i++)
+        vlut[i] = 1;
+
+        /* Generate the mask */
+    pixt = pixConvertRGBToHSV(NULL, pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreateNoInit(w, h, 1);
+    if (regionflag == L_INCLUDE_REGION)
+        pixClearAll(pixd);
+    else  /* L_EXCLUDE_REGION */
+        pixSetAll(pixd);
+    datat = pixGetData(pixt);
+    datad = pixGetData(pixd);
+    wplt = pixGetWpl(pixt);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pixel = linet[j];
+            sval = (pixel >> L_GREEN_SHIFT) & 0xff;
+            vval = (pixel >> L_BLUE_SHIFT) & 0xff;
+            if (slut[sval] == 1 && vlut[vval] == 1) {
+                if (regionflag == L_INCLUDE_REGION)
+                    SET_DATA_BIT(lined, j);
+                else  /* L_EXCLUDE_REGION */
+                    CLEAR_DATA_BIT(lined, j);
+            }
+        }
+    }
+
+    FREE(slut);
+    FREE(vlut);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixMakeHistoHS()
+ *
+ *      Input:  pixs  (HSV colorspace)
+ *              factor (subsampling factor; integer)
+ *              &nahue (<optional return> hue histogram)
+ *              &nasat (<optional return> saturation histogram)
+ *      Return: pixd (32 bpp histogram in hue and saturation), or null on error
+ *
+ *  Notes:
+ *      (1) pixs is a 32 bpp image in HSV colorspace; hue is in the "red"
+ *          byte, saturation is in the "green" byte.
+ *      (2) In pixd, hue is displayed vertically; saturation horizontally.
+ *          The dimensions of pixd are w = 256, h = 240, and the depth
+ *          is 32 bpp.  The value at each point is simply the number
+ *          of pixels found at that value of hue and saturation.
+ */
+PIX *
+pixMakeHistoHS(PIX     *pixs,
+               l_int32  factor,
+               NUMA   **pnahue,
+               NUMA   **pnasat)
+{
+l_int32    i, j, w, h, wplt, hval, sval, nd;
+l_uint32   pixel;
+l_uint32  *datat, *linet;
+void     **lined32;
+NUMA      *nahue, *nasat;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixMakeHistoHS");
+
+    if (pnahue) *pnahue = NULL;
+    if (pnasat) *pnasat = NULL;
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+
+    if (pnahue) {
+        nahue = numaCreate(240);
+        numaSetCount(nahue, 240);
+        *pnahue = nahue;
+    }
+    if (pnasat) {
+        nasat = numaCreate(256);
+        numaSetCount(nasat, 256);
+        *pnasat = nasat;
+    }
+
+    if (factor <= 1)
+        pixt = pixClone(pixs);
+    else
+        pixt = pixScaleBySampling(pixs, 1.0 / (l_float32)factor,
+                                  1.0 / (l_float32)factor);
+
+        /* Create the hue-saturation histogram */
+    pixd = pixCreate(256, 240, 32);
+    lined32 = pixGetLinePtrs(pixd, NULL);
+    pixGetDimensions(pixt, &w, &h, NULL);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        for (j = 0; j < w; j++) {
+            pixel = linet[j];
+            hval = (pixel >> L_RED_SHIFT) & 0xff;
+
+#if  DEBUG_HISTO
+            if (hval > 239) {
+                fprintf(stderr, "hval = %d for (%d,%d)\n", hval, i, j);
+                continue;
+            }
+#endif  /* DEBUG_HISTO */
+
+            sval = (pixel >> L_GREEN_SHIFT) & 0xff;
+            if (pnahue)
+                numaShiftValue(nahue, hval, 1.0);
+            if (pnasat)
+                numaShiftValue(nasat, sval, 1.0);
+            nd = GET_DATA_FOUR_BYTES(lined32[hval], sval);
+            SET_DATA_FOUR_BYTES(lined32[hval], sval, nd + 1);
+        }
+    }
+
+    FREE(lined32);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixMakeHistoHV()
+ *
+ *      Input:  pixs  (HSV colorspace)
+ *              factor (subsampling factor; integer)
+ *              &nahue (<optional return> hue histogram)
+ *              &naval (<optional return> max intensity (value) histogram)
+ *      Return: pixd (32 bpp histogram in hue and value), or null on error
+ *
+ *  Notes:
+ *      (1) pixs is a 32 bpp image in HSV colorspace; hue is in the "red"
+ *          byte, max intensity ("value") is in the "blue" byte.
+ *      (2) In pixd, hue is displayed vertically; intensity horizontally.
+ *          The dimensions of pixd are w = 256, h = 240, and the depth
+ *          is 32 bpp.  The value at each point is simply the number
+ *          of pixels found at that value of hue and intensity.
+ */
+PIX *
+pixMakeHistoHV(PIX     *pixs,
+               l_int32  factor,
+               NUMA   **pnahue,
+               NUMA   **pnaval)
+{
+l_int32    i, j, w, h, wplt, hval, vval, nd;
+l_uint32   pixel;
+l_uint32  *datat, *linet;
+void     **lined32;
+NUMA      *nahue, *naval;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixMakeHistoHV");
+
+    if (pnahue) *pnahue = NULL;
+    if (pnaval) *pnaval = NULL;
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+
+    if (pnahue) {
+        nahue = numaCreate(240);
+        numaSetCount(nahue, 240);
+        *pnahue = nahue;
+    }
+    if (pnaval) {
+        naval = numaCreate(256);
+        numaSetCount(naval, 256);
+        *pnaval = naval;
+    }
+
+    if (factor <= 1)
+        pixt = pixClone(pixs);
+    else
+        pixt = pixScaleBySampling(pixs, 1.0 / (l_float32)factor,
+                                  1.0 / (l_float32)factor);
+
+        /* Create the hue-value histogram */
+    pixd = pixCreate(256, 240, 32);
+    lined32 = pixGetLinePtrs(pixd, NULL);
+    pixGetDimensions(pixt, &w, &h, NULL);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        for (j = 0; j < w; j++) {
+            pixel = linet[j];
+            hval = (pixel >> L_RED_SHIFT) & 0xff;
+            vval = (pixel >> L_BLUE_SHIFT) & 0xff;
+            if (pnahue)
+                numaShiftValue(nahue, hval, 1.0);
+            if (pnaval)
+                numaShiftValue(naval, vval, 1.0);
+            nd = GET_DATA_FOUR_BYTES(lined32[hval], vval);
+            SET_DATA_FOUR_BYTES(lined32[hval], vval, nd + 1);
+        }
+    }
+
+    FREE(lined32);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixMakeHistoSV()
+ *
+ *      Input:  pixs  (HSV colorspace)
+ *              factor (subsampling factor; integer)
+ *              &nasat (<optional return> sat histogram)
+ *              &naval (<optional return> max intensity (value) histogram)
+ *      Return: pixd (32 bpp histogram in sat and value), or null on error
+ *
+ *  Notes:
+ *      (1) pixs is a 32 bpp image in HSV colorspace; sat is in the "green"
+ *          byte, max intensity ("value") is in the "blue" byte.
+ *      (2) In pixd, sat is displayed vertically; intensity horizontally.
+ *          The dimensions of pixd are w = 256, h = 256, and the depth
+ *          is 32 bpp.  The value at each point is simply the number
+ *          of pixels found at that value of saturation and intensity.
+ */
+PIX *
+pixMakeHistoSV(PIX     *pixs,
+               l_int32  factor,
+               NUMA   **pnasat,
+               NUMA   **pnaval)
+{
+l_int32    i, j, w, h, wplt, sval, vval, nd;
+l_uint32   pixel;
+l_uint32  *datat, *linet;
+void     **lined32;
+NUMA      *nasat, *naval;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixMakeHistoSV");
+
+    if (pnasat) *pnasat = NULL;
+    if (pnaval) *pnaval = NULL;
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+
+    if (pnasat) {
+        nasat = numaCreate(256);
+        numaSetCount(nasat, 256);
+        *pnasat = nasat;
+    }
+    if (pnaval) {
+        naval = numaCreate(256);
+        numaSetCount(naval, 256);
+        *pnaval = naval;
+    }
+
+    if (factor <= 1)
+        pixt = pixClone(pixs);
+    else
+        pixt = pixScaleBySampling(pixs, 1.0 / (l_float32)factor,
+                                  1.0 / (l_float32)factor);
+
+        /* Create the hue-value histogram */
+    pixd = pixCreate(256, 256, 32);
+    lined32 = pixGetLinePtrs(pixd, NULL);
+    pixGetDimensions(pixt, &w, &h, NULL);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        for (j = 0; j < w; j++) {
+            pixel = linet[j];
+            sval = (pixel >> L_GREEN_SHIFT) & 0xff;
+            vval = (pixel >> L_BLUE_SHIFT) & 0xff;
+            if (pnasat)
+                numaShiftValue(nasat, sval, 1.0);
+            if (pnaval)
+                numaShiftValue(naval, vval, 1.0);
+            nd = GET_DATA_FOUR_BYTES(lined32[sval], vval);
+            SET_DATA_FOUR_BYTES(lined32[sval], vval, nd + 1);
+        }
+    }
+
+    FREE(lined32);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixFindHistoPeaksHSV()
+ *
+ *      Input:  pixs (32 bpp; HS, HV or SV histogram; not changed)
+ *              type (L_HS_HISTO, L_HV_HISTO or L_SV_HISTO)
+ *              width (half width of sliding window)
+ *              height (half height of sliding window)
+ *              npeaks (number of peaks to look for)
+ *              erasefactor (ratio of erase window size to sliding window size)
+ *              &pta (locations of maximum for each integrated peak area)
+ *              &natot (integrated peak areas)
+ *              &pixa (<optional return> pixa for debugging; NULL to skip)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) pixs is a 32 bpp histogram in a pair of HSV colorspace.  It
+ *          should be thought of as a single component with 32 bpc.
+ *      (2) After each peak is found, the peak is erased with a window
+ *          that is centered on the peak and scaled from the sliding
+ *          window by @erasefactor.  Typically, @erasefactor is chosen
+ *          to be > 1.0.
+ *      (3) Data for a maximum of @npeaks is returned in @pta and @natot.
+ */
+l_int32
+pixFindHistoPeaksHSV(PIX       *pixs,
+                     l_int32    type,
+                     l_int32    width,
+                     l_int32    height,
+                     l_int32    npeaks,
+                     l_float32  erasefactor,
+                     PTA      **ppta,
+                     NUMA     **pnatot,
+                     PIXA     **ppixa)
+{
+l_int32   i, xmax, ymax, ewidth, eheight;
+l_uint32  maxval;
+BOX      *box;
+NUMA     *natot;
+PIX      *pixh, *pixw, *pixt1, *pixt2;
+PTA      *pta;
+
+    PROCNAME("pixFindHistoPeaksHSV");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return ERROR_INT("pixs undefined or not 32 bpp", procName, 1);
+    if (!ppta || !pnatot)
+        return ERROR_INT("&pta and &natot not both defined", procName, 1);
+    if (type != L_HS_HISTO && type != L_HV_HISTO && type != L_SV_HISTO)
+        return ERROR_INT("invalid HSV histo type", procName, 1);
+
+    if ((pta = ptaCreate(npeaks)) == NULL)
+        return ERROR_INT("pta not made", procName, 1);
+    *ppta = pta;
+    if ((natot = numaCreate(npeaks)) == NULL)
+        return ERROR_INT("natot not made", procName, 1);
+    *pnatot = natot;
+
+    *ppta = pta;
+    if (type == L_SV_HISTO)
+        pixh = pixAddMirroredBorder(pixs, width + 1, width + 1, height + 1,
+                                    height + 1);
+    else  /* type == L_HS_HISTO or type == L_HV_HISTO */
+        pixh = pixAddMixedBorder(pixs, width + 1, width + 1, height + 1,
+                                 height + 1);
+    
+        /* Get the total count in the sliding window.  If the window
+         * fully covers the peak, this will be the integrated
+         * volume under the peak. */
+    pixw = pixWindowedMean(pixh, width, height, 0);
+    pixDestroy(&pixh);
+
+        /* Sequentially identify and erase peaks in the histogram.
+         * If requested for debugging, save a pixa of the sequence of
+         * false color histograms. */
+    if (ppixa)
+        *ppixa = pixaCreate(0);
+    for (i = 0; i < npeaks; i++) {
+        pixGetMaxValueInRect(pixw, NULL, &maxval, &xmax, &ymax);
+        if (maxval == 0) break;
+        numaAddNumber(natot, maxval);
+        ptaAddPt(pta, xmax, ymax);
+        ewidth = (l_int32)(width * erasefactor);
+        eheight = (l_int32)(height * erasefactor);
+        box = boxCreate(xmax - ewidth, ymax - eheight, 2 * ewidth + 1,
+                        2 * eheight + 1);
+
+        if (ppixa) {
+            pixt1 = pixMaxDynamicRange(pixw, L_LINEAR_SCALE);
+            pixt2 = pixConvertGrayToFalseColor(pixt1, 1.0);
+            pixaAddPix(*ppixa, pixt2, L_INSERT);
+            pixDestroy(&pixt1);
+        }
+
+        pixClearInRect(pixw, box);
+        boxDestroy(&box);
+        if (L_HS_HISTO || L_HV_HISTO) {  /* clear wraps at bottom and top */
+            if (ymax - eheight < 0) {  /* overlap to bottom */
+                box = boxCreate(xmax - ewidth, 240 + ymax - eheight,
+                                2 * ewidth + 1, eheight - ymax);
+            }
+            else if (ymax + eheight > 239) {  /* overlap to top */
+                box = boxCreate(xmax - ewidth, 0, 2 * ewidth + 1,
+                                ymax + eheight - 239);
+            }
+            else
+                box = NULL;
+            if (box) {
+                pixClearInRect(pixw, box);
+                boxDestroy(&box);
+            }
+        }
+    }
+
+    pixDestroy(&pixw);
+    return 0;
+}
+
+
+/*!
+ *  displayHSVColorRange()
+ *
+ *      Input:  hval (hue center value; in range [0 ... 240]
+ *              sval (saturation center value; in range [0 ... 255]
+ *              vval (max intensity value; in range [0 ... 255]
+ *              huehw (half-width of hue range; > 0)
+ *              sathw (half-width of saturation range; > 0)
+ *              nsamp (number of samplings in each half-width in hue and sat)
+ *              factor (linear size of each color square, in pixels; > 3)
+ *      Return: pixd (32 bpp set of color squares over input range),
+ *                     or null on error
+ *
+ *  Notes:
+ *      (1) The total number of color samplings in each of the hue
+ *          and saturation directions is 2 * nsamp + 1.
+ */
+PIX *
+displayHSVColorRange(l_int32  hval,
+                     l_int32  sval,
+                     l_int32  vval,
+                     l_int32  huehw,
+                     l_int32  sathw,
+                     l_int32  nsamp,
+                     l_int32  factor)
+{
+l_int32  i, j, w, huedelta, satdelta, hue, sat, rval, gval, bval;
+PIX     *pixt, *pixd;
+
+    PROCNAME("displayHSVColorRange");
+
+    if (hval < 0 || hval > 240)
+        return (PIX *)ERROR_PTR("invalid hval", procName, NULL);
+    if (huehw < 5 || huehw > 120)
+        return (PIX *)ERROR_PTR("invalid huehw", procName, NULL);
+    if (sval - sathw < 0 || sval + sathw > 255)
+        return (PIX *)ERROR_PTR("invalid sval/sathw", procName, NULL);
+    if (nsamp < 1 || factor < 3)
+        return (PIX *)ERROR_PTR("invalid nsamp or rep. factor", procName, NULL);
+    if (vval < 0 || vval > 255)
+        return (PIX *)ERROR_PTR("invalid vval", procName, NULL);
+
+    w = (2 * nsamp + 1);
+    huedelta = (l_int32)((l_float32)huehw / (l_float32)nsamp);
+    satdelta = (l_int32)((l_float32)sathw / (l_float32)nsamp);
+    pixt = pixCreate(w, w, 32);
+    for (i = 0; i < w; i++) {
+        hue = hval + huedelta * (i - nsamp);
+        if (hue < 0) hue += 240;
+        if (hue >= 240) hue -= 240;
+        for (j = 0; j < w; j++) {
+            sat = sval + satdelta * (j - nsamp);
+            convertHSVToRGB(hue, sat, vval, &rval, &gval, &bval);
+            pixSetRGBPixel(pixt, j, i, rval, gval, bval);
+        }
+    }
+
+    pixd = pixExpandReplicate(pixt, factor);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
 

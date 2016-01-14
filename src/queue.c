@@ -82,7 +82,7 @@ L_QUEUE  *lq;
 
     if ((lq = (L_QUEUE *)CALLOC(1, sizeof(L_QUEUE))) == NULL)
         return (L_QUEUE *)ERROR_PTR("lq not made", procName, NULL);
-    if ((lq->array = (void **)CALLOC(nalloc, sizeof(l_intptr_t))) == NULL)
+    if ((lq->array = (void **)CALLOC(nalloc, sizeof(void *))) == NULL)
         return (L_QUEUE *)ERROR_PTR("ptr array not made", procName, NULL);
     lq->nalloc = nalloc;
     lq->nhead = lq->nelem = 0;
@@ -177,9 +177,7 @@ lqueueAdd(L_QUEUE  *lq,
         /* If filled to the end and the ptrs can be shifted to the left,
          * shift them. */
     if ((lq->nhead + lq->nelem >= lq->nalloc) && (lq->nhead != 0)) {
-        memmove((void *)(lq->array), 
-                (void *)(lq->array + lq->nhead),
-                sizeof(l_intptr_t) * lq->nelem);
+        memmove(lq->array, lq->array + lq->nhead, sizeof(void *) * lq->nelem);
         lq->nhead = 0;
     }
 
@@ -210,8 +208,8 @@ lqueueExtendArray(L_QUEUE  *lq)
         return ERROR_INT("lq not defined", procName, 1);
 
     if ((lq->array = (void **)reallocNew((void **)&lq->array,
-                                sizeof(l_intptr_t) * lq->nalloc,
-                                2 * sizeof(l_intptr_t) * lq->nalloc)) == NULL)
+                                sizeof(void *) * lq->nalloc,
+                                2 * sizeof(void *) * lq->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
     lq->nalloc = 2 * lq->nalloc;

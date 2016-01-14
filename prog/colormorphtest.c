@@ -22,15 +22,17 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-static void pixCompare(PIX *pix, PIX *pix2, char *msg1, char *msg2);
-static const l_int32  BUFSIZE = 256;
+static void pixCompare(PIX *pix, PIX *pix2, const char *msg1, const char *msg2);
+
+    /* MSVC can't handle arrays dimensioned by static const integers */
+#define L_BUF_SIZE    256
 
 
 main(int    argc,
      char **argv)
 {
 char        *filein;
-char         buf[BUFSIZE];
+char         buf[L_BUF_SIZE];
 l_int32      size;
 PIX         *pixs, *pixt1, *pixt2;
 static char  mainName[] = "colormorphtest";
@@ -41,6 +43,7 @@ static char  mainName[] = "colormorphtest";
 
     filein = argv[1];
     size = atoi(argv[2]);
+    if (size % 2 == 0) size++;
 
     if ((pixs = pixRead(filein)) == NULL)
         exit(ERROR_INT("pixs not read", mainName, 1));
@@ -80,10 +83,10 @@ static char  mainName[] = "colormorphtest";
 }
 
     /* Simple comparison function */
-static void pixCompare(PIX   *pix1,
-                       PIX   *pix2,
-                       char  *msg1,
-                       char  *msg2)
+static void pixCompare(PIX         *pix1,
+                       PIX         *pix2,
+                       const char  *msg1,
+                       const char  *msg2)
 {
 l_int32  same;
     pixEqual(pix1, pix2, &same);

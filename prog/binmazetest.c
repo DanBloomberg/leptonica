@@ -56,7 +56,7 @@ static char  mainName[] = "binmazetest";
     pixDestroy(&pixex);
     pixWrite(mazeout, pixm, IFF_PNG);
 
-    pta = searchBinaryMaze(pixm, XINIT, YINIT, XEND, YEND, NULL);
+    pta = pixSearchBinaryMaze(pixm, XINIT, YINIT, XEND, YEND, NULL);
     pixd = pixDisplayPta(pixm, pta);
     pixex = pixScaleBySampling(pixd, 4., 4.);
     pixDisplay(pixex, 450, 50);
@@ -66,7 +66,7 @@ static char  mainName[] = "binmazetest";
 #if 0
     startTimer();
     for (i = 0; i < 100; i++) {
-        pta = searchBinaryMaze(pixm, XINIT, YINIT, XEND, YEND, NULL);
+        pta = pixSearchBinaryMaze(pixm, XINIT, YINIT, XEND, YEND, NULL);
         ptaDestroy(&pta);
     }
     fprintf(stderr, "Time: %7.4f sec\n", stopTimer() / 100.);

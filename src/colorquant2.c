@@ -655,6 +655,7 @@ PIX       *pixd;
     pixd = pixCreate(w, h, outdepth);
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);
@@ -1134,6 +1135,7 @@ PIXCMAP  *cmap;
     if (!histo) 
         return (PIXCMAP *)ERROR_PTR("histo not defined", procName, NULL);
 
+    rval = gval = bval = 0;  /* make compiler happy */
     cmap = pixcmapCreate(8);
     index = 0;
     while (lheapGetCount(lh) > 0) {

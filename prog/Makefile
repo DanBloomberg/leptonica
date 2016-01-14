@@ -134,7 +134,8 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 
 SRC =		adaptnorm_reg.c affine_reg.c \
 		bilinear_reg.c binarize_reg.c \
-		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
+		binmorph1_reg.c binmorph2_reg.c \
+		binmorph3_reg.c binmorph4_reg.c binmorph5_reg.c \
 		blend_reg.c ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorquant_reg.c \
 		compfilter_reg.c \
@@ -150,6 +151,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		morphseq_reg.c numa_reg.c \
 		paint_reg.c paintmask_reg.c \
 		pixa_reg.c pixadisp_reg.c \
+		pixalloc_reg.c \
 		pixmem_reg.c pixtile_reg.c \
 		projective_reg.c pta_reg.c ptra1_reg.c \
 		ptra2_reg.c rank_reg.c \
@@ -169,7 +171,8 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		colormorphtest.c colorsegtest.c \
 		colorspacetest.c comparepages.c \
 		comparetest.c contrasttest.c \
-		convertfilestops.c convertformat.c converttogray.c \
+		convertfilestops.c convertformat.c \
+		convertsegfilestops.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
 		croptext.c digitprep1.c dithertest.c \
 		edgetest.c extrematest.c falsecolortest.c \
@@ -200,7 +203,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		sorttest.c splitimage2pdf.c \
 		textlinemask.c \
 		viewertest.c watershedtest.c \
-		wordsinorder.c xvdisp.c
+		wordsinorder.c xtractprotos.c xvdisp.c
 
 #  Source files that are compiled after running program(s) from SRC
 SRC2 =		dwamorph2_reg.c dwamorph3_reg.c
@@ -216,7 +219,7 @@ debian:	binmazetest buffertest comparetest \
 	cctest1 ccthin1_reg colormorphtest colorquant_reg \
 	colorspacetest conversion_reg \
 	convertfilestops convertformat \
-	converttops distance_reg \
+	convertsegfilestops converttops distance_reg \
 	dithertest edgetest equal_reg extrematest \
 	fhmtauto_reg fhmtautogen fileinfo \
 	flipdetect_reg flipselgen fmorphauto_reg fmorphautogen \
@@ -252,6 +255,12 @@ binmorph2_reg:	binmorph2_reg.o $(LEPTLIB)
 
 binmorph3_reg:	binmorph3_reg.o $(LEPTLIB)
 	$(CC) -o binmorph3_reg binmorph3_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+binmorph4_reg:	binmorph4_reg.o $(LEPTLIB)
+	$(CC) -o binmorph4_reg binmorph4_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+binmorph5_reg:	binmorph5_reg.o $(LEPTLIB)
+	$(CC) -o binmorph5_reg binmorph5_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 blend_reg:	blend_reg.o $(LEPTLIB)
 	$(CC) -o blend_reg blend_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -357,6 +366,9 @@ pixa_reg:	pixa_reg.o $(LEPTLIB)
 
 pixadisp_reg:	pixadisp_reg.o $(LEPTLIB)
 	$(CC) -o pixadisp_reg pixadisp_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+pixalloc_reg:	pixalloc_reg.o $(LEPTLIB)
+	$(CC) -o pixalloc_reg pixalloc_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 pixmem_reg:	pixmem_reg.o $(LEPTLIB)
 	$(CC) -o pixmem_reg pixmem_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -480,6 +492,9 @@ convertfilestops:	convertfilestops.o $(LEPTLIB)
 
 convertformat:	convertformat.o $(LEPTLIB)
 	$(CC) -o convertformat convertformat.o $(ALL_LIBS) $(EXTRALIBS)
+
+convertsegfilestops:	convertsegfilestops.o $(LEPTLIB)
+	$(CC) -o convertsegfilestops convertsegfilestops.o $(ALL_LIBS) $(EXTRALIBS)
 
 converttogray:	converttogray.o $(LEPTLIB)
 	$(CC) -o converttogray converttogray.o $(ALL_LIBS) $(EXTRALIBS)
@@ -690,6 +705,9 @@ watershedtest:	watershedtest.o $(LEPTLIB)
 
 wordsinorder:	wordsinorder.o $(LEPTLIB)
 	$(CC) -o wordsinorder wordsinorder.o $(ALL_LIBS) $(EXTRALIBS)
+
+xtractprotos:   xtractprotos.o $(LEPTLIB)
+	$(CC) -o xtractprotos xtractprotos.o $(ALL_LIBS) $(EXTRALIBS)
 
 xvdisp:		xvdisp.o $(LEPTLIB)
 	$(CC) -o xvdisp xvdisp.o $(ALL_LIBS) $(EXTRALIBS)

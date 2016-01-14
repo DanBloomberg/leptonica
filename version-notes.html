@@ -22,6 +22,47 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.62   26 Jul 09
+       Expanded composite Dwa implementation as a sequence of operations,
+       so that it now works beyond a size of 63.  It's typically about 2x
+       faster than the composite rasterop implementation (with help
+       from Ankur Jain).  Also use data transfer instead of data copy
+       whenever possible.  Thorough tests with binmorph4_reg and binmorph5_reg.
+       New functions in colorseg.c for masking and histogramming in HSV
+       color space.
+       Treat string constants rigorously as const char*, initializing
+       to char[] if to be used as non-const, or in some cases casting
+       to char*.  This avoids compiler warnings.
+       Improved color quantization using existing colormap for octcubes
+       and a new version for grayscale.  This will rigorously map most
+       black and most white octcubes (rsp) to black and white
+       if they exist in the colormap.
+       Fast quantization to an existing colormap for color and grayscale.
+       Fixed some bugs; e.g., in pixAffineSampled() for 1 bpp with
+       L_BRING_IN_BLACK; reading and writing pnm for 2 and 4 bpp.
+       In pngio.c, enable compile time control over these settings:
+         converting 16 bpp --> 8 bpp on read
+         removing alpha channel on read
+         setting zlib compression on write
+       For general scaling, allow sharpening to be optional, and provided
+       faster sharpening operations.
+       Improve support for 16 bpp grayscale.
+       For scaleToGray* functions, reduce the width truncation.
+       In psio.c, new functions for converting segmented page images
+       (text and image) into level 2 PostScript.
+       Removed all implicit casting to const char*.
+       New custom pix memory allocator, designed for large pix whose
+       memory needs to be reused many times.
+       In xtractprotos, we now allow prepending an arbitrary string to
+       each prototype.
+       In environ.h, additions for MSVC to work with VC++6, including
+       prototpye strings for dll import and export (thanks to Ray Smith).
+       In colorseg.c, new functions for building HSV histograms, finding 
+       peaks, and generating masks based on the peaks.
+       New or improved regression tests:
+         pixalloc_reg, binmorph4_reg, binmorph5_reg, conversion_reg,
+         scale_reg, cmapquant_reg, 
+
 1.61   26 Apr 09
        New histo-based grayscale quantization: pixGrayQuantizeFromHisto(),
        that is used in new pixQuanitzeIfFewColorsMixed().
@@ -76,7 +117,7 @@ They are <i>not</i> a complete listing of the modifications.
        New or improved regression tests:
          rotate1_reg, rotate2_reg, shear_reg, numa_reg, skew_reg,
          ptra1_reg, ptra2_reg, paint_reg, smallpix_reg, pta_reg,
-         pixmem_reg, binarize_reg.c, grayfill_reg.c.
+         pixmem_reg, binarize_reg, grayfill_reg.
 
 
 1.60   19 Jan 09
