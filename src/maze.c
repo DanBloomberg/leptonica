@@ -328,8 +328,9 @@ searchBinaryMaze(PIX     *pixs,
                  l_int32  yf,
                  PIX    **ppixd)
 {
-l_int32    i, j, x, y, w, h, found;
+l_int32    i, j, x, y, w, h, d, found;
 l_uint32   val, rpixel, gpixel, bpixel;
+void     **lines1, **linem1, **linep8, **lined32;
 MAZEEL    *el, *elp;
 PIX       *pixd;  /* the shortest path written on the maze image */
 PIX       *pixm;  /* for bookkeeping, to indicate pixels already visited */
@@ -342,10 +343,9 @@ PTA       *pta;
     if (ppixd) *ppixd = NULL;
     if (!pixs)
         return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 1)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1)
         return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if (xi <= 0 || xi >= w)
         return (PTA *)ERROR_PTR("xi not valid", procName, NULL);
     if (yi <= 0 || yi >= h)
@@ -366,6 +366,10 @@ PTA       *pta;
 
     pixm = pixCreate(w, h, 1);  /* initialized to OFF */
     pixp = pixCreate(w, h, 8);  /* direction to parent stored as enum val */
+    lines1 = pixGetLinePtrs(pixs, NULL);
+    linem1 = pixGetLinePtrs(pixm, NULL);
+    linep8 = pixGetLinePtrs(pixp, NULL);
+
 
     pq = pqueueCreate(0);
 
@@ -388,48 +392,48 @@ PTA       *pta;
         }
             
         if (x > 0) {  /* check to west */
-            pixGetPixel(pixm, x - 1, y, &val);
+            val = GET_DATA_BIT(linem1[y], x - 1);
             if (val == 0) {  /* not yet visited */
-                pixSetPixel(pixm, x - 1, y, 1);  /* mark visited */
-                pixGetPixel(pixs, x - 1, y, &val);
+                SET_DATA_BIT(linem1[y], x - 1);  /* mark visited */
+                val = GET_DATA_BIT(lines1[y], x - 1);
                 if (val == 0) {  /* bg, not a wall */
-                    pixSetPixel(pixp, x - 1, y, DIR_EAST);  /* parent to E */
+                    SET_DATA_BYTE(linep8[y], x - 1, DIR_EAST);  /* parent E */
                     el = mazeelCreate(x - 1, y, 0);
                     pqueueAdd(pq, el);
                 }
             }
         }
         if (y > 0) {  /* check north */
-            pixGetPixel(pixm, x, y - 1, &val);
+            val = GET_DATA_BIT(linem1[y - 1], x);
             if (val == 0) {  /* not yet visited */
-                pixSetPixel(pixm, x, y - 1, 1);  /* mark visited */
-                pixGetPixel(pixs, x, y - 1, &val);
+                SET_DATA_BIT(linem1[y - 1], x);  /* mark visited */
+                val = GET_DATA_BIT(lines1[y - 1], x);
                 if (val == 0) {  /* bg, not a wall */
-                    pixSetPixel(pixp, x, y - 1, DIR_SOUTH);  /* parent to S */
+                    SET_DATA_BYTE(linep8[y - 1], x, DIR_SOUTH);  /* parent S */
                     el = mazeelCreate(x, y - 1, 0);
                     pqueueAdd(pq, el);
                 }
             }
         }
         if (x < w - 1) {  /* check east */
-            pixGetPixel(pixm, x + 1, y, &val);
+            val = GET_DATA_BIT(linem1[y], x + 1);
             if (val == 0) {  /* not yet visited */
-                pixSetPixel(pixm, x + 1, y, 1);  /* mark visited */
-                pixGetPixel(pixs, x + 1, y, &val);
+                SET_DATA_BIT(linem1[y], x + 1);  /* mark visited */
+                val = GET_DATA_BIT(lines1[y], x + 1);
                 if (val == 0) {  /* bg, not a wall */
-                    pixSetPixel(pixp, x + 1, y, DIR_WEST);  /* parent to W */
+                    SET_DATA_BYTE(linep8[y], x + 1, DIR_WEST);  /* parent W */
                     el = mazeelCreate(x + 1, y, 0);
                     pqueueAdd(pq, el);
                 }
             }
         }
         if (y < h - 1) {  /* check south */
-            pixGetPixel(pixm, x, y + 1, &val);
+            val = GET_DATA_BIT(linem1[y + 1], x);
             if (val == 0) {  /* not yet visited */
-                pixSetPixel(pixm, x, y + 1, 1);  /* mark visited */
-                pixGetPixel(pixs, x, y + 1, &val);
+                SET_DATA_BIT(linem1[y + 1], x);  /* mark visited */
+                val = GET_DATA_BIT(lines1[y + 1], x);
                 if (val == 0) {  /* bg, not a wall */
-                    pixSetPixel(pixp, x, y + 1, DIR_NORTH);  /* parent to N */
+                    SET_DATA_BYTE(linep8[y + 1], x, DIR_NORTH);  /* parent N */
                     el = mazeelCreate(x, y + 1, 0);
                     pqueueAdd(pq, el);
                 }
@@ -440,6 +444,7 @@ PTA       *pta;
 
     pqueueDestroy(&pq, TRUE);
     pixDestroy(&pixm);
+    FREE(linem1);
 
     if (ppixd) {
         pixd = pixUnpackBinary(pixs, 32, 1);
@@ -449,16 +454,19 @@ PTA       *pta;
     composeRGBPixel(0, 255, 0, &gpixel);
     composeRGBPixel(0, 0, 255, &bpixel);  /* end point */
 
+
     if (!found) {
         L_INFO(" No path found", procName);
         if (pixd) {  /* paint all visited locations */
+            lined32 = pixGetLinePtrs(pixd, NULL);
             for (i = 0; i < h; i++) {
                 for (j = 0; j < w; j++) {
-                    pixGetPixel(pixp, j, i, &val);
+                    val = GET_DATA_BYTE(linep8[i], j);
                     if (val != 0 && pixd)
-                        pixSetPixel(pixd, j, i, gpixel);
+                        SET_DATA_FOUR_BYTES(lined32[i], j, gpixel);
                 }
             }
+            FREE(lined32);
         }
     }
     else {   /* write path onto pixd */
@@ -489,6 +497,8 @@ PTA       *pta;
     }
 
     pixDestroy(&pixp);
+    FREE(lines1);
+    FREE(linep8);
     return pta;
 }
 
@@ -517,8 +527,7 @@ l_uint32  val;
         /* For each value of r, restrict the search to the boundary
          * pixels in a square centered on (x,y), clipping to the
          * image boundaries if necessary.  */
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, NULL);
     for (r = 1; r < maxrad; r++) {
         for (i = -r; i <= r; i++) {
             if (y + i < 0 || y + i >= h)
@@ -700,8 +709,9 @@ searchGrayMaze(PIX     *pixs,
                l_int32  yf,
                PIX    **ppixd)
 {
-l_int32   x, y, w, h;
+l_int32   x, y, w, h, d;
 l_uint32  val, valr, vals, rpixel, gpixel, bpixel;
+void    **lines8, **liner32, **linep8;
 l_int32   cost, dist, distparent, sival, sivals;
 MAZEEL   *el, *elp;
 PIX      *pixd;  /* optionally plot the path on this RGB version of pixs */
@@ -716,10 +726,9 @@ PTA      *pta;
     if (ppixd) *ppixd = NULL;
     if (!pixs)
         return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
         return (PTA *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if (xi <= 0 || xi >= w)
         return (PTA *)ERROR_PTR("xi not valid", procName, NULL);
     if (yi <= 0 || yi >= h)
@@ -730,6 +739,9 @@ PTA      *pta;
     pixr = pixCreate(w, h, 32);
     pixSetAll(pixr);  /* initialize to max value */
     pixp = pixCreate(w, h, 8);  /* direction to parent stored as enum val */
+    lines8 = pixGetLinePtrs(pixs, NULL);
+    linep8 = pixGetLinePtrs(pixp, NULL);
+    liner32 = pixGetLinePtrs(pixr, NULL);
 
     ph = pheapCreate(0, L_SORT_INCREASING);  /* always remove closest pixels */
 
@@ -761,14 +773,14 @@ PTA      *pta;
         sival = val;
             
         if (x > 0) {  /* check to west */
-            pixGetPixel(pixs, x - 1, y, &vals);
-            pixGetPixel(pixr, x - 1, y, &valr);
+            vals = GET_DATA_BYTE(lines8[y], x - 1);
+            valr = GET_DATA_FOUR_BYTES(liner32[y], x - 1);
             sivals = (l_int32)vals;
             cost = 1 + L_ABS(sivals - sival);  /* cost to move to this pixel */
             dist = distparent + cost;
             if (dist < valr) {  /* shortest path so far to this pixel */
-                pixSetPixel(pixr, x - 1, y, dist);  /* new distance */
-                pixSetPixel(pixp, x - 1, y, DIR_EAST);  /* parent to E */
+                SET_DATA_FOUR_BYTES(liner32[y], x - 1, dist);  /* new dist */
+                SET_DATA_BYTE(linep8[y], x - 1, DIR_EAST);  /* parent to E */
                 el = mazeelCreate(x - 1, y, 0);
                 el->val = vals;
                 el->distance = dist;
@@ -776,14 +788,14 @@ PTA      *pta;
             }
         }
         if (y > 0) {  /* check north */
-            pixGetPixel(pixs, x, y - 1, &vals);
-            pixGetPixel(pixr, x, y - 1, &valr);
+            vals = GET_DATA_BYTE(lines8[y - 1], x);
+            valr = GET_DATA_FOUR_BYTES(liner32[y - 1], x);
             sivals = (l_int32)vals;
             cost = 1 + L_ABS(sivals - sival);  /* cost to move to this pixel */
             dist = distparent + cost;
             if (dist < valr) {  /* shortest path so far to this pixel */
-                pixSetPixel(pixr, x, y - 1, dist);  /* new distance */
-                pixSetPixel(pixp, x, y - 1, DIR_SOUTH);  /* parent to S */
+                SET_DATA_FOUR_BYTES(liner32[y - 1], x, dist);  /* new dist */
+                SET_DATA_BYTE(linep8[y - 1], x, DIR_SOUTH);  /* parent to S */
                 el = mazeelCreate(x, y - 1, 0);
                 el->val = vals;
                 el->distance = dist;
@@ -791,14 +803,14 @@ PTA      *pta;
             }
         }
         if (x < w - 1) {  /* check east */
-            pixGetPixel(pixs, x + 1, y, &vals);
-            pixGetPixel(pixr, x + 1, y, &valr);
+            vals = GET_DATA_BYTE(lines8[y], x + 1);
+            valr = GET_DATA_FOUR_BYTES(liner32[y], x + 1);
             sivals = (l_int32)vals;
             cost = 1 + L_ABS(sivals - sival);  /* cost to move to this pixel */
             dist = distparent + cost;
             if (dist < valr) {  /* shortest path so far to this pixel */
-                pixSetPixel(pixr, x + 1, y, dist);  /* new distance */
-                pixSetPixel(pixp, x + 1, y, DIR_WEST);  /* parent to W */
+                SET_DATA_FOUR_BYTES(liner32[y], x + 1, dist);  /* new dist */
+                SET_DATA_BYTE(linep8[y], x + 1, DIR_WEST);  /* parent to W */
                 el = mazeelCreate(x + 1, y, 0);
                 el->val = vals;
                 el->distance = dist;
@@ -806,14 +818,14 @@ PTA      *pta;
             }
         }
         if (y < h - 1) {  /* check south */
-            pixGetPixel(pixs, x, y + 1, &vals);
-            pixGetPixel(pixr, x, y + 1, &valr);
+            vals = GET_DATA_BYTE(lines8[y + 1], x);
+            valr = GET_DATA_FOUR_BYTES(liner32[y + 1], x);
             sivals = (l_int32)vals;
             cost = 1 + L_ABS(sivals - sival);  /* cost to move to this pixel */
             dist = distparent + cost;
             if (dist < valr) {  /* shortest path so far to this pixel */
-                pixSetPixel(pixr, x, y + 1, dist);  /* new distance */
-                pixSetPixel(pixp, x, y + 1, DIR_NORTH);  /* parent to N */
+                SET_DATA_FOUR_BYTES(liner32[y + 1], x, dist);  /* new dist */
+                SET_DATA_BYTE(linep8[y + 1], x, DIR_NORTH);  /* parent to N */
                 el = mazeelCreate(x, y + 1, 0);
                 el->val = vals;
                 el->distance = dist;
@@ -836,7 +848,7 @@ PTA      *pta;
     x = xf;
     y = yf;
     pta = ptaCreate(0);
-    while (1) {
+    while (1) {  /* write path onto pixd */
         ptaAddPt(pta, x, y);
         if (x == xi && y == yi)
             break;
@@ -865,6 +877,9 @@ PTA      *pta;
 
     pixDestroy(&pixp);
     pixDestroy(&pixr);
+    FREE(lines8);
+    FREE(linep8);
+    FREE(liner32);
     return pta;
 }
 

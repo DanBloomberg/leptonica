@@ -26,8 +26,8 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-static const char *tempmtiff = "/usr/tmp/junkmtiff";
-static const char *tempnewmtiff = "/usr/tmp/junknewmtiff";
+static const char *tempmtiff = "/tmp/junkmtiff";
+static const char *tempnewmtiff = "/tmp/junknewmtiff";
 
 
 main(int    argc,

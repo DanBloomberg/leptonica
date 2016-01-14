@@ -51,7 +51,7 @@ static char  mainName[] = "locminmax_reg";
 
     startTimer();
 /*    pixSelectedLocalExtrema(pixs, 1, &pixt1, &pixt2); */
-    pixLocalExtrema(pixs, &pixt1, &pixt2);
+    pixLocalExtrema(pixs, 0, 0, &pixt1, &pixt2);
     fprintf(stderr, "Time for extrema: %7.3f\n", stopTimer());
     composeRGBPixel(255, 0, 0, &redval);
     composeRGBPixel(0, 255, 0, &greenval);
@@ -71,7 +71,7 @@ static char  mainName[] = "locminmax_reg";
     pixWrite("junkconv", pixs, IFF_PNG);
     startTimer();
 /*    pixSelectedLocalExtrema(pixs, 1, &pixt1, &pixt2); */
-    pixLocalExtrema(pixs, &pixt1, &pixt2);
+    pixLocalExtrema(pixs, 50, 100, &pixt1, &pixt2);
     fprintf(stderr, "Time for extrema: %7.3f\n", stopTimer());
     composeRGBPixel(255, 0, 0, &redval);
     composeRGBPixel(0, 255, 0, &greenval);

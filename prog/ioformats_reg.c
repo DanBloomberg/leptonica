@@ -41,6 +41,11 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
+    /* Needed for HAVE_FMEMOPEN */
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif /* HAVE_CONFIG_H */
+
 #define   BMP_FILE      "test1.bmp"
 #define   FILE_1BPP     "feyn.tif"
 #define   FILE_2BPP     "weasel2.4g.png"

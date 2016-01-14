@@ -876,7 +876,7 @@ pixUnsharpMaskingGray(PIX       *pixs,
                       l_float32  fract)
 {
 l_int32  w, h, d;
-PIX     *pixc, *pixt, *pixd;
+PIX     *pixc, *pixd;
 PIXACC  *pixacc;
 
     PROCNAME("pixUnsharpMaskingGray");

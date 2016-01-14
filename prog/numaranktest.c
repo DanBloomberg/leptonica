@@ -62,14 +62,14 @@ static char  mainName[] = "numaranktest";
         numaHistogramGetRankFromVal(nah, 0, BIN_SIZE, rval, &rank);
 	numaAddNumber(nar, rank);
     }
-    gplotSimple1(nar, GPLOT_X11, "/usr/tmp/junkroot1", "rank vs val");
+    gplotSimple1(nar, GPLOT_X11, "/tmp/junkroot1", "rank vs val");
 
     nav = numaCreate(0);
     for (rank = 0.0; rank <= 1.0; rank += 0.01) {
         numaHistogramGetValFromRank(nah, 0, BIN_SIZE, rank, &rval);
 	numaAddNumber(nav, rval);
     }
-    gplotSimple1(nav, GPLOT_X11, "/usr/tmp/junkroot2", "val vs rank");
+    gplotSimple1(nav, GPLOT_X11, "/tmp/junkroot2", "val vs rank");
 
     exit(0);
 }

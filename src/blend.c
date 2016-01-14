@@ -439,6 +439,8 @@ PIX       *pixc, *pixt1, *pixt2;
  *      (11) For L_BLEND_GRAY_WITH_INVERSE, the white values of the blendee
  *           (cval == 255 in the code below) result in a delta of 0.
  *           Thus, these pixels are intrinsically transparent!
+ *           The "pivot" value of the src, at which no blending occurs, is
+ *           128.  Compare with the adaptive pivot in pixBlendGrayAdapt().
  */
 PIX *
 pixBlendGray(PIX       *pixd,
@@ -555,6 +557,16 @@ PIX       *pixc, *pixt1, *pixt2;
             switch (d)
             {
             case 8:
+                /*
+                 * For 8 bpp, the dest pix is shifted by a signed amount
+                 * proportional to the distance from 128 (the pivot value),
+                 * and to the darkness of src2.  If the dest is darker
+                 * than 128, it becomes lighter, and v.v.
+                 * The basic logic is:
+                 *     d  -->  d + f * (0.5 - d) * (1 - c)
+                 * where d and c are normalized pixel values for src1 and
+                 * src2, respectively, with normalization to 255.
+                 */
                 for (j = 0; j < wc; j++) {
                     if (j + x < 0  || j + x >= w) continue; 
                     cval = GET_DATA_BYTE(linec, j);
@@ -568,6 +580,7 @@ PIX       *pixc, *pixt1, *pixt2;
                 }
                 break;
             case 32:
+                /* Each component is shifted by the same formula for 8 bpp */
                 for (j = 0; j < wc; j++) {
                     if (j + x < 0  || j + x >= w) continue; 
                     cval = GET_DATA_BYTE(linec, j);
@@ -866,7 +879,7 @@ blendComponents(l_int32    a,
  *          The purpose of shifting the zero blend point away from the
  *          median is to prevent a situation in pixBlendGray() where
  *          the median is 128 and the blender is not visible.
- *          The default value of shift is 80.
+ *          The default value of shift is 64.
  *      (7) After processing pixs1, it is either 8 bpp or 32 bpp:
  *          - if 8 bpp, the fraction of pixs2 is mixed with pixs1.
  *          - if 32 bpp, each component of pixs1 is mixed with
@@ -912,10 +925,10 @@ PIX       *pixc, *pixt1, *pixt2;
         L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
         fract = 0.5;
     }
-    if (shift == -1) shift = 80;   /* default value */
+    if (shift == -1) shift = 64;   /* default value */
     if (shift < 0 || shift > 127) {
-        L_WARNING("invalid shift; setting to 80", procName);
-        shift = 80;
+        L_WARNING("invalid shift; setting to 64", procName);
+        shift = 64;
     }
 
         /* Test for overlap */

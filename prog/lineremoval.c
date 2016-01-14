@@ -95,7 +95,7 @@ static char  mainName[] = "lineremoval";
     pixWrite("dave-result.png", pix8, IFF_PNG);
     pixDisplayWrite(pix8, 1);
 
-    system("/usr/bin/gthumb junk_write_display* &");
+    system("gthumb junk_write_display* &");
 
     return 0;
 }

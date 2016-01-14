@@ -320,7 +320,7 @@ PIXA    *pixad;
     if (!pixs)
         return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIXA *)ERROR_PTR("pixs not  bpp", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (!pixam)
         return (PIXA *)ERROR_PTR("pixam not defined", procName, NULL);
     pixaGetPixDimensions(pixam, 0, NULL, NULL, &d);
@@ -837,7 +837,7 @@ pixTophat(PIX     *pixs,
           l_int32  vsize,
           l_int32  type)
 {
-PIX  *pixd;
+PIX  *pixt, *pixd;
 
     PROCNAME("pixTophat");
 
@@ -865,9 +865,10 @@ PIX  *pixd;
     switch (type)
     {
     case L_TOPHAT_WHITE:
-        if ((pixd = pixOpenGray(pixs, hsize, vsize)) == NULL)
+        if ((pixt = pixOpenGray(pixs, hsize, vsize)) == NULL)
             return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-        pixSubtractGray(pixd, pixs, pixd);
+        pixd = pixSubtractGray(NULL, pixs, pixt);
+        pixDestroy(&pixt);
         break;
     case L_TOPHAT_BLACK:
         if ((pixd = pixCloseGray(pixs, hsize, vsize)) == NULL)
@@ -892,19 +893,22 @@ PIX  *pixd;
  *
  *  Notes:
  *      (1) It is more efficient to use a connectivity of 4 for the fill.
- *      (2) It is useful to compare the HDome operation with the TopHat.
+ *      (2) This fills bumps to some level, and extracts the unfilled
+ *          part of the bump.  To extract the troughs of basins, first
+ *          invert pixs and then apply pixHDome().
+ *      (3) It is useful to compare the HDome operation with the TopHat.
  *          The latter extracts peaks or valleys that have a width
  *          not exceeding the size of the structuring element used
  *          in the opening or closing, rsp.  The height of the peak is
  *          irrelevant.  By contrast, for the HDome, the gray seedfill
  *          is used to extract all peaks that have a height not exceeding
  *          a given value, regardless of their width!
- *      (3) Slightly more precisely, suppose you set 'height' = 40.
+ *      (4) Slightly more precisely, suppose you set 'height' = 40.
  *          Then all bumps in pixs with a height greater than or equal
  *          to 40 become, in pixd, bumps with a max value of exactly 40.
  *          All shorter bumps have a max value in pixd equal to the height
  *          of the bump.
- *      (4) The method: the filling mask, pixs, is the image whose peaks
+ *      (5) The method: the filling mask, pixs, is the image whose peaks
  *          are to be extracted.  The height of a peak is the distance
  *          between the top of the peak and the highest "leak" to the
  *          outside -- think of a sombrero, where the leak occurs
@@ -922,7 +926,7 @@ PIX  *pixd;
  *            (c) Subtract the filled seed (pixd) from the filling mask (pixs).
  *          Note that in this procedure, everything is done starting
  *          with the filling mask, pixs.
- *      (5) For segmentation, the resulting image, pixd, can be thresholded
+ *      (6) For segmentation, the resulting image, pixd, can be thresholded
  *          and used as a seed for another filling operation.
  */
 PIX *
@@ -930,7 +934,7 @@ pixHDome(PIX     *pixs,
          l_int32  height,
          l_int32  connectivity)
 {
-PIX  *pixd;
+PIX  *pixsd, *pixd;
 
     PROCNAME("pixHDome");
 
@@ -943,12 +947,13 @@ PIX  *pixd;
     if (height == 0)
         return pixCreateTemplate(pixs);
 
-    if ((pixd = pixCopy(NULL, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixAddConstantGray(pixd, -height);
-    pixSeedfillGray(pixd, pixs, connectivity);
-    pixSubtractGray(pixd, pixs, pixd);
+    if ((pixsd = pixCopy(NULL, pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixsd not made", procName, NULL);
+    pixAddConstantGray(pixsd, -height);
+    pixSeedfillGray(pixsd, pixs, connectivity);
+    pixd = pixSubtractGray(NULL, pixs, pixsd);
 
+    pixDestroy(&pixsd);
     return pixd;
 }
 
@@ -985,7 +990,7 @@ pixFastTophat(PIX     *pixs,
               l_int32  ysize,
               l_int32  type)
 {
-PIX  *pixt1, *pixt2, *pixd;
+PIX  *pixt1, *pixt2, *pixt3, *pixd;
 
     PROCNAME("pixFastTophat");
 
@@ -1009,8 +1014,9 @@ PIX  *pixt1, *pixt2, *pixd;
                == NULL)
             return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
         pixt2 = pixBlockconv(pixt1, 1, 1);  /* small smoothing */
-        pixd = pixScaleBySampling(pixt2, xsize, ysize);
-        pixSubtractGray(pixd, pixs, pixd);
+        pixt3 = pixScaleBySampling(pixt2, xsize, ysize);
+        pixd = pixSubtractGray(NULL, pixs, pixt3);
+        pixDestroy(&pixt3);
         break;
     case L_TOPHAT_BLACK:
         if ((pixt1 = pixScaleGrayMinMax(pixs, xsize, ysize, L_CHOOSE_MAX))

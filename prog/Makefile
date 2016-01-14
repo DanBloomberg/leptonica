@@ -132,7 +132,9 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 
 #########################################################################
 
-SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
+SRC =		adaptnorm_reg.c affine_reg.c \
+		bilinear_reg.c \
+		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		blend_reg.c ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorquant_reg.c \
 		compfilter_reg.c \
@@ -141,26 +143,28 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		equal_reg.c expand_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
 		fmorphauto_reg.c fpix_reg.c gifio_reg.c \
-		graymorph_reg.c grayquant_reg.c \
+		grayfill_reg.c graymorph_reg.c grayquant_reg.c \
 		hardlight_reg.c ioformats_reg.c \
-		kernel_reg.c locminmax_reg.c logicops_reg.c \
+		kernel_reg.c locminmax_reg.c \
+		logicops_reg.c lowaccess_reg.c \
 		morphseq_reg.c numa_reg.c \
 		paint_reg.c paintmask_reg.c \
 		pixa_reg.c pixadisp_reg.c pixtile_reg.c \
-		rank_reg.c rasterop_reg.c rasteropip_reg.c \
+		projective_reg.c rank_reg.c \
+		rasterop_reg.c rasteropip_reg.c \
 		rotate_reg.c rotateorth_reg.c \
-		scale_reg.c selio_reg.c \
+		scale_reg.c selio_reg.c splitcomp_reg.c \
 		string_reg.c threshnorm_reg.c \
-		xformbox_reg.c \
-		adaptmaptest.c affinetest.c \
+		warper_reg.c xformbox_reg.c \
+		adaptmaptest.c \
 		arithtest.c barcodetest.c \
-		baselinetest.c bilineartest.c \
+		baselinetest.c \
 		bincompare.c binmazetest.c \
 		blendcmaptest.c blendtest1.c buffertest.c \
 		ccbordtest.c cctest1.c \
-		colormorphtest.c \
-		colorquanttest.c colorsegtest.c \
-		colorspacetest.c comparetest.c contrasttest.c \
+		colormorphtest.c colorsegtest.c \
+		colorspacetest.c comparepages.c \
+		comparetest.c contrasttest.c \
 		convertfilestops.c convertformat.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
 		croptext.c digitprep1.c dithertest.c \
@@ -174,14 +178,15 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		heaptest.c histotest.c iotest.c inserttest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		lineremoval.c listtest.c \
-		maketile.c modifyhuesat.c \
-		morphtest1.c mtifftest.c \
+		maketile.c misctest1.c \
+		modifyhuesat.c morphtest1.c mtifftest.c \
 		numaranktest.c otsutest.c \
 		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
 		partitiontest.c pixaatest.c \
 		plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
-		projectivetest.c ranktest.c reducetest.c \
+		ptratest.c \
+		ranktest.c reducetest.c \
 		removecmap.c renderfonts.c \
 		rotatefastalt.c rotateorthtest1.c \
 		rotatetest1.c runlengthtest.c \
@@ -191,8 +196,8 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		skewtest.c snapcolortest.c \
 		sorttest.c splitimage2pdf.c \
 		textlinemask.c \
-		viewertest.c wordsinorder.c \
-		xvdisp.c
+		viewertest.c watershedtest.c \
+		wordsinorder.c xvdisp.c
 
 #  Source files that are compiled after running program(s) from SRC
 SRC2 =		dwamorph2_reg.c dwamorph3_reg.c
@@ -223,6 +228,15 @@ debian:	binmazetest buffertest comparetest \
 	sharptest splitimage2pdf viewertest
 
 ######################################################################
+
+adaptnorm_reg:	adaptnorm_reg.o $(LEPTLIB)
+	$(CC) -o adaptnorm_reg adaptnorm_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+affine_reg:	affine_reg.o $(LEPTLIB)
+	$(CC) -o affine_reg affine_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+bilinear_reg:	bilinear_reg.o $(LEPTLIB)
+	$(CC) -o bilinear_reg bilinear_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 binmorph1_reg:	binmorph1_reg.o $(LEPTLIB)
 	$(CC) -o binmorph1_reg binmorph1_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -293,6 +307,9 @@ fpix_reg:	fpix_reg.o $(LEPTLIB)
 gifio_reg:	gifio_reg.o $(LEPTLIB)
 	$(CC) -o gifio_reg gifio_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+grayfill_reg:	grayfill_reg.o $(LEPTLIB)
+	$(CC) -o grayfill_reg grayfill_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 graymorph_reg:	graymorph_reg.o $(LEPTLIB)
 	$(CC) -o graymorph_reg graymorph_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -313,6 +330,9 @@ locminmax_reg:	locminmax_reg.o $(LEPTLIB)
 
 logicops_reg:	logicops_reg.o $(LEPTLIB)
 	$(CC) -o logicops_reg logicops_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+lowaccess_reg:	lowaccess_reg.o $(LEPTLIB)
+	$(CC) -o lowaccess_reg lowaccess_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 morphseq_reg:	morphseq_reg.o $(LEPTLIB)
 	$(CC) -o morphseq_reg morphseq_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -335,6 +355,9 @@ pixadisp_reg:	pixadisp_reg.o $(LEPTLIB)
 pixtile_reg:	pixtile_reg.o $(LEPTLIB)
 	$(CC) -o pixtile_reg pixtile_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+projective_reg:	projective_reg.o $(LEPTLIB)
+	$(CC) -o projective_reg projective_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 rank_reg:	rank_reg.o $(LEPTLIB)
 	$(CC) -o rank_reg rank_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -356,20 +379,23 @@ scale_reg:	scale_reg.o $(LEPTLIB)
 selio_reg:	selio_reg.o $(LEPTLIB)
 	$(CC) -o selio_reg selio_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+splitcomp_reg:	splitcomp_reg.o $(LEPTLIB)
+	$(CC) -o splitcomp_reg splitcomp_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 string_reg:	string_reg.o $(LEPTLIB)
 	$(CC) -o string_reg string_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 threshnorm_reg:	threshnorm_reg.o $(LEPTLIB)
 	$(CC) -o threshnorm_reg threshnorm_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+warper_reg:	warper_reg.o $(LEPTLIB)
+	$(CC) -o warper_reg warper_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 xformbox_reg:	xformbox_reg.o $(LEPTLIB)
 	$(CC) -o xformbox_reg xformbox_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 adaptmaptest:	adaptmaptest.o $(LEPTLIB)
 	$(CC) -o adaptmaptest adaptmaptest.o $(ALL_LIBS) $(EXTRALIBS)
-
-affinetest:	affinetest.o $(LEPTLIB)
-	$(CC) -o affinetest affinetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 arithtest:	arithtest.o $(LEPTLIB)
 	$(CC) -o arithtest arithtest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -379,9 +405,6 @@ barcodetest:	barcodetest.o $(LEPTLIB)
 
 baselinetest:	baselinetest.o $(LEPTLIB)
 	$(CC) -o baselinetest baselinetest.o $(ALL_LIBS) $(EXTRALIBS)
-
-bilineartest:	bilineartest.o $(LEPTLIB)
-	$(CC) -o bilineartest bilineartest.o $(ALL_LIBS) $(EXTRALIBS)
 
 bincompare:	bincompare.o $(LEPTLIB)
 	$(CC) -o bincompare bincompare.o $(ALL_LIBS) $(EXTRALIBS)
@@ -407,14 +430,14 @@ cctest1:	cctest1.o $(LEPTLIB)
 colormorphtest:	colormorphtest.o $(LEPTLIB)
 	$(CC) -o colormorphtest colormorphtest.o $(ALL_LIBS) $(EXTRALIBS)
 
-colorquanttest:	colorquanttest.o $(LEPTLIB)
-	$(CC) -o colorquanttest colorquanttest.o $(ALL_LIBS) $(EXTRALIBS)
-
 colorsegtest:	colorsegtest.o $(LEPTLIB)
 	$(CC) -o colorsegtest colorsegtest.o $(ALL_LIBS) $(EXTRALIBS)
 
 colorspacetest:	colorspacetest.o $(LEPTLIB)
 	$(CC) -o colorspacetest colorspacetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+comparepages:	comparepages.o $(LEPTLIB)
+	$(CC) -o comparepages comparepages.o $(ALL_LIBS) $(EXTRALIBS)
 
 comparetest:	comparetest.o $(LEPTLIB)
 	$(CC) -o comparetest comparetest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -527,6 +550,9 @@ listtest:	listtest.o $(LEPTLIB)
 maketile:	maketile.o $(LEPTLIB)
 	$(CC) -o maketile maketile.o $(ALL_LIBS) $(EXTRALIBS)
 
+misctest1:	misctest1.o $(LEPTLIB)
+	$(CC) -o misctest1 misctest1.o $(ALL_LIBS) $(EXTRALIBS)
+
 modifyhuesat:	modifyhuesat.o $(LEPTLIB)
 	$(CC) -o modifyhuesat modifyhuesat.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -569,8 +595,8 @@ printsplitimage:	printsplitimage.o $(LEPTLIB)
 printtiff:	printtiff.o $(LEPTLIB)
 	$(CC) -o printtiff printtiff.o $(ALL_LIBS) $(EXTRALIBS)
 
-projectivetest:	projectivetest.o $(LEPTLIB)
-	$(CC) -o projectivetest projectivetest.o $(ALL_LIBS) $(EXTRALIBS)
+ptratest:	ptratest.o $(LEPTLIB)
+	$(CC) -o ptratest ptratest.o $(ALL_LIBS) $(EXTRALIBS)
 
 ranktest:	ranktest.o $(LEPTLIB)
 	$(CC) -o ranktest ranktest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -631,6 +657,9 @@ textlinemask:	textlinemask.o $(LEPTLIB)
 
 viewertest:	viewertest.o $(LEPTLIB)
 	$(CC) -o viewertest viewertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+watershedtest:	watershedtest.o $(LEPTLIB)
+	$(CC) -o watershedtest watershedtest.o $(ALL_LIBS) $(EXTRALIBS)
 
 wordsinorder:	wordsinorder.o $(LEPTLIB)
 	$(CC) -o wordsinorder wordsinorder.o $(ALL_LIBS) $(EXTRALIBS)

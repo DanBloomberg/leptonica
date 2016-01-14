@@ -16,8 +16,10 @@
 /*
  *   numafunc1.c
  *
- *      Arithmetic
+ *      Arithmetic and logic
  *          NUMA        *numaArithOp()
+ *          NUMA        *numaLogicalOp()
+ *          NUMA        *numaInvert()
  *
  *      Simple extractions
  *          l_int32      numaGetMin()
@@ -29,6 +31,7 @@
  *          NUMA        *numaMakeSequence()
  *          NUMA        *numaMakeConstant()
  *          l_int32      numaGetNonzeroRange()
+ *          l_int32      numaGetNonzeroCount()
  *          NUMA        *numaClipToInterval()
  *          NUMA        *numaMakeThresholdIndicator()
  *
@@ -85,7 +88,7 @@
 
 
 /*----------------------------------------------------------------------*
- *                         Arithmetic on Numas                          *
+ *                Arithmetic and logical ops on Numas                   *
  *----------------------------------------------------------------------*/
 /*!
  *  numaArithOp()
@@ -100,7 +103,7 @@
  *  Notes:
  *      (1) The sizes of na1 and na2 must be equal.
  *      (2) nad can only null or equal to na1.
- *      (2) To add a constant to a numa, or to multipy a numa by
+ *      (3) To add a constant to a numa, or to multipy a numa by
  *          a constant, use numaTransform().
  */
 NUMA *
@@ -156,6 +159,111 @@ l_float32  val1, val2;
             fprintf(stderr, " Unknown arith op: %d\n", op);
             return nad;
         }
+    }
+
+    return nad;
+}
+
+
+/*!
+ *  numaLogicalOp()
+ *
+ *      Input:  nad (<optional> can be null or equal to na1 (in-place)
+ *              na1
+ *              na2
+ *              op (L_UNION, L_INTERSECTION)
+ *      Return: nad (always: operation applied to na1 and na2)
+ *
+ *  Notes:
+ *      (1) The sizes of na1 and na2 must be equal.
+ *      (2) nad can only null or equal to na1.
+ *      (3) This is intended for use with indicator arrays (0s and 1s).
+ *          Input data is extracted as integers (0 == false, anything
+ *          else == true); output results are 0 and 1.
+ */
+NUMA *
+numaLogicalOp(NUMA    *nad,
+              NUMA    *na1,
+              NUMA    *na2,
+              l_int32  op)
+{
+l_int32  i, n, val1, val2, val;
+
+    PROCNAME("numaLogicalOp");
+
+    if (!na1 || !na2)
+        return (NUMA *)ERROR_PTR("na1, na2 not both defined", procName, nad);
+    n = numaGetCount(na1);
+    if (n != numaGetCount(na2))
+        return (NUMA *)ERROR_PTR("na1, na2 sizes differ", procName, nad);
+    if (nad && nad != na1)
+        return (NUMA *)ERROR_PTR("nad defined; not in-place", procName, nad);
+    if (op != L_UNION && op != L_INTERSECTION)
+        return (NUMA *)ERROR_PTR("invalid op", procName, nad);
+            
+        /* If nad is not identical to na1, make it an identical copy */
+    if (!nad)
+        nad = numaCopy(na1);
+        
+    for (i = 0; i < n; i++) {
+        numaGetIValue(nad, i, &val1);
+        numaGetIValue(na2, i, &val2);
+        switch (op) {
+        case L_UNION:
+            val = (val1 | val2) ? 1 : 0;
+            numaSetValue(nad, i, val);
+            break;
+        case L_INTERSECTION:
+            val = (val1 & val2) ? 1 : 0;
+            numaSetValue(nad, i, val);
+            break;
+        default:
+            fprintf(stderr, " Unknown logical op: %d\n", op);
+            return nad;
+        }
+    }
+
+    return nad;
+}
+
+
+/*!
+ *  numaInvert()
+ *
+ *      Input:  nad (<optional> can be null or equal to nas (in-place)
+ *              nas
+ *      Return: nad (always: 'inverts' nas)
+ *
+ *  Notes:
+ *      (1) This is intended for use with indicator arrays (0s and 1s).
+ *          It gives a boolean-type output, taking the input as
+ *          an integer and inverting it:
+ *              0              -->  1
+ *              anything else  -->   0
+ */
+NUMA *
+numaInvert(NUMA  *nad,
+           NUMA  *nas)
+{
+l_int32  i, n, val;
+
+    PROCNAME("numaInvert");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, nad);
+    if (nad && nad != nas)
+        return (NUMA *)ERROR_PTR("nad defined; not in-place", procName, nad);
+
+    if (!nad)
+        nad = numaCopy(nas);
+    n = numaGetCount(nad);
+    for (i = 0; i < n; i++) {
+        numaGetIValue(nad, i, &val);
+        if (!val)
+            val = 1;
+        else
+            val = 0;
+        numaSetValue(nad, i, val);
     }
 
     return nad;
@@ -485,6 +593,45 @@ l_float32  val;
             break;
     }
     *plast = i;
+    return 0;
+}
+
+
+/*!
+ *  numaGetCountRelativeToZero()
+ *
+ *      Input:  numa
+ *              type (L_LESS_THAN_ZERO, L_EQUAL_TO_ZERO, L_GREATER_THAN_ZERO)
+ *              &count (<return> count of values of given type)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaGetCountRelativeToZero(NUMA     *na,
+                           l_int32   type,
+                           l_int32  *pcount)
+{
+l_int32    n, i, count;
+l_float32  val;
+
+    PROCNAME("numaGetCountRelativeToZero");
+
+    if (!pcount)
+        return ERROR_INT("&count not defined", procName, 1);
+    *pcount = 0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = numaGetCount(na);
+    for (i = 0, count = 0; i < n; i++) {
+        numaGetFValue(na, i, &val);
+        if (type == L_LESS_THAN_ZERO && val < 0.0)
+            count++;
+        else if (type == L_EQUAL_TO_ZERO && val == 0.0)
+            count++;
+        else if (type == L_GREATER_THAN_ZERO && val > 0.0)
+            count++;
+    }
+
+    *pcount = count;
     return 0;
 }
 
@@ -1724,7 +1871,7 @@ NUMA       *nasort;
  *  numaJoin()
  *
  *      Input:  nad  (dest numa; add to this one)
- *              nas  (source numa; add from this one)
+ *              nas  (<optional> source numa; add from this one)
  *              istart  (starting index in nas)
  *              iend  (ending index in nas; use 0 to cat all)
  *      Return: 0 if OK, 1 on error
@@ -1732,6 +1879,7 @@ NUMA       *nasort;
  *  Notes:
  *      (1) istart < 0 is taken to mean 'read from the start' (istart = 0)
  *      (2) iend <= 0 means 'read to the end'
+ *      (3) if nas == NULL, this is a no-op
  */
 l_int32
 numaJoin(NUMA    *nad,
@@ -1747,7 +1895,7 @@ l_float32  val;
     if (!nad)
         return ERROR_INT("nad not defined", procName, 1);
     if (!nas)
-        return ERROR_INT("nas not defined", procName, 1);
+        return 0;
     ns = numaGetCount(nas);
     if (istart < 0)
         istart = 0;

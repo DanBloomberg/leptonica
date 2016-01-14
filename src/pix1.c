@@ -42,7 +42,7 @@
  *
  *    Pix destruction
  *          void          pixDestroy()
- *          void          pixFree()
+ *          static void   pixFree()
  *
  *    Pix copy
  *          PIX          *pixCopy()
@@ -81,6 +81,9 @@
  *          l_uint32     *pixGetData()
  *          l_int32       pixSetData()
  *
+ *    Pix line ptrs
+ *          void        **pixGetLinePtrs()
+ *
  *    Pix debug
  *          l_int32       pixPrintStreamInfo()
  */
@@ -89,6 +92,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
+
+static void pixFree(PIX *pix);
 
 
 /*-------------------------------------------------------------------------*
@@ -408,20 +413,19 @@ PIX  *pix;
  *  Notes:
  *      (1) Decrements the ref count and, if 0, destroys the pix.
  */
-void
-pixFree(PIX *pix)
+static void
+pixFree(PIX  *pix)
 {
 l_uint32  *data;
 char      *text;
 
     if (!pix) return;
 
-        /* Decrement the ref count.  If it is 0, destroy the pix. */
     pixChangeRefcount(pix, -1);
     if (pixGetRefcount(pix) <= 0) {
-        if ((data = pixGetData(pix)))
+        if ((data = pixGetData(pix)) != NULL)
             pix_free(data);
-        if ((text = pixGetText(pix)))
+        if ((text = pixGetText(pix)) != NULL)
             FREE(text);
         pixDestroyColormap(pix);
         FREE(pix);
@@ -1058,6 +1062,74 @@ pixSetData(PIX       *pix,
 
     pix->data = data;
     return 0;
+}
+
+
+/*--------------------------------------------------------------------*
+ *                          Pix line ptrs                             *
+ *--------------------------------------------------------------------*/
+/*!
+ *  pixGetLinePtrs()
+ *
+ *      Input:  pix
+ *              &size (<optional return> array size, which is the pix height)
+ *      Return: array of line ptrs, or null on error
+ *
+ *  Notes:
+ *      (1) This is intended to be used for fast random pixel access.
+ *          For example, for an 8 bpp image,
+ *              val = GET_DATA_BYTE(lines8[i], j);
+ *          is equivalent to, but much faster than,
+ *              pixGetPixel(pix, j, i, &val);
+ *      (2) How much faster?  For 1 bpp, it's from 6 to 10x faster.
+ *          For 8 bpp, it's an amazing 30x faster.  So if you are
+ *          doing random access over a substantial part of the image,
+ *          use this line ptr array.
+ *      (3) When random access is used in conjunction with a stack,
+ *          queue or heap, the overall computation time depends on
+ *          the operations performed on each struct that is popped
+ *          or pushed, and whether we are using a priority queue (O(logn))
+ *          or a queue or stack (O(1)).  For example, for maze search,
+ *          the overall ratio of time for line ptrs vs. pixGet/Set* is
+ *             Maze type     Type                   Time ratio
+ *               binary      queue                     0.4
+ *               gray        heap (priority queue)     0.6
+ *      (4) Because this returns a void** and the accessors take void*,
+ *          the compiler cannot check the pointer types.  It is
+ *          strongly recommended that you adopt a naming scheme for
+ *          the returned ptr arrays that indicates the pixel depth.
+ *          (This follows the original intent of Simonyi's "Hungarian"
+ *          application notation, where naming is used proactively
+ *          to make errors visibly obvious.)  By doing this, you can
+ *          tell by inspection if the correct accessor is used.
+ *          For example, for an 8 bpp pixg:
+ *              void **lineg8 = pixGetLinePtrs(pixg, NULL);
+ *              val = GET_DATA_BYTE(lineg8[i], j);  // fast access; BYTE, 8
+ *              ...
+ *              FREE(lineg8);  // don't forget this
+ */
+void **
+pixGetLinePtrs(PIX      *pix,
+               l_int32  *psize)
+{
+l_int32    i, h, wpl;
+l_uint32  *data;
+void     **lines;
+
+    PROCNAME("pixGetLinePtrs");
+
+    if (!pix)
+        return (void **)ERROR_PTR("pix not defined", procName, NULL);
+
+    h = pixGetHeight(pix);
+    if ((lines = (void **)CALLOC(h, sizeof(void *))) == NULL)
+        return (void **)ERROR_PTR("lines not made", procName, NULL);
+    wpl = pixGetWpl(pix);
+    data = pixGetData(pix);
+    for (i = 0; i < h; i++)
+        lines[i] = (void *)(data + i * wpl);
+
+    return lines;
 }
 
 

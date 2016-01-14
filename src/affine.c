@@ -17,94 +17,118 @@
 /*
  *  affine.c
  *
- *      Affine image transformation using a sequence of 
- *      shear/scale/translation
- *           PIX      *pixAffineSequential()
- *
- *      Affine (3-pt) image transformation using a sampled
+ *      Affine (3 pt) image transformation using a sampled
  *      (to nearest integer) transform on each dest point
- *           PIX      *pixAffineSampled()
+ *           PIX        *pixAffineSampledPta()
+ *           PIX        *pixAffineSampled()
  *
- *      Affine (3-pt) image transformation using interpolation 
+ *      Affine (3 pt) image transformation using interpolation 
  *      (or area mapping) for anti-aliasing images that are
  *      2, 4, or 8 bpp gray, or colormapped, or 32 bpp RGB
- *           PIX      *pixAffineInterpolated()
- *           PIX      *pixAffineInterpolatedColor()
- *           PIX      *pixAffineInterpolatedGray()
- *           void      affineInterpolatedColorLow()
- *           void      affineInterpolatedGrayLow()
+ *           PIX        *pixAffinePta()
+ *           PIX        *pixAffine()
+ *           PIX        *pixAffinePtaColor()
+ *           PIX        *pixAffineColor()
+ *           PIX        *pixAffinePtaGray()
+ *           PIX        *pixAffineGray()
  *
  *      Affine coordinate transformation
- *           l_int32   affineXformCoeffs()
- *           l_int32   affineXformSampled()
- *           l_int32   affineXformInterpolated()
+ *           l_int32     getAffineXformCoeffs()
+ *           l_int32     affineInvertXform()
+ *           l_int32     affineXformSampledPt()
+ *           l_int32     affineXformPt()
+ *
+ *      Interpolation helper functions
+ *           l_int32     linearInterpolatePixelGray()
+ *           l_int32     linearInterpolatePixelColor()
  *
  *      Gauss-jordan linear equation solver
- *           l_int32   gaussjordan()
+ *           l_int32     gaussjordan()
  *
- *      An affine transform is a transform on an image from one
- *      coordinate space to another.  One can define a coordinate
- *      space by the location of the origin, the orientation of x and
- *      y axes, and the unit scaling along each axis.  An affine
- *      transform is a general linear transformation (or warping)
- *      from the first coordinate space to the second.
+ *      Affine image transformation using a sequence of 
+ *      shear/scale/translation operations
+ *           PIX        *pixAffineSequential()
  *
- *      In the general case, we define the affine transform using
+ *      One can define a coordinate space by the location of the origin,
+ *      the orientation of x and y axes, and the unit scaling along
+ *      each axis.  An affine transform is a general linear
+ *      transformation from one coordinate space to another.
+ *
+ *      For the general case, we can define the affine transform using
  *      two sets of three (noncollinear) points in a plane.  One set
  *      corresponds to the input (src) coordinate space; the other to the 
  *      transformed (dest) coordinate space.  Each point in the
  *      src corresponds to one of the points in the dest.  With two
  *      sets of three points, we get a set of 6 equations in 6 unknowns
  *      that specifies the mapping between the coordinate spaces.
+ *      The interface here allows you to specify either the corresponding
+ *      sets of 3 points, or the transform itself (as a vector of 6
+ *      coefficients).
  *
- *      For the special case where we perform an arbitrary affine transform
- *      by a sequence of transforms (scaling, translation, shear,
- *      rotation), we use a specific set of three points in each
- *      of the coordinate spaces: the first point is the origin,
- *      the second gives the orientation and scaling of the x axis
- *      relative to the origin, and the third gives the orientation
- *      and scaling of the y axis relative to the origin.
- *      correspond to a new origin and new x and y axes.
+ *      Given the transform as a vector of 6 coefficients, we can compute
+ *      both a a pointwise affine coordinate transformation and an
+ *      affine image transformation.
  *
- *      There are two different things we can demand: an
- *      affine coordinate transformation and an affine image
- *      transformation.
- *
- *      For the former, we ask for the coordinate value (x',y')
- *      in the transformed space for any point (x,y) in the original
- *      space.  To do this, it is most convenient to express the affine
+ *      To compute the coordinate transform, we need the coordinate
+ *      value (x',y') in the transformed space for any point (x,y)
+ *      in the original space.  To derive this transform from the
+ *      three corresponding points, it is convenient to express the affine
  *      coordinate transformation using an LU decomposition of
  *      a set of six linear equations that express the six coordinates
  *      of the three points in the transformed space as a function of
- *      the six coordinates in the original space.  We can then
- *      do an affine image transformation, point by point, by
- *      back-substituting to get the new coordinates for every pixel
- *      in the image. 
+ *      the six coordinates in the original space.  Once we have
+ *      this transform matrix , we can transform an image by
+ *      finding, for each destination pixel, the pixel (or pixels)
+ *      in the source that give rise to it.
  *
  *      This 'pointwise' transformation can be done either by sampling
  *      and picking a single pixel in the src to replicate into the dest,
  *      or by interpolating (or averaging) over four src pixels to
  *      determine the value of the dest pixel.  The first method is
  *      implemented by pixAffineSampled() and the second method by
- *      pixAffineInterpolated().  The interpolated method can only
- *      be used for images with more than 1 bpp, but for these, the
- *      image quality is significantly better than the sampled method.
+ *      pixAffine().  The interpolated method can only be used for
+ *      images with more than 1 bpp, but for these, the image quality
+ *      is significantly better than the sampled method, due to
+ *      the 'antialiasing' effect of weighting the src pixels.
  *
- *      Alternatively, the affine image transformation can be performed
- *      directly as a sequence of translations, shears and scalings,
- *      without computing directly the affine coordinate transformation.
- *      We have at our disposal (1) translations (using rasterop),
- *      (2) horizontal and vertical shear about any horizontal and vertical
- *      line, respectively, and (3) non-isotropic scaling by two
- *      arbitrary x and y scaling factors.  We also have rotation
- *      about an arbitrary point, but this is equivalent to a set 
- *      of three shears and we do not need to use it.
+ *      Interpolation works well when there is relatively little scaling,
+ *      or if there is image expansion in general.  However, if there
+ *      is significant image reduction, one should apply a low-pass
+ *      filter before subsampling to avoid aliasing the high frequencies.
  *
  *      A typical application might be to align two images, which
  *      may be scaled, rotated and translated versions of each other.
  *      Through some pre-processing, three corresponding points are
  *      located in each of the two images.  One of the images is
  *      then to be (affine) transformed to align with the other.
+ *      As mentioned, the standard way to do this is to use three
+ *      sets of points, compute the 6 transformation coefficients
+ *      from these points that describe the linear transformation,
+ *
+ *          x' = ax + by + c
+ *          y' = dx + ey + f
+ *
+ *      and use this in a pointwise manner to transform the image.
+ *
+ *      N.B.  Be sure to see the comment in getAffineXformCoeffs(),
+ *      regarding using the inverse of the affine transform for points
+ *      to transform images.
+ *
+ *      There is another way to do this transformation; namely,
+ *      by doing a sequence of simple affine transforms, without
+ *      computing directly the affine coordinate transformation.
+ *      We have at our disposal (1) translations (using rasterop),
+ *      (2) horizontal and vertical shear about any horizontal and vertical
+ *      line, respectively, and (3) non-isotropic scaling by two
+ *      arbitrary x and y scaling factors.  We also have rotation
+ *      about an arbitrary point, but this is equivalent to a set 
+ *      of three shears so we do not need to use it.
+ *
+ *      Why might we do this?  For binary images, it is usually
+ *      more efficient to do such transformations by a sequence
+ *      of word parallel operations.  Shear and translation can be
+ *      done in-place and word parallel; arbitrary scaling is
+ *      mostly pixel-wise.
  *
  *      Suppose that we are tranforming image 1 to correspond to image 2.
  *      We have a set of three points, describing the coordinate space
@@ -114,35 +138,21 @@
  *      matching application, the latter set of three points was
  *      found to be the corresponding points in image 2.
  *
- *      This can be done in a pointwise fashion.  Compute the
- *      (linear) affine transformation, given by the 2 sets of
- *      three corresponding points, in a form:
- *
- *          x' = ax + by + c
- *          y' = dx + ey + f
- *
- *      where the six coefficients have been computed.
- *      It is best to do this "backwards," where the image is to
- *      be transformed from (x',y') --> (x,y).  Then for every
- *      point (x,y) in the destination image, compute the corresponding
- *      point (x',y') in the source image.  For example, for 1 bpp images,
- *      if the pixel nearest (x',y') in the source is ON, then turn
- *      on the pixel at (x,y) in the dest.  The reason we do this
- *      "backwards" is because if we went the other way and iterated
- *      over the source image, because of integer sampling we can
- *      miss some destination pixels, and this would show up as a
- *      regular pattern of artifacts.
- *
- *      For binary images, it is usually more efficient to do such
- *      transformations by a sequence of word parallel operations.
- *      Shear and translation can be done in-place and word parallel;
- *      arbitrary scaling is mostly pixel-wise.
- *
  *      The most elegant way I can think of to do such a sequential
  *      implementation is to imagine that we're going to transform
  *      BOTH images until they're aligned.  (We don't really want
  *      to transform both, because in fact we may only have one image
  *      that is undergoing a general affine transformation.)
+ *
+ *      Choose the 3 corresponding points as follows:
+ *         - The 1st point is an origin
+ *         - The 2nd point gives the orientation and scaling of the
+ *           "x" axis with respect to the origin
+ *         - The 3rd point does likewise for the "y" axis.
+ *      These "axes" must not be collinear; otherwise they are
+ *      arbitrary (although some strange things will happen if
+ *      the handedness sweeping through the minimum angle between
+ *      the axes is opposite).
  *
  *      An important constraint is that we have shear operations
  *      about an arbitrary horizontal or vertical line, but always
@@ -188,8 +198,8 @@
  *          (2) For 1 bpp images, use the pointwise sampled function
  *              pixAffineSampled().  For all other images, the best
  *              quality results result from using the pointwise
- *              interpolated function pixAffineInterpolated(); the
- *              cost is less than a doubling of the computation time
+ *              interpolated function pixAffinePta() or pixAffine();
+ *              the cost is less than a doubling of the computation time
  *              with respect to the sampled function.  If you use 
  *              interpolation on colormapped images, the colormap will
  *              be removed, resulting in either a grayscale or color
@@ -212,194 +222,16 @@
 #include <math.h>
 #include "allheaders.h"
 
-    /* gauss-jordan elimination */
-#define  SWAP(a,b)   {temp = (a); (a) = (b); (b) = temp;}
-
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
 #endif  /* ~NO_CONSOLE_IO */
 
 
 /*-------------------------------------------------------------*
- *              Sequential affine image transformation         *
- *-------------------------------------------------------------*/
-/*!
- *  pixAffineSequential()
- *
- *      Input:  pixs
- *              ptad  (3 pts of final coordinate space)
- *              ptas  (3 pts of initial coordinate space)
- *              bw    (pixels of additional border width during computation)
- *              bh    (pixels of additional border height during computation)
- *      Return: pixd, or null on error
- *
- *  Notes:
- *      (1) The 3 pts must not be collinear.
- *      (2) The 3 pts must be given in this order:
- *            origin
- *            a location along the x-axis
- *            a location along the y-axis.
- *      (3)
- *      - This is about 3x faster on 1 bpp images than pixAffineSampled(),
- *        but the results on text are inferior.
- *      - You must guess how much border must be added so that no
- *        pixels are lost in the transformations from src to
- *        dest coordinate space.  (This can be calculated but it
- *        is a lot of work!)  For coordinate spaces that are nearly
- *        at right angles, on a 300 ppi scanned page, the addition
- *        of 1000 pixels on each side is usually sufficient.
- */
-PIX *
-pixAffineSequential(PIX     *pixs,
-                    PTA     *ptad,
-                    PTA     *ptas,
-                    l_int32  bw,
-                    l_int32  bh)
-{
-l_int32    x1, y1, x2, y2, x3, y3;    /* ptas */
-l_int32    x1p, y1p, x2p, y2p, x3p, y3p;   /* ptad */
-l_int32    x1sc, y1sc;  /* scaled origin */
-l_float32  x2s, x2sp, scalex, scaley;
-l_float32  th3, th3p, ph2, ph2p;
-l_float32  rad2deg;
-PIX       *pixt1, *pixt2, *pixd;
-
-    PROCNAME("pixAffineSequential");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (!ptas)
-        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
-    if (!ptad)
-        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
-
-    if (ptaGetCount(ptas) != 3)
-        return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
-    if (ptaGetCount(ptad) != 3)
-        return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
-    ptaGetIPt(ptas, 0, &x1, &y1);
-    ptaGetIPt(ptas, 1, &x2, &y2);
-    ptaGetIPt(ptas, 2, &x3, &y3);
-    ptaGetIPt(ptad, 0, &x1p, &y1p);
-    ptaGetIPt(ptad, 1, &x2p, &y2p);
-    ptaGetIPt(ptad, 2, &x3p, &y3p);
-
-    rad2deg = 180. / 3.1415926535;
-
-    if (y1 == y3)
-        return (PIX *)ERROR_PTR("y1 == y3!", procName, NULL);
-    if (y1p == y3p)
-        return (PIX *)ERROR_PTR("y1p == y3p!", procName, NULL);
-        
-    if (bw != 0 || bh != 0) {
-            /* resize all points and add border to pixs */
-        x1 = x1 + bw;
-        y1 = y1 + bh;
-        x2 = x2 + bw;
-        y2 = y2 + bh;
-        x3 = x3 + bw;
-        y3 = y3 + bh;
-        x1p = x1p + bw;
-        y1p = y1p + bh;
-        x2p = x2p + bw;
-        y2p = y2p + bh;
-        x3p = x3p + bw;
-        y3p = y3p + bh;
-
-        if ((pixt1 = pixAddBorderGeneral(pixs, bw, bw, bh, bh, 0)) == NULL)
-            return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
-    }
-    else
-        pixt1 = pixClone(pixs);
-
-    /*-------------------------------------------------------------*
-        The horizontal shear is done to move the 3rd point to the
-        y axis.  This moves the 2nd point either towards or away
-        from the y axis, depending on whether it is above or below
-        the x axis.  That motion must be computed so that we know
-        the angle of vertical shear to use to get the 2nd point
-        on the x axis.  We must also know the x coordinate of the
-        2nd point in order to compute how much scaling is required
-        to match points on the axis.
-     *-------------------------------------------------------------*/
-
-        /* Shear angles required to put src points on x and y axes */
-    th3 = atan2((l_float64)(x1 - x3), (l_float64)(y1 - y3));
-    x2s = (l_float32)(x2 - ((l_float32)(y1 - y2) * (x3 - x1)) / (y1 - y3));
-    if (x2s == (l_float32)x1)
-        return (PIX *)ERROR_PTR("x2s == x1!", procName, NULL);
-    ph2 = atan2((l_float64)(y1 - y2), (l_float64)(x2s - x1));
-
-        /* Shear angles required to put dest points on x and y axes.
-         * Use the negative of these values to instead move the
-         * src points from the axes to the actual dest position.
-         * These values are also needed to scale the image. */
-    th3p = atan2((l_float64)(x1p - x3p), (l_float64)(y1p - y3p));
-    x2sp = (l_float32)(x2p - ((l_float32)(y1p - y2p) * (x3p - x1p)) / (y1p - y3p));
-    if (x2sp == (l_float32)x1p)
-        return (PIX *)ERROR_PTR("x2sp == x1p!", procName, NULL);
-    ph2p = atan2((l_float64)(y1p - y2p), (l_float64)(x2sp - x1p));
-
-        /* Shear image to first put src point 3 on the y axis,
-         * and then to put src point 2 on the x axis */
-    pixHShearIP(pixt1, y1, th3, L_BRING_IN_WHITE);
-    pixVShearIP(pixt1, x1, ph2, L_BRING_IN_WHITE);
-
-        /* Scale image to match dest scale.  The dest scale
-         * is calculated above from the angles th3p and ph2p
-         * that would be required to move the dest points to
-         * the x and y axes. */
-    scalex = (l_float32)(x2sp - x1p) / (x2s - x1);
-    scaley = (l_float32)(y3p - y1p) / (y3 - y1);
-    if ((pixt2 = pixScale(pixt1, scalex, scaley)) == NULL)
-        return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
-
-#if  DEBUG
-    fprintf(stderr, "th3 = %5.1f deg, ph2 = %5.1f deg\n",
-            rad2deg * th3, rad2deg * ph2);
-    fprintf(stderr, "th3' = %5.1f deg, ph2' = %5.1f deg\n",
-            rad2deg * th3p, rad2deg * ph2p);
-    fprintf(stderr, "scalex = %6.3f, scaley = %6.3f\n", scalex, scaley);
-#endif  /* DEBUG */
-
-    /*-------------------------------------------------------------*
-        Scaling moves the 1st src point, which is the origin. 
-        It must now be moved again to coincide with the origin
-        (1st point) of the dest.  After this is done, the 2nd
-        and 3rd points must be sheared back to the original
-        positions of the 2nd and 3rd dest points.  We use the
-        negative of the angles that were previously computed
-        for shearing those points in the dest image to x and y
-        axes, and take the shears in reverse order as well.
-     *-------------------------------------------------------------*/
-        /* Shift image to match dest origin. */
-    x1sc = (l_int32)(scalex * x1 + 0.5);   /* x comp of origin after scaling */
-    y1sc = (l_int32)(scaley * y1 + 0.5);   /* y comp of origin after scaling */
-    pixRasteropIP(pixt2, x1p - x1sc, y1p - y1sc, L_BRING_IN_WHITE);
-
-        /* Shear image to take points 2 and 3 off the axis and
-         * put them in the original dest position */
-    pixVShearIP(pixt2, x1p, -ph2p, L_BRING_IN_WHITE);
-    pixHShearIP(pixt2, y1p, -th3p, L_BRING_IN_WHITE);
-
-    if (bw != 0 || bh != 0) {
-        if ((pixd = pixRemoveBorderGeneral(pixt2, bw, bw, bh, bh)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
-    else
-        pixd = pixClone(pixt2);
-
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    return pixd;
-}
-
-
-/*-------------------------------------------------------------*
  *               Sampled affine image transformation           *
  *-------------------------------------------------------------*/
 /*!
- *  pixAffineSampled()
+ *  pixAffineSampledPta()
  *
  *      Input:  pixs (all depths)
  *              ptad  (3 pts of final coordinate space)
@@ -421,25 +253,21 @@ PIX       *pixt1, *pixt2, *pixd;
  *          is due to repeated quantized transforms.  It is strongly
  *          recommended that pixAffineSampled() be used for 1 bpp images.
  *      (6) For 8 or 32 bpp, much better quality is obtained by the
- *          somewhat slower pixAffineInterpolated().  See that function
+ *          somewhat slower pixAffinePta().  See that function
  *          for relative timings between sampled and interpolated.
  *      (7) To repeat, use of the sequential transform,
  *          pixAffineSequential(), for any images, is discouraged.
  */
 PIX *
-pixAffineSampled(PIX     *pixs,
-                 PTA     *ptad,
-                 PTA     *ptas,
-                 l_int32  incolor)
+pixAffineSampledPta(PIX     *pixs,
+                    PTA     *ptad,
+                    PTA     *ptas,
+                    l_int32  incolor)
 {
-l_int32     i, j, w, h, d, x, y, wpls, wpld, color, cmapindex;
-l_uint32    val;
 l_float32  *vc;
-l_uint32   *datas, *datad, *lines, *lined;
 PIX        *pixd;
-PIXCMAP    *cmap;
 
-    PROCNAME("pixAffineSampled");
+    PROCNAME("pixAffineSampledPta");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
@@ -454,19 +282,55 @@ PIXCMAP    *cmap;
     if (ptaGetCount(ptad) != 3)
         return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
 
-        /* Get backwards transform from dest to src */
-    affineXformCoeffs(ptad, ptas, &vc);
+        /* Get backwards transform from dest to src, and apply it */
+    getAffineXformCoeffs(ptad, ptas, &vc);
+    pixd = pixAffineSampled(pixs, vc, incolor);
+    FREE(vc);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    datas = pixGetData(pixs);
-    wpls = pixGetWpl(pixs);
-    pixd = pixCreateTemplate(pixs);
-    datad = pixGetData(pixd);
-    wpld = pixGetWpl(pixd);
-    d = pixGetDepth(pixs);
+    return pixd;
+}
+
+
+/*!
+ *  pixAffineSampled()
+ *
+ *      Input:  pixs (all depths)
+ *              vc  (vector of 6 coefficients for affine transformation)
+ *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) Brings in either black or white pixels from the boundary.
+ *      (2) Retains colormap, which you can do for a sampled transform..
+ *      (3) For 8 or 32 bpp, much better quality is obtained by the
+ *          somewhat slower pixAffine().  See that function
+ *          for relative timings between sampled and interpolated.
+ */
+PIX *
+pixAffineSampled(PIX        *pixs,
+                 l_float32  *vc,
+                 l_int32     incolor)
+{
+l_int32     i, j, w, h, d, x, y, wpls, wpld, color, cmapindex;
+l_uint32    val;
+l_uint32   *datas, *datad, *lines, *lined;
+PIX        *pixd;
+PIXCMAP    *cmap;
+
+    PROCNAME("pixAffineSampled");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!vc)
+        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+    if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
+        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32)
+        return (PIX *)ERROR_PTR("depth not 1, 2, 4, 8 or 16", procName, NULL);
 
         /* Init all dest pixels to color to be brought in from outside */
+    pixd = pixCreateTemplate(pixs);
     if ((cmap = pixGetColormap(pixs)) != NULL) {
         if (incolor == L_BRING_IN_WHITE)
             color = 1;
@@ -483,46 +347,51 @@ PIXCMAP    *cmap;
             pixSetAll(pixd);
     }
 
-        /* Scan over dest pixels */
+        /* Scan over the dest pixels */
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
-            affineXformSampled(vc, j, i, &x, &y);
+            affineXformSampledPt(vc, j, i, &x, &y);
             if (x < 0 || y < 0 || x >=w || y >= h)
                 continue;
+            lines = datas + y * wpls;
             if (d == 1) {
-                lines = datas + y * wpls;
                 if (GET_DATA_BIT(lines, x))
                     SET_DATA_BIT(lined, j);
             }
             else if (d == 8) {
-                lines = datas + y * wpls;
                 val = GET_DATA_BYTE(lines, x);
                 SET_DATA_BYTE(lined, j, val);
             }
             else if (d == 32) {
-                lines = datas + y * wpls;
                 lined[j] = lines[x];
             }
-            else {  /* all other depths */
-                pixGetPixel(pixs, x, y, &val);
-                pixSetPixel(pixd, j, i, val);
+            else if (d == 2) {
+                val = GET_DATA_DIBIT(lines, x);
+                SET_DATA_DIBIT(lined, j, val);
+            }
+            else if (d == 4) {
+                val = GET_DATA_QBIT(lines, x);
+                SET_DATA_QBIT(lined, j, val);
             }
         }
     }
 
-    FREE(vc);
     return pixd;
 }
 
 
-/*-------------------------------------------------------------*
- *           Interpolated affine image transformation          *
- *-------------------------------------------------------------*/
+/*---------------------------------------------------------------------*
+ *               Interpolated affine image transformation              *
+ *---------------------------------------------------------------------*/
 /*!
- *  pixAffineInterpolated()
+ *  pixAffinePta()
  *
- *      Input:  pixs (2, 4, 8 bpp gray or colormapped, or 32 bpp RGB)
+ *      Input:  pixs (all depths; colormap ok)
  *              ptad  (3 pts of final coordinate space)
  *              ptas  (3 pts of initial coordinate space)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
@@ -533,21 +402,19 @@ PIXCMAP    *cmap;
  *      (2) Removes any existing colormap, if necessary, before transforming
  */
 PIX *
-pixAffineInterpolated(PIX     *pixs,
-                      PTA     *ptad,
-                      PTA     *ptas,
-                      l_int32  incolor)
+pixAffinePta(PIX     *pixs,
+             PTA     *ptad,
+             PTA     *ptas,
+             l_int32  incolor)
 {
 l_int32   d;
 l_uint32  colorval;
 PIX      *pixt1, *pixt2, *pixd;
 
-    PROCNAME("pixAffineInterpolated");
+    PROCNAME("pixAffinePta");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) == 1)
-        return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
     if (!ptas)
         return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
@@ -558,6 +425,9 @@ PIX      *pixt1, *pixt2, *pixd;
         return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
     if (ptaGetCount(ptad) != 3)
         return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
+
+    if (pixGetDepth(pixs) == 1)
+        return pixAffineSampledPta(pixs, ptad, ptas, incolor);
 
         /* Remove cmap if it exists, and unpack to 8 bpp if necessary */
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
@@ -578,9 +448,9 @@ PIX      *pixt1, *pixt2, *pixd;
     }
     
     if (d == 8)
-        pixd = pixAffineInterpolatedGray(pixt2, ptad, ptas, colorval);
+        pixd = pixAffinePtaGray(pixt2, ptad, ptas, colorval);
     else  /* d == 32 */
-        pixd = pixAffineInterpolatedColor(pixt2, ptad, ptas, colorval);
+        pixd = pixAffinePtaColor(pixt2, ptad, ptas, colorval);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     return pixd;
@@ -588,28 +458,83 @@ PIX      *pixt1, *pixt2, *pixd;
 
 
 /*!
- *  pixAffineInterpolatedColor()
+ *  pixAffine()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              vc  (vector of 6 coefficients for affine transformation)
+ *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) Brings in either black or white pixels from the boundary
+ *      (2) Removes any existing colormap, if necessary, before transforming
+ */
+PIX *
+pixAffine(PIX        *pixs,
+          l_float32  *vc,
+          l_int32     incolor)
+{
+l_int32   d;
+l_uint32  colorval;
+PIX      *pixt1, *pixt2, *pixd;
+
+    PROCNAME("pixAffine");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!vc)
+        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+
+    if (pixGetDepth(pixs) == 1)
+        return pixAffineSampled(pixs, vc, incolor);
+
+        /* Remove cmap if it exists, and unpack to 8 bpp if necessary */
+    pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+    d = pixGetDepth(pixt1);
+    if (d < 8)
+        pixt2 = pixConvertTo8(pixt1, FALSE);
+    else
+        pixt2 = pixClone(pixt1);
+    d = pixGetDepth(pixt2);
+
+        /* Compute actual color to bring in from edges */
+    colorval = 0;
+    if (incolor == L_BRING_IN_WHITE) {
+        if (d == 8)
+            colorval = 255;
+        else  /* d == 32 */
+            colorval = 0xffffff00;
+    }
+    
+    if (d == 8)
+        pixd = pixAffineGray(pixt2, vc, colorval);
+    else  /* d == 32 */
+        pixd = pixAffineColor(pixt2, vc, colorval);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    return pixd;
+}
+
+
+/*!
+ *  pixAffinePtaColor()
  *
  *      Input:  pixs (32 bpp)
  *              ptad  (3 pts of final coordinate space)
  *              ptas  (3 pts of initial coordinate space)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
  *      Return: pixd, or null on error
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
-pixAffineInterpolatedColor(PIX      *pixs,
-                           PTA      *ptad,
-                           PTA      *ptas,
-                           l_uint32  colorval)
+pixAffinePtaColor(PIX      *pixs,
+                  PTA      *ptad,
+                  PTA      *ptas,
+                  l_uint32  colorval)
 {
-l_int32     w, h, wpls, wpld;
-l_uint32   *datas, *datad;
 l_float32  *vc;
 PIX        *pixd;
 
-    PROCNAME("pixAffineInterpolatedColor");
+    PROCNAME("pixAffinePtaColor");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
@@ -624,19 +549,9 @@ PIX        *pixd;
     if (ptaGetCount(ptad) != 3)
         return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
 
-        /* Get backwards transform from dest to src */
-    affineXformCoeffs(ptad, ptas, &vc);
-
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    datas = pixGetData(pixs);
-    wpls = pixGetWpl(pixs);
-    pixd = pixCreateTemplate(pixs);
-    pixSetAllArbitrary(pixd, colorval);
-    datad = pixGetData(pixd);
-    wpld = pixGetWpl(pixd);
-
-    affineInterpolatedColorLow(datad, w, h, wpld, datas, wpls, vc);
+        /* Get backwards transform from dest to src, and apply it */
+    getAffineXformCoeffs(ptad, ptas, &vc);
+    pixd = pixAffineColor(pixs, vc, colorval);
     FREE(vc);
 
     return pixd;
@@ -644,7 +559,59 @@ PIX        *pixd;
 
 
 /*!
- *  pixAffineInterpolatedGray()
+ *  pixAffineColor()
+ *
+ *      Input:  pixs (32 bpp)
+ *              vc  (vector of 6 coefficients for affine transformation)
+ *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
+ *      Return: pixd, or null on error
+ */
+PIX *
+pixAffineColor(PIX        *pixs,
+               l_float32  *vc,
+               l_uint32    colorval)
+{
+l_int32    i, j, w, h, d, wpls, wpld;
+l_uint32   val;
+l_uint32  *datas, *datad, *lined;
+l_float32  x, y;
+PIX       *pixd;
+
+    PROCNAME("pixAffineColor");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 32)
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+    if (!vc)
+        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    pixd = pixCreateTemplate(pixs);
+    pixSetAllArbitrary(pixd, colorval);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+        /* Iterate over destination pixels */
+    for (i = 0; i < h; i++) {
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+                /* Compute float src pixel location corresponding to (i,j) */
+            affineXformPt(vc, j, i, &x, &y);
+            linearInterpolatePixelColor(datas, wpls, w, h, x, y, colorval,
+                                        &val);
+            *(lined + j) = val;
+        }
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixAffinePtaGray()
  *
  *      Input:  pixs (8 bpp)
  *              ptad  (3 pts of final coordinate space)
@@ -653,17 +620,15 @@ PIX        *pixd;
  *      Return: pixd, or null on error
  */
 PIX *
-pixAffineInterpolatedGray(PIX     *pixs,
-                          PTA     *ptad,
-                          PTA     *ptas,
-                          l_uint8  grayval)
+pixAffinePtaGray(PIX     *pixs,
+                 PTA     *ptad,
+                 PTA     *ptas,
+                 l_uint8  grayval)
 {
-l_int32     w, h, wpls, wpld;
 l_float32  *vc;
-l_uint32   *datas, *datad;
 PIX        *pixd;
 
-    PROCNAME("pixAffineInterpolatedGray");
+    PROCNAME("pixAffinePtaGray");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
@@ -678,11 +643,44 @@ PIX        *pixd;
     if (ptaGetCount(ptad) != 3)
         return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
 
-        /* Get backwards transform from dest to src */
-    affineXformCoeffs(ptad, ptas, &vc);
+        /* Get backwards transform from dest to src, and apply it */
+    getAffineXformCoeffs(ptad, ptas, &vc);
+    pixd = pixAffineGray(pixs, vc, grayval);
+    FREE(vc);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    return pixd;
+}
+
+
+
+/*!
+ *  pixAffineGray()
+ *
+ *      Input:  pixs (8 bpp)
+ *              vc  (vector of 6 coefficients for affine transformation)
+ *              grayval (0 to bring in BLACK, 255 for WHITE)
+ *      Return: pixd, or null on error
+ */
+PIX *
+pixAffineGray(PIX        *pixs,
+              l_float32  *vc,
+              l_uint8     grayval)
+{
+l_int32    i, j, w, h, wpls, wpld, val;
+l_uint32  *datas, *datad, *lined;
+l_float32  x, y;
+PIX       *pixd;
+
+    PROCNAME("pixAffineGray");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+    if (!vc)
+        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixd = pixCreateTemplate(pixs);
@@ -690,131 +688,18 @@ PIX        *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-    affineInterpolatedGrayLow(datad, w, h, wpld, datas, wpls, vc);
-    FREE(vc);
-
-    return pixd;
-}
-
-
-/*!
- *  affineInterpolatedColorLow()
- */
-void
-affineInterpolatedColorLow(l_uint32   *datad,
-                           l_int32     w,
-                           l_int32     h,
-                           l_int32     wpld,
-                           l_uint32   *datas,
-                           l_int32     wpls,
-                           l_float32  *vc)
-{
-l_int32    i, j, x, y, xf, yf, wm2, hm2;
-l_int32    rval, gval, bval;
-l_uint32   word00, word01, word10, word11, val;
-l_uint32  *lines, *lined;
-
         /* Iterate over destination pixels */
-    wm2 = w - 2;
-    hm2 = h - 2;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
-                /* Compute src pixel and fraction corresponding to (i,j) */
-            affineXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
-
-                /* Skip if off the edge; omit x = 0 and y = 0 because
-                 * xf and yf can be < 0, in which case overflow is
-                 * possible for val, and black pixels can be rendered
-                 * on pixels at the src boundaries. */
-            if (x < 1 || y < 1 || x > wm2 || y > hm2)
-                continue;
-
-#if  DEBUG
-            if (xf < 0 || yf < 0)
-                fprintf(stderr, "x = %d, y = %d, xf = %d, yf = %d\n",
-                     x, y, xf, yf);
-#endif  /* DEBUG */
-
-                /* Do area weighting (eqiv. to linear interpolation) */
-            lines = datas + y * wpls;
-            word00 = *(lines + x);
-            word10 = *(lines + x + 1);
-            word01 = *(lines + wpls + x);
-            word11 = *(lines + wpls + x + 1);
-            rval = ((16 - xf) * (16 - yf) * ((word00 >> L_RED_SHIFT) & 0xff) +
-                xf * (16 - yf) * ((word10 >> L_RED_SHIFT) & 0xff) +
-                (16 - xf) * yf * ((word01 >> L_RED_SHIFT) & 0xff) +
-                xf * yf * ((word11 >> L_RED_SHIFT) & 0xff) + 128) / 256;
-            gval = ((16 - xf) * (16 - yf) * ((word00 >> L_GREEN_SHIFT) & 0xff) +
-                xf * (16 - yf) * ((word10 >> L_GREEN_SHIFT) & 0xff) +
-                (16 - xf) * yf * ((word01 >> L_GREEN_SHIFT) & 0xff) +
-                xf * yf * ((word11 >> L_GREEN_SHIFT) & 0xff) + 128) / 256;
-            bval = ((16 - xf) * (16 - yf) * ((word00 >> L_BLUE_SHIFT) & 0xff) +
-                xf * (16 - yf) * ((word10 >> L_BLUE_SHIFT) & 0xff) +
-                (16 - xf) * yf * ((word01 >> L_BLUE_SHIFT) & 0xff) +
-                xf * yf * ((word11 >> L_BLUE_SHIFT) & 0xff) + 128) / 256;
-            val = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
-                  (bval << L_BLUE_SHIFT);
-            *(lined + j) = val;
-        }
-    }
-
-    return;
-}
-
-
-/*!
- *  affineInterpolatedGrayLow()
- */
-void
-affineInterpolatedGrayLow(l_uint32   *datad,
-                          l_int32     w,
-                          l_int32     h,
-                          l_int32     wpld,
-                          l_uint32   *datas,
-                          l_int32     wpls,
-                          l_float32  *vc)
-{
-l_int32     i, j, x, y, xf, yf, wm2, hm2;
-l_int32     v00, v01, v10, v11;
-l_uint8     val;
-l_uint32   *lines, *lined;
-
-        /* Iterate over destination pixels */
-    wm2 = w - 2;
-    hm2 = h - 2;
-    for (i = 0; i < h; i++) {
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
-                /* Compute src pixel and fraction corresponding to (i,j) */
-            affineXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
-
-                /* Skip if off the edge; omit x = 0 and y = 0 because
-                 * xf and yf can be < 0, in which case overflow is
-                 * possible for val, and black pixels can be rendered
-                 * on pixels at the src boundaries. */
-            if (x < 1 || y < 1 || x > wm2 || y > hm2)
-                continue;
-
-#if  DEBUG
-            if (xf < 0 || yf < 0)
-                fprintf(stderr, "x = %d, y = %d, xf = %d, yf = %d\n",
-                     x, y, xf, yf);
-#endif  /* DEBUG */
-
-                /* Do area weighting (eqiv. to linear interpolation) */
-            lines = datas + y * wpls;
-            v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, x);
-            v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, x + 1);
-            v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, x);
-            v11 = xf * yf * GET_DATA_BYTE(lines + wpls, x + 1);
-            val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
+                /* Compute float src pixel location corresponding to (i,j) */
+            affineXformPt(vc, j, i, &x, &y);
+            linearInterpolatePixelGray(datas, wpls, w, h, x, y, grayval, &val);
             SET_DATA_BYTE(lined, j, val);
         }
     }
 
-    return;
+    return pixd;
 }
 
 
@@ -822,7 +707,7 @@ l_uint32   *lines, *lined;
  *                 Affine coordinate transformation            *
  *-------------------------------------------------------------*/
 /*!
- *  affineXformCoeffs()
+ *  getAffineXformCoeffs()
  *
  *      Input:  ptas  (source 3 points; unprimed)
  *              ptad  (transformed 3 points; primed)
@@ -867,19 +752,40 @@ l_uint32   *lines, *lined;
  *           x' = c[0]x + c[1]y + c[2]
  *           y' = c[3]x + c[4]y + c[5]
  *
- *  that are implemented in affineXform().
+ *  that are implemented in affineXformPt().
+ *
+ *  !!!!!!!!!!!!!!!!!!   Very important   !!!!!!!!!!!!!!!!!!!!!!
+ *
+ *  When the affine transform is composed from a set of simple
+ *  operations such as translation, scaling and rotation,
+ *  it is built in a form to convert from the un-transformed src
+ *  point to the transformed dest point.  However, when an
+ *  affine transform is used on images, it is used in an inverted
+ *  way: it converts from the transformed dest point to the
+ *  un-transformed src point.  So, for example, if you transform
+ *  a boxa using transform A, to transform an image in the same
+ *  way you must use the inverse of A.
+ *
+ *  For example, if you transform a boxa with a 3x3 affine matrix
+ *  'mat', the analogous image transformation must use 'matinv':
+ *
+ *     boxad = boxaAffineTransform(boxas, mat);
+ *     affineInvertXform(mat, &matinv);
+ *     pixd = pixAffine(pixs, matinv, L_BRING_IN_WHITE);
+ *
+ *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 l_int32
-affineXformCoeffs(PTA         *ptas,
-                  PTA         *ptad,
-                  l_float32  **pvc)
+getAffineXformCoeffs(PTA         *ptas,
+                     PTA         *ptad,
+                     l_float32  **pvc)
 {
 l_int32     i;
 l_float32   x1, y1, x2, y2, x3, y3;
 l_float32  *b;   /* rhs vector of primed coords X'; coeffs returned in *pvc */
 l_float32  *a[6];  /* 6x6 matrix A  */
 
-    PROCNAME("affineXformCoeffs");
+    PROCNAME("getAffineXformCoeffs");
 
     if (!ptas)
         return ERROR_INT("ptas not defined", procName, 1);
@@ -932,66 +838,300 @@ l_float32  *a[6];  /* 6x6 matrix A  */
 
 
 /*!
- *  affineXformSampled()
+ *  affineInvertXform()
  *
  *      Input:  vc (vector of 6 coefficients)
- *              (x, y)  (initial point)
- *              (&xp, &yp)   (<return> transformed point)
+ *              *vci (<return> inverted transform)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) The 6 affine transform coefficients are the first
+ *          two rows of a 3x3 matrix where the last row has
+ *          only a 1 in the third column.  We invert this
+ *          using gaussjordan(), and select the first 2 rows
+ *          as the coefficients of the inverse affine transform.
+ *      (2) Alternatively, we can find the inverse transform
+ *          coefficients by inverting the 2x2 submatrix,
+ *          and treating the top 2 coefficients in the 3rd column as
+ *          a RHS vector for that 2x2 submatrix.  Then the
+ *          6 inverted transform coefficients are composed of
+ *          the inverted 2x2 submatrix and the negative of the
+ *          transformed RHS vector.  Why is this so?  We have
+ *             Y = AX + R  (2 equations in 6 unknowns)
+ *          Then
+ *             X = A'Y - A'R
+ *          Gauss-jordan solves
+ *             AF = R
+ *          and puts the solution for F, which is A'R,
+ *          into the input R vector.
+ *
  */
 l_int32
-affineXformSampled(l_float32  *vc,
-                   l_int32     x,
-                   l_int32     y,
-                   l_int32    *pxp,
-                   l_int32    *pyp)
+affineInvertXform(l_float32   *vc,
+                  l_float32  **pvci)
 {
-    PROCNAME("affineXformSampled");
+l_int32     i;
+l_float32  *vci;
+l_float32  *a[3];
+l_float32   b[3] = {1.0, 1.0, 1.0};   /* anything; results ignored */
 
+    PROCNAME("affineInvertXform");
+
+    if (!pvci)
+        return ERROR_INT("&vci not defined", procName, 1);
+    *pvci = NULL;
     if (!vc)
         return ERROR_INT("vc not defined", procName, 1);
 
-    *pxp = (l_int32)(vc[0] * x + vc[1] * y + vc[2] + 0.5);
-    *pyp = (l_int32)(vc[3] * x + vc[4] * y + vc[5] + 0.5);
+    for (i = 0; i < 3; i++)
+        a[i] = (l_float32 *)CALLOC(3, sizeof(l_float32));
+    a[0][0] = vc[0];
+    a[0][1] = vc[1];
+    a[0][2] = vc[2];
+    a[1][0] = vc[3];
+    a[1][1] = vc[4];
+    a[1][2] = vc[5];
+    a[2][2] = 1.0;
+    gaussjordan(a, b, 3);  /* now matrix a contains the inverse */
+    vci = (l_float32 *)CALLOC(6, sizeof(l_float32));
+    *pvci = vci;
+    vci[0] = a[0][0];
+    vci[1] = a[0][1];
+    vci[2] = a[0][2];
+    vci[3] = a[1][0];
+    vci[4] = a[1][1];
+    vci[5] = a[1][2];
+
+#if 0
+        /* Alternative version, inverting a 2x2 matrix */
+    for (i = 0; i < 2; i++)
+        a[i] = (l_float32 *)CALLOC(2, sizeof(l_float32));
+    a[0][0] = vc[0];
+    a[0][1] = vc[1];
+    a[1][0] = vc[3];
+    a[1][1] = vc[4];
+    b[0] = vc[2];
+    b[1] = vc[5];
+    gaussjordan(a, b, 2);  /* now matrix a contains the inverse */
+    vci = (l_float32 *)CALLOC(6, sizeof(l_float32));
+    *pvci = vci;
+    vci[0] = a[0][0];
+    vci[1] = a[0][1];
+    vci[2] = -b[0];   /* note sign */
+    vci[3] = a[1][0];
+    vci[4] = a[1][1];
+    vci[5] = -b[1];   /* note sign */
+#endif
 
     return 0;
 }
 
 
 /*!
- *  affineXformInterpolated()
+ *  affineXformSampledPt()
  *
  *      Input:  vc (vector of 6 coefficients)
  *              (x, y)  (initial point)
  *              (&xp, &yp)   (<return> transformed point)
- *              (&fxp, &fyp)   (<return> fractional transformed point)
  *      Return: 0 if OK; 1 on error
  *
- *  Note: this does not check ptrs for returned data!
+ *  Notes:
+ *      (1) This finds the nearest pixel coordinates of the transformed point.
+ *      (2) It does not check ptrs for returned data!
  */
 l_int32
-affineXformInterpolated(l_float32  *vc,
-                        l_int32     x,
-                        l_int32     y,
-                        l_int32    *pxp,
-                        l_int32    *pyp,
-                        l_int32    *pfxp,
-                        l_int32    *pfyp)
+affineXformSampledPt(l_float32  *vc,
+                     l_int32     x,
+                     l_int32     y,
+                     l_int32    *pxp,
+                     l_int32    *pyp)
 {
-l_float32  xp, yp;
-
-    PROCNAME("affineXformInterpolated");
+    PROCNAME("affineXformSampledPt");
 
     if (!vc)
         return ERROR_INT("vc not defined", procName, 1);
 
-    xp = vc[0] * x + vc[1] * y + vc[2];
-    yp = vc[3] * x + vc[4] * y + vc[5];
-    *pxp = (l_int32)xp;
-    *pyp = (l_int32)yp;
-    *pfxp = (l_int32)(16. * (xp - *pxp));
-    *pfyp = (l_int32)(16. * (yp - *pyp));
+    *pxp = (l_int32)(vc[0] * x + vc[1] * y + vc[2] + 0.5);
+    *pyp = (l_int32)(vc[3] * x + vc[4] * y + vc[5] + 0.5);
+    return 0;
+}
 
+
+/*!
+ *  affineXformPt()
+ *
+ *      Input:  vc (vector of 6 coefficients)
+ *              (x, y)  (initial point)
+ *              (&xp, &yp)   (<return> transformed point)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This computes the floating point location of the transformed point.
+ *      (2) It does not check ptrs for returned data!
+ */
+l_int32
+affineXformPt(l_float32  *vc,
+              l_int32     x,
+              l_int32     y,
+              l_float32  *pxp,
+              l_float32  *pyp)
+{
+    PROCNAME("affineXformPt");
+
+    if (!vc)
+        return ERROR_INT("vc not defined", procName, 1);
+
+    *pxp = vc[0] * x + vc[1] * y + vc[2];
+    *pyp = vc[3] * x + vc[4] * y + vc[5];
+    return 0;
+}
+
+
+/*-------------------------------------------------------------*
+ *                 Interpolation helper functions              *
+ *-------------------------------------------------------------*/
+/*!
+ *  linearInterpolatePixelColor()
+ *
+ *      Input:  datas (ptr to beginning of image data)
+ *              wpls (32-bit word/line for this data array)
+ *              w, h (of image)
+ *              x, y (floating pt location for evaluation)
+ *              colorval (color brought in from the outside when the
+ *                        input x,y location is outside the image;
+ *                        in 0xrrggbb00 format))
+ *              &val (<return> interpolated color value)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is a standard linear interpolation function.  It is
+ *          equivalent to area weighting on each component, and
+ *          avoids "jaggies" when rendering sharp edges.
+ */
+l_int32
+linearInterpolatePixelColor(l_uint32  *datas,
+                            l_int32    wpls,
+                            l_int32    w,
+                            l_int32    h,
+                            l_float32  x,
+                            l_float32  y,
+                            l_uint32   colorval,
+                            l_uint32  *pval)
+{
+l_int32    xpm, ypm, xp, yp, xf, yf;
+l_int32    rval, gval, bval;
+l_uint32   word00, word01, word10, word11;
+l_uint32  *lines;
+
+    PROCNAME("linearInterpolatePixelColor");
+
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = colorval;
+    if (!datas)
+        return ERROR_INT("datas not defined", procName, 1);
+
+        /* Skip if off the edge */
+    if (x < 0.0 || y < 0.0 || x > w - 2.0 || y > h - 2.0)
+        return 0;
+
+    xpm = (l_int32)(16.0 * x + 0.5);
+    ypm = (l_int32)(16.0 * y + 0.5);
+    xp = xpm >> 4;
+    yp = ypm >> 4;
+    xf = xpm & 0x0f;
+    yf = ypm & 0x0f;
+
+#if  DEBUG
+    if (xf < 0 || yf < 0)
+        fprintf(stderr, "xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
+#endif  /* DEBUG */
+
+        /* Do area weighting (eqiv. to linear interpolation) */
+    lines = datas + yp * wpls;
+    word00 = *(lines + xp);
+    word10 = *(lines + xp + 1);
+    word01 = *(lines + wpls + xp);
+    word11 = *(lines + wpls + xp + 1);
+    rval = ((16 - xf) * (16 - yf) * ((word00 >> L_RED_SHIFT) & 0xff) +
+        xf * (16 - yf) * ((word10 >> L_RED_SHIFT) & 0xff) +
+        (16 - xf) * yf * ((word01 >> L_RED_SHIFT) & 0xff) +
+        xf * yf * ((word11 >> L_RED_SHIFT) & 0xff) + 128) / 256;
+    gval = ((16 - xf) * (16 - yf) * ((word00 >> L_GREEN_SHIFT) & 0xff) +
+        xf * (16 - yf) * ((word10 >> L_GREEN_SHIFT) & 0xff) +
+        (16 - xf) * yf * ((word01 >> L_GREEN_SHIFT) & 0xff) +
+        xf * yf * ((word11 >> L_GREEN_SHIFT) & 0xff) + 128) / 256;
+    bval = ((16 - xf) * (16 - yf) * ((word00 >> L_BLUE_SHIFT) & 0xff) +
+        xf * (16 - yf) * ((word10 >> L_BLUE_SHIFT) & 0xff) +
+        (16 - xf) * yf * ((word01 >> L_BLUE_SHIFT) & 0xff) +
+        xf * yf * ((word11 >> L_BLUE_SHIFT) & 0xff) + 128) / 256;
+    *pval = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
+          (bval << L_BLUE_SHIFT);
+    return 0;
+}
+
+
+/*!
+ *  linearInterpolatePixelGray()
+ *
+ *      Input:  datas (ptr to beginning of image data)
+ *              wpls (32-bit word/line for this data array)
+ *              w, h (of image)
+ *              x, y (floating pt location for evaluation)
+ *              grayval (color brought in from the outside when the
+ *                       input x,y location is outside the image)
+ *              &val (<return> interpolated gray value)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is a standard linear interpolation function.  It is
+ *          equivalent to area weighting on each component, and
+ *          avoids "jaggies" when rendering sharp edges.
+ */
+l_int32
+linearInterpolatePixelGray(l_uint32  *datas,
+                           l_int32    wpls,
+                           l_int32    w,
+                           l_int32    h,
+                           l_float32  x,
+                           l_float32  y,
+                           l_int32    grayval,
+                           l_int32   *pval)
+{
+l_int32    xpm, ypm, xp, yp, xf, yf, v00, v10, v01, v11;
+l_uint32  *lines;
+
+    PROCNAME("linearInterpolatePixelGray");
+
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = grayval;
+    if (!datas)
+        return ERROR_INT("datas not defined", procName, 1);
+
+        /* Skip if off the edge */
+    if (x < 0.0 || y < 0.0 || x > w - 2.0 || y > h - 2.0)
+        return 0;
+
+    xpm = (l_int32)(16.0 * x + 0.5);
+    ypm = (l_int32)(16.0 * y + 0.5);
+    xp = xpm >> 4;
+    yp = ypm >> 4;
+    xf = xpm & 0x0f;
+    yf = ypm & 0x0f;
+
+#if  DEBUG
+    if (xf < 0 || yf < 0)
+        fprintf(stderr, "xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
+#endif  /* DEBUG */
+
+        /* Interpolate by area weighting. */
+    lines = datas + yp * wpls;
+    v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
+    v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
+    v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
+    v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
+    *pval = (v00 + v01 + v10 + v11 + 128) / 256;
     return 0;
 }
 
@@ -1000,6 +1140,8 @@ l_float32  xp, yp;
 /*-------------------------------------------------------------*
  *               Gauss-jordan linear equation solver           *
  *-------------------------------------------------------------*/
+#define  SWAP(a,b)   {temp = (a); (a) = (b); (b) = temp;}
+
 /*!
  *  gaussjordan()
  *
@@ -1094,3 +1236,180 @@ l_float32  big, dum, pivinv, temp;
     FREE(ipiv);
     return 0;
 }
+
+
+/*-------------------------------------------------------------*
+ *              Sequential affine image transformation         *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixAffineSequential()
+ *
+ *      Input:  pixs
+ *              ptad  (3 pts of final coordinate space)
+ *              ptas  (3 pts of initial coordinate space)
+ *              bw    (pixels of additional border width during computation)
+ *              bh    (pixels of additional border height during computation)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The 3 pts must not be collinear.
+ *      (2) The 3 pts must be given in this order:
+ *           - origin
+ *           - a location along the x-axis
+ *           - a location along the y-axis.
+ *      (3) You must guess how much border must be added so that no
+ *          pixels are lost in the transformations from src to
+ *          dest coordinate space.  (This can be calculated but it
+ *          is a lot of work!)  For coordinate spaces that are nearly
+ *          at right angles, on a 300 ppi scanned page, the addition
+ *          of 1000 pixels on each side is usually sufficient.
+ *      (4) This is here for pedagogical reasons.  It is about 3x faster
+ *          on 1 bpp images than pixAffineSampled(), but the results
+ *          on text are much inferior.
+ */
+PIX *
+pixAffineSequential(PIX     *pixs,
+                    PTA     *ptad,
+                    PTA     *ptas,
+                    l_int32  bw,
+                    l_int32  bh)
+{
+l_int32    x1, y1, x2, y2, x3, y3;    /* ptas */
+l_int32    x1p, y1p, x2p, y2p, x3p, y3p;   /* ptad */
+l_int32    x1sc, y1sc;  /* scaled origin */
+l_float32  x2s, x2sp, scalex, scaley;
+l_float32  th3, th3p, ph2, ph2p;
+l_float32  rad2deg;
+PIX       *pixt1, *pixt2, *pixd;
+
+    PROCNAME("pixAffineSequential");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!ptas)
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+    if (!ptad)
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+
+    if (ptaGetCount(ptas) != 3)
+        return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
+    if (ptaGetCount(ptad) != 3)
+        return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
+    ptaGetIPt(ptas, 0, &x1, &y1);
+    ptaGetIPt(ptas, 1, &x2, &y2);
+    ptaGetIPt(ptas, 2, &x3, &y3);
+    ptaGetIPt(ptad, 0, &x1p, &y1p);
+    ptaGetIPt(ptad, 1, &x2p, &y2p);
+    ptaGetIPt(ptad, 2, &x3p, &y3p);
+
+    rad2deg = 180. / 3.1415926535;
+
+    if (y1 == y3)
+        return (PIX *)ERROR_PTR("y1 == y3!", procName, NULL);
+    if (y1p == y3p)
+        return (PIX *)ERROR_PTR("y1p == y3p!", procName, NULL);
+        
+    if (bw != 0 || bh != 0) {
+            /* resize all points and add border to pixs */
+        x1 = x1 + bw;
+        y1 = y1 + bh;
+        x2 = x2 + bw;
+        y2 = y2 + bh;
+        x3 = x3 + bw;
+        y3 = y3 + bh;
+        x1p = x1p + bw;
+        y1p = y1p + bh;
+        x2p = x2p + bw;
+        y2p = y2p + bh;
+        x3p = x3p + bw;
+        y3p = y3p + bh;
+
+        if ((pixt1 = pixAddBorderGeneral(pixs, bw, bw, bh, bh, 0)) == NULL)
+            return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
+    }
+    else
+        pixt1 = pixCopy(NULL, pixs);
+
+    /*-------------------------------------------------------------*
+        The horizontal shear is done to move the 3rd point to the
+        y axis.  This moves the 2nd point either towards or away
+        from the y axis, depending on whether it is above or below
+        the x axis.  That motion must be computed so that we know
+        the angle of vertical shear to use to get the 2nd point
+        on the x axis.  We must also know the x coordinate of the
+        2nd point in order to compute how much scaling is required
+        to match points on the axis.
+     *-------------------------------------------------------------*/
+
+        /* Shear angles required to put src points on x and y axes */
+    th3 = atan2((l_float64)(x1 - x3), (l_float64)(y1 - y3));
+    x2s = (l_float32)(x2 - ((l_float32)(y1 - y2) * (x3 - x1)) / (y1 - y3));
+    if (x2s == (l_float32)x1)
+        return (PIX *)ERROR_PTR("x2s == x1!", procName, NULL);
+    ph2 = atan2((l_float64)(y1 - y2), (l_float64)(x2s - x1));
+
+        /* Shear angles required to put dest points on x and y axes.
+         * Use the negative of these values to instead move the
+         * src points from the axes to the actual dest position.
+         * These values are also needed to scale the image. */
+    th3p = atan2((l_float64)(x1p - x3p), (l_float64)(y1p - y3p));
+    x2sp = (l_float32)(x2p - ((l_float32)(y1p - y2p) * (x3p - x1p)) / (y1p - y3p));
+    if (x2sp == (l_float32)x1p)
+        return (PIX *)ERROR_PTR("x2sp == x1p!", procName, NULL);
+    ph2p = atan2((l_float64)(y1p - y2p), (l_float64)(x2sp - x1p));
+
+        /* Shear image to first put src point 3 on the y axis,
+         * and then to put src point 2 on the x axis */
+    pixHShearIP(pixt1, y1, th3, L_BRING_IN_WHITE);
+    pixVShearIP(pixt1, x1, ph2, L_BRING_IN_WHITE);
+
+        /* Scale image to match dest scale.  The dest scale
+         * is calculated above from the angles th3p and ph2p
+         * that would be required to move the dest points to
+         * the x and y axes. */
+    scalex = (l_float32)(x2sp - x1p) / (x2s - x1);
+    scaley = (l_float32)(y3p - y1p) / (y3 - y1);
+    if ((pixt2 = pixScale(pixt1, scalex, scaley)) == NULL)
+        return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
+
+#if  DEBUG
+    fprintf(stderr, "th3 = %5.1f deg, ph2 = %5.1f deg\n",
+            rad2deg * th3, rad2deg * ph2);
+    fprintf(stderr, "th3' = %5.1f deg, ph2' = %5.1f deg\n",
+            rad2deg * th3p, rad2deg * ph2p);
+    fprintf(stderr, "scalex = %6.3f, scaley = %6.3f\n", scalex, scaley);
+#endif  /* DEBUG */
+
+    /*-------------------------------------------------------------*
+        Scaling moves the 1st src point, which is the origin. 
+        It must now be moved again to coincide with the origin
+        (1st point) of the dest.  After this is done, the 2nd
+        and 3rd points must be sheared back to the original
+        positions of the 2nd and 3rd dest points.  We use the
+        negative of the angles that were previously computed
+        for shearing those points in the dest image to x and y
+        axes, and take the shears in reverse order as well.
+     *-------------------------------------------------------------*/
+        /* Shift image to match dest origin. */
+    x1sc = (l_int32)(scalex * x1 + 0.5);   /* x comp of origin after scaling */
+    y1sc = (l_int32)(scaley * y1 + 0.5);   /* y comp of origin after scaling */
+    pixRasteropIP(pixt2, x1p - x1sc, y1p - y1sc, L_BRING_IN_WHITE);
+
+        /* Shear image to take points 2 and 3 off the axis and
+         * put them in the original dest position */
+    pixVShearIP(pixt2, x1p, -ph2p, L_BRING_IN_WHITE);
+    pixHShearIP(pixt2, y1p, -th3p, L_BRING_IN_WHITE);
+
+    if (bw != 0 || bh != 0) {
+        if ((pixd = pixRemoveBorderGeneral(pixt2, bw, bw, bh, bh)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
+    else
+        pixd = pixClone(pixt2);
+
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    return pixd;
+}
+
+

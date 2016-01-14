@@ -9,7 +9,8 @@ AM_CPPFLAGS = $(ENDIANNESS)
 CFLAGS = -O2
 
 lib_LIBRARIES = liblept.a
-liblept_a_SOURCES = adaptmap.c affine.c \
+liblept_a_SOURCES = adaptmap.c \
+ affine.c affinecompose.c \
  arithlow.c arrayaccess.c \
  bardecode.c \
  baseline.c bbuffer.c \
@@ -17,7 +18,8 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  binexpandlow.c binreduce.c \
  binreducelow.c blend.c bmf.c \
  bmpio.c bmpiostub.c boxbasic.c \
- boxfunc.c ccbord.c ccthin.c \
+ boxfunc1.c boxfunc2.c boxfunc3.c \
+ ccbord.c ccthin.c \
  classapp.c colorcontent.c \
  colormap.c colormorph.c \
  colorquant1.c colorquant2.c \
@@ -50,7 +52,8 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  pixconv.c pixtiling.c \
  pngio.c pngiostub.c \
  pnmio.c pnmiostub.c pqueue.c \
- projective.c psio.c psiostub.c pts.c \
+ projective.c psio.c psiostub.c \
+ ptra.c pts.c \
  rank.c readbarcode.c readfile.c \
  rop.c ropiplow.c \
  roplow.c rotateam.c \
@@ -65,12 +68,13 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  stack.c textops.c \
  tiffio.c tiffiostub.c \
  utils.c viewfiles.c \
- writefile.c zlibmem.c zlibmemstub.c
+ warper.c watershed.c writefile.c \
+ zlibmem.c zlibmemstub.c
 
 include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
  array.h bbuffer.h bmf.h bmp.h ccbord.h environ.h \
  gplot.h imageio.h jbclass.h jmorecfg.h jpeglib.h leptprotos.h list.h \
- morph.h pheap.h pix.h pqueue.h readbarcode.h stack.h
+ morph.h pheap.h pix.h pqueue.h readbarcode.h stack.h watershed.h
 
 EXTRA_DIST = Makefile.mingw arrayaccess.h.vc arrayaccess.h.vc60 \
  hmttemplate1.txt hmttemplate2.txt leptonica-license.txt \

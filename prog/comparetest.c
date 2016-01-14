@@ -124,7 +124,7 @@ static char  mainName[] = "comparetest";
             fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n",
                     first, last);
             na2 = numaClipToInterval(na1, first, last);
-            gplot = gplotCreate("/usr/tmp/junkrank", GPLOT_X11,
+            gplot = gplotCreate("/tmp/junkrank", GPLOT_X11,
                                 "Pixel Rank Difference", "pixel val",
                                 "rank");
             gplotAddPlot(gplot, NULL, na2, GPLOT_LINES, "rank");

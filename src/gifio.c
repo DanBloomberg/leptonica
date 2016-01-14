@@ -23,8 +23,7 @@
  *    Read from memory   [not on windows]
  *          PIX        *pixReadMemGif()
  *
- *    This uses the gif library, version 4.1.4. which can be downloaded from:
- *        http://www.linuxfromscratch.org/blfs/view/svn/general/giflib.html
+ *    This uses the gif library, version 4.1.6.  Do not use 4.1.4.
  *
  *    This module was generously contribued by Antony Dovgal.
  *    He can be contacted at:  tony *AT* daylessday.org
@@ -41,9 +40,9 @@
 #include "config_auto.h"
 #endif  /* HAVE_CONFIG_H */
 
-/* --------------------------------------------*/
-#if  HAVE_LIBGIF   /* defined in environ.h */
-/* --------------------------------------------*/
+/* --------------------------------------------------------------------*/
+#if  HAVE_LIBGIF  || HAVE_LIBUNGIF             /* defined in environ.h */
+/* --------------------------------------------------------------------*/
 
 #include "gif_lib.h"
 
@@ -186,15 +185,14 @@ SavedImage       si;
  *          this quantizes the colors and writes out 8 bpp.
  *          If the pix is 16 bpp grayscale, it converts to 8 bpp first.
  *      (2) We can't write to memory using open_memstream() because
- *          this writes through a file descriptor.
- *      (3) Writing to 1 bpp generates a very large file and causes
- *          pixReadStreamGif() to be exceedingly slow.  If you know
- *          how to do this properly, please tell me!
+ *          the gif functions write through a file descriptor, not a
+ *          file stream.
  */
 l_int32
 pixWriteStreamGif(FILE  *fp,
                   PIX   *pix)
 {
+char            *text;
 l_int32          fd, wpl, i, j, w, h, d, ncolor, rval, gval, bval;
 l_int32          gif_ncolor = 0;
 l_uint32        *data, *line;
@@ -241,7 +239,7 @@ GifByteType     *gif_line;
         return ERROR_INT("cmap is missing", procName, 1);
     }
 
-        /* 'Round' the number of gif colors up to power of 2 */
+        /* 'Round' the number of gif colors up to a power of 2 */
     ncolor = pixcmapGetCount(cmap);
     for (i = 0; i <= 8; i++) {
         if ((1 << i) >= ncolor) {
@@ -254,12 +252,11 @@ GifByteType     *gif_line;
         return ERROR_INT("number of colors is invalid", procName, 1);
     }
 
+        /* Save the cmap colors in a gif_cmap */
     if ((gif_cmap = MakeMapObject(gif_ncolor, NULL)) == NULL) {
         pixDestroy(&pixd);
         return ERROR_INT("failed to create GIF color map", procName, 1);
     }
-
-        /* Save the cmap colors in the gif_cmap */
     for (i = 0; i < gif_ncolor; i++) {
 	rval = gval = bval = 0;
         if (ncolor > 0) {
@@ -276,6 +273,7 @@ GifByteType     *gif_line;
         gif_cmap->Colors[i].Blue = bval;
     }
 
+        /* Get the gif file handle */
     if ((gif = EGifOpenFileHandle(fd)) == NULL) {
         pixDestroy(&pixd);
         FreeMapObject(gif_cmap);
@@ -342,6 +340,15 @@ GifByteType     *gif_line;
         }
     }
 
+        /* Write a text comment.  This must be placed after writing the
+         * data (!!)  Note that because libgif does not provide a function
+         * for reading comments from file, you will need another way
+         * to read comments. */
+    if ((text = pixGetText(pix)) != NULL) {
+        if (EGifPutComment(gif, text) != GIF_OK)
+            L_WARNING("gif comment not written", procName);
+    }
+
     FREE(gif_line);
     pixDestroy(&pixd);
     EGifCloseFile(gif);
@@ -400,7 +407,7 @@ pixReadMemGif(const l_uint8  *cdata,
 
 #endif  /* HAVE_FMEMOPEN */
 
-/* --------------------------------------------*/
-#endif  /* HAVE_LIBGIF */
-/* --------------------------------------------*/
+/* -----------------------------------------------------------------*/
+#endif    /* HAVE_LIBGIF || HAVE_LIBUNGIF  */
+/* -----------------------------------------------------------------*/
 

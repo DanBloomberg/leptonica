@@ -18,11 +18,13 @@
  *
  *      Binary seedfill (source: Luc Vincent)
  *               PIX      *pixSeedfillBinary()
+ *               PIX      *pixSeedfillBinaryRestricted()
  *
  *      Applications of binary seedfill to find and fill holes,
  *      and to remove c.c. touching the border:
  *               PIX      *pixHolesByFilling()
  *               PIX      *pixFillClosedBorders()
+ *               PIX      *pixExtractBorderConnComps()
  *               PIX      *pixRemoveBorderConnComps()
  *
  *      Hole-filling of components to bounding rectangle
@@ -30,6 +32,10 @@
  *
  *      Gray seedfill (source: Luc Vincent)
  *               l_int32   pixSeedfillGray()
+ *               l_int32   pixSeedfillGrayInv()
+ *
+ *      Gray seedfill variations
+ *               PIX      *pixSeedfillGrayBasin()
  *
  *      Distance function (source: Luc Vincent)
  *               PIX      *pixDistanceFunction()
@@ -43,6 +49,11 @@
  *               l_int32   pixSelectedLocalExtrema()
  *               PIX      *pixFindEqualValues()
  *
+ *      Selection of minima in mask of connected components
+ *               PTA      *pixSelectMinInConnComp()
+ *
+ *      Removal of seeded connected components from a mask
+ *               PIX      *pixRemoveSeededComponents()
  *
  *
  *           ITERATIVE RASTER-ORDER SEEDFILL
@@ -139,7 +150,7 @@
 static const l_int32  MAX_ITERS = 40;
 
     /* Static function */
-static l_int32 pixQualifyLocalMinima(PIX *pixs, PIX *pixm);
+static l_int32 pixQualifyLocalMinima(PIX *pixs, PIX *pixm, l_int32 maxval);
 
 
 /*-----------------------------------------------------------------------*
@@ -153,7 +164,7 @@ static l_int32 pixQualifyLocalMinima(PIX *pixs, PIX *pixm);
  *              pixs  (1 bpp seed)
  *              pixm  (1 bpp filling mask)
  *              connectivity  (4 or 8)
- *      Return: pixd, or null on error
+ *      Return: pixd always
  *
  *  Notes:
  *      (1) This is for binary seedfill (aka "binary reconstruction").
@@ -188,11 +199,11 @@ PIX       *pixt;
     PROCNAME("pixSeedfillBinary");
 
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, pixd);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, pixd);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, pixd);
 
         /* Prepare pixd as a copy of pixs if not identical */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
@@ -200,7 +211,7 @@ PIX       *pixt;
 
         /* pixt is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
 
     hd = pixGetHeight(pixd);
     hm = pixGetHeight(pixm);  /* included so seedfillBinaryLow() can clip */
@@ -224,6 +235,82 @@ PIX       *pixt;
     }
 
     pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixSeedfillBinaryRestricted()
+ *
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs; 1 bpp)
+ *              pixs  (1 bpp seed)
+ *              pixm  (1 bpp filling mask)
+ *              connectivity  (4 or 8)
+ *              xmax (max distance in x direction of fill into the mask)
+ *              ymax (max distance in y direction of fill into the mask)
+ *      Return: pixd always
+ *
+ *  Notes:
+ *      (1) See usage for pixSeedfillBinary(), which has unrestricted fill.
+ *          In pixSeedfillBinary(), the filling distance is unrestricted
+ *          and can be larger than pixs, depending on the topology of
+ *          th mask.
+ *      (2) There are occasions where it is useful not to permit the
+ *          fill to go more than a certain distance into the mask.
+ *          @xmax specifies the maximum horizontal distance allowed
+ *          in the fill; @ymax does likewise in the vertical direction.
+ *      (3) Operationally, the max "distance" allowed for the fill
+ *          is a linear distance from the original seed, independent
+ *          of the actual mask topology.
+ *      (4) Another formulation of this problem, not implemented,
+ *          would use the manhattan distance from the seed, as
+ *          determined by a breadth-first search starting at the seed
+ *          boundaries and working outward where the mask fg allows.
+ *          How this might use the constraints of separate xmax and ymax
+ *          is not clear.
+ */
+PIX *
+pixSeedfillBinaryRestricted(PIX     *pixd,
+                            PIX     *pixs,
+                            PIX     *pixm,
+                            l_int32  connectivity,
+                            l_int32  xmax,
+                            l_int32  ymax)
+{
+l_int32  w, h;
+PIX     *pixr, *pixt;
+
+    PROCNAME("pixSeedfillBinaryRestricted");
+
+    if (xmax <= 0 && ymax <= 0)  /* no filling permitted */
+        return pixClone(pixs);
+    if (xmax < 0 || ymax < 0)
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+
+        /* Full fill from the seed into the mask. */
+    if ((pixt = pixSeedfillBinary(NULL, pixs, pixm, connectivity)) == NULL)
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+
+        /* Dilate the seed.  This gives the maximal region where changes
+         * are permitted.  Invert to get the region where pixs is
+         * not allowed to change.  */
+    pixr = pixDilateCompBrick(NULL, pixs, 2 * xmax + 1, 2 * ymax + 1);
+    pixInvert(pixr, pixr);
+
+        /* Blank the region of pixt specified by the fg of pixr.
+         * This is not the final result, because it may have fg that
+         * is not accessible from the seed in the restricted distance.
+         * There we treat this as a new mask, and eliminate the
+         * bad fg regions by doing a second seedfill from the original seed. */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixRasterop(pixt, 0, 0, w, h, PIX_DST & PIX_NOT(PIX_SRC), pixr, 0, 0);
+
+        /* Fill again from the seed, into this new mask. */
+    pixd = pixSeedfillBinary(pixd, pixs, pixt, connectivity);
+    
+    pixDestroy(&pixt);
+    pixDestroy(&pixr);
     return pixd;
 }
 
@@ -325,17 +412,46 @@ PIX  *pixsi, *pixd;
 
 
 /*!
+ *  pixExtractBorderConnComps()
+ *
+ *      Input:  pixs (1 bpp)
+ *              filling connectivity (4 or 8)
+ *      Return: pixd  (all pixels in the src that are in connected
+ *                     components touching the border), or null on error
+ */
+PIX *
+pixExtractBorderConnComps(PIX     *pixs,
+                          l_int32  connectivity)
+{
+PIX  *pixd;
+
+    PROCNAME("pixExtractBorderConnComps");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+
+        /* Start with 1 pixel wide black border as seed in pixd */
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
+
+       /* Fill in pixd from the seed, using pixs as the filling mask.
+        * This fills all components from pixs that are touching the border. */
+    pixSeedfillBinary(pixd, pixd, pixs, connectivity);
+
+    return pixd;
+}
+
+
+/*!
  *  pixRemoveBorderConnComps()
  *
  *      Input:  pixs (1 bpp)
  *              filling connectivity (4 or 8)
  *      Return: pixd  (all pixels in the src that are not touching the
  *                     border) or null on error
- *
- *  Notes:
- *      (1) This is a very simple application of seedfill, where
- *          we find all components that are touching the borders
- *          and remove them.
  */
 PIX *
 pixRemoveBorderConnComps(PIX     *pixs,
@@ -350,16 +466,11 @@ PIX  *pixd;
     if (connectivity != 4 && connectivity != 8)
         return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
 
-        /* Start with 1 pixel wide black border as seed. */
-    if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
+       /* Fill from a 1 pixel wide seed at the border into all components
+        * in pixs (the filling mask) that are touching the border */
+    pixd = pixExtractBorderConnComps(pixs, connectivity);
 
-       /* Fill from the seed, using pixs as the filling mask,
-        * to fill in all components that are touching the border */
-    pixSeedfillBinary(pixd, pixd, pixs, connectivity);
-
-       /* Get components in filling mask but not in seed */
+       /* Save in pixd only those components in pixs not touching the border */
     pixXor(pixd, pixd, pixs);
 
     return pixd;
@@ -465,9 +576,14 @@ PIXA      *pixa;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) For details of the operation, see the description in
+ *      (1) This is an in-place filling operation on the seed, pixs,
+ *          where the clipping mask is always above or at the level
+ *          of the seed as it is filled.
+ *      (2) For details of the operation, see the description in
  *          seedfillGrayLow() and the code there.
- *      (2) For use of the operation, see the description in pixHDome().
+ *      (3) As an example of use, see the description in pixHDome().
+ *          There, the seed is an image where each pixel is a fixed
+ *          amount smaller than the corresponding mask pixel.
  */
 l_int32
 pixSeedfillGray(PIX     *pixs,
@@ -514,6 +630,156 @@ PIX       *pixt;
 
     pixDestroy(&pixt);
     return 0;
+}
+
+
+/*!
+ *  pixSeedfillGrayInv()
+ *
+ *      Input:  pixs  (8 bpp seed; filled in place)
+ *              pixm  (8 bpp filling mask)
+ *              connectivity  (4 or 8)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is an in-place filling operation on the seed, pixs,
+ *          where the clipping mask is always below or at the level
+ *          of the seed as it is filled.  Think of filling up a basin
+ *          to a particular level, given by the maximum seed value
+ *          in the basin.  Outside the filled region, the mask
+ *          is above the filling level.
+ *      (2) Contrast this with pixSeedfillGray(), where the clipping mask
+ *          is always above or at the level of the fill.  An example
+ *          of its use is the hdome fill, where the seed is an image
+ *          where each pixel is a fixed amount smaller than the
+ *          corresponding mask pixel.
+ *      (3) The basin fill, pixSeedfillGrayBasin(), is a special case
+ *          where the seed pixel values are generated from the mask,
+ *          and where the implementation uses pixSeedfillGray() by
+ *          inverting both the seed and mask.
+ */
+l_int32
+pixSeedfillGrayInv(PIX     *pixs,
+                   PIX     *pixm,
+                   l_int32  connectivity)
+{
+l_int32    i, h, w, wpls, wplm, boolval;
+l_uint32  *datas, *datam;
+PIX       *pixt;
+
+    PROCNAME("pixSeedfillGrayInv");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (!pixm || pixGetDepth(pixm) != 8)
+        return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
+    if (connectivity != 4 && connectivity != 8)
+        return ERROR_INT("connectivity not in {4,8}", procName, 1);
+    
+        /* Make sure the sizes of seed and mask images are the same */
+    if (pixSizesEqual(pixs, pixm) == 0)
+        return ERROR_INT("pixs and pixm sizes differ", procName, 1);
+
+        /* This is used to test for completion */
+    if ((pixt = pixCreateTemplate(pixs)) == NULL)
+        return ERROR_INT("pixt not made", procName, 1);
+
+    datas = pixGetData(pixs);
+    datam = pixGetData(pixm);
+    wpls = pixGetWpl(pixs);
+    wplm = pixGetWpl(pixm);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    for (i = 0; i < MAX_ITERS; i++) {
+        pixCopy(pixt, pixs);
+        seedfillGrayInvLow(datas, w, h, wpls, datam, wplm, connectivity);
+        pixEqual(pixs, pixt, &boolval);
+        if (boolval == 1) {
+#if DEBUG_PRINT_ITERS
+            L_INFO_INT("Gray seed fill converged: %d iters", procName, i + 1);
+#endif  /* DEBUG_PRINT_ITERS */
+            break;
+        }
+    }
+
+    pixDestroy(&pixt);
+    return 0;
+}
+
+
+/*-----------------------------------------------------------------------*
+ *                         Gray seedfill variations                      *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  pixSeedfillGrayBasin()
+ *
+ *      Input:  pixb  (binary mask giving seed locations)
+ *              pixm  (8 bpp basin-type filling mask)
+ *              delta (amount of seed value above mask)
+ *              connectivity  (4 or 8)
+ *      Return: pixd (filled seed) if OK, null on error
+ *
+ *  Notes:
+ *      (1) This fills from a seed within basins defined by a filling mask.
+ *          The seed value(s) are greater than the corresponding
+ *          filling mask value, and the result has the bottoms of
+ *          the basins raised by the initial seed value.
+ *      (2) The seed has value 255 except where pixb has fg (1), which
+ *          are the seed 'locations'.  At the seed locations, the seed
+ *          value is the corresponding value of the mask pixel in pixm
+ *          plus @delta.  If @delta == 0, we return a copy of pixm.
+ *      (3) The actual filling is done using the standard grayscale filling
+ *          operation on the inverse of the mask and using the inverse
+ *          of the seed image.  After filling, we return the inverse of
+ *          the filled seed.
+ *      (4) As an example of use: pixm can describe a grayscale image
+ *          of text, where the (dark) text pixels are basins of
+ *          low values; pixb can identify the local minima in pixm (say, at
+ *          the bottom of the basins); and delta is the amount that we wish
+ *          to raise (lighten) the basins.  We construct the seed
+ *          (a.k.a marker) image from pixb, pixm and @delta.
+ */
+PIX *
+pixSeedfillGrayBasin(PIX     *pixb,
+                     PIX     *pixm,
+                     l_int32  delta,
+                     l_int32  connectivity)
+{
+PIX  *pixbi, *pixmi, *pixsd;
+
+    PROCNAME("pixSeedfillGrayBasin");
+
+    if (!pixb || pixGetDepth(pixb) != 1)
+        return (PIX *)ERROR_PTR("pixb undefined or not 1 bpp", procName, NULL);
+    if (!pixm || pixGetDepth(pixm) != 8)
+        return (PIX *)ERROR_PTR("pixm undefined or not 8 bpp", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, NULL);
+    
+    if (delta <= 0) {
+        L_WARNING("delta <= 0; returning a copy of pixm", procName);
+        return pixCopy(NULL, pixm);
+    }
+
+        /* Add delta to every pixel in pixm */
+    pixsd = pixCopy(NULL, pixm);
+    pixAddConstantGray(pixsd, delta);
+
+        /* Prepare the seed.  Write 255 in all pixels of
+         * ([pixm] + delta) where pixb is 0. */
+    pixbi = pixInvert(NULL, pixb);
+    pixSetMasked(pixsd, pixbi, 255);
+
+        /* Fill the inverse seed, using the inverse clipping mask */
+    pixmi = pixInvert(NULL, pixm);
+    pixInvert(pixsd, pixsd);
+    pixSeedfillGray(pixsd, pixmi, connectivity);
+
+        /* Re-invert the filled seed */
+    pixInvert(pixsd, pixsd);
+
+    pixDestroy(&pixbi);
+    pixDestroy(&pixmi);
+    return pixsd;
 }
 
 
@@ -707,6 +973,10 @@ PIX       *pixm, *pixt, *pixg, *pixd;
  *  pixLocalExtrema()
  *
  *      Input:  pixs  (8 bpp)
+ *              maxmin (max allowed for the min in a 3x3 neighborhood;
+ *                      use 0 for default which is to have no upper bound)
+ *              minmax (min allowed for the max in a 3x3 neighborhood;
+ *                      use 0 for default which is to have no lower bound)
  *              &ppixmin (<optional return> mask of local minima)
  *              &ppixmax (<optional return> mask of local maxima)
  *      Return: 0 if OK, 1 on error
@@ -715,7 +985,9 @@ PIX       *pixm, *pixt, *pixg, *pixd;
  *      (1) This gives the actual local minima and maxima.
  *          A local minimum is a pixel whose surrounding pixels all
  *          have values at least as large, and likewise for a local
- *          maximum.
+ *          maximum.  For the local minima, @maxmin is the upper
+ *          bound for the value of pixs.  Likewise, for the local maxima,
+ *          @minmax is the lower bound for the value of pixs.
  *      (2) The minima are found by starting with the erosion-and-equality
  *          approach of pixSelectedLocalExtrema.  This is followed
  *          by a qualification step, where each c.c. in the resulting
@@ -734,6 +1006,8 @@ PIX       *pixm, *pixt, *pixg, *pixd;
  */
 l_int32
 pixLocalExtrema(PIX     *pixs,
+                l_int32  maxmin,
+                l_int32  minmax,
                 PIX    **ppixmin,
                 PIX    **ppixmax)
 {
@@ -745,12 +1019,14 @@ PIX  *pixmin, *pixmax, *pixt1, *pixt2;
         return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
     if (!ppixmin && !ppixmax)
         return ERROR_INT("neither &pixmin, &pixmax are defined", procName, 1);
+    if (maxmin <= 0) maxmin = 254;
+    if (minmax <= 0) minmax = 1;
 
     if (ppixmin) {
         pixt1 = pixErodeGray(pixs, 3, 3);
         pixmin = pixFindEqualValues(pixs, pixt1);
         pixDestroy(&pixt1);
-        pixQualifyLocalMinima(pixs, pixmin);
+        pixQualifyLocalMinima(pixs, pixmin, maxmin);
         *ppixmin = pixmin;
     }
 
@@ -759,7 +1035,7 @@ PIX  *pixmin, *pixmax, *pixt1, *pixt2;
         pixt2 = pixErodeGray(pixt1, 3, 3);
         pixmax = pixFindEqualValues(pixt1, pixt2);
         pixDestroy(&pixt2);
-        pixQualifyLocalMinima(pixt1, pixmax);
+        pixQualifyLocalMinima(pixt1, pixmax, 255 - minmax);
         *ppixmax = pixmax;
         pixDestroy(&pixt1);
     }
@@ -773,15 +1049,21 @@ PIX  *pixmin, *pixmax, *pixt1, *pixt2;
  *
  *      Input:  pixs  (8 bpp)
  *              pixm  (1 bpp mask of values equal to min in 3x3 neighborhood)
+ *              maxval (max allowed for the min in a 3x3 neighborhood;
+ *                      use 0 for default which is to have no upper bound)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This function acts in-place to remove all c.c. in pixm
  *          that are not true local minima.  See notes in pixLocalExtrema().
+ *      (2) The maximum allowed value for each local minimum can be
+ *          bounded with @maxval.  Use 0 for default, which is to have
+ *          no upper bound (equivalent to maxval == 254).
  */
 static l_int32
-pixQualifyLocalMinima(PIX  *pixs,
-                      PIX  *pixm)
+pixQualifyLocalMinima(PIX     *pixs,
+                      PIX     *pixm,
+                      l_int32  maxval)
 {
 l_int32    n, i, j, k, x, y, w, h, xc, yc, wc, hc, xon, yon;
 l_int32    vals, wpls, wplc, ismin;
@@ -797,6 +1079,7 @@ PIXA      *pixa;
         return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
     if (!pixm || pixGetDepth(pixm) != 1)
         return ERROR_INT("pixm not defined or not 1 bpp", procName, 1);
+    if (maxval <= 0) maxval = 254;
 
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
@@ -813,6 +1096,13 @@ PIXA      *pixa;
         wplc = pixGetWpl(pixc);
         nextOnPixelInRaster(pixt1, 0, 0, &xon, &yon);
         pixGetPixel(pixs, xc + xon, yc + yon, &val);
+        if (val > maxval) {  /* too large; erase */
+            pixRasterop(pixm, xc, yc, wc, hc, PIX_XOR, pixt1, 0, 0);
+            pixDestroy(&pixt1);
+            pixDestroy(&pixt2);
+            pixDestroy(&pixc);
+            continue;
+        }
         ismin = TRUE;
         for (i = 0, y = yc - 1; i < hc + 2 && y >= 0 && y < h; i++, y++) {
             lines = datas + y * wpls;
@@ -969,6 +1259,155 @@ PIX       *pixd;
         }
     }
 
+    return pixd;
+}
+
+
+/*-----------------------------------------------------------------------*
+ *             Selection of minima in mask connected components          *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  pixSelectMinInConnComp()
+ *
+ *      Input:  pixs (8 bpp)
+ *              pixm (1 bpp)
+ *              &nav (<optional return> numa of minima values)
+ *      Return: pta (of min pixels), or null on error
+ *
+ *  Notes:
+ *      (1) For each 8 connected component in pixm, this finds
+ *          a pixel in pixs that has the lowest value, and saves
+ *          it in a Pta.  If several pixels in pixs have the same
+ *          minimum value, it picks the first one found.
+ *      (2) For a mask pixm of true local minima, all pixels in each
+ *          connected component have the same value in pixs, so it is
+ *          fastest to select one of them using a special seedfill
+ *          operation.  Not yet implemented.
+ */
+PTA *
+pixSelectMinInConnComp(PIX    *pixs,
+                       PIX    *pixm,
+                       NUMA  **pnav)
+{
+l_int32    ws, hs, wm, hm, w, h, bx, by, bw, bh, i, j, c, n;
+l_int32    xs, ys, minx, miny, wpls, wplt, val, minval;
+l_uint32  *datas, *datat, *lines, *linet;
+BOXA      *boxa;
+NUMA      *nav;
+PIX       *pixt;
+PIXA      *pixa;
+PTA       *pta;
+
+    PROCNAME("pixSelectMinInConnComp");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PTA *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (!pixm || pixGetDepth(pixm) != 1)
+        return (PTA *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
+    pixGetDimensions(pixm, &wm, &hm, NULL);
+    w = L_MIN(ws, wm);
+    h = L_MIN(hs, hm);
+
+    boxa = pixConnComp(pixm, &pixa, 8);
+    n = boxaGetCount(boxa);
+    pta = ptaCreate(n);
+    nav = numaCreate(n);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    for (c = 0; c < n; c++) {
+        pixt = pixaGetPix(pixa, c, L_CLONE);
+        boxaGetBoxGeometry(boxa, c, &bx, &by, &bw, &bh);
+        if (bw == 1 && bh == 1) {
+            ptaAddPt(pta, bx, by);
+            numaAddNumber(nav, GET_DATA_BYTE(datas + by * wpls, bx));
+            pixDestroy(&pixt);
+            continue;
+        }
+        datat = pixGetData(pixt);
+        wplt = pixGetWpl(pixt);
+        minx = miny = 1000000;
+        minval = 256;
+        for (i = 0; i < bh; i++) {
+            ys = by + i;
+            lines = datas + ys * wpls;
+            linet = datat + i * wplt;
+            for (j = 0; j < bw; j++) {
+                xs = bx + j;
+                if (GET_DATA_BIT(linet, j)) {
+                    val = GET_DATA_BYTE(lines, xs);
+                    if (val < minval) {
+                        minval = val;
+                        minx = xs;
+                        miny = ys;
+                    }
+                }
+            }
+        }
+        ptaAddPt(pta, minx, miny);
+        numaAddNumber(nav, GET_DATA_BYTE(datas + miny * wpls, minx));
+        pixDestroy(&pixt);
+    }
+
+    boxaDestroy(&boxa);
+    pixaDestroy(&pixa);
+    if (pnav)
+        *pnav = nav;
+    else
+        numaDestroy(&nav);
+    return pta;
+}
+
+
+/*-----------------------------------------------------------------------*
+ *            Removal of seeded connected components from a mask         *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  pixRemoveSeededComponents()
+ *
+ *      Input:  pixd  (<optional>; this can be null or equal to pixm; 1 bpp)
+ *              pixs  (1 bpp seed)
+ *              pixm  (1 bpp filling mask)
+ *              connectivity  (4 or 8)
+ *              bordersize (amount of border clearing)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This removes each component in pixm for which there is
+ *          at least one seed in pixs.  If pixd == NULL, this returns
+ *          the result in a new pixd.  Otherwise, it is an in-place
+ *          operation on pixm.  In no situation is pixs altered,
+ *          because we do the filling with a copy of pixs.
+ *      (2) If bordersize > 0, it also clears all pixels within a
+ *          distance @bordersize of the edge of pixd.  This is here
+ *          because pixLocalExtrema() typically finds local minima
+ *          at the border.  Use @bordersize >= 2 to remove these.
+ */
+PIX *
+pixRemoveSeededComponents(PIX     *pixd,
+                          PIX     *pixs,
+                          PIX     *pixm,
+                          l_int32  connectivity,
+                          l_int32  bordersize)
+{
+PIX  *pixt;
+
+    PROCNAME("pixRemoveSeededComponents");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, pixd);
+    if (!pixm || pixGetDepth(pixm) != 1)
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, pixd);
+    if (pixd && pixd != pixm)
+        return (PIX *)ERROR_PTR("operation not inplace", procName, pixd);
+
+    pixt = pixCopy(NULL, pixs);
+    pixSeedfillBinary(pixt, pixt, pixm, connectivity);
+    pixd = pixXor(pixd, pixm, pixt);
+    if (bordersize > 0)
+        pixSetOrClearBorder(pixd, bordersize, bordersize, bordersize,
+                            bordersize, PIX_CLR);
+    pixDestroy(&pixt);
     return pixd;
 }
 

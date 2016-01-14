@@ -40,25 +40,36 @@
  *   tile, you want to generate an in-place image result at the same
  *   resolution.  Suppose you choose a one-dimensional vertical tiling,
  *   where the desired tile width is 256 pixels and the overlap is
- *   30 pixels on each side:
+ *   30 pixels on left and right sides:
  *
  *     PIX *pixd = pixCreateTemplateNoInit(pixs);  // output
- *     PIXTILING  *pt = pixTilingCreate(pixs, 0, 1, 256, 0, 30);
+ *     PIXTILING  *pt = pixTilingCreate(pixs, 0, 1, 256, 30, 0);
  *     pixTilingGetCount(pt, &nx, NULL);
  *     for (j = 0; j < nx; j++) {
  *         PIX *pixt = pixTilingGetTile(pt, 0, j);
- *         SomeInPlaceOperation(pixt, overlap, ...);
+ *         SomeInPlaceOperation(pixt, 30, 0, ...);
  *         pixTilingPaintTile(pixd, 0, j, pixt, pt);
  *         pixDestroy(&pixt);
  *     }
  *
- *   Note the 'overlap' parameter in your function.  You use that to
- *   change only the pixels that are not in the overlap region, because
- *   those are the pixels that will be painted into the destination.
- *   This also allows you to implement the function without worrying
- *   about pixels that are influenced by the image boundary.
- *   Note also that the tiles are labeled by (i, j) = (row, column),
- *   and in this example there is one row and nx columns.
+ *   In this example, note the following:
+ *    - The unspecfified in-place operation could instead generate
+ *      a new pix.  If this is done, the resulting pix must be the
+ *      same size as pixt, because pixTilingPaintTile() makes that
+ *      assumption, removing the overlap pixels before painting
+ *      into the destination.
+ *    - The 'overlap' parameters have been included in your function,
+ *      to indicate which pixels are not in the exterior overlap region.
+ *      You will need to change only pixels that are not in the overlap
+ *      region, because those are the pixels that will be painted
+ *      into the destination.
+ *    - For tiles on the outside of the image, mirrored pixels are
+ *      added to substitute for the overlap that is added to interior
+ *      tiles.  This allows you to implement your function without
+ *      reference to which tile it is; no special coding is necessary
+ *      for pixels that are near the image boundary.
+ *    - The tiles are labeled by (i, j) = (row, column),
+ *      and in this example there is one row and nx columns.
  */
 
 #include <stdio.h>
@@ -90,7 +101,7 @@
  *      (3) If pixs is to be tiled in one-dimensional strips, use ny = 1 for
  *          vertical strips and nx = 1 for horizontal strips.
  *      (4) The overlap must not be larger than the width or height of
- *          the leftmost or bottommost tile(s).
+ *          the leftmost or topmost tile(s).
  */
 PIXTILING *
 pixTilingCreate(PIX     *pixs,
@@ -98,7 +109,8 @@ pixTilingCreate(PIX     *pixs,
 		l_int32  ny,
 		l_int32  w,
 		l_int32  h,
-		l_int32  overlap)
+		l_int32  xoverlap,
+                l_int32  yoverlap)
 {
 l_int32     width, height;
 PIXTILING  *pt;
@@ -123,7 +135,7 @@ PIXTILING  *pt;
     if (ny == 0)
         ny = L_MAX(1, height / h);
     h = height / ny;  /* possibly reset */
-    if (overlap > w || overlap > h) {
+    if (xoverlap > w || yoverlap > h) {
         L_INFO_INT2("tile width = %d, tile height = %d", procName, w, h);
         return (PIXTILING *)ERROR_PTR("overlap too large", procName, NULL);
     }
@@ -131,7 +143,8 @@ PIXTILING  *pt;
     if ((pt = (PIXTILING *)CALLOC(1, sizeof(PIXTILING))) == NULL)
         return (PIXTILING *)ERROR_PTR("pt not made", procName, NULL);
     pt->pix = pixClone(pixs);
-    pt->overlap = overlap;
+    pt->xoverlap = xoverlap;
+    pt->yoverlap = yoverlap;
     pt->nx = nx;
     pt->ny = ny;
     pt->w = w;
@@ -228,7 +241,8 @@ pixTilingGetTile(PIXTILING  *pt,
                  l_int32     i,
                  l_int32     j)
 {
-l_int32  wpix, hpix, wt, ht, nx, ny, overlap, wtlast, htlast;
+l_int32  wpix, hpix, wt, ht, nx, ny;
+l_int32  xoverlap, yoverlap, wtlast, htlast;
 l_int32  left, top, xtraleft, xtraright, xtratop, xtrabot, width, height;
 BOX     *box;
 PIX     *pixs, *pixt, *pixd;
@@ -249,31 +263,32 @@ PIX     *pixs, *pixt, *pixd;
 	 * input pix.   First, compute the (left, top) coordinates.  */
     pixGetDimensions(pixs, &wpix, &hpix, NULL);
     pixTilingGetSize(pt, &wt, &ht);
-    overlap = pt->overlap;
+    xoverlap = pt->xoverlap;
+    yoverlap = pt->yoverlap;
     wtlast = wpix - wt * (nx - 1);
     htlast = hpix - ht * (ny - 1);
-    left = L_MAX(0, j * wt - overlap);
-    top = L_MAX(0, i * ht - overlap);
+    left = L_MAX(0, j * wt - xoverlap);
+    top = L_MAX(0, i * ht - yoverlap);
 
         /* Get the width and height of the tile, including whatever
 	 * overlap is available. */
     if (nx == 1)
         width = wpix;
     else if (j == 0)
-        width = wt + overlap;
+        width = wt + xoverlap;
     else if (j == nx - 1)
-        width = wtlast + overlap;
+        width = wtlast + xoverlap;
     else
-        width = wt + 2 * overlap;
+        width = wt + 2 * xoverlap;
 
     if (ny == 1)
         height = hpix;
     else if (i == 0)
-        height = ht + overlap;
+        height = ht + yoverlap;
     else if (i == ny - 1)
-        height = htlast + overlap;
+        height = htlast + yoverlap;
     else
-        height = ht + 2 * overlap;
+        height = ht + 2 * yoverlap;
     box = boxCreate(left, top, width, height);
     pixt = pixClipRectangle(pixs, box, NULL);
     boxDestroy(&box);
@@ -284,25 +299,29 @@ PIX     *pixs, *pixt, *pixd;
 	* or full height.  */
     xtratop = xtrabot = xtraleft = xtraright = 0;
     if (nx == 1)
-        xtraleft = xtraright = overlap;
+        xtraleft = xtraright = xoverlap;
     if (ny == 1)
-        xtratop = xtrabot = overlap;
+        xtratop = xtrabot = yoverlap;
     if (i == 0 && j == 0)
-        pixd = pixAddMirroredBorder(pixt, overlap, xtraright, overlap, xtrabot);
+        pixd = pixAddMirroredBorder(pixt, xoverlap, xtraright,
+                                    yoverlap, xtrabot);
     else if (i == 0 && j == nx - 1)
-        pixd = pixAddMirroredBorder(pixt, xtraleft, overlap, overlap, xtrabot);
+        pixd = pixAddMirroredBorder(pixt, xtraleft, xoverlap,
+                                    yoverlap, xtrabot);
     else if (i == ny - 1 && j == 0)
-        pixd = pixAddMirroredBorder(pixt, overlap, xtraright, xtratop, overlap);
+        pixd = pixAddMirroredBorder(pixt, xoverlap, xtraright,
+                                    xtratop, yoverlap);
     else if (i == ny - 1 && j == nx - 1)
-        pixd = pixAddMirroredBorder(pixt, xtraleft, overlap, xtratop, overlap);
+        pixd = pixAddMirroredBorder(pixt, xtraleft, xoverlap,
+                                    xtratop, yoverlap);
     else if (i == 0)
-        pixd = pixAddMirroredBorder(pixt, 0, 0, overlap, xtrabot);
+        pixd = pixAddMirroredBorder(pixt, 0, 0, yoverlap, xtrabot);
     else if (i == ny - 1)
-        pixd = pixAddMirroredBorder(pixt, 0, 0, xtratop, overlap);
+        pixd = pixAddMirroredBorder(pixt, 0, 0, xtratop, yoverlap);
     else if (j == 0)
-        pixd = pixAddMirroredBorder(pixt, overlap, xtraright, 0, 0);
+        pixd = pixAddMirroredBorder(pixt, xoverlap, xtraright, 0, 0);
     else if (j == nx - 1)
-        pixd = pixAddMirroredBorder(pixt, xtraleft, overlap, 0, 0);
+        pixd = pixAddMirroredBorder(pixt, xtraleft, xoverlap, 0, 0);
     else
         pixd = pixClone(pixt); 
     pixDestroy(&pixt);
@@ -328,7 +347,7 @@ pixTilingPaintTile(PIX        *pixd,
                    PIX        *pixs,
                    PIXTILING  *pt)
 {
-l_int32  overlap, width, height;
+l_int32  width, height;
 
     PROCNAME("pixTilingPaintTile");
 
@@ -338,16 +357,15 @@ l_int32  overlap, width, height;
         return ERROR_INT("pixs not defined", procName, 1);
     if (!pt)
         return ERROR_INT("pt not defined", procName, 1);
-    overlap = pt->overlap;
     if (i < 0 || i >= pt->ny)
         return ERROR_INT("invalid row index i", procName, 1);
     if (j < 0 || j >= pt->nx)
         return ERROR_INT("invalid column index j", procName, 1);
 
-    width = pixGetWidth(pixs) - 2 * overlap;
-    height = pixGetHeight(pixs) - 2 * overlap;
+    width = pixGetWidth(pixs) - 2 * pt->xoverlap;
+    height = pixGetHeight(pixs) - 2 * pt->yoverlap;
     pixRasterop(pixd, j * pt->w, i * pt->h, width, height, PIX_SRC,
-                pixs, overlap, overlap);
+                pixs, pt->xoverlap, pt->yoverlap);
     return 0;
 }
 

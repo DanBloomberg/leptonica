@@ -51,17 +51,17 @@ enum {
 
     /* Output files for ioFormatTest().
      * Note that the test for jpeg is not yet implemented */
-static const char *FILE_BMP  =  "/usr/tmp/junkout.bmp";
-static const char *FILE_PNG  =  "/usr/tmp/junkout.png";
-static const char *FILE_PNM  =  "/usr/tmp/junkout.pnm";
-static const char *FILE_G3   =  "/usr/tmp/junkout_g3.tif";
-static const char *FILE_G4   =  "/usr/tmp/junkout_g4.tif";
-static const char *FILE_RLE  =  "/usr/tmp/junkout_rle.tif";
-static const char *FILE_PB   =  "/usr/tmp/junkout_packbits.tif";
-static const char *FILE_LZW  =  "/usr/tmp/junkout_lzw.tif";
-static const char *FILE_ZIP  =  "/usr/tmp/junkout_zip.tif";
-static const char *FILE_TIFF =  "/usr/tmp/junkout.tif";
-static const char *FILE_JPG  =  "/usr/tmp/junkout.jpg"; 
+static const char *FILE_BMP  =  "/tmp/junkout.bmp";
+static const char *FILE_PNG  =  "/tmp/junkout.png";
+static const char *FILE_PNM  =  "/tmp/junkout.pnm";
+static const char *FILE_G3   =  "/tmp/junkout_g3.tif";
+static const char *FILE_G4   =  "/tmp/junkout_g4.tif";
+static const char *FILE_RLE  =  "/tmp/junkout_rle.tif";
+static const char *FILE_PB   =  "/tmp/junkout_packbits.tif";
+static const char *FILE_LZW  =  "/tmp/junkout_lzw.tif";
+static const char *FILE_ZIP  =  "/tmp/junkout_zip.tif";
+static const char *FILE_TIFF =  "/tmp/junkout.tif";
+static const char *FILE_JPG  =  "/tmp/junkout.jpg"; 
 
 
 /*---------------------------------------------------------------------*
@@ -517,7 +517,7 @@ PIX     *pix;
  *
  *  Notes:
  *      (1) This writes and reads a set of output files losslessly
- *          in different formats to /usr/tmp/, and tests that the
+ *          in different formats to /tmp, and tests that the
  *          result before and after is unchanged.
  *      (2) This should work properly on input images of any depth,
  *          with and without colormaps.

@@ -16,21 +16,25 @@
 #ifndef  LEPTONICA_ARRAY_H
 #define  LEPTONICA_ARRAY_H
 
-    /* Flags for interpolation in Numa */
-enum {
-    L_LINEAR_INTERP = 1,        /* linear */
-    L_QUADRATIC_INTERP = 2      /* quadratic */
-};
+/*
+ *  Contains the following structs:
+ *      struct Numa
+ *      struct Numaa
+ *      struct Numa2d
+ *      struct NumaHash
+ *      struct Sarray
+ *      struct Ptra
+ *
+ *  Contains definitions for:
+ *      Numa interpolation flags
+ *      Ptra compaction flags for removal
+ *      Ptra shifting flags for insert
+ */
 
-    /* Array of number arrays */
-struct Numaa
-{
-    l_int32          nalloc;    /* size of allocated ptr array         */
-    l_int32          n;         /* number of Numa saved                */
-    struct Numa    **numa;      /* array of Numa                       */
-};
-typedef struct Numaa  NUMAA;
 
+/*------------------------------------------------------------------------* 
+ *                             Array Structs                              *
+ *------------------------------------------------------------------------*/
 
 #define  NUMA_VERSION_NUMBER     1
 
@@ -45,6 +49,17 @@ struct Numa
     l_float32       *array;     /* number array                        */
 };
 typedef struct Numa  NUMA;
+
+
+    /* Array of number arrays */
+struct Numaa
+{
+    l_int32          nalloc;    /* size of allocated ptr array          */
+    l_int32          n;         /* number of Numa saved                 */
+    struct Numa    **numa;      /* array of Numa                        */
+};
+typedef struct Numaa  NUMAA;
+
 
 
     /* Sparse 2-dimensional array of number arrays */
@@ -62,7 +77,7 @@ typedef struct Numa2d  NUMA2D;
 struct NumaHash
 {
     l_int32          nbuckets;
-    l_int32          initsize;   /* initial size of each numa that is made */
+    l_int32          initsize;   /* initial size of each numa that is made  */
     struct Numa    **numa;
 };
 typedef struct NumaHash NUMAHASH;
@@ -79,5 +94,41 @@ struct Sarray
     char           **array;     /* string array                        */
 };
 typedef struct Sarray SARRAY;
+
+
+    /* Generic pointer array */
+struct Ptra
+{
+    l_int32          nalloc;    /* size of allocated ptr array         */
+    l_int32          n;         /* greatest valid index + 1            */
+    l_int32          nactual;   /* actual number of stored elements    */
+    void           **array;     /* ptr array                           */
+};
+typedef struct Ptra PTRA;
+
+
+
+/*------------------------------------------------------------------------* 
+ *                              Array flags                               *
+ *------------------------------------------------------------------------*/
+
+    /* Flags for interpolation in Numa */
+enum {
+    L_LINEAR_INTERP = 1,        /* linear     */
+    L_QUADRATIC_INTERP = 2      /* quadratic  */
+};
+
+    /* Flags for removal from Ptra */
+enum {
+    L_NO_COMPACTION = 1,        /* null the pointer only  */
+    L_COMPACTION = 2            /* compact the array      */
+};
+
+    /* Flags for insertion into Ptra */
+enum {
+    L_AUTO_DOWNSHIFT = 0,       /* choose based on number of holes        */
+    L_MIN_DOWNSHIFT = 1,        /* downshifts min # of ptrs below insert  */
+    L_FULL_DOWNSHIFT = 2        /* downshifts all ptrs below insert       */
+};
 
 #endif  /* LEPTONICA_ARRAY_H */

@@ -47,6 +47,7 @@
  *
  *       find and replace procs
  *           char      *stringRemoveChars()
+ *           l_int32    stringFindSubstr()
  *           char      *stringReplaceSubstr()
  *           char      *stringReplaceEachSubstr()
  *           l_int32    arrayFindSequence()
@@ -86,6 +87,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include "allheaders.h"
+
+#if COMPILER_MSVC
+static const char sepchar = '\\';
+#else
+static const char sepchar = '/';
+#endif
 
 
 /*----------------------------------------------------------------------*
@@ -911,6 +918,49 @@ l_int32  nsrc, i, k;
 
 
 /*!
+ *  stringFindSubstr()
+ *
+ *      Input:  src (input string; can be of zero length)
+ *              sub (substring to be searched for)
+ *              &loc (<return optional> location of substring in src)
+ *      Return: 1 if found; 0 if not found or on error
+ *
+ *  Notes:
+ *      (1) This is a wrapper around strstr().
+ *      (2) Both @src and @sub must be defined, and @sub must have
+ *          length of at least 1.
+ *      (3) If the substring is not found and loc is returned, it has
+ *          the value -1.
+ */
+l_int32
+stringFindSubstr(const char  *src,
+                 const char  *sub,
+                 l_int32     *ploc)
+{
+char  *ptr;
+
+    PROCNAME("stringFindSubstr");
+
+    if (!src)
+        return ERROR_INT("src not defined", procName, 0);
+    if (!sub)
+        return ERROR_INT("sub not defined", procName, 0);
+    if (ploc) *ploc = -1;
+    if (strlen(sub) == 0)
+        return ERROR_INT("substring length 0", procName, 0);
+    if (strlen(src) == 0)
+        return 0;
+
+    if ((ptr = (char *)strstr(src, sub)) == NULL)  /* not found */
+        return 0;
+
+    if (*ploc)
+        *ploc = ptr - src;
+    return 1;
+}
+
+
+/*!
  *  stringReplaceSubstr()
  *
  *      Input:  src (input string; can be of zero length)
@@ -918,7 +968,6 @@ l_int32  nsrc, i, k;
  *              sub2 (substring to put in; can be "")
  *              &found (<return optional> 1 if sub1 is found; 0 otherwise)
  *              &loc (<return optional> location of ptr after replacement)
- *
  *      Return: dest (string with substring replaced), or null if the
  *              substring not found or on error.
  *
@@ -1042,8 +1091,8 @@ l_int32  loc;
  *              datalen (length of data, in bytes)
  *              sequence (subarray of bytes to find in data)
  *              seqlen (length of sequence, in bytes)
- *              &offset (<return> offset from beginning of data where
- *                       the sequence begins)
+ *              &offset (return> offset from beginning of
+ *                       data where the sequence begins)
  *              &found (<return> 1 if sequence is found; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
@@ -1054,8 +1103,7 @@ l_int32  loc;
  *      (2) This searches for the first occurrence in 'data' of
  *          the first 'seqlen' bytes of 'sequence'.  The parameter 'seqlen'
  *          must not exceed the actual length of the 'sequence' byte array.
- *      (3) The caller should always check the return value of 'found'.
- *          If not found, the offset will be set to 0.
+ *      (3) If the sequence is not found, the offset will be set to -1.
  */
 l_int32
 arrayFindSequence(const l_uint8  *data,
@@ -1074,7 +1122,8 @@ l_int32  i, j, found, lastpos;
     if (!poffset || !pfound)
         return ERROR_INT("&offset and &found not both defined", procName, 1);
 
-    *poffset = *pfound = 0;
+    *pfound = 0;
+    *poffset = -1;
     lastpos = datalen - seqlen + 1;
     found = 0;
     for (i = 0; i < lastpos; i++) {
@@ -1599,8 +1648,12 @@ char    *charbuf;
             == NULL)
         return (char *)ERROR_PTR("charbuf not made", procName, NULL);
 
-    if (dir[dirlen - 1] != '/')
+    if (dir[dirlen - 1] != sepchar)
+#if COMPILER_MSVC
+        sprintf(charbuf, "%s\\", dir);
+#else
         sprintf(charbuf, "%s/", dir);
+#endif
     else
         strcpy(charbuf, dir);
     strcat(charbuf, fname);

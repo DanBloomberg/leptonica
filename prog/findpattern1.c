@@ -79,7 +79,7 @@ static char  mainName[] = "findpattern1";
     selWriteStream(stderr, sel);
     pixt1 = pixDisplayHitMissSel(pixpe, sel, 9, HitColor, MissColor);
     pixDisplay(pixt1, 200, 200);
-    pixWrite("/usr/tmp/junkpixt", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkpixt", pixt1, IFF_PNG);
 
         /* use the Sel to find all instances in the page */
     startTimer();
@@ -107,7 +107,7 @@ static char  mainName[] = "findpattern1";
         pixRenderBox(pixs, boxe, 4, L_FLIP_PIXELS);
         boxDestroy(&box);
     }
-    pixWrite("/usr/tmp/junkoutline", pixs, IFF_TIFF_G4);
+    pixWrite("/tmp/junkoutline", pixs, IFF_TIFF_G4);
     boxaWriteStream(stderr, boxa2);
 
     pixDestroy(&pixs);

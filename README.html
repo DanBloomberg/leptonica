@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (27 Sept 08)
+README  (19 Jan 09)
 --------------------
 
-gunzip leptonlib-1.58.tar.gz
-tar -xvf leptonlib-1.58.tar
+gunzip leptonlib-1.60.tar.gz
+tar -xvf leptonlib-1.60.tar
 
 
 1.  This tar includes:
@@ -86,7 +86,7 @@ tar -xvf leptonlib-1.58.tar
     Libraries, executables and prototypes are easily made, as described below.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.58'.  In that directory you will
+    subdirectory 'leptonlib-1.60'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -116,7 +116,7 @@ tar -xvf leptonlib-1.58.tar
        (3) compiling in windows under cygwin
            [through CFLAGS in $CC]
 
-    You can use src/Makefile.mingw for cross-compiling for windows in linux.
+    You can use src/makefile.mingw for cross-compiling for windows in linux.
 
     We also provide two files for compiling the library in windows under MSVC:
         src/leptonlib.sln
@@ -168,7 +168,7 @@ tar -xvf leptonlib-1.58.tar
     in leptonica and need to regenerate the prototype file leptprotos.h:
 
       (1) xtractprotos is part of leptonica; specifically, it is the only
-          program you can make in the src directory (see the Makefile).
+          program you can make in the src directory (see the makefile).
       (2) xtractprotos uses cpp, and older versions of cpp give useless warnings
           about the comment on line 23 of /usr/include/jmorecfg.h.  For
           that reason, a local version of jmorecfg.h is included that has
@@ -194,7 +194,7 @@ tar -xvf leptonlib-1.58.tar
 	libz.a     (standard gzip library, suggest version 1.2.3)
                     current non-beta version is 3.8.2)
     These libraries (and their shared versions) should be in /usr/lib.
-    (If they're not, you can change the LDFLAGS variable in the Makefile.)
+    (If they're not, you can change the LDFLAGS variable in the makefile.)
     Additionally, for compilation, the following header files are
     assumed to be in /usr/include:
         jpeg:  jconfig.h
@@ -214,18 +214,19 @@ tar -xvf leptonlib-1.58.tar
     and the stubs will be linked in.
 
     If additionally, you wish to read and write gif files:
-       (1) Download version giflib-4.1.4 from:
-           http://www.linuxfromscratch.org/blfs/view/svn/general/giflib.html
+       (1) Download version giflib-4.1.6 from souceforge
        (2) #define  HAVE_LIBGIF   1  (in environ.h)
        (3) If the library is installed into /usr/local/lib, you may need
            to add that directory to LDFLAGS; or, equivalently, add
            that path to the LD_LIBRARY_PATH environment variable.
+       (4) Note: do not use giflib-4.1.4: binary comp and decomp
+           don't pack the pixel data and are ridiculously slow.
 
     There is also a programmatic interface to gnuplot.  To use it, you
     need only the gnuplot executable (suggest version 3.7.2 or later);
     the gnuplot library is not required.
 
-    To link these libraries, see prog/Makefile for instructions on selecting
+    To link these libraries, see prog/makefile for instructions on selecting
     or altering the ALL_LIBS variable.  It would be nice to have this
     done automatically.
 
@@ -251,16 +252,16 @@ tar -xvf leptonlib-1.58.tar
 	  if you find any problems.  The endian variable is set
           automatically, so it should compile and run properly, thanks
           to a little program (endiantest.c, courtesy of Bill Janssen)
-          that sets $CPPFLAGS to define -DL_BIG_ENDIAN in both src/Makefile
-          and prog/Makefile.
+          that sets $CPPFLAGS to define -DL_BIG_ENDIAN in both src/makefile
+          and prog/makefile.
 	- For program development, 'make xtractprotos' in src to generate
 	  a mac-compatible version
 
     (b) Windows via mingw (cross-compilation)
         You can build a windows-compatible version of liblept from linux.
-	Use Makefile.mingw and see the usage notes at the top of that file.
+	Use makefile.mingw and see the usage notes at the top of that file.
 	You can then build executables in prog; see the notes in
-	prog/Makefile.mingw.  I have not yet succeeded in making
+	prog/makefile.mingw.  I have not yet succeeded in making
 	static executables this way, but others have.
 
     (c) Windows via cygwin
@@ -269,11 +270,11 @@ tar -xvf leptonlib-1.58.tar
 	libtiff, libpng, libz) groups provides enough libraries and
 	programs to compile liblept src and make the .exe
 	execuables in the prog directory.
-        Make the following changes to the src/Makefile:
+        Make the following changes to the src/makefile:
            (1) use the $CC with _CYGWIN_ENVIRON 
 	   (2) for program development, where you want to automatically
 	       extract protos with xtractprotos, add ".exe" appropriately
-	Make the following changes to the prog/Makefile:
+	Make the following changes to the prog/makefile:
            (1) remove -fPIC from $CC
 	   All prog files should link, including those that call
            getFilenamesInDirectory (convertfilestops, jbcorrelation,
@@ -283,11 +284,11 @@ tar -xvf leptonlib-1.58.tar
         (1) Two project files are provided for building liblept under MSVC:
               leptonlib.sln
               leptonlib.vcproj
-            These were made with VC++ Version 9, and VC++ Express.
-        (2) Older versions of VC++ do not conform to the 1999 C++ standard,
-            which specifies stdint.h.  For these development environments,
-            you will need to include Paul Hsieh's pstdint.h, a portable
-            version of stdint.h, which can be found at
+            These were made with VC++ Version 9, and VC++ Express.  VS2008
+            is required to use them.
+        (2) Because VC++ does not conform to the 1999 C++ standard,
+            which specifies stdint.h, you will need to include Paul Hsieh's
+            pstdint.h, a portable version of stdint.h, which can be found at
                 http://www.azillionmonkeys.com/qed/pstdint.h           
 
 10. Provides for your own memory management (allocator, deallocator).
@@ -603,11 +604,13 @@ tar -xvf leptonlib-1.58.tar
 
 20. Simple data structures are provided for safe and
     efficient handling of arrays of numbers, strings, pointers,
-    and bytes.  The pointer array is implemented in three ways:
-    as a stack, a queue, and a heap (used to implement a priority
-    queue).  The byte array is implemented as a queue.  The string
-    arrays are particularly useful for both parsing and composing text.
-    Generic lists with doubly-linked cons cells are also provided.
+    and bytes.  The generic pointer array is implemented in four ways:
+    as a stack, a queue, a heap (used to implement a priority
+    queue), and an array with insertion and deletion, from which
+    the stack operations form a subset.  The byte array is implemented
+    as a queue.  The string arrays are particularly useful for both
+    parsing and composing text.  Generic lists with doubly-linked
+    cons cells are also provided.
 
 21. Examples of programs that are easily built using the library:
 
@@ -736,7 +739,8 @@ tar -xvf leptonlib-1.58.tar
 
 27. New versions of the Leptonica library are released approximately
     8 times a year, and version numbers are provided for each release in
-    the Makefile and in allheaders.h.
+    the makefile and in allheaders.h.  All even versions from 1.42 are
+    archived at http://code.google.com/p/leptonica
 
     A brief version chronology is maintained in version-notes.html.
     The library compiles without warnings with either g++ or gcc,

@@ -230,10 +230,15 @@ PIX       *pixt, *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-        /* Remove colormap if it exists */
+        /* Remove colormap if it exists.  If there is a colormap,
+         * pixt will be 8 bpp regardless of the depth of pixs. */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
+    if (pixGetColormap(pixs) && d == 4) {  /* promoted to 8 bpp */
+        d = 8;
+        thresh *= 16;
+    }
 
     thresholdToBinaryLow(datad, w, h, wpld, datat, d, wplt, thresh);
     pixDestroy(&pixt);

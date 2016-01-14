@@ -62,21 +62,22 @@ ARFLAGS = cru
 liblept_a_AR = $(AR) $(ARFLAGS)
 liblept_a_LIBADD =
 am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
-	arithlow.$(OBJEXT) arrayaccess.$(OBJEXT) bardecode.$(OBJEXT) \
-	baseline.$(OBJEXT) bbuffer.$(OBJEXT) bilinear.$(OBJEXT) \
-	binexpand.$(OBJEXT) binexpandlow.$(OBJEXT) binreduce.$(OBJEXT) \
+	affinecompose.$(OBJEXT) arithlow.$(OBJEXT) \
+	arrayaccess.$(OBJEXT) bardecode.$(OBJEXT) baseline.$(OBJEXT) \
+	bbuffer.$(OBJEXT) bilinear.$(OBJEXT) binexpand.$(OBJEXT) \
+	binexpandlow.$(OBJEXT) binreduce.$(OBJEXT) \
 	binreducelow.$(OBJEXT) blend.$(OBJEXT) bmf.$(OBJEXT) \
 	bmpio.$(OBJEXT) bmpiostub.$(OBJEXT) boxbasic.$(OBJEXT) \
-	boxfunc.$(OBJEXT) ccbord.$(OBJEXT) ccthin.$(OBJEXT) \
-	classapp.$(OBJEXT) colorcontent.$(OBJEXT) colormap.$(OBJEXT) \
-	colormorph.$(OBJEXT) colorquant1.$(OBJEXT) \
-	colorquant2.$(OBJEXT) colorseg.$(OBJEXT) compare.$(OBJEXT) \
-	conncomp.$(OBJEXT) convolve.$(OBJEXT) convolvelow.$(OBJEXT) \
-	correlscore.$(OBJEXT) dwacomb.2.$(OBJEXT) \
-	dwacomblow.2.$(OBJEXT) edge.$(OBJEXT) endiantest.$(OBJEXT) \
-	enhance.$(OBJEXT) fhmtauto.$(OBJEXT) fhmtgen.1.$(OBJEXT) \
-	fhmtgenlow.1.$(OBJEXT) flipdetect.$(OBJEXT) \
-	fliphmtgen.$(OBJEXT) fmorphauto.$(OBJEXT) \
+	boxfunc1.$(OBJEXT) boxfunc2.$(OBJEXT) boxfunc3.$(OBJEXT) \
+	ccbord.$(OBJEXT) ccthin.$(OBJEXT) classapp.$(OBJEXT) \
+	colorcontent.$(OBJEXT) colormap.$(OBJEXT) colormorph.$(OBJEXT) \
+	colorquant1.$(OBJEXT) colorquant2.$(OBJEXT) colorseg.$(OBJEXT) \
+	compare.$(OBJEXT) conncomp.$(OBJEXT) convolve.$(OBJEXT) \
+	convolvelow.$(OBJEXT) correlscore.$(OBJEXT) \
+	dwacomb.2.$(OBJEXT) dwacomblow.2.$(OBJEXT) edge.$(OBJEXT) \
+	endiantest.$(OBJEXT) enhance.$(OBJEXT) fhmtauto.$(OBJEXT) \
+	fhmtgen.1.$(OBJEXT) fhmtgenlow.1.$(OBJEXT) \
+	flipdetect.$(OBJEXT) fliphmtgen.$(OBJEXT) fmorphauto.$(OBJEXT) \
 	fmorphgen.1.$(OBJEXT) fmorphgenlow.1.$(OBJEXT) fpix1.$(OBJEXT) \
 	fpix2.$(OBJEXT) gifio.$(OBJEXT) gifiostub.$(OBJEXT) \
 	gplot.$(OBJEXT) graphics.$(OBJEXT) graymorph.$(OBJEXT) \
@@ -93,16 +94,17 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	pixtiling.$(OBJEXT) pngio.$(OBJEXT) pngiostub.$(OBJEXT) \
 	pnmio.$(OBJEXT) pnmiostub.$(OBJEXT) pqueue.$(OBJEXT) \
 	projective.$(OBJEXT) psio.$(OBJEXT) psiostub.$(OBJEXT) \
-	pts.$(OBJEXT) rank.$(OBJEXT) readbarcode.$(OBJEXT) \
-	readfile.$(OBJEXT) rop.$(OBJEXT) ropiplow.$(OBJEXT) \
-	roplow.$(OBJEXT) rotateam.$(OBJEXT) rotateamlow.$(OBJEXT) \
-	rotate.$(OBJEXT) rotateorth.$(OBJEXT) rotateorthlow.$(OBJEXT) \
-	rotateshear.$(OBJEXT) runlength.$(OBJEXT) sarray.$(OBJEXT) \
-	scale.$(OBJEXT) scalelow.$(OBJEXT) seedfill.$(OBJEXT) \
-	seedfilllow.$(OBJEXT) sel1.$(OBJEXT) sel2.$(OBJEXT) \
-	selgen.$(OBJEXT) shear.$(OBJEXT) skew.$(OBJEXT) \
-	stack.$(OBJEXT) textops.$(OBJEXT) tiffio.$(OBJEXT) \
-	tiffiostub.$(OBJEXT) utils.$(OBJEXT) viewfiles.$(OBJEXT) \
+	ptra.$(OBJEXT) pts.$(OBJEXT) rank.$(OBJEXT) \
+	readbarcode.$(OBJEXT) readfile.$(OBJEXT) rop.$(OBJEXT) \
+	ropiplow.$(OBJEXT) roplow.$(OBJEXT) rotateam.$(OBJEXT) \
+	rotateamlow.$(OBJEXT) rotate.$(OBJEXT) rotateorth.$(OBJEXT) \
+	rotateorthlow.$(OBJEXT) rotateshear.$(OBJEXT) \
+	runlength.$(OBJEXT) sarray.$(OBJEXT) scale.$(OBJEXT) \
+	scalelow.$(OBJEXT) seedfill.$(OBJEXT) seedfilllow.$(OBJEXT) \
+	sel1.$(OBJEXT) sel2.$(OBJEXT) selgen.$(OBJEXT) shear.$(OBJEXT) \
+	skew.$(OBJEXT) stack.$(OBJEXT) textops.$(OBJEXT) \
+	tiffio.$(OBJEXT) tiffiostub.$(OBJEXT) utils.$(OBJEXT) \
+	viewfiles.$(OBJEXT) warper.$(OBJEXT) watershed.$(OBJEXT) \
 	writefile.$(OBJEXT) zlibmem.$(OBJEXT) zlibmemstub.$(OBJEXT)
 liblept_a_OBJECTS = $(am_liblept_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
@@ -240,7 +242,8 @@ MAKE = make -f Makefile
 AM_CFLAGS = -D_BSD_SOURCE -DANSI -fPIC
 AM_CPPFLAGS = $(ENDIANNESS)
 lib_LIBRARIES = liblept.a
-liblept_a_SOURCES = adaptmap.c affine.c \
+liblept_a_SOURCES = adaptmap.c \
+ affine.c affinecompose.c \
  arithlow.c arrayaccess.c \
  bardecode.c \
  baseline.c bbuffer.c \
@@ -248,7 +251,8 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  binexpandlow.c binreduce.c \
  binreducelow.c blend.c bmf.c \
  bmpio.c bmpiostub.c boxbasic.c \
- boxfunc.c ccbord.c ccthin.c \
+ boxfunc1.c boxfunc2.c boxfunc3.c \
+ ccbord.c ccthin.c \
  classapp.c colorcontent.c \
  colormap.c colormorph.c \
  colorquant1.c colorquant2.c \
@@ -281,7 +285,8 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  pixconv.c pixtiling.c \
  pngio.c pngiostub.c \
  pnmio.c pnmiostub.c pqueue.c \
- projective.c psio.c psiostub.c pts.c \
+ projective.c psio.c psiostub.c \
+ ptra.c pts.c \
  rank.c readbarcode.c readfile.c \
  rop.c ropiplow.c \
  roplow.c rotateam.c \
@@ -296,12 +301,13 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  stack.c textops.c \
  tiffio.c tiffiostub.c \
  utils.c viewfiles.c \
- writefile.c zlibmem.c zlibmemstub.c
+ warper.c watershed.c writefile.c \
+ zlibmem.c zlibmemstub.c
 
 include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
  array.h bbuffer.h bmf.h bmp.h ccbord.h environ.h \
  gplot.h imageio.h jbclass.h jmorecfg.h jpeglib.h leptprotos.h list.h \
- morph.h pheap.h pix.h pqueue.h readbarcode.h stack.h
+ morph.h pheap.h pix.h pqueue.h readbarcode.h stack.h watershed.h
 
 EXTRA_DIST = Makefile.mingw arrayaccess.h.vc arrayaccess.h.vc60 \
  hmttemplate1.txt hmttemplate2.txt leptonica-license.txt \
@@ -383,6 +389,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adaptmap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/affine.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/affinecompose.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/arithlow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/arrayaccess.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bardecode.Po@am__quote@
@@ -398,7 +405,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bmpio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bmpiostub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/boxbasic.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/boxfunc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/boxfunc1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/boxfunc2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/boxfunc3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ccbord.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ccthin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/classapp.Po@am__quote@
@@ -472,6 +481,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/projective.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psiostub.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rank.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/readbarcode.Po@am__quote@
@@ -502,6 +512,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tiffiostub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/viewfiles.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/warper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/watershed.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/writefile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zlibmem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zlibmemstub.Po@am__quote@

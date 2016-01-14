@@ -1571,7 +1571,7 @@ ptaTransform(PTA       *ptas,
 l_int32  n, i, x, y;
 PTA     *ptad;
 
-    PROCNAME("pixTransform");
+    PROCNAME("ptaTransform");
 
     if (!ptas)
         return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);

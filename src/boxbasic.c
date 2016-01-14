@@ -24,10 +24,10 @@
  *           BOX      *boxCopy()
  *           BOX      *boxClone()
  *           void      boxDestroy()
- *           void      boxFree()
  *
  *      Box accessors
  *           l_int32   boxGetGeometry()
+ *           l_int32   boxSetGeometry()
  *           l_int32   boxGetRefcount()
  *           l_int32   boxChangeRefcount()
  *
@@ -207,34 +207,13 @@ BOX  *box;
         L_WARNING("ptr address is null!", procName);
         return;
     }
-
     if ((box = *pbox) == NULL)
         return;
 
-    boxFree(box);
-    *pbox = NULL;
-    return;
-}
-
-
-/*!
- *  boxFree()
- *
- *      Input:  box
- *      Return: void
- *
- *  Notes:
- *      (1) Decrements the ref count and, if 0, destroys the box.
- */
-void
-boxFree(BOX  *box)
-{
-    if (!box) return;
-
-	/* Decrement the ref count.  If it is 0, destroy the box. */
     boxChangeRefcount(box, -1);
     if (boxGetRefcount(box) <= 0)
         FREE(box);
+    *pbox = NULL;
     return;
 }
 
@@ -264,6 +243,32 @@ boxGetGeometry(BOX      *box,
     if (py) *py = box->y;
     if (pw) *pw = box->w;
     if (ph) *ph = box->h;
+    return 0;
+}
+
+
+/*!
+ *  boxSetGeometry()
+ *
+ *      Input:  box
+ *              x, y, w, h (use -1 to leave unchanged)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+boxSetGeometry(BOX     *box,
+               l_int32  x,
+               l_int32  y,
+               l_int32  w,
+               l_int32  h)
+{
+    PROCNAME("boxSetGeometry");
+
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    if (x != -1) box->x = x;
+    if (y != -1) box->y = y;
+    if (w != -1) box->w = w;
+    if (h != -1) box->h = h;
     return 0;
 }
 

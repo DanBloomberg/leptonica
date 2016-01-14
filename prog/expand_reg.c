@@ -78,7 +78,7 @@ static char  mainName[] = "expand_reg";
     }
     pixDestroy(&pix);
 
-    system("/usr/bin/gthumb junk_write_display* &");
+    system("gthumb junk_write_display* &");
     return 0;
 }
 

@@ -32,6 +32,7 @@
 #include "pix.h"
 #include "pqueue.h"
 #include "stack.h"
+#include "watershed.h"
 
     /* i/o */
 #include "imageio.h"

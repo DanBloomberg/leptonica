@@ -39,7 +39,7 @@ main(int    argc,
 {
 char        *filein, *fileout;
 char         buffer[512];
-const char  *psfile = "/usr/tmp/junk_split_image.ps";
+const char  *psfile = "/tmp/junk_split_image.ps";
 l_int32      nx, ny, i, w, h, d, ws, hs, n, res;
 l_float32    scale;
 PIX         *pixs, *pixt, *pixr;
@@ -55,15 +55,15 @@ static char  mainName[] = "splitimage2pdf";
     ny = atoi(argv[3]);
     fileout = argv[4];
 
-    system("rm -f /usr/tmp/junk_split_image.ps");
+    system("rm -f /tmp/junk_split_image.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
     d = pixGetDepth(pixs);
     if (d == 1 )
-	system("rm -f /usr/tmp/junk_split_image.tif");
+	system("rm -f /tmp/junk_split_image.tif");
     else if (d == 8 || d == 32)
-	system("rm -f /usr/tmp/junk_split_image.jpg");
+	system("rm -f /tmp/junk_split_image.jpg");
     else
 	exit(ERROR_INT("d not in {1,8,32} bpp", mainName, 1));
 
@@ -83,21 +83,21 @@ static char  mainName[] = "splitimage2pdf";
       h = pixGetHeight(pixt);
       scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
       if (d == 1) {
-	  pixWrite("/usr/tmp/junk_split_image.tif", pixt, IFF_TIFF_G4);
+	  pixWrite("/tmp/junk_split_image.tif", pixt, IFF_TIFF_G4);
           if (i == 0)
-	      convertTiffG4ToPS("/usr/tmp/junk_split_image.tif", psfile,
+	      convertTiffG4ToPS("/tmp/junk_split_image.tif", psfile,
 			  "w", 0, 0, 300, scale, 1, FALSE, TRUE);
           else
-	      convertTiffG4ToPS("/usr/tmp/junk_split_image.tif", psfile,
+	      convertTiffG4ToPS("/tmp/junk_split_image.tif", psfile,
 			  "a", 0, 0, 300, scale, 1, FALSE, TRUE);
       }
       else {
-	  pixWrite("/usr/tmp/junk_split_image.jpg", pixt, IFF_JFIF_JPEG);
+	  pixWrite("/tmp/junk_split_image.jpg", pixt, IFF_JFIF_JPEG);
           if (i == 0)
-	      convertJpegToPS("/usr/tmp/junk_split_image.jpg", psfile,
+	      convertJpegToPS("/tmp/junk_split_image.jpg", psfile,
 			  "w", 0, 0, 300, scale, 1, TRUE);
           else
-	      convertJpegToPS("/usr/tmp/junk_split_image.jpg", psfile,
+	      convertJpegToPS("/tmp/junk_split_image.jpg", psfile,
 			  "a", 0, 0, 300, scale, 1, TRUE);
       }
       pixDestroy(&pixt);

@@ -39,12 +39,17 @@
  *           l_int32     pixcmapGetNearestIndex()
  *           l_int32     pixcmapGetExtremeValue()
  *
+ *      Colormap conversion
+ *           PIXCMAP    *pixcmapGrayToColor()
+ *           PIXCMAP    *pixcmapColorToGray()
+ *
  *      Colormap I/O
  *           l_int32     pixcmapReadStream()
  *           l_int32     pixcmapWriteStream()
  *
  *      Extract colormap arrays
  *           l_int32     pixcmapToArrays()
+ *           l_int32     pixcmapToRGBTable()
  *
  *      Colormap transforms
  *           l_int32     pixcmapGammaTRC()
@@ -107,11 +112,12 @@ PIXCMAP    *cmap;
  *          colors are chosen randomly.
  *      (2) Because rand() is seeded, it might disrupt otherwise 
  *          deterministic results if also used elsewhere in a program.
- *      (3) Modern rand()s have equal randomness in low and high order
- *          bits, but older ones don't, so we use the high order bits.
- *      (4) rand() is not threadsafe, and will generate garbage if run
+ *      (3) rand() is not threadsafe, and will generate garbage if run
  *          on multiple threads at once -- though garbage is generally
  *          what you want from a random number generator!
+ *      (4) Modern rand()s have equal randomness in low and high order
+ *          bits, but older ones don't.  Here, we're just using rand()
+ *          to choose colors for output.
  */
 PIXCMAP *
 pixcmapCreateRandom(l_int32  depth)
@@ -122,16 +128,16 @@ PIXCMAP  *cmap;
 
     PROCNAME("pixcmapCreateRandom");
 
-    if (depth != 2 && depth !=4 && depth != 8)
+    if (depth != 2 && depth != 4 && depth != 8)
         return (PIXCMAP *)ERROR_PTR("depth not in {2, 4, 8}", procName, NULL);
 
     cmap = pixcmapCreate(depth);
     pixcmapAddColor(cmap, 0, 0, 0);  /* first color is black */
     ncolors = 1 << depth;
     for (i = 1; i < ncolors - 1; i++) {
-        red[i] = (rand() >> 16) % ncolors;
-        green[i] = (rand() >> 16) % ncolors;
-        blue[i] = (rand() >> 16) % ncolors;
+        red[i] = (l_uint32)rand() & 0xff;
+        green[i] = (l_uint32)rand() & 0xff;
+        blue[i] = (l_uint32)rand() & 0xff;
         pixcmapAddColor(cmap, red[i], green[i], blue[i]);
     }
     pixcmapAddColor(cmap, 255, 255, 255);  /* last color is white */
@@ -766,6 +772,96 @@ l_int32  i, n, rval, gval, bval, extrval, extgval, extbval;
 
 
 /*-------------------------------------------------------------*
+ *                       Colormap conversion                   *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixcmapGrayToColor()
+ *
+ *      Input:  color
+ *      Return: cmap, or null on error
+ *
+ *  Notes:
+ *      (1) This creates a colormap that maps from gray to
+ *          a specific color.  In the mapping, each component
+ *          is faded to white, depending on the gray value.
+ *      (2) In use, this is simply attached to a grayscale pix
+ *          to give it the input color.
+ */
+PIXCMAP *
+pixcmapGrayToColor(l_uint32  color)
+{
+l_int32   i, rval, gval, bval;
+PIXCMAP  *cmap;
+
+    extractRGBValues(color, &rval, &gval, &bval);
+    cmap = pixcmapCreate(8);
+    for (i = 0; i < 256; i++) {
+        pixcmapAddColor(cmap, rval + (i * (255 - rval)) / 255,
+                        gval + (i * (255 - gval)) / 255,
+                        bval + (i * (255 - bval)) / 255);
+    }
+
+    return cmap;
+}
+
+
+/*!
+ *  pixcmapColorToGray()
+ *
+ *      Input:  cmap
+ *              rwt, gwt, bwt  (non-negative; these should add to 1.0)
+ *      Return: cmap (gray), or null on error
+ *
+ *  Notes:
+ *      (1) This creates a gray colormap from an arbitrary colormap.
+ *      (2) In use, attach the output gray colormap to the pix
+ *          (or a copy of it) that provided the input colormap.
+ */
+PIXCMAP *
+pixcmapColorToGray(PIXCMAP   *cmaps,
+                   l_float32  rwt,
+                   l_float32  gwt,
+                   l_float32  bwt)
+{
+l_int32    i, n, rval, gval, bval, val;
+l_float32  sum;
+PIXCMAP   *cmapd;
+
+    PROCNAME("pixcmapColorToGray");
+
+    if (!cmaps)
+        return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
+    if (rwt < 0.0 || gwt < 0.0 || bwt < 0.0)
+        return (PIXCMAP *)ERROR_PTR("weights not all >= 0.0", procName, NULL);
+
+        /* Make sure the sum of weights is 1.0; otherwise, you can get
+         * overflow in the gray value. */
+    sum = rwt + gwt + bwt;
+    if (sum == 0.0) {
+        L_WARNING("all weights zero; setting equal to 1/3", procName);
+        rwt = gwt = bwt = 0.33333;
+        sum = 1.0;
+    }
+    if (L_ABS(sum - 1.0) > 0.0001) {  /* maintain ratios with sum == 1.0 */
+        L_WARNING("weights don't sum to 1; maintaining ratios", procName);
+        rwt = rwt / sum;
+        gwt = gwt / sum;
+        bwt = bwt / sum;
+    }
+
+    cmapd = pixcmapCopy(cmaps);
+    n = pixcmapGetCount(cmapd);
+    for (i = 0; i < n; i++) {
+        pixcmapGetColor(cmapd, i, &rval, &gval, &bval);
+        val = (l_int32)(rwt * rval + gwt * gval + bwt * bval + 0.5);
+        pixcmapResetColor(cmapd, i, val, val, val);
+    }
+        
+    return cmapd;
+}
+
+
+/*-------------------------------------------------------------*
  *                         Colormap I/O                        *
  *-------------------------------------------------------------*/
 /*!
@@ -888,6 +984,49 @@ RGBA_QUAD  *cta;
         gmap[i] = cta[i].green;
         bmap[i] = cta[i].blue;
     }
+
+    return 0;
+}
+
+
+/*!
+ *  pixcmapToRGBTable()
+ *
+ *      Input:  colormap
+ *              &tab (<return> table of rgba values for the colormap)
+ *              &ncolors (<optional return> size of table)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+pixcmapToRGBTable(PIXCMAP    *cmap,
+                  l_uint32  **ptab,
+                  l_int32    *pncolors)
+{
+l_int32    i, ncolors, rval, gval, bval;
+l_uint32  *tab;
+
+    PROCNAME("pixcmapToRGBTable");
+
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+    if (!ptab)
+        return ERROR_INT("&tab not defined", procName, 1);
+    *ptab = NULL;
+
+    ncolors = pixcmapGetCount(cmap);
+    if (pncolors)
+        *pncolors = ncolors;
+    if ((tab = (l_uint32 *)CALLOC(ncolors, sizeof(l_uint32))) == NULL)
+        return ERROR_INT("tab not made", procName, 1);
+    *ptab = tab;
+   
+    for (i = 0; i < ncolors; i++) {
+        pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+        composeRGBPixel(rval, gval, bval, &tab[i]);
+    }
+
+/*    for (i = 0; i < ncolors; i++)
+        fprintf(stderr, "Color[%d] = %x\n", i, tab[i]); */
 
     return 0;
 }

@@ -61,6 +61,7 @@
  *      Numaa accessors
  *          l_int32      numaaGetCount()
  *          l_int32      numaaGetNumberCount()
+ *          NUMA       **numaaGetPtrArray()
  *          NUMA        *numaaGetNuma()
  *          NUMA        *numaaReplaceNuma()
  *          l_int32      numaaAddNumber()
@@ -616,12 +617,15 @@ numaSetValue(NUMA      *na,
  *      Return: a copy of the bare internal array, integerized
  *              by rounding, or null on error
  *  Notes:
- *      (1) A copy is always made, because we need to generate an
- *          integer array from the bare float array.  The caller
- *          is responsible for freeing the array.
- *      (2) This function is provided to simplify calculations
- *          using the bare internal array (rather than continually
- *          calling accessors on the numa).
+ *      (1) A copy of the array is always made, because we need to
+ *          generate an integer array from the bare float array.
+ *          The caller is responsible for freeing the array.
+ *      (2) The array size is determined by the number of stored numbers,
+ *          not by the size of the allocated array in the Numa.
+ *      (3) This function is provided to simplify calculations
+ *          using the bare internal array, rather than continually
+ *          calling accessors on the numa.  It is typically used
+ *          on an array of size 256.
  */
 l_int32 *
 numaGetIArray(NUMA  *na)
@@ -1100,7 +1104,45 @@ l_int32  n, sum, i;
 
     return sum;
 }
-        
+
+
+/*!
+ *  numaaGetPtrArray()
+ *
+ *      Input:  naa
+ *      Return: the internal array of ptrs to Numa, or null on error
+ *
+ *  Notes:
+ *      (1) This function is convenient for doing direct manipulation on
+ *          a fixed size array of Numas.  To do this, it sets the count
+ *          to the full size of the allocated array of Numa ptrs.
+ *          The originating Numaa owns this array: DO NOT free it!
+ *      (2) Intended usage:
+ *            Numaa *naa = numaaCreate(n);
+ *            Numa **array = numaaGetPtrArray(naa);
+ *             ...  [manipulate Numas directly on the array]
+ *            numaaDestroy(&naa);
+ *      (3) Cautions:
+ *           - Do not free this array; it is owned by tne Numaa.
+ *           - Do not call any functions on the Numaa, other than
+ *             numaaDestroy() when you're finished with the array.
+ *             Adding a Numa will force a resize, destroying the ptr array.
+ *           - Do not address the array outside its allocated size.
+ *             With the bare array, there are no protections.  If the
+ *             allocated size is n, array[n] is an error.
+ */
+NUMA **
+numaaGetPtrArray(NUMAA  *naa)
+{
+    PROCNAME("numaaGetPtrArray");
+
+    if (!naa)
+        return (NUMA **)ERROR_PTR("naa not defined", procName, NULL);
+
+    naa->n = naa->nalloc;
+    return naa->numa;
+}
+
 
 /*!
  *  numaaGetNuma()
@@ -1165,7 +1207,6 @@ l_int32  n;
     naa->numa[index] = na;
     return 0;
 }
-
 
 
 /*!

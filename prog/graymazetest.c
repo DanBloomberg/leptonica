@@ -19,10 +19,14 @@
  *
  *    Finds the least-cost path using a breadth-first algorithm
  *    between two points on a grayscale image.
+ *
+ *    The paths below were chosen to illustrate this working on
+ *    @mazein = test8.jpg.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "allheaders.h"
 
 #define  NPATHS     6
@@ -42,7 +46,7 @@ main(int    argc,
 {
 char        *mazein, *pathout;
 l_int32      i, w, h;
-PIX         *pixex, *pix, *pixs, *pixd;
+PIX         *pixex, *pix, *pixs, *pixt, *pixd;
 PTA         *pta;
 PTAA        *ptaa;
 static char  mainName[] = "graymazetest";
@@ -61,7 +65,7 @@ static char  mainName[] = "graymazetest";
         pixs = pixClone(pix);
     pixGetDimensions(pixs, &w, &h, NULL);
 
-#if 1  /* multiple paths */ 
+#if 0  /* multiple paths */ 
 
     ptaa = ptaaCreate(NPATHS);
     for (i = 0; i < NPATHS; i++) {
@@ -82,18 +86,27 @@ static char  mainName[] = "graymazetest";
 
 #else  /* one path */
 
-    pta = searchGrayMaze(pixs, XINIT, YINIT, XEND, YEND, &pixd);
+    pta = searchGrayMaze(pixs, XINIT, YINIT, XEND, YEND, &pixt);
     pixd = pixDisplayPta(pixs, pta);
     pixex = pixScaleBySampling(pixd, 4., 4.);
     pixDisplay(pixex, 450, 50);
     pixWrite(pathout, pixd, IFF_PNG);
     ptaDestroy(&pta);
+    pixDestroy(&pixt);
 
 #endif
 
+    startTimer();
+    for (i = 0; i < 10; i++) {
+        pta = searchGrayMaze(pixs, XINIT, YINIT, XEND, YEND, NULL);
+        ptaDestroy(&pta);
+    }
+    fprintf(stderr, "Time: %7.3f sec\n", stopTimer());
+
+    pixDestroy(&pix);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
     pixDestroy(&pixex);
-    exit(0);
+    return 0;
 }
 

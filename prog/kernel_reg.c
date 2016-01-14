@@ -32,10 +32,11 @@ main(int    argc,
      char **argv)
 {
 char        *str;
-l_int32      i, j;
-l_float32    sum;
+l_int32      i, j, same, ok;
+l_float32    sum, avediff, rmsdiff;
 L_KERNEL    *kel1, *kel2, *kel3, *kelx, *kely;
-PIX         *pixs, *pixg, *pixd, *pixt, *pixt2;
+BOX         *box;
+PIX         *pix, *pixs, *pixb, *pixg, *pixd, *pixp, *pixt, *pixt2;
 PIXA        *pixa;
 SARRAY      *sa;
 static char  mainName[] = "kernel_reg";
@@ -118,7 +119,8 @@ static char  mainName[] = "kernel_reg";
     pixDestroy(&pixd);
     kernelDestroy(&kel1);
 
-        /* Test convolution with flat rectangular kel */
+        /* Test convolution with flat rectangular kel; also test
+         * block convolution with tiling. */
     pixs = pixRead("test24.jpg");
     pixg = pixScaleRGBToGrayFast(pixs, 3, COLOR_GREEN);
     kel2 = kernelCreate(11, 11);
@@ -135,11 +137,82 @@ static char  mainName[] = "kernel_reg";
     pixWrite("junkker5.bmp", pixt, IFF_BMP);
     pixCompareGray(pixd, pixt, L_COMPARE_ABS_DIFF, GPLOT_X11, NULL,
                    NULL, NULL, NULL);
+    pixt2 = pixBlockconvTiled(pixg, 5, 5, 3, 6);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixWrite("junkker5a.bmp", pixt2, IFF_BMP);
+    pixDestroy(&pixt2);
+
+    ok = TRUE;
+    for (i = 1; i <= 7; i++) {
+        for (j = 1; j <= 7; j++) {
+            if (i == 1 && j == 1) continue;
+            pixt2 = pixBlockconvTiled(pixg, 5, 5, j, i);
+            pixEqual(pixt2, pixd, &same);
+            if (!same) {
+                fprintf(stderr," Error for nx = %d, ny = %d\n", j, i);
+                ok = FALSE;
+            }
+            pixDestroy(&pixt2);
+        }
+    }
+    if (ok)
+        fprintf(stderr, "OK: Tiled results identical to pixConvolve()\n");
+    else
+        fprintf(stderr, "ERROR: Tiled results not identical to pixConvolve()\n");
+          
     pixDestroy(&pixs);
     pixDestroy(&pixg);
     pixDestroy(&pixd);
     pixDestroy(&pixt);
     kernelDestroy(&kel2);
+
+        /* Do another flat rectangular test; this time with white at edge.
+         * About 1% of the pixels near the image edge differ by 1 between
+         * the pixConvolve() and pixBlockconv().  For what it's worth,
+         * pixConvolve() gives the more accurate result; namely, 255 for
+         * pixels at the edge. */
+    pix = pixRead("pageseg1.tif");
+    box = boxCreate(100, 100, 2260, 3160);
+    pixb = pixClipRectangle(pix, box, NULL);
+    pixs = pixScaleToGray4(pixb);
+
+    kel3 = kernelCreate(7, 7);
+    kernelSetOrigin(kel3, 3, 3);
+    for (i = 0; i < 7; i++)
+        for (j = 0; j < 7; j++)
+            kernelSetElement(kel3, i, j, 1.0);
+    startTimer();
+    pixt = pixConvolve(pixs, kel3, 8, 1);
+    fprintf(stderr, "Generic convolution time: %5.3f sec\n", stopTimer());
+    pixSaveTiled(pixt, pixa, 1, 1, 20, 0);
+    pixWrite("junkconv1.bmp", pixt, IFF_BMP);
+
+    startTimer();
+    pixt2 = pixBlockconv(pixs, 3, 3);
+    fprintf(stderr, "Flat block convolution time: %5.3f sec\n", stopTimer());
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixWrite("junkconv2.bmp", pixt2, IFF_BMP);  /* ditto */
+
+    pixCompareGray(pixt, pixt2, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
+                   &avediff, &rmsdiff, NULL);
+    system("sleep 1");  /* give gnuplot time to write out the file */
+    pixp = pixRead("/tmp/junkgrayroot.png");
+    pixSaveTiled(pixp, pixa, 1, 0, 20, 0);
+    pixWrite("junkconv3.bmp", pixp, IFF_BMP);
+    fprintf(stderr, "Ave diff = %6.4f, RMS diff = %6.4f\n", avediff, rmsdiff);
+    if (avediff <= 0.01)
+        fprintf(stderr, "OK: avediff = %6.4f <= 0.01\n", avediff);
+    else
+        fprintf(stderr, "Bad?: avediff = %6.4f > 0.01\n", avediff);
+
+    pixDestroy(&pixt);
+    pixDestroy(&pixt2);
+    pixDestroy(&pixs);
+    pixDestroy(&pixp);
+    pixDestroy(&pix);
+    pixDestroy(&pixb);
+    boxDestroy(&box);
+    kernelDestroy(&kel3);
 
         /* Test generation and convolution with gaussian kernel */
     pixs = pixRead("test8.jpg");

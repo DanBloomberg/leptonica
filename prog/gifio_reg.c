@@ -43,6 +43,11 @@
 #include <math.h>
 #include "allheaders.h"
 
+    /* Needed for HAVE_LIBGIF and or HAVE_LIBUNGIF */
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif /* HAVE_CONFIG_H */
+
 #define   FILE_1BPP     "feyn.tif"
 #define   FILE_2BPP     "weasel2.4g.png"
 #define   FILE_4BPP     "weasel4.16c.png"
@@ -61,11 +66,11 @@ l_int32      w, h, d, same, ret;
 PIX         *pixs, *pix1, *pix2;
 static char  mainName[] = "gifio_reg";
  
-#if !HAVE_LIBGIF
+#if (!HAVE_LIBGIF) && (!HAVE_LIBUNGIF)
     fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!\n"
             "gifio not enabled!\n"
-            "See environ.h: #define HAVE_LIBGIF   1\n"
-            "See prog/Makefile: link in -lgif\n"
+            "See environ.h: #define HAVE_LIBGIF or HAVE_LIBUNGIF 1\n"
+            "See prog/Makefile: link in -lgif or -lungif\n"
             "!!!!!!!!!!!!!!!!!!!!\n");
     return 1;
 #endif
@@ -77,8 +82,7 @@ static char  mainName[] = "gifio_reg";
     pixWrite("junkgif1", pixs, IFF_GIF);
     startTimer();
     pix1 = pixRead("junkgif1");
-    fprintf(stderr, "Read time for 8 Mpix 1 bpp: %7.3f sec: unbelievable!\n",
-            stopTimer());
+    fprintf(stderr, "Read time for 8 Mpix 1 bpp: %7.3f sec\n", stopTimer());
     startTimer();
     pixWrite("junkgif1n", pix1, IFF_GIF);
     fprintf(stderr, "Write time for 8 Mpix 1 bpp: %7.3f\n", stopTimer());
@@ -198,6 +202,7 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_32BPP);
     pixGetDimensions(pixs, &w, &h, &d);
+    pixSetText(pixs, "Junk GIF comment");
     pixWrite("junkgif8", pixs, IFF_GIF);
     pix1 = pixRead("junkgif8");
     pixWrite("junkgif8n", pix1, IFF_GIF);
@@ -213,7 +218,7 @@ static char  mainName[] = "gifio_reg";
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
-    system("/usr/bin/gthumb junk_write_display* &");
+    system("gthumb junk_write_display* &");
 
     return 0;
 }

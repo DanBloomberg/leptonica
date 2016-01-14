@@ -19,8 +19,14 @@
  *    Converts all files in the given directory with matching substring
  *    to a level 2 compressed PostScript file, at the specified resolution.
  *
+ *    To convert all files in the directory, use 'allfiles' for the substring.
+ *
  *    Decreasing the resolution will cause the image to be rendered
- *    larger, and v.v.
+ *    larger, and v.v.   For example, if the page was originally scanned
+ *    at 400 ppi and you use 300 ppi for the resolution, the page will
+ *    be rendered with larger pixels (i.e., be magnified) and you will
+ *    lose a quarter of the page on the right side and a quarter
+ *    at the bottom.
  *
  *    Note: this program only runs under Unix; it will not compile under cygwin.
  */
@@ -46,7 +52,8 @@ static char     mainName[] = "convertfilestops";
     substr = argv[2];
     res = atoi(argv[3]);
     fileout = argv[4];
-
+    if (!strcmp(substr, "allfiles"))
+        substr = NULL;
     return convertFilesToPS(dirin, substr, res, fileout);
 }
 

@@ -28,8 +28,8 @@
  *           l_int32     pixSetMasked()
  *           l_int32     pixSetMaskedGeneral()
  *           l_int32     pixCombineMasked()
+ *           l_int32     pixCombineMaskedGeneral()
  *           l_int32     pixPaintThroughMask()
- *           l_int32     pixCombineThroughMask()
  *           PIX        *pixPaintSelfThroughMask()
  *
  *    One and two-image boolean operations on arbitrary depth images
@@ -289,18 +289,24 @@ PIX       *pixmu, *pixc;
 /*!
  *  pixCombineMasked()
  *
- *      Input:  pixd (8 or 32 bpp)
- *              pixs (8 or 32 bpp)
+ *      Input:  pixd (1 bpp, 8 bpp gray or 32 bpp rgb; no cmap)
+ *              pixs (1 bpp, 8 bpp gray or 32 bpp rgb; no cmap)
  *              pixm (<optional> 1 bpp mask; no operation if NULL)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This sets each pixel in pixd that co-locates with an ON
+ *      (1) In-place operation; pixd is changed.
+ *      (2) This sets each pixel in pixd that co-locates with an ON
  *          pixel in pixm to the corresponding value of pixs.
- *      (2) Implementation: for 8 bpp selective masking, you might
- *          think that it would be faster to generate an 8 bpp
- *          version of pixm, using pixConvert1To8(pixm, 0, 255),
- *          and then use a general combine operation
+ *      (3) pixs and pixd must be the same depth and not colormapped.
+ *      (4) All three input pix are aligned at the UL corner, and the
+ *          operation is clipped to the intersection of all three images.
+ *      (5) If pixm == NULL, it's a no-op.
+ *      (6) Implementation: see notes in pixCombineMaskedGeneral().
+ *          For 8 bpp selective masking, you might guess that it
+ *          would be faster to generate an 8 bpp version of pixm,
+ *          using pixConvert1To8(pixm, 0, 255), and then use a
+ *          general combine operation
  *               d = (d & ~m) | (s & m)
  *          on a word-by-word basis.  Not always.  The word-by-word
  *          combine takes a time that is independent of the mask data.
@@ -312,59 +318,73 @@ pixCombineMasked(PIX  *pixd,
                  PIX  *pixs,
                  PIX  *pixm)
 {
-l_uint8    val;
-l_int32    d, w, wd, wm, h, hd, hm, wpld, wpls, wplm, i, j;
-l_uint32  *datad, *datas, *datam, *lined, *lines, *linem;
+l_int32    w, h, d, ws, hs, ds, wm, hm, dm, wmin, hmin;
+l_int32    wpl, wpls, wplm, i, j, val;
+l_uint32  *data, *datas, *datam, *line, *lines, *linem;
+PIX       *pixt;
 
     PROCNAME("pixCombineMasked");
 
-    if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
     if (!pixm)  /* nothing to do */
         return 0;
+    if (!pixd)
+        return ERROR_INT("pixd not defined", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-
-    d = pixGetDepth(pixd);
-    if (d != 8 && d != 32)
-        return ERROR_INT("pixd not 8 or 32 bpp", procName, 1);
-    if (pixGetDepth(pixm) != 1)
+    pixGetDimensions(pixd, &w, &h, &d);
+    pixGetDimensions(pixs, &ws, &hs, &ds);
+    pixGetDimensions(pixm, &wm, &hm, &dm);
+    if (d != ds)
+        return ERROR_INT("pixs and pixd depths differ", procName, 1);
+    if (dm != 1)
         return ERROR_INT("pixm not 1 bpp", procName, 1);
-    if (!pixSizesEqual(pixd, pixs))
-        return ERROR_INT("pixs and pixd sizes differ", procName, 1);
+    if (d != 1 && d != 8 && d != 32)
+        return ERROR_INT("pixd not 1, 8 or 32 bpp", procName, 1);
+    if (pixGetColormap(pixd) || pixGetColormap(pixs))
+        return ERROR_INT("pixs and/or pixd is cmapped", procName, 1);
 
-    pixGetDimensions(pixd, &wd, &hd, NULL);
-    pixGetDimensions(pixm, &wm, &hm, NULL);
-    w = L_MIN(wd, wm);
-    h = L_MIN(hd, hm);
-    datad = pixGetData(pixd);
+        /* For d = 1, use rasterop.  pixt is the part from pixs, under
+         * the fg of pixm, that is to be combined with pixd.  We also
+         * use pixt to remove all fg of pixd that is under the fg of pixm.
+         * Then pixt and pixd are combined by ORing. */
+    wmin = L_MIN(w, L_MIN(ws, wm));
+    hmin = L_MIN(h, L_MIN(hs, hm));
+    if (d == 1) {
+        pixt = pixAnd(NULL, pixs, pixm);
+        pixRasterop(pixd, 0, 0, wmin, hmin, PIX_DST & PIX_NOT(PIX_SRC),
+                    pixm, 0, 0);
+        pixRasterop(pixd, 0, 0, wmin, hmin, PIX_SRC | PIX_DST, pixt, 0, 0);
+        pixDestroy(&pixt);
+        return 0;
+    }
+
+    data = pixGetData(pixd);
     datas = pixGetData(pixs);
     datam = pixGetData(pixm);
-    wpld = pixGetWpl(pixd);
+    wpl = pixGetWpl(pixd);
     wpls = pixGetWpl(pixs);
     wplm = pixGetWpl(pixm);
-
     if (d == 8) {
-        for (i = 0; i < h; i++) {
-            lined = datad + i * wpld;
+        for (i = 0; i < hmin; i++) {
+            line = data + i * wpl;
             lines = datas + i * wpls;
             linem = datam + i * wplm;
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < wmin; j++) {
                 if (GET_DATA_BIT(linem, j)) {
                    val = GET_DATA_BYTE(lines, j);
-                   SET_DATA_BYTE(lined, j, val);
+                   SET_DATA_BYTE(line, j, val);
                 }
             }
         }
     }
     else {  /* d == 32 */
-        for (i = 0; i < h; i++) {
-            lined = datad + i * wpld;
+        for (i = 0; i < hmin; i++) {
+            line = data + i * wpl;
             lines = datas + i * wpls;
             linem = datam + i * wplm;
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < wmin; j++) {
                 if (GET_DATA_BIT(linem, j))
-                   lined[j] = lines[j];
+                   line[j] = lines[j];
             }
         }
     }
@@ -372,6 +392,126 @@ l_uint32  *datad, *datas, *datam, *lined, *lines, *linem;
     return 0;
 }
 
+
+/*!
+ *  pixCombineMaskedGeneral()
+ *
+ *      Input:  pixd (1 bpp, 8 bpp gray or 32 bpp rgb)
+ *              pixs (1 bpp, 8 bpp gray or 32 bpp rgb)
+ *              pixm (<optional> 1 bpp mask)
+ *              x, y (origin of pixs and pixm relative to pixd; can be negative)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) In-place operation; pixd is changed.
+ *      (2) This is a generalized version of pixCombinedMasked(), where
+ *          the source and mask can be placed at the same (arbitrary)
+ *          location relative to pixd.
+ *      (3) pixs and pixd must be the same depth and not colormapped.
+ *      (4) The UL corners of both pixs and pixm are aligned with
+ *          the point (x, y) of pixd, and the operation is clipped to
+ *          the intersection of all three images.
+ *      (5) If pixm == NULL, it's a no-op.
+ *      (6) Implementation.  There are two ways to do these.  In the first,
+ *          we use rasterop, ORing the part of pixs under the mask
+ *          with pixd (which has been appropriately cleared there first).
+ *          In the second, the mask is used one pixel at a time to
+ *          selectively replace pixels of pixd with those of pixs.
+ *          Here, we use rasterop for 1 bpp and pixel-wise replacement
+ *          for 8 and 32 bpp.  To use rasterop for 8 bpp, for example,
+ *          we must first generate an 8 bpp version of the mask.
+ *          The code is simple:
+ *
+ *             Pix *pixm8 = pixConvert1To8(NULL, pixm, 0, 255);
+ *             Pix *pixt = pixAnd(NULL, pixs, pixm8);
+ *             pixRasterop(pixd, x, y, wmin, hmin, PIX_DST & PIX_NOT(PIX_SRC),
+ *                         pixm8, 0, 0);
+ *             pixRasterop(pixd, x, y, wmin, hmin, PIX_SRC | PIX_DST,
+ *                         pixt, 0, 0);
+ *             pixDestroy(&pixt);
+ *             pixDestroy(&pixm8);
+ */
+l_int32
+pixCombineMaskedGeneral(PIX      *pixd,
+                        PIX      *pixs,
+                        PIX      *pixm,
+                        l_int32   x,
+                        l_int32   y)
+{
+l_int32    d, w, h, ws, hs, ds, wm, hm, dm, wmin, hmin;
+l_int32    wpl, wpls, wplm, i, j, val;
+l_uint32  *data, *datas, *datam, *line, *lines, *linem;
+PIX       *pixt;
+
+    PROCNAME("pixCombineMaskedGeneral");
+
+    if (!pixm)  /* nothing to do */
+        return 0;
+    if (!pixd)
+        return ERROR_INT("pixd not defined", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixd, &w, &h, &d);
+    pixGetDimensions(pixs, &ws, &hs, &ds);
+    pixGetDimensions(pixm, &wm, &hm, &dm);
+    if (d != ds)
+        return ERROR_INT("pixs and pixd depths differ", procName, 1);
+    if (dm != 1)
+        return ERROR_INT("pixm not 1 bpp", procName, 1);
+    if (d != 1 && d != 8 && d != 32)
+        return ERROR_INT("pixd not 1, 8 or 32 bpp", procName, 1);
+    if (pixGetColormap(pixd) || pixGetColormap(pixs))
+        return ERROR_INT("pixs and/or pixd is cmapped", procName, 1);
+
+        /* For d = 1, use rasterop.  pixt is the part from pixs, under
+         * the fg of pixm, that is to be combined with pixd.  We also
+         * use pixt to remove all fg of pixd that is under the fg of pixm.
+         * Then pixt and pixd are combined by ORing. */
+    wmin = L_MIN(ws, wm);
+    hmin = L_MIN(hs, hm);
+    if (d == 1) {
+        pixt = pixAnd(NULL, pixs, pixm);
+        pixRasterop(pixd, x, y, wmin, hmin, PIX_DST & PIX_NOT(PIX_SRC),
+                    pixm, 0, 0);
+        pixRasterop(pixd, x, y, wmin, hmin, PIX_SRC | PIX_DST, pixt, 0, 0);
+        pixDestroy(&pixt);
+        return 0;
+    }
+
+    wpl = pixGetWpl(pixd);
+    data = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    datas = pixGetData(pixs);
+    wplm = pixGetWpl(pixm);
+    datam = pixGetData(pixm);
+
+    for (i = 0; i < hmin; i++) {
+        if (y + i < 0 || y + i >= h) continue;
+        line = data + (y + i) * wpl;
+        lines = datas + i * wpls;
+        linem = datam + i * wplm;
+        for (j = 0; j < wmin; j++) {
+            if (x + j < 0 || x + j >= w) continue;
+            if (GET_DATA_BIT(linem, j)) {
+                switch (d)
+                {
+                case 8:
+                    val = GET_DATA_BYTE(lines, j);
+                    SET_DATA_BYTE(line, x + j, val);
+                    break;
+                case 32:
+                    *(line + x + j) = *(lines + j);
+                    break;
+                default:
+                    return ERROR_INT("shouldn't get here", procName, 1);
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+    
 
 /*!
  *  pixPaintThroughMask()
@@ -522,94 +662,6 @@ l_uint32  *data, *datam, *line, *linem;
     
 
 /*!
- *  pixCombineThroughMask()
- *
- *      Input:  pixd (8 bpp gray or 32 bpp rgb)
- *              pixs (8 bpp gray or 32 bpp rgb)
- *              pixm (<optional> 1 bpp mask)
- *              x, y (origin of pixs and pixm relative to pixd; can be negative)
- *      Return: 0 if OK; 1 on error
- *
- *  Notes:
- *      (1) In-place operation; pixd is changed.
- *      (2) This is a general version of pixCombinedMasked(), where
- *          the source and mask can be placed at the same (arbitrary)
- *          location relative to pixd.
- *      (3) pixs and pixd must be the same depth and not colormapped.
- *      (4) The UL corners of both pixs and pixm are aligned with
- *          the point (x, y) of pixd, and the operation is clipped to
- *          the intersection of all three images.
- *      (5) If pixm == NULL, it's a no-op.
- */
-l_int32
-pixCombineThroughMask(PIX      *pixd,
-                      PIX      *pixs,
-                      PIX      *pixm,
-                      l_int32   x,
-                      l_int32   y)
-{
-l_int32    d, w, h, ws, hs, ds, wm, hm, dm, wmin, hmin;
-l_int32    wpl, wpls, wplm, i, j, val;
-l_uint32  *data, *datas, *datam, *line, *lines, *linem;
-
-    PROCNAME("pixCombineThroughMask");
-
-    if (!pixm)  /* nothing to do */
-        return 0;
-    if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    pixGetDimensions(pixd, &w, &h, &d);
-    pixGetDimensions(pixs, &ws, &hs, &ds);
-    pixGetDimensions(pixm, &wm, &hm, &dm);
-    if (d != ds)
-        return ERROR_INT("pixs and pixd depths differ", procName, 1);
-    if (dm != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
-    if (d != 8 && d != 32)
-        return ERROR_INT("pixd not 8 or 32 bpp", procName, 1);
-    if (pixGetColormap(pixd) || pixGetColormap(pixs))
-        return ERROR_INT("pixs and/or pixd is cmapped", procName, 1);
-
-    wpl = pixGetWpl(pixd);
-    data = pixGetData(pixd);
-    wpls = pixGetWpl(pixs);
-    datas = pixGetData(pixs);
-    wplm = pixGetWpl(pixm);
-    datam = pixGetData(pixm);
-    wmin = L_MIN(ws, wm);
-    hmin = L_MIN(hs, hm);
-
-    for (i = 0; i < hmin; i++) {
-        if (y + i < 0 || y + i >= h) continue;
-        line = data + (y + i) * wpl;
-        lines = datas + i * wpls;
-        linem = datam + i * wplm;
-        for (j = 0; j < wmin; j++) {
-            if (x + j < 0 || x + j >= w) continue;
-            if (GET_DATA_BIT(linem, j)) {
-                switch (d)
-                {
-                case 8:
-                    val = GET_DATA_BYTE(lines, j);
-                    SET_DATA_BYTE(line, x + j, val);
-                    break;
-                case 32:
-                    *(line + x + j) = *(lines + j);
-                    break;
-                default:
-                    return ERROR_INT("shouldn't get here", procName, 1);
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-    
-
-/*!
  *  pixPaintSelfThroughMask()
  *
  *      Input:  pixd (8 bpp gray or 32 bpp rgb; not colormapped)
@@ -726,7 +778,7 @@ PIXA     *pixa;
                          cctilesize, cctilesize);
         pixt = pixClipRectangle(pixd, boxt, NULL);
         pixc = pixMirroredTiling(pixt, bw, bh);
-        pixCombineThroughMask(pixd, pixc, pix, bx, by);
+        pixCombineMaskedGeneral(pixd, pixc, pix, bx, by);
         pixDestroy(&pix);
         pixDestroy(&pixt);
         pixDestroy(&pixc);
@@ -789,8 +841,8 @@ pixInvert(PIX  *pixd,
  *      Input:  pixd  (<optional>; this can be null, equal to pixs1,
  *                     different from pixs1)
  *              pixs1 (can be == pixd)
- *              pixs2
- *      Return: pixd, or null on error
+ *              pixs2 (must be != pixd)
+ *      Return: pixd always
  *
  *  Notes:
  *      (1) This gives the union of two images with equal depth,
@@ -805,7 +857,8 @@ pixInvert(PIX  *pixd,
  *            (b) pixOr(pixs1, pixs1, pixs2);
  *            (c) pixOr(pixd, pixs1, pixs2);
  *      (4) The size of the result is determined by pixs1.
- *      (5) Note carefully that the order of pixs1 and pixs2 only matters
+ *      (5) The depths of pixs1 and pixs2 must be equal.
+ *      (6) Note carefully that the order of pixs1 and pixs2 only matters
  *          for the in-place case.  For in-place, you must have
  *          pixd == pixs1.  Setting pixd == pixs2 gives an incorrect
  *          result: the copy puts pixs1 image data in pixs2, and
@@ -819,9 +872,13 @@ pixOr(PIX  *pixd,
     PROCNAME("pixOr");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
+    if (pixd == pixs2)
+        return (PIX *)ERROR_PTR("cannot have pixs2 == pixd", procName, pixd);
+    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
+        return (PIX *)ERROR_PTR("depths of pixs* unequal", procName, pixd);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))
@@ -830,7 +887,7 @@ pixOr(PIX  *pixd,
 
         /* Prepare pixd to be a copy of pixs1 */
     if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
 
         /* src1 | src2 --> dest */
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd),
@@ -846,8 +903,8 @@ pixOr(PIX  *pixd,
  *      Input:  pixd  (<optional>; this can be null, equal to pixs1,
  *                     different from pixs1)
  *              pixs1 (can be == pixd)
- *              pixs2
- *      Return: pixd, or null on error
+ *              pixs2 (must be != pixd)
+ *      Return: pixd always
  *
  *  Notes:
  *      (1) This gives the intersection of two images with equal depth,
@@ -862,7 +919,8 @@ pixOr(PIX  *pixd,
  *            (b) pixAnd(pixs1, pixs1, pixs2);
  *            (c) pixAnd(pixd, pixs1, pixs2);
  *      (4) The size of the result is determined by pixs1.
- *      (5) Note carefully that the order of pixs1 and pixs2 only matters
+ *      (5) The depths of pixs1 and pixs2 must be equal.
+ *      (6) Note carefully that the order of pixs1 and pixs2 only matters
  *          for the in-place case.  For in-place, you must have
  *          pixd == pixs1.  Setting pixd == pixs2 gives an incorrect
  *          result: the copy puts pixs1 image data in pixs2, and
@@ -876,9 +934,13 @@ pixAnd(PIX  *pixd,
     PROCNAME("pixAnd");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
+    if (pixd == pixs2)
+        return (PIX *)ERROR_PTR("cannot have pixs2 == pixd", procName, pixd);
+    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
+        return (PIX *)ERROR_PTR("depths of pixs* unequal", procName, pixd);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))
@@ -887,7 +949,7 @@ pixAnd(PIX  *pixd,
 
         /* Prepare pixd to be a copy of pixs1 */
     if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
 
         /* src1 & src2 --> dest */
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd),
@@ -903,8 +965,8 @@ pixAnd(PIX  *pixd,
  *      Input:  pixd  (<optional>; this can be null, equal to pixs1,
  *                     different from pixs1)
  *              pixs1 (can be == pixd)
- *              pixs2
- *      Return: pixd, or null on error
+ *              pixs2 (must be != pixd)
+ *      Return: pixd always
  *
  *  Notes:
  *      (1) This gives the XOR of two images with equal depth,
@@ -919,7 +981,8 @@ pixAnd(PIX  *pixd,
  *            (b) pixXor(pixs1, pixs1, pixs2);
  *            (c) pixXor(pixd, pixs1, pixs2);
  *      (4) The size of the result is determined by pixs1.
- *      (5) Note carefully that the order of pixs1 and pixs2 only matters
+ *      (5) The depths of pixs1 and pixs2 must be equal.
+ *      (6) Note carefully that the order of pixs1 and pixs2 only matters
  *          for the in-place case.  For in-place, you must have
  *          pixd == pixs1.  Setting pixd == pixs2 gives an incorrect
  *          result: the copy puts pixs1 image data in pixs2, and
@@ -933,9 +996,13 @@ pixXor(PIX  *pixd,
     PROCNAME("pixXor");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
+    if (pixd == pixs2)
+        return (PIX *)ERROR_PTR("cannot have pixs2 == pixd", procName, pixd);
+    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
+        return (PIX *)ERROR_PTR("depths of pixs* unequal", procName, pixd);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))
@@ -944,7 +1011,7 @@ pixXor(PIX  *pixd,
 
         /* Prepare pixd to be a copy of pixs1 */
     if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
 
         /* src1 ^ src2 --> dest */
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd),
@@ -961,7 +1028,7 @@ pixXor(PIX  *pixd,
  *                     equal to pixs2, or different from both pixs1 and pixs2)
  *              pixs1 (can be == pixd)
  *              pixs2 (can be == pixd)
- *      Return: pixd, or null on error
+ *      Return: pixd always
  *
  *  Notes:
  *      (1) This gives the set subtraction of two images with equal depth,
@@ -982,6 +1049,7 @@ pixXor(PIX  *pixd,
  *            (c) pixSubtract(pixs2, pixs1, pixs2);
  *            (d) pixSubtract(pixd, pixs1, pixs2);
  *      (5) The size of the result is determined by pixs1.
+ *      (6) The depths of pixs1 and pixs2 must be equal.
  */
 PIX *
 pixSubtract(PIX  *pixd,
@@ -993,9 +1061,11 @@ l_int32  w, h;
     PROCNAME("pixSubtract");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
+    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
+        return (PIX *)ERROR_PTR("depths of pixs* unequal", procName, pixd);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))

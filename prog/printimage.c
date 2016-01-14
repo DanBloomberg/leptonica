@@ -23,7 +23,7 @@
  *
  *   If neither a printer nor a number of copies is specified, the
  *   only action is that a new PostScript file,
- *          /usr/tmp/junk_print_image.ps
+ *          /tmp/junk_print_image.ps
  *   is generated for the image.
  *
  *   The PS file generated is level 1.  This is large, but is most
@@ -69,7 +69,7 @@ static char  mainName[] = "printimage";
         }
     }
 
-    system("rm -f /usr/tmp/junk_print_image.ps");
+    system("rm -f /tmp/junk_print_image.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
@@ -84,21 +84,21 @@ static char  mainName[] = "printimage";
     else
         pixt = pixClone(pixs);
     scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
-    fp = fopen("/usr/tmp/junk_print_image.ps", "wb+");
+    fp = fopen("/tmp/junk_print_image.ps", "wb+");
     pixWriteStreamPS(fp, pixt, NULL, 300, scale);
     fclose(fp);
 
         /* print it out */
     if (argp && !argn) {
-        sprintf(buffer, "lpr %s /usr/tmp/junk_print_image.ps &", argp);
+        sprintf(buffer, "lpr %s /tmp/junk_print_image.ps &", argp);
         system(buffer);
     }
     else if (!argp && argn) {
-        sprintf(buffer, "lpr %s /usr/tmp/junk_print_image.ps &", argn);
+        sprintf(buffer, "lpr %s /tmp/junk_print_image.ps &", argn);
         system(buffer);
     }
     else if (argp && argn) {
-        sprintf(buffer, "lpr %s %s /usr/tmp/junk_print_image.ps &",
+        sprintf(buffer, "lpr %s %s /tmp/junk_print_image.ps &",
                 argp, argn);
         system(buffer);
     }

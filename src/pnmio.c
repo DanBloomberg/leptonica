@@ -206,10 +206,13 @@ PIX       *pix;
  *              pix
  *      Return: 0 if OK; 1 on error
  *
- *  Writes "raw" packed format only:
- *      1 bpp --> pbm (P4)
- *      2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm (P5)
- *      2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm (P6)
+ *  Notes:
+ *      (1) This writes "raw" packed format only:
+ *          1 bpp --> pbm (P4)
+ *          2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm (P5)
+ *          2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm (P6)
+ *      (2) 24 bpp rgb are not supported in leptonica, but this will
+ *          write them out as a packed array of bytes (3 to a pixel).
  */
 l_int32
 pixWriteStreamPnm(FILE  *fp,
@@ -228,8 +231,8 @@ PIX       *pixs;
         return ERROR_INT("pix not defined", procName, 1);
 
     pixGetDimensions(pix, &w, &h, &d);
-    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-        return ERROR_INT("d not in {1,2,4,8,16,32}", procName, 1);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 24 && d != 32)
+        return ERROR_INT("d not in {1,2,4,8,16,24,32}", procName, 1);
 
         /* If a colormap exists, remove and convert to grayscale or rgb */
     if (pixGetColormap(pix) != NULL)
@@ -268,15 +271,23 @@ PIX       *pixs;
     else {  /* rgb color */
         fprintf(fp, "P6\n# Raw PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
 
-        for (i = 0; i < h; i++) {
-            lines = datas + i * wpls;
-            for (j = 0; j < wpls; j++) {
-                rval = GET_DATA_BYTE(lines + j, COLOR_RED);
-                gval = GET_DATA_BYTE(lines + j, COLOR_GREEN);
-                bval = GET_DATA_BYTE(lines + j, COLOR_BLUE);
-                fwrite(&rval, 1, 1, fp);
-                fwrite(&gval, 1, 1, fp);
-                fwrite(&bval, 1, 1, fp);
+        if (d == 24) {   /* packed, 3 bytes to a pixel */
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                fwrite(lines, 1, 3 * w, fp);  /* write the raster line */
+            }
+        }
+        else {  /* 32 bpp rgb */
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                for (j = 0; j < wpls; j++) {
+                    rval = GET_DATA_BYTE(lines + j, COLOR_RED);
+                    gval = GET_DATA_BYTE(lines + j, COLOR_GREEN);
+                    bval = GET_DATA_BYTE(lines + j, COLOR_BLUE);
+                    fwrite(&rval, 1, 1, fp);
+                    fwrite(&gval, 1, 1, fp);
+                    fwrite(&bval, 1, 1, fp);
+                }
             }
         }
     }
@@ -586,4 +597,3 @@ l_int32  c;
 /* --------------------------------------------*/
 #endif  /* USE_PNMIO */
 /* --------------------------------------------*/
-

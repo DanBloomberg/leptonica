@@ -331,8 +331,11 @@ HANDLE            hFind = INVALID_HANDLE_VALUE;
         return (SARRAY *)ERROR_PTR("hFind not opened", procName, NULL);
     }
 
-    while (FindNextFileA(hFind, &ffd) != 0)
+    while (FindNextFileA(hFind, &ffd) != 0) {
+        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)  /* skip dirs */
+            continue;
         sarrayAddString(safiles, ffd.cFileName, L_COPY);
+    }
 
     FindClose(hFind);
     return safiles;

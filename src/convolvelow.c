@@ -62,6 +62,14 @@
  *          lines.
  *      (5) The caller should verify that wc < w and hc < h.
  *          Under those conditions, illegal reads and writes can occur.
+ *      (6) Implementation note: it is important to add 0.5 for
+ *          roundoff in the main loop that runs over all pixels.
+ *          However, no roundoff can be added for the subsequent loops
+ *          that renormalize pixel values within a filter half-width
+ *          of the image edge.  To do so results in effectively adding
+ *          the factor twice, and with white (255) pixels along any of
+ *          the four edges, this will overflow the value to 0, resulting
+ *          in one-pixel-wide black lines along the image boundary!
  */
 void
 blockconvLow(l_uint32  *data,
@@ -102,8 +110,8 @@ l_uint32  *linemina, *linemaxa, *line;
             jmin = L_MAX(j - 1 - wc, 0);
             jmax = L_MIN(j + wc, w - 1);
             val = linemaxa[jmax] - linemaxa[jmin]
-                  - linemina[jmax] + linemina[jmin];
-            val = (l_uint8)(norm * val);
+                  + linemina[jmin] - linemina[jmax];
+            val = (l_uint8)(norm * val + 0.5);
             SET_DATA_BYTE(line, j, val);
         }
     }

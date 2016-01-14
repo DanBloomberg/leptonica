@@ -17,8 +17,8 @@
  * scaletest1.c
  *
  *      scaletest1 filein scalex scaley fileout
- *
- *         where scalex and scaley are floats
+ *    where
+ *      scalex, scaley are floating point input
  */
 
 #include <stdio.h>
@@ -48,11 +48,13 @@ static char  mainName[] = "scaletest1";
 	exit(ERROR_INT("pixs not made", mainName, 1));
 	    
         /* choose type of scaling operation */
-#if 0
+#if 1
     pixd = pixScale(pixs, scalex, scaley);
 #elif 0
+    pixd = pixScaleLI(pixs, scalex, scaley);
+#elif 0
     pixd = pixScaleSmooth(pixs, scalex, scaley);
-#elif 1
+#elif 0
     pixd = pixScaleAreaMap(pixs, scalex, scaley);
 #else
     pixd = pixScaleBySampling(pixs, scalex, scaley);
@@ -60,10 +62,14 @@ static char  mainName[] = "scaletest1";
 
     d = pixGetDepth(pixd);
 
+#if 1
     if (d == 1)
-	pixWrite(fileout, pixd, IFF_PNG);
+        pixWrite(fileout, pixd, IFF_PNG);
     else
-	pixWrite(fileout, pixd, IFF_JFIF_JPEG);
+        pixWrite(fileout, pixd, IFF_JFIF_JPEG);
+#else
+    pixWrite(fileout, pixd, IFF_PNG);
+#endif
 
     pixDestroy(&pixs);
     pixDestroy(&pixd);

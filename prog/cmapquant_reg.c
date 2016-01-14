@@ -88,7 +88,7 @@ static char  mainName[] = "cmapquant_reg";
     FREE(gtab);
     FREE(btab);
 
-    system("/usr/bin/gthumb junk_write_display* &");
+    system("gthumb junk_write_display* &");
 
     pixDestroy(&pixs);
     pixDestroy(&pixt1);

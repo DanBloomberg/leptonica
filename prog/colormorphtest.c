@@ -73,7 +73,7 @@ static char  mainName[] = "colormorphtest";
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
-    system("/usr/bin/gthumb junk_write_display* &");
+    system("gthumb junk_write_display* &");
 
     pixDestroy(&pixs);
     return 0;

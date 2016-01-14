@@ -74,7 +74,7 @@ static char  mainName[] = "distance_reg";
         }
     }
 
-    system("/usr/bin/gthumb junk_write_display* &");
+    system("gthumb junk_write_display* &");
 
     boxDestroy(&box);
     pixDestroy(&pix);

@@ -3334,6 +3334,7 @@ PIXCMAP   *cmapc;
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     cmapc = pixcmapCopy(cmap);
     pixSetColormap(pixd, cmapc);
+    pixCopyResolution(pixd, pixs);
 
         /* Insert the colormap index of the color nearest to the input pixel */
     datas = pixGetData(pixs);
@@ -3684,15 +3685,27 @@ PIXCMAP    *cmap, *cmapd;
  *
  *      Input:  pix (32 bpp)
  *              level (of octcube)
+ *              mincount (minimum num pixels in an octcube to be counted;
+ *                        -1 to not use)
+ *              minfract (minimum fract of pixels in an octcube to be
+ *                        counted; -1 to not use)
  *              &ncolors (<return> number of occupied octcubes)
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Exactly one of (@mincount, @minfract) must be -1, so, e.g.,
+ *          if @mincount == -1, then we use @minfract.
+ *      (2) If all occupied octcubes are to count, set @mincount == 1.
+ *          Setting @minfract == 0.0 is taken to mean the same thing.
  */
 l_int32
-pixNumberOccupiedOctcubes(PIX      *pix,
-                          l_int32   level,
-                          l_int32  *pncolors)
+pixNumberOccupiedOctcubes(PIX       *pix,
+                          l_int32    level,
+                          l_int32    mincount,
+                          l_float32  minfract,
+                          l_int32   *pncolors)
 {
-l_int32    i, j, w, h, wpl, ncolors, size, octindex;
+l_int32    i, j, w, h, d, wpl, ncolors, size, octindex;
 l_int32    rval, gval, bval;
 l_int32   *carray;
 l_uint32  *data, *line, *rtab, *gtab, *btab;
@@ -3704,10 +3717,17 @@ l_uint32  *data, *line, *rtab, *gtab, *btab;
     *pncolors = 0;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (pixGetDepth(pix) != 32)
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 32)
         return ERROR_INT("pix not 32 bpp", procName, 1);
     if (level < 1 || level > 6)
         return ERROR_INT("invalid level", procName, 1);
+    if ((mincount < 0 && minfract < 0) || (mincount >= 0.0 && minfract >= 0.0))
+        return ERROR_INT("invalid mincount/minfract", procName, 1);
+    if (mincount == 0 || minfract == 0.0)
+        mincount = 1;
+    else if (minfract > 0.0)
+        mincount = L_MIN(1, (l_int32)(minfract * w * h));
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
         return ERROR_INT("size not returned", procName, 1);
@@ -3717,7 +3737,6 @@ l_uint32  *data, *line, *rtab, *gtab, *btab;
         return ERROR_INT("carray not made", procName, 1);
 
         /* Mark the occupied octcube leaves */
-    pixGetDimensions(pix, &w, &h, NULL);
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
     for (i = 0; i < h; i++) {
@@ -3731,7 +3750,7 @@ l_uint32  *data, *line, *rtab, *gtab, *btab;
 
         /* Count them */
     for (i = 0, ncolors = 0; i < size; i++) {
-        if (carray[i] > 0)
+        if (carray[i] >= mincount)
             ncolors++;
     }
     *pncolors = ncolors;

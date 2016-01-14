@@ -675,7 +675,7 @@ PIX     *pixt;
         na = pixGetGrayHistogram(pixt, 1);
         numaGetNonzeroRange(na, TINY, &first, &last);
         nac = numaClipToInterval(na, 0, last);
-        gplot = gplotCreate("/usr/tmp/junkgrayroot", plottype, 
+        gplot = gplotCreate("/tmp/junkgrayroot", plottype, 
                             "Pixel Difference Histogram", "diff val",
                             "number of pixels");
         gplotAddPlot(gplot, NULL, nac, GPLOT_LINES, "gray");
@@ -791,7 +791,7 @@ PIX       *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2, *pixr, *pixg, *pixb;
         narc = numaClipToInterval(nar, 0, last);
         nagc = numaClipToInterval(nag, 0, last);
         nabc = numaClipToInterval(nab, 0, last);
-        gplot = gplotCreate("/usr/tmp/junkrgbroot", plottype, 
+        gplot = gplotCreate("/tmp/junkrgbroot", plottype, 
                             "Pixel Difference Histogram", "diff val",
                             "number of pixels");
         gplotAddPlot(gplot, NULL, narc, GPLOT_LINES, "red");

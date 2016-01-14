@@ -916,7 +916,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
     if (pnum1) nanum1 = numaCreate(n);
     if (pnum2) nanum2 = numaCreate(n);
     maxscore = 0.0;
-    for (i = 0; i < n - 1; i++) {
+    for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &val);
         num1 = num1prev + val;
         if (num1 == 0)

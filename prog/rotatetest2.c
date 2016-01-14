@@ -93,17 +93,17 @@ PIXCMAP  *cmap;
     }
 
     if (d == 1) {
-        pixWrite("/usr/tmp/junkbin1", pixd1, IFF_PNG);
-        pixWrite("/usr/tmp/junkbin2", pixd2, IFF_PNG);
+        pixWrite("/tmp/junkbin1", pixd1, IFF_PNG);
+        pixWrite("/tmp/junkbin2", pixd2, IFF_PNG);
     } else if (cmap) {
-        pixWrite("/usr/tmp/junkcmap1", pixd1, IFF_PNG);
-        pixWrite("/usr/tmp/junkcmap2", pixd2, IFF_PNG);
+        pixWrite("/tmp/junkcmap1", pixd1, IFF_PNG);
+        pixWrite("/tmp/junkcmap2", pixd2, IFF_PNG);
     } else if (d == 8) {
-        pixWrite("/usr/tmp/junkgray1", pixd1, IFF_JFIF_JPEG);
-        pixWrite("/usr/tmp/junkgray2", pixd2, IFF_JFIF_JPEG);
+        pixWrite("/tmp/junkgray1", pixd1, IFF_JFIF_JPEG);
+        pixWrite("/tmp/junkgray2", pixd2, IFF_JFIF_JPEG);
     } else if (d == 32) {
-        pixWrite("/usr/tmp/junkrgb1", pixd1, IFF_JFIF_JPEG);
-        pixWrite("/usr/tmp/junkrgb2", pixd2, IFF_JFIF_JPEG);
+        pixWrite("/tmp/junkrgb1", pixd1, IFF_JFIF_JPEG);
+        pixWrite("/tmp/junkrgb2", pixd2, IFF_JFIF_JPEG);
     }
 
     pixDestroy(&pixd1);

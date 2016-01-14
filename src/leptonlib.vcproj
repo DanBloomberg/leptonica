@@ -233,6 +233,10 @@
 				RelativePath=".\stack.h"
 				>
 			</File>
+			<File
+				RelativePath=".\watershed.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -251,6 +255,10 @@
 			</File>
 			<File
 				RelativePath=".\affine.c"
+				>
+			</File>
+			<File
+				RelativePath=".\affinecompose.c"
 				>
 			</File>
 			<File
@@ -310,7 +318,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\boxfunc.c"
+				RelativePath=".\boxfunc1.c"
+				>
+			</File>
+			<File
+				RelativePath=".\boxfunc2.c"
+				>
+			</File>
+			<File
+				RelativePath=".\boxfunc3.c"
 				>
 			</File>
 			<File
@@ -415,6 +431,14 @@
 			</File>
 			<File
 				RelativePath=".\fmorphgenlow.1.c"
+				>
+			</File>
+			<File
+				RelativePath=".\fpix1.c"
+				>
+			</File>
+			<File
+				RelativePath=".\fpix2.c"
 				>
 			</File>
 			<File
@@ -574,6 +598,9 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ptra.c"
+				>
+			<File
 				RelativePath=".\pts.c"
 				>
 			</File>
@@ -687,6 +714,14 @@
 			</File>
 			<File
 				RelativePath=".\viewfiles.c"
+				>
+			</File>
+			<File
+				RelativePath=".\warper.c"
+				>
+			</File>
+			<File
+				RelativePath=".\watershed.c"
 				>
 			</File>
 			<File

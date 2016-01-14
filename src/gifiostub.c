@@ -26,9 +26,9 @@
 #include "config_auto.h"
 #endif  /* HAVE_CONFIG_H */
 
-/* --------------------------------------------*/
-#if  !HAVE_LIBGIF   /* defined in environ.h */
-/* --------------------------------------------*/
+/* -----------------------------------------------------------------*/
+#if  (!HAVE_LIBGIF) && (!HAVE_LIBUNGIF)     /* defined in environ.h */
+/* -----------------------------------------------------------------*/
 
 PIX * pixReadStreamGif(FILE *fp)
 {
@@ -45,7 +45,7 @@ PIX * pixReadMemGif(const l_uint8 *cdata, size_t size)
     return (PIX *)ERROR_PTR("function not present", "pixReadMemGif", NULL);
 }
 
-/* --------------------------------------------*/
-#endif  /* !HAVE_LIBGIF */
-/* --------------------------------------------*/
+/* -----------------------------------------------------------------*/
+#endif      /* !HAVE_LIBGIF && !HAVE_LIBUNGIF */
+/* -----------------------------------------------------------------*/
 

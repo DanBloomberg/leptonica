@@ -56,8 +56,8 @@ static char   mainName[] = "converttogray";
 	    fprintf(stderr, "images are the same\n");
 	else
 	    fprintf(stderr, "images are different!\n");
-	pixWrite("/usr/tmp/junkpixt1", pixt1, IFF_PNG);
-	pixWrite("/usr/tmp/junkpixt2", pixt2, IFF_PNG);
+	pixWrite("/tmp/junkpixt1", pixt1, IFF_PNG);
+	pixWrite("/tmp/junkpixt2", pixt2, IFF_PNG);
 	pixDestroy(&pixt1);
 	pixDestroy(&pixt2);
 	pixSetColormap(pixs, NULL);
@@ -68,8 +68,8 @@ static char   mainName[] = "converttogray";
 	    fprintf(stderr, "images are the same\n");
 	else
 	    fprintf(stderr, "images are different!\n");
-	pixWrite("/usr/tmp/junkpixt3", pixt3, IFF_PNG);
-	pixWrite("/usr/tmp/junkpixt4", pixt4, IFF_PNG);
+	pixWrite("/tmp/junkpixt3", pixt3, IFF_PNG);
+	pixWrite("/tmp/junkpixt4", pixt4, IFF_PNG);
 	pixDestroy(&pixt3);
 	pixDestroy(&pixt4);
     }
@@ -81,8 +81,8 @@ static char   mainName[] = "converttogray";
 	    fprintf(stderr, "images are the same\n");
 	else
 	    fprintf(stderr, "images are different!\n");
-	pixWrite("/usr/tmp/junkpixt1", pixt1, IFF_PNG);
-	pixWrite("/usr/tmp/junkpixt2", pixt2, IFF_PNG);
+	pixWrite("/tmp/junkpixt1", pixt1, IFF_PNG);
+	pixWrite("/tmp/junkpixt2", pixt2, IFF_PNG);
 	pixDestroy(&pixt1);
 	pixDestroy(&pixt2);
 	pixSetColormap(pixs, NULL);
@@ -93,8 +93,8 @@ static char   mainName[] = "converttogray";
 	    fprintf(stderr, "images are the same\n");
 	else
 	    fprintf(stderr, "images are different!\n");
-	pixWrite("/usr/tmp/junkpixt3", pixt3, IFF_PNG);
-	pixWrite("/usr/tmp/junkpixt4", pixt4, IFF_PNG);
+	pixWrite("/tmp/junkpixt3", pixt3, IFF_PNG);
+	pixWrite("/tmp/junkpixt4", pixt4, IFF_PNG);
 	pixDestroy(&pixt3);
 	pixDestroy(&pixt4);
     }

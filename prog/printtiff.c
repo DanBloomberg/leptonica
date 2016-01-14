@@ -21,18 +21,18 @@
  *   Prints a multipage tiff file to a printer.  If the tiff is
  *   at standard fax resolution, it expands the vertical size
  *   by a factor of two before encapsulating in ccittg4 encoded
- *   PostScript.  The PostScript file is left in /usr/tmp/, and
+ *   PostScript.  The PostScript file is left in /tmp, and
  *   erased (deleted, removed, unlinked) on the next invocation.
  *
  *   If the printer is not specified, this just writes the PostScript
- *   file into /usr/tmp/.
+ *   file into /tmp.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define   TEMP_PS       "/usr/tmp/junk_printtiff.ps"
+#define   TEMP_PS       "/tmp/junk_printtiff.ps"
 #define   FILL_FACTOR   0.95
 
 main(int    argc,

@@ -66,7 +66,7 @@ static char  mainName[] = "findpattern3";
         /* Display the sel */
     pixsel = pixDisplayHitMissSel(pixp, selhm, 7, HitColor, MissColor);
     pixDisplay(pixsel, 200, 200);
-    pixWrite("/usr/tmp/junkpixsel1", pixsel, IFF_PNG);
+    pixWrite("/tmp/junkpixsel1", pixsel, IFF_PNG);
 
         /* Use the Sel to find all instances in the page */
     startTimer();
@@ -112,7 +112,7 @@ static char  mainName[] = "findpattern3";
         /* Display the sel */
     pixsel = pixDisplayHitMissSel(pixp, selhm, 7, HitColor, MissColor);
     pixDisplay(pixsel, 200, 200);
-    pixWrite("/usr/tmp/junkpixsel2", pixsel, IFF_PNG);
+    pixWrite("/tmp/junkpixsel2", pixsel, IFF_PNG);
 
         /* Use the Sel to find all instances in the page */
     startTimer();

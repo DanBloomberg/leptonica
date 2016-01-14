@@ -318,7 +318,7 @@ PTA       *ptas, *ptad;
         return (PIX *)ERROR_PTR("transform pts not found", procName, NULL);
 
         /* Use a projective transform */
-    pixd = pixProjectiveSampled(pixs, ptad, ptas, L_BRING_IN_WHITE); 
+    pixd = pixProjectiveSampledPta(pixs, ptad, ptas, L_BRING_IN_WHITE); 
 
     ptaDestroy(&ptas);
     ptaDestroy(&ptad);

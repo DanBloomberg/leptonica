@@ -31,6 +31,7 @@
  *     Information about tiff file
  *             l_int32    fprintTiffInfo()
  *             l_int32    tiffGetCount()
+ *      static l_int32    tiffGetResolution()
  *             l_int32    readHeaderTiff()
  *             l_int32    freadHeaderTiff()
  *             l_int32    readHeaderMemTiff()
@@ -82,18 +83,19 @@ static const l_int32  MAX_PAGES_IN_TIFF_FILE = 3000;  /* should be enough */
 
 
     /* All functions with TIFF interfaces are static. */
-static PIX       *pixReadFromTiffStream(TIFF *tif);
-static l_int32    tiffReadHeaderTiff(TIFF *tif, l_int32 *pwidth,
-                                     l_int32 *pheight, l_int32 *pbps,
-                                     l_int32 *pspp, l_int32 *pres,
-                                     l_int32 *pcmap);
-static l_int32    writeCustomTiffTags(TIFF *tif, NUMA *natags,
-                                      SARRAY *savals, SARRAY  *satypes,
-                                      NUMA *nasizes);
-static l_int32    pixWriteToTiffStream(TIFF *tif, PIX *pix, l_int32 comptype,
-                                       NUMA *natags, SARRAY *savals,
-                                       SARRAY *satypes, NUMA *nasizes);
-static TIFF      *fopenTiff(FILE *fp, const char *modestr); 
+static PIX      *pixReadFromTiffStream(TIFF *tif);
+static l_int32   tiffGetResolution(TIFF *tif, l_uint32 *pxres, l_uint32 *pyres);
+static l_int32   tiffReadHeaderTiff(TIFF *tif, l_int32 *pwidth,
+                                    l_int32 *pheight, l_int32 *pbps,
+                                    l_int32 *pspp, l_int32 *pres,
+                                    l_int32 *pcmap);
+static l_int32   writeCustomTiffTags(TIFF *tif, NUMA *natags,
+                                     SARRAY *savals, SARRAY  *satypes,
+                                     NUMA *nasizes);
+static l_int32   pixWriteToTiffStream(TIFF *tif, PIX *pix, l_int32 comptype,
+                                      NUMA *natags, SARRAY *savals,
+                                      SARRAY *satypes, NUMA *nasizes);
+static TIFF     *fopenTiff(FILE *fp, const char *modestr); 
 
     /* Static function for memory I/O */
 static TIFF *fopenTiffMemstream(const char *filename, const char *operation,
@@ -239,9 +241,8 @@ l_uint8   *linebuf, *data;
 l_uint16   spp, bps, bpp, tiffbpl, photometry, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, i, j, k, ncolors;
-l_uint32   w, h, res;
+l_uint32   w, h, xres, yres;
 l_uint32  *line, *ppixel;
-l_float32  fres;
 PIX       *pix;
 PIXCMAP   *cmap;
 
@@ -312,13 +313,9 @@ PIXCMAP   *cmap;
         }
     }
 
-    if (TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fres)) {
-        res = (l_uint32)fres;
-        pixSetXRes(pix, res);
-    }
-    if (TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fres)) {
-        res = (l_uint32)fres;
-        pixSetYRes(pix, res);
+    if (tiffGetResolution(tif, &xres, &yres)) {
+        pixSetXRes(pix, xres);
+        pixSetYRes(pix, yres);
     }
 
     if (TIFFGetField(tif, TIFFTAG_COLORMAP, &redmap, &greenmap, &bluemap)) {
@@ -922,6 +919,59 @@ TIFF    *tif;
 
 
 /*--------------------------------------------------------------*
+ *                   Get resolution from tif                    *
+ *--------------------------------------------------------------*/
+/*
+ *  tiffGetResolution()
+ * 
+ *      Input:  tiff stream (opened for read)
+ *              &xres, &yres (<return> resolution in ppi)
+ *      Return: 1 if OK; 0 on error   (nonstandard)
+ *
+ *  Notes:
+ *      (1) If neither resolution field is set, this is not an error;
+ *          the returned resolution values are 0 (designating 'unknown').
+ */
+static l_int32
+tiffGetResolution(TIFF      *tif,
+                  l_uint32  *pxres,
+                  l_uint32  *pyres)
+{
+l_uint16   resunit;
+l_int32    foundxres, foundyres;
+l_float32  fxres, fyres;
+
+    PROCNAME("tiffGetResolution");
+
+    if (!tif)
+        return ERROR_INT("tif not opened", procName, 0);
+    if (!pxres || !pyres)
+        return ERROR_INT("&xres and &yres not both defined", procName, 0);
+    *pxres = *pyres = 0;
+
+    TIFFGetFieldDefaulted(tif, TIFFTAG_RESOLUTIONUNIT, &resunit);
+    foundxres = TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fxres);
+    foundyres = TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fyres);
+    if (!foundxres && !foundyres) return 1;
+    if (!foundxres && foundyres)
+        fxres = fyres;
+    else if (foundxres && !foundyres)
+        fyres = fxres;
+
+    if (resunit == RESUNIT_CENTIMETER) {  /* convert to ppi */
+        *pxres = (l_uint32)(2.54 * fxres + 0.5);
+        *pyres = (l_uint32)(2.54 * fyres + 0.5);
+    }
+    else {
+        *pxres = (l_uint32)fxres;
+        *pyres = (l_uint32)fyres;
+    }
+
+    return 1;
+}
+
+
+/*--------------------------------------------------------------*
  *              Get some tiff header information                *
  *--------------------------------------------------------------*/
 /*!
@@ -1120,8 +1170,7 @@ tiffReadHeaderTiff(TIFF     *tif,
 {
 l_uint16   bps, spp;
 l_uint16  *rmap, *gmap, *bmap;
-l_uint32   w, h;
-l_float32  fres;
+l_uint32   w, h, xres, yres;
 
     PROCNAME("tiffReadHeaderTiff");
 
@@ -1138,9 +1187,9 @@ l_float32  fres;
     *pspp = spp;
 
     if (pres) {
-        *pres = 300;
-        if (TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fres))
-            *pres = (l_int32)fres;
+        *pres = 300;  /* default ppi */
+        if (tiffGetResolution(tif, &xres, &yres))
+            *pres = (l_int32)xres;
     }
             
     if (pcmap) {

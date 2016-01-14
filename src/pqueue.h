@@ -41,16 +41,21 @@
  *      is at the beginning of the array.
  *      If the array becomes more than 3/4 full, it doubles in size.
  *
+ *      The auxiliary stack can be used in a wrapper for re-using
+ *      items popped from the queue.  It is not made by default.
+ *
  *      For further implementation details, see pqueue.c.
  */
 
 struct PQueue
 {
-    l_int32      nalloc;      /* size of allocated ptr array            */
-    l_int32      nhead;       /* location of head (in ptrs) from the    */
-                              /* beginning of the array                 */
-    l_int32      nelem;       /* number of elements stored in the queue */
-    void       **array;       /* ptr array                              */
+    l_int32         nalloc;     /* size of allocated ptr array            */
+    l_int32         nhead;      /* location of head (in ptrs) from the    */
+                                /* beginning of the array                 */
+    l_int32         nelem;      /* number of elements stored in the queue */
+    void          **array;      /* ptr array                              */
+    struct PStack  *stack;      /* auxiliary stack                        */
+
 };
 typedef struct PQueue PQUEUE;
 

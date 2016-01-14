@@ -28,6 +28,10 @@
  *      Finds the fraction of pixels with "color" that are not close to black
  *         l_int32    pixColorFraction()
  *
+ *      Finds the number of perceptually significant gray intensities
+ *      in a grayscale image.
+ *         l_int32    pixNumSignificantGrayColors()
+ *
  *      Identifies images where color quantization will cause posterization
  *      due to the existence of many colors in low-gradient regions.
  *         l_int32    pixColorsForQuantization()
@@ -440,12 +444,18 @@ PIXCMAP   *cmap;
  *      (4) The very lightest pixels are removed because if an image
  *          has a lot of "white", the color fraction will be artificially
  *          low, even if all the other pixels are colorful.
- *      (5) If either pixfract or colorfract is very small, this
- *          indicates an image with little or no color.
+ *      (5) If pixfract is very small, there are few pixels that are neither
+ *          black nor white.  If colorfract is very small, the pixels
+ *          that are neither black nor white have very little color
+ *          content.  The product 'pixfract * colorfract' gives the
+ *          fraction of pixels with significant color content.
  *      (6) One use of this function is as a preprocessing step for median
  *          cut quantization (colorquant2.c), which does a very poor job
  *          splitting the color space into rectangular volume elements when
- *          all the pixels are near the diagonal of the color cube.
+ *          all the pixels are near the diagonal of the color cube.  For
+ *          octree quantization of an image with only gray values, the
+ *          2^(level) octcubes on the diagonal are the only ones
+ *          that can be occupied.
  */
 l_int32
 pixColorFraction(PIX        *pixs,
@@ -506,56 +516,150 @@ l_uint32  *data, *line;
 
 
 /*!
+ *  pixNumSignificantGrayColors()
+ *
+ *      Input:  pixs  (8 bpp gray)
+ *              darkthresh (dark threshold for minimum intensity to be
+ *                          considered; typ. 20)
+ *              lightthresh (threshold near white, for maximum intensity
+ *                           to be considered; typ. 236)
+ *              minfract (minimum fraction of all pixels to include a level
+ *                        as significant; typ. 0.0001)
+ *              factor (subsample factor; integer >= 1)
+ *              &ncolors (<return> number of significant colors; 0 on error)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This function is asking the question: how many perceptually
+ *          significant gray color levels is in this pix?
+ *          A color level must meet 3 criteria to be significant:
+ *            - it can't be too close to black
+ *            - it can't be too close to white
+ *            - it must have at least some minimum fractional population
+ *      (2) Use -1 for default values for darkthresh, lightthresh and minfract.
+ *      (3) Choose default of darkthresh = 20, because variations in very
+ *          dark pixels are not visually significant.
+ *      (4) Choose default of lightthresh = 236, because document images
+ *          that have been jpeg'd typically have near-white pixels in the
+ *          8x8 jpeg blocks, and these should not be counted.  It is desirable
+ *          to obtain a clean image by quantizing this noise away.
+ */
+l_int32
+pixNumSignificantGrayColors(PIX       *pixs,
+                            l_int32    darkthresh,
+                            l_int32    lightthresh,
+                            l_float32  minfract,
+                            l_int32    factor,
+                            l_int32   *pncolors)
+{
+l_int32  i, w, h, count, mincount, ncolors;
+NUMA    *na;
+
+    PROCNAME("pixNumSignificantGrayColors");
+
+    if (!pncolors)
+        return ERROR_INT("&ncolors not defined", procName, 1);
+    *pncolors = 0;
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (darkthresh < 0) darkthresh = 20;  /* defaults */
+    if (lightthresh < 0) lightthresh = 236;
+    if (minfract < 0.0) minfract = 0.0001;
+    if (minfract > 1.0)
+        return ERROR_INT("minfract > 1.0", procName, 1);
+    if (lightthresh > 255 || darkthresh >= lightthresh)
+        return ERROR_INT("invalid thresholds", procName, 1);
+    if (factor < 1) factor = 1;
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    mincount = (l_int32)(minfract * w * h);
+    if ((na = pixGetGrayHistogram(pixs, factor)) == NULL)
+        return ERROR_INT("na not made", procName, 1);
+    ncolors = 2;  /* add in black and white */
+    for (i = darkthresh; i <= lightthresh; i++) {
+        numaGetIValue(na, i, &count);
+        if (count >= mincount)
+            ncolors++;
+    }
+
+    *pncolors = ncolors;
+    numaDestroy(&na);
+    return 0;
+}
+
+
+/*!
  *  pixColorsForQuantization()
- *      Input:  pixs (32 bpp rgb)
+ *      Input:  pixs (8 bpp gray or 32 bpp rgb; with or without colormap)
  *              thresh (binary threshold on edge gradient; 0 for default)
  *              &ncolors (<return> the number of colors found)
+ *              &iscolor (<optional return> 1 if significant color is found;
+ *                        0 otherwise.  If pixs is 8 bpp, this is 0)
+ *              debug (1 to output masked image that is tested for colors;
+ *                     0 otherwise)
  *      Return: 0 if OK, 1 on error.
  *
  *  Notes:
- *      (1) Color quantization is often useful to achieve highly
+ *      (1) Grayscale and color quantization is often useful to achieve highly
  *          compressed images with little visible distortion.  However,
- *          color washes (regions of low gradient) can defeat this
- *          approach to high compression.  How can one determine if
- *          an image is expected to compress well using color quantization?
- *          We use the fact that color washes, when quantized with level 4
- *          octcubes, typically result in both posterization
- *          (visual boundaries between regions of uniform color) and
- *          the occupancy of many level 4 octcubes.
+ *          gray or color washes (regions of low gradient) can defeat
+ *          this approach to high compression.  How can one determine
+ *          if an image is expected to compress well using gray or
+ *          color quantization?  We use the fact that
+ *            - gray washes, when quantized with less than 50 intensities,
+ *              have posterization (visible boundaries between regions
+ *              of uniform 'color') and poor lossless compression
+ *            - color washes, when quantized with level 4 octcubes,
+ *              typically result in both posterization and the occupancy
+ *              of many level 4 octcubes.
  *      (2) This function finds a measure of the number of colors that are
  *          found in low-gradient regions of an image.  By its
  *          magnitude relative to some threshold (not specified in
- *          this function), it gives a good indication of whether color
+ *          this function), it gives a good indication of whether
  *          quantization will generate posterization.   This number
- *          is larger for images with regions of slowly varying color.
- *          Such images, if color quantized, may require dithering 
- *          to avoid posterization, and lossless compression is then
- *          expected to be poor.
- *      (3) The number of colors returned increases monotonically with the
- *          threshold @thresh on the edge gradient.  In use, an
- *          input threshold is chosen.  The number of occupied level 4
- *          octubes is found, and if this is sufficiently large,
- *          quantization without dithering can be expected to have a
- *          poor visual result.
- *      (4) When using the default threshold on the gradient (15),
- *          images where ncolors is greater than about 25 will compress
- *          poorly with either lossless compression or dithered
- *          quantization, and they can expect to be posterized with
- *          non-dithered quantization.
- *      (5) An alternative method, which finds the actual number of
- *          different (r,g,b) colors in the low-gradient regions (rather than
- *          the number of occupied level 4 octcubes), does not
- *          discriminate well, because very small color changes
- *          (e.g., due to jpeg compression) will cause a large number
- *          of colors to be found, even for regions that are visually
- *          of a single color.
+ *          is larger for images with regions of slowly varying
+ *          intensity (if 8 bpp) or color (if rgb). Such images, if
+ *          quantized, may require dithering to avoid posterization,
+ *          and lossless compression is then expected to be poor.
+ *      (3) Images can have colors either intrinsically or as jpeg
+ *          compression artifacts.  This function effectively ignores
+ *          jpeg quantization noise in the white background of grayscale
+ *          or color images.
+ *      (4) The number of colors in the low-gradient regions increases
+ *          monotonically with the threshold @thresh on the edge gradient.
+ *      (5) If pixs has a colormap, the number of colors returned is
+ *          the number in the colormap.
+ *      (6) The image is tested for color.  If there is very little color,
+ *          it is thresholded to gray and the number of gray levels in
+ *          the low gradient regions is found.  If the image has color,
+ *          the number of occupied level 4 octcubes is found.
+ *      (7) When using the default threshold on the gradient (15),
+ *          images (both gray and rgb) where ncolors is greater than
+ *          about 15 will compress poorly with either lossless
+ *          compression or dithered quantization, and they may be
+ *          posterized with non-dithered quantization.
+ *      (8) For grayscale images, or images without significant color,
+ *          this returns the number of significant gray levels in
+ *          the low-gradient regions.  The actual number of gray levels
+ *          can be large due to jpeg compression noise in the background.
+ *      (9) Similarly, for color images, the actual number of different
+ *          (r,g,b) colors in the low-gradient regions (rather than the
+ *          number of occupied level 4 octcubes) can be quite large, e.g.,
+ *          due to jpeg compression noise, even for regions that appear
+ *          to be of a single color.  By quantizing to level 4 octcubes,
+ *          most of these superfluous colors are removed from the counting.
  */
 l_int32
 pixColorsForQuantization(PIX      *pixs,
                          l_int32   thresh,
-                         l_int32  *pncolors)
+                         l_int32  *pncolors,
+                         l_int32  *piscolor,
+                         l_int32   debug)
 {
-PIX  *pixs2, *pixg2, *pixe2, *pixb2, *pixm2;
+l_int32    w, h, d, minside, factor;
+l_float32  pixfract, colorfract;
+PIX       *pixt, *pixsc, *pixg, *pixe, *pixb, *pixm;
+PIXCMAP   *cmap;
 
     PROCNAME("pixColorsForQuantization");
 
@@ -564,32 +668,96 @@ PIX  *pixs2, *pixg2, *pixe2, *pixb2, *pixm2;
     *pncolors = 0;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not 32 bpp", procName, 1);
+    if ((cmap = pixGetColormap(pixs)) != NULL) {
+        *pncolors = pixcmapGetCount(cmap);
+        if (piscolor)
+            pixcmapHasColor(cmap, piscolor);
+        return 0;
+    }
+
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
     if (thresh <= 0) 
         thresh = 15;  /* default */
+    if (piscolor)
+        *piscolor = 0;
 
-        /* Scale down 2x; get edges on grayscale version;
-         * binarize and dilate with a 7x7 brick Sel to get mask over
-         * all pixels that are within a small distance from the
-         * nearest edge pixel. */
-    pixs2 = pixScaleAreaMap2(pixs);
-    pixg2 = pixConvertRGBToLuminance(pixs2);
-    pixe2 = pixSobelEdgeFilter(pixg2, L_ALL_EDGES);
-    pixb2 = pixThresholdToBinary(pixe2, thresh);
-    pixInvert(pixb2, pixb2);
-    pixm2 = pixMorphSequence(pixb2, "d7.7", 0);
+        /* First test if 32 bpp has any significant color; if not,
+         * convert it to gray.  Colors whose average values are within
+         * 20 of black or 8 of white are ignored because they're not
+         * very 'colorful'.  If less than 1/10000 of the pixels have
+         * significant color, consider the image to be gray. */
+    minside = L_MIN(w, h);
+    if (d == 8)
+        pixt = pixClone(pixs);
+    else {  /* d == 32 */
+        factor = L_MAX(1, minside / 200);
+        pixColorFraction(pixs, 20, 248, 12, factor, &pixfract, &colorfract);
+        if (pixfract * colorfract < 0.0001) {
+            pixt = pixGetRGBComponent(pixs, COLOR_RED);
+            d = 8;
+        }
+        else {  /* d == 32 */
+            pixt = pixClone(pixs);
+            if (piscolor)
+                *piscolor = 1;
+        }
+    }
 
-        /* Set all those pixels to white.  Then count the
-         * number of occupied level 4 octcubes for the remaining pixels. */
-    pixSetMasked(pixs2, pixm2, 0xffffffff);
-    pixNumberOccupiedOctcubes(pixs2, 4, pncolors);
+        /* If the smallest side is less than 1000, do not downscale.
+         * If it is in [1000 ... 2000), downscale by 2x.  If it is >= 2000,
+         * downscale by 4x.  Factors of 2 are chosen for speed.  The
+         * actual resolution at which subsequent calculations take place
+         * is not strongly dependent on downscaling.  */
+    factor = L_MAX(1, minside / 500);
+    if (factor == 1)
+        pixsc = pixCopy(NULL, pixt);  /* to be sure pixs is unchanged */
+    else if (factor == 2 || factor == 3)
+        pixsc = pixScaleAreaMap2(pixt);
+    else
+        pixsc = pixScaleAreaMap(pixt, 0.25, 0.25);
 
-    pixDestroy(&pixs2);
-    pixDestroy(&pixg2);
-    pixDestroy(&pixe2);
-    pixDestroy(&pixb2);
-    pixDestroy(&pixm2);
+        /* Basic edge mask generation procedure:
+         *   - work on a grayscale image
+         *   - get a 1 bpp edge mask by using an edge filter and
+         *     thresholding to get fg pixels at the edges
+         *   - dilate with a 7x7 brick Sel to get mask over all pixels
+         *     within a small distance from the nearest edge pixel  */
+    if (d == 8)
+        pixg = pixClone(pixsc);
+    else  /* d == 32 */
+        pixg = pixConvertRGBToLuminance(pixsc);
+    pixe = pixSobelEdgeFilter(pixg, L_ALL_EDGES);
+    pixb = pixThresholdToBinary(pixe, thresh);
+    pixInvert(pixb, pixb);
+    pixm = pixMorphSequence(pixb, "d7.7", 0);
+
+        /* Mask the near-edge pixels to white, and count the colors.
+         * If grayscale, don't count colors within 20 levels of
+         * black or white, and only count colors with a fraction
+         * of at least 1/10000 of the image pixels.
+         * If color, count the number of level 4 octcubes that
+         * contain at least 20 pixels.  These magic numbers are guesses
+         * as to what should work, based on a small data set.  Results
+         * should not be sensitive to their actual values. */
+    if (d == 8) {
+        pixSetMasked(pixg, pixm, 0xff);
+        if (debug) pixWrite("junkpix8.png", pixg, IFF_PNG);
+        pixNumSignificantGrayColors(pixg, 20, 236, 0.0001, 1, pncolors);
+    }
+    else {  /* d == 32 */
+        pixSetMasked(pixsc, pixm, 0xffffffff);
+        if (debug) pixWrite("junkpix32.png", pixsc, IFF_PNG);
+        pixNumberOccupiedOctcubes(pixsc, 4, 20, -1, pncolors);
+    }
+
+    pixDestroy(&pixt);
+    pixDestroy(&pixsc);
+    pixDestroy(&pixg);
+    pixDestroy(&pixe);
+    pixDestroy(&pixb);
+    pixDestroy(&pixm);
     return 0;
 }
 
@@ -597,21 +765,26 @@ PIX  *pixs2, *pixg2, *pixe2, *pixb2, *pixm2;
 /*!
  *  pixNumColors()
  *      Input:  pixs (2, 4, 8, 32 bpp)
+ *              factor (subsampling factor; integer)
  *              &ncolors (<return> the number of colors found, or 0 if
  *                        there are more than 256)
  *      Return: 0 if OK, 1 on error.
  *
  *  Notes:
  *      (1) This returns the actual number of colors found in the image,
- *          even if there is a colormap.  If the number of colors differs
- *          from the number of entries in the colormap, a warning is issued.
- *      (2) For d = 2, 4 or 8 bpp grayscale, this returns the number
+ *          even if there is a colormap.  If @factor == 1 and the
+ *          number of colors differs from the number of entries
+ *          in the colormap, a warning is issued.
+ *      (2) Use @factor == 1 to find the actual number of colors.
+ *          Use @factor > 1 to quickly find the approximate number of colors.
+ *      (3) For d = 2, 4 or 8 bpp grayscale, this returns the number
  *          of colors found in the image in 'ncolors'.
- *      (3) For d = 32 bpp (rgb), if the number of colors is
+ *      (4) For d = 32 bpp (rgb), if the number of colors is
  *          greater than 256, this returns 0 in 'ncolors'.
  */
 l_int32
 pixNumColors(PIX      *pixs,
+             l_int32   factor,
              l_int32  *pncolors)
 {
 l_int32    w, h, d, i, j, wpl, hashsize, sum, count;
@@ -631,15 +804,16 @@ PIXCMAP   *cmap;
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 2 && d != 4 && d != 8 && d != 32)
         return ERROR_INT("d not in {2, 4, 8, 32}", procName, 1);
+    if (factor < 1) factor = 1;
 
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
     sum = 0;
     if (d != 32) {  /* grayscale */
         inta = (l_int32 *)CALLOC(256, sizeof(l_int32));
-        for (i = 0; i < h; i++) {
+        for (i = 0; i < h; i += factor) {
             line = data + i * wpl;
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < w; j += factor) {
                 if (d == 8)
                     val = GET_DATA_BYTE(line, j);
                 else if (d == 4)
@@ -654,7 +828,7 @@ PIXCMAP   *cmap;
         *pncolors = sum;
         FREE(inta);
 
-        if ((cmap = pixGetColormap(pixs)) != NULL) {
+        if (factor == 1 && ((cmap = pixGetColormap(pixs)) != NULL)) {
             count = pixcmapGetCount(cmap);
             if (sum != count) 
                 L_WARNING_INT("colormap size %d differs from actual colors",
@@ -666,9 +840,9 @@ PIXCMAP   *cmap;
         /* 32 bpp rgb; quit if we get above 256 colors */
     hashsize = 5507;  /* big and prime; collisions are not likely */
     inta = (l_int32 *)CALLOC(hashsize, sizeof(l_int32));
-    for (i = 0; i < h; i++) {
+    for (i = 0; i < h; i += factor) {
         line = data + i * wpl;
-        for (j = 0; j < w; j++) {
+        for (j = 0; j < w; j += factor) {
             pixel = line[j];
             extractRGBValues(pixel, &rval, &gval, &bval);
             val = (137 * rval + 269 * gval + 353 * bval) % hashsize;

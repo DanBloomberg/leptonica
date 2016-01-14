@@ -261,6 +261,7 @@ static const l_int32   xpostab[] = {-1, -1, 0, 1, 1, 1, 0, -1};
 static const l_int32   ypostab[] = {0, -1, -1, -1, 0, 1, 1, 1};
 static const l_int32   qpostab[] = {6, 6, 0, 0, 2, 2, 4, 4};
 
+
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_PRINT   0
 #endif   /* NO CONSOLE_IO */
@@ -1241,7 +1242,7 @@ PTAA    *ptaal;  /* local chain code */
  *  ccbaStepChainsToPixCoords()
  *
  *      Input:  ccba (with step chains numaa of borders)
- *              coordtype  (GLOBAL_COORDS or LOCAL_COORDS)
+ *              coordtype  (CCB_GLOBAL_COORDS or CCB_LOCAL_COORDS)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1269,7 +1270,7 @@ PTA     *ptas, *ptan;
 
     if (!ccba)
         return ERROR_INT("ccba not defined", procName, 1);
-    if (coordtype != GLOBAL_COORDS && coordtype != LOCAL_COORDS)
+    if (coordtype != CCB_GLOBAL_COORDS && coordtype != CCB_LOCAL_COORDS)
         return ERROR_INT("coordtype not valid", procName, 1);
 
     ncc = ccbaGetCount(ccba);  /* number of c.c. */
@@ -1284,11 +1285,11 @@ PTA     *ptas, *ptan;
 
             /* For global coords, get the (xul, yul) of the c.c.;
              * otherwise, use relative coords. */
-        if (coordtype == LOCAL_COORDS) {
+        if (coordtype == CCB_LOCAL_COORDS) {
             xul = 0;
             yul = 0;
         }
-        else {   /* coordtype == GLOBAL_COORDS */
+        else {   /* coordtype == CCB_GLOBAL_COORDS */
             if ((box = boxaGetBox(boxa, 0, L_CLONE)) == NULL)
                 return ERROR_INT("bounding rectangle not found", procName, 1);
             xul = box->x;  /* UL corner in global coords */
@@ -1300,12 +1301,12 @@ PTA     *ptas, *ptan;
         nb = numaaGetCount(naa);   /* number of borders */
         if ((ptaan = ptaaCreate(nb)) == NULL)
             return ERROR_INT("ptaan not made", procName, 1);
-        if (coordtype == LOCAL_COORDS) {
+        if (coordtype == CCB_LOCAL_COORDS) {
             if (ccb->local)   /* remove old one */
                 ptaaDestroy(&ccb->local);
             ccb->local = ptaan;  /* save new local chain */
         }
-        else {   /* coordtype == GLOBAL_COORDS */
+        else {   /* coordtype == CCB_GLOBAL_COORDS */
             if (ccb->global)   /* remove old one */
                 ptaaDestroy(&ccb->global);
             ccb->global = ptaan;  /* save new global chain */
@@ -1341,7 +1342,7 @@ PTA     *ptas, *ptan;
  *  ccbaGenerateSPGlobalLocs()
  *
  *      Input:  ccba
- *              ptsflag  (SAVE_ALL_PTS or SAVE_TURNING_PTS)
+ *              ptsflag  (CCB_SAVE_ALL_PTS or CCB_SAVE_TURNING_PTS)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1397,13 +1398,13 @@ PTA     *ptal, *ptag;
         ccb->spglobal = ptag;  /* save new one */
 
             /* Convert local to global */
-        if (ptsflag == SAVE_ALL_PTS) {
+        if (ptsflag == CCB_SAVE_ALL_PTS) {
             for (j = 0; j < npt; j++) {
                 ptaGetIPt(ptal, j, &x, &y);
                 ptaAddPt(ptag, x  + xul, y + yul);
             }
         }
-        else {   /* ptsflag = SAVE_TURNING_PTS */
+        else {   /* ptsflag = CCB_SAVE_TURNING_PTS */
             ptaGetIPt(ptal, 0, &xp, &yp);   /* get the 1st pt */
             ptaAddPt(ptag, xp  + xul, yp + yul);   /* save the 1st pt */
             if (npt == 2) {  /* get and save the 2nd pt  */

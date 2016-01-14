@@ -115,7 +115,7 @@ static char  mainName[] = "fpix_reg";
         /* Save the comparison graph; gnuplot should have made it by now! */
     fprintf(stderr, "NOT an error if the next line is\n"
             "    Error in findFileFormat: truncated file\n");
-    pixt5 = pixRead("/usr/tmp/junkgrayroot.png");
+    pixt5 = pixRead("/tmp/junkgrayroot.png");
     pixSaveTiled(pixt5, pixa, 1, 1, 20, 8);
 
         /* Display results */

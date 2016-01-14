@@ -19,6 +19,7 @@
  *      Seedfill:
  *               void   seedfillBinaryLow()
  *               void   seedfillGrayLow()
+ *               void   seedfillGrayInvLow()
  *
  *      Distance function:
  *               void   distanceFunctionLow()
@@ -251,26 +252,26 @@ l_uint32  *lines, *linem;
  *          raster and anti-raster, covering the entire seed image.
  *          The caller typically iterates until the filling is
  *          complete.
- *      (2) The filling action can be visualized from a simple example.
+ *      (2) The filling action can be visualized from the following example.
  *          Suppose the mask, which clips the fill, is a sombrero-shaped
  *          surface, where the highest point is 200 and the low pixels
  *          around the rim are 30.  Beyond the rim, the mask goes up a bit.
  *          Suppose the seed, which is filled, consists of a single point
- *          of height 150, located below the max of the mask, with the rest 0.
- *          Then in the raster scan, nothing happens until the high
- *          seed point is encountered, and then this value is propagated
- *          right and down, until it hits the side of the sombrero.
- *          The seed can never exceed the mask, so it fills to the rim,
- *          going lower along the mask surface.  When it passes the rim,
- *          the seed continues to fill at the rim height to the edge of
- *          the seed image.  Then on the anti-raster scan, the seed
- *          fills flat inside the sombrero to the upper and left,
- *          and then out from the rim as before.  The final result
- *          has a seed that is flat outside the rim, and inside
- *          it fills the sombrero but only up to 150.  If the rim
- *          height varies, the filled seed outside the rim will be
- *          at the highest point on the rim, which is a saddle point
- *          on the rim.
+ *          of height 150, located below the max of the mask, with
+ *          the rest 0.  Then in the raster scan, nothing happens until
+ *          the high seed point is encountered, and then this value is
+ *          propagated right and down, until it hits the side of the
+ *          sombrero.   The seed can never exceed the mask, so it fills
+ *          to the rim, going lower along the mask surface.  When it
+ *          passes the rim, the seed continues to fill at the rim
+ *          height to the edge of the seed image.  Then on the
+ *          anti-raster scan, the seed fills flat inside the
+ *          sombrero to the upper and left, and then out from the
+ *          rim as before.  The final result has a seed that is
+ *          flat outside the rim, and inside it fills the sombrero
+ *          but only up to 150.  If the rim height varies, the
+ *          filled seed outside the rim will be at the highest
+ *          point on the rim, which is a saddle point on the rim.
  */
 void
 seedfillGrayLow(l_uint32  *datas,
@@ -392,6 +393,164 @@ l_uint32  *lines, *linem;
                     maxval = L_MAX(maxval, val);
                     val = L_MIN(maxval, maskval);
                     SET_DATA_BYTE(lines, j, val);
+                }
+            }
+        }
+        break;
+
+    default:
+        ERROR_VOID("connectivity must be 4 or 8", procName);
+    }
+
+    return;
+}
+
+
+/*!
+ *  seedfillGrayInvLow()
+ *
+ *  Notes:
+ *      (1) The pixels are numbered as follows:
+ *              1  2  3
+ *              4  x  5
+ *              6  7  8
+ *          This low-level filling operation consists of two scans,
+ *          raster and anti-raster, covering the entire seed image.
+ *          The caller typically iterates until the filling is
+ *          complete.
+ *      (2) The "Inv" signifies the fact that in this case, filling
+ *          of the seed only takes place when the seed value is
+ *          greater than the mask value.  The mask will act to stop
+ *          the fill when it is higher than the seed level.  (This is
+ *          in contrast to conventional grayscale filling where the
+ *          seed always fills below the mask.)
+ *      (3) An example of use is a basin, described by the mask (pixm),
+ *          where within the basin, the seed pix (pixs) gets filled to the
+ *          height of the highest seed pixel that is above its
+ *          corresponding max pixel.  Filling occurs while the
+ *          propagating seed pixels in pixs are larger than the
+ *          corresponding mask values in pixm.
+ */
+void
+seedfillGrayInvLow(l_uint32  *datas,
+                   l_int32    w,
+                   l_int32    h,
+                   l_int32    wpls,
+                   l_uint32  *datam,
+                   l_int32    wplm,
+                   l_int32    connectivity)
+{
+l_uint8    val1, val2, val3, val4, val5, val6, val7, val8;
+l_uint8    maxval, maskval;
+l_int32    i, j, imax, jmax;
+l_uint32  *lines, *linem;
+
+    PROCNAME("seedfillGrayInvLow");
+
+    imax = h - 1;
+    jmax = w - 1;
+
+    switch (connectivity)
+    {
+    case 4:
+            /* UL --> LR scan */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < w; j++) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    maxval = GET_DATA_BYTE(lines, j);
+                    if (i > 0) {
+                        val2 = GET_DATA_BYTE(lines - wpls, j);
+                        maxval = L_MAX(maxval, val2);
+                    }
+                    if (j > 0) {
+                        val4 = GET_DATA_BYTE(lines, j - 1);
+                        maxval = L_MAX(maxval, val4);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
+                }
+            }
+        }
+
+            /* LR --> UL scan */
+        for (i = imax; i >= 0; i--) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = jmax; j >= 0; j--) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    maxval = GET_DATA_BYTE(lines, j);
+                    if (i < imax) {
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        maxval = L_MAX(maxval, val7);
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        maxval = L_MAX(maxval, val5);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
+                }
+            }
+        }
+        break;
+
+    case 8:
+            /* UL --> LR scan */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < w; j++) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    maxval = GET_DATA_BYTE(lines, j);
+                    if (i > 0) {
+                        if (j > 0) {
+                            val1 = GET_DATA_BYTE(lines - wpls, j - 1);
+                            maxval = L_MAX(maxval, val1);
+                        }
+                        if (j < jmax) {
+                            val2 = GET_DATA_BYTE(lines - wpls, j + 1);
+                            maxval = L_MAX(maxval, val2);
+                        }
+                        val3 = GET_DATA_BYTE(lines - wpls, j);
+                        maxval = L_MAX(maxval, val3);
+                    }
+                    if (j > 0) {
+                        val4 = GET_DATA_BYTE(lines, j - 1);
+                        maxval = L_MAX(maxval, val4);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
+                }
+            }
+        }
+
+            /* LR --> UL scan */
+        for (i = imax; i >= 0; i--) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = jmax; j >= 0; j--) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    maxval = GET_DATA_BYTE(lines, j);
+                    if (i < imax) {
+                        if (j > 0) {
+                            val6 = GET_DATA_BYTE(lines + wpls, j - 1);
+                            maxval = L_MAX(maxval, val6);
+                        }
+                        if (j < jmax) {
+                            val8 = GET_DATA_BYTE(lines + wpls, j + 1);
+                            maxval = L_MAX(maxval, val8);
+                        }
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        maxval = L_MAX(maxval, val7);
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        maxval = L_MAX(maxval, val5);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
                 }
             }
         }

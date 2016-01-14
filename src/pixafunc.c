@@ -31,7 +31,11 @@
  *           PIXA     *pixaSelectBySize()
  *           PIX      *pixSelectByAreaPerimRatio()
  *           PIXA     *pixaSelectByAreaPerimRatio()
+ *           PIX      *pixSelectByAreaFraction()
+ *           PIXA     *pixaSelectByAreaFraction()
  *           PIXA     *pixaSelectWithIndicator()
+ *           l_int32   pixRemoveWithIndicator()
+ *           l_int32   pixAddWithIndicator()
  *
  *      Pixa Display (render into a pix)
  *           PIX      *pixaDisplay()
@@ -315,6 +319,63 @@ PIXAA   *pixaa;
 /*---------------------------------------------------------------------*
  *                                Filters                              *
  *---------------------------------------------------------------------*/
+/*
+ * These filters work on the connected components of 1 bpp images.
+ * They remove or retain c.c. based on these properties:
+ *    (a) size  [pixaFindDimensions()]
+ *    (b) area-to-perimeter ratio   [pixaFindAreaPerimRatio()]
+ *    (c) foreground area as a fraction of bounding box area (w * h)
+ *        [pixaFindForegroundArea()]
+ *    (d) number of foreground pixels   [pixaCountPixels()]
+ *
+ * We provide two different high-level interfaces:
+ *    (1) Functions that use one of the filters on either
+ *        a pix or the pixa of components
+ *    (2) A general method that generates Numas of indicator functions,
+ *        logically combines them, and efficiently removes or adds
+ *        the selected components.
+ *
+ * For interface (1), the filtering is performed with a single function call.
+ * This is the easiest way to do simple filtering.
+ *
+ * For more complicated filtering, use the general method (2).
+ * Here is an illustration of use.  Suppose you want all 8-c.c.
+ * that have a height greater than 40 pixels, a width not more than
+ * 30 pixels, between 150 and 300 fg pixels, and an area to
+ * perimeter ratio between 2.5 and 4.0.
+ *
+ *        // Generate the pixa of 8 cc pieces.
+ *    boxa = pixConnComp(pixs, &pixa, 8);
+ *
+ *        // Extract the data we need about each component.
+ *    pixaFindDimensions(pixa, &naw, &nah);
+ *    nas = pixaCountPixels(pixa);
+ *    nar = pixaFindAreaPerimRatio(pixa);
+ *
+ *        // Build the indicator arrays for the set of components,
+ *        // based on thresholds and selection criteria.
+ *    na1 = numaMakeThresholdIndicator(nah, 40, L_SELECT_IF_GT);
+ *    na2 = numaMakeThresholdIndicator(naw, 30, L_SELECT_IF_LTE);
+ *    na3 = numaMakeThresholdIndicator(nas, 150, L_SELECT_IF_GTE);
+ *    na4 = numaMakeThresholdIndicator(nas, 300, L_SELECT_IF_LTE);
+ *    na5 = numaMakeThresholdIndicator(nar, 2.5, L_SELECT_IF_GTE);
+ *    na6 = numaMakeThresholdIndicator(nar, 4.0, L_SELECT_IF_LGE);
+ *
+ *        // Combine the indicator arrays logically to find
+ *        // the components that will be retained.
+ *    nad = numaLogicalOp(NULL, na1, na2, L_INTERSECTION);
+ *    numaLogicalOp(nad, nad, na3, L_INTERSECTION);
+ *    numaLogicalOp(nad, nad, na4, L_INTERSECTION);
+ *    numaLogicalOp(nad, nad, na5, L_INTERSECTION);
+ *    numaLogicalOp(nad, nad, na6, L_INTERSECTION);
+ *
+ *        // Invert to get the components that will be removed.
+ *    numaInvert(nad, nad);
+ *
+ *        // Remove the components, in-place.
+ *    pixRemoveWithIndicator(pixs, pixa, nad);
+ */
+
 /*!
  *  pixSelectBySize()
  *
@@ -557,12 +618,8 @@ pixaSelectByAreaPerimRatio(PIXA      *pixas,
                            l_int32    type,
                            l_int32   *pchanged)
 {
-l_int32    i, n;
-l_int32   *tab;
-l_float32  fract;
-NUMA      *na, *nai;
-PIX       *pixt;
-PIXA      *pixad;
+NUMA  *na, *nai;
+PIXA  *pixad;
 
     PROCNAME("pixaSelectByAreaPerimRatio");
 
@@ -573,16 +630,133 @@ PIXA      *pixad;
         return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
 
         /* Compute component ratios. */
-    n = pixaGetCount(pixas);
-    na = numaCreate(n);
-    tab = makePixelSumTab8();
-    for (i = 0; i < n; i++) {
-        pixt = pixaGetPix(pixas, i, L_CLONE);
-        pixFindAreaPerimRatio(pixt, tab, &fract);
-        numaAddNumber(na, fract);
-        pixDestroy(&pixt);
+    na = pixaFindAreaPerimRatio(pixas);
+
+        /* Generate indicator array for elements to be saved. */
+    nai = numaMakeThresholdIndicator(na, thresh, type);
+    numaDestroy(&na);
+
+        /* Filter to get output */
+    pixad = pixaSelectWithIndicator(pixas, nai, pchanged);
+
+    numaDestroy(&nai);
+    return pixad;
+}
+
+
+/*!
+ *  pixSelectByAreaFraction()
+ *
+ *      Input:  pixs (1 bpp)
+ *              thresh (threshold ratio of fg pixels to (w * h))
+ *              connectivity (4 or 8)
+ *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
+ *              &changed (<optional return> 1 if changed; 0 if clone returned)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The args specify constraints on the amount of foreground
+ *          coverage of the components that are kept.
+ *      (2) If unchanged, returns a copy of pixs.  Otherwise,
+ *          returns a new pix with the filtered components.
+ *      (3) This filters components based on the fraction of fg pixels
+ *          of the component in its bounding box.
+ *      (4) Use L_SELECT_IF_LT or L_SELECT_IF_LTE to save components
+ *          with less than the threshold fraction of foreground, and
+ *          L_SELECT_IF_GT or L_SELECT_IF_GTE to remove them.
+ */
+PIX *
+pixSelectByAreaFraction(PIX       *pixs,
+                        l_float32  thresh,
+                        l_int32    connectivity,
+                        l_int32    type,
+                        l_int32   *pchanged)
+{
+l_int32  w, h, empty, changed, count;
+BOXA    *boxa;
+PIX     *pixd;
+PIXA    *pixas, *pixad;
+
+    PROCNAME("pixSelectByAreaFraction");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+    if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
+        type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
+        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+    if (pchanged) *pchanged = FALSE;
+    
+        /* Check if any components exist */
+    pixZero(pixs, &empty);
+    if (empty)
+        return pixCopy(NULL, pixs);
+
+        /* Filter components */
+    boxa = pixConnComp(pixs, &pixas, connectivity); 
+    pixad = pixaSelectByAreaFraction(pixas, thresh, type, &changed);
+    boxaDestroy(&boxa);
+    pixaDestroy(&pixas);
+
+        /* Render the result */
+    if (!changed) {
+        pixaDestroy(&pixad);
+        return pixCopy(NULL, pixs);
     }
-    FREE(tab);
+    else {
+        if (pchanged) *pchanged = TRUE;
+        pixGetDimensions(pixs, &w, &h, NULL);
+        count = pixaGetCount(pixad);
+        if (count == 0)  /* return empty pix */
+            pixd = pixCreateTemplate(pixs);
+        else
+            pixd = pixaDisplay(pixad, w, h);
+        pixaDestroy(&pixad);
+        return pixd;
+    }
+}
+
+
+/*!
+ *  pixaSelectByAreaFraction()
+ *
+ *      Input:  pixas
+ *              thresh (threshold ratio of fg pixels to (w * h))
+ *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
+ *              &changed (<optional return> 1 if changed; 0 if clone returned)
+ *      Return: pixad, or null on error
+ *
+ *  Notes:
+ *      (1) Returns a pixa clone if no components are removed.
+ *      (2) Uses pix and box clones in the new pixa.
+ *      (3) This filters components based on the fraction of fg pixels
+ *          of the component in its bounding box.
+ *      (4) Use L_SELECT_IF_LT or L_SELECT_IF_LTE to save components
+ *          with less than the threshold fraction of foreground, and
+ *          L_SELECT_IF_GT or L_SELECT_IF_GTE to remove them.
+ */
+PIXA *
+pixaSelectByAreaFraction(PIXA      *pixas,
+                         l_float32  thresh,
+                         l_int32    type,
+                         l_int32   *pchanged)
+{
+NUMA  *na, *nai;
+PIXA  *pixad;
+
+    PROCNAME("pixaSelectByAreaFraction");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
+        type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
+        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+
+        /* Compute component ratios. */
+    na = pixaFindAreaFraction(pixas);
 
         /* Generate indicator array for elements to be saved. */
     nai = numaMakeThresholdIndicator(na, thresh, type);
@@ -649,6 +823,106 @@ PIXA    *pixad;
     }
 
     return pixad;
+}
+
+
+/*!
+ *  pixRemoveWithIndicator()
+ *
+ *      Input:  pixs (1 bpp pix from which components are removed; in-place)
+ *              pixa (of connected components in pixs)
+ *              na (numa indicator: remove components corresponding to 1s)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This complements pixAddWithIndicator().   Here, the selected
+ *          components are set subtracted from pixs.
+ */
+l_int32
+pixRemoveWithIndicator(PIX   *pixs,
+                       PIXA  *pixa,
+                       NUMA  *na)
+{
+l_int32  i, n, ival, x, y, w, h;
+BOX     *box;
+PIX     *pix;
+
+    PROCNAME("pixRemoveWithIndicator");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = pixaGetCount(pixa);
+    if (n != numaGetCount(na))
+        return ERROR_INT("pixa and na sizes not equal", procName, 1);
+
+    for (i = 0; i < n; i++) {
+        numaGetIValue(na, i, &ival);
+        if (ival == 1) {
+            pix = pixaGetPix(pixa, i, L_CLONE);
+            box = pixaGetBox(pixa, i, L_CLONE);
+            boxGetGeometry(box, &x, &y, &w, &h);
+            pixRasterop(pixs, x, y, w, h, PIX_DST & PIX_NOT(PIX_SRC),
+                        pix, 0, 0);
+            boxDestroy(&box);
+            pixDestroy(&pix);
+        }
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  pixAddWithIndicator()
+ *
+ *      Input:  pixs (1 bpp pix from which components are added; in-place)
+ *              pixa (of connected components, some of which will be put
+ *                    into pixs)
+ *              na (numa indicator: add components corresponding to 1s)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This complements pixRemoveWithIndicator().   Here, the selected
+ *          components are added to pixs.
+ */
+l_int32
+pixAddWithIndicator(PIX   *pixs,
+                    PIXA  *pixa,
+                    NUMA  *na)
+{
+l_int32  i, n, ival, x, y, w, h;
+BOX     *box;
+PIX     *pix;
+
+    PROCNAME("pixAddWithIndicator");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = pixaGetCount(pixa);
+    if (n != numaGetCount(na))
+        return ERROR_INT("pixa and na sizes not equal", procName, 1);
+
+    for (i = 0; i < n; i++) {
+        numaGetIValue(na, i, &ival);
+        if (ival == 1) {
+            pix = pixaGetPix(pixa, i, L_CLONE);
+            box = pixaGetBox(pixa, i, L_CLONE);
+            boxGetGeometry(box, &x, &y, &w, &h);
+            pixRasterop(pixs, x, y, w, h, PIX_SRC | PIX_DST, pix, 0, 0);
+            boxDestroy(&box);
+            pixDestroy(&pix);
+        }
+    }
+
+    return 0;
 }
 
 

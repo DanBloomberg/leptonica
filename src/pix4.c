@@ -40,7 +40,11 @@
  *           l_int32     pixSplitDistributionFgBg()
  *
  *    Measurement of properties
+ *           l_int32     pixaFindDimensions()
+ *           NUMA        pixaFindAreaPerimRatio()
  *           l_int32     pixFindAreaPerimRatio()
+ *           NUMA        pixaFindAreaFraction()
+ *           l_int32     pixFindAreaFraction()
  *
  *    Extract rectangle
  *           PIX        *pixClipRectangle()
@@ -48,6 +52,10 @@
  *
  *    Clip to foreground
  *           PIX        *pixClipToForeground()
+ *           l_int32     pixClipBoxToForeground()
+ *           l_int32     pixScanForForeground()
+ *           l_int32     pixClipBoxToEdges()
+ *           l_int32     pixScanForEdge()
  */
 
 #include <stdio.h>
@@ -65,6 +73,10 @@ static const l_uint32 rmask32[] = {0x0,
     0x001fffff, 0x003fffff, 0x007fffff, 0x00ffffff,
     0x01ffffff, 0x03ffffff, 0x07ffffff, 0x0fffffff,
     0x1fffffff, 0x3fffffff, 0x7fffffff, 0xffffffff};
+
+#ifndef  NO_CONSOLE_IO
+#define  DEBUG_EDGES         0
+#endif  /* ~NO_CONSOLE_IO */
 
 
 /*------------------------------------------------------------------*
@@ -84,9 +96,9 @@ static const l_uint32 rmask32[] = {0x0,
  *          of size 2^d, where d is the depth of pixs.
  *      (3) If pixs has has a colormap with color entries, the histogram
  *          generated is of the colormap indices, and is of size 2^d.
- *      (4) If pixs has a gray (r=g=b) colormap, the colormap is removed
- *          and a histogram of size 256 is generated for the resulting
- *          8 bpp gray image.
+ *      (4) If pixs has a gray (r=g=b) colormap, a temporary 8 bpp image
+ *          without the colormap is used to construct a histogram of
+ *          size 256.
  *      (5) Set the subsampling factor > 1 to reduce the amount of computation.
  */
 NUMA *
@@ -1253,12 +1265,91 @@ PIX       *pixg;
  *                 Measurement of properties                   *
  *-------------------------------------------------------------*/
 /*!
+ *  pixaFindDimensions()
+ *
+ *      Input:  pixa
+ *              &naw (<optional return> numa of pix widths)
+ *              &nah (<optional return> numa of pix heights)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixaFindDimensions(PIXA   *pixa,
+                   NUMA  **pnaw,
+                   NUMA  **pnah)
+{
+l_int32  i, n, w, h;
+PIX     *pixt;
+
+    PROCNAME("pixaFindDimensions");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!pnaw && !pnah) 
+        return 0;
+
+    n = pixaGetCount(pixa);
+    if (pnaw) *pnaw = numaCreate(n);
+    if (pnah) *pnah = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixGetDimensions(pixt, &w, &h, NULL);
+        if (pnaw)
+            numaAddNumber(*pnaw, w);
+        if (pnah)
+            numaAddNumber(*pnah, h);
+        pixDestroy(&pixt);
+    }
+    return 0;
+}
+
+
+/*!
+ *  pixaFindAreaPerimRatio()
+ *
+ *      Input:  pixa (of 1 bpp pix)
+ *      Return: na (of area/perimiter ratio for each pix), or null on error
+ */
+NUMA *
+pixaFindAreaPerimRatio(PIXA  *pixa)
+{
+l_int32    i, n;
+l_int32   *tab;
+l_float32  fract;
+NUMA      *na;
+PIX       *pixt;
+
+    PROCNAME("pixaFindAreaPerimRatio");
+
+    if (!pixa)
+        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+
+    n = pixaGetCount(pixa);
+    na = numaCreate(n);
+    tab = makePixelSumTab8();
+    for (i = 0; i < n; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixFindAreaPerimRatio(pixt, tab, &fract);
+        numaAddNumber(na, fract);
+        pixDestroy(&pixt);
+    }
+    FREE(tab);
+    return na;
+}
+
+
+/*!
  *  pixFindAreaPerimRatio()
  *
  *      Input:  pixs (1 bpp)
  *              tab (<optional> pixel sum table, can be NULL)
  *              &fract (<return> area/perimeter ratio)
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The area is the number of fg pixels that are not on the
+ *          boundary (i.e., not 8-connected to a bg pixel), and the
+ *          perimeter is the number of boundary fg pixels.
+ *      (2) This is typically used for a single connected component.
  */
 l_int32
 pixFindAreaPerimRatio(PIX        *pixs,
@@ -1291,6 +1382,84 @@ PIX      *pixt;
     if (!tab)
         FREE(tab8);
     pixDestroy(&pixt);
+    return 0;
+}
+
+
+/*!
+ *  pixaFindAreaFraction()
+ *
+ *      Input:  pixa (of 1 bpp pix)
+ *      Return: na (of area fractions for each pix), or null on error
+ */
+NUMA *
+pixaFindAreaFraction(PIXA  *pixa)
+{
+l_int32    i, n;
+l_int32   *tab;
+l_float32  fract;
+NUMA      *na;
+PIX       *pixt;
+
+    PROCNAME("pixaFindAreaFraction");
+
+    if (!pixa)
+        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+
+    n = pixaGetCount(pixa);
+    na = numaCreate(n);
+    tab = makePixelSumTab8();
+    for (i = 0; i < n; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixFindAreaFraction(pixt, tab, &fract);
+        numaAddNumber(na, fract);
+        pixDestroy(&pixt);
+    }
+    FREE(tab);
+    return na;
+}
+
+
+/*!
+ *  pixFindAreaFraction()
+ *
+ *      Input:  pixs (1 bpp)
+ *              tab (<optional> pixel sum table, can be NULL)
+ *              &fract (<return> fg area/size ratio)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This finds the ratio of the number of fg pixels to the
+ *          size of the pix (w * h).  It is typically used for a
+ *          single connected component.
+ */
+l_int32
+pixFindAreaFraction(PIX        *pixs,
+                    l_int32    *tab,
+                    l_float32  *pfract)
+{
+l_int32   w, h, d, sum;
+l_int32  *tab8;
+
+    PROCNAME("pixFindAreaFraction");
+
+    if (!pfract)
+        return ERROR_INT("&fract not defined", procName, 1);
+    *pfract = 0.0;
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (!pixs || d != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+    if (!tab)
+        tab8 = makePixelSumTab8();
+    else
+        tab8 = tab;
+
+    pixCountPixels(pixs, &sum, tab8);
+    *pfract = (l_float32)sum / (l_float32)(w * h);
+
+    if (!tab)
+        FREE(tab8);
     return 0;
 }
 
@@ -1447,9 +1616,9 @@ PIXCMAP  *cmap;
 }
 
 
-/*-------------------------------------------------------------*
- *              Extract min rectangle with ON pixels           *
- *-------------------------------------------------------------*/
+/*---------------------------------------------------------------------*
+ *                          Clipping to Foreground                     *
+ *---------------------------------------------------------------------*/
 /*!
  *  pixClipToForeground()
  *
@@ -1467,7 +1636,7 @@ pixClipToForeground(PIX   *pixs,
                     PIX  **ppixd,
                     BOX  **pbox)
 {
-l_int32    w, h, d, wpl, nfullwords, extra, i, j;
+l_int32    w, h, wpl, nfullwords, extra, i, j;
 l_int32    minx, miny, maxx, maxy;
 l_uint32   result, mask;
 l_uint32  *data, *line;
@@ -1476,15 +1645,13 @@ BOX       *box;
     PROCNAME("pixClipToForeground");
 
     if (!ppixd && !pbox)
-        return ERROR_INT("neither &pixd nor &pbox defined", procName, 1);
+        return ERROR_INT("neither &pixd nor &box defined", procName, 1);
     if (ppixd)
         *ppixd = NULL;
     if (pbox)
         *pbox = NULL;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if ((d = pixGetDepth(pixs)) != 1)
-        return ERROR_INT("pixs not binary", procName, 1);
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     nfullwords = w / 32;
@@ -1548,4 +1715,488 @@ maxx_found:
     return 0;
 }
 
+
+/*!
+ *  pixClipBoxToForeground()
+ *
+ *      Input:  pixs (1 bpp)
+ *              boxs  (<optional> ; use full image if null)
+ *              &pixd  (<optional return> clipped pix returned)
+ *              &boxd  (<optional return> bounding box)
+ *      Return: 0 if OK; 1 on error or if there are no fg pixels
+ *
+ *  Notes:
+ *      (1) At least one of {&pixd, &boxd} must be specified.
+ *      (2) If there are no fg pixels, the returned ptrs are null.
+ *      (3) Do not use &pixs for the 3rd arg or &boxs for the 4th arg;
+ *          this will leak memory.
+ */
+l_int32
+pixClipBoxToForeground(PIX   *pixs,
+                       BOX   *boxs,
+                       PIX  **ppixd,
+                       BOX  **pboxd)
+{
+l_int32  w, h, bx, by, bw, bh, cbw, cbh, left, right, top, bottom;
+BOX     *boxt, *boxd;
+
+    PROCNAME("pixClipBoxToForeground");
+
+    if (!ppixd && !pboxd)
+        return ERROR_INT("neither &pixd nor &boxd defined", procName, 1);
+    if (ppixd) *ppixd = NULL;
+    if (pboxd) *pboxd = NULL;
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+    if (!boxs)
+        return pixClipToForeground(pixs, ppixd, pboxd);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (boxs) {
+        boxGetGeometry(boxs, &bx, &by, &bw, &bh);
+        cbw = L_MIN(bw, w - bx);
+        cbh = L_MIN(bh, h - by);
+        if (cbw < 0 || cbh < 0)
+            return ERROR_INT("box not within image", procName, 1);
+        boxt = boxCreate(bx, by, cbw, cbh);
+    }
+    else
+        boxt = boxCreate(0, 0, w, h);
+   
+
+    if (pixScanForForeground(pixs, boxt, L_FROM_LEFT, &left)) {
+        boxDestroy(&boxt);
+        return 1;
+    }
+    pixScanForForeground(pixs, boxt, L_FROM_RIGHT, &right);
+    pixScanForForeground(pixs, boxt, L_FROM_TOP, &top);
+    pixScanForForeground(pixs, boxt, L_FROM_BOTTOM, &bottom);
+
+    boxd = boxCreate(left, top, right - left + 1, bottom - top + 1);
+    if (ppixd)
+        *ppixd = pixClipRectangle(pixs, boxd, NULL);
+    if (pboxd)
+        *pboxd = boxd;
+    else
+        boxDestroy(&boxd);
+
+    boxDestroy(&boxt);
+    return 0;
+}
+
+
+/*!
+ *  pixScanForForeground()
+ *
+ *      Input:  pixs (1 bpp)
+ *              box  (<optional> within which the search is conducted)
+ *              scanflag (direction of scan; e.g., L_FROM_LEFT)
+ *              &loc (location in scan direction of first black pixel)
+ *      Return: 0 if OK; 1 on error or if no fg pixels are found
+ *
+ *  Notes:
+ *      (1) If there are no fg pixels, the position is set to 0.
+ *          Caller must check the return value!
+ *      (2) Use @box == NULL to scan from edge of pixs
+ */
+l_int32
+pixScanForForeground(PIX      *pixs,
+                     BOX      *box,
+                     l_int32   scanflag,
+                     l_int32  *ploc)
+{
+l_int32    bx, by, bw, bh, x, xstart, xend, y, ystart, yend, wpl;
+l_uint32  *data, *line;
+BOX       *boxt;
+
+    PROCNAME("pixScanForForeground");
+
+    if (!ploc)
+        return ERROR_INT("&ploc not defined", procName, 1);
+    *ploc = 0;
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+        /* Clip box to pixs if it exists */
+    pixGetDimensions(pixs, &bw, &bh, NULL);
+    if (box) {
+        if ((boxt = boxClipToRectangle(box, bw, bh)) == NULL)
+            return ERROR_INT("invalid box", procName, 1);
+        boxGetGeometry(boxt, &bx, &by, &bw, &bh);
+        boxDestroy(&boxt);
+    }
+    else
+        bx = by = 0;
+    xstart = bx;
+    ystart = by;
+    xend = bx + bw - 1;
+    yend = by + bh - 1;
+
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    if (scanflag == L_FROM_LEFT) {
+        for (x = xstart; x <= xend; x++) {
+            for (y = ystart; y <= yend; y++) {
+                line = data + y * wpl;
+                if (GET_DATA_BIT(line, x)) {
+                    *ploc = x;
+                    return 0;
+                }
+            }
+        }
+    }
+    else if (scanflag == L_FROM_RIGHT) {
+        for (x = xend; x >= xstart; x--) {
+            for (y = ystart; y <= yend; y++) {
+                line = data + y * wpl;
+                if (GET_DATA_BIT(line, x)) {
+                    *ploc = x;
+                    return 0;
+                }
+            }
+        }
+    }
+    else if (scanflag == L_FROM_TOP) {
+        for (y = ystart; y <= yend; y++) {
+            line = data + y * wpl;
+            for (x = xstart; x <= xend; x++) {
+                if (GET_DATA_BIT(line, x)) {
+                    *ploc = y;
+                    return 0;
+                }
+            }
+        }
+    }
+    else if (scanflag == L_FROM_BOTTOM) {
+        for (y = yend; y >= ystart; y--) {
+            line = data + y * wpl;
+            for (x = xstart; x <= xend; x++) {
+                if (GET_DATA_BIT(line, x)) {
+                    *ploc = y;
+                    return 0;
+                }
+            }
+        }
+    }
+    else
+        return ERROR_INT("invalid scanflag", procName, 1);
+
+    return 1;  /* no fg found */
+}
+
+
+/*!
+ *  pixClipBoxToEdges()
+ *
+ *      Input:  pixs (1 bpp)
+ *              boxs  (<optional> ; use full image if null)
+ *              lowthresh (threshold to choose clipping location)
+ *              highthresh (threshold required to find an edge)
+ *              maxwidth (max allowed width between low and high thresh locs)
+ *              factor (sampling factor along pixel counting direction)
+ *              &pixd  (<optional return> clipped pix returned)
+ *              &boxd  (<optional return> bounding box)
+ *      Return: 0 if OK; 1 on error or if a fg edge is not found from
+ *              all four sides.
+ *
+ *  Notes:
+ *      (1) At least one of {&pixd, &boxd} must be specified.
+ *      (2) If there are no fg pixels, the returned ptrs are null.
+ *      (3) This function attempts to locate rectangular "image" regions
+ *          of high-density fg pixels, that have well-defined edges
+ *          on the four sides.
+ *      (4) Edges are searched for on each side, iterating in order
+ *          from left, right, top and bottom.  As each new edge is
+ *          found, the search box is resized to use that location.
+ *          Once an edge is found, it is held.  If no more edges
+ *          are found in one iteration, the search fails.
+ *      (5) See pixScanForEdge() for usage of the thresholds and @maxwidth.
+ *      (6) The thresholds must be at least 1, and the low threshold
+ *          cannot be larger than the high threshold.
+ *      (7) If the low and high thresholds are both 1, this is equivalent
+ *          to pixClipBoxToForeground().
+ */
+l_int32
+pixClipBoxToEdges(PIX     *pixs,
+                  BOX     *boxs,
+                  l_int32  lowthresh,
+                  l_int32  highthresh,
+                  l_int32  maxwidth,
+                  l_int32  factor,
+                  PIX    **ppixd,
+                  BOX    **pboxd)
+{
+l_int32  w, h, bx, by, bw, bh, cbw, cbh, left, right, top, bottom;
+l_int32  lfound, rfound, tfound, bfound, change;
+BOX     *boxt, *boxd;
+
+    PROCNAME("pixClipBoxToEdges");
+
+    if (!ppixd && !pboxd)
+        return ERROR_INT("neither &pixd nor &boxd defined", procName, 1);
+    if (ppixd) *ppixd = NULL;
+    if (pboxd) *pboxd = NULL;
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+    if (lowthresh < 1 || highthresh < 1 ||
+        lowthresh > highthresh || maxwidth < 1)
+        return ERROR_INT("invalid thresholds", procName, 1);
+    factor = L_MIN(1, factor);
+
+    if (lowthresh == 1 && highthresh == 1)
+        return pixClipBoxToForeground(pixs, boxs, ppixd, pboxd);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (boxs) {
+        boxGetGeometry(boxs, &bx, &by, &bw, &bh);
+        cbw = L_MIN(bw, w - bx);
+        cbh = L_MIN(bh, h - by);
+        if (cbw < 0 || cbh < 0)
+            return ERROR_INT("box not within image", procName, 1);
+        boxt = boxCreate(bx, by, cbw, cbh);
+    }
+    else
+        boxt = boxCreate(0, 0, w, h);
+
+    lfound = rfound = tfound = bfound = 0;
+    while (!lfound || !rfound || !tfound || !bfound) { 
+        change = 0;
+        if (!lfound) {
+            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
+                                factor, L_FROM_LEFT, &left)) {
+                lfound = 1;
+                change = 1;
+                boxResizeOneSide(boxt, left, L_FROM_LEFT);
+            }
+        }
+        if (!rfound) {
+            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
+                                factor, L_FROM_RIGHT, &right)) {
+                rfound = 1;
+                change = 1;
+                boxResizeOneSide(boxt, right, L_FROM_RIGHT);
+            }
+        }
+        if (!tfound) {
+            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
+                                factor, L_FROM_TOP, &top)) {
+                tfound = 1;
+                change = 1;
+                boxResizeOneSide(boxt, top, L_FROM_TOP);
+            }
+        }
+        if (!bfound) {
+            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
+                                factor, L_FROM_BOTTOM, &bottom)) {
+                bfound = 1;
+                change = 1;
+                boxResizeOneSide(boxt, bottom, L_FROM_BOTTOM);
+            }
+        }
+
+#if DEBUG_EDGES
+        fprintf(stderr, "iter: %d %d %d %d\n", lfound, rfound, tfound, bfound);
+#endif  /* DEBUG_EDGES */
+
+        if (change == 0) break;
+    }
+    boxDestroy(&boxt);
+
+    if (change == 0)
+        return ERROR_INT("not all edges found", procName, 1);
+
+    boxd = boxCreate(left, top, right - left + 1, bottom - top + 1);
+    if (ppixd)
+        *ppixd = pixClipRectangle(pixs, boxd, NULL);
+    if (pboxd)
+        *pboxd = boxd;
+    else
+        boxDestroy(&boxd);
+
+    return 0;
+}
+
+
+/*!
+ *  pixScanForEdge()
+ *
+ *      Input:  pixs (1 bpp)
+ *              box  (<optional> within which the search is conducted)
+ *              lowthresh (threshold to choose clipping location)
+ *              highthresh (threshold required to find an edge)
+ *              maxwidth (max allowed width between low and high thresh locs)
+ *              factor (sampling factor along pixel counting direction)
+ *              scanflag (direction of scan; e.g., L_FROM_LEFT)
+ *              &loc (location in scan direction of first black pixel)
+ *      Return: 0 if OK; 1 on error or if the edge is not found
+ *
+ *  Notes:
+ *      (1) If there are no fg pixels, the position is set to 0.
+ *          Caller must check the return value!
+ *      (2) Use @box == NULL to scan from edge of pixs
+ *      (3) As the scan progresses, the location where the sum of
+ *          pixels equals or excees @lowthresh is noted (loc).  The
+ *          scan is stopped when the sum of pixels equals or exceeds
+ *          @highthresh.  If the scan distance between loc and that
+ *          point does not exceed @maxwidth, an edge is found and
+ *          its position is taken to be loc.  @maxwidth implicitly
+ *          sets a minimum on the required gradient of the edge.
+ *      (4) The thresholds must be at least 1, and the low threshold
+ *          cannot be larger than the high threshold.
+ */
+l_int32
+pixScanForEdge(PIX      *pixs,
+               BOX      *box,
+               l_int32   lowthresh,
+               l_int32   highthresh,
+               l_int32   maxwidth,
+               l_int32   factor,
+               l_int32   scanflag,
+               l_int32  *ploc)
+{
+l_int32    bx, by, bw, bh, foundmin, loc, sum, wpl;
+l_int32    x, xstart, xend, y, ystart, yend;
+l_uint32  *data, *line;
+BOX       *boxt;
+
+    PROCNAME("pixScanForEdge");
+
+    if (!ploc)
+        return ERROR_INT("&ploc not defined", procName, 1);
+    *ploc = 0;
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+    if (lowthresh < 1 || highthresh < 1 ||
+        lowthresh > highthresh || maxwidth < 1)
+        return ERROR_INT("invalid thresholds", procName, 1);
+    factor = L_MIN(1, factor);
+
+        /* Clip box to pixs if it exists */
+    pixGetDimensions(pixs, &bw, &bh, NULL);
+    if (box) {
+        if ((boxt = boxClipToRectangle(box, bw, bh)) == NULL)
+            return ERROR_INT("invalid box", procName, 1);
+        boxGetGeometry(boxt, &bx, &by, &bw, &bh);
+        boxDestroy(&boxt);
+    }
+    else
+        bx = by = 0;
+    xstart = bx;
+    ystart = by;
+    xend = bx + bw - 1;
+    yend = by + bh - 1;
+
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    foundmin = 0;
+    if (scanflag == L_FROM_LEFT) {
+        for (x = xstart; x <= xend; x++) {
+            sum = 0;
+            for (y = ystart; y <= yend; y += factor) {
+                line = data + y * wpl;
+                if (GET_DATA_BIT(line, x))
+                    sum++;
+            }
+            if (!foundmin && sum < lowthresh)
+                continue;
+            if (!foundmin) {  /* save the loc of the beginning of the edge */
+                foundmin = 1;
+                loc = x;
+            }
+            if (sum >= highthresh) {
+#if DEBUG_EDGES
+                fprintf(stderr, "Left: x = %d, loc = %d\n", x, loc);
+#endif  /* DEBUG_EDGES */
+                if (x - loc < maxwidth) {
+                    *ploc = loc;
+                    return 0;
+                }
+                else return 1;
+            }
+        }
+    }
+    else if (scanflag == L_FROM_RIGHT) {
+        for (x = xend; x >= xstart; x--) {
+            sum = 0;
+            for (y = ystart; y <= yend; y += factor) {
+                line = data + y * wpl;
+                if (GET_DATA_BIT(line, x))
+                    sum++;
+            }
+            if (!foundmin && sum < lowthresh)
+                continue;
+            if (!foundmin) {
+                foundmin = 1;
+                loc = x;
+            }
+            if (sum >= highthresh) {
+#if DEBUG_EDGES
+                fprintf(stderr, "Right: x = %d, loc = %d\n", x, loc);
+#endif  /* DEBUG_EDGES */
+                if (loc - x < maxwidth) {
+                    *ploc = loc;
+                    return 0;
+                }
+                else return 1;
+            }
+        }
+    }
+    else if (scanflag == L_FROM_TOP) {
+        for (y = ystart; y <= yend; y++) {
+            sum = 0;
+            line = data + y * wpl;
+            for (x = xstart; x <= xend; x += factor) {
+                if (GET_DATA_BIT(line, x))
+                    sum++;
+            }
+            if (!foundmin && sum < lowthresh)
+                continue;
+            if (!foundmin) {
+                foundmin = 1;
+                loc = y;
+            }
+            if (sum >= highthresh) {
+#if DEBUG_EDGES
+                fprintf(stderr, "Top: y = %d, loc = %d\n", y, loc);
+#endif  /* DEBUG_EDGES */
+                if (y - loc < maxwidth) {
+                    *ploc = loc;
+                    return 0;
+                }
+                else return 1;
+            }
+        }
+    }
+    else if (scanflag == L_FROM_BOTTOM) {
+        for (y = yend; y >= ystart; y--) {
+            sum = 0;
+            line = data + y * wpl;
+            for (x = xstart; x <= xend; x += factor) {
+                if (GET_DATA_BIT(line, x))
+                    sum++;
+            }
+            if (!foundmin && sum < lowthresh)
+                continue;
+            if (!foundmin) {
+                foundmin = 1;
+                loc = y;
+            }
+            if (sum >= highthresh) {
+#if DEBUG_EDGES
+                fprintf(stderr, "Bottom: y = %d, loc = %d\n", y, loc);
+#endif  /* DEBUG_EDGES */
+                if (loc - y < maxwidth) {
+                    *ploc = loc;
+                    return 0;
+                }
+                else return 1;
+            }
+        }
+    }
+    else
+        return ERROR_INT("invalid scanflag", procName, 1);
+
+    return 1;  /* edge not found */
+}
 

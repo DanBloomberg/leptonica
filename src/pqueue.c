@@ -68,7 +68,8 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;  /* n'importe quoi */
  *      Input:  size of ptr array to be alloc'd (0 for default)
  *      Return: pqueue, or null on error
  *
- *  Action: allocates a ptr array of given size, and initializes counters.
+ *  Notes:
+ *      (1) Allocates a ptr array of given size, and initializes counters.
  */
 PQUEUE *
 pqueueCreate(l_int32  nalloc)
@@ -97,14 +98,16 @@ PQUEUE  *pq;
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
- *  Action: If freeflag is TRUE, frees each struct in the array.
- *          If freeflag is FALSE but there are elements on the array,
- *            gives a warning and destroys the array.  This will
- *            cause a memory leak of all the items that were on the queue.
- *            So if the items require their own destroy function, they
- *            must be destroyed before the queue.
- *          To destroy the PQueue, we destroy the ptr array, then
- *            the pqueue, and then null the contents of the input ptr.
+ *  Notes:
+ *      (1) If freeflag is TRUE, frees each struct in the array.
+ *      (2) If freeflag is FALSE but there are elements on the array,
+ *          gives a warning and destroys the array.  This will
+ *          cause a memory leak of all the items that were on the queue.
+ *          So if the items require their own destroy function, they
+ *          must be destroyed before the queue.  The same applies to the
+ *          auxiliary stack, if it is used.
+ *      (3) To destroy the PQueue, we destroy the ptr array, then
+ *          the pqueue, and then null the contents of the input ptr.
  */
 void
 pqueueDestroy(PQUEUE  **ppq,
@@ -134,7 +137,9 @@ PQUEUE  *pq;
 
     if (pq->array)
         FREE(pq->array);
-    FREE((void *)pq);
+    if (pq->stack)
+        pstackDestroy(&pq->stack, freeflag);
+    FREE(pq);
     *ppq = NULL;
 
     return;

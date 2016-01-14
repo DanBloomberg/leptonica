@@ -23,13 +23,17 @@
  *           CCBorda:  an array of CCBord
  */
 
-    /* use in ccbaStepChainsToPixCoords() */
-#define  LOCAL_COORDS        1
-#define  GLOBAL_COORDS       2
+    /* Use in ccbaStepChainsToPixCoords() */
+enum {
+      CCB_LOCAL_COORDS = 1,
+      CCB_GLOBAL_COORDS = 2
+};
 
-    /* use in ccbaGenerateSPGlobalLocs() */
-#define  SAVE_ALL_PTS        1
-#define  SAVE_TURNING_PTS    2
+    /* Use in ccbaGenerateSPGlobalLocs() */
+enum {
+      CCB_SAVE_ALL_PTS = 1,
+      CCB_SAVE_TURNING_PTS = 2
+};
 
 
     /* CCBord contains:

@@ -38,8 +38,14 @@
  *           PIX        *pixConvertGrayToColormap()  -- 2, 4, 8 bpp
  *           PIX        *pixConvertGrayToColormap8()  -- 8 bpp only
  *
+ *      Colorizing conversion from grayscale to color
+ *           PIX        *pixColorizeGray()  -- 8 bpp or cmapped
+ *
  *      Conversion from RGB color to colormap
  *           PIX        *pixConvertRGBToColormap()
+ *
+ *      Quantization for relatively small number of colors in source
+ *           l_int32     pixQuantizeIfFewColors()
  *
  *      Conversion from 16 bpp to 8 bpp
  *           PIX        *pixConvert16To8()
@@ -528,7 +534,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
         /* Eliminate the easy cases */
-    pixNumColors(pixs, &ncolors);
+    pixNumColors(pixs, 1, &ncolors);
     cmap = pixGetColormap(pixs);
     if (cmap) {
         if (pixcmapGetCount(cmap) == ncolors)  /* irreducible */
@@ -569,6 +575,7 @@ PIXCMAP   *cmap;
         /* Set all pixels in pixd to the colormap index */
     pixd = pixCreateTemplate(pixt);
     pixSetColormap(pixd, cmap);
+    pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     for (i = 0; i < h; i++) {
@@ -610,7 +617,7 @@ pixConvertRGBToLuminance(PIX *pixs)
  *  pixConvertRGBToGray()
  *
  *      Input:  pix (32 bpp RGB)
- *              rwt, gwt, bwt  (these should add to 1.0,
+ *              rwt, gwt, bwt  (non-negative; these should add to 1.0,
  *                              or use 0.0 for default)
  *      Return: 8 bpp pix, or null on error
  *
@@ -623,9 +630,9 @@ pixConvertRGBToGray(PIX       *pixs,
                     l_float32  gwt,
                     l_float32  bwt)
 {
-l_uint8    redbyte, greenbyte, bluebyte, graybyte;
-l_int32    i, j, w, h, wpls, wpld;
-l_uint32  *datas, *words, *datad, *lined;
+l_int32    i, j, w, h, wpls, wpld, rval, gval, bval, val;
+l_uint32  *datas, *lines, *datad, *lined;
+l_float32  sum;
 PIX       *pixd;
 
     PROCNAME("pixConvertRGBToGray");
@@ -634,23 +641,27 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (rwt < 0.0 || gwt < 0.0 || bwt < 0.0)
+        return (PIX *)ERROR_PTR("weights not all >= 0.0", procName, NULL);
 
+        /* Make sure the sum of weights is 1.0; otherwise, you can get
+         * overflow in the gray value. */
     if (rwt == 0.0 && gwt == 0.0 && bwt == 0.0) {
         rwt = L_RED_WEIGHT;
         gwt = L_GREEN_WEIGHT;
         bwt = L_BLUE_WEIGHT;
     }
+    sum = rwt + gwt + bwt;
+    if (L_ABS(sum - 1.0) > 0.0001) {  /* maintain ratios with sum == 1.0 */
+        L_WARNING("weights don't sum to 1; maintaining ratios", procName);
+        rwt = rwt / sum;
+        gwt = gwt / sum;
+        bwt = bwt / sum;
+    }
 
-        /* If the sum of weights is much above 1.0, you can get
-         * overflow in the gray value. */
-    if (L_ABS(rwt + gwt + bwt - 1.0) > 0.0001)
-        return (PIX *)ERROR_PTR("weights don't add to 1.0", procName, NULL);
-
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -658,16 +669,12 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     for (i = 0; i < h; i++) {
-        words = datas + i * wpls;
+        lines = datas + i * wpls;
         lined = datad + i * wpld;
-        for (j = 0; j < w; j++, words++) {
-            redbyte = GET_DATA_BYTE(words, COLOR_RED);
-            greenbyte = GET_DATA_BYTE(words, COLOR_GREEN);
-            bluebyte = GET_DATA_BYTE(words, COLOR_BLUE);
-            graybyte = (l_uint8)(rwt * redbyte +
-                               gwt * greenbyte +
-                               bwt * bluebyte + 0.5);
-            SET_DATA_BYTE(lined, j, graybyte);
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            val = (l_int32)(rwt * rval + gwt * gval + bwt * bval + 0.5);
+            SET_DATA_BYTE(lined, j, val);
         }
     }
 
@@ -685,19 +692,15 @@ PIX       *pixd;
  *      (1) This function should be used if speed of conversion
  *          is paramount, and the green channel can be used as
  *          a fair representative of the RGB intensity.  It is
- *          about 8x faster than pixConvertRGBToGray().
- *      (2) The standard color byte order (RGBA) is assumed.
- *      (3) If you want to combine RGB to gray conversion with
- *          subsampling, use pixScaleRGBToGrayFast() instead.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
+ *          several times faster than pixConvertRGBToGray().
+ *      (2) To combine RGB to gray conversion with subsampling,
+ *          use pixScaleRGBToGrayFast() instead.
  */
 PIX *
 pixConvertRGBToGrayFast(PIX  *pixs)
 {
-l_uint8    graybyte;
-l_int32    i, j, w, h, wpls, wpld;
-l_uint32  *datas, *words, *datad, *lined;
+l_int32    i, j, w, h, wpls, wpld, val;
+l_uint32  *datas, *lines, *datad, *lined;
 PIX       *pixd;
 
     PROCNAME("pixConvertRGBToGrayFast");
@@ -710,7 +713,6 @@ PIX       *pixd;
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -718,11 +720,11 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
     
     for (i = 0; i < h; i++) {
-        words = datas + i * wpls;
+        lines = datas + i * wpls;
         lined = datad + i * wpld;
-        for (j = 0; j < w; j++, words++) {
-            graybyte = ((*words) >> 16) & 0xff;
-            SET_DATA_BYTE(lined, j, graybyte);
+        for (j = 0; j < w; j++, lines++) {
+            val = ((*lines) >> L_GREEN_SHIFT) & 0xff;
+            SET_DATA_BYTE(lined, j, val);
         }
     }
 
@@ -834,7 +836,7 @@ PIXCMAP   *cmap;
     }
 
     na = pixGetGrayHistogram(pixs, 1);
-    ncolors = numaGetCount(na);
+    numaGetCountRelativeToZero(na, L_GREATER_THAN_ZERO, &ncolors);
     if (mindepth == 8 || ncolors > 16)
         depth = 8;
     else if (mindepth == 4 || ncolors > 4)
@@ -842,8 +844,7 @@ PIXCMAP   *cmap;
     else
         depth = 2;
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     pixd = pixCreate(w, h, depth);
     cmap = pixcmapCreate(depth);
     pixSetColormap(pixd, cmap);
@@ -877,6 +878,76 @@ PIXCMAP   *cmap;
     return pixd;
 }
 
+
+/*---------------------------------------------------------------------------*
+ *                Colorizing conversion from grayscale to color              *
+ *---------------------------------------------------------------------------*/
+/*!
+ *  pixColorizeGray()
+ *
+ *      Input:  pixs (8 bpp gray; 2, 4 or 8 bpp colormapped)
+ *              color (32 bit rgba pixel)
+ *              cmapflag (1 for result to have colormap; 0 for RGB)
+ *      Return: pixd (8 bpp colormapped or 32 bpp rgb), or null on error
+ *
+ *  Notes:
+ *      (1) This applies the specific color to the grayscale image.
+ *      (2) If pixs already has a colormap, it is removed to gray
+ *          before colorizing.
+ */
+PIX *
+pixColorizeGray(PIX      *pixs,
+                l_uint32  color,
+                l_int32   cmapflag)
+{
+l_int32    i, j, w, h, wplt, wpld, val8;
+l_uint32  *datad, *datat, *lined, *linet, *tab;
+PIX       *pixt, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixColorizeGray");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))        
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or cmapped", procName, NULL);
+
+    if (pixGetColormap(pixs))
+        pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    else
+        pixt = pixClone(pixs);
+
+    cmap = pixcmapGrayToColor(color);
+    if (cmapflag) {
+        pixd = pixCopy(NULL, pixt);
+        pixSetColormap(pixd, cmap);
+        pixDestroy(&pixt);
+        return pixd;
+    }
+    
+        /* Make an RGB pix */
+    pixcmapToRGBTable(cmap, &tab, NULL);
+    pixGetDimensions(pixt, &w, &h, NULL);
+    pixd = pixCreate(w, h, 32);
+    pixCopyResolution(pixd, pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+    for (i = 0; i < h; i++) {
+        lined = datad + i * wpld;
+        linet = datat + i * wplt;
+        for (j = 0; j < w; j++) {
+            val8 = GET_DATA_BYTE(linet, j);
+            lined[j] = tab[val8];
+        }
+    }
+
+    pixDestroy(&pixt);
+    pixcmapDestroy(&cmap);
+    FREE(tab);
+    return pixd;
+}
 
 
 /*---------------------------------------------------------------------------*
@@ -948,6 +1019,99 @@ PIX     *pixd;
     numaDestroy(&na);
     return pixd;
 }
+
+
+/*---------------------------------------------------------------------------*
+ *        Quantization for relatively small number of colors in source       *
+ *---------------------------------------------------------------------------*/
+/*!
+ *  pixQuantizeIfFewColors()
+ *     
+ *      Input:  pixs (8 bpp gray or 32 bpp rgb)
+ *              maxcolors (max number of colors allowed to be returned
+ *                         from pixColorsForQuantization(); use 0 for default)
+ *              mingraycolors (min number of gray levels that a grayscale
+ *                             image is quantized to; use 0 for default)
+ *              &pixd (2, 4 or 8 bpp quantized; null if too many colors)
+ *      Return: 0 if OK, 1 on error or if pixs can't be quantized into
+ *              a small number of colors.
+ *
+ *  Notes:
+ *      (1) This is a wrapper that tests if the pix can be quantized
+ *          with good quality using a small number of colors.  If so,
+ *          it does the quantization, defining a colormap and using
+ *          pixels whose value is an index into the colormap.
+ *      (2) If the image has color, it is quantized with 8 bpp pixels.
+ *          If the image is essentially grayscale, the pixels are
+ *          either 4 or 8 bpp, depending on the size of the required
+ *          colormap.
+ *      (3) If the image already has a colormap, it returns a clone.
+ */
+l_int32
+pixQuantizeIfFewColors(PIX     *pixs,
+                       l_int32  maxcolors,
+                       l_int32  mingraycolors,
+                       PIX    **ppixd)
+{
+l_int32  d, ncolors, iscolor, graycolors;
+PIX     *pixg, *pixd;
+
+    PROCNAME("pixQuantizeIfFewColors");
+
+    if (!ppixd)
+        return ERROR_INT("&pixd not defined", procName, 1);
+    *ppixd = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    d = pixGetDepth(pixs);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (pixGetColormap(pixs) != NULL) {
+        *ppixd = pixClone(pixs);
+        return 0;
+    }
+    if (maxcolors <= 0)
+        maxcolors = 15;  /* default */
+    if (maxcolors > 50)
+        L_WARNING("maxcolors > 50; very large!", procName);
+    if (mingraycolors <= 0)
+        mingraycolors = 10;  /* default */
+    if (mingraycolors > 30)
+        L_WARNING("mingraycolors > 30; very large!", procName);
+
+        /* Test the number of colors.  For color, the octcube leaves
+         * are at level 4. */
+    pixColorsForQuantization(pixs, 0, &ncolors, &iscolor, 0);
+    if (ncolors > maxcolors)
+        return ERROR_INT("too many colors", procName, 1);
+
+        /* Quantize.  For color, the occupied octcube leaves are
+         * at level 3, because (1) the quality is good enough and (2) there
+         * is negligible chance of getting more than 256 colors.
+         * For grayscale, multiply ncolors by 1.5 for extra quality,
+         * but use at least mingraycolors. */
+    if (iscolor)
+        pixd = pixFewColorsOctcubeQuant1(pixs, 3);
+    else  { /* image is really grayscale */
+        if (d == 32)
+            pixg = pixConvertRGBToLuminance(pixs);
+        else
+            pixg = pixClone(pixs);
+        graycolors = L_MAX(mingraycolors, (l_int32)(1.5 * ncolors));
+        if (graycolors < 16)
+            pixd = pixThresholdTo4bpp(pixg, graycolors, 1);
+        else
+            pixd = pixThresholdOn8bpp(pixg, graycolors, 1);
+        pixDestroy(&pixg);
+    }
+    *ppixd = pixd;
+
+    if (!pixd)
+        return ERROR_INT("pixd not made", procName, 1);
+    else
+        return 0;
+}
+
 
 
 /*---------------------------------------------------------------------------*
@@ -2268,6 +2432,7 @@ PIX       *pixd;
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
 
         /* Unpack the bits */
     datas = pixGetData(pixs);
@@ -2392,6 +2557,24 @@ PIXCMAP  *cmap;
  *      (3) The h, s and v values are stored in the same places as
  *          the r, g and b values, respectively.  Here, they are explicitly
  *          placed in the 3 MS bytes in the pixel.
+ *      (4) Normalizing to 1 and considering the r,g,b components,
+ *          a simple way to understand the HSV space is:
+ *           - v = max(r,g,b)
+ *           - s = (max - min) / max
+ *           - h ~ (mid - min) / (max - min)  [apart from signs and constants]
+ *      (5) Normalizing to 1, some properties of the HSV space are:
+ *           - For gray values (r = g = b) along the continuum between
+ *             black and white:
+ *                s = 0  (becoming undefined as you approach black)
+ *                h is undefined everywhere
+ *           - Where one component is saturated and the others are zero:
+ *                v = 1
+ *                s = 1
+ *                h = 0 (r = max), 1/3 (g = max), 2/3 (b = max)
+ *           - Where two components are saturated and the other is zero:
+ *                v = 1
+ *                s = 1
+ *                h = 1/2 (if r = 0), 5/6 (if g = 0), 1/6 (if b = 0)
  */
 PIX *
 pixConvertRGBToHSV(PIX  *pixd,
@@ -2696,6 +2879,7 @@ PIX       *pixt, *pixd;
 
         /* Convert RGB image */
     pixd = pixCreate(w, h, 8);
+    pixCopyResolution(pixd, pixs);
     wplt = pixGetWpl(pixt);
     datat = pixGetData(pixt);
     wpld = pixGetWpl(pixd);

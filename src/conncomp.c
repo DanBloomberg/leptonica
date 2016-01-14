@@ -613,7 +613,7 @@ BOX       *box;
     minx = maxx = x;
     miny = maxy = y;
 
-    while (pstack->n > 0)
+    while (pstackGetCount(pstack) > 0)
     {
             /* Pop segment off stack and fill a neighboring scan line */
         popFillseg(pstack, &x1, &x2, &y, &dy);
@@ -725,7 +725,7 @@ BOX       *box;
     minx = maxx = x;
     miny = maxy = y;
 
-    while (pstack->n > 0)
+    while (pstackGetCount(pstack) > 0)
     {
             /* Pop segment off stack and fill a neighboring scan line */
         popFillseg(pstack, &x1, &x2, &y, &dy);
@@ -862,7 +862,7 @@ l_uint32  *data, *line;
     pushFillseg(pstack, x, x, y, 1, ymax);
     pushFillseg(pstack, x, x, y + 1, -1, ymax);
 
-    while (pstack->n > 0)
+    while (pstackGetCount(pstack) > 0)
     {
             /* Pop segment off stack and fill a neighboring scan line */
         popFillseg(pstack, &x1, &x2, &y, &dy);
@@ -953,7 +953,7 @@ l_uint32  *data, *line;
     pushFillseg(pstack, x, x, y, 1, ymax);
     pushFillseg(pstack, x, x, y + 1, -1, ymax);
 
-    while (pstack->n > 0)
+    while (pstackGetCount(pstack) > 0)
     {
             /* Pop segment off stack and fill a neighboring scan line */
         popFillseg(pstack, &x1, &x2, &y, &dy);
@@ -1051,10 +1051,10 @@ PSTACK   *auxstack;
             return ERROR_VOID("auxstack not defined", procName);
 
             /* Get a fillseg to use */
-        if (auxstack->n > 0)
+        if (pstackGetCount(auxstack) > 0)
             fseg = (FILLSEG *)pstackRemove(auxstack);
         else {
-            if ((fseg = (FILLSEG *)calloc(1, sizeof(FILLSEG))) == NULL)
+            if ((fseg = (FILLSEG *)CALLOC(1, sizeof(FILLSEG))) == NULL)
                 return ERROR_VOID("fillseg not made", procName);
         }
 
@@ -1105,10 +1105,10 @@ PSTACK   *auxstack;
             return ERROR_VOID("auxstack not defined", procName);
 
             /* Get a fillseg to use */
-        if (auxstack->n > 0)
+        if (pstackGetCount(auxstack) > 0)
             fseg = (FILLSEG *)pstackRemove(auxstack);
         else {
-            if ((fseg = (FILLSEG *)calloc(1, sizeof(FILLSEG))) == NULL)
+            if ((fseg = (FILLSEG *)CALLOC(1, sizeof(FILLSEG))) == NULL)
                 return ERROR_VOID("fillseg not made", procName);
         }
 

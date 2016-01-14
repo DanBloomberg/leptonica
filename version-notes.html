@@ -22,6 +22,64 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.60   19 Jan 09
+       Fixed bug in pixBlockconv(), introduced in 1.59, that causes
+       overflow when convolving with an image that has white (255)
+       at the edges.  [quickly found by Dave Bryan]
+       Include function to display freetype fonts in a pix.
+       The files freetype.c and freetype.h are in the distribution, but are not
+       yet linked into the library.  This is contributed by Tony Dovgal,
+       and this version works only for MSVC.
+
+1.59   11 Jan 09
+       Lots of changes since 1.58.
+       New files: affinecompose.c, ptra.c, warper.c, watershed.{h,c}.
+          Split: boxfunc.c --> (boxfunc1.c, boxfunc2.c, boxfunc3.c)
+       Improved connected component filtering, with logical functions
+       applied to indicator arrays (pix4.c, pixafunc.c, numafunc1.c).
+       Function to determine if an image can be quantized nicely with
+       only a few colors (colorcontent.c, pixconv.c).
+       New gray seed-filling functions (seedfill.c, seedfilllow.c).
+       Fixed bugs in tophats and hdome, due to misuse of pixSubtractGray()
+       (morphapp.c).
+       New function for improving contrast (adaptmap.c)
+       Watershed transform (still slightly buggy) (watershed.c,h).
+       Fast random access into a pix using line pointers (pix1.c, arrayaccess.*)
+       Conversions of colormaps from gray to color and v.v. (colormap.c)
+       Seedfill function that applies an upper limit to the fill
+       distance (seedfill.c)
+       New function for warping images with random harmonic distortion
+       (with help from Tony Dovgal).
+       New generic ptr array utility: all O(1) functions of a stack plus
+       random replace, insert and delete (ptra.c).
+       Simple functions for colorizing a grayscale image with an arbitrary
+       color (pixconv.c, colormap.c)
+       Flexible affine transforms (translation, scale, rotation) on pta
+       and boxa (affinecompose.c).
+       Clipping of foreground (both exact and approximate) starting from
+       within a rectangular region of the image (pix4.c)
+       Blending a colored rectangle over an image (pix2.c, boxfunc3.c)
+       Generation of rectangle covering of mask components (boxfunc3.c).
+       Block convolution using tiles (for very large images)  (convolve.c)
+       New or improved regression tests in prog:
+          locminmax_reg, lowaccess_reg, grayfill_reg, adaptnorm_reg,
+          xformbox_reg, warper_reg, cmapquant_reg, compfilter_reg,
+          splitcomp_reg, affine_reg, bilinear_reg, projective_reg
+       Acknowledgments:
+       (1) Big thanks to Tony Dovgal for helping with the warping
+           (e.g. for captcha).  Tony also provided an implementation that
+           allows rendering truetype fonts into a Pix on windows.
+           This is not yet incorporated, because it opens a huge
+           "can of worms," which is OK if you're going fishing but
+           maybe not if you're trying to support leptonica on many platforms.
+           TBD.
+       (2) David Shao provided a libtools build system that includes
+           building the prog directory!  I believe this will work, but it
+           is is not yet included because of problems I continue to have
+           with macros in version 2.61 of gnu libtools.
+       (3) Steve Rogers is working on a MSVC build for the prog directory.
+           I hope to have this available for 1.60.
+
 1.58   27 Sept 08
        Added serialization for numaa.
        New octree quantizer pixOctreeQuantByPopulation(), that uses a
@@ -43,6 +101,7 @@ They are <i>not</i> a complete listing of the modifications.
        See prog/blend_reg.c for blending regression test, with new functions.
 
 1.57   13 Jul 08
+       New Debian distribution for 1.57 (thanks to Jeff Breidenbach).
        Improved the Otsu-type approach for finding a binarization threshold,
        by choosing the min in the histogram subject to constraints
        (numafunc2.c, adaptmap.c)
@@ -78,7 +137,7 @@ They are <i>not</i> a complete listing of the modifications.
        Both octree and median-cut color quantization check first if
        image is essentially grayscale; improvements to both algorithms.
        box*TransformOrdered(): general sequence of linear transforms.
-       colorquantreg.c, xformbox_reg.c, hardlight_reg.c: new regr tests.
+       colorquant_reg.c, xformbox_reg.c, hardlight_reg.c: new regr tests.
 
 1.55   16 Mar 08
        New functions for combining two images arbitrarily through a mask,
@@ -89,7 +148,7 @@ They are <i>not</i> a complete listing of the modifications.
        New functions to separate fg from bg (pix3.c), one of which is supported
        by numaSplitDistribution (numafunc.c).
        Modify sobel edge detector to take another parameter (edge.c)
-       Suppoprt for 4 bpp cmyk color space in jpeg (jpegio.c)
+       Support for 4 bpp cmyk color space in jpeg (jpegio.c)
        Modified median cut color quantization (colorquant2.c)
        Renamed colorquant.c (for octree quant) --> colorquant1.c.
        Absorbed conncomp.h and colorquant.h into specific files that

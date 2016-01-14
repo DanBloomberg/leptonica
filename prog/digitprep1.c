@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-static const l_float32  HEIGHT = 32.0;  /* pixels */
+static const l_int32  HEIGHT = 32;  /* pixels */
 
 main(int    argc,
      char **argv)

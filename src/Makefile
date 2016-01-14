@@ -140,7 +140,7 @@ LIBRARIAN_SHARED =	gcc -shared
 #   Links are created among the files <libname>.X.Y,
 #   <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 58
+MINOR_REV = 60
 
 #########################################################
 
@@ -151,14 +151,14 @@ LEPTLIB_SHARED =	liblept.so
 
 #########################################################
 
-LEPTLIB_C =	adaptmap.c affine.c \
+LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		arithlow.c arrayaccess.c \
 		bardecode.c baseline.c \
 		bbuffer.c bilinear.c \
 		binexpand.c binexpandlow.c \
 		binreduce.c binreducelow.c \
 		blend.c bmf.c bmpio.c bmpiostub.c \
-		boxbasic.c boxfunc.c \
+		boxbasic.c boxfunc1.c boxfunc2.c boxfunc3.c \
 		ccbord.c ccthin.c classapp.c \
 		colorcontent.c colormap.c colormorph.c \
 		colorquant1.c colorquant2.c colorseg.c \
@@ -185,7 +185,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		pixconv.c pixtiling.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
 		pqueue.c projective.c psio.c psiostub.c \
-		pts.c rank.c \
+		ptra.c pts.c rank.c \
 		readbarcode.c readfile.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \
@@ -197,7 +197,8 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		shear.c skew.c stack.c \
 		textops.c tiffio.c tiffiostub.c \
 		utils.c viewfiles.c \
-		writefile.c zlibmem.c zlibmemstub.c
+		warper.c watershed.c writefile.c \
+		zlibmem.c zlibmemstub.c
 
 LEPTLIB_H =	allheaders.h alltypes.h \
 		array.h arrayaccess.h bbuffer.h \
@@ -208,7 +209,8 @@ LEPTLIB_H =	allheaders.h alltypes.h \
 		leptprotos.h list.h \
 		morph.h pheap.h \
 		pix.h pqueue.h \
-		readbarcode.h stack.h
+		readbarcode.h stack.h \
+		watershed.h
 
 ##################################################################
 

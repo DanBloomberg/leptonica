@@ -66,7 +66,7 @@ static char  mainName[] = "printsplitimage";
     if (argc == 5)
 	printer = argv[4];
 
-    system("rm -f /usr/tmp/junk_print_image_*.ps");
+    system("rm -f /tmp/junk_print_image_*.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
@@ -88,7 +88,7 @@ static char  mainName[] = "printsplitimage";
       w = pixGetWidth(pixt);
       h = pixGetHeight(pixt);
       scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
-      sprintf(buffer, "/usr/tmp/junk_print_image_%d.ps", i);
+      sprintf(buffer, "/tmp/junk_print_image_%d.ps", i);
       fp = fopen(buffer, "wb+");
       sarrayAddString(sa, buffer, 1);
       pixWriteStreamPS(fp, pixt, NULL, 300, scale);

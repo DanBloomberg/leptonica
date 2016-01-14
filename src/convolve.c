@@ -19,15 +19,16 @@
  *      Top level grayscale or color block convolution
  *          PIX      *pixBlockconv()
  *
- *      Color block convolution
- *          PIX      *pixBlockconvColor()
- *          
  *      Grayscale block convolution
  *          PIX      *pixBlockconvGray()
  *          PIX      *pixBlockconvAccum()
  *
  *      Un-normalized grayscale block convolution
  *          PIX      *pixBlockconvGrayUnnormalized()
+ *
+ *      Tiled grayscale or color block convolution
+ *          PIX      *pixBlockconvTiled()
+ *          PIX      *pixBlockconvGrayTile()
  *
  *      Binary block sum and rank filter
  *          PIX      *pixBlockrank()
@@ -73,7 +74,7 @@ pixBlockconv(PIX     *pix,
              l_int32  hc)
 {
 l_int32  w, h, d;
-PIX     *pixs, *pixd;
+PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
 
     PROCNAME("pixBlockconv");
 
@@ -105,78 +106,25 @@ PIX     *pixs, *pixd;
 
     if (d == 8)
         pixd = pixBlockconvGray(pixs, NULL, wc, hc);
-    else  /* d == 32 */
-        pixd = pixBlockconvColor(pixs, wc, hc);
-    pixDestroy(&pixs);
-
-    return pixd;
-}
-
-
-/*----------------------------------------------------------------------*
- *                        Color block convolution                       *
- *----------------------------------------------------------------------*/
-/*!
- *  pixBlockconvColor()
- *
- *      Input:  pixs (32 bpp; 24 bpp RGB color)
- *              wc, hc   (half width/height of convolution kernel)
- *      Return: pixd, or null on error
- *
- *  Notes:
- *      (1) The full width and height of the convolution kernel
- *          are (2 * wc + 1) and (2 * hc + 1)
- *      (2) Returns a copy if both wc and hc are 0.
- *      (3) Require that wc < w and hc < h, where (w,h) are the dimensions
- *          of pixs.
- */
-PIX  *
-pixBlockconvColor(PIX     *pixs,
-                  l_int32  wc,
-                  l_int32  hc)
-{
-l_int32  w, h, d;
-PIX     *pixRed, *pixGreen, *pixBlue;
-PIX     *pixRedConv, *pixGreenConv, *pixBlueConv;
-PIX     *pixd;
-
-    PROCNAME("pixBlockconvColor");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 32)
-        return (PIX *)ERROR_PTR("pix not 32 bpp", procName, NULL);
-    if (wc < 0) wc = 0;
-    if (hc < 0) hc = 0;
-    if (wc == 0 && hc == 0)   /* no-op */
-        return pixCopy(NULL, pixs);
-    if (w <= wc || h <= hc) {
-        L_WARNING("conv kernel half-size >= image dimension!", procName);
-        return pixCopy(NULL, pixs);
+    else { /* d == 32 */
+        pixr = pixGetRGBComponent(pixs, COLOR_RED);
+        pixrc = pixBlockconvGray(pixr, NULL, wc, hc);
+        pixDestroy(&pixr);
+        pixg = pixGetRGBComponent(pixs, COLOR_GREEN);
+        pixgc = pixBlockconvGray(pixg, NULL, wc, hc);
+        pixDestroy(&pixg);
+        pixb = pixGetRGBComponent(pixs, COLOR_BLUE);
+        pixbc = pixBlockconvGray(pixb, NULL, wc, hc);
+        pixDestroy(&pixb);
+        pixd = pixCreateRGBImage(pixrc, pixgc, pixbc);
+        pixDestroy(&pixrc);
+        pixDestroy(&pixgc);
+        pixDestroy(&pixbc);
     }
 
-    pixRed = pixGetRGBComponent(pixs, COLOR_RED);
-    pixRedConv = pixBlockconvGray(pixRed, NULL, wc, hc);
-    pixDestroy(&pixRed);
-    pixGreen = pixGetRGBComponent(pixs, COLOR_GREEN);
-    pixGreenConv = pixBlockconvGray(pixGreen, NULL, wc, hc);
-    pixDestroy(&pixGreen);
-    pixBlue = pixGetRGBComponent(pixs, COLOR_BLUE);
-    pixBlueConv = pixBlockconvGray(pixBlue, NULL, wc, hc);
-    pixDestroy(&pixBlue);
-
-    if ((pixd = pixCreateRGBImage(pixRedConv, pixGreenConv, pixBlueConv))
-            == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-
-    pixDestroy(&pixRedConv);
-    pixDestroy(&pixGreenConv);
-    pixDestroy(&pixBlueConv);
-
+    pixDestroy(&pixs);
     return pixd;
 }
-
 
 
 /*----------------------------------------------------------------------*
@@ -377,6 +325,220 @@ PIX       *pixsb, *pixacc, *pixd;
     }
 
     pixDestroy(&pixacc);
+    return pixd;
+}
+
+
+/*----------------------------------------------------------------------*
+ *               Tiled grayscale or color block convolution             *
+ *----------------------------------------------------------------------*/
+/*!
+ *  pixBlockconvTiled()
+ *
+ *      Input:  pix (8 or 32 bpp; or 2, 4 or 8 bpp with colormap)
+ *              wc, hc   (half width/height of convolution kernel)
+ *              nx, ny  (subdivision into tiles)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The full width and height of the convolution kernel
+ *          are (2 * wc + 1) and (2 * hc + 1)
+ *      (2) Returns a copy if both wc and hc are 0
+ *      (3) Require that wc < w/2 and hc < h/2, where (w,h) are
+ *          the dimensions of pixs.
+ *      (4) Why a tiled version?  Three reasons:
+ *          (a) Because the accumulator is a uint32, overflow can occur
+ *              for an image with more than 16M pixels.
+ *          (b) The accumulator array for 16M pixels is 64 MB; using
+ *              tiles reduces the size of this array.
+ *          (c) Each tile can be processed independently, in parallel,
+ *              on a multicore processor.
+ */
+PIX *
+pixBlockconvTiled(PIX     *pix,
+                  l_int32  wc,
+                  l_int32  hc,
+                  l_int32  nx,
+                  l_int32  ny)
+{
+l_int32     i, j, w, h, d;
+PIX        *pixs, *pixd, *pixc, *pixt;
+PIX        *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
+PIXTILING  *pt;
+
+    PROCNAME("pixBlockconvTiled");
+
+    if (!pix)
+        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
+    if (wc < 0) wc = 0;
+    if (hc < 0) hc = 0;
+    if (wc == 0 && hc == 0)   /* no-op */
+        return pixCopy(NULL, pix);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (wc >= w || hc >= h) {
+        L_WARNING("conv kernel half-size >= image dimension!", procName);
+        return pixCopy(NULL, pix);
+    }
+    if (nx <= 1 && ny <= 1)
+        return pixBlockconv(pix, wc, hc);
+
+        /* Remove colormap if necessary */ 
+    if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
+        L_WARNING("pix has colormap; removing", procName);
+        pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+        d = pixGetDepth(pixs);
+    }
+    else
+        pixs = pixClone(pix);
+
+    if (d != 8 && d != 32) {
+        pixDestroy(&pixs);
+        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, NULL);
+    }
+
+       /* Note that the overlaps in the width and height that
+        * are added to the tile are (wc + 2) and (hc + 2).
+        * These overlaps are removed by pixTilingPaintTile().
+        * They are larger than the extent of the filter because
+        * although the filter is symmetric with respect to its origin,
+        * the implementation is asymmetric -- see the implementation in
+        * pixBlockconvGrayTile(). */
+    pixd = pixCreateTemplateNoInit(pixs);
+    pt = pixTilingCreate(pixs, nx, ny, 0, 0, wc + 2, hc + 2);
+    for (i = 0; i < ny; i++) {
+        for (j = 0; j < nx; j++) {
+            pixt = pixTilingGetTile(pt, i, j);
+
+                /* Convolve over the tile */
+            if (d == 8)
+                pixc = pixBlockconvGrayTile(pixt, NULL, wc, hc);
+            else { /* d == 32 */
+                pixr = pixGetRGBComponent(pixt, COLOR_RED);
+                pixrc = pixBlockconvGrayTile(pixr, NULL, wc, hc);
+                pixDestroy(&pixr);
+                pixg = pixGetRGBComponent(pixt, COLOR_GREEN);
+                pixgc = pixBlockconvGrayTile(pixg, NULL, wc, hc);
+                pixDestroy(&pixg);
+                pixb = pixGetRGBComponent(pixt, COLOR_BLUE);
+                pixbc = pixBlockconvGrayTile(pixb, NULL, wc, hc);
+                pixDestroy(&pixb);
+                pixc = pixCreateRGBImage(pixrc, pixgc, pixbc);
+                pixDestroy(&pixrc);
+                pixDestroy(&pixgc);
+                pixDestroy(&pixbc);
+            }
+
+            pixTilingPaintTile(pixd, i, j, pixc, pt);
+            pixDestroy(&pixt);
+            pixDestroy(&pixc);
+        }
+    }
+
+    pixDestroy(&pixs);
+    pixTilingDestroy(&pt);
+    return pixd;
+}
+
+
+/*!
+ *  pixBlockconvGrayTile()
+ *
+ *      Input:  pixs (8 bpp gray)
+ *              pixacc (32 bpp accum pix)
+ *              wc, hc   (half width/height of convolution kernel)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The full width and height of the convolution kernel
+ *          are (2 * wc + 1) and (2 * hc + 1)
+ *      (2) Assumes that the input pixs is padded with (wc + 1) pixels on
+ *          left and right, and with (hc + 1) pixels on top and bottom.
+ *          The returned pix has these stripped off; they are only used
+ *          for computation.
+ *      (3) Returns a copy if both wc and hc are 0
+ *      (4) Require that wc < w/2 and hc < h/2, where (w,h) are
+ *          the dimensions of pixs.
+ */
+PIX *
+pixBlockconvGrayTile(PIX     *pixs,
+                     PIX     *pixacc,
+                     l_int32  wc,
+                     l_int32  hc)
+{
+l_int32    w, h, d, wd, hd, i, j, imin, imax, jmin, jmax, wplt, wpld;
+l_float32  norm;
+l_uint32   val;
+l_uint32  *datat, *datad, *lined, *linemint, *linemaxt;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixBlockconvGrayTile");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (wc < 0) wc = 0;
+    if (hc < 0) hc = 0;
+    wd = w - 2 * wc;
+    hd = h - 2 * hc;
+    if (wc == 0 && hc == 0) {
+        L_WARNING("kernel unit size; no-op", procName);
+        return pixCopy(NULL, pixs);
+    }
+    if (wd < 2 || hd < 2) {
+        L_WARNING("conv kernel size >= image dimension!", procName);
+        return pixCopy(NULL, pixs);
+    }
+
+    if (pixacc) {
+        if (pixGetDepth(pixacc) == 32)
+            pixt = pixClone(pixacc);
+        else {
+            L_WARNING("pixacc not 32 bpp; making new one", procName);
+            if ((pixt = pixBlockconvAccum(pixs)) == NULL)
+                return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        }
+    }
+    else {
+        if ((pixt = pixBlockconvAccum(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    }
+        
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    norm = 1. / (l_float32)((2 * wc + 1) * (2 * hc + 1));
+
+        /* Do the convolution over the subregion of size (wd - 2, hd - 2),
+         * which exactly corresponds to the size of the subregion that
+         * will be extracted by pixTilingPaintTile().  Note that the
+         * region in which points are computed is not symmetric about
+         * the center of the images; instead the computation in
+         * the accumulator image is shifted up and to the left by 1,
+         * relative to the center, because the 4 accumulator sampling
+         * points are taken at the LL corner of the filter and at 3 other
+         * points that are shifted -wc and -hc to the left and above.  */
+    for (i = hc; i < hc + hd - 2; i++) {
+        imin = L_MAX(i - hc - 1, 0);
+        imax = L_MIN(i + hc, h - 1);
+        lined = datad + i * wpld;
+        linemint = datat + imin * wplt;
+        linemaxt = datat + imax * wplt;
+        for (j = wc; j < wc + wd - 2; j++) {
+            jmin = L_MAX(j - wc - 1, 0);
+            jmax = L_MIN(j + wc, w - 1);
+            val = linemaxt[jmax] - linemaxt[jmin]
+                  + linemint[jmin] - linemint[jmax];
+            val = (l_uint8)(norm * val + 0.5);
+            SET_DATA_BYTE(lined, j, val);
+        }
+    }
+
+    pixDestroy(&pixt);
     return pixd;
 }
 

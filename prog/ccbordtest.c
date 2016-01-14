@@ -68,7 +68,7 @@ static char  mainName[] = "ccbordtest";
     fprintf(stderr, "%6.3f sec\n", stopTimer());
     fprintf(stderr, "Convert from step chain to global locs...");
     startTimer();
-    ccbaStepChainsToPixCoords(ccba, GLOBAL_COORDS);
+    ccbaStepChainsToPixCoords(ccba, CCB_GLOBAL_COORDS);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
     fprintf(stderr, "Display border representation...");
     startTimer();
@@ -135,7 +135,7 @@ static char  mainName[] = "ccbordtest";
 	/* display the border pixels again */
     fprintf(stderr, "Convert from step chain to global locs...");
     startTimer();
-    ccbaStepChainsToPixCoords(ccba2, GLOBAL_COORDS);
+    ccbaStepChainsToPixCoords(ccba2, CCB_GLOBAL_COORDS);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
     fprintf(stderr, "Display border representation...");
     startTimer();
@@ -157,7 +157,7 @@ static char  mainName[] = "ccbordtest";
 	/* display image again */
     fprintf(stderr, "Convert from step chain to local coords...");
     startTimer();
-    ccbaStepChainsToPixCoords(ccba2, LOCAL_COORDS);
+    ccbaStepChainsToPixCoords(ccba2, CCB_LOCAL_COORDS);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
     fprintf(stderr, "Reconstruct image from file ...");
     startTimer();
@@ -201,7 +201,7 @@ static char  mainName[] = "ccbordtest";
 	/* generate global single path border */
     fprintf(stderr, "Generate global single path borders ...");
     startTimer();
-    ccbaGenerateSPGlobalLocs(ccba, SAVE_TURNING_PTS);
+    ccbaGenerateSPGlobalLocs(ccba, CCB_SAVE_TURNING_PTS);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
 	/* display border pixels from single path */
     fprintf(stderr, "Display border from single path...");

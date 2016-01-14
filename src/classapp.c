@@ -29,10 +29,12 @@
  *         l_int32         pixGetWordBoxesInTextlines()
  *
  *      Use word bounding boxes to compare page images
+ *
  *         NUMAA          *boxaExtractSortedPattern()
  *         l_int32         numaaCompareImagesByBoxes()
  *         static l_int32  testLineAlignmentX()
  *         static l_int32  countAlignedMatches()
+ *         static void     printRowIndices()
  */
 
 #include <stdio.h>
@@ -52,7 +54,10 @@ static l_int32 testLineAlignmentX(NUMA *na1, NUMA *na2, l_int32 shiftx,
 static l_int32 countAlignedMatches(NUMA *nai1, NUMA *nai2, NUMA *nasx,
                                    NUMA *nasy, l_int32 n1, l_int32 n2,
                                    l_int32 delx, l_int32 dely,
-                                   l_int32 nreq, l_int32 *psame);
+                                   l_int32 nreq, l_int32 *psame,
+                                   l_int32 debugflag);
+static void printRowIndices(l_int32 *index1, l_int32 n1,
+                            l_int32 *index2, l_int32 n2);
 
 
 /*------------------------------------------------------------------*
@@ -595,6 +600,7 @@ NUMAA   *naa;
  *              delx (max allowed difference in x data, after alignment)
  *              dely (max allowed difference in y data, after alignment)
  *              &same (<return> 1 if @nreq row matches are found; 0 otherwise)
+ *              debugflag (1 for debug output)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -609,14 +615,20 @@ NUMAA   *naa;
  *          to consider in each line when testing for a match, and
  *          @nreq is the required number of lines that must be well-aligned
  *          to get a match.
- *      (3) First, all pairs of rows whose first @nperline boxes can
- *          be brought into alignment within the @maxshiftx and
- *          @maxshifty constraint are enumerated.  Then these pairs
- *          are searched for a set of @nreq pairs, such that when the
- *          first pair is aligned using shifts (xshift, yshift) for the
- *          first bounding box on each line, the @nreq - 1 pairs
- *          can also be aligned using the same shift pair, within a
- *          tolerance of (@delx, @dely).
+ *      (3) Testing by alignment has 3 steps:
+ *          (a) Generating the location of word bounding boxes from the
+ *              images (prior to calling this function).
+ *          (b) Listing all possible pairs of aligned rows, based on
+ *              tolerances in horizontal and vertical positions of
+ *              the boxes.  Specifically, all pairs of rows are enumerated
+ *              whose first @nperline boxes can be brought into close
+ *              alignment, based on the delx parameter for boxes in the
+ *              line and within the overall the @maxshiftx and @maxshifty
+ *              constraints.
+ *          (c) Each pair, starting with the first, is used to search
+ *              for a set of @nreq - 1 other pairs that can all be aligned
+ *              with a difference in global translation of not more
+ *              than (@delx, @dely).
  */
 l_int32
 numaaCompareImagesByBoxes(NUMAA    *naa1,
@@ -627,7 +639,8 @@ numaaCompareImagesByBoxes(NUMAA    *naa1,
                           l_int32   maxshifty,
                           l_int32   delx,
                           l_int32   dely,
-                          l_int32  *psame)
+                          l_int32  *psame,
+                          l_int32   debugflag)
 {
 l_int32   n1, n2, i, j, nbox, y1, y2, xl1, xl2;
 l_int32   shiftx, shifty, match;
@@ -723,9 +736,11 @@ NUMA     *na1, *na2, *nai1, *nai2, *nasx, *nasy;
     }
 
         /* Determine if there are a sufficient number of mutually
-         * aligned matches. */
+         * aligned matches.  Mutually aligned matches place an additional
+         * constraint on the 'possible' matches, where the relative
+         * shifts must not exceed the (delx, dely) distances. */
     countAlignedMatches(nai1, nai2, nasx, nasy, n1, n2, delx, dely,
-                        nreq, psame);
+                        nreq, psame, debugflag);
 
     FREE(line1);
     FREE(line2);
@@ -799,7 +814,8 @@ countAlignedMatches(NUMA     *nai1,
                     l_int32   delx,
                     l_int32   dely,
                     l_int32   nreq,
-                    l_int32  *psame)
+                    l_int32  *psame,
+                    l_int32   debugflag)
 {
 l_int32   i, j, nm, shiftx, shifty, nmatch, diffx, diffy;
 l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
@@ -819,6 +835,9 @@ l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
          * is a match that is properly aligned, those rows are
          * marked in the index arrays.  */
     nm = numaGetCount(nai1);  /* number of matches */
+    if (nm < nreq)
+        return 0;
+
     ia1 = numaGetIArray(nai1);
     ia2 = numaGetIArray(nai2);
     iasx = numaGetIArray(nasx);
@@ -829,32 +848,34 @@ l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
         if (*psame == 1)
             break;
 
-            /* reset row index arrays */
+            /* Reset row index arrays */
         memset(index1, 0, 4 * n1);
         memset(index2, 0, 4 * n2);
-        index1[ia1[i]] = 1;  /* mark these rows as taken */
-        index2[ia2[i]] = 1;
+        nmatch = 1;
+        index1[ia1[i]] = nmatch;  /* mark these rows as taken */
+        index2[ia2[i]] = nmatch;
         shiftx = iasx[i];  /* reference shift between two rows */
         shifty = iasy[i];  /* ditto */
-        nmatch = 1;
         if (nreq == 1) {
             *psame = 1;
             break;
         }
         for (j = 0; j < nm; j++) {
             if (j == i) continue;
-                /* rows must both be different from any previously seen */
-            if (index1[ia1[j]] == 1 || index2[ia2[j]] == 1) continue;
-                /* check the shift for this match */
+                /* Rows must both be different from any previously seen */
+            if (index1[ia1[j]] > 0 || index2[ia2[j]] > 0) continue;
+                /* Check the shift for this match */
             diffx = L_ABS(shiftx - iasx[j]);
             diffy = L_ABS(shifty - iasy[j]);
             if (diffx > delx || diffy > dely) continue;
-                /* we have a match */   
-            index1[ia1[j]] = 1;  /* mark the rows */
-            index2[ia2[j]] = 1;
+                /* We have a match */   
             nmatch++;
+            index1[ia1[j]] = nmatch;  /* mark the rows */
+            index2[ia2[j]] = nmatch;
             if (nmatch >= nreq) {
                 *psame = 1;
+                if (debugflag)
+                    printRowIndices(index1, n1, index2, n2);
                 break;
             }
         }
@@ -868,4 +889,32 @@ l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
     FREE(index2);
     return 0;
 }
+
+
+static void
+printRowIndices(l_int32  *index1,
+                l_int32   n1,
+                l_int32  *index2,
+                l_int32   n2)
+{
+l_int32  i;
+
+    fprintf(stderr, "Index1: ");
+    for (i = 0; i < n1; i++) {
+        if (i && (i % 20 == 0))
+            fprintf(stderr, "\n        ");
+        fprintf(stderr, "%3d", index1[i]);
+    }
+    fprintf(stderr, "\n");
+
+    fprintf(stderr, "Index2: ");
+    for (i = 0; i < n2; i++) {
+        if (i && (i % 20 == 0))
+            fprintf(stderr, "\n        ");
+        fprintf(stderr, "%3d", index2[i]);
+    }
+    fprintf(stderr, "\n");
+    return;
+}
+
 

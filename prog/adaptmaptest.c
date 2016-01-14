@@ -16,6 +16,10 @@
 /*
  * adaptmaptest.c
  *
+ *   Generates adaptive mappings in both gray and color, testing
+ *   individual parts.
+ *
+ *   e.g., use with wet-day.jpg
  */
 
 #include <stdio.h>
@@ -32,7 +36,7 @@
 #define  SMOOTH_X      2
 #define  SMOOTH_Y      1
 
-   /* wet-day.jpg; 0.63 scaling  */
+   /* Location of image region in wet-day.jpg */
 #define  XS     151
 #define  YS     225
 #define  WS     913
@@ -42,79 +46,89 @@
 main(int    argc,
      char **argv)
 {
-l_int32      d;
-PIX         *pixs, *pixg, *pixm, *pixmi, *pixd, *pixd2;
+l_int32      w, h, d;
+PIX         *pixs, *pixc, *pixg, *pixgm, *pixm, *pixmi, *pixd, *pixd2;
 PIX         *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
 PIX         *pixim;
-char        *filein, *fileout;
+PIXA        *pixa;
+char        *filein;
 static char  mainName[] = "adaptmaptest";
 
-    if (argc != 3)
-	exit(ERROR_INT(" Syntax:  adaptmaptest filein fileout",
-	       mainName, 1));
+    if (argc != 2)
+	exit(ERROR_INT(" Syntax:  adaptmaptest filein", mainName, 1));
 
     filein = argv[1];
-    fileout = argv[2];
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pix not made", mainName, 1));
-
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32)
         exit(ERROR_INT("pix not 8 or 32 bpp", mainName, 1));
+    pixDisplayWrite(NULL, -1);
+    pixa = pixaCreate(0);
+    pixSaveTiled(pixs, pixa, 1, 1, 20, 32);
+    pixDisplayWrite(pixs, 1);
 
-    /* process in grayscale */
-#if 0
-    startTimer();
     if (d == 32) {
+        pixc = pixClone(pixs);
         pixg = pixConvertRGBToGray(pixs, 0.33, 0.34, 0.33);
-        fprintf(stderr, "time for conversion to gray: %7.3f\n", stopTimer());
-    } else
+    } else {
+        pixc = pixConvertTo32(pixs);
         pixg = pixClone(pixs);
+    }
+    pixSaveTiled(pixg, pixa, 1, 0, 20, 32);
+    pixDisplayWrite(pixg, 1);
     
+#if 1
+        /* Process in grayscale */
     startTimer();
     pixim = NULL;
-    pixim = pixCreate(pixGetWidth(pixs), pixGetHeight(pixs), 1);
+    pixim = pixCreate(w, h, 1);
     pixRasterop(pixim, XS, YS, WS, HS, PIX_SET, NULL, 0, 0);
-    pixm = pixGetBackgroundMap(pixg, pixim, SIZE_X, SIZE_Y,
-                               BINTHRESH, MINCOUNT);
-    fprintf(stderr, "time for adapt map generation: %7.3f\n", stopTimer());
-    pixWrite("junkpixm", pixm, IFF_PNG);
+    pixGetBackgroundGrayMap(pixg, pixim, SIZE_X, SIZE_Y,
+                            BINTHRESH, MINCOUNT, &pixgm);
+    fprintf(stderr, "time for gray adaptmap gen: %7.3f\n", stopTimer());
+    pixWrite("junkpixgm1", pixgm, IFF_PNG);
+    pixSaveTiled(pixgm, pixa, 1, 1, 20, 32);
+    pixDisplayWrite(pixgm, 1);
 
     startTimer();
-    pixmi = pixGetInvBackgroundMap(pixm, BGVAL, SMOOTH_X, SMOOTH_Y);
-    fprintf(stderr, "time for inv map generation: %7.3f\n", stopTimer());
-    pixWrite("junkpixmi", pixmi, IFF_PNG);
+    pixmi = pixGetInvBackgroundMap(pixgm, BGVAL, SMOOTH_X, SMOOTH_Y);
+    fprintf(stderr, "time for gray inv map generation: %7.3f\n", stopTimer());
+    pixWrite("junkpixmi1", pixmi, IFF_PNG);
+    pixSaveTiled(pixmi, pixa, 1, 0, 20, 32);
+    pixDisplayWrite(pixmi, 1);
 
     startTimer();
-    pixd = pixApplyInvBackgroundMap(pixg, pixmi, SIZE_X, SIZE_Y);
-    fprintf(stderr, "time for applying inv map: %7.3f\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_JFIF_JPEG);
+    pixd = pixApplyInvBackgroundGrayMap(pixg, pixmi, SIZE_X, SIZE_Y);
+    fprintf(stderr, "time to apply gray inv map: %7.3f\n", stopTimer());
+    pixWrite("junkpixd1", pixd, IFF_JFIF_JPEG);
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 32);
+    pixDisplayWrite(pixd, 1);
 
     pixd2 = pixGammaTRCMasked(NULL, pixd, pixim, 1.0, 0, 190);
     pixInvert(pixim, pixim);
     pixGammaTRCMasked(pixd2, pixd2, pixim, 1.0, 60, 190);
-    pixWrite("junkpixo", pixd2, IFF_JFIF_JPEG);
+    pixWrite("junkpixo1", pixd2, IFF_JFIF_JPEG);
+    pixSaveTiled(pixd2, pixa, 1, 0, 20, 32);
+    pixDisplayWrite(pixd2, 1);
     pixDestroy(&pixim);
-    pixDestroy(&pixg);
-    pixDestroy(&pixm);
+    pixDestroy(&pixgm);
     pixDestroy(&pixmi);
     pixDestroy(&pixd);
     pixDestroy(&pixd2);
 #endif
 
-    /* process in color if input is 32 bpp */
-#if 0
-    if (d != 32)
-        exit(ERROR_INT("pix not 32 bpp", mainName, 1));
-    
+#if 1
+        /* Process in color */
     startTimer();
     pixmr = pixmg = pixmb = NULL;
-    pixim = pixCreate(pixGetWidth(pixs), pixGetHeight(pixs), 1);
+    pixim = pixCreate(w, h, 1);
     pixRasterop(pixim, XS, YS, WS, HS, PIX_SET, NULL, 0, 0);
-    pixGetBackgroundMaps(pixs, pixim, SIZE_X, SIZE_Y, BINTHRESH, MINCOUNT,
-                         &pixmr, &pixmg, &pixmb);
-    fprintf(stderr, "time for adapt map generation: %7.3f\n", stopTimer());
+    pixGetBackgroundRGBMap(pixc, pixim, NULL, SIZE_X, SIZE_Y,
+                           BINTHRESH, MINCOUNT,
+                           &pixmr, &pixmg, &pixmb);
+    fprintf(stderr, "time for color adaptmap gen: %7.3f\n", stopTimer());
     pixWrite("junkpixmr", pixmr, IFF_PNG);
     pixWrite("junkpixmg", pixmg, IFF_PNG);
     pixWrite("junkpixmb", pixmb, IFF_PNG);
@@ -123,21 +137,25 @@ static char  mainName[] = "adaptmaptest";
     pixmri = pixGetInvBackgroundMap(pixmr, BGVAL, SMOOTH_X, SMOOTH_Y);
     pixmgi = pixGetInvBackgroundMap(pixmg, BGVAL, SMOOTH_X, SMOOTH_Y);
     pixmbi = pixGetInvBackgroundMap(pixmb, BGVAL, SMOOTH_X, SMOOTH_Y);
-    fprintf(stderr, "time for inv map generation: %7.3f\n", stopTimer());
+    fprintf(stderr, "time for color inv map generation: %7.3f\n", stopTimer());
     pixWrite("junkpixmri", pixmri, IFF_PNG);
     pixWrite("junkpixmgi", pixmgi, IFF_PNG);
     pixWrite("junkpixmbi", pixmbi, IFF_PNG);
 
     startTimer();
-    pixd = pixApplyInvBackgroundMaps(pixs, pixmri, pixmgi, pixmbi,
-                                    SIZE_X, SIZE_Y);
-    fprintf(stderr, "time for applying inv maps: %7.3f\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_JFIF_JPEG);
+    pixd = pixApplyInvBackgroundRGBMap(pixc, pixmri, pixmgi, pixmbi,
+                                       SIZE_X, SIZE_Y);
+    fprintf(stderr, "time to apply color inv maps: %7.3f\n", stopTimer());
+    pixWrite("junkpixd2", pixd, IFF_JFIF_JPEG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 32);
+    pixDisplayWrite(pixd, 1);
 
     pixd2 = pixGammaTRCMasked(NULL, pixd, pixim, 1.0, 0, 190);
     pixInvert(pixim, pixim);
     pixGammaTRCMasked(pixd2, pixd2, pixim, 1.0, 60, 190);
-    pixWrite("junkpixo", pixd2, IFF_JFIF_JPEG);
+    pixWrite("junkpixo2", pixd2, IFF_JFIF_JPEG);
+    pixSaveTiled(pixd2, pixa, 1, 0, 20, 32);
+    pixDisplayWrite(pixd2, 1);
     pixDestroy(&pixmr);
     pixDestroy(&pixmg);
     pixDestroy(&pixmb);
@@ -149,10 +167,10 @@ static char  mainName[] = "adaptmaptest";
     pixDestroy(&pixd2);
 #endif
 
-    /* process in either gray or color, depending on the source */
 #if 1
+        /* Process in either gray or color, depending on the source */
     startTimer();
-    pixim = pixCreate(pixGetWidth(pixs), pixGetHeight(pixs), 1);
+    pixim = pixCreate(w, h, 1);
     pixRasterop(pixim, XS, YS, WS, HS, PIX_SET, NULL, 0, 0);
 /*    pixd = pixBackgroundNorm(pixs, pixim, NULL,SIZE_X, SIZE_Y,
                                BINTHRESH, MINCOUNT,
@@ -160,19 +178,34 @@ static char  mainName[] = "adaptmaptest";
     pixd = pixBackgroundNorm(pixs, pixim, NULL, 5, 10, BINTHRESH, 20,
                              BGVAL, SMOOTH_X, SMOOTH_Y);
     fprintf(stderr, "time for bg normalization: %7.3f\n", stopTimer());
-    pixWrite(fileout, pixd, IFF_JFIF_JPEG);
+    pixWrite("junkpixd3", pixd, IFF_JFIF_JPEG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 32);
+    pixDisplayWrite(pixd, 1);
 
     pixd2 = pixGammaTRCMasked(NULL, pixd, pixim, 1.0, 0, 190);
     pixInvert(pixim, pixim);
     pixGammaTRCMasked(pixd2, pixd2, pixim, 1.0, 60, 190);
-    pixWrite("junkpixo", pixd2, IFF_JFIF_JPEG);
+    pixWrite("junkpixo3", pixd2, IFF_JFIF_JPEG);
+    pixSaveTiled(pixd2, pixa, 1, 0, 20, 32);
+    pixDisplayWrite(pixd2, 1);
 
     pixDestroy(&pixd);
     pixDestroy(&pixd2);
     pixDestroy(&pixim);
 #endif
     
+        /* Display results */
+    pixd = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd, 100, 100);
+    pixWrite("junkadapt.jpg", pixd, IFF_JFIF_JPEG);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+
+    system("gthumb junk_write_display* &");
+
     pixDestroy(&pixs);
+    pixDestroy(&pixg);
+    pixDestroy(&pixc);
     exit(0);
 }
 

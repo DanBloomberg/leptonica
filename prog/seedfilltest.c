@@ -61,7 +61,7 @@ static char  mainName[] = "seedfilltest";
 	exit(ERROR_INT("no seed pixel found", mainName, 1));
     pixSetPixel(pixs, XS + 5 * i, YS + 5 * i, 1);
 
-#if 1
+#if 0
         /* hole filling; use "hole-filler.png" */
     pixt1 = pixHDome(pixmi, 100, 4);
     pixt2 = pixThresholdToBinary(pixt1, 10);
@@ -153,7 +153,7 @@ static char  mainName[] = "seedfilltest";
     pixDestroy(&pixmi);
     pixDestroy(&pixd);
 
-    exit(0);
+    return 0;
 }
 
 

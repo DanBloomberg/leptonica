@@ -53,10 +53,12 @@
  *       text orientation flags
  *       edge orientation flags
  *       line orientation flags
+ *       scan direction flags
  *       thinning flags
  *       runlength flags
  *       edge filter flags
  *       handling negative values in conversion to unsigned int
+ *       relative to zero flags
  */
 
 
@@ -217,8 +219,8 @@ enum {
 
 #define   PIX_PAINT    (PIX_SRC | PIX_DST)
 #define   PIX_MASK     (PIX_SRC & PIX_DST)
+#define   PIX_SUBTRACT (PIX_DST & PIX_NOT(PIX_SRC))
 #define   PIX_XOR      (PIX_SRC ^ PIX_DST)
-
 
 
 /*-------------------------------------------------------------------------*
@@ -420,7 +422,8 @@ struct PixTiling
     l_int32              ny;          /* number of tiles vertically        */
     l_int32              w;           /* tile width                        */
     l_int32              h;           /* tile height                       */
-    l_int32              overlap;     /* amount of overlap on each side    */
+    l_int32              xoverlap;    /* overlap on left and right         */
+    l_int32              yoverlap;    /* overlap on top and bottom         */
 };
 typedef struct PixTiling PIXTILING;
 
@@ -665,6 +668,17 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
+ *                           Scan direction flags                          *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_FROM_LEFT = 0,           /* scan from left                           */
+    L_FROM_RIGHT = 1,          /* scan from right                          */
+    L_FROM_TOP = 2,            /* scan from top                            */
+    L_FROM_BOTTOM = 3          /* scan from bottom                         */
+};
+
+
+/*-------------------------------------------------------------------------*
  *                             Thinning flags                              *
  *-------------------------------------------------------------------------*/
 enum {
@@ -697,6 +711,16 @@ enum {
 enum {
     L_CLIP_TO_ZERO = 1,        /* Clip negative values to 0                */
     L_TAKE_ABSVAL = 2          /* Convert to positive using L_ABS()        */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                         Relative to zero flags                          *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_LESS_THAN_ZERO = 1,      /* Choose values less than zero             */
+    L_EQUAL_TO_ZERO = 2,       /* Choose values equal to zero              */
+    L_GREATER_THAN_ZERO = 3    /* Choose values greater than zero          */
 };
 
 

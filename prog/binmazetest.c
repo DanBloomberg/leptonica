@@ -38,6 +38,7 @@
 main(int    argc,
      char **argv)
 {
+l_int32      i;
 char        *mazeout, *pathout;
 PIX         *pixm, *pixex, *pixd;
 PTA         *pta;
@@ -61,6 +62,15 @@ static char  mainName[] = "binmazetest";
     pixDisplay(pixex, 450, 50);
     pixDestroy(&pixex);
     pixWrite(pathout, pixd, IFF_PNG);
+
+#if 0
+    startTimer();
+    for (i = 0; i < 100; i++) {
+        pta = searchBinaryMaze(pixm, XINIT, YINIT, XEND, YEND, NULL);
+        ptaDestroy(&pta);
+    }
+    fprintf(stderr, "Time: %7.4f sec\n", stopTimer() / 100.);
+#endif
 
     pixDestroy(&pixm);
     pixDestroy(&pixd);

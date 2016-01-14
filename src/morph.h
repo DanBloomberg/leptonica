@@ -33,7 +33,7 @@
  *      standard border size
  *      grayscale intensity scaling flags
  *      morphological tophat flags
- *      arithmetic operator flags
+ *      arithmetic and logical operator flags
  *      grayscale morphology selection flags
  *      distance function b.c. flags
  *      image comparison flags
@@ -153,14 +153,16 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
- *                      Arithmetic operator flags                          *
+ *                Arithmetic and logical operator flags                    *
  *                 (use on grayscale images and Numas)                     *
  *-------------------------------------------------------------------------*/
 enum {
     L_ARITH_ADD       = 1,
     L_ARITH_SUBTRACT  = 2,
-    L_ARITH_MULTIPLY  = 3,   /* on numas only               */
-    L_ARITH_DIVIDE    = 4    /* on numas only               */
+    L_ARITH_MULTIPLY  = 3,   /* on numas only */
+    L_ARITH_DIVIDE    = 4,   /* on numas only */
+    L_UNION           = 5,   /* on numas only */
+    L_INTERSECTION    = 6    /* on numas only */
 };
 
 

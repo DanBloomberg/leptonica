@@ -40,6 +40,7 @@ typedef uintptr_t l_uintptr_t;
 #define  HAVE_LIBPNG      1
 #define  HAVE_LIBZ        1
 #define  HAVE_LIBGIF      0
+#define  HAVE_LIBUNGIF    0
 #endif  /* ~HAVE_CONFIG_H */
 
 /*

@@ -59,6 +59,16 @@
  *      Adaptive Otsu-based thresholding
  *          l_int32    pixOtsuAdaptiveThreshold()       8 bpp
  *
+ *      Adaptive background normalization (flexible adaptaption)
+ *          PIX       *pixBackgroundNormFlex()          8 bpp
+ *
+ *      Adaptive contrast normalization
+ *          PIX             *pixContrastNorm()          8 bpp
+ *          l_int32          pixMinMaxTiles()
+ *          l_int32          pixSetLowContrast()
+ *          PIX             *pixLinearTRCTiled()
+ *          static l_int32  *iaaGetLinearTRC()
+ *
  *  Background normalization is done by generating a reduced map (or set
  *  of maps) representing the estimated background value of the
  *  input image, and using this to shift the pixel values so that
@@ -97,6 +107,13 @@
  *      tile and performs the threshold operation, resulting in a
  *      binary image for each tile.  These are stitched into the final result.
  *      It does not generate an 8 bpp threshold-normalized image.
+ *
+ *  (3) pixContrastNorm() computes and applies a local TRC so that the
+ *      local dynamic range is expanded to the full 8 bits, where the
+ *      darkest pixels are mapped to 0 and the lightest to 255.  This is
+ *      useful for improving the appearance of pages with very light
+ *      foreground or very dark background, and where the local TRC
+ *      function doesn't change rapidly with position.
  */
 
 #include <stdio.h>
@@ -119,6 +136,8 @@ static const l_int32  DEFAULT_MIN_COUNT = 40;
 static const l_int32  DEFAULT_BG_VAL = 200;
 static const l_int32  DEFAULT_X_SMOOTH_SIZE = 2;
 static const l_int32  DEFAULT_Y_SMOOTH_SIZE = 1;
+
+static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_GLOBAL    0
@@ -2383,7 +2402,7 @@ PIXTILING  *pt;
         /* Compute the threshold array for the tiles */
     nx = w / sx;
     ny = h / sy;
-    pt = pixTilingCreate(pixs, nx, ny, 0, 0, 0);
+    pt = pixTilingCreate(pixs, nx, ny, 0, 0, 0, 0);
     pixthresh = pixCreate(nx, ny, 8);
     for (i = 0; i < ny; i++) {
         for (j = 0; j < nx; j++) {
@@ -2425,6 +2444,438 @@ PIXTILING  *pt;
 
     pixTilingDestroy(&pt);
     return 0;
+}
+
+
+/*------------------------------------------------------------------*
+ *      Adaptive background normalization (flexible adaptaption)    *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixBackgroundNormFlex()
+ *
+ *      Input:  pixs (8 bpp)
+ *              sx, sy (desired tile dimensions; actual size may vary)
+ *              smoothx, smoothy (half-width of convolution kernel applied to
+ *                                threshold array: use 0 for no smoothing)
+ *              delta (difference parametyer in basin filling; use 0
+ *                     to skip)
+ *      Return: pixd (8 bpp, background-normalized), or null on error)
+ *
+ *  Notes:
+ *      (1) This does adaptation flexibly to a quickly varying background.
+ *          For that reason, all input parameters should be small.
+ *      (2) sx and sy give the tile size; they should be in [5 - 7].
+ *      (3) The full width and height of the convolution kernel
+ *          are (2 * smoothx + 1) and (2 * smoothy + 1).  They
+ *          should be in [1 - 2].
+ *      (4) Basin filling is used to fill the large fg regions.  The
+ *          parameter @delta measures the height that the black
+ *          background is raised from the local minima.  By raising
+ *          the background, it is possible to threshold the large
+ *          fg regions to foreground.  If @delta is too large,
+ *          bg regions will be lifted, causing thickening of
+ *          the fg regions.  Use 0 to skip.
+ */
+PIX *
+pixBackgroundNormFlex(PIX     *pixs,
+                      l_int32  sx,
+                      l_int32  sy,
+                      l_int32  smoothx,
+                      l_int32  smoothy,
+                      l_int32  delta)
+{
+l_float32  scalex, scaley;
+PIX       *pixt, *pixsd, *pixmin, *pixbg, *pixbgi, *pixd;
+
+    PROCNAME("pixBackgroundNormFlex");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (sx < 3 || sy < 3)
+        return (PIX *)ERROR_PTR("sx and/or sy less than 3", procName, NULL);
+    if (sx > 10 || sy > 10)
+        return (PIX *)ERROR_PTR("sx and/or sy exceed 10", procName, NULL);
+    if (smoothx < 1 || smoothy < 1)
+        return (PIX *)ERROR_PTR("smooth params less than 1", procName, NULL);
+    if (smoothx > 3 || smoothy > 3)
+        return (PIX *)ERROR_PTR("smooth params exceed 3", procName, NULL);
+
+        /* Generate the bg estimate using smoothed average with subsampling */
+    scalex = 1. / (l_float32)sx;
+    scaley = 1. / (l_float32)sy;
+    pixt = pixScaleSmooth(pixs, scalex, scaley);
+
+        /* Do basin filling on the bg estimate if requested */
+    if (delta <= 0)
+        pixsd = pixClone(pixt);
+    else {
+        pixLocalExtrema(pixt, 0, 0, &pixmin, NULL);
+        pixsd = pixSeedfillGrayBasin(pixmin, pixt, delta, 4);
+        pixDestroy(&pixmin);
+    }
+    pixbg = pixExtendByReplication(pixsd, 1, 1);
+
+        /* Map the bg to 200 */
+    pixbgi = pixGetInvBackgroundMap(pixbg, 200, smoothx, smoothy);
+    pixd = pixApplyInvBackgroundGrayMap(pixs, pixbgi, sx, sy);
+    
+    pixDestroy(&pixt);
+    pixDestroy(&pixsd);
+    pixDestroy(&pixbg);
+    pixDestroy(&pixbgi);
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------*
+ *                    Adaptive contrast normalization               *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixContrastNorm()
+ *
+ *      Input:  pixd (<optional> 8 bpp)
+ *              pixs (8 bpp, not colormapped)
+ *              sx, sy (tile dimensions)
+ *              mindiff (minimum difference to accept as valid)
+ *              smoothx, smoothy (half-width of convolution kernel applied to
+ *                                min and max arrays: use 0 for no smoothing)
+ *      Return: pixd always
+ *
+ *  Notes:
+ *      (1) This function adaptively attempts to expand the contrast
+ *          to the full dynamic range in each tile.  If the contrast in
+ *          a tile is smaller than @mindiff, it uses the min and max
+ *          pixel values from neighboring tiles.  It also can use
+ *          convolution to smooth the min and max values from
+ *          neighboring tiles.  After all that processing, it is
+ *          possible that the actual pixel values in the tile are outside
+ *          the computed [min ... max] range.  Such pixels are taken
+ *          to be at either 0 (if below the min) or 255 (if above the max).
+ *      (2) pixd can be equal to pixs (in-place operation) or
+ *          null (makes a new pixd).
+ *      (3) sx and sy give the tile size; they are typically at least 20.
+ *      (4) mindiff is used to eliminate results for tiles where it is
+ *          likely that either fg or bg is missing.
+ *      (5) The full width and height of the convolution kernel
+ *          are (2 * smoothx + 1) and (2 * smoothy + 1).  They
+ *          should be in the range [1 - 2].
+ *      (6) A linear TRC (gamma = 1.0) is applied to increase the contrast
+ *          in each tile.  The result can subsequently be globally corrected,
+ *          by applying pixGammaTRC() with arbitrary values of gamma
+ *          and the 0 and 255 points of the mapping.
+ */
+PIX *
+pixContrastNorm(PIX       *pixd,
+                PIX       *pixs,
+                l_int32    sx,
+                l_int32    sy,
+                l_int32    mindiff,
+                l_int32    smoothx,
+                l_int32    smoothy)
+{
+PIX  *pixmin, *pixmax;
+
+    PROCNAME("pixContrastNorm");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, pixd);
+    if (pixd && pixd != pixs)
+        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixd);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs is colormapped", procName, pixd);
+    if (sx < 5 || sy < 5)
+        return (PIX *)ERROR_PTR("sx and/or sy less than 5", procName, pixd);
+    if (smoothx < 0 || smoothy < 0)
+        return (PIX *)ERROR_PTR("smooth params less than 0", procName, pixd);
+    if (smoothx > 5 || smoothy > 5)
+        return (PIX *)ERROR_PTR("smooth params exceed 5", procName, pixd);
+
+        /* Get the min and max pixel values in each tile, and represent
+         * each value as a pixel in pixmin and pixmax, respectively. */
+    pixMinMaxTiles(pixs, sx, sy, mindiff, smoothx, smoothy, &pixmin, &pixmax);
+
+        /* For each tile, do a linear expansion of the dynamic range
+         * of pixels so that the min value is mapped to 0 and the
+         * max value is mapped to 255.  */
+    pixd = pixLinearTRCTiled(pixd, pixs, sx, sy, pixmin, pixmax);
+
+    pixDestroy(&pixmin);
+    pixDestroy(&pixmax);
+    return pixd;
+}
+
+
+/*!
+ *  pixMinMaxTiles()
+ *
+ *      Input:  pixs (8 bpp, not colormapped)
+ *              sx, sy (tile dimensions)
+ *              mindiff (minimum difference to accept as valid)
+ *              smoothx, smoothy (half-width of convolution kernel applied to
+ *                                min and max arrays: use 0 for no smoothing)
+ *              &pixmin (<return> tiled minima)
+ *              &pixmax (<return> tiled maxima)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This computes filtered and smoothed values for the min and
+ *          max pixel values in each tile of the image.
+ *      (2) See pixContrastNorm() for usage.
+ */
+l_int32
+pixMinMaxTiles(PIX     *pixs,
+               l_int32  sx,
+               l_int32  sy,
+               l_int32  mindiff,
+               l_int32  smoothx,
+               l_int32  smoothy,
+               PIX    **ppixmin,
+               PIX    **ppixmax)
+{
+l_int32  w, h;
+PIX     *pixmin1, *pixmax1, *pixmin2, *pixmax2;
+
+    PROCNAME("pixMinMaxTiles");
+
+    if (!ppixmin || !ppixmax)
+        return ERROR_INT("&pixmin or &pixmax undefined", procName, 1);
+    *ppixmin = *ppixmax = NULL;
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs is colormapped", procName, 1);
+    if (sx < 5 || sy < 5)
+        return ERROR_INT("sx and/or sy less than 3", procName, 1);
+    if (smoothx < 0 || smoothy < 0)
+        return ERROR_INT("smooth params less than 0", procName, 1);
+    if (smoothx > 5 || smoothy > 5)
+        return ERROR_INT("smooth params exceed 5", procName, 1);
+
+        /* Get the min and max values in each tile */
+    pixmin1 = pixScaleGrayMinMax(pixs, sx, sy, L_CHOOSE_MIN);
+    pixmax1 = pixScaleGrayMinMax(pixs, sx, sy, L_CHOOSE_MAX);
+
+    pixmin2 = pixExtendByReplication(pixmin1, 1, 1);
+    pixmax2 = pixExtendByReplication(pixmax1, 1, 1);
+    pixDestroy(&pixmin1);
+    pixDestroy(&pixmax1);
+
+        /* Make sure no value is 0 */
+    pixAddConstantGray(pixmin2, 1);
+    pixAddConstantGray(pixmax2, 1);
+
+        /* Generate holes where the contrast is too small */
+    pixSetLowContrast(pixmin2, pixmax2, mindiff);
+
+        /* Fill the holes (0 values) */
+    pixGetDimensions(pixmin2, &w, &h, NULL);
+    pixFillMapHoles(pixmin2, w, h, L_FILL_BLACK);
+    pixFillMapHoles(pixmax2, w, h, L_FILL_BLACK);
+
+        /* Smooth if requested */
+    if (smoothx > 0 || smoothy > 0) {
+        *ppixmin = pixBlockconv(pixmin2, smoothx, smoothy);
+        *ppixmax = pixBlockconv(pixmax2, smoothx, smoothy);
+    }
+    else {
+        *ppixmin = pixClone(pixmin2);
+        *ppixmax = pixClone(pixmax2);
+    }
+    pixDestroy(&pixmin2);
+    pixDestroy(&pixmax2);
+
+    return 0;
+}
+
+
+/*!
+ *  pixSetLowContrast()
+ *
+ *      Input:  pixs1 (8 bpp)
+ *              pixs2 (8 bpp)
+ *              mindiff (minimum difference to accept as valid)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This compares corresponding pixels in pixs1 and pixs2.
+ *          When they differ by less than @mindiff, set the pixel
+ *          values to 0 in each.  Each pixel typically represents a tile
+ *          in a larger image, and a very small difference between
+ *          the min and max in the tile indicates that the min and max
+ *          values are not to be trusted.
+ */
+l_int32
+pixSetLowContrast(PIX     *pixs1,
+                  PIX     *pixs2,
+                  l_int32  mindiff)
+{
+l_int32    i, j, w, h, d, wpl, val1, val2;
+l_uint32  *data1, *data2, *line1, *line2;
+
+    PROCNAME("pixSetLowContrast");
+
+    if (!pixs1 || !pixs2)
+        return ERROR_INT("pixs1 and pixs2 not both defined", procName, 1);
+    if (pixSizesEqual(pixs1, pixs2) == 0)
+        return ERROR_INT("pixs1 and pixs2 not equal size", procName, 1);
+    pixGetDimensions(pixs1, &w, &h, &d);
+    if (d != 8)
+        return ERROR_INT("depth not 8 bpp", procName, 1);
+    if (mindiff > 254) return 0;
+
+    data1 = pixGetData(pixs1);
+    data2 = pixGetData(pixs2);
+    wpl = pixGetWpl(pixs1);
+    for (i = 0; i < h; i++) {
+        line1 = data1 + i * wpl;
+        line2 = data2 + i * wpl;
+        for (j = 0; j < w; j++) {
+            val1 = GET_DATA_BYTE(line1, j);
+            val2 = GET_DATA_BYTE(line2, j);
+            if (L_ABS(val1 - val2) < mindiff) {
+                SET_DATA_BYTE(line1, j, 0);
+                SET_DATA_BYTE(line2, j, 0);
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  pixLinearTRCTiled()
+ *
+ *      Input:  pixd (<optional> 8 bpp)
+ *              pixs (8 bpp, not colormapped)
+ *              sx, sy (tile dimensions)
+ *              pixmin (pix of min values in tiles)
+ *              pixmax (pix of max values in tiles)
+ *      Return: pixd always
+ *
+ *  Notes:
+ *      (1) pixd can be equal to pixs (in-place operation) or
+ *          null (makes a new pixd).
+ *      (2) sx and sy give the tile size; they are typically at least 20.
+ *      (3) pixmin and pixmax are generated by pixMinMaxTiles()
+ *      (4) For each tile, this does a linear expansion of the dynamic
+ *          range so that the min value in the tile becomes 0 and the
+ *          max value in the tile becomes 255.
+ *      (5) The LUTs that do the mapping are generated as needed
+ *          and stored for reuse in an integer array within the ptr array iaa[].
+ */
+PIX *
+pixLinearTRCTiled(PIX       *pixd,
+                  PIX       *pixs,
+                  l_int32    sx,
+                  l_int32    sy,
+                  PIX       *pixmin,
+                  PIX       *pixmax)
+{
+l_int32    i, j, k, m, w, h, wt, ht, wpl, wplt, xoff, yoff;
+l_int32    minval, maxval, val, sval;
+l_int32   *ia;
+l_int32  **iaa;
+l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
+
+    PROCNAME("pixLinearTRCTiled");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, pixd);
+    if (pixd && pixd != pixs)
+        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixd);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs is colormapped", procName, pixd);
+    if (!pixmin || !pixmax)
+        return (PIX *)ERROR_PTR("pixmin & pixmax not defined", procName, pixd);
+    if (sx < 5 || sy < 5)
+        return (PIX *)ERROR_PTR("sx and/or sy less than 5", procName, pixd);
+
+    pixd = pixCopy(pixd, pixs);
+    iaa = (l_int32 **)CALLOC(256, sizeof(l_int32 *));
+    pixGetDimensions(pixd, &w, &h, NULL);
+
+    data = pixGetData(pixd);
+    wpl = pixGetWpl(pixd);
+    datamin = pixGetData(pixmin);
+    datamax = pixGetData(pixmax);
+    wplt = pixGetWpl(pixmin);
+    pixGetDimensions(pixmin, &wt, &ht, NULL);
+    for (i = 0; i < ht; i++) {
+        line = data + sy * i * wpl;
+        linemin = datamin + i * wplt;
+        linemax = datamax + i * wplt;
+        yoff = sy * i;
+        for (j = 0; j < wt; j++) {
+            xoff = sx * j;
+            minval = GET_DATA_BYTE(linemin, j);
+            maxval = GET_DATA_BYTE(linemax, j);
+            if (maxval == minval) {  /* this is bad */
+                fprintf(stderr, "should't happen! i,j = %d,%d, minval = %d\n",
+                        i, j, minval);
+                continue;
+            } 
+            ia = iaaGetLinearTRC(iaa, maxval - minval);
+            for (k = 0; k < sy && yoff + k < h; k++) {
+                tline = line + k * wpl;
+                for (m = 0; m < sx && xoff + m < w; m++) {
+                    val = GET_DATA_BYTE(tline, xoff + m);
+                    sval = val - minval;
+                    sval = L_MAX(0, sval);
+                    SET_DATA_BYTE(tline, xoff + m, ia[sval]);
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < 256; i++)
+        if (iaa[i]) FREE(iaa[i]);
+    FREE(iaa);
+    return pixd;
+}
+
+
+/*!
+ *  iaaGetLinearTRC()
+ *
+ *      Input:  iaa (bare array of ptrs to l_int32)
+ *              diff (between min and max pixel values that are
+ *                    to be mapped to 0 and 255)
+ *      Return: ia (LUT with input (val - minval) and output a
+ *                  value between 0 and 255)
+ */
+static l_int32 *
+iaaGetLinearTRC(l_int32  **iaa,
+                l_int32    diff)
+{
+l_int32    i;
+l_int32   *ia;
+l_float32  factor;
+
+    PROCNAME("iaaGetLinearTRC");
+
+    if (!iaa)
+        return (l_int32 *)ERROR_PTR("iaa not defined", procName, NULL);
+
+    if (iaa[diff] != NULL)  /* already have it */
+       return iaa[diff];
+                
+    if ((ia = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
+        return (l_int32 *)ERROR_PTR("ia not made", procName, NULL);
+    iaa[diff] = ia;
+    if (diff == 0) {  /* shouldn't happen */
+        for (i = 0; i < 256; i++)
+            ia[i] = 128;
+    }
+    else {
+        factor = 255. / (l_float32)diff;
+        for (i = 0; i < diff + 1; i++)
+            ia[i] = (l_int32)(factor * i + 0.5);
+        for (i = diff + 1; i < 256; i++)
+            ia[i] = 255;
+    }
+
+    return ia;
 }
 
 

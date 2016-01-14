@@ -406,11 +406,11 @@ L_KERNEL  *keld;
  *  kernelInvert()
  *
  *      Input:  kels (source kel, to be inverted)
- *      Return: keld, or null on error
+ *      Return: keld (spatially inverted, about the origin), or null on error
  *
  *  Notes:
- *      (1) For convolution, the kernel is inverted before a "correlation"
- *          operation is done between the kernel and the image.
+ *      (1) For convolution, the kernel is spatially inverted before
+ *          a "correlation" operation is done between the kernel and the image.
  */
 L_KERNEL *
 kernelInvert(L_KERNEL  *kels)

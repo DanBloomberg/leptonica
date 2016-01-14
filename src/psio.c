@@ -92,8 +92,8 @@
 #if  USE_PSIO   /* defined in environ.h */
  /* --------------------------------------------*/
 
-static const char *TEMP_G4TIFF_FILE = "/usr/tmp/junk_temp_g4tiff.tif";
-static const char *TEMP_JPEG_FILE   = "/usr/tmp/junk_temp_jpeg.jpg";
+static const char *TEMP_G4TIFF_FILE = "/tmp/junk_temp_g4tiff.tif";
+static const char *TEMP_JPEG_FILE   = "/tmp/junk_temp_jpeg.jpg";
 
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE      512
@@ -1731,7 +1731,7 @@ convertTiffMultipageToPS(const char  *filein,
                          const char  *tempfile,
                          l_float32    fillfract)
 {
-const char   tempdefault[] = "/usr/tmp/junk_temp_g4.tif";
+const char   tempdefault[] = "/tmp/junk_temp_g4.tif";
 const char  *tempname;
 l_int32      i, npages, w, h, istiff;
 l_float32    scale;
