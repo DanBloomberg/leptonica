@@ -1,0 +1,577 @@
+<html>
+<body BGCOLOR=FFFFE4>
+
+<!-- JS Window Closer -----
+<form>
+<center>
+<input type="button" onclick="window.close();" value="Close this window">
+</center>
+</form>
+----- JS Window Closer -->
+
+
+<!-- Creative Commons License -->
+<a rel="license" href="http://creativecommons.org/licenses/by/2.5/"><img alt="Creative Commons License" border="0" src="http://creativecommons.org/images/public/somerights20.gif" /></a>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/2.5/">Creative Commons Attribution 2.5 License</a>.
+<!-- /Creative Commons License -->
+
+
+<!--
+
+<rdf:RDF xmlns="http://web.resource.org/cc/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<Work rdf:about="">
+  <dc:title>leptonica</dc:title>
+  <dc:date>2001</dc:date>
+  <dc:description>An open source C library for efficient image processing and image analysis operations</dc:description>
+  <dc:creator><Agent>
+    <dc:title>Dan S. Bloomberg</dc:title>
+  </Agent></dc:creator>
+  <dc:rights><Agent>
+    <dc:title>Dan S. Bloomberg</dc:title>
+  </Agent></dc:rights>
+  <dc:type rdf:resource="http://purl.org/dc/dcmitype/Text" />
+  <dc:source rdf:resource="www.leptonica.com"/>
+  <license rdf:resource="http://creativecommons.org/licenses/by/2.5/" />
+</Work>
+
+<License rdf:about="http://creativecommons.org/licenses/by/2.5/">
+  <permits rdf:resource="http://web.resource.org/cc/Reproduction" />
+  <permits rdf:resource="http://web.resource.org/cc/Distribution" />
+  <requires rdf:resource="http://web.resource.org/cc/Notice" />
+  <requires rdf:resource="http://web.resource.org/cc/Attribution" />
+  <permits rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+</License>
+
+</rdf:RDF>
+
+-->
+
+<pre>
+/*====================================================================*
+ -  Copyright (C) 2001 Leptonica.  All rights reserved.
+ -  This software is distributed in the hope that it will be
+ -  useful, but with NO WARRANTY OF ANY KIND.
+ -  No author or distributor accepts responsibility to anyone for the
+ -  consequences of using this software, or for whether it serves any
+ -  particular purpose or works at all, unless he or she says so in
+ -  writing.  Everyone is granted permission to copy, modify and
+ -  redistribute this source code, for commercial or non-commercial
+ -  purposes, with the following restrictions: (1) the origin of this
+ -  source code must not be misrepresented; (2) modified versions must
+ -  be plainly marked as such; and (3) this notice may not be removed
+ -  or altered from any source or modified source distribution.
+ *====================================================================*/
+
+
+README  (26 Dec 06)
+--------------------
+
+gunzip leptonlib-1.42.tar.gz
+tar -xvf leptonlib-1.42.tar
+
+
+1.  This tar includes library source, function prototypes,
+    test program source, and sample images for Linux on x86 (i386)
+    and AMD 64 (x64), and on OSX (both powerPC and x86).
+    It should compile properly with any version of gcc
+    from 2.95.3 onward.
+
+    Libraries, executables and prototypes are easily made,
+    as described in 2, 3 and 4, respectively.
+
+    When you extract from the archive, all files are put in a
+    subdirectory 'leptonlib-1.39'.  In that directory you will
+    find a src directory containing the source files for the library,
+    and a prog directory containing source files for various
+    testing and example programs.
+
+2.  When you compile, object code is by default put into a tree
+    whose root is also the parent of the src and prog directories.
+    If you want to change the location of the generated object code,
+    change the ROOT_DIR variable in the Makefile.
+
+3.  To compile and link with gcc on a little-endian machine,
+    just run 'make' in the src and prog directories.
+    It is also possible to make a debug version, as well as one that
+    builds and uses shared libraries.  If you want to use shared
+    libraries, you need to add the location of the shared
+    libraries to the LD_LIBRARY_PATH.  See the Makefile for details.
+
+4.  The prototype header file leptprotos.h (supplied) can be
+    automatically generated using xtractprotos.  You first have to
+    make this program:
+         make xtractprotos
+    Then, to re-make leptprotos.h:
+         make allprotos
+
+    Things to note about xtractprotos, assuming that you are developing
+    in leptonica and need to regenerate the prototype file leptprotos.h:
+     - xtractprotos is part of leptonica; specifically, it is the only
+       program you can make in the src directory (see the Makefile).
+     - xtractprotos uses cpp, and older versions of cpp give useless warnings
+       about the comment on line 23 of /usr/include/jmorecfg.h.  For
+       that reason, a local version of jmorecfg.h is included that has
+       the comment elided.
+     - You can output the prototypes for any C file by running:
+         xtractprotos <cfile>
+     - The source for xtractprotos has been packaged up into a tar
+       containing just the leptonica files necessary for building it
+       in linux.  The tar file is available at:
+         www.leptonica.com/source/xtractlib.tar.gz
+
+5.  Pre-requisites for compilation and linking.
+    The only dependencies required for using leptonlib are four
+    libraries that are standard with all linux installations:
+        libjpeg.a  (standard jfif jpeg library, version 62 (aka 6b))
+        libpng.a   (standard png library, suggest version 1.2.8)
+	libz.a     (standard gzip library, suggest version 1.2.3)
+	libtiff.a  (standard Leffler tiff library, version 3.7.2 or later)
+    These libraries (and their shared versions) should be in /usr/lib.
+    (If they're not, you can change the LDFLAGS variable in the Makefile.)
+    Additionally, for compilation, the following header files are
+    assumed to be in /usr/include:
+        jpeg:  jconfig.h
+	png:   png.h, pngconf.h
+	tiff:  tiff.h, tiffio.h
+    What about jpeglib.h?  See item 17 below.
+
+    If for some reason you do not want to include some or all of the leptonlib
+    I/O functions, stub files are included for the six different output
+    formats (bmp, jpeg, png, pnm, ps and tiff).  Substitute the
+    appropriate *iostub.c files for the *io.c files, and remove the
+    corresponding header files from alltypes.h.  See src/Makefile.
+
+    There are also two special interfaces to gnuplot, one that is
+    programmatic and one that uses a simple file format.  To use them,
+    you need only the gnuplot executable (suggest version 3.7.2 or later);
+    the gnuplot library is not required.
+
+6.  If you want to compile the library and make programs on other platforms:
+    (a) Apple PowerPC
+	This is big-endian hardware.  All regression tests I have
+	run for I/O and library components have passed on OS-X,
+	but not every function has been tested, and it is possible
+	that some may depend on byte ordering.  Please let me know
+	if you find any problems.
+	Make the following change to both src/Makefile and prog/Makefile:
+          (1) change $CPPFLAGS to define -DL_BIG_ENDIAN
+	For program development, 'make xtractprotos' in src to generate
+	a mac-compatible version
+    (b) Windows via mingw (cross-compilation)
+        You can build a windows-compatible version of leptonlib from linux.
+	Use Makefile.mingw and see the usage notes at the top of that file.
+	You can then build executables in prog; see the notes in
+	prog/Makefile.mingw.  I have not yet succeeded in making
+	static executables this way, but others have.
+    (c) Windows via cygwin
+        A default download of cygwin, with full 'install' of the
+	devel (for gnu make, gcc, etc) and graphics (for libjpeg,
+	libtiff, libpng, libz) groups provides enough libraries and
+	programs to compile the leptonlib libraries in src and make the .exe
+	execuables in the prog directory.
+        Make the following changes to the src/Makefile:
+	   (1) remove viewfiles.c from the source list LEPTLIB_C
+           (2) use the $CC with _CYGWIN_ENVIRON 
+	   (3) for program development, where you want to automatically
+	       extract protos with xtractprotos, add ".exe" appropriately
+	Make the following changes to the prog/Makefile:
+	   (1) remove alljpeg2ps.c, alltiff2ps.c, maketile.c,
+	       viewertest.c, jbcorrelation.c and jbrankhaus.c
+	       from the source list SRC
+           (2) remove -fPIC from $CC
+    (d) Windows via MS VC++
+        Older versions of VC++ do not conform to the 1999 C++ standard,
+        which specifies stdint.h.  For these development environments,
+        it is necessary to invoke compilation using the -DUSE_PSTDINT
+        flag, which includes Paul Hsieh's pstdint.h, a portable
+        version of stdint.h.  A copy is available here, and it can
+        also be retrieved from
+            http://www.azillionmonkeys.com/qed/pstdint.h           
+
+7.  Unlike many other open source packages, Leptonica uses packed
+    data for images with all bit/pixel (bpp) depths, allowing us
+    to process pixels in parallel.  For example, rasterops works
+    on all depths with 32-bit parallel operations throughout.
+    Leptonica is also explicitly configured to work on both little-endian
+    and big-endian hardware.  RGB image pixels are always stored
+    in 32-bit words, and a few special functions are provided for
+    scaling and rotation of RGB images that have been optimized by
+    making explicit assumptions about the location of the R, G and B
+    components in the 32-bit pixel.  In such cases, the restriction
+    is documented in the function header.  The in-memory data structure
+    used throughout Leptonica to hold the packed data is a Pix,
+    which is defined and documented in pix.h.
+
+8.  This is a source for a clean, fast implementation of rasterops.
+    You can find details starting at the Leptonica home page,
+    and also by looking directly at the source code.
+    The low-level code is in roplow.c and ropiplow.c, and an
+    interface is given in rop.c to the simple Pix image data structure.
+
+9.  This is a source for efficient implementations of binary and
+    grayscale morphology.  You can find details starting at the
+    Leptonica home page, and also by looking directly at the source code.
+
+    Binary morphology is implemented two ways:
+
+       (a) Successive full image rasterops for arbitrary 
+           structuring elements (Sels)
+
+       (b) Destination word accumulation (dwa) for specific
+           Sels.  This has been implemented two ways:
+	      (1) By hand.  See the low-level code in fmorphlow.c
+		  From the examples given, you can easily
+		  see how to implement others, and why you'd rather
+		  not do this at all.
+	      (2) Automatically generated.  See, for example, the
+	          code in fmorphgen.1.c and fmorphgenlow.1.c.
+		  These files were generated by running the
+		  program prog/fmorphautogen.c.
+	   All results can be checked by comparing with
+	   those from full image rasterops.  For the
+	   checking of automatically generated code, see
+	   prog/fmorptest2.c and prog/fhtmtest.c.
+
+    Method (b) is considerably faster than (a), which is the
+    reason we've gone to the effort of supporting the use
+    of this method for all Sels.  We also support two different
+    boundary conditions for erosion.  
+
+    Similarly, dwa code for the general hit-miss transform can
+    be auto-generated from an array of hit-miss Sels.
+    When prog/fhmtautogen.c is compiled and run, it generates
+    the dwa C code in fhmtgen.1.c and fhmtgenlow.1.c.  These
+    files can then be compiled into the libraries.  To check
+    the correctness of the automatically generated dwa code
+    with the rasterop version, see prog/fhmttest.c.
+
+    A function with a simple parser is provided to execute a
+    sequence of morphological operations (plus binary rank reduction
+    and replicative expansion).  See morphseq.c.
+
+    The structuring element is represented by a simple Sel data structure
+    defined in morph.h.  We provide several simple ways to generate hit-miss
+    Sels for pattern finding, in selgen.c.
+
+    We also provide a fast implementation of grayscale morphology for
+    brick structuring elements (i.e., Sels that are decomposable
+    into linear horizontal and vertical elements).  This uses
+    the van Herk/Gil-Werman algorithm that performs the calculations
+    in a time that is independent of the size of the Sels.
+    Implementations of tophat and hdome are also given. 
+    The low-level code is in graymorphlow.c.
+
+    A function with a simple parser is provided to execute a
+    sequence of grayscale morphological operations (plus tophat).
+    See morphseq.c.
+
+10. This is also a source for simple and relatively efficient
+    implementations of image scaling, shear and rotation.
+
+    There are many different scaling operations.  Grayscale and color
+    image scaling are done by sampling, lowpass filtering followed
+    by sampling, area mapping, and linear interpolation.
+    Scaling operations with antialiased sampling, area mapping,
+    and linear interpolation are limited to 2, 4 and 8 bpp gray,
+    24 bpp full RGB color, and 2, 4 and 8 bpp colormapped
+    (bpp == bits/pixel).  Scaling operations with simple sampling
+    can be done at 1, 2, 4, 8, 16 and 32 bpp.  Linear interpolation
+    is slower but gives better results, especially for upsampling. 
+    For moderate downsampling, best results are obtained with area
+    mapping scaling.  With very high downsampling, either area mapping
+    or antialias sampling (lowpass filter followed by sampling) give
+    good results.  Fast area map with power-of-2 reduction are also
+    provided.
+
+    For fast analysis of grayscale and color images, it is useful to
+    have integer subsampling combined with pixel depth reduction.
+    RGB color images can thus be converted to low-resolution
+    grayscale and binary images. 
+
+    For binary scaling, the dest pixel can be selected from the
+    closest corresponding source pixel.  For the special case of 
+    power-of-2 binary reduction, low-pass rank-order filtering can be
+    done in advance.  Power-of-2 binary expansion is done by
+    pixel replication.
+
+    We also provide 2x, 3x, 4x, 6x, 8x, and 16x scale-to-gray reduction
+    on binary images, to produce high quality reduced grayscale images.
+    These are integrated into a scale-to-gray function with arbitrary
+    reduction.
+
+    Conversely, we have special 2x and 4x scale-to-binary expansion
+    on grayscale images, using linear interpolation on grayscale
+    raster line buffers followed by either thresholding or dithering.  
+
+    There are also some depth converters (without scaling), such
+    as unpacking operations from 1 bpp to grayscale, and thresholding
+    and dithering operations from grayscale to 1, 2 and 4 bpp.
+
+    Image shear has no bpp constraints.  We provide horizontal
+    and vertical shearing about an arbitrary point (really, a line),
+    both in-place and from source to dest.
+
+    There are two different types of general image rotators:
+
+	a.  Grayscale rotation using area mapping
+	    - pixRotateAM() for 8 bit gray and 24 bit color, about center
+	    - pixRotateAMCorner() for 8 bit gray, about image UL corner
+	    - pixRotateAMColorFast() for faster 24 bit color, about center
+
+	b.  Rotation of an image of arbitrary bit depth, using
+	    either 2 or 3 shears.  These rotations can be done
+	    about an arbitrary point, and they can be either 
+	    from source to dest or in-place; e.g.
+	    - pixRotateShear()
+	    - pixRotateShearIP()
+
+	The area mapping rotations are slower and more accurate,
+	because each new pixel is composed using an average of four
+	neighboring pixels in the original image; this is sometimes
+	also called "antialiasing".  Very fast color area mapping
+	rotation is provided.  The low-level code is in rotateamlow.c.
+
+	The shear rotations are much faster, and work on images
+	of arbitrary pixel depth, but they just move pixels
+	around without doing any averaging.  The pixRotateShearIP()
+	operates on the image in-place.
+
+    We also provide orthogonal rotators (90, 180, 270 degree; left-right
+    flip and top-bottom flip) for arbitrary image depth.  The low-level
+    code is in rotateorthlow.c.
+
+    And we provide implementations of affine, projective and bilinear
+    transforms, with both sampling (for speed) and interpolation
+    (for antialiasing).
+
+11. We provide a number of sequential algorithms, including 
+    binary and grayscale seedfill, and the distance function for
+    a binary image.  The most efficient binary seedfill is
+    pixSeedfill(), which uses Vincent's algorithm to iterate
+    raster- and antiraster-ordered propagation, and can be used
+    for either 4- or 8-connected fills.  Similar raster/antiraster
+    sequential algorithms are used to generate a distance map from
+    a binary image, and for grayscale seedfill.  We also use Heckbert's 
+    stack-based filling algorithm for identifying 4- and 8-connected
+    components in a binary image.
+
+12. A few simple image enhancement routines for grayscale and
+    color images have been provided.  These include intensity mapping
+    with gamma correction and contrast enhancement, as well as edge
+    sharpening and smoothing.
+
+13. Some facilities have been provided for image input and output.
+    This is of course required to build executables that handle images,
+    and many examples of such programs, most of which are for
+    testing, can be built in the prog directory.  Functions have been
+    provided to allow reading and writing of files in BMP, JPEG, PNG,
+    TIFF, and PNM formats.  These particular formats were chosen for the
+    following reasons:
+
+        - BMP has (until recently) had no compression.  It is a simple
+	  format with colormaps that requires no external libraries.
+	  It is commonly used because it is a Microsoft standard,
+	  but has little else to recommend it.  See bmpio.c.
+
+	- JFIF JPEG is the standard method for lossy compression
+	  of grayscale and color images.  It is supported natively
+	  in all browsers, and uses a good open source compression
+	  library.  Decompression is supported by the rasterizers
+	  in PS and PDF, for level 2 and above.  It has a progressive
+	  mode that compresses about 10% better than standard, but
+	  is considerably slower to decompress.  See jpegio.c.
+
+	- PNG is the standard method for lossless compression
+	  of binary, grayscale and color images.  It is supported
+	  natively in all browsers, and uses a good open source
+	  compression library (zlib).  It is superior in almost every
+	  respect to GIF (which, until recently, contained proprietary
+	  LZW compression).  See pngio.c.
+
+	- TIFF is a common interchange format, which supports different
+	  depths, colormaps, etc., and also has a relatively good and
+	  widely used binary compression format (CCITT Group 4).  
+	  Decompression of G4 is supported by rasterizers in PS and PDF,
+	  level 2 and above.  G4 compresses better than PNG for most
+	  text and line art images, but it does quite poorly for halftones.
+	  It has good and stable support by Leffler's open source library,
+	  which is clean and small.  Tiff also supports multipage
+	  images through a directory structure.  See tiffio.c
+
+	- PNM is a very simple, old format that still has surprisingly
+	  wide use in the image processing community.  It does not
+	  support compression or colormaps, but it does support binary,
+	  grayscale and rgb images.  Like BMP, the implementation
+	  is simple and requires no external libraries.  See pnmio.c.
+
+    Here's a summary:
+        - All formats except JPEG support 1 bpp binary.
+	- All formats support 8 bpp grayscale and 24 bpp rgb color.
+	- All but PNM support 8 bpp palette. 
+	- PNG and PNM support 2 and 4 bpp images.
+	- PNG supports 2 and 4 bpp palette, and 16 bpp without palette.
+	- PNG, JPEG and TIFF support image compression; PNM and BMP do not.
+    Use prog/ioformats for a regression test.
+
+    We also provide wrappers for PS output, from the following
+    sources: binary Pix, 8 bpp gray Pix, 24 bpp full color Pix, 
+    JFIF JPEG file and TIFF G4 file, all with a variety of options
+    for scaling and placing the image, and for printing it at
+    different resolutions.  See psio.c for examples of how to output
+    PS for different applications.  As an example of usage, see
+    prog/converttops.c for a general image --> PS conversion for printing.
+
+    We provide colormap removal for conversion to 8 bpp gray or
+    for conversion to 24 bpp full color, as well as conversion
+    from RGB to 8 bpp grayscale.  We also provide the inverse
+    function to colormap removal; namely, color quantization
+    from 24 bpp full color to 8 bpp palette with some number
+    of palette colors.  Several versions are provided, that all
+    use a fast octree vector quantizer.  For a high-level interfaces,
+    see pixConvertRGBToColormap(), pixOctreeColorQuant() and
+    pixOctreeQuant().
+
+    A function can be called to display an image programmatically on
+    an X display using xv.  If necessary to fit on the screen,
+    the image is reduced using scale-to-gray for readability.
+
+    Note: any or all of these library calls can be stubbed out.
+    Details in (5) above, and in src/Makefile.
+
+14. Simple data structures are provided for safe and
+    efficient handling of arrays of numbers, strings, pointers,
+    and bytes.  The pointer array is implemented in three ways:
+    as a stack, a queue, and a heap (used to implement a priority
+    queue).  The byte array is implemented as a queue.  The string
+    arrays are particularly useful for both parsing and composing text.
+    Generic lists with doubly-linked cons cells are also provided.
+
+15. Examples of programs that are easily built using the library:
+
+        - for plotting x-y data, both programmatic and file
+          interfaces to the gnuplot program (e.g., plotprog
+	  and plotfile) and with output to X11, png, ps or eps.
+
+	- a simple jbig2-type classifier, using various distance
+	  metrics between image components (correlation, rank
+	  hausdorff); see prog/jbcorrelation.c, prog/jbrankhaus.c.
+
+        - a simple color segmenter, giving a smoothed image
+	  with a small number of the most significant colors.
+
+        - a program for converting all tiff images in a directory
+	  to a PostScript file, and a program for printing an image
+	  in any (supported) format to a PostScript printer.
+
+        - converters between binary images and SVG format.
+
+        - a bitmap font facility that allows painting text onto
+	  images.  We currently support one font in several sizes.
+	  The font images and postscript programs for generating
+	  them are stored in prog/fonts/.
+
+        - a binary maze game lets you generate mazes and find shortest
+	  paths between two arbitrary points, if such a path exists.
+	  You can also compute the "shortest" (i.e., least cost) path
+	  between points on a grayscale image.
+
+16. A serious deficiency of C is that no standard has been universally
+    adopted for typedefs of the built-in types.  As a result,
+    typedef conflicts are common, and cause no end of havoc when
+    you try to link different libraries.  If you're lucky, you
+    can find an order in which the libraries can be linked
+    to avoid these conflicts, but the state of affairs is aggravating.
+
+    The most common typedefs use lower case variables: uint8, int8, ...
+    To avoid conflicts, we previously typedef'd the builtins with
+    UINT8, INT8, ....  However, our convention conflicted with the
+    one in the jpeg library, specifically the file jmorecfg.h:
+    e.g., we used
+        typedef int INT32;
+    whereas jmorecfg.h uses
+        typedef long INT32;
+    Consequently, it was necessary to distribute a version of jmorecfg.h
+    with the typedefs elided (!)
+
+    The png library avoids typedef conflicts by altruistically
+    appending "png_" to the type names.  Following that approach,
+    Leptonica now appends "l_" to the type name.  This should avoid
+    just about all conflicts.  In the highly unlikely event that it doesn't,
+    here's a simple way to change the type declarations throughout
+    the Leptonica code:
+     (1) customize a file "converttypes.sed" with the following lines:
+         /l_uint8/s//YOUR_UINT8_NAME/g
+         /l_int8/s//YOUR_INT8_NAME/g
+         /l_uint16/s//YOUR_UINT16_NAME/g
+         /l_int16/s//YOUR_INT16_NAME/g
+         /l_uint32/s//YOUR_UINT32_NAME/g
+         /l_int32/s//YOUR_INT32_NAME/g
+         /l_float32/s//YOUR_FLOAT32_NAME/g
+         /l_float64/s//YOUR_FLOAT64_NAME/g
+     (2) in the src and prog directories:
+        - if you have a version of sed that does in-place conversion:
+             sed -i -f converttypes.sed *
+        - else, do something like (in csh)
+	     foreach file (*)
+	     sed -f converttypes.sed $file > tempdir/$file
+	     end
+
+    If you are using Leptonica with a large code base that typedefs the
+    built-in types differently from Leptonica, just edit the typedefs
+    in environ.h.  This should have no side-effects with other libraries,
+    and no issues should arise with the inclusion order of the Leptonica
+    libraries for the linker.
+
+    For compatibility with 64 bit hardware and compilers, where
+    necessary we use the typedefs in stdint.h to specify the pointer
+    size (either 4 or 8 byte).  This may not work properly if you use a
+    compiler before gcc 2.95.3.
+	 
+17. For C++ compatibility, we have included a local version of
+    jpeglib.h (version 6b), with the 'extern "C"' macro added.
+    The -I./ flag includes this local file, rather than the one
+    in /usr/include, because of the order of include directories
+    on the compile line.  jpeglib.h will by default include the
+    locally-supplied version of jmorecfg.h.
+
+18. Leptonica provides some compile-time control over messages
+    and debug output.  Messages are of three types: error,
+    warning and informational.  They are all macros, and
+    are suppressed when NO_CONSOLE_IO is defined on the compile line.
+    Likewise, all debug output is conditionally compiled, within
+    a #ifndef NO_CONSOLE_IO clause, so these sections are
+    omitted when NO_CONSOLE_IO is defined.   For production code
+    where no output is to go to stderr, compile with -DNO_CONSOLE_IO.
+
+19. If you use Leptonica with other systems, you have three
+    choices with respect to the Pix data structure.  It is
+    easiest if you can use the Pix directly.  Next easiest is to
+    make a Pix from a local image data structure or the unbundled
+    image parameters; see the file pix.h for the constraints on the
+    image data that will permit you to avoid data replication.
+    By far, the most work is to provide new high-level shims from some
+    other image data structure to the low-level functions in the library,
+    which take only built-in C data types.  It would be an inordinately
+    large task to do this for the entire library.
+
+20. New versions of the Leptonlib library are released approximately
+    monthly, and version numbers are provided for each release.
+    A brief version chronology is maintained in version-notes.html.
+    The library compiles without warnings with either g++ or gcc,
+    but you will get warnings with the -Wall flag.
+
+
+</pre>
+
+<!-- JS Window Closer -----
+<form>
+<center>
+<input type="button" onclick="window.close();" value="Close this window">
+</center>
+</form>
+----- JS Window Closer -->
+
+</body>
+</html>

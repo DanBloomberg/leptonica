@@ -1,0 +1,430 @@
+#/*====================================================================*
+# -  Copyright (C) 2001 Leptonica.  All rights reserved.
+# -  This software is distributed in the hope that it will be
+# -  useful, but with NO WARRANTY OF ANY KIND.
+# -  No author or distributor accepts responsibility to anyone for the
+# -  consequences of using this software, or for whether it serves any
+# -  particular purpose or works at all, unless he or she says so in
+# -  writing.  Everyone is granted permission to copy, modify and
+# -  redistribute this source code, for commercial or non-commercial
+# -  purposes, with the following restrictions: (1) the origin of this
+# -  source code must not be misrepresented; (2) modified versions must
+# -  be plainly marked as such; and (3) this notice may not be removed
+# -  or altered from any source or modified source distribution.
+# *====================================================================*/
+
+#   Makefile.mingw  (cross-compiled for windows)
+#
+#   For a nodebug version:             make
+#   For a debug version:               make DEBUG=yes
+#   For a shared library version:      make SHARED=yes
+#   With nonstandard library directories:
+#                    make EXTRALIBS="-L<nonstandard-lib-dir>"
+#   With nonstandard header directories
+#                    make EXTRAINCLUDES="-I<nonstandard-incl-dir>"
+#
+#   To remove all executables:  make clean
+#
+#   This is EXPERIMENTAL.  It compiles and links, but is not very neat,
+#   because I haven't built executables for windows in any environment
+#   except cygwin.  It makes optimized executables with static
+#   libraries; ignore the 'SHARED' lines.  This should eventually
+#   be fixed up, but for now, SHARED doesn't work.  Also, if
+#   you make with DEBUG=yes, you will get very large .o files.
+#
+#   To build .exe windows programs, you need 4 libraries:
+#     jpeg, png, zlib, tiff
+#   You can get them from the gnuwin32 site on sourceforge:
+#     http://gnuwin32.sourceforge.net/packages/netpbm.htm
+#   Download the 4 libraries as 'developer' packages, which give
+#   you the library binaries with the header files.
+#   The header files go in:
+#      /usr/local/include/mingw/
+#   and the four libraries go in
+#      /usr/local/lib/mingw/
+#   The four libraries you need are specified in the ALL_LIBS definition.
+#   It seems that you also need to download dll files to get
+#   the programs to run (e.g., jpeg2b.dll).
+#
+
+
+# Libraries are built into a binary tree with its root in the
+# parent directory
+ROOT_DIR = ..
+
+LIB_NODEBUG_DIR =	$(ROOT_DIR)/lib/nodebug
+LIB_DEBUG_DIR =		$(ROOT_DIR)/lib/debug
+LIB_SHARED_DIR =	$(ROOT_DIR)/lib/shared
+
+# Include files are found within the same tree
+IMAGELIB_INCL =	$(ROOT_DIR)/src
+
+
+CC =	i586-mingw32msvc-gcc -ansi -Werror -D_BSD_SOURCE -DANSI
+#CC =	i586-mingw32msvc-g++ -Werror -D_BSD_SOURCE
+
+
+ifdef  SHARED
+    LIB_DIR =	$(LIB_SHARED_DIR)
+    OPTIMIZE =	-O2
+else
+    ifdef  DEBUG
+	LIB_DIR =	$(LIB_DEBUG_DIR)
+	OPTIMIZE =	-g
+    else
+	LIB_DIR =	$(LIB_NODEBUG_DIR)
+	OPTIMIZE =	-O2
+    endif
+endif
+
+OPTIONS =
+
+INCLUDES =	-I$(IMAGELIB_INCL) -I/usr/local/include/mingw
+
+CFLAGS =	$(OPTIMIZE) $(OPTIONS)
+CPPFLAGS =      $(INCLUDES) -DL_LITTLE_ENDIAN
+#CPPFLAGS =      $(INCLUDES) -DL_BIG_ENDIAN
+
+LDFLAGS +=	-L$(LIB_DIR) -L/usr/local/lib/mingw -L/usr/lib $(EXTRALIBS)
+#LDFLAGS +=	-L$(LIB_DIR) -L/usr/X11R6/lib -L/usr/local/lib -L/usr/lib $(EXTRALIBS)
+
+ifdef  SHARED
+    LEPTLIB =		$(LIB_DIR)/liblept.so
+else
+    LEPTLIB =		$(LIB_DIR)/liblept.a
+endif
+
+ALL_LIBS =	$(LEPTLIB) /usr/local/lib/mingw/libpng.a /usr/local/lib/mingw/libz.a /usr/local/lib/mingw/libtiff.dll.a /usr/local/lib/mingw/libjpeg.dll.a -lm
+
+#########################################################################
+
+SRC =		adaptmaptest.c affinetest.c \
+		alljpeg2ps.c alltiff2ps.c \
+		arithtest.c \
+		baselinetest.c bilineartest.c \
+		bincompare.c binmazetest.c \
+		blendcmaptest.c blendtest1.c buffertest.c \
+		ccbordtest.c cctest.c \
+		colormaptest.c colorquanttest.c \
+		colorsegtest.c colorspacetest.c \
+		contrasttest.c convertformat.c converttogray.c \
+		converttops.c convolvetest.c cornertest.c \
+		distancetest.c dithertest.c \
+		docseg1.c docseg2.c \
+		equaltest.c expandtest.c falsecolortest.c \
+		fhmtautogen.c fhmtautotest.c fileinfo.c \
+		findpattern1.c findpattern2.c findpattern3.c \
+		fmorphautogen.c fmorphautotest.c \
+		gammatest.c genfonts.c graphicstest.c graymazetest.c \
+		heaptest.c histotest.c ioformats.c iotest.c \
+		jbcorrelation.c jbrankhaus.c \
+		lineremoval.c listtest.c maketile.c \
+		morphgraytest.c morphseqtest.c \
+		morphtest1.c morphtest2.c \
+		mtifftest.c \
+		numaranktest.c numatest.c painttest.c \
+		pixcompare.c plotfile.c plotprog.c \
+		printimage.c printsplitimage.c printtiff.c \
+		projectivetest.c reducetest.c renderfonts.c \
+		rotatefastalt.c rotateorthtest1.c rotateorthtest2.c \
+		rotatetest1.c rotatetest2.c runlengthtest.c \
+		scaletest1.c scaletest2.c scaletest3.c \
+		seedfilltest.c \
+		sharptest.c sheartest.c showedges.c \
+		skewtest.c snapcolortest.c \
+		sorttest.c splitimage2pdf.c \
+		thresholdtest.c viewertest.c \
+		xvdisp.c
+
+######################################################################
+
+all:	$(SRC:%.c=%)
+
+######################################################################
+
+adaptmaptest:	adaptmaptest.o $(LEPTLIB)
+	$(CC) -o adaptmaptest.exe adaptmaptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+affinetest:	affinetest.o $(LEPTLIB)
+	$(CC) -o affinetest.exe affinetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+alljpeg2ps:	alljpeg2ps.o $(LEPTLIB)
+	$(CC) -o alljpeg2ps.exe alljpeg2ps.o $(ALL_LIBS) $(EXTRALIBS)
+
+alltiff2ps:	alltiff2ps.o $(LEPTLIB)
+	$(CC) -o alltiff2ps.exe alltiff2ps.o $(ALL_LIBS) $(EXTRALIBS)
+
+arithtest:	arithtest.o $(LEPTLIB)
+	$(CC) -o arithtest.exe arithtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+baselinetest:	baselinetest.o $(LEPTLIB)
+	$(CC) -o baselinetest.exe baselinetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+bilineartest:	bilineartest.o $(LEPTLIB)
+	$(CC) -o bilineartest.exe bilineartest.o $(ALL_LIBS) $(EXTRALIBS)
+
+bincompare:	bincompare.o $(LEPTLIB)
+	$(CC) -o bincompare.exe bincompare.o $(ALL_LIBS) $(EXTRALIBS)
+
+binmazetest:	binmazetest.o $(LEPTLIB)
+	$(CC) -o binmazetest.exe binmazetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+blendcmaptest:	blendcmaptest.o $(LEPTLIB)
+	$(CC) -o blendcmaptest.exe blendcmaptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+blendtest1:	blendtest1.o $(LEPTLIB)
+	$(CC) -o blendtest1.exe blendtest1.o $(ALL_LIBS) $(EXTRALIBS)
+
+buffertest:	buffertest.o $(LEPTLIB)
+	$(CC) -o buffertest.exe buffertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+ccbordtest:	ccbordtest.o $(LEPTLIB)
+	$(CC) -o ccbordtest.exe ccbordtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+cctest:		cctest.o $(LEPTLIB)
+	$(CC) -o cctest.exe cctest.o $(ALL_LIBS) $(EXTRALIBS)
+
+colormaptest:	colormaptest.o $(LEPTLIB)
+	$(CC) -o colormaptest.exe colormaptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+colorquanttest:	colorquanttest.o $(LEPTLIB)
+	$(CC) -o colorquanttest.exe colorquanttest.o $(ALL_LIBS) $(EXTRALIBS)
+
+colorsegtest:	colorsegtest.o $(LEPTLIB)
+	$(CC) -o colorsegtest.exe colorsegtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+colorspacetest:	colorspacetest.o $(LEPTLIB)
+	$(CC) -o colorspacetest.exe colorspacetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+contrasttest:	contrasttest.o $(LEPTLIB)
+	$(CC) -o contrasttest.exe contrasttest.o $(ALL_LIBS) $(EXTRALIBS)
+
+convertformat:	convertformat.o $(LEPTLIB)
+	$(CC) -static -o convertformat.exe convertformat.o $(ALL_LIBS) $(EXTRALIBS)
+
+converttogray:	converttogray.o $(LEPTLIB)
+	$(CC) -o converttogray.exe converttogray.o $(ALL_LIBS) $(EXTRALIBS)
+
+converttops:	converttops.o $(LEPTLIB)
+	$(CC) -o converttops.exe converttops.o $(ALL_LIBS) $(EXTRALIBS)
+
+convolvetest:	convolvetest.o $(LEPTLIB)
+	$(CC) -o convolvetest.exe convolvetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+cornertest:	cornertest.o $(LEPTLIB)
+	$(CC) -o cornertest.exe cornertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+distancetest:	distancetest.o $(LEPTLIB)
+	$(CC) -o distancetest.exe distancetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+dithertest:	dithertest.o $(LEPTLIB)
+	$(CC) -o dithertest.exe dithertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+docseg1:	docseg1.o $(LEPTLIB)
+	$(CC) -o docseg1.exe docseg1.o $(ALL_LIBS) $(EXTRALIBS)
+
+docseg2:	docseg2.o $(LEPTLIB)
+	$(CC) -o docseg2.exe docseg2.o $(ALL_LIBS) $(EXTRALIBS)
+
+equaltest:	equaltest.o $(LEPTLIB)
+	$(CC) -o equaltest.exe equaltest.o $(ALL_LIBS) $(EXTRALIBS)
+
+expandtest:	expandtest.o $(LEPTLIB)
+	$(CC) -o expandtest.exe expandtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+falsecolortest:	falsecolortest.o $(LEPTLIB)
+	$(CC) -o falsecolortest.exe falsecolortest.o $(ALL_LIBS) $(EXTRALIBS)
+
+fhmtautogen:	fhmtautogen.o $(LEPTLIB)
+	$(CC) -o fhmtautogen.exe fhmtautogen.o $(ALL_LIBS) $(EXTRALIBS)
+
+fhmtautotest:	fhmtautotest.o $(LEPTLIB)
+	$(CC) -o fhmtautotest.exe fhmtautotest.o $(ALL_LIBS) $(EXTRALIBS)
+
+fileinfo:	fileinfo.o $(LEPTLIB)
+	$(CC) -o fileinfo.exe fileinfo.o $(ALL_LIBS) $(EXTRALIBS)
+
+findpattern1:	findpattern1.o $(LEPTLIB)
+	$(CC) -o findpattern1.exe findpattern1.o $(ALL_LIBS) $(EXTRALIBS)
+
+findpattern2:	findpattern2.o $(LEPTLIB)
+	$(CC) -o findpattern2.exe findpattern2.o $(ALL_LIBS) $(EXTRALIBS)
+
+findpattern3:	findpattern3.o $(LEPTLIB)
+	$(CC) -o findpattern3.exe findpattern3.o $(ALL_LIBS) $(EXTRALIBS)
+
+fmorphautogen:	fmorphautogen.o $(LEPTLIB)
+	$(CC) -o fmorphautogen.exe fmorphautogen.o $(ALL_LIBS) $(EXTRALIBS)
+
+fmorphautotest:	fmorphautotest.o $(LEPTLIB)
+	$(CC) -o fmorphautotest.exe fmorphautotest.o $(ALL_LIBS) $(EXTRALIBS)
+
+gammatest:	gammatest.o $(LEPTLIB)
+	$(CC) -o gammatest.exe gammatest.o $(ALL_LIBS) $(EXTRALIBS)
+
+genfonts:	genfonts.o $(LEPTLIB)
+	$(CC) -o genfonts.exe genfonts.o $(ALL_LIBS) $(EXTRALIBS)
+
+graphicstest:	graphicstest.o $(LEPTLIB)
+	$(CC) -o graphicstest.exe graphicstest.o $(ALL_LIBS) $(EXTRALIBS)
+
+graymazetest:	graymazetest.o $(LEPTLIB)
+	$(CC) -o graymazetest.exe graymazetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+heaptest:	heaptest.o $(LEPTLIB)
+	$(CC) -o heaptest.exe heaptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+histotest:	histotest.o $(LEPTLIB)
+	$(CC) -o histotest.exe histotest.o $(ALL_LIBS) $(EXTRALIBS)
+
+ioformats:	ioformats.o $(LEPTLIB)
+	$(CC) -o ioformats.exe ioformats.o $(ALL_LIBS) $(EXTRALIBS)
+
+iotest:		iotest.o $(LEPTLIB)
+	$(CC) -o iotest.exe iotest.o $(ALL_LIBS) $(EXTRALIBS)
+
+jbcorrelation:	jbcorrelation.o $(LEPTLIB)
+	$(CC) -o jbcorrelation.exe jbcorrelation.o $(ALL_LIBS) $(EXTRALIBS)
+
+jbrankhaus:	jbrankhaus.o $(LEPTLIB)
+	$(CC) -o jbrankhaus.exe jbrankhaus.o $(ALL_LIBS) $(EXTRALIBS)
+
+lineremoval:	lineremoval.o $(LEPTLIB)
+	$(CC) -o lineremoval.exe lineremoval.o $(ALL_LIBS) $(EXTRALIBS)
+
+listtest:	listtest.o $(LEPTLIB)
+	$(CC) -o listtest.exe listtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+maketile:	maketile.o $(LEPTLIB)
+	$(CC) -o maketile.exe maketile.o $(ALL_LIBS) $(EXTRALIBS)
+
+morphgraytest:	morphgraytest.o $(LEPTLIB)
+	$(CC) -o morphgraytest.exe morphgraytest.o $(ALL_LIBS) $(EXTRALIBS)
+
+morphseqtest:	morphseqtest.o $(LEPTLIB)
+	$(CC) -o morphseqtest.exe morphseqtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+morphtest1:	morphtest1.o $(LEPTLIB)
+	$(CC) -o morphtest1.exe morphtest1.o $(ALL_LIBS) $(EXTRALIBS)
+
+morphtest2:	morphtest2.o $(LEPTLIB)
+	$(CC) -o morphtest2.exe morphtest2.o $(ALL_LIBS) $(EXTRALIBS)
+
+mtifftest:	mtifftest.o $(LEPTLIB)
+	$(CC) -o mtifftest.exe mtifftest.o $(ALL_LIBS) $(EXTRALIBS)
+
+numaranktest:	numaranktest.o $(LEPTLIB)
+	$(CC) -o numaranktest.exe numaranktest.o $(ALL_LIBS) $(EXTRALIBS)
+
+numatest:	numatest.o $(LEPTLIB)
+	$(CC) -o numatest.exe numatest.o $(ALL_LIBS) $(EXTRALIBS)
+
+painttest:	painttest.o $(LEPTLIB)
+	$(CC) -o painttest.exe painttest.o $(ALL_LIBS) $(EXTRALIBS)
+
+pixcompare:	pixcompare.o $(LEPTLIB)
+	$(CC) -o pixcompare.exe pixcompare.o $(ALL_LIBS) $(EXTRALIBS)
+
+plotfile:	plotfile.o $(LEPTLIB)
+	$(CC) -o plotfile.exe plotfile.o $(ALL_LIBS) $(EXTRALIBS)
+
+plotprog:	plotprog.o $(LEPTLIB)
+	$(CC) -o plotprog.exe plotprog.o $(ALL_LIBS) $(EXTRALIBS)
+
+printimage:	printimage.o $(LEPTLIB)
+	$(CC) -o printimage.exe printimage.o $(ALL_LIBS) $(EXTRALIBS)
+
+printsplitimage:	printsplitimage.o $(LEPTLIB)
+	$(CC) -o printsplitimage.exe printsplitimage.o $(ALL_LIBS) $(EXTRALIBS)
+
+printtiff:	printtiff.o $(LEPTLIB)
+	$(CC) -o printtiff.exe printtiff.o $(ALL_LIBS) $(EXTRALIBS)
+
+projectivetest:	projectivetest.o $(LEPTLIB)
+	$(CC) -o projectivetest.exe projectivetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+reducetest:	reducetest.o $(LEPTLIB)
+	$(CC) -o reducetest.exe reducetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+renderfonts:	renderfonts.o $(LEPTLIB)
+	$(CC) -o renderfonts.exe renderfonts.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotatefastalt:	rotatefastalt.o $(LEPTLIB)
+	$(CC) -o rotatefastalt.exe rotatefastalt.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotateorthtest1:	rotateorthtest1.o $(LEPTLIB)
+	$(CC) -o rotateorthtest1.exe rotateorthtest1.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotateorthtest2:	rotateorthtest2.o $(LEPTLIB)
+	$(CC) -o rotateorthtest2.exe rotateorthtest2.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotatetest1:	rotatetest1.o $(LEPTLIB)
+	$(CC) -o rotatetest1.exe rotatetest1.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotatetest2:	rotatetest2.o $(LEPTLIB)
+	$(CC) -o rotatetest2.exe rotatetest2.o $(ALL_LIBS) $(EXTRALIBS)
+
+runlengthtest:	runlengthtest.o $(LEPTLIB)
+	$(CC) -o runlengthtest.exe runlengthtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+scaletest1:	scaletest1.o $(LEPTLIB)
+	$(CC) -o scaletest1.exe scaletest1.o $(ALL_LIBS) $(EXTRALIBS)
+
+scaletest2:	scaletest2.o $(LEPTLIB)
+	$(CC) -o scaletest2.exe scaletest2.o $(ALL_LIBS) $(EXTRALIBS)
+
+scaletest3:	scaletest3.o $(LEPTLIB)
+	$(CC) -o scaletest3.exe scaletest3.o $(ALL_LIBS) $(EXTRALIBS)
+
+seedfilltest:	seedfilltest.o $(LEPTLIB)
+	$(CC) -o seedfilltest.exe seedfilltest.o $(ALL_LIBS) $(EXTRALIBS)
+
+sharptest:	sharptest.o $(LEPTLIB)
+	$(CC) -o sharptest.exe sharptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+sheartest:	sheartest.o $(LEPTLIB)
+	$(CC) -o sheartest.exe sheartest.o $(ALL_LIBS) $(EXTRALIBS)
+
+showedges:	showedges.o $(LEPTLIB)
+	$(CC) -o showedges.exe showedges.o $(ALL_LIBS) $(EXTRALIBS)
+
+skewtest:	skewtest.o $(LEPTLIB)
+	$(CC) -o skewtest.exe skewtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+snapcolortest:	snapcolortest.o $(LEPTLIB)
+	$(CC) -o snapcolortest.exe snapcolortest.o $(ALL_LIBS) $(EXTRALIBS)
+
+sorttest:	sorttest.o $(LEPTLIB)
+	$(CC) -o sorttest.exe sorttest.o $(ALL_LIBS) $(EXTRALIBS)
+
+splitimage2pdf:	splitimage2pdf.o $(LEPTLIB)
+	$(CC) -o splitimage2pdf.exe splitimage2pdf.o $(ALL_LIBS) $(EXTRALIBS)
+
+thresholdtest:	thresholdtest.o $(LEPTLIB)
+	$(CC) -o thresholdtest.exe thresholdtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+viewertest:	viewertest.o $(LEPTLIB)
+	$(CC) -o viewertest.exe viewertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+xvdisp:		xvdisp.o $(LEPTLIB)
+	$(CC) -o xvdisp.exe xvdisp.o $(ALL_LIBS) $(EXTRALIBS)
+
+###########################################################
+
+clean:
+	-@ for file in $(SRC:%.c=%.exe) ; do \
+		rm -f $$file; \
+	done ;
+	-@ for file in $(SRC:%.c=%.o) ; do \
+		rm -f $$file; \
+	done ;
+
+###########################################################
+
+depend:
+	$(BIN)/makedepend -DNO_PROTOS $(CPPFLAGS) $(SRC)
+
+dependprotos:
+	$(BIN)/makedepend $(CPPFLAGS) $(SRC)
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
