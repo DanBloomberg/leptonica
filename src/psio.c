@@ -18,12 +18,16 @@
  *                     
  *     This is a PostScript "device driver" for wrapping images
  *     in PostScript.  The images can be rendered by a PostScript
- *     interpreter, such as gs or the embedded interpreter in a
- *     PostScript printer.
+ *     interpreter for viewing, using evince or gv.  They can also be
+ *     rasterized for printing, using gs or an embedded interpreter
+ *     in a PostScript printer.
  *
  *     Convert specified files to PS
  *          l_int32          convertFilesToPS()    [unix only]
  *          l_int32          sarrayConvertFilesToPS()
+ *          l_int32          convertFilesFittedToPS()    [unix only]
+ *          l_int32          sarrayConvertFilesFittedToPS()
+ *          static l_int32   writeImageCompressedToPSFile()
  *
  *     Convert any image file to PS for embedding
  *          l_int32          convertToPSEmbed()
@@ -91,6 +95,13 @@
 /* --------------------------------------------*/
 #if  USE_PSIO   /* defined in environ.h */
  /* --------------------------------------------*/
+
+    /* Static helper for writing or appending images to an output file */
+static l_int32 writeImageCompressedToPSFile(const char *filein,
+                                            const char *fileout,
+                                            l_int32 format, l_int32 res,
+                                            l_int32 *pfirstfile,
+                                            l_int32 *pindex);
 
 static const char *TEMP_G4TIFF_FILE = "/tmp/junk_temp_g4tiff.tif";
 static const char *TEMP_JPEG_FILE   = "/tmp/junk_temp_jpeg.jpg";
@@ -171,8 +182,8 @@ static const l_uint32  power85[5] = {1,
  *          it, remove any existing colormap, and write it out in
  *          a temp file in one of these two formats.
  *      (8) This is unix only; it does not work on Windows.  However,
- *          see sarrayConvertFilesToPS(), which does the real work
- *          and compiles on all platforms.
+ *          sarrayConvertFilesToPS(), which does the real work,
+ *          compiles on all platforms.
  */
 l_int32
 convertFilesToPS(const char  *dirin,
@@ -222,7 +233,7 @@ sarrayConvertFilesToPS(SARRAY      *sa,
                        const char  *fileout)
 {
 char    *fname;
-l_int32  i, d, nfiles, index, firstfile, format, retval;
+l_int32  i, d, nfiles, index, firstfile, format;
 FILE    *fp;
 PIX     *pix, *pixt;
 
@@ -242,7 +253,7 @@ PIX     *pix, *pixt;
     nfiles = sarrayGetCount(sa);
     firstfile = TRUE;
     for (i = 0, index = 0; i < nfiles; i++) {
-        fname = sarrayGetString(sa, i, 0);
+        fname = sarrayGetString(sa, i, L_NOCOPY);
         if ((fp = fopen(fname, "r")) == NULL)
             continue;
         format = findFileFormat(fp);
@@ -267,46 +278,233 @@ PIX     *pix, *pixt;
             }
             pixDestroy(&pix);
         }
-        else
+        else  /* wrap it up as is */
             fname = stringNew(fname);
 
-            /* Write it out */
-        if (format == IFF_JFIF_JPEG) {
-            if (firstfile) {
-                retval = convertJpegToPS(fname, fileout, "w", 0, 0,
-                                         res, 1.0, index + 1, TRUE);
-                if (retval == 0) {
-                    firstfile = FALSE;
-                    index++;
-                }
-            }
-            else {
-                retval = convertJpegToPS(fname, fileout, "a", 0, 0,
-                                         res, 1.0, index + 1, TRUE);
-                if (retval == 0)
-                    index++;
-            }
-        }
-        else {  /* format == IFF_TIFF_G4) */
-            if (firstfile) {
-                retval = convertTiffG4ToPS(fname, fileout, "w", 0, 0,
-                                           res, 1.0, index + 1, FALSE, TRUE);
-                if (retval == 0) {
-                    firstfile = FALSE;
-                    index++;
-                }
-            }
-            else {
-                retval = convertTiffG4ToPS(fname, fileout, "a", 0, 0,
-                                           res, 1.0, index + 1, FALSE, TRUE);
-                if (retval == 0)
-                    index++;
-            }
-        }
+        writeImageCompressedToPSFile(fname, fileout, format, res,
+                                     &firstfile, &index);
         FREE(fname);
     }
     
     return 0;
+}
+
+
+/*
+ *  convertFilesFittedToPS()
+ *
+ *      Input:  dirin (input directory)
+ *              substr (<optional> substring filter on filenames; can be NULL)
+ *              xpts, ypts (desired size in printer points; use 0 for default)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a PS file for all files in a specified directory
+ *          that contain the substr pattern to be matched.
+ *      (2) Colormaps are removed.
+ *      (3) All images are written with level 2 compression.
+ *          If the image is 1 bpp, use G4.  Otherwise, use DCT.
+ *          If the image is not 1 bpp and not jpeg compressed,
+ *          it is jpeg compressed with quality = 75, which will
+ *          in general cause some degradation in the image.
+ *      (4) The resolution is internally determined such that the images
+ *          are rendered, in at least one direction, at 100% of the given
+ *          size in printer points.  Use 0.0 for xpts or ypts to get
+ *          the default value, which is 612.0 or 792.0, rsp.
+ *      (5) The size of the PostScript file is independent of the resolution,
+ *          because the entire file is encoded.  The @xpts and @ypts
+ *          parameter tells the PS decomposer how to render the page.
+ *      (6) If the image is jpeg or tiffg4, we use the existing
+ *          compressed string; otherwise it is necessary to decompress
+ *          it, remove any existing colormap, and write it out in
+ *          a temp file in one of these two formats.
+ *      (7) This is unix only; it does not work on Windows.  However,
+ *          sarrayConvertFilesToPSFit(), which does the real work,
+ *          compiles on all platforms.
+ */
+l_int32
+convertFilesFittedToPS(const char  *dirin,
+                       const char  *substr,
+                       l_float32    xpts,
+                       l_float32    ypts,
+                       const char  *fileout)
+{
+SARRAY  *sa;
+
+    PROCNAME("convertFilesFittedToPS");
+
+    if (!dirin)
+        return ERROR_INT("dirin not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (xpts <= 0.0) {
+        L_INFO("setting xpts to 612.0 ppi", procName);
+        xpts = 612.0;
+    }
+    if (ypts <= 0.0) {
+        L_INFO("setting ypts to 792.0 ppi", procName);
+        ypts = 792.0;
+    }
+    if (xpts < 100.0 || xpts > 2000.0 || ypts < 100.0 || ypts > 2000.0)
+        L_WARNING("xpts,ypts are typically in the range 500-800", procName);
+
+        /* Get all filtered and sorted full pathnames. */
+    sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
+
+        /* Generate the PS file. */
+    sarrayConvertFilesFittedToPS(sa, xpts, ypts, fileout);
+    sarrayDestroy(&sa);
+    return 0;
+}
+
+
+/*
+ *  sarrayConvertFilesFittedToPS()
+ *
+ *      Input:  sarray (of full path names)
+ *              xpts, ypts (desired size in printer points; use 0 for default)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See convertFilesFittedToPS()
+ */
+l_int32
+sarrayConvertFilesFittedToPS(SARRAY      *sa,
+                             l_float32    xpts,
+                             l_float32    ypts,
+                             const char  *fileout)
+{
+char    *fname;
+l_int32  i, w, h, d, nfiles, index, firstfile, format, res;
+FILE    *fp;
+PIX     *pix, *pixt;
+
+    PROCNAME("sarrayConvertFilesFittedToPS");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (xpts <= 0.0) {
+        L_INFO("setting xpts to 612.0 ppi", procName);
+        xpts = 612.0;
+    }
+    if (ypts <= 0.0) {
+        L_INFO("setting ypts to 792.0 ppi", procName);
+        ypts = 792.0;
+    }
+    if (xpts < 100.0 || xpts > 2000.0 || ypts < 100.0 || ypts > 2000.0)
+        L_WARNING("xpts,ypts are typically in the range 500-800", procName);
+
+    nfiles = sarrayGetCount(sa);
+    firstfile = TRUE;
+    for (i = 0, index = 0; i < nfiles; i++) {
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        if ((fp = fopen(fname, "r")) == NULL)
+            continue;
+        format = findFileFormat(fp);
+        pix = pixReadStream(fp, 0);
+        fclose(fp);
+        if (!pix)
+            continue;
+        pixGetDimensions(pix, &w, &h, &d);
+        if (xpts / ypts > (612.0 / 792.0))
+            res = (l_int32)((l_float32)w * 72.0 / xpts);
+        else
+            res = (l_int32)((l_float32)h * 72.0 / ypts);
+
+            /* Convert to tiffg4 or jpeg if necessary */
+        if (format != IFF_JFIF_JPEG && format != IFF_TIFF_G4) {
+            if (d == 1) {
+                pixWrite(TEMP_G4TIFF_FILE, pix, IFF_TIFF_G4);
+                fname = stringNew(TEMP_G4TIFF_FILE);
+                format = IFF_TIFF_G4;
+            }
+            else {
+                pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+                pixWrite(TEMP_JPEG_FILE, pixt, IFF_JFIF_JPEG);
+                pixDestroy(&pixt);
+                fname = stringNew(TEMP_JPEG_FILE);
+                format = IFF_JFIF_JPEG;
+            }
+        }
+        else  /* wrap it up as is */
+            fname = stringNew(fname);
+        pixDestroy(&pix);
+
+        writeImageCompressedToPSFile(fname, fileout, format, res,
+                                     &firstfile, &index);
+        FREE(fname);
+    }
+
+    return 0;
+}
+
+
+/*
+ *  writeImageCompressedToPSFile()
+ *
+ *      Input:  filein (input image file)
+ *              fileout (output ps file)
+ *              format (input image file format)
+ *              res (output printer resolution)
+ *              &firstfile (<input and return> 1 if the first image;
+ *                          0 otherwise)
+ *              &index (<input and return> index of image in output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ */
+static l_int32
+writeImageCompressedToPSFile(const char *filein,
+                             const char *fileout,
+                             l_int32     format,
+                             l_int32     res,
+                             l_int32    *pfirstfile,
+                             l_int32    *pindex)
+{
+l_int32  retval;
+
+    PROCNAME("writeImageCompressedToPSFile");
+
+    if (!pfirstfile || !pindex)
+        return ERROR_INT("&firstfile and &index not defined", procName, 1);
+
+    if (format == IFF_JFIF_JPEG) {
+        if (*pfirstfile) {
+            retval = convertJpegToPS(filein, fileout, "w", 0, 0,
+                                     res, 1.0, *pindex + 1, TRUE);
+            if (retval == 0) {
+                *pfirstfile = FALSE;
+                (*pindex)++;
+            }
+        }
+        else {
+            retval = convertJpegToPS(filein, fileout, "a", 0, 0,
+                                     res, 1.0, *pindex + 1, TRUE);
+            if (retval == 0)
+                (*pindex)++;
+        }
+    }
+    else {  /* format == IFF_TIFF_G4) */
+        if (*pfirstfile) {
+            retval = convertTiffG4ToPS(filein, fileout, "w", 0, 0,
+                                       res, 1.0, *pindex + 1, FALSE, TRUE);
+            if (retval == 0) {
+                *pfirstfile = FALSE;
+                (*pindex)++;
+            }
+        }
+        else {
+            retval = convertTiffG4ToPS(filein, fileout, "a", 0, 0,
+                                       res, 1.0, *pindex + 1, FALSE, TRUE);
+            if (retval == 0)
+                (*pindex)++;
+        }
+    }
+    
+    return retval;
 }
 
 
@@ -737,6 +935,7 @@ getScaledParametersPS(BOX        *box,
                       l_float32  *pwpt,
                       l_float32  *phpt)
 {
+l_int32    bx, by, bw, bh;
 l_float32  winch, hinch, xinch, yinch, fres;
 
     PROCNAME("getScaledParametersPS");
@@ -768,16 +967,17 @@ l_float32  winch, hinch, xinch, yinch, fres;
         yinch = (11.0 - hinch) / 2.;
     }
     else {
-        if (box->w == 0)
+        boxGetGeometry(box, &bx, &by, &bw, &bh);
+        if (bw == 0)
             winch = (l_float32)wpix / fres;
         else
-            winch = (l_float32)box->w / 1000.;
-        if (box->h == 0)
+            winch = (l_float32)bw / 1000.;
+        if (bh == 0)
             hinch = (l_float32)hpix / fres;
         else
-            hinch = (l_float32)box->h / 1000.;
-        xinch = (l_float32)box->x / 1000.;
-        yinch = (l_float32)box->y / 1000.;
+            hinch = (l_float32)bh / 1000.;
+        xinch = (l_float32)bx / 1000.;
+        yinch = (l_float32)by / 1000.;
     }
 
     if (xinch < 0)

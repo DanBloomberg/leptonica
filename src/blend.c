@@ -1494,7 +1494,7 @@ pixColorGray(PIX     *pixs,
              l_int32  gval,
              l_int32  bval)
 {
-l_int32     i, j, w, h, d, wpl, x1, x2, y1, y2;
+l_int32     i, j, w, h, d, wpl, x1, x2, y1, y2, bw, bh;
 l_int32     nrval, ngval, nbval, aveval;
 l_float32   factor;
 l_uint32    val32;
@@ -1539,10 +1539,9 @@ PIXCMAP    *cmap;
         y2 = h;
     }
     else {
-        x1 = box->x;
-        y1 = box->y;
-        x2 = x1 + box->w - 1;
-        y2 = y1 + box->h - 1;
+        boxGetGeometry(box, &x1, &y1, &bw, &bh);
+        x2 = x1 + bw - 1;
+        y2 = y1 + bh - 1;
     }
     
     data = pixGetData(pixs);

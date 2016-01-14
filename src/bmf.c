@@ -474,7 +474,7 @@ PIXA     *pixa;
         nrowchars = boxaGetCount(boxacs);
         for (j = 0; j < nrowchars; j++) {
             box = boxaGetBox(boxacs, j, L_COPY);
-            if (box->w <= 2 &&box->h == 1) {  /* skip 1x1, 2x1 components */
+            if (box->w <= 2 && box->h == 1) {  /* skip 1x1, 2x1 components */
                 boxDestroy(&box);
                 continue;
             }

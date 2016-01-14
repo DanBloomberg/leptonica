@@ -23,12 +23,9 @@
  *      struct Numa2d
  *      struct NumaHash
  *      struct Sarray
- *      struct Ptra
  *
  *  Contains definitions for:
  *      Numa interpolation flags
- *      Ptra compaction flags for removal
- *      Ptra shifting flags for insert
  */
 
 
@@ -96,18 +93,6 @@ struct Sarray
 typedef struct Sarray SARRAY;
 
 
-    /* Generic pointer array */
-struct Ptra
-{
-    l_int32          nalloc;    /* size of allocated ptr array         */
-    l_int32          n;         /* greatest valid index + 1            */
-    l_int32          nactual;   /* actual number of stored elements    */
-    void           **array;     /* ptr array                           */
-};
-typedef struct Ptra PTRA;
-
-
-
 /*------------------------------------------------------------------------* 
  *                              Array flags                               *
  *------------------------------------------------------------------------*/
@@ -118,17 +103,5 @@ enum {
     L_QUADRATIC_INTERP = 2      /* quadratic  */
 };
 
-    /* Flags for removal from Ptra */
-enum {
-    L_NO_COMPACTION = 1,        /* null the pointer only  */
-    L_COMPACTION = 2            /* compact the array      */
-};
-
-    /* Flags for insertion into Ptra */
-enum {
-    L_AUTO_DOWNSHIFT = 0,       /* choose based on number of holes        */
-    L_MIN_DOWNSHIFT = 1,        /* downshifts min # of ptrs below insert  */
-    L_FULL_DOWNSHIFT = 2        /* downshifts all ptrs below insert       */
-};
 
 #endif  /* LEPTONICA_ARRAY_H */

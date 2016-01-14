@@ -218,9 +218,10 @@ l_int32
 pixWriteStreamPnm(FILE  *fp,
                   PIX   *pix)
 {
-l_uint8    byteval, rval, gval, bval;
-l_int32    h, w, d, ds, i, j, wpls, bpl, maxval;
-l_uint32  *datas, *lines;
+l_uint8    byteval;
+l_uint8    pel[4];
+l_int32    h, w, d, ds, i, j, wpls, bpl, filebpl, writeerror, maxval;
+l_uint32  *pword, *datas, *lines;
 PIX       *pixs;
 
     PROCNAME("pixWriteStreamPnm");
@@ -243,6 +244,7 @@ PIX       *pixs;
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
+    writeerror = 0;
     if (ds == 1) {  /* binary */
         fprintf(fp, "P4\n# Raw PBM file written by leptonlib (www.leptonica.com)\n%d %d\n", w, h);
 
@@ -272,27 +274,31 @@ PIX       *pixs;
         fprintf(fp, "P6\n# Raw PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
 
         if (d == 24) {   /* packed, 3 bytes to a pixel */
-            for (i = 0; i < h; i++) {
+            filebpl = 3 * w;
+            for (i = 0; i < h; i++) {  /* write out each raster line */
                 lines = datas + i * wpls;
-                fwrite(lines, 1, 3 * w, fp);  /* write the raster line */
+                if (fwrite(lines, 1, filebpl, fp) != filebpl)
+                    writeerror = 1;
             }
         }
         else {  /* 32 bpp rgb */
             for (i = 0; i < h; i++) {
                 lines = datas + i * wpls;
                 for (j = 0; j < wpls; j++) {
-                    rval = GET_DATA_BYTE(lines + j, COLOR_RED);
-                    gval = GET_DATA_BYTE(lines + j, COLOR_GREEN);
-                    bval = GET_DATA_BYTE(lines + j, COLOR_BLUE);
-                    fwrite(&rval, 1, 1, fp);
-                    fwrite(&gval, 1, 1, fp);
-                    fwrite(&bval, 1, 1, fp);
+                    pword = lines + j;
+                    pel[0] = *((l_uint8 *)pword + 3);   /* red   */
+                    pel[1] = *((l_uint8 *)pword + 2);   /* green */
+                    pel[2] = *((l_uint8 *)pword + 1);   /* blue  */
+                    if (fwrite(&pel, 1, 3, fp) != 3)
+                        writeerror = 1;
                 }
             }
         }
     }
 
     pixDestroy(&pixs);
+    if (writeerror)
+        return ERROR_INT("image write fail", procName, 1);
     return 0;
 }
 

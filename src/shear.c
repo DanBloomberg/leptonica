@@ -17,29 +17,35 @@
 /*
  *  shear.c
  *
- *       About arbitrary lines
+ *    About arbitrary lines
  *           PIX      *pixHShear()
  *           PIX      *pixVShear()
  *
- *       About special 'points': UL corner and center
+ *    About special 'points': UL corner and center
  *           PIX      *pixHShearCorner()
  *           PIX      *pixVShearCorner()
  *           PIX      *pixHShearCenter()
  *           PIX      *pixVShearCenter()
  *
- *       In place about arbitrary lines
+ *    In place about arbitrary lines
  *           l_int32   pixHShearIP()
  *           l_int32   pixVShearIP()
  *
+ *    Static helper
+ *      static l_float32  normalizeAngleForShear()
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
 #include "allheaders.h"
+
+    /* Shear angle must not get too close to -pi/2 or pi/2 */
+static const l_float32   MIN_DIFF_FROM_HALF_PI = 0.04;
+
+static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindist);
+
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
@@ -58,7 +64,7 @@
  *              liney  (location of horizontal line, measured from origin)
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error
+ *      Return: pixd, always
  *
  *  Notes:
  *      (1) There are 3 cases:
@@ -79,6 +85,12 @@
  *      (5) Changing the value of liney is equivalent to translating
  *          the result horizontally.
  *      (6) This brings in 'incolor' pixels from outside the image.
+ *      (7) For in-place operation, pixs cannot be colormapped,
+ *          because the in-place operation only blits in 0 or 1 bits,
+ *          not an arbitrary colormap index.
+ *      (8) The angle is brought into the range [-pi, -pi].  It is
+ *          not permitted to be within MIN_DIFF_FROM_HALF_PI radians
+ *          from either -pi/2 or pi/2.
  */
 PIX *
 pixHShear(PIX       *pixd,
@@ -87,18 +99,20 @@ pixHShear(PIX       *pixd,
           l_float32  radang,
           l_int32    incolor)
 {
-l_int32    sign, w, h, d;
+l_int32    sign, w, h;
 l_int32    y, yincr, inityincr, hshift;
 l_float32  tanangle, invangle;
 
     PROCNAME("pixHShear");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
 
     if (pixd == pixs) {  /* in place */
+        if (pixGetColormap(pixs) != NULL)
+            return (PIX *)ERROR_PTR("pixs is colormapped", procName, pixd);
         pixHShearIP(pixd, liney, radang, incolor);
         return pixd;
     }
@@ -111,24 +125,20 @@ l_float32  tanangle, invangle;
     else  /* pixd != pixs */
         pixResizeImageData(pixd, pixs);
 
-        /* If no rotation, return a copy */
+        /* Normalize angle.  If no rotation, return a copy */
+    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
     if (radang == 0.0 || tan(radang) == 0.0)
         return pixCopy(pixd, pixs);
 
         /* Initialize to value of incoming pixels */
-    pixGetDimensions(pixs, &w, &h, &d);
-    if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
-        (d > 1 && incolor == L_BRING_IN_BLACK))
-        pixClearAll(pixd);
-    else
-        pixSetAll(pixd);
+    pixSetBlackOrWhite(pixd, incolor);
 
+    pixGetDimensions(pixs, &w, &h, NULL);
     sign = L_SIGN(radang);
     tanangle = tan(radang);
     invangle = L_ABS(1. / tanangle); 
     inityincr = (l_int32)(invangle / 2.);
     yincr = (l_int32)invangle;
-
     pixRasterop(pixd, 0, liney - inityincr, w, 2 * inityincr, PIX_SRC,
                 pixs, 0, liney - inityincr);
 
@@ -167,7 +177,7 @@ l_float32  tanangle, invangle;
  *                    or different from pixs)
  *              pixs (no restrictions on depth)
  *              linex  (location of vertical line, measured from origin)
- *              angle (in radians)
+ *              angle (in radians; not too close to +-(pi / 2))
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
  *      Return: pixd, or null on error
  *
@@ -190,6 +200,12 @@ l_float32  tanangle, invangle;
  *      (5) Changing the value of linex is equivalent to translating
  *          the result vertically.
  *      (6) This brings in 'incolor' pixels from outside the image.
+ *      (7) For in-place operation, pixs cannot be colormapped,
+ *          because the in-place operation only blits in 0 or 1 bits,
+ *          not an arbitrary colormap index.
+ *      (8) The angle is brought into the range [-pi, -pi].  It is
+ *          not permitted to be within MIN_DIFF_FROM_HALF_PI radians
+ *          from either -pi/2 or pi/2.
  */
 PIX *
 pixVShear(PIX       *pixd,
@@ -198,7 +214,7 @@ pixVShear(PIX       *pixd,
           l_float32  radang,
           l_int32    incolor)
 {
-l_int32    sign, w, h, d;
+l_int32    sign, w, h;
 l_int32    x, xincr, initxincr, vshift;
 l_float32  tanangle, invangle;
 
@@ -210,6 +226,8 @@ l_float32  tanangle, invangle;
         return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
 
     if (pixd == pixs) {  /* in place */
+        if (pixGetColormap(pixs) != NULL)
+            return (PIX *)ERROR_PTR("pixs is colormapped", procName, pixd);
         pixVShearIP(pixd, linex, radang, incolor);
         return pixd;
     }
@@ -222,24 +240,20 @@ l_float32  tanangle, invangle;
     else  /* pixd != pixs */
         pixResizeImageData(pixd, pixs);
 
-       /* If no rotation, return a copy */
+        /* Normalize angle.  If no rotation, return a copy */
+    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
     if (radang == 0.0 || tan(radang) == 0.0)
         return pixCopy(pixd, pixs);
 
         /* Initialize to value of incoming pixels */
-    pixGetDimensions(pixs, &w, &h, &d);
-    if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
-        (d > 1 && incolor == L_BRING_IN_BLACK))
-        pixClearAll(pixd);
-    else
-        pixSetAll(pixd);
+    pixSetBlackOrWhite(pixd, incolor);
 
+    pixGetDimensions(pixs, &w, &h, NULL);
     sign = L_SIGN(radang);
     tanangle = tan(radang);
     invangle = L_ABS(1. / tanangle); 
     initxincr = (l_int32)(invangle / 2.);
     xincr = (l_int32)invangle;
-
     pixRasterop(pixd, linex - initxincr, 0, 2 * initxincr, h, PIX_SRC,
                 pixs, linex - initxincr, 0);
 
@@ -392,9 +406,9 @@ pixVShearCenter(PIX       *pixd,
 
 
 
-/*-------------------------------------------------------------*
- *                In place about arbitrary lines               *
- *-------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*
+ *                       In place about arbitrary lines                     *
+ *--------------------------------------------------------------------------*/
 /*!
  *  pixHShearIP()
  *
@@ -407,7 +421,9 @@ pixVShearCenter(PIX       *pixd,
  *  Notes:
  *      (1) This is an in-place version of pixHShear(); see comments there.
  *      (2) This brings in 'incolor' pixels from outside the image.
- *      (3) Does a horizontal full-band shear about the line with (+) shear
+ *      (3) pixs cannot be colormapped, because the in-place operation
+ *          only blits in 0 or 1 bits, not an arbitrary colormap index.
+ *      (4) Does a horizontal full-band shear about the line with (+) shear
  *          pushing increasingly leftward (-x) with increasing y. 
  */
 l_int32
@@ -426,7 +442,11 @@ l_float32  tanangle, invangle;
         return ERROR_INT("pixs not defined", procName, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return ERROR_INT("invalid incolor value", procName, 1);
+    if (pixGetColormap(pixs) != NULL)
+        return ERROR_INT("pixs is colormapped", procName, 1);
 
+        /* Normalize angle */
+    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
     if (radang == 0.0 || tan(radang) == 0.0)
         return 0;
 
@@ -462,7 +482,7 @@ l_float32  tanangle, invangle;
 /*!
  *  pixVShearIP()
  *
- *      Input:  pixs
+ *      Input:  pixs (all depths; not colormapped)
  *              linex  (location of vertical line, measured from origin)
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
@@ -471,7 +491,9 @@ l_float32  tanangle, invangle;
  *  Notes:
  *      (1) This is an in-place version of pixVShear(); see comments there.
  *      (2) This brings in 'incolor' pixels from outside the image.
- *      (3) Does a vertical full-band shear about the line with (+) shear
+ *      (3) pixs cannot be colormapped, because the in-place operation
+ *          only blits in 0 or 1 bits, not an arbitrary colormap index.
+ *      (4) Does a vertical full-band shear about the line with (+) shear
  *          pushing increasingly downward (+y) with increasing x. 
  */
 l_int32
@@ -490,7 +512,11 @@ l_float32  tanangle, invangle;
         return ERROR_INT("pixs not defined", procName, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return ERROR_INT("invalid incolor value", procName, 1);
+    if (pixGetColormap(pixs) != NULL)
+        return ERROR_INT("pixs is colormapped", procName, 1);
 
+        /* Normalize angle */
+    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
     if (radang == 0.0 || tan(radang) == 0.0)
         return 0;
 
@@ -520,5 +546,41 @@ l_float32  tanangle, invangle;
     }
 
     return 0;
+}
+
+
+/*-------------------------------------------------------------------------*
+ *                           Angle normalization                           *
+ *-------------------------------------------------------------------------*/
+static l_float32
+normalizeAngleForShear(l_float32  radang,
+                       l_float32  mindist)
+{
+l_float32 pi, diff90;
+
+    PROCNAME("normalizeAngleForShear");
+
+       /* Bring angle into range from [-pi, pi] */
+    pi = 3.14159265;
+    if (radang < -pi || radang > pi)
+        radang = radang - (l_int32)(radang / pi) * pi;
+
+       /* If angle is too close to pi/2 or -pi/2, move away and issue warning */
+    diff90 = radang - pi / 2.0;
+    if (L_ABS(diff90) < mindist)
+        L_WARNING("angle close to pi/2; shifting away", procName);
+    if (diff90 > -mindist && diff90 < 0.0)
+        radang = pi / 2.0 - mindist;
+    else if (diff90 >= 0.0 && diff90 < mindist)
+        radang = pi / 2.0 + mindist;
+    diff90 = radang + pi / 2.0;
+    if (L_ABS(diff90) < mindist)
+        L_WARNING("angle close to -pi/2; shifting away", procName);
+    if (diff90 > -mindist && diff90 < 0.0)
+        radang = -pi / 2.0 - mindist;
+    else if (diff90 >= 0.0 && diff90 < mindist)
+        radang = -pi / 2.0 + mindist;
+
+    return radang;
 }
 

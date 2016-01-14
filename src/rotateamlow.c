@@ -74,8 +74,8 @@ l_float32  sina, cosa;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             xdif = xcen - j;
-            xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
-            ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
+            xpm = (l_int32)(-xdif * cosa - ydif * sina);
+            ypm = (l_int32)(-ydif * cosa + xdif * sina);
             xp = xcen + (xpm >> 4);
             yp = ycen + (ypm >> 4);
             xf = xpm & 0x0f;
@@ -150,8 +150,8 @@ l_float32  sina, cosa;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             xdif = xcen - j;
-            xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
-            ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
+            xpm = (l_int32)(-xdif * cosa - ydif * sina);
+            ypm = (l_int32)(-ydif * cosa + xdif * sina);
             xp = xcen + (xpm >> 4);
             yp = ycen + (ypm >> 4);
             xf = xpm & 0x0f;
@@ -211,8 +211,8 @@ l_float32  sina, cosa;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
-            xpm = (l_int32)(j * cosa + i * sina + 0.5);
-            ypm = (l_int32)(i * cosa - j * sina + 0.5);
+            xpm = (l_int32)(j * cosa + i * sina);
+            ypm = (l_int32)(i * cosa - j * sina);
             xp = xpm >> 4;
             yp = ypm >> 4;
             xf = xpm & 0x0f;
@@ -284,8 +284,8 @@ l_float32  sina, cosa;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
-            xpm = (l_int32)(j * cosa + i * sina + 0.5);
-            ypm = (l_int32)(i * cosa - j * sina + 0.5);
+            xpm = (l_int32)(j * cosa + i * sina);
+            ypm = (l_int32)(i * cosa - j * sina);
             xp = xpm >> 4;
             yp = ypm >> 4;
             xf = xpm & 0x0f;
@@ -418,8 +418,8 @@ l_float32  sina, cosa;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             xdif = xcen - j;
-            xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
-            ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
+            xpm = (l_int32)(-xdif * cosa - ydif * sina);
+            ypm = (l_int32)(-ydif * cosa + xdif * sina);
             xp = xcen + (xpm >> 2);
             yp = ycen + (ypm >> 2);
             xf = xpm & 0x03;

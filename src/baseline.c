@@ -532,7 +532,7 @@ PTA       *pta;
         ptaDestroy(&pta);
         return (NUMA *)ERROR_PTR("can't fit skew", procName, NULL);
     }
-    ptaGetLinearLSF(pta, &a, &b);
+    ptaGetLinearLSF(pta, &a, &b, NULL);
     if (pa) *pa = a;
     if (pb) *pb = b;
 

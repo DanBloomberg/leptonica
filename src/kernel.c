@@ -188,6 +188,9 @@ kernelGetElement(L_KERNEL   *kel,
 {
     PROCNAME("kernelGetElement");
 
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = 0;
     if (!kel)
         return ERROR_INT("kernel not defined", procName, 1);
     if (row < 0 || row >= kel->sy)
@@ -245,6 +248,10 @@ kernelGetParameters(L_KERNEL  *kel,
 {
     PROCNAME("kernelGetParameters");
 
+    if (psy) *psy = 0;
+    if (psx) *psx = 0;
+    if (pcy) *pcy = 0;
+    if (pcx) *pcx = 0;
     if (!kel)
         return ERROR_INT("kernel not defined", procName, 1);
     if (psy) *psy = kel->sy; 
@@ -294,11 +301,11 @@ l_int32    sx, sy, i, j;
 
     if (!psum)
         return ERROR_INT("&sum not defined", procName, 1);
+    *psum = 0.0;
     if (!kel)
         return ERROR_INT("kernel not defined", procName, 1);
 
     kernelGetParameters(kel, &sy, &sx, NULL, NULL);
-    *psum = 0.0;
     for (i = 0; i < sy; i++) {
         for (j = 0; j < sx; j++) {
             *psum += kel->data[i][j];
@@ -326,6 +333,8 @@ l_float32  val, minval, maxval;
 
     PROCNAME("kernelGetMinmax");
 
+    if (!pmin && !pmax)
+        return ERROR_INT("neither &min nor &max defined", procName, 1);
     if (pmin) *pmin = 0.0;
     if (pmax) *pmax = 0.0;
     if (!kel)

@@ -28,6 +28,7 @@
  *           l_int32     pixSetPixel()
  *           l_int32     pixGetRGBPixel()
  *           l_int32     pixSetRGBPixel()
+ *           l_int32     pixGetRandomPixel()
  *           l_int32     pixClearPixel()
  *           l_int32     pixFlipPixel()
  *           void        setPixelLow()
@@ -36,6 +37,7 @@
  *           l_int32     pixClearAll()
  *           l_int32     pixSetAll()
  *           l_int32     pixSetAllArbitrary()
+ *           l_int32     pixSetBlackOrWhite()
  *
  *      Rectangular region clear/set/set-to-arbitrary-value/blend
  *           l_int32     pixClearInRect()
@@ -105,6 +107,10 @@ static const l_uint32 rmask32[] = {0x0,
  *              (x,y) pixel coords
  *              &val (<return> pixel value)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This returns the value in the data array.  If the pix is
+ *          colormapped, it returns the colormap index, not the rgb value.
  */
 l_int32
 pixGetPixel(PIX       *pix,
@@ -117,11 +123,11 @@ l_uint32  *line, *data;
 
     PROCNAME("pixGetPixel");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
     if (!pval)
         return ERROR_INT("pval not defined", procName, 1);
     *pval = 0;
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
 
     pixGetDimensions(pix, &w, &h, &d);
     if (x < 0 || x >= w)
@@ -229,7 +235,7 @@ l_uint32  *line, *data;
 /*!
  *  pixGetRGBPixel()
  *
- *      Input:  pix
+ *      Input:  pix (32 bpp rgb, not colormapped)
  *              (x,y) pixel coords
  *              &rval (<optional return> red component)
  *              &gval (<optional return> green component)
@@ -272,7 +278,7 @@ l_uint32  *data, *ppixel;
 /*!
  *  pixSetRGBPixel()
  *
- *      Input:  pix
+ *      Input:  pix (32 bpp rgb)
  *              (x,y) pixel coords
  *              rval (red component)
  *              gval (green component)
@@ -308,6 +314,53 @@ l_uint32  *data, *line;
     line = data + y * wpl;
     composeRGBPixel(rval, gval, bval, &pixel);
     *(line + x) = pixel;
+    return 0;
+}
+
+
+/*!
+ *  pixGetRandomPixel()
+ *
+ *      Input:  pix (any depth; can be colormapped)
+ *              &val (<return> pixel value)
+ *              &x (<optional return> x coordinate chosen; can be null)
+ *              &y (<optional return> y coordinate chosen; can be null)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) If the pix is colormapped, it returns the rgb value.
+ */
+l_int32
+pixGetRandomPixel(PIX       *pix,
+                  l_uint32  *pval,
+                  l_int32   *px,
+                  l_int32   *py)
+{
+l_int32   w, h, x, y, rval, gval, bval;
+l_uint32  val;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixGetRandomPixel");
+
+    if (!pval)
+        return ERROR_INT("pval not defined", procName, 1);
+    *pval = 0;
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+
+    pixGetDimensions(pix, &w, &h, NULL);
+    x = rand() % w;
+    y = rand() % h;
+    if (px) *px = x;
+    if (py) *py = y;
+    pixGetPixel(pix, x, y, &val);
+    if ((cmap = pixGetColormap(pix)) != NULL) {
+        pixcmapGetColor(cmap, val, &rval, &gval, &bval);
+        composeRGBPixel(rval, gval, bval, pval);
+    }
+    else
+        *pval = val;
+
     return 0;
 }
 
@@ -620,6 +673,56 @@ PIXCMAP   *cmap;
         for (j = 0; j < wpl; j++) {
             *(line + j) = wordval;
         }
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  pixSetBlackOrWhite()
+ *
+ *      Input:  pixs (all depths; cmap ok)
+ *              incolor (L_BRING_IN_BLACK or L_BRING_IN_WHITE)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Function for setting all pixels in an image to either black
+ *          or white.
+ *      (2) If pixs is colormapped, it adds black or white to the
+ *          colormap if it's not there and there is room.  If the colormap
+ *          is full, it finds the closest color in intensity.
+ *          This index is written to all pixels.
+ */
+l_int32
+pixSetBlackOrWhite(PIX     *pixs,
+                   l_int32  incolor)
+{
+l_int32   d, index;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixSetBlackOrWhite");
+
+    if (!pixs)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (incolor != L_BRING_IN_BLACK && incolor != L_BRING_IN_WHITE)
+        return ERROR_INT("invalid incolor", procName, 1);
+
+    cmap = pixGetColormap(pixs);
+    d = pixGetDepth(pixs);
+    if (!cmap) {
+        if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
+            (d > 1 && incolor == L_BRING_IN_WHITE))
+            pixSetAll(pixs);
+        else 
+            pixClearAll(pixs);
+    }
+    else {  /* handle colormap */
+        if (incolor == L_BRING_IN_BLACK)
+            pixcmapAddBlackOrWhite(cmap, 0, &index);
+        else  /* L_BRING_IN_WHITE */
+            pixcmapAddBlackOrWhite(cmap, 1, &index);
+        pixSetAllArbitrary(pixs, index);
     }
 
     return 0;

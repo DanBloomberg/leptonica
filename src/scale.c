@@ -202,8 +202,9 @@ PIX       *pixt, *pixt2, *pixd;
         /* Scale (up or down) */
     d = pixGetDepth(pixt);
     maxscale = L_MAX(scalex, scaley);
-    if (maxscale < 0.7)   /* area mapping for anti-aliasing */
+    if (maxscale < 0.7) {  /* area mapping for anti-aliasing */
         pixd = pixScaleAreaMap(pixt, scalex, scaley);
+    } 
     else {  /* use linear interpolation */
         if (d == 8)
             pixt2 = pixScaleGrayLI(pixt, scalex, scaley);
@@ -2518,8 +2519,8 @@ PIX       *pixd;
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
-    wd = ws / xfact;
-    hd = hs / yfact;
+    wd = L_MAX(ws / xfact, 1);
+    hd = L_MAX(hs / yfact, 1);
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datas = pixGetData(pixs);
@@ -2760,12 +2761,12 @@ PIX       *pixd;
             val[2] = GET_DATA_BYTE(lines + wpls, 2 * j);
             val[3] = GET_DATA_BYTE(lines + wpls, 2 * j + 1);
             minval = maxval = val[0];
-	    minindex = maxindex = 0;
+            minindex = maxindex = 0;
             for (k = 1; k < 4; k++) {
                 if (val[k] < minval) {
                     minval = val[k];
                     minindex = k;
-		    continue;
+                    continue;
                 }
                 if (val[k] > maxval) {
                     maxval = val[k];
@@ -2777,9 +2778,9 @@ PIX       *pixd;
                     continue;
                 midval[m++] = val[k];
             }
-	    if (m > 2)  /* minval == maxval; all val[k] are the same */
+            if (m > 2)  /* minval == maxval; all val[k] are the same */
                 rankval = minval;
-	    else if (rank == 2)
+            else if (rank == 2)
                 rankval = L_MIN(midval[0], midval[1]);
             else  /* rank == 3 */
                 rankval = L_MAX(midval[0], midval[1]);

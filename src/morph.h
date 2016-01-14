@@ -130,7 +130,8 @@ enum {
     L_MORPH_DILATE    = 1,
     L_MORPH_ERODE     = 2,
     L_MORPH_OPEN      = 3,
-    L_MORPH_CLOSE     = 4
+    L_MORPH_CLOSE     = 4,
+    L_MORPH_HMT       = 5
 };
 
 
@@ -162,7 +163,9 @@ enum {
     L_ARITH_MULTIPLY  = 3,   /* on numas only */
     L_ARITH_DIVIDE    = 4,   /* on numas only */
     L_UNION           = 5,   /* on numas only */
-    L_INTERSECTION    = 6    /* on numas only */
+    L_INTERSECTION    = 6,   /* on numas only */
+    L_SUBTRACTION     = 7,   /* on numas only */
+    L_EXCLUSIVE_OR    = 8    /* on numas only */
 };
 
 

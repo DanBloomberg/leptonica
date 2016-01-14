@@ -436,7 +436,7 @@ PIXCMAP   *cmap;
  *      (2) Any pixel that meets these three tests is considered a
  *          colorful pixel:
  *            (a) the average of components must equal or exceed @darkthresh
- *            (b) the average of components must be not exceed @lightthresh
+ *            (b) the average of components must not exceed @lightthresh
  *            (c) at least one component must differ from the average
  *                by at least @diffthresh
  *      (3) The dark pixels are removed from consideration because

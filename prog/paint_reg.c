@@ -28,7 +28,7 @@ main(int    argc,
 {
 l_int32      index;
 l_uint32     val32;
-BOX         *box;
+BOX         *box, *box1, *box2, *box3, *box4, *box5;
 PIX         *pixs, *pixg, *pixb, *pixt, *pixt1, *pixt2, *pixt3;
 PIXCMAP     *cmap;
 static char  mainName[] = "paint_reg";
@@ -160,8 +160,44 @@ static char  mainName[] = "paint_reg";
     pixDestroy(&pixt);
     boxDestroy(&box);
 
-    pixDestroy(&pixs);
+        /* Colorize gray on cmapped image. */
+    pixt1 = pixRead("lucasta.150.jpg");
+    pixt2 = pixThresholdTo4bpp(pixt1, 7, 1);
+    box1 = boxCreate(73, 206, 140, 27);
+    pixColorGrayCmap(pixt2, box1, L_PAINT_LIGHT, 130, 207, 43);
+    pixDisplayWrite(pixt2, 1);
+    pixPrintStreamInfo(stderr, pixt2, "One box added");
+
+    box2 = boxCreate(255, 404, 197, 25);
+    pixColorGrayCmap(pixt2, box2, L_PAINT_LIGHT, 230, 67, 119);
+    pixDisplayWrite(pixt2, 1);
+    pixPrintStreamInfo(stderr, pixt2, "Two boxes added");
+
+    box3 = boxCreate(122, 756, 224, 22);
+    pixColorGrayCmap(pixt2, box3, L_PAINT_DARK, 230, 67, 119);
+    pixDisplayWrite(pixt2, 1);
+    pixPrintStreamInfo(stderr, pixt2, "Three boxes added");
+
+    box4 = boxCreate(11, 780, 147, 22);
+    pixColorGrayCmap(pixt2, box4, L_PAINT_LIGHT, 70, 137, 229);
+    pixDisplayWrite(pixt2, 1);
+    pixPrintStreamInfo(stderr, pixt2, "Four boxes added");
+
+    box5 = boxCreate(163, 605, 78, 22);
+    pixColorGrayCmap(pixt2, box5, L_PAINT_LIGHT, 70, 137, 229);
+    pixDisplayWrite(pixt2, 1);
+    pixPrintStreamInfo(stderr, pixt2, "Five boxes added");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    boxDestroy(&box1);
+    boxDestroy(&box2);
+    boxDestroy(&box3);
+    boxDestroy(&box4);
+    boxDestroy(&box5);
+
     system("gthumb junk_write_display* &");
+
+    pixDestroy(&pixs);
     return 0;
 }
 

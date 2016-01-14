@@ -1520,9 +1520,6 @@ PIXAA  *pixaa;
  *
  *      Input:  stream
  *      Return: pixaa, or null on error
- *
- *  Notes:
- *      (1) We use PIXA_VERSION_NUMBER for the pixaa.
  */
 PIXAA *
 pixaaReadStream(FILE  *fp)
@@ -1540,7 +1537,7 @@ PIXAA   *pixaa;
 
     if (fscanf(fp, "\nPixaa Version %d\n", &version) != 1)
         return (PIXAA *)ERROR_PTR("not a pixaa file", procName, NULL);
-    if (version != PIXA_VERSION_NUMBER)
+    if (version != PIXAA_VERSION_NUMBER)
         return (PIXAA *)ERROR_PTR("invalid pixaa version", procName, NULL);
     if (fscanf(fp, "Number of pixa = %d\n", &n) != 1)
         return (PIXAA *)ERROR_PTR("not a pixaa file", procName, NULL);
@@ -1605,9 +1602,6 @@ FILE  *fp;
  *      Input:  stream
  *              pixaa
  *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) We use PIXA_VERSION_NUMBER for the pixaa.
  */
 l_int32
 pixaaWriteStream(FILE   *fp,
@@ -1624,7 +1618,7 @@ PIXA    *pixa;
         return ERROR_INT("pixaa not defined", procName, 1);
 
     n = pixaaGetCount(pixaa);
-    fprintf(fp, "\nPixaa Version %d\n", PIXA_VERSION_NUMBER);
+    fprintf(fp, "\nPixaa Version %d\n", PIXAA_VERSION_NUMBER);
     fprintf(fp, "Number of pixa = %d\n", n);
     boxaWriteStream(fp, pixaa->boxa);
     for (i = 0; i < n; i++) {

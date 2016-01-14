@@ -890,7 +890,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
  *                               palette image if color)
  *              reduction (scaling factor: 1, 2, 4 or 8)
  *              &pnwarn (<optional return> number of warnings)
- *              hint: a bitwise OR of L_HINT_* values
+ *              hint (bitwise OR of L_HINT_* values; use 0 for no hint)
  *      Return: pix, or null on error
  *
  *  Notes:

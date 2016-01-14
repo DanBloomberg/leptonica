@@ -73,6 +73,7 @@
  *  (6) Fixed partition quantization for images with few colors
  *          PIX              *pixFewColorsOctcubeQuant1()
  *          PIX              *pixFewColorsOctcubeQuant2()
+ *          PIX              *pixFewColorsOctcubeQuantMixed()
  *
  *  (7) Fixed partition octcube quantization at specified level
  *      with quantized output to RGB
@@ -527,11 +528,29 @@ pixOctreeColorQuant(PIX     *pixs,
  *      Return: pixd (8 bit with colormap), or null on error
  *
  *  Notes:
- *      (1) See pixOctreeColorQuant() for algorithmic and implementation
+ *      (1) The parameters @validthresh and @colorthresh are used to
+ *          determine if color quantization should be used on an image,
+ *          or whether, instead, it should be quantized in grayscale.
+ *          If the image has very few non-white and non-black pixels, or
+ *          if those pixels that are non-white and non-black are all
+ *          very close to either white or black, it is usually better
+ *          to treat the color as accidental and to quantize the image
+ *          to gray only.  These parameters are useful if you know
+ *          something a priori about the image.  Perhaps you know that
+ *          there is only a very small fraction of color pixels, but they're
+ *          important to preserve; then you want to use a smaller value for
+ *          these parameters.  To disable conversion to gray and force
+ *          color quantization, use @validthresh = 0.0 and @colorthresh = 0.0.
+ *      (2) See pixOctreeColorQuant() for algorithmic and implementation
  *          details.  This function has a more general interface.
- *      (2) See pixColorFraction() for computing the fraction of pixels
+ *      (3) See pixColorFraction() for computing the fraction of pixels
  *          that are neither white nor black, and the fraction of those
- *          pixels that have little color.
+ *          pixels that have little color.  From the documentation there:
+ *             If pixfract is very small, there are few pixels that are
+ *             neither black nor white.  If colorfract is very small,
+ *             the pixels that are neither black nor white have very
+ *             little color content.  The product 'pixfract * colorfract'
+ *             gives the fraction of pixels with significant color content.
  */
 PIX *
 pixOctreeColorQuantGeneral(PIX       *pixs,
@@ -1605,7 +1624,7 @@ l_uint32        octindex, octindex2;
 l_uint32       *rtab, *gtab, *btab, *rtab2, *gtab2, *btab2;
 l_uint32       *lines, *lined, *datas, *datad;
 L_OCTCUBE_POP  *opop;
-PHEAP          *ph;
+L_HEAP         *lh;
 PIX            *pixd;
 PIXCMAP        *cmap;
 
@@ -1721,7 +1740,7 @@ PIXCMAP        *cmap;
     }
 
         /* More complicated.  Sort by decreasing population */
-    ph = pheapCreate(500, L_SORT_DECREASING);
+    lh = lheapCreate(500, L_SORT_DECREASING);
     for (i = 0; i < size; i++) {
         if (narray[i] > 0) {
             opop = (L_OCTCUBE_POP *)CALLOC(1, sizeof(L_OCTCUBE_POP));
@@ -1730,7 +1749,7 @@ PIXCMAP        *cmap;
             opop->rval = rarray[i];
             opop->gval = garray[i];
             opop->bval = barray[i];
-            pheapAdd(ph, opop);
+            lheapAdd(lh, opop);
         }
     }
 
@@ -1739,7 +1758,7 @@ PIXCMAP        *cmap;
     if ((iarray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
         return (PIX *)ERROR_PTR("iarray not made", procName, NULL);
     for (i = 0; i < 192; i++) {
-        opop = (L_OCTCUBE_POP*)pheapRemove(ph);
+        opop = (L_OCTCUBE_POP*)lheapRemove(lh);
         if (!opop) break;
 	pixcmapAddColor(cmap, opop->rval, opop->gval, opop->bval);
 	iarray[opop->index] = i + 1;  /* +1 to avoid storing 0 */
@@ -1767,7 +1786,7 @@ PIXCMAP        *cmap;
          * by @level octcube indices, and it now holds the
          * colormap indices for all pixels in pixs.  */
     for (i = 192; i < size; i++) {
-        opop = (L_OCTCUBE_POP*)pheapRemove(ph);
+        opop = (L_OCTCUBE_POP*)lheapRemove(lh);
         if (!opop) break;
         rval = opop->rval;
         gval = opop->gval;
@@ -1780,7 +1799,7 @@ PIXCMAP        *cmap;
 	iarray[opop->index] = 192 + octindex2 + 1;  /* +1 to avoid storing 0 */
         FREE(opop);
     }
-    pheapDestroy(&ph, TRUE);
+    lheapDestroy(&lh, TRUE);
 
         /* To span the full color space, which is necessary for dithering,
          * set each iarray element whose value is still 0 at the input
@@ -2163,7 +2182,7 @@ l_uint32  *lines, *lined, *datas, *datad, *pspixel;
 l_uint32  *rtab, *gtab, *btab;
 OQCELL    *oqc;
 OQCELL   **oqca;
-PHEAP     *ph;
+L_HEAP    *lh;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
@@ -2320,9 +2339,9 @@ PIXCMAP   *cmap;
     }
 
         /* Transfer the OQCELL from the array, and order in a heap */
-    ph = pheapCreate(512, L_SORT_DECREASING);
+    lh = lheapCreate(512, L_SORT_DECREASING);
     for (i = 0; i < ncubes; i++)
-        pheapAdd(ph, oqca[i]);
+        lheapAdd(lh, oqca[i]);
     FREE(oqca);  /* don't need this array */
 
         /* Prepare a new OctcubeQuantCell array, with maxcolors cells  */
@@ -2335,7 +2354,7 @@ PIXCMAP   *cmap;
 
         /* Remove the nextra most populated ones, and put them in the array */
     for (i = 0; i < nextra; i++) {
-        oqc = (OQCELL *)pheapRemove(ph);
+        oqc = (OQCELL *)lheapRemove(lh);
         oqc->n = 0.0;  /* reinit */
         oqc->rcum = 0;
         oqc->gcum = 0;
@@ -2344,7 +2363,7 @@ PIXCMAP   *cmap;
     }
 
         /* Destroy the heap and its remaining contents */
-    pheapDestroy(&ph, TRUE);
+    lheapDestroy(&lh, TRUE);
 
         /* Generate a lookup table from octindex at maxlevel
          * to color table index */
@@ -3104,6 +3123,155 @@ PIXCMAP   *cmap;
     FREE(rtab);
     FREE(gtab);
     FREE(btab);
+    return pixd;
+}
+
+
+/*!
+ *  pixFewColorsOctcubeQuantMixed()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              level (significant octcube bits for each of RGB;
+ *                     valid in [1...6]; use 0 for default)
+ *              darkthresh (darkest average value not automatically
+ *                          considered gray; use 0 for default)
+ *              lightthresh (lightest average value not automatically
+ *                          considered gray; use 0 for default)
+ *              diffthresh (thresh for max difference from the average of
+ *                          component values to consider pixel gray;
+ *                          use 0 for default)
+ *                          considered gray; use 0 for default)
+ *              minfract (min fraction of pixels for gray histo bin;
+ *                        use 0.0 for default)
+ *              maxspan (max size of gray histo bin; use 0 for default)
+ *      Return: pixd (8 bpp, quantized to octcube for pixels that are
+ *                    not gray; gray pixels are quantized separately
+ *                    over the full gray range), or null on error
+ *
+ *  Notes:
+ *      (1) First runs pixFewColorsOctcubeQuant1().  If this succeeds,
+ *          it separates the color from gray(ish) entries in the cmap,
+ *          and re-quantizes the gray pixels.  The result has some pixels
+ *          in color and others in gray.
+ *      (2) This fails if there are more than 256 colors (i.e., more
+ *          than 256 occupied octcubes in the color quantization).
+ *      (3) Level 3 (512 octcubes) will usually succeed because not more
+ *          than half of them are occupied with 1 or more pixels.
+ *      (4) This uses the criterion from pixColorFraction() for deciding
+ *          if a colormap entry is color; namely, if the average is
+ *          not too close to either black or white, and the maximum
+ *          deviation of a component from the average exceeds a threshold.
+ *      (5) For quantizing the gray pixels, it uses a histogram-based
+ *          method where input parameters determining the buckets are
+ *          the minimum population fraction and the maximum allowed size.
+ *      (6) Recommended input parameters are:
+ *              @level:  3 or 4  (3 is default)
+ *              @darkthresh:  20
+ *              @lightthresh: 248
+ *              @diffthresh: 12
+ *              @minfract: 0.05
+ *              @maxspan: 15
+ *          Input 0 on any of these to get the default.
+ *      (7) This can be useful for quantizing orthographically generated
+ *          images such as color maps, where there may be more than 256 colors
+ *          because of aliasing or jpeg artifacts on text or lines, but
+ *          there are a relatively small number of solid colors.  It usually
+ *          gives results that are better than pixOctcubeQuantMixedWithGray(),
+ *          both in size and appearance.  But it is a bit slower.
+ */     
+PIX *
+pixFewColorsOctcubeQuantMixed(PIX       *pixs,
+                              l_int32    level,
+                              l_int32    darkthresh,
+                              l_int32    lightthresh,
+                              l_int32    diffthresh,
+                              l_float32  minfract,
+                              l_int32    maxspan)
+{
+l_int32    i, j, w, h, wplc, wplm, wpld, ncolors, index; 
+l_int32    rval, gval, bval, val, rdiff, gdiff, bdiff, maxdiff, ave;
+l_int32   *lut;
+l_uint32  *datac, *datam, *datad, *linec, *linem, *lined;
+PIX       *pixc, *pixm, *pixg, *pixd;
+PIXCMAP   *cmap, *cmapd;
+
+    PROCNAME("pixFewColorsOctcubeQuantMixed");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (level <= 0) level = 3;
+    if (level > 6) 
+        return (PIX *)ERROR_PTR("invalid level", procName, NULL);
+    if (darkthresh <= 0) darkthresh = 20;
+    if (lightthresh <= 0) lightthresh = 248;
+    if (diffthresh <= 0) diffthresh = 12;
+    if (minfract <= 0.0) minfract = 0.05;
+    if (maxspan <= 2) maxspan = 15;
+
+        /* Start with a simple fixed octcube quantizer. */
+    if ((pixc = pixFewColorsOctcubeQuant1(pixs, level)) == NULL)
+        return (PIX *)ERROR_PTR("too many colors", procName, NULL);
+
+        /* Identify and save color entries in the colormap.  Set up a LUT
+         * that returns -1 for any gray pixel. */
+    cmap = pixGetColormap(pixc);
+    ncolors = pixcmapGetCount(cmap);
+    cmapd = pixcmapCreate(8);
+    lut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    for (i = 0; i < 256; i++)
+        lut[i] = -1;
+    for (i = 0, index = 0; i < ncolors; i++) {
+        pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+        ave = (l_int32)(0.333 * (rval + gval + bval));
+        if (ave < darkthresh || ave > lightthresh)
+            continue;
+        rdiff = L_ABS(rval - ave);
+        gdiff = L_ABS(gval - ave);
+        bdiff = L_ABS(bval - ave);
+        maxdiff = L_MAX(rdiff, gdiff);
+        maxdiff = L_MAX(maxdiff, bdiff);
+        if (maxdiff >= diffthresh) {
+            pixcmapAddColor(cmapd, rval, gval, bval);
+            lut[i] = index;
+            index++;
+        }
+    }
+
+        /* Generate dest pix with just the color pixels set to their
+         * colormap indices.  At the same time, make a 1 bpp mask
+         * of the non-color pixels */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreate(w, h, 8);
+    pixSetColormap(pixd, cmapd);
+    pixm = pixCreate(w, h, 1);
+    datac = pixGetData(pixc);
+    datam = pixGetData(pixm);
+    datad = pixGetData(pixd);
+    wplc = pixGetWpl(pixc);
+    wplm = pixGetWpl(pixm);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        linec = datac + i * wplc;
+        linem = datam + i * wplm;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BYTE(linec, j);
+            if (lut[val] == -1)
+                SET_DATA_BIT(linem, j);
+            else
+                SET_DATA_BYTE(lined, j, lut[val]);
+        }
+    }
+
+        /* Fill in the gray values.  Use a grayscale version of pixs
+         * as input, along with the mask over the actual gray pixels. */
+    pixg = pixConvertTo8(pixs, 0);
+    pixGrayQuantizeFromHisto(pixd, pixg, pixm, minfract, maxspan);
+
+    FREE(lut);
+    pixDestroy(&pixc);
+    pixDestroy(&pixm);
+    pixDestroy(&pixg);
     return pixd;
 }
 

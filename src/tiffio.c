@@ -238,11 +238,11 @@ static PIX *
 pixReadFromTiffStream(TIFF  *tif)
 {
 l_uint8   *linebuf, *data;
-l_uint16   spp, bps, bpp, tiffbpl, photometry, orientation;
+l_uint16   spp, bps, bpp, tiffbpl, photometry, compress, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
-l_int32    d, wpl, bpl, i, j, k, ncolors;
-l_uint32   w, h, xres, yres;
-l_uint32  *line, *ppixel;
+l_int32    d, wpl, bpl, i, j, k, ncolors, rval, gval, bval;
+l_uint32   w, h, xres, yres, tiffword;
+l_uint32  *line, *ppixel, *tiffdata;
 PIX       *pix;
 PIXCMAP   *cmap;
 
@@ -268,19 +268,17 @@ PIXCMAP   *cmap;
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
     tiffbpl = TIFFScanlineSize(tif);
 
-    if ((linebuf = (l_uint8 *)CALLOC(tiffbpl + 1, sizeof(l_uint8))) == NULL)
-        return (PIX *)ERROR_PTR("calloc fail for linebuf", procName, NULL);
-        
-    if ((pix = pixCreate(w, h, d)) == NULL) {
-        FREE(linebuf);
+    if ((pix = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
-    }
     data = (l_uint8 *)pixGetData(pix);
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
 
         /* Read the data */
     if (spp == 1) {
+        if ((linebuf = (l_uint8 *)CALLOC(tiffbpl + 1, sizeof(l_uint8))) == NULL)
+            return (PIX *)ERROR_PTR("calloc fail for linebuf", procName, NULL);
+        
         for (i = 0 ; i < h ; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
                 FREE(linebuf);
@@ -294,23 +292,33 @@ PIXCMAP   *cmap;
             pixEndianByteSwap(pix);
         else   /* bps == 16 */
             pixEndianTwoByteSwap(pix);
+        FREE(linebuf);
     }
     else {  /* rgb */
+        if ((tiffdata = (l_uint32 *)CALLOC(w * h, sizeof(l_uint32))) == NULL) {
+            pixDestroy(&pix);
+            return (PIX *)ERROR_PTR("calloc fail for tiffdata", procName, NULL);
+        }
+        if (!TIFFReadRGBAImageOriented(tif, w, h, tiffdata,
+                                       ORIENTATION_TOPLEFT, 0)) {
+            FREE(tiffdata);
+            pixDestroy(&pix);
+            return (PIX *)ERROR_PTR("failed to read tiffdata", procName, NULL);
+        }
+
         line = pixGetData(pix);
-        for (i = 0 ; i < h ; i++, line += wpl)
-        {
-            if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
-                FREE(linebuf);
-                pixDestroy(&pix);
-                return (PIX *)ERROR_PTR("line read fail", procName, NULL);
-            }
+        for (i = 0 ; i < h ; i++, line += wpl) {
             for (j = 0, k = 0, ppixel = line; j < w; j++) {
-                SET_DATA_BYTE(ppixel, COLOR_RED, linebuf[k++]);
-                SET_DATA_BYTE(ppixel, COLOR_GREEN, linebuf[k++]);
-                SET_DATA_BYTE(ppixel, COLOR_BLUE, linebuf[k++]);
+                    /* TIFFGet* are macros */
+                tiffword = tiffdata[i * w + j];
+                rval = TIFFGetR(tiffword);
+                gval = TIFFGetG(tiffword);
+                bval = TIFFGetB(tiffword);
+                composeRGBPixel(rval, gval, bval, ppixel);
                 ppixel++;
             } 
         }
+        FREE(tiffdata);
     }
 
     if (tiffGetResolution(tif, &xres, &yres)) {
@@ -324,7 +332,6 @@ PIXCMAP   *cmap;
              * and go from black (0) to white (0xffff), the
              * the pix cmap takes the most significant byte. */
         if ((cmap = pixcmapCreate(bps)) == NULL) {
-            FREE(linebuf);
             pixDestroy(&pix);
             return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
         }
@@ -335,7 +342,19 @@ PIXCMAP   *cmap;
         pixSetColormap(pix, cmap);
     }
     else {   /* No colormap: check photometry and invert if necessary */
-        TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometry);
+        if (!TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometry)) {
+                /* Guess default photometry setting.  Assume min_is_white
+                 * if compressed 1 bpp; min_is_black otherwise. */
+            TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &compress);
+            if (compress == COMPRESSION_CCITTFAX3 ||
+                compress == COMPRESSION_CCITTFAX4 ||
+                compress == COMPRESSION_CCITTRLE ||
+                compress == COMPRESSION_CCITTRLEW) {
+                photometry = PHOTOMETRIC_MINISWHITE;
+            }
+            else
+                photometry = PHOTOMETRIC_MINISBLACK;
+        }
         if ((d == 1 && photometry == PHOTOMETRIC_MINISBLACK) ||
             (d == 8 && photometry == PHOTOMETRIC_MINISWHITE))
             pixInvert(pix, pix);
@@ -355,7 +374,6 @@ PIXCMAP   *cmap;
         }
     }
 
-    FREE(linebuf);
     return pix;
 }
 

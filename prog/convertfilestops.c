@@ -21,6 +21,10 @@
  *
  *    To convert all files in the directory, use 'allfiles' for the substring.
  *
+ *    To generate a ps that scales the images to fit a standard 8.5 x 11
+ *    page, use res = 0.
+ *
+ *    Otherwise, this will convert at a specified resolution.
  *    Decreasing the resolution will cause the image to be rendered
  *    larger, and v.v.   For example, if the page was originally scanned
  *    at 400 ppi and you use 300 ppi for the resolution, the page will
@@ -54,7 +58,10 @@ static char     mainName[] = "convertfilestops";
     fileout = argv[4];
     if (!strcmp(substr, "allfiles"))
         substr = NULL;
-    return convertFilesToPS(dirin, substr, res, fileout);
+    if (res != 0)
+        return convertFilesToPS(dirin, substr, res, fileout);
+    else
+        return convertFilesFittedToPS(dirin, substr, 0.0, 0.0, fileout);
 }
 
 

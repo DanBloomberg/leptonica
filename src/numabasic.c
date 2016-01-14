@@ -43,6 +43,7 @@
  *          l_int32      numaChangeRefcount()
  *          l_int32      numaGetXParameters()
  *          l_int32      numaSetXParameters()
+ *          l_int32      numaCopyXParameters()
  *
  *      Serialize numa for I/O
  *          l_int32      numaRead()
@@ -123,7 +124,7 @@
  *        to go from l_float32 --> l_int32 because you're truncating
  *        to the integer value.
  *
- *    (5) In situations where the data in a numa correspond to a function,
+ *    (5) In situations where the data in a numa correspond to a function
  *        y(x), the values can be either at equal spacings in x or at
  *        arbitrary spacings.  For the former, we can represent all x values
  *        by two parameters: startx (corresponding to y[0]) and delx
@@ -131,6 +132,14 @@
  *        startx and delx are initialized to 0.0 and 1.0, rsp.
  *        For arbitrary spacings, we use a second numa, and the two
  *        numas are typically denoted nay and nax.
+ *
+ *    (6) The numa is also the basic struct used for histograms.  Every numa
+ *        has startx and delx fields, initialized to 0.0 and 1.0, that can
+ *        be used to represent the "x" value for the location of the
+ *        first bin and the bin width, respectively.  Accessors are the
+ *        numa*XParameters() functions.  All functions that make numa
+ *        histograms must set these fields properly, and many functions
+ *        that use numa histograms rely on the correctness of these values.
  */
 
 #include <stdio.h>
@@ -778,6 +787,30 @@ numaSetXParameters(NUMA      *na,
 
     na->startx = startx;
     na->delx = delx;
+    return 0;
+}
+
+
+/*!
+ *  numaCopyXParameters()
+ *
+ *      Input:  nad (destination Numa)
+ *              nas (source Numa)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaCopyXParameters(NUMA  *nad,
+                    NUMA  *nas)
+{
+l_float32  start, binsize;
+
+    PROCNAME("numaCopyXParameters");
+
+    if (!nas || !nad)
+        return ERROR_INT("nas and nad not both defined", procName, 1);
+
+    numaGetXParameters(nas, &start, &binsize);
+    numaSetXParameters(nad, start, binsize);
     return 0;
 }
 

@@ -14,9 +14,10 @@ liblept_a_SOURCES = adaptmap.c \
  arithlow.c arrayaccess.c \
  bardecode.c \
  baseline.c bbuffer.c \
- bilinear.c binexpand.c \
- binexpandlow.c binreduce.c \
- binreducelow.c blend.c bmf.c \
+ bilinear.c binarize.c \
+ binexpand.c binexpandlow.c \
+ binreduce.c binreducelow.c \
+ blend.c bmf.c \
  bmpio.c bmpiostub.c boxbasic.c \
  boxfunc1.c boxfunc2.c boxfunc3.c \
  ccbord.c ccthin.c \
@@ -37,7 +38,7 @@ liblept_a_SOURCES = adaptmap.c \
  gifio.c gifiostub.c \
  gplot.c graphics.c graymorph.c \
  graymorphlow.c grayquant.c \
- grayquantlow.c jbclass.c \
+ grayquantlow.c heap.c jbclass.c \
  jpegio.c jpegiostub.c \
  kernel.c list.c \
  maze.c morphapp.c \
@@ -45,15 +46,15 @@ liblept_a_SOURCES = adaptmap.c \
  morphseq.c numabasic.c \
  numafunc1.c numafunc2.c pageseg.c \
  paintcmap.c parseprotos.c \
- partition.c pheap.c pix1.c \
- pix2.c pix3.c pix4.c \
+ partition.c \
+ pix1.c pix2.c pix3.c pix4.c \
  pixabasic.c pixacc.c \
- pixafunc.c pixarith.c \
+ pixafunc1.c pixafunc2.c pixarith.c \
  pixconv.c pixtiling.c \
  pngio.c pngiostub.c \
- pnmio.c pnmiostub.c pqueue.c \
+ pnmio.c pnmiostub.c \
  projective.c psio.c psiostub.c \
- ptra.c pts.c \
+ ptra.c pts.c queue.c \
  rank.c readbarcode.c readfile.c \
  rop.c ropiplow.c \
  roplow.c rotateam.c \
@@ -73,8 +74,8 @@ liblept_a_SOURCES = adaptmap.c \
 
 include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
  array.h bbuffer.h bmf.h bmp.h ccbord.h environ.h \
- gplot.h imageio.h jbclass.h jmorecfg.h jpeglib.h leptprotos.h list.h \
- morph.h pheap.h pix.h pqueue.h readbarcode.h stack.h watershed.h
+ gplot.h heap.h imageio.h jbclass.h jmorecfg.h jpeglib.h leptprotos.h list.h \
+ morph.h pix.h ptra.h queue.h readbarcode.h stack.h watershed.h
 
 EXTRA_DIST = Makefile.mingw arrayaccess.h.vc arrayaccess.h.vc60 \
  hmttemplate1.txt hmttemplate2.txt leptonica-license.txt \

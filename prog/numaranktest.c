@@ -25,12 +25,11 @@
 
 static const l_int32   BIN_SIZE = 1;
 
-
 main(int    argc,
      char **argv)
 {
 char        *filein;
-l_int32      i, j, w, h, sampling;
+l_int32      i, j, w, h, d, sampling;
 l_float32    rank, rval;
 l_uint32     val;
 NUMA        *na, *nah, *nar, *nav;
@@ -45,8 +44,9 @@ static char  mainName[] = "numaranktest";
 
     if ((pix = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pix not made", mainName, 1));
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 8)
+	return ERROR_INT("d != 8 bpp", mainName, 1);
 
     na = numaCreate(0);
     for (i = 0; i < h; i += sampling) {
@@ -59,19 +59,24 @@ static char  mainName[] = "numaranktest";
 
     nar = numaCreate(0);
     for (rval = 0.0; rval < 256.0; rval += 2.56) {
-        numaHistogramGetRankFromVal(nah, 0, BIN_SIZE, rval, &rank);
+        numaHistogramGetRankFromVal(nah, rval, &rank);
 	numaAddNumber(nar, rank);
     }
     gplotSimple1(nar, GPLOT_X11, "/tmp/junkroot1", "rank vs val");
 
     nav = numaCreate(0);
     for (rank = 0.0; rank <= 1.0; rank += 0.01) {
-        numaHistogramGetValFromRank(nah, 0, BIN_SIZE, rank, &rval);
+        numaHistogramGetValFromRank(nah, rank, &rval);
 	numaAddNumber(nav, rval);
     }
     gplotSimple1(nav, GPLOT_X11, "/tmp/junkroot2", "val vs rank");
 
-    exit(0);
+    pixDestroy(&pix);
+    numaDestroy(&na);
+    numaDestroy(&nah);
+    numaDestroy(&nar);
+    numaDestroy(&nav);
+    return 0;
 }
 
 

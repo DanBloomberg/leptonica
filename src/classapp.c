@@ -565,6 +565,9 @@ NUMAA   *naa;
 
     naa = numaaCreate(0);
     nbox = boxaGetCount(boxa);
+    if (nbox == 0)
+        return naa;
+
     prevrow = -1;
     for (index = 0; index < nbox; index++) {
         box = boxaGetBox(boxa, index, L_CLONE);

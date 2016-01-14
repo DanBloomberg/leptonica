@@ -22,11 +22,16 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
+void PixTestEqual(PIX *pixs1, PIX *pixs2, PIX *pixm, l_int32 set,
+                  l_int32 connectivity);
+
+
 main(int    argc,
      char **argv)
 {
-l_int32      i, j;
-PIX         *pixm, *pixmi, *pixs1, *pixs1_8, *pixs2, *pixs2_8, *pixs3, *pixs3_8;
+l_int32      i, j, same;
+PIX         *pixm, *pixmi, *pixs1, *pixs1_8;
+PIX         *pixs2, *pixs2_8, *pixs3, *pixs3_8;
 PIX         *pixb1, *pixb2, *pixb3, *pixmin, *pixd;
 PIXA        *pixac;
 static char  mainName[] = "grayfill_reg";
@@ -104,9 +109,70 @@ static char  mainName[] = "grayfill_reg";
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
 
+        /* Compare hybrid and iterative gray seedfills */
+    pixs1 = pixCopy(NULL, pixm);
+    pixs2 = pixCopy(NULL, pixm);
+    pixAddConstantGray(pixs1, -30);
+    pixAddConstantGray(pixs2, 60);
+
+    PixTestEqual(pixs1, pixs2, pixm, 1, 4);
+    PixTestEqual(pixs1, pixs2, pixm, 2, 8);
+    PixTestEqual(pixs2, pixs1, pixm, 3, 4);
+    PixTestEqual(pixs2, pixs1, pixm, 4, 8);
+    pixDestroy(&pixs1);
+    pixDestroy(&pixs2);
+
     pixDestroy(&pixm);
     pixDestroy(&pixmi);
     pixDestroy(&pixmin);
+    return 0;
+}
+
+
+void
+PixTestEqual(PIX     *pixs1,
+             PIX     *pixs2,
+             PIX     *pixm,
+             l_int32  set,
+             l_int32  connectivity)
+{
+l_int32  same;
+PIX     *pixc11, *pixc12, *pixc21, *pixc22, *pixmi;
+
+    pixmi = pixInvert(NULL, pixm);
+    pixc11 = pixCopy(NULL, pixs1);
+    pixc12 = pixCopy(NULL, pixs1);
+    pixc21 = pixCopy(NULL, pixs2);
+    pixc22 = pixCopy(NULL, pixs2);
+
+        /* Test inverse seed filling */
+    pixSeedfillGrayInv(pixc11, pixm, connectivity);
+    pixSeedfillGrayInvSimple(pixc12, pixm, connectivity);
+    pixEqual(pixc11, pixc12, &same);
+    if (same)
+        fprintf(stderr, "\nSuccess for inv set %d\n", set);
+    else
+        fprintf(stderr, "\nFailure for inv set %d\n", set);
+
+        /* Test seed filling */
+    pixSeedfillGray(pixc21, pixm, connectivity);
+    pixSeedfillGraySimple(pixc22, pixm, connectivity);
+    pixEqual(pixc21, pixc22, &same);
+    if (same)
+        fprintf(stderr, "Success for set %d\n", set);
+    else
+        fprintf(stderr, "Failure for set %d\n", set);
+
+       /* Display the filling results */
+/*    pixDisplay(pixc11, 220 * (set - 1), 100);
+    pixDisplay(pixc21, 220 * (set - 1), 320); */
+
+    pixDestroy(&pixmi);
+    pixDestroy(&pixc11);
+    pixDestroy(&pixc12);
+    pixDestroy(&pixc21);
+    pixDestroy(&pixc22);
+    return;
 }
 
 

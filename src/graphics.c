@@ -27,6 +27,8 @@
  *          PTAA       *generatePtaaHashBoxa()
  *          PTA        *generatePtaPolyline()
  *          PTA        *generatePtaFilledCircle()
+ *          PTA        *generatePtaLineFromPt()
+ *          l_int32     locatePtRadially()
  *
  *      Pta rendering
  *
@@ -147,6 +149,7 @@ PTA       *pta;
  *
  *      Input:  x1, y1  (end point 1)
  *              x2, y2  (end point 2)
+ *              width
  *      Return: ptaj, or null on error
  */
 PTA  *
@@ -608,6 +611,62 @@ PTA       *pta;
     }
 
     return pta;
+}
+
+
+/*!
+ *  generatePtaLineFromPt()
+ *
+ *      Input:  x, y  (point of origination)
+ *              length (of line, including starting point)
+ *              radang (angle in radians, CW from horizontal)
+ *      Return: pta, or null on error
+ *
+ *  Notes:
+ *      (1) The @length of the line is 1 greater than the distance
+ *          used in locatePtRadially().  Example: a distance of 1
+ *          gives rise to a length of 2.
+ */
+PTA *
+generatePtaLineFromPt(l_int32    x,
+                      l_int32    y,
+                      l_float64  length,
+                      l_float64  radang)
+{
+l_int32  x2, y2;  /* the point at the other end of the line */
+
+    x2 = x + (l_int32)((length - 1.0) * cos(radang));
+    y2 = y + (l_int32)((length - 1.0) * sin(radang));
+    return generatePtaLine(x, y, x2, y2);
+}
+
+
+/*!
+ *  locatePtRadially()
+ *
+ *      Input:  xr, yr  (reference point)
+ *              radang (angle in radians, CW from horizontal)
+ *              dist (distance of point from reference point along line
+ *                    given by the specified angle)
+ *              &x, &y (<return> location of point)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+locatePtRadially(l_int32     xr,
+                 l_int32     yr,
+                 l_float64   dist,
+                 l_float64   radang,
+                 l_float64  *px,
+                 l_float64  *py)
+{
+    PROCNAME("locatePtRadially");
+
+    if (!px || !py)
+        return ERROR_INT("&x and &y not both defined", procName, 1);
+
+    *px = xr + dist * cos(radang);
+    *py = yr + dist * sin(radang);
+    return 0;
 }
 
 
@@ -1441,21 +1500,31 @@ PTA  *pta;
  *
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
  *              ptaa
- *              width  (thickness of line)
- *              closeflag (1 to close the contour; 0 otherwise)
+ *              polyflag (1 to interpret each Pta as a polyline; 0 to simply
+ *                        render the Pta as a set of pixels)
+ *              width  (thickness of line; use only for polyline)
+ *              closeflag (1 to close the contour; 0 otherwise;
+ *                         use only for polyline mode)
  *      Return: pixd (cmapped, 8 bpp) or null on error
  *
  *  Notes:
  *      (1) This is a debugging routine, that displays a set of
- *          polylines in random color in a pix.
- *      (2) The output pix is 8 bpp and colormapped.  A total of 254
- *          different, randomly selected colors, is used.
- *      (3) The polyline pixels replace the input pixels.  They will
- *          be clipped to the input pix.
+ *          pixels, selected by the set of Ptas in a Ptaa,
+ *          in a random color in a pix.
+ *      (2) If @polyflag == 1, each Pta is considered to be a polyline,
+ *          and is rendered using @width and @closeflag.  Each polyline
+ *          is rendered in a random color.
+ *      (3) If @polyflag == 0, all points in each Pta are rendered in a
+ *          random color.  The @width and @closeflag parameters are ignored.
+ *      (4) The output pix is 8 bpp and colormapped.  Up to 254
+ *          different, randomly selected colors, can be used.
+ *      (5) The rendered pixels replace the input pixels.  They will
+ *          be clipped silently to the input pix.
  */
 PIX  *
 pixRenderRandomCmapPtaa(PIX     *pix,
                         PTAA    *ptaa,
+                        l_int32  polyflag,
                         l_int32  width,
                         l_int32  closeflag)
 {
@@ -1472,17 +1541,20 @@ PIX      *pixd;
         return (PIX *)ERROR_PTR("ptaa not defined", procName, NULL);
 
     pixd = pixConvertTo8(pix, FALSE);
-    cmap = pixcmapCreateRandom(8);
+    cmap = pixcmapCreateRandom(8, 1, 1);
     pixSetColormap(pixd, cmap);
 
     if ((n = ptaaGetCount(ptaa)) == 0)
         return pixd;
 
     for (i = 0; i < n; i++) {
-        index = 1 + (i % 255);
+        index = 1 + (i % 254);
         pixcmapGetColor(cmap, index, &rval, &gval, &bval);
         pta = ptaaGetPta(ptaa, i, L_CLONE);
-        ptat = generatePtaPolyline(pta, width, closeflag, 0);
+        if (polyflag)
+            ptat = generatePtaPolyline(pta, width, closeflag, 0);
+        else
+            ptat = ptaClone(pta);
         pixRenderPtaArb(pixd, ptat, rval, gval, bval);
         ptaDestroy(&pta);
         ptaDestroy(&ptat);

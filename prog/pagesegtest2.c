@@ -179,7 +179,7 @@ static char  mainName[] = "pagesegtest2";
 
         /* Identify the outlines of each textblock */
     ptaa = pixGetOuterBordersPtaa(pixtb2);
-    pixt1 = pixRenderRandomCmapPtaa(pixtb2, ptaa, 8, 1);
+    pixt1 = pixRenderRandomCmapPtaa(pixtb2, ptaa, 1, 8, 1);
     cmap = pixGetColormap(pixt1);
     pixcmapResetColor(cmap, 0, 130, 130, 130);  /* set interior to gray */
     pixWrite("junk_textblock3.300.png", pixt1, IFF_PNG);

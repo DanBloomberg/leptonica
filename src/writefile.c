@@ -50,6 +50,7 @@
     /* For display using xv */
 static const l_int32  MAX_DISPLAY_WIDTH = 1000;
 static const l_int32  MAX_DISPLAY_HEIGHT = 800;
+static const l_int32  MAX_SIZE_FOR_PNG = 200;
 
     /* PostScript output for printing */
 static const l_float32  DEFAULT_SCALING = 1.0;
@@ -563,7 +564,8 @@ PIX            *pixt;
     }
 
     index++;
-    if (pixGetDepth(pixt) < 8) {
+    if (pixGetDepth(pixt) < 8 ||
+        (w < MAX_SIZE_FOR_PNG && h < MAX_SIZE_FOR_PNG)) {
         snprintf(buffer, L_BUF_SIZE, "junk_xv_display.%03d.png", index);
         pixWrite(buffer, pixt, IFF_PNG);
     }
@@ -728,10 +730,15 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
  *      (4) @dp specifies the depth at which all pix are saved.  It can
  *          be only 8 or 32 bpp.  Any colormap is removed.  This is only
  *          used at the first invocation.
- *      (5) This function uses two static internal variables to give
- *          the depth of all pix and the location one pixel below the
- *          lowest raster in the current row of pix.
- *          Behavior with a shared library may be unpredictable.
+ *      (5) This function uses two variables from call to call.
+ *          If they were static, the function would not be .so or thread
+ *          safe, and furthermore, there would be interference with two or
+ *          more pixa accumulating images at a time.  Consequently,
+ *          we use the first pix in the pixa to store and obtain both
+ *          the depth and the current position of the bottom (one pixel
+ *          below the lowest image raster line when laid out using
+ *          the boxa).  The bottom variable is stored in the input format
+ *          field, which is the only field available for storing an int.
  */
 l_int32
 pixSaveTiled(PIX     *pixs,
@@ -741,12 +748,10 @@ pixSaveTiled(PIX     *pixs,
              l_int32  space,
              l_int32  dp)
 {
-l_int32         n, top, left, bx, by, bw, w, h;
+l_int32         n, top, left, bx, by, bw, w, h, depth, bottom;
 l_float32       scale;
 BOX            *box;
-PIX            *pixt1, *pixt2;
-static l_int32  depth = 0;  /* caution: not .so or thread safe */
-static l_int32  bottom = 0;  /* caution: not .so or thread safe */
+PIX            *pix, *pixt1, *pixt2;
 
     PROCNAME("pixSaveTiled");
 
@@ -765,6 +770,12 @@ static l_int32  bottom = 0;  /* caution: not .so or thread safe */
             depth = 32;
         } else
             depth = dp;
+    }
+    else {  /* extract the depth and bottom params from the first pix */
+        pix = pixaGetPix(pixa, 0, L_CLONE);
+        depth = pixGetDepth(pix);
+        bottom = pixGetInputFormat(pix);  /* not typical usage! */
+        pixDestroy(&pix);
     }
         
     if (reduction == 1)
@@ -802,6 +813,12 @@ static l_int32  bottom = 0;  /* caution: not .so or thread safe */
     box = boxCreate(left, top, w, h);
     pixaAddPix(pixa, pixt2, L_INSERT);
     pixaAddBox(pixa, box, L_INSERT);
+
+        /* Save the new bottom value */
+    pix = pixaGetPix(pixa, 0, L_CLONE);
+    pixSetInputFormat(pix, bottom);  /* not typical usage! */
+    pixDestroy(&pix);
+
     return 0;
 }
 

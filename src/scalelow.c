@@ -137,13 +137,13 @@ l_float32  scx, scy;
 
         /* iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-        ypm = (l_int32)(scy * (l_float32)i + 0.5);
+        ypm = (l_int32)(scy * (l_float32)i);
         yp = ypm >> 4;
         yf = ypm & 0x0f;
         lined = datad + i * wpld;
         lines = datas + yp * wpls;
         for (j = 0; j < wd; j++) {
-            xpm = (l_int32)(scx * (l_float32)j + 0.5);
+            xpm = (l_int32)(scx * (l_float32)j);
             xp = xpm >> 4;
             xf = xpm & 0x0f;
 
@@ -228,13 +228,13 @@ l_float32  scx, scy;
 
         /* Iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-        ypm = (l_int32)(scy * (l_float32)i + 0.5);
+        ypm = (l_int32)(scy * (l_float32)i);
         yp = ypm >> 4;
         yf = ypm & 0x0f;
         lined = datad + i * wpld;
         lines = datas + yp * wpls;
         for (j = 0; j < wd; j++) {
-            xpm = (l_int32)(scx * (l_float32)j + 0.5);
+            xpm = (l_int32)(scx * (l_float32)j);
             xp = xpm >> 4;
             xf = xpm & 0x0f;
 
@@ -1113,9 +1113,9 @@ l_float32  wratio, hratio, norm;
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
     for (i = 0; i < hd; i++)
-        srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - size);
+        srow[i] = L_MIN((l_int32)(hratio * i), hs - size);
     for (j = 0; j < wd; j++)
-        scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - size);
+        scol[j] = L_MIN((l_int32)(wratio * j), ws - size);
 
         /* For each dest pixel, compute average */
     if (d == 8) {
@@ -1276,8 +1276,8 @@ l_float32  scx, scy;
 
         /* Iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-        yu = (l_int32)(scy * i + 0.5);
-        yl = (l_int32)(scy * (i + 1.0) + 0.5);
+        yu = (l_int32)(scy * i);
+        yl = (l_int32)(scy * (i + 1.0));
         yup = yu >> 4;
         yuf = yu & 0x0f;
         ylp = yl >> 4;
@@ -1286,8 +1286,8 @@ l_float32  scx, scy;
         lined = datad + i * wpld;
         lines = datas + yup * wpls;
         for (j = 0; j < wd; j++) {
-            xu = (l_int32)(scx * j + 0.5);
-            xl = (l_int32)(scx * (j + 1.0) + 0.5);
+            xu = (l_int32)(scx * j);
+            xl = (l_int32)(scx * (j + 1.0));
             xup = xu >> 4;
             xuf = xu & 0x0f;
             xlp = xl >> 4;
@@ -1432,8 +1432,8 @@ l_float32  scx, scy;
 
         /* Iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-        yu = (l_int32)(scy * i + 0.5);
-        yl = (l_int32)(scy * (i + 1.0) + 0.5);
+        yu = (l_int32)(scy * i);
+        yl = (l_int32)(scy * (i + 1.0));
         yup = yu >> 4;
         yuf = yu & 0x0f;
         ylp = yl >> 4;
@@ -1442,8 +1442,8 @@ l_float32  scx, scy;
         lined = datad + i * wpld;
         lines = datas + yup * wpls;
         for (j = 0; j < wd; j++) {
-            xu = (l_int32)(scx * j + 0.5);
-            xl = (l_int32)(scx * (j + 1.0) + 0.5);
+            xu = (l_int32)(scx * j);
+            xl = (l_int32)(scx * (j + 1.0));
             xup = xu >> 4;
             xuf = xu & 0x0f;
             xlp = xl >> 4;

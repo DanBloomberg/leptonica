@@ -30,9 +30,13 @@
  *      Hole-filling of components to bounding rectangle
  *               PIX      *pixFillHolesToBoundingRect()
  *
- *      Gray seedfill (source: Luc Vincent)
+ *      Gray seedfill (source: Luc Vincent:fast-hybrid-grayscale-reconstruction)
  *               l_int32   pixSeedfillGray()
  *               l_int32   pixSeedfillGrayInv()
+ *
+ *      Gray seedfill (source: Luc Vincent: sequential-reconstruction algorithm)
+ *               l_int32   pixSeedfillGraySimple()
+ *               l_int32   pixSeedfillGrayInvSimple()
  *
  *      Gray seedfill variations
  *               PIX      *pixSeedfillGrayBasin()
@@ -65,7 +69,7 @@
  *      either directly above or to the left, and are not masked
  *      out by the mask image, they are turned on (or remain on).
  *      (Ditto for 8-connected, except you need to check 3 pixels
- *      on the previous line as well as the pixel to the left 
+ *      on the previous line as well as the pixel to the left
  *      on the current line.  This is extra computational work
  *      for relatively little gain, so it is preferable
  *      in most situations to use the 4-connected version.)
@@ -73,7 +77,7 @@
  *      then reverses and sweeps up from LL to UR.
  *      These double sweeps are iterated until there is no change.
  *      At this point, the seed has entirely filled the region it
- *      is allowed to, as delimited by the mask image. 
+ *      is allowed to, as delimited by the mask image.
  *
  *      The grayscale seedfill is a straightforward generalization
  *      of the binary seedfill, and is described in seedfillLowGray().
@@ -96,7 +100,7 @@
  *      to ANDing with the inverse of the blocking mask: s & (~bm).
  *      But from the inverse relation between blocking and filling
  *      masks, this is equal to s & fm, which proves the equivalence.
- *      
+ *
  *      For efficiency, the pixels can be taken in larger units
  *      for processing, but still in raster order.  It is natural
  *      to take them in 32-bit words.  The outline of the work
@@ -176,7 +180,7 @@ static l_int32 pixQualifyLocalMinima(PIX *pixs, PIX *pixm, l_int32 maxval);
  *            (a) pixd = pixSeedfillBinary(NULL, pixs, ...);
  *            (b) pixSeedfillBinary(pixs, pixs, ...);
  *            (c) pixSeedfillBinary(pixd, pixs, ...);
- *      (4) The resulting pixd contains the filled seed.  For some 
+ *      (4) The resulting pixd contains the filled seed.  For some
  *          applications you want to OR it with the inverse of
  *          the filling mask.
  *      (5) The input seed and mask images can be different sizes, but
@@ -207,7 +211,7 @@ PIX       *pixt;
 
         /* Prepare pixd as a copy of pixs if not identical */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
         /* pixt is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
@@ -308,7 +312,7 @@ PIX     *pixr, *pixt;
 
         /* Fill again from the seed, into this new mask. */
     pixd = pixSeedfillBinary(pixd, pixs, pixt, connectivity);
-    
+
     pixDestroy(&pixt);
     pixDestroy(&pixr);
     return pixd;
@@ -565,7 +569,7 @@ PIXA      *pixa;
 
 
 /*-----------------------------------------------------------------------*
- *             Vincent's Iterative Grayscale Seedfill method             *
+ *             Vincent's hybrid Grayscale Seedfill method             *
  *-----------------------------------------------------------------------*/
 /*!
  *  pixSeedfillGray()
@@ -584,15 +588,18 @@ PIXA      *pixa;
  *      (3) As an example of use, see the description in pixHDome().
  *          There, the seed is an image where each pixel is a fixed
  *          amount smaller than the corresponding mask pixel.
+ *      (4) Reference paper :
+ *            L. Vincent, Morphological grayscale reconstruction in image
+ *            analysis: applications and efficient algorithms, IEEE Transactions
+ *            on  Image Processing, vol. 2, no. 2, pp. 176-201, 1993.
  */
 l_int32
 pixSeedfillGray(PIX     *pixs,
                 PIX     *pixm,
                 l_int32  connectivity)
 {
-l_int32    i, h, w, wpls, wplm, boolval;
+l_int32    h, w, wpls, wplm;
 l_uint32  *datas, *datam;
-PIX       *pixt;
 
     PROCNAME("pixSeedfillGray");
 
@@ -602,33 +609,18 @@ PIX       *pixt;
         return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
     if (connectivity != 4 && connectivity != 8)
         return ERROR_INT("connectivity not in {4,8}", procName, 1);
-    
+
         /* Make sure the sizes of seed and mask images are the same */
     if (pixSizesEqual(pixs, pixm) == 0)
         return ERROR_INT("pixs and pixm sizes differ", procName, 1);
-
-        /* This is used to test for completion */
-    if ((pixt = pixCreateTemplate(pixs)) == NULL)
-        return ERROR_INT("pixt not made", procName, 1);
 
     datas = pixGetData(pixs);
     datam = pixGetData(pixm);
     wpls = pixGetWpl(pixs);
     wplm = pixGetWpl(pixm);
     pixGetDimensions(pixs, &w, &h, NULL);
-    for (i = 0; i < MAX_ITERS; i++) {
-        pixCopy(pixt, pixs);
-        seedfillGrayLow(datas, w, h, wpls, datam, wplm, connectivity);
-        pixEqual(pixs, pixt, &boolval);
-        if (boolval == 1) {
-#if DEBUG_PRINT_ITERS
-            L_INFO_INT("Gray seed fill converged: %d iters", procName, i + 1);
-#endif  /* DEBUG_PRINT_ITERS */
-            break;
-        }
-    }
+    seedfillGrayLow(datas, w, h, wpls, datam, wplm, connectivity);
 
-    pixDestroy(&pixt);
     return 0;
 }
 
@@ -663,9 +655,8 @@ pixSeedfillGrayInv(PIX     *pixs,
                    PIX     *pixm,
                    l_int32  connectivity)
 {
-l_int32    i, h, w, wpls, wplm, boolval;
+l_int32    h, w, wpls, wplm;
 l_uint32  *datas, *datam;
-PIX       *pixt;
 
     PROCNAME("pixSeedfillGrayInv");
 
@@ -675,7 +666,64 @@ PIX       *pixt;
         return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
     if (connectivity != 4 && connectivity != 8)
         return ERROR_INT("connectivity not in {4,8}", procName, 1);
-    
+
+        /* Make sure the sizes of seed and mask images are the same */
+    if (pixSizesEqual(pixs, pixm) == 0)
+        return ERROR_INT("pixs and pixm sizes differ", procName, 1);
+
+    datas = pixGetData(pixs);
+    datam = pixGetData(pixm);
+    wpls = pixGetWpl(pixs);
+    wplm = pixGetWpl(pixm);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    seedfillGrayInvLow(datas, w, h, wpls, datam, wplm, connectivity);
+
+    return 0;
+}
+
+/*-----------------------------------------------------------------------*
+ *             Vincent's Iterative Grayscale Seedfill method             *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  pixSeedfillGraySimple()
+ *
+ *      Input:  pixs  (8 bpp seed; filled in place)
+ *              pixm  (8 bpp filling mask)
+ *              connectivity  (4 or 8)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is an in-place filling operation on the seed, pixs,
+ *          where the clipping mask is always above or at the level
+ *          of the seed as it is filled.
+ *      (2) For details of the operation, see the description in
+ *          seedfillGrayLowSimple() and the code there.
+ *      (3) As an example of use, see the description in pixHDome().
+ *          There, the seed is an image where each pixel is a fixed
+ *          amount smaller than the corresponding mask pixel.
+ *      (4) Reference paper :
+ *            L. Vincent, Morphological grayscale reconstruction in image
+ *            analysis: applications and efficient algorithms, IEEE Transactions
+ *            on  Image Processing, vol. 2, no. 2, pp. 176-201, 1993.
+ */
+l_int32
+pixSeedfillGraySimple(PIX     *pixs,
+                      PIX     *pixm,
+                      l_int32  connectivity)
+{
+l_int32    i, h, w, wpls, wplm, boolval;
+l_uint32  *datas, *datam;
+PIX       *pixt;
+
+    PROCNAME("pixSeedfillGraySimple");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (!pixm || pixGetDepth(pixm) != 8)
+        return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
+    if (connectivity != 4 && connectivity != 8)
+        return ERROR_INT("connectivity not in {4,8}", procName, 1);
+
         /* Make sure the sizes of seed and mask images are the same */
     if (pixSizesEqual(pixs, pixm) == 0)
         return ERROR_INT("pixs and pixm sizes differ", procName, 1);
@@ -691,7 +739,76 @@ PIX       *pixt;
     pixGetDimensions(pixs, &w, &h, NULL);
     for (i = 0; i < MAX_ITERS; i++) {
         pixCopy(pixt, pixs);
-        seedfillGrayInvLow(datas, w, h, wpls, datam, wplm, connectivity);
+        seedfillGrayLowSimple(datas, w, h, wpls, datam, wplm, connectivity);
+        pixEqual(pixs, pixt, &boolval);
+        if (boolval == 1) {
+#if DEBUG_PRINT_ITERS
+            L_INFO_INT("Gray seed fill converged: %d iters", procName, i + 1);
+#endif  /* DEBUG_PRINT_ITERS */
+            break;
+        }
+    }
+
+    pixDestroy(&pixt);
+    return 0;
+}
+
+
+/*!
+ *  pixSeedfillGrayInvSimple()
+ *
+ *      Input:  pixs  (8 bpp seed; filled in place)
+ *              pixm  (8 bpp filling mask)
+ *              connectivity  (4 or 8)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is an in-place filling operation on the seed, pixs,
+ *          where the clipping mask is always below or at the level
+ *          of the seed as it is filled.  Think of filling up a basin
+ *          to a particular level, given by the maximum seed value
+ *          in the basin.  Outside the filled region, the mask
+ *          is above the filling level.
+ *      (2) Contrast this with pixSeedfillGraySimple(), where the clipping mask
+ *          is always above or at the level of the fill.  An example
+ *          of its use is the hdome fill, where the seed is an image
+ *          where each pixel is a fixed amount smaller than the
+ *          corresponding mask pixel.
+ */
+l_int32
+pixSeedfillGrayInvSimple(PIX     *pixs,
+                         PIX     *pixm,
+                         l_int32  connectivity)
+{
+l_int32    i, h, w, wpls, wplm, boolval;
+l_uint32  *datas, *datam;
+PIX       *pixt;
+
+    PROCNAME("pixSeedfillGrayInvSimple");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (!pixm || pixGetDepth(pixm) != 8)
+        return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
+    if (connectivity != 4 && connectivity != 8)
+        return ERROR_INT("connectivity not in {4,8}", procName, 1);
+
+        /* Make sure the sizes of seed and mask images are the same */
+    if (pixSizesEqual(pixs, pixm) == 0)
+        return ERROR_INT("pixs and pixm sizes differ", procName, 1);
+
+        /* This is used to test for completion */
+    if ((pixt = pixCreateTemplate(pixs)) == NULL)
+        return ERROR_INT("pixt not made", procName, 1);
+
+    datas = pixGetData(pixs);
+    datam = pixGetData(pixm);
+    wpls = pixGetWpl(pixs);
+    wplm = pixGetWpl(pixm);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    for (i = 0; i < MAX_ITERS; i++) {
+        pixCopy(pixt, pixs);
+        seedfillGrayInvLowSimple(datas, w, h, wpls, datam, wplm, connectivity);
         pixEqual(pixs, pixt, &boolval);
         if (boolval == 1) {
 #if DEBUG_PRINT_ITERS
@@ -754,7 +871,7 @@ PIX  *pixbi, *pixmi, *pixsd;
         return (PIX *)ERROR_PTR("pixm undefined or not 8 bpp", procName, NULL);
     if (connectivity != 4 && connectivity != 8)
         return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, NULL);
-    
+
     if (delta <= 0) {
         L_WARNING("delta <= 0; returning a copy of pixm", procName);
         return pixCopy(NULL, pixm);
@@ -874,7 +991,7 @@ PIX       *pixd;
     return pixd;
 }
 
- 
+
 /*-----------------------------------------------------------------------*
  *                Seed spread (based on distance function)               *
  *-----------------------------------------------------------------------*/
@@ -996,7 +1113,7 @@ PIX       *pixm, *pixt, *pixg, *pixd;
  *          are larger than the value of that minimum, it is a true
  *          minimum and its c.c. is saved; otherwise the c.c. is
  *          rejected.  Note that if a bordering pixel has the
- *          same value as the minimum, it must then have a 
+ *          same value as the minimum, it must then have a
  *          neighbor that is smaller, so the component is not a
  *          true minimum.
  *      (3) The maxima are found by inverting the image and looking
@@ -1410,5 +1527,3 @@ PIX  *pixt;
     pixDestroy(&pixt);
     return pixd;
 }
-
-

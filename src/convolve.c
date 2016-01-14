@@ -65,8 +65,8 @@
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) Returns a copy if both wc and hc are 0
- *      (3) Require that wc < w and hc < h, where (w,h) are the dimensions
- *          of pixs.
+ *      (3) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *          where (w,h) are the dimensions of pixs.
  */
 PIX  *
 pixBlockconv(PIX     *pix,
@@ -82,13 +82,15 @@ PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
         return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
     if (wc < 0) wc = 0;
     if (hc < 0) hc = 0;
+    pixGetDimensions(pix, &w, &h, &d);
+    if (w < 2 * wc + 1 || h < 2 * hc + 1) {
+        wc = L_MIN(wc, (w - 1) / 2);
+        hc = L_MIN(hc, (h - 1) / 2);
+        L_WARNING("kernel too large; reducing!", procName);
+        L_INFO_INT2("wc = %d, hc = %d", procName, wc, hc);
+    }
     if (wc == 0 && hc == 0)   /* no-op */
         return pixCopy(NULL, pix);
-    pixGetDimensions(pix, &w, &h, &d);
-    if (w <= wc || h <= hc) {
-        L_WARNING("conv kernel half-size >= image dimension!", procName);
-        return pixCopy(NULL, pix);
-    }
 
         /* Remove colormap if necessary */ 
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
@@ -144,8 +146,8 @@ PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
  *      (2) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
  *      (3) Returns a copy if both wc and hc are 0.
- *      (4) Require that wc < w and hc < h, where (w,h) are the dimensions
- *          of pixs.
+ *      (4) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *          where (w,h) are the dimensions of pixs.
  */
 PIX *
 pixBlockconvGray(PIX     *pixs,
@@ -166,12 +168,14 @@ PIX       *pixd, *pixt;
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (wc < 0) wc = 0;
     if (hc < 0) hc = 0;
+    if (w < 2 * wc + 1 || h < 2 * hc + 1) {
+        wc = L_MIN(wc, (w - 1) / 2);
+        hc = L_MIN(hc, (h - 1) / 2);
+        L_WARNING("kernel too large; reducing!", procName);
+        L_INFO_INT2("wc = %d, hc = %d", procName, wc, hc);
+    }
     if (wc == 0 && hc == 0)   /* no-op */
         return pixCopy(NULL, pixs);
-    if (w <= wc || h <= hc) {
-        L_WARNING("conv kernel half-size >= image dimension!", procName);
-        return pixCopy(NULL, pixs);
-    }
 
     if (pixacc) {
         if (pixGetDepth(pixacc) == 32)
@@ -257,7 +261,9 @@ PIX       *pixd;
  *  Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
- *      (2) Returns an error if both wc and hc are 0.
+ *      (2) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *          where (w,h) are the dimensions of pixs.
+ *      (3) Returns a copy if both wc and hc are 0.
  *      (3) Adds mirrored border to avoid treating the boundary pixels
  *          specially.  Note that we add wc + 1 pixels to the left
  *          and wc to the right.  The added width is 2 * wc + 1 pixels,
@@ -296,10 +302,14 @@ PIX       *pixsb, *pixacc, *pixd;
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (wc < 0) wc = 0;
     if (hc < 0) hc = 0;
+    if (w < 2 * wc + 1 || h < 2 * hc + 1) {
+        wc = L_MIN(wc, (w - 1) / 2);
+        hc = L_MIN(hc, (h - 1) / 2);
+        L_WARNING("kernel too large; reducing!", procName);
+        L_INFO_INT2("wc = %d, hc = %d", procName, wc, hc);
+    }
     if (wc == 0 && hc == 0)   /* no-op */
-        return (PIX *)ERROR_PTR("both wc and hc are 0", procName, NULL);
-    if (w <= wc || h <= hc)
-        L_WARNING("conv kernel half-size >= image dimension!", procName);
+        return pixCopy(NULL, pixs);
 
     if ((pixsb = pixAddMirroredBorder(pixs, wc + 1, wc, hc + 1, hc)) == NULL)
         return (PIX *)ERROR_PTR("pixsb not made", procName, NULL);
@@ -344,9 +354,15 @@ PIX       *pixsb, *pixacc, *pixd;
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) Returns a copy if both wc and hc are 0
- *      (3) Require that wc < w/2 and hc < h/2, where (w,h) are
- *          the dimensions of pixs.
- *      (4) Why a tiled version?  Three reasons:
+ *      (3) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *          where (w,h) are the dimensions of pixs.
+ *      (4) For nx == ny == 1, this defaults to pixBlockconv(), which
+ *          is typically about twice as fast, and gives nearly
+ *          identical results as pixBlockconvGrayTile().
+ *      (5) If the tiles are too small, nx and/or ny are reduced
+ *          a minimum amount so that the tiles are expanded to the
+ *          smallest workable size in the problematic direction(s).
+ *      (6) Why a tiled version?  Three reasons:
  *          (a) Because the accumulator is a uint32, overflow can occur
  *              for an image with more than 16M pixels.
  *          (b) The accumulator array for 16M pixels is 64 MB; using
@@ -361,7 +377,7 @@ pixBlockconvTiled(PIX     *pix,
                   l_int32  nx,
                   l_int32  ny)
 {
-l_int32     i, j, w, h, d;
+l_int32     i, j, w, h, d, xrat, yrat;
 PIX        *pixs, *pixd, *pixc, *pixt;
 PIX        *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
 PIXTILING  *pt;
@@ -372,16 +388,32 @@ PIXTILING  *pt;
         return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
     if (wc < 0) wc = 0;
     if (hc < 0) hc = 0;
+    pixGetDimensions(pix, &w, &h, &d);
+    if (w < 2 * wc + 3 || h < 2 * hc + 3) {
+        wc = L_MAX(0, L_MIN(wc, (w - 3) / 2));
+        hc = L_MAX(0, L_MIN(hc, (h - 3) / 2));
+        L_WARNING("kernel too large; reducing!", procName);
+        L_INFO_INT2("wc = %d, hc = %d", procName, wc, hc);
+    }
     if (wc == 0 && hc == 0)   /* no-op */
         return pixCopy(NULL, pix);
-    pixGetDimensions(pix, &w, &h, &d);
-    if (wc >= w || hc >= h) {
-        L_WARNING("conv kernel half-size >= image dimension!", procName);
-        return pixCopy(NULL, pix);
-    }
     if (nx <= 1 && ny <= 1)
         return pixBlockconv(pix, wc, hc);
 
+        /* Test to see if the tiles are too small.  The required
+         * condition is that the tile dimensions must be at least
+         * (wc + 2) x (hc + 2). */
+    xrat = w / nx;
+    yrat = h / ny;
+    if (xrat < wc + 2) {
+        nx = w / (wc + 2);
+        L_WARNING_INT("tile width too small; nx reduced to %d", procName, nx);
+    }
+    if (yrat < hc + 2) {
+        ny = h / (hc + 2);
+        L_WARNING_INT("tile height too small; ny reduced to %d", procName, ny);
+    }
+ 
         /* Remove colormap if necessary */ 
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
         L_WARNING("pix has colormap; removing", procName);
@@ -456,8 +488,8 @@ PIXTILING  *pt;
  *          The returned pix has these stripped off; they are only used
  *          for computation.
  *      (3) Returns a copy if both wc and hc are 0
- *      (4) Require that wc < w/2 and hc < h/2, where (w,h) are
- *          the dimensions of pixs.
+ *      (4) Require that w > 2 * wc + 1 and h > 2 * hc + 1,
+ *          where (w,h) are the dimensions of pixs.
  */
 PIX *
 pixBlockconvGrayTile(PIX     *pixs,
@@ -480,16 +512,16 @@ PIX       *pixt, *pixd;
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (wc < 0) wc = 0;
     if (hc < 0) hc = 0;
+    if (w < 2 * wc + 3 || h < 2 * hc + 3) {
+        wc = L_MAX(0, L_MIN(wc, (w - 3) / 2));
+        hc = L_MAX(0, L_MIN(hc, (h - 3) / 2));
+        L_WARNING("kernel too large; reducing!", procName);
+        L_INFO_INT2("wc = %d, hc = %d", procName, wc, hc);
+    }
+    if (wc == 0 && hc == 0)
+        return pixCopy(NULL, pixs);
     wd = w - 2 * wc;
     hd = h - 2 * hc;
-    if (wc == 0 && hc == 0) {
-        L_WARNING("kernel unit size; no-op", procName);
-        return pixCopy(NULL, pixs);
-    }
-    if (wd < 2 || hd < 2) {
-        L_WARNING("conv kernel size >= image dimension!", procName);
-        return pixCopy(NULL, pixs);
-    }
 
     if (pixacc) {
         if (pixGetDepth(pixacc) == 32)
@@ -568,8 +600,8 @@ PIX       *pixt, *pixd;
  *          before returning; otherwise, just use the input accum pix
  *      (4) If both wc and hc are 0, returns a copy unless rank == 0.0,
  *          in which case this returns an all-ones image.
- *      (5) Require that wc < w and hc < h, where (w,h) are the dimensions
- *          of pixs.
+ *      (5) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *          where (w,h) are the dimensions of pixs.
  */
 PIX *
 pixBlockrank(PIX       *pixs,
@@ -590,21 +622,20 @@ PIX     *pixt, *pixd;
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (rank < 0.0 || rank > 1.0)
         return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", procName, NULL);
-    if (wc < 0 || hc < 0)
-        return (PIX *)ERROR_PTR("wc and hc not both >= 0", procName, NULL);
     if (rank == 0.0) {
         pixd = pixCreateTemplate(pixs);
         pixSetAll(pixd);
     }
-
-    if (wc == 0 && hc == 0) {
-        L_WARNING("block of unit size", procName);
-        return pixCopy(NULL, pixs);
+    if (wc < 0) wc = 0;
+    if (hc < 0) hc = 0;
+    if (w < 2 * wc + 1 || h < 2 * hc + 1) {
+        wc = L_MIN(wc, (w - 1) / 2);
+        hc = L_MIN(hc, (h - 1) / 2);
+        L_WARNING("kernel too large; reducing!", procName);
+        L_INFO_INT2("wc = %d, hc = %d", procName, wc, hc);
     }
-    if (w <= wc || h <= hc) {
-        L_WARNING("conv kernel half-size >= image dimension!", procName);
+    if (wc == 0 && hc == 0)
         return pixCopy(NULL, pixs);
-    }
 
     if ((pixt = pixBlocksum(pixs, pixacc, wc, hc)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
@@ -636,8 +667,8 @@ PIX     *pixt, *pixd;
  *      (3) Use of wc = hc = 1, followed by pixInvert() on the
  *          8 bpp result, gives a nice anti-aliased, and somewhat
  *          darkened, result on text.
- *      (4) Require that wc < w and hc < h, where (w,h) are the dimensions
- *          of pixs.
+ *      (4) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *          where (w,h) are the dimensions of pixs.
  *      (5) Returns in each dest pixel the sum of all src pixels
  *          that are within a block of size of the kernel, centered
  *          on the dest pixel.  This sum is the number of src ON
@@ -666,9 +697,16 @@ PIX       *pixt, *pixd;
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    if (w <= wc || h <= hc)
-        return (PIX *)ERROR_PTR("conv kernel half-size >= image dimension!",
-                                procName, NULL);
+    if (wc < 0) wc = 0;
+    if (hc < 0) hc = 0;
+    if (w < 2 * wc + 1 || h < 2 * hc + 1) {
+        wc = L_MIN(wc, (w - 1) / 2);
+        hc = L_MIN(hc, (h - 1) / 2);
+        L_WARNING("kernel too large; reducing!", procName);
+        L_INFO_INT2("wc = %d, hc = %d", procName, wc, hc);
+    }
+    if (wc == 0 && hc == 0)
+        return pixCopy(NULL, pixs);
 
     if (pixacc) {
         if (pixGetDepth(pixacc) != 32)

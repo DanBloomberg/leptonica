@@ -125,7 +125,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 60
+MINOR_REV = 61
 
 #########################################################
 
@@ -138,8 +138,8 @@ LEPTLIB_SHARED =	liblept.so
 
 LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		arithlow.c arrayaccess.c \
-		bardecode.c baseline.c \
-		bbuffer.c bilinear.c \
+		bardecode.c baseline.c bbuffer.c \
+		bilinear.c binarize.c \
 		binexpand.c binexpandlow.c \
 		binreduce.c binreducelow.c \
 		blend.c bmf.c bmpio.c bmpiostub.c \
@@ -158,20 +158,20 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		gifio.c gifiostub.c \
 		gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
-		grayquant.c grayquantlow.c \
+		grayquant.c grayquantlow.c heap.c \
 		jbclass.c jpegio.c jpegiostub.c \
 		kernel.c list.c maze.c mediancut.c \
 		morph.c morphapp.c morphdwa.c morphseq.c \
 		numabasic.c numafunc1.c numafunc2.c \
 		pageseg.c paintcmap.c \
-		parseprotos.c partition.c pheap.c \
+		parseprotos.c partition.c \
 		pix1.c pix2.c pix3.c pix4.c \
 		pixabasic.c pixacc.c \
-		pixafunc.c pixarith.c \
+		pixafunc1.c pixafunc2.c pixarith.c \
 		pixconv.c pixtiling.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
-		pqueue.c projective.c psio.c psiostub.c \
-		ptra.c pts.c rank.c \
+		projective.c psio.c psiostub.c \
+		ptra.c pts.c queue.c rank.c \
 		readbarcode.c readfile.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \
@@ -190,11 +190,10 @@ LEPTLIB_H =	allheaders.h alltypes.h \
 		array.h arrayaccess.h bbuffer.h \
 		bmf.h bmp.h ccbord.h \
 		environ.h gplot.h \
-		imageio.h \
+		heap.h imageio.h \
 		jbclass.h jpeglib.h \
 		leptprotos.h list.h \
-		morph.h pheap.h \
-		pix.h pqueue.h \
+		morph.h pix.h ptra.h queue.h \
 		readbarcode.h stack.h \
 		watershed.h
 

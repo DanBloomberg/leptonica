@@ -178,7 +178,7 @@ l_int32  i, w, h, n, nsub, npush, npop;
 BOX     *boxsub;
 BOXA    *boxa, *boxa4, *boxasub, *boxad;
 PARTEL  *partel;
-PHEAP   *ph;
+L_HEAP  *lh;
 
     PROCNAME("boxaGetWhiteblocks");
 
@@ -204,17 +204,17 @@ PHEAP   *ph;
     }
 
         /* Prime the heap */
-    ph = pheapCreate(20, L_SORT_DECREASING);
+    lh = lheapCreate(20, L_SORT_DECREASING);
     partel = partelCreate(box);
     partel->boxa = boxaCopy(boxas, L_CLONE);
     partelSetSize(partel, sortflag);
-    pheapAdd(ph, partel);
+    lheapAdd(lh, partel);
 
     boxad = boxaCreate(0);
 
     npush = npop = 0;
     while (1) {
-        if ((partel = (PARTEL *)pheapRemove(ph)) == NULL)  /* we're done */
+        if ((partel = (PARTEL *)lheapRemove(lh)) == NULL)  /* we're done */
             break;
 
         npop++;  /* How many boxes have we retrieved from the queue? */
@@ -250,7 +250,7 @@ PHEAP   *ph;
             partel = partelCreate(boxsub);
             partel->boxa = boxasub;
             partelSetSize(partel, sortflag);
-            pheapAdd(ph, partel);
+            lheapAdd(lh, partel);
 	    boxDestroy(&boxsub);
         }
         npush += nsub;  /* How many boxes have we put on the queue? */
@@ -268,9 +268,9 @@ PHEAP   *ph;
 #endif  /* OUTPUT_HEAP_STATS */
 
         /* Clean up the heap */
-    while ((partel = (PARTEL *)pheapRemove(ph)) != NULL)
+    while ((partel = (PARTEL *)lheapRemove(lh)) != NULL)
         partelDestroy(&partel);
-    pheapDestroy(&ph, FALSE);
+    lheapDestroy(&lh, FALSE);
 
     return boxad;
 }

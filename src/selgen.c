@@ -795,7 +795,7 @@ PTA     *pta;
         return (PTA *)ERROR_PTR("skip < 0", procName, NULL);
         
     if (skip == 0)
-        return ptaGetPixelsFromPix(pixs);
+        return ptaGetPixelsFromPix(pixs, NULL);
 
     pta = ptaCreate(0);    
     pixt = pixCopy(NULL, pixs);

@@ -30,8 +30,10 @@
  *           l_int32   boxIntersectByLine()
  *           l_int32   boxGetCentroid()
  *           BOX      *boxClipToRectangle()
- *           void      boxResizeOneSide()
+ *           BOX      *boxRelocateOneSide()
  *           BOX      *boxAdjustSides()
+ *           l_int32   boxEqual()
+ *           l_int32   boxaEqual()
  *
  *      Boxa combination
  *           l_int32   boxaJoin()
@@ -39,6 +41,7 @@
  *      Other boxa functions
  *           l_int32   boxaGetExtent()
  *           l_int32   boxaSizeRange()
+ *           l_int32   boxaLocationRange()
  *           BOXA     *boxaSelectBySize()
  *           NUMA     *boxaMakeSizeIndicator()
  *           BOXA     *boxaSelectWithIndicator()
@@ -609,53 +612,77 @@ BOX  *boxd;
 
 
 /*!
- *  boxResizeOneSide()
+ *  boxRelocateOneSide()
  *
- *      Input:  box (to be resized on one side)
+ *      Input:  boxd (<optional>; this can be null, equal to boxs,
+ *                    or different from boxs);
+ *              boxs (starting box; to have one side relocated)
  *              loc (new location of the side that is changing)
  *              sideflag (L_FROM_LEFT, etc., indicating the side that moves)
- *      Return: 0 if OK, 1 on error
+ *      Return: boxd, or null on error or if the computed boxd has
+ *              width or height <= 0.
+ *
+ *  Notes:
+ *      (1) Set boxd == NULL to get new box; boxd == boxs for in-place;
+ *          or otherwise to resize existing boxd.
+ *      (2) For usage, suggest one of these:
+ *               boxd = boxRelocateOneSide(NULL, boxs, ...);   // new
+ *               boxRelocateOneSide(boxs, boxs, ...);          // in-place
+ *               boxRelocateOneSide(boxd, boxs, ...);          // other
  */
-l_int32
-boxResizeOneSide(BOX     *box,
-                 l_int32  loc,
-                 l_int32  sideflag)
+BOX *
+boxRelocateOneSide(BOX     *boxd,
+                   BOX     *boxs,
+                   l_int32  loc,
+                   l_int32  sideflag)
 {
 l_int32  x, y, w, h;
 
-    PROCNAME("boxResizeOneSide");
+    PROCNAME("boxRelocateOneSide");
 
-    if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+    if (!boxs)
+        return (BOX *)ERROR_PTR("boxs not defined", procName, NULL);
+    if (!boxd)
+        boxd = boxCopy(boxs);
 
-    boxGetGeometry(box, &x, &y, &w, &h);
+    boxGetGeometry(boxs, &x, &y, &w, &h);
     if (sideflag == L_FROM_LEFT)
-        boxSetGeometry(box, loc, -1, w + x - loc, -1);
+        boxSetGeometry(boxd, loc, -1, w + x - loc, -1);
     else if (sideflag == L_FROM_RIGHT)
-        boxSetGeometry(box, -1, -1, loc - x + 1, -1);
+        boxSetGeometry(boxd, -1, -1, loc - x + 1, -1);
     else if (sideflag == L_FROM_TOP)
-        boxSetGeometry(box, -1, loc, -1, h + y - loc);
+        boxSetGeometry(boxd, -1, loc, -1, h + y - loc);
     else if (sideflag == L_FROM_BOTTOM)
-        boxSetGeometry(box, -1, -1, -1, loc - y + 1);
-    return 0;
+        boxSetGeometry(boxd, -1, -1, -1, loc - y + 1);
+    return boxd;
 }
 
 
 /*!
  *  boxAdjustSides()
  *
- *      Input:  box (to be resized on one side)
+ *      Input:  boxd  (<optional>; this can be null, equal to boxs,
+ *                     or different from boxs)
+ *              boxs  (starting box; to have sides adjusted)
  *              delleft, delright, deltop, delbot (changes in location of
  *                                                 each side)
- *      Return: boxd, or null on error if boxd has 0 width or height
+ *      Return: boxd, or null on error or if the computed boxd has
+ *              width or height <= 0.
  *
  *  Notes:
+ *      (1) Set boxd == NULL to get new box; boxd == boxs for in-place;
+ *          or otherwise to resize existing boxd.
+ *      (2) For usage, suggest one of these:
+ *               boxd = boxAdjustSides(NULL, boxs, ...);   // new
+ *               boxAdjustSides(boxs, boxs, ...);          // in-place
+ *               boxAdjustSides(boxd, boxs, ...);          // other
  *      (1) New box dimensions are cropped at left and top to x >= 0 and y >= 0.
- *      (2) For example, to expand the box by 20 pixels on each side, use
- *             boxAdjustSides(box, -20, 20, -20, 20);
+ *      (2) For example, to expand in-place by 20 pixels on each side, use
+ *             boxAdjustSides(box, box, -20, 20, -20, 20);
  */
 BOX *
-boxAdjustSides(BOX     *box,
+boxAdjustSides(BOX     *boxd,
+               BOX     *boxs,
                l_int32  delleft,
                l_int32  delright,
                l_int32  deltop,
@@ -665,10 +692,10 @@ l_int32  x, y, w, h, xl, xr, yt, yb, wnew, hnew;
 
     PROCNAME("boxAdjustSides");
 
-    if (!box)
-        return (BOX *)ERROR_PTR("box not defined", procName, NULL);
+    if (!boxs)
+        return (BOX *)ERROR_PTR("boxs not defined", procName, NULL);
 
-    boxGetGeometry(box, &x, &y, &w, &h);
+    boxGetGeometry(boxs, &x, &y, &w, &h);
     xl = L_MAX(0, x + delleft);
     yt = L_MAX(0, y + deltop);
     xr = x + w + delright;  /* one pixel beyond right edge */
@@ -679,7 +706,127 @@ l_int32  x, y, w, h, xl, xr, yt, yb, wnew, hnew;
     if (wnew < 1 || hnew < 1)
         return (BOX *)ERROR_PTR("boxd has 0 area", procName, NULL);
 
-    return boxCreate(xl, yt, wnew, hnew);
+    if (!boxd)
+        return boxCreate(xl, yt, wnew, hnew);
+    else {
+        boxSetGeometry(boxd, xl, yt, wnew, hnew);
+        return boxd;
+    }
+}
+
+
+/*!
+ *  boxEqual()
+ *
+ *      Input:  box1
+ *              box2
+ *              &same (<return> 1 if equal; 0 otherwise)
+ *      Return  0 if OK, 1 on error
+ */
+l_int32
+boxEqual(BOX      *box1,
+         BOX      *box2,
+         l_int32  *psame)
+{
+    PROCNAME("boxEqual");
+
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = 0;
+    if (!box1 || !box2)
+        return ERROR_INT("box1 and box2 not both defined", procName, 1);
+    if (box1->x == box2->x && box1->y == box2->y &&
+        box1->w == box2->w && box1->h == box2->h)
+        *psame = 1;
+    return 0;
+}
+
+
+/*!
+ *  boxaEqual()
+ *
+ *      Input:  boxa1
+ *              boxa2
+ *              maxdist
+ *              &naindex (<optional return> index array of correspondences
+ *              &same (<return> 1 if equal; 0 otherwise)
+ *      Return  0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The two boxa are the "same" if they contain the same
+ *          boxes and each box is within @maxdist of its counterpart
+ *          in their positions within the boxa.  This allows for
+ *          small rearrangements.  Use 0 for maxdist if the boxa
+ *          must be identical.
+ *      (2) This applies only to geometry and ordering; refcounts
+ *          are not considered.
+ *      (3) @maxdist allows some latitude in the ordering of the boxes.
+ *          For the boxa to be the "same", corresponding boxes must
+ *          be within @maxdist of each other.  Note that for large
+ *          @maxdist, we should use a hash function for efficiency.
+ *      (4) naindex[i] gives the position of the box in boxa2 that
+ *          corresponds to box i in boxa1.  It is only returned if the
+ *          boxa are equal.
+ */
+l_int32
+boxaEqual(BOXA     *boxa1,
+          BOXA     *boxa2,
+          l_int32   maxdist,
+          NUMA    **pnaindex,
+          l_int32  *psame)
+{
+l_int32   i, j, n, jstart, jend, found, samebox;
+l_int32  *countarray;
+BOX      *box1, *box2;
+NUMA     *na;
+
+    PROCNAME("boxaEqual");
+
+    if (pnaindex) *pnaindex = NULL;
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = 0;
+    if (!boxa1 || !boxa2)
+        return ERROR_INT("boxa1 and boxa2 not both defined", procName, 1);
+    n = boxaGetCount(boxa1);
+    if (n != boxaGetCount(boxa2))
+        return 0;
+
+    countarray = (l_int32 *)CALLOC(n, sizeof(l_int32));
+    na = numaMakeConstant(0.0, n);
+
+    for (i = 0; i < n; i++) {
+        box1 = boxaGetBox(boxa1, i, L_CLONE);
+        jstart = L_MAX(0, i - maxdist);
+        jend = L_MIN(n-1, i + maxdist);
+        found = FALSE;
+        for (j = jstart; j <= jend; j++) {
+            box2 = boxaGetBox(boxa2, j, L_CLONE);
+            boxEqual(box1, box2, &samebox);
+            if (samebox && countarray[j] == 0) {
+                countarray[j] = 1;
+                numaReplaceNumber(na, i, j);
+                found = TRUE;
+                boxDestroy(&box2);
+                break;
+            }
+            boxDestroy(&box2);
+        }
+        boxDestroy(&box1);
+        if (!found) {
+            numaDestroy(&na);
+            FREE(countarray);
+            return 0;
+        }
+    }
+
+    *psame = 1;
+    if (pnaindex)
+        *pnaindex = na;
+    else
+        numaDestroy(&na);
+    FREE(countarray);
+    return 0;
 }
 
 
@@ -836,6 +983,54 @@ l_int32  minw, minh, maxw, maxh, i, n, w, h;
     if (pminh) *pminh = minh;
     if (pmaxw) *pmaxw = maxw;
     if (pmaxh) *pmaxh = maxh;
+
+    return 0;
+}
+
+
+/*!
+ *  boxaLocationRange()
+ *
+ *      Input:  boxa
+ *              &minx, &miny, &maxx, &maxy (<optional return> range of
+ *                                          UL corner positions)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32  
+boxaLocationRange(BOXA     *boxa,
+                  l_int32  *pminx,
+                  l_int32  *pminy,
+                  l_int32  *pmaxx,
+                  l_int32  *pmaxy)
+{
+l_int32  minx, miny, maxx, maxy, i, n, x, y;
+
+    PROCNAME("boxaLocationRange");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    if (!pminx && !pminy && !pmaxx && !pmaxy)
+        return ERROR_INT("no data can be returned", procName, 1);
+    
+    minx = miny = 100000000;
+    maxx = maxy = 0;
+    n = boxaGetCount(boxa);
+    for (i = 0; i < n; i++) {
+        boxaGetBoxGeometry(boxa, i, &x, &y, NULL, NULL);
+        if (x < minx)
+            minx = x;
+        if (y < miny)
+            miny = y;
+        if (x > maxx)
+            maxx = x;
+        if (y > maxy)
+            maxy = y;
+    }
+
+    if (pminx) *pminx = minx;
+    if (pminy) *pminy = miny;
+    if (pmaxx) *pmaxx = maxx;
+    if (pmaxy) *pmaxy = maxy;
 
     return 0;
 }

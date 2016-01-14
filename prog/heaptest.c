@@ -39,7 +39,7 @@ l_int32      i;
 l_float32    frand, fval;
 HEAPEL      *item;
 NUMA        *na;
-PHEAP       *ph;
+L_HEAP      *lh;
 static char  mainName[] = "heaptest";
 
     if (argc != 1)
@@ -53,37 +53,37 @@ static char  mainName[] = "heaptest";
     }
 
         /* make an array of HEAPELs with the same numbers */
-    ph = pheapCreate(5, L_SORT_INCREASING);
+    lh = lheapCreate(5, L_SORT_INCREASING);
     for (i = 0; i < NELEM; i++) {
         numaGetFValue(na, i, &fval);
         item = (HEAPEL *)CALLOC(1, sizeof(HEAPEL));
         item->distance = fval;
-        pheapAdd(ph, item);
+        lheapAdd(lh, item);
     }
-    pheapPrint(stderr, ph);
+    lheapPrint(stderr, lh);
 
         /* switch the direction and resort into a heap */
-    ph->direction = L_SORT_DECREASING;
-    pheapSort(ph);
-    pheapPrint(stderr, ph);
+    lh->direction = L_SORT_DECREASING;
+    lheapSort(lh);
+    lheapPrint(stderr, lh);
 
         /* resort for strict order */
-    pheapSortStrictOrder(ph);
-    pheapPrint(stderr, ph);
+    lheapSortStrictOrder(lh);
+    lheapPrint(stderr, lh);
 
         /* switch the direction again and resort into a heap */
-    ph->direction = L_SORT_INCREASING;
-    pheapSort(ph);
-    pheapPrint(stderr, ph);
+    lh->direction = L_SORT_INCREASING;
+    lheapSort(lh);
+    lheapPrint(stderr, lh);
 
         /* remove the elements, one at a time */
-    for (i = 0; pheapGetCount(ph) > 0; i++) {
-        item = (HEAPEL *)pheapRemove(ph);
+    for (i = 0; lheapGetCount(lh) > 0; i++) {
+        item = (HEAPEL *)lheapRemove(lh);
 	fprintf(stderr, "item %d: %f\n", i, item->distance);
 	FREE(item);
     }
 
-    pheapDestroy(&ph, 1);
+    lheapDestroy(&lh, 1);
     numaDestroy(&na);
     return 0;
 }

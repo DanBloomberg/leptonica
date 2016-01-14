@@ -88,6 +88,10 @@ static char   mainName[] = "rank_reg";
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
+    fprintf(stderr, "\n----------------------------------------\n");
+    fprintf(stderr, "The next part takes about 30 seconds\n");
+    fprintf(stderr, "----------------------------------------\n\n");
+
     nax = numaMakeSequence(1, 1, SIZE);
     nay1 = numaCreate(SIZE);
     nay2 = numaCreate(SIZE);

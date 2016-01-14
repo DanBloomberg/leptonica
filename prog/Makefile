@@ -133,7 +133,7 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 #########################################################################
 
 SRC =		adaptnorm_reg.c affine_reg.c \
-		bilinear_reg.c \
+		bilinear_reg.c binarize_reg.c \
 		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		blend_reg.c ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorquant_reg.c \
@@ -149,11 +149,15 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		logicops_reg.c lowaccess_reg.c \
 		morphseq_reg.c numa_reg.c \
 		paint_reg.c paintmask_reg.c \
-		pixa_reg.c pixadisp_reg.c pixtile_reg.c \
-		projective_reg.c rank_reg.c \
+		pixa_reg.c pixadisp_reg.c \
+		pixmem_reg.c pixtile_reg.c \
+		projective_reg.c pta_reg.c ptra1_reg.c \
+		ptra2_reg.c rank_reg.c \
 		rasterop_reg.c rasteropip_reg.c \
-		rotate_reg.c rotateorth_reg.c \
-		scale_reg.c selio_reg.c splitcomp_reg.c \
+		rotate1_reg.c rotate2_reg.c rotateorth_reg.c \
+		scale_reg.c selio_reg.c \
+		shear_reg.c  skew_reg.c \
+		smallpix_reg.c splitcomp_reg.c \
 		string_reg.c threshnorm_reg.c \
 		warper_reg.c xformbox_reg.c \
 		adaptmaptest.c \
@@ -185,7 +189,6 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		partitiontest.c pixaatest.c \
 		plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
-		ptratest.c \
 		ranktest.c reducetest.c \
 		removecmap.c renderfonts.c \
 		rotatefastalt.c rotateorthtest1.c \
@@ -237,6 +240,9 @@ affine_reg:	affine_reg.o $(LEPTLIB)
 
 bilinear_reg:	bilinear_reg.o $(LEPTLIB)
 	$(CC) -o bilinear_reg bilinear_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+binarize_reg:	binarize_reg.o $(LEPTLIB)
+	$(CC) -o binarize_reg binarize_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 binmorph1_reg:	binmorph1_reg.o $(LEPTLIB)
 	$(CC) -o binmorph1_reg binmorph1_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -352,11 +358,23 @@ pixa_reg:	pixa_reg.o $(LEPTLIB)
 pixadisp_reg:	pixadisp_reg.o $(LEPTLIB)
 	$(CC) -o pixadisp_reg pixadisp_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+pixmem_reg:	pixmem_reg.o $(LEPTLIB)
+	$(CC) -o pixmem_reg pixmem_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 pixtile_reg:	pixtile_reg.o $(LEPTLIB)
 	$(CC) -o pixtile_reg pixtile_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 projective_reg:	projective_reg.o $(LEPTLIB)
 	$(CC) -o projective_reg projective_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+pta_reg:	pta_reg.o $(LEPTLIB)
+	$(CC) -o pta_reg pta_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+ptra1_reg:	ptra1_reg.o $(LEPTLIB)
+	$(CC) -o ptra1_reg ptra1_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+ptra2_reg:	ptra2_reg.o $(LEPTLIB)
+	$(CC) -o ptra2_reg ptra2_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 rank_reg:	rank_reg.o $(LEPTLIB)
 	$(CC) -o rank_reg rank_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -367,8 +385,11 @@ rasterop_reg:	rasterop_reg.o $(LEPTLIB)
 rasteropip_reg:	rasteropip_reg.o $(LEPTLIB)
 	$(CC) -o rasteropip_reg rasteropip_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
-rotate_reg:	rotate_reg.o $(LEPTLIB)
-	$(CC) -o rotate_reg rotate_reg.o $(ALL_LIBS) $(EXTRALIBS)
+rotate1_reg:	rotate1_reg.o $(LEPTLIB)
+	$(CC) -o rotate1_reg rotate1_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotate2_reg:	rotate2_reg.o $(LEPTLIB)
+	$(CC) -o rotate2_reg rotate2_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 rotateorth_reg:	rotateorth_reg.o $(LEPTLIB)
 	$(CC) -o rotateorth_reg rotateorth_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -378,6 +399,15 @@ scale_reg:	scale_reg.o $(LEPTLIB)
 
 selio_reg:	selio_reg.o $(LEPTLIB)
 	$(CC) -o selio_reg selio_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+shear_reg:	shear_reg.o $(LEPTLIB)
+	$(CC) -o shear_reg shear_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+skew_reg:	skew_reg.o $(LEPTLIB)
+	$(CC) -o skew_reg skew_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+smallpix_reg:	smallpix_reg.o $(LEPTLIB)
+	$(CC) -o smallpix_reg smallpix_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 splitcomp_reg:	splitcomp_reg.o $(LEPTLIB)
 	$(CC) -o splitcomp_reg splitcomp_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -594,9 +624,6 @@ printsplitimage:	printsplitimage.o $(LEPTLIB)
 
 printtiff:	printtiff.o $(LEPTLIB)
 	$(CC) -o printtiff printtiff.o $(ALL_LIBS) $(EXTRALIBS)
-
-ptratest:	ptratest.o $(LEPTLIB)
-	$(CC) -o ptratest ptratest.o $(ALL_LIBS) $(EXTRALIBS)
 
 ranktest:	ranktest.o $(LEPTLIB)
 	$(CC) -o ranktest ranktest.o $(ALL_LIBS) $(EXTRALIBS)

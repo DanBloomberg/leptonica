@@ -139,7 +139,7 @@ l_float32  frand, wallpf, testp;
 MAZEEL    *el, *elp;
 PIX       *pixd;  /* the destination maze */
 PIX       *pixm;  /* for bookkeeping, to indicate pixels already visited */
-PQUEUE    *pq;
+L_QUEUE   *lq;
 
     if (w < MIN_MAZE_WIDTH)
         w = MIN_MAZE_WIDTH;
@@ -165,16 +165,16 @@ PQUEUE    *pq;
     pixd = pixCreate(w, h, 1);
     pixm = pixCreate(w, h, 1);
 
-    pq = pqueueCreate(0);
+    lq = lqueueCreate(0);
 
         /* prime the queue with the first pixel; it is OFF */
     el = mazeelCreate(xi, yi, START_LOC);
     pixSetPixel(pixm, xi, yi, 1);  /* mark visited */
-    pqueueAdd(pq, el);
+    lqueueAdd(lq, el);
 
         /* while we're at it ... */
-    while (pqueueGetCount(pq) > 0) {
-        elp = (MAZEEL *)pqueueRemove(pq);
+    while (lqueueGetCount(lq) > 0) {
+        elp = (MAZEEL *)lqueueRemove(lq);
         x = elp->x;
         y = elp->y;
         dir = elp->dir;
@@ -191,7 +191,7 @@ PQUEUE    *pq;
                 }
                 else {  /* not a wall */
                     el = mazeelCreate(x - 1, y, DIR_WEST);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
@@ -208,7 +208,7 @@ PQUEUE    *pq;
                 }
                 else {  /* not a wall */
                     el = mazeelCreate(x, y - 1, DIR_NORTH);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
@@ -225,7 +225,7 @@ PQUEUE    *pq;
                 }
                 else {  /* not a wall */
                     el = mazeelCreate(x + 1, y, DIR_EAST);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
@@ -242,14 +242,14 @@ PQUEUE    *pq;
                 }
                 else {  /* not a wall */
                     el = mazeelCreate(x, y + 1, DIR_SOUTH);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
         FREE(elp);
     }
 
-    pqueueDestroy(&pq, TRUE);
+    lqueueDestroy(&lq, TRUE);
     pixDestroy(&pixm);
     return pixd;
 }
@@ -335,7 +335,7 @@ MAZEEL    *el, *elp;
 PIX       *pixd;  /* the shortest path written on the maze image */
 PIX       *pixm;  /* for bookkeeping, to indicate pixels already visited */
 PIX       *pixp;  /* for bookkeeping, to indicate direction to parent */
-PQUEUE    *pq;
+L_QUEUE   *lq;
 PTA       *pta;
 
     PROCNAME("searchBinaryMaze");
@@ -371,18 +371,18 @@ PTA       *pta;
     linep8 = pixGetLinePtrs(pixp, NULL);
 
 
-    pq = pqueueCreate(0);
+    lq = lqueueCreate(0);
 
         /* prime the queue with the first pixel; it is OFF */
     el = mazeelCreate(xi, yi, 0);  /* don't need direction here */
     pixSetPixel(pixm, xi, yi, 1);  /* mark visited */
-    pqueueAdd(pq, el);
+    lqueueAdd(lq, el);
 
         /* fill up the pix storing directions to parents,
          * stopping when we hit the point (xf, yf)  */
     found = FALSE;
-    while (pqueueGetCount(pq) > 0) {
-        elp = (MAZEEL *)pqueueRemove(pq);
+    while (lqueueGetCount(lq) > 0) {
+        elp = (MAZEEL *)lqueueRemove(lq);
         x = elp->x;
         y = elp->y;
         if (x == xf && y == yf) {
@@ -399,7 +399,7 @@ PTA       *pta;
                 if (val == 0) {  /* bg, not a wall */
                     SET_DATA_BYTE(linep8[y], x - 1, DIR_EAST);  /* parent E */
                     el = mazeelCreate(x - 1, y, 0);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
@@ -411,7 +411,7 @@ PTA       *pta;
                 if (val == 0) {  /* bg, not a wall */
                     SET_DATA_BYTE(linep8[y - 1], x, DIR_SOUTH);  /* parent S */
                     el = mazeelCreate(x, y - 1, 0);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
@@ -423,7 +423,7 @@ PTA       *pta;
                 if (val == 0) {  /* bg, not a wall */
                     SET_DATA_BYTE(linep8[y], x + 1, DIR_WEST);  /* parent W */
                     el = mazeelCreate(x + 1, y, 0);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
@@ -435,14 +435,14 @@ PTA       *pta;
                 if (val == 0) {  /* bg, not a wall */
                     SET_DATA_BYTE(linep8[y + 1], x, DIR_NORTH);  /* parent N */
                     el = mazeelCreate(x, y + 1, 0);
-                    pqueueAdd(pq, el);
+                    lqueueAdd(lq, el);
                 }
             }
         }
         FREE(elp);
     }
 
-    pqueueDestroy(&pq, TRUE);
+    lqueueDestroy(&lq, TRUE);
     pixDestroy(&pixm);
     FREE(linem1);
 
@@ -718,7 +718,7 @@ PIX      *pixd;  /* optionally plot the path on this RGB version of pixs */
 PIX      *pixr;  /* for bookkeeping, to indicate the minimum distance */
                  /* to pixels already visited */
 PIX      *pixp;  /* for bookkeeping, to indicate direction to parent */
-PHEAP    *ph;
+L_HEAP   *lh;
 PTA      *pta;
 
     PROCNAME("searchGrayMaze");
@@ -743,7 +743,7 @@ PTA      *pta;
     linep8 = pixGetLinePtrs(pixp, NULL);
     liner32 = pixGetLinePtrs(pixr, NULL);
 
-    ph = pheapCreate(0, L_SORT_INCREASING);  /* always remove closest pixels */
+    lh = lheapCreate(0, L_SORT_INCREASING);  /* always remove closest pixels */
 
         /* prime the heap with the first pixel */
     pixGetPixel(pixs, xi, yi, &val);
@@ -752,14 +752,14 @@ PTA      *pta;
     pixGetPixel(pixs, xi, yi, &val);
     el->val = val;
     pixSetPixel(pixr, xi, yi, 0);  /* distance is 0 */
-    pheapAdd(ph, el);
+    lheapAdd(lh, el);
 
         /* breadth-first search with priority queue (implemented by
            a heap), labeling direction to parents in pixp and minimum
            distance to visited pixels in pixr.  Stop when we pull
            the destination point (xf, yf) off the queue. */
-    while (pheapGetCount(ph) > 0) {
-        elp = (MAZEEL *)pheapRemove(ph);
+    while (lheapGetCount(lh) > 0) {
+        elp = (MAZEEL *)lheapRemove(lh);
         if (!elp)
             return (PTA *)ERROR_PTR("heap broken!!", procName, NULL);
         x = elp->x;
@@ -784,7 +784,7 @@ PTA      *pta;
                 el = mazeelCreate(x - 1, y, 0);
                 el->val = vals;
                 el->distance = dist;
-                pheapAdd(ph, el);
+                lheapAdd(lh, el);
             }
         }
         if (y > 0) {  /* check north */
@@ -799,7 +799,7 @@ PTA      *pta;
                 el = mazeelCreate(x, y - 1, 0);
                 el->val = vals;
                 el->distance = dist;
-                pheapAdd(ph, el);
+                lheapAdd(lh, el);
             }
         }
         if (x < w - 1) {  /* check east */
@@ -814,7 +814,7 @@ PTA      *pta;
                 el = mazeelCreate(x + 1, y, 0);
                 el->val = vals;
                 el->distance = dist;
-                pheapAdd(ph, el);
+                lheapAdd(lh, el);
             }
         }
         if (y < h - 1) {  /* check south */
@@ -829,13 +829,13 @@ PTA      *pta;
                 el = mazeelCreate(x, y + 1, 0);
                 el->val = vals;
                 el->distance = dist;
-                pheapAdd(ph, el);
+                lheapAdd(lh, el);
             }
         }
         FREE(elp);
     }
 
-    pheapDestroy(&ph, TRUE);
+    lheapDestroy(&lh, TRUE);
 
     if (ppixd) {
         pixd = pixConvert8To32(pixs);

@@ -14,20 +14,22 @@
  *====================================================================*/
 
 /*
- * ptratest.c
+ * ptra1_reg.c
+ *
+ *    Testing basic ptra operations 
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-static void MakePtrasFromPixa(PIXA *pixa, PTRA **ppapix, PTRA **ppabox,
+static void MakePtrasFromPixa(PIXA *pixa, L_PTRA **ppapix, L_PTRA **ppabox,
                               l_int32 copyflag);
-static PIXA *ReconstructPixa(PTRA *papix, PTRA *pabox, l_int32 choose);
-static PIXA *ReconstructPixa1(PTRA *papix, PTRA *pabox);
-static PIXA *ReconstructPixa2(PTRA *papix, PTRA *pabox);
-static void CopyPtras(PTRA *papixs, PTRA *paboxs,
-                      PTRA **ppapixd, PTRA **ppaboxd);
+static PIXA *ReconstructPixa(L_PTRA *papix, L_PTRA *pabox, l_int32 choose);
+static PIXA *ReconstructPixa1(L_PTRA *papix, L_PTRA *pabox);
+static PIXA *ReconstructPixa2(L_PTRA *papix, L_PTRA *pabox);
+static void CopyPtras(L_PTRA *papixs, L_PTRA *paboxs,
+                      L_PTRA **ppapixd, L_PTRA **ppaboxd);
 static void DisplayResult(PIXA *pixac, PIXA **ppixa, l_int32 w, l_int32 h,
                           l_int32 newline);
 
@@ -37,16 +39,16 @@ static void DisplayResult(PIXA *pixac, PIXA **ppixa, l_int32 w, l_int32 h,
 main(int    argc,
      char **argv)
 {
-l_int32      i, n, w, h, nactual, j;
+l_int32      i, n, w, h, nactual, j, imax;
 BOX         *box;
 BOXA        *boxa;
 PIX         *pixs, *pixd, *pix;
 PIXA        *pixas, *pixat, *pixac;
-PTRA        *papix, *pabox, *papix2, *pabox2;
-static char  mainName[] = "ptratest";
+L_PTRA      *papix, *pabox, *papix2, *pabox2;
+static char  mainName[] = "ptra1_reg";
 
     if (argc != 1)
-	exit(ERROR_INT(" Syntax: ptratest", mainName, 1));
+	exit(ERROR_INT(" Syntax: ptra1_reg", mainName, 1));
 
     pixac = pixaCreate(0);
 
@@ -59,6 +61,7 @@ static char  mainName[] = "ptratest";
     n = pixaGetCount(pixas);
 
         /* Fill ptras with clones and reconstruct */
+    fprintf(stderr, "Fill with clones and reconstruct\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_CLONE);
     pixat = ReconstructPixa(papix, pabox, CHOOSE_RECON);
     ptraDestroy(&papix, 0);
@@ -67,6 +70,7 @@ static char  mainName[] = "ptratest";
 
         /* Remove every other one for the first half;
          * with compaction at each removal */
+    fprintf(stderr, "Remove every other in 1st half, with compaction\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_COPY);
     for (i = 0; i < n / 2; i++) {
         if (i % 2 == 0) {
@@ -83,6 +87,8 @@ static char  mainName[] = "ptratest";
 
         /* Remove every other one for the entire set,
          * but without compaction at each removal */
+    fprintf(stderr,
+            "Remove every other in 1st half, without & then with compaction\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_COPY);
     for (i = 0; i < n; i++) {
         if (i % 2 == 0) {
@@ -100,6 +106,7 @@ static char  mainName[] = "ptratest";
     DisplayResult(pixac, &pixat, w, h, 0);
 
         /* Fill ptras using insert at head, and reconstruct */
+    fprintf(stderr, "Insert at head and reconstruct\n");
     papix = ptraCreate(n);
     pabox = ptraCreate(n);
     for (i = 0; i < n; i++) {
@@ -114,6 +121,7 @@ static char  mainName[] = "ptratest";
     DisplayResult(pixac, &pixat, w, h, 1);
 
         /* Reverse the arrays by swapping */
+    fprintf(stderr, "Reverse by swapping\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_CLONE);
     for (i = 0; i < n / 2; i++) {
         ptraSwap(papix, i, n - i - 1);
@@ -129,18 +137,20 @@ static char  mainName[] = "ptratest";
         /* Remove at the top of the array and push the hole to the end
          * by neighbor swapping (!).  This is O(n^2), so it's not a
          * recommended way to copy a ptra. [joke]  */
+    fprintf(stderr,
+            "Remove at top, pushing hole to end by swapping -- O(n^2)\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_CLONE);
     papix2 = ptraCreate(0);
     pabox2 = ptraCreate(0);
     while (1) {
         ptraGetActualCount(papix, &nactual);
         if (nactual == 0) break;
-        ptraGetMaxIndex(papix, &n);
+        ptraGetMaxIndex(papix, &imax);
         pix = (PIX *)ptraRemove(papix, 0, L_NO_COMPACTION);
         box = (BOX *)ptraRemove(pabox, 0, L_NO_COMPACTION);
         ptraAdd(papix2, pix);
         ptraAdd(pabox2, box);
-        for (i = 1; i < n; i++) {
+        for (i = 1; i <= imax; i++) {
            ptraSwap(papix, i - 1, i);
            ptraSwap(pabox, i - 1, i);
         }
@@ -161,6 +171,7 @@ static char  mainName[] = "ptratest";
          * it will do a full downshift at each insert.  This is a
          * situation where the heuristic (expected number of holes)
          * fails to do the optimal thing. */
+    fprintf(stderr, "Remove and insert one position above (min downshift)\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_CLONE);
     for (i = 1; i < n; i++) {
         pix = (PIX *)ptraRemove(papix, i, L_NO_COMPACTION);
@@ -175,6 +186,7 @@ static char  mainName[] = "ptratest";
 
         /* Remove and insert one position above, but this time
          * forcing a full downshift at each step.  */
+    fprintf(stderr, "Remove and insert one position above (full downshift)\n");
     MakePtrasFromPixa(pixas, &papix, &pabox, L_CLONE);
     for (i = 1; i < n; i++) {
         pix = (PIX *)ptraRemove(papix, i, L_NO_COMPACTION);
@@ -200,15 +212,15 @@ static char  mainName[] = "ptratest";
 	    
 
 static void
-MakePtrasFromPixa(PIXA    *pixa,
-                  PTRA   **ppapix,
-                  PTRA   **ppabox,
-                  l_int32  copyflag)
+MakePtrasFromPixa(PIXA     *pixa,
+                  L_PTRA  **ppapix,
+                  L_PTRA  **ppabox,
+                  l_int32   copyflag)
 {
 l_int32  i, n;
 BOX     *box;
 PIX     *pix;
-PTRA    *papix, *pabox;
+L_PTRA  *papix, *pabox;
 
     n = pixaGetCount(pixa);
     papix = ptraCreate(n);
@@ -227,9 +239,9 @@ PTRA    *papix, *pabox;
 
 
 static PIXA *
-ReconstructPixa(PTRA   *papix,
-                PTRA   *pabox,
-                l_int32 choose)
+ReconstructPixa(L_PTRA  *papix,
+                L_PTRA  *pabox,
+                l_int32  choose)
 {
 PIXA  *pixa;
 
@@ -241,51 +253,56 @@ PIXA  *pixa;
 }
 
 
+    /* Reconstruction without compaction */
 static PIXA *
-ReconstructPixa1(PTRA  *papix,
-                 PTRA  *pabox)
+ReconstructPixa1(L_PTRA  *papix,
+                 L_PTRA  *pabox)
 {
-l_int32  i, n, nactual;
+l_int32  i, imax, nactual;
 BOX     *box;
 PIX     *pix;
 PIXA    *pixat;
 
-    ptraGetMaxIndex(papix, &n);
+    ptraGetMaxIndex(papix, &imax);
     ptraGetActualCount(papix, &nactual);
-    fprintf(stderr, "Before removal:  n = %4d, actual = %4d\n", n, nactual);
+    fprintf(stderr, "Before removal:  imax = %4d, actual = %4d\n",
+            imax, nactual);
 
-    pixat = pixaCreate(n);
-    for (i = 0; i < n; i++) {
+    pixat = pixaCreate(imax + 1);
+    for (i = 0; i <= imax; i++) {
         pix = (PIX *)ptraRemove(papix, i, L_NO_COMPACTION);
         box = (BOX *)ptraRemove(pabox, i, L_NO_COMPACTION);
         if (pix) pixaAddPix(pixat, pix, L_INSERT);
         if (box) pixaAddBox(pixat, box, L_INSERT);
     }
 
-    ptraGetMaxIndex(papix, &n);
+    ptraGetMaxIndex(papix, &imax);
     ptraGetActualCount(papix, &nactual);
-    fprintf(stderr, "After removal:   n = %4d, actual = %4d\n\n", n, nactual);
+    fprintf(stderr, "After removal:   imax = %4d, actual = %4d\n\n",
+            imax, nactual);
 
     return pixat;
 }
 
 
+    /* Reconstruction with compaction */
 static PIXA *
-ReconstructPixa2(PTRA  *papix,
-                 PTRA  *pabox)
+ReconstructPixa2(L_PTRA  *papix,
+                 L_PTRA  *pabox)
 {
-l_int32  i, n, nactual;
+l_int32  i, imax, nactual;
 BOX     *box;
 PIX     *pix;
 PIXA    *pixat;
 
-    ptraGetMaxIndex(papix, &n);
+    ptraGetMaxIndex(papix, &imax);
     ptraGetActualCount(papix, &nactual);
-    fprintf(stderr, "Before removal:    n = %4d, actual = %4d\n", n, nactual);
+    fprintf(stderr, "Before removal:    imax = %4d, actual = %4d\n",
+            imax, nactual);
 
         /* Remove half */
-    pixat = pixaCreate(n);
-    for (i = 0; i < n; i++) {
+    pixat = pixaCreate(imax + 1);
+    for (i = 0; i <= imax; i++) {
         if (i % 2 == 0) {
             pix = (PIX *)ptraRemove(papix, i, L_NO_COMPACTION);
             box = (BOX *)ptraRemove(pabox, i, L_NO_COMPACTION);
@@ -295,14 +312,16 @@ PIXA    *pixat;
     }
 
         /* Compact */
-    ptraGetMaxIndex(papix, &n);
+    ptraGetMaxIndex(papix, &imax);
     ptraGetActualCount(papix, &nactual);
-    fprintf(stderr, "Before compaction: n = %4d, actual = %4d\n", n, nactual);
+    fprintf(stderr, "Before compaction: imax = %4d, actual = %4d\n",
+            imax, nactual);
     ptraCompactArray(papix);
     ptraCompactArray(pabox);
-    ptraGetMaxIndex(papix, &n);
+    ptraGetMaxIndex(papix, &imax);
     ptraGetActualCount(papix, &nactual);
-    fprintf(stderr, "After compaction:  n = %4d, actual = %4d\n", n, nactual);
+    fprintf(stderr, "After compaction:  imax = %4d, actual = %4d\n",
+            imax, nactual);
 
         /* Remove the rest (and test compaction with removal) */
     while (1) {
@@ -315,28 +334,29 @@ PIXA    *pixat;
         pixaAddBox(pixat, box, L_INSERT);
     }
 
-    ptraGetMaxIndex(papix, &n);
+    ptraGetMaxIndex(papix, &imax);
     ptraGetActualCount(papix, &nactual);
-    fprintf(stderr, "After removal:     n = %4d, actual = %4d\n\n", n, nactual);
+    fprintf(stderr, "After removal:     imax = %4d, actual = %4d\n\n",
+            imax, nactual);
 
     return pixat;
 }
 
 
 static void
-CopyPtras(PTRA   *papixs,
-          PTRA   *paboxs,
-          PTRA  **ppapixd,
-          PTRA  **ppaboxd)
+CopyPtras(L_PTRA   *papixs,
+          L_PTRA   *paboxs,
+          L_PTRA  **ppapixd,
+          L_PTRA  **ppaboxd)
 {
-l_int32  i, n;
+l_int32  i, imax;
 BOX     *box;
 PIX     *pix;
 
-    ptraGetMaxIndex(papixs, &n);
-    *ppapixd = ptraCreate(n);
-    *ppaboxd = ptraCreate(n);
-    for (i = 0; i < n; i++) {
+    ptraGetMaxIndex(papixs, &imax);
+    *ppapixd = ptraCreate(imax + 1);
+    *ppaboxd = ptraCreate(imax + 1);
+    for (i = 0; i <= imax; i++) {
         pix = pixCopy(NULL, (PIX *)ptraGetPtrToItem(papixs, i));
         box = boxCopy((BOX *)ptraGetPtrToItem(paboxs, i));
         ptraAdd(*ppapixd, pix);
@@ -361,4 +381,5 @@ PIX   *pixd;
     pixaDestroy(ppixa);
     return;
 }
+
 

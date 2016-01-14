@@ -21,7 +21,7 @@
  *
  *       Expandable pointer stack for arbitrary void* data.
  *
- *       The stack is an array of void * ptrs, onto which arbitrary
+ *       The L_Stack is an array of void * ptrs, onto which arbitrary
  *       objects can be stored.  At any time, the number of
  *       stored objects is stack->n.  The object at the bottom
  *       of the stack is at array[0]; the object at the top of
@@ -41,14 +41,14 @@
 
 
     /* Note that array[n] is the first null ptr in the array */
-struct PStack
+struct L_Stack
 {
-    l_int32         nalloc;       /* size of ptr array              */
-    l_int32         n;            /* number of stored elements      */
-    void          **array;        /* ptr array                      */
-    struct PStack  *auxstack;     /* auxiliary stack                */
+    l_int32          nalloc;       /* size of ptr array              */
+    l_int32          n;            /* number of stored elements      */
+    void           **array;        /* ptr array                      */
+    struct L_Stack  *auxstack;     /* auxiliary stack                */
 };
-typedef struct PStack  PSTACK;
+typedef struct L_Stack  L_STACK;
 
 
 #endif /*  LEPTONICA_STACK_H */

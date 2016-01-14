@@ -27,6 +27,10 @@
  *          l_int32    pixFindSkewSweep()
  *          l_int32    pixFindSkewSweepAndSearch()
  *          l_int32    pixFindSkewSweepAndSearchScore()
+ *          l_int32    pixFindSkewSweepAndSearchScorePivot()
+ *
+ *      Search over arbitrary range of angles in orthogonal directions
+ *          l_int32    pixFindSkewOrthogonalRange()
  *
  *      Differential square sum function for scoring
  *          l_int32    pixFindDifferentialSquareSum()
@@ -114,6 +118,7 @@ static const l_float32  MINSCORE_THRESHOLD_CONSTANT = 0.000002;
 #define  DEBUG_PRINT_SCORES     0
 #define  DEBUG_PRINT_SWEEP      0
 #define  DEBUG_PRINT_BINARY     0
+#define  DEBUG_PRINT_ORTH       0
 #define  DEBUG_THRESHOLD        0
 #define  DEBUG_PLOT_SCORES      0
 #endif  /* ~NO_CONSOLE_IO */
@@ -431,7 +436,7 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
  *      Input:  pixs  (1 bpp)
  *              &angle   (<return> angle required to deskew; in degrees)
  *              &conf    (<return> confidence given by ratio of max/min score)
- *              &endscore (<optional return> max score; use NULL if ignored)
+ *              &endscore (<optional return> max score; use NULL to ignore)
  *              redsweep  (sweep reduction factor = 1, 2, 4 or 8)
  *              redsearch  (binary search reduction factor = 1, 2, 4 or 8;
  *                          and must not exceed redsweep)
@@ -455,18 +460,71 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
  *          returned in this function to allow evaluation of the
  *          resulting angle by a method that is independent of the
  *          returned confidence value.
+ *      (3) The larger the confidence value, the greater the probability
+ *          that the proper alignment is given by the angle that maximizes
+ *          variance.  It should be compared to a threshold, which depends
+ *          on the application.  Values between 3.0 and 6.0 are common.
+ *      (4) By default, the shear is about the UL corner.
  */
 l_int32
 pixFindSkewSweepAndSearchScore(PIX        *pixs,
                                l_float32  *pangle,
                                l_float32  *pconf,
-                               l_float32  *endscore,
+                               l_float32  *pendscore,
                                l_int32     redsweep,
                                l_int32     redsearch,
                                l_float32   sweepcenter,
                                l_float32   sweeprange,
                                l_float32   sweepdelta,
                                l_float32   minbsdelta)
+{
+    return pixFindSkewSweepAndSearchScorePivot(pixs, pangle, pconf, pendscore,
+                                               redsweep, redsearch, 0.0,
+                                               sweeprange, sweepdelta,
+                                               minbsdelta,
+                                               L_SHEAR_ABOUT_CORNER);
+}
+
+
+/*!
+ *  pixFindSkewSweepAndSearchScorePivot()
+ *
+ *      Input:  pixs  (1 bpp)
+ *              &angle   (<return> angle required to deskew; in degrees)
+ *              &conf    (<return> confidence given by ratio of max/min score)
+ *              &endscore (<optional return> max score; use NULL to ignore)
+ *              redsweep  (sweep reduction factor = 1, 2, 4 or 8)
+ *              redsearch  (binary search reduction factor = 1, 2, 4 or 8;
+ *                          and must not exceed redsweep)
+ *              sweepcenter  (angle about which sweep is performed; in degrees)
+ *              sweeprange   (half the full range, taken about sweepcenter;
+ *                            in degrees)
+ *              sweepdelta   (angle increment of sweep; in degrees)
+ *              minbsdelta   (min binary search increment angle; in degrees)
+ *              pivot  (L_SHEAR_ABOUT_CORNER, L_SHEAR_ABOUT_CENTER)
+ *      Return: 0 if OK, 1 on error or if angle measurment not valid
+ *
+ *  Notes:
+ *      (1) See notes in pixFindSkewSweepAndSearchScore().
+ *      (2) This allows choice of shear pivoting from either the UL corner
+ *          or the center.  For small angles, the ability to discriminate
+ *          angles is better with shearing from the UL corner.  However,
+ *          for large angles (say, greater than 20 degrees), it is better
+ *          to shear about the center because a shear from the UL corner
+ *          loses too much of the image.
+ */
+l_int32
+pixFindSkewSweepAndSearchScorePivot(PIX        *pixs,
+                                    l_float32  *pangle,
+                                    l_float32  *pconf,
+                                    l_float32  *pendscore,
+                                    l_int32     redsweep,
+                                    l_int32     redsearch,
+                                    l_float32   sweepcenter,
+                                    l_float32   sweeprange,
+                                    l_float32   sweepdelta,
+                                    l_float32   minbsdelta,
+                                    l_int32     pivot)
 {
 l_int32    ret, bzero, i, nangles, n, ratio, maxindex, minloc;
 l_int32    width, height;
@@ -480,7 +538,7 @@ l_float32  rangeleft;
 NUMA      *natheta, *nascore;
 PIX       *pixsw, *pixsch, *pixt1, *pixt2;
 
-    PROCNAME("pixFindSkewSweepAndSearchScore");
+    PROCNAME("pixFindSkewSweepAndSearchScorePivot");
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
@@ -496,6 +554,8 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
         return ERROR_INT("redsearch must be in {1,2,4,8}", procName, 1);
     if (redsearch > redsweep)
         return ERROR_INT("redsearch must not exceed redsweep", procName, 1);
+    if (pivot != L_SHEAR_ABOUT_CORNER && pivot != L_SHEAR_ABOUT_CENTER)
+        return ERROR_INT("invalid pivot", procName, 1);
 
     *pangle = 0.0;
     *pconf = 0.0;
@@ -559,8 +619,11 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     for (i = 0; i < nangles; i++) {
         theta = rangeleft + i * sweepdelta;   /* degrees */
 
-            /* Shear pix about the UL corner and put the result in pixt1 */
-        pixVShearCorner(pixt1, pixsw, deg2rad * theta, L_BRING_IN_WHITE);
+            /* Shear pix and put the result in pixt1 */
+        if (pivot == L_SHEAR_ABOUT_CORNER)
+            pixVShearCorner(pixt1, pixsw, deg2rad * theta, L_BRING_IN_WHITE);
+        else
+            pixVShearCenter(pixt1, pixsw, deg2rad * theta, L_BRING_IN_WHITE);
 
             /* Get score */
         pixFindDifferentialSquareSum(pixt1, &sum);
@@ -611,14 +674,26 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
         /* Do binary search to find skew angle.
          * First, set up initial three points. */
     centerangle = maxangle;
-    pixVShearCorner(pixt2, pixsch, deg2rad * centerangle, L_BRING_IN_WHITE);
-    pixFindDifferentialSquareSum(pixt2, &bsearchscore[2]);
-    pixVShearCorner(pixt2, pixsch, deg2rad * (centerangle - sweepdelta),
-                    L_BRING_IN_WHITE);
-    pixFindDifferentialSquareSum(pixt2, &bsearchscore[0]);
-    pixVShearCorner(pixt2, pixsch, deg2rad * (centerangle + sweepdelta),
-                    L_BRING_IN_WHITE);
-    pixFindDifferentialSquareSum(pixt2, &bsearchscore[4]);
+    if (pivot == L_SHEAR_ABOUT_CORNER) {
+        pixVShearCorner(pixt2, pixsch, deg2rad * centerangle, L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[2]);
+        pixVShearCorner(pixt2, pixsch, deg2rad * (centerangle - sweepdelta),
+                        L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[0]);
+        pixVShearCorner(pixt2, pixsch, deg2rad * (centerangle + sweepdelta),
+                        L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[4]);
+    }
+    else {
+        pixVShearCenter(pixt2, pixsch, deg2rad * centerangle, L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[2]);
+        pixVShearCenter(pixt2, pixsch, deg2rad * (centerangle - sweepdelta),
+                        L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[0]);
+        pixVShearCenter(pixt2, pixsch, deg2rad * (centerangle + sweepdelta),
+                        L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[4]);
+    }
 
     numaAddNumber(nascore, bsearchscore[2]);
     numaAddNumber(natheta, centerangle);
@@ -633,16 +708,24 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     {
             /* Get the left intermediate score */
         leftcenterangle = centerangle - delta;
-        pixVShearCorner(pixt2, pixsch, deg2rad * leftcenterangle,
-                        L_BRING_IN_WHITE);
+        if (pivot == L_SHEAR_ABOUT_CORNER)
+            pixVShearCorner(pixt2, pixsch, deg2rad * leftcenterangle,
+                            L_BRING_IN_WHITE);
+        else
+            pixVShearCenter(pixt2, pixsch, deg2rad * leftcenterangle,
+                            L_BRING_IN_WHITE);
         pixFindDifferentialSquareSum(pixt2, &bsearchscore[1]);
         numaAddNumber(nascore, bsearchscore[1]);
         numaAddNumber(natheta, leftcenterangle);
         
             /* Get the right intermediate score */
         rightcenterangle = centerangle + delta;
-        pixVShearCorner(pixt2, pixsch, deg2rad * rightcenterangle,
-                        L_BRING_IN_WHITE);
+        if (pivot == L_SHEAR_ABOUT_CORNER)
+            pixVShearCorner(pixt2, pixsch, deg2rad * rightcenterangle,
+                            L_BRING_IN_WHITE);
+        else
+            pixVShearCenter(pixt2, pixsch, deg2rad * rightcenterangle,
+                            L_BRING_IN_WHITE);
         pixFindDifferentialSquareSum(pixt2, &bsearchscore[3]);
         numaAddNumber(nascore, bsearchscore[3]);
         numaAddNumber(natheta, rightcenterangle);
@@ -676,8 +759,8 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     L_INFO_FLOAT(" Binary search score = %7.3f", procName, bsearchscore[2]);
 #endif  /* DEBUG_PRINT_SCORES */
 
-    if (endscore)  /* save if requested */
-        *endscore = bsearchscore[2];
+    if (pendscore)  /* save if requested */
+        *pendscore = bsearchscore[2];
 
         /* Return the ratio of Max score over Min score
          * as a confidence value.  Don't trust if the Min score
@@ -742,6 +825,119 @@ cleanup:
     numaDestroy(&nascore);
     numaDestroy(&natheta);
     return ret;
+}
+
+
+/*---------------------------------------------------------------------*
+ *    Search over arbitrary range of angles in orthogonal directions   *
+ *---------------------------------------------------------------------*/
+/*
+ *   pixFindSkewOrthogonalRange()
+ *
+ *      Input:  pixs  (1 bpp)
+ *              &angle  (<return> angle required to deskew; in degrees cw)
+ *              &conf   (<return> confidence given by ratio of max/min score)
+ *              redsweep  (sweep reduction factor = 1, 2, 4 or 8)
+ *              redsearch  (binary search reduction factor = 1, 2, 4 or 8;
+ *                          and must not exceed redsweep)
+ *              sweeprange  (half the full range in each orthogonal
+ *                           direction, taken about 0, in degrees)
+ *              sweepdelta   (angle increment of sweep; in degrees)
+ *              minbsdelta   (min binary search increment angle; in degrees)
+ *              confprior  (amount by which confidence of 90 degree rotated
+ *                          result is reduced when comparing with unrotated
+ *                          confidence value)
+ *      Return: 0 if OK, 1 on error or if angle measurment not valid
+ *
+ *  Notes:
+ *      (1) This searches for the skew angle, first in the range
+ *          [-sweeprange, sweeprange], and then in
+ *          [90 - sweeprange, 90 + sweeprange], with angles measured
+ *          clockwise.  For exploring the full range of possibilities,
+ *          suggest using sweeprange = 47.0 degrees, giving some overlap
+ *          at 45 and 135 degrees.  From these results, and discounting
+ *          the the second confidence by @confprior, it selects the
+ *          angle for maximal differential variance.  If the angle
+ *          is larger than pi/4, the angle found after 90 degree rotation
+ *          is selected.
+ *      (2) The larger the confidence value, the greater the probability
+ *          that the proper alignment is given by the angle that maximizes
+ *          variance.  It should be compared to a threshold, which depends
+ *          on the application.  Values between 3.0 and 6.0 are common.
+ *      (3) Allowing for both portrait and landscape searches is more
+ *          difficult, because if the signal from the text lines is weak,
+ *          a signal from vertical rules can be larger!
+ *          The most difficult documents to deskew have some or all of:
+ *            (a) Multiple columns, not aligned
+ *            (b) Black lines along the vertical edges
+ *            (c) Text from two pages, and at different angles
+ *          Rule of thumb for resolution:
+ *            (a) If the margins are clean, you can work at 75 ppi,
+ *                although 100 ppi is safer.
+ *            (b) If there are vertical lines in the margins, do not
+ *                work below 150 ppi.  The signal from the text lines must
+ *                exceed that from the margin lines.
+ *      (4) Choosing the @confprior parameter depends on knowing something
+ *          about the source of image.  However, we're not using
+ *          real probabilities here, so its use is qualitative.
+ *          If landscape and portrait are equally likely, use
+ *          @confprior = 0.0.  If the likelihood of portrait (non-rotated)
+ *          is 100 times higher than that of landscape, we want to reduce
+ *          the chance that we rotate to landscape in a situation where
+ *          the landscape signal is accidentally larger than the
+ *          portrait signal.  To do this use a positive value of
+ *          @confprior; say 1.5.
+ */
+l_int32
+pixFindSkewOrthogonalRange(PIX        *pixs,
+                           l_float32  *pangle,
+                           l_float32  *pconf,
+                           l_int32     redsweep,
+                           l_int32     redsearch,
+                           l_float32   sweeprange,
+                           l_float32   sweepdelta,
+                           l_float32   minbsdelta,
+                           l_float32   confprior)
+{
+l_float32  angle1, conf1, score1, angle2, conf2, score2;
+PIX       *pixr;
+
+    PROCNAME("pixFindSkewOrthogonalRange");
+
+    if (!pangle || !pconf)
+        return ERROR_INT("&angle and &conf not both defined", procName, 1);
+    *pangle = *pconf = 0.0;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+    pixFindSkewSweepAndSearchScorePivot(pixs, &angle1, &conf1, &score1,
+                                        redsweep, redsearch, 0.0,
+                                        sweeprange, sweepdelta, minbsdelta,
+                                        L_SHEAR_ABOUT_CORNER);
+    pixr = pixRotateOrth(pixs, 1);
+    pixFindSkewSweepAndSearchScorePivot(pixr, &angle2, &conf2, &score2,
+                                        redsweep, redsearch, 0.0,
+                                        sweeprange, sweepdelta, minbsdelta,
+                                        L_SHEAR_ABOUT_CORNER);
+    pixDestroy(&pixr);
+
+    if (conf1 > conf2 - confprior) {
+        *pangle = angle1;
+        *pconf = conf1;
+    } else {
+        *pangle = -90.0 + angle2;
+        *pconf = conf2;
+    }
+
+#if  DEBUG_PRINT_ORTH
+    fprintf(stderr, " About 0:  angle1 = %7.3f, conf1 = %7.3f, score1 = %f\n",
+            angle1, conf1, score1);
+    fprintf(stderr, " About 90: angle2 = %7.3f, conf2 = %7.3f, score2 = %f\n",
+            angle2, conf2, score2);
+    fprintf(stderr, " Final:    angle = %7.3f, conf = %7.3f\n", *pangle, *pconf);
+#endif  /* DEBUG_PRINT_ORTH */
+
+    return 0;
 }
 
 

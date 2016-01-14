@@ -102,7 +102,7 @@ static char  mainName[] = "wordsinorder";
 	pixt1 = pixReduceRankBinary2(pixs, 2, NULL);
         pixGetDimensions(pixt1, &w, &h, NULL);
         pixd = pixCreate(w, h, 8);
-        cmap = pixcmapCreateRandom(8);  /* first color is black */
+        cmap = pixcmapCreateRandom(8, 1, 1);  /* first color is black */
         pixSetColormap(pixd, cmap);
 
         pixt2 = pixUnpackBinary(pixt1, 8, 1);
@@ -111,7 +111,7 @@ static char  mainName[] = "wordsinorder";
         for (j = 0; j < ncomp; j++) {
             box = boxaGetBox(boxa, j, L_CLONE);
             numaGetIValue(nai, j, &ival);
-            index = (ival % 254) + 1;
+            index = 1 + (ival % 254);  /* omit black and white */
             pixcmapGetColor(cmap, index, &rval, &gval, &bval);
             pixRenderBoxArb(pixd, box, 2, rval, gval, bval);
             boxDestroy(&box);

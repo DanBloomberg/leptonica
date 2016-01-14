@@ -189,7 +189,7 @@ static L_BOX3D *pixGetColorRegion(PIX *pixs, l_int32 sigbits,
 static l_int32 medianCutApply(l_int32 *histo, l_int32 sigbits,
                               L_BOX3D *vbox, L_BOX3D **pvbox1,
                               L_BOX3D **pvbox2);
-static PIXCMAP *pixcmapGenerateFromMedianCuts(PHEAP *ph, l_int32 *histo,
+static PIXCMAP *pixcmapGenerateFromMedianCuts(L_HEAP *lh, l_int32 *histo,
                                               l_int32 sigbits);
 static l_int32 vboxGetAverageColor(L_BOX3D *vbox, l_int32 *histo,
                                    l_int32 sigbits, l_int32 index,
@@ -292,7 +292,7 @@ l_int32    w, h, minside, factor;
 l_int32   *histo;
 l_float32  pixfract, colorfract;
 L_BOX3D   *vbox, *vbox1, *vbox2;
-PHEAP     *ph, *phs;
+L_HEAP    *lh, *lhs;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
@@ -385,15 +385,15 @@ PIXCMAP   *cmap;
         /* For a fraction 'popcolors' of the desired 'maxcolors',
          * generate median cuts based on population, putting
          * everything on a priority queue sorted by population. */
-    ph = pheapCreate(0, L_SORT_DECREASING);
-    pheapAdd(ph, vbox);
+    lh = lheapCreate(0, L_SORT_DECREASING);
+    lheapAdd(lh, vbox);
     ncolors = 1;
     niters = 0;
     popcolors = (l_int32)(FRACT_BY_POPULATION * maxcolors);
     while (1) {
-        vbox = (L_BOX3D *)pheapRemove(ph);
+        vbox = (L_BOX3D *)lheapRemove(lh);
         if (vboxGetCount(vbox, histo, sigbits) == 0)  { /* just put it back */
-            pheapAdd(ph, vbox);
+            lheapAdd(lh, vbox);
             continue;
         }
         medianCutApply(histo, sigbits, vbox, &vbox1, &vbox2);
@@ -404,11 +404,11 @@ PIXCMAP   *cmap;
         if (vbox1->vol > 1)
             vbox1->sortparam = vbox1->npix;
         FREE(vbox);
-        pheapAdd(ph, vbox1);
+        lheapAdd(lh, vbox1);
         if (vbox2) {  /* vbox2 can be NULL */
             if (vbox2->vol > 1)
                 vbox2->sortparam = vbox2->npix;
-            pheapAdd(ph, vbox2);
+            lheapAdd(lh, vbox2);
             ncolors++;
         }
         if (ncolors >= popcolors)
@@ -421,19 +421,19 @@ PIXCMAP   *cmap;
 
         /* Re-sort by the product of pixel occupancy times the size
 	 * in color space. */
-    phs = pheapCreate(0, L_SORT_DECREASING);
-    while ((vbox = (L_BOX3D *)pheapRemove(ph))) {
+    lhs = lheapCreate(0, L_SORT_DECREASING);
+    while ((vbox = (L_BOX3D *)lheapRemove(lh))) {
         vbox->sortparam = vbox->npix * vbox->vol;
-        pheapAdd(phs, vbox);
+        lheapAdd(lhs, vbox);
     }
-    pheapDestroy(&ph, TRUE);
+    lheapDestroy(&lh, TRUE);
 
         /* For the remaining (maxcolors - popcolors), generate the
          * median cuts using the (npix * vol) sorting. */
     while (1) {
-        vbox = (L_BOX3D *)pheapRemove(phs);
+        vbox = (L_BOX3D *)lheapRemove(lhs);
         if (vboxGetCount(vbox, histo, sigbits) == 0)  { /* just put it back */
-            pheapAdd(phs, vbox);
+            lheapAdd(lhs, vbox);
             continue;
         }
         medianCutApply(histo, sigbits, vbox, &vbox1, &vbox2);
@@ -444,11 +444,11 @@ PIXCMAP   *cmap;
         if (vbox1->vol > 1)
             vbox1->sortparam = vbox1->npix * vbox1->vol;
         FREE(vbox);
-        pheapAdd(phs, vbox1);
+        lheapAdd(lhs, vbox1);
         if (vbox2) {  /* vbox2 can be NULL */
             if (vbox2->vol > 1)
                 vbox2->sortparam = vbox2->npix * vbox2->vol;
-            pheapAdd(phs, vbox2);
+            lheapAdd(lhs, vbox2);
             ncolors++;
         }
         if (ncolors >= maxcolors)
@@ -461,16 +461,16 @@ PIXCMAP   *cmap;
 
         /* Re-sort by pixel occupancy.  This is not necessary,
          * but it makes a more useful listing.  */
-    ph = pheapCreate(0, L_SORT_DECREASING);
-    while ((vbox = (L_BOX3D *)pheapRemove(phs))) {
+    lh = lheapCreate(0, L_SORT_DECREASING);
+    while ((vbox = (L_BOX3D *)lheapRemove(lhs))) {
         vbox->sortparam = vbox->npix;
 /*        vbox->sortparam = vbox->npix * vbox->vol; */
-        pheapAdd(ph, vbox);
+        lheapAdd(lh, vbox);
     }
-    pheapDestroy(&phs, TRUE);
+    lheapDestroy(&lhs, TRUE);
 
         /* Generate colormap from median cuts and quantize pixd */
-    cmap = pixcmapGenerateFromMedianCuts(ph, histo, sigbits);
+    cmap = pixcmapGenerateFromMedianCuts(lh, histo, sigbits);
     if (outdepth == 0) {
         ncolors = pixcmapGetCount(cmap);
         if (ncolors <= 2)
@@ -485,7 +485,7 @@ PIXCMAP   *cmap;
     pixd = pixQuantizeWithColormap(pixs, ditherflag, outdepth, cmap,
                                    histo, histosize, sigbits);
 
-    pheapDestroy(&ph, TRUE);
+    lheapDestroy(&lh, TRUE);
     FREE(histo);
     return pixd;
 }
@@ -1105,7 +1105,7 @@ L_BOX3D  *vbox1, *vbox2;
 /*!
  *  pixcmapGenerateFromMedianCuts()
  *
- *      Input:  ph (priority queue of pointers to vboxes)
+ *      Input:  lh (priority queue of pointers to vboxes)
  *              histo
  *              sigbits (valid: 5 or 6)
  *      Return: cmap, or null on error
@@ -1119,7 +1119,7 @@ L_BOX3D  *vbox1, *vbox2;
  *          by mapping the rgb value to the histo array index.
  */
 static PIXCMAP *
-pixcmapGenerateFromMedianCuts(PHEAP    *ph,
+pixcmapGenerateFromMedianCuts(L_HEAP   *lh,
                               l_int32  *histo,
                               l_int32   sigbits)
 {
@@ -1129,15 +1129,15 @@ PIXCMAP  *cmap;
 
     PROCNAME("pixcmapGenerateFromMedianCuts");
 
-    if (!ph) 
-        return (PIXCMAP *)ERROR_PTR("ph not defined", procName, NULL);
+    if (!lh) 
+        return (PIXCMAP *)ERROR_PTR("lh not defined", procName, NULL);
     if (!histo) 
         return (PIXCMAP *)ERROR_PTR("histo not defined", procName, NULL);
 
     cmap = pixcmapCreate(8);
     index = 0;
-    while (pheapGetCount(ph) > 0) {
-        vbox = (L_BOX3D *)pheapRemove(ph);
+    while (lheapGetCount(lh) > 0) {
+        vbox = (L_BOX3D *)lheapRemove(lh);
 	vboxGetAverageColor(vbox, histo, sigbits, index, &rval, &gval, &bval);
 	pixcmapAddColor(cmap, rval, gval, bval);
 	FREE(vbox);

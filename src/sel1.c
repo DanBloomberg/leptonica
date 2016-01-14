@@ -746,6 +746,9 @@ selGetElement(SEL      *sel,
 {
     PROCNAME("selGetElement");
 
+    if (!ptype)
+        return ERROR_INT("&type not defined", procName, 1);
+    *ptype = SEL_DONT_CARE;
     if (!sel)
         return ERROR_INT("sel not defined", procName, 1);
     if (row < 0 || row >= sel->sy)
@@ -811,6 +814,10 @@ selGetParameters(SEL      *sel,
 {
     PROCNAME("selGetParameters");
 
+    if (psy) *psy = 0;
+    if (psx) *psx = 0;
+    if (pcy) *pcy = 0;
+    if (pcx) *pcx = 0;
     if (!sel)
         return ERROR_INT("sel not defined", procName, 1);
     if (psy) *psy = sel->sy; 
@@ -858,11 +865,11 @@ l_int32  sx, sy, cx, cy, i, j;
 
     PROCNAME("selGetTypeAtOrigin");
 
-    if (!sel)
-        return ERROR_INT("sel not defined", procName, 1);
     if (!ptype)
         return ERROR_INT("&type not defined", procName, 1);
     *ptype = SEL_DONT_CARE;  /* init */
+    if (!sel)
+        return ERROR_INT("sel not defined", procName, 1);
 
     selGetParameters(sel, &sy, &sx, &cy, &cx);
     for (i = 0; i < sy; i++) {
@@ -1053,6 +1060,12 @@ l_int32  index;
 
     PROCNAME("selaGetSelnames");
 
+    if (psize1) *psize1 = 0;
+    if (psize2) *psize2 = 0;
+    if (pnameh1) *pnameh1 = NULL;
+    if (pnameh2) *pnameh2 = NULL;
+    if (pnamev1) *pnamev1 = NULL;
+    if (pnamev2) *pnamev2 = NULL;
     if (size < 2 || size > 63)
         return ERROR_INT("valid size range is {2 ... 63}", procName, 1);
     index = size - 2;
@@ -2069,7 +2082,7 @@ l_uint32  pixval;
  *  selDisplayInPix()
  *
  *      Input:  sel
- *              size (of grid interiors; odd; minimum size of 17 is enforced)
+ *              size (of grid interiors; odd; minimum size of 13 is enforced)
  *              gthick (grid thickness; minimum size of 2 is enforced)
  *      Return: pix (display of sel), or null on error
  *
@@ -2095,9 +2108,9 @@ PTA     *pta1, *pta2, *pta1t, *pta2t;
 
     if (!sel)
         return (PIX *)ERROR_PTR("sel not defined", procName, NULL);
-    if (size < 17) {
-        L_WARNING("size < 17; setting to 17", procName);
-        size = 17;
+    if (size < 13) {
+        L_WARNING("size < 13; setting to 13", procName);
+        size = 13;
     }
     if (size % 2 == 0)
         size++;
@@ -2177,7 +2190,6 @@ PTA     *pta1, *pta2, *pta1t, *pta2t;
     ptaDestroy(&pta1t);
     ptaDestroy(&pta2);
     ptaDestroy(&pta2t);
-
     return pixd;
 }
 
@@ -2186,7 +2198,7 @@ PTA     *pta1, *pta2, *pta1t, *pta2t;
  *  selaDisplayInPix()
  *
  *      Input:  sela
- *              size (of grid interiors; odd; minimum size of 17 is enforced)
+ *              size (of grid interiors; odd; minimum size of 13 is enforced)
  *              gthick (grid thickness; minimum size of 2 is enforced)
  *              spacing (between sels, both horizontally and vertically)
  *              ncols (number of sels per "line")
@@ -2214,9 +2226,9 @@ SEL     *sel;
 
     if (!sela)
         return (PIX *)ERROR_PTR("sela not defined", procName, NULL);
-    if (size < 17) {
-        L_WARNING("size < 17; setting to 17", procName);
-        size = 17;
+    if (size < 13) {
+        L_WARNING("size < 13; setting to 13", procName);
+        size = 13;
     }
     if (size % 2 == 0)
         size++;

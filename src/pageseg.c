@@ -158,7 +158,7 @@ PIX     *pixtb;    /* textblock mask */
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
 	ptaaWrite("/tmp/junk_tb_outlines.ptaa", ptaa, 1);
-        pixt1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 16, 1);
+        pixt1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
         cmap = pixGetColormap(pixt1);
         pixcmapResetColor(cmap, 0, 130, 130, 130);
         pixDisplay(pixt1, 500, 100);

@@ -33,6 +33,7 @@
  *           PIX        *pixConvertRGBToLuminance()
  *           PIX        *pixConvertRGBToGray()
  *           PIX        *pixConvertRGBToGrayFast()
+ *           PIX        *pixConvertRGBToGrayMinMax()
  *
  *      Conversion from grayscale to colormap
  *           PIX        *pixConvertGrayToColormap()  -- 2, 4, 8 bpp
@@ -732,6 +733,68 @@ PIX       *pixd;
 }
 
 
+/*!
+ *  pixConvertRGBToGrayMinMax()
+ *
+ *      Input:  pix (32 bpp RGB)
+ *              type (L_CHOOSE_MIN or L_CHOOSE_MAX)
+ *      Return: 8 bpp pix, or null on error
+ *
+ *  Notes:
+ *      (1) @type chooses among the 3 color components for each pixel
+ *      (2) This is useful when looking for the maximum deviation
+ *          of a component from either 0 or 255.  For finding the
+ *          deviation of a single component, it is more sensitive
+ *          than using a weighted average.
+ */
+PIX *
+pixConvertRGBToGrayMinMax(PIX     *pixs,
+                          l_int32  type)
+{
+l_int32    i, j, w, h, wpls, wpld, rval, gval, bval, val;
+l_uint32  *datas, *lines, *datad, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixConvertRGBToGrayMinMax");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
+        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    if ((pixd = pixCreate(w, h, 8)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            if (type == L_CHOOSE_MIN) {
+                val = L_MIN(rval, gval);
+                val = L_MIN(val, bval);
+            }
+            else {  /* type == L_CHOOSE_MAX */
+                val = L_MAX(rval, gval);
+                val = L_MAX(val, bval);
+            }
+            SET_DATA_BYTE(lined, j, val);
+        }
+    }
+
+    return pixd;
+}
+
+
+
 /*---------------------------------------------------------------------------*
  *                  Conversion from grayscale to colormap                    *
  *---------------------------------------------------------------------------*/
@@ -1032,6 +1095,7 @@ PIX     *pixd;
  *                         from pixColorsForQuantization(); use 0 for default)
  *              mingraycolors (min number of gray levels that a grayscale
  *                             image is quantized to; use 0 for default)
+ *              octlevel (for octcube quantization: 3 or 4)
  *              &pixd (2, 4 or 8 bpp quantized; null if too many colors)
  *      Return: 0 if OK, 1 on error or if pixs can't be quantized into
  *              a small number of colors.
@@ -1045,12 +1109,16 @@ PIX     *pixd;
  *          If the image is essentially grayscale, the pixels are
  *          either 4 or 8 bpp, depending on the size of the required
  *          colormap.
- *      (3) If the image already has a colormap, it returns a clone.
+ *      (3) @octlevel = 3 works well for most images.  However, for best
+ *          quality, at a cost of more colors in the colormap, use
+ *          @octlevel = 4.
+ *      (4) If the image already has a colormap, it returns a clone.
  */
 l_int32
 pixQuantizeIfFewColors(PIX     *pixs,
                        l_int32  maxcolors,
                        l_int32  mingraycolors,
+                       l_int32  octlevel,
                        PIX    **ppixd)
 {
 l_int32  d, ncolors, iscolor, graycolors;
@@ -1078,6 +1146,10 @@ PIX     *pixg, *pixd;
         mingraycolors = 10;  /* default */
     if (mingraycolors > 30)
         L_WARNING("mingraycolors > 30; very large!", procName);
+    if (octlevel != 3 && octlevel != 4) {
+        L_WARNING("invalid octlevel; setting to 3", procName);
+        octlevel = 3;
+    }
 
         /* Test the number of colors.  For color, the octcube leaves
          * are at level 4. */
@@ -1085,13 +1157,24 @@ PIX     *pixg, *pixd;
     if (ncolors > maxcolors)
         return ERROR_INT("too many colors", procName, 1);
 
-        /* Quantize.  For color, the occupied octcube leaves are
-         * at level 3, because (1) the quality is good enough and (2) there
-         * is negligible chance of getting more than 256 colors.
-         * For grayscale, multiply ncolors by 1.5 for extra quality,
-         * but use at least mingraycolors. */
-    if (iscolor)
-        pixd = pixFewColorsOctcubeQuant1(pixs, 3);
+        /* Quantize!
+         *  (1) For color:
+         *      If octlevel == 4, try to quantize to an octree where
+         *      the octcube leaves are at level 4. If that fails,
+         *      back off to level 3.
+         *      If octlevel == 3, quantize to level 3 directly.
+         *      For level 3, the quality is usually good enough and there
+         *      is negligible chance of getting more than 256 colors.
+         *  (2) For grayscale, multiply ncolors by 1.5 for extra quality,
+         *      but use at least mingraycolors. */
+    if (iscolor) {
+        pixd = pixFewColorsOctcubeQuant1(pixs, octlevel);
+        if (!pixd) {  /* backoff */
+            pixd = pixFewColorsOctcubeQuant1(pixs, octlevel - 1);
+            if (octlevel == 3)  /* shouldn't happen */
+                L_WARNING("quantized at level 2; low quality", procName);
+        }
+    }
     else  { /* image is really grayscale */
         if (d == 32)
             pixg = pixConvertRGBToLuminance(pixs);

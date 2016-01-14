@@ -281,14 +281,14 @@ PIXCMAP  *cmap;
     if (!pixd)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    cmap = pixcmapCreateRandom(8);
+    cmap = pixcmapCreateRandom(8, 1, 1);
     d = pixGetDepth(pixd);
     if (d == 8)  /* colormapped */
         pixSetColormap(pixd, cmap);
 
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
-        index = (i % 254) + 1;
+        index = 1 + (i % 254);
         if (d == 8)
             pixSetInRectArbitrary(pixd, box, index);
         else {  /* d == 32 */
@@ -351,10 +351,10 @@ PIXCMAP  *cmap;
     if ((pixd = pixConvertTo32(pixs)) == NULL)
         return (PIX *)ERROR_PTR("pixd not defined", procName, NULL);
 
-    cmap = pixcmapCreateRandom(8);
+    cmap = pixcmapCreateRandom(8, 1, 1);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
-        index = (i % 254) + 1;
+        index = 1 + (i % 254);
         pixcmapGetColor(cmap, index, &rval, &gval, &bval);
         composeRGBPixel(rval, gval, bval, &val);
         pixBlendInRect(pixd, box, val, fract);
@@ -470,17 +470,17 @@ PTAA     *ptaa;
         /* Input depth = 1 bpp; generate cmapped output */
     if (pixGetDepth(pixs) == 1) {
         ptaa = generatePtaaBoxa(boxa);
-        pixd = pixRenderRandomCmapPtaa(pixs, ptaa, width, 1);
+        pixd = pixRenderRandomCmapPtaa(pixs, ptaa, 1, width, 1);
         ptaaDestroy(&ptaa);
         return pixd;
     }
 
         /* Generate rgb output */
     pixd = pixConvertTo32(pixs);
-    cmap = pixcmapCreateRandom(8);
+    cmap = pixcmapCreateRandom(8, 1, 1);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
-        index = (i % 254) + 1;
+        index = 1 + (i % 254);
         pixcmapGetColor(cmap, index, &rval, &gval, &bval);
         pixRenderBoxArb(pixd, box, width, rval, gval, bval);
         boxDestroy(&box);

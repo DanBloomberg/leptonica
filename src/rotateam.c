@@ -157,7 +157,7 @@ PIX      *pixt1, *pixt2, *pixd;
 /*!
  *  pixRotateAMColor()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (32 bpp)
  *              angle (radians; clockwise is positive)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
  *      Return: pixd, or null on error

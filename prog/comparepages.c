@@ -35,8 +35,7 @@ NUMAA       *naa1, *naa1r, *naa2;
 PIX         *pixs, *pixt, *pixb1, *pixb2;
 static char  mainName[] = "comparepages";
 
-#if 1
-    pixs = pixRead("lucasta.1.300.tif");
+    pixs = pixRead("lucasta-47.jpg");
     pixb1 = pixConvertTo1(pixs, 128);
     pixGetWordBoxesInTextlines(pixb1, 1, 10, 10, 500, 50, &boxa1, &nai1);
     pixt = pixDrawBoxaRandom(pixs, boxa1, 2);
@@ -47,41 +46,59 @@ static char  mainName[] = "comparepages";
     naa1r = numaaRead("junknaa1");
     numaaWrite("junknaa1r", naa1r);
     n = numaaGetCount(naa1);
-    fprintf(stderr, "n = %d\n", n);
+    fprintf(stderr, "Number of textlines = %d\n", n);
+    pixDisplay(pixb1, 300, 0);
 
+        /* Translate */
     pixb2 = pixCreateTemplate(pixb1);
     pixGetDimensions(pixb1, &w, &h, NULL);
-
-#if 1
-        /* Translation */
     pixRasterop(pixb2, 148, 133, w, h, PIX_SRC, pixb1, 0, 0);
-#elif 0
-        /* Aligned part is below h/3 */
-    pixRasterop(pixb2, 0, 0, w, h / 3, PIX_SRC, pixb1, 0, 2 * h / 3);
-    pixRasterop(pixb2, 0, h / 3, w, 2 * h / 3, PIX_SRC, pixb1, 0, h / 3);
-#else
-        /* Top and bottom switched; no aligned parts */
-    pixRasterop(pixb2, 0, 0, w, h / 3, PIX_SRC, pixb1, 0, 2 * h / 3);
-    pixRasterop(pixb2, 0, h / 3, w, 2 * h / 3, PIX_SRC, pixb1, 0, 0);
-#endif
-    pixDisplay(pixb1, 300, 0);
-    pixDisplay(pixb2, 700, 0);
+    pixDisplay(pixb2, 600, 0);
     pixGetWordBoxesInTextlines(pixb2, 1, 10, 10, 500, 50, &boxa2, &nai2);
     naa2 = boxaExtractSortedPattern(boxa2, nai2);
-
     numaaCompareImagesByBoxes(naa1, naa2, 5, 10, 150, 150, 20, 20, &same, 1);
-    fprintf(stderr, "same?: %d\n", same);
-    boxaDestroy(&boxa1);
+    fprintf(stderr, "Translation.  same?: %d\n\n", same);
     boxaDestroy(&boxa2);
-    numaDestroy(&nai1);
     numaDestroy(&nai2);
+    pixDestroy(&pixb2);
+    numaaDestroy(&naa2);
+
+        /* Aligned part is below h/3 */
+    pixb2 = pixCreateTemplate(pixb1);
+    pixGetDimensions(pixb1, &w, &h, NULL);
+    pixRasterop(pixb2, 0, 0, w, h / 3, PIX_SRC, pixb1, 0, 2 * h / 3);
+    pixRasterop(pixb2, 0, h / 3, w, 2 * h / 3, PIX_SRC, pixb1, 0, h / 3);
+    pixDisplay(pixb2, 900, 0);
+    pixGetWordBoxesInTextlines(pixb2, 1, 10, 10, 500, 50, &boxa2, &nai2);
+    naa2 = boxaExtractSortedPattern(boxa2, nai2);
+    numaaCompareImagesByBoxes(naa1, naa2, 5, 10, 150, 150, 20, 20, &same, 1);
+    fprintf(stderr, "Aligned part below h/3.  same?: %d\n\n", same);
+    boxaDestroy(&boxa2);
+    numaDestroy(&nai2);
+    pixDestroy(&pixb2);
+    numaaDestroy(&naa2);
+
+        /* Top and bottom switched; no aligned parts */
+    pixb2 = pixCreateTemplate(pixb1);
+    pixGetDimensions(pixb1, &w, &h, NULL);
+    pixRasterop(pixb2, 0, 0, w, h / 3, PIX_SRC, pixb1, 0, 2 * h / 3);
+    pixRasterop(pixb2, 0, h / 3, w, 2 * h / 3, PIX_SRC, pixb1, 0, 0);
+    pixDisplay(pixb2, 1200, 0);
+    pixGetWordBoxesInTextlines(pixb2, 1, 10, 10, 500, 50, &boxa2, &nai2);
+    naa2 = boxaExtractSortedPattern(boxa2, nai2);
+    numaaCompareImagesByBoxes(naa1, naa2, 5, 10, 150, 150, 20, 20, &same, 1);
+    fprintf(stderr, "Top/Bot switched; no alignment.  Same?: %d\n", same);
+    boxaDestroy(&boxa2);
+    numaDestroy(&nai2);
+    pixDestroy(&pixb2);
+    numaaDestroy(&naa2);
+
+    boxaDestroy(&boxa1);
+    numaDestroy(&nai1);
     pixDestroy(&pixs);
     pixDestroy(&pixb1);
-    pixDestroy(&pixb2);
     pixDestroy(&pixt);
     numaaDestroy(&naa1);
     numaaDestroy(&naa1r);
-    numaaDestroy(&naa2);
-#endif
-
+    return 0;
 }

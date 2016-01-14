@@ -2106,8 +2106,7 @@ PTA       *ptac, *ptact, *ptaul;
             idely = (l_int32)(dely - 0.5);
         if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
             return ERROR_INT("box not found", procName, 1);
-        x = box->x;
-        y = box->y;
+        boxGetGeometry(box, &x, &y, NULL, NULL);
 
             /* Get final increments dx and dy for best alignment */
         pixt = pixaGetPix(classer->pixat, iclass, L_CLONE);

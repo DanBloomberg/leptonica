@@ -79,6 +79,8 @@
  *           l_int32   ptaGetLinearLSF()
  *           PTA      *ptaGetPixelsFromPix()
  *           PIX      *pixGenerateFromPta()
+ *           PTA      *ptaGetBoundaryPixels()
+ *           PTAA     *ptaaGetBoundaryPixels()
  */
 
 #include <stdio.h>
@@ -1628,33 +1630,37 @@ PTA       *ptad;
  *      Input:  pta
  *              &a  (<optional return> slope a of least square fit: y = ax + b)
  *              &b  (<optional return> intercept b of least square fit)
+ *              &nafit (<optional return> numa of least square fit)
  *      Return: 0 if OK, 1 on error
  *
- *  At least one of &a and &b must not be null.
- *  If both &a and &b are defined, this returns a and b that minimize:
+ *  Notes:
+ *      (1) At least one of: &a and &b must not be null.
+ *      (2) If both &a and &b are defined, this returns a and b that minimize:
  *
- *       sum (yi - axi -b)^2
- *        i
+ *              sum (yi - axi -b)^2
+ *               i
  *
- *  The method is simple: differentiate this expression w/rt a and b,
- *  and solve the resulting two equations for a and b in terms of
- *  various sums over the input data (xi, yi).
- *
- *  We also allow two special cases, where either a = 0 or b = 0:
- *
- *    (1) If &a is given and &b = null, find the linear LSF that
- *        goes through the origin (b = 0).
- *
- *    (2) If &b is given and &a = null, find the linear LSF with
- *        zero slope (a = 0).
+ *          The method is simple: differentiate this expression w/rt a and b,
+ *          and solve the resulting two equations for a and b in terms of
+ *          various sums over the input data (xi, yi).
+ *      (3) We also allow two special cases, where either a = 0 or b = 0:
+ *           (a) If &a is given and &b = null, find the linear LSF that
+ *               goes through the origin (b = 0).
+ *           (b) If &b is given and &a = null, find the linear LSF with
+ *               zero slope (a = 0).
+ *      (4) If @nafit is defined, this returns an array of fitted values,
+ *          corresponding to the two implicit Numa arrays (nax and nay) in pta.
+ *          Thus, just as you can plot the data in pta as nay vs. nax,
+ *          you can plot the linear least square fit as nafit vs. nax.
  */
 l_int32
 ptaGetLinearLSF(PTA        *pta,
                 l_float32  *pa,
-                l_float32  *pb)
+                l_float32  *pb,
+                NUMA      **pnafit)
 {
 l_int32     n, i;
-l_float32   factor, sx, sy, sxx, sxy;
+l_float32   factor, sx, sy, sxx, sxy, val;
 l_float32  *xa, *ya;
 
     PROCNAME("ptaGetLinearLSF");
@@ -1702,6 +1708,14 @@ l_float32  *xa, *ya;
         *pb = sy / (l_float32)n;
     }
 
+    if (pnafit) {
+        *pnafit = numaCreate(n);
+        for (i = 0; i < n; i++) {
+            val = (*pa) * xa[i] + *pb;
+            numaAddNumber(*pnafit, val);
+        }
+    }
+
     return 0;
 }
 
@@ -1709,35 +1723,44 @@ l_float32  *xa, *ya;
 /*!
  *  ptaGetPixelsFromPix()
  *
- *      Input: pixs (1 bpp)
+ *      Input:  pixs (1 bpp)
+ *              box (<optional> can be null)
  *      Return: pta, or null on error
  *
- *  Note: Generates a pta of fg pixels.
+ *  Notes:
+ *      (1) Generates a pta of fg pixels in the pix, within the box.
+ *          If box == NULL, it uses the entire pix.
  */
 PTA *
-ptaGetPixelsFromPix(PIX  *pixs)
+ptaGetPixelsFromPix(PIX  *pixs,
+                    BOX  *box)
 {
-l_int32    i, j, w, h, wpl;
+l_int32    i, j, w, h, wpl, xstart, xend, ystart, yend, bw, bh;
 l_uint32  *data, *line;
 PTA       *pta;
 
-    PROCNAME("pixGetPixelsFromPix");
+    PROCNAME("ptaGetPixelsFromPix");
 
-    if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 1)
-        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
+    xstart = ystart = 0;
+    xend = w - 1;
+    yend = h - 1;
+    if (box) {
+        boxGetGeometry(box, &xstart, &ystart, &bw, &bh);
+        xend = xstart + bw - 1;
+        yend = ystart + bh - 1;
+    }
 
     if ((pta = ptaCreate(0)) == NULL)
         return (PTA *)ERROR_PTR("pta not made", procName, NULL);
-    for (i = 0; i < h; i++) {
+    for (i = ystart; i <= yend; i++) {
         line = data + i * wpl;
-        for (j = 0; j < w; j++) {
+        for (j = xstart; j <= xend; j++) {
             if (GET_DATA_BIT(line, j))
                 ptaAddPt(pta, j, i);
         }
@@ -1783,6 +1806,125 @@ PIX       *pix;
     }
 
     return pix;
+}
+
+
+/*!
+ *  ptaGetBoundaryPixels()
+ *
+ *      Input:  pixs (1 bpp)
+ *              type (L_BOUNDARY_FG, L_BOUNDARY_BG)
+ *      Return: pta, or null on error
+ *
+ *  Notes:
+ *      (1) This generates a pta of either fg or bg boundary pixels.
+ */
+PTA *
+ptaGetBoundaryPixels(PIX     *pixs,
+                     l_int32  type)
+{
+PIX       *pixt;
+PTA       *pta;
+
+    PROCNAME("ptaGetBoundaryPixels");
+
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (type != L_BOUNDARY_FG && type != L_BOUNDARY_BG)
+        return (PTA *)ERROR_PTR("invalid type", procName, NULL);
+
+    if (type == L_BOUNDARY_FG)
+        pixt = pixMorphSequence(pixs, "e3.3", 0);
+    else
+        pixt = pixMorphSequence(pixs, "d3.3", 0);
+    pixXor(pixt, pixt, pixs);
+    pta = ptaGetPixelsFromPix(pixt, NULL);
+
+    pixDestroy(&pixt);
+    return pta;
+}
+
+
+/*!
+ *  ptaaGetBoundaryPixels()
+ *
+ *      Input:  pixs (1 bpp)
+ *              type (L_BOUNDARY_FG, L_BOUNDARY_BG)
+ *              connectivity (4 or 8)
+ *              &boxa (<optional return> bounding boxes of the c.c.)
+ *              &pixa (<optional return> pixa of the c.c.)
+ *      Return: ptaa, or null on error
+ *
+ *  Notes:
+ *      (1) This generates a ptaa of either fg or bg boundary pixels,
+ *          where each pta has the boundary pixels for a connected
+ *          component.
+ *      (2) We can't simply find all the boundary pixels and then select
+ *          those within the bounding box of each component, because
+ *          bounding boxes can overlap.  It is necessary to extract and
+ *          dilate or erode each component separately.  Note also that
+ *          special handling is required for bg pixels when the
+ *          component touches the pix boundary.
+ */
+PTAA *
+ptaaGetBoundaryPixels(PIX     *pixs,
+                      l_int32  type,
+                      l_int32  connectivity,
+                      BOXA   **pboxa,
+                      PIXA   **ppixa)
+{
+l_int32  i, n, w, h, x, y, bw, bh, left, right, top, bot;
+BOXA    *boxa;
+PIX     *pixt1, *pixt2;
+PIXA    *pixa;
+PTA     *pta1, *pta2;
+PTAA    *ptaa;
+
+    PROCNAME("ptaaGetBoundaryPixels");
+
+    if (pboxa) *pboxa = NULL;
+    if (ppixa) *ppixa = NULL;
+    if (!pixs || (pixGetDepth(pixs) != 1))
+        return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (type != L_BOUNDARY_FG && type != L_BOUNDARY_BG)
+        return (PTAA *)ERROR_PTR("invalid type", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PTAA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    boxa = pixConnComp(pixs, &pixa, connectivity);
+    n = boxaGetCount(boxa);
+    ptaa = ptaaCreate(0);
+    for (i = 0; i < n; i++) {
+        pixt1 = pixaGetPix(pixa, i, L_CLONE);
+        boxaGetBoxGeometry(boxa, i, &x, &y, &bw, &bh);
+        left = right = top = bot = 0;
+        if (type == L_BOUNDARY_BG) {
+            if (x > 0) left = 1;
+            if (y > 0) top = 1;
+            if (x + bw < w) right = 1;
+            if (y + bh < h) bot = 1;
+            pixt2 = pixAddBorderGeneral(pixt1, left, right, top, bot, 0);
+        }
+        else
+            pixt2 = pixClone(pixt1);
+        pta1 = ptaGetBoundaryPixels(pixt2, type);
+        pta2 = ptaTransform(pta1, x - left, y - top, 1.0, 1.0);
+        ptaaAddPta(ptaa, pta2, L_INSERT);
+        ptaDestroy(&pta1);
+        pixDestroy(&pixt1);
+        pixDestroy(&pixt2);
+    }
+
+    if (pboxa)
+        *pboxa = boxa;
+    else
+        boxaDestroy(&boxa);
+    if (ppixa)
+        *ppixa = pixa;
+    else
+        pixaDestroy(&pixa);
+    return ptaa;
 }
 
 

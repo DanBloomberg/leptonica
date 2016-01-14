@@ -168,10 +168,12 @@ PIX   *pix;
  *  pixReadWithHint()
  *
  *      Input:  filename (with full pathname or in local directory)
- *              hint: a bitwise OR of L_HINT_* values. These are not
- *                    binding, but may be used to optimize the
- *                    decoding of images.
+ *              hint (bitwise OR of L_HINT_* values for jpeg; use 0 for no hint)
  *      Return: pix if OK; null on error
+ *
+ *  Notes:
+ *      (1) The hint is not binding, but may be used to optimize jpeg decoding.
+ *          Use 0 for no hinting.
  */
 PIX *
 pixReadWithHint(const char  *filename,
@@ -199,9 +201,12 @@ PIX   *pix;
 /*!
  *  pixReadStream()
  *
- *      Input:  file stream
- *              hint: a bitwise OR of L_HINT_* values
+ *      Input:  fp (file stream)
+ *              hint (bitwise OR of L_HINT_* values for jpeg; use 0 for no hint)
  *      Return: pix if OK; null on error
+ *
+ *  Notes:
+ *      (1) The hint only applies to jpeg.
  */
 PIX *
 pixReadStream(FILE    *fp,
@@ -275,7 +280,7 @@ PIX     *pix;
 /*!
  *  findFileFormat()
  *
- *      Input:  fp
+ *      Input:  fp (file stream)
  *      Return: format integer; 0 on error or if format not recognized
  *
  *  N.B.: this resets fp to BOF
@@ -388,7 +393,7 @@ l_uint16  twobytepw;
 /*!
  *  fileFormatIsTiff()
  *
- *      Input:  fp
+ *      Input:  fp (file stream)
  *      Return: 1 if file is tiff; 0 otherwise or on error
  */
 l_int32

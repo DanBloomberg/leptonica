@@ -22,6 +22,63 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.61   26 Apr 09
+       New histo-based grayscale quantization: pixGrayQuantizeFromHisto(),
+       that is used in new pixQuanitzeIfFewColorsMixed().
+       Made final fix in pixBlockconv().  No underflows; no more overflows!
+       More efficient rgb write with pnm.
+       Add proto to jpegiostub.c, allowing proper use of the stubber.
+       Fix several filter functions to use proper test on filter size; viz.,
+         pixMinMaxTiles(), several functions in convolve.c.
+       Redo shear implementation to handle arbitrary angles, to handle
+         colormapped images, and to avoid the singularity at pi/2.
+       Removed both static vars from pixSaveTiled().
+       Generalized pixRotate() to handle colormapped images, and to use
+         pixRotateBySampling() in place of the removed pixRotateEuclidean().
+       New skew finder for full angle range, pixFindSkewOrthogonalRange().
+       For skew detection, now allow shear about image center as well as
+         about the UL corner.
+       New rotation reg tests: rotate1_reg.c and rotate2_reg.c.
+       Better serialization format for boxaa; introduce new version numbers
+         for boxaa, pixa, and boxa, as required.
+       Proper init in boxGetGeometry(), boxaGetBoxGeometry(), and the
+         accessors in sel1.c and kernel.c.
+       Improved Numa functions in numafunc1.c and numafunc2.c; in
+         particular, numaMakeHistogramAuto() and numaGetStatsUsingHistogram().
+         With all histo generators, make sure the start and binsize params
+         are properly set and are used.
+         Interface change: Use these parameters implicitly in
+         numaHistogramGetRankFromVal() and numaHistogramGetValFromRank().
+       Interface change to ptaGetLinearLSF(): add 1 optional parameter.
+       In several pixaDisplay*() functions, handle colormaps properly.
+       pixafunc.c split to pixafunc1.c and pixafunc2.c.
+         New connected component selections and options in pixaSort.
+       Patch from Tony Dovgal for reading tiff rgba files.
+       Added new logical operation options for numas.
+       New pixConvertRGBToGrayMinMax() that chooses min or max of 3 components.
+       Computation of pixelwise aligned stats between multiple images
+         of the same size (e.g., video), in pix4.c.
+       Very fast binsort implemented for boxa and pixa.
+       Cleanup and rename stack, queue, heap and ptra functions:
+         all structs and typedefs start with "L_"
+         all functions start with "l"
+       Sel creation for crosses and T junctions.
+       New thresholding operations to binary; split out from adaptmap.c
+         into binarize.c.
+       Implementation of sauvola binarization, including use of pixtiling.
+       Added composite parallel union and intersection morphological operations.
+       Small changes to scaling and rotation to improve accuracy; only
+         visible on very tiny, symmetric images.
+       Implemented DPix (double precision data); useful for the mean
+         square accumulator for sauvola binarization.
+       New fast hybrid grayscale seedfill, in addition to the interative
+         version (contributed by Ankur Jain).
+       New or improved regression tests:
+         rotate1_reg, rotate2_reg, shear_reg, numa_reg, skew_reg,
+         ptra1_reg, ptra2_reg, paint_reg, smallpix_reg, pta_reg,
+         pixmem_reg, binarize_reg.c, grayfill_reg.c.
+
+
 1.60   19 Jan 09
        Fixed bug in pixBlockconv(), introduced in 1.59, that causes
        overflow when convolving with an image that has white (255)
@@ -30,6 +87,8 @@ They are <i>not</i> a complete listing of the modifications.
        The files freetype.c and freetype.h are in the distribution, but are not
        yet linked into the library.  This is contributed by Tony Dovgal,
        and this version works only for MSVC.
+       Found that the problems with binary compression in giflib are fixed
+       with giflib 4.1.6.
 
 1.59   11 Jan 09
        Lots of changes since 1.58.

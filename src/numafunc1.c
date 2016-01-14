@@ -27,11 +27,12 @@
  *          l_int32      numaGetSum()
  *          NUMA        *numaGetPartialSums()
  *          l_int32      numaGetSumOnInterval()
+ *          l_int32      numaHasOnlyIntegers()
  *          NUMA        *numaSubsample()
  *          NUMA        *numaMakeSequence()
  *          NUMA        *numaMakeConstant()
  *          l_int32      numaGetNonzeroRange()
- *          l_int32      numaGetNonzeroCount()
+ *          l_int32      numaGetCountRelativeToZero()
  *          NUMA        *numaClipToInterval()
  *          NUMA        *numaMakeThresholdIndicator()
  *
@@ -60,6 +61,7 @@
  *
  *      Numa combination
  *          l_int32      numaJoin()
+ *          NUMA        *numaaFlattenToNuma()
  *
  *
  *    Things to remember when using the Numa:
@@ -171,7 +173,7 @@ l_float32  val1, val2;
  *      Input:  nad (<optional> can be null or equal to na1 (in-place)
  *              na1
  *              na2
- *              op (L_UNION, L_INTERSECTION)
+ *              op (L_UNION, L_INTERSECTION, L_SUBTRACTION, L_EXCLUSIVE_OR)
  *      Return: nad (always: operation applied to na1 and na2)
  *
  *  Notes:
@@ -180,6 +182,9 @@ l_float32  val1, val2;
  *      (3) This is intended for use with indicator arrays (0s and 1s).
  *          Input data is extracted as integers (0 == false, anything
  *          else == true); output results are 0 and 1.
+ *      (4) L_SUBTRACTION is subtraction of val2 from val1.  For bit logical
+ *          arithmetic this is (val1 & ~val2), but because these values
+ *          are integers, we use (val1 && !val2).
  */
 NUMA *
 numaLogicalOp(NUMA    *nad,
@@ -198,7 +203,8 @@ l_int32  i, n, val1, val2, val;
         return (NUMA *)ERROR_PTR("na1, na2 sizes differ", procName, nad);
     if (nad && nad != na1)
         return (NUMA *)ERROR_PTR("nad defined; not in-place", procName, nad);
-    if (op != L_UNION && op != L_INTERSECTION)
+    if (op != L_UNION && op != L_INTERSECTION &&
+        op != L_SUBTRACTION && op != L_EXCLUSIVE_OR)
         return (NUMA *)ERROR_PTR("invalid op", procName, nad);
             
         /* If nad is not identical to na1, make it an identical copy */
@@ -210,11 +216,19 @@ l_int32  i, n, val1, val2, val;
         numaGetIValue(na2, i, &val2);
         switch (op) {
         case L_UNION:
-            val = (val1 | val2) ? 1 : 0;
+            val = (val1 || val2) ? 1 : 0;
             numaSetValue(nad, i, val);
             break;
         case L_INTERSECTION:
-            val = (val1 & val2) ? 1 : 0;
+            val = (val1 && val2) ? 1 : 0;
+            numaSetValue(nad, i, val);
+            break;
+        case L_SUBTRACTION:
+            val = (val1 && !val2) ? 1 : 0;
+            numaSetValue(nad, i, val);
+            break;
+        case L_EXCLUSIVE_OR:
+            val = ((val1 && !val2) || (!val1 && val2)) ? 1 : 0;
             numaSetValue(nad, i, val);
             break;
         default:
@@ -291,12 +305,12 @@ l_float32  val, minval;
 
     PROCNAME("numaGetMin");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
     if (!pminval && !piminloc)
-        return ERROR_INT("nothing to don", procName, 1);
+        return ERROR_INT("nothing to do", procName, 1);
     if (pminval) *pminval = 0.0;
     if (piminloc) *piminloc = 0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
 
     minval = +1000000000.;
     iminloc = 0;
@@ -333,12 +347,12 @@ l_float32  val, maxval;
 
     PROCNAME("numaGetMax");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
     if (!pmaxval && !pimaxloc)
-        return ERROR_INT("nothing to don", procName, 1);
+        return ERROR_INT("nothing to do", procName, 1);
     if (pmaxval) *pmaxval = 0.0;
     if (pimaxloc) *pimaxloc = 0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
 
     maxval = -1000000000.;
     imaxloc = 0;
@@ -462,6 +476,52 @@ l_float32  val, sum;
         sum += val;
     }
     *psum = sum;
+    return 0;
+}
+
+
+/*!
+ *  numaHasOnlyIntegers()
+ *
+ *      Input:  na
+ *              maxsamples (maximum number of samples to check)
+ *              &allints (<return> 1 if all sampled values are ints; else 0)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Set @maxsamples == 0 to check every integer in na.  Otherwise,
+ *          this samples no more than @maxsamples.
+ */
+l_int32
+numaHasOnlyIntegers(NUMA     *na,
+                    l_int32   maxsamples,
+                    l_int32  *pallints)
+{
+l_int32    i, n, incr;
+l_float32  val;
+
+    PROCNAME("numaHasOnlyIntegers");
+
+    if (!pallints)
+        return ERROR_INT("&allints not defined", procName, 1);
+    *pallints = TRUE;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+
+    if ((n = numaGetCount(na)) == 0)
+        return ERROR_INT("na empty", procName, 1);
+    if (maxsamples <= 0)
+        incr = 1;
+    else
+        incr = (l_int32)((n + maxsamples - 1) / maxsamples);
+    for (i = 0; i < n; i += incr) {
+        numaGetFValue(na, i, &val);        
+        if (val != (l_int32)val) {
+            *pallints = FALSE;
+            return 0;
+        }
+    }
+
     return 0;
 }
 
@@ -1914,6 +1974,44 @@ l_float32  val;
     }
 
     return 0;
+}
+
+
+/*!
+ *  numaaFlattenToNuma()
+ *
+ *      Input:  numaa
+ *      Return: numa, or null on error
+ *
+ *  Notes:
+ *      (1) This 'flattens' the Numaa to a Numa, by joining successively
+ *          each Numa in the Numaa.
+ *      (2) It doesn't make any assumptions about the location of the
+ *          Numas in the Numaa array, unlike most Numaa functions.
+ *      (3) It leaves the input Numaa unchanged.
+ */
+NUMA *
+numaaFlattenToNuma(NUMAA  *naa)
+{
+l_int32  i, nalloc;
+NUMA    *na, *nad;
+NUMA   **array;
+
+    PROCNAME("numaaFlattenToNuma");
+
+    if (!naa)
+        return (NUMA *)ERROR_PTR("naa not defined", procName, NULL);
+
+    nalloc = naa->nalloc;
+    array = numaaGetPtrArray(naa);
+    nad = numaCreate(0);
+    for (i = 0; i < nalloc; i++) {
+        na = array[i];
+        if (!na) continue;
+        numaJoin(nad, na, 0, 0);
+    }
+
+    return nad;
 }
 
 

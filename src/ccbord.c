@@ -1110,7 +1110,6 @@ l_int32
 ccbaGenerateGlobalLocs(CCBORDA  *ccba)
 {
 l_int32  ncc, nb, n, i, j, k, xul, yul, x, y;
-BOX     *box;
 CCBORD  *ccb;
 PTAA    *ptaal, *ptaag;
 PTA     *ptal, *ptag;
@@ -1124,12 +1123,8 @@ PTA     *ptal, *ptag;
     for (i = 0; i < ncc; i++) {
         ccb = ccbaGetCcb(ccba, i);
 
-            /* Get the (xul, yul) of the c.c. */
-        if ((box = boxaGetBox(ccb->boxa, 0, L_CLONE)) == NULL)
-            return ERROR_INT("bounding rectangle not found", procName, 1);
-        xul = box->x;  /* UL corner in global coords */
-        yul = box->y;
-        boxDestroy(&box);
+            /* Get the UL corner in global coords, (xul, yul), of the c.c. */
+        boxaGetBoxGeometry(ccb->boxa, 0, &xul, &yul, NULL, NULL);
 
             /* Make a new global ptaa, removing any old one */
         ptaal = ccb->local;
@@ -1258,7 +1253,6 @@ ccbaStepChainsToPixCoords(CCBORDA  *ccba,
 {
 l_int32  ncc, nb, n, i, j, k;
 l_int32  xul, yul, xstart, ystart, x, y, stepdir;
-BOX     *box;
 BOXA    *boxa;
 CCBORD  *ccb;
 NUMA    *na;
@@ -1289,12 +1283,10 @@ PTA     *ptas, *ptan;
             xul = 0;
             yul = 0;
         }
-        else {   /* coordtype == CCB_GLOBAL_COORDS */
-            if ((box = boxaGetBox(boxa, 0, L_CLONE)) == NULL)
+        else {  /* coordtype == CCB_GLOBAL_COORDS */
+                /* Get UL corner in global coords */
+            if (boxaGetBoxGeometry(boxa, 0, &xul, &yul, NULL, NULL))
                 return ERROR_INT("bounding rectangle not found", procName, 1);
-            xul = box->x;  /* UL corner in global coords */
-            yul = box->y;
-            boxDestroy(&box);
         }
 
             /* Make a new ptaa, removing any old one */
@@ -1361,7 +1353,6 @@ ccbaGenerateSPGlobalLocs(CCBORDA  *ccba,
 {
 l_int32  ncc, npt, i, j, xul, yul, x, y, delx, dely;
 l_int32  xp, yp, delxp, delyp;   /* prev point and increments */
-BOX     *box;
 CCBORD  *ccb;
 PTA     *ptal, *ptag;
 
@@ -1381,12 +1372,9 @@ PTA     *ptal, *ptag;
     for (i = 0; i < ncc; i++) {
         ccb = ccbaGetCcb(ccba, i);
 
-            /* Get the (xul, yul) of the c.c. */
-        if ((box = boxaGetBox(ccb->boxa, 0, L_CLONE)) == NULL)
+            /* Get the UL corner in global coords, (xul, yul), of the c.c. */
+        if (boxaGetBoxGeometry(ccb->boxa, 0, &xul, &yul, NULL, NULL))
             return ERROR_INT("bounding rectangle not found", procName, 1);
-        xul = box->x;  /* UL corner in global coords */
-        yul = box->y;
-        boxDestroy(&box);  /* clone ref */
 
             /* Make a new spglobal pta, removing any old one */
         ptal = ccb->splocal;
@@ -1959,15 +1947,11 @@ PTA     *pta;
             if ((box = boxaGetBox(boxa, j, L_CLONE)) == NULL)
                 return (PIX *)ERROR_PTR("b. box not found", procName, NULL);
             if (j == 0) {
-                xul = box->x;
-                yul = box->y;
+                boxGetGeometry(box, &xul, &yul, &w, &h);
                 xoff = yoff = 0;
-            } else {
-                xoff = box->x;
-                yoff = box->y;
-            }
-            w = box->w;
-            h = box->h;
+            } else
+                boxGetGeometry(box, &xoff, &yoff, &w, &h);
+            boxDestroy(&box);
 
                 /* Render the border in a minimum-sized pix;
                  * subtract xoff and yoff because the pixel
@@ -1975,7 +1959,6 @@ PTA     *pta;
                  * we need it relative to just the hole border. */
             if ((pixt = pixCreate(w, h, 1)) == NULL)
                 return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-            boxDestroy(&box);
             pta = ptaaGetPta(ptaa, j, L_CLONE);
             n = ptaGetCount(pta);   /* number of pixels in the border */
             for (k = 0; k < n; k++) {
@@ -2051,7 +2034,6 @@ ccbaDisplayImage2(CCBORDA  *ccba)
 {
 l_int32  ncc, nb, n, i, j, k, x, y, xul, yul, w, h;
 l_int32  fpx, fpy, spx, spy, xs, ys;
-BOX     *box;
 BOXA    *boxa;
 CCBORD  *ccb;
 PIX     *pixd, *pixc, *pixs;
@@ -2074,17 +2056,12 @@ PTA     *pta;
         ccb = ccbaGetCcb(ccba, i);
         if ((boxa = ccb->boxa) == NULL)
             return (PIX *)ERROR_PTR("boxa not found", procName, NULL);
-        if ((box = boxaGetBox(boxa, 0, L_CLONE)) == NULL)
+        if (boxaGetBoxGeometry(boxa, 0, &xul, &yul, &w, &h))
             return (PIX *)ERROR_PTR("b. box not found", procName, NULL);
-        xul = box->x;
-        yul = box->y;
-        w = box->w;
-        h = box->h;
         if ((pixc = pixCreate(w + 2, h + 2, 1)) == NULL)
             return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
         if ((pixs = pixCreateTemplate(pixc)) == NULL)
             return (PIX *)ERROR_PTR("pixs not made", procName, NULL);
-        boxDestroy(&box);
 
         if ((ptaa = ccb->local) == NULL) {
             L_WARNING("local chain array not found", procName);
@@ -2203,12 +2180,11 @@ ccbaWriteStream(FILE     *fp,
 char      strbuf[256];
 l_uint8   bval;
 l_uint8  *datain, *dataout;
-l_int32   i, j, k, val, startx, starty; 
+l_int32   i, j, k, bx, by, bw, bh, val, startx, starty; 
 l_int32   inbytes, outbytes;
 l_int32   ncc, nb, n;
 l_uint32  w, h;
 BBUFFER  *bbuf;
-BOX      *box;
 CCBORD   *ccb;
 NUMA     *na;
 NUMAA    *naa;
@@ -2233,12 +2209,12 @@ PTA      *pta;
     bbufferRead(bbuf, (l_uint8 *)&h, 4);  /* height */
     for (i = 0; i < ncc; i++) {
         ccb = ccbaGetCcb(ccba, i);
-        box = boxaGetBox(ccb->boxa, 0, L_CLONE);
-        bbufferRead(bbuf, (l_uint8 *)&box->x, 4);  /* ulx of c.c. */
-        bbufferRead(bbuf, (l_uint8 *)&box->y, 4);  /* uly of c.c. */
-        bbufferRead(bbuf, (l_uint8 *)&box->w, 4);  /* w of c.c. */
-        bbufferRead(bbuf, (l_uint8 *)&box->h, 4);  /* h of c.c. */
-        boxDestroy(&box);
+        if (boxaGetBoxGeometry(ccb->boxa, 0, &bx, &by, &bw, &bh))
+            return ERROR_INT("bounding box not found", procName, 1);
+        bbufferRead(bbuf, (l_uint8 *)&bx, 4);  /* ulx of c.c. */
+        bbufferRead(bbuf, (l_uint8 *)&by, 4);  /* uly of c.c. */
+        bbufferRead(bbuf, (l_uint8 *)&bw, 4);  /* w of c.c. */
+        bbufferRead(bbuf, (l_uint8 *)&bh, 4);  /* h of c.c. */
         if ((naa = ccb->step) == NULL) {
             ccbaGenerateStepChains(ccba);
             naa = ccb->step;
@@ -2536,6 +2512,4 @@ SARRAY  *sa;
     sarrayDestroy(&sa);
     return svgstr;
 }
-
-
 

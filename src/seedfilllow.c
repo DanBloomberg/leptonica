@@ -17,9 +17,12 @@
  *  seedfilllow.c
  *
  *      Seedfill:
+ *      Gray seedfill (source: Luc Vincent:fast-hybrid-grayscale-reconstruction)
  *               void   seedfillBinaryLow()
  *               void   seedfillGrayLow()
  *               void   seedfillGrayInvLow()
+ *               void   seedfillGrayLowSimple()
+ *               void   seedfillGrayInvLowSimple()
  *
  *      Distance function:
  *               void   distanceFunctionLow()
@@ -33,6 +36,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
+
+struct L_Pixel
+{
+    l_int32    x;
+    l_int32    y;
+};
+typedef struct L_Pixel  L_PIXEL;
 
 
 /*-----------------------------------------------------------------------*
@@ -238,10 +248,928 @@ l_uint32  *lines, *linem;
 
 
 /*-----------------------------------------------------------------------*
- *                 Vincent's Iterative Grayscale Seedfill                *
+ *                 Vincent's Hybrid Grayscale Seedfill                *
  *-----------------------------------------------------------------------*/
 /*!
  *  seedfillGrayLow()
+ *
+ *  Notes:
+ *      (1) The pixels are numbered as follows:
+ *              1  2  3
+ *              4  x  5
+ *              6  7  8
+ *          This low-level filling operation consists of two scans,
+ *          raster and anti-raster, covering the entire seed image.
+ *          This is followed by a breadth-first propagation operation to
+ *          complete the fill.
+ *          During the anti-raster scan, every pixel p whose current value
+ *          could still be propagated after the anti-raster scan is put into
+ *          the FIFO queue.
+ *          The propagation step is a breadth-first fill to completion.
+ *          Unlike the simple grayscale seedfill pixSeedfillGraySimple(),
+ *          where at least two full raster/anti-raster iterations are required
+ *          for completion and verification, the hybrid method uses only a
+ *          single raster/anti-raster set of scans.
+ *      (2) The filling action can be visualized from the following example.
+ *          Suppose the mask, which clips the fill, is a sombrero-shaped
+ *          surface, where the highest point is 200 and the low pixels
+ *          around the rim are 30.  Beyond the rim, the mask goes up a bit.
+ *          Suppose the seed, which is filled, consists of a single point
+ *          of height 150, located below the max of the mask, with
+ *          the rest 0.  Then in the raster scan, nothing happens until
+ *          the high seed point is encountered, and then this value is
+ *          propagated right and down, until it hits the side of the
+ *          sombrero.   The seed can never exceed the mask, so it fills
+ *          to the rim, going lower along the mask surface.  When it
+ *          passes the rim, the seed continues to fill at the rim
+ *          height to the edge of the seed image.  Then on the
+ *          anti-raster scan, the seed fills flat inside the
+ *          sombrero to the upper and left, and then out from the
+ *          rim as before.  The final result has a seed that is
+ *          flat outside the rim, and inside it fills the sombrero
+ *          but only up to 150.  If the rim height varies, the
+ *          filled seed outside the rim will be at the highest
+ *          point on the rim, which is a saddle point on the rim.
+ *      (3) Reference paper :
+ *            L. Vincent, Morphological grayscale reconstruction in image
+ *            analysis: applications and efficient algorithms, IEEE Transactions
+ *            on  Image Processing, vol. 2, no. 2, pp. 176-201, 1993.
+ */
+void
+seedfillGrayLow(l_uint32  *datas,
+                l_int32    w,
+                l_int32    h,
+                l_int32    wpls,
+                l_uint32  *datam,
+                l_int32    wplm,
+                l_int32    connectivity)
+{
+l_uint8    val1, val2, val3, val4, val5, val6, val7, val8;
+l_uint8    val, maxval, maskval, boolval;
+l_int32    i, j, imax, jmax, queue_size;
+l_uint32  *lines, *linem;
+L_PIXEL *pixel;
+L_QUEUE  *lq_pixel;
+
+    PROCNAME("seedfillGrayLow");
+
+    imax = h - 1;
+    jmax = w - 1;
+
+        /* In the worst case, most of the pixels could be pushed
+         * onto the FIFO queue during anti-raster scan.  However this
+         * will rarely happen, and we initialize the queue ptr size to
+         * the image perimeter. */
+    lq_pixel = lqueueCreate(2 * (w + h));
+
+    switch (connectivity)
+    {
+    case 4:
+            /* UL --> LR scan  (Raster Order)
+             * If I : mask image
+             *    J : marker image
+             * Let p be the currect pixel;
+             * J(p) <- (max{J(p) union J(p) neighbors in raster order})
+             *          intersection I(p) */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < w; j++) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) > 0) {
+                    maxval = 0;
+                    if (i > 0)
+                        maxval = GET_DATA_BYTE(lines - wpls, j);
+                    if (j > 0) {
+                        val4 = GET_DATA_BYTE(lines, j - 1);
+                        maxval = L_MAX(maxval, val4);
+                    }
+                    val = GET_DATA_BYTE(lines, j);
+                    maxval = L_MAX(maxval, val);
+                    val = L_MIN(maxval, maskval);
+                    SET_DATA_BYTE(lines, j, val);
+                }
+            }
+        }
+
+            /* LR --> UL scan (anti-raster order)
+             * Let p be the currect pixel;
+             * J(p) <- (max{J(p) union J(p) neighbors in anti-raster order})
+             *          intersection I(p) */
+        for (i = imax; i >= 0; i--) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = jmax; j >= 0; j--) {
+                boolval = FALSE;
+                if ((maskval = GET_DATA_BYTE(linem, j)) > 0) {
+                    maxval = 0;
+                    if (i < imax)
+                        maxval = GET_DATA_BYTE(lines + wpls, j);
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        maxval = L_MAX(maxval, val5);
+                    }
+                    val = GET_DATA_BYTE(lines, j);
+                    maxval = L_MAX(maxval, val);
+                    val = L_MIN(maxval, maskval);
+                    SET_DATA_BYTE(lines, j, val);
+
+                        /*
+                         * If there exists a point (q) which belongs to J(p)
+                         * neighbors in anti-raster order such that J(q) < J(p)
+                         * and J(q) < I(q) then
+                         * fifo_add(p) */
+                    if (i < imax) {
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        if ((val7 < val) &&
+                            (val7 < GET_DATA_BYTE(linem + wplm, j))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        if (!boolval && (val5 < val) &&
+                            (val5 < GET_DATA_BYTE(linem, j + 1))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (boolval) {
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+        }
+
+            /* Propagation step:
+             *        while fifo_empty = false
+             *          p <- fifo_first()
+             *          for every pixel (q) belong to neighbors of (p)
+             *            if J(q) < J(p) and I(q) != J(q)
+             *              J(q) <- min(J(p), I(q));
+             *              fifo_add(q);
+             *            end
+             *          end
+             *        end */
+        queue_size = lqueueGetCount(lq_pixel);
+        while (queue_size) {
+            pixel = (L_PIXEL *)lqueueRemove(lq_pixel);
+            i = pixel->x;
+            j = pixel->y;
+            FREE(pixel);
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+
+            if ((val = GET_DATA_BYTE(lines, j)) > 0) {
+                if (i > 0) {
+                    val2 = GET_DATA_BYTE(lines - wpls, j);
+                    maskval = GET_DATA_BYTE(linem - wplm, j);
+                    if (val > val2 && val2 != maskval) {
+                        SET_DATA_BYTE(lines - wpls, j, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i - 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+
+                }
+                if (j > 0) {
+                    val4 = GET_DATA_BYTE(lines, j - 1);
+                    maskval = GET_DATA_BYTE(linem, j - 1);
+                    if (val > val4 && val4 != maskval) {
+                        SET_DATA_BYTE(lines, j - 1, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j - 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (i < imax) {
+                    val7 = GET_DATA_BYTE(lines + wpls, j);
+                    maskval = GET_DATA_BYTE(linem + wplm, j);
+                    if (val > val7 && val7 != maskval) {
+                        SET_DATA_BYTE(lines + wpls, j, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i + 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (j < jmax) {
+                    val5 = GET_DATA_BYTE(lines, j + 1);
+                    maskval = GET_DATA_BYTE(linem, j + 1);
+                    if (val > val5 && val5 != maskval) {
+                        SET_DATA_BYTE(lines, j + 1, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j + 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+
+            queue_size = lqueueGetCount(lq_pixel);
+        }
+
+        break;
+
+    case 8:
+            /* UL --> LR scan  (Raster Order)
+             * If I : mask image
+             *    J : marker image
+             * Let p be the currect pixel;
+             * J(p) <- (max{J(p) union J(p) neighbors in raster order})
+             *          intersection I(p) */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < w; j++) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) > 0) {
+                    maxval = 0;
+                    if (i > 0) {
+                        if (j > 0)
+                            maxval = GET_DATA_BYTE(lines - wpls, j - 1);
+                        if (j < jmax) {
+                            val3 = GET_DATA_BYTE(lines - wpls, j + 1);
+                            maxval = L_MAX(maxval, val3);
+                        }
+                        val2 = GET_DATA_BYTE(lines - wpls, j);
+                        maxval = L_MAX(maxval, val2);
+                    }
+                    if (j > 0) {
+                        val4 = GET_DATA_BYTE(lines, j - 1);
+                        maxval = L_MAX(maxval, val4);
+                    }
+                    val = GET_DATA_BYTE(lines, j);
+                    maxval = L_MAX(maxval, val);
+                    val = L_MIN(maxval, maskval);
+                    SET_DATA_BYTE(lines, j, val);
+                }
+            }
+        }
+
+            /* LR --> UL scan (anti-raster order)
+             * Let p be the currect pixel;
+             * J(p) <- (max{J(p) union J(p) neighbors in anti-raster order})
+             *          intersection I(p) */
+        for (i = imax; i >= 0; i--) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = jmax; j >= 0; j--) {
+                boolval = FALSE;
+                if ((maskval = GET_DATA_BYTE(linem, j)) > 0) {
+                    maxval = 0;
+                    if (i < imax) {
+                        if (j > 0) {
+                            maxval = GET_DATA_BYTE(lines + wpls, j - 1);
+                        }
+                        if (j < jmax) {
+                            val8 = GET_DATA_BYTE(lines + wpls, j + 1);
+                            maxval = L_MAX(maxval, val8);
+                        }
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        maxval = L_MAX(maxval, val7);
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        maxval = L_MAX(maxval, val5);
+                    }
+                    val = GET_DATA_BYTE(lines, j);
+                    maxval = L_MAX(maxval, val);
+                    val = L_MIN(maxval, maskval);
+                    SET_DATA_BYTE(lines, j, val);
+
+                        /* If there exists a point (q) which belongs to J(p)
+                         * neighbors in anti-raster order such that J(q) < J(p)
+                         * and J(q) < I(q) then
+                         * fifo_add(p) */
+                    if (i < imax) {
+                        if (j > 0) {
+                            val6 = GET_DATA_BYTE(lines + wpls, j - 1);
+                            if ((val6 < val) &&
+                                (val6 < GET_DATA_BYTE(linem + wplm, j - 1))) {
+                                boolval = TRUE;
+                            }
+                        }
+                        if (j < jmax) {
+                            val8 = GET_DATA_BYTE(lines + wpls, j + 1);
+                            if (!boolval && (val8 < val) &&
+                                (val8 < GET_DATA_BYTE(linem + wplm, j + 1))) {
+                                boolval = TRUE;
+                            }
+                        }
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        if (!boolval && (val7 < val) &&
+                            (val7 < GET_DATA_BYTE(linem + wplm, j))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        if (!boolval && (val5 < val) &&
+                            (val5 < GET_DATA_BYTE(linem, j + 1))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (boolval) {
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+        }
+
+            /* Propagation step:
+             *        while fifo_empty = false
+             *          p <- fifo_first()
+             *          for every pixel (q) belong to neighbors of (p)
+             *            if J(q) < J(p) and I(q) != J(q)
+             *              J(q) <- min(J(p), I(q));
+             *              fifo_add(q);
+             *            end
+             *          end
+             *        end */
+        queue_size = lqueueGetCount(lq_pixel);
+        while (queue_size) {
+            pixel = (L_PIXEL *)lqueueRemove(lq_pixel);
+            i = pixel->x;
+            j = pixel->y;
+            FREE(pixel);
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+
+            if ((val = GET_DATA_BYTE(lines, j)) > 0) {
+                if (i > 0) {
+                    if (j > 0) {
+                        val1 = GET_DATA_BYTE(lines - wpls, j - 1);
+                        maskval = GET_DATA_BYTE(linem - wplm, j - 1);
+                        if (val > val1 && val1 != maskval) {
+                            SET_DATA_BYTE(lines - wpls, j - 1, L_MIN(val, maskval));
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i - 1;
+                            pixel->y = j - 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    if (j < jmax) {
+                        val3 = GET_DATA_BYTE(lines - wpls, j + 1);
+                        maskval = GET_DATA_BYTE(linem - wplm, j + 1);
+                        if (val > val3 && val3 != maskval) {
+                            SET_DATA_BYTE(lines - wpls, j + 1, L_MIN(val, maskval));
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i - 1;
+                            pixel->y = j + 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    val2 = GET_DATA_BYTE(lines - wpls, j);
+                    maskval = GET_DATA_BYTE(linem - wplm, j);
+                    if (val > val2 && val2 != maskval) {
+                        SET_DATA_BYTE(lines - wpls, j, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i - 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+
+                }
+                if (j > 0) {
+                    val4 = GET_DATA_BYTE(lines, j - 1);
+                    maskval = GET_DATA_BYTE(linem, j - 1);
+                    if (val > val4 && val4 != maskval) {
+                        SET_DATA_BYTE(lines, j - 1, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j - 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (i < imax) {
+                    if (j > 0) {
+                        val6 = GET_DATA_BYTE(lines + wpls, j - 1);
+                        maskval = GET_DATA_BYTE(linem + wplm, j - 1);
+                        if (val > val6 && val6 != maskval) {
+                            SET_DATA_BYTE(lines + wpls, j - 1, L_MIN(val, maskval));
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i + 1;
+                            pixel->y = j - 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    if (j < jmax) {
+                        val8 = GET_DATA_BYTE(lines + wpls, j + 1);
+                        maskval = GET_DATA_BYTE(linem + wplm, j + 1);
+                        if (val > val8 && val8 != maskval) {
+                            SET_DATA_BYTE(lines + wpls, j + 1, L_MIN(val, maskval));
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i + 1;
+                            pixel->y = j + 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    val7 = GET_DATA_BYTE(lines + wpls, j);
+                    maskval = GET_DATA_BYTE(linem + wplm, j);
+                    if (val > val7 && val7 != maskval) {
+                        SET_DATA_BYTE(lines + wpls, j, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i + 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (j < jmax) {
+                    val5 = GET_DATA_BYTE(lines, j + 1);
+                    maskval = GET_DATA_BYTE(linem, j + 1);
+                    if (val > val5 && val5 != maskval) {
+                        SET_DATA_BYTE(lines, j + 1, L_MIN(val, maskval));
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j + 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+
+            queue_size = lqueueGetCount(lq_pixel);
+        }
+        break;
+
+    default:
+        ERROR_VOID("connectivity must be 4 or 8", procName);
+        lqueueDestroy(&lq_pixel, TRUE);
+    }
+
+    lqueueDestroy(&lq_pixel, TRUE);
+    return;
+}
+
+
+/*!
+ *  seedfillGrayInvLow()
+ *
+ *  Notes:
+ *      (1) The pixels are numbered as follows:
+ *              1  2  3
+ *              4  x  5
+ *              6  7  8
+ *          This low-level filling operation consists of two scans,
+ *          raster and anti-raster, covering the entire seed image.
+ *          During the anti-raster scan, every pixel p such that its
+ *          current value could still be propogated during the next
+ *          raster scanning is put into the FIFO-queue.
+ *          Next step is the propagation step where where we update
+ *          and propagate the values using FIFO structure created in
+ *          anti-raster scan.
+ *      (2) The "Inv" signifies the fact that in this case, filling
+ *          of the seed only takes place when the seed value is
+ *          greater than the mask value.  The mask will act to stop
+ *          the fill when it is higher than the seed level.  (This is
+ *          in contrast to conventional grayscale filling where the
+ *          seed always fills below the mask.)
+ *      (3) An example of use is a basin, described by the mask (pixm),
+ *          where within the basin, the seed pix (pixs) gets filled to the
+ *          height of the highest seed pixel that is above its
+ *          corresponding max pixel.  Filling occurs while the
+ *          propagating seed pixels in pixs are larger than the
+ *          corresponding mask values in pixm.
+ *      (4) Reference paper :
+ *            L. Vincent, Morphological grayscale reconstruction in image
+ *            analysis: applications and efficient algorithms, IEEE Transactions
+ *            on  Image Processing, vol. 2, no. 2, pp. 176-201, 1993.
+ */
+void
+seedfillGrayInvLow(l_uint32  *datas,
+                   l_int32    w,
+                   l_int32    h,
+                   l_int32    wpls,
+                   l_uint32  *datam,
+                   l_int32    wplm,
+                   l_int32    connectivity)
+{
+l_uint8    val1, val2, val3, val4, val5, val6, val7, val8;
+l_uint8    val, maxval, maskval, boolval;
+l_int32    i, j, imax, jmax, queue_size;
+l_uint32  *lines, *linem;
+L_PIXEL *pixel;
+L_QUEUE  *lq_pixel;
+
+    PROCNAME("seedfillGrayInvLow");
+
+    imax = h - 1;
+    jmax = w - 1;
+
+        /* In the worst case, most of the pixels could be pushed
+         * onto the FIFO queue during anti-raster scan.  However this
+         * will rarely happen, and we initialize the queue ptr size to
+         * the image perimeter. */
+    lq_pixel = lqueueCreate(2 * (w + h));
+
+    switch (connectivity)
+    {
+    case 4:
+            /* UL --> LR scan  (Raster Order)
+             * If I : mask image
+             *    J : marker image
+             * Let p be the currect pixel;
+             * tmp <- max{J(p) union J(p) neighbors in raster order}
+             * if (tmp > I(p))
+             *   J(p) <- tmp
+             * end */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < w; j++) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    maxval = GET_DATA_BYTE(lines, j);
+                    if (i > 0) {
+                        val2 = GET_DATA_BYTE(lines - wpls, j);
+                        maxval = L_MAX(maxval, val2);
+                    }
+                    if (j > 0) {
+                        val4 = GET_DATA_BYTE(lines, j - 1);
+                        maxval = L_MAX(maxval, val4);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
+                }
+            }
+        }
+
+            /* LR --> UL scan (anti-raster order)
+             * If I : mask image
+             *    J : marker image
+             * Let p be the currect pixel;
+             * tmp <- max{J(p) union J(p) neighbors in anti-raster order}
+             * if (tmp > I(p))
+             *   J(p) <- tmp
+             * end */
+        for (i = imax; i >= 0; i--) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = jmax; j >= 0; j--) {
+                boolval = FALSE;
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    val = maxval = GET_DATA_BYTE(lines, j);
+                    if (i < imax) {
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        maxval = L_MAX(maxval, val7);
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        maxval = L_MAX(maxval, val5);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
+                    val = GET_DATA_BYTE(lines, j);
+
+                        /*
+                         * If there exists a point (q) which belongs to J(p)
+                         * neighbors in anti-raster order such that J(q) < J(p)
+                         * and J(p) > I(q) then
+                         * fifo_add(p) */
+                    if (i < imax) {
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        if ((val7 < val) &&
+                            (val > GET_DATA_BYTE(linem + wplm, j))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        if (!boolval && (val5 < val) &&
+                            (val > GET_DATA_BYTE(linem, j + 1))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (boolval) {
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+        }
+
+            /* Propagation step:
+             *        while fifo_empty = false
+             *          p <- fifo_first()
+             *          for every pixel (q) belong to neighbors of (p)
+             *            if J(q) < J(p) and J(p) > I(q)
+             *              J(q) <- min(J(p), I(q));
+             *              fifo_add(q);
+             *            end
+             *          end
+             *        end */
+        queue_size = lqueueGetCount(lq_pixel);
+        while (queue_size) {
+            pixel = (L_PIXEL *)lqueueRemove(lq_pixel);
+            i = pixel->x;
+            j = pixel->y;
+            FREE(pixel);
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+
+            if ((val = GET_DATA_BYTE(lines, j)) > 0) {
+                if (i > 0) {
+                    val2 = GET_DATA_BYTE(lines - wpls, j);
+                    maskval = GET_DATA_BYTE(linem - wplm, j);
+                    if (val > val2 && val > maskval) {
+                        SET_DATA_BYTE(lines - wpls, j, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i - 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+
+                }
+                if (j > 0) {
+                    val4 = GET_DATA_BYTE(lines, j - 1);
+                    maskval = GET_DATA_BYTE(linem, j - 1);
+                    if (val > val4 && val > maskval) {
+                        SET_DATA_BYTE(lines, j - 1, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j - 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (i < imax) {
+                    val7 = GET_DATA_BYTE(lines + wpls, j);
+                    maskval = GET_DATA_BYTE(linem + wplm, j);
+                    if (val > val7 && val > maskval) {
+                        SET_DATA_BYTE(lines + wpls, j, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i + 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (j < jmax) {
+                    val5 = GET_DATA_BYTE(lines, j + 1);
+                    maskval = GET_DATA_BYTE(linem, j + 1);
+                    if (val > val5 && val > maskval) {
+                        SET_DATA_BYTE(lines, j + 1, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j + 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+
+            queue_size = lqueueGetCount(lq_pixel);
+        }
+
+        break;
+
+    case 8:
+            /* UL --> LR scan  (Raster Order)
+             * If I : mask image
+             *    J : marker image
+             * Let p be the currect pixel;
+             * tmp <- max{J(p) union J(p) neighbors in raster order}
+             * if (tmp > I(p))
+             *   J(p) <- tmp
+             * end */
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < w; j++) {
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    maxval = GET_DATA_BYTE(lines, j);
+                    if (i > 0) {
+                        if (j > 0) {
+                            val1 = GET_DATA_BYTE(lines - wpls, j - 1);
+                            maxval = L_MAX(maxval, val1);
+                        }
+                        if (j < jmax) {
+                            val3 = GET_DATA_BYTE(lines - wpls, j + 1);
+                            maxval = L_MAX(maxval, val3);
+                        }
+                        val2 = GET_DATA_BYTE(lines - wpls, j);
+                        maxval = L_MAX(maxval, val2);
+                    }
+                    if (j > 0) {
+                        val4 = GET_DATA_BYTE(lines, j - 1);
+                        maxval = L_MAX(maxval, val4);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
+                }
+            }
+        }
+
+            /* LR --> UL scan (anti-raster order)
+             * If I : mask image
+             *    J : marker image
+             * Let p be the currect pixel;
+             * tmp <- max{J(p) union J(p) neighbors in anti-raster order}
+             * if (tmp > I(p))
+             *   J(p) <- tmp
+             * end */
+        for (i = imax; i >= 0; i--) {
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+            for (j = jmax; j >= 0; j--) {
+                boolval = FALSE;
+                if ((maskval = GET_DATA_BYTE(linem, j)) < 255) {
+                    maxval = GET_DATA_BYTE(lines, j);
+                    if (i < imax) {
+                        if (j > 0) {
+                            val6 = GET_DATA_BYTE(lines + wpls, j - 1);
+                            maxval = L_MAX(maxval, val6);
+                        }
+                        if (j < jmax) {
+                            val8 = GET_DATA_BYTE(lines + wpls, j + 1);
+                            maxval = L_MAX(maxval, val8);
+                        }
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        maxval = L_MAX(maxval, val7);
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        maxval = L_MAX(maxval, val5);
+                    }
+                    if (maxval > maskval)
+                        SET_DATA_BYTE(lines, j, maxval);
+                    val = GET_DATA_BYTE(lines, j);
+
+                        /*
+                         * If there exists a point (q) which belongs to J(p)
+                         * neighbors in anti-raster order such that J(q) < J(p)
+                         * and J(p) > I(q) then
+                         * fifo_add(p) */
+                    if (i < imax) {
+                        if (j > 0) {
+                            val6 = GET_DATA_BYTE(lines + wpls, j - 1);
+                            if ((val6 < val) &&
+                                (val > GET_DATA_BYTE(linem + wplm, j - 1))) {
+                                boolval = TRUE;
+                            }
+                        }
+                        if (j < jmax) {
+                            val8 = GET_DATA_BYTE(lines + wpls, j + 1);
+                            if (!boolval && (val8 < val) &&
+                                (val > GET_DATA_BYTE(linem + wplm, j + 1))) {
+                                boolval = TRUE;
+                            }
+                        }
+                        val7 = GET_DATA_BYTE(lines + wpls, j);
+                        if (!boolval && (val7 < val) &&
+                            (val > GET_DATA_BYTE(linem + wplm, j))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (j < jmax) {
+                        val5 = GET_DATA_BYTE(lines, j + 1);
+                        if (!boolval && (val5 < val) &&
+                            (val > GET_DATA_BYTE(linem, j + 1))) {
+                            boolval = TRUE;
+                        }
+                    }
+                    if (boolval) {
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+        }
+
+            /* Propagation step:
+             *        while fifo_empty = false
+             *          p <- fifo_first()
+             *          for every pixel (q) belong to neighbors of (p)
+             *            if J(q) < J(p) and J(p) > I(q)
+             *              J(q) <- min(J(p), I(q));
+             *              fifo_add(q);
+             *            end
+             *          end
+             *        end */
+        queue_size = lqueueGetCount(lq_pixel);
+        while (queue_size) {
+            pixel = (L_PIXEL *)lqueueRemove(lq_pixel);
+            i = pixel->x;
+            j = pixel->y;
+            FREE(pixel);
+            lines = datas + i * wpls;
+            linem = datam + i * wplm;
+
+            if ((val = GET_DATA_BYTE(lines, j)) > 0) {
+                if (i > 0) {
+                    if (j > 0) {
+                        val1 = GET_DATA_BYTE(lines - wpls, j - 1);
+                        maskval = GET_DATA_BYTE(linem - wplm, j - 1);
+                        if (val > val1 && val > maskval) {
+                            SET_DATA_BYTE(lines - wpls, j - 1, val);
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i - 1;
+                            pixel->y = j - 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    if (j < jmax) {
+                        val3 = GET_DATA_BYTE(lines - wpls, j + 1);
+                        maskval = GET_DATA_BYTE(linem - wplm, j + 1);
+                        if (val > val3 && val > maskval) {
+                            SET_DATA_BYTE(lines - wpls, j + 1, val);
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i - 1;
+                            pixel->y = j + 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    val2 = GET_DATA_BYTE(lines - wpls, j);
+                    maskval = GET_DATA_BYTE(linem - wplm, j);
+                    if (val > val2 && val > maskval) {
+                        SET_DATA_BYTE(lines - wpls, j, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i - 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+
+                }
+                if (j > 0) {
+                    val4 = GET_DATA_BYTE(lines, j - 1);
+                    maskval = GET_DATA_BYTE(linem, j - 1);
+                    if (val > val4 && val > maskval) {
+                        SET_DATA_BYTE(lines, j - 1, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j - 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (i < imax) {
+                    if (j > 0) {
+                        val6 = GET_DATA_BYTE(lines + wpls, j - 1);
+                        maskval = GET_DATA_BYTE(linem + wplm, j - 1);
+                        if (val > val6 && val > maskval) {
+                            SET_DATA_BYTE(lines + wpls, j - 1, val);
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i + 1;
+                            pixel->y = j - 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    if (j < jmax) {
+                        val8 = GET_DATA_BYTE(lines + wpls, j + 1);
+                        maskval = GET_DATA_BYTE(linem + wplm, j + 1);
+                        if (val > val8 && val > maskval) {
+                            SET_DATA_BYTE(lines + wpls, j + 1, val);
+                            pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                            pixel->x = i + 1;
+                            pixel->y = j + 1;
+                            lqueueAdd(lq_pixel, pixel);
+                        }
+                    }
+                    val7 = GET_DATA_BYTE(lines + wpls, j);
+                    maskval = GET_DATA_BYTE(linem + wplm, j);
+                    if (val > val7 && val > maskval) {
+                        SET_DATA_BYTE(lines + wpls, j, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i + 1;
+                        pixel->y = j;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+                if (j < jmax) {
+                    val5 = GET_DATA_BYTE(lines, j + 1);
+                    maskval = GET_DATA_BYTE(linem, j + 1);
+                    if (val > val5 && val > maskval) {
+                        SET_DATA_BYTE(lines, j + 1, val);
+                        pixel = (L_PIXEL *)CALLOC(1, sizeof(L_PIXEL));
+                        pixel->x = i;
+                        pixel->y = j + 1;
+                        lqueueAdd(lq_pixel, pixel);
+                    }
+                }
+            }
+
+            queue_size = lqueueGetCount(lq_pixel);
+        }
+        break;
+
+    default:
+        lqueueDestroy(&lq_pixel, TRUE);
+        ERROR_VOID("connectivity must be 4 or 8", procName);
+    }
+
+    lqueueDestroy(&lq_pixel, TRUE);
+    return;
+}
+
+/*-----------------------------------------------------------------------*
+ *                 Vincent's Iterative Grayscale Seedfill                *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  seedfillGrayLowSimple()
  *
  *  Notes:
  *      (1) The pixels are numbered as follows:
@@ -274,20 +1202,20 @@ l_uint32  *lines, *linem;
  *          point on the rim, which is a saddle point on the rim.
  */
 void
-seedfillGrayLow(l_uint32  *datas,
-                l_int32    w,
-                l_int32    h,
-                l_int32    wpls,
-                l_uint32  *datam,
-                l_int32    wplm,
-                l_int32    connectivity)
+seedfillGrayLowSimple(l_uint32  *datas,
+                      l_int32    w,
+                      l_int32    h,
+                      l_int32    wpls,
+                      l_uint32  *datam,
+                      l_int32    wplm,
+                      l_int32    connectivity)
 {
 l_uint8    val2, val3, val4, val5, val7, val8;
 l_uint8    val, maxval, maskval;
 l_int32    i, j, imax, jmax;
 l_uint32  *lines, *linem;
 
-    PROCNAME("seedfillGrayLow");
+    PROCNAME("seedfillGrayLowSimple");
 
     imax = h - 1;
     jmax = w - 1;
@@ -407,7 +1335,7 @@ l_uint32  *lines, *linem;
 
 
 /*!
- *  seedfillGrayInvLow()
+ *  seedfillGrayInvLowSimple()
  *
  *  Notes:
  *      (1) The pixels are numbered as follows:
@@ -432,20 +1360,20 @@ l_uint32  *lines, *linem;
  *          corresponding mask values in pixm.
  */
 void
-seedfillGrayInvLow(l_uint32  *datas,
-                   l_int32    w,
-                   l_int32    h,
-                   l_int32    wpls,
-                   l_uint32  *datam,
-                   l_int32    wplm,
-                   l_int32    connectivity)
+seedfillGrayInvLowSimple(l_uint32  *datas,
+                         l_int32    w,
+                         l_int32    h,
+                         l_int32    wpls,
+                         l_uint32  *datam,
+                         l_int32    wplm,
+                         l_int32    connectivity)
 {
 l_uint8    val1, val2, val3, val4, val5, val6, val7, val8;
 l_uint8    maxval, maskval;
 l_int32    i, j, imax, jmax;
 l_uint32  *lines, *linem;
 
-    PROCNAME("seedfillGrayInvLow");
+    PROCNAME("seedfillGrayInvLowSimple");
 
     imax = h - 1;
     jmax = w - 1;
@@ -801,7 +1729,7 @@ l_uint32  *linet, *lined;
                     val5t = GET_DATA_TWO_BYTES(linet, j + 1);
                     minval = L_MIN(val5t, val7t);
                     minval = L_MIN(minval + 1, valt);
-		    if (valt > minval) {  /* replace */
+                    if (valt > minval) {  /* replace */
                         SET_DATA_TWO_BYTES(linet, j, minval);
                         if (val5t < val7t)
                             vald = GET_DATA_BYTE(lined, j + 1);
@@ -860,11 +1788,11 @@ l_uint32  *linet, *lined;
                         SET_DATA_TWO_BYTES(linet, j, minval);
                         if (minval == val5t + 1)
                             vald = GET_DATA_BYTE(lined, j + 1);
-			else if (minval == val6t + 1)
+                        else if (minval == val6t + 1)
                             vald = GET_DATA_BYTE(lined + wpld, j - 1);
-			else if (minval == val7t + 1)
+                        else if (minval == val7t + 1)
                             vald = GET_DATA_BYTE(lined + wpld, j);
-			else  /* minval == val8t + 1 */
+                        else  /* minval == val8t + 1 */
                             vald = GET_DATA_BYTE(lined + wpld, j + 1);
                         SET_DATA_BYTE(lined, j, vald);
                     }
@@ -879,6 +1807,3 @@ l_uint32  *linet, *lined;
 
     return;
 }
-
-
-

@@ -31,7 +31,8 @@ main(int    argc,
      char **argv)
 {
 l_int32      i, n, binsize, binstart, nbins;
-l_float32    pi, val, angle, xval, yval, x0, y0, rank;
+l_float32    pi, val, angle, xval, yval, x0, y0, rank, startval, fbinsize;
+l_float32    minval, maxval, meanval, median, variance, rankval;
 GPLOT       *gplot;
 NUMA        *na, *nahisto, *nax, *nay, *nap, *nasx, *nasy;
 NUMA        *nadx, *nady, *nafx, *nafy;
@@ -41,7 +42,7 @@ static char  mainName[] = "numa_reg";
     if (argc != 1)
 	exit(ERROR_INT(" Syntax:  numa_reg", mainName, 1));
 
-#if  DO_ALL 
+#if  1
     pi = 3.1415926535;
     na = numaCreate(5000);
     for (i = 0; i < 500000; i++) {
@@ -84,6 +85,36 @@ static char  mainName[] = "numa_reg";
     gplotDestroy(&gplot);
     numaDestroy(&nax);
     numaDestroy(&nahisto);
+
+    nahisto = numaMakeHistogramAuto(na, 1000);
+    nbins = numaGetCount(nahisto);
+    numaGetXParameters(nahisto, &startval, &fbinsize);
+    nax = numaMakeSequence(startval, fbinsize, nbins);
+    fprintf(stderr, " binsize = %7.4f, binstart = %8.3f\n",
+            fbinsize, startval);
+    gplot = gplotCreate("junkroot4", GPLOT_X11, "example histo 4",
+	    "i", "histo[i]");
+    gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
+    gplotMakeOutput(gplot);
+    gplotDestroy(&gplot);
+    numaDestroy(&nax);
+    numaDestroy(&nahisto);
+
+    numaGetStatsUsingHistogram(na, 2000, &minval, &maxval, &meanval,
+                               &variance, &median, 0.80, &rankval, &nahisto);
+    fprintf(stderr, "Sin histogram: \n"
+                    "  min val  = %7.2f    -- should be -999.00\n"
+                    "  max val  = %7.2f    -- should be  999.00\n"
+                    "  mean val = %7.2f    -- should be    0.06\n"
+                    "  median   = %7.2f    -- should be    0.30\n"
+                    "  rmsdev   = %7.2f    -- should be  706.41\n"
+                    "  rank val = %7.2f    -- should be  808.15\n",
+            minval, maxval, meanval, median, sqrt((l_float64)variance),
+            rankval);
+    numaHistogramGetRankFromVal(nahisto, 808.15, &rank);
+    fprintf(stderr, "  rank     = %7.3f    -- should be  0.800\n", rank);
+    numaDestroy(&nahisto);
+
     numaDestroy(&na);
 #endif
 
@@ -93,11 +124,11 @@ static char  mainName[] = "numa_reg";
     na = pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
 /*    numaWriteStream(stderr, na); */
     nasy = numaGetPartialSums(na);
-    gplotSimple1(nasy, GPLOT_X11, "junkroot4", "partial sums");
-    gplotSimple1(na, GPLOT_X11, "junkroot5", "simple test");
+    gplotSimple1(nasy, GPLOT_X11, "junkroot5", "partial sums");
+    gplotSimple1(na, GPLOT_X11, "junkroot6", "simple test");
     numaInterpolateEqxInterval(0.0, 1.0, na, L_LINEAR_INTERP,
 		            0.0, 255.0, 15, &nax, &nay);
-    gplot = gplotCreate("junkroot6", GPLOT_X11, "test interpolation",
+    gplot = gplotCreate("junkroot7", GPLOT_X11, "test interpolation",
 		    "pix val", "num pix");
     gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
     gplotMakeOutput(gplot);
@@ -119,7 +150,7 @@ static char  mainName[] = "numa_reg";
 /*    gplotSimple1(nasy, GPLOT_X11, "junknasy", "partial sums"); */
     numaInterpolateArbxInterval(nasx, nasy, L_LINEAR_INTERP,
 		            10.0, 250.0, 23, &nax, &nay);
-    gplot = gplotCreate("junkroot7", GPLOT_X11, "arbx interpolation",
+    gplot = gplotCreate("junkroot8", GPLOT_X11, "arbx interpolation",
 		    "pix val", "cum num pix");
     gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
     gplotMakeOutput(gplot);
@@ -148,7 +179,7 @@ static char  mainName[] = "numa_reg";
         numaInterpolateArbxVal(nasx, nasy, L_QUADRATIC_INTERP, xval, &yval);
 	numaAddNumber(nay, yval);
     }
-    gplot = gplotCreate("junkroot8", GPLOT_X11, "arbx interpolation",
+    gplot = gplotCreate("junkroot9", GPLOT_X11, "arbx interpolation",
 		    "pix val", "cum num pix");
     gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
     gplotMakeOutput(gplot);
@@ -165,7 +196,7 @@ static char  mainName[] = "numa_reg";
         /* Test interpolation */
     nasx = numaRead("testangle.numa");
     nasy = numaRead("testscore.numa");
-    gplot = gplotCreate("junkroot9", GPLOT_X11, "arbx interpolation",
+    gplot = gplotCreate("junkroot10", GPLOT_X11, "arbx interpolation",
 		    "angle", "score");
     numaInterpolateArbxInterval(nasx, nasy, L_LINEAR_INTERP,
 		                -2.00, 0.0, 50, &nax, &nay);
@@ -179,7 +210,7 @@ static char  mainName[] = "numa_reg";
     numaDestroy(&nay);
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
-    gplot = gplotCreate("junkroot10", GPLOT_X11, "arbx interpolation",
+    gplot = gplotCreate("junkroot11", GPLOT_X11, "arbx interpolation",
 		    "angle", "score");
     numaInterpolateArbxInterval(nasx, nasy, L_LINEAR_INTERP,
 		                -1.2, -0.8, 50, &nax, &nay);
@@ -200,7 +231,7 @@ static char  mainName[] = "numa_reg";
     nasy = numaRead("testscore.numa");
         /* ---------- Plot the derivative ---------- */
     numaDifferentiateInterval(nasx, nasy, -2.0, 0.0, 50, &nadx, &nady);
-    gplot = gplotCreate("junkroot11", GPLOT_X11, "derivative",
+    gplot = gplotCreate("junkroot12", GPLOT_X11, "derivative",
 		    "angle", "slope");
     gplotAddPlot(gplot, nadx, nady, GPLOT_LINES, "derivative");
     gplotMakeOutput(gplot);
@@ -208,7 +239,7 @@ static char  mainName[] = "numa_reg";
         /*  ---------- Plot the original function ----------- */
         /*  and the integral of the derivative; the two       */
         /*  should be approximately the same.                 */
-    gplot = gplotCreate("junkroot12", GPLOT_X11, "integ-diff",
+    gplot = gplotCreate("junkroot13", GPLOT_X11, "integ-diff",
 		        "angle", "val");
     numaInterpolateArbxInterval(nasx, nasy, L_LINEAR_INTERP,
 		                -2.00, 0.0, 50, &nafx, &nafy);
@@ -243,7 +274,7 @@ static char  mainName[] = "numa_reg";
     pixs = pixRead("test8.jpg");
     nasy= pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
     numaMakeRankFromHistogram(0.0, 1.0, nasy, 350, &nax, &nay);
-    gplot = gplotCreate("junkroot13", GPLOT_X11, "test rank extractor",
+    gplot = gplotCreate("junkroot14", GPLOT_X11, "test rank extractor",
                         "pix val", "rank val");
     gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
     gplotMakeOutput(gplot);
@@ -261,10 +292,10 @@ static char  mainName[] = "numa_reg";
     pixGetRankValueMasked(pixs, NULL, 0, 0, 2, 0.0, &val, &na);
     for (i = 0; i < 101; i++) {
       rank = 0.01 * i;
-      numaHistogramGetValFromRank(na, 0, 1, rank, &val);
+      numaHistogramGetValFromRank(na, rank, &val);
       numaAddNumber(nap, val);
     }
-    gplotSimple1(nap, GPLOT_X11, "junkroot14", "rank value");
+    gplotSimple1(nap, GPLOT_X11, "junkroot15", "rank value");
     numaDestroy(&na);
     numaDestroy(&nap);
     pixDestroy(&pixs);

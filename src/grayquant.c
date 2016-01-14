@@ -63,9 +63,12 @@
  *
  *      Thresholding from 32 bpp rgb to 1 bpp
  *      (really color quantization, but it's better placed in this file)
+ *              PIX      *pixGenerateMaskByBand32()
+ *              PIX      *pixGenerateMaskByDiscr32()
  *
- *              PIX    *pixGenerateMaskByBand32()
- *              PIX    *pixGenerateMaskByDiscr32()
+ *      Histogram-based grayscale quantization
+ *              PIX      *pixGrayQuantizeFromHisto()
+ *       static l_int32   numaFillCmapFromHisto()
  */
 
 #include <stdio.h>
@@ -73,6 +76,11 @@
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
+
+
+static l_int32 numaFillCmapFromHisto(NUMA *na, PIXCMAP *cmap,
+                                     l_float32 minfract, l_int32 maxsize,
+                                     l_int32 **plut);
 
 
 /*------------------------------------------------------------------*
@@ -388,6 +396,15 @@ PIX       *pixt, *pixd;
  *      Input:  pixs (8 bpp, or colormapped)
  *              val (of pixels for which we set 1 in dest)
  *      Return: pixd (1 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) @val is the gray value of the pixels that we are selecting.
+ *      (2) If pixs is colormapped, this first removes the colormap to
+ *          generate an approximate grayscale value for each pixel, and
+ *          then looks for gray pixels with the value @val.
+ *      (3) If pixs is colormapped and you want to use @val to select
+ *          the colormap index, you must first call pixDestroyColormap(pixs)
+ *          to remove the colormap from pixs.
  */
 PIX *
 pixGenerateMaskByValue(PIX     *pixs,
@@ -449,6 +466,12 @@ PIX       *pixg, *pixd;
  *          the fg pixels in the mask are those either within the specified
  *          band (for inband == 1) or outside the specified band
  *          (for inband == 0).
+ *      (2) If pixs is colormapped, this first removes the colormap to
+ *          generate an approximate grayscale value for each pixel, and
+ *          then looks for gray pixels in or out of the given band.
+ *      (3) If pixs is colormapped and you want to the band of values to
+ *          select the colormap indices directly, you must first call
+ *          pixDestroyColormap(pixs) to remove the colormap from pixs.
  */
 PIX *
 pixGenerateMaskByBand(PIX     *pixs,
@@ -1452,6 +1475,260 @@ PIX       *pixd;
     }
 
     return pixd;
+}
+
+
+/*----------------------------------------------------------------------*
+ *                Histogram-based grayscale quantization                *
+ *----------------------------------------------------------------------*/
+/*!
+ *  pixGrayQuantizeFromHisto()
+ *
+ *      Input:  pixd (<optional> quantized pix with cmap; can be null)
+ *              pixs (8 bpp gray input pix; not cmapped)
+ *              pixm (<optional> mask over pixels in pixs to quantize)
+ *              minfract (minimum fraction of pixels in a set of adjacent
+ *                        histo bins that causes the set to be automatically
+ *                        set aside as a color in the colormap; must be
+ *                        at least 0.01)
+ *              maxsize (maximum number of adjacent bins allowed to represent
+ *                       a color, regardless of the population of pixels
+ *                       in the bins; must be at least 2)
+ *      Return: pixd (8 bpp, cmapped), or null on error
+ *
+ *  Notes:
+ *      (1) This is useful for quantizing images with relatively few
+ *          colors, but which may have both color and gray pixels.
+ *          If there are color pixels, it is assumed that an input
+ *          rgb image has been color quantized first so that:
+ *            - pixd has a colormap describing the color pixels
+ *            - pixm is a mask over the non-color pixels in pixd
+ *            - the colormap in pixd, and the color pixels in pixd,
+ *              have been repacked to go from 0 to n-1 (n colors)
+ *          If there are no color pixels, pixd and pixm are both null,
+ *          and all pixels in pixs are quantized to gray.
+ *      (2) A 256-entry histogram is built of the gray values in pixs.
+ *          If pixm exists, the pixels contributing to the histogram are
+ *          restricted to the fg of pixm.  A colormap and LUT are generated
+ *          from this histogram.  We break up the array into a set
+ *          of intervals, each one constituting a color in the colormap:
+ *          An interval is identified by summing histogram bins until
+ *          either the sum equals or exceeds the @minfract of the total
+ *          number of pixels, or the span itself equals or exceeds @maxsize.
+ *          The color of each bin is always an average of the pixels
+ *          that constitute it.
+ *      (3) Note that we do not specify the number of gray colors in
+ *          the colormap.  Instead, we specify two parameters that
+ *          describe the accuracy of the color assignments; this and
+ *          the actual image determine the number of resulting colors.
+ *      (4) If a mask exists and it is not the same size as pixs, make
+ *          a new mask the same size as pixs, with the original mask
+ *          aligned at the UL corners.  Set all additional pixels
+ *          in the (larger) new mask set to 1, causing those pixels
+ *          in pixd to be set as gray.
+ *      (5) We estimate the total number of colors (color plus gray);
+ *          if it exceeds 255, return null.
+ */
+PIX *
+pixGrayQuantizeFromHisto(PIX       *pixd,
+                         PIX       *pixs,
+                         PIX       *pixm,
+                         l_float32  minfract,
+                         l_int32    maxsize)
+{
+l_int32    w, h, wd, hd, wm, hm, wpls, wplm, wpld;
+l_int32    nc, nestim, i, j, vals, vald;
+l_int32   *lut;
+l_uint32  *datas, *datam, *datad, *lines, *linem, *lined;
+NUMA      *na;
+PIX       *pixmr;  /* resized mask */
+PIXCMAP   *cmap;
+
+    PROCNAME("pixGrayQuantizeFromHisto");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (minfract < 0.01) {
+        L_WARNING("minfract < 0.01; setting to 0.05", procName);
+        minfract = 0.05;
+    }
+    if (maxsize < 2) {
+        L_WARNING("maxsize < 2; setting to 10", procName);
+        maxsize = 10;
+    }
+    if ((pixd && !pixm) || (!pixd && pixm))
+        return (PIX *)ERROR_PTR("(pixd,pixm) not defined together",
+                                procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (pixd) {
+        if (pixGetDepth(pixm) != 1)
+            return (PIX *)ERROR_PTR("pixm not 1 bpp", procName, NULL);
+        if ((cmap = pixGetColormap(pixd)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not cmapped", procName, NULL);
+        pixGetDimensions(pixd, &wd, &hd, NULL); 
+        if (w != wd || h != hd)
+            return (PIX *)ERROR_PTR("pixs, pixd sizes differ", procName, NULL);
+        nc = pixcmapGetCount(cmap);
+        nestim = nc + (l_int32)(1.5 * 255 / maxsize);
+        fprintf(stderr, "nestim = %d\n", nestim);
+        if (nestim > 255) {
+            L_ERROR_INT("Estimate %d colors!", procName, nestim);
+            return (PIX *)ERROR_PTR("probably too many colors", procName, NULL);
+        }
+        pixGetDimensions(pixm, &wm, &hm, NULL); 
+        if (w != wm || h != hm) {  /* resize the mask */
+            L_WARNING("mask and dest sizes not equal", procName);
+            pixmr = pixCreateNoInit(w, h, 1);
+            pixRasterop(pixmr, 0, 0, wm, hm, PIX_SRC, pixm, 0, 0);
+            pixRasterop(pixmr, wm, 0, w - wm, h, PIX_SET, NULL, 0, 0);
+            pixRasterop(pixmr, 0, hm, wm, h - hm, PIX_SET, NULL, 0, 0);
+        }
+        else
+            pixmr = pixClone(pixm);
+    }
+    else {
+        pixd = pixCreateTemplate(pixs);
+        cmap = pixcmapCreate(8);
+        pixSetColormap(pixd, cmap);
+    }
+
+        /* Use original mask, if it exists, to select gray pixels */
+    na = pixGetGrayHistogramMasked(pixs, pixm, 0, 0, 1);
+
+        /* Fill out the cmap with gray colors, and generate the lut
+         * for pixel assignment.  Issue a warning on failure.  */
+    if (numaFillCmapFromHisto(na, cmap, minfract, maxsize, &lut))
+        L_ERROR("ran out of colors in cmap!", procName);
+    numaDestroy(&na);
+
+        /* Assign the gray pixels to their cmap indices */
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    if (!pixm) {
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
+            for (j = 0; j < w; j++) {
+                vals = GET_DATA_BYTE(lines, j);
+                vald = lut[vals];
+                SET_DATA_BYTE(lined, j, vald);
+            }
+        }
+        FREE(lut);
+        return pixd;
+    }
+
+    datam = pixGetData(pixmr);
+    wplm = pixGetWpl(pixmr);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        linem = datam + i * wplm;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            if (!GET_DATA_BIT(linem, j))
+                continue;
+            vals = GET_DATA_BYTE(lines, j);
+            vald = lut[vals];
+            SET_DATA_BYTE(lined, j, vald);
+        }
+    }
+    pixDestroy(&pixmr);
+    FREE(lut);
+    return pixd;
+}
+                 
+
+/*!
+ *  numaFillCmapFromHisto()
+ *
+ *      Input:  na (histogram of gray values)
+ *              cmap (8 bpp cmap, possibly initialized with color value)
+ *              minfract (minimum fraction of pixels in a set of adjacent
+ *                        histo bins that causes the set to be automatically
+ *                        set aside as a color in the colormap; must be
+ *                        at least 0.01)
+ *              maxsize (maximum number of adjacent bins allowed to represent
+ *                       a color, regardless of the population of pixels
+ *                       in the bins; must be at least 2)
+ *             &lut (<return> lookup table from gray value to colormap index)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This static function must be called from pixGrayQuantizeFromHisto()
+ */
+static l_int32
+numaFillCmapFromHisto(NUMA      *na,
+                      PIXCMAP   *cmap,
+                      l_float32  minfract,
+                      l_int32    maxsize,
+                      l_int32  **plut)
+{
+l_int32    mincount, index, sum, wtsum, span, istart, i, val, ret;
+l_int32   *iahisto, *lut;
+l_float32  total;
+
+    PROCNAME("numaFillCmapFromHisto");
+
+    if (!plut)
+        return ERROR_INT("&lut not defined", procName, 1);
+    *plut = NULL;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+   
+    numaGetSum(na, &total);
+    mincount = (l_int32)(minfract * total);
+    iahisto = numaGetIArray(na);
+    if ((lut = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
+        return ERROR_INT("lut not made", procName, 1);
+    *plut = lut;
+    index = pixcmapGetCount(cmap);  /* start with number of colors
+                                     * already reserved */
+
+        /* March through, associating colors with sets of adjacent
+         * gray levels.  During the process, the LUT that gives
+         * the colormap index for each gray level is computed.
+         * To complete a color, either the total count must equal
+         * or exceed @mincount, or the current span of colors must
+         * equal or exceed @maxsize.  An empty span is not converted
+         * into a color; it is simply ignored.  When a span is completed for a
+         * color, the weighted color in the span is added to the colormap. */
+    sum = 0;
+    wtsum = 0;
+    istart = 0;
+    ret = 0;
+    for (i = 0; i < 256; i++) {
+        lut[i] = index;
+        sum += iahisto[i];
+        wtsum += i * iahisto[i];
+        span = i - istart + 1;
+        if (sum < mincount && span < maxsize)
+            continue; 
+
+        if (sum == 0) {  /* empty span; don't save */
+            istart = i + 1;
+            continue;
+        }
+
+            /* Found new color; sum > 0 */
+        val = (l_int32)((l_float32)wtsum / (l_float32)sum + 0.5);
+        ret = pixcmapAddColor(cmap, val, val, val);
+        istart = i + 1;
+        sum = 0;
+        wtsum = 0;
+        index++;
+    }
+    if (istart < 256 && sum > 0) {  /* last one */
+        span = 256 - istart;
+        val = (l_int32)((l_float32)wtsum / (l_float32)sum + 0.5);
+        ret = pixcmapAddColor(cmap, val, val, val);
+    }
+
+    FREE(iahisto);
+    return ret;
 }
 
 

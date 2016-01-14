@@ -13,15 +13,15 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef  LEPTONICA_PHEAP_H
-#define  LEPTONICA_PHEAP_H
+#ifndef  LEPTONICA_HEAP_H
+#define  LEPTONICA_HEAP_H
 
 /*
- *  pheap.h
+ *  heap.h
  *
  *      Expandable priority queue configured as a heap for arbitrary void* data
  *
- *      The pheap is used to implement a priority queue.  The elements
+ *      The L_Heap is used to implement a priority queue.  The elements
  *      in the heap are ordered in either increasing or decreasing key value.
  *      The key is a float field 'keyval' that is required to be
  *      contained in the elements of the queue.
@@ -45,7 +45,7 @@
  *      added to the end of the array A, the sorted heap can be restored
  *      in not more than log[n] steps.
  *
- *      A PHeap differs from a PQueue in that the elements in the former
+ *      A L_Heap differs from a L_Queue in that the elements in the former
  *      are sorted by a key.  Internally, the array is maintained
  *      as a queue, with a pointer to the end of the array.  The
  *      head of the array always remains at array[0].  The array is
@@ -57,18 +57,17 @@
  *      the heap.  If the ptr array is full, adding another item causes
  *      the ptr array size to double.
  *      
- *      For further implementation details, see pheap.c.
+ *      For further implementation details, see heap.c.
  */
 
-struct PHeap
+struct L_Heap
 {
     l_int32      nalloc;      /* size of allocated ptr array                 */
     l_int32      n;           /* number of elements stored in the heap       */
     void       **array;       /* ptr array                                   */
-    l_int32      direction;   /* of sort:                                    */
-                              /*   L_SORT_INCREASING or L_SORT_DECREASING    */
+    l_int32      direction;   /* L_SORT_INCREASING or L_SORT_DECREASING      */
 };
-typedef struct PHeap PHEAP;
+typedef struct L_Heap  L_HEAP;
 
 
-#endif  /* LEPTONICA_PHEAP_H */
+#endif  /* LEPTONICA_HEAP_H */

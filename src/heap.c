@@ -14,30 +14,30 @@
  *====================================================================*/
 
 /*
- *   pheap.c
+ *   heap.c
  *
- *      Create/Destroy PHeap
- *          PHEAP     *pheapCreate()
- *          void      *pheapDestroy()
+ *      Create/Destroy L_Heap
+ *          L_HEAP    *lheapCreate()
+ *          void      *lheapDestroy()
  *
  *      Operations to add/remove to/from the heap
- *          l_int32    pheapAdd()
- *          l_int32    pheapExtendArray()
- *          void      *pheapRemove()
+ *          l_int32    lheapAdd()
+ *          l_int32    lheapExtendArray()
+ *          void      *lheapRemove()
  *
  *      Heap operations
- *          l_int32    pheapSwapUp()
- *          l_int32    pheapSwapDown()
- *          l_int32    pheapSort()
- *          l_int32    pheapSortStrictOrder()
+ *          l_int32    lheapSwapUp()
+ *          l_int32    lheapSwapDown()
+ *          l_int32    lheapSort()
+ *          l_int32    lheapSortStrictOrder()
  *
  *      Accessors
- *          l_int32    pheapGetCount()
+ *          l_int32    lheapGetCount()
  *
  *      Debug output
- *          l_int32    pheapPrint()
+ *          l_int32    lheapPrint()
  *
- *    The pheap is useful to implement a priority queue, that is sorted
+ *    The L_Heap is useful to implement a priority queue, that is sorted
  *    on a key in each element of the heap.  The heap is an array
  *    of nearly arbitrary structs, with a l_float32 the first field.
  *    This field is the key on which the heap is sorted.
@@ -69,48 +69,48 @@
 static const l_int32  MIN_BUFFER_SIZE = 20;             /* n'importe quoi */
 static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 128;   /* n'importe quoi */
 
-#define SWAP_ITEMS(i, j)       { void *tempitem = ph->array[(i)]; \
-                                 ph->array[(i)] = ph->array[(j)]; \
-                                 ph->array[(j)] = tempitem; }
+#define SWAP_ITEMS(i, j)       { void *tempitem = lh->array[(i)]; \
+                                 lh->array[(i)] = lh->array[(j)]; \
+                                 lh->array[(j)] = tempitem; }
 
 
 /*--------------------------------------------------------------------------*
- *                          PHeap create/destroy                           *
+ *                          L_Heap create/destroy                           *
  *--------------------------------------------------------------------------*/
 /*!
- *  pheapCreate()
+ *  lheapCreate()
  *
  *      Input:  size of ptr array to be alloc'd (0 for default)
  *              direction (L_SORT_INCREASING, L_SORT_DECREASING)
- *      Return: pheap, or null on error
+ *      Return: lheap, or null on error
  */
-PHEAP *
-pheapCreate(l_int32  nalloc,
+L_HEAP *
+lheapCreate(l_int32  nalloc,
             l_int32  direction)
 {
-PHEAP  *ph;
+L_HEAP  *lh;
 
-    PROCNAME("pheapCreate");
+    PROCNAME("lheapCreate");
 
     if (nalloc < MIN_BUFFER_SIZE)
         nalloc = MIN_BUFFER_SIZE;
 
         /* Allocate ptr array and initialize counters. */
-    if ((ph = (PHEAP *)CALLOC(1, sizeof(PHEAP))) == NULL)
-        return (PHEAP *)ERROR_PTR("ph not made", procName, NULL);
-    if ((ph->array = (void **)CALLOC(nalloc, sizeof(l_intptr_t))) == NULL)
-        return (PHEAP *)ERROR_PTR("ptr array not made", procName, NULL);
-    ph->nalloc = nalloc;
-    ph->n = 0;
-    ph->direction = direction;
-    return ph;
+    if ((lh = (L_HEAP *)CALLOC(1, sizeof(L_HEAP))) == NULL)
+        return (L_HEAP *)ERROR_PTR("lh not made", procName, NULL);
+    if ((lh->array = (void **)CALLOC(nalloc, sizeof(l_intptr_t))) == NULL)
+        return (L_HEAP *)ERROR_PTR("ptr array not made", procName, NULL);
+    lh->nalloc = nalloc;
+    lh->n = 0;
+    lh->direction = direction;
+    return lh;
 }
 
 
 /*!
- *  pheapDestroy()
+ *  lheapDestroy()
  *
- *      Input:  &pheap  (<to be nulled>)
+ *      Input:  &lheap  (<to be nulled>)
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
@@ -120,36 +120,36 @@ PHEAP  *ph;
  *          own destroy function, they must be destroyed before
  *          calling this function, and then this function is called
  *          with freeflag == FALSE.
- *      (2) To destroy the pheap, we destroy the ptr array, then
- *          the pheap, and then null the contents of the input ptr.
+ *      (2) To destroy the lheap, we destroy the ptr array, then
+ *          the lheap, and then null the contents of the input ptr.
  */
 void
-pheapDestroy(PHEAP   **pph,
+lheapDestroy(L_HEAP  **plh,
              l_int32   freeflag)
 {
 l_int32  i;
-PHEAP   *ph;
+L_HEAP  *lh;
 
-    PROCNAME("pheapDestroy");
+    PROCNAME("lheapDestroy");
 
-    if (pph == NULL) {
+    if (plh == NULL) {
         L_WARNING("ptr address is NULL", procName);
         return;
     }
-    if ((ph = *pph) == NULL)
+    if ((lh = *plh) == NULL)
         return;
 
     if (freeflag) {  /* free each struct in the array */
-        for (i = 0; i < ph->n; i++)
-            FREE(ph->array[i]);
+        for (i = 0; i < lh->n; i++)
+            FREE(lh->array[i]);
     }
-    else if (ph->n > 0)  /* freeflag == FALSE but elements exist on array */
-        L_WARNING_INT("memory leak of %d items in pheap!", procName, ph->n);
+    else if (lh->n > 0)  /* freeflag == FALSE but elements exist on array */
+        L_WARNING_INT("memory leak of %d items in lheap!", procName, lh->n);
 
-    if (ph->array)
-        FREE(ph->array);
-    FREE(ph);
-    *pph = NULL;
+    if (lh->array)
+        FREE(lh->array);
+    FREE(lh);
+    *plh = NULL;
 
     return;
 }
@@ -158,106 +158,106 @@ PHEAP   *ph;
  *                                  Accessors                               *
  *--------------------------------------------------------------------------*/
 /*!
- *  pheapAdd()
+ *  lheapAdd()
  *
- *      Input:  pheap
+ *      Input:  lheap
  *              item to be added to the tail of the heap
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-pheapAdd(PHEAP  *ph,
-         void   *item)
+lheapAdd(L_HEAP  *lh,
+         void    *item)
 {
-    PROCNAME("pheapAdd");
+    PROCNAME("lheapAdd");
 
-    if (!ph)
-        return ERROR_INT("ph not defined", procName, 1);
+    if (!lh)
+        return ERROR_INT("lh not defined", procName, 1);
     if (!item)
         return ERROR_INT("item not defined", procName, 1);
     
         /* If necessary, expand the allocated array by a factor of 2 */
-    if (ph->n >= ph->nalloc)
-        pheapExtendArray(ph);
+    if (lh->n >= lh->nalloc)
+        lheapExtendArray(lh);
 
         /* Add the item */
-    ph->array[ph->n] = item;
-    ph->n++;
+    lh->array[lh->n] = item;
+    lh->n++;
 
         /* Restore the heap */
-    pheapSwapUp(ph, ph->n - 1);
+    lheapSwapUp(lh, lh->n - 1);
     return 0;
 }
 
 
 /*!
- *  pheapExtendArray()
+ *  lheapExtendArray()
  *
- *      Input:  pheap
+ *      Input:  lheap
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-pheapExtendArray(PHEAP  *ph)
+lheapExtendArray(L_HEAP  *lh)
 {
-    PROCNAME("pheapExtendArray");
+    PROCNAME("lheapExtendArray");
 
-    if (!ph)
-        return ERROR_INT("ph not defined", procName, 1);
+    if (!lh)
+        return ERROR_INT("lh not defined", procName, 1);
 
-    if ((ph->array = (void **)reallocNew((void **)&ph->array,
-                                sizeof(l_intptr_t) * ph->nalloc,
-                                2 * sizeof(l_intptr_t) * ph->nalloc)) == NULL)
+    if ((lh->array = (void **)reallocNew((void **)&lh->array,
+                                sizeof(l_intptr_t) * lh->nalloc,
+                                2 * sizeof(l_intptr_t) * lh->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
-    ph->nalloc = 2 * ph->nalloc;
+    lh->nalloc = 2 * lh->nalloc;
     return 0;
 }
 
 
 /*!
- *  pheapRemove()
+ *  lheapRemove()
  *
- *      Input:  pheap
+ *      Input:  lheap
  *      Return: ptr to item popped from the root of the heap,
  *              or null if the heap is empty or on error
  */
 void *
-pheapRemove(PHEAP  *ph)
+lheapRemove(L_HEAP  *lh)
 {
 void   *item;
 
-    PROCNAME("pheapRemove");
+    PROCNAME("lheapRemove");
 
-    if (!ph)
-        return (void *)ERROR_PTR("ph not defined", procName, NULL);
+    if (!lh)
+        return (void *)ERROR_PTR("lh not defined", procName, NULL);
 
-    if (ph->n == 0)
+    if (lh->n == 0)
         return NULL;
 
-    item = ph->array[0];
-    ph->array[0] = ph->array[ph->n - 1];  /* move last to the head */
-    ph->array[ph->n - 1] = NULL;  /* set ptr to null */
-    ph->n--;
+    item = lh->array[0];
+    lh->array[0] = lh->array[lh->n - 1];  /* move last to the head */
+    lh->array[lh->n - 1] = NULL;  /* set ptr to null */
+    lh->n--;
 
-    pheapSwapDown(ph);  /* restore the heap */
+    lheapSwapDown(lh);  /* restore the heap */
     return item;
 }
        
 
 /*!
- *  pheapGetCount()
+ *  lheapGetCount()
  *
- *      Input:  pheap
+ *      Input:  lheap
  *      Return: count, or 0 on error
  */
 l_int32
-pheapGetCount(PHEAP  *ph)
+lheapGetCount(L_HEAP  *lh)
 {
-    PROCNAME("pheapGetCount");
+    PROCNAME("lheapGetCount");
 
-    if (!ph)
-        return ERROR_INT("ph not defined", procName, 0);
+    if (!lh)
+        return ERROR_INT("lh not defined", procName, 0);
 
-    return ph->n;
+    return lh->n;
 }
         
 
@@ -266,9 +266,9 @@ pheapGetCount(PHEAP  *ph)
  *                               Heap operations                            *
  *--------------------------------------------------------------------------*/
 /*!
- *  pheapSwapUp()
+ *  lheapSwapUp()
  *
- *      Input:  ph (heap)
+ *      Input:  lh (heap)
  *              index (of array corresponding to node to be swapped up)
  *      Return: 0 if OK, 1 on error
  *
@@ -281,41 +281,41 @@ pheapGetCount(PHEAP  *ph)
  *          is in the correct position already vis-a-vis the child.
  */
 l_int32
-pheapSwapUp(PHEAP   *ph,
+lheapSwapUp(L_HEAP  *lh,
             l_int32  index)
 {
 l_int32    ip;  /* index to heap for parent; 1 larger than array index */
 l_int32    ic;  /* index into heap for child */
 l_float32  valp, valc;
 
-  PROCNAME("pheapSwapUp");
+  PROCNAME("lheapSwapUp");
 
-  if (!ph)
-      return ERROR_INT("ph not defined", procName, 1);
-  if (index < 0 || index >= ph->n)
+  if (!lh)
+      return ERROR_INT("lh not defined", procName, 1);
+  if (index < 0 || index >= lh->n)
       return ERROR_INT("invalid index", procName, 1);
 
   ic = index + 1;  /* index into heap: add 1 to array index */
-  if (ph->direction == L_SORT_INCREASING) {
+  if (lh->direction == L_SORT_INCREASING) {
       while (1) {
           if (ic == 1)  /* root of heap */
               break;
           ip = ic / 2;
-          valc = *(l_float32 *)(ph->array[ic - 1]);
-          valp = *(l_float32 *)(ph->array[ip - 1]);
+          valc = *(l_float32 *)(lh->array[ic - 1]);
+          valp = *(l_float32 *)(lh->array[ip - 1]);
           if (valp <= valc)
              break;
           SWAP_ITEMS(ip - 1, ic - 1);
           ic = ip;
       }
   }
-  else {  /* ph->direction == L_SORT_DECREASING */
+  else {  /* lh->direction == L_SORT_DECREASING */
       while (1) {
           if (ic == 1)  /* root of heap */
               break;
           ip = ic / 2;
-          valc = *(l_float32 *)(ph->array[ic - 1]);
-          valp = *(l_float32 *)(ph->array[ip - 1]);
+          valc = *(l_float32 *)(lh->array[ic - 1]);
+          valp = *(l_float32 *)(lh->array[ip - 1]);
           if (valp >= valc)
              break;
           SWAP_ITEMS(ip - 1, ic - 1);
@@ -327,9 +327,9 @@ l_float32  valp, valc;
 
 
 /*!
- *  pheapSwapDown()
+ *  lheapSwapDown()
  *
- *      Input:  ph (heap)
+ *      Input:  lh (heap)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -346,35 +346,35 @@ l_float32  valp, valc;
  *          than or equal to both children).
  */
 l_int32
-pheapSwapDown(PHEAP  *ph)
+lheapSwapDown(L_HEAP  *lh)
 {
 l_int32    ip;  /* index to heap for parent; 1 larger than array index */
 l_int32    icr, icl;  /* index into heap for left/right children */
 l_float32  valp, valcl, valcr;
 
-  PROCNAME("pheapSwapDown");
+  PROCNAME("lheapSwapDown");
 
-  if (!ph)
-      return ERROR_INT("ph not defined", procName, 1);
-  if (pheapGetCount(ph) < 1)
+  if (!lh)
+      return ERROR_INT("lh not defined", procName, 1);
+  if (lheapGetCount(lh) < 1)
       return 0;
 
   ip = 1;  /* index into top of heap: corresponds to array[0] */
-  if (ph->direction == L_SORT_INCREASING) {
+  if (lh->direction == L_SORT_INCREASING) {
       while (1) {
           icl = 2 * ip;
-          if (icl > ph->n)
+          if (icl > lh->n)
              break;
-          valp = *(l_float32 *)(ph->array[ip - 1]);
-          valcl = *(l_float32 *)(ph->array[icl - 1]);
+          valp = *(l_float32 *)(lh->array[ip - 1]);
+          valcl = *(l_float32 *)(lh->array[icl - 1]);
           icr = icl + 1;
-          if (icr > ph->n) {  /* only a left child; no iters below */
+          if (icr > lh->n) {  /* only a left child; no iters below */
               if (valp > valcl)
                   SWAP_ITEMS(ip - 1, icl - 1);
               break;
           }
           else {  /* both children present; swap with the smallest if bigger */
-              valcr = *(l_float32 *)(ph->array[icr - 1]);
+              valcr = *(l_float32 *)(lh->array[icr - 1]);
               if (valp <= valcl && valp <= valcr)  /* smaller than both */
                   break;
               if (valcl <= valcr) {  /* left smaller; swap */
@@ -388,21 +388,21 @@ l_float32  valp, valcl, valcr;
           }
       }
   }
-  else {  /* ph->direction == L_SORT_DECREASING */
+  else {  /* lh->direction == L_SORT_DECREASING */
       while (1) {
           icl = 2 * ip;
-          if (icl > ph->n)
+          if (icl > lh->n)
              break;
-          valp = *(l_float32 *)(ph->array[ip - 1]);
-          valcl = *(l_float32 *)(ph->array[icl - 1]);
+          valp = *(l_float32 *)(lh->array[ip - 1]);
+          valcl = *(l_float32 *)(lh->array[icl - 1]);
           icr = icl + 1;
-          if (icr > ph->n) {  /* only a left child; no iters below */
+          if (icr > lh->n) {  /* only a left child; no iters below */
               if (valp < valcl)
                   SWAP_ITEMS(ip - 1, icl - 1);
               break;
           }
           else {  /* both children present; swap with the biggest if smaller */
-              valcr = *(l_float32 *)(ph->array[icr - 1]);
+              valcr = *(l_float32 *)(lh->array[icr - 1]);
               if (valp >= valcl && valp >= valcr)  /* bigger than both */
                   break;
               if (valcl >= valcr) {  /* left bigger; swap */
@@ -422,9 +422,9 @@ l_float32  valp, valcl, valcr;
 
 
 /*!
- *  pheapSort()
+ *  lheapSort()
  *
- *      Input:  ph (heap, with internal array)
+ *      Input:  lh (heap, with internal array)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -432,26 +432,26 @@ l_float32  valp, valcl, valcr;
  *          in heap order for the direction given, this has no effect.
  */
 l_int32
-pheapSort(PHEAP  *ph)
+lheapSort(L_HEAP  *lh)
 {
 l_int32  i;
 
-  PROCNAME("pheapSort");
+  PROCNAME("lheapSort");
 
-  if (!ph)
-      return ERROR_INT("ph not defined", procName, 1);
+  if (!lh)
+      return ERROR_INT("lh not defined", procName, 1);
 
-  for (i = 0; i < ph->n; i++)
-      pheapSwapUp(ph, i);
+  for (i = 0; i < lh->n; i++)
+      lheapSwapUp(lh, i);
 
   return 0;
 }
 
 
 /*!
- *  pheapSortStrictOrder()
+ *  lheapSortStrictOrder()
  *
- *      Input:  ph (heap, with internal array)
+ *      Input:  lh (heap, with internal array)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -464,23 +464,23 @@ l_int32  i;
  *          then reversed to put it in the original order.
  */
 l_int32
-pheapSortStrictOrder(PHEAP  *ph)
+lheapSortStrictOrder(L_HEAP  *lh)
 {
 l_int32  i, index, size;
 
-  PROCNAME("pheapSortStrictOrder");
+  PROCNAME("lheapSortStrictOrder");
 
-  if (!ph)
-      return ERROR_INT("ph not defined", procName, 1);
+  if (!lh)
+      return ERROR_INT("lh not defined", procName, 1);
 
-  size = ph->n;  /* save the actual size */
+  size = lh->n;  /* save the actual size */
   for (i = 0; i < size; i++) {
       index = size - i;
       SWAP_ITEMS(0, index - 1);
-      ph->n--;  /* reduce the apparent heap size by 1 */
-      pheapSwapDown(ph);
+      lh->n--;  /* reduce the apparent heap size by 1 */
+      lheapSwapDown(lh);
   }
-  ph->n = size;  /* restore the size */
+  lh->n = size;  /* restore the size */
 
   for (i = 0; i < size / 2; i++)  /* reverse */
       SWAP_ITEMS(i, size - i - 1);
@@ -494,29 +494,29 @@ l_int32  i, index, size;
  *                            Debug output                             *
  *---------------------------------------------------------------------*/
 /*!
- *  pheapPrint()
+ *  lheapPrint()
  *  
  *      Input:  stream
- *              pheap
+ *              lheap
  *      Return: 0 if OK; 1 on error
  */
 l_int32
-pheapPrint(FILE   *fp,
-           PHEAP  *ph)
+lheapPrint(FILE    *fp,
+           L_HEAP  *lh)
 {
 l_int32  i;
 
-    PROCNAME("pheapPrint");
+    PROCNAME("lheapPrint");
 
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
-    if (!ph)
-        return ERROR_INT("ph not defined", procName, 1);
+    if (!lh)
+        return ERROR_INT("lh not defined", procName, 1);
 
-    fprintf(fp, "\n PHeap: nalloc = %d, n = %d, array = %p\n",
-            ph->nalloc, ph->n, ph->array);
-    for (i = 0; i < ph->n; i++)
-        fprintf(fp,   "keyval[%d] = %f\n", i, *(l_float32 *)ph->array[i]);
+    fprintf(fp, "\n L_Heap: nalloc = %d, n = %d, array = %p\n",
+            lh->nalloc, lh->n, lh->array);
+    for (i = 0; i < lh->n; i++)
+        fprintf(fp,   "keyval[%d] = %f\n", i, *(l_float32 *)lh->array[i]);
 
     return 0;
 }

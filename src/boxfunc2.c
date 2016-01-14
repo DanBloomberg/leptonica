@@ -26,6 +26,7 @@
  *
  *      Boxa sort
  *           BOXA            *boxaSort()
+ *           BOXA            *boxaBinSort()
  *           BOXA            *boxaSortByIndex()
  *           BOXAA           *boxaSort2d()
  *           BOXAA           *boxaSort2dByIndex()
@@ -40,6 +41,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
+
+    /* For more than this number of c.c. in a binarized image of
+     * semi-perimeter (w + h) about 5000 or less, the O(n) binsort
+     * is faster than the O(nlogn) shellsort.  */
+static const l_int32   MIN_COMPS_FOR_BIN_SORT = 500;
 
 
 /*---------------------------------------------------------------------*
@@ -496,7 +502,7 @@ l_int32  bx, by, bw, bh, xdist, ydist;
  *              sorttype (L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
  *                        L_SORT_BY_HEIGHT, L_SORT_BY_MIN_DIMENSION,
  *                        L_SORT_BY_MAX_DIMENSION, L_SORT_BY_PERIMETER,
- *                        L_SORT_BY_AREA)
+ *                        L_SORT_BY_AREA, L_SORT_BY_ASPECT_RATIO)
  *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
  *              &naindex (<optional return> index of sorted order into
  *                        original array)
@@ -508,10 +514,9 @@ boxaSort(BOXA    *boxas,
          l_int32  sortorder,
          NUMA   **pnaindex)
 {
-l_int32  i, n, size;
-BOX     *box;
-BOXA    *boxad;
-NUMA    *na, *naindex;
+l_int32    i, n, x, y, w, h, size;
+BOXA      *boxad;
+NUMA      *na, *naindex;
 
     PROCNAME("boxaSort");
 
@@ -522,53 +527,62 @@ NUMA    *na, *naindex;
         sorttype != L_SORT_BY_WIDTH && sorttype != L_SORT_BY_HEIGHT &&
         sorttype != L_SORT_BY_MIN_DIMENSION &&
         sorttype != L_SORT_BY_MAX_DIMENSION &&
-        sorttype != L_SORT_BY_PERIMETER && sorttype != L_SORT_BY_AREA)
+        sorttype != L_SORT_BY_PERIMETER &&
+        sorttype != L_SORT_BY_AREA &&
+        sorttype != L_SORT_BY_ASPECT_RATIO)
         return (BOXA *)ERROR_PTR("invalid sort type", procName, NULL);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
         return (BOXA *)ERROR_PTR("invalid sort order", procName, NULL);
 
-        /* Build up numa of specific data */
+        /* Use O(n) binsort if possible */
     n = boxaGetCount(boxas);
+    if (n > MIN_COMPS_FOR_BIN_SORT && 
+        ((sorttype == L_SORT_BY_X) || (sorttype == L_SORT_BY_Y) || 
+         (sorttype == L_SORT_BY_WIDTH) || (sorttype == L_SORT_BY_HEIGHT) ||
+         (sorttype == L_SORT_BY_PERIMETER)))
+        return boxaBinSort(boxas, sorttype, sortorder, pnaindex);
+
+        /* Build up numa of specific data */
     if ((na = numaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("na not made", procName, NULL);
     for (i = 0; i < n; i++) {
-        box = boxaGetBox(boxas, i, L_CLONE);
-        if (!box)
-          return (BOXA *)ERROR_PTR("box not found", procName, NULL);
+        boxaGetBoxGeometry(boxas, i, &x, &y, &w, &h);
         switch (sorttype)
         {
         case L_SORT_BY_X:
-            numaAddNumber(na, box->x);
+            numaAddNumber(na, x);
             break;
         case L_SORT_BY_Y:
-            numaAddNumber(na, box->y);
+            numaAddNumber(na, y);
             break;
         case L_SORT_BY_WIDTH:
-            numaAddNumber(na, box->w);
+            numaAddNumber(na, w);
             break;
         case L_SORT_BY_HEIGHT:
-            numaAddNumber(na, box->h);
+            numaAddNumber(na, h);
             break;
         case L_SORT_BY_MIN_DIMENSION:
-            size = L_MIN(box->w, box->h);
+            size = L_MIN(w, h);
             numaAddNumber(na, size);
             break;
         case L_SORT_BY_MAX_DIMENSION:
-            size = L_MAX(box->w, box->h);
+            size = L_MAX(w, h);
             numaAddNumber(na, size);
             break;
         case L_SORT_BY_PERIMETER:
-            size = box->w + box->h;
+            size = w + h;
             numaAddNumber(na, size);
             break;
         case L_SORT_BY_AREA:
-            size = box->w * box->h;
+            size = w * h;
             numaAddNumber(na, size);
+            break;
+        case L_SORT_BY_ASPECT_RATIO:
+            numaAddNumber(na, (l_float32)w / (l_float32)h);
             break;
         default:
             L_WARNING("invalid sort type", procName);
         }
-        boxDestroy(&box);
     }
 
         /* Get the sort index for data array */
@@ -576,6 +590,90 @@ NUMA    *na, *naindex;
         return (BOXA *)ERROR_PTR("naindex not made", procName, NULL);
 
         /* Build up sorted boxa using sort index */
+    boxad = boxaSortByIndex(boxas, naindex);
+
+    if (pnaindex)
+        *pnaindex = naindex;
+    else
+        numaDestroy(&naindex);
+    numaDestroy(&na);
+    return boxad;
+}
+
+
+/*!
+ *  boxaBinSort()
+ * 
+ *      Input:  boxa
+ *              sorttype (L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
+ *                        L_SORT_BY_HEIGHT, L_SORT_BY_PERIMETER)
+ *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
+ *              &naindex (<optional return> index of sorted order into
+ *                        original array)
+ *      Return: boxad (sorted version of boxas), or null on error
+ *
+ *  Notes:
+ *      (1) For a large number of boxes (say, greater than 1000), this
+ *          O(n) binsort is much faster than the O(nlogn) shellsort.
+ *          For 5000 components, this is over 20x faster than boxaSort().
+ *      (2) Consequently, boxaSort() calls this function if it will
+ *          likely go much faster.
+ */
+BOXA *
+boxaBinSort(BOXA    *boxas,
+            l_int32  sorttype,
+            l_int32  sortorder,
+            NUMA   **pnaindex)
+{
+l_int32  i, n, x, y, w, h;
+BOXA    *boxad;
+NUMA    *na, *naindex;
+
+    PROCNAME("boxaBinSort");
+
+    if (pnaindex) *pnaindex = NULL;
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y && 
+        sorttype != L_SORT_BY_WIDTH && sorttype != L_SORT_BY_HEIGHT &&
+        sorttype != L_SORT_BY_PERIMETER)
+        return (BOXA *)ERROR_PTR("invalid sort type", procName, NULL);
+    if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
+        return (BOXA *)ERROR_PTR("invalid sort order", procName, NULL);
+
+        /* Generate Numa of appropriate box dimensions */
+    n = boxaGetCount(boxas);
+    if ((na = numaCreate(n)) == NULL)
+        return (BOXA *)ERROR_PTR("na not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        boxaGetBoxGeometry(boxas, i, &x, &y, &w, &h);
+        switch (sorttype)
+        {
+        case L_SORT_BY_X:
+            numaAddNumber(na, x);
+            break;
+        case L_SORT_BY_Y:
+            numaAddNumber(na, y);
+            break;
+        case L_SORT_BY_WIDTH:
+            numaAddNumber(na, w);
+            break;
+        case L_SORT_BY_HEIGHT:
+            numaAddNumber(na, h);
+            break;
+        case L_SORT_BY_PERIMETER:
+            numaAddNumber(na, w + h);
+            break;
+        default:
+            L_WARNING("invalid sort type", procName);
+        }
+    }
+
+        /* Get the sort index for data array */
+    if ((naindex = numaGetBinSortIndex(na, sortorder)) == NULL)
+        return (BOXA *)ERROR_PTR("naindex not made", procName, NULL);
+
+        /* Build up sorted boxa using the sort index */
     boxad = boxaSortByIndex(boxas, naindex);
 
     if (pnaindex)

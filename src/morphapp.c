@@ -30,6 +30,10 @@
  *            PIX     *pixMorphSequenceByRegion()
  *            PIXA    *pixaMorphSequenceByRegion()
  *
+ *      Union and intersection of parallel composite operations
+ *            PIX     *pixUnionOfMorphOps()
+ *            PIX     *pixIntersectionOfMorphOps()
+ *
  *      Selective connected component filling
  *            PIX     *pixSelectiveConnCompFill()
  *
@@ -219,7 +223,10 @@ PIXA    *pixad;
  *  Notes:
  *      (1) See pixMorphCompSequence() for composing operation sequences.
  *      (2) This operates separately on the region in pixs corresponding
- *          to each c.c. in the mask pixm.
+ *          to each c.c. in the mask pixm.  It differs from
+ *          pixMorphSequenceByComponent() in that the latter does not have
+ *          a pixm (mask), but instead operates independently on each
+ *          component in pixs.
  *      (3) Dilation will NOT increase the region size; the result
  *          is clipped to the size of the mask region.  This is necessary
  *          to make regions independent after the operation.
@@ -284,7 +291,7 @@ PIXA    *pixam, *pixad;
 
 
 /*!
- *  pixaMorphSequenceByComponent()
+ *  pixaMorphSequenceByRegion()
  *
  *      Input:  pixs (1 bpp)
  *              pixam (of 1 bpp mask elements)
@@ -361,6 +368,117 @@ PIXA    *pixad;
 
     return pixad;
 }
+
+
+/*-----------------------------------------------------------------*
+ *      Union and intersection of parallel composite operations    *
+ *-----------------------------------------------------------------*/
+/*!
+ *  pixUnionOfMorphOps()
+ *
+ *      Input:  pixs (binary)
+ *              sela 
+ *              type (L_MORPH_DILATE, etc.)
+ *      Return: pixd (union of the specified morphological operation
+ *                    on pixs for each Sel in the Sela), or null on error
+ */
+PIX *
+pixUnionOfMorphOps(PIX     *pixs,
+                   SELA    *sela,
+                   l_int32  type)
+{
+l_int32  n, i;
+PIX     *pixt, *pixd;
+SEL     *sel;
+
+    PROCNAME("pixUnionOfMorphOps");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (!sela)
+        return (PIX *)ERROR_PTR("sela not defined", procName, NULL);
+    n = selaGetCount(sela);
+    if (n == 0)
+        return (PIX *)ERROR_PTR("no sels in sela", procName, NULL);
+    if (type != L_MORPH_DILATE && type != L_MORPH_ERODE &&
+        type != L_MORPH_OPEN && type != L_MORPH_CLOSE &&
+        type != L_MORPH_HMT)
+        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+
+    pixd = pixCreateTemplate(pixs);
+    for (i = 0; i < n; i++) {
+        sel = selaGetSel(sela, i);
+        if (type == L_MORPH_DILATE)
+            pixt = pixDilate(NULL, pixs, sel);
+        else if (type == L_MORPH_ERODE)
+            pixt = pixErode(NULL, pixs, sel);
+        else if (type == L_MORPH_OPEN)
+            pixt = pixOpen(NULL, pixs, sel);
+        else if (type == L_MORPH_CLOSE)
+            pixt = pixClose(NULL, pixs, sel);
+        else  /* type == L_MORPH_HMT */
+            pixt = pixHMT(NULL, pixs, sel);
+        pixOr(pixd, pixd, pixt);
+        pixDestroy(&pixt);
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixIntersectionOfMorphOps()
+ *
+ *      Input:  pixs (binary)
+ *              sela 
+ *              type (L_MORPH_DILATE, etc.)
+ *      Return: pixd (intersection of the specified morphological operation
+ *                    on pixs for each Sel in the Sela), or null on error
+ */
+PIX *
+pixIntersectionOfMorphOps(PIX     *pixs,
+                          SELA    *sela,
+                          l_int32  type)
+{
+l_int32  n, i;
+PIX     *pixt, *pixd;
+SEL     *sel;
+
+    PROCNAME("pixIntersectionOfMorphOps");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (!sela)
+        return (PIX *)ERROR_PTR("sela not defined", procName, NULL);
+    n = selaGetCount(sela);
+    if (n == 0)
+        return (PIX *)ERROR_PTR("no sels in sela", procName, NULL);
+    if (type != L_MORPH_DILATE && type != L_MORPH_ERODE &&
+        type != L_MORPH_OPEN && type != L_MORPH_CLOSE &&
+        type != L_MORPH_HMT)
+        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+
+    pixd = pixCreateTemplate(pixs);
+    pixSetAll(pixd);
+    for (i = 0; i < n; i++) {
+        sel = selaGetSel(sela, i);
+        if (type == L_MORPH_DILATE)
+            pixt = pixDilate(NULL, pixs, sel);
+        else if (type == L_MORPH_ERODE)
+            pixt = pixErode(NULL, pixs, sel);
+        else if (type == L_MORPH_OPEN)
+            pixt = pixOpen(NULL, pixs, sel);
+        else if (type == L_MORPH_CLOSE)
+            pixt = pixClose(NULL, pixs, sel);
+        else  /* type == L_MORPH_HMT */
+            pixt = pixHMT(NULL, pixs, sel);
+        pixAnd(pixd, pixd, pixt);
+        pixDestroy(&pixt);
+    }
+
+    return pixd;
+}
+
 
 
 /*-----------------------------------------------------------------*

@@ -22,6 +22,7 @@
  *        l_int32          pixTilingGetCount()
  *        l_int32          pixTilingGetSize()
  *        PIX             *pixTilingGetTile()
+ *        l_int32          pixTilingNoStripOnPaint()
  *        l_int32          pixTilingPaintTile()
  *          
  *
@@ -149,6 +150,7 @@ PIXTILING  *pt;
     pt->ny = ny;
     pt->w = w;
     pt->h = h;
+    pt->strip = TRUE;
     return pt;
 }
         
@@ -233,7 +235,7 @@ pixTilingGetSize(PIXTILING  *pt,
  *      Input:  pt (pixtiling)
  *              i (tile row index)
  *              j (tile column index)
- *      Return: pixd (tile with appropriate boundary (overlap) pixels),
+ *      Return: pixd (tile with appropriate boundary (overlap) pixels added),
  *                    or null on error
  */
 PIX *
@@ -331,6 +333,31 @@ PIX     *pixs, *pixt, *pixd;
 
 
 /*!
+ *  pixTilingNoStripOnPaint()
+ *
+ *      Input:  pt (pixtiling)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The default for paint is to strip out the overlap pixels
+ *          that are added by pixTilingGetTile().  However, some
+ *          operations will generate an image with these pixels
+ *          stripped off.  This tells the paint operation not
+ *          to strip the added boundary pixels when painting.
+ */
+l_int32
+pixTilingNoStripOnPaint(PIXTILING  *pt)
+{
+    PROCNAME("pixTilingNoStripOnPaint");
+
+    if (!pt)
+        return ERROR_INT("pt not defined", procName, 1);
+    pt->strip = FALSE;
+    return 0;
+}
+
+
+/*!
  *  pixTilingPaintTile()
  *
  *      Input:  pixd (dest: paint tile onto this, without overlap)
@@ -347,7 +374,7 @@ pixTilingPaintTile(PIX        *pixd,
                    PIX        *pixs,
                    PIXTILING  *pt)
 {
-l_int32  width, height;
+l_int32  w, h;
 
     PROCNAME("pixTilingPaintTile");
 
@@ -362,10 +389,15 @@ l_int32  width, height;
     if (j < 0 || j >= pt->nx)
         return ERROR_INT("invalid column index j", procName, 1);
 
-    width = pixGetWidth(pixs) - 2 * pt->xoverlap;
-    height = pixGetHeight(pixs) - 2 * pt->yoverlap;
-    pixRasterop(pixd, j * pt->w, i * pt->h, width, height, PIX_SRC,
-                pixs, pt->xoverlap, pt->yoverlap);
+        /* Strip added border pixels off if requested */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (pt->strip == TRUE)
+        pixRasterop(pixd, j * pt->w, i * pt->h,
+                    w - 2 * pt->xoverlap, h - 2 * pt->yoverlap, PIX_SRC,
+                    pixs, pt->xoverlap, pt->yoverlap);
+    else
+        pixRasterop(pixd, j * pt->w, i * pt->h, w, h, PIX_SRC, pixs, 0, 0);
+
     return 0;
 }
 

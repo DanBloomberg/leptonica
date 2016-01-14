@@ -21,11 +21,13 @@
  *          NUMA        *numaConvolve()
  *          NUMA        *numaConvertToInt()
  *
- *      Histograms
+ *      Histogram generation and statistics
  *          NUMA        *numaMakeHistogram()
+ *          NUMA        *numaMakeHistogramAuto()
  *          NUMA        *numaMakeHistogramClipped()
  *          NUMA        *numaRebinHistogram()
  *          NUMA        *numaNormalizeHistogram()
+ *          l_int32      numaGetStatsUsingHistogram()
  *          l_int32      numaGetHistogramStats()
  *          l_int32      numaGetHistogramStatsOnInterval()
  *          l_int32      numaMakeRankFromHistogram()
@@ -73,8 +75,12 @@
  *        are therefore specified by a numa of occurrences, along
  *        with two other numbers: the 'value' associated with the
  *        occupants of the first bucket and the size (i.e., 'width')
- *        of each bucket.  These two numbers allow us to calculate
+ *        of each bucket.  These two numbers then allow us to calculate
  *        the value associated with the occupants of each bucket.
+ *        These numbers are fields in the numa, initialized to
+ *        a startx value of 0.0 and a binsize of 1.0.  Accessors for
+ *        these fields are functions numa*XParameters().  All histograms
+ *        must have these two numbers properly set.
  */
 
 #include <stdio.h>
@@ -236,26 +242,31 @@ NUMA    *nad;
 
 
 /*----------------------------------------------------------------------*
- *                     Functions requiring sorting                      *
+ *                 Histogram generation and statistics                  *
  *----------------------------------------------------------------------*/
 /*!
  *  numaMakeHistogram()
  *
  *      Input:  na
- *              maxnbins (max number of histogram bins)
+ *              maxbins (max number of histogram bins)
  *              &binsize  (<return> size of histogram bins)
  *              &binstart (<optional return> start val of minimum bin;
  *                         input NULL to force start at 0)
  *      Return: na consisiting of histogram of integerized values,
  *              or null on error.
  *
- *  Note: We specify the max number of input bins, and are returned the
- *        size of bins necessary to accommodate the input data.  The size
- *        is one of the sequence: {1, 2, 5, 10, 20, 50, ...}.
- *        If &binstart is given, all values are accommodated,
- *        and the min value of the starting bin is returned;
- *        otherwise, all negative values are discarded and
- *        the histogram bins start at 0.
+ *  Note:
+ *      (1) This simple interface is designed for integer data.
+ *          The bins are of integer width and start on integer boundaries,
+ *          so the results on float data will not have high precision.
+ *      (2) Specify the max number of input bins.   Then @binsize,
+ *          the size of bins necessary to accommodate the input data,
+ *          is returned.  It is one of the sequence:
+ *                {1, 2, 5, 10, 20, 50, ...}.
+ *      (3) If &binstart is given, all values are accommodated,
+ *          and the min value of the starting bin is returned.
+ *          Otherwise, all negative values are discarded and
+ *          the histogram bins start at 0.
  */
 NUMA *
 numaMakeHistogram(NUMA     *na,
@@ -263,7 +274,7 @@ numaMakeHistogram(NUMA     *na,
                   l_int32  *pbinsize,
                   l_int32  *pbinstart)
 {
-l_int32    i, n, ival, iloc, hval;
+l_int32    i, n, ival, hval;
 l_int32    iminval, imaxval, range, binsize, nbins, ibin;
 l_float32  val, ratio;
 NUMA      *nai, *nahist;
@@ -276,9 +287,9 @@ NUMA      *nai, *nahist;
         return (NUMA *)ERROR_PTR("&binsize not defined", procName, NULL);
 
         /* Determine input range */
-    numaGetMin(na, &val, &iloc);
+    numaGetMin(na, &val, NULL);
     iminval = (l_int32)(val + 0.5);
-    numaGetMax(na, &val, &iloc);
+    numaGetMax(na, &val, NULL);
     imaxval = (l_int32)(val + 0.5);
     if (pbinstart == NULL) {  /* clip negative vals; start from 0 */
         iminval = 0;
@@ -329,7 +340,8 @@ NUMA      *nai, *nahist;
          * into a bin number for this histogram array. */
     if ((nahist = numaCreate(nbins)) == NULL)
         return (NUMA *)ERROR_PTR("nahist not made", procName, NULL);
-    nahist->n = nbins;  /* fake the storage of nbins zeroes */
+    numaSetCount(nahist, nbins);
+    numaSetXParameters(nahist, iminval, binsize);
     for (i = 0; i < n; i++) {
         numaGetIValue(nai, i, &ival);
         ibin = (ival - iminval) / binsize;
@@ -341,6 +353,89 @@ NUMA      *nai, *nahist;
 
     numaDestroy(&nai);
     return nahist;
+}
+
+
+/*!
+ *  numaMakeHistogramAuto()
+ *
+ *      Input:  na (numa of floats; these may be integers)
+ *              maxbins (max number of histogram bins; >= 1)
+ *      Return: na consisiting of histogram of quantized float values,
+ *              or null on error.
+ *
+ *  Notes:
+ *      (1) This simple interface is designed for accurate binning
+ *          of both integer and float data.
+ *      (2) If the array data is integers, and the range of integers
+ *          is smaller than @maxbins, they are binned as they fall,
+ *          with binsize = 1.
+ *      (3) If the range of data, (maxval - minval), is larger than
+ *          @maxbins, or if the data is floats, they are binned into
+ *          exactly @maxbins bins.
+ *      (4) Unlike numaMakeHistogram(), these bins in general have
+ *          non-integer location and width, even for integer data.
+ */
+NUMA *
+numaMakeHistogramAuto(NUMA    *na,
+                      l_int32  maxbins)
+{
+l_int32    i, n, imin, imax, irange, ibin, ival, allints;
+l_float32  minval, maxval, range, binsize, fval;
+NUMA      *nah;
+
+    PROCNAME("numaMakeHistogramAuto");
+
+    if (!na)
+        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
+    maxbins = L_MAX(1, maxbins);
+
+        /* Determine input range */
+    numaGetMin(na, &minval, NULL);
+    numaGetMax(na, &maxval, NULL);
+
+        /* Determine if values are all integers */
+    n = numaGetCount(na);
+    numaHasOnlyIntegers(na, maxbins, &allints);
+
+        /* Do simple integer binning if possible */
+    if (allints && (maxval - minval < maxbins)) {
+        imin = (l_int32)minval;
+        imax = (l_int32)maxval;
+        irange = imax - imin + 1;
+        nah = numaCreate(irange);
+        numaSetCount(nah, irange);  /* init */
+        numaSetXParameters(nah, minval, 1.0);
+        for (i = 0; i < n; i++) {
+            numaGetIValue(na, i, &ival);
+            ibin = ival - imin;
+            numaGetIValue(nah, ibin, &ival);
+            numaSetValue(nah, ibin, ival + 1.0);
+        }
+
+        return nah;
+    }
+
+        /* Do float binning, even if the data is integers. */
+    range = maxval - minval;
+    binsize = range / (l_float32)maxbins;
+    if (range == 0.0) {
+        nah = numaCreate(1);
+        numaSetXParameters(nah, minval, binsize);
+        numaAddNumber(nah, n);
+        return nah;
+    }
+    nah = numaCreate(maxbins);
+    numaSetCount(nah, maxbins);
+    numaSetXParameters(nah, minval, binsize);
+    for (i = 0; i < n; i++) {
+        numaGetFValue(na, i, &fval);
+        ibin = (l_int32)((fval - minval) / binsize);
+        numaGetIValue(nah, ibin, &ival);
+        numaSetValue(nah, ibin, ival + 1.0);
+    }
+
+    return nah;
 }
 
 
@@ -383,7 +478,6 @@ NUMA      *nad;
     numaGetMax(na, &maxval, NULL);
     n = numaGetCount(na);
     maxsize = L_MIN(maxsize, maxval);
-/*    nbins = (l_int32)((maxsize + 0.99 * binsize) / binsize); */
     nbins = (l_int32)(maxsize / binsize) + 1;
 
 /*    fprintf(stderr, "maxsize = %7.3f, nbins = %d\n", maxsize, nbins); */
@@ -416,8 +510,9 @@ NUMA *
 numaRebinHistogram(NUMA    *nas,
                    l_int32  newsize)
 {
-l_int32  i, j, ns, nd, index, count, val;
-NUMA    *nad;
+l_int32    i, j, ns, nd, index, count, val;
+l_float32  start, oldsize;
+NUMA      *nad;
 
     PROCNAME("numaRebinHistogram");
 
@@ -431,6 +526,8 @@ NUMA    *nad;
     nd = (ns + newsize - 1) / newsize;
     if ((nad = numaCreate(nd)) == NULL)
         return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+    numaGetXParameters(nad, &start, &oldsize);
+    numaSetXParameters(nad, start, oldsize * newsize);
 
     for (i = 0; i < nd; i++) {  /* new bins */
         count = 0;
@@ -480,6 +577,7 @@ NUMA      *nad;
 
     if ((nad = numaCreate(ns)) == NULL)
         return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+    numaCopyXParameters(nad, nas);
 
     for (i = 0; i < ns; i++) {
         numaGetFValue(nas, i, &fval);
@@ -488,6 +586,117 @@ NUMA      *nad;
     }
 
     return nad;
+}
+
+
+/*!
+ *  numaGetStatsUsingHistogram()
+ *
+ *      Input:  na (an arbitrary set of numbers; not ordered and not
+ *                  a histogram)
+ *              maxbins (the maximum number of bins to be allowed in
+ *                       the histogram; use 0 for consecutive integer bins)
+ *              &min (<optional return> min value of set)
+ *              &max (<optional return> max value of set)
+ *              &mean (<optional return> mean value of set)
+ *              &variance (<optional return> variance)
+ *              &median (<optional return> median value of set)
+ *              rank (in [0.0 ... 1.0]; median has a rank 0.5; ignored
+ *                    if &rval == NULL)
+ *              &rval (<optional return> value in na corresponding to @rank)
+ *              &histo (<optional return> Numa histogram; use NULL to prevent)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is a simple interface for gathering statistics
+ *          from a numa, where a histogram is used 'under the covers'
+ *          to avoid sorting if a rank value is requested.  In that case,
+ *          by using a histogram we are trading speed for accuracy, because
+ *          the values in @na are quantized to the center of a set of bins.
+ *      (2) If the median, other rank value, or histogram are not requested,
+ *          the calculation is all performed on the input Numa.
+ *      (3) The variance is the average of the square of the
+ *          difference from the mean.  The median is the value in na
+ *          with rank 0.5.
+ *      (4) There are two situations where this gives rank results with
+ *          accuracy comparable to computing stastics directly on the input
+ *          data, without binning into a histogram:
+ *           (a) the data is integers and the range of data is less than
+ *               @maxbins, and
+ *           (b) the data is floats and the range is small compared to
+ *               @maxbins, so that the binsize is much less than 1.
+ *      (5) If a histogram is used and the numbers in the Numa extend
+ *          over a large range, you can limit the required storage by
+ *          specifying the maximum number of bins in the histogram.
+ *          Use @maxbins == 0 to force the bin size to be 1.
+ *      (6) This optionally returns the median and one arbitrary rank value.
+ *          If you need several rank values, return the histogram and use
+ *               numaHistogramGetValFromRank(nah, rank, &rval)
+ *          multiple times.
+ */
+l_int32
+numaGetStatsUsingHistogram(NUMA       *na,
+                           l_int32     maxbins,
+                           l_float32  *pmin,
+                           l_float32  *pmax,
+                           l_float32  *pmean,
+                           l_float32  *pvariance,
+                           l_float32  *pmedian,
+                           l_float32   rank,
+                           l_float32  *prval,
+                           NUMA      **phisto)
+{
+l_int32    i, n;
+l_float32  minval, maxval, fval, mean, sum;
+NUMA      *nah;
+
+    PROCNAME("numaGetStatsUsingHistogram");
+
+    if (pmin) *pmin = 0.0;
+    if (pmax) *pmax = 0.0;
+    if (pmean) *pmean = 0.0;
+    if (pmedian) *pmedian = 0.0;
+    if (pvariance) *pvariance = 0.0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if ((n = numaGetCount(na)) == 0)
+        return ERROR_INT("numa is empty", procName, 1);
+
+    numaGetMin(na, &minval, NULL);
+    numaGetMax(na, &maxval, NULL);
+    if (pmin) *pmin = minval;
+    if (pmax) *pmax = maxval;
+    if (pmean || pvariance) {
+        sum = 0.0;
+        for (i = 0; i < n; i++) {
+            numaGetFValue(na, i, &fval);
+            sum += fval;
+        }
+        mean = sum / (l_float32)n;
+        if (pmean) *pmean = mean;
+    }
+    if (pvariance) {
+        sum = 0.0;
+        for (i = 0; i < n; i++) {
+            numaGetFValue(na, i, &fval);
+            sum += fval * fval;
+        }
+        *pvariance = sum / (l_float32)n - mean * mean;
+    }
+
+    if (!pmedian && !prval && !phisto)
+        return 0;
+
+    nah = numaMakeHistogramAuto(na, maxbins);
+    if (pmedian)
+        numaHistogramGetValFromRank(nah, 0.5, pmedian);
+    if (prval)
+        numaHistogramGetValFromRank(nah, rank, prval);
+    if (phisto)
+        *phisto = nah;
+    else
+        numaDestroy(&nah);
+    return 0;
 }
 
 
@@ -534,7 +743,6 @@ numaGetHistogramStats(NUMA       *nahisto,
                                            pxmean, pxmedian, pxmode,
                                            pxvariance);
 }
-
 
 
 /*!
@@ -696,8 +904,6 @@ NUMA      *nan, *nar;
  *  numaHistogramGetRankFromVal()
  *
  *      Input:  na (histogram)
- *              startval (assigned to the first bin bucket)
- *              binsize
  *              rval (value of input sample for which we want the rank)
  *              &rank (<return> fraction of total samples below rval)
  *      Return: 0 if OK, 1 on error
@@ -711,37 +917,40 @@ NUMA      *nan, *nar;
  *          is a histogram.  The values in the histogram can be ints and
  *          floats, and are computed as floats.  The rank is returned
  *          as a float between 0.0 and 1.0.
- *      (3) startval and binsize are used to compute x from the Numa index i.
+ *      (3) The numa parameters startx and binsize are used to
+ *          compute x from the Numa index i.
  */
 l_int32
 numaHistogramGetRankFromVal(NUMA       *na,
-                            l_int32     startval,
-                            l_int32     binsize,
                             l_float32   rval,
                             l_float32  *prank)
 {
 l_int32    i, ibinval, n;
-l_float32  binval, fractval, total, sum, val;
+l_float32  startval, binsize, binval, maxval, fractval, total, sum, val;
 
     PROCNAME("numaHistogramGetRankFromVal");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
     if (!prank)
         return ERROR_INT("prank not defined", procName, 1);
-    if (binsize < 1)
-        binsize = 1;
-    if (rval < startval)
-        return ERROR_INT("rval less than startval", procName, 1);
-
+    *prank = 0.0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    numaGetXParameters(na, &startval, &binsize);
     n = numaGetCount(na);
-    binval = (rval - (l_float32)startval) / (l_float32)binsize;
-    if (binval >= (l_float32)n) {
+    if (rval < startval)
+        return 0;
+    maxval = startval + n * binsize;
+    if (rval > maxval) {
         *prank = 1.0;
         return 0;
     }
 
+    binval = (rval - startval) / binsize;
     ibinval = (l_int32)binval;
+    if (ibinval >= n) {
+        *prank = 1.0;
+        return 0;
+    }
     fractval = binval - (l_float32)ibinval;
 
     sum = 0.0;
@@ -764,8 +973,6 @@ l_float32  binval, fractval, total, sum, val;
  *  numaHistogramGetValFromRank()
  *
  *      Input:  na (histogram)
- *              startval (assigned to the first bin bucket)
- *              binsize
  *              rank (fraction of total samples)
  *              &rval (<return> approx. to the bin value)
  *      Return: 0 if OK, 1 on error
@@ -779,26 +986,24 @@ l_float32  binval, fractval, total, sum, val;
  *          is a histogram.  The values in the histogram can be ints and
  *          floats, and are computed as floats.  The val is returned
  *          as a float, even though the buckets are of integer width.
- *      (3) startval and binsize are used to compute x from the Numa index i.
+ *      (3) The numa parameters startx and binsize are used to
+ *          compute x from the Numa index i.
  */
 l_int32
 numaHistogramGetValFromRank(NUMA       *na,
-                            l_int32     startval,
-                            l_int32     binsize,
                             l_float32   rank,
                             l_float32  *prval)
 {
 l_int32    i, n;
-l_float32  rankcount, total, sum, fract, val;
+l_float32  startval, binsize, rankcount, total, sum, fract, val;
 
     PROCNAME("numaHistogramGetValFromRank");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
     if (!prval)
         return ERROR_INT("prval not defined", procName, 1);
-    if (binsize < 1)
-        binsize = 1;
+    *prval = 0.0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
     if (rank < 0.0) {
         L_WARNING("rank < 0; setting to 0.0", procName);
         rank = 0.0;
@@ -808,9 +1013,10 @@ l_float32  rankcount, total, sum, fract, val;
         rank = 1.0;
     }
 
+    n = numaGetCount(na);
+    numaGetXParameters(na, &startval, &binsize);
     numaGetSum(na, &total);
     rankcount = rank * total;  /* count that corresponds to rank */
-    n = numaGetCount(na);
     sum = 0.0;
     for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &val);
@@ -823,8 +1029,9 @@ l_float32  rankcount, total, sum, fract, val;
     else  /* sum + fract * val = rankcount */
         fract = (rankcount - sum) / val;
 
-    *prval = (l_float32)startval + (l_float32)binsize * 
-                ((l_float32)i + fract);
+    /* The use of the fraction of a bin allows a simple calculation
+     * for the histogram value at the given rank. */
+    *prval = startval + binsize * ((l_float32)i + fract);
 
 /*    fprintf(stderr, "rank = %7.3f, val = %7.3f\n", rank, *prval); */
 

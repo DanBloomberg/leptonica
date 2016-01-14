@@ -35,6 +35,13 @@
  *           PIX        *pixGetAverageTiled()
  *           l_int32     pixGetExtremeValue()
  *
+ *    Pixelwise aligned statistics
+ *           PIX        *pixaGetAlignedStats()
+ *           l_int32     pixaExtractColumnFromEachPix()
+ *           l_int32     pixGetRowStats()
+ *           l_int32     pixGetColumnStats()
+ *           l_int32     pixSetPixelColumn()
+ *
  *    Foreground/background estimation
  *           l_int32     pixThresholdForFgBg()
  *           l_int32     pixSplitDistributionFgBg()
@@ -43,8 +50,12 @@
  *           l_int32     pixaFindDimensions()
  *           NUMA        pixaFindAreaPerimRatio()
  *           l_int32     pixFindAreaPerimRatio()
+ *           NUMA        pixaFindPerimSizeRatio()
+ *           l_int32     pixFindPerimSizeRatio()
  *           NUMA        pixaFindAreaFraction()
  *           l_int32     pixFindAreaFraction()
+ *           NUMA        pixaFindWidthHeightRatio()
+ *           NUMA        pixaFindWidthHeightProduct()
  *
  *    Extract rectangle
  *           PIX        *pixClipRectangle()
@@ -289,7 +300,6 @@ pixGetColorHistogram(PIX     *pixs,
                      NUMA   **pnab)
 {
 l_int32     i, j, w, h, d, wpl, index, rval, gval, bval;
-l_uint32    pixel;
 l_uint32   *data, *line;
 l_float32  *rarray, *garray, *barray;
 NUMA       *nar, *nag, *nab;
@@ -349,10 +359,7 @@ PIXCMAP    *cmap;
         for (i = 0; i < h; i += factor) {
             line = data + i * wpl;
             for (j = 0; j < w; j += factor) {
-                pixel = line[j];
-                rval = (pixel >> 24);
-                gval = (pixel >> 16) & 0xff;
-                bval = (pixel >> 8) & 0xff;
+                extractRGBValues(line[j], &rval, &gval, &bval);
                 rarray[rval] += 1.0;
                 garray[gval] += 1.0;
                 barray[bval] += 1.0;
@@ -395,7 +402,6 @@ pixGetColorHistogramMasked(PIX        *pixs,
                            NUMA      **pnab)
 {
 l_int32     i, j, w, h, d, wm, hm, dm, wpls, wplm, index, rval, gval, bval;
-l_uint32    pixel;
 l_uint32   *datas, *datam, *lines, *linem;
 l_float32  *rarray, *garray, *barray;
 NUMA       *nar, *nag, *nab;
@@ -472,10 +478,7 @@ PIXCMAP    *cmap;
             for (j = 0; j < wm; j += factor) {
                 if (x + j < 0 || x + j >= w) continue;
                 if (GET_DATA_BIT(linem, j)) {
-                    pixel = lines[x + j];
-                    rval = (pixel >> 24);
-                    gval = (pixel >> 16) & 0xff;
-                    bval = (pixel >> 8) & 0xff;
+                    extractRGBValues(lines[x + j], &rval, &gval, &bval);
                     rarray[rval] += 1.0;
                     garray[gval] += 1.0;
                     barray[bval] += 1.0;
@@ -597,7 +600,7 @@ PIX       *pixmt, *pixt;
  *      (6) The histogram can optionally be returned, so that other rank
  *          values can be extracted without recomputing the histogram.
  *          In that case, just use
- *              numaHistogramGetValFromRank(na, 0, 1, rank, &val);
+ *              numaHistogramGetValFromRank(na, rank, &val);
  *          on the returned Numa for additional rank values.
  */
 l_int32
@@ -632,7 +635,7 @@ NUMA  *na;
 
     if ((na = pixGetGrayHistogramMasked(pixs, pixm, x, y, factor)) == NULL)
         return ERROR_INT("na not made", procName, 1);
-    numaHistogramGetValFromRank(na, 0, 1, rank, pval);
+    numaHistogramGetValFromRank(na, rank, pval);
     if (pna)
         *pna = na;
     else
@@ -1134,6 +1137,406 @@ PIXCMAP   *cmap;
 
 
 /*-------------------------------------------------------------*
+ *                 Pixelwise aligned statistics                *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixaGetAlignedStats()
+ *
+ *      Input:  pixa (of identically sized, 8 bpp pix; not cmapped)
+ *              type (L_MEAN_ABSVAL, L_MEDIAN_VAL, L_MODE_VAL, L_MODE_COUNT)
+ *              nbins (of histogram for median and mode; ignored for mean)
+ *              thresh (on histogram for mode val; ignored for all other types)
+ *      Return: pix (with pixelwise aligned stats), or null on error.
+ *
+ *  Notes:
+ *      (1) Each pixel in the returned pix represents an average
+ *          (or median, or mode) over the corresponding pixels in each
+ *          pix in the pixa.
+ *      (2) The @thresh parameter works with L_MODE_VAL only, and
+ *          sets a minimum occupancy of the mode bin.
+ *          If the occupancy of the mode bin is less than @thresh, the
+ *          mode value is returned as 0.  To always return the actual
+ *          mode value, set @thresh = 0.  See pixGetRowStats().
+ */
+PIX *
+pixaGetAlignedStats(PIXA     *pixa,
+                    l_int32   type,
+                    l_int32   nbins,
+                    l_int32   thresh)
+{
+l_int32     j, n, w, h, d;
+l_float32  *colvect;
+PIX        *pixt, *pixd;
+
+    PROCNAME("pixaGetAlignedStats");
+
+    if (!pixa)
+        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+    if (type != L_MEAN_ABSVAL && type != L_MEDIAN_VAL &&
+        type != L_MODE_VAL && type != L_MODE_COUNT)
+        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+    n = pixaGetCount(pixa);
+    if (n == 0)
+        return (PIX *)ERROR_PTR("no pix in pixa", procName, NULL);
+    pixaGetPixDimensions(pixa, 0, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pix not 8 bpp", procName, NULL);
+
+    pixd = pixCreate(w, h, 8);
+    pixt = pixCreate(n, h, 8);
+    colvect = (l_float32 *)CALLOC(h, sizeof(l_float32));
+    for (j = 0; j < w; j++) {
+        pixaExtractColumnFromEachPix(pixa, j, pixt);
+        pixGetRowStats(pixt, type, nbins, thresh, colvect);
+        pixSetPixelColumn(pixd, j, colvect);
+    }
+
+    FREE(colvect);
+    pixDestroy(&pixt);
+    return pixd;
+}
+    
+
+/*!
+ *  pixaExtractColumnFromEachPix()
+ *
+ *      Input:  pixa (of identically sized, 8 bpp; not cmapped)
+ *              col (column index)
+ *              pixd (pix into which each column is inserted)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixaExtractColumnFromEachPix(PIXA    *pixa,
+                             l_int32  col,
+                             PIX     *pixd)
+{
+l_int32    i, k, n, w, h, ht, val, wplt, wpld;
+l_uint32  *datad, *datat;
+PIX       *pixt;
+
+    PROCNAME("pixaExtractColumnFromEachPix");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!pixd || pixGetDepth(pixd) != 8)
+        return ERROR_INT("pixa not defined or not 8 bpp", procName, 1);
+    n = pixaGetCount(pixa);
+    pixGetDimensions(pixd, &w, &h, NULL);
+    if (n != w)
+        return ERROR_INT("pix width != n", procName, 1);
+    pixt = pixaGetPix(pixa, 0, L_CLONE);
+    wplt = pixGetWpl(pixt);
+    pixGetDimensions(pixt, NULL, &ht, NULL);
+    pixDestroy(&pixt);
+    if (h != ht)
+        return ERROR_INT("pixd height != column height", procName, 1);
+
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (k = 0; k < n; k++) {
+        pixt = pixaGetPix(pixa, k, L_CLONE);
+        datat = pixGetData(pixt);
+        for (i = 0; i < h; i++) {
+            val = GET_DATA_BYTE(datat, col);
+            SET_DATA_BYTE(datad + i * wpld, k, val);
+            datat += wplt;
+        }
+        pixDestroy(&pixt);
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  pixGetRowStats()
+ *
+ *      Input:  pixs (8 bpp; not cmapped)
+ *              type (L_MEAN_ABSVAL, L_MEDIAN_VAL, L_MODE_VAL, L_MODE_COUNT)
+ *              nbins (of histogram for median and mode; ignored for mean)
+ *              thresh (on histogram for mode; ignored for mean and median)
+ *              colvect (vector of results gathered across the rows of pixs)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This computes a column vector of statistics using each
+ *          row of a Pix.  The result is put in @colvect.
+ *      (2) The @thresh parameter works with L_MODE_VAL only, and
+ *          sets a minimum occupancy of the mode bin.
+ *          If the occupancy of the mode bin is less than @thresh, the
+ *          mode value is returned as 0.  To always return the actual
+ *          mode value, set @thresh = 0.
+ *      (3) What is the meaning of this @thresh parameter?
+ *          For each row, the total count in the histogram is w, the
+ *          image width.  So @thresh, relative to w, gives a measure
+ *          of the ratio of the bin width to the width of the distribution.
+ *          The larger @thresh, the narrower the distribution must be
+ *          for the mode value to be returned (instead of returning 0).
+ *      (4) If the Pix consists of a set of corresponding columns,
+ *          one for each Pix in a Pixa, the width of the Pix is the
+ *          number of Pix in the Pixa and the column vector can
+ *          be stored as a column in a Pix of the same size as
+ *          each Pix in the Pixa.
+ */
+l_int32
+pixGetRowStats(PIX        *pixs,
+               l_int32     type,
+               l_int32     nbins,
+               l_int32     thresh,
+               l_float32  *colvect)
+{
+l_int32    i, j, k, w, h, val, wpls, sum, target, max, modeval;
+l_int32   *histo, *gray2bin, *bin2gray;
+l_uint32  *lines, *datas;
+
+    PROCNAME("pixGetRowStats");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (!colvect)
+        return ERROR_INT("colvect not defined", procName, 1);
+    if (type != L_MEAN_ABSVAL && type != L_MEDIAN_VAL &&
+        type != L_MODE_VAL && type != L_MODE_COUNT)
+        return ERROR_INT("invalid type", procName, 1);
+    if (type != L_MEAN_ABSVAL && (nbins < 1 || nbins > 256))
+        return ERROR_INT("invalid nbins", procName, 1);
+    pixGetDimensions(pixs, &w, &h, NULL);
+
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    if (type == L_MEAN_ABSVAL) {
+        for (i = 0; i < h; i++) {
+            sum = 0;
+            lines = datas + i * wpls;
+            for (j = 0; j < w; j++)
+                sum += GET_DATA_BYTE(lines, j);
+            colvect[i] = (l_float32)sum / (l_float32)w;
+        }
+        return 0;
+    }
+            
+        /* We need a histogram; binwidth ~ 256 / nbins */
+    histo = (l_int32 *)CALLOC(nbins, sizeof(l_int32));
+    gray2bin = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    bin2gray = (l_int32 *)CALLOC(nbins, sizeof(l_int32));
+    for (i = 0; i < 256; i++)  /* gray value --> histo bin */
+        gray2bin[i] = (i * nbins) / 256;
+    for (i = 0; i < nbins; i++)  /* histo bin --> gray value */
+        bin2gray[i] = (i * 255 + 128) / nbins;
+
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        for (k = 0; k < nbins; k++)
+            histo[k] = 0;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BYTE(lines, j);
+            histo[gray2bin[val]]++;
+        }
+
+        if (type == L_MEDIAN_VAL) {
+            sum = 0;
+            target = w / 2;
+            for (k = 0; k < nbins; k++) {
+                sum += histo[k];
+                if (sum >= target) {
+                    colvect[i] = bin2gray[k];
+                    break;
+                }
+            }
+        }
+        else if (type == L_MODE_VAL) {
+            max = 0;
+            modeval = 0;
+            for (k = 0; k < nbins; k++) {
+                if (histo[k] > max) {
+                    max = histo[k];
+                    modeval = k;
+                }
+            }
+            if (max < thresh)
+                colvect[i] = 0;
+            else
+                colvect[i] = bin2gray[modeval];
+        }
+        else {  /* type == L_MODE_COUNT */
+            max = 0;
+            modeval = 0;
+            for (k = 0; k < nbins; k++) {
+                if (histo[k] > max) {
+                    max = histo[k];
+                    modeval = k;
+                }
+            }
+            colvect[i] = max;
+        }
+    }
+
+    FREE(histo);
+    FREE(gray2bin);
+    FREE(bin2gray);
+    return 0;
+}
+
+
+/*!
+ *  pixGetColumnStats()
+ *
+ *      Input:  pixs (8 bpp; not cmapped)
+ *              type (L_MEAN_ABSVAL, L_MEDIAN_VAL, L_MODE_VAL, L_MODE_COUNT)
+ *              nbins (of histogram for median and mode; ignored for mean)
+ *              thresh (on histogram for mode val; ignored for all other types)
+ *              rowvect (vector of results gathered down the columns of pixs)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This computes a row vector of statistics using each
+ *          column of a Pix.  The result is put in @rowvect.
+ *      (2) The @thresh parameter works with L_MODE_VAL only, and
+ *          sets a minimum occupancy of the mode bin.
+ *          If the occupancy of the mode bin is less than @thresh, the
+ *          mode value is returned as 0.  To always return the actual
+ *          mode value, set @thresh = 0.
+ *      (3) What is the meaning of this @thresh parameter?
+ *          For each column, the total count in the histogram is h, the
+ *          image height.  So @thresh, relative to h, gives a measure
+ *          of the ratio of the bin width to the width of the distribution.
+ *          The larger @thresh, the narrower the distribution must be
+ *          for the mode value to be returned (instead of returning 0).
+ */
+l_int32
+pixGetColumnStats(PIX        *pixs,
+                  l_int32     type,
+                  l_int32     nbins,
+                  l_int32     thresh,
+                  l_float32  *rowvect)
+{
+l_int32    i, j, k, w, h, val, wpls, sum, target, max, modeval;
+l_int32   *histo, *gray2bin, *bin2gray;
+l_uint32  *datas;
+
+    PROCNAME("pixGetColumnStats");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (!rowvect)
+        return ERROR_INT("rowvect not defined", procName, 1);
+    if (type != L_MEAN_ABSVAL && type != L_MEDIAN_VAL &&
+        type != L_MODE_VAL && type != L_MODE_COUNT)
+        return ERROR_INT("invalid type", procName, 1);
+    if (type != L_MEAN_ABSVAL && (nbins < 1 || nbins > 256))
+        return ERROR_INT("invalid nbins", procName, 1);
+    pixGetDimensions(pixs, &w, &h, NULL);
+
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    if (type == L_MEAN_ABSVAL) {
+        for (j = 0; j < w; j++) {
+            sum = 0;
+            for (i = 0; i < h; i++)
+                sum += GET_DATA_BYTE(datas + i * wpls, j);
+            rowvect[j] = (l_float32)sum / (l_float32)h;
+        }
+        return 0;
+    }
+            
+        /* We need a histogram; binwidth ~ 256 / nbins */
+    histo = (l_int32 *)CALLOC(nbins, sizeof(l_int32));
+    gray2bin = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    bin2gray = (l_int32 *)CALLOC(nbins, sizeof(l_int32));
+    for (i = 0; i < 256; i++)  /* gray value --> histo bin */
+        gray2bin[i] = (i * nbins) / 256;
+    for (i = 0; i < nbins; i++)  /* histo bin --> gray value */
+        bin2gray[i] = (i * 255 + 128) / nbins;
+
+    for (j = 0; j < w; j++) {
+        for (i = 0; i < h; i++) {
+            val = GET_DATA_BYTE(datas + i * wpls, j);
+            histo[gray2bin[val]]++;
+        }
+
+        if (type == L_MEDIAN_VAL) {
+            sum = 0;
+            target = h / 2;
+            for (k = 0; k < nbins; k++) {
+                sum += histo[k];
+                if (sum >= target) {
+                    rowvect[j] = bin2gray[k];
+                    break;
+                }
+            }
+        }
+        else if (type == L_MODE_VAL) {
+            max = 0;
+            modeval = 0;
+            for (k = 0; k < nbins; k++) {
+                if (histo[k] > max) {
+                    max = histo[k];
+                    modeval = k;
+                }
+            }
+            if (max < thresh)
+                rowvect[j] = 0;
+            else
+                rowvect[j] = bin2gray[modeval];
+        }
+        else {  /* type == L_MODE_COUNT */
+            max = 0;
+            modeval = 0;
+            for (k = 0; k < nbins; k++) {
+                if (histo[k] > max) {
+                    max = histo[k];
+                    modeval = k;
+                }
+            }
+            rowvect[j] = max;
+        }
+        for (k = 0; k < nbins; k++)
+            histo[k] = 0;
+    }
+
+    FREE(histo);
+    FREE(gray2bin);
+    FREE(bin2gray);
+    return 0;
+}
+
+
+/*!
+ *  pixSetPixelColumn()
+ *
+ *      Input:  pix (8 bpp; not cmapped)
+ *              col (column index)
+ *              colvect (vector of floats)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixSetPixelColumn(PIX        *pix,
+                  l_int32     col,
+                  l_float32  *colvect)
+{
+l_int32    i, w, h, wpl;
+l_uint32  *data;
+
+    PROCNAME("pixSetCPixelColumn");
+
+    if (!pix || pixGetDepth(pix) != 8)
+        return ERROR_INT("pix not defined or not 8 bpp", procName, 1);
+    if (!colvect)
+        return ERROR_INT("colvect not defined", procName, 1);
+    pixGetDimensions(pix, &w, &h, NULL);
+    if (col < 0 || col > w)
+        return ERROR_INT("invalid col", procName, 1);
+
+    data = pixGetData(pix);
+    wpl = pixGetWpl(pix);
+    for (i = 0; i < h; i++)
+        SET_DATA_BYTE(data + i * wpl, col, (l_int32)colvect[i]);
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------*
  *              Foreground/background estimation               *
  *-------------------------------------------------------------*/
 /*!
@@ -1307,7 +1710,11 @@ PIX     *pixt;
  *  pixaFindAreaPerimRatio()
  *
  *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of area/perimiter ratio for each pix), or null on error
+ *      Return: na (of area/perimeter ratio for each pix), or null on error
+ *
+ *  Notes:
+ *      (1) This is typically used for a pixa consisting of
+ *          1 bpp connected components.
  */
 NUMA *
 pixaFindAreaPerimRatio(PIXA  *pixa)
@@ -1349,7 +1756,8 @@ PIX       *pixt;
  *      (1) The area is the number of fg pixels that are not on the
  *          boundary (i.e., not 8-connected to a bg pixel), and the
  *          perimeter is the number of boundary fg pixels.
- *      (2) This is typically used for a single connected component.
+ *      (2) This is typically used for a pixa consisting of
+ *          1 bpp connected components.
  */
 l_int32
 pixFindAreaPerimRatio(PIX        *pixs,
@@ -1387,10 +1795,102 @@ PIX      *pixt;
 
 
 /*!
+ *  pixaFindPerimSizeRatio()
+ *
+ *      Input:  pixa (of 1 bpp pix)
+ *      Return: na (of fg perimeter/(w*h) ratio for each pix), or null on error
+ *
+ *  Notes:
+ *      (1) This is typically used for a pixa consisting of
+ *          1 bpp connected components.
+ */
+NUMA *
+pixaFindPerimSizeRatio(PIXA  *pixa)
+{
+l_int32    i, n;
+l_int32   *tab;
+l_float32  ratio;
+NUMA      *na;
+PIX       *pixt;
+
+    PROCNAME("pixaFindPerimSizeRatio");
+
+    if (!pixa)
+        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+
+    n = pixaGetCount(pixa);
+    na = numaCreate(n);
+    tab = makePixelSumTab8();
+    for (i = 0; i < n; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixFindPerimSizeRatio(pixt, tab, &ratio);
+        numaAddNumber(na, ratio);
+        pixDestroy(&pixt);
+    }
+    FREE(tab);
+    return na;
+}
+
+
+/*!
+ *  pixFindPerimSizeRatio()
+ *
+ *      Input:  pixs (1 bpp)
+ *              tab (<optional> pixel sum table, can be NULL)
+ *              &ratio (<return> perimeter/size ratio)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The size is the sum of the width and height of the pix,
+ *          and the perimeter is the number of boundary fg pixels.
+ *      (2) This has a large value for dendritic, fractal-like components
+ *          with highly irregular boundaries.
+ *      (3) This is typically used for a single connected component.
+ */
+l_int32
+pixFindPerimSizeRatio(PIX        *pixs,
+                      l_int32    *tab,
+                      l_float32  *pratio)
+{
+l_int32  *tab8;
+l_int32   w, h, nbound;
+PIX      *pixt;
+
+    PROCNAME("pixFindPerimSizeRatio");
+
+    if (!pratio)
+        return ERROR_INT("&ratio not defined", procName, 1);
+    *pratio = 0.0;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+    if (!tab)
+        tab8 = makePixelSumTab8();
+    else
+        tab8 = tab;
+
+    pixt = pixErodeBrick(NULL, pixs, 3, 3);
+    pixXor(pixt, pixt, pixs);
+    pixCountPixels(pixt, &nbound, tab8);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    *pratio = (l_float32)nbound / (l_float32)(w + h);
+
+    if (!tab)
+        FREE(tab8);
+    pixDestroy(&pixt);
+    return 0;
+}
+
+
+/*!
  *  pixaFindAreaFraction()
  *
  *      Input:  pixa (of 1 bpp pix)
  *      Return: na (of area fractions for each pix), or null on error
+ *
+ *  Notes:
+ *      (1) This is typically used for a pixa consisting of
+ *          1 bpp connected components.
  */
 NUMA *
 pixaFindAreaFraction(PIXA  *pixa)
@@ -1461,6 +1961,74 @@ l_int32  *tab8;
     if (!tab)
         FREE(tab8);
     return 0;
+}
+
+
+/*!
+ *  pixaFindWidthHeightRatio()
+ *
+ *      Input:  pixa (of 1 bpp pix)
+ *      Return: na (of width/height ratios for each pix), or null on error
+ *
+ *  Notes:
+ *      (1) This is typically used for a pixa consisting of
+ *          1 bpp connected components.
+ */
+NUMA *
+pixaFindWidthHeightRatio(PIXA  *pixa)
+{
+l_int32  i, n, w, h;
+NUMA    *na;
+PIX     *pixt;
+
+    PROCNAME("pixaFindWidthHeightRatio");
+
+    if (!pixa)
+        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+
+    n = pixaGetCount(pixa);
+    na = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixGetDimensions(pixt, &w, &h, NULL);
+        numaAddNumber(na, (l_float32)w / (l_float32)h);
+        pixDestroy(&pixt);
+    }
+    return na;
+}
+
+
+/*!
+ *  pixaFindWidthHeightProduct()
+ *
+ *      Input:  pixa (of 1 bpp pix)
+ *      Return: na (of width*height products for each pix), or null on error
+ *
+ *  Notes:
+ *      (1) This is typically used for a pixa consisting of
+ *          1 bpp connected components.
+ */
+NUMA *
+pixaFindWidthHeightProduct(PIXA  *pixa)
+{
+l_int32  i, n, w, h;
+NUMA    *na;
+PIX     *pixt;
+
+    PROCNAME("pixaFindWidthHeightProduct");
+
+    if (!pixa)
+        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+
+    n = pixaGetCount(pixa);
+    na = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixGetDimensions(pixt, &w, &h, NULL);
+        numaAddNumber(na, w * h);
+        pixDestroy(&pixt);
+    }
+    return na;
 }
 
 
@@ -1967,7 +2535,7 @@ BOX     *boxt, *boxd;
                                 factor, L_FROM_LEFT, &left)) {
                 lfound = 1;
                 change = 1;
-                boxResizeOneSide(boxt, left, L_FROM_LEFT);
+                boxRelocateOneSide(boxt, boxt, left, L_FROM_LEFT);
             }
         }
         if (!rfound) {
@@ -1975,7 +2543,7 @@ BOX     *boxt, *boxd;
                                 factor, L_FROM_RIGHT, &right)) {
                 rfound = 1;
                 change = 1;
-                boxResizeOneSide(boxt, right, L_FROM_RIGHT);
+                boxRelocateOneSide(boxt, boxt, right, L_FROM_RIGHT);
             }
         }
         if (!tfound) {
@@ -1983,7 +2551,7 @@ BOX     *boxt, *boxd;
                                 factor, L_FROM_TOP, &top)) {
                 tfound = 1;
                 change = 1;
-                boxResizeOneSide(boxt, top, L_FROM_TOP);
+                boxRelocateOneSide(boxt, boxt, top, L_FROM_TOP);
             }
         }
         if (!bfound) {
@@ -1991,7 +2559,7 @@ BOX     *boxt, *boxd;
                                 factor, L_FROM_BOTTOM, &bottom)) {
                 bfound = 1;
                 change = 1;
-                boxResizeOneSide(boxt, bottom, L_FROM_BOTTOM);
+                boxRelocateOneSide(boxt, boxt, bottom, L_FROM_BOTTOM);
             }
         }
 

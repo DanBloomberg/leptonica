@@ -13,26 +13,25 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
- *   pqueue.c
+ *   queue.c
  *
- *      Create/Destroy PQueue
- *          PQUEUE    *pqueueCreate()
- *          void      *pqueueDestroy()
+ *      Create/Destroy L_Queue
+ *          L_QUEUE    *lqueueCreate()
+ *          void       *lqueueDestroy()
  *
- *      Operations to add/remove to/from a PBuffer
- *          l_int32    pqueueAdd()
- *          l_int32    pqueueExtendArray()
- *          void      *pqueueRemove()
+ *      Operations to add/remove to/from a L_Queue
+ *          l_int32     lqueueAdd()
+ *          l_int32     lqueueExtendArray()
+ *          void       *lqueueRemove()
  *
  *      Accessors
- *          l_int32    pqueueGetCount()
+ *          l_int32     lqueueGetCount()
  *
  *      Debug output
- *          l_int32    pqueuePrint()
+ *          l_int32     lqueuePrint()
  *
- *    The pqueue is a fifo that implements a queue of void* pointers.
+ *    The lqueue is a fifo that implements a queue of void* pointers.
  *    It can be used to hold a queue of any type of struct.
  *    Internally, it maintains two counters: 
  *        nhead:  location of head (in ptrs) from the beginning
@@ -60,41 +59,41 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;  /* n'importe quoi */
 
 
 /*--------------------------------------------------------------------------*
- *                         PQueue create/destroy                           *
+ *                         L_Queue create/destroy                           *
  *--------------------------------------------------------------------------*/
 /*!
- *  pqueueCreate()
+ *  lqueueCreate()
  *
  *      Input:  size of ptr array to be alloc'd (0 for default)
- *      Return: pqueue, or null on error
+ *      Return: lqueue, or null on error
  *
  *  Notes:
  *      (1) Allocates a ptr array of given size, and initializes counters.
  */
-PQUEUE *
-pqueueCreate(l_int32  nalloc)
+L_QUEUE *
+lqueueCreate(l_int32  nalloc)
 {
-PQUEUE  *pq;
+L_QUEUE  *lq;
 
-    PROCNAME("pqueueCreate");
+    PROCNAME("lqueueCreate");
 
     if (nalloc < MIN_BUFFER_SIZE)
         nalloc = INITIAL_BUFFER_ARRAYSIZE;
 
-    if ((pq = (PQUEUE *)CALLOC(1, sizeof(PQUEUE))) == NULL)
-        return (PQUEUE *)ERROR_PTR("pq not made", procName, NULL);
-    if ((pq->array = (void **)CALLOC(nalloc, sizeof(l_intptr_t))) == NULL)
-        return (PQUEUE *)ERROR_PTR("ptr array not made", procName, NULL);
-    pq->nalloc = nalloc;
-    pq->nhead = pq->nelem = 0;
-    return pq;
+    if ((lq = (L_QUEUE *)CALLOC(1, sizeof(L_QUEUE))) == NULL)
+        return (L_QUEUE *)ERROR_PTR("lq not made", procName, NULL);
+    if ((lq->array = (void **)CALLOC(nalloc, sizeof(l_intptr_t))) == NULL)
+        return (L_QUEUE *)ERROR_PTR("ptr array not made", procName, NULL);
+    lq->nalloc = nalloc;
+    lq->nhead = lq->nelem = 0;
+    return lq;
 }
 
 
 /*!
- *  pqueueDestroy()
+ *  lqueueDestroy()
  *
- *      Input:  &pqueue  (<to be nulled>)
+ *      Input:  &lqueue  (<to be nulled>)
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
@@ -106,41 +105,41 @@ PQUEUE  *pq;
  *          So if the items require their own destroy function, they
  *          must be destroyed before the queue.  The same applies to the
  *          auxiliary stack, if it is used.
- *      (3) To destroy the PQueue, we destroy the ptr array, then
- *          the pqueue, and then null the contents of the input ptr.
+ *      (3) To destroy the L_Queue, we destroy the ptr array, then
+ *          the lqueue, and then null the contents of the input ptr.
  */
 void
-pqueueDestroy(PQUEUE  **ppq,
-              l_int32   freeflag)
+lqueueDestroy(L_QUEUE  **plq,
+              l_int32    freeflag)
 {
-void    *item;
-PQUEUE  *pq;
+void     *item;
+L_QUEUE  *lq;
 
-    PROCNAME("pqueueDestroy");
+    PROCNAME("lqueueDestroy");
 
-    if (ppq == NULL) {
+    if (plq == NULL) {
         L_WARNING("ptr address is NULL", procName);
         return;
     }
-    if ((pq = *ppq) == NULL)
+    if ((lq = *plq) == NULL)
         return;
 
     if (freeflag) {
-        while(pq->nelem > 0) {
-            item = pqueueRemove(pq);
+        while(lq->nelem > 0) {
+            item = lqueueRemove(lq);
             FREE(item);
         }
     }
-    else if (pq->nelem > 0)
-        L_WARNING_INT("memory leak of %d items in pqueue!",
-                      procName, pq->nelem);
+    else if (lq->nelem > 0)
+        L_WARNING_INT("memory leak of %d items in lqueue!",
+                      procName, lq->nelem);
 
-    if (pq->array)
-        FREE(pq->array);
-    if (pq->stack)
-        pstackDestroy(&pq->stack, freeflag);
-    FREE(pq);
-    *ppq = NULL;
+    if (lq->array)
+        FREE(lq->array);
+    if (lq->stack)
+        lstackDestroy(&lq->stack, freeflag);
+    FREE(lq);
+    *plq = NULL;
 
     return;
 }
@@ -150,9 +149,9 @@ PQUEUE  *pq;
  *                                  Accessors                               *
  *--------------------------------------------------------------------------*/
 /*!
- *  pqueueAdd()
+ *  lqueueAdd()
  *
- *      Input:  pqueue
+ *      Input:  lqueue
  *              item to be added to the tail of the queue
  *      Return: 0 if OK, 1 on error
  *
@@ -165,65 +164,65 @@ PQUEUE  *pq;
  *          Finally, add the item to the tail of the queue.
  */
 l_int32
-pqueueAdd(PQUEUE  *pq,
-          void    *item)
+lqueueAdd(L_QUEUE  *lq,
+          void     *item)
 {
-    PROCNAME("pqueueAdd");
+    PROCNAME("lqueueAdd");
 
-    if (!pq)
-        return ERROR_INT("pq not defined", procName, 1);
+    if (!lq)
+        return ERROR_INT("lq not defined", procName, 1);
     if (!item)
         return ERROR_INT("item not defined", procName, 1);
     
         /* If filled to the end and the ptrs can be shifted to the left,
          * shift them. */
-    if ((pq->nhead + pq->nelem >= pq->nalloc) && (pq->nhead != 0)) {
-        memmove((void *)(pq->array), 
-                (void *)(pq->array + pq->nhead),
-                sizeof(l_intptr_t) * pq->nelem);
-        pq->nhead = 0;
+    if ((lq->nhead + lq->nelem >= lq->nalloc) && (lq->nhead != 0)) {
+        memmove((void *)(lq->array), 
+                (void *)(lq->array + lq->nhead),
+                sizeof(l_intptr_t) * lq->nelem);
+        lq->nhead = 0;
     }
 
         /* If necessary, expand the allocated array by a factor of 2 */
-    if (pq->nelem > 0.75 * pq->nalloc)
-        pqueueExtendArray(pq);
+    if (lq->nelem > 0.75 * lq->nalloc)
+        lqueueExtendArray(lq);
 
         /* Now add the item */
-    pq->array[pq->nhead + pq->nelem] = (void *)item;
-    pq->nelem++;
+    lq->array[lq->nhead + lq->nelem] = (void *)item;
+    lq->nelem++;
 
     return 0;
 }
 
 
 /*!
- *  pqueueExtendArray()
+ *  lqueueExtendArray()
  *
- *      Input:  pqueue
+ *      Input:  lqueue
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-pqueueExtendArray(PQUEUE  *pq)
+lqueueExtendArray(L_QUEUE  *lq)
 {
-    PROCNAME("pqueueExtendArray");
+    PROCNAME("lqueueExtendArray");
 
-    if (!pq)
-        return ERROR_INT("pq not defined", procName, 1);
+    if (!lq)
+        return ERROR_INT("lq not defined", procName, 1);
 
-    if ((pq->array = (void **)reallocNew((void **)&pq->array,
-                                sizeof(l_intptr_t) * pq->nalloc,
-                                2 * sizeof(l_intptr_t) * pq->nalloc)) == NULL)
+    if ((lq->array = (void **)reallocNew((void **)&lq->array,
+                                sizeof(l_intptr_t) * lq->nalloc,
+                                2 * sizeof(l_intptr_t) * lq->nalloc)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
-    pq->nalloc = 2 * pq->nalloc;
+    lq->nalloc = 2 * lq->nalloc;
     return 0;
 }
 
 
 /*!
- *  pqueueRemove()
+ *  lqueueRemove()
  *
- *      Input:  pqueue
+ *      Input:  lqueue
  *      Return: ptr to item popped from the head of the queue,
  *              or null if the queue is empty or on error
  *
@@ -232,43 +231,43 @@ pqueueExtendArray(PQUEUE  *pq)
  *          becomes empty, nhead is reset to the beginning of the array.
  */
 void *
-pqueueRemove(PQUEUE  *pq)
+lqueueRemove(L_QUEUE  *lq)
 {
 void  *item;
 
-    PROCNAME("pqueueRemove");
+    PROCNAME("lqueueRemove");
 
-    if (!pq)
-        return (void *)ERROR_PTR("pq not defined", procName, NULL);
+    if (!lq)
+        return (void *)ERROR_PTR("lq not defined", procName, NULL);
 
-    if (pq->nelem == 0)
+    if (lq->nelem == 0)
         return NULL;
-    item = pq->array[pq->nhead];
-    pq->array[pq->nhead] = NULL;
-    if (pq->nelem == 1) 
-        pq->nhead = 0;  /* reset head ptr */
+    item = lq->array[lq->nhead];
+    lq->array[lq->nhead] = NULL;
+    if (lq->nelem == 1) 
+        lq->nhead = 0;  /* reset head ptr */
     else
-        (pq->nhead)++;  /* can't go off end of array because nelem > 1 */
-    pq->nelem--;
+        (lq->nhead)++;  /* can't go off end of array because nelem > 1 */
+    lq->nelem--;
     return item;
 }
        
 
 /*!
- *  pqueueGetCount()
+ *  lqueueGetCount()
  *
- *      Input:  pqueue
+ *      Input:  lqueue
  *      Return: count, or 0 on error
  */
 l_int32
-pqueueGetCount(PQUEUE  *pq)
+lqueueGetCount(L_QUEUE  *lq)
 {
-    PROCNAME("pqueueGetCount");
+    PROCNAME("lqueueGetCount");
 
-    if (!pq)
-        return ERROR_INT("pq not defined", procName, 0);
+    if (!lq)
+        return ERROR_INT("lq not defined", procName, 0);
 
-    return pq->nelem;
+    return lq->nelem;
 }
         
 
@@ -276,29 +275,29 @@ pqueueGetCount(PQUEUE  *pq)
  *                            Debug output                             *
  *---------------------------------------------------------------------*/
 /*!
- *  pqueuePrint()
+ *  lqueuePrint()
  *  
  *      Input:  stream
- *              pqueue 
+ *              lqueue 
  *      Return: 0 if OK; 1 on error
  */
 l_int32
-pqueuePrint(FILE    *fp,
-            PQUEUE  *pq)
+lqueuePrint(FILE     *fp,
+            L_QUEUE  *lq)
 {
 l_int32  i;
 
-    PROCNAME("pqueuePrint");
+    PROCNAME("lqueuePrint");
 
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
-    if (!pq)
-        return ERROR_INT("pq not defined", procName, 1);
+    if (!lq)
+        return ERROR_INT("lq not defined", procName, 1);
 
-    fprintf(fp, "\n PQueue: nalloc = %d, nhead = %d, nelem = %d, array = %p\n",
-            pq->nalloc, pq->nhead, pq->nelem, pq->array);
-    for (i = pq->nhead; i < pq->nhead + pq->nelem; i++)
-    fprintf(fp,   "array[%d] = %p\n", i, pq->array[i]);
+    fprintf(fp, "\n L_Queue: nalloc = %d, nhead = %d, nelem = %d, array = %p\n",
+            lq->nalloc, lq->nhead, lq->nelem, lq->array);
+    for (i = lq->nhead; i < lq->nhead + lq->nelem; i++)
+    fprintf(fp,   "array[%d] = %p\n", i, lq->array[i]);
 
     return 0;
 }

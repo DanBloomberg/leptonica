@@ -30,14 +30,15 @@
 main(int    argc,
      char **argv)
 {
-l_int32      i, w, h, d;
-PIX         *pixs, *pixd;
+l_int32      i, w, h, d, rotflag;
+PIX         *pixs, *pixt, *pixd;
 l_float32    angle, deg2rad, pops, ang;
 char        *filein, *fileout;
 static char  mainName[] = "rotatetest1";
 
     if (argc != 4)
-	exit(ERROR_INT(" Syntax:  rotatetest1 filein angle fileout", mainName, 1));
+	exit(ERROR_INT(" Syntax:  rotatetest1 filein angle fileout",
+                       mainName, 1));
 
     filein = argv[1];
     angle = atof(argv[2]);
@@ -46,9 +47,15 @@ static char  mainName[] = "rotatetest1";
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pix not made", mainName, 1));
+    if (pixGetDepth(pixs) == 1) {
+        pixt = pixScaleToGray3(pixs);
+        pixDestroy(&pixs);
+        pixs = pixAddBorderGeneral(pixt, 1, 0, 1, 0, 255);
+        pixDestroy(&pixt);
+    }
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
+    fprintf(stderr, "w = %d, h = %d\n", w, h);
 
 #if 0
         /* repertory of rotation operations to choose from */
@@ -125,7 +132,7 @@ static char  mainName[] = "rotatetest1";
 	pixWrite(fileout, pixd, IFF_JFIF_JPEG);
 #endif
 
-#if 1
+#if 0
 	/* compare the standard area-map color rotation with
 	 * the fast area-map color rotation, on a pixel basis */
     {
@@ -138,7 +145,7 @@ static char  mainName[] = "rotatetest1";
     fprintf(stderr, " standard color rotate: %7.2f sec\n", stopTimer());
     pixWrite("junkcolor1", pix1, IFF_JFIF_JPEG);
     startTimer();
-    pix2 = pixRotateAMColorFast(pixs, 0.12, 255);
+    pix2 = pixRotateAMColorFast(pixs, 0.12, 0xffffff00);
     fprintf(stderr, " fast color rotate: %7.2f sec\n", stopTimer());
     pixWrite("junkcolor2", pix2, IFF_JFIF_JPEG);
     pixd = pixAbsDifference(pix1, pix2);
@@ -167,15 +174,17 @@ static char  mainName[] = "rotatetest1";
 	 * of distortion after successive rotations, after all
 	 * 360 rotations, the resulting image is restored to
 	 * its original pristine condition! */
-#if 0
+#if 1
+    rotflag = L_ROTATE_AREA_MAP;
+/*    rotflag = L_ROTATE_SHEAR;     */
+/*    rotflag = L_ROTATE_SAMPLING;   */
     ang = 7.0 * deg2rad;
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    pixd = pixRotate(pixs, ang, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixRotate(pixs, ang, rotflag, L_BRING_IN_WHITE, w, h);
     pixWrite("junkrot7", pixd, IFF_PNG);
     for (i = 1; i < 180; i++) {
         pixs = pixd;
-        pixd = pixRotate(pixs, ang, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
+        pixd = pixRotate(pixs, ang, rotflag, L_BRING_IN_WHITE, w, h);
         if ((i % 30) == 0)  pixDisplay(pixd, 600, 0);
         pixDestroy(&pixs);
     }
@@ -185,7 +194,7 @@ static char  mainName[] = "rotatetest1";
 
     for (i = 0; i < 180; i++) {
         pixs = pixd;
-        pixd = pixRotate(pixs, -ang, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
+        pixd = pixRotate(pixs, -ang, rotflag, L_BRING_IN_WHITE, w, h);
         if (i && (i % 30) == 0)  pixDisplay(pixd, 600, 500);
         pixDestroy(&pixs);
     }
@@ -195,6 +204,6 @@ static char  mainName[] = "rotatetest1";
     pixDestroy(&pixd);
 #endif
 
-    exit(0);
+    return 0;
 }
 

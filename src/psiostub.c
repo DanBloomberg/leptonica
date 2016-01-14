@@ -36,6 +36,16 @@ l_int32 sarrayConvertFilesToPS(SARRAY *sa, l_int32 res, const char *fileout)
     return ERROR_INT("function not present", "sarrayConvertFilesToPS", 1);
 }
 
+l_int32 convertFilesFittedToPS(const char *dirin, const char *substr, l_float32 xpts, l_float32 ypts, const char *fileout)
+{
+    return ERROR_INT("function not present", "convertFilesFittedToPS", 1);
+}
+
+l_int32 sarrayConvertFilesFittedToPS(SARRAY *sa, l_float32 xpts, l_float32 ypts, const char *fileout)
+{
+    return ERROR_INT("function not present", "sarrayConvertFilesFittedToPS", 1);
+}
+
 l_int32 convertToPSEmbed(const char *filein, const char *fileout, l_int32 level)
 {
     return ERROR_INT("function not present", "convertToPSEmbed", 1);

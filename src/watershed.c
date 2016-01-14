@@ -142,15 +142,15 @@ static l_int32 wshedGetHeight(L_WSHED *wshed, l_int32 val, l_int32 label,
                               l_int32 *pheight);
 
     /* Static accessors for NewPixel on a queue */
-static void pushNewPixel(PQUEUE *pq, l_int32 x, l_int32 y,
+static void pushNewPixel(L_QUEUE *lq, l_int32 x, l_int32 y,
                          l_int32 *pminx, l_int32 *pmaxx,
                          l_int32 *pminy, l_int32 *pmaxy);
-static void popNewPixel(PQUEUE *pq, l_int32 *px, l_int32 *py);
+static void popNewPixel(L_QUEUE *lq, l_int32 *px, l_int32 *py);
 
     /* Static accessors for WSPixel on a heap */
-static void pushWSPixel(PHEAP *ph, PSTACK *stack, l_int32 val,
+static void pushWSPixel(L_HEAP *lh, L_STACK *stack, l_int32 val,
                         l_int32 x, l_int32 y, l_int32 index);
-static void popWSPixel(PHEAP *ph, PSTACK *stack, l_int32 *pval,
+static void popWSPixel(L_HEAP *lh, L_STACK *stack, l_int32 *pval,
                        l_int32 *px, l_int32 *py, l_int32 *pindex);
 
     /* Static debug print output */
@@ -298,10 +298,10 @@ l_uint32  ulabel, uval;
 void    **lines8, **linelab32;
 NUMA     *nalut, *nalevels, *nash, *namh, *nasi;
 NUMA    **links;
-PHEAP    *ph;
+L_HEAP   *lh;
 PIX      *pixmin, *pixsd;
 PIXA     *pixad;
-PSTACK   *rstack;
+L_STACK  *rstack;
 PTA      *ptas, *ptao;
 
     PROCNAME("wshedApply");
@@ -313,8 +313,8 @@ PTA      *ptas, *ptao;
      *  Initialize priority queue and pixlab with seeds and minima  *
      * ------------------------------------------------------------ */
 
-    ph = pheapCreate(0, L_SORT_INCREASING);  /* remove lowest values first */
-    rstack = pstackCreate(0);  /* for reusing the WSPixels */
+    lh = lheapCreate(0, L_SORT_INCREASING);  /* remove lowest values first */
+    rstack = lstackCreate(0);  /* for reusing the WSPixels */
     pixGetDimensions(wshed->pixs, &w, &h, NULL);
     lines8 = wshed->lines8;  /* wshed owns this */
     linelab32 = wshed->linelab32;  /* ditto */
@@ -326,7 +326,7 @@ PTA      *ptas, *ptao;
     for (i = 0; i < nseeds; i++) {
         ptaGetIPt(ptas, i, &x, &y);
         uval = GET_DATA_BYTE(lines8[y], x);
-        pushWSPixel(ph, rstack, (l_int32)uval, x, y, i);
+        pushWSPixel(lh, rstack, (l_int32)uval, x, y, i);
     }
     wshed->ptas = ptas;
     nasi = numaMakeConstant(1, nseeds);  /* indicator array */
@@ -348,7 +348,7 @@ PTA      *ptas, *ptao;
     for (i = 0; i < nother; i++) {
         ptaGetIPt(ptao, i, &x, &y);
         uval = GET_DATA_BYTE(lines8[y], x);
-        pushWSPixel(ph, rstack, (l_int32)uval, x, y, nseeds + i);
+        pushWSPixel(lh, rstack, (l_int32)uval, x, y, nseeds + i);
     }
     wshed->namh = namh;
 
@@ -379,8 +379,8 @@ PTA      *ptas, *ptao;
     nalevels = numaCreate(nseeds);
     wshed->nalevels = nalevels;  /* wshed owns this */
     L_INFO_INT2("nseeds = %d, nother = %d\n", procName, nseeds, nother);
-    while (pheapGetCount(ph) > 0) {
-        popWSPixel(ph, rstack, &val, &x, &y, &index);
+    while (lheapGetCount(lh) > 0) {
+        popWSPixel(lh, rstack, &val, &x, &y, &index);
 /*        fprintf(stderr, "x = %d, y = %d, index = %d\n", x, y, index); */
         ulabel = GET_DATA_FOUR_BYTES(linelab32[y], x);
         if (ulabel == MAX_LABEL_VALUE)
@@ -400,7 +400,7 @@ PTA      *ptas, *ptao;
                 for (j = jmin; j <= jmax; j++) {
                     if (i == y && j == x) continue;
                     uval = GET_DATA_BYTE(lines8[i], j);
-                    pushWSPixel(ph, rstack, (l_int32)uval, j, i, cindex);
+                    pushWSPixel(lh, rstack, (l_int32)uval, j, i, cindex);
                 }
             }
         }
@@ -509,8 +509,8 @@ PTA      *ptas, *ptao;
     pixDestroy(&pixmin);
     pixDestroy(&pixsd);
     ptaDestroy(&ptao);
-    pheapDestroy(&ph, TRUE);
-    pstackDestroy(&rstack, TRUE);
+    lheapDestroy(&lh, TRUE);
+    lstackDestroy(&rstack, TRUE);
     return 0;
 }
 
@@ -587,7 +587,7 @@ l_uint32  label, bval, lval;
 void    **lines8, **linelab32, **linet1;
 BOX      *box;
 PIX      *pixs, *pixlab, *pixt, *pixd;
-PQUEUE   *pq;
+L_QUEUE  *lq;
 
     PROCNAME("identifyWatershedBasin");
 
@@ -601,8 +601,8 @@ PQUEUE   *pq;
         return ERROR_INT("wshed not defined", procName, 1);
 
         /* Make a queue and an auxiliary stack */
-    pq = pqueueCreate(0);
-    pq->stack = pstackCreate(0);
+    lq = lqueueCreate(0);
+    lq->stack = lstackCreate(0);
 
     pixs = wshed->pixs;
     pixlab = wshed->pixlab;
@@ -618,7 +618,7 @@ PQUEUE   *pq;
     maxx = maxy = 0;
     ptaGetIPt(wshed->ptas, index, &x, &y);
     pixSetPixel(pixt, x, y, 1);
-    pushNewPixel(pq, x, y, &minx, &maxx, &miny, &maxy);
+    pushNewPixel(lq, x, y, &minx, &maxx, &miny, &maxy);
     if (wshed->debug) fprintf(stderr, "prime: (x,y) = (%d, %d)\n", x, y);
 
         /* Each pixel in a spreading breadth-first search is inspected.
@@ -628,8 +628,8 @@ PQUEUE   *pq;
          *     (2) The pixel value is less than @level, the overflow
          *         height at which the two basins join.
          *     (3) It has not yet been seen in this search.  */
-    while (pqueueGetCount(pq) > 0) {
-        popNewPixel(pq, &x, &y);
+    while (lqueueGetCount(lq) > 0) {
+        popNewPixel(lq, &x, &y);
         imin = L_MAX(0, y - 1);
         imax = L_MIN(h - 1, y + 1);
         jmin = L_MAX(0, x - 1);
@@ -644,7 +644,7 @@ PQUEUE   *pq;
                 lval = GET_DATA_BYTE(lines8[i], j);
                 if (lval >= level) continue;  /* too high */
                 SET_DATA_BIT(linet1[i], j);
-                pushNewPixel(pq, j, i, &minx, &maxx, &miny, &maxy);
+                pushNewPixel(lq, j, i, &minx, &maxx, &miny, &maxy);
             }
         }
     }
@@ -658,7 +658,7 @@ PQUEUE   *pq;
     *pbox = box;
     *ppixd = pixd;
 
-    pqueueDestroy(&pq, 1);
+    lqueueDestroy(&lq, 1);
     return 0;
 }
 
@@ -778,7 +778,7 @@ l_int32  minval;
 /*
  *  pushNewPixel()
  *
- *      Input:  pqueue
+ *      Input:  lqueue
  *              x, y   (pixel coordinates)
  *              &minx, &maxx, &miny, &maxy  (<return> bounding box update)
  *      Return: void
@@ -789,7 +789,7 @@ l_int32  minval;
  *          uses the storage stack to retrieve a NewPixel.
  */
 static void
-pushNewPixel(PQUEUE   *pq,
+pushNewPixel(L_QUEUE  *lq,
              l_int32   x,
              l_int32   y,
              l_int32  *pminx,
@@ -801,7 +801,7 @@ L_NEWPIXEL  *np;
 
     PROCNAME("pushNewPixel");
 
-    if (!pq)
+    if (!lq)
         return ERROR_VOID(procName, "queue not defined");
 
         /* Adjust bounding box */
@@ -811,14 +811,14 @@ L_NEWPIXEL  *np;
     *pmaxy = L_MAX(*pmaxy, y);
 
         /* Get a newpixel to use */
-    if (pstackGetCount(pq->stack) > 0)
-        np = (L_NEWPIXEL *)pstackRemove(pq->stack);
+    if (lstackGetCount(lq->stack) > 0)
+        np = (L_NEWPIXEL *)lstackRemove(lq->stack);
     else
         np = (L_NEWPIXEL *)CALLOC(1, sizeof(L_NEWPIXEL));
 
     np->x = x;
     np->y = y;
-    pqueueAdd(pq, np);
+    lqueueAdd(lq, np);
     return;
 }
 
@@ -826,7 +826,7 @@ L_NEWPIXEL  *np;
 /*
  *  popNewPixel()
  *
- *      Input:  pqueue
+ *      Input:  lqueue
  *              &x, &y   (<return> pixel coordinates)
  *      Return: void
  *
@@ -836,7 +836,7 @@ L_NEWPIXEL  *np;
  *           on the storage stack.
  */
 static void
-popNewPixel(PQUEUE   *pq,
+popNewPixel(L_QUEUE  *lq,
             l_int32  *px,
             l_int32  *py)
 {
@@ -844,14 +844,14 @@ L_NEWPIXEL  *np;
 
     PROCNAME("popNewPixel");
 
-    if (!pq)
-        return ERROR_VOID(procName, "pqueue not defined");
+    if (!lq)
+        return ERROR_VOID(procName, "lqueue not defined");
 
-    if ((np = (L_NEWPIXEL *)pqueueRemove(pq)) == NULL)
+    if ((np = (L_NEWPIXEL *)lqueueRemove(lq)) == NULL)
         return;
     *px = np->x;
     *py = np->y;
-    pstackAdd(pq->stack, np);  /* save for re-use */
+    lstackAdd(lq->stack, np);  /* save for re-use */
     return;
 }
 
@@ -859,7 +859,7 @@ L_NEWPIXEL  *np;
 /*
  *  pushWSPixel()
  *
- *      Input:  ph  (priority queue)
+ *      Input:  lh  (priority queue)
  *              stack  (of reusable WSPixels)
  *              val  (pixel value: used for ordering the heap)
  *              x, y  (pixel coordinates)
@@ -871,25 +871,25 @@ L_NEWPIXEL  *np;
  *          uses the storage stack to retrieve a WSPixel.
  */
 static void
-pushWSPixel(PHEAP   *ph,
-            PSTACK  *stack,
-            l_int32  val,
-            l_int32  x,
-            l_int32  y,
-            l_int32  index)
+pushWSPixel(L_HEAP   *lh,
+            L_STACK  *stack,
+            l_int32   val,
+            l_int32   x,
+            l_int32   y,
+            l_int32   index)
 {
 L_WSPIXEL  *wsp;
 
     PROCNAME("pushWSPixel");
 
-    if (!ph)
+    if (!lh)
         return ERROR_VOID(procName, "heap not defined");
     if (!stack)
         return ERROR_VOID(procName, "stack not defined");
 
         /* Get a wspixel to use */
-    if (pstackGetCount(stack) > 0)
-        wsp = (L_WSPIXEL *)pstackRemove(stack);
+    if (lstackGetCount(stack) > 0)
+        wsp = (L_WSPIXEL *)lstackRemove(stack);
     else
         wsp = (L_WSPIXEL *)CALLOC(1, sizeof(L_WSPIXEL));
 
@@ -897,7 +897,7 @@ L_WSPIXEL  *wsp;
     wsp->x = x;
     wsp->y = y;
     wsp->index = index;
-    pheapAdd(ph, wsp);
+    lheapAdd(lh, wsp);
     return;
 }
 
@@ -905,7 +905,7 @@ L_WSPIXEL  *wsp;
 /*
  *  popWSPixel()
  *
- *      Input:  ph  (priority queue)
+ *      Input:  lh  (priority queue)
  *              stack  (of reusable WSPixels)
  *              &val  (<return> pixel value)
  *              &x, &y  (<return> pixel coordinates)
@@ -918,8 +918,8 @@ L_WSPIXEL  *wsp;
  *           on the storage stack.
  */
 static void
-popWSPixel(PHEAP    *ph,
-           PSTACK   *stack,
+popWSPixel(L_HEAP   *lh,
+           L_STACK  *stack,
            l_int32  *pval,
            l_int32  *px,
            l_int32  *py,
@@ -929,20 +929,20 @@ L_WSPIXEL  *wsp;
 
     PROCNAME("popWSPixel");
 
-    if (!ph)
-        return ERROR_VOID(procName, "pheap not defined");
+    if (!lh)
+        return ERROR_VOID(procName, "lheap not defined");
     if (!stack)
         return ERROR_VOID(procName, "stack not defined");
     if (!pval || !px || !py || !pindex)
         return ERROR_VOID(procName, "data can't be returned");
 
-    if ((wsp = (L_WSPIXEL *)pheapRemove(ph)) == NULL)
+    if ((wsp = (L_WSPIXEL *)lheapRemove(lh)) == NULL)
         return;
     *pval = (l_int32)wsp->val;
     *px = wsp->x;
     *py = wsp->y;
     *pindex = wsp->index;
-    pstackAdd(stack, wsp);  /* save for re-use */
+    lstackAdd(stack, wsp);  /* save for re-use */
     return;
 }
 

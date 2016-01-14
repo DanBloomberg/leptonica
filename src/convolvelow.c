@@ -62,14 +62,20 @@
  *          lines.
  *      (5) The caller should verify that wc < w and hc < h.
  *          Under those conditions, illegal reads and writes can occur.
- *      (6) Implementation note: it is important to add 0.5 for
- *          roundoff in the main loop that runs over all pixels.
- *          However, no roundoff can be added for the subsequent loops
- *          that renormalize pixel values within a filter half-width
- *          of the image edge.  To do so results in effectively adding
- *          the factor twice, and with white (255) pixels along any of
- *          the four edges, this will overflow the value to 0, resulting
- *          in one-pixel-wide black lines along the image boundary!
+ *      (6) Implementation note: to get the same results in the interior
+ *          between this function and pixConvolve(), it is necessary to
+ *          add 0.5 for roundoff in the main loop that runs over all pixels.
+ *          However, if we do that and have white (255) pixels near the
+ *          image boundary, some overflow occurs for pixels very close
+ *          to the boundary.  We can't fix this by subtracting from the
+ *          normalized values for the boundary pixels, because this results
+ *          in underflow if the boundary pixels are black (0).  Empirically,
+ *          adding 0.25 (instead of 0.5) before truncating in the main
+ *          loop will not cause overflow, but this gives some
+ *          off-by-1-level errors in interior pixel values.  So we add
+ *          0.5 for roundoff in the main loop, and for pixels within a
+ *          half filter width of the boundary, use a L_MIN of the
+ *          computed value and 255 to avoid overflow during normalization.
  */
 void
 blockconvLow(l_uint32  *data,
@@ -111,7 +117,7 @@ l_uint32  *linemina, *linemaxa, *line;
             jmax = L_MIN(j + wc, w - 1);
             val = linemaxa[jmax] - linemaxa[jmin]
                   + linemina[jmin] - linemina[jmax];
-            val = (l_uint8)(norm * val + 0.5);
+            val = (l_uint8)(norm * val + 0.5);  /* see comment above */
             SET_DATA_BYTE(line, j, val);
         }
     }
@@ -127,19 +133,19 @@ l_uint32  *linemina, *linemaxa, *line;
             wn = wc + j;
             normw = (l_float32)fwc / (l_float32)wn;   /* > 1 */
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normh * normw);
+            val = (l_uint8)L_MIN(val * normh * normw, 255);
             SET_DATA_BYTE(line, j, val);
         }
         for (j = wc + 1; j < wmwc; j++) {
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normh);
+            val = (l_uint8)L_MIN(val * normh, 255);
             SET_DATA_BYTE(line, j, val);
         }
         for (j = wmwc; j < w; j++) {
             wn = wc + w - j;
             normw = (l_float32)fwc / (l_float32)wn;   /* > 1 */
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normh * normw);
+            val = (l_uint8)L_MIN(val * normh * normw, 255);
             SET_DATA_BYTE(line, j, val);
         }
     }
@@ -152,19 +158,19 @@ l_uint32  *linemina, *linemaxa, *line;
             wn = wc + j;
             normw = (l_float32)fwc / (l_float32)wn;   /* > 1 */
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normh * normw);
+            val = (l_uint8)L_MIN(val * normh * normw, 255);
             SET_DATA_BYTE(line, j, val);
         }
         for (j = wc + 1; j < wmwc; j++) {
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normh);
+            val = (l_uint8)L_MIN(val * normh, 255);
             SET_DATA_BYTE(line, j, val);
         }
         for (j = wmwc; j < w; j++) {
             wn = wc + w - j;
             normw = (l_float32)fwc / (l_float32)wn;   /* > 1 */
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normh * normw);
+            val = (l_uint8)L_MIN(val * normh * normw, 255);
             SET_DATA_BYTE(line, j, val);
         }
     }
@@ -175,14 +181,14 @@ l_uint32  *linemina, *linemaxa, *line;
             wn = wc + j;
             normw = (l_float32)fwc / (l_float32)wn;   /* > 1 */
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normw);
+            val = (l_uint8)L_MIN(val * normw, 255);
             SET_DATA_BYTE(line, j, val);
         }
         for (j = wmwc; j < w; j++) {   /* last wc columns */
             wn = wc + w - j;
             normw = (l_float32)fwc / (l_float32)wn;   /* > 1 */
             val = GET_DATA_BYTE(line, j);
-            val = (l_uint8)(val * normw);
+            val = (l_uint8)L_MIN(val * normw, 255);
             SET_DATA_BYTE(line, j, val);
         }
     }

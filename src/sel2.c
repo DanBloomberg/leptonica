@@ -13,6 +13,7 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+
 /*
  *  sel2.c
  *
@@ -30,9 +31,12 @@
  *
  *          SELA    *selaAddDwaLinear()
  *          SELA    *selaAddDwaCombs()
+ *          SELA    *selaAddCrossJunctions()
+ *          SELA    *selaAddTJunctions()
  */
 
 #include <stdio.h>
+#include <math.h>
 #include "allheaders.h"
 
     /* MSVC can't handle arrays dimensioned by static const integers */
@@ -300,4 +304,259 @@ SEL     *selh, *selv;
     return sela;
 }
 
+
+/*!
+ *  selaAddCrossJunctions()
+ *
+ *      Input:  sela (<optional>)
+ *              hlsize (length of each line of hits from origin)
+ *              mdist (distance of misses from the origin)
+ *              norient (number of orientations; max of 8)
+ *              debugflag (1 for debug output)
+ *      Return: sela with additional sels, or null on error
+ *
+ *  Notes:
+ *      (1) Adds hitmiss Sels for the intersection of two lines.
+ *          If the lines are very thin, they must be nearly orthogonal
+ *          to register.
+ *      (2) The number of Sels generated is equal to @norient.
+ *      (3) If @norient == 2, this generates 2 Sels of crosses, each with
+ *          two perpendicular lines of hits.  One Sel has horizontal and
+ *          vertical hits; the other has hits along lines at +-45 degrees.
+ *          Likewise, if @norient == 3, this generates 3 Sels of crosses
+ *          oriented at 30 degrees with each other.
+ *      (4) It is suggested that @hlsize be chosen at least 1 greater
+ *          than @mdist.  Try values of (@hlsize, @mdist) such as
+ *          (6,5), (7,6), (8,7), (9,7), etc.
+ */
+SELA *
+selaAddCrossJunctions(SELA      *sela,
+                      l_float32  hlsize,
+                      l_float32  mdist,
+                      l_int32    norient,
+                      l_int32    debugflag)
+{
+char       name[L_BUF_SIZE];
+l_int32    i, j, w, xc, yc;
+l_float64  pi, halfpi, radincr, radang;
+l_float64  angle;
+PIX       *pixc, *pixm, *pixt;
+PIXA      *pixa;
+PTA       *pta1, *pta2, *pta3, *pta4;
+SEL       *sel;
+
+    PROCNAME("selaAddCrossJunctions");
+
+    if (hlsize <= 0)
+        return (SELA *)ERROR_PTR("hlsize not > 0", procName, NULL);
+    if (norient < 1 || norient > 8)
+        return (SELA *)ERROR_PTR("norient not in [1, ... 8]", procName, NULL);
+
+    if (!sela) {
+        if ((sela = selaCreate(0)) == NULL)
+            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+    }
+
+    pi = 3.1415926535;
+    halfpi = 3.1415926535 / 2.0;
+    radincr = halfpi / (l_float64)norient;
+    w = (l_int32)(2.2 * (L_MAX(hlsize, mdist) + 0.5));
+    if (w % 2 == 0)
+        w++;
+    xc = w / 2;
+    yc = w / 2;
+
+    pixa = pixaCreate(norient);
+    for (i = 0; i < norient; i++) {
+
+            /* Set the don't cares */
+        pixc = pixCreate(w, w, 32);
+        pixSetAll(pixc);
+
+            /* Add the green lines of hits */
+        pixm = pixCreate(w, w, 1);
+        radang = (l_float32)i * radincr;
+        pta1 = generatePtaLineFromPt(xc, yc, hlsize + 1, radang);
+        pta2 = generatePtaLineFromPt(xc, yc, hlsize + 1, radang + halfpi);
+        pta3 = generatePtaLineFromPt(xc, yc, hlsize + 1, radang + pi);
+        pta4 = generatePtaLineFromPt(xc, yc, hlsize + 1, radang + pi + halfpi);
+        ptaJoin(pta1, pta2, 0, 0);
+        ptaJoin(pta1, pta3, 0, 0);
+        ptaJoin(pta1, pta4, 0, 0);
+        pixRenderPta(pixm, pta1, L_SET_PIXELS);
+        pixPaintThroughMask(pixc, pixm, 0, 0, 0x00ff0000);
+        ptaDestroy(&pta1);
+        ptaDestroy(&pta2);
+        ptaDestroy(&pta3);
+        ptaDestroy(&pta4);
+
+            /* Add red misses between the lines */
+        for (j = 0; j < 4; j++) {
+            angle = radang + (j - 0.5) * halfpi;
+            pixSetPixel(pixc, xc + (l_int32)(mdist * cos(angle)),
+                        yc + (l_int32)(mdist * sin(angle)), 0xff000000);
+        }
+
+            /* Add dark green for origin */
+        pixSetPixel(pixc, xc, yc, 0x00550000);
+
+            /* Generate the sel */
+        sel = selCreateFromColorPix(pixc, NULL);
+        sprintf(name, "sel_cross_%d", i);
+        selaAddSel(sela, sel, name, 0);
+
+        if (debugflag) {
+            pixt = pixScaleBySampling(pixc, 10.0, 10.0);
+            pixaAddPix(pixa, pixt, L_INSERT);
+        }
+        pixDestroy(&pixm);
+        pixDestroy(&pixc);
+    }
+    
+    if (debugflag) {
+        l_int32  w;
+        pixaGetPixDimensions(pixa, 0, &w, NULL, NULL);
+        pixt = pixaDisplayTiledAndScaled(pixa, 32, w, 1, 0, 10, 2);
+        pixWrite("/tmp/junkxsel1.png", pixt, IFF_PNG);
+        pixDisplay(pixt, 0, 100);
+        pixDestroy(&pixt);
+        pixt = selaDisplayInPix(sela, 15, 2, 20, 1);
+        pixWrite("/tmp/junkxsel2.png", pixt, IFF_PNG);
+        pixDisplay(pixt, 500, 100);
+        pixDestroy(&pixt);
+        selaWriteStream(stderr, sela);
+    }
+    pixaDestroy(&pixa);
+
+    return sela;
+}
+
+
+/*! 
+ *  selaAddTJunctions()
+ *
+ *      Input:  sela (<optional>)
+ *              hlsize (length of each line of hits from origin)
+ *              mdist (distance of misses from the origin)
+ *              norient (number of orientations; max of 8)
+ *              debugflag (1 for debug output)
+ *      Return: sela with additional sels, or null on error
+ *
+ *  Notes:
+ *      (1) Adds hitmiss Sels for the T-junction of two lines.
+ *          If the lines are very thin, they must be nearly orthogonal
+ *          to register.
+ *      (2) The number of Sels generated is 4 * @norient.
+ *      (3) It is suggested that @hlsize be chosen at least 1 greater
+ *          than @mdist.  Try values of (@hlsize, @mdist) such as
+ *          (6,5), (7,6), (8,7), (9,7), etc.
+ */
+SELA *
+selaAddTJunctions(SELA      *sela,
+                  l_float32  hlsize,
+                  l_float32  mdist,
+                  l_int32    norient,
+                  l_int32    debugflag)
+{
+char       name[L_BUF_SIZE];
+l_int32    i, j, k, w, xc, yc;
+l_float64  pi, halfpi, radincr, jang, radang;
+l_float64  angle[3], dist[3];
+PIX       *pixc, *pixm, *pixt;
+PIXA      *pixa;
+PTA       *pta1, *pta2, *pta3;
+SEL       *sel;
+
+    PROCNAME("selaAddTJunctions");
+
+    if (hlsize <= 2)
+        return (SELA *)ERROR_PTR("hlsizel not > 1", procName, NULL);
+    if (norient < 1 || norient > 8)
+        return (SELA *)ERROR_PTR("norient not in [1, ... 8]", procName, NULL);
+
+    if (!sela) {
+        if ((sela = selaCreate(0)) == NULL)
+            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+    }
+
+    pi = 3.1415926535;
+    halfpi = 3.1415926535 / 2.0;
+    radincr = halfpi / (l_float32)norient;
+    w = (l_int32)(2.4 * (L_MAX(hlsize, mdist) + 0.5));
+    if (w % 2 == 0)
+        w++;
+    xc = w / 2;
+    yc = w / 2;
+
+    pixa = pixaCreate(4 * norient);
+    for (i = 0; i < norient; i++) {
+        for (j = 0; j < 4; j++) {  /* 4 orthogonal orientations */
+            jang = (l_float32)j * halfpi;
+
+                /* Set the don't cares */
+            pixc = pixCreate(w, w, 32);
+            pixSetAll(pixc);
+
+                /* Add the green lines of hits */
+            pixm = pixCreate(w, w, 1);
+            radang = (l_float32)i * radincr;
+            pta1 = generatePtaLineFromPt(xc, yc, hlsize + 1, jang + radang);
+            pta2 = generatePtaLineFromPt(xc, yc, hlsize + 1,
+                                         jang + radang + halfpi);
+            pta3 = generatePtaLineFromPt(xc, yc, hlsize + 1,
+                                         jang + radang + pi);
+            ptaJoin(pta1, pta2, 0, 0);
+            ptaJoin(pta1, pta3, 0, 0);
+            pixRenderPta(pixm, pta1, L_SET_PIXELS);
+            pixPaintThroughMask(pixc, pixm, 0, 0, 0x00ff0000);
+            ptaDestroy(&pta1);
+            ptaDestroy(&pta2);
+            ptaDestroy(&pta3);
+
+                /* Add red misses between the lines */
+            angle[0] = radang + jang - halfpi;
+            angle[1] = radang + jang + 0.5 * halfpi;
+            angle[2] = radang + jang + 1.5 * halfpi;
+            dist[0] = 0.8 * mdist;
+            dist[1] = dist[2] = mdist;
+            for (k = 0; k < 3; k++) {
+                pixSetPixel(pixc, xc + (l_int32)(dist[k] * cos(angle[k])),
+                            yc + (l_int32)(dist[k] * sin(angle[k])),
+                            0xff000000);
+            }
+
+                /* Add dark green for origin */
+            pixSetPixel(pixc, xc, yc, 0x00550000);
+
+                /* Generate the sel */
+            sel = selCreateFromColorPix(pixc, NULL);
+            sprintf(name, "sel_cross_%d", 4 * i + j);
+            selaAddSel(sela, sel, name, 0);
+
+            if (debugflag) {
+                pixt = pixScaleBySampling(pixc, 10.0, 10.0);
+                pixaAddPix(pixa, pixt, L_INSERT);
+            }
+            pixDestroy(&pixm);
+            pixDestroy(&pixc);
+        }
+    }
+
+    if (debugflag) {
+        l_int32  w;
+        pixaGetPixDimensions(pixa, 0, &w, NULL, NULL);
+        pixt = pixaDisplayTiledAndScaled(pixa, 32, w, 4, 0, 10, 2);
+        pixWrite("/tmp/junktsel1.png", pixt, IFF_PNG);
+        pixDisplay(pixt, 0, 100);
+        pixDestroy(&pixt);
+        pixt = selaDisplayInPix(sela, 15, 2, 20, 4);
+        pixWrite("/tmp/junktsel2.png", pixt, IFF_PNG);
+        pixDisplay(pixt, 500, 100);
+        pixDestroy(&pixt);
+        selaWriteStream(stderr, sela);
+    }
+    pixaDestroy(&pixa);
+
+    return sela;
+}
 

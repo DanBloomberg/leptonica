@@ -13,15 +13,15 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef  LEPTONICA_PQUEUE_H
-#define  LEPTONICA_PQUEUE_H
+#ifndef  LEPTONICA_QUEUE_H
+#define  LEPTONICA_QUEUE_H
 
 /*
- *  pqueue.h
+ *  queue.h
  *
  *      Expandable pointer queue for arbitrary void* data.
  *
- *      The pqueue is a fifo that implements a queue of void* pointers.
+ *      The L_Queue is a fifo that implements a queue of void* pointers.
  *      It can be used to hold a queue of any type of struct.
  *
  *      Internally, it maintains two counters:
@@ -44,20 +44,20 @@
  *      The auxiliary stack can be used in a wrapper for re-using
  *      items popped from the queue.  It is not made by default.
  *
- *      For further implementation details, see pqueue.c.
+ *      For further implementation details, see queue.c.
  */
 
-struct PQueue
+struct L_Queue
 {
-    l_int32         nalloc;     /* size of allocated ptr array            */
-    l_int32         nhead;      /* location of head (in ptrs) from the    */
-                                /* beginning of the array                 */
-    l_int32         nelem;      /* number of elements stored in the queue */
-    void          **array;      /* ptr array                              */
-    struct PStack  *stack;      /* auxiliary stack                        */
+    l_int32          nalloc;     /* size of allocated ptr array            */
+    l_int32          nhead;      /* location of head (in ptrs) from the    */
+                                 /* beginning of the array                 */
+    l_int32          nelem;      /* number of elements stored in the queue */
+    void           **array;      /* ptr array                              */
+    struct L_Stack  *stack;      /* auxiliary stack                        */
 
 };
-typedef struct PQueue PQUEUE;
+typedef struct L_Queue L_QUEUE;
 
 
-#endif  /* LEPTONICA_PQUEUE_H */
+#endif  /* LEPTONICA_QUEUE_H */

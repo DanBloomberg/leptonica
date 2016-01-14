@@ -50,8 +50,9 @@
  *           l_int32   boxaInsertBox()
  *           l_int32   boxaRemoveBox()
  *
- *      Boxaa creation, destruction
+ *      Boxaa creation, copy, destruction
  *           BOXAA    *boxaaCreate()
+ *           BOXAA    *boxaaCopy()
  *           void      boxaaDestroy()
  *
  *      Boxaa array extension
@@ -84,6 +85,9 @@
  *      Box print (for debug)
  *           l_int32   boxPrintStreamInfo()
  *
+ *      Backward compatibility old boxaa read functions
+ *           BOXAA    *boxaaReadVersion2()
+ *           BOXAA    *boxaaReadStreamVersion2()
  */
 
 #include <stdio.h>
@@ -132,12 +136,9 @@ BOX  *box;
             return (BOX *)ERROR_PTR("y < 0 and box off +quad", procName, NULL);
     }
 
-    if ((box = (BOX *) CALLOC(1, sizeof(BOX))) == NULL)
+    if ((box = (BOX *)CALLOC(1, sizeof(BOX))) == NULL)
         return (BOX *)ERROR_PTR("box not made", procName, NULL);
-    box->x = x;
-    box->y = y;
-    box->w = w;
-    box->h = h;
+    boxSetGeometry(box, x, y, w, h);
     box->refcount = 1;
 
     return box;
@@ -237,6 +238,10 @@ boxGetGeometry(BOX      *box,
 {
     PROCNAME("boxGetGeometry");
 
+    if (px) *px = 0;
+    if (py) *py = 0;
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
     if (px) *px = box->x;
@@ -557,6 +562,10 @@ BOX  *box;
 
     PROCNAME("boxaGetBoxGeometry");
 
+    if (px) *px = 0;
+    if (py) *py = 0;
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
     if (index < 0 || index >= boxa->n)
@@ -577,7 +586,7 @@ BOX  *box;
  *  boxaReplaceBox()
  *
  *      Input:  boxa
- *              index  (to the index-th pix)
+ *              index  (to the index-th box)
  *              box (insert to replace existing one)
  *      Return: 0 if OK, 1 on error
  *
@@ -704,7 +713,7 @@ boxaaCreate(l_int32  n)
 {
 BOXAA  *baa;
 
-    PROCNAME("numaaCreate");
+    PROCNAME("boxaaCreate");
 
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
@@ -722,6 +731,44 @@ BOXAA  *baa;
 
 
 /*!
+ *  boxaaCopy()
+ *
+ *      Input:  baas (input boxaa to be copied)
+ *              copyflag (L_COPY, L_CLONE)
+ *      Return: baad (new boxaa, composed of copies or clones of the boxa
+ *                    in baas), or null on error
+ *
+ *  Notes:
+ *      (1) L_COPY makes a copy of each boxa in baas.
+ *          L_CLONE makes a clone of each boxa in baas.
+ */
+BOXAA *
+boxaaCopy(BOXAA   *baas,
+          l_int32  copyflag)
+{
+l_int32  i, n;
+BOXA    *boxa;
+BOXAA   *baad;
+
+    PROCNAME("boxaaCopy");
+
+    if (!baas)
+        return (BOXAA *)ERROR_PTR("baas not defined", procName, NULL);
+    if (copyflag != L_COPY && copyflag != L_CLONE)
+        return (BOXAA *)ERROR_PTR("invalid copyflag", procName, NULL);
+
+    n = boxaaGetCount(baas);
+    baad = boxaaCreate(n);
+    for (i = 0; i < n; i++) {
+        boxa = boxaaGetBoxa(baas, i, copyflag);
+        boxaaAddBoxa(baad, boxa, L_INSERT);
+    }
+
+    return baad;
+}
+
+
+/*!
  *  boxaaDestroy()
  *
  *      Input:  &boxaa (<will be set to null before returning>)
@@ -733,7 +780,7 @@ boxaaDestroy(BOXAA  **pbaa)
 l_int32  i;
 BOXAA   *baa;
 
-    PROCNAME("boxnumaaDestroy");
+    PROCNAME("boxaaDestroy");
 
     if (pbaa == NULL) {
         L_WARNING("ptr address is NULL!", procName);
@@ -1094,9 +1141,6 @@ BOXAA  *baa;
  *
  *      Input:  stream
  *      Return: boxaa, or null on error
- *
- *  Notes:
- *      (1) We use PIXA_VERSION_NUMBER for the boxaa.
  */
 BOXAA *
 boxaaReadStream(FILE  *fp)
@@ -1113,7 +1157,7 @@ BOXAA   *baa;
 
     if (fscanf(fp, "\nBoxaa Version %d\n", &version) != 1)
         return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
-    if (version != PIXA_VERSION_NUMBER)
+    if (version != BOXAA_VERSION_NUMBER)
         return (BOXAA *)ERROR_PTR("invalid boxa version", procName, NULL);
     if (fscanf(fp, "Number of boxa = %d\n", &n) != 1)
         return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
@@ -1122,8 +1166,8 @@ BOXAA   *baa;
         return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-        if (fscanf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
-                &ignore, &x, &y, &w, &h) != 5)
+        if (fscanf(fp, "\nBoxa[%d] extent: x = %d, y = %d, w = %d, h = %d",
+                   &ignore, &x, &y, &w, &h) != 5)
             return (BOXAA *)ERROR_PTR("boxa descr not valid", procName, NULL);
         if ((boxa = boxaReadStream(fp)) == NULL)
             return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
@@ -1132,7 +1176,6 @@ BOXAA   *baa;
 
     return baa;
 }
-
 
 /*!
  *  boxaaWrite()
@@ -1170,9 +1213,6 @@ FILE  *fp;
  *      Input: stream
  *             boxaa
  *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) We use PIXA_VERSION_NUMBER for the boxaa.
  */
 l_int32
 boxaaWriteStream(FILE   *fp,
@@ -1190,14 +1230,15 @@ BOXA    *boxa;
         return ERROR_INT("baa not defined", procName, 1);
 
     n = boxaaGetCount(baa);
-    fprintf(fp, "\nBoxaa Version %d\n", PIXA_VERSION_NUMBER);
+    fprintf(fp, "\nBoxaa Version %d\n", BOXAA_VERSION_NUMBER);
     fprintf(fp, "Number of boxa = %d\n", n);
+
     for (i = 0; i < n; i++) {
         if ((boxa = boxaaGetBoxa(baa, i, L_CLONE)) == NULL)
             return ERROR_INT("boxa not found", procName, 1);
         boxaGetExtent(boxa, NULL, NULL, &box);
         boxGetGeometry(box, &x, &y, &w, &h);
-        fprintf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
+        fprintf(fp, "\nBoxa[%d] extent: x = %d, y = %d, w = %d, h = %d",
                 i, x, y, w, h);
         boxaWriteStream(fp, boxa);
         boxDestroy(&box);
@@ -1244,9 +1285,6 @@ BOXA  *boxa;
  *
  *      Input:  stream
  *      Return: boxa, or null on error
- *
- *  Notes:
- *      (1) We use PIXA_VERSION_NUMBER for the boxa.
  */
 BOXA *
 boxaReadStream(FILE  *fp)
@@ -1263,7 +1301,7 @@ BOXA    *boxa;
 
     if (fscanf(fp, "\nBoxa Version %d\n", &version) != 1)
         return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
-    if (version != PIXA_VERSION_NUMBER)
+    if (version != BOXA_VERSION_NUMBER)
         return (BOXA *)ERROR_PTR("invalid boxa version", procName, NULL);
     if (fscanf(fp, "Number of boxes = %d\n", &n) != 1)
         return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
@@ -1320,9 +1358,6 @@ FILE  *fp;
  *      Input: stream
  *             boxa
  *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) We use PIXA_VERSION_NUMBER for the boxa.
  */
 l_int32
 boxaWriteStream(FILE  *fp,
@@ -1339,7 +1374,7 @@ BOX     *box;
         return ERROR_INT("boxa not defined", procName, 1);
 
     n = boxaGetCount(boxa);
-    fprintf(fp, "\nBoxa Version %d\n", PIXA_VERSION_NUMBER);
+    fprintf(fp, "\nBoxa Version %d\n", BOXA_VERSION_NUMBER);
     fprintf(fp, "Number of boxes = %d\n", n);
     for (i = 0; i < n; i++) {
         if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
@@ -1384,6 +1419,89 @@ boxPrintStreamInfo(FILE  *fp,
     fprintf(fp, " Box height (pixels) =      %d\n", box->h);
 
     return 0;
+}
+
+
+
+/*---------------------------------------------------------------------*
+ *    Version for reading v.2 boxaa; kept for backward compatibility   *
+ *---------------------------------------------------------------------*/
+/*!
+ *  boxaaReadVersion2()
+ *
+ *      Input:  filename
+ *      Return: boxaa, or null on error
+ *
+ *  Notes:
+ *      (1) These old functions only work on version 2 boxaa.
+ *          They will go to an archive directory sometime after Sept 2009.
+ *      (2) The current format uses BOXAA_VERSION_NUMBER == 3)
+ */
+BOXAA *
+boxaaReadVersion2(const char  *filename)
+{
+FILE   *fp;
+BOXAA  *baa;
+
+    PROCNAME("boxaaReadVersion2");
+
+    if (!filename)
+        return (BOXAA *)ERROR_PTR("filename not defined", procName, NULL);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (BOXAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    if ((baa = boxaaReadStreamVersion2(fp)) == NULL) {
+        fclose(fp);
+        return (BOXAA *)ERROR_PTR("boxaa not read", procName, NULL);
+    }
+
+    fclose(fp);
+    return baa;
+}
+
+
+/*!
+ *  boxaaReadStreamVersion2()
+ *
+ *      Input:  stream
+ *      Return: boxaa, or null on error
+ *
+ */
+BOXAA *
+boxaaReadStreamVersion2(FILE  *fp)
+{
+l_int32  n, i, x, y, w, h, version;
+l_int32  ignore;
+BOXA    *boxa;
+BOXAA   *baa;
+
+    PROCNAME("boxaaReadStreamVersion2");
+
+    if (!fp)
+        return (BOXAA *)ERROR_PTR("stream not defined", procName, NULL);
+
+    if (fscanf(fp, "\nBoxaa Version %d\n", &version) != 1)
+        return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
+    if (version != 2) {
+        fprintf(stderr, "This is version %d\n", version);
+        return (BOXAA *)ERROR_PTR("Not old version 2", procName, NULL);
+    }
+    if (fscanf(fp, "Number of boxa = %d\n", &n) != 1)
+        return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
+
+    if ((baa = boxaaCreate(n)) == NULL)
+        return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
+
+    for (i = 0; i < n; i++) {
+        if (fscanf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
+                &ignore, &x, &y, &w, &h) != 5)
+            return (BOXAA *)ERROR_PTR("boxa descr not valid", procName, NULL);
+        if ((boxa = boxaReadStream(fp)) == NULL)
+            return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
+        boxaaAddBoxa(baa, boxa, L_INSERT);
+    }
+
+    return baa;
 }
 
 

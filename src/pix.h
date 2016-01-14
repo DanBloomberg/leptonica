@@ -33,6 +33,7 @@
  *       struct Pixacc
  *       struct PixTiling
  *       struct FPix
+ *       struct DPix
  *
  *   Contains definitions for:
  *       colors for RGB
@@ -300,13 +301,21 @@ enum {
  *
  *       (6) The version numbers (below) are used in the serialization
  *           of these data structures.  They are placed in the files,
- *           and rarely (if ever) change.  No provision is made for
- *           backward compatibility in either reading or writing.
+ *           and rarely (if ever) change.  Provision is currently made for
+ *           backward compatibility in reading from boxaa version 2.
  *
- *       (7) The PIXA_VERSION_NUMBER is applied to pixa, pixaa, boxa,
- *           and boxaa, and must be changed if any of these serializations
- *           are changed.  That is because pixaa depends on pixa and boxa,
- *           and pixa and boxaa depend on boxa.
+ *       (7) The serialization dependencies are as follows:
+ *               pixaa  :  pixa  :  boxa
+ *               boxaa  :  boxa
+ *           So, for example, pixaa and boxaa can be changed without
+ *           forcing a change in pixa or boxa.  However, if pixa is
+ *           changed, it forces a change in pixaa, and if boxa is
+ *           changed, if forces a change in the other three.
+ *           We define four version numbers:
+ *               PIXAA_VERSION_NUMBER
+ *               PIXA_VERSION_NUMBER
+ *               BOXAA_VERSION_NUMBER
+ *               BOXA_VERSION_NUMBER
  *
  *-------------------------------------------------------------------------*/
 
@@ -315,7 +324,13 @@ enum {
 /*-------------------------------------------------------------------------*
  *                              Array of pix                               *
  *-------------------------------------------------------------------------*/
-#define  PIXA_VERSION_NUMBER      2
+
+    /*  Serialization for primary data structures */
+#define  PIXAA_VERSION_NUMBER      2
+#define  PIXA_VERSION_NUMBER       2
+#define  BOXA_VERSION_NUMBER       2
+#define  BOXAA_VERSION_NUMBER      3
+
 
 struct Pixa
 {
@@ -424,6 +439,7 @@ struct PixTiling
     l_int32              h;           /* tile height                       */
     l_int32              xoverlap;    /* overlap on left and right         */
     l_int32              yoverlap;    /* overlap on top and bottom         */
+    l_int32              strip;       /* strip for paint; default is TRUE  */
 };
 typedef struct PixTiling PIXTILING;
 
@@ -444,6 +460,24 @@ struct FPix
     l_float32           *data;        /* the float image data              */
 };
 typedef struct FPix FPIX;
+
+
+/*-------------------------------------------------------------------------*
+ *                       DPix: pix with double array                       *
+ *-------------------------------------------------------------------------*/
+struct DPix
+{
+    l_int32              w;           /* width in pixels                   */
+    l_int32              h;           /* height in pixels                  */
+    l_int32              wpl;         /* 32-bit words/line                 */
+    l_int32              refcount;    /* reference count (1 if no clones)  */
+    l_int32              xres;        /* image res (ppi) in x direction    */
+                                      /* (use 0 if unknown)                */
+    l_int32              yres;        /* image res (ppi) in y direction    */
+                                      /* (use 0 if unknown)                */
+    l_float64           *data;        /* the double image data             */
+};
+typedef struct DPix DPIX;
 
 
 /*-------------------------------------------------------------------------*
@@ -490,23 +524,24 @@ enum {
 static const l_int32  L_NOCOPY = 0;  /* copyflag value in sarrayGetString() */
 
 
-/*-------------------------------------------------------------------------*
- *                              Sort flags                                 *
- *-------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*
+ *                              Sort flags                                  *
+ *--------------------------------------------------------------------------*/
 enum {
-    L_SORT_INCREASING = 1,        /* sort in increasing order              */
-    L_SORT_DECREASING = 2         /* sort in decreasing order              */
+    L_SORT_INCREASING = 1,        /* sort in increasing order               */
+    L_SORT_DECREASING = 2         /* sort in decreasing order               */
 };
 
 enum {
-    L_SORT_BY_X = 3,              /* sort box or c.c. by horiz location    */
-    L_SORT_BY_Y = 4,              /* sort box or c.c. by vert location     */
-    L_SORT_BY_WIDTH = 5,          /* sort box or c.c. by width             */
-    L_SORT_BY_HEIGHT = 6,         /* sort box or c.c. by height            */
-    L_SORT_BY_MIN_DIMENSION = 7,  /* sort box or c.c. by min dimension     */
-    L_SORT_BY_MAX_DIMENSION = 8,  /* sort box or c.c. by max dimension     */
-    L_SORT_BY_PERIMETER = 9,      /* sort box or c.c. by perimeter         */
-    L_SORT_BY_AREA = 10           /* sort box or c.c. by area              */
+    L_SORT_BY_X = 3,              /* sort box or c.c. by horiz location     */
+    L_SORT_BY_Y = 4,              /* sort box or c.c. by vert location      */
+    L_SORT_BY_WIDTH = 5,          /* sort box or c.c. by width              */
+    L_SORT_BY_HEIGHT = 6,         /* sort box or c.c. by height             */
+    L_SORT_BY_MIN_DIMENSION = 7,  /* sort box or c.c. by min dimension      */
+    L_SORT_BY_MAX_DIMENSION = 8,  /* sort box or c.c. by max dimension      */
+    L_SORT_BY_PERIMETER = 9,      /* sort box or c.c. by perimeter          */
+    L_SORT_BY_AREA = 10,          /* sort box or c.c. by area               */
+    L_SORT_BY_ASPECT_RATIO = 11   /* sort box or c.c. by width/height ratio */
 };
 
 
@@ -561,12 +596,18 @@ enum {
  *-------------------------------------------------------------------------*/
 enum {
     L_ROTATE_AREA_MAP = 1,       /* use area map rotation, if possible     */
-    L_ROTATE_SHEAR = 2           /* use shear rotation                     */
+    L_ROTATE_SHEAR = 2,          /* use shear rotation                     */
+    L_ROTATE_SAMPLING = 3        /* use sampling                           */
 };
 
 enum {
     L_BRING_IN_WHITE = 1,        /* bring in white pixels from the outside */
     L_BRING_IN_BLACK = 2         /* bring in black pixels from the outside */
+};
+
+enum {
+    L_SHEAR_ABOUT_CORNER = 1,    /* shear image about UL corner            */
+    L_SHEAR_ABOUT_CENTER = 2     /* shear image about center               */
 };
 
 
@@ -619,9 +660,12 @@ enum {
  *-------------------------------------------------------------------------*/
 enum {
     L_MEAN_ABSVAL = 1,           /* average of abs values                  */
-    L_ROOT_MEAN_SQUARE = 2,      /* rms of values                          */
-    L_STANDARD_DEVIATION = 3,    /* standard deviation from mean           */
-    L_VARIANCE = 4               /* variance of values                     */
+    L_MEDIAN_VAL = 2,            /* median value of set                    */
+    L_MODE_VAL = 3,              /* mode value of set                      */
+    L_MODE_COUNT = 4,            /* mode count of set                      */
+    L_ROOT_MEAN_SQUARE = 5,      /* rms of values                          */
+    L_STANDARD_DEVIATION = 6,    /* standard deviation from mean           */
+    L_VARIANCE = 7               /* variance of values                     */
 };
 
 

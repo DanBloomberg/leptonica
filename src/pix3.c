@@ -511,7 +511,7 @@ PIX       *pixt;
 
     return 0;
 }
-    
+
 
 /*!
  *  pixPaintThroughMask()

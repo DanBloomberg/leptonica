@@ -186,6 +186,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\heap.h"
+				>
+			</File>
+			<File
 				RelativePath=".\imageio.h"
 				>
 			</File>
@@ -210,19 +214,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\pheap.h"
-				>
-			</File>
-			<File
 				RelativePath=".\pix.h"
 				>
 			</File>
 			<File
-				RelativePath=".\pqueue.h"
+				RelativePath=".\pstdint.h"
 				>
 			</File>
 			<File
-				RelativePath=".\pstdint.h"
+				RelativePath=".\ptra.h"
+				>
+			</File>
+			<File
+				RelativePath=".\queue.h"
 				>
 			</File>
 			<File
@@ -283,6 +287,10 @@
 			</File>
 			<File
 				RelativePath=".\bilinear.c"
+				>
+			</File>
+			<File
+				RelativePath=".\binarize.c"
 				>
 			</File>
 			<File
@@ -470,6 +478,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\heap.c"
+				>
+			</File>
+			<File
 				RelativePath=".\jbclass.c"
 				>
 			</File>
@@ -534,10 +546,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\pheap.c"
-				>
-			</File>
-			<File
 				RelativePath=".\pix1.c"
 				>
 			</File>
@@ -562,7 +570,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\pixafunc.c"
+				RelativePath=".\pixafunc1.c"
+				>
+			</File>
+			<File
+				RelativePath=".\pixafunc2.c"
 				>
 			</File>
 			<File
@@ -586,10 +598,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\pqueue.c"
-				>
-			</File>
-			<File
 				RelativePath=".\projective.c"
 				>
 			</File>
@@ -600,8 +608,13 @@
 			<File
 				RelativePath=".\ptra.c"
 				>
+			</File>
 			<File
 				RelativePath=".\pts.c"
+				>
+			</File>
+			<File
+				RelativePath=".\queue.c"
 				>
 			</File>
 			<File
