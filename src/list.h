@@ -14,9 +14,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef  LIST_H_INCLUDED
-#define  LIST_H_INCLUDED
-
+#ifndef  LEPTONICA_LIST_H
+#define  LEPTONICA_LIST_H
 
 /*
  *   list.h
@@ -74,4 +73,4 @@ typedef struct DoubleLinkedList    DLLIST;
 #define L_END_LIST    }}
 
 
-#endif  /* LIST_H_INCLUDED */
+#endif  /* LEPTONICA_LIST_H */

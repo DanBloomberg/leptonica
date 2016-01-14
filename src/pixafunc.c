@@ -834,7 +834,10 @@ PIXA    *pixad;
  *      (1) This uses the boxes to place each pix in the rendered composite.
  *      (2) Set w = h = 0 to use the b.b. of the components to determine
  *          the size of the returned pix.
- *      (3) If the pixa is empty, returns an empty 1 bpp pix.
+ *      (3) The background is written "white".  On 1 bpp, each successive
+ *          pix is "painted" (adding foreground), whereas for grayscale
+ *          or color each successive pix is blitted with just the src.
+ *      (4) If the pixa is empty, returns an empty 1 bpp pix.
  */
 PIX *
 pixaDisplay(PIXA    *pixa,
@@ -873,13 +876,18 @@ PIX     *pixt, *pixd;
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if (d > 1)
+        pixSetAll(pixd);
     for (i = 0; i < n; i++) {
         if (pixaGetBoxGeometry(pixa, i, &xb, &yb, &wb, &hb)) {
             L_WARNING("no box found!", procName);
             continue;
         }
         pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pixt, 0, 0);
+        if (d == 1)
+            pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pixt, 0, 0);
+        else
+            pixRasterop(pixd, xb, yb, wb, hb, PIX_SRC, pixt, 0, 0);
         pixDestroy(&pixt);
     }
 
@@ -987,7 +995,7 @@ PIX     *pixt, *pixd;
     
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
-    nw = (l_int32)sqrt(n);
+    nw = (l_int32)sqrt((l_float64)n);
     nh = (n + nw - 1) / nw;
     w = xspace * nw;
     h = yspace * nh;
@@ -1672,5 +1680,3 @@ PIXA    *pixa, *pixad;
 
     return pixad;
 }
-
-

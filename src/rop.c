@@ -61,6 +61,14 @@
  *      (2) If the operation involves only dest, this calls
  *          rasteropUniLow().  Otherwise, checks depth of the
  *          src and dest, and if they match, calls rasteropLow().
+ *      (3) For the two-image operation, where both pixs and pixd
+ *          are defined, they are typically different images.  However
+ *          there are cases, such as pixSetMirroredBorder(), where
+ *          in-place operations can be done, blitting pixels from
+ *          one part of pixd to another.  Consequently, we permit
+ *          such operations.  If you use them, be sure that there
+ *          is no overlap between the source and destination rectangles
+ *          in pixd (!)
  *
  *  Background:
  *  -----------
@@ -205,10 +213,6 @@ l_int32  dd;
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (pixs == pixd) {
-        L_WARNING("pixs and pixd are the same; no operation", procName);
-        return 0;
-    }
 
         /* Check depth of src and depth; these must agree */
     if (dd != pixGetDepth(pixs))

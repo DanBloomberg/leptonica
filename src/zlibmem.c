@@ -36,8 +36,17 @@
 
 #include <stdio.h>
 #include <stdlib.h> 
-#include <zlib.h>
 #include "allheaders.h"
+
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  HAVE_LIBZ   /* defined in environ.h */
+/* --------------------------------------------*/
+
+#include "zlib.h"
 
 static const l_int32  L_BUF_SIZE = 32768;
 static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
@@ -210,4 +219,8 @@ z_stream  z;
     FREE(bufferout);
     return dataout;
 }
+
+/* --------------------------------------------*/
+#endif  /* HAVE_LIBZ */
+/* --------------------------------------------*/
 

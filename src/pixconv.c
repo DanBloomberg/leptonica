@@ -66,12 +66,15 @@
  *
  *      Top-level conversion to 1 bpp
  *           PIX        *pixConvertTo1()
+ *           PIX        *pixConvertTo1BySampling()
  *
  *      Top-level conversion to 8 bpp
  *           PIX        *pixConvertTo8()
+ *           PIX        *pixConvertTo8BySampling()
  *
  *      Top-level conversion to 32 bpp (RGB)
  *           PIX        *pixConvertTo32()   ***
+ *           PIX        *pixConvertTo32BySampling()   ***
  *           PIX        *pixConvert8To32()  ***
  *
  *      Lossless depth conversion (unpacking)
@@ -806,25 +809,26 @@ PIXCMAP   *cmap;
  *                using a colormap for the colors.  The 'level' parameter
  *                and the 'nerrors' return are only for this situation.
  *            (b) Most natural images have more than 256 different colors;
- *                in that case a simple 1-pass octree quantization
- *                followed by dithering is used.
+ *                in that case we use octree quantization with dithering.
  *      (2) Suggest using 'level' = 4.
  *          The image is first tested to count the 'colors' in the
- *          leaves of an octree, at the input 'level'.  For an image
- *          with not more than 256 colors, it is unlikely that two of them
- *          will fall in the same octcube at level = 4.  The function
- *          optionally returns 'nerrors', the number of situations
- *          where more than one color is in the same octcube at the
- *          given input 'level'.
+ *          leaves of an octree, at the input 'level'.  This is given by
+ *          the number of occupied leaves in the octree.  For an image
+ *          with not more than 256 colors, it is unlikely that two pixels
+ *          of different color will fall in the same octcube at level = 4.
+ *          However it is possible, and this function optionally returns
+ *          @nerrors, the number of pixels where, because more than one
+ *          color is in the same octcube, the pixel color is not
+ *          exactly reproduced in the colormap.  The colormap for an occupied
+ *          leaf of the octree contains the color of the first pixel
+ *          encountered in that octcube.
  *      (3) If there are more than 256 colors, the fallback is to
- *          a simple octree quantizer with dithering.  The 1-pass octree
- *          quantizer gives a good result, both visually and under
- *          png compression, on a variety of images.
- *      (4) The number of pixels whose color was not exactly 
- *          reproduced because more than 1 pixel of a given color
- *          was in the same octcube is returned in &nerrors.
- *          On error, the returned value is UNDEF.
- *      (5) The colormapped result is conveniently compressed
+ *          octree quantization with dithering.  We could use the simple
+ *          1-pass octree quantizer, but the adaptive quantizer gives
+ *          slightly better results on a variety of images, although
+ *          with poorer compression.  In that case, the value optionally
+ *          returned in @nerrors is UNDEF.
+ *      (4) The colormapped result is conveniently compressed
  *          losslessly with png.
  */     
 PIX *
@@ -832,17 +836,9 @@ pixConvertRGBToColormap(PIX      *pixs,
                         l_int32   level,
                         l_int32  *pnerrors)
 {
-l_int32    w, h, wpls, wpld, i, j, nerrors;
-l_int32    ncubes, ncolors, depth, cindex, val, oval;
-l_int32    rval, gval, bval;
-l_int32   *octarray;
-l_uint32   octindex;
-l_uint32  *rtab, *gtab, *btab;
-l_uint32  *lines, *lined, *datas, *datad, *ppixel;
-l_uint32  *colorarray;
-NUMA      *na;
-PIX       *pixd;
-PIXCMAP   *cmap;
+l_int32  i, ncubes, ncolors, val;
+NUMA    *na;
+PIX     *pixd;
 
     PROCNAME("pixConvertRGBToColormap");
 
@@ -873,99 +869,16 @@ PIXCMAP   *cmap;
 	 * represented directly in a colormap, fall back to octree
 	 * quantization with dithering. */
     if (ncolors > 256) {
-        L_WARNING("More than 256 colors; using 1-pass octree with dithering",
+        L_WARNING("More than 256 colors; using octree quant with dithering",
                   procName);
         numaDestroy(&na);
-        return pixColorQuant1Pass(pixs, 1);
+        return pixOctreeColorQuant(pixs, 250, 1);
     }
 
-#if  DEBUG_CONVERT_TO_COLORMAP
-    fprintf(stderr, "ncubes = %d, ncolors = %d\n", ncubes, ncolors);
-#endif  /* DEBUG_CONVERT_TO_COLORMAP */
-
-        /* OK, we can represent the image with a set of leaf octcubes
-	 * at 'level', one for each color. */
-    if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
-        return (PIX *)ERROR_PTR("tables not made", procName, NULL);
-
-        /* Determine the output depth from the number of colors */
-    pixGetDimensions(pixs, &w, &h, NULL);
-    datas = pixGetData(pixs);
-    wpls = pixGetWpl(pixs);
-    if (ncolors <= 4)
-        depth = 2;
-    else if (ncolors <= 16)
-        depth = 4;
-    else  /* ncolors <= 256 */
-        depth = 8;
-        
-    if ((pixd = pixCreate(w, h, depth)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixCopyResolution(pixd, pixs);
-    datad = pixGetData(pixd);
-    wpld = pixGetWpl(pixd);
-
-        /* The octarray will give a ptr from the octcube to the colorarray */
-    if ((octarray = (l_int32 *)CALLOC(ncubes, sizeof(l_int32))) == NULL)
-        return (PIX *)ERROR_PTR("octarray not made", procName, NULL);
-
-        /* The colorarray will hold the colors of the first pixel
-	 * that lands in the leaf octcube. */
-    if ((colorarray = (l_uint32 *)CALLOC(ncolors + 1, sizeof(l_uint32)))
-            == NULL)
-        return (PIX *)ERROR_PTR("colorarray not made", procName, NULL);
-
-    cindex = 1;  /* start with 1 */ 
-    nerrors = 0;
-    for (i = 0; i < h; i++) {
-        lines = datas + i * wpls;
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
-            ppixel = lines + j;
-            rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-            gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-            octindex = rtab[rval] | gtab[gval] | btab[bval];
-            oval = octarray[octindex];
-            if (oval == 0) {
-                octarray[octindex] = cindex;
-                colorarray[cindex] = *ppixel;
-                setPixelLow(lined, j, depth, cindex - 1);
-                cindex++;
-            }
-            else {  /* already have seen this color; is it unique? */
-                setPixelLow(lined, j, depth, oval - 1);
-                if (colorarray[oval] != *ppixel)
-                    nerrors++;
-            }
-        }
-    }
-    if (pnerrors)
-        *pnerrors = nerrors;
-
-#if  DEBUG_CONVERT_TO_COLORMAP
-    for (i = 0; i < ncolors; i++)
-        fprintf(stderr, "color[%d] = %x\n", i, colorarray[i + 1]);
-#endif  /* DEBUG_CONVERT_TO_COLORMAP */
-
-        /* Make the colormap */
-    cmap = pixcmapCreate(depth);
-    for (i = 0; i < ncolors; i++) {
-        ppixel = colorarray + i + 1;
-        rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-        gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-        bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-        pixcmapAddColor(cmap, rval, gval, bval);
-    }
-    pixSetColormap(pixd, cmap);
-
+        /* There are not more than 256 occupied leaf octcubes.
+         * Quantize to those octcubes. */
+    pixd = pixFewColorsOctcubeQuant(pixs, level, na, ncolors, pnerrors);
     numaDestroy(&na);
-    FREE(octarray);
-    FREE(colorarray);
-    FREE(rtab);
-    FREE(gtab);
-    FREE(btab);
-
     return pixd;
 }
 
@@ -1000,8 +913,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 16)
         return (PIX *)ERROR_PTR("pixs not 16 bpp", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -1304,8 +1216,7 @@ l_uint32  *datas, *datad, *lines, *lined;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if (pixd) {
         if (w != pixGetWidth(pixd) || h != pixGetHeight(pixd))
             return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
@@ -1411,8 +1322,7 @@ l_uint32  *datas, *datad, *lines, *lined;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if (pixd) {
         if (w != pixGetWidth(pixd) || h != pixGetHeight(pixd))
             return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
@@ -1532,8 +1442,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if (pixd) {
         if (w != pixGetWidth(pixd) || h != pixGetHeight(pixd))
             return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
@@ -1625,8 +1534,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if (pixd) {
         if (w != pixGetWidth(pixd) || h != pixGetHeight(pixd))
             return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
@@ -1724,8 +1632,7 @@ PIXCMAP   *cmaps, *cmapd;
     if (cmaps && cmapflag == FALSE)
         return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -1834,8 +1741,7 @@ PIXCMAP   *cmaps, *cmapd;
     if (cmaps && cmapflag == FALSE)
         return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -1943,6 +1849,42 @@ PIXCMAP  *cmap;
 }
 
 
+/*!
+ *  pixConvertTo1BySampling()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
+ *              factor (submsampling factor; integer >= 1)
+ *              threshold (for final binarization, relative to 8 bpp)
+ *      Return: pixd (1 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) This is a fast, quick/dirty, top-level converter.
+ *      (2) See pixConvertTo1() for default values.
+ */     
+PIX *
+pixConvertTo1BySampling(PIX     *pixs,
+                        l_int32  factor,
+                        l_int32  threshold)
+{
+l_float32  scalefactor;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixConvertTo1BySampling");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (factor < 1)
+        return (PIX *)ERROR_PTR("factor must be >= 1", procName, NULL);
+
+    scalefactor = 1. / (l_float32)factor;
+    pixt = pixScaleBySampling(pixs, scalefactor, scalefactor);
+    pixd = pixConvertTo1(pixt, threshold);
+
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
 /*---------------------------------------------------------------------------*
  *                     Top-level conversion to 8 bpp                         *
  *---------------------------------------------------------------------------*/
@@ -2027,6 +1969,42 @@ PIXCMAP  *cmap;
 }
 
 
+/*!
+ *  pixConvertTo8BySampling()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
+ *              factor (submsampling factor; integer >= 1)
+ *              cmapflag (TRUE if pixd is to have a colormap; FALSE otherwise)
+ *      Return: pixd (8 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) This is a fast, quick/dirty, top-level converter.
+ *      (2) See pixConvertTo8() for default values.
+ */     
+PIX *
+pixConvertTo8BySampling(PIX     *pixs,
+                        l_int32  factor,
+                        l_int32  cmapflag)
+{
+l_float32  scalefactor;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixConvertTo8BySampling");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (factor < 1)
+        return (PIX *)ERROR_PTR("factor must be >= 1", procName, NULL);
+
+    scalefactor = 1. / (l_float32)factor;
+    pixt = pixScaleBySampling(pixs, scalefactor, scalefactor);
+    pixd = pixConvertTo8(pixt, cmapflag);
+
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
 /*---------------------------------------------------------------------------*
  *                    Top-level conversion to 32 bpp                         *
  *---------------------------------------------------------------------------*/
@@ -2095,6 +2073,40 @@ PIX     *pixt, *pixd;
 
 
 /*!
+ *  pixConvertTo32BySampling()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
+ *              factor (submsampling factor; integer >= 1)
+ *      Return: pixd (32 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) This is a fast, quick/dirty, top-level converter.
+ *      (2) See pixConvertTo32() for default values.
+ */     
+PIX *
+pixConvertTo32BySampling(PIX     *pixs,
+                         l_int32  factor)
+{
+l_float32  scalefactor;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixConvertTo32BySampling");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (factor < 1)
+        return (PIX *)ERROR_PTR("factor must be >= 1", procName, NULL);
+
+    scalefactor = 1. / (l_float32)factor;
+    pixt = pixScaleBySampling(pixs, scalefactor, scalefactor);
+    pixd = pixConvertTo32(pixt);
+
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
  *  pixConvert8To32()
  *
  *      Input:  pix (8 bpp)
@@ -2129,8 +2141,7 @@ PIX       *pixd;
     for (i = 0; i < 256; i++)
       tab[i] = (i << 24) | (i << 16) | (i << 8);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 32)) == NULL)
@@ -2352,17 +2363,14 @@ PIXCMAP   *cmap;
     }
 
         /* Convert RGB image */
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
+    pixGetDimensions(pixd, &w, &h, NULL);
     wpl = pixGetWpl(pixd);
     data = pixGetData(pixd);
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
         for (j = 0; j < w; j++) {
             pixel = line[j];
-            rval = GET_DATA_BYTE(&pixel, COLOR_RED);
-            gval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
+            extractRGBValues(pixel, &rval, &gval, &bval);
             convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
             line[j] = (hval << 24) | (sval << 16) | (vval << 8);
         }
@@ -2419,8 +2427,7 @@ PIXCMAP   *cmap;
     }
 
         /* Convert HSV image */
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
+    pixGetDimensions(pixd, &w, &h, NULL);
     wpl = pixGetWpl(pixd);
     data = pixGetData(pixd);
     for (i = 0; i < h; i++) {
@@ -2431,9 +2438,7 @@ PIXCMAP   *cmap;
             sval = (pixel >> 16) & 0xff;
             vval = (pixel >> 8) & 0xff;
             convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
-            SET_DATA_BYTE(line + j, COLOR_RED, rval);
-            SET_DATA_BYTE(line + j, COLOR_GREEN, gval);
-            SET_DATA_BYTE(line + j, COLOR_BLUE, bval);
+            composeRGBPixel(rval, gval, bval, line + j);
         }
     }
 
@@ -2639,9 +2644,7 @@ PIX       *pixt, *pixd;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             pixel = linet[j];
-            rval = GET_DATA_BYTE(&pixel, COLOR_RED);
-            gval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
+            extractRGBValues(pixel, &rval, &gval, &bval);
             minrg = L_MIN(rval, gval);
             min = L_MIN(minrg, bval);
             maxrg = L_MAX(rval, gval);
@@ -2668,3 +2671,4 @@ PIX       *pixt, *pixd;
 
     return pixd;
 }
+

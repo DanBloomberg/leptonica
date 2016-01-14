@@ -14,7 +14,9 @@
 #*====================================================================*/
 
 
-#   Makefile  (for linux)
+#   makefile  (for linux)
+#
+#   Hand-built -- editable -- simple -- makefile
 #
 #   For a nodebug version:             make
 #   For a debug version:               make DEBUG=yes debug
@@ -28,43 +30,41 @@
 #
 #   Customization for endianness of machine hardware:
 #   When using the gnu compiler, endianness is automatically
-#   determined and set properly.  Otherwise, you need to set the
-#   CPPFLAGS variable explicitly as follows.
+#   determined and set properly.  Otherwise, set the $CPPFLAGS variable:
 #       On little-endian machines (e.g., i386, x86-64):
 #          CPPFLAGS = $(INCLUDES) -DL_LITTLE_ENDIAN
 #       On big-endian machines (e.g., Mac Power PC, Sun Sparc):
 #          CPPFLAGS = $(INCLUDES) -DL_BIG_ENDIAN
+#
+#   Customization for I/O with external libraries (jpeg, png, tiff, gif):
+#   Set flags in environ.h.  The default is to have libjpeg, libpng,
+#   libtiff and libz, but not libgif.
+#
+#   Customization for non-POSIX-compliant GNU functions
+#   fmemopen() and open_memstream().
+#   The default is not to use, because they only work on linux.
+#   To use these, comment out the define of _STANDARD_C_ in environ.h.
 #
 #   Customization for cygwin:
 #   (1) Use the appropriate $CC
 #   (2) For the leptprotos target, the executable that has been
 #       built is xtractprotos.exe.  (add the ".exe")
 #
-#   Customization for Microsoft compilers (e.g., VC++6.0):
-#   (1) Substitute arrayaccess.h.ms60 for arrayaccess.h, if necessary
-#   (2) invoke with -DUSE_PSTDINT to use the pstdint.h file (included)
-#
-#   Customization for removing functions that depend on external
-#   libraries (jpeg, png, tiff, gzip), and I/O in general:
-#   (1) Replace selected files in the Makefile, from this set of stubs:
-#        bmpio.c   -->  bmpiostub.c
-#        jpegio.c  -->  jpegiostub.c
-#        pngio.c   -->  pngiostub.c
-#        pnmio.c   -->  pnmiostub.c
-#        psio.c    -->  psiostub.c
-#        tiffio.c  -->  tiffiostub.c
-#        zlibmem.c -->  zlibmemstub.c
-#   (2) Comment out selected I/O header files from alltypes.h
-#
-#   Customization for adding gif read/write:
-#   Replace:   gifiostub.c  -->  gifio.c
+#   Customization for Microsoft compilers
+#   (1) None required for recent versions (e.g., VC++9, VC++ Express).
+#       Use the project files supplied:
+#           leptonlib.sln
+#           leptonlib.vcproj
+#   (2) You can also substitute arrayaccess.h.vc for arrayaccess.h, to
+#       use the inline macros rather than function calls which are slower.
 #
 #   To generate function prototypes, you need a program called
 #       xtractprotos.  Build it with this command:
 #          make xtractprotos
 #       Then use it with 'make allprotos'
-#
-#   Stuff used by Makefile
+
+
+###  Stuff used by Makefile
 RM =		rm -f
 TEST =		test
 MKDIRHIER =	mkdir -p
@@ -72,7 +72,8 @@ LIBRARIAN =	ar cq
 RANLIB =	ranlib
 
 
-# Libraries are built into a binary tree with its root in the parent directory
+#   Libraries are built into a binary tree.  By default, the root
+#   is in the parent directory.
 ROOT_DIR =	..
 
 BASE_OBJ =	$(ROOT_DIR)/obj
@@ -86,11 +87,11 @@ LIB_DEBUG =	$(ROOT_DIR)/lib/debug
 LIB_SHARED =	$(ROOT_DIR)/lib/shared
 
 
-# Include files
+#   Include files
 INCLUDES =	-I. $(EXTRAINCLUDES)
 PROTOTYPE_DIR =	.
 
-#  which to use?
+#   Which flags to use?
 #     use -Werror to verify there are no serious warnings
 #     use g++ to apply stricter rules.  Libraries made with g++ may not
 #        link to programs compiled with gcc (depends on the glibc version).
@@ -106,7 +107,7 @@ CC =		gcc -ansi -Werror -D_BSD_SOURCE -DANSI -fPIC
 #CC =		g++ -Wunused -D_BSD_SOURCE -fPIC
 #CC =		gcc -ansi -D_BSD_SOURCE -DANSI
 
-# Test for processor endianness (valid with gnu make only)
+#   Test for processor endianness (valid with gnu make only)
 ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
 
 # Conditional compilation (depending on processor endianness)
@@ -114,7 +115,7 @@ CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
 #CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN
 #CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN
 
-# Shared library linker options
+#   Shared library linker options
 SONAME_OPTION = -Wl,-h,
 
 ifdef  SHARED
@@ -132,14 +133,14 @@ OPTIONS =
 CFLAGS =		$(OPTIMIZE) $(OPTIONS)
 LIBRARIAN_SHARED =	gcc -shared
 
-# Libraries differing only in their minor revision numbers
-# are required to have the same interface.  By using
-# "-h" in the ld, the "soname" is <libname>.X, where X is
-# the major revision number.
-# Links are created among the files <libname>.X.Y,
-# <libname>.X, and <libname>, where Y is the minor revision number.
+#   Libraries differing only in their minor revision numbers
+#   are required to have the same interface.  By using
+#   "-h" in the ld, the "soname" is <libname>.X, where X is
+#   the major revision number.
+#   Links are created among the files <libname>.X.Y,
+#   <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 54
+MINOR_REV = 56
 
 #########################################################
 
@@ -151,15 +152,16 @@ LEPTLIB_SHARED =	liblept.so
 #########################################################
 
 LEPTLIB_C =	adaptmap.c affine.c \
-		arithlow.c arrayaccess.c baseline.c \
+		arithlow.c arrayaccess.c \
+		bardecode.c baseline.c \
 		bbuffer.c bilinear.c \
 		binexpand.c binexpandlow.c \
 		binreduce.c binreducelow.c \
-		blend.c bmf.c bmpio.c \
+		blend.c bmf.c bmpio.c bmpiostub.c \
 		boxbasic.c boxfunc.c \
 		ccbord.c ccthin.c classapp.c \
 		colorcontent.c colormap.c colormorph.c \
-		colorquant.c colorseg.c \
+		colorquant1.c colorquant2.c colorseg.c \
 		compare.c conncomp.c \
 		convolve.c convolvelow.c correlscore.c \
 		dwacomb.2.c dwacomblow.2.c \
@@ -167,21 +169,22 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
-		gifiostub.c gplot.c graphics.c \
+		gifio.c gifiostub.c gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
 		grayquant.c grayquantlow.c \
-		jbclass.c jpegio.c \
-		list.c maze.c \
+		jbclass.c jpegio.c jpegiostub.c \
+		kernel.c list.c maze.c \
 		morph.c morphapp.c morphdwa.c morphseq.c \
-		numabasic.c numafunc.c \
+		numabasic.c numafunc1.c numafunc2.c \
 		pageseg.c paintcmap.c \
 		parseprotos.c partition.c pheap.c \
 		pix1.c pix2.c pix3.c pixabasic.c \
-		pixacc.c pixafunc.c pixarith.c pixconv.c \
-		pngio.c pnmio.c pqueue.c \
-		projective.c psio.c \
-		pts.c \
-		rank.c readfile.c \
+		pixacc.c pixafunc.c pixarith.c \
+		pixconv.c pixtiling.c \
+		pngio.c pngiostub.c pnmio.c pnmiostub.c \
+		pqueue.c projective.c psio.c psiostub.c \
+		pts.c rank.c \
+		readbarcode.c readfile.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \
 		rotateorth.c rotateorthlow.c rotateshear.c \
@@ -190,19 +193,20 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		seedfill.c seedfilllow.c \
 		sel1.c sel2.c selgen.c \
 		shear.c skew.c stack.c \
-		textops.c tiffio.c utils.c \
-		viewfiles.c \
-		writefile.c zlibmem.c
+		textops.c tiffio.c tiffiostub.c \
+		utils.c viewfiles.c \
+		writefile.c zlibmem.c zlibmemstub.c
 
 LEPTLIB_H =	allheaders.h alltypes.h \
 		array.h arrayaccess.h bbuffer.h \
-		bmf.h bmp.h ccbord.h colorquant.h \
-		conncomp.h environ.h gplot.h \
+		bmf.h bmp.h ccbord.h \
+		environ.h gplot.h \
 		imageio.h \
 		jbclass.h jpeglib.h \
 		leptprotos.h list.h \
 		morph.h pheap.h \
-		pix.h pqueue.h stack.h
+		pix.h pqueue.h \
+		readbarcode.h stack.h
 
 ##################################################################
 
@@ -254,21 +258,21 @@ xtractprotos.o:	xtractprotos.c
 
 ##################################################################
 
-# Rule to make optimized library
+#   Rule to make optimized library
 
 $(LIB_NODEBUG)/%.a:
 		$(RM) $@
 		$(LIBRARIAN) $@ $<
 		$(RANLIB) $@
 
-# Rule to make debuggable library
+#   Rule to make debuggable library
 
 $(LIB_DEBUG)/%.a:
 		$(RM) $@
 		$(LIBRARIAN) $@ $<
 		$(RANLIB) $@
 
-# Rule to make shared library
+#   Rule to make shared library
 
 $(LIB_SHARED)/%.so:
 		$(RM) $@
@@ -281,7 +285,7 @@ $(LIB_SHARED)/%.so:
 
 ##################################################################
 
-# No-debug library dependencies and rules
+#   No-debug library dependencies and rules
 
 leptlib:	$(LIB_NODEBUG)/$(LEPTLIB)
 $(LIB_NODEBUG)/$(LEPTLIB):	$(LEPTLIB_C:%.c=$(OBJ_NODEBUG)/%.o)
@@ -289,7 +293,7 @@ $(LIB_NODEBUG)/$(LEPTLIB):	$(LEPTLIB_C:%.c=$(OBJ_NODEBUG)/%.o)
 		$(LIBRARIAN) $@ $(LEPTLIB_C:%.c=$(OBJ_NODEBUG)/%.o)
 		$(RANLIB) $@
 
-# Debug library dependencies and rules
+#   Debug library dependencies and rules
 
 leptlibd:	$(LIB_DEBUG)/$(LEPTLIB)
 $(LIB_DEBUG)/$(LEPTLIB):	$(LEPTLIB_C:%.c=$(OBJ_DEBUG)/%.o)
@@ -297,7 +301,7 @@ $(LIB_DEBUG)/$(LEPTLIB):	$(LEPTLIB_C:%.c=$(OBJ_DEBUG)/%.o)
 		$(LIBRARIAN) $@ $(LEPTLIB_C:%.c=$(OBJ_DEBUG)/%.o)
 		$(RANLIB) $@
 
-# Shared library dependencies, rules and links
+#   Shared library dependencies, rules and links
 
 leptlibs:	$(LIB_SHARED)/$(LEPTLIB_SHARED)
 $(LIB_SHARED)/$(LEPTLIB_SHARED):	$(LEPTLIB_C:%.c=$(OBJ_SHARED)/%.o)
@@ -311,7 +315,7 @@ $(LIB_SHARED)/$(LEPTLIB_SHARED):	$(LEPTLIB_C:%.c=$(OBJ_SHARED)/%.o)
 
 #########################################################
 
-#  Rules for compiling source
+#   Rules for compiling source
 
 $(OBJ_NODEBUG)/%.o:	%.c  $(LEPTLIB_H)
 		@$(TEST) -d $(OBJ_NODEBUG) || $(MKDIRHIER) $(OBJ_NODEBUG)
@@ -327,7 +331,7 @@ $(OBJ_SHARED)/%.o:	%.c  $(LEPTLIB_H)
 
 ###########################################################
 
-# Prepare a local environment
+#   Prepare a local environment
 
 dirs:
 		@$(TEST) -d $(BASE_OBJ) || $(MKDIRHIER) $(BASE_OBJ)

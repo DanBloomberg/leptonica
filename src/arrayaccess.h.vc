@@ -17,11 +17,11 @@
 #define ARRAY_ACCESS_H
 
 /*
- *  arrayaccess.h.ms60
+ *  arrayaccess.h.vc
  *
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- *  This version is for MS VC++6.0, which doesn't support expression
+ *  This version is for MS VC++, which doesn't support expression
  *  statements.  It can give warnings with gcc-4.1.0, so it is not
  *  installed by default.
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

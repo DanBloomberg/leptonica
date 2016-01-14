@@ -426,19 +426,20 @@ l_uint32  *lines, *lined;
             word10 = *(lines + x + 1);
             word01 = *(lines + wpls + x);
             word11 = *(lines + wpls + x + 1);
-            rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-                xf * (16 - yf) * (word10 >> 24) +
-                (16 - xf) * yf * (word01 >> 24) +
-                xf * yf * (word11 >> 24) + 128) / 256;
-            gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-                xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-                (16 - xf) * yf * ((word01 >> 16) & 0xff) +
-                xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
-            bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-                xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-                (16 - xf) * yf * ((word01 >> 8) & 0xff) +
-                xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
-            val = (rval << 24) | (gval << 16) | (bval << 8);
+            rval = ((16 - xf) * (16 - yf) * ((word00 >> L_RED_SHIFT) & 0xff) +
+                xf * (16 - yf) * ((word10 >> L_RED_SHIFT) & 0xff) +
+                (16 - xf) * yf * ((word01 >> L_RED_SHIFT) & 0xff) +
+                xf * yf * ((word11 >> L_RED_SHIFT) & 0xff) + 128) / 256;
+            gval = ((16 - xf) * (16 - yf) * ((word00 >> L_GREEN_SHIFT) & 0xff) +
+                xf * (16 - yf) * ((word10 >> L_GREEN_SHIFT) & 0xff) +
+                (16 - xf) * yf * ((word01 >> L_GREEN_SHIFT) & 0xff) +
+                xf * yf * ((word11 >> L_GREEN_SHIFT) & 0xff) + 128) / 256;
+            bval = ((16 - xf) * (16 - yf) * ((word00 >> L_BLUE_SHIFT) & 0xff) +
+                xf * (16 - yf) * ((word10 >> L_BLUE_SHIFT) & 0xff) +
+                (16 - xf) * yf * ((word01 >> L_BLUE_SHIFT) & 0xff) +
+                xf * yf * ((word11 >> L_BLUE_SHIFT) & 0xff) + 128) / 256;
+            val = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
+                  (bval << L_BLUE_SHIFT);
             *(lined + j) = val;
         }
     }

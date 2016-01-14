@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "allheaders.h"
 
 #define  NTIMES             10

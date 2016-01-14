@@ -14,9 +14,9 @@
  *====================================================================*/
 
 /*
- *  colorquant.c
+ *  colorquant1.c
  *                     
- *    Octcube color quantization
+ *  Octcube color quantization
  *
  *      One-pass color quantization from 24 bit full color,
  *      with fixed partitioning and 256 colors only
@@ -27,8 +27,8 @@
  *          PIX              *pixOctreeColorQuant()
  *
  *        which calls
- *          CQCELL         ***octreeGenerateAndPrune()
- *          PIX              *pixOctreeQuantizePixels()
+ *          static CQCELL  ***octreeGenerateAndPrune()
+ *          static PIX       *pixOctreeQuantizePixels()
  *
  *        which calls
  *          static l_int32    octreeFindColorCell()
@@ -54,6 +54,9 @@
  *          PIX              *pixOctcubeQuantMixed()
  *          NUMA             *pixOctcubeHistogram()
  *          
+ *      Nearly exact quantization with few colors
+ *          PIX              *pixFewColorsOctcubeQuant()
+ *
  *      Color quantize RGB image using existing colormap
  *          PIX              *pixOctcubeQuantFromCmap()
  *          PIX              *pixOctcubeQuantFromCmapLUT()
@@ -64,14 +67,89 @@
  *      Strip out unused elements in colormap
  *          l_int32           pixRemoveUnusedColors()
  *
+ *  Note: leptonica also provides color quantization using a modified
+ *        form of median cut.  See colorquant2.c for details.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "allheaders.h"
 
-    /* in pixOctreeColorQuant() */
-static const l_float32  SUBSAMPLE_FACTOR = 0.25;
+
+/*
+ *  This data structure is used for pixOctreeColorQuant(),
+ *  a color octree that adjusts to the color distribution
+ *  in the image that is being quantized.  The best settings
+ *  are with CQ_NLEVELS = 6 and DITHERING set on.
+ *
+ *  Notes:  (1) the CTE (color table entry) index is sequentially
+ *              assigned as the tree is pruned back
+ *          (2) if 'bleaf' == 1, all pixels in that cube have been
+ *              assigned to one or more CTEs.  But note that if
+ *              all 8 subcubes have 'bleaf' == 1, it will have no
+ *              pixels left for assignment and will not be a CTE.
+ *          (3) 'nleaves', the number of leaves contained at the next
+ *              lower level is some number between 0 and 8, inclusive.
+ *              If it is zero, it means that all colors within this cube
+ *              are part of a single growing cluster that has not yet
+ *              been set aside as a leaf.  If 'nleaves' > 0, 'bleaf'
+ *              will be set to 1 and all pixels not assigned to leaves
+ *              at lower levels will be assigned to a CTE here.
+ *              (However, as described above, if all pixels are already
+ *              assigned, we set 'bleaf' = 1 but do not create a CTE
+ *              at this level.)
+ *          (4) To keep the maximum color error to a minimum, we
+ *              prune the tree back to level 2, and require that
+ *              all 64 level 2 cells are CTEs.
+ *          (5) We reserve an extra set of colors to prevent running out
+ *              of colors during the assignment of the final 64 level 2 cells.
+ *              This is more likely to happen with small images.
+ *          (6) When we run out of colors, the dithered image can be very
+ *              poor, so we additionally prevent dithering if the image
+ *              is small.
+ *          (7) The color content of the image is measured, and if there
+ *              is very little color, it is quantized in grayscale.
+ */
+struct ColorQuantCell
+{
+    l_int32     rc, gc, bc;   /* center values                              */
+    l_int32     n;            /* number of samples in this cell             */
+    l_int32     index;        /* CTE (color table entry) index              */
+    l_int32     nleaves;      /* # of leaves contained at next lower level  */
+    l_int32     bleaf;        /* boolean: 0 if not a leaf, 1 if so          */
+};
+typedef struct ColorQuantCell    CQCELL;
+
+
+    /* Constants for pixOctreeColorQuant() */
+static const l_int32  CQ_NLEVELS = 5;   /* only 4, 5 and 6 are allowed */
+static const l_int32  CQ_RESERVED_COLORS = 64;  /* to allow for level 2 */
+                                                /* remainder CTEs */
+static const l_int32  EXTRA_RESERVED_COLORS = 25;  /* to avoid running out */
+static const l_int32  TREE_GEN_WIDTH = 350;  /* big enough for good stats */
+static const l_int32  MIN_DITHER_SIZE = 250;  /* don't dither if smaller */
+
+
+/*
+ *  This data structure is used for pixOctreeQuant(),
+ *  a color octree that adjusts in a simple way to the to the color
+ *  distribution in the image that is being quantized.  It outputs
+ *  colormapped images, either 4 bpp or 8 bpp, depending on the
+ *  max number of colors and the compression desired. 
+ *
+ *  The number of samples is saved as a float in the first location,
+ *  because this is required to use it as the key that orders the
+ *  cells in the priority queue.
+ */
+struct OctcubeQuantCell
+{
+    l_float32  n;                  /* number of samples in this cell       */
+    l_int32    octindex;           /* octcube index                        */
+    l_int32    rcum, gcum, bcum;   /* cumulative values                    */
+    l_int32    rval, gval, bval;   /* average values                       */
+};
+typedef struct OctcubeQuantCell    OQCELL;
 
     /* Static octree helper function */
 static l_int32 octreeFindColorCell(l_int32 octindex, CQCELL ***cqcaa,
@@ -79,6 +157,11 @@ static l_int32 octreeFindColorCell(l_int32 octindex, CQCELL ***cqcaa,
                                    l_int32 *pgval, l_int32 *pbval);
 
     /* Static cqcell functions */
+static CQCELL ***octreeGenerateAndPrune(PIX *pixs, l_int32 colors,
+                                        l_int32 reservedcolors,
+                                        PIXCMAP **pcmap);
+static PIX *pixOctreeQuantizePixels(PIX *pixs, CQCELL ***cqcaa,
+                                    l_int32 ditherflag);
 static CQCELL ***cqcellTreeCreate(void);
 static void cqcellTreeDestroy(CQCELL ****pcqcaa);
 
@@ -93,6 +176,7 @@ static l_int32 octcubeGetCount(l_int32 level, l_int32 *psize);
 #ifndef   NO_CONSOLE_IO
 #define   DEBUG_OCTINDEX        0
 #define   DEBUG_OCTCUBE_CMAP    0
+#define   DEBUG_FEW_COLORS      0
 #define   PRINT_OCTCUBE_STATS   0
 #endif   /* ~NO_CONSOLE_IO */
 
@@ -165,12 +249,12 @@ PIX *
 pixColorQuant1Pass(PIX     *pixs,
                    l_int32  ditherflag)
 {
-l_uint8    rval, gval, bval;
-l_uint8   *bufu8r, *bufu8g, *bufu8b;
-l_int32   *buf1r, *buf1g, *buf1b, *buf2r, *buf2g, *buf2b;
-l_int32    val1, val2, val3, dif;
 l_uint8    index;
+l_uint8   *bufu8r, *bufu8g, *bufu8b;
+l_int32    rval, gval, bval;
+l_int32    val1, val2, val3, dif;
 l_int32    w, h, wpls, wpld, i, j, cindex;
+l_int32   *buf1r, *buf1g, *buf1b, *buf2r, *buf2g, *buf2b;
 l_uint32  *ppixel;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
@@ -200,8 +284,7 @@ PIXCMAP   *cmap;
     }
 
         /* Make output 8 bpp palette image */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
@@ -218,9 +301,7 @@ PIXCMAP   *cmap;
             lined = datad + i * wpld;
             for (j = 0; j < w; j++) {
                 ppixel = lines + j;
-                rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-                gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-                bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                extractRGBValues(*ppixel, &rval, &gval, &bval);
                 index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
                 SET_DATA_BYTE(lined, j, index);
             }
@@ -584,12 +665,31 @@ PIXCMAP   *cmap;
  *  leaf is marked 1.  If we're at the last level, we've reached
  *  the final leaf and must use it.  Otherwise, continue the
  *  process at the next level down.
+ *
+ *  For robustness, efficiency and high quality output, we do the following:
+ *
+ *  (1) Measure the color content of the image.  If there is very little
+ *      color, quantize in grayscale.
+ *  (2) For efficiency, build the octree with a subsampled image is the
+ *      image is larger than some threshold size.
+ *  (3) Reserve an extra set of colors to prevent running out of colors
+ *      when pruning the octree; specifically, during the assignment
+ *      of those level 2 cells (out of the 64) that have unassigned
+ *      pixels.  The problem of running out is more likely to happen
+ *      with small images, because the estimation we use for the
+ *      number of pixels available is not accurate.
+ *  (4) In the unlikely event that we run out of colors, the dithered
+ *      image can be very poor.  As this would only happen with very 
+ *      small images, and dithering is not particularly noticeable with
+ *      such images, turn it off.
  */
 PIX *
 pixOctreeColorQuant(PIX     *pixs,
                     l_int32  colors,
                     l_int32  ditherflag)
 {
+l_int32    w, h, minside, factor;
+l_float32  scalefactor, pixfract, colorfract;
 CQCELL  ***cqcaa;
 PIX       *pixd, *pixsub;
 PIXCMAP   *cmap;
@@ -603,10 +703,30 @@ PIXCMAP   *cmap;
     if (colors < 128 || colors > 256)
         return (PIX *)ERROR_PTR("colors must be in [128, 256]", procName, NULL);
 
-        /* Subsample to speed up the first pass */
-    if ((pixsub = pixScaleBySampling(pixs, SUBSAMPLE_FACTOR, SUBSAMPLE_FACTOR))
-            == NULL)
-        return (PIX *)ERROR_PTR("pixsub not made", procName, NULL);
+        /* Determine if the image has sufficient color content.
+         * If pixfract << 1, most pixels are close to black or white.
+         * If colorfract << 1, the pixels that are not near
+         *   black or white have very little color.
+         * If without color, quantize with a grayscale colormap. */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    minside = L_MIN(w, h);
+    factor = L_MAX(1, minside / 200);
+    pixColorFraction(pixs, 20, 248, 12, factor, &pixfract, &colorfract);
+    if (pixfract < 0.01 || colorfract < 0.01) {
+        L_INFO_FLOAT2("\n  Pixel fraction neither white nor black = %6.3f"
+                      "\n  Color fraction of those pixels = %6.3f"
+                      "\n  Quantizing in gray",
+                      procName, pixfract, colorfract);
+        return pixConvertTo8(pixs, 1);
+    }
+
+        /* Conditionally subsample to speed up the first pass */
+    if (w > TREE_GEN_WIDTH) {
+        scalefactor = (l_float32)TREE_GEN_WIDTH / (l_float32)w;
+        pixsub = pixScaleBySampling(pixs, scalefactor, scalefactor);
+    }
+    else
+        pixsub = pixClone(pixs);
 
         /* Make the pruned octree */
     cqcaa = octreeGenerateAndPrune(pixsub, colors, CQ_RESERVED_COLORS, &cmap);
@@ -614,6 +734,12 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("tree not made", procName, NULL);
     L_INFO_INT(" Colors requested = %d", procName, colors);
     L_INFO_INT(" Actual colors = %d", procName, cmap->n);
+
+        /* Do not dither if image is very small */
+    if (w < MIN_DITHER_SIZE && h < MIN_DITHER_SIZE && ditherflag == 1) {
+        L_INFO("Small image: dithering turned off", procName);
+        ditherflag = 0;
+    }
 
         /* Traverse tree from root, looking for lowest cube
          * that is a leaf, and set dest pix value to its 
@@ -645,13 +771,13 @@ PIXCMAP   *cmap;
  *      (1) The number of colors in the cmap may differ from the number
  *          of colors requested, but it will not be larger than 256
  */
-CQCELL ***
+static CQCELL ***
 octreeGenerateAndPrune(PIX       *pixs,
                        l_int32    colors,
                        l_int32    reservedcolors,
                        PIXCMAP  **pcmap)
 {
-l_int32    rval, gval, bval;
+l_int32    rval, gval, bval, cindex;
 l_int32    level, ncells, octindex;
 l_int32    w, h, wpls;
 l_int32    i, j, isub;
@@ -693,10 +819,9 @@ NUMA      *nar;  /* accumulates levels for residual cells */
     cmap = pixcmapCreate(8);
     *pcmap = cmap;
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     npix = w * h;  /* initialize to all pixels */
-    ncolor = colors - reservedcolors;  /* init to (almost) all colors */
+    ncolor = colors - reservedcolors - EXTRA_RESERVED_COLORS;
     ppc = npix / ncolor;
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
@@ -708,9 +833,7 @@ NUMA      *nar;  /* accumulates levels for residual cells */
         lines = datas + i * wpls;
         for (j = 0; j < w; j++) {
             ppixel = lines + j;
-            rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-            gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+            extractRGBValues(*ppixel, &rval, &gval, &bval);
             octindex = rtab[rval] | gtab[gval] | btab[bval];
             cqc = cqca[octindex];
             cqc->n++;
@@ -751,10 +874,12 @@ NUMA      *nar;  /* accumulates levels for residual cells */
 #endif
                     }
                     else {
+                            /* This doesn't seem to happen. */
                         L_WARNING("possibly assigned pixels to wrong color",
                                 procName);
-                        cqcsub->index = 255;  /* assign to the last; bad */
-                        pixcmapGetColor(cmap, 255, &rval, &gval, &bval);
+                        pixcmapGetNearestIndex(cmap, rv, gv, bv, &cindex);
+                        cqcsub->index = cindex;  /* assign to the nearest */
+                        pixcmapGetColor(cmap, cindex, &rval, &gval, &bval);
                         cqcsub->rc = rval;
                         cqcsub->gc = gval;
                         cqcsub->bc = bval;
@@ -805,8 +930,12 @@ NUMA      *nar;  /* accumulates levels for residual cells */
                     else {
                         L_WARNING("possibly assigned pixels to wrong color",
                                 procName);
-                        cqc->index = 255;  /* assign to the last */
-                        pixcmapGetColor(cmap, 255, &rval, &gval, &bval);
+                            /* This is very bad.  It will only cause trouble
+                             * with dithering, and we try to avoid it with
+                             * EXTRA_RESERVED_PIXELS. */
+                        pixcmapGetNearestIndex(cmap, rv, gv, bv, &cindex);
+                        cqc->index = cindex;  /* assign to the nearest */
+                        pixcmapGetColor(cmap, cindex, &rval, &gval, &bval);
                         cqc->rc = rval;
                         cqc->gc = gval;
                         cqc->bc = bval;
@@ -898,18 +1027,18 @@ l_int32    nt, nr, ival;
  *          integer, the dither is accurate to 1/8 of a sample increment,
  *          or 1/2048 of the color range.
  */
-PIX *
+static PIX *
 pixOctreeQuantizePixels(PIX       *pixs,
                         CQCELL  ***cqcaa,
                         l_int32    ditherflag)
 {
-l_uint8    rval, gval, bval;
 l_uint8   *bufu8r, *bufu8g, *bufu8b;
-l_int32   *buf1r, *buf1g, *buf1b, *buf2r, *buf2g, *buf2b;
+l_int32    rval, gval, bval;
 l_int32    octindex, index;
 l_int32    val1, val2, val3, dif;
 l_int32    w, h, wpls, wpld, i, j;
 l_int32    rc, gc, bc;
+l_int32   *buf1r, *buf1g, *buf1b, *buf2r, *buf2g, *buf2b;
 l_uint32  *rtab, *gtab, *btab;
 l_uint32  *ppixel;
 l_uint32  *datas, *datad, *lines, *lined;
@@ -929,8 +1058,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("tables not made", procName, NULL);
 
         /* Make output 8 bpp palette image */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
@@ -950,9 +1078,7 @@ PIX       *pixd;
             lined = datad + i * wpld;
             for (j = 0; j < w; j++) {
                 ppixel = lines + j;
-                rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-                gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-                bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                extractRGBValues(*ppixel, &rval, &gval, &bval);
                 octindex = rtab[rval] | gtab[gval] | btab[bval];
                 octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
                 SET_DATA_BYTE(lined, j, index);
@@ -1668,8 +1794,7 @@ PIXCMAP   *cmap;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     minside = L_MIN(w, h);
@@ -1731,9 +1856,7 @@ PIXCMAP   *cmap;
             lined = datad + i * wpld;
             for (j = 0; j < w; j++) {
                 pspixel = lines + j;
-                rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-                gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-                bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+                extractRGBValues(*pspixel, &rval, &gval, &bval);
                 getOctcubeIndexFromRGB(rval, gval, bval,
                                        rtab, gtab, btab, &index);
 /*                fprintf(stderr, "rval = %d, gval = %d, bval = %d, index = %d\n",
@@ -1806,9 +1929,7 @@ PIXCMAP   *cmap;
         lines = datas + i * wpls;
         for (j = 0; j < w; j += subsample) {
             pspixel = lines + j;
-            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            extractRGBValues(*pspixel, &rval, &gval, &bval);
             getOctcubeIndexFromRGB(rval, gval, bval, rtab, gtab, btab, &index);
             oqca[index]->n += 1.0;
             oqca[index]->octindex = index;
@@ -1866,9 +1987,7 @@ PIXCMAP   *cmap;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             pspixel = lines + j;
-            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            extractRGBValues(*pspixel, &rval, &gval, &bval);
             getOctcubeIndexFromRGB(rval, gval, bval, rtab, gtab, btab, &index);
 /*            fprintf(stderr, "rval = %d, gval = %d, bval = %d, index = %d\n",
                     rval, gval, bval, index); */
@@ -2019,8 +2138,7 @@ PIX       *pixd;
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
         return (PIX *)ERROR_PTR("tables not made", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     pixd = pixCreate(w, h, 32);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
@@ -2034,9 +2152,7 @@ PIX       *pixd;
         for (j = 0; j < w; j++) {
             pspixel = lines + j;
             pdpixel = lined + j;
-            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            extractRGBValues(*pspixel, &rval, &gval, &bval);
             octindex = rtab[rval] | gtab[gval] | btab[bval];
             getRGBFromOctcube(octindex, level, &rval, &gval, &bval);
             composeRGBPixel(rval, gval, bval, pdpixel);
@@ -2100,9 +2216,8 @@ PIXCMAP   *cmap;
     if ((barray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
         return (PIX *)ERROR_PTR("barray not made", procName, NULL);
 
-        /* Find the number of different colors */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+        /* Place the pixels in octcube leaves. */
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixd = NULL;
@@ -2110,9 +2225,7 @@ PIXCMAP   *cmap;
         lines = datas + i * wpls;
         for (j = 0; j < w; j++) {
             pspixel = lines + j;
-            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            extractRGBValues(*pspixel, &rval, &gval, &bval);
             octindex = rtab[rval] | gtab[gval] | btab[bval];
             carray[octindex]++;
             rarray[octindex] += rval;
@@ -2120,6 +2233,8 @@ PIXCMAP   *cmap;
             barray[octindex] += bval;
         }
     }
+
+        /* Find the number of different colors */
     for (i = 0, ncolors = 0; i < size; i++) {
         if (carray[i] > 0)
             ncolors++;
@@ -2128,7 +2243,6 @@ PIXCMAP   *cmap;
         L_WARNING_INT("%d colors found; more than 256", procName, ncolors);
         goto array_cleanup;
     }
-
     if (ncolors <= 4)
         depth = 2;
     else if (ncolors <= 16)
@@ -2136,7 +2250,7 @@ PIXCMAP   *cmap;
     else
         depth = 8;
 
-        /* Average the colors in each bin and add to colormap table;
+        /* Average the colors in each octcube leaf and add to colormap table;
          * then use carray to hold the colormap index + 1  */
     cmap = pixcmapCreate(depth);
     for (i = 0, index = 0; i < size; i++) {
@@ -2161,9 +2275,7 @@ PIXCMAP   *cmap;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             pspixel = lines + j;
-            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            extractRGBValues(*pspixel, &rval, &gval, &bval);
             octindex = rtab[rval] | gtab[gval] | btab[bval];
             switch (depth) 
             {
@@ -2277,8 +2389,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("tabval not made", procName, NULL);
 
         /* Make colormapped output pixd */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -2295,8 +2406,6 @@ PIXCMAP   *cmap;
 
         /* Go through src image: assign dest pixels to colormap values
          * and compute average colors in each occupied octcube */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     for (i = 0; i < h; i++) {
@@ -2378,7 +2487,6 @@ PIXCMAP   *cmap;
     FREE(gtab);
     FREE(btab);
     FREE(tabval);
-
     return pixd;
 }
 
@@ -2395,7 +2503,8 @@ pixOctcubeHistogram(PIX     *pixs,
                     l_int32  level)
 {
 l_int32     size, i, j, w, h, wpl;
-l_uint32    rval, gval, bval, octindex;
+l_int32     rval, gval, bval;
+l_uint32    octindex;
 l_uint32   *rtab, *gtab, *btab;
 l_uint32   *ppixel, *data, *line;
 l_float32  *array;
@@ -2408,8 +2517,7 @@ NUMA       *na;
     if (pixGetDepth(pixs) != 32)
         return (NUMA *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);
 
@@ -2427,9 +2535,7 @@ NUMA       *na;
         line = data + i * wpl;
         for (j = 0; j < w; j++) {
             ppixel = line + j;
-            rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-            gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-            bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+            extractRGBValues(*ppixel, &rval, &gval, &bval);
             octindex = rtab[rval] | gtab[gval] | btab[bval];
 #if DEBUG_OCTINDEX
             if ((level == 1 && octindex > 7) ||
@@ -2451,6 +2557,159 @@ NUMA       *na;
     FREE(gtab);
     FREE(btab);
     return na;
+}
+
+
+/*---------------------------------------------------------------------------*
+ *                Nearly exact quantization with few colors                  *
+ *---------------------------------------------------------------------------*/
+/*!
+ *  pixFewColorsOctcubeQuant()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              level (of octcube indexing, for histogram: 3, 4, 5, 6)
+ *              na (histogram of pixel occupation in octree leaves at
+ *                  given level)
+ *              ncolors (number of occupied octree leaves at given level)
+ *              &nerrors (<optional return> num of wrongly categorized pixels)
+ *      Return: pixd (2, 4 or 8 bpp with colormap), or null on error
+ *
+ *  Notes:
+ *      (1) This function is called when it is determined that the histogram
+ *          at @level has no more than 256 colors.
+ *      (2) For an image with not more than 256 colors, it is unlikely
+ *          that two pixels of different color will fall in the same
+ *          octcube at level = 4.   However it is possible, and this
+ *          function optionally returns @nerrors, the number of pixels
+ *          where, because more than one color is in the same octcube,
+ *          the pixel color is not exactly reproduced in the colormap.
+ *          The colormap for an occupied leaf of the octree contains
+ *          the color of the first pixel encountered in that octcube.
+ *      (3) This differs from pixFixedOctcubeQuantCmap(), which also
+ *          requires not more than 256 occupied leaves, but represents
+ *          the color of each leaf by an average over the pixels in
+ *          that leaf.
+ *      (4) The input histogram of occupied octree leaves is generated
+ *          using pixOctcubeHistogram().
+ *      (5) This is used in pixConvertRGBToColormap() for images that
+ *          are determined, by their histogram, to have relatively few
+ *          colors.  This typically happens with orthographically
+ *          produced images (as oppopsed to natural images), where
+ *          it is expected that most of the pixels within a leaf
+ *          octcube have exactly the same color, and quantization to
+ *          that color is lossless.
+ */     
+PIX *
+pixFewColorsOctcubeQuant(PIX      *pixs,
+                         l_int32   level,
+                         NUMA     *na,
+                         l_int32   ncolors,
+                         l_int32  *pnerrors)
+{
+l_int32    w, h, wpls, wpld, i, j, nerrors;
+l_int32    ncubes, depth, cindex, val, oval;
+l_int32    rval, gval, bval;
+l_int32   *octarray;
+l_uint32   octindex;
+l_uint32  *rtab, *gtab, *btab;
+l_uint32  *lines, *lined, *datas, *datad, *ppixel;
+l_uint32  *colorarray;
+PIX       *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixFewColorsOctcubeQuant");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 32)        
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (level < 4 || level > 6)
+        return (PIX *)ERROR_PTR("level not in {4, 5, 6}", procName, NULL);
+    if (ncolors > 256)
+        return (PIX *)ERROR_PTR("ncolors > 256", procName, NULL);
+    if (pnerrors)
+        *pnerrors = UNDEF;
+
+        /* Represent the image with a set of leaf octcubes
+	 * at 'level', one for each color. */
+    if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
+        return (PIX *)ERROR_PTR("tables not made", procName, NULL);
+
+        /* Determine the output depth from the number of colors */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    if (ncolors <= 4)
+        depth = 2;
+    else if (ncolors <= 16)
+        depth = 4;
+    else  /* ncolors <= 256 */
+        depth = 8;
+        
+    if ((pixd = pixCreate(w, h, depth)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+        /* The octarray will give a ptr from the octcube to the colorarray */
+    ncubes = numaGetCount(na);
+    if ((octarray = (l_int32 *)CALLOC(ncubes, sizeof(l_int32))) == NULL)
+        return (PIX *)ERROR_PTR("octarray not made", procName, NULL);
+
+        /* The colorarray will hold the colors of the first pixel
+	 * that lands in the leaf octcube. */
+    if ((colorarray = (l_uint32 *)CALLOC(ncolors + 1, sizeof(l_uint32)))
+            == NULL)
+        return (PIX *)ERROR_PTR("colorarray not made", procName, NULL);
+
+    cindex = 1;  /* start with 1 */ 
+    nerrors = 0;
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            ppixel = lines + j;
+            extractRGBValues(*ppixel, &rval, &gval, &bval);
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
+            oval = octarray[octindex];
+            if (oval == 0) {
+                octarray[octindex] = cindex;
+                colorarray[cindex] = *ppixel;
+                setPixelLow(lined, j, depth, cindex - 1);
+                cindex++;
+            }
+            else {  /* already have seen this color; is it unique? */
+                setPixelLow(lined, j, depth, oval - 1);
+                if (colorarray[oval] != *ppixel)
+                    nerrors++;
+            }
+        }
+    }
+    if (pnerrors)
+        *pnerrors = nerrors;
+
+#if  DEBUG_FEW_COLORS
+    fprintf(stderr, "ncubes = %d, ncolors = %d\n", ncubes, ncolors);
+    for (i = 0; i < ncolors; i++)
+        fprintf(stderr, "color[%d] = %x\n", i, colorarray[i + 1]);
+#endif  /* DEBUG_FEW_COLORS */
+
+        /* Make the colormap */
+    cmap = pixcmapCreate(depth);
+    for (i = 0; i < ncolors; i++) {
+        ppixel = colorarray + i + 1;
+        extractRGBValues(*ppixel, &rval, &gval, &bval);
+        pixcmapAddColor(cmap, rval, gval, bval);
+    }
+    pixSetColormap(pixd, cmap);
+
+    FREE(octarray);
+    FREE(colorarray);
+    FREE(rtab);
+    FREE(gtab);
+    FREE(btab);
+    return pixd;
 }
 
 

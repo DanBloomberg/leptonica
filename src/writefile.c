@@ -35,6 +35,7 @@
  *        l_int32    pixDisplayWithTitle()
  *        l_int32    pixDisplayWrite()
  *        l_int32    pixDisplayWriteFormat()
+ *        l_int32    pixSaveTiled()
  */
 
 #include <stdio.h>
@@ -391,11 +392,11 @@ l_int32  format = IFF_UNKNOWN;
  */
 l_int32
 pixWriteMem(l_uint8  **pdata,
-            l_uint32  *psize,
+            size_t    *psize,
             PIX       *pix,
             l_int32    format)
 {
-FILE  *fp;
+l_int32  ret;
 
     PROCNAME("pixWriteMem");
 
@@ -412,15 +413,15 @@ FILE  *fp;
     switch(format)
     {
     case IFF_BMP:
-        pixWriteMemBmp(pdata, psize, pix);
+        ret = pixWriteMemBmp(pdata, psize, pix);
         break;
 
     case IFF_JFIF_JPEG:   /* default quality; baseline sequential */
-        return pixWriteMemJpeg(pdata, psize, pix, 75, 0);
+        ret = pixWriteMemJpeg(pdata, psize, pix, 75, 0);
         break;
     
     case IFF_PNG:   /* no gamma value stored */
-        return pixWriteMemPng(pdata, psize, pix, 0.0);
+        ret = pixWriteMemPng(pdata, psize, pix, 0.0);
         break;
     
     case IFF_TIFF:           /* uncompressed */
@@ -430,15 +431,15 @@ FILE  *fp;
     case IFF_TIFF_G4:        /* compressed, binary only */
     case IFF_TIFF_LZW:       /* compressed, all depths */
     case IFF_TIFF_ZIP:       /* compressed, all depths */
-        return pixWriteMemTiff(pdata, (size_t *)psize, pix, format);
+        ret = pixWriteMemTiff(pdata, psize, pix, format);
         break;
 
     case IFF_PNM:
-        return pixWriteMemPnm(pdata, psize, pix);
+        ret = pixWriteMemPnm(pdata, psize, pix);
         break;
 
     case IFF_PS:
-        return pixWriteMemPS(pdata, psize, pix, NULL, 0, DEFAULT_SCALING);
+        ret = pixWriteMemPS(pdata, psize, pix, NULL, 0, DEFAULT_SCALING);
         break;
     
     default:
@@ -446,7 +447,7 @@ FILE  *fp;
         break;
     }
 
-    return 0;
+    return ret;
 }
 
 
@@ -627,13 +628,13 @@ l_float32       scale;
 PIX            *pixt, *pix8;
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 
-    PROCNAME("pixDisplayWrite");
+    PROCNAME("pixDisplayWriteFormat");
 
     if (reduction == 0) return 0;
 
     if (reduction < 0) {
         index = 0;  /* reset; this will cause erasure at next call to write */
-	return 0;
+        return 0;
     }
 
     if (format != IFF_JFIF_JPEG && format != IFF_PNG)
@@ -652,7 +653,7 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
         pixt = pixClone(pixs);
     else {
         scale = 1. / (l_float32)reduction;
-	if (pixGetDepth(pixs) == 1)
+        if (pixGetDepth(pixs) == 1)
             pixt = pixScaleToGray(pixs, scale);
         else
             pixt = pixScale(pixs, scale, scale);
@@ -674,6 +675,109 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
     }
     pixDestroy(&pixt);
 
+    return 0;
+}
+
+
+/*!
+ *  pixSaveTiled()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 32 bpp)
+ *              pixa (the pix are accumulated here)
+ *              reduction (0 to disable; otherwise this is a reduction factor)
+ *              newrow (0 if placed on the same row as previous; 1 otherwise)
+ *              space (horizontal and vertical spacing, in pixels)
+ *              dp (depth of pixa; 8 or 32 bpp; only used on first call)
+ *      Return: 0 if OK, 1 on error.
+ *
+ *  Notes:
+ *      (1) Before calling this function for the first time, use
+ *          pixaCreate() to make the @pixa that will accumulate the pix.
+ *          This is passed in each time pixSaveTiled() is called.
+ *      (2) @reduction is the integer reduction factor for the input
+ *          image.  After reduction and possible depth conversion,
+ *          the image is saved in the input pixa, along with a box
+ *          that specifies the location to place it when tiled later.
+ *          Disable saving the pix by setting reduction == 0.
+ *      (3) @newrow and @space specify the location of the new pix
+ *          with respect to the last one(s) that were entered.
+ *      (4) @dp specifies the depth at which all pix are saved.  It can
+ *          be only 8 or 32 bpp.  Any colormap is removed.  This is only
+ *          used at the first invocation.
+ *      (5) This function uses two static internal variables to give
+ *          the depth of all pix and the location one pixel below the
+ *          lowest raster in the current row of pix.
+ *          Behavior with a shared library may be unpredictable.
+ */
+l_int32
+pixSaveTiled(PIX     *pixs,
+             PIXA    *pixa,
+             l_int32  reduction,
+             l_int32  newrow,
+             l_int32  space,
+             l_int32  dp)
+{
+l_int32         n, top, left, bx, by, bw, w, h;
+l_float32       scale;
+BOX            *box;
+PIX            *pixt1, *pixt2;
+static l_int32  depth = 0;  /* caution: not .so or thread safe */
+static l_int32  bottom = 0;  /* caution: not .so or thread safe */
+
+    PROCNAME("pixSaveTiled");
+
+    if (reduction == 0) return 0;
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+
+    n = pixaGetCount(pixa);
+    if (n == 0) {
+        bottom = 0;
+        if (dp != 8 && dp != 32) {
+            L_WARNING("dp not 8 or 32 bpp; using 32", procName);
+            depth = 32;
+        } else
+            depth = dp;
+    }
+        
+    if (reduction == 1)
+        pixt1 = pixClone(pixs);
+    else {
+        scale = 1. / (l_float32)reduction;
+        if (pixGetDepth(pixs) == 1)
+            pixt1 = pixScaleToGray(pixs, scale);
+        else
+            pixt1 = pixScale(pixs, scale, scale);
+    }
+    if (depth == 8)
+        pixt2 = pixConvertTo8(pixt1, 0);
+    else
+        pixt2 = pixConvertTo32(pixt1);
+    pixDestroy(&pixt1);
+
+        /* Find position of current pix (UL corner plus size) */
+    if (n == 0) {
+        top = 0;
+        left = 0;
+    }
+    else if (newrow == 1) {
+        top = bottom + space;
+        left = 0;
+    }
+    else if (n > 0) {
+        pixaGetBoxGeometry(pixa, n - 1, &bx, &by, &bw, NULL);
+        top = by;
+        left = bx + bw + space;
+    }
+
+    pixGetDimensions(pixt2, &w, &h, NULL);
+    bottom = L_MAX(bottom, top + h);
+    box = boxCreate(left, top, w, h);
+    pixaAddPix(pixa, pixt2, L_INSERT);
+    pixaAddBox(pixa, box, L_INSERT);
     return 0;
 }
 

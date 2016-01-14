@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-static const int32  DEBUG_OUTPUT = 1;
+static const l_int32  DEBUG_OUTPUT = 1;
 
 static const char *seltext = "xxxxxxx"
                              "   x   " 

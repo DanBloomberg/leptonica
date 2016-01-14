@@ -13,14 +13,18 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#include <stdio.h>
-#include "allheaders.h"
-
 /*
  *  pnmiostub.c
  *
  *     Stubs for pnmio.c functions
  */
+
+#include <stdio.h>
+#include "allheaders.h"
+
+/* --------------------------------------------*/
+#if  !USE_PNMIO   /* defined in environ.h */
+/* --------------------------------------------*/
 
 PIX * pixReadStreamPnm(FILE *fp)
 {
@@ -37,14 +41,18 @@ l_int32 pixWriteStreamAsciiPnm(FILE *fp, PIX *pix)
     return ERROR_INT("function not present", "pixWriteStreamAsciiPnm", 1);
 }
 
-PIX * pixReadMemPnm(const l_uint8 *cdata, l_uint32 size)
+PIX * pixReadMemPnm(const l_uint8 *cdata, size_t size)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadMemPnm", NULL);
 }
 
 
-l_int32 pixWriteMemPnm(l_uint8 **pdata, l_uint32 *psize, PIX *pix)
+l_int32 pixWriteMemPnm(l_uint8 **pdata, size_t *psize, PIX *pix)
 {
     return ERROR_INT("function not present", "pixWritememPnm", 1);
 }
+
+/* --------------------------------------------*/
+#endif  /* !USE_PNMIO */
+/* --------------------------------------------*/
 

@@ -13,14 +13,22 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#include <stdio.h>
-#include "allheaders.h"
-
 /*
  *  pngiostub.c
  *
  *     Stubs for pngio.c functions
  */
+
+#include <stdio.h>
+#include "allheaders.h"
+
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  !HAVE_LIBPNG   /* defined in environ.h */
+/* --------------------------------------------*/
 
 PIX * pixReadStreamPng(FILE *fp)
 {
@@ -52,13 +60,17 @@ l_int32 pixWriteStreamPng(FILE *fp, PIX *pix, l_float32 gamma)
     return ERROR_INT("function not present", "pixWriteStreamPng", 1);
 }
 
-PIX * pixReadMemPng(const l_uint8 *cdata, l_uint32 size)
+PIX * pixReadMemPng(const l_uint8 *cdata, size_t size)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadMemPng", NULL);
 }
 
-l_int32 pixWriteMemPng(l_uint8 **pdata, l_uint32 *psize, PIX *pix, l_float32 gamma)
+l_int32 pixWriteMemPng(l_uint8 **pdata, size_t *psize, PIX *pix, l_float32 gamma)
 {
     return ERROR_INT("function not present", "pixWriteMemPng", 1);
 }
+
+/* --------------------------------------------*/
+#endif  /* !HAVE_LIBPNG */
+/* --------------------------------------------*/
 

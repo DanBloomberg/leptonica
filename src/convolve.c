@@ -35,6 +35,10 @@
  *
  *      Woodfill transform
  *          PIX      *pixWoodfillTransform()
+ *
+ *      Generic convolution
+ *          PIX      *pixConvolve()
+ *
  */
 
 #include <stdio.h>
@@ -602,4 +606,73 @@ PIX       *pixav, *pixd;
     return pixd;
 }
         
+
+/*----------------------------------------------------------------------*
+ *                         Generic convolution                          *
+ *----------------------------------------------------------------------*/
+/*!
+ *  pixConvolve()
+ *
+ *      Input:  pixs (8 bpp)
+ *              kernel
+ *      Return: pixd (8 bpp)
+ *
+ *  Notes:
+ *      (1) This gives a normalized convolution with an arbitrary kernel.
+ *      (2) It uses a mirrored border to avoid special casing on the boundaries.
+ *      (3) It is very slow, running at about 12 machine cycles for
+ *          each pixel-op in the convolution.  For example, with a 3 GHz
+ *          cpu, a 1 Mpixel grayscale image, and a kernel with
+ *          (sx * sy) = 25 elements, the convolution takes about 100 msec.
+ */
+PIX *
+pixConvolve(PIX       *pixs,
+            L_KERNEL  *kel)
+{
+l_int32    i, j, k, m, w, h, sx, sy, cx, cy, wplt, wpld;
+l_int32    val, sum;
+l_uint32  *datat, *datad, *linet, *lined;
+l_float32  norm;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixConvolve");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (!kel)
+        return (PIX *)ERROR_PTR("kel not defined", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    kernelGetParameters(kel, &sy, &sx, &cy, &cx);
+    kernelGetNorm(kel, &norm);
+    if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL)
+        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+
+    pixd = pixCreate(w, h, 8);
+    wplt = pixGetWpl(pixt);
+    wpld = pixGetWpl(pixd);
+    datat = pixGetData(pixt);
+    datad = pixGetData(pixd);
+    for (i = 0; i < h; i++) {
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            sum = 0;
+            for (k = 0; k < sy; k++) {
+                linet = datat + (i + k) * wplt;
+                for (m = 0; m < sx; m++) {
+                    val = GET_DATA_BYTE(linet, j + m);
+                    sum += val * kel->data[k][m];
+                }
+            }
+            sum = (l_int32)(norm * sum);
+            SET_DATA_BYTE(lined, j, sum);
+        }
+    }
+
+    pixDestroy(&pixt);
+    return pixd;
+}
+
 

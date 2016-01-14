@@ -30,6 +30,7 @@
  *           l_int32   boxOverlapFraction()
  *           l_int32   boxContainsPt()
  *           BOX      *boxaGetNearestToPt()
+ *           l_int32   boxIntersectByLine()
  *           l_int32   boxGetCentroid()
  *           BOX      *boxClipToRectangle()
  *
@@ -49,6 +50,8 @@
  *      Boxa/Box transform (shift, scale) and orthogonal rotation
  *           BOXA     *boxaTransform()
  *           BOX      *boxTransform()
+ *           BOXA     *boxaTransformOrdered()
+ *           BOX      *boxTransformOrdered()
  *           BOXA     *boxaRotateOrth()
  *           BOX      *boxRotateOrth()
  *
@@ -63,7 +66,9 @@
  *           BOXA     *boxaaFlattenToBoxa()
  *           l_int32   boxaaAlignBox()
  *
- *      Boxa/Boxaa display
+ *      Boxa/Boxaa painting into pix
+ *           PIX      *pixMaskConnComp()
+ *           PIX      *pixMaskBoxa()
  *           PIX      *pixPaintBoxa()
  *           PIX      *pixPaintBoxaRandom()
  *           PIX      *pixDrawBoxa()
@@ -77,6 +82,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "allheaders.h"
 
 
@@ -438,6 +444,106 @@ l_int32  x, y, w, h;
     *px = x + w / 2;
     *py = y + h / 2;
 
+    return 0;
+}
+
+
+/*!
+ *  boxIntersectByLine()
+ *
+ *      Input:  box
+ *              x, y (point that line goes through)
+ *              slope (of line)
+ *              (&x1, &y1) (<return> 1st point of intersection with box)
+ *              (&x2, &y2) (<return> 2nd point of intersection with box)
+ *              &n (<return> number of points of intersection)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) If the intersection is at only one point (a corner), the
+ *          coordinates are returned in (x1, y1).
+ *      (2) Represent a vertical line by one with a large but finite slope.
+ */
+l_int32
+boxIntersectByLine(BOX       *box,
+                   l_int32    x,
+                   l_int32    y,
+                   l_float32  slope,
+                   l_int32   *px1,
+                   l_int32   *py1,
+                   l_int32   *px2,
+                   l_int32   *py2,
+                   l_int32   *pn)
+{
+l_int32    bx, by, bw, bh, x1, y1, x2, y2, xp, yp, xt, yt, i, n;
+l_float32  invslope;
+PTA       *pta;
+
+    PROCNAME("boxIntersectByLine");
+
+    if (!px1 || !py1 || !px2 || !py2)
+        return ERROR_INT("&x1, &y1, &x2, &y2 not all defined", procName, 1);
+    *px1 = *py1 = *px2 = *py2 = 0;
+    if (!pn)
+        return ERROR_INT("&n not defined", procName, 1);
+    *pn = 0;
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    boxGetGeometry(box, &bx, &by, &bw, &bh);
+
+    if (slope == 0.0) {
+        if (y >= by && y < by + bh) {
+            *py1 = *py2 = y; 
+            *px1 = bx;
+            *px2 = bx + bw - 1;
+        }
+        return 0;
+    }
+
+    if (slope > 1000000.0) {
+        if (x >= bx && x < bx + bw) {
+            *px1 = *px2 = x; 
+            *py1 = by;
+            *py2 = by + bh - 1;
+        }
+        return 0;
+    }
+
+        /* Intersection with top and bottom lines of box */
+    pta = ptaCreate(2);
+    invslope = 1.0 / slope;
+    xp = (l_int32)(x + invslope * (y - by));
+    if (xp >= bx && xp < bx + bw)
+        ptaAddPt(pta, xp, by); 
+    xp = (l_int32)(x + invslope * (y - by - bh + 1));
+    if (xp >= bx && xp < bx + bw)
+        ptaAddPt(pta, xp, by + bh - 1); 
+
+        /* Intersection with left and right lines of box */
+    yp = (l_int32)(y + slope * (x - bx));
+    if (yp >= by && yp < by + bh)
+        ptaAddPt(pta, bx, yp); 
+    yp = (l_int32)(y + slope * (x - bx - bw + 1));
+    if (yp >= by && yp < by + bh)
+        ptaAddPt(pta, bx + bw - 1, yp); 
+
+        /* There is a maximum of 2 unique points; remove duplicates.  */
+    n = ptaGetCount(pta);
+    if (n > 0) {
+        ptaGetIPt(pta, 0, px1, py1);  /* accept the first one */
+	*pn = 1;
+    }
+    for (i = 1; i < n; i++) {
+        ptaGetIPt(pta, i, &xt, &yt);
+        if ((*px1 != xt) || (*py1 != yt)) {
+            *px2 = xt;
+            *py2 = yt;
+            *pn = 2;
+            break;
+        }
+    }
+
+    ptaDestroy(&pta);
     return 0;
 }
 
@@ -961,7 +1067,8 @@ BOX     *box;
  *              scalex, scaley
  *      Return: boxad, or null on error
  *
- *  Note: we shift first, then scale everything
+ *  Notes:
+ *      (1) This is a very simple function that first shifts, then scales.
  */
 BOXA *
 boxaTransform(BOXA      *boxas,
@@ -1001,7 +1108,8 @@ BOXA    *boxad;
  *              scalex, scaley
  *      Return: boxd, or null on error
  *
- *  Note: we shift first, then scale everything.
+ *  Notes:
+ *      (1) This is a very simple function that first shifts, then scales.
  */
 BOX *
 boxTransform(BOX       *box,
@@ -1018,6 +1126,272 @@ boxTransform(BOX       *box,
                      (l_int32)(scaley * (box->y + shifty) + 0.5),
                      (l_int32)(L_MAX(1.0, scalex * box->w + 0.5)),
                      (l_int32)(L_MAX(1.0, scaley * box->h + 0.5)));
+}
+
+
+/*!
+ *  boxaTransformOrdered()
+ * 
+ *      Input:  boxa
+ *              shiftx, shifty 
+ *              scalex, scaley
+ *              xcen, ycen (center of rotation)
+ *              angle (in radians; clockwise is positive)
+ *              order (one of 6 combinations: L_TR_SC_RO, ...)
+ *      Return: boxd, or null on error
+ *
+ *  Notes:
+ *      (1) This allows a sequence of linear transforms on each box.
+ *          the transforms are from the affine set, composed of
+ *          shift, scaling and rotation, and the order of the
+ *          transforms is specified.
+ *      (2) See boxTransformOrdered() for usage and implementation details.
+ */
+BOXA *
+boxaTransformOrdered(BOXA      *boxas,
+                     l_int32    shiftx,
+                     l_int32    shifty,
+                     l_float32  scalex,
+                     l_float32  scaley,
+                     l_int32    xcen,
+                     l_int32    ycen,
+                     l_float32  angle,
+                     l_int32    order)
+{
+l_int32  i, n;
+BOX     *boxs, *boxd;
+BOXA    *boxad;
+
+    PROCNAME("boxaTransformOrdered");
+
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    n = boxaGetCount(boxas);
+    if ((boxad = boxaCreate(n)) == NULL)
+        return (BOXA *)ERROR_PTR("boxad not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL)
+            return (BOXA *)ERROR_PTR("boxs not found", procName, NULL);
+        boxd = boxTransformOrdered(boxs, shiftx, shifty, scalex, scaley,
+                                   xcen, ycen, angle, order);
+        boxDestroy(&boxs);
+        boxaAddBox(boxad, boxd, L_INSERT);
+    }
+
+    return boxad;
+}
+
+
+/*!
+ *  boxTransformOrdered()
+ * 
+ *      Input:  boxs
+ *              shiftx, shifty 
+ *              scalex, scaley
+ *              xcen, ycen (center of rotation)
+ *              angle (in radians; clockwise is positive)
+ *              order (one of 6 combinations: L_TR_SC_RO, ...)
+ *      Return: boxd, or null on error
+ *
+ *  Notes:
+ *      (1) This allows a sequence of linear transforms, composed of
+ *          shift, scaling and rotation, where the order of the
+ *          transforms is specified.
+ *      (2) The rotation is taken about a point specified by (xcen, ycen).
+ *          Let the components of the vector from the center of rotation
+ *          to the box center be (xdif, ydif):
+ *            xdif = (bx + 0.5 * bw) - xcen
+ *            ydif = (by + 0.5 * bh) - ycen
+ *          Then the box center after rotation has new components:
+ *            bxcen = xcen + xdif * cosa - ydif * sina
+ *            bycen = ycen + ydif * cosa + xdif * sina
+ *          where cosa and sina are the cos and sin of the angle,
+ *          and the enclosing box for the rotated box has size:
+ *            rw = |bw * cosa| + |bh * sina|
+ *            rh = |bh * cosa| + |bw * sina|
+ *          where bw and bh are the unrotated width and height.
+ *          Then the box UL corner (rx, ry) is
+ *            rx = bxcen - 0.5 * rw
+ *            ry = bycen - 0.5 * rh
+ *      (3) The center of rotation specified by args @xcen and @ycen
+ *          is the point before any translation or scaling.  If the
+ *          rotation is not the first operation, the actual center
+ *          of rotation must be computed by doing the same translation
+ *          and/or scaling that is done for the UL corner of the box
+ *          before the rotation operation.  See the code below for
+ *          details.  Why do we do this?  It's easier to specify the
+ *          center location before transforming.  For example, if you
+ *          want TR_SC_RO where the rotation is about the center of
+ *          an "image region" containing the box, after translation
+ *          and scaling, the center used for rotation is still in
+ *          the center of the (translated and scaled) image region.
+ */
+BOX *
+boxTransformOrdered(BOX       *boxs,
+                    l_int32    shiftx,
+                    l_int32    shifty,
+                    l_float32  scalex,
+                    l_float32  scaley,
+                    l_int32    xcen,
+                    l_int32    ycen,
+                    l_float32  angle,
+                    l_int32    order)
+{
+l_int32    bx, by, bw, bh, tx, ty, tw, th;
+l_int32    xcent, ycent;  /* transformed center of rotation */
+l_float32  sina, cosa, xdif, ydif, rx, ry, rw, rh;
+BOX       *boxd;
+
+    PROCNAME("boxTransformOrdered");
+
+    if (!boxs)
+        return (BOX *)ERROR_PTR("boxs not defined", procName, NULL);
+    if (order != L_TR_SC_RO && order != L_SC_RO_TR && order != L_RO_TR_SC &&
+        order != L_TR_RO_SC && order != L_RO_SC_TR && order != L_SC_TR_RO)
+        return (BOX *)ERROR_PTR("order invalid", procName, NULL);
+
+    boxGetGeometry(boxs, &bx, &by, &bw, &bh);
+    if (angle != 0.0) {
+        sina = sin(angle);
+        cosa = cos(angle);
+    }
+
+    if (order == L_TR_SC_RO) {
+        tx = (l_int32)(scalex * (bx + shiftx) + 0.5);
+        ty = (l_int32)(scaley * (by + shifty) + 0.5);
+        tw = (l_int32)(L_MAX(1.0, scalex * bw + 0.5));
+        th = (l_int32)(L_MAX(1.0, scaley * bh + 0.5));
+        xcent = (l_int32)(scalex * (xcen + shiftx) + 0.5);
+        ycent = (l_int32)(scaley * (ycen + shifty) + 0.5);
+        if (angle == 0.0)
+            boxd = boxCreate(tx, ty, tw, th);
+        else {
+            xdif = tx + 0.5 * tw - xcent;
+            ydif = ty + 0.5 * th - ycent;
+            rw = L_ABS(tw * cosa) + L_ABS(th * sina);
+            rh = L_ABS(th * cosa) + L_ABS(tw * sina);
+            rx = xcent + xdif * cosa + ydif * sina - 0.5 * rw;
+            ry = ycent + ydif * cosa - xdif * sina - 0.5 * rh;
+            boxd = boxCreate((l_int32)rx, (l_int32)ry, (l_int32)rw,
+                             (l_int32)rh);
+        }
+    }
+    else if (order == L_SC_TR_RO) {
+        tx = (l_int32)(scalex * bx + shiftx + 0.5);
+        ty = (l_int32)(scaley * by + shifty + 0.5);
+        tw = (l_int32)(L_MAX(1.0, scalex * bw + 0.5));
+        th = (l_int32)(L_MAX(1.0, scaley * bh + 0.5));
+        xcent = (l_int32)(scalex * xcen + shiftx + 0.5);
+        ycent = (l_int32)(scaley * ycen + shifty + 0.5);
+        if (angle == 0.0)
+            boxd = boxCreate(tx, ty, tw, th);
+        else {
+            xdif = tx + 0.5 * tw - xcent;
+            ydif = ty + 0.5 * th - ycent;
+            rw = L_ABS(tw * cosa) + L_ABS(th * sina);
+            rh = L_ABS(th * cosa) + L_ABS(tw * sina);
+            rx = xcent + xdif * cosa + ydif * sina - 0.5 * rw;
+            ry = ycent + ydif * cosa - xdif * sina - 0.5 * rh;
+            boxd = boxCreate((l_int32)rx, (l_int32)ry, (l_int32)rw,
+                             (l_int32)rh);
+        }
+    }
+    else if (order == L_RO_TR_SC) {
+        if (angle == 0.0) {
+            rx = bx;
+            ry = by;
+            rw = bw;
+            rh = bh;
+        }
+        else {
+            xdif = bx + 0.5 * bw - xcen;
+            ydif = by + 0.5 * bh - ycen;
+            rw = L_ABS(bw * cosa) + L_ABS(bh * sina);
+            rh = L_ABS(bh * cosa) + L_ABS(bw * sina);
+            rx = xcen + xdif * cosa + ydif * sina - 0.5 * rw;
+            ry = ycen + ydif * cosa - xdif * sina - 0.5 * rh;
+        }
+        tx = (l_int32)(scalex * (rx + shiftx) + 0.5);
+        ty = (l_int32)(scaley * (ry + shifty) + 0.5);
+        tw = (l_int32)(L_MAX(1.0, scalex * rw + 0.5));
+        th = (l_int32)(L_MAX(1.0, scaley * rh + 0.5));
+        boxd = boxCreate(tx, ty, tw, th);
+    }
+    else if (order == L_RO_SC_TR) {
+        if (angle == 0.0) {
+            rx = bx;
+            ry = by;
+            rw = bw;
+            rh = bh;
+        }
+        else {
+            xdif = bx + 0.5 * bw - xcen;
+            ydif = by + 0.5 * bh - ycen;
+            rw = L_ABS(bw * cosa) + L_ABS(bh * sina);
+            rh = L_ABS(bh * cosa) + L_ABS(bw * sina);
+            rx = xcen + xdif * cosa + ydif * sina - 0.5 * rw;
+            ry = ycen + ydif * cosa - xdif * sina - 0.5 * rh;
+        }
+        tx = (l_int32)(scalex * rx + shiftx + 0.5);
+        ty = (l_int32)(scaley * ry + shifty + 0.5);
+        tw = (l_int32)(L_MAX(1.0, scalex * rw + 0.5));
+        th = (l_int32)(L_MAX(1.0, scaley * rh + 0.5));
+        boxd = boxCreate(tx, ty, tw, th);
+    }
+    else if (order == L_TR_RO_SC) {
+        tx = bx + shiftx;
+        ty = by + shifty;
+        xcent = xcen + shiftx;
+        ycent = ycen + shifty;
+        if (angle == 0.0) {
+            rx = tx;
+            ry = ty;
+            rw = bw;
+            rh = bh;
+        }
+        else {
+            xdif = tx + 0.5 * bw - xcent;
+            ydif = ty + 0.5 * bh - ycent;
+            rw = L_ABS(bw * cosa) + L_ABS(bh * sina);
+            rh = L_ABS(bh * cosa) + L_ABS(bw * sina);
+            rx = xcent + xdif * cosa + ydif * sina - 0.5 * rw;
+            ry = ycent + ydif * cosa - xdif * sina - 0.5 * rh;
+        }
+        tx = (l_int32)(scalex * rx + 0.5);
+        ty = (l_int32)(scaley * ry + 0.5);
+        tw = (l_int32)(L_MAX(1.0, scalex * rw + 0.5));
+        th = (l_int32)(L_MAX(1.0, scaley * rh + 0.5));
+        boxd = boxCreate(tx, ty, tw, th);
+    }
+    else {  /* order == L_SC_RO_TR) */
+        tx = (l_int32)(scalex * bx + 0.5);
+        ty = (l_int32)(scaley * by + 0.5);
+        tw = (l_int32)(L_MAX(1.0, scalex * bw + 0.5));
+        th = (l_int32)(L_MAX(1.0, scaley * bh + 0.5));
+        xcent = (l_int32)(scalex * xcen + 0.5);
+        ycent = (l_int32)(scaley * ycen + 0.5);
+        if (angle == 0.0) {
+            rx = tx;
+            ry = ty;
+            rw = tw;
+            rh = th;
+        }
+        else {
+            xdif = tx + 0.5 * tw - xcent;
+            ydif = ty + 0.5 * th - ycent;
+            rw = L_ABS(tw * cosa) + L_ABS(th * sina);
+            rh = L_ABS(th * cosa) + L_ABS(tw * sina);
+            rx = xcent + xdif * cosa + ydif * sina - 0.5 * rw;
+            ry = ycent + ydif * cosa - xdif * sina - 0.5 * rh;
+        }
+        tx = (l_int32)(rx + shiftx + 0.5);
+        ty = (l_int32)(ry + shifty + 0.5);
+        tw = (l_int32)(rw + 0.5);
+        th = (l_int32)(rh + 0.5);
+        boxd = boxCreate(tx, ty, tw, th);
+    }
+
+    return boxd;
 }
 
 
@@ -1645,8 +2019,107 @@ BOXA    *boxa;
 
 
 /*---------------------------------------------------------------------*
- *                          Boxa/Boxaa display                         *
+ *                     Boxa/Boxaa painting into Pix                    *
  *---------------------------------------------------------------------*/
+/*!
+ *  pixMaskConnComp()
+ *
+ *      Input:  pixs (1 bpp)
+ *              connectivity (4 or 8)
+ *              &boxa (<optional return> bounding boxes of c.c.)
+ *      Return: pixd (1 bpp mask over the c.c.), or null on error
+ *
+ *  Notes:
+ *      (1) This generates a mask image with ON pixels over the
+ *          b.b. of the c.c. in pixs.  If there are no ON pixels in pixs,
+ *          pixd will also have no ON pixels.
+ */
+PIX *
+pixMaskConnComp(PIX     *pixs,
+                l_int32  connectivity,
+                BOXA   **pboxa)
+{
+BOXA  *boxa;
+PIX   *pixd;
+
+    PROCNAME("pixMaskConnComp");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+
+    boxa = pixConnComp(pixs, NULL, connectivity);
+    pixd = pixCreateTemplate(pixs);
+    if (boxaGetCount(boxa) != 0)
+        pixMaskBoxa(pixd, pixd, boxa, L_SET_PIXELS);
+    if (pboxa)
+        *pboxa = boxa;
+    else
+        boxaDestroy(&boxa);
+    return pixd;
+}
+
+
+/*!
+ *  pixMaskBoxa()
+ *
+ *      Input:  pixd (<optional> may be null)
+ *              pixs (any depth; not cmapped)
+ *              boxa (of boxes, to paint)
+ *              op (L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS)
+ *      Return: pixd (with masking op over the boxes), or null on error
+ *
+ *  Notes:
+ *      (1) This can be used with:
+ *              pixd = NULL  (makes a new pixd)
+ *              pixd = pixs  (in-place)
+ *      (2) This simple function is typically used with 1 bpp images.
+ */
+PIX *
+pixMaskBoxa(PIX     *pixd,
+            PIX     *pixs,
+            BOXA    *boxa,
+            l_int32  op)
+{
+l_int32  i, n, x, y, w, h;
+BOX     *box;
+
+    PROCNAME("pixMaskBoxa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs is cmapped", procName, NULL);
+    if (pixd && (pixd != pixs))
+        return (PIX *)ERROR_PTR("if pixd, must be in-place", procName, NULL);
+    if (!boxa)
+        return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
+        return (PIX *)ERROR_PTR("invalid op", procName, NULL);
+
+    pixd = pixCopy(pixd, pixs);
+    if ((n = boxaGetCount(boxa)) == 0) {
+        L_WARNING("no boxes to mask", procName);
+        return pixd;
+    }
+
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        boxGetGeometry(box, &x, &y, &w, &h);
+        if (op == L_SET_PIXELS)
+            pixRasterop(pixd, x, y, w, h, PIX_SET, NULL, 0, 0);
+        else if (op == L_CLEAR_PIXELS)
+            pixRasterop(pixd, x, y, w, h, PIX_CLR, NULL, 0, 0);
+        else  /* op == L_FLIP_PIXELS */
+            pixRasterop(pixd, x, y, w, h, PIX_NOT(PIX_SRC), NULL, 0, 0);
+        boxDestroy(&box);
+    }
+
+    return pixd;
+}
+
+
 /*!
  *  pixPaintBoxa()
  *

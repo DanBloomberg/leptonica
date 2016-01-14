@@ -33,134 +33,133 @@
 #define  EIGHT_BPP_IMAGE_CMAP     "weasel8.240c.png"
 #define  RGB_IMAGE                "marge.jpg"
 
+static const l_int32 SPACE = 30;
+
+void PixSave32(PIXA *pixa, PIX *pixc);
+
 
 main(int    argc,
      char **argv)
 {
-PIX         *pixs, *pixd;
+PIX   *pixs, *pixc, *pixd;
+PIXA  *pixa;
 static char  mainName[] = "scale_reg";
 
     if (argc != 1)
 	exit(ERROR_INT(" Syntax:  scale_reg", mainName, 1));
 
-        /* test 1 bpp */
+    pixa = pixaCreate(0);
+
+        /* Test 1 bpp */
     pixs = pixRead(BINARY_IMAGE);
-    pixd = pixScale(pixs, 0.32, 0.32);
-    pixDisplay(pixd, 0, 0);
-    pixDestroy(&pixd);
-
-    pixd = pixScaleToGray3(pixs);
-    pixDisplay(pixd, 0, 0);
-    pixDestroy(&pixd);
-
-    pixd = pixScaleToGray4(pixs);
-    pixDisplay(pixd, 0, 0);
-    pixDestroy(&pixd);
-
-    pixd = pixScaleToGray6(pixs);
-    pixDisplay(pixd, 0, 0);
-    pixDestroy(&pixd);
-
-    pixd = pixScaleToGray8(pixs);
-    pixDisplay(pixd, 0, 0);
-    pixDestroy(&pixd);
-
-    pixd = pixScaleToGray16(pixs);
-    pixDisplay(pixd, 0, 0);
+    pixc = pixScale(pixs, 0.32, 0.32);
+    pixSaveTiled(pixc, pixa, 1, 1, SPACE, 32);
+    pixDestroy(&pixc);
+    pixc = pixScaleToGray3(pixs);
+    PixSave32(pixa, pixc);
+    pixc = pixScaleToGray4(pixs);
+    PixSave32(pixa, pixc);
+    pixc = pixScaleToGray6(pixs);
+    PixSave32(pixa, pixc);
+    pixc = pixScaleToGray8(pixs);
+    PixSave32(pixa, pixc);
+    pixc = pixScaleToGray16(pixs);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-        /* test 2 bpp without colormap */
+        /* Test 2 bpp without colormap */
     pixs = pixRead(TWO_BPP_IMAGE_NO_CMAP);
-    pixd = pixScale(pixs, 2.25, 2.25);
-    pixDisplay(pixd, 600, 0);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.85, 0.85);
-    pixDisplay(pixd, 700, 0);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.65, 0.65);
-    pixDisplay(pixd, 750, 0);
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixScale(pixs, 2.25, 2.25);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.85, 0.85);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.65, 0.65);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-        /* test 2 bpp with colormap */
+        /* Test 2 bpp with colormap */
     pixs = pixRead(TWO_BPP_IMAGE_CMAP);
-    pixd = pixScale(pixs, 2.25, 2.25);
-    pixDisplay(pixd, 600, 100);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.85, 0.85);
-    pixDisplay(pixd, 700, 100);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.65, 0.65);
-    pixDisplay(pixd, 750, 100);
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixScale(pixs, 2.25, 2.25);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.85, 0.85);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.65, 0.65);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-        /* test 4 bpp without colormap */
+        /* Test 4 bpp without colormap */
     pixs = pixRead(FOUR_BPP_IMAGE_NO_CMAP);
-    pixd = pixScale(pixs, 1.72, 1.72);
-    pixDisplay(pixd, 600, 200);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.85, 0.85);
-    pixDisplay(pixd, 700, 200);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.65, 0.65);
-    pixDisplay(pixd, 750, 200);
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixScale(pixs, 1.72, 1.72);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.85, 0.85);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.65, 0.65);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-        /* test 4 bpp with colormap */
+        /* Test 4 bpp with colormap */
     pixs = pixRead(FOUR_BPP_IMAGE_CMAP);
-    pixd = pixScale(pixs, 1.72, 1.72);
-    pixDisplay(pixd, 600, 300);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.85, 0.85);
-    pixDisplay(pixd, 700, 300);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.65, 0.65);
-    pixDisplay(pixd, 750, 300);
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixScale(pixs, 1.72, 1.72);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.85, 0.85);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.65, 0.65);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-        /* test 8 bpp without colormap */
+        /* Test 8 bpp without colormap */
     pixs = pixRead(EIGHT_BPP_IMAGE_NO_CMAP);
-    pixd = pixScale(pixs, 1.92, 1.92);
-    pixDisplay(pixd, 600, 400);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.85, 0.85);
-    pixDisplay(pixd, 700, 400);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.65, 0.65);
-    pixDisplay(pixd, 750, 400);
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixScale(pixs, 1.92, 1.92);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.85, 0.85);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.65, 0.65);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-        /* test 8 bpp with colormap */
+        /* Test 8 bpp with colormap */
     pixs = pixRead(EIGHT_BPP_IMAGE_CMAP);
-    pixd = pixScale(pixs, 1.92, 1.92);
-    pixDisplay(pixd, 600, 400);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.85, 0.85);
-    pixDisplay(pixd, 700, 400);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.65, 0.65);
-    pixDisplay(pixd, 750, 400);
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixScale(pixs, 1.92, 1.92);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.85, 0.85);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.65, 0.65);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-        /* test 32 bpp */
+        /* Test 32 bpp */
     pixs = pixRead(RGB_IMAGE);
-    pixd = pixScale(pixs, 1.42, 1.42);
-    pixDisplay(pixd, 0, 400);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.85, 0.85);
-    pixDisplay(pixd, 0, 500);
-    pixDestroy(&pixd);
-    pixd = pixScale(pixs, 0.65, 0.65);
-    pixDisplay(pixd, 0, 600);
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixScale(pixs, 1.42, 1.42);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.85, 0.85);
+    PixSave32(pixa, pixc);
+    pixc = pixScale(pixs, 0.65, 0.65);
+    PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
 
-    exit(0);
+    pixd = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd, 100, 100);
+    pixWrite("junkscale.jpg", pixd, IFF_JFIF_JPEG);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+
+    return 0;
 }
+
+
+void PixSave32(PIXA *pixa, PIX *pixc) {
+PIX  *pix32;
+    pix32 = pixConvertTo32(pixc);
+    pixSaveTiled(pix32, pixa, 1, 0, SPACE, 0);
+    pixDestroy(&pixc);
+    pixDestroy(&pix32);
+}
+
 

@@ -250,7 +250,7 @@ gplotAddPlot(GPLOT       *gplot,
 char       buf[L_BUF_SIZE];
 char      *datastr, *title;
 l_int32    n, i;
-l_float32  valx, valy;
+l_float32  valx, valy, startx, delx;
 SARRAY    *sa;
 
     PROCNAME("gplotAddPlot");
@@ -265,6 +265,7 @@ SARRAY    *sa;
         return ERROR_INT("invalid plotstyle", procName, 1);
 
     n = numaGetCount(nay);
+    numaGetXParameters(nay, &startx, &delx);
     if (nax) {
         if (n != numaGetCount(nax))
             return ERROR_INT("nax and nay sizes differ", procName, 1);
@@ -290,7 +291,7 @@ SARRAY    *sa;
         if (nax)
             numaGetFValue(nax, i, &valx);
         else
-            valx = (l_float32)i;
+            valx = startx + i * delx;
         numaGetFValue(nay, i, &valy);
         snprintf(buf, L_BUF_SIZE, "%f %f\n", valx, valy);
         sarrayAddString(sa, buf, L_COPY);

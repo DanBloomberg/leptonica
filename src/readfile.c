@@ -431,7 +431,7 @@ l_int32  format;
  */
 PIX *
 pixReadMem(const l_uint8  *data,
-           l_uint32        size)
+           size_t          size)
 {
 l_int32  format;
 PIX     *pix;

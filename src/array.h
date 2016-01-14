@@ -13,8 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef  ARRAY_H
-#define  ARRAY_H
+#ifndef  LEPTONICA_ARRAY_H
+#define  LEPTONICA_ARRAY_H
 
     /* Flags for interpolation in Numa */
 enum {
@@ -40,6 +40,8 @@ struct Numa
     l_int32          nalloc;    /* size of allocated number array      */
     l_int32          n;         /* number of numbers saved             */
     l_int32          refcount;  /* reference count (1 if no clones)    */
+    l_float32        startx;    /* x value assigned to array[0]        */
+    l_float32        delx;      /* change in x value as i --> i + 1    */
     l_float32       *array;     /* number array                        */
 };
 typedef struct Numa  NUMA;
@@ -78,4 +80,4 @@ struct Sarray
 };
 typedef struct Sarray SARRAY;
 
-#endif  /* ARRAY_H */
+#endif  /* LEPTONICA_ARRAY_H */

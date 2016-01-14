@@ -921,9 +921,9 @@ l_float32  *tab;
     if ((tab = (l_float32 *)CALLOC(256, sizeof(l_float32))) == NULL)
         return (l_float32 *)ERROR_PTR("tab not made", procName, NULL);
 
-    log2 = (l_float32)log(2);
+    log2 = (l_float32)log((l_float32)2);
     for (i = 0; i < 256; i++)
-        tab[i] = (l_float32)log(i) / log2;
+        tab[i] = (l_float32)log((l_float32)i) / log2;
 
     return tab;
 }
@@ -954,4 +954,3 @@ getLogBase2(l_int32     val,
     else
         return 24.0 + logtab[val >> 24];
 }
-

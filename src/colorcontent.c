@@ -19,17 +19,17 @@
  *      Builds an image of the color content, on a per-pixel basis,
  *      as a measure of the amount of divergence of each color
  *      component (R,G,B) from gray.
- *         l_int32    pixColorContent()   ***
+ *         l_int32    pixColorContent()
  *
  *      Finds the 'amount' of color in an image, on a per-pixel basis,
  *      as a measure of the difference of the pixel color from gray.
- *         PIX       *pixColorMagnitude()   ***
+ *         PIX       *pixColorMagnitude()
+ *
+ *      Finds the fraction of pixels with "color" that are not close to black
+ *         l_int32    pixColorFraction()
  *
  *      Finds the number of unique colors in an image
- *         l_int32    pixNumColors()  ***
- *
- *  *** Note: these functions make an implicit assumption about RGB
- *            component ordering.
+ *         l_int32    pixNumColors()
  *
  *  Color is tricky.  If we consider gray (r = g = b) to have no color
  *  content, how should we define the color content in each component
@@ -212,9 +212,7 @@ PIXCMAP   *cmap;
             lineb = datab + i * wplb;
         for (j = 0; j < w; j++) {
             pixel = linec[j];
-            rval = pixel >> 24;
-            gval = (pixel >> 16) & 0xff;
-            bval = (pixel >> 8) & 0xff;
+            extractRGBValues(pixel, &rval, &gval, &bval);
             if (rwhite) {  /* color correct for white point */
                 rval = rtab[rval];
                 gval = gtab[gval];
@@ -356,9 +354,7 @@ PIXCMAP   *cmap;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             pixel = linec[j];
-            rval = pixel >> 24;
-            gval = (pixel >> 16) & 0xff;
-            bval = (pixel >> 8) & 0xff;
+            extractRGBValues(pixel, &rval, &gval, &bval);
             if (rwhite) {  /* color correct for white point */
                 rval = rtab[rval];
                 gval = gtab[gval];
@@ -400,6 +396,97 @@ PIXCMAP   *cmap;
     }
     pixDestroy(&pixc);
     return pixd;
+}
+
+
+/*!
+ *  pixColorFraction()
+ *
+ *      Input:  pixs  (32 bpp rgb)
+ *              darkthresh (dark threshold for minimum of average value to
+ *                          be considered in the statistics; typ. 20)
+ *              lightthresh (threshold near white, above which the pixel
+ *                           is not considered in the statistics; typ. 248)
+ *              diffthresh (thresh for the maximum difference from
+ *                          the average of component values)
+ *              factor (subsampling factor)
+ *              &pixfract (<return> fraction of pixels in intermediate
+ *                         brightness range that were considered
+ *                         for color content)
+ *              &colorfract (<return> fraction of pixels that meet the
+ *                           criterion for sufficient color; 0.0 on error)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Any pixel that meets these three tests is considered a
+ *          colorful pixel:
+ *            (a) the average of components must equal or exceed @darkthresh
+ *            (b) the average of components must be less than @lightthresh
+ *            (c) at least one component must differ from the average
+ *                by at least @diffthresh
+ *      (2) The dark pixels are removed from consideration because
+ *          they don't appear to have color.
+ *      (3) The very lightest pixels are removed because if an image
+ *          has a lot of "white", the color fraction will be artificially
+ *          low, even if all the other pixels are colorful.
+ *      (4) If either pixfract or colorfract is very small, this
+ *          indicates an image with little or no color.
+ */
+l_int32
+pixColorFraction(PIX        *pixs,
+                 l_int32     darkthresh,
+                 l_int32     lightthresh,
+                 l_int32     diffthresh,
+                 l_int32     factor,
+                 l_float32  *ppixfract,
+                 l_float32  *pcolorfract)
+{
+l_int32    i, j, w, h, wpl, rval, gval, bval, ave;
+l_int32    total, npix, ncolor, rdiff, gdiff, bdiff, maxdiff;
+l_uint32   pixel;
+l_uint32  *data, *line;
+
+    PROCNAME("pixColorFraction");
+
+    if (!ppixfract || !pcolorfract)
+        return ERROR_INT("&pixfract and &colorfract not both defined",
+                         procName, 1);
+    *ppixfract = 0.0;
+    *pcolorfract = 0.0;
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    npix = ncolor = total = 0;
+    for (i = 0; i < h; i += factor) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j += factor) {
+            total++;
+            pixel = line[j];
+            extractRGBValues(pixel, &rval, &gval, &bval);
+            ave = (l_int32)(0.333 * (rval + gval + bval));
+            if (ave < darkthresh || ave > lightthresh)
+                continue;
+            npix++;
+            rdiff = L_ABS(rval - ave);
+            gdiff = L_ABS(gval - ave);
+            bdiff = L_ABS(bval - ave);
+            maxdiff = L_MAX(rdiff, gdiff);
+            maxdiff = L_MAX(maxdiff, bdiff);
+            if (maxdiff >= diffthresh)
+                ncolor++;
+        }
+    }
+
+    if (npix == 0) {
+        L_WARNING("No pixels found for consideration", procName);
+        return 0;
+    }
+    *ppixfract = (l_float32)npix / (l_float32)total;
+    *pcolorfract = (l_float32)ncolor / (l_float32)npix;
+    return 0;
 }
 
 
@@ -478,9 +565,7 @@ PIXCMAP   *cmap;
         line = data + i * wpl;
         for (j = 0; j < w; j++) {
             pixel = line[j];
-            rval = pixel >> 24;
-            gval = (pixel >> 16) & 0xff;
-            bval = (pixel >> 8) & 0xff;
+            extractRGBValues(pixel, &rval, &gval, &bval);
             val = (137 * rval + 269 * gval + 353 * bval) % hashsize;
             if (inta[val] == 0) {
                 inta[val] = 1;

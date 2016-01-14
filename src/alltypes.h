@@ -13,9 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef ALLTYPES_H_INCLUDED
-#define ALLTYPES_H_INCLUDED
-
+#ifndef  LEPTONICA_ALLTYPES_H
+#define  LEPTONICA_ALLTYPES_H
 
 #include "environ.h"
 
@@ -25,8 +24,6 @@
 #include "bbuffer.h"
 #include "bmf.h"
 #include "ccbord.h"
-#include "colorquant.h"
-#include "conncomp.h"
 #include "gplot.h"
 #include "jbclass.h"
 #include "list.h"
@@ -38,11 +35,6 @@
 
     /* i/o */
 #include "imageio.h"
-#include "bmp.h"
-#include "jpeglib.h"
-#include <png.h>
-#include <tiff.h>
-#include <tiffio.h> 
 
-#endif /* ALLTYPES_H_INCLUDED */
+#endif /* LEPTONICA_ALLTYPES_H */
 

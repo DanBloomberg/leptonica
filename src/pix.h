@@ -13,8 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef  PIX_H_INCLUDED
-#define  PIX_H_INCLUDED
+#ifndef  LEPTONICA_PIX_H
+#define  LEPTONICA_PIX_H
 
 /*
  *   pix.h
@@ -31,6 +31,7 @@
  *       struct Pta
  *       struct Ptaa
  *       struct Pixacc
+ *       struct PixTiling
  *
  *   Contains definitions for:
  *       colors for RGB
@@ -42,12 +43,17 @@
  *       graphics pixel setting flags
  *       size filtering flags
  *       rotation and shear flags
- *       dithering flags
+ *       affine transform order flags                        *
  *       grayscale filling flags
+ *       dithering flags
  *       distance flags
  *       statistical measures
+ *       set selection flags
  *       text orientation flags
+ *       edge orientation flags
+ *       line orientation flags
  *       thinning flags
+ *       runlength flags
  */
 
 
@@ -101,15 +107,34 @@ typedef struct RGBA_Quad  RGBA_QUAD;
 /*-------------------------------------------------------------------------*
  *                             Colors for 32 bpp                           *
  *-------------------------------------------------------------------------*/
-/* Note: colors are used in 32 bpp images.  The 4th byte, typically
- *       known as the "alpha channel", can be used for blending.
- *       It's not explicitly used in leptonica.  */
+/*  Notes:
+ *      (1) These are the byte indices for colors in 32 bpp images.
+ *          They are used through the GET/SET_DATA_BYTE accessors.
+ *          The 4th byte, typically known as the "alpha channel" and used
+ *          for blending, is not explicitly used in leptonica.
+ *      (2) If you redefine these values, a lot of functions that
+ *          have been made more efficient by assuming them implicitly
+ *          will break.  These functions are labelled with "***"
+ *          next to their names at the top of the files in which they
+ *          are defined.  Advice: Do not change these values!
+ *      (3) The shifts to extract the red, green and blue components
+ *          from a 32 bit pixel are defined in terms of these colors.
+ */
 enum {
     COLOR_RED = 0,
     COLOR_GREEN = 1,
     COLOR_BLUE = 2,
     L_ALPHA_CHANNEL = 3
 };
+
+static const l_int32  L_RED_SHIFT = 
+       8 * (sizeof(l_uint32) - 1 - COLOR_RED);           /* 24 */
+static const l_int32  L_GREEN_SHIFT = 
+       8 * (sizeof(l_uint32) - 1 - COLOR_GREEN);         /* 16 */
+static const l_int32  L_BLUE_SHIFT = 
+       8 * (sizeof(l_uint32) - 1 - COLOR_BLUE);          /*  8 */
+static const l_int32  L_ALPHA_SHIFT = 
+       8 * (sizeof(l_uint32) - 1 - L_ALPHA_CHANNEL);     /*  0 */
 
 
 /*-------------------------------------------------------------------------*
@@ -381,6 +406,21 @@ typedef struct Pixacc PIXACC;
 
 
 /*-------------------------------------------------------------------------*
+ *                              Pix tiling                                 *
+ *-------------------------------------------------------------------------*/
+struct PixTiling
+{
+    struct Pix          *pix;         /* input pix (a clone)               */
+    l_int32              nx;          /* number of tiles horizontally      */
+    l_int32              ny;          /* number of tiles vertically        */
+    l_int32              w;           /* tile width                        */
+    l_int32              h;           /* tile height                       */
+    l_int32              overlap;     /* amount of overlap on each side    */
+};
+typedef struct PixTiling PIXTILING;
+
+
+/*-------------------------------------------------------------------------*
  *                         Access and storage flags                        *
  *-------------------------------------------------------------------------*/
 /*
@@ -505,6 +545,19 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
+ *                     Affine transform order flags                        *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_TR_SC_RO = 1,              /* translate, scale, rotate               */
+    L_SC_RO_TR = 2,              /* scale, rotate, translate               */
+    L_RO_TR_SC = 3,              /* rotate, translate, scale               */
+    L_TR_RO_SC = 4,              /* translate, rotate, scale               */
+    L_RO_SC_TR = 5,              /* rotate, scale, translate               */
+    L_SC_TR_RO = 6               /* scale, translate, rotate               */
+};
+
+
+/*-------------------------------------------------------------------------*
  *                         Grayscale fill flags                            *
  *-------------------------------------------------------------------------*/
 enum {
@@ -547,7 +600,7 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
- *                           Set selection flags                           *
+ *                          Set selection flags                            *
  *-------------------------------------------------------------------------*/
 enum {
     L_CHOOSE_CONSECUTIVE = 1,    /* select 'n' consecutive                 */
@@ -568,6 +621,27 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
+ *                         Edge orientation flags                          *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_HORIZONTAL_EDGES = 0,     /* filters for horizontal edges            */
+    L_VERTICAL_EDGES = 1,       /* filters for vertical edges              */
+    L_ALL_EDGES = 2             /* filters for all edges                   */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                         Line orientation flags                          *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_HORIZONTAL_LINE = 0,     /* horizontal line                          */
+    L_POS_SLOPE_LINE = 1,      /* 45 degree line with positive slope       */
+    L_VERTICAL_LINE = 2,       /* vertical line                            */
+    L_NEG_SLOPE_LINE = 3       /* 45 degree line with negative slope       */
+};
+
+
+/*-------------------------------------------------------------------------*
  *                             Thinning flags                              *
  *-------------------------------------------------------------------------*/
 enum {
@@ -576,5 +650,14 @@ enum {
 };
 
 
-#endif  /* PIX_H_INCLUDED */
+/*-------------------------------------------------------------------------*
+ *                            Runlength flags                              *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_HORIZONTAL_RUNS = 0,     /* determine runlengths of horizontal runs  */
+    L_VERTICAL_RUNS = 1        /* determine runlengths of vertical runs    */
+};
+
+
+#endif  /* LEPTONICA_PIX_H */
 

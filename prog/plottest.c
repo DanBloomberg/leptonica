@@ -25,8 +25,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
-
 #include "allheaders.h"
 
     /* for GPLOT_STYLE, use one of the following set:

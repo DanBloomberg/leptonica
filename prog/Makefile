@@ -32,8 +32,15 @@
 #          directory in which the *.so files are placed, or
 #     (b)  have the *.so files (or links to them) in this directory
 #
-#   On a bigendian machine (e.g., Mac), use
-#      CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN
+#   Using gnu make, this should compile properly on a bigendian
+#   machine (e.g., Mac).  Otherwise, you can explicitly set the endianness,
+#   using either of these
+#      CPPFLAGS =    $(INCLUDES) -DL_LITTLE_ENDIAN -D_STANDARD_C_
+#      CPPFLAGS =    $(INCLUDES) -DL_BIG_ENDIAN -D_STANDARD_C_
+#
+#   To use the non-POSIX-compliant GNU functions fmemopen() and open_memstream(),
+#   remove -D_STANDARD_C_ from CPPFLAGS:
+#      CPPFLAGS =    $(INCLUDES) -D$(ENDIANNESS)
 #
 #   On cygwin, remove -fPIC from CC.  I believe that these files --
 #   convertfilestops.c, jbcorrelation.c, jbrankhaus.c, maketile.c,
@@ -55,8 +62,8 @@ LIB_SHARED_DIR =	$(ROOT_DIR)/lib/shared
 IMAGELIB_INCL =	$(ROOT_DIR)/src
 
 
-CC =		gcc -ansi -Werror -D_BSD_SOURCE -DANSI -fPIC
-#CC =            g++ -Werror -D_BSD_SOURCE -fPIC
+CC =		gcc -ansi -Werror -DANSI -fPIC
+#CC =            g++ -Werror -fPIC
 
 
 ifdef  SHARED
@@ -83,6 +90,8 @@ CFLAGS =	$(OPTIMIZE) $(OPTIONS)
 ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
 
 # Conditional compilation (depending on processor endian-ness)
+# Use -D_STANDARD_C to stub out the non-posix GNU functions fmemopen()
+# and open_memstream()
 CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
 #CPPFLAGS =      $(INCLUDES) -DL_LITTLE_ENDIAN
 #CPPFLAGS =      $(INCLUDES) -DL_BIG_ENDIAN
@@ -97,9 +106,10 @@ else
 endif
 
 # To enable gif read/write:
-#     Use the second line for ALL_LIBS
-#     Install giflib-4.1.4, and be sure your LD_LIBRARY_PATH includes
-#           the directory in which libgif.so.4 is installed.
+#    (1) In src/environ.h:  #define  HAVE_LIBGIF
+#    (2) Install giflib-4.1.4, and be sure your LD_LIBRARY_PATH includes
+#        the directory in which libgif.so.4 is installed.
+#    (3) Use the second line below for ALL_LIBS
 ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 #ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lgif -lz -lm
 
@@ -113,16 +123,18 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		distance_reg.c dwamorph1_reg.c enhance_reg.c \
 		equal_reg.c expand_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
-		fmorphauto_reg.c \
-		graymorph_reg.c ioformats_reg.c \
-		locminmax_reg.c logicops_reg.c \
+		fmorphauto_reg.c gifio_reg.c \
+		graymorph_reg.c hardlight_reg.c ioformats_reg.c \
+		kernel_reg.c locminmax_reg.c logicops_reg.c \
 		morphseq_reg.c numa_reg.c \
-		paint_reg.c pixa_reg.c pixadisp_reg.c \
+		paint_reg.c paintmask_reg.c \
+		pixa_reg.c pixadisp_reg.c pixtile_reg.c \
 		rank_reg.c rasterop_reg.c rasteropip_reg.c \
 		rotate_reg.c rotateorth_reg.c \
-		scale_reg.c string_reg.c \
+		scale_reg.c selio_reg.c \
+		string_reg.c xformbox_reg.c \
 		adaptmaptest.c affinetest.c \
-		arithtest.c \
+		arithtest.c barcodetest.c \
 		baselinetest.c bilineartest.c \
 		bincompare.c binmazetest.c \
 		blendcmaptest.c blendtest1.c buffertest.c \
@@ -138,7 +150,7 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c \
 		fmorphautogen.c gammatest.c \
-		genfonts.c gifiotest.c graphicstest.c \
+		genfonts.c graphicstest.c \
 		graymazetest.c graymorphtest.c \
 		heaptest.c histotest.c iotest.c inserttest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
@@ -146,15 +158,16 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		maketile.c modifyhuesat.c \
 		morphtest1.c mtifftest.c numaranktest.c \
 		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
-		partitiontest.c pixaatest.c plottest.c \
+		partitiontest.c pixaatest.c \
+		plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
 		projectivetest.c ranktest.c reducetest.c \
 		removecmap.c renderfonts.c \
 		rotatefastalt.c rotateorthtest1.c \
 		rotatetest1.c runlengthtest.c \
 		scaletest1.c scaletest2.c \
-		seedfilltest.c seliotest.c \
-		sharptest.c sheartest.c showedges.c \
+		seedfilltest.c sharptest.c \
+		sheartest.c showedges.c \
 		skewtest.c snapcolortest.c \
 		sorttest.c splitimage2pdf.c \
 		textlinemask.c \
@@ -179,7 +192,7 @@ debian:	binmazetest buffertest comparetest \
 	flipdetect_reg flipselgen fmorphauto_reg fmorphautogen \
 	gammatest graphicstest graymazetest graymorph_reg \
 	heaptest histotest jbcorrelation jbrankhaus jbwords \
-	lineremoval numaranktest pagesegtest1 \
+	kernel_reg lineremoval numaranktest pagesegtest1 \
 	pagesegtest2 pagesegtest3 partitiontest plottest \
 	printimage printsplitimage printtiff \
 	ranktest rank_reg removecmap sharptest splitimage2pdf viewertest
@@ -246,11 +259,20 @@ flipdetect_reg:	flipdetect_reg.o $(LEPTLIB)
 fmorphauto_reg:	fmorphauto_reg.o $(LEPTLIB)
 	$(CC) -o fmorphauto_reg fmorphauto_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+gifio_reg:	gifio_reg.o $(LEPTLIB)
+	$(CC) -o gifio_reg gifio_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 graymorph_reg:	graymorph_reg.o $(LEPTLIB)
 	$(CC) -o graymorph_reg graymorph_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+hardlight_reg:	hardlight_reg.o $(LEPTLIB)
+	$(CC) -o hardlight_reg hardlight_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 ioformats_reg:	ioformats_reg.o $(LEPTLIB)
 	$(CC) -o ioformats_reg ioformats_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+kernel_reg:	kernel_reg.o $(LEPTLIB)
+	$(CC) -o kernel_reg kernel_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 locminmax_reg:	locminmax_reg.o $(LEPTLIB)
 	$(CC) -o locminmax_reg locminmax_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -267,11 +289,17 @@ numa_reg:	numa_reg.o $(LEPTLIB)
 paint_reg:	paint_reg.o $(LEPTLIB)
 	$(CC) -o paint_reg paint_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+paintmask_reg:	paintmask_reg.o $(LEPTLIB)
+	$(CC) -o paintmask_reg paintmask_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 pixa_reg:	pixa_reg.o $(LEPTLIB)
 	$(CC) -o pixa_reg pixa_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 pixadisp_reg:	pixadisp_reg.o $(LEPTLIB)
 	$(CC) -o pixadisp_reg pixadisp_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+pixtile_reg:	pixtile_reg.o $(LEPTLIB)
+	$(CC) -o pixtile_reg pixtile_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 rank_reg:	rank_reg.o $(LEPTLIB)
 	$(CC) -o rank_reg rank_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -291,8 +319,14 @@ rotateorth_reg:	rotateorth_reg.o $(LEPTLIB)
 scale_reg:	scale_reg.o $(LEPTLIB)
 	$(CC) -o scale_reg scale_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+selio_reg:	selio_reg.o $(LEPTLIB)
+	$(CC) -o selio_reg selio_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 string_reg:	string_reg.o $(LEPTLIB)
 	$(CC) -o string_reg string_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+xformbox_reg:	xformbox_reg.o $(LEPTLIB)
+	$(CC) -o xformbox_reg xformbox_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 adaptmaptest:	adaptmaptest.o $(LEPTLIB)
 	$(CC) -o adaptmaptest adaptmaptest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -302,6 +336,9 @@ affinetest:	affinetest.o $(LEPTLIB)
 
 arithtest:	arithtest.o $(LEPTLIB)
 	$(CC) -o arithtest arithtest.o $(ALL_LIBS) $(EXTRALIBS)
+
+barcodetest:	barcodetest.o $(LEPTLIB)
+	$(CC) -o barcodetest barcodetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 baselinetest:	baselinetest.o $(LEPTLIB)
 	$(CC) -o baselinetest baselinetest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -410,9 +447,6 @@ gammatest:	gammatest.o $(LEPTLIB)
 
 genfonts:	genfonts.o $(LEPTLIB)
 	$(CC) -o genfonts genfonts.o $(ALL_LIBS) $(EXTRALIBS)
-
-gifiotest:	gifiotest.o $(LEPTLIB)
-	$(CC) -o gifiotest gifiotest.o $(ALL_LIBS) $(EXTRALIBS)
 
 graphicstest:	graphicstest.o $(LEPTLIB)
 	$(CC) -o graphicstest graphicstest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -527,9 +561,6 @@ scaletest2:	scaletest2.o $(LEPTLIB)
 
 seedfilltest:	seedfilltest.o $(LEPTLIB)
 	$(CC) -o seedfilltest seedfilltest.o $(ALL_LIBS) $(EXTRALIBS)
-
-seliotest:	seliotest.o $(LEPTLIB)
-	$(CC) -o seliotest seliotest.o $(ALL_LIBS) $(EXTRALIBS)
 
 sharptest:	sharptest.o $(LEPTLIB)
 	$(CC) -o sharptest sharptest.o $(ALL_LIBS) $(EXTRALIBS)

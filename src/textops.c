@@ -34,7 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include "allheaders.h"
 
 static l_int32 stringAllWhitespace(char *textstr, l_int32 *pval);
@@ -47,15 +47,16 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
 /*!
  *  bmfGetLineStrings()
  *
- *      Input: bmf
- *             textstr
- *             maxw (max width of a text line in pixels)
- *             firstindent (indentation of first line, in x-widths)
- *            &h (<return> height required to hold text bitmap)
+ *      Input:  bmf
+ *              textstr
+ *              maxw (max width of a text line in pixels)
+ *              firstindent (indentation of first line, in x-widths)
+ *              &h (<return> height required to hold text bitmap)
  *      Return: sarray of text strings for each line, or null on error
  *  
- *  Divides the input text string into an array of text strings,
- *  each of which will fit withing maxw bits of width.
+ *  Notes:
+ *      (1) Divides the input text string into an array of text strings,
+ *          each of which will fit withing maxw bits of width.
  */
 SARRAY *
 bmfGetLineStrings(BMF         *bmf,
@@ -124,11 +125,11 @@ SARRAY  *sa, *sawords;
 /*!
  *  bmfGetWordWidths()
  *
- *      Input: bmf
- *             textstr
- *             sa (of individual words)
- *      Return: numa of word lengths in pixels for the font represented
- *              by the bmf, or null on error
+ *      Input:  bmf
+ *              textstr
+ *              sa (of individual words)
+ *      Return: numa (of word lengths in pixels for the font represented
+ *                    by the bmf), or null on error
  */
 NUMA *
 bmfGetWordWidths(BMF         *bmf,
@@ -165,10 +166,10 @@ NUMA    *na;
 /*!
  *  bmfGetStringWidth()
  *
- *      Input: bmf
- *             textstr
- *            &w (<return> width of text string, in pixels for the
- *                font represented by the bmf)
+ *      Input:  bmf
+ *              textstr
+ *              &w (<return> width of text string, in pixels for the
+ *                 font represented by the bmf)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -210,30 +211,30 @@ l_int32  i, w, width, nchar;
 /*!
  *  pixSetTextblock()
  *
- *      Input: pixs (input image)
- *             bmf (bitmap font data)
- *             textstr (block text string to be set)
- *             val (color to set the text)
- *             x0 (left edge for each line of text)
- *             y0 (baseline location for the first text line)
- *             wtext (max width of each line of generated text)
- *             firstindent (indentation of first line, in x-widths)
- *             &overflow (<return> 0 if text is contained in input pix;
- *                        1 if it is clipped)
+ *      Input:  pixs (input image)
+ *              bmf (bitmap font data)
+ *              textstr (block text string to be set)
+ *              val (color to set the text)
+ *              x0 (left edge for each line of text)
+ *              y0 (baseline location for the first text line)
+ *              wtext (max width of each line of generated text)
+ *              firstindent (indentation of first line, in x-widths)
+ *              &overflow (<return> 0 if text is contained in input pix;
+ *                         1 if it is clipped)
  *      Return: 0 if OK, 1 on error
  *
- *  Usage notes:
- *      - This function paints a set of lines of text over an image.
- *      - val is the pixel value to be painted through the font mask.
- *        For RGB, it is easiest to use hex notation: 0xRRGGBB00,
- *        where RR is the hex representation of the red intensity, etc.
- *        The last two hex digits are 00 (byte value 0), assigned to
- *        the A component.  Note that, as usual, RGBA proceeds from 
- *        left to right in the order from MSB to LSB (see pix.h
- *        for details).
- *      - val should be chosen to agree with the depth of pixs.
- *        For example, if pixs has 8 bpp, val should be some value
- *        between 0 (black) and 255 (white).
+ *  Notes:
+ *      (1) This function paints a set of lines of text over an image.
+ *      (2) @val is the pixel value to be painted through the font mask.
+ *          For RGB, it is easiest to use hex notation: 0xRRGGBB00,
+ *          where RR is the hex representation of the red intensity, etc.
+ *          The last two hex digits are 00 (byte value 0), assigned to
+ *          the A component.  Note that, as usual, RGBA proceeds from 
+ *          left to right in the order from MSB to LSB (see pix.h
+ *          for details).
+ *      (3) @val should be chosen to agree with the depth of pixs.
+ *          For example, if pixs has 8 bpp, val should be some value
+ *          between 0 (black) and 255 (white).
  */
 l_int32
 pixSetTextblock(PIX         *pixs,
@@ -246,9 +247,9 @@ pixSetTextblock(PIX         *pixs,
                 l_int32      firstindent,
                 l_int32     *poverflow)
 {
-char     *linestr;
-l_int32   d, h, i, w, x, y, nlines, htext, xwidth, wline, ovf, overflow;
-SARRAY   *salines;
+char    *linestr;
+l_int32  d, h, i, w, x, y, nlines, htext, xwidth, wline, ovf, overflow;
+SARRAY  *salines;
 
     PROCNAME("pixSetTextblock");
 
@@ -261,7 +262,7 @@ SARRAY   *salines;
     if (val < 0)
         return ERROR_INT("val must be >= 0", procName, 1);
 
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d == 8 && val > 0xff)
         return ERROR_INT("for 8 bpp, val must be < 256", procName, 1);
     else if (d == 16 && val > 0xffff)
@@ -269,7 +270,6 @@ SARRAY   *salines;
     else if (d == 32 && val < 256)
         return ERROR_INT("for RGB, val must be > 256", procName, 1);
 
-    w = pixGetWidth(pixs);
     if (w < x0 + wtext) {
         L_WARNING("reducing width of textblock", procName);
         wtext = w - x0 - w / 10;
@@ -297,7 +297,6 @@ SARRAY   *salines;
             overflow = 1;
     }
 
-    h = pixGetHeight(pixs);
        /* (y0 - baseline) is the top of the printed text.  Character
         * 93 was chosen at random, as all the baselines are essentially
         * equal for each character in a font. */
@@ -313,29 +312,29 @@ SARRAY   *salines;
 /*!
  *  pixSetTextline()
  *
- *      Input: pixs (input image)
- *             bmf (bitmap font data)
- *             textstr (text string to be set on the line)
- *             val (color to set the text)
- *             x0 (left edge for first char)
- *             y0 (baseline location for all text on line)
- *             &width (<return> width of generated text)
- *             &overflow (<return> 0 if text is contained in input pix;
- *                        1 if it is clipped)
+ *      Input:  pixs (input image)
+ *              bmf (bitmap font data)
+ *              textstr (text string to be set on the line)
+ *              val (color to set the text)
+ *              x0 (left edge for first char)
+ *              y0 (baseline location for all text on line)
+ *              &width (<return> width of generated text)
+ *              &overflow (<return> 0 if text is contained in input pix;
+ *                         1 if it is clipped)
  *      Return: 0 if OK, 1 on error
  *
- *  Usage notes:
- *      - This function paints a line of text over an image.
- *      - val is the pixel value to be painted through the font mask.
- *        For RGB, it is easiest to use hex notation: 0xRRGGBB00,
- *        where RR is the hex representation of the red intensity, etc.
- *        The last two hex digits are 00 (byte value 0), assigned to
- *        the A component.  Note that, as usual, RGBA proceeds from 
- *        left to right in the order from MSB to LSB (see pix.h
- *        for details).
- *      - val should be chosen to agree with the depth of pixs.
- *        For example, if pixs has 8 bpp, val should be some value
- *        between 0 (black) and 255 (white).
+ *  Notes:
+ *      (1) This function paints a line of text over an image.
+ *      (2) @val is the pixel value to be painted through the font mask.
+ *          For RGB, it is easiest to use hex notation: 0xRRGGBB00,
+ *          where RR is the hex representation of the red intensity, etc.
+ *          The last two hex digits are 00 (byte value 0), assigned to
+ *          the A component.  Note that, as usual, RGBA proceeds from 
+ *          left to right in the order from MSB to LSB (see pix.h
+ *          for details).
+ *      (3) @val should be chosen to agree with the depth of pixs.
+ *          For example, if pixs has 8 bpp, val should be some value
+ *          between 0 (black) and 255 (white).
  */
 l_int32
 pixSetTextline(PIX         *pixs,
@@ -347,9 +346,9 @@ pixSetTextline(PIX         *pixs,
                l_int32     *pwidth,
                l_int32     *poverflow)
 {
-char      chr; 
-l_int32   d, i, x, w, nchar, baseline;
-PIX      *pix;
+char     chr; 
+l_int32  d, i, x, w, nchar, baseline;
+PIX     *pix;
 
     PROCNAME("pixSetTextline");
 
@@ -396,18 +395,18 @@ PIX      *pix;
 /*!
  *  splitStringToParagraphs()
  *
- *      Input: textstring
- *             splitting flag (see enum in bmf.h; valid values in {1,2,3} )
- *      Return: sarray where each string is a paragraph of the input, 
- *              or null on error
+ *      Input:  textstring
+ *              splitting flag (see enum in bmf.h; valid values in {1,2,3})
+ *      Return: sarray (where each string is a paragraph of the input),
+ *                      or null on error.
  */
 SARRAY *
 splitStringToParagraphs(char    *textstr,
                         l_int32  splitflag)
 {
-char     *linestr, *parastring;
-l_int32   nlines, i, allwhite, leadwhite;
-SARRAY   *salines, *satemp, *saout;
+char    *linestr, *parastring;
+l_int32  nlines, i, allwhite, leadwhite;
+SARRAY  *salines, *satemp, *saout;
 
     PROCNAME("splitStringToParagraphs");
 
@@ -447,8 +446,8 @@ SARRAY   *salines, *satemp, *saout;
 /*!
  *  stringAllWhitespace()
  *
- *      Input: textstring
- *             &val (<return> 1 if all whitespace; 0 otherwise)
+ *      Input:  textstring
+ *              &val (<return> 1 if all whitespace; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  */
 static l_int32
@@ -479,8 +478,8 @@ l_int32  len, i;
 /*!
  *  stringLeadingWhitespace()
  *
- *      Input: textstring
- *             &val (<return> 1 if leading char is ' ' or '\t'; 0 otherwise)
+ *      Input:  textstring
+ *              &val (<return> 1 if leading char is ' ' or '\t'; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  */
 static l_int32

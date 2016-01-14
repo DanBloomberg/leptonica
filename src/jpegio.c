@@ -60,6 +60,17 @@
 #include <string.h>
 #include "allheaders.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  HAVE_LIBJPEG   /* defined in environ.h */
+/* --------------------------------------------*/
+
+#include <setjmp.h>
+#include "jpeglib.h"
+
 static void jpeg_error_do_not_exit(j_common_ptr cinfo);
 static l_uint8 jpeg_getc(j_decompress_ptr cinfo);
 static jmp_buf jpeg_jmpbuf;
@@ -154,7 +165,7 @@ pixReadStreamJpeg(FILE     *fp,
 l_uint8                        cyan, yellow, magenta, black, white;
 l_int32                        rval, gval, bval;
 l_int32                        i, j, k;
-l_int32                        w, h, wpl, spp, ncolors, cindex;
+l_int32                        w, h, wpl, spp, ncolors, cindex, ycck, cmyk;
 l_uint32                      *data;
 l_uint32                      *line, *ppixel;
 JSAMPROW                       rowbuffer;
@@ -206,12 +217,14 @@ l_uint8                       *comment = NULL;
     spp = cinfo.out_color_components;
     w = cinfo.output_width;
     h = cinfo.output_height;
-    int ycck = (cinfo.jpeg_color_space == JCS_YCCK && spp == 4 && cmflag == 0);
-    if (spp != 1 && spp != 3 && !ycck) {
+    ycck = (cinfo.jpeg_color_space == JCS_YCCK && spp == 4 && cmflag == 0);
+    cmyk = (cinfo.jpeg_color_space == JCS_CMYK && spp == 4 && cmflag == 0);
+    if (spp != 1 && spp != 3 && !ycck && !cmyk) {
         if (comment) FREE(comment);
-        return (PIX *)ERROR_PTR("spp must be 1 or 3 or YCCK", procName, NULL);
+        return (PIX *)ERROR_PTR("spp must be 1 or 3, or YCCK or CMYK",
+                                procName, NULL);
     }
-    if ((spp == 3 && cmflag == 0) || ycck) {  /* rgb pix */
+    if ((spp == 3 && cmflag == 0) || ycck || cmyk) {  /* rgb or 4 bpp color */
         rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), spp * w);
         pix = pixCreate(w, h, 32);
     }
@@ -233,8 +246,8 @@ l_uint8                       *comment = NULL;
 
     if (spp == 1)  /* Grayscale or colormapped */
         jpeg_start_decompress(&cinfo);
-    else  {        /* Color; spp == 3 or YCCK */
-        if (cmflag == 0) {   /* -- 24 bit color in 32 bit pix or CYYK -- */
+    else  {        /* Color; spp == 3 or YCCK or CMYK */
+        if (cmflag == 0) {   /* -- 24 bit color in 32 bit pix or YCCK/CMYK -- */
             cinfo.quantize_colors = FALSE;
             jpeg_start_decompress(&cinfo);
         }
@@ -260,7 +273,7 @@ l_uint8                       *comment = NULL;
     data = pixGetData(pix);
 
         /* Decompress */
-    if ((spp == 3 && cmflag == 0) || ycck) {   /* -- 24 bit color -- */
+    if ((spp == 3 && cmflag == 0) || ycck || cmyk) {   /* -- 24 bit color -- */
         for (i = 0; i < h; i++) {
             if (jpeg_read_scanlines(&cinfo, &rowbuffer, (JDIMENSION)1) != 1)
                 return (PIX *)ERROR_PTR("bad read scanline", procName, NULL);
@@ -275,11 +288,11 @@ l_uint8                       *comment = NULL;
             } else {
                     /* This is a conversion from CMYK -> RGB that ignores
                        color profiles, and is invoked when the image header
-                       claims to be in YCCK colorspace.  libjpeg may be
-                       doing YCCK -> CMYK under the hood. To understand why
-                       the colors are inverted on read-in, see the "Special
-                       color spaces" section of "Using the IJG JPEG Library"
-                       by Thomas G. Lane.  */
+                       claims to be in CMYK or YCCK colorspace.  If in YCCK,
+                       libjpeg may be doing YCCK -> CMYK under the hood.
+                       To understand why the colors are inverted on read-in,
+                       see the "Special color spaces" section of
+                       "Using the IJG JPEG Library" by Thomas G. Lane.  */
                 for (j = k = 0; j < w; j++) {
                     cyan = 255 - rowbuffer[k++];
                     magenta = 255 - rowbuffer[k++];
@@ -553,7 +566,8 @@ const char                  *text;
 /*---------------------------------------------------------------------*
  *                         Read/write to memory                        *
  *---------------------------------------------------------------------*/
-#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+#if HAVE_FMEMOPEN || \
+ (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
 
 extern FILE *open_memstream(char **data, size_t *size);
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
@@ -577,7 +591,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
  */
 PIX *
 pixReadMemJpeg(const l_uint8  *cdata,
-               l_uint32        size,
+               size_t          size,
                l_int32         cmflag,
                l_int32         reduction,
                l_int32        *pnwarn,
@@ -593,7 +607,7 @@ PIX      *pix;
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
 
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
-    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+    if ((fp = fmemopen(data, size, "r")) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
     pix = pixReadStreamJpeg(fp, cmflag, reduction, pnwarn, hint);
     fclose(fp);
@@ -617,12 +631,13 @@ PIX      *pix;
  */
 l_int32
 pixWriteMemJpeg(l_uint8  **pdata,
-                l_uint32  *psize,
+                size_t    *psize,
                 PIX       *pix,
                 l_int32    quality,
                 l_int32    progressive)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixWriteMemJpeg");
 
@@ -633,41 +648,42 @@ FILE  *fp;
     if (!pix)
         return ERROR_INT("&pix not defined", procName, 1 );
 
-    if ((fp = open_memstream((char **)pdata, (size_t *)psize)) == NULL)
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    pixWriteStreamJpeg(fp, pix, quality, progressive);
+    ret = pixWriteStreamJpeg(fp, pix, quality, progressive);
     fclose(fp);
-    return 0;
+    return ret;
 }
 
 #else
 
 PIX *
 pixReadMemJpeg(const l_uint8  *data,
-               l_uint32        size,
+               size_t          size,
                l_int32         cmflag,
                l_int32         reduction,
                l_int32        *pnwarn,
                l_int32         hint)
 {
-    return (PIX *)ERROR_PTR("jpeg read from memory not implemented on windows",
-                            "pixReadMemJpeg", NULL);
+    return (PIX *)ERROR_PTR(
+        "jpeg read from memory not implemented on this platform",
+        "pixReadMemJpeg", NULL);
 }
 
 
 l_int32
 pixWriteMemJpeg(l_uint8  **pdata,
-                l_uint32  *psize,
+                size_t    *psize,
                 PIX       *pix,
                 l_int32    quality,
                 l_int32    progressive)
 {
-    return ERROR_INT("jpeg write to memory not implemented on windows",
-                     "pixWriteMemJpeg", 1);
+    return ERROR_INT(
+        "jpeg write to memory not implemented on this platform",
+        "pixWriteMemJpeg", 1);
 }
 
-#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
-
+#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
 
 
 /*---------------------------------------------------------------------*
@@ -733,3 +749,8 @@ l_uint8  **comment;
 
     return 1;
 }
+
+/* --------------------------------------------*/
+#endif  /* HAVE_LIBJPEG */
+/* --------------------------------------------*/
+

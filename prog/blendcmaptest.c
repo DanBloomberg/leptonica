@@ -22,65 +22,71 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define  NX     3
-#define  NY     4
+#define  NX     4
+#define  NY     5
 
-#define  FADE_FRACTION    0.85
+#define  FADE_FRACTION    0.75
 
 main(int    argc,
      char **argv)
 {
-l_uint8    rval, gval, bval;
-l_int32    n, i, j, sindex, wm, hm, ws, hs, delx, dely, x, y, y0;
-PIX       *pixs, *pixm, *pixb, *pixt0, *pixt1;
+l_int32    i, j, sindex, wb, hb, ws, hs, delx, dely, x, y, y0;
+PIX       *pixs, *pixb, *pixt0, *pixt1;
 PIXCMAP   *cmap;
 static char   mainName[] = "blendcmaptest";
 
     pixs = pixRead("rabi.png");
     pixb = pixRead("weasel4.11c.png");
+    pixDisplayWrite(NULL, -1);
 
-        /* fade the blender */
-    pixcmapShiftIntensity(pixGetColormap(pixb), 0.75);
+        /* Fade the blender */
+    pixcmapShiftIntensity(pixGetColormap(pixb), FADE_FRACTION);
 
-        /* downscale the input */
-    wm = pixGetWidth(pixm);
-    hm = pixGetHeight(pixm);
+        /* Downscale the input */
+    wb = pixGetWidth(pixb);
+    hb = pixGetHeight(pixb);
     pixt0 = pixScaleToGray4(pixs);
 
-        /* threshold to 5 levels, 4 bpp */
+        /* Threshold to 5 levels, 4 bpp */
     ws = pixGetWidth(pixt0);
     hs = pixGetHeight(pixt0);
-    pixWrite("junkt0", pixt0, IFF_JFIF_JPEG);
     pixt1 = pixThresholdTo4bpp(pixt0, 5, 1);
-    pixWrite("junkt1", pixt1, IFF_PNG);
+    pixDisplayWriteFormat(pixt1, 1, IFF_PNG);
+    pixDisplayWrite(pixb, 1);
     cmap = pixGetColormap(pixt1);
-/*    pixcmapWriteStream(stderr, cmap); */
-    pixcmapGetIndex(cmap, 255, 255, 255, &sindex);  /* overwrite white pixels */
+    pixcmapWriteStream(stderr, cmap);
+
+        /* Overwrite the white pixels (at sindex in pixt1) */
+    pixcmapGetIndex(cmap, 255, 255, 255, &sindex);
     delx = ws / NX;
     dely = hs / NY;
     for (i = 0; i < NY; i++) {
         y = 20 + i * dely;
-        if (y >= hs + hm)
+        if (y >= hs + hb)
             continue;
         for (j = 0; j < NX; j++) {
             x = 30 + j * delx;
             y0 = y;
-            if (j % 2 == 1) {
+            if (j & 1) {
                 y0 = y + dely / 2;
-                if (y >= hs + hm)
+                if (y0 >= hs + hb)
                     continue;
             }
-            if (x >= ws + wm)
+            if (x >= ws + wb)
                 continue;
             pixBlendCmap(pixt1, pixb, x, y0, sindex);
         }
     }
-    pixWrite("junkt2", pixt1, IFF_PNG);
+    pixDisplayWriteFormat(pixt1, 1, IFF_PNG);
+    cmap = pixGetColormap(pixt1);
+    pixcmapWriteStream(stderr, cmap);
+
+    system("gthumb junk_write_display* &");
 
     pixDestroy(&pixs);
     pixDestroy(&pixb);
     pixDestroy(&pixt0);
     pixDestroy(&pixt1);
-    exit(0);
+    return 0;
 }
 

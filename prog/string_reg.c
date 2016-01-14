@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "allheaders.h"
 
 
@@ -81,7 +82,6 @@ static char  mainName[] = "string_reg";
     sa4 = sarrayRead("junkout8");
     sarrayWrite("junkout9", sa4);
     sa5 = sarrayRead("junkout9");
-
     system("diff -s junkout8 junkout9");
 
     sarrayDestroy(&sa1);

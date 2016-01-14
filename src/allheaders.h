@@ -13,9 +13,12 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+#ifndef  LEPTONICA_ALLHEADERS_H
+#define  LEPTONICA_ALLHEADERS_H
 
-#ifndef ALLHEADERS_H_INCLUDED
-#define ALLHEADERS_H_INCLUDED
+
+#define LEPTONLIB_MAJOR_VERSION   1
+#define LEPTONLIB_MINOR_VERSION   56
 
 #include "alltypes.h"
 
@@ -23,6 +26,7 @@
 #include  "leptprotos.h"
 #endif  /* NO_PROTOS */
 
-#endif /* ALLHEADERS_H_INCLUDED */
+
+#endif /* LEPTONICA_ALLHEADERS_H */
 
 

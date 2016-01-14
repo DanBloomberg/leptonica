@@ -324,21 +324,21 @@ PIX       *pixt1, *pixt2, *pixd;
      *-------------------------------------------------------------*/
 
         /* Shear angles required to put src points on x and y axes */
-    th3 = atan2(x1 - x3, y1 - y3);
+    th3 = atan2((l_float64)(x1 - x3), (l_float64)(y1 - y3));
     x2s = (l_float32)(x2 - ((l_float32)(y1 - y2) * (x3 - x1)) / (y1 - y3));
     if (x2s == (l_float32)x1)
         return (PIX *)ERROR_PTR("x2s == x1!", procName, NULL);
-    ph2 = atan2(y1 - y2, x2s - x1);
+    ph2 = atan2((l_float64)(y1 - y2), (l_float64)(x2s - x1));
 
         /* Shear angles required to put dest points on x and y axes.
          * Use the negative of these values to instead move the
          * src points from the axes to the actual dest position.
          * These values are also needed to scale the image. */
-    th3p = atan2(x1p - x3p, y1p - y3p);
+    th3p = atan2((l_float64)(x1p - x3p), (l_float64)(y1p - y3p));
     x2sp = (l_float32)(x2p - ((l_float32)(y1p - y2p) * (x3p - x1p)) / (y1p - y3p));
     if (x2sp == (l_float32)x1p)
         return (PIX *)ERROR_PTR("x2sp == x1p!", procName, NULL);
-    ph2p = atan2(y1p - y2p, x2sp - x1p);
+    ph2p = atan2((l_float64)(y1p - y2p), (l_float64)(x2sp - x1p));
 
         /* Shear image to first put src point 3 on the y axis,
          * and then to put src point 2 on the x axis */
@@ -736,26 +736,26 @@ l_uint32  *lines, *lined;
                      x, y, xf, yf);
 #endif  /* DEBUG */
 
-            lines = datas + y * wpls;
-
                 /* Do area weighting (eqiv. to linear interpolation) */
+            lines = datas + y * wpls;
             word00 = *(lines + x);
             word10 = *(lines + x + 1);
             word01 = *(lines + wpls + x);
             word11 = *(lines + wpls + x + 1);
-            rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-                xf * (16 - yf) * (word10 >> 24) +
-                (16 - xf) * yf * (word01 >> 24) +
-                xf * yf * (word11 >> 24) + 128) / 256;
-            gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-                xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-                (16 - xf) * yf * ((word01 >> 16) & 0xff) +
-                xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
-            bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-                xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-                (16 - xf) * yf * ((word01 >> 8) & 0xff) +
-                xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
-            val = (rval << 24) | (gval << 16) | (bval << 8);
+            rval = ((16 - xf) * (16 - yf) * ((word00 >> L_RED_SHIFT) & 0xff) +
+                xf * (16 - yf) * ((word10 >> L_RED_SHIFT) & 0xff) +
+                (16 - xf) * yf * ((word01 >> L_RED_SHIFT) & 0xff) +
+                xf * yf * ((word11 >> L_RED_SHIFT) & 0xff) + 128) / 256;
+            gval = ((16 - xf) * (16 - yf) * ((word00 >> L_GREEN_SHIFT) & 0xff) +
+                xf * (16 - yf) * ((word10 >> L_GREEN_SHIFT) & 0xff) +
+                (16 - xf) * yf * ((word01 >> L_GREEN_SHIFT) & 0xff) +
+                xf * yf * ((word11 >> L_GREEN_SHIFT) & 0xff) + 128) / 256;
+            bval = ((16 - xf) * (16 - yf) * ((word00 >> L_BLUE_SHIFT) & 0xff) +
+                xf * (16 - yf) * ((word10 >> L_BLUE_SHIFT) & 0xff) +
+                (16 - xf) * yf * ((word01 >> L_BLUE_SHIFT) & 0xff) +
+                xf * yf * ((word11 >> L_BLUE_SHIFT) & 0xff) + 128) / 256;
+            val = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
+                  (bval << L_BLUE_SHIFT);
             *(lined + j) = val;
         }
     }
@@ -1094,4 +1094,3 @@ l_float32  big, dum, pivinv, temp;
     FREE(ipiv);
     return 0;
 }
-

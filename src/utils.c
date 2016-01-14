@@ -25,6 +25,7 @@
  *           void       l_warning()
  *           void       l_warningString()
  *           void       l_warningInt()
+ *           void       l_warningFloat()
  *           void       l_info()
  *           void       l_infoString()
  *           void       l_infoInt()
@@ -36,6 +37,7 @@
  *           char      *stringNew()
  *           l_int32    stringReplace()
  *           char      *stringJoin()
+ *           char      *stringReverse()
  *           char      *strtokSafe()
  *           l_int32    stringSplitOnToken()
  *
@@ -248,6 +250,40 @@ char    *charbuf;
 
 
 /*!
+ *  l_warningFloat()
+ *
+ *      Input: msg (warning message; must include '%f')
+ *             procname
+ *             fval (embedded in warning message via %f)
+ */
+void
+l_warningFloat(const char  *msg,
+               const char  *procname,
+               l_float32    fval)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname) {
+        ERROR_VOID("msg or procname not defined in l_warningFloat()", procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        ERROR_VOID("charbuf not made in l_warningFloat()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Warning in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, fval);
+
+    FREE(charbuf);
+    return;
+}
+
+
+/*!
  *  l_info()
  *
  *      Input: msg (info message)
@@ -392,7 +428,7 @@ char    *charbuf;
         return;
     }
 
-    sprintf(charbuf, "from %s: %s\n", procname, msg);
+    sprintf(charbuf, "Info in %s: %s\n", procname, msg);
     fprintf(stderr, charbuf, fval);
 
     FREE(charbuf);
@@ -427,7 +463,7 @@ char    *charbuf;
         return;
     }
 
-    sprintf(charbuf, "from %s: %s\n", procname, msg);
+    sprintf(charbuf, "Info in %s: %s\n", procname, msg);
     fprintf(stderr, charbuf, fval1, fval2);
 
     FREE(charbuf);
@@ -537,6 +573,32 @@ l_int32  srclen1, srclen2, destlen;
         strcpy(dest, src1);
     if (src2)
         strcat(dest, src2);
+    return dest;
+}
+
+
+/*!
+ *  stringReverse()
+ *
+ *      Input:  src (string)
+ *      Return: dest (newly-allocated reversed string)
+ */
+char *
+stringReverse(const char  *src)
+{
+char    *dest;
+l_int32  i, len;
+
+    PROCNAME("stringReverse");
+
+    if (!src)
+        return (char *)ERROR_PTR("src not defined", procName, NULL);
+    len = strlen(src);
+    if ((dest = (char *)CALLOC(len + 1, sizeof(char))) == NULL)
+        return (char *)ERROR_PTR("calloc fail for dest", procName, NULL);
+    for (i = 0; i < len; i++)
+        dest[i] = src[len - 1 - i];
+
     return dest;
 }
 
@@ -774,7 +836,7 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
         loc = *ploc;
     else
         loc = 0;
-    if ((ptr = strstr(src + loc, sub1)) == NULL) {
+    if ((ptr = (char *)strstr(src + loc, sub1)) == NULL) {
         return NULL;
     }
 
@@ -1501,4 +1563,3 @@ FILETIME  start, stop, kernel, user;
 }
 
 #endif
-

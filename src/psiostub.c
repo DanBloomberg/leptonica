@@ -13,14 +13,18 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#include <stdio.h>
-#include "allheaders.h"
-
 /*
  *  psiostub.c
  *
  *     Stubs for psio.c functions
  */
+
+#include <stdio.h>
+#include "allheaders.h"
+
+/* --------------------------------------------*/
+#if  !USE_PSIO   /* defined in environ.h */
+/* --------------------------------------------*/
 
 l_int32 convertFilesToPS(const char *dirin, const char *substr, l_int32 res, const char *fileout)
 {
@@ -104,17 +108,12 @@ l_int32 convertTiffG4ToPSString(const char *filein, char **poutstr, l_int32 *pnb
     return ERROR_INT("function not present", "convertTiffG4ToPSString", 1);
 }
 
-l_int32 extractTiffG4DataFromFile(const char *filein, l_uint8 **pdata, l_int32 *pnbytes, l_int32 *pw, l_int32 *ph, l_int32 *pminisblack)
-{
-    return ERROR_INT("function not present", "extractTiffG4DataFromFile", 1);
-}
-
 l_int32 convertTiffMultipageToPS(const char *filein, const char *fileout, const char *tempfile, l_float32 fillfract)
 {
     return ERROR_INT("function not present", "convertTiffMultipageToPS", 1);
 }
 
-l_int32 pixWriteMemPS(l_uint8 **pdata, l_uint32 *psize, PIX *pix, BOX *box, l_int32 res, l_float32 scale)
+l_int32 pixWriteMemPS(l_uint8 **pdata, size_t *psize, PIX *pix, BOX *box, l_int32 res, l_float32 scale)
 {
     return ERROR_INT("function not present", "pixWriteMemPS", 1);
 }
@@ -143,4 +142,8 @@ l_uint8 * decodeAscii85(char *ina, l_int32 insize, l_int32 *poutsize)
 {
     return (l_uint8 * )ERROR_PTR("function not present", "decodeAscii85", NULL);
 }
+
+/* --------------------------------------------*/
+#endif  /* !USE_PSIO */
+/* --------------------------------------------*/
 

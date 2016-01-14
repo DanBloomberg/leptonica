@@ -13,14 +13,22 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#include <stdio.h>
-#include "allheaders.h"
-
 /*
  *  tiffiostub.c
  *
  *     Stubs for tiffio.c functions
  */
+
+#include <stdio.h>
+#include "allheaders.h"
+
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  !HAVE_LIBTIFF   /* defined in environ.h */
+/* --------------------------------------------*/
 
 PIX * pixReadTiff(const char *filename, l_int32 n)
 {
@@ -72,6 +80,11 @@ l_int32 findTiffCompression(FILE *fp, l_int32 *pcomp)
     return ERROR_INT("function not present", "findTiffCompression", 1);
 }
 
+l_int32 extractTiffG4DataFromFile(const char *filein, l_uint8 **pdata, l_int32 *pnbytes, l_int32 *pw, l_int32 *ph, l_int32 *pminisblack)
+{
+    return ERROR_INT("function not present", "extractTiffG4DataFromFile", 1);
+}
+
 PIX * pixReadMemTiff(const l_uint8 *cdata, size_t size, l_int32 n)
 {
     return (PIX *)ERROR_PTR("function not present", "pixReadMemTiff", NULL);
@@ -86,4 +99,8 @@ l_int32 pixWriteMemTiffCustom(l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 
 {
     return ERROR_INT("function not present", "pixWriteMemTiffCustom", 1);
 }
+
+/* --------------------------------------------*/
+#endif  /* !HAVE_LIBTIFF */
+/* --------------------------------------------*/
 

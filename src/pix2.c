@@ -64,6 +64,7 @@
  *           l_int32     pixSetRGBComponent()
  *           PIX        *pixGetRGBComponentCmap()
  *           l_int32     composeRGBPixel()
+ *           void        extractRGBValues()
  *           l_int32     pixGetRGBLine()
  *
  *      Conversion between big and little endians
@@ -71,6 +72,8 @@
  *           l_int32     pixEndianByteSwap()
  *           PIX        *pixEndianTwoByteSwapNew()
  *           l_int32     pixEndianTwoByteSwap()
+ *
+ *      *** indicates implicit assumption about RGB component ordering
  */
 
 
@@ -1541,6 +1544,12 @@ RGBA_QUAD  *cta;
  *      Input:  rval, gval, bval
  *              &rgbpixel  (<return> 32-bit pixel)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) A slower implementation uses macros:
+ *            SET_DATA_BYTE(ppixel, COLOR_RED, rval);
+ *            SET_DATA_BYTE(ppixel, COLOR_GREEN, gval);
+ *            SET_DATA_BYTE(ppixel, COLOR_BLUE, bval);
  */
 l_int32
 composeRGBPixel(l_int32    rval,
@@ -1553,11 +1562,37 @@ composeRGBPixel(l_int32    rval,
     if (!ppixel)
         return ERROR_INT("&pixel not defined", procName, 1);
 
-    *ppixel = 0;  /* want the alpha byte to be 0 */
-    SET_DATA_BYTE(ppixel, COLOR_RED, rval);
-    SET_DATA_BYTE(ppixel, COLOR_GREEN, gval);
-    SET_DATA_BYTE(ppixel, COLOR_BLUE, bval);
+    *ppixel = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
+              (bval << L_BLUE_SHIFT);
     return 0;
+}
+
+
+/*!
+ *  extractRGBValues()
+ *
+ *      Input:  pixel (32 bit)
+ *              &rval (<optional return> red component)
+ *              &gval (<optional return> green component)
+ *              &bval (<optional return> blue component)
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) A slower implementation uses macros:
+ *             *prval = GET_DATA_BYTE(&pixel, COLOR_RED);
+ *             *pgval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
+ *             *pbval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
+ */
+void
+extractRGBValues(l_uint32  pixel,
+                 l_int32  *prval,
+                 l_int32  *pgval,
+                 l_int32  *pbval)
+{
+    if (prval) *prval = (pixel >> L_RED_SHIFT) & 0xff;
+    if (pgval) *pgval = (pixel >> L_GREEN_SHIFT) & 0xff;
+    if (pbval) *pbval = (pixel >> L_BLUE_SHIFT) & 0xff;
+    return;
 }
 
 

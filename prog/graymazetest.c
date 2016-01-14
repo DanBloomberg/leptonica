@@ -26,15 +26,15 @@
 #include "allheaders.h"
 
 #define  NPATHS     6
-static const int32 xinit[NPATHS] = {42, 73, 73, 42, 324, 471};
-static const int32 yinit[NPATHS] = {117, 319, 319, 117, 170, 201};
-static const int32 xend[NPATHS] = {419, 419, 233, 326, 418, 128};
-static const int32 yend[NPATHS] = {383, 383, 112, 168, 371, 341};
+static const l_int32 xinit[NPATHS] = {42, 73, 73, 42, 324, 471};
+static const l_int32 yinit[NPATHS] = {117, 319, 319, 117, 170, 201};
+static const l_int32 xend[NPATHS] = {419, 419, 233, 326, 418, 128};
+static const l_int32 yend[NPATHS] = {383, 383, 112, 168, 371, 341};
 
-static const int32  XINIT = 42;
-static const int32  YINIT = 117;
-static const int32  XEND  = 419;
-static const int32  YEND  = 383;
+static const l_int32  XINIT = 42;
+static const l_int32  YINIT = 117;
+static const l_int32  XEND  = 419;
+static const l_int32  YEND  = 383;
 
 
 main(int    argc,

@@ -31,6 +31,9 @@
  *      Differential square sum function for scoring
  *          l_int32    pixFindDifferentialSquareSum()
  *
+ *      Measures of variance of row sums
+ *          l_int32    pixFindNormalizedSquareSum()
+ *
  *
  *      ==============================================================    
  *      Page skew detection
@@ -271,8 +274,8 @@ pixFindSkewSweep(PIX        *pixs,
                  l_float32   sweeprange,
                  l_float32   sweepdelta)
 {
-l_int32    bzero, i, nangles;
-l_float32  deg2rad, rad2deg, theta;
+l_int32    ret, bzero, i, nangles;
+l_float32  deg2rad, theta;
 l_float32  sum, maxscore, maxangle;
 NUMA      *natheta, *nascore;
 PIX       *pix, *pixt;
@@ -290,7 +293,7 @@ PIX       *pix, *pixt;
 
     *pangle = 0.0;  /* init */
     deg2rad = 3.1415926535 / 180.;
-    rad2deg = 1. / deg2rad;
+    ret = 0;
 
         /* Generate reduced image, if requested */
     if (reduction == 1)
@@ -309,13 +312,18 @@ PIX       *pix, *pixt;
     }
 
     nangles = (l_int32)((2. * sweeprange) / sweepdelta + 1);
-    if ((natheta = numaCreate(nangles)) == NULL)
-        return ERROR_INT("natheta not made", procName, 1);
-    if ((nascore = numaCreate(nangles)) == NULL)
-        return ERROR_INT("nascore not made", procName, 1);
+    natheta = numaCreate(nangles);
+    nascore = numaCreate(nangles);
+    pixt = pixCreateTemplate(pix);
 
-    if ((pixt = pixCreateTemplate(pix)) == NULL)
-        return ERROR_INT("pixt not made", procName, 1);
+    if (!pix || !pixt) {
+        ret = ERROR_INT("pix and pixt not both made", procName, 1);
+        goto cleanup;
+    }
+    if (!natheta || !nascore) {
+        ret = ERROR_INT("natheta and nascore not both made", procName, 1);
+        goto cleanup;
+    }
 
     for (i = 0; i < nangles; i++) {
         theta = -sweeprange + i * sweepdelta;   /* degrees */
@@ -366,10 +374,11 @@ PIX       *pix, *pixt;
     }
 #endif  /* DEBUG_PLOT_SCORES */
 
-    numaDestroy(&nascore);
-    numaDestroy(&natheta);
+cleanup:
     pixDestroy(&pix);
     pixDestroy(&pixt);
+    numaDestroy(&nascore);
+    numaDestroy(&natheta);
     return 0;
 }
 
@@ -459,9 +468,9 @@ pixFindSkewSweepAndSearchScore(PIX        *pixs,
                                l_float32   sweepdelta,
                                l_float32   minbsdelta)
 {
-l_int32    bzero, i, nangles, n, ratio, maxindex, minloc;
+l_int32    ret, bzero, i, nangles, n, ratio, maxindex, minloc;
 l_int32    width, height;
-l_float32  deg2rad, rad2deg, theta, delta;
+l_float32  deg2rad, theta, delta;
 l_float32  sum, maxscore, maxangle;
 l_float32  centerangle, leftcenterangle, rightcenterangle;
 l_float32  lefttemp, righttemp;
@@ -491,7 +500,7 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     *pangle = 0.0;
     *pconf = 0.0;
     deg2rad = 3.1415926535 / 180.;
-    rad2deg = 1. / deg2rad;
+    ret = 0;
 
         /* Generate reduced image for binary search, if requested */
     if (redsearch == 1)
@@ -533,16 +542,16 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     nascore = numaCreate(nangles);
 
     if (!pixsch || !pixsw) {
-        ERROR_VOID("pixsch and pixsw not both made", procName);
-	goto cleanup;
+        ret = ERROR_INT("pixsch and pixsw not both made", procName, 1);
+        goto cleanup;
     }
     if (!pixt1 || !pixt2) {
-        ERROR_VOID("pixt1 and pixt2 not both made", procName);
-	goto cleanup;
+        ret = ERROR_INT("pixt1 and pixt2 not both made", procName, 1);
+        goto cleanup;
     }
     if (!natheta || !nascore) {
-        ERROR_VOID("natheta and nascore not both made", procName);
-	goto cleanup;
+        ret = ERROR_INT("natheta and nascore not both made", procName, 1);
+        goto cleanup;
     }
 
         /* Do sweep */
@@ -705,8 +714,9 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
         *pconf = 0.0;
 
 #if  DEBUG_PRINT_BINARY
-    L_INFO_FLOAT2(" From binary search: angle = %7.3f, score ratio = %8.2f",
-                  procName, *pangle, *pconf);
+    fprintf(stderr, "Binary search: angle = %7.3f, score ratio = %6.2f\n",
+            *pangle, *pconf);
+    fprintf(stderr, "               max score = %8.0f\n", maxscore);
 #endif  /* DEBUG_PRINT_BINARY */
 
 #if  DEBUG_PLOT_SCORES
@@ -725,14 +735,13 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
 #endif  /* DEBUG_PLOT_SCORES */
 
 cleanup:
-    numaDestroy(&nascore);
-    numaDestroy(&natheta);
     pixDestroy(&pixsw);
     pixDestroy(&pixsch);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
-
-    return 0;
+    numaDestroy(&nascore);
+    numaDestroy(&natheta);
+    return ret;
 }
 
 
@@ -795,4 +804,95 @@ NUMA      *na;
     *psum = sum;
     return 0;
 }
+
+
+/*----------------------------------------------------------------*
+ *                        Normalized square sum                   *
+ *----------------------------------------------------------------*/
+/*!
+ *  pixFindNormalizedSquareSum()
+ *
+ *      Input:  pixs
+ *              &hratio (<optional return> ratio of normalized horiz square sum
+ *                       to result if the pixel distribution were uniform)
+ *              &vratio (<optional return> ratio of normalized vert square sum
+ *                       to result if the pixel distribution were uniform)
+ *              &fract  (<optional return> ratio of fg pixels to total pixels)
+ *      Return: 0 if OK, 1 on error or if there are no fg pixels
+ *
+ *  Notes:
+ *      (1) Let the image have h scanlines and N fg pixels.
+ *          If the pixels were uniformly distributed on scanlines,
+ *          the sum of squares of fg pixels on each scanline would be
+ *          h * (N / h)^2.  However, if the pixels are not uniformly
+ *          distributed (e.g., for text), the sum of squares of fg
+ *          pixels will be larger.  We return in hratio and vratio the
+ *          ratio of these two values.
+ *      (2) If there are no fg pixels, hratio and vratio are returned as 0.0.
+ */
+l_int32
+pixFindNormalizedSquareSum(PIX        *pixs,
+                           l_float32  *phratio,
+                           l_float32  *pvratio,
+                           l_float32  *pfract)
+{
+l_int32    i, w, h, empty;
+l_float32  sum, sumsq, uniform, val;
+NUMA      *na;
+PIX       *pixt;
+
+    PROCNAME("pixFindNormalizedSquareSum");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+    pixGetDimensions(pixs, &w, &h, NULL);
+
+    if (!phratio && !pvratio)
+        return ERROR_INT("nothing to do", procName, 1);
+    if (phratio) *phratio = 0.0;
+    if (pvratio) *pvratio = 0.0;
+
+    empty = 0;
+    if (phratio) {
+        na = pixCountPixelsByRow(pixs, NULL);
+        numaGetSum(na, &sum);  /* fg pixels */
+        if (pfract) *pfract = sum / (l_float32)(w * h);
+        if (sum != 0.0) {
+            uniform = sum * sum / h;   /*  h*(sum / h)^2  */
+            sumsq = 0.0;
+            for (i = 0; i < h; i++) {
+                numaGetFValue(na, i, &val);
+                sumsq += val * val;
+            }
+            *phratio = sumsq / uniform;
+        }
+        else
+            empty = 1;
+        numaDestroy(&na);
+    }
+
+    if (pvratio) {
+        if (empty == 1) return 1;
+        pixt = pixRotateOrth(pixs, 1);
+        na = pixCountPixelsByRow(pixt, NULL);
+        numaGetSum(na, &sum);
+        if (pfract) *pfract = sum / (l_float32)(w * h);
+        if (sum != 0.0) {
+            uniform = sum * sum / w;
+            sumsq = 0.0;
+            for (i = 0; i < w; i++) {
+                numaGetFValue(na, i, &val);
+                sumsq += val * val;
+            }
+            *pvratio = sumsq / uniform;
+        }
+        else
+            empty = 1;
+        pixDestroy(&pixt);
+        numaDestroy(&na);
+    }
+
+    return empty;
+}
+
 

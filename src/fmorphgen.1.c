@@ -21,6 +21,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "allheaders.h"
 
 PIX *pixMorphDwa_1(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);

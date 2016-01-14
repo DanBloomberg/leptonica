@@ -21,8 +21,10 @@
  *          PTA        *generatePtaLine()
  *          PTA        *generatePtaWideLine()
  *          PTA        *generatePtaBox()
+ *          PTA        *generatePtaHashBox()
  *          PTA        *generatePtaBoxa()
  *          PTAA       *generatePtaaBoxa()
+ *          PTAA       *generatePtaaHashBoxa()
  *          PTA        *generatePtaPolyline()
  *          PTA        *generatePtaFilledCircle()
  *
@@ -41,6 +43,10 @@
  *          l_int32     pixRenderBox()
  *          l_int32     pixRenderBoxArb()
  *          l_int32     pixRenderBoxBlend()
+ *
+ *          l_int32     pixRenderHashBox()
+ *          l_int32     pixRenderHashBoxArb()
+ *          l_int32     pixRenderHashBoxBlend()
  *
  *          l_int32     pixRenderBoxa()
  *          l_int32     pixRenderBoxaArb()
@@ -271,6 +277,96 @@ PTA     *ptad, *pta;
 
 
 /*!
+ *  generatePtaHashBox()
+ *
+ *      Input:  box
+ *              spacing (spacing between lines; must be > 1)
+ *              width  (line width)
+ *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
+ *              outline  (0 to skip drawing box outline)
+ *      Return: ptad, or null on error
+ *
+ *  Notes:
+ *      (1) The orientation takes on one of 4 orientations (horiz, vertical,
+ *          slope +1, slope -1).
+ *      (2) The full outline is also drawn if @outline = 1.
+ */
+PTA  *
+generatePtaHashBox(BOX     *box,
+                   l_int32  spacing,
+                   l_int32  width,
+                   l_int32  orient,
+                   l_int32  outline)
+{
+l_int32  bx, by, bh, bw, x, y, x1, y1, x2, y2, i, n, npts;
+PTA     *ptad, *pta;
+
+    PROCNAME("generatePtaHashBox");
+
+    if (!box)
+        return (PTA *)ERROR_PTR("box not defined", procName, NULL);
+    if (spacing <= 1)
+        return (PTA *)ERROR_PTR("spacing not > 1", procName, NULL);
+    if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
+        orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
+        return (PTA *)ERROR_PTR("invalid line orientation", procName, NULL);
+
+        /* Generate line points and add them to the pta. */
+    boxGetGeometry(box, &bx, &by, &bw, &bh);
+    ptad = ptaCreate(0);
+    if (outline) {
+        pta = generatePtaBox(box, width);
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+    }
+    if (orient == L_HORIZONTAL_LINE) {
+        n = 1 + bh / spacing;
+        for (i = 0; i < n; i++) {
+            y = by + (i * (bh - 1)) / (n - 1);
+            pta = generatePtaWideLine(bx, y, bx + bw - 1, y, width);
+            ptaJoin(ptad, pta, 0, 0);
+            ptaDestroy(&pta);
+	}
+    }
+    else if (orient == L_VERTICAL_LINE) {
+        n = 1 + bw / spacing;
+        for (i = 0; i < n; i++) {
+            x = bx + (i * (bw - 1)) / (n - 1);
+            pta = generatePtaWideLine(x, by, x, by + bh - 1, width);
+            ptaJoin(ptad, pta, 0, 0);
+            ptaDestroy(&pta);
+	}
+    }
+    else if (orient == L_POS_SLOPE_LINE) {
+        n = 2 + (l_int32)((bw + bh) / (1.4 * spacing));
+        for (i = 0; i < n; i++) {
+            x = (l_int32)(bx + (i + 0.5) * 1.4 * spacing);
+            boxIntersectByLine(box, x, by - 1, 1.0, &x1, &y1, &x2, &y2, &npts);
+            if (npts == 2) {
+                pta = generatePtaWideLine(x1, y1, x2, y2, width);
+                ptaJoin(ptad, pta, 0, 0);
+                ptaDestroy(&pta);
+            }
+        }
+    }
+    else {  /* orient == L_NEG_SLOPE_LINE */
+        n = 2 + (l_int32)((bw + bh) / (1.4 * spacing));
+        for (i = 0; i < n; i++) {
+            x = (l_int32)(bx - bh + (i + 0.5) * 1.4 * spacing);
+            boxIntersectByLine(box, x, by - 1, -1.0, &x1, &y1, &x2, &y2, &npts);
+            if (npts == 2) {
+                pta = generatePtaWideLine(x1, y1, x2, y2, width);
+                ptaJoin(ptad, pta, 0, 0);
+                ptaDestroy(&pta);
+            }
+        }
+    }
+
+    return ptad;
+}
+
+
+/*!
  *  generatePtaBoxa()
  *
  *      Input:  boxa
@@ -353,6 +449,59 @@ PTAA    *ptaa;
         ptaAddPt(pta, x + w - 1, y);
         ptaAddPt(pta, x + w - 1, y + h - 1);
         ptaAddPt(pta, x, y + h - 1);
+        ptaaAddPta(ptaa, pta, L_INSERT);
+        boxDestroy(&box);
+    }
+
+    return ptaa;
+}
+
+
+/*!
+ *  generatePtaaHashBoxa()
+ *
+ *      Input:  boxa
+ *              spacing (spacing between hash lines; must be > 1)
+ *              width  (hash line width)
+ *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
+ *              outline  (0 to skip drawing box outline)
+ *      Return: ptaa, or null on error
+ *
+ *  Notes:
+ *      (1) The orientation takes on one of 4 orientations (horiz, vertical,
+ *          slope +1, slope -1).
+ *      (2) The full outline is also drawn if @outline = 1.
+ *      (3) Each of these pta can be rendered onto a pix with random colors,
+ *          by using pixRenderRandomCmapPtaa() with closeflag = 1.
+ *
+ */
+PTAA  *
+generatePtaaHashBoxa(BOXA    *boxa,
+                     l_int32  spacing,
+                     l_int32  width,
+                     l_int32  orient,
+                     l_int32  outline)
+{
+l_int32  i, n;
+BOX     *box;
+PTA     *pta;
+PTAA    *ptaa;
+
+    PROCNAME("generatePtaaHashBoxa");
+
+    if (!boxa)
+        return (PTAA *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (spacing <= 1)
+        return (PTAA *)ERROR_PTR("spacing not > 1", procName, NULL);
+    if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
+        orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
+        return (PTAA *)ERROR_PTR("invalid line orientation", procName, NULL);
+
+    n = boxaGetCount(boxa);
+    ptaa = ptaaCreate(n);
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        pta = generatePtaHashBox(box, spacing, width, orient, outline);
         ptaaAddPta(ptaa, pta, L_INSERT);
         boxDestroy(&box);
     }
@@ -499,11 +648,9 @@ l_int32  i, n, x, y, w, h, d, maxval;
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
         return ERROR_INT("invalid op", procName, 1);
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, &d);
     maxval = 1;
     if (op == L_SET_PIXELS) {
-        d = pixGetDepth(pix);
         switch (d)
         {
         case 2: 
@@ -596,7 +743,7 @@ PIXCMAP  *cmap;
     }
 
     cmap = pixGetColormap(pix);
-    d = pixGetDepth(pix);
+    pixGetDimensions(pix, &w, &h, &d);
     if (cmap) {
         if (pixcmapAddNewColor(cmap, rval, gval, bval, &index))
             return ERROR_INT("colormap is full", procName, 1);
@@ -612,8 +759,6 @@ PIXCMAP  *cmap;
             composeRGBPixel(rval, gval, bval, &val32);
     }
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
     n = ptaGetCount(pta);
     for (i = 0; i < n; i++) {
         ptaGetIPt(pta, i, &x, &y);
@@ -670,8 +815,7 @@ l_float32  frval, fgval, fbval;
         fract = 0.5;
     }
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
+    pixGetDimensions(pix, &w, &h, NULL);
     n = ptaGetCount(pta);
     frval = fract * rval;
     fgval = fract * gval;
@@ -920,6 +1064,147 @@ PTA  *pta;
         return ERROR_INT("box not defined", procName, 1);
 
     if ((pta = generatePtaBox(box, width)) == NULL)
+        return ERROR_INT("pta not made", procName, 1);
+    pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
+    ptaDestroy(&pta);
+    return 0;
+}
+
+
+/*!
+ *  pixRenderHashBox()
+ *
+ *      Input:  pix
+ *              box
+ *              spacing (spacing between lines; must be > 1)
+ *              width  (thickness of box and hash lines)
+ *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
+ *              outline  (0 to skip drawing box outline)
+ *              op  (one of L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixRenderHashBox(PIX     *pix,
+                 BOX     *box,
+                 l_int32  spacing,
+                 l_int32  width,
+                 l_int32  orient,
+                 l_int32  outline,
+                 l_int32  op)
+{
+PTA  *pta;
+
+    PROCNAME("pixRenderHashBox");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    if (spacing <= 1)
+        return ERROR_INT("spacing not > 1", procName, 1);
+    if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
+        orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
+        return ERROR_INT("invalid line orientation", procName, 1);
+    if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
+        return ERROR_INT("invalid op", procName, 1);
+
+    pta = generatePtaHashBox(box, spacing, width, orient, outline);
+    if (!pta)
+        return ERROR_INT("pta not made", procName, 1);
+    pixRenderPta(pix, pta, op);
+    ptaDestroy(&pta);
+    return 0;
+}
+
+
+/*!
+ *  pixRenderBoxArb()
+ *
+ *      Input:  pix
+ *              box
+ *              spacing (spacing between lines; must be > 1)
+ *              width  (thickness of box and hash lines)
+ *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
+ *              outline  (0 to skip drawing box outline)
+ *              rval, gval, bval
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixRenderHashBoxArb(PIX     *pix,
+                    BOX     *box,
+                    l_int32  spacing,
+                    l_int32  width,
+                    l_int32  orient,
+                    l_int32  outline,
+                    l_int32  rval,
+                    l_int32  gval,
+                    l_int32  bval)
+{
+PTA  *pta;
+
+    PROCNAME("pixRenderHashBoxArb");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    if (spacing <= 1)
+        return ERROR_INT("spacing not > 1", procName, 1);
+    if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
+        orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
+        return ERROR_INT("invalid line orientation", procName, 1);
+
+    pta = generatePtaHashBox(box, spacing, width, orient, outline);
+    if (!pta)
+        return ERROR_INT("pta not made", procName, 1);
+    pixRenderPtaArb(pix, pta, rval, gval, bval);
+    ptaDestroy(&pta);
+    return 0;
+}
+
+
+/*!
+ *  pixRenderHashBoxBlend()
+ *
+ *      Input:  pix
+ *              box
+ *              spacing (spacing between lines; must be > 1)
+ *              width  (thickness of box and hash lines)
+ *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
+ *              outline  (0 to skip drawing box outline)
+ *              rval, gval, bval
+ *              fract (in [0.0 - 1.0]; complete transparency (no effect)
+ *                     if 0.0; no transparency if 1.0)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixRenderHashBoxBlend(PIX       *pix,
+                      BOX       *box,
+                      l_int32    spacing,
+                      l_int32    width,
+                      l_int32    orient,
+                      l_int32    outline,
+                      l_int32    rval,
+                      l_int32    gval,
+                      l_int32    bval,
+                      l_float32  fract)
+{
+PTA  *pta;
+
+    PROCNAME("pixRenderHashBoxBlend");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    if (spacing <= 1)
+        return ERROR_INT("spacing not > 1", procName, 1);
+    if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
+        orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
+        return ERROR_INT("invalid line orientation", procName, 1);
+
+    pta = generatePtaHashBox(box, spacing, width, orient, outline);
+    if (!pta)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);

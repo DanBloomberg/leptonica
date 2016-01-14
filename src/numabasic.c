@@ -40,6 +40,8 @@
  *          l_float32   *numaGetFArray()
  *          l_int32      numaGetRefcount()
  *          l_int32      numaChangeRefcount()
+ *          l_int32      numaGetXParameters()
+ *          l_int32      numaSetXParameters()
  *
  *      Serialize numa for I/O
  *          l_int32      numaRead()
@@ -112,6 +114,15 @@
  *        precision for large integers, whereas you must cast (l_int32)
  *        to go from l_float32 --> l_int32 because you're truncating
  *        to the integer value.
+ *
+ *    (5) In situations where the data in a numa correspond to a function,
+ *        y(x), the values can be either at equal spacings in x or at
+ *        arbitrary spacings.  For the former, we can represent all x values
+ *        by two parameters: startx (corresponding to y[0]) and delx
+ *        for the change in x for adjacent values y[i] and y[i+1].
+ *        startx and delx are initialized to 0.0 and 1.0, rsp.
+ *        For arbitrary spacings, we use a second numa, and the two
+ *        numas are typically denoted nay and nax.
  */
 
 #include <stdio.h>
@@ -150,6 +161,8 @@ NUMA  *na;
     na->nalloc = n;
     na->n = 0;
     na->refcount = 1;
+    na->startx = 0.0;
+    na->delx = 1.0;
 
     return na;
 }
@@ -243,6 +256,8 @@ NUMA    *cna;
 
     if ((cna = numaCreate(na->nalloc)) == NULL)
         return (NUMA *)ERROR_PTR("cna not made", procName, NULL);
+    cna->startx = na->startx;
+    cna->delx = na->delx;
 
     for (i = 0; i < na->n; i++)
         numaAddNumber(cna, na->array[i]);
@@ -627,10 +642,10 @@ l_float32  *array;
     if (!na)
         return (l_float32 *)ERROR_PTR("na not defined", procName, NULL);
 
-    n = numaGetCount(na);
     if (copyflag == L_NOCOPY)
         array = na->array;
     else {  /* copyflag == L_COPY */
+        n = numaGetCount(na);
         if ((array = (l_float32 *)CALLOC(n, sizeof(l_float32))) == NULL)
             return (l_float32 *)ERROR_PTR("array not made", procName, NULL);
         for (i = 0; i < n; i++)
@@ -678,6 +693,56 @@ numaChangeRefcount(NUMA    *na,
 }
 
 
+/*!
+ *  numaGetXParameters()
+ *
+ *      Input:  na
+ *              &startx (<optional return> startx)
+ *              &delx (<optional return> delx)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaGetXParameters(NUMA       *na,
+                   l_float32  *pstartx,
+                   l_float32  *pdelx)
+{
+    PROCNAME("numaGetXParameters");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+
+    if (pstartx) *pstartx = na->startx;
+    if (pdelx) *pdelx = na->delx;
+    return 0;
+}
+
+
+/*!
+ *  numaSetXParameters()
+ *
+ *      Input:  na
+ *              startx (x value corresponding to na[0])
+ *              delx (difference in x values for the situation where the
+ *                    elements of na correspond to the evaulation of a
+ *                    function at equal intervals of size @delx)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaSetXParameters(NUMA      *na,
+                   l_float32  startx,
+                   l_float32  delx)
+{
+    PROCNAME("numaSetXParameters");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+
+    na->startx = startx;
+    na->delx = delx;
+    return 0;
+}
+
+
 /*----------------------------------------------------------------------*
  *                        Serialize for I/O                             *
  *----------------------------------------------------------------------*/
@@ -721,7 +786,7 @@ NUMA *
 numaReadStream(FILE  *fp)
 {
 l_int32    i, n, index, ret, version;
-l_float32  val;
+l_float32  val, startx, delx;
 NUMA      *na;
 
     PROCNAME("numaReadStream");
@@ -744,6 +809,10 @@ NUMA      *na;
             return (NUMA *)ERROR_PTR("bad input data", procName, NULL);
         numaAddNumber(na, val);
     }
+
+        /* Optional data */
+    if ((fscanf(fp, "startx = %f, delx = %f\n", &startx, &delx)) == 2)
+        numaSetXParameters(na, startx, delx);
 
     return na;
 }
@@ -788,7 +857,8 @@ l_int32
 numaWriteStream(FILE  *fp,
                 NUMA  *na)
 {
-l_int32  i, n;
+l_int32    i, n;
+l_float32  startx, delx;
 
     PROCNAME("numaWriteStream");
 
@@ -803,6 +873,11 @@ l_int32  i, n;
     for (i = 0; i < n; i++)
         fprintf(fp, "  [%d] = %f\n", i, na->array[i]);
     fprintf(fp, "\n");
+
+        /* Optional data */
+    numaGetXParameters(na, &startx, &delx);
+    if (startx != 0.0 || delx != 1.0)
+        fprintf(fp, "startx = %f, delx = %f\n", startx, delx);
 
     return 0;
 }

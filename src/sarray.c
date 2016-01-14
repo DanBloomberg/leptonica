@@ -662,6 +662,8 @@ sarrayToString(SARRAY  *sa,
  *          all white space.
  *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
  *          each substring.
+ *      (3) If the sarray is empty, this returns a string with just
+ *          the character corresponding to @addnlflag.
  */
 char *
 sarrayToStringRange(SARRAY  *sa,
@@ -676,8 +678,25 @@ l_int32  n, i, last, size, index, len;
 
     if (!sa)
         return (char *)ERROR_PTR("sa not defined", procName, NULL);
+    if (addnlflag != 0 && addnlflag != 1 && addnlflag != 2)
+        return (char *)ERROR_PTR("invalid addnlflag", procName, NULL);
 
     n = sarrayGetCount(sa);
+
+        /* Empty sa; return char corresponding to addnlflag only */
+    if (n == 0) {
+        if (first == 0) {
+            if (addnlflag == 0)
+                return stringNew("");
+            if (addnlflag == 1)
+                return stringNew("\n");
+	    else  /* addnlflag == 2) */
+                return stringNew(" ");
+        }
+        else
+            return (char *)ERROR_PTR("first not valid", procName, NULL);
+    }
+
     if (first < 0 || first >= n)
         return (char *)ERROR_PTR("first not valid", procName, NULL);
     if (nstrings == 0 || (nstrings > n - first))

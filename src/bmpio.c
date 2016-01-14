@@ -13,7 +13,6 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  bmpio.c
  *
@@ -33,6 +32,10 @@
 #include <stdlib.h>
 #include "allheaders.h"
 #include "bmp.h"
+
+/* --------------------------------------------*/
+#if  USE_BMPIO   /* defined in environ.h */
+/* --------------------------------------------*/
 
 RGBA_QUAD   bwmap[2] = { {255,255,255,0}, {0,0,0,0} };
 
@@ -477,7 +480,12 @@ RGBA_QUAD  *pquad;
 /*---------------------------------------------------------------------*
  *                         Read/write to memory                        *
  *---------------------------------------------------------------------*/
-#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+#if HAVE_FMEMOPEN || \
+ (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
 
 extern FILE *open_memstream(char **data, size_t *size);
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
@@ -494,7 +502,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
  */
 PIX *
 pixReadMemBmp(const l_uint8  *cdata,
-              l_uint32        size)
+              size_t          size)
 {
 l_uint8  *data;
 FILE     *fp;
@@ -506,7 +514,7 @@ PIX      *pix;
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
 
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
-    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+    if ((fp = fmemopen(data, size, "r")) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
     pix = pixReadStreamBmp(fp);
     fclose(fp);
@@ -528,10 +536,11 @@ PIX      *pix;
  */
 l_int32
 pixWriteMemBmp(l_uint8  **pdata,
-               l_uint32  *psize,
+               size_t    *psize,
                PIX       *pix)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixWriteMemBmp");
 
@@ -542,32 +551,38 @@ FILE  *fp;
     if (!pix)
         return ERROR_INT("&pix not defined", procName, 1 );
 
-    if ((fp = open_memstream((char **)pdata, (size_t *)psize)) == NULL)
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    pixWriteStreamBmp(fp, pix);
+    ret = pixWriteStreamBmp(fp, pix);
     fclose(fp);
-    return 0;
+    return ret;
 }
 
 #else
 
 PIX *
 pixReadMemBmp(const l_uint8  *data,
-              l_uint32        size)
+              size_t          size)
 {
-    return (PIX *)ERROR_PTR("bmp read from memory not implemented on windows",
-                            "pixReadMemBmp", NULL);
+    return (PIX *)ERROR_PTR(
+        "bmp read from memory not implemented on this platform",
+        "pixReadMemBmp", NULL);
 }
 
 
 l_int32
 pixWriteMemBmp(l_uint8  **pdata,
-               l_uint32  *psize,
+               size_t    *psize,
                PIX       *pix)
 {
-    return ERROR_INT("bmp write to memory not implemented on windows",
-                     "pixWriteMemBmp", 1);
+    return ERROR_INT(
+        "bmp write to memory not implemented on this platform",
+        "pixWriteMemBmp", 1);
 }
 
-#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
+#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
+
+/* --------------------------------------------*/
+#endif  /* USE_BMPIO */
+/* --------------------------------------------*/
 

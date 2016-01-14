@@ -13,18 +13,62 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+#ifndef  LEPTONICA_ENVIRON_H
+#define  LEPTONICA_ENVIRON_H
 
-#ifndef ENVIRON_H_INCLUDED
-#define ENVIRON_H_INCLUDED
-
-#if !defined(USE_PSTDINT)
 #include <stdint.h>
-#else
-#include "pstdint.h"
-#endif
 
 typedef intptr_t l_intptr_t;
 typedef uintptr_t l_uintptr_t;
+
+
+/*--------------------------------------------------------------------*
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*
+ *                          USER CONFIGURABLE                         *
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*
+ *                 Environ variables with I/O libraries               *
+ *               Manual Configuration Only: NOT AUTO_CONF             *
+ *--------------------------------------------------------------------*/
+/*
+ *  Leptonica provides interfaces to link to four external image I/O
+ *  libraries, plus zlib.  Setting any of these to 0 causes
+ *  non-functioning stubs to be linked.
+ */
+#ifndef HAVE_CONFIG_H
+#define  HAVE_LIBJPEG     1
+#define  HAVE_LIBTIFF     1
+#define  HAVE_LIBPNG      1
+#define  HAVE_LIBZ        1
+#define  HAVE_LIBGIF      0
+#endif  /* ~HAVE_CONFIG_H */
+
+/*
+ * On linux systems, you can do I/O between Pix and memory.  Specifically,
+ * you can compress (write compressed data to memory from a Pix) and
+ * uncompress (read from compressed data in memory to a Pix).
+ * For all but TIFF and PS, these use the non-posix GNU functions
+ * fmemopen() and open_memstream().  These functions are not
+ * available on other systems.  To use these functions in linux,
+ * you must comment out the #define _STANDARD_C_ line here.
+ */
+#ifndef HAVE_CONFIG_H
+#define  _STANDARD_C_
+#endif  /* ~HAVE_CONFIG_H */
+
+
+/*--------------------------------------------------------------------*
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*
+ *                          USER CONFIGURABLE                         *
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*
+ *       Environ variables for uncompressed formatted image I/O       *
+ *--------------------------------------------------------------------*/
+/*
+ *  Leptonica supplies image I/O for pnm, bmp and ps.
+ *  Setting any of these to 0 causes non-functioning stubs to be linked.
+ */
+#define  USE_BMPIO        1
+#define  USE_PNMIO        1
+#define  USE_PSIO         1
 
 
 /*--------------------------------------------------------------------*
@@ -77,7 +121,7 @@ typedef double                  l_float64;
 
 
 /*--------------------------------------------------------------------*
- *         Use environ variables within compiler invocation           *
+ *         Environ variables used within compiler invocation          *
  *--------------------------------------------------------------------*/
 /*
  *  To control conditional compilation, one of two variables
@@ -86,10 +130,7 @@ typedef double                  l_float64;
  *       L_BIG_ENDIAN     (e.g., for Sun SPARC, Mac Power PC)
  *
  *  is defined when the GCC compiler is invoked.
- *
- *  N.B.  All code should compile properly for both hardware
- *        architectures.  However, it has only been thoroughly
- *        tested on X86 hardware.
+ *  All code should compile properly for both hardware architectures.
  */
 
 
@@ -130,6 +171,7 @@ enum {
 #define L_WARNING(a,b)
 #define L_WARNING_STRING(a,b,c)
 #define L_WARNING_INT(a,b,c)
+#define L_WARNING_FLOAT(a,b,c)
 #define L_INFO(a,b)
 #define L_INFO_STRING(a,b,c)
 #define L_INFO_INT(a,b,c)
@@ -147,6 +189,7 @@ enum {
 #define L_WARNING(a,b)              l_warning((a),(b))
 #define L_WARNING_STRING(a,b,c)     l_warningString((a),(b),(c))
 #define L_WARNING_INT(a,b,c)        l_warningInt((a),(b),(c))
+#define L_WARNING_FLOAT(a,b,c)      l_warningFloat((a),(b),(c))
 #define L_INFO(a,b)                 l_info((a),(b))
 #define L_INFO_STRING(a,b,c)        l_infoString((a),(b),(c))
 #define L_INFO_INT(a,b,c)           l_infoInt((a),(b),(c))
@@ -157,5 +200,5 @@ enum {
 #endif  /* NO_CONSOLE_IO */
 
 
-#endif /* ENVIRON_H_INCLUDED */
+#endif /* LEPTONICA_ENVIRON_H */
 

@@ -21,6 +21,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "allheaders.h"
 
 PIX *pixHMTDwa_1(PIX *pixd, PIX *pixs, char *selname);

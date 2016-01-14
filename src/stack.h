@@ -13,6 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+#ifndef  LEPTONICA_STACK_H
+#define  LEPTONICA_STACK_H
 
 /*
  *  stack.h
@@ -32,25 +34,22 @@
  *
  *       The auxiliary stack can be used to store and remove
  *       objects for re-use.  It must be created by a separate
- *       call to stackCreate().  [Just imagine the chaos if
- *       stackCreate() created the auxiliary stack!]   
- *       stackDestroy() checks for the auxiliary stack and removes it.
+ *       call to pstackCreate().  [Just imagine the chaos if
+ *       pstackCreate() created the auxiliary stack!]   
+ *       pstackDestroy() checks for the auxiliary stack and removes it.
  */
 
-#ifndef STACK_H_INCLUDED
-#define STACK_H_INCLUDED
 
-
-    /* note that array[n] is the first null ptr in the array */
-struct Stack
+    /* Note that array[n] is the first null ptr in the array */
+struct PStack
 {
-    l_int32        nalloc;       /* size of ptr array              */
-    l_int32        n;            /* number of stored elements      */
-    void         **array;        /* ptr array                      */
-    struct Stack  *auxstack;     /* auxiliary stack                */
+    l_int32         nalloc;       /* size of ptr array              */
+    l_int32         n;            /* number of stored elements      */
+    void          **array;        /* ptr array                      */
+    struct PStack  *auxstack;     /* auxiliary stack                */
 };
-typedef struct Stack  STACK;
+typedef struct PStack  PSTACK;
 
 
+#endif /*  LEPTONICA_STACK_H */
 
-#endif /* STACK_H_INCLUDED */

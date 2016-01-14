@@ -205,6 +205,7 @@ static char  mainName[] = "ioformats_reg";
 
     /* ---------------- Part 4: Test non-tiff r/w to memory ---------------- */
 
+#ifndef _STANDARD_C_
     pixDisplayWrite(NULL, -1);
     success = TRUE;
     for (i = 0; i < n; i++) {
@@ -228,6 +229,7 @@ static char  mainName[] = "ioformats_reg";
     else
         fprintf(stderr,
             "\n  ***** Failure on at least one non-tiff r/w to memory *****\n");
+#endif  /*  ~_STANDARD_C_  */
 
     system("gthumb junk_write_display* &");
 
@@ -337,10 +339,10 @@ test_writemem(PIX      *pixs,
               l_int32   format,
               char     *psfile)
 {
-l_uint8  *data;
+l_uint8  *data = NULL;
 l_int32   same;
-l_uint32  size;
-PIX      *pixd;
+size_t    size = 0;
+PIX      *pixd = NULL;
 
     if (format == IFF_PS) {
        pixWriteMemPS(&data, &size, pixs, NULL, 0, 1.0);
@@ -349,8 +351,15 @@ PIX      *pixd;
        return 0;
     }
 
-    pixWriteMem(&data, &size, pixs, format);
-    pixd = pixReadMem(data, size);
+    if (pixWriteMem(&data, &size, pixs, format)) {
+        fprintf(stderr, "Mem write fail for format %d\n", format);
+        return 1;
+    }
+    if ((pixd = pixReadMem(data, size)) == NULL) {
+        fprintf(stderr, "Mem read fail for format %d\n", format);
+        FREE(data);
+        return 1;
+    }
     if (format == IFF_JFIF_JPEG) {
         fprintf(stderr, "jpeg size = %d\n", size);
         pixDisplayWrite(pixd, 1);

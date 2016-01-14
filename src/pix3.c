@@ -22,14 +22,17 @@
  *      (2) Full-image bit-logical operations
  *      (3) Pixel counting operations
  *      (4) Pixel histograms
- *      (5) Rectangle extraction
- *      (6) Foreground extraction on binary image
+ *      (5) Foreground/background estimation
+ *      (6) Rectangle extraction
+ *      (7) Mirrored tiling of a smaller image
  *
  *      Masked operations
  *           l_int32     pixSetMasked()
  *           l_int32     pixSetMaskedGeneral()
  *           l_int32     pixCombineMasked()
  *           l_int32     pixPaintThroughMask()
+ *           l_int32     pixCombineThroughMask()
+ *           PIX        *pixPaintSelfThroughMask()
  *
  *      One and two-image boolean operations on arbitrary depth images
  *           PIX        *pixInvert()
@@ -61,16 +64,26 @@
  *           PIX        *pixGetAverageTiled()
  *           l_int32     pixGetExtremeValue()
  *
+ *      Foreground/background estimation
+ *           l_int32     pixThresholdForFgBg()
+ *           l_int32     pixSplitDistributionFgBg()
+ *
  *      Measurement of properties
  *           l_int32     pixFindAreaPerimRatio()
  *
  *      Extract rectangle
  *           PIX        *pixClipRectangle()
+ *           PIX        *pixClipMasked()
  *
  *      Clip to foreground
  *           PIX        *pixClipToForeground()
+ *
+ *      Mirrored tiling
+ *           PIX        *pixMirroredTiling()
+ *
+ *      Static helper function
+ *           static l_int32  findTilePatchCenter()
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,6 +91,10 @@
 #include <math.h>
 
 #include "allheaders.h"
+
+static l_int32 findTilePatchCenter(PIX *pixs, BOX *box, l_int32 dir,
+                                   l_uint32 targdist, l_uint32 *pdist,
+                                   l_int32 *pxc, l_int32 *pyc);
 
 static const l_uint32 rmask32[] = {0x0,
     0x00000001, 0x00000003, 0x00000007, 0x0000000f,
@@ -101,7 +118,7 @@ static const l_uint32 rmask32[] = {0x0,
 /*!
  *  pixSetMasked()
  *
- *      Input:  pixd (8, 16 or 32 bpp)
+ *      Input:  pixd (1, 2, 4, 8, 16 or 32 bpp; or colormapped)
  *              pixm (<optional> 1 bpp mask; no operation if NULL)
  *              val (value to set at each masked pixel)
  *      Return: 0 if OK; 1 on error
@@ -122,6 +139,8 @@ static const l_uint32 rmask32[] = {0x0,
  *      (6) If you do not want to have the UL corners aligned,
  *          use the function pixSetMaskedGeneral(), which requires
  *          you to input the UL corner of pixm relative to pixd.
+ *      (7) Implementation details: see comments in pixPaintThroughMask()
+ *          for when we use rasterop to do the painting.
  */
 l_int32
 pixSetMasked(PIX      *pixd,
@@ -129,7 +148,7 @@ pixSetMasked(PIX      *pixd,
              l_uint32  val)
 {
 l_int32    wd, hd, wm, hm, w, h, d, wpld, wplm;
-l_int32    i, j, bitval, rval, gval, bval;
+l_int32    i, j, rval, gval, bval;
 l_uint32  *datad, *datam, *lined, *linem;
 
     PROCNAME("pixSetMasked");
@@ -147,12 +166,52 @@ l_uint32  *datad, *datam, *lined, *linem;
         return pixSetMaskedCmap(pixd, pixm, 0, 0, rval, gval, bval);
     }
 
-    pixGetDimensions(pixd, &wd, &hd, &d);
-    pixGetDimensions(pixm, &wm, &hm, NULL);
-    if (d != 8 && d != 16 && d != 32)
-        return ERROR_INT("pixd not 8, 16 or 32 bpp", procName, 1);
     if (pixGetDepth(pixm) != 1)
         return ERROR_INT("pixm not 1 bpp", procName, 1);
+    d = pixGetDepth(pixd);
+    if (d == 1)
+        val &= 1;
+    else if (d == 2)
+        val &= 3;
+    else if (d == 4)
+        val &= 0x0f;
+    else if (d == 8)
+        val &= 0xff;
+    else if (d == 16)
+        val &= 0xffff;
+    else if (d != 32)
+        return ERROR_INT("pixd not 1, 2, 4, 8, 16 or 32 bpp", procName, 1);
+    pixGetDimensions(pixm, &wm, &hm, NULL);
+
+        /* If d == 1, use rasterop; it's about 25x faster */
+    if (d == 1) {
+        if (val == 0) {
+            PIX *pixmi = pixInvert(NULL, pixm);
+            pixRasterop(pixd, 0, 0, wm, hm, PIX_MASK, pixmi, 0, 0);
+            pixDestroy(&pixmi);
+        }
+        else  /* val == 1 */
+            pixRasterop(pixd, 0, 0, wm, hm, PIX_PAINT, pixm, 0, 0);
+        return 0;
+    }
+    
+        /* For d < 32, use rasterop for val == 0 (black); ~3x faster. */
+    if (d < 32 && val == 0) {
+        PIX *pixmd = pixUnpackBinary(pixm, d, 1);
+        pixRasterop(pixd, 0, 0, wm, hm, PIX_MASK, pixmd, 0, 0);
+        pixDestroy(&pixmd);
+        return 0;
+    }
+
+        /* For d < 32, use rasterop for val == maxval (white); ~3x faster. */
+    if (d < 32 && val == ((1 << d) - 1)) {
+        PIX *pixmd = pixUnpackBinary(pixm, d, 0);
+        pixRasterop(pixd, 0, 0, wm, hm, PIX_PAINT, pixmd, 0, 0);
+        pixDestroy(&pixmd);
+        return 0;
+    }
+
+    pixGetDimensions(pixd, &wd, &hd, &d);
     w = L_MIN(wd, wm);
     h = L_MIN(hd, hm);
     if (L_ABS(wd - wm) > 7 || L_ABS(hd - hm) > 7)  /* allow a small tolerance */
@@ -162,38 +221,31 @@ l_uint32  *datad, *datam, *lined, *linem;
     datam = pixGetData(pixm);
     wpld = pixGetWpl(pixd);
     wplm = pixGetWpl(pixm);
-    if (d == 8) {
-        val &= 0xff;
-        for (i = 0; i < h; i++) {
-            lined = datad + i * wpld;
-            linem = datam + i * wplm;
-            for (j = 0; j < w; j++) {
-                bitval = GET_DATA_BIT(linem, j);
-                if (bitval)
+    for (i = 0; i < h; i++) {
+        lined = datad + i * wpld;
+        linem = datam + i * wplm;
+        for (j = 0; j < w; j++) {
+            if (GET_DATA_BIT(linem, j)) {
+                switch(d)
+                {
+                case 2:
+                    SET_DATA_DIBIT(lined, j, val);
+                    break;
+                case 4:
+                    SET_DATA_QBIT(lined, j, val);
+                    break;
+                case 8:
                     SET_DATA_BYTE(lined, j, val);
-            }
-        }
-    }
-    else if (d == 16) {
-        val &= 0xffff;
-        for (i = 0; i < h; i++) {
-            lined = datad + i * wpld;
-            linem = datam + i * wplm;
-            for (j = 0; j < w; j++) {
-                bitval = GET_DATA_BIT(linem, j);
-                if (bitval)
+                    break;
+                case 16:
                     SET_DATA_TWO_BYTES(lined, j, val);
-            }
-        }
-    }
-    else {  /*  d == 32 */
-        for (i = 0; i < h; i++) {
-            lined = datad + i * wpld;
-            linem = datam + i * wplm;
-            for (j = 0; j < w; j++) {
-                bitval = GET_DATA_BIT(linem, j);
-                if (bitval)
+                    break;
+                case 32:
                     *(lined + j) = val;
+                    break;
+                default:
+                    return ERROR_INT("shouldn't get here", procName, 1);
+                }
             }
         }
     }
@@ -368,21 +420,43 @@ l_uint32  *datad, *datas, *datam, *lined, *lines, *linem;
 /*!
  *  pixPaintThroughMask()
  *
- *      Input:  pixd (8 or 32 bpp)
+ *      Input:  pixd (1, 2, 4, 8, 16 or 32 bpp; or colormapped)
  *              pixm (<optional> 1 bpp mask)
  *              x, y (origin of pixm relative to pixd; can be negative)
- *              val (1 byte or rgb color to set at each masked pixel)
+ *              val (pixel value to set at each masked pixel)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
  *      (1) In-place operation.  Calls pixSetMaskedCmap() for colormapped
  *          images.
- *      (2) For 8 bpp gray, we take the LSB of the color
+ *      (2) For 1, 2, 4, 8 and 16 bpp gray, we take the appropriate
+ *          number of least significant bits of val.
  *      (3) If pixm == NULL, it's a no-op.
  *      (4) The mask origin is placed at (x,y) on pixd, and the
  *          operation is clipped to the intersection of rectangles.
  *      (5) For rgb, the components in val are in the canonical locations,
  *          with red in location COLOR_RED, etc.
+ *      (6) Implementation detail 1:
+ *          For painting with val == 0 or val == maxval, you can use rasterop.
+ *          If val == 0, invert the mask so that it's 0 over the region
+ *          into which you want to write, and use PIX_SRC & PIX_DST to
+ *          clear those pixels.  To write with val = maxval (all 1's),
+ *          use PIX_SRC | PIX_DST to set all bits under the mask.
+ *      (7) Implementation detail 2:
+ *          The rasterop trick can be used for depth > 1 as well.
+ *          For val == 0, generate the mask for depth d from the binary
+ *          mask using
+ *              pixmd = pixUnpackBinary(pixm, d, 1);
+ *          and use pixRasterop() with PIX_MASK.  For val == maxval,
+ *              pixmd = pixUnpackBinary(pixm, d, 0);
+ *          and use pixRasterop() with PIX_PAINT.
+ *          But note that if d == 32 bpp, it is about 3x faster to use
+ *          the general implementation (not pixRasterop()).
+ *      (8) Implementation detail 3:
+ *          It might be expected that the switch in the inner loop will
+ *          cause large branching delays and should be avoided.
+ *          This is not the case, because the entrance is always the
+ *          same and the compiler can correctly predict the jump.
  */
 l_int32
 pixPaintThroughMask(PIX      *pixd,
@@ -406,21 +480,58 @@ l_uint32  *data, *datam, *line, *linem;
         bval = GET_DATA_BYTE(&val, COLOR_BLUE);
         return pixSetMaskedCmap(pixd, pixm, x, y, rval, gval, bval);
     }
-    d = pixGetDepth(pixd);
-    if (d != 8 && d != 32)
-        return ERROR_INT("pixd not 8 or 32 bpp", procName, 1);
+
     if (pixGetDepth(pixm) != 1)
         return ERROR_INT("pixm not 1 bpp", procName, 1);
+    d = pixGetDepth(pixd);
+    if (d == 1)
+        val &= 1;
+    else if (d == 2)
+        val &= 3;
+    else if (d == 4)
+        val &= 0x0f;
+    else if (d == 8)
+        val &= 0xff;
+    else if (d == 16)
+        val &= 0xffff;
+    else if (d != 32)
+        return ERROR_INT("pixd not 1, 2, 4, 8, 16 or 32 bpp", procName, 1);
+    pixGetDimensions(pixm, &wm, &hm, NULL);
 
+        /* If d == 1, use rasterop; it's about 25x faster. */
+    if (d == 1) {
+        if (val == 0) {
+            PIX *pixmi = pixInvert(NULL, pixm);
+            pixRasterop(pixd, x, y, wm, hm, PIX_MASK, pixmi, 0, 0);
+            pixDestroy(&pixmi);
+        }
+        else  /* val == 1 */
+            pixRasterop(pixd, x, y, wm, hm, PIX_PAINT, pixm, 0, 0);
+        return 0;
+    }
+    
+        /* For d < 32, use rasterop if val == 0 (black); ~3x faster. */
+    if (d < 32 && val == 0) {
+        PIX *pixmd = pixUnpackBinary(pixm, d, 1);
+        pixRasterop(pixd, x, y, wm, hm, PIX_MASK, pixmd, 0, 0);
+        pixDestroy(&pixmd);
+        return 0;
+    }
+
+        /* For d < 32, use rasterop if val == maxval (white); ~3x faster. */
+    if (d < 32 && val == ((1 << d) - 1)) {
+        PIX *pixmd = pixUnpackBinary(pixm, d, 0);
+        pixRasterop(pixd, x, y, wm, hm, PIX_PAINT, pixmd, 0, 0);
+        pixDestroy(&pixmd);
+        return 0;
+    }
+
+        /* All other cases */
     pixGetDimensions(pixd, &w, &h, NULL);
     wpl = pixGetWpl(pixd);
     data = pixGetData(pixd);
-    pixGetDimensions(pixm, &wm, &hm, NULL);
     wplm = pixGetWpl(pixm);
     datam = pixGetData(pixm);
-
-    if (d == 8)
-        val = val & 0xff;
     for (i = 0; i < hm; i++) {
         if (y + i < 0 || y + i >= h) continue;
         line = data + (y + i) * wpl;
@@ -430,14 +541,23 @@ l_uint32  *data, *datam, *line, *linem;
             if (GET_DATA_BIT(linem, j)) {
                 switch (d)
                 {
+                case 2:
+                    SET_DATA_DIBIT(line, x + j, val);
+                    break;
+                case 4:
+                    SET_DATA_QBIT(line, x + j, val);
+                    break;
                 case 8:
                     SET_DATA_BYTE(line, x + j, val);
+                    break;
+                case 16:
+                    SET_DATA_TWO_BYTES(line, x + j, val);
                     break;
                 case 32:
                     *(line + x + j) = val;
                     break;
                 default:
-                    return ERROR_INT("d not 8 or 32 bpp", procName, 1);
+                    return ERROR_INT("shouldn't get here", procName, 1);
                 }
             }
         }
@@ -446,6 +566,226 @@ l_uint32  *data, *datam, *line, *linem;
     return 0;
 }
     
+
+/*!
+ *  pixCombineThroughMask()
+ *
+ *      Input:  pixd (8 bpp gray or 32 bpp rgb)
+ *              pixs (8 bpp gray or 32 bpp rgb)
+ *              pixm (<optional> 1 bpp mask)
+ *              x, y (origin of pixs and pixm relative to pixd; can be negative)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) In-place operation; pixd is changed.
+ *      (2) This is a general version of pixCombinedMasked(), where
+ *          the source and mask can be placed at the same (arbitrary)
+ *          location relative to pixd.
+ *      (3) pixs and pixd must be the same depth and not colormapped.
+ *      (4) The UL corners of both pixs and pixm are aligned with
+ *          the point (x, y) of pixd, and the operation is clipped to
+ *          the intersection of all three images.
+ *      (5) If pixm == NULL, it's a no-op.
+ */
+l_int32
+pixCombineThroughMask(PIX      *pixd,
+                      PIX      *pixs,
+                      PIX      *pixm,
+                      l_int32   x,
+                      l_int32   y)
+{
+l_int32    d, w, h, ws, hs, ds, wm, hm, dm, wmin, hmin;
+l_int32    wpl, wpls, wplm, i, j, val;
+l_uint32  *data, *datas, *datam, *line, *lines, *linem;
+
+    PROCNAME("pixCombineThroughMask");
+
+    if (!pixm)  /* nothing to do */
+        return 0;
+    if (!pixd)
+        return ERROR_INT("pixd not defined", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixd, &w, &h, &d);
+    pixGetDimensions(pixs, &ws, &hs, &ds);
+    pixGetDimensions(pixm, &wm, &hm, &dm);
+    if (d != ds)
+        return ERROR_INT("pixs and pixd depths differ", procName, 1);
+    if (dm != 1)
+        return ERROR_INT("pixm not 1 bpp", procName, 1);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pixd not 8 or 32 bpp", procName, 1);
+    if (pixGetColormap(pixd) || pixGetColormap(pixs))
+        return ERROR_INT("pixs and/or pixd is cmapped", procName, 1);
+
+    wpl = pixGetWpl(pixd);
+    data = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    datas = pixGetData(pixs);
+    wplm = pixGetWpl(pixm);
+    datam = pixGetData(pixm);
+    wmin = L_MIN(ws, wm);
+    hmin = L_MIN(hs, hm);
+
+    for (i = 0; i < hmin; i++) {
+        if (y + i < 0 || y + i >= h) continue;
+        line = data + (y + i) * wpl;
+        lines = datas + i * wpls;
+        linem = datam + i * wplm;
+        for (j = 0; j < wmin; j++) {
+            if (x + j < 0 || x + j >= w) continue;
+            if (GET_DATA_BIT(linem, j)) {
+                switch (d)
+                {
+                case 8:
+                    val = GET_DATA_BYTE(lines, j);
+                    SET_DATA_BYTE(line, x + j, val);
+                    break;
+                case 32:
+                    *(line + x + j) = *(lines + j);
+                    break;
+                default:
+                    return ERROR_INT("shouldn't get here", procName, 1);
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+    
+
+/*!
+ *  pixPaintSelfThroughMask()
+ *
+ *      Input:  pixd (8 bpp gray or 32 bpp rgb; not colormapped)
+ *              pixm (1 bpp mask)
+ *              x, y (origin of pixm relative to pixd; must not be negative)
+ *              tilesize (requested size for tiling)
+ *              searchdir (L_HORIZ, L_VERT)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) In-place operation; pixd is changed.
+ *      (2) If pixm == NULL, it's a no-op.
+ *      (3) The mask origin is placed at (x,y) on pixd, and the
+ *          operation is clipped to the intersection of pixd and the
+ *          fg of the mask.
+ *      (4) The tilesize is the the requested size for tiling.  The
+ *          actual size for each c.c. will be bounded by the minimum
+ *          dimension of the c.c. and the distance at which the tile
+ *          center is located.
+ *      (5) searchdir is the direction with respect to the b.b. of each
+ *          mask component, from which the square patch is chosen and
+ *          tiled onto the image, clipped by the mask component.
+ *      (6) Specifically, a mirrored tiling, generated from pixd,
+ *          is used to construct the pixels that are painted onto
+ *          pixd through pixm.
+ */
+l_int32
+pixPaintSelfThroughMask(PIX      *pixd,
+                        PIX      *pixm,
+                        l_int32   x,
+                        l_int32   y,
+                        l_int32   tilesize,
+                        l_int32   searchdir)
+{
+l_int32   w, h, d, wm, hm, dm, i, n, xc, yc, bx, by, bw, bh;
+l_int32   depth, cctilesize;
+l_uint32  dist, minside, retval;
+BOX      *box, *boxt;
+BOXA     *boxa;
+PIX      *pix, *pixf, *pixdf, *pixt, *pixc;
+PIXA     *pixa;
+
+    PROCNAME("pixPaintSelfThroughMask");
+
+    if (!pixm)  /* nothing to do */
+        return 0;
+    if (!pixd)
+        return ERROR_INT("pixd not defined", procName, 1);
+    if (pixGetColormap(pixd) != NULL)
+        return ERROR_INT("pixd has colormap", procName, 1);
+    pixGetDimensions(pixd, &w, &h, &d);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pixd not 8 or 32 bpp", procName, 1);
+    pixGetDimensions(pixm, &wm, &hm, &dm);
+    if (dm != 1)
+        return ERROR_INT("pixm not 1 bpp", procName, 1);
+    if (x < 0 || y < 0)
+        return ERROR_INT("x and y must be non-negative", procName, 1);
+    if (tilesize < 1)
+        return ERROR_INT("tilesize must be >= 1", procName, 1);
+    if (searchdir != L_HORIZ && searchdir != L_VERT)
+        return ERROR_INT("searchdir not in {L_HORIZ, L_VERT}", procName, 1);
+
+        /* Embed mask in full sized mask */
+    if (wm < w || hm < h) {
+        pixf = pixCreate(w, h, 1);
+        pixRasterop(pixf, x, y, wm, hm, PIX_SRC, pixm, 0, 0);
+    }
+    else
+        pixf = pixClone(pixm);
+
+        /* Get connected components of mask */
+    boxa = pixConnComp(pixf, &pixa, 8);
+    if ((n = pixaGetCount(pixa)) == 0) {
+        L_WARNING("no fg in mask", procName);
+        pixDestroy(&pixf);
+        pixaDestroy(&pixa);
+        boxaDestroy(&boxa);
+        return 1;
+    }
+
+        /* Get distance function for the mask */
+    pixInvert(pixf, pixf);
+    depth = (tilesize < 256) ? 8 : 16;
+    pixdf = pixDistanceFunction(pixf, 4, depth, L_BOUNDARY_BG);
+    pixDestroy(&pixf);
+
+        /* For each c.c., generate a representative tile for texturizing
+         * and apply it through the mask.  The input 'tilesize' is the
+         * requested value.  findTilePatchCenter() returns the distance
+         * at which this patch can safely be found. */
+    retval = 0;
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixa, i, L_CLONE);
+        box = pixaGetBox(pixa, i, L_CLONE);
+        boxGetGeometry(box, &bx, &by, &bw, &bh);
+	minside = L_MIN(bw, bh);
+
+        findTilePatchCenter(pixdf, box, searchdir, L_MIN(minside, tilesize),
+                            &dist, &xc, &yc);
+        cctilesize = L_MIN(tilesize, dist);  /* for this c.c. */
+        if (cctilesize < 1) {
+            L_WARNING("region not found!", procName);
+            pixDestroy(&pix);
+            boxDestroy(&box);
+            retval = 1;
+            continue;
+        }
+
+            /* Extract the selected square from pixd, and generate 
+             * an image the size of the b.b. of the c.c., which
+             * is then painted through the c.c. mask.  */
+        boxt = boxCreate(L_MAX(0, xc - dist / 2), L_MAX(0, yc - dist / 2),
+                         cctilesize, cctilesize);
+        pixt = pixClipRectangle(pixd, boxt, NULL);
+        pixc = pixMirroredTiling(pixt, bw, bh);
+        pixCombineThroughMask(pixd, pixc, pix, bx, by);
+        pixDestroy(&pix);
+        pixDestroy(&pixt);
+        pixDestroy(&pixc);
+        boxDestroy(&box);
+        boxDestroy(&boxt);
+    }
+
+    pixDestroy(&pixdf);
+    pixaDestroy(&pixa);
+    boxaDestroy(&boxa);
+    return retval;
+}
+
 
 /*-------------------------------------------------------------*
  *    One and two-image boolean ops on arbitrary depth images  *
@@ -2074,7 +2414,7 @@ pixGetAverageTiled(PIX     *pixs,
                    l_int32  sy,
                    l_int32  type)
 {
-l_int32    i, j, k, m, w, h, wd, hd, d, pos, wplt, wpld, valt, rmsval, aveval;
+l_int32    i, j, k, m, w, h, wd, hd, d, pos, wplt, wpld, valt;
 l_uint32  *datat, *datad, *linet, *lined, *startt;
 l_float64  sumave, summs, ave, meansq, normfact;
 PIX       *pixt, *pixd;
@@ -2264,6 +2604,104 @@ PIXCMAP   *cmap;
 
 
 /*-------------------------------------------------------------*
+ *              Foreground/background estimation               *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixThresholdForFgBg()
+ *
+ *      Input:  pixs (any depth; cmapped ok)
+ *              factor (subsampling factor; integer >= 1)
+ *              thresh (threshold for generating foreground mask)
+ *              &fgval (<optional return> average foreground value)
+ *              &bgval (<optional return> average background value)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixThresholdForFgBg(PIX      *pixs,
+                    l_int32   factor,
+                    l_int32   thresh,
+                    l_int32  *pfgval,
+                    l_int32  *pbgval)
+{
+l_float32  fval;
+PIX       *pixg, *pixm;
+
+    PROCNAME("pixThresholdForFgBg");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+
+        /* Generate a subsampled 8 bpp version and a mask over the fg */
+    pixg = pixConvertTo8BySampling(pixs, factor, 0);
+    pixm = pixThresholdToBinary(pixg, thresh);
+
+    if (pfgval) {
+        pixGetAverageMasked(pixg, pixm, 0, 0, 1, L_MEAN_ABSVAL, &fval);
+        *pfgval = (l_int32)(fval + 0.5);
+    }
+
+    if (pbgval) {
+        pixInvert(pixm, pixm);
+        pixGetAverageMasked(pixg, pixm, 0, 0, 1, L_MEAN_ABSVAL, &fval);
+        *pbgval = (l_int32)(fval + 0.5);
+    }
+
+    pixDestroy(&pixg);
+    pixDestroy(&pixm);
+    return 0;
+}
+
+
+/*!
+ *  pixSplitDistributionFgBg()
+ *
+ *      Input:  pixs (any depth; cmapped ok)
+ *              estfract (estimated fraction of low-valued (fg) pixels)
+ *              factor (subsampling factor; integer >= 1)
+ *              &thresh (<optional return> best threshold for separating)
+ *              &fgval (<optional return> average foreground value)
+ *              &bgval (<optional return> average background value)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixSplitDistributionFgBg(PIX       *pixs,
+                         l_float32  estfract,
+                         l_int32    factor,
+                         l_int32   *pthresh,
+                         l_int32   *pfgval,
+                         l_int32   *pbgval)
+{
+l_int32    thresh;
+l_float32  avefg, avebg;
+NUMA      *na;
+PIX       *pixg;
+
+    PROCNAME("pixSplitDistributionFgBg");
+
+    if (pthresh) *pthresh = 0;
+    if (pfgval) *pfgval = 0;
+    if (pbgval) *pbgval = 0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+
+        /* Generate a subsampled 8 bpp version */
+    pixg = pixConvertTo8BySampling(pixs, factor, 0);
+
+        /* Make the fg/bg estimates */
+    na = pixGetGrayHistogram(pixg, 1);
+    numaSplitDistribution(na, estfract, &thresh, &avefg, &avebg, NULL, NULL, 0);
+
+    if (pthresh) *pthresh = thresh;
+    if (pfgval) *pfgval = (l_int32)(avefg + 0.5);
+    if (pbgval) *pbgval = (l_int32)(avebg + 0.5);
+
+    pixDestroy(&pixg);
+    numaDestroy(&na);
+    return 0;
+}
+
+
+/*-------------------------------------------------------------*
  *                 Measurement of properties                   *
  *-------------------------------------------------------------*/
 /*!
@@ -2388,6 +2826,81 @@ PIX     *pixd;
 }
 
 
+/*!
+ *  pixClipMasked()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp; colormap ok)
+ *              pixm  (clipping mask, 1 bpp)
+ *              x, y (origin of clipping mask relative to pixs)
+ *              outval (val to use for pixels that are outside the mask)
+ *      Return: pixd, (clipped pix) or null on error or if pixm doesn't
+ *              intersect pixs
+ *
+ *  Notes:
+ *      (1) If pixs has a colormap, it is preserved in pixd.
+ *      (2) The depth of pixd is the same as that of pixs.
+ *      (3) If the depth of pixs is 1, use @outval = 0 for white background
+ *          and 1 for black; otherwise, use the max value for white
+ *          and 0 for black.  If pixs has a colormap, the max value for
+ *          @outval is 0xffffffff; otherwise, it is 2^d - 1.
+ *      (4) When using 1 bpp pixs, this is a simple clip and
+ *          blend operation.  For example, if both pix1 and pix2 are
+ *          black text on white background, and you want to OR the
+ *          fg on the two images, let pixm be the inverse of pix2.
+ *          Then the operation takes all of pix1 that's in the bg of
+ *          pix2, and for the remainder (which are the pixels
+ *          corresponding to the fg of the pix2), paint them black
+ *          (1) in pix1.  The function call looks like
+ *             pixClipMasked(pix2, pixInvert(pix1, pix1), x, y, 1);
+ */
+PIX *
+pixClipMasked(PIX      *pixs,
+              PIX      *pixm,
+              l_int32   x,
+              l_int32   y,
+              l_uint32  outval)
+{
+l_int32   wm, hm, d, index, rval, gval, bval;
+l_uint32  pixel;
+BOX      *box;
+PIX      *pixmi, *pixd;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixClipMasked");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixm || pixGetDepth(pixm) != 1)
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+
+        /* Clip out the region specified by pixm and (x,y) */
+    pixGetDimensions(pixm, &wm, &hm, NULL);
+    box = boxCreate(x, y, wm, hm);
+    pixd = pixClipRectangle(pixs, box, NULL);
+
+        /* Paint 'outval' (or something close to it if cmapped) through
+         * the pixels not masked by pixm */
+    cmap = pixGetColormap(pixd);
+    pixmi = pixInvert(NULL, pixm);
+    d = pixGetDepth(pixd);
+    if (cmap) {
+        rval = GET_DATA_BYTE(&outval, COLOR_RED);
+        gval = GET_DATA_BYTE(&outval, COLOR_GREEN);
+        bval = GET_DATA_BYTE(&outval, COLOR_BLUE);
+        pixcmapGetNearestIndex(cmap, rval, gval, bval, &index);
+	pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+	composeRGBPixel(rval, gval, bval, &pixel);
+        pixPaintThroughMask(pixd, pixmi, 0, 0, pixel);
+    }
+    else
+        pixPaintThroughMask(pixd, pixmi, 0, 0, outval);
+
+    boxDestroy(&box);
+    pixDestroy(&pixmi);
+    return pixd;
+}
+
+
 /*-------------------------------------------------------------*
  *              Extract min rectangle with ON pixels           *
  *-------------------------------------------------------------*/
@@ -2488,3 +3001,199 @@ maxx_found:
 
     return 0;
 }
+
+
+/*-------------------------------------------------------------*
+ *              Mirrored tiling of a smaller image             *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixMirroredTiling()
+ *
+ *      Input:  pixs (8 or 32 bpp, small tile; to be replicated)
+ *              w, h (dimensions of output pix)
+ *      Return: pixd (usually larger pix, mirror-tiled with pixs),
+ *              or null on error
+ *
+ *  Notes:
+ *      (1) This uses mirrored tiling, where each row alternates
+ *          with LR flips and every column alternates with TB
+ *          flips, such that the result is a tiling with identical
+ *          2 x 2 tiles, each of which is composed of these transforms:
+ *                  -----------------
+ *                  | 1    |  LR    |
+ *                  -----------------
+ *                  | TB   |  LR/TB |
+ *                  -----------------
+ */
+PIX *
+pixMirroredTiling(PIX     *pixs,
+                  l_int32  w,
+                  l_int32  h)
+{
+l_int32   wt, ht, d, i, j, nx, ny;
+PIX      *pixd, *pixsfx, *pixsfy, *pixsfxy, *pix;
+
+    PROCNAME("pixMirroredTiling");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &wt, &ht, &d);
+    if (wt <= 0 || ht <= 0)
+        return (PIX *)ERROR_PTR("pixs size illegal", procName, NULL);
+    if (d != 8 && d != 32)
+        return (PIX *)ERROR_PTR("depth not 32 bpp", procName, NULL);
+    if ((pixd = pixCreate(w, h, d)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+    nx = (w + wt - 1) / wt;
+    ny = (h + ht - 1) / ht;
+    pixsfx = pixFlipLR(NULL, pixs);
+    pixsfy = pixFlipTB(NULL, pixs);
+    pixsfxy = pixFlipTB(NULL, pixsfx);
+    for (i = 0; i < ny; i++) {
+        for (j = 0; j < nx; j++) {
+            pix = pixs;
+            if ((i & 1) && !(j & 1))
+                pix = pixsfy;
+            else if (!(i & 1) && (j & 1))
+                pix = pixsfx;
+            else if ((i & 1) && (j & 1))
+                pix = pixsfxy;
+            pixRasterop(pixd, j * wt, i * ht, wt, ht, PIX_SRC, pix, 0, 0);
+        }
+    }
+
+    pixDestroy(&pixsfx);
+    pixDestroy(&pixsfy);
+    pixDestroy(&pixsfxy);
+    return pixd;
+}
+
+
+/*!
+ *  findTilePatchCenter()
+ *
+ *      Input:  pixs (8 or 16 bpp; distance function of a binary mask)
+ *              box (region of pixs to search around)
+ *              searchdir (L_HORIZ or L_VERT; direction to search)
+ *              targdist (desired distance of selected patch center from fg)
+ *              &dist (<return> actual distance of selected location)
+ *              &xc, &yc (<return> location of selected patch center)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This looks for a patch of non-masked image, that is outside
+ *          but near the input box.  The input pixs is a distance
+ *          function giving the distance from the fg in a binary mask.
+ *      (2) The target distance implicitly specifies a desired size
+ *          for the patch.  The location of the center of the patch,
+ *          and the actual distance from fg are returned.
+ *      (3) If the target distance is larger than 255, a 16-bit distance
+ *          transform is input.
+ *      (4) It is assured that a square centered at (xc, yc) and of
+ *          size 'dist' will not intersect with the fg of the binary
+ *          mask that was used to generate pixs.
+ */
+static l_int32
+findTilePatchCenter(PIX       *pixs,
+                    BOX       *box,
+                    l_int32    searchdir,
+                    l_uint32   targdist,
+                    l_uint32  *pdist,
+                    l_int32   *pxc,
+                    l_int32   *pyc)
+{
+l_int32   w, h, bx, by, bw, bh, left, right, top, bot, i, j;
+l_uint32  val, maxval;
+
+    PROCNAME("findTilePatchCenter");
+
+    if (!pdist || !pxc || !pyc)
+        return ERROR_INT("&pdist, &pxc, &pyc not all defined", procName, 1);
+    *pdist = *pxc = *pyc = 0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    boxGetGeometry(box, &bx, &by, &bw, &bh);
+
+    if (searchdir == L_HORIZ) {
+        left = bx;   /* distance to left of box */
+        right = w - bx - bw + 1;   /* distance to right of box */
+        maxval = 0;
+        if (left > right) {  /* search to left */
+            for (j = bx - 1; j >= 0; j--) {
+                for (i = by; i < by + bh; i++) {
+                    pixGetPixel(pixs, j, i, &val);
+                    if (val > maxval) {
+                        maxval = val;
+                        *pxc = j;
+                        *pyc = i;
+                        *pdist = val;
+                        if (val >= targdist)
+                            return 0;
+                    }
+                }
+            }
+        }
+        else {  /* search to right */
+            for (j = bx + bw; j < w; j++) {
+                for (i = by; i < by + bh; i++) {
+                    pixGetPixel(pixs, j, i, &val);
+                    if (val > maxval) {
+                        maxval = val;
+                        *pxc = j;
+                        *pyc = i;
+                        *pdist = val;
+                        if (val >= targdist)
+                            return 0;
+                    }
+                }
+            }
+        }
+    }
+    else {  /* searchdir == L_VERT */
+        top = by;    /* distance above box */
+        bot = h - by - bh + 1;   /* distance below box */
+        maxval = 0;
+        if (top > bot) {  /* search above */
+            for (i = by - 1; i >= 0; i--) {
+                for (j = bx; j < bx + bw; j++) {
+                    pixGetPixel(pixs, j, i, &val);
+                    if (val > maxval) {
+                        maxval = val;
+                        *pxc = j;
+                        *pyc = i;
+                        *pdist = val;
+                        if (val >= targdist)
+                            return 0;
+                    }
+                }
+            }
+        }
+        else {  /* search below */
+            for (i = by + bh; i < h; i++) {
+                for (j = bx; j < bx + bw; j++) {
+                    pixGetPixel(pixs, j, i, &val);
+                    if (val > maxval) {
+                        maxval = val;
+                        *pxc = j;
+                        *pyc = i;
+                        *pdist = val;
+                        if (val >= targdist)
+                            return 0;
+                    }
+                }
+            }
+        }
+    }
+
+
+    pixGetPixel(pixs, *pxc, *pyc, pdist);
+    return 0;
+}
+
+
+

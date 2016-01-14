@@ -57,7 +57,6 @@
  *
  *          l_int32          convertTiffG4ToPS()
  *          l_int32          convertTiffG4ToPSString()
- *          l_int32          extractTiffG4DataFromFile()
  *
  *     For multipage tiff images
  *
@@ -102,8 +101,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "allheaders.h"
+
+/* --------------------------------------------*/
+#if  USE_PSIO   /* defined in environ.h */
+ /* --------------------------------------------*/
 
 static const char *TEMP_G4TIFF_FILE = "/usr/tmp/junk_temp_g4tiff.tif";
 static const char *TEMP_JPEG_FILE   = "/usr/tmp/junk_temp_jpeg.jpg";
@@ -2001,107 +2003,6 @@ SARRAY    *sa, *sa2;
 }
 
 
-/*!
- *  extractTiffG4DataFromFile()
- *
- *      Input:  filein
- *              &data (<return> binary data of ccitt g4 encoded stream)
- *              &nbytes (<return> size of binary data)
- *              &w (<return optional> image width)
- *              &h (<return optional> image height)
- *              &minisblack (<return optional> boolean)
- *      Return: 0 if OK, 1 on error
- */
-l_int32
-extractTiffG4DataFromFile(const char  *filein,
-                          l_uint8    **pdata,
-                          l_int32     *pnbytes,
-                          l_int32     *pw,
-                          l_int32     *ph,
-                          l_int32     *pminisblack)
-{
-l_uint8  *inarray, *data;
-l_uint16  minisblack, comptype;  /* accessors require l_uint16 */
-l_int32   istiff, fbytes, nbytes;
-l_uint32  w, h, rowsperstrip;  /* accessors require l_uint32 */
-l_uint32  diroff;
-FILE     *fpin;
-TIFF     *tif;
-
-    PROCNAME("extractTiffG4DataFromFile");
-
-    if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
-    if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
-    if (!pw && !ph && !pminisblack)
-        return ERROR_INT("no output data requested", procName, 1);
-    *pdata = NULL;
-    *pnbytes = 0;
-
-    if ((fpin = fopen(filein, "r")) == NULL)
-        return ERROR_INT("filein not defined", procName, 1);
-    istiff = fileFormatIsTiff(fpin);
-    fclose(fpin);
-    if (!istiff)
-        return ERROR_INT("filein not tiff", procName, 1);
-
-    if ((inarray = arrayRead(filein, &fbytes)) == NULL)
-        return ERROR_INT("inarray not made", procName, 1);
-
-        /* Get metadata about the image */
-    if ((tif = TIFFOpen(filein, "r")) == NULL)
-        return ERROR_INT("tif not open for read", procName, 1);
-    TIFFGetField(tif, TIFFTAG_COMPRESSION, &comptype);
-    if (comptype != COMPRESSION_CCITTFAX4) {
-        FREE(inarray);
-        TIFFClose(tif);
-        return ERROR_INT("filein is not g4 compressed", procName, 1);
-    }
-
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-    TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);
-    if (h != rowsperstrip)
-        L_WARNING("more than 1 strip", procName);
-    TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &minisblack);  /* for 1 bpp */
-/*    TIFFPrintDirectory(tif, stderr, 0); */
-    TIFFClose(tif);
-    if (pw) *pw = (l_int32)w;
-    if (ph) *ph = (l_int32)h;
-    if (pminisblack) *pminisblack = (l_int32)minisblack;
-
-        /* The header has 8 bytes: the first 2 are the magic number,
-         * the next 2 are the version, and the last 4 are the
-         * offset to the first directory.  That's what we want here.
-         * We have to test the byte order before decoding 4 bytes! */
-    if (inarray[0] == 0x4d) {  /* big-endian */
-        diroff = (inarray[4] << 24) | (inarray[5] << 16) |
-                 (inarray[6] << 8) | inarray[7];
-    }
-    else  {   /* inarray[0] == 0x49 :  little-endian */
-        diroff = (inarray[7] << 24) | (inarray[6] << 16) |
-                 (inarray[5] << 8) | inarray[4];
-    }
-/*    fprintf(stderr, " diroff = %d, %x\n", diroff, diroff); */
-
-        /* Extract the ccittg4 encoded data from the tiff file.
-         * We skip the 8 byte header and take nbytes of data,
-         * up to the beginning of the directory (at diroff)  */
-    nbytes = diroff - 8;
-    *pnbytes = nbytes;
-    if ((data = (l_uint8 *)CALLOC(nbytes, sizeof(l_uint8))) == NULL) {
-        FREE(inarray);
-        return ERROR_INT("data not allocated", procName, 1);
-    }
-    *pdata = data;
-    memcpy(data, inarray + 8, nbytes);
-    FREE(inarray);
-
-    return 0;
-}
-
-
 /*-------------------------------------------------------------*
  *                     For tiff multipage files                *
  *-------------------------------------------------------------*/
@@ -2209,7 +2110,7 @@ FILE        *fp;
  */
 l_int32
 pixWriteMemPS(l_uint8  **pdata,
-              l_uint32  *psize,
+              size_t    *psize,
               PIX       *pix,
               BOX       *box,
               l_int32    res,
@@ -2515,4 +2416,8 @@ l_uint32  oword;
 
     return outa;
 }
+
+/* --------------------------------------------*/
+#endif  /* USE_PSIO */
+/* --------------------------------------------*/
 

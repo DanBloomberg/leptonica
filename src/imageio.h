@@ -13,9 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
-#ifndef  IMAGEIO_H_INCLUDED
-#define  IMAGEIO_H_INCLUDED
+#ifndef  LEPTONICA_IMAGEIO_H
+#define  LEPTONICA_IMAGEIO_H
 
 /* ------------------ Image file format types -------------- */
 /*  
@@ -57,4 +56,4 @@ enum {
     L_HINT_GRAY = 1,  /* only want grayscale information */
 };
 
-#endif  /* IMAGEIO_H_INCLUDED */
+#endif  /* LEPTONICA_IMAGEIO_H */

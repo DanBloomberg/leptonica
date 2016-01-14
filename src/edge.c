@@ -19,12 +19,17 @@
  *      Sobel edge detecting filter
  *          PIX      *pixSobelEdgeFilter()
  *
- *  The Sobel edge detector uses these two simple gradient filters and
- *  sums the abs. value of their outputs, clipped to 255.
+ *  The Sobel edge detector uses these two simple gradient filters.
  *
  *       1    2    1             1    0   -1 
  *       0    0    0             2    0   -2
  *      -1   -2   -1             1    0   -1
+ *
+ *      (horizontal)             (vertical)
+ *
+ *  To use both the vertical and horizontal filters, set the orientation
+ *  flag to L_ALL_EDGES; this sums the abs. value of their outputs,
+ *  clipped to 255.
  *
  *  See comments below for displaying the resulting image with
  *  the edges dark, both for 8 bpp and 1 bpp.
@@ -42,26 +47,26 @@
  *  pixSobelEdgeFilter()
  *
  *      Input:  pixs (8 bpp; no colormap)
+ *              orientflag (L_HORIZONTAL_EDGES, L_VERTICAL_EDGES, L_ALL_EDGES)
  *      Return: pixd (8 bpp, edges are brighter), or null on error
  *
  *  Notes:
- *      (1) To generate a binary image of the edges, threshold
- *          the result using pixThresholdToBinary().  The higher
- *          the threshold, the ...
- *      (2) Label the pixels as follows:
+ *      (1) Invert pixd to see larger gradients as darker (grayscale).
+ *      (2) To generate a binary image of the edges, threshold
+ *          the result using pixThresholdToBinary().  If the high
+ *          edge values are to be fg (1), invert after running
+ *          pixThresholdToBinary().
+ *      (3) Label the pixels as follows:
  *              1    4    7
  *              2    5    8
  *              3    6    9
  *          Read the data incrementally across the image and unroll
  *          the loop.
- *      (3) Invert to see larger gradients as darker (grayscale).
- *      (4) If the result is thresholded to binary, and the high
- *          edge values are to be fg (1), invert after running
- *          pixThresholdToBinary().
- *      (5) This runs at about 45 Mpix/sec on a 3 GHz processor.
+ *      (4) This runs at about 45 Mpix/sec on a 3 GHz processor.
  */
 PIX  *
-pixSobelEdgeFilter(PIX  *pixs)
+pixSobelEdgeFilter(PIX     *pixs,
+                   l_int32  orientflag)
 {
 l_int32    w, h, d, i, j, wplt, wpld, gx, gy, vald;
 l_int32    val1, val2, val3, val4, val5, val6, val7, val8, val9;
@@ -75,6 +80,9 @@ PIX       *pixt, *pixd;
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (orientflag != L_HORIZONTAL_EDGES && orientflag != L_VERTICAL_EDGES &&
+        orientflag != L_ALL_EDGES)
+        return (PIX *)ERROR_PTR("invalid orientflag", procName, NULL);
 
         /* Add 1 pixel (mirrored) to each side of the image. */
     if ((pixt = pixAddMirroredBorder(pixs, 1, 1, 1, 1)) == NULL)
@@ -111,9 +119,19 @@ PIX       *pixt, *pixd;
                 val8 = GET_DATA_BYTE(linet + wplt, j + 2);
                 val9 = GET_DATA_BYTE(linet + 2 * wplt, j + 2);
             }
-            gx = L_ABS(val1 + 2 * val2 + val3 - val7 - 2 * val8 - val9) >> 3;
-            gy = L_ABS(val1 + 2 * val4 + val7 - val3 - 2 * val6 - val9) >> 3;
-            vald = L_MIN(255, gx + gy);
+            if (orientflag == L_HORIZONTAL_EDGES)
+                vald = L_ABS(val1 + 2 * val4 + val7
+                             - val3 - 2 * val6 - val9) >> 3;
+            else if (orientflag == L_VERTICAL_EDGES)
+                vald = L_ABS(val1 + 2 * val2 + val3 - val7
+                             - 2 * val8 - val9) >> 3;
+            else {  /* L_ALL_EDGES */
+                gx = L_ABS(val1 + 2 * val2 + val3 - val7
+                           - 2 * val8 - val9) >> 3;
+                gy = L_ABS(val1 + 2 * val4 + val7
+                             - val3 - 2 * val6 - val9) >> 3;
+                vald = L_MIN(255, gx + gy);
+            }
             SET_DATA_BYTE(lined, j, vald);
         }
     }

@@ -13,8 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef ARRAY_ACCESS_H
-#define ARRAY_ACCESS_H
+#ifndef  LEPTONICA_ARRAY_ACCESS_H
+#define  LEPTONICA_ARRAY_ACCESS_H
 
 /*
  *  arrayaccess.h
@@ -29,17 +29,23 @@
  *
  *  Function calls for these accessors are defined in arrayaccess.c.
  *
- *  However, for efficiency we use macros for all accesses.
+ *  However, for efficiency we use the inline macros for all accesses.
  *  Even though the 2 and 4 bit set* accessors are more complicated,
  *  they are about 10% faster than the function calls.
  *
- *  At the end we give code for using invoking the function calls
- *  with the macros.
+ *  At the end of this file is code for invoking the function calls
+ *  instead of inlining.
+ *
+ *  The macro SET_DATA_BIT_VAL(pdata, n, val) is a bit slower than
+ *      if (val == 0)
+ *          CLEAR_DATA_BIT(pdata, n);
+ *      else
+ *          SET_DATA_BIT(pdata, n);
  */
 
 
-#include "environ.h"
-
+#if 1   /* Inline Accessors */
+#ifndef COMPILER_MSVC
 
     /*--------------------------------------------------*
      *                     1 bit access                 *
@@ -52,6 +58,13 @@
 
 #define  CLEAR_DATA_BIT(pdata, n) \
     (*((pdata) + ((n) >> 5)) &= ~(0x80000000 >> ((n) & 31)))
+
+#define  SET_DATA_BIT_VAL(pdata, n, val) \
+    ({l_uint32 *_TEMP_WORD_PTR_; \
+     _TEMP_WORD_PTR_ = (pdata) + ((n) >> 5); \
+     *_TEMP_WORD_PTR_ &= ~(0x80000000 >> ((n) & 31)); \
+     *_TEMP_WORD_PTR_ |= ((val) << (31 - ((n) & 31))); \
+    })
 
 
     /*--------------------------------------------------*
@@ -127,15 +140,19 @@
              (*(l_uint16 *)((l_uintptr_t)((l_uint16 *)(pdata) + (n)) ^ 2) = (val))
 #endif  /* L_BIG_ENDIAN */
 
+#endif  /* COMPILER_MSVC */
+#endif  /* Inline Accessors */
+
 
 
     /*--------------------------------------------------*
      *  Slower, using function calls for all accessors  *
      *--------------------------------------------------*/
-#if 0
+#if 0 || COMPILER_MSVC
 #define  GET_DATA_BIT(pdata, n)               l_getDataBit(pdata, n)
 #define  SET_DATA_BIT(pdata, n)               l_setDataBit(pdata, n)
 #define  CLEAR_DATA_BIT(pdata, n)             l_clearDataBit(pdata, n)
+#define  SET_DATA_BIT_VAL(pdata, n, val)      l_setDataBitVal(pdata, n, val)
 
 #define  GET_DATA_DIBIT(pdata, n)             l_getDataDibit(pdata, n)
 #define  SET_DATA_DIBIT(pdata, n, val)        l_setDataDibit(pdata, n, val)
@@ -153,5 +170,4 @@
 #endif
 
 
-#endif /* ARRAY_ACCESS_H */
-
+#endif /* LEPTONICA_ARRAY_ACCESS_H */

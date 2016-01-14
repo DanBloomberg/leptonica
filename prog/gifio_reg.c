@@ -14,7 +14,7 @@
  *====================================================================*/
 
 /*
- *   gifiotest.c
+ *   gifio_reg.c
  *
  *     This tests reading and writing gif for various image types.
  *
@@ -52,14 +52,14 @@
 #define   FILE_16BPP    "test16.tif"
 #define   FILE_32BPP    "marge.jpg"
 
-#define   REDUCTION     0
+#define   REDUCTION     1
 
 main(int    argc,
 char **argv)
 {
 l_int32      w, h, d, same, ret;
 PIX         *pixs, *pix1, *pix2;
-static char  mainName[] = "gifiotest";
+static char  mainName[] = "gifio_reg";
  
     pixDisplayWrite(NULL, -1);
 
@@ -70,7 +70,7 @@ static char  mainName[] = "gifiotest";
         fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!\n"
                         "gifio not enabled!\n"
                         "See src/Makefile: use gifio.c, not gifiostub.c\n"
-                        "See prog/Makefile: be sure to link -lgif\n"
+                        "See prog/Makefile: link in -lgif\n"
                         "!!!!!!!!!!!!!!!!!!!!\n");
         return 1;
     }

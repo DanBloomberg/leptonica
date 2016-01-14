@@ -13,6 +13,9 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+#ifndef  LEPTONICA_BBUFFER_H
+#define  LEPTONICA_BBUFFER_H
+
 /*
  *  bbuffer.h
  *
@@ -30,10 +33,6 @@
  *      For implementation details, see bbuffer.c.
  */
 
-#ifndef  BBUFFER_H_INCLUDED
-#define  BBUFFER_H_INCLUDED
-
-
 struct ByteBuffer
 {
     l_int32      nalloc;       /* size of allocated byte array            */
@@ -44,4 +43,4 @@ struct ByteBuffer
 typedef struct ByteBuffer BBUFFER;
 
 
-#endif  /* BBUFFER_H_INCLUDED */
+#endif  /* LEPTONICA_BBUFFER_H */

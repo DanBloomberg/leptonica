@@ -17,10 +17,56 @@
 <hr>
 
 <p>
-Note: The following are only the highlights of the changes in each
-version.  They are <i>not</i> a complete listing of the modifications.
+Note: The following are highlights of the changes in each version.
+They are <i>not</i> a complete listing of the modifications.
 
 <pre>
+
+1.56   12 May 08
+       Added several new 1d barcode decoders.  The functional interface
+       is still in flux.
+       Autoconf!   To get this working, it was necessary to: determine and
+       set the endian flag; select which libraries are to be linked;
+       determine if stream-based memory I/O is enabled.
+       This required a major cleanup of the include files, minimizing
+       dependencies on external library header files, and getting everything
+       to work with both autoconf (HAVE_CONFIG_H) and the old
+       customized makefile.  Customization is now all in environ.h.
+       pixSaveTiled(): a new way to display tiled images.
+       pixtiling.c: interface for splitting an image into a set of
+       overlapping tiles, using mirrored borders for tiles touching the
+       image boundary.
+       pixBlendHardLight(): new blending mode with nice visual effects.
+       pixColorFraction(): determines extent of color in image
+       Both octree and median-cut color quantization check first if
+       image is essentially grayscale; improvements to both algorithms.
+       box*TransformOrdered(): general sequence of linear transforms.
+       colorquantreg.c, xformbox_reg.c, hardlight_reg.c: new regr tests.
+
+1.55   16 Mar 08
+       New functions for combining two images arbitrarily through a mask,
+       including mirrored tiling (pix3.c)
+       Modify pixSetMasked*() to work on all images (pix3.c)
+       New functions for extracting masked regions such as pixClipMasked()
+       (pix3.c) and pixMaskConnComp() and pixMaskBoxa() (boxfunc.c).
+       New functions to separate fg from bg (pix3.c), one of which is supported
+       by numaSplitDistribution (numafunc.c).
+       Modify sobel edge detector to take another parameter (edge.c)
+       Suppoprt for 4 bpp cmyk color space in jpeg (jpegio.c)
+       Modified median cut color quantization (colorquant2.c)
+       Renamed colorquant.c (for octree quant) --> colorquant1.c.
+       Absorbed conncomp.h and colorquant.h into specific files that
+       depend on them (colorquant1.c, conncomp.c, pix.h)
+       General convolution with utility for building kernels
+       (convolve.c, kernel.c)
+       Initial implementation of 1D barcode reader.  So far, we just have the
+       signal processing to locate barcodes on a page, deskew them, and
+       find the bar widths, along with decoders for two formats.
+       (readbarcode.*, prog/barcodetest.c)
+       Made the default to stub out read/write for non-tiff image formats
+       to memory; it doesn't work on Macs & they were complaining (*io.c)
+       Include MSVC project files for building leptonlib under
+       windows (leptonlib.*)
 
 1.54   21 Jan 08
        Histogram equalization (enhance.c).

@@ -21,6 +21,7 @@
  *           l_int32     l_getDataBit()
  *           void        l_setDataBit()
  *           void        l_clearDataBit()
+ *           void        l_setDataBitVal()
  *           l_int32     l_getDataDibit()
  *           void        l_setDataDibit()
  *           void        l_clearDataDibit()
@@ -86,6 +87,35 @@ l_clearDataBit(l_uint32  *line,
                l_int32    n)
 {
     *(line + (n >> 5)) &= ~(0x80000000 >> (n & 31));
+}
+
+
+/*!
+ *  l_setDataBitVal()
+ *
+ *      Input:  line  (ptr to beginning of data line)
+ *              n     (pixel index)
+ *              val   (val to be inserted: 0 - 3)
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) This is actually a little slower than using:
+ *            if (val == 0)
+ *                l_ClearDataBit(line, n);
+ *            else
+ *                l_SetDataBit(line, n);
+ */
+void
+l_setDataBitVal(l_uint32  *line,
+                l_int32    n,
+                l_int32    val)
+{
+l_uint32    *pword;
+
+    pword = line + (n >> 5);
+    *pword &= ~(0x80000000 >> (n & 31));  /* clear */
+    *pword |= val << (31 - (n & 31));   /* set */
+    return;
 }
 
 

@@ -236,6 +236,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "allheaders.h"
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */

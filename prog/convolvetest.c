@@ -22,13 +22,20 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
+static const char  *kdatastr = " 20    50   80  50   20 "
+                               " 50   100  140  100  50 "
+                               " 90   160  200  160  90 "
+                               " 50   100  140  100  50 "
+                               " 20    50   80   50  20 ";
+
 #define  NTIMES   100
 
 main(int    argc,
      char **argv)
 {
-l_int32      i, wc, hc;
-PIX         *pixs, *pixacc, *pixt, *pixd;
+l_int32      i, j, wc, hc, d;
+L_KERNEL    *kel1, *kel2;
+PIX         *pixs, *pixg, *pixacc, *pixd, *pixt;
 char        *filein, *fileout;
 static char  mainName[] = "convolvetest";
 
@@ -43,7 +50,7 @@ static char  mainName[] = "convolvetest";
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pix not made", mainName, 1));
 
-#if 0  /* measure speed */
+#if 0  /* Measure speed */
     pixacc = pixBlockconvAccum(pixs);
     for (i = 0; i < NTIMES; i++) {
 	pixd = pixBlockconvGray(pixs, pixacc, wc, hc);
@@ -56,26 +63,26 @@ static char  mainName[] = "convolvetest";
     pixDestroy(&pixacc);
 #endif
 
-#if 0  /* test pixBlockconvGray() */
+#if 0  /* Test pixBlockconvGray() */
     pixacc = pixBlockconvAccum(pixs);
     pixd = pixBlockconvGray(pixs, pixacc, wc, hc);
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixacc);
 #endif
 
-#if 0  /* test pixBlockconv() */
+#if 0  /* Test pixBlockconv() */
     pixd = pixBlockconv(pixs, wc, hc);
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);
 #endif
 
-#if 0  /* test pixBlockrank() */
+#if 0  /* Test pixBlockrank() */
     pixacc = pixBlockconvAccum(pixs);
     pixd = pixBlockrank(pixs, pixacc, wc, hc, 0.5);
     pixWrite(fileout, pixd, IFF_TIFF_G4);
     pixDestroy(&pixacc);
 #endif
 
-#if 0  /* test pixBlocksum() */
+#if 0  /* Test pixBlocksum() */
     pixacc = pixBlockconvAccum(pixs);
     pixd = pixBlocksum(pixs, pixacc, wc, hc);
     pixInvert(pixd, pixd);
@@ -83,17 +90,58 @@ static char  mainName[] = "convolvetest";
     pixDestroy(&pixacc);
 #endif
 
-#if 1
-    pixd = pixWoodfillTransform(pixs, wc, NULL);
-    pixt = pixReduceRankBinaryCascade(pixd, 4, 4, 2, 0);
-    pixWrite(fileout, pixt, IFF_PNG);
+#if 0  /* Test pixWoodfillTransform() */
+    d = pixGetDepth(pixs);
+    if (d == 32)
+        pixt = pixConvertRGBToLuminance(pixs);
+    else
+        pixt = pixClone(pixs);
+    pixacc = pixBlockconvAccum(pixt);
+    pixd = pixWoodfillTransform(pixt, wc, NULL);
     pixDestroy(&pixt);
+    pixDestroy(&pixacc);
+    pixWrite(fileout, pixd, IFF_PNG);
+#endif
+
+#if 1   /* Test generic convolution with kel1 */
+    if (pixGetDepth(pixs) == 32)
+        pixg = pixScaleRGBToGrayFast(pixs, 2, COLOR_GREEN);
+    else
+        pixg = pixScale(pixs, 0.5, 0.5);
+    pixDisplay(pixg, 0, 600);
+    kel1 = kernelCreateFromString(5, 5, 2, 2, kdatastr);
+    pixd = pixConvolve(pixg, kel1);
+    pixDisplay(pixd, 700, 0);
+    pixWrite("junkpixd4", pixd, IFF_BMP);
     pixDestroy(&pixd);
+    kernelDestroy(&kel1);
+
+        /* Test convolution with flat rectangular kel */
+    kel2 = kernelCreate(11, 11);
+    kernelSetOrigin(kel2, 5, 5);
+    for (i = 0; i < 11; i++) {
+        for (j = 0; j < 11; j++)
+            kernelSetElement(kel2, i, j, 1);
+    }
+    startTimer();
+    pixd = pixConvolve(pixg, kel2);
+    fprintf(stderr, "Generic convolution: %7.3f sec\n", stopTimer());
+    pixDisplay(pixd, 1200, 0);
+    pixWrite("junkpixd5", pixd, IFF_BMP);
+    startTimer();
+    pixt = pixBlockconv(pixg, 5, 5);
+    fprintf(stderr, "Block convolution: %7.3f sec\n", stopTimer());
+    pixDisplay(pixd, 1200, 600);
+    pixWrite("junkpixd6", pixt, IFF_BMP);
+    pixCompareGray(pixd, pixt, L_COMPARE_ABS_DIFF, GPLOT_X11, NULL,
+                   NULL, NULL, NULL);
+    pixDestroy(&pixg);
+    pixDestroy(&pixt);
+    kernelDestroy(&kel2);
 #endif
 
     pixDestroy(&pixs);
     pixDestroy(&pixd);
-
     exit(0);
 }
 

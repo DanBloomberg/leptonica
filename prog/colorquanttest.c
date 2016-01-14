@@ -49,6 +49,15 @@ static char  mainName[] = "colorquanttest";
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 
+#if 1   /* median cut quantizer */
+    startTimer();
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 256, 5, 1);
+/*    pixc = pixMedianCutQuant(pixs, 1); */
+    fprintf(stderr, "finished making cmapped pix: %7.3f secs\n", stopTimer());
+    pixWrite(fileout, pixc, IFF_PNG);
+    pixDestroy(&pixc);
+#endif
+
 #if 0   /* simple one-pass quantizer */
     startTimer();
     pixc = pixColorQuant1Pass(pixs, DITHER);
@@ -100,7 +109,7 @@ static char  mainName[] = "colorquanttest";
     pixDestroy(&pixc1);
 #endif
 
-#if 1   /* try to get all the colors  */
+#if 0   /* try to get all the colors  */
     pixc1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     pixc = pixFixedOctcubeQuantCmap(pixc1, 1);
     pixWrite(fileout, pixc, IFF_PNG);

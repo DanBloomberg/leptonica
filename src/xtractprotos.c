@@ -28,6 +28,12 @@
  *   has not been officially supported for over 10 years, has been
  *   patched numerous times, and currently doesn't work with
  *   sys/sysmacros.h for 64 bit architecture.
+ *
+ *   This is used to extract all prototypes in leptonlib, in the
+ *   file leptprotos.h.  The function that does all the work is
+ *   parseForProtos(), which takes as input the output from cpp.
+ *   To avoid including the very large leptprotos.h in the input
+ *   from each file, cpp runs here with -DNO_PROTOS.
  */
 
 #include <stdio.h>
@@ -37,7 +43,7 @@
 
 static const char *tempfile = "/tmp/temp_cpp_output";
 static const l_int32  L_BUF_SIZE = 512;
-static const char *version = "1.2";
+static const char *version = "1.3";
 
 main(int    argc,
      char **argv)
@@ -86,9 +92,11 @@ static char  mainName[] = "xtractprotos";
             fprintf(stderr, "parse failure for %s; continuing\n", filein);
 	    continue;
 	}
-        fprintf(stdout, str);
+	if (strlen(str) > 1) {  /* strlen == 1 is a file without protos */
+            fprintf(stdout, str);
+            FREE(str);
+        }
 	FREE(filename);
-	FREE(str);
     }
 
         /* Output extern C tail */

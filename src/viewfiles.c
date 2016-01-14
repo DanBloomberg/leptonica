@@ -24,15 +24,14 @@
  *
  *     Utility function for getting sorted full pathnames
  *        SARRAY    *getSortedPathnamesInDirectory()
- *
- *     Note: These functions work with the unix libraries, not
- *           with windows.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef COMPILER_MSVC
 #include <dirent.h>     /* unix only */
+#endif  /* COMPILER_MSVC */
 #include "allheaders.h"
 
     /* MS VC++ can't handle array initialization with static consts ! */
@@ -236,8 +235,9 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
  *      Return: sarray of file names, or NULL on error
  *
  *  Notes:
- *      (1) This uses the POSIX C library commands for handling directories.
- *          It will NOT work on Windows.
+ *      (1) The versions compiled under unix and cygwin use the POSIX C
+ *          library commands for handling directories.  For windows,
+ *          there is a separate implementation.
  *      (2) It returns an array of filename tails; i.e., only the part of
  *          the path after the last slash.
  *      (3) Use of the d_type field of dirent is not portable:
@@ -253,6 +253,8 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
  *          (except for '.' and '..', which are eliminated using
  *          the d_name field).
  */
+#ifndef COMPILER_MSVC
+
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
@@ -273,8 +275,11 @@ struct dirent  *pdirentry;
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
     while ((pdirentry = readdir(pdir)))  {
 
-#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) 
-        if (pdirentry->d_type == DT_DIR)  /* ignore directories */
+        /* It's nice to ignore directories.  For this it is necessary to
+	 * define _BSD_SOURCE in the CC command, because the DT_DIR
+	 * flag is non-standard.  */ 
+#if !defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(__SOLARIS__)
+        if (pdirentry->d_type == DT_DIR)
             continue;
 #endif
 
@@ -290,6 +295,52 @@ struct dirent  *pdirentry;
     return safiles;
 }
 
+#else  /* COMPILER_MSVC */
+
+    /* http://msdn2.microsoft.com/en-us/library/aa365200(VS.85).aspx */
+#include <windows.h>
+#include <tchar.h>
+#include <stdio.h>
+#include <strsafe.h>
+SARRAY *
+getFilenamesInDirectory(const char  *dirname)
+{
+SARRAY          *safiles;
+WIN32_FIND_DATA  ffd;
+size_t           length_of_path;
+TCHAR            szDir[MAX_PATH];  /* MAX_PATH is defined in stdlib.h */
+HANDLE           hFind = INVALID_HANDLE_VALUE;
+
+    PROCNAME("getFilenamesInDirectory");
+
+    if (!dirname)
+        return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
+
+    StringCchLength(dirname, MAX_PATH, &length_of_path);
+    if (length_of_path > (MAX_PATH - 2))
+        return (SARRAY *)ERROR_PTR("dirname is to long", procName, NULL);
+
+    StringCchCopy (szDir, MAX_PATH, dirname);
+    StringCchCat (szDir, MAX_PATH, TEXT("\\*"));
+
+    if ((safiles = sarrayCreate(0)) == NULL)
+        return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
+    hFind = FindFirstFile(szDir, &ffd);
+    if (INVALID_HANDLE_VALUE == hFind) {
+        sarrayDestroy(&safiles);
+        return (SARRAY *)ERROR_PTR("hFind not opened", procName, NULL);
+    }
+
+    while (FindNextFile(hFind, &ffd) != 0)
+        sarrayAddString(safiles, ffd.cFileName, L_COPY);
+
+    FindClose(hFind);
+    return safiles;
+}
+
+#endif  /* COMPILER_MSVC */
+
+
 
 /*---------------------------------------------------------------------*
  *           Utility function for getting sorted full pathnames        *
@@ -304,12 +355,10 @@ struct dirent  *pdirentry;
  *      Return: sarray of sorted pathnames, or NULL on error
  *
  *  Notes:
- *      (1) This implicitly uses the Posix C library commands for
- *          handling directories.  It will NOT work on Windows.
- *      (2) If 'substr' is not NULL, only filenames that contain
+ *      (1) If 'substr' is not NULL, only filenames that contain
  *          the substring can be returned.  If 'substr' is NULL,
  *          none of the filenames are filtered out.
- *      (3) The files in the directory, after optional filtering by
+ *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order.
  *          The full pathnames are returned for the requested sequence.
  */
@@ -353,4 +402,3 @@ SARRAY  *sa, *safiles, *saout;
     sarrayDestroy(&safiles);
     return saout;
 }
-

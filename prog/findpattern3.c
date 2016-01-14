@@ -49,7 +49,7 @@ SEL         *selhm;
 static char  mainName[] = "findpattern3";
 
     if (argc != 1)
-	exit(ERROR_INT(" Syntax:  findpattern2", mainName, 1));
+	exit(ERROR_INT(" Syntax:  findpattern3", mainName, 1));
 
     if ((pixs = pixRead("feyn.tif")) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));

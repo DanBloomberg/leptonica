@@ -13,6 +13,9 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+#ifndef  LEPTONICA_PQUEUE_H
+#define  LEPTONICA_PQUEUE_H
+
 /*
  *  pqueue.h
  *
@@ -41,10 +44,6 @@
  *      For further implementation details, see pqueue.c.
  */
 
-#ifndef  PQUEUE_H_INCLUDED
-#define  PQUEUE_H_INCLUDED
-
-
 struct PQueue
 {
     l_int32      nalloc;      /* size of allocated ptr array            */
@@ -56,4 +55,4 @@ struct PQueue
 typedef struct PQueue PQUEUE;
 
 
-#endif  /* PQUEUE_H_INCLUDED */
+#endif  /* LEPTONICA_PQUEUE_H */

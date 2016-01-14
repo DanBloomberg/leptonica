@@ -1076,7 +1076,7 @@ l_int32  diff[256];  /* diff between product (sel size) and input size */
     if (!pfactor1 || !pfactor2)
         return ERROR_INT("&factor1 or &factor2 not defined", procName, 1);
     
-    midval = (l_int32)(sqrt(size) + 0.001);
+    midval = (l_int32)(sqrt((l_float64)size) + 0.001);
     if (midval * midval == size) {
         *pfactor1 = *pfactor2 = midval;
         return 0;
@@ -1785,4 +1785,3 @@ l_int32  sx, sy;
     pixResizeImageData(pixd, pixs);
     return pixd;
 }
-

@@ -1,5 +1,5 @@
 /*====================================================================*
- -  Copyright (C) 2007 Leptonica.  All rights reserved.
+ -  Copyright (C) 2001 Leptonica.  All rights reserved.
  -  This software is distributed in the hope that it will be
  -  useful, but with NO WARRANTY OF ANY KIND.
  -  No author or distributor accepts responsibility to anyone for the
@@ -14,9 +14,10 @@
  *====================================================================*/
 
 /*
- * jbclass.c
+ * correlscore.c
  *
- *     These are functions for computing correlation between pairs of images.
+ *     These are functions for computing correlation between
+ *     pairs of 1 bpp images.
  *
  *         l_float32   pixCorrelationScore()
  *         l_int32     pixCorrelationScoreThresholded()
@@ -36,8 +37,8 @@ static const l_int32  MAX_DIFF_WIDTH = 2;  /* use at least 2 */
 /*!
  *  pixCorrelationScore()
  *
- *      Input:  pix1   (test pix)
- *              pix2   (exemplar pix)
+ *      Input:  pix1   (test pix, 1 bpp)
+ *              pix2   (exemplar pix, 1 bpp)
  *              area1  (number of on pixels in pix1)
  *              area2  (number of on pixels in pix2)
  *              delx   (x comp of centroid difference)
@@ -87,7 +88,8 @@ static const l_int32  MAX_DIFF_WIDTH = 2;  /* use at least 2 */
  *      pixDestroy(&pixt);
  *  However, here it is done in a streaming fashion, counting as it goes,
  *  and touching memory exactly once, giving a 3-4x speedup over the
- *  simple implementation.
+ *  simple implementation.  This very fast correlation matcher was
+ *  contributed by William Rucklidge.
  */
 l_float32
 pixCorrelationScore(PIX       *pix1,
@@ -102,18 +104,18 @@ l_int32    wi, hi, wt, ht, delw, delh, idelx, idely, count;
 l_int32    wpl1, wpl2, lorow, hirow, locol, hicol;
 l_int32    x, y, pix1lskip, pix2lskip, rowwords1, rowwords2;
 l_uint32   word1, word2, andw;
-l_uint32   *row1, *row2;
+l_uint32  *row1, *row2;
 l_float32  score;
 
     PROCNAME("pixCorrelationScore");
 
-    if (!pix1)
-        return (l_float32)ERROR_FLOAT("pix1 not defined", procName, 0.0);
-    if (!pix2)
-        return (l_float32)ERROR_FLOAT("pix2 not defined", procName, 0.0);
+    if (!pix1 || pixGetDepth(pix1) != 1)
+        return (l_float32)ERROR_FLOAT("pix1 not 1 bpp", procName, 0.0);
+    if (!pix2 || pixGetDepth(pix2) != 1)
+        return (l_float32)ERROR_FLOAT("pix2 not 1 bpp", procName, 0.0);
     if (!tab)
         return (l_float32)ERROR_FLOAT("tab not defined", procName, 0.0);
-    if (!area1 || !area2)
+    if (area1 <= 0 || area2 <= 0)
         return (l_float32)ERROR_FLOAT("areas must be > 0", procName, 0.0);
 
         /* Eliminate based on size difference */
@@ -330,8 +332,8 @@ l_float32  score;
 /*!
  *  pixCorrelationScoreThresholded()
  *
- *      Input:  pix1   (test pix)
- *              pix2   (exemplar pix)
+ *      Input:  pix1   (test pix, 1 bpp)
+ *              pix2   (exemplar pix, 1 bpp)
  *              area1  (number of on pixels in pix1)
  *              area2  (number of on pixels in pix2)
  *              delx   (x comp of centroid difference)
@@ -373,6 +375,8 @@ l_float32  score;
  *  in a non-greedy way, matching to the template with the highest
  *  score, not the first template with a score satisfying the matching
  *  constraint.  However, this is not particularly effective.
+ *
+ *  This very fast correlation matcher was contributed by William Rucklidge.
  */
 l_int32
 pixCorrelationScoreThresholded(PIX       *pix1,
@@ -389,19 +393,19 @@ l_int32    wi, hi, wt, ht, delw, delh, idelx, idely, count;
 l_int32    wpl1, wpl2, lorow, hirow, locol, hicol, untouchable;
 l_int32    x, y, pix1lskip, pix2lskip, rowwords1, rowwords2;
 l_uint32   word1, word2, andw;
-l_uint32   *row1, *row2;
+l_uint32  *row1, *row2;
 l_float32  score;
 l_int32    threshold;
 
     PROCNAME("pixCorrelationScoreThresholded");
 
-    if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 0);
-    if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 0);
+    if (!pix1 || pixGetDepth(pix1) != 1)
+        return ERROR_INT("pix1 not 1 bpp", procName, 0);
+    if (!pix2 || pixGetDepth(pix2) != 1)
+        return ERROR_INT("pix2 not 1 bpp", procName, 0);
     if (!tab)
         return ERROR_INT("tab not defined", procName, 0);
-    if (!area1 || !area2)
+    if (area1 <= 0 || area2 <= 0)
         return ERROR_INT("areas must be > 0", procName, 0);
 
         /* Eliminate based on size difference */
@@ -657,8 +661,8 @@ l_int32    threshold;
 /*!
  *  pixCorrelationScoreSimple()
  *
- *      Input:  pix1   (test pix)
- *              pix2   (exemplar pix)
+ *      Input:  pix1   (test pix, 1 bpp)
+ *              pix2   (exemplar pix, 1 bpp)
  *              area1  (number of on pixels in pix1)
  *              area2  (number of on pixels in pix2)
  *              delx   (x comp of centroid difference)
@@ -685,10 +689,10 @@ PIX       *pixt;
 
     PROCNAME("pixCorrelationScoreSimple");
 
-    if (!pix1)
-        return (l_float32)ERROR_FLOAT("pix1 not defined", procName, 0.0);
-    if (!pix2)
-        return (l_float32)ERROR_FLOAT("pix2 not defined", procName, 0.0);
+    if (!pix1 || pixGetDepth(pix1) != 1)
+        return (l_float32)ERROR_FLOAT("pix1 not 1 bpp", procName, 0.0);
+    if (!pix2 || pixGetDepth(pix2) != 1)
+        return (l_float32)ERROR_FLOAT("pix2 not 1 bpp", procName, 0.0);
     if (!tab)
         return (l_float32)ERROR_FLOAT("tab not defined", procName, 0.0);
     if (!area1 || !area2)

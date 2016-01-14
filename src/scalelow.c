@@ -84,7 +84,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "allheaders.h"
 
 #ifndef  NO_CONSOLE_IO
@@ -106,8 +105,6 @@
  *  and weighting each pixel value by this fractional area.
  *
  *  P3 speed is about 7 x 10^6 dst pixels/sec/GHz
- *
- *  *** Warning: explicit assumption about RGB component ordering ***
  */
 void
 scaleColorLILow(l_uint32  *datad,
@@ -166,18 +163,18 @@ l_float32  scx, scy;
             area10 = xf * (16 - yf);
             area01 = (16 - xf) * yf;
             area11 = xf * yf;
-            v00r = area00 * (pixels1 >> 24);
-            v00g = area00 * ((pixels1 >> 16) & 0xff);
-            v00b = area00 * ((pixels1 >> 8) & 0xff);
-            v10r = area10 * (pixels2 >> 24);
-            v10g = area10 * ((pixels2 >> 16) & 0xff);
-            v10b = area10 * ((pixels2 >> 8) & 0xff);
-            v01r = area01 * (pixels3 >> 24);
-            v01g = area01 * ((pixels3 >> 16) & 0xff);
-            v01b = area01 * ((pixels3 >> 8) & 0xff);
-            v11r = area11 * (pixels4 >> 24);
-            v11g = area11 * ((pixels4 >> 16) & 0xff);
-            v11b = area11 * ((pixels4 >> 8) & 0xff);
+            v00r = area00 * ((pixels1 >> L_RED_SHIFT) & 0xff);
+            v00g = area00 * ((pixels1 >> L_GREEN_SHIFT) & 0xff);
+            v00b = area00 * ((pixels1 >> L_BLUE_SHIFT) & 0xff);
+            v10r = area10 * ((pixels2 >> L_RED_SHIFT) & 0xff);
+            v10g = area10 * ((pixels2 >> L_GREEN_SHIFT) & 0xff);
+            v10b = area10 * ((pixels2 >> L_BLUE_SHIFT) & 0xff);
+            v01r = area01 * ((pixels3 >> L_RED_SHIFT) & 0xff);
+            v01g = area01 * ((pixels3 >> L_GREEN_SHIFT) & 0xff);
+            v01b = area01 * ((pixels3 >> L_BLUE_SHIFT) & 0xff);
+            v11r = area11 * ((pixels4 >> L_RED_SHIFT) & 0xff);
+            v11g = area11 * ((pixels4 >> L_GREEN_SHIFT) & 0xff);
+            v11b = area11 * ((pixels4 >> L_BLUE_SHIFT) & 0xff);
             pixel = (((v00r + v10r + v01r + v11r + 128) << 16) & 0xff000000) |
                     (((v00g + v10g + v01g + v11g + 128) << 8) & 0x00ff0000) |
                     ((v00b + v10b + v01b + v11b + 128) & 0x0000ff00);
@@ -357,13 +354,13 @@ l_uint32  *lines, *lined;
  *              lastlineflag  (1 if last src line; 0 otherwise)
  *      Return: void
  *
- *  *** Warning: explicit assumption about RGB component ordering ***
+ *  *** Warning: implicit assumption about RGB component ordering ***
  */
 void
 scaleColor2xLILineLow(l_uint32  *lined,
                       l_int32    wpld,
-                       l_uint32  *lines,
-                       l_int32    ws,
+                      l_uint32  *lines,
+                      l_int32    ws,
                       l_int32    wpls,
                       l_int32    lastlineflag)
 {
@@ -1077,8 +1074,6 @@ l_float32  wratio, hratio;
  *      (2) size is the full width of the lowpass smoothing filter.
  *          It is correlated with the reduction ratio, being the
  *          nearest integer such that size is approximately equal to hs / hd.
- *
- *  *** Warning: explicit assumption about RGB component ordering ***
  */
 l_int32
 scaleSmoothLow(l_uint32  *datad,
@@ -1152,22 +1147,23 @@ l_float32  wratio, hratio, norm;
                     ppixel = lines + m * wpls + xstart;
                     for (n = 0; n < size; n++) {
                         pixel = *(ppixel + n);
-                        rval += (pixel >> 24);
-                        gval += (pixel >> 16 & 0xff);
-                        bval += (pixel >> 8 & 0xff);
+                        rval += (pixel >> L_RED_SHIFT) & 0xff;
+                        gval += (pixel >> L_GREEN_SHIFT) & 0xff;
+                        bval += (pixel >> L_BLUE_SHIFT) & 0xff;
                     }
                 }
                 rval = (l_int32)((l_float32)rval * norm);
                 gval = (l_int32)((l_float32)gval * norm);
                 bval = (l_int32)((l_float32)bval * norm);
-                *(lined + j) = rval << 24 | gval << 16 | bval << 8;
+                *(lined + j) = rval << L_RED_SHIFT |
+                               gval << L_GREEN_SHIFT |
+                               bval << L_BLUE_SHIFT;
             }
         }
     }
 
     FREE(srow);
     FREE(scol);
-
     return 0;
 }
 
@@ -1177,8 +1173,6 @@ l_float32  wratio, hratio, norm;
  *
  *  Note: This function is called with 32 bpp RGB src and 8 bpp,
  *        half-resolution dest.  The weights should add to 1.0.
- *
- *  *** Warning: explicit assumption about RGB component ordering ***
  */
 void
 scaleRGBToGray2Low(l_uint32  *datad,
@@ -1204,21 +1198,21 @@ l_uint32   pixel;
         for (j = 0; j < wd; j++) {
                 /* Sum each of the color components from 4 src pixels */
             pixel = *(lines + 2 * j);
-            rval = (pixel >> 24);
-            gval = (pixel >> 16 & 0xff);
-            bval = (pixel >> 8 & 0xff);
+            rval = (pixel >> L_RED_SHIFT) & 0xff;
+            gval = (pixel >> L_GREEN_SHIFT) & 0xff;
+            bval = (pixel >> L_BLUE_SHIFT) & 0xff;
             pixel = *(lines + 2 * j + 1);
-            rval += (pixel >> 24);
-            gval += (pixel >> 16 & 0xff);
-            bval += (pixel >> 8 & 0xff);
+            rval += (pixel >> L_RED_SHIFT) & 0xff;
+            gval += (pixel >> L_GREEN_SHIFT) & 0xff;
+            bval += (pixel >> L_BLUE_SHIFT) & 0xff;
             pixel = *(lines + wpls + 2 * j);
-            rval += (pixel >> 24);
-            gval += (pixel >> 16 & 0xff);
-            bval += (pixel >> 8 & 0xff);
+            rval += (pixel >> L_RED_SHIFT) & 0xff;
+            gval += (pixel >> L_GREEN_SHIFT) & 0xff;
+            bval += (pixel >> L_BLUE_SHIFT) & 0xff;
             pixel = *(lines + wpls + 2 * j + 1);
-            rval += (pixel >> 24);
-            gval += (pixel >> 16 & 0xff);
-            bval += (pixel >> 8 & 0xff);
+            rval += (pixel >> L_RED_SHIFT) & 0xff;
+            gval += (pixel >> L_GREEN_SHIFT) & 0xff;
+            bval += (pixel >> L_BLUE_SHIFT) & 0xff;
                 /* Generate the dest byte as a weighted sum of the averages */
             val = (l_int32)(rwt * rval + gwt * gval + bwt * bval);
             SET_DATA_BYTE(lined, j, val);
@@ -1241,8 +1235,6 @@ l_uint32   pixel;
  *  and are weighted by the number of sub-pixels covered by
  *  the dest pixel.  This is about 2x slower than scaleSmoothLow(),
  *  but the results are significantly better on small text.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 void
 scaleColorAreaMapLow(l_uint32  *datad,
@@ -1323,25 +1315,25 @@ l_float32  scx, scy;
             area10 = xlf * (16 - yuf);
             area01 = (16 - xuf) * ylf;
             area11 = xlf * ylf;
-            v00r = area00 * (pixel00 >> 24);
-            v00g = area00 * ((pixel00 >> 16) & 0xff);
-            v00b = area00 * ((pixel00 >> 8) & 0xff);
-            v10r = area10 * (pixel10 >> 24);
-            v10g = area10 * ((pixel10 >> 16) & 0xff);
-            v10b = area10 * ((pixel10 >> 8) & 0xff);
-            v01r = area01 * (pixel01 >> 24);
-            v01g = area01 * ((pixel01 >> 16) & 0xff);
-            v01b = area01 * ((pixel01 >> 8) & 0xff);
-            v11r = area11 * (pixel11 >> 24);
-            v11g = area11 * ((pixel11 >> 16) & 0xff);
-            v11b = area11 * ((pixel11 >> 8) & 0xff);
+            v00r = area00 * ((pixel00 >> L_RED_SHIFT) & 0xff);
+            v00g = area00 * ((pixel00 >> L_GREEN_SHIFT) & 0xff);
+            v00b = area00 * ((pixel00 >> L_BLUE_SHIFT) & 0xff);
+            v10r = area10 * ((pixel10 >> L_RED_SHIFT) & 0xff);
+            v10g = area10 * ((pixel10 >> L_GREEN_SHIFT) & 0xff);
+            v10b = area10 * ((pixel10 >> L_BLUE_SHIFT) & 0xff);
+            v01r = area01 * ((pixel01 >> L_RED_SHIFT) & 0xff);
+            v01g = area01 * ((pixel01 >> L_GREEN_SHIFT) & 0xff);
+            v01b = area01 * ((pixel01 >> L_BLUE_SHIFT) & 0xff);
+            v11r = area11 * ((pixel11 >> L_RED_SHIFT) & 0xff);
+            v11g = area11 * ((pixel11 >> L_GREEN_SHIFT) & 0xff);
+            v11b = area11 * ((pixel11 >> L_BLUE_SHIFT) & 0xff);
             vinr = ving = vinb = 0;
             for (k = 1; k < dely; k++) {  /* for full src pixels */
                 for (m = 1; m < delx; m++) {
                     pixel = *(lines + k * wpls + xup + m);
-                    vinr += 256 * (pixel >> 24);
-                    ving += 256 * ((pixel >> 16) & 0xff);
-                    vinb += 256 * ((pixel >> 8) & 0xff);
+                    vinr += 256 * ((pixel >> L_RED_SHIFT) & 0xff);
+                    ving += 256 * ((pixel >> L_GREEN_SHIFT) & 0xff);
+                    vinb += 256 * ((pixel >> L_BLUE_SHIFT) & 0xff);
                 }
             }
             vmidr = vmidg = vmidb = 0;
@@ -1351,27 +1343,27 @@ l_float32  scx, scy;
             areab = 16 * ylf;
             for (k = 1; k < dely; k++) {  /* for left side */
                 pixel = *(lines + k * wpls + xup);
-                vmidr += areal * (pixel >> 24);
-                vmidg += areal * ((pixel >> 16) & 0xff);
-                vmidb += areal * ((pixel >> 8) & 0xff);
+                vmidr += areal * ((pixel >> L_RED_SHIFT) & 0xff);
+                vmidg += areal * ((pixel >> L_GREEN_SHIFT) & 0xff);
+                vmidb += areal * ((pixel >> L_BLUE_SHIFT) & 0xff);
             }
             for (k = 1; k < dely; k++) {  /* for right side */
                 pixel = *(lines + k * wpls + xlp);
-                vmidr += arear * (pixel >> 24);
-                vmidg += arear * ((pixel >> 16) & 0xff);
-                vmidb += arear * ((pixel >> 8) & 0xff);
+                vmidr += arear * ((pixel >> L_RED_SHIFT) & 0xff);
+                vmidg += arear * ((pixel >> L_GREEN_SHIFT) & 0xff);
+                vmidb += arear * ((pixel >> L_BLUE_SHIFT) & 0xff);
             }
             for (m = 1; m < delx; m++) {  /* for top side */
                 pixel = *(lines + xup + m);
-                vmidr += areat * (pixel >> 24);
-                vmidg += areat * ((pixel >> 16) & 0xff);
-                vmidb += areat * ((pixel >> 8) & 0xff);
+                vmidr += areat * ((pixel >> L_RED_SHIFT) & 0xff);
+                vmidg += areat * ((pixel >> L_GREEN_SHIFT) & 0xff);
+                vmidb += areat * ((pixel >> L_BLUE_SHIFT) & 0xff);
             }
             for (m = 1; m < delx; m++) {  /* for bottom side */
                 pixel = *(lines + dely * wpls + xup + m);
-                vmidr += areab * (pixel >> 24);
-                vmidg += areab * ((pixel >> 16) & 0xff);
-                vmidb += areab * ((pixel >> 8) & 0xff);
+                vmidr += areab * ((pixel >> L_RED_SHIFT) & 0xff);
+                vmidg += areab * ((pixel >> L_GREEN_SHIFT) & 0xff);
+                vmidb += areab * ((pixel >> L_BLUE_SHIFT) & 0xff);
             }
 
                 /* Sum all the contributions */
@@ -1508,8 +1500,6 @@ l_float32  scx, scy;
  *
  *  Note: This function is called with either 8 bpp gray or 32 bpp RGB.
  *        The result is a 2x reduced dest.
- *
- *  *** Warning: explicit assumption about RGB component ordering ***
  */
 void
 scaleAreaMapLow2(l_uint32  *datad,
@@ -1546,21 +1536,21 @@ l_uint32   pixel;
             for (j = 0; j < wd; j++) {
                     /* Average each of the color components from 4 src pixels */
                 pixel = *(lines + 2 * j);
-                rval = (pixel >> 24);
-                gval = (pixel >> 16 & 0xff);
-                bval = (pixel >> 8 & 0xff);
+                rval = (pixel >> L_RED_SHIFT) & 0xff;
+                gval = (pixel >> L_GREEN_SHIFT) & 0xff;
+                bval = (pixel >> L_BLUE_SHIFT) & 0xff;
                 pixel = *(lines + 2 * j + 1);
-                rval += (pixel >> 24);
-                gval += (pixel >> 16 & 0xff);
-                bval += (pixel >> 8 & 0xff);
+                rval += (pixel >> L_RED_SHIFT) & 0xff;
+                gval += (pixel >> L_GREEN_SHIFT) & 0xff;
+                bval += (pixel >> L_BLUE_SHIFT) & 0xff;
                 pixel = *(lines + wpls + 2 * j);
-                rval += (pixel >> 24);
-                gval += (pixel >> 16 & 0xff);
-                bval += (pixel >> 8 & 0xff);
+                rval += (pixel >> L_RED_SHIFT) & 0xff;
+                gval += (pixel >> L_GREEN_SHIFT) & 0xff;
+                bval += (pixel >> L_BLUE_SHIFT) & 0xff;
                 pixel = *(lines + wpls + 2 * j + 1);
-                rval += (pixel >> 24);
-                gval += (pixel >> 16 & 0xff);
-                bval += (pixel >> 8 & 0xff);
+                rval += (pixel >> L_RED_SHIFT) & 0xff;
+                gval += (pixel >> L_GREEN_SHIFT) & 0xff;
+                bval += (pixel >> L_BLUE_SHIFT) & 0xff;
                 composeRGBPixel(rval >> 2, gval >> 2, bval >> 2, &pixel);
                 *(lined + j) = pixel;
             }

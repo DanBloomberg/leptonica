@@ -13,15 +13,14 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+#ifndef  LEPTONICA_GPLOT_H
+#define  LEPTONICA_GPLOT_H
 
 /*
  *   gplot.h
  *
  *       Data structures and parameters for generating gnuplot files
  */
-
-#ifndef GPLOT_H_INCLUDED
-#define GPLOT_H_INCLUDED
 
 #define  GPLOT_VERSION_NUMBER    1
 
@@ -75,4 +74,4 @@ struct GPlot
 typedef struct GPlot  GPLOT;
 
 
-#endif /* GPLOT_H_INCLUDED */
+#endif /* LEPTONICA_GPLOT_H */

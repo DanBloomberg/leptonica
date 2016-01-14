@@ -46,7 +46,7 @@ static char  mainName[] = "edgetest";
 
         /* Speed: about 12 Mpix/GHz/sec */
     startTimer();
-    pixf = pixSobelEdgeFilter(pixs);
+    pixf = pixSobelEdgeFilter(pixs, L_HORIZONTAL_EDGES);
     pixd = pixThresholdToBinary(pixf, 60);
     pixInvert(pixd, pixd);
     time = stopTimer();

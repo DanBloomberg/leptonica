@@ -13,18 +13,15 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
-#ifndef  CCBORD_H_INCLUDED
-#define  CCBORD_H_INCLUDED
+#ifndef  LEPTONICA_CCBORD_H
+#define  LEPTONICA_CCBORD_H
 
 /*
  *  ccbord.h
  *
  *           CCBord:   represents a single connected component
  *           CCBorda:  an array of CCBord
- *     
  */
-
 
     /* use in ccbaStepChainsToPixCoords() */
 #define  LOCAL_COORDS        1
@@ -98,5 +95,5 @@ struct CCBorda
 typedef struct CCBorda CCBORDA;
 
 
-#endif  /* CCBORD_H_INCLUDED */
+#endif  /* LEPTONICA_CCBORD_H */
 

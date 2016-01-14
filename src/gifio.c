@@ -36,8 +36,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "allheaders.h"
-#include <gif_lib.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  HAVE_LIBGIF   /* defined in environ.h */
+/* --------------------------------------------*/
+
+#include "gif_lib.h"
 
 /*---------------------------------------------------------------------*
  *                       Reading gif from file                         *
@@ -341,7 +349,8 @@ GifByteType     *gif_line;
 /*---------------------------------------------------------------------*
  *                           Read from memory                          *
  *---------------------------------------------------------------------*/
-#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+#if HAVE_FMEMOPEN || \
+ (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
 
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
 
@@ -357,7 +366,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
  */
 PIX *
 pixReadMemGif(const l_uint8  *cdata,
-              l_uint32        size)
+              size_t          size)
 {
 l_uint8  *data;
 FILE     *fp;
@@ -369,7 +378,7 @@ PIX      *pix;
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
 
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
-    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+    if ((fp = fmemopen(data, size, "r")) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
     pix = pixReadStreamGif(fp);
     fclose(fp);
@@ -380,11 +389,16 @@ PIX      *pix;
 
 PIX *
 pixReadMemGif(const l_uint8  *data,
-              l_uint32        size)
+              size_t          size)
 {
-    return (PIX *)ERROR_PTR("gif read from memory not implemented on windows",
-                            "pixReadMemGif", NULL);
+    return (PIX *)ERROR_PTR(
+        "gif read from memory not implemented on this platform",
+        "pixReadMemGif", NULL);
 }
 
-#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
+#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
+
+/* --------------------------------------------*/
+#endif  /* HAVE_LIBGIF */
+/* --------------------------------------------*/
 

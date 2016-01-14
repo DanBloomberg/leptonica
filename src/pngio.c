@@ -59,6 +59,16 @@
 #include <string.h>
 #include "allheaders.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  HAVE_LIBPNG   /* defined in environ.h */
+/* --------------------------------------------*/
+
+#include "png.h"
+
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
 #endif  /* ~NO_CONSOLE_IO */
@@ -707,7 +717,8 @@ char        *text;
 /*---------------------------------------------------------------------*
  *                         Read/write to memory                        *
  *---------------------------------------------------------------------*/
-#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+#if HAVE_FMEMOPEN || \
+ (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
 
 extern FILE *open_memstream(char **data, size_t *size);
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
@@ -724,7 +735,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
  */
 PIX *
 pixReadMemPng(const l_uint8  *cdata,
-              l_uint32        size)
+              size_t          size)
 {
 l_uint8  *data;
 FILE     *fp;
@@ -736,7 +747,7 @@ PIX      *pix;
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
 
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
-    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+    if ((fp = fmemopen(data, size, "r")) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
     pix = pixReadStreamPng(fp);
     fclose(fp);
@@ -759,11 +770,12 @@ PIX      *pix;
  */
 l_int32
 pixWriteMemPng(l_uint8  **pdata,
-               l_uint32  *psize,
+               size_t    *psize,
                PIX       *pix,
                l_float32  gamma)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixWriteMemPng");
 
@@ -774,33 +786,39 @@ FILE  *fp;
     if (!pix)
         return ERROR_INT("&pix not defined", procName, 1 );
 
-    if ((fp = open_memstream((char **)pdata, (size_t *)psize)) == NULL)
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    pixWriteStreamPng(fp, pix, gamma);
+    ret = pixWriteStreamPng(fp, pix, gamma);
     fclose(fp);
-    return 0;
+    return ret;
 }
 
 #else
 
 PIX *
 pixReadMemPng(const l_uint8  *data,
-              l_uint32        size)
+              size_t          size)
 {
-    return (PIX *)ERROR_PTR("png read from memory not implemented on windows",
-                            "pixReadMemPng", NULL);
+    return (PIX *)ERROR_PTR(
+        "png read from memory not implemented on this platform",
+        "pixReadMemPng", NULL);
 }
 
 
 l_int32
 pixWriteMemPng(l_uint8  **pdata,
-               l_uint32  *psize,
+               size_t    *psize,
                PIX       *pix,
                l_float32  gamma)
 {
-    return ERROR_INT("png write to memory not implemented on windows",
-                     "pixWriteMemPng", 1);
+    return ERROR_INT(
+        "png write to memory not implemented on this platform",
+        "pixWriteMemPng", 1);
 }
 
-#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
+#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
+
+/* --------------------------------------------*/
+#endif  /* HAVE_LIBPNG */
+/* --------------------------------------------*/
 

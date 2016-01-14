@@ -115,13 +115,25 @@ static struct PixMemoryManager  pix_mem_manager = {
 static void *
 pix_malloc(size_t  size)
 {
+#ifndef COMPILER_MSVC
     return (*pix_mem_manager.allocator)(size);
+#else  /* COMPILER_MSVC */
+    /* Under MSVC++, pix_mem_manager is initialized after a call
+     * to pix_malloc.  Just ignore the custom allocator feature. */
+    return malloc(size);
+#endif  /* COMPILER_MSVC */
 }
 
 static void
 pix_free(void  *ptr)
 {
+#ifndef COMPILER_MSVC
     return (*pix_mem_manager.deallocator)(ptr);
+#else  /* COMPILER_MSVC */
+    /* Under MSVC++, pix_mem_manager is initialized after a call
+     * to pix_malloc.  Just ignore the custom allocator feature. */
+    return free(ptr);
+#endif  /* COMPILER_MSVC */
 }
 
 /*!
@@ -135,6 +147,7 @@ pix_free(void  *ptr)
  *      (1) Use this to change the alloc and/or dealloc functions;
  *          e.g., setPixMemoryManager(my_malloc, my_free).
  */
+#ifndef COMPILER_MSVC
 void
 setPixMemoryManager(void  *(allocator(size_t)),
                     void  (deallocator(void *)))
@@ -143,6 +156,17 @@ setPixMemoryManager(void  *(allocator(size_t)),
     if (deallocator) pix_mem_manager.deallocator = deallocator;
     return;
 }
+#else  /* COMPILER_MSVC */
+    /* MSVC++ wants type (*fun)(types...) syntax */
+void
+setPixMemoryManager(void  *((*allocator)(size_t)),
+                    void  ((*deallocator)(void *)))
+{
+    if (allocator) pix_mem_manager.allocator = allocator;
+    if (deallocator) pix_mem_manager.deallocator = deallocator;
+    return;
+}
+#endif /* COMPILER_MSVC */
 
 
 /*--------------------------------------------------------------------*
@@ -1075,4 +1099,3 @@ PIXCMAP  *cmap;
 
     return 0;
 }
-

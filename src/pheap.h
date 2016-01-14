@@ -13,6 +13,9 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+#ifndef  LEPTONICA_PHEAP_H
+#define  LEPTONICA_PHEAP_H
+
 /*
  *  pheap.h
  *
@@ -57,10 +60,6 @@
  *      For further implementation details, see pheap.c.
  */
 
-#ifndef  PHEAP_H_INCLUDED
-#define  PHEAP_H_INCLUDED
-
-
 struct PHeap
 {
     l_int32      nalloc;      /* size of allocated ptr array                 */
@@ -72,4 +71,4 @@ struct PHeap
 typedef struct PHeap PHEAP;
 
 
-#endif  /* PHEAP_H_INCLUDED */
+#endif  /* LEPTONICA_PHEAP_H */

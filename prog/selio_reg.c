@@ -14,7 +14,7 @@
  *====================================================================*/
 
 /*
- * seliotest.c
+ * selio_reg.c
  *
  *    Runs a number of tests on reading and writing of Sels
  *
@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "allheaders.h"
 
 static const char *textsel1 = "x  oo "
@@ -54,10 +55,10 @@ l_int32         nbytes1, nbytes2;
 PIX            *pix;
 SEL            *sel;
 SELA           *sela1, *sela2;
-static char     mainName[] = "seliotest";
+static char     mainName[] = "selio_reg";
 
     if (argc != 1)
-	return ERROR_INT(" Syntax:  seliotest", mainName, 1);
+	return ERROR_INT(" Syntax:  selio_reg", mainName, 1);
 
         /* selaRead() / selaWrite()  */
     sela1 = selaAddBasic(NULL);

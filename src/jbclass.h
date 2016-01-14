@@ -13,9 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef  JBCLASS_H
-#define  JBCLASS_H
-
+#ifndef  LEPTONICA_JBCLASS_H
+#define  LEPTONICA_JBCLASS_H
 
 /*
  * jbclass.h
@@ -120,4 +119,4 @@ enum {
 #define   JB_DATA_EXT          ".data"
 
 
-#endif  /* JBCLASS_H */
+#endif  /* LEPTONICA_JBCLASS_H */

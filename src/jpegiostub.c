@@ -13,14 +13,22 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#include <stdio.h>
-#include "allheaders.h"
-
 /*
  *  jpegiostub.c
  *
  *     Stubs for jpegio.c functions
  */
+
+#include <stdio.h>
+#include "allheaders.h"
+
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  !HAVE_LIBJPEG   /* defined in environ.h */
+/* --------------------------------------------*/
 
 PIX * pixReadJpeg(const char *filename, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn)
 {
@@ -42,14 +50,17 @@ l_int32 pixWriteStreamJpeg(FILE *fp, PIX *pix, l_int32 quality, l_int32 progress
     return ERROR_INT("function not present", "pixWriteStreamJpeg", 1);
 }
 
-PIX * pixReadMemJpeg(const l_uint8 *cdata, l_uint32 size, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
+PIX * pixReadMemJpeg(const l_uint8 *cdata, size_t size, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadMemJpeg", NULL);
 }
 
-l_int32 pixWriteMemJpeg(l_uint8 **pdata, l_uint32 *psize, PIX *pix, l_int32 quality, l_int32 progressive)
+l_int32 pixWriteMemJpeg(l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 quality, l_int32 progressive)
 {
     return ERROR_INT("function not present", "pixWriteMemJpeg", 1);
 }
 
+/* --------------------------------------------*/
+#endif  /* !HAVE_LIBJPEG */
+/* --------------------------------------------*/
 

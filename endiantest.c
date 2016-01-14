@@ -13,36 +13,27 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
-/*
- *   conncomp.h
+/* 
+ *    endiantest.c
  *
- *        The struct FillSeg is used by the Heckbert seedfill
- *        algorithm to hold information about image segments
- *        that are waiting to be investigated.  We use two
- *        Stacks, one to hold the FillSegs in use, and an
- *        auxiliary Stack as a reservoir to hold FillSegs
- *        for re-use.
+ *    This test was contributed by Bill Janssen.  When used with the
+ *    gnu compiler, it allows efficient computation of the endian
+ *    flag as part of the normal compilation process.  As a result,
+ *    it is not necessary to set this flag either manually or
+ *    through the configure Makefile generator.
  */
 
-#ifndef CONNCOMP_H_INCLUDED
-#define CONNCOMP_H_INCLUDED
+#include <stdio.h>
 
-
-struct FillSeg
+int main()
 {
-    l_int32    xleft;    /* left edge of run */
-    l_int32    xright;   /* right edge of run */
-    l_int32    y;        /* run y  */
-    l_int32    dy;       /* parent segment direction: 1 above, -1 below) */
-};
-typedef struct FillSeg    FILLSEG;
+/* fprintf(stderr, "doing the test\n"); */
+    long v = 0x04030201;
+    if (*((unsigned char *)(&v)) == 0x04)
+        printf("L_BIG_ENDIAN\n");
+    else
+        printf("L_LITTLE_ENDIAN\n");
+    return 0;
+}
 
 
-enum {
-    L_HORIZONTAL_RUNS = 0,   /* determine horizontal runs */
-    L_VERTICAL_RUNS = 1      /* determine vertical runs */
-};
-
-
-#endif /* CONNCOMP_H_INCLUDED */

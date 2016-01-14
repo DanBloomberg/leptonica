@@ -30,6 +30,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "allheaders.h"
 
 static l_int32   NUM_SELS_GENERATED = 4;

@@ -13,8 +13,22 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
+/*
+ *  gifiostub.c
+ *
+ *     Stubs for gifio.c functions
+ */
+
 #include <stdio.h>
 #include "allheaders.h"
+
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+/* --------------------------------------------*/
+#if  !HAVE_LIBGIF   /* defined in environ.h */
+/* --------------------------------------------*/
 
 PIX * pixReadStreamGif(FILE *fp)
 {
@@ -26,8 +40,12 @@ l_int32 pixWriteStreamGif(FILE *fp, PIX *pix)
     return ERROR_INT("function not present", "pixWriteStreamGif", 1);
 }
 
-PIX * pixReadMemGif(const l_uint8 *cdata, l_uint32 size)
+PIX * pixReadMemGif(const l_uint8 *cdata, size_t size)
 {
     return (PIX *)ERROR_PTR("function not present", "pixReadMemGif", NULL);
 }
+
+/* --------------------------------------------*/
+#endif  /* !HAVE_LIBGIF */
+/* --------------------------------------------*/
 

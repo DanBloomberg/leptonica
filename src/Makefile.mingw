@@ -16,6 +16,8 @@
 
 #   Makefile.mingw  (cross-compiler for windows on linux)
 #
+#   Hand-built -- editable -- simple -- makefile
+#
 #   Usage Notes (Important):
 #     (1) Only the building of optimized code has been tested
 #     (2) To use this, download these packages (e.g., from Debian):
@@ -49,9 +51,9 @@
 #
 #   Customization for machine hardware:
 #   (1) On little-endian machines (e.g., i386, x86-64):
-#          CPPFLAGS = $(INCLUDES) -DL_LITTLE_ENDIAN
+#          CPPFLAGS = $(INCLUDES) -DL_LITTLE_ENDIAN -D_STANDARD_C_
 #       On big-endian machines (e.g., Mac Power PC, Sun Sparc):
-#          CPPFLAGS = $(INCLUDES) -DL_BIG_ENDIAN
+#          CPPFLAGS = $(INCLUDES) -DL_BIG_ENDIAN -D_STANDARD_C_
 #   (2) To generate function prototypes, you need a program called
 #       xtractprotos.  Build it with this command:
 #          make xtractprotos
@@ -84,8 +86,8 @@ INCLUDES =	-I./ -I/usr/local/include/mingw
 PROTOTYPE_DIR =	.
 
 # Conditional compilation (depending on processor endian-ness)
-CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN
-#CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN
+CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN -D_NO_AUTOCONF_ -D_STANDARD_C_
+#CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN -D_NO_AUTOCONF_ -D_STANDARD_C_
 
 # Shared library linker options
 SONAME_OPTION = -Wl,-h,
@@ -123,7 +125,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 54
+MINOR_REV = 56
 
 #########################################################
 
@@ -136,10 +138,11 @@ LEPTLIB_SHARED =	liblept.so
 
 LEPTLIB_C =	adaptmap.c affine.c \
 		arithlow.c arrayaccess.c \
-		baseline.c bbuffer.c bilinear.c \
+		bardecode.c baseline.c \
+		bbuffer.c bilinear.c \
 		binexpand.c binexpandlow.c \
 		binreduce.c binreducelow.c \
-		blend.c bmf.c bmpio.c \
+		blend.c bmf.c bmpio.c bmpiostub.c \
 		boxbasic.c boxfunc.c \
 		ccbord.c ccthin.c classapp.c \
 		colorcontent.c colormap.c colormorph.c \
@@ -151,21 +154,23 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
-		gifiostub.c gplot.c graphics.c \
+		gifio.c gifiostub.c \
+		gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
 		grayquant.c grayquantlow.c \
-		jbclass.c jpegio.c \
-		list.c maze.c \
+		jbclass.c jpegio.c jpegiostub.c \
+		kernel.c list.c maze.c mediancut.c \
 		morph.c morphapp.c morphdwa.c morphseq.c \
-		numabasic.c numafunc.c \
+		numabasic.c numafunc1.c numafunc2.c \
 		pageseg.c paintcmap.c \
 		parseprotos.c partition.c pheap.c \
 		pix1.c pix2.c pix3.c pixabasic.c \
-		pixacc.c pixafunc.c pixarith.c pixconv.c \
-		pngio.c pnmio.c pqueue.c \
-		projective.c psio.c \
-		pts.c \
-		rank.c readfile.c \
+		pixacc.c pixafunc.c pixarith.c \
+		pixconv.c pixtiling.c \
+		pngio.c pngiostub.c pnmio.c pnmiostub.c \
+		pqueue.c projective.c psio.c psiostub.c \
+		pts.c rank.c \
+		readbarcode.c readfile.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \
 		rotateorth.c rotateorthlow.c rotateshear.c \
@@ -174,19 +179,20 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		seedfill.c seedfilllow.c \
 		sel1.c sel2.c selgen.c \
 		shear.c skew.c stack.c \
-		textops.c tiffio.c utils.c \
-		viewfiles.c \
-		writefile.c zlibmem.c
+		textops.c tiffio.c tiffiostub.c \
+		utils.c viewfiles.c \
+		writefile.c zlibmem.c zlibmemstub.c
 
 LEPTLIB_H =	allheaders.h alltypes.h \
 		array.h arrayaccess.h bbuffer.h \
-		bmf.h bmp.h ccbord.h colorquant.h \
-		conncomp.h environ.h gplot.h \
+		bmf.h bmp.h ccbord.h \
+		environ.h gplot.h \
 		imageio.h \
 		jbclass.h jpeglib.h \
 		leptprotos.h list.h \
 		morph.h pheap.h \
-		pix.h pqueue.h stack.h
+		pix.h pqueue.h \
+		readbarcode.h stack.h
 
 ##################################################################
 

@@ -13,8 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef BMF_H_INCLUDED
-#define BMF_H_INCLUDED
+#ifndef  LEPTONICA_BMF_H
+#define  LEPTONICA_BMF_H
 
 /* 
  *  bmf.h
@@ -48,4 +48,4 @@ struct Bmf
 };
 typedef struct Bmf BMF;
 
-#endif  /* BMF_H_INCLUDED */
+#endif  /* LEPTONICA_BMF_H */

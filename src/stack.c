@@ -19,29 +19,29 @@
  *
  *      Generic stack
  *
- *      The stack is an array of void * ptrs, onto which
+ *      The pstack is an array of void * ptrs, onto which
  *      objects can be stored.  At any time, the number of
- *      stored objects is stack->n.  The object at the bottom
- *      of the stack is at array[0]; the object at the top of
- *      the stack is at array[n-1].  New objects are added
- *      to the top of the stack; i.e., the first available 
- *      location, which is at array[n].  The stack is expanded
+ *      stored objects is pstack->n.  The object at the bottom
+ *      of the pstack is at array[0]; the object at the top of
+ *      the pstack is at array[n-1].  New objects are added
+ *      to the top of the pstack; i.e., the first available 
+ *      location, which is at array[n].  The pstack is expanded
  *      by doubling, when needed.  Objects are removed
- *      from the top of the stack.  When an attempt is made
- *      to remove an object from an empty stack, the result is null.
+ *      from the top of the pstack.  When an attempt is made
+ *      to remove an object from an empty pstack, the result is null.
  *
  *      Create/Destroy
- *           STACK     *stackCreate()
- *           void       stackDestroy()
+ *           PSTACK    *pstackCreate()
+ *           void       pstackDestroy()
  *
  *      Accessors
- *           l_int32    stackAdd()
- *           void      *stackRemove()
- *           l_int32    stackExtendArray()
- *           l_int32    stackGetCount()
+ *           l_int32    pstackAdd()
+ *           void      *pstackRemove()
+ *           l_int32    pstackExtendArray()
+ *           l_int32    pstackGetCount()
  *
  *      Text description
- *           l_int32    stackPrint()
+ *           l_int32    pstackPrint()
  */
 
 #include <stdio.h>
@@ -55,38 +55,38 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;
  *                          Create/Destroy                             *
  *---------------------------------------------------------------------*/
 /*!
- *  stackCreate()
+ *  pstackCreate()
  *
  *      Input:  nalloc (initial ptr array size; use 0 for default)
- *      Return: stack, or null on error
+ *      Return: pstack, or null on error
  */
-STACK *
-stackCreate(l_int32  nalloc)
+PSTACK *
+pstackCreate(l_int32  nalloc)
 {
-STACK  *stack;
+PSTACK  *pstack;
 
-    PROCNAME("stackCreate");
+    PROCNAME("pstackCreate");
 
     if (nalloc <= 0)
         nalloc = INITIAL_PTR_ARRAYSIZE;
 
-    if ((stack = (STACK *)CALLOC(1, sizeof(STACK))) == NULL)
-        return (STACK *)ERROR_PTR("stack not made", procName, NULL);
+    if ((pstack = (PSTACK *)CALLOC(1, sizeof(PSTACK))) == NULL)
+        return (PSTACK *)ERROR_PTR("pstack not made", procName, NULL);
 
-    if ((stack->array = (void **)CALLOC(nalloc, sizeof(void *))) == NULL)
-        return (STACK *)ERROR_PTR("stack ptr array not made", procName, NULL);
+    if ((pstack->array = (void **)CALLOC(nalloc, sizeof(void *))) == NULL)
+        return (PSTACK *)ERROR_PTR("pstack ptr array not made", procName, NULL);
 
-    stack->nalloc = nalloc;
-    stack->n = 0;
+    pstack->nalloc = nalloc;
+    pstack->n = 0;
     
-    return stack;
+    return pstack;
 }
 
 
 /*!
- *  stackDestroy()
+ *  pstackDestroy()
  *
- *      Input:  &stack (<to be nulled>)
+ *      Input:  &pstack (<to be nulled>)
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
@@ -94,44 +94,44 @@ STACK  *stack;
  *      (1) If freeflag is TRUE, frees each struct in the array.
  *      (2) If freeflag is FALSE but there are elements on the array,
  *          gives a warning and destroys the array.  This will
- *          cause a memory leak of all the items that were on the stack.
+ *          cause a memory leak of all the items that were on the pstack.
  *          So if the items require their own destroy function, they
- *          must be destroyed before the stack.
- *      (3) To destroy the Stack, we destroy the ptr array, then
- *          the stack, and then null the contents of the input ptr.
+ *          must be destroyed before the pstack.
+ *      (3) To destroy the pstack, we destroy the ptr array, then
+ *          the pstack, and then null the contents of the input ptr.
  */
 void
-stackDestroy(STACK  **pstack,
-             l_int32  freeflag)
+pstackDestroy(PSTACK  **ppstack,
+              l_int32   freeflag)
 {
-void   *item;
-STACK  *stack;
+void    *item;
+PSTACK  *pstack;
 
-    PROCNAME("stackDestroy");
+    PROCNAME("pstackDestroy");
 
-    if (pstack == NULL) {
+    if (ppstack == NULL) {
         L_WARNING("ptr address is NULL", procName);
         return;
     }
-    if ((stack = *pstack) == NULL)
+    if ((pstack = *ppstack) == NULL)
         return;
 
     if (freeflag) {
-        while(stack->n > 0) {
-            item = stackRemove(stack);
+        while(pstack->n > 0) {
+            item = pstackRemove(pstack);
             FREE(item);
         }
     }
-    else if (stack->n > 0)
-        L_WARNING_INT("memory leak of %d items in stack!", procName, stack->n);
+    else if (pstack->n > 0)
+        L_WARNING_INT("memory leak of %d items in pstack", procName, pstack->n);
 
-    if (stack->auxstack)
-        stackDestroy(&stack->auxstack, freeflag);
+    if (pstack->auxstack)
+        pstackDestroy(&pstack->auxstack, freeflag);
 
-    if (stack->array)
-        FREE(stack->array);
-    FREE(stack);
-    *pstack = NULL;
+    if (pstack->array)
+        FREE(pstack->array);
+    FREE(pstack);
+    *ppstack = NULL;
 }
 
 
@@ -140,101 +140,101 @@ STACK  *stack;
  *                               Accessors                             *
  *---------------------------------------------------------------------*/
 /*!
- *  stackAdd()
+ *  pstackAdd()
  *
- *      Input:  stack
- *              item to be added to the stack
+ *      Input:  pstack
+ *              item to be added to the pstack
  *      Return: 0 if OK; 1 on error.
  */
 l_int32
-stackAdd(STACK  *stack,
-         void   *item)
+pstackAdd(PSTACK  *pstack,
+          void    *item)
 {
-    PROCNAME("stackAdd");
+    PROCNAME("pstackAdd");
 
-    if (!stack)
-        return ERROR_INT("stack not defined", procName, 1);
+    if (!pstack)
+        return ERROR_INT("pstack not defined", procName, 1);
     if (!item)
         return ERROR_INT("item not defined", procName, 1);
 
         /* Do we need to extend the array? */
-    if (stack->n >= stack->nalloc)
-        stackExtendArray(stack);
+    if (pstack->n >= pstack->nalloc)
+        pstackExtendArray(pstack);
 
         /* Store the new pointer */
-    stack->array[stack->n] = (void *)item;
-    stack->n++;
+    pstack->array[pstack->n] = (void *)item;
+    pstack->n++;
 
     return 0;
 }
 
 
 /*!
- *  stackRemove()
+ *  pstackRemove()
  *
- *      Input:  stack 
- *      Return: ptr to item popped from the top of the stack,
- *              or null if the stack is empty or on error
+ *      Input:  pstack 
+ *      Return: ptr to item popped from the top of the pstack,
+ *              or null if the pstack is empty or on error
  */
 void *
-stackRemove(STACK  *stack)
+pstackRemove(PSTACK  *pstack)
 {
 void  *item;
 
-    PROCNAME("stackRemove");
+    PROCNAME("pstackRemove");
 
-    if (!stack)
-        return ERROR_PTR("stack not defined", procName, NULL);
+    if (!pstack)
+        return ERROR_PTR("pstack not defined", procName, NULL);
 
-    if (stack->n == 0)
+    if (pstack->n == 0)
         return NULL;
 
-    stack->n--;
-    item = stack->array[stack->n];
+    pstack->n--;
+    item = pstack->array[pstack->n];
         
     return item;
 }
 
 
 /*!
- *  stackExtendArray()
+ *  pstackExtendArray()
  *
- *      Input:  stack
+ *      Input:  pstack
  *      Return: 0 if OK; 1 on error
  */
 l_int32
-stackExtendArray(STACK  *stack)
+pstackExtendArray(PSTACK  *pstack)
 {
-    PROCNAME("stackExtendArray");
+    PROCNAME("pstackExtendArray");
 
-    if (!stack)
-        return ERROR_INT("stack not defined", procName, 1);
+    if (!pstack)
+        return ERROR_INT("pstack not defined", procName, 1);
 
-    if ((stack->array = (void **)reallocNew((void **)&stack->array,
-                              sizeof(l_intptr_t) * stack->nalloc,
-                              2 * sizeof(l_intptr_t) * stack->nalloc)) == NULL)
-        return ERROR_INT("new stack array not defined", procName, 1);
+    if ((pstack->array = (void **)reallocNew((void **)&pstack->array,
+                              sizeof(l_intptr_t) * pstack->nalloc,
+                              2 * sizeof(l_intptr_t) * pstack->nalloc)) == NULL)
+        return ERROR_INT("new pstack array not defined", procName, 1);
 
-    stack->nalloc = 2 * stack->nalloc;
+    pstack->nalloc = 2 * pstack->nalloc;
     return 0;
 }
 
 
 /*!
- *  stackGetCount()
+ *  pstackGetCount()
  *
- *      Input:  stack
+ *      Input:  pstack
  *      Return: count, or 0 on error
  */
 l_int32
-stackGetCount(STACK  *stack)
+pstackGetCount(PSTACK  *pstack)
 {
-    PROCNAME("stackGetCount");
+    PROCNAME("pstackGetCount");
 
-    if (!stack)
-        return ERROR_INT("stack not defined", procName, 1);
+    if (!pstack)
+        return ERROR_INT("pstack not defined", procName, 1);
 
-    return stack->n;
+    return pstack->n;
 }
 
 
@@ -243,29 +243,29 @@ stackGetCount(STACK  *stack)
  *                            Debug output                             *
  *---------------------------------------------------------------------*/
 /*!
- *  stackPrint()
+ *  pstackPrint()
  *
  *      Input:  stream
- *              stack
+ *              pstack
  *      Return: 0 if OK; 1 on error
  */
 l_int32
-stackPrint(FILE   *fp,
-           STACK  *stack)
+pstackPrint(FILE    *fp,
+            PSTACK  *pstack)
 {
 l_int32  i;
 
-    PROCNAME("stackPrint");
+    PROCNAME("pstackPrint");
 
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
-    if (!stack)
-        return ERROR_INT("stack not defined", procName, 1);
+    if (!pstack)
+        return ERROR_INT("pstack not defined", procName, 1);
 
     fprintf(fp, "\n Stack: nalloc = %d, n = %d, array = %p\n", 
-            stack->nalloc, stack->n, stack->array);
-    for (i = 0; i < stack->n; i++)
-        fprintf(fp,   "array[%d] = %p\n", i, stack->array[i]);
+            pstack->nalloc, pstack->n, pstack->array);
+    for (i = 0; i < pstack->n; i++)
+        fprintf(fp,   "array[%d] = %p\n", i, pstack->array[i]);
     
     return 0;
 }

@@ -22,7 +22,7 @@
  *
  *         Linearly interpreted (usually up-) scaling
  *               PIX    *pixScaleLI()     ***
- *               PIX    *pixScaleColorLI()     ***
+ *               PIX    *pixScaleColorLI()
  *               PIX    *pixScaleColor2xLI()   ***
  *               PIX    *pixScaleColor4xLI()   ***
  *               PIX    *pixScaleGrayLI()
@@ -33,17 +33,17 @@
  *               PIX    *pixScaleBySampling()
  *
  *         Fast integer factor subsampling RGB to gray and to binary
- *               PIX    *pixScaleRGBToGrayFast()       ***
- *               PIX    *pixScaleRGBToBinaryFast()       ***
+ *               PIX    *pixScaleRGBToGrayFast()
+ *               PIX    *pixScaleRGBToBinaryFast()
  *               PIX    *pixScaleGrayToBinaryFast()
  *
  *         Downscaling with (antialias) smoothing
- *               PIX    *pixScaleSmooth()      ***
- *               PIX    *pixScaleRGBToGray2()  ***  special 2x reduction to gray
+ *               PIX    *pixScaleSmooth() ***
+ *               PIX    *pixScaleRGBToGray2()   [special 2x reduction to gray]
  *
  *         Downscaling with (antialias) area mapping
  *               PIX    *pixScaleAreaMap()     ***
- *               PIX    *pixScaleAreaMap2()     ***
+ *               PIX    *pixScaleAreaMap2()
  *
  *         Binary scaling by closest pixel sampling
  *               PIX    *pixScaleBinary()
@@ -310,8 +310,6 @@ PIX              *pixs, *pixd;
  *      (3) The speed on intel hardware for the general case (not 2x)
  *          is about 10 * 10^6 dest-pixels/sec/GHz.  (The special 2x
  *          case runs at about 80 * 10^6 dest-pixels/sec/GHz.)
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixScaleColorLI(PIX      *pixs,
@@ -340,8 +338,7 @@ PIX              *pixd;
         return pixScaleColor4xLI(pixs);
 
         /* General case */
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
@@ -389,8 +386,7 @@ PIX              *pixd;
     if ((d = pixGetDepth(pixs)) != 32)
         return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
     
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(2 * ws, 2 * hs, 32)) == NULL)
@@ -562,8 +558,7 @@ PIX              *pixd;
         return pixScaleGray4xLI(pixs);
     
         /* General case */
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
@@ -610,8 +605,7 @@ PIX              *pixd;
     if (pixGetColormap(pixs))
         L_WARNING("pix has colormap", procName);
     
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(2 * ws, 2 * hs, 8)) == NULL)
@@ -656,8 +650,7 @@ PIX              *pixd;
     if (pixGetColormap(pixs))
         L_WARNING("pix has colormap", procName);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(4 * ws, 4 * hs, 8)) == NULL)
@@ -707,8 +700,7 @@ PIX              *pixd;
     if ((d = pixGetDepth(pixs)) == 1)
         return pixScaleBinary(pixs, scalex, scaley);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
@@ -745,8 +737,6 @@ PIX              *pixd;
  *          generating a downsized grayscale image from a higher resolution
  *          RGB image.  This would typically be used for image analysis.
  *      (3) The standard color byte order (RGBA) is assumed.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixScaleRGBToGrayFast(PIX     *pixs,
@@ -769,16 +759,15 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("factor must be >= 1", procName, NULL);
 
     if (color == COLOR_RED)
-        shift = 24;
+        shift = L_RED_SHIFT;
     else if (color == COLOR_GREEN)
-        shift = 16;
+        shift = L_GREEN_SHIFT;
     else if (color == COLOR_BLUE)
-        shift = 8;
+        shift = L_BLUE_SHIFT;
     else
         return (PIX *)ERROR_PTR("invalid color", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
@@ -820,9 +809,6 @@ PIX       *pixd;
  *          generating a downsized binary image from a higher resolution
  *          RGB image.  This would typically be used for image analysis.
  *      (3) It uses the green channel to represent the RGB pixel intensity.
- *      (4) The standard color byte order (RGBA) is assumed.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixScaleRGBToBinaryFast(PIX     *pixs,
@@ -844,8 +830,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("depth not 32 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
@@ -863,7 +848,7 @@ PIX       *pixd;
         words = datas + i * factor * wpls;
         lined = datad + i * wpld;
         for (j = 0; j < wd; j++, words += factor) {
-            byteval = ((*words) >> 16) & 0xff;
+            byteval = ((*words) >> L_GREEN_SHIFT) & 0xff;
             if (byteval < thresh)
                 SET_DATA_BIT(lined, j);
         }
@@ -908,8 +893,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("depth not 8 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
@@ -1017,8 +1001,7 @@ PIX              *pixs, *pixd;
     size = 1.0 / minscale;   /* ideal filter full width */
     isize = L_MAX(2, (l_int32)(size + 0.5));
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     if ((ws < isize) || (hs < isize)) {
         pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
@@ -1053,8 +1036,6 @@ PIX              *pixs, *pixd;
  *      Input:  pixs (32 bpp rgb)
  *              rwt, gwt, bwt (must sum to 1.0)
  *      Return: pixd, (8 bpp, 2x reduced), or null on error
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixScaleRGBToGray2(PIX       *pixs,
@@ -1180,8 +1161,7 @@ PIX              *pixs, *pixd, *pixt1, *pixt2, *pixt3;
     else
         pixs = pixClone(pix);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
@@ -1230,8 +1210,6 @@ PIX              *pixs, *pixd, *pixt1, *pixt2, *pixt3;
  *      (5) Consequently, pixScaleAreaMap2() is incorporated into the
  *          general area map scaling function, for the special cases
  *          of 2x, 4x, 8x and 16x reduction.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixScaleAreaMap2(PIX  *pix)
@@ -1311,8 +1289,7 @@ PIX              *pixd;
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
@@ -1412,8 +1389,7 @@ PIX       *pixt, *pixd;
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (scalefactor >= 1.0)
         return (PIX *)ERROR_PTR("scalefactor not < 1.0", procName, NULL);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     minsrc = L_MIN(w, h);
     mindest = (l_int32)((l_float32)minsrc * scalefactor);
     if (mindest < 2)
@@ -1518,8 +1494,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = (ws / 2) & 0xfffffffc;    /* truncate to factor of 4 */
     hd = hs / 2;
     if (wd == 0 || hd == 0)
@@ -1580,8 +1555,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = (ws / 3) & 0xfffffff8;    /* truncate to factor of 8 */
     hd = hs / 3;
     if (wd == 0 || hd == 0)
@@ -1637,8 +1611,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = (ws / 4) & 0xfffffffe;    /* truncate to factor of 2 */
     hd = hs / 4;
     if (wd == 0 || hd == 0)
@@ -1694,8 +1667,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = (ws / 6) & 0xfffffff8;    /* truncate to factor of 8 */
     hd = hs / 6;
     if (wd == 0 || hd == 0)
@@ -1751,8 +1723,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = ws / 8;  /* truncate to nearest dest byte */
     hd = hs / 8;
     if (wd == 0 || hd == 0)
@@ -1807,8 +1778,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = ws / 16;
     hd = hs / 16;
     if (wd == 0 || hd == 0)
@@ -1881,8 +1851,7 @@ PIX       *pixs1, *pixs2, *pixt, *pixd;
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (scalefactor >= 1.0)
         return (PIX *)ERROR_PTR("scalefactor not < 1.0", procName, NULL);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     minsrc = L_MIN(w, h);
     mindest = (l_int32)((l_float32)minsrc * scalefactor);
     if (mindest < 2)
@@ -2169,8 +2138,7 @@ PIX       *pixd;
     if (pixGetColormap(pixs))
         L_WARNING("pixs has colormap", procName);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 2 * ws;
     hd = 2 * hs;
     hsm = hs - 1;
@@ -2247,8 +2215,7 @@ PIX       *pixd;
     if (pixGetColormap(pixs))
         L_WARNING("pixs has colormap", procName);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 2 * ws;
     hd = 2 * hs;
     hsm = hs - 1;
@@ -2361,8 +2328,7 @@ PIX       *pixd;
     if (pixGetColormap(pixs))
         L_WARNING("pixs has colormap", procName);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 4 * ws;
     hd = 4 * hs;
     hsm = hs - 1;
@@ -2449,8 +2415,7 @@ PIX       *pixd;
     if (pixGetColormap(pixs))
         L_WARNING("pixs has colormap", procName);
 
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 4 * ws;
     hd = 4 * hs;
     hsm = hs - 1;

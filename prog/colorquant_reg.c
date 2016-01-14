@@ -14,101 +14,200 @@
  *====================================================================*/
 
 /*
- *  colorquant_reg.c
+ * colorquant_reg.c
  *
  *    Regression test for various color quantizers
- *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define  FILE1    "marge.jpg"
-#define  FILE2    "test24.jpg"
-#define  NFILES   2
+static const l_int32 SPACE = 30;
+static const l_int32 MAX_WIDTH = 350;
+static const char *image[4] = {"marge.jpg",
+                               "test24.jpg",
+                               "juditharismax.jpg",
+                               "hardlight2_2.jpg"};
 
+l_int32 TestImage(const char *filename, l_int32 i);
+void PixSave32(PIXA *pixa, PIX *pixc);
 
 main(int    argc,
      char **argv)
 {
-l_int32      i;
-PIX         *pixs, *pixt;
-PIXA        *pixa;
+l_int32  i;
 static char  mainName[] = "colorquant_reg";
 
     if (argc != 1)
-	exit(ERROR_INT(" Syntax:  colorquant_reg", mainName, 1));
+	exit(ERROR_INT(" Syntax: colorquant_reg", mainName, 1));
 
-    pixa = pixaCreate(2);
-    pixs = pixRead(FILE1);
-    pixaAddPix(pixa, pixs, L_INSERT);
-    pixs = pixRead(FILE2);
-    pixaAddPix(pixa, pixs, L_INSERT);
-
-    pixDisplayWrite(NULL, -1);
-
-    for (i = 0; i < NFILES; i++) { 
-        pixs = pixaGetPix(pixa, i, L_CLONE);
-
-	    /* Conversion with either fixed octcubes or dithered */
-        pixt = pixConvertRGBToColormap(pixs, 4, NULL);
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-
-            /* Simple 1-pass octree quantizer */
-        pixt = pixColorQuant1Pass(pixs, 0);  /* no dither */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-        pixt = pixColorQuant1Pass(pixs, 1);  /* dither */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-
-            /* 2-pass octree quantizer */
-        pixt = pixOctreeColorQuant(pixs, 220, 0);  /* no dither */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-        pixt = pixOctreeColorQuant(pixs, 220, 1);  /* dither */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-
-            /* 2-depth octree quantizer */
-        pixt = pixOctreeQuant(pixs, 64, 1);  /* max 64 colors */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-        pixt = pixOctreeQuant(pixs, 220, 1);  /* max 220 colors */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-
-            /* Quantize to fully populated level 4 octree (as RGB) */
-        pixt = pixFixedOctcubeQuantRGB(pixs, 4);
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-
-            /* Mixed color/gray octree quantizer */
-        pixt = pixOctcubeQuantMixed(pixs, 8, 64, 10);  /* max delta = 10 */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-        pixt = pixOctcubeQuantMixed(pixs, 8, 64, 30);  /* max delta = 30 */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-        pixt = pixOctcubeQuantMixed(pixs, 8, 64, 50);  /* max delta = 50 */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-
-#if 0   /* not yet ready for prime time */
-            /* Median cut color quantizer */
-        pixt = pixMedianCutQuant(pixs, 0, 256, 5, 1);  /* 5 sigbits */
-        pixDisplayWrite(pixt, 1);
-        pixDestroy(&pixt);
-#endif
-
-        pixDestroy(&pixs);
+    for (i = 0; i < 4; i++) {
+/*        if (i != 2) continue; */
+        TestImage(image[i], i);
     }
-
-    system("gthumb junk_write_display* &");
-
-    pixaDestroy(&pixa);
     return 0;
 }
+
+
+l_int32 TestImage(const char *filename,
+                  l_int32     i)
+{
+char       buf[256];
+l_int32    w, h, nerrors;
+l_float32  factor;
+PIX       *pix, *pixs, *pixc, *pix32, *pixt, *pixd;
+PIXA      *pixa;
+char      *fileout;
+
+    PROCNAME("TestImage");
+
+    if ((pix = pixRead(filename)) == NULL)
+        return ERROR_INT("pix not made", procName, 1);
+    pixGetDimensions(pix, &w, &h, NULL);
+    if (w > MAX_WIDTH) {
+        factor = (l_float32)MAX_WIDTH / (l_float32)w;
+        pixs = pixScale(pix, factor, factor);
+    }
+    else
+        pixs = pixClone(pix);
+    pixDestroy(&pix);
+
+    pixa = pixaCreate(0);
+
+        /* Median cut quantizer (no dither; 5 sigbits) */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 16, 5, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 128, 5, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 256, 5, 1);
+    PixSave32(pixa, pixc);
+
+        /* Median cut quantizer (with dither; 5 sigbits) */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 16, 5, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 128, 5, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 256, 5, 1);
+    PixSave32(pixa, pixc);
+
+        /* Median cut quantizer (no dither; 6 sigbits) */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 16, 6, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 128, 6, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 256, 6, 1);
+    PixSave32(pixa, pixc);
+
+        /* Median cut quantizer (with dither; 6 sigbits) */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 16, 6, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 128, 6, 1);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 256, 6, 10);
+    PixSave32(pixa, pixc);
+
+        /* Simple 1-pass octree quantizer */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
+    pixc = pixColorQuant1Pass(pixs, 0);  /* no dither */
+    PixSave32(pixa, pixc);
+    pixc = pixColorQuant1Pass(pixs, 1);  /* dither */
+    PixSave32(pixa, pixc);
+
+        /* 2-pass octree quantizer */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
+    pixc = pixOctreeColorQuant(pixs, 128, 0);  /* no dither */
+    PixSave32(pixa, pixc);
+    pixc = pixOctreeColorQuant(pixs, 256, 0);  /* no dither */
+    PixSave32(pixa, pixc);
+    pixc = pixOctreeColorQuant(pixs, 128, 1);  /* dither */
+    PixSave32(pixa, pixc);
+    pixc = pixOctreeColorQuant(pixs, 256, 1);  /* dither */
+    PixSave32(pixa, pixc);
+
+        /* Simple adaptive quantization to 4 or 8 bpp */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
+    pixc = pixOctreeQuant(pixs, 8, 0);    /* fixed: 8 colors */
+    PixSave32(pixa, pixc);
+    pixc = pixOctreeQuant(pixs, 16, 0);   /* fixed: 16 colors */
+    PixSave32(pixa, pixc);
+    pixc = pixOctreeQuant(pixs, 64, 0);   /* fixed: 64 colors */
+    PixSave32(pixa, pixc);
+    pixc = pixOctreeQuant(pixs, 256, 0);   /* fixed: 256 colors */
+    PixSave32(pixa, pixc);
+
+        /* Quantize to fully populated octree (RGB) at given level */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
+    pixc = pixFixedOctcubeQuantRGB(pixs, 2);  /* level 2 */
+    PixSave32(pixa, pixc);
+    pixc = pixFixedOctcubeQuantRGB(pixs, 3);  /* level 3 */
+    PixSave32(pixa, pixc);
+    pixc = pixFixedOctcubeQuantRGB(pixs, 4);  /* level 4 */
+    PixSave32(pixa, pixc);
+    pixc = pixFixedOctcubeQuantRGB(pixs, 5);  /* level 5 */
+    PixSave32(pixa, pixc);
+
+        /* Generate 32 bpp RGB image with num colors <= 256 */
+    pixt = pixOctreeQuant(pixs, 256, 0);   /* cmapped version */
+    pix32 = pixRemoveColormap(pixt, REMOVE_CMAP_BASED_ON_SRC);
+
+        /* Quantize image with few colors at fixed octree leaf level */
+    pixSaveTiled(pixt, pixa, 1, 1, SPACE, 0);
+    pixc = pixFixedOctcubeQuantCmap(pix32, 2);   /* level 2 */
+    PixSave32(pixa, pixc);
+    pixc = pixFixedOctcubeQuantCmap(pix32, 3);   /* level 3 */
+    PixSave32(pixa, pixc);
+    pixc = pixFixedOctcubeQuantCmap(pix32, 4);   /* level 4 */
+    PixSave32(pixa, pixc);
+    pixc = pixFixedOctcubeQuantCmap(pix32, 5);   /* level 5 */
+    PixSave32(pixa, pixc);
+
+        /* Mixed color/gray octree quantizer */
+    pixSaveTiled(pixt, pixa, 1, 1, SPACE, 0);
+    pixc = pixOctcubeQuantMixed(pix32, 8, 64, 10);   /* max delta = 10 */
+    PixSave32(pixa, pixc);
+    pixc = pixOctcubeQuantMixed(pix32, 8, 64, 30);   /* max delta = 30 */
+    PixSave32(pixa, pixc);
+    pixc = pixOctcubeQuantMixed(pix32, 8, 64, 50);   /* max delta = 50 */
+    PixSave32(pixa, pixc);
+    
+        /* Run the high-level converter */
+    pixSaveTiled(pixt, pixa, 1, 1, SPACE, 0);
+    pixc = pixConvertRGBToColormap(pix32, 4, &nerrors);    /* level 4 */
+    if (nerrors) fprintf(stderr, "Number errors at level 4: %d\n", nerrors);
+    PixSave32(pixa, pixc);
+    pixc = pixConvertRGBToColormap(pix32, 5, &nerrors);    /* level 5 */
+    if (nerrors) fprintf(stderr, "Number errors at level 5: %d\n", nerrors);
+    PixSave32(pixa, pixc);
+    pixc = pixConvertRGBToColormap(pix32, 6, &nerrors);    /* level 6 */
+    if (nerrors) fprintf(stderr, "Number errors at level 6: %d\n", nerrors);
+    PixSave32(pixa, pixc);
+
+    pixDestroy(&pix32);
+    pixDestroy(&pixt);
+
+    pixd = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd, 100, 100);
+    sprintf(buf, "junkdisp.%d.jpg", i);
+    pixWrite(buf, pixd, IFF_JFIF_JPEG);
+
+    pixDestroy(&pixs);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+
+    return 0;
+}
+
+void PixSave32(PIXA *pixa, PIX *pixc) {
+PIX  *pix32;
+    pix32 = pixConvertTo32(pixc);
+    pixSaveTiled(pix32, pixa, 1, 0, SPACE, 0);
+    pixDestroy(&pixc);
+    pixDestroy(&pix32);
+}
+
 
