@@ -19,7 +19,7 @@
  *     jbcorrelation dirin thresh weight rootname [firstpage npages]
  *
  *         dirin:  directory of input pages
- *         thresh: 0.80 is a reasonable compromise between accuracy
+ *         thresh: 0.80 - 0.85 is a reasonable compromise between accuracy
  *                 and number of classes, for characters
  *         weight: 0.6 seems to work reasonably with thresh = 0.8.
  *         rootname: used for naming the two output files (templates
@@ -29,8 +29,6 @@
  *           The default size is given in jbclass.c.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* Choose one of these */

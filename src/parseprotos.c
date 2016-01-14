@@ -158,12 +158,22 @@ SARRAY  *sa, *saout, *satest;
                 start, stop, charindex); */
         str = captureProtoSignature(sa, start, stop, charindex);
 
-            /* Make sure it is not static.  Note that 'extern' has
-             * been prepended to the prototype, so the 'static'
-             * keyword, if it exists, would be the second word. */
+            /* Make sure that the signature found by cpp is neither
+             * static nor extern.  We get 'extern' declarations from
+             * header files, and with some versions of cpp running on
+             * #include <sys/stat.h> we get something of the form:
+             *    extern ... (( ... )) ... ( ... ) { ...
+             * For this, the 1st '(' is the lp, the 2nd ')' is the rp,
+             * and there is a lot of garbage between the rp and the lb.
+             * It is easiest to simply reject any signature that starts
+             * with 'extern'.  Note also that an 'extern' token has been
+             * prepended to each prototype, so the 'static' or
+             * 'extern' keywords we are looking for, if they exist,
+             * would be the second word. */
         satest = sarrayCreateWordsFromString(str);
         secondword = sarrayGetString(satest, 1, 0);
-        if (strcmp(secondword, "static")) {  /* not static */
+        if (strcmp(secondword, "static") &&  /* not static */
+            strcmp(secondword, "extern")) {  /* not extern */
             if (prestring) {  /* prepend it to the prototype */
                 newstr = stringJoin(prestring, str);
                 sarrayAddString(saout, newstr, L_INSERT);
@@ -454,7 +464,11 @@ l_int32  toffsetlp, toffsetrp, toffsetlb, toffsetsc;
             continue;
         }
 
-            /* OK, it should be a function definition */
+            /* OK, it should be a function definition.  We haven't
+             * checked that there is only white space between the
+             * rp and lb, but we've only seen problems with two
+             * extern inlines in sys/stat.h, and this is handled
+             * later by eliminating any prototype beginning with 'extern'. */
         *pstart = next;
         *pstop = next + soffsetrp;
         *pcharindex = boffsetrp;

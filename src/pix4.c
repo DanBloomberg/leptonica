@@ -35,6 +35,8 @@
  *           l_int32     pixGetAverageMasked()
  *           l_int32     pixGetAverageTiledRGB()
  *           PIX        *pixGetAverageTiled()
+ *           NUMA       *pixRowStats()
+ *           NUMA       *pixColumnStats()
  *           l_int32     pixGetComponentRange()
  *           l_int32     pixGetExtremeValue()
  *           l_int32     pixGetMaxValueInRect()
@@ -55,8 +57,6 @@
  *           l_int32     pixSplitDistributionFgBg()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -1129,6 +1129,289 @@ PIX       *pixt, *pixd;
 
     pixDestroy(&pixt);
     return pixd;
+}
+
+
+/*!
+ *  pixRowStats()
+ *
+ *      Input:  pixs (8 bpp; not cmapped)
+ *              &namean (<optional return> numa of mean values)
+ *              &namedian (<optional return> numa of median values)
+ *              &namode (<optional return> numa of mode intensity values)
+ *              &namodecount (<optional return> numa of mode counts)
+ *              &navar (<optional return> numa of variance)
+ *              &narootvar (<optional return> numa of square root of variance)
+ *      Return: na (numa of requested statistic for each row), or null on error
+ *
+ *  Notes:
+ *      (1) This computes numas that represent column vectors of statistics,
+ *          with each of its values derived from the corresponding row of a Pix.
+ *      (2) Use NULL on input to prevent computation of any of the 5 numas.
+ *      (3) Other functions that compute pixel row statistics are:
+ *             pixCountPixelsByRow()
+ *             pixSumPixelsByRow()
+ *             pixGetRowStats()
+ */
+l_int32
+pixRowStats(PIX    *pixs,
+            NUMA  **pnamean,
+            NUMA  **pnamedian,
+            NUMA  **pnamode,
+            NUMA  **pnamodecount,
+            NUMA  **pnavar,
+            NUMA  **pnarootvar)
+{
+l_int32     i, j, k, w, h, val, wpls, sum, sumsq, target, max, modeval;
+l_int32    *histo;
+l_uint32   *lines, *datas;
+l_float32   norm;
+l_float32  *famean, *fameansq, *favar, *farootvar;
+l_float32  *famedian, *famode, *famodecount;
+
+    PROCNAME("pixRowStats");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+
+        /* We need the mean for variance and root variance */
+    if (pnamean || pnavar || pnarootvar) {
+        norm = 1. / (l_float32)w;
+        famean = (l_float32 *)CALLOC(h, sizeof(l_float32));
+        fameansq = (l_float32 *)CALLOC(h, sizeof(l_float32));
+        if (pnavar || pnarootvar) {
+            favar = (l_float32 *)CALLOC(h, sizeof(l_float32));
+            if (pnarootvar)
+                farootvar = (l_float32 *)CALLOC(h, sizeof(l_float32));
+        }
+        for (i = 0; i < h; i++) {
+            sum = sumsq = 0;
+            lines = datas + i * wpls;
+            for (j = 0; j < w; j++) {
+                val = GET_DATA_BYTE(lines, j);
+                sum += val;
+                sumsq += val * val;
+            }
+            famean[i] = norm * sum;
+            fameansq[i] = norm * sumsq;
+            if (pnavar || pnarootvar) {
+                favar[i] = fameansq[i] - famean[i] * famean[i];
+                if (pnarootvar)
+                    farootvar[i] = sqrt(favar[i]);
+            }
+        }
+        FREE(fameansq);
+        if (pnamean)
+            *pnamean = numaCreateFromFArray(famean, h, L_INSERT);
+        else
+            FREE(famean);
+        if (pnavar)
+            *pnavar = numaCreateFromFArray(favar, h, L_INSERT);
+        else
+            FREE(favar);
+        if (pnarootvar)
+            *pnarootvar = numaCreateFromFArray(farootvar, h, L_INSERT);
+    }
+
+        /* We need a histogram to find the median and/or mode values */
+    if (pnamedian || pnamode || pnamodecount) {
+        histo = (l_int32 *)CALLOC(256, sizeof(l_int32));
+        if (pnamedian) {
+            *pnamedian = numaMakeConstant(0, h);
+            famedian = numaGetFArray(*pnamedian, L_NOCOPY);
+        }
+        if (pnamode) {
+            *pnamode = numaMakeConstant(0, h);
+            famode = numaGetFArray(*pnamode, L_NOCOPY);
+        }
+        if (pnamodecount) {
+            *pnamodecount = numaMakeConstant(0, h);
+            famodecount = numaGetFArray(*pnamodecount, L_NOCOPY);
+        }
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            memset(histo, 0, 1024);
+            for (j = 0; j < w; j++) {
+                val = GET_DATA_BYTE(lines, j);
+                histo[val]++;
+            }
+
+            if (pnamedian) {
+                sum = 0;
+                target = (w + 1) / 2;
+                for (k = 0; k < 256; k++) {
+                    sum += histo[k];
+                    if (sum >= target) {
+                        famedian[i] = k;
+                        break;
+                    }
+                }
+            }
+
+            if (pnamode || pnamodecount) {
+                max = 0;
+                modeval = 0;
+                for (k = 0; k < 256; k++) {
+                    if (histo[k] > max) {
+                        max = histo[k];
+                        modeval = k;
+                    }
+                }
+                if (pnamode)
+                    famode[i] = modeval;
+                if (pnamodecount)
+                    famodecount[i] = max;
+            }
+        }
+        FREE(histo);
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  pixColumnStats()
+ *
+ *      Input:  pixs (8 bpp; not cmapped)
+ *              &namean (<optional return> numa of mean values)
+ *              &namedian (<optional return> numa of median values)
+ *              &namode (<optional return> numa of mode intensity values)
+ *              &namodecount (<optional return> numa of mode counts)
+ *              &navar (<optional return> numa of variance)
+ *              &narootvar (<optional return> numa of square root of variance)
+ *      Return: na (numa of requested statistic for each column),
+ *                  or null on error
+ *
+ *  Notes:
+ *      (1) This computes numas that represent row vectors of statistics,
+ *          with each of its values derived from the corresponding col of a Pix.
+ *      (2) Use NULL on input to prevent computation of any of the 5 numas.
+ *      (3) Other functions that compute pixel column statistics are:
+ *             pixCountPixelsByColumn()
+ *             pixSumPixelsByColumn()
+ *             pixGetColumnStats()
+ */
+l_int32
+pixColumnStats(PIX    *pixs,
+               NUMA  **pnamean,
+               NUMA  **pnamedian,
+               NUMA  **pnamode,
+               NUMA  **pnamodecount,
+               NUMA  **pnavar,
+               NUMA  **pnarootvar)
+{
+l_int32     i, j, k, w, h, val, wpls, sum, sumsq, target, max, modeval;
+l_int32    *histo;
+l_uint32   *lines, *datas;
+l_float32   norm;
+l_float32  *famean, *fameansq, *favar, *farootvar;
+l_float32  *famedian, *famode, *famodecount;
+
+    PROCNAME("pixColumnStats");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+
+        /* We need the mean for variance and root variance */
+    if (pnamean || pnavar || pnarootvar) {
+        norm = 1. / (l_float32)h;
+        famean = (l_float32 *)CALLOC(w, sizeof(l_float32));
+        fameansq = (l_float32 *)CALLOC(w, sizeof(l_float32));
+        if (pnavar || pnarootvar) {
+            favar = (l_float32 *)CALLOC(w, sizeof(l_float32));
+            if (pnarootvar)
+                farootvar = (l_float32 *)CALLOC(w, sizeof(l_float32));
+        }
+        for (j = 0; j < w; j++) {
+            sum = sumsq = 0;
+            for (i = 0, lines = datas; i < h; lines += wpls, i++) {
+                val = GET_DATA_BYTE(lines, j);
+                sum += val;
+                sumsq += val * val;
+            }
+            famean[j] = norm * sum;
+            fameansq[j] = norm * sumsq;
+            if (pnavar || pnarootvar) {
+                favar[j] = fameansq[j] - famean[j] * famean[j];
+                if (pnarootvar)
+                    farootvar[j] = sqrt(favar[j]);
+            }
+        }
+        FREE(fameansq);
+        if (pnamean)
+            *pnamean = numaCreateFromFArray(famean, w, L_INSERT);
+        else
+            FREE(famean);
+        if (pnavar)
+            *pnavar = numaCreateFromFArray(favar, w, L_INSERT);
+        else
+            FREE(favar);
+        if (pnarootvar)
+            *pnarootvar = numaCreateFromFArray(farootvar, w, L_INSERT);
+    }
+
+        /* We need a histogram to find the median and/or mode values */
+    if (pnamedian || pnamode || pnamodecount) {
+        histo = (l_int32 *)CALLOC(256, sizeof(l_int32));
+        if (pnamedian) {
+            *pnamedian = numaMakeConstant(0, w);
+            famedian = numaGetFArray(*pnamedian, L_NOCOPY);
+        }
+        if (pnamode) {
+            *pnamode = numaMakeConstant(0, w);
+            famode = numaGetFArray(*pnamode, L_NOCOPY);
+        }
+        if (pnamodecount) {
+            *pnamodecount = numaMakeConstant(0, w);
+            famodecount = numaGetFArray(*pnamodecount, L_NOCOPY);
+        }
+        for (j = 0; j < w; j++) {
+            memset(histo, 0, 1024);
+            for (i = 0, lines = datas; i < h; lines += wpls, i++) {
+                val = GET_DATA_BYTE(lines, j);
+                histo[val]++;
+            }
+
+            if (pnamedian) {
+                sum = 0;
+                target = (h + 1) / 2;
+                for (k = 0; k < 256; k++) {
+                    sum += histo[k];
+                    if (sum >= target) {
+                        famedian[j] = k;
+                        break;
+                    }
+                }
+            }
+
+            if (pnamode || pnamodecount) {
+                max = 0;
+                modeval = 0;
+                for (k = 0; k < 256; k++) {
+                    if (histo[k] > max) {
+                        max = histo[k];
+                        modeval = k;
+                    }
+                }
+                if (pnamode)
+                    famode[j] = modeval;
+                if (pnamodecount)
+                    famodecount[j] = max;
+            }
+        }
+        FREE(histo);
+    }
+
+    return 0;
 }
 
 

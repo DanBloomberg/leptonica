@@ -94,8 +94,6 @@
  *          multi-threaded applications, results can be non-deterministic.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -405,7 +403,8 @@ l_uint8  *data;
         return ERROR_INT("file too small to be png", procName, 1);
     if ((data = (l_uint8 *)CALLOC(40, sizeof(l_uint8))) == NULL)
         return ERROR_INT("CALLOC fail for data", procName, 1);
-    fread(data, 40, 1, fp);
+    if (fread(data, 1, 40, fp) != 40)
+        return ERROR_INT("error reading data", procName, 1);
     ret = sreadHeaderPng(data, pwidth, pheight, pbps, pspp, piscmap);
     FREE(data);
     return ret;

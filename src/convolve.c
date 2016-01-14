@@ -32,11 +32,12 @@
  *          PIX      *pixBlockconvTiled()
  *          PIX      *pixBlockconvGrayTile()
  *
- *      Convolution for average in specified window
+ *      Convolution for mean, mean square, variance and rms deviation
+ *      in specified window
+ *          l_int32   pixWindowedStats()
  *          PIX      *pixWindowedMean()
- *
- *      Convolution for average square value in specified window
  *          PIX      *pixWindowedMeanSquare()
+ *          l_int32   pixWindowedVariance()
  *          DPIX     *pixMeanSquareAccum()
  *
  *      Binary block sum and rank filter
@@ -60,8 +61,7 @@
  *          void      l_setConvolveSampling()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <math.h>
 #include "allheaders.h"
 
     /* These globals determine the subsampling factors for
@@ -608,8 +608,83 @@ PIX       *pixt, *pixd;
 
 
 /*----------------------------------------------------------------------*
- *               Convolution for average in specified window            *
+ *     Convolution for mean, mean square, variance and rms deviation    *
  *----------------------------------------------------------------------*/
+/*!
+ *  pixWindowedStats()
+ *
+ *      Input:  pixs (8 bpp grayscale)
+ *              wc, hc   (half width/height of convolution kernel)
+ *              &pixm (<optional return> 8 bpp mean value in window)
+ *              &pixms (<optional return> 32 bpp mean square value in window)
+ *              &fpixv (<optional return> float variance in window)
+ *              &fpixrv (<optional return> float rms deviation from the mean)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is a high-level convenience function for calculating
+ *          any or all of these derived images.
+ *      (2) These statistical measures over the pixels in the
+ *          rectangular window are:
+ *            - average value: <p>  (pixm)
+ *            - average squared value: <p*p> (pixms)
+ *            - variance: <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>  (pixv)
+ *            - square-root of variance: (pixrv)
+ *          where the brackets < .. > indicate that the average value is
+ *          to be taken over the window.
+ *      (3) Note that the variance is just the mean square difference from
+ *          the mean value; and the square root of the variance is the
+ *          root mean square difference from the mean, sometimes also
+ *          called the 'standard deviation'.
+ */
+l_int32
+pixWindowedStats(PIX     *pixs,
+                 l_int32  wc,
+                 l_int32  hc,
+                 PIX    **ppixm,
+                 PIX    **ppixms,
+                 FPIX   **pfpixv,
+                 FPIX   **pfpixrv)
+{
+PIX  *pixb, *pixm, *pixms;
+
+    PROCNAME("pixWindowedStats");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (wc < 2 || hc < 2)
+        return ERROR_INT("wc and hc not >= 2", procName, 1);
+    if (!ppixm && !ppixms && !pfpixv && !pfpixrv)
+        return ERROR_INT("no output requested", procName, 1);
+    if (ppixm) *ppixm = NULL;
+    if (ppixms) *ppixms = NULL;
+    if (pfpixv) *pfpixv = NULL;
+    if (pfpixrv) *pfpixrv = NULL;
+
+    pixb = pixAddBorderGeneral(pixs, wc + 1, wc + 1, hc + 1, hc + 1, 0);
+    if (!pfpixv && !pfpixrv) {
+        if (ppixm) *ppixm = pixWindowedMean(pixb, wc, hc, 1);
+        if (ppixms) *ppixms = pixWindowedMeanSquare(pixb, wc, hc);
+        pixDestroy(&pixb);
+        return 0;
+    }
+
+    pixm = pixWindowedMean(pixb, wc, hc, 1);
+    pixms = pixWindowedMeanSquare(pixb, wc, hc);
+    pixWindowedVariance(pixm, pixms, pfpixv, pfpixrv);
+    if (ppixm)
+        *ppixm = pixm;
+    else
+        pixDestroy(&pixm);
+    if (ppixms)
+        *ppixms = pixms;
+    else
+        pixDestroy(&pixms);
+    pixDestroy(&pixb);
+    return 0;
+}
+
+
 /*!
  *  pixWindowedMean()
  *
@@ -697,36 +772,37 @@ PIX       *pixc, *pixd;
 }
 
 
-/*----------------------------------------------------------------------*
- *        Convolution for average square value in specified window      *
- *----------------------------------------------------------------------*/
 /*!
  *  pixWindowedMeanSquare()
  *
  *      Input:  pixs (8 bpp grayscale)
- *              size (halfwidth of convolution kernel)
+ *              wc, hc   (half width/height of convolution kernel)
  *      Return: pixd (32 bpp, average over window of size (2 * size + 1))
  *
  *  Notes:
+ *      (1) A set of border pixels of width (wc + 1) on left and right,
+ *          and of height (hc + 1) on top and bottom, is included in pixs.
+ *          The output pixd (after convolution) has this border removed.
  *      (1) A set of border pixels of width (size + 1) is included
  *          in pixs.  The output pixd (after convolution) has this
  *          border removed.
  *      (2) The advantage is that we are unaffected by the boundary, and
- *          it is not necessary to treat pixels within @size of the
+ *          it is not necessary to treat pixels within @wc and @hc of the
  *          border differently.  This is because processing for pixd
  *          only takes place for pixels in pixs for which the
  *          kernel is entirely contained in pixs.
- *      (3) Why do we have an added border of width (@size + 1), when
- *          we only need @size pixels to satisfy this condition?
- *          Answer: the accumulators are asymmetric, requiring an
- *          extra row and column of pixels at top and left to work
- *          accurately.
+ *      (3) Why do we have an added border of width (@wc + 1) and
+ *          height (@hc + 1), when we only need @wc and @hc pixels
+ *          to satisfy this condition?  Answer: the accumulators
+ *          are asymmetric, requiring an extra row and column of
+ *          pixels at top and left to work accurately.
  */
 PIX *
 pixWindowedMeanSquare(PIX     *pixs,
-                      l_int32  size)
+                      l_int32  wc,
+                      l_int32  hc)
 {
-l_int32     i, j, w, h, wd, hd, wpl, wpld, incr;
+l_int32     i, j, w, h, wd, hd, wpl, wpld, wincr, hincr;
 l_uint32    ival;
 l_uint32   *datad, *lined;
 l_float64   norm;
@@ -736,22 +812,24 @@ DPIX       *dpix;
 PIX        *pixd;
 
     PROCNAME("pixWindowedMeanSquare");
-
     
     if (!pixs || (pixGetDepth(pixs) != 8))
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
-    if (size < 2)
-        return (PIX *)ERROR_PTR("size not >= 2", procName, NULL);
+    if (wc < 2 || hc < 2)
+        return (PIX *)ERROR_PTR("wc and hc not >= 2", procName, NULL);
 
     if ((dpix = pixMeanSquareAccum(pixs)) == NULL)
         return (PIX *)ERROR_PTR("dpix not made", procName, NULL);
     wpl = dpixGetWpl(dpix);
     data = dpixGetData(dpix);
 
-        /* Strip off 2 * (size + 1) border pixels */
-    wd = w - 2 * (size + 1);
-    hd = h - 2 * (size + 1);
+        /* Strip off wc + 1 border pixels from each side and
+         * hc + 1 border pixels from top and bottom. */
+    wd = w - 2 * (wc + 1);
+    hd = h - 2 * (hc + 1);
+    if (wd < 2 || hd < 2)
+        return (PIX *)ERROR_PTR("w or h too small for kernel", procName, NULL);
     if ((pixd = pixCreate(wd, hd, 32)) == NULL) {
         dpixDestroy(&dpix);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
@@ -759,14 +837,15 @@ PIX        *pixd;
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
 
-    incr = 2 * size + 1;
-    norm = 1.0 / (incr * incr);
+    wincr = 2 * wc + 1;
+    hincr = 2 * hc + 1;
+    norm = 1.0 / (wincr * hincr);
     for (i = 0; i < hd; i++) {
         line1 = data + i * wpl;
-        line2 = data + (i + incr) * wpl;
+        line2 = data + (i + hincr) * wpl;
         lined = datad + i * wpld;
         for (j = 0; j < wd; j++) {
-            val = line2[j + incr] - line2[j] - line1[j + incr] + line1[j];
+            val = line2[j + wincr] - line2[j] - line1[j + wincr] + line1[j];
             ival = (l_uint32)(norm * val);
             lined[j] = ival;
         } 
@@ -774,6 +853,97 @@ PIX        *pixd;
             
     dpixDestroy(&dpix);
     return pixd;
+}
+
+
+/*!
+ *  pixWindowedVariance()
+ *
+ *      Input:  pixm (mean over window; 8 or 32 bpp grayscale)
+ *              pixms (mean square over window; 32 bpp)
+ *              &fpixv (<optional return> float variance -- the ms deviation
+ *                      from the mean)
+ *              &fpixrv (<optional return> float rms deviation from the mean)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The mean and mean square values are precomputed, using
+ *          pixWindowedMean() and pixWindowedMeanSquare().
+ *      (2) Either or both of the variance and square-root of variance
+ *          are returned as an fpix, where the variance is the
+ *          average over the window of the mean square difference of
+ *          the pixel value from the mean:
+ *                <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>
+ *      (3) To visualize the results:
+ *            - for both, use fpixDisplayMaxDynamicRange().
+ *            - for rms deviation, simply convert the output fpix to pix,
+ */
+l_int32
+pixWindowedVariance(PIX    *pixm,
+                    PIX    *pixms,
+                    FPIX  **pfpixv,
+                    FPIX  **pfpixrv)
+{
+l_int32     i, j, w, h, ws, hs, ds, wplm, wplms, wplv, wplrv, valm, valms;
+l_float32   var;
+l_uint32   *linem, *linems, *datam, *datams;
+l_float32  *linev, *linerv, *datav, *datarv;
+FPIX       *fpixv, *fpixrv;  /* variance and square root of variance */
+
+    PROCNAME("pixWindowedVariance");
+
+    if (!pfpixv && !pfpixrv)
+        return ERROR_INT("&fpixv and &fpixrv not defined", procName, 1);
+    if (pfpixv) *pfpixv = NULL;
+    if (pfpixrv) *pfpixrv = NULL;
+    if (!pixm || pixGetDepth(pixm) != 8)
+        return ERROR_INT("pixm undefined or not 8 bpp", procName, 1);
+    if (!pixms || pixGetDepth(pixms) != 32)
+        return ERROR_INT("pixms undefined or not 32 bpp", procName, 1);
+    pixGetDimensions(pixm, &w, &h, NULL);
+    pixGetDimensions(pixms, &ws, &hs, &ds);
+    if (w != ws || h != hs)
+        return ERROR_INT("pixm and pixms sizes differ", procName, 1);
+
+    if (pfpixv) {
+        fpixv = fpixCreate(w, h);
+        *pfpixv = fpixv;
+        wplv = fpixGetWpl(fpixv);
+        datav = fpixGetData(fpixv);
+    }
+    if (pfpixrv) {
+        fpixrv = fpixCreate(w, h);
+        *pfpixrv = fpixrv;
+        wplrv = fpixGetWpl(fpixrv);
+        datarv = fpixGetData(fpixrv);
+    }
+
+    wplm = pixGetWpl(pixm);
+    wplms = pixGetWpl(pixms);
+    datam = pixGetData(pixm);
+    datams = pixGetData(pixms);
+    for (i = 0; i < h; i++) {
+        linem = datam + i * wplm;
+        linems = datams + i * wplms;
+        if (pfpixv)
+            linev = datav + i * wplv;
+        if (pfpixrv)
+            linerv = datarv + i * wplrv;
+        for (j = 0; j < w; j++) {
+            valm = GET_DATA_BYTE(linem, j);
+            if (ds == 8)
+                valms = GET_DATA_BYTE(linems, j);
+            else  /* ds == 32 */
+                valms = (l_int32)linems[j];
+            var = (l_float32)valms - (l_float32)valm * valm;
+            if (pfpixv)
+                linev[j] = var;
+            if (pfpixrv)
+                linerv[j] = (l_float32)sqrt(var);
+        }
+    }
+
+    return 0;
 }
 
 
@@ -843,7 +1013,6 @@ DPIX       *dpix;
 
     return dpix;
 }
-
 
 
 /*----------------------------------------------------------------------*

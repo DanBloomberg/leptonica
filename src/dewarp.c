@@ -26,21 +26,39 @@
  *          PTA           *pixGetMeanVerticals()
  *          PTAA          *ptaaRemoveShortLines()
  *          FPIX          *fpixBuildHorizontalDisparity()
+ *          FPIX          *fpixSampledDisparity()
  *
  *      Apply warping disparity array
  *          l_int32        dewarpApplyDisparity()
  *          l_int32        pixApplyVerticalDisparity()
  *          l_int32        pixApplyHorizontalDisparity()
  *
- *  Basic functioning:
+ *      Stripping out data and populating full res disparity
+ *          l_int32        dewarpMinimize()
+ *          l_int32        dewarpPopulateFullRes()
  *
- *     PIX *pixs, *pixb, *pixd;
- *     L_DEWARP *dew;
- *     pixb = "binarize"(pixs);
- *     dew = dewarpCreate(pixb, ...);
+ *      Serialized I/O
+ *          L_DEWARP      *dewarpRead()
+ *          L_DEWARP      *dewarpReadStream()
+ *          l_int32        dewarpWrite()
+ *          l_int32        dewarpWriteStream()
+ *
+ *  Basic functioning:
+ *     Pix *pixb = "binarize"(pixs);
+ *     L_Dewarp *dew = dewarpCreate(pixb, ...);
  *     dewarpBuildModel(dew, 0);
  *     dewarpApplyDisparity(dew, pixs, 0);
- *     pixd = dew->pixd;
+ *     // result is in dew->pixd;
+ *
+ *  Minimizing the data in a model by stripping out images,
+ *  numas, and full resolution disparity arrays:
+ *     dewarpMinimize(dew);
+ *
+ *  Applying a model (stripped or not) to another image:
+ *     dewarpApplyDisparity(dew, newpix, 0);
+ *
+ *  Description of the problem and the approach
+ *  -------------------------------------------
  *
  *  When a book page is scanned, there are several possible causes
  *  for the text lines to appear to be curved:
@@ -200,8 +218,6 @@
  *  in that step, the image is widened).
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -218,7 +234,6 @@ static const l_int32     L_DEFAULT_SAMPLING = 30;
 static const l_float32   DEFAULT_SLOPE_FACTOR = 2000.;
 
 
-
 /*----------------------------------------------------------------------*
  *                             Create/destroy                           *
  *----------------------------------------------------------------------*/
@@ -226,20 +241,25 @@ static const l_float32   DEFAULT_SLOPE_FACTOR = 2000.;
  *  dewarpCreate()
  *
  *     Input: pixs (1 bpp)
+ *            pageno (page number)
  *            sampling (use -1 or 0 for default value; otherwise minimum of 5)
  *            minlines (minimum number of lines to accept; e.g., 10)
  *            applyhoriz (1 to estimate horiz disparity; 0 to skip)
  *     Return: dew (or null on error)
  *
  *  Notes:
- *      (1) The sampling factor is for the disparity array.  The number
+ *      (1) The page number is typically 0-based.  If scanned from a book,
+ *          the even pages are usually on the left.  Disparity arrays
+ *          built for even pages should only be applied to even pages.
+ *      (2) The sampling factor is for the disparity array.  The number
  *          used is not critical; anything between 10 and 60 should be fine.
- *      (2) The minimum number of nearly full-length lines required
+ *      (3) The minimum number of nearly full-length lines required
  *          to generate a vertical disparity array.  Use a small number
  *          if you are willing to accept a questionable array.
  */
 L_DEWARP *
 dewarpCreate(PIX     *pixs,
+             l_int32  pageno,
              l_int32  sampling,
              l_int32  minlines,
              l_int32  applyhoriz)
@@ -267,6 +287,7 @@ L_DEWARP  *dew;
     dew->sampling = sampling;
     dew->minlines = minlines;
     dew->applyhoriz = applyhoriz;
+    dew->pageno = pageno;
 
         /* Get the dimensions of the sampled array.  This will be
          * stored in an fpix, and the full resolution version is
@@ -301,6 +322,7 @@ L_DEWARP  *dew;
     pixDestroy(&dew->pixs);
     pixDestroy(&dew->pixd);
     fpixDestroy(&dew->sampvdispar);
+    fpixDestroy(&dew->samphdispar);
     fpixDestroy(&dew->fullvdispar);
     fpixDestroy(&dew->fullhdispar);
     numaDestroy(&dew->naflats);
@@ -550,19 +572,22 @@ FPIX       *fpix1, *fpix2, *fpix3;
         pixDestroy(&pixt1);
     }
 
-        /* Generate a full res fpix for horizontal dewarping.  This
+        /* Generate full res and sampled fpix for horizontal dewarping.  This
          * works to the extent that the line curvature is due to bending
          * out of the plane normal to the camera, and not wide-angle
-         * "fishbowl" distortion.  */
+         * "fishbowl" distortion.  Also generate the sampled horizontal
+         * disparity array. */
     if (dew->applyhoriz) {
         fpix3 = fpixBuildHorizontalDisparity(fpix2, 0, &dew->extraw);
         dew->fullhdispar = fpix3;
-    }
-    if (debugflag) {
-        pixt1 = fpixRenderContours(fpix3, -2., 2.0, 0.2);
-        pixWriteTempfile("/tmp", "horiz-contours.png", pixt1, IFF_PNG, NULL);
-        pixDisplay(pixt1, 1000, 0);
-        pixDestroy(&pixt1);
+        dew->samphdispar = fpixSampledDisparity(fpix3, dew->sampling);
+        if (debugflag) {
+            pixt1 = fpixRenderContours(fpix3, -2., 2.0, 0.2);
+            pixWriteTempfile("/tmp", "horiz-contours.png", pixt1,
+                             IFF_PNG, NULL);
+            pixDisplay(pixt1, 1000, 0);
+            pixDestroy(&pixt1);
+        }
     }
 
     dew->success = 1;
@@ -847,6 +872,70 @@ FPIX       *fpixh;
 }
 
 
+/*!
+ *  fpixSampledDisparity()
+ *
+ *      Input:  fpixs (full resolution disparity model)
+ *              sampling (sampling factor)
+ *      Return: fpixd (sampled disparity model), or null on error
+ *
+ *  Notes:
+ *      (1) The input array is sampled at the right and top edges, and
+ *          at every @sampling pixels horizontally and vertically.
+ *      (2) The sampled array is constructed large enough to (a) cover fpixs
+ *          and (b) have the sampled grid on all boundary pixels in fpixd.
+ *          Having sampled pixels around the boundary simplifies interpolation.
+ *      (3) There must be at least 3 sampled points horizontally and
+ *          vertically.
+ */
+FPIX *
+fpixSampledDisparity(FPIX    *fpixs,
+                     l_int32  sampling)
+{
+l_int32     w, h, wd, hd, i, j, is, js;
+l_float32   val;
+l_float32  *array;
+FPIX       *fpixd;
+
+    PROCNAME("fpixSampledDisparity");
+
+    if (!fpixs)
+        return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
+    if (sampling < 1)
+        return (FPIX *)ERROR_PTR("sampling < 1", procName, NULL);
+
+    fpixGetDimensions(fpixs, &w, &h);
+    wd = 1 + (w + sampling - 2) / sampling;
+    hd = 1 + (h + sampling - 2) / sampling;
+    if (wd < 3 || hd < 3)
+        return (FPIX *)ERROR_PTR("wd < 3 or hd < 3", procName, NULL);
+    if ((array = (l_float32 *)CALLOC(w, sizeof(l_float32))) == NULL)
+        return (FPIX *)ERROR_PTR("calloc fail for array", procName, NULL);
+    fpixd = fpixCreate(wd, hd);
+    for (i = 0; i < hd; i++) {
+        is = sampling * i;
+        if (is >= h) continue;
+        for (j = 0; j < wd; j++) {
+            js = sampling * j;
+            if (js >= w) continue;
+            fpixGetPixel(fpixs, js, is, &val);
+            fpixSetPixel(fpixd, j, i, val);
+            array[j] = val;
+        }
+            /* Linear extrapolation to right-hand end point */
+        fpixSetPixel(fpixd, wd - 1, i, 2 * array[wd - 1] - array[wd - 2]);
+    }
+
+        /* Replicate value to bottom set */
+    for (j = 0; j < wd; j++) {
+        fpixGetPixel(fpixd, j, hd - 2, &val);
+        fpixSetPixel(fpixd, j, hd - 1, val);
+    }
+
+    FREE(array);
+    return fpixd;
+}
+
 
 /*----------------------------------------------------------------------*
  *                     Apply warping disparity array                    *
@@ -863,6 +952,8 @@ FPIX       *fpixh;
  *      (1) This applies the vertical disparity array to the specified
  *          image.  For src pixels above the image, we use the pixels
  *          in the first raster line.
+ *      (2) This works with stripped models.  If the full resolution
+ *          disparity array(s) are missing, they are remade.
  */
 l_int32
 dewarpApplyDisparity(L_DEWARP  *dew,
@@ -879,6 +970,11 @@ PIX  *pixv, *pixd;
         return ERROR_INT("model failed to build", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
+
+        /* Generate the full res disparity arrays if they don't exist;
+         * e.g., if they've been minimized or read from file.  */
+    dewarpPopulateFullRes(dew);
+    pixDestroy(&dew->pixd);  /* remove any previous one */
 
     if ((pixv = pixApplyVerticalDisparity(pixs, dew->fullvdispar)) == NULL)
         return ERROR_INT("pixv not made", procName, 1);
@@ -1081,6 +1177,220 @@ PIX        *pixd;
     }
 
     return pixd;
+}
+
+
+/*----------------------------------------------------------------------*
+ *          Stripping out data and populating full res disparity        *
+ *----------------------------------------------------------------------*/
+/*!
+ *  dewarpMinimize()
+ *
+ *      Input:  dew
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This removes all data that is not needed for serialization.
+ *          It keeps the subsampled disparity array(s), so the full
+ *          resolution arrays can be reconstructed.
+ */
+l_int32
+dewarpMinimize(L_DEWARP  *dew)
+{
+    PROCNAME("dewarpMinimize");
+
+    if (!dew)
+        return ERROR_INT("dew not defined", procName, 1);
+
+    pixDestroy(&dew->pixs);
+    pixDestroy(&dew->pixd);
+    fpixDestroy(&dew->fullvdispar);
+    fpixDestroy(&dew->fullhdispar);
+    numaDestroy(&dew->naflats);
+    numaDestroy(&dew->nacurves);
+    return 0;
+}
+
+
+/*!
+ *  dewarpPopulateFullRes()
+ *
+ *      Input:  dew
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) If the full resolution vertical (and, optionally horizontal)
+ *          disparity arrays do not exist, they are built from the
+ *          subsampled ones.
+ */
+l_int32
+dewarpPopulateFullRes(L_DEWARP  *dew)
+{
+    PROCNAME("dewarpPopulateFullRes");
+
+    if (!dew)
+        return ERROR_INT("dew not defined", procName, 1);
+    if (!dew->sampvdispar)
+        return ERROR_INT("no sampled vert disparity", procName, 1);
+
+    if (!dew->fullvdispar)
+        dew->fullvdispar = fpixScaleByInteger(dew->sampvdispar, dew->sampling);
+
+    if (!dew->fullhdispar && dew->samphdispar)
+        dew->fullhdispar = fpixScaleByInteger(dew->samphdispar, dew->sampling);
+
+    return 0;
+}
+
+
+/*----------------------------------------------------------------------*
+ *                       Dewarp serialized I/O                          *
+ *----------------------------------------------------------------------*/
+/*!
+ *  dewarpRead()
+ *
+ *      Input:  filename
+ *      Return: dew, or null on error
+ */
+L_DEWARP *
+dewarpRead(const char  *filename)
+{
+FILE      *fp;
+L_DEWARP  *dew;
+
+    PROCNAME("dewarpRead");
+
+    if (!filename)
+        return (L_DEWARP *)ERROR_PTR("filename not defined", procName, NULL);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (L_DEWARP *)ERROR_PTR("stream not opened", procName, NULL);
+
+    if ((dew = dewarpReadStream(fp)) == NULL) {
+        fclose(fp);
+        return (L_DEWARP *)ERROR_PTR("dew not read", procName, NULL);
+    }
+
+    fclose(fp);
+    return dew;
+}
+
+
+/*!
+ *  dewarpReadStream()
+ *
+ *      Input:  stream
+ *      Return: dew, or null on error
+ *
+ *  Notes:
+ *      (1) The dewarp struct is stored in minimized format, with only
+ *          subsampled disparity arrays.
+ */
+L_DEWARP *
+dewarpReadStream(FILE  *fp)
+{
+l_int32    version, sampling, pageno, nx, ny, hdispar;
+L_DEWARP  *dew;
+FPIX      *fpixv, *fpixh;
+
+    PROCNAME("dewarpReadStream");
+
+    if (!fp)
+        return (L_DEWARP *)ERROR_PTR("stream not defined", procName, NULL);
+
+    if (fscanf(fp, "\nDewarp Version %d\n", &version) != 1)
+        return (L_DEWARP *)ERROR_PTR("not a dewarp file", procName, NULL);
+    if (version != DEWARP_VERSION_NUMBER)
+        return (L_DEWARP *)ERROR_PTR("invalid dewarp version", procName, NULL);
+    if (fscanf(fp, "pageno = %d, sampling = %d\n", &pageno, &sampling) != 2)
+        return (L_DEWARP *)ERROR_PTR("read fail for pageno+", procName, NULL);
+    if (fscanf(fp, "nx = %d, ny = %d, horiz_disparity = %d\n",
+               &nx, &ny, &hdispar) != 3)
+        return (L_DEWARP *)ERROR_PTR("read fail for nx+", procName, NULL);
+    if ((fpixv = fpixReadStream(fp)) == NULL)
+        return (L_DEWARP *)ERROR_PTR("read fail for vdispar", procName, NULL);
+    if (hdispar) {
+        if ((fpixh = fpixReadStream(fp)) == NULL)
+            return (L_DEWARP *)ERROR_PTR("read fail for horiz disparity",
+                                         procName, NULL);
+    }
+
+    dew = (L_DEWARP *)CALLOC(1, sizeof(L_DEWARP));
+    dew->sampling = sampling;
+    dew->pageno = pageno;
+    dew->nx = nx;
+    dew->ny = ny;
+    dew->success = 1;
+    dew->sampvdispar = fpixv;
+    if (hdispar) {
+        dew->applyhoriz = 1;
+        dew->samphdispar = fpixh;
+    }
+
+    return dew;
+}
+
+
+/*!
+ *  dewarpWrite()
+ *
+ *      Input:  filename
+ *              dew 
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+dewarpWrite(const char  *filename,
+            L_DEWARP    *dew)
+{
+FILE  *fp;
+
+    PROCNAME("dewarpWrite");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!dew)
+        return ERROR_INT("dew not defined", procName, 1);
+
+    if ((fp = fopen(filename, "w")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    if (dewarpWriteStream(fp, dew))
+        return ERROR_INT("dew not written to stream", procName, 1);
+    fclose(fp);
+
+    return 0;
+}
+
+
+/*!
+ *  dewarpWriteStream()
+ *
+ *      Input:  stream
+ *              dew
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+dewarpWriteStream(FILE      *fp,
+                  L_DEWARP  *dew)
+{
+l_int32  hdispar;
+
+    PROCNAME("dewarpWriteStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!dew)
+        return ERROR_INT("dew not defined", procName, 1);
+
+    fprintf(fp, "\nDewarp Version %d\n", DEWARP_VERSION_NUMBER);
+    fprintf(fp, "pageno = %d, sampling = %d\n", dew->pageno, dew->sampling);
+    hdispar = (dew->samphdispar) ? 1 : 0;
+    fprintf(fp, "nx = %d, ny = %d, horiz_disparity = %d\n",
+            dew->nx, dew->ny, hdispar);
+
+    fpixWriteStream(fp, dew->sampvdispar);
+    if (hdispar)
+        fpixWriteStream(fp, dew->samphdispar);
+
+    return 0;
 }
 
 

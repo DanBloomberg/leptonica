@@ -21,9 +21,6 @@
  *      (2) numaGetRankBinValues()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #ifndef  _WIN32
 #include <unistd.h>
 #else

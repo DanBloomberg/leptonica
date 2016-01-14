@@ -97,7 +97,7 @@ PIX       *pixs, *pixt, *pixt2, *pixd;
         pixReadHeader(filename[i], &format, &w, &h, &bps, &spp, &iscmap);
         pixReadHeaderMem(data, nbytes, &format2, &w2, &h2, &bps2,
                          &spp2, &iscmap2);
-        if (format2 != 16 || w != w2 || h != h2 || bps != bps2 ||
+        if (format2 != IFF_SPIX || w != w2 || h != h2 || bps != bps2 ||
             iscmap != iscmap2) {
             if (fp)
                 fprintf(fp, "Failure comparing data");

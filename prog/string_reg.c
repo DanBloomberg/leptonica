@@ -19,8 +19,6 @@
  *    This tests several sarray functions.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -28,7 +26,7 @@
 main(int    argc,
      char **argv)
 {
-l_int32      nbytesin, nbytesout;
+l_int32      nbytesin, nbytesout, ignore;
 char        *infile, *outfile, *instring, *outstring;
 SARRAY      *sa1, *sa2, *sa3, *sa4, *sa5;
 char         buf[256];
@@ -74,7 +72,7 @@ static char  mainName[] = "string_reg";
     arrayWrite("/tmp/junk6.txt", "w", outstring, nbytesout);
     FREE(outstring);
     sprintf(buf, "diff -s /tmp/junk6.txt %s", infile);
-    system(buf);
+    ignore = system(buf);
 
 	/* write/read/write; compare /tmp/junkout5 with /tmp/junkout6 */
     sarrayWrite("/tmp/junk7.txt", sa2);
@@ -82,7 +80,7 @@ static char  mainName[] = "string_reg";
     sa4 = sarrayRead("/tmp/junk8.txt");
     sarrayWrite("/tmp/junk9.txt", sa4);
     sa5 = sarrayRead("/tmp/junk9.txt");
-    system("diff -s /tmp/junk8.txt /tmp/junk9.txt");
+    ignore = system("diff -s /tmp/junk8.txt /tmp/junk9.txt");
 
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);

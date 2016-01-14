@@ -37,9 +37,7 @@
  *         static void     printRowIndices()
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const l_int32  JB_WORDS_MIN_WIDTH = 5;  /* pixels */
@@ -77,7 +75,9 @@ static void printRowIndices(l_int32 *index1, l_int32 n1,
  *       Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) See prog/jbcorrelation for generating more output (e.g.,
+ *      (1) The images must be 1 bpp.  If they are not, you can convert
+ *          them using convertFilesTo1bpp().
+ *      (2) See prog/jbcorrelation for generating more output (e.g.,
  *          for debugging)
  */
 l_int32

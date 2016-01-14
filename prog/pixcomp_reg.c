@@ -26,8 +26,6 @@
  *    the gnu runtime.  If we detect a failure, we bomb out early.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -171,7 +169,7 @@ static char     mainName[] = "pixcomp_reg";
     pixDestroy(&pixd2);
 
         /* --- Read all the 'tif' files and display results --- */
-    pixac = pixacompCreateFromFiles(".", "tif", IFF_DEFAULT);
+    pixac = pixacompCreateFromFiles(".", ".tif", IFF_DEFAULT);
     fprintf(stderr, "found %d tiff files\n", pixacompGetCount(pixac));
     pixcompWriteStreamInfo(stderr, pixac->pixc[0], NULL);
     pixd = pixacompDisplayTiledAndScaled(pixac, 32, 200, 6, 0, 15, 2);
@@ -195,7 +193,8 @@ l_int32  ret, format, w, h, d, bps, spp, iscmap;
     d = bps * spp;
     if (d == 24) d = 32;
     if (ret)
-        fprintf(stderr, "Error: couldn't read data: size = %d\n", size);
+        fprintf(stderr, "Error: couldn't read data: size = %d\n",
+                (l_int32)size);
     else
         fprintf(stderr, "Format data for image %d:\n"
                 "  format: %s, size (w, h, d) = (%d, %d, %d)\n"

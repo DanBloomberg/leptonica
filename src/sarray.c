@@ -116,9 +116,7 @@
  *              or insert it in an array that will be freed later.
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #ifndef _WIN32
 #include <dirent.h>     /* unix only */
 #endif  /* ! _WIN32 */
@@ -1441,7 +1439,7 @@ SARRAY *
 sarrayReadStream(FILE  *fp)
 {
 char    *stringbuf;
-l_int32  i, n, size, index, bufsize, ret, version;
+l_int32  i, n, size, index, bufsize, version, ignore;
 SARRAY  *sa;
 
     PROCNAME("sarrayReadStream");
@@ -1449,12 +1447,12 @@ SARRAY  *sa;
     if (!fp)
         return (SARRAY *)ERROR_PTR("stream not defined", procName, NULL);
 
-    ret = fscanf(fp, "\nSarray Version %d\n", &version);
-    if (ret != 1)
+    if (fscanf(fp, "\nSarray Version %d\n", &version) != 1)
         return (SARRAY *)ERROR_PTR("not an sarray file", procName, NULL);
     if (version != SARRAY_VERSION_NUMBER)
         return (SARRAY *)ERROR_PTR("invalid sarray version", procName, NULL);
-    fscanf(fp, "Number of strings = %d\n", &n);
+    if (fscanf(fp, "Number of strings = %d\n", &n) != 1)
+        return (SARRAY *)ERROR_PTR("error on # strings", procName, NULL);
 
     if ((sa = sarrayCreate(n)) == NULL)
         return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
@@ -1464,7 +1462,8 @@ SARRAY  *sa;
 
     for (i = 0; i < n; i++) {
 	    /* Get the size of the stored string */
-        fscanf(fp, "%d[%d]:", &index, &size);
+        if (fscanf(fp, "%d[%d]:", &index, &size) != 2)
+            return (SARRAY *)ERROR_PTR("error on string size", procName, NULL);
 	    /* Expand the string buffer if necessary */
 	if (size > bufsize - 5) {
             FREE(stringbuf);
@@ -1472,13 +1471,14 @@ SARRAY  *sa;
             stringbuf = (char *)CALLOC(bufsize, sizeof(char));
 	}
 	    /* Read the stored string, plus leading spaces and trailing \n */
-	fread(stringbuf, 1, size + 3, fp);
+	if (fread(stringbuf, 1, size + 3, fp) != size + 3)
+            return (SARRAY *)ERROR_PTR("error reading string", procName, NULL);
 	    /* Remove the \n that was added by sarrayWriteStream() */
 	stringbuf[size + 2] = '\0';
 	    /* Copy it in, skipping the 2 leading spaces */
         sarrayAddString(sa, stringbuf + 2, L_COPY);
     }
-    fscanf(fp, "\n");
+    ignore = fscanf(fp, "\n");
 
     FREE(stringbuf);
     return sa;

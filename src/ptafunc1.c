@@ -57,8 +57,6 @@
  *           PIX      *pixDisplayPtaa()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -1425,13 +1423,13 @@ PIX            *pixt;
             numaAddNumber(nab, bval);
         }
 
-        sprintf(buffer, "junkplot.%d", count++);
+        sprintf(buffer, "/tmp/junkplot.%d", count++);
         rtitle = stringJoin("Red: ", title);
         gplotSimple1(nar, outformat, buffer, rtitle);
-        sprintf(buffer, "junkplot.%d", count++);
+        sprintf(buffer, "/tmp/junkplot.%d", count++);
         gtitle = stringJoin("Green: ", title);
         gplotSimple1(nag, outformat, buffer, gtitle);
-        sprintf(buffer, "junkplot.%d", count++);
+        sprintf(buffer, "/tmp/junkplot.%d", count++);
         btitle = stringJoin("Blue: ", title);
         gplotSimple1(nab, outformat, buffer, btitle);
         numaDestroy(&nar);
@@ -1453,7 +1451,7 @@ PIX            *pixt;
             numaAddNumber(na, (l_float32)val);
         }
 
-        sprintf(buffer, "junkplot.%d", count++);
+        sprintf(buffer, "/tmp/junkplot.%d", count++);
         gplotSimple1(na, outformat, buffer, title);
         numaDestroy(&na);
     }

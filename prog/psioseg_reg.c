@@ -30,14 +30,12 @@
  *   remaining image parts.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
      char **argv)
 {
-l_int32      i, j, w, h, wc, hc, display, success;
+l_int32      i, j, w, h, wc, hc, display, success, ignore;
 l_float32    scalefactor;
 FILE        *fp;
 PIX         *pixs, *pixc, *pixht, *pixtxt, *pixmfull;
@@ -93,11 +91,11 @@ PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
 
          /* Write out the files to be imaged */
 #ifndef _WIN32
-    system("mkdir /tmp/junkimagedir");
-    system("mkdir /tmp/junkmaskdir");
+    ignore = system("mkdir /tmp/junkimagedir");
+    ignore = system("mkdir /tmp/junkmaskdir");
 #else
-    system("mkdir \\tmp\\junkimagedir");
-    system("mkdir \\tmp\\junkmaskdir");
+    ignore = system("mkdir \\tmp\\junkimagedir");
+    ignore = system("mkdir \\tmp\\junkmaskdir");
 #endif  /* _WIN32 */
     pixWrite("/tmp/junkimagedir/001.tif", pixs, IFF_TIFF_G4);
     pixWrite("/tmp/junkimagedir/002.tif", pixht, IFF_TIFF_G4);
@@ -130,7 +128,7 @@ PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
                               0, 0, 10, 2.0, 0.15, 190, "/tmp/junkseg.ps");
     regTestCheckFile(fp, argv, "/tmp/junkseg.ps", 5, &success);
     fprintf(stderr, "ps file made: /tmp/junkseg.ps\n");
-    system("ps2pdf /tmp/junkseg.ps /tmp/junkseg.pdf");
+    ignore = system("ps2pdf /tmp/junkseg.ps /tmp/junkseg.pdf");
     fprintf(stderr, "pdf file made: /tmp/junkseg.pdf\n");
 
     regTestCleanup(argc, argv, fp, success, NULL);

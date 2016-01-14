@@ -89,7 +89,7 @@
  /* --------------------------------------------*/
  
     /* Set default for writing bounding box hint */
-static l_int32   var_PS_WRITE_BOUNDING_BOX = 1;
+static l_int32  var_PS_WRITE_BOUNDING_BOX = 1;
 
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE      512

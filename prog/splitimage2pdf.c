@@ -26,8 +26,6 @@
  *   height.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* fill factor on 8.5 x 11 inch output page */
@@ -40,7 +38,7 @@ main(int    argc,
 char        *filein, *fileout;
 char         buffer[512];
 const char  *psfile = "/tmp/junk_split_image.ps";
-l_int32      nx, ny, i, w, h, d, ws, hs, n, res;
+l_int32      nx, ny, i, w, h, d, ws, hs, n, res, ignore;
 l_float32    scale;
 PIX         *pixs, *pixt, *pixr;
 PIXA        *pixa;
@@ -55,15 +53,15 @@ static char  mainName[] = "splitimage2pdf";
     ny = atoi(argv[3]);
     fileout = argv[4];
 
-    system("rm -f /tmp/junk_split_image.ps");
+    ignore = system("rm -f /tmp/junk_split_image.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
     d = pixGetDepth(pixs);
     if (d == 1 )
-	system("rm -f /tmp/junk_split_image.tif");
+	ignore = system("rm -f /tmp/junk_split_image.tif");
     else if (d == 8 || d == 32)
-	system("rm -f /tmp/junk_split_image.jpg");
+	ignore = system("rm -f /tmp/junk_split_image.jpg");
     else
 	exit(ERROR_INT("d not in {1,8,32} bpp", mainName, 1));
 
@@ -104,11 +102,11 @@ static char  mainName[] = "splitimage2pdf";
     }
 
     sprintf(buffer, "ps2pdf %s %s", psfile, fileout);
-    system(buffer);
+    ignore = system(buffer);
 
     pixaDestroy(&pixa);
     pixDestroy(&pixr);
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 

@@ -110,7 +110,8 @@ endif
 #     use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING and
 #        ERROR_* logging, and to remove all DEBUG information dependent
 #        on whether or not NO_CONSOLE_IO has been defined.
-CC =		i586-mingw32msvc-gcc -ansi -Werror -D_BSD_SOURCE -DANSI
+CC =		i586-mingw32msvc-gcc -ansi -D_BSD_SOURCE -DANSI
+#CC =		i586-mingw32msvc-gcc -ansi -Werror -D_BSD_SOURCE -DANSI
 #CC =		i586-mingw32msvc-g++ -ansi -Werror -D_BSD_SOURCE
 #CC =		i586-mingw32msvc-gcc -ansi -Werror -DNO_CONSOLE -D_BSD_SOURCE -DANSI
 
@@ -125,7 +126,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 66
+MINOR_REV = 67
 
 #########################################################
 
@@ -147,7 +148,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		ccbord.c ccthin.c classapp.c \
 		colorcontent.c colormap.c colormorph.c \
 		colorquant.c colorseg.c \
-		compare.c conncomp.c \
+		compare.c conncomp.c convertfiles.c \
 		convolve.c convolvelow.c correlscore.c \
 		dewarp.c dwacomb.2.c dwacomblow.2.c \
 		edge.c enhance.c \
@@ -183,10 +184,12 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		scale.c scalelow.c \
 		seedfill.c seedfilllow.c \
 		sel1.c sel2.c selgen.c \
-		shear.c skew.c spixio.c stack.c \
+		shear.c skew.c spixio.c \
+		stack.c sudoku.c \
 		textops.c tiffio.c tiffiostub.c \
 		utils.c viewfiles.c \
-		warper.c watershed.c writefile.c \
+		warper.c watershed.c \
+		webpio.c webpiostub.c writefile.c \
 		zlibmem.c zlibmemstub.c
 
 LEPTLIB_H =	allheaders.h alltypes.h \
@@ -198,7 +201,7 @@ LEPTLIB_H =	allheaders.h alltypes.h \
 		leptprotos.h list.h \
 		morph.h pix.h ptra.h queue.h \
 		readbarcode.h regutils.h stack.h \
-		watershed.h
+		sudoku.h watershed.h
 
 ##################################################################
 

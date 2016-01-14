@@ -41,11 +41,8 @@
  *           l_int32    ioFormatTest()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
 
     /*  choose type of PIX to be generated  */
 enum {
@@ -339,6 +336,11 @@ PIX     *pix;
         return (PIX *)ERROR_PTR("jp2: format not supported", procName, NULL);
         break;
 
+    case IFF_WEBP:
+        if ((pix = pixReadStreamWebP(fp)) == NULL)
+            return (PIX *)ERROR_PTR("webp: no pix returned", procName, NULL);
+        break;
+
     case IFF_SPIX:
         if ((pix = pixReadStreamSpix(fp)) == NULL)
             return (PIX *)ERROR_PTR("spix: no pix returned", procName, NULL);
@@ -448,10 +450,7 @@ PIX      *pix;
         break;
 
     case IFF_PNM:
-        if ((fp = fopenReadStream(filename)) == NULL)
-            return ERROR_INT("file stream not opened", procName, 1);
-        ret = freadHeaderPnm(fp, NULL, &w, &h, &d, &type, &bps, &spp);
-        fclose(fp);
+        ret = readHeaderPnm(filename, NULL, &w, &h, &d, &type, &bps, &spp);
         if (ret)
             return ERROR_INT( "pnm: no header info returned", procName, 1);
         break;
@@ -468,6 +467,14 @@ PIX      *pix;
 
     case IFF_JP2:
         return ERROR_INT("jp2: format not supported", procName, 1);
+        break;
+
+    case IFF_WEBP:
+        ret = readHeaderWebP(filename, &w, &h);
+        bps = 8;
+        spp = 3;
+        if (ret)
+            return ERROR_INT( "pnm: no header info returned", procName, 1);
         break;
 
     case IFF_SPIX:
@@ -636,6 +643,13 @@ l_uint16  twobytepw;
     if (strncmp((const char *)buf, JP2K_CODESTREAM, 4) == 0 ||
         strncmp((const char *)buf, JP2K_IMAGE_DATA, 12) == 0) {
         *pformat = IFF_JP2;
+        return 0;
+    }
+
+        /* Check for webp */
+    if (buf[0] == 'R' && buf[1] == 'I' && buf[2] == 'F' && buf[3] == 'F' &&
+        buf[8] == 'W' && buf[9] == 'E' && buf[10] == 'B' && buf[11] == 'P') {
+        *pformat = IFF_WEBP;
         return 0;
     }
 

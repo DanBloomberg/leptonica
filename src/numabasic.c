@@ -155,9 +155,7 @@
  *        that use numa histograms rely on the correctness of these values.
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -243,7 +241,8 @@ NUMA    *na;
  *
  *  Notes:
  *      (1) With L_INSERT, ownership of the input array is transferred
- *          to the returned numa.
+ *          to the returned numa, and all @size elements are considered
+ *          to be valid.
  */
 NUMA *
 numaCreateFromFArray(l_float32  *farray,
@@ -266,6 +265,7 @@ NUMA    *na;
     if (copyflag == L_INSERT) {
         if (na->array) FREE(na->array);
         na->array = farray;
+        na->n = size;
     }
     else {  /* just copy the contents */
         for (i = 0; i < size; i++)
@@ -968,19 +968,20 @@ NUMA      *na;
         return (NUMA *)ERROR_PTR("not a numa file", procName, NULL);
     if (version != NUMA_VERSION_NUMBER)
         return (NUMA *)ERROR_PTR("invalid numa version", procName, NULL);
-    fscanf(fp, "Number of numbers = %d\n", &n);
+    if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
+        return (NUMA *)ERROR_PTR("invalid number of numbers", procName, NULL);
 
     if ((na = numaCreate(n)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-        if ((fscanf(fp, "  [%d] = %f\n", &index, &val)) != 2)
+        if (fscanf(fp, "  [%d] = %f\n", &index, &val) != 2)
             return (NUMA *)ERROR_PTR("bad input data", procName, NULL);
         numaAddNumber(na, val);
     }
 
         /* Optional data */
-    if ((fscanf(fp, "startx = %f, delx = %f\n", &startx, &delx)) == 2)
+    if (fscanf(fp, "startx = %f, delx = %f\n", &startx, &delx) == 2)
         numaSetXParameters(na, startx, delx);
 
     return na;
@@ -1429,12 +1430,14 @@ NUMAA     *naa;
         return (NUMAA *)ERROR_PTR("not a numa file", procName, NULL);
     if (version != NUMA_VERSION_NUMBER)
         return (NUMAA *)ERROR_PTR("invalid numaa version", procName, NULL);
-    fscanf(fp, "Number of numa = %d\n\n", &n);
+    if (fscanf(fp, "Number of numa = %d\n\n", &n) != 1)
+        return (NUMAA *)ERROR_PTR("invalid number of numa", procName, NULL);
     if ((naa = numaaCreate(n)) == NULL)
         return (NUMAA *)ERROR_PTR("naa not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-        fscanf(fp, "Numa[%d]:", &index);
+        if (fscanf(fp, "Numa[%d]:", &index) != 1)
+            return (NUMAA *)ERROR_PTR("invalid numa header", procName, NULL);
         if ((na = numaReadStream(fp)) == NULL)
             return (NUMAA *)ERROR_PTR("na not made", procName, NULL);
         numaaAddNuma(naa, na, L_INSERT);

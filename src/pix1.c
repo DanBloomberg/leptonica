@@ -16,13 +16,14 @@
 /*
  *  pix1.c
  *
- *    The pixN.c {N = 1,2,3,4} files are sorted by the type of operation.
+ *    The pixN.c {N = 1,2,3,4,5} files are sorted by the type of operation.
  *    The primary functions in these files are:
  *
  *        pix1.c: constructors, destructors and field accessors
  *        pix2.c: pixel poking of image, pad and border pixels
  *        pix3.c: masking and logical ops, counting, mirrored tiling
- *        pix4.c: histograms, fg/bg estimation, rectangle extraction
+ *        pix4.c: histograms, statistics, fg/bg estimation
+ *        pix5.c: property measurements, rectangle extraction
  *
  *
  *    This file has the basic constructors, destructors and field accessors
@@ -269,7 +270,7 @@ pixCreate(l_int32  width,
           l_int32  height,
           l_int32  depth)
 {
-PIX       *pixd;
+PIX  *pixd;
 
     PROCNAME("pixCreate");
 
@@ -326,7 +327,7 @@ l_uint32  *data;
 PIX *
 pixCreateTemplate(PIX  *pixs)
 {
-PIX     *pixd;
+PIX  *pixd;
 
     PROCNAME("pixCreateTemplate");
 
@@ -385,8 +386,8 @@ pixCreateHeader(l_int32  width,
                 l_int32  height,
                 l_int32  depth)
 {
-l_int32    wpl;
-PIX       *pixd;
+l_int32  wpl;
+PIX     *pixd;
 
     PROCNAME("pixCreateHeader");
 
@@ -409,7 +410,6 @@ PIX       *pixd;
 
     pixd->refcount = 1;
     pixd->informat = IFF_UNKNOWN;
-
     return pixd;
 }
 

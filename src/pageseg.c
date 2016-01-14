@@ -159,7 +159,7 @@ PIX     *pixtb;    /* textblock mask */
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
         tempname = genTempFilename("/tmp", "tb_outlines.ptaa", 0);
-	ptaaWrite(tempname, ptaa, 1);
+        ptaaWrite(tempname, ptaa, 1);
         FREE(tempname);
         pixt1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
         cmap = pixGetColormap(pixt1);

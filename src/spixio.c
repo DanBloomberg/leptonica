@@ -38,8 +38,6 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -157,7 +155,8 @@ l_uint32  *data;
         return ERROR_INT("file too small to be spix", procName, 1);
     if ((data = (l_uint32 *)CALLOC(6, sizeof(l_uint32))) == NULL)
         return ERROR_INT("CALLOC fail for data", procName, 1);
-    fread(data, 6, 4, fp);
+    if (fread(data, 4, 6, fp) != 6)
+        return ERROR_INT("error reading data", procName, 1);
     ret = sreadHeaderSpix(data, pwidth, pheight, pbps, pspp, piscmap);
     FREE(data);
     return ret;

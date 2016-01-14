@@ -16,8 +16,11 @@
 /*
  *  gifio.c
  *
- *    Read/write gif to file
+ *    Read gif from file
  *          PIX        *pixReadStreamGif()
+ *          static PIX *pixInterlaceGIF()
+ *
+ *    Write gif to file
  *          l_int32     pixWriteStreamGif()
  *
  *    Read/write from/to memory
@@ -51,6 +54,12 @@
 
 #include "gif_lib.h"
 
+    /* GIF supports 4-way horizontal interlacing */
+static PIX * pixInterlaceGIF(PIX  *pixs);
+static const l_int32 InterlacedOffset[] = {0, 4, 2, 1};
+static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
+
+
 /*---------------------------------------------------------------------*
  *                       Reading gif from file                         *
  *---------------------------------------------------------------------*/
@@ -67,7 +76,7 @@ l_int32          fd, wpl, i, j, w, h, d, cindex, ncolors;
 l_int32          rval, gval, bval;
 l_uint32        *data, *line;
 GifFileType     *gif;
-PIX             *pixd;
+PIX             *pixd, *pixdi;
 PIXCMAP         *cmap;
 ColorMapObject  *gif_cmap;
 SavedImage       si;
@@ -154,7 +163,7 @@ SavedImage       si;
     data = pixGetData(pixd);
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
-	if (d == 1) {
+        if (d == 1) {
             for (j = 0; j < w; j++) {
                 if (si.RasterBits[i * w + j])
                     SET_DATA_BIT(line, j);
@@ -174,7 +183,43 @@ SavedImage       si;
         }
     }
 
+    if (gif->Image.Interlace) {
+        pixdi = pixInterlaceGIF(pixd);
+        pixTransferAllData(pixd, &pixdi, 0, 0);
+    }
+
     DGifCloseFile(gif);
+    return pixd;
+}
+
+
+static PIX *
+pixInterlaceGIF(PIX  *pixs)
+{
+l_int32    w, h, d, wpl, j, k, srow, drow;
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixInterlaceGIF");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, &d);
+    wpl = pixGetWpl(pixs);
+    pixd = pixCreateTemplate(pixs);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    for (k = 0, srow = 0; k < 4; k++) {
+        for (drow = InterlacedOffset[k]; drow < h;
+             drow += InterlacedJumps[k], srow++) {
+            lines = datas + srow * wpl;
+            lined = datad + drow * wpl;
+            for (j = 0; j < w; j++)
+                memcpy(lined, lines, 4 * wpl);
+        }
+    }
+
     return pixd;
 }
 
@@ -267,7 +312,7 @@ GifByteType     *gif_line;
         return ERROR_INT("failed to create GIF color map", procName, 1);
     }
     for (i = 0; i < gif_ncolor; i++) {
-	rval = gval = bval = 0;
+        rval = gval = bval = 0;
         if (ncolor > 0) {
             if (pixcmapGetColor(cmap, i, &rval, &gval, &bval) != 0) {
                 pixDestroy(&pixd);
@@ -443,7 +488,7 @@ l_int32   nbytes;
     *psize = nbytes;
     return 0;
 }
-    
+
 
 /* -----------------------------------------------------------------*/
 #endif    /* HAVE_LIBGIF || HAVE_LIBUNGIF  */

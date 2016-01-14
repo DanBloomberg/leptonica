@@ -27,9 +27,7 @@
  *           l_int32       pixWriteMemBmp()
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "allheaders.h"
 #include "bmp.h"
 
@@ -49,6 +47,11 @@ RGBA_QUAD   bwmap[2] = { {255,255,255,0}, {0,0,0,0} };
  *
  *      Input:  stream opened for read
  *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) Here are references on the bmp file format:
+ *          http://en.wikipedia.org/wiki/BMP_file_format
+ *          http://www.fortunecity.com/skyscraper/windows/364/bmpffrmt.html
  */
 PIX *
 pixReadStreamBmp(FILE  *fp)
@@ -57,7 +60,7 @@ l_uint16   sval;
 l_uint32   ival;
 l_int16    bfType, bfSize, bfFill1, bfReserved1, bfReserved2;
 l_int16    offset, bfFill2, biPlanes, depth, d;
-l_int32    biSize, width, height, xres, yres, compression;
+l_int32    biSize, width, height, xres, yres, compression, ignore;
 l_int32    imagebytes, biClrUsed, biClrImportant;
 l_uint8   *colormapBuf;
 l_int32    colormapEntries;
@@ -76,46 +79,46 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("fp not defined", procName, NULL);
 
         /* Read bitmap file header */
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     bfType = convertOnBigEnd16(sval);
     if (bfType != BMP_ID)
         return (PIX *)ERROR_PTR("not bmf format", procName, NULL);
 
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     bfSize = convertOnBigEnd16(sval);
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     bfFill1 = convertOnBigEnd16(sval);
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     bfReserved1 = convertOnBigEnd16(sval);
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     bfReserved2 = convertOnBigEnd16(sval);
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     offset = convertOnBigEnd16(sval);
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     bfFill2 = convertOnBigEnd16(sval);
 
         /* Read bitmap info header */
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     biSize = convertOnBigEnd32(ival);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     width = convertOnBigEnd32(ival);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     height = convertOnBigEnd32(ival);
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     biPlanes = convertOnBigEnd16(sval);
-    fread((char *)&sval, 1, 2, fp);
+    ignore = fread((char *)&sval, 1, 2, fp);
     depth = convertOnBigEnd16(sval);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     compression = convertOnBigEnd32(ival);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     imagebytes = convertOnBigEnd32(ival);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     xres = convertOnBigEnd32(ival);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     yres = convertOnBigEnd32(ival);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     biClrUsed = convertOnBigEnd32(ival);
-    fread((char *)&ival, 1, 4, fp);
+    ignore = fread((char *)&ival, 1, 4, fp);
     biClrImportant = convertOnBigEnd32(ival);
 
     if (compression != 0)
@@ -126,7 +129,9 @@ PIXCMAP   *cmap;
          * if the number of bytes in the file equals the offset to
          * the data plus the imagedata, but this won't work when
          * reading from memory, because fmemopen() doesn't implement
-         * ftell().  So we can't do that check. */
+         * ftell().  So we can't do that check.  The imagebytes for
+         * uncompressed images is either 0 or the size of the file data.
+         * (The fact that it can be 0 is perhaps some legacy glitch).  */
     if (width < 1)
         return (PIX *)ERROR_PTR("width < 1", procName,NULL);
     if (height < 1)
@@ -134,7 +139,7 @@ PIXCMAP   *cmap;
     if (depth < 1 || depth > 32)
         return (PIX *)ERROR_PTR("depth not in [1 ... 32]", procName,NULL);
     fileBpl = 4 * ((width * depth + 31)/32);
-    if (imagebytes != fileBpl * height)
+    if (imagebytes != 0 && imagebytes != fileBpl * height)
         return (PIX *)ERROR_PTR("invalid imagebytes", procName,NULL);
     if (offset < BMP_FHBYTES + BMP_IHBYTES)
         return (PIX *)ERROR_PTR("invalid offset: too small", procName,NULL);
@@ -242,7 +247,7 @@ PIXCMAP   *cmap;
             }
             if (extrabytes) {
                 for (k = 0; k < extrabytes; k++)
-                    fread(&pel, 1, 1, fp);
+                    ignore = fread(&pel, 1, 1, fp);
             }
             line -= pixWpl;
         }

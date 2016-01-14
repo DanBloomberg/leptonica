@@ -63,8 +63,6 @@
  *           l_int32   ptaaWriteStream()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -527,11 +525,13 @@ PTA       *pta;
         return (PTA *)ERROR_PTR("pta not made", procName, NULL);
     for (i = 0; i < n; i++) {
         if (type == 0) {  /* data is float */
-            fscanf(fp, "   (%f, %f)\n", &x, &y);
+            if (fscanf(fp, "   (%f, %f)\n", &x, &y) != 2)
+                return (PTA *)ERROR_PTR("error reading floats", procName, NULL);
             ptaAddPt(pta, x, y);
         }
         else {   /* data is integer */
-            fscanf(fp, "   (%d, %d)\n", &ix, &iy);
+            if (fscanf(fp, "   (%d, %d)\n", &ix, &iy) != 2)
+                return (PTA *)ERROR_PTR("error reading ints", procName, NULL);
             ptaAddPt(pta, ix, iy);
         }
     }

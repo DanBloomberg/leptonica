@@ -68,8 +68,6 @@
  *            L_KERNEL   *makeDoGKernel()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -522,7 +520,7 @@ L_KERNEL  *kel;
 L_KERNEL *
 kernelReadStream(FILE  *fp)
 {
-l_int32    sy, sx, cy, cx, i, j, ret, version;
+l_int32    sy, sx, cy, cx, i, j, ret, version, ignore;
 L_KERNEL  *kel;
 
     PROCNAME("kernelReadStream");
@@ -546,10 +544,10 @@ L_KERNEL  *kel;
 
     for (i = 0; i < sy; i++) {
         for (j = 0; j < sx; j++)
-            fscanf(fp, "%15f", &kel->data[i][j]);
-        fscanf(fp, "\n");
+            ignore = fscanf(fp, "%15f", &kel->data[i][j]);
+        ignore = fscanf(fp, "\n");
     }
-    fscanf(fp, "\n");
+    ignore = fscanf(fp, "\n");
 
     return kel;
 }

@@ -18,6 +18,7 @@
  *
  *      Stream interface
  *          PIX             *pixReadStreamPnm()
+ *          l_int32          readHeaderPnm()
  *          l_int32          freadHeaderPnm()
  *          l_int32          pixWriteStreamPnm()
  *          l_int32          pixWriteStreamAsciiPnm()
@@ -66,9 +67,7 @@
  *      possible between the file and the Pix in memory.
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 /* --------------------------------------------*/
@@ -144,7 +143,8 @@ PIX       *pix;
         for (i = 0; i < h; i++) {
             line = data + i * wpl;
             for (j = 0; j < bpl; j++) {
-                fread(&val8, 1, 1, fp);
+                if (fread(&val8, 1, 1, fp) != 1)
+                    return (PIX *)ERROR_PTR( "read error in 4", procName, pix);
                 SET_DATA_BYTE(line, j, val8);
             }
         }
@@ -158,7 +158,8 @@ PIX       *pix;
             line = data + i * wpl;
             if (d != 16) {
                 for (j = 0; j < w; j++) {
-                    fread(&val8, 1, 1, fp);
+                    if (fread(&val8, 1, 1, fp) != 1)
+                        return (PIX *)ERROR_PTR( "error in 5", procName, pix);
                     if (d == 2)
                         SET_DATA_DIBIT(line, j, val8);
                     else if (d == 4)
@@ -169,7 +170,8 @@ PIX       *pix;
             }
             else {  /* d == 16 */
                 for (j = 0; j < w; j++) {
-                    fread(&val16, 2, 1, fp);
+                    if (fread(&val16, 2, 1, fp) != 1)
+                        return (PIX *)ERROR_PTR( "16 bpp error", procName, pix);
                     SET_DATA_TWO_BYTES(line, j, val16);
                 }
             }
@@ -181,14 +183,57 @@ PIX       *pix;
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
         for (j = 0; j < wpl; j++) {
-            fread(&rval8, 1, 1, fp);
-            fread(&gval8, 1, 1, fp);
-            fread(&bval8, 1, 1, fp);
+            if (fread(&rval8, 1, 1, fp) != 1)
+                return (PIX *)ERROR_PTR( "read error type 6", procName, pix);
+            if (fread(&gval8, 1, 1, fp) != 1)
+                return (PIX *)ERROR_PTR( "read error type 6", procName, pix);
+            if (fread(&bval8, 1, 1, fp) != 1)
+                return (PIX *)ERROR_PTR( "read error type 6", procName, pix);
             composeRGBPixel(rval8, gval8, bval8, &rgbval);
             line[j] = rgbval;
         }
     }
     return pix;
+}
+
+
+/*!
+ *  readHeaderPnm()
+ *
+ *      Input:  filename
+ *              &pix (<optional return> use null to return only header data)
+ *              &width (<return>)
+ *              &height (<return>)
+ *              &depth (<return>)
+ *              &type (<return> pnm type)
+ *              &bps (<optional return>, bits/sample)
+ *              &spp (<optional return>, samples/pixel)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+readHeaderPnm(const char *filename,
+              PIX     **ppix,
+              l_int32  *pwidth,
+              l_int32  *pheight,
+              l_int32  *pdepth,
+              l_int32  *ptype,
+              l_int32  *pbps,
+              l_int32  *pspp)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("readHeaderPnm");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!pwidth || !pheight || !pbps || !pspp)
+        return ERROR_INT("input ptr(s) not defined", procName, 1);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return ERROR_INT("image file not found", procName, 1);
+    ret = freadHeaderPnm(fp, ppix, pwidth, pheight, pdepth, ptype, pbps, pspp);
+    fclose(fp);
+    return ret;
 }
 
 
@@ -204,11 +249,6 @@ PIX       *pix;
  *              &bps (<optional return>, bits/sample)
  *              &spp (<optional return>, samples/pixel)
  *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) To get only the header data, set @getpix == 0.
- *          However, if this is called as part of reading a pix from a file,
- *          set @getpix == 1 to return the pix without the image data.
  */
 l_int32
 freadHeaderPnm(FILE     *fp,
@@ -230,14 +270,16 @@ l_int32  maxval;
     if (!pwidth || !pheight || !pdepth || !ptype)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
 
-    fscanf(fp, "P%d\n", &type);
+    if (fscanf(fp, "P%d\n", &type) != 1)
+        return ERROR_INT("invalid read for type", procName, 1);
     if (type < 1 || type > 6)
         return ERROR_INT("invalid pnm file", procName, 1);
 
     if (pnmSkipCommentLines(fp))
         return ERROR_INT("no data in file", procName, 1);
 
-    fscanf(fp, "%d %d\n", &w, &h);
+    if (fscanf(fp, "%d %d\n", &w, &h) != 2)
+        return ERROR_INT("invalid read for w,h", procName, 1);
     if (w <= 0 || h <= 0 || w > MAX_PNM_WIDTH || h > MAX_PNM_HEIGHT)
         return ERROR_INT("invalid sizes", procName, 1);
 
@@ -245,7 +287,8 @@ l_int32  maxval;
     if (type == 1 || type == 4)
         d = 1;
     else if (type == 2 || type == 5) {
-        fscanf(fp, "%d\n", &maxval);
+        if (fscanf(fp, "%d\n", &maxval) != 1)
+            return ERROR_INT("invalid read for maxval (2,5)", procName, 1);
         if (maxval == 3)
             d = 2;
         else if (maxval == 15)
@@ -260,7 +303,8 @@ l_int32  maxval;
         }
     }
     else {  /* type == 3 || type == 6; this is rgb  */
-        fscanf(fp, "%d\n", &maxval);
+        if (fscanf(fp, "%d\n", &maxval) != 1)
+            return ERROR_INT("invalid read for maxval (3,6)", procName, 1);
         if (maxval != 255)
             L_WARNING_INT("unexpected maxval = %d", procName, maxval);
         d = 32;
@@ -275,7 +319,7 @@ l_int32  maxval;
     if (!ppix)
         return 0;
 
-    if ((*ppix = pixCreate(w, h, d)) == NULL)
+    if ((*ppix = pixCreate(w, h, d)) == NULL)  /* return pix initialized to 0 */
         return ERROR_INT( "pix not made", procName, 1);
     return 0;
 }
@@ -701,7 +745,7 @@ static l_int32
 pnmReadNextAsciiValue(FILE  *fp,
                       l_int32 *pval)
 {
-l_int32   c;
+l_int32   c, ignore;
 
     PROCNAME("pnmReadNextAsciiValue");
 
@@ -716,7 +760,7 @@ l_int32   c;
     } while (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 
     fseek(fp, -1L, SEEK_CUR);        /* back up one byte */
-    fscanf(fp, "%d", pval);
+    ignore = fscanf(fp, "%d", pval);
     return 0;
 }
 

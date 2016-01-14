@@ -20,8 +20,6 @@
  *        l_int32    pixHtmlViewer()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -76,7 +74,7 @@ char      *shtml, *slink;
 char       charbuf[L_BUF_SIZE];
 char       htmlstring[] = "<html>";
 char       framestring[] = "</frameset></html>";
-l_int32    i, nfiles, index, w, nimages;
+l_int32    i, nfiles, index, w, nimages, ignore;
 l_float32  factor;
 PIX       *pix, *pixthumb, *pixview;
 SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
@@ -105,7 +103,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
 
         /* Make the output directory if it doesn't already exist */
     sprintf(charbuf, "mkdir -p %s", dirout);
-    system(charbuf);
+    ignore = system(charbuf);
 
         /* Capture the filenames in the input directory */
     if ((safiles = getFilenamesInDirectory(dirin)) == NULL)

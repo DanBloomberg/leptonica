@@ -773,21 +773,37 @@ l_int32   imeta, msize, bps, w, h, spp;
  *  
  *      Input:  inarray (binary jpeg)
  *              size (of the data array)
- *             &index (<return> location of image metadata)
+ *              &index (<return> location of image metadata)
  *      Return: 0 if OK, 1 on error.  Caller must check this!
  *  
  *  Notes:
- *      (1) The parameters listed here appear to be the only jpeg flags
+ *      (1) The metadata in jpeg files is a mess.  There are markers
+ *          for the chunks that are always preceeded by 0xff.
+ *          It is possible to have 0xff in the binary data that is
+ *          not a marker, and this is always 'escaped' by a following
+ *          0x0 byte.  The two bytes following the marker give the
+ *          chunk size, inclusive of those two bytes.  The jpeg parser
+ *          runs through the file, looking for special markers such
+ *          as 0xc0 and 0xc2 that indicate the beginning of a metadata
+ *          frame that gives the image size, depth, etc.
+ *      (2) The markers listed here appear to be the only ones that
  *          we need to worry about.  It would have been nice to have
- *          avoided the switch with all these parameters, but
+ *          avoided the switch with all these markers, but
  *          unfortunately the parser for the jpeg header is set
- *          to accept any old flag that's not on the approved list!
+ *          to accept any byte marker that's not on the approved list!
  *          So we have to look for a flag that's not on the list
- *          (and is not 0), and then interpret the size of the
- *          data chunk and skip it.  Sometimes such a chunk contains
- *          a thumbnail version of the image, so if we don't skip it,
- *          we will find a pair of bytes such as 0xffc0, followed
- *          by small w and h dimensions. 
+ *          (and is not 0 or followed by 0xff), and then interpret
+ *          the size of the data chunk and skip it.  Why do this?
+ *          Such a chunk may contain a thumbnail version of the image,
+ *          so if we don't skip it, we will find a pair of bytes such
+ *          as 0xffc0 within the chunk, followed by the metadata
+ *          (e.g., w and h dimensions) for the thumbnail.  Not what we want.
+ *      (3) We recently found jpeg files with the sequence 0xffXXff,
+ *          where XX is apparently a random marker not on the 'approved'
+ *          list.  These clearly need to be escaped, because there are
+ *          no chunks of size as great as 0xff00 that can be skipped
+ *          (remember: for chunks that must be skipped, the 2 bytes
+ *          after the marker give the chunk size).
  */
 static l_int32
 locateJpegImageParameters(l_uint8  *inarray,
@@ -804,15 +820,18 @@ l_int32  index, skiplength;
     if (!pindex)
         return ERROR_INT("&index not defined", procName, 1);
 
-    index = *pindex;
+    index = 0;  /* start at the beginning of the data */
     while (1) {
         if (getNextJpegMarker(inarray, size, &index))
             break;
         if ((val = inarray[index]) == 0)  /* ignore if "escaped" */
             continue;
+        if (inarray[index + 1] == 0xff)  /* ignore if 'ff' immediately after */
+            continue;
 /*        fprintf(stderr, " marker %x at %o, %d\n", val, index, index); */
         switch(val)
         {
+            /* These are valid metadata start locations */
         case 0xc0:  /* M_SOF0 */
         case 0xc1:  /* M_SOF1 */
         case 0xc2:  /* M_SOF2 */
@@ -828,6 +847,8 @@ l_int32  index, skiplength;
             *pindex = index + 1;  /* found it */
             return 0;
 
+            /* Go on -- these are on the 'approved' list and are
+             * not chunks that must be skipped */
         case 0x01:  /* M_TEM */
         case 0xd0:  /* M_RST0 */
         case 0xd1:  /* M_RST1 */
@@ -843,6 +864,7 @@ l_int32  index, skiplength;
         case 0xee:  /* M_APP14 */
             break;
 
+            /* Everything else is assumed to be a chunk that must be skipped */
         default:
             skiplength = getTwoByteParameter(inarray, index + 1);
             index += skiplength;
@@ -859,10 +881,10 @@ l_int32  index, skiplength;
  *
  *      Input:  array (jpeg data)
  *              size (from current point to the end)
- *             &index (<return> the last position searched.  If it
- *                     is not at the end of the array, we return
- *                     the first byte that is not 0xff, after
- *                     having encountered at least one 0xff.)
+ *              &index (input current and <return> the last position searched.
+ *                      If it is not at the end of the array, we return
+ *                      the first byte that is not 0xff, after
+ *                      having encountered at least one 0xff.)
  *      Return: 0 if a marker is found, 1 if the end of the array is reached
  *      
  *  Notes:
@@ -891,7 +913,7 @@ l_int32  index;
     if (!pindex)
         return ERROR_INT("&index not defined", procName, 1);
 
-    index = *pindex;
+    index = *pindex;  /* initial location in array */
 
     while (index < size) {  /* skip to 0xff */
        val = array[index++];    
@@ -1095,6 +1117,7 @@ l_uint8  **comment;
     if (length <= 0)
         return 1;
 
+    if (*comment) FREE(*comment);
     *comment = (l_uint8 *)MALLOC(length + 1);
     if (!(*comment))
         return 0;
@@ -1111,4 +1134,3 @@ l_uint8  **comment;
 /* --------------------------------------------*/
 #endif  /* HAVE_LIBJPEG */
 /* --------------------------------------------*/
-

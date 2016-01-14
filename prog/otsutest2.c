@@ -32,9 +32,6 @@
  *   the fg and bg peaks, producing a much cleaner binarization.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #ifndef  _WIN32
 #include <unistd.h>
 #else

@@ -19,8 +19,6 @@
  *    Tests a number of convolution functions.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const char  *kdatastr = " 20    50   80  50   20 "
@@ -33,10 +31,12 @@ static const char  *kdatastr = " 20    50   80  50   20 "
 main(int    argc,
      char **argv)
 {
-l_int32       i, j, count, success, display;
+l_int32       i, j, sizex, sizey, count, success, display;
 FILE         *fp;
+FPIX         *fpixv, *fpixrv;
 L_KERNEL     *kel1, *kel2;
 PIX          *pixs, *pixacc, *pixg, *pixt, *pixd;
+PIX          *pixb, *pixm, *pixms, *pixrv, *pix1, *pix2, *pix3, *pix4;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
@@ -116,6 +116,51 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixd);
     pixDestroy(&pixs);
     pixDestroy(&pixg);
+
+        /* Test pixWindowedMean() and pixWindowedMeanSquare() on 8 bpp */
+    pixs = pixRead("feyn-fract2.tif");
+    pixg = pixConvertTo8(pixs, 0);
+    sizex = 5;
+    sizey = 20;
+    pixb = pixAddBorderGeneral(pixg, sizex + 1, sizex + 1,
+                               sizey + 1, sizey + 1, 0);
+    pixm = pixWindowedMean(pixb, sizex, sizey, 1);
+    pixms = pixWindowedMeanSquare(pixb, sizex, sizey);
+    regTestWritePixAndCheck(pixm, IFF_JFIF_JPEG, &count, rp);
+    pixDisplayWithTitle(pixm, 100, 0, NULL, display);
+    pixDestroy(&pixs);
+    pixDestroy(&pixb);
+
+        /* Test pixWindowedVariance() on 8 bpp */
+    pixWindowedVariance(pixm, pixms, &fpixv, &fpixrv);
+    pixrv = fpixConvertToPix(fpixrv, 8, L_CLIP_TO_ZERO, 1);
+    regTestWritePixAndCheck(pixrv, IFF_JFIF_JPEG, &count, rp);
+    pixDisplayWithTitle(pixrv, 100, 250, NULL, display);
+    pix1 = fpixDisplayMaxDynamicRange(fpixv);
+    pix2 = fpixDisplayMaxDynamicRange(fpixrv);
+    pixDisplayWithTitle(pix1, 100, 500, "Variance", display);
+    pixDisplayWithTitle(pix2, 100, 750, "RMS deviation", display);
+    regTestWritePixAndCheck(pix1, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(pix2, IFF_JFIF_JPEG, &count, rp);
+    fpixDestroy(&fpixv);
+    fpixDestroy(&fpixrv);
+    pixDestroy(&pixm);
+    pixDestroy(&pixms);
+    pixDestroy(&pixrv);
+
+        /* Test again all windowed functions with simpler interface */
+    pixWindowedStats(pixg, sizex, sizey, NULL, NULL, &fpixv, &fpixrv);
+    pix3 = fpixDisplayMaxDynamicRange(fpixv);
+    pix4 = fpixDisplayMaxDynamicRange(fpixrv);
+    regTestComparePix(fp, argv, pix1, pix3, 0, &success);
+    regTestComparePix(fp, argv, pix2, pix4, 0, &success);
+    pixDestroy(&pixg);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    fpixDestroy(&fpixv);
+    fpixDestroy(&fpixrv);
 
     regTestCleanup(argc, argv, fp, success, rp);
     return 0;

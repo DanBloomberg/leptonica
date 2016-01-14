@@ -35,8 +35,6 @@
  *   are level 2 compressed.  Hard to believe, but true.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* fill factor on 8.5 x 11 inch output page */
@@ -48,7 +46,7 @@ main(int    argc,
 {
 char        *filein, *name, *printer;
 char         buffer[512];
-l_int32      nx, ny, i, w, h, ws, hs, n;
+l_int32      nx, ny, i, w, h, ws, hs, n, ignore;
 l_float32    scale;
 FILE        *fp;
 PIX         *pixs, *pixt, *pixr;
@@ -66,7 +64,7 @@ static char  mainName[] = "printsplitimage";
     if (argc == 5)
 	printer = argv[4];
 
-    system("rm -f /tmp/junk_print_image_*.ps");
+    ignore = system("rm -f /tmp/junk_print_image_*.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
@@ -100,7 +98,7 @@ static char  mainName[] = "printsplitimage";
         for (i = 0; i < n; i++) {
             name = sarrayGetString(sa, i, 0);
             sprintf(buffer, "lpr -P%s %s &", printer, name);
-            system(buffer);
+            ignore = system(buffer);
         }
     }
 
@@ -108,6 +106,6 @@ static char  mainName[] = "printsplitimage";
     pixaDestroy(&pixa);
     pixDestroy(&pixr);
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 

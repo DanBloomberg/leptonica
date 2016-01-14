@@ -28,8 +28,6 @@
  *   file into /tmp.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define   TEMP_PS       "/tmp/junk_printtiff.ps"
@@ -40,6 +38,7 @@ main(int    argc,
 {
 char           *filein, *printer;
 char            buffer[512];
+l_int32         ignore;
 static char     mainName[] = "printtiff";
 
     if (argc != 2 && argc != 3)
@@ -50,15 +49,15 @@ static char     mainName[] = "printtiff";
 	printer = argv[2];
 
     sprintf(buffer, "rm -f %s", TEMP_PS);
-    system(buffer);
+    ignore = system(buffer);
 
     convertTiffMultipageToPS(filein, TEMP_PS, NULL, FILL_FACTOR);
 
     if (argc == 3) {
 	sprintf(buffer, "lpr -P%s %s &", printer, TEMP_PS);
-	system(buffer);
+	ignore = system(buffer);
     }
 
-    exit(0);
+    return 0;
 }
 

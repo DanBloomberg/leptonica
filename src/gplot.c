@@ -78,8 +78,6 @@
  *           dvips -o <psname>.ps <latexname>.dvi
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -349,7 +347,8 @@ gplotSetScaling(GPLOT   *gplot,
 l_int32
 gplotMakeOutput(GPLOT  *gplot)
 {
-char  buf[L_BUF_SIZE];
+char     buf[L_BUF_SIZE];
+l_int32  ignore;
 
     PROCNAME("gplotMakeOutput");
 
@@ -372,7 +371,7 @@ char  buf[L_BUF_SIZE];
        snprintf(buf, L_BUF_SIZE,
                "wgnuplot -persist %s", gplot->cmdname);
 #endif  /* _WIN32 */
-    system(buf);
+    ignore = system(buf);
     return 0;
 }
 
@@ -676,8 +675,8 @@ GPLOT *
 gplotRead(const char  *filename)
 {
 char     buf[L_BUF_SIZE];
-char    *rootname, *title, *xlabel, *ylabel;
-l_int32  outformat, ret, version;
+char    *rootname, *title, *xlabel, *ylabel, *ignores;
+l_int32  outformat, ret, version, ignore;
 FILE    *fp;
 GPLOT   *gplot;
 
@@ -699,16 +698,16 @@ GPLOT   *gplot;
         return (GPLOT *)ERROR_PTR("invalid gplot version", procName, NULL);
     }
 
-    fscanf(fp, "Rootname: %s\n", buf);
+    ignore = fscanf(fp, "Rootname: %s\n", buf);
     rootname = stringNew(buf);
-    fscanf(fp, "Output format: %d\n", &outformat);
-    fgets(buf, L_BUF_SIZE, fp);   /* Title: ... */
+    ignore = fscanf(fp, "Output format: %d\n", &outformat);
+    ignores = fgets(buf, L_BUF_SIZE, fp);   /* Title: ... */
     title = stringNew(buf + 7);
     title[strlen(title) - 1] = '\0';
-    fgets(buf, L_BUF_SIZE, fp);   /* X axis label: ... */
+    ignores = fgets(buf, L_BUF_SIZE, fp);   /* X axis label: ... */
     xlabel = stringNew(buf + 14);
     xlabel[strlen(xlabel) - 1] = '\0';
-    fgets(buf, L_BUF_SIZE, fp);   /* Y axis label: ... */
+    ignores = fgets(buf, L_BUF_SIZE, fp);   /* Y axis label: ... */
     ylabel = stringNew(buf + 14);
     ylabel[strlen(ylabel) - 1] = '\0';
 
@@ -726,23 +725,23 @@ GPLOT   *gplot;
     sarrayDestroy(&gplot->plottitles);
     numaDestroy(&gplot->plotstyles);
 
-    fscanf(fp, "Commandfile name: %s\n", buf);
+    ignore = fscanf(fp, "Commandfile name: %s\n", buf);
     stringReplace(&gplot->cmdname, buf);
-    fscanf(fp, "\nCommandfile data:");
+    ignore = fscanf(fp, "\nCommandfile data:");
     gplot->cmddata = sarrayReadStream(fp);
-    fscanf(fp, "\nDatafile names:");
+    ignore = fscanf(fp, "\nDatafile names:");
     gplot->datanames = sarrayReadStream(fp);
-    fscanf(fp, "\nPlot data:");
+    ignore = fscanf(fp, "\nPlot data:");
     gplot->plotdata = sarrayReadStream(fp);
-    fscanf(fp, "\nPlot titles:");
+    ignore = fscanf(fp, "\nPlot titles:");
     gplot->plottitles = sarrayReadStream(fp);
-    fscanf(fp, "\nPlot styles:");
+    ignore = fscanf(fp, "\nPlot styles:");
     gplot->plotstyles = numaReadStream(fp);
 
-    fscanf(fp, "Number of plots: %d\n", &gplot->nplots);
-    fscanf(fp, "Output file name: %s\n", buf);
+    ignore = fscanf(fp, "Number of plots: %d\n", &gplot->nplots);
+    ignore = fscanf(fp, "Output file name: %s\n", buf);
     stringReplace(&gplot->outname, buf);
-    fscanf(fp, "Axis scaling: %d\n", &gplot->scaling);
+    ignore = fscanf(fp, "Axis scaling: %d\n", &gplot->scaling);
 
     fclose(fp);
     return gplot;

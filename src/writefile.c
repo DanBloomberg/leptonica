@@ -44,8 +44,6 @@
  *        void        chooseDisplayProg()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -55,10 +53,6 @@
 #define  WRITE_AS_NAMED    1
     /* ----------------------------------------------------------- */
 
-#ifdef _WIN32
-#define MAX_PATH     260  /* actually in <WinDef.h>; brings in other files */
-#endif  /* _WIN32 */
-
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE   512
 
@@ -66,7 +60,7 @@
 #ifdef _WIN32
 static l_int32  ChosenDisplayProg = L_DISPLAY_WITH_IV;  /* default */
 #else
-static l_int32  ChosenDisplayProg = L_DISPLAY_WITH_XLI;  /* default */
+static l_int32  ChosenDisplayProg = L_DISPLAY_WITH_XZGV;  /* default */
 #endif  /* _WIN32 */
 static const l_int32  MAX_DISPLAY_WIDTH = 1000;
 static const l_int32  MAX_DISPLAY_HEIGHT = 800;
@@ -84,7 +78,7 @@ static const l_float32  DEFAULT_SCALING = 1.0;
      * because that makes it static.  The 'const' in the definition of
      * the array refers to the strings in the array; the ptr to the
      * array is not const and can be used 'extern' in other files.)  */
-LEPT_DLL l_int32  NumImageFileFormatExtensions = 17;  /* array size */
+LEPT_DLL l_int32  NumImageFileFormatExtensions = 18;  /* array size */
 LEPT_DLL const char *ImageFileFormatExtensions[] =
          {"unknown",
           "bmp",
@@ -101,6 +95,7 @@ LEPT_DLL const char *ImageFileFormatExtensions[] =
           "ps",
           "gif",
           "jp2",
+          "webp",
           "default",
           ""};
 
@@ -120,7 +115,8 @@ static const struct ExtensionMap extension_map[] =
                               { ".pnm",  IFF_PNM       },
                               { ".gif",  IFF_GIF       },
                               { ".jp2",  IFF_JP2       },
-                              { ".ps",   IFF_PS        } };
+                              { ".ps",   IFF_PS        },
+                              { ".webp", IFF_WEBP      } };
 
 
 /*---------------------------------------------------------------------*
@@ -319,6 +315,10 @@ pixWriteStream(FILE    *fp,
 
     case IFF_JP2:
         return ERROR_INT("jp2 format not supported", procName, 1);
+        break;
+
+    case IFF_WEBP:
+        return pixWriteStreamWebP(fp, pix, 12);
         break;
 
     case IFF_SPIX:
@@ -687,13 +687,13 @@ pixDisplayWithTitle(PIX         *pixs,
 char           *tempname;
 char            buffer[L_BUF_SIZE];
 static l_int32  index = 0;  /* caution: not .so or thread safe */
-l_int32         w, h, d;
+l_int32         w, h, d, ignore;
 l_float32       ratw, rath, ratmin;
 PIX            *pixt;
 #ifndef _WIN32
 l_int32         wt, ht;
 #else
-char            pathname[MAX_PATH];
+char            pathname[_MAX_PATH];
 #endif  /* _WIN32 */
 
     PROCNAME("pixDisplayWithTitle");
@@ -734,7 +734,7 @@ char            pathname[MAX_PATH];
 
     if (index == 0) {
         snprintf(buffer, L_BUF_SIZE, "rm -f /tmp/junk_display.*");
-        system(buffer);
+        ignore = system(buffer);
     }
 
     index++;
@@ -764,11 +764,12 @@ char            pathname[MAX_PATH];
     else if (ChosenDisplayProg == L_DISPLAY_WITH_XLI) {
         if (title)
             snprintf(buffer, L_BUF_SIZE,
-                     "xli -quiet -geometry +%d+%d -title \"%s\" %s &",
-                     x, y, title, tempname);
+               "xli -dispgamma 1.0 -quiet -geometry +%d+%d -title \"%s\" %s &",
+               x, y, title, tempname);
         else
             snprintf(buffer, L_BUF_SIZE,
-                     "xli -quiet -geometry +%d+%d %s &", x, y, tempname);
+               "xli -dispgamma 1.0 -quiet -geometry +%d+%d %s &",
+               x, y, tempname);
     }
     else if (ChosenDisplayProg == L_DISPLAY_WITH_XZGV) {
             /* no way to display title */
@@ -777,7 +778,7 @@ char            pathname[MAX_PATH];
                  "xzgv --geometry %dx%d+%d+%d %s &", wt + 10, ht + 10,
                  x, y, tempname);
     }
-    system(buffer);
+    ignore = system(buffer);
 
 #else  /* _WIN32 */
 
@@ -790,7 +791,7 @@ char            pathname[MAX_PATH];
     else
         snprintf(buffer, L_BUF_SIZE, "i_view32.exe \"%s\" /pos=(%d,%d)",
                  pathname, x, y);
-    system(buffer);
+    ignore = system(buffer);
 
 #endif  /* _WIN32 */
 
@@ -815,10 +816,11 @@ char            pathname[MAX_PATH];
 l_int32
 pixDisplayMultiple(const char  *filepattern)
 {
-char   buffer[L_BUF_SIZE];
+char     buffer[L_BUF_SIZE];
+l_int32  ignore;
 #ifdef _WIN32
-char   pathname[MAX_PATH];
-char  *dir, *tail;
+char     pathname[_MAX_PATH];
+char    *dir, *tail;
 #endif  /* _WIN32 */
 
     PROCNAME("pixDisplayMultiple");
@@ -839,7 +841,7 @@ char  *dir, *tail;
     FREE(tail);
 #endif  /* _WIN32 */
 
-    system(buffer);
+    ignore = system(buffer);
     return 0;
 }
 
@@ -903,6 +905,7 @@ pixDisplayWriteFormat(PIX     *pixs,
                       l_int32  format)
 {
 char            buffer[L_BUF_SIZE];
+l_int32         ignore;
 l_float32       scale;
 PIX            *pixt, *pix8;
 static l_int32  index = 0;  /* caution: not .so or thread safe */
@@ -924,7 +927,7 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
     if (index == 0) {
         snprintf(buffer, L_BUF_SIZE,
            "rm -f /tmp/junk_write_display.*.png /tmp/junk_write_display.*.jpg");
-        system(buffer);
+        ignore = system(buffer);
     }
     index++;
 

@@ -30,8 +30,6 @@
  *   on all PS printers.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const l_float32  FILL_FACTOR = 0.95;   /* fill factor on 8.5 x 11 page */
@@ -42,7 +40,7 @@ main(int    argc,
 {
 char        *filein, *argp, *argn;
 char         buffer[512];
-l_int32      i, w, h;
+l_int32      i, w, h, ignore;
 l_float32    scale;
 FILE        *fp;
 PIX         *pixs, *pixt;
@@ -64,7 +62,7 @@ static char  mainName[] = "printimage";
         }
     }
 
-    system("rm -f /tmp/junk_print_image.ps");
+    ignore = system("rm -f /tmp/junk_print_image.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
@@ -84,20 +82,20 @@ static char  mainName[] = "printimage";
         /* print it out */
     if (argp && !argn) {
         sprintf(buffer, "lpr %s /tmp/junk_print_image.ps &", argp);
-        system(buffer);
+        ignore = system(buffer);
     }
     else if (!argp && argn) {
         sprintf(buffer, "lpr %s /tmp/junk_print_image.ps &", argn);
-        system(buffer);
+        ignore = system(buffer);
     }
     else if (argp && argn) {
         sprintf(buffer, "lpr %s %s /tmp/junk_print_image.ps &",
                 argp, argn);
-        system(buffer);
+        ignore = system(buffer);
     }
 
     pixDestroy(&pixs);
     pixDestroy(&pixt);
-    exit(0);
+    return 0;
 }
 

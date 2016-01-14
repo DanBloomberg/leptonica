@@ -19,8 +19,6 @@
  *     Compare the timings of various binary morphological implementations.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define  HALFWIDTH   3
@@ -95,10 +93,10 @@ static char  mainName[] = "dwamorph2_reg";
     }
 
     nax = numaMakeSequence(2, 1, nsels / 2);
-    nac1 = numaConvolve(na1, HALFWIDTH);
-    nac2 = numaConvolve(na2, HALFWIDTH);
-    nac3 = numaConvolve(na3, HALFWIDTH);
-    nac4 = numaConvolve(na4, HALFWIDTH);
+    nac1 = numaWindowedMean(na1, HALFWIDTH);
+    nac2 = numaWindowedMean(na2, HALFWIDTH);
+    nac3 = numaWindowedMean(na3, HALFWIDTH);
+    nac4 = numaWindowedMean(na4, HALFWIDTH);
     gplot = gplotCreate("/tmp/junkdilate", GPLOT_PNG,
                         "Dilation time vs sel size", "size", "time (ms)");
     gplotAddPlot(gplot, nax, nac1, GPLOT_LINES, "linear rasterop");
@@ -150,10 +148,10 @@ static char  mainName[] = "dwamorph2_reg";
         numaAddNumber(na4, time);
     }
 
-    nac1 = numaConvolve(na1, HALFWIDTH);
-    nac2 = numaConvolve(na2, HALFWIDTH);
-    nac3 = numaConvolve(na3, HALFWIDTH);
-    nac4 = numaConvolve(na4, HALFWIDTH);
+    nac1 = numaWindowedMean(na1, HALFWIDTH);
+    nac2 = numaWindowedMean(na2, HALFWIDTH);
+    nac3 = numaWindowedMean(na3, HALFWIDTH);
+    nac4 = numaWindowedMean(na4, HALFWIDTH);
     gplot = gplotCreate("/tmp/junkerode", GPLOT_PNG,
                         "Erosion time vs sel size", "size", "time (ms)");
     gplotAddPlot(gplot, nax, nac1, GPLOT_LINES, "linear rasterop");
@@ -205,10 +203,10 @@ static char  mainName[] = "dwamorph2_reg";
         numaAddNumber(na4, time);
     }
 
-    nac1 = numaConvolve(na1, HALFWIDTH);
-    nac2 = numaConvolve(na2, HALFWIDTH);
-    nac3 = numaConvolve(na3, HALFWIDTH);
-    nac4 = numaConvolve(na4, HALFWIDTH);
+    nac1 = numaWindowedMean(na1, HALFWIDTH);
+    nac2 = numaWindowedMean(na2, HALFWIDTH);
+    nac3 = numaWindowedMean(na3, HALFWIDTH);
+    nac4 = numaWindowedMean(na4, HALFWIDTH);
     gplot = gplotCreate("/tmp/junkopen", GPLOT_PNG,
                         "Opening time vs sel size", "size", "time (ms)");
     gplotAddPlot(gplot, nax, nac1, GPLOT_LINES, "linear rasterop");
@@ -260,10 +258,10 @@ static char  mainName[] = "dwamorph2_reg";
         numaAddNumber(na4, time);
     }
 
-    nac1 = numaConvolve(na1, HALFWIDTH);
-    nac2 = numaConvolve(na2, HALFWIDTH);
-    nac3 = numaConvolve(na3, HALFWIDTH);
-    nac4 = numaConvolve(na4, HALFWIDTH);
+    nac1 = numaWindowedMean(na1, HALFWIDTH);
+    nac2 = numaWindowedMean(na2, HALFWIDTH);
+    nac3 = numaWindowedMean(na3, HALFWIDTH);
+    nac4 = numaWindowedMean(na4, HALFWIDTH);
     gplot = gplotCreate("/tmp/junkclose", GPLOT_PNG,
                         "Closing time vs sel size", "size", "time (ms)");
     gplotAddPlot(gplot, nax, nac1, GPLOT_LINES, "linear rasterop");

@@ -193,8 +193,6 @@
  *     each cluster.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -324,9 +322,17 @@ JBCLASSER  *classer;
  *      Input:  components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
  *              maxwidth (of component; use 0 for default)
  *              maxheight (of component; use 0 for default)
- *              thresh (value for correlation score: in [0.4 - 0.9])
+ *              thresh (value for correlation score: in [0.4 - 0.98])
  *              weightfactor (corrects thresh for thick characters [0.0 - 1.0])
  *      Return: jbclasser if OK; NULL on error
+ *
+ *  Notes:
+ *      (1) For scanned text, suggested input values are:
+ *            thresh ~ [0.8 - 0.85]
+ *            weightfactor ~ [0.5 - 0.6]
+ *      (2) For electronically generated fonts (e.g., rasterized pdf),
+ *          a very high thresh (e.g., 0.95) will not cause a significant
+ *          increase in the number of classes.
  */
 JBCLASSER *
 jbCorrelationInit(l_int32    components,
@@ -375,8 +381,8 @@ JBCLASSER  *classer;
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
         return (JBCLASSER *)ERROR_PTR("invalid components", procName, NULL);
-    if (thresh < 0.4 || thresh > 0.9)
-        return (JBCLASSER *)ERROR_PTR("thresh not in range [0.4 - 0.9]",
+    if (thresh < 0.4 || thresh > 0.98)
+        return (JBCLASSER *)ERROR_PTR("thresh not in range [0.4 - 0.98]",
                 procName, NULL);
     if (weightfactor < 0.0 || weightfactor > 1.0)
         return (JBCLASSER *)ERROR_PTR("weightfactor not in range [0.0 - 1.0]",
@@ -442,6 +448,10 @@ PIX     *pix;
             L_WARNING_INT("image file %d not read", procName, i);
             continue;
         }
+        if (pixGetDepth(pix) != 1) {
+            L_WARNING_INT("image file %d not 1 bpp", procName, i);
+            continue;
+        }
         jbAddPage(classer, pix);
         pixDestroy(&pix);
     }
@@ -468,8 +478,8 @@ PIXA  *pixas;
 
     if (!classer)
         return ERROR_INT("classer not defined", procName, 1);
-    if (!pixs)
-        return ERROR_INT("pix not defined", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
 
     classer->w = pixGetWidth(pixs);
     classer->h = pixGetHeight(pixs);
@@ -1470,7 +1480,7 @@ SEL     *sel;
     {GPLOT *gplot;
      NUMA  *naseq;
         naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
-        gplot = gplotCreate("junk_cc_output", GPLOT_PNG,
+        gplot = gplotCreate("/tmp/cc_output", GPLOT_PNG,
                             "Number of cc vs. horizontal dilation",
                             "Sel horiz", "Number of cc");
         gplotAddPlot(gplot, naseq, nacc, GPLOT_LINES, "");

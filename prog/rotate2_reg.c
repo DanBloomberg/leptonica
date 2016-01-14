@@ -20,8 +20,6 @@
  *    Displays results from all the various types of rotations.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define   BINARY_IMAGE              "test1.png"
@@ -36,78 +34,84 @@
 static const l_float32  ANGLE1 = 3.14159265 / 30.;
 static const l_float32  ANGLE2 = 3.14159265 / 7.;
 
-void rotateTest(PIX *pixs, const char *filename, l_int32 reduction);
+void RotateTest(PIX *pixs, l_int32 reduction, l_int32 *pcount,
+                L_REGPARAMS *rp);
 
 
 
 main(int    argc,
      char **argv)
 {
-PIX         *pixs, *pixd;
-static char  mainName[] = "rotate2_reg";
+l_int32       count, display, success;
+FILE         *fp;
+PIX          *pixs, *pixd;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  rotate2_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+              return 1;
 
+    count = 0;
     fprintf(stderr, "Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
-    rotateTest(pixs, "/tmp/junk1bpp.png", 2);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 2 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(TWO_BPP_IMAGE);
-    rotateTest(pixs, "/tmp/junk2bpp.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
-    rotateTest(pixs, "/tmp/junk4bpp1.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
-    rotateTest(pixs, "/tmp/junk4bpp2.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
-    rotateTest(pixs, "/tmp/junk8bpp.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
-    rotateTest(pixs, "/tmp/junk8bppcmapgray.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
-    rotateTest(pixs, "/tmp/junk8bppcmapcolor.png", 2);
+    RotateTest(pixd, 2, &count, rp);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
-    rotateTest(pixs, "/tmp/junkrgb.png", 2);
+    RotateTest(pixs, 4, &count, rp);
     pixDestroy(&pixs);
 
+    regTestCleanup(argc, argv, fp, success, rp);
     return 0;
 }
 
 
 void
-rotateTest(PIX          *pixs,
-           const char  *filename,
-           l_int32      reduction)
+RotateTest(PIX          *pixs,
+           l_int32       reduction,
+           l_int32      *pcount,
+           L_REGPARAMS  *rp)
 {
-l_int32   w, h;
+l_int32   w, h, d, outformat;
 PIX      *pixt1, *pixt2, *pixt3, *pixd;
 PIXA     *pixa;
 
-    PROCNAME("rotateTest");
+    pixGetDimensions(pixs, &w, &h, &d);
+    outformat = (d == 8 || d == 32) ? IFF_JFIF_JPEG : IFF_PNG;
 
     pixa = pixaCreate(0);
-    pixGetDimensions(pixs, &w, &h, NULL);
     pixt1 = pixRotate(pixs, ANGLE1, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
     pixSaveTiled(pixt1, pixa, reduction, 1, 20, 32);
     pixt2 = pixRotate(pixs, ANGLE1, L_ROTATE_SHEAR, L_BRING_IN_BLACK, w, h);
@@ -132,9 +136,15 @@ PIXA     *pixa;
     pixSaveTiled(pixt2, pixa, reduction, 0, 20, 0);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
+    pixd = pixaDisplay(pixa, 0, 0);
+    regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
 
+    pixa = pixaCreate(0);
     pixt1 = pixRotate(pixs, ANGLE2, L_ROTATE_SAMPLING, L_BRING_IN_WHITE, w, h);
-    pixSaveTiled(pixt1, pixa, reduction, 1, 20, 0);
+    pixSaveTiled(pixt1, pixa, reduction, 1, 20, 32);
     pixt2 = pixRotate(pixs, ANGLE2, L_ROTATE_SAMPLING, L_BRING_IN_BLACK, w, h);
     pixSaveTiled(pixt2, pixa, reduction, 0, 20, 0);
     pixDestroy(&pixt1);
@@ -163,10 +173,9 @@ PIXA     *pixa;
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
     pixDestroy(&pixt1);
-
     pixd = pixaDisplay(pixa, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite(filename, pixd, IFF_PNG);
+    regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 

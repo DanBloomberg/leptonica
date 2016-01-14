@@ -16,10 +16,11 @@
 /*
  *   dewarptest.c
  *
+ *   This exercise functions in dewarp.c for dewarping based on lines
+ *   of horizontal text.  It also creates a 19-image pdf of steps
+ *   in the process.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define   DO_QUAD     1
@@ -29,16 +30,16 @@
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32    i, n;
+l_int32    i, n, ignore;
 l_float32  a, b, c, d, e;
 L_DEWARP  *dew;
 FILE      *fp;
 FPIX      *fpix;
 NUMA      *nax, *nay, *nafit;
 PIX       *pixs, *pixn, *pixg, *pixb, *pixt1, *pixt2, *pixt3;
+PIX       *pixs2, *pixn2, *pixg2, *pixb2, *pixv, *pixd;
 PTA       *pta, *ptad;
 PTAA      *ptaa1, *ptaa2;
-
 
     pixs = pixRead("1555-7.jpg");
 
@@ -48,19 +49,28 @@ PTAA      *ptaa1, *ptaa2;
     pixb = pixThresholdToBinary(pixg, 130);
 
         /* Run the basic functions */
-    dew = dewarpCreate(pixb, 30, 15, 1);
+    dew = dewarpCreate(pixb, 7, 30, 15, 1);
     dewarpBuildModel(dew, 1);
     dewarpApplyDisparity(dew, pixg, 1);
+
+        /* Save the intermediate dewarped images */
+    pixv = pixRead("/tmp/pixv.png");
+    pixd = pixRead("/tmp/pixd.png");
+
+        /* Normalize another image, that doesn't have enough textlines
+         * to build an accurate model */
+    pixs2 = pixRead("1555-3.jpg");
+    pixn2 = pixBackgroundNormSimple(pixs2, NULL, NULL);
+    pixg2 = pixConvertRGBToGray(pixn2, 0.5, 0.3, 0.2);
+    pixb2 = pixThresholdToBinary(pixg2, 130);
+
+        /* Apply the previous disparity model to this image */
+    dewarpApplyDisparity(dew, pixg2, 1);
     dewarpDestroy(&dew);
 
         /* Get the textline centers */
     ptaa1 = pixGetTextlineCenters(pixb, 0);
     pixt1 = pixCreateTemplate(pixs);
-    pixSetAll(pixt1);
-    pixt3 = pixMorphSequence(pixb, "d3.3", 0);
-    pixXor(pixt3, pixt3, pixb);
-    pixSetMasked(pixt1, pixt3, 0);
-    pixDestroy(&pixt3);
     pixt2 = pixDisplayPtaa(pixt1, ptaa1);
     pixWrite("/tmp/textline1.png", pixt2, IFF_PNG);
     pixDisplayWithTitle(pixt2, 500, 100, "textline centers", 1);
@@ -103,10 +113,75 @@ PTAA      *ptaa1, *ptaa2;
     ptaaDestroy(&ptaa2);
     pixDestroy(&pixt2);
 
+         /* Write out the files to be imaged */
+#ifndef _WIN32
+    ignore = system("mkdir /tmp/junkdir");
+#else
+    ignore = system("mkdir \\tmp\\junkdir");
+#endif  /* _WIN32 */
+    pixWrite("/tmp/junkdir/001.jpg", pixs, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkdir/002.jpg", pixn, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkdir/003.jpg", pixg, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkdir/004.png", pixb, IFF_TIFF_G4);
+    pixt1 = pixRead("/tmp/textline1.png");
+    pixWrite("/tmp/junkdir/005.png", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixt1 = pixRead("/tmp/textline2.png");
+    pixWrite("/tmp/junkdir/006.png", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixt1 = pixRead("/tmp/lines1.png");
+    pixWrite("/tmp/junkdir/007.png", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixt1 = pixRead("/tmp/lines2.png");
+    pixWrite("/tmp/junkdir/008.png", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixt1 = pixRead("/tmp/vert-contours.png");
+    pixWrite("/tmp/junkdir/009.png", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixWrite("/tmp/junkdir/010.png", pixv, IFF_PNG);
+    pixt1 = pixThresholdToBinary(pixv, 130);
+    pixWrite("/tmp/junkdir/011.png", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixt1 = pixRead("/tmp/horiz-contours.png");
+    pixWrite("/tmp/junkdir/012.png", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixWrite("/tmp/junkdir/013.png", pixd, IFF_PNG);
+    pixt1 = pixThresholdToBinary(pixd, 130);
+    pixWrite("/tmp/junkdir/014.png", pixt2, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixWrite("/tmp/junkdir/015.png", pixb, IFF_TIFF_G4);
+
+        /* (these are for the second image) */
+    pixWrite("/tmp/junkdir/016.jpg", pixs2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkdir/017.png", pixb2, IFF_TIFF_G4);
+    pixt1 = pixRead("/tmp/pixv.png");
+    pixt2 = pixThresholdToBinary(pixt1, 130);
+    pixWrite("/tmp/junkdir/018.png", pixt2, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    pixt1 = pixRead("/tmp/pixd.png");
+    pixt2 = pixThresholdToBinary(pixt1, 130);
+    pixWrite("/tmp/junkdir/019.png", pixt2, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+        /* Generate the 19 page ps and pdf files */
+    convertFilesToPS("/tmp/junkdir", NULL, 135, "/tmp/dewarp.ps");
+    fprintf(stderr, "ps file made: /tmp/dewarp.ps\n");
+    ignore = system("ps2pdf /tmp/dewarp.ps /tmp/dewarp.pdf");
+    fprintf(stderr, "pdf file made: /tmp/dewarp.pdf\n");
+
     pixDestroy(&pixs);
     pixDestroy(&pixn);
     pixDestroy(&pixg);
     pixDestroy(&pixb);
+    pixDestroy(&pixs2);
+    pixDestroy(&pixn2);
+    pixDestroy(&pixg2);
+    pixDestroy(&pixb2);
+    pixDestroy(&pixv);
+    pixDestroy(&pixd);
+
     return 0;
 }
 

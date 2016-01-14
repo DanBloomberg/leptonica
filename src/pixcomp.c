@@ -93,8 +93,6 @@
  *   the random insertion.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -1261,7 +1259,8 @@ PIXAC    *pixac;
             return (PIXAC *)ERROR_PTR("res reading", procName, NULL);
         if ((data = (l_uint8 *)CALLOC(1, size)) == NULL)
             return (PIXAC *)ERROR_PTR("calloc fail for data", procName, NULL);
-        fread(data, size, 1, fp);
+        if (fread(data, 1, size, fp) != size)
+            return (PIXAC *)ERROR_PTR("error reading data", procName, NULL);
         pixc->w = w;
         pixc->h = h;
         pixc->d = d;

@@ -18,6 +18,7 @@
  *
  *    This file has these FPix utilities:
  *       - interconversion with pix
+ *       - interconversion with dpix
  *       - min and max values
  *       - border functions
  *       - simple rasterop (source --> dest)
@@ -29,33 +30,32 @@
  *          PIX           *fpixConvertToPix()
  *          PIX           *fpixDisplayMaxDynamicRange()  [useful for debugging]
  *
- *    Min/max value
+ *    Interconversions between FPix and DPix
+ *          DPIX          *fpixConvertToDPix()
+ *          FPIX          *dpixConvertToFPix()
+ *
+ *    FPix min/max value
  *          l_int32        fpixGetMin()
  *          l_int32        fpixGetMax()
  *
- *    Border functions
+ *    FPix border functions
  *          FPIX          *fpixAddBorder()
  *          FPIX          *fpixRemoveBorder()
  *          FPIX          *fpixAddMirroredBorder()
  *
- *    Simple rasterop
+ *    FPix simple rasterop
  *          l_int32        fpixRasterop()
  *
  *    Integer scaling
- *          l_int32        fpixScaleByInteger()
+ *          FPIX          *fpixScaleByInteger()
+ *          DPIX          *dpixScaleByInteger()
  *
- *    Arithmetic operations
+ *    FPix arithmetic operations
  *          FPIX          *fpixLinearCombination()
  *          l_int32        fpixAddMultConstant()
- *
- *    Write out values (subsampled, debugging)
- *          l_int32        fpixPrintStream()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 /*--------------------------------------------------------------------*
  *                     FPix  <-->  Pix conversions                    *
@@ -322,6 +322,92 @@ PIX        *pixd;
 
     return pixd;
 }
+
+
+/*--------------------------------------------------------------------*
+ *                     FPix  <-->  DPix conversions                   *
+ *--------------------------------------------------------------------*/
+/*!
+ *  fpixConvertToDPix()
+ *
+ *      Input:  fpix
+ *      Return: dpix, or null on error
+ */
+DPIX *
+fpixConvertToDPix(FPIX  *fpix)
+{
+l_int32     w, h, i, j, wpls, wpld;
+l_float32   val;
+l_float32  *datas, *lines;
+l_float64  *datad, *lined;
+DPIX       *dpix;
+
+    PROCNAME("fpixConvertToDPix");
+
+    if (!fpix)
+        return (DPIX *)ERROR_PTR("fpix not defined", procName, NULL);
+
+    fpixGetDimensions(fpix, &w, &h);
+    if ((dpix = dpixCreate(w, h)) == NULL)
+        return (DPIX *)ERROR_PTR("dpix not made", procName, NULL);
+
+    datas = fpixGetData(fpix);
+    datad = dpixGetData(dpix);
+    wpls = fpixGetWpl(fpix);
+    wpld = dpixGetWpl(dpix);  /* 8 byte words */
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            val = lines[j];
+            lined[j] = val;
+        }
+    }
+
+    return dpix;
+}
+
+
+/*!
+ *  dpixConvertToFPix()
+ *
+ *      Input:  dpix
+ *      Return: fpix, or null on error
+ */
+FPIX *
+dpixConvertToFPix(DPIX  *dpix)
+{
+l_int32     w, h, i, j, wpls, wpld;
+l_float64   val;
+l_float32  *datad, *lined;
+l_float64  *datas, *lines;
+FPIX       *fpix;
+
+    PROCNAME("dpixConvertToFPix");
+
+    if (!dpix)
+        return (FPIX *)ERROR_PTR("dpix not defined", procName, NULL);
+
+    dpixGetDimensions(dpix, &w, &h);
+    if ((fpix = fpixCreate(w, h)) == NULL)
+        return (FPIX *)ERROR_PTR("fpix not made", procName, NULL);
+
+    datas = dpixGetData(dpix);
+    datad = fpixGetData(fpix);
+    wpls = dpixGetWpl(dpix);  /* 8 byte words */
+    wpld = fpixGetWpl(fpix);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            val = lines[j];
+            lined[j] = (l_float32)val;
+        }
+    }
+
+    return fpix;
+}
+
 
 
 /*--------------------------------------------------------------------*
@@ -686,13 +772,14 @@ l_float32  *datas, *datad, *lines, *lined;
  *
  *  Notes:
  *      (1) The width wd of fpixd is related to ws of fpixs by:
- *              wd = factor * (ws - 1)   (and ditto for the height)
- *          We avoid special-casing boundary pixels by constructing
- *          fpixd by inserting (factor - 1) interpolated pixels between
- *          each pixel in fpixs, but not including the rightmost
- *          column or bottommost row of pixels in fpixs.
- *          (Those pixels could be included, which would make fpixd
- *          larger in width and height by 1.)
+ *              wd = factor * (ws - 1) + 1   (and ditto for the height)
+ *          We avoid special-casing boundary pixels in the interpolation
+ *          by constructing fpixd by inserting (factor - 1) interpolated
+ *          pixels between each pixel in fpixs.  Then
+ *               wd = ws + (ws - 1) * (factor - 1)    (same as above)
+ *          This also has the advantage that if we subsample by @factor,
+ *          throwing out all the interpolated pixels, we regain the
+ *          original low resolution fpix.
  */
 FPIX *
 fpixScaleByInteger(FPIX    *fpixs,
@@ -709,8 +796,8 @@ FPIX       *fpixd;
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
 
     fpixGetDimensions(fpixs, &ws, &hs);
-    wd = factor * (ws - 1);
-    hd = factor * (hs - 1);
+    wd = factor * (ws - 1) + 1;
+    hd = factor * (hs - 1) + 1;
     fpixd = fpixCreate(wd, hd);
     datas = fpixGetData(fpixs);
     datad = fpixGetData(fpixd);
@@ -739,8 +826,120 @@ FPIX       *fpixd;
         }
     }
 
+        /* Do the right-most column of fpixd, skipping LR corner */
+    for (i = 0; i < hs - 1; i++) {
+        lines = datas + i * wpls;
+        val0 = lines[ws - 1];
+        val1 = lines[wpls + ws - 1];
+        for (k = 0; k < factor; k++) {
+            lined = datad + (i * factor + k) * wpld;
+            lined[wd - 1] = val0 * (1.0 - fract[k]) + val1 * fract[k];
+        }
+    }
+
+        /* Do the bottom-most row of fpixd */
+    lines = datas + (hs - 1) * wpls;
+    lined = datad + (hd - 1) * wpld;
+    for (j = 0; j < ws - 1; j++) {
+        val0 = lines[j];
+        val1 = lines[j + 1];
+        for (m = 0; m < factor; m++)
+            lined[j * factor + m] = val0 * (1.0 - fract[m]) + val1 * fract[m];
+        lined[wd - 1] = lines[ws - 1];  /* LR corner */
+    }
+
     FREE(fract);
     return fpixd;
+}
+
+
+/*!
+ *  dpixScaleByInteger()
+ *
+ *      Input:  dpixs (low resolution, subsampled)
+ *              factor (scaling factor)
+ *      Return: dpixd (interpolated result), or null on error
+ *
+ *  Notes:
+ *      (1) The width wd of dpixd is related to ws of dpixs by:
+ *              wd = factor * (ws - 1) + 1   (and ditto for the height)
+ *          We avoid special-casing boundary pixels in the interpolation
+ *          by constructing fpixd by inserting (factor - 1) interpolated
+ *          pixels between each pixel in fpixs.  Then
+ *               wd = ws + (ws - 1) * (factor - 1)    (same as above)
+ *          This also has the advantage that if we subsample by @factor,
+ *          throwing out all the interpolated pixels, we regain the
+ *          original low resolution dpix.
+ */
+DPIX *
+dpixScaleByInteger(DPIX    *dpixs,
+                   l_int32  factor)
+{
+l_int32     i, j, k, m, ws, hs, wd, hd, wpls, wpld;
+l_float64   val0, val1, val2, val3;
+l_float64  *datas, *datad, *lines, *lined, *fract;
+DPIX       *dpixd;
+
+    PROCNAME("dpixScaleByInteger");
+
+    if (!dpixs)
+        return (DPIX *)ERROR_PTR("dpixs not defined", procName, NULL);
+
+    dpixGetDimensions(dpixs, &ws, &hs);
+    wd = factor * (ws - 1) + 1;
+    hd = factor * (hs - 1) + 1;
+    dpixd = dpixCreate(wd, hd);
+    datas = dpixGetData(dpixs);
+    datad = dpixGetData(dpixd);
+    wpls = dpixGetWpl(dpixs);
+    wpld = dpixGetWpl(dpixd);
+    fract = (l_float64 *)CALLOC(factor, sizeof(l_float64));
+    for (i = 0; i < factor; i++)
+        fract[i] = i / (l_float64)factor;
+    for (i = 0; i < hs - 1; i++) {
+        lines = datas + i * wpls;
+        for (j = 0; j < ws - 1; j++) {
+            val0 = lines[j];
+            val1 = lines[j + 1];
+            val2 = lines[wpls + j];
+            val3 = lines[wpls + j + 1];
+            for (k = 0; k < factor; k++) {  /* rows of sub-block */
+                lined = datad + (i * factor + k) * wpld;
+                for (m = 0; m < factor; m++) {  /* cols of sub-block */
+                     *(lined + j * factor + m) =
+                            val0 * (1.0 - fract[m]) * (1.0 - fract[k]) +
+                            val1 * fract[m] * (1.0 - fract[k]) +
+                            val2 * (1.0 - fract[m]) * fract[k] +
+                            val3 * fract[m] * fract[k];
+                }
+            }
+        }
+    }
+
+        /* Do the right-most column of dpixd, skipping LR corner */
+    for (i = 0; i < hs - 1; i++) {
+        lines = datas + i * wpls;
+        val0 = lines[ws - 1];
+        val1 = lines[wpls + ws - 1];
+        for (k = 0; k < factor; k++) {
+            lined = datad + (i * factor + k) * wpld;
+            lined[wd - 1] = val0 * (1.0 - fract[k]) + val1 * fract[k];
+        }
+    }
+
+        /* Do the bottom-most row of dpixd */
+    lines = datas + (hs - 1) * wpls;
+    lined = datad + (hd - 1) * wpld;
+    for (j = 0; j < ws - 1; j++) {
+        val0 = lines[j];
+        val1 = lines[j + 1];
+        for (m = 0; m < factor; m++)
+            lined[j * factor + m] = val0 * (1.0 - fract[m]) + val1 * fract[m];
+        lined[wd - 1] = lines[ws - 1];  /* LR corner */
+    }
+
+    FREE(fract);
+    return dpixd;
 }
 
 
@@ -885,51 +1084,5 @@ l_float32  *line, *data;
     }
 
     return 0;
-}
-
-
-/*--------------------------------------------------------------------*
- *                              Print values                          *
- *--------------------------------------------------------------------*/
-/*!
- *  fpixPrintStream()
- *
- *      Input:  stream
- *              fpix
- *              factor (subsampled)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) Subsampled printout of fpix for debugging.
- */
-l_int32
-fpixPrintStream(FILE    *fp,
-                FPIX    *fpix,
-                l_int32  factor)
-{
-l_int32    i, j, w, h, count;
-l_float32  val;
-
-    PROCNAME("fpixPrintStream");
-
-    if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
-    if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
-    if (factor < 1)
-        return ERROR_INT("sampling factor < 1f", procName, 1);
-
-    fpixGetDimensions(fpix, &w, &h);
-    fprintf(fp, "\nFPix: w = %d, h = %d\n", w, h);
-    for (i = 0; i < h; i += factor) {
-        for (count = 0, j = 0; j < w; j += factor, count++) {
-            fpixGetPixel(fpix, j, i, &val);
-            fprintf(fp, "val[%d, %d] = %f   ", i, j, val);
-            if ((count + 1) % 3 == 0) fprintf(fp, "\n");
-        }
-        if (count % 3) fprintf(fp, "\n");
-     }
-     fprintf(fp, "\n");
-     return 0;
 }
 

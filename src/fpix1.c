@@ -17,7 +17,7 @@
  *  fpix1.c
  *
  *    This file has basic constructors, destructors and field accessors
- *    for FPix and DPix.
+ *    for FPix and DPix.  It also has uncompressed read/write.
  *
  *    FPix Create/copy/destroy
  *          FPIX          *fpixCreate()
@@ -64,10 +64,25 @@
  *          l_int32        dpixSetData()
  *          l_int32        dpixGetPixel()
  *          l_int32        dpixSetPixel()
+ *
+ *    FPix serialized I/O
+ *          FPIX          *fpixRead()
+ *          FPIX          *fpixReadStream()
+ *          l_int32        fpixWrite()
+ *          l_int32        fpixWriteStream()
+ *          FPIX          *fpixEndianByteSwap()
+ *
+ *    DPix serialized I/O
+ *          DPIX          *dpixRead()
+ *          DPIX          *dpixReadStream()
+ *          l_int32        dpixWrite()
+ *          l_int32        dpixWriteStream()
+ *          DPIX          *dpixEndianByteSwap()
+ *
+ *    Print FPix (subsampled, for debugging)
+ *          l_int32        fpixPrintStream()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -241,8 +256,10 @@ l_float32  *datas, *datad;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This destroys the existing data and allocates a new,
- *          uninitialized, data array.
+ *      (1) If the data sizes differ, this destroys the existing
+ *          data in fpixd and allocates a new, uninitialized, data array
+ *          of the same size as the data in fpixs.  Otherwise, this
+ *          doesn't do anything.
  */
 l_int32
 fpixResizeImageData(FPIX  *fpixd,
@@ -581,7 +598,7 @@ DPIX       *dpix;
     if ((dpix = (DPIX *)CALLOC(1, sizeof(DPIX))) == NULL)
         return (DPIX *)ERROR_PTR("CALLOC fail for dpix", procName, NULL);
     dpixSetDimensions(dpix, width, height);
-    dpixSetWpl(dpix, width);
+    dpixSetWpl(dpix, width);  /* Note: 8 byte words here */
     dpix->refcount = 1;
 
     data = (l_float64 *)CALLOC(width * height, sizeof(l_float64));
@@ -738,7 +755,7 @@ l_float64  *data;
         return 0;
 
     dpixSetDimensions(dpixd, ws, hs);
-    dpixSetWpl(dpixd, ws);
+    dpixSetWpl(dpixd, ws);  /* Note: 8 byte words */
     bytes = 8 * ws * hs;
     data = dpixGetData(dpixd);
     if (data) FREE(data);
@@ -1023,4 +1040,441 @@ l_int32  w, h;
     return 0;
 }
 
+
+/*--------------------------------------------------------------------*
+ *                       FPix serialized I/O                          *
+ *--------------------------------------------------------------------*/
+/*!
+ *  fpixRead()
+ *
+ *      Input:  filename
+ *      Return: fpix, or null on error
+ */
+FPIX *
+fpixRead(const char  *filename)
+{
+FILE  *fp;
+FPIX  *fpix;
+
+    PROCNAME("fpixRead");
+
+    if (!filename)
+        return (FPIX *)ERROR_PTR("filename not defined", procName, NULL);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (FPIX *)ERROR_PTR("stream not opened", procName, NULL);
+
+    if ((fpix = fpixReadStream(fp)) == NULL) {
+        fclose(fp);
+        return (FPIX *)ERROR_PTR("fpix not read", procName, NULL);
+    }
+
+    fclose(fp);
+    return fpix;
+}
+
+
+/*!
+ *  fpixReadStream()
+ *
+ *      Input:  stream
+ *      Return: fpix, or null on error
+ */
+FPIX *
+fpixReadStream(FILE  *fp)
+{
+l_int32     w, h, nbytes, version;
+l_float32  *data;
+FPIX       *fpix;
+
+    PROCNAME("fpixReadStream");
+
+    if (!fp)
+        return (FPIX *)ERROR_PTR("stream not defined", procName, NULL);
+
+    if (fscanf(fp, "\nFPix Version %d\n", &version) != 1)
+        return (FPIX *)ERROR_PTR("not a fpix file", procName, NULL);
+    if (version != FPIX_VERSION_NUMBER)
+        return (FPIX *)ERROR_PTR("invalid fpix version", procName, NULL);
+    if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
+        return (FPIX *)ERROR_PTR("read fail for data size", procName, NULL);
+
+    if ((fpix = fpixCreate(w, h)) == NULL)
+        return (FPIX *)ERROR_PTR("fpix not made", procName, NULL);
+    data = fpixGetData(fpix);
+    if (fread(data, 1, nbytes, fp) != nbytes)
+        return (FPIX *)ERROR_PTR("read error for nbytes", procName, NULL);
+
+        /* Convert to little-endian if necessary */
+    fpixEndianByteSwap(fpix, fpix);
+    return fpix;
+}
+
+
+/*!
+ *  fpixWrite()
+ *
+ *      Input:  filename
+ *              fpix
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+fpixWrite(const char  *filename,
+          FPIX        *fpix)
+{
+FILE  *fp;
+
+    PROCNAME("fpixWrite");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!fpix)
+        return ERROR_INT("fpix not defined", procName, 1);
+
+    if ((fp = fopen(filename, "w")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    if (fpixWriteStream(fp, fpix))
+        return ERROR_INT("fpix not written to stream", procName, 1);
+    fclose(fp);
+
+    return 0;
+}
+
+
+/*!
+ *  fpixWriteStream()
+ *
+ *      Input:  stream
+ *              fpix
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+fpixWriteStream(FILE  *fp,
+                FPIX  *fpix)
+{
+l_int32     w, h, nbytes;
+l_float32  *data;
+FPIX       *fpixt;
+
+    PROCNAME("fpixWriteStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!fpix)
+        return ERROR_INT("fpix not defined", procName, 1);
+
+        /* Convert to little-endian if necessary */
+    fpixt = fpixEndianByteSwap(NULL, fpix);
+
+    fpixGetDimensions(fpixt, &w, &h);
+    data = fpixGetData(fpixt);
+    nbytes = 4 * h * fpixGetWpl(fpixt);
+    fprintf(fp, "\nFPix Version %d\n", FPIX_VERSION_NUMBER);
+    fprintf(fp, "w = %d, h = %d, nbytes = %d\n", w, h, nbytes);
+    fwrite(data, 1, nbytes, fp);
+
+    fpixDestroy(&fpixt);
+    return 0;
+}
+
+
+/*!
+ *  fpixEndianByteSwap()
+ *
+ *      Input:  fpixd (can be equal to fpixs or NULL)
+ *              fpixs
+ *      Return: fpixd always
+ *
+ *  Notes:
+ *      (1) On big-endian hardware, this does byte-swapping on each of
+ *          the 4-byte floats in the fpix data.  On little-endians,
+ *          the data is unchanged.  This is used for serialization
+ *          of fpix; the data is serialized in little-endian byte
+ *          order because most hardware is little-endian.
+ *      (2) The operation can be either in-place or, if fpixd == NULL,
+ *          a new fpix is made.  If not in-place, caller must catch
+ *          the returned pointer.
+ */
+FPIX *
+fpixEndianByteSwap(FPIX  *fpixd,
+                   FPIX  *fpixs)
+{
+    PROCNAME("fpixEndianByteSwap");
+        
+    if (!fpixs)
+        return (FPIX *)ERROR_PTR("fpixs not defined", procName, fpixd);
+    if (fpixd && (fpixs != fpixd))
+        return (FPIX *)ERROR_PTR("fpixd != fpixs", procName, fpixd);
+
+#ifdef L_BIG_ENDIAN
+    {
+    l_uint32  *data;
+    l_int32    i, j, w, h;
+    l_uint32   word;
+
+        fpixGetDimensions(fpixs, &w, &h);
+        fpixd = fpixCopy(fpixd, fpixs);  /* no copy if fpixd == fpixs */
+
+        data = (l_uint32 *)fpixGetData(fpixd);
+        for (i = 0; i < h; i++) {
+            for (j = 0; j < w; j++, data++) {
+                word = *data;
+                *data = (word >> 24) |
+                        ((word >> 8) & 0x0000ff00) |
+                        ((word << 8) & 0x00ff0000) |
+                        (word << 24);
+            }
+        }
+        return fpixd;
+    }
+#else   /* L_LITTLE_ENDIAN */
+
+    if (fpixd)
+        return fpixd;  /* no-op */
+    else
+        return fpixClone(fpixs);
+
+#endif   /* L_BIG_ENDIAN */
+}
+
+
+/*--------------------------------------------------------------------*
+ *                       DPix serialized I/O                          *
+ *--------------------------------------------------------------------*/
+/*!
+ *  dpixRead()
+ *
+ *      Input:  filename
+ *      Return: dpix, or null on error
+ */
+DPIX *
+dpixRead(const char  *filename)
+{
+FILE  *fp;
+DPIX  *dpix;
+
+    PROCNAME("dpixRead");
+
+    if (!filename)
+        return (DPIX *)ERROR_PTR("filename not defined", procName, NULL);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (DPIX *)ERROR_PTR("stream not opened", procName, NULL);
+
+    if ((dpix = dpixReadStream(fp)) == NULL) {
+        fclose(fp);
+        return (DPIX *)ERROR_PTR("dpix not read", procName, NULL);
+    }
+
+    fclose(fp);
+    return dpix;
+}
+
+
+/*!
+ *  dpixReadStream()
+ *
+ *      Input:  stream
+ *      Return: dpix, or null on error
+ */
+DPIX *
+dpixReadStream(FILE  *fp)
+{
+l_int32     w, h, nbytes, version;
+l_float64  *data;
+DPIX       *dpix;
+
+    PROCNAME("dpixReadStream");
+
+    if (!fp)
+        return (DPIX *)ERROR_PTR("stream not defined", procName, NULL);
+
+    if (fscanf(fp, "\nDPix Version %d\n", &version) != 1)
+        return (DPIX *)ERROR_PTR("not a dpix file", procName, NULL);
+    if (version != DPIX_VERSION_NUMBER)
+        return (DPIX *)ERROR_PTR("invalid dpix version", procName, NULL);
+    if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
+        return (DPIX *)ERROR_PTR("read fail for data size", procName, NULL);
+
+    if ((dpix = dpixCreate(w, h)) == NULL)
+        return (DPIX *)ERROR_PTR("dpix not made", procName, NULL);
+    data = dpixGetData(dpix);
+    if (fread(data, 1, nbytes, fp) != nbytes)
+        return (DPIX *)ERROR_PTR("read error for nbytes", procName, NULL);
+
+        /* Convert to little-endian if necessary */
+    dpixEndianByteSwap(dpix, dpix);
+    return dpix;
+}
+
+
+/*!
+ *  dpixWrite()
+ *
+ *      Input:  filename
+ *              dpix
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+dpixWrite(const char  *filename,
+          DPIX        *dpix)
+{
+FILE  *fp;
+
+    PROCNAME("dpixWrite");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!dpix)
+        return ERROR_INT("dpix not defined", procName, 1);
+
+    if ((fp = fopen(filename, "w")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    if (dpixWriteStream(fp, dpix))
+        return ERROR_INT("dpix not written to stream", procName, 1);
+    fclose(fp);
+
+    return 0;
+}
+
+
+/*!
+ *  dpixWriteStream()
+ *
+ *      Input:  stream
+ *              dpix
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+dpixWriteStream(FILE  *fp,
+                DPIX  *dpix)
+{
+l_int32     w, h, nbytes;
+l_float64  *data;
+DPIX       *dpixt;
+
+    PROCNAME("dpixWriteStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!dpix)
+        return ERROR_INT("dpix not defined", procName, 1);
+
+        /* Convert to little-endian if necessary */
+    dpixt = dpixEndianByteSwap(NULL, dpix);
+
+    dpixGetDimensions(dpixt, &w, &h);
+    data = dpixGetData(dpixt);
+    nbytes = 8 * h * dpixGetWpl(dpixt);
+    fprintf(fp, "\nDPix Version %d\n", DPIX_VERSION_NUMBER);
+    fprintf(fp, "w = %d, h = %d, nbytes = %d\n", w, h, nbytes);
+    fwrite(data, 1, nbytes, fp);
+
+    dpixDestroy(&dpixt);
+    return 0;
+}
+
+
+/*!
+ *  dpixEndianByteSwap()
+ *
+ *      Input:  dpixd (can be equal to dpixs or NULL)
+ *              dpixs
+ *      Return: dpixd always
+ *
+ *  Notes:
+ *      (1) On big-endian hardware, this does byte-swapping on each of
+ *          the 4-byte words in the dpix data.  On little-endians,
+ *          the data is unchanged.  This is used for serialization
+ *          of dpix; the data is serialized in little-endian byte
+ *          order because most hardware is little-endian.
+ *      (2) The operation can be either in-place or, if dpixd == NULL,
+ *          a new dpix is made.  If not in-place, caller must catch
+ *          the returned pointer.
+ */
+DPIX *
+dpixEndianByteSwap(DPIX  *dpixd,
+                   DPIX  *dpixs)
+{
+    PROCNAME("dpixEndianByteSwap");
+        
+    if (!dpixs)
+        return (DPIX *)ERROR_PTR("dpixs not defined", procName, dpixd);
+    if (dpixd && (dpixs != dpixd))
+        return (DPIX *)ERROR_PTR("dpixd != dpixs", procName, dpixd);
+
+#ifdef L_BIG_ENDIAN
+    {
+    l_uint32  *data;
+    l_int32    i, j, w, h;
+    l_uint32   word;
+
+        dpixGetDimensions(dpixs, &w, &h);
+        dpixd = dpixCopy(dpixd, dpixs);  /* no copy if dpixd == dpixs */
+
+        data = (l_uint32 *)dpixGetData(dpixd);
+        for (i = 0; i < h; i++) {
+            for (j = 0; j < 2 * w; j++, data++) {
+                word = *data;
+                *data = (word >> 24) |
+                        ((word >> 8) & 0x0000ff00) |
+                        ((word << 8) & 0x00ff0000) |
+                        (word << 24);
+            }
+        }
+        return dpixd;
+    }
+#else   /* L_LITTLE_ENDIAN */
+
+    if (dpixd)
+        return dpixd;  /* no-op */
+    else
+        return dpixClone(dpixs);
+
+#endif   /* L_BIG_ENDIAN */
+}
+
+
+/*--------------------------------------------------------------------*
+ *                 Print FPix (subsampled, for debugging)             *
+ *--------------------------------------------------------------------*/
+/*!
+ *  fpixPrintStream()
+ *
+ *      Input:  stream
+ *              fpix
+ *              factor (subsampled)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Subsampled printout of fpix for debugging.
+ */
+l_int32
+fpixPrintStream(FILE    *fp,
+                FPIX    *fpix,
+                l_int32  factor)
+{
+l_int32    i, j, w, h, count;
+l_float32  val;
+
+    PROCNAME("fpixPrintStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!fpix)
+        return ERROR_INT("fpix not defined", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("sampling factor < 1f", procName, 1);
+
+    fpixGetDimensions(fpix, &w, &h);
+    fprintf(fp, "\nFPix: w = %d, h = %d\n", w, h);
+    for (i = 0; i < h; i += factor) {
+        for (count = 0, j = 0; j < w; j += factor, count++) {
+            fpixGetPixel(fpix, j, i, &val);
+            fprintf(fp, "val[%d, %d] = %f   ", i, j, val);
+            if ((count + 1) % 3 == 0) fprintf(fp, "\n");
+        }
+        if (count % 3) fprintf(fp, "\n");
+     }
+     fprintf(fp, "\n");
+     return 0;
+}
 

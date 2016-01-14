@@ -30,9 +30,7 @@
  *           char      *getRootNameFromArgv0()
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 
@@ -499,6 +497,8 @@ SARRAY  *sa;
                 name1, name2);
         *psuccess = 0;
     }
+    FREE(name1);
+    FREE(name2);
 
     return 0;
 }
@@ -577,22 +577,25 @@ char     namebuf[256];
 static char *
 getRootNameFromArgv0(const char  *argv0)
 {
-l_int32  len;
+l_int32  len, suffix_len;
 char    *root;
 
     PROCNAME("getRootNameFromArgv0");
 
 #ifdef _WIN32
-    if ((len = strlen(argv0)) < 9)
-        return (char *)ERROR_PTR("invalid argv0; too small", procName, NULL);
+    suffix_len = strlen("_reg.exe");
     splitPathAtDirectory(argv0, NULL, &root);
-    root[len - 8] = '\0';
+    if ((len = strlen(root)) <= suffix_len) {
+        FREE(root);
+        return (char *)ERROR_PTR("invalid argv0; too small", procName, NULL);
+    }
 #else
-    if ((len = strlen(argv0)) < 5)
+    suffix_len = strlen("_reg");
+    if ((len = strlen(argv0)) <= suffix_len)
         return (char *)ERROR_PTR("invalid argv0", procName, NULL);
     root = stringNew(argv0);
-    root[len - 4] = '\0';
 #endif  /*  _WIN32 */
+    root[len - suffix_len] = '\0';
     return root;
 }
 

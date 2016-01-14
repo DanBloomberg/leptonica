@@ -32,6 +32,7 @@
  *          NUMA        *numaMakeSequence()
  *          NUMA        *numaMakeConstant()
  *          NUMA        *numaAddBorder()
+ *          NUMA        *numaAddSpecifiedBorder()
  *          NUMA        *numaRemoveBorder()
  *          l_int32      numaGetNonzeroRange()
  *          l_int32      numaGetCountRelativeToZero()
@@ -95,8 +96,6 @@
  *        numa by na[i].  This is conceptual only -- the numa is not an array!
  */
 
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
@@ -657,6 +656,58 @@ NUMA       *nad;
     fad = numaGetFArray(nad, L_NOCOPY);
     for (i = 0; i < n; i++)
         fad[left + i] = fas[i];
+
+    return nad;
+}
+
+
+/*!
+ *  numaAddSpecifiedBorder()
+ *
+ *      Input:  nas
+ *              left, right (number of elements to add on each side)
+ *              type (L_EXTENDED_BORDER, L_MIRRORED_BORDER)
+ *      Return: nad (with added elements at left and right), or null on error
+ */
+NUMA *
+numaAddSpecifiedBorder(NUMA    *nas,
+                       l_int32  left,
+                       l_int32  right,
+                       l_int32  type)
+{
+l_int32     i, n;
+l_float32  *fa;
+NUMA       *nad;
+
+    PROCNAME("numaAddSpecifiedBorder");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (left < 0) left = 0;
+    if (right < 0) right = 0;
+    if (left == 0 && right == 0)
+        return numaCopy(nas);
+    if (type != L_EXTENDED_BORDER && type != L_MIRRORED_BORDER)
+        return (NUMA *)ERROR_PTR("invalid type", procName, NULL);
+    n = numaGetCount(nas);
+    if (type == L_MIRRORED_BORDER && (left > n || right > n))
+        return (NUMA *)ERROR_PTR("border too large", procName, NULL);
+
+    nad = numaAddBorder(nas, left, right, 0);
+    n = numaGetCount(nad);
+    fa = numaGetFArray(nad, L_NOCOPY);
+    if (type == L_EXTENDED_BORDER) {
+        for (i = 0; i < left; i++)
+            fa[i] = fa[left];
+        for (i = n - right; i < n; i++)
+            fa[i] = fa[n - right - 1];
+    }
+    else {  /* type == L_MIRRORED_BORDER */
+        for (i = 0; i < left; i++)
+            fa[i] = fa[2 * left - 1 - i];
+        for (i = 0; i < right; i++)
+            fa[n - right + i] = fa[n - right - i - 1];
+    }
 
     return nad;
 }

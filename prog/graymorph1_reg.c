@@ -14,7 +14,7 @@
  *====================================================================*/
 
 /*
- * graymorph_reg.c
+ * graymorph1_reg.c
  *
  *      (1) Tests the interpreter for grayscale morphology, as
  *          given in morphseq.c
@@ -39,8 +39,6 @@
  *   For input, use e.g., aneurisms8.jpg
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define     WSIZE              7
@@ -64,10 +62,10 @@ PIX         *pixs, *pixt, *pixt2, *pixt3, *pixt3a, *pixt4;
 PIX         *pixg, *pixd, *pixd1, *pixd2, *pixd3;
 PIXACC      *pacc;
 PIXCMAP     *cmap;
-static char  mainName[] = "graymorph_reg";
+static char  mainName[] = "graymorph1_reg";
 
     if (argc != 2)
-	exit(ERROR_INT(" Syntax:  graymorph_reg filein", mainName, 1));
+	exit(ERROR_INT(" Syntax:  graymorph1_reg filein", mainName, 1));
 
     filein = argv[1];
     if ((pixs = pixRead(filein)) == NULL)

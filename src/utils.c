@@ -40,6 +40,7 @@
  *
  *       Safe string procs
  *           char      *stringNew()
+ *           l_int32    stringCopy()
  *           l_int32    stringReplace()
  *           char      *stringJoin()
  *           char      *stringReverse()
@@ -91,6 +92,9 @@
  *           char      *mungePathnameForWindows()
  *           l_int32    extractNumberFromFilename()
  *
+ *       Generate random integer in given range
+ *           l_int32    genRandomIntegerInRange()
+ *
  *       Version number
  *           char      *getLeptonlibVersion()
  *           char      *getImagelibVersions()
@@ -100,9 +104,7 @@
  *           l_float32  stopTimer()
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #ifdef _MSC_VER
 #include <process.h>
 #else
@@ -688,20 +690,61 @@ char    *charbuf;
  *      Return: dest copy of src string, or null on error
  */
 char *
-stringNew(const char  *src) 
+stringNew(const char  *src)
 {
-char  *dest;
+l_int32  len;
+char    *dest;
 
     PROCNAME("stringNew");
 
     if (!src)
         return (char *)ERROR_PTR("src not defined", procName, NULL);
     
-    if ((dest = (char *)CALLOC(strlen(src) + 2, sizeof(char))) == NULL)
+    len = strlen(src);
+    if ((dest = (char *)CALLOC(len + 1, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("dest not made", procName, NULL);
-    strcpy(dest, src);
 
+    stringCopy(dest, src, len);
     return dest;
+}
+
+
+/*!
+ *  stringCopy()
+ *
+ *      Input:  dest (existing byte buffer)
+ *              src string (can be null)
+ *              n (max number of characters to copy)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Relatively safe wrapper for strncpy, that checks the input,
+ *          and does not complain if @src is null or @n < 1.
+ *          If @n < 1, this is a no-op.
+ *      (2) @dest needs to be at least @n bytes in size.
+ *      (3) We don't call strncpy() because valgrind complains about
+ *          use of uninitialized values.
+ */
+l_int32
+stringCopy(char        *dest,
+           const char  *src,
+           l_int32      n)
+{
+l_int32  i;
+
+    PROCNAME("stringCopy");
+
+    if (!dest)
+        return ERROR_INT("dest not defined", procName, 1);
+    if (!src || n < 1)
+        return 0;
+
+        /* Implementation of strncpy that valgrind doesn't complain about */
+    for (i = 0 ; i < n && src[i] != '\0' ; i++)
+        dest[i] = src[i];
+    for ( ; i < n ; i++)
+        dest[i] = '\0';
+    return 0;
 }
     
 
@@ -715,13 +758,14 @@ char  *dest;
  *  Notes:
  *      (1) Frees any existing dest string
  *      (2) Puts a copy of src string in the dest
- *      (3) If either or both strings are null, does the reasonable thing.
+ *      (3) If either or both strings are null, does something reasonable.
  */
 l_int32
 stringReplace(char       **pdest,
               const char  *src)
 {
-char  *scopy;
+char    *scopy;
+l_int32  len;
 
     PROCNAME("stringReplace");
 
@@ -732,9 +776,10 @@ char  *scopy;
         FREE(*pdest);
     
     if (src) {
-        if ((scopy = (char *)CALLOC(strlen(src) + 2, sizeof(char))) == NULL)
+        len = strlen(src);
+        if ((scopy = (char *)CALLOC(len + 1, sizeof(char))) == NULL)
             return ERROR_INT("scopy not made", procName, 1);
-        strcpy(scopy, src);
+        stringCopy(scopy, src, len);
         *pdest = scopy;
     }
     else
@@ -747,14 +792,14 @@ char  *scopy;
 /*!
  *  stringJoin()
  *
- *      Input:  src1 string (<optional>)
- *              src2 string (<optional>)
+ *      Input:  src1 string (<optional> can be null)
+ *              src2 string (<optional> can be null)
  *      Return: concatenated string, or null on error
  *
  *  Notes:
- *      (1) This is the safe version of strcat; it makes a new string.
+ *      (1) This is a safe version of strcat; it makes a new string.
  *      (2) It is not an error if either or both of the strings
- *          are empty, or if either or both the pointers are null.
+ *          are empty, or if either or both of the pointers are null.
  */
 char *
 stringJoin(const char  *src1, 
@@ -765,18 +810,15 @@ l_int32  srclen1, srclen2, destlen;
 
     PROCNAME("stringJoin");
 
-    srclen1 = srclen2 = 0;
-    if (src1)
-        srclen1 = strlen(src1);
-    if (src2)
-        srclen2 = strlen(src2);
+    srclen1 = (src1) ? strlen(src1) : 0;
+    srclen2 = (src2) ? strlen(src2) : 0;
     destlen = srclen1 + srclen2 + 3;
 
     if ((dest = (char *)CALLOC(destlen, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("calloc fail for dest", procName, NULL);
 
     if (src1)
-        strcpy(dest, src1);
+        stringCopy(dest, src1, srclen1);
     if (src2)
         strncat(dest, src2, srclen2);
     return dest;
@@ -887,7 +929,7 @@ l_int32  istart, i, j, nchars;
         /* Save the substring */
     nchars = i - istart;
     substr = (char *)CALLOC(nchars + 1, sizeof(char));
-    strncpy(substr, start + istart, nchars);
+    stringCopy(substr, start + istart, nchars);
 
         /* Look for the next non-sep character.
          * If this is the last substring, return a null saveptr. */
@@ -1345,6 +1387,7 @@ l_uint8 *
 arrayReadStream(FILE     *fp, 
                 l_int32  *pnbytes)
 {
+l_int32   ignore;
 l_uint8  *data;
 
     PROCNAME("arrayReadStream");
@@ -1358,7 +1401,7 @@ l_uint8  *data;
     *pnbytes = fnbytesInFile(fp);
     if ((data = (l_uint8 *)CALLOC(1, *pnbytes + 1)) == NULL)
         return (l_uint8 *)ERROR_PTR("CALLOC fail for data", procName, NULL);
-    fread(data, *pnbytes, 1, fp);
+    ignore = fread(data, 1, *pnbytes, fp);
     return data;
 }
 
@@ -1443,7 +1486,7 @@ char   actualOperation[20];
     if (!strcmp(operation, "w") && !strcmp(operation, "a"))
         return ERROR_INT("operation not one of {'w','a'}", procName, 1);
 
-    strncpy(actualOperation, operation, 2);
+    stringCopy(actualOperation, operation, 2);
     strncat(actualOperation, "b", 2);  /* for windows */
     if ((fp = fopen(filename, actualOperation)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
@@ -1890,14 +1933,14 @@ l_int32  dirlen, namelen, totlen;
     if (stringFindSubstr(dir, "/", NULL) > 0) {
         char *tempname;
         tempname = stringReplaceEachSubstr(dir, "/", "\\", NULL);
-        strncpy(charbuf, tempname, strlen(tempname));
+        stringCopy(charbuf, tempname, strlen(tempname));
         FREE(tempname);
     }
     else {
-        strncpy(charbuf, dir, dirlen);
+        stringCopy(charbuf, dir, dirlen);
     }
 #else
-    strncpy(charbuf, dir, dirlen);
+    stringCopy(charbuf, dir, dirlen);
 #endif  /* _WIN32 */
 
     dirlen = strlen(charbuf);
@@ -1940,7 +1983,7 @@ genTempFilename(const char  *dir,
                 l_int32      usepid)
 {
 char     buf[256];
-l_int32  pid;
+l_int32  i, buflen, pid;
     
     PROCNAME("genTempFilename");
 
@@ -1948,6 +1991,9 @@ l_int32  pid;
         return (char *)ERROR_PTR("dir not defined", procName, NULL);
 
     if (usepid) pid = getpid();
+    buflen = sizeof(buf);
+    for (i = 0; i < buflen; i++)
+        buf[i] = 0;
 
 #ifdef _WIN32
     {  /* do not assume /tmp exists */
@@ -1957,15 +2003,15 @@ l_int32  pid;
     else
         snprintf(dirt, sizeof(dirt), "%s\\", dir);  /* add trailing '\' */
     if (usepid)
-        snprintf(buf, sizeof(buf), "%s%d_", dirt, pid);
+        snprintf(buf, buflen, "%s%d_", dirt, pid);
     else
-        snprintf(buf, sizeof(buf), "%s", dirt);
+        snprintf(buf, buflen, "%s", dirt);
     }
 #else
     if (usepid)
-        snprintf(buf, sizeof(buf), "%s/%d_", dir, pid);
+        snprintf(buf, buflen, "%s/%d_", dir, pid);
     else
-        snprintf(buf, sizeof(buf), "%s/", dir);
+        snprintf(buf, buflen, "%s/", dir);
 #endif
 
     return stringJoin(buf, tail);
@@ -2060,6 +2106,41 @@ l_int32  len, nret, num;
         return num;
     else
         return -1;  /* not found */
+}
+
+
+/*---------------------------------------------------------------------*
+ *                Generate random integer in given range               *
+ *---------------------------------------------------------------------*/
+/*!
+ *  genRandomIntegerInRange()
+ *
+ *      Input:  range (size of range; must be >= 2)
+ *              seed (use 0 to skip; otherwise call srand)
+ *              val (<return> random integer in range {0 ... range-1}
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) For example, to choose a rand integer between 0 and 99,
+ *          use @range = 100.
+ */
+l_int32
+genRandomIntegerInRange(l_int32   range,
+                        l_int32   seed,
+                        l_int32  *pval)
+{
+    PROCNAME("genRandomIntegerInRange");
+
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = 0;
+    if (range < 2)
+        return ERROR_INT("range must be >= 2", procName, 1);
+
+    if (seed > 0) srand(seed);
+    *pval = (l_int32)((l_float64)range *
+                       ((l_float64)rand() / (l_float64)RAND_MAX));
+    return 0;
 }
 
 

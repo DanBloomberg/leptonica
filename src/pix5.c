@@ -20,8 +20,9 @@
  *
  *      (1) Measurement of 1 bpp image properties
  *      (2) Extract rectangular region
- *      (3) Extract pixel averages and reversals along lines
- *      (4) Clip to foreground
+ *      (3) Clip to foreground
+ *      (4) Extract pixel averages and reversals along lines
+ *      (5) Rank row and column transforms
  *
  *    Measurement of properties
  *           l_int32     pixaFindDimensions()
@@ -42,22 +43,24 @@
  *           PIX        *pixClipMasked()
  *           PIX        *pixResizeToMatch()
  *
- *    Extract pixel averages and reversals along lines
- *           NUMA       *pixExtractOnLine()
- *           l_float32   pixAverageOnLine();
- *           NUMA       *pixAverageIntensityProfile()
- *           NUMA       *pixReversalProfile()
- *
  *    Clip to foreground
  *           PIX        *pixClipToForeground()
  *           l_int32     pixClipBoxToForeground()
  *           l_int32     pixScanForForeground()
  *           l_int32     pixClipBoxToEdges()
  *           l_int32     pixScanForEdge()
+ *
+ *    Extract pixel averages and reversals along lines
+ *           NUMA       *pixExtractOnLine()
+ *           l_float32   pixAverageOnLine();
+ *           NUMA       *pixAverageIntensityProfile()
+ *           NUMA       *pixReversalProfile()
+ *
+ *    Rank row and column transforms
+ *           PIX        *pixRankRowTransform()
+ *           PIX        *pixRankColumnTransform()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -875,399 +878,6 @@ PIX     *pixd;
 
 
 /*---------------------------------------------------------------------*
- *           Extract pixel averages and reversals along lines          *
- *---------------------------------------------------------------------*/
-/*!
- *  pixExtractOnLine()
- *
- *      Input:  pixs (1 bpp or 8 bpp; no colormap)
- *              x1, y1 (starting pt for line)
- *              x2, y2 (end pt for line)
- *              factor (sampling; >= 1)
- *      Return: na (of pixel values along line), or null on error.
- *
- *  Notes:
- *      (1) The line must be either horizontal or vertical, so either
- *          y1 == y2 (horizontal) or x1 == x2 (vertical).
- *      (2) If horizontal, x1 must be <= x2.
- *          If vertical, y1 must be <= y2.
- *      (3) Input end points are clipped to the pix.
- *      (4) Can be used with numaCountReverals(), for example, to
- *          characterize the intensity smoothness along a line.
- */
-NUMA *
-pixExtractOnLine(PIX     *pixs,
-                 l_int32  x1,
-                 l_int32  y1,
-                 l_int32  x2,
-                 l_int32  y2,
-                 l_int32  factor)
-{
-l_int32   i, w, h, d, direction;
-l_uint32  val;
-NUMA     *na;
-
-    PROCNAME("pixExtractOnLine");
-
-    if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 1 && d != 8)
-        return (NUMA *)ERROR_PTR("d not 1 or 8 bpp", procName, NULL);
-    if (pixGetColormap(pixs))
-        return (NUMA *)ERROR_PTR("pixs has a colormap", procName, NULL);
-    if (x1 > x2 || y1 > y2)
-        return (NUMA *)ERROR_PTR("x1 > x2 or y1 > y2", procName, NULL);
-    if (y1 == y2) {
-        x1 = L_MAX(0, x1);
-        x2 = L_MIN(w - 1, x2);
-        y1 = L_MAX(0, L_MIN(y1, h - 1));
-        direction = L_HORIZONTAL_LINE;
-    }
-    else if (x1 == x2) {
-        y1 = L_MAX(0, y1);
-        y2 = L_MIN(h - 1, y2);
-        x1 = L_MAX(0, L_MIN(x1, w - 1));
-        direction = L_VERTICAL_LINE;
-    }
-    if (y1 == y2)
-        direction = L_HORIZONTAL_LINE;
-    else if (x1 == x2)
-        direction = L_VERTICAL_LINE;
-    else
-        return (NUMA *)ERROR_PTR("line neither horiz nor vert", procName, NULL);
-    if (factor < 1) {
-        L_WARNING("factor must be >= 1; setting to 1", procName);
-        factor = 1;
-    }
-
-    na = numaCreate(0);
-    if (direction == L_HORIZONTAL_LINE) {
-        numaSetXParameters(na, x1, factor);
-        for (i = x1; i <= x2; i += factor) {
-            pixGetPixel(pixs, i, y1, &val);
-            numaAddNumber(na, val);
-        }
-    } else if (direction == L_VERTICAL_LINE) {
-        numaSetXParameters(na, y1, factor);
-        for (i = y1; i <= y2; i += factor) {
-            pixGetPixel(pixs, x1, i, &val);
-            numaAddNumber(na, val);
-        }
-    }
-
-    return na;
-}
-
-
-/*!
- *  pixAverageOnLine()
- *
- *      Input:  pixs (1 bpp or 8 bpp; no colormap)
- *              x1, y1 (starting pt for line)
- *              x2, y2 (end pt for line)
- *              factor (sampling; >= 1)
- *      Return: average of pixel values along line, or null on error.
- *
- *  Notes:
- *      (1) The line must be either horizontal or vertical, so either
- *          y1 == y2 (horizontal) or x1 == x2 (vertical).
- *      (2) If horizontal, x1 must be <= x2.
- *          If vertical, y1 must be <= y2.
- *          characterize the intensity smoothness along a line.
- *      (3) Input end points are clipped to the pix.
- */
-l_float32
-pixAverageOnLine(PIX     *pixs,
-                 l_int32  x1,
-                 l_int32  y1,
-                 l_int32  x2,
-                 l_int32  y2,
-                 l_int32  factor)
-{
-l_int32    i, j, w, h, d, direction, count, wpl;
-l_uint32  *data, *line;
-l_float32  sum;
-
-    PROCNAME("pixAverageOnLine");
-
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 1 && d != 8)
-        return ERROR_INT("d not 1 or 8 bpp", procName, 1);
-    if (pixGetColormap(pixs))
-        return ERROR_INT("pixs has a colormap", procName, 1);
-    if (x1 > x2 || y1 > y2)
-        return ERROR_INT("x1 > x2 or y1 > y2", procName, 1);
-    if (y1 == y2) {
-        x1 = L_MAX(0, x1);
-        x2 = L_MIN(w - 1, x2);
-        y1 = L_MAX(0, L_MIN(y1, h - 1));
-        direction = L_HORIZONTAL_LINE;
-    }
-    else if (x1 == x2) {
-        y1 = L_MAX(0, y1);
-        y2 = L_MIN(h - 1, y2);
-        x1 = L_MAX(0, L_MIN(x1, w - 1));
-        direction = L_VERTICAL_LINE;
-    }
-    else
-        return ERROR_INT("line neither horiz nor vert", procName, 1);
-    if (factor < 1) {
-        L_WARNING("factor must be >= 1; setting to 1", procName);
-        factor = 1;
-    }
-
-    data = pixGetData(pixs);
-    wpl = pixGetWpl(pixs);
-    sum = 0;
-    if (direction == L_HORIZONTAL_LINE) {
-        line = data + y1 * wpl;
-        for (j = x1, count = 0; j <= x2; count++, j += factor) {
-            if (d == 1)
-                sum += GET_DATA_BIT(line, j);
-            else  /* d == 8 */
-                sum += GET_DATA_BYTE(line, j);
-        }
-    }
-    else if (direction == L_VERTICAL_LINE) {
-        for (i = y1, count = 0; i <= y2; count++, i += factor) {
-            line = data + i * wpl;
-            if (d == 1)
-                sum += GET_DATA_BIT(line, x1);
-            else  /* d == 8 */
-                sum += GET_DATA_BYTE(line, x1);
-        }
-    }
-
-    return sum / (l_float32)count;
-}
-
-
-/*!
- *  pixAverageIntensityProfile()
- *
- *      Input:  pixs (any depth; colormap OK)
- *              fract (fraction of image width or height to be used)
- *              dir (averaging direction: L_HORIZONTAL_LINE or L_VERTICAL_LINE)
- *              first, last (span of rows or columns to measure)
- *              factor1 (sampling along fast scan direction; >= 1)
- *              factor2 (sampling along slow scan direction; >= 1)
- *      Return: na (of reversal profile), or null on error.
- *
- *  Notes:
- *      (1) If d != 1 bpp, colormaps are removed and the result
- *          is converted to 8 bpp.
- *      (2) If @dir == L_HORIZONTAL_LINE, the intensity is averaged
- *          along each horizontal raster line (sampled by @factor1),
- *          and the profile is the array of these averages in the
- *          vertical direction between @first and @last raster lines,
- *          and sampled by @factor2.
- *      (3) If @dir == L_VERTICAL_LINE, the intensity is averaged
- *          along each vertical line (sampled by @factor1),
- *          and the profile is the array of these averages in the
- *          horizontal direction between @first and @last columns,
- *          and sampled by @factor2.
- *      (4) The averages are measured over the central @fract of the image.
- *          Use @fract == 1.0 to average across the entire width or height.
- */
-NUMA *
-pixAverageIntensityProfile(PIX       *pixs,
-                           l_float32  fract,
-                           l_int32    dir,
-                           l_int32    first,
-                           l_int32    last,
-                           l_int32    factor1,
-                           l_int32    factor2)
-{
-l_int32    i, j, w, h, d, start, end;
-l_float32  ave;
-NUMA      *nad;
-PIX       *pixr, *pixg;
-
-    PROCNAME("pixAverageIntensityProfile");
-
-    if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (fract < 0.0 || fract > 1.0)
-        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", procName, NULL);
-    if (dir != L_HORIZONTAL_LINE && dir != L_VERTICAL_LINE)
-        return (NUMA *)ERROR_PTR("invalid direction", procName, NULL);
-    if (first < 0) first = 0;
-    if (last < first)
-        return (NUMA *)ERROR_PTR("last must be >= first", procName, NULL);
-    if (factor1 < 1) {
-        L_WARNING("factor1 must be >= 1; setting to 1", procName);
-        factor1 = 1;
-    }
-    if (factor2 < 1) {
-        L_WARNING("factor2 must be >= 1; setting to 1", procName);
-        factor2 = 1;
-    }
-
-        /* Use 1 or 8 bpp, without colormap */
-    if (pixGetColormap(pixs))
-        pixr = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-    else
-        pixr = pixClone(pixs);
-    pixGetDimensions(pixr, &w, &h, &d);
-    if (d == 1)
-        pixg = pixClone(pixr);
-    else
-        pixg = pixConvertTo8(pixr, 0);
-
-    nad = numaCreate(0);  /* output: samples in slow scan direction */
-    numaSetXParameters(nad, 0, factor2);
-    if (dir == L_HORIZONTAL_LINE) {
-        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)w);
-        end = w - start;
-        if (last > h - 1) {
-            L_WARNING("last > h - 1; clipping", procName);
-            last = h - 1;
-        }
-        for (i = first; i <= last; i += factor2) {
-            ave = pixAverageOnLine(pixg, start, i, end, i, factor1);
-            numaAddNumber(nad, ave);
-        }
-    } else if (dir == L_VERTICAL_LINE) {
-        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)h);
-        end = h - start;
-        if (last > w - 1) {
-            L_WARNING("last > w - 1; clipping", procName);
-            last = w - 1;
-        }
-        for (j = first; j <= last; j += factor2) {
-            ave = pixAverageOnLine(pixg, j, start, j, end, factor1);
-            numaAddNumber(nad, ave);
-        }
-    }
-
-    pixDestroy(&pixr);
-    pixDestroy(&pixg);
-    return nad;
-}
-
-
-/*!
- *  pixReversalProfile()
- *
- *      Input:  pixs (any depth; colormap OK)
- *              fract (fraction of image width or height to be used)
- *              dir (profile direction: L_HORIZONTAL_LINE or L_VERTICAL_LINE)
- *              first, last (span of rows or columns to measure)
- *              minreversal (minimum change in intensity to trigger a reversal)
- *              factor1 (sampling along raster line (fast scan); >= 1)
- *              factor2 (sampling of raster lines (slow scan); >= 1)
- *      Return: na (of reversal profile), or null on error.
- *
- *  Notes:
- *      (1) If d != 1 bpp, colormaps are removed and the result
- *          is converted to 8 bpp.
- *      (2) If @dir == L_HORIZONTAL_LINE, the the reversals are counted
- *          along each horizontal raster line (sampled by @factor1),
- *          and the profile is the array of these sums in the
- *          vertical direction between @first and @last raster lines,
- *          and sampled by @factor2.
- *      (3) If @dir == L_VERTICAL_LINE, the the reversals are counted
- *          along each vertical column (sampled by @factor1),
- *          and the profile is the array of these sums in the
- *          horizontal direction between @first and @last columns,
- *          and sampled by @factor2.
- *      (4) For each row or column, the reversals are summed over the
- *          central @fract of the image.  Use @fract == 1.0 to sum
- *          across the entire width (of row) or height (of column).
- *      (5) @minreversal is the relative change in intensity that is
- *          required to resolve peaks and valleys.  A typical number for
- *          locating text in 8 bpp might be 50.  For 1 bpp, minreversal
- *          must be 1.
- *      (6) The reversal profile is simply the number of reversals
- *          in a row or column, vs the row or column index.
- */
-NUMA *
-pixReversalProfile(PIX       *pixs,
-                   l_float32  fract,
-                   l_int32    dir,
-                   l_int32    first,
-                   l_int32    last,
-                   l_int32    minreversal,
-                   l_int32    factor1,
-                   l_int32    factor2)
-{
-l_int32   i, j, w, h, d, start, end, nr;
-NUMA     *naline, *nad;
-PIX      *pixr, *pixg;
-
-    PROCNAME("pixReversalProfile");
-
-    if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (fract < 0.0 || fract > 1.0)
-        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", procName, NULL);
-    if (dir != L_HORIZONTAL_LINE && dir != L_VERTICAL_LINE)
-        return (NUMA *)ERROR_PTR("invalid direction", procName, NULL);
-    if (first < 0) first = 0;
-    if (last < first)
-        return (NUMA *)ERROR_PTR("last must be >= first", procName, NULL);
-    if (factor1 < 1) {
-        L_WARNING("factor1 must be >= 1; setting to 1", procName);
-        factor1 = 1;
-    }
-    if (factor2 < 1) {
-        L_WARNING("factor2 must be >= 1; setting to 1", procName);
-        factor2 = 1;
-    }
-
-        /* Use 1 or 8 bpp, without colormap */
-    if (pixGetColormap(pixs))
-        pixr = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-    else
-        pixr = pixClone(pixs);
-    pixGetDimensions(pixr, &w, &h, &d);
-    if (d == 1) {
-        pixg = pixClone(pixr);
-        minreversal = 1;  /* enforce this */
-    }
-    else
-        pixg = pixConvertTo8(pixr, 0);
-
-    nad = numaCreate(0);  /* output: samples in slow scan direction */
-    numaSetXParameters(nad, 0, factor2);
-    if (dir == L_HORIZONTAL_LINE) {
-        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)w);
-        end = w - start;
-        if (last > h - 1) {
-            L_WARNING("last > h - 1; clipping", procName);
-            last = h - 1;
-        }
-        for (i = first; i <= last; i += factor2) {
-            naline = pixExtractOnLine(pixg, start, i, end, i, factor1);
-            numaCountReversals(naline, minreversal, &nr, NULL);
-            numaAddNumber(nad, nr);
-            numaDestroy(&naline);
-        }
-    } else if (dir == L_VERTICAL_LINE) {
-        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)h);
-        end = h - start;
-        if (last > w - 1) {
-            L_WARNING("last > w - 1; clipping", procName);
-            last = w - 1;
-        }
-        for (j = first; j <= last; j += factor2) {
-            naline = pixExtractOnLine(pixg, j, start, j, end, factor1);
-            numaCountReversals(naline, minreversal, &nr, NULL);
-            numaAddNumber(nad, nr);
-            numaDestroy(&naline);
-        }
-    }
-
-    pixDestroy(&pixr);
-    pixDestroy(&pixg);
-    return nad;
-}
-
-
-/*---------------------------------------------------------------------*
  *                           Clip to Foreground                        *
  *---------------------------------------------------------------------*/
 /*!
@@ -1844,5 +1454,546 @@ BOX       *boxt;
         return ERROR_INT("invalid scanflag", procName, 1);
 
     return 1;  /* edge not found */
+}
+
+
+/*---------------------------------------------------------------------*
+ *           Extract pixel averages and reversals along lines          *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixExtractOnLine()
+ *
+ *      Input:  pixs (1 bpp or 8 bpp; no colormap)
+ *              x1, y1 (one end point for line)
+ *              x2, y2 (another end pt for line)
+ *              factor (sampling; >= 1)
+ *      Return: na (of pixel values along line), or null on error.
+ *
+ *  Notes:
+ *      (1) Input end points are clipped to the pix.
+ *      (2) If the line is either horizontal, or closer to horizontal
+ *          than to vertical, the points will be extracted from left
+ *          to right in the pix.  Likewise, if the line is vertical,
+ *          or closer to vertical than to horizontal, the points will
+ *          be extracted from top to bottom.
+ *      (3) Can be used with numaCountReverals(), for example, to
+ *          characterize the intensity smoothness along a line.
+ */
+NUMA *
+pixExtractOnLine(PIX     *pixs,
+                 l_int32  x1,
+                 l_int32  y1,
+                 l_int32  x2,
+                 l_int32  y2,
+                 l_int32  factor)
+{
+l_int32    i, w, h, d, xmin, ymin, xmax, ymax, npts, direction;
+l_uint32   val;
+l_float32  x, y;
+l_float64  slope;
+NUMA      *na;
+PTA       *pta;
+
+    PROCNAME("pixExtractOnLine");
+
+    if (!pixs)
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1 && d != 8)
+        return (NUMA *)ERROR_PTR("d not 1 or 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (NUMA *)ERROR_PTR("pixs has a colormap", procName, NULL);
+    if (factor < 1) {
+        L_WARNING("factor must be >= 1; setting to 1", procName);
+        factor = 1;
+    }
+
+        /* Clip line to the image */
+    x1 = L_MAX(0, L_MIN(x1, w - 1));
+    x2 = L_MAX(0, L_MIN(x2, w - 1));
+    y1 = L_MAX(0, L_MIN(y1, h - 1));
+    y2 = L_MAX(0, L_MIN(y2, h - 1));
+
+    if (x1 == x2 && y1 == y2) {
+        pixGetPixel(pixs, x1, y1, &val);
+        na = numaCreate(1);
+        numaAddNumber(na, val);
+        return na;
+    }
+
+    if (y1 == y2)
+        direction = L_HORIZONTAL_LINE;
+    else if (x1 == x2)
+        direction = L_VERTICAL_LINE;
+    else
+        direction = L_OBLIQUE_LINE;
+
+    na = numaCreate(0);
+    if (direction == L_HORIZONTAL_LINE) {  /* plot against x */
+        xmin = L_MIN(x1, x2);
+        xmax = L_MAX(x1, x2);
+        numaSetXParameters(na, xmin, factor);
+        for (i = xmin; i <= xmax; i += factor) {
+            pixGetPixel(pixs, i, y1, &val);
+            numaAddNumber(na, val);
+        }
+    }
+    else if (direction == L_VERTICAL_LINE) {  /* plot against y */
+        ymin = L_MIN(y1, y2);
+        ymax = L_MAX(y1, y2);
+        numaSetXParameters(na, ymin, factor);
+        for (i = ymin; i <= ymax; i += factor) {
+            pixGetPixel(pixs, x1, i, &val);
+            numaAddNumber(na, val);
+        }
+    }
+    else {  /* direction == L_OBLIQUE_LINE */
+        slope = (l_float64)((y2 - y1) / (x2 - x1));
+        if (L_ABS(slope) < 1.0) {  /* quasi-horizontal */
+            xmin = L_MIN(x1, x2);
+            xmax = L_MAX(x1, x2);
+            ymin = (xmin == x1) ? y1 : y2;  /* pt that goes with xmin */
+            ymax = (ymin == y1) ? y2 : y1;  /* pt that goes with xmax */
+            pta = generatePtaLine(xmin, ymin, xmax, ymax);
+            numaSetXParameters(na, xmin, (l_float32)factor);
+        }
+        else {  /* quasi-vertical */
+            ymin = L_MIN(y1, y2);
+            ymax = L_MAX(y1, y2);
+            xmin = (ymin == y1) ? x1 : x2;  /* pt that goes with ymin */
+            xmax = (xmin == x1) ? x2 : x1;  /* pt that goes with ymax */
+            pta = generatePtaLine(xmin, ymin, xmax, ymax);
+            numaSetXParameters(na, ymin, (l_float32)factor);
+        }
+        npts = ptaGetCount(pta);
+        for (i = 0; i < npts; i += factor) {
+            ptaGetPt(pta, i, &x, &y);
+            pixGetPixel(pixs, (l_int32)x, (l_int32)y, &val);
+            numaAddNumber(na, val);
+        }
+
+#if 0  /* debugging */
+        pixPlotAlongPta(pixs, pta, GPLOT_X11, NULL);
+#endif
+
+        ptaDestroy(&pta);
+    }
+
+    return na;
+}
+
+
+/*!
+ *  pixAverageOnLine()
+ *
+ *      Input:  pixs (1 bpp or 8 bpp; no colormap)
+ *              x1, y1 (starting pt for line)
+ *              x2, y2 (end pt for line)
+ *              factor (sampling; >= 1)
+ *      Return: average of pixel values along line, or null on error.
+ *
+ *  Notes:
+ *      (1) The line must be either horizontal or vertical, so either
+ *          y1 == y2 (horizontal) or x1 == x2 (vertical).
+ *      (2) If horizontal, x1 must be <= x2.
+ *          If vertical, y1 must be <= y2.
+ *          characterize the intensity smoothness along a line.
+ *      (3) Input end points are clipped to the pix.
+ */
+l_float32
+pixAverageOnLine(PIX     *pixs,
+                 l_int32  x1,
+                 l_int32  y1,
+                 l_int32  x2,
+                 l_int32  y2,
+                 l_int32  factor)
+{
+l_int32    i, j, w, h, d, direction, count, wpl;
+l_uint32  *data, *line;
+l_float32  sum;
+
+    PROCNAME("pixAverageOnLine");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1 && d != 8)
+        return ERROR_INT("d not 1 or 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs has a colormap", procName, 1);
+    if (x1 > x2 || y1 > y2)
+        return ERROR_INT("x1 > x2 or y1 > y2", procName, 1);
+    if (y1 == y2) {
+        x1 = L_MAX(0, x1);
+        x2 = L_MIN(w - 1, x2);
+        y1 = L_MAX(0, L_MIN(y1, h - 1));
+        direction = L_HORIZONTAL_LINE;
+    }
+    else if (x1 == x2) {
+        y1 = L_MAX(0, y1);
+        y2 = L_MIN(h - 1, y2);
+        x1 = L_MAX(0, L_MIN(x1, w - 1));
+        direction = L_VERTICAL_LINE;
+    }
+    else
+        return ERROR_INT("line neither horiz nor vert", procName, 1);
+    if (factor < 1) {
+        L_WARNING("factor must be >= 1; setting to 1", procName);
+        factor = 1;
+    }
+
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    sum = 0;
+    if (direction == L_HORIZONTAL_LINE) {
+        line = data + y1 * wpl;
+        for (j = x1, count = 0; j <= x2; count++, j += factor) {
+            if (d == 1)
+                sum += GET_DATA_BIT(line, j);
+            else  /* d == 8 */
+                sum += GET_DATA_BYTE(line, j);
+        }
+    }
+    else if (direction == L_VERTICAL_LINE) {
+        for (i = y1, count = 0; i <= y2; count++, i += factor) {
+            line = data + i * wpl;
+            if (d == 1)
+                sum += GET_DATA_BIT(line, x1);
+            else  /* d == 8 */
+                sum += GET_DATA_BYTE(line, x1);
+        }
+    }
+
+    return sum / (l_float32)count;
+}
+
+
+/*!
+ *  pixAverageIntensityProfile()
+ *
+ *      Input:  pixs (any depth; colormap OK)
+ *              fract (fraction of image width or height to be used)
+ *              dir (averaging direction: L_HORIZONTAL_LINE or L_VERTICAL_LINE)
+ *              first, last (span of rows or columns to measure)
+ *              factor1 (sampling along fast scan direction; >= 1)
+ *              factor2 (sampling along slow scan direction; >= 1)
+ *      Return: na (of reversal profile), or null on error.
+ *
+ *  Notes:
+ *      (1) If d != 1 bpp, colormaps are removed and the result
+ *          is converted to 8 bpp.
+ *      (2) If @dir == L_HORIZONTAL_LINE, the intensity is averaged
+ *          along each horizontal raster line (sampled by @factor1),
+ *          and the profile is the array of these averages in the
+ *          vertical direction between @first and @last raster lines,
+ *          and sampled by @factor2.
+ *      (3) If @dir == L_VERTICAL_LINE, the intensity is averaged
+ *          along each vertical line (sampled by @factor1),
+ *          and the profile is the array of these averages in the
+ *          horizontal direction between @first and @last columns,
+ *          and sampled by @factor2.
+ *      (4) The averages are measured over the central @fract of the image.
+ *          Use @fract == 1.0 to average across the entire width or height.
+ */
+NUMA *
+pixAverageIntensityProfile(PIX       *pixs,
+                           l_float32  fract,
+                           l_int32    dir,
+                           l_int32    first,
+                           l_int32    last,
+                           l_int32    factor1,
+                           l_int32    factor2)
+{
+l_int32    i, j, w, h, d, start, end;
+l_float32  ave;
+NUMA      *nad;
+PIX       *pixr, *pixg;
+
+    PROCNAME("pixAverageIntensityProfile");
+
+    if (!pixs)
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (fract < 0.0 || fract > 1.0)
+        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", procName, NULL);
+    if (dir != L_HORIZONTAL_LINE && dir != L_VERTICAL_LINE)
+        return (NUMA *)ERROR_PTR("invalid direction", procName, NULL);
+    if (first < 0) first = 0;
+    if (last < first)
+        return (NUMA *)ERROR_PTR("last must be >= first", procName, NULL);
+    if (factor1 < 1) {
+        L_WARNING("factor1 must be >= 1; setting to 1", procName);
+        factor1 = 1;
+    }
+    if (factor2 < 1) {
+        L_WARNING("factor2 must be >= 1; setting to 1", procName);
+        factor2 = 1;
+    }
+
+        /* Use 1 or 8 bpp, without colormap */
+    if (pixGetColormap(pixs))
+        pixr = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    else
+        pixr = pixClone(pixs);
+    pixGetDimensions(pixr, &w, &h, &d);
+    if (d == 1)
+        pixg = pixClone(pixr);
+    else
+        pixg = pixConvertTo8(pixr, 0);
+
+    nad = numaCreate(0);  /* output: samples in slow scan direction */
+    numaSetXParameters(nad, 0, factor2);
+    if (dir == L_HORIZONTAL_LINE) {
+        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)w);
+        end = w - start;
+        if (last > h - 1) {
+            L_WARNING("last > h - 1; clipping", procName);
+            last = h - 1;
+        }
+        for (i = first; i <= last; i += factor2) {
+            ave = pixAverageOnLine(pixg, start, i, end, i, factor1);
+            numaAddNumber(nad, ave);
+        }
+    } else if (dir == L_VERTICAL_LINE) {
+        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)h);
+        end = h - start;
+        if (last > w - 1) {
+            L_WARNING("last > w - 1; clipping", procName);
+            last = w - 1;
+        }
+        for (j = first; j <= last; j += factor2) {
+            ave = pixAverageOnLine(pixg, j, start, j, end, factor1);
+            numaAddNumber(nad, ave);
+        }
+    }
+
+    pixDestroy(&pixr);
+    pixDestroy(&pixg);
+    return nad;
+}
+
+
+/*!
+ *  pixReversalProfile()
+ *
+ *      Input:  pixs (any depth; colormap OK)
+ *              fract (fraction of image width or height to be used)
+ *              dir (profile direction: L_HORIZONTAL_LINE or L_VERTICAL_LINE)
+ *              first, last (span of rows or columns to measure)
+ *              minreversal (minimum change in intensity to trigger a reversal)
+ *              factor1 (sampling along raster line (fast scan); >= 1)
+ *              factor2 (sampling of raster lines (slow scan); >= 1)
+ *      Return: na (of reversal profile), or null on error.
+ *
+ *  Notes:
+ *      (1) If d != 1 bpp, colormaps are removed and the result
+ *          is converted to 8 bpp.
+ *      (2) If @dir == L_HORIZONTAL_LINE, the the reversals are counted
+ *          along each horizontal raster line (sampled by @factor1),
+ *          and the profile is the array of these sums in the
+ *          vertical direction between @first and @last raster lines,
+ *          and sampled by @factor2.
+ *      (3) If @dir == L_VERTICAL_LINE, the the reversals are counted
+ *          along each vertical column (sampled by @factor1),
+ *          and the profile is the array of these sums in the
+ *          horizontal direction between @first and @last columns,
+ *          and sampled by @factor2.
+ *      (4) For each row or column, the reversals are summed over the
+ *          central @fract of the image.  Use @fract == 1.0 to sum
+ *          across the entire width (of row) or height (of column).
+ *      (5) @minreversal is the relative change in intensity that is
+ *          required to resolve peaks and valleys.  A typical number for
+ *          locating text in 8 bpp might be 50.  For 1 bpp, minreversal
+ *          must be 1.
+ *      (6) The reversal profile is simply the number of reversals
+ *          in a row or column, vs the row or column index.
+ */
+NUMA *
+pixReversalProfile(PIX       *pixs,
+                   l_float32  fract,
+                   l_int32    dir,
+                   l_int32    first,
+                   l_int32    last,
+                   l_int32    minreversal,
+                   l_int32    factor1,
+                   l_int32    factor2)
+{
+l_int32   i, j, w, h, d, start, end, nr;
+NUMA     *naline, *nad;
+PIX      *pixr, *pixg;
+
+    PROCNAME("pixReversalProfile");
+
+    if (!pixs)
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (fract < 0.0 || fract > 1.0)
+        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", procName, NULL);
+    if (dir != L_HORIZONTAL_LINE && dir != L_VERTICAL_LINE)
+        return (NUMA *)ERROR_PTR("invalid direction", procName, NULL);
+    if (first < 0) first = 0;
+    if (last < first)
+        return (NUMA *)ERROR_PTR("last must be >= first", procName, NULL);
+    if (factor1 < 1) {
+        L_WARNING("factor1 must be >= 1; setting to 1", procName);
+        factor1 = 1;
+    }
+    if (factor2 < 1) {
+        L_WARNING("factor2 must be >= 1; setting to 1", procName);
+        factor2 = 1;
+    }
+
+        /* Use 1 or 8 bpp, without colormap */
+    if (pixGetColormap(pixs))
+        pixr = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    else
+        pixr = pixClone(pixs);
+    pixGetDimensions(pixr, &w, &h, &d);
+    if (d == 1) {
+        pixg = pixClone(pixr);
+        minreversal = 1;  /* enforce this */
+    }
+    else
+        pixg = pixConvertTo8(pixr, 0);
+
+    nad = numaCreate(0);  /* output: samples in slow scan direction */
+    numaSetXParameters(nad, 0, factor2);
+    if (dir == L_HORIZONTAL_LINE) {
+        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)w);
+        end = w - start;
+        if (last > h - 1) {
+            L_WARNING("last > h - 1; clipping", procName);
+            last = h - 1;
+        }
+        for (i = first; i <= last; i += factor2) {
+            naline = pixExtractOnLine(pixg, start, i, end, i, factor1);
+            numaCountReversals(naline, minreversal, &nr, NULL);
+            numaAddNumber(nad, nr);
+            numaDestroy(&naline);
+        }
+    } else if (dir == L_VERTICAL_LINE) {
+        start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)h);
+        end = h - start;
+        if (last > w - 1) {
+            L_WARNING("last > w - 1; clipping", procName);
+            last = w - 1;
+        }
+        for (j = first; j <= last; j += factor2) {
+            naline = pixExtractOnLine(pixg, j, start, j, end, factor1);
+            numaCountReversals(naline, minreversal, &nr, NULL);
+            numaAddNumber(nad, nr);
+            numaDestroy(&naline);
+        }
+    }
+
+    pixDestroy(&pixr);
+    pixDestroy(&pixg);
+    return nad;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                     Rank row and column transforms                  *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixRankRowTransform()
+ *
+ *      Input:  pixs (8 bpp; no colormap)
+ *      Return: pixd (with pixels sorted in each row, from
+ *                    min to max value)
+ *
+ * Notes:
+ *     (1) The time is O(n) in the number of pixels and runs about
+ *         100 Mpixels/sec on a 3 GHz machine.
+ */
+PIX *
+pixRankRowTransform(PIX  *pixs)
+{
+l_int32    i, j, k, m, w, h, wpl, val; 
+l_int32    histo[256];
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixRankRowTransform");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs has a colormap", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreateTemplateNoInit(pixs);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpl = pixGetWpl(pixs);
+    for (i = 0; i < h; i++) {
+        memset(histo, 0, 1024);
+        lines = datas + i * wpl;
+        lined = datad + i * wpl;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BYTE(lines, j);
+            histo[val]++;
+        }
+        for (m = 0, j = 0; m < 256; m++) {
+            for (k = 0; k < histo[m]; k++, j++)
+                SET_DATA_BYTE(lined, j, m);
+        }
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixRankColumnTransform()
+ *
+ *      Input:  pixs (8 bpp; no colormap)
+ *      Return: pixd (with pixels sorted in each column, from
+ *                    min to max value)
+ *
+ * Notes:
+ *     (1) The time is O(n) in the number of pixels and runs about
+ *         50 Mpixels/sec on a 3 GHz machine.
+ */
+PIX *
+pixRankColumnTransform(PIX  *pixs)
+{
+l_int32    i, j, k, m, w, h, wpl, val; 
+l_int32    histo[256];
+l_uint32  *datas, *datad;
+void     **lines8, **lined8;
+PIX       *pixd;
+
+    PROCNAME("pixRankColumnTransform");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs has a colormap", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreateTemplateNoInit(pixs);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpl = pixGetWpl(pixs);
+    lines8 = pixGetLinePtrs(pixs, NULL);
+    lined8 = pixGetLinePtrs(pixd, NULL);
+    for (j = 0; j < w; j++) {
+        memset(histo, 0, 1024);
+        for (i = 0; i < h; i++) {
+            val = GET_DATA_BYTE(lines8[i], j);
+            histo[val]++;
+        }
+        for (m = 0, i = 0; m < 256; m++) {
+            for (k = 0; k < histo[m]; k++, i++)
+                SET_DATA_BYTE(lined8[i], j, m);
+        }
+    }
+
+    FREE(lines8);
+    FREE(lined8);
+    return pixd;
 }
 

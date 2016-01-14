@@ -609,7 +609,7 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
     if (ppixm || ppixth || ppixd)
         pixm = pixWindowedMean(pixg, whsize, whsize, 1);
     if (ppixsd || ppixth || ppixd)
-        pixms = pixWindowedMeanSquare(pixg, whsize);
+        pixms = pixWindowedMeanSquare(pixg, whsize, whsize);
     if (ppixth || ppixd)
         pixth = pixSauvolaGetThreshold(pixm, pixms, factor, ppixsd);
     if (ppixd)

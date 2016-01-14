@@ -28,8 +28,6 @@
  *    not here.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -42,6 +40,7 @@ static const char *tests[] = {
                               "enhance_reg",
                               "findpattern_reg",
                               "fpix_reg",
+                              "graymorph2_reg",
                               "hardlight_reg",
                               "ioformats_reg",
                               "kernel_reg",
@@ -55,6 +54,7 @@ static const char *tests[] = {
                               "rankhisto_reg",
                               "rotateorth_reg",
                               "rotate1_reg",
+                              "rotate2_reg",
                               "scale_reg",
                               "selio_reg",
                               "shear_reg",
@@ -75,7 +75,7 @@ main(int    argc,
      char **argv)
 {
 char         command[256];
-l_int32      i, ntests, dotest;
+l_int32      i, ntests, dotest, ignore;
 static char  mainName[] = "alltests_reg";
 
     if (argc != 2)
@@ -90,12 +90,12 @@ static char  mainName[] = "alltests_reg";
 
     for (i = 0; i < ntests; i++) {
         snprintf(command, sizeof(command) - 2, "%s %s", tests[i], argv[1]);
-        system(command);
+        ignore = system(command);
     }
 
     if (dotest) {
         snprintf(command, sizeof(command) - 2, "cat %s", argv[1]);
-        system(command);
+        ignore = system(command);
     }
     return 0;
 }

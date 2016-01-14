@@ -24,7 +24,10 @@
  *
  *      Other transforms
  *          NUMA        *numaTransform()
- *          NUMA        *numaConvolve()
+ *          l_int32      numaWindowedStats()
+ *          NUMA        *numaWindowedMean()
+ *          NUMA        *numaWindowedMeanSquare()
+ *          l_int32      numaWindowedVariance()
  *          NUMA        *numaConvertToInt()
  *
  *      Histogram generation and statistics
@@ -92,9 +95,6 @@
  *        must have these two numbers properly set.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -350,7 +350,7 @@ NUMA  *nab, *nat1, *nat2, *nad;
  *      Input:  nas
  *              shift (add this to each number)
  *              scale (multiply each number by this)
- *      Return: na with all values shifted and scaled, or null on error
+ *      Return: nad (with all values shifted and scaled, or null on error)
  *
  *  Notes:
  *      (1) Each number is shifted before scaling.
@@ -383,69 +383,247 @@ NUMA      *nad;
 
 
 /*!
- *  numaConvolve()
+ *  numaWindowedStats()
  *
- *      Input:  na
- *              halfwidth (of rectangular filter, minus the center)
- *      Return: na (after low-pass filtering), or null on error
+ *      Input:  nas (input numa)
+ *              wc (half width of the window)
+ *              &nam (<optional return> mean value in window)
+ *              &nams (<optional return> mean square value in window)
+ *              &pnav (<optional return> variance in window)
+ *              &pnarv (<optional return> rms deviation from the mean)
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Full convolution takes place only from i = halfwidth to
- *          i = n - halfwidth - 1.  We do the end parts using only
- *          the partial array available.  We do not pad the ends with 0.
- *      (2) This implementation assumes specific fields in the Numa!
+ *      (1) This is a high-level convenience function for calculating
+ *          any or all of these derived arrays.
+ *      (2) These statistical measures over the values in the
+ *          rectangular window are:
+ *            - average value: <x>  (nam)
+ *            - average squared value: <x*x> (nams)
+ *            - variance: <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>  (nav)
+ *            - square-root of variance: (narv)
+ *          where the brackets < .. > indicate that the average value is
+ *          to be taken over the window.
+ *      (3) Note that the variance is just the mean square difference from
+ *          the mean value; and the square root of the variance is the
+ *          root mean square difference from the mean, sometimes also
+ *          called the 'standard deviation'.
+ *      (4) Internally, use mirrored borders to handle values near the
+ *          end of each array.
  */
-NUMA *
-numaConvolve(NUMA    *na,
-             l_int32  halfwidth)
+l_int32
+numaWindowedStats(NUMA    *nas,
+                  l_int32  wc,
+                  NUMA   **pnam,
+                  NUMA   **pnams,
+                  NUMA   **pnav,
+                  NUMA   **pnarv)
 {
-l_int32     i, n, rval;
-l_float32   sum, norm;
-l_float32  *array, *carray, *sumarray;
-NUMA       *nac;
+NUMA  *nam, *nams;
 
-    PROCNAME("numaConvolve");
+    PROCNAME("numaWindowedStats");
 
-    if (!na)
-        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
-    n = numaGetCount(na);
-    if (2 * halfwidth + 1 > n)
+    if (!nas)
+        return ERROR_INT("nas not defined", procName, 1);
+    if (2 * wc + 1 > numaGetCount(nas))
         L_WARNING("filter wider than input array!", procName);
-    array = na->array;
 
-    if ((nac = numaCreate(n)) == NULL)
-        return (NUMA *)ERROR_PTR("nac not made", procName, NULL);
-    carray = nac->array;
-    nac->n = n;  /* fill with zeroes */
-
-        /* Make sum array; note the indexing */
-    if ((sumarray = (l_float32 *)CALLOC(n + 1, sizeof(l_float32))) == NULL)
-        return (NUMA *)ERROR_PTR("sumarray not made", procName, NULL);
-    sum = 0.0;
-    sumarray[0] = 0.0;
-    for (i = 0; i < n; i++) {
-        sum += array[i];
-        sumarray[i + 1] = sum;
+    if (!pnav && !pnarv) {
+        if (pnam) *pnam = numaWindowedMean(nas, wc);
+        if (pnams) *pnams = numaWindowedMeanSquare(nas, wc);
+        return 0;
     }
 
-        /* Central part */
-    norm = 1. / (2 * halfwidth + 1);
-    rval = n - halfwidth;
-    for (i = halfwidth; i < rval; ++i)
-        carray[i] = norm *
-                      (sumarray[i + halfwidth + 1] - sumarray[i - halfwidth]);
+    nam = numaWindowedMean(nas, wc);
+    nams = numaWindowedMeanSquare(nas, wc);
+    numaWindowedVariance(nam, nams, pnav, pnarv);
+    if (pnam)
+        *pnam = nam;
+    else
+        numaDestroy(&nam);
+    if (pnams)
+        *pnams = nams;
+    else
+        numaDestroy(&nams);
+    return 0;
+}
 
-        /* Left side */
-    for (i = 0; i < halfwidth; i++)
-        carray[i] = sumarray[i + halfwidth + 1] / (halfwidth + i + 1);
 
-        /* Right side */
-    for (i = rval; i < n; i++)
-        carray[i] = (1. / (n - i + halfwidth)) *
-                       (sumarray[n] - sumarray[i - halfwidth]);
-        
-    FREE(sumarray);
-    return nac;
+/*!
+ *  numaWindowedMean()
+ *
+ *      Input:  nas
+ *              wc (half width of the convolution window)
+ *      Return: nad (after low-pass filtering), or null on error
+ *
+ *  Notes:
+ *      (1) This is a convolution.  The window has width = 2 * @wc + 1.
+ *      (2) We add a mirrored border of size @wc to each end of the array.
+ */
+NUMA *
+numaWindowedMean(NUMA    *nas,
+                 l_int32  wc)
+{
+l_int32     i, n, n1, width;
+l_float32   sum, norm;
+l_float32  *fa1, *fad, *suma;
+NUMA       *na1, *nad;
+
+    PROCNAME("numaWindowedMean");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    n = numaGetCount(nas);
+    width = 2 * wc + 1;  /* filter width */
+    if (width > n)
+        L_WARNING("filter wider than input array!", procName);
+
+    na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
+    n1 = n + 2 * wc;
+    fa1 = numaGetFArray(na1, L_NOCOPY);
+    nad = numaMakeConstant(0, n);
+    fad = numaGetFArray(nad, L_NOCOPY);
+
+        /* Make sum array; note the indexing */
+    if ((suma = (l_float32 *)CALLOC(n1 + 1, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+    sum = 0.0;
+    suma[0] = 0.0;
+    for (i = 0; i < n1; i++) {
+        sum += fa1[i];
+        suma[i + 1] = sum;
+    }
+
+    norm = 1. / (2 * wc + 1);
+    for (i = 0; i < n; i++)
+        fad[i] = norm * (suma[width + i] - suma[i]);
+
+    FREE(suma);
+    numaDestroy(&na1);
+    return nad;
+}
+
+
+/*!
+ *  numaWindowedMeanSquare()
+ *
+ *      Input:  nas
+ *              wc (half width of the window)
+ *      Return: nad (containing windowed mean square values), or null on error
+ *
+ *  Notes:
+ *      (1) The window has width = 2 * @wc + 1.
+ *      (2) We add a mirrored border of size @wc to each end of the array.
+ */
+NUMA *
+numaWindowedMeanSquare(NUMA    *nas,
+                       l_int32  wc)
+{
+l_int32     i, n, n1, width;
+l_float32   sum, norm;
+l_float32  *fa1, *fad, *suma;
+NUMA       *na1, *nad;
+
+    PROCNAME("numaWindowedMeanSquare");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    n = numaGetCount(nas);
+    width = 2 * wc + 1;  /* filter width */
+    if (width > n)
+        L_WARNING("filter wider than input array!", procName);
+
+    na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
+    n1 = n + 2 * wc;
+    fa1 = numaGetFArray(na1, L_NOCOPY);
+    nad = numaMakeConstant(0, n);
+    fad = numaGetFArray(nad, L_NOCOPY);
+
+        /* Make sum array; note the indexing */
+    if ((suma = (l_float32 *)CALLOC(n1 + 1, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+    sum = 0.0;
+    suma[0] = 0.0;
+    for (i = 0; i < n1; i++) {
+        sum += fa1[i] * fa1[i];
+        suma[i + 1] = sum;
+    }
+
+    norm = 1. / (2 * wc + 1);
+    for (i = 0; i < n; i++)
+        fad[i] = norm * (suma[width + i] - suma[i]);
+
+    FREE(suma);
+    numaDestroy(&na1);
+    return nad;
+}
+
+
+/*!
+ *  numaWindowedVariance()
+ *
+ *      Input:  nam (windowed mean values)
+ *              nams (windowed mean square values)
+ *              &pnav (<optional return> numa of variance -- the ms deviation
+ *                     from the mean)
+ *              &pnarv (<optional return> numa of rms deviation from the mean)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The numas of windowed mean and mean square are precomputed,
+ *          using numaWindowedMean() and numaWindowedMeanSquare().
+ *      (2) Either or both of the variance and square-root of variance
+ *          are returned, where the variance is the average over the
+ *          window of the mean square difference of the pixel value
+ *          from the mean:
+ *                <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>
+ */
+l_int32
+numaWindowedVariance(NUMA   *nam,
+                     NUMA   *nams,
+                     NUMA  **pnav,
+                     NUMA  **pnarv)
+{
+l_int32     i, nm, nms;
+l_float32   var;
+l_float32  *fam, *fams, *fav, *farv;
+NUMA       *nav, *narv;  /* variance and square root of variance */
+
+    PROCNAME("numaWindowedVariance");
+
+    if (!nam)
+        return ERROR_INT("nam not defined", procName, 1);
+    if (!nams)
+        return ERROR_INT("nams not defined", procName, 1);
+    if (!pnav && !pnarv)
+        return ERROR_INT("neither &nav nor &narv are defined", procName, 1);
+    nm = numaGetCount(nam);
+    nms = numaGetCount(nams);
+    if (nm != nms)
+        return ERROR_INT("sizes of nam and nams differ", procName, 1);
+
+    if (pnav) {
+        nav = numaMakeConstant(0, nm);
+        *pnav = nav;
+        fav = numaGetFArray(nav, L_NOCOPY);
+    }
+    if (pnarv) {
+        narv = numaMakeConstant(0, nm);
+        *pnarv = narv;
+        farv = numaGetFArray(narv, L_NOCOPY);
+    }
+    fam = numaGetFArray(nam, L_NOCOPY);
+    fams = numaGetFArray(nams, L_NOCOPY);
+
+    for (i = 0; i < nm; i++) {
+        var = fams[i] - fam[i] * fam[i];
+        if (pnav)
+            fav[i] = var;
+        if (pnarv)
+            farv[i] = (l_float32)sqrt(var);
+    }
+
+    return 0;
 }
 
 

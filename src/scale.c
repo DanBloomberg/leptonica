@@ -95,8 +95,6 @@
  *            component ordering.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -3051,8 +3049,8 @@ PIX       *pixd;
  *          partially opaque, using @fract.  Otherwise, it is cropped
  *          to pixs if required, and @fract is ignored.  The alpha
  *          channel in pixs is never used.
- *      (3) Colormaps are removed.
- *      (4) The default setting for the border values in the alpha channel
+ *      (4) Colormaps are removed.
+ *      (5) The default setting for the border values in the alpha channel
  *          is 0 (transparent) for the outermost ring of pixels and
  *          (0.5 * fract * 255) for the second ring.  When blended over
  *          a second image, this
