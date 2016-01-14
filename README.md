@@ -1,7 +1,9 @@
 # Leptonica Library #
 
-
 www.leptonica.org
+
+[![Build Status](https://travis-ci.org/DanBloomberg/leptonica.svg?branch=master)](https://travis-ci.org/DanBloomberg/leptonica)
+[![Build status](https://ci.appveyor.com/api/projects/status/vsk607rr6n4j2tmk?svg=true)](https://ci.appveyor.com/project/DanBloomberg/leptonica)
 
 
 ## The library supports many operations that are useful on ##
