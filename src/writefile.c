@@ -27,10 +27,14 @@
  *        l_int32    pixChooseOutputFormat()
  *        l_int32    getImpliedFileFormat()
  *
+ *     Write to memory
+ *        l_int32    pixWriteMem()
+ *
  *     Image display for debugging
  *        l_int32    pixDisplay()
  *        l_int32    pixDisplayWithTitle()
  *        l_int32    pixDisplayWrite()
+ *        l_int32    pixDisplayWriteFormat()
  */
 
 #include <stdio.h>
@@ -52,7 +56,8 @@ static const l_int32  MAX_DISPLAY_HEIGHT = 800;
     /* PostScript output for printing */
 static const l_float32  DEFAULT_SCALING = 1.0;
 
-    /* Global array of image file format extension names */
+    /* Global array of image file format extension names.
+     * This is in 1-1 corrspondence with format enum in imageio.h. */
 const char *ImageFileFormatExtensions[] = {"unknown",
                                            "bmp",
                                            "jpg",
@@ -63,7 +68,9 @@ const char *ImageFileFormatExtensions[] = {"unknown",
                                            "tif",
                                            "tif",
                                            "tif",
+                                           "tif",
                                            "pnm",
+                                           "gif",
                                            "ps"};
 
     /* Local map of image file name extension to output format */
@@ -80,6 +87,7 @@ static const struct ExtensionMap extension_map[] =
                               { ".tif",  IFF_TIFF      },    
                               { ".tiff", IFF_TIFF      },    
                               { ".pnm",  IFF_PNM       },    
+                              { ".gif",  IFF_GIF       },    
                               { ".ps",   IFF_PS        } };
 
 
@@ -216,6 +224,10 @@ pixWriteStream(FILE    *fp,
         return pixWriteStreamPnm(fp, pix);
         break;
 
+    case IFF_GIF:
+        return pixWriteStreamGif(fp, pix);
+        break;
+    
     case IFF_PS:
         return pixWriteStreamPS(fp, pix, NULL, 0, DEFAULT_SCALING);
         break;
@@ -359,6 +371,86 @@ l_int32  format = IFF_UNKNOWN;
 
 
 /*---------------------------------------------------------------------*
+ *                            Write to memory                          *
+ *---------------------------------------------------------------------*/
+/*! 
+ *  pixWriteMem()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *              format  (defined in imageio.h)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) On windows, this will only write tiff and PostScript to memory.
+ *          For other formats, it requires open_memstream(3).
+ *      (2) PostScript output is uncompressed, in hex ascii.
+ *          Most printers support level 2 compression (tiff_g4 for 1 bpp,
+ *          jpeg for 8 and 32 bpp).
+ */
+l_int32
+pixWriteMem(l_uint8  **pdata,
+            l_uint32  *psize,
+            PIX       *pix,
+            l_int32    format)
+{
+FILE  *fp;
+
+    PROCNAME("pixWriteMem");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    if (format == IFF_DEFAULT)
+        format = pixChooseOutputFormat(pix);
+
+    switch(format)
+    {
+    case IFF_BMP:
+        pixWriteMemBmp(pdata, psize, pix);
+        break;
+
+    case IFF_JFIF_JPEG:   /* default quality; baseline sequential */
+        return pixWriteMemJpeg(pdata, psize, pix, 75, 0);
+        break;
+    
+    case IFF_PNG:   /* no gamma value stored */
+        return pixWriteMemPng(pdata, psize, pix, 0.0);
+        break;
+    
+    case IFF_TIFF:           /* uncompressed */
+    case IFF_TIFF_PACKBITS:  /* compressed, binary only */
+    case IFF_TIFF_RLE:       /* compressed, binary only */
+    case IFF_TIFF_G3:        /* compressed, binary only */
+    case IFF_TIFF_G4:        /* compressed, binary only */
+    case IFF_TIFF_LZW:       /* compressed, all depths */
+    case IFF_TIFF_ZIP:       /* compressed, all depths */
+        return pixWriteMemTiff(pdata, (size_t *)psize, pix, format);
+        break;
+
+    case IFF_PNM:
+        return pixWriteMemPnm(pdata, psize, pix);
+        break;
+
+    case IFF_PS:
+        return pixWriteMemPS(pdata, psize, pix, NULL, 0, DEFAULT_SCALING);
+        break;
+    
+    default:
+        return ERROR_INT("unknown format", procName, 1);
+        break;
+    }
+
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
  *                       Image display for debugging                   *
  *---------------------------------------------------------------------*/
 /*!
@@ -480,6 +572,29 @@ PIX            *pixt;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
+ *      (1) This defaults to jpeg output for pix that are 32 bpp or
+ *          8 bpp without a colormap.  If you want to write all images
+ *          losslessly, use format == IFF_PNG in pixDisplayWriteFormat().
+ *      (2) See pixDisplayWriteFormat() for usage details.
+ */
+l_int32
+pixDisplayWrite(PIX     *pixs,
+                l_int32  reduction)
+{
+    return pixDisplayWriteFormat(pixs, reduction, IFF_JFIF_JPEG);
+}
+
+
+/*!
+ *  pixDisplayWriteFormat()
+ *
+ *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
+ *              reduction (-1 to reset/erase; 0 to disable;
+ *                         otherwise this is a reduction factor)
+ *              format (IFF_PNG or IFF_JFIF_JPEG)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
  *      (1) This writes files if reduction > 0.  These can be
  *          displayed, ordered in a tiled representation, with,
  *          for example, gthumb.
@@ -490,16 +605,26 @@ PIX            *pixt;
  *      (4) This function uses a static internal variable to number
  *          output files written by a single process.  Behavior
  *          with a shared library may be unpredictable.
- *      (5) Output is png if d < 8 or if the output pix has a colormap.
- *          Otherwise, output is jpg.
+ *      (5) Output file format is as follows:
+ *            format == IFF_JFIF_JPEG:
+ *                png if d < 8 or d == 16 or if the output pix
+ *                has a colormap.   Otherwise, output is jpg.
+ *            format == IFF_PNG:
+ *                png (lossless) on all images.
+ *      (6) For 16 bpp, the choice of full dynamic range with log scale
+ *          is the best for displaying these images.  Alternative outputs are
+ *             pix8 = pixMaxDynamicRange(pixt, L_LINEAR_SCALE);
+ *             pix8 = pixConvert16To8(pixt, 0);  // low order byte
+ *             pix8 = pixConvert16To8(pixt, 1);  // high order byte
  */
 l_int32
-pixDisplayWrite(PIX     *pixs,
-                l_int32  reduction)
+pixDisplayWriteFormat(PIX     *pixs,
+                      l_int32  reduction,
+                      l_int32  format)
 {
 char            buffer[L_BUF_SIZE];
 l_float32       scale;
-PIX            *pixt;
+PIX            *pixt, *pix8;
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     PROCNAME("pixDisplayWrite");
@@ -511,6 +636,8 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
 	return 0;
     }
 
+    if (format != IFF_JFIF_JPEG && format != IFF_PNG)
+        return ERROR_INT("invalid format", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
@@ -531,13 +658,19 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
             pixt = pixScale(pixs, scale, scale);
     }
 
-    if (pixGetDepth(pixt) < 8 || pixGetColormap(pixt)) {
+    if (pixGetDepth(pixt) == 16) {
+        pix8 = pixMaxDynamicRange(pixt, L_LOG_SCALE);
+        snprintf(buffer, L_BUF_SIZE, "junk_write_display.%03d.png", index);
+        pixWrite(buffer, pix8, IFF_PNG);
+        pixDestroy(&pix8);
+    }
+    else if (pixGetDepth(pixt) < 8 || pixGetColormap(pixt)) {
         snprintf(buffer, L_BUF_SIZE, "junk_write_display.%03d.png", index);
         pixWrite(buffer, pixt, IFF_PNG);
     }
     else {
         snprintf(buffer, L_BUF_SIZE, "junk_write_display.%03d.jpg", index);
-        pixWrite(buffer, pixt, IFF_JFIF_JPEG);
+        pixWrite(buffer, pixt, format);
     }
     pixDestroy(&pixt);
 

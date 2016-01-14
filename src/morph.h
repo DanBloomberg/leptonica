@@ -104,6 +104,14 @@ enum {
 };
 
 /*
+ *  Use in distance function
+ */
+enum {
+    L_BOUNDARY_BG = 1,  /* assume bg outside image */
+    L_BOUNDARY_FG = 2   /* assume fg outside image */
+};
+
+/*
  *  Use in comparison of two images
  */
 enum {

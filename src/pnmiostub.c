@@ -22,22 +22,29 @@
  *     Stubs for pnmio.c functions
  */
 
-PIX * pixReadStreamPnm ( FILE *fp )
+PIX * pixReadStreamPnm(FILE *fp)
 {
-    PROCNAME("pixReadStreamPnm");
-    return (PIX * )ERROR_PTR("function not present", procName, NULL);
+    return (PIX * )ERROR_PTR("function not present", "pixReadStreamPnm", NULL);
 }
 
-l_int32 pixWriteStreamPnm ( FILE *fp, PIX *pix )
+l_int32 pixWriteStreamPnm(FILE *fp, PIX *pix)
 {
-    PROCNAME("pixWriteStreamPnm");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWriteStreamPnm", 1);
 }
 
-l_int32 pixWriteStreamAsciiPnm ( FILE *fp, PIX *pix )
+l_int32 pixWriteStreamAsciiPnm(FILE *fp, PIX *pix)
 {
-    PROCNAME("pixWriteStreamAsciiPnm");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWriteStreamAsciiPnm", 1);
 }
 
+PIX * pixReadMemPnm(const l_uint8 *cdata, l_uint32 size)
+{
+    return (PIX * )ERROR_PTR("function not present", "pixReadMemPnm", NULL);
+}
+
+
+l_int32 pixWriteMemPnm(l_uint8 **pdata, l_uint32 *psize, PIX *pix)
+{
+    return ERROR_INT("function not present", "pixWritememPnm", 1);
+}
 

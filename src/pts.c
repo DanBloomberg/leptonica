@@ -69,6 +69,7 @@
  *
  *      In use
  *           BOX      *ptaGetExtent()
+ *           PTA      *ptaGetInsideBox()
  *           PTA      *pixFindCornerPixels()
  *           l_int32   pixPlotAlongPta()
  *           l_int32   ptaContainsPt()
@@ -1246,6 +1247,42 @@ l_int32  n, i, x, y, minx, maxx, miny, maxy;
     }
 
     return boxCreate(minx, miny, maxx - minx + 1, maxy - miny + 1);
+}
+
+
+/*!
+ *  ptaGetInsideBox()
+ *
+ *      Input:  ptas (input pts)
+ *              box
+ *      Return: ptad (of pts in ptas that are inside the box),
+ *              or null on error
+ */
+PTA *
+ptaGetInsideBox(PTA  *ptas,
+                BOX  *box)
+{
+PTA       *ptad;
+l_int32    n, i, contains;
+l_float32  x, y;
+
+    PROCNAME("ptaGetInsideBox");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+    if (!box)
+        return (PTA *)ERROR_PTR("box not defined", procName, NULL);
+
+    n = ptaGetCount(ptas);
+    ptad = ptaCreate(0);
+    for (i = 0; i < n; i++) {
+        ptaGetPt(ptas, i, &x, &y);
+        boxContainsPt(box, x, y, &contains);
+        if (contains)
+            ptaAddPt(ptad, x, y);
+    }
+
+    return ptad;
 }
 
 

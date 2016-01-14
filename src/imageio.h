@@ -40,7 +40,8 @@ enum {
     IFF_TIFF_ZIP       = 10,
     IFF_PNM            = 11,
     IFF_PS             = 12,
-    IFF_DEFAULT        = 13
+    IFF_GIF            = 13,
+    IFF_DEFAULT        = 14
 };
 
 

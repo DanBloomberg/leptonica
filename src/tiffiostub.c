@@ -22,69 +22,68 @@
  *     Stubs for tiffio.c functions
  */
 
-PIX * pixReadTiff ( const char *filename, l_int32 n )
+PIX * pixReadTiff(const char *filename, l_int32 n)
 {
-    PROCNAME("pixReadTiff");
-    return (PIX * )ERROR_PTR("function not present", procName, NULL);
+    return (PIX * )ERROR_PTR("function not present", "pixReadTiff", NULL);
 }
 
-PIX * pixReadStreamTiff ( FILE *fp, l_int32 n )
+PIX * pixReadStreamTiff(FILE *fp, l_int32 n)
 {
-    PROCNAME("pixReadStreamTiff");
-    return (PIX * )ERROR_PTR("function not present", procName, NULL);
+    return (PIX * )ERROR_PTR("function not present", "pixReadStreamTiff", NULL);
 }
 
-l_int32 pixWriteTiffCustom ( const char *filename, PIX *pix, l_int32 comptype, const char *modestring, NUMA *natags, SARRAY *savals, SARRAY *satypes, NUMA *nasizes )
+l_int32 pixWriteTiff(const char *filename, PIX *pix, l_int32 comptype, const char *modestring)
 {
-    PROCNAME("pixWriteTiffCustom");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWriteTiff", 1);
 }
 
-l_int32 pixWriteTiff ( const char *filename, PIX *pix, l_int32 comptype, const char *modestring )
+l_int32 pixWriteTiffCustom(const char *filename, PIX *pix, l_int32 comptype, const char *modestring, NUMA *natags, SARRAY *savals, SARRAY *satypes, NUMA *nasizes)
 {
-    PROCNAME("pixWriteTiff");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWriteTiffCustom", 1);
 }
 
-l_int32 pixWriteStreamTiff ( FILE *fp, PIX *pix, l_int32 comptype )
+l_int32 pixWriteStreamTiff(FILE *fp, PIX *pix, l_int32 comptype)
 {
-    PROCNAME("pixWriteStreamTiff");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWriteStreamTiff", 1);
 }
 
-l_int32 pixWriteToTiffStream ( TIFF *tif, PIX *pix, l_int32 comptype, NUMA *natags, SARRAY *savals, SARRAY *satypes, NUMA *nasizes )
+l_int32 fprintTiffInfo(FILE *fpout, const char *tiffile)
 {
-    PROCNAME("pixWriteToTiffStream");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "fprintTiffInfo", 1);
 }
 
-l_int32 fprintTiffInfo ( FILE *fpout, const char *tiffile )
+l_int32 tiffGetCount(FILE *fp, l_int32 *pn)
 {
-    PROCNAME("fprintTiffInfo");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "tiffGetCount", 1);
 }
 
-l_int32 tiffGetCount ( FILE *fp, l_int32 *pn )
+l_int32 readHeaderTiff(const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap)
 {
-    PROCNAME("tiffGetCount");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "readHeaderTiff", 1);
 }
 
-l_int32 readHeaderTiff ( const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap )
+l_int32 freadHeaderTiff(FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap)
 {
-    PROCNAME("readHeaderTiff");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "freadHeaderTiff", 1);
 }
 
-l_int32 freadHeaderTiff ( FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap )
+l_int32 findTiffCompression(FILE *fp, l_int32 *pcomp)
 {
-    PROCNAME("freadHeaderTiff");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "findTiffCompression", 1);
 }
 
-l_int32 findTiffCompression ( FILE *fp, l_int32 *pcomp )
+PIX * pixReadMemTiff(const l_uint8 *cdata, size_t size, l_int32 n)
 {
-    PROCNAME("findTiffCompression");
-    return ERROR_INT("function not present", procName, 1);
+    return (PIX *)ERROR_PTR("function not present", "pixReadMemTiff", NULL);
+}
+
+l_int32 pixWriteMemTiff(l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 comptype)
+{
+    return ERROR_INT("function not present", "pixWriteMemTiff", 1);
+}
+
+l_int32 pixWriteMemTiffCustom(l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 comptype, NUMA *natags, SARRAY *savals, SARRAY *satypes, NUMA *nasizes)
+{
+    return ERROR_INT("function not present", "pixWriteMemTiffCustom", 1);
 }
 

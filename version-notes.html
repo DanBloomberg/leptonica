@@ -16,7 +16,53 @@
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
 <hr>
 
+<p>
+Note: The following are only the highlights of the changes in each
+version.  They are <i>not</i> a complete listing of the modifications.
+
 <pre>
+
+1.54   21 Jan 08
+       Histogram equalization (enhance.c).
+       New functions for pixaa: serialization (r/w), creation
+       from pixa, and a tiled/scaled display into a pixa (pixabasic.c,
+       pixafunc.c).
+       Read/write of tiff to memory (instead of a file, using
+       the TIFFClientOpen() callback interface), contributed by Adam
+       Langley (tiffio.c, testing in prog/ioformats_reg).
+       Improved image statistics functions, both over tiles and
+       through a mask over the entire image.  Added standard deviation
+       and variance; enable statistics for rgb and colormapped images,
+       in addition to 8 bpp grayscale (pix3.c).  New function to
+       extract rgb components from a colormapped image (pix2.c).
+       Fix pixWriteStringPS() to work with all depths and colormap (psio.c)
+       Enable all non-tiff formats to also write and read to/from memory (*io.c)
+       Added support for read/write to gif, contributed by Tony Dovgal
+       (gifio.c, gifiostub.c, imageio.h).  See Makefile for instructions
+       on enabling this.
+
+1.53   29 Dec 07
+       Add 4th arg to pixDistanceFunction() to specify b.c.,
+       and fixed output to 16 bpp grayscale pix. (seedfill*.c)
+       New un-normalized block grayscale convolution (convolve.c)
+       Fixed bug in getLogBase2(), so that pixMaxDynamicRange() works
+       properly.  This is useful for displaying a 16 bpp pix as
+       8 bpp (pixarith.c).  New function for getting rank val for
+       rgb over a region specified by a mask (pix3.c).  New function
+       for extremem values of rgb colormap (colormap.c).  New
+       function pixGlobalNormNoSatRGB(), a variant of pixGlobalNormRGB()
+       that prevents saturation for any component above a specified
+       rank value (adaptmap.c).  Added mechanism for memory
+       management of pix (pix1.c).  Added selective morphology by
+       region given by a mask (morphapp.c).  Fixed prototype extracdtion
+       to work properly with function prototypes as args; released
+       version 1.2 of xtractprotos (parseprotos.c, xtractprotos.c).
+       Add a boxa field for pixaa, along with serialization (pixabasic.c),
+       and modified display of pixaa to include this (pixafunc.c).
+       Coalesced the version numbers for pixa, pixaa, boxa, and boxaa
+       serialization (pix.h).
+       New progs: modifyhuesat displays modified versions on a grid;
+       textlinemask shows simple methods for extracting textline masks.
 
 1.52   25 Nov 07
        Implemented Breuel's whitespace partitioning algorithm (partition.c).

@@ -22,10 +22,10 @@
  *      static PIX       *pixReadFromTiffStream()
  *
  *     Writing tiff:
- *             l_int32    pixWriteTiffCustom()   [ special top level ]
  *             l_int32    pixWriteTiff()   [ special top level ]
+ *             l_int32    pixWriteTiffCustom()   [ special top level ]
  *             l_int32    pixWriteStreamTiff()
- *             l_int32    pixWriteToTiffStream()
+ *      static l_int32    pixWriteToTiffStream()
  *      static l_int32    writeCustomTiffTags()
  *
  *     Information about tiff file
@@ -37,6 +37,12 @@
  *
  *     Open tiff stream from file stream
  *      static TIFF      *fopenTiff()
+ *
+ *     Memory I/O: reading memory --> pix and writing pix --> memory
+ *             [10 static helper functions]
+ *             l_int32    pixReadMemTiff();
+ *             l_int32    pixWriteMemTiff();
+ *             l_int32    pixWriteMemTiffCustom();
  */
 
 #include <stdio.h>
@@ -48,31 +54,35 @@
 #include "allheaders.h"
 
 static const l_int32  DEFAULT_RESOLUTION = 300;   /* ppi */
-static const l_int32  MAX_PAGES_IN_TIFF_FILE = 1000;  /* should be enough */
+static const l_int32  MAX_PAGES_IN_TIFF_FILE = 3000;  /* should be enough */
 
 
-    /* All functions with TIFF interfaces are static */
-static TIFF      *fopenTiff(FILE *fp, const char *modestr); 
+    /* All functions with TIFF interfaces are static. */
 static PIX       *pixReadFromTiffStream(TIFF *tif);
 static l_int32    writeCustomTiffTags(TIFF *tif, NUMA *natags,
                                       SARRAY *savals, SARRAY  *satypes,
                                       NUMA *nasizes);
+static l_int32    pixWriteToTiffStream(TIFF *tif, PIX *pix, l_int32 comptype,
+                                       NUMA *natags, SARRAY *savals,
+                                       SARRAY *satypes, NUMA *nasizes);
+static TIFF      *fopenTiff(FILE *fp, const char *modestr); 
+
 
     /* This structure defines a transform to be performed on a TIFF image
-     * (note that the same transformation can be represented in several different
-     * ways using this structure since vflip+hflip+counterclockwise ==
-     * clockwise) */
+     * (note that the same transformation can be represented in
+     * several different ways using this structure since
+     * vflip + hflip + counterclockwise == clockwise). */
 struct tiff_transform {
-    int vflip;  /* if non-zero, image needs a vertical fip */
-    int hflip;  /* if non-zero, image needs a horizontal flip */
-    int rotate; /* -1 -> counterclockwise 90-degree rotation,
-                  0 -> no rotation
-                  1 -> clockwise 90-degree rotation */
+    int vflip;    /* if non-zero, image needs a vertical fip */
+    int hflip;    /* if non-zero, image needs a horizontal flip */
+    int rotate;   /* -1 -> counterclockwise 90-degree rotation,
+                      0 -> no rotation
+                      1 -> clockwise 90-degree rotation */
 };
 
     /* This describes the transformations needed for a given orientation
-     * tag. This tag values start at 1, so you need to subtract 1 to get a
-     * valid index into this array */
+     * tag.  The tag values start at 1, so you need to subtract 1 to get a
+     * valid index into this array. */
 static struct tiff_transform tiff_orientation_transforms[] = {
     {0, 0, 0},
     {0, 1, 0},
@@ -83,6 +93,7 @@ static struct tiff_transform tiff_orientation_transforms[] = {
     {0, 1, 1},
     {0, 0, -1}
 };
+
 
 
 /*--------------------------------------------------------------*
@@ -134,7 +145,7 @@ PIX     *pix;
  *  pixReadStreamTiff()
  *
  *      Input:  stream
- *              page number (0 based: start with 0)
+ *              n (page number: 0 based)
  *      Return: pix, or null on error (e.g., if the page number is invalid)
  */
 PIX *
@@ -223,8 +234,10 @@ PIXCMAP   *cmap;
     if ((linebuf = (l_uint8 *)CALLOC(tiffbpl + 1, sizeof(l_uint8))) == NULL)
         return (PIX *)ERROR_PTR("calloc fail for linebuf", procName, NULL);
         
-    if ((pix = pixCreate(w, h, d)) == NULL)
+    if ((pix = pixCreate(w, h, d)) == NULL) {
+        FREE(linebuf);
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+    }
     data = (l_uint8 *)pixGetData(pix);
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
@@ -232,8 +245,11 @@ PIXCMAP   *cmap;
         /* Read the data */
     if (spp == 1) {
         for (i = 0 ; i < h ; i++) {
-            if (TIFFReadScanline(tif, linebuf, i, 0) < 0)
+            if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
+                FREE(linebuf);
+                pixDestroy(&pix);
                 return (PIX *)ERROR_PTR("line read fail", procName, NULL);
+            }
             memcpy((char *)data, (char *)linebuf, tiffbpl);
             data += bpl;
         }
@@ -246,8 +262,11 @@ PIXCMAP   *cmap;
         line = pixGetData(pix);
         for (i = 0 ; i < h ; i++, line += wpl)
         {
-            if (TIFFReadScanline(tif, linebuf, i, 0) < 0)
+            if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
+                FREE(linebuf);
+                pixDestroy(&pix);
                 return (PIX *)ERROR_PTR("line read fail", procName, NULL);
+            }
             for (j = 0, k = 0, ppixel = line; j < w; j++) {
                 SET_DATA_BYTE(ppixel, COLOR_RED, linebuf[k++]);
                 SET_DATA_BYTE(ppixel, COLOR_GREEN, linebuf[k++]);
@@ -271,8 +290,11 @@ PIXCMAP   *cmap;
              * tiff colormap components are 16 bit unsigned,
              * and go from black (0) to white (0xffff), the
              * the pix cmap takes the most significant byte. */
-        if ((cmap = pixcmapCreate(bps)) == NULL)
+        if ((cmap = pixcmapCreate(bps)) == NULL) {
+            FREE(linebuf);
+            pixDestroy(&pix);
             return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
+        }
         ncolors = 1 << bps;
         for (i = 0; i < ncolors; i++)
             pixcmapAddColor(cmap, redmap[i] >> 8, greenmap[i] >> 8,
@@ -308,6 +330,32 @@ PIXCMAP   *cmap;
 /*--------------------------------------------------------------*
  *                       Writing to file                        *
  *--------------------------------------------------------------*/
+/*! 
+ *  pixWriteTiff()
+ *
+ *      Input:  filename (to write to)
+ *              pix
+ *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
+ *                        IFF_TIFF_G3, IFF_TIFF_G4,
+ *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
+ *              modestring ("a" or "w")
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) For multi-page tiff, write the first pix with mode "w" and
+ *          all subsequent pix with mode "a".
+ */
+l_int32
+pixWriteTiff(const char  *filename,
+             PIX         *pix,
+             l_int32      comptype,
+             const char  *modestring)
+{
+    return pixWriteTiffCustom(filename, pix, comptype, modestring,
+                              NULL, NULL, NULL, NULL);
+}
+
+
 /*! 
  *  pixWriteTiffCustom()
  *
@@ -382,46 +430,6 @@ TIFF    *tif;
 
     return ret;
 }
-
-
-/*! 
- *  pixWriteTiff()
- *
- *      Input:  filename (to write to)
- *              pix
- *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
- *                        IFF_TIFF_G3, IFF_TIFF_G4,
- *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
- *              modestring ("a" or "w")
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) Write the first pix with "w" and all subsequent ones with "a".
- */
-l_int32
-pixWriteTiff(const char  *filename,
-             PIX         *pix,
-             l_int32      comptype,
-             const char  *modestring)
-{
-l_int32  ret;
-TIFF    *tif;
-
-    PROCNAME("pixWriteTiff");
-
-    if (!filename)
-        return ERROR_INT("filename not defined", procName, 1 );
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1 );
-
-    if ((tif = TIFFOpen(filename, modestring)) == NULL)
-        return ERROR_INT("tif not opened", procName, 1);
-    ret = pixWriteToTiffStream(tif, pix, comptype, NULL, NULL, NULL, NULL);
-    TIFFClose(tif);
-
-    return ret;
-}
-
 
 
 /*--------------------------------------------------------------*
@@ -499,15 +507,16 @@ TIFF  *tif;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This static function should be called through higher level
- *          functions, such as pixWriteTiffCustom(), pixWriteTiff(), or
- *          pixWriteStreamTiff().
+ *      (1) This static function should only be called through higher
+ *          level functions in this file; namely, pixWriteTiffCustom(),
+ *          pixWriteTiff(), pixWriteStreamTiff(), pixWriteMemTiff()
+ *          and pixWriteMemTiffCustom().
  *      (2) We only allow PACKBITS for bpp = 1, because for bpp > 1
  *          it typically expands images that are not synthetically generated.
  *      (3) See pixWriteTiffCustom() for details on how to use
  *          the last four parameters for customized tiff tags.
  */
-l_int32
+static l_int32
 pixWriteToTiffStream(TIFF    *tif,
                      PIX     *pix,
                      l_int32  comptype,
@@ -533,9 +542,7 @@ char      *text;
     if (!pix)
         return ERROR_INT( "pix not defined", procName, 1 );
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
-    d = pixGetDepth(pix);
+    pixGetDimensions(pix, &w, &h, &d);
     xres = pixGetXRes(pix);
     yres = pixGetYRes(pix);
     if (xres == 0) xres = DEFAULT_RESOLUTION;
@@ -1080,4 +1087,406 @@ l_int32  fd;
 
     return TIFFFdOpen(fd, "TIFFstream", modestring);
 }
+
+
+/*----------------------------------------------------------------------*
+ *     Memory I/O: reading memory --> pix and writing pix --> memory    *
+ *----------------------------------------------------------------------*/
+/*  It would be nice to use open_memstream() and fmemopen()
+ *  for writing and reading to memory, rsp.  These functions manage
+ *  memory for writes and reads that use a file streams interface.
+ *  Unfortunately, the tiff library only has an interface for reading
+ *  and writing to file descriptors, not to file streams.  The tiff
+ *  library procedure is to open a "tiff stream" and read/write to it.
+ *  The library provides a client interface for managing the I/O
+ *  from memory, which requires seven callbacks.  See the TIFFClientOpen
+ *  man page for callback signatures.  Adam Langley provided the code
+ *  to do this.  */
+
+/*
+ *  The L_Memstram @buffer has different functions in writing and reading.
+ *
+ *     * In reading, it is assigned to the data and read from as
+ *       the tiff library uncompresses the data and generates the pix.
+ *       The @offset points to the current read position in the data,
+ *       and the @hw always gives the number of bytes of data.
+ *       The @outdata and @outsize ptrs are not used.
+ *       When finished, tiffCloseCallback() simply frees the L_Memstream.
+ *
+ *     * In writing, it accepts the data that the tiff library
+ *       produces when a pix is compressed.  the buffer points to a
+ *       malloced area of @bufsize bytes.  The current writing position
+ *       in the buffer is @offset and the most ever written is @hw.
+ *       The buffer is expanded as necessary.  When finished,
+ *       tiffCloseCallback() assigns the @outdata and @outsize ptrs
+ *       to the @buffer and @bufsize results, and frees the L_Memstream.
+ */
+struct L_Memstream
+{
+    l_uint8   *buffer;    /* expands to hold data when written to;         */
+                          /* fixed size when read from.                    */
+    size_t     bufsize;   /* current size allocated when written to;       */
+                          /* fixed size of input data when read from.      */
+    size_t     offset;    /* byte offset from beginning of buffer.         */
+    size_t     hw;        /* high-water mark; max bytes in buffer.         */
+    l_uint8  **poutdata;  /* input param for writing; data goes here.      */
+    size_t    *poutsize;  /* input param for writing; data size goes here. */
+};
+typedef struct L_Memstream  L_MEMSTREAM;
+
+
+    /* These are static functions for memory I/O */
+static L_MEMSTREAM *memstreamCreateForRead(l_uint8 *indata, size_t pinsize);
+static L_MEMSTREAM *memstreamCreateForWrite(l_uint8 **poutdata,
+                                            size_t *poutsize);
+static tsize_t tiffReadCallback(thandle_t handle, tdata_t data, tsize_t length);
+static tsize_t tiffWriteCallback(thandle_t handle, tdata_t data,
+                                 tsize_t length);
+static toff_t tiffSeekCallback(thandle_t handle, toff_t offset, l_int32 whence);
+static l_int32 tiffCloseCallback(thandle_t handle);
+static toff_t tiffSizeCallback(thandle_t handle);
+static l_int32 tiffMapCallback(thandle_t handle, tdata_t *data, toff_t *length);
+static void tiffUnmapCallback(thandle_t handle, tdata_t data, toff_t length);
+static TIFF *fopenTiffMemstream(const char *filename, const char *operation,
+                                l_uint8 **pdata, size_t *pdatasize);
+
+
+static L_MEMSTREAM *
+memstreamCreateForRead(l_uint8  *indata,
+                       size_t    insize)
+{
+L_MEMSTREAM  *mstream;
+
+    PROCNAME("memstreamCreateForRead");
+
+    mstream = (L_MEMSTREAM *)CALLOC(1, sizeof(L_MEMSTREAM));
+    mstream->buffer = indata;   /* handle to input data array */
+    mstream->bufsize = insize;  /* amount of input data */
+    mstream->hw = insize;       /* high-water mark fixed at input data size */
+    mstream->offset = 0;        /* offset always starts at 0 */
+    return mstream;
+}
+
+
+static L_MEMSTREAM *
+memstreamCreateForWrite(l_uint8  **poutdata,
+                        size_t    *poutsize)
+{
+L_MEMSTREAM  *mstream;
+
+    PROCNAME("memstreamCreateForWrite");
+
+    mstream = (L_MEMSTREAM *)CALLOC(1, sizeof(L_MEMSTREAM));
+    mstream->buffer = (l_uint8 *)CALLOC(8 * 1024, 1);
+    mstream->bufsize = 8 * 1024;
+    mstream->poutdata = poutdata;  /* used only at end of write */
+    mstream->poutsize = poutsize;  /* ditto  */
+    mstream->hw = mstream->offset = 0;
+    return mstream;
+}
+
+
+static tsize_t
+tiffReadCallback(thandle_t  handle,
+                 tdata_t    data,
+                 tsize_t    length)
+{
+L_MEMSTREAM  *mstream;
+size_t        amount;
+
+    mstream = (L_MEMSTREAM *)handle;
+    amount = L_MIN((size_t)length, mstream->hw - mstream->offset);
+    memcpy(data, mstream->buffer + mstream->offset, amount);
+    mstream->offset += amount;
+    return amount;
+}
+
+
+static tsize_t
+tiffWriteCallback(thandle_t  handle,
+                  tdata_t    data,
+                  tsize_t    length)
+{
+L_MEMSTREAM  *mstream;
+size_t        newsize;
+
+        /* reallocNew() uses calloc to initialize the array.
+         * If malloc is used instead, for some of the encoding methods,
+         * not all the data in 'bufsize' bytes in the buffer will
+         * have been initialized by the end of the compression. */
+    mstream = (L_MEMSTREAM *)handle;
+    if (mstream->offset + length > mstream->bufsize) {
+        newsize = 2 * (mstream->offset + length);
+        mstream->buffer = (l_uint8 *)reallocNew((void **)&mstream->buffer,
+                                                mstream->offset, newsize);
+        mstream->bufsize = newsize;
+    }
+
+    memcpy(mstream->buffer + mstream->offset, data, length);
+    mstream->offset += length;
+    mstream->hw = L_MAX(mstream->offset, mstream->hw);
+    return length;
+}
+
+
+static toff_t
+tiffSeekCallback(thandle_t  handle,
+                 toff_t     offset,
+                 l_int32    whence)
+{
+L_MEMSTREAM  *mstream;
+
+    PROCNAME("tiffSeekCallback");
+    mstream = (L_MEMSTREAM *)handle;
+    switch (whence) {
+        case SEEK_SET:
+/*            fprintf(stderr, "seek_set: offset = %d\n", offset); */
+            mstream->offset = offset;
+            break;
+        case SEEK_CUR:
+/*            fprintf(stderr, "seek_cur: offset = %d\n", offset); */
+            mstream->offset += offset;
+            break;
+        case SEEK_END:
+/*            fprintf(stderr, "seek end: hw = %d, offset = %d\n",
+                    mstream->hw, offset); */
+            mstream->offset = mstream->hw - offset;  /* offset >= 0 */
+            break;
+        default:
+            return (toff_t)ERROR_INT("bad whence value", procName,
+                                     mstream->offset);
+    }
+
+    return mstream->offset;
+}
+
+
+static l_int32
+tiffCloseCallback(thandle_t  handle)
+{
+L_MEMSTREAM  *mstream;
+
+    mstream = (L_MEMSTREAM *)handle;
+    if (mstream->poutdata) {   /* writing: save the output data */
+        *mstream->poutdata = mstream->buffer;
+        *mstream->poutsize = mstream->hw;
+    }
+    FREE(mstream);  /* never free the buffer! */
+    return 0;
+}
+
+
+static toff_t
+tiffSizeCallback(thandle_t  handle)
+{
+L_MEMSTREAM  *mstream;
+
+    mstream = (L_MEMSTREAM *)handle;
+    return mstream->hw;
+}
+
+
+static l_int32
+tiffMapCallback(thandle_t  handle,
+                tdata_t   *data,
+                toff_t    *length)
+{
+L_MEMSTREAM  *mstream;
+
+    mstream = (L_MEMSTREAM *)handle;
+    *data = mstream->buffer;
+    *length = mstream->hw;
+    return 0;
+} 
+
+
+static void
+tiffUnmapCallback(thandle_t  handle,
+                  tdata_t    data,
+                  toff_t     length)
+{
+    return;
+} 
+
+
+/*!
+ *  fopenTiffMemstream()
+ *
+ *      Input:  filename (for error output; can be "")
+ *              operation ("w" for write, "r" for read)
+ *              &data (<return> written data)
+ *              &datasize (<return> size of written data)
+ *      Return: tiff (data structure, opened for write to memory)
+ *
+ *  Notes:
+ *      (1) This wraps up a number of callbacks for either:
+ *            * reading from tiff in memory buffer --> pix
+ *            * writing from pix --> tiff in memory buffer
+ *      (2) After use, the memstream is automatically destroyed when
+ *          TIFFClose() is called.
+ */
+static TIFF *
+fopenTiffMemstream(const char  *filename,
+                   const char  *operation,
+                   l_uint8    **pdata,
+                   size_t      *pdatasize)
+{
+L_MEMSTREAM  *mstream;
+
+    PROCNAME("fopenTiffMemstream");
+
+    if (!filename)
+        return (TIFF *)ERROR_PTR("filename not defined", procName, NULL);
+    if (!operation)
+        return (TIFF *)ERROR_PTR("operation not defined", procName, NULL);
+    if (!pdata)
+        return (TIFF *)ERROR_PTR("&data not defined", procName, NULL);
+    if (!pdatasize)
+        return (TIFF *)ERROR_PTR("&datasize not defined", procName, NULL);
+    if (!strcmp(operation, "r") && !strcmp(operation, "w"))
+        return (TIFF *)ERROR_PTR("operation not 'r' or 'w'}", procName, NULL);
+
+    if (!strcmp(operation, "r"))
+        mstream = memstreamCreateForRead(*pdata, *pdatasize);
+    else
+        mstream = memstreamCreateForWrite(pdata, pdatasize);
+
+    return TIFFClientOpen(filename, operation, mstream,
+                          tiffReadCallback, tiffWriteCallback,
+                          tiffSeekCallback, tiffCloseCallback,
+                          tiffSizeCallback, tiffMapCallback,
+                          tiffUnmapCallback);
+}
+
+
+/*!
+ *  pixReadMemTiff()
+ *
+ *      Input:  data (const; tiff-encoded)
+ *              datasize (size of data)
+ *              n (page number: 0 based)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) This is a version of pixReadTiff(), where the data is read
+ *          from a memory buffer and uncompressed.
+ */
+PIX *
+pixReadMemTiff(const l_uint8  *cdata,
+               size_t          size,
+               l_int32         n)
+{
+l_uint8  *data;
+l_int32   i, pagefound;
+PIX      *pix;
+TIFF     *tif;
+
+    PROCNAME("pixReadMemTiff");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    tif = fopenTiffMemstream("tifferror", "r", &data, &size);
+
+    pagefound = FALSE;
+    pix = NULL;
+    for (i = 0; i < MAX_PAGES_IN_TIFF_FILE; i++) {
+        if (i == n) {
+            pagefound = TRUE;
+            pix = pixReadFromTiffStream(tif);
+            pixSetInputFormat(pix, IFF_TIFF);
+            break;
+        }
+        if (TIFFReadDirectory(tif) == 0)
+            break;
+    }
+
+    if (pagefound == FALSE)
+        L_WARNING_INT("tiff page %d not found", procName, n);
+
+    TIFFClose(tif);
+    return pix;
+}
+
+
+/*! 
+ *  pixWriteMemTiff()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
+ *                        IFF_TIFF_G3, IFF_TIFF_G4,
+ *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Usage:
+ *      (1) See pixWriteTiff().  This version writes to
+ *          memory instead of to a file.
+ */
+l_int32
+pixWriteMemTiff(l_uint8  **pdata,
+                size_t    *psize,
+                PIX       *pix,
+                l_int32    comptype)
+{
+    return pixWriteMemTiffCustom(pdata, psize, pix, comptype,
+                                 NULL, NULL, NULL, NULL);
+}
+
+
+/*! 
+ *  pixWriteMemTiffCustom()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
+ *                        IFF_TIFF_G3, IFF_TIFF_G4,
+ *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
+ *              natags (<optional> NUMA of custom tiff tags)
+ *              savals (<optional> SARRAY of values)
+ *              satypes (<optional> SARRAY of types)
+ *              nasizes (<optional> NUMA of sizes)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Usage:
+ *      (1) See pixWriteTiffCustom().  This version writes to
+ *          memory instead of to a file.
+ */
+l_int32
+pixWriteMemTiffCustom(l_uint8  **pdata,
+                      size_t    *psize,
+                      PIX       *pix,
+                      l_int32    comptype,
+                      NUMA      *natags,
+                      SARRAY    *savals,
+                      SARRAY    *satypes,
+                      NUMA      *nasizes)
+{
+l_int32  ret;
+TIFF    *tif;
+
+    PROCNAME("pixWriteMemTiffCustom");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+    if (pixGetDepth(pix) != 1 && comptype != IFF_TIFF &&
+        comptype != IFF_TIFF_LZW && comptype != IFF_TIFF_ZIP) {
+        L_WARNING("invalid compression type for image with bpp > 1", procName);
+        comptype = IFF_TIFF;
+    }
+
+    tif = fopenTiffMemstream("tifferror", "w", pdata, psize);
+    ret = pixWriteToTiffStream(tif, pix, comptype, natags, savals,
+                               satypes, nasizes);
+    TIFFClose(tif);
+    return ret;
+}
+
 

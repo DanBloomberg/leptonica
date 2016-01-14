@@ -50,21 +50,30 @@
  *
  *      Pixaa creation, destruction
  *           PIXAA    *pixaaCreate()
+ *           PIXAA    *pixaaCreateFromPixa()
  *           void      pixaaDestroy()
  *
  *      Pixaa addition
  *           l_int32   pixaaAddPixa()
  *           l_int32   pixaaExtendArray()
+ *           l_int32   pixaaAddBox()
  *
  *      Pixaa accessors
  *           l_int32   pixaaGetCount()
  *           PIXA     *pixaaGetPixa()
+ *           BOXA     *pixaaGetBoxa()
  *
  *      Pixa serialized I/O
  *           PIXA     *pixaRead()
  *           PIXA     *pixaReadStream()
  *           l_int32   pixaWrite()
  *           l_int32   pixaWriteStream()
+ *
+ *      Pixaa serialized I/O
+ *           PIXAA    *pixaaRead()
+ *           PIXAA    *pixaaReadStream()
+ *           l_int32   pixaaWrite()
+ *           l_int32   pixaaWriteStream()
  *
  *   
  *   Important note on reference counting:
@@ -110,7 +119,6 @@ PIXA  *pixa;
     
     if ((pixa->pix = (PIX **)CALLOC(n, sizeof(PIX *))) == NULL)
         return (PIXA *)ERROR_PTR("pix ptrs not made", procName, NULL);
-
     if ((pixa->boxa = boxaCreate(n)) == NULL)
         return (PIXA *)ERROR_PTR("boxa not made", procName, NULL);
 
@@ -221,7 +229,8 @@ PIXA    *pixad;
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_COPY);
         if (cropwarn) {  /* if box is outside pixs, pixd is NULL */
-            if (pixd = pixClipRectangle(pixs, box, &boxc)) {  /* may be NULL */
+            pixd = pixClipRectangle(pixs, box, &boxc);  /* may be NULL */
+            if (pixd) {
                 pixaAddPix(pixad, pixd, L_INSERT);
                 pixaAddBox(pixad, boxc, L_INSERT);
             }
@@ -503,8 +512,6 @@ pixaAddBox(PIXA    *pixa,
         return ERROR_INT("box not defined", procName, 1);
     if (copyflag != L_INSERT && copyflag != L_COPY && copyflag != L_CLONE)
         return ERROR_INT("invalid copyflag", procName, 1);
-    if (!pixa->boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
 
     boxaAddBox(pixa->boxa, box, copyflag);
     return 0;
@@ -971,8 +978,22 @@ PIX     *pix;
 /*!
  *  pixaaCreate()
  *
- *      Input:  n  (initial number of ptrs)
+ *      Input:  n  (initial number of pixa ptrs)
  *      Return: pixaa, or null on error
+ *
+ *  Notes:
+ *      (1) A pixaa provides a 2-level hierarchy of images.
+ *          A common use is for segmentation masks, which are
+ *          inexpensive to store in png format.
+ *      (2) For example, suppose you want a mask for each textline
+ *          in a two-column page.  The textline masks for each column
+ *          can be represented by a pixa, of which there are 2 in the pixaa.
+ *          The boxes for the textline mask components within a column
+ *          can have their origin referred to the column rather than the page.
+ *          Then the boxa field can be used to represent the two box (regions)
+ *          for the columns, and the (x,y) components of each box can
+ *          be used to get the absolute position of the textlines on
+ *          the page.
  */
 PIXAA *
 pixaaCreate(l_int32  n)
@@ -991,6 +1012,82 @@ PIXAA  *pixaa;
     
     if ((pixaa->pixa = (PIXA **)CALLOC(n, sizeof(PIXA *))) == NULL)
         return (PIXAA *)ERROR_PTR("pixa ptrs not made", procName, NULL);
+    pixaa->boxa = boxaCreate(n);
+
+    return pixaa;
+}
+
+
+/*!
+ *  pixaaCreateFromPixa()
+ *
+ *      Input:  pixa
+ *              n (number specifying subdivision of pixa)
+ *              type (L_CHOOSE_CONSECUTIVE, L_CHOOSE_SKIP_BY)
+ *              copyflag (L_CLONE, L_COPY)
+ *      Return: pixaa, or null on error
+ *
+ *  Notes:
+ *      (1) This subdivides a pixa into a set of smaller pixa that
+ *          are accumulated into a pixaa.
+ *      (2) If type == L_CHOOSE_CONSECUTIVE, the first 'n' pix are
+ *          put in a pixa and added to pixaa, then the next 'n', etc.
+ *          If type == L_CHOOSE_SKIP_BY, the first pixa is made by
+ *          aggregating pix[0], pix[n], pix[2*n], etc.
+ *      (3) The copyflag specifies if each new pix is a copy or a clone.
+ */
+PIXAA *
+pixaaCreateFromPixa(PIXA    *pixa,
+                    l_int32  n,
+                    l_int32  type,
+                    l_int32  copyflag)
+{
+l_int32  count, i, j, npixa;
+PIX     *pix;
+PIXA    *pixat;
+PIXAA   *pixaa;
+
+    PROCNAME("pixaaCreateFromPixa");
+
+    if (!pixa)
+        return (PIXAA *)ERROR_PTR("pixa not defined", procName, NULL);
+    count = pixaGetCount(pixa);
+    if (count == 0)
+        return (PIXAA *)ERROR_PTR("no pix in pixa", procName, NULL);
+    if (n <= 0)
+        return (PIXAA *)ERROR_PTR("n must be > 0", procName, NULL);
+    if (type != L_CHOOSE_CONSECUTIVE && type != L_CHOOSE_SKIP_BY)
+        return (PIXAA *)ERROR_PTR("invalid type", procName, NULL);
+    if (copyflag != L_CLONE && copyflag != L_COPY)
+        return (PIXAA *)ERROR_PTR("invalid copyflag", procName, NULL);
+
+    if (L_CHOOSE_CONSECUTIVE)
+        npixa = (count + n - 1) / n;
+    else  /* L_CHOOSE_SKIP_BY */
+        npixa = L_MIN(n, count);
+    pixaa = pixaaCreate(npixa);
+    if (type == L_CHOOSE_CONSECUTIVE) {
+        for (i = 0; i < count; i++) {
+            if (i % n == 0)
+                pixat = pixaCreate(n);
+            pix = pixaGetPix(pixa, i, copyflag);
+            pixaAddPix(pixat, pix, L_INSERT);
+            if (i % n == n - 1)
+                pixaaAddPixa(pixaa, pixat, L_INSERT);
+        }
+        if (i % n != 0)
+            pixaaAddPixa(pixaa, pixat, L_INSERT);
+    }
+    else {  /* L_CHOOSE_SKIP_BY */
+        for (i = 0; i < npixa; i++) {
+            pixat = pixaCreate(count / npixa + 1);
+            for (j = i; j < count; j += n) {
+                pix = pixaGetPix(pixa, j, copyflag);
+                pixaAddPix(pixat, pix, L_INSERT);
+            }
+            pixaaAddPixa(pixaa, pixat, L_INSERT);
+        }
+    }
 
     return pixaa;
 }
@@ -1021,6 +1118,7 @@ PIXAA   *pixaa;
     for (i = 0; i < pixaa->n; i++)
         pixaDestroy(&pixaa->pixa[i]);
     FREE(pixaa->pixa);
+    boxaDestroy(&pixaa->boxa);
 
     FREE(pixaa);
     *ppixaa = NULL;
@@ -1104,6 +1202,37 @@ pixaaExtendArray(PIXAA  *pixaa)
 }
 
 
+/*!
+ *  pixaaAddBox()
+ *
+ *      Input:  pixaa
+ *              box
+ *              copyflag (L_INSERT, L_COPY, L_CLONE)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The box can be used, for example, to hold the support region
+ *          of a pixa that is being added to the pixaa.
+ */
+l_int32
+pixaaAddBox(PIXAA   *pixaa,
+            BOX     *box,
+            l_int32  copyflag)
+{
+    PROCNAME("pixaaAddBox");
+
+    if (!pixaa)
+        return ERROR_INT("pixaa not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    if (copyflag != L_INSERT && copyflag != L_COPY && copyflag != L_CLONE)
+        return ERROR_INT("invalid copyflag", procName, 1);
+
+    boxaAddBox(pixaa->boxa, box, copyflag);
+    return 0;
+}
+
+
 
 /*---------------------------------------------------------------------*
  *                            Pixaa accessors                          *
@@ -1145,7 +1274,7 @@ pixaaGetCount(PIXAA  *pixaa)
  *      (4) In all cases, you must invoke pixaDestroy() on the returned pixa
  */
 PIXA *
-pixaaGetPixa(PIXAA    *pixaa,
+pixaaGetPixa(PIXAA   *pixaa,
              l_int32  index,
              l_int32  accesstype)
 {
@@ -1164,6 +1293,32 @@ PIXA  *pixa;
     if ((pixa = pixaa->pixa[index]) == NULL)  /* shouldn't happen! */
         return (PIXA *)ERROR_PTR("no pixa[index]", procName, NULL);
     return pixaCopy(pixa, accesstype);
+}
+
+
+/*!
+ *  pixaaGetBoxa()
+ *
+ *      Input:  pixaa
+ *              accesstype  (L_COPY, L_CLONE)
+ *      Return: boxa, or null on error
+ *
+ *  Notes:
+ *      (1) L_COPY returns a copy; L_CLONE returns a new reference to the boxa.
+ *      (2) In both cases, invoke boxaDestroy() on the returned boxa.
+ */
+BOXA *
+pixaaGetBoxa(PIXAA   *pixaa,
+             l_int32  accesstype)
+{
+    PROCNAME("pixaaGetBoxa");
+
+    if (!pixaa)
+        return (BOXA *)ERROR_PTR("pixaa not defined", procName, NULL);
+    if (accesstype != L_COPY && accesstype != L_CLONE)
+        return (BOXA *)ERROR_PTR("invalid access type", procName, NULL);
+
+    return boxaCopy(pixaa->boxa, accesstype);
 }
 
 
@@ -1319,4 +1474,163 @@ PIX     *pix;
     }
     return 0;
 }
+
+
+/*---------------------------------------------------------------------*
+ *                         Pixaa serialized I/O                        *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixaaRead()
+ *
+ *      Input:  filename
+ *      Return: pixaa, or null on error
+ *
+ *  Notes:
+ *      (1) The pix are stored in the file as png.
+ */
+PIXAA *
+pixaaRead(const char  *filename)
+{
+FILE   *fp;
+PIXAA  *pixaa;
+
+    PROCNAME("pixaaRead");
+
+    if (!filename)
+        return (PIXAA *)ERROR_PTR("filename not defined", procName, NULL);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (PIXAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    if ((pixaa = pixaaReadStream(fp)) == NULL) {
+        fclose(fp);
+        return (PIXAA *)ERROR_PTR("pixaa not read", procName, NULL);
+    }
+
+    fclose(fp);
+    return pixaa;
+}
+
+
+/*!
+ *  pixaaReadStream()
+ *
+ *      Input:  stream
+ *      Return: pixaa, or null on error
+ *
+ *  Notes:
+ *      (1) We use PIXA_VERSION_NUMBER for the pixaa.
+ */
+PIXAA *
+pixaaReadStream(FILE  *fp)
+{
+l_int32  n, i, version;
+l_int32  ignore;
+BOXA    *boxa;
+PIXA    *pixa;
+PIXAA   *pixaa;
+
+    PROCNAME("pixaaReadStream");
+
+    if (!fp)
+        return (PIXAA *)ERROR_PTR("stream not defined", procName, NULL);
+
+    if (fscanf(fp, "\nPixaa Version %d\n", &version) != 1)
+        return (PIXAA *)ERROR_PTR("not a pixaa file", procName, NULL);
+    if (version != PIXA_VERSION_NUMBER)
+        return (PIXAA *)ERROR_PTR("invalid pixaa version", procName, NULL);
+    if (fscanf(fp, "Number of pixa = %d\n", &n) != 1)
+        return (PIXAA *)ERROR_PTR("not a pixaa file", procName, NULL);
+
+    if ((pixaa = pixaaCreate(n)) == NULL)
+        return (PIXAA *)ERROR_PTR("pixaa not made", procName, NULL);
+    if ((boxa = boxaReadStream(fp)) == NULL)
+        return (PIXAA *)ERROR_PTR("boxa not made", procName, NULL);
+    boxaDestroy(&pixaa->boxa);
+    pixaa->boxa = boxa;
+
+    for (i = 0; i < n; i++) {
+        if ((fscanf(fp, "\n\n --------------- pixa[%d] ---------------\n",
+                    &ignore)) != 1) {
+            return (PIXAA *)ERROR_PTR("text reading", procName, NULL);
+        }
+        if ((pixa = pixaReadStream(fp)) == NULL)
+            return (PIXAA *)ERROR_PTR("pixa not read", procName, NULL);
+        pixaaAddPixa(pixaa, pixa, L_INSERT);
+    }
+
+    return pixaa;
+}
+
+
+/*!
+ *  pixaaWrite()
+ *
+ *      Input:  filename
+ *              pixaa
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Serialization of pixaa; the pix are written in png
+ */
+l_int32
+pixaaWrite(const char  *filename,
+           PIXAA       *pixaa)
+{
+FILE  *fp;
+
+    PROCNAME("pixaaWrite");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!pixaa)
+        return ERROR_INT("pixaa not defined", procName, 1);
+
+    if ((fp = fopen(filename, "w")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    if (pixaaWriteStream(fp, pixaa))
+        return ERROR_INT("pixaa not written to stream", procName, 1);
+    fclose(fp);
+
+    return 0;
+}
+
+
+/*!
+ *  pixaaWriteStream()
+ *
+ *      Input:  stream
+ *              pixaa
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) We use PIXA_VERSION_NUMBER for the pixaa.
+ */
+l_int32
+pixaaWriteStream(FILE   *fp,
+                 PIXAA  *pixaa)
+{
+l_int32  n, i;
+PIXA    *pixa;
+
+    PROCNAME("pixaaWriteStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!pixaa)
+        return ERROR_INT("pixaa not defined", procName, 1);
+
+    n = pixaaGetCount(pixaa);
+    fprintf(fp, "\nPixaa Version %d\n", PIXA_VERSION_NUMBER);
+    fprintf(fp, "Number of pixa = %d\n", n);
+    boxaWriteStream(fp, pixaa->boxa);
+    for (i = 0; i < n; i++) {
+        if ((pixa = pixaaGetPixa(pixaa, i, L_CLONE)) == NULL)
+            return ERROR_INT("pixa not found", procName, 1);
+        fprintf(fp, "\n\n --------------- pixa[%d] ---------------\n", i);
+        pixaWriteStream(fp, pixa);
+        pixaDestroy(&pixa);
+    }
+    return 0;
+}
+
 

@@ -22,9 +22,13 @@
  *      useful in applications.  Most are morphological in
  *      nature.
  *
- *      Selective morph sequence operation on each component          *
+ *      Selective morph sequence operation on each component
  *            PIX     *pixMorphSequenceByComponent()
  *            PIXA    *pixaMorphSequenceByComponent()
+ *
+ *      Selective morph sequence operation on each region
+ *            PIX     *pixMorphSequenceByRegion()
+ *            PIXA    *pixaMorphSequenceByRegion()
  *
  *      Selective connected component filling
  *            PIX     *pixSelectiveConnCompFill()
@@ -63,7 +67,7 @@
 /*!
  *  pixMorphSequenceByComponent()
  *
- *      Input:  pixs
+ *      Input:  pixs (1 bpp)
  *              sequence (string specifying sequence)
  *              connectivity (4 or 8)
  *              minw  (minimum width to consider; use 0 or 1 for any width)
@@ -87,7 +91,7 @@ pixMorphSequenceByComponent(PIX         *pixs,
                             l_int32      connectivity,
                             l_int32      minw,
                             l_int32      minh,
-			    BOXA       **pboxa)
+                            BOXA       **pboxa)
 {
 l_int32  n, i, x, y, w, h;
 BOXA    *boxa;
@@ -184,12 +188,174 @@ PIXA    *pixad;
         if (w >= minw && h >= minh) {
             if ((pixt1 = pixaGetPix(pixas, i, L_CLONE)) == NULL)
                 return (PIXA *)ERROR_PTR("pixt1 not found", procName, NULL);
-            if ((pixt2 = pixMorphSequence(pixt1, sequence, 0)) == NULL)
+            if ((pixt2 = pixMorphCompSequence(pixt1, sequence, 0)) == NULL)
                 return (PIXA *)ERROR_PTR("pixt2 not made", procName, NULL);
 	    pixaAddPix(pixad, pixt2, L_INSERT);
 	    box = pixaGetBox(pixas, i, L_COPY);
 	    pixaAddBox(pixad, box, L_INSERT);
             pixDestroy(&pixt1);
+        }
+    }
+
+    return pixad;
+}
+
+
+/*-----------------------------------------------------------------*
+ *              Morph sequence operation on each region            *
+ *-----------------------------------------------------------------*/
+/*!
+ *  pixMorphSequenceByRegion()
+ *
+ *      Input:  pixs (1 bpp)
+ *              pixm (mask specifying regions)
+ *              sequence (string specifying sequence)
+ *              connectivity (4 or 8, used on mask)
+ *              minw  (minimum width to consider; use 0 or 1 for any width)
+ *              minh  (minimum height to consider; use 0 or 1 for any height)
+ *              &boxa (<optional> return boxa of c.c. in pixm)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) See pixMorphCompSequence() for composing operation sequences.
+ *      (2) This operates separately on the region in pixs corresponding
+ *          to each c.c. in the mask pixm.
+ *      (3) Dilation will NOT increase the region size; the result
+ *          is clipped to the size of the mask region.  This is necessary
+ *          to regions independent after the operation.
+ *      (4) You can specify that the width and/or height of a region must
+ *          equal or exceed a minimum size for the operation to take place.
+ *      (5) Use NULL for boxa to avoid returning the boxa.
+ */
+PIX *
+pixMorphSequenceByRegion(PIX         *pixs,
+                         PIX         *pixm,
+                         const char  *sequence,
+                         l_int32      connectivity,
+                         l_int32      minw,
+                         l_int32      minh,
+                         BOXA       **pboxa)
+{
+l_int32  n, i, x, y, w, h;
+BOXA    *boxa;
+PIX     *pix, *pixd;
+PIXA    *pixam, *pixad;
+
+    PROCNAME("pixMorphSequenceByRegion");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixm)
+        return (PIX *)ERROR_PTR("pixm not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 1 || pixGetDepth(pixm) != 1)
+        return (PIX *)ERROR_PTR("pixs and pixm not both 1 bpp", procName, NULL);
+    if (!sequence)
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+
+    if (minw <= 0) minw = 1;
+    if (minh <= 0) minh = 1;
+
+        /* Get the c.c. of the mask */
+    if ((boxa = pixConnComp(pixm, &pixam, connectivity)) == NULL)
+        return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
+
+        /* Operate on each region in pixs independently */
+    pixad = pixaMorphSequenceByRegion(pixs, pixam, sequence, minw, minh);
+    pixaDestroy(&pixam);
+    boxaDestroy(&boxa);
+    if (!pixad)
+        return (PIX *)ERROR_PTR("pixad not made", procName, NULL);
+
+        /* Display the result out into pixd */
+    pixd = pixCreateTemplate(pixs);
+    n = pixaGetCount(pixad);
+    for (i = 0; i < n; i++) {
+        pixaGetBoxGeometry(pixad, i, &x, &y, &w, &h);
+	pix = pixaGetPix(pixad, i, L_CLONE);
+        pixRasterop(pixd, x, y, w, h, PIX_PAINT, pix, 0, 0);
+        pixDestroy(&pix);
+    }
+
+    if (pboxa)
+        *pboxa = pixaGetBoxa(pixad, L_CLONE);
+    pixaDestroy(&pixad);
+    return pixd;
+}
+
+
+/*!
+ *  pixaMorphSequenceByComponent()
+ *
+ *      Input:  pixs (1 bpp)
+ *              pixam (of 1 bpp mask elements)
+ *              sequence (string specifying sequence)
+ *              minw  (minimum width to consider; use 0 or 1 for any width)
+ *              minh  (minimum height to consider; use 0 or 1 for any height)
+ *      Return: pixad, or null on error
+ *
+ *  Notes:
+ *      (1) See pixMorphSequence() for composing operation sequences.
+ *      (2) This operates separately on each region in the input pixs
+ *          defined by the components in pixam.
+ *      (3) You can specify that the width and/or height of a mask
+ *          component must equal or exceed a minimum size for the
+ *          operation to take place.
+ *      (4) The input pixam should have a boxa giving the locations
+ *          of the regions in pixs.
+ */
+PIXA *
+pixaMorphSequenceByRegion(PIX         *pixs,
+                          PIXA        *pixam,
+                          const char  *sequence,
+                          l_int32      minw,
+                          l_int32      minh)
+{
+l_int32  n, i, w, h, d;
+BOX     *box;
+PIX     *pixt1, *pixt2, *pixt3;
+PIXA    *pixad;
+
+    PROCNAME("pixaMorphSequenceByRegion");
+
+    if (!pixs)
+        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 1)
+        return (PIXA *)ERROR_PTR("pixs not  bpp", procName, NULL);
+    if (!pixam)
+        return (PIXA *)ERROR_PTR("pixam not defined", procName, NULL);
+    pixaGetPixDimensions(pixam, 0, NULL, NULL, &d);
+    if (d != 1)
+        return (PIXA *)ERROR_PTR("mask depth not 1 bpp", procName, NULL);
+    if ((n = pixaGetCount(pixam)) == 0)
+        return (PIXA *)ERROR_PTR("no regions specified", procName, NULL);
+    if (n != pixaGetBoxaCount(pixam))
+        L_WARNING("boxa size != n", procName);
+    if (!sequence)
+        return (PIXA *)ERROR_PTR("sequence not defined", procName, NULL);
+
+    if (minw <= 0) minw = 1;
+    if (minh <= 0) minh = 1;
+
+    if ((pixad = pixaCreate(n)) == NULL)
+        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+
+        /* Use the rectangle to remove the appropriate part of pixs;
+         * then AND with the mask component to get the actual fg
+         * of pixs that is under the mask component. */
+    for (i = 0; i < n; i++) {
+        pixaGetPixDimensions(pixam, i, &w, &h, NULL);
+        if (w >= minw && h >= minh) {
+            if ((pixt1 = pixaGetPix(pixam, i, L_CLONE)) == NULL)
+                return (PIXA *)ERROR_PTR("pixt1 not found", procName, NULL);
+	    box = pixaGetBox(pixam, i, L_COPY);
+            pixt2 = pixClipRectangle(pixs, box, NULL);
+            pixAnd(pixt2, pixt2, pixt1);
+            if ((pixt3 = pixMorphCompSequence(pixt2, sequence, 0)) == NULL)
+                return (PIXA *)ERROR_PTR("pixt3 not made", procName, NULL);
+	    pixaAddPix(pixad, pixt3, L_INSERT);
+	    pixaAddBox(pixad, box, L_INSERT);
+            pixDestroy(&pixt1);
+            pixDestroy(&pixt2);
         }
     }
 

@@ -258,7 +258,7 @@ static char  mainName[] = "numa_reg";
         /* Rank extraction, point by point */
     pixs = pixRead("test8.jpg");
     nap = numaCreate(200);
-    pixGetRankValMasked(pixs, NULL, 0, 0, 2, 0.0, &val, &na);
+    pixGetRankValueMasked(pixs, NULL, 0, 0, 2, 0.0, &val, &na);
     for (i = 0; i < 101; i++) {
       rank = 0.01 * i;
       numaHistogramGetValFromRank(na, 0, 1, rank, &val);

@@ -123,7 +123,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 52
+MINOR_REV = 54
 
 #########################################################
 
@@ -151,7 +151,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
-		gplot.c graphics.c \
+		gifiostub.c gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
 		grayquant.c grayquantlow.c \
 		jbclass.c jpegio.c \

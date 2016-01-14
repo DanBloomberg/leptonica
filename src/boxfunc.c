@@ -26,8 +26,10 @@
  *           BOXA     *boxaContainedInBox()
  *           BOXA     *boxaIntersectsBox()
  *           BOX      *boxOverlapRegion()
+ *           BOX      *boxBoundingRegion()
  *           l_int32   boxOverlapFraction()
- *           BOX      *boxaGetNearestToPoint()
+ *           l_int32   boxContainsPt()
+ *           BOX      *boxaGetNearestToPt()
  *           l_int32   boxGetCentroid()
  *           BOX      *boxClipToRectangle()
  *
@@ -227,8 +229,8 @@ BOXA    *boxad;
  *  boxOverlapRegion()
  *
  *      Input:  box1, box2 (two boxes)
- *      Return: box of overlap region between input boxes,
- *              or NULL if no overlap or on error
+ *      Return: box (of overlap region between input boxes),
+ *              or null if no overlap or on error
  */
 BOX *
 boxOverlapRegion(BOX  *box1,
@@ -260,6 +262,38 @@ l_int32  x, y, w, h, left1, left2, top1, top2, right1, right2, bot1, bot2;
     w = L_MIN(right1 - x + 1, right2 - x + 1);
     h = L_MIN(bot1 - y + 1, bot2 - y + 1);
     return boxCreate(x, y, w, h);
+}
+
+
+/*!
+ *  boxBoundingRegion()
+ *
+ *      Input:  box1, box2 (two boxes)
+ *      Return: box (of bounding region containing the input boxes),
+ *              or null on error
+ */
+BOX *
+boxBoundingRegion(BOX  *box1,
+                  BOX  *box2)
+{
+l_int32  left, top, right1, right2, right, bot1, bot2, bot;
+
+    PROCNAME("boxBoundingRegion");
+
+    if (!box1)
+        return (BOX *)ERROR_PTR("box1 not defined", procName, NULL);
+    if (!box2)
+        return (BOX *)ERROR_PTR("box2 not defined", procName, NULL);
+
+    left = L_MIN(box1->x, box2->x);
+    top = L_MIN(box1->y, box2->y);
+    right1 = box1->x + box1->w - 1;
+    right2 = box2->x + box2->w - 1;
+    right = L_MAX(right1, right2);
+    bot1 = box1->y + box1->h - 1;
+    bot2 = box2->y + box2->h - 1;
+    bot = L_MAX(bot1, bot2);
+    return boxCreate(left, top, right - left + 1, bot - top + 1);
 }
 
 
@@ -304,7 +338,37 @@ BOX     *boxo;
 
 
 /*!
- *  boxaGetNearestToPoint()
+ *  boxContainsPt()
+ *
+ *      Input:  box
+ *              x, y (a point)
+ *              &contains (<return> 1 if box contains point; 0 otherwise)
+ *      Return: 0 if OK, 1 on error.
+ */
+l_int32
+boxContainsPt(BOX       *box,
+              l_float32  x,
+              l_float32  y,
+              l_int32   *pcontains)
+{
+l_int32  bx, by, bw, bh;
+
+    PROCNAME("boxContainsPt");
+
+    if (!pcontains)
+        return ERROR_INT("&contains not defined", procName, 1);
+    *pcontains = 0;
+    if (!box)
+        return ERROR_INT("&box not defined", procName, 1);
+    boxGetGeometry(box, &bx, &by, &bw, &bh);
+    if (x >= bx && x < bx + bw && y >= by && y < by + bh)
+        *pcontains = 1;
+    return 0;
+}
+
+
+/*!
+ *  boxaGetNearestToPt()
  *
  *      Input:  boxa
  *              x, y  (point)
@@ -315,15 +379,15 @@ BOX     *boxo;
  *      (1) Uses euclidean distance between centroid and point.
  */
 BOX *
-boxaGetNearestToPoint(BOXA    *boxa,
-                      l_int32  x,
-                      l_int32  y)
+boxaGetNearestToPt(BOXA    *boxa,
+                   l_int32  x,
+                   l_int32  y)
 {
 l_int32    i, n, cx, cy, minindex;
 l_float32  delx, dely, dist, mindist;
 BOX       *box;
 
-    PROCNAME("boxaGetNearestToPoint");
+    PROCNAME("boxaGetNearestToPt");
 
     if (!boxa)
         return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
@@ -1750,7 +1814,7 @@ pixDrawBoxa(PIX      *pixs,
             l_int32   width,
             l_uint32  val)
 {
-l_int32   n, rval, gval, bval, newindex;
+l_int32   rval, gval, bval, newindex;
 l_int32   mapvacancy;   /* true only if cmap and not full */
 PIX      *pixd;
 PIXCMAP  *cmap;

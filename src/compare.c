@@ -124,17 +124,23 @@ PIXCMAP   *cmap1, *cmap2;
         pixUsesCmapColor(pix1, &color);
         if (color && d2 <= 8)  /* can't be equal */
             return 0;
+        if (d2 < 8)
+            pixs2 = pixConvertTo8(pix2, FALSE);
+        else
+            pixs2 = pixClone(pix2);
         if (d2 <= 8)
             pixs1 = pixRemoveColormap(pix1, REMOVE_CMAP_TO_GRAYSCALE);
         else
             pixs1 = pixRemoveColormap(pix1, REMOVE_CMAP_TO_FULL_COLOR);
-        pixs2 = pixClone(pix2);
     }
     else if (!cmap1 && cmap2) {
         pixUsesCmapColor(pix2, &color);
         if (color && d1 <= 8)  /* can't be equal */
             return 0;
-        pixs1 = pixClone(pix1);
+        if (d1 < 8)
+            pixs1 = pixConvertTo8(pix1, FALSE);
+        else
+            pixs1 = pixClone(pix1);
         if (d1 <= 8)
             pixs2 = pixRemoveColormap(pix2, REMOVE_CMAP_TO_GRAYSCALE);
         else

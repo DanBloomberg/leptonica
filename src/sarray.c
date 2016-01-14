@@ -470,12 +470,13 @@ l_int32  i;
     PROCNAME("sarrayClear");
 
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 0);
+        return ERROR_INT("sa not defined", procName, 1);
     for (i = 0; i < sa->n; i++) {  /* free strings and null ptrs */
         FREE(sa->array[i]);
         sa->array[i] = NULL;
     }
     sa->n = 0;
+    return 0;
 }
 
         

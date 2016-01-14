@@ -31,7 +31,7 @@ main(int    argc,
 {
 l_int32      w, h, d, wpl, count, i, format, nerrors;
 FILE        *fp;
-PIX         *pix, *pixt, *pixt2;
+PIX         *pix, *pixt1, *pixt2;
 PIXCMAP     *cmap;
 char        *filein;
 char        *fileout = NULL;
@@ -52,33 +52,36 @@ static char  mainName[] = "iotest";
 	exit(ERROR_INT("pix not made", mainName, 1));
 #endif
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
-    d = pixGetDepth(pix);
+    pixGetDimensions(pix, &w, &h, &d);
     wpl = pixGetWpl(pix);
     fprintf(stderr, "w = %d, h = %d, d = %d, wpl = %d\n", w, h, d, wpl);
     if (pixGetColormap(pix)) {
-        fprintf(stderr, "colormap exists\n");
-
 	    /* Write and read back the colormap */
         pixcmapWriteStream(stderr, pixGetColormap(pix));
-        fp = fopen("junkcmap", "w");
+        fp = fopen("junkcmap1", "w");
         pixcmapWriteStream(fp, pixGetColormap(pix));
         fclose(fp);
-        fp = fopen("junkcmap", "r");
+        fp = fopen("junkcmap1", "r");
         cmap = pixcmapReadStream(fp);
         fclose(fp);
-        fp = fopen("junkcmap1", "w");
+        fp = fopen("junkcmap2", "w");
         pixcmapWriteStream(fp, cmap);
         fclose(fp);
         pixcmapDestroy(&cmap);
 
             /* Remove and regenerate colormap */
-        pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-        pixt2 = pixConvertRGBToColormap(pixt, 5, &nerrors);
-        fprintf(stderr, "Number of colormap errors = %d\n", nerrors);
-        pixWrite("junkcmap2", pixt2, IFF_PNG);
-        pixDestroy(&pixt);
+        pixt1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+	if (pixGetDepth(pixt1) == 8) {
+            fprintf(stderr, "Colormap: represents grayscale image\n");
+            pixt2 = pixConvertGrayToColormap(pixt1);
+	}
+	else {  /* 32 bpp */
+            fprintf(stderr, "Colormap: represents RGB image\n");
+            pixt2 = pixConvertRGBToColormap(pixt1, 5, &nerrors);
+            fprintf(stderr, "Number of colormap errors = %d\n", nerrors);
+	}
+        pixWrite("junkpixt2", pixt2, IFF_PNG);
+        pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
     else {
@@ -99,7 +102,7 @@ static char  mainName[] = "iotest";
     if (argc == 3) {
 #if 1
         d = pixGetDepth(pix);
-        if (d < 8 || pixGetColormap(pix))
+        if (d == 16 || d < 8 || pixGetColormap(pix))
             pixWrite(fileout, pix, IFF_PNG);
         else
             pixWriteJpeg(fileout, pix, 75, 0);

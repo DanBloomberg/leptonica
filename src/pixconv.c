@@ -107,9 +107,6 @@ static const l_float32  L_RED_WEIGHT =   0.3;
 static const l_float32  L_GREEN_WEIGHT = 0.5;
 static const l_float32  L_BLUE_WEIGHT =  0.2;
 
-    /* Fallback requested colors for pixConvertRGBToColormap() */
-static const l_int32  SAFE_VALUE_FOR_REQUESTED_COLORS = 220;
-
 
 #ifndef  NO_CONSOLE_IO
 #define DEBUG_CONVERT_TO_COLORMAP  0
@@ -798,22 +795,37 @@ PIXCMAP   *cmap;
  *
  *      Input:  pixs (32 bpp rgb)
  *              level (of octcube indexing, for histogram: 1, 2, 3, 4, 5, 6)
- *             &nerrors (number of improperly categorized pixels)
+ *              &nerrors (<optional return> num of wrongly categorized pixels)
  *      Return: pixd (2, 4 or 8 bpp with colormap), or null on error
  *
  *  Notes:
- *      (1) This is appropriate for a color image, such as one made
- *          orthographically, that has a small number of colors. 
- *      (2) If there are more than 256 colors, we fall back to using
- *          pixOctreeColorQuant() with dithering, to get the best 
- *          result possible.
- *      (3) Calling with level = 4 or above should not get more than
- *          one color in each cube.  
+ *      (1) This function has two relatively simple modes of color
+ *          quantization:
+ *            (a) If the image is made orthographically and has not more
+ *                than 256 'colors', it is quantized nearly exactly,
+ *                using a colormap for the colors.  The 'level' parameter
+ *                and the 'nerrors' return are only for this situation.
+ *            (b) Most natural images have more than 256 different colors;
+ *                in that case a simple 1-pass octree quantization
+ *                followed by dithering is used.
+ *      (2) Suggest using 'level' = 4.
+ *          The image is first tested to count the 'colors' in the
+ *          leaves of an octree, at the input 'level'.  For an image
+ *          with not more than 256 colors, it is unlikely that two of them
+ *          will fall in the same octcube at level = 4.  The function
+ *          optionally returns 'nerrors', the number of situations
+ *          where more than one color is in the same octcube at the
+ *          given input 'level'.
+ *      (3) If there are more than 256 colors, the fallback is to
+ *          a simple octree quantizer with dithering.  The 1-pass octree
+ *          quantizer gives a good result, both visually and under
+ *          png compression, on a variety of images.
  *      (4) The number of pixels whose color was not exactly 
  *          reproduced because more than 1 pixel of a given color
  *          was in the same octcube is returned in &nerrors.
  *          On error, the returned value is UNDEF.
- *      (5) These images are conveniently compressed losslessly with png.
+ *      (5) The colormapped result is conveniently compressed
+ *          losslessly with png.
  */     
 PIX *
 pixConvertRGBToColormap(PIX      *pixs,
@@ -838,18 +850,16 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)        
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
-    if (!pnerrors)
-        return (PIX *)ERROR_PTR("&nerrors not defined", procName, NULL);
     if (level < 1 || level > 6)
         return (PIX *)ERROR_PTR("level not in {1 ... 6}", procName, NULL);
-    *pnerrors = UNDEF;  /* warning or error condition if not reset */
+    if (pnerrors)
+        *pnerrors = UNDEF;  /* only used if ncolors <= 256 */
 
-
-        /* Get the histogram and count the number of occupied cubes.
+        /* Get the histogram and count the number of occupied leaf octcubes.
          * We don't yet know if this is the number of actual colors,
-         * but if it's not, we will make some approximation to pixel
-         * colors, because we only allow one color for all pixels in
-         * the same octcube. */
+         * but if it's not, all pixels falling into the same leaf octcube
+	 * will be assigned to the color of the first pixel that
+	 * lands there. */
     na = pixOctcubeHistogram(pixs, level);
     ncubes = numaGetCount(na);
     ncolors = 0;
@@ -859,26 +869,29 @@ PIXCMAP   *cmap;
             ncolors++;
     }
 
-        /* If there are too many colors, fall back to pixOctreeColorQuant()
-         * using dithering.  This is the best we can do. */
+        /* If there are too many occupied leaf octcubes to be
+	 * represented directly in a colormap, fall back to octree
+	 * quantization with dithering. */
     if (ncolors > 256) {
-        L_WARNING("too many colors; using pixOctreeColorQuant()", procName);
+        L_WARNING("More than 256 colors; using 1-pass octree with dithering",
+                  procName);
         numaDestroy(&na);
-        return pixOctreeColorQuant(pixs, SAFE_VALUE_FOR_REQUESTED_COLORS, 1);
+        return pixColorQuant1Pass(pixs, 1);
     }
 
 #if  DEBUG_CONVERT_TO_COLORMAP
     fprintf(stderr, "ncubes = %d, ncolors = %d\n", ncubes, ncolors);
 #endif  /* DEBUG_CONVERT_TO_COLORMAP */
 
+        /* OK, we can represent the image with a set of leaf octcubes
+	 * at 'level', one for each color. */
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
         return (PIX *)ERROR_PTR("tables not made", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+        /* Determine the output depth from the number of colors */
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-
     if (ncolors <= 4)
         depth = 2;
     else if (ncolors <= 16)
@@ -892,9 +905,12 @@ PIXCMAP   *cmap;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-        /* Octarray will give a ptr from the octcube to the colorarray */
+        /* The octarray will give a ptr from the octcube to the colorarray */
     if ((octarray = (l_int32 *)CALLOC(ncubes, sizeof(l_int32))) == NULL)
         return (PIX *)ERROR_PTR("octarray not made", procName, NULL);
+
+        /* The colorarray will hold the colors of the first pixel
+	 * that lands in the leaf octcube. */
     if ((colorarray = (l_uint32 *)CALLOC(ncolors + 1, sizeof(l_uint32)))
             == NULL)
         return (PIX *)ERROR_PTR("colorarray not made", procName, NULL);
@@ -924,7 +940,8 @@ PIXCMAP   *cmap;
             }
         }
     }
-    *pnerrors = nerrors;
+    if (pnerrors)
+        *pnerrors = nerrors;
 
 #if  DEBUG_CONVERT_TO_COLORMAP
     for (i = 0; i < ncolors; i++)

@@ -26,6 +26,11 @@
  *
  *    This file has the basic constructors, destructors and field accessors
  *
+ *      Pix memory management
+ *          static void  *pix_malloc()
+ *          static void   pix_free()
+ *          void          setPixMemoryManager()
+ *
  *      Pix creation
  *          PIX          *pixCreate()
  *          PIX          *pixCreateNoInit()
@@ -85,6 +90,61 @@
 #include "allheaders.h"
 
 
+/*-------------------------------------------------------------------------*
+ *                        Pix Memory Management                            *
+ *                                                                         *
+ *  These functions give you the freedom to specify at compile or run      *
+ *  time the allocator and deallocator to be used for pix.  It has no      *
+ *  effect on memory management for other data structs, which are          *
+ *  controlled by the #defines in environ.h.  Likewise, the #defines       *
+ *  in environ.h have no effect on the pix memory management.              *
+ *  The default functions are malloc and free.  Use setPixMemoryManager()  *
+ *  to specify other functions to use.                                     *
+ *-------------------------------------------------------------------------*/
+struct PixMemoryManager
+{
+    void     *(*allocator)(size_t);
+    void      (*deallocator)(void *);
+};
+
+static struct PixMemoryManager  pix_mem_manager = {
+    &malloc,
+    &free
+};
+    
+static void *
+pix_malloc(size_t  size)
+{
+    return (*pix_mem_manager.allocator)(size);
+}
+
+static void
+pix_free(void  *ptr)
+{
+    return (*pix_mem_manager.deallocator)(ptr);
+}
+
+/*!
+ *  setPixMemoryManager()
+ *
+ *      Input: allocator (<optional>; use null to skip)
+ *             deallocator (<optional>; use null to skip)
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) Use this to change the alloc and/or dealloc functions;
+ *          e.g., setPixMemoryManager(my_malloc, my_free).
+ */
+void
+setPixMemoryManager(void  *(allocator(size_t)),
+                    void  (deallocator(void *)))
+{
+    if (allocator) pix_mem_manager.allocator = allocator;
+    if (deallocator) pix_mem_manager.deallocator = deallocator;
+    return;
+}
+
+
 /*--------------------------------------------------------------------*
  *                              Pix Creation                          *
  *--------------------------------------------------------------------*/
@@ -135,7 +195,7 @@ l_uint32  *data;
     pixd = pixCreateHeader(width, height, depth);
     if (!pixd) return NULL;
     wpl = pixGetWpl(pixd);
-    if ((data = (l_uint32 *)MALLOC(4 * wpl * height)) == NULL)
+    if ((data = (l_uint32 *)pix_malloc(4 * wpl * height)) == NULL)
         return (PIX *)ERROR_PTR("MALLOC fail for data", procName, NULL);
     pixSetData(pixd, data);
     pixSetPadBits(pixd, 0);
@@ -251,21 +311,21 @@ PIX       *pixd;
  *      Input:  pix
  *      Return: same pix (ptr), or null on error
  *
- *  Note: Why is this here?  We make a "clone", which
- *        is just another handle to an existing pix, because
- *        (1) images can be large and hence expensive to copy,
- *        (2) extra handles to a data structure that are made
- *        without some control are dangerous because if you
- *        have two (say), how do you know which one should be
- *        used to destroy the pix, and, conversely, if you
- *        destroy the pix, how do you remember that the other
- *        handle is no longer valid?  This is solved by a
- *        simple protocol: (1) whenever you want a new handle
- *        to an existing image, call pixClone(), which just
- *        bumps a ref count, and (2) always call pixDestroy()
- *        on ALL handles, which decrements the ref count,
- *        nulls the handle, and only destroys the pix when
- *        pixDestroy() has been called on all handles.
+ *  Notes:
+ *      (1) A "clone" is simply a handle (ptr) to an existing pix.
+ *          It is implemented because (a) images can be large and
+ *          hence expensive to copy, and (b) extra handles to a data
+ *          structure need to be made with a simple policy to avoid
+ *          both double frees and memory leaks.  Pix are reference
+ *          counted.  The side effect of pixClone() is an increase
+ *          by 1 in the ref count.
+ *      (2) The protocol to be used is:
+ *          (a) Whenever you want a new handle to an existing image,
+ *              call pixClone(), which just bumps a ref count.
+ *          (b) Always call pixDestroy() on all handles.  This
+ *              decrements the ref count, nulls the handle, and
+ *              only destroys the pix when pixDestroy() has been
+ *              called on all handles.
  */
 PIX *
 pixClone(PIX  *pixs)
@@ -335,7 +395,7 @@ char      *text;
     pixChangeRefcount(pix, -1);
     if (pixGetRefcount(pix) <= 0) {
         if ((data = pixGetData(pix)))
-            FREE(data);
+            pix_free(data);
         if ((text = pixGetText(pix)))
             FREE(text);
         pixDestroyColormap(pix);
@@ -451,8 +511,8 @@ l_uint32  *data;
     pixSetWpl(pixd, wpl);
     bytes = 4 * wpl * h;
     if ((data = pixGetData(pixd)))
-        FREE(data);
-    if ((data = (l_uint32 *)MALLOC(bytes)) == NULL)
+        pix_free(data);
+    if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
         return ERROR_INT("MALLOC fail for data", procName, 1);
     pixSetData(pixd, data);
     return 0;

@@ -17,16 +17,22 @@
 /*
  *  bmpio.c
  *
- *      routines for read/write bmp to pix
+ *      Read bmp from file
+ *           PIX          *pixReadStreamBmp()
  *
- *              PIX       *pixReadStreamBmp()
- *              l_int32    pixWriteStreamBmp()
+ *      Write bmp to file
+ *           l_int32       pixWriteStreamBmp()
+ *
+ *      Read/write to memory   [not on windows]
+ *           PIX          *pixReadMemBmp()
+ *           l_int32       pixWriteMemBmp()
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "allheaders.h"
+#include "bmp.h"
 
 RGBA_QUAD   bwmap[2] = { {255,255,255,0}, {0,0,0,0} };
 
@@ -467,4 +473,101 @@ RGBA_QUAD  *pquad;
     return 0;
 }
 
+
+/*---------------------------------------------------------------------*
+ *                         Read/write to memory                        *
+ *---------------------------------------------------------------------*/
+#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+
+extern FILE *open_memstream(char **data, size_t *size);
+extern FILE *fmemopen(void *data, size_t size, const char *mode);
+
+/*!
+ *  pixReadMemBmp()
+ *
+ *      Input:  data (const; bmp-encoded)
+ *              size (of data)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) The @size byte of @data must be a null character.
+ */
+PIX *
+pixReadMemBmp(const l_uint8  *cdata,
+              l_uint32        size)
+{
+l_uint8  *data;
+FILE     *fp;
+PIX      *pix;
+
+    PROCNAME("pixReadMemBmp");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+        return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
+    pix = pixReadStreamBmp(fp);
+    fclose(fp);
+    return pix;
+}
+
+
+/*!
+ *  pixWriteMemBmp()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See pixWriteStreamBmp() for usage.  This version writes to
+ *          memory instead of to a file stream.
+ */
+l_int32
+pixWriteMemBmp(l_uint8  **pdata,
+               l_uint32  *psize,
+               PIX       *pix)
+{
+FILE  *fp;
+
+    PROCNAME("pixWriteMemBmp");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    if ((fp = open_memstream((char **)pdata, (size_t *)psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    pixWriteStreamBmp(fp, pix);
+    fclose(fp);
+    return 0;
+}
+
+#else
+
+PIX *
+pixReadMemBmp(const l_uint8  *data,
+              l_uint32        size)
+{
+    return (PIX *)ERROR_PTR("bmp read from memory not implemented on windows",
+                            "pixReadMemBmp", NULL);
+}
+
+
+l_int32
+pixWriteMemBmp(l_uint8  **pdata,
+               l_uint32  *psize,
+               PIX       *pix)
+{
+    return ERROR_INT("bmp write to memory not implemented on windows",
+                     "pixWriteMemBmp", 1);
+}
+
+#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
 

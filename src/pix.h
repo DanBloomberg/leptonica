@@ -45,7 +45,7 @@
  *       dithering flags
  *       grayscale filling flags
  *       distance flags
- *       average measures
+ *       statistical measures
  *       text orientation flags
  *       thinning flags
  */
@@ -266,6 +266,16 @@ enum {
  *           of the pix is decremented.  The pix is only destroyed
  *           when the reference count goes to zero.
  *
+ *       (6) The version numbers (below) are used in the serialization
+ *           of these data structures.  They are placed in the files,
+ *           and rarely (if ever) change.  No provision is made for
+ *           backward compatibility in either reading or writing.
+ *
+ *       (7) The PIXA_VERSION_NUMBER is applied to pixa, pixaa, boxa,
+ *           and boxaa, and must be changed if any of these serializations
+ *           are changed.  That is because pixaa depends on pixa and boxa,
+ *           and pixa and boxaa depend on boxa.
+ *
  *-------------------------------------------------------------------------*/
 
 
@@ -291,6 +301,7 @@ struct Pixaa
     l_int32             n;            /* number of Pixa in ptr array       */
     l_int32             nalloc;       /* number of Pixa ptrs allocated     */
     struct Pixa       **pixa;         /* array of ptrs to pixa             */
+    struct Boxa        *boxa;         /* array of boxes                    */
 };
 typedef struct Pixaa PIXAA;
 
@@ -299,8 +310,6 @@ typedef struct Pixaa PIXAA;
 /*-------------------------------------------------------------------------*
  *                    Basic rectangle and rectangle arrays                 *
  *-------------------------------------------------------------------------*/
-#define  BOXA_VERSION_NUMBER      2
-
 struct Box
 {
     l_int32            x;
@@ -527,11 +536,22 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
- *                            Average measures                             *
+ *                         Statistical measures                            *
  *-------------------------------------------------------------------------*/
 enum {
     L_MEAN_ABSVAL = 1,           /* average of abs values                  */
-    L_ROOT_MEAN_SQUARE = 2       /* rms of values                          */
+    L_ROOT_MEAN_SQUARE = 2,      /* rms of values                          */
+    L_STANDARD_DEVIATION = 3,    /* standard deviation from mean           */
+    L_VARIANCE = 4               /* variance of values                     */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                           Set selection flags                           *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_CHOOSE_CONSECUTIVE = 1,    /* select 'n' consecutive                 */
+    L_CHOOSE_SKIP_BY = 2         /* select at intervals of 'n'             */
 };
 
 

@@ -1690,7 +1690,7 @@ getMorphBorderPixelColor(l_int32  type,
         /* Symmetric & erosion */
     if (depth < 32)
         return ((1 << depth) - 1);
-    if (depth == 32)
+    else  /* depth == 32 */
         return 0xffffff00;
 }
 

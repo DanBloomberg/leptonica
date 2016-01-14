@@ -39,6 +39,8 @@
 #   convertfilestops.c, jbcorrelation.c, jbrankhaus.c, maketile.c,
 #   and viewertest.c -- which use posix directory functions, will
 #   now work properly.
+#
+#   See below for enabling gif read/write.
 
 
 # Libraries are built into a binary tree with its root in the
@@ -78,7 +80,7 @@ INCLUDES =	-I$(IMAGELIB_INCL) -I/usr/X11R6/include $(EXTRAINCLUDES)
 CFLAGS =	$(OPTIMIZE) $(OPTIONS)
 
 # Test for processor endianness (valid with gnu make only)
-ENDIANNESS := $(shell $(CC) -o endiantest ../src/endiantest.c; endiantest; rm -f endiantest)
+ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
 
 # Conditional compilation (depending on processor endian-ness)
 CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
@@ -94,15 +96,21 @@ else
     LEPTLIB =		$(LIB_DIR)/liblept.a
 endif
 
+# To enable gif read/write:
+#     Use the second line for ALL_LIBS
+#     Install giflib-4.1.4, and be sure your LD_LIBRARY_PATH includes
+#           the directory in which libgif.so.4 is installed.
 ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
+#ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lgif -lz -lm
 
 #########################################################################
 
 SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		ccthin1_reg.c ccthin2_reg.c \
-		cmapquant_reg.c compfilter_reg.c \
+		cmapquant_reg.c colorquant_reg.c \
+		compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c \
-		dwamorph1_reg.c enhance_reg.c \
+		distance_reg.c dwamorph1_reg.c enhance_reg.c \
 		equal_reg.c expand_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
 		fmorphauto_reg.c \
@@ -124,21 +132,21 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		colorspacetest.c comparetest.c contrasttest.c \
 		convertfilestops.c convertformat.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
-		croptext.c distancetest.c dithertest.c \
+		croptext.c dithertest.c \
 		edgetest.c extrematest.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c \
-		fmorphautogen.c \
-		gammatest.c genfonts.c graphicstest.c \
+		fmorphautogen.c gammatest.c \
+		genfonts.c gifiotest.c graphicstest.c \
 		graymazetest.c graymorphtest.c \
 		heaptest.c histotest.c iotest.c inserttest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		lineremoval.c listtest.c \
-		maketile.c \
+		maketile.c modifyhuesat.c \
 		morphtest1.c mtifftest.c numaranktest.c \
 		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
-		partitiontest.c plottest.c \
+		partitiontest.c pixaatest.c plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
 		projectivetest.c ranktest.c reducetest.c \
 		removecmap.c renderfonts.c \
@@ -149,6 +157,7 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		sharptest.c sheartest.c showedges.c \
 		skewtest.c snapcolortest.c \
 		sorttest.c splitimage2pdf.c \
+		textlinemask.c \
 		thresholdtest.c viewertest.c wordsinorder.c \
 		xvdisp.c
 
@@ -195,6 +204,9 @@ ccthin2_reg:	ccthin2_reg.o $(LEPTLIB)
 cmapquant_reg:	cmapquant_reg.o $(LEPTLIB)
 	$(CC) -o cmapquant_reg cmapquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+colorquant_reg:	colorquant_reg.o $(LEPTLIB)
+	$(CC) -o colorquant_reg colorquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 compfilter_reg: compfilter_reg.o $(LEPTLIB)
 	$(CC) -o compfilter_reg compfilter_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -203,6 +215,9 @@ conncomp_reg: conncomp_reg.o $(LEPTLIB)
 
 conversion_reg: conversion_reg.o $(LEPTLIB)
 	$(CC) -o conversion_reg conversion_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+distance_reg:	distance_reg.o $(LEPTLIB)
+	$(CC) -o distance_reg distance_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 dwamorph1_reg: dwamorph1_reg.o $(LEPTLIB)
 	$(CC) -o dwamorph1_reg dwamorph1_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -354,9 +369,6 @@ cornertest:	cornertest.o $(LEPTLIB)
 croptext:	croptext.o $(LEPTLIB)
 	$(CC) -o croptext croptext.o $(ALL_LIBS) $(EXTRALIBS)
 
-distancetest:	distancetest.o $(LEPTLIB)
-	$(CC) -o distancetest distancetest.o $(ALL_LIBS) $(EXTRALIBS)
-
 dithertest:	dithertest.o $(LEPTLIB)
 	$(CC) -o dithertest dithertest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -399,6 +411,9 @@ gammatest:	gammatest.o $(LEPTLIB)
 genfonts:	genfonts.o $(LEPTLIB)
 	$(CC) -o genfonts genfonts.o $(ALL_LIBS) $(EXTRALIBS)
 
+gifiotest:	gifiotest.o $(LEPTLIB)
+	$(CC) -o gifiotest gifiotest.o $(ALL_LIBS) $(EXTRALIBS)
+
 graphicstest:	graphicstest.o $(LEPTLIB)
 	$(CC) -o graphicstest graphicstest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -438,6 +453,9 @@ listtest:	listtest.o $(LEPTLIB)
 maketile:	maketile.o $(LEPTLIB)
 	$(CC) -o maketile maketile.o $(ALL_LIBS) $(EXTRALIBS)
 
+modifyhuesat:	modifyhuesat.o $(LEPTLIB)
+	$(CC) -o modifyhuesat modifyhuesat.o $(ALL_LIBS) $(EXTRALIBS)
+
 morphtest1:	morphtest1.o $(LEPTLIB)
 	$(CC) -o morphtest1 morphtest1.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -458,6 +476,9 @@ pagesegtest3:	pagesegtest3.o $(LEPTLIB)
 
 partitiontest:	partitiontest.o $(LEPTLIB)
 	$(CC) -o partitiontest partitiontest.o $(ALL_LIBS) $(EXTRALIBS)
+
+pixaatest:	pixaatest.o $(LEPTLIB)
+	$(CC) -o pixaatest pixaatest.o $(ALL_LIBS) $(EXTRALIBS)
 
 plottest:	plottest.o $(LEPTLIB)
 	$(CC) -o plottest plottest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -530,6 +551,9 @@ sorttest:	sorttest.o $(LEPTLIB)
 
 splitimage2pdf:	splitimage2pdf.o $(LEPTLIB)
 	$(CC) -o splitimage2pdf splitimage2pdf.o $(ALL_LIBS) $(EXTRALIBS)
+
+textlinemask:	textlinemask.o $(LEPTLIB)
+	$(CC) -o textlinemask textlinemask.o $(ALL_LIBS) $(EXTRALIBS)
 
 thresholdtest:	thresholdtest.o $(LEPTLIB)
 	$(CC) -o thresholdtest thresholdtest.o $(ALL_LIBS) $(EXTRALIBS)

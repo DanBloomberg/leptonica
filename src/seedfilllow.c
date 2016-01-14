@@ -417,33 +417,17 @@ distanceFunctionLow(l_uint32  *datad,
                     l_int32    wpld,
                     l_int32    connectivity)
 {
-l_uint16   val1, val2, val3, val4, val5, val6, val7, val8, minval, val;
+l_int32    val1, val2, val3, val4, val5, val6, val7, val8, minval, val;
 l_int32    i, j, imax, jmax;
 l_uint32  *lined;
 
     PROCNAME("distanceFunctionLow");
 
-        /* further initialize the distance image, setting
-         * a single-pixel-width perimeter of 0 pixels */
+        /* One raster scan followed by one anti-raster scan.
+         * This does not re-set the 1-boundary of pixels that
+         * were initialized to either 0 or maxval. */
     imax = h - 1;
     jmax = w - 1;
-    for (j = 0; j < wpld; j++) {
-        *(datad + j) = 0;
-        *(datad + imax * wpld + j) = 0;
-    }
-    for (i = 1; i < imax; i++) {
-        lined = datad + i * wpld;
-        if (d == 8) {
-            SET_DATA_BYTE(lined, 0, 0);
-            SET_DATA_BYTE(lined, jmax, 0);
-        }
-        else {
-            SET_DATA_TWO_BYTES(lined, 0, 0);
-            SET_DATA_TWO_BYTES(lined, jmax, 0);
-        }
-    }
-
-        /* one raster scan followed by one anti-raster scan */
     switch (connectivity)
     {
     case 4:
@@ -458,7 +442,6 @@ l_uint32  *lined;
                         minval = L_MIN(val2, val4);
                         minval = L_MIN(minval, 254);
                         SET_DATA_BYTE(lined, j, minval + 1);
-    /*                    fprintf(stderr, "Val = %d\n", GET_DATA_BYTE(lined, j)); */
                     }
                 }
             }
@@ -487,6 +470,7 @@ l_uint32  *lined;
                         val2 = GET_DATA_TWO_BYTES(lined - wpld, j);
                         val4 = GET_DATA_TWO_BYTES(lined, j - 1);
                         minval = L_MIN(val2, val4);
+                        minval = L_MIN(minval, 0xfffe);
                         SET_DATA_TWO_BYTES(lined, j, minval + 1);
                     }
                 }
@@ -501,6 +485,7 @@ l_uint32  *lined;
                         val5 = GET_DATA_TWO_BYTES(lined, j + 1);
                         minval = L_MIN(val5, val7);
                         minval = L_MIN(minval + 1, val);
+                        minval = L_MIN(minval, 0xffff);
                         SET_DATA_TWO_BYTES(lined, j, minval);
                     }
                 }
@@ -560,6 +545,7 @@ l_uint32  *lined;
                         minval = L_MIN(val1, val2);
                         minval = L_MIN(minval, val3);
                         minval = L_MIN(minval, val4);
+                        minval = L_MIN(minval, 0xfffe);
                         SET_DATA_TWO_BYTES(lined, j, minval + 1);
                     }
                 }
@@ -578,6 +564,7 @@ l_uint32  *lined;
                         minval = L_MIN(minval, val6);
                         minval = L_MIN(minval, val5);
                         minval = L_MIN(minval + 1, val);
+                        minval = L_MIN(minval, 0xffff);
                         SET_DATA_TWO_BYTES(lined, j, minval);
                     }
                 }

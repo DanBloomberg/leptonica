@@ -151,13 +151,13 @@ PQUEUE  *pq;
  *              item to be added to the tail of the queue
  *      Return: 0 if OK, 1 on error
  *
- *  Algorithm:
- *      If the queue is populated to the end of the allocated array,
- *      shift all ptrs toward the beginning of the array, so that
- *      the head of the queue is at the beginning of the array.
- *      Then, if the array is more than 0.75 full, realloc with
- *      double the array size.
- *      Finally, add the item to the tail of the queue.
+ *  Notes:
+ *      (1) The algorithm is as follows.  If the queue is populated
+ *          to the end of the allocated array, shift all ptrs toward
+ *          the beginning of the array, so that the head of the queue
+ *          is at the beginning of the array.  Then, if the array is
+ *          more than 0.75 full, realloc with double the array size.
+ *          Finally, add the item to the tail of the queue.
  */
 l_int32
 pqueueAdd(PQUEUE  *pq,
@@ -222,13 +222,14 @@ pqueueExtendArray(PQUEUE  *pq)
  *      Return: ptr to item popped from the head of the queue,
  *              or null if the queue is empty or on error
  *
- *  Note: If this is the last item on the queue, so that the queue
- *        becomes empty, reset nhead to the beginning of the array.
+ *  Notes:
+ *      (1) If this is the last item on the queue, so that the queue
+ *          becomes empty, nhead is reset to the beginning of the array.
  */
 void *
 pqueueRemove(PQUEUE  *pq)
 {
-void   *item;
+void  *item;
 
     PROCNAME("pqueueRemove");
 
@@ -255,7 +256,7 @@ void   *item;
  *      Return: count, or 0 on error
  */
 l_int32
-pqueueGetCount(PQUEUE   *pq)
+pqueueGetCount(PQUEUE  *pq)
 {
     PROCNAME("pqueueGetCount");
 

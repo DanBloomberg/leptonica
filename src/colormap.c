@@ -36,6 +36,7 @@
  *           l_int32     pixcmapHasColor()
  *           l_int32     pixcmapGetRankIntensity()
  *           l_int32     pixcmapGetNearestIndex()
+ *           l_int32     pixcmapGetExtremeValue()
  *
  *      Colormap I/O
  *           l_int32     pixcmapReadStream()
@@ -437,7 +438,7 @@ RGBA_QUAD  *cta;
     *prval = *pgval = *pbval = 0;
     if (!cmap)
         return ERROR_INT("cmap not defined", procName, 1);
-    if (index >= cmap->n)
+    if (index < 0 || index >= cmap->n)
         return ERROR_INT("index out of bounds", procName, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
@@ -661,6 +662,70 @@ RGBA_QUAD  *cta;
         }
     }
 
+    return 0;
+}
+
+
+/*!
+ *  pixcmapGetExtremeValue()
+ *
+ *      Input:  cmap
+ *              type (L_CHOOSE_MIN or L_CHOOSE_MAX)
+ *              &rval (<optional return> red component)
+ *              &gval (<optional return> green component)
+ *              &bval (<optional return> blue component)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Returns for selected components the extreme value
+ *          (either min or max) of the color component that is
+ *          found in the colormap.
+ */
+l_int32
+pixcmapGetExtremeValue(PIXCMAP  *cmap,
+                       l_int32   type,
+                       l_int32  *prval,
+                       l_int32  *pgval,
+                       l_int32  *pbval)
+{
+l_int32  i, n, rval, gval, bval, extrval, extgval, extbval;
+
+    PROCNAME("pixcmapGetExtremeValue");
+
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+    if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
+        return ERROR_INT("invalid type", procName, 1);
+    if (!rval && !gval && !bval)
+        return ERROR_INT("no result requested for return", procName, 1);
+
+    if (type == L_CHOOSE_MIN) {
+        extrval = 100000;
+        extgval = 100000;
+        extbval = 100000;
+    }
+    else {
+        extrval = 0;
+        extgval = 0;
+        extbval = 0;
+    }
+
+    n = pixcmapGetCount(cmap);
+    for (i = 0; i < n; i++) {
+        pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+        if ((type == L_CHOOSE_MIN && rval < extrval) ||
+            (type == L_CHOOSE_MAX && rval > extrval))
+            extrval = rval;
+        if ((type == L_CHOOSE_MIN && gval < extgval) ||
+            (type == L_CHOOSE_MAX && gval > extgval))
+            extrval = rval;
+        if ((type == L_CHOOSE_MIN && bval < extbval) ||
+            (type == L_CHOOSE_MAX && bval > extbval))
+            extrval = rval;
+    }
+    if (prval) *prval = extrval;
+    if (pgval) *pgval = extgval;
+    if (pbval) *pbval = extbval;
     return 0;
 }
 

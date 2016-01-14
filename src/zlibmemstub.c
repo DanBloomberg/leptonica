@@ -22,16 +22,14 @@
  *     Stubs for zlibmem.c functions
  */
 
-l_uint8 * zlibCompress( l_uint8  *datain, l_int32   nin, l_int32  *pnout )
+l_uint8 * zlibCompress(l_uint8 *datain, l_int32 nin, l_int32 *pnout)
 {
-    PROCNAME("zlibCompress");
-    return (l_uint8 *)ERROR_PTR("function not present", procName, NULL);
+    return (l_uint8 *)ERROR_PTR("function not present", "zlibCompress", NULL);
 }
 
-l_uint8 * zlibUncompress( l_uint8  *datain, l_int32   nin, l_int32  *pnout )
+l_uint8 * zlibUncompress(l_uint8 *datain, l_int32 nin, l_int32 *pnout)
 {
-    PROCNAME("zlibUncompress");
-    return (l_uint8 *)ERROR_PTR("function not present", procName, NULL);
+    return (l_uint8 *)ERROR_PTR("function not present", "zlibUncompress", NULL);
 }
 
 

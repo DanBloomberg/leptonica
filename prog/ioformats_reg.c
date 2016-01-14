@@ -25,10 +25,16 @@
  *    It should work properly on input images of any depth, with
  *    and without colormaps.
  *
- *    This works by doing a write/read and testing the result
- *    for equality.  For that reason, we only test the lossless
- *    file formats.  jpeg works fine on grayscale and rgb, so
- *    there's no need for explicit tests here.
+ *    The first part of the test works by doing a write/read and
+ *    testing the result for equality.  We only test the lossless
+ *    file formats, with pix of various depths, both with and
+ *    without colormaps.  Because jpeg works fine on grayscale
+ *    and rgb, there is no need for explicit tests on jpeg
+ *    compression here.
+ *
+ *    The second part tests all different tiff compressions, for
+ *    read/write that is backed both by file and by memory.
+ *    For r/w to file, it is actually redundant with the first part.)
  */
 
 #include <stdio.h>
@@ -46,18 +52,26 @@
 #define   FILE_32BPP    "marge.jpg"
 
 static l_int32 testcomp(const char *filename, PIX *pix, l_int32 comptype);
+static l_int32 testcomp_mem(PIX *pixs, PIX **ppixt, l_int32 index,
+                            l_int32 format);
+static l_int32 test_writemem(PIX *pixs, l_int32 format, char *psfile);
 
 
 main(int    argc,
      char **argv)
 {
-l_int32      i, d, n, success;
-PIX         *pix1, *pix2, *pix4, *pix8, *pix16, *pix32, *pix;
+char         psname[256];
+l_uint8     *data;
+l_int32      i, d, n, success, nbytes, same;
+size_t       size;
+PIX         *pix1, *pix2, *pix4, *pix8, *pix16, *pix32, *pix, *pixt;
 PIXA        *pixa;
 static char  mainName[] = "ioformats_reg";
 
     if (argc != 1)
 	exit(ERROR_INT(" Syntax:  ioformats_reg", mainName, 1));
+
+    /* --------- Part 1: Test all lossless formats for r/w to file ---------*/
 
     success = TRUE;
     fprintf(stderr, "Test bmp 1 bpp file:\n");
@@ -85,7 +99,8 @@ static char  mainName[] = "ioformats_reg";
         fprintf(stderr,
             "\n  ******* Failure on at least one i/o format test ******\n");
 
-        /* Test tiff r/w */
+    /* ------------------ Part 2: Test tiff r/w to file ------------------- */
+
     fprintf(stderr, "\n\nTest tiff r/w and format extraction\n");
     pixa = pixaCreate(6);
     pix1 = pixRead(BMP_FILE);
@@ -128,12 +143,140 @@ static char  mainName[] = "ioformats_reg";
     }
     if (success)
         fprintf(stderr,
-            "\n  ********** Success on tiff r/w tests *********\n");
+            "\n  ********** Success on tiff r/w to file *********\n");
     else
         fprintf(stderr,
-            "\n  ******* Failure on at least one tiff r/w test ******\n");
+            "\n  ******* Failure on at least one tiff r/w to file ******\n");
+
+    /* ------------------ Part 3: Test tiff r/w to memory ----------------- */
+
+    success = TRUE;
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixa, i, L_CLONE);
+	d = pixGetDepth(pix);
+        fprintf(stderr, "%d bpp\n", d);
+	if (i == 0) {   /* 1 bpp */
+            pixWriteMemTiff(&data, &size, pix, IFF_TIFF_G3);
+            nbytes = nbytesInFile("junkg3.tif");
+            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            pixt = pixReadMemTiff(data, size, 0);
+            if (testcomp_mem(pix, &pixt, i, IFF_TIFF_G3)) success = FALSE;
+	    FREE(data);
+            pixWriteMemTiff(&data, &size, pix, IFF_TIFF_G4);
+            nbytes = nbytesInFile("junkg4.tif");
+            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            pixt = pixReadMemTiff(data, size, 0);
+            if (testcomp_mem(pix, &pixt, i, IFF_TIFF_G4)) success = FALSE;
+	    FREE(data);
+            pixWriteMemTiff(&data, &size, pix, IFF_TIFF_RLE);
+            nbytes = nbytesInFile("junkrle.tif");
+            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            pixt = pixReadMemTiff(data, size, 0);
+            if (testcomp_mem(pix, &pixt, i, IFF_TIFF_RLE)) success = FALSE;
+	    FREE(data);
+            pixWriteMemTiff(&data, &size, pix, IFF_TIFF_PACKBITS);
+            nbytes = nbytesInFile("junkpb.tif");
+            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            pixt = pixReadMemTiff(data, size, 0);
+            if (testcomp_mem(pix, &pixt, i, IFF_TIFF_PACKBITS)) success = FALSE;
+	    FREE(data);
+	}
+        pixWriteMemTiff(&data, &size, pix, IFF_TIFF_LZW);
+        pixt = pixReadMemTiff(data, size, 0);
+        if (testcomp_mem(pix, &pixt, i, IFF_TIFF_LZW)) success = FALSE;
+        FREE(data);
+        pixWriteMemTiff(&data, &size, pix, IFF_TIFF_ZIP);
+        pixt = pixReadMemTiff(data, size, 0);
+        if (testcomp_mem(pix, &pixt, i, IFF_TIFF_ZIP)) success = FALSE;
+        FREE(data);
+        pixWriteMemTiff(&data, &size, pix, IFF_TIFF);
+        pixt = pixReadMemTiff(data, size, 0);
+        if (testcomp_mem(pix, &pixt, i, IFF_TIFF)) success = FALSE;
+        FREE(data);
+        pixDestroy(&pix);
+    }
+    if (success)
+        fprintf(stderr,
+            "\n  ********** Success on tiff r/w to memory *********\n");
+    else
+        fprintf(stderr,
+            "\n  ******* Failure on at least one tiff r/w to memory ******\n");
+
+
+    /* ---------------- Part 4: Test non-tiff r/w to memory ---------------- */
+
+    pixDisplayWrite(NULL, -1);
+    success = TRUE;
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixa, i, L_CLONE);
+	d = pixGetDepth(pix);
+        sprintf(psname, "junkps.%d", d);
+        fprintf(stderr, "%d bpp\n", d);
+        if (d != 16) {
+            if (test_writemem(pix, IFF_PNG, NULL)) success = FALSE;
+            if (test_writemem(pix, IFF_BMP, NULL)) success = FALSE;
+        }
+        if (test_writemem(pix, IFF_PNM, NULL)) success = FALSE;
+        if (test_writemem(pix, IFF_PS, psname)) success = FALSE;
+	if (d == 8 || d == 32)
+            if (test_writemem(pix, IFF_JFIF_JPEG, NULL)) success = FALSE;
+        pixDestroy(&pix);
+    }
+    if (success)
+        fprintf(stderr,
+            "\n  ********** Success on non-tiff r/w to memory *********\n");
+    else
+        fprintf(stderr,
+            "\n  ***** Failure on at least one non-tiff r/w to memory *****\n");
+
+    system("gthumb junk_write_display* &");
 
     pixaDestroy(&pixa);
+
+    /* ------------ Part 5: Test multipage tiff r/w to memory ------------ */
+
+        /* Make a multipage tiff file, and read it back into memory */
+    success = TRUE;
+    pix = pixRead("feyn.tif");
+    pixa = pixaSplitPix(pix, 3, 3, 0, 0);
+    for (i = 0; i < 9; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        if (i == 0)
+            pixWriteTiff("junktiffmpage.tif", pixt, IFF_TIFF_G4, "w");
+        else
+            pixWriteTiff("junktiffmpage.tif", pixt, IFF_TIFF_G4, "a");
+        pixDestroy(&pixt);
+    }
+    data = arrayRead("junktiffmpage.tif", &nbytes);
+    pixaDestroy(&pixa);
+
+        /* Read the individual pages from memory to a pix */
+    pixa = pixaCreate(9);
+    for (i = 0; i < 9; i++) {
+        pixt = pixReadMemTiff(data, nbytes, i);
+        pixaAddPix(pixa, pixt, L_INSERT);
+    }
+    FREE(data);
+
+        /* Un-tile the pix in the pixa back to the original image */
+    pixt = pixaDisplayUnsplit(pixa, 3, 3, 0, 0);
+    pixaDestroy(&pixa);
+
+        /* Clip to foreground to remove any extra rows or columns */
+    pixClipToForeground(pix, &pix1, NULL);
+    pixClipToForeground(pixt, &pix2, NULL);
+    pixEqual(pix1, pix2, &same); 
+    if (same)
+        fprintf(stderr,
+            "\n  ******* Success on tiff multipage read from memory *******\n");
+    else
+        fprintf(stderr,
+            "\n  ******* Failure on tiff multipage read from memory *******\n");
+
+    pixDestroy(&pix);
+    pixDestroy(&pixt);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     exit(0);
 }
 
@@ -165,4 +308,63 @@ PIX     *pixt;
                 filename, format);
     return (!sameformat || !sameimage);
 }
+
+
+    /* Returns 1 on error */
+static l_int32
+testcomp_mem(PIX     *pixs,
+             PIX    **ppixt,
+             l_int32  index,
+             l_int32  format)
+{
+l_int32  sameimage;
+PIX     *pixt;
+
+    pixt = *ppixt;
+    pixEqual(pixs, pixt, &sameimage);
+    if (!sameimage)
+        fprintf(stderr, "Mem Write/read fail for file %s with format %d\n",
+                index, format);
+    pixDestroy(&pixt);
+    *ppixt = NULL;
+    return (!sameimage);
+}
+
+
+    /* Returns 1 on error */
+static l_int32
+test_writemem(PIX      *pixs,
+              l_int32   format,
+              char     *psfile)
+{
+l_uint8  *data;
+l_int32   same;
+l_uint32  size;
+PIX      *pixd;
+
+    if (format == IFF_PS) {
+       pixWriteMemPS(&data, &size, pixs, NULL, 0, 1.0);
+       arrayWrite(psfile, "w", data, size);
+       FREE(data);
+       return 0;
+    }
+
+    pixWriteMem(&data, &size, pixs, format);
+    pixd = pixReadMem(data, size);
+    if (format == IFF_JFIF_JPEG) {
+        fprintf(stderr, "jpeg size = %d\n", size);
+        pixDisplayWrite(pixd, 1);
+        same = TRUE;
+    }
+    else {
+        pixEqual(pixs, pixd, &same);
+        if (!same)
+           fprintf(stderr, "Mem write/read fail for format %d\n", format);
+    }
+    pixDestroy(&pixd);
+    FREE(data);
+    return (!same);
+}
+
+
 

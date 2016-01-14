@@ -21,6 +21,10 @@
  *          l_int32          pixWriteStreamPnm()
  *          l_int32          pixWriteStreamAsciiPnm()
  *
+ *      Read/write to memory   [not on windows]
+ *          PIX             *pixReadMemPnm()
+ *          l_int32          pixWriteMemPnm()
+ *
  *      Local helpers
  *          static l_int32   pnmReadNextAsciiValue();
  *          static l_int32   pnmSkipCommentLines();
@@ -398,6 +402,105 @@ PIX       *pixs;
     pixDestroy(&pixs);
     return 0;
 }
+
+
+/*---------------------------------------------------------------------*
+ *                         Read/write to memory                        *
+ *---------------------------------------------------------------------*/
+#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+
+extern FILE *open_memstream(char **data, size_t *size);
+extern FILE *fmemopen(void *data, size_t size, const char *mode);
+
+/*!
+ *  pixReadMemPnm()
+ *
+ *      Input:  data (const; pnm-encoded)
+ *              size (of data)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) The @size byte of @data must be a null character.
+ */
+PIX *
+pixReadMemPnm(const l_uint8  *cdata,
+              l_uint32        size)
+{
+l_uint8  *data;
+FILE     *fp;
+PIX      *pix;
+
+    PROCNAME("pixReadMemPnm");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+        return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
+    pix = pixReadStreamPnm(fp);
+    fclose(fp);
+    return pix;
+}
+
+
+/*!
+ *  pixWriteMemPnm()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See pixWriteStreamPnm() for usage.  This version writes to
+ *          memory instead of to a file stream.
+ */
+l_int32
+pixWriteMemPnm(l_uint8  **pdata,
+               l_uint32  *psize,
+               PIX       *pix)
+{
+FILE  *fp;
+
+    PROCNAME("pixWriteMemPnm");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    if ((fp = open_memstream((char **)pdata, (size_t *)psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    pixWriteStreamPnm(fp, pix);
+    fclose(fp);
+    return 0;
+}
+
+#else
+
+PIX *
+pixReadMemPnm(const l_uint8  *data,
+              l_uint32        size)
+{
+    return (PIX *)ERROR_PTR("pnm read from memory not implemented on windows",
+                            "pixReadMemPnm", NULL);
+}
+
+
+l_int32
+pixWriteMemPnm(l_uint8  **pdata,
+               l_uint32  *psize,
+               PIX       *pix)
+{
+    return ERROR_INT("pnm write to memory not implemented on windows",
+                     "pixWriteMemPnm", 1);
+}
+
+#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
+
 
 
 /*--------------------------------------------------------------------*

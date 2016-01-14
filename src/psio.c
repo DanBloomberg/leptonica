@@ -63,6 +63,9 @@
  *
  *          l_int32          convertTiffMultipageToPS()
  *
+ *     Write to memory
+ *          l_int32          pixWriteMemPS()
+ *
  *     Converting resolution
  *          l_int32          getResLetterPage()
  *          l_int32          getResA4Page()
@@ -331,7 +334,7 @@ PIX     *pix, *pixt;
 /*
  *  convertToPSEmbed()
  *
- *      Input:  filein (input file)
+ *      Input:  filein (input image file)
  *              fileout (output ps file)
  *              level (1 - uncompressed,  2 - compressed)
  *      Return: 0 if OK, 1 on error
@@ -352,7 +355,7 @@ PIX     *pix, *pixt;
 l_int32
 convertToPSEmbed(const char  *filein,
                  const char  *fileout,
-                 l_int32     level)
+                 l_int32      level)
 {
 l_int32  d, format;
 FILE    *fp;
@@ -513,7 +516,7 @@ PIX     *pixc;
 /*!
  *  pixWriteStringPS()
  *
- *      Input:  pix:  1 bpp, colormapped, 8 bpp grayscale, 32 bpp (RGB)
+ *      Input:  pix:  1, 2, 4, 8 bpp, with or without cmap; 32 bpp (RGB)
  *              box:  (a) If box == null, image is placed, optionally scaled,
  *                        in a standard b.b. at the center of the page.
  *                        This is to be used when another program like
@@ -538,36 +541,35 @@ PIX     *pixc;
  *
  *      Return: ps string if OK, or null on error
  *
- *  Usage notes:
- *      OK, this seems a bit complicated, because there are various
- *      ways to scale and not to scale.
- *      If you don't want any scaling at all:
- *          if you are using a box:
- *              set w = 0, h = 0, and use scale = 1.0; it will print
- *              each pixel unscaled at printer resolution
- *          if you are not using a box:
- *              set scale = 1.0; it will print at printer resolution
- *      If you want the image to be a certain size in inches:
- *          you must use a box and set the box (w,h) in mils
- *      If you want the image to be scaled by a scale factor != 1.0:
- *          if you are using a box:
- *              set w = 0, h = 0, and use the desired scale factor;
- *              the higher the printer resolution, the smaller the
- *              image will actually appear.
- *          if you are not using a box:
- *              set the desired scale factor; the higher the printer
- *              resolution, the smaller the image will actually appear.
- *                     
- *  Distance units:
- *      The interface distances are in milli-inches.
- *      In addition, we use 3 different units internally:
- *          - pixels  (units of 1/res inch)
- *          - printer pts (units of 1/72 inch)
- *          - inches
- *  
- *  Here is a quiz on units from a reviewer:
- *      How many UK milli-cups in a US kilo-teaspoon?
- *      (Hint: a US cup = 0.75 UK cups + 2 desertspoons.)
+ *  Notes:
+ *      (1) OK, this seems a bit complicated, because there are various
+ *          ways to scale and not to scale.  Here's a summary:
+ *      (2) If you don't want any scaling at all:
+ *           * if you are using a box:
+ *               set w = 0, h = 0, and use scale = 1.0; it will print
+ *               each pixel unscaled at printer resolution
+ *           * if you are not using a box:
+ *               set scale = 1.0; it will print at printer resolution
+ *      (3) If you want the image to be a certain size in inches:
+ *           * you must use a box and set the box (w,h) in mils
+ *      (4) If you want the image to be scaled by a scale factor != 1.0:
+ *           * if you are using a box:
+ *               set w = 0, h = 0, and use the desired scale factor;
+ *               the higher the printer resolution, the smaller the
+ *               image will actually appear.
+ *           * if you are not using a box:
+ *               set the desired scale factor; the higher the printer
+ *               resolution, the smaller the image will actually appear.
+ *      (5) Another complication is the proliferation of distance units:
+ *           * The interface distances are in milli-inches.
+ *           * Three different units are used internally:
+ *              - pixels  (units of 1/res inch)
+ *              - printer pts (units of 1/72 inch)
+ *              - inches
+ *           * Here is a quiz on volume units from a reviewer:
+ *             How many UK milli-cups in a US kilo-teaspoon?
+ *               (Hint: 1.0 US cup = 0.75 UK cup + 0.2 US gill;
+ *                      1.0 US gill = 24.0 US teaspoons)
  */
 char *
 pixWriteStringPS(PIX       *pixs,
@@ -592,15 +594,17 @@ SARRAY    *sa;
         return (char *)ERROR_PTR("pix not defined", procName, NULL);
 
     d = pixGetDepth(pixs);
-    if (d == 16)
+    if (d == 2)
+        pix = pixConvert2To8(pixs, 0, 85, 170, 255, 0);
+    else if (d == 4)
+        pix = pixConvert4To8(pixs, 0);
+    else if (d == 16)
         pix = pixConvert16To8(pixs, 1);
     else
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
-    d = pixGetDepth(pix);
 
         /* Get the factors by which PS scales and translates, in pts */
-    wpix = pixGetWidth(pix);
-    hpix = pixGetHeight(pix);
+    pixGetDimensions(pix, &wpix, &hpix, &d);
     if (!box)
         boxflag = 0;  /* no scaling; b.b. at center */
     else
@@ -815,7 +819,7 @@ l_float32  winch, hinch, xinch, yinch, fres;
  *  convertByteToHexAscii()
  *
  *      Input:  byteval  (input byte)
- *             &nib1, &nib2  (<return> two hex ascii characters)
+ *              &nib1, &nib2  (<return> two hex ascii characters)
  *      Return: void
  */
 void
@@ -1002,47 +1006,42 @@ SARRAY    *sa;
  *                  added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
- *  Usage:  This is simpler to use than pixWriteStringPS(), and
+ *  Notes:
+ *      (1) This is simpler to use than pixWriteStringPS(), and
  *          it outputs in level 2 PS as compressed DCT (overlaid
  *          with ascii85 encoding).
- *
- *          An output file can contain multiple pages, each with
+ *      (2) An output file can contain multiple pages, each with
  *          multiple images.  The arguments to convertJpegToPS()
  *          allow you to control placement of jpeg images on multiple
  *          pages within a PostScript file.
- *
- *          For the first image written to a file, use "w", which
+ *      (3) For the first image written to a file, use "w", which
  *          opens for write and clears the file.  For all subsequent
  *          images written to that file, use "a".
- *
- *          The (x, y) parameters give the LL corner of the image
+ *      (4) The (x, y) parameters give the LL corner of the image
  *          relative to the LL corner of the page.  They are in
  *          units of pixels if scale = 1.0.  If you use (e.g.)
  *          scale = 2.0, the image is placed at (2x, 2y) on the page,
  *          and the image dimensions are also doubled.
- *
- *          If your display is 75 ppi and your image was created
- *          at a resolution of 300 ppi, you can get the image
- *          to print at the same size as it appears on your display
- *          by either setting scale = 4.0 or by setting  res = 75.
- *          Both tell the printer to make a 4x enlarged image.
- *
- *          If your image is generated at 150 ppi and you use scale = 1,
- *          it will be rendered such that 150 pixels correspond
- *          to 72 pts (1 inch on the printer).  This function does
- *          the conversion from pixels (with or without scaling) to
- *          pts, which are the units that the printer uses.
- *
- *          The printer will choose its own resolution to use
- *          in rendering the image, which will not affect the size
- *          of the rendered image.  That is because the output
- *          PostScript file describes the geometry in terms of pts,
- *          which are defined to be 1/72 inch.  The printer will
- *          only see the size of the image in pts, through the
- *          scale and translate parameters and the affine
- *          transform (the ImageMatrix) of the image.
- *
- *          To render multiple images on the same page, set
+ *      (5) Display vs printed resolution:
+ *           * If your display is 75 ppi and your image was created
+ *             at a resolution of 300 ppi, you can get the image
+ *             to print at the same size as it appears on your display
+ *             by either setting scale = 4.0 or by setting  res = 75.
+ *             Both tell the printer to make a 4x enlarged image.
+ *           * If your image is generated at 150 ppi and you use scale = 1,
+ *             it will be rendered such that 150 pixels correspond
+ *             to 72 pts (1 inch on the printer).  This function does
+ *             the conversion from pixels (with or without scaling) to
+ *             pts, which are the units that the printer uses.
+ *           * The printer will choose its own resolution to use
+ *             in rendering the image, which will not affect the size
+ *             of the rendered image.  That is because the output
+ *             PostScript file describes the geometry in terms of pts,
+ *             which are defined to be 1/72 inch.  The printer will
+ *             only see the size of the image in pts, through the
+ *             scale and translate parameters and the affine
+ *             transform (the ImageMatrix) of the image.
+ *      (6) To render multiple images on the same page, set
  *          endpage = FALSE for each image until you get to the
  *          last, for which you set endpage = TRUE.  This causes the
  *          "showpage" command to be invoked.  Showpage outputs
@@ -1050,8 +1049,7 @@ SARRAY    *sa;
  *          next page to be added.  Without a "showpage",
  *          subsequent images from the next page will overlay those
  *          previously put down.
- *
- *          For multiple pages, increment the page number, starting
+ *      (7) For multiple pages, increment the page number, starting
  *          with page 1.  This allows PostScript (and PDF) to build
  *          a page directory, which viewers use for navigation.
  */
@@ -1273,12 +1271,12 @@ SARRAY    *sa;
  *  extractJpegDataFromFile()
  *
  *      Input:  filein
- *              &data (binary data consisting of the entire jpeg file)
- *              &nbytes (size of binary data)
- *              &w (<return> image width)
- *              &h (<return> image height)
- *              &bps (<return> bits/sample; should be 8)
- *              &spp (<return> samples/pixel; should be 1 or 3)
+ *              &data (<return> binary data consisting of the entire jpeg file)
+ *              &nbytes (<return> size of binary data)
+ *              &w (<optional return> image width)
+ *              &h (<optional return> image height)
+ *              &bps (<optional return> bits/sample; should be 8)
+ *              &spp (<optional return> samples/pixel; should be 1 or 3)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1302,10 +1300,10 @@ FILE     *fpin;
         return ERROR_INT("&data not defined", procName, 1);
     if (!pnbytes)
         return ERROR_INT("&nbytes not defined", procName, 1);
-    if (!pw || !ph || !pbps || !pspp)
-        return ERROR_INT("&w, &h, &bps, &spp not all defined", procName, 1);
+    if (!pw && !ph && !pbps && !pspp)
+        return ERROR_INT("no output data requested", procName, 1);
     *pdata = NULL;
-    *pnbytes = *pw = *ph = *pbps = *pspp = 0;
+    *pnbytes = 0;
 
     if ((fpin = fopen(filein, "r")) == NULL)
         return ERROR_INT("filein not defined", procName, 1);
@@ -1335,10 +1333,10 @@ FILE     *fpin;
  *
  *      Input:  data (binary data consisting of the entire jpeg file)
  *              nbytes (size of binary data)
- *              &w (<return> image width)
- *              &h (<return> image height)
- *              &bps (<return> bits/sample; should be 8)
- *              &spp (<return> samples/pixel; should be 1 or 3)
+ *              &w (<optional return> image width)
+ *              &h (<optional return> image height)
+ *              &bps (<optional return> bits/sample; should be 8)
+ *              &spp (<optional return> samples/pixel; should be 1, 3 or 4)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1356,9 +1354,8 @@ l_int32   imeta, msize, bps, w, h, spp;
 
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
-    if (!pw || !ph || !pbps || !pspp)
-        return ERROR_INT("&w, &h, &bps, &spp not all defined", procName, 1);
-    *pw = *ph = *pbps = *pspp = 0;
+    if (!pw && !ph && !pbps && !pspp)
+        return ERROR_INT("no output data requested", procName, 1);
     data8 = (l_uint8 *)data;
 
         /* Find where the image metadata begins in header:
@@ -1375,10 +1372,10 @@ l_int32   imeta, msize, bps, w, h, spp;
     h = getTwoByteParameter(data8, imeta + 3);
     w = getTwoByteParameter(data8, imeta + 5);
     spp = data8[imeta + 7];
-    *pbps = bps;
-    *ph = h;
-    *pw = w;
-    *pspp = spp;
+    if (pbps) *pbps = bps;
+    if (ph) *ph = h;
+    if (pw) *pw = w;
+    if (pspp) *pspp = spp;
 
 #if  DEBUG_JPEG
     fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n", w, h, bps, spp);
@@ -1733,10 +1730,10 @@ SARRAY    *sa, *sa2;
  *                  added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
- *  Usage:  See the usage comments in convertJpegToPS(), some of
+ *  Notes:
+ *      (1) See the usage comments in convertJpegToPS(), some of
  *          which are repeated here.
- *
- *          This is a wrapper for tiff g4.  The PostScript that
+ *      (2) This is a wrapper for tiff g4.  The PostScript that
  *          is generated is expanded by about 5/4 (due to the
  *          ascii85 encoding.  If you convert to pdf (ps2pdf), the
  *          ascii85 decoder is automatically invoked, so that the
@@ -1744,12 +1741,10 @@ SARRAY    *sa, *sa2;
  *          the original g4 file.  It's useful to have the PS
  *          file ascii85 encoded, because many printers will not
  *          print binary PS files.
- *
- *          For the first image written to a file, use "w", which
+ *      (3) For the first image written to a file, use "w", which
  *          opens for write and clears the file.  For all subsequent
  *          images written to that file, use "a".
- *
- *          To render multiple images on the same page, set
+ *      (4) To render multiple images on the same page, set
  *          endpage = FALSE for each image until you get to the
  *          last, for which you set endpage = TRUE.  This causes the
  *          "showpage" command to be invoked.  Showpage outputs
@@ -1757,21 +1752,16 @@ SARRAY    *sa, *sa2;
  *          next page to be added.  Without a "showpage",
  *          subsequent images from the next page will overlay those
  *          previously put down.
- *
- *          For multiple images to the same page, where you are writing
+ *      (5) For multiple images to the same page, where you are writing
  *          both jpeg and tiff-g4, you have two options:
- *
- *           (1) write the g4 first, as either image (mask == false)
+ *           (a) write the g4 first, as either image (mask == false)
  *               or imagemask (mask == true), and then write the
  *               jpeg over it.
- *
- *           (2) write the jpeg first and as the last item, write
+ *           (b) write the jpeg first and as the last item, write
  *               the g4 as an imagemask (mask == true), to paint
  *               through the foreground only.  
- *
  *          We have this flexibility with the tiff-g4 because it is 1 bpp.
- *
- *          For multiple pages, increment the page number, starting
+ *      (6) For multiple pages, increment the page number, starting
  *          with page 1.  This allows PostScript (and PDF) to build
  *          a page directory, which viewers use for navigation.
  */
@@ -1814,8 +1804,6 @@ l_int32  nbytes;
 /*!
  *  convertTiffG4ToPSString()
  *
- *      Generates PS string in G4 compressed tiff format from G4 tiff file
- *
  *      Input:  filein (input tiff g4 file)
  *              &poutstr (<return> PS string)
  *              &nbytes (<return> number of bytes in PS string)
@@ -1835,16 +1823,17 @@ l_int32  nbytes;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The returned PS character array is binary string, not a
+ *      (1) Generates PS string in G4 compressed tiff format from G4 tiff file.
+ *      (2) The returned PS character array is binary string, not a
  *          null-terminated C string.  It has null bytes embedded in it!
- *      (2) For usage, see convertTiffG4ToPS()
+ *      (3) For usage, see convertTiffG4ToPS().
  */
 l_int32
 convertTiffG4ToPSString(const char  *filein,
                         char       **poutstr,
                         l_int32     *pnbytes,
                         l_int32      x,
-                              l_int32      y,
+                        l_int32      y,
                         l_int32      res,
                         l_float32    scale,
                         l_int32      pageno,
@@ -2016,11 +2005,11 @@ SARRAY    *sa, *sa2;
  *  extractTiffG4DataFromFile()
  *
  *      Input:  filein
- *              &data (binary data of ccitt g4 encoded stream)
- *              &nbytes (size of binary data)
- *              &w (image width)
- *              &h (image height)
- *              &minisblack (boolean, but must use l_uint16)
+ *              &data (<return> binary data of ccitt g4 encoded stream)
+ *              &nbytes (<return> size of binary data)
+ *              &w (<return optional> image width)
+ *              &h (<return optional> image height)
+ *              &minisblack (<return optional> boolean)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -2043,11 +2032,12 @@ TIFF     *tif;
 
     if (!pdata)
         return ERROR_INT("&data not defined", procName, 1);
-    if (!pnbytes || !pw || !ph || !pminisblack)
-        return ERROR_INT("&nbytes, &w, &h, &minisblack not all defined",
-                         procName, 1);
+    if (!pnbytes)
+        return ERROR_INT("&nbytes not defined", procName, 1);
+    if (!pw && !ph && !pminisblack)
+        return ERROR_INT("no output data requested", procName, 1);
     *pdata = NULL;
-    *pnbytes = *pw = *ph = *pminisblack = 0;
+    *pnbytes = 0;
 
     if ((fpin = fopen(filein, "r")) == NULL)
         return ERROR_INT("filein not defined", procName, 1);
@@ -2077,9 +2067,9 @@ TIFF     *tif;
     TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &minisblack);  /* for 1 bpp */
 /*    TIFFPrintDirectory(tif, stderr, 0); */
     TIFFClose(tif);
-    *pw = (l_int32)w;
-    *ph = (l_int32)h;
-    *pminisblack = (l_int32)minisblack;
+    if (pw) *pw = (l_int32)w;
+    if (ph) *ph = (l_int32)h;
+    if (pminisblack) *pminisblack = (l_int32)minisblack;
 
         /* The header has 8 bytes: the first 2 are the magic number,
          * the next 2 are the version, and the last 4 are the
@@ -2194,6 +2184,48 @@ FILE        *fp;
         pixDestroy(&pixs);
     }
 
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                          Write to memory                            *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixWriteMemPS()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *              box  (<optional>)
+ *              res  (can use 0 for default of 300 ppi)
+ *              scale (to prevent scaling, use either 1.0 or 0.0)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See pixWriteStringPS() for usage.
+ *      (2) This is just a wrapper for pixWriteStringPS(), which
+ *          writes uncompressed image data to memory.
+ */
+l_int32
+pixWriteMemPS(l_uint8  **pdata,
+              l_uint32  *psize,
+              PIX       *pix,
+              BOX       *box,
+              l_int32    res,
+              l_float32  scale)
+{
+    PROCNAME("pixWriteMemPS");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    *pdata = (l_uint8 *)pixWriteStringPS(pix, box, res, scale);
+    *psize = strlen((char *)(*pdata));
     return 0;
 }
 

@@ -16,30 +16,18 @@
 #include <stdio.h>
 #include "allheaders.h"
 
-/*
- *   bmpiostub.c
- *
- *      Stubs for bmpio.c functions
- */
-
-PIX * pixReadStreamBmp(FILE *fp)
+PIX * pixReadStreamGif(FILE *fp)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadStreamBmp", NULL);
+    return (PIX * )ERROR_PTR("function not present", "pixReadStreamGif", NULL);
 }
 
-l_int32 pixWriteStreamBmp(FILE *fp, PIX *pix)
+l_int32 pixWriteStreamGif(FILE *fp, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteStreamBmp", 1);
+    return ERROR_INT("function not present", "pixWriteStreamGif", 1);
 }
 
-PIX * pixReadMemBmp(const l_uint8 *cdata, l_uint32 size)
+PIX * pixReadMemGif(const l_uint8 *cdata, l_uint32 size)
 {
-    return (PIX *)ERROR_PTR("function not present", "pixReadMemBmp", NULL);
+    return (PIX *)ERROR_PTR("function not present", "pixReadMemGif", NULL);
 }
-
-l_int32 pixWriteMemBmp(l_uint8 **pdata, l_uint32 *psize, PIX *pix)
-{
-    return ERROR_INT("function not present", "pixWriteMemBmp", 1);
-}
-
 

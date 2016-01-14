@@ -22,27 +22,34 @@
  *     Stubs for jpegio.c functions
  */
 
-PIX * pixReadJpeg ( const char *filename, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn )
+PIX * pixReadJpeg(const char *filename, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn)
 {
-    PROCNAME("pixReadJpeg");
-    return (PIX * )ERROR_PTR("function not present", procName, NULL);
+    return (PIX * )ERROR_PTR("function not present", "pixReadJpeg", NULL);
 }
 
-PIX * pixReadStreamJpeg ( FILE *fp, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint )
+PIX * pixReadStreamJpeg(FILE *fp, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
 {
-    PROCNAME("pixReadStreamJpeg");
-    return (PIX * )ERROR_PTR("function not present", procName, NULL);
+    return (PIX * )ERROR_PTR("function not present", "pixReadStreamJpeg", NULL);
 }
 
-l_int32 pixWriteJpeg ( const char *filename, PIX *pix, l_int32 quality, l_int32 progressive )
+l_int32 pixWriteJpeg(const char *filename, PIX *pix, l_int32 quality, l_int32 progressive)
 {
-    PROCNAME("pixWriteJpeg");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWriteJpeg", 1);
 }
 
-l_int32 pixWriteStreamJpeg ( FILE *fp, PIX *pix, l_int32 quality, l_int32 progressive )
+l_int32 pixWriteStreamJpeg(FILE *fp, PIX *pix, l_int32 quality, l_int32 progressive)
 {
-    PROCNAME("pixWriteStreamJpeg");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWriteStreamJpeg", 1);
 }
+
+PIX * pixReadMemJpeg(const l_uint8 *cdata, l_uint32 size, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
+{
+    return (PIX * )ERROR_PTR("function not present", "pixReadMemJpeg", NULL);
+}
+
+l_int32 pixWriteMemJpeg(l_uint8 **pdata, l_uint32 *psize, PIX *pix, l_int32 quality, l_int32 progressive)
+{
+    return ERROR_INT("function not present", "pixWriteMemJpeg", 1);
+}
+
 

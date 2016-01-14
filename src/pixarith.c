@@ -19,6 +19,7 @@
  *
  *      One-image grayscale arithmetic operations (8, 16, 32 bpp)
  *           l_int32     pixAddConstantGray()
+ *           l_int32     pixMultConstantGray()
  *
  *      Two-image grayscale arithmetic operations (8, 16, 32 bpp)
  *           PIX        *pixAddGray()
@@ -99,15 +100,50 @@ l_uint32  *data;
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 16 && d != 32)
         return ERROR_INT("pixs not 8, 16 or 32 bpp", procName, 1);
 
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     addConstantGrayLow(data, w, h, d, wpl, val);
+
+    return 0;
+}
+
+
+/*!
+ *  pixMultConstantGray()
+ *
+ *      Input:  pixs (8, 16 or 32 bpp)
+ *              val  (>= 0.0; amount to multiply by each pixel)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) In-place operation; val must be >= 0.
+ *      (2) No clipping for 32 bpp.
+ *      (3) For 8 and 16 bpp, the result is clipped to 0xff and 0xffff, rsp.
+ */
+l_int32
+pixMultConstantGray(PIX       *pixs,
+                    l_float32  val)
+{
+l_int32    w, h, d, wpl;
+l_uint32  *data;
+
+    PROCNAME("pixMultConstantGray");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 16 && d != 32)
+        return ERROR_INT("pixs not 8, 16 or 32 bpp", procName, 1);
+    if (val < 0.0)
+        return ERROR_INT("val < 0.0", procName, 1);
+
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    multConstantGrayLow(data, w, h, d, wpl, val);
 
     return 0;
 }
@@ -912,10 +948,10 @@ getLogBase2(l_int32     val,
     if (val < 0x100)
         return logtab[val];
     else if (val < 0x10000)
-        return 8.0 + logtab[val];
+        return 8.0 + logtab[val >> 8];
     else if (val < 0x1000000)
-        return 16.0 + logtab[val];
+        return 16.0 + logtab[val >> 16];
     else
-        return 24.0 + logtab[val];
+        return 24.0 + logtab[val >> 24];
 }
 

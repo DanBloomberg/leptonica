@@ -409,17 +409,17 @@ l_uint32  *linesp, *linedp;
                 /* save dest values */
             pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
             *(lined + jd) = pixel;                               /* pix 1 */
-            pixel = (((rval1 + rval2) << 23) & 0xff000000 |
-                     ((gval1 + gval2) << 15) & 0x00ff0000 |
-                     ((bval1 + bval2) << 7) & 0x0000ff00);
+            pixel = ((((rval1 + rval2) << 23) & 0xff000000) |
+                     (((gval1 + gval2) << 15) & 0x00ff0000) |
+                     (((bval1 + bval2) << 7) & 0x0000ff00));
             *(lined + jd + 1) = pixel;                           /* pix 2 */
-            pixel = (((rval1 + rval3) << 23) & 0xff000000 |
-                     ((gval1 + gval3) << 15) & 0x00ff0000 |
-                     ((bval1 + bval3) << 7) & 0x0000ff00);
+            pixel = ((((rval1 + rval3) << 23) & 0xff000000) |
+                     (((gval1 + gval3) << 15) & 0x00ff0000) |
+                     (((bval1 + bval3) << 7) & 0x0000ff00));
             *(linedp + jd) = pixel;                              /* pix 3 */
-            pixel = (((rval1 + rval2 + rval3 + rval4) << 22) & 0xff000000 | 
-                     ((gval1 + gval2 + gval3 + gval4) << 14) & 0x00ff0000 |
-                     ((bval1 + bval2 + bval3 + bval4) << 6) & 0x0000ff00);
+            pixel = ((((rval1 + rval2 + rval3 + rval4) << 22) & 0xff000000) | 
+                     (((gval1 + gval2 + gval3 + gval4) << 14) & 0x00ff0000) |
+                     (((bval1 + bval2 + bval3 + bval4) << 6) & 0x0000ff00));
             *(linedp + jd + 1) = pixel;                          /* pix 4 */
         }  
             /* last src pixel on line */
@@ -432,9 +432,9 @@ l_uint32  *linesp, *linedp;
         pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
         *(lined + 2 * wsm) = pixel;                        /* pix 1 */
         *(lined + 2 * wsm + 1) = pixel;                    /* pix 2 */
-        pixel = (((rval1 + rval3) << 23) & 0xff000000 |
-                 ((gval1 + gval3) << 15) & 0x00ff0000 |
-                 ((bval1 + bval3) << 7) & 0x0000ff00);
+        pixel = ((((rval1 + rval3) << 23) & 0xff000000) |
+                 (((gval1 + gval3) << 15) & 0x00ff0000) |
+                 (((bval1 + bval3) << 7) & 0x0000ff00));
         *(linedp + 2 * wsm) = pixel;                       /* pix 3 */
         *(linedp + 2 * wsm + 1) = pixel;                   /* pix 4 */
     }
@@ -455,9 +455,9 @@ l_uint32  *linesp, *linedp;
             pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
             *(lined + jd) = pixel;                            /* pix 1 */
             *(linedp + jd) = pixel;                           /* pix 2 */
-            pixel = (((rval1 + rval2) << 23) & 0xff000000 |
-                     ((gval1 + gval2) << 15) & 0x00ff0000 |
-                     ((bval1 + bval2) << 7) & 0x0000ff00);
+            pixel = ((((rval1 + rval2) << 23) & 0xff000000) |
+                     (((gval1 + gval2) << 15) & 0x00ff0000) |
+                     (((bval1 + bval2) << 7) & 0x0000ff00));
             *(lined + jd + 1) = pixel;                        /* pix 3 */
             *(linedp + jd + 1) = pixel;                       /* pix 4 */
         }  

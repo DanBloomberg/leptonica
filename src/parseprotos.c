@@ -29,6 +29,7 @@
  *       static l_int32    skipToMatchingBrace()
  *       static l_int32    skipToSemicolon()
  *       static l_int32    getOffsetForCharacter()
+ *       static l_int32    getOffsetForMatchingRP()
  */
 
 #include <stdio.h>
@@ -57,6 +58,9 @@ static l_int32 skipToMatchingBrace(SARRAY *sa, l_int32 start,
 static l_int32 skipToSemicolon(SARRAY *sa, l_int32 start,
             l_int32 charindex, l_int32 *pnext);
 static l_int32 getOffsetForCharacter(SARRAY *sa, l_int32 start, char tchar,
+            l_int32 *psoffset, l_int32 *pboffset, l_int32 *ptoffset);
+static l_int32 getOffsetForMatchingRP(SARRAY *sa, l_int32 start,
+            l_int32 soffsetlp, l_int32 boffsetlp, l_int32 toffsetlp,
             l_int32 *psoffset, l_int32 *pboffset, l_int32 *ptoffset);
 
 
@@ -396,18 +400,23 @@ l_int32  toffsetlp, toffsetrp, toffsetlb, toffsetsc;
             continue;
         }
 
-            /* Search for specific character sequence patterns */
+            /* Search for specific character sequence patterns; namely
+             * a lp, a matching rp, a lb and a semicolon.
+             * Abort the search if no lp is found. */
         getOffsetForCharacter(sa, next, '(', &soffsetlp, &boffsetlp,
-                &toffsetlp);
-        getOffsetForCharacter(sa, next, ')', &soffsetrp, &boffsetrp,
-                &toffsetrp);
+                              &toffsetlp);
+        if (soffsetlp == -1)
+            break;
+        getOffsetForMatchingRP(sa, next, soffsetlp, boffsetlp, toffsetlp,
+                               &soffsetrp, &boffsetrp, &toffsetrp);
         getOffsetForCharacter(sa, next, '{', &soffsetlb, &boffsetlb,
-                &toffsetlb);
+                              &toffsetlb);
         getOffsetForCharacter(sa, next, ';', &soffsetsc, &boffsetsc,
-                &toffsetsc);
+                              &toffsetsc);
 
-            /* First weed out cases where lp, rp and lb are not all found */
-        if (soffsetlp == -1 || soffsetrp == -1 || soffsetlb == -1)
+            /* We've found a lp.  Now weed out the case where a matching
+             * rp and a lb are not both found. */
+        if (soffsetrp == -1 || soffsetlb == -1)
             break;
 
             /* Check if a left brace occurs before a left parenthesis;
@@ -422,8 +431,8 @@ l_int32  toffsetlp, toffsetrp, toffsetlb, toffsetsc;
 
             /* Check if a semicolon occurs before a left brace or
              * a left parenthesis; if so, skip it */
-        if ((soffsetsc != -1)
-            && (toffsetsc < toffsetlb) || (toffsetsc < toffsetlp)) {  
+        if ((soffsetsc != -1) &&
+            (toffsetsc < toffsetlb || toffsetsc < toffsetlp)) {  
             skipToSemicolon(sa, next, 0, &scline);
             begin = scline + 1;
             continue;
@@ -782,6 +791,107 @@ l_int32  i, j, n, nchars, totchars, found;
         if (found)
             break;
         totchars += nchars;
+    }
+
+    if (found) {
+        *psoffset = i - start;
+        *pboffset = j;
+        *ptoffset = totchars + j;
+    }
+
+    return 0;
+}
+
+
+/*
+ *  getOffsetForMatchingRP()
+ *
+ *      Input:  sa (output from cpp, by line)
+ *              start (starting index in sa to search; never a comment line)
+ *              soffsetlp (string offset to first LP)
+ *              boffsetlp (byte offset within string to first LP)
+ *              toffsetlp (total byte offset to first LP)
+ *              &soffset (<return> offset in strings from start index)
+ *              &boffset (<return> offset in bytes within string in which
+ *                        the matching RP is found)
+ *              &toffset (<return> offset in total bytes from beginning of
+ *                        string indexed by 'start' to the location where
+ *                        the matching RP is found);
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) We are searching for the matching right parenthesis (RP) that
+ *          corresponds to the first LP found beginning at the string
+ *          indexed by start.
+ *      (2) If the matching RP is not found, soffset is returned as -1,
+ *          and the other offsets are set to very large numbers.  The
+ *          caller must check the value of soffset.
+ *      (3) This is only used in contexts where it is not necessary to
+ *          consider if the character is inside a string.
+ *      (4) We must do this because although most arg lists have a single
+ *          left and right parenthesis, it is possible to construct
+ *          more complicated prototype declarations, such as those
+ *          where functions are passed in.  The C++ rules for prototypes
+ *          are strict, and require that for functions passed in as args,
+ *          the function name arg be placed in parenthesis, as well
+ *          as its arg list, thus incurring two extra levels of parentheses.
+ */
+static l_int32
+getOffsetForMatchingRP(SARRAY   *sa,
+                       l_int32   start,
+                       l_int32   soffsetlp,
+                       l_int32   boffsetlp,
+                       l_int32   toffsetlp,
+                       l_int32  *psoffset,
+                       l_int32  *pboffset,
+                       l_int32  *ptoffset)
+{
+char    *str;
+l_int32  i, j, n, nchars, totchars, leftmatch, firstline, jstart, found;
+
+    PROCNAME("getOffsetForMatchingRP");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+    if (!psoffset)
+        return ERROR_INT("&soffset not defined", procName, 1);
+    if (!pboffset)
+        return ERROR_INT("&boffset not defined", procName, 1);
+    if (!ptoffset)
+        return ERROR_INT("&toffset not defined", procName, 1);
+
+    *psoffset = -1;  /* init to not found */
+    *pboffset = 100000000;
+    *ptoffset = 100000000;
+
+    n = sarrayGetCount(sa);
+    found = FALSE; 
+    totchars = toffsetlp;
+    leftmatch = 1;  /* count of (LP - RP); we're finished when it goes to 0. */
+    firstline = start + soffsetlp;
+    for (i = firstline; i < n; i++) {
+        if ((str = sarrayGetString(sa, i, 0)) == NULL)
+            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+        nchars = strlen(str);
+        jstart = 0;
+        if (i == firstline)
+            jstart = boffsetlp + 1;
+        for (j = jstart; j < nchars; j++) {
+            if (str[j] == '(')
+                leftmatch++;
+            else if (str[j] == ')')
+                leftmatch--;
+            if (leftmatch == 0) {
+                found = TRUE;
+                break;
+            }
+        }
+        if (found)
+            break;
+        if (i == firstline)
+            totchars += nchars - boffsetlp;
+        else
+            totchars += nchars;
     }
 
     if (found) {

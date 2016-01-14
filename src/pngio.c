@@ -16,16 +16,19 @@
 /*
  *  pngio.c
  *                     
- *    Reading png:
+ *    Read png from file
  *          PIX        *pixReadStreamPng()
  *          l_int32     readHeaderPng()
  *          l_int32     freadHeaderPng()
  *          l_int32     sreadHeaderPng()
  *
- *    Writing png:
+ *    Write png to file
  *          l_int32     pixWritePng()  [ special top level ]
  *          l_int32     pixWriteStreamPng()
  *          
+ *    Read/write to memory   [not on windows]
+ *          PIX        *pixReadMemPng()
+ *          l_int32     pixWriteMemPng()
  *
  *    Documentation: libpng.txt and example.c
  *
@@ -330,7 +333,7 @@ l_uint8  *data;
     if (!pwidth || !pheight || !pbpc || !pcpp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
     
-    nbytes = nbytesInFile(fp);
+    nbytes = fnbytesInFile(fp);
     if (nbytes < 40)
         return ERROR_INT("file too small to be png", procName, 1);
     if ((data = (l_uint8 *)CALLOC(40, sizeof(l_uint8))) == NULL)
@@ -700,4 +703,104 @@ char        *text;
 
 }
 
+
+/*---------------------------------------------------------------------*
+ *                         Read/write to memory                        *
+ *---------------------------------------------------------------------*/
+#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+
+extern FILE *open_memstream(char **data, size_t *size);
+extern FILE *fmemopen(void *data, size_t size, const char *mode);
+
+/*!
+ *  pixReadMemPng()
+ *
+ *      Input:  data (const; png-encoded)
+ *              size (of data)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) The @size byte of @data must be a null character.
+ */
+PIX *
+pixReadMemPng(const l_uint8  *cdata,
+              l_uint32        size)
+{
+l_uint8  *data;
+FILE     *fp;
+PIX      *pix;
+
+    PROCNAME("pixReadMemPng");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+        return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
+    pix = pixReadStreamPng(fp);
+    fclose(fp);
+    return pix;
+}
+
+
+/*!
+ *  pixWriteMemPng()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *              gamma (use 0.0 if gamma is not defined)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See pixWriteStreamPng() for usage.  This version writes to
+ *          memory instead of to a file stream.
+ */
+l_int32
+pixWriteMemPng(l_uint8  **pdata,
+               l_uint32  *psize,
+               PIX       *pix,
+               l_float32  gamma)
+{
+FILE  *fp;
+
+    PROCNAME("pixWriteMemPng");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    if ((fp = open_memstream((char **)pdata, (size_t *)psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    pixWriteStreamPng(fp, pix, gamma);
+    fclose(fp);
+    return 0;
+}
+
+#else
+
+PIX *
+pixReadMemPng(const l_uint8  *data,
+              l_uint32        size)
+{
+    return (PIX *)ERROR_PTR("png read from memory not implemented on windows",
+                            "pixReadMemPng", NULL);
+}
+
+
+l_int32
+pixWriteMemPng(l_uint8  **pdata,
+               l_uint32  *psize,
+               PIX       *pix,
+               l_float32  gamma)
+{
+    return ERROR_INT("png write to memory not implemented on windows",
+                     "pixWriteMemPng", 1);
+}
+
+#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
 

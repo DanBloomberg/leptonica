@@ -62,7 +62,11 @@
  *           l_int32   boxaaGetCount()
  *           l_int32   boxaaGetBoxCount()
  *           BOXA     *boxaaGetBoxa()
+ *
+ *      Boxa array modifiers
  *           l_int32   boxaaReplaceBoxa()
+ *           l_int32   boxaaInsertBoxa()
+ *           l_int32   boxaaRemoveBoxa()
  *           l_int32   boxaaAddBox()
  *
  *      Boxaa serialized I/O
@@ -162,7 +166,7 @@ BOX  *boxc;
 }
 
 
-/*! 
+/*!
  *  boxClone()
  *
  *      Input:  box
@@ -314,7 +318,7 @@ BOXA  *boxa;
     boxa->n = 0;
     boxa->nalloc = n;
     boxa->refcount = 1;
-    
+
     if ((boxa->box = (BOX **)CALLOC(n, sizeof(BOX *))) == NULL)
         return (BOXA *)ERROR_PTR("boxa ptrs not made", procName, NULL);
 
@@ -605,11 +609,11 @@ boxaReplaceBox(BOXA    *boxa,
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This shifts boxa[i] --> boxa[i + 1] for all i >= index,
- *          and then inserts val as na[index].
+ *      (1) This shifts box[i] --> box[i + 1] for all i >= index,
+ *          and then inserts box as box[index].
  *      (2) To insert at the beginning of the array, set index = 0.
  *      (3) To append to the array, it's easier to use boxaAddBox().
- *      (4) This should not be used repeatedly on large arrays,
+ *      (4) This should not be used repeatedly to insert into large arrays,
  *          because the function is O(n).
  */
 l_int32
@@ -630,7 +634,6 @@ BOX    **array;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
 
-        /* Insert the new box; use internals; extend array first if req'd */
     if (n >= boxa->nalloc)
         boxaExtendArray(boxa);
     array = boxa->box;
@@ -651,10 +654,10 @@ BOX    **array;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This removes boxa[index] and then shifts
- *          boxa[i] --> boxa[i - 1] for all i > index.
- *      (2) It should not be used repeatedly on large arrays,
- *          because the function is O(n).
+ *      (1) This removes box[index] and then shifts
+ *          box[i] --> box[i - 1] for all i > index.
+ *      (2) It should not be used repeatedly to remove boxes from
+ *          large arrays, because the function is O(n).
  */
 l_int32
 boxaRemoveBox(BOXA    *boxa,
@@ -671,7 +674,6 @@ BOX    **array;
     if (index < 0 || index >= n)
         return ERROR_INT("index not in {0...n - 1}", procName, 1);
 
-        /* Use internals for simplicity */
     array = boxa->box;
     boxDestroy(&array[index]);
     for (i = index + 1; i < n; i++)
@@ -745,7 +747,7 @@ BOXAA   *baa;
     return;
 }
 
-        
+
 
 /*--------------------------------------------------------------------------*
  *                              Add Boxa to Boxaa                           *
@@ -774,7 +776,7 @@ BOXA    *bac;
         return ERROR_INT("ba not defined", procName, 1);
     if (copyflag != L_INSERT && copyflag != L_COPY && copyflag != L_CLONE)
         return ERROR_INT("invalid copyflag", procName, 1);
-    
+
     if (copyflag == L_INSERT)
         bac = ba;
     else
@@ -832,7 +834,7 @@ boxaaGetCount(BOXAA  *baa)
         return ERROR_INT("baa not defined", procName, 0);
     return baa->n;
 }
-        
+
 
 /*!
  *  boxaaGetBoxCount()
@@ -860,7 +862,7 @@ l_int32  n, sum, i;
 
     return sum;
 }
-        
+
 
 /*!
  *  boxaaGetBoxa()
@@ -923,6 +925,92 @@ l_int32  n;
 
     boxaDestroy(&baa->boxa[index]);
     baa->boxa[index] = boxa;
+    return 0;
+}
+
+
+/*!
+ *  boxaaInsertBoxa()
+ *
+ *      Input:  boxaa
+ *              index (location in boxaa to insert new boxa)
+ *              boxa (new boxa to be inserted)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This shifts boxa[i] --> boxa[i + 1] for all i >= index,
+ *          and then inserts boxa as boxa[index].
+ *      (2) To insert at the beginning of the array, set index = 0.
+ *      (3) To append to the array, it's easier to use boxaaAddBoxa().
+ *      (4) This should not be used repeatedly to insert into large arrays,
+ *          because the function is O(n).
+ */
+l_int32
+boxaaInsertBoxa(BOXAA   *baa,
+                l_int32  index,
+                BOXA    *boxa)
+{
+l_int32  i, n;
+BOXA   **array;
+
+    PROCNAME("boxaaInsertBoxa");
+
+    if (!baa)
+        return ERROR_INT("baa not defined", procName, 1);
+    n = boxaaGetCount(baa);
+    if (index < 0 || index > n)
+        return ERROR_INT("index not in {0...n}", procName, 1);
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    if (n >= baa->nalloc)
+        boxaaExtendArray(baa);
+    array = baa->boxa;
+    baa->n++;
+    for (i = n; i > index; i--)
+        array[i] = array[i - 1];
+    array[index] = boxa;
+
+    return 0;
+}
+
+
+/*!
+ *  boxaaRemoveBoxa()
+ *
+ *      Input:  boxaa
+ *              index  (of the boxa to be removed)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This removes boxa[index] and then shifts
+ *          boxa[i] --> boxa[i - 1] for all i > index.
+ *      (2) The removed boxaa is destroyed.
+ *      (2) This should not be used repeatedly on large arrays,
+ *          because the function is O(n).
+ */
+l_int32
+boxaaRemoveBoxa(BOXAA   *baa,
+                l_int32  index)
+{
+l_int32  i, n;
+BOXA   **array;
+
+    PROCNAME("boxaaRemoveBox");
+
+    if (!baa)
+        return ERROR_INT("baa not defined", procName, 1);
+    n = boxaaGetCount(baa);
+    if (index < 0 || index >= n)
+        return ERROR_INT("index not valid", procName, 1);
+
+    array = baa->boxa;
+    boxaDestroy(&array[index]);
+    for (i = index + 1; i < n; i++)
+        array[i - 1] = array[i];
+    array[n - 1] = NULL;
+    baa->n--;
+
     return 0;
 }
 
@@ -1001,6 +1089,9 @@ BOXAA  *baa;
  *
  *      Input:  stream
  *      Return: boxaa, or null on error
+ *
+ *  Notes:
+ *      (1) We use PIXA_VERSION_NUMBER for the boxaa.
  */
 BOXAA *
 boxaaReadStream(FILE  *fp)
@@ -1017,14 +1108,14 @@ BOXAA   *baa;
 
     if (fscanf(fp, "\nBoxaa Version %d\n", &version) != 1)
         return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
-    if (version != BOXA_VERSION_NUMBER)
+    if (version != PIXA_VERSION_NUMBER)
         return (BOXAA *)ERROR_PTR("invalid boxa version", procName, NULL);
     if (fscanf(fp, "Number of boxa = %d\n", &n) != 1)
         return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
 
     if ((baa = boxaaCreate(n)) == NULL)
         return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
-        
+
     for (i = 0; i < n; i++) {
         if (fscanf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
                 &ignore, &x, &y, &w, &h) != 5)
@@ -1074,6 +1165,9 @@ FILE  *fp;
  *      Input: stream
  *             boxaa
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) We use PIXA_VERSION_NUMBER for the boxaa.
  */
 l_int32
 boxaaWriteStream(FILE   *fp,
@@ -1091,7 +1185,7 @@ BOXA    *boxa;
         return ERROR_INT("baa not defined", procName, 1);
 
     n = boxaaGetCount(baa);
-    fprintf(fp, "\nBoxaa Version %d\n", BOXA_VERSION_NUMBER);
+    fprintf(fp, "\nBoxaa Version %d\n", PIXA_VERSION_NUMBER);
     fprintf(fp, "Number of boxa = %d\n", n);
     for (i = 0; i < n; i++) {
         if ((boxa = boxaaGetBoxa(baa, i, L_CLONE)) == NULL)
@@ -1145,6 +1239,9 @@ BOXA  *boxa;
  *
  *      Input:  stream
  *      Return: boxa, or null on error
+ *
+ *  Notes:
+ *      (1) We use PIXA_VERSION_NUMBER for the boxa.
  */
 BOXA *
 boxaReadStream(FILE  *fp)
@@ -1161,14 +1258,14 @@ BOXA    *boxa;
 
     if (fscanf(fp, "\nBoxa Version %d\n", &version) != 1)
         return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
-    if (version != BOXA_VERSION_NUMBER)
+    if (version != PIXA_VERSION_NUMBER)
         return (BOXA *)ERROR_PTR("invalid boxa version", procName, NULL);
     if (fscanf(fp, "Number of boxes = %d\n", &n) != 1)
         return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
 
     if ((boxa = boxaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
-        
+
     for (i = 0; i < n; i++) {
         if (fscanf(fp, "  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
                 &ignore, &x, &y, &w, &h) != 5)
@@ -1218,6 +1315,9 @@ FILE  *fp;
  *      Input: stream
  *             boxa
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) We use PIXA_VERSION_NUMBER for the boxa.
  */
 l_int32
 boxaWriteStream(FILE  *fp,
@@ -1234,7 +1334,7 @@ BOX     *box;
         return ERROR_INT("boxa not defined", procName, 1);
 
     n = boxaGetCount(boxa);
-    fprintf(fp, "\nBoxa Version %d\n", BOXA_VERSION_NUMBER);
+    fprintf(fp, "\nBoxa Version %d\n", PIXA_VERSION_NUMBER);
     fprintf(fp, "Number of boxes = %d\n", n);
     for (i = 0; i < n; i++) {
         if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)

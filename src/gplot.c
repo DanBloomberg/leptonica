@@ -169,7 +169,7 @@ GPLOT  *gplot;
     else if (outformat == GPLOT_LATEX)
         snprintf(buf, L_BUF_SIZE, "%s.tex", rootname);
     else  /* outformat == GPLOT_X11 */
-        sprintf(buf, "");
+        buf[0] = '\0';
     gplot->outname = stringNew(buf);
     if (title) gplot->title = stringNew(title);
     if (xlabel) gplot->xlabel = stringNew(xlabel);

@@ -21,6 +21,8 @@
  *   handle the preprocessor macros, and then parses the cpp output.
  *   In use, it is convenient to redirect stdout to a file.
  *
+ *   Update the version number when making a new version.
+ *
  *   For simple C prototype extraction, xtractprotos has essentially
  *   the same functionality as Adam Bryant's cextract, but the latter
  *   has not been officially supported for over 10 years, has been
@@ -35,6 +37,7 @@
 
 static const char *tempfile = "/tmp/temp_cpp_output";
 static const l_int32  L_BUF_SIZE = 512;
+static const char *version = "1.2";
 
 main(int    argc,
      char **argv)
@@ -48,8 +51,9 @@ static char  mainName[] = "xtractprotos";
         /* Output extern C head */
     sa = sarrayCreate(0);
     sarrayAddString(sa, "/*", 1);
-    sarrayAddString(sa, " *  This file was autogen'd by xtractprotos, v. 1.0",
-	    1);
+    snprintf(buf, L_BUF_SIZE,
+             " *  This file was autogen'd by xtractprotos, v. %s", version);
+    sarrayAddString(sa, buf, 1);
     sarrayAddString(sa, " */", 1);
     sarrayAddString(sa, "#ifdef __cplusplus", 1);
     sarrayAddString(sa, "extern \"C\" {", 1);

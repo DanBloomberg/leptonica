@@ -22,33 +22,43 @@
  *     Stubs for pngio.c functions
  */
 
-PIX * pixReadStreamPng ( FILE *fp )
+PIX * pixReadStreamPng(FILE *fp)
 {
-    PROCNAME("pixReadStreamPng");
-    return (PIX * )ERROR_PTR("function not present", procName, NULL);
+    return (PIX * )ERROR_PTR("function not present", "pixReadStreamPng", NULL);
 }
 
-l_int32 pixWriteStreamPng ( FILE *fp, PIX *pix )
+l_int32 readHeaderPng(const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *piscmap)
 {
-    PROCNAME("pixWriteStreamPng");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "readHeaderPng", 1);
 }
 
-l_int32 readHeaderPng ( const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *pcmap )
+l_int32 freadHeaderPng(FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *piscmap)
 {
-    PROCNAME("readHeaderPng");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "freadHeaderPng", 1);
 }
 
-l_int32 freadHeaderPng ( FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *pcmap )
+l_int32 sreadHeaderPng(const l_uint8 *data, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *piscmap)
 {
-    PROCNAME("freadHeaderPng");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "sreadHeaderPng", 1);
 }
 
-l_int32 sreadHeaderPng ( const l_uint8 *data, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *pcmap )
+l_int32 pixWritePng(const char *filename, PIX *pix, l_float32 gamma)
 {
-    PROCNAME("sreadHeaderPng");
-    return ERROR_INT("function not present", procName, 1);
+    return ERROR_INT("function not present", "pixWritePng", 1);
+}
+
+l_int32 pixWriteStreamPng(FILE *fp, PIX *pix, l_float32 gamma)
+{
+    return ERROR_INT("function not present", "pixWriteStreamPng", 1);
+}
+
+PIX * pixReadMemPng(const l_uint8 *cdata, l_uint32 size)
+{
+    return (PIX * )ERROR_PTR("function not present", "pixReadMemPng", NULL);
+}
+
+l_int32 pixWriteMemPng(l_uint8 **pdata, l_uint32 *psize, PIX *pix, l_float32 gamma)
+{
+    return ERROR_INT("function not present", "pixWriteMemPng", 1);
 }
 

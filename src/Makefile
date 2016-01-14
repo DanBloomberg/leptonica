@@ -26,15 +26,14 @@
 #   To remove object files in src: make clean
 #   To remove object files and executables in prog: make clean
 #
-#   Customization for machine hardware:
-#   (1) On little-endian machines (e.g., i386, x86-64):
+#   Customization for endianness of machine hardware:
+#   When using the gnu compiler, endianness is automatically
+#   determined and set properly.  Otherwise, you need to set the
+#   CPPFLAGS variable explicitly as follows.
+#       On little-endian machines (e.g., i386, x86-64):
 #          CPPFLAGS = $(INCLUDES) -DL_LITTLE_ENDIAN
 #       On big-endian machines (e.g., Mac Power PC, Sun Sparc):
 #          CPPFLAGS = $(INCLUDES) -DL_BIG_ENDIAN
-#   (2) To generate function prototypes, you need a program called
-#       xtractprotos.  Build it with this command:
-#          make xtractprotos
-#       Then use it with 'make allprotos'
 #
 #   Customization for cygwin:
 #   (1) Use the appropriate $CC
@@ -56,6 +55,14 @@
 #        tiffio.c  -->  tiffiostub.c
 #        zlibmem.c -->  zlibmemstub.c
 #   (2) Comment out selected I/O header files from alltypes.h
+#
+#   Customization for adding gif read/write:
+#   Replace:   gifiostub.c  -->  gifio.c
+#
+#   To generate function prototypes, you need a program called
+#       xtractprotos.  Build it with this command:
+#          make xtractprotos
+#       Then use it with 'make allprotos'
 #
 #   Stuff used by Makefile
 RM =		rm -f
@@ -87,7 +94,7 @@ PROTOTYPE_DIR =	.
 #     use -Werror to verify there are no serious warnings
 #     use g++ to apply stricter rules.  Libraries made with g++ may not
 #        link to programs compiled with gcc (depends on the glibc version).
-#     use -Wunused to verify there are no unused vars
+#     use -Wunused to identify unused varables
 #     use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING and
 #        ERROR_* logging, and to remove all DEBUG information dependent
 #        on whether or not NO_CONSOLE_IO has been defined.
@@ -102,7 +109,7 @@ CC =		gcc -ansi -Werror -D_BSD_SOURCE -DANSI -fPIC
 # Test for processor endianness (valid with gnu make only)
 ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
 
-# Conditional compilation (depending on processor endian-ness)
+# Conditional compilation (depending on processor endianness)
 CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
 #CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN
 #CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN
@@ -132,7 +139,7 @@ LIBRARIAN_SHARED =	gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 52
+MINOR_REV = 54
 
 #########################################################
 
@@ -160,7 +167,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
-		gplot.c graphics.c \
+		gifiostub.c gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
 		grayquant.c grayquantlow.c \
 		jbclass.c jpegio.c \

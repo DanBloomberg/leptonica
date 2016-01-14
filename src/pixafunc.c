@@ -45,6 +45,7 @@
  *      Pixaa Display (render into a pix)
  *           PIX      *pixaaDisplay()
  *           PIX      *pixaaDisplayByPixa()
+ *           PIXA     *pixaaDisplayTiledAndScaled()
  *
  *  We give seven methods for displaying a pixa in a pix.
  *  Some work for 1 bpp input; others for any input depth.
@@ -1443,14 +1444,17 @@ PIXA      *pixan;
  *      Return: pix, or null on error
  *
  *  Notes:
- *      (1) Each pix of the pixaa is displayed at the location given by its box
+ *      (1) Each pix of the pixaa is displayed at the location given by
+ *          its box, translated by the box of the containing pixa
+ *          if it exists.
  */
 PIX *
 pixaaDisplay(PIXAA   *pixaa,
              l_int32  w,
              l_int32  h)
 {
-l_int32  i, j, n, na, d, wmax, hmax, xb, yb, wb, hb;
+l_int32  i, j, n, nbox, na, d, wmax, hmax, x, y, xb, yb, wb, hb;
+BOXA    *boxa1;  /* top-level boxa */
 BOXA    *boxa;
 PIX     *pixt, *pixd;
 PIXA    *pixa;
@@ -1466,19 +1470,25 @@ PIXA    *pixa;
 
         /* If w and h not input, determine the minimum size required
          * to contain the origin and all c.c. */
+    boxa1 = pixaaGetBoxa(pixaa, L_CLONE);
+    nbox = boxaGetCount(boxa1);
     if (w == 0 || h == 0) {
-        wmax = hmax = 0;
-        for (i = 0; i < n; i++) {
-            pixa = pixaaGetPixa(pixaa, i, L_CLONE);
-            boxa = pixaGetBoxa(pixa, L_CLONE);
-            boxaGetExtent(boxa, &w, &h, NULL);
-            wmax = L_MAX(wmax, w);
-            hmax = L_MAX(hmax, h);
-            pixaDestroy(&pixa);
-            boxaDestroy(&boxa);
+        if (nbox == n)
+            boxaGetExtent(boxa1, &w, &h, NULL);
+        else {  /* have to use the lower-level boxa for each pixa */
+            wmax = hmax = 0;
+            for (i = 0; i < n; i++) {
+                pixa = pixaaGetPixa(pixaa, i, L_CLONE);
+                boxa = pixaGetBoxa(pixa, L_CLONE);
+                boxaGetExtent(boxa, &w, &h, NULL);
+                wmax = L_MAX(wmax, w);
+                hmax = L_MAX(hmax, h);
+                pixaDestroy(&pixa);
+                boxaDestroy(&boxa);
+            }
+            w = wmax;
+            h = hmax;
         }
-        w = wmax;
-        h = hmax;
     }
 
         /* Get depth from first pix */
@@ -1491,17 +1501,21 @@ PIXA    *pixa;
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     
+    x = y = 0;
     for (i = 0; i < n; i++) {
         pixa = pixaaGetPixa(pixaa, i, L_CLONE);
+        if (nbox == n)
+            boxaGetBoxGeometry(boxa1, i, &x, &y, NULL, NULL);
         na = pixaGetCount(pixa);
         for (j = 0; j < na; j++) {
             pixaGetBoxGeometry(pixa, j, &xb, &yb, &wb, &hb);
             pixt = pixaGetPix(pixa, j, L_CLONE);
-            pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pixt, 0, 0);
+            pixRasterop(pixd, x + xb, y + yb, wb, hb, PIX_PAINT, pixt, 0, 0);
             pixDestroy(&pixt);
         }
         pixaDestroy(&pixa);
     }
+    boxaDestroy(&boxa1);
 
     return pixd;
 }
@@ -1524,6 +1538,7 @@ PIXA    *pixa;
  *          approximately equal to the size of the first pix in
  *          the pixa.  If this assumption is not correct, this
  *          function will not work properly.
+ *      (3) This ignores the boxa of the pixaa.
  */
 PIX *
 pixaaDisplayByPixa(PIXAA   *pixaa,
@@ -1599,4 +1614,63 @@ PIXA    *pixa;
 
     return pixd;
 }
+
+
+/*!
+ *  pixaaDisplayTiledAndScaled()
+ *
+ *      Input:  pixaa
+ *              outdepth (output depth: 1, 8 or 32 bpp)
+ *              tilewidth (each pix is scaled to this width)
+ *              ncols (number of tiles in each row)
+ *              background (0 for white, 1 for black; this is the color
+ *                 of the spacing between the images)
+ *              spacing  (between images, and on outside)
+ *              border (width of additional black border on each image;
+ *                      use 0 for no border)
+ *      Return: pixa (of tiled images, one image for each pixa in
+ *                    the pixaa), or null on error
+ *
+ *  Notes:
+ *      (1) For each pixa, this generates from all the pix a
+ *          tiled/scaled output pix, and puts it in the output pixa.
+ *      (2) See comments in pixaDisplayTiledAndScaled().
+ */
+PIXA *
+pixaaDisplayTiledAndScaled(PIXAA   *pixaa,
+                           l_int32  outdepth,
+                           l_int32  tilewidth,
+                           l_int32  ncols,
+                           l_int32  background,
+                           l_int32  spacing,
+                           l_int32  border)
+{
+l_int32  i, n;
+PIX     *pix;
+PIXA    *pixa, *pixad;
+
+    PROCNAME("pixaaDisplayTiledAndScaled");
+
+    if (!pixaa)
+        return (PIXA *)ERROR_PTR("pixaa not defined", procName, NULL);
+    if (outdepth != 1 && outdepth != 8 && outdepth != 32)
+        return (PIXA *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
+    if (border < 0 || border > tilewidth / 5)
+        border = 0;
+    
+    if ((n = pixaaGetCount(pixaa)) == 0)
+        return (PIXA *)ERROR_PTR("no components", procName, NULL);
+
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pixa = pixaaGetPixa(pixaa, i, L_CLONE);
+        pix = pixaDisplayTiledAndScaled(pixa, outdepth, tilewidth, ncols,
+                                        background, spacing, border);
+        pixaAddPix(pixad, pix, L_INSERT);
+        pixaDestroy(&pixa);
+    }
+
+    return pixad;
+}
+
 

@@ -52,6 +52,7 @@
  *           l_uint8   *arrayRead()
  *           l_uint8   *arrayReadStream()
  *           l_int32    nbytesInFile()
+ *           l_int32    fnbytesInFile()
  *
  *       write memory to file
  *           l_int32    arrayWrite()
@@ -1043,7 +1044,7 @@ l_uint8  *data;
     if (!pnbytes)
         return (l_uint8 *)ERROR_PTR("ptr to nbytes not defined", procName, NULL);
 
-    *pnbytes = nbytesInFile(fp);
+    *pnbytes = fnbytesInFile(fp);
 
     if ((data = (l_uint8 *)CALLOC(1, *pnbytes + 1)) == NULL)
         return (l_uint8 *)ERROR_PTR("CALLOC fail for data", procName, NULL);
@@ -1056,15 +1057,38 @@ l_uint8  *data;
 /*!
  *  nbytesInFile()
  *
+ *      Input:  filename
+ *      Return: nbytes in file; 0 on error
+ */
+l_int32
+nbytesInFile(const char  *filename)
+{
+l_int32  nbytes;
+FILE    *fp;
+
+    PROCNAME("nbytesInFile");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 0);
+    fp = fopen(filename, "r");
+    nbytes = fnbytesInFile(fp);
+    fclose(fp);
+    return nbytes;
+}
+
+
+/*!
+ *  fnbytesInFile()
+ *
  *      Input:  file stream
  *      Return: nbytes in file; 0 on error
  */
 l_int32
-nbytesInFile(FILE  *fp)
+fnbytesInFile(FILE  *fp)
 {
 l_int32  nbytes, pos;
 
-    PROCNAME("nbytesInFile");
+    PROCNAME("fnbytesInFile");
 
     if (!fp)
         return ERROR_INT("stream not open", procName, 0);
@@ -1073,7 +1097,6 @@ l_int32  nbytes, pos;
     fseek(fp, 0, SEEK_END);   /* EOF */
     nbytes = ftell(fp);
     fseek(fp, 0, pos);        /* back to initial position */
-
     return nbytes;
 }
 

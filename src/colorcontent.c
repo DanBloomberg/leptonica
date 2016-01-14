@@ -308,7 +308,7 @@ pixColorMagnitude(PIX     *pixs,
                   l_int32  type)
 {
 l_int32    w, h, d, i, j, wplc, wpld;
-l_int32    rval, gval, bval, rdist, gdist, bdist, maxval, colorval;
+l_int32    rval, gval, bval, rdist, gdist, bdist, colorval;
 l_int32    rgdist, rbdist, gbdist, mindist, maxdist;
 l_int32   *rtab, *gtab, *btab;
 l_uint32   pixel;

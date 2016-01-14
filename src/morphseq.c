@@ -885,7 +885,8 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
     }
 
     if (border != 0 && netred != 0) {
-        fprintf(stderr, "*** border added but net reduction not 0\n", op);
+        fprintf(stderr,
+                "*** op = %s; border added but net reduction not 0\n", op);
         valid = FALSE;
     }
     return valid;

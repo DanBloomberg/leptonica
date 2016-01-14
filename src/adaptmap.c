@@ -48,6 +48,7 @@
  *
  *      Non-adaptive (global) mapping
  *          PIX       *pixGlobalNormRGB()              32 bpp or cmapped
+ *          PIX       *pixGlobalNormNoSatRGB()         32 bpp
  *
  *  Normalization is done by generating a reduced map (or set
  *  of maps) representing the estimated background value of the
@@ -98,6 +99,11 @@ static const l_int32  DEFAULT_MIN_COUNT = 40;
 static const l_int32  DEFAULT_BG_VAL = 200;
 static const l_int32  DEFAULT_X_SMOOTH_SIZE = 2;
 static const l_int32  DEFAULT_Y_SMOOTH_SIZE = 1;
+
+#ifndef  NO_CONSOLE_IO
+#define  DEBUG_GLOBAL    0
+#endif  /* ~NO_CONSOLE_IO */
+
 
 
 /*------------------------------------------------------------------*
@@ -1928,7 +1934,6 @@ l_int32   *rarray, *garray, *barray;
 l_uint32   pixel;
 l_uint32  *data, *line;
 NUMA      *nar, *nag, *nab;
-PIX       *pixc;
 PIXCMAP   *cmap;
 
     PROCNAME("pixGlobalNormRGB");
@@ -1993,4 +1998,92 @@ PIXCMAP   *cmap;
     FREE(barray);
     return pixd;
 }
+
+
+/*!
+ *  pixGlobalNormNoSatRGB()
+ *
+ *      Input:  pixd (<optional> null, existing or equal to pixs)
+ *              pixs (32 bpp rgb)
+ *              rval, gval, bval (pixel values in pixs that are 
+ *                                linearly mapped to mapval; but see below)
+ *              factor (subsampling factor; integer >= 1)
+ *              rank (between 0.0 and 1.0; typ. use a value near 1.0)
+ *      Return: pixd (32 bpp rgb), or null on error
+ *
+ *  Notes:
+ *    (1) This is a version of pixGlobalNormRGB(), where the output
+ *        intensity is scaled back so that a controlled fraction of
+ *        pixel components is allowed to saturate.  See comments in
+ *        pixGlobalNormRGB().
+ *    (2) The value of pixd determines if the results are written to a
+ *        new pix (use NULL), in-place to pixs (use pixs), or to some
+ *        other existing pix.
+ *    (3) This does a global normalization of an image where the
+ *        r,g,b color components are not balanced.  Thus, white in pixs is
+ *        represented by a set of r,g,b values that are not all 255.
+ *    (4) The input values (rval, gval, bval) can be chosen to be the
+ *        color that, after normalization, becomes white background.
+ *        For images that are mostly background, the closer these values
+ *        are to the median component values, the closer the resulting
+ *        background will be to gray, becoming white at the brightest places.
+ *    (5) The mapval used in pixGlobalNormRGB() is computed here to
+ *        avoid saturation of any component in the image (save for a
+ *        fraction of the pixels given by the input rank value).
+ */
+PIX *
+pixGlobalNormNoSatRGB(PIX       *pixd,
+                      PIX       *pixs,
+                      l_int32    rval,
+                      l_int32    gval,
+                      l_int32    bval,
+                      l_int32    factor,
+                      l_float32  rank)
+{
+l_int32    mapval;
+l_float32  rankrval, rankgval, rankbval;
+l_float32  rfract, gfract, bfract, maxfract;
+
+    PROCNAME("pixGlobalNormNoSatRGB");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (factor < 1)
+        return (PIX *)ERROR_PTR("sampling factor < 1", procName, NULL);
+    if (rank < 0.0 || rank > 1.0)
+        return (PIX *)ERROR_PTR("rank not in [0.0 ... 1.0]", procName, NULL);
+    if (rval <= 0 || gval <= 0 || bval <= 0)
+        return (PIX *)ERROR_PTR("invalid estim. color values", procName, NULL);
+
+        /* The max value for each component may be larger than the
+         * input estimated background value.  In that case, mapping
+         * for those pixels would saturate.  To prevent saturation,
+         * we compute the fraction for each component by which we
+         * would oversaturate.  Then take the max of these, and
+         * reduce, uniformly over all components, the output intensity
+         * by this value.  Then no component will saturate.
+         * In practice, if rank < 1.0, a fraction of pixels
+         * may have a component saturate.  By keeping rank close to 1.0,
+         * that fraction can be made arbitrarily small. */
+    pixGetRankValueMaskedRGB(pixs, NULL, 0, 0, factor, rank, &rankrval,
+                             &rankgval, &rankbval);
+    rfract = rankrval / (l_float32)rval;
+    gfract = rankgval / (l_float32)gval;
+    bfract = rankbval / (l_float32)bval;
+    maxfract = L_MAX(rfract, gfract);
+    maxfract = L_MAX(maxfract, bfract);
+#if  DEBUG_GLOBAL
+    fprintf(stderr, "rankrval = %7.2f, rankgval = %7.2f, rankbval = %7.2f\n",
+            rankrval, rankgval, rankbval);
+    fprintf(stderr, "rfract = %7.4f, gfract = %7.4f, bfract = %7.4f\n",
+            rfract, gfract, bfract);
+#endif  /* DEBUG_GLOBAL */
+
+    mapval = (l_int32)(255. / maxfract);
+    pixd = pixGlobalNormRGB(pixd, pixs, rval, gval, bval, mapval);
+    return pixd;
+}
+
 

@@ -49,6 +49,7 @@
  *      Set border pixels to arbitrary value
  *           l_int32     pixSetOrClearBorder()
  *           l_int32     pixSetBorderVal()
+ *           l_int32     pixSetMirroredBorder()
  *
  *      Add and remove border
  *           PIX        *pixAddBorder()
@@ -61,6 +62,7 @@
  *           PIX        *pixCreateRGBImage()
  *           PIX        *pixGetRGBComponent()
  *           l_int32     pixSetRGBComponent()
+ *           PIX        *pixGetRGBComponentCmap()
  *           l_int32     composeRGBPixel()
  *           l_int32     pixGetRGBLine()
  *
@@ -685,11 +687,11 @@ BOX       *boxc;
         return 0;
     }
     if (d == 1 ||
-        d == 2 && val == 3 ||
-        d == 4 && val == 0xf ||
-        d == 8 && val == 0xff ||
-        d == 16 && val == 0xffff ||
-        d == 32 && ((val ^ 0xffffff00) >> 8 == 0)) {
+        (d == 2 && val == 3) ||
+        (d == 4 && val == 0xf) ||
+        (d == 8 && val == 0xff) ||
+        (d == 16 && val == 0xffff) ||
+        (d == 32 && ((val ^ 0xffffff00) >> 8 == 0))) {
         pixSetInRect(pix, box);
         return 0;
     }
@@ -912,7 +914,7 @@ l_int32  w, h;
 /*!
  *  pixSetBorderVal()
  *
- *      Input:  pixs (8 or 32 bpp)
+ *      Input:  pixs (8, 16 or 32 bpp)
  *              left, right, top, bot (amount to set)
  *              val (value to set at each border pixel)
  *      Return: 0 if OK; 1 on error
@@ -927,7 +929,7 @@ l_int32  w, h;
  *          you're setting the border to either black or white.
  *      (3) If d != 32, the input value should be masked off
  *          to the appropriate number of least significant bits.
- *      (4) The code is easily generalized for 2, 4 or 16 bpp.
+ *      (4) The code is easily generalized for 2 or 4 bpp.
  */
 l_int32
 pixSetBorderVal(PIX      *pixs,
@@ -945,8 +947,8 @@ l_uint32  *datas, *lines;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 8 && d != 32)
-        return ERROR_INT("depth must be 8 or 32 bpp", procName, 1);
+    if (d != 8 && d != 16 && d != 32)
+        return ERROR_INT("depth must be 8, 16 or 32 bpp", procName, 1);
 
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
@@ -970,6 +972,28 @@ l_uint32  *datas, *lines;
             lines = datas + i * wpls;
             for (j = 0; j < w; j++)
                 SET_DATA_BYTE(lines, j, val);
+        }
+    }
+    else if (d == 16) {
+        val &= 0xffff;
+        for (i = 0; i < top; i++) {
+            lines = datas + i * wpls;
+            for (j = 0; j < w; j++)
+                SET_DATA_TWO_BYTES(lines, j, val);
+        }
+        rstart = w - right;
+        bstart = h - bot;
+        for (i = top; i < bstart; i++) {
+            lines = datas + i * wpls;
+            for (j = 0; j < left; j++)
+                SET_DATA_TWO_BYTES(lines, j, val);
+            for (j = rstart; j < w; j++)
+                SET_DATA_TWO_BYTES(lines, j, val);
+        }
+        for (i = bstart; i < h; i++) {
+            lines = datas + i * wpls;
+            for (j = 0; j < w; j++)
+                SET_DATA_TWO_BYTES(lines, j, val);
         }
     }
     else {   /* d == 32 */
@@ -997,6 +1021,54 @@ l_uint32  *datas, *lines;
     return 0;
 }
         
+
+/*!
+ *  pixSetMirroredBorder()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              left, right, top, bot (number of pixels to set)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This applies what is effectively mirror boundary conditions
+ *          to a border region in the image.  It is in-place.
+ *      (2) This is useful for setting pixels near the border to a
+ *          value representative of the near pixels to the interior.
+ *      (3) The general pixRasterop() is used for an in-place operation here
+ *          because there is no overlap between the src and dest rectangles.
+ */
+l_int32
+pixSetMirroredBorder(PIX     *pixs,
+                     l_int32  left,
+                     l_int32  right,
+                     l_int32  top,
+                     l_int32  bot)
+{
+l_int32  i, j, w, h;
+
+    PROCNAME("pixSetMirroredBorder");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    for (j = 0; j < left; j++)
+        pixRasterop(pixs, left - 1 - j, top, 1, h - top - bot, PIX_SRC,
+                    pixs, left + j, top);
+    for (j = 0; j < right; j++)
+        pixRasterop(pixs, w - right + j, top, 1, h - top - bot, PIX_SRC,
+                    pixs, w - right - 1 - j, top);
+    for (i = 0; i < top; i++)
+        pixRasterop(pixs, 0, top - 1 - i, w, 1, PIX_SRC,
+                    pixs, 0, top + i);
+    for (i = 0; i < bot; i++)
+        pixRasterop(pixs, 0, h - bot + i, w, 1, PIX_SRC,
+                    pixs, 0, h - bot - 1 - i);
+
+    return 0;
+}
+     
+
 
 /*-------------------------------------------------------------*
  *                     Add and remove border                   *
@@ -1383,6 +1455,83 @@ l_uint32  *datas, *datad;
     }
 
     return 0;
+}
+
+
+/*!
+ *  pixGetRGBComponentCmap()
+ *
+ *      Input:  pixs  (colormapped)
+ *              color  (one of {COLOR_RED, COLOR_GREEN, COLOR_BLUE})
+ *      Return: pixd  (the selected 8 bpp component image of the
+ *                     input cmapped image), or null on error
+ */
+PIX *
+pixGetRGBComponentCmap(PIX     *pixs,
+                       l_int32  color)
+{
+l_int32     i, j, w, h, val, index;
+l_int32     wplc, wpld;
+l_uint32   *linec, *lined;
+l_uint32   *datac, *datad;
+PIX        *pixc, *pixd;
+PIXCMAP    *cmap;
+RGBA_QUAD  *cta;
+
+    PROCNAME("pixGetRGBComponentCmap");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if ((cmap = pixGetColormap(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixs not cmapped", procName, NULL);
+    if (color != COLOR_RED && color != COLOR_GREEN &&
+        color != COLOR_BLUE)
+        return (PIX *)ERROR_PTR("invalid color", procName, NULL);
+
+        /* If not 8 bpp, make a cmapped 8 bpp pix */
+    if (pixGetDepth(pixs) == 8)
+        pixc = pixClone(pixs);
+    else
+        pixc = pixConvertTo8(pixs, TRUE);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if ((pixd = pixCreateNoInit(w, h, 8)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    wplc = pixGetWpl(pixc);
+    wpld = pixGetWpl(pixd);
+    datac = pixGetData(pixc);
+    datad = pixGetData(pixd);
+    cta = (RGBA_QUAD *)cmap->array;
+
+    for (i = 0; i < h; i++) {
+        linec = datac + i * wplc;
+        lined = datad + i * wpld;
+        if (color == COLOR_RED) {
+            for (j = 0; j < w; j++) {
+                index = GET_DATA_BYTE(linec, j);
+                val = cta[index].red;
+                SET_DATA_BYTE(lined, j, val);
+            }
+        }
+        else if (color == COLOR_GREEN) {
+            for (j = 0; j < w; j++) {
+                index = GET_DATA_BYTE(linec, j);
+                val = cta[index].green;
+                SET_DATA_BYTE(lined, j, val);
+            }
+        }
+        else if (color == COLOR_BLUE) {
+            for (j = 0; j < w; j++) {
+                index = GET_DATA_BYTE(linec, j);
+                val = cta[index].green;
+                SET_DATA_BYTE(lined, j, val);
+            }
+        }
+    }
+
+    pixDestroy(&pixc);
+    return pixd;
 }
 
 

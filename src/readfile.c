@@ -29,6 +29,9 @@
  *           l_int32    findFileFormatBuffer()
  *           l_int32    fileFormatIsTiff()
  *
+ *      Read from memory
+ *           PIX       *pixReadMem()
+ *
  *      Test function for I/O with different formats 
  *           l_int32    ioFormatTest()
  */
@@ -249,6 +252,11 @@ PIX     *pix;
             return (PIX *)ERROR_PTR("pnm: no pix returned", procName, NULL);
         break;
 
+    case IFF_GIF:
+        if ((pix = pixReadStreamGif(fp)) == NULL)
+            return (PIX *)ERROR_PTR("gif: no pix returned", procName, NULL);
+        break;
+
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR( "Unknown format: no pix returned",
                 procName, NULL);
@@ -276,7 +284,7 @@ l_int32
 findFileFormat(FILE  *fp)
 {
 l_uint8  firstbytes[12]; 
-l_int32  format;
+l_int32  format, ret;
 
     PROCNAME("findFileFormat");
 
@@ -284,10 +292,12 @@ l_int32  format;
         return ERROR_INT("stream not defined", procName, 0);
 
     rewind(fp);
-    if (nbytesInFile(fp) < 12)
+    if (fnbytesInFile(fp) < 12)
         return ERROR_INT("truncated file", procName, 0);
 
-    fread((char *)&firstbytes, 1, 12, fp);
+    ret = fread((char *)&firstbytes, 1, 12, fp);
+    if (ret != 12)
+        return ERROR_INT("failed to read first 12 bytes of file", procName, 0);
     rewind(fp);
 
     format = findFileFormatBuffer(firstbytes);
@@ -364,6 +374,12 @@ l_uint16  twobytepw;
         buf[4] == 13  && buf[5] == 10  && buf[6] == 26  && buf[7] == 10)
             return IFF_PNG;
 
+        /* Look for "GIF87a" or "GIF89a" */
+    if (buf[0] == 'G' && buf[1] == 'I' && buf[2] == 'F' && buf[3] == '8' &&
+        (buf[4] == '7' || buf[4] == '9') && buf[5] == 'a') {
+        return IFF_GIF;
+    }
+
         /* Format header not found */
     return IFF_UNKNOWN;
 }
@@ -393,6 +409,92 @@ l_int32  format;
         return 1;
     else
         return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                            Read from memory                         *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixReadMem()
+ *
+ *      Input:  data (const; encoded)
+ *              datasize (size of data)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) This is a variation of pixReadStream(), where the data is read
+ *          from a memory buffer rather than a file.
+ *      (2) On windows, this will only read tiff formatted files from
+ *          memory.  For other formats, it requires fmemopen(3).
+ *          Attempts to read those formats will fail at runtime.
+ */
+PIX *
+pixReadMem(const l_uint8  *data,
+           l_uint32        size)
+{
+l_int32  format;
+PIX     *pix;
+
+    PROCNAME("pixReadMem");
+
+    if (!data)
+        return (PIX *)ERROR_PTR("data not defined", procName, NULL);
+    if (size < 12)
+        return (PIX *)ERROR_PTR("size < 12", procName, NULL);
+    pix = NULL;
+
+    format = findFileFormatBuffer(data);
+
+    switch (format)
+    {
+    case IFF_BMP:
+        if ((pix = pixReadMemBmp(data, size)) == NULL )
+            return (PIX *)ERROR_PTR( "bmp: no pix returned", procName, NULL);
+        break;
+
+    case IFF_JFIF_JPEG:
+        if ((pix = pixReadMemJpeg(data, size, READ_24_BIT_COLOR, 1, NULL, 0))
+                == NULL)
+            return (PIX *)ERROR_PTR( "jpeg: no pix returned", procName, NULL);
+        break;
+
+    case IFF_PNG:
+        if ((pix = pixReadMemPng(data, size)) == NULL)
+            return (PIX *)ERROR_PTR("png: no pix returned", procName, NULL);
+        break;
+
+    case IFF_TIFF:
+    case IFF_TIFF_PACKBITS:
+    case IFF_TIFF_RLE:
+    case IFF_TIFF_G3:
+    case IFF_TIFF_G4:
+    case IFF_TIFF_LZW:
+    case IFF_TIFF_ZIP:
+            /* Reading page 0 by default */
+        if ((pix = pixReadMemTiff(data, size, 0)) == NULL)
+            return (PIX *)ERROR_PTR("tiff: no pix returned", procName, NULL);
+        break;
+
+    case IFF_PNM:
+        if ((pix = pixReadMemPnm(data, size)) == NULL)
+            return (PIX *)ERROR_PTR("pnm: no pix returned", procName, NULL);
+        break;
+
+    case IFF_GIF:
+        if ((pix = pixReadMemGif(data, size)) == NULL)
+            return (PIX *)ERROR_PTR("gif: no pix returned", procName, NULL);
+        break;
+
+    case IFF_UNKNOWN:
+        return (PIX *)ERROR_PTR("Unknown format: no pix returned",
+                procName, NULL);
+        break;
+    }
+
+    if (pix)
+        pixSetInputFormat(pix, format);
+    return pix;
 }
 
 

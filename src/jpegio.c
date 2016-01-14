@@ -16,13 +16,17 @@
 /*
  *  jpegio.c
  *
- *    Reading jpeg:
+ *    Read jpeg from file
  *          PIX            *pixReadJpeg()  [ special top level ]
  *          PIX            *pixReadStreamJpeg()
  *
- *    Writing jpeg:
+ *    Write jpeg to file
  *          l_int32         pixWriteJpeg()  [ special top level ]
  *          l_int32         pixWriteStreamJpeg()
+ *
+ *    Read/write to memory   [not on windows]
+ *          PIX            *pixReadMemJpeg()
+ *          l_int32         pixWriteMemJpeg()
  *
  *    Static helpers
  *          static void     jpeg_error_do_not_exit()
@@ -58,8 +62,13 @@
 
 static void jpeg_error_do_not_exit(j_common_ptr cinfo);
 static l_uint8 jpeg_getc(j_decompress_ptr cinfo);
-static l_int32 jpeg_comment_callback(j_decompress_ptr cinfo);
 static jmp_buf jpeg_jmpbuf;
+
+    /* Note: 'boolean' is defined in jmorecfg.h.  We use it explicitly
+     * here because for windows where __MINGW32__ is defined,
+     * the prototype for jpeg_comment_callback() is given as
+     * returning a boolean.  */
+static boolean jpeg_comment_callback(j_decompress_ptr cinfo);
 
 
 /*---------------------------------------------------------------------*
@@ -73,8 +82,8 @@ static jmp_buf jpeg_jmpbuf;
  *                             1 means create colormap and return 8 bpp
  *                               palette image if color)
  *              reduction (scaling factor: 1, 2, 4 or 8)
- *             &pnwarn (<optional return> number of warnings about
- *                      corrupted data)
+ *              &pnwarn (<optional return> number of warnings about
+ *                       corrupted data)
  *      Return: pix, or null on error
  *
  *  Images reduced by factors of 2, 4 or 8 can be returned
@@ -129,7 +138,7 @@ PIX   *pix;
  *                             1 means create colormap and return 8 bpp
  *                               palette image if color)
  *              reduction (scaling factor: 1, 2, 4 or 8)
- *             &pnwarn (<optional return> number of warnings)
+ *              &pnwarn (<optional return> number of warnings)
  *              hint: a bitwise OR of L_HINT_* values
  *      Return: pix, or null on error
  *
@@ -541,11 +550,135 @@ const char                  *text;
 }
 
 
+/*---------------------------------------------------------------------*
+ *                         Read/write to memory                        *
+ *---------------------------------------------------------------------*/
+#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON)
+
+extern FILE *open_memstream(char **data, size_t *size);
+extern FILE *fmemopen(void *data, size_t size, const char *mode);
+
+/*!
+ *  pixReadMemJpeg()
+ *
+ *      Input:  data (const; jpeg-encoded)
+ *              size (of data)
+ *              colormap flag (0 means return RGB image if color;
+ *                             1 means create colormap and return 8 bpp
+ *                               palette image if color)
+ *              reduction (scaling factor: 1, 2, 4 or 8)
+ *              &pnwarn (<optional return> number of warnings)
+ *              hint: a bitwise OR of L_HINT_* values
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) The @size byte of @data must be a null character.
+ *      (2) See pixReadJpeg() for usage.
+ */
+PIX *
+pixReadMemJpeg(const l_uint8  *cdata,
+               l_uint32        size,
+               l_int32         cmflag,
+               l_int32         reduction,
+               l_int32        *pnwarn,
+               l_int32         hint)
+{
+l_uint8  *data;
+FILE     *fp;
+PIX      *pix;
+
+    PROCNAME("pixReadMemJpeg");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    if ((fp = fmemopen(data, (size_t)size, "r")) == NULL)
+        return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
+    pix = pixReadStreamJpeg(fp, cmflag, reduction, pnwarn, hint);
+    fclose(fp);
+    return pix;
+}
+
+
+/*!
+ *  pixWriteMemJpeg()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *              quality  (1 - 100; 75 is default value; 0 is also default)
+ *              progressive (0 for baseline sequential; 1 for progressive)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See pixWriteStreamJpeg() for usage.  This version writes to
+ *          memory instead of to a file stream.
+ */
+l_int32
+pixWriteMemJpeg(l_uint8  **pdata,
+                l_uint32  *psize,
+                PIX       *pix,
+                l_int32    quality,
+                l_int32    progressive)
+{
+FILE  *fp;
+
+    PROCNAME("pixWriteMemJpeg");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    if ((fp = open_memstream((char **)pdata, (size_t *)psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    pixWriteStreamJpeg(fp, pix, quality, progressive);
+    fclose(fp);
+    return 0;
+}
+
+#else
+
+PIX *
+pixReadMemJpeg(const l_uint8  *data,
+               l_uint32        size,
+               l_int32         cmflag,
+               l_int32         reduction,
+               l_int32        *pnwarn,
+               l_int32         hint)
+{
+    return (PIX *)ERROR_PTR("jpeg read from memory not implemented on windows",
+                            "pixReadMemJpeg", NULL);
+}
+
+
+l_int32
+pixWriteMemJpeg(l_uint8  **pdata,
+                l_uint32  *psize,
+                PIX       *pix,
+                l_int32    quality,
+                l_int32    progressive)
+{
+    return ERROR_INT("jpeg write to memory not implemented on windows",
+                     "pixWriteMemJpeg", 1);
+}
+
+#endif  /* !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) */
+
+
+
+/*---------------------------------------------------------------------*
+ *                           Static helpers                            *
+ *---------------------------------------------------------------------*/
     /* The default jpeg error_exit() kills the process.
      * We don't want leptonica to allow this to happen.
      * If you want this default behavior, remove the
      * calls to this in the functions above. */
-static void jpeg_error_do_not_exit(j_common_ptr cinfo)
+static void
+jpeg_error_do_not_exit(j_common_ptr cinfo)
 {
     (*cinfo->err->output_message) (cinfo);
     jpeg_destroy(cinfo);
@@ -554,7 +687,8 @@ static void jpeg_error_do_not_exit(j_common_ptr cinfo)
 }
 
     /* This function was borrowed from libjpeg. */
-static l_uint8 jpeg_getc(j_decompress_ptr cinfo)
+static l_uint8
+jpeg_getc(j_decompress_ptr cinfo)
 {
 struct jpeg_source_mgr *datasrc;
 
@@ -570,8 +704,10 @@ struct jpeg_source_mgr *datasrc;
 
 
     /* This function is required for reading jpeg comments, and
-     * was contributed by Antony Dovgal. */
-static l_int32 jpeg_comment_callback(j_decompress_ptr cinfo)
+     * was contributed by Antony Dovgal.  Why 'boolean'?  See
+     * note above the declaration. */
+static boolean
+jpeg_comment_callback(j_decompress_ptr cinfo)
 {
 l_int32    length, i;
 l_uint32   c;

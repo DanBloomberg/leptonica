@@ -205,6 +205,10 @@ l_int32  dd;
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
+    if (pixs == pixd) {
+        L_WARNING("pixs and pixd are the same; no operation", procName);
+        return 0;
+    }
 
         /* Check depth of src and depth; these must agree */
     if (dd != pixGetDepth(pixs))

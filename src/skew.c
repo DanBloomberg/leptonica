@@ -393,7 +393,12 @@ PIX       *pix, *pixt;
  *          of equal angles, and then doing a binary search until
  *          convergence.
  *      (2) Caller must check the return value for validity of the result.
- *      (3) See also notes in pixFindSkewSweepAndSearchScore()
+ *      (3) In computing the differential line sum variance score, we sum
+ *          the result over scanlines, but we always skip:
+ *           - at least one scanline
+ *           - not more than 10% of the image height
+ *           - not more than 5% of the image width
+ *      (4) See also notes in pixFindSkewSweepAndSearchScore()
  */
 l_int32
 pixFindSkewSweepAndSearch(PIX        *pixs,
@@ -517,20 +522,28 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
             pixsw = pixReduceRankBinaryCascade(pixsch, 1, 2, 2, 0);
     }
 
-    if ((pixt1 = pixCreateTemplate(pixsw)) == NULL)
-        return ERROR_INT("pixt1 not made", procName, 1);
+    pixt1 = pixCreateTemplate(pixsw);
     if (ratio == 1)
         pixt2 = pixClone(pixt1);
-    else {
-        if ((pixt2 = pixCreateTemplate(pixsch)) == NULL)
-            return ERROR_INT("pixt2 not made", procName, 1);
-    }
+    else
+        pixt2 = pixCreateTemplate(pixsch);
 
     nangles = (l_int32)((2. * sweeprange) / sweepdelta + 1);
-    if ((natheta = numaCreate(nangles)) == NULL)
-        return ERROR_INT("natheta not made", procName, 1);
-    if ((nascore = numaCreate(nangles)) == NULL)
-        return ERROR_INT("nascore not made", procName, 1);
+    natheta = numaCreate(nangles);
+    nascore = numaCreate(nangles);
+
+    if (!pixsch || !pixsw) {
+        ERROR_VOID("pixsch and pixsw not both made", procName);
+	goto cleanup;
+    }
+    if (!pixt1 || !pixt2) {
+        ERROR_VOID("pixt1 and pixt2 not both made", procName);
+	goto cleanup;
+    }
+    if (!natheta || !nascore) {
+        ERROR_VOID("natheta and nascore not both made", procName);
+	goto cleanup;
+    }
 
         /* Do sweep */
     rangeleft = sweepcenter - sweeprange;
@@ -653,9 +666,6 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
 #if  DEBUG_PRINT_SCORES
     L_INFO_FLOAT(" Binary search score = %7.3f", procName, bsearchscore[2]);
 #endif  /* DEBUG_PRINT_SCORES */
-    if(endscore) {
-      *endscore = bsearchscore[2];
-    }
 
     if (endscore)  /* save if requested */
         *endscore = bsearchscore[2];
@@ -679,6 +689,7 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
 #if  DEBUG_THRESHOLD
     L_INFO_FLOAT2(" minthresh = %10.2f, minscore = %10.2f", procName,
             minthresh, minscore);
+    L_INFO_FLOAT(" maxscore = %10.2f", procName, maxscore);
 #endif  /* DEBUG_THRESHOLD */
 
     if (minscore > minthresh)
@@ -735,6 +746,12 @@ cleanup:
  *      Input:  pixs
  *              &sum  (<return> result)
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) At the top and bottom, we skip:
+ *           - at least one scanline
+ *           - not more than 10% of the image height
+ *           - not more than 5% of the image width
  */
 l_int32
 pixFindDifferentialSquareSum(PIX        *pixs,

@@ -523,33 +523,48 @@ PIX       *pixt;
  *      Input:  pixs  (1 bpp source)
  *              connectivity  (4 or 8)
  *              outdepth (8 or 16 bits for pixd)
+ *              boundcond (L_BOUNDARY_BG, L_BOUNDARY_FG)
  *      Return: pixd, or null on error
  *
- *  This computes the distance of each pixel from the nearest
- *  background pixel.  All bg pixels therefore have a distance of 0,
- *  and the fg pixel distances increase linearly from 1 at the
- *  boundary.  It can also be used to compute the distance of
- *  each pixel from the nearest fg pixel, by inverting the input
- *  image before calling this function.  Then all fg pixels have
- *  a distance 0 and the bg pixel distances increase linearly
- *  from 1 at the boundary.
- *
- *  The algorithm, described in Leptonica on the page on seed
- *  filling and connected components, is due to Luc Vincent.
- *  In brief, we generate an 8 or 16 bpp image, initialized to 1 for
- *  the fg pixels of the input pix, subject to the constraint that
- *  the boundary pixels are initialized to 0.  We then do 2 sweeps,
- *  in raster followed by anti-raster order, where the value of each
- *  new pixel is taken to be 1 more than the minimum of the
- *  previously-seen connected pixels (using either 4 or 8
- *  connectivity).  
+ *  Notes:
+ *      (1) This computes the distance of each pixel from the nearest
+ *          background pixel.  All bg pixels therefore have a distance of 0,
+ *          and the fg pixel distances increase linearly from 1 at the
+ *          boundary.  It can also be used to compute the distance of
+ *          each pixel from the nearest fg pixel, by inverting the input
+ *          image before calling this function.  Then all fg pixels have
+ *          a distance 0 and the bg pixel distances increase linearly
+ *          from 1 at the boundary.
+ *      (2) The algorithm, described in Leptonica on the page on seed
+ *          filling and connected components, is due to Luc Vincent.
+ *          In brief, we generate an 8 or 16 bpp image, initialized
+ *          with the fg pixels of the input pix set to 1 and the
+ *          1-boundary pixels (i.e., the boundary pixels of width 1 on
+ *          the four sides set as either:
+ *            * L_BOUNDARY_BG: 0
+ *            * L_BOUNDARY_FG:  max
+ *          where max = 0xff for 8 bpp and 0xffff for 16 bpp.
+ *          Then do raster/anti-raster sweeps over all pixels interior
+ *          to the 1-boundary, where the value of each new pixel is
+ *          taken to be 1 more than the minimum of the previously-seen
+ *          connected pixels (using either 4 or 8 connectivity).
+ *          Finally, set the 1-boundary pixels using the mirrored method;
+ *          this removes the max values there.
+ *      (3) Using L_BOUNDARY_BG clamps the distance to 0 at the
+ *          boundary.  Using L_BOUNDARY_FG allows the distance
+ *          at the image boundary to "float".
+ *      (4) For 4-connected, one could initialize only the left and top
+ *          1-boundary pixels, and go all the way to the right
+ *          and bottom; then coming back reset left and top.  But we
+ *          instead use a method that works for both 4- and 8-connected.
  */
 PIX *
 pixDistanceFunction(PIX     *pixs,
                     l_int32  connectivity,
-                    l_int32  outdepth)
+                    l_int32  outdepth,
+                    l_int32  boundcond)
 {
-l_int32    w, h, wpld;
+l_int32    w, h, wpld, opbc;
 l_uint32  *datad;
 PIX       *pixd;
 
@@ -561,6 +576,8 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
     if (outdepth != 8 && outdepth != 16)
         return (PIX *)ERROR_PTR("outdepth not 8 or 16 bpp", procName, NULL);
+    if (boundcond != L_BOUNDARY_BG && boundcond != L_BOUNDARY_FG)
+        return (PIX *)ERROR_PTR("invalid boundcond", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, outdepth)) == NULL)
@@ -568,8 +585,21 @@ PIX       *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
+        /* Initialize pixd with appropriate boundary conditions */
+    if (boundcond == L_BOUNDARY_BG)
+        opbc = PIX_CLR;
+    else  /* boundcond == L_BOUNDARY_FG) */
+        opbc = PIX_SET;
     pixSetMasked(pixd, pixs, 1);
+    pixRasterop(pixd, 0, 0, w, 1, opbc, NULL, 0, 0);   /* top */
+    pixRasterop(pixd, 0, h - 1, w, 1, opbc, NULL, 0, 0);   /* bot */
+    pixRasterop(pixd, 0, 0, 1, h, opbc, NULL, 0, 0);   /* left */
+    pixRasterop(pixd, w - 1, 0, 1, h, opbc, NULL, 0, 0);   /* right */
+
     distanceFunctionLow(datad, w, h, outdepth, wpld, connectivity);
+
+        /* Set each border pixel equal to the pixel next to it */
+    pixSetMirroredBorder(pixd, 1, 1, 1, 1);
 
     return pixd;
 }
