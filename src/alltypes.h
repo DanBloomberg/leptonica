@@ -32,6 +32,7 @@
 #include "pix.h"
 #include "ptra.h"
 #include "queue.h"
+#include "regutils.h"
 #include "stack.h"
 #include "watershed.h"
 

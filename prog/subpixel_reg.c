@@ -24,7 +24,7 @@
 #include "allheaders.h"
 
 void AddTextAndSave(PIXA *pixa, PIX *pixs, l_int32 newrow,
-                    BMF *bmf, const char *textstr,
+                    L_BMF *bmf, const char *textstr,
                     l_int32 location, l_uint32 val);
 
 const char  *textstr[] =
@@ -37,12 +37,19 @@ const char  *textstr[] =
 main(int    argc,
      char **argv)
 {
-BMF         *bmf, *bmftop;
-PIX         *pixs, *pixg, *pixt, *pixd;
-PIX         *pix1, *pix2, *pix3, *pix4, *pix5;
-PIXA        *pixa;
-static char  mainName[] = "subpixel_reg";
+l_int32    success, display;
+l_float32  scalefact;
+L_BMF     *bmf, *bmftop;
+FILE      *fp;
+L_KERNEL  *kel, *kelx, *kely;
+PIX       *pixs, *pixg, *pixt, *pixd;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
+PIXA      *pixa;
 
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+        return 1;
+
+    /* ----------------- Test on 8 bpp grayscale ---------------------*/
     pixa = pixaCreate(5);
     bmf = bmfCreate("./fonts", 6);
     bmftop = bmfCreate("./fonts", 10);
@@ -63,8 +70,9 @@ static char  mainName[] = "subpixel_reg";
     pixd = pixAddSingleTextblock(pixt, bmftop,
                                  "Regression test for subpixel scaling: gray",
                                  0xff00ff00, L_ADD_ABOVE, NULL);
-    pixWrite("/tmp/junkpixd1.png", pixd, IFF_PNG);
-    pixDisplay(pixd, 50, 50);
+    pixWrite("/tmp/junksub0.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junksub0.jpg", 0, &success);
+    pixDisplayWithTitle(pixd, 50, 50, NULL, display);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
     pixDestroy(&pixg);
@@ -76,9 +84,11 @@ static char  mainName[] = "subpixel_reg";
     pixDestroy(&pix4);
     pixDestroy(&pix5);
 
+
+    /* ----------------- Test on 32 bpp rgb ---------------------*/
     pixa = pixaCreate(5);
     pixs = pixRead("fish24.jpg");
-    pix1 = pixScale(pixs, 0.4, 0.4);  /* 32 bpp rgb */
+    pix1 = pixScale(pixs, 0.4, 0.4);
     AddTextAndSave(pixa, pix1, 1, bmf, textstr[0], L_ADD_BELOW, 0xff000000);
     pix2 = pixConvertToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_RGB);
     AddTextAndSave(pixa, pix2, 0, bmf, textstr[1], L_ADD_BELOW, 0x00ff0000);
@@ -93,8 +103,9 @@ static char  mainName[] = "subpixel_reg";
     pixd = pixAddSingleTextblock(pixt, bmftop,
                                  "Regression test for subpixel scaling: color",
                                  0xff00ff00, L_ADD_ABOVE, NULL);
-    pixWrite("/tmp/junkpixd2.png", pixd, IFF_PNG);
-    pixDisplay(pixd, 50, 350);
+    pixWrite("/tmp/junksub1.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junksub1.jpg", 1, &success);
+    pixDisplayWithTitle(pixd, 50, 350, NULL, display);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
     pixDestroy(&pixt);
@@ -104,9 +115,56 @@ static char  mainName[] = "subpixel_reg";
     pixDestroy(&pix3);
     pixDestroy(&pix4);
     pixDestroy(&pix5);
-
     bmfDestroy(&bmf);
     bmfDestroy(&bmftop);
+
+
+    /* --------------- Test on images that are initially 1 bpp ------------*/
+    /*   For these, it is better to apply a lowpass filter before scaling  */
+        /* Normal scaling of 8 bpp grayscale */
+    scalefact = 800. / 2320.;
+    pixs = pixRead("patent.png");   /* sharp, 300 ppi, 1 bpp image */
+    pix1 = pixConvertTo8(pixs, FALSE);  /* use 8 bpp input */
+    pix2 = pixScale(pix1, scalefact, scalefact);
+    pixWrite("/tmp/junksub2.png", pix2, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksub2.png", 2, &success);
+
+        /* Subpixel scaling; bad because there is very little aliasing. */
+    pix3 = pixConvertToSubpixelRGB(pix1, scalefact, scalefact,
+                                   L_SUBPIXEL_ORDER_RGB);
+    pixWrite("/tmp/junksub3.png", pix3, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksub3.png", 3, &success);
+
+       /* Get same (bad) result doing subpixel rendering on RGB input */
+    pix4 = pixConvertTo32(pixs);
+    pix5 = pixConvertToSubpixelRGB(pix4, scalefact, scalefact,
+                                   L_SUBPIXEL_ORDER_RGB);
+    regTestComparePix(fp, argv, pix3, pix5, 0, &success);
+    pixWrite("/tmp/junksub4.png", pix5, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksub4.png", 4, &success);
+
+        /* Now apply a small lowpass filter before scaling. */
+    makeGaussianKernelSep(2, 2, 1.0, 1.0, &kelx, &kely);
+    startTimer();
+    pix6 = pixConvolveSep(pix1, kelx, kely, 8, 1);  /* normalized */
+    fprintf(stderr, "Time sep: %7.3f\n", stopTimer());
+    pixWrite("/tmp/junksub5.png", pix6, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksub5.png", 5, &success);
+
+        /* Get same lowpass result with non-separated convolution */
+    kel = makeGaussianKernel(2, 2, 1.0, 1.0);
+    startTimer();
+    pix7 = pixConvolve(pix1, kel, 8, 1);  /* normalized */
+    fprintf(stderr, "Time non-sep: %7.3f\n", stopTimer());
+    regTestComparePix(fp, argv, pix6, pix7, 1, &success);
+
+        /* Now do the subpixel scaling on this slightly blurred image */
+    pix8 = pixConvertToSubpixelRGB(pix6, scalefact, scalefact,
+                                   L_SUBPIXEL_ORDER_RGB);
+    pixWrite("/tmp/junksub6.png", pix8, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksub6.png", 6, &success);
+
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 
@@ -115,7 +173,7 @@ void
 AddTextAndSave(PIXA        *pixa,
                PIX         *pixs,
                l_int32      newrow,
-               BMF         *bmf,
+               L_BMF       *bmf,
                const char  *textstr,
                l_int32      location,
                l_uint32     val)

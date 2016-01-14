@@ -39,6 +39,7 @@
  *        l_int32     pixDisplayWriteFormat()
  *        l_int32     pixSaveTiled()
  *        l_int32     pixSaveTiledOutline()
+ *        l_int32     pixSaveTiledWithText()
  *        void        chooseDisplayProg()
  */
 
@@ -79,23 +80,24 @@ static const l_float32  DEFAULT_SCALING = 1.0;
      * because that makes it static.  The 'const' in the definition of
      * the array refers to the strings in the array; the ptr to the
      * array is not const and can be used 'extern' in other files.)  */
-l_int32  NumImageFileFormatExtensions = 16;  /* array size */
-const char *ImageFileFormatExtensions[] = {"unknown",
-                                           "bmp",
-                                           "jpg",
-                                           "png",
-                                           "tif",
-                                           "tif",
-                                           "tif",
-                                           "tif",
-                                           "tif",
-                                           "tif",
-                                           "tif",
-                                           "pnm",
-                                           "ps",
-                                           "gif",
-                                           "jp2"
-                                           "default"};
+LEPT_DLL l_int32  NumImageFileFormatExtensions = 16;  /* array size */
+LEPT_DLL const char *ImageFileFormatExtensions[] =
+         {"unknown",
+          "bmp",
+          "jpg",
+          "png",
+          "tif",
+          "tif",
+          "tif",
+          "tif",
+          "tif",
+          "tif",
+          "tif",
+          "pnm",
+          "ps",
+          "gif",
+          "jp2"
+          "default"};
 
     /* Local map of image file name extension to output format */
 struct ExtensionMap
@@ -238,7 +240,8 @@ FILE  *fp;
         return ERROR_INT("pix not written to stream", procName, 1);
     }
 
-    fclose(fp);
+    if (format != IFF_GIF)  /* EGifCloseFile() closes file stream! */
+        fclose(fp);
     return 0;
 }
 
@@ -593,7 +596,7 @@ pixDisplay(PIX     *pixs,
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
  *              x, y  (location of display frame)
  *              title (<optional> on frame; can be NULL);
- *              dispflag (0 to disable; 1 to write)
+ *              dispflag (1 to write, else disabled)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
@@ -621,7 +624,7 @@ char            pathname[MAX_PATH];
 
     PROCNAME("pixDisplayWithTitle");
 
-    if (dispflag == 0) return 0;
+    if (dispflag != 1) return 0;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if (ChosenDisplayProg != L_DISPLAY_WITH_XV &&
@@ -1030,6 +1033,83 @@ PIX            *pix, *pixt1, *pixt2, *pixt3;
     pixSetInputFormat(pix, bottom);  /* not typical usage! */
     pixDestroy(&pix);
 
+    return 0;
+}
+
+
+/*!
+ *  pixSaveTiledWithText()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 32 bpp)
+ *              pixa (the pix are accumulated here; as 32 bpp)
+ *              outwidth (in pixels; use 0 to disable entirely)
+ *              newrow (1 to start a new row; 0 to go on same row as previous)
+ *              space (horizontal and vertical spacing, in pixels)
+ *              linewidth (width of added outline for image; 0 for no outline)
+ *              bmf (<optional> font struct)
+ *              textstr (<optional> text string to be added)
+ *              val (color to set the text)
+ *              location (L_ADD_ABOVE, L_ADD_AT_TOP, L_ADD_AT_BOTTOM,
+ *                        L_ADD_BELOW)
+ *      Return: 0 if OK, 1 on error.
+ *
+ *  Notes:
+ *      (1) Before calling this function for the first time, use
+ *          pixaCreate() to make the @pixa that will accumulate the pix.
+ *          This is passed in each time pixSaveTiled() is called.
+ *      (2) @outwidth is the scaled width.  After scaling, the image is
+ *          saved in the input pixa, along with a box that specifies
+ *          the location to place it when tiled later.  Disable saving
+ *          the pix by setting @outwidth == 0.
+ *      (3) @newrow and @space specify the location of the new pix
+ *          with respect to the last one(s) that were entered.
+ *      (4) All pix are saved as 32 bpp RGB.
+ *      (5) If both @bmf and @textstr are defined, this generates a pix
+ *          with the additional text; otherwise, no text is written.
+ *      (6) The text is written before scaling, so it is properly
+ *          antialiased in the scaled pix.  However, if the pix on
+ *          different calls have different widths, the size of the
+ *          text will vary.
+ *      (7) See pixSaveTiledOutline() for other implementation details.
+ */
+l_int32
+pixSaveTiledWithText(PIX         *pixs,
+                     PIXA        *pixa,
+                     l_int32      outwidth,
+                     l_int32      newrow,
+                     l_int32      space,
+                     l_int32      linewidth,
+                     L_BMF       *bmf,
+                     const char  *textstr,
+                     l_uint32     val,
+                     l_int32      location)
+{
+PIX  *pixt1, *pixt2, *pixt3, *pixt4;
+
+    PROCNAME("pixSaveTiledWithText");
+
+    if (outwidth == 0) return 0;
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+
+    pixt1 = pixConvertTo32(pixs);
+    if (linewidth > 0)
+        pixt2 = pixAddBorder(pixt1, linewidth, 0);
+    else
+        pixt2 = pixClone(pixt1);
+    if (bmf && textstr)
+        pixt3 = pixAddSingleTextblock(pixt2, bmf, textstr, val, location, NULL);
+    else
+        pixt3 = pixClone(pixt2);
+    pixt4 = pixScaleToSize(pixt3, outwidth, 0);
+    pixSaveTiled(pixt4, pixa, 1, newrow, space, 32);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    pixDestroy(&pixt3);
+    pixDestroy(&pixt4);
     return 0;
 }
 

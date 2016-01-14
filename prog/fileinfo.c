@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-extern const char *ImageFileFormatExtensions[];
+LEPT_DLL extern const char *ImageFileFormatExtensions[];
 
 main(int    argc,
      char **argv)

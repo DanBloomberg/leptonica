@@ -49,6 +49,8 @@
  *      Generic convolution (with Pix)
  *          PIX      *pixConvolve()
  *          PIX      *pixConvolveSep()
+ *          PIX      *pixConvolveRGB()
+ *          PIX      *pixConvolveRGBSep()
  *
  *      Generic convolution (with float arrays)
  *          FPIX     *fpixConvolve()
@@ -1076,14 +1078,16 @@ PIX       *pixav, *pixd;
  *
  *  Notes:
  *      (1) This gives a convolution with an arbitrary kernel.
- *      (2) The parameter @outdepth determines the depth of the result.
- *      (3) If normflag == 1, the result is normalized by scaling
- *          all kernel values for a unit sum.  Do not normalize if
- *          the kernel has null sum, such as a DoG.
- *      (4) If the kernel is normalized to unit sum, the output values
+ *      (2) The input pixs must have only one sample/pixel.
+ *          To do a convolution on an RGB image, use pixConvolveRGB().
+ *      (3) The parameter @outdepth determines the depth of the result.
+ *          If the kernel is normalized to unit sum, the output values
  *          can never exceed 255, so an output depth of 8 bpp is sufficient.
  *          If the kernel is not normalized, it may be necessary to use
  *          16 or 32 bpp output to avoid overflow.
+ *      (4) If normflag == 1, the result is normalized by scaling
+ *          all kernel values for a unit sum.  Do not normalize if
+ *          the kernel has null sum, such as a DoG.
  *      (5) The kernel values can be positive or negative, but the
  *          result for the convolution can only be stored as a positive
  *          number.  Consequently, if it goes negative, the choices are
@@ -1184,7 +1188,7 @@ PIX       *pixt, *pixd;
 /*!
  *  pixConvolveSep()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8, 16, 32 bpp; no colormap)
  *              kelx (x-dependent kernel)
  *              kely (y-dependent kernel)
  *              outdepth (of pixd: 8, 16 or 32)
@@ -1197,12 +1201,14 @@ PIX       *pixt, *pixd;
  *          one-dimensional kernel components must be input separately;
  *          the full kernel is the product of these components.
  *          The support for the full kernel is thus a rectangular region.
- *      (2) The @outdepth and @normflag parameters are used as in
- *          pixConvolve().
- *      (3) If the kernel is normalized to unit sum, the output values
+ *      (2) The input pixs must have only one sample/pixel.
+ *          To do a convolution on an RGB image, use pixConvolveSepRGB().
+ *      (3) The parameter @outdepth determines the depth of the result.
+ *          If the kernel is normalized to unit sum, the output values
  *          can never exceed 255, so an output depth of 8 bpp is sufficient.
  *          If the kernel is not normalized, it may be necessary to use
  *          16 or 32 bpp output to avoid overflow.
+ *      (2) The @normflag parameter is used as in pixConvolve().
  *      (4) The kernel values can be positive or negative, but the
  *          result for the convolution can only be stored as a positive
  *          number.  Consequently, if it goes negative, the choices are
@@ -1249,6 +1255,113 @@ PIX       *pixt, *pixd;
     }
 
     pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixConvolveRGB()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              kernel
+ *      Return: pixd (32 bpp rgb)
+ *
+ *  Notes:
+ *      (1) This gives a convolution on an RGB image using an
+ *          arbitrary kernel (which we normalize to keep each
+ *          component within the range [0 ... 255].
+ *      (2) The input pixs must be RGB.
+ *      (3) The kernel values can be positive or negative, but the
+ *          result for the convolution can only be stored as a positive
+ *          number.  Consequently, if it goes negative, we clip the
+ *          result to 0.
+ *      (4) This uses a mirrored border to avoid special casing on
+ *          the boundaries.
+ */
+PIX *
+pixConvolveRGB(PIX       *pixs,
+               L_KERNEL  *kel)
+{
+PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
+
+    PROCNAME("pixConvolveRGB");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs is not 32 bpp", procName, NULL);
+    if (!kel)
+        return (PIX *)ERROR_PTR("kel not defined", procName, NULL);
+
+    pixt = pixGetRGBComponent(pixs, COLOR_RED);
+    pixr = pixConvolve(pixt, kel, 8, 1);
+    pixDestroy(&pixt);
+    pixt = pixGetRGBComponent(pixs, COLOR_GREEN);
+    pixg = pixConvolve(pixt, kel, 8, 1);
+    pixDestroy(&pixt);
+    pixt = pixGetRGBComponent(pixs, COLOR_BLUE);
+    pixb = pixConvolve(pixt, kel, 8, 1);
+    pixDestroy(&pixt);
+    pixd = pixCreateRGBImage(pixr, pixg, pixb);
+
+    pixDestroy(&pixr);
+    pixDestroy(&pixg);
+    pixDestroy(&pixb);
+    return pixd;
+}
+
+
+/*!
+ *  pixConvolveRGBSep()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              kelx (x-dependent kernel)
+ *              kely (y-dependent kernel)
+ *      Return: pixd (32 bpp rgb)
+ *
+ *  Notes:
+ *      (1) This does a convolution on an RGB image using a separable
+ *          kernel that is a sequence of convolutions in x and y.  The two
+ *          one-dimensional kernel components must be input separately;
+ *          the full kernel is the product of these components.
+ *          The support for the full kernel is thus a rectangular region.
+ *      (2) The kernel values can be positive or negative, but the
+ *          result for the convolution can only be stored as a positive
+ *          number.  Consequently, if it goes negative, we clip the
+ *          result to 0.
+ *      (3) This uses a mirrored border to avoid special casing on
+ *          the boundaries.
+ */
+PIX *
+pixConvolveRGBSep(PIX       *pixs,
+                  L_KERNEL  *kelx,
+                  L_KERNEL  *kely)
+{
+PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
+
+    PROCNAME("pixConvolveRGBSep");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs is not 32 bpp", procName, NULL);
+    if (!kelx || !kely)
+        return (PIX *)ERROR_PTR("kelx, kely not both defined", procName, NULL);
+
+    pixt = pixGetRGBComponent(pixs, COLOR_RED);
+    pixr = pixConvolveSep(pixt, kelx, kely, 8, 1);
+    pixDestroy(&pixt);
+    pixt = pixGetRGBComponent(pixs, COLOR_GREEN);
+    pixg = pixConvolveSep(pixt, kelx, kely, 8, 1);
+    pixDestroy(&pixt);
+    pixt = pixGetRGBComponent(pixs, COLOR_BLUE);
+    pixb = pixConvolveSep(pixt, kelx, kely, 8, 1);
+    pixDestroy(&pixt);
+    pixd = pixCreateRGBImage(pixr, pixg, pixb);
+
+    pixDestroy(&pixr);
+    pixDestroy(&pixg);
+    pixDestroy(&pixb);
     return pixd;
 }
 

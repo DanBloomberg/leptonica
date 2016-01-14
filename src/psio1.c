@@ -47,28 +47,25 @@
  *     Convert any image file to PS for embedding
  *          l_int32          convertToPSEmbed()
  *
- *  These PostScript converters are used in three different ways:
+ *  These PostScript converters are used in three different ways.
+ *  All images are output with bounding box hints and page numbers.
  *
- *  (1) For embedding a PS file in a program like TeX.  We must have
- *      a bounding box.  convertToPSEmbed() handles this for
- *      levels 1, 2 and 3 output, and prog/converttops
- *      wraps this in an executable.  converttops is a generalization
- *      of Thomas Merz's jpeg2ps wrapper, in that it works for
- *      all types (formats, depth, colormap) of input images and
- *      gives PS output in one of these formats
+ *  (1) For embedding a PS file in a program like TeX.
+ *      convertToPSEmbed() handles this for levels 1, 2 and 3 output,
+ *      and prog/converttops wraps this in an executable.
+ *      converttops is a generalization of Thomas Merz's jpeg2ps wrapper,
+ *      in that it works for all types (formats, depth, colormap)
+ *      of input images and gives PS output in one of these formats
  *        * level 1 (uncompressed)
  *        * level 2 (compressed ccittg4 or dct)
  *        * level 3 (compressed flate)
  *
  *  (2) For composing a set of pages with any number of images
  *      painted on them, in either level 2 or level 3 formats.
- *      Because we append each PS string and specify the scaling
- *      and placement explicitly, one must NOT have a bounding box
- *      attached to each separate image.
  *
  *  (3) For printing a page image or a set of page images, at a
- *      resolution that optimally fills the page.  Here we use
- *      a bounding box and scale the image appropriately.
+ *      resolution that optimally fills the page, using
+ *      convertFilesFittedToPS().
  *
  *  The top-level calls of utilities in category 2, which can compose
  *  multiple images on a page, and which generate a PostScript file for
@@ -86,10 +83,6 @@
 /* --------------------------------------------*/
 #if  USE_PSIO   /* defined in environ.h */
  /* --------------------------------------------*/
-
-static const char *TEMP_G4TIFF_FILE = "/tmp/junk_temp_g4tiff.tif";
-static const char *TEMP_JPEG_FILE   = "/tmp/junk_temp_jpeg.jpg";
-
 
 /*-------------------------------------------------------------*
  *                Convert files in a directory to PS           *
@@ -413,52 +406,64 @@ FILE        *fp;
  *  convertSegmentedPagesToPS()
  *
  *      Input:  pagedir (input page image directory)
+ *              pagestr (<optional> substring filter on page filenames;
+ *                       can be NULL)
  *              maskdir (input mask image directory)
+ *              maskstr (<optional> substring filter on mask filenames;
+ *                       can be NULL)
+ *              numpre (number of characters in name before number)
+ *              numpost (number of characters in name after number)
+ *              maxnum (only consider page numbers up to this value)
  *              textscale (scale of text output relative to pixs)
  *              imagescale (scale of image output relative to pixs)
  *              threshold (for binarization; typ. about 190; 0 for default)
- *              numpre (number of characters in name before number)
- *              numpost (number of characters in name after number)
  *              fileout (output ps file)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This generates a PS file for all page image and mask files in two
- *          specified directories that contain the page numbers as
- *          specified below.  The page images are taken in lexicographic order.
+ *          specified directories and that contain the page numbers as
+ *          specified below.  The two directories can be the same, in which
+ *          case the page and mask files are differentiated by the two
+ *          substrings for string matches.
+ *      (2) The page images are taken in lexicographic order.
  *          Mask images whose numbers match the page images are used to
- *          segment the page images.  Page imaes without a matching 
+ *          segment the page images.  Page images without a matching 
  *          mask image are scaled, thresholded and rendered entirely as text.
- *      (2) Each PS page is generated as a compressed representation of
+ *      (3) Each PS page is generated as a compressed representation of
  *          the page image, where the part of the image under the mask
  *          is suitably scaled and compressed as DCT (i.e., jpeg), and
  *          the remaining part of the page is suitably scaled, thresholded,
  *          compressed as G4 (i.e., tiff g4), and rendered by painting
  *          black through the resulting text mask.
- *      (3) The scaling is typically 2x down for the DCT component
+ *      (4) The scaling is typically 2x down for the DCT component
  *          (@imagescale = 0.5) and 2x up for the G4 component
  *          (@textscale = 2.0).
- *      (4) The resolution is automatically set to fit to a
+ *      (5) The resolution is automatically set to fit to a
  *          letter-size (8.5 x 11 inch) page.
- *      (5) Both the DCT and the G4 encoding are PostScript level 2.
- *      (6) It is assumed that the page number is contained within
+ *      (6) Both the DCT and the G4 encoding are PostScript level 2.
+ *      (7) It is assumed that the page number is contained within
  *          the basename (the filename without directory or extension).
  *          @numpre is the number of characters in the basename
  *          preceeding the actual page numer; @numpost is the number
- *          following the page number. 
- *      (7) To render a page as is -- that is, with no thresholding
+ *          following the page number.  Note: the same numbers must be
+ *          applied to both the page and mask image names.
+ *      (8) To render a page as is -- that is, with no thresholding
  *          of any pixels -- use a mask in the mask directory that is
  *          full size with all pixels set to 1.  If the page is 1 bpp,
  *          it is not necessary to have a mask.
  */
 l_int32
 convertSegmentedPagesToPS(const char  *pagedir,
+                          const char  *pagestr,
                           const char  *maskdir,
+                          const char  *maskstr,
+                          l_int32      numpre,
+                          l_int32      numpost,
+                          l_int32      maxnum,
                           l_float32    textscale,
                           l_float32    imagescale,
                           l_int32      threshold,
-                          l_int32      numpre,
-                          l_int32      numpost,
                           const char  *fileout)
 {
 l_int32  pageno, i, npages;
@@ -478,11 +483,17 @@ SARRAY  *sapage, *samask;
         threshold = 190;
     }
 
-        /* Get numbered full pathnames; don't allow sarray bigger than 10000 */
-    sapage = getNumberedPathnamesInDirectory(pagedir, numpre, numpost, 10000);
-    samask = getNumberedPathnamesInDirectory(maskdir, numpre, numpost, 10000);
+        /* Get numbered full pathnames; max size of sarray is maxnum */
+    sapage = getNumberedPathnamesInDirectory(pagedir, pagestr,
+                                             numpre, numpost, maxnum);
+    samask = getNumberedPathnamesInDirectory(maskdir, maskstr,
+                                             numpre, numpost, maxnum);
     sarrayPadToSameSize(sapage, samask, (char *)"");
-    npages = sarrayGetCount(sapage);
+    if ((npages = sarrayGetCount(sapage)) == 0) {
+        sarrayDestroy(&sapage);
+        sarrayDestroy(&samask);
+        return ERROR_INT("no matching pages found", procName, 1);
+    }
 
         /* Generate the PS file */
     pageno = 1;
@@ -580,7 +591,7 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
         }
     }
 
-    if (pixGetDepth(pixs) == 1) {  /* special case; render tiff g4 */
+    if (pixGetDepth(pixs) == 1) {  /* render tiff g4 */
         pixb = pixClone(pixs);
         pixc = NULL;
     }
@@ -691,7 +702,8 @@ pixWriteMixedToPS(PIX         *pixb,
                   l_int32      pageno,
                   const char  *fileout)
 {
-char        *tnameb, *tnamec;
+const char   tnameb[] = "/tmp/junk_pix_write_mixed.tif";
+const char   tnamec[] = "/tmp/junk_pix_write_mixed.jpg";
 const char  *op;
 l_int32      resb, resc, endpage, maskop, ret;
 
@@ -713,13 +725,11 @@ l_int32      resb, resc, endpage, maskop, ret;
 
         /* Write the jpeg image first */
     if (pixc) {
-        tnamec = genTempFilename("/tmp", ".jpg");
         pixWrite(tnamec, pixc, IFF_JFIF_JPEG);
         endpage = (pixb) ? FALSE : TRUE;
         op = (pageno <= 1) ? "w" : "a";
         ret = convertJpegToPS(tnamec, fileout, op, 0, 0, resc, 1.0,
                               pageno, endpage);
-        FREE(tnamec);
         if (ret)
             return ERROR_INT("jpeg data not written", procName, 1);
     }
@@ -727,13 +737,11 @@ l_int32      resb, resc, endpage, maskop, ret;
         /* Write the binary data, either directly or, if there is
          * a jpeg image on the page, through the mask. */
     if (pixb) {
-        tnameb = genTempFilename("/tmp", ".tif");
         pixWrite(tnameb, pixb, IFF_TIFF_G4);
         op = (pageno <= 1 && !pixc) ? "w" : "a";
         maskop = (pixc) ? 1 : 0;
         ret = convertTiffG4ToPS(tnameb, fileout, op, 0, 0, resb, 1.0,
               pageno, maskop, 1);
-        FREE(tnameb);
         if (ret)
             return ERROR_INT("tiff data not written", procName, 1);
     }
@@ -772,9 +780,11 @@ convertToPSEmbed(const char  *filein,
                  const char  *fileout,
                  l_int32      level)
 {
-l_int32  d, format;
-FILE    *fp;
-PIX     *pix, *pixs;
+const char  nametif[] = "/tmp/junk_convert_ps_embed.tif";
+const char  namejpg[] = "/tmp/junk_convert_ps_embed.jpg";
+l_int32     d, format;
+FILE       *fp;
+PIX        *pix, *pixs;
 
     PROCNAME("convertToPSEmbed");
 
@@ -816,20 +826,21 @@ PIX     *pix, *pixs;
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("image not read from file", procName, 1);
     d = pixGetDepth(pixs);
-    if (d == 2 || d == 4)
+    if ((d == 2 || d == 4) && !pixGetColormap(pixs))
         pix = pixConvertTo8(pixs, 0);
     else if (d == 16)
         pix = pixConvert16To8(pixs, 1);
     else
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+
     d = pixGetDepth(pix);
     if (d == 1) {
-        pixWrite(TEMP_G4TIFF_FILE, pix, IFF_TIFF_G4);
-        convertTiffG4ToPSEmbed(TEMP_G4TIFF_FILE, fileout);
+        pixWrite(nametif, pix, IFF_TIFF_G4);
+        convertTiffG4ToPSEmbed(nametif, fileout);
     }
     else {
-        pixWrite(TEMP_JPEG_FILE, pix, IFF_JFIF_JPEG);
-        convertJpegToPSEmbed(TEMP_JPEG_FILE, fileout);
+        pixWrite(namejpg, pix, IFF_JFIF_JPEG);
+        convertJpegToPSEmbed(namejpg, fileout);
     }
 
     pixDestroy(&pix);

@@ -163,18 +163,18 @@ L_QUEUE   *lq;
             wallps, ranis);
 #endif  /* DEBUG_MAZE */
 
-        /* these are initialized to OFF */
+        /* These are initialized to OFF */
     pixd = pixCreate(w, h, 1);
     pixm = pixCreate(w, h, 1);
 
     lq = lqueueCreate(0);
 
-        /* prime the queue with the first pixel; it is OFF */
+        /* Prime the queue with the first pixel; it is OFF */
     el = mazeelCreate(xi, yi, START_LOC);
     pixSetPixel(pixm, xi, yi, 1);  /* mark visited */
     lqueueAdd(lq, el);
 
-        /* while we're at it ... */
+        /* While we're at it ... */
     while (lqueueGetCount(lq) > 0) {
         elp = (MAZEEL *)lqueueRemove(lq);
         x = elp->x;
@@ -288,39 +288,35 @@ MAZEEL *el;
  *      Return: pta (shortest path), or null if either no path
  *              exists or on error
  *
- *  Note: Because here is a considerable amount of overhead in calling
- *        pixGetPixel() and pixSetPixel(), this function can be sped
- *        up with little effort using raster line pointers and the
- *        GET_DATA* and SET_DATA* macros.
- *
- *  Commentary:
- *      The goal is to find the shortest path between beginning and
- *      end points, without going through walls, and there are many
- *      ways to solve this problem.
- *
- *      We use a queue to implement a breadth-first search.  Two auxiliary
- *      "image" data structures can be used: one to mark the visited
- *      pixels and one to give the direction to the parent for each
- *      visited pixels.  The first structure is used to avoid putting
- *      pixels on the queue more than once, and the second is used
- *      for retracing back to the origin, like the breadcrumbs in
- *      Hansel and Gretel.  Each pixel taken off the queue is destroyed
- *      after it is used to locate the allowed neighbors.  In fact,
- *      only one distance image is required, if you initialize it
- *      to some value that signifies "not yet visited."  (We use
- *      a binary image for marking visited pixels because it is clearer.)
- *      This method for a simple search of a binary maze is implemented in
- *      searchBinaryMaze().
- *
- *      An alternative method would store the (manhattan) distance from
- *      the start point with each pixel on the queue.  The children
- *      of each pixel get a distance one larger than the parent.  These
- *      values can be stored in an auxiliary distance map image
- *      that is constructed simultaneously with the search.  Once the
- *      end point is reached, the distance map is used to backtrack
- *      along a minimum path.  There may be several equal length
- *      minimum paths, any one of which can be chosen this way.
- *
+ *  Notes:
+ *      (1) Because of the overhead in calling pixGetPixel() and
+ *          pixSetPixel(), we have used raster line pointers and the
+ *          GET_DATA* and SET_DATA* macros for many of the pix accesses.
+ *      (2) Commentary:
+ *            The goal is to find the shortest path between beginning and
+ *          end points, without going through walls, and there are many
+ *          ways to solve this problem.
+ *            We use a queue to implement a breadth-first search.  Two auxiliary
+ *          "image" data structures can be used: one to mark the visited
+ *          pixels and one to give the direction to the parent for each
+ *          visited pixels.  The first structure is used to avoid putting
+ *          pixels on the queue more than once, and the second is used
+ *          for retracing back to the origin, like the breadcrumbs in
+ *          Hansel and Gretel.  Each pixel taken off the queue is destroyed
+ *          after it is used to locate the allowed neighbors.  In fact,
+ *          only one distance image is required, if you initialize it
+ *          to some value that signifies "not yet visited."  (We use
+ *          a binary image for marking visited pixels because it is clearer.)
+ *          This method for a simple search of a binary maze is implemented in
+ *          searchBinaryMaze().
+ *            An alternative method would store the (manhattan) distance
+ *          from the start point with each pixel on the queue.  The children
+ *          of each pixel get a distance one larger than the parent.  These
+ *          values can be stored in an auxiliary distance map image
+ *          that is constructed simultaneously with the search.  Once the
+ *          end point is reached, the distance map is used to backtrack
+ *          along a minimum path.  There may be several equal length
+ *          minimum paths, any one of which can be chosen this way.
  */
 PTA *
 pixSearchBinaryMaze(PIX     *pixs,
@@ -358,7 +354,7 @@ PTA       *pta;
     pixd = NULL;
     pta = NULL;
 
-        /* find a bg pixel near input point (xf, yf) */
+        /* Find a bg pixel near input point (xf, yf) */
     localSearchForBackground(pixs, &xf, &yf, 5);
 
 #if  DEBUG_MAZE
@@ -374,12 +370,12 @@ PTA       *pta;
 
     lq = lqueueCreate(0);
 
-        /* prime the queue with the first pixel; it is OFF */
+        /* Prime the queue with the first pixel; it is OFF */
     el = mazeelCreate(xi, yi, 0);  /* don't need direction here */
     pixSetPixel(pixm, xi, yi, 1);  /* mark visited */
     lqueueAdd(lq, el);
 
-        /* fill up the pix storing directions to parents,
+        /* Fill up the pix storing directions to parents,
          * stopping when we hit the point (xf, yf)  */
     found = FALSE;
     while (lqueueGetCount(lq) > 0) {
@@ -752,7 +748,7 @@ PTA      *pta;
 
     lh = lheapCreate(0, L_SORT_INCREASING);  /* always remove closest pixels */
 
-        /* prime the heap with the first pixel */
+        /* Prime the heap with the first pixel */
     pixGetPixel(pixs, xi, yi, &val);
     el = mazeelCreate(xi, yi, 0);  /* don't need direction here */
     el->distance = 0;
@@ -761,7 +757,7 @@ PTA      *pta;
     pixSetPixel(pixr, xi, yi, 0);  /* distance is 0 */
     lheapAdd(lh, el);
 
-        /* breadth-first search with priority queue (implemented by
+        /* Breadth-first search with priority queue (implemented by
            a heap), labeling direction to parents in pixp and minimum
            distance to visited pixels in pixr.  Stop when we pull
            the destination point (xf, yf) off the queue. */
@@ -993,7 +989,7 @@ PIX       *pixw, *pixh;  /* keeps the width and height for the largest */
         prevfg = -1;
         for (j = 0; j < w; j++) {
             val = GET_DATA_BIT(lines, j);
-            if ((val ^ polarity) == 0) {  /* val ^ polarity */
+            if ((val ^ polarity) == 0) {  /* bg (0) if polarity == 0, etc. */
                 if (i == 0 && j == 0) {
                     wp = hp = 1;
                 }
@@ -1030,7 +1026,7 @@ PIX       *pixw, *pixh;  /* keeps the width and height for the largest */
                     }
                 }
             }
-            else {  /* "black" pixel: (val ^ polarity) == 0 */
+            else {  /* fg (1) if polarity == 0; bg (0) if polarity == 1 */
                 prevfg = j;
                 lowestfg[j] = i;
                 wp = hp = 0;

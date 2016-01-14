@@ -37,7 +37,7 @@ main(int    argc,
 char        *filein, *fileout, *textstr;
 l_int32      i, d, size, width, wtext, overflow;
 l_uint32     val;
-BMF         *bmf;
+L_BMF       *bmf;
 PIX         *pixs, *pix;
 static char  mainName[] = "renderfonts";
 

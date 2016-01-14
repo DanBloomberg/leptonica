@@ -32,7 +32,7 @@
 #include "allheaders.h"
 
 
-extern const char *ImageFileFormatExtensions[];
+LEPT_DLL extern const char *ImageFileFormatExtensions[];
 static void get_format_data(l_int32 i, l_uint8 *data, size_t size);
 
 #define  DO_PNG     1  /* set to 0 for valgrind to remove most png errors */

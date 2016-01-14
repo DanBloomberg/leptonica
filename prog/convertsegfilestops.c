@@ -66,28 +66,33 @@
 main(int    argc,
      char **argv)
 {
-char        *pagedir, *maskdir, *fileout;
-l_int32      threshold, numpre, numpost;
+char        *pagedir, *pagestr, *maskdir, *maskstr, *fileout;
+l_int32      threshold, numpre, numpost, maxnum;
 l_float32    textscale, imagescale;    
 static char  mainName[] = "convertsegfilestops";
 
-    if (argc != 9)
+    if (argc != 12)
 	exit(ERROR_INT(
-         " Syntax:  convertsegfilestops pagedir maskdir"
-                   " textscale imagescale thresh numpre numpost fileout",
-                       mainName, 1));
+         " Syntax:  convertsegfilestops pagedir pagestr maskdir maskstr"
+                   " numpre numpost maxnum"
+                   " textscale imagescale thresh fileout",
+         mainName, 1));
 
     pagedir = argv[1];
-    maskdir = argv[2];
-    textscale = atof(argv[3]);
-    imagescale = atof(argv[4]);
-    threshold = atoi(argv[5]);
-    numpre = atoi(argv[6]);
-    numpost = atoi(argv[7]);
-    fileout = argv[8];
+    pagestr = argv[2];
+    maskdir = argv[3];
+    maskstr = argv[4];
+    numpre = atoi(argv[5]);
+    numpost = atoi(argv[6]);
+    maxnum = atoi(argv[7]);
+    textscale = atof(argv[8]);
+    imagescale = atof(argv[9]);
+    threshold = atoi(argv[10]);
+    fileout = argv[11];
 
-    return convertSegmentedPagesToPS(pagedir, maskdir, textscale, imagescale,
-                                     threshold, numpre, numpost, fileout);
+    return convertSegmentedPagesToPS(pagedir, pagestr, maskdir, maskstr,
+                                     numpre, numpost, maxnum, textscale,
+                                     imagescale, threshold, fileout);
 }
 
 

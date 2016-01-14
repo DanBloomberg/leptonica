@@ -132,7 +132,8 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 
 #########################################################################
 
-SRC =		adaptnorm_reg.c affine_reg.c alphaclean_reg.c \
+SRC =		adaptnorm_reg.c affine_reg.c \
+		alltests_reg.c alphaclean_reg.c \
 		bilinear_reg.c binarize_reg.c \
 		binmorph1_reg.c binmorph2_reg.c \
 		binmorph3_reg.c binmorph4_reg.c binmorph5_reg.c \
@@ -141,7 +142,8 @@ SRC =		adaptnorm_reg.c affine_reg.c alphaclean_reg.c \
 		cmapquant_reg.c colorquant_reg.c \
 		colorseg_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c \
-		distance_reg.c dwamorph1_reg.c enhance_reg.c \
+		distance_reg.c dwamorph1_reg.c \
+		dwamorph2_reg.c enhance_reg.c \
 		equal_reg.c expand_reg.c extrema_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
 		fmorphauto_reg.c fpix_reg.c gifio_reg.c \
@@ -155,13 +157,13 @@ SRC =		adaptnorm_reg.c affine_reg.c alphaclean_reg.c \
 		pixadisp_reg.c pixalloc_reg.c \
 		pixcomp_reg.c pixmem_reg.c \
 		pixserial_reg.c pixtile_reg.c \
-		projective_reg.c psioseg_reg.c \
+		projective_reg.c psio_reg.c psioseg_reg.c \
 		pta_reg.c ptra1_reg.c \
-		ptra2_reg.c rank_reg.c \
+		ptra2_reg.c rank_reg.c rankbin_reg.c rankhisto_reg.c \
 		rasterop_reg.c rasteropip_reg.c \
 		rotate1_reg.c rotate2_reg.c rotateorth_reg.c \
 		scale_reg.c selio_reg.c \
-		shear_reg.c  skew_reg.c \
+		shear_reg.c  shear2_reg.c skew_reg.c \
 		smallpix_reg.c smoothedge_reg.c splitcomp_reg.c \
 		string_reg.c subpixel_reg.c threshnorm_reg.c \
 		warper_reg.c writetext_reg.c xformbox_reg.c \
@@ -178,7 +180,7 @@ SRC =		adaptnorm_reg.c affine_reg.c alphaclean_reg.c \
 		convertsegfilestops.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
 		croptext.c digitprep1.c dithertest.c \
-		edgetest.c falsecolortest.c \
+		dwalineargen.c edgetest.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c \
@@ -207,11 +209,8 @@ SRC =		adaptnorm_reg.c affine_reg.c alphaclean_reg.c \
 		viewertest.c watershedtest.c \
 		wordsinorder.c xtractprotos.c xvdisp.c
 
-#  Source files that are compiled after running program(s) from SRC
-SRC2 =		dwamorph2_reg.c dwamorph3_reg.c
-
-#  Remove these files and their .o's on clean
-SRC3 =		dwalinear.3.c dwalinearlow.3.c
+#  Remove the .o files from these on clean
+SRC2 =		dwalinear.3.c dwalinearlow.3.c
 
 ######################################################################
 
@@ -252,6 +251,9 @@ adaptnorm_reg:	adaptnorm_reg.o $(LEPTLIB)
 
 affine_reg:	affine_reg.o $(LEPTLIB)
 	$(CC) -o affine_reg affine_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+alltests_reg:	alltests_reg.o $(LEPTLIB)
+	$(CC) -o alltests_reg alltests_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 alphaclean_reg:	alphaclean_reg.o $(LEPTLIB)
 	$(CC) -o alphaclean_reg alphaclean_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -310,14 +312,11 @@ conversion_reg: conversion_reg.o $(LEPTLIB)
 distance_reg:	distance_reg.o $(LEPTLIB)
 	$(CC) -o distance_reg distance_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
-dwamorph1_reg: dwamorph1_reg.o $(LEPTLIB)
-	$(CC) -o dwamorph1_reg dwamorph1_reg.o $(ALL_LIBS) $(EXTRALIBS)
+dwamorph1_reg:  dwamorph1_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
+	$(CC) -o dwamorph1_reg dwamorph1_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS) $(EXTRALIBS)
 
 dwamorph2_reg:  dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
 	$(CC) -o dwamorph2_reg dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS) $(EXTRALIBS)
-
-dwamorph3_reg:  dwamorph3_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
-	$(CC) -o dwamorph3_reg dwamorph3_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS) $(EXTRALIBS)
 
 enhance_reg:	enhance_reg.o $(LEPTLIB)
 	$(CC) -o enhance_reg enhance_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -418,6 +417,9 @@ pixtile_reg:	pixtile_reg.o $(LEPTLIB)
 projective_reg:	projective_reg.o $(LEPTLIB)
 	$(CC) -o projective_reg projective_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+psio_reg:	psio_reg.o $(LEPTLIB)
+	$(CC) -o psio_reg psio_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 psioseg_reg:	psioseg_reg.o $(LEPTLIB)
 	$(CC) -o psioseg_reg psioseg_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -432,6 +434,12 @@ ptra2_reg:	ptra2_reg.o $(LEPTLIB)
 
 rank_reg:	rank_reg.o $(LEPTLIB)
 	$(CC) -o rank_reg rank_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rankbin_reg:	rankbin_reg.o $(LEPTLIB)
+	$(CC) -o rankbin_reg rankbin_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rankhisto_reg:	rankhisto_reg.o $(LEPTLIB)
+	$(CC) -o rankhisto_reg rankhisto_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 rasterop_reg:	rasterop_reg.o $(LEPTLIB)
 	$(CC) -o rasterop_reg rasterop_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -456,6 +464,9 @@ selio_reg:	selio_reg.o $(LEPTLIB)
 
 shear_reg:	shear_reg.o $(LEPTLIB)
 	$(CC) -o shear_reg shear_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+shear2_reg:	shear2_reg.o $(LEPTLIB)
+	$(CC) -o shear2_reg shear2_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 skew_reg:	skew_reg.o $(LEPTLIB)
 	$(CC) -o skew_reg skew_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -564,6 +575,9 @@ digitprep1:	digitprep1.o $(LEPTLIB)
 
 dithertest:	dithertest.o $(LEPTLIB)
 	$(CC) -o dithertest dithertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+dwalineargen:	dwalineargen.o $(LEPTLIB)
+	$(CC) -o dwalineargen dwalineargen.o $(ALL_LIBS) $(EXTRALIBS)
 
 edgetest:	edgetest.o $(LEPTLIB)
 	$(CC) -o edgetest edgetest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -739,6 +753,9 @@ textlinemask:	textlinemask.o $(LEPTLIB)
 trctest:	trctest.o $(LEPTLIB)
 	$(CC) -o trctest trctest.o $(ALL_LIBS) $(EXTRALIBS)
 
+warpertest:	warpertest.o $(LEPTLIB)
+	$(CC) -o warpertest warpertest.o $(ALL_LIBS) $(EXTRALIBS)
+
 viewertest:	viewertest.o $(LEPTLIB)
 	$(CC) -o viewertest viewertest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -763,16 +780,7 @@ clean:
 	-@ for file in $(SRC:%.c=%.o) ; do \
 		rm -f $$file; \
 	done ;
-	-@ for file in $(SRC2:%.c=%) ; do \
-		rm -f $$file; \
-	done ;
 	-@ for file in $(SRC2:%.c=%.o) ; do \
-		rm -f $$file; \
-	done ;
-	-@ for file in $(SRC3) ; do \
-		rm -f $$file; \
-	done ;
-	-@ for file in $(SRC3:%.c=%.o) ; do \
 		rm -f $$file; \
 	done ;
 

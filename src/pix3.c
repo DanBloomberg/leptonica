@@ -33,7 +33,7 @@
  *           l_int32     pixPaintThroughMask()
  *           PIX        *pixPaintSelfThroughMask()
  *           PIX        *pixMakeMaskFromLUT()
- *           PIX        *pixCleanUnderTransparency()
+ *           PIX        *pixSetUnderTransparency()
  *
  *    One and two-image boolean operations on arbitrary depth images
  *           PIX        *pixInvert()
@@ -740,7 +740,7 @@ PIXA     *pixa;
         pixRasterop(pixf, x, y, wm, hm, PIX_SRC, pixm, 0, 0);
     }
     else
-        pixf = pixClone(pixm);
+        pixf = pixCopy(NULL, pixm);
 
         /* Get connected components of mask */
     boxa = pixConnComp(pixf, &pixa, 8);
@@ -858,58 +858,83 @@ PIX       *pixd;
 
 
 /*!
- *  pixCleanUnderTransparency()
+ *  pixSetUnderTransparency()
  *
  *      Input:  pixs (32 bpp rgba)
+ *              val (32 bit unsigned color to use where alpha == 0)
  *              debugflag (generates intermediate images)
  *      Return: pixd (32 bpp rgba), or null on error
  *
  *  Notes:
  *      (1) This is one of the few operations in leptonica that uses
  *          the alpha blending component in rgba images.  It sets
- *          the r, g and b components under every transparent alpha
- *          component to 0.  Because the rgb values cannot be seen when
- *          alpha == 0, this does not affect the appearance of the pix,
- *          but it will improve the compressibility if the rgb values
- *          there are nonzero.
- *      (2) For reading and writing rgba pix in png format, use
+ *          the r, g and b components under every fully transparent alpha
+ *          component to @val.
+ *      (2) Full transparency is denoted by alpha == 0.  By setting
+ *          all pixels to @val where alpha == 0, this can improve
+ *          compressibility by reducing the entropy.
+ *      (3) The visual result depends on how the image is displayed.
+ *          (a) For display devices that respect the use of the alpha
+ *              layer, this will not affect the appearance.
+ *          (b) For typical leptonica operations, alpha is ignored,
+ *              so there will be a change in appearance because this
+ *              resets the rgb values in the fully transparent region.
+ *      (4) For reading and writing rgba pix in png format, use
  *          pixReadRGBAPng() and pixWriteRGBAPng().
- *      (3) Transparent alpha is 0.  Because rgb images in leptonica
- *          have 0 values in the alpha channel, if you apply this function
- *          to an ordinary rgb pix, it will become black.  We give a
- *          warning if the alpha channel is all 0.
+ *      (5) For example, if you want to rewrite all fully transparent
+ *          pixels in a png file to white:
+ *              pixs = pixReadRGBAPng(<infile>);  // special read
+ *              pixd = pixSetUnderTransparency(pixs, 0xffffff00, 0);
+ *          Then either use a normal write if you won't be using transparency:
+ *              pixWrite(<outfile>, pixd, IFF_PNG);
+ *          or an RGBA write if you want to preserve the transparency layer
+ *              pixWriteRGBAPng(<outfile>, pixd);  // special write
+ *      (6) Caution.  Because rgb images in leptonica typically
+ *          have value 0 in the alpha channel, this function would
+ *          interpret the entire image as fully transparent, and set
+ *          every pixel to @val.  Because this is not desirable, instead
+ *          we issue a warning and return a copy of the input pix.
+ *          If you really want to set every pixel to the same value,
+ *          use pixSetAllArbitrary().
  */
 PIX *
-pixCleanUnderTransparency(PIX     *pixs,
-                          l_int32  debugflag)
+pixSetUnderTransparency(PIX      *pixs,
+                        l_uint32  val,
+                        l_int32   debugflag)
 {
-l_int32   isblack;
-l_int32  *lut;
+l_int32   isblack, rval, gval, bval;
 PIX      *pixr, *pixg, *pixb, *pixalpha, *pixm, *pixt, *pixd;
 PIXA     *pixa;
 
-    PROCNAME("pixCleanUnderTransparency");
+    PROCNAME("pixSetUnderTransparency");
 
     if (!pixs || pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not defined or not 32 bpp",
                                 procName, NULL);
 
-    pixr = pixGetRGBComponent(pixs, COLOR_RED);
-    pixg = pixGetRGBComponent(pixs, COLOR_GREEN);
-    pixb = pixGetRGBComponent(pixs, COLOR_BLUE);
     pixalpha = pixGetRGBComponent(pixs, L_ALPHA_CHANNEL);
     pixZero(pixalpha, &isblack);
     if (isblack) {
-        L_WARNING("alpha channel is transparent; pixd will be black",
-                  procName);
+        L_WARNING(
+            "alpha channel is fully transparent; likely invalid; ignoring",
+            procName);
+        pixDestroy(&pixalpha);
+        return pixCopy(NULL, pixs);
     }
+    pixr = pixGetRGBComponent(pixs, COLOR_RED);
+    pixg = pixGetRGBComponent(pixs, COLOR_GREEN);
+    pixb = pixGetRGBComponent(pixs, COLOR_BLUE);
 
         /* Make a mask from the alpha component with ON pixels
-         * whenever the alpha component is transparent (0) */
-    lut = (l_int32 *)CALLOC(256, sizeof(l_int32));
-    lut[0] = 1;
-    pixm = pixMakeMaskFromLUT(pixalpha, lut);
-    FREE(lut);
+         * wherever the alpha component is fully transparent (0).
+         * One can do this:
+         *     l_int32 *lut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+         *     lut[0] = 1;
+         *     pixm = pixMakeMaskFromLUT(pixalpha, lut);
+         *     FREE(lut);
+         * But there's an easier way to set pixels in a mask where
+         * the alpha component is 0 ...  */
+    pixm = pixThresholdToBinary(pixalpha, 1);
 
     if (debugflag) {
         pixa = pixaCreate(0);
@@ -922,9 +947,10 @@ PIXA     *pixa;
     }
 
         /* Clean each component and reassemble */
-    pixSetMasked(pixr, pixm, 0);
-    pixSetMasked(pixg, pixm, 0);
-    pixSetMasked(pixb, pixm, 0);
+    extractRGBValues(val, &rval, &gval, &bval);
+    pixSetMasked(pixr, pixm, rval);
+    pixSetMasked(pixg, pixm, gval);
+    pixSetMasked(pixb, pixm, bval);
     pixd = pixCreateRGBImage(pixr, pixg, pixb);
     pixSetRGBComponent(pixd, pixalpha, L_ALPHA_CHANNEL);
 
@@ -2025,6 +2051,9 @@ PIX      *pixd, *pixsfx, *pixsfy, *pixsfxy, *pix;
  *      (4) It is assured that a square centered at (xc, yc) and of
  *          size 'dist' will not intersect with the fg of the binary
  *          mask that was used to generate pixs.
+ *      (5) We search away from the component, in approximately
+ *          the center 1/3 of its dimension.  This gives a better chance
+ *          of finding patches that are close to the component.
  */
 static l_int32
 findTilePatchCenter(PIX       *pixs,
@@ -2036,6 +2065,7 @@ findTilePatchCenter(PIX       *pixs,
                     l_int32   *pyc)
 {
 l_int32   w, h, bx, by, bw, bh, left, right, top, bot, i, j;
+l_int32   xstart, xend, ystart, yend;
 l_uint32  val, maxval;
 
     PROCNAME("findTilePatchCenter");
@@ -2054,10 +2084,12 @@ l_uint32  val, maxval;
     if (searchdir == L_HORIZ) {
         left = bx;   /* distance to left of box */
         right = w - bx - bw + 1;   /* distance to right of box */
+        ystart = by + bh / 3;
+        yend = by + 2 * bh / 3;
         maxval = 0;
         if (left > right) {  /* search to left */
             for (j = bx - 1; j >= 0; j--) {
-                for (i = by; i < by + bh; i++) {
+                for (i = ystart; i <= yend; i++) {
                     pixGetPixel(pixs, j, i, &val);
                     if (val > maxval) {
                         maxval = val;
@@ -2072,7 +2104,7 @@ l_uint32  val, maxval;
         }
         else {  /* search to right */
             for (j = bx + bw; j < w; j++) {
-                for (i = by; i < by + bh; i++) {
+                for (i = ystart; i <= yend; i++) {
                     pixGetPixel(pixs, j, i, &val);
                     if (val > maxval) {
                         maxval = val;
@@ -2089,10 +2121,12 @@ l_uint32  val, maxval;
     else {  /* searchdir == L_VERT */
         top = by;    /* distance above box */
         bot = h - by - bh + 1;   /* distance below box */
+        xstart = bx + bw / 3;
+        xend = bx + 2 * bw / 3;
         maxval = 0;
         if (top > bot) {  /* search above */
             for (i = by - 1; i >= 0; i--) {
-                for (j = bx; j < bx + bw; j++) {
+                for (j = xstart; j <=xend; j++) {
                     pixGetPixel(pixs, j, i, &val);
                     if (val > maxval) {
                         maxval = val;
@@ -2107,7 +2141,7 @@ l_uint32  val, maxval;
         }
         else {  /* search below */
             for (i = by + bh; i < h; i++) {
-                for (j = bx; j < bx + bw; j++) {
+                for (j = xstart; j <=xend; j++) {
                     pixGetPixel(pixs, j, i, &val);
                     if (val > maxval) {
                         maxval = val;

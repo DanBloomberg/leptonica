@@ -22,6 +22,41 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.65   5 Apr 10
+       Added regression test utility functions for standardizing and
+         automating construction and running of regression tests.  Makes the
+         golden files when the 2nd arg to the reg test is 'generate'.
+         (regutils.{c,h})
+         Converted 22 reg tests in prog to use this; invoked with alltests_reg.
+         Goal is to put all prog/*_reg.c into this format and put a set
+         of golden files on the web.
+       Small fixes in gifio for handling streams properly.
+       New functions for shifting colors, hue invariant transforms, etc
+         (blend.c)
+       prog/dwamorph*.c: rename *1_reg.c to dwalineargen.c; others
+         converted to standard reg tests.
+       New rgb convolution functions.
+       For PS output, write all images with a bounding box hint and with
+         page numbers, which works for both embedded (e.g., in tex) and
+         full page generated PS.  Once converted to pdf, this is fine
+         in all situation.
+       New functions for initialization and random insertion with pixcomp.
+       For color quantization, make the lightest color white if sufficiently
+         close; ditto for black (colorquant1.c, colorquant2.c).
+       Rank binning of 8 bpp and rgb images (numafunc2.c, pix4.c)
+       A function to rank colors by the intensity of the minimum comp (pix4.c)
+       New pixRotateBinaryNice(), rotates 1 bpp pix in such a way that
+         the shear lines aren't visible. (rotate.c)
+       New pixSaveTiledWithText(), a convenience function to append text
+         to images that are being tiled. (writefile.c)
+       Stereoscopic warping functions and stereo pair functions (warper.c)
+       Linear interpolated shear -- better than rasterop shear (shear.c)
+       Option to use higher quality chroma (U,V) sampling in jpeg (jpegio.c)
+       Rename Bmf --> L_Bmf.
+       New tests in prog:
+         alltests_reg.c alphaclean_reg.c, psio_reg.c, rankbin_reg.c,
+         rankhisto_reg.c, warpertest.c
+
 1.64   3 Jan 10
        Easy setup for standard byte processing on 8 bpp pix (pix2.c)
        Evaluation of difference between similar images; test for
@@ -52,7 +87,6 @@ They are <i>not</i> a complete listing of the modifications.
          in windows.  There is now a thorough windows readme, written by Tom
          Powers, for doing this.  The windows build information and
          project files are now in a new vs2008 directory.
-
 
 1.63   8 Nov 09
        Added pixScaleToGrayFast(), a faster version with very similar quality.

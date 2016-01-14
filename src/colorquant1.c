@@ -565,7 +565,7 @@ pixOctreeColorQuantGeneral(PIX       *pixs,
                            l_float32  validthresh,
                            l_float32  colorthresh)
 {
-l_int32    w, h, minside, factor;
+l_int32    w, h, minside, factor, index, rval, gval, bval;
 l_float32  scalefactor;
 l_float32  pixfract;  /* fraction neither near white nor black */
 l_float32  colorfract;  /* fraction with color of the pixfract population */
@@ -582,22 +582,27 @@ PIXCMAP   *cmap;
     if (colors < 128 || colors > 240)
         return (PIX *)ERROR_PTR("colors must be in [128, 240]", procName, NULL);
 
-        /* Determine if the image has sufficient color content.
+        /* Determine if the image has sufficient color content for
+         *   octree quantization, based on the input thresholds.
          * If pixfract << 1, most pixels are close to black or white.
          * If colorfract << 1, the pixels that are not near
          *   black or white have very little color.
-         * If without color, quantize with a grayscale colormap. */
+         * If with insufficient color, quantize with a grayscale colormap. */
     pixGetDimensions(pixs, &w, &h, NULL);
-    minside = L_MIN(w, h);
-    factor = L_MAX(1, minside / 400);
-    pixColorFraction(pixs, 20, 244, 20, factor, &pixfract, &colorfract);
-    if (pixfract * colorfract < validthresh * colorthresh) {
-        L_INFO_FLOAT2("\n  Pixel fraction neither white nor black = %6.3f"
-                      "\n  Color fraction of those pixels = %6.3f"
-                      "\n  Quantizing in gray",
-                      procName, pixfract, colorfract);
-        return pixConvertTo8(pixs, 1);
+    if (validthresh > 0.0 && colorthresh > 0.0) {
+        minside = L_MIN(w, h);
+        factor = L_MAX(1, minside / 400);
+        pixColorFraction(pixs, 20, 244, 20, factor, &pixfract, &colorfract);
+        if (pixfract * colorfract < validthresh * colorthresh) {
+            L_INFO_FLOAT2("\n  Pixel fraction neither white nor black = %6.3f"
+                          "\n  Color fraction of those pixels = %6.3f"
+                          "\n  Quantizing to 8 bpp gray",
+                          procName, pixfract, colorfract);
+            return pixConvertTo8(pixs, 1);
+        }
     }
+    else
+        L_INFO("\n  Process in color by default", procName);
 
         /* Conditionally subsample to speed up the first pass */
     if (w > TREE_GEN_WIDTH) {
@@ -636,6 +641,18 @@ PIXCMAP   *cmap;
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
+
+        /* Force darkest color to black if each component <= 4 */
+    pixcmapGetRankIntensity(cmap, 0.0, &index);
+    pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+    if (rval < 5 && gval < 5 && bval < 5)
+        pixcmapResetColor(cmap, index, 0, 0, 0);
+
+        /* Force lightest color to white if each component >= 252 */
+    pixcmapGetRankIntensity(cmap, 1.0, &index);
+    pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+    if (rval > 251 && gval > 251 && bval > 251)
+        pixcmapResetColor(cmap, index, 255, 255, 255);
 
     cqcellTreeDestroy(&cqcaa);
     pixDestroy(&pixsub);

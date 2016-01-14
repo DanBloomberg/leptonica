@@ -53,9 +53,11 @@ enum {
     TIFF_LITTLEEND_ID  = 0x4949      /* II - for 'intel' */
 };
 
-/* ------------------ Format header ids --------------- */
+/* ------------------ Gray hinting in jpeg reader --------------- */
 enum {
     L_HINT_GRAY = 1,  /* only want grayscale information */
 };
 
+
 #endif  /* LEPTONICA_IMAGEIO_H */
+

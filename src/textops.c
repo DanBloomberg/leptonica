@@ -18,7 +18,7 @@
  *  textops.c
  *
  *    Font layout
- *       PIX             *pixAddTextblock()
+ *       PIX             *pixAddSingleTextblock()
  *       l_int32          pixSetTextblock()
  *       l_int32          pixSetTextline()
  *
@@ -36,7 +36,7 @@
  *    is provided, with a variety of pt sizes.  For example, to put a
  *    line of green 10 pt text on an image, with the beginning baseline
  *    at (50, 50):
- *        Bmf  *bmf = bmfCreate("./fonts", 10);
+ *        L_Bmf  *bmf = bmfCreate("./fonts", 10);
  *        const char *textstr = "This is a funny cat";
  *        pixSetTextline(pixs, bmf, textstr, 0x00ff0000, 50, 50, NULL, NULL);
  *
@@ -57,7 +57,7 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
  *                                 Font layout                         *
  *---------------------------------------------------------------------*/
 /*!
- *  pixAddTextblock()
+ *  pixAddSingleTextblock()
  *
  *      Input:  pixs (input pix; colormap ok)
  *              bmf (bitmap font data)
@@ -82,7 +82,7 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
  */
 PIX *
 pixAddSingleTextblock(PIX         *pixs,
-                      BMF         *bmf,
+                      L_BMF       *bmf,
                       const char  *textstr,
                       l_uint32     val,
                       l_int32      location,
@@ -123,12 +123,18 @@ SARRAY   *salines;
     }
 
     pixGetDimensions(pixs, &w, &h, &d);
-    if (d == 8 && val > 0xff && !cmap)
-        return (PIX *)ERROR_PTR("for 8 bpp, val < 256", procName, NULL);
+    if (d == 1 && val > 1)
+        return (PIX *)ERROR_PTR("1 bpp: use val <= 1", procName, NULL);
+    else if (d == 2 && val > 3 && !cmap)
+        return (PIX *)ERROR_PTR("2 bpp: use val <= 3", procName, NULL);
+    else if (d == 4 && val > 15 && !cmap)
+        return (PIX *)ERROR_PTR("4 bpp: use val <= 15", procName, NULL);
+    else if (d == 8 && val > 0xff && !cmap)
+        return (PIX *)ERROR_PTR("8 bpp: use val <= 255", procName, NULL);
     else if (d == 16 && val > 0xffff)
-        return (PIX *)ERROR_PTR("for 16 bpp, val < 0xffff", procName, NULL);
+        return (PIX *)ERROR_PTR("16 bpp: use val <= 0xffff", procName, NULL);
     else if (d == 32 && val < 256)
-        return (PIX *)ERROR_PTR("for RGB, val > 256", procName, NULL);
+        return (PIX *)ERROR_PTR("RGB: use val > 255", procName, NULL);
 
     xstart = (l_int32)(0.1 * w);
     salines = bmfGetLineStrings(bmf, textstr, w - 2 * xstart, 0, &htext);
@@ -230,7 +236,7 @@ SARRAY   *salines;
  */
 l_int32
 pixSetTextblock(PIX         *pixs,
-                BMF         *bmf,
+                L_BMF       *bmf,
                 const char  *textstr,
                 l_uint32     val,
                 l_int32      x0,
@@ -337,7 +343,7 @@ PIXCMAP  *cmap;
  */
 l_int32
 pixSetTextline(PIX         *pixs,
-               BMF         *bmf,
+               L_BMF       *bmf,
                const char  *textstr,
                l_uint32     val,
                l_int32      x0,
@@ -414,7 +420,7 @@ PIXCMAP  *cmap;
  *          each of which will fit within maxw bits of width.
  */
 SARRAY *
-bmfGetLineStrings(BMF         *bmf,
+bmfGetLineStrings(L_BMF       *bmf,
                   const char  *textstr,
                   l_int32      maxw,
                   l_int32      firstindent,
@@ -487,7 +493,7 @@ SARRAY  *sa, *sawords;
  *                    by the bmf), or null on error
  */
 NUMA *
-bmfGetWordWidths(BMF         *bmf,
+bmfGetWordWidths(L_BMF       *bmf,
                  const char  *textstr,
                  SARRAY      *sa)
 {
@@ -528,7 +534,7 @@ NUMA    *na;
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-bmfGetStringWidth(BMF         *bmf,
+bmfGetStringWidth(L_BMF       *bmf,
                   const char  *textstr,
                   l_int32     *pw)
 {

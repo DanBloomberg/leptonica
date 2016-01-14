@@ -35,6 +35,8 @@
  *           PIX        *pixGetAverageTiled()
  *           l_int32     pixGetExtremeValue()
  *           l_int32     pixGetMaxValueInRect()
+ *           l_int32     pixGetRankColorArray()
+ *           l_int32     pixGetBinnedColor()
  *
  *    Pixelwise aligned statistics
  *           PIX        *pixaGetAlignedStats()
@@ -1223,6 +1225,238 @@ l_uint32  *data, *line;
     if (pmaxval) *pmaxval = maxval;
     if (pxmax) *pxmax = xmax;
     if (pymax) *pymax = ymax;
+    return 0;
+}
+
+
+/*!
+ *  pixGetRankColorArray()
+ *
+ *      Input:  pixs (32 bpp or cmapped)
+ *              nbins (number of equal population bins; must be > 1)
+ *              factor (subsampling factor; integer >= 1)
+ *              &carray (<return> array of colors, ranked by intensity)
+ *              debugflag (1 to display output debug plots of color
+ *                         components; 2 to write them as png to file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Computes the histogram of the minimum component in each RGB
+ *          pixel.  Then for each of the @nbins sets of pixels,
+ *          ordered by this min component value, find the average color,
+ *          and return this as a "rank color" array.  The output array
+ *          has @nbins colors.
+ *      (2) Set the subsampling factor > 1 to reduce the amount of
+ *          computation.  Typically you want at least 10,000 pixels
+ *          for reasonable statistics.
+ *      (3) The rank color as a function of rank can then be found from
+ *             rankint = (l_int32)(rank * (nbins - 1) + 0.5);
+ *             extractRGBValues(array[rankint], &rval, &gval, &bval);
+ *          where the rank is in [0.0 ... 1.0].
+ *          This function is meant to be simple and approximate.
+ */
+l_int32
+pixGetRankColorArray(PIX        *pixs,
+                     l_int32     nbins,
+                     l_int32     factor,
+                     l_uint32  **pcarray,
+                     l_int32     debugflag)
+{
+NUMA      *na, *nan, *narbin;
+PIX       *pixt, *pixc, *pixg;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixGetRankColorArray");
+
+    if (!pcarray)
+        return ERROR_INT("&carray not defined", procName, 1);
+    *pcarray = NULL;
+    if (factor < 1)
+        return ERROR_INT("sampling factor < 1", procName, 1);
+    if (nbins < 2)
+        return ERROR_INT("nbins must be at least 2", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    cmap = pixGetColormap(pixs);
+    if (pixGetDepth(pixs) != 32 && !cmap)
+        return ERROR_INT("pixs neither 32 bpp nor cmapped", procName, 1);
+
+        /* Downscale by factor and remove colormap if it exists */
+    pixt = pixScaleByIntSubsampling(pixs, factor);
+    if (cmap)
+        pixc = pixRemoveColormap(pixt, REMOVE_CMAP_TO_FULL_COLOR);
+    else
+        pixc = pixClone(pixt);
+    pixDestroy(&pixt);
+
+        /* Get normalized histogram of the minimum component */
+    pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MIN);
+    if ((na = pixGetGrayHistogram(pixg, 1)) == NULL)
+        return ERROR_INT("na not made", procName, 1);
+    nan = numaNormalizeHistogram(na, 1.0);
+
+        /* Get the following arrays:
+         * (1) nar: cumulative normalized histogram (rank vs intensity value).
+         *     With 256 intensity values, we have 257 rank values.
+         * (2) nai: "average" intensity as function of rank, within
+         *     @nbins equally spaced in rank between 0.0 and 1.0.
+         * (3) narbin: bin number of discretized rank as a function of
+         *     intensity.  This is the 'inverse' of nai.
+         * (4) nabb: intensity value of the right bin boundary, for each
+         *     of the @nbins descretized rank bins. */
+    if (!debugflag)
+        numaDiscretizeRankAndIntensity(nan, nbins, &narbin, NULL, NULL, NULL);
+    else {
+        l_int32  type;
+        NUMA    *nai, *nar, *nabb;
+        numaDiscretizeRankAndIntensity(nan, nbins, &narbin, &nai, &nar, &nabb);
+        type = (debugflag == 1) ? GPLOT_X11 : GPLOT_PNG;
+        gplotSimple1(nan, type, "/tmp/junkrtnan", "Normalized Histogram");
+        gplotSimple1(nar, type, "/tmp/junkrtnar", "Cumulative Histogram");
+        gplotSimple1(nai, type, "/tmp/junkrtnai", "Intensity vs. rank bin");
+        gplotSimple1(narbin, type, "/tmp/junkrtnarbin",
+                     "LUT: rank bin vs. Intensity");
+        gplotSimple1(nabb, type, "/tmp/junkrtnabb",
+                     "Intensity of right edge vs. rank bin");
+        numaDestroy(&nai);
+        numaDestroy(&nar);
+        numaDestroy(&nabb);
+    }
+
+        /* Get the average color in each bin for pixels whose grayscale
+         * values fall in the bin range.  @narbin is the LUT that
+         * determines the bin number from the grayscale version of
+         * the image. */
+    pixGetBinnedColor(pixc, pixg, 1, nbins, narbin, pcarray, debugflag);
+
+    pixDestroy(&pixc);
+    pixDestroy(&pixg);
+    numaDestroy(&na);
+    numaDestroy(&nan);
+    numaDestroy(&narbin);
+    return 0;
+}
+
+
+/*!
+ *  pixGetBinnedColor()
+ *
+ *      Input:  pixs (32 bpp)
+ *              pixg (8 bpp grayscale version of pixs)
+ *              factor (sampling factor along pixel counting direction)
+ *              nbins (number of intensity bins)
+ *              nalut (LUT for mapping from intensity to bin number)
+ *              &carray (<return> array of average color values in each bin)
+ *              debugflag (1 to display output debug plots of color
+ *                         components; 2 to write them as png to file)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This takes a color image, a grayscale (intensity) version,
+ *          a LUT from intensity to bin number, and the number of bins.
+ *          It computes the average color for pixels whose intensity
+ *          is in each bin.  This is returned as an array of l_uint32
+ *          colors in our standard RGBA ordering.
+ */
+l_int32
+pixGetBinnedColor(PIX        *pixs,
+                  PIX        *pixg,
+                  l_int32     factor,
+                  l_int32     nbins,
+                  NUMA       *nalut,
+                  l_uint32  **pcarray,
+                  l_int32     debugflag)
+{
+l_int32     i, j, w, h, wpls, wplg, grayval, bin, rval, gval, bval;
+l_uint32   *datas, *datag, *lines, *lineg, *carray;
+l_float64   norm;
+l_float64  *rarray, *garray, *barray, *narray;
+
+    PROCNAME("pixGetBinnedColor");
+
+    if (!pcarray)
+        return ERROR_INT("&carray not defined", procName, 1);
+    *pcarray = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pixg)
+        return ERROR_INT("pixg not defined", procName, 1);
+    if (!nalut)
+        return ERROR_INT("nalut not defined", procName, 1);
+    if (factor < 1) {
+        L_WARNING("sampling factor less than 1; setting to 1", procName);
+        factor = 1;
+    }
+
+        /* Find the color for each rank bin */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datag = pixGetData(pixg);
+    wplg = pixGetWpl(pixg);
+    rarray = (l_float64 *)CALLOC(nbins, sizeof(l_float64));
+    garray = (l_float64 *)CALLOC(nbins, sizeof(l_float64));
+    barray = (l_float64 *)CALLOC(nbins, sizeof(l_float64));
+    narray = (l_float64 *)CALLOC(nbins, sizeof(l_float64));
+    for (i = 0; i < h; i += factor) {
+        lines = datas + i * wpls;
+        lineg = datag + i * wplg;
+        for (j = 0; j < w; j += factor) {
+            grayval = GET_DATA_BYTE(lineg, j);
+            numaGetIValue(nalut, grayval, &bin);
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            rarray[bin] += rval;
+            garray[bin] += gval;
+            barray[bin] += bval;
+            narray[bin] += 1.0;  /* count samples in each bin */
+        }
+    }
+
+    for (i = 0; i < nbins; i++) {
+        norm = 1. / narray[i];
+        rarray[i] *= norm;
+        garray[i] *= norm;
+        barray[i] *= norm;
+    }
+
+    if (debugflag) {
+        l_int32  type;
+        NUMA *nared, *nagreen, *nablue;
+        nared = numaCreate(nbins);
+        nagreen = numaCreate(nbins);
+        nablue = numaCreate(nbins);
+        for (i = 0; i < nbins; i++) {
+            numaAddNumber(nared, rarray[i]);
+            numaAddNumber(nagreen, garray[i]);
+            numaAddNumber(nablue, barray[i]);
+        }
+        type = (debugflag == 1) ? GPLOT_X11 : GPLOT_PNG;
+        gplotSimple1(nared, type, "/tmp/junkrtnared",
+                     "Average red val vs. rank bin");
+        gplotSimple1(nagreen, type, "/tmp/junkrtnagreen",
+                     "Average green val vs. rank bin");
+        gplotSimple1(nablue, type, "/tmp/junkrtnablue",
+                     "Average blue val vs. rank bin");
+        numaDestroy(&nared);
+        numaDestroy(&nagreen);
+        numaDestroy(&nablue);
+    }
+
+        /* Save colors for all bins  in a single array */
+    if ((carray = (l_uint32 *)CALLOC(nbins, sizeof(l_uint32))) == NULL)
+        return ERROR_INT("rankcolor not made", procName, 1);
+    *pcarray = carray;
+    for (i = 0; i < nbins; i++) {
+        rval = (l_int32)(rarray[i] + 0.5);
+        gval = (l_int32)(garray[i] + 0.5);
+        bval = (l_int32)(barray[i] + 0.5);
+        composeRGBPixel(rval, gval, bval, carray + i);
+    }
+
+    FREE(rarray);
+    FREE(garray);
+    FREE(barray);
+    FREE(narray);
     return 0;
 }
 

@@ -33,15 +33,16 @@ static void AddTestSet(PIXA *pixa, PIX *pixs,
 main(int    argc,
      char **argv)
 {
-PIX         *pixs, *pixd;
-PIXA        *pixa;
-static char  mainName[] = "threshnorm_reg";
+l_int32  display, success;
+FILE    *fp;
+PIX     *pixs, *pixd;
+PIXA    *pixa;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax: threshnorm_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+           return 1;
 
     if ((pixs = pixRead("stampede2.jpg")) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
+	exit(ERROR_INT("pixs not made", argv[0], 1));
     pixa = pixaCreate(0);
     pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
 	    
@@ -54,11 +55,13 @@ static char  mainName[] = "threshnorm_reg";
 
     pixDestroy(&pixs);
     pixd = pixaDisplay(pixa, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/junkpixd.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkthresh.0.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junkthresh.0.jpg", 0, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
-
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 

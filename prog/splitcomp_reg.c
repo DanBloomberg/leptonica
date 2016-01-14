@@ -34,19 +34,19 @@
 main(int    argc,
      char **argv)
 {
-l_int32      i, j, w, h;
-l_int32      minsum[5] =    { 2, 40, 50, 50, 70};
-l_int32      skipdist[5] =  { 5,  5, 10, 10, 30};
-l_int32      delta[5] =     { 2, 10, 10, 25, 40};
-l_int32      maxbg[5] =     {10, 15, 10, 20, 40};
-BOX         *box1, *box2, *box3, *box4;
-BOXA        *boxa;
-PIX         *pixs, *pixc, *pixt, *pixd, *pix32;
-PIXA        *pixas, *pixad;
-static char  mainName[] = "splitcomp_reg";
+l_int32  i, j, w, h, display, success;
+l_int32  minsum[5] =    { 2, 40, 50, 50, 70};
+l_int32  skipdist[5] =  { 5,  5, 10, 10, 30};
+l_int32  delta[5] =     { 2, 10, 10, 25, 40};
+l_int32  maxbg[5] =     {10, 15, 10, 20, 40};
+BOX     *box1, *box2, *box3, *box4;
+BOXA    *boxa;
+FILE    *fp;
+PIX     *pixs, *pixc, *pixt, *pixd, *pix32;
+PIXA    *pixas, *pixad;
 
-    if (argc != 1)
-        exit(ERROR_INT("syntax: splitcomp_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+              return 1;
 
         /* Generate and save 1 bpp masks */
     pixas = pixaCreate(0);
@@ -96,7 +96,7 @@ static char  mainName[] = "splitcomp_reg";
             pixc = pixCopy(NULL, pix32);
             boxa = pixSplitComponentIntoBoxa(pixt, NULL, minsum[i], skipdist[i],
                                              delta[i], maxbg[i], 0, 1);
-            boxaWriteStream(stderr, boxa);
+/*            boxaWriteStream(stderr, boxa); */
             pixd = pixBlendBoxaRandom(pixc, boxa, 0.4);
             pixRenderBoxaArb(pixd, boxa, 2, 255, 0, 0);
             pixSaveTiled(pixd, pixad, 1, 0, 30, 32);
@@ -110,8 +110,9 @@ static char  mainName[] = "splitcomp_reg";
 
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/junkcomp1.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junksplit.0.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksplit.0.png", 0, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);
 
@@ -127,7 +128,7 @@ static char  mainName[] = "splitcomp_reg";
         pixc = pixCopy(NULL, pix32);
         boxa = pixSplitIntoBoxa(pixs, minsum[i], skipdist[i],
                                 delta[i], maxbg[i], 0, 1);
-        boxaWriteStream(stderr, boxa);
+/*        boxaWriteStream(stderr, boxa); */
         pixd = pixBlendBoxaRandom(pixc, boxa, 0.4);
         pixRenderBoxaArb(pixd, boxa, 2, 255, 0, 0);
         pixSaveTiled(pixd, pixad, 1, 0, 30, 32);
@@ -140,12 +141,14 @@ static char  mainName[] = "splitcomp_reg";
 
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
-    pixDisplay(pixd, 600, 100);
-    pixWrite("/tmp/junkcomp2.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junksplit.1.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksplit.1.png", 1, &success);
+    pixDisplayWithTitle(pixd, 600, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);
 
     pixaDestroy(&pixas);
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 

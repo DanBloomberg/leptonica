@@ -182,8 +182,6 @@ pixScale(PIX       *pixs,
 l_int32    sharpwidth;
 l_float32  maxscale, sharpfract;
 
-    PROCNAME("pixScale");
-
         /* Reduce the default sharpening factors by 2 if maxscale < 0.7 */
     maxscale = L_MAX(scalex, scaley);
     sharpfract = (maxscale < 0.7) ? 0.2 : 0.4;
@@ -2722,12 +2720,22 @@ PIX       *pixd;
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
         type != L_CHOOSE_MAX_MIN_DIFF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+    if (xfact < 1 || yfact < 1)
+        return (PIX *)ERROR_PTR("xfact and yfact must be > 0", procName, NULL);
 
     if (xfact == 2 && yfact == 2)
         return pixScaleGrayMinMax2(pixs, type);
 
-    wd = L_MAX(ws / xfact, 1);
-    hd = L_MAX(hs / yfact, 1);
+    wd = ws / xfact;
+    if (wd == 0) {  /* single tile */
+        wd = 1;
+        xfact = ws;
+    }
+    hd = hs / yfact;
+    if (hd == 0) {  /* single tile */
+        hd = 1;
+        yfact = hs;
+    }
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datas = pixGetData(pixs);
@@ -2811,6 +2819,8 @@ PIX       *pixd;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     pixGetDimensions(pixs, &ws, &hs, &d);
+    if (ws < 2 || hs < 2)
+        return (PIX *)ERROR_PTR("too small: ws < 2 or hs < 2", procName, NULL);
     if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&

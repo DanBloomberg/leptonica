@@ -28,7 +28,9 @@
  *           void       l_warning()
  *           void       l_warningString()
  *           void       l_warningInt()
+ *           void       l_warningInt2()
  *           void       l_warningFloat()
+ *           void       l_warningFloat2()
  *           void       l_info()
  *           void       l_infoString()
  *           void       l_infoInt()
@@ -64,8 +66,13 @@
  *       Copy in memory
  *           l_uint8   *arrayCopy()
  *
+ *       File copy operations
+ *           l_int32    fileCopy()
+ *           l_int32    fileConcatenate()
+ *           l_int32    fileAppendString()
+ *
  *       Test files for equivalence
- *           l_int32   *filesAreIdentical()
+ *           l_int32    filesAreIdentical()
  *
  *       Byte-swapping data conversion
  *           l_uint16   convertOnBigEnd16()
@@ -82,6 +89,9 @@
  *           char      *genPathname()
  *           char      *genTempFilename()
  *           l_int32    extractNumberFromFilename()
+ *
+ *       Version number
+ *           char      *getLeptonlibVersion()
  *
  *       Timing
  *           void       startTimer()
@@ -374,6 +384,41 @@ char    *charbuf;
 
 
 /*!
+ *  l_warningInt2()
+ *
+ *      Input: msg (warning message; must include '%d')
+ *             procname
+ *             ival1, ival2 (two args, embedded in message via %d)
+ */
+void
+l_warningInt2(const char  *msg,
+              const char  *procname,
+              l_int32      ival1,
+              l_int32      ival2)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname) {
+        L_ERROR("msg or procname not defined in l_warningInt2()", procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        L_ERROR("charbuf not made in l_warningInt()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Warning in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, ival1, ival2);
+
+    FREE(charbuf);
+    return;
+}
+
+
+/*!
  *  l_warningFloat()
  *
  *      Input: msg (warning message; must include '%f')
@@ -401,6 +446,41 @@ char    *charbuf;
 
     sprintf(charbuf, "Warning in %s: %s\n", procname, msg);
     fprintf(stderr, charbuf, fval);
+
+    FREE(charbuf);
+    return;
+}
+
+
+/*!
+ *  l_warningFloat2()
+ *
+ *      Input: msg (warning message; must include '%f')
+ *             procname
+ *             fval1, fval2 (two args, embedded in message via %f)
+ */
+void
+l_warningFloat2(const char  *msg,
+                const char  *procname,
+                l_float32    fval1,
+                l_float32    fval2)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname) {
+        L_ERROR("msg or procname not defined in l_warningFloat2()", procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        L_ERROR("charbuf not made in l_warningFloat()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Warning in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, fval1, fval2);
 
     FREE(charbuf);
     return;
@@ -1297,7 +1377,8 @@ FILE    *fp;
 
     if (!filename)
         return ERROR_INT("filename not defined", procName, 0);
-    fp = fopen(filename, "rb");
+    if ((fp = fopen(filename, "rb")) == NULL)
+        return ERROR_INT("stream not opened", procName, 0);
     nbytes = fnbytesInFile(fp);
     fclose(fp);
     return nbytes;
@@ -1396,6 +1477,89 @@ l_uint8  *datad;
         return (l_uint8 *)ERROR_PTR("datad not made", procName, NULL);
     memcpy(datad, datas, size);
     return datad;
+}
+
+
+/*--------------------------------------------------------------------*
+ *                         File copy operations                       *
+ *--------------------------------------------------------------------*/
+/*!
+ *  fileCopy()
+ *
+ *      Input:  filename1 (copy this file)
+ *              filename2 (to this file)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+fileCopy(const char  *filename1,
+         const char  *filename2)
+{
+l_uint8  *data;
+l_int32   nbytes, ret;
+
+    PROCNAME("fileCopy");
+
+    if ((data = arrayRead(filename1, &nbytes)) == NULL)
+        return ERROR_INT("data not returned", procName, 1);
+    ret = arrayWrite(filename2, "w", data, nbytes);
+    FREE(data);
+    return ret;
+}
+
+
+/*!
+ *  fileConcatenate()
+ *
+ *      Input:  filename1
+ *              filename2 (file to add to filename1)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+fileConcatenate(const char  *filename1,
+                const char  *filename2)
+{
+l_uint8  *data;
+l_int32   nbytes;
+
+    PROCNAME("fileConcatenate");
+
+    if (!filename1)
+        return ERROR_INT("filename1 not defined", procName, 1);
+    if (!filename2)
+        return ERROR_INT("filename2 not defined", procName, 1);
+
+    data = arrayRead(filename2, &nbytes);
+    arrayWrite(filename1, "a", data, nbytes);
+    FREE(data);
+    return 0;
+}
+
+
+/*!
+ *  fileAppendString()
+ *
+ *      Input:  filename
+ *              str (string to append to file)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+fileAppendString(const char  *filename,
+                 const char  *str)
+{
+FILE  *fp;
+
+    PROCNAME("fileAppendString");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!str)
+        return ERROR_INT("str not defined", procName, 1);
+
+    if ((fp = fopen(filename, "a")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    fprintf(fp, str);
+    fclose(fp);
+    return 0;
 }
 
 
@@ -1746,7 +1910,8 @@ l_int32  dirlen, namelen, totlen;
  *  genTempFilename()
  *
  *      Input:  dir (directory name; use '.' for local dir; no trailing '/')
- *              extension (<optional> filename extention with '.'; can be null)
+ *              segment (an additional part of the name; can be null)
+ *              extension (<optional> filename extension with '.'; can be null)
  *      Return: tempname (with pid embedded in file name), or null on error
  *
  *  Notes:
@@ -1760,11 +1925,12 @@ l_int32  dirlen, namelen, totlen;
  */
 char *
 genTempFilename(const char  *dir,
+                const char  *segment,
                 const char  *extension)
 {
 char     buf[256];
-char    *tempname;
-l_int32  pid, nchars;
+char    *name, *outname;
+l_int32  pid, nseg, next;
     
     PROCNAME("genTempFilename");
 
@@ -1775,19 +1941,25 @@ l_int32  pid, nchars;
 #else
     pid = getpid();
 #endif
-    if (extension)
-        nchars = strlen(extension);
+    if (segment)
+        nseg = strlen(segment);
     else
-        nchars = 0;
+        nseg = 0;
+    if (extension)
+        next = strlen(extension);
+    else
+        next = 0;
 
 #if COMPILER_MSVC
-    snprintf(buf, 255 - nchars, "%s\\%d", dir, pid);
+    snprintf(buf, 255 - nseg - next, "%s\\%d_", dir, pid);
 #else
-    snprintf(buf, 255 - nchars, "%s/%d", dir, pid);
+    snprintf(buf, 255 - nseg - next, "%s/%d_", dir, pid);
 #endif
 
-    tempname = stringJoin(buf, extension);
-    return tempname;
+    name = stringJoin(buf, segment);
+    outname = stringJoin(name, extension);
+    FREE(name);
+    return outname;
 }
 
 
@@ -1803,6 +1975,9 @@ l_int32  pid, nchars;
  *  Notes:
  *      (1) The number is to be found in the basename, which is the
  *          filename without either the directory or the last extension.
+ *      (2) When a number is found, it is non-negative.  If no number
+ *          is found, this returns -1, without an error message.  The
+ *          caller needs to check.
  */
 l_int32
 extractNumberFromFilename(const char  *fname,
@@ -1827,16 +2002,63 @@ l_int32  len, nret, num;
         return ERROR_INT("numpre + numpost too big", procName, -1);
     }
 
-    basename[len - numpost] = '\n';
+    basename[len - numpost] = '\0';
     nret = sscanf(basename + numpre, "%d", &num);
     FREE(basename);
 
     if (nret == 1)
         return num;
     else
-        return ERROR_INT("no number found", procName, -1);
+        return -1;  /* not found */
 }
 
+
+/*---------------------------------------------------------------------*
+ *                          Version number                             *
+ *---------------------------------------------------------------------*/
+/*! 
+ *  getLeptonlibVersion()
+ *
+ *      Return: string of version number (e.g., 'leptonlib-1.65')
+ *
+ *  Notes:
+ *      (1) The caller has responsibility to free the memory.
+ */
+char *
+getLeptonlibVersion()
+{
+    char *version = (char *)CALLOC(100, sizeof(char));
+
+#if COMPILER_MSVC
+  #ifdef _DLL
+    char dllStr[] = "DLL";
+  #else
+    char dllStr[] = "LIB";
+  #endif
+  #ifdef _DEBUG
+    char debugStr[] = "Debug";
+  #else
+    char debugStr[] = "Release";
+  #endif
+  #ifdef _M_IX86
+    char bitStr[] = " 32 bit";
+  #elif _M_X64
+    char bitStr[] = " 64 bit";
+  #else
+    char bitStr[] = ""
+  #endif
+    snprintf(version, 100, "leptonlib-%d.%d (%s, %s) [MSC v.%d %s %s%s]",
+             LIBLEPT_MAJOR_VERSION, LIBLEPT_MINOR_VERSION,
+             __DATE__, __TIME__, _MSC_VER, dllStr, debugStr, bitStr);
+
+#else
+
+    snprintf(version, 100, "leptonlib-%d.%d", LIBLEPT_MAJOR_VERSION,
+             LIBLEPT_MINOR_VERSION);
+
+#endif   /* COMPILER_MSVC */
+    return version;
+}
 
 
 /*---------------------------------------------------------------------*

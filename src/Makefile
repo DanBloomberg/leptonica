@@ -50,11 +50,8 @@
 #   (2) For the leptprotos target, the executable that has been
 #       built is xtractprotos.exe.  (add the ".exe")
 #
-#   Customization for Microsoft compilers
-#   (1) None required for recent versions (e.g., VC++9, VC++ Express).
-#       Use the project files supplied:
-#           leptonlib.sln
-#           leptonlib.vcproj
+#   Compiling under Microsoft Visual Studio
+#   (1) Download the vs2000 package.
 #   (2) You can also substitute arrayaccess.h.vc for arrayaccess.h, to
 #       use the inline macros rather than function calls which are slower.
 #
@@ -141,7 +138,7 @@ LIBRARIAN_SHARED =	gcc -shared
 #   Links are created among the files <libname>.X.Y,
 #   <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 64
+MINOR_REV = 65
 
 #########################################################
 
@@ -189,7 +186,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		projective.c psio1.c psio1stub.c \
 		psio2.c psio2stub.c \
 		ptra.c pts.c queue.c rank.c \
-		readbarcode.c readfile.c \
+		readbarcode.c readfile.c regutils.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \
 		rotateorth.c rotateorthlow.c rotateshear.c \
@@ -211,7 +208,7 @@ LEPTLIB_H =	allheaders.h alltypes.h \
 		jbclass.h jpeglib.h \
 		leptprotos.h list.h \
 		morph.h pix.h ptra.h queue.h \
-		readbarcode.h stack.h \
+		readbarcode.h regutils.h stack.h \
 		watershed.h
 
 ##################################################################

@@ -161,7 +161,8 @@ PIX   *pix;
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIX *)ERROR_PTR("image file not found", procName, NULL);
     pix = pixReadStream(fp, 0);
-    fclose(fp);
+    if (pixGetInputFormat(pix) != IFF_GIF)  /* DGifCloseFile() closes stream! */
+        fclose(fp);
 
     if (!pix)
         return (PIX *)ERROR_PTR("image not returned", procName, NULL);

@@ -30,7 +30,7 @@
 #include "allheaders.h"
 
     /* defined in morph.c */
-extern l_int32 MORPH_BC;
+LEPT_DLL extern l_int32 MORPH_BC;
 
 
 main(int    argc,

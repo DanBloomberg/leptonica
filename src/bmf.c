@@ -19,8 +19,8 @@
  *
  *   Acquisition and generation of bitmap fonts.
  *
- *       BMF             *bmfCreate()
- *       BMF             *bmfDestroy()
+ *       L_BMF           *bmfCreate()
+ *       L_BMF           *bmfDestroy()
  *
  *       PIX             *bmfGetPix()
  *       l_int32          bmfGetWidth()
@@ -81,11 +81,11 @@ static const l_float32  VERT_FRACT_SEP = 0.3;
 #endif  /* ~NO_CONSOLE_IO */
 
 static l_int32 pixGetTextBaseline(PIX *pixs, l_int32 *tab8, l_int32 *py);
-static l_int32 bmfMakeAsciiTables(BMF *bmf);
+static l_int32 bmfMakeAsciiTables(L_BMF *bmf);
 
 
 /*---------------------------------------------------------------------*/
-/*                           BMF create/destroy                        */
+/*                           Bmf create/destroy                        */
 /*---------------------------------------------------------------------*/
 /*!
  *  bmfCreate()
@@ -100,17 +100,17 @@ static l_int32 bmfMakeAsciiTables(BMF *bmf);
  *          creates the pixa from the raw image.  It then generates all 
  *          associated data required to use the bmf.
  */
-BMF *
+L_BMF *
 bmfCreate(const char  *dir,
           l_int32      size)
 {
-BMF   *bmf;
+L_BMF   *bmf;
 PIXA  *pixa;
 
     PROCNAME("bmfCreate");
 
-    if ((bmf = (BMF *)CALLOC(1, sizeof(BMF))) == NULL)
-        return (BMF *)ERROR_PTR("bmf not made", procName, NULL);
+    if ((bmf = (L_BMF *)CALLOC(1, sizeof(L_BMF))) == NULL)
+        return (L_BMF *)ERROR_PTR("bmf not made", procName, NULL);
 
         /* Look for the pixa */
     pixa = pixaGetFont(dir, size, &bmf->baseline1, &bmf->baseline2,
@@ -123,7 +123,7 @@ PIXA  *pixa;
                                 &bmf->baseline3);
         if (!pixa) {
             bmfDestroy(&bmf);
-            return (BMF *)ERROR_PTR("font pixa not made", procName, NULL);
+            return (L_BMF *)ERROR_PTR("font pixa not made", procName, NULL);
         }
     }
 
@@ -142,9 +142,9 @@ PIXA  *pixa;
  *      Return: void
  */
 void
-bmfDestroy(BMF **pbmf)
+bmfDestroy(L_BMF  **pbmf)
 {
-BMF  *bmf;
+L_BMF  *bmf;
 
     PROCNAME("bmfDestroy");
 
@@ -168,7 +168,7 @@ BMF  *bmf;
 
 
 /*---------------------------------------------------------------------*/
-/*                             BMF accessors                           */
+/*                             Bmf accessors                           */
 /*---------------------------------------------------------------------*/
 /*!
  *  bmfGetPix()
@@ -178,8 +178,8 @@ BMF  *bmf;
  *      Return: pix (clone of pix in bmf), or null on error
  */
 PIX *
-bmfGetPix(BMF  *bmf,
-          char  chr)
+bmfGetPix(L_BMF  *bmf,
+          char    chr)
 {
 l_int32  i;
 PIXA    *pixa;
@@ -208,8 +208,8 @@ PIXA    *pixa;
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-bmfGetWidth(BMF     *bmf,
-            char     chr,
+bmfGetWidth(L_BMF    *bmf,
+            char      chr,
             l_int32  *pw)
 {
 l_int32  i;
@@ -246,7 +246,7 @@ PIXA    *pixa;
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-bmfGetBaseline(BMF      *bmf,
+bmfGetBaseline(L_BMF    *bmf,
                char      chr,
                l_int32  *pbaseline)
 {
@@ -621,7 +621,7 @@ NUMA     *na;
  *         array of bitmaps in the pixa, which starts at ascii 32.
  */
 static l_int32
-bmfMakeAsciiTables(BMF  *bmf)
+bmfMakeAsciiTables(L_BMF  *bmf)
 {
 l_int32   i, maxh, height, charwidth, xwidth, kernwidth;
 l_int32  *fonttab, *baselinetab, *widthtab;

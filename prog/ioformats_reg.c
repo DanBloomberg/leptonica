@@ -66,7 +66,7 @@ static PIX *make_24_bpp_pix(PIX *pixs);
 static l_int32 get_header_data(const char *filename, l_int32 true_format);
 static void get_tiff_compression_name(char *buf, l_int32 format);
 
-extern const char *ImageFileFormatExtensions[];
+LEPT_DLL extern const char *ImageFileFormatExtensions[];
 
 
 main(int    argc,
@@ -75,17 +75,17 @@ main(int    argc,
 char         psname[256];
 char        *tempname;
 l_uint8     *data;
-l_int32      i, d, n, success, failure, nbytes, same;
+l_int32      i, d, n, success, failure, nbytes, same, display;
 l_int32      w, h, bps, spp;
 l_float32    diff;
 size_t       size;
+FILE        *fp;
 PIX         *pix1, *pix2, *pix4, *pix8, *pix16, *pix32;
 PIX         *pix, *pixt, *pixd;
 PIXA        *pixa;
-static char  mainName[] = "ioformats_reg";
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  ioformats_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+        return 1;
 
     /* --------- Part 1: Test all lossless formats for r/w to file ---------*/
 
@@ -328,8 +328,7 @@ static char  mainName[] = "ioformats_reg";
     if (!same) success = FALSE;
     pixDestroy(&pixd);
     pixd = pixRead("/tmp/junk24.jpg");
-    pixCompareRGB(pix, pixd, L_COMPARE_ABS_DIFF, 0, NULL, &diff, NULL, NULL);
-    if (diff > 0.1) success = FALSE;
+    regTestCompareSimilarPix(fp, argv, pix, pixd, 10, 0.0002, 0, &success, 0);
     pixDestroy(&pixd);
     pixd = pixRead("/tmp/junk24.tif");
     pixEqual(pix, pixd, &same);
@@ -360,14 +359,16 @@ static char  mainName[] = "ioformats_reg";
 
 #if HAVE_FMEMOPEN
     pix = pixRead(FILE_8BPP_1);
-    tempname = genTempFilename((const char *)"/tmp", (const char *)".pnm");
+    tempname = genTempFilename((const char *)"/tmp", NULL,
+                               (const char *)".pnm");
     pixWrite(tempname, pix, IFF_PNM);
     if (get_header_data(tempname, IFF_PNM)) success = FALSE;
     pixDestroy(&pix);
 #endif  /* HAVE_FMEMOPEN */
 
     pix = pixRead(FILE_1BPP);
-    tempname = genTempFilename((const char *)"/tmp", (const char *)".tif");
+    tempname = genTempFilename((const char *)"/tmp", NULL,
+                               (const char *)".tif");
     pixWrite(tempname, pix, IFF_TIFF_G3);
     if (get_header_data(tempname, IFF_TIFF_G3)) success = FALSE;
     pixWrite(tempname, pix, IFF_TIFF_G4);
@@ -400,6 +401,7 @@ static char  mainName[] = "ioformats_reg";
         fprintf(stderr,
             "  ******* Failure on at least one test *******\n\n");
 
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 

@@ -21,6 +21,7 @@
  *
  *      Box creation, copy, clone, destruction
  *           BOX      *boxCreate()
+ *           BOX      *boxCreateValid()
  *           BOX      *boxCopy()
  *           BOX      *boxClone()
  *           void      boxDestroy()
@@ -122,14 +123,16 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
  *  Notes:
  *      (1) This clips the box to the +quad.  If no part of the
  *          box is in the +quad, this returns NULL.
- *      (2) We allow you to make a box with w = 0 and h = 0.
+ *      (2) We allow you to make a box with w = 0 and/or h = 0.
  *          This does not represent a valid region, but it is useful
  *          as a placeholder in a boxa for which the index of the
  *          box in the boxa is important.  This is an atypical
- *          situation; usually you want to put only valid boxes in a
- *          boxa.  For this special case, use 0 for all 4 inputs.  
- *          If you have a boxa that has invalid boxes, it is convenient
- *          to use boxaGetValidBox() instead of boxaGetBox().
+ *          situation; usually you want to put only valid boxes with
+ *          nonzero width and height in a boxa.  If you have a boxa
+ *          with invalid boxes, the accessor boxaGetValidBox()
+ *          will return NULL on each invalid box.
+ *      (3) If you want to create only valid boxes, use boxCreateValid(),
+ *          which returns NULL if either w or h is 0.
  */
 BOX *
 boxCreate(l_int32  x,
@@ -162,6 +165,29 @@ BOX  *box;
     box->refcount = 1;
 
     return box;
+}
+
+
+/*!
+ *  boxCreateValid()
+ *
+ *      Input:  x, y, w, h
+ *      Return: box, or null on error
+ *
+ *  Notes:
+ *      (1) This returns NULL if either w = 0 or h = 0.
+ */
+BOX *
+boxCreateValid(l_int32  x,
+               l_int32  y,
+               l_int32  w,
+               l_int32  h)
+{
+    PROCNAME("boxCreateValid");
+
+    if (w <= 0 || h <= 0)
+        return (BOX *)ERROR_PTR("w and h not both > 0", procName, NULL);
+    return boxCreate(x, y, w, h);
 }
 
 
@@ -823,8 +849,7 @@ BOX    **array;
  *          in the boxa ptr array:
  *      (3) Example usage.  This function is useful to prepare for a
  *          random insertion (or replacement) of boxes into a boxa.
- *          To lrandomly insert boxes into a boxa, up to some index "max":
- *          into it up to some index "max".  Note that we use
+ *          To randomly insert boxes into a boxa, up to some index "max":
  *             Boxa *boxa = boxaCreate(max);
  *             Box *box = boxCreate(...);
  *             boxaInitFull(boxa, box);
@@ -835,6 +860,10 @@ BOX    **array;
  *             boxaInitFull(boxa, box);
  *          The initialization allows the boxa to always be properly
  *          filled, even if all the boxes are not later replaced.
+ *          If you want to know which boxes have been replaced, you can
+ *          initialize the array with invalid boxes that have 
+ *          w = 0 and/or h = 0.  Then boxaGetValidBox() will return
+ *          NULL for the invalid boxes.
  */
 l_int32
 boxaInitFull(BOXA  *boxa,

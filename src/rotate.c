@@ -24,6 +24,9 @@
  *     General rotation by sampling
  *              PIX     *pixRotateBySampling()
  *
+ *     Nice (slow) rotation of 1 bpp image
+ *              PIX     *pixRotateBinaryNice()
+ *
  *     Rotations are measured in radians; clockwise is positive.
  *
  *     The general rotation pixRotate() does the best job for
@@ -386,4 +389,57 @@ PIX       *pixd;
     return pixd;
 }
 
+
+/*------------------------------------------------------------------*
+ *                 Nice (slow) rotation of 1 bpp image              *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixRotateBinaryNice()
+ *
+ *      Input:  pixs (1 bpp)
+ *              angle (radians; clockwise is positive; about the center)
+ *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) For very small rotations, just return a clone.
+ *      (2) This does a computationally expensive rotation of 1 bpp images.
+ *          The fastest rotators (using shears or subsampling) leave
+ *          visible horizontal and vertical shear lines across which
+ *          the image shear changes by one pixel.  To ameliorate the
+ *          visual effect one can introduce random dithering.  One
+ *          way to do this in a not-too-random fashion is given here.
+ *          We convert to 8 bpp, do a very small blur, rotate using
+ *          linear interpolation (same as area mapping), do a
+ *          small amount of sharpening to compensate for the initial
+ *          blur, and threshold back to binary.  The shear lines
+ *          are magically removed.
+ *      (3) This operation is about 5x slower than rotation by sampling.
+ */
+PIX *
+pixRotateBinaryNice(PIX       *pixs,
+                    l_float32  angle,
+                    l_int32    incolor)
+{
+PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixd;
+
+    PROCNAME("pixRotateBinaryNice");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
+        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+
+    pixt1 = pixConvertTo8(pixs, 0);
+    pixt2 = pixBlockconv(pixt1, 1, 1);  /* smallest blur allowed */
+    pixt3 = pixRotateAM(pixt2, angle, incolor);
+    pixt4 = pixUnsharpMasking(pixt3, 1, 1.0);  /* sharpen a bit */
+    pixd = pixThresholdToBinary(pixt4, 128);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    pixDestroy(&pixt3);
+    pixDestroy(&pixt4);
+    return pixd;
+}
+    
 

@@ -67,7 +67,7 @@ static char  mainName[] = "alphaclean_reg";
          * out as well. */
     pixSetRGBComponent(pixcs1, pixg2, L_ALPHA_CHANNEL);
     pixWriteRGBAPng("/tmp/junkpixcs1.png", pixcs1);
-    pixcs2 = pixCleanUnderTransparency(pixcs1, 0);
+    pixcs2 = pixSetUnderTransparency(pixcs1, 0, 0);
     pixWriteRGBAPng("/tmp/junkpixcs2.png", pixcs2);
 
         /* What will this look like over a black background?

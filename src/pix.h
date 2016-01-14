@@ -39,6 +39,7 @@
  *
  *   Contains definitions for:
  *       Colors for RGB
+ *       Perceptual color weights
  *       Colormap conversion flags
  *       Rasterop bit flags
  *       Structure access flags (for insert, copy, clone, copy-clone)
@@ -57,6 +58,8 @@
  *       Edge orientation flags
  *       Line orientation flags
  *       Scan direction flags
+ *       Horizontal warp
+ *       Pixel selection for resampling
  *       Thinning flags
  *       Runlength flags
  *       Edge filter flags
@@ -94,10 +97,10 @@ typedef struct Pix PIX;
 
 struct PixColormap
 {
-        void        *array;     /* colormap table (array of RGBA_QUAD)     */
-        l_int32      depth;     /* of pix (1, 2, 4 or 8 bpp)               */
-        l_int32      nalloc;    /* number of color entries allocated       */
-        l_int32      n;         /* number of color entries used            */
+    void            *array;     /* colormap table (array of RGBA_QUAD)     */
+    l_int32          depth;     /* of pix (1, 2, 4 or 8 bpp)               */
+    l_int32          nalloc;    /* number of color entries allocated       */
+    l_int32          n;         /* number of color entries used            */
 };
 typedef struct PixColormap  PIXCMAP;
 
@@ -148,6 +151,21 @@ static const l_int32  L_BLUE_SHIFT =
        8 * (sizeof(l_uint32) - 1 - COLOR_BLUE);          /*  8 */
 static const l_int32  L_ALPHA_SHIFT =
        8 * (sizeof(l_uint32) - 1 - L_ALPHA_CHANNEL);     /*  0 */
+
+
+/*-------------------------------------------------------------------------*
+ *                       Perceptual color weights                          *
+ *-------------------------------------------------------------------------*/
+/*  Notes:
+ *      (1) These numbers are ad-hoc, but they do add up to 1.
+ *          Unlike, for example, the weighting factor for conversion
+ *          of RGB to luminance, or more specifically to Y in the
+ *          YUV colorspace.  Those numbers come from the
+ *          International Telecommunications Union, via ITU-R.
+ */
+static const l_float32  L_RED_WEIGHT =   0.3;
+static const l_float32  L_GREEN_WEIGHT = 0.5;
+static const l_float32  L_BLUE_WEIGHT =  0.2;
 
 
 /*-------------------------------------------------------------------------*
@@ -766,6 +784,29 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
+ *                            Horizontal warp                              *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_WARP_TO_LEFT = 1,      /* increasing stretch or contraction to left  */
+    L_WARP_TO_RIGHT = 2      /* increasing stretch or contraction to right */
+};
+
+enum {
+    L_LINEAR_WARP = 1,       /* stretch or contraction grows linearly      */
+    L_QUADRATIC_WARP = 2     /* stretch or contraction grows quadratically */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                      Pixel selection for resampling                     *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_INTERPOLATED = 1,      /* linear interpolation from src pixels       */
+    L_SAMPLED = 2            /* nearest src pixel sampling only            */
+};
+
+
+/*-------------------------------------------------------------------------*
  *                             Thinning flags                              *
  *-------------------------------------------------------------------------*/
 enum {
@@ -862,7 +903,4 @@ enum {
     L_DISPLAY_WITH_IV = 4       /* Use irfvanview with pixDisplay()        */
 };
 
-
-
 #endif  /* LEPTONICA_PIX_H */
-

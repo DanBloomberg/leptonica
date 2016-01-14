@@ -62,6 +62,7 @@
  *            NUMA       *parseStringForNumbers()
  *
  *      Simple parametric kernels
+ *            L_KERNEL   *makeFlatKernel()
  *            L_KERNEL   *makeGaussianKernel()
  *            L_KERNEL   *makeGaussianKernelSep()
  *            L_KERNEL   *makeDoGKernel()
@@ -982,6 +983,48 @@ NUMA      *na;
 /*------------------------------------------------------------------------*
  *                        Simple parametric kernels                       *
  *------------------------------------------------------------------------*/
+/*!
+ *  makeFlatKernel()
+ *
+ *      Input:  height, width
+ *              cy, cx (origin of kernel)
+ *      Return: kernel, or null on error
+ *
+ *  Notes:
+ *      (1) This is the same low-pass filtering kernel that is used
+ *          in the block convolution functions.
+ *      (2) The kernel origin (@cy, @cx) is typically placed as near
+ *          the center of the kernel as possible.  If height and
+ *          width are odd, then using cy = (height - 1) / 2 and
+ *          cx = (width - 1) / 2 places the origin at the exact center.
+ *      (3) This returns a normalized kernel.
+ */
+L_KERNEL *
+makeFlatKernel(l_int32  height,
+               l_int32  width,
+               l_int32  cy,
+               l_int32  cx)
+{
+l_int32    i, j;
+l_float32  normval;
+L_KERNEL  *kel;
+
+    PROCNAME("makeFlatKernel");
+
+    if ((kel = kernelCreate(height, width)) == NULL)
+        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+    kernelSetOrigin(kel, cy, cx);
+    normval = 1.0 / (l_float32)(height * width);
+    for (i = 0; i < height; i++) {
+        for (j = 0; j < width; j++) {
+            kernelSetElement(kel, i, j, normval);
+        }
+    }
+
+    return kel;
+}
+
+
 /*!
  *  makeGaussianKernel()
  *

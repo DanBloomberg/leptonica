@@ -735,7 +735,8 @@ pixSizesEqual(PIX  *pix1,
  *              to return the new Pix in the input Pix struct:
  *                  void function-inplace(PIX *pix, ...) {
  *                      PIX *pixt = function-makenew(pix);
- *                      pixTransferAllData(pix, &pixt);  // pixt is destroyed
+ *                      pixTransferAllData(pix, &pixt, 0, 0);
+ *                               // pixDestroy() is called on pixt
  *                      return;
  *                  }
  *              Here, the input and returned pix are the same, as viewed

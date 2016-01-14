@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-void AddTextAndSave(PIXA *pixa, PIX *pixs, BMF *bmf, const char *textstr,
+void AddTextAndSave(PIXA *pixa, PIX *pixs, L_BMF *bmf, const char *textstr,
                     l_int32 location, l_uint32 val);
 
 const char  *textstr[] =
@@ -49,13 +49,15 @@ main(int    argc,
      char **argv)
 {
 char         outname[256];
-l_int32      loc;
-BMF         *bmf, *bmftop;
+l_int32      loc, display, success;
+L_BMF       *bmf, *bmftop;
+FILE        *fp;
 PIX         *pixs, *pixt, *pixd;
 PIX         *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
 PIXA        *pixa;
-static char  mainName[] = "writetext_reg";
 
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+              return 1;
 
     bmf = bmfCreate("./fonts", 6);
     bmftop = bmfCreate("./fonts", 10);
@@ -82,9 +84,10 @@ static char  mainName[] = "writetext_reg";
         pixt = pixaDisplay(pixa, 0, 0);
         pixd = pixAddSingleTextblock(pixt, bmftop, topstr[loc - 1],
                                      0xff00ff00, L_ADD_ABOVE, NULL);
-        sprintf(outname, "/tmp/junkpixd%d.png", loc);
+        snprintf(outname, 240, "/tmp/junkwritetext.%d.png", loc - 1);
         pixWrite(outname, pixd, IFF_PNG);
-        pixDisplay(pixd, 50 * loc, 50);
+        regTestCheckFile(fp, argv, outname, loc - 1, &success);
+        pixDisplayWithTitle(pixd, 50 * loc, 50, NULL, display);
         pixDestroy(&pixt);
         pixDestroy(&pixd);
         pixaDestroy(&pixa);
@@ -101,6 +104,7 @@ static char  mainName[] = "writetext_reg";
     pixDestroy(&pix8);
     bmfDestroy(&bmf);
     bmfDestroy(&bmftop);
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 
@@ -108,7 +112,7 @@ static char  mainName[] = "writetext_reg";
 void
 AddTextAndSave(PIXA        *pixa,
                PIX         *pixs,
-               BMF         *bmf,
+               L_BMF       *bmf,
                const char  *textstr,
                l_int32      location,
                l_uint32     val)

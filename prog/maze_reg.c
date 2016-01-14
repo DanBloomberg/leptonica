@@ -32,24 +32,24 @@ static const l_int32 x1[NPATHS] = {419, 419, 233, 326, 418, 128};
 static const l_int32 y1[NPATHS] = {383, 383, 112, 168, 371, 341};
 
 static const l_int32  NBOXES = 20;
-static const l_int32  POLARITY = 0;
+static const l_int32  POLARITY = 0;  /* background */
 
 main(int    argc,
      char **argv)
 {
-l_int32      i, w, h, bx, by, bw, bh, index, rval, gval, bval;
+l_int32      i, w, h, bx, by, bw, bh, index, rval, gval, bval, success, display;
 BOX         *box;
 BOXA        *boxa;
+FILE        *fp;
 PIX         *pixm, *pixs, *pixg, *pixt, *pixd;
 PIXA        *pixa;
 PIXCMAP     *cmap;
 PTA         *pta;
 PTAA        *ptaa;
-static char  mainName[] = "maze_reg";
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax: maze_reg", mainName, 1));
-
+    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+	return 1;
     pixa = pixaCreate(0);
 
     /* ---------------- Shortest path in binary maze ---------------- */
@@ -64,6 +64,7 @@ static char  mainName[] = "maze_reg";
     pixt = pixDisplayPta(pixm, pta);
     pixd = pixScaleBySampling(pixt, 3., 3.);
     pixSaveTiledOutline(pixd, pixa, 1, 0, 20, 2, 32);
+    pixWrite("/tmp/junkpix0.png", pixd, IFF_PNG);
     ptaDestroy(&pta);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
@@ -86,6 +87,7 @@ static char  mainName[] = "maze_reg";
     pixt = pixDisplayPtaa(pixg, ptaa);
     pixd = pixScaleBySampling(pixt, 2., 2.);
     pixSaveTiledOutline(pixd, pixa, 1, 1, 20, 2, 32);
+    pixWrite("/tmp/junkpix1.jpg", pixd, IFF_PNG);
     ptaaDestroy(&ptaa);
     pixDestroy(&pixg);
     pixDestroy(&pixt);
@@ -116,16 +118,23 @@ static char  mainName[] = "maze_reg";
                             rval, gval, bval);
         boxDestroy(&box);
     }
-/*    pixWrite("/tmp/junkrect.png", pixd, IFF_PNG); */
     pixSaveTiledOutline(pixd, pixa, 1, 1, 20, 2, 32);
+    pixWrite("/tmp/junkpix2.png", pixd, IFF_PNG);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
     boxaDestroy(&boxa);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkmaze.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpix3.png", pixd, IFF_PNG);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
+
+    regTestCheckFile(fp, argv, "/tmp/junkpix0.png", 0, &success);
+    regTestCheckFile(fp, argv, "/tmp/junkpix1.jpg", 1, &success);
+    regTestCheckFile(fp, argv, "/tmp/junkpix2.png", 2, &success);
+    regTestCheckFile(fp, argv, "/tmp/junkpix3.png", 3, &success);
+    regTestCleanup(argc, argv, fp, success, rp);
     return 0;
 }
 

@@ -50,40 +50,38 @@ static const char *textsel4 = "xxxxxx"
 main(int    argc,
      char **argv)
 {
-char           *str1, *str2;
-l_int32         nbytes1, nbytes2;
-PIX            *pix;
-SEL            *sel;
-SELA           *sela1, *sela2;
-static char     mainName[] = "selio_reg";
+l_int32  display, success;
+FILE    *fp;
+PIX     *pix;
+SEL     *sel;
+SELA    *sela1, *sela2;
 
-    if (argc != 1)
-	return ERROR_INT(" Syntax:  selio_reg", mainName, 1);
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+              return 1;
 
         /* selaRead() / selaWrite()  */
     sela1 = selaAddBasic(NULL);
-    selaWrite("/tmp/junk1.sela", sela1);
-    sela2 = selaRead("/tmp/junk1.sela");
-    selaWrite("/tmp/junk2.sela", sela2);
-    str1 = (char *)arrayRead("/tmp/junk1.sela", &nbytes1);
-    str2 = (char *)arrayRead("/tmp/junk2.sela", &nbytes2);
-    if (nbytes1 == nbytes2 && !strcmp(str1, str2))
-        fprintf(stderr, "Success:  selaRead() / selaWrite()\n");
-    else
-        fprintf(stderr, "Failure:  selaRead() / selaWrite()\n");
-    FREE(str1);
-    FREE(str2);
+    selaWrite("/tmp/junksel.0.sela", sela1);
+    regTestCheckFile(fp, argv, "/tmp/junksel.0.sela", 0, &success);
+    sela2 = selaRead("/tmp/junksel.0.sela");
+    selaWrite("/tmp/junksel.1.sela", sela2);
+    regTestCheckFile(fp, argv, "/tmp/junksel.1.sela", 1, &success);
+    regTestCompareFiles(fp, argv, 0, 1, &success);
     selaDestroy(&sela1);
     selaDestroy(&sela2);
     
 	/* Create from file and display result */
     sela1 = selaCreateFromFile("flipsels.txt");
     pix = selaDisplayInPix(sela1, 31, 3, 15, 4);
-    pixDisplay(pix, 100, 100);
+    pixWrite("/tmp/junksel.2.png", pix, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junksel.2.png", 2, &success);
+    pixDisplayWithTitle(pix, 100, 100, NULL, display);
+    selaWrite("/tmp/junksel.3.sela", sela1);
+    regTestCheckFile(fp, argv, "/tmp/junksel.3.sela", 3, &success);
     pixDestroy(&pix);
-    selaWrite("/tmp/junk3.sela", sela1);
+    selaDestroy(&sela1);
 
-        /* Create from compiled strings and compare */
+        /* Create the same set of Sels from compiled strings and compare */
     sela2 = selaCreate(4);
     sel = selCreateFromString(textsel1, 5, 6, "textsel1");
     selaAddSel(sela2, sel, NULL, 0);
@@ -93,18 +91,12 @@ static char     mainName[] = "selio_reg";
     selaAddSel(sela2, sel, NULL, 0);
     sel = selCreateFromString(textsel4, 5, 6, "textsel4");
     selaAddSel(sela2, sel, NULL, 0);
-    selaWrite("/tmp/junk4.sela", sela2);
-    str1 = (char *)arrayRead("/tmp/junk3.sela", &nbytes1);
-    str2 = (char *)arrayRead("/tmp/junk4.sela", &nbytes2);
-    if (nbytes1 == nbytes2 && !strcmp(str1, str2))
-        fprintf(stderr, "Success:  reading from file and string\n");
-    else
-        fprintf(stderr, "Failure:  reading from file and string\n");
-    FREE(str1);
-    FREE(str2);
-    selaDestroy(&sela1);
+    selaWrite("/tmp/junksel.4.sela", sela2);
+    regTestCheckFile(fp, argv, "/tmp/junksel.4.sela", 4, &success);
+    regTestCompareFiles(fp, argv, 3, 4, &success);
     selaDestroy(&sela2);
 
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 

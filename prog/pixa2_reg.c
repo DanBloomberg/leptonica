@@ -28,21 +28,27 @@ main(int    argc,
      char **argv)
 {
 const char  *name;
-l_int32      i, n;
+l_int32      i, n, success, display;
 BOX         *box;
+FILE        *fp;
 PIX         *pix, *pixt0, *pixt1, *pixd;
 PIXA        *pixa;
-SARRAY      *sa1, *sa2;
+SARRAY      *sa1, *sa2, *sa3, *sa4, *sa;
 static char  mainName[] = "pixa2_reg";
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  pixa2_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+        return 1;
 
     /* ----------------  Find all the jpg and tif images --------------- */
     sa1 = getSortedPathnamesInDirectory(".", ".jpg", 0, 0);
     sa2 = getSortedPathnamesInDirectory(".", ".tif", 0, 0);
-/*    sarrayConcatenate(sa1, sa2); */
-    n =sarrayGetCount(sa1);
+    sa3 = sarraySelectByRange(sa1, 0, 9);
+    sa4 = sarraySelectByRange(sa2, 0, 9);
+    sarrayConcatenate(sa3, sa4);
+    n =sarrayGetCount(sa3);
+    sarrayDestroy(&sa1);
+    sarrayDestroy(&sa2);
+    sarrayDestroy(&sa4);
     
     /* ---------------- Use replace to fill up a pixa -------------------*/
     pixa = pixaCreate(1);
@@ -52,21 +58,21 @@ static char  mainName[] = "pixa2_reg";
     pixDestroy(&pixt0);
     pixaInitFull(pixa, pixt1, NULL);  /* fill it up */
     pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 25, 2);
-    pixDisplay(pixd, 100, 100);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixWrite("/tmp/junkpix1.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixt1);
     pixDestroy(&pixd);
 
     /* ---------------- And again with jpgs and tifs -------------------*/
     for (i = 0; i < n; i++) {
-        name = sarrayGetString(sa1, i, L_NOCOPY);
+        name = sarrayGetString(sa3, i, L_NOCOPY);
         pixt0 = pixRead(name);
         pixt1 = pixScaleToSize(pixt0, 144, 108);
         pixaReplacePix(pixa, i, pixt1, NULL);
         pixDestroy(&pixt0);
     }
     pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 25, 2);
-    pixDisplay(pixd, 400, 100);
+    pixDisplayWithTitle(pixd, 400, 100, NULL, display);
     pixWrite("/tmp/junkpix2.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
 
@@ -77,20 +83,19 @@ static char  mainName[] = "pixa2_reg";
     pixDestroy(&pix);
     boxDestroy(&box);
     for (i = 0; i < n; i++) {
-        name = sarrayGetString(sa1, i, L_NOCOPY);
+        name = sarrayGetString(sa3, i, L_NOCOPY);
         pixt0 = pixRead(name);
         pixt1 = pixScaleToSize(pixt0, 144, 108);
         pixaReplacePix(pixa, n - 1 - i, pixt1, NULL);
         pixDestroy(&pixt0);
     }
     pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 25, 2);
-    pixDisplay(pixd, 700, 100);
+    pixDisplayWithTitle(pixd, 700, 100, NULL, display);
     pixWrite("/tmp/junkpix3.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
 
     pixaDestroy(&pixa);
-    sarrayDestroy(&sa1);
-    sarrayDestroy(&sa2);
+    regTestCleanup(argc, argv, fp, success, NULL);  /* always returns success */
     return 0;
 }
 

@@ -33,7 +33,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#ifndef COMPILER_MSVC
 #include <unistd.h>
+#else
+#include <io.h>
+#endif  /* COMPILER_MSVC */
 #include "allheaders.h"
 
 #ifdef HAVE_CONFIG_H
@@ -71,7 +75,11 @@ SavedImage       si;
 
     if ((fd = fileno(fp)) < 0)
         return (PIX *)ERROR_PTR("invalid file descriptor", procName, NULL);
+#ifndef COMPILER_MSVC
     lseek(fd, 0, SEEK_SET);
+#else
+    _lseek(fd, 0, SEEK_SET);
+#endif  /* COMPILER_MSVC */
 
     if ((gif = DGifOpenFileHandle(fd)) == NULL)
         return (PIX *)ERROR_PTR("invalid file or file not found",

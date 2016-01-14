@@ -723,8 +723,9 @@ l_int32  *array;
  *          will be in the numa.  Do not write beyond the size of
  *          the count field, because it will not be accessable
  *          from the numa!  If necessary, be sure to set the count
- *          the count field to a larger number (such as the alloc
- *          size) BEFORE calling this function.
+ *          field to a larger number (such as the alloc size)
+ *          BEFORE calling this function.  Creating with numaMakeConstant()
+ *          is another way to insure full initialization.
  */
 l_float32 *
 numaGetFArray(NUMA    *na,

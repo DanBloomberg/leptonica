@@ -59,6 +59,7 @@
  *
  *      Filter sarray
  *          SARRAY    *sarraySelectBySubstring()
+ *          SARRAY    *sarraySelectByRange()
  *          l_int32    sarrayParseRange()
  *
  *      Sort
@@ -1130,6 +1131,53 @@ SARRAY  *saout;
 
 
 /*!
+ *  sarraySelectByRange()
+ *
+ *      Input:  sain (input sarray)
+ *              first (index of first string to be selected)
+ *              last (index of last string to be selected; use 0 to go to the
+ *                    end of the sarray)
+ *      Return: saout (output sarray), or null on error
+ *
+ *  Notes:
+ *      (1) This makes @saout consisting of copies of all strings in @sain
+ *          in the index set [first ... last].  Use @last == 0 to get all
+ *          strings from @first to the last string in the sarray.
+ */
+SARRAY *
+sarraySelectByRange(SARRAY  *sain,
+                    l_int32  first,
+                    l_int32  last)
+{
+char    *str;
+l_int32  n, i;
+SARRAY  *saout;
+
+    PROCNAME("sarraySelectByRange");
+
+    if (!sain)
+        return (SARRAY *)ERROR_PTR("sain not defined", procName, NULL);
+    if (first < 0) first = 0;
+    n = sarrayGetCount(sain);
+    if (last <= 0) last = n - 1;
+    if (last >= n) {
+        L_WARNING("@last > n - 1; setting to n - 1", procName);
+        last = n - 1;
+    }
+    if (first > last)
+        return (SARRAY *)ERROR_PTR("first must be >= last", procName, NULL);
+
+    saout = sarrayCreate(0);
+    for (i = first; i <= last; i++) {
+        str = sarrayGetString(sain, i, L_COPY);
+        sarrayAddString(saout, str, L_INSERT);
+    }
+
+    return saout;
+}
+
+
+/*!
  *  sarrayParseRange()
  *
  *      Input:  sa (input sarray)
@@ -1541,6 +1589,7 @@ FILE  *fp;
  *  getNumberedPathnamesInDirectory()
  *
  *      Input:  directory name
+ *              substr (<optional> substring filter on filenames; can be NULL)
  *              numpre (number of characters in name before number)
  *              numpost (number of characters in name after number)
  *              maxnum (only consider page numbers up to this value)
@@ -1551,14 +1600,20 @@ FILE  *fp;
  *          the directory.  The number in the filename is the index
  *          into the sarray.  For indices for which there are no filenames,
  *          an empty string ("") is placed into the sarray.
- *      (2) If no numbered files are found, it returns an empty sarray,
+ *          This makes reading numbered files very simple.  For example,
+ *          the image whose filename includes number N can be retrieved using
+ *               pixReadIndexed(sa, N);
+ *      (2) If @substr is not NULL, only filenames that contain
+ *          the substring can be included.  If @substr is NULL,
+ *          all matching filenames are used.
+ *      (3) If no numbered files are found, it returns an empty sarray,
  *          with no initialized strings.
- *      (3) It is assumed that the page number is contained within
+ *      (4) It is assumed that the page number is contained within
  *          the basename (the filename without directory or extension).
  *          @numpre is the number of characters in the basename
  *          preceeding the actual page number; @numpost is the number
  *          following the page number. 
- *      (4) To use a O(n) matching algorithm, the largest page number
+ *      (5) To use a O(n) matching algorithm, the largest page number
  *          is found and two internal arrays of this size are created.
  *          This maximum is constrained not to exceed @maxsum,
  *          to make sure that an unrealistically large number is not
@@ -1566,6 +1621,7 @@ FILE  *fp;
  */
 SARRAY *
 getNumberedPathnamesInDirectory(const char  *dirname,
+                                const char  *substr,
                                 l_int32      numpre,
                                 l_int32      numpost,
                                 l_int32      maxnum)
@@ -1579,33 +1635,34 @@ SARRAY  *sa, *saout;
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    if ((sa = getSortedPathnamesInDirectory(dirname, NULL, 0, 0)) == NULL)
+    if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
         return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
-    nfiles = sarrayGetCount(sa);
+    if ((nfiles = sarrayGetCount(sa)) == 0)
+        return sarrayCreate(1);
 
         /* Find the last file in the sorted array that has a number
-         * and matches the count pattern. */
+         * that (a) matches the count pattern and (b) does not
+         * exceed @maxnum.  @maxnum sets an upper limit on the size
+         * of the sarray.  */
     num = 0;
-    for (i = nfiles - 1; i >= 0; i++) {
+    for (i = nfiles - 1; i >= 0; i--) {
       fname = sarrayGetString(sa, i, L_NOCOPY);
       num = extractNumberFromFilename(fname, numpre, numpost);
       if (num < 0) continue;
       num = L_MIN(num + 1, maxnum);
       break;
     }
-    if (num == 0)
+
+    if (num <= 0)  /* none found */
         return sarrayCreate(1);
 
-        /* Insert pathnames into the output sarray */
+        /* Insert pathnames into the output sarray.
+         * Ignore numbers that are out of the range of sarray. */
     saout = sarrayCreateInitialized(num, (char *)"");
     for (i = 0; i < nfiles; i++) {
       fname = sarrayGetString(sa, i, L_NOCOPY);
       index = extractNumberFromFilename(fname, numpre, numpost);
-      if (index < 0) continue;
-      if (index >= num) {
-          L_ERROR_STRING("\n  Rogue file %s:", procName, fname);
-          continue;
-      }
+      if (index < 0 || index >= num) continue;
       str = sarrayGetString(saout, index, L_NOCOPY);
       if (str[0] != '\0')
           L_WARNING_INT("\n  Multiple files with same number: %d",
@@ -1628,8 +1685,8 @@ SARRAY  *sa, *saout;
  *      Return: sarray of sorted pathnames, or NULL on error
  *
  *  Notes:
- *      (1) If 'substr' is not NULL, only filenames that contain
- *          the substring can be returned.  If 'substr' is NULL,
+ *      (1) If @substr is not NULL, only filenames that contain
+ *          the substring can be returned.  If @substr == NULL,
  *          none of the filenames are filtered out.
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order.

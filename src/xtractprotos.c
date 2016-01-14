@@ -47,9 +47,12 @@
 #include <string.h>
 #include "allheaders.h"
 
+    /* MS VC++ can't handle array initialization with static consts */
+#define  L_BUF_SIZE   512
+
 static const char *tempfile = "/tmp/temp_cpp_output";
-static const l_int32  L_BUF_SIZE = 512;
 static const char *version = "1.4";
+
 
 main(int    argc,
      char **argv)

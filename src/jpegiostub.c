@@ -54,6 +54,11 @@ l_int32 pixWriteStreamJpeg(FILE *fp, PIX *pix, l_int32 quality,
     return ERROR_INT("function not present", "pixWriteStreamJpeg", 1);
 }
 
+l_int32 l_jpegSetNoChromaSampling(l_int32 flag)
+{
+    return ERROR_INT("function not present", "l_jpegSetNoChromaSampling", 1);
+}
+
 l_int32 extractJpegDataFromFile(const char *filein, l_uint8 **pdata,
                                 l_int32 *pnbytes, l_int32 *pw, l_int32 *ph,
                                 l_int32 *pbps, l_int32 *pspp)

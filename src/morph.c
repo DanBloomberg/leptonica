@@ -157,7 +157,7 @@
      * in other files to access it directly.  However, in most
      * cases that is not necessary, because it can be reset
      * using resetMorphBoundaryCondition().  */
-l_int32  MORPH_BC = ASYMMETRIC_MORPH_BC;
+LEPT_DLL l_int32  MORPH_BC = ASYMMETRIC_MORPH_BC;
 
     /* We accept this cost in extra rasterops for decomposing exactly. */
 static const l_int32  ACCEPTABLE_COST = 5;

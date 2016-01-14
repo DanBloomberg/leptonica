@@ -31,6 +31,10 @@
  *           l_int32   pixHShearIP()
  *           l_int32   pixVShearIP()
  *
+ *    Linear interpolated shear about arbitrary lines
+ *           PIX      *pixHShearLI()
+ *           PIX      *pixVShearLI()
+ *
  *    Static helper
  *      static l_float32  normalizeAngleForShear()
  */
@@ -44,7 +48,7 @@
     /* Shear angle must not get too close to -pi/2 or pi/2 */
 static const l_float32   MIN_DIFF_FROM_HALF_PI = 0.04;
 
-static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindist);
+static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindif);
 
 
 #ifndef  NO_CONSOLE_IO
@@ -550,37 +554,256 @@ l_float32  tanangle, invangle;
 
 
 /*-------------------------------------------------------------------------*
+ *              Linear interpolated shear about arbitrary lines            *
+ *-------------------------------------------------------------------------*/
+/*!
+ *  pixHShearLI()
+ *
+ *      Input:  pixs (8 bpp or 32 bpp, or colormapped)
+ *              liney  (location of horizontal line, measured from origin)
+ *              angle (in radians, in range (-pi/2 ... pi/2))
+ *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
+ *      Return: pixd (sheared), or null on error
+ *
+ *  Notes:
+ *      (1) This does horizontal shear with linear interpolation for
+ *          accurate results on 8 bpp gray, 32 bpp rgb, or cmapped images.
+ *          It is relatively slow compared to the sampled version
+ *          implemented by rasterop, but the result is much smoother.
+ *      (2) This shear leaves the horizontal line of pixels at y = liney
+ *          invariant.  For a positive shear angle, pixels above this
+ *          line are shoved to the right, and pixels below this line
+ *          move to the left.
+ *      (3) Any colormap is removed.
+ *      (4) The angle is brought into the range [-pi/2 + del, pi/2 - del],
+ *          where del == MIN_DIFF_FROM_HALF_PI.
+ */
+PIX *
+pixHShearLI(PIX       *pixs,
+            l_int32    liney,
+            l_float32  radang,
+            l_int32    incolor)
+{
+l_int32    i, jd, x, xp, xf, w, h, d, wm, wpls, wpld, val, rval, gval, bval;
+l_uint32   word0, word1;
+l_uint32  *datas, *datad, *lines, *lined;
+l_float32  tanangle, xshift;
+PIX       *pix, *pixd;
+
+    PROCNAME("pixHShearLI");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 32 && !pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs not 8, 32 bpp, or cmap", procName, NULL);
+    if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
+        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+    if (liney < 0 || liney >= h)
+        return (PIX *)ERROR_PTR("liney not in [0 ... h-1]", procName, NULL);
+
+    if (pixGetColormap(pixs))
+        pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+    else
+        pix = pixClone(pixs);
+
+        /* Normalize angle.  If no rotation, return a copy */
+    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    if (radang == 0.0 || tan(radang) == 0.0) {
+        pixDestroy(&pix);
+        return pixCopy(NULL, pixs);
+    }
+
+        /* Initialize to value of incoming pixels */
+    pixd = pixCreateTemplate(pix);
+    pixSetBlackOrWhite(pixd, incolor);
+
+        /* Standard linear interp: subdivide each pixel into 64 parts */
+    d = pixGetDepth(pixd);  /* 8 or 32 */
+    datas = pixGetData(pix);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pix);
+    wpld = pixGetWpl(pixd);
+    tanangle = tan(radang);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        xshift = (liney - i) * tanangle;
+        for (jd = 0; jd < w; jd++) {
+            x = (l_int32)(64.0 * (-xshift + jd) + 0.5);
+            xp = x / 64;
+            xf = x & 63;
+            wm = w - 1;
+            if (xp < 0 || xp > wm) continue;
+            if (d == 8) {
+                if (xp < wm)
+                    val = ((63 - xf) * GET_DATA_BYTE(lines, xp) +
+                           xf * GET_DATA_BYTE(lines, xp + 1) + 31) / 63;
+                else  /* xp == wm */
+                    val = GET_DATA_BYTE(lines, xp);
+                SET_DATA_BYTE(lined, jd, val);
+            }
+            else {  /* d == 32 */
+                if (xp < wm) {
+                    word0 = *(lines + xp);
+                    word1 = *(lines + xp + 1);
+                    rval = ((63 - xf) * ((word0 >> L_RED_SHIFT) & 0xff) +
+                           xf * ((word1 >> L_RED_SHIFT) & 0xff) + 31) / 63;
+                    gval = ((63 - xf) * ((word0 >> L_GREEN_SHIFT) & 0xff) +
+                           xf * ((word1 >> L_GREEN_SHIFT) & 0xff) + 31) / 63;
+                    bval = ((63 - xf) * ((word0 >> L_BLUE_SHIFT) & 0xff) +
+                           xf * ((word1 >> L_BLUE_SHIFT) & 0xff) + 31) / 63;
+                    composeRGBPixel(rval, gval, bval, lined + jd);
+                }
+                else  /* xp == wm */
+                    lined[jd] = lines[xp];
+            }
+        }
+    }
+
+    pixDestroy(&pix);
+    return pixd;
+}
+
+
+/*!
+ *  pixVShearLI()
+ *
+ *      Input:  pixs (8 bpp or 32 bpp, or colormapped)
+ *              linex  (location of vertical line, measured from origin)
+ *              angle (in radians, in range (-pi/2 ... pi/2))
+ *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
+ *      Return: pixd (sheared), or null on error
+ *
+ *  Notes:
+ *      (1) This does vertical shear with linear interpolation for
+ *          accurate results on 8 bpp gray, 32 bpp rgb, or cmapped images.
+ *          It is relatively slow compared to the sampled version
+ *          implemented by rasterop, but the result is much smoother.
+ *      (2) This shear leaves the vertical line of pixels at x = linex
+ *          invariant.  For a positive shear angle, pixels to the right
+ *          of this line are shoved downward, and pixels to the left
+ *          of the line move upward.
+ *      (3) Any colormap is removed.
+ *      (4) The angle is brought into the range [-pi/2 + del, pi/2 - del],
+ *          where del == MIN_DIFF_FROM_HALF_PI.
+ */
+PIX *
+pixVShearLI(PIX       *pixs,
+            l_int32    linex,
+            l_float32  radang,
+            l_int32    incolor)
+{
+l_int32    id, y, yp, yf, j, w, h, d, hm, wpls, wpld, val, rval, gval, bval;
+l_uint32   word0, word1;
+l_uint32  *datas, *datad, *lines, *lined;
+l_float32  tanangle, yshift;
+PIX       *pix, *pixd;
+
+    PROCNAME("pixVShearLI");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 32 && !pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs not 8, 32 bpp, or cmap", procName, NULL);
+    if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
+        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+    if (linex < 0 || linex >= w)
+        return (PIX *)ERROR_PTR("linex not in [0 ... w-1]", procName, NULL);
+
+    if (pixGetColormap(pixs))
+        pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+    else
+        pix = pixClone(pixs);
+
+        /* Normalize angle.  If no rotation, return a copy */
+    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    if (radang == 0.0 || tan(radang) == 0.0) {
+        pixDestroy(&pix);
+        return pixCopy(NULL, pixs);
+    }
+
+        /* Initialize to value of incoming pixels */
+    pixd = pixCreateTemplate(pix);
+    pixSetBlackOrWhite(pixd, incolor);
+
+        /* Standard linear interp: subdivide each pixel into 64 parts */
+    d = pixGetDepth(pixd);  /* 8 or 32 */
+    datas = pixGetData(pix);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pix);
+    wpld = pixGetWpl(pixd);
+    tanangle = tan(radang);
+    for (j = 0; j < w; j++) {
+        yshift = (j - linex) * tanangle;
+        for (id = 0; id < h; id++) {
+            y = (l_int32)(64.0 * (-yshift + id) + 0.5);
+            yp = y / 64;
+            yf = y & 63;
+            hm = h - 1;
+            if (yp < 0 || yp > hm) continue;
+            lines = datas + yp * wpls;
+            lined = datad + id * wpld;
+            if (d == 8) {
+                if (yp < hm)
+                    val = ((63 - yf) * GET_DATA_BYTE(lines, j) +
+                           yf * GET_DATA_BYTE(lines + wpls, j) + 31) / 63;
+                else  /* yp == hm */
+                    val = GET_DATA_BYTE(lines, j);
+                SET_DATA_BYTE(lined, j, val);
+            }
+            else {  /* d == 32 */
+                if (yp < hm) {
+                    word0 = *(lines + j);
+                    word1 = *(lines + wpls + j);
+                    rval = ((63 - yf) * ((word0 >> L_RED_SHIFT) & 0xff) +
+                           yf * ((word1 >> L_RED_SHIFT) & 0xff) + 31) / 63;
+                    gval = ((63 - yf) * ((word0 >> L_GREEN_SHIFT) & 0xff) +
+                           yf * ((word1 >> L_GREEN_SHIFT) & 0xff) + 31) / 63;
+                    bval = ((63 - yf) * ((word0 >> L_BLUE_SHIFT) & 0xff) +
+                           yf * ((word1 >> L_BLUE_SHIFT) & 0xff) + 31) / 63;
+                    composeRGBPixel(rval, gval, bval, lined + j);
+                }
+                else  /* yp == hm */
+                    lined[j] = lines[j];
+            }
+        }
+    }
+
+    pixDestroy(&pix);
+    return pixd;
+}
+
+
+/*-------------------------------------------------------------------------*
  *                           Angle normalization                           *
  *-------------------------------------------------------------------------*/
 static l_float32
 normalizeAngleForShear(l_float32  radang,
-                       l_float32  mindist)
+                       l_float32  mindif)
 {
-l_float32 pi, diff90;
+l_float32  pi2;
 
     PROCNAME("normalizeAngleForShear");
 
-       /* Bring angle into range from [-pi, pi] */
-    pi = 3.14159265;
-    if (radang < -pi || radang > pi)
-        radang = radang - (l_int32)(radang / pi) * pi;
+       /* Bring angle into range [-pi/2, pi/2] */
+    pi2 = 3.14159265 / 2.0;
+    if (radang < -pi2 || radang > pi2)
+        radang = radang - (l_int32)(radang / pi2) * pi2;
 
-       /* If angle is too close to pi/2 or -pi/2, move away and issue warning */
-    diff90 = radang - pi / 2.0;
-    if (L_ABS(diff90) < mindist)
+       /* If angle is too close to pi/2 or -pi/2, move it */
+    if (radang > pi2 - mindif) {
         L_WARNING("angle close to pi/2; shifting away", procName);
-    if (diff90 > -mindist && diff90 < 0.0)
-        radang = pi / 2.0 - mindist;
-    else if (diff90 >= 0.0 && diff90 < mindist)
-        radang = pi / 2.0 + mindist;
-    diff90 = radang + pi / 2.0;
-    if (L_ABS(diff90) < mindist)
+        radang = pi2 - mindif;
+    }
+    else if (radang < -pi2 + mindif) {
         L_WARNING("angle close to -pi/2; shifting away", procName);
-    if (diff90 > -mindist && diff90 < 0.0)
-        radang = -pi / 2.0 - mindist;
-    else if (diff90 >= 0.0 && diff90 < mindist)
-        radang = -pi / 2.0 + mindist;
+        radang = -pi2 + mindif;
+    }
 
     return radang;
 }
+
+
 

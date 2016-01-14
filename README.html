@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (5 Jan 2010)
+README  (5 Apr 2010)
 --------------------
 
-gunzip leptonlib-1.64.tar.gz
-tar -xvf leptonlib-1.64.tar
+gunzip leptonlib-1.65.tar.gz
+tar -xvf leptonlib-1.65.tar
 
 
 1.  This tar includes:
@@ -80,13 +80,13 @@ tar -xvf leptonlib-1.64.tar
         *  Linux on x86 (i386) and AMD 64 (x64)
         *  OSX (both powerPC and x86).
         *  cygwin and mingw on x86
-    The library should also build with MSVC on x86
     It should compile properly with any version of gcc from 2.95.3 onward.
+    There is another tar file for building with MS Visual Studio.
 
     Libraries, executables and prototypes are easily made, as described below.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.64'.  In that directory you will
+    subdirectory 'leptonlib-1.65'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -118,17 +118,15 @@ tar -xvf leptonlib-1.64.tar
 
     You can use src/makefile.mingw for cross-compiling for windows in linux.
 
-    Tom Powers has provided a set of developer notes for building the
-    library and applications under windows with VC++ 2008:
+    Tom Powers has provided a set of developer notes and project files
+    for building the library and applications under windows with VC++ 2008:
     </pre>
+    <p style='margin-left:5em;'>
        <A href="http://www.leptonica.org/source/VS2008notes.html">
-               http:///www.leptonica.org/source/VS2008notes.html</A>
+               http:///www.leptonica.org/source/VS2008notes.html</A><br>
+       <A href="http://www.leptonica.org/download.html#VS2008">
+               http:///www.leptonica.org/download.html#VS2008</A>
     <pre>
-
-    We also provide project files for version 6 that can be used to
-    generate a liblept DLL:
-        * leptonlib.dsw
-        * leptonlib.dsp
 
 3.  When you compile liblept using the supplied makefile (not autoconf),
     object code is by default put into a tree whose root is also the parent
@@ -155,7 +153,9 @@ tar -xvf leptonlib-1.64.tar
     an integral part of this package.  These can be divided into
     three types:
       (1) Programs that are complete regression tests.  The most
-          important of these are named *_reg.
+          important of these are named *_reg.  We are in the process
+          of standardizing the regression tests, and making it easy
+          to write them.  See regutils.h for details.
       (2) Programs that were used to test library functions or
           auto-gen library code.  These are useful for testing
           the behavior of small sets of functions, and for
@@ -293,9 +293,7 @@ tar -xvf leptonlib-1.64.tar
             is included with project files in vs2008.  See the developer
             notes there.  You can download the vs2008 package separately
             from the download page or from code.google.com/p/leptonica.
-        (2) Using VC++ Version 6, you can build a DLL, using these files:
-              leptonlib.dsw, leptonlib.dsp
-        (3) Because VC++ does not conform to the 1999 C++ standard,
+        (2) Because VC++ does not conform to the 1999 C++ standard,
             which specifies stdint.h, we have defined it in environ.h.
             Otherwise you would need to include Paul Hsieh's pstdint.h,
             a portable version of stdint.h, which is included here and

@@ -32,7 +32,7 @@
 #define   EIGHT_BPP_CMAP_IMAGE2     "test24.jpg"
 #define   RGB_IMAGE                 "marge.jpg"
 
-void static shearTest(PIX *pixs, const char *filename, l_int32 reduction);
+static PIX *shearTest(PIX *pixs, l_int32 reduction);
 
 static const l_float32  ANGLE1 = 3.14159265 / 12.;
 
@@ -40,18 +40,22 @@ static const l_float32  ANGLE1 = 3.14159265 / 12.;
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32      index;
-PIX         *pixs, *pixd;
-PIXCMAP     *cmap;
-static char  mainName[] = "shear_reg";
+l_int32   index, display, success;
+FILE     *fp;
+PIX      *pixs, *pixc, *pixd;
+PIXCMAP  *cmap;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  shear_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+              return 1;
 
     fprintf(stderr, "Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
-    shearTest(pixs, "/tmp/junk1bpp.png", 1);
+    pixd = shearTest(pixs, 1);
+    pixWrite("/tmp/junkshear.0.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.0.png", 0, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixs);
+    pixDestroy(&pixd);
 
         /* We change the black to dark red so that we can see
          * that the IP shear does brings in that color.  It
@@ -61,49 +65,77 @@ static char  mainName[] = "shear_reg";
     cmap = pixGetColormap(pixs);
     pixcmapGetIndex(cmap, 40, 44, 40, &index);
     pixcmapResetColor(cmap, index, 100, 0, 0);
-    shearTest(pixs, "/tmp/junk2bpp.png", 1);
+    pixd = shearTest(pixs, 1);
+    pixWrite("/tmp/junkshear.1.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.1.png", 1, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixs);
+    pixDestroy(&pixd);
 
     fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
-    shearTest(pixs, "/tmp/junk4bpp1.png", 1);
+    pixd = shearTest(pixs, 1);
+    pixWrite("/tmp/junkshear.2.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.2.png", 2, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixs);
+    pixDestroy(&pixd);
 
     fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
-    shearTest(pixs, "/tmp/junk4bpp2.png", 1);
+    pixd = shearTest(pixs, 1);
+    pixWrite("/tmp/junkshear.3.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.3.png", 3, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixs);
+    pixDestroy(&pixd);
 
     fprintf(stderr, "Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
-    shearTest(pixs, "/tmp/junk8bpp1.png", 1);
+    pixd = shearTest(pixs, 2);
+    pixWrite("/tmp/junkshear.4.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.4.jpg", 4, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixs);
+    pixDestroy(&pixd);
 
     fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
-    shearTest(pixs, "/tmp/junk8bpp2.png", 1);
+    pixd = shearTest(pixs, 1);
+    pixWrite("/tmp/junkshear.5.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.5.png", 5, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixs);
+    pixDestroy(&pixd);
 
     fprintf(stderr, "Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
-    shearTest(pixd, "/tmp/junk8bpp3.png", 4);
+    pixc = shearTest(pixd, 3);
+    pixWrite("/tmp/junkshear.6.jpg", pixc, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.6.jpg", 6, &success);
+    pixDisplayWithTitle(pixc, 100, 100, NULL, display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
+    pixDestroy(&pixc);
 
     fprintf(stderr, "Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
-    shearTest(pixs, "/tmp/junkrgb.png", 1);
+    pixd = shearTest(pixs, 2);
+    pixWrite("/tmp/junkshear.7.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junkshear.7.jpg", 7, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixs);
+    pixDestroy(&pixd);
 
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 
 
-void static
-shearTest(PIX          *pixs,
-          const char  *filename,
-          l_int32      reduction)
+static PIX *
+shearTest(PIX     *pixs,
+          l_int32  reduction)
 {
 l_int32   w, h, d;
 PIX      *pixt1, *pixt2, *pixd;
@@ -146,6 +178,21 @@ PIXA     *pixa;
         pixDestroy(&pixt2);
     }
 
+    if (d == 8 || d == 32 || pixGetColormap(pixs)) {
+        pixt1 = pixHShearLI(pixs, 0, ANGLE1, L_BRING_IN_WHITE);
+        pixSaveTiled(pixt1, pixa, reduction, 1, 20, 0);
+        pixt2 = pixHShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
+        pixSaveTiled(pixt2, pixa, reduction, 0, 20, 0);
+        pixDestroy(&pixt1);
+        pixDestroy(&pixt2);
+        pixt1 = pixHShearLI(pixs, 0, ANGLE1, L_BRING_IN_BLACK);
+        pixSaveTiled(pixt1, pixa, reduction, 0, 20, 0);
+        pixt2 = pixHShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
+        pixSaveTiled(pixt2, pixa, reduction, 0, 20, 0);
+        pixDestroy(&pixt1);
+        pixDestroy(&pixt2);
+    }
+
     pixt1 = pixVShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_WHITE);
     pixSaveTiled(pixt1, pixa, reduction, 1, 20, 0);
     pixt2 = pixVShear(NULL, pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
@@ -178,13 +225,24 @@ PIXA     *pixa;
         pixDestroy(&pixt2);
     }
 
-    pixd = pixaDisplay(pixa, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite(filename, pixd, IFF_JFIF_JPEG);
-    pixDestroy(&pixd);
-    pixaDestroy(&pixa);
+    if (d == 8 || d == 32 || pixGetColormap(pixs)) {
+        pixt1 = pixVShearLI(pixs, 0, ANGLE1, L_BRING_IN_WHITE);
+        pixSaveTiled(pixt1, pixa, reduction, 1, 20, 0);
+        pixt2 = pixVShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
+        pixSaveTiled(pixt2, pixa, reduction, 0, 20, 0);
+        pixDestroy(&pixt1);
+        pixDestroy(&pixt2);
+        pixt1 = pixVShearLI(pixs, 0, ANGLE1, L_BRING_IN_BLACK);
+        pixSaveTiled(pixt1, pixa, reduction, 0, 20, 0);
+        pixt2 = pixVShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
+        pixSaveTiled(pixt2, pixa, reduction, 0, 20, 0);
+        pixDestroy(&pixt1);
+        pixDestroy(&pixt2);
+    }
 
-    return;
+    pixd = pixaDisplay(pixa, 0, 0);
+    pixaDestroy(&pixa);
+    return pixd;
 }
 
 

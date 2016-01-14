@@ -16,52 +16,219 @@
 /*
  * dwamorph1_reg.c
  *
- *   Implements full regression test, including autogen of code,
- *   compilation, and running the result.
+ *     Fairly thorough regression test for autogen'd dwa.
+ *
+ *     The dwa code always implements safe closing.  With asymmetric
+ *     b.c., the rasterop function must be pixCloseSafe().
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
+    /* defined in morph.c */
+LEPT_DLL extern l_int32 MORPH_BC;
+
+    /* Complete set of linear brick dwa operations */
+PIX *pixMorphDwa_3(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
+PIX *pixFMorphopGen_3(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
+
+
 main(int    argc,
      char **argv)
 {
-char        *filename;
-char         buf[256];
+l_int32      i, nsels, same, xorcount, success, display;
+char        *selname;
+FILE        *fp;
+PIX         *pixs, *pixs1, *pixt1, *pixt2, *pixt3;
+SEL         *sel;
 SELA        *sela;
 static char  mainName[] = "dwamorph1_reg";
 
-    if (argc != 2)
-	exit(ERROR_INT(" Syntax:  dwamorph1_reg filename", mainName, 1));
-    filename = argv[1];
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+        return 1;
+    if ((pixs = pixRead("feyn-fract.tif")) == NULL)
+	exit(ERROR_INT("pixs not made", mainName, 1));
 
-        /* Generate the linear sel dwa code */
     sela = selaAddDwaLinear(NULL);
-    if (fmorphautogen(sela, 3, "dwalinear"))
-        exit(1);
+    nsels = selaGetCount(sela);
+    success = TRUE;
+
+    for (i = 0; i < nsels; i++)
+    {
+	sel = selaGetSel(sela, i);
+	selname = selGetName(sel);
+
+	    /*  ---------  dilation  ----------*/
+
+	pixt1 = pixDilate(NULL, pixs, sel);
+        pixt2 = pixMorphDwa_3(NULL, pixs, L_MORPH_DILATE, selname);
+        pixEqual(pixt1, pixt2, &same);
+
+	if (same == 1) {
+	    fprintf(stderr, "dilations are identical for sel %d (%s)\n",
+	            i, selname);
+	}
+	else {
+            success = FALSE;
+	    fprintf(fp, "dilations differ for sel %d (%s)\n", i, selname);
+	    pixt3 = pixXor(NULL, pixt1, pixt2);
+	    pixCountPixels(pixt3, &xorcount, NULL);
+	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+            pixDestroy(&pixt3);
+	}
+	pixDestroy(&pixt1);
+	pixDestroy(&pixt2);
+
+	    /*  ---------  erosion with asymmetric b.c  ----------*/
+
+        resetMorphBoundaryCondition(ASYMMETRIC_MORPH_BC);
+        fprintf(stderr, "MORPH_BC = %d ... ", MORPH_BC);
+
+	pixt1 = pixErode(NULL, pixs, sel);
+        pixt2 = pixMorphDwa_3(NULL, pixs, L_MORPH_ERODE, selname);
+        pixEqual(pixt1, pixt2, &same);
+
+	if (same == 1) {
+	    fprintf(stderr, "erosions are identical for sel %d (%s)\n",
+	            i, selname);
+	}
+	else {
+            success = FALSE;
+	    fprintf(fp, "erosions differ for sel %d (%s)\n", i, selname);
+	    pixt3 = pixXor(NULL, pixt1, pixt2);
+	    pixCountPixels(pixt3, &xorcount, NULL);
+	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+            pixDestroy(&pixt3);
+	}
+	pixDestroy(&pixt1);
+	pixDestroy(&pixt2);
+
+	    /*  ---------  erosion with symmetric b.c  ----------*/
+
+        resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
+        fprintf(stderr, "MORPH_BC = %d ... ", MORPH_BC);
+
+	pixt1 = pixErode(NULL, pixs, sel);
+        pixt2 = pixMorphDwa_3(NULL, pixs, L_MORPH_ERODE, selname);
+        pixEqual(pixt1, pixt2, &same);
+
+	if (same == 1) {
+	    fprintf(stderr, "erosions are identical for sel %d (%s)\n",
+	            i, selname);
+	}
+	else {
+            success = FALSE;
+	    fprintf(fp, "erosions differ for sel %d (%s)\n", i, selname);
+	    pixt3 = pixXor(NULL, pixt1, pixt2);
+	    pixCountPixels(pixt3, &xorcount, NULL);
+	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+            pixDestroy(&pixt3);
+	}
+	pixDestroy(&pixt1);
+	pixDestroy(&pixt2);
+
+	    /*  ---------  opening with asymmetric b.c  ----------*/
+
+        resetMorphBoundaryCondition(ASYMMETRIC_MORPH_BC);
+        fprintf(stderr, "MORPH_BC = %d ... ", MORPH_BC);
+
+	pixt1 = pixOpen(NULL, pixs, sel);
+        pixt2 = pixMorphDwa_3(NULL, pixs, L_MORPH_OPEN, selname);
+        pixEqual(pixt1, pixt2, &same);
+
+	if (same == 1) {
+	    fprintf(stderr, "openings are identical for sel %d (%s)\n",
+	            i, selname);
+	}
+	else {
+            success = FALSE;
+	    fprintf(fp, "openings differ for sel %d (%s)\n", i, selname);
+	    pixt3 = pixXor(NULL, pixt1, pixt2);
+	    pixCountPixels(pixt3, &xorcount, NULL);
+	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+            pixDestroy(&pixt3);
+	}
+	pixDestroy(&pixt1);
+	pixDestroy(&pixt2);
+
+	    /*  ---------  opening with symmetric b.c  ----------*/
+
+        resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
+        fprintf(stderr, "MORPH_BC = %d ... ", MORPH_BC);
+
+	pixt1 = pixOpen(NULL, pixs, sel);
+        pixt2 = pixMorphDwa_3(NULL, pixs, L_MORPH_OPEN, selname);
+        pixEqual(pixt1, pixt2, &same);
+
+	if (same == 1) {
+	    fprintf(stderr, "openings are identical for sel %d (%s)\n",
+	            i, selname);
+	}
+	else {
+            success = FALSE;
+	    fprintf(fp, "openings differ for sel %d (%s)\n", i, selname);
+	    pixt3 = pixXor(NULL, pixt1, pixt2);
+	    pixCountPixels(pixt3, &xorcount, NULL);
+	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+            pixDestroy(&pixt3);
+	}
+	pixDestroy(&pixt1);
+	pixDestroy(&pixt2);
+
+	    /*  ---------  safe closing with asymmetric b.c  ----------*/
+
+        resetMorphBoundaryCondition(ASYMMETRIC_MORPH_BC);
+        fprintf(stderr, "MORPH_BC = %d ... ", MORPH_BC);
+
+	pixt1 = pixCloseSafe(NULL, pixs, sel);  /* must use safe version */
+        pixt2 = pixMorphDwa_3(NULL, pixs, L_MORPH_CLOSE, selname);
+        pixEqual(pixt1, pixt2, &same);
+
+	if (same == 1) {
+	    fprintf(stderr, "closings are identical for sel %d (%s)\n",
+	            i, selname);
+	}
+	else {
+            success = FALSE;
+	    fprintf(fp, "closings differ for sel %d (%s)\n", i, selname);
+	    pixt3 = pixXor(NULL, pixt1, pixt2);
+	    pixCountPixels(pixt3, &xorcount, NULL);
+	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+            pixDestroy(&pixt3);
+	}
+	pixDestroy(&pixt1);
+	pixDestroy(&pixt2);
+
+	    /*  ---------  safe closing with symmetric b.c  ----------*/
+
+        resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
+        fprintf(stderr, "MORPH_BC = %d ... ", MORPH_BC);
+
+	pixt1 = pixClose(NULL, pixs, sel);  /* safe version not required */
+        pixt2 = pixMorphDwa_3(NULL, pixs, L_MORPH_CLOSE, selname);
+        pixEqual(pixt1, pixt2, &same);
+
+	if (same == 1) {
+	    fprintf(stderr, "closings are identical for sel %d (%s)\n",
+	            i, selname);
+	}
+	else {
+            success = FALSE;
+	    fprintf(fp, "closings differ for sel %d (%s)\n", i, selname);
+	    pixt3 = pixXor(NULL, pixt1, pixt2);
+	    pixCountPixels(pixt3, &xorcount, NULL);
+	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+            pixDestroy(&pixt3);
+	}
+	pixDestroy(&pixt1);
+	pixDestroy(&pixt2);
+    }
+
     selaDestroy(&sela);
-
-#if 0
-        /* Build dwamorph2_reg, linking in that dwa code */
-    system("make dwamorph2_reg;");
-
-        /* Run dwamorph2_reg to test the code */
-    sprintf(buf, "dwamorph2_reg %s;", filename);
-    system(buf);
-#endif
-
-#if 1
-        /* Build dwamorph3_reg, linking in that dwa code */
-    system("make dwamorph3_reg;");
-#endif
-
-#if 0
-        /* Run dwamorph3_reg to test the code */
-    sprintf(buf, "dwamorph3_reg %s;", filename);
-    system(buf);
-#endif
-    
-    exit(0);
+    pixDestroy(&pixs);
+    regTestCleanup(argc, argv, fp, success, NULL);
+    return 0;
 }
+
 

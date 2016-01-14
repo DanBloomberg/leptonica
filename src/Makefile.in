@@ -97,17 +97,18 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	projective.$(OBJEXT) psio1.$(OBJEXT) psio1stub.$(OBJEXT) \
 	psio2.$(OBJEXT) psio2stub.$(OBJEXT) ptra.$(OBJEXT) \
 	pts.$(OBJEXT) queue.$(OBJEXT) rank.$(OBJEXT) \
-	readbarcode.$(OBJEXT) readfile.$(OBJEXT) rop.$(OBJEXT) \
-	ropiplow.$(OBJEXT) roplow.$(OBJEXT) rotateam.$(OBJEXT) \
-	rotateamlow.$(OBJEXT) rotate.$(OBJEXT) rotateorth.$(OBJEXT) \
-	rotateorthlow.$(OBJEXT) rotateshear.$(OBJEXT) \
-	runlength.$(OBJEXT) sarray.$(OBJEXT) scale.$(OBJEXT) \
-	scalelow.$(OBJEXT) seedfill.$(OBJEXT) seedfilllow.$(OBJEXT) \
-	sel1.$(OBJEXT) sel2.$(OBJEXT) selgen.$(OBJEXT) shear.$(OBJEXT) \
-	skew.$(OBJEXT) stack.$(OBJEXT) textops.$(OBJEXT) \
-	tiffio.$(OBJEXT) tiffiostub.$(OBJEXT) utils.$(OBJEXT) \
-	viewfiles.$(OBJEXT) warper.$(OBJEXT) watershed.$(OBJEXT) \
-	writefile.$(OBJEXT) zlibmem.$(OBJEXT) zlibmemstub.$(OBJEXT)
+	readbarcode.$(OBJEXT) readfile.$(OBJEXT) regutils.$(OBJEXT) \
+	rop.$(OBJEXT) ropiplow.$(OBJEXT) roplow.$(OBJEXT) \
+	rotateam.$(OBJEXT) rotateamlow.$(OBJEXT) rotate.$(OBJEXT) \
+	rotateorth.$(OBJEXT) rotateorthlow.$(OBJEXT) \
+	rotateshear.$(OBJEXT) runlength.$(OBJEXT) sarray.$(OBJEXT) \
+	scale.$(OBJEXT) scalelow.$(OBJEXT) seedfill.$(OBJEXT) \
+	seedfilllow.$(OBJEXT) sel1.$(OBJEXT) sel2.$(OBJEXT) \
+	selgen.$(OBJEXT) shear.$(OBJEXT) skew.$(OBJEXT) \
+	stack.$(OBJEXT) textops.$(OBJEXT) tiffio.$(OBJEXT) \
+	tiffiostub.$(OBJEXT) utils.$(OBJEXT) viewfiles.$(OBJEXT) \
+	warper.$(OBJEXT) watershed.$(OBJEXT) writefile.$(OBJEXT) \
+	zlibmem.$(OBJEXT) zlibmemstub.$(OBJEXT)
 liblept_a_OBJECTS = $(am_liblept_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -293,7 +294,7 @@ liblept_a_SOURCES = adaptmap.c \
  psio2.c psio2stub.c \
  ptra.c pts.c queue.c \
  rank.c readbarcode.c readfile.c \
- rop.c ropiplow.c \
+ regutils.c rop.c ropiplow.c \
  roplow.c rotateam.c \
  rotateamlow.c rotate.c \
  rotateorth.c rotateorthlow.c \
@@ -312,12 +313,13 @@ liblept_a_SOURCES = adaptmap.c \
 include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
  array.h bbuffer.h bmf.h bmp.h ccbord.h environ.h \
  gplot.h heap.h imageio.h jbclass.h jmorecfg.h jpeglib.h leptprotos.h list.h \
- morph.h pix.h ptra.h queue.h readbarcode.h stack.h watershed.h
+ morph.h pix.h ptra.h queue.h readbarcode.h regutils.h \
+ stack.h watershed.h
 
 EXTRA_DIST = Makefile.mingw arrayaccess.h.vc arrayaccess.h.vc60 \
  endiantest.c hmttemplate1.txt hmttemplate2.txt leptonica-license.txt \
- ../leptonlib.sln ../leptonlib.vcproj ../leptonlib.dsp ../leptonlib.dsw \
- morphtemplate1.txt morphtemplate2.txt xtractprotos.c
+ ../leptonlib.dsp ../leptonlib.dsw morphtemplate1.txt \
+ morphtemplate2.txt xtractprotos.c
 
 all: all-recursive
 
@@ -497,6 +499,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rank.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/readbarcode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/readfile.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regutils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ropiplow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/roplow.Po@am__quote@

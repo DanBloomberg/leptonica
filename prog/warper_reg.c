@@ -34,15 +34,19 @@ static const l_float32 yfreq[] = {0.11, 0.13, 0.13, 0.15};
 static const l_int32 nx[] = {4, 3, 2, 1};
 static const l_int32 ny[] = {4, 3, 2, 1};
 
+static l_int32 count = 0;
 
 main(int    argc,
      char **argv)
 {
-char         namebuf[256];
-l_int32      i, k, newline;
-PIX         *pixs, *pixt, *pixg, *pixd;
-PIXA        *pixac;
-static char  mainName[] = "warptest";
+char     namebuf[256];
+l_int32  i, k, newline, success, display;
+FILE    *fp;
+PIX     *pixs, *pixt, *pixg, *pixd;
+PIXA    *pixac;
+
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+              return 1;
 
     pixs = pixRead("feyn-word.tif");
     pixt = pixAddBorder(pixs, 25, 0);
@@ -57,9 +61,11 @@ static char  mainName[] = "warptest";
             DisplayResult(pixac, &pixd, newline);
         }
         pixd = pixaDisplay(pixac, 0, 0);
-        pixDisplay(pixd, 100, 100);
-        sprintf(namebuf, "/tmp/junkwarp.%d.png", k);
+
+        snprintf(namebuf, 240, "/tmp/junkwarp.%d.png", count);
         pixWrite(namebuf, pixd, IFF_PNG);
+        regTestCheckFile(fp, argv, namebuf, count++, &success);
+        pixDisplayWithTitle(pixd, 100, 100, NULL, display);
         pixaDestroy(&pixac);
         pixDestroy(&pixd);
     }
@@ -74,14 +80,16 @@ static char  mainName[] = "warptest";
             DisplayCaptcha(pixac, pixs, k, 7 * i, newline);
         }
         pixd = pixaDisplay(pixac, 0, 0);
-        pixDisplay(pixd, 100, 600);
-        sprintf(namebuf, "/tmp/junkcaptcha.%d.png", k);
+        snprintf(namebuf, 240, "/tmp/junkwarp.%d.png", count);
         pixWrite(namebuf, pixd, IFF_PNG);
+        regTestCheckFile(fp, argv, namebuf, count++, &success);
+        pixDisplayWithTitle(pixd, 100, 100, NULL, display);
         pixaDestroy(&pixac);
         pixDestroy(&pixd);
     }
 
     pixDestroy(&pixs);
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 

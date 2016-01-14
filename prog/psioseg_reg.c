@@ -37,14 +37,14 @@
 main(int    argc,
      char **argv)
 {
-l_int32      i, j, w, h, wc, hc;
+l_int32      i, j, w, h, wc, hc, display, success;
 l_float32    scalefactor;
+FILE        *fp;
 PIX         *pixs, *pixc, *pixht, *pixtxt, *pixmfull;
 PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
-static char  mainName[] = "psioseg_reg";
 
-    if (argc != 1)
-	exit(ERROR_INT("Syntax: psioseg_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+              return 1;
 
         /* Source for generating images */
     pixs = pixRead("pageseg2.tif");   /* 1 bpp */
@@ -64,6 +64,8 @@ static char  mainName[] = "psioseg_reg";
     pixcs2 = pixCreate(w, h, 32);
     pixRasterop(pixcs2, 0, 0, w, hc, PIX_SRC, pixcs, 0, 0);
     pixRasterop(pixcs2, 0, hc, w, hc, PIX_SRC, pixcs, 0, 0);
+    pixWrite("/tmp/junkpsioseg.0.jpg", pixcs2, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.0.jpg", 0, &success);
     pixmfull = pixCreate(w, h, 1);
     pixSetAll(pixmfull);  /* use as mask to render the color image */
     
@@ -71,19 +73,32 @@ static char  mainName[] = "psioseg_reg";
           * page image and image parts from pixcs2. */
     pix32 = pixConvertTo32(pixtxt);
     pixCombineMasked(pix32, pixcs2, pixht);
+    pixWrite("/tmp/junkpsioseg.1.jpg", pix32, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.1.jpg", 1, &success);
     
          /* Make an 8 bpp gray version */
     pix8g = pixConvertRGBToLuminance(pix32);
+    pixWrite("/tmp/junkpsioseg.2.jpg", pix8g, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.2.jpg", 2, &success);
     
          /* Make an 8 bpp colormapped version */
     pix8c = pixOctreeColorQuant(pix32, 240, 0);
+    pixWrite("/tmp/junkpsioseg.3.png", pix8c, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.3.png", 3, &success);
     
          /* Make a 4 bpp colormapped version */
     pix4c = pixOctreeQuantNumColors(pix32, 16, 4);
+    pixWrite("/tmp/junkpsioseg.4.png", pix4c, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.4.png", 4, &success);
 
          /* Write out the files to be imaged */
+#ifndef COMPILER_MSVC
     system("mkdir /tmp/junkimagedir");
     system("mkdir /tmp/junkmaskdir");
+#else
+    system("mkdir \\tmp\\junkimagedir");
+    system("mkdir \\tmp\\junkmaskdir");
+#endif  /* COMPILER_MSVC */
     pixWrite("/tmp/junkimagedir/001.tif", pixs, IFF_TIFF_G4);
     pixWrite("/tmp/junkimagedir/002.tif", pixht, IFF_TIFF_G4);
     pixWrite("/tmp/junkimagedir/003.tif", pixtxt, IFF_TIFF_G4);
@@ -110,11 +125,15 @@ static char  mainName[] = "psioseg_reg";
     pixDestroy(&pix4c);
     
         /* Generate the 8 page ps and pdf files */
-    convertSegmentedPagesToPS("/tmp/junkimagedir", "/tmp/junkmaskdir",
-                              2.0, 0.15, 190, 0, 0, "junkfile.ps");
-    fprintf(stderr, "ps file made: junkfile.ps\n");
-    system("ps2pdf junkfile.ps junkfile.pdf");
-    fprintf(stderr, "pdf file made: junkfile.pdf\n");
+    convertSegmentedPagesToPS("/tmp/junkimagedir", NULL,
+                              "/tmp/junkmaskdir", NULL,
+                              0, 0, 10, 2.0, 0.15, 190, "/tmp/junkseg.ps");
+    regTestCheckFile(fp, argv, "/tmp/junkseg.ps", 5, &success);
+    fprintf(stderr, "ps file made: /tmp/junkseg.ps\n");
+    system("ps2pdf /tmp/junkseg.ps /tmp/junkseg.pdf");
+    fprintf(stderr, "pdf file made: /tmp/junkseg.pdf\n");
+
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 

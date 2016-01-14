@@ -299,7 +299,7 @@ pixMedianCutQuantGeneral(PIX     *pixs,
                          l_int32  checkbw)
 {
 l_int32    i, subsample, histosize, smalln, ncolors, niters, popcolors;
-l_int32    w, h, minside, factor;
+l_int32    w, h, minside, factor, index, rval, gval, bval;
 l_int32   *histo;
 l_float32  pixfract, colorfract;
 L_BOX3D   *vbox, *vbox1, *vbox2;
@@ -497,6 +497,18 @@ PIXCMAP   *cmap;
     }
     pixd = pixQuantizeWithColormap(pixs, ditherflag, outdepth, cmap,
                                    histo, histosize, sigbits);
+
+        /* Force darkest color to black if each component <= 4 */
+    pixcmapGetRankIntensity(cmap, 0.0, &index);
+    pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+    if (rval < 5 && gval < 5 && bval < 5)
+        pixcmapResetColor(cmap, index, 0, 0, 0);
+
+        /* Force lightest color to white if each component >= 252 */
+    pixcmapGetRankIntensity(cmap, 1.0, &index);
+    pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+    if (rval > 251 && gval > 251 && bval > 251)
+        pixcmapResetColor(cmap, index, 255, 255, 255);
 
     lheapDestroy(&lh, TRUE);
     FREE(histo);
@@ -707,10 +719,18 @@ PIXCMAP   *cmap;
  *      (3) Both ncolor and ngray should be at least equal to maxncolors.
  *          If they're not, they are automatically increased, and a
  *          warning is given.
- *      (4) This can be useful for quantizing orthographically generated
+ *      (4) If very little color content is found, the input is
+ *          converted to gray and quantized in equal intervals.
+ *      (5) This can be useful for quantizing orthographically generated
  *          images such as color maps, where there may be more than 256 colors
  *          because of aliasing or jpeg artifacts on text or lines, but
  *          there are a relatively small number of solid colors.
+ *      (6) Example of usage:
+ *             // Try to quantize, using default values for mixed med cut
+ *             Pix *pixq = pixFewColorsMedianCutQuantMixed(pixs, 100, 20,
+ *                             0, 0, 0, 0);
+ *             if (!pixq)  // too many colors; don't quantize
+ *                 pixq = pixClone(pixs);
  */
 PIX *
 pixFewColorsMedianCutQuantMixed(PIX       *pixs,

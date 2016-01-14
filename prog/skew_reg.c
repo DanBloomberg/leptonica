@@ -44,14 +44,14 @@ static const l_int32  BORDER = 150;
 main(int    argc,
      char **argv)
 {
-l_int32      w, h, wd, hd;
-l_float32    deg2rad, angle, conf, score;
-PIX         *pixs, *pixb1, *pixb2, *pixr, *pixf, *pixd, *pixc;
-PIXA        *pixa;
-static char  mainName[] = "skew_reg";
+l_int32    w, h, wd, hd, display, success;
+l_float32  deg2rad, angle, conf, score;
+FILE      *fp;
+PIX       *pixs, *pixb1, *pixb2, *pixr, *pixf, *pixd, *pixc;
+PIXA      *pixa;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax: skew_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+              return 1;
 
     deg2rad = 3.1415926535 / 180.;
 
@@ -59,7 +59,9 @@ static char  mainName[] = "skew_reg";
     pixs = pixRead("feyn.tif");
     pixSetOrClearBorder(pixs, 100, 250, 100, 0, PIX_CLR);
     pixb1 = pixReduceRankBinaryCascade(pixs, 2, 2, 0, 0);
-    pixDisplay(pixb1, 0, 100);
+    pixWrite("/tmp/junkskew.0.png", pixb1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkskew.0.png", 0, &success);
+    pixDisplayWithTitle(pixb1, 0, 100, NULL, display);
 
         /* Add a border and locate and deskew a 40 degree rotation */
     pixb2 = pixAddBorder(pixb1, BORDER, 0);
@@ -67,6 +69,8 @@ static char  mainName[] = "skew_reg";
     pixSaveTiled(pixb2, pixa, 2, 1, 20, 8);
     pixr = pixRotateBySampling(pixb2, w / 2, h / 2,
                                     deg2rad * 40., L_BRING_IN_WHITE);
+    pixWrite("/tmp/junkskew.1.png", pixr, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkskew.1.png", 1, &success);
     pixSaveTiled(pixr, pixa, 2, 0, 20, 0);
     pixFindSkewSweepAndSearchScorePivot(pixr, &angle, &conf, NULL, 1, 1,
                                         0.0, 45.0, 2.0, 0.03,
@@ -76,6 +80,8 @@ static char  mainName[] = "skew_reg";
     pixf = pixRotateBySampling(pixr, w / 2, h / 2,
                                     deg2rad * angle, L_BRING_IN_WHITE);
     pixd = pixRemoveBorder(pixf, BORDER);
+    pixWrite("/tmp/junkskew.2.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkskew.2.png", 2, &success);
     pixSaveTiled(pixd, pixa, 2, 0, 20, 0);
     pixDestroy(&pixr);
     pixDestroy(&pixf);
@@ -87,6 +93,8 @@ static char  mainName[] = "skew_reg";
     pixGetDimensions(pixb1, &w, &h, NULL);
     pixr = pixRotate(pixb1, deg2rad * 37., L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
+    pixWrite("/tmp/junkskew.3.png", pixr, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkskew.3.png", 3, &success);
     pixSaveTiled(pixr, pixa, 2, 1, 20, 0);
     startTimer();
     pixFindSkewOrthogonalRange(pixr, &angle, &conf, 2, 1,
@@ -95,10 +103,13 @@ static char  mainName[] = "skew_reg";
     fprintf(stderr, "Should be about -128 degrees: angle = %7.3f\n", angle);
     pixd = pixRotate(pixr, deg2rad * angle, L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
+    pixWrite("/tmp/junkskew.4.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkskew.4.png", 4, &success);
     pixGetDimensions(pixd, &wd, &hd, NULL);
     pixc = pixCreate(w, h, 1);
     pixRasterop(pixc, 0, 0, w, h, PIX_SRC, pixd, (wd - w) / 2, (hd - h) / 2);
-    pixWrite("/tmp/junkpixc.png", pixc, IFF_PNG);
+    pixWrite("/tmp/junkskew.5.png", pixc, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkskew.5.png", 5, &success);
     pixSaveTiled(pixc, pixa, 2, 0, 20, 0);
     pixDestroy(&pixr);
     pixDestroy(&pixf);
@@ -106,10 +117,12 @@ static char  mainName[] = "skew_reg";
     pixDestroy(&pixc);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/junkskew.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkskew.6.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/junkskew.6.png", 6, &success);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 
@@ -120,7 +133,7 @@ static char  mainName[] = "skew_reg";
             angle, conf, endscore);
     startTimer();
     pixd = pixDeskew(pixs, DESKEW_REDUCTION);
-    fprintf(stderr, "Time to deskew = %7.3f sec\n", stopTimer());
+    fprintf(stderr, "Time to deskew = %7.4f sec\n", stopTimer());
     pixWrite(fileout, pixd, IFF_BMP);
     pixDestroy(&pixd);
 #endif

@@ -72,6 +72,7 @@
  *           PIX        *pixGetRGBComponentCmap()
  *           l_int32     composeRGBPixel()
  *           void        extractRGBValues()
+ *           l_int32     extractMinMaxComponent()
  *           l_int32     pixGetRGBLine()
  *
  *      Conversion between big and little endians
@@ -2019,6 +2020,32 @@ extractRGBValues(l_uint32  pixel,
     if (pgval) *pgval = (pixel >> L_GREEN_SHIFT) & 0xff;
     if (pbval) *pbval = (pixel >> L_BLUE_SHIFT) & 0xff;
     return;
+}
+
+
+/*!
+ *  extractMinMaxComponent()
+ *
+ *      Input:  pixel (32 bpp RGB)
+ *              type (L_CHOOSE_MIN or L_CHOOSE_MAX)
+ *      Return: componet (in range [0 ... 255], or null on error
+ */
+l_int32
+extractMinMaxComponent(l_uint32  pixel,
+                       l_int32   type)
+{
+l_int32  rval, gval, bval, val;
+
+    extractRGBValues(pixel, &rval, &gval, &bval);
+    if (type == L_CHOOSE_MIN) {
+        val = L_MIN(rval, gval);
+        val = L_MIN(val, bval);
+    }
+    else {  /* type == L_CHOOSE_MAX */
+        val = L_MAX(rval, gval);
+        val = L_MAX(val, bval);
+    }
+    return val;
 }
 
 

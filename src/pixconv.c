@@ -123,16 +123,6 @@
 #include <math.h>
 #include "allheaders.h"
 
-    /* These numbers are ad-hoc, but at least they add up
-       to 1. Unlike, for example, the weighting factor for
-       conversion of RGB to luminance, or more specifically
-       to Y in the YUV colorspace. Those numbers come
-       from the International Telecommunications Union, via ITU-R
-       (and formerly ITU CCIR 601). */
-static const l_float32  L_RED_WEIGHT =   0.3;
-static const l_float32  L_GREEN_WEIGHT = 0.5;
-static const l_float32  L_BLUE_WEIGHT =  0.2;
-
 
 #ifndef  NO_CONSOLE_IO
 #define DEBUG_CONVERT_TO_COLORMAP  0
@@ -646,7 +636,8 @@ pixConvertRGBToGray(PIX       *pixs,
                     l_float32  gwt,
                     l_float32  bwt)
 {
-l_int32    i, j, w, h, wpls, wpld, rval, gval, bval, val;
+l_int32    i, j, w, h, wpls, wpld, val;
+l_uint32   word;
 l_uint32  *datas, *lines, *datad, *lined;
 l_float32  sum;
 PIX       *pixd;
@@ -684,14 +675,16 @@ PIX       *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-    for (i = 0; i < h; i++) {
-        lines = datas + i * wpls;
-        lined = datad + i * wpld;
+    for (i = 0, lines = datas, lined = datad; i < h; i++) {
         for (j = 0; j < w; j++) {
-            extractRGBValues(lines[j], &rval, &gval, &bval);
-            val = (l_int32)(rwt * rval + gwt * gval + bwt * bval + 0.5);
+            word = *(lines + j);
+            val = (l_int32)(rwt * ((word >> L_RED_SHIFT) & 0xff) +
+                            gwt * ((word >> L_GREEN_SHIFT) & 0xff) +
+                            bwt * ((word >> L_BLUE_SHIFT) & 0xff) + 0.5);
             SET_DATA_BYTE(lined, j, val);
         }
+        lines += wpls;
+        lined += wpld;
     }
 
     return pixd;
