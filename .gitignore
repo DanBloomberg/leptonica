@@ -1,0 +1,6 @@
+# backup files
+*~
+
+# build directories
+/build*
+/win*

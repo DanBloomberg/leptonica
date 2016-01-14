@@ -1,0 +1,24 @@
+language: c
+
+notifications:
+  email: false
+  
+sudo: required
+
+os:
+  - linux
+  - osx
+
+branches:
+  only:
+    - master
+
+install:
+  - wget --no-check-certificate http://www.cmake.org/files/v3.3/cmake-3.3.1-Linux-x86_64.sh
+  - sudo sh cmake-3.3.1-Linux-x86_64.sh --skip-license --prefix=/usr
+
+script:
+  - mkdir build
+  - cd build
+  - cmake .. -DBUILD_PROG=1
+  - make
