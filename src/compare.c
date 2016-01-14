@@ -25,14 +25,18 @@
  *           l_int32     pixCorrelationBinary()
  *
  *      Difference of two images of same size
+ *           l_int32     pixDisplayDiffBinary()
  *           l_int32     pixCompareBinary()
  *           l_int32     pixCompareGrayOrRGB()
  *           l_int32     pixCompareGray()
  *           l_int32     pixCompareRGB()
  *           l_int32     pixCompareTiled()
  *
- *      Difference of two images as rank array 
- *           NUMA       *pixCompareRankDifference
+ *      Other measures of the difference of two images
+ *           NUMA       *pixCompareRankDifference()
+ *           l_int32     pixTestforSimilarity()
+ *           l_int32     pixGetDifferenceStats()
+ *           NUMA       *pixGetDifferenceHistogram()
  */
 
 
@@ -474,6 +478,59 @@ PIX      *pixn;
 /*------------------------------------------------------------------*
  *                   Difference of two images                       *
  *------------------------------------------------------------------*/
+/*!
+ *  pixDisplayDiffBinary()
+ *
+ *      Input:  pix1 (1 bpp)
+ *              pix2 (1 bpp)
+ *      Return: pixd (4 bpp cmapped), or null on error
+ *
+ *  Notes:
+ *      (1) This gives a color representation of the difference between
+ *          pix1 and pix2.  The color difference depends on the order.
+ *          The pixels in pixd have 4 colors:
+ *           * unchanged:  black (on), white (off)
+ *           * on in pix1, off in pix2: red
+ *           * on in pix2, off in pix1: green
+ *      (2) pix1 and pix2 must be the same size.
+ */
+PIX *
+pixDisplayDiffBinary(PIX  *pix1,
+                     PIX  *pix2)
+{
+l_int32   w, h;
+PIX      *pixt, *pixd;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixDisplayDiffBinary");
+
+    if (!pix1 || !pix2)
+        return (PIX *)ERROR_PTR("pix1, pix2 not both defined", procName, NULL);
+    if (!pixSizesEqual(pix1, pix2))
+        return (PIX *)ERROR_PTR("pix1 and pix2 unequal size", procName, NULL);
+    if (pixGetDepth(pix1) != 1)
+        return (PIX *)ERROR_PTR("pix1 and pix2 not 1 bpp", procName, NULL);
+
+    pixGetDimensions(pix1, &w, &h, NULL);
+    pixd = pixCreate(w, h, 4);
+    cmap = pixcmapCreate(4);
+    pixcmapAddColor(cmap, 255, 255, 255);  /* initialized to white */
+    pixcmapAddColor(cmap, 0, 0, 0);
+    pixcmapAddColor(cmap, 255, 0, 0);
+    pixcmapAddColor(cmap, 0, 255, 0);
+    pixSetColormap(pixd, cmap);
+    
+    pixt = pixAnd(NULL, pix1, pix2);
+    pixPaintThroughMask(pixd, pixt, 0, 0, 0x0);  /* black */
+    pixSubtract(pixt, pix1, pix2);
+    pixPaintThroughMask(pixd, pixt, 0, 0, 0xff000000);  /* red */
+    pixSubtract(pixt, pix2, pix1);
+    pixPaintThroughMask(pixd, pixt, 0, 0, 0x00ff0000);  /* green */
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
 /*!
  *  pixCompareBinary()
  *
@@ -932,11 +989,15 @@ PIXACC    *pixacc;
 }
 
 
+/*------------------------------------------------------------------*
+ *            Other measures of the difference of two images        *
+ *------------------------------------------------------------------*/
 /*!
  *  pixCompareRankDifference()
  *
  *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
  *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              factor (subsampling factor; use 0 or 1 for no subsampling)
  *      Return: narank (numa of rank difference), or null on error
  *
  *  Notes:
@@ -956,18 +1017,272 @@ PIXACC    *pixacc;
  *          into a single histogram.
  */
 NUMA *
-pixCompareRankDifference(PIX   *pix1,
-                         PIX   *pix2)
+pixCompareRankDifference(PIX     *pix1,
+                         PIX     *pix2,
+                         l_int32  factor)
+{
+l_int32     i;
+l_float32  *array1, *array2;
+NUMA       *nah, *nan, *nad;
+
+    PROCNAME("pixCompareRankDifference");
+
+    if (!pix1)
+        return (NUMA *)ERROR_PTR("pix1 not defined", procName, NULL);
+    if (!pix2)
+        return (NUMA *)ERROR_PTR("pix2 not defined", procName, NULL);
+
+    if ((nah = pixGetDifferenceHistogram(pix1, pix2, factor)) == NULL)
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+
+    nan = numaNormalizeHistogram(nah, 1.0);
+    array1 = numaGetFArray(nan, L_NOCOPY);
+
+    nad = numaCreate(256);
+    numaSetCount(nad, 256);  /* all initialized to 0.0 */
+    array2 = numaGetFArray(nad, L_NOCOPY);
+
+        /* Do rank accumulation on normalized histo of diffs */
+    array2[0] = 1.0;
+    for (i = 1; i < 256; i++)
+        array2[i] = array2[i - 1] - array1[i - 1];
+
+    numaDestroy(&nah);
+    numaDestroy(&nan);
+    return nad;
+}
+
+
+/*!
+ *  pixTestForSimilarity()
+ *
+ *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              factor (subsampling factor; use 0 or 1 for no subsampling)
+ *              mindiff (minimum pixel difference to be counted; > 0)
+ *              maxfract (maximum fraction of pixels allowed to have
+ *                        diff greater than or equal to mindiff)
+ *              maxave (maximum average difference of pixels allowed for
+ *                      pixels with diff greater than or equal to mindiff,
+ *                      after subtracting mindiff)
+ *              &similar (<return> 1 if similar, 0 otherwise)
+ *              printstats (use 1 to print normalized histogram to stderr)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This takes 2 pix that are the same size and determines using
+ *          3 input parameters if they are "similar".  The first parameter
+ *          @mindiff establishes a criterion of pixel-to-pixel similarity:
+ *          two pixels are not similar if their difference in value is
+ *          at least mindiff.  Then @maxfract and @maxave are thresholds
+ *          on the number and distribution of dissimilar pixels
+ *          allowed for the two pix to be similar.   If the pix are
+ *          to be similar, neither threshold can be exceeded.
+ *      (2) In setting the @maxfract and @maxave thresholds, you have
+ *          these options:
+ *            (a) Base the comparison only on @maxfract.  Then set
+ *                @maxave = 0.0 or 256.0.  (If 0, we always ignore it.)
+ *            (b) Base the comparison only on @maxave.  Then set
+ *                @maxfract = 1.0.
+ *            (c) Base the comparison on both thresholds.
+ *      (3) Example of values that can be expected at mindiff = 15 when
+ *          comparing lossless png encoding with jpeg encoding, q=75:
+ *             (smoothish bg)       fractdiff = 0.01, avediff = 2.5
+ *             (natural scene)      fractdiff = 0.13, avediff = 3.5
+ *          To identify these images as 'similar', select maxfract
+ *          and maxave to be upper bounds of what you expect.
+ *      (4) See pixGetDifferenceStats() for a discussion of why we subtract
+ *          mindiff from the computed average diff of the nonsimilar pixels
+ *          to get the 'avediff' returned by that function.
+ *      (5) If there is a colormap, it is removed and the result
+ *          is either gray or RGB depending on the colormap.
+ *      (6) If RGB, the maximum difference between pixel components is
+ *          saved in the histogram.
+ */
+l_int32
+pixTestForSimilarity(PIX       *pix1,
+                     PIX       *pix2,
+                     l_int32    factor,
+                     l_int32    mindiff,
+                     l_float32  maxfract,
+                     l_float32  maxave,
+                     l_int32   *psimilar,
+                     l_int32    printstats)
+{
+l_float32   fractdiff, avediff;
+
+    PROCNAME("pixTestForSimilarity");
+
+    if (!psimilar)
+        return ERROR_INT("&similar not defined", procName, 1);
+    *psimilar = 0;
+    if (!pix1)
+        return ERROR_INT("pix1 not defined", procName, 1);
+    if (!pix2)
+        return ERROR_INT("pix2 not defined", procName, 1);
+    if (pixSizesEqual(pix1, pix2) == 0)
+        return ERROR_INT("pix sizes not equal", procName, 1);
+    if (mindiff <= 0)
+        return ERROR_INT("mindiff must be > 0", procName, 1);
+
+    if (pixGetDifferenceStats(pix1, pix2, factor, mindiff,
+                              &fractdiff, &avediff, printstats))
+        return ERROR_INT("diff stats not found", procName, 1);
+
+    if (maxave <= 0.0) maxave = 256.0;
+    if (fractdiff <= maxfract && avediff <= maxave)
+        *psimilar = 1;
+    return 0;
+}
+
+
+/*!
+ *  pixGetDifferenceStats()
+ *
+ *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              factor (subsampling factor; use 0 or 1 for no subsampling)
+ *              mindiff (minimum pixel difference to be counted; > 0)
+ *              &fractdiff (<return> fraction of pixels with diff greater
+ *                          than or equal to mindiff)
+ *              &avediff (<return> average difference of pixels with diff
+ *                        greater than or equal to mindiff, less mindiff)
+ *              printstats (use 1 to print normalized histogram to stderr)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This takes a threshold @mindiff and describes the difference
+ *          between two images in terms of two numbers:
+ *            (a) the fraction of pixels, @fractdiff, whose difference
+ *                equals or exceeds the threshold @mindiff, and
+ *            (b) the average value @avediff of the difference in pixel value
+ *                for the pixels in the set given by (a), after you subtract
+ *                @mindiff.  The reason for subtracting @mindiff is that
+ *                you then get a useful measure for the rate of falloff
+ *                of the distribution for larger differences.  For example,
+ *                if @mindiff = 10 and you find that @avediff = 2.5, it
+ *                says that of the pixels with diff > 10, the average of
+ *                their diffs is just mindiff + 2.5 = 12.5.  This is a
+ *                fast falloff in the histogram with increasing difference.
+ *      (2) The two images are aligned at the UL corner, and do not
+ *          need to be the same size.  If they are not the same size,
+ *          the comparison will be made over overlapping pixels.
+ *      (3) If there is a colormap, it is removed and the result
+ *          is either gray or RGB depending on the colormap.
+ *      (4) If RGB, the maximum difference between pixel components is
+ *          saved in the histogram.
+ */
+l_int32
+pixGetDifferenceStats(PIX        *pix1,
+                      PIX        *pix2,
+                      l_int32     factor,
+                      l_int32     mindiff,
+                      l_float32  *pfractdiff,
+                      l_float32  *pavediff,
+                      l_int32     printstats)
+{
+l_int32     i, first, last, diff;
+l_float32   fract, ave;
+l_float32  *array;
+NUMA       *nah, *nan, *nac;
+
+    PROCNAME("pixGetDifferenceStats");
+
+    if (!pfractdiff)
+        return ERROR_INT("&fractdiff not defined", procName, 1);
+    *pfractdiff = 0.0;
+    if (!pavediff)
+        return ERROR_INT("&avediff not defined", procName, 1);
+    *pavediff = 0.0;
+    if (!pix1)
+        return ERROR_INT("pix1 not defined", procName, 1);
+    if (!pix2)
+        return ERROR_INT("pix2 not defined", procName, 1);
+    if (mindiff <= 0)
+        return ERROR_INT("mindiff must be > 0", procName, 1);
+
+    if ((nah = pixGetDifferenceHistogram(pix1, pix2, factor)) == NULL)
+        return ERROR_INT("na not made", procName, 1);
+
+    if ((nan = numaNormalizeHistogram(nah, 1.0)) == NULL) {
+        numaDestroy(&nah);
+        return ERROR_INT("nan not made", procName, 1);
+    }
+    array = numaGetFArray(nan, L_NOCOPY);
+
+    if (printstats) {
+        numaGetNonzeroRange(nan, 0.0, &first, &last);
+        nac = numaClipToInterval(nan, first, last);
+        fprintf(stderr, "\nNonzero values in normalized histogram:");
+        numaWriteStream(stderr, nac);
+        numaDestroy(&nac);
+        fprintf(stderr, " Mindiff      fractdiff      avediff\n");
+        fprintf(stderr, " -----------------------------------\n");
+        for (diff = 1; diff < L_MIN(2 * mindiff, last); diff++) {
+            fract = 0.0;
+            ave = 0.0;
+            for (i = diff; i <= last; i++) {
+                fract += array[i];
+                ave += (l_float32)i * array[i];
+            }
+            ave = (fract == 0.0) ? 0.0 : ave / fract;
+            ave -= diff;
+            fprintf(stderr, "%5d         %7.4f        %7.4f\n",
+                    diff, fract, ave);
+        }
+        fprintf(stderr, " -----------------------------------\n");
+    }
+
+    fract = 0.0;
+    ave = 0.0;
+    for (i = mindiff; i < 256; i++) {
+      fract += array[i];
+      ave += (l_float32)i * array[i];
+    }
+    ave = (fract == 0.0) ? 0.0 : ave / fract;
+    ave -= mindiff;
+
+    *pfractdiff = fract;
+    *pavediff = ave;
+
+    numaDestroy(&nah);
+    numaDestroy(&nan);
+    return 0;
+}
+
+
+/*!
+ *  pixGetDifferenceHistogram()
+ *
+ *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
+ *              factor (subsampling factor; use 0 or 1 for no subsampling)
+ *      Return: na (Numa of histogram of differences), or null on error
+ *
+ *  Notes:
+ *      (1) The two images are aligned at the UL corner, and do not
+ *          need to be the same size.  If they are not the same size,
+ *          the comparison will be made over overlapping pixels.
+ *      (2) If there is a colormap, it is removed and the result
+ *          is either gray or RGB depending on the colormap.
+ *      (3) If RGB, the maximum difference between pixel components is
+ *          saved in the histogram.
+ */
+NUMA *
+pixGetDifferenceHistogram(PIX     *pix1,
+                          PIX     *pix2,
+                          l_int32  factor)
 {
 l_int32     w1, h1, d1, w2, h2, d2, w, h, wpl1, wpl2;
 l_int32     i, j, val, val1, val2;
-l_uint32    pixel1, pixel2;
+l_int32     rval1, rval2, gval1, gval2, bval1, bval2;
+l_int32     rdiff, gdiff, bdiff, maxdiff;
 l_uint32   *data1, *data2, *line1, *line2;
-l_float32  *array1, *array2;
-NUMA       *nah, *nan, *nad;
+l_float32  *array;
+NUMA       *na;
 PIX        *pixt1, *pixt2;
 
-    PROCNAME("pixCompareRankDifference");
+    PROCNAME("pixGetDifferenceHistogram");
 
     if (!pix1)
         return (NUMA *)ERROR_PTR("pix1 not defined", procName, NULL);
@@ -992,10 +1307,11 @@ PIX        *pixt1, *pixt2;
         pixDestroy(&pixt2);
         return (NUMA *)ERROR_PTR("pix depths not equal", procName, NULL);
     }
+    if (factor < 1) factor = 1;
 
-    nah = numaCreate(256);
-    numaSetCount(nah, 256);  /* all initialized to 0.0 */
-    array1 = numaGetFArray(nah, L_NOCOPY);
+    na = numaCreate(256);
+    numaSetCount(na, 256);  /* all initialized to 0.0 */
+    array = numaGetFArray(na, L_NOCOPY);
     w = L_MIN(w1, w2);
     h = L_MIN(h1, h2);
     data1 = pixGetData(pixt1);
@@ -1003,57 +1319,37 @@ PIX        *pixt1, *pixt2;
     wpl1 = pixGetWpl(pixt1);
     wpl2 = pixGetWpl(pixt2);
     if (d1 == 8) {
-        for (i = 0; i < h; i++) {
+        for (i = 0; i < h; i += factor) {
             line1 = data1 + i * wpl1;
             line2 = data2 + i * wpl2;
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < w; j += factor) {
                 val1 = GET_DATA_BYTE(line1, j);
                 val2 = GET_DATA_BYTE(line2, j);
                 val = L_ABS(val1 - val2);
-                array1[val]++;
+                array[val]++;
             }
         }
     }
     else {  /* d1 == 32 */
-        for (i = 0; i < h; i++) {
+        for (i = 0; i < h; i += factor) {
             line1 = data1 + i * wpl1;
             line2 = data2 + i * wpl2;
-            for (j = 0; j < w; j++) {
-                pixel1 = line1[j];
-                pixel2 = line2[j];
-                val1 = pixel1 >> 24;
-                val2 = pixel2 >> 24;
-                val = L_ABS(val1 - val2);
-                array1[val]++;
-                val1 = (pixel1 >> 16) & 0xff;
-                val2 = (pixel2 >> 16) & 0xff;
-                val = L_ABS(val1 - val2);
-                array1[val]++;
-                val1 = (pixel1 >> 8) & 0xff;
-                val2 = (pixel2 >> 8) & 0xff;
-                val = L_ABS(val1 - val2);
-                array1[val]++;
+            for (j = 0; j < w; j += factor) {
+                extractRGBValues(line1[j], &rval1, &gval1, &bval1);
+                extractRGBValues(line2[j], &rval2, &gval2, &bval2);
+                rdiff = L_ABS(rval1 - rval2);
+                gdiff = L_ABS(gval1 - gval2);
+                bdiff = L_ABS(bval1 - bval2);
+                maxdiff = L_MAX(rdiff, gdiff);
+                maxdiff = L_MAX(maxdiff, bdiff);
+                array[maxdiff]++;
             }
         }
     }
 
-    nan = numaNormalizeHistogram(nah, 1.0);
-    array1 = numaGetFArray(nan, L_NOCOPY);
-
-    nad = numaCreate(256);
-    numaSetCount(nad, 256);  /* all initialized to 0.0 */
-    array2 = numaGetFArray(nad, L_NOCOPY);
-
-        /* Finally, do rank accumulation on normalized histo of diffs */
-    array2[0] = 1.0;
-    for (i = 1; i < 256; i++)
-        array2[i] = array2[i - 1] - array1[i - 1];
-
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
-    numaDestroy(&nah);
-    numaDestroy(&nan);
-    return nad;
+    return na;
 }
 
 

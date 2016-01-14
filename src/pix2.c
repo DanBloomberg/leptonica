@@ -22,6 +22,7 @@
  *          pad pixels, border pixels, and color components for RGB
  *      (2) Add and remove border pixels
  *      (3) Endian byte swaps
+ *      (4) Fast serialization and special processing
  *
  *      Pixel poking
  *           l_int32     pixGetPixel()
@@ -86,6 +87,10 @@
  *      Serialization of pix to/from memory (uncompressed)
  *           l_int32     pixSerializeToMemory()
  *           PIX        *pixDeserializeFromMemory()
+ *
+ *      Setup helpers for 8 bpp byte processing
+ *           l_uint8   **pixSetupByteProcessing()
+ *           l_int32     pixCleanupByteProcessing()
  *
  *      *** indicates implicit assumption about RGB component ordering
  */
@@ -2565,4 +2570,83 @@ PIXCMAP   *cmap;
     return pixd;
 }
 
+
+/*-------------------------------------------------------------*
+ *             Setup helpers for 8 bpp byte processing         *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixSetupByteProcessing()
+ *
+ *      Input:  pix (8 bpp, no colormap)
+ *              &w (<optional return> width)
+ *              &h (<optional return> height)
+ *      Return: line ptr array, or null on error
+ *
+ *  Notes:
+ *      (1) This is a simple helper for processing 8 bpp images with
+ *          direct byte access.  It can swap byte order within each word.
+ *      (2) After processing, you must call pixCleanupByteProcessing(),
+ *          which frees the lineptr array and restores byte order.
+ *      (3) Usage:
+ *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, &w, &h);
+ *              for (i = 0; i < h; i++) {
+ *                  l_uint8 *line = lineptrs[i];
+ *                  for (j = 0; j < w; j++) {
+ *                      val = line[j];
+ *                      ...
+ *                  }
+ *              }
+ *              pixCleanupByteProcessing(pix, lineptrs);
+ */
+l_uint8 **
+pixSetupByteProcessing(PIX      *pix,
+                       l_int32  *pw,
+                       l_int32  *ph)
+{
+l_int32  w, h;
+
+    PROCNAME("pixSetupByteProcessing");
+
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
+    if (!pix || pixGetDepth(pix) != 8)
+        return (l_uint8 **)ERROR_PTR("pix not defined or not 8 bpp",
+                                     procName, NULL);
+    if (pixGetColormap(pix))
+        return (l_uint8 **)ERROR_PTR("pix has colormap", procName, NULL);
+
+    pixGetDimensions(pix, &w, &h, NULL);
+    if (pw) *pw = w;
+    if (ph) *ph = h;
+    pixEndianByteSwap(pix);
+    return (l_uint8 **)pixGetLinePtrs(pix, NULL);
+}
+
+
+/*!
+ *  pixCleanupByteProcessing()
+ *
+ *      Input:  pix (8 bpp, no colormap)
+ *              lineptrs (ptrs to the beginning of each raster line of data)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This must be called after processing that was initiated
+ *          by pixSetupByteProcessing() has finished.
+ */
+l_int32
+pixCleanupByteProcessing(PIX      *pix,
+                         l_uint8 **lineptrs)
+{
+    PROCNAME("pixCleanupByteProcessing");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!lineptrs)
+        return ERROR_INT("lineptrs not defined", procName, 1);
+
+    pixEndianByteSwap(pix);
+    FREE(lineptrs);
+    return 0;
+}
 

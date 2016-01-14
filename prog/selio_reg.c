@@ -62,11 +62,11 @@ static char     mainName[] = "selio_reg";
 
         /* selaRead() / selaWrite()  */
     sela1 = selaAddBasic(NULL);
-    selaWrite("junkout1", sela1);
-    sela2 = selaRead("junkout1");
-    selaWrite("junkout2", sela2);
-    str1 = (char *)arrayRead("junkout1", &nbytes1);
-    str2 = (char *)arrayRead("junkout2", &nbytes2);
+    selaWrite("/tmp/junk1.sela", sela1);
+    sela2 = selaRead("/tmp/junk1.sela");
+    selaWrite("/tmp/junk2.sela", sela2);
+    str1 = (char *)arrayRead("/tmp/junk1.sela", &nbytes1);
+    str2 = (char *)arrayRead("/tmp/junk2.sela", &nbytes2);
     if (nbytes1 == nbytes2 && !strcmp(str1, str2))
         fprintf(stderr, "Success:  selaRead() / selaWrite()\n");
     else
@@ -81,7 +81,7 @@ static char     mainName[] = "selio_reg";
     pix = selaDisplayInPix(sela1, 31, 3, 15, 4);
     pixDisplay(pix, 100, 100);
     pixDestroy(&pix);
-    selaWrite("junkout3", sela1);
+    selaWrite("/tmp/junk3.sela", sela1);
 
         /* Create from compiled strings and compare */
     sela2 = selaCreate(4);
@@ -93,9 +93,9 @@ static char     mainName[] = "selio_reg";
     selaAddSel(sela2, sel, NULL, 0);
     sel = selCreateFromString(textsel4, 5, 6, "textsel4");
     selaAddSel(sela2, sel, NULL, 0);
-    selaWrite("junkout4", sela2);
-    str1 = (char *)arrayRead("junkout3", &nbytes1);
-    str2 = (char *)arrayRead("junkout4", &nbytes2);
+    selaWrite("/tmp/junk4.sela", sela2);
+    str1 = (char *)arrayRead("/tmp/junk3.sela", &nbytes1);
+    str2 = (char *)arrayRead("/tmp/junk4.sela", &nbytes2);
     if (nbytes1 == nbytes2 && !strcmp(str1, str2))
         fprintf(stderr, "Success:  reading from file and string\n");
     else

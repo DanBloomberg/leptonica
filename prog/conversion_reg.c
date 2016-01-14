@@ -276,7 +276,7 @@ static char  mainName[] = "convert_reg";
         /* Conversion: 16 bpp --> 8 bpp --> 16 bpp */
     pixt1 = pixConvert16To8(pixs16, 1);
     pixt2 = pixConvertTo16(pixt1);
-    pixWrite("junkpix", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkpix.png", pixt2, IFF_PNG);
     pixEqual(pixs16, pixt2, &same);
     if (!same) {
         pixDisplayWithTitle(pixs16, 100, 100, "16 bpp", DFLAG);

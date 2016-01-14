@@ -91,7 +91,7 @@ static char  mainName[] = "cmapquant_reg";
     FREE(gtab);
     FREE(btab);
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
 
     pixDestroy(&pixs);
     pixDestroy(&pixt1);

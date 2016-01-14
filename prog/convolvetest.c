@@ -112,7 +112,7 @@ static char  mainName[] = "convolvetest";
     kel1 = kernelCreateFromString(5, 5, 2, 2, kdatastr);
     pixd = pixConvolve(pixg, kel1, 8, 1);
     pixDisplay(pixd, 700, 0);
-    pixWrite("junkpixd4", pixd, IFF_BMP);
+    pixWrite("/tmp/junkpixd4.bmp", pixd, IFF_BMP);
     pixDestroy(&pixd);
     kernelDestroy(&kel1);
 
@@ -127,12 +127,12 @@ static char  mainName[] = "convolvetest";
     pixd = pixConvolve(pixg, kel2, 8, 1);
     fprintf(stderr, "Generic convolution: %7.3f sec\n", stopTimer());
     pixDisplay(pixd, 1200, 0);
-    pixWrite("junkpixd5", pixd, IFF_BMP);
+    pixWrite("/tmp/junkpixd5.bmp", pixd, IFF_BMP);
     startTimer();
     pixt = pixBlockconv(pixg, 5, 5);
     fprintf(stderr, "Block convolution: %7.3f sec\n", stopTimer());
     pixDisplay(pixd, 1200, 600);
-    pixWrite("junkpixd6", pixt, IFF_BMP);
+    pixWrite("/tmp/junkpixd6.bmp", pixt, IFF_BMP);
     pixCompareGray(pixd, pixt, L_COMPARE_ABS_DIFF, GPLOT_X11, NULL,
                    NULL, NULL, NULL);
     pixDestroy(&pixg);
@@ -142,6 +142,6 @@ static char  mainName[] = "convolvetest";
 
     pixDestroy(&pixs);
     pixDestroy(&pixd);
-    exit(0);
+    return 0;
 }
 

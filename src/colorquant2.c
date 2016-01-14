@@ -18,8 +18,13 @@
  *                     
  *  Modified median cut color quantization
  *
+ *      High level
  *          PIX              *pixMedianCutQuant()
  *          PIX              *pixMedianCutQuantGeneral()
+ *          PIX              *pixMedianCutQuantMixed()
+ *          PIX              *pixFewColorsMedianCutQuantMixed()
+ *
+ *      Median cut indexed histogram
  *          l_int32          *pixMedianCutHisto()
  *
  *      Static helpers
@@ -221,6 +226,9 @@ static const l_int32  DIF_CAP = 100;
 #endif   /* ~NO_CONSOLE_IO */
 
 
+/*------------------------------------------------------------------------*
+ *                                 High level                             *
+ *------------------------------------------------------------------------*/
 /*!
  *  pixMedianCutQuant()
  *
@@ -237,7 +245,7 @@ pixMedianCutQuant(PIX     *pixs,
                   l_int32  ditherflag)
 {
     return pixMedianCutQuantGeneral(pixs, ditherflag,
-                                    0, 256, DEFAULT_SIG_BITS, 1);
+                                    0, 256, DEFAULT_SIG_BITS, 1, 1);
 }
 
 
@@ -251,6 +259,8 @@ pixMedianCutQuant(PIX     *pixs,
  *              sigbits (valid: 5 or 6; use 0 for default)
  *              maxsub (max subsampling, integer; use 0 for default;
  *                      1 for no subsampling)
+ *              checkbw (1 to check if color content is very small,
+ *                       0 to assume there is sufficient color)
  *      Return: pixd (8 bit with colormap), or null on error
  *
  *  Notes:
@@ -285,7 +295,8 @@ pixMedianCutQuantGeneral(PIX     *pixs,
                          l_int32  outdepth,
                          l_int32  maxcolors,
                          l_int32  sigbits,
-                         l_int32  maxsub)
+                         l_int32  maxsub,
+                         l_int32  checkbw)
 {
 l_int32    i, subsample, histosize, smalln, ncolors, niters, popcolors;
 l_int32    w, h, minside, factor;
@@ -318,17 +329,19 @@ PIXCMAP   *cmap;
 	 * If pixfract << 1, most pixels are close to black or white.
 	 * If colorfract << 1, the pixels that are not near
 	 *   black or white have very little color.
-         * If without color, quantize with a grayscale colormap. */
+         * If with little color, quantize with a grayscale colormap. */
     pixGetDimensions(pixs, &w, &h, NULL);
-    minside = L_MIN(w, h);
-    factor = L_MAX(1, minside / 200);
-    pixColorFraction(pixs, 20, 248, 12, factor, &pixfract, &colorfract);
-    if (pixfract < 0.03 || colorfract < 0.03) {
-        L_INFO_FLOAT2("\n  Pixel fraction neither white nor black = %6.3f"
-                      "\n  Color fraction of those pixels = %6.3f"
-                      "\n  Quantizing in gray",
-                      procName, pixfract, colorfract);
-        return pixConvertTo8(pixs, 1);
+    if (checkbw) {
+        minside = L_MIN(w, h);
+        factor = L_MAX(1, minside / 400);
+        pixColorFraction(pixs, 20, 244, 20, factor, &pixfract, &colorfract);
+        if (pixfract * colorfract < 0.00025) {
+            L_INFO_FLOAT2("\n  Pixel fraction neither white nor black = %6.3f"
+                          "\n  Color fraction of those pixels = %6.3f"
+                          "\n  Quantizing in gray",
+                          procName, pixfract, colorfract);
+            return pixConvertTo8(pixs, 1);
+        }
     }
 
         /* Compute the color space histogram.  Default sampling
@@ -492,6 +505,269 @@ PIXCMAP   *cmap;
 
 
 /*!
+ *  pixMedianCutQuantMixed()
+ *
+ *      Input:  pixs  (32 bpp; rgb color)
+ *              ncolor (maximum number of colors assigned to pixels with
+ *                      significant color)
+ *              ngray (number of gray colors to be used; must be >= 2)
+ *              darkthresh (threshold near black; if the lightest component
+ *                          is below this, the pixel is not considered to
+ *                          be gray or color; uses 0 for default)
+ *              lightthresh (threshold near white; if the darkest component
+ *                           is above this, the pixel is not considered to
+ *                           be gray or color; use 0 for default)
+ *              diffthresh (thresh for the max difference between component
+ *                          values; for differences below this, the pixel
+ *                          is considered to be gray; use 0 for default)
+ *      Return: pixd (8 bpp cmapped), or null on error
+ *
+ *  Notes:
+ *      (1) ncolor + ngray must not exceed 255.
+ *      (2) The method makes use of pixMedianCutQuantGeneral() with
+ *          minimal addition.
+ *          (a) Preprocess the image, setting all pixels with little color
+ *              to black, and populating an auxiliary 8 bpp image with the
+ *              expected colormap values corresponding to the set of
+ *              quantized gray values.
+ *          (b) Color quantize the altered input image to n + 1 colors.
+ *          (c) Augment the colormap with the gray indices, and
+ *              substitute the gray quantized values from the auxiliary
+ *              image for those in the color quantized output that had
+ *              been quantized as black.
+ *      (3) Median cut color quantization is relatively poor for grayscale
+ *          images with many colors, when compared to octcube quantization.
+ *          Thus, for images with both gray and color, it is important
+ *          to quantize the gray pixels by another method.  Here, we
+ *          are conservative in detecting color, preferring to use
+ *          a few extra bits to encode colorful pixels that push them
+ *          to gray.  This is particularly reasonable with this function,
+ *          because it handles the gray and color pixels separately,
+ *          using median cut color quantization for the color pixels
+ *          and equal-bin grayscale quantization for the non-color pixels.
+ */
+PIX *
+pixMedianCutQuantMixed(PIX     *pixs,
+                       l_int32  ncolor,
+                       l_int32  ngray,
+                       l_int32  darkthresh,
+                       l_int32  lightthresh,
+                       l_int32  diffthresh)
+{
+l_int32    i, j, w, h, wplc, wplg, wpld, nc, unused, iscolor, factor, minside;
+l_int32    rval, gval, bval, minval, maxval, val, grayval;
+l_float32  pixfract, colorfract;
+l_int32   *lut;
+l_uint32  *datac, *datag, *datad, *linec, *lineg, *lined;
+PIX       *pixc, *pixg, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixMedianCutQuantMixed");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (ngray < 2)
+        return (PIX *)ERROR_PTR("ngray < 2", procName, NULL);
+    if (ncolor + ngray > 255)
+        return (PIX *)ERROR_PTR("ncolor + ngray > 255", procName, NULL);
+    if (darkthresh <= 0) darkthresh = 20;
+    if (lightthresh <= 0) lightthresh = 244;
+    if (diffthresh <= 0) diffthresh = 20;
+
+        /* First check if this should be quantized in gray.
+         * Use a more sensitive parameter for detecting color than with
+         * pixMedianCutQuantGeneral(), because this function can handle
+         * gray pixels well.  */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    minside = L_MIN(w, h);
+    factor = L_MAX(1, minside / 400);
+    pixColorFraction(pixs, darkthresh, lightthresh, diffthresh, factor,
+                     &pixfract, &colorfract);
+    if (pixfract * colorfract < 0.0001) {
+        L_INFO_FLOAT2("\n  Pixel fraction neither white nor black = %6.3f"
+                      "\n  Color fraction of those pixels = %6.3f"
+                      "\n  Quantizing in gray",
+                      procName, pixfract, colorfract);
+        pixg = pixConvertTo8(pixs, 0);
+        pixd = pixThresholdOn8bpp(pixg, ngray, 1);
+        pixDestroy(&pixg);
+        return pixd;
+    }
+
+        /* OK, there is color in the image.
+         * Preprocess to handle the gray pixels.  Set the color pixels in pixc
+         * to black, and store their (eventual) colormap indices in pixg.*/
+    pixc = pixCopy(NULL, pixs);
+    pixg = pixCreate(w, h, 8);  /* color pixels will remain 0 here */
+    datac = pixGetData(pixc);
+    datag = pixGetData(pixg);
+    wplc = pixGetWpl(pixc);
+    wplg = pixGetWpl(pixg);
+    lut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    for (i = 0; i < 256; i++)
+        lut[i] = ncolor + 1 + (i * (ngray - 1) + 128) / 255;
+    for (i = 0; i < h; i++) {
+        linec = datac + i * wplc;
+        lineg = datag + i * wplg;
+        for (j = 0; j < w; j++) {
+            iscolor = FALSE;
+            extractRGBValues(linec[j], &rval, &gval, &bval);
+            minval = L_MIN(rval, gval);
+            minval = L_MIN(minval, bval);
+            maxval = L_MAX(rval, gval);
+            maxval = L_MAX(maxval, bval);
+            if (maxval >= darkthresh &&
+                minval <= lightthresh &&
+                maxval - minval >= diffthresh) {
+                iscolor = TRUE;
+            }
+            if (!iscolor) {
+                linec[j] = 0x0;  /* set to black */
+                grayval = (maxval + minval) / 2;
+                SET_DATA_BYTE(lineg, j, lut[grayval]);
+            }
+        }
+    }
+
+        /* Median cut on color pixels plus black */
+    pixd = pixMedianCutQuantGeneral(pixc, FALSE, 8, ncolor + 1,
+                                    DEFAULT_SIG_BITS, 1, 0);
+
+        /* Augment the colormap with gray values.  The new cmap
+         * indices should agree with the values previously stored in pixg. */
+    cmap = pixGetColormap(pixd);
+    nc = pixcmapGetCount(cmap);
+    unused = ncolor  + 1 - nc;
+    if (unused < 0)
+        L_ERROR_INT("Too many colors: extra = %d", procName, -unused);
+    if (unused > 0) {  /* fill in with black; these won't be used */
+        L_INFO_INT("%d unused colors", procName, unused);
+        for (i = 0; i < unused; i++)
+            pixcmapAddColor(cmap, 0, 0, 0);
+    }
+    for (i = 0; i < ngray; i++) {
+        grayval = (255 * i) / (ngray - 1);
+        pixcmapAddColor(cmap, grayval, grayval, grayval);
+    }
+
+        /* Substitute cmap indices for the gray pixels into pixd */
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lined = datad + i * wpld;
+        lineg = datag + i * wplg;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BYTE(lineg, j);  /* if 0, it's a color pixel */
+            if (val)
+                SET_DATA_BYTE(lined, j, val);
+        }
+    }
+
+    pixDestroy(&pixc);
+    pixDestroy(&pixg);
+    FREE(lut);
+    return pixd;
+}
+
+
+/*!
+ *  pixFewColorsMedianCutQuantMixed()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              ncolor (number of colors to be assigned to pixels with
+ *                       significant color)
+ *              ngray (number of gray colors to be used; must be >= 2)
+ *              maxncolors (maximum number of colors to be returned
+ *                         from pixColorsForQuantization(); use 0 for default)
+ *              darkthresh (threshold near black; if the lightest component
+ *                          is below this, the pixel is not considered to
+ *                          be gray or color; use 0 for default)
+ *              lightthresh (threshold near white; if the darkest component
+ *                           is above this, the pixel is not considered to
+ *                           be gray or color; use 0 for default)
+ *              diffthresh (thresh for the max difference between component
+ *                          values; for differences below this, the pixel
+ *                          is considered to be gray; use 0 for default)
+ *                          considered gray; use 0 for default)
+ *      Return: pixd (8 bpp, median cut quantized for pixels that are
+ *                    not gray; gray pixels are quantized separately
+ *                    over the full gray range); null if too many colors
+ *                    or on error
+ *
+ *  Notes:
+ *      (1) This is the "few colors" version of pixMedianCutQuantMixed().
+ *          It fails (returns NULL) if it finds more than maxncolors, but
+ *          otherwise it gives the same result.
+ *      (2) Recommended input parameters are:
+ *              @maxncolors:  20
+ *              @darkthresh:  20
+ *              @lightthresh: 244
+ *              @diffthresh:  15  (any higher can miss colors differing
+ *                                 slightly from gray)
+ *      (3) Both ncolor and ngray should be at least equal to maxncolors.
+ *          If they're not, they are automatically increased, and a
+ *          warning is given.
+ *      (4) This can be useful for quantizing orthographically generated
+ *          images such as color maps, where there may be more than 256 colors
+ *          because of aliasing or jpeg artifacts on text or lines, but
+ *          there are a relatively small number of solid colors.
+ */
+PIX *
+pixFewColorsMedianCutQuantMixed(PIX       *pixs,
+                                l_int32    ncolor,
+                                l_int32    ngray,
+                                l_int32    maxncolors,
+                                l_int32    darkthresh,
+                                l_int32    lightthresh,
+                                l_int32    diffthresh)
+{
+l_int32  ncolors, iscolor;
+PIX     *pixg, *pixd;
+
+    PROCNAME("pixFewColorsMedianCutQuantMixed");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (maxncolors <= 0) maxncolors = 20;
+    if (darkthresh <= 0) darkthresh = 20;
+    if (lightthresh <= 0) lightthresh = 244;
+    if (diffthresh <= 0) diffthresh = 15;
+    if (ncolor < maxncolors) {
+        L_WARNING_INT("ncolor too small; setting to %d", procName, maxncolors);
+        ncolor = maxncolors;
+    }
+    if (ngray < maxncolors) {
+        L_WARNING_INT("ngray too small; setting to %d", procName, maxncolors);
+        ngray = maxncolors;
+    }
+
+        /* Estimate the color content and the number of colors required */
+    pixColorsForQuantization(pixs, 15, &ncolors, &iscolor, 0);
+
+        /* Note that maxncolors applies to all colors required to quantize,
+         * both gray and colorful */
+    if (ncolors > maxncolors)
+        return (PIX *)ERROR_PTR("too many colors", procName, NULL);
+
+        /* If no color, return quantized gray pix */
+    if (!iscolor) {
+        pixg = pixConvertTo8(pixs, 0);
+        pixd = pixThresholdOn8bpp(pixg, ngray, 1);
+        pixDestroy(&pixg);
+        return pixd;
+    }
+
+        /* Use the mixed gray/color quantizer */
+    return pixMedianCutQuantMixed(pixs, ncolor, ngray, darkthresh,
+                                  lightthresh, diffthresh);
+}
+
+
+
+/*------------------------------------------------------------------------*
+ *                        Median cut indexed histogram                    *
+ *------------------------------------------------------------------------*/
+/*!
  *  pixMedianCutHisto()
  *
  *      Input:  pixs  (32 bpp; rgb color)
@@ -549,6 +825,9 @@ l_uint32  *data, *line;
 }
 
 
+/*------------------------------------------------------------------------*
+ *                               Static helpers                           *
+ *------------------------------------------------------------------------*/
 /*!
  *  pixcmapGenerateFromHisto()
  *

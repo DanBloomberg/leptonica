@@ -43,7 +43,6 @@
  *          l_int32          convertSegmentedPagesToPS()
  *          l_int32          pixWriteSegmentedPageToPS()
  *          l_int32          pixWriteMixedToPS()
- *          NUMA            *sarrayFindMaskAndPagePairings()
  *
  *     Convert any image file to PS for embedding
  *          l_int32          convertToPSEmbed()
@@ -90,10 +89,6 @@
 
 static const char *TEMP_G4TIFF_FILE = "/tmp/junk_temp_g4tiff.tif";
 static const char *TEMP_JPEG_FILE   = "/tmp/junk_temp_jpeg.jpg";
-
-#ifndef  NO_CONSOLE_IO
-#define  DEBUG_MIXED_PS   0
-#endif  /* ~NO_CONSOLE_IO */
 
 
 /*-------------------------------------------------------------*
@@ -466,12 +461,9 @@ convertSegmentedPagesToPS(const char  *pagedir,
                           l_int32      numpost,
                           const char  *fileout)
 {
-char       *pagefile, *maskfile; 
-l_int32     pageno, i, npages;
-l_int32     pageindex, maskindex;
-NUMA       *naindex;
-PIX        *pixs, *pixm;
-SARRAY     *sapage, *samask;
+l_int32  pageno, i, npages;
+PIX     *pixs, *pixm;
+SARRAY  *sapage, *samask;
 
     PROCNAME("convertSegmentedPagesToPS");
 
@@ -486,36 +478,18 @@ SARRAY     *sapage, *samask;
         threshold = 190;
     }
 
-        /* Get sorted full pathnames. */
-    sapage = getSortedPathnamesInDirectory(pagedir, NULL, 0, 0);
-    samask = getSortedPathnamesInDirectory(maskdir, NULL, 0, 0);
+        /* Get numbered full pathnames; don't allow sarray bigger than 10000 */
+    sapage = getNumberedPathnamesInDirectory(pagedir, numpre, numpost, 10000);
+    samask = getNumberedPathnamesInDirectory(maskdir, numpre, numpost, 10000);
+    sarrayPadToSameSize(sapage, samask, (char *)"");
+    npages = sarrayGetCount(sapage);
 
-        /* Go through the filenames, locating the page numbers
-         * and matching page images with mask images. */
-    naindex = sarrayFindMaskAndPagePairings(sapage, samask, numpre,
-                                            numpost, 10000);
-    npages = numaGetCount(naindex) / 2;
-
-        /* Generate the PS file. */
+        /* Generate the PS file */
     pageno = 1;
-    for (i = 0; i < 2 * npages; i += 2) {
-        numaGetIValue(naindex, i, &pageindex);
-        numaGetIValue(naindex, i + 1, &maskindex);
-        pagefile = sarrayGetString(sapage, pageindex, L_NOCOPY);
-        pixs = pixRead(pagefile);
-        pixm = NULL;
-        if (maskindex != -1) {
-            maskfile = sarrayGetString(samask, maskindex, L_NOCOPY);
-            pixm = pixRead(maskfile);
-        }
-#if DEBUG_MIXED_PS
-        fprintf(stderr, "pageindex[%d] = %d, maskindex[%d] = %d\n",
-                i, pageindex, i, maskindex);
-        fprintf(stderr, "  pagefile[%d]: %s\n", i / 2, pagefile);
-        if (pixm)
-            fprintf(stderr, "  maskfile[%d]: %s\n", i / 2, maskfile);
-#endif  /* DEBUG_MIXED_PS */
-
+    for (i = 0; i < npages; i++) {
+        if ((pixs = pixReadIndexed(sapage, i)) == NULL)
+            continue;
+        pixm = pixReadIndexed(samask, i);
         pixWriteSegmentedPageToPS(pixs, pixm, textscale, imagescale,
                                   threshold, pageno, fileout);
         pixDestroy(&pixs);
@@ -525,7 +499,6 @@ SARRAY     *sapage, *samask;
 
     sarrayDestroy(&sapage);
     sarrayDestroy(&samask);
-    numaDestroy(&naindex);
     return 0;
 }
 
@@ -769,122 +742,6 @@ l_int32      resb, resc, endpage, maskop, ret;
 }
 
 
-/*
- *  sarrayFindMaskAndPagePairings()
- *
- *      Input:  sapage (array of full pathnames for page images)
- *              samask (array of full pathnames for mask images)
- *              numpre (number of characters in name before number)
- *              numpost (number of characters in name after number)
- *              maxnum (only consider page numbers up to this value)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) The pages and masks are matched by the located numbers, so
- *          their order in @sapage and @samask doesn't matter.
- *      (2) It is assumed that the page number is contained within
- *          the basename (the filename without directory or extension).
- *          @numpre is the number of characters in the basename
- *          preceeding the actual page number; @numpost is the number
- *          following the page number. 
- *      (3) To use a O(n) matching algorithm, the largest page number
- *          is found and two internal arrays of this size are created.
- *          This maximum is constrained not to exceed @maxsum,
- *          to make sure that an unrealistically large number is not
- *          accidentally used to determine the array sizes.
- */
-NUMA *
-sarrayFindMaskAndPagePairings(SARRAY  *sapage,
-                              SARRAY  *samask,
-                              l_int32  numpre,
-                              l_int32  numpost,
-                              l_int32  maxnum)
-{
-char      *pagename, *maskname;
-l_int32    i, npage, nmask, ipage, imask, num, max, ret;
-l_int32   *arraypage, *arraymask;
-l_float32  fmax;
-NUMA      *napage, *namask, *naindex;
-
-    PROCNAME("sarrayFindMaskAndPagePairings");
-
-    if (!sapage)
-        return (NUMA *)ERROR_PTR("sapage not defined", procName, NULL);
-    if (!samask)
-        return (NUMA *)ERROR_PTR("samask not defined", procName, NULL);
-
-        /* First generate two arrays, corresponding to the filename
-         * arrays, that contain the page number extracted from each name. */
-    npage = sarrayGetCount(sapage);
-    nmask = sarrayGetCount(samask);
-    napage = numaCreate(npage);
-    namask = numaCreate(nmask);
-    for (i = 0; i < npage; i++) {
-         pagename = sarrayGetString(sapage, i, L_NOCOPY);
-         num = extractNumberFromFilename(pagename, numpre, numpost);
-         if (num >= 0)
-             numaAddNumber(napage, num);
-    }
-    for (i = 0; i < nmask; i++) {
-         maskname = sarrayGetString(samask, i, L_NOCOPY);
-         num = extractNumberFromFilename(maskname, numpre, numpost);
-         if (num >= 0)
-             numaAddNumber(namask, num);
-    }
-
-        /* Generate two new arrays with the page number as the
-         * array index and the index of the filename in the sarray
-         * as the array content.  If there is no file with
-         * a page number, the content is -1.  */
-    numaGetMax(napage, &fmax, NULL);
-    max = L_MIN(10000, (l_int32)fmax);
-    arraypage = (l_int32 *)CALLOC(max + 1, sizeof(l_int32));
-    arraymask = (l_int32 *)CALLOC(max + 1, sizeof(l_int32));
-    for (i = 0; i <= max; i++) {  /* initialize to -1 */
-        arraypage[i] = -1;
-        arraymask[i] = -1;
-    }
-    for (i = 0; i < npage; i++) {
-         ret = numaGetIValue(napage, i, &ipage);
-         if (ret == 1 || ipage > max) {
-             pagename = sarrayGetString(sapage, i, L_NOCOPY);
-             L_WARNING_STRING("bad page name: %s", procName, pagename);
-         }
-         else
-             arraypage[ipage] = i;
-    }
-    for (i = 0; i < nmask; i++) {
-         ret = numaGetIValue(namask, i, &imask);
-         if (ret == 1 || imask > max) {
-             maskname = sarrayGetString(samask, i, L_NOCOPY);
-             L_WARNING_STRING("bad mask name = %s", procName, maskname);
-         }
-         else
-             arraymask[imask] = i;
-    }
-
-
-        /* Store the result in a single array that holds each
-         * pair of page indices.  There should be no situation where
-         * the mask exists and the page doesn't, so if the page
-         * is not found, we don't store anything.  */
-    naindex = numaCreate(2 * (max + 1));
-    for (i = 0; i <= max; i++) {
-        ipage = arraypage[i];
-        imask = arraymask[i];
-        if (ipage == -1) continue;
-        numaAddNumber(naindex, ipage);
-        numaAddNumber(naindex, imask);
-    }
-
-    numaDestroy(&napage);
-    numaDestroy(&namask);
-    FREE(arraypage);
-    FREE(arraymask);
-    return naindex;
-}
- 
-
 /*-------------------------------------------------------------*
  *            Convert any image file to PS for embedding       *
  *-------------------------------------------------------------*/
@@ -936,7 +793,7 @@ PIX     *pix, *pixs;
     }
 
         /* Find the format and write out directly if in jpeg or tiff g4 */
-    if ((fp = fopen(filein, "r")) == NULL)
+    if ((fp = fopen(filein, "rb")) == NULL)
         return ERROR_INT("filein not found", procName, 1);
     findFileFormat(fp, &format);
     fclose(fp);

@@ -201,8 +201,8 @@ PIX       *pix;
  *              &height (<return>)
  *              &depth (<return>)
  *              &type (<return> pnm type)
- *              &bpc (<optional return>, bits/component)
- *              &cpp (<optional return>, components/pixel)
+ *              &bps (<optional return>, bits/sample)
+ *              &spp (<optional return>, samples/pixel)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -217,8 +217,8 @@ freadHeaderPnm(FILE     *fp,
                l_int32  *pheight,
                l_int32  *pdepth,
                l_int32  *ptype,
-               l_int32  *pbpc,
-               l_int32  *pcpp)
+               l_int32  *pbps,
+               l_int32  *pspp)
 {
 l_int32  w, h, d, type;
 l_int32  maxval;
@@ -269,8 +269,8 @@ l_int32  maxval;
     *pheight = h;
     *pdepth = d;
     *ptype = type;
-    if (pbpc) *pbpc = (d == 32) ? 8 : d;
-    if (pcpp) *pcpp = (d == 32) ? 3 : 1;
+    if (pbps) *pbps = (d == 32) ? 8 : d;
+    if (pspp) *pspp = (d == 32) ? 3 : 1;
     
     if (!ppix)
         return 0;
@@ -575,8 +575,8 @@ PIX      *pix;
  *              &height (<return>)
  *              &depth (<return>)
  *              &type (<return> pnm type)
- *              &bpc (<optional return>, bits/component)
- *              &cpp (<optional return>, components/pixel)
+ *              &bps (<optional return>, bits/sample)
+ *              &spp (<optional return>, samples/pixel)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -586,8 +586,8 @@ sreadHeaderPnm(const l_uint8  *cdata,
                l_int32        *pheight,
                l_int32        *pdepth,
                l_int32        *ptype,
-               l_int32        *pbpc,
-               l_int32        *pcpp)
+               l_int32        *pbps,
+               l_int32        *pspp)
 {
 l_int32   ret;
 l_uint8  *data;
@@ -601,7 +601,7 @@ FILE     *fp;
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
     if ((fp = fmemopen(data, size, "r")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    ret = freadHeaderPnm(fp, NULL, pwidth, pheight, pdepth, ptype, pbpc, pcpp);
+    ret = freadHeaderPnm(fp, NULL, pwidth, pheight, pdepth, ptype, pbps, pspp);
     fclose(fp);
     if (ret)
         return ERROR_INT("header data read failed", procName, 1);
@@ -664,8 +664,8 @@ sreadHeaderPnm(const l_uint8  *cdata,
                l_int32        *pheight,
                l_int32        *pdepth,
                l_int32        *ptype,
-               l_int32        *pbpc,
-               l_int32        *pcpp)
+               l_int32        *pbps,
+               l_int32        *pspp)
 {
     return ERROR_INT(
         "pnm read header from memory not implemented on this platform",

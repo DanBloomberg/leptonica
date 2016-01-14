@@ -2284,7 +2284,7 @@ CCBORDA  *ccba;
     if (!filename)
         return (CCBORDA *)ERROR_PTR("filename not defined", procName, NULL);
 
-    if ((fp = fopen(filename, "r")) == NULL)
+    if ((fp = fopen(filename, "rb")) == NULL)
         return (CCBORDA *)ERROR_PTR("stream not opened", procName, NULL);
     ccba = ccbaReadStream(fp);
     fclose(fp);

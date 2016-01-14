@@ -689,7 +689,7 @@ PIX        *pixsd, *pixd;
         tabsize = 1 << 16;
         tab = (l_float32 *)CALLOC(tabsize, sizeof(l_float32));
         for (i = 0; i < tabsize; i++)
-            tab[i] = (l_float32)sqrt(i);
+            tab[i] = (l_float32)sqrt((l_float64)i);
     }
 
     pixd = pixCreate(w, h, 8);

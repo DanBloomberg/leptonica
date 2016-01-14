@@ -51,18 +51,17 @@ static char     mainName[] = "falsecolortest";
 	}
     }
     fprintf(stderr, "before depth = %d\n", pixGetDepth(pixs));
-    pixWrite("junkout16", pixs, IFF_PNG);
-    pixt = pixRead("junkout16");
-    pixWrite("junkoutafter", pixt, IFF_PNG);
+    pixWrite("/tmp/junkout16.png", pixs, IFF_PNG);
+    pixt = pixRead("/tmp/junkout16.png");
+    pixWrite("/tmp/junkoutafter.png", pixt, IFF_PNG);
     fprintf(stderr, "after depth = %d\n", pixGetDepth(pixt));
 
     pixd = pixConvertGrayToFalseColor(pixt, gamma);
     pixDisplay(pixd, 50, 50);
-    pixWrite("junkout", pixd, IFF_PNG);
+    pixWrite("/tmp/junkout.png", pixd, IFF_PNG);
     pixDestroy(&pixs);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
-
-    exit(0);
+    return 0;
 }
 

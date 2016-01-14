@@ -23,7 +23,8 @@
  *  was not read from file, the input format field will be
  *  IFF_UNKNOWN and the output file format will be chosen to
  *  be compressed and lossless; namely, IFF_TIFF_G4 for d = 1
- *  and IFF_PNG for everything else.
+ *  and IFF_PNG for everything else.   IFF_JP2 is for jpeg2000, which
+ *  is not supported in leptonica.
  */
 enum {
     IFF_UNKNOWN        = 0,
@@ -40,7 +41,8 @@ enum {
     IFF_PNM            = 11,
     IFF_PS             = 12,
     IFF_GIF            = 13,
-    IFF_DEFAULT        = 14
+    IFF_JP2            = 14,
+    IFF_DEFAULT        = 15
 };
 
 

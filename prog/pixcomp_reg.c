@@ -115,13 +115,13 @@ static char     mainName[] = "pixcomp_reg";
     }
 
         /* --- Do (pixa <==> pixac) conversions --- */
-    pixaWrite("/tmp/junkpixa1", pixa1);
+    pixaWrite("/tmp/junkpixa1.pa", pixa1);
     pixac1 = pixacompCreateFromPixa(pixa1, IFF_DEFAULT, L_CLONE);
     pixa2 = pixaCreateFromPixacomp(pixac1, L_CLONE);
-    pixaWrite("/tmp/junkpixa2", pixa2);
+    pixaWrite("/tmp/junkpixa2.pa", pixa2);
     pixac2 = pixacompCreateFromPixa(pixa2, IFF_DEFAULT, L_CLONE);
     pixa3 = pixaCreateFromPixacomp(pixac2, L_CLONE);
-    pixaWrite("/tmp/junkpixa3", pixa3);
+    pixaWrite("/tmp/junkpixa3.pa", pixa3);
 
         /* --- Extract formatting info from compressed strings --- */
     for (i = 0; i < n; i++) {
@@ -159,9 +159,9 @@ static char     mainName[] = "pixcomp_reg";
     pixd = pixacompDisplayTiledAndScaled(pixac, 32, 200, 6, 0, 15, 2);
     pixWrite("/tmp/junkhardlight.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 300);
-    pixacompWrite("/tmp/junkpixac1", pixac);
-    pixac2 = pixacompRead("/tmp/junkpixac1");
-    pixacompWrite("/tmp/junkpixac2", pixac2);
+    pixacompWrite("/tmp/junkpixac1.pa", pixac);
+    pixac2 = pixacompRead("/tmp/junkpixac1.pa");
+    pixacompWrite("/tmp/junkpixac2.pa", pixac2);
     pixd2 = pixacompDisplayTiledAndScaled(pixac2, 32, 1200, 4, 0, 30, 2);
     pixDisplay(pixd2, 500, 300);
     pixacompWriteStreamInfo(stderr, pixac2, NULL);

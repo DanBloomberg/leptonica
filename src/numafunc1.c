@@ -57,6 +57,7 @@
  *          NUMA        *numaPseudorandomSequence()
  *
  *      Functions requiring sorting
+ *          l_int32      numaGetRankValue()
  *          l_int32      numaGetMedian()
  *          l_int32      numaGetMode()
  *
@@ -1878,6 +1879,50 @@ NUMA    *na;
  *                     Functions requiring sorting                      *
  *----------------------------------------------------------------------*/
 /*!
+ *  numaGetRankValue()
+ *
+ *      Input:  na
+ *              fract (use 0.0 for smallest, 1.0 for largest)
+ *              &val  (<return> rank val)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Computes the rank value of the numbers in the numa, by
+ *          sorting and finding the value a fraction @fract from
+ *          the small end.
+ */
+l_int32
+numaGetRankValue(NUMA       *na,
+                 l_float32   fract,
+                 l_float32  *pval)
+{
+l_int32  n, index;
+NUMA    *nasort;
+
+    PROCNAME("numaGetRankValue");
+
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = 0.0;  /* init */
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (fract < 0.0 || fract > 1.0)
+        return ERROR_INT("fract not in [0.0 ... 1.0]", procName, 1);
+    n = numaGetCount(na);
+    if (n == 0)
+        return ERROR_INT("na empty", procName, 1);
+
+    if ((nasort = numaSort(NULL, na, L_SORT_INCREASING)) == NULL)
+        return ERROR_INT("nasort not made", procName, 1);
+    index = (l_int32)(fract * (l_float32)(n - 1) + 0.5);
+    numaGetFValue(nasort, index, pval);
+
+    numaDestroy(&nasort);
+    return 0;
+}
+
+
+/*!
  *  numaGetMedian()
  *
  *      Input:  na
@@ -1892,26 +1937,15 @@ l_int32
 numaGetMedian(NUMA       *na,
               l_float32  *pval)
 {
-l_int32  n;
-NUMA    *nasort;
-
     PROCNAME("numaGetMedian");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0.0;  /* init */
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
 
-    n = numaGetCount(na);
-    if (n == 0)
-        return 1;
-    if ((nasort = numaSort(NULL, na, L_SORT_DECREASING)) == NULL)
-        return ERROR_INT("nasort not made", procName, 1);
-    numaGetFValue(nasort, n / 2, pval);
-
-    numaDestroy(&nasort);
-    return 0;
+    return numaGetRankValue(na, 0.5, pval);
 }
 
 

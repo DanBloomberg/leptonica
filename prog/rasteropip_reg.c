@@ -55,7 +55,7 @@ static char  mainName[] = "rasteropip_reg";
          fprintf(stderr, "OK: images are the same\n");
     else
          fprintf(stderr, "Error: images are different\n");
-    pixWrite("junkpix", pixs, IFF_PNG);
+    pixWrite("/tmp/junkpix.png", pixs, IFF_PNG);
     pixDestroy(&pixs);
     pixDestroy(&pixt);
 

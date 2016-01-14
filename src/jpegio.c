@@ -166,7 +166,7 @@ PIX   *pix;
  *                               palette image if color)
  *              reduction (scaling factor: 1, 2, 4 or 8)
  *              &pnwarn (<optional return> number of warnings)
- *              hint: a bitwise OR of L_HINT_* values
+ *              hint: (a bitwise OR of L_HINT_* values); use 0 for no hints
  *      Return: pix, or null on error
  *
  *  Usage: see pixReadJpeg()
@@ -225,6 +225,7 @@ l_uint8                       *comment = NULL;
     jpeg_stdio_src(&cinfo, fp);
     jpeg_read_header(&cinfo, TRUE);
     cinfo.scale_denom = reduction;
+    cinfo.scale_num = 1;
     if (hint & L_HINT_GRAY)
         cinfo.out_color_space = JCS_GRAYSCALE;
     jpeg_calc_output_dimensions(&cinfo);
@@ -631,7 +632,7 @@ FILE     *fpin;
     *pdata = NULL;
     *pnbytes = 0;
 
-    if ((fpin = fopen(filein, "r")) == NULL)
+    if ((fpin = fopen(filein, "rb")) == NULL)
         return ERROR_INT("filein not defined", procName, 1);
     findFileFormat(fpin, &format);
     fclose(fpin);

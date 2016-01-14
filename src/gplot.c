@@ -337,9 +337,12 @@ gplotSetScaling(GPLOT   *gplot,
  *      Input:  gplot
  *      Return: 0 if OK; 1 on error
  *
- *  Action: this uses gplot and the new arrays to add a plot
+ *  Notes:
+ *      (1) This uses gplot and the new arrays to add a plot
  *          to the output, by writing a new data file and appending
  *          the appropriate plot commands to the command file.
+ *      (2) The gnuplot program for windows is wgnuplot.exe.  The
+ *          standard gp426win32 distribution does not have a X11 terminal.
  */
 l_int32
 gplotMakeOutput(GPLOT  *gplot)
@@ -354,11 +357,19 @@ char  buf[L_BUF_SIZE];
     gplotGenCommandFile(gplot);
     gplotGenDataFiles(gplot);
 
+#ifndef COMPILER_MSVC
     if (gplot->outformat != GPLOT_X11)
         snprintf(buf, L_BUF_SIZE, "gnuplot %s &", gplot->cmdname);
     else
         snprintf(buf, L_BUF_SIZE,
                  "gnuplot -persist -geometry +10+10 %s &", gplot->cmdname);
+#else
+   if (gplot->outformat != GPLOT_X11)
+       snprintf(buf, L_BUF_SIZE, "wgnuplot %s", gplot->cmdname);
+   else
+       snprintf(buf, L_BUF_SIZE,
+               "wgnuplot -persist %s", gplot->cmdname);
+#endif  /* COMPILER_MSVC */
     system(buf);
     return 0;
 }
@@ -414,7 +425,11 @@ FILE    *fp;
         snprintf(buf, L_BUF_SIZE, "set terminal latex; set output '%s'",
                  gplot->outname);
     else  /* gplot->outformat == GPLOT_X11 */
+#ifndef COMPILER_MSVC
         snprintf(buf, L_BUF_SIZE, "set terminal x11");
+#else
+        snprintf(buf, L_BUF_SIZE, "set terminal windows");
+#endif  /* COMPILER_MSVC */
     sarrayAddString(gplot->cmddata, buf, L_COPY);
 
     if (gplot->scaling == GPLOT_LOG_SCALE_X ||

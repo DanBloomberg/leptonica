@@ -78,38 +78,47 @@ char      *fileout;
 
         /* Median cut quantizer (no dither; 5 sigbits) */
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
-    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 16, 5, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 16, 5, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 128, 5, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 128, 5, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 256, 5, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 256, 5, 1, 1);
     PixSave32(pixa, pixc);
 
         /* Median cut quantizer (with dither; 5 sigbits) */
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
-    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 16, 5, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 16, 5, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 128, 5, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 128, 5, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 256, 5, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 256, 5, 1, 1);
     PixSave32(pixa, pixc);
 
         /* Median cut quantizer (no dither; 6 sigbits) */
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
-    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 16, 6, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 16, 6, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 128, 6, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 128, 6, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 256, 6, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 0, 0, 256, 6, 1, 1);
     PixSave32(pixa, pixc);
 
         /* Median cut quantizer (with dither; 6 sigbits) */
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
-    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 16, 6, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 16, 6, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 128, 6, 1);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 128, 6, 1, 1);
     PixSave32(pixa, pixc);
-    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 256, 6, 10);
+    pixc = pixMedianCutQuantGeneral(pixs, 1, 0, 256, 6, 10, 1);
+    PixSave32(pixa, pixc);
+
+        /* Median cut quantizer (mixed color/gray) */
+    pixSaveTiled(pixs, pixa, 1, 1, SPACE, 0);
+    pixc = pixMedianCutQuantMixed(pixs, 20, 10, 0, 0, 0);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantMixed(pixs, 60, 20, 0, 0, 0);
+    PixSave32(pixa, pixc);
+    pixc = pixMedianCutQuantMixed(pixs, 180, 40, 0, 0, 0);
     PixSave32(pixa, pixc);
 
         /* Simple 256 cube octcube quantizer */
@@ -197,7 +206,7 @@ char      *fileout;
 
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    sprintf(buf, "junkdisp.%d.jpg", i);
+    sprintf(buf, "/tmp/junkdisp.%d.jpg", i);
     pixWrite(buf, pixd, IFF_JFIF_JPEG);
 
     pixDestroy(&pixs);

@@ -180,7 +180,7 @@ static char  mainName[] = "scale_reg";
 
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkscale.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkscale.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 

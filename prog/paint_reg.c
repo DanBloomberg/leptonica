@@ -195,8 +195,7 @@ static char  mainName[] = "paint_reg";
     boxDestroy(&box4);
     boxDestroy(&box5);
 
-    system("gthumb junk_write_display* &");
-
+    pixDisplayMultiple("/tmp/junk_write_display*");
     pixDestroy(&pixs);
     return 0;
 }

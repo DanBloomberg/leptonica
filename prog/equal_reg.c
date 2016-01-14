@@ -47,8 +47,8 @@ static char  mainName[] = "equal_reg";
 
     errorfound = FALSE;
     pixs = pixRead(FEYN1);
-    pixWrite("junkfeyn", pixs, IFF_BMP);
-    pixt1 = pixRead("junkfeyn");
+    pixWrite("/tmp/junkfeyn.png", pixs, IFF_PNG);
+    pixt1 = pixRead("/tmp/junkfeyn.png");
     pixEqual(pixs, pixt1, &same);
     if (same)
         L_INFO("equal for feyn1", mainName);
@@ -61,13 +61,13 @@ static char  mainName[] = "equal_reg";
 
     pixs = pixRead(DREYFUS2);
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
-    pixWrite("junkdrey2-1", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkdrey2-1.png", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
-    pixWrite("junkdrey2-2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkdrey2-2.png", pixt2, IFF_PNG);
     pixt3 = pixOctreeQuantNumColors(pixt2, 64, 1);
-    pixWrite("junkdrey2-3", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkdrey2-3.png", pixt3, IFF_PNG);
     pixt4 = pixConvertRGBToColormap(pixt2, 1);
-    pixWrite("junkdrey2-4", pixt4, IFF_PNG);
+    pixWrite("/tmp/junkdrey2-4.png", pixt4, IFF_PNG);
     pixEqual(pixs, pixt1, &same);
     if (same)
         L_INFO("equal for pixt1 of dreyfus2", mainName);
@@ -104,13 +104,13 @@ static char  mainName[] = "equal_reg";
 
     pixs = pixRead(DREYFUS4);
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
-    pixWrite("junkdrey4-1", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkdrey4-1.png", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
-    pixWrite("junkdrey4-2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkdrey4-2.png", pixt2, IFF_PNG);
     pixt3 = pixOctreeQuantNumColors(pixt2, 256, 1);
-    pixWrite("junkdrey4-3", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkdrey4-3.png", pixt3, IFF_PNG);
     pixt4 = pixConvertRGBToColormap(pixt2, 1);
-    pixWrite("junkdrey4-4", pixt4, IFF_PNG);
+    pixWrite("/tmp/junkdrey4-4.png", pixt4, IFF_PNG);
     pixEqual(pixs, pixt1, &same);
     if (same)
         L_INFO("equal for pixt1 of dreyfus4", mainName);
@@ -147,11 +147,11 @@ static char  mainName[] = "equal_reg";
 
     pixs = pixRead(DREYFUS8);
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
-    pixWrite("junkdrey8-1", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkdrey8-1.png", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
-    pixWrite("junkdrey8-2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkdrey8-2.png", pixt2, IFF_PNG);
     pixt3 = pixConvertRGBToColormap(pixt2, 1);
-    pixWrite("junkdrey8-3", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkdrey8-3.png", pixt3, IFF_PNG);
     pixEqual(pixs, pixt1, &same);
     if (same)
         L_INFO("equal for pixt1 of dreyfus8", mainName);
@@ -173,11 +173,11 @@ static char  mainName[] = "equal_reg";
 
     pixs = pixRead(KAREN8);
     pixt1 = pixThresholdTo4bpp(pixs, 16, 1);
-    pixWrite("junkkar8-1", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkkar8-1.png", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixt1, REMOVE_CMAP_BASED_ON_SRC);
-    pixWrite("junkkar8-2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkkar8-2.png", pixt2, IFF_PNG);
     pixt3 = pixRemoveColormap(pixt1, REMOVE_CMAP_TO_FULL_COLOR);
-    pixWrite("junkkar8-3", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkkar8-3.png", pixt3, IFF_PNG);
     pixt4 = pixConvertRGBToColormap(pixt3, 1);
     pixEqual(pixt1, pixt2, &same);
     if (same)
@@ -208,13 +208,13 @@ static char  mainName[] = "equal_reg";
 
     pixs = pixRead(MARGE32);
     pixt1 = pixOctreeQuantNumColors(pixs, 32, 0);
-    pixWrite("junkmarge8-1", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkmarge8-1.png", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixt1, REMOVE_CMAP_TO_FULL_COLOR);
-    pixWrite("junkmarge8-2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkmarge8-2.png", pixt2, IFF_PNG);
     pixt3 = pixConvertRGBToColormap(pixt2, 1);
-    pixWrite("junkmarge8-3", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkmarge8-3.png", pixt3, IFF_PNG);
     pixt4 = pixOctreeQuantNumColors(pixt2, 64, 0);
-    pixWrite("junkmarge8-4", pixt4, IFF_PNG);
+    pixWrite("/tmp/junkmarge8-4.png", pixt4, IFF_PNG);
     pixEqual(pixt1, pixt2, &same);
     if (same)
         L_INFO("equal for pixt2 of marge32", mainName);

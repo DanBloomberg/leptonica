@@ -79,7 +79,7 @@ static char  mainName[] = "bilinear_reg";
         pixInvert(pixd, pixd);
         pixXor(pixd, pixd, pixg);
         pixSaveTiled(pixd, pixa, 2, 0, 20, 0);
-        if (i == 0) pixWrite("junksamp.png", pixt1, IFF_PNG);
+        if (i == 0) pixWrite("/tmp/junksamp.png", pixt1, IFF_PNG);
         pixDestroy(&pixgb);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
@@ -89,7 +89,7 @@ static char  mainName[] = "bilinear_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkbilin1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkbilin1.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 300);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -109,7 +109,7 @@ static char  mainName[] = "bilinear_reg";
         pixInvert(pixd, pixd);
         pixXor(pixd, pixd, pixg);
         pixSaveTiled(pixd, pixa, 2, 0, 20, 0);
-        if (i == 0) pixWrite("junkinterp.png", pixt1, IFF_PNG);
+        if (i == 0) pixWrite("/tmp/junkinterp.png", pixt1, IFF_PNG);
         pixDestroy(&pixgb);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
@@ -119,7 +119,7 @@ static char  mainName[] = "bilinear_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkbilin2.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkbilin2.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 300);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -150,7 +150,7 @@ static char  mainName[] = "bilinear_reg";
     pixDestroy(&pixt4);
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkbilin3.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkbilin3.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 300);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);

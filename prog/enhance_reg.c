@@ -55,7 +55,7 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 32);
-    pixWrite("junktrcgam.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junktrcgam.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 0, 100, "TRC Gamma", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -68,7 +68,7 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("junktrc.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junktrc.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 300, 100, "TRC", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -81,7 +81,7 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("junkhue.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkhue.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 600, 100, "Hue", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -98,7 +98,7 @@ static char  mainName[] = "enhance_reg";
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
     gplotSimple1(na, GPLOT_X11, "junkplot", "Average Saturation");
-    pixWrite("junksat.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junksat.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 900, 100, "Saturation", 1);
     numaDestroy(&na);
     pixDestroy(&pixt1);
@@ -112,7 +112,7 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("junkcontrast.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkcontrast.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 0, 400, "Contrast", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -125,7 +125,7 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("junksharp.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junksharp.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 300, 400, "Sharp", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -133,7 +133,7 @@ static char  mainName[] = "enhance_reg";
         /* Display results */
     pixd = pixaDisplay(pixaf, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkenhance.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkenhance.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixaf);
 
@@ -172,7 +172,7 @@ static char  mainName[] = "enhance_reg";
     pixEqual(pixt1, pixt3, &same);
     same ? fprintf(stderr, "1 and 3 are equal\n") :
            fprintf(stderr, "1 and 3 differ\n");
-    pixWrite("junktrans", pixt1, IFF_PNG);
+    pixWrite("/tmp/junktrans.png", pixt1, IFF_PNG);
 
     pixDestroy(&pix);
     pixDestroy(&pixs1);

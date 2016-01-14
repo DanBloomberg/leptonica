@@ -14,9 +14,9 @@
  *====================================================================*/
 
 /*
- * pixa_reg.c
+ * pixa1_reg.c
  *
- *    tests removal of components
+ *    Tests removal of connected components.
  */
 
 #include <stdio.h>
@@ -34,10 +34,10 @@ BOXA        *boxa;
 GPLOT       *gplot;
 NUMA        *nax, *nay1, *nay2;
 PIX         *pixs, *pixd;
-static char  mainName[] = "pixa_reg";
+static char  mainName[] = "pixa1_reg";
 
     if (argc != 1)
-	exit(ERROR_INT(" Syntax:  pixa_reg", mainName, 1));
+	exit(ERROR_INT(" Syntax:  pixa1_reg", mainName, 1));
 
     if ((pixs = pixRead("feyn.tif")) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
@@ -80,7 +80,7 @@ static char  mainName[] = "pixa_reg";
         pixDestroy(&pixd);
     }
 
-    gplot = gplotCreate("junkplot1", GPLOT_X11,
+    gplot = gplotCreate("/tmp/junkroot1", GPLOT_X11,
                         "Select large: number of cc vs size removed",
                         "min size", "number of c.c.");
     gplotAddPlot(gplot, nax, nay1, GPLOT_LINES, "select if both");
@@ -122,7 +122,7 @@ static char  mainName[] = "pixa_reg";
         pixDestroy(&pixd);
     }
 
-    gplot = gplotCreate("junkplot2", GPLOT_X11,
+    gplot = gplotCreate("/tmp/junkroot2", GPLOT_X11,
                         "Remove large: number of cc vs size removed",
                         "min size", "number of c.c.");
     gplotAddPlot(gplot, nax, nay1, GPLOT_LINES, "select if both");

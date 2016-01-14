@@ -70,9 +70,9 @@ static char  mainName[] = "edgetest";
     pixDestroy(&pixf);
 
         /* Display tiled */
-    pixa = pixaReadFiles(".", "junk_write_display");
+    pixa = pixaReadFiles("/tmp", "junk_write_display");
     pixd = pixaDisplayTiledAndScaled(pixa, 8, 400, 3, 0, 25, 2);
-    pixWrite("junktiles", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junktiles.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 

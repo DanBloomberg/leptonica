@@ -75,7 +75,7 @@ static char  mainName[] = "plottest";
     }
 
 	/* Show the plot */
-    gplot1 = gplotCreate("junkplotroot1", GPLOT_OUTPUT, "Example plots",
+    gplot1 = gplotCreate("/tmp/junkplotroot1", GPLOT_OUTPUT, "Example plots",
 			 "theta", "f(theta)");
     gplotAddPlot(gplot1, nax, nay1, GPLOT_STYLE, "sin (2.4 * theta)");
     gplotAddPlot(gplot1, nax, nay2, GPLOT_STYLE, "cos (2.4 * theta)");
@@ -83,18 +83,18 @@ static char  mainName[] = "plottest";
 
         /* Also save the plot to png */
     gplot1->outformat = GPLOT_PNG;
-    gplot1->outname = stringNew("junkplotroot1.png");
+    gplot1->outname = stringNew("/tmp/junkplotroot1.png");
     gplotMakeOutput(gplot1);
 
         /* Test gplot serialization */
-    gplotWrite("junkgplot1", gplot1);
-    if ((gplot2 = gplotRead("junkgplot1")) == NULL)
+    gplotWrite("/tmp/junkgplot1.plt", gplot1);
+    if ((gplot2 = gplotRead("/tmp/junkgplot1.plt")) == NULL)
         exit(ERROR_INT("gplotRead failure!", mainName, 1));
-    gplotWrite("junkgplot2", gplot2);
+    gplotWrite("/tmp/junkgplot2.plt", gplot2);
 
         /* Are the two written gplot files the same? */
-    str1 = (char *)arrayRead("junkgplot1", &nbytes1);
-    str2 = (char *)arrayRead("junkgplot2", &nbytes2);
+    str1 = (char *)arrayRead("/tmp/junkgplot1.plt", &nbytes1);
+    str2 = (char *)arrayRead("/tmp/junkgplot2.plt", &nbytes2);
     if (nbytes1 != nbytes2)
         fprintf(stderr, "Error: nbytes1 = %d, nbytes2 = %d\n",
                 nbytes1, nbytes2);
@@ -113,10 +113,10 @@ static char  mainName[] = "plottest";
     FREE(str2);
 
         /* Read from file and regenerate the plot */
-    gplot3 = gplotRead("junkgplot2");
+    gplot3 = gplotRead("/tmp/junkgplot2.plt");
     gplot3->outformat = GPLOT_X11;
     gplotMakeOutput(gplot3);
-
-    exit(0);
+    gplotDestroy(&gplot3);
+    return 0;
 }
 

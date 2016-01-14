@@ -18,7 +18,7 @@
  *
  *   Regression test for writing a block of text in one of 4 locations
  *   relative to a pix.  This tests writing on 8 different types of images.
- *   Output is written to junkpixd[1,2,3,4].png
+ *   Output is written to /tmp/junkpixd[1,2,3,4].png
  */
 
 #include <stdio.h>
@@ -82,7 +82,7 @@ static char  mainName[] = "writetext_reg";
         pixt = pixaDisplay(pixa, 0, 0);
         pixd = pixAddSingleTextblock(pixt, bmftop, topstr[loc - 1],
                                      0xff00ff00, L_ADD_ABOVE, NULL);
-        sprintf(outname, "junkpixd%d.png", loc);
+        sprintf(outname, "/tmp/junkpixd%d.png", loc);
         pixWrite(outname, pixd, IFF_PNG);
         pixDisplay(pixd, 50 * loc, 50);
         pixDestroy(&pixt);

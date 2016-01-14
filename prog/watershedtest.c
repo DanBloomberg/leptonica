@@ -62,7 +62,7 @@ static char  mainName[] = "watershedtest";
         }
     }
     pixSaveTiled(pixs, pixac, 1, 1, 10, 32);
-    pixWrite("junkpattern", pixs, IFF_PNG);
+    pixWrite("/tmp/junkpattern.png", pixs, IFF_PNG);
     startTimer();
     pixLocalExtrema(pixs, 0, 0, &pixt1, &pixt2);
     fprintf(stderr, "Time for extrema: %7.3f\n", stopTimer());
@@ -73,7 +73,7 @@ static char  mainName[] = "watershedtest";
     pixPaintThroughMask(pixc, pixt2, 0, 0, greenval);
     pixPaintThroughMask(pixc, pixt1, 0, 0, redval);
     pixSaveTiled(pixc, pixac, 1, 0, 10, 32);
-    pixWrite("junkpixc", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpixc.png", pixc, IFF_PNG);
     pixSaveTiled(pixt1, pixac, 1, 0, 10, 32);
     pta = pixSelectMinInConnComp(pixs, pixt1, NULL);
 /*    ptaWriteStream(stderr, pta, 1); */
@@ -105,7 +105,7 @@ static char  mainName[] = "watershedtest";
 
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkwshed.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkwshed.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
 

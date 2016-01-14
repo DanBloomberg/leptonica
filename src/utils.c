@@ -64,6 +64,9 @@
  *       Copy in memory
  *           l_uint8   *arrayCopy()
  *
+ *       Test files for equivalence
+ *           l_int32   *filesAreIdentical()
+ *
  *       Byte-swapping data conversion
  *           l_uint16   convertOnBigEnd16()
  *           l_uint32   convertOnBigEnd32()
@@ -692,7 +695,7 @@ l_int32  srclen1, srclen2, destlen;
     if (src1)
         strcpy(dest, src1);
     if (src2)
-        strcat(dest, src2);
+        strncat(dest, src2, srclen2);
     return dest;
 }
 
@@ -945,7 +948,7 @@ char  *ptr;
     if ((ptr = (char *)strstr(src, sub)) == NULL)  /* not found */
         return 0;
 
-    if (*ploc)
+    if (ploc)
         *ploc = ptr - src;
     return 1;
 }
@@ -1233,7 +1236,7 @@ FILE     *fp;
         return (l_uint8 *)ERROR_PTR("pnbytes not defined", procName, NULL);
     *pnbytes = 0;
 
-    if ((fp = fopen(fname, "r")) == NULL)
+    if ((fp = fopen(fname, "rb")) == NULL)
         return (l_uint8 *)ERROR_PTR("file stream not opened", procName, NULL);
 
     data = arrayReadStream(fp, pnbytes);
@@ -1294,7 +1297,7 @@ FILE    *fp;
 
     if (!filename)
         return ERROR_INT("filename not defined", procName, 0);
-    fp = fopen(filename, "r");
+    fp = fopen(filename, "rb");
     nbytes = fnbytesInFile(fp);
     fclose(fp);
     return nbytes;
@@ -1341,6 +1344,7 @@ arrayWrite(const char  *filename,
            l_int32      nbytes)
 {
 FILE  *fp;
+char   actualOperation[20];
 
     PROCNAME("arrayWrite");
 
@@ -1356,7 +1360,9 @@ FILE  *fp;
     if (!strcmp(operation, "w") && !strcmp(operation, "a"))
         return ERROR_INT("operation not one of {'w','a'}", procName, 1);
 
-    if ((fp = fopen(filename, operation)) == NULL)
+    strncpy(actualOperation, operation, 2);
+    strncat(actualOperation, "b", 2);  /* for windows */
+    if ((fp = fopen(filename, actualOperation)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     fwrite(data, 1, nbytes, fp);
     fclose(fp);
@@ -1392,6 +1398,56 @@ l_uint8  *datad;
     return datad;
 }
 
+
+/*--------------------------------------------------------------------*
+ *                      Test files for equivalence                    *
+ *--------------------------------------------------------------------*/
+/*!
+ *  filesAreIdentical()
+ *
+ *      Input:  fname1
+ *              fname2
+ *              &same (<return> 1 if identical; 0 if different)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+filesAreIdentical(const char  *fname1,
+                  const char  *fname2,
+                  l_int32     *psame)
+{
+l_int32   i, same, nbytes1, nbytes2;
+l_uint8  *array1, *array2;
+
+    PROCNAME("filesAreIdentical");
+
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = 0;
+    if (!fname1 || !fname2)
+        return ERROR_INT("both names not defined", procName, 1);
+
+    nbytes1 = nbytesInFile(fname1);
+    nbytes2 = nbytesInFile(fname2);
+    if (nbytes1 != nbytes2)
+        return 0;
+
+    if ((array1 = arrayRead(fname1, &nbytes1)) == NULL)
+        return ERROR_INT("array1 not read", procName, 1);
+    if ((array2 = arrayRead(fname2, &nbytes2)) == NULL)
+        return ERROR_INT("array2 not read", procName, 1);
+    same = 1;
+    for (i = 0; i < nbytes1; i++) {
+        if (array1[i] != array2[i]) {
+            same = 0;
+            break;
+        }
+    }
+    FREE(array1);
+    FREE(array2);
+    *psame = same;
+
+    return 0;
+}
 
 
 /*--------------------------------------------------------------------------*
@@ -1550,7 +1606,7 @@ char  *cpathname, *lastslash;
         return ERROR_INT("pathname not defined", procName, 1);
 
     cpathname = stringNew(pathname);
-    if ((lastslash = strrchr(cpathname, '/'))) {
+    if ((lastslash = strrchr(cpathname, sepchar))) {
         if (ptail)
             *ptail = stringNew(lastslash + 1);
         if (pdir) {
@@ -1649,7 +1705,7 @@ genPathname(const char  *dir,
             const char  *fname)
 {
 char    *charbuf;
-l_int32  dirlen, namelen;
+l_int32  dirlen, namelen, totlen;
     
     PROCNAME("genPathname");
 
@@ -1660,19 +1716,28 @@ l_int32  dirlen, namelen;
 
     dirlen = strlen(dir);
     namelen = strlen(fname);
-    if ((charbuf = (char *)CALLOC(dirlen + namelen + 10, sizeof(char)))
-            == NULL)
+    totlen = dirlen + namelen + 20;
+    if ((charbuf = (char *)CALLOC(totlen, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("charbuf not made", procName, NULL);
 
-    if (dir[dirlen - 1] != sepchar)
 #if COMPILER_MSVC
-        sprintf(charbuf, "%s\\", dir);
+    if (stringFindSubstr(dir, "/", NULL) > 0) {
+        char *tempname;
+        tempname = stringReplaceEachSubstr(dir, "/", "\\", NULL);
+        strncpy(charbuf, tempname, strlen(tempname));
+        FREE(tempname);
+    }
+    else {
+        strncpy(charbuf, dir, dirlen);
+    }
 #else
-        sprintf(charbuf, "%s/", dir);
-#endif
-    else
-        strcpy(charbuf, dir);
-    strcat(charbuf, fname);
+    strncpy(charbuf, dir, dirlen);
+#endif  /* COMPILER_MSVC */
+
+    dirlen = strlen(charbuf);
+    if (charbuf[dirlen - 1] != sepchar)  /* append sepchar */
+        charbuf[dirlen] = sepchar;
+    strncat(charbuf, fname, namelen);
     return charbuf;
 }
 
@@ -1734,6 +1799,10 @@ l_int32  pid, nchars;
  *              numpost (number of characters after the digits to be found)
  *      Return: num (number embedded in the filename); -1 on error or if
  *                   not found
+ *
+ *  Notes:
+ *      (1) The number is to be found in the basename, which is the
+ *          filename without either the directory or the last extension.
  */
 l_int32
 extractNumberFromFilename(const char  *fname,
@@ -1780,7 +1849,7 @@ l_int32  len, nret, num;
  *      ....
  *      fprintf(stderr, "Elapsed time = %7.3f sec\n", stopTimer());
  */
-#if !defined(__MINGW32__) && !defined(_WIN32)
+#if !defined(__MINGW32__) && !defined(COMPILER_MSVC)
 
 #include <sys/time.h>
 #include <sys/resource.h>

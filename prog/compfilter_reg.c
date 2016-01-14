@@ -261,11 +261,12 @@ static char  mainName[] = "compfilter_reg";
     numaDestroy(&na4);
     numaDestroy(&na5);
 
-    system("gthumb junk_write_display* &");
+
+    pixDisplayMultiple("/tmp/junk_write_display*");
 
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkcomp.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkcomp.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
 

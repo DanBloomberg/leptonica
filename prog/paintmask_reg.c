@@ -92,7 +92,7 @@ static char  mainName[] = "paintmask_reg";
     pixDestroy(&pixd);
 
         /* Clip 2 bpp colormapped */
-    pixt1 = pixMedianCutQuantGeneral(pixs, 0, 2, 4, 5, 1);
+    pixt1 = pixMedianCutQuantGeneral(pixs, 0, 2, 4, 5, 1, 1);
     pixt2 = pixClipRectangle(pixt1, box, NULL);
     pixDisplayWrite(pixt2, 1);
     pixd = pixClipMasked(pixt1, pixm, 100, 100, 0x03608000);
@@ -186,8 +186,7 @@ static char  mainName[] = "paintmask_reg";
     pixDestroy(&pixd);
     boxDestroy(&box);
 
-    system("gthumb junk_write_display* &");
-
+    pixDisplayMultiple("/tmp/junk_write_display*");
     return 0;
 }
 

@@ -142,8 +142,8 @@ static char  mainName[] = "textlinemask";
 
         /* Visual output */
     if (DEBUG_OUTPUT) {
-        system("gthumb junk_write_display* &");
-        pixat = pixaReadFiles(".", "junk_write_display");
+        pixDisplayMultiple("/tmp/junk_write_display*");
+        pixat = pixaReadFiles("/tmp", "junk_write_display");
         pixt5 = selDisplayInPix(selsplit, 31, 2);
         pixaAddPix(pixat, pixt5, L_INSERT);
         pixt6 = pixaDisplayTiledAndScaled(pixat, 32, 400, 3, 0, 35, 3);
@@ -153,13 +153,13 @@ static char  mainName[] = "textlinemask";
     }
 
         /* Test pixaa I/O */
-    pixaaWrite("junkpixaa", pixaa);
-    pixaa2 = pixaaRead("junkpixaa");
-    pixaaWrite("junkpixaa2", pixaa2);
+    pixaaWrite("/tmp/junkpixaa", pixaa);
+    pixaa2 = pixaaRead("/tmp/junkpixaa");
+    pixaaWrite("/tmp/junkpixaa2", pixaa2);
 
         /* Test pixaa display */
     pixd = pixaaDisplay(pixaa, w2, h2);
-    pixWrite("junkdisplay", pixd, IFF_PNG);
+    pixWrite("/tmp/junkdisplay", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
         /* Cleanup */

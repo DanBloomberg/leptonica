@@ -1490,6 +1490,34 @@ l_uint32  *data;
  *              val = GET_DATA_BYTE(lineg8[i], j);  // fast access; BYTE, 8
  *              ...
  *              FREE(lineg8);  // don't forget this
+ *      (5) These are convenient for accessing bytes sequentially in an
+ *          8 bpp grayscale image.  People who write image processing code
+ *          on 8 bpp images are accustomed to grabbing pixels directly out
+ *          of the raster array.  Note that for little endians, you first
+ *          need to reverse the byte order in each 32-bit word.
+ *          Here's a typical usage pattern:
+ *              pixEndianByteSwap(pix);   // always safe; no-op on big-endians
+ *              l_uint8 **lineptrs = (l_uint8 **)pixGetLinePtrs(pix);
+ *              pixGetDimensions(pix, &w, &h, NULL);
+ *              for (i = 0; i < h; i++) {
+ *                  l_uint8 *line = lineptrs[i];
+ *                  for (j = 0; j < w; j++) {
+ *                      val = line[j];
+ *                      ...
+ *                  }
+ *              }
+ *              pixEndianByteSwap(pix);  // restore big-endian order
+ *              FREE(lineptrs);
+ *          This can be done even more simply as follows:
+ *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, &w, &h);
+ *              for (i = 0; i < h; i++) {
+ *                  l_uint8 *line = lineptrs[i];
+ *                  for (j = 0; j < w; j++) {
+ *                      val = line[j];
+ *                      ...
+ *                  }
+ *              }
+ *              pixCleanupByteProcessing(pix, lineptrs);
  */
 void **
 pixGetLinePtrs(PIX      *pix,

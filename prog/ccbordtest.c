@@ -58,7 +58,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd = ccbaDisplayBorder(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("junkborder1", pixd, IFF_PNG);
+    pixWrite("/tmp/junkborder1.png", pixd, IFF_PNG);
 
 #else
 	/* get step chain code, then global coords, and display borders */
@@ -74,7 +74,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd = ccbaDisplayBorder(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("junkborder1", pixd, IFF_PNG);
+    pixWrite("/tmp/junkborder1.png", pixd, IFF_PNG);
 #endif
 
 	/* check if border pixels are in original set */
@@ -93,7 +93,7 @@ static char  mainName[] = "ccbordtest";
 /*    pixc = ccbaDisplayImage1(ccba); */
     pixc = ccbaDisplayImage2(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("junkrecon1", pixc, IFF_PNG);
+    pixWrite("/tmp/junkrecon1.png", pixc, IFF_PNG);
 
 	/* check with original to see if correct */
     fprintf(stderr, "Check with original to see if correct ...\n");
@@ -115,7 +115,7 @@ static char  mainName[] = "ccbordtest";
 		    fprintf(stderr, "bad pixel at (%d, %d)\n", j, i);
 	    }
 	}
-	pixWrite("junkbadpixels", pixc, IFF_PNG);
+	pixWrite("/tmp/junkbadpixels.png", pixc, IFF_PNG);
 #endif
     }
 
@@ -125,11 +125,11 @@ static char  mainName[] = "ccbordtest";
      *----------------------------------------------------------*/
     fprintf(stderr, "Write serialized step data...");
     startTimer();
-    ccbaWrite("junkstepout", ccba);
+    ccbaWrite("/tmp/junkstepout", ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
     fprintf(stderr, "Read serialized step data...");
     startTimer();
-    ccba2 = ccbaRead("junkstepout");
+    ccba2 = ccbaRead("/tmp/junkstepout");
     fprintf(stderr, "%6.3f sec\n", stopTimer());
 
 	/* display the border pixels again */
@@ -141,7 +141,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd2 = ccbaDisplayBorder(ccba2);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("junkborder2", pixd2, IFF_PNG);
+    pixWrite("/tmp/junkborder2.png", pixd2, IFF_PNG);
 
 	/* check if border pixels are same as first time */
     pixXor(pixd2, pixd2, pixd);
@@ -164,7 +164,7 @@ static char  mainName[] = "ccbordtest";
 /*    pixc2 = ccbaDisplayImage1(ccba2); */
     pixc2 = ccbaDisplayImage2(ccba2);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("junkrecon2", pixc2, IFF_PNG);
+    pixWrite("/tmp/junkrecon2.png", pixc2, IFF_PNG);
 
 	/* check with original to see if correct */
     fprintf(stderr, "Check with original to see if correct ...\n");
@@ -186,7 +186,7 @@ static char  mainName[] = "ccbordtest";
 		    fprintf(stderr, "bad pixel at (%d, %d)\n", j, i);
 	    }
 	}
-	pixWrite("junkbadpixels2", pixc2, IFF_PNG);
+	pixWrite("/tmp/junkbadpixels2.png", pixc2, IFF_PNG);
 #endif
     }
 
@@ -208,7 +208,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd3 = ccbaDisplaySPBorder(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("junkborder3", pixd3, IFF_PNG);
+    pixWrite("/tmp/junkborder3.png", pixd3, IFF_PNG);
 	/* check if border pixels are in original set */
     fprintf(stderr, "Check if border pixels are in original set ...\n");
     pixt = pixSubtract(NULL, pixd3, pixs);
@@ -223,7 +223,7 @@ static char  mainName[] = "ccbordtest";
 	/*  output in svg file format */
     fprintf(stderr, "Write output in svg file format ...\n");
     startTimer();
-    ccbaWriteSVG("junksvg", ccba);
+    ccbaWriteSVG("/tmp/junksvg", ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
 
     ccbaDestroy(&ccba2);
@@ -232,7 +232,6 @@ static char  mainName[] = "ccbordtest";
     pixDestroy(&pixd);
     pixDestroy(&pixc);
     pixDestroy(&pixc2);
-
-    exit(0);
+    return 0;
 }
 

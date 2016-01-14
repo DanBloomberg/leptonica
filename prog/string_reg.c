@@ -46,43 +46,43 @@ static char  mainName[] = "string_reg";
 
     outstring = sarrayToString(sa1, 0);
     nbytesout = strlen(outstring);
-    arrayWrite("junkout1", "w", outstring, nbytesout);
+    arrayWrite("/tmp/junk1.txt", "w", outstring, nbytesout);
     FREE(outstring);
 
     outstring = sarrayToString(sa1, 1);
     nbytesout = strlen(outstring);
-    arrayWrite("junkout2", "w", outstring, nbytesout);
+    arrayWrite("/tmp/junk2.txt", "w", outstring, nbytesout);
     FREE(outstring);
 
     outstring = sarrayToString(sa2, 0);
     nbytesout = strlen(outstring);
-    arrayWrite("junkout3", "w", outstring, nbytesout);
+    arrayWrite("/tmp/junk3.txt", "w", outstring, nbytesout);
     FREE(outstring);
 
     outstring = sarrayToString(sa2, 1);
     nbytesout = strlen(outstring);
-    arrayWrite("junkout4", "w", outstring, nbytesout);
+    arrayWrite("/tmp/junk4.txt", "w", outstring, nbytesout);
     FREE(outstring);
 
     outstring = sarrayToString(sa3, 0);
     nbytesout = strlen(outstring);
-    arrayWrite("junkout5", "w", outstring, nbytesout);
+    arrayWrite("/tmp/junk5.txt", "w", outstring, nbytesout);
     FREE(outstring);
 
     outstring = sarrayToString(sa3, 1);
     nbytesout = strlen(outstring);
-    arrayWrite("junkout6", "w", outstring, nbytesout);
+    arrayWrite("/tmp/junk6.txt", "w", outstring, nbytesout);
     FREE(outstring);
-    sprintf(buf, "diff -s junkout6 %s", infile);
+    sprintf(buf, "diff -s /tmp/junk6.txt %s", infile);
     system(buf);
 
-	/* write/read/write; compare junkout5 with junkout6 */
-    sarrayWrite("junkout7", sa2);
-    sarrayWrite("junkout8", sa3);
-    sa4 = sarrayRead("junkout8");
-    sarrayWrite("junkout9", sa4);
-    sa5 = sarrayRead("junkout9");
-    system("diff -s junkout8 junkout9");
+	/* write/read/write; compare /tmp/junkout5 with /tmp/junkout6 */
+    sarrayWrite("/tmp/junk7.txt", sa2);
+    sarrayWrite("/tmp/junk8.txt", sa3);
+    sa4 = sarrayRead("/tmp/junk8.txt");
+    sarrayWrite("/tmp/junk9.txt", sa4);
+    sa5 = sarrayRead("/tmp/junk9.txt");
+    system("diff -s /tmp/junk8.txt /tmp/junk9.txt");
 
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);

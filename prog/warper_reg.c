@@ -58,7 +58,7 @@ static char  mainName[] = "warptest";
         }
         pixd = pixaDisplay(pixac, 0, 0);
         pixDisplay(pixd, 100, 100);
-        sprintf(namebuf, "junkwarp.%d.png", k);
+        sprintf(namebuf, "/tmp/junkwarp.%d.png", k);
         pixWrite(namebuf, pixd, IFF_PNG);
         pixaDestroy(&pixac);
         pixDestroy(&pixd);
@@ -75,7 +75,7 @@ static char  mainName[] = "warptest";
         }
         pixd = pixaDisplay(pixac, 0, 0);
         pixDisplay(pixd, 100, 600);
-        sprintf(namebuf, "junkcaptcha.%d.png", k);
+        sprintf(namebuf, "/tmp/junkcaptcha.%d.png", k);
         pixWrite(namebuf, pixd, IFF_PNG);
         pixaDestroy(&pixac);
         pixDestroy(&pixd);

@@ -50,7 +50,7 @@ static char  mainName[] = "shear_reg";
 
     fprintf(stderr, "Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
-    shearTest(pixs, "junk1bpp.png", 1);
+    shearTest(pixs, "/tmp/junk1bpp.png", 1);
     pixDestroy(&pixs);
 
         /* We change the black to dark red so that we can see
@@ -61,39 +61,39 @@ static char  mainName[] = "shear_reg";
     cmap = pixGetColormap(pixs);
     pixcmapGetIndex(cmap, 40, 44, 40, &index);
     pixcmapResetColor(cmap, index, 100, 0, 0);
-    shearTest(pixs, "junk2bpp.png", 1);
+    shearTest(pixs, "/tmp/junk2bpp.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
-    shearTest(pixs, "junk4bpp1.png", 1);
+    shearTest(pixs, "/tmp/junk4bpp1.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
-    shearTest(pixs, "junk4bpp2.png", 1);
+    shearTest(pixs, "/tmp/junk4bpp2.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
-    shearTest(pixs, "junk8bpp1.png", 1);
+    shearTest(pixs, "/tmp/junk8bpp1.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
-    shearTest(pixs, "junk8bpp2.png", 1);
+    shearTest(pixs, "/tmp/junk8bpp2.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
-    shearTest(pixd, "junk8bpp3.png", 4);
+    shearTest(pixd, "/tmp/junk8bpp3.png", 4);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
-    shearTest(pixs, "junkrgb.png", 1);
+    shearTest(pixs, "/tmp/junkrgb.png", 1);
     pixDestroy(&pixs);
 
     return 0;

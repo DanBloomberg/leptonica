@@ -516,7 +516,7 @@ pixOctreeColorQuant(PIX     *pixs,
  *  pixOctreeColorQuantGeneral()
  *
  *      Input:  pixs  (32 bpp; 24-bit color)
- *              colors  (in colormap; some number in range [32 ... 256];
+ *              colors  (in colormap; some number in range [128 ... 240];
  *                      the actual number of colors used will be smaller)
  *              ditherflag  (1 to dither, 0 otherwise)
  *              validthresh (minimum fraction of pixels neither near white
@@ -525,7 +525,9 @@ pixOctreeColorQuant(PIX     *pixs,
  *                           color but are nearly all white)
  *              colorthresh (minimum fraction of pixels with color that are
  *                           not near white or black, that are required
- *                           for color quantization; typ. ~0.01)
+ *                           for color quantization; typ. ~0.01, but smaller
+ *                           for images that have color along with a
+ *                           significant fraction of gray)
  *      Return: pixd (8 bit with colormap), or null on error
  *
  *  Notes:
@@ -552,6 +554,9 @@ pixOctreeColorQuant(PIX     *pixs,
  *             the pixels that are neither black nor white have very
  *             little color content.  The product 'pixfract * colorfract'
  *             gives the fraction of pixels with significant color content.
+ *          We test against the product @validthresh * @colorthresh
+ *          to find color in images that have either very few
+ *          intermediate gray pixels or that have many such gray pixels.
  */
 PIX *
 pixOctreeColorQuantGeneral(PIX       *pixs,
@@ -574,8 +579,8 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
-    if (colors < 128 || colors > 256)
-        return (PIX *)ERROR_PTR("colors must be in [128, 256]", procName, NULL);
+    if (colors < 128 || colors > 240)
+        return (PIX *)ERROR_PTR("colors must be in [128, 240]", procName, NULL);
 
         /* Determine if the image has sufficient color content.
          * If pixfract << 1, most pixels are close to black or white.
@@ -584,9 +589,9 @@ PIXCMAP   *cmap;
          * If without color, quantize with a grayscale colormap. */
     pixGetDimensions(pixs, &w, &h, NULL);
     minside = L_MIN(w, h);
-    factor = L_MAX(1, minside / 200);
-    pixColorFraction(pixs, 20, 248, 12, factor, &pixfract, &colorfract);
-    if (pixfract < validthresh || colorfract < colorthresh) {
+    factor = L_MAX(1, minside / 400);
+    pixColorFraction(pixs, 20, 244, 20, factor, &pixfract, &colorfract);
+    if (pixfract * colorfract < validthresh * colorthresh) {
         L_INFO_FLOAT2("\n  Pixel fraction neither white nor black = %6.3f"
                       "\n  Color fraction of those pixels = %6.3f"
                       "\n  Quantizing in gray",
@@ -3141,13 +3146,15 @@ PIXCMAP   *cmap;
  *      Input:  pixs (32 bpp rgb)
  *              level (significant octcube bits for each of RGB;
  *                     valid in [1...6]; use 0 for default)
- *              darkthresh (darkest average value not automatically
- *                          considered gray; use 0 for default)
- *              lightthresh (lightest average value not automatically
- *                          considered gray; use 0 for default)
- *              diffthresh (thresh for max difference from the average of
- *                          component values to consider pixel gray;
- *                          use 0 for default)
+ *              darkthresh (threshold near black; if the lightest component
+ *                          is below this, the pixel is not considered to
+ *                          be gray or color; uses 0 for default)
+ *              lightthresh (threshold near white; if the darkest component
+ *                           is above this, the pixel is not considered to
+ *                           be gray or color; use 0 for default)
+ *              diffthresh (thresh for the max difference between component
+ *                          values; for differences below this, the pixel
+ *                          is considered to be gray; use 0 for default)
  *                          considered gray; use 0 for default)
  *              minfract (min fraction of pixels for gray histo bin;
  *                        use 0.0 for default)
@@ -3166,20 +3173,24 @@ PIXCMAP   *cmap;
  *      (3) Level 3 (512 octcubes) will usually succeed because not more
  *          than half of them are occupied with 1 or more pixels.
  *      (4) This uses the criterion from pixColorFraction() for deciding
- *          if a colormap entry is color; namely, if the average is
- *          not too close to either black or white, and the maximum
- *          deviation of a component from the average exceeds a threshold.
+ *          if a colormap entry is color; namely, if the color components
+ *          are not too close to either black or white, and the maximum
+ *          difference between component values equals or exceeds a threshold.
  *      (5) For quantizing the gray pixels, it uses a histogram-based
  *          method where input parameters determining the buckets are
  *          the minimum population fraction and the maximum allowed size.
  *      (6) Recommended input parameters are:
  *              @level:  3 or 4  (3 is default)
  *              @darkthresh:  20
- *              @lightthresh: 248
- *              @diffthresh: 12
+ *              @lightthresh: 244
+ *              @diffthresh: 20
  *              @minfract: 0.05
  *              @maxspan: 15
- *          Input 0 on any of these to get the default.
+ *          These numbers are intended to be conservative (somewhat over-
+ *          sensitive) in color detection,  It's usually better to pay
+ *          extra with octcube quantization of a grayscale image than
+ *          to use grayscale quantization on an image that has some
+ *          actual color.  Input 0 on any of these to get the default.
  *      (7) This can be useful for quantizing orthographically generated
  *          images such as color maps, where there may be more than 256 colors
  *          because of aliasing or jpeg artifacts on text or lines, but
@@ -3197,7 +3208,7 @@ pixFewColorsOctcubeQuantMixed(PIX       *pixs,
                               l_int32    maxspan)
 {
 l_int32    i, j, w, h, wplc, wplm, wpld, ncolors, index; 
-l_int32    rval, gval, bval, val, rdiff, gdiff, bdiff, maxdiff, ave;
+l_int32    rval, gval, bval, val, minval, maxval;
 l_int32   *lut;
 l_uint32  *datac, *datam, *datad, *linec, *linem, *lined;
 PIX       *pixc, *pixm, *pixg, *pixd;
@@ -3211,8 +3222,8 @@ PIXCMAP   *cmap, *cmapd;
     if (level > 6) 
         return (PIX *)ERROR_PTR("invalid level", procName, NULL);
     if (darkthresh <= 0) darkthresh = 20;
-    if (lightthresh <= 0) lightthresh = 248;
-    if (diffthresh <= 0) diffthresh = 12;
+    if (lightthresh <= 0) lightthresh = 244;
+    if (diffthresh <= 0) diffthresh = 20;
     if (minfract <= 0.0) minfract = 0.05;
     if (maxspan <= 2) maxspan = 15;
 
@@ -3230,15 +3241,17 @@ PIXCMAP   *cmap, *cmapd;
         lut[i] = -1;
     for (i = 0, index = 0; i < ncolors; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
-        ave = (l_int32)(0.333 * (rval + gval + bval));
-        if (ave < darkthresh || ave > lightthresh)
+        minval = L_MIN(rval, gval);
+        minval = L_MIN(minval, bval);
+        if (minval > lightthresh)  /* near white */
             continue;
-        rdiff = L_ABS(rval - ave);
-        gdiff = L_ABS(gval - ave);
-        bdiff = L_ABS(bval - ave);
-        maxdiff = L_MAX(rdiff, gdiff);
-        maxdiff = L_MAX(maxdiff, bdiff);
-        if (maxdiff >= diffthresh) {
+        maxval = L_MAX(rval, gval);
+        maxval = L_MAX(maxval, bval);
+        if (maxval < darkthresh)  /* near black */
+            continue;
+
+            /* Use the max diff between components to test for color */
+        if (maxval - minval >= diffthresh) {
             pixcmapAddColor(cmapd, rval, gval, bval);
             lut[i] = index;
             index++;

@@ -48,8 +48,10 @@ static char  mainName[] = "binarize_reg.c";
     PixTest3(pixs, 10, 0.40, 20, 20);
     PixTest3(pixs, 20, 0.34, 30, 30);
 
-    pixd1 = PixTest1(pixs, 7, 0.34, "junkdisp1", "junkpixd1");
-    pixd2 = PixTest2(pixs, 7, 0.34, 4, 4, "junkdisp2", "junkpixd2");
+    pixd1 = PixTest1(pixs, 7, 0.34,
+                     "/tmp/junkdisp1.jpg", "/tmp/junkpixd1.png");
+    pixd2 = PixTest2(pixs, 7, 0.34, 4, 4,
+                     "/tmp/junkdisp2.jpg", "/tmp/junkpixd2.png");
     pixEqual(pixd1, pixd2, &same);
     if (!same) {
         ok = FALSE;

@@ -78,9 +78,9 @@ static char  mainName[] = "xformbox_reg";
     pixDisplay(pixt1, 0, 0);
     pixDisplay(pixt2, 0, 300);
     pixDisplay(pixt3, 0, 570);
-    pixWrite("junkpixt1", pixt1, IFF_PNG);
-    pixWrite("junkpixt2", pixt2, IFF_PNG);
-    pixWrite("junkpixt3", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkpixt1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkpixt2.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkpixt3.png", pixt3, IFF_PNG);
 
     boxaDestroy(&boxa);
     boxDestroy(&box);
@@ -173,7 +173,7 @@ static char  mainName[] = "xformbox_reg";
     pixDestroy(&pixt);
 
     pixt = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkxform1.png", pixt, IFF_PNG);
+    pixWrite("/tmp/junkxform1.png", pixt, IFF_PNG);
     pixDisplay(pixt, 1000, 0);
     pixDestroy(&pixt);
     pixDestroy(&pixs);
@@ -257,7 +257,7 @@ static char  mainName[] = "xformbox_reg";
     FREE(mat3);
 
     pixt = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkxform2.png", pixt, IFF_PNG);
+    pixWrite("/tmp/junkxform2.png", pixt, IFF_PNG);
     pixDisplay(pixt, 1000, 300);
     pixDestroy(&pixt);
     pixDestroy(&pixs);

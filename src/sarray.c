@@ -19,6 +19,7 @@
  *
  *      Create/Destroy/Copy
  *          SARRAY    *sarrayCreate()
+ *          SARRAY    *sarrayCreateInitialized()
  *          SARRAY    *sarrayCreateWordsFromString()
  *          SARRAY    *sarrayCreateLinesFromString()
  *          void      *sarrayDestroy()
@@ -29,6 +30,7 @@
  *          l_int32    sarrayAddString()
  *          l_int32    sarrayExtendArray()
  *          char      *sarrayRemoveString()
+ *          l_int32    sarrayReplaceString()
  *          l_int32    sarrayClear()
  *
  *      Accessors
@@ -45,6 +47,9 @@
  *      Concatenate 2 sarrays
  *          l_int32    sarrayConcatenate()
  *          l_int32    sarrayAppendRange()
+ *
+ *      Pad an sarray to be the same size as another sarray
+ *          l_int32    sarrayPadToSameSize()
  *
  *      Convert word sarray to (formatted) line sarray
  *          SARRAY    *sarrayConvertWordsToLines()
@@ -68,9 +73,9 @@
  *          l_int32    sarrayAppend()
  *
  *      Directory filenames
+ *          SARRAY    *getNumberedPathnamesInDirectory()
  *          SARRAY    *getSortedPathnamesInDirectory()
  *          SARRAY    *getFilenamesInDirectory()
- *
  *
  *      Comments on usage:
  *
@@ -150,6 +155,34 @@ SARRAY  *sa;
     sa->nalloc = n;
     sa->n = 0;
     sa->refcount = 1;
+    return sa;
+}
+
+
+/*!
+ *  sarrayCreateInitialized()
+ *
+ *      Input:  n (size of string ptr array to be alloc'd)
+ *              initstr (string to be initialized on the full array)
+ *      Return: sarray, or null on error
+ */
+SARRAY *
+sarrayCreateInitialized(l_int32  n,
+                        char    *initstr)
+{
+l_int32  i;
+SARRAY  *sa;
+
+    PROCNAME("sarrayCreateInitialized");
+
+    if (n <= 0)
+        return (SARRAY *)ERROR_PTR("n must be > 0", procName, NULL);
+    if (!initstr)
+        return (SARRAY *)ERROR_PTR("initstr not defined", procName, NULL);
+
+    sa = sarrayCreate(n);
+    for (i = 0; i < n; i++)
+        sarrayAddString(sa, initstr, L_COPY);
     return sa;
 }
 
@@ -460,6 +493,53 @@ l_int32  i, n, nalloc;
 
     sa->n--;
     return string;
+}
+
+
+/*!
+ *  sarrayReplaceString()
+ *
+ *      Input:  sarray
+ *              index (of string within sarray to be replaced)
+ *              newstr (string to replace existing one)
+ *              copyflag (L_INSERT, L_COPY)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This destroys an existing string and replaces it with
+ *          the new string or a copy of it.
+ *      (2) By design, an sarray is always compacted, so there are
+ *          never any holes (null ptrs) in the ptr array up to the
+ *          current count.
+ */
+l_int32
+sarrayReplaceString(SARRAY  *sa,
+                    l_int32  index,
+                    char    *newstr,
+                    l_int32  copyflag)
+{
+char    *str;
+l_int32  n;
+
+    PROCNAME("sarrayReplaceString");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+    n = sarrayGetCount(sa);
+    if (index < 0 || index >= n)
+        return ERROR_INT("array index out of bounds", procName, 1);
+    if (!newstr)
+        return ERROR_INT("newstr not defined", procName, 1);
+    if (copyflag != L_INSERT && copyflag != L_COPY)
+        return ERROR_INT("invalid copyflag", procName, 1);
+
+    FREE(sa->array[index]);
+    if (copyflag == L_INSERT)
+        str = newstr;
+    else  /* L_COPY */
+        str = stringNew(newstr);
+    sa->array[index] = str;
+    return 0;
 }
 
 
@@ -816,6 +896,50 @@ l_int32  n, i;
     for (i = start; i <= end; i++) {
         str = sarrayGetString(sa2, i, L_NOCOPY);
         sarrayAddString(sa1, str, L_COPY);
+    }
+
+    return 0;
+}
+
+
+/*----------------------------------------------------------------------*
+ *          Pad an sarray to be the same size as another sarray         *
+ *----------------------------------------------------------------------*/
+/*!
+ *  sarrayPadToSameSize()
+ *
+ *      Input:  sa1, sa2
+ *              padstring
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) If two sarrays have different size, this adds enough
+ *          instances of @padstring to the smaller so that they are
+ *          the same size.  It is useful when two or more sarrays
+ *          are being sequenced in parallel, and it is necessary to
+ *          find a valid string at each index.
+ */
+l_int32
+sarrayPadToSameSize(SARRAY  *sa1,
+                    SARRAY  *sa2,
+                    char    *padstring)
+{
+l_int32  i, n1, n2;
+
+    PROCNAME("sarrayPadToSameSize");
+
+    if (!sa1 || !sa2)
+        return ERROR_INT("both sa1 and sa2 not defined", procName, 1);
+
+    n1 = sarrayGetCount(sa1);
+    n2 = sarrayGetCount(sa2);
+    if (n1 < n2) {
+        for (i = n1; i < n2; i++)
+            sarrayAddString(sa1, padstring, L_COPY);
+    }
+    else if (n1 > n2) {
+        for (i = n2; i < n1; i++)
+            sarrayAddString(sa2, padstring, L_COPY);
     }
 
     return 0;
@@ -1414,6 +1538,87 @@ FILE  *fp;
  *                           Directory filenames                       *
  *---------------------------------------------------------------------*/
 /*!
+ *  getNumberedPathnamesInDirectory()
+ *
+ *      Input:  directory name
+ *              numpre (number of characters in name before number)
+ *              numpost (number of characters in name after number)
+ *              maxnum (only consider page numbers up to this value)
+ *      Return: sarray of sorted pathnames, or NULL on error
+ *
+ *  Notes:
+ *      (1) Returns the full pathnames of the numbered filenames in
+ *          the directory.  The number in the filename is the index
+ *          into the sarray.  For indices for which there are no filenames,
+ *          an empty string ("") is placed into the sarray.
+ *      (2) If no numbered files are found, it returns an empty sarray,
+ *          with no initialized strings.
+ *      (3) It is assumed that the page number is contained within
+ *          the basename (the filename without directory or extension).
+ *          @numpre is the number of characters in the basename
+ *          preceeding the actual page number; @numpost is the number
+ *          following the page number. 
+ *      (4) To use a O(n) matching algorithm, the largest page number
+ *          is found and two internal arrays of this size are created.
+ *          This maximum is constrained not to exceed @maxsum,
+ *          to make sure that an unrealistically large number is not
+ *          accidentally used to determine the array sizes.
+ */
+SARRAY *
+getNumberedPathnamesInDirectory(const char  *dirname,
+                                l_int32      numpre,
+                                l_int32      numpost,
+                                l_int32      maxnum)
+{
+char    *fname, *str;
+l_int32  i, nfiles, num, index;
+SARRAY  *sa, *saout;
+
+    PROCNAME("getNumberedPathnamesInDirectory");
+
+    if (!dirname)
+        return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
+
+    if ((sa = getSortedPathnamesInDirectory(dirname, NULL, 0, 0)) == NULL)
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+    nfiles = sarrayGetCount(sa);
+
+        /* Find the last file in the sorted array that has a number
+         * and matches the count pattern. */
+    num = 0;
+    for (i = nfiles - 1; i >= 0; i++) {
+      fname = sarrayGetString(sa, i, L_NOCOPY);
+      num = extractNumberFromFilename(fname, numpre, numpost);
+      if (num < 0) continue;
+      num = L_MIN(num + 1, maxnum);
+      break;
+    }
+    if (num == 0)
+        return sarrayCreate(1);
+
+        /* Insert pathnames into the output sarray */
+    saout = sarrayCreateInitialized(num, (char *)"");
+    for (i = 0; i < nfiles; i++) {
+      fname = sarrayGetString(sa, i, L_NOCOPY);
+      index = extractNumberFromFilename(fname, numpre, numpost);
+      if (index < 0) continue;
+      if (index >= num) {
+          L_ERROR_STRING("\n  Rogue file %s:", procName, fname);
+          continue;
+      }
+      str = sarrayGetString(saout, index, L_NOCOPY);
+      if (str[0] != '\0')
+          L_WARNING_INT("\n  Multiple files with same number: %d",
+                        procName, index);
+      sarrayReplaceString(saout, index, fname, L_COPY);
+    }
+
+    sarrayDestroy(&sa);
+    return saout;
+}
+
+
+/*!
  *  getSortedPathnamesInDirectory()
  *
  *      Input:  directory name
@@ -1500,6 +1705,7 @@ SARRAY  *sa, *safiles, *saout;
  *          (except for '.' and '..', which are eliminated using
  *          the d_name field).
  */
+
 #ifndef COMPILER_MSVC
 
 SARRAY *
@@ -1525,7 +1731,7 @@ struct dirent  *pdirentry;
         /* It's nice to ignore directories.  For this it is necessary to
          * define _BSD_SOURCE in the CC command, because the DT_DIR
          * flag is non-standard.  */ 
-#if !defined(__MINGW32__) && !defined(__SOLARIS__)
+#if !defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(__SOLARIS__)
         if (pdirentry->d_type == DT_DIR)
             continue;
 #endif
@@ -1546,28 +1752,33 @@ struct dirent  *pdirentry;
 
     /* http://msdn2.microsoft.com/en-us/library/aa365200(VS.85).aspx */
 #include <windows.h>
-#include <tchar.h>
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
+char              szDir[MAX_PATH];
+char             *tempname;
+l_int32           dirlen;
+HANDLE            hFind = INVALID_HANDLE_VALUE;
 SARRAY           *safiles;
 WIN32_FIND_DATAA  ffd;
-size_t            length_of_path;
-CHAR              szDir[MAX_PATH];  /* MAX_PATH is defined in stdlib.h */
-HANDLE            hFind = INVALID_HANDLE_VALUE;
 
     PROCNAME("getFilenamesInDirectory");
 
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    length_of_path = strlen(dirname);
-    if (length_of_path > (MAX_PATH - 2))
-        return (SARRAY *)ERROR_PTR("dirname is to long", procName, NULL);
+    dirlen = strlen(dirname);
+    if (dirlen > (MAX_PATH - 3))
+        return (SARRAY *)ERROR_PTR("dirname is too long", procName, NULL);
 
-    strncpy(szDir, dirname, MAX_PATH);
-    szDir[MAX_PATH - 1] = '\0';
-    strncat(szDir, TEXT("\\*"), MAX_PATH - strlen(szDir));
+    if (stringFindSubstr(dirname, "/", NULL) > 0) {
+        tempname = stringReplaceEachSubstr(dirname, "/", "\\", NULL);
+        strncpy_s(szDir, sizeof(szDir), tempname, _TRUNCATE);
+        FREE(tempname);
+    }
+    else
+        strncpy_s(szDir, sizeof(szDir), dirname, _TRUNCATE);
+    strncat_s(szDir, sizeof(szDir), TEXT("\\*"), MAX_PATH - strlen(szDir) - 1);
 
     if ((safiles = sarrayCreate(0)) == NULL)
         return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);

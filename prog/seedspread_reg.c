@@ -53,7 +53,7 @@ static char  mainName[] = "seedspread_reg";
         pixRasterop(pixc, x - 1, y - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 1, 20, 32);
-    pixWrite("junkpix4-1", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpix4-1.png", pixc, IFF_PNG);
     pixDisplay(pixc, 100, 100);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
@@ -65,7 +65,7 @@ static char  mainName[] = "seedspread_reg";
         pixRasterop(pixc, x - 1, y - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 0, 20, 0);
-    pixWrite("junkpix8-1", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpix8-1.png", pixc, IFF_PNG);
     pixDisplay(pixc, 410, 100);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
@@ -85,7 +85,7 @@ static char  mainName[] = "seedspread_reg";
         }
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 1, 20, 0);
-    pixWrite("junkpix4-2", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpix4-2.png", pixc, IFF_PNG);
     pixDisplay(pixc, 100, 430);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
@@ -97,7 +97,7 @@ static char  mainName[] = "seedspread_reg";
         }
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 0, 20, 0);
-    pixWrite("junkpix8-2", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpix8-2.png", pixc, IFF_PNG);
     pixDisplay(pixc, 310, 430);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
@@ -115,7 +115,7 @@ static char  mainName[] = "seedspread_reg";
     pixRasterop(pixc, 80 - 1, 80 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 40 - 1, 160 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixSaveTiled(pixc, pixa, REDUCTION, 1, 20, 0);
-    pixWrite("junkpix4-3", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpix4-3.png", pixc, IFF_PNG);
     pixDisplay(pixc, 100, 660);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
@@ -126,7 +126,7 @@ static char  mainName[] = "seedspread_reg";
     pixRasterop(pixc, 80 - 1, 80 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 40 - 1, 160 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixSaveTiled(pixc, pixa, REDUCTION, 0, 20, 0);
-    pixWrite("junkpix8-3", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpix8-3.png", pixc, IFF_PNG);
     pixDisplay(pixc, 310, 660);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
@@ -134,7 +134,7 @@ static char  mainName[] = "seedspread_reg";
     pixDestroy(&pixsq);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkpixd", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
     pixDisplay(pixd, 720, 100);
 
     pixaDestroy(&pixa);

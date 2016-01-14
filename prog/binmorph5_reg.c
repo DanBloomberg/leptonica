@@ -197,10 +197,10 @@ l_int32   fact1, fact2, size;
     PixCompareDwa(size, "close", pixt1, pixt2, pixt3, pixt4, pixt5, pixt6);
 
 #if 0
-    pixWrite("junkpixt3", pixt3, IFF_PNG);
-    pixWrite("junkpixt4", pixt4, IFF_PNG);
+    pixWrite("/tmp/junkpixt3.png", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkpixt4.png", pixt4, IFF_PNG);
     pixXor(pixt3, pixt3, pixt4);
-    pixWrite("junkxor", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkxor.png", pixt3, IFF_PNG);
 #endif
 
     return 0;
@@ -268,10 +268,10 @@ DoComparisonDwa2(PIX     *pixs,
     PixCompareDwa(size, "close", pixt1, pixt2, pixt3, pixt4, pixt5, pixt6);
 
 #if 0
-    pixWrite("junkpixt3", pixt3, IFF_PNG);
-    pixWrite("junkpixt4", pixt4, IFF_PNG);
+    pixWrite("/tmp/junkpixt3.png", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkpixt4.png", pixt4, IFF_PNG);
     pixXor(pixt3, pixt3, pixt4);
-    pixWrite("junkxor", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkxor.png", pixt3, IFF_PNG);
 #endif
 
     return 0;

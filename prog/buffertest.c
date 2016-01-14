@@ -55,7 +55,7 @@ static char  mainName[] = "buffertest";
     arrayWrite(fileout, "w", dataout, nout);
 
     dataout2 = zlibUncompress(dataout, nout, &nout2);
-    arrayWrite("junktest", "w", dataout2, nout2);
+    arrayWrite("/tmp/junktest", "w", dataout2, nout2);
 
     fprintf(stderr, "nbytes in = %d, nbytes comp = %d, nbytes uncomp = %d\n",
                      nbytes, nout, nout2);

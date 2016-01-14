@@ -15,6 +15,8 @@
 
 /*
  * trctest.c
+ *
+ *   Example: trctest wet-day.jpg 3.1 50 160 /tmp/junk.png
  */
 
 #include <stdio.h>
@@ -27,28 +29,28 @@ main(int    argc,
 {
 PIX         *pixs, *pixd;
 l_int32      minval, maxval;
+l_float32    gamma;
 char        *filein, *fileout;
 static char  mainName[] = "trctest";
 
-    if (argc != 5)
-	exit(ERROR_INT(" Syntax:  trctest filein minval maxval fileout",
-	    mainName, 1));
+    if (argc != 6)
+	exit(ERROR_INT(" Syntax:  trctest filein gamma minval maxval fileout",
+             mainName, 1));
 
     filein = argv[1];
-    minval = atoi(argv[2]);
-    maxval = atoi(argv[3]);
-    fileout = argv[4];
+    gamma = atof(argv[2]);
+    minval = atoi(argv[3]);
+    maxval = atoi(argv[4]);
+    fileout = argv[5];
 
     if ((pixs = pixRead(filein)) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
+        exit(ERROR_INT("pixs not made", mainName, 1));
 	    
-    pixd = pixLinearTRC(pixs, minval, maxval);
-/*    pixd = pixLinearTRCGray(pixs, minval, maxval, NULL); */
+    pixd = pixGammaTRC(NULL, pixs, gamma, minval, maxval);
 
     pixWrite(fileout, pixd, IFF_PNG);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
-
-    exit(0);
+    return 0;
 }
 

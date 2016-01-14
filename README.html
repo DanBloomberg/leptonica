@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (8 Nov 09)
+README  (5 Jan 2010)
 --------------------
 
-gunzip leptonlib-1.63.tar.gz
-tar -xvf leptonlib-1.63.tar
+gunzip leptonlib-1.64.tar.gz
+tar -xvf leptonlib-1.64.tar
 
 
 1.  This tar includes:
@@ -86,7 +86,7 @@ tar -xvf leptonlib-1.63.tar
     Libraries, executables and prototypes are easily made, as described below.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.62'.  In that directory you will
+    subdirectory 'leptonlib-1.64'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -101,7 +101,7 @@ tar -xvf leptonlib-1.63.tar
            build Makefiles here and in src.  Autoconf handles the
            following automatically:
                * architecture endianness
-               * enabling leptonica I/O image read/write functions that
+               * enabling Leptonica I/O image read/write functions that
                  depend on external libraries (if the libraries exist)
                * enabling functions for redirecting formatted image stream
                  I/O to memory (on linux only)
@@ -109,7 +109,7 @@ tar -xvf leptonlib-1.63.tar
 
     When using src/makefile, you can customize for:
 
-       (1) including leptonica I/O functions that depend on external libraries
+       (1) including Leptonica I/O functions that depend on external libraries
            [use flags in src/environ.h]
        (2) adding functions for redirecting formatted image stream I/O to memory
            [use flag in src/environ.h]
@@ -118,14 +118,17 @@ tar -xvf leptonlib-1.63.tar
 
     You can use src/makefile.mingw for cross-compiling for windows in linux.
 
-    We also provide project files for compiling the library under MSVC:
-       (1)  With VC++ 2008:
-              leptonlib.sln
-              leptonlib.vcproj
-       (2)  With VC++ Version 6:
-              leptonlib.dsw
-              leptonlib.dsp
-    The second can be used to generate a liblept DLL.
+    Tom Powers has provided a set of developer notes for building the
+    library and applications under windows with VC++ 2008:
+    </pre>
+       <A href="http://www.leptonica.org/source/VS2008notes.html">
+               http:///www.leptonica.org/source/VS2008notes.html</A>
+    <pre>
+
+    We also provide project files for version 6 that can be used to
+    generate a liblept DLL:
+        * leptonlib.dsw
+        * leptonlib.dsp
 
 3.  When you compile liblept using the supplied makefile (not autoconf),
     object code is by default put into a tree whose root is also the parent
@@ -171,9 +174,9 @@ tar -xvf leptonlib-1.63.tar
          make allprotos   (generates leptprotos.h)
 
     Things to note about xtractprotos, assuming that you are developing
-    in leptonica and need to regenerate the prototype file leptprotos.h:
+    in Leptonica and need to regenerate the prototype file leptprotos.h:
 
-      (1) xtractprotos is part of leptonica; specifically, it is the only
+      (1) xtractprotos is part of Leptonica; specifically, it is the only
           program you can make in the src directory (see the makefile).
       (2) xtractprotos uses cpp, and older versions of cpp give useless warnings
           about the comment on line 23 of /usr/include/jmorecfg.h.  For
@@ -183,7 +186,7 @@ tar -xvf leptonlib-1.63.tar
                 xtractprotos <cfile>     or
                 xtractprotos -prestring=[string] <cfile>
       (4) The source for xtractprotos has been packaged up into a tar
-          containing just the leptonica files necessary for building it
+          containing just the Leptonica files necessary for building it
           in linux.  The tar file is available at:
                www.leptonica.com/source/xtractlib-1.4.tar.gz
 
@@ -285,18 +288,18 @@ tar -xvf leptonlib-1.63.tar
            (1) remove -fPIC from $CC
 
     (d) Windows via MS VC++
-        (1) Project files are provided for building liblept under MSVC:
-              (a) leptonlib.sln, leptonlib.vcproj
-                  [Made with VC++ Version 9, and VC++ Express.  VS2008
-                   is required to use it]
-              (b) leptonlib.dsw, leptonlib.dsp
-                  [Made with VC++ Version 6; supports building a DLL]
-        (2) Because VC++ does not conform to the 1999 C++ standard,
+        (1) Tom Powers has written a set of notes for developing the library
+            and executables under MS Visual Studio 2008.  The documentation
+            is included with project files in vs2008.  See the developer
+            notes there.  You can download the vs2008 package separately
+            from the download page or from code.google.com/p/leptonica.
+        (2) Using VC++ Version 6, you can build a DLL, using these files:
+              leptonlib.dsw, leptonlib.dsp
+        (3) Because VC++ does not conform to the 1999 C++ standard,
             which specifies stdint.h, we have defined it in environ.h.
             Otherwise you would need to include Paul Hsieh's pstdint.h,
-            a portable version of stdint.h, which can be found at
-                http://www.azillionmonkeys.com/qed/pstdint.h           
-
+            a portable version of stdint.h, which is included here and
+            can be found at http://www.azillionmonkeys.com/qed/pstdint.h           
 10. Provides for your own memory management (allocator, deallocator).
     For pix, which tend to be large, the alloc/dealloc functions
     can be set programmatically.  For all other structs and arrays,
@@ -607,21 +610,21 @@ tar -xvf leptonlib-1.63.tar
 
     For debugging, several pixDisplay* functions in writefile.c are given.
     Two (pixDisplay and pixDisplayWithTitle) can be called to display
-    an image programmatically on an X display using xv.  If necessary
-    to fit on the screen, the image is reduced in size, with 1 bpp
-    images being converted to grayscale for readability.  (This is
-    much better than letting xv do the reduction).
+    an image using one of several display programs (xv, xli, xzgv, l_view).
+    If necessary to fit on the screen, the image is reduced in size,
+    with 1 bpp images being converted to grayscale for readability.
+    (This is much better than letting xv do the reduction).
     Another function, pixDisplayWrite(), writes images to disk under
     control of a reduction/disable flag, which then allows
-    either viewing with gthumb or the generation of a composite image using
-    pixaDisplayTiledAndScaled().  These files can also be gathered up
-    into a compressed PostScript file, using prog/convertfilestops,
-    and viewed with evince, or converted to pdf.  Common image display
-    programs are: xv, display, gthumb, gqview, xli, evince, gv,
-    xpdf and acroread.  The leptonica program xvdisp generates
-    nice quality images for display with xv.  Finally, a set of images
-    can be saved into a pixa (array of pix), specifying the eventual
-    layout into a single pix, using pixSaveTiled*().
+    either viewing with pixDisplayMultiple(), or the generation
+    of a composite image using, for example, pixaDisplayTiledAndScaled().
+    These files can also be gathered up into a compressed PostScript file,
+    using prog/convertfilestops, and viewed with evince, or converted
+    to pdf.  Common image display programs are: xv, display, gthumb,
+    gqview, xli, evince, gv, xpdf and acroread.  The Leptonica program
+    xvdisp generates nice quality images for display with xv.
+    Finally, a set of images can be saved into a pixa (array of pix),
+    specifying the eventual layout into a single pix, using pixSaveTiled*().
 
 20. Simple data structures are provided for safe and
     efficient handling of arrays of numbers, strings, pointers,
@@ -723,10 +726,9 @@ tar -xvf leptonlib-1.63.tar
 24. Leptonica supports an open source jbig2 encoder (yes, there is one!),
     which can be downloaded from:
         http://www.imperialviolet.org/jbig2.html.
-    To build the encoder, use the most recent version (0.26).  This bundles
-    leptonica 1.53, but you can use more recent versions as well.
-    Once you've built the encoder, use it to compress a set of input
-    image files:  (e.g.)
+    To build the encoder, use the most recent version.  This bundles
+    Leptonica 1.63.  Once you've built the encoder, use it to compress
+    a set of input image files:  (e.g.)
         ./jbig2 -v -s <imagefile1 ...>  >   <jbig2_file>
     You can also generate a pdf wrapping for the output jbig2.  To do that,
     call jbig2 with the -p arg, which generates a symbol file (output.sym)
@@ -747,7 +749,7 @@ tar -xvf leptonlib-1.63.tar
     on the compile line.  jpeglib.h will by default include the
     locally-supplied version of jmorecfg.h.
 
-26. If you use Leptonica with other systems, you have three
+26. If you use Leptonica with other imaging libraries, you have three
     choices with respect to the Pix data structure.  It is
     easiest if you can use the Pix directly.  Next easiest is to
     make a Pix from a local image data structure or the unbundled
@@ -760,14 +762,15 @@ tar -xvf leptonlib-1.63.tar
 
 27. New versions of the Leptonica library are released approximately
     8 times a year, and version numbers are provided for each release in
-    the makefile and in allheaders.h.  All even versions from 1.42 are
-    archived at http://code.google.com/p/leptonica
+    the makefile and in allheaders.h.  All even versions from 1.42 to 1.60
+    are archived at http://code.google.com/p/leptonica, as well as all
+    versions after 1.60.
 
     A brief version chronology is maintained in version-notes.html.
     Starting with gcc 4.3.3, error warnings (-Werror) are given for
     minor infractions like not checking return values of built-in C
     functions.  With earlier versions, the library compiles with g++ or gcc
-    without "errors".  You will get some warnings with the -Wall flag.
+    without "errors".  You can expect some warnings with the -Wall flag.
 
 
 </pre>

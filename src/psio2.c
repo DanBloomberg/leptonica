@@ -288,7 +288,6 @@ pixWriteStringPS(PIX       *pixs,
                  l_float32  scale)
 {
 char       nib1, nib2;
-char       bigbuf[L_BUF_SIZE];
 char      *hexdata, *outstr;
 l_uint8    byteval;
 l_int32    i, j, k, w, h, d;
@@ -1462,7 +1461,7 @@ FILE        *fp;
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-    if ((fp = fopen(filein, "r")) == NULL)
+    if ((fp = fopen(filein, "rb")) == NULL)
         return ERROR_INT("file not found", procName, 1);
     istiff = fileFormatIsTiff(fp);
     if (!istiff) {

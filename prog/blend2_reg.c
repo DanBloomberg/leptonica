@@ -116,9 +116,9 @@ static char  mainName[] = "blend2_reg";
     pixDestroy(&pixd);
         /* Write out the RGBA image and read it back */
     l_pngSetWriteAlpha(1);
-    pixWrite("/tmp/junkpixs1", pixs1, IFF_PNG);
+    pixWrite("/tmp/junkpixs1.png", pixs1, IFF_PNG);
     l_pngSetStripAlpha(0);
-    pixs2 = pixRead("/tmp/junkpixs1");
+    pixs2 = pixRead("/tmp/junkpixs1.png");
         /* Make sure that the alpha channel image hasn't changed */
     pixg2 = pixGetRGBComponent(pixs2, L_ALPHA_CHANNEL);
     pixEqual(pixg, pixg2, &same);

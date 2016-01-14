@@ -76,8 +76,8 @@ static char  mainName[] = "seedfilltest";
     pixInvert(pixd, pixd);
     pixDisplay(pixmi, 500, 100);
     pixDisplay(pixd, 1000, 100);
-    pixWrite("junkpixm", pixmi, IFF_PNG);
-    pixWrite("junkpixd", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixm.png", pixmi, IFF_PNG);
+    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
 #endif
 
 #if 0
@@ -92,8 +92,8 @@ static char  mainName[] = "seedfilltest";
     pixInvert(pixd, pixd);
     pixDisplay(pixmi, 500, 100);
     pixDisplay(pixd, 1000, 100);
-    pixWrite("junkpixm", pixmi, IFF_PNG);
-    pixWrite("junkpixd", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixm.png", pixmi, IFF_PNG);
+    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
 #endif
 
 #if 0
@@ -107,8 +107,8 @@ static char  mainName[] = "seedfilltest";
 /*    pixInvert(pixd, pixd); */
     pixDisplay(pixmi, 500, 100);
     pixDisplay(pixd, 1000, 100);
-    pixWrite("junkpixm", pixmi, IFF_PNG);
-    pixWrite("junkpixd", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixm.png", pixmi, IFF_PNG);
+    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
 #endif
 
 #if 0  
@@ -121,7 +121,7 @@ static char  mainName[] = "seedfilltest";
 
     pixWrite(fileout, pixd, IFF_PNG);
     pixOr(pixd, pixd, pixm);
-    pixWrite("junkout1", pixd, IFF_PNG);
+    pixWrite("/tmp/junkout1.png", pixd, IFF_PNG);
 #endif
 
 #if 0
@@ -136,7 +136,7 @@ static char  mainName[] = "seedfilltest";
 
     pixWrite(fileout, pixd, IFF_PNG);
     pixOr(pixd, pixd, pixm);
-    pixWrite("junkout1", pixd, IFF_PNG);
+    pixWrite("/tmp/junkout1.png", pixd, IFF_PNG);
 #endif
 
         /* use same connectivity to compare with the result of the
@@ -145,7 +145,7 @@ static char  mainName[] = "seedfilltest";
     pixDestroy(&pixd);
     pixd = pixSeedfillMorph(pixs, pixmi, CONNECTIVITY);
     pixOr(pixd, pixd, pixm);
-    pixWrite("junkout2", pixd, IFF_PNG);
+    pixWrite("/tmp/junkout2.png", pixd, IFF_PNG);
 #endif
 
     pixDestroy(&pixs);

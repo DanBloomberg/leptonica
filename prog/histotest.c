@@ -59,7 +59,7 @@ static char  mainName[] = "histotest";
 	if ((na = pixOctcubeHistogram(pixs, sigbits, NULL)) == NULL)
 	    exit(ERROR_INT("na not made", mainName, 1));
 	fprintf(stderr, "histo time = %7.3f sec\n", stopTimer());
-	gplot = gplotCreate("junkrootc", GPLOT_X11,
+	gplot = gplotCreate("/tmp/junkrootc", GPLOT_X11,
 		"color histogram with octcube indexing",
 		"octcube index", "number of pixels in cube");
 	gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");
@@ -69,8 +69,8 @@ static char  mainName[] = "histotest";
     else {
 	if ((na = pixGetGrayHistogram(pixs, 1)) == NULL)
 	    exit(ERROR_INT("na not made", mainName, 1));
-	numaWrite("junkna", na);
-	gplot = gplotCreate("junkrootg", GPLOT_X11, "grayscale histogram",
+	numaWrite("/tmp/junkna", na);
+	gplot = gplotCreate("/tmp/junkrootg", GPLOT_X11, "grayscale histogram",
                             "gray value", "number of pixels");
 	gplotSetScaling(gplot, GPLOT_LOG_SCALE_Y);
 	gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");

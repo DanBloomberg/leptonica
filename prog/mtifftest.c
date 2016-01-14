@@ -112,14 +112,14 @@ static char  mainName[] = "mtifftest";
     for (i = 0; i < npages + 1; i++) {   /* read one beyond to catch error */
 	pix = pixReadTiff(filein, i);
 	if (!pix) continue;
-	sprintf(buffer, "junkout.%d", i);
+	sprintf(buffer, "/tmp/junkout.%d.tif", i);
 	pixWrite(buffer, pix, IFF_TIFF_G4);
         pixDestroy(&pix);
     }
 
         /* read separate page files and write reversed file */
     for (i = npages - 1; i >= 0; i--) {
-	sprintf(buffer, "junkout.%d", i);
+	sprintf(buffer, "/tmp/junkout.%d.tif", i);
         pix = pixRead(buffer);
 	if (!pix) continue;
 	if (i == npages - 1)

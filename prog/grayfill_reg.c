@@ -105,7 +105,7 @@ static char  mainName[] = "grayfill_reg";
 
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkfill.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkfill.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
 

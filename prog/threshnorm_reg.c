@@ -55,7 +55,7 @@ static char  mainName[] = "threshnorm_reg";
     pixDestroy(&pixs);
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkpixd", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkpixd.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 

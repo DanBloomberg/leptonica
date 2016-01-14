@@ -39,16 +39,20 @@
  *      Boxa array extension
  *           l_int32   boxaAddBox()
  *           l_int32   boxaExtendArray()
+ *           l_int32   boxaExtendArrayToSize()
  *
  *      Boxa accessors
  *           l_int32   boxaGetCount()
- *           l_int32   boxaGetBox()
+ *           l_int32   boxaGetValidCount()
+ *           BOX      *boxaGetBox()
+ *           BOX      *boxaGetValidBox()
  *           l_int32   boxaGetBoxGeometry()
  *
  *      Boxa array modifiers
  *           l_int32   boxaReplaceBox()
  *           l_int32   boxaInsertBox()
  *           l_int32   boxaRemoveBox()
+ *           l_int32   boxaInitFull()
  *
  *      Boxaa creation, copy, destruction
  *           BOXAA    *boxaaCreate()
@@ -88,6 +92,14 @@
  *      Backward compatibility old boxaa read functions
  *           BOXAA    *boxaaReadVersion2()
  *           BOXAA    *boxaaReadStreamVersion2()
+ *
+ *   Most functions use only valid boxes, which are boxes that have both
+ *   width and height > 0.  However, a few functions, such as
+ *   boxaGetMedian() do not assume that all boxes are valid.  For any
+ *   function that can use a boxa with invalid boxes, it is convenient 
+ *   to use these accessors:
+ *       boxaGetValidCount()   :  count of valid boxes
+ *       boxaGetValidBox()     :  returns NULL for invalid boxes
  */
 
 #include <stdio.h>
@@ -104,12 +116,20 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
 /*!
  *  boxCreate()
  *
- *      Input:  x, y, width, height
+ *      Input:  x, y, w, h
  *      Return: box, or null on error
  *
  *  Notes:
  *      (1) This clips the box to the +quad.  If no part of the
  *          box is in the +quad, this returns NULL.
+ *      (2) We allow you to make a box with w = 0 and h = 0.
+ *          This does not represent a valid region, but it is useful
+ *          as a placeholder in a boxa for which the index of the
+ *          box in the boxa is important.  This is an atypical
+ *          situation; usually you want to put only valid boxes in a
+ *          boxa.  For this special case, use 0 for all 4 inputs.  
+ *          If you have a boxa that has invalid boxes, it is convenient
+ *          to use boxaGetValidBox() instead of boxaGetBox().
  */
 BOX *
 boxCreate(l_int32  x,
@@ -121,8 +141,8 @@ BOX  *box;
 
     PROCNAME("boxCreate");
 
-    if (w <= 0 || h <= 0)
-        return (BOX *)ERROR_PTR("w and h not both > 0", procName, NULL);
+    if (w < 0 || h < 0)
+        return (BOX *)ERROR_PTR("w and h not both >= 0", procName, NULL);
     if (x < 0) {  /* take part in +quad */
         w = w + x;
         x = 0;
@@ -470,25 +490,50 @@ BOX     *boxc;
  *
  *      Input:  boxa
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Reallocs with doubled size of ptr array.
  */
 l_int32
 boxaExtendArray(BOXA  *boxa)
 {
-
     PROCNAME("boxaExtendArray");
 
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 
-    if ((boxa->box = (BOX **)reallocNew((void **)&boxa->box,
-                               sizeof(BOX *) * boxa->nalloc,
-                               2 * sizeof(BOX *) * boxa->nalloc)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
-
-    boxa->nalloc = 2 * boxa->nalloc;
-    return 0;
+    return boxaExtendArrayToSize(boxa, 2 * boxa->nalloc);
 }
 
+
+/*!
+ *  boxaExtendArrayToSize()
+ *
+ *      Input:  boxa
+ *              size (new size of boxa array)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) If necessary, reallocs new boxa ptr array to @size.
+ */
+l_int32
+boxaExtendArrayToSize(BOXA    *boxa,
+                      l_int32  size)
+{
+    PROCNAME("boxaExtendArrayToSize");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    if (size > boxa->nalloc) {
+        if ((boxa->box = (BOX **)reallocNew((void **)&boxa->box,
+                                            sizeof(BOX *) * boxa->nalloc,
+                                            size * sizeof(BOX *))) == NULL)
+            return ERROR_INT("new ptr array not returned", procName, 1);
+        boxa->nalloc = size;
+    }
+    return 0;
+}
 
 
 /*---------------------------------------------------------------------*
@@ -498,18 +543,42 @@ boxaExtendArray(BOXA  *boxa)
  *  boxaGetCount()
  *
  *      Input:  boxa
- *      Return: count, or 0 on error
+ *      Return: count (of all boxes); 0 if no boxes or on error
  */
 l_int32
 boxaGetCount(BOXA  *boxa)
 {
-
     PROCNAME("boxaGetCount");
 
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 0);
-
     return boxa->n;
+}
+
+
+/*!
+ *  boxaGetValidCount()
+ *
+ *      Input:  boxa
+ *      Return: count (of valid boxes); 0 if no valid boxes or on error
+ */
+l_int32
+boxaGetValidCount(BOXA  *boxa)
+{
+l_int32  n, i, w, h, count;
+
+    PROCNAME("boxaGetValidCount");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 0);
+
+    n = boxaGetCount(boxa);
+    for (i = 0, count = 0; i < n; i++) {
+        boxaGetBoxGeometry(boxa, i, NULL, NULL, &w, &h);
+        if (w > 0 && h > 0)
+            count++;
+    }
+    return count;
 }
 
 
@@ -539,6 +608,44 @@ boxaGetBox(BOXA    *boxa,
         return boxClone(boxa->box[index]);
     else
         return (BOX *)ERROR_PTR("invalid accessflag", procName, NULL);
+}
+
+
+/*!
+ *  boxaGetValidBox()
+ *
+ *      Input:  boxa
+ *              index  (to the index-th box)
+ *              accessflag  (L_COPY or L_CLONE)
+ *      Return: box, or null if box is not valid or on error
+ *
+ *  Notes:
+ *      (1) This returns NULL for an invalid box in a boxa.
+ *          For a box to be valid, both the width and height must be > 0.
+ *      (2) We allow invalid boxes, with w = 0 or h = 0, as placeholders
+ *          in boxa for which the index of the box in the boxa is important.
+ *          This is an atypical situation; usually you want to put only
+ *          valid boxes in a boxa.
+ */
+BOX *
+boxaGetValidBox(BOXA    *boxa,
+                l_int32  index,
+                l_int32  accessflag)
+{
+l_int32  w, h;
+BOX     *box;
+
+    PROCNAME("boxaGetValidBox");
+
+    if (!boxa)
+        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+
+    if ((box = boxaGetBox(boxa, index, accessflag)) == NULL)
+        return (BOX *)ERROR_PTR("box not returned", procName, NULL);
+    boxGetGeometry(box, NULL, NULL, &w, &h);
+    if (w <= 0 || h <= 0)  /* not valid, but not necessarily an error */
+        boxDestroy(&box);
+    return box;
 }
 
 
@@ -695,6 +802,60 @@ BOX    **array;
     array[n - 1] = NULL;
     boxa->n--;
 
+    return 0;
+}
+
+
+/*!
+ *  boxaInitFull()
+ *
+ *      Input:  boxa (typically empty)
+ *              box (to be replicated into the entire ptr array)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This initializes a boxa by filling up the entire box ptr array
+ *          with copies of @box.  Any existing boxes are destroyed.
+ *          After this oepration, the number of boxes is equal to
+ *          the number of allocated ptrs.
+ *      (2) Note that we use boxaReplaceBox() instead of boxaInsertBox().
+ *          They both have the same effect when inserting into a NULL ptr
+ *          in the boxa ptr array:
+ *      (3) Example usage.  This function is useful to prepare for a
+ *          random insertion (or replacement) of boxes into a boxa.
+ *          To lrandomly insert boxes into a boxa, up to some index "max":
+ *          into it up to some index "max".  Note that we use
+ *             Boxa *boxa = boxaCreate(max);
+ *             Box *box = boxCreate(...);
+ *             boxaInitFull(boxa, box);
+ *          If we have an existing boxa with a smaller ptr array, it can
+ *          be reused:
+ *             boxaExtendArrayToSize(boxa, max);
+ *             Box *box = boxCreate(...);
+ *             boxaInitFull(boxa, box);
+ *          The initialization allows the boxa to always be properly
+ *          filled, even if all the boxes are not later replaced.
+ */
+l_int32
+boxaInitFull(BOXA  *boxa,
+             BOX   *box)
+{
+l_int32  i, n;
+BOX     *boxt;
+
+    PROCNAME("boxaInitFull");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+
+    n = boxa->nalloc;
+    boxa->n = n;
+    for (i = 0; i < n; i++) {
+        boxt = boxCopy(box);
+        boxaReplaceBox(boxa, i, boxt);
+    }
     return 0;
 }
 

@@ -51,14 +51,14 @@ static char  mainName[] = "sorttest";
     boxas = boxaSort(boxa, L_SORT_BY_PERIMETER, L_SORT_DECREASING, NULL);
     ns = boxaGetCount(boxas);
     fprintf(stderr, "Number of cc: n = %d, ns = %d\n", n, ns);
-    boxaWrite("junkboxa", boxas);
+    boxaWrite("/tmp/junkboxa.ba", boxas);
 
     for (i = 0; i < n; i++) {
 	box = boxaGetBox(boxas, i, L_CLONE);
 	pixRenderBox(pixs, box, 2, L_FLIP_PIXELS);
 	boxDestroy(&box); 
     }
-    pixWrite("junkout", pixs, IFF_PNG);
+    pixWrite("/tmp/junkout.png", pixs, IFF_PNG);
     boxaDestroy(&boxa);
     boxaDestroy(&boxas);
 #endif
@@ -71,13 +71,13 @@ static char  mainName[] = "sorttest";
     pixas = pixaSort(pixa, L_SORT_BY_Y, L_SORT_INCREASING, NULL, L_CLONE);
     ns = pixaGetCount(pixas);
     fprintf(stderr, "Number of cc: n = %d, ns = %d\n", n, ns);
-    pixaWrite("junkpixa", pixas);
-    pixas2 = pixaRead("junkpixa");
-    pixaWrite("junkpixa2", pixas2);
+    pixaWrite("/tmp/junkpixa.pa", pixas);
+    pixas2 = pixaRead("/tmp/junkpixa.pa");
+    pixaWrite("/tmp/junkpixa2.pa", pixas2);
 
     pixt = pixaDisplayOnLattice(pixas, 100, 100);
-    pixWrite("junkpix", pixt, IFF_PNG);
-    boxaWrite("junkboxa", pixas->boxa);
+    pixWrite("/tmp/junkpix.png", pixt, IFF_PNG);
+    boxaWrite("/tmp/junkboxa.ba", pixas->boxa);
     pixDestroy(&pixt);
     pixaDestroy(&pixa);
     pixaDestroy(&pixas);

@@ -50,26 +50,22 @@ static char  mainName[] = "subpixel_reg";
     pixg = pixScale(pixs, 0.4, 0.4);  /* 8 bpp grayscale */
     pix1 = pixConvertTo32(pixg);  /* 32 bpp rgb */
     AddTextAndSave(pixa, pix1, 1, bmf, textstr[0], L_ADD_BELOW, 0xff000000);
-    pix2 = pixConvertGrayToSubpixelRGB(pixs, 0.4, L_HORIZ,
-                                       L_SUBPIXEL_ORDER_RGB);
+    pix2 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_RGB);
     AddTextAndSave(pixa, pix2, 0, bmf, textstr[1], L_ADD_BELOW, 0x00ff0000);
-    pix3 = pixConvertGrayToSubpixelRGB(pixs, 0.4, L_HORIZ,
-                                       L_SUBPIXEL_ORDER_BGR);
+    pix3 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_BGR);
     AddTextAndSave(pixa, pix3, 0, bmf, textstr[2], L_ADD_BELOW, 0x0000ff00);
-    pix4 = pixConvertGrayToSubpixelRGB(pixs, 0.4, L_VERT,
-                                       L_SUBPIXEL_ORDER_RGB);
+    pix4 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_VRGB);
     AddTextAndSave(pixa, pix4, 0, bmf, textstr[3], L_ADD_BELOW, 0x00ff0000);
-    pix5 = pixConvertGrayToSubpixelRGB(pixs, 0.4, L_VERT,
-                                       L_SUBPIXEL_ORDER_BGR);
+    pix5 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_VBGR);
     AddTextAndSave(pixa, pix5, 0, bmf, textstr[4], L_ADD_BELOW, 0x0000ff00);
 
     pixt = pixaDisplay(pixa, 0, 0);
     pixd = pixAddSingleTextblock(pixt, bmftop,
-                                 "Regression test for subpixel scaling",
+                                 "Regression test for subpixel scaling: gray",
                                  0xff00ff00, L_ADD_ABOVE, NULL);
-    pixWrite("junkpixd.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixd1.png", pixd, IFF_PNG);
     pixDisplay(pixd, 50, 50);
-
+    pixaDestroy(&pixa);
     pixDestroy(&pixs);
     pixDestroy(&pixg);
     pixDestroy(&pixt);
@@ -79,7 +75,36 @@ static char  mainName[] = "subpixel_reg";
     pixDestroy(&pix3);
     pixDestroy(&pix4);
     pixDestroy(&pix5);
+
+    pixa = pixaCreate(5);
+    pixs = pixRead("fish24.jpg");
+    pix1 = pixScale(pixs, 0.4, 0.4);  /* 32 bpp rgb */
+    AddTextAndSave(pixa, pix1, 1, bmf, textstr[0], L_ADD_BELOW, 0xff000000);
+    pix2 = pixConvertToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_RGB);
+    AddTextAndSave(pixa, pix2, 0, bmf, textstr[1], L_ADD_BELOW, 0x00ff0000);
+    pix3 = pixConvertToSubpixelRGB(pixs, 0.4, 0.35, L_SUBPIXEL_ORDER_BGR);
+    AddTextAndSave(pixa, pix3, 0, bmf, textstr[2], L_ADD_BELOW, 0x0000ff00);
+    pix4 = pixConvertToSubpixelRGB(pixs, 0.4, 0.45, L_SUBPIXEL_ORDER_VRGB);
+    AddTextAndSave(pixa, pix4, 0, bmf, textstr[3], L_ADD_BELOW, 0x00ff0000);
+    pix5 = pixConvertToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_VBGR);
+    AddTextAndSave(pixa, pix5, 0, bmf, textstr[4], L_ADD_BELOW, 0x0000ff00);
+
+    pixt = pixaDisplay(pixa, 0, 0);
+    pixd = pixAddSingleTextblock(pixt, bmftop,
+                                 "Regression test for subpixel scaling: color",
+                                 0xff00ff00, L_ADD_ABOVE, NULL);
+    pixWrite("/tmp/junkpixd2.png", pixd, IFF_PNG);
+    pixDisplay(pixd, 50, 350);
     pixaDestroy(&pixa);
+    pixDestroy(&pixs);
+    pixDestroy(&pixt);
+    pixDestroy(&pixd);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+
     bmfDestroy(&bmf);
     bmfDestroy(&bmftop);
     return 0;

@@ -67,7 +67,7 @@ static char  mainName[] = "pixalloc_reg";
     numaAddNumber(nas, 3);
     numaAddNumber(nas, 2);
     setPixMemoryManager(pmsCustomAlloc, pmsCustomDealloc);
-    pmsCreate(200000, 400000, nas, "junklog1");
+    pmsCreate(200000, 400000, nas, "/tmp/junk1.log");
 
         /* Make the pix and do successive copies and removals of the copies */
     pixas = GenerateSetOfMargePix();
@@ -106,7 +106,7 @@ static char  mainName[] = "pixalloc_reg";
     numaAddNumber(nab, 100);
     setPixMemoryManager(pmsCustomAlloc, pmsCustomDealloc);
     if (logging)   /* use logging == 0 for speed comparison */
-        pmsCreate(20, 40, nab, "junklog2");
+        pmsCreate(20, 40, nab, "/tmp/junk2.log");
     else
         pmsCreate(20, 40, nab, NULL);
     pixs = pixRead("feyn.tif");

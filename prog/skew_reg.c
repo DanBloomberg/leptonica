@@ -98,7 +98,7 @@ static char  mainName[] = "skew_reg";
     pixGetDimensions(pixd, &wd, &hd, NULL);
     pixc = pixCreate(w, h, 1);
     pixRasterop(pixc, 0, 0, w, h, PIX_SRC, pixd, (wd - w) / 2, (hd - h) / 2);
-    pixWrite("junkpixc", pixc, IFF_PNG);
+    pixWrite("/tmp/junkpixc.png", pixc, IFF_PNG);
     pixSaveTiled(pixc, pixa, 2, 0, 20, 0);
     pixDestroy(&pixr);
     pixDestroy(&pixf);
@@ -107,7 +107,7 @@ static char  mainName[] = "skew_reg";
 
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkskew.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkskew.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
     return 0;

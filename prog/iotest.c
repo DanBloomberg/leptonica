@@ -62,13 +62,13 @@ static char  mainName[] = "iotest";
     if (pixGetColormap(pix)) {
 	    /* Write and read back the colormap */
         pixcmapWriteStream(stderr, pixGetColormap(pix));
-        fp = fopen("junkcmap1", "w");
+        fp = fopen("/tmp/junkcmap1", "w");
         pixcmapWriteStream(fp, pixGetColormap(pix));
         fclose(fp);
-        fp = fopen("junkcmap1", "r");
+        fp = fopen("/tmp/junkcmap1", "r");
         cmap = pixcmapReadStream(fp);
         fclose(fp);
-        fp = fopen("junkcmap2", "w");
+        fp = fopen("/tmp/junkcmap2", "w");
         pixcmapWriteStream(fp, cmap);
         fclose(fp);
         pixcmapDestroy(&cmap);
@@ -83,7 +83,7 @@ static char  mainName[] = "iotest";
             fprintf(stderr, "Colormap: represents RGB image\n");
             pixt2 = pixConvertRGBToColormap(pixt1, 1);
 	}
-        pixWrite("junkpixt2", pixt2, IFF_PNG);
+        pixWrite("/tmp/junkpixt2.png", pixt2, IFF_PNG);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }

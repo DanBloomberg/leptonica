@@ -120,7 +120,7 @@ static char  mainName[] = "pixadisp_reg";
     pixDestroy(&pixc);
     pixDestroy(&pix32);
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
     return 0;
 }
 

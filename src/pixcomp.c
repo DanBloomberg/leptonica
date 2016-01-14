@@ -187,9 +187,10 @@ PIXC    *pixc;
         return (PIXC *)ERROR_PTR("header data not read", procName, NULL);
     if ((pixc = (PIXC *)CALLOC(1, sizeof(PIXC))) == NULL)
         return (PIXC *)ERROR_PTR("pixc not made", procName, NULL);
+    d = (spp == 3) ? 32 : bps * spp;
     pixc->w = w;
-    pixc->w = h;
-    pixc->w = d;
+    pixc->h = h;
+    pixc->d = d;
     pixc->comptype = format;
     pixc->cmapflag = iscmap;
     if (copyflag == L_INSERT)
@@ -220,7 +221,7 @@ pixcompCreateFromFile(const char  *filename,
                       l_int32      comptype)
 {
 l_uint8  *data;
-l_int32   nbytes, format, w, h, d, bps, spp, iscmap;
+l_int32   nbytes, format;
 FILE     *fp;
 PIX      *pix;
 PIXC     *pixc;
@@ -242,8 +243,8 @@ PIXC     *pixc;
          * png is the "universal" compression type, so if requested
          * it takes precedence.  Otherwise, if the file is already
          * compressed in g4 or jpeg, just accept the string. */
-    if (format == IFF_TIFF_G4 && comptype != IFF_PNG ||
-        format == IFF_JFIF_JPEG && comptype != IFF_PNG)
+    if ((format == IFF_TIFF_G4 && comptype != IFF_PNG) ||
+        (format == IFF_JFIF_JPEG && comptype != IFF_PNG))
         comptype = format;
     if (comptype != IFF_DEFAULT && comptype == format) { 
         data = arrayRead(filename, &nbytes);
@@ -251,13 +252,6 @@ PIXC     *pixc;
             FREE(data);
             return (PIXC *)ERROR_PTR("pixc not made (string)", procName, NULL);
         }
-        pixReadHeader(filename, &format, &w, &h, &bps, &spp, &iscmap);
-        d = (spp == 3) ? 32 : bps * spp;
-        pixc->w = w;
-        pixc->h = h;
-        pixc->d = d;
-        pixc->cmapflag = iscmap;
-        pixc->comptype = format;
         return pixc;
     }
 
@@ -329,6 +323,7 @@ pixcompGetDimensions(PIXC     *pixc,
     if (pw) *pw = pixc->w;
     if (ph) *ph = pixc->h;
     if (pd) *pd = pixc->d;
+    return 0;
 }
 
 

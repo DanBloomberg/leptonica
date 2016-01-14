@@ -90,7 +90,7 @@ static char  mainName[] = "affine_reg";
         pixd = pixRemoveBorder(pixt2, ADDED_BORDER_PIXELS);
         pixXor(pixd, pixd, pixs);
         pixSaveTiled(pixd, pixa, 3, 0, 20, 0);
-        sprintf(bufname, "junkseq%d.png", i);
+        sprintf(bufname, "/tmp/junkseq%d.png", i);
         pixWrite(bufname, pixd, IFF_PNG);
         pixDestroy(&pixb);
         pixDestroy(&pixt1);
@@ -101,7 +101,7 @@ static char  mainName[] = "affine_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkaffine1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkaffine1.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 100);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -120,7 +120,7 @@ static char  mainName[] = "affine_reg";
         pixd = pixRemoveBorder(pixt2, ADDED_BORDER_PIXELS);
         pixXor(pixd, pixd, pixs);
         pixSaveTiled(pixd, pixa, 3, 0, 20, 0);
-        if (i == 0) pixWrite("junksamp.png", pixt1, IFF_PNG);
+        if (i == 0) pixWrite("/tmp/junksamp.png", pixt1, IFF_PNG);
         pixDestroy(&pixb);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
@@ -130,7 +130,7 @@ static char  mainName[] = "affine_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkaffine2.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkaffine2.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 300);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -150,7 +150,7 @@ static char  mainName[] = "affine_reg";
         pixd = pixRemoveBorder(pixt2, ADDED_BORDER_PIXELS / 3);
         pixXor(pixd, pixd, pixg);
         pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-        if (i == 0) pixWrite("junkinterp.png", pixt1, IFF_PNG);
+        if (i == 0) pixWrite("/tmp/junkinterp.png", pixt1, IFF_PNG);
         pixDestroy(&pixb);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
@@ -160,7 +160,7 @@ static char  mainName[] = "affine_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkaffine3.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkaffine3.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 500);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -191,7 +191,7 @@ static char  mainName[] = "affine_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkaffine4.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkaffine4.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 500);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -218,7 +218,7 @@ static char  mainName[] = "affine_reg";
     pixSaveTiled(pixt2, pixa, 2, 0, 20, 8);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkaffine5.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkaffine5.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 700);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -259,7 +259,7 @@ static char  mainName[] = "affine_reg";
     pixDestroy(&pixt3);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkaffine6.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkaffine6.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 900);
     pixDestroy(&pixd);
     pixDestroy(&pixg);
@@ -326,7 +326,7 @@ static char  mainName[] = "affine_reg";
     pixDestroy(&pixd);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkaffine7.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkaffine7.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 900);
     pixDestroy(&pixd);
     pixDestroy(&pixs);

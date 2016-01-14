@@ -57,7 +57,7 @@ static char  mainName[] = "conncomp_reg";
     np = pixaGetCount(pixa);
     fprintf(stderr, "Number of 4 c.c. pix: %d\n", np);
     pixd = pixaDisplay(pixa, pixGetWidth(pixs), pixGetHeight(pixs));
-    pixWrite("junkout1", pixd, IFF_PNG);
+    pixWrite("/tmp/junkout1.png", pixd, IFF_PNG);
     pixEqual(pixs, pixd, &same);
     if (same == 1)
 	fprintf(stderr, "Source and reconstructed pix are the same.\n");
@@ -74,7 +74,7 @@ static char  mainName[] = "conncomp_reg";
     np = pixaGetCount(pixa);
     fprintf(stderr, "Number of 8 c.c. pix: %d\n", np);
     pixd = pixaDisplay(pixa, pixGetWidth(pixs), pixGetHeight(pixs));
-    pixWrite("junkout2", pixd, IFF_PNG);
+    pixWrite("/tmp/junkout2.png", pixd, IFF_PNG);
     pixEqual(pixs, pixd, &same);
     if (same == 1)
 	fprintf(stderr, "Source and reconstructed pix are the same.\n");
@@ -86,17 +86,17 @@ static char  mainName[] = "conncomp_reg";
 
 	/* Test i/o */
     boxa = pixConnComp(pixs, NULL, 4);
-    fp = fopen("junkboxa.txt", "wb+");
+    fp = fopen("/tmp/junk1.ba", "wb+");
     boxaWriteStream(fp, boxa);
     fclose(fp);
-    fp = fopen("junkboxa.txt", "r");
+    fp = fopen("/tmp/junk1.ba", "r");
     boxa2 = boxaReadStream(fp);
     fclose(fp);
-    fp = fopen("junkboxa2.txt", "wb+");
+    fp = fopen("/tmp/junk2.ba", "wb+");
     boxaWriteStream(fp, boxa2);
     fclose(fp);
-    array1 = arrayRead("junkboxa.txt", &nbytes1);
-    array2 = arrayRead("junkboxa2.txt", &nbytes2);
+    array1 = arrayRead("/tmp/junk1.ba", &nbytes1);
+    array2 = arrayRead("/tmp/junk2.ba", &nbytes2);
     diff = strcmp((char *)array1, (char *)array2);
     if (nbytes1 != nbytes2 || diff)
 	fprintf(stderr, "I/O error for boxes.\n");

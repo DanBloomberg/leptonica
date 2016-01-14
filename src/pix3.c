@@ -33,6 +33,7 @@
  *           l_int32     pixPaintThroughMask()
  *           PIX        *pixPaintSelfThroughMask()
  *           PIX        *pixMakeMaskFromLUT()
+ *           PIX        *pixCleanUnderTransparency()
  *
  *    One and two-image boolean operations on arbitrary depth images
  *           PIX        *pixInvert()
@@ -856,6 +857,96 @@ PIX       *pixd;
 }
 
 
+/*!
+ *  pixCleanUnderTransparency()
+ *
+ *      Input:  pixs (32 bpp rgba)
+ *              debugflag (generates intermediate images)
+ *      Return: pixd (32 bpp rgba), or null on error
+ *
+ *  Notes:
+ *      (1) This is one of the few operations in leptonica that uses
+ *          the alpha blending component in rgba images.  It sets
+ *          the r, g and b components under every transparent alpha
+ *          component to 0.  Because the rgb values cannot be seen when
+ *          alpha == 0, this does not affect the appearance of the pix,
+ *          but it will improve the compressibility if the rgb values
+ *          there are nonzero.
+ *      (2) For reading and writing rgba pix in png format, use
+ *          pixReadRGBAPng() and pixWriteRGBAPng().
+ *      (3) Transparent alpha is 0.  Because rgb images in leptonica
+ *          have 0 values in the alpha channel, if you apply this function
+ *          to an ordinary rgb pix, it will become black.  We give a
+ *          warning if the alpha channel is all 0.
+ */
+PIX *
+pixCleanUnderTransparency(PIX     *pixs,
+                          l_int32  debugflag)
+{
+l_int32   isblack;
+l_int32  *lut;
+PIX      *pixr, *pixg, *pixb, *pixalpha, *pixm, *pixt, *pixd;
+PIXA     *pixa;
+
+    PROCNAME("pixCleanUnderTransparency");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs not defined or not 32 bpp",
+                                procName, NULL);
+
+    pixr = pixGetRGBComponent(pixs, COLOR_RED);
+    pixg = pixGetRGBComponent(pixs, COLOR_GREEN);
+    pixb = pixGetRGBComponent(pixs, COLOR_BLUE);
+    pixalpha = pixGetRGBComponent(pixs, L_ALPHA_CHANNEL);
+    pixZero(pixalpha, &isblack);
+    if (isblack) {
+        L_WARNING("alpha channel is transparent; pixd will be black",
+                  procName);
+    }
+
+        /* Make a mask from the alpha component with ON pixels
+         * whenever the alpha component is transparent (0) */
+    lut = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    lut[0] = 1;
+    pixm = pixMakeMaskFromLUT(pixalpha, lut);
+    FREE(lut);
+
+    if (debugflag) {
+        pixa = pixaCreate(0);
+        pixSaveTiled(pixs, pixa, 1, 1, 20, 32);
+        pixSaveTiled(pixm, pixa, 1, 0, 20, 0);
+        pixSaveTiled(pixr, pixa, 1, 1, 20, 0);
+        pixSaveTiled(pixg, pixa, 1, 0, 20, 0);
+        pixSaveTiled(pixb, pixa, 1, 0, 20, 0);
+        pixSaveTiled(pixalpha, pixa, 1, 0, 20, 0);
+    }
+
+        /* Clean each component and reassemble */
+    pixSetMasked(pixr, pixm, 0);
+    pixSetMasked(pixg, pixm, 0);
+    pixSetMasked(pixb, pixm, 0);
+    pixd = pixCreateRGBImage(pixr, pixg, pixb);
+    pixSetRGBComponent(pixd, pixalpha, L_ALPHA_CHANNEL);
+
+    if (debugflag) {
+        pixSaveTiled(pixr, pixa, 1, 1, 20, 0);
+        pixSaveTiled(pixg, pixa, 1, 0, 20, 0);
+        pixSaveTiled(pixb, pixa, 1, 0, 20, 0);
+        pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+        pixt = pixaDisplay(pixa, 0, 0);
+        pixWrite("/tmp/junkrgb.png", pixt, IFF_PNG);
+        pixDestroy(&pixt);
+        pixaDestroy(&pixa);
+    }
+
+    pixDestroy(&pixr);
+    pixDestroy(&pixg);
+    pixDestroy(&pixb);
+    pixDestroy(&pixm);
+    pixDestroy(&pixalpha);
+    return pixd;
+}
+
 
 /*-------------------------------------------------------------*
  *    One and two-image boolean ops on arbitrary depth images  *
@@ -1488,7 +1579,8 @@ NUMA       *na;
  *      Return: na of pixel sums by row, or null on error
  *
  *  Notes:
- *      (1) To resample for a different bin size, use numaUniformSampling()
+ *      (1) To resample for a bin size different from 1, use
+ *          numaUniformSampling() on the result of this function.
  */
 NUMA *
 pixSumPixelsByRow(PIX      *pix,
@@ -1543,7 +1635,8 @@ NUMA      *na;
  *      Return: na of pixel sums by column, or null on error
  *
  *  Notes:
- *      (1) To resample for a different bin size, use numaUniformSampling()
+ *      (1) To resample for a bin size different from 1, use
+ *          numaUniformSampling() on the result of this function.
  */
 NUMA *
 pixSumPixelsByColumn(PIX  *pix)

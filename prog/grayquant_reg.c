@@ -49,7 +49,7 @@ static char  mainName[] = "grayquant_reg";
         /* threshold to 1 bpp */
     pixd = pixThresholdToBinary(pixs, THRESHOLD);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
-    pixWrite("junkthr0.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr0.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
         /* dither to 2 bpp, with and without colormap */
@@ -59,9 +59,9 @@ static char  mainName[] = "grayquant_reg";
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr1.png", pixd, IFF_PNG);
-    pixWrite("junkthr2.png", pixt, IFF_PNG);
-    pixWrite("junkthr3.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkthr1.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr2.png", pixt, IFF_PNG);
+    pixWrite("/tmp/junkthr3.png", pixt2, IFF_PNG);
 /*    pixcmapWriteStream(stderr, pixGetColormap(pixd)); */
     pixEqual(pixd, pixt2, &equal);
     if (!equal)
@@ -77,8 +77,8 @@ static char  mainName[] = "grayquant_reg";
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr4.png", pixd, IFF_PNG);
-    pixWrite("junkthr5.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkthr4.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr5.png", pixt2, IFF_PNG);
     pixEqual(pixd, pixt2, &equal);
     if (!equal)
         fprintf(stderr, "Error: thr4 != thr5\n");
@@ -90,8 +90,8 @@ static char  mainName[] = "grayquant_reg";
     pixt = pixThresholdTo2bpp(pixs, 3, 0);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr6.png", pixd, IFF_PNG);
-    pixWrite("junkthr7.png", pixt, IFF_PNG);
+    pixWrite("/tmp/junkthr6.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr7.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
 
@@ -102,9 +102,9 @@ static char  mainName[] = "grayquant_reg";
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr8.png", pixd, IFF_PNG);
-    pixWrite("junkthr9.png", pixt, IFF_PNG);
-    pixWrite("junkthr10.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkthr8.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr9.png", pixt, IFF_PNG);
+    pixWrite("/tmp/junkthr10.png", pixt2, IFF_PNG);
 /*    pixcmapWriteStream(stderr, pixGetColormap(pixd)); */
     pixDestroy(&pixt);
     pixDestroy(&pixt2);
@@ -117,8 +117,8 @@ static char  mainName[] = "grayquant_reg";
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr11.png", pixd, IFF_PNG);
-    pixWrite("junkthr12.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkthr11.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr12.png", pixt2, IFF_PNG);
 /*    pixcmapWriteStream(stderr, pixGetColormap(pixd)); */
     pixEqual(pixd, pixt2, &equal);
     if (!equal)
@@ -129,7 +129,7 @@ static char  mainName[] = "grayquant_reg";
 
     pixd1 = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd1, 100, 100);
-    pixWrite("junkpixd1.jpg", pixd1, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkpixd1.jpg", pixd1, IFF_JFIF_JPEG);
     pixDestroy(&pixd1);
     pixaDestroy(&pixa);
 
@@ -145,26 +145,26 @@ static char  mainName[] = "grayquant_reg";
     pixcmapWriteStream(stderr, cmap);
     pixDisplay(pixd, 0, 0);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
-    pixWrite("junkthr13.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr13.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     boxDestroy(&box);
 
         /* test pixThreshold8() */
     pixd = pixThreshold8(pixs, 1, 2, 1);  /* cmap */
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
-    pixWrite("junkthr14.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr14.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 0);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 1, 2, 0);  /* no cmap */
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr15.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr15.png", pixd, IFF_PNG);
     pixDisplay(pixd, 200, 0);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 2, 3, 1);  /* highlight one box */
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
     box = boxCreate(278, 35, 122, 50);
     pixSetSelectCmap(pixd, box, 2, 255, 255, 100);
-    pixWrite("junkthr16.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr16.png", pixd, IFF_PNG);
     pixDisplay(pixd, 300, 0);
     cmap = pixGetColormap(pixd);
     pixcmapWriteStream(stderr, cmap);
@@ -172,14 +172,14 @@ static char  mainName[] = "grayquant_reg";
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 2, 4, 0);  /* no cmap */
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr17.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr17.png", pixd, IFF_PNG);
     pixDisplay(pixd, 400, 0);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 4, 6, 1);  /* highlight one box */
     box = boxCreate(278, 35, 122, 50);
     pixSetSelectCmap(pixd, box, 5, 255, 255, 100);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr18.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr18.png", pixd, IFF_PNG);
     cmap = pixGetColormap(pixd);
     pixcmapWriteStream(stderr, cmap);
     boxDestroy(&box);
@@ -187,7 +187,7 @@ static char  mainName[] = "grayquant_reg";
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 4, 6, 0);  /* no cmap */
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr19.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr19.png", pixd, IFF_PNG);
     pixDisplay(pixd, 600, 0);
     pixDestroy(&pixd);
 
@@ -206,7 +206,7 @@ static char  mainName[] = "grayquant_reg";
     pixcmapWriteStream(stderr, cmap);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixDisplay(pixd, 700, 0);
-    pixWrite("junkthr20.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr20.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
         /* comparison 8 bpp jpeg with 2 bpp (highlight) */
@@ -223,9 +223,9 @@ static char  mainName[] = "grayquant_reg";
     pixSaveTiled(pixt, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr21.jpg", pixt, IFF_JFIF_JPEG);
-    pixWrite("junkthr22.png", pixt2, IFF_PNG);
-    pixWrite("junkthr23.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr21.jpg", pixt, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkthr22.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkthr23.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixDestroy(&pixt2);
     boxDestroy(&box);
@@ -247,8 +247,8 @@ static char  mainName[] = "grayquant_reg";
     pixt2 = pixReduceRankBinaryCascade(pixs, 2, 2, 0, 0);
     pixSaveTiled(pixt2, pixa, 1, 1, 20, 0);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkthr24.png", pixt2, IFF_PNG);
-    pixWrite("junkthr25.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkthr24.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkthr25.png", pixd, IFF_PNG);
     pixDestroy(&pixt2);
     pixDestroy(&pixd);
 
@@ -259,7 +259,7 @@ static char  mainName[] = "grayquant_reg";
     pixGetDimensions(pixt2, &w, &h, NULL);
     pixSaveTiled(pixt2, pixa, 1, 1, 20, 0);
     pixDisplay(pixt2, 0, 0);
-    pixWrite("junk-8.jpg", pixt2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junk-8.jpg", pixt2, IFF_JFIF_JPEG);
     pixd = pixCreate(w, 6 * h, 8);
     pixRasterop(pixd, 0, 0, w, h, PIX_SRC, pixt2, 0, 0);
 
@@ -268,7 +268,7 @@ static char  mainName[] = "grayquant_reg";
     pixRasterop(pixd, 0, h, w, h, PIX_SRC, pixt4, 0, 0);
     pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
     pixDisplay(pixt3, 0, 100);
-    pixWrite("junk-4-6.png", pixt3, IFF_PNG);
+    pixWrite("/tmp/junk-4-6.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
@@ -277,7 +277,7 @@ static char  mainName[] = "grayquant_reg";
     pixRasterop(pixd, 0, 2 * h, w, h, PIX_SRC, pixt4, 0, 0);
     pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
     pixDisplay(pixt3, 0, 200);
-    pixWrite("junk-4-5.png", pixt3, IFF_PNG);
+    pixWrite("/tmp/junk-4-5.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
@@ -286,7 +286,7 @@ static char  mainName[] = "grayquant_reg";
     pixRasterop(pixd, 0, 3 * h, w, h, PIX_SRC, pixt4, 0, 0);
     pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
     pixDisplay(pixt3, 0, 300);
-    pixWrite("junk-4-4.png", pixt3, IFF_PNG);
+    pixWrite("/tmp/junk-4-4.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
@@ -295,7 +295,7 @@ static char  mainName[] = "grayquant_reg";
     pixRasterop(pixd, 0, 4 * h, w, h, PIX_SRC, pixt4, 0, 0);
     pixSaveTiled(pixt3, pixa, 1, 1, 20, 0);
     pixDisplay(pixt3, 0, 400);
-    pixWrite("junk-4-3.png", pixt3, IFF_PNG);
+    pixWrite("/tmp/junk-4-3.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
@@ -304,15 +304,15 @@ static char  mainName[] = "grayquant_reg";
     pixRasterop(pixd, 0, 5 * h, w, h, PIX_SRC, pixt4, 0, 0);
     pixDisplay(pixt3, 0, 500);
     pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
-    pixWrite("junk-4-2.png", pixt3, IFF_PNG);
+    pixWrite("/tmp/junk-4-2.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
-    pixWrite("junk-all.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junk-all.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
     pixd2 = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd2, 100, 100);
-    pixWrite("junkpixd2.jpg", pixd2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkpixd2.jpg", pixd2, IFF_JFIF_JPEG);
     pixDestroy(&pixd2);
     pixaDestroy(&pixa);
 
@@ -388,7 +388,7 @@ static char  mainName[] = "grayquant_reg";
 
     pixd3 = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd3, 100, 100);
-    pixWrite("junkpixd3.jpg", pixd3, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkpixd3.jpg", pixd3, IFF_JFIF_JPEG);
     pixDestroy(&pixd3);
     pixaDestroy(&pixa);
 

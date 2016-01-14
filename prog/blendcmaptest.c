@@ -81,7 +81,7 @@ static char   mainName[] = "blendcmaptest";
     cmap = pixGetColormap(pixt1);
     pixcmapWriteStream(stderr, cmap);
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
 
     pixDestroy(&pixs);
     pixDestroy(&pixb);

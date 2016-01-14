@@ -83,7 +83,7 @@ static char  mainName[] = "projective_reg";
         pixd = pixRemoveBorder(pixt2, ADDED_BORDER_PIXELS);
         pixXor(pixd, pixd, pixsc);
         pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-        if (i == 0) pixWrite("junksamp.png", pixt1, IFF_PNG);
+        if (i == 0) pixWrite("/tmp/junksamp.png", pixt1, IFF_PNG);
         pixDestroy(&pixb);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
@@ -93,7 +93,7 @@ static char  mainName[] = "projective_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkproj1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkproj1.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 300);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -113,7 +113,7 @@ static char  mainName[] = "projective_reg";
         pixd = pixRemoveBorder(pixt2, ADDED_BORDER_PIXELS / 2);
         pixXor(pixd, pixd, pixg);
         pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-        if (i == 0) pixWrite("junkinterp.png", pixt1, IFF_PNG);
+        if (i == 0) pixWrite("/tmp/junkinterp.png", pixt1, IFF_PNG);
         pixDestroy(&pixb);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
@@ -123,7 +123,7 @@ static char  mainName[] = "projective_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkproj2.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkproj2.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 500);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -154,7 +154,7 @@ static char  mainName[] = "projective_reg";
     }
 
     pixt1 = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkproj3.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkproj3.png", pixt1, IFF_PNG);
     pixDisplay(pixt1, 100, 500);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -180,7 +180,7 @@ static char  mainName[] = "projective_reg";
     pixSaveTiled(pixt2, pixa, 2, 0, 20, 8);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkproj4.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkproj4.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 700);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -212,7 +212,7 @@ static char  mainName[] = "projective_reg";
     pixDestroy(&pixt2);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("junkproj5.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkproj5.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 900);
     pixDestroy(&pixd);
     pixDestroy(&pixg);

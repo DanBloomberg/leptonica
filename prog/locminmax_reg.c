@@ -47,7 +47,7 @@ static char  mainName[] = "locminmax_reg";
         }
     }
     pixDisplay(pixs, 0, 0);
-    pixWrite("junkpattern", pixs, IFF_PNG);
+    pixWrite("/tmp/junkpattern.png", pixs, IFF_PNG);
 
     startTimer();
 /*    pixSelectedLocalExtrema(pixs, 1, &pixt1, &pixt2); */
@@ -59,7 +59,7 @@ static char  mainName[] = "locminmax_reg";
     pixPaintThroughMask(pixd, pixt2, 0, 0, greenval);
     pixPaintThroughMask(pixd, pixt1, 0, 0, redval);
     pixDisplay(pixd, 510, 0);
-    pixWrite("junkpixd", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixs);
@@ -68,7 +68,7 @@ static char  mainName[] = "locminmax_reg";
     pixt0 = pixRead("karen8.jpg");
     pixs = pixBlockconv(pixt0, 10, 10);
     pixDisplay(pixs, 0, 400);
-    pixWrite("junkconv", pixs, IFF_PNG);
+    pixWrite("/tmp/junkconv.png", pixs, IFF_PNG);
     startTimer();
 /*    pixSelectedLocalExtrema(pixs, 1, &pixt1, &pixt2); */
     pixLocalExtrema(pixs, 50, 100, &pixt1, &pixt2);
@@ -79,7 +79,7 @@ static char  mainName[] = "locminmax_reg";
     pixPaintThroughMask(pixd, pixt2, 0, 0, greenval);
     pixPaintThroughMask(pixd, pixt1, 0, 0, redval);
     pixDisplay(pixd, 350, 400);
-    pixWrite("junkpixd2", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixd2.png", pixd, IFF_PNG);
     pixDestroy(&pixt0);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);

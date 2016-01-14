@@ -48,9 +48,9 @@ static char  mainName[] = "runlengthtest";
     pixDisplay(pixv, 400, 0);
     pixDisplay(pix, 800, 0);
     pixDisplay(pixd, 1200, 0);
-    pixWrite("junkpixh", pixh, IFF_PNG);
-    pixWrite("junkpixv", pixv, IFF_PNG);
-    pixWrite("junkpix", pix, IFF_PNG);
+    pixWrite("/tmp/junkpixh.png", pixh, IFF_PNG);
+    pixWrite("/tmp/junkpixv.png", pixv, IFF_PNG);
+    pixWrite("/tmp/junkpix.png", pix, IFF_PNG);
     pixWrite(fileout, pixd, IFF_PNG);
 
     pixDestroy(&pixs);

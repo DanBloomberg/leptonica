@@ -45,7 +45,7 @@ static char  mainName[] = "snapcolortest";
     pixSaveTiledOutline(pixs, pixa, 1, 1, 25, 2, 32);
     pixd = pixSnapColor(NULL, pixs, 0xffffff00, LEPTONICA_YELLOW, 30);
     pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
-    pixWrite("junklogo1", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junklogo1.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
 
         /* Then make a colormapped version and snap the color */
@@ -53,7 +53,7 @@ static char  mainName[] = "snapcolortest";
     pixSaveTiledOutline(pixd, pixa, 1, 1, 25, 2, 32);
     pixSnapColor(pixd, pixd, 0xffffff00, LEPTONICA_YELLOW, 30);
     pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
-    pixWrite("junklogo2", pixd, IFF_PNG);
+    pixWrite("/tmp/junklogo2.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixDestroy(&pixs);
 
@@ -65,7 +65,7 @@ static char  mainName[] = "snapcolortest";
     pixSaveTiledOutline(pixs, pixa, 1, 1, 25, 2, 32);
     pixd = pixSnapColor(NULL, pixs, 0xffffff00, LEPTONICA_YELLOW, 30);
     pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
-    pixWrite("junklogo3", pixd, IFF_PNG);
+    pixWrite("/tmp/junklogo3.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixDestroy(&pixs);
 

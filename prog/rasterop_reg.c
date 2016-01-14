@@ -83,8 +83,8 @@ static char  mainName[] = "rasterop_reg";
 	    else {
 		fprintf(stderr, "Error: results are different!\n");
 		fprintf(stderr, "SE: width = %d, height = %d\n", width, height);
-		pixWrite("junkout1", pixd1, IFF_PNG);
-		pixWrite("junkout2", pixd2, IFF_PNG);
+		pixWrite("/tmp/junkout1.png", pixd1, IFF_PNG);
+		pixWrite("/tmp/junkout2.png", pixd2, IFF_PNG);
 		exit(1);
 	    }
 

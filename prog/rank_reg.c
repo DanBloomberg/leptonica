@@ -54,7 +54,7 @@ static char   mainName[] = "rank_reg";
     fprintf(stderr, "MPix/sec: %7.3f\n", 0.000001 * w * h / t);
     pixDisplay(pixs, 0, 200);
     pixDisplay(pixd, 600, 200);
-    pixWrite("junkfilter", pixd, IFF_PNG);
+    pixWrite("/tmp/junkfilter.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
         /* Get results for dilation */
@@ -95,7 +95,7 @@ static char   mainName[] = "rank_reg";
     nax = numaMakeSequence(1, 1, SIZE);
     nay1 = numaCreate(SIZE);
     nay2 = numaCreate(SIZE);
-    gplot = gplotCreate("junkplot", GPLOT_X11, "sec/MPix vs filter size",
+    gplot = gplotCreate("/tmp/junkroot", GPLOT_X11, "sec/MPix vs filter size",
 		        "size", "time");
     for (i = 1; i <= SIZE; i++) {
         t1 = t2 = 0.0;
@@ -120,9 +120,9 @@ static char   mainName[] = "rank_reg";
     gplotDestroy(&gplot);
 
         /* Display tiled */
-    pixa = pixaReadFiles(".", "junk_write_display");
+    pixa = pixaReadFiles("/tmp", "junk_write_display");
     pixd = pixaDisplayTiledAndScaled(pixa, 8, 250, 5, 0, 25, 2);
-    pixWrite("junktiles", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junktiles.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
@@ -150,8 +150,7 @@ static char   mainName[] = "rank_reg";
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixs);
-    system("gthumb junk_write_display* &");
-
+    pixDisplayMultiple("/tmp/junk_write_display*");
     return 0;
 }
 

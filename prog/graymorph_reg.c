@@ -46,6 +46,7 @@
 #define     WSIZE              7
 #define     HSIZE              7
 #define     BUF_SIZE           512
+#define     HORIZ_SEP          0  /* set to 50 to display each image */
 
 
 static void pixCompare(PIX *pix, PIX *pix2, const char *msg1, const char *msg2);
@@ -78,42 +79,42 @@ static char  mainName[] = "graymorph_reg";
     /* -------- Test gray morph, including interpreter ------------ */
     pixd = pixDilateGray(pixs, WSIZE, HSIZE);
     sprintf(dilateseq, "D%d.%d", WSIZE, HSIZE);
-    pixg = pixGrayMorphSequence(pixs, dilateseq, 50, 0);
+    pixg = pixGrayMorphSequence(pixs, dilateseq, HORIZ_SEP, 0);
     pixCompare(pixd, pixg, "results are the same", "results are different" );
     pixDestroy(&pixg);
     pixDestroy(&pixd);
 
     pixd = pixErodeGray(pixs, WSIZE, HSIZE);
     sprintf(erodeseq, "E%d.%d", WSIZE, HSIZE);
-    pixg = pixGrayMorphSequence(pixs, erodeseq, 50, 100);
+    pixg = pixGrayMorphSequence(pixs, erodeseq, HORIZ_SEP, 100);
     pixCompare(pixd, pixg, "results are the same", "results are different" );
     pixDestroy(&pixg);
     pixDestroy(&pixd);
 
     pixd = pixOpenGray(pixs, WSIZE, HSIZE);
     sprintf(openseq, "O%d.%d", WSIZE, HSIZE);
-    pixg = pixGrayMorphSequence(pixs, openseq, 50, 200);
+    pixg = pixGrayMorphSequence(pixs, openseq, HORIZ_SEP, 200);
     pixCompare(pixd, pixg, "results are the same", "results are different" );
     pixDestroy(&pixg);
     pixDestroy(&pixd);
 
     pixd = pixCloseGray(pixs, WSIZE, HSIZE);
     sprintf(closeseq, "C%d.%d", WSIZE, HSIZE);
-    pixg = pixGrayMorphSequence(pixs, closeseq, 50, 300);
+    pixg = pixGrayMorphSequence(pixs, closeseq, HORIZ_SEP, 300);
     pixCompare(pixd, pixg, "results are the same", "results are different" );
     pixDestroy(&pixg);
     pixDestroy(&pixd);
 
     pixd = pixTophat(pixs, WSIZE, HSIZE, L_TOPHAT_WHITE);
     sprintf(wtophatseq, "Tw%d.%d", WSIZE, HSIZE);
-    pixg = pixGrayMorphSequence(pixs, wtophatseq, 50, 400);
+    pixg = pixGrayMorphSequence(pixs, wtophatseq, HORIZ_SEP, 400);
     pixCompare(pixd, pixg, "results are the same", "results are different" );
     pixDestroy(&pixg);
     pixDestroy(&pixd);
 
     pixd = pixTophat(pixs, WSIZE, HSIZE, L_TOPHAT_BLACK);
     sprintf(btophatseq, "Tb%d.%d", WSIZE, HSIZE);
-    pixg = pixGrayMorphSequence(pixs, btophatseq, 50, 500);
+    pixg = pixGrayMorphSequence(pixs, btophatseq, HORIZ_SEP, 500);
     pixCompare(pixd, pixg, "results are the same", "results are different" );
     pixDestroy(&pixg);
 
@@ -145,9 +146,9 @@ static char  mainName[] = "graymorph_reg";
     pixDestroy(&pixd2);
     pixInvert(pixs, pixs);
 
-    pixd = pixGrayMorphSequence(pixs, "Tw9.5", 50, 100);
+    pixd = pixGrayMorphSequence(pixs, "Tw9.5", HORIZ_SEP, 100);
     pixInvert(pixs, pixs);
-    pixd2 = pixGrayMorphSequence(pixs, "Tb9.5", 50, 300);
+    pixd2 = pixGrayMorphSequence(pixs, "Tb9.5", HORIZ_SEP, 300);
     pixCompare(pixd, pixd2, "Correct: images are duals",
 	       "Error: images are not duals" );
     pixDestroy(&pixd);
@@ -155,10 +156,10 @@ static char  mainName[] = "graymorph_reg";
 
     /* ------------- Test opening/closing for large sels -------------- */
     pixd = pixGrayMorphSequence(pixs,
-	    "C9.9 + C19.19 + C29.29 + C39.39 + C49.49", 250, 100);
+	    "C9.9 + C19.19 + C29.29 + C39.39 + C49.49", HORIZ_SEP, 100);
     pixDestroy(&pixd);
     pixd = pixGrayMorphSequence(pixs,
-	    "O9.9 + O19.19 + O29.29 + O39.39 + O49.49", 250, 400);
+	    "O9.9 + O19.19 + O29.29 + O39.39 + O49.49", HORIZ_SEP, 400);
     pixDestroy(&pixd);
 
     /* ---------- Closing plus white tophat result ------------ *
@@ -166,7 +167,7 @@ static char  mainName[] = "graymorph_reg";
      * ---------------------------------------------------------*/
     pixd = pixCloseGray(pixs, 9, 9);
     pixd1 = pixTophat(pixd, 9, 9, L_TOPHAT_WHITE);
-    pixd2 = pixGrayMorphSequence(pixs, "C9.9 + TW9.9", 0, 0);
+    pixd2 = pixGrayMorphSequence(pixs, "C9.9 + TW9.9", HORIZ_SEP, 0);
     pixCompare(pixd1, pixd2, "correct: same", "wrong: different");
     pixd3 = pixMaxDynamicRange(pixd1, L_LINEAR_SCALE);
     pixDisplayWrite(pixd3, 1);
@@ -176,7 +177,7 @@ static char  mainName[] = "graymorph_reg";
     pixDestroy(&pixd3);
     pixd = pixCloseGray(pixs, 29, 29);
     pixd1 = pixTophat(pixd, 29, 29, L_TOPHAT_WHITE);
-    pixd2 = pixGrayMorphSequence(pixs, "C29.29 + Tw29.29", 0, 0);
+    pixd2 = pixGrayMorphSequence(pixs, "C29.29 + Tw29.29", HORIZ_SEP, 0);
     pixCompare(pixd1, pixd2, "correct: same", "wrong: different");
     pixd3 = pixMaxDynamicRange(pixd1, L_LINEAR_SCALE);
     pixDisplayWrite(pixd3, 1);
@@ -237,7 +238,7 @@ static char  mainName[] = "graymorph_reg";
         /* Paste in the input image */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     pixRasterop(pixd, 3, 3, w, h, PIX_SRC, pixt, 0, 0);  /* 1st one */
-/*    pixWrite("junkgray", pixt, IFF_JFIF_JPEG); */
+/*    pixWrite("/tmp/junkgray.jpg", pixt, IFF_JFIF_JPEG); */
     pixDestroy(&pixt);
 
         /* Paste in the grayscale version */
@@ -255,7 +256,7 @@ static char  mainName[] = "graymorph_reg";
     pixt3a = pixMaxDynamicRange(pixt2, L_LOG_SCALE);
     pixt3 = pixConvertTo32(pixt3a);
     pixRasterop(pixd, 2 * w + 9, 3, w, h, PIX_SRC, pixt3, 0, 0);  /* 3rd */
-/*    pixWrite("junktophat", pixt2, IFF_JFIF_JPEG); */
+/*    pixWrite("/tmp/junktophat.jpg", pixt2, IFF_JFIF_JPEG); */
     pixDestroy(&pixt3);
     pixDestroy(&pixt3a);
     pixDestroy(&pixt);
@@ -265,7 +266,7 @@ static char  mainName[] = "graymorph_reg";
     pixt3 = pixThresholdToBinary(pixt3a, 70);
     pixt4 = pixConvertTo32(pixt3);
     pixRasterop(pixd, 3 * w + 12, 3, w, h, PIX_SRC, pixt4, 0, 0);  /* 4th */
-/*    pixWrite("junkbin", pixt3, IFF_PNG); */
+/*    pixWrite("/tmp/junkbin.png", pixt3, IFF_PNG); */
     pixDestroy(&pixt2);
     pixDestroy(&pixt3a);
     pixDestroy(&pixt4);
@@ -274,15 +275,14 @@ static char  mainName[] = "graymorph_reg";
     pixInvert(pixt3, pixt3);
     pixt4 = pixConvertTo32(pixt3);
     pixRasterop(pixd, 4 * w + 15, 3, w, h, PIX_SRC, pixt4, 0, 0);  /* 5th */
-    pixWrite("junkbininvert", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkbininvert.png", pixt3, IFF_PNG);
     pixDisplayWrite(pixd, 1);
-/*    pixWrite("junkall", pixd, IFF_JFIF_JPEG); */
+/*    pixWrite("/tmp/junkall.jpg", pixd, IFF_JFIF_JPEG); */
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
     pixDestroy(&pixd);
 
-    system("gthumb junk_write_display* &");
-
+    pixDisplayMultiple("/tmp/junk_write_display*");
     pixDestroy(&pixs);
     return 0;
 }

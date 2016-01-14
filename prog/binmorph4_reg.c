@@ -173,17 +173,17 @@ l_int32   fact1, fact2, size;
     PixCompareDwa(size, "open", pixt1, pixt2, pixt3, pixt4, pixt5, pixt6);
 
 #if 1
-    pixWrite("junko1", pixt1, IFF_PNG);
-    pixWrite("junko2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junko1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junko2.png", pixt2, IFF_PNG);
     pixXor(pixt1, pixt1, pixt2);
-    pixWrite("junkoxor", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkoxor.png", pixt1, IFF_PNG);
 #endif
 
 #if 0
     pixDisplay(pixt1, 100, 100);
     pixDisplay(pixt2, 800, 100);
-    pixWrite("junkpixt1", pixt1, IFF_PNG);
-    pixWrite("junkpixt2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkpixt1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkpixt2.png", pixt2, IFF_PNG);
 #endif
 
     if (TIMING) startTimer();
@@ -199,10 +199,10 @@ l_int32   fact1, fact2, size;
     PixCompareDwa(size, "close", pixt1, pixt2, pixt3, pixt4, pixt5, pixt6);
 
 #if 1
-    pixWrite("junkc1", pixt1, IFF_PNG);
-    pixWrite("junkc2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkc1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkc2.png", pixt2, IFF_PNG);
     pixXor(pixt1, pixt1, pixt2);
-    pixWrite("junkcxor", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkcxor.png", pixt1, IFF_PNG);
 #endif
 
     return 0;
@@ -278,10 +278,10 @@ l_int32   fact1, fact2, size;
     if (TIMING) fprintf(stderr, "Time Rop: %7.3f sec\n", stopTimer());
     PixCompareDwa(size, "close", pixt1, pixt2, pixt3, pixt4, pixt5, pixt6);
 
-/*    pixWrite("junkpixt1", pixt1, IFF_PNG); */
-/*    pixWrite("junkpixt2", pixt2, IFF_PNG); */
+/*    pixWrite("/tmp/junkpixt1.png", pixt1, IFF_PNG); */
+/*    pixWrite("/tmp/junkpixt2.png", pixt2, IFF_PNG); */
 /*    pixXor(pixt1, pixt1, pixt2); */
-/*    pixWrite("junkxor", pixt1, IFF_PNG); */
+/*    pixWrite("/tmp/junkxor.png", pixt1, IFF_PNG); */
 
     return 0;
 }
@@ -357,10 +357,10 @@ l_int32   fact1, fact2, size;
     PixCompareDwa(size, "close", pixt1, pixt2, pixt3, pixt4, pixt5, pixt6);
 
 #if 0
-    pixWrite("junkpixt1", pixt1, IFF_PNG);
-    pixWrite("junkpixt2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkpixt1.png", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkpixt2.png", pixt2, IFF_PNG);
     pixXor(pixt1, pixt1, pixt2);
-    pixWrite("junkxor", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkxor.png", pixt1, IFF_PNG);
 #endif
 
     return 0;
@@ -426,8 +426,8 @@ l_int32   fact1, fact2, size;
 
 /*    pixDisplay(pixt1, 100, 100);   */
 /*    pixDisplay(pixt2, 800, 100);   */
-/*    pixWrite("junkpixt1", pixt1, IFF_PNG);  */
-/*    pixWrite("junkpixt2", pixt2, IFF_PNG);  */
+/*    pixWrite("/tmp/junkpixt1.png", pixt1, IFF_PNG);  */
+/*    pixWrite("/tmp/junkpixt2.png", pixt2, IFF_PNG);  */
 
     if (TIMING) startTimer();
     pixCloseCompBrickDwa(pixt1, pixs, size, 1);

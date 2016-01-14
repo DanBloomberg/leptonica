@@ -69,11 +69,11 @@ static char  mainName[] = "gammatest";
 #endif
 
     na = numaGammaTRC(gam, MINVAL, MAXVAL);
-    gplotSimple1(na, GPLOT_X11, "junkroot", "gamma trc");
+    gplotSimple1(na, GPLOT_X11, "/tmp/junkroot", "gamma trc");
     numaDestroy(&na);
 
 #if 1     /* plot gamma TRC maps */
-    gplot = gplotCreate("junkmap", GPLOT_X11,
+    gplot = gplotCreate("/tmp/junkmap", GPLOT_X11,
                         "Mapping function for gamma correction",
 		       	"value in", "value out");
     nax = numaMakeSequence(0.0, 1.0, 256);

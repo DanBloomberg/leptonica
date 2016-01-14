@@ -20,6 +20,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef  COMPILER_MSVC
+#include <unistd.h>
+#else
+    /* Need declaration of Sleep() defined in WinBase.h, but must
+     * include Windows.h to avoid errors  */
+#include <Windows.h>
+#endif  /* COMPILER_MSVC */
 #include "allheaders.h"
 
 static const char  *kdatastr = " 20.3    50   80  50   20 "
@@ -55,10 +62,10 @@ static char  mainName[] = "kernel_reg";
 
         /* Test read/write for kernel */
     kel1 = kernelCreateFromString(5, 5, 2, 2, kdatastr);
-    kernelWrite("junkkern1", kel1);
-    kel2 = kernelRead("junkkern1");
-    kernelWrite("junkkern2", kel2);
-    system("diff -s junkkern1 junkkern2");
+    kernelWrite("/tmp/junkkern1.kel", kel1);
+    kel2 = kernelRead("/tmp/junkkern1.kel");
+    kernelWrite("/tmp/junkkern2.kel", kel2);
+    system("diff -s /tmp/junkkern1.kel /tmp/junkkern2.kel");
     kernelDestroy(&kel1);
     kernelDestroy(&kel2);
 
@@ -71,11 +78,11 @@ static char  mainName[] = "kernel_reg";
     sarrayAddString(sa, (char *)"82.    120  180   120  80", L_COPY);
     sarrayAddString(sa, (char *)"22.1   50   80    50   20", L_COPY);
     str = sarrayToString(sa, 1);
-    arrayWrite("junkkernfile", "w", str, strlen(str));
-    kel2 = kernelCreateFromFile("junkkernfile");
+    arrayWrite("/tmp/junkkernfile.kel", "w", str, strlen(str));
+    kel2 = kernelCreateFromFile("/tmp/junkkernfile.kel");
     pixd = kernelDisplayInPix(kel2, 41, 2);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
-    pixWrite("junkker1.bmp", pixd, IFF_BMP);
+    pixWrite("/tmp/junkker1.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     sarrayDestroy(&sa);
     FREE(str);
@@ -101,7 +108,7 @@ static char  mainName[] = "kernel_reg";
     kel3 = kernelCreateFromPix(pixt, 1, 2);
     pixd = kernelDisplayInPix(kel3, 41, 2);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkker2.bmp", pixd, IFF_BMP);
+    pixWrite("/tmp/junkker2.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixDestroy(&pixt);
     kernelDestroy(&kel3);
@@ -113,7 +120,7 @@ static char  mainName[] = "kernel_reg";
     kel1 = kernelCreateFromString(5, 5, 2, 2, kdatastr);
     pixd = pixConvolve(pixg, kel1, 8, 1);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
-    pixWrite("junkker3.bmp", pixd, IFF_BMP);
+    pixWrite("/tmp/junkker3.png", pixd, IFF_PNG);
     pixDestroy(&pixs);
     pixDestroy(&pixg);
     pixDestroy(&pixd);
@@ -131,15 +138,15 @@ static char  mainName[] = "kernel_reg";
     }
     pixd = pixConvolve(pixg, kel2, 8, 1);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
-    pixWrite("junkker4.bmp", pixd, IFF_BMP);
+    pixWrite("/tmp/junkker4.png", pixd, IFF_PNG);
     pixt = pixBlockconv(pixg, 5, 5);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
-    pixWrite("junkker5.bmp", pixt, IFF_BMP);
+    pixWrite("/tmp/junkker5.png", pixt, IFF_PNG);
     pixCompareGray(pixd, pixt, L_COMPARE_ABS_DIFF, GPLOT_X11, NULL,
                    NULL, NULL, NULL);
     pixt2 = pixBlockconvTiled(pixg, 5, 5, 3, 6);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkker5a.bmp", pixt2, IFF_BMP);
+    pixWrite("/tmp/junkker5a.png", pixt2, IFF_PNG);
     pixDestroy(&pixt2);
 
     ok = TRUE;
@@ -185,20 +192,24 @@ static char  mainName[] = "kernel_reg";
     pixt = pixConvolve(pixs, kel3, 8, 1);
     fprintf(stderr, "Generic convolution time: %5.3f sec\n", stopTimer());
     pixSaveTiled(pixt, pixa, 1, 1, 20, 0);
-    pixWrite("junkconv1.bmp", pixt, IFF_BMP);
+    pixWrite("/tmp/junkconv1.png", pixt, IFF_PNG);
 
     startTimer();
     pixt2 = pixBlockconv(pixs, 3, 3);
     fprintf(stderr, "Flat block convolution time: %5.3f sec\n", stopTimer());
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkconv2.bmp", pixt2, IFF_BMP);  /* ditto */
+    pixWrite("/tmp/junkconv2.png", pixt2, IFF_PNG);  /* ditto */
 
     pixCompareGray(pixt, pixt2, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
                    &avediff, &rmsdiff, NULL);
-    system("sleep 1");  /* give gnuplot time to write out the file */
+#ifndef  COMPILER_MSVC
+    sleep(1);  /* give gnuplot time to write out the file */
+#else
+    Sleep(1000);
+#endif  /* COMPILER_MSVC */
     pixp = pixRead("/tmp/junkgrayroot.png");
     pixSaveTiled(pixp, pixa, 1, 0, 20, 0);
-    pixWrite("junkconv3.bmp", pixp, IFF_BMP);
+    pixWrite("/tmp/junkconv3.png", pixp, IFF_PNG);
     fprintf(stderr, "Ave diff = %6.4f, RMS diff = %6.4f\n", avediff, rmsdiff);
     if (avediff <= 0.01)
         fprintf(stderr, "OK: avediff = %6.4f <= 0.01\n", avediff);
@@ -220,12 +231,12 @@ static char  mainName[] = "kernel_reg";
     kel1 = makeGaussianKernel(5, 5, 3.0, 5.0);
     kernelGetSum(kel1, &sum);
     fprintf(stderr, "Sum for gaussian kernel = %f\n", sum);
-    kernelWrite("junkgauss.kel", kel1);
+    kernelWrite("/tmp/junkgauss.kel", kel1);
     pixt = pixConvolve(pixs, kel1, 8, 1);
     pixt2 = pixConvolve(pixs, kel1, 16, 0);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkker6.bmp", pixt, IFF_BMP);
+    pixWrite("/tmp/junkker6.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     pixDestroy(&pixt2);
 
@@ -243,14 +254,14 @@ static char  mainName[] = "kernel_reg";
     fprintf(stderr, "Sum for x gaussian kernel = %f\n", sum);
     kernelGetSum(kely, &sum);
     fprintf(stderr, "Sum for y gaussian kernel = %f\n", sum);
-    kernelWrite("junkgauss.kelx", kelx);
-    kernelWrite("junkgauss.kely", kely);
+    kernelWrite("/tmp/junkgauss.kelx", kelx);
+    kernelWrite("/tmp/junkgauss.kely", kely);
 
     pixt = pixConvolveSep(pixs, kelx, kely, 8, 1);
     pixt2 = pixConvolveSep(pixs, kelx, kely, 16, 0);
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
-    pixWrite("junkker7.bmp", pixt, IFF_BMP);
+    pixWrite("/tmp/junkker7.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     pixDestroy(&pixt2);
 
@@ -273,11 +284,11 @@ static char  mainName[] = "kernel_reg";
     kel1 = makeDoGKernel(7, 7, 1.5, 2.7);
     kernelGetSum(kel1, &sum);
     fprintf(stderr, "Sum for DoG kernel = %f\n", sum);
-    kernelWrite("junkdog.kel", kel1);
+    kernelWrite("/tmp/junkdog.kel", kel1);
     pixt = pixConvolve(pixs, kel1, 8, 0);
 /*    pixInvert(pixt, pixt); */
     pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
-    pixWrite("junkker8.bmp", pixt, IFF_BMP);
+    pixWrite("/tmp/junkker8.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
 
     pixt = kernelDisplayInPix(kel1, 20, 2);
@@ -288,7 +299,7 @@ static char  mainName[] = "kernel_reg";
 
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkkernel.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkkernel.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
     return 0;

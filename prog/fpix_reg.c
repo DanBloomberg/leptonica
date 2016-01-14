@@ -23,8 +23,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <math.h>
+#ifndef COMPILER_MSVC
+#include <unistd.h>
+#else
+    /* Need declaration of Sleep() defined in WinBase.h, but must
+     * include Windows.h to avoid errors  */
+#include <Windows.h>
+#endif  /* COMPILER_MSVC */
 #include "allheaders.h"
 
 main(int    argc,
@@ -114,7 +120,11 @@ static char  mainName[] = "fpix_reg";
     pixDestroy(&pixd);
 
         /* Save the comparison graph; gnuplot should have made it by now! */
+#ifndef COMPILER_MSVC
     sleep(1);
+#else
+    Sleep(1000);
+#endif  /* COMPILER_MSVC */
     fprintf(stderr, "NOT an error if the next line is\n"
             "    Error in findFileFormat: truncated file\n");
     pixt5 = pixRead("/tmp/junkgrayroot.png");
@@ -123,7 +133,7 @@ static char  mainName[] = "fpix_reg";
         /* Display results */
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkfpix.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkfpix.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 

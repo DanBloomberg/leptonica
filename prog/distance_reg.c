@@ -66,7 +66,7 @@ static char  mainName[] = "distance_reg";
                 pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
                 TestDistance(pixa, pixs, conn, depth, bc);
                 pixd = pixaDisplay(pixa, 0, 0);
-                sprintf(buf, "junkdist.%d", index);
+                sprintf(buf, "/tmp/junkdist.%d.jpg", index);
                 pixWrite(buf, pixd, IFF_JFIF_JPEG);
                 pixaDestroy(&pixa);
                 pixDestroy(&pixd);
@@ -74,7 +74,7 @@ static char  mainName[] = "distance_reg";
         }
     }
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
 
     boxDestroy(&box);
     pixDestroy(&pix);

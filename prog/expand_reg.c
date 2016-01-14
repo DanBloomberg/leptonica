@@ -60,7 +60,7 @@ static char  mainName[] = "expand_reg";
 
         if (i == 4) {
             pixt = pixScale(pixs, 3.0, 3.0);
-            pixWrite("junkpixt", pixt, IFF_PNG);
+            pixWrite("/tmp/junkpixt.png", pixt, IFF_PNG);
             pixDestroy(&pixt);
         }
         pixDestroy(&pixs);
@@ -139,7 +139,7 @@ static char  mainName[] = "expand_reg";
     pixDestroy(&pixd);
     pixDestroy(&pixs);
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
     return 0;
 }
 

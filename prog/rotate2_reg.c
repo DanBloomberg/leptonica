@@ -51,44 +51,44 @@ static char  mainName[] = "rotate2_reg";
 
     fprintf(stderr, "Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
-    rotateTest(pixs, "junk1bpp.png", 2);
+    rotateTest(pixs, "/tmp/junk1bpp.png", 2);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 2 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(TWO_BPP_IMAGE);
-    rotateTest(pixs, "junk2bpp.png", 1);
+    rotateTest(pixs, "/tmp/junk2bpp.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
-    rotateTest(pixs, "junk4bpp1.png", 1);
+    rotateTest(pixs, "/tmp/junk4bpp1.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
-    rotateTest(pixs, "junk4bpp2.png", 1);
+    rotateTest(pixs, "/tmp/junk4bpp2.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
-    rotateTest(pixs, "junk8bpp.png", 1);
+    rotateTest(pixs, "/tmp/junk8bpp.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
-    rotateTest(pixs, "junk8bppcmapgray.png", 1);
+    rotateTest(pixs, "/tmp/junk8bppcmapgray.png", 1);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
-    rotateTest(pixs, "junk8bppcmapcolor.png", 2);
+    rotateTest(pixs, "/tmp/junk8bppcmapcolor.png", 2);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
-    rotateTest(pixs, "junkrgb.png", 2);
+    rotateTest(pixs, "/tmp/junkrgb.png", 2);
     pixDestroy(&pixs);
 
     return 0;

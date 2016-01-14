@@ -50,30 +50,30 @@ static char  mainName[] = "adaptnorm_reg";
     mps = 0.000001 * w * h / stopTimer();
     fprintf(stderr, "Time: Contrast norm: %7.3f Mpix/sec\n", mps);
     pixSaveTiled(pixt1, pixac, 1, 1, 40, 8);
-    pixWrite("junkpixt1", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkpixt1.png", pixt1, IFF_PNG);
 
          /* Apply a gamma to clean up the remaining background */
     pixt2 = pixGammaTRC(NULL, pixt1, 1.5, 50, 235);
     pixSaveTiled(pixt2, pixac, 1, 0, 40, 8);
-    pixWrite("junkpixt2", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkpixt2.png", pixt2, IFF_PNG);
 
          /* Here are two possible output display images; a dithered
           * 2 bpp image and a 7 level thresholded 4 bpp image */
     pixt3 = pixDitherTo2bpp(pixt2, 1);
     pixSaveTiled(pixt3, pixac, 1, 0, 40, 8);
-    pixWrite("junkpixt3", pixt3, IFF_PNG);
+    pixWrite("/tmp/junkpixt3.png", pixt3, IFF_PNG);
     pixt4 = pixThresholdTo4bpp(pixt2, 7, 1);
     pixSaveTiled(pixt4, pixac, 1, 0, 40, 8);
-    pixWrite("junkpixt4", pixt4, IFF_PNG);
+    pixWrite("/tmp/junkpixt4.png", pixt4, IFF_PNG);
 
          /* Binary image produced from 8 bpp normalized ones,
           * before and after the gamma correction. */
     pixt5 = pixThresholdToBinary(pixt1, 180);
     pixSaveTiled(pixt5, pixac, 1, 1, 40, 8);
-    pixWrite("junkpixt5", pixt5, IFF_PNG);
+    pixWrite("/tmp/junkpixt5.png", pixt5, IFF_PNG);
     pixt6 = pixThresholdToBinary(pixt2, 200);
     pixSaveTiled(pixt6, pixac, 1, 0, 40, 8);
-    pixWrite("junkpixt6", pixt6, IFF_PNG);
+    pixWrite("/tmp/junkpixt6.png", pixt6, IFF_PNG);
 
     pixDestroy(&pixs);
     pixDestroy(&pixt1);
@@ -85,7 +85,7 @@ static char  mainName[] = "adaptnorm_reg";
 
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junknorm.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junknorm.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
 
@@ -102,7 +102,7 @@ static char  mainName[] = "adaptnorm_reg";
     mps = 0.000001 * w * h / stopTimer();
     fprintf(stderr, "Time: Flexible bg norm: %7.3f Mpix/sec\n", mps);
     pixSaveTiled(pixt7, pixac, 1, 0, 40, 8);
-    pixWrite("junkpixt7", pixt7, IFF_PNG);
+    pixWrite("/tmp/junkpixt7.png", pixt7, IFF_PNG);
 
         /* Now do it again in several steps */
     pixt8 = pixScaleSmooth(pixs, 1./7., 1./7.);
@@ -141,7 +141,7 @@ static char  mainName[] = "adaptnorm_reg";
 
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkflex.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkflex.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
 

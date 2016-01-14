@@ -22,6 +22,38 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.64   3 Jan 10
+       Easy setup for standard byte processing on 8 bpp pix (pix2.c)
+       Evaluation of difference between similar images; test for
+       similar images and (compare.c)
+       Subpixel scaling, with color input and separate scale factors (pixconv.c)
+       Fix tiff header reader to get correct format (tiffio.c)
+       Enable pixDisplay() to work with i_view (windows) and with
+         xzgv and xli as well as xv; allow application to choose
+         which to use (writefile.c).
+       Use a mask to specify regions that are changed by a morphological
+         operation (morphapp.c).
+       Improve the default sharpening for scaling (scale.c)
+       Function to test for equivalence of file data (utils.c)
+       Select and read image files with embedded index (readfile.c)
+       Fix box size calculation in pixEmbedForRotation(); solution
+         provided by Brent Sundheimer.
+       New pixDisplayMultiple(), instead of calling gthumb directly; this
+         is now set up to use i_view for windows.
+       Changed criteria for determining if an image is color (colorcontent.c,
+         colorquant{1,2}.c.
+       Optional mode where the filename extension is automatically written
+         to output image files; particularly useful for windows.
+       Initialize boxa and pixa as full, with minimal placeholders.
+       Get rank valued numbers and boxes in numa and boxa.
+       Cute implementation for finding largest solid rectangle (maze.c)
+       New median cut quantization for mixed (color/gray) images (colorquant2.c)
+       Many changes to allow the library and applications be built easily
+         in windows.  There is now a thorough windows readme, written by Tom
+         Powers, for doing this.  The windows build information and
+         project files are now in a new vs2008 directory.
+
+
 1.63   8 Nov 09
        Added pixScaleToGrayFast(), a faster version with very similar quality.
        Fixed scaleGrayLILow() to handle edge pixels more accurately

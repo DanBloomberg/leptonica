@@ -1181,7 +1181,7 @@ PIX       *pixt, *pixd;
  *
  *  Notes:
  *      (1) pixs is a 32 bpp histogram in a pair of HSV colorspace.  It
- *          should be thought of as a single component with 32 bpc.
+ *          should be thought of as a single sample with 32 bps (bits/sample).
  *      (2) After each peak is found, the peak is erased with a window
  *          that is centered on the peak and scaled from the sliding
  *          window by @erasefactor.  Typically, @erasefactor is chosen

@@ -196,7 +196,7 @@ static char  mainName[] = "binmorph2_reg";
 
     { SELA *sela;
     sela = selaAddBasic(NULL);
-    selaWrite("junksela", sela);
+    selaWrite("/tmp/junksela.sela", sela);
     selaDestroy(&sela);
     }
 #endif

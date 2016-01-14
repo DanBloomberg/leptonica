@@ -150,11 +150,11 @@ static char  mainName[] = "blend_reg";
         /* Display results */
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkblend.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junkblend.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
 
     pixDestroy(&pixg);
     pixDestroy(&pixt);

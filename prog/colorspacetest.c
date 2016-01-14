@@ -115,10 +115,10 @@ static char  mainName[] = "colorspacetest";
 	}
         pixDestroy(&pixt1);
     }
-    gplot1 = gplotCreate("junkplot1", GPLOT_X11,
+    gplot1 = gplotCreate("/tmp/junkplot1", GPLOT_X11,
                          "Fraction with given color (diff from average)",
                          "white point space for red", "amount of color");
-    gplot2 = gplotCreate("junkplot2", GPLOT_X11,
+    gplot2 = gplotCreate("/tmp/junkplot2", GPLOT_X11,
                          "Fraction with given color (min diff)",
                          "white point space for red", "amount of color");
     for (j = 0; j < 6; j++) {
@@ -135,7 +135,7 @@ static char  mainName[] = "colorspacetest";
     gplotDestroy(&gplot1);
     gplotDestroy(&gplot2);
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, 250, 4, 0, 10, 2);
-    pixWrite("junkcolormag", pixt1, IFF_PNG);
+    pixWrite("/tmp/junkcolormag", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 0, 100, "Color magnitude", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -143,7 +143,7 @@ static char  mainName[] = "colorspacetest";
     numaaDestroy(&naa1);
     numaaDestroy(&naa2);
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
 
     pixDestroy(&pixs);
     return 0;

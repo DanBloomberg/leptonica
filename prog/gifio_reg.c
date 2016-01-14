@@ -79,14 +79,14 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_1BPP);
     pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("junkgif1", pixs, IFF_GIF);
+    pixWrite("/tmp/junk1.gif", pixs, IFF_GIF);
     startTimer();
-    pix1 = pixRead("junkgif1");
+    pix1 = pixRead("/tmp/junk1.gif");
     fprintf(stderr, "Read time for 8 Mpix 1 bpp: %7.3f sec\n", stopTimer());
     startTimer();
-    pixWrite("junkgif1n", pix1, IFF_GIF);
+    pixWrite("/tmp/junk1n.gif", pix1, IFF_GIF);
     fprintf(stderr, "Write time for 8 Mpix 1 bpp: %7.3f\n", stopTimer());
-    pix2 = pixRead("junkgif1n");
+    pix2 = pixRead("/tmp/junk1n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pixs, pix2, &same);
     if (!same)
@@ -100,10 +100,10 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_2BPP);
     pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("junkgif2", pixs, IFF_GIF);
-    pix1 = pixRead("junkgif2");
-    pixWrite("junkgif2n", pix1, IFF_GIF);
-    pix2 = pixRead("junkgif2n");
+    pixWrite("/tmp/junk2.gif", pixs, IFF_GIF);
+    pix1 = pixRead("/tmp/junk2.gif");
+    pixWrite("/tmp/junk2n.gif", pix1, IFF_GIF);
+    pix2 = pixRead("/tmp/junk2n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pixs, pix2, &same);
     if (!same)
@@ -117,10 +117,10 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_4BPP);
     pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("junkgif3", pixs, IFF_GIF);
-    pix1 = pixRead("junkgif3");
-    pixWrite("junkgif3n", pix1, IFF_GIF);
-    pix2 = pixRead("junkgif3n");
+    pixWrite("/tmp/junk3.gif", pixs, IFF_GIF);
+    pix1 = pixRead("/tmp/junk3.gif");
+    pixWrite("/tmp/junk3n.gif", pix1, IFF_GIF);
+    pix2 = pixRead("/tmp/junk3n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pixs, pix2, &same);
     if (!same)
@@ -134,10 +134,10 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_8BPP_1);
     pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("junkgif4", pixs, IFF_GIF);
-    pix1 = pixRead("junkgif4");
-    pixWrite("junkgif4n", pix1, IFF_GIF);
-    pix2 = pixRead("junkgif4n");
+    pixWrite("/tmp/junk4.gif", pixs, IFF_GIF);
+    pix1 = pixRead("/tmp/junk4.gif");
+    pixWrite("/tmp/junk4n.gif", pix1, IFF_GIF);
+    pix2 = pixRead("/tmp/junk4n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pixs, pix2, &same);
     if (!same)
@@ -151,10 +151,10 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_8BPP_2);
     pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("junkgif5", pixs, IFF_GIF);
-    pix1 = pixRead("junkgif5");
-    pixWrite("junkgif5n", pix1, IFF_GIF);
-    pix2 = pixRead("junkgif5n");
+    pixWrite("/tmp/junk5.gif", pixs, IFF_GIF);
+    pix1 = pixRead("/tmp/junk5.gif");
+    pixWrite("/tmp/junk5n.gif", pix1, IFF_GIF);
+    pix2 = pixRead("/tmp/junk5n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pixs, pix2, &same);
     if (!same)
@@ -168,10 +168,10 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_8BPP_3);
     pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("junkgif6", pixs, IFF_GIF);
-    pix1 = pixRead("junkgif6");
-    pixWrite("junkgif6n", pix1, IFF_GIF);
-    pix2 = pixRead("junkgif6n");
+    pixWrite("/tmp/junk6.gif", pixs, IFF_GIF);
+    pix1 = pixRead("/tmp/junk6.gif");
+    pixWrite("/tmp/junk6n.gif", pix1, IFF_GIF);
+    pix2 = pixRead("/tmp/junk6n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pixs, pix2, &same);
     if (!same)
@@ -185,10 +185,10 @@ static char  mainName[] = "gifio_reg";
 
     pixs = pixRead(FILE_16BPP);
     pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("junkgif7", pixs, IFF_GIF);
-    pix1 = pixRead("junkgif7");
-    pixWrite("junkgif7n", pix1, IFF_GIF);
-    pix2 = pixRead("junkgif7n");
+    pixWrite("/tmp/junk7.gif", pixs, IFF_GIF);
+    pix1 = pixRead("/tmp/junk7.gif");
+    pixWrite("/tmp/junk7n.gif", pix1, IFF_GIF);
+    pix2 = pixRead("/tmp/junk7n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pix1, pix2, &same);
     if (!same)
@@ -203,10 +203,10 @@ static char  mainName[] = "gifio_reg";
     pixs = pixRead(FILE_32BPP);
     pixGetDimensions(pixs, &w, &h, &d);
     pixSetText(pixs, "Junk GIF comment");
-    pixWrite("junkgif8", pixs, IFF_GIF);
-    pix1 = pixRead("junkgif8");
-    pixWrite("junkgif8n", pix1, IFF_GIF);
-    pix2 = pixRead("junkgif8n");
+    pixWrite("/tmp/junk8.gif", pixs, IFF_GIF);
+    pix1 = pixRead("/tmp/junk8.gif");
+    pixWrite("/tmp/junk8n.gif", pix1, IFF_GIF);
+    pix2 = pixRead("/tmp/junk8n.gif");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pix1, pix2, &same);
     if (!same)
@@ -218,7 +218,6 @@ static char  mainName[] = "gifio_reg";
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
-    system("gthumb junk_write_display* &");
-
+    pixDisplayMultiple("/tmp/junk_write_display*");
     return 0;
 }

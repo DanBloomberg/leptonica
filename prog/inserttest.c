@@ -44,7 +44,7 @@ static char     mainName[] = "inserttest";
         val = (l_float32)sin(angle);
         numaAddNumber(na1, val);
     }
-    numaWrite("junknuma1", na1);
+    numaWrite("/tmp/junknuma1", na1);
     na2 = numaCopy(na1);
     n = numaGetCount(na2);
     for (i = 0; i < n; i++) {
@@ -52,7 +52,7 @@ static char     mainName[] = "inserttest";
       numaRemoveNumber(na2, i);
       numaInsertNumber(na2, i, val);
     }
-    numaWrite("junknuma2", na2);
+    numaWrite("/tmp/junknuma2", na2);
     numaDestroy(&na1);
     numaDestroy(&na2);
 #endif
@@ -63,7 +63,7 @@ static char     mainName[] = "inserttest";
     pix2 = pixClipRectangle(pix1, box, NULL);
     boxDestroy(&box);
     boxa1 = pixConnComp(pix2, NULL, 8);
-    boxaWrite("junkboxa1", boxa1);
+    boxaWrite("/tmp/junkboxa1", boxa1);
     boxa2 = boxaCopy(boxa1, L_COPY);
     n = boxaGetCount(boxa2);
     for (i = 0; i < n; i++) {
@@ -71,7 +71,7 @@ static char     mainName[] = "inserttest";
       boxaRemoveBox(boxa2, i);
       boxaInsertBox(boxa2, i, box);
     }
-    boxaWrite("junkboxa2", boxa2);
+    boxaWrite("/tmp/junkboxa2", boxa2);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     boxaDestroy(&boxa1);
@@ -85,7 +85,7 @@ static char     mainName[] = "inserttest";
     boxDestroy(&box);
     boxa = pixConnComp(pix2, &pixa1, 8);
     boxaDestroy(&boxa);
-    pixaWrite("junkpixa1", pixa1);
+    pixaWrite("/tmp/junkpixa1", pixa1);
 
     pixa2 = pixaCopy(pixa1, L_COPY);
     n = pixaGetCount(pixa2);
@@ -96,7 +96,7 @@ static char     mainName[] = "inserttest";
       pixaRemovePix(pixa2, i);
       pixaInsertPix(pixa2, i, pix, box);
     }
-    pixaWrite("junkpixa2", pixa2);
+    pixaWrite("/tmp/junkpixa2", pixa2);
 
         /* Move the last to the beginning; do it n times */
     pixa3 = pixaCopy(pixa2, L_COPY);
@@ -106,7 +106,7 @@ static char     mainName[] = "inserttest";
       pixaInsertPix(pixa3, 0, pix, box);
       pixaRemovePix(pixa3, n);
     }
-    pixaWrite("junkpixa3", pixa3);
+    pixaWrite("/tmp/junkpixa3", pixa3);
 
         /* Move the first one to the end; do it n times */
     pixa4 = pixaCopy(pixa3, L_COPY);
@@ -116,7 +116,7 @@ static char     mainName[] = "inserttest";
       pixaInsertPix(pixa4, n, pix, box);  /* make sure insert works at end */
       pixaRemovePix(pixa4, 0);
     }
-    pixaWrite("junkpixa4", pixa4);
+    pixaWrite("/tmp/junkpixa4", pixa4);
 
     pixDestroy(&pix1);
     pixDestroy(&pix2);

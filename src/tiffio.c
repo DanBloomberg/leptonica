@@ -94,7 +94,7 @@ static l_int32   tiffGetResolution(TIFF *tif, l_uint32 *pxres, l_uint32 *pyres);
 static l_int32   tiffReadHeaderTiff(TIFF *tif, l_int32 *pwidth,
                                     l_int32 *pheight, l_int32 *pbps,
                                     l_int32 *pspp, l_int32 *pres,
-                                    l_int32 *pcmap);
+                                    l_int32 *pcmap, l_int32 *pformat);
 static l_int32   writeCustomTiffTags(TIFF *tif, NUMA *natags,
                                      SARRAY *savals, SARRAY  *satypes,
                                      NUMA *nasizes);
@@ -530,7 +530,7 @@ TIFF  *tif;
     if (pixGetDepth(pix) != 1 && comptype != IFF_TIFF &&
         comptype != IFF_TIFF_LZW && comptype != IFF_TIFF_ZIP) {
         L_WARNING("invalid compression type for image with bpp > 1", procName);
-        comptype = IFF_TIFF;
+        comptype = IFF_TIFF_ZIP;
     }
 
     if ((tif = fopenTiff(fp, "w")) == NULL)
@@ -891,7 +891,7 @@ PIXA    *pixa;
     if (!filename)
         return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
 
-    if ((fp = fopen(filename, "r")) == NULL)
+    if ((fp = fopen(filename, "rb")) == NULL)
         return (PIXA *)ERROR_PTR("stream not opened", procName, NULL);
     if (fileFormatIsTiff(fp)) {
         tiffGetCount(fp, &npages);
@@ -990,7 +990,7 @@ PIX         *pix, *pixt;
     for (i = 0; i < nfiles; i++) {
         op = (firstfile) ? "w" : "a";
         fname = sarrayGetString(sa, i, L_NOCOPY);
-        if ((fp = fopen(fname, "r")) == NULL)
+        if ((fp = fopen(fname, "rb")) == NULL)
             continue;
         findFileFormat(fp, &format);
         fclose(fp);
@@ -1159,6 +1159,7 @@ l_float32  fxres, fyres;
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
  *              &cmap (<optional return>; colormap exists; input NULL to ignore)
+ *              &format (<optional return>; tiff format; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  * 
  *  Notes:
@@ -1173,7 +1174,8 @@ readHeaderTiff(const char *filename,
                l_int32    *pbps,
                l_int32    *pspp,
                l_int32    *pres,
-               l_int32    *pcmap)
+               l_int32    *pcmap,
+               l_int32    *pformat)
 {
 l_int32  ret;
 FILE    *fp;
@@ -1190,7 +1192,8 @@ FILE    *fp;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    ret = freadHeaderTiff(fp, n, pwidth, pheight, pbps, pspp, pres, pcmap);
+    ret = freadHeaderTiff(fp, n, pwidth, pheight, pbps, pspp,
+                          pres, pcmap, pformat);
     fclose(fp);
     return ret;
 }
@@ -1207,6 +1210,7 @@ FILE    *fp;
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
  *              &cmap (<optional return>; colormap exists; input NULL to ignore)
+ *              &format (<optional return>; tiff format; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  * 
  *  Notes:
@@ -1221,7 +1225,8 @@ freadHeaderTiff(FILE     *fp,
                 l_int32  *pbps,
                 l_int32  *pspp,
                 l_int32  *pres,
-                l_int32  *pcmap)
+                l_int32  *pcmap,
+                l_int32  *pformat)
 {
 l_int32  i, ret, format;
 TIFF    *tif;
@@ -1237,6 +1242,7 @@ TIFF    *tif;
     *pwidth = *pheight = *pbps = *pspp = 0;
     if (pres) *pres = 0;
     if (pcmap) *pcmap = 0;
+    if (pformat) *pformat = 0;
 
     findFileFormat(fp, &format);
     if (format != IFF_TIFF &&
@@ -1253,8 +1259,8 @@ TIFF    *tif;
             return ERROR_INT("image n not found in file", procName, 1);
     }
 
-    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp, pres, pcmap);
-
+    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp,
+                             pres, pcmap, pformat);
     TIFFCleanup(tif);
     return ret;
 }
@@ -1272,6 +1278,7 @@ TIFF    *tif;
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
  *              &cmap (<optional return>; colormap exists; input NULL to ignore)
+ *              &format (<optional return>; tiff format; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1286,7 +1293,8 @@ readHeaderMemTiff(const l_uint8  *cdata,
                   l_int32        *pbps,
                   l_int32        *pspp,
                   l_int32        *pres,
-                  l_int32        *pcmap)
+                  l_int32        *pcmap,
+                  l_int32        *pformat)
 {
 l_uint8  *data;
 l_int32   i, ret;
@@ -1301,6 +1309,7 @@ TIFF     *tif;
     *pwidth = *pheight = *pbps = *pspp = 0;
     if (pres) *pres = 0;
     if (pcmap) *pcmap = 0;
+    if (pformat) *pformat = 0;
     
         /* Open a tiff stream to memory */
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
@@ -1314,8 +1323,8 @@ TIFF     *tif;
         }
     }
 
-    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp, pres, pcmap);
-
+    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp,
+                             pres, pcmap, pformat);
     TIFFClose(tif);
     return ret;
 }
@@ -1330,7 +1339,8 @@ TIFF     *tif;
  *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
- *              &cmap (<optional return>; colormap exists; input NULL to ignore)
+ *              &cmap (<optional return>; cmap exists; input NULL to ignore)
+ *              &format (<optional return>; tiff format; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  */
 static l_int32
@@ -1340,8 +1350,10 @@ tiffReadHeaderTiff(TIFF     *tif,
                    l_int32  *pbps,
                    l_int32  *pspp,
                    l_int32  *pres,
-                   l_int32  *pcmap)
+                   l_int32  *pcmap,
+                   l_int32  *pformat)
 {
+l_uint16   tiffcomp;
 l_uint16   bps, spp;
 l_uint16  *rmap, *gmap, *bmap;
 l_uint32   w, h, xres, yres;
@@ -1372,6 +1384,10 @@ l_uint32   w, h, xres, yres;
             *pcmap = 1;
     }
 
+    if (pformat) {
+        TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
+        *pformat = getTiffCompressedFormat(tiffcomp);
+    }
     return 0;
 }
 
@@ -1408,7 +1424,7 @@ TIFF     *tif;
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
     
-    if ((tif = fopenTiff(fp, "r")) == NULL)
+    if ((tif = fopenTiff(fp, "rb")) == NULL)
         return ERROR_INT("tif not opened", procName, 1);
     TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
     *pcomptype = getTiffCompressedFormat(tiffcomp);
@@ -1503,7 +1519,7 @@ TIFF     *tif;
     *pdata = NULL;
     *pnbytes = 0;
 
-    if ((fpin = fopen(filein, "r")) == NULL)
+    if ((fpin = fopen(filein, "rb")) == NULL)
         return ERROR_INT("filein not defined", procName, 1);
     istiff = fileFormatIsTiff(fpin);
     fclose(fpin);
@@ -2000,7 +2016,7 @@ TIFF    *tif;
     if (pixGetDepth(pix) != 1 && comptype != IFF_TIFF &&
         comptype != IFF_TIFF_LZW && comptype != IFF_TIFF_ZIP) {
         L_WARNING("invalid compression type for image with bpp > 1", procName);
-        comptype = IFF_TIFF;
+        comptype = IFF_TIFF_ZIP;
     }
 
     if ((tif = fopenTiffMemstream("tifferror", "w", pdata, psize)) == NULL)

@@ -27,7 +27,7 @@
  *          l_int32     pixWriteStreamPng()
  *          
  *    Read and write of png to/from RGBA pix
- *          PIX        *pixReadRGGAPng();
+ *          PIX        *pixReadRGBAPng();
  *          l_int32     pixWriteRGBAPng();
  *
  *    Setting flags for special modes
@@ -51,27 +51,28 @@
  *    3 component color image.
  *
  *    In the following, we use these abbreviations:
- *       bpc == bit/component
- *       cpp == component/pixel
+ *       bps == bit/sample
+ *       spp == samples/pixel
  *       bpp == bits/pixel of image in Pix (memory)
+ *    where each component is referred to as a "sample".
  *
  *    There are three special flags for determining the number or
- *    size of components retained or written:
+ *    size of samples retained or written:
  *    (1) L_PNG_STRIP_16_to_8: default is TRUE.  This strips each
- *        16 bit component down to 8 bpc:
- *         - For 16 bpc rgb (16 bpc, 3 cpp) --> 32 bpp rgb Pix
- *         - For 16 bpc gray (16 bpc, 1 cpp) --> 8 bpp grayscale Pix
+ *        16 bit sample down to 8 bps:
+ *         - For 16 bps rgb (16 bps, 3 spp) --> 32 bpp rgb Pix
+ *         - For 16 bps gray (16 bps, 1 spp) --> 8 bpp grayscale Pix
  *    (2) L_PNG_STRIP_ALPHA: default is TRUE.  This does not copy
  *        the alpha channel to the pix:
- *         - For 8 bpc rgba (8 bpc, 4 cpp) --> 32 bpp rgb Pix
+ *         - For 8 bps rgba (8 bps, 4 spp) --> 32 bpp rgb Pix
  *    (3) L_PNG_WRITE_ALPHA: default is FALSE.  The default generates
- *        an RGB png file with 3 cpp.  If set to TRUE, this generates
- *        an RGBA png file with 4 cpp, and writes the alpha channel.
+ *        an RGB png file with 3 spp.  If set to TRUE, this generates
+ *        an RGBA png file with 4 spp, and writes the alpha channel.
  *    These are set with accessors.
  *
  *    Two convenience functions are included for reading the alpha
  *    channel (if it exists) into the pix, and for writing out the
- *    alpha component of a pix to a png file:
+ *    alpha sample of a pix to a png file:
  *        pixReadRGBAPng()
  *        pixWriteRGBAPng()
  *    These use two of the special flags, setting to the non-default
@@ -334,8 +335,8 @@ PIXCMAP     *cmap;
  *      Input:  filename
  *              &width (<return>)
  *              &height (<return>)
- *              &bpc (<return>, bits/component)
- *              &cpp (<return>, components/pixel)
+ *              &bps (<return>, bits/sample)
+ *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
@@ -346,8 +347,8 @@ l_int32
 readHeaderPng(const char *filename,
               l_int32    *pwidth,
               l_int32    *pheight,
-              l_int32    *pbpc,
-              l_int32    *pcpp,
+              l_int32    *pbps,
+              l_int32    *pspp,
               l_int32    *piscmap)
 {
 l_int32  ret;
@@ -357,11 +358,11 @@ FILE    *fp;
 
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
-    if (!pwidth || !pheight || !pbpc || !pcpp)
+    if (!pwidth || !pheight || !pbps || !pspp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    ret = freadHeaderPng(fp, pwidth, pheight, pbpc, pcpp, piscmap);
+    ret = freadHeaderPng(fp, pwidth, pheight, pbps, pspp, piscmap);
     fclose(fp);
     return ret;
 }
@@ -373,8 +374,8 @@ FILE    *fp;
  *      Input:  stream
  *              &width (<return>)
  *              &height (<return>)
- *              &bpc (<return>, bits/component)
- *              &cpp (<return>, components/pixel)
+ *              &bps (<return>, bits/sample)
+ *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
@@ -385,8 +386,8 @@ l_int32
 freadHeaderPng(FILE     *fp,
                l_int32  *pwidth,
                l_int32  *pheight,
-               l_int32  *pbpc,
-               l_int32  *pcpp,
+               l_int32  *pbps,
+               l_int32  *pspp,
                l_int32  *piscmap)
 {
 l_int32   nbytes, ret;
@@ -396,7 +397,7 @@ l_uint8  *data;
 
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
-    if (!pwidth || !pheight || !pbpc || !pcpp)
+    if (!pwidth || !pheight || !pbps || !pspp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
     
     nbytes = fnbytesInFile(fp);
@@ -405,7 +406,7 @@ l_uint8  *data;
     if ((data = (l_uint8 *)CALLOC(40, sizeof(l_uint8))) == NULL)
         return ERROR_INT("CALLOC fail for data", procName, 1);
     fread(data, 40, 1, fp);
-    ret = sreadHeaderPng(data, pwidth, pheight, pbpc, pcpp, piscmap);
+    ret = sreadHeaderPng(data, pwidth, pheight, pbps, pspp, piscmap);
     FREE(data);
     return ret;
 }
@@ -417,8 +418,8 @@ l_uint8  *data;
  *      Input:  data
  *              &width (<return>)
  *              &height (<return>)
- *              &bpc (<return>, bits/component)
- *              &cpp (<return>, components/pixel)
+ *              &bps (<return>, bits/sample)
+ *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
  *      Return: 0 if OK, 1 on error
  *
@@ -429,11 +430,11 @@ l_int32
 sreadHeaderPng(const l_uint8  *data,
                l_int32        *pwidth,
                l_int32        *pheight,
-               l_int32        *pbpc,
-               l_int32        *pcpp,
+               l_int32        *pbps,
+               l_int32        *pspp,
                l_int32        *piscmap)
 {
-l_uint8    colortype, bpc;
+l_uint8    colortype, bps;
 l_uint16   twobytes;
 l_uint16  *pshort;
 l_uint32  *pword;
@@ -442,9 +443,9 @@ l_uint32  *pword;
 
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
-    if (!pwidth || !pheight || !pbpc || !pcpp)
+    if (!pwidth || !pheight || !pbps || !pspp)
         return ERROR_INT("input ptr(s) not defined", procName, 1);
-    *pwidth = *pheight = *pbpc = *pcpp = 0;
+    *pwidth = *pheight = *pbps = *pspp = 0;
     if (piscmap)
       *piscmap = 0;
     
@@ -458,17 +459,17 @@ l_uint32  *pword;
     pshort = (l_uint16 *)data;
     *pwidth = convertOnLittleEnd32(pword[4]);
     *pheight = convertOnLittleEnd32(pword[5]);
-    twobytes = convertOnLittleEnd16(pshort[12]); /* contains depth/component */
-                                                 /* and the color type       */
+    twobytes = convertOnLittleEnd16(pshort[12]); /* contains depth/sample  */
+                                                 /* and the color type     */
     colortype = twobytes & 0xff;  /* color type */
-    bpc = twobytes >> 8;   /* bits/component */
-    *pbpc = bpc;
+    bps = twobytes >> 8;   /* bits/sample */
+    *pbps = bps;
     if (colortype == 2)  /* RGB */
-        *pcpp = 3;
+        *pspp = 3;
     else if (colortype == 6)  /* RGBA */
-        *pcpp = 4;
+        *pspp = 4;
     else   /* palette or gray */
-        *pcpp = 1;
+        *pspp = 1;
     if (piscmap) {
         if (colortype & 1)  /* palette: see png.h, PNG_COLOR_TYPE_... */
             *piscmap = 1;
@@ -870,10 +871,10 @@ PIX     *pix;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Wrapper to write the alpha component of a 32 bpp pix to
+ *      (1) Wrapper to write the alpha sample of a 32 bpp pix to
  *          a png file in rgba format.
  *      (2) The default behavior of pix write to png is to ignore
- *          the alpha component.
+ *          the alpha sample.
  *      (3) This always leaves alpha writing in the same mode as
  *          when this function begins.  So if alpha writing is in
  *          default mode, this enables it, writes out a rgba png file

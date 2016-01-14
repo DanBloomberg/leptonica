@@ -1682,8 +1682,6 @@ PIXCMAP    *cmap;
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (!box)
-        return ERROR_INT("box not defined", procName, 1);
     if (type != L_PAINT_LIGHT && type != L_PAINT_DARK)
         return ERROR_INT("invalid type", procName, 1);
 

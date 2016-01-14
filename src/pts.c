@@ -81,6 +81,10 @@
  *           PIX      *pixGenerateFromPta()
  *           PTA      *ptaGetBoundaryPixels()
  *           PTAA     *ptaaGetBoundaryPixels()
+ *
+ *      Display Pta and Ptaa
+ *           PIX      *pixDisplayPta()
+ *           PIX      *pixDisplayPtaa()
  */
 
 #include <stdio.h>
@@ -95,7 +99,7 @@ static const l_int32  DEFAULT_SPREADING_FACTOR = 7500;
 
 
 /*---------------------------------------------------------------------*
- *                PTA creation, destruction, copy, clone               *
+ *                Pta creation, destruction, copy, clone               *
  *---------------------------------------------------------------------*/
 /*!
  *  ptaCreate()
@@ -235,7 +239,7 @@ ptaEmpty(PTA  *pta)
 
 
 /*---------------------------------------------------------------------*
- *                          PTA array extension                        *
+ *                         Pta array extension                         *
  *---------------------------------------------------------------------*/
 /*!
  *  ptaAddPt()
@@ -393,10 +397,11 @@ PTA       *ptad;
  *      Return: ptad (cyclic permutation, starting and ending at (xs, ys),
  *              or null on error
  *
- *  Note: we check to insure that ptas is a closed path where
- *        the first and last points are identical, and the
- *        resulting pta also starts and ends on the same point
- *        (which in this case is (xs, ys).
+ *  Notes:
+ *      (1) Check to insure that (a) ptas is a closed path where
+ *          the first and last points are identical, and (b) the
+ *          resulting pta also starts and ends on the same point
+ *          (which in this case is (xs, ys).
  */
 PTA  *
 ptaCyclicPerm(PTA     *ptas,
@@ -414,7 +419,7 @@ PTA     *ptad;
 
     n = ptaGetCount(ptas);
 
-        /* verify input data */
+        /* Verify input data */
     ptaGetIPt(ptas, 0, &x1, &y1);
     ptaGetIPt(ptas, n - 1, &x2, &y2);
     if (x1 != x2 || y1 != y2)
@@ -722,7 +727,7 @@ NUMA     *nax, *nay;
         return ERROR_INT("nay not made", procName, 1);
     *pnay = nay;
 
-        /* use arrays directly for efficiency */
+        /* Use arrays directly for efficiency */
     for (i = 0; i < n; i++) {
         nax->array[i] = pta->x[i];
         nay->array[i] = pta->y[i];
@@ -1258,8 +1263,7 @@ l_int32  n, i, x, y, minx, maxx, miny, maxy;
  *
  *      Input:  ptas (input pts)
  *              box
- *      Return: ptad (of pts in ptas that are inside the box),
- *              or null on error
+ *      Return: ptad (of pts in ptas that are inside the box), or null on error
  */
 PTA *
 ptaGetInsideBox(PTA  *ptas,
@@ -1787,8 +1791,8 @@ pixGenerateFromPta(PTA     *pta,
                    l_int32  w,
                    l_int32  h)
 {
-l_int32    n, i, x, y;
-PIX       *pix;
+l_int32  n, i, x, y;
+PIX     *pix;
 
     PROCNAME("pixGenerateFromPta");
 
@@ -1823,8 +1827,8 @@ PTA *
 ptaGetBoundaryPixels(PIX     *pixs,
                      l_int32  type)
 {
-PIX       *pixt;
-PTA       *pta;
+PIX  *pixt;
+PTA  *pta;
 
     PROCNAME("ptaGetBoundaryPixels");
 
@@ -1925,6 +1929,113 @@ PTAA    *ptaa;
     else
         pixaDestroy(&pixa);
     return ptaa;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                          Display Pta and Ptaa                       *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixDisplayPta()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
+ *              pta (of path to be plotted)
+ *      Return: pixd (32 bpp RGB version of pixs, with path in green),
+ *              or null on error
+ */
+PIX *
+pixDisplayPta(PIX  *pixs,
+              PTA  *pta)
+{
+l_int32   i, n, x, y;
+l_uint32  rpixel, gpixel, bpixel;
+PIX      *pixd;
+
+    PROCNAME("pixDisplayPta");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pta)
+        return (PIX *)ERROR_PTR("pta not defined", procName, NULL);
+
+    if ((pixd = pixConvertTo32(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    composeRGBPixel(255, 0, 0, &rpixel);  /* start point */
+    composeRGBPixel(0, 255, 0, &gpixel);
+    composeRGBPixel(0, 0, 255, &bpixel);  /* end point */
+
+    n = ptaGetCount(pta);
+    for (i = 0; i < n; i++) {
+        ptaGetIPt(pta, i, &x, &y);
+        if (i == 0)
+            pixSetPixel(pixd, x, y, rpixel);
+        else if (i < n - 1)
+            pixSetPixel(pixd, x, y, gpixel);
+        else
+            pixSetPixel(pixd, x, y, bpixel);
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixDisplayPtaa()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
+ *              ptaa (array of paths to be plotted)
+ *      Return: pixd (32 bpp RGB version of pixs, with paths plotted
+ *                    in different colors), or null on error
+ */
+PIX *
+pixDisplayPtaa(PIX   *pixs,
+               PTAA  *ptaa)
+{
+l_int32    i, j, npta, npt, x, y, rv, gv, bv;
+l_uint32  *pixela;
+PIX       *pixd;
+PTA       *pta;
+
+    PROCNAME("pixDisplayPtaa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!ptaa)
+        return (PIX *)ERROR_PTR("ptaa not defined", procName, NULL);
+    npta = ptaaGetCount(ptaa);
+    if (npta == 0)
+        return (PIX *)ERROR_PTR("no pta", procName, NULL);
+
+    if ((pixd = pixConvertTo32(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+        /* Make a colormap for the paths; this one approximates
+         * three functions that are linear for each color over
+         * half the number of paths. */
+    if ((pixela = (l_uint32 *)CALLOC(npta, sizeof(l_uint32))) == NULL)
+        return (PIX *)ERROR_PTR("calloc fail for pixela", procName, NULL);
+    for (i = 0; i < npta; i++) {
+        rv = L_MAX(0, 255 -  255 * (2 * i) / (npta + 1));
+        bv = L_MIN(255, L_MAX(0, (255 * (3 + 2 * i - npta) / (npta + 1))));
+        if (i < npta / 2)
+            gv = L_MIN(255, (255 * 2 * i) / (npta + 1));
+        else
+            gv = L_MIN(255, L_MAX(0, 255 - 255 * (2 * i - npta) / npta));
+        composeRGBPixel(rv, gv, bv, &pixela[i]);
+    }
+
+    for (i = 0; i < npta; i++) {
+        pta = ptaaGetPta(ptaa, i, L_CLONE);
+        npt = ptaGetCount(pta);
+        for (j = 0; j < npt; j++) {
+            ptaGetIPt(pta, j, &x, &y);
+            pixSetPixel(pixd, x, y, pixela[i]);
+        }
+        ptaDestroy(&pta);
+    }
+
+    FREE(pixela);
+    return pixd;
 }
 
 

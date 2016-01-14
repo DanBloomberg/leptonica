@@ -104,13 +104,13 @@ static char  mainName[] = "ranktest";
     pixDestroy(&pixt4);
 
         /* Display tiled */
-    pixa = pixaReadFiles(".", "junk_write_display");
+    pixa = pixaReadFiles("/tmp", "junk_write_display");
     pixd = pixaDisplayTiledAndScaled(pixa, d, 400, 3, 0, 25, 2);
-    pixWrite("junktiles", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/junktiles.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 

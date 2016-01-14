@@ -1201,7 +1201,7 @@ PIX     *pixs, *pixd;
             L_WARNING_INT("box %d not found", procName, i);
             break;
         }
-        boxAdjustSides(box, box, -left, -right, top, bot);
+        boxAdjustSides(box, box, -left, right, -top, bot);
         if (pixad == pixas)  /* replace */
             boxaReplaceBox(boxad, i, box);
         else

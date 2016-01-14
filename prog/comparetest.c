@@ -120,7 +120,7 @@ static char  mainName[] = "comparetest";
             pixWrite(fileout, pixd, IFF_PNG);
 
         if (d1 != 16) {
-            na1 = pixCompareRankDifference(pixs1, pixs2);
+            na1 = pixCompareRankDifference(pixs1, pixs2, 1);
             if (na1) {
                 fprintf(stderr, "na1[150] = %20.10f\n", na1->array[150]);
                 fprintf(stderr, "na1[200] = %20.10f\n", na1->array[200]);

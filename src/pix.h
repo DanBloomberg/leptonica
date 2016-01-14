@@ -66,6 +66,7 @@
  *       HSV histogram flags
  *       Region flags (inclusion, exclusion)
  *       Flags for adding text to a pix
+ *       Flags for selecting display program
  */
 
 
@@ -139,13 +140,13 @@ enum {
     L_ALPHA_CHANNEL = 3
 };
 
-static const l_int32  L_RED_SHIFT = 
+static const l_int32  L_RED_SHIFT =
        8 * (sizeof(l_uint32) - 1 - COLOR_RED);           /* 24 */
-static const l_int32  L_GREEN_SHIFT = 
+static const l_int32  L_GREEN_SHIFT =
        8 * (sizeof(l_uint32) - 1 - COLOR_GREEN);         /* 16 */
-static const l_int32  L_BLUE_SHIFT = 
+static const l_int32  L_BLUE_SHIFT =
        8 * (sizeof(l_uint32) - 1 - COLOR_BLUE);          /*  8 */
-static const l_int32  L_ALPHA_SHIFT = 
+static const l_int32  L_ALPHA_SHIFT =
        8 * (sizeof(l_uint32) - 1 - L_ALPHA_CHANNEL);     /*  0 */
 
 
@@ -805,7 +806,9 @@ enum {
  *-------------------------------------------------------------------------*/
 enum {
     L_SUBPIXEL_ORDER_RGB = 1,   /* sensor order left-to-right RGB          */
-    L_SUBPIXEL_ORDER_BGR = 2    /* sensor order left-to-right BGR          */
+    L_SUBPIXEL_ORDER_BGR = 2,   /* sensor order left-to-right BGR          */
+    L_SUBPIXEL_ORDER_VRGB = 3,  /* sensor order top-to-bottom RGB          */
+    L_SUBPIXEL_ORDER_VBGR = 4   /* sensor order top-to-bottom BGR          */
 };
 
 
@@ -847,6 +850,18 @@ enum {
     L_ADD_AT_BOTTOM = 3,       /* Add text over the bottom of the image    */
     L_ADD_BELOW = 4            /* Add text below the image                 */
 };
+
+
+/*-------------------------------------------------------------------------*
+ *                   Flags for selecting display program                   *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_DISPLAY_WITH_XV = 1,      /* Use xv with pixDisplay()                */
+    L_DISPLAY_WITH_XLI = 2,     /* Use xli with pixDisplay()               */
+    L_DISPLAY_WITH_XZGV = 3,    /* Use xzgv with pixDisplay()              */
+    L_DISPLAY_WITH_IV = 4       /* Use irfvanview with pixDisplay()        */
+};
+
 
 
 #endif  /* LEPTONICA_PIX_H */

@@ -97,7 +97,7 @@ static char  mainName[] = "dithertest";
     pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
 
-    system("gthumb junk_write_display* &");
+    pixDisplayMultiple("/tmp/junk_write_display*");
 
     pixDestroy(&pix);
     pixDestroy(&pixs);

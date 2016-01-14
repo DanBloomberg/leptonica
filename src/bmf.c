@@ -311,7 +311,7 @@ PIXA     *pixa;
     FREE(pathname);
 
     if (!pixa)
-        ERROR_PTR("pixa of char bitmaps not found", procName, NULL);
+        L_WARNING("pixa of char bitmaps not found", procName);
     return pixa;
 }
 

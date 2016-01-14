@@ -67,7 +67,7 @@ static char  mainName[] = "pta_reg.c";
 
         /* Get ptaa of fg pixels */
     ptaafg = ptaaGetBoundaryPixels(pixs, L_BOUNDARY_FG, 8, NULL, NULL); 
-    ptaaWrite("/tmp/junkfg", ptaafg, 1);
+    ptaaWrite("/tmp/junkfg.ptaa", ptaafg, 1);
     npta = ptaaGetCount(ptaafg);
     if (npta != nbox) {
         ok = FALSE;
@@ -91,7 +91,7 @@ static char  mainName[] = "pta_reg.c";
          * because bg boundary pixels are shared by two c.c. that
          * are 1 pixel apart. */
     ptaabg = ptaaGetBoundaryPixels(pixs, L_BOUNDARY_BG, 8, NULL, NULL); 
-    ptaaWrite("/tmp/junkbg", ptaabg, 1);
+    ptaaWrite("/tmp/junkbg.ptaa", ptaabg, 1);
     npta = ptaaGetCount(ptaabg);
     if (npta != nbox) {
         ok = FALSE;

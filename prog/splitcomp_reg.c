@@ -111,7 +111,7 @@ static char  mainName[] = "splitcomp_reg";
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkcomp1.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkcomp1.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);
 
@@ -141,7 +141,7 @@ static char  mainName[] = "splitcomp_reg";
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
     pixDisplay(pixd, 600, 100);
-    pixWrite("junkcomp2.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkcomp2.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);
 

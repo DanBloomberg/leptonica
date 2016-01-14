@@ -353,10 +353,10 @@ static char  mainName[] = "binmorph1_reg";
     }
 
 #if 0
-    pixWrite("junkref", pixref, IFF_PNG);
-    pixWrite("junk12", pixt12, IFF_PNG);
+    pixWrite("/tmp/junkref.png", pixref, IFF_PNG);
+    pixWrite("/tmp/junk12.png", pixt12, IFF_PNG);
     pixt13 = pixXor(NULL, pixref, pixt12);
-    pixWrite("junk12a", pixt13, IFF_PNG);
+    pixWrite("/tmp/junk12a.png", pixt13, IFF_PNG);
     pixDestroy(&pixt13);
 #endif
 
@@ -529,10 +529,10 @@ static char  mainName[] = "binmorph1_reg";
     }
 
 #if 0
-    pixWrite("junkref", pixref, IFF_PNG);
-    pixWrite("junk12", pixt12, IFF_PNG);
+    pixWrite("/tmp/junkref.png", pixref, IFF_PNG);
+    pixWrite("/tmp/junk12.png", pixt12, IFF_PNG);
     pixt13 = pixXor(NULL, pixref, pixt12);
-    pixWrite("junk12a", pixt13, IFF_PNG);
+    pixWrite("/tmp/junk12a.png", pixt13, IFF_PNG);
     pixDestroy(&pixt13);
 #endif
 

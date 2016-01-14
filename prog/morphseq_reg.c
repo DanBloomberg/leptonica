@@ -42,7 +42,7 @@ static char  mainName[] = "morphseq_reg";
 
     fprintf(stderr, "Valid sequence: %s:\n", VALID_SEQUENCE);
     pixd = pixMorphSequence(pixs, VALID_SEQUENCE, 250);
-    pixWrite("junkpixd", pixd, IFF_PNG);
+    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
     fprintf(stderr, "\nBad sequence: %s:\n", BAD_SEQUENCE);

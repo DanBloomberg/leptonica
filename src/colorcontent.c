@@ -25,6 +25,10 @@
  *      as a measure of the difference of the pixel color from gray.
  *         PIX       *pixColorMagnitude()
  *
+ *      Generates a mask over pixels that have sufficient color and
+ *      are not too close to gray pixels.
+ *         PIX       *pixMaskOverColorPixels()
+ *
  *      Finds the fraction of pixels with "color" that are not close to black
  *         l_int32    pixColorFraction()
  *
@@ -269,7 +273,8 @@ PIXCMAP   *cmap;
  *      Input:  pixs  (32 bpp rgb or 8 bpp colormapped)
  *              rwhite, gwhite, bwhite (color value associated with white point)
  *              type (chooses the method for calculating the color magnitude:
- *                    L_MAX_DIFF_FROM_AVERAGE_2, MAX_MIN_DIFF_FROM_2)
+ *                    L_MAX_DIFF_FROM_AVERAGE_2, L_MAX_MIN_DIFF_FROM_2,
+ *                    L_MAX_DIFF)
  *      Return: pixd (8 bpp, amount of color in each source pixel),
  *                    or NULL on error
  *
@@ -277,7 +282,7 @@ PIXCMAP   *cmap;
  *      (1) For an RGB image, a gray pixel is one where all three components
  *          are equal.  We define the amount of color in an RGB pixel by
  *          considering the absolute value of the differences between the
- *          components, of which there are three.  Consider the two largest
+ *          three color components.  Consider the two largest
  *          of these differences.  The pixel component in common to these
  *          two differences is the color farthest from the other two.
  *          The color magnitude in an RGB pixel can be taken as:
@@ -287,13 +292,16 @@ PIXCMAP   *cmap;
  *              * the minimum value of these two differences; i.e., the
  *                maximum over all components of the minimum distance
  *                from that component to the other two components.
+ *          Even more simply, the color magnitude can be taken as
+ *              * the maximum difference between component values
  *      (2) As an example, suppose that R and G are the closest in
- *          magnitude.  Then the color is determined as either:
+ *          magnitude.  Then the color is determined as:
  *              * the average distance of B from these two; namely,
  *                (|B - R| + |B - G|) / 2, which can also be found
  *                from |B - (R + G) / 2|, or
  *              * the minimum distance of B from these two; namely,
  *                min(|B - R|, |B - G|).
+ *              * the max(|B - R|, |B - G|)
  *      (3) The three numbers (rwhite, gwhite and bwhite) can be thought
  *          of as the values in the image corresponding to white.
  *          They are used to compensate for an unbalanced color white point.
@@ -303,6 +311,7 @@ PIXCMAP   *cmap;
  *          magnitude from the three components:
  *              * L_MAX_DIFF_FROM_AVERAGE_2
  *              * L_MAX_MIN_DIFF_FROM_2
+ *              * L_MAX_DIFF
  *          These are described above in (1) and (2), as well as at
  *          the top of this file.
  */
@@ -315,7 +324,7 @@ pixColorMagnitude(PIX     *pixs,
 {
 l_int32    w, h, d, i, j, wplc, wpld;
 l_int32    rval, gval, bval, rdist, gdist, bdist, colorval;
-l_int32    rgdist, rbdist, gbdist, mindist, maxdist;
+l_int32    rgdist, rbdist, gbdist, mindist, maxdist, minval, maxval;
 l_int32   *rtab, *gtab, *btab;
 l_uint32   pixel;
 l_uint32  *datac, *datad, *linec, *lined;
@@ -328,7 +337,8 @@ PIXCMAP   *cmap;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
-    if (type != L_MAX_DIFF_FROM_AVERAGE_2 && type != L_MAX_MIN_DIFF_FROM_2)
+    if (type != L_MAX_DIFF_FROM_AVERAGE_2 && type != L_MAX_MIN_DIFF_FROM_2 &&
+        type != L_MAX_DIFF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
     if (rwhite < 0 || gwhite < 0 || bwhite < 0)
         return (PIX *)ERROR_PTR("some white vals are negative", procName, NULL);
@@ -378,7 +388,7 @@ PIXCMAP   *cmap;
                 colorval = L_MAX(rdist, gdist);
                 colorval = L_MAX(colorval, bdist);
             }
-            else {  /* type == L_MAX_MIN_DIFF_FROM_2; choose intermed dist */
+            else if (type == L_MAX_MIN_DIFF_FROM_2) { /* choose intermed dist */
                 rgdist = L_ABS(rval - gval);
                 rbdist = L_ABS(rval - bval);
                 gbdist = L_ABS(gval - bval);
@@ -389,6 +399,13 @@ PIXCMAP   *cmap;
                     mindist = L_MIN(rgdist, rbdist);
                     colorval = L_MAX(mindist, gbdist);
                 }
+            }
+            else {  /* type == L_MAX_DIFF */
+                minval = L_MIN(rval, gval);
+                minval = L_MIN(minval, bval);
+                maxval = L_MAX(rval, gval);
+                maxval = L_MAX(maxval, bval);
+                colorval = maxval - minval;
             }
             SET_DATA_BYTE(lined, j, colorval);
         }
@@ -408,15 +425,98 @@ PIXCMAP   *cmap;
 
 
 /*!
+ *  pixMaskOverColorPixels()
+ *
+ *      Input:  pixs  (32 bpp rgb or 8 bpp colormapped)
+ *              threshdiff (threshold for minimum of the max difference
+ *                          between components)
+ *              mindist (minimum allowed distance from nearest non-color pixel)
+ *      Return: pixd (1 bpp, mask over color pixels), or null on error
+ *
+ *  Notes:
+ *      (1) The generated mask identifies each pixel as either color or
+ *          non-color.  For a pixel to be color, it must satisfy two
+ *          constraints:
+ *            (a) The max difference between the r,g and b components must
+ *                equal or exceed a threshold @threshdiff.
+ *            (b) It must be at least @mindist (in an 8-connected way)
+ *                from the nearest non-color pixel.
+ *      (2) The distance constraint (b) is only applied if @mindist > 1.
+ *          For example, if @mindist == 2, the color pixels identified
+ *          by (a) are eroded by a 3x3 Sel.  In general, the Sel size
+ *          for erosion is 2 * (@mindist - 1) + 1.
+ *          Why have this constraint?  In scanned images that are
+ *          essentially gray, color artifacts are typically introduced
+ *          in transition regions near sharp edges that go from dark
+ *          to light, so this allows these transition regions to be removed.
+ */
+PIX *
+pixMaskOverColorPixels(PIX     *pixs,
+                       l_int32  threshdiff,
+                       l_int32  mindist)
+{
+l_int32    w, h, d, i, j, wpls, wpld, size;
+l_int32    rval, gval, bval, minval, maxval;
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixc, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixMaskOverColorPixels");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+
+    cmap = pixGetColormap(pixs);
+    if (!cmap && d != 32)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+    if (cmap)
+        pixc = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
+    else
+        pixc = pixClone(pixs);
+
+    pixd = pixCreate(w, h, 1);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datas = pixGetData(pixc);
+    wpls = pixGetWpl(pixc);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            minval = L_MIN(rval, gval);
+            minval = L_MIN(minval, bval);
+            maxval = L_MAX(rval, gval);
+            maxval = L_MAX(maxval, bval);
+            if (maxval - minval >= threshdiff)
+                SET_DATA_BIT(lined, j);
+        }
+    }
+
+    if (mindist > 1) {
+        size = 2 * (mindist - 1) + 1;
+        pixErodeBrick(pixd, pixd, size, size);
+    }
+
+    pixDestroy(&pixc);
+    return pixd;
+}
+
+
+/*!
  *  pixColorFraction()
  *
  *      Input:  pixs  (32 bpp rgb)
- *              darkthresh (dark threshold for minimum of average value to
- *                          be considered in the statistics; typ. 20)
- *              lightthresh (threshold near white, above which the pixel
- *                           is not considered in the statistics; typ. 248)
- *              diffthresh (thresh for the maximum difference from
- *                          the average of component values)
+ *              darkthresh (threshold near black; if the lightest component
+ *                          is below this, the pixel is not considered in
+ *                          the statistics; typ. 20)
+ *              lightthresh (threshold near white; if the darkest component
+ *                           is above this, the pixel is not considered in
+ *                           the statistics; typ. 244)
+ *              diffthresh (thresh for the maximum difference between
+ *                          component value; below this the pixel is not
+ *                          considered to have sufficient color)
  *              factor (subsampling factor)
  *              &pixfract (<return> fraction of pixels in intermediate
  *                         brightness range that were considered
@@ -435,10 +535,10 @@ PIXCMAP   *cmap;
  *          deviation from black.
  *      (2) Any pixel that meets these three tests is considered a
  *          colorful pixel:
- *            (a) the average of components must equal or exceed @darkthresh
- *            (b) the average of components must not exceed @lightthresh
- *            (c) at least one component must differ from the average
- *                by at least @diffthresh
+ *            (a) the lightest component must equal or exceed @darkthresh
+ *            (b) the darkest component must not exceed @lightthresh
+ *            (c) the max difference between components must equal or
+ *                exceed @diffthresh.
  *      (3) The dark pixels are removed from consideration because
  *          they don't appear to have color.
  *      (4) The very lightest pixels are removed because if an image
@@ -466,8 +566,8 @@ pixColorFraction(PIX        *pixs,
                  l_float32  *ppixfract,
                  l_float32  *pcolorfract)
 {
-l_int32    i, j, w, h, wpl, rval, gval, bval, ave;
-l_int32    total, npix, ncolor, rdiff, gdiff, bdiff, maxdiff;
+l_int32    i, j, w, h, wpl, rval, gval, bval, minval, maxval;
+l_int32    total, npix, ncolor;
 l_uint32   pixel;
 l_uint32  *data, *line;
 
@@ -491,16 +591,17 @@ l_uint32  *data, *line;
             total++;
             pixel = line[j];
             extractRGBValues(pixel, &rval, &gval, &bval);
-            ave = (l_int32)(0.333 * (rval + gval + bval));
-            if (ave < darkthresh || ave > lightthresh)
+            minval = L_MIN(rval, gval);
+            minval = L_MIN(minval, bval);
+            if (minval > lightthresh)  /* near white */
                 continue;
+            maxval = L_MAX(rval, gval);
+            maxval = L_MAX(maxval, bval);
+            if (maxval < darkthresh)  /* near black */
+                continue;
+
             npix++;
-            rdiff = L_ABS(rval - ave);
-            gdiff = L_ABS(gval - ave);
-            bdiff = L_ABS(bval - ave);
-            maxdiff = L_MAX(rdiff, gdiff);
-            maxdiff = L_MAX(maxdiff, bdiff);
-            if (maxdiff >= diffthresh)
+            if (maxval - minval >= diffthresh)
                 ncolor++;
         }
     }
@@ -524,7 +625,7 @@ l_uint32  *data, *line;
  *              lightthresh (threshold near white, for maximum intensity
  *                           to be considered; typ. 236)
  *              minfract (minimum fraction of all pixels to include a level
- *                        as significant; typ. 0.0001)
+ *                        as significant; typ. 0.0001; should be < 0.001)
  *              factor (subsample factor; integer >= 1)
  *              &ncolors (<return> number of significant colors; 0 on error)
  *      Return: 0 if OK, 1 on error
@@ -567,6 +668,9 @@ NUMA    *na;
     if (minfract < 0.0) minfract = 0.0001;
     if (minfract > 1.0)
         return ERROR_INT("minfract > 1.0", procName, 1);
+    if (minfract >= 0.001)
+        L_WARNING("minfract too big; likely to underestimate ncolors",
+                  procName);
     if (lightthresh > 255 || darkthresh >= lightthresh)
         return ERROR_INT("invalid thresholds", procName, 1);
     if (factor < 1) factor = 1;
@@ -594,25 +698,14 @@ NUMA    *na;
  *              thresh (binary threshold on edge gradient; 0 for default)
  *              &ncolors (<return> the number of colors found)
  *              &iscolor (<optional return> 1 if significant color is found;
- *                        0 otherwise.  If pixs is 8 bpp, this is 0)
+ *                        0 otherwise.  If pixs is 8 bpp, and does not have
+ *                        a colormap with color entries, this is 0)
  *              debug (1 to output masked image that is tested for colors;
  *                     0 otherwise)
  *      Return: 0 if OK, 1 on error.
  *
  *  Notes:
- *      (1) Grayscale and color quantization is often useful to achieve highly
- *          compressed images with little visible distortion.  However,
- *          gray or color washes (regions of low gradient) can defeat
- *          this approach to high compression.  How can one determine
- *          if an image is expected to compress well using gray or
- *          color quantization?  We use the fact that
- *            - gray washes, when quantized with less than 50 intensities,
- *              have posterization (visible boundaries between regions
- *              of uniform 'color') and poor lossless compression
- *            - color washes, when quantized with level 4 octcubes,
- *              typically result in both posterization and the occupancy
- *              of many level 4 octcubes.
- *      (2) This function finds a measure of the number of colors that are
+ *      (1) This function finds a measure of the number of colors that are
  *          found in low-gradient regions of an image.  By its
  *          magnitude relative to some threshold (not specified in
  *          this function), it gives a good indication of whether
@@ -621,33 +714,53 @@ NUMA    *na;
  *          intensity (if 8 bpp) or color (if rgb). Such images, if
  *          quantized, may require dithering to avoid posterization,
  *          and lossless compression is then expected to be poor.
- *      (3) Images can have colors either intrinsically or as jpeg
- *          compression artifacts.  This function effectively ignores
- *          jpeg quantization noise in the white background of grayscale
- *          or color images.
- *      (4) The number of colors in the low-gradient regions increases
- *          monotonically with the threshold @thresh on the edge gradient.
- *      (5) If pixs has a colormap, the number of colors returned is
+ *      (2) If pixs has a colormap, the number of colors returned is
  *          the number in the colormap.
- *      (6) The image is tested for color.  If there is very little color,
- *          it is thresholded to gray and the number of gray levels in
- *          the low gradient regions is found.  If the image has color,
- *          the number of occupied level 4 octcubes is found.
- *      (7) When using the default threshold on the gradient (15),
+ *      (3) It is recommended that document images be reduced to a width
+ *          of 800 pixels before applying this function.  Then it can
+ *          be expected that color detection will be fairly accurate
+ *          and the number of colors will reflect both the content and
+ *          the type of compression to be used.  For less than 15 colors,
+ *          there is unlikely to be a halftone image, and lossless
+ *          quantization should give both a good visual result and
+ *          better compression.
+ *      (4) When using the default threshold on the gradient (15),
  *          images (both gray and rgb) where ncolors is greater than
  *          about 15 will compress poorly with either lossless
  *          compression or dithered quantization, and they may be
  *          posterized with non-dithered quantization.
- *      (8) For grayscale images, or images without significant color,
+ *      (5) For grayscale images, or images without significant color,
  *          this returns the number of significant gray levels in
  *          the low-gradient regions.  The actual number of gray levels
  *          can be large due to jpeg compression noise in the background.
- *      (9) Similarly, for color images, the actual number of different
+ *      (6) Similarly, for color images, the actual number of different
  *          (r,g,b) colors in the low-gradient regions (rather than the
  *          number of occupied level 4 octcubes) can be quite large, e.g.,
  *          due to jpeg compression noise, even for regions that appear
  *          to be of a single color.  By quantizing to level 4 octcubes,
  *          most of these superfluous colors are removed from the counting.
+ *      (7) The image is tested for color.  If there is very little color,
+ *          it is thresholded to gray and the number of gray levels in
+ *          the low gradient regions is found.  If the image has color,
+ *          the number of occupied level 4 octcubes is found.
+ *      (8) The number of colors in the low-gradient regions increases
+ *          monotonically with the threshold @thresh on the edge gradient.
+ *      (9) Background: grayscale and color quantization is often useful
+ *          to achieve highly compressed images with little visible
+ *          distortion.  However, gray or color washes (regions of
+ *          low gradient) can defeat this approach to high compression.
+ *          How can one determine if an image is expected to compress
+ *          well using gray or color quantization?  We use the fact that
+ *            * gray washes, when quantized with less than 50 intensities,
+ *              have posterization (visible boundaries between regions
+ *              of uniform 'color') and poor lossless compression
+ *            * color washes, when quantized with level 4 octcubes,
+ *              typically result in both posterization and the occupancy
+ *              of many level 4 octcubes.
+ *          Images can have colors either intrinsically or as jpeg
+ *          compression artifacts.  This function reduces but does not
+ *          completely eliminate measurement of jpeg quantization noise
+ *          in the white background of grayscale or color images.
  */
 l_int32
 pixColorsForQuantization(PIX      *pixs,
@@ -679,22 +792,22 @@ PIXCMAP   *cmap;
     if (d != 8 && d != 32)
         return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
     if (thresh <= 0) 
-        thresh = 15;  /* default */
+        thresh = 15;
     if (piscolor)
         *piscolor = 0;
 
         /* First test if 32 bpp has any significant color; if not,
          * convert it to gray.  Colors whose average values are within
          * 20 of black or 8 of white are ignored because they're not
-         * very 'colorful'.  If less than 1/10000 of the pixels have
+         * very 'colorful'.  If less than 2.5/10000 of the pixels have
          * significant color, consider the image to be gray. */
     minside = L_MIN(w, h);
     if (d == 8)
         pixt = pixClone(pixs);
     else {  /* d == 32 */
-        factor = L_MAX(1, minside / 200);
-        pixColorFraction(pixs, 20, 248, 12, factor, &pixfract, &colorfract);
-        if (pixfract * colorfract < 0.0001) {
+        factor = L_MAX(1, minside / 400);
+        pixColorFraction(pixs, 20, 248, 30, factor, &pixfract, &colorfract);
+        if (pixfract * colorfract < 0.00025) {
             pixt = pixGetRGBComponent(pixs, COLOR_RED);
             d = 8;
         }
@@ -722,8 +835,12 @@ PIXCMAP   *cmap;
          *   - work on a grayscale image
          *   - get a 1 bpp edge mask by using an edge filter and
          *     thresholding to get fg pixels at the edges
-         *   - dilate with a 7x7 brick Sel to get mask over all pixels
-         *     within a small distance from the nearest edge pixel  */
+         *   - for gray, dilate with a 3x3 brick Sel to get mask over
+         *     all pixels within a distance of 1 pixel from the nearest
+         *     edge pixel
+         *   - for color, dilate with a 7x7 brick Sel to get mask over
+         *     all pixels within a distance of 3 pixels from the nearest
+         *     edge pixel  */
     if (d == 8)
         pixg = pixClone(pixsc);
     else  /* d == 32 */
@@ -731,7 +848,10 @@ PIXCMAP   *cmap;
     pixe = pixSobelEdgeFilter(pixg, L_ALL_EDGES);
     pixb = pixThresholdToBinary(pixe, thresh);
     pixInvert(pixb, pixb);
-    pixm = pixMorphSequence(pixb, "d7.7", 0);
+    if (d == 8)
+        pixm = pixMorphSequence(pixb, "d3.3", 0);
+    else
+        pixm = pixMorphSequence(pixb, "d7.7", 0);
 
         /* Mask the near-edge pixels to white, and count the colors.
          * If grayscale, don't count colors within 20 levels of
@@ -739,8 +859,8 @@ PIXCMAP   *cmap;
          * of at least 1/10000 of the image pixels.
          * If color, count the number of level 4 octcubes that
          * contain at least 20 pixels.  These magic numbers are guesses
-         * as to what should work, based on a small data set.  Results
-         * should not be sensitive to their actual values. */
+         * as to what might work, based on a small data set.  Results
+         * should not be overly sensitive to their actual values. */
     if (d == 8) {
         pixSetMasked(pixg, pixm, 0xff);
         if (debug) pixWrite("junkpix8.png", pixg, IFF_PNG);

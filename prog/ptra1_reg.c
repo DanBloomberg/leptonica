@@ -203,7 +203,7 @@ static char  mainName[] = "ptra1_reg";
 
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("junkptra.png", pixd, IFF_PNG);
+    pixWrite("/tmp/junkptra1.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
     pixaDestroy(&pixas);

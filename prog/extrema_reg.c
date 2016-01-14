@@ -45,7 +45,7 @@ static char  mainName[] = "extrema_reg";
 	f += 63.4 * cos(0.21 * (l_float32)i);
 	numaAddNumber(na1, f);
     }
-    gplot = gplotCreate("junktest", GPLOT_X11, "Extrema test", "x", "y");
+    gplot = gplotCreate("/tmp/junktest", GPLOT_X11, "Extrema test", "x", "y");
     gplotAddPlot(gplot, NULL, na1, GPLOT_LINES, "plot 1");
 
         /* Find the local min and max and plot them */

@@ -35,17 +35,17 @@ PIX * pixReadStreamPng(FILE *fp)
     return (PIX * )ERROR_PTR("function not present", "pixReadStreamPng", NULL);
 }
 
-l_int32 readHeaderPng(const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *piscmap)
+l_int32 readHeaderPng(const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap)
 {
     return ERROR_INT("function not present", "readHeaderPng", 1);
 }
 
-l_int32 freadHeaderPng(FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *piscmap)
+l_int32 freadHeaderPng(FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap)
 {
     return ERROR_INT("function not present", "freadHeaderPng", 1);
 }
 
-l_int32 sreadHeaderPng(const l_uint8 *data, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbpc, l_int32 *pcpp, l_int32 *piscmap)
+l_int32 sreadHeaderPng(const l_uint8 *data, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap)
 {
     return ERROR_INT("function not present", "sreadHeaderPng", 1);
 }

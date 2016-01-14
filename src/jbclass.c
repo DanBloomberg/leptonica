@@ -1834,7 +1834,7 @@ FILE    *fp;
     pixWrite(buf, pixt, IFF_PNG);
 
     snprintf(buf, L_BUF_SIZE, "%s%s", rootout, JB_DATA_EXT); 
-    if ((fp = fopen(buf, "w")) == NULL)
+    if ((fp = fopen(buf, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ncomp = ptaGetCount(ptaul);
     fprintf(fp, "jb data file\n");

@@ -425,22 +425,21 @@ PIX       *pixg, *pixd;
     d = pixGetDepth(pixs);
     if (d != 4 && d != 8)
         return (PIX *)ERROR_PTR("not 4 or 8 bpp", procName, NULL);
-    if (d == 4 && usecmap == TRUE) {
-        if (val < 0 || val > 15)
-            return (PIX *)ERROR_PTR("val out of 4 bpp range", procName, NULL);
-    }
-    else {
-        d == 8;
-        if (val < 0 || val > 255)
-            return (PIX *)ERROR_PTR("val out of 8 bpp range", procName, NULL);
-    }
 
     if (!usecmap && pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     else
         pixg = pixClone(pixs);
+    pixGetDimensions(pixg, &w, &h, &d);
+    if (d == 4 && (val < 0 || val > 15)) {
+        pixDestroy(&pixg);
+        return (PIX *)ERROR_PTR("val out of 4 bpp range", procName, NULL);
+    }
+    if (d == 8 && (val < 0 || val > 255)) {
+        pixDestroy(&pixg);
+        return (PIX *)ERROR_PTR("val out of 8 bpp range", procName, NULL);
+    }
 
-    pixGetDimensions(pixg, &w, &h, NULL);
     pixd = pixCreate(w, h, 1);
     pixCopyResolution(pixd, pixg);
     datag = pixGetData(pixg);
@@ -511,22 +510,21 @@ PIX       *pixg, *pixd;
         return (PIX *)ERROR_PTR("not 4 or 8 bpp", procName, NULL);
     if (lower < 0 || lower > upper)
         return (PIX *)ERROR_PTR("lower < 0 or lower > upper!", procName, NULL);
-    if (d == 4 && usecmap == TRUE) {
-        if (upper > 15)
-            return (PIX *)ERROR_PTR("upper > 15", procName, NULL);
-    }
-    else {
-        d = 8;
-        if (upper > 255)
-            return (PIX *)ERROR_PTR("upper > 255", procName, NULL);
-    }
 
     if (!usecmap && pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     else
         pixg = pixClone(pixs);
+    pixGetDimensions(pixg, &w, &h, &d);
+    if (d == 4 && upper > 15) {
+        pixDestroy(&pixg);
+        return (PIX *)ERROR_PTR("d == 4 and upper > 15", procName, NULL);
+    }
+    if (d == 8 && upper > 255) {
+        pixDestroy(&pixg);
+        return (PIX *)ERROR_PTR("d == 8 and upper > 255", procName, NULL);
+    }
 
-    pixGetDimensions(pixg, &w, &h, NULL);
     pixd = pixCreate(w, h, 1);
     pixCopyResolution(pixd, pixg);
     datag = pixGetData(pixg);

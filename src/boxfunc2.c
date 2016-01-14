@@ -31,6 +31,10 @@
  *           BOXAA           *boxaSort2d()
  *           BOXAA           *boxaSort2dByIndex()
  *
+ *      Boxa statistics
+ *           BOX             *boxaGetRankSize()
+ *           BOX             *boxaGetMedian()
+ *
  *      Other boxaa functions
  *           l_int32          boxaaGetExtent()
  *           BOXA            *boxaaFlattenToBoxa()
@@ -935,6 +939,92 @@ NUMA    *na;
     }
 
     return baa;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                            Boxa statistics                          *
+ *---------------------------------------------------------------------*/
+/*!
+ *  boxaGetRankSize()
+ *
+ *      Input:  boxa
+ *              fract (use 0.0 for smallest, 1.0 for largest)
+ *      Return: box (with rank values for x, y, w, h), or null on error
+ *              or if the boxa is empty (has no valid boxes)
+ *
+ *  Notes:
+ *      (1) This function does not assume that all boxes in the boxa are valid
+ *      (2) The four box parameters are sorted independently.  To assure
+ *          that the resulting box size is sorted in increasing order:
+ *             - x and y are sorted in decreasing order
+ *             - w and h are sorted in increasing order
+ */
+BOX *
+boxaGetRankSize(BOXA      *boxa,
+                l_float32  fract)
+{
+l_int32    i, n, x, y, w, h;
+l_float32  xval, yval, wval, hval;
+NUMA      *nax, *nay, *naw, *nah;
+BOX       *box;
+
+    PROCNAME("boxaGetRankSize");
+
+    if (!boxa)
+        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (fract < 0.0 || fract > 1.0)
+        return (BOX *)ERROR_PTR("fract not in [0.0 ... 1.0]", procName, NULL);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return (BOX *)ERROR_PTR("boxa is empty", procName, NULL);
+
+    nax = numaCreate(n);
+    nay = numaCreate(n);
+    naw = numaCreate(n);
+    nah = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        boxaGetBoxGeometry(boxa, i, &x, &y, &w, &h);
+        if (w == 0 || h == 0) continue;
+        numaAddNumber(nax, x);
+        numaAddNumber(nay, y);
+        numaAddNumber(naw, w);
+        numaAddNumber(nah, h);
+    }
+    numaGetRankValue(nax, 1.0 - fract, &xval);
+    numaGetRankValue(nay, 1.0 - fract, &yval);
+    numaGetRankValue(naw, fract, &wval);
+    numaGetRankValue(nah, fract, &hval);
+    box = boxCreate((l_int32)xval, (l_int32)yval, (l_int32)wval, (l_int32)hval);
+
+    numaDestroy(&nax);
+    numaDestroy(&nay);
+    numaDestroy(&naw);
+    numaDestroy(&nah);
+    return box;
+}
+
+
+/*!
+ *  boxaGetMedian()
+ *
+ *      Input:  boxa
+ *      Return: box (with median values for x, y, w, h), or null on error
+ *              or if the boxa is empty.
+ *
+ *  Notes:
+ *      (1) See boxaGetRankSize()
+ */
+BOX *
+boxaGetMedian(BOXA  *boxa)
+{
+    PROCNAME("boxaGetMedian");
+
+    if (!boxa)
+        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (boxaGetCount(boxa) == 0)
+        return (BOX *)ERROR_PTR("boxa is empty", procName, NULL);
+
+    return boxaGetRankSize(boxa, 0.5);
 }
 
 

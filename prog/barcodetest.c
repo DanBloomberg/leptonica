@@ -46,21 +46,21 @@ static char  mainName[] = "barcodetest";
 	exit(ERROR_INT("pixs not made", mainName, 1));
 	    
     sad1 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WIDTHS, &saw1, 0);
-    sarrayWrite("junksaw1", saw1);
-    sarrayWrite("junksad1", sad1);
+    sarrayWrite("/tmp/junksaw1", saw1);
+    sarrayWrite("/tmp/junksad1", sad1);
     sarrayDestroy(&saw1);
     sarrayDestroy(&sad1);
 
     pixRotate180(pixs, pixs);
     sad2 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WIDTHS, &saw2, 0);
-    sarrayWrite("junksaw2", saw2);
-    sarrayWrite("junksad2", sad2);
+    sarrayWrite("/tmp/junksaw2", saw2);
+    sarrayWrite("/tmp/junksad2", sad2);
     sarrayDestroy(&saw2);
     sarrayDestroy(&sad2);
 
 /*    sad3 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WINDOW, &saw3, 1);
-    sarrayWrite("junksaw3", saw3);
-    sarrayWrite("junksad3", sad3);
+    sarrayWrite("/tmp/junksaw3", saw3);
+    sarrayWrite("/tmp/junksad3", sad3);
     sarrayDestroy(&saw3);
     sarrayDestroy(&sad3); */
 

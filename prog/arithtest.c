@@ -45,17 +45,17 @@ static char  mainName[] = "arithtest";
     pixAccumulate(pix1, pixs, L_ARITH_ADD);
     pixMultConstAccumulate(pix1, 255., 0);
     pix2 = pixFinalAccumulate(pix1, 0, 16);
-    pixWrite("junkpix2", pix2, IFF_PNG);
+    l_pngSetStrip16To8(0);
+    pixWrite("/tmp/junkpix1.png", pix2, IFF_PNG);
 
         /* convert it back to 8 bpp, linear mapped */
     pix3 = pixMaxDynamicRange(pix2, L_LINEAR_SCALE);
-    pixWrite("junkpix3", pix3, IFF_PNG);
+    pixWrite("/tmp/junkpix2.png", pix3, IFF_PNG);
 
         /* convert it back to 8 bpp using the MSB */
-    pix4 = pixRead("junkpix2");
+    pix4 = pixRead("/tmp/junkpix1.png");
     pix5 = pixConvert16To8(pix4, 1);
-    pixWrite("junkpix5", pix5, IFF_PNG);
-
-    exit(0);
+    pixWrite("/tmp/junkpix3.png", pix5, IFF_PNG);
+    return 0;
 }
 
