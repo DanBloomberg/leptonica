@@ -100,8 +100,13 @@ static char  mainName[] = "flipdetect_reg";
         fprintf(stderr, "conf1 = %7.3f, conf2 = %7.3f\n", conf1, conf2);
     }
 
-    fprintf(stderr, "\nOnce more for up-down test\n");
-    pixUpDownDetect(pixs, &conf1, 0, 1);
+    fprintf(stderr, "\nSafer version of up-down tests\n");
+    pixUpDownDetectGeneral(pixs, &conf1, 0, 10, 1);
+    pixUpDownDetectGeneralDwa(pixs, &conf2, 0, 10, 1);
+    if (conf1 == conf2)
+        fprintf(stderr, "Confidence results are identical\n");
+    else
+        fprintf(stderr, "Confidence results differ\n");
 
     pixDestroy(&pixs);
     exit(0);

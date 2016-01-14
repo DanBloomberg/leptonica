@@ -25,6 +25,9 @@
  *          Simple (pixelwise) binarization with fixed threshold
  *              PIX    *pixThresholdToBinary()
  *
+ *          Binarization with variable threshold
+ *              PIX    *pixVarThresholdToBinary()
+ *
  *          Slower implementation of Floyd-Steinberg dithering, using LUTs
  *              PIX    *pixDitherToBinaryLUT()
  *
@@ -41,38 +44,36 @@
  *          Simple (pixelwise) thresholding to 2 bpp with optional cmap
  *              PIX      *pixThresholdTo2bpp()
  *
- *      Thresholding from 8 bpp to 4 bpp
- *
- *          Simple (pixelwise) thresholding to 4 bpp with optional cmap
+ *      Simple (pixelwise) thresholding from 8 bpp to 4 bpp
  *              PIX      *pixThresholdTo4bpp()
  *
- *      Quantizing on 8 bpp grayscale
- *
- *          Simple (pixelwise) thresholding on 8 bpp Pix, with optional cmap
+ *      Simple (pixelwise) quantization on 8 bpp grayscale
  *              PIX      *pixThresholdOn8bpp()
  *
- *      Quantization tables for linear thresholds of grayscale images
+ *      Arbitrary (pixelwise) thresholding from 8 bpp to 2, 4 or 8 bpp
+ *              PIX      *pixThresholdGrayArb()
  *
+ *      Quantization tables for linear thresholds of grayscale images
  *              l_int32  *makeGrayQuantIndexTable()
  *              l_int32  *makeGrayQuantTargetTable()
+ *
+ *      Quantization table for arbitrary thresholding of grayscale images
+ *              l_int32   makeGrayQuantTableArb()
+ *              l_int32   makeGrayQuantColormapArb()
  *
  *      Thresholding from 32 bpp rgb to 1 bpp
  *      (really color quantization, but it's better placed in this file)
  *
- *              PIX    *pixGenerateMaskByBand32()     ***
- *              PIX    *pixGenerateMaskByDiscr32()    ***
- *
- *  *** Note: these functions make an implicit assumption about RGB
- *            component ordering.
- *
- *
+ *              PIX    *pixGenerateMaskByBand32()
+ *              PIX    *pixGenerateMaskByDiscr32()
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <math.h>
 #include "allheaders.h"
+
 
 /*------------------------------------------------------------------*
  *             Binarization by Floyd-Steinberg dithering            *
@@ -215,7 +216,7 @@ PIX       *pixt, *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 4 && d != 8)
-        return (PIX *)ERROR_PTR("must be 4 or 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 4 or 8 bpp", procName, NULL);
     if (thresh < 0)
         return (PIX *)ERROR_PTR("thresh must be non-negative", procName, NULL);
     if (d == 4 && thresh > 16)
@@ -236,6 +237,63 @@ PIX       *pixt, *pixd;
 
     thresholdToBinaryLow(datad, w, h, wpld, datat, d, wplt, thresh);
     pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------*
+ *                Binarization with variable threshold              *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixVarThresholdToBinary()
+ *
+ *      Input:  pixs (8 bpp)
+ *              pixg (8 bpp; contains threshold values for each pixel)
+ *      Return: pixd (1 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) If the pixel in pixs is less than the corresponding pixel
+ *          in pixg, the dest will be 1; otherwise it will be 0.
+ */
+PIX *
+pixVarThresholdToBinary(PIX  *pixs,
+                        PIX  *pixg)
+{
+l_int32    i, j, vals, valg, w, h, d, wpls, wplg, wpld;
+l_uint32  *datas, *datag, *datad, *lines, *lineg, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixVarThresholdToBinary");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixg)
+        return (PIX *)ERROR_PTR("pixg not defined", procName, NULL);
+    if (!pixSizesEqual(pixs, pixg))
+        return (PIX *)ERROR_PTR("pix sizes not equal", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+
+    pixd = pixCreate(w, h, 1);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datag = pixGetData(pixg);
+    wplg = pixGetWpl(pixg);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lineg = datag + i * wplg;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            vals = GET_DATA_BYTE(lines, j);
+            valg = GET_DATA_BYTE(lineg, j);
+            if (vals < valg)
+                SET_DATA_BIT(lined, j);
+        }
+    }
+
     return pixd;
 }
 
@@ -676,7 +734,7 @@ PIXCMAP   *cmap;
 
 
 /*----------------------------------------------------------------------*
- *    Simple (pixelwise) thresholding to 4 bpp with optional colormap   *
+ *               Simple (pixelwise) thresholding to 4 bpp               *
  *----------------------------------------------------------------------*/
 /*!
  *  pixThresholdTo4bpp()
@@ -848,6 +906,139 @@ PIXCMAP   *cmap;
 
 
 /*----------------------------------------------------------------------*
+ *    Arbitrary (pixelwise) thresholding from 8 bpp to 2, 4 or 8 bpp    *
+ *----------------------------------------------------------------------*/
+/*!
+ *  pixThresholdGrayArb()
+ *
+ *      Input:  pixs (8 bpp grayscale; can have colormap)
+ *              edgevals (string giving edge value of each bin)
+ *              outdepth (0, 2, 4 or 8 bpp; 0 is default for min depth)
+ *              use_average (1 if use the average pixel value in colormap)
+ *              setblack (1 if darkest color is set to black)
+ *              setwhite (1 if lightest color is set to white)
+ *      Return: pixd (2, 4 or 8 bpp quantized image with colormap),
+ *                    or null on error
+ *
+ *  Notes:
+ *      (1) This function allows exact specification of the quantization bins.  
+ *          The string @edgevals is a space-separated set of values
+ *          specifying the dividing points between output quantization bins.
+ *          These threshold values are assigned to the bin with higher
+ *          values, so that each of them is the smallest value in their bin.
+ *      (2) The output image (pixd) depth is specified by @outdepth.  The
+ *          number of bins is the number of edgevals + 1.  The
+ *          relation between outdepth and the number of bins is:
+ *               outdepth = 2       nbins <= 4
+ *               outdepth = 4       nbins <= 16 
+ *               outdepth = 8       nbins <= 256
+ *          With @outdepth == 0, the minimum required depth for the
+ *          given number of bins is used.
+ *          The output pixd has a colormap.
+ *      (3) The last 3 args determine the specific values that go into
+ *          the colormap.
+ *      (4) For @use_average:
+ *            - if TRUE, the average value of pixels falling in the bin is
+ *              chosen as the representative gray value.  Otherwise,
+ *            - if FALSE, the central value of each bin is chosen as
+ *              the representative value.
+ *          The colormap holds the representative value.
+ *      (5) For @setblack, if TRUE the darkest color is set to (0,0,0).
+ *      (6) For @setwhite, if TRUE the lightest color is set to (255,255,255).
+ *      (7) An alternative to using this function to quantize to
+ *          unequally-spaced bins is to first transform the 8 bpp pixs
+ *          using pixGammaTRC(), and follow this with pixThresholdTo4bpp().
+ */
+PIX *
+pixThresholdGrayArb(PIX         *pixs,
+                    const char  *edgevals,
+                    l_int32      outdepth,
+                    l_int32      use_average,
+                    l_int32      setblack,
+                    l_int32      setwhite)
+{
+l_int32   *qtab;
+l_int32    w, h, d, i, j, n, wplt, wpld, val, newval;
+l_uint32  *datat, *datad, *linet, *lined;
+NUMA      *na;
+PIX       *pixt, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixThresholdGrayArb");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (!edgevals)
+        return (PIX *)ERROR_PTR("edgevals not defined", procName, NULL);
+    if (outdepth != 0 && outdepth != 2 && outdepth != 4 && outdepth != 8)
+        return (PIX *)ERROR_PTR("invalid outdepth", procName, NULL);
+
+        /* Parse and sort (if required) the bin edge values */
+    na = parseStringForNumbers(edgevals, " \t\n,");
+    n = numaGetCount(na);
+    if (n > 255)
+        return (PIX *)ERROR_PTR("more than 256 levels", procName, NULL);
+    if (outdepth == 0) {
+        if (n <= 3)
+            outdepth = 2;
+        else if (n <= 15)
+            outdepth = 4;
+        else
+            outdepth = 8;
+    }
+    else if (n + 1 > (1 << outdepth)) {
+        L_WARNING("outdepth too small; setting to 8 bpp", procName);
+        outdepth = 8;
+    }
+    numaSort(na, na, L_SORT_INCREASING);
+
+        /* Make the quantization LUT and the colormap */
+    makeGrayQuantTableArb(na, outdepth, &qtab, &cmap);
+    if (use_average) {  /* use the average value in each bin */
+        pixcmapDestroy(&cmap);
+	makeGrayQuantColormapArb(pixs, qtab, outdepth, &cmap);
+    }
+    pixcmapSetBlackAndWhite(cmap, setblack, setwhite);
+    numaDestroy(&na);
+
+    if ((pixd = pixCreate(w, h, outdepth)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    pixSetColormap(pixd, cmap);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+        /* If there is a colormap in the src, remove it */
+    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+
+    if (outdepth == 2)
+        thresholdTo2bppLow(datad, h, wpld, datat, wplt, qtab);
+    else if (outdepth == 4)
+        thresholdTo4bppLow(datad, h, wpld, datat, wplt, qtab);
+    else {
+        for (i = 0; i < h; i++) {
+            lined = datad + i * wpld;
+            linet = datat + i * wplt;
+            for (j = 0; j < w; j++) {
+                val = GET_DATA_BYTE(linet, j);
+                newval = qtab[val];
+                SET_DATA_BYTE(lined, j, newval);
+            }
+        }
+    }
+
+    FREE(qtab);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*----------------------------------------------------------------------*
  *     Quantization tables for linear thresholds of grayscale images    *
  *----------------------------------------------------------------------*/
 /*!
@@ -940,6 +1131,177 @@ l_int32    i, j, thresh, maxval, quantval;
 }
 
 
+/*----------------------------------------------------------------------*
+ *   Quantization table for arbitrary thresholding of grayscale images  *
+ *----------------------------------------------------------------------*/
+/*!
+ *  makeGrayQuantTableArb()
+ *
+ *      Input:  na (numa of bin boundaries)
+ *              outdepth (of colormap: 1, 2, 4 or 8)
+ *              &tab (<return> table mapping input gray level to cmap index)
+ *              &cmap (<return> colormap)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The number of bins is the count of @na + 1.
+ *      (2) The bin boundaries in na must be sorted in increasing order.
+ *      (3) The table is an inverse colormap: it maps input gray level
+ *          to colormap index (the bin number).
+ *      (4) The colormap generated here has quantized values at the
+ *          center of each bin.  If you want to use the average gray
+ *          value of pixels within the bin, discard the colormap and
+ *          compute it using makeGrayQuantColormapArb().
+ *      (5) Returns an error if there are not enough levels in the
+ *          output colormap for the number of bins.  The number
+ *          of bins must not exceed 2^outdepth.
+ */
+l_int32
+makeGrayQuantTableArb(NUMA      *na,
+                      l_int32    outdepth,
+                      l_int32  **ptab,
+                      PIXCMAP  **pcmap)
+{
+l_int32   i, j, n, jstart, ave, val;
+l_int32  *tab;
+PIXCMAP  *cmap;
+
+    PROCNAME("makeGrayQuantTableArb");
+
+    if (!ptab)
+        return ERROR_INT("&tab not defined", procName, 1);
+    *ptab = NULL;
+    if (!pcmap)
+        return ERROR_INT("&cmap not defined", procName, 1);
+    *pcmap = NULL;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = numaGetCount(na);
+    if (n + 1 > (1 << outdepth))
+        return ERROR_INT("more bins than cmap levels", procName, 1);
+
+    if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
+        return ERROR_INT("calloc fail for tab", procName, 1);
+    if ((cmap = pixcmapCreate(outdepth)) == NULL)
+        return ERROR_INT("cmap not made", procName, 1);
+    *ptab = tab;
+    *pcmap = cmap;
+
+        /* First n bins */
+    jstart = 0;
+    for (i = 0; i < n; i++) {
+        numaGetIValue(na, i, &val);
+        ave = (jstart + val) / 2;
+        pixcmapAddColor(cmap, ave, ave, ave);
+        for (j = jstart; j < val; j++)
+            tab[j] = i;
+        jstart = val;
+    }
+
+        /* Last bin */
+    ave = (jstart + 255) / 2;
+    pixcmapAddColor(cmap, ave, ave, ave);
+    for (j = jstart; j < 256; j++) 
+        tab[j] = n;
+
+    return 0;
+}
+
+
+/*!
+ *  makeGrayQuantColormapArb()
+ *
+ *      Input:  pixs (8 bpp)
+ *              tab (table mapping input gray level to cmap index)
+ *              outdepth (of colormap: 1, 2, 4 or 8)
+ *              &cmap (<return> colormap)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The table is a 256-entry inverse colormap: it maps input gray
+ *          level to colormap index (the bin number).  It is computed
+ *          using makeGrayQuantTableArb().
+ *      (2) The colormap generated here has quantized values at the
+ *          average gray value of the pixels that are in each bin.
+ *      (3) Returns an error if there are not enough levels in the
+ *          output colormap for the number of bins.  The number
+ *          of bins must not exceed 2^outdepth.
+ */
+l_int32
+makeGrayQuantColormapArb(PIX       *pixs,
+                         l_int32   *tab,
+                         l_int32    outdepth,
+                         PIXCMAP  **pcmap)
+{
+l_int32    i, j, index, w, h, d, nbins, wpl, factor, val;
+l_int32   *bincount, *binave, *binstart;
+l_uint32  *line, *data;
+
+    PROCNAME("makeGrayQuantColormapArb");
+
+    if (!pcmap)
+        return ERROR_INT("&cmap not defined", procName, 1);
+    *pcmap = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!tab)
+        return ERROR_INT("tab not defined", procName, 1);
+    nbins = tab[255] + 1;
+    if (nbins > (1 << outdepth))
+        return ERROR_INT("more bins than cmap levels", procName, 1);
+
+        /* Find the count and weighted count for each bin */
+    if ((bincount = (l_int32 *)CALLOC(nbins, sizeof(l_int32))) == NULL)
+        return ERROR_INT("calloc fail for bincount", procName, 1);
+    if ((binave = (l_int32 *)CALLOC(nbins, sizeof(l_int32))) == NULL)
+        return ERROR_INT("calloc fail for binave", procName, 1);
+    factor = (l_int32)(sqrt((l_float64)(w * h) / 30000.) + 0.5);
+    factor = L_MAX(1, factor);
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    for (i = 0; i < h; i += factor) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j += factor) {
+            val = GET_DATA_BYTE(line, j);
+            bincount[tab[val]]++;
+            binave[tab[val]] += val;
+        }
+    }
+
+        /* Find the smallest gray values in each bin */
+    if ((binstart = (l_int32 *)CALLOC(nbins, sizeof(l_int32))) == NULL)
+        return ERROR_INT("calloc fail for binstart", procName, 1);
+    for (i = 1, index = 1; i < 256; i++) {
+        if (tab[i] < index) continue;
+        if (tab[i] == index)
+            binstart[index++] = i;
+    }
+
+        /* Get the averages.  If there are no samples in a bin, use
+	 * the center value of the bin. */
+    *pcmap = pixcmapCreate(outdepth);
+    for (i = 0; i < nbins; i++) {
+        if (bincount[i])
+            val = binave[i] / bincount[i];
+        else {  /* no samples in the bin */
+            if (i < nbins - 1)
+                val = (binstart[i] + binstart[i + 1]) / 2;
+            else  /* last bin */
+                val = (binstart[i] + 255) / 2;
+        }
+        pixcmapAddColor(*pcmap, val, val, val);
+    }
+
+    FREE(bincount);
+    FREE(binave);
+    FREE(binstart);
+    return 0;
+}
+	    
+
 /*--------------------------------------------------------------------*
  *                 Thresholding from 32 bpp rgb to 1 bpp              *
  *--------------------------------------------------------------------*/
@@ -959,9 +1321,9 @@ l_int32    i, j, thresh, maxval, quantval;
  */
 PIX *
 pixGenerateMaskByBand32(PIX    *pixs,
-                      l_uint32  refval,
-                      l_int32   delm,
-                      l_int32   delp)
+                        l_uint32  refval,
+                        l_int32   delm,
+                        l_int32   delp)
 {
 l_int32    i, j, w, h, d, wpls, wpld;
 l_int32    rref, gref, bref, rval, gval, bval;
@@ -979,9 +1341,7 @@ PIX       *pixd;
     if (delm < 0 || delp < 0)
         return (PIX *)ERROR_PTR("delm and delp must be >= 0", procName, NULL);
 
-    rref = GET_DATA_BYTE(&refval, COLOR_RED);
-    gref = GET_DATA_BYTE(&refval, COLOR_GREEN);
-    bref = GET_DATA_BYTE(&refval, COLOR_BLUE);
+    extractRGBValues(refval, &rref, &gref, &bref);
     pixd = pixCreate(w, h, 1);
     pixCopyResolution(pixd, pixs);
     datas = pixGetData(pixs);
@@ -993,13 +1353,13 @@ PIX       *pixd;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             pixel = lines[j];
-            rval = pixel >> 24;
+            rval = (pixel >> L_RED_SHIFT) & 0xff;
             if (rval < rref - delm || rval > rref + delp)
                 continue;
-            gval = (pixel >> 16) & 0xff;
+            gval = (pixel >> L_GREEN_SHIFT) & 0xff;
             if (gval < gref - delm || gval > gref + delp)
                 continue;
-            bval = (pixel >> 8) & 0xff;
+            bval = (pixel >> L_BLUE_SHIFT) & 0xff;
             if (bval < bref - delm || bval > bref + delp)
                 continue;
             SET_DATA_BIT(lined, j);
@@ -1051,12 +1411,8 @@ PIX       *pixd;
     if (distflag != L_MANHATTAN_DISTANCE && distflag != L_EUCLIDEAN_DISTANCE)
         return (PIX *)ERROR_PTR("invalid distflag", procName, NULL);
 
-    rref1 = GET_DATA_BYTE(&refval1, COLOR_RED);
-    gref1 = GET_DATA_BYTE(&refval1, COLOR_GREEN);
-    bref1 = GET_DATA_BYTE(&refval1, COLOR_BLUE);
-    rref2 = GET_DATA_BYTE(&refval2, COLOR_RED);
-    gref2 = GET_DATA_BYTE(&refval2, COLOR_GREEN);
-    bref2 = GET_DATA_BYTE(&refval2, COLOR_BLUE);
+    extractRGBValues(refval1, &rref1, &gref1, &bref1);
+    extractRGBValues(refval2, &rref2, &gref2, &bref2);
     pixd = pixCreate(w, h, 1);
     pixCopyResolution(pixd, pixs);
     datas = pixGetData(pixs);
@@ -1068,9 +1424,7 @@ PIX       *pixd;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             pixel = lines[j];
-            rval = pixel >> 24;
-            gval = (pixel >> 16) & 0xff;
-            bval = (pixel >> 8) & 0xff;
+            extractRGBValues(pixel, &rval, &gval, &bval);
             if (distflag == L_MANHATTAN_DISTANCE) {
                 dist1 = L_ABS(rref1 - rval);
                 dist2 = L_ABS(rref2 - rval);

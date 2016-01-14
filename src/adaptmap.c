@@ -43,14 +43,23 @@
  *          PIX       *pixGetInvBackgroundMap()   16 bpp
  *
  *      Apply inverse background map to image
- *          PIX       *pixApplyInvBackgroundGrayMap()  8 bpp
- *          PIX       *pixApplyInvBackgroundRGBMap()   32 bpp
+ *          PIX       *pixApplyInvBackgroundGrayMap()   8 bpp
+ *          PIX       *pixApplyInvBackgroundRGBMap()    32 bpp
+ *
+ *      Apply variable map
+ *          PIX       *pixApplyVariableGrayMap()        8 bpp
  *
  *      Non-adaptive (global) mapping
- *          PIX       *pixGlobalNormRGB()              32 bpp or cmapped
- *          PIX       *pixGlobalNormNoSatRGB()         32 bpp
+ *          PIX       *pixGlobalNormRGB()               32 bpp or cmapped
+ *          PIX       *pixGlobalNormNoSatRGB()          32 bpp
  *
- *  Normalization is done by generating a reduced map (or set
+ *      Adaptive threshold spread normalization
+ *          l_int32    pixThresholdSpreadNorm()         8 bpp
+ *
+ *      Adaptive Otsu-based thresholding
+ *          l_int32    pixOtsuAdaptiveThreshold()       8 bpp
+ *
+ *  Background normalization is done by generating a reduced map (or set
  *  of maps) representing the estimated background value of the
  *  input image, and using this to shift the pixel values so that
  *  this background value is set to some constant value.
@@ -77,6 +86,17 @@
  *
  *  Note: Most of these functions make an implicit assumption about RGB
  *        component ordering.
+ *
+ *  Other methods for adaptively normalizing the image are also given here.
+ *
+ *  (1) pixThresholdSpreadNorm() computes a local threshold over the image
+ *      and normalizes the input pixel values so that this computed threshold
+ *      is a constant across the entire image.
+ *
+ *  (2) pixOtsuAdaptiveThreshold() computes a global threshold over each
+ *      tile and performs the threshold operation, resulting in a
+ *      binary image for each tile.  These are stitched into the final result.
+ *      It does not generate an 8 bpp threshold-normalized image.
  */
 
 #include <stdio.h>
@@ -1672,7 +1692,7 @@ PIX     *pixd, *piximi, *pixim2, *pixims, *pixs2, *pixb, *pixt1, *pixt2, *pixt3;
  *                  Generate inverted background map                *
  *------------------------------------------------------------------*/
 /*!
- *  pixGetInvBackground()
+ *  pixGetInvBackgroundMap()
  *
  *      Input:  pixs (8 bpp)
  *              bgval (target bg val; typ. > 128)
@@ -1827,7 +1847,7 @@ pixApplyInvBackgroundRGBMap(PIX     *pixs,
 {
 l_int32    w, h, wm, hm, wpls, wpld, i, j, k, m, xoff, yoff;
 l_int32    rvald, gvald, bvald;
-l_uint32   vals, vald;
+l_uint32   vals;
 l_uint32   rval16, gval16, bval16;
 l_uint32  *datas, *datad, *lines, *lined, *flines, *flined;
 PIX       *pixd;
@@ -1875,13 +1895,116 @@ PIX       *pixd;
                     gvald = L_MIN(gvald, 255);
                     bvald = (((vals >> 8) & 0xff) * bval16) / 256;
                     bvald = L_MIN(bvald, 255);
-                    vald = (rvald << 24 | gvald << 16 | bvald << 8);
-                    *(flined + xoff + m) = vald;
+                    composeRGBPixel(rvald, gvald, bvald, flined + xoff + m);
                 }
             }
         }
     }
 
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------*
+ *                         Apply variable map                       *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixApplyVariableGrayMap()
+ *
+ *      Input:  pixs (8 bpp)
+ *              pixg (8 bpp, variable map)
+ *              target (typ. 128 for threshold)
+ *      Return: pixd (8 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) Suppose you have an image that you want to transform based
+ *          on some photometric measurement at each point, such as the
+ *          threshold value for binarization.  Representing the photometric
+ *          measurement as an image pixg, you can threshold in input image
+ *          using pixVarThresholdToBinary().  Alternatively, you can map
+ *          the input image pointwise so that the threshold over the
+ *          entire image becomes a constant, such as 128.  For example,
+ *          if a pixel in pixg is 150 and the target is 128, the
+ *          corresponding pixel in pixs is mapped linearly to a value
+ *          (128/150) of the input value.  If the resulting mapped image
+ *          pixd were then thresholded at 128, you would obtain the
+ *          same result as a direct binarization using pixg with
+ *          pixVarThresholdToBinary().
+ *      (2) The sizes of pixs and pixg must be equal.
+ */
+PIX *
+pixApplyVariableGrayMap(PIX     *pixs,
+                        PIX     *pixg,
+                        l_int32  target)
+{
+l_int32    i, j, w, h, d, wpls, wplg, wpld, vals, valg, vald;
+l_uint8   *lut;
+l_uint32  *datas, *datag, *datad, *lines, *lineg, *lined;
+l_float32  fval;
+PIX       *pixd;
+
+    PROCNAME("pixApplyVariableGrayMap");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixg)
+        return (PIX *)ERROR_PTR("pixg not defined", procName, NULL);
+    if (!pixSizesEqual(pixs, pixg))
+        return (PIX *)ERROR_PTR("pix sizes not equal", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("depth not 8 bpp", procName, NULL);
+
+        /* Generate a LUT for the mapping if the image is large enough
+         * to warrant the overhead.  The LUT is of size 2^16.  For the
+         * index to the table, get the MSB from pixs and the LSB from pixg.
+         * Note: this LUT is bigger than the typical 32K L1 cache, so
+         * we expect cache misses.  L2 latencies are about 5ns.  But 
+         * division is slooooow.  For large images, this function is about
+         * 4x faster when using the LUT.  C'est la vie.  */
+    lut = NULL;
+    if (w * h > 100000) {  /* more pixels than 2^16 */
+        if ((lut = (l_uint8 *)CALLOC(0x10000, sizeof(l_uint8))) == NULL)
+            return (PIX *)ERROR_PTR("lut not made", procName, NULL);
+        for (i = 0; i < 256; i++) {
+            for (j = 0; j < 256; j++) {
+                fval = (l_float32)(i * target) / (j + 0.5);
+                lut[(i << 8) + j] = L_MIN(255, (l_int32)(fval + 0.5));
+            }
+        }
+    }
+
+    pixd = pixCreateNoInit(w, h, 8);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datag = pixGetData(pixg);
+    wplg = pixGetWpl(pixg);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lineg = datag + i * wplg;
+        lined = datad + i * wpld;
+        if (lut) {
+            for (j = 0; j < w; j++) {
+                vals = GET_DATA_BYTE(lines, j);
+                valg = GET_DATA_BYTE(lineg, j);
+                vald = lut[(vals << 8) + valg];
+                SET_DATA_BYTE(lined, j, vald);
+            }
+        }
+        else {
+            for (j = 0; j < w; j++) {
+                vals = GET_DATA_BYTE(lines, j);
+                valg = GET_DATA_BYTE(lineg, j);
+                fval = (l_float32)(vals * target) / (valg + 0.5);
+                vald = L_MIN(255, (l_int32)(fval + 0.5));
+                SET_DATA_BYTE(lined, j, vald);
+            }
+        }
+    }
+
+    if (lut) FREE(lut);
     return pixd;
 }
 
@@ -1931,7 +2054,6 @@ pixGlobalNormRGB(PIX     *pixd,
 {
 l_int32    w, h, d, i, j, ncolors, rv, gv, bv, wpl;
 l_int32   *rarray, *garray, *barray;
-l_uint32   pixel;
 l_uint32  *data, *line;
 NUMA      *nar, *nag, *nab;
 PIXCMAP   *cmap;
@@ -1980,12 +2102,8 @@ PIXCMAP   *cmap;
         for (i = 0; i < h; i++) {
             line = data + i * wpl;
             for (j = 0; j < w; j++) {
-                pixel = line[j];
-                rv = pixel >> 24;
-                gv = (pixel >> 16) & 0xff;
-                bv = (pixel >> 8) & 0xff;
-                pixel = rarray[rv] << 24 | garray[gv] << 16 | barray[bv] << 8;
-                line[j] = pixel;
+                extractRGBValues(line[j], &rv, &gv, &bv);
+                composeRGBPixel(rarray[rv], garray[gv], barray[bv], line + j);
             }
         }
     }
@@ -2084,6 +2202,229 @@ l_float32  rfract, gfract, bfract, maxfract;
     mapval = (l_int32)(255. / maxfract);
     pixd = pixGlobalNormRGB(pixd, pixs, rval, gval, bval, mapval);
     return pixd;
+}
+
+
+/*------------------------------------------------------------------*
+ *              Adaptive threshold spread normalization             *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixThresholdSpreadNorm()
+ *
+ *      Input:  pixs (8 bpp)
+ *              filtertype (L_SOBEL_EDGE or L_TWO_SIDED_EDGE);
+ *              edgethresh (threshold on magnitude of edge filter; typ 10-20)
+ *              smoothx, smoothy (half-width of convolution kernel applied to
+ *                                spread threshold: use 0 for no smoothing)
+ *              gamma (gamma correction; typ. about 0.7)
+ *              minval  (input value that gives 0 for output; typ. -25)
+ *              maxval  (input value that gives 255 for output; typ. 255)
+ *              targetthresh (target threshold for normalization)
+ *              &pixth (<optional return> computed local threshold value)
+ *              &pixb (<optional return> thresholded normalized image)
+ *              &pixd (<optional return> normalized image)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The basis of this approach is the use of seed spreading
+ *          on a (possibly) sparse set of estimates for the local threshold.
+ *          The resulting dense estimates are smoothed by convolution
+ *          and used to either threshold the input image or normalize it
+ *          with a local transformation that linearly maps the pixels so
+ *          that the local threshold estimate becomes constant over the
+ *          resulting image.  This approach is one of several that
+ *          have been suggested (and implemented) by Ray Smith.
+ *      (2) You can use either the Sobel or TwoSided edge filters.
+ *          The results appear to be similar, using typical values
+ *          of edgethresh in the rang 10-20.
+ *      (3) To skip the trc enhancement, use gamma = 1.0, minval = 0
+ *          and maxval = 255.
+ *      (4) For the normalized image pixd, each pixel is linearly mapped
+ *          in such a way that the local threshold is equal to targetthresh.
+ *      (5) The full width and height of the convolution kernel
+ *          are (2 * smoothx + 1) and (2 * smoothy + 1).
+ *      (6) This function can be used with the pixtiling utility if the
+ *          images are too large.  See pixOtsuAdaptiveThreshold() for
+ *          an example of this.
+ */
+l_int32
+pixThresholdSpreadNorm(PIX       *pixs,
+                       l_int32    filtertype,
+                       l_int32    edgethresh,
+                       l_int32    smoothx,
+                       l_int32    smoothy,
+                       l_float32  gamma,
+                       l_int32    minval,
+                       l_int32    maxval,
+                       l_int32    targetthresh,
+                       PIX      **ppixth,
+                       PIX      **ppixb,
+                       PIX      **ppixd)
+{
+l_int32  w, h, d;
+PIX     *pixe, *pixet, *pixsd, *pixg1, *pixg2, *pixth;
+
+    PROCNAME("pixThresholdSpreadNorm");
+
+    if (ppixth) *ppixth = NULL;
+    if (ppixb) *ppixb = NULL;
+    if (ppixd) *ppixd = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!ppixth && !ppixb && !ppixd)
+        return ERROR_INT("no output requested", procName, 1);
+    if (filtertype != L_SOBEL_EDGE && filtertype != L_TWO_SIDED_EDGE)
+        return ERROR_INT("invalid filter type", procName, 1);
+
+        /* Get the thresholded edge pixels.  These are the ones
+         * that have values in pixs near the local optimal fg/bg threshold. */
+    if (filtertype == L_SOBEL_EDGE)
+        pixe = pixSobelEdgeFilter(pixs, L_VERTICAL_EDGES);
+    else  /* L_TWO_SIDED_EDGE */
+        pixe = pixTwoSidedEdgeFilter(pixs, L_VERTICAL_EDGES);
+    pixet = pixThresholdToBinary(pixe, edgethresh);
+    pixInvert(pixet, pixet);
+
+        /* Build a seed image whose only nonzero values are those
+         * values of pixs corresponding to pixels in the fg of pixet. */
+    pixsd = pixCreateTemplate(pixs);
+    pixCombineMasked(pixsd, pixs, pixet);
+
+        /* Spread the seed and optionally smooth to reduce noise */
+    pixg1 = pixSeedspread(pixsd, 4);
+    pixg2 = pixBlockconv(pixg1, smoothx, smoothy);
+
+        /* Optionally do a gamma enhancement */
+    pixth = pixGammaTRC(NULL, pixg2, gamma, minval, maxval);
+
+        /* Do the mapping and thresholding */
+    if (ppixd) {
+        *ppixd = pixApplyVariableGrayMap(pixs, pixth, targetthresh); 
+        if (ppixb)
+            *ppixb = pixThresholdToBinary(*ppixd, targetthresh);
+    }
+    else if (ppixb)
+        *ppixb = pixVarThresholdToBinary(pixs, pixth);
+
+    if (ppixth)
+        *ppixth = pixth;
+    else
+        pixDestroy(&pixth);
+
+    pixDestroy(&pixe);
+    pixDestroy(&pixet);
+    pixDestroy(&pixsd);
+    pixDestroy(&pixg1);
+    pixDestroy(&pixg2);
+    return 0;
+}
+
+
+/*------------------------------------------------------------------*
+ *                 Adaptive Otsu-based thresholding                 *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixOtsuAdaptiveThreshold()
+ *
+ *      Input:  pixs (8 bpp)
+ *              sx, sy (desired tile dimensions; actual size may vary)
+ *              smoothx, smoothy (half-width of convolution kernel applied to
+ *                                threshold array: use 0 for no smoothing)
+ *              scorefract (fraction of the max Otsu score; typ. 0.1)
+ *              &pixth (<optional return> array of threshold values
+ *                      found for each tile)
+ *              &pixd (<optional return> thresholded input pixs, based on
+ *                     the threshold array)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The full width and height of the convolution kernel
+ *          are (2 * smoothx + 1) and (2 * smoothy + 1)
+ *      (2) The scorefract is the fraction of the maximum Otsu score, which
+ *          is used to determine the range over which the histogram minimum
+ *          is searched.  See numaSplitDistribution() for details on the
+ *          underlying method of choosing a threshold.
+ *      (3) This uses a modified version of the Otsu criterion for
+ *          splitting the distribution of pixels in each tile into a
+ *          fg and bg part.  The modification consists of searching for
+ *          a minimum in the histogram over a range of pixel values where
+ *          the Otsu score is close to the max score.
+ */
+l_int32
+pixOtsuAdaptiveThreshold(PIX       *pixs,
+                         l_int32    sx,
+                         l_int32    sy,
+                         l_int32    smoothx,
+                         l_int32    smoothy,
+                         l_float32  scorefract,
+                         PIX      **ppixth,
+                         PIX      **ppixd)
+{
+l_int32     w, h, d, nx, ny, i, j, thresh;
+l_uint32    val;
+PIX        *pixt, *pixb, *pixthresh, *pixth, *pixd;
+PIXTILING  *pt;
+
+    PROCNAME("pixOtsuAdaptiveThreshold");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (sx < 16 || sy < 16)
+        return ERROR_INT("sx and sy must be >= 16", procName, 1);
+    if (!ppixth && !ppixd)
+        return ERROR_INT("neither &pixth nor &pixd defined", procName, 1);
+
+        /* Compute the threshold array for the tiles */
+    nx = w / sx;
+    ny = h / sy;
+    pt = pixTilingCreate(pixs, nx, ny, 0, 0, 0);
+    pixthresh = pixCreate(nx, ny, 8);
+    for (i = 0; i < ny; i++) {
+        for (j = 0; j < nx; j++) {
+            pixt = pixTilingGetTile(pt, i, j);
+            pixSplitDistributionFgBg(pixt, scorefract, 1, &thresh,
+                                     NULL, NULL, 0);
+            pixSetPixel(pixthresh, j, i, thresh);
+            pixDestroy(&pixt);
+        }
+    }
+
+        /* Optionally smooth the threshold array */
+    if (smoothx > 0 || smoothy > 0)
+        pixth = pixBlockconv(pixthresh, smoothx, smoothy);
+    else
+        pixth = pixClone(pixthresh);
+    pixDestroy(&pixthresh);
+
+        /* Optionally apply the threshold array to binarize pixs */
+    if (ppixd) {
+        pixd = pixCreate(w, h, 1);
+        for (i = 0; i < ny; i++) {
+            for (j = 0; j < nx; j++) {
+                pixt = pixTilingGetTile(pt, i, j);
+                pixGetPixel(pixth, j, i, &val);
+                pixb = pixThresholdToBinary(pixt, val);
+                pixTilingPaintTile(pixd, i, j, pixb, pt);
+                pixDestroy(&pixt);
+                pixDestroy(&pixb);
+            }
+        }
+        *ppixd = pixd;
+    }
+
+    if (ppixth)
+        *ppixth = pixth;
+    else
+        pixDestroy(&pixth);
+
+    pixTilingDestroy(&pt);
+    return 0;
 }
 
 

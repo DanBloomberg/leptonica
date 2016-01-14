@@ -32,6 +32,7 @@
  *       struct Ptaa
  *       struct Pixacc
  *       struct PixTiling
+ *       struct FPix
  *
  *   Contains definitions for:
  *       colors for RGB
@@ -54,6 +55,8 @@
  *       line orientation flags
  *       thinning flags
  *       runlength flags
+ *       edge filter flags
+ *       handling negative values in conversion to unsigned int
  */
 
 
@@ -112,11 +115,11 @@ typedef struct RGBA_Quad  RGBA_QUAD;
  *          They are used through the GET/SET_DATA_BYTE accessors.
  *          The 4th byte, typically known as the "alpha channel" and used
  *          for blending, is not explicitly used in leptonica.
- *      (2) If you redefine these values, a lot of functions that
- *          have been made more efficient by assuming them implicitly
- *          will break.  These functions are labelled with "***"
- *          next to their names at the top of the files in which they
- *          are defined.  Advice: Do not change these values!
+ *      (2) If you redefine these values, functions that have the shifts
+ *          hardcoded (instead of using the constants below) will break.
+ *          These functions are labelled with "***" next to their names
+ *          at the top of the files in which they are defined.
+ *          Advice: Do not change these values!
  *      (3) The shifts to extract the red, green and blue components
  *          from a 32 bit pixel are defined in terms of these colors.
  */
@@ -263,26 +266,28 @@ enum {
  *                 green:  byte 1  (2nd MSB)
  *                 blue:   byte 2  (3rd MSB)
  *
- *           For simplicity and consistency, we have defined (COLOR_RED,
- *           COLOR_GREEN, COLOR_BLUE) so that we can retrieve red, green
- *           and blue sample values using
- *              redval = GET_DATA_BYTE(&pixel, COLOR_RED);
- *              greenval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
- *              blueval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
- *           and we can set them in the pixel using
- *              SET_DATA_BYTE(&pixel, COLOR_RED, redval);
- *              SET_DATA_BYTE(&pixel, COLOR_GREEN, greenval);
- *              SET_DATA_BYTE(&pixel, COLOR_BLUE, blueval);
+ *           This specific color assignment is made in this file,
+ *           through the definitions of COLOR_RED, etc.  Then the R, G
+ *           and B sample values can be retrieved using
+ *                 redval = GET_DATA_BYTE(&pixel, COLOR_RED);
+ *                 greenval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
+ *                 blueval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
+ *           and they can be set with
+ *                 SET_DATA_BYTE(&pixel, COLOR_RED, redval);
+ *                 SET_DATA_BYTE(&pixel, COLOR_GREEN, greenval);
+ *                 SET_DATA_BYTE(&pixel, COLOR_BLUE, blueval);
  *
- *           In some functions, for extra speed we extract the R, G and B
- *           colors directly by shifting and masking, implicitly using the
- *           specific values in COLOR_RED, COLOR_GREEN and COLOR_BLUE.
- *           For example:
- *                   pixel32 >> 24;              (red)
- *                   (pixel32 >> 16) & 0xff;     (green)
- *                   (pixel32 >> 8) & 0xff;      (blue)
- *           These operations work properly on both big- and little-endians.
- *           Functions where this is done are marked with ***.
+ *           For extra speed we extract the R, G and B colors directly
+ *           by shifting and masking, explicitly using the values in
+ *           L_RED_SHIFT, L_GREEN_SHIFT and L_BLUE_SHIFT:
+ *                 (pixel32 >> L_RED_SHIFT) & 0xff;         (red)
+ *                 (pixel32 >> L_GREEN_SHIFT) & 0xff;       (green)
+ *                 (pixel32 >> L_BLUE_SHIFT) & 0xff;        (blue)
+ *           All these operations work properly on both big- and little-endians.
+ *
+ *           For a few situations, these color shift values are hard-coded.
+ *           Changing the RGB color component ordering through the assignments
+ *           in this file will cause functions marked with "***" to fail.
  *
  *       (5) A reference count is held within each pix, giving the
  *           number of ptrs to the pix.  When a pixClone() call
@@ -418,6 +423,24 @@ struct PixTiling
     l_int32              overlap;     /* amount of overlap on each side    */
 };
 typedef struct PixTiling PIXTILING;
+
+
+/*-------------------------------------------------------------------------*
+ *                       FPix: pix with float array                        *
+ *-------------------------------------------------------------------------*/
+struct FPix
+{
+    l_int32              w;           /* width in pixels                   */
+    l_int32              h;           /* height in pixels                  */
+    l_int32              wpl;         /* 32-bit words/line                 */
+    l_int32              refcount;    /* reference count (1 if no clones)  */
+    l_int32              xres;        /* image res (ppi) in x direction    */
+                                      /* (use 0 if unknown)                */
+    l_int32              yres;        /* image res (ppi) in y direction    */
+                                      /* (use 0 if unknown)                */
+    l_float32           *data;        /* the float image data              */
+};
+typedef struct FPix FPIX;
 
 
 /*-------------------------------------------------------------------------*
@@ -656,6 +679,24 @@ enum {
 enum {
     L_HORIZONTAL_RUNS = 0,     /* determine runlengths of horizontal runs  */
     L_VERTICAL_RUNS = 1        /* determine runlengths of vertical runs    */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                          Edge filter flags                              *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_SOBEL_EDGE = 1,          /* Sobel edge filter                        */
+    L_TWO_SIDED_EDGE = 2       /* Two-sided edge filter                    */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *          Handling negative values in conversion to unsigned int         *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_CLIP_TO_ZERO = 1,        /* Clip negative values to 0                */
+    L_TAKE_ABSVAL = 2          /* Convert to positive using L_ABS()        */
 };
 
 

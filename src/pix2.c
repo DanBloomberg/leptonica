@@ -1307,6 +1307,11 @@ PIX     *pixd;
  *          images, is left with 0 value.
  *      (2) see Note (4) in pix.h for details on storage of
  *          8-bit samples within each 32-bit word.
+ *      (3) This implementation, setting the r, g and b components
+ *          sequentially, is much faster than setting them in parallel
+ *          by constructing an RGB dest pixel and writing it to dest.
+ *          The reason is there are many more cache misses when reading
+ *          from 3 input images simultaneously.
  */
 PIX *
 pixCreateRGBImage(PIX  *pixr,
@@ -1357,6 +1362,12 @@ PIX     *pixd;
  *  Notes:
  *      (1) The alpha channel (in the 4th byte of each RGB pixel)
  *          is not used in leptonica.
+ *      (2) Three calls to this function generate the three 8 bpp component
+ *          images.  This is much faster than generating the three
+ *          images in parallel, by extracting a src pixel and setting
+ *          the pixels of each component image from it.  The reason is
+ *          there are many more cache misses when writing to three
+ *          output images simultaneously.
  */
 PIX *
 pixGetRGBComponent(PIX     *pixs,

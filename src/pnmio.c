@@ -414,8 +414,7 @@ PIX       *pixs;
 #include "config_auto.h"
 #endif  /* HAVE_CONFIG_H */
 
-#if HAVE_FMEMOPEN || \
-  (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
+#if HAVE_FMEMOPEN
 
 extern FILE *open_memstream(char **data, size_t *size);
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
@@ -423,7 +422,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
 /*!
  *  pixReadMemPnm()
  *
- *      Input:  data (const; pnm-encoded)
+ *      Input:  cdata (const; pnm-encoded)
  *              size (of data)
  *      Return: pix, or null on error
  *
@@ -491,7 +490,7 @@ FILE    *fp;
 #else
 
 PIX *
-pixReadMemPnm(const l_uint8  *data,
+pixReadMemPnm(const l_uint8  *cdata,
               size_t          size)
 {
     return (PIX *)ERROR_PTR(
@@ -510,7 +509,7 @@ pixWriteMemPnm(l_uint8  **pdata,
         "pixWriteMemPnm", 1);
 }
 
-#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
+#endif  /* HAVE_FMEMOPEN */
 
 
 /*--------------------------------------------------------------------*

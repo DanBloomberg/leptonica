@@ -18,10 +18,14 @@
  *  utils.c
  *
  *       error, warning and info procs; all invoked by macros
- *           l_int32    l_errorInt()
- *           l_float32  l_errorFloat()
- *           void      *l_errorPtr()
- *           void       l_errorVoid()
+ *           l_int32    returnErrorInt()
+ *           l_float32  returnErrorFloat()
+ *           void      *returnErrorPtr()
+ *           void       returnErrorVoid()
+ *           void       l_error()
+ *           void       l_errorString()
+ *           void       l_errorInt()
+ *           void       l_errorFloat()
  *           void       l_warning()
  *           void       l_warningString()
  *           void       l_warningInt()
@@ -97,7 +101,7 @@
  *                                                                      *
  *----------------------------------------------------------------------*/
 /*!
- *  l_errorInt()
+ *  returnErrorInt()
  *
  *      Input:  msg (error message)
  *              procname
@@ -105,9 +109,9 @@
  *      Return: ival (typically 1)
  */
 l_int32
-l_errorInt(const char  *msg, 
-           const char  *procname, 
-           l_int32      ival)
+returnErrorInt(const char  *msg, 
+               const char  *procname, 
+               l_int32      ival)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
     return ival;
@@ -115,7 +119,7 @@ l_errorInt(const char  *msg,
 
 
 /*!
- *  l_errorFloat()
+ *  returnErrorFloat()
  *
  *      Input:  msg (error message)
  *              procname
@@ -123,9 +127,9 @@ l_errorInt(const char  *msg,
  *      Return: fval
  */
 l_float32
-l_errorFloat(const char  *msg, 
-             const char  *procname, 
-             l_float32    fval)
+returnErrorFloat(const char  *msg, 
+                 const char  *procname, 
+                 l_float32    fval)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
     return fval;
@@ -133,7 +137,7 @@ l_errorFloat(const char  *msg,
 
 
 /*!
- *  l_errorPtr()
+ *  returnErrorPtr()
  *
  *      Input:  msg (error message)
  *              procname
@@ -141,9 +145,9 @@ l_errorFloat(const char  *msg,
  *      Return: pval (typically null)
  */
 void *
-l_errorPtr(const char  *msg,
-           const char  *procname, 
-           void        *pval)
+returnErrorPtr(const char  *msg,
+               const char  *procname, 
+               void        *pval)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
     return pval;
@@ -151,16 +155,134 @@ l_errorPtr(const char  *msg,
 
 
 /*!
- *  l_errorVoid()
+ *  returnErrorVoid()
  *
  *      Input: msg (error message)
  *             procname
  */
 void
-l_errorVoid(const char  *msg, 
-            const char  *procname)
+returnErrorVoid(const char  *msg, 
+                const char  *procname)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    return;
+}
+
+
+/*!
+ *  l_error()
+ *
+ *      Input: msg (error message)
+ *             procname
+ */
+void
+l_error(const char  *msg,
+        const char  *procname)
+{
+    fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    return;
+}
+
+
+/*!
+ *  l_errorString()
+ *
+ *      Input: msg (error message; must include '%s')
+ *             procname
+ *             str (embedded in error message via %s)
+ */
+void
+l_errorString(const char  *msg,
+              const char  *procname,
+              const char  *str)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname || !str) {
+        ERROR_VOID("msg, procname or str not defined in l_errorString()",
+                   procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        ERROR_VOID("charbuf not made in l_errorString()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Error in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, str);
+
+    FREE(charbuf);
+    return;
+}
+
+
+/*!
+ *  l_errorInt()
+ *
+ *      Input: msg (error message; must include '%d')
+ *             procname
+ *             ival (embedded in error message via %d)
+ */
+void
+l_errorInt(const char  *msg,
+           const char  *procname,
+           l_int32      ival)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname) {
+        ERROR_VOID("msg or procname not defined in l_errorInt()", procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        ERROR_VOID("charbuf not made in l_errorInt()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Error in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, ival);
+
+    FREE(charbuf);
+    return;
+}
+
+
+/*!
+ *  l_errorFloat()
+ *
+ *      Input: msg (error message; must include '%f')
+ *             procname
+ *             fval (embedded in error message via %f)
+ */
+void
+l_errorFloat(const char  *msg,
+             const char  *procname,
+             l_float32    fval)
+{
+l_int32  bufsize;
+char    *charbuf;
+
+    if (!msg || !procname) {
+        ERROR_VOID("msg or procname not defined in l_errorFloat()", procname);
+        return;
+    }
+
+    bufsize = strlen(msg) + strlen(procname) + 128;
+    if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
+        ERROR_VOID("charbuf not made in l_errorFloat()", procname);
+        return;
+    }
+
+    sprintf(charbuf, "Error in %s: %s\n", procname, msg);
+    fprintf(stderr, charbuf, fval);
+
+    FREE(charbuf);
     return;
 }
 

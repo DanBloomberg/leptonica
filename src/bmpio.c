@@ -22,7 +22,7 @@
  *      Write bmp to file
  *           l_int32       pixWriteStreamBmp()
  *
- *      Read/write to memory   [not on windows]
+ *      Read/write to memory   [only on linux]
  *           PIX          *pixReadMemBmp()
  *           l_int32       pixWriteMemBmp()
  */
@@ -281,17 +281,17 @@ l_uint16    bfOffBits, bfFill2, biPlanes, biBitCount;
 l_uint16    sval;
 l_uint32    biSize, biWidth, biHeight, biCompression, biSizeImage;
 l_uint32    biXPelsPerMeter, biYPelsPerMeter, biClrUsed, biClrImportant;
-l_int32            pixWpl, pixBpl, extrabytes, writeerror;
-l_int32            fileBpl, fileWpl;
-l_int32            i, j, k;
+l_int32     pixWpl, pixBpl, extrabytes, writeerror;
+l_int32     fileBpl, fileWpl;
+l_int32     i, j, k;
 l_int32     heapcm;  /* extra copy of cta on the heap ? 1 : 0 */
-l_uint8           *data;
+l_uint8    *data;
 l_uint8     pel[4];
 l_uint32   *line, *pword;
 PIXCMAP    *cmap;
-l_uint8           *cta;          /* address of the bmp color table array */
-l_int32            cmaplen;      /* number of bytes in the bmp colormap */
-l_int32            ncolors, val, stepsize;
+l_uint8    *cta;          /* address of the bmp color table array */
+l_int32     cmaplen;      /* number of bytes in the bmp colormap */
+l_int32     ncolors, val, stepsize;
 RGBA_QUAD  *pquad;
 
     PROCNAME("pixWriteStreamBmp");
@@ -484,8 +484,7 @@ RGBA_QUAD  *pquad;
 #include "config_auto.h"
 #endif  /* HAVE_CONFIG_H */
 
-#if HAVE_FMEMOPEN || \
- (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
+#if HAVE_FMEMOPEN
 
 extern FILE *open_memstream(char **data, size_t *size);
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
@@ -493,7 +492,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
 /*!
  *  pixReadMemBmp()
  *
- *      Input:  data (const; bmp-encoded)
+ *      Input:  cdata (const; bmp-encoded)
  *              size (of data)
  *      Return: pix, or null on error
  *
@@ -561,7 +560,7 @@ FILE    *fp;
 #else
 
 PIX *
-pixReadMemBmp(const l_uint8  *data,
+pixReadMemBmp(const l_uint8  *cdata,
               size_t          size)
 {
     return (PIX *)ERROR_PTR(
@@ -580,7 +579,7 @@ pixWriteMemBmp(l_uint8  **pdata,
         "pixWriteMemBmp", 1);
 }
 
-#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
+#endif  /* HAVE_FMEMOPEN */
 
 /* --------------------------------------------*/
 #endif  /* USE_BMPIO */

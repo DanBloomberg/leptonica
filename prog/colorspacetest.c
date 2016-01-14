@@ -52,7 +52,7 @@ static char  mainName[] = "colorspacetest";
     pixDestroy(&pixt);
 
         /* Colorspace conversion on a colormap */
-    pixt = pixOctreeQuant(pixs, 25, 0);
+    pixt = pixOctreeQuantNumColors(pixs, 25, 0);
     pixDisplayWrite(pixt, 1);
     cmap = pixGetColormap(pixt);
     pixcmapWriteStream(stderr, cmap);

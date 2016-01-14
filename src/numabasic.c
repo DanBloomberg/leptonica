@@ -29,6 +29,7 @@
  *          l_int32      numaExtendArray()
  *          l_int32      numaInsertNumber()
  *          l_int32      numaRemoveNumber()
+ *          l_int32      numaReplaceNumber()
  *
  *      Numa accessors
  *          l_int32      numaGetCount()
@@ -64,6 +65,12 @@
  *          NUMA        *numaaReplaceNuma()
  *          l_int32      numaaAddNumber()
  *       
+ *      Serialize numaa for I/O
+ *          l_int32      numaaRead()
+ *          l_int32      numaaReadStream()
+ *          l_int32      numaaWrite()
+ *          l_int32      numaaWriteStream()
+ *
  *      Numa2d creation, destruction
  *          NUMA2D      *numa2dCreate()
  *          void        *numa2dDestroy()
@@ -437,6 +444,34 @@ l_int32  i, n;
 }
 
 
+/*!
+ *  numaReplaceNumber()
+ *
+ *      Input:  na
+ *              index (element to be replaced)
+ *              val (new value to replace old one)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaReplaceNumber(NUMA      *na,
+                  l_int32    index,
+                  l_float32  val)
+{
+l_int32  n;
+
+    PROCNAME("numaReplaceNumber");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = numaGetCount(na);
+    if (index < 0 || index >= n)
+        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+
+    na->array[index] = val;
+    return 0;
+}
+
+
 /*----------------------------------------------------------------------*
  *                            Numa accessors                            *
  *----------------------------------------------------------------------*/
@@ -744,7 +779,7 @@ numaSetXParameters(NUMA      *na,
 
 
 /*----------------------------------------------------------------------*
- *                        Serialize for I/O                             *
+ *                       Serialize numa for I/O                         *
  *----------------------------------------------------------------------*/
 /*!
  *  numaRead()
@@ -1166,6 +1201,141 @@ NUMA    *na;
     return 0;
 }
 
+
+/*----------------------------------------------------------------------*
+ *                      Serialize numaa for I/O                         *
+ *----------------------------------------------------------------------*/
+/*!
+ *  numaaRead()
+ *
+ *      Input:  filename
+ *      Return: naa, or null on error
+ */
+NUMAA *
+numaaRead(const char  *filename)
+{
+FILE   *fp;
+NUMAA  *naa;
+
+    PROCNAME("numaaRead");
+
+    if (!filename)
+        return (NUMAA *)ERROR_PTR("filename not defined", procName, NULL);
+
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (NUMAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    if ((naa = numaaReadStream(fp)) == NULL) {
+        fclose(fp);
+        return (NUMAA *)ERROR_PTR("naa not read", procName, NULL);
+    }
+
+    fclose(fp);
+    return naa;
+}
+        
+
+/*!
+ *  numaaReadStream()
+ *
+ *      Input:  stream
+ *      Return: naa, or null on error
+ */
+NUMAA *
+numaaReadStream(FILE  *fp)
+{
+l_int32    i, n, index, ret, version;
+NUMA      *na;
+NUMAA     *naa;
+
+    PROCNAME("numaaReadStream");
+
+    if (!fp)
+        return (NUMAA *)ERROR_PTR("stream not defined", procName, NULL);
+
+    ret = fscanf(fp, "\nNumaa Version %d\n", &version);
+    if (ret != 1)
+        return (NUMAA *)ERROR_PTR("not a numa file", procName, NULL);
+    if (version != NUMA_VERSION_NUMBER)
+        return (NUMAA *)ERROR_PTR("invalid numaa version", procName, NULL);
+    fscanf(fp, "Number of numa = %d\n\n", &n);
+    if ((naa = numaaCreate(n)) == NULL)
+        return (NUMAA *)ERROR_PTR("naa not made", procName, NULL);
+
+    for (i = 0; i < n; i++) {
+        fscanf(fp, "Numa[%d]:", &index);
+        if ((na = numaReadStream(fp)) == NULL)
+            return (NUMAA *)ERROR_PTR("na not made", procName, NULL);
+        numaaAddNuma(naa, na, L_INSERT);
+    }
+
+    return naa;
+}
+        
+
+/*!
+ *  numaaWrite()
+ *
+ *      Input:  filename, naa
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaaWrite(const char  *filename,
+           NUMAA       *naa)
+{
+FILE  *fp;
+
+    PROCNAME("numaaWrite");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!naa)
+        return ERROR_INT("naa not defined", procName, 1);
+
+    if ((fp = fopen(filename, "w")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    if (numaaWriteStream(fp, naa))
+        return ERROR_INT("naa not written to stream", procName, 1);
+    fclose(fp);
+
+    return 0;
+}
+        
+
+/*!
+ *  numaaWriteStream()
+ *
+ *      Input:  stream, naa
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaaWriteStream(FILE   *fp,
+                 NUMAA  *naa)
+{
+l_int32  i, n;
+NUMA    *na;
+
+    PROCNAME("numaaWriteStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!naa)
+        return ERROR_INT("naa not defined", procName, 1);
+
+    n = numaaGetCount(naa);
+    fprintf(fp, "\nNumaa Version %d\n", NUMA_VERSION_NUMBER);
+    fprintf(fp, "Number of numa = %d\n\n", n);
+    for (i = 0; i < n; i++) {
+        if ((na = numaaGetNuma(naa, i, L_CLONE)) == NULL)
+            return ERROR_INT("na not found", procName, 1);
+        fprintf(fp, "Numa[%d]:", i);
+        numaWriteStream(fp, na);
+        numaDestroy(&na);
+    }
+
+    return 0;
+}
+        
 
 /*--------------------------------------------------------------------------*
  *                      Numa2d creation, destruction                        *

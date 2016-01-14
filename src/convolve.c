@@ -36,9 +36,13 @@
  *      Woodfill transform
  *          PIX      *pixWoodfillTransform()
  *
- *      Generic convolution
+ *      Generic convolution (with Pix)
  *          PIX      *pixConvolve()
+ *          PIX      *pixConvolveSep()
  *
+ *      Generic convolution (with float arrays)
+ *          FPIX     *fpixConvolve()
+ *          FPIX     *fpixConvolveSep()
  */
 
 #include <stdio.h>
@@ -613,66 +617,324 @@ PIX       *pixav, *pixd;
 /*!
  *  pixConvolve()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8, 16, 32 bpp; no colormap)
  *              kernel
- *      Return: pixd (8 bpp)
+ *              outdepth (of pixd: 8, 16 or 32)
+ *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
+ *      Return: pixd (8, 16 or 32 bpp)
  *
  *  Notes:
- *      (1) This gives a normalized convolution with an arbitrary kernel.
- *      (2) It uses a mirrored border to avoid special casing on the boundaries.
- *      (3) It is very slow, running at about 12 machine cycles for
+ *      (1) This gives a convolution with an arbitrary kernel.
+ *      (2) The parameter @outdepth determines the depth of the result.
+ *      (3) If normflag == 1, the result is normalized by scaling
+ *          all kernel values for a unit sum.  Do not normalize if
+ *          the kernel has null sum, such as a DoG.
+ *      (4) If the kernel is normalized to unit sum, the output values
+ *          can never exceed 255, so an output depth of 8 bpp is sufficient.
+ *          If the kernel is not normalized, it may be necessary to use
+ *          16 or 32 bpp output to avoid overflow.
+ *      (5) The kernel values can be positive or negative, but the
+ *          result for the convolution can only be stored as a positive
+ *          number.  Consequently, if it goes negative, the choices are
+ *          to clip to 0 or take the absolute value.  We're choosing
+ *          the former for now.  Another possibility would be to output
+ *          a second unsigned image for the negative values.
+ *      (6) This uses a mirrored border to avoid special casing on
+ *          the boundaries.
+ *      (7) The function is slow, running at about 12 machine cycles for
  *          each pixel-op in the convolution.  For example, with a 3 GHz
  *          cpu, a 1 Mpixel grayscale image, and a kernel with
  *          (sx * sy) = 25 elements, the convolution takes about 100 msec.
  */
 PIX *
 pixConvolve(PIX       *pixs,
-            L_KERNEL  *kel)
+            L_KERNEL  *kel,
+	    l_int32    outdepth,
+	    l_int32    normflag)
 {
-l_int32    i, j, k, m, w, h, sx, sy, cx, cy, wplt, wpld;
-l_int32    val, sum;
+l_int32    i, j, k, m, w, h, d, sx, sy, cx, cy, wplt, wpld;
+l_int32    val;
 l_uint32  *datat, *datad, *linet, *lined;
-l_float32  norm;
+l_float32  sum;
+L_KERNEL  *keli, *keln;
 PIX       *pixt, *pixd;
 
     PROCNAME("pixConvolve");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 16 && d != 32)
+        return (PIX *)ERROR_PTR("pixs not 8, 16, or 32 bpp", procName, NULL);
     if (!kel)
         return (PIX *)ERROR_PTR("kel not defined", procName, NULL);
 
-    pixGetDimensions(pixs, &w, &h, NULL);
-    kernelGetParameters(kel, &sy, &sx, &cy, &cx);
-    kernelGetNorm(kel, &norm);
+    keli = kernelInvert(kel);
+    kernelGetParameters(keli, &sy, &sx, &cy, &cx);
+    if (normflag)
+        keln = kernelNormalize(keli, 1.0);
+    else
+        keln = kernelCopy(keli);
+
     if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
-    pixd = pixCreate(w, h, 8);
-    wplt = pixGetWpl(pixt);
-    wpld = pixGetWpl(pixd);
+    pixd = pixCreate(w, h, outdepth);
     datat = pixGetData(pixt);
     datad = pixGetData(pixd);
+    wplt = pixGetWpl(pixt);
+    wpld = pixGetWpl(pixd);
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
-            sum = 0;
+            sum = 0.0;
             for (k = 0; k < sy; k++) {
                 linet = datat + (i + k) * wplt;
-                for (m = 0; m < sx; m++) {
-                    val = GET_DATA_BYTE(linet, j + m);
-                    sum += val * kel->data[k][m];
+                if (d == 8) {
+                    for (m = 0; m < sx; m++) {
+                        val = GET_DATA_BYTE(linet, j + m);
+                        sum += val * keln->data[k][m];
+                    }
+                }
+                else if (d == 16) {
+                    for (m = 0; m < sx; m++) {
+                        val = GET_DATA_TWO_BYTES(linet, j + m);
+                        sum += val * keln->data[k][m];
+                    }
+                }
+                else {  /* d == 32 */
+                    for (m = 0; m < sx; m++) {
+                        val = *(linet + j + m);
+                        sum += val * keln->data[k][m];
+                    }
                 }
             }
-            sum = (l_int32)(norm * sum);
-            SET_DATA_BYTE(lined, j, sum);
+#if 1
+	    if (sum < 0.0) sum = -sum;  /* make it non-negative */
+#endif
+            if (outdepth == 8)
+                SET_DATA_BYTE(lined, j, (l_int32)(sum + 0.5));
+            else if (outdepth == 16)
+                SET_DATA_TWO_BYTES(lined, j, (l_int32)(sum + 0.5));
+            else  /* outdepth == 32 */
+                *(lined + j) = (l_uint32)(sum + 0.5);
         }
+    }
+
+    kernelDestroy(&keli);
+    kernelDestroy(&keln);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
+
+/*!
+ *  pixConvolveSep()
+ *
+ *      Input:  pixs (8 bpp)
+ *              kelx (x-dependent kernel)
+ *              kely (y-dependent kernel)
+ *              outdepth (of pixd: 8, 16 or 32)
+ *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
+ *      Return: pixd (8, 16 or 32 bpp)
+ *
+ *  Notes:
+ *      (1) This does a convolution with a separable kernel that is
+ *          is a sequence of convolutions in x and y.  The two
+ *          one-dimensional kernel components must be input separately;
+ *          the full kernel is the product of these components.
+ *          The support for the full kernel is thus a rectangular region.
+ *      (2) The @outdepth and @normflag parameters are used as in
+ *          pixConvolve().
+ *      (3) If the kernel is normalized to unit sum, the output values
+ *          can never exceed 255, so an output depth of 8 bpp is sufficient.
+ *          If the kernel is not normalized, it may be necessary to use
+ *          16 or 32 bpp output to avoid overflow.
+ *      (4) The kernel values can be positive or negative, but the
+ *          result for the convolution can only be stored as a positive
+ *          number.  Consequently, if it goes negative, the choices are
+ *          to clip to 0 or take the absolute value.  We're choosing
+ *          the former for now.  Another possibility would be to output
+ *          a second unsigned image for the negative values.
+ *      (5) This uses mirrored borders to avoid special casing on
+ *          the boundaries.
+ */
+PIX *
+pixConvolveSep(PIX       *pixs,
+               L_KERNEL  *kelx,
+               L_KERNEL  *kely,
+               l_int32    outdepth,
+               l_int32    normflag)
+{
+l_int32    w, h, d;
+L_KERNEL  *kelxn, *kelyn;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixConvolveSep");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 16 && d != 32)
+        return (PIX *)ERROR_PTR("pixs not 8, 16, or 32 bpp", procName, NULL);
+    if (!kelx)
+        return (PIX *)ERROR_PTR("kelx not defined", procName, NULL);
+    if (!kely)
+        return (PIX *)ERROR_PTR("kely not defined", procName, NULL);
+
+    if (normflag) {
+        kelxn = kernelNormalize(kelx, 1000.0);
+        kelyn = kernelNormalize(kely, 0.001);
+        pixt = pixConvolve(pixs, kelxn, 32, 0);
+        pixd = pixConvolve(pixt, kelyn, outdepth, 0);
+        kernelDestroy(&kelxn);
+        kernelDestroy(&kelyn);
+    }
+    else {  /* don't normalize */
+        pixt = pixConvolve(pixs, kelx, 32, 0);
+        pixd = pixConvolve(pixt, kely, outdepth, 0);
     }
 
     pixDestroy(&pixt);
     return pixd;
 }
+
+
+/*----------------------------------------------------------------------*
+ *                  Generic convolution with float array                *
+ *----------------------------------------------------------------------*/
+/*!
+ *  fpixConvolve()
+ *
+ *      Input:  fpixs (32 bit float array)
+ *              kernel
+ *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
+ *      Return: fpixd (32 bit float array)
+ *
+ *  Notes:
+ *      (1) This gives a float convolution with an arbitrary kernel.
+ *      (2) If normflag == 1, the result is normalized by scaling
+ *          all kernel values for a unit sum.  Do not normalize if
+ *          the kernel has null sum, such as a DoG.
+ *      (3) With the FPix, there are no issues about negative
+ *          array or kernel values.  The convolution is performed
+ *          with single precision arithmetic.
+ *      (4) This uses a mirrored border to avoid special casing on
+ *          the boundaries.
+ */
+FPIX *
+fpixConvolve(FPIX      *fpixs,
+             L_KERNEL  *kel,
+	     l_int32    normflag)
+{
+l_int32     i, j, k, m, w, h, sx, sy, cx, cy, wplt, wpld;
+l_float32   val;
+l_float32  *datat, *datad, *linet, *lined;
+l_float32   sum;
+L_KERNEL   *keli, *keln;
+FPIX       *fpixt, *fpixd;
+
+    PROCNAME("fpixConvolve");
+
+    if (!fpixs)
+        return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
+    if (!kel)
+        return (FPIX *)ERROR_PTR("kel not defined", procName, NULL);
+
+    keli = kernelInvert(kel);
+    kernelGetParameters(keli, &sy, &sx, &cy, &cx);
+    if (normflag)
+        keln = kernelNormalize(keli, 1.0);
+    else
+        keln = kernelCopy(keli);
+
+    fpixGetDimensions(fpixs, &w, &h);
+    fpixt = fpixAddMirroredBorder(fpixs, cx, sx - cx, cy, sy - cy);
+    if (!fpixt)
+        return (FPIX *)ERROR_PTR("fpixt not made", procName, NULL);
+
+    fpixd = fpixCreate(w, h);
+    datat = fpixGetData(fpixt);
+    datad = fpixGetData(fpixd);
+    wplt = fpixGetWpl(fpixt);
+    wpld = fpixGetWpl(fpixd);
+    for (i = 0; i < h; i++) {
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            sum = 0.0;
+            for (k = 0; k < sy; k++) {
+                linet = datat + (i + k) * wplt;
+                for (m = 0; m < sx; m++) {
+                    val = *(linet + j + m);
+                    sum += val * keln->data[k][m];
+                }
+            }
+            *(lined + j) = sum;
+        }
+    }
+
+    kernelDestroy(&keli);
+    kernelDestroy(&keln);
+    fpixDestroy(&fpixt);
+    return fpixd;
+}
+
+
+/*!
+ *  fpixConvolveSep()
+ *
+ *      Input:  fpixs (32 bit float array)
+ *              kelx (x-dependent kernel)
+ *              kely (y-dependent kernel)
+ *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
+ *      Return: fpixd (32 bit float array)
+ *
+ *  Notes:
+ *      (1) This does a convolution with a separable kernel that is
+ *          is a sequence of convolutions in x and y.  The two
+ *          one-dimensional kernel components must be input separately;
+ *          the full kernel is the product of these components.
+ *          The support for the full kernel is thus a rectangular region.
+ *      (2) The normflag parameter is used as in fpixConvolve().
+ *      (3) This uses mirrored borders to avoid special casing on
+ *          the boundaries.
+ */
+FPIX *
+fpixConvolveSep(FPIX      *fpixs,
+                L_KERNEL  *kelx,
+                L_KERNEL  *kely,
+                l_int32    normflag)
+{
+L_KERNEL  *kelxn, *kelyn;
+FPIX      *fpixt, *fpixd;
+
+    PROCNAME("fpixConvolveSep");
+
+    if (!fpixs)
+        return (FPIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!kelx)
+        return (FPIX *)ERROR_PTR("kelx not defined", procName, NULL);
+    if (!kely)
+        return (FPIX *)ERROR_PTR("kely not defined", procName, NULL);
+
+    if (normflag) {
+        kelxn = kernelNormalize(kelx, 1.0);
+        kelyn = kernelNormalize(kely, 1.0);
+        fpixt = fpixConvolve(fpixs, kelxn, 0);
+        fpixd = fpixConvolve(fpixt, kelyn, 0);
+        kernelDestroy(&kelxn);
+        kernelDestroy(&kelyn);
+    }
+    else {  /* don't normalize */
+        fpixt = fpixConvolve(fpixs, kelx, 0);
+        fpixd = fpixConvolve(fpixt, kely, 0);
+    }
+
+    fpixDestroy(&fpixt);
+    return fpixd;
+}
+
 
 

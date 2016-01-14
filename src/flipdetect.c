@@ -20,8 +20,10 @@
  *          l_int32      pixOrientDetect()
  *          l_int32      makeOrientDecision()
  *          l_int32      pixUpDownDetect()
+ *          l_int32      pixUpDownDetectGeneral()
  *          l_int32      pixOrientDetectDwa()
  *          l_int32      pixUpDownDetectDwa()
+ *          l_int32      pixUpDownDetectGeneralDwa()
  *
  *      Page mirror detection (flip 180 degrees about line in plane of image):
  *          l_int32      pixMirrorDetect()
@@ -132,6 +134,9 @@
  *  (3) If the text is horizontal and rightside-up, the only remaining
  *      degree of freedom is a left-right mirror flip: use
  *      pixMirrorDetect*().
+ *
+ *  (4) If you have a relatively large amount of numbers on the page,
+ *      us the slower pixUpDownDetectGeneral().
  *
  *  We summarize the full orientation and mirror flip detection process:
  *
@@ -257,7 +262,7 @@ pixOrientDetect(PIX        *pixs,
                 l_int32     mincount,
                 l_int32     debug)
 {
-PIX       *pixt;
+PIX  *pixt;
 
     PROCNAME("pixOrientDetect");
 
@@ -373,11 +378,14 @@ l_float32  absupconf, absleftconf;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) See pixOrientDetect() for details.
- *      (2) conf is the normalized difference between the number of
- *          detected up and down ascenders, assuming that the text
- *          is either rightside-up or upside-down and not rotated
- *          at a 90 degree angle.
+ *      (1) Special (typical, slightly faster) case, where the pixels
+ *          identified through the HMT (hit-miss transform) are not
+ *          clipped by a truncated word mask pixm.  See pixOrientDetect()
+ *          and pixUpDownDetectGeneral() for details.
+ *      (2) The returned confidence is the normalized difference
+ *          between the number of detected up and down ascenders,
+ *          assuming that the text is either rightside-up or upside-down
+ *          and not rotated at a 90 degree angle.
  */
 l_int32
 pixUpDownDetect(PIX        *pixs,
@@ -385,12 +393,59 @@ pixUpDownDetect(PIX        *pixs,
                 l_int32     mincount,
                 l_int32     debug)
 {
+    return pixUpDownDetectGeneral(pixs, pconf, mincount, 0, debug);
+}
+
+
+/*!
+ *  pixUpDownDetectGeneral()
+ *
+ *      Input:  pixs (1 bpp, deskewed, English text, 150 - 300 ppi)
+ *              &conf (<return> confidence that text is rightside-up)
+ *              mincount (min number of up + down; use 0 for default)
+ *              npixels (number of pixels removed from each side of word box)
+ *              debug (1 for debug output; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See pixOrientDetect() for other details.
+ *      (2) @conf is the normalized difference between the number of
+ *          detected up and down ascenders, assuming that the text
+ *          is either rightside-up or upside-down and not rotated
+ *          at a 90 degree angle.
+ *      (3) The typical mode of operation is @npixels == 0.
+ *          If @npixels > 0, this removes HMT matches at the 
+ *          beginning and ending of "words."  This is useful for
+ *          pages that may have mostly digits, because if npixels == 0,
+ *          leading "1" and "3" digits can register as having
+ *          ascenders or descenders, and "7" digits can match descenders.
+ *          Consequently, a page image of only digits may register
+ *          as being upside-down.
+ *      (4) We want to count the number of instances found using the HMT.
+ *          An expensive way to do this would be to count the
+ *          number of connected components.  A cheap way is to do a rank
+ *          reduction cascade that reduces each component to a single
+ *          pixel, and results (after two or three 2x reductions)
+ *          in one pixel for each of the original components.
+ *          After the reduction, you have a much smaller pix over
+ *          which to count pixels.  We do only 2 reductions, because
+ *          this function is designed to work for input pix between
+ *          150 and 300 ppi, and an 8x reduction on a 150 ppi image
+ *          is going too far -- components will get merged.
+ */
+l_int32
+pixUpDownDetectGeneral(PIX        *pixs,
+                       l_float32  *pconf,
+                       l_int32     mincount,
+                       l_int32     npixels,
+                       l_int32     debug)
+{
 l_int32    countup, countdown, nmax;
 l_float32  nup, ndown;
-PIX       *pixt0, *pixt1, *pixt2, *pixt3;
+PIX       *pixt0, *pixt1, *pixt2, *pixt3, *pixm;
 SEL       *sel1, *sel2, *sel3, *sel4;
 
-    PROCNAME("pixUpDownDetect");
+    PROCNAME("pixUpDownDetectGeneral");
 
     if (!pconf)
         return ERROR_INT("&conf not defined", procName, 1);
@@ -399,6 +454,8 @@ SEL       *sel1, *sel2, *sel3, *sel4;
         return ERROR_INT("pixs not defined", procName, 1);
     if (mincount == 0)
         mincount = DEFAULT_MIN_UP_DOWN_COUNT;
+    if (npixels < 0)
+        npixels = 0;
 
     sel1 = selCreateFromString(textsel1, 5, 6, NULL);
     sel2 = selCreateFromString(textsel2, 5, 6, NULL);
@@ -406,24 +463,42 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     sel4 = selCreateFromString(textsel4, 5, 6, NULL);
 
         /* One of many reasonable pre-filtering sequences: (1, 8) and (30, 1).
-         * There is more noise in the descender detection from this,
-         * but both work fairly well. */
+         * This closes holes in x-height characters and joins them at
+         * the x-height.  There is more noise in the descender detection
+         * from this, but it works fairly well. */
     pixt0 = pixMorphCompSequence(pixs, "c1.8 + c30.1", 0);
 
-        /* We want to count the number of instances found.
-         * An expensive way to do this would be to count the
-         * number of connected components.  A cheap way is to do a rank
-         * reduction cascade that reduces each component to a single
-         * pixel, and results (after two or three 2x reductions)
-	 * in one pixel for each of the original components.
-	 * After the reduction, you have a much smaller pix over
-         * which to count pixels.  We do only 2 reductions, because
-         * this function is designed to work for input pix between
-         * 150 and 300 ppi, and an 8x reduction on a 150 ppi image
-         * is going too far -- components will get merged. */
+        /* Optionally, make a mask of the word bounding boxes, shortening
+         * each of them by a fixed amount at each end. */
+    pixm = NULL;
+    if (npixels > 0) {
+        l_int32  i, nbox, x, y, w, h;
+        BOX   *box;
+        BOXA  *boxa;
+        pixt1 = pixMorphSequence(pixt0, "o10.1", 0);
+        boxa = pixConnComp(pixt1, NULL, 8);
+        pixm = pixCreateTemplate(pixt1);
+        pixDestroy(&pixt1);
+        nbox = boxaGetCount(boxa);
+        for (i = 0; i < nbox; i++) {
+            box = boxaGetBox(boxa, i, L_CLONE);
+            boxGetGeometry(box, &x, &y, &w, &h);
+            if (w > 2 * npixels)
+                pixRasterop(pixm, x + npixels, y - 6, w - 2 * npixels, h + 13,
+                            PIX_SET, NULL, 0, 0);
+            boxDestroy(&box);
+        }
+        boxaDestroy(&boxa);
+    }
+
+        /* Find the ascenders and optionally filter with pixm.
+         * For an explanation of the procedure used for counting the result
+         * of the HMT, see comments at the beginning of this function. */
     pixt1 = pixHMT(NULL, pixt0, sel1);
     pixt2 = pixHMT(NULL, pixt0, sel2);
     pixOr(pixt1, pixt1, pixt2);
+    if (pixm)
+        pixAnd(pixt1, pixt1, pixm);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countup, NULL);
     pixDebugFlipDetect("junkpixup", pixs, pixt1, debug);
@@ -431,9 +506,12 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
 
+        /* Find the ascenders and optionally filter with pixm. */
     pixt1 = pixHMT(NULL, pixt0, sel3);
     pixt2 = pixHMT(NULL, pixt0, sel4);
     pixOr(pixt1, pixt1, pixt2);
+    if (pixm)
+        pixAnd(pixt1, pixt1, pixm);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countdown, NULL);
     pixDebugFlipDetect("junkpixdown", pixs, pixt1, debug);
@@ -441,12 +519,8 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
 
-    pixDestroy(&pixt0);
-    selDestroy(&sel1);
-    selDestroy(&sel2);
-    selDestroy(&sel3);
-    selDestroy(&sel4);
-
+        /* Evaluate statistically, generating a confidence that is
+         * related to the probability with a gaussian distribution. */
     nup = (l_float32)(countup);
     ndown = (l_float32)(countdown);
     nmax = L_MAX(countup, countdown);
@@ -454,6 +528,7 @@ SEL       *sel1, *sel2, *sel3, *sel4;
         *pconf = 2. * ((nup - ndown) / sqrt(nup + ndown));
 
     if (debug) {
+        if (pixm) pixWrite("junkpixm1", pixm, IFF_PNG);
         fprintf(stderr, "nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
                 nup, ndown, *pconf);
         if (*pconf > DEFAULT_MIN_UP_DOWN_CONF)
@@ -462,6 +537,12 @@ SEL       *sel1, *sel2, *sel3, *sel4;
             fprintf(stderr, "Text is upside-down\n");
     }
 
+    pixDestroy(&pixt0);
+    pixDestroy(&pixm);
+    selDestroy(&sel1);
+    selDestroy(&sel2);
+    selDestroy(&sel3);
+    selDestroy(&sel4);
     return 0;
 }
 
@@ -524,30 +605,59 @@ PIX  *pixt;
 /*!
  *  pixUpDownDetectDwa()
  *
- *      Input:  pixs (1 bpp, deskewed, English text)
+ *      Input:  pixs (1 bpp, deskewed, English text, 150 - 300 ppi)
  *              &conf (<return> confidence that text is rightside-up)
  *              mincount (min number of up + down; use 0 for default)
  *              debug (1 for debug output; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) DWA version of pixUpDownDetect(); see pixOrientDetect().
- *      (2) conf is the normalized difference between the number of
- *          detected up and down ascenders, assuming that the text
- *          is either rightside-up or upside-down and not rotated
- *          at a 90 degree angle.
+ *      (1) Faster (DWA) version of pixUpDownDetect().
+ *      (2) This is a special case (but typical and slightly faster) of
+ *          pixUpDownDetectGeneralDwa(), where the pixels identified
+ *          through the HMT (hit-miss transform) are not clipped by
+ *          a truncated word mask pixm.  See pixUpDownDetectGeneral()
+ *          for usage and other details.
+ *      (3) The returned confidence is the normalized difference
+ *          between the number of detected up and down ascenders,
+ *          assuming that the text is either rightside-up or upside-down
+ *          and not rotated at a 90 degree angle.
  */
 l_int32
 pixUpDownDetectDwa(PIX        *pixs,
-                   l_float32  *pconf,
-                   l_int32     mincount,
-                   l_int32     debug)
+                  l_float32  *pconf,
+                  l_int32     mincount,
+                  l_int32     debug)
+{
+    return pixUpDownDetectGeneralDwa(pixs, pconf, mincount, 0, debug);
+}
+
+
+/*!
+ *  pixUpDownDetectGeneralDwa()
+ *
+ *      Input:  pixs (1 bpp, deskewed, English text)
+ *              &conf (<return> confidence that text is rightside-up)
+ *              mincount (min number of up + down; use 0 for default)
+ *              npixels (number of pixels removed from each side of word box)
+ *              debug (1 for debug output; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See the notes in pixUpDownDetectGeneral() for usage.
+ */
+l_int32
+pixUpDownDetectGeneralDwa(PIX        *pixs,
+                          l_float32  *pconf,
+                          l_int32     mincount,
+                          l_int32     npixels,
+                          l_int32     debug)
 {
 l_int32    countup, countdown, nmax;
 l_float32  nup, ndown;
-PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3;
+PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3, *pixm;
 
-    PROCNAME("pixUpDownDetectDwa");
+    PROCNAME("pixUpDownDetectGeneralDwa");
 
     if (!pconf)
         return ERROR_INT("&conf not defined", procName, 1);
@@ -556,8 +666,13 @@ PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3;
         return ERROR_INT("pixs not defined", procName, 1);
     if (mincount == 0)
         mincount = DEFAULT_MIN_UP_DOWN_COUNT;
+    if (npixels < 0)
+        npixels = 0;
 
-        /* Close holes in x-height characters and join at the x-height */
+        /* One of many reasonable pre-filtering sequences: (1, 8) and (30, 1).
+         * This closes holes in x-height characters and joins them at
+         * the x-height.  There is more noise in the descender detection
+         * from this, but it works fairly well. */
     pixt = pixMorphSequenceDwa(pixs, "c1.8 + c30.1", 0);
 
         /* Be sure to add the border before the flip DWA operations! */
@@ -565,33 +680,65 @@ PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3;
                                 ADDED_BORDER, ADDED_BORDER, 0);
     pixDestroy(&pixt);
 
+        /* Optionally, make a mask of the word bounding boxes, shortening
+         * each of them by a fixed amount at each end. */
+    pixm = NULL;
+    if (npixels > 0) {
+        l_int32  i, nbox, x, y, w, h;
+        BOX   *box;
+        BOXA  *boxa;
+        pixt1 = pixMorphSequenceDwa(pixt0, "o10.1", 0);
+        boxa = pixConnComp(pixt1, NULL, 8);
+        pixm = pixCreateTemplate(pixt1);
+        pixDestroy(&pixt1);
+        nbox = boxaGetCount(boxa);
+        for (i = 0; i < nbox; i++) {
+            box = boxaGetBox(boxa, i, L_CLONE);
+            boxGetGeometry(box, &x, &y, &w, &h);
+            if (w > 2 * npixels)
+                pixRasterop(pixm, x + npixels, y - 6, w - 2 * npixels, h + 13,
+                            PIX_SET, NULL, 0, 0);
+            boxDestroy(&box);
+        }
+        boxaDestroy(&boxa);
+    }
+
+        /* Find the ascenders and optionally filter with pixm.
+         * For an explanation of the procedure used for counting the result
+         * of the HMT, see comments in pixUpDownDetectGeneral().  */
     pixt1 = pixFlipFHMTGen(NULL, pixt0, "flipsel1");
     pixt2 = pixFlipFHMTGen(NULL, pixt0, "flipsel2");
     pixOr(pixt1, pixt1, pixt2);
+    if (pixm)
+        pixAnd(pixt1, pixt1, pixm);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countup, NULL);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
 
+        /* Find the ascenders and optionally filter with pixm. */
     pixt1 = pixFlipFHMTGen(NULL, pixt0, "flipsel3");
     pixt2 = pixFlipFHMTGen(NULL, pixt0, "flipsel4");
     pixOr(pixt1, pixt1, pixt2);
+    if (pixm)
+        pixAnd(pixt1, pixt1, pixm);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countdown, NULL);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
 
-    pixDestroy(&pixt0);
+        /* Evaluate statistically, generating a confidence that is
+         * related to the probability with a gaussian distribution. */
     nup = (l_float32)(countup);
     ndown = (l_float32)(countdown);
     nmax = L_MAX(countup, countdown);
-
     if (nmax > mincount)
         *pconf = 2. * ((nup - ndown) / sqrt(nup + ndown));
 
     if (debug) {
+        if (pixm) pixWrite("junkpixm2", pixm, IFF_PNG);
         fprintf(stderr, "nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
                 nup, ndown, *pconf);
         if (*pconf > DEFAULT_MIN_UP_DOWN_CONF)
@@ -600,8 +747,11 @@ PIX       *pixt, *pixt0, *pixt1, *pixt2, *pixt3;
             fprintf(stderr, "Text is upside-down\n");
     }
 
+    pixDestroy(&pixt0);
+    pixDestroy(&pixm);
     return 0;
 }
+
 
 
 /*----------------------------------------------------------------*

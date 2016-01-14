@@ -24,25 +24,31 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define  BINARY_IMAGE             "feyn.tif"
-#define  TWO_BPP_IMAGE_NO_CMAP    "weasel2.png"
-#define  TWO_BPP_IMAGE_CMAP       "weasel2.4c.png"
-#define  FOUR_BPP_IMAGE_NO_CMAP   "weasel4.png"
-#define  FOUR_BPP_IMAGE_CMAP      "weasel4.16c.png"
-#define  EIGHT_BPP_IMAGE_NO_CMAP  "weasel8.png"
-#define  EIGHT_BPP_IMAGE_CMAP     "weasel8.240c.png"
-#define  RGB_IMAGE                "marge.jpg"
+static char *image[9] = {"feyn.tif",         /* 1 bpp */
+                         "weasel2.png",      /* 2 bpp; no cmap */
+                         "weasel2.4c.png",   /* 2 bpp; cmap */
+                         "weasel4.png",      /* 4 bpp; no cmap */
+                         "weasel4.16c.png",  /* 4 bpp; cmap */
+                         "weasel8.png",      /* 8 bpp; no cmap */
+                         "weasel8.240c.png", /* 8 bpp; cmap */
+                         "marge.jpg",        /* 32 bpp rgb */
+                         "test24.jpg"};      /* 32 bpp rgb */
+
 
 static const l_int32 SPACE = 30;
+static const l_int32 WIDTH = 300;
+static const l_float32 FACTOR[5] = {2.3, 1.5, 1.1, 0.6, 0.3};
 
-void PixSave32(PIXA *pixa, PIX *pixc);
+static void PixSave32(PIXA *pixa, PIX *pixc);
+static void AddScaledImages(PIXA *pixa, char *fname, l_int32 width);
 
 
 main(int    argc,
      char **argv)
 {
-PIX   *pixs, *pixc, *pixd;
-PIXA  *pixa;
+l_int32  i;
+PIX     *pixs, *pixc, *pixd;
+PIXA    *pixa;
 static char  mainName[] = "scale_reg";
 
     if (argc != 1)
@@ -51,14 +57,16 @@ static char  mainName[] = "scale_reg";
     pixa = pixaCreate(0);
 
         /* Test 1 bpp */
-    pixs = pixRead(BINARY_IMAGE);
+    pixs = pixRead(image[0]);
     pixc = pixScale(pixs, 0.32, 0.32);
     pixSaveTiled(pixc, pixa, 1, 1, SPACE, 32);
     pixDestroy(&pixc);
     pixc = pixScaleToGray3(pixs);
     PixSave32(pixa, pixc);
+
     pixc = pixScaleToGray4(pixs);
-    PixSave32(pixa, pixc);
+    pixSaveTiled(pixc, pixa, 1, 1, SPACE, 32);
+    pixDestroy(&pixc);
     pixc = pixScaleToGray6(pixs);
     PixSave32(pixa, pixc);
     pixc = pixScaleToGray8(pixs);
@@ -67,8 +75,13 @@ static char  mainName[] = "scale_reg";
     PixSave32(pixa, pixc);
     pixDestroy(&pixs);
 
+    for (i = 1; i < 9; i++) {
+/*        if (i != 2) continue; */
+        AddScaledImages(pixa, image[i], WIDTH);
+    }
+
         /* Test 2 bpp without colormap */
-    pixs = pixRead(TWO_BPP_IMAGE_NO_CMAP);
+    pixs = pixRead(image[1]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 2.25, 2.25);
     PixSave32(pixa, pixc);
@@ -79,7 +92,7 @@ static char  mainName[] = "scale_reg";
     pixDestroy(&pixs);
 
         /* Test 2 bpp with colormap */
-    pixs = pixRead(TWO_BPP_IMAGE_CMAP);
+    pixs = pixRead(image[2]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 2.25, 2.25);
     PixSave32(pixa, pixc);
@@ -90,7 +103,7 @@ static char  mainName[] = "scale_reg";
     pixDestroy(&pixs);
 
         /* Test 4 bpp without colormap */
-    pixs = pixRead(FOUR_BPP_IMAGE_NO_CMAP);
+    pixs = pixRead(image[3]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.72, 1.72);
     PixSave32(pixa, pixc);
@@ -101,7 +114,7 @@ static char  mainName[] = "scale_reg";
     pixDestroy(&pixs);
 
         /* Test 4 bpp with colormap */
-    pixs = pixRead(FOUR_BPP_IMAGE_CMAP);
+    pixs = pixRead(image[4]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.72, 1.72);
     PixSave32(pixa, pixc);
@@ -112,7 +125,7 @@ static char  mainName[] = "scale_reg";
     pixDestroy(&pixs);
 
         /* Test 8 bpp without colormap */
-    pixs = pixRead(EIGHT_BPP_IMAGE_NO_CMAP);
+    pixs = pixRead(image[5]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.92, 1.92);
     PixSave32(pixa, pixc);
@@ -123,7 +136,7 @@ static char  mainName[] = "scale_reg";
     pixDestroy(&pixs);
 
         /* Test 8 bpp with colormap */
-    pixs = pixRead(EIGHT_BPP_IMAGE_CMAP);
+    pixs = pixRead(image[6]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.92, 1.92);
     PixSave32(pixa, pixc);
@@ -134,7 +147,7 @@ static char  mainName[] = "scale_reg";
     pixDestroy(&pixs);
 
         /* Test 32 bpp */
-    pixs = pixRead(RGB_IMAGE);
+    pixs = pixRead(image[7]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.42, 1.42);
     PixSave32(pixa, pixc);
@@ -153,13 +166,43 @@ static char  mainName[] = "scale_reg";
     return 0;
 }
 
+static void
+AddScaledImages(PIXA    *pixa,
+                char    *fname,
+                l_int32  width)
+{
+l_int32    i, w;
+l_float32  scalefactor;
+PIX       *pixs, *pixt1, *pixt2, *pix32;
 
-void PixSave32(PIXA *pixa, PIX *pixc) {
+    pixs = pixRead(fname);
+    w = pixGetWidth(pixs);
+    for (i = 0; i < 5; i++) {
+        scalefactor = (l_float32)width / (FACTOR[i] * (l_float32)w);
+        pixt1 = pixScale(pixs, FACTOR[i], FACTOR[i]);
+        pixt2 = pixScale(pixt1, scalefactor, scalefactor);
+        pix32 = pixConvertTo32(pixt2);
+        if (i == 0)
+            pixSaveTiled(pix32, pixa, 1, 1, SPACE, 0);
+        else
+            pixSaveTiled(pix32, pixa, 1, 0, SPACE, 0);
+        pixDestroy(&pixt1);
+        pixDestroy(&pixt2);
+        pixDestroy(&pix32);
+    }
+    pixDestroy(&pixs);
+
+    return;
+}
+
+
+static void
+PixSave32(PIXA *pixa, PIX *pixc)
+{
 PIX  *pix32;
     pix32 = pixConvertTo32(pixc);
     pixSaveTiled(pix32, pixa, 1, 0, SPACE, 0);
     pixDestroy(&pixc);
     pixDestroy(&pix32);
 }
-
 

@@ -34,6 +34,9 @@
  *      Distance function (source: Luc Vincent)
  *               PIX      *pixDistanceFunction()
  *
+ *      Seed spread (based on distance function)
+ *               PIX      *pixSeedspread()
+ *
  *      Local extrema:
  *               l_int32   pixLocalExtrema()
  *        static l_int32   pixQualifyLocalMinima()
@@ -564,7 +567,7 @@ pixDistanceFunction(PIX     *pixs,
                     l_int32  outdepth,
                     l_int32  boundcond)
 {
-l_int32    w, h, wpld, opbc;
+l_int32    w, h, wpld;
 l_uint32  *datad;
 PIX       *pixd;
 
@@ -585,24 +588,116 @@ PIX       *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-        /* Initialize pixd with appropriate boundary conditions */
-    if (boundcond == L_BOUNDARY_BG)
-        opbc = PIX_CLR;
-    else  /* boundcond == L_BOUNDARY_FG) */
-        opbc = PIX_SET;
+        /* Initialize the fg pixels to 1 and the bg pixels to 0 */
     pixSetMasked(pixd, pixs, 1);
-    pixRasterop(pixd, 0, 0, w, 1, opbc, NULL, 0, 0);   /* top */
-    pixRasterop(pixd, 0, h - 1, w, 1, opbc, NULL, 0, 0);   /* bot */
-    pixRasterop(pixd, 0, 0, 1, h, opbc, NULL, 0, 0);   /* left */
-    pixRasterop(pixd, w - 1, 0, 1, h, opbc, NULL, 0, 0);   /* right */
 
-    distanceFunctionLow(datad, w, h, outdepth, wpld, connectivity);
+    if (boundcond == L_BOUNDARY_BG)
+        distanceFunctionLow(datad, w, h, outdepth, wpld, connectivity);
+    else {  /* L_BOUNDARY_FG: set boundary pixels to max val */
+        pixRasterop(pixd, 0, 0, w, 1, PIX_SET, NULL, 0, 0);   /* top */
+        pixRasterop(pixd, 0, h - 1, w, 1, PIX_SET, NULL, 0, 0);   /* bot */
+        pixRasterop(pixd, 0, 0, 1, h, PIX_SET, NULL, 0, 0);   /* left */
+        pixRasterop(pixd, w - 1, 0, 1, h, PIX_SET, NULL, 0, 0);   /* right */
 
-        /* Set each border pixel equal to the pixel next to it */
-    pixSetMirroredBorder(pixd, 1, 1, 1, 1);
+        distanceFunctionLow(datad, w, h, outdepth, wpld, connectivity);
+
+            /* Set each boundary pixel equal to the pixel next to it */
+        pixSetMirroredBorder(pixd, 1, 1, 1, 1);
+    }
 
     return pixd;
 }
+
+ 
+/*-----------------------------------------------------------------------*
+ *                Seed spread (based on distance function)               *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  pixSeedspread()
+ *
+ *      Input:  pixs  (8 bpp source)
+ *              connectivity  (4 or 8)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The raster/anti-raster method for implementing this filling
+ *          operation was suggested by Ray Smith.
+ *      (2) This takes an arbitrary set of nonzero pixels in pixs, which
+ *          can be sparse, and spreads (extrapolates) the values to
+ *          fill all the pixels in pixd with the nonzero value it is
+ *          closest to in pixs.  This is similar (though not completely
+ *          equivalent) to doing a Voronoi tiling of the image, with a
+ *          tile surrounding each pixel that has a nonzero value.
+ *          All pixels within a tile are then closer to its "central"
+ *          pixel than to any others.  Then assign the value of the
+ *          "central" pixel to each pixel in the tile.
+ *      (3) This is implemented by computing a distance function in parallel
+ *          with the fill.  The distance function uses free boundary
+ *          conditions (assumed maxval outside), and it controls the
+ *          propagation of the pixels in pixd away from the nonzero
+ *          (seed) values.  This is done in 2 traversals (raster/antiraster).
+ *          In the raster direction, whenever the distance function
+ *          is nonzero, the spread pixel takes on the value of its
+ *          predecessor that has the minimum distance value.  In the
+ *          antiraster direction, whenever the distance function is nonzero
+ *          and its value is replaced by a smaller value, the spread
+ *          pixel takes the value of the predecessor with the minimum
+ *          distance value.
+ *      (4) At boundaries where a pixel is equidistant from two
+ *          nearest nonzero (seed) pixels, the decision of which value
+ *          to use is arbitrary (greedy in search for minimum distance).
+ *          This can give rise to strange-looking results, particularly
+ *          for 4-connectivity where the L1 distance is computed from
+ *          steps in N,S,E and W directions (no diagonals).
+ */
+PIX *
+pixSeedspread(PIX     *pixs,
+              l_int32  connectivity)
+{
+l_int32    w, h, wplt, wplg;
+l_uint32  *datat, *datag;
+PIX       *pixm, *pixt, *pixg, *pixd;
+
+    PROCNAME("pixSeedspread");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("!pixs or pixs not 8 bpp", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+
+        /* Add a 4 byte border to pixs.  This simplifies the computation. */
+    pixg = pixAddBorder(pixs, 4, 0);
+    pixGetDimensions(pixg, &w, &h, NULL);
+
+        /* Initialize distance function pixt.  Threshold pixs to get
+         * a 0 at the seed points where the pixs pixel is nonzero, and
+         * a 1 at all points that need to be filled.  Use this as a
+         * mask to set a 1 in pixt at all non-seed points.  Also, set all
+         * pixt pixels in an interior boundary of width 1 to the
+         * maximum value.   For debugging, to view the distance function,
+         * use pixConvert16To8(pixt, 0) on small images.  */
+    pixm = pixThresholdToBinary(pixg, 1);
+    pixt = pixCreate(w, h, 16);
+    pixSetMasked(pixt, pixm, 1);
+    pixRasterop(pixt, 0, 0, w, 1, PIX_SET, NULL, 0, 0);   /* top */
+    pixRasterop(pixt, 0, h - 1, w, 1, PIX_SET, NULL, 0, 0);   /* bot */
+    pixRasterop(pixt, 0, 0, 1, h, PIX_SET, NULL, 0, 0);   /* left */
+    pixRasterop(pixt, w - 1, 0, 1, h, PIX_SET, NULL, 0, 0);   /* right */
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+
+        /* Do the interpolation and remove the border. */
+    datag = pixGetData(pixg);
+    wplg = pixGetWpl(pixg);
+    seedspreadLow(datag, w, h, wplg, datat, wplt, connectivity);
+    pixd = pixRemoveBorder(pixg, 4);
+
+    pixDestroy(&pixm);
+    pixDestroy(&pixg);
+    pixDestroy(&pixt);
+    return pixd;
+}
+
 
 
 /*-----------------------------------------------------------------------*

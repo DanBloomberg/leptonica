@@ -25,11 +25,28 @@
 #
 #   To remove all executables:  make clean
 #
+#   ========================================================================
+#   IMPORTANT: This Makefile is set up to link with liblept.a and liblept.so
+#   that were built using using src/makefile (i.e., with 'make' in src).
+#   If instead you built the library with configure/make/makeinstall,
+#   you must do this here:
+#
+#     (1) Change LIB_NODEBUG_DIR:
+#            LIB_NODEBUG_DIR = /usr/local/lib  [or wherever you installed
+#                                               liblept.a]
+#     (2) Edit ALL_LIBS to include the imaging libraries on your system,
+#         as found in config_auto.h.  For example, if you have the
+#         jpeg, png, tiff and gif libraries, set
+#            ALL_LIBS = $(LEPTLIB) -ltiff -ljpeg -lpng -lgif -lz -lm
+#   ========================================================================
+#
 #   To link and run programs using shared (dynamic linked) libraries,
 #   you must do one of the following two things:
 #
 #     (a)  make sure your LD_LIBRARY_PATH variable points to the
-#          directory in which the *.so files are placed, or
+#          directory in which the *.so files are placed; e.g.
+#            export LD_LIBRARY_PATH=../lib/shared:$LD_LIBRARY_PATH
+#          or
 #     (b)  have the *.so files (or links to them) in this directory
 #
 #   Using gnu make, this should compile properly on a bigendian
@@ -116,15 +133,16 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 #########################################################################
 
 SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
-		ccthin1_reg.c ccthin2_reg.c \
+		blend_reg.c ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorquant_reg.c \
 		compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c \
 		distance_reg.c dwamorph1_reg.c enhance_reg.c \
 		equal_reg.c expand_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
-		fmorphauto_reg.c gifio_reg.c \
-		graymorph_reg.c hardlight_reg.c ioformats_reg.c \
+		fmorphauto_reg.c fpix_reg.c gifio_reg.c \
+		graymorph_reg.c grayquant_reg.c \
+		hardlight_reg.c ioformats_reg.c \
 		kernel_reg.c locminmax_reg.c logicops_reg.c \
 		morphseq_reg.c numa_reg.c \
 		paint_reg.c paintmask_reg.c \
@@ -132,7 +150,8 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		rank_reg.c rasterop_reg.c rasteropip_reg.c \
 		rotate_reg.c rotateorth_reg.c \
 		scale_reg.c selio_reg.c \
-		string_reg.c xformbox_reg.c \
+		string_reg.c threshnorm_reg.c \
+		xformbox_reg.c \
 		adaptmaptest.c affinetest.c \
 		arithtest.c barcodetest.c \
 		baselinetest.c bilineartest.c \
@@ -144,7 +163,7 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		colorspacetest.c comparetest.c contrasttest.c \
 		convertfilestops.c convertformat.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
-		croptext.c dithertest.c \
+		croptext.c digitprep1.c dithertest.c \
 		edgetest.c extrematest.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
@@ -156,7 +175,8 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		lineremoval.c listtest.c \
 		maketile.c modifyhuesat.c \
-		morphtest1.c mtifftest.c numaranktest.c \
+		morphtest1.c mtifftest.c \
+		numaranktest.c otsutest.c \
 		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
 		partitiontest.c pixaatest.c \
 		plottest.c \
@@ -171,7 +191,7 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		skewtest.c snapcolortest.c \
 		sorttest.c splitimage2pdf.c \
 		textlinemask.c \
-		thresholdtest.c viewertest.c wordsinorder.c \
+		viewertest.c wordsinorder.c \
 		xvdisp.c
 
 #  Source files that are compiled after running program(s) from SRC
@@ -185,17 +205,22 @@ SRC3 =		dwalinear.3.c dwalinearlow.3.c
 all:	$(SRC:%.c=%)
 
 debian:	binmazetest buffertest comparetest \
-	cctest1 ccthin1_reg colormorphtest colorspacetest \
+	cctest1 ccthin1_reg colormorphtest colorquant_reg \
+	colorspacetest conversion_reg \
 	convertfilestops convertformat \
-	converttops dithertest edgetest extrematest \
+	converttops distance_reg \
+	dithertest edgetest equal_reg extrematest \
 	fhmtauto_reg fhmtautogen fileinfo \
 	flipdetect_reg flipselgen fmorphauto_reg fmorphautogen \
 	gammatest graphicstest graymazetest graymorph_reg \
-	heaptest histotest jbcorrelation jbrankhaus jbwords \
+	grayquant_reg heaptest histotest ioformats_reg \
+	jbcorrelation jbrankhaus jbwords \
 	kernel_reg lineremoval numaranktest pagesegtest1 \
-	pagesegtest2 pagesegtest3 partitiontest plottest \
+	pagesegtest2 pagesegtest3 paint_reg paintmask_reg \
+	partitiontest plottest \
 	printimage printsplitimage printtiff \
-	ranktest rank_reg removecmap sharptest splitimage2pdf viewertest
+	ranktest rank_reg removecmap scale_reg \
+	sharptest splitimage2pdf viewertest
 
 ######################################################################
 
@@ -207,6 +232,9 @@ binmorph2_reg:	binmorph2_reg.o $(LEPTLIB)
 
 binmorph3_reg:	binmorph3_reg.o $(LEPTLIB)
 	$(CC) -o binmorph3_reg binmorph3_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+blend_reg:	blend_reg.o $(LEPTLIB)
+	$(CC) -o blend_reg blend_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 ccthin1_reg:	ccthin1_reg.o $(LEPTLIB)
 	$(CC) -o ccthin1_reg ccthin1_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -259,11 +287,17 @@ flipdetect_reg:	flipdetect_reg.o $(LEPTLIB)
 fmorphauto_reg:	fmorphauto_reg.o $(LEPTLIB)
 	$(CC) -o fmorphauto_reg fmorphauto_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+fpix_reg:	fpix_reg.o $(LEPTLIB)
+	$(CC) -o fpix_reg fpix_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 gifio_reg:	gifio_reg.o $(LEPTLIB)
 	$(CC) -o gifio_reg gifio_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 graymorph_reg:	graymorph_reg.o $(LEPTLIB)
 	$(CC) -o graymorph_reg graymorph_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+grayquant_reg:	grayquant_reg.o $(LEPTLIB)
+	$(CC) -o grayquant_reg grayquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 hardlight_reg:	hardlight_reg.o $(LEPTLIB)
 	$(CC) -o hardlight_reg hardlight_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -324,6 +358,9 @@ selio_reg:	selio_reg.o $(LEPTLIB)
 
 string_reg:	string_reg.o $(LEPTLIB)
 	$(CC) -o string_reg string_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+threshnorm_reg:	threshnorm_reg.o $(LEPTLIB)
+	$(CC) -o threshnorm_reg threshnorm_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 xformbox_reg:	xformbox_reg.o $(LEPTLIB)
 	$(CC) -o xformbox_reg xformbox_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -405,6 +442,9 @@ cornertest:	cornertest.o $(LEPTLIB)
 
 croptext:	croptext.o $(LEPTLIB)
 	$(CC) -o croptext croptext.o $(ALL_LIBS) $(EXTRALIBS)
+
+digitprep1:	digitprep1.o $(LEPTLIB)
+	$(CC) -o digitprep1 digitprep1.o $(ALL_LIBS) $(EXTRALIBS)
 
 dithertest:	dithertest.o $(LEPTLIB)
 	$(CC) -o dithertest dithertest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -499,6 +539,9 @@ mtifftest:	mtifftest.o $(LEPTLIB)
 numaranktest:	numaranktest.o $(LEPTLIB)
 	$(CC) -o numaranktest numaranktest.o $(ALL_LIBS) $(EXTRALIBS)
 
+otsutest:	otsutest.o $(LEPTLIB)
+	$(CC) -o otsutest otsutest.o $(ALL_LIBS) $(EXTRALIBS)
+
 pagesegtest1:	pagesegtest1.o $(LEPTLIB)
 	$(CC) -o pagesegtest1 pagesegtest1.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -586,9 +629,6 @@ splitimage2pdf:	splitimage2pdf.o $(LEPTLIB)
 textlinemask:	textlinemask.o $(LEPTLIB)
 	$(CC) -o textlinemask textlinemask.o $(ALL_LIBS) $(EXTRALIBS)
 
-thresholdtest:	thresholdtest.o $(LEPTLIB)
-	$(CC) -o thresholdtest thresholdtest.o $(ALL_LIBS) $(EXTRALIBS)
-
 viewertest:	viewertest.o $(LEPTLIB)
 	$(CC) -o viewertest viewertest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -618,6 +658,14 @@ clean:
 	done ;
 	-@ for file in $(SRC3:%.c=%.o) ; do \
 		rm -f $$file; \
+	done ;
+
+###########################################################
+ 
+install:
+	mkdir -p $(DESTDIR)/usr/bin/leptonica
+	-@ for file in $(SRC:%.c=%) ; do \
+		install $$file $(DESTDIR)/usr/bin/leptonica; \
 	done ;
 
 ###########################################################

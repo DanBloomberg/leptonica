@@ -83,16 +83,6 @@ l_int32 convertJpegToPSString(const char *filein, char **poutstr, l_int32 *pnbyt
     return ERROR_INT("function not present", "convertJpegToPSString", 1);
 }
 
-l_int32 extractJpegDataFromFile(const char *filein, l_uint8 **pdata, l_int32 *pnbytes, l_int32 *pw, l_int32 *ph, l_int32 *pbps, l_int32 *pspp)
-{
-    return ERROR_INT("function not present", "extractJpegDataFromFile", 1);
-}
-
-l_int32 extractJpegDataFromArray(const void *data, l_int32 nbytes, l_int32 *pw, l_int32 *ph, l_int32 *pbps, l_int32 *pspp)
-{
-    return ERROR_INT("function not present", "extractJpegDataFromArray", 1);
-}
-
 l_int32 convertTiffG4ToPSEmbed(const char *filein, const char *fileout)
 {
     return ERROR_INT("function not present", "convertTiffG4ToPSEmbed", 1);

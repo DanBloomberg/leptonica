@@ -55,6 +55,7 @@ static l_int32 testcomp(const char *filename, PIX *pix, l_int32 comptype);
 static l_int32 testcomp_mem(PIX *pixs, PIX **ppixt, l_int32 index,
                             l_int32 format);
 static l_int32 test_writemem(PIX *pixs, l_int32 format, char *psfile);
+static PIX *make_24_bpp_pix(PIX *pixs);
 
 
 main(int    argc,
@@ -63,8 +64,11 @@ main(int    argc,
 char         psname[256];
 l_uint8     *data;
 l_int32      i, d, n, success, nbytes, same;
+l_int32      w, h, bps, spp;
+l_float32    diff;
 size_t       size;
-PIX         *pix1, *pix2, *pix4, *pix8, *pix16, *pix32, *pix, *pixt;
+PIX         *pix1, *pix2, *pix4, *pix8, *pix16, *pix32;
+PIX         *pix, *pixt, *pixd;
 PIXA        *pixa;
 static char  mainName[] = "ioformats_reg";
 
@@ -167,6 +171,8 @@ static char  mainName[] = "ioformats_reg";
             fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_G4)) success = FALSE;
+            readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp, NULL, NULL);
+            fprintf(stderr, "(w,h,bps,spp) = (%d,%d,%d,%d)\n", w, h, bps, spp);
 	    FREE(data);
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_RLE);
             nbytes = nbytesInFile("junkrle.tif");
@@ -188,6 +194,8 @@ static char  mainName[] = "ioformats_reg";
         pixWriteMemTiff(&data, &size, pix, IFF_TIFF_ZIP);
         pixt = pixReadMemTiff(data, size, 0);
         if (testcomp_mem(pix, &pixt, i, IFF_TIFF_ZIP)) success = FALSE;
+        readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp, NULL, NULL);
+        fprintf(stderr, "(w,h,bps,spp) = (%d,%d,%d,%d)\n", w, h, bps, spp);
         FREE(data);
         pixWriteMemTiff(&data, &size, pix, IFF_TIFF);
         pixt = pixReadMemTiff(data, size, 0);
@@ -205,7 +213,7 @@ static char  mainName[] = "ioformats_reg";
 
     /* ---------------- Part 4: Test non-tiff r/w to memory ---------------- */
 
-#ifndef _STANDARD_C_
+#if HAVE_FMEMOPEN
     pixDisplayWrite(NULL, -1);
     success = TRUE;
     for (i = 0; i < n; i++) {
@@ -229,9 +237,10 @@ static char  mainName[] = "ioformats_reg";
     else
         fprintf(stderr,
             "\n  ***** Failure on at least one non-tiff r/w to memory *****\n");
-#endif  /*  ~_STANDARD_C_  */
-
-    system("gthumb junk_write_display* &");
+#else
+        fprintf(stderr,
+            "\n  ***** Non-tiff r/w to memory not enabled *****\n");
+#endif  /*  HAVE_FMEMOPEN  */
 
     pixaDestroy(&pixa);
 
@@ -279,6 +288,37 @@ static char  mainName[] = "ioformats_reg";
     pixDestroy(&pixt);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
+
+    /* ------------ Part 6: Test 24 bpp writing ------------ */
+
+        /* Generate a 24 bpp (not 32 bpp !!) rgb pix and write it out */
+    success = TRUE;
+    pix = pixRead("marge.jpg");
+    pixt = make_24_bpp_pix(pix);
+    pixWrite("junk24.png", pixt, IFF_PNG);
+    pixWrite("junk24.jpg", pixt, IFF_JFIF_JPEG);
+    pixWrite("junk24.tif", pixt, IFF_TIFF);
+    pixd = pixRead("junk24.png");
+    pixEqual(pix, pixd, &same);
+    if (!same) success = FALSE;
+    pixDestroy(&pixd);
+    pixd = pixRead("junk24.jpg");
+    pixCompareRGB(pix, pixd, L_COMPARE_ABS_DIFF, 0, NULL, &diff, NULL, NULL);
+    if (diff > 0.1) success = FALSE;
+    pixDestroy(&pixd);
+    pixd = pixRead("junk24.tif");
+    pixEqual(pix, pixd, &same);
+    if (!same) success = FALSE;
+    pixDestroy(&pixd);
+    if (success)
+        fprintf(stderr,
+            "\n  ******* Success on 24 bpp rgb writing *******\n");
+    else
+        fprintf(stderr,
+            "\n  ******* Failure on 24 bpp rgb writing *******\n");
+    pixDestroy(&pix);
+    pixDestroy(&pixt);
+
     exit(0);
 }
 
@@ -375,5 +415,33 @@ PIX      *pixd = NULL;
     return (!same);
 }
 
+
+    /* Composes 24 bpp rgb pix */
+static PIX *
+make_24_bpp_pix(PIX  *pixs)
+{
+l_int32    i, j, w, h, wpls, wpld, rval, gval, bval;
+l_uint32  *lines, *lined, *datas, *datad;
+PIX       *pixd;
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreate(w, h, 24);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            *((l_uint8 *)lined + 3 * j) = rval;
+            *((l_uint8 *)lined + 3 * j + 1) = gval;
+            *((l_uint8 *)lined + 3 * j + 2) = bval;
+        }
+    }
+
+    return pixd;
+}
 
 

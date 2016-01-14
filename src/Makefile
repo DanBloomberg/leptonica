@@ -43,7 +43,7 @@
 #   Customization for non-POSIX-compliant GNU functions
 #   fmemopen() and open_memstream().
 #   The default is not to use, because they only work on linux.
-#   To use these, comment out the define of _STANDARD_C_ in environ.h.
+#   To use these, #define HAVE_FMEMOPEN to 1 in environ.h.
 #
 #   Customization for cygwin:
 #   (1) Use the appropriate $CC
@@ -96,7 +96,7 @@ PROTOTYPE_DIR =	.
 #     use g++ to apply stricter rules.  Libraries made with g++ may not
 #        link to programs compiled with gcc (depends on the glibc version).
 #     use -Wunused to identify unused varables
-#     use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING and
+#     use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING, L_ERROR and
 #        ERROR_* logging, and to remove all DEBUG information dependent
 #        on whether or not NO_CONSOLE_IO has been defined.
 #     use -D_CYGWIN_ENVIRON (and without -fPIC) for cygwin
@@ -140,7 +140,7 @@ LIBRARIAN_SHARED =	gcc -shared
 #   Links are created among the files <libname>.X.Y,
 #   <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 56
+MINOR_REV = 58
 
 #########################################################
 
@@ -169,6 +169,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
+		fpix1.c fpix2.c \
 		gifio.c gifiostub.c gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
 		grayquant.c grayquantlow.c \
@@ -178,8 +179,9 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		numabasic.c numafunc1.c numafunc2.c \
 		pageseg.c paintcmap.c \
 		parseprotos.c partition.c pheap.c \
-		pix1.c pix2.c pix3.c pixabasic.c \
-		pixacc.c pixafunc.c pixarith.c \
+		pix1.c pix2.c pix3.c pix4.c \
+		pixabasic.c pixacc.c \
+		pixafunc.c pixarith.c \
 		pixconv.c pixtiling.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
 		pqueue.c projective.c psio.c psiostub.c \
@@ -215,9 +217,9 @@ LEPTLIB_H =	allheaders.h alltypes.h \
 nodebug: dirs $(LEPTLIB:%=$(LIB_NODEBUG)/%)
 
 all:
-	make -f Makefile TARGET=$(TARGET) nodebug
-	make -f Makefile TARGET=$(TARGET) DEBUG=true debug
-	make -f Makefile TARGET=$(TARGET) SHARED=true shared
+	make -f makefile TARGET=$(TARGET) nodebug
+	make -f makefile TARGET=$(TARGET) DEBUG=true debug
+	make -f makefile TARGET=$(TARGET) SHARED=true shared
 
 DEBUG_LIBS = $(LEPTLIB:%=$(LIB_DEBUG)/%)
 SHARED_LIBS = $(LEPTLIB_SHARED:%=$(LIB_SHARED)/%)

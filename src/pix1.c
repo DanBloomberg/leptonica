@@ -16,22 +16,23 @@
 /*
  *  pix1.c
  *
- *    The pixN.c {N = 1,2,3} files are sorted by the type of operation.
+ *    The pixN.c {N = 1,2,3,4} files are sorted by the type of operation.
  *    The primary functions in these files are:
  *
  *        pix1.c: constructors, destructors and field accessors
  *        pix2.c: pixel poking of image, pad and border pixels
- *        pix3.c: logical and mask ops; counting; histograms
+ *        pix3.c: masking and logical ops, counting, mirrored tiling
+ *        pix4.c: histograms, fg/bg estimation, rectangle extraction
  *
  *
  *    This file has the basic constructors, destructors and field accessors
  *
- *      Pix memory management
+ *    Pix memory management
  *          static void  *pix_malloc()
  *          static void   pix_free()
  *          void          setPixMemoryManager()
  *
- *      Pix creation
+ *    Pix creation
  *          PIX          *pixCreate()
  *          PIX          *pixCreateNoInit()
  *          PIX          *pixCreateTemplate()
@@ -39,17 +40,17 @@
  *          PIX          *pixCreateHeader()
  *          PIX          *pixClone()
  *
- *      Pix destruction
+ *    Pix destruction
  *          void          pixDestroy()
  *          void          pixFree()
  *
- *      Pix copy
+ *    Pix copy
  *          PIX          *pixCopy()
  *          l_int32       pixResizeImageData()
  *          l_int32       pixCopyColormap()
  *          l_int32       pixSizesEqual()
  *
- *      Pix accessors
+ *    Pix accessors
  *          l_int32       pixGetWidth()
  *          l_int32       pixSetWidth()
  *          l_int32       pixGetHeight()
@@ -80,7 +81,7 @@
  *          l_uint32     *pixGetData()
  *          l_int32       pixSetData()
  *
- *      Pix debug
+ *    Pix debug
  *          l_int32       pixPrintStreamInfo()
  */
 

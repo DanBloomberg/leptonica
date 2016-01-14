@@ -22,6 +22,7 @@
  *           PIX             *pixBlendGray()
  *           PIX             *pixBlendColor()
  *           PIX             *pixBlendColorByChannel()
+ *           PIX             *pixBlendGrayAdapt()
  *           static l_int32   blendComponents()
  *           PIX             *pixFadeWithGray()
  *           PIX             *pixBlendHardLight()
@@ -282,19 +283,24 @@ PIX       *pixc, *pixt1, *pixt2;
         pixDestroy(&pixt2);
     }
 
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
-    d = pixGetDepth(pixd);  /* must be either 8 or 32 bpp */
+    pixGetDimensions(pixd, &w, &h, &d);  /* d must be either 8 or 32 bpp */
     pixc = pixClone(pixs2);
     wc = pixGetWidth(pixc);
     hc = pixGetHeight(pixc);
     datac = pixGetData(pixc);
     wplc = pixGetWpl(pixc);
 
-        /* check limits for src1, in case clipping was not done */
+        /* Check limits for src1, in case clipping was not done. */
     switch (type)
     {
     case L_BLEND_WITH_INVERSE:
+            /*
+             * The core logic for this blending is:
+             *      p -->  (1 - f) * p + f * (1 - p)
+             * where p is a normalized value: p = pixval / 255.
+             * Thus,
+             *      p -->  p + f * (1 - 2 * p)
+             */
         for (i = 0; i < hc; i++) {
             if (i + y < 0  || i + y >= h) continue; 
             linec = datac + i * wplc;
@@ -306,21 +312,15 @@ PIX       *pixc, *pixt1, *pixt2;
                     {
                     case 8:
                         pixGetPixel(pixd, x + j, y + i, &pixval);
-                        val = (l_uint8)((1. - fract) * pixval +
-                                             fract * (255 - pixval));
+                        val = (l_int32)(pixval + fract * (255 - 2 * pixval));
                         pixSetPixel(pixd, x + j, y + i, val);
                         break;
                     case 32:
                         pixGetPixel(pixd, x + j, y + i, &pixval);
-                        val = GET_DATA_BYTE(&pixval, COLOR_RED);
-                        rval = (l_uint8)((1. - fract) * val
-                                          + fract * (255 - val));
-                        val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
-                        gval = (l_uint8)((1. - fract) * val
-                                          + fract * (255 - val));
-                        val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
-                        bval = (l_uint8)((1. - fract) * val
-                                          + fract * (255 - val));
+                        extractRGBValues(pixval, &rval, &gval, &bval);
+                        rval = (l_int32)(rval + fract * (255 - 2 * rval));
+                        gval = (l_int32)(gval + fract * (255 - 2 * gval));
+                        bval = (l_int32)(bval + fract * (255 - 2 * bval));
                         composeRGBPixel(rval, gval, bval, &pixval);
                         pixSetPixel(pixd, x + j, y + i, pixval);
                         break;
@@ -343,17 +343,15 @@ PIX       *pixc, *pixt1, *pixt2;
                     {
                     case 8:
                         pixGetPixel(pixd, x + j, y + i, &pixval);
-                        val = (l_uint8)(pixval + fract * (255 - pixval));
+                        val = (l_int32)(pixval + fract * (255 - pixval));
                         pixSetPixel(pixd, x + j, y + i, val);
                         break;
                     case 32:
                         pixGetPixel(pixd, x + j, y + i, &pixval);
-                        val = GET_DATA_BYTE(&pixval, COLOR_RED);
-                        rval = (l_uint8)(val + fract * (255 - val));
-                        val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
-                        gval = (l_uint8)(val + fract * (255 - val));
-                        val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
-                        bval = (l_uint8)(val + fract * (255 - val));
+                        extractRGBValues(pixval, &rval, &gval, &bval);
+                        rval = (l_int32)(rval + fract * (255 - rval));
+                        gval = (l_int32)(gval + fract * (255 - gval));
+                        bval = (l_int32)(bval + fract * (255 - bval));
                         composeRGBPixel(rval, gval, bval, &pixval);
                         pixSetPixel(pixd, x + j, y + i, pixval);
                         break;
@@ -376,17 +374,15 @@ PIX       *pixc, *pixt1, *pixt2;
                     {
                     case 8:
                         pixGetPixel(pixd, x + j, y + i, &pixval);
-                        val = (l_uint8)((1. - fract) * pixval);
+                        val = (l_int32)((1. - fract) * pixval);
                         pixSetPixel(pixd, x + j, y + i, val);
                         break;
                     case 32:
                         pixGetPixel(pixd, x + j, y + i, &pixval);
-                        val = GET_DATA_BYTE(&pixval, COLOR_RED);
-                        rval = (l_uint8)((1. - fract) * val);
-                        val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
-                        gval = (l_uint8)((1. - fract) * val);
-                        val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
-                        bval = (l_uint8)((1. - fract) * val);
+                        extractRGBValues(pixval, &rval, &gval, &bval);
+                        rval = (l_int32)((1. - fract) * rval);
+                        gval = (l_int32)((1. - fract) * gval);
+                        bval = (l_int32)((1. - fract) * bval);
                         composeRGBPixel(rval, gval, bval, &pixval);
                         pixSetPixel(pixd, x + j, y + i, pixval);
                         break;
@@ -455,9 +451,8 @@ pixBlendGray(PIX       *pixd,
              l_int32    transparent,
              l_uint32   transpix)
 {
-l_uint8    val8, cval, dval, rval, gval, bval;
 l_int32    i, j, d, wc, hc, w, h, wplc, wpld, delta;
-l_int32    ival, irval, igval, ibval;
+l_int32    ival, irval, igval, ibval, cval, dval;
 l_uint32   val32;
 l_uint32  *linec, *lined, *datac, *datad;
 PIX       *pixc, *pixt1, *pixt2;
@@ -503,14 +498,11 @@ PIX       *pixc, *pixt1, *pixt2;
         pixDestroy(&pixt2);
     }
 
-    d = pixGetDepth(pixd);  /* 8 or 32 bpp */
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
+    pixGetDimensions(pixd, &w, &h, &d);  /* 8 or 32 bpp */
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
     pixc = pixClone(pixs2);
-    wc = pixGetWidth(pixc);
-    hc = pixGetHeight(pixc);
+    pixGetDimensions(pixc, &wc, &hc, NULL);
     datac = pixGetData(pixc);
     wplc = pixGetWpl(pixc);
 
@@ -529,8 +521,8 @@ PIX       *pixc, *pixt1, *pixt2;
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
                         dval = GET_DATA_BYTE(lined, j + x);
-                        val8 = (l_uint8)((1. - fract) * dval + fract * cval);
-                        SET_DATA_BYTE(lined, j + x, val8);
+                        ival = (l_int32)((1. - fract) * dval + fract * cval);
+                        SET_DATA_BYTE(lined, j + x, ival);
                     }
                 }
                 break;
@@ -541,13 +533,11 @@ PIX       *pixc, *pixt1, *pixt2;
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
                         val32 = *(lined + j + x);
-                        rval = GET_DATA_BYTE(&val32, COLOR_RED);
-                        rval = (l_uint8)((1. - fract) * rval + fract * cval);
-                        gval = GET_DATA_BYTE(&val32, COLOR_GREEN);
-                        gval = (l_uint8)((1. - fract) * gval + fract * cval);
-                        bval = GET_DATA_BYTE(&val32, COLOR_BLUE);
-                        bval = (l_uint8)((1. - fract) * bval + fract * cval);
-                        composeRGBPixel(rval, gval, bval, &val32);
+                        extractRGBValues(val32, &irval, &igval, &ibval);
+                        irval = (l_int32)((1. - fract) * irval + fract * cval);
+                        igval = (l_int32)((1. - fract) * igval + fract * cval);
+                        ibval = (l_int32)((1. - fract) * ibval + fract * cval);
+                        composeRGBPixel(irval, igval, ibval, &val32);
                         *(lined + j + x) = val32;
                     }
                 }
@@ -571,9 +561,8 @@ PIX       *pixc, *pixt1, *pixt2;
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
                         ival = GET_DATA_BYTE(lined, j + x);
-                        delta = (cval * ival + (255 - cval) * (255 - ival))
-                                / 256 - ival;
-                        ival = ival + (l_int32)(fract * delta);
+                        delta = (128 - ival) * (255 - cval) / 256;
+                        ival += (l_int32)(fract * delta + 0.5);
                         SET_DATA_BYTE(lined, j + x, ival);
                     }
                 }
@@ -585,18 +574,13 @@ PIX       *pixc, *pixt1, *pixt2;
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
                         val32 = *(lined + j + x);
-                        irval = GET_DATA_BYTE(&val32, COLOR_RED);
-                        delta = (cval * irval + (255 - cval) * (255 - irval))
-                                / 256 - irval;
-                        irval = irval + (l_int32)(fract * delta);
-                        igval = GET_DATA_BYTE(&val32, COLOR_GREEN);
-                        delta = (cval * igval + (255 - cval) * (255 - igval))
-                                / 256 - igval;
-                        igval = igval + (l_int32)(fract * delta);
-                        ibval = GET_DATA_BYTE(&val32, COLOR_BLUE);
-                        delta = (cval * ibval + (255 - cval) * (255 - ibval))
-                                / 256 - ibval;
-                        ibval = ibval + (l_int32)(fract * delta);
+                        extractRGBValues(val32, &irval, &igval, &ibval);
+                        delta = (128 - irval) * (255 - cval) / 256;
+                        irval += (l_int32)(fract * delta + 0.5);
+                        delta = (128 - igval) * (255 - cval) / 256;
+                        igval += (l_int32)(fract * delta + 0.5);
+                        delta = (128 - ibval) * (255 - cval) / 256;
+                        ibval += (l_int32)(fract * delta + 0.5);
                         composeRGBPixel(irval, igval, ibval, &val32);
                         *(lined + j + x) = val32;
                     }
@@ -714,9 +698,9 @@ PIX       *pixc, *pixt1, *pixt2;
                 val32 = *(lined + j + x);
                 extractRGBValues(cval32, &rcval, &gcval, &bcval);
                 extractRGBValues(val32, &rval, &gval, &bval);
-                rval = (l_uint8)((1. - fract) * rval + fract * rcval);
-                gval = (l_uint8)((1. - fract) * gval + fract * gcval);
-                bval = (l_uint8)((1. - fract) * bval + fract * bcval);
+                rval = (l_int32)((1. - fract) * rval + fract * rcval);
+                gval = (l_int32)((1. - fract) * gval + fract * gcval);
+                bval = (l_int32)((1. - fract) * bval + fract * bcval);
                 composeRGBPixel(rval, gval, bval, &val32);
                 *(lined + j + x) = val32;
             }
@@ -844,6 +828,210 @@ blendComponents(l_int32    a,
     if (fract > 1.)
         return ((a > b) ? a : b);
     return (l_int32)((1. - fract) * a + fract * b);
+}
+
+
+/*!
+ *  pixBlendGrayAdapt()
+ *
+ *      Input:  pixd (<optional>; either NULL or equal to pixs1 for in-place)
+ *              pixs1 (blendee; depth > 1)
+ *              pixs2 (blender, 8 bpp; typ. smaller in size than pixs1)
+ *              x,y  (origin (UL corner) of pixs2 relative to
+ *                    the origin of pixs1; can be < 0)
+ *              fract (blending fraction)
+ *              shift (>= 0 but <= 128: shift of zero blend value from
+ *                     median source; use -1 for default value; )
+ *      Return: pixd if OK; pixs1 on error
+ *
+ *  Notes:
+ *      (1) pixs2 must be 8 bpp, and have no colormap.
+ *      (2) Clipping of pixs2 to pixs1 is done in the inner pixel loop.
+ *      (3) If pixs1 has a colormap, it is removed.
+ *      (4) If pixs1 has depth < 8, it is unpacked to generate a 8 bpp pix.
+ *      (5) For inplace operation, call it this way:
+ *            pixBlendGray(pixs1, pixs1, pixs2, ...)
+ *          For generating a new pixd:
+ *            pixd = pixBlendGray(NULL, pixs1, pixs2, ...)
+ *          Only call in-place if pixs1 does not have a colormap;
+ *          otherwise it is an error.
+ *      (6) This does a blend with inverse.  Whereas in pixGlendGray(), the
+ *          zero blend point is where the blendee pixel is 128, here
+ *          the zero blend point is found adaptively, with respect to the
+ *          median of the blendee region.  If the median is < 128,
+ *          the zero blend point is found from
+ *              median + shift.
+ *          Otherwise, if the median >= 128, the zero blend point is
+ *              median - shift.
+ *          The purpose of shifting the zero blend point away from the
+ *          median is to prevent a situation in pixBlendGray() where
+ *          the median is 128 and the blender is not visible.
+ *          The default value of shift is 80.
+ *      (7) After processing pixs1, it is either 8 bpp or 32 bpp:
+ *          - if 8 bpp, the fraction of pixs2 is mixed with pixs1.
+ *          - if 32 bpp, each component of pixs1 is mixed with
+ *            the same fraction of pixs2.
+ *      (8) The darker the blender, the more it mixes with the blendee.
+ *          A blender value of 0 has maximum mixing; a value of 255
+ *          has no mixing and hence is transparent.
+ */
+PIX *
+pixBlendGrayAdapt(PIX       *pixd,
+                  PIX       *pixs1,
+                  PIX       *pixs2,
+                  l_int32    x,
+                  l_int32    y,
+                  l_float32  fract,
+                  l_int32    shift)
+{
+l_int32    i, j, d, wc, hc, w, h, wplc, wpld, delta, overlap;
+l_int32    rval, gval, bval, cval, dval, mval, median, pivot;
+l_uint32   val32;
+l_uint32  *linec, *lined, *datac, *datad;
+l_float32  fmedian, factor;
+BOX       *box, *boxt;
+PIX       *pixc, *pixt1, *pixt2;
+
+    PROCNAME("pixBlendGrayAdapt");
+
+    if (!pixs1)
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
+    if (!pixs2)
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
+    if (pixGetDepth(pixs1) == 1)
+        return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixd);
+    if (pixGetDepth(pixs2) != 8)
+        return (PIX *)ERROR_PTR("pixs2 not 8 bpp", procName, pixd);
+    if (pixGetColormap(pixs2))
+        return (PIX *)ERROR_PTR("pixs2 has a colormap", procName, pixd);
+    if (pixd == pixs1 && pixGetColormap(pixs1))
+        return (PIX *)ERROR_PTR("can't do in-place with cmap", procName, pixd);
+    if (pixd && (pixd != pixs1))
+        return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixd);
+    if (fract < 0.0 || fract > 1.0) {
+        L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
+        fract = 0.5;
+    }
+    if (shift == -1) shift = 80;   /* default value */
+    if (shift < 0 || shift > 127) {
+        L_WARNING("invalid shift; setting to 80", procName);
+        shift = 80;
+    }
+
+        /* Test for overlap */
+    pixGetDimensions(pixs1, &w, &h, NULL);
+    pixGetDimensions(pixs2, &wc, &hc, NULL);
+    box = boxCreate(x, y, wc, hc);
+    boxt = boxCreate(0, 0, w, h);
+    boxIntersects(box, boxt, &overlap);
+    boxDestroy(&boxt);
+    if (!overlap) {
+        boxDestroy(&box);
+        return (PIX *)ERROR_PTR("no image overlap", procName, pixd);
+    }
+
+        /* If pixd != NULL, we know that it is equal to pixs1 and
+         * that pixs1 does not have a colormap, so that an in-place operation
+         * can be done.  Otherwise, remove colormap from pixs1 if
+         * it exists and unpack to at least 8 bpp if necessary,
+         * to do the blending on a new pix. */
+    if (!pixd) {
+        pixt1 = pixRemoveColormap(pixs1, REMOVE_CMAP_BASED_ON_SRC);
+        if (pixGetDepth(pixt1) < 8)
+            pixt2 = pixConvertTo8(pixt1, FALSE);
+        else
+            pixt2 = pixClone(pixt1);
+        pixd = pixCopy(NULL, pixt2);
+        pixDestroy(&pixt1);
+        pixDestroy(&pixt2);
+    }
+
+        /* Get the median value in the region of blending */
+    pixt1 = pixClipRectangle(pixd, box, NULL);
+    pixt2 = pixConvertTo8(pixt1, 0);
+    pixGetRankValueMasked(pixt2, NULL, 0, 0, 1, 0.5, &fmedian, NULL);
+    median = (l_int32)(fmedian + 0.5);
+    if (median < 128)
+        pivot = median + shift;
+    else
+        pivot = median - shift;
+/*    L_INFO_INT2("median = %d, pivot = %d", procName, median, pivot); */
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    boxDestroy(&box);
+
+        /* Process over src2; clip to src1. */
+    d = pixGetDepth(pixd);
+    wpld = pixGetWpl(pixd);
+    datad = pixGetData(pixd);
+    pixc = pixClone(pixs2);
+    datac = pixGetData(pixc);
+    wplc = pixGetWpl(pixc);
+    for (i = 0; i < hc; i++) {
+        if (i + y < 0  || i + y >= h) continue; 
+        linec = datac + i * wplc;
+        lined = datad + (i + y) * wpld;
+        switch (d)
+        {
+        case 8:
+                /*
+                 * For 8 bpp, the dest pix is shifted by an amount
+                 * proportional to the distance from the pivot value,
+                 * and to the darkness of src2.  In no situation will it
+                 * pass the pivot value in intensity.
+                 * The basic logic is:
+                 *     d  -->  d + f * (np - d) * (1 - c)
+                 * where np, d and c are normalized pixel values for
+                 * the pivot, src1 and src2, respectively, with normalization
+                 * to 255.
+                 */
+            for (j = 0; j < wc; j++) {
+                if (j + x < 0  || j + x >= w) continue; 
+                dval = GET_DATA_BYTE(lined, j + x);
+                cval = GET_DATA_BYTE(linec, j);
+                delta = (pivot - dval) * (255 - cval) / 256;
+                dval += (l_int32)(fract * delta + 0.5);
+                SET_DATA_BYTE(lined, j + x, dval);
+            }
+            break;
+        case 32:
+                /*
+                 * For 32 bpp, the dest pix is shifted by an amount
+                 * proportional to the max component distance from the
+                 * pivot value, and to the darkness of src2.  Each component
+                 * is shifted by the same fraction, either up or down,
+                 * depending on the shift direction (which is toward the
+                 * pivot).   The basic logic for the red component is:
+                 *     r  -->  r + f * (np - m) * (1 - c) * (r / m)
+                 * where np, r, m and c are normalized pixel values for
+                 * the pivot, the r component of src1, the max component
+                 * of src1, and src2, respectively, again with normalization
+                 * to 255.  Likewise for the green and blue components.
+                 */
+            for (j = 0; j < wc; j++) {
+                if (j + x < 0  || j + x >= w) continue; 
+                cval = GET_DATA_BYTE(linec, j);
+                val32 = *(lined + j + x);
+                extractRGBValues(val32, &rval, &gval, &bval);
+                mval = L_MAX(rval, gval);
+                mval = L_MAX(mval, bval);
+                mval = L_MAX(mval, 1);
+                delta = (pivot - mval) * (255 - cval) / 256;
+                factor = fract * delta / mval;
+                rval += (l_int32)(factor * rval + 0.5);
+                gval += (l_int32)(factor * gval + 0.5);
+                bval += (l_int32)(factor * bval + 0.5);
+                composeRGBPixel(rval, gval, bval, &val32);
+                *(lined + j + x) = val32;
+            }
+            break;
+        default:
+            break;   /* shouldn't happen */
+        }
+    }
+
+    pixDestroy(&pixc);
+    return pixd;
 }
 
 

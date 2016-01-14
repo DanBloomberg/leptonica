@@ -77,9 +77,10 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	enhance.$(OBJEXT) fhmtauto.$(OBJEXT) fhmtgen.1.$(OBJEXT) \
 	fhmtgenlow.1.$(OBJEXT) flipdetect.$(OBJEXT) \
 	fliphmtgen.$(OBJEXT) fmorphauto.$(OBJEXT) \
-	fmorphgen.1.$(OBJEXT) fmorphgenlow.1.$(OBJEXT) gifio.$(OBJEXT) \
-	gifiostub.$(OBJEXT) gplot.$(OBJEXT) graphics.$(OBJEXT) \
-	graymorph.$(OBJEXT) graymorphlow.$(OBJEXT) grayquant.$(OBJEXT) \
+	fmorphgen.1.$(OBJEXT) fmorphgenlow.1.$(OBJEXT) fpix1.$(OBJEXT) \
+	fpix2.$(OBJEXT) gifio.$(OBJEXT) gifiostub.$(OBJEXT) \
+	gplot.$(OBJEXT) graphics.$(OBJEXT) graymorph.$(OBJEXT) \
+	graymorphlow.$(OBJEXT) grayquant.$(OBJEXT) \
 	grayquantlow.$(OBJEXT) jbclass.$(OBJEXT) jpegio.$(OBJEXT) \
 	jpegiostub.$(OBJEXT) kernel.$(OBJEXT) list.$(OBJEXT) \
 	maze.$(OBJEXT) morphapp.$(OBJEXT) morph.$(OBJEXT) \
@@ -87,22 +88,22 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	numafunc1.$(OBJEXT) numafunc2.$(OBJEXT) pageseg.$(OBJEXT) \
 	paintcmap.$(OBJEXT) parseprotos.$(OBJEXT) partition.$(OBJEXT) \
 	pheap.$(OBJEXT) pix1.$(OBJEXT) pix2.$(OBJEXT) pix3.$(OBJEXT) \
-	pixabasic.$(OBJEXT) pixacc.$(OBJEXT) pixafunc.$(OBJEXT) \
-	pixarith.$(OBJEXT) pixconv.$(OBJEXT) pixtiling.$(OBJEXT) \
-	pngio.$(OBJEXT) pngiostub.$(OBJEXT) pnmio.$(OBJEXT) \
-	pnmiostub.$(OBJEXT) pqueue.$(OBJEXT) projective.$(OBJEXT) \
-	psio.$(OBJEXT) psiostub.$(OBJEXT) pts.$(OBJEXT) rank.$(OBJEXT) \
-	readbarcode.$(OBJEXT) readfile.$(OBJEXT) rop.$(OBJEXT) \
-	ropiplow.$(OBJEXT) roplow.$(OBJEXT) rotateam.$(OBJEXT) \
-	rotateamlow.$(OBJEXT) rotate.$(OBJEXT) rotateorth.$(OBJEXT) \
-	rotateorthlow.$(OBJEXT) rotateshear.$(OBJEXT) \
-	runlength.$(OBJEXT) sarray.$(OBJEXT) scale.$(OBJEXT) \
-	scalelow.$(OBJEXT) seedfill.$(OBJEXT) seedfilllow.$(OBJEXT) \
-	sel1.$(OBJEXT) sel2.$(OBJEXT) selgen.$(OBJEXT) shear.$(OBJEXT) \
-	skew.$(OBJEXT) stack.$(OBJEXT) textops.$(OBJEXT) \
-	tiffio.$(OBJEXT) tiffiostub.$(OBJEXT) utils.$(OBJEXT) \
-	viewfiles.$(OBJEXT) writefile.$(OBJEXT) zlibmem.$(OBJEXT) \
-	zlibmemstub.$(OBJEXT)
+	pix4.$(OBJEXT) pixabasic.$(OBJEXT) pixacc.$(OBJEXT) \
+	pixafunc.$(OBJEXT) pixarith.$(OBJEXT) pixconv.$(OBJEXT) \
+	pixtiling.$(OBJEXT) pngio.$(OBJEXT) pngiostub.$(OBJEXT) \
+	pnmio.$(OBJEXT) pnmiostub.$(OBJEXT) pqueue.$(OBJEXT) \
+	projective.$(OBJEXT) psio.$(OBJEXT) psiostub.$(OBJEXT) \
+	pts.$(OBJEXT) rank.$(OBJEXT) readbarcode.$(OBJEXT) \
+	readfile.$(OBJEXT) rop.$(OBJEXT) ropiplow.$(OBJEXT) \
+	roplow.$(OBJEXT) rotateam.$(OBJEXT) rotateamlow.$(OBJEXT) \
+	rotate.$(OBJEXT) rotateorth.$(OBJEXT) rotateorthlow.$(OBJEXT) \
+	rotateshear.$(OBJEXT) runlength.$(OBJEXT) sarray.$(OBJEXT) \
+	scale.$(OBJEXT) scalelow.$(OBJEXT) seedfill.$(OBJEXT) \
+	seedfilllow.$(OBJEXT) sel1.$(OBJEXT) sel2.$(OBJEXT) \
+	selgen.$(OBJEXT) shear.$(OBJEXT) skew.$(OBJEXT) \
+	stack.$(OBJEXT) textops.$(OBJEXT) tiffio.$(OBJEXT) \
+	tiffiostub.$(OBJEXT) utils.$(OBJEXT) viewfiles.$(OBJEXT) \
+	writefile.$(OBJEXT) zlibmem.$(OBJEXT) zlibmemstub.$(OBJEXT)
 liblept_a_OBJECTS = $(am_liblept_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -136,6 +137,7 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = -O2
+CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
@@ -149,6 +151,7 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+GREP = @GREP@
 HAVE_LIBTIFF_FALSE = @HAVE_LIBTIFF_FALSE@
 HAVE_LIBTIFF_TRUE = @HAVE_LIBTIFF_TRUE@
 INSTALL_DATA = @INSTALL_DATA@
@@ -184,8 +187,6 @@ USING_CL_TRUE = @USING_CL_TRUE@
 VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
-ac_ct_RANLIB = @ac_ct_RANLIB@
-ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -202,23 +203,30 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
+datarootdir = @datarootdir@
+docdir = @docdir@
+dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
+pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
+psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
@@ -254,7 +262,8 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  fhmtgen.1.c fhmtgenlow.1.c \
  flipdetect.c fliphmtgen.c \
  fmorphauto.c fmorphgen.1.c \
- fmorphgenlow.1.c gifio.c gifiostub.c \
+ fmorphgenlow.1.c fpix1.c fpix2.c \
+ gifio.c gifiostub.c \
  gplot.c graphics.c graymorph.c \
  graymorphlow.c grayquant.c \
  grayquantlow.c jbclass.c \
@@ -266,7 +275,7 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  numafunc1.c numafunc2.c pageseg.c \
  paintcmap.c parseprotos.c \
  partition.c pheap.c pix1.c \
- pix2.c pix3.c \
+ pix2.c pix3.c pix4.c \
  pixabasic.c pixacc.c \
  pixafunc.c pixarith.c \
  pixconv.c pixtiling.c \
@@ -417,6 +426,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmorphauto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmorphgen.1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmorphgenlow.1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fpix1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fpix2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gifio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gifiostub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gplot.Po@am__quote@
@@ -446,6 +457,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix3.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix4.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixabasic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixacc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixafunc.Po@am__quote@

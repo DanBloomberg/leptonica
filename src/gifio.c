@@ -187,6 +187,9 @@ SavedImage       si;
  *          If the pix is 16 bpp grayscale, it converts to 8 bpp first.
  *      (2) We can't write to memory using open_memstream() because
  *          this writes through a file descriptor.
+ *      (3) Writing to 1 bpp generates a very large file and causes
+ *          pixReadStreamGif() to be exceedingly slow.  If you know
+ *          how to do this properly, please tell me!
  */
 l_int32
 pixWriteStreamGif(FILE  *fp,
@@ -214,7 +217,7 @@ GifByteType     *gif_line;
 
     d = pixGetDepth(pix);
     if (d == 32) {
-        pixd = pixConvertRGBToColormap(pix, 4, NULL);
+        pixd = pixConvertRGBToColormap(pix, 1);
     }
     else if (d > 1) {
         pixd = pixConvertTo8(pix, TRUE);
@@ -349,15 +352,14 @@ GifByteType     *gif_line;
 /*---------------------------------------------------------------------*
  *                           Read from memory                          *
  *---------------------------------------------------------------------*/
-#if HAVE_FMEMOPEN || \
- (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
+#if HAVE_FMEMOPEN
 
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
 
 /*!
  *  pixReadMemGif()
  *
- *      Input:  data (const; png-encoded)
+ *      Input:  cdata (const; png-encoded)
  *              size (of data)
  *      Return: pix, or null on error
  *
@@ -388,15 +390,15 @@ PIX      *pix;
 #else
 
 PIX *
-pixReadMemGif(const l_uint8  *data,
-              size_t          size)
+pixReadMemGif(const l_uint8  *cdata,
+              size_t           size)
 {
     return (PIX *)ERROR_PTR(
         "gif read from memory not implemented on this platform",
         "pixReadMemGif", NULL);
 }
 
-#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
+#endif  /* HAVE_FMEMOPEN */
 
 /* --------------------------------------------*/
 #endif  /* HAVE_LIBGIF */

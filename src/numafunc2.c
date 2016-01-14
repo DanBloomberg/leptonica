@@ -839,13 +839,14 @@ l_float32  rankcount, total, sum, fract, val;
  *  numaSplitDistribution()
  *
  *      Input:  na (histogram)
- *              estfract (estimate fraction of lower distribution population)
+ *              scorefract (fraction of the max score, used to determine
+ *                          the range over which the histogram min is searched)
  *              &splitindex (<optional return> index for splitting)
  *              &ave1 (<optional return> average of lower distribution)
  *              &ave2 (<optional return> average of upper distribution)
  *              &num1 (<optional return> population of lower distribution)
  *              &num2 (<optional return> population of upper distribution)
- *              debugflag (1 to generate plot of score function)
+ *              &nascore (<optional return> for debugging; otherwise use null)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -853,38 +854,40 @@ l_float32  rankcount, total, sum, fract, val;
  *          values that represent two sets, such as a histogram of
  *          pixel values, and the goal is to determine the means of
  *          the two sets and the best splitting point.
- *          If the estimate of the population fraction in the first
- *          (lower-valued) set is not known, use estfract = 0.5.
- *      (2) Each potential split point divides the distribution into
- *          two parts.  The actual split is chosen to maximize a score
- *          function that is the product of two terms:
+ *      (2) The Otsu method finds a split point that divides the distribution
+ *          into two parts by maximizing a score function that is the
+ *          product of two terms:
  *            (a) the square of the difference of centroids, (ave1 - ave2)^2
- *            (b) num1 * (2 * estnum1 - num1)
- *          where estnum1 is the estimated number in the lower distribution.
- *          Note that (b) is maximized when num1 = estnum1, and that
- *          when the input estfract = 0.5, (b) becomes num1 * (1 - num1),
- *          the product of the two populations.
+ *            (b) fract1 * (1 - fract1)
+ *          where fract1 is the fraction in the lower distribution.
+ *          This biases the split point into the larger "bump" (i.e., toward
+ *          the point where the (b) term reaches its maximum of 0.25 at
+ *          fract1 = 0.5.  To avoid this, we define a range of values near
+ *          the maximum of the score function, and choose the value within
+ *          this range such that the histogram itself has a minimum value.
+ *          The range is determined by scorefract: we include all abscissa
+ *          values to the left and right of the value that maximizes the
+ *          score, such that the score stays above (1 - scorefract) * maxscore.
  *      (3) We normalize the score so that if the two distributions
  *          were of equal size and at opposite ends of the numa, the
  *          score would be 1.0.
- *      (4) This is based on a method by Otsu, modified for prior
- *          expectation of relative population size by Krish Chaudhury.
  */
 l_int32
 numaSplitDistribution(NUMA       *na,
-                      l_float32   estfract,
+                      l_float32   scorefract,
                       l_int32    *psplitindex,
                       l_float32  *pave1,
                       l_float32  *pave2,
                       l_float32  *pnum1,
                       l_float32  *pnum2,
-                      l_int32     debugflag)
+                      NUMA      **pnascore)
 {
-l_int32    i, n, maxindex;
-l_float32  ave1, ave2, ave1prev, ave2prev, maxave1, maxave2;
-l_float32  est1, num1, num2, num1prev, num2prev, maxnum1, maxnum2;
-l_float32  val, sum, norm, score, maxscore;
-NUMA      *nascore;
+l_int32    i, n, bestsplit, minrange, maxrange, maxindex;
+l_float32  ave1, ave2, ave1prev, ave2prev;
+l_float32  num1, num2, num1prev, num2prev;
+l_float32  val, minval, sum, fract1;
+l_float32  norm, score, minscore, maxscore;
+NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
 
     PROCNAME("numaSplitDistribution");
 
@@ -892,35 +895,49 @@ NUMA      *nascore;
         return ERROR_INT("na not defined", procName, 1);
 
     n = numaGetCount(na);
+    if (n <= 1)
+        return ERROR_INT("n = 1 in histogram", procName, 1);
     numaGetSum(na, &sum);
-    est1 = estfract * sum;
-    norm = 4.0 / (sum * sum * (n - 1));
+    if (sum <= 0.0)
+        return ERROR_INT("sum <= 0.0", procName, 1);
+    norm = 4.0 / ((n - 1) * (n - 1));
     ave1prev = 0.0;
     numaGetHistogramStats(na, 0.0, 1.0, &ave2prev, NULL, NULL, NULL);
     num1prev = 0.0;
     num2prev = sum;
-
-    if (debugflag)
-        nascore = numaCreate(n);
+    maxindex = n / 2;  /* initialize with something */
 
         /* Split the histogram with [0 ... i] in the lower part
-         * and [i+1 ... n-1] in upper part. */
+         * and [i+1 ... n-1] in upper part.  First, compute an otsu
+         * score for each possible splitting.  */
+    nascore = numaCreate(n);
+    if (pave2) naave1 = numaCreate(n);
+    if (pave2) naave2 = numaCreate(n);
+    if (pnum1) nanum1 = numaCreate(n);
+    if (pnum2) nanum2 = numaCreate(n);
+    maxscore = 0.0;
     for (i = 0; i < n - 1; i++) {
         numaGetFValue(na, i, &val);
         num1 = num1prev + val;
+        if (num1 == 0)
+            ave1 = ave1prev;
+        else
+            ave1 = (num1prev * ave1prev + i * val) / num1;
         num2 = num2prev - val;
-        ave1 = (num1prev * ave1prev + i * val) / num1;
-        ave2 = (num2prev * ave2prev - i * val) / num2;
-        score = norm * (num1 * (2.0 * est1 - num1)) * (ave2 - ave1);
-	if (debugflag)
-            numaAddNumber(nascore, score);
+        if (num2 == 0)
+            ave2 = ave2prev;
+        else
+            ave2 = (num2prev * ave2prev - i * val) / num2;
+        fract1 = num1 / sum;
+        score = norm * (fract1 * (1 - fract1)) * (ave2 - ave1) * (ave2 - ave1);
+        numaAddNumber(nascore, score);
+        if (pave1) numaAddNumber(naave1, ave1);
+        if (pave2) numaAddNumber(naave2, ave2);
+        if (pnum1) numaAddNumber(nanum1, num1);
+        if (pnum1) numaAddNumber(nanum2, num2);
         if (score > maxscore) {
             maxscore = score;
             maxindex = i;
-            maxave1 = ave1;
-            maxave2 = ave2;
-            maxnum1 = num1;
-            maxnum2 = num2;
         }
         num1prev = num1;
         num2prev = num2;
@@ -928,18 +945,52 @@ NUMA      *nascore;
         ave2prev = ave2;
     }
 
-    if (psplitindex) *psplitindex = maxindex;
-    if (pave1) *pave1 = maxave1;
-    if (pave2) *pave2 = maxave2;
-    if (pnum1) *pnum1 = maxnum1;
-    if (pnum2) *pnum2 = maxnum2;
+        /* Next, for all contiguous scores within a specified fraction
+         * of the max, choose the split point as the value with the
+         * minimum in the histogram. */
+    minscore = (1. - scorefract) * maxscore;
+    for (i = maxindex - 1; i >= 0; i--) {
+        numaGetFValue(nascore, i, &val);
+        if (val < minscore)
+            break;
+    }
+    minrange = i + 1;
+    for (i = maxindex + 1; i < n; i++) {
+        numaGetFValue(nascore, i, &val);
+        if (val < minscore)
+            break;
+    }
+    maxrange = i - 1;
+    numaGetFValue(na, minrange, &minval);
+    bestsplit = minrange;
+    for (i = minrange + 1; i <= maxrange; i++) {
+        numaGetFValue(na, i, &val);
+        if (val < minval) {
+            minval = val;
+            bestsplit = i;
+        }
+    }
 
-    if (debugflag) {
+    if (psplitindex) *psplitindex = bestsplit;
+    if (pave1) numaGetFValue(naave1, bestsplit, pave1);
+    if (pave2) numaGetFValue(naave2, bestsplit, pave2);
+    if (pnum1) numaGetFValue(nanum1, bestsplit, pnum1);
+    if (pnum2) numaGetFValue(nanum2, bestsplit, pnum2);
+
+    if (pnascore) {  /* debug mode */
+        fprintf(stderr, "minrange = %d, maxrange = %d\n", minrange, maxrange);
+        fprintf(stderr, "minval = %10.0f\n", minval);
         gplotSimple1(nascore, GPLOT_X11, "junkoutroot",
                      "Score for split distribution");
-        numaDestroy(&nascore);
+        *pnascore = nascore;
     }
-   
+    else
+        numaDestroy(&nascore);
+
+    if (pave1) numaDestroy(&naave1);
+    if (pave2) numaDestroy(&naave2);
+    if (pnum1) numaDestroy(&nanum1);
+    if (pnum2) numaDestroy(&nanum2);
     return 0;
 } 
 
@@ -1439,6 +1490,10 @@ NUMA      *nap, *nad;
  *  numaEvalBestHaarParameters()
  *
  *      Input:  nas (numa of non-negative signal values)
+ *              relweight (relative weight of (-1 comb) / (+1 comb)
+ *                         contributions to the 'convolution'.  In effect,
+ *                         the convolution kernel is a comb consisting of
+ *                         alternating +1 and -weight.)
  *              nwidth (number of widths to consider)
  *              nshift (number of shifts to consider for each width)
  *              minwidth (smallest width to consider)
@@ -1456,18 +1511,20 @@ NUMA      *nap, *nad;
  *          gives the maximum score.  The best width is the "half-wavelength"
  *          of the signal.
  *      (2) The convolving function is a comb of alternating values
- *          +1 and -1, separated by the width and phased by the shift.
- *          This is similar to a Haar transform, except there the
- *          convolution is performed with a square wave.
+ *          +1 and -1 * relweight, separated by the width and phased by
+ *          the shift.  This is similar to a Haar transform, except
+ *          there the convolution is performed with a square wave.
  *      (3) The function is useful for finding the line spacing
  *          and strength of line signal from pixel sum projections.
  *      (4) The score is normalized to the size of nas divided by
- *          the number of half-widths.  For image applications,
- *          one should also divide by the image width in the pixel
- *          projection direction.  
+ *          the number of half-widths.  For image applications, the input is
+ *          typically an array of pixel projections, so one should
+ *          normalize by dividing the score by the image width in the
+ *          pixel projection direction.  
  */
 l_int32
 numaEvalBestHaarParameters(NUMA       *nas,
+                           l_float32   relweight,
                            l_int32     nwidth,
                            l_int32     nshift,
                            l_float32   minwidth,
@@ -1494,7 +1551,7 @@ l_float32  bestwidth, bestshift, bestscore;
         delshift = width / (l_float32)(nshift);
         for (j = 0; j < nshift; j++) {
             shift = j * delshift;
-            numaEvalHaarSum(nas, width, shift, &score);
+            numaEvalHaarSum(nas, width, shift, relweight, &score);
             if (score > bestscore) {
                 bestscore = score;
                 bestwidth = width;
@@ -1521,26 +1578,39 @@ l_float32  bestwidth, bestshift, bestscore;
  *      Input:  nas (numa of non-negative signal values)
  *              width (distance between +1 and -1 in convolution comb)
  *              shift (phase of the comb: location of first +1)
+ *              relweight (relative weight of (-1 comb) / (+1 comb)
+ *                         contributions to the 'convolution'.  In effect,
+ *                         the convolution kernel is a comb consisting of
+ *                         alternating +1 and -weight.)
  *              &score (<return> convolution with "Haar"-like comb)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This does a convolution with a comb of alternating values
- *          +1 and -1, separated by the width and phased by the shift.
- *          This is similar to a Haar transform, except there the
- *          convolution is performed with a square wave.
+ *          +1 and -relweight, separated by the width and phased by the shift.
+ *          This is similar to a Haar transform, except that for Haar,
+ *            (1) the convolution kernel is symmetric about 0, so the
+ *                relweight is 1.0, and
+ *            (2) the convolution is performed with a square wave.
  *      (2) The score is normalized to the size of nas divided by
- *          twice the "width".  For image applications, one should also
- *          divide by the image width in the pixel projection direction.  
+ *          twice the "width".  For image applications, the input is
+ *          typically an array of pixel projections, so one should
+ *          normalize by dividing the score by the image width in the
+ *          pixel projection direction.  
+ *      (3) To get a Haar-like result, use relweight = 1.0.  For detecting
+ *          signals where you expect every other sample to be close to
+ *          zero, as with barcodes or filtered text lines, you can
+ *          use relweight > 1.0.
  */
 l_int32
 numaEvalHaarSum(NUMA       *nas,
                 l_float32   width,
                 l_float32   shift,
+                l_float32   relweight,
                 l_float32  *pscore)
 {
 l_int32    i, n, nsamp, index;
-l_float32  score, sign, val;
+l_float32  score, weight, val;
 
     PROCNAME("numaEvalHaarSum");
 
@@ -1556,9 +1626,9 @@ l_float32  score, sign, val;
     nsamp = (l_int32)((n - shift) / width);
     for (i = 0; i < nsamp; i++) {
         index = (l_int32)(shift + i * width);
-        sign = (i % 2) ? 1.0 : -1.0;
+        weight = (i % 2) ? 1.0 : -1.0 * relweight;
         numaGetFValue(nas, index, &val);
-        score += sign * val;
+        score += weight * val;
     }
 
     *pscore = 2.0 * width * score / (l_float32)n;

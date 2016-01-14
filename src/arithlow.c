@@ -208,8 +208,7 @@ subtractGrayLow(l_uint32  *datad,
                 l_int32    d,
                 l_int32    wpld,
                 l_uint32  *datas,
-                l_int32    wpls,
-                l_int32    swap)
+                l_int32    wpls)
 {
 l_int32    i, j, val, diff;
 l_uint32  *lines, *lined;
@@ -217,47 +216,24 @@ l_uint32  *lines, *lined;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
         lines = datas + i * wpls;
-        if (swap == 0) {
-            if (d == 8) {
-                for (j = 0; j < w; j++) {
-                    diff = GET_DATA_BYTE(lined, j) - GET_DATA_BYTE(lines, j);
-                    val = L_MAX(diff, 0);
-                    SET_DATA_BYTE(lined, j, val);
-                }
-            }
-            else if (d == 16) {
-                for (j = 0; j < w; j++) {
-                    diff = GET_DATA_TWO_BYTES(lined, j)
-                           - GET_DATA_TWO_BYTES(lines, j);
-                    val = L_MAX(diff, 0);
-                    SET_DATA_TWO_BYTES(lined, j, val);
-                }
-            }
-            else {  /* d == 32; no clipping */
-                for (j = 0; j < w; j++)
-                    *(lined + j) -= *(lines + j);
+        if (d == 8) {
+            for (j = 0; j < w; j++) {
+                diff = GET_DATA_BYTE(lined, j) - GET_DATA_BYTE(lines, j);
+                val = L_MAX(diff, 0);
+                SET_DATA_BYTE(lined, j, val);
             }
         }
-        else {   /* swap == 1 */
-            if (d == 8) {
-                for (j = 0; j < w; j++) {
-                    diff = GET_DATA_BYTE(lines, j) - GET_DATA_BYTE(lined, j);
-                    val = L_MAX(diff, 0);
-                    SET_DATA_BYTE(lined, j, val);
-                }
+        else if (d == 16) {
+            for (j = 0; j < w; j++) {
+                diff = GET_DATA_TWO_BYTES(lined, j)
+                       - GET_DATA_TWO_BYTES(lines, j);
+                val = L_MAX(diff, 0);
+                SET_DATA_TWO_BYTES(lined, j, val);
             }
-            else if (d == 16) {
-                for (j = 0; j < w; j++) {
-                    diff = GET_DATA_TWO_BYTES(lines, j)
-                           - GET_DATA_TWO_BYTES(lined, j);
-                    val = L_MAX(diff, 0);
-                    SET_DATA_TWO_BYTES(lined, j, val);
-                }
-            }
-            else {  /* d == 32; no clipping */
-                for (j = 0; j < w; j++)
-                    *(lined + j) = *(lines + j) - *(lined + j);
-            }
+        }
+        else {  /* d == 32; no clipping */
+            for (j = 0; j < w; j++)
+                *(lined + j) -= *(lines + j);
         }
     }
 

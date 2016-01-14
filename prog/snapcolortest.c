@@ -46,7 +46,7 @@ static char  mainName[] = "snapcolortest";
     pixDestroy(&pixd);
 
         /* Then make a colormapped version and snap the color */
-    pixd = pixOctreeQuant(pixs, 250, 0);
+    pixd = pixOctreeQuantNumColors(pixs, 250, 0);
     pixDisplay(pixd, 500, 75);
     pixSnapColor(pixd, pixd, 0xffffff00, LEPTONICA_YELLOW, 30);
     pixDisplay(pixd, 500, 220);

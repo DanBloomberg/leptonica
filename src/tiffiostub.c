@@ -65,14 +65,19 @@ l_int32 tiffGetCount(FILE *fp, l_int32 *pn)
     return ERROR_INT("function not present", "tiffGetCount", 1);
 }
 
-l_int32 readHeaderTiff(const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap)
+l_int32 readHeaderTiff(const char *filename, l_int32 n, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap)
 {
     return ERROR_INT("function not present", "readHeaderTiff", 1);
 }
 
-l_int32 freadHeaderTiff(FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap)
+l_int32 freadHeaderTiff(FILE *fp, l_int32 n, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap)
 {
     return ERROR_INT("function not present", "freadHeaderTiff", 1);
+}
+
+l_int32 readHeaderMemTiff(const l_uint8 *cdata, size_t size, l_int32 n, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *pres, l_int32 *pcmap)
+{
+    return ERROR_INT("function not present", "readHeaderMemTiff", 1);
 }
 
 l_int32 findTiffCompression(FILE *fp, l_int32 *pcomp)

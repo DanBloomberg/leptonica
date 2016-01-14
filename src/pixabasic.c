@@ -821,7 +821,7 @@ BOXA  *boxa;
  *  pixaInsertPix()
  *
  *      Input:  pixa
- *              index (of pix to be removed)
+ *              index (at which pix is to be inserted)
  *              pixs (new pix to be inserted)
  *              box (<optional> new box to be inserted)
  *      Return: 0 if OK, 1 on error
@@ -852,8 +852,10 @@ l_int32  i, n;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-    if (n >= pixa->nalloc)
+    if (n >= pixa->nalloc) {  /* extend both ptr arrays */
         pixaExtendArray(pixa);
+        boxaExtendArray(pixa->boxa);
+    }
     pixa->n++;
     for (i = n; i > index; i--)
       pixa->pix[i] = pixa->pix[i - 1];
@@ -884,7 +886,7 @@ l_int32
 pixaRemovePix(PIXA    *pixa,
               l_int32  index)
 {
-l_int32  i, n;
+l_int32  i, n, nbox;
 BOXA    *boxa;
 PIX    **array;
 
@@ -904,8 +906,10 @@ PIX    **array;
     array[n - 1] = NULL;
     pixa->n--;
 
-        /* Remove the box if it exists */
-    if ((boxa = pixa->boxa) != NULL)
+        /* Remove the box if it exists  */
+    boxa = pixa->boxa;
+    nbox = boxaGetCount(boxa);
+    if (index < nbox)
         boxaRemoveBox(boxa, index);
 
     return 0;

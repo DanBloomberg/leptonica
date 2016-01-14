@@ -32,8 +32,8 @@
  *             l_int32    fprintTiffInfo()
  *             l_int32    tiffGetCount()
  *             l_int32    readHeaderTiff()
- *             l_int32    readHeaderMemTiff()
  *             l_int32    freadHeaderTiff()
+ *             l_int32    readHeaderMemTiff()
  *      static l_int32    tiffReadHeaderTiff()
  *             l_int32    findTiffCompression()
  *
@@ -49,8 +49,8 @@
  *             l_int32    pixWriteMemTiff();
  *             l_int32    pixWriteMemTiffCustom();
  *
- *   Note:  You should be using tifflib 3.7.4 to be certain that all
- *          the necessary functions are included.
+ *   Note:  You should be using version 3.7.4 of libtiff to be certain
+ *          that all the necessary functions are included.
  */
 
 #include <stdio.h>
@@ -219,7 +219,7 @@ TIFF    *tif;
     }
 
         /* Set to generic input format; refinement is done
-	 * in pixReadStream() using findFileFormat(). */
+         * in pixReadStream() using findFileFormat(). */
     pixSetInputFormat(pix, IFF_TIFF);
     TIFFCleanup(tif);
     return pix;
@@ -551,6 +551,13 @@ TIFF  *tif;
  *          it typically expands images that are not synthetically generated.
  *      (3) See pixWriteTiffCustom() for details on how to use
  *          the last four parameters for customized tiff tags.
+ *      (4) The only valid pixel depths in leptonica are 1, 2, 4, 8, 16
+ *          and 32.  However, it is possible, and in some cases desirable,
+ *          to write out a tiff file using an rgb pix that has 24 bpp.
+ *          This can be created by appending the raster data for a 24 bpp
+ *          image (with proper scanline padding) directly to a 24 bpp
+ *          pix that was created without a data array.  See note in
+ *          pixWriteStreamPng() for an example.
  */
 static l_int32
 pixWriteToTiffStream(TIFF    *tif,
@@ -598,7 +605,7 @@ char      *text;
         
     if (d == 1)
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
-    else if (d == 32) {
+    else if (d == 32 || d == 24) {
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,
                        (l_uint16)8, (l_uint16)8, (l_uint16)8);
@@ -633,7 +640,7 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_COLORMAP, redmap, greenmap, bluemap);
     }
 
-    if (d != 32) {
+    if (d != 24 && d != 32) {
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, (l_uint16)d);
         TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)1);
     }
@@ -673,22 +680,28 @@ char      *text;
         /* Use single strip for image */
     TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, h);
 
-    if (d != 32) {
+    if (d != 24 && d != 32) {
         if (d == 16)
             pixt = pixEndianTwoByteSwapNew(pix);
         else
             pixt = pixEndianByteSwapNew(pix);
         data = (l_uint8 *)pixGetData(pixt);
-        for (i = 0 ; i < h; i++, data += bpl) {
+        for (i = 0; i < h; i++, data += bpl) {
             memcpy((char *)linebuf, (char *)data, tiffbpl);
             if (TIFFWriteScanline(tif, linebuf, i, 0) < 0)
                 break;
         }
         pixDestroy(&pixt);
     }
-    else {  /* d == 32 */
-        line = pixGetData(pix);
-        for (i = 0 ; i < h; i++, line += wpl) {
+    else if (d == 24) {  /* See note 4 above: special case of 24 bpp rgb */
+        for (i = 0; i < h; i++) {
+            line = pixGetData(pix) + i * wpl;
+            if (TIFFWriteScanline(tif, (l_uint8 *)line, i, 0) < 0)
+                break;
+        }
+    }
+    else {  /* standard 32 bpp rgb */
+        for (i = 0; i < h; i++) {
             line = pixGetData(pix) + i * wpl;
             for (j = 0, k = 0, ppixel = line; j < w; j++) {
                 linebuf[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
@@ -915,6 +928,7 @@ TIFF    *tif;
  *  readHeaderTiff()
  *
  *      Input:  filename
+ *              n (page image number: 0-based)
  *              &width (<return>)
  *              &height (<return>)
  *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
@@ -925,9 +939,11 @@ TIFF    *tif;
  * 
  *  Notes:
  *      (1) If there is a colormap, cmap is returned as 1; else 0.
+ *      (2) If @n is equal to or greater than the number of images, returns 1.
  */
 l_int32
 readHeaderTiff(const char *filename,
+               l_int32     n,
                l_int32    *pwidth,
                l_int32    *pheight,
                l_int32    *pbps,
@@ -935,7 +951,7 @@ readHeaderTiff(const char *filename,
                l_int32    *pres,
                l_int32    *pcmap)
 {
-l_int32  ret, format;
+l_int32  ret;
 FILE    *fp;
 
     PROCNAME("readHeaderTiff");
@@ -947,16 +963,75 @@ FILE    *fp;
     *pwidth = *pheight = *pbps = *pspp = 0;
     if (pres) *pres = 0;
     if (pcmap) *pcmap = 0;
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
+    ret = freadHeaderTiff(fp, n, pwidth, pheight, pbps, pspp, pres, pcmap);
+    fclose(fp);
+    return ret;
+}
+
+
+/*!
+ *  freadHeaderTiff()
+ *
+ *      Input:  stream
+ *              n (page image number: 0-based)
+ *              &width (<return>)
+ *              &height (<return>)
+ *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
+ *              &spp (<return>; samples per pixel -- 1 or 3)
+ *              &res (<optional return>; resolution in x dir; NULL to ignore)
+ *              &cmap (<optional return>; colormap exists; input NULL to ignore)
+ *      Return: 0 if OK, 1 on error
+ * 
+ *  Notes:
+ *      (1) If there is a colormap, cmap is returned as 1; else 0.
+ *      (2) If @n is equal to or greater than the number of images, returns 1.
+ */
+l_int32
+freadHeaderTiff(FILE     *fp,
+                l_int32   n,
+                l_int32  *pwidth,
+                l_int32  *pheight,
+                l_int32  *pbps,
+                l_int32  *pspp,
+                l_int32  *pres,
+                l_int32  *pcmap)
+{
+l_int32  i, ret, format;
+TIFF    *tif;
+
+    PROCNAME("freadHeaderTiff");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (n < 0)
+        return ERROR_INT("image index must be >= 0", procName, 1);
+    if (!pwidth || !pheight || !pbps || !pspp)
+        return ERROR_INT("input ptr(s) not all defined", procName, 1);
+    *pwidth = *pheight = *pbps = *pspp = 0;
+    if (pres) *pres = 0;
+    if (pcmap) *pcmap = 0;
+
     format = findFileFormat(fp);
     if (format != IFF_TIFF &&
         format != IFF_TIFF_G3 && format != IFF_TIFF_G4 &&
         format != IFF_TIFF_RLE && format != IFF_TIFF_PACKBITS &&
         format != IFF_TIFF_LZW && format != IFF_TIFF_ZIP)
         return ERROR_INT("file not tiff format", procName, 1);
-    ret = freadHeaderTiff(fp, pwidth, pheight, pbps, pspp, pres, pcmap);
-    fclose(fp);
+
+    if ((tif = fopenTiff(fp, "r")) == NULL)
+        return ERROR_INT("tif not open for read", procName, 1);
+
+    for (i = 0; i < n; i++) {
+        if (TIFFReadDirectory(tif) == 0)
+            return ERROR_INT("image n not found in file", procName, 1);
+    }
+
+    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp, pres, pcmap);
+
+    TIFFCleanup(tif);
     return ret;
 }
 
@@ -966,6 +1041,7 @@ FILE    *fp;
  *
  *      Input:  cdata (const; tiff-encoded)
  *              size (size of data)
+ *              n (page image number: 0-based)
  *              &width (<return>)
  *              &height (<return>)
  *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
@@ -980,6 +1056,7 @@ FILE    *fp;
 l_int32
 readHeaderMemTiff(const l_uint8  *cdata,
                   size_t          size,
+                  l_int32         n,
                   l_int32        *pwidth,
                   l_int32        *pheight,
                   l_int32        *pbps,
@@ -988,7 +1065,7 @@ readHeaderMemTiff(const l_uint8  *cdata,
                   l_int32        *pcmap)
 {
 l_uint8  *data;
-l_int32   ret;
+l_int32   i, ret;
 TIFF     *tif;
 
     PROCNAME("readHeaderMemTiff");
@@ -1006,51 +1083,16 @@ TIFF     *tif;
     if ((tif = fopenTiffMemstream("tifferror", "r", &data, &size)) == NULL)
         return ERROR_INT("tiff stream not opened", procName, 1);
 
+    for (i = 0; i < n; i++) {
+        if (TIFFReadDirectory(tif) == 0) {
+            TIFFClose(tif);
+            return ERROR_INT("image n not found in file", procName, 1);
+        }
+    }
+
     ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp, pres, pcmap);
 
     TIFFClose(tif);
-    return ret;
-}
-
-
-/*!
- *  freadHeaderTiff()
- *
- *      Input:  stream
- *              &width (<return>)
- *              &height (<return>)
- *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
- *              &spp (<return>; samples per pixel -- 1 or 3)
- *              &res (<optional return>; resolution in x dir; NULL to ignore)
- *              &cmap (<optional return>; colormap exists; input NULL to ignore)
- *      Return: 0 if OK, 1 on error
- */
-l_int32
-freadHeaderTiff(FILE     *fp,
-                l_int32  *pwidth,
-                l_int32  *pheight,
-                l_int32  *pbps,
-                l_int32  *pspp,
-                l_int32  *pres,
-                l_int32  *pcmap)
-{
-l_int32  ret;
-TIFF    *tif;
-
-    PROCNAME("freadHeaderTiff");
-
-    if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
-    if (!pwidth || !pheight || !pbps || !pspp)
-        return ERROR_INT("input ptr(s) not all defined", procName, 1);
-    
-        /* Open a tiff stream to file */
-    if ((tif = fopenTiff(fp, "r")) == NULL)
-        return ERROR_INT("tif not opened", procName, 1);
-
-    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp, pres, pcmap);
-
-    TIFFCleanup(tif);
     return ret;
 }
 
@@ -1294,6 +1336,11 @@ TIFF     *tif;
  *          need to make it here, because it is useful to have functions
  *          that take a stream as input.
  *      (2) Requires lseek to rewind to BOF; fseek won't hack it.
+ *      (3) When linking with windows, suggest you use tif_unix.c
+ *          instead of tif_win32.c, because it has been reported that
+ *          the file descriptor returned from fileno() does not work
+ *          with TIFFFdOpen() in tif_win32.c.  (win32 requires a
+ *          "handle", which is an integer returned by _get_osfhandle(fd).)
  */
 static TIFF *
 fopenTiff(FILE        *fp,
@@ -1585,7 +1632,7 @@ L_MEMSTREAM  *mstream;
  *
  *      Input:  data (const; tiff-encoded)
  *              datasize (size of data)
- *              n (page number: 0 based)
+ *              n (page image number: 0-based)
  *      Return: pix, or null on error
  *
  *  Notes:

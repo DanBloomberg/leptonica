@@ -61,21 +61,27 @@ l_int32      w, h, d, same, ret;
 PIX         *pixs, *pix1, *pix2;
 static char  mainName[] = "gifio_reg";
  
+#if !HAVE_LIBGIF
+    fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!\n"
+            "gifio not enabled!\n"
+            "See environ.h: #define HAVE_LIBGIF   1\n"
+            "See prog/Makefile: link in -lgif\n"
+            "!!!!!!!!!!!!!!!!!!!!\n");
+    return 1;
+#endif
+
     pixDisplayWrite(NULL, -1);
 
     pixs = pixRead(FILE_1BPP);
     pixGetDimensions(pixs, &w, &h, &d);
-    ret = pixWrite("junkgif1", pixs, IFF_GIF);
-    if (ret) {
-        fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!\n"
-                        "gifio not enabled!\n"
-                        "See src/Makefile: use gifio.c, not gifiostub.c\n"
-                        "See prog/Makefile: link in -lgif\n"
-                        "!!!!!!!!!!!!!!!!!!!!\n");
-        return 1;
-    }
+    pixWrite("junkgif1", pixs, IFF_GIF);
+    startTimer();
     pix1 = pixRead("junkgif1");
+    fprintf(stderr, "Read time for 8 Mpix 1 bpp: %7.3f sec: unbelievable!\n",
+            stopTimer());
+    startTimer();
     pixWrite("junkgif1n", pix1, IFF_GIF);
+    fprintf(stderr, "Write time for 8 Mpix 1 bpp: %7.3f\n", stopTimer());
     pix2 = pixRead("junkgif1n");
     pixDisplayWrite(pix2, REDUCTION);
     pixEqual(pixs, pix2, &same);

@@ -35,7 +35,8 @@
 #include <stdio.h>
 #include "allheaders.h"
 
-static const l_int32  BUF_SIZE = 512;
+    /* MSVC can't handle arrays dimensioned by static const integers */
+#define  L_BUF_SIZE  512
 
     /* Linear brick sel sizes, including all those that are required
      * for decomposable sels up to size 63. */
@@ -59,9 +60,9 @@ static const l_int32  basic_linear[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
 SELA *
 selaAddBasic(SELA  *sela)
 {
-char     name[BUF_SIZE];
+char     name[L_BUF_SIZE];
 l_int32  i, size;
-SEL  *sel;
+SEL     *sel;
 
     PROCNAME("selaAddBasic");
 
@@ -76,13 +77,13 @@ SEL  *sel;
     for (i = 0; i < num_linear; i++) {
         size = basic_linear[i];
         sel = selCreateBrick(1, size, 0, size / 2, 1);
-        snprintf(name, BUF_SIZE, "sel_%dh", size);
+        snprintf(name, L_BUF_SIZE, "sel_%dh", size);
         selaAddSel(sela, sel, name, 0);
     }
     for (i = 0; i < num_linear; i++) {
         size = basic_linear[i];
         sel = selCreateBrick(size, 1, size / 2, 0, 1);
-        snprintf(name, BUF_SIZE, "sel_%dv", size);
+        snprintf(name, L_BUF_SIZE, "sel_%dv", size);
         selaAddSel(sela, sel, name, 0);
     }
 
@@ -91,7 +92,7 @@ SEL  *sel;
      *-----------------------------------------------------------*/
     for (i = 2; i <= 5; i++) {
         sel = selCreateBrick(i, i, i / 2, i / 2, 1);
-        snprintf(name, BUF_SIZE, "sel_%d", i);
+        snprintf(name, L_BUF_SIZE, "sel_%d", i);
         selaAddSel(sela, sel, name, 0);
     }
 
@@ -230,7 +231,7 @@ SEL  *sel;
 SELA *
 selaAddDwaLinear(SELA  *sela)
 {
-char     name[BUF_SIZE];
+char     name[L_BUF_SIZE];
 l_int32  i;
 SEL     *sel;
 
@@ -243,12 +244,12 @@ SEL     *sel;
 
     for (i = 2; i < 64; i++) {
         sel = selCreateBrick(1, i, 0, i / 2, 1);
-        snprintf(name, BUF_SIZE, "sel_%dh", i);
+        snprintf(name, L_BUF_SIZE, "sel_%dh", i);
         selaAddSel(sela, sel, name, 0);
     }
     for (i = 2; i < 64; i++) {
         sel = selCreateBrick(i, 1, i / 2, 0, 1);
-        snprintf(name, BUF_SIZE, "sel_%dv", i);
+        snprintf(name, L_BUF_SIZE, "sel_%dv", i);
         selaAddSel(sela, sel, name, 0);
     }
     return sela;
@@ -270,7 +271,7 @@ SEL     *sel;
 SELA *
 selaAddDwaCombs(SELA  *sela)
 {
-char     name[BUF_SIZE];
+char     name[L_BUF_SIZE];
 l_int32  i, f1, f2, prevsize, size;
 SEL     *selh, *selv;
 
@@ -284,16 +285,16 @@ SEL     *selh, *selv;
     prevsize = 0;
     for (i = 4; i < 64; i++) {
         selectComposableSizes(i, &f1, &f2);
-	size = f1 * f2;
+        size = f1 * f2;
         if (size == prevsize)
             continue;
         selectComposableSels(i, L_HORIZ, NULL, &selh);
         selectComposableSels(i, L_VERT, NULL, &selv);
-        snprintf(name, BUF_SIZE, "sel_comb_%dh", size);
+        snprintf(name, L_BUF_SIZE, "sel_comb_%dh", size);
         selaAddSel(sela, selh, name, 0);
-        snprintf(name, BUF_SIZE, "sel_comb_%dv", size);
+        snprintf(name, L_BUF_SIZE, "sel_comb_%dv", size);
         selaAddSel(sela, selv, name, 0);
-	prevsize = size;
+        prevsize = size;
     }
 
     return sela;

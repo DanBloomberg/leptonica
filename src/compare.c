@@ -643,7 +643,7 @@ pixCompareGray(PIX        *pix1,
 {
 l_int32  first, last;
 GPLOT   *gplot;
-NUMA    *na, *nac;;
+NUMA    *na, *nac;
 PIX     *pixt;
 
     PROCNAME("pixCompareGray");

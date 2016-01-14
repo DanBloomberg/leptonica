@@ -40,19 +40,16 @@
  *
  *          Simple thresholding to 2 bpp
  *              void       thresholdTo2bppLow()
- *              void       thresholdTo2bppLineLow()
  *
  *      Thresholding from 8 bpp to 4 bpp
  *
  *          Simple thresholding to 4 bpp
  *              void       thresholdTo4bppLow()
- *              void       thresholdTo4bppLineLow()
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "allheaders.h"
 
 #ifndef  NO_CONSOLE_IO
@@ -835,10 +832,13 @@ l_int32  *tabval, *tab38, *tab14;
  *  thresholdTo2bppLow()
  *
  *  Low-level function for thresholding from 8 bpp (datas) to
- *  2 bpp (datad).  If tabval is defined, it uses the thresholds
- *  that are implicitly defined by the table, which is a 256-entry
- *  lookup table that gives the 2-bit output value for each 
- *  possible input.
+ *  2 bpp (datad), using thresholds implicitly defined through @tab,
+ *  a 256-entry lookup table that gives a 2-bit output value
+ *  for each possible input.
+ *
+ *  For each line, unroll the loop so that for each 32 bit src word,
+ *  representing four consecutive 8-bit pixels, we compose one byte
+ *  of output consisiting of four 2-bit pixels.
  */
 void
 thresholdTo2bppLow(l_uint32  *datad,
@@ -848,43 +848,23 @@ thresholdTo2bppLow(l_uint32  *datad,
                    l_int32    wpls,
                    l_int32   *tab)
 {
-l_int32    i;
+l_uint8    sval1, sval2, sval3, sval4, dval;
+l_int32    i, j, k;
 l_uint32  *lines, *lined;
 
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
-        thresholdTo2bppLineLow(lined, lines, wpls, tab);
-    }
-    return;
-}
-
-
-/*
- *  thresholdTo2bppLineLow()
- *
- *  Unroll the loop to the extent that for each 32 bit src word,
- *  representing four consecutive 8-bit pixels, we compose one byte
- *  of output consisiting of four 2-bit pixels.
- */
-void
-thresholdTo2bppLineLow(l_uint32  *lined,
-                       l_uint32  *lines,
-                       l_int32    wpls,
-                       l_int32   *tab)
-{
-l_uint8   sval1, sval2, sval3, sval4, dval;
-l_int32   j, k;
-
-    for (j = 0; j < wpls; j++) {
-        k = 4 * j;
-        sval1 = GET_DATA_BYTE(lines, k);
-        sval2 = GET_DATA_BYTE(lines, k + 1);
-        sval3 = GET_DATA_BYTE(lines, k + 2);
-        sval4 = GET_DATA_BYTE(lines, k + 3);
-        dval = (tab[sval1] << 6) | (tab[sval2] << 4) |
-               (tab[sval3] << 2) | tab[sval4];
-        SET_DATA_BYTE(lined, j, dval);
+        for (j = 0; j < wpls; j++) {
+            k = 4 * j;
+            sval1 = GET_DATA_BYTE(lines, k);
+            sval2 = GET_DATA_BYTE(lines, k + 1);
+            sval3 = GET_DATA_BYTE(lines, k + 2);
+            sval4 = GET_DATA_BYTE(lines, k + 3);
+            dval = (tab[sval1] << 6) | (tab[sval2] << 4) |
+                   (tab[sval3] << 2) | tab[sval4];
+            SET_DATA_BYTE(lined, j, dval);
+        }
     }
     return;
 }
@@ -897,9 +877,13 @@ l_int32   j, k;
  *  thresholdTo4bppLow()
  *
  *  Low-level function for thresholding from 8 bpp (datas) to
- *  4 bpp (datad), using thresholds implicitly defined
- *  through the tabval, a 256-entry lookup table that gives
- *  a 4-bit output value for each possible input.
+ *  4 bpp (datad), using thresholds implicitly defined through @tab,
+ *  a 256-entry lookup table that gives a 4-bit output value
+ *  for each possible input.
+ *  
+ *  For each line, unroll the loop so that for each 32 bit src word,
+ *  representing four consecutive 8-bit pixels, we compose two bytes
+ *  of output consisiting of four 4-bit pixels.
  */
 void
 thresholdTo4bppLow(l_uint32  *datad,
@@ -909,44 +893,26 @@ thresholdTo4bppLow(l_uint32  *datad,
                    l_int32    wpls,
                    l_int32   *tab)
 {
-l_int32    i;
+l_uint8    sval1, sval2, sval3, sval4;
+l_uint16   dval;
+l_int32    i, j, k;
 l_uint32  *lines, *lined;
 
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
-        thresholdTo4bppLineLow(lined, lines, wpls, tab);
+        for (j = 0; j < wpls; j++) {
+            k = 4 * j;
+            sval1 = GET_DATA_BYTE(lines, k);
+            sval2 = GET_DATA_BYTE(lines, k + 1);
+            sval3 = GET_DATA_BYTE(lines, k + 2);
+            sval4 = GET_DATA_BYTE(lines, k + 3);
+            dval = (tab[sval1] << 12) | (tab[sval2] << 8) |
+                   (tab[sval3] << 4) | tab[sval4];
+            SET_DATA_TWO_BYTES(lined, j, dval);
+        }
     }
     return;
 }
 
 
-/*
- *  thresholdTo4bppLineLow()
- *
- *  Unroll the loop to the extent that for each 32 bit src word,
- *  representing four consecutive 8-bit pixels, we compose two bytes
- *  of output consisiting of four 4-bit pixels.
- */
-void
-thresholdTo4bppLineLow(l_uint32  *lined,
-                       l_uint32  *lines,
-                       l_int32    wpls,
-                       l_int32   *tab)
-{
-l_uint8   sval1, sval2, sval3, sval4;
-l_uint16  dval;
-l_int32   j, k;
-
-    for (j = 0; j < wpls; j++) {
-        k = 4 * j;
-        sval1 = GET_DATA_BYTE(lines, k);
-        sval2 = GET_DATA_BYTE(lines, k + 1);
-        sval3 = GET_DATA_BYTE(lines, k + 2);
-        sval4 = GET_DATA_BYTE(lines, k + 3);
-        dval = (tab[sval1] << 12) | (tab[sval2] << 8) |
-               (tab[sval3] << 4) | tab[sval4];
-        SET_DATA_TWO_BYTES(lined, j, dval);
-    }
-    return;
-}

@@ -283,7 +283,7 @@ PIX     *pix;
 l_int32
 findFileFormat(FILE  *fp)
 {
-l_uint8  firstbytes[12]; 
+l_uint8  firstbytes[8]; 
 l_int32  format, ret;
 
     PROCNAME("findFileFormat");
@@ -292,12 +292,12 @@ l_int32  format, ret;
         return ERROR_INT("stream not defined", procName, 0);
 
     rewind(fp);
-    if (fnbytesInFile(fp) < 12)
+    if (fnbytesInFile(fp) < 8)
         return ERROR_INT("truncated file", procName, 0);
 
-    ret = fread((char *)&firstbytes, 1, 12, fp);
-    if (ret != 12)
-        return ERROR_INT("failed to read first 12 bytes of file", procName, 0);
+    ret = fread((char *)&firstbytes, 1, 8, fp);
+    if (ret != 8)
+        return ERROR_INT("failed to read first 8 bytes of file", procName, 0);
     rewind(fp);
 
     format = findFileFormatBuffer(firstbytes);
@@ -312,11 +312,11 @@ l_int32  format, ret;
 /*!
  *  findFileFormatBuffer()
  *
- *      Input:  byte buffer (at least 12 bytes in size; we can't check) 
+ *      Input:  byte buffer (at least 8 bytes in size; we can't check) 
  *      Return: format integer; 0 on error or if format not recognized
  *
  *  Notes:
- *      (1) This determines the file format from the first 12 bytes in
+ *      (1) This determines the file format from the first 8 bytes in
  *          the compressed data stream, which are stored in memory.
  *      (2) For tiff files, this returns IFF_TIFF.  The specific tiff
  *          compression is then determined using findTiffCompression().
@@ -428,6 +428,8 @@ l_int32  format;
  *      (2) On windows, this will only read tiff formatted files from
  *          memory.  For other formats, it requires fmemopen(3).
  *          Attempts to read those formats will fail at runtime.
+ *      (3) findFileFormatBuffer() requires up to 8 bytes to decide on
+ *          the format.  That determines the constraint here.
  */
 PIX *
 pixReadMem(const l_uint8  *data,
@@ -440,8 +442,8 @@ PIX     *pix;
 
     if (!data)
         return (PIX *)ERROR_PTR("data not defined", procName, NULL);
-    if (size < 12)
-        return (PIX *)ERROR_PTR("size < 12", procName, NULL);
+    if (size < 8)
+        return (PIX *)ERROR_PTR("size < 8", procName, NULL);
     pix = NULL;
 
     format = findFileFormatBuffer(data);
@@ -492,8 +494,14 @@ PIX     *pix;
         break;
     }
 
-    if (pix)
+        /* Set the input format.  For tiff reading from memory we lose
+         * the actual input format; for 1 bpp, default to G4.  */
+    if (pix) {
+        if (format == IFF_TIFF && pixGetDepth(pix) == 1)
+            format = IFF_TIFF_G4;
         pixSetInputFormat(pix, format);
+    }
+
     return pix;
 }
 

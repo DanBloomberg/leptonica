@@ -68,7 +68,7 @@ typedef struct Sela SELA;
 /*-------------------------------------------------------------------------*
  *                                 Kernel                                  *
  *-------------------------------------------------------------------------*/
-#define  KERNEL_VERSION_NUMBER    1
+#define  KERNEL_VERSION_NUMBER    2
 
 struct L_Kernel
 {
@@ -76,7 +76,7 @@ struct L_Kernel
     l_int32       sx;          /* kernel width                             */
     l_int32       cy;          /* y location of kernel origin              */
     l_int32       cx;          /* x location of kernel origin              */
-    l_int32     **data;        /* data[i][j] in [row][col] order           */
+    l_float32   **data;        /* data[i][j] in [row][col] order           */
 };
 typedef struct L_Kernel  L_KERNEL;
 

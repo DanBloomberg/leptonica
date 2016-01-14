@@ -38,7 +38,7 @@
 main(int    argc,
      char **argv)
 {
-l_int32      errorfound, same, nerrors;
+l_int32      errorfound, same;
 PIX         *pixs, *pixt1, *pixt2, *pixt3, *pixt4;
 static char  mainName[] = "equal_reg";
 
@@ -64,10 +64,9 @@ static char  mainName[] = "equal_reg";
     pixWrite("junkdrey2-1", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     pixWrite("junkdrey2-2", pixt2, IFF_PNG);
-    pixt3 = pixOctreeQuant(pixt2, 64, 1);
+    pixt3 = pixOctreeQuantNumColors(pixt2, 64, 1);
     pixWrite("junkdrey2-3", pixt3, IFF_PNG);
-    pixt4 = pixConvertRGBToColormap(pixt2, 2, &nerrors);
-    fprintf(stderr, " ... %d pixels not exactly converted\n", nerrors);
+    pixt4 = pixConvertRGBToColormap(pixt2, 1);
     pixWrite("junkdrey2-4", pixt4, IFF_PNG);
     pixEqual(pixs, pixt1, &same);
     if (same)
@@ -108,10 +107,9 @@ static char  mainName[] = "equal_reg";
     pixWrite("junkdrey4-1", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     pixWrite("junkdrey4-2", pixt2, IFF_PNG);
-    pixt3 = pixOctreeQuant(pixt2, 256, 1);
+    pixt3 = pixOctreeQuantNumColors(pixt2, 256, 1);
     pixWrite("junkdrey4-3", pixt3, IFF_PNG);
-    pixt4 = pixConvertRGBToColormap(pixt2, 3, &nerrors);
-    fprintf(stderr, " ... %d pixels not exactly converted\n", nerrors);
+    pixt4 = pixConvertRGBToColormap(pixt2, 1);
     pixWrite("junkdrey4-4", pixt4, IFF_PNG);
     pixEqual(pixs, pixt1, &same);
     if (same)
@@ -152,8 +150,7 @@ static char  mainName[] = "equal_reg";
     pixWrite("junkdrey8-1", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     pixWrite("junkdrey8-2", pixt2, IFF_PNG);
-    pixt3 = pixConvertRGBToColormap(pixt2, 6, &nerrors);
-    fprintf(stderr, " ... %d pixels not exactly converted\n", nerrors);
+    pixt3 = pixConvertRGBToColormap(pixt2, 1);
     pixWrite("junkdrey8-3", pixt3, IFF_PNG);
     pixEqual(pixs, pixt1, &same);
     if (same)
@@ -181,8 +178,7 @@ static char  mainName[] = "equal_reg";
     pixWrite("junkkar8-2", pixt2, IFF_PNG);
     pixt3 = pixRemoveColormap(pixt1, REMOVE_CMAP_TO_FULL_COLOR);
     pixWrite("junkkar8-3", pixt3, IFF_PNG);
-    pixt4 = pixConvertRGBToColormap(pixt3, 4, &nerrors);
-    fprintf(stderr, " ... %d pixels not exactly converted\n", nerrors);
+    pixt4 = pixConvertRGBToColormap(pixt3, 1);
     pixEqual(pixt1, pixt2, &same);
     if (same)
         L_INFO("equal for pixt2 of karen8", mainName);
@@ -211,14 +207,13 @@ static char  mainName[] = "equal_reg";
     pixDestroy(&pixt4);
 
     pixs = pixRead(MARGE32);
-    pixt1 = pixOctreeQuant(pixs, 32, 0);
+    pixt1 = pixOctreeQuantNumColors(pixs, 32, 0);
     pixWrite("junkmarge8-1", pixt1, IFF_PNG);
     pixt2 = pixRemoveColormap(pixt1, REMOVE_CMAP_TO_FULL_COLOR);
     pixWrite("junkmarge8-2", pixt2, IFF_PNG);
-    pixt3 = pixConvertRGBToColormap(pixt2, 4, &nerrors);
-    fprintf(stderr, " ... %d pixels not exactly converted\n", nerrors);
+    pixt3 = pixConvertRGBToColormap(pixt2, 1);
     pixWrite("junkmarge8-3", pixt3, IFF_PNG);
-    pixt4 = pixOctreeQuant(pixt2, 64, 0);
+    pixt4 = pixOctreeQuantNumColors(pixt2, 64, 0);
     pixWrite("junkmarge8-4", pixt4, IFF_PNG);
     pixEqual(pixt1, pixt2, &same);
     if (same)

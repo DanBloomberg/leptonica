@@ -31,7 +31,8 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  fhmtgen.1.c fhmtgenlow.1.c \
  flipdetect.c fliphmtgen.c \
  fmorphauto.c fmorphgen.1.c \
- fmorphgenlow.1.c gifio.c gifiostub.c \
+ fmorphgenlow.1.c fpix1.c fpix2.c \
+ gifio.c gifiostub.c \
  gplot.c graphics.c graymorph.c \
  graymorphlow.c grayquant.c \
  grayquantlow.c jbclass.c \
@@ -43,7 +44,7 @@ liblept_a_SOURCES = adaptmap.c affine.c \
  numafunc1.c numafunc2.c pageseg.c \
  paintcmap.c parseprotos.c \
  partition.c pheap.c pix1.c \
- pix2.c pix3.c \
+ pix2.c pix3.c pix4.c \
  pixabasic.c pixacc.c \
  pixafunc.c pixarith.c \
  pixconv.c pixtiling.c \

@@ -19,15 +19,20 @@
  *
  *      Top-level jb2 correlation and rank-hausdorff
  *
- *         l_int32      jbCorrelation()
- *         l_int32      jbRankHausdorff()
+ *         l_int32         jbCorrelation()
+ *         l_int32         jbRankHausdorff()
  *
  *      Extract and classify words in textline order
  *
- *         JBCLASSER   *jbWordsInTextlines()
- *         l_int32      pixGetWordsInTextlines()
- *         l_int32      pixGetWordBoxesInTextlines()
+ *         JBCLASSER      *jbWordsInTextlines()
+ *         l_int32         pixGetWordsInTextlines()
+ *         l_int32         pixGetWordBoxesInTextlines()
  *
+ *      Use word bounding boxes to compare page images
+ *         NUMAA          *boxaExtractSortedPattern()
+ *         l_int32         numaaCompareImagesByBoxes()
+ *         static l_int32  testLineAlignmentX()
+ *         static l_int32  countAlignedMatches()
  */
 
 #include <stdio.h>
@@ -35,9 +40,19 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-static const l_int32  BUF_SIZE = 512;
 static const l_int32  JB_WORDS_MIN_WIDTH = 5;  /* pixels */
 static const l_int32  JB_WORDS_MIN_HEIGHT = 3;  /* pixels */
+
+    /* MSVC can't handle arrays dimensioned by static const integers */
+#define  L_BUF_SIZE  512
+
+    /* Static comparison functions */
+static l_int32 testLineAlignmentX(NUMA *na1, NUMA *na2, l_int32 shiftx,
+                                  l_int32 delx, l_int32 nperline);
+static l_int32 countAlignedMatches(NUMA *nai1, NUMA *nai2, NUMA *nasx,
+                                   NUMA *nasy, l_int32 n1, l_int32 n2,
+                                   l_int32 delx, l_int32 dely,
+                                   l_int32 nreq, l_int32 *psame);
 
 
 /*------------------------------------------------------------------*
@@ -70,7 +85,7 @@ jbCorrelation(const char  *dirin,
               l_int32      npages,
               l_int32      renderflag)
 {
-char        filename[BUF_SIZE];
+char        filename[L_BUF_SIZE];
 l_int32     nfiles, i, numpages;
 JBDATA     *data;
 JBCLASSER  *classer;
@@ -108,7 +123,7 @@ SARRAY     *safiles;
                     numpages, nfiles);
         for (i = 0; i < numpages; i++) {
             pix = pixaGetPix(pixa, i, L_CLONE);
-            snprintf(filename, BUF_SIZE, "%s.%05d", rootname, i);
+            snprintf(filename, L_BUF_SIZE, "%s.%05d", rootname, i);
             fprintf(stderr, "filename: %s\n", filename);
             pixWrite(filename, pix, IFF_PNG);
             pixDestroy(&pix);
@@ -150,7 +165,7 @@ jbRankHaus(const char  *dirin,
            l_int32      npages,
            l_int32      renderflag)
 {
-char        filename[BUF_SIZE];
+char        filename[L_BUF_SIZE];
 l_int32     nfiles, i, numpages;
 JBDATA     *data;
 JBCLASSER  *classer;
@@ -188,7 +203,7 @@ SARRAY     *safiles;
                     numpages, nfiles);
         for (i = 0; i < numpages; i++) {
             pix = pixaGetPix(pixa, i, L_CLONE);
-            snprintf(filename, BUF_SIZE, "%s.%05d", rootname, i);
+            snprintf(filename, L_BUF_SIZE, "%s.%05d", rootname, i);
             fprintf(stderr, "filename: %s\n", filename);
             pixWrite(filename, pix, IFF_PNG);
             pixDestroy(&pix);
@@ -274,12 +289,12 @@ SARRAY     *safiles;
             L_WARNING_INT("image file %d not read", procName, i);
             continue;
         }
-	pixGetDimensions(pix, &w, &h, NULL);
+        pixGetDimensions(pix, &w, &h, NULL);
         if (reduction == 1) {
             classer->w = w;
             classer->h = h;
         }
-	else {  /* reduction == 2 */
+        else {  /* reduction == 2 */
             classer->w = w / 2;
             classer->h = h / 2;
         }
@@ -508,4 +523,349 @@ PIX     *pixt1, *pixt2;
     return 0;
 }
 
+
+/*------------------------------------------------------------------*
+ *           Use word bounding boxes to compare page images         *
+ *------------------------------------------------------------------*/
+/*!
+ *  boxaExtractSortedPattern()
+ *
+ *      Input:  boxa (typ. of word bounding boxes, in textline order)
+ *              numa (index of textline for each box in boxa)
+ *      Return: naa (numaa, where each numa represents one textline),
+ *                   or null on error
+ *
+ *  Notes:
+ *      (1) The input is expected to come from pixGetWordBoxesInTextlines().
+ *      (2) Each numa in the output consists of an average y coordinate
+ *          of the first box in the textline, followed by pairs of 
+ *          x coordinates representing the left and right edges of each
+ *          of the boxes in the textline.
+ */
+NUMAA *
+boxaExtractSortedPattern(BOXA  *boxa,
+                         NUMA  *na)
+{
+l_int32  index, nbox, row, prevrow, x, y, w, h;
+BOX     *box;
+NUMA    *nad;
+NUMAA   *naa;
+
+    PROCNAME("boxaExtractSortedPattern");
+
+    if (!boxa)
+        return (NUMAA *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (!na)
+        return (NUMAA *)ERROR_PTR("na not defined", procName, NULL);
+
+    naa = numaaCreate(0);
+    nbox = boxaGetCount(boxa);
+    prevrow = -1;
+    for (index = 0; index < nbox; index++) {
+        box = boxaGetBox(boxa, index, L_CLONE);
+        numaGetIValue(na, index, &row);
+        if (row > prevrow) {
+            if (index > 0)
+                numaaAddNuma(naa, nad, L_INSERT);
+            nad = numaCreate(0);
+            prevrow = row;
+            boxGetGeometry(box, NULL, &y, NULL, &h);
+            numaAddNumber(nad, y + h / 2);
+        }
+        boxGetGeometry(box, &x, NULL, &w, NULL);
+        numaAddNumber(nad, x);
+        numaAddNumber(nad, x + w - 1);
+        boxDestroy(&box);
+    }
+    numaaAddNuma(naa, nad, L_INSERT);
+
+    return naa;
+}
+
+
+/*!
+ *  numaaCompareImagesByBoxes()
+ *
+ *      Input:  naa1 (for image 1, formatted by boxaExtractSortedPattern())
+ *              naa2 (ditto; for image 2)
+ *              nperline (number of box regions to be used in each textline)
+ *              nreq (number of complete row matches required)
+ *              maxshiftx (max allowed x shift between two patterns, in pixels)
+ *              maxshifty (max allowed y shift between two patterns, in pixels)
+ *              delx (max allowed difference in x data, after alignment)
+ *              dely (max allowed difference in y data, after alignment)
+ *              &same (<return> 1 if @nreq row matches are found; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Each input numaa describes a set of sorted bounding boxes
+ *          (sorted by textline and, within each textline, from
+ *          left to right) in the images from which they are derived.
+ *          See boxaExtractSortedPattern() for a description of the data
+ *          format in each of the input numaa.
+ *      (2) This function does an alignment between the input
+ *          descriptions of bounding boxes for two images. The
+ *          input parameter @nperline specifies the number of boxes
+ *          to consider in each line when testing for a match, and
+ *          @nreq is the required number of lines that must be well-aligned
+ *          to get a match.
+ *      (3) First, all pairs of rows whose first @nperline boxes can
+ *          be brought into alignment within the @maxshiftx and
+ *          @maxshifty constraint are enumerated.  Then these pairs
+ *          are searched for a set of @nreq pairs, such that when the
+ *          first pair is aligned using shifts (xshift, yshift) for the
+ *          first bounding box on each line, the @nreq - 1 pairs
+ *          can also be aligned using the same shift pair, within a
+ *          tolerance of (@delx, @dely).
+ */
+l_int32
+numaaCompareImagesByBoxes(NUMAA    *naa1,
+                          NUMAA    *naa2,
+                          l_int32   nperline,
+                          l_int32   nreq,
+                          l_int32   maxshiftx,
+                          l_int32   maxshifty,
+                          l_int32   delx,
+                          l_int32   dely,
+                          l_int32  *psame)
+{
+l_int32   n1, n2, i, j, nbox, y1, y2, xl1, xl2;
+l_int32   shiftx, shifty, match;
+l_int32  *line1, *line2;  /* indicator for sufficient boxes in a line */
+l_int32  *yloc1, *yloc2;  /* arrays of y value for first box in a line */
+l_int32  *xleft1, *xleft2;  /* arrays of x value for left side of first box */
+NUMA     *na1, *na2, *nai1, *nai2, *nasx, *nasy;
+
+    PROCNAME("numaaCompareImagesByBoxes");
+
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = 0;
+    if (!naa1)
+        return ERROR_INT("naa1 not defined", procName, 1);
+    if (!naa2)
+        return ERROR_INT("naa2 not defined", procName, 1);
+    if (nperline < 1)
+        return ERROR_INT("nperline < 1", procName, 1);
+    if (nreq < 1)
+        return ERROR_INT("nreq < 1", procName, 1);
+
+    n1 = numaaGetCount(naa1);
+    n2 = numaaGetCount(naa2);
+    if (n1 < nreq || n2 < nreq)
+        return 0;
+
+        /* Find the lines in naa1 and naa2 with sufficient boxes.
+         * Also, find the y-values for each of the lines, and the
+         * LH x-values of the first box in each line. */
+    line1 = (l_int32 *)CALLOC(n1, sizeof(l_int32));
+    line2 = (l_int32 *)CALLOC(n2, sizeof(l_int32));
+    yloc1 = (l_int32 *)CALLOC(n1, sizeof(l_int32));
+    yloc2 = (l_int32 *)CALLOC(n2, sizeof(l_int32));
+    xleft1 = (l_int32 *)CALLOC(n1, sizeof(l_int32));
+    xleft2 = (l_int32 *)CALLOC(n2, sizeof(l_int32));
+    for (i = 0; i < n1; i++) {
+        na1 = numaaGetNuma(naa1, i, L_CLONE);
+        numaGetIValue(na1, 0, yloc1 + i);
+        numaGetIValue(na1, 1, xleft1 + i);
+        nbox = (numaGetCount(na1) - 1) / 2;
+        if (nbox >= nperline)
+            line1[i] = 1;
+        numaDestroy(&na1);
+    }
+    for (i = 0; i < n2; i++) {
+        na2 = numaaGetNuma(naa2, i, L_CLONE);
+        numaGetIValue(na2, 0, yloc2 + i);
+        numaGetIValue(na2, 1, xleft2 + i);
+        nbox = (numaGetCount(na2) - 1) / 2;
+        if (nbox >= nperline)
+            line2[i] = 1;
+        numaDestroy(&na2);
+    }
+
+        /* Enumerate all possible line matches.  A 'possible' line
+         * match is one where the x and y shifts for the first box
+         * in each line are within the maxshiftx and maxshifty
+         * constraints, and the left and right sides of the remaining
+         * (nperline - 1) successive boxes are within delx of each other.
+         * The result is a set of four numas giving parameters of
+         * each set of matching lines. */
+    nai1 = numaCreate(0);  /* line index 1 of match */
+    nai2 = numaCreate(0);  /* line index 2 of match */
+    nasx = numaCreate(0);  /* shiftx for match */
+    nasy = numaCreate(0);  /* shifty for match */
+    for (i = 0; i < n1; i++) {
+        if (line1[i] == 0) continue;
+        y1 = yloc1[i];
+        xl1 = xleft1[i];
+        na1 = numaaGetNuma(naa1, i, L_CLONE);
+        for (j = 0; j < n2; j++) {
+            if (line2[j] == 0) continue;
+            y2 = yloc2[j];
+            if (L_ABS(y1 - y2) > maxshifty) continue;
+            xl2 = xleft2[j];
+            if (L_ABS(xl1 - xl2) > maxshiftx) continue;
+            shiftx = xl1 - xl2;  /* shift to add to x2 values */
+            shifty = y1 - y2;  /* shift to add to y2 values */
+            na2 = numaaGetNuma(naa2, j, L_CLONE);
+
+                /* Now check if 'nperline' boxes in the two lines match */
+            match = testLineAlignmentX(na1, na2, shiftx, delx, nperline);
+            if (match) {
+                numaAddNumber(nai1, i);
+                numaAddNumber(nai2, j);
+                numaAddNumber(nasx, shiftx);
+                numaAddNumber(nasy, shifty);
+            }
+            numaDestroy(&na2);
+        }
+        numaDestroy(&na1);
+    }
+
+        /* Determine if there are a sufficient number of mutually
+         * aligned matches. */
+    countAlignedMatches(nai1, nai2, nasx, nasy, n1, n2, delx, dely,
+                        nreq, psame);
+
+    FREE(line1);
+    FREE(line2);
+    FREE(yloc1);
+    FREE(yloc2);
+    FREE(xleft1);
+    FREE(xleft2);
+    numaDestroy(&nai1);
+    numaDestroy(&nai2);
+    numaDestroy(&nasx);
+    numaDestroy(&nasy);
+    return 0;
+}
+
+
+static l_int32
+testLineAlignmentX(NUMA    *na1,
+                   NUMA    *na2,
+                   l_int32  shiftx,
+                   l_int32  delx,
+                   l_int32  nperline)
+{
+l_int32  i, xl1, xr1, xl2, xr2, diffl, diffr;
+
+    PROCNAME("testLineAlignmentX");
+
+    if (!na1)
+        return ERROR_INT("na1 not defined", procName, 1);
+    if (!na2)
+        return ERROR_INT("na2 not defined", procName, 1);
+
+    for (i = 0; i < nperline; i++) {
+        numaGetIValue(na1, i + 1, &xl1);
+        numaGetIValue(na1, i + 2, &xr1);
+        numaGetIValue(na2, i + 1, &xl2);
+        numaGetIValue(na2, i + 2, &xr2);
+        diffl = L_ABS(xl1 - xl2 - shiftx);
+        diffr = L_ABS(xr1 - xr2 - shiftx);
+        if (diffl > delx || diffr > delx)
+            return 0;
+    }
+
+    return 1;
+}
+
+
+/*
+ *  countAlignedMatches()
+ *      Input:  nai1, nai2 (numas of row pairs for matches)
+ *              nasx, nasy (numas of x and y shifts for the matches)
+ *              n1, n2 (number of rows in images 1 and 2)
+ *              delx, dely (allowed difference in shifts of the match,
+ *                          compared to the reference match)
+ *              nreq (number of required aligned matches)
+ *              &same (<return> 1 if @nreq row matches are found; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This takes 4 input arrays giving parameters of all the
+ *          line matches.  It looks for the maximum set of aligned
+ *          matches (matches with approximately the same overall shifts)
+ *          that do not use rows from either image more than once.
+ */
+static l_int32
+countAlignedMatches(NUMA     *nai1,
+                    NUMA     *nai2,
+                    NUMA     *nasx,
+                    NUMA     *nasy,
+                    l_int32   n1,
+                    l_int32   n2,
+                    l_int32   delx,
+                    l_int32   dely,
+                    l_int32   nreq,
+                    l_int32  *psame)
+{
+l_int32   i, j, nm, shiftx, shifty, nmatch, diffx, diffy;
+l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
+
+    PROCNAME("countAlignedMatches");
+
+    if (!nai1 || !nai2 || !nasx || !nasy)
+        return ERROR_INT("4 input numas not defined", procName, 1);
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = 0;
+
+        /* Check for sufficient aligned matches, doing a double iteration
+         * over the set of raw matches.  The row index arrays
+         * are used to verify that the same rows in either image
+         * are not used in more than one match.  Whenever there
+         * is a match that is properly aligned, those rows are
+         * marked in the index arrays.  */
+    nm = numaGetCount(nai1);  /* number of matches */
+    ia1 = numaGetIArray(nai1);
+    ia2 = numaGetIArray(nai2);
+    iasx = numaGetIArray(nasx);
+    iasy = numaGetIArray(nasy);
+    index1 = (l_int32 *)CALLOC(n1, sizeof(l_int32));  /* keep track of rows */
+    index2 = (l_int32 *)CALLOC(n2, sizeof(l_int32));
+    for (i = 0; i < nm; i++) {
+        if (*psame == 1)
+            break;
+
+            /* reset row index arrays */
+        memset(index1, 0, 4 * n1);
+        memset(index2, 0, 4 * n2);
+        index1[ia1[i]] = 1;  /* mark these rows as taken */
+        index2[ia2[i]] = 1;
+        shiftx = iasx[i];  /* reference shift between two rows */
+        shifty = iasy[i];  /* ditto */
+        nmatch = 1;
+        if (nreq == 1) {
+            *psame = 1;
+            break;
+        }
+        for (j = 0; j < nm; j++) {
+            if (j == i) continue;
+                /* rows must both be different from any previously seen */
+            if (index1[ia1[j]] == 1 || index2[ia2[j]] == 1) continue;
+                /* check the shift for this match */
+            diffx = L_ABS(shiftx - iasx[j]);
+            diffy = L_ABS(shifty - iasy[j]);
+            if (diffx > delx || diffy > dely) continue;
+                /* we have a match */   
+            index1[ia1[j]] = 1;  /* mark the rows */
+            index2[ia2[j]] = 1;
+            nmatch++;
+            if (nmatch >= nreq) {
+                *psame = 1;
+                break;
+            }
+        }
+    }
+        
+    FREE(ia1);
+    FREE(ia2);
+    FREE(iasx);
+    FREE(iasy);
+    FREE(index1);
+    FREE(index2);
+    return 0;
+}
 

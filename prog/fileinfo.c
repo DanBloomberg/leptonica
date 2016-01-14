@@ -28,6 +28,7 @@ extern const char *ImageFileFormatExtensions[];
 main(int    argc,
      char **argv)
 {
+char        *text;
 l_int32      w, h, d, wpl, count, npages, color, format;
 FILE        *fp;
 PIX         *pix;
@@ -49,6 +50,10 @@ static char  mainName[] = "fileinfo";
     pixGetDimensions(pix, &w, &h, &d);
     wpl = pixGetWpl(pix);
     fprintf(stderr, "w = %d, h = %d, d = %d, wpl = %d\n", w, h, d, wpl);
+
+    text = pixGetText(pix);
+    if (text)  /*  not null */
+        fprintf(stderr, "Text: %s\n", text);
 
     cmap = pixGetColormap(pix);
     if (cmap) {

@@ -124,7 +124,7 @@ PIXA    *pixas, *pixad;
     n = pixaGetCount(pixad);
     for (i = 0; i < n; i++) {
         pixaGetBoxGeometry(pixad, i, &x, &y, &w, &h);
-	pix = pixaGetPix(pixad, i, L_CLONE);
+        pix = pixaGetPix(pixad, i, L_CLONE);
         pixRasterop(pixd, x, y, w, h, PIX_PAINT, pix, 0, 0);
         pixDestroy(&pix);
     }
@@ -190,9 +190,9 @@ PIXA    *pixad;
                 return (PIXA *)ERROR_PTR("pixt1 not found", procName, NULL);
             if ((pixt2 = pixMorphCompSequence(pixt1, sequence, 0)) == NULL)
                 return (PIXA *)ERROR_PTR("pixt2 not made", procName, NULL);
-	    pixaAddPix(pixad, pixt2, L_INSERT);
-	    box = pixaGetBox(pixas, i, L_COPY);
-	    pixaAddBox(pixad, box, L_INSERT);
+            pixaAddPix(pixad, pixt2, L_INSERT);
+            box = pixaGetBox(pixas, i, L_COPY);
+            pixaAddBox(pixad, box, L_INSERT);
             pixDestroy(&pixt1);
         }
     }
@@ -222,10 +222,10 @@ PIXA    *pixad;
  *          to each c.c. in the mask pixm.
  *      (3) Dilation will NOT increase the region size; the result
  *          is clipped to the size of the mask region.  This is necessary
- *          to regions independent after the operation.
+ *          to make regions independent after the operation.
  *      (4) You can specify that the width and/or height of a region must
  *          equal or exceed a minimum size for the operation to take place.
- *      (5) Use NULL for boxa to avoid returning the boxa.
+ *      (5) Use NULL for @pboxa to avoid returning the boxa.
  */
 PIX *
 pixMorphSequenceByRegion(PIX         *pixs,
@@ -271,7 +271,7 @@ PIXA    *pixam, *pixad;
     n = pixaGetCount(pixad);
     for (i = 0; i < n; i++) {
         pixaGetBoxGeometry(pixad, i, &x, &y, &w, &h);
-	pix = pixaGetPix(pixad, i, L_CLONE);
+        pix = pixaGetPix(pixad, i, L_CLONE);
         pixRasterop(pixd, x, y, w, h, PIX_PAINT, pix, 0, 0);
         pixDestroy(&pix);
     }
@@ -347,13 +347,13 @@ PIXA    *pixad;
         if (w >= minw && h >= minh) {
             if ((pixt1 = pixaGetPix(pixam, i, L_CLONE)) == NULL)
                 return (PIXA *)ERROR_PTR("pixt1 not found", procName, NULL);
-	    box = pixaGetBox(pixam, i, L_COPY);
+            box = pixaGetBox(pixam, i, L_COPY);
             pixt2 = pixClipRectangle(pixs, box, NULL);
             pixAnd(pixt2, pixt2, pixt1);
             if ((pixt3 = pixMorphCompSequence(pixt2, sequence, 0)) == NULL)
                 return (PIXA *)ERROR_PTR("pixt3 not made", procName, NULL);
-	    pixaAddPix(pixad, pixt3, L_INSERT);
-	    pixaAddBox(pixad, box, L_INSERT);
+            pixaAddPix(pixad, pixt3, L_INSERT);
+            pixaAddBox(pixad, box, L_INSERT);
             pixDestroy(&pixt1);
             pixDestroy(&pixt2);
         }

@@ -81,7 +81,7 @@ pixRotate(PIX       *pixs,
           l_int32    height)
 {
 l_int32    d;
-l_uint32   grayval;
+l_uint32   fillval;
 PIX       *pixt1, *pixt2, *pixt3, *pixd;
 PIXCMAP   *cmap;
 
@@ -115,21 +115,21 @@ PIXCMAP   *cmap;
         pixt3 = pixClone(pixt2);
 
         /* Rotate by shear or area mapping */
-    grayval = 0;
     d = pixGetDepth(pixt3);
     if (d == 1 || type == L_ROTATE_SHEAR)
         pixd = pixRotateShearCenter(pixt3, angle, incolor);
     else {  /* rotate by area mapping */
-        if (d == 8) {
-            if (incolor == L_BRING_IN_WHITE)
-                grayval = 0xff;
-            pixd = pixRotateAMGray(pixt3, angle, grayval);
+        fillval = 0;
+        if (incolor == L_BRING_IN_WHITE) {
+            if (d == 8)
+                fillval = 255;
+            else  /* d == 32 */
+                fillval = 0xffffff00;
         }
-        else {  /* d == 32 */
-            if (incolor == L_BRING_IN_WHITE)
-                grayval = 0xffffff00;
-            pixd = pixRotateAMColor(pixt3, angle, grayval);
-        }
+        if (d == 8)
+            pixd = pixRotateAMGray(pixt3, angle, fillval);
+        else   /* d == 32 */
+            pixd = pixRotateAMColor(pixt3, angle, fillval);
     }
 
     pixDestroy(&pixt1);

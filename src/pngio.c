@@ -97,7 +97,7 @@ l_int32      i, j, k;
 l_int32      wpl, d, spp, cindex;
 l_uint32     png_transforms;
 l_uint32    *data, *line, *ppixel;
-int          num_palette;
+int          num_palette, num_text;
 png_byte     bit_depth, color_type, channels;
 png_uint_32  w, h, rowbytes;
 png_uint_32  xres, yres;
@@ -106,6 +106,7 @@ png_bytep   *row_pointers;
 png_structp  png_ptr;
 png_infop    info_ptr, end_info;
 png_colorp   palette;
+png_textp    text_ptr;  /* ptr to text_chunk */
 PIX         *pix;
 PIXCMAP     *cmap;
 
@@ -266,8 +267,12 @@ PIXCMAP     *cmap;
     pixSetXRes(pix, (l_int32)((l_float32)xres / 39.37 + 0.5));  /* to ppi */
     pixSetYRes(pix, (l_int32)((l_float32)yres / 39.37 + 0.5));  /* to ppi */
 
-    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        /* Get the text if there is any */
+    png_get_text(png_ptr, info_ptr, &text_ptr, &num_text);
+    if (num_text && text_ptr)
+        pixSetText(pix, text_ptr->text);
 
+    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
     return pix;
 }
 
@@ -515,6 +520,17 @@ FILE  *fp;
  *              > 0.4545, the image is rendered lighter than baseline
  *              < 0.4545, the image is rendered darker than baseline
  *          In contrast, gqview seems to ignore the gamma chunk in png.
+ *      (7) The only valid pixel depths in leptonica are 1, 2, 4, 8, 16
+ *          and 32.  However, it is possible, and in some cases desirable,
+ *          to write out a png file using an rgb pix that has 24 bpp.
+ *          For example, the open source xpdf SplashBitmap class generates
+ *          24 bpp rgb images.  To write these directly to file in leptonica,
+ *          you can make a 24 bpp pix without data and assign the data array
+ *          to the pix; e.g.,
+ *              pix = pixCreateHeader(w, h, 24);
+ *              pixSetData(pix, rgbdata);
+ *              pixSetPadBits(pix, 0);
+ *          Consequently, we enable writing 24 bpp pix.
  */
 l_int32
 pixWriteStreamPng(FILE      *fp,
@@ -570,7 +586,7 @@ char        *text;
         cmflag = 1;
     else
         cmflag = 0;
-    if (d == 32) {
+    if ((d == 32) || (d == 24)) {
         bit_depth = 8;
         color_type = PNG_COLOR_TYPE_RGB;
         cmflag = 0;  /* ignore if it exists */
@@ -639,10 +655,11 @@ char        *text;
 #endif
         png_set_text(png_ptr, info_ptr, &text_chunk, 1);
     }
+
         /* Write header and palette info */
     png_write_info(png_ptr, info_ptr);
 
-    if (d != 32) {  /* not 24 bit color */
+    if ((d != 32) && (d != 24)) {  /* not rgb color */
             /* Generate a temporary pix with bytes swapped.
              * For a binary image, there are two conditions in
              * which you must first invert the data for writing png:
@@ -686,28 +703,36 @@ char        *text;
         return 0;
     }
 
-        /* 24 bit color; write a row at a time */
-    if ((rowbuffer = (png_bytep)CALLOC(w, 3)) == NULL)
-        return ERROR_INT("rowbuffer not made", procName, 1);
+        /* For rgb, compose and write a row at a time */
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
-    for (i = 0; i < h; i++) {
-        ppixel = data + i * wpl;
-        for (j = k = 0; j < w; j++) {
-            rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
-            rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-            rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-            ppixel++;
+    if (d == 24) {  /* See note 7 above: special case of 24 bpp rgb */
+        for (i = 0; i < h; i++) {
+            ppixel = data + i * wpl;
+            png_write_rows(png_ptr, (png_bytepp)&ppixel, 1);
         }
+    }
+    else {  /* standard 32 bpp rgb */
+        if ((rowbuffer = (png_bytep)CALLOC(w, 3)) == NULL)
+            return ERROR_INT("rowbuffer not made", procName, 1);
+        for (i = 0; i < h; i++) {
+            ppixel = data + i * wpl;
+            for (j = k = 0; j < w; j++) {
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                ppixel++;
+            }
 
-        png_write_rows(png_ptr, &rowbuffer, 1);
+            png_write_rows(png_ptr, &rowbuffer, 1);
+        }
+        FREE(rowbuffer);
     }
 
     png_write_end(png_ptr, info_ptr);
 
     if (cmflag)
         FREE(palette);
-    FREE(rowbuffer);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     return 0;
 
@@ -717,8 +742,7 @@ char        *text;
 /*---------------------------------------------------------------------*
  *                         Read/write to memory                        *
  *---------------------------------------------------------------------*/
-#if HAVE_FMEMOPEN || \
- (!defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(_STANDARD_C_))
+#if HAVE_FMEMOPEN
 
 extern FILE *open_memstream(char **data, size_t *size);
 extern FILE *fmemopen(void *data, size_t size, const char *mode);
@@ -726,7 +750,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
 /*!
  *  pixReadMemPng()
  *
- *      Input:  data (const; png-encoded)
+ *      Input:  cdata (const; png-encoded)
  *              size (of data)
  *      Return: pix, or null on error
  *
@@ -796,7 +820,7 @@ FILE    *fp;
 #else
 
 PIX *
-pixReadMemPng(const l_uint8  *data,
+pixReadMemPng(const l_uint8  *cdata,
               size_t          size)
 {
     return (PIX *)ERROR_PTR(
@@ -816,7 +840,7 @@ pixWriteMemPng(l_uint8  **pdata,
         "pixWriteMemPng", 1);
 }
 
-#endif  /* HAVE_FMEMOPEN || (!defined(__MINGW32__) && etc ) */
+#endif  /* HAVE_FMEMOPEN */
 
 /* --------------------------------------------*/
 #endif  /* HAVE_LIBPNG */

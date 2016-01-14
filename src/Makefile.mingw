@@ -14,7 +14,7 @@
 #*====================================================================*/
 
 
-#   Makefile.mingw  (cross-compiler for windows on linux)
+#   makefile.mingw  (cross-compiler for windows on linux)
 #
 #   Hand-built -- editable -- simple -- makefile
 #
@@ -51,9 +51,9 @@
 #
 #   Customization for machine hardware:
 #   (1) On little-endian machines (e.g., i386, x86-64):
-#          CPPFLAGS = $(INCLUDES) -DL_LITTLE_ENDIAN -D_STANDARD_C_
+#          CPPFLAGS = $(INCLUDES) -DL_LITTLE_ENDIAN
 #       On big-endian machines (e.g., Mac Power PC, Sun Sparc):
-#          CPPFLAGS = $(INCLUDES) -DL_BIG_ENDIAN -D_STANDARD_C_
+#          CPPFLAGS = $(INCLUDES) -DL_BIG_ENDIAN
 #   (2) To generate function prototypes, you need a program called
 #       xtractprotos.  Build it with this command:
 #          make xtractprotos
@@ -86,8 +86,8 @@ INCLUDES =	-I./ -I/usr/local/include/mingw
 PROTOTYPE_DIR =	.
 
 # Conditional compilation (depending on processor endian-ness)
-CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN -D_NO_AUTOCONF_ -D_STANDARD_C_
-#CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN -D_NO_AUTOCONF_ -D_STANDARD_C_
+CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN -D_NO_AUTOCONF_
+#CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN -D_NO_AUTOCONF_
 
 # Shared library linker options
 SONAME_OPTION = -Wl,-h,
@@ -125,7 +125,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 56
+MINOR_REV = 58
 
 #########################################################
 
@@ -154,6 +154,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
+		fpix1.c fpix2.c \
 		gifio.c gifiostub.c \
 		gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
@@ -164,8 +165,9 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		numabasic.c numafunc1.c numafunc2.c \
 		pageseg.c paintcmap.c \
 		parseprotos.c partition.c pheap.c \
-		pix1.c pix2.c pix3.c pixabasic.c \
-		pixacc.c pixafunc.c pixarith.c \
+		pix1.c pix2.c pix3.c pix4.c \
+		pixabasic.c pixacc.c \
+		pixafunc.c pixarith.c \
 		pixconv.c pixtiling.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
 		pqueue.c projective.c psio.c psiostub.c \
@@ -201,9 +203,9 @@ LEPTLIB_H =	allheaders.h alltypes.h \
 nodebug: dirs $(LEPTLIB:%=$(LIB_NODEBUG)/%)
 
 all:
-	make -f Makefile TARGET=$(TARGET) nodebug
-	make -f Makefile TARGET=$(TARGET) DEBUG=true debug
-	make -f Makefile TARGET=$(TARGET) SHARED=true shared
+	make -f makefile.mingw TARGET=$(TARGET) nodebug
+	make -f makefile.mingw TARGET=$(TARGET) DEBUG=true debug
+	make -f makefile.mingw TARGET=$(TARGET) SHARED=true shared
 
 DEBUG_LIBS = $(LEPTLIB:%=$(LIB_DEBUG)/%)
 SHARED_LIBS = $(LEPTLIB_SHARED:%=$(LIB_SHARED)/%)

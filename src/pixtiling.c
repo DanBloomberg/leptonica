@@ -48,7 +48,7 @@
  *     for (j = 0; j < nx; j++) {
  *         PIX *pixt = pixTilingGetTile(pt, 0, j);
  *         SomeInPlaceOperation(pixt, overlap, ...);
- *         pixTilingPaintTile(pixd, 0, j, pixt, nt);
+ *         pixTilingPaintTile(pixd, 0, j, pixt, pt);
  *         pixDestroy(&pixt);
  *     }
  *

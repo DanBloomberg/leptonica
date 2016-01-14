@@ -32,6 +32,9 @@
  *           l_int32   pixaccAdd()
  *           l_int32   pixaccSubtract()
  *           l_int32   pixaccMultConst()
+ *
+ *  This is a simple interface to some of the pixel arithmetic operations 
+ *  in pixarith.c.
  */
 
 #include <stdio.h>

@@ -23,6 +23,9 @@
  *      Distance function:
  *               void   distanceFunctionLow()
  *
+ *      Seed spread:
+ *               void   seedspreadLow()
+ *
  */
 
 #include <stdio.h>
@@ -402,7 +405,6 @@ l_uint32  *lines, *linem;
 }
 
 
-
 /*-----------------------------------------------------------------------*
  *                   Vincent's Distance Function method                  *
  *-----------------------------------------------------------------------*/
@@ -455,7 +457,6 @@ l_uint32  *lined;
                         val5 = GET_DATA_BYTE(lined, j + 1);
                         minval = L_MIN(val5, val7);
                         minval = L_MIN(minval + 1, val);
-                        minval = L_MIN(minval, 255);
                         SET_DATA_BYTE(lined, j, minval);
                     }
                 }
@@ -485,7 +486,6 @@ l_uint32  *lined;
                         val5 = GET_DATA_TWO_BYTES(lined, j + 1);
                         minval = L_MIN(val5, val7);
                         minval = L_MIN(minval + 1, val);
-                        minval = L_MIN(minval, 0xffff);
                         SET_DATA_TWO_BYTES(lined, j, minval);
                     }
                 }
@@ -526,7 +526,6 @@ l_uint32  *lined;
                         minval = L_MIN(minval, val6);
                         minval = L_MIN(minval, val5);
                         minval = L_MIN(minval + 1, val);
-                        minval = L_MIN(minval, 255);
                         SET_DATA_BYTE(lined, j, minval);
                     }
                 }
@@ -564,7 +563,6 @@ l_uint32  *lined;
                         minval = L_MIN(minval, val6);
                         minval = L_MIN(minval, val5);
                         minval = L_MIN(minval + 1, val);
-                        minval = L_MIN(minval, 0xffff);
                         SET_DATA_TWO_BYTES(lined, j, minval);
                     }
                 }
@@ -579,4 +577,149 @@ l_uint32  *lined;
 
     return;
 }
+
+
+/*-----------------------------------------------------------------------*
+ *                 Seed spread (based on distance function)              *
+ *-----------------------------------------------------------------------*/
+/*!
+ *  seedspreadLow()
+ *
+ *    See pixSeedspread() for a brief description of the algorithm here.
+ */
+void
+seedspreadLow(l_uint32  *datad,
+              l_int32    w,
+              l_int32    h,
+              l_int32    wpld,
+              l_uint32  *datat,
+              l_int32    wplt,
+              l_int32    connectivity)
+{
+l_int32    val1t, val2t, val3t, val4t, val5t, val6t, val7t, val8t;
+l_int32    i, j, imax, jmax, minval, valt, vald;
+l_uint32  *linet, *lined;
+
+    PROCNAME("seedspreadLow");
+
+        /* One raster scan followed by one anti-raster scan.
+         * pixt is initialized to have 0 on pixels where the
+         * input is specified in pixd, and to have 1 on all
+         * other pixels.  We only change pixels in pixt and pixd
+         * that are non-zero in pixt. */
+    imax = h - 1;
+    jmax = w - 1;
+    switch (connectivity)
+    {
+    case 4:
+            /* UL --> LR scan */
+        for (i = 1; i < h; i++) {
+            linet = datat + i * wplt;
+            lined = datad + i * wpld;
+            for (j = 1; j < jmax; j++) {
+                if ((valt = GET_DATA_TWO_BYTES(linet, j)) > 0) {
+                    val2t = GET_DATA_TWO_BYTES(linet - wplt, j);
+                    val4t = GET_DATA_TWO_BYTES(linet, j - 1);
+                    minval = L_MIN(val2t, val4t);
+                    minval = L_MIN(minval, 0xfffe);
+                    SET_DATA_TWO_BYTES(linet, j, minval + 1);
+                    if (val2t < val4t)
+                        vald = GET_DATA_BYTE(lined - wpld, j);
+                    else
+                        vald = GET_DATA_BYTE(lined, j - 1);
+                    SET_DATA_BYTE(lined, j, vald);
+                }
+            }
+        }
+
+            /* LR --> UL scan */
+        for (i = imax - 1; i > 0; i--) {
+            linet = datat + i * wplt;
+            lined = datad + i * wpld;
+            for (j = jmax - 1; j > 0; j--) {
+                if ((valt = GET_DATA_TWO_BYTES(linet, j)) > 0) {
+                    val7t = GET_DATA_TWO_BYTES(linet + wplt, j);
+                    val5t = GET_DATA_TWO_BYTES(linet, j + 1);
+                    minval = L_MIN(val5t, val7t);
+                    minval = L_MIN(minval + 1, valt);
+		    if (valt > minval) {  /* replace */
+                        SET_DATA_TWO_BYTES(linet, j, minval);
+                        if (val5t < val7t)
+                            vald = GET_DATA_BYTE(lined, j + 1);
+                        else
+                            vald = GET_DATA_BYTE(lined + wplt, j);
+                        SET_DATA_BYTE(lined, j, vald);
+                    }
+                }
+            }
+        }
+        break;
+    case 8:
+            /* UL --> LR scan */
+        for (i = 1; i < h; i++) {
+            linet = datat + i * wplt;
+            lined = datad + i * wpld;
+            for (j = 1; j < jmax; j++) {
+                if ((valt = GET_DATA_TWO_BYTES(linet, j)) > 0) {
+                    val1t = GET_DATA_TWO_BYTES(linet - wplt, j - 1);
+                    val2t = GET_DATA_TWO_BYTES(linet - wplt, j);
+                    val3t = GET_DATA_TWO_BYTES(linet - wplt, j + 1);
+                    val4t = GET_DATA_TWO_BYTES(linet, j - 1);
+                    minval = L_MIN(val1t, val2t);
+                    minval = L_MIN(minval, val3t);
+                    minval = L_MIN(minval, val4t);
+                    minval = L_MIN(minval, 0xfffe);
+                    SET_DATA_TWO_BYTES(linet, j, minval + 1);
+                    if (minval == val1t)
+                        vald = GET_DATA_BYTE(lined - wpld, j - 1);
+                    else if (minval == val2t)
+                        vald = GET_DATA_BYTE(lined - wpld, j);
+                    else if (minval == val3t)
+                        vald = GET_DATA_BYTE(lined - wpld, j + 1);
+                    else  /* minval == val4t */
+                        vald = GET_DATA_BYTE(lined, j - 1);
+                    SET_DATA_BYTE(lined, j, vald);
+                }
+            }
+        }
+
+            /* LR --> UL scan */
+        for (i = imax - 1; i > 0; i--) {
+            linet = datat + i * wplt;
+            lined = datad + i * wpld;
+            for (j = jmax - 1; j > 0; j--) {
+                if ((valt = GET_DATA_TWO_BYTES(linet, j)) > 0) {
+                    val8t = GET_DATA_TWO_BYTES(linet + wplt, j + 1);
+                    val7t = GET_DATA_TWO_BYTES(linet + wplt, j);
+                    val6t = GET_DATA_TWO_BYTES(linet + wplt, j - 1);
+                    val5t = GET_DATA_TWO_BYTES(linet, j + 1);
+                    minval = L_MIN(val8t, val7t);
+                    minval = L_MIN(minval, val6t);
+                    minval = L_MIN(minval, val5t);
+                    minval = L_MIN(minval + 1, valt);
+                    if (valt > minval) {  /* replace */
+                        SET_DATA_TWO_BYTES(linet, j, minval);
+                        if (minval == val5t + 1)
+                            vald = GET_DATA_BYTE(lined, j + 1);
+			else if (minval == val6t + 1)
+                            vald = GET_DATA_BYTE(lined + wpld, j - 1);
+			else if (minval == val7t + 1)
+                            vald = GET_DATA_BYTE(lined + wpld, j);
+			else  /* minval == val8t + 1 */
+                            vald = GET_DATA_BYTE(lined + wpld, j + 1);
+                        SET_DATA_BYTE(lined, j, vald);
+                    }
+                }
+            }
+        }
+        break;
+    default:
+        ERROR_VOID("connectivity must be 4 or 8", procName);
+        break;
+    }
+
+    return;
+}
+
+
 

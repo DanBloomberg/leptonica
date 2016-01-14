@@ -82,7 +82,7 @@ static char  mainName[] = "paintmask_reg";
     pixDestroy(&pixd);
 
         /* Clip 4 bpp colormapped */
-    pixt1 = pixOctreeQuant(pixs, 16, 1);
+    pixt1 = pixOctreeQuantNumColors(pixs, 16, 1);
     pixt2 = pixClipRectangle(pixt1, box, NULL);
     pixDisplayWrite(pixt2, 1);
     pixd = pixClipMasked(pixt1, pixm, 100, 100, 0x03c08000);

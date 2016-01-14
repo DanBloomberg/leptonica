@@ -83,10 +83,6 @@
 #include <string.h>
 #include "allheaders.h"
 
-#if defined(__MINGW32__) || defined(_WIN32)
-#define snprintf _snprintf
-#endif
-
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE      512
 #define MAX_NUM_GPLOTS  40
@@ -392,15 +388,15 @@ FILE    *fp;
         /* Generate command data instructions */
     if (gplot->title) {   /* set title */
         snprintf(buf, L_BUF_SIZE, "set title '%s'", gplot->title);
-	sarrayAddString(gplot->cmddata, buf, L_COPY);
+        sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
     if (gplot->xlabel) {   /* set xlabel */
         snprintf(buf, L_BUF_SIZE, "set xlabel '%s'", gplot->xlabel);
-	sarrayAddString(gplot->cmddata, buf, L_COPY);
+        sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
     if (gplot->ylabel) {   /* set ylabel */
         snprintf(buf, L_BUF_SIZE, "set ylabel '%s'", gplot->ylabel);
-	sarrayAddString(gplot->cmddata, buf, L_COPY);
+        sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
 
     if (gplot->outformat == GPLOT_PNG)    /* set terminal type and output */
@@ -435,7 +431,7 @@ FILE    *fp;
     for (i = 0; i < nplots; i++) {
         plottitle = sarrayGetString(gplot->plottitles, i, L_NOCOPY);
         dataname = sarrayGetString(gplot->datanames, i, L_NOCOPY);
-	numaGetIValue(gplot->plotstyles, i, &plotstyle);
+        numaGetIValue(gplot->plotstyles, i, &plotstyle);
         if (nplots == 1)
             snprintf(buf, L_BUF_SIZE, "plot '%s' title '%s' %s",
                      dataname, plottitle, gplotstylenames[plotstyle]);

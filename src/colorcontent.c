@@ -28,6 +28,10 @@
  *      Finds the fraction of pixels with "color" that are not close to black
  *         l_int32    pixColorFraction()
  *
+ *      Identifies images where color quantization will cause posterization
+ *      due to the existence of many colors in low-gradient regions.
+ *         l_int32    pixColorsForQuantization()
+ *
  *      Finds the number of unique colors in an image
  *         l_int32    pixNumColors()
  *
@@ -418,19 +422,30 @@ PIXCMAP   *cmap;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Any pixel that meets these three tests is considered a
+ *      (1) This function is asking the question: to what extent does the
+ *          image appear to have color?   The amount of color a pixel
+ *          appears to have depends on both the deviation of the
+ *          individual components from their average and on the average
+ *          intensity itself.  For example, the color will be much more
+ *          obvious with a small deviation from white than the same
+ *          deviation from black.
+ *      (2) Any pixel that meets these three tests is considered a
  *          colorful pixel:
  *            (a) the average of components must equal or exceed @darkthresh
- *            (b) the average of components must be less than @lightthresh
+ *            (b) the average of components must be not exceed @lightthresh
  *            (c) at least one component must differ from the average
  *                by at least @diffthresh
- *      (2) The dark pixels are removed from consideration because
+ *      (3) The dark pixels are removed from consideration because
  *          they don't appear to have color.
- *      (3) The very lightest pixels are removed because if an image
+ *      (4) The very lightest pixels are removed because if an image
  *          has a lot of "white", the color fraction will be artificially
  *          low, even if all the other pixels are colorful.
- *      (4) If either pixfract or colorfract is very small, this
+ *      (5) If either pixfract or colorfract is very small, this
  *          indicates an image with little or no color.
+ *      (6) One use of this function is as a preprocessing step for median
+ *          cut quantization (colorquant2.c), which does a very poor job
+ *          splitting the color space into rectangular volume elements when
+ *          all the pixels are near the diagonal of the color cube.
  */
 l_int32
 pixColorFraction(PIX        *pixs,
@@ -491,9 +506,99 @@ l_uint32  *data, *line;
 
 
 /*!
+ *  pixColorsForQuantization()
+ *      Input:  pixs (32 bpp rgb)
+ *              thresh (binary threshold on edge gradient; 0 for default)
+ *              &ncolors (<return> the number of colors found)
+ *      Return: 0 if OK, 1 on error.
+ *
+ *  Notes:
+ *      (1) Color quantization is often useful to achieve highly
+ *          compressed images with little visible distortion.  However,
+ *          color washes (regions of low gradient) can defeat this
+ *          approach to high compression.  How can one determine if
+ *          an image is expected to compress well using color quantization?
+ *          We use the fact that color washes, when quantized with level 4
+ *          octcubes, typically result in both posterization
+ *          (visual boundaries between regions of uniform color) and
+ *          the occupancy of many level 4 octcubes.
+ *      (2) This function finds a measure of the number of colors that are
+ *          found in low-gradient regions of an image.  By its
+ *          magnitude relative to some threshold (not specified in
+ *          this function), it gives a good indication of whether color
+ *          quantization will generate posterization.   This number
+ *          is larger for images with regions of slowly varying color.
+ *          Such images, if color quantized, may require dithering 
+ *          to avoid posterization, and lossless compression is then
+ *          expected to be poor.
+ *      (3) The number of colors returned increases monotonically with the
+ *          threshold @thresh on the edge gradient.  In use, an
+ *          input threshold is chosen.  The number of occupied level 4
+ *          octubes is found, and if this is sufficiently large,
+ *          quantization without dithering can be expected to have a
+ *          poor visual result.
+ *      (4) When using the default threshold on the gradient (15),
+ *          images where ncolors is greater than about 25 will compress
+ *          poorly with either lossless compression or dithered
+ *          quantization, and they can expect to be posterized with
+ *          non-dithered quantization.
+ *      (5) An alternative method, which finds the actual number of
+ *          different (r,g,b) colors in the low-gradient regions (rather than
+ *          the number of occupied level 4 octcubes), does not
+ *          discriminate well, because very small color changes
+ *          (e.g., due to jpeg compression) will cause a large number
+ *          of colors to be found, even for regions that are visually
+ *          of a single color.
+ */
+l_int32
+pixColorsForQuantization(PIX      *pixs,
+                         l_int32   thresh,
+                         l_int32  *pncolors)
+{
+PIX  *pixs2, *pixg2, *pixe2, *pixb2, *pixm2;
+
+    PROCNAME("pixColorsForQuantization");
+
+    if (!pncolors)
+        return ERROR_INT("&ncolors not defined", procName, 1);
+    *pncolors = 0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (pixGetDepth(pixs) != 32)
+        return ERROR_INT("pixs not 32 bpp", procName, 1);
+    if (thresh <= 0) 
+        thresh = 15;  /* default */
+
+        /* Scale down 2x; get edges on grayscale version;
+         * binarize and dilate with a 7x7 brick Sel to get mask over
+         * all pixels that are within a small distance from the
+         * nearest edge pixel. */
+    pixs2 = pixScaleAreaMap2(pixs);
+    pixg2 = pixConvertRGBToLuminance(pixs2);
+    pixe2 = pixSobelEdgeFilter(pixg2, L_ALL_EDGES);
+    pixb2 = pixThresholdToBinary(pixe2, thresh);
+    pixInvert(pixb2, pixb2);
+    pixm2 = pixMorphSequence(pixb2, "d7.7", 0);
+
+        /* Set all those pixels to white.  Then count the
+         * number of occupied level 4 octcubes for the remaining pixels. */
+    pixSetMasked(pixs2, pixm2, 0xffffffff);
+    pixNumberOccupiedOctcubes(pixs2, 4, pncolors);
+
+    pixDestroy(&pixs2);
+    pixDestroy(&pixg2);
+    pixDestroy(&pixe2);
+    pixDestroy(&pixb2);
+    pixDestroy(&pixm2);
+    return 0;
+}
+
+
+/*!
  *  pixNumColors()
  *      Input:  pixs (2, 4, 8, 32 bpp)
- *              &ncolors (<return> the number of colors found)
+ *              &ncolors (<return> the number of colors found, or 0 if
+ *                        there are more than 256)
  *      Return: 0 if OK, 1 on error.
  *
  *  Notes:

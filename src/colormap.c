@@ -25,6 +25,7 @@
  *           l_int32     pixcmapAddColor()
  *           l_int32     pixcmapAddNewColor()
  *           l_int32     pixcmapAddBlackOrWhite()
+ *           l_int32     pixcmapSetBlackAndWhite()
  *           l_int32     pixcmapGetCount()
  *           l_int32     pixcmapGetFreeCount()
  *           l_int32     pixcmapClear()
@@ -357,6 +358,39 @@ pixcmapAddBlackOrWhite(PIXCMAP  *cmap,
 
 
 /*!
+ *  pixcmapSetBlackAndWhite()
+ *
+ *      Input:  cmap
+ *              setblack (0 for no operation; 1 to set darkest color to black)
+ *              setwhite (0 for no operation; 1 to set lightest color to white)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixcmapSetBlackAndWhite(PIXCMAP  *cmap,
+                        l_int32   setblack,
+                        l_int32   setwhite)
+{
+l_int32  index;
+
+    PROCNAME("pixcmapSetBlackAndWhite");
+
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+
+    if (setblack) {
+        pixcmapGetRankIntensity(cmap, 0.0, &index);
+        pixcmapResetColor(cmap, index, 0, 0, 0);
+    }
+    if (setwhite) {
+        pixcmapGetRankIntensity(cmap, 1.0, &index);
+        pixcmapResetColor(cmap, index, 255, 255, 255);
+    }
+
+    return 0;
+}
+
+
+/*!
  *  pixcmapGetCount()
  *
  *      Input:  cmap
@@ -476,7 +510,7 @@ RGBA_QUAD  *cta;
 
     if (!cmap)
         return ERROR_INT("cmap not defined", procName, 1);
-    if (index >= cmap->n)
+    if (index < 0 || index >= cmap->n)
         return ERROR_INT("index out of bounds", procName, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
@@ -697,7 +731,7 @@ l_int32  i, n, rval, gval, bval, extrval, extgval, extbval;
         return ERROR_INT("cmap not defined", procName, 1);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
         return ERROR_INT("invalid type", procName, 1);
-    if (!rval && !gval && !bval)
+    if (!prval && !pgval && !pbval)
         return ERROR_INT("no result requested for return", procName, 1);
 
     if (type == L_CHOOSE_MIN) {
@@ -719,10 +753,10 @@ l_int32  i, n, rval, gval, bval, extrval, extgval, extbval;
             extrval = rval;
         if ((type == L_CHOOSE_MIN && gval < extgval) ||
             (type == L_CHOOSE_MAX && gval > extgval))
-            extrval = rval;
+            extgval = gval;
         if ((type == L_CHOOSE_MIN && bval < extbval) ||
             (type == L_CHOOSE_MAX && bval > extbval))
-            extrval = rval;
+            extbval = bval;
     }
     if (prval) *prval = extrval;
     if (pgval) *pgval = extgval;

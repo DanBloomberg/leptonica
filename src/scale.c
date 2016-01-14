@@ -118,24 +118,44 @@
  *  2, 4, 8 or 16 bpp gray; and binary images.
  *
  *  When the input has palette color, the colormap is removed and
- *  a 32 bpp full color pix is made, which is then scaled with
- *  either pixScaleAreaMap() or pixScaleColorLI(), depending on
- *  the scale factor.
+ *  the result is either 8 bpp gray or 32 bpp RGB, depending on whether
+ *  the colormap has color entries.  Images with 2, 4 or 16 bpp are
+ *  converted to 8 bpp.
  *
- *  Images with 2, 4 or 16 bpp are converted to 8 bpp.
+ *  Grayscale and color images are scaled using one of four methods,
+ *  depending on the scale factors:
+ *   (1) antialiased subsampling (lowpass filtering followed by
+ *       subsampling, implemented here by area mapping), for scale factors
+ *       less than 0.7
+ *   (2) linear interpolation with sharpening, for scale factors between
+ *       0.7 and 1.4
+ *   (3) linear interpolation alone, for scale factors >= 1.4.
  *
- *  Grayscale and color images are scaled using either antialiased
- *  subsampling (lowpass filtering followed by subsampling), or
- *  by linear interpolation.  For scale factors less than 0.7,
- *  antialiased area mapping is used.
+ *  One could use subsampling for scale factors very close to 1.0,
+ *  because it preserves sharp edges.  Linear interpolation blurs
+ *  edges because the dest pixels will typically straddle two src edge
+ *  pixels.  Subsmpling removes entire columns and rows, so the edge is
+ *  not blurred.  However, there are two reasons for not doing this.
+ *  First, it moves edges, so that a straight line at a large angle to
+ *  both horizontal and vertical will have noticable kinks where
+ *  horizontal and vertical rasters are removed.  Second, although it
+ *  is very fast, you get good results on sharp edges by applying
+ *  a sharpening filter.
  *
- *  Binary image are scaled by sampling the closest pixel, without
+ *  For images with sharp edges, sharpening substantially improves the
+ *  image quality for scale factors between 0.7 and about 2.0.  However,
+ *  the sharpening operation is about 3 times slower than linear
+ *  interpolation, so there is a speed-vs-quality tradeoff.  When the scale
+ *  factor is larger than 1.4, the cost (which goes as the image area)
+ *  is very large for the incremental quality improvement, so we cut off
+ *  the use of sharpening at 1.4.  For scale factors greater than 1.4,
+ *  this generic function does only linear interpolation.
+ *
+ *  Binary images are scaled by sampling the closest pixel, without
  *  any low-pass filtering (averaging of neighboring pixels).
  *  This will introduce aliasing for reductions, which can be
  *  prevented by using pixScaleToGray() instead.
  *
- *  See notes below regarding use of filtering when subsampling.
- *  
  *  *** Warning: implicit assumption about RGB component order
  *               for LI color scaling
  */
@@ -146,79 +166,58 @@ pixScale(PIX       *pixs,
 {
 l_int32    d;
 l_float32  maxscale;
-PIX       *pixt, *pixd;
+PIX       *pixt, *pixt2, *pixd;
 
     PROCNAME("pixScale");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
+        return (PIX *)ERROR_PTR("pixs not {1,2,4,8,16,32} bpp", procName, NULL);
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
 
-    maxscale = L_MAX(scalex, scaley);
-    d = pixGetDepth(pixs);
     if (d == 1)
         return pixScaleBinary(pixs, scalex, scaley);
-    else if (d == 16) {
-        L_WARNING("pix has 16 bpp; converting to 8 bpp with MSB", procName);
-        pixt = pixConvert16To8(pixs, 1);
-        if (maxscale >= 0.7) {
-            pixd = pixScaleGrayLI(pixt, scalex, scaley);
-        } 
-        else {  /* maxscale < 0.7 */
-            pixd = pixScaleAreaMap(pixt, scalex, scaley);
-        } 
-        pixDestroy(&pixt);
-        return pixd;
-    }
-    else if (pixGetColormap(pixs)) {   /* 2, 4 or 8 bpp */
+    
+        /* Convert to 8 or 32 bpp, without colormap */
+    if (pixGetColormap(pixs)) {   /* 2, 4 or 8 bpp */
         L_WARNING("pixs has colormap; removing", procName);
         if ((pixt = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC)) == NULL)
             return (PIX *)ERROR_PTR("colormap not removed", procName, NULL);
-        d = pixGetDepth(pixt);
-        if (maxscale >= 0.7) {
-            if (d == 8)
-                pixd = pixScaleGrayLI(pixt, scalex, scaley);
-            else  /* d == 32 */
-                pixd = pixScaleColorLI(pixt, scalex, scaley);
-        }
-        else {  /* maxscale < 0.7 */
-            pixd = pixScaleAreaMap(pixt, scalex, scaley);
-        } 
-        pixDestroy(&pixt);
-        return pixd;
+    }
+    else if (d == 16) {
+        L_WARNING("pix has 16 bpp; converting to 8 bpp with MSB", procName);
+        pixt = pixConvert16To8(pixs, 1);
     }
     else if (d == 2 || d == 4) {
         L_WARNING("pix has 2 or 4 bpp without colormap; converting to 8 bpp",
                 procName);
         pixt = pixConvertTo8(pixs, FALSE);
-        if (maxscale >= 0.7) {
-            pixd = pixScaleGrayLI(pixt, scalex, scaley);
-        } 
-        else {  /* maxscale < 0.7 */
-            pixd = pixScaleAreaMap(pixt, scalex, scaley);
-        } 
-        pixDestroy(&pixt);
-        return pixd;
-    }
-    else if (d == 8) {
-        if (maxscale >= 0.7) {
-            return pixScaleGrayLI(pixs, scalex, scaley);
-        } 
-        else {  /* maxscale < 0.7 */
-            return pixScaleAreaMap(pixs, scalex, scaley);
-        } 
-    }
-    else if (d == 32) {
-        if (maxscale >= 0.7) {
-            return pixScaleColorLI(pixs, scalex, scaley);
-        } 
-        else {  /* maxscale < 0.7 */
-            return pixScaleAreaMap(pixs, scalex, scaley);
-        } 
     }
     else
-        return (PIX *)ERROR_PTR("pixs not {1,2,4,8,16,32} bpp", procName, NULL);
+        pixt = pixClone(pixs);
+
+        /* Scale (up or down) */
+    d = pixGetDepth(pixt);
+    maxscale = L_MAX(scalex, scaley);
+    if (maxscale < 0.7)   /* area mapping for anti-aliasing */
+        pixd = pixScaleAreaMap(pixt, scalex, scaley);
+    else {  /* use linear interpolation */
+        if (d == 8)
+            pixt2 = pixScaleGrayLI(pixt, scalex, scaley);
+        else  /* d == 32 */
+            pixt2 = pixScaleColorLI(pixt, scalex, scaley);
+        if (maxscale < 1.4)
+            pixd = pixUnsharpMasking(pixt2, 2, 0.4);
+        else
+            pixd = pixClone(pixt2);
+        pixDestroy(&pixt2);
+    }
+
+    pixDestroy(&pixt);
+    return pixd;
 }
 
 
@@ -251,8 +250,8 @@ pixScaleLI(PIX       *pix,
            l_float32  scalex,
            l_float32  scaley)
 {
-l_int32    d;
-PIX              *pixs, *pixd;
+l_int32  d;
+PIX     *pixs, *pixd;
 
     PROCNAME("pixScaleLI");
 
@@ -349,7 +348,6 @@ PIX              *pixd;
     pixScaleResolution(pixd, scalex, scaley);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleColorLILow(datad, wd, hd, wpld, datas, ws, hs, wpls);
     return pixd;
 }
@@ -377,7 +375,7 @@ pixScaleColor2xLI(PIX  *pixs)
 {
 l_int32    d, ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixScaleColor2xLI");
 
@@ -395,9 +393,7 @@ PIX              *pixd;
     pixScaleResolution(pixd, 2.0, 2.0);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleColor2xLILow(datad, wpld, datas, ws, hs, wpls);
-
     return pixd;
 }
 
@@ -449,7 +445,6 @@ PIX  *pixd;
     pixDestroy(&pixrs);
     pixDestroy(&pixgs);
     pixDestroy(&pixbs);
-
     return pixd;
 }
 
@@ -536,7 +531,7 @@ pixScaleGrayLI(PIX       *pixs,
 {
 l_int32    d, ws, hs, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixScaleGrayLI");
 
@@ -569,9 +564,7 @@ PIX              *pixd;
     pixScaleResolution(pixd, scalex, scaley);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleGrayLILow(datad, wd, hd, wpld, datas, ws, hs, wpls);
-
     return pixd;
 }
 
@@ -594,7 +587,7 @@ pixScaleGray2xLI(PIX  *pixs)
 {
 l_int32    d, ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixScaleGray2xLI");
 
@@ -614,9 +607,7 @@ PIX              *pixd;
     pixScaleResolution(pixd, 2.0, 2.0);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleGray2xLILow(datad, wpld, datas, ws, hs, wpls);
-
     return pixd;
 }
 
@@ -639,7 +630,7 @@ pixScaleGray4xLI(PIX  *pixs)
 {
 l_int32    d, ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixScaleGray4xLI");
 
@@ -659,9 +650,7 @@ PIX              *pixd;
     pixScaleResolution(pixd, 4.0, 4.0);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleGray4xLILow(datad, wpld, datas, ws, hs, wpls);
-
     return pixd;
 }
 
@@ -689,7 +678,7 @@ pixScaleBySampling(PIX       *pixs,
 {
 l_int32    ws, hs, d, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixScaleBySampling");
 
@@ -712,9 +701,7 @@ PIX              *pixd;
     pixCopyColormap(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleBySamplingLow(datad, wd, hd, wpld, datas, ws, hs, d, wpls);
-
     return pixd;
 }
 
@@ -962,7 +949,7 @@ pixScaleSmooth(PIX       *pix,
 l_int32    ws, hs, d, wd, hd, wpls, wpld, isize;
 l_uint32  *datas, *datad;
 l_float32  minscale, size;
-PIX              *pixs, *pixd;
+PIX       *pixs, *pixd;
 
     PROCNAME("pixScaleSmooth");
 
@@ -1022,7 +1009,6 @@ PIX              *pixs, *pixd;
     pixScaleResolution(pixd, scalex, scaley);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleSmoothLow(datad, wd, hd, wpld, datas, ws, hs, d, wpls, isize);
 
     pixDestroy(&pixs);
@@ -1045,7 +1031,7 @@ pixScaleRGBToGray2(PIX       *pixs,
 {
 l_int32    wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixScaleRGBToGray2");
 
@@ -1066,7 +1052,6 @@ PIX              *pixd;
     pixScaleResolution(pixd, 0.5, 0.5);
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
-
     scaleRGBToGray2Low(datad, wd, hd, wpld, datas, wpls, rwt, gwt, bwt);
     return pixd;
 }
@@ -1093,8 +1078,12 @@ PIX              *pixd;
  *      (3) It does a relatively expensive area mapping computation, to
  *          avoid antialiasing.  It is about 2x slower than pixScaleSmooth(),
  *          but the results are much better on fine text.
- *      (4) This is much faster for the special cases of 2x, 4x, 8x and
- *          16x reduction.
+ *      (4) This is typically about 20% faster for the special cases of
+ *          2x, 4x, 8x and 16x reduction.
+ *      (5) Surprisingly, there is no speedup (and a slight quality
+ *          impairment) if you do as many successive 2x reductions as
+ *          possible, ending with a reduction with a scale factor larger
+ *          than 0.5.
  *
  *  *** Warning: implicit assumption about RGB component ordering ***
  */
@@ -1105,7 +1094,7 @@ pixScaleAreaMap(PIX       *pix,
 {
 l_int32    ws, hs, d, wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixs, *pixd, *pixt1, *pixt2, *pixt3;
+PIX       *pixs, *pixd, *pixt1, *pixt2, *pixt3;
 
     PROCNAME("pixScaleAreaMap");
 
@@ -1216,7 +1205,7 @@ pixScaleAreaMap2(PIX  *pix)
 {
 l_int32    wd, hd, d, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixs, *pixd;
+PIX       *pixs, *pixd;
 
     PROCNAME("pixScaleAreaMap2");
 
@@ -1250,7 +1239,6 @@ PIX              *pixs, *pixd;
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.5, 0.5);
     scaleAreaMapLow2(datad, wd, hd, wpld, datas, d, wpls);
-
     pixDestroy(&pixs);
     return pixd;
 }
@@ -1278,7 +1266,7 @@ pixScaleBinary(PIX       *pixs,
 {
 l_int32    ws, hs, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixScaleBinary");
 
@@ -1301,9 +1289,7 @@ PIX              *pixd;
     pixScaleResolution(pixd, scalex, scaley);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     scaleBinaryLow(datad, wd, hd, wpld, datas, ws, hs, wpls);
-
     return pixd;
 }
 
@@ -1518,7 +1504,6 @@ PIX       *pixd;
 
     FREE(sumtab);
     FREE(valtab);
-
     return pixd;
 }
 
@@ -1579,7 +1564,6 @@ PIX       *pixd;
 
     FREE(sumtab);
     FREE(valtab);
-
     return pixd;
 }
 
@@ -1635,7 +1619,6 @@ PIX       *pixd;
 
     FREE(sumtab);
     FREE(valtab);
-
     return pixd;
 }
 
@@ -1747,7 +1730,6 @@ PIX       *pixd;
 
     FREE(tab8);
     FREE(valtab);
-
     return pixd;
 }
 
@@ -2284,7 +2266,6 @@ PIX       *pixd;
     FREE(bufs);
     FREE(lineb);
     FREE(linebp);
-
     return pixd;
 }
 
@@ -2369,7 +2350,6 @@ PIX       *pixd;
     }
 
     FREE(lineb);
-
     return pixd;
 }
 
@@ -2491,7 +2471,6 @@ PIX       *pixd;
     FREE(bufs);
     FREE(lineb);
     FREE(linebp);
-
     return pixd;
 }
 
@@ -2810,5 +2789,4 @@ PIX       *pixd;
             
     return pixd;
 }
-
 

@@ -65,25 +65,28 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (12 May 08)
+README  (27 Sept 08)
 --------------------
 
-gunzip leptonlib-1.56.tar.gz
-tar -xvf leptonlib-1.56.tar
+gunzip leptonlib-1.58.tar.gz
+tar -xvf leptonlib-1.58.tar
 
 
-1.  This tar includes library source, function prototypes,
-    source for regression test and usage example programs,,
-    and sample images for Linux on x86 (i386)
-    and AMD 64 (x64), and on OSX (both powerPC and x86).
-    It should compile properly with any version of gcc
-    from 2.95.3 onward.
+1.  This tar includes:
+       (1) src: library source and function prototypes for building liblept
+       (2) prog: source for regression test, usage example programs, and
+           sample images
+    for building on these platforms:
+        *  Linux on x86 (i386) and AMD 64 (x64)
+        *  OSX (both powerPC and x86).
+        *  cygwin and mingw on x86
+    The library should also build with MSVC on x86
+    It should compile properly with any version of gcc from 2.95.3 onward.
 
-    Libraries, executables and prototypes are easily made,
-    as described below.
+    Libraries, executables and prototypes are easily made, as described below.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.56'.  In that directory you will
+    subdirectory 'leptonlib-1.58'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -91,37 +94,38 @@ tar -xvf leptonlib-1.56.tar
 2.  There are two ways to build the library:
 
        (1) By customization:  Use the existing src/makefile and customize
-           by setting flags in environ.h.  See src/makefile for details.
+           by setting flags in src/environ.h.  See src/environ.h and
+           src/makefile for details.
 
        (2) Using autoconf.  Run ./configure in this directory to
            build Makefiles here and in src.  Autoconf handles the
            following automatically:
                * architecture endianness
-               * enabling leptonica I/O functions that depend on external
-                 libraries (if the libraries exist)
+               * enabling leptonica I/O image read/write functions that
+                 depend on external libraries (if the libraries exist)
                * enabling functions for redirecting formatted image stream
-                 I/O to memory (if on linux only)
+                 I/O to memory (on linux only)
+           After running ./configure: make; make install.
 
     When using src/makefile, you can customize for:
 
        (1) including leptonica I/O functions that depend on external libraries
            [use flags in src/environ.h]
        (2) adding functions for redirecting formatted image stream I/O to memory
-           [use flags in src/environ.h]
+           [use flag in src/environ.h]
        (3) compiling in windows under cygwin
            [through CFLAGS in $CC]
 
-    You can use src/Makefile.mingw for cross-compiling for windows
-    in linux.
+    You can use src/Makefile.mingw for cross-compiling for windows in linux.
 
     We also provide two files for compiling the library in windows under MSVC:
         src/leptonlib.sln
         src/leptonlib.vcproj
 
-3.  When you compile using the supplied makefile, object code is by
-    default put into a tree whose root is also the parent of the src
-    and prog directories.  Use the ROOT_DIR variable in makefile
-    to specify the location of the generated object code.
+3.  When you compile liblept using the supplied makefile (not autoconf),
+    object code is by default put into a tree whose root is also the parent
+    of the src and prog directories.  This can be changed using the
+    ROOT_DIR variable in makefile.
 
     To make an optimized version of the library (in src):
           make
@@ -134,10 +138,10 @@ tar -xvf leptonlib-1.56.tar
           make xtractprotos
 
     If you want to use shared libraries, you need to add the
-    location of the shared libraries to the LD_LIBRARY_PATH.
+    location of the shared libraries to your LD_LIBRARY_PATH.
 
-4.  To make the programs in the prog directory, first make the
-    library and then do 'make' in the prog directory.
+4.  To make the programs in the prog directory, first make liblept in src
+    and then do 'make' in the prog directory.
 
     VERY IMPORTANT: the 100+ programs in the prog directory are
     an integral part of this package.  These can be divided into
@@ -154,8 +158,8 @@ tar -xvf leptonlib-1.56.tar
 
 5.  The prototype header file leptprotos.h (supplied) can be
     automatically generated using xtractprotos.  To generate leptprotos.h,
-    first make this program (all in src):
-         make  (to make the library)
+    first make xtractprotos (all in src):
+         make  (to make liblept)
          make xtractprotos
     Then run it:
          make allprotos   (generates leptprotos.h)
@@ -174,9 +178,9 @@ tar -xvf leptonlib-1.56.tar
       (4) The source for xtractprotos has been packaged up into a tar
           containing just the leptonica files necessary for building it
           in linux.  The tar file is available at:
-               www.leptonica.com/source/xtractlib-1.2.tar.gz
+               www.leptonica.com/source/xtractlib-1.3.tar.gz
 
-6.  New with 1.56, you can now build the library with autoconf.  Do the
+6.  New with 1.56, you can now build liblept with autoconf.  Do the
     following in the root directory (the directory with configure):
        ./configure
        make
@@ -202,7 +206,7 @@ tar -xvf leptonlib-1.56.tar
           sudo apt-get install <package>
     where <package> = {libpng12-dev, libjpeg62-dev, libtiff4-dev}.
 
-    If for some reason you do not want to include some or all of the leptonlib
+    If for some reason you do not want to include some or all of the liblept
     I/O functions, stub files are included for the seven different output
     formats (bmp, jpeg, png, pnm, ps, tiff and gif).  For example, if you
     don't want to include the tiff library, in environ.h set:
@@ -231,10 +235,10 @@ tar -xvf leptonlib-1.56.tar
     image data to memory rather than to file.  Stubs are provided
     for all these I/O functions.  Default is not to enable them, in
     deference to the OSX developers, who don't have these functions
-    available.  To enable, comment out the '#define _STANDARD_C_' line
-    in environ.h.   See 19 for more details on image I/O formats.
+    available.  To enable, #define HAVE_FMEMOPEN  1  (in environ.h).
+    See 19 for more details on image I/O formats.
 
-    If you're building with the autoconf programs, the functions are
+    If you're building with the autoconf programs, these two functions are
     automatically enabled if available.
 
 9.  If you want to compile the library and make programs on other platforms:
@@ -253,7 +257,7 @@ tar -xvf leptonlib-1.56.tar
 	  a mac-compatible version
 
     (b) Windows via mingw (cross-compilation)
-        You can build a windows-compatible version of leptonlib from linux.
+        You can build a windows-compatible version of liblept from linux.
 	Use Makefile.mingw and see the usage notes at the top of that file.
 	You can then build executables in prog; see the notes in
 	prog/Makefile.mingw.  I have not yet succeeded in making
@@ -263,7 +267,7 @@ tar -xvf leptonlib-1.56.tar
         A default download of cygwin, with full 'install' of the
 	devel (for gnu make, gcc, etc) and graphics (for libjpeg,
 	libtiff, libpng, libz) groups provides enough libraries and
-	programs to compile the leptonlib libraries in src and make the .exe
+	programs to compile liblept src and make the .exe
 	execuables in the prog directory.
         Make the following changes to the src/Makefile:
            (1) use the $CC with _CYGWIN_ENVIRON 
@@ -271,11 +275,12 @@ tar -xvf leptonlib-1.56.tar
 	       extract protos with xtractprotos, add ".exe" appropriately
 	Make the following changes to the prog/Makefile:
            (1) remove -fPIC from $CC
-	   Note: I believe that convertfilestops, jbcorrelation,
-                 jbrankhaus, maketile and viewertest will link.
+	   All prog files should link, including those that call
+           getFilenamesInDirectory (convertfilestops, jbcorrelation,
+           jbrankhaus, maketile and viewertest).
 
     (d) Windows via MS VC++
-        (1) Two project files are provided for building leptonlib under MSVC:
+        (1) Two project files are provided for building liblept under MSVC:
               leptonlib.sln
               leptonlib.vcproj
             These were made with VC++ Version 9, and VC++ Express.
@@ -456,7 +461,7 @@ tar -xvf leptonlib-1.56.tar
     transforms, with both sampling (for speed) and interpolation
     (for antialiasing).
 
-15. We provide a number of sequential algorithms, including 
+15. We provide a number of fast sequential algorithms, including 
     binary and grayscale seedfill, and the distance function for
     a binary image.  The most efficient binary seedfill is
     pixSeedfill(), which uses Vincent's algorithm to iterate
@@ -479,22 +484,17 @@ tar -xvf leptonlib-1.56.tar
 
 18. Some functions have been included specifically to help with
     document image analysis.  These include skew and text orientation
-    detection, page segmentation, baseline finding for text,
-    and unsupervised classification of connected components,
-    characters and words.
+    detection; page segmentation; baseline finding for text;
+    unsupervised classification of connected components, characters
+    and words; and digit recognition.
 
 19. Some facilities have been provided for image input and output.
     This is of course required to build executables that handle images,
     and many examples of such programs, most of which are for
     testing, can be built in the prog directory.  Functions have been
-    provided to allow reading and writing of files in BMP, JPEG, PNG,
-    TIFF, PNM and GIF formats.  These formats were chosen for the
+    provided to allow reading and writing of files in JPEG, PNG,
+    TIFF, BMP, PNM and GIF formats.  These formats were chosen for the
     following reasons:
-
-        - BMP has (until recently) had no compression.  It is a simple
-	  format with colormaps that requires no external libraries.
-	  It is commonly used because it is a Microsoft standard,
-	  but has little else to recommend it.  See bmpio.c.
 
 	- JFIF JPEG is the standard method for lossy compression
 	  of grayscale and color images.  It is supported natively
@@ -521,6 +521,11 @@ tar -xvf leptonlib-1.56.tar
 	  which is clean and small.  Tiff also supports multipage
 	  images through a directory structure.  See tiffio.c
 
+        - BMP has (until recently) had no compression.  It is a simple
+	  format with colormaps that requires no external libraries.
+	  It is commonly used because it is a Microsoft standard,
+	  but has little else to recommend it.  See bmpio.c.
+
 	- PNM is a very simple, old format that still has surprisingly
 	  wide use in the image processing community.  It does not
 	  support compression or colormaps, but it does support binary,
@@ -545,7 +550,7 @@ tar -xvf leptonlib-1.56.tar
     Use prog/gifio_reg for testing GIF.
 
     We also provide wrappers for PS output, from the following
-    sources: binary Pix, 8 bpp gray Pix, 24 bpp full color Pix, 
+    input images: binary Pix, 8 bpp gray Pix, 24 bpp full color Pix, 
     JFIF JPEG file and TIFF G4 file, all with a variety of options
     for scaling and placing the image, and for printing it at
     different resolutions.  See psio.c for examples of how to output
@@ -575,8 +580,8 @@ tar -xvf leptonlib-1.56.tar
     of palette colors.  Several versions are provided, some that
     use a fast octree vector quantizer and others that use
     a variation of the median cut quantizer.  For high-level interfaces,
-    see pixConvertRGBToColormap(), pixColorQuant1Pass(),
-    pixOctreeColorQuant() and pixOctreeQuant(), pixFixedOctcubeQuant(),
+    see for example: pixConvertRGBToColormap(), pixOctreeColorQuant(),
+    pixOctreeQuantByPopulation(), pixFixedOctcubeQuant256(),
     and pixMedianCutQuant().
 
     For debugging, several pixDisplay* functions in writefile.c are given.
@@ -635,9 +640,8 @@ tar -xvf leptonlib-1.56.tar
        You can also compute the "shortest" (i.e., least cost) path
        between points on a grayscale image.
 
-     - a 1D barcode reader.  This is in a very early stage of development,
-       with essentially no testing, and it only decodes Code Interleaved 2of5
-       and Code 93.
+     - a 1D barcode reader.  This is in an early stage of development,
+       with little testing, and it only decodes 6 formats.
 
      - see (18) for other document image applications.
 
@@ -675,22 +679,15 @@ tar -xvf leptonlib-1.56.tar
     If you are using Leptonica with a large code base that typedefs the
     built-in types differently from Leptonica, just edit the typedefs
     in environ.h.  This should have no side-effects with other libraries,
-    and no issues should arise with the inclusion order of the Leptonica
-    libraries for the linker.
+    and no issues should arise with the location in which liblept is
+    included.
 
     For compatibility with 64 bit hardware and compilers, where
     necessary we use the typedefs in stdint.h to specify the pointer
     size (either 4 or 8 byte).  This may not work properly if you use
     an ancient compiler before gcc 2.95.3.
 	 
-23. For C++ compatibility, we have included a local version of
-    jpeglib.h (version 6b), with the 'extern "C"' macro added.
-    The -I./ flag includes this local file, rather than the one
-    in /usr/include, because of the order of include directories
-    on the compile line.  jpeglib.h will by default include the
-    locally-supplied version of jmorecfg.h.
-
-24. Leptonica provides some compile-time control over messages
+23. Leptonica provides some compile-time control over messages
     and debug output.  Messages are of three types: error,
     warning and informational.  They are all macros, and
     are suppressed when NO_CONSOLE_IO is defined on the compile line.
@@ -699,7 +696,34 @@ tar -xvf leptonlib-1.56.tar
     omitted when NO_CONSOLE_IO is defined.   For production code
     where no output is to go to stderr, compile with -DNO_CONSOLE_IO.
 
-25. If you use Leptonica with other systems, you have three
+24. Leptonica supports an open source jbig2 encoder (yes, there is one!),
+    which can be downloaded from:
+        http://www.imperialviolet.org/jbig2.html.
+    To build the encoder, use the most recent version (0.26).  This bundles
+    leptonica 1.53, but you can use more recent versions as well.
+    Once you've built the encoder, use it to compress a set of input
+    image files:  (e.g.)
+        ./jbig2 -v -s <imagefile1 ...>  >   <jbig2_file>
+    You can also generate a pdf wrapping for the output jbig2.  To do that,
+    call jbig2 with the -p arg, which generates a symbol file (output.sym)
+    plus a set of location files for each input image (output.0000, ...):
+        ./jbig2 -v -s -p <imagefile1 ...>
+    and then generate the pdf:
+        python pdf.py output  >  <pdf_file>
+    See the usage documentation for the jbig2 compressor at:
+        http://www.imperialviolet.org/binary/jbig2enc.html
+    You can uncompress the jbig2 files using jbig2dec, which can be
+    downloaded and built from:
+        http://jbig2dec.sourceforge.net/
+
+25. For C++ compatibility, we have included a local version of
+    jpeglib.h (version 6b), with the 'extern "C"' macro added.
+    The -I./ flag includes this local file, rather than the one
+    in /usr/include, because of the order of include directories
+    on the compile line.  jpeglib.h will by default include the
+    locally-supplied version of jmorecfg.h.
+
+26. If you use Leptonica with other systems, you have three
     choices with respect to the Pix data structure.  It is
     easiest if you can use the Pix directly.  Next easiest is to
     make a Pix from a local image data structure or the unbundled
@@ -710,8 +734,8 @@ tar -xvf leptonlib-1.56.tar
     which take only built-in C data types.  It would be an inordinately
     large task to do this for the entire library.
 
-26. New versions of the Leptonica library are released approximately
-    monthly, and version numbers are provided for each release in
+27. New versions of the Leptonica library are released approximately
+    8 times a year, and version numbers are provided for each release in
     the Makefile and in allheaders.h.
 
     A brief version chronology is maintained in version-notes.html.

@@ -58,7 +58,7 @@ rotateAMColorLow(l_uint32  *datad,
 l_int32    i, j, xcen, ycen, wm2, hm2;
 l_int32    xdif, ydif, xpm, ypm, xp, yp, xf, yf;
 l_int32    rval, gval, bval;
-l_uint32   word00, word01, word10, word11, val;
+l_uint32   word00, word01, word10, word11;
 l_uint32  *lines, *lined;
 l_float32  sina, cosa;
 
@@ -98,20 +98,19 @@ l_float32  sina, cosa;
             word10 = *(lines + xp + 1);
             word01 = *(lines + wpls + xp);
             word11 = *(lines + wpls + xp + 1);
-            rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-                    xf * (16 - yf) * (word10 >> 24) +
-                    (16 - xf) * yf * (word01 >> 24) +
-                    xf * yf * (word11 >> 24) + 128) / 256;
-            gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-                    xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-                    (16 - xf) * yf * ((word01 >> 16) & 0xff) +
-                    xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
-            bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-                    xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-                    (16 - xf) * yf * ((word01 >> 8) & 0xff) +
-                    xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
-            val = (rval << 24) | (gval << 16) | (bval << 8);
-            *(lined + j) = val;
+            rval = ((16 - xf) * (16 - yf) * ((word00 >> L_RED_SHIFT) & 0xff) +
+                    xf * (16 - yf) * ((word10 >> L_RED_SHIFT) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> L_RED_SHIFT) & 0xff) +
+                    xf * yf * ((word11 >> L_RED_SHIFT) & 0xff) + 128) / 256;
+            gval = ((16 - xf) * (16 - yf) * ((word00 >> L_GREEN_SHIFT) & 0xff) +
+                    xf * (16 - yf) * ((word10 >> L_GREEN_SHIFT) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> L_GREEN_SHIFT) & 0xff) +
+                    xf * yf * ((word11 >> L_GREEN_SHIFT) & 0xff) + 128) / 256;
+            bval = ((16 - xf) * (16 - yf) * ((word00 >> L_BLUE_SHIFT) & 0xff) +
+                    xf * (16 - yf) * ((word10 >> L_BLUE_SHIFT) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> L_BLUE_SHIFT) & 0xff) +
+                    xf * yf * ((word11 >> L_BLUE_SHIFT) & 0xff) + 128) / 256;
+            composeRGBPixel(rval, gval, bval, lined + j);
         }
     }
 
@@ -200,7 +199,7 @@ rotateAMColorCornerLow(l_uint32  *datad,
 l_int32    i, j, wm2, hm2;
 l_int32    xpm, ypm, xp, yp, xf, yf;
 l_int32    rval, gval, bval;
-l_uint32   word00, word01, word10, word11, val;
+l_uint32   word00, word01, word10, word11;
 l_uint32  *lines, *lined;
 l_float32  sina, cosa;
 
@@ -236,20 +235,19 @@ l_float32  sina, cosa;
             word10 = *(lines + xp + 1);
             word01 = *(lines + wpls + xp);
             word11 = *(lines + wpls + xp + 1);
-            rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-                    xf * (16 - yf) * (word10 >> 24) +
-                    (16 - xf) * yf * (word01 >> 24) +
-                    xf * yf * (word11 >> 24) + 128) / 256;
-            gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-                    xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-                    (16 - xf) * yf * ((word01 >> 16) & 0xff) +
-                    xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
-            bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-                    xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-                    (16 - xf) * yf * ((word01 >> 8) & 0xff) +
-                    xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
-            val = (rval << 24) | (gval << 16) | (bval << 8);
-            *(lined + j) = val;
+            rval = ((16 - xf) * (16 - yf) * ((word00 >> L_RED_SHIFT) & 0xff) +
+                    xf * (16 - yf) * ((word10 >> L_RED_SHIFT) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> L_RED_SHIFT) & 0xff) +
+                    xf * yf * ((word11 >> L_RED_SHIFT) & 0xff) + 128) / 256;
+            gval = ((16 - xf) * (16 - yf) * ((word00 >> L_GREEN_SHIFT) & 0xff) +
+                    xf * (16 - yf) * ((word10 >> L_GREEN_SHIFT) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> L_GREEN_SHIFT) & 0xff) +
+                    xf * yf * ((word11 >> L_GREEN_SHIFT) & 0xff) + 128) / 256;
+            bval = ((16 - xf) * (16 - yf) * ((word00 >> L_BLUE_SHIFT) & 0xff) +
+                    xf * (16 - yf) * ((word10 >> L_BLUE_SHIFT) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> L_BLUE_SHIFT) & 0xff) +
+                    xf * yf * ((word11 >> L_BLUE_SHIFT) & 0xff) + 128) / 256;
+            composeRGBPixel(rval, gval, bval, lined + j);
         }
     }
 
@@ -400,11 +398,11 @@ rotateAMColorFastLow(l_uint32  *datad,
                      l_uint32  *datas,
                      l_int32    wpls,
                      l_float32  angle,
-                     l_uint8    grayval)
+                     l_uint32   colorval)
 {
 l_int32    i, j, xcen, ycen, wm2, hm2;
 l_int32    xdif, ydif, xpm, ypm, xp, yp, xf, yf;
-l_uint32   edgeval, word1, word2, word3, word4, red, blue, green;
+l_uint32   word1, word2, word3, word4, red, blue, green;
 l_uint32  *pword, *lines, *lined;
 l_float32  sina, cosa;
 
@@ -415,7 +413,6 @@ l_float32  sina, cosa;
     sina = 4. * sin(angle);
     cosa = 4. * cos(angle);
 
-    edgeval = (grayval << 24) | (grayval << 16) | (grayval << 8);
     for (i = 0; i < h; i++) {
         ydif = ycen - i;
         lined = datad + i * wpld;
@@ -430,7 +427,7 @@ l_float32  sina, cosa;
 
                 /* if off the edge, write input grayval */
             if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
-                *(lined + j) = edgeval;
+                *(lined + j) = colorval;
                 continue;
             }
 

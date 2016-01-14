@@ -56,7 +56,7 @@ static char  mainName[] = "histotest";
 	    
     if (d == 32) {
 	startTimer();
-	if ((na = pixOctcubeHistogram(pixs, sigbits)) == NULL)
+	if ((na = pixOctcubeHistogram(pixs, sigbits, NULL)) == NULL)
 	    exit(ERROR_INT("na not made", mainName, 1));
 	fprintf(stderr, "histo time = %7.3f sec\n", stopTimer());
 	gplot = gplotCreate("junkrootc", GPLOT_X11,

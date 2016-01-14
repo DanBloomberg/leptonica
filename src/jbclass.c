@@ -199,12 +199,8 @@
 #include <math.h>
 #include "allheaders.h"
 
-#if defined(__MINGW32__) || defined(_WIN32)
-#define snprintf _snprintf
-#endif
-
-    /* MS VC++ can't handle array initialization with static consts ! */
-#define L_BUF_SIZE      512
+    /* MSVC can't handle arrays dimensioned by static const integers */
+#define  L_BUF_SIZE  512
 
     /* For jbClassifyRankHaus(): size of border added around
      * pix of each c.c., to allow further processing.  This
@@ -212,9 +208,10 @@
      * (or MAX_DIFF_WIDTH) and one-half the size of the Sel  */
 static const l_int32  JB_ADDED_PIXELS = 6;
 
-    /* For pixHaustest(); choose these to be 2 or greater */
-static const l_int32  MAX_DIFF_HEIGHT = 2;  /* use at least 2 */
+    /* For pixHaustest(), pixRankHaustest() and pixCorrelationScore():
+     * choose these to be 2 or greater */
 static const l_int32  MAX_DIFF_WIDTH = 2;  /* use at least 2 */
+static const l_int32  MAX_DIFF_HEIGHT = 2;  /* use at least 2 */
 
     /* In initialization, you have the option to discard components
      * (cc, characters or words) that have either width or height larger
@@ -229,7 +226,7 @@ static const l_int32  MAX_WORD_COMP_WIDTH = 1000;  /* default max word width */
 static const l_int32  MAX_COMP_HEIGHT = 120;  /* default max component height */
 
     /* Max allowed dilation to merge characters into words */
-static const l_int32  MAX_ALLOWED_DILATION = 14;
+#define  MAX_ALLOWED_DILATION  14
 
     /* This stores the state of a state machine which fetches
      * similar sized templates */
@@ -679,7 +676,8 @@ SEL        *sel;
                 pix3 = pixaGetPix(pixat, iclass, L_CLONE);
                 pix4 = pixaGetPix(pixatd, iclass, L_CLONE);
                 ptaGetPt(ptact, iclass, &x2, &y2);
-                testval = pixHaustest(pix1, pix2, pix3, pix4, x1 - x2, y1 - y2);
+                testval = pixHaustest(pix1, pix2, pix3, pix4, x1 - x2, y1 - y2,
+                                      MAX_DIFF_WIDTH, MAX_DIFF_HEIGHT);
                 pixDestroy(&pix3);
                 pixDestroy(&pix4);
                 if (testval == 1) {
@@ -741,6 +739,7 @@ SEL        *sel;
                 ptaGetPt(ptact, iclass, &x2, &y2);
                 testval = pixRankHaustest(pix1, pix2, pix3, pix4,
                                           x1 - x2, y1 - y2,
+                                          MAX_DIFF_WIDTH, MAX_DIFF_HEIGHT,
                                           area1, area3, rank, tab8);
                 pixDestroy(&pix3);
                 pixDestroy(&pix4);
@@ -805,6 +804,8 @@ SEL        *sel;
  *              pix4   (exemplar pix, dilated)
  *              delx   (x comp of centroid difference)
  *              dely   (y comp of centroid difference)
+ *              maxdiffw (max width difference of pix1 and pix2)
+ *              maxdiffh (max height difference of pix1 and pix2)
  *      Return: 0 (FALSE) if no match, 1 (TRUE) if the new
  *              pix is in the same class as the exemplar.
  *
@@ -824,7 +825,9 @@ pixHaustest(PIX       *pix1,
             PIX       *pix3,
             PIX       *pix4,
             l_float32  delx,   /* x(1) - x(3) */
-            l_float32  dely)   /* y(1) - y(3) */
+            l_float32  dely,   /* y(1) - y(3) */
+            l_int32    maxdiffw,
+            l_int32    maxdiffh)
 {
 l_int32  wi, hi, wt, ht, delw, delh, idelx, idely, boolmatch;
 PIX     *pixt;
@@ -835,10 +838,10 @@ PIX     *pixt;
     wt = pixGetWidth(pix3);
     ht = pixGetHeight(pix3);
     delw = L_ABS(wi - wt);
-    if (delw > MAX_DIFF_WIDTH)
+    if (delw > maxdiffw)
         return FALSE;
     delh = L_ABS(hi - ht);
-    if (delh > MAX_DIFF_HEIGHT)
+    if (delh > maxdiffh)
         return FALSE;
 
         /* Round difference in centroid location to nearest integer;
@@ -889,6 +892,8 @@ PIX     *pixt;
  *              pix4   (exemplar pix, dilated)
  *              delx   (x comp of centroid difference)
  *              dely   (y comp of centroid difference)
+ *              maxdiffw (max width difference of pix1 and pix2)
+ *              maxdiffh (max height difference of pix1 and pix2)
  *              area1  (fg pixels in pix1)
  *              area3  (fg pixels in pix3)
  *              rank   (rank value of test, each way)
@@ -916,6 +921,8 @@ pixRankHaustest(PIX       *pix1,
                 PIX       *pix4,
                 l_float32  delx,   /* x(1) - x(3) */
                 l_float32  dely,   /* y(1) - y(3) */
+                l_int32    maxdiffw,
+                l_int32    maxdiffh,
                 l_int32    area1,
                 l_int32    area3,
                 l_float32  rank,
@@ -931,10 +938,10 @@ PIX     *pixt;
     wt = pixGetWidth(pix3);
     ht = pixGetHeight(pix3);
     delw = L_ABS(wi - wt);
-    if (delw > MAX_DIFF_WIDTH)
+    if (delw > maxdiffw)
         return FALSE;
     delh = L_ABS(hi - ht);
-    if (delh > MAX_DIFF_HEIGHT)
+    if (delh > maxdiffh)
         return FALSE;
 
         /* Upper bounds in remaining pixels for allowable match */
@@ -1168,6 +1175,8 @@ l_uint8     byte;
             overthreshold = pixCorrelationScoreThresholded(pix1, pix2,
                                                            area1, area2,
                                                            x1 - x2, y1 - y2,
+                                                           MAX_DIFF_WIDTH,
+                                                           MAX_DIFF_HEIGHT,
                                                            sumtab,
                                                            pixrowcts[i],
                                                            threshold);
@@ -1176,10 +1185,13 @@ l_uint8     byte;
                 l_float32 score, testscore;
                 l_int32 count, testcount;
                 score = pixCorrelationScore(pix1, pix2, area1, area2,
-                                            x1 - x2, y1 - y2, sumtab);
+                                            x1 - x2, y1 - y2,
+                                            MAX_DIFF_WIDTH, MAX_DIFF_HEIGHT,
+                                            sumtab);
 
                 testscore = pixCorrelationScoreSimple(pix1, pix2, area1, area2,
-                                  x1 - x2, y1 - y2, sumtab);
+                                  x1 - x2, y1 - y2, MAX_DIFF_WIDTH,
+                                  MAX_DIFF_HEIGHT, sumtab);
                 count = (l_int32)rint(sqrt(score * area1 * area2));
                 testcount = (l_int32)rint(sqrt(testscore * area1 * area2));
                 if ((score >= threshold) != (testscore >= threshold)) {
@@ -1403,8 +1415,9 @@ l_int32  i, diffmin, ndiff, imin;
 l_int32  ncc[MAX_ALLOWED_DILATION + 1];
 BOXA    *boxa;
 NUMA    *nacc;
-PIX     *pixt1, *pixt2;
+PIX     *pixt1, *pixt2, *pixt3;
 PIXA    *pixa;
+SEL     *sel;
 
     PROCNAME("pixWordMaskbyDilation");
 
@@ -1435,7 +1448,7 @@ PIXA    *pixa;
             pixt2 = pixMorphSequence(pixt1, "d2.1", 0);
         boxa = pixConnCompBB(pixt2, 4);
         ncc[i] = boxaGetCount(boxa);
-	numaAddNumber(nacc, ncc[i]);
+        numaAddNumber(nacc, ncc[i]);
         if (i > 0) {
             ndiff = ncc[i - 1] - ncc[i];
 #if  DEBUG_PLOT_CC
@@ -1458,23 +1471,27 @@ PIXA    *pixa;
      NUMA  *naseq;
         naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
         gplot = gplotCreate("junk_cc_output", GPLOT_PNG,
-			    "Number of cc vs. horizontal dilation",
-			    "Sel horiz", "Number of cc");
+                            "Number of cc vs. horizontal dilation",
+                            "Sel horiz", "Number of cc");
         gplotAddPlot(gplot, naseq, nacc, GPLOT_LINES, "");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
-	numaDestroy(&naseq);
+        numaDestroy(&naseq);
     }
 #endif  /* DEBUG_PLOT_CC */
 
         /* Save the result of the optimal dilation */
     pixt2 = pixaGetPix(pixa, imin, L_CLONE);
+    sel = selCreateBrick(1, imin, 0, imin - 1, SEL_HIT);
+    pixt3 = pixErode(NULL, pixt2, sel);  /* remove effect of dilation */
+    selDestroy(&sel);
+    pixDestroy(&pixt2);
     pixaDestroy(&pixa);
     if (psize)
         *psize = imin + 1;
 
     numaDestroy(&nacc);
-    return pixt2;
+    return pixt3;
 }
 
 

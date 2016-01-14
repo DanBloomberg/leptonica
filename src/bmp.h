@@ -13,8 +13,8 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-#ifndef  LEPTONCIA_BMP_H
-#define  LEPTONCIA_BMP_H
+#ifndef  LEPTONICA_BMP_H
+#define  LEPTONICA_BMP_H
 
 /*
  * This file is here to describe the fields in the header of
@@ -71,4 +71,4 @@ typedef struct BMP_InfoHeader  BMP_IH;
 #define BMP_IHBYTES  sizeof(BMP_IH)
 
  
-#endif  /* LEPTONCIA_BMP_H */
+#endif  /* LEPTONICA_BMP_H */

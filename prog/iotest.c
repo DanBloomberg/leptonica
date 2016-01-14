@@ -29,7 +29,7 @@ extern const char *ImageFileFormatExtensions[];
 main(int    argc,
      char **argv)
 {
-l_int32      w, h, d, wpl, count, i, format, nerrors;
+l_int32      w, h, d, wpl, count, i, format, xres, yres;
 FILE        *fp;
 PIX         *pix, *pixt1, *pixt2;
 PIXCMAP     *cmap;
@@ -55,6 +55,10 @@ static char  mainName[] = "iotest";
     pixGetDimensions(pix, &w, &h, &d);
     wpl = pixGetWpl(pix);
     fprintf(stderr, "w = %d, h = %d, d = %d, wpl = %d\n", w, h, d, wpl);
+    xres = pixGetXRes(pix);
+    yres = pixGetXRes(pix);
+    if (xres != 0 && yres != 0)
+        fprintf(stderr, "xres = %d, yres = %d\n", xres, yres);
     if (pixGetColormap(pix)) {
 	    /* Write and read back the colormap */
         pixcmapWriteStream(stderr, pixGetColormap(pix));
@@ -77,8 +81,7 @@ static char  mainName[] = "iotest";
 	}
 	else {  /* 32 bpp */
             fprintf(stderr, "Colormap: represents RGB image\n");
-            pixt2 = pixConvertRGBToColormap(pixt1, 5, &nerrors);
-            fprintf(stderr, "Number of colormap errors = %d\n", nerrors);
+            pixt2 = pixConvertRGBToColormap(pixt1, 1);
 	}
         pixWrite("junkpixt2", pixt2, IFF_PNG);
         pixDestroy(&pixt1);
@@ -137,13 +140,13 @@ static char  mainName[] = "iotest";
 
 #if 0   /* test tiff header reader */
 { l_int32 w, h, bps, spp, res, cmap;
-    if (readHeaderTiff(filein, &w, &h, &bps, &spp, &res, &cmap) == 0)
+    if (readHeaderTiff(filein, 0, &w, &h, &bps, &spp, &res, &cmap) == 0)
         fprintf(stderr,
         "w = %d, h = %d, bps = %d, spp = %d, res = %d, cmap = %d\n",
         w, h, bps, spp, res, cmap);
 }
 #endif
 
-    exit(0);
+    return 0;
 }
 

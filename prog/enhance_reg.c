@@ -25,15 +25,14 @@
 static const char *filein = "test24.jpg";
 static const l_int32 WIDTH = 150;
 
-
 main(int    argc,
      char **argv)
 {
 l_int32      w, h, d, i;
 l_float32    scalefact, sat;
 NUMA        *na;
-PIX         *pix, *pixs, *pixt0, *pixt1;
-PIXA        *pixa;
+PIX         *pix, *pixs, *pixt0, *pixt1, *pixd;
+PIXA        *pixa, *pixaf;
 static char  mainName[] = "enhance_reg";
 
 
@@ -44,6 +43,7 @@ static char  mainName[] = "enhance_reg";
     scalefact = (l_float32)WIDTH / (l_float32)w;
     pixs = pixScale(pix, scalefact, scalefact);
     w = pixGetWidth(pixs);
+    pixaf = pixaCreate(5);
 
         /* TRC: vary gamma */
     pixa = pixaCreate(20);
@@ -52,7 +52,8 @@ static char  mainName[] = "enhance_reg";
         pixaAddPix(pixa, pixt0, L_INSERT);
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixWrite("junktrcgam", pixt1, IFF_PNG);
+    pixSaveTiled(pixt1, pixaf, 1, 1, 20, 32);
+    pixWrite("junktrcgam.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 0, 100, "TRC Gamma", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -64,7 +65,8 @@ static char  mainName[] = "enhance_reg";
         pixaAddPix(pixa, pixt0, L_INSERT);
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixWrite("junktrc", pixt1, IFF_PNG);
+    pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
+    pixWrite("junktrc.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 300, 100, "TRC", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -72,11 +74,12 @@ static char  mainName[] = "enhance_reg";
         /* Vary hue */
     pixa = pixaCreate(20);
     for (i = 0; i < 20; i++) {
-        pixt0 = pixModifyHue(NULL, pixs, 0.05 * i);
+        pixt0 = pixModifyHue(NULL, pixs, 0.01 + 0.05 * i);
         pixaAddPix(pixa, pixt0, L_INSERT);
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixWrite("junkhue", pixt1, IFF_PNG);
+    pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
+    pixWrite("junkhue.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 600, 100, "Hue", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -91,8 +94,9 @@ static char  mainName[] = "enhance_reg";
         numaAddNumber(na, sat);
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
     gplotSimple1(na, GPLOT_X11, "junkplot", "Average Saturation");
-    pixWrite("junksat", pixt1, IFF_PNG);
+    pixWrite("junksat.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 900, 100, "Saturation", 1);
     numaDestroy(&na);
     pixDestroy(&pixt1);
@@ -105,7 +109,8 @@ static char  mainName[] = "enhance_reg";
         pixaAddPix(pixa, pixt0, L_INSERT);
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixWrite("junkcontrast", pixt1, IFF_PNG);
+    pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
+    pixWrite("junkcontrast.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 0, 400, "Contrast", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -113,15 +118,24 @@ static char  mainName[] = "enhance_reg";
         /* Vary sharpening */
     pixa = pixaCreate(20);
     for (i = 0; i < 20; i++) {
-        pixt0 = pixUnsharpMasking(pixs, 2, 0.15 * i);
+        pixt0 = pixUnsharpMasking(pixs, 3, 0.01 + 0.15 * i);
         pixaAddPix(pixa, pixt0, L_INSERT);
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixWrite("junksharp", pixt1, IFF_PNG);
+    pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
+    pixWrite("junksharp.png", pixt1, IFF_PNG);
     pixDisplayWithTitle(pixt1, 300, 400, "Sharp", 1);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
 
+        /* Display results */
+    pixd = pixaDisplay(pixaf, 0, 0);
+    pixDisplay(pixd, 100, 100);
+    pixWrite("junkenhance.jpg", pixd, IFF_JFIF_JPEG);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixaf);
+
+    pixDestroy(&pix);
     pixDestroy(&pixs);
     return 0;
 }

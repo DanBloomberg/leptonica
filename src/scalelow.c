@@ -226,7 +226,7 @@ l_float32  scx, scy;
     wm2 = ws - 2;
     hm2 = hs - 2;
 
-        /* iterate over the destination pixels */
+        /* Iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
         ypm = (l_int32)(scy * (l_float32)i + 0.5);
         yp = ypm >> 4;
@@ -238,13 +238,13 @@ l_float32  scx, scy;
             xp = xpm >> 4;
             xf = xpm & 0x0f;
 
-                /* if near the edge, just use the src pixel value */
+                /* If near the dest boundary, just use the src pixel value */
             if (xp > wm2 || yp > hm2) {
                 SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
                 continue;
             }
 
-                /* do bilinear interpolation.  Without this, we could
+                /* Do bilinear interpolation.  Without this, we could
                  * simply subsample:
                  *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
                  * which is faster but gives lousy results!
@@ -1259,7 +1259,7 @@ l_int32    v10r, v10g, v10b;  /* contrib from UR src pixel */
 l_int32    v11r, v11g, v11b;  /* contrib from LR src pixel */
 l_int32    vinr, ving, vinb;  /* contrib from all full interior src pixels */
 l_int32    vmidr, vmidg, vmidb;  /* contrib from side parts */
-l_int32    valr, valg, valb;
+l_int32    rval, gval, bval;
 l_uint32   pixel00, pixel10, pixel01, pixel11, pixel;
 l_uint32  *lines, *lined;
 l_float32  scx, scy;
@@ -1367,15 +1367,15 @@ l_float32  scx, scy;
             }
 
                 /* Sum all the contributions */
-            valr = (v00r + v01r + v10r + v11r + vinr + vmidr + 128) / area;
-            valg = (v00g + v01g + v10g + v11g + ving + vmidg + 128) / area;
-            valb = (v00b + v01b + v10b + v11b + vinb + vmidb + 128) / area;
+            rval = (v00r + v01r + v10r + v11r + vinr + vmidr + 128) / area;
+            gval = (v00g + v01g + v10g + v11g + ving + vmidg + 128) / area;
+            bval = (v00b + v01b + v10b + v11b + vinb + vmidb + 128) / area;
 #if  DEBUG_OVERFLOW
-            if (valr > 255) fprintf(stderr, "valr ovfl: %d\n", valr);
-            if (valg > 255) fprintf(stderr, "valg ovfl: %d\n", valg);
-            if (valb > 255) fprintf(stderr, "valb ovfl: %d\n", valb);
+            if (rval > 255) fprintf(stderr, "rval ovfl: %d\n", rval);
+            if (rval > 255) fprintf(stderr, "gval ovfl: %d\n", gval);
+            if (rval > 255) fprintf(stderr, "bval ovfl: %d\n", bval);
 #endif  /* DEBUG_OVERFLOW */
-            *(lined + j) = (valr << 24 ) | (valg << 16) | (valb << 8);
+            composeRGBPixel(rval, gval, bval, lined + j);
         }
     }
 

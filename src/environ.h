@@ -49,10 +49,10 @@ typedef uintptr_t l_uintptr_t;
  * For all but TIFF and PS, these use the non-posix GNU functions
  * fmemopen() and open_memstream().  These functions are not
  * available on other systems.  To use these functions in linux,
- * you must comment out the #define _STANDARD_C_ line here.
+ * you must define HAVE_FMEMOPEN to be 1 here.
  */
 #ifndef HAVE_CONFIG_H
-#define  _STANDARD_C_
+#define  HAVE_FMEMOPEN    0
 #endif  /* ~HAVE_CONFIG_H */
 
 
@@ -168,6 +168,10 @@ enum {
 #define ERROR_INT(a,b,c)            ((l_int32)(c))
 #define ERROR_FLOAT(a,b,c)          ((l_float32)(c))
 #define ERROR_VOID(a,b)
+#define L_ERROR(a,b)
+#define L_ERROR_STRING(a,b,c)
+#define L_ERROR_INT(a,b,c)
+#define L_ERROR_FLOAT(a,b,c)
 #define L_WARNING(a,b)
 #define L_WARNING_STRING(a,b,c)
 #define L_WARNING_INT(a,b,c)
@@ -182,10 +186,14 @@ enum {
 #else
 
 #define PROCNAME(name)              static const char procName[] = name
-#define ERROR_PTR(a,b,c)            l_errorPtr((a),(b),(c))
-#define ERROR_INT(a,b,c)            l_errorInt((a),(b),(c))
-#define ERROR_FLOAT(a,b,c)          l_errorFloat((a),(b),(c))
-#define ERROR_VOID(a,b)             l_errorVoid((a),(b))
+#define ERROR_PTR(a,b,c)            returnErrorPtr((a),(b),(c))
+#define ERROR_INT(a,b,c)            returnErrorInt((a),(b),(c))
+#define ERROR_FLOAT(a,b,c)          returnErrorFloat((a),(b),(c))
+#define ERROR_VOID(a,b)             returnErrorVoid((a),(b))
+#define L_ERROR(a,b)                l_error((a),(b))
+#define L_ERROR_STRING(a,b,c)       l_errorString((a),(b),(c))
+#define L_ERROR_INT(a,b,c)          l_errorInt((a),(b),(c))
+#define L_ERROR_FLOAT(a,b,c)        l_errorFloat((a),(b),(c))
 #define L_WARNING(a,b)              l_warning((a),(b))
 #define L_WARNING_STRING(a,b,c)     l_warningString((a),(b),(c))
 #define L_WARNING_INT(a,b,c)        l_warningInt((a),(b),(c))
@@ -198,6 +206,14 @@ enum {
 #define L_INFO_FLOAT2(a,b,c,d)      l_infoFloat2((a),(b),(c),(d))
 
 #endif  /* NO_CONSOLE_IO */
+
+
+/*------------------------------------------------------------------------*
+ *                        snprintf() renamed in MSVC                      *
+ *------------------------------------------------------------------------*/
+#if defined(__MINGW32__) || defined(_WIN32)
+#define snprintf _snprintf
+#endif
 
 
 #endif /* LEPTONICA_ENVIRON_H */

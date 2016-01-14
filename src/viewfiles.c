@@ -276,8 +276,8 @@ struct dirent  *pdirentry;
     while ((pdirentry = readdir(pdir)))  {
 
         /* It's nice to ignore directories.  For this it is necessary to
-	 * define _BSD_SOURCE in the CC command, because the DT_DIR
-	 * flag is non-standard.  */ 
+         * define _BSD_SOURCE in the CC command, because the DT_DIR
+         * flag is non-standard.  */ 
 #if !defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(__SOLARIS__)
         if (pdirentry->d_type == DT_DIR)
             continue;
@@ -305,33 +305,33 @@ struct dirent  *pdirentry;
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
-SARRAY          *safiles;
-WIN32_FIND_DATA  ffd;
-size_t           length_of_path;
-TCHAR            szDir[MAX_PATH];  /* MAX_PATH is defined in stdlib.h */
-HANDLE           hFind = INVALID_HANDLE_VALUE;
+SARRAY           *safiles;
+WIN32_FIND_DATAA  ffd;
+size_t            length_of_path;
+CHAR              szDir[MAX_PATH];  /* MAX_PATH is defined in stdlib.h */
+HANDLE            hFind = INVALID_HANDLE_VALUE;
 
     PROCNAME("getFilenamesInDirectory");
 
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    StringCchLength(dirname, MAX_PATH, &length_of_path);
+    StringCchLengthA(dirname, MAX_PATH, &length_of_path);
     if (length_of_path > (MAX_PATH - 2))
         return (SARRAY *)ERROR_PTR("dirname is to long", procName, NULL);
 
-    StringCchCopy (szDir, MAX_PATH, dirname);
-    StringCchCat (szDir, MAX_PATH, TEXT("\\*"));
+    StringCchCopyA(szDir, MAX_PATH, dirname);
+    StringCchCatA(szDir, MAX_PATH, TEXT("\\*"));
 
     if ((safiles = sarrayCreate(0)) == NULL)
         return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
-    hFind = FindFirstFile(szDir, &ffd);
+    hFind = FindFirstFileA(szDir, &ffd);
     if (INVALID_HANDLE_VALUE == hFind) {
         sarrayDestroy(&safiles);
         return (SARRAY *)ERROR_PTR("hFind not opened", procName, NULL);
     }
 
-    while (FindNextFile(hFind, &ffd) != 0)
+    while (FindNextFileA(hFind, &ffd) != 0)
         sarrayAddString(safiles, ffd.cFileName, L_COPY);
 
     FindClose(hFind);

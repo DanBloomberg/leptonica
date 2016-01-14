@@ -68,7 +68,12 @@
  *        be used to store l_int32 values.  See numabasic.c for
  *        details on using the accessors.
  *
- *    (3) Occasionally, in the comments we denote the i-th element of a
+ *    (3) If you use numaCreate(), no numbers are stored and the size is 0.
+ *        You have to add numbers to increase the size.
+ *        If you want to start with a numa of a fixed size, with each
+ *        entry initialized to the same value, use numaMakeConstant().
+ *
+ *    (4) Occasionally, in the comments we denote the i-th element of a
  *        numa by na[i].  This is conceptual only -- the numa is not an array!
  */
 
@@ -85,65 +90,71 @@
 /*!
  *  numaArithOp()
  *
- *      Input:  na1
+ *      Input:  nad (<optional> can be null or equal to na1 (in-place)
+ *              na1
  *              na2
  *              op (L_ARITH_ADD, L_ARITH_SUBTRACT,
  *                  L_ARITH_MULTIPLY, L_ARITH_DIVIDE)
- *      Return: nad (operation applied to na1 and na2), or null on error
+ *      Return: nad (always: operation applied to na1 and na2)
  *
  *  Notes:
- *      (1) The input numa sizes must be equal.
+ *      (1) The sizes of na1 and na2 must be equal.
+ *      (2) nad can only null or equal to na1.
  *      (2) To add a constant to a numa, or to multipy a numa by
  *          a constant, use numaTransform().
  */
 NUMA *
-numaArithOp(NUMA    *na1,
+numaArithOp(NUMA    *nad,
+            NUMA    *na1,
             NUMA    *na2,
             l_int32  op)
 {
 l_int32    i, n;
 l_float32  val1, val2;
-NUMA      *nad;
 
     PROCNAME("numaArithOp");
 
     if (!na1 || !na2)
-        return (NUMA *)ERROR_PTR("na1, na2 not both defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("na1, na2 not both defined", procName, nad);
     n = numaGetCount(na1);
     if (n != numaGetCount(na2))
-        return (NUMA *)ERROR_PTR("na1, na2 sizes differ", procName, NULL);
+        return (NUMA *)ERROR_PTR("na1, na2 sizes differ", procName, nad);
+    if (nad && nad != na1)
+        return (NUMA *)ERROR_PTR("nad defined but not in-place", procName, nad);
     if (op != L_ARITH_ADD && op != L_ARITH_SUBTRACT &&
         op != L_ARITH_MULTIPLY && op != L_ARITH_DIVIDE)
-        return (NUMA *)ERROR_PTR("invalid op", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid op", procName, nad);
     if (op == L_ARITH_DIVIDE) {
         for (i = 0; i < n; i++) {
             numaGetFValue(na2, i, &val2);
             if (val2 == 0.0)
-                return (NUMA *)ERROR_PTR("na2 has 0 element", procName, NULL);
+                return (NUMA *)ERROR_PTR("na2 has 0 element", procName, nad);
         }
     }
             
-    nad = numaCreate(n);
+        /* If nad is not identical to na1, make it an identical copy */
+    if (!nad)
+        nad = numaCopy(na1);
+        
     for (i = 0; i < n; i++) {
-        numaGetFValue(na1, i, &val1);
+        numaGetFValue(nad, i, &val1);
         numaGetFValue(na2, i, &val2);
         switch (op) {
         case L_ARITH_ADD:
-            numaAddNumber(nad, val1 + val2);
+            numaSetValue(nad, i, val1 + val2);
             break;
         case L_ARITH_SUBTRACT:
-            numaAddNumber(nad, val1 - val2);
+            numaSetValue(nad, i, val1 - val2);
             break;
         case L_ARITH_MULTIPLY:
-            numaAddNumber(nad, val1 * val2);
+            numaSetValue(nad, i, val1 * val2);
             break;
         case L_ARITH_DIVIDE:
-            numaAddNumber(nad, val1 / val2);
+            numaSetValue(nad, i, val1 / val2);
             break;
         default:
-            numaDestroy(&nad);
             fprintf(stderr, " Unknown arith op: %d\n", op);
-            return NULL;
+            return nad;
         }
     }
 

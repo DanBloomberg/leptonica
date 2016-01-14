@@ -29,10 +29,6 @@
 #include <math.h>
 #include "allheaders.h"
 
-    /* For pixCorrelationScore*(); choose these to be 2 or greater */
-static const l_int32  MAX_DIFF_HEIGHT = 2;  /* use at least 2 */
-static const l_int32  MAX_DIFF_WIDTH = 2;  /* use at least 2 */
-
 
 /*!
  *  pixCorrelationScore()
@@ -43,10 +39,15 @@ static const l_int32  MAX_DIFF_WIDTH = 2;  /* use at least 2 */
  *              area2  (number of on pixels in pix2)
  *              delx   (x comp of centroid difference)
  *              dely   (y comp of centroid difference)
+ *              maxdiffw (max width difference of pix1 and pix2)
+ *              maxdiffh (max height difference of pix1 and pix2)
  *              tab    (sum tab for byte)
  *      Return: correlation score 
  *
  *  Note: we check first that the two pix are roughly the same size.
+ *  For jbclass (jbig2) applications at roughly 300 ppi, maxdiffw and
+ *  maxdiffh should be at least 2.
+ *
  *  Only if they meet that criterion do we compare the bitmaps. 
  *  The centroid difference is used to align the two images to the
  *  nearest integer for the correlation.
@@ -98,6 +99,8 @@ pixCorrelationScore(PIX       *pix1,
                     l_int32    area2,
                     l_float32  delx,   /* x(1) - x(3) */
                     l_float32  dely,   /* y(1) - y(3) */
+                    l_int32    maxdiffw,
+                    l_int32    maxdiffh,
                     l_int32   *tab)
 {
 l_int32    wi, hi, wt, ht, delw, delh, idelx, idely, count;
@@ -122,10 +125,10 @@ l_float32  score;
     pixGetDimensions(pix1, &wi, &hi, NULL);
     pixGetDimensions(pix2, &wt, &ht, NULL);
     delw = L_ABS(wi - wt);
-    if (delw > MAX_DIFF_WIDTH)
+    if (delw > maxdiffw)
         return 0.0;
     delh = L_ABS(hi - ht);
-    if (delh > MAX_DIFF_HEIGHT)
+    if (delh > maxdiffh)
         return 0.0;
 
         /* Round difference to nearest integer */
@@ -338,6 +341,8 @@ l_float32  score;
  *              area2  (number of on pixels in pix2)
  *              delx   (x comp of centroid difference)
  *              dely   (y comp of centroid difference)
+ *              maxdiffw (max width difference of pix1 and pix2)
+ *              maxdiffh (max height difference of pix1 and pix2)
  *              tab    (sum tab for byte)
  *              downcount (count of 1 pixels below each row of pix1)
  *              score_threshold
@@ -385,6 +390,8 @@ pixCorrelationScoreThresholded(PIX       *pix1,
                                l_int32    area2,
                                l_float32  delx,   /* x(1) - x(3) */
                                l_float32  dely,   /* y(1) - y(3) */
+                               l_int32    maxdiffw,
+                               l_int32    maxdiffh,
                                l_int32   *tab,
                                l_int32   *downcount,
                                l_float32  score_threshold)
@@ -412,10 +419,10 @@ l_int32    threshold;
     pixGetDimensions(pix1, &wi, &hi, NULL);
     pixGetDimensions(pix2, &wt, &ht, NULL);
     delw = L_ABS(wi - wt);
-    if (delw > MAX_DIFF_WIDTH)
+    if (delw > maxdiffw)
         return FALSE;
     delh = L_ABS(hi - ht);
-    if (delh > MAX_DIFF_HEIGHT)
+    if (delh > maxdiffh)
         return FALSE;
 
         /* Round difference to nearest integer */
@@ -667,6 +674,8 @@ l_int32    threshold;
  *              area2  (number of on pixels in pix2)
  *              delx   (x comp of centroid difference)
  *              dely   (y comp of centroid difference)
+ *              maxdiffw (max width difference of pix1 and pix2)
+ *              maxdiffh (max height difference of pix1 and pix2)
  *              tab    (sum tab for byte)
  *      Return: correlation score 
  *
@@ -681,6 +690,8 @@ pixCorrelationScoreSimple(PIX       *pix1,
                           l_int32    area2,
                           l_float32  delx,   /* x(1) - x(3) */
                           l_float32  dely,   /* y(1) - y(3) */
+                          l_int32    maxdiffw,
+                          l_int32    maxdiffh,
                           l_int32   *tab)
 {
 l_int32    wi, hi, wt, ht, delw, delh, idelx, idely, count;
@@ -702,10 +713,10 @@ PIX       *pixt;
     pixGetDimensions(pix1, &wi, &hi, NULL);
     pixGetDimensions(pix2, &wt, &ht, NULL);
     delw = L_ABS(wi - wt);
-    if (delw > MAX_DIFF_WIDTH)
+    if (delw > maxdiffw)
         return 0.0;
     delh = L_ABS(hi - ht);
-    if (delh > MAX_DIFF_HEIGHT)
+    if (delh > maxdiffh)
         return 0.0;
 
         /* Round difference to nearest integer */

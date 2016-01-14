@@ -15,22 +15,33 @@
 
 /*
  * distance_reg.c
+ *
+ *   This tests pixDistanceFunction for a variety of usage
+ *   with all 8 combinations of these parameters:
+ *
+ *     connectivity :   4 or 8
+ *     dest depth :     8 or 16
+ *     boundary cond :  L_BOUNDARY_BG or L_BOUNDARY_FG
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-    /* Test with all 8 combinations of these parameters */
-#define   CONNECTIVITY   8   /* 4 or 8 */
-#define   DEPTH          8  /* 8 or 16 bpp */
-#define   BC             L_BOUNDARY_FG  /* L_BOUNDARY_FG or L_BOUNDARY_BG */
+#define   DISPLAY        1
+
+
+static void TestDistance(PIXA *pixa, PIX *pixs, l_int32 conn,
+                         l_int32 depth, l_int32 bc);
 
 main(int    argc,
      char **argv)
 {
+char         buf[256];
+l_int32      i, j, k, index, conn, depth, bc;
 BOX         *box;
-PIX         *pix, *pixs, *pixd, *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
+PIX         *pix, *pixs, *pixd;
+PIXA        *pixa;
 static char  mainName[] = "distance_reg";
 
     if (argc != 1)
@@ -40,35 +51,74 @@ static char  mainName[] = "distance_reg";
 	exit(ERROR_INT("pixs not made", mainName, 1));
     box = boxCreate(383, 338, 1480, 1050);
     pixs = pixClipRectangle(pix, box, NULL);
-    pixDisplayWrite(pixt1, -1);  /* init */
-    pixDisplayWrite(pixs, 1);
+    pixDisplayWrite(NULL, -1);
+    pixDisplayWrite(pixs, DISPLAY);
 	    
+    for (i = 0; i < 2; i++) {
+        conn = 4 + 4 * i;
+        for (j = 0; j < 2; j++) {
+            depth = 8 + 8 * j;
+            for (k = 0; k < 2; k++) {
+                bc = k + 1;
+                index = 4 * i + 2 * j + k;
+                fprintf(stderr, "Set %d\n", index);
+                pixa = pixaCreate(0);
+                pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
+                TestDistance(pixa, pixs, conn, depth, bc);
+                pixd = pixaDisplay(pixa, 0, 0);
+                sprintf(buf, "junkdist.%d", index);
+                pixWrite(buf, pixd, IFF_JFIF_JPEG);
+                pixaDestroy(&pixa);
+                pixDestroy(&pixd);
+            }
+        }
+    }
+
+    system("/usr/bin/gthumb junk_write_display* &");
+
+    boxDestroy(&box);
+    pixDestroy(&pix);
+    pixDestroy(&pixs);
+    return 0;
+}
+
+
+static void
+TestDistance(PIXA    *pixa,
+             PIX     *pixs,
+             l_int32  conn,
+             l_int32  depth,
+             l_int32  bc)
+{
+PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
+
         /* Test the distance function and display */
     pixInvert(pixs, pixs);
-    pixt1 = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH, BC);
+    pixt1 = pixDistanceFunction(pixs, conn, depth, bc);
+    pixSaveTiled(pixt1, pixa, 1, 1, 20, 0);
     pixInvert(pixs, pixs);
-    pixDisplayWrite(pixt1, 1);
-    pixWrite("junkout1.png", pixt1, IFF_PNG);
+    pixDisplayWrite(pixt1, DISPLAY);
     pixt2 = pixMaxDynamicRange(pixt1, L_LOG_SCALE);
-    pixDisplayWrite(pixt2, 1);
-    pixWrite("junkout2.png", pixt2, IFF_PNG);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixDisplayWrite(pixt2, DISPLAY);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
 	/* Test the distance function and display with contour rendering */
     pixInvert(pixs, pixs);
-    pixt1 = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH, BC);
+    pixt1 = pixDistanceFunction(pixs, conn, depth, bc);
+    pixSaveTiled(pixt1, pixa, 1, 1, 20, 0);
     pixInvert(pixs, pixs);
     pixt2 = pixRenderContours(pixt1, 2, 4, 1);  /* binary output */
-    pixWrite("junkout3.png", pixt2, IFF_PNG);
-    pixDisplayWrite(pixt2, 1);
-    pixt3 = pixRenderContours(pixt1, 2, 4, DEPTH);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixDisplayWrite(pixt2, DISPLAY);
+    pixt3 = pixRenderContours(pixt1, 2, 4, depth);
     pixt4 = pixMaxDynamicRange(pixt3, L_LINEAR_SCALE);
-    pixWrite("junkout4.png", pixt4, IFF_PNG);
-    pixDisplayWrite(pixt4, 1);
+    pixSaveTiled(pixt4, pixa, 1, 0, 20, 0);
+    pixDisplayWrite(pixt4, DISPLAY);
     pixt5 = pixMaxDynamicRange(pixt3, L_LOG_SCALE);
-    pixWrite("junkout5.png", pixt5, IFF_PNG);
-    pixDisplayWrite(pixt5, 1);
+    pixSaveTiled(pixt5, pixa, 1, 0, 20, 0);
+    pixDisplayWrite(pixt5, DISPLAY);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -81,30 +131,26 @@ static char  mainName[] = "distance_reg";
          * to 255.  For the image here, each unit of distance is
          * represented by about 21 grayscale units.  The largest
          * distance is 12.  */
-    if (DEPTH == 8) {
-        pixt1 = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH, BC);
+    if (depth == 8) {
+        pixt1 = pixDistanceFunction(pixs, conn, depth, bc);
         pixt4 = pixMaxDynamicRange(pixt1, L_LOG_SCALE);
-        pixWrite("junkout6.png", pixt4, IFF_PNG);
-        pixDisplayWrite(pixt4, 1);
+        pixSaveTiled(pixt4, pixa, 1, 1, 20, 0);
+        pixDisplayWrite(pixt4, DISPLAY);
         pixt2 = pixCreateTemplate(pixt1);
         pixSetMasked(pixt2, pixs, 255);
-        pixWrite("junkout7.png", pixt2, IFF_PNG);
-        pixDisplayWrite(pixt2, 1);
+        pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+        pixDisplayWrite(pixt2, DISPLAY);
         pixSeedfillGray(pixt1, pixt2, 4);
         pixt3 = pixMaxDynamicRange(pixt1, L_LINEAR_SCALE);
-        pixWrite("junkout8.png", pixt3, IFF_PNG);
-        pixDisplayWrite(pixt3, 1);
+        pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
+        pixDisplayWrite(pixt3, DISPLAY);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
         pixDestroy(&pixt3);
         pixDestroy(&pixt4);
     }
 
-    system("/usr/bin/gthumb junk_write_display* &");
-
-    boxDestroy(&box);
-    pixDestroy(&pix);
-    pixDestroy(&pixs);
-    exit(0);
+    return;
 }
+
 

@@ -62,6 +62,9 @@
  *      can be used to divide one image by another, scaling the
  *      result for maximum dynamic range, and giving back the
  *      8 bpp result.
+ *
+ *      A simpler interface to the arithmetic operations is
+ *      provided in pixacc.c.
  */
 
 
@@ -155,9 +158,10 @@ l_uint32  *data;
 /*!
  *  pixAddGray()
  *
- *      Input:  pixd (<optional>)
+ *      Input:  pixd (<optional>; this can be null, equal to pixs1, or
+ *                    different from pixs1)
  *              pixs1 (can be == to pixd)
- *              pixs2 (can be == to pixd)
+ *              pixs2
  *      Return: pixd always
  *
  *  Notes:
@@ -169,7 +173,8 @@ l_uint32  *data;
  *          in-place to pixs1, or to an existing input dest:
  *          * pixd == null:   (src1 + src2) --> new pixd
  *          * pixd == pixs1:  (src1 + src2) --> src1  (in-place)
- *          * pixd != pixs1 && pixd != pixs2: (src1 + src2) --> input pixd
+ *          * pixd != pixs1:  (src1 + src2) --> input pixd
+ *      (5) pixs2 must be different from both pixd and pixs1.
  */
 PIX *
 pixAddGray(PIX  *pixd,
@@ -185,8 +190,10 @@ l_uint32  *datas, *datad;
         return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
         return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
-    if (pixs1 == pixs2)
-        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
+    if (pixs2 == pixs1)
+        return (PIX *)ERROR_PTR("pixs2 and pixs1 must differ", procName, pixd);
+    if (pixs2 == pixd)
+        return (PIX *)ERROR_PTR("pixs2 and pixd must differ", procName, pixd);
     d = pixGetDepth(pixs1);
     if (d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pix are not 8, 16 or 32 bpp", procName, pixd);
@@ -203,6 +210,7 @@ l_uint32  *datas, *datad;
     if (pixs1 != pixd)
         pixd = pixCopy(pixd, pixs1);
 
+        /* pixd + pixs2 ==> pixd  */
     datas = pixGetData(pixs2);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs2);
@@ -220,9 +228,10 @@ l_uint32  *datas, *datad;
 /*!
  *  pixSubtractGray()
  *
- *      Input:  pixd (<optional>)
+ *      Input:  pixd (<optional>; this can be null, equal to pixs1, or
+ *                    different from pixs1)
  *              pixs1 (can be == to pixd)
- *              pixs2 (can be == to pixd)
+ *              pixs2
  *      Return: pixd always
  *
  *  Notes:
@@ -230,23 +239,19 @@ l_uint32  *datas, *datad;
  *      (2) Source pixs2 is always subtracted from source pixs1.
  *      (3) Do explicit clipping to 0.
  *      (4) Alignment is to UL corner.
- *      (5) There are 4 cases.  The result can go to a new dest,
- *          in-place to either pixs1 or pixs2, or to an
- *          existing input dest:
+ *      (5) There are 3 cases.  The result can go to a new dest,
+ *          in-place to pixs1, or to an existing input dest:
  *          (a) pixd == null   (src1 - src2) --> new pixd
  *          (b) pixd == pixs1  (src1 - src2) --> src1  (in-place)
- *          (c) pixd == pixs2  (src1 - src2) --> src2  (in-place)
- *          (d) pixd != pixs1 && pixd != pixs2)   (src1 - src2) --> input pixd
- *      (6) Case (c) requires swap = 1. For the other three, we can
- *          arrange for the data in pixs1 to be copied to pixd before
- *          calling the low-level code.
+ *          (d) pixd != pixs1  (src1 - src2) --> input pixd
+ *      (6) pixs2 must be different from both pixd and pixs1.
  */
 PIX *
 pixSubtractGray(PIX  *pixd,
                 PIX  *pixs1,
                 PIX  *pixs2)
 {
-l_int32    w, h, ws, hs, d, wpls, wpld, swap;
+l_int32    w, h, ws, hs, d, wpls, wpld;
 l_uint32  *datas, *datad;
 
     PROCNAME("pixSubtractGray");
@@ -255,8 +260,10 @@ l_uint32  *datas, *datad;
         return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
         return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
-    if (pixs1 == pixs2)
-        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
+    if (pixs2 == pixs1)
+        return (PIX *)ERROR_PTR("pixs2 and pixs1 must differ", procName, pixd);
+    if (pixs2 == pixd)
+        return (PIX *)ERROR_PTR("pixs2 and pixd must differ", procName, pixd);
     d = pixGetDepth(pixs1);
     if (d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pix are not 8, 16 or 32 bpp", procName, pixd);
@@ -270,30 +277,19 @@ l_uint32  *datas, *datad;
     if (pixd && !pixSizesEqual(pixs1, pixd))
         L_WARNING("pixs1 and pixd not equal in size", procName);
 
-    if (!pixd || (pixd != pixs1 && pixd != pixs2))
+    if (pixs1 != pixd)
         pixd = pixCopy(pixd, pixs1);
 
-    if (pixd != pixs2) {   /* straightforward:  pixd - pixs2 ==> pixd  */
-        pixGetDimensions(pixs2, &ws, &hs, NULL);
-        pixGetDimensions(pixd, &w, &h, NULL);
-        datas = pixGetData(pixs2);
-        datad = pixGetData(pixd);
-        wpls = pixGetWpl(pixs2);
-        wpld = pixGetWpl(pixd);
-        swap = 0;
-    }
-    else {  /* swap around:  pixs1 - pixd ==> pixd */
-        pixGetDimensions(pixs1, &ws, &hs, NULL);
-        pixGetDimensions(pixd, &w, &h, NULL);
-        datas = pixGetData(pixs1);
-        datad = pixGetData(pixd);
-        wpls = pixGetWpl(pixs1);
-        wpld = pixGetWpl(pixd);
-        swap = 1;
-    }
+        /* pixd - pixs2 ==> pixd  */
+    datas = pixGetData(pixs2);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs2);
+    wpld = pixGetWpl(pixd);
+    pixGetDimensions(pixs2, &ws, &hs, NULL);
+    pixGetDimensions(pixd, &w, &h, NULL);
     w = L_MIN(ws, w);
     h = L_MIN(hs, h);
-    subtractGrayLow(datad, w, h, d, wpld, datas, wpls, swap);
+    subtractGrayLow(datad, w, h, d, wpld, datas, wpls);
 
     return pixd;
 }
@@ -350,8 +346,7 @@ l_uint32  *datad;
     }
 
     datad = pixGetData(pixd);
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
+    pixGetDimensions(pixd, &w, &h, NULL);
     wpld = pixGetWpl(pixd);
 
     thresholdToValueLow(datad, w, h, d, wpld, threshval, setval);
@@ -436,8 +431,7 @@ PIX       *pixd;
     if (offset > 0x40000000)
         offset = 0x40000000;
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);  /* but how did pixs get it initially? */
@@ -481,8 +475,7 @@ PIX       *pixd;
     if (offset > 0x40000000)
         offset = 0x40000000;
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);  /* but how did pixs get it initially? */
@@ -778,8 +771,7 @@ PIX        *pixd;
     if (type != L_LINEAR_SCALE && type != L_LOG_SCALE)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -835,7 +827,7 @@ PIX        *pixd;
                 lines = datas + i * wpls;
                 lined = datad + i * wpld;
                 for (j = 0; j < w; j++) {
-                    sval = GET_DATA_BYTE(lines, j);
+                    sval = GET_DATA_QBIT(lines, j);
                     dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
                     SET_DATA_BYTE(lined, j, dval);
                 }
@@ -844,7 +836,7 @@ PIX        *pixd;
         }
     } else if (d == 8) {
         if (type == L_LINEAR_SCALE) {
-            factor = 255 / (l_float32)max;
+            factor = 255. / (l_float32)max;
             for (i = 0; i < h; i++) {
                 lines = datas + i * wpls;
                 lined = datad + i * wpld;
@@ -854,7 +846,7 @@ PIX        *pixd;
                     SET_DATA_BYTE(lined, j, dval);
                 }
             }
-        } else  /* type == L_LOG_SCALE) */ {
+        } else {  /* type == L_LOG_SCALE) */
             tab = makeLogBase2Tab();
             factor = 255. / getLogBase2(max, tab);
             for (i = 0; i < h; i++) {
@@ -868,9 +860,9 @@ PIX        *pixd;
             }
             FREE(tab);
         }
-    } else {   /* d == 16 */
+    } else {  /* d == 16 */
         if (type == L_LINEAR_SCALE) {
-            factor = 255 / (l_float32)max;
+            factor = 255. / (l_float32)max;
             for (i = 0; i < h; i++) {
                 lines = datas + i * wpls;
                 lined = datad + i * wpld;
@@ -880,7 +872,7 @@ PIX        *pixd;
                     SET_DATA_BYTE(lined, j, dval);
                 }
             }
-        } else  /* type == L_LOG_SCALE) */ {
+        } else {  /* type == L_LOG_SCALE) */
             tab = makeLogBase2Tab();
             factor = 255. / getLogBase2(max, tab);
             for (i = 0; i < h; i++) {
@@ -954,3 +946,4 @@ getLogBase2(l_int32     val,
     else
         return 24.0 + logtab[val >> 24];
 }
+

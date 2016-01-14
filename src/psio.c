@@ -29,37 +29,23 @@
  *          l_int32          convertToPSEmbed()
  *
  *     For uncompressed images
- *
  *          l_int32          pixWritePSEmbed()
- *
  *          l_int32          pixWriteStreamPS()
  *          char            *pixWriteStringPS()
- *
  *          void             getScaledParametersPS()
  *          l_int32          convertByteToHexAscii()
  *
  *     For jpeg compressed images
- *
  *          l_int32          convertJpegToPSEmbed()
- *
  *          l_int32          convertJpegToPS()
  *          l_int32          convertJpegToPSString()
- *          l_int32          extractJpegDataFromFile()
- *          l_int32          extractJpegDataFromArray()
- *
- *          static l_int32   locateJpegImageParameters()
- *          static l_int32   getNextJpegMarker()
- *          static l_int32   getTwoByteParameter()
  *
  *     For tiff g4 compressed images
- *
  *          l_int32          convertTiffG4ToPSEmbed()
- *
  *          l_int32          convertTiffG4ToPS()
  *          l_int32          convertTiffG4ToPSString()
  *
  *     For multipage tiff images
- *
  *          l_int32          convertTiffMultipageToPS()
  *
  *     Write to memory
@@ -70,7 +56,6 @@
  *          l_int32          getResA4Page()
  *
  *     Utility for encoding and decoding data with ascii85
- *
  *          char            *encodeAscii85()
  *          l_int32         *convertChunkToAscii85()
  *          l_uint8         *decodeAscii85()
@@ -130,11 +115,6 @@ static const l_uint32  power85[5] = {1,
                                      85 * 85,
                                      85 * 85 * 85,
                                      85 * 85 * 85 * 85};
-
-static l_int32  locateJpegImageParameters(l_uint8 *, l_int32, l_int32 *);
-static l_int32  getNextJpegMarker(l_uint8 *, l_int32, l_int32 *);
-static l_int32  getTwoByteParameter(l_uint8 *, l_int32);
-
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_JPEG     0
@@ -1267,285 +1247,6 @@ SARRAY    *sa;
     FREE(pstring);
     return 0;
 }
-
-
-/*!
- *  extractJpegDataFromFile()
- *
- *      Input:  filein
- *              &data (<return> binary data consisting of the entire jpeg file)
- *              &nbytes (<return> size of binary data)
- *              &w (<optional return> image width)
- *              &h (<optional return> image height)
- *              &bps (<optional return> bits/sample; should be 8)
- *              &spp (<optional return> samples/pixel; should be 1 or 3)
- *      Return: 0 if OK, 1 on error
- */
-l_int32
-extractJpegDataFromFile(const char  *filein,
-                        l_uint8    **pdata,
-                        l_int32     *pnbytes,
-                        l_int32     *pw,
-                        l_int32     *ph,
-                        l_int32     *pbps,
-                        l_int32     *pspp)
-{
-l_uint8  *data;
-l_int32   format, nbytes;
-FILE     *fpin;
-
-    PROCNAME("extractJpegDataFromFile");
-
-    if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
-    if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
-    if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
-    if (!pw && !ph && !pbps && !pspp)
-        return ERROR_INT("no output data requested", procName, 1);
-    *pdata = NULL;
-    *pnbytes = 0;
-
-    if ((fpin = fopen(filein, "r")) == NULL)
-        return ERROR_INT("filein not defined", procName, 1);
-    format = findFileFormat(fpin);
-    fclose(fpin);
-    if (format != IFF_JFIF_JPEG)
-        return ERROR_INT("filein not jfif jpeg", procName, 1);
-
-    if ((data = arrayRead(filein, &nbytes)) == NULL)
-        return ERROR_INT("inarray not made", procName, 1);
-    *pnbytes = nbytes;
-    *pdata = data;
-
-        /* On error, free the data */
-    if (extractJpegDataFromArray(data, nbytes, pw, ph, pbps, pspp)) {
-      FREE(data);
-      *pdata = NULL;
-      *pnbytes = 0;
-    }
-
-    return 0;
-}
-
-
-/*!
- *  extractJpegDataFromArray()
- *
- *      Input:  data (binary data consisting of the entire jpeg file)
- *              nbytes (size of binary data)
- *              &w (<optional return> image width)
- *              &h (<optional return> image height)
- *              &bps (<optional return> bits/sample; should be 8)
- *              &spp (<optional return> samples/pixel; should be 1, 3 or 4)
- *      Return: 0 if OK, 1 on error
- */
-l_int32
-extractJpegDataFromArray(const void  *data,
-                         l_int32      nbytes,
-                         l_int32     *pw,
-                         l_int32     *ph,
-                         l_int32     *pbps,
-                         l_int32     *pspp)
-{
-l_uint8  *data8;
-l_int32   imeta, msize, bps, w, h, spp;
-
-    PROCNAME("extractJpegDataFromArray");
-
-    if (!data)
-        return ERROR_INT("data not defined", procName, 1);
-    if (!pw && !ph && !pbps && !pspp)
-        return ERROR_INT("no output data requested", procName, 1);
-    data8 = (l_uint8 *)data;
-
-        /* Find where the image metadata begins in header:
-         * 0xc0 is start of metadata for baseline DCT;
-         * 0xc1 is start of metadata for extended sequential DCT;
-         * ...   */
-    imeta = 0;
-    if (locateJpegImageParameters(data8, nbytes, &imeta))
-        return ERROR_INT("metadata not found", procName, 1);
-
-        /* Save the metadata */
-    msize = getTwoByteParameter(data8, imeta);   /* metadata size */
-    bps = data8[imeta + 2];
-    h = getTwoByteParameter(data8, imeta + 3);
-    w = getTwoByteParameter(data8, imeta + 5);
-    spp = data8[imeta + 7];
-    if (pbps) *pbps = bps;
-    if (ph) *ph = h;
-    if (pw) *pw = w;
-    if (pspp) *pspp = spp;
-
-#if  DEBUG_JPEG
-    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n", w, h, bps, spp);
-    fprintf(stderr, "imeta = %d, msize = %d\n", imeta, msize);
-#endif   /* DEBUG_JPEG */
- 
-        /* Is the data obviously bad? */
-    if (h <= 0 || w <= 0 || bps != 8 || (spp != 1 && spp !=3 && spp != 4)) {
-        fprintf(stderr, "h = %d, w = %d, bps = %d, spp = %d\n", h, w, bps, spp);
-        return ERROR_INT("image parameters not valid", procName, 1);
-    }
-
-    return 0;
-}
-
-
-/*
- *  locateJpegImageParameters()
- *  
- *      Input:  inarray (binary jpeg)
- *              size (of the data array)
- *             &index (<return> location of image metadata)
- *      Return: 0 if OK, 1 on error.  Caller must check this!
- *  
- *  Notes:
- *      (1) The parameters listed here appear to be the only jpeg flags
- *          we need to worry about.  It would have been nice to have
- *          avoided the switch with all these parameters, but
- *          unfortunately the parser for the jpeg header is set
- *          to accept any old flag that's not on the approved list!
- *          So we have to look for a flag that's not on the list
- *          (and is not 0), and then interpret the size of the
- *          data chunk and skip it.  Sometimes such a chunk contains
- *          a thumbnail version of the image, so if we don't skip it,
- *          we will find a pair of bytes such as 0xffc0, followed
- *          by small w and h dimensions. 
- */
-static l_int32
-locateJpegImageParameters(l_uint8  *inarray,
-                          l_int32   size,
-                          l_int32  *pindex)
-{
-l_uint8  val;
-l_int32  index, skiplength;
-
-    PROCNAME("locateJpegImageParameters");
-
-    if (!inarray)
-        return ERROR_INT("inarray not defined", procName, 1);
-    if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
-
-    index = *pindex;
-    while (1) {
-        if (getNextJpegMarker(inarray, size, &index))
-            break;
-        if ((val = inarray[index]) == 0)  /* ignore if "escaped" */
-            continue;
-/*        fprintf(stderr, " marker %x at %o, %d\n", val, index, index); */
-        switch(val)
-        {
-        case 0xc0:  /* M_SOF0 */
-        case 0xc1:  /* M_SOF1 */
-        case 0xc2:  /* M_SOF2 */
-        case 0xc3:  /* M_SOF3 */
-        case 0xc5:  /* M_SOF5 */
-        case 0xc6:  /* M_SOF6 */
-        case 0xc7:  /* M_SOF7 */
-        case 0xc9:  /* M_SOF9 */
-        case 0xca:  /* M_SOF10 */
-        case 0xcd:  /* M_SOF13 */
-        case 0xce:  /* M_SOF14 */
-        case 0xcf:  /* M_SOF15 */
-            *pindex = index + 1;  /* found it */
-            return 0;
-
-        case 0x01:  /* M_TEM */
-        case 0xd0:  /* M_RST0 */
-        case 0xd1:  /* M_RST1 */
-        case 0xd2:  /* M_RST2 */
-        case 0xd3:  /* M_RST3 */
-        case 0xd4:  /* M_RST4 */
-        case 0xd5:  /* M_RST5 */
-        case 0xd6:  /* M_RST6 */
-        case 0xd7:  /* M_RST7 */
-        case 0xd8:  /* M_SOI */
-        case 0xd9:  /* M_EOI */
-        case 0xe0:  /* M_APP0 */
-        case 0xee:  /* M_APP14 */
-            break;
-
-        default:
-            skiplength = getTwoByteParameter(inarray, index + 1);
-            index += skiplength;
-            break;
-        }
-    }
-
-    return 1;  /* not found */
-}
-
-
-/*
- *  getNextJpegMarker()
- *
- *      Input:  array (jpeg data)
- *              size (from current point to the end)
- *             &index (<return> the last position searched.  If it
- *                     is not at the end of the array, we return
- *                     the first byte that is not 0xff, after
- *                     having encountered at least one 0xff.)
- *      Return: 0 if a marker is found, 1 if the end of the array is reached
- *      
- *  Notes:
- *      (1) In jpeg, 0xff is used to mark the end of a data segment.
- *          There may be more than one 0xff in succession.  But not every
- *          0xff marks the end of a segment.  It is possible, though
- *          rare, that 0xff can occur within some data.  In that case,
- *          the marker is "escaped", by following it with 0x00.
- *      (2) This function parses a jpeg data stream.  It doesn't
- *          _really_ get the next marker, because it doesn't check if
- *          the 0xff is escaped.  But the caller checks for this escape
- *          condition, and ignores the marker if escaped.
- */ 
-static l_int32
-getNextJpegMarker(l_uint8  *array,
-                  l_int32   size,
-                  l_int32  *pindex)
-{
-l_uint8  val;
-l_int32  index;
-
-    PROCNAME("getNextJpegMarker");
-
-    if (!array)
-        return ERROR_INT("array not defined", procName, 1);
-    if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
-
-    index = *pindex;
-
-    while (index < size) {  /* skip to 0xff */
-       val = array[index++];    
-       if (val == 0xff)
-           break;
-    }
-
-    while (index < size) {  /* skip repeated 0xff */
-       val = array[index++];    
-       if (val != 0xff)
-           break;
-    }
-
-    *pindex = index - 1;
-    if (index >= size)
-        return 1;
-    else
-        return 0;
-}
-
-
-static l_int32
-getTwoByteParameter(l_uint8  *array,
-                    l_int32   index)
-{
-    return (l_int32)((array[index]) << 8) + (l_int32)(array[index + 1]);
-}
-
 
 
 /*-------------------------------------------------------------*

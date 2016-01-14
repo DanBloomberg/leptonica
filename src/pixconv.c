@@ -26,7 +26,8 @@
  *           PIX        *pixRemoveColormap()
  *
  *      Add colormap losslessly (8 to 8)
- *           PIX        *pixAddGrayColormap8()
+ *           l_int32     pixAddGrayColormap8()
+ *           PIX        *pixAddMinimalGrayColormap8()
  *
  *      Conversion from RGB color to grayscale
  *           PIX        *pixConvertRGBToLuminance()
@@ -37,7 +38,7 @@
  *           PIX        *pixConvertGrayToColormap()  -- 2, 4, 8 bpp
  *           PIX        *pixConvertGrayToColormap8()  -- 8 bpp only
  *
- *      Conversion from RGB color to colormap (exact)
+ *      Conversion from RGB color to colormap
  *           PIX        *pixConvertRGBToColormap()
  *
  *      Conversion from 16 bpp to 8 bpp
@@ -219,10 +220,10 @@ pixRemoveColormap(PIX     *pixs,
                   l_int32  type)
 {
 l_int32    sval, rval, gval, bval;
-l_int32    i, j, k, w, h, d, wpls, wpld, count;
+l_int32    i, j, k, w, h, d, wpls, wpld, ncolors, count;
 l_int32    colorfound;
 l_int32   *rmap, *gmap, *bmap, *graymap;
-l_uint32  *datas, *lines, *datad, *lined;
+l_uint32  *datas, *lines, *datad, *lined, *lut;
 l_uint32   sword, dword;
 PIXCMAP   *cmap;
 PIX       *pixd;
@@ -242,7 +243,7 @@ PIX       *pixd;
         type = REMOVE_CMAP_BASED_ON_SRC;
     }
 
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8)
         return (PIX *)ERROR_PTR("pixs must be {1,2,4,8} bpp", procName, NULL);
 
@@ -267,8 +268,7 @@ PIX       *pixd;
             type = REMOVE_CMAP_TO_FULL_COLOR;
     }
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    ncolors = pixcmapGetCount(cmap);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if (type == REMOVE_CMAP_TO_BINARY) {
@@ -285,10 +285,8 @@ PIX       *pixd;
         pixCopyResolution(pixd, pixs);
         datad = pixGetData(pixd);
         wpld = pixGetWpl(pixd);
-        if ((graymap = (l_int32 *)CALLOC(pixcmapGetCount(cmap),
-                                         sizeof(l_int32))) == NULL) {
+        if ((graymap = (l_int32 *)CALLOC(ncolors, sizeof(l_int32))) == NULL)
             return (PIX *)ERROR_PTR("calloc fail for graymap", procName, NULL);
-        }
         for (i = 0; i < pixcmapGetCount(cmap); i++) {
             graymap[i] = (rmap[i] + 2 * gmap[i] + bmap[i]) / 4;
         }
@@ -439,6 +437,11 @@ PIX       *pixd;
         pixCopyResolution(pixd, pixs);
         datad = pixGetData(pixd);
         wpld = pixGetWpl(pixd);
+        if ((lut = (l_uint32 *)CALLOC(ncolors, sizeof(l_uint32))) == NULL)
+            return (PIX *)ERROR_PTR("calloc fail for lut", procName, NULL);
+        for (i = 0; i < ncolors; i++)
+            composeRGBPixel(rmap[i], gmap[i], bmap[i], lut + i);
+
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
             lined = datad + i * wpld;
@@ -453,12 +456,13 @@ PIX       *pixd;
                     sval = GET_DATA_BIT(lines, j);
                 else
                     return NULL;
-
-                SET_DATA_BYTE(lined + j, COLOR_RED, rmap[sval]);
-                SET_DATA_BYTE(lined + j, COLOR_GREEN, gmap[sval]);
-                SET_DATA_BYTE(lined + j, COLOR_BLUE, bmap[sval]);
+                if (sval >= ncolors)
+                    L_WARNING("pixel value out of bounds", procName);
+                else
+                    lined[j] = lut[sval];
             }
         }
+        FREE(lut);
     }
 
     FREE(rmap);
@@ -495,6 +499,91 @@ PIXCMAP  *cmap;
     cmap = pixcmapCreateLinear(8, 256);
     pixSetColormap(pixs, cmap);
     return 0;
+}
+
+
+/*!
+ *  pixAddMinimalGrayColormap8()
+ *
+ *      Input:  pixs (8 bpp)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a colormapped version of the input image
+ *          that has the same number of colormap entries as the
+ *          input image has unique gray levels.
+ */
+PIX *
+pixAddMinimalGrayColormap8(PIX  *pixs)
+{
+l_int32    ncolors, w, h, i, j, wplt, wpld, index, val;
+l_int32   *inta, *revmap;
+l_uint32  *datat, *datad, *linet, *lined;
+PIX       *pixt, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixAddMinimalGrayColormap8");
+
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+
+        /* Eliminate the easy cases */
+    pixNumColors(pixs, &ncolors);
+    cmap = pixGetColormap(pixs);
+    if (cmap) {
+        if (pixcmapGetCount(cmap) == ncolors)  /* irreducible */
+            return pixCopy(NULL, pixs);
+        else
+            pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    }
+    else {
+        if (ncolors == 256) {
+            pixt = pixCopy(NULL, pixs);
+            pixAddGrayColormap8(pixt);
+            return pixt;
+        }
+        pixt = pixClone(pixs);
+    }
+
+        /* Find the gray levels and make a reverse map */
+    pixGetDimensions(pixt, &w, &h, NULL);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+    inta = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BYTE(linet, j);
+            inta[val] = 1;
+        }
+    }
+    cmap = pixcmapCreate(8);
+    revmap = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    for (i = 0, index = 0; i < 256; i++) {
+        if (inta[i]) {
+            pixcmapAddColor(cmap, i, i, i);
+            revmap[i] = index++;
+        }
+    }
+
+        /* Set all pixels in pixd to the colormap index */
+    pixd = pixCreateTemplate(pixt);
+    pixSetColormap(pixd, cmap);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        linet = datat + i * wplt;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BYTE(linet, j);
+            SET_DATA_BYTE(lined, j, revmap[val]);
+        }
+    }
+    
+    pixDestroy(&pixt);
+    FREE(inta);
+    FREE(revmap);
+    return pixd;
 }
 
 
@@ -791,52 +880,41 @@ PIXCMAP   *cmap;
 
 
 /*---------------------------------------------------------------------------*
- *               Conversion from RGB color to colormap (exact)
+ *                    Conversion from RGB color to colormap                  *
  *---------------------------------------------------------------------------*/
 /*!
  *  pixConvertRGBToColormap()
  *
  *      Input:  pixs (32 bpp rgb)
- *              level (of octcube indexing, for histogram: 1, 2, 3, 4, 5, 6)
- *              &nerrors (<optional return> num of wrongly categorized pixels)
+ *              ditherflag (1 to dither, 0 otherwise)
  *      Return: pixd (2, 4 or 8 bpp with colormap), or null on error
  *
  *  Notes:
  *      (1) This function has two relatively simple modes of color
  *          quantization:
  *            (a) If the image is made orthographically and has not more
- *                than 256 'colors', it is quantized nearly exactly,
- *                using a colormap for the colors.  The 'level' parameter
- *                and the 'nerrors' return are only for this situation.
+ *                than 256 'colors' at the level 4 octcube leaves,
+ *                it is quantized nearly exactly.  The ditherflag
+ *                is ignored.
  *            (b) Most natural images have more than 256 different colors;
- *                in that case we use octree quantization with dithering.
- *      (2) Suggest using 'level' = 4.
- *          The image is first tested to count the 'colors' in the
- *          leaves of an octree, at the input 'level'.  This is given by
- *          the number of occupied leaves in the octree.  For an image
- *          with not more than 256 colors, it is unlikely that two pixels
- *          of different color will fall in the same octcube at level = 4.
- *          However it is possible, and this function optionally returns
- *          @nerrors, the number of pixels where, because more than one
- *          color is in the same octcube, the pixel color is not
- *          exactly reproduced in the colormap.  The colormap for an occupied
- *          leaf of the octree contains the color of the first pixel
- *          encountered in that octcube.
- *      (3) If there are more than 256 colors, the fallback is to
- *          octree quantization with dithering.  We could use the simple
- *          1-pass octree quantizer, but the adaptive quantizer gives
- *          slightly better results on a variety of images, although
- *          with poorer compression.  In that case, the value optionally
- *          returned in @nerrors is UNDEF.
- *      (4) The colormapped result is conveniently compressed
- *          losslessly with png.
+ *                in that case we use adaptive octree quantization,
+ *                with dithering if requested.
+ *      (2) If there are not more than 256 occupied level 4 octcubes,
+ *          the color in the colormap that represents all pixels in
+ *          one of those octcubes is given by the first pixel that
+ *          falls into that octcube.
+ *      (3) If there are more than 256 colors, we use adaptive octree
+ *          color quantization.
+ *      (4) Dithering gives better visual results on images where
+ *          there is a color wash (a slow variation of color), but it
+ *          is about twice as slow and results in significantly larger
+ *          files when losslessly compressed (e.g., into png).
  */     
 PIX *
-pixConvertRGBToColormap(PIX      *pixs,
-                        l_int32   level,
-                        l_int32  *pnerrors)
+pixConvertRGBToColormap(PIX     *pixs,
+                        l_int32  ditherflag)
 {
-l_int32  i, ncubes, ncolors, val;
+l_int32  ncolors;
 NUMA    *na;
 PIX     *pixd;
 
@@ -846,38 +924,27 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)        
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
-    if (level < 1 || level > 6)
-        return (PIX *)ERROR_PTR("level not in {1 ... 6}", procName, NULL);
-    if (pnerrors)
-        *pnerrors = UNDEF;  /* only used if ncolors <= 256 */
 
-        /* Get the histogram and count the number of occupied leaf octcubes.
-         * We don't yet know if this is the number of actual colors,
-         * but if it's not, all pixels falling into the same leaf octcube
-	 * will be assigned to the color of the first pixel that
-	 * lands there. */
-    na = pixOctcubeHistogram(pixs, level);
-    ncubes = numaGetCount(na);
-    ncolors = 0;
-    for (i = 0; i < ncubes; i++) {
-        numaGetIValue(na, i, &val);
-        if (val > 0)
-            ncolors++;
-    }
+        /* Get the histogram and count the number of occupied level 4
+         * leaf octcubes.  We don't yet know if this is the number of
+         * actual colors, but if it's not, all pixels falling into
+         * the same leaf octcube will be assigned to the color of the
+         * first pixel that lands there. */
+    na = pixOctcubeHistogram(pixs, 4, &ncolors);
 
         /* If there are too many occupied leaf octcubes to be
-	 * represented directly in a colormap, fall back to octree
-	 * quantization with dithering. */
+         * represented directly in a colormap, fall back to octree
+         * quantization with dithering. */
     if (ncolors > 256) {
-        L_WARNING("More than 256 colors; using octree quant with dithering",
-                  procName);
+        L_INFO("More than 256 colors; using octree quant with dithering",
+               procName);
         numaDestroy(&na);
-        return pixOctreeColorQuant(pixs, 250, 1);
+        return pixOctreeColorQuant(pixs, 240, ditherflag);
     }
 
         /* There are not more than 256 occupied leaf octcubes.
          * Quantize to those octcubes. */
-    pixd = pixFewColorsOctcubeQuant(pixs, level, na, ncolors, pnerrors);
+    pixd = pixFewColorsOctcubeQuant2(pixs, 4, na, ncolors, NULL);
     numaDestroy(&na);
     return pixd;
 }
@@ -1258,10 +1325,7 @@ l_uint32  *datas, *datad, *lines, *lined;
  *      Return: pixd (2 bpp, cmapped)
  *
  *  Notes:
- *      (1) If pixd is null, a new pix is made.
- *      (2) If pixd is not null, it must be of equal width and height
- *          as pixs.  It is always returned.
- *      (3) Input 0 is mapped to (255, 255, 255); 1 is mapped to (0, 0, 0)
+ *      (1) Input 0 is mapped to (255, 255, 255); 1 is mapped to (0, 0, 0)
  */     
 PIX *
 pixConvert1To2Cmap(PIX  *pixs)
@@ -1272,12 +1336,12 @@ PIXCMAP  *cmap;
     PROCNAME("pixConvert1To2Cmap");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
     if ((pixd = pixConvert1To2(NULL, pixs, 0, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     cmap = pixcmapCreate(2);
     pixcmapAddColor(cmap, 255, 255, 255);
     pixcmapAddColor(cmap, 0, 0, 0);
@@ -1379,10 +1443,7 @@ l_uint32  *datas, *datad, *lines, *lined;
  *      Return: pixd (4 bpp, cmapped)
  *
  *  Notes:
- *      (1) If pixd is null, a new pix is made.
- *      (2) If pixd is not null, it must be of equal width and height
- *          as pixs.  It is always returned.
- *      (3) Input 0 is mapped to (255, 255, 255); 1 is mapped to (0, 0, 0)
+ *      (1) Input 0 is mapped to (255, 255, 255); 1 is mapped to (0, 0, 0)
  */     
 PIX *
 pixConvert1To4Cmap(PIX  *pixs)
@@ -1393,12 +1454,12 @@ PIXCMAP  *cmap;
     PROCNAME("pixConvert1To4Cmap");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
     if ((pixd = pixConvert1To4(NULL, pixs, 0, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     cmap = pixcmapCreate(4);
     pixcmapAddColor(cmap, 255, 255, 255);
     pixcmapAddColor(cmap, 0, 0, 0);
@@ -1951,18 +2012,18 @@ PIXCMAP  *cmap;
         else {  /* !cmap && cmapflag; add colormap to pixd */
             pixd = pixCopy(NULL, pixs);
             pixAddGrayColormap8(pixd);
-	    return pixd;
-	}
+            return pixd;
+        }
     }
     else if (d == 16) {
         pixd = pixConvert16To8(pixs, 1);
-	if (cmapflag)
+        if (cmapflag)
             pixAddGrayColormap8(pixd);
         return pixd;
     }
     else { /* d == 32 */
         pixd = pixConvertRGBToLuminance(pixs);
-	if (cmapflag)
+        if (cmapflag)
             pixAddGrayColormap8(pixd);
         return pixd;
     }

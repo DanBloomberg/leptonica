@@ -73,13 +73,21 @@ static char  mainName[] = "comparetest";
 	exit(ERROR_INT("pixs2 not made", mainName, 1));
     d1 = pixGetDepth(pixs1);
     d2 = pixGetDepth(pixs2);
+
     if (d1 == 1 && d2 == 1) {
-        if (type == 0)
-            comptype = L_COMPARE_XOR;
-        else
-            comptype = L_COMPARE_SUBTRACT;
-        pixCompareBinary(pixs1, pixs2, comptype, &fract, &pixd);
-        fprintf(stderr, "Fraction of different pixels: %10.6f\n", fract);
+        pixEqual(pixs1, pixs2, &same);
+        if (same) {
+            fprintf(stderr, "Images are identical\n");
+            pixd = pixCreateTemplate(pixs1);  /* write empty pix for diff */
+        }
+        else {
+            if (type == 0)
+                comptype = L_COMPARE_XOR;
+            else
+                comptype = L_COMPARE_SUBTRACT;
+            pixCompareBinary(pixs1, pixs2, comptype, &fract, &pixd);
+            fprintf(stderr, "Fraction of different pixels: %10.6f\n", fract);
+        }
         pixWrite(fileout, pixd, IFF_PNG);
     }
     else {
@@ -106,27 +114,30 @@ static char  mainName[] = "comparetest";
             }
         }
         pixWrite(fileout, pixd, IFF_JFIF_JPEG);
-    }
 
-    na1 = pixCompareRankDifference(pixs1, pixs2);
-    fprintf(stderr, "na1[150] = %20.10f\n", na1->array[150]);
-    fprintf(stderr, "na1[200] = %20.10f\n", na1->array[200]);
-    fprintf(stderr, "na1[250] = %20.10f\n", na1->array[250]);
-    numaGetNonzeroRange(na1, 0.00005, &first, &last);
-    fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n", first, last);
-    na2 = numaClipToInterval(na1, first, last);
-    gplot = gplotCreate("/usr/tmp/junkrank", GPLOT_X11,
-                        "Pixel Rank Difference", "pixel val",
-                        "rank");
-    gplotAddPlot(gplot, NULL, na2, GPLOT_LINES, "rank");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
-    numaDestroy(&na1);
-    numaDestroy(&na2);
+        na1 = pixCompareRankDifference(pixs1, pixs2);
+        if (na1) {
+            fprintf(stderr, "na1[150] = %20.10f\n", na1->array[150]);
+            fprintf(stderr, "na1[200] = %20.10f\n", na1->array[200]);
+            fprintf(stderr, "na1[250] = %20.10f\n", na1->array[250]);
+            numaGetNonzeroRange(na1, 0.00005, &first, &last);
+            fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n",
+                    first, last);
+            na2 = numaClipToInterval(na1, first, last);
+            gplot = gplotCreate("/usr/tmp/junkrank", GPLOT_X11,
+                                "Pixel Rank Difference", "pixel val",
+                                "rank");
+            gplotAddPlot(gplot, NULL, na2, GPLOT_LINES, "rank");
+            gplotMakeOutput(gplot);
+            gplotDestroy(&gplot);
+            numaDestroy(&na1);
+            numaDestroy(&na2);
+        }
+    } 
 
     pixDestroy(&pixs1);
     pixDestroy(&pixs2);
     pixDestroy(&pixd);
-    exit(0);
+    return 0;
 }
 

@@ -17,8 +17,8 @@
 #define  LEPTONICA_ALLHEADERS_H
 
 
-#define LEPTONLIB_MAJOR_VERSION   1
-#define LEPTONLIB_MINOR_VERSION   56
+#define LIBLEPT_MAJOR_VERSION   1
+#define LIBLEPT_MINOR_VERSION   58
 
 #include "alltypes.h"
 

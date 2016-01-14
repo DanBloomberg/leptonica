@@ -13,18 +13,17 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  enhance.c
  *
  *      Gamma TRC (tone reproduction curve) mapping
- *           PIX     *pixGammaTRC()                *** see warning ***   
- *           PIX     *pixGammaTRCMasked()          *** see warning ***   
+ *           PIX     *pixGammaTRC()
+ *           PIX     *pixGammaTRCMasked()
  *           NUMA    *numaGammaTRC()
  *
  *      Contrast enhancement
- *           PIX     *pixContrastTRC()             *** see warning ***
- *           PIX     *pixContrastTRCMasked()       *** see warning ***
+ *           PIX     *pixContrastTRC()
+ *           PIX     *pixContrastTRCMasked()
  *           NUMA    *numaContrastTRC()
  *
  *      Histogram equalization
@@ -32,7 +31,7 @@
  *           NUMA    *numaEqualizeTRC()
  *
  *      Generic TRC mapper
- *           PIX     *pixTRCMap()                  *** see warning ***
+ *           PIX     *pixTRCMap()
  *
  *      Unsharp-masking
  *           PIX     *pixUnsharpMasking()
@@ -40,15 +39,12 @@
  *           PIX     *pixUnsharpMaskingGray()
  *
  *      Hue and saturation modification
- *           PIX     *pixModifyHue()               *** see warning ***
- *           PIX     *pixModifySaturation()        *** see warning ***
- *           l_int32  pixMeasureSaturation()       *** see warning ***
+ *           PIX     *pixModifyHue()
+ *           PIX     *pixModifySaturation()
+ *           l_int32  pixMeasureSaturation()
  *
  *      Edge by bandpass
  *           PIX     *pixHalfEdgeByBandpass()
- *
- *  *** Warning: these functions make an implicit assumption about
- *               RGB component ordering; namely R is MSB
  *
  *      Gamma correction, contrast enhancement and histogram equalization
  *      apply a simple mapping function to each pixel (or, for color
@@ -122,10 +118,9 @@ static const l_int32  DEFAULT_HISTO_SAMPLES = 100000;
  *      (3) We use a gamma mapping between minval and maxval.
  *      (4) If gamma < 1.0, the image will appear darker;
  *          if gamma > 1.0, the image will appear lighter;
- *          if gamma == 1.0, return a clone
+ *          if gamma == 1.0 and minval == 0 and maxval == 255, return a clone
  *      (5) For color images that are not colormapped, the mapping
  *          is applied to each component.
- *          *** Warning: implicit assumption about RGB component ordering ***
  *      (6) minval and maxval are not restricted to the interval [0, 255].
  *          If minval < 0, an input value of 0 is mapped to a
  *          nonzero output.  This will turn black to gray.
@@ -162,6 +157,9 @@ PIXCMAP  *cmap;
     }
     if (minval >= maxval)
         return (PIX *)ERROR_PTR("minval not < maxval", procName, pixd);
+
+    if (gamma == 1.0 && minval == 0 && maxval == 255)
+        return pixClone(pixs);
 
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
@@ -200,7 +198,6 @@ PIXCMAP  *cmap;
  *  Notes:
  *      (1) Same as pixGammaTRC() except mapping is optionally over
  *          a subset of pixels described by pixm.
- *          *** Warning: implicit assumption about RGB component ordering ***
  *      (2) Masking does not work for colormapped images.
  *      (3) See pixGammaTRC() for details on how to use the parameters.
  */
@@ -212,8 +209,8 @@ pixGammaTRCMasked(PIX       *pixd,
                   l_int32    minval,
                   l_int32    maxval)
 {
-l_int32   d;
-NUMA     *nag;
+l_int32  d;
+NUMA    *nag;
 
     PROCNAME("pixGammaTRCMasked");
 
@@ -327,10 +324,9 @@ NUMA      *na;
  *          above 127 are increased.
  *      (4) The useful range for the contrast factor is scaled to
  *          be in (0.0 to 1.0), but larger values can also be used.
- *          0.0 corresponds to no enhancement.
+ *          0.0 corresponds to no enhancement; return a clone.
  *      (5) For color images that are not colormapped, the mapping
  *          is applied to each component.
- *          *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixContrastTRC(PIX       *pixd,
@@ -349,8 +345,10 @@ PIXCMAP  *cmap;
         return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
     if (factor < 0.0) {
         L_WARNING("factor must be >= 0.0; using 0.0", procName);
-        return pixClone(pixs);
+        factor = 0.0;
     }
+    if (factor == 0.0)
+        return pixClone(pixs);
 
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
@@ -387,7 +385,6 @@ PIXCMAP  *cmap;
  *  Notes:
  *      (1) Same as pixContrastTRC() except mapping is optionally over
  *          a subset of pixels described by pixm.
- *          *** Warning: implicit assumption about RGB component ordering ***
  *      (2) Masking does not work for colormapped images.
  *      (3) See pixContrastTRC() for details on how to use the parameters.
  */
@@ -397,8 +394,8 @@ pixContrastTRCMasked(PIX       *pixd,
                      PIX       *pixm,
                      l_float32  factor)
 {
-l_int32   d;
-NUMA     *nac;
+l_int32  d;
+NUMA    *nac;
 
     PROCNAME("pixContrastTRCMasked");
 
@@ -417,8 +414,10 @@ NUMA     *nac;
 
     if (factor < 0.0) {
         L_WARNING("factor must be >= 0.0; using 0.0", procName);
-        return pixClone(pixs);
+        factor = 0.0;
     }
+    if (factor == 0.0)
+        return pixClone(pixs);
 
     if (!pixd)  /* start with a copy if not in-place */
         pixd = pixCopy(NULL, pixs);
@@ -498,7 +497,7 @@ NUMA      *na;
  *      (2) In histogram equalization, a tone reproduction curve
  *          mapping is used to make the number of pixels at each
  *          intensity equal.
- *      (3) If fract == 0.0, no equalization is performed.
+ *      (3) If fract == 0.0, no equalization is performed; return a copy.
  *          If fract == 1.0, equalization is complete.
  *      (4) Set the subsampling factor > 1 to reduce the amount of computation.
  *      (5) If the pix is colormapped, the colormap is removed and
@@ -563,7 +562,7 @@ PIXCMAP  *cmap;
  *      Return: nad, or null on error
  *
  *  Notes:
- *      (1) If fract == 0.0, no equalization is performed.
+ *      (1) If fract == 0.0, no equalization will be performed.
  *          If fract == 1.0, equalization is complete.
  *      (2) Set the subsampling factor > 1 to reduce the amount of computation.
  *      (3) The map is returned as a numa with 256 values, specifying
@@ -589,6 +588,9 @@ NUMA      *nah, *nasum, *nad;
         return (NUMA *)ERROR_PTR("fract not in [0.0 ... 1.0]", procName, NULL);
     if (factor < 1)
         return (NUMA *)ERROR_PTR("sampling factor < 1", procName, NULL);
+
+    if (fract == 0.0)
+        L_WARNING("fract = 0.0; no equalization requested", procName);
 
     if ((nah = pixGetGrayHistogram(pix, factor)) == NULL)
         return (NUMA *)ERROR_PTR("histogram not made", procName, NULL);
@@ -630,8 +632,6 @@ NUMA      *nah, *nasum, *nad;
  *      (4) If defined, the optional 1 bpp mask pixm has its origin
  *          aligned with pixs, and the map function is applied only
  *          to pixels in pixs under the fg of pixm.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 l_int32
 pixTRCMap(PIX   *pixs,
@@ -653,7 +653,7 @@ l_uint32  *data, *datam, *line, *linem;
         return ERROR_INT("na not defined", procName, 1);
     if (numaGetCount(na) != 256)
         return ERROR_INT("na not of size 256", procName, 1);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32)
         return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
     if (pixm) {
@@ -662,8 +662,6 @@ l_uint32  *data, *datam, *line, *linem;
     }
 
     tab = numaGetIArray(na);  /* get the array for efficiency */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);
     if (!pixm) {
@@ -682,9 +680,10 @@ l_uint32  *data, *datam, *line, *linem;
                 line = data + i * wpl;
                 for (j = 0; j < w; j++) {
                     sval32 = *(line + j);
-                    dval32 = tab[(sval32 >> 24)] << 24 |
-                             tab[(sval32 >> 16) & 0xff] << 16 |
-                             tab[(sval32 >> 8) & 0xff] << 8;
+                    dval32 =
+                        tab[(sval32 >> L_RED_SHIFT) & 0xff] << L_RED_SHIFT |
+                        tab[(sval32 >> L_GREEN_SHIFT) & 0xff] << L_GREEN_SHIFT |
+                        tab[(sval32 >> L_BLUE_SHIFT) & 0xff] << L_BLUE_SHIFT;
                     *(line + j) = dval32;
                 }
             }
@@ -693,8 +692,7 @@ l_uint32  *data, *datam, *line, *linem;
     else {
         datam = pixGetData(pixm);
         wplm = pixGetWpl(pixm);
-        wm = pixGetWidth(pixm);
-        hm = pixGetHeight(pixm);
+        pixGetDimensions(pixm, &wm, &hm, NULL);
         if (d == 8) {
             for (i = 0; i < h; i++) {
                 if (i >= hm)
@@ -724,9 +722,10 @@ l_uint32  *data, *datam, *line, *linem;
                     if (GET_DATA_BIT(linem, j) == 0)
                         continue;
                     sval32 = *(line + j);
-                    dval32 = tab[(sval32 >> 24)] << 24 |
-                             tab[(sval32 >> 16) & 0xff] << 16 |
-                             tab[(sval32 >> 8) & 0xff] << 8;
+                    dval32 =
+                        tab[(sval32 >> L_RED_SHIFT) & 0xff] << L_RED_SHIFT |
+                        tab[(sval32 >> L_GREEN_SHIFT) & 0xff] << L_GREEN_SHIFT |
+                        tab[(sval32 >> L_BLUE_SHIFT) & 0xff] << L_BLUE_SHIFT;
                     *(line + j) = dval32;
                 }
             }
@@ -876,14 +875,16 @@ pixUnsharpMaskingGray(PIX       *pixs,
                       l_int32    smooth,
                       l_float32  fract)
 {
-l_int32  w, h;
+l_int32  w, h, d;
 PIX     *pixc, *pixt, *pixd;
+PIXACC  *pixacc;
 
     PROCNAME("pixUnsharpMaskingGray");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
 
     if (fract <= 0.0) {
@@ -894,25 +895,34 @@ PIX     *pixc, *pixt, *pixd;
     if ((pixc = pixBlockconvGray(pixs, NULL, smooth, smooth)) == NULL)
         return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
 
-        /* steps:
+        /* Steps:
          *    (1) edge image is pixs - pixc  (this is highpass part)
          *    (2) multiply edge image by fract
          *    (3) add fraction of edge to pixs
+         *
+         * To show how this is done with both interfaces to arithmetic
+         * on integer Pix, here is the implementation in the lower-level
+         * function calls:
+         *    pixt = pixInitAccumulate(w, h, 0x10000000)) == NULL)
+         *    pixAccumulate(pixt, pixs, L_ARITH_ADD);
+         *    pixAccumulate(pixt, pixc, L_ARITH_SUBTRACT);
+         *    pixMultConstAccumulate(pixt, fract, 0x10000000);
+         *    pixAccumulate(pixt, pixs, L_ARITH_ADD);
+         *    pixd = pixFinalAccumulate(pixt, 0x10000000, 8)) == NULL)
+         *    pixDestroy(&pixt);
+         *
+         * The code below does the same thing using the Pixacc accumulator,
+         * hiding the details of the offset that is needed for subtraction.
          */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    if ((pixt = pixInitAccumulate(w, h, 0x10000000)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-    pixAccumulate(pixt, pixs, L_ARITH_ADD);
-    pixAccumulate(pixt, pixc, L_ARITH_SUBTRACT);
-    pixMultConstAccumulate(pixt, fract, 0x10000000);
-    pixAccumulate(pixt, pixs, L_ARITH_ADD);
-    if ((pixd = pixFinalAccumulate(pixt, 0x10000000, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixacc = pixaccCreate(w, h, 1);
+    pixaccAdd(pixacc, pixs);
+    pixaccSubtract(pixacc, pixc);
+    pixaccMultConst(pixacc, fract);
+    pixaccAdd(pixacc, pixs);
+    pixd = pixaccFinal(pixacc, 8);
+    pixaccDestroy(&pixacc);
 
     pixDestroy(&pixc);
-    pixDestroy(&pixt);
-
     return pixd;
 }
 
@@ -938,7 +948,6 @@ pixModifyHue(PIX       *pixd,
 {
 l_int32    w, h, d, i, j, wpl, delhue;
 l_int32    rval, gval, bval, hval, sval, vval;
-l_uint32   pixel;
 l_uint32  *data, *line;
 
     PROCNAME("pixModifyHue");
@@ -966,14 +975,11 @@ l_uint32  *data, *line;
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
         for (j = 0; j < w; j++) {
-            pixel = line[j];
-            rval = pixel >> 24;
-            gval = (pixel >> 16) & 0xff;
-            bval = (pixel >> 8) & 0xff;
+            extractRGBValues(line[j], &rval, &gval, &bval);
             convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
             hval = (hval + delhue) % 240;
             convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
-            line[j] = rval << 24 | gval << 16 | bval << 8;
+            composeRGBPixel(rval, gval, bval, line + j);
         }
     }
 
@@ -1004,7 +1010,6 @@ pixModifySaturation(PIX       *pixd,
 {
 l_int32    w, h, d, i, j, wpl;
 l_int32    rval, gval, bval, hval, sval, vval;
-l_uint32   pixel;
 l_uint32  *data, *line;
 
     PROCNAME("pixModifySaturation");
@@ -1028,17 +1033,14 @@ l_uint32  *data, *line;
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
         for (j = 0; j < w; j++) {
-            pixel = line[j];
-            rval = pixel >> 24;
-            gval = (pixel >> 16) & 0xff;
-            bval = (pixel >> 8) & 0xff;
+            extractRGBValues(line[j], &rval, &gval, &bval);
             convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
             if (fract < 0.0)
                 sval = (l_int32)(sval * (1.0 + fract));
             else
                 sval = (l_int32)(sval + fract * (255 - sval));
             convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
-            line[j] = rval << 24 | gval << 16 | bval << 8;
+            composeRGBPixel(rval, gval, bval, line + j);
         }
     }
 
@@ -1061,7 +1063,6 @@ pixMeasureSaturation(PIX        *pixs,
 {
 l_int32    w, h, d, i, j, wpl, sum, count;
 l_int32    rval, gval, bval, hval, sval, vval;
-l_uint32   pixel;
 l_uint32  *data, *line;
 
     PROCNAME("pixMeasureSaturation");
@@ -1082,10 +1083,7 @@ l_uint32  *data, *line;
     for (i = 0, sum = 0, count = 0; i < h; i += factor) {
         line = data + i * wpl;
         for (j = 0; j < w; j += factor) {
-            pixel = line[j];
-            rval = pixel >> 24;
-            gval = (pixel >> 16) & 0xff;
-            bval = (pixel >> 8) & 0xff;
+            extractRGBValues(line[j], &rval, &gval, &bval);
             convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
             sum += sval;
             count++;
@@ -1131,7 +1129,7 @@ l_uint32  *data, *line;
  *          signal difference is positive on the lower half of
  *          the transition.
  */
-PIX  *
+PIX *
 pixHalfEdgeByBandpass(PIX     *pixs,
                       l_int32  sm1h,
                       l_int32  sm1v,
@@ -1169,6 +1167,5 @@ PIX     *pixg, *pixacc, *pixc1, *pixc2;
 
     pixDestroy(&pixg);
     pixDestroy(&pixc2);
-
     return pixc1;
 }

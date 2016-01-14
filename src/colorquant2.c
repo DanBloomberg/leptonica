@@ -156,18 +156,20 @@
 #include <math.h>
 #include "allheaders.h"
 
-    /* Median cut 3-d volume element; sort on first element */
+    /* Median cut 3-d volume element.  Sort on first element, which
+     * can be the number of pixels, the volume or a combination
+     * of these.   */
 struct L_Box3d
 {
-    l_float32        sortparam;  /* number of pixels in the vbox  */
-    l_int32          npix;       /* number of pixels in the vbox  */
-    l_int32          vol;        /* quantized volume of vbox      */
-    l_int32          r1;         /* min r index in the vbox       */
-    l_int32          r2;         /* max r index in the vbox       */
-    l_int32          g1;         /* min g index in the vbox       */
-    l_int32          g2;         /* max g index in the vbox       */
-    l_int32          b1;         /* min b index in the vbox       */
-    l_int32          b2;         /* max b index in the vbox       */
+    l_float32        sortparam;  /* parameter on which to sort the vbox */
+    l_int32          npix;       /* number of pixels in the vbox        */
+    l_int32          vol;        /* quantized volume of vbox            */
+    l_int32          r1;         /* min r index in the vbox             */
+    l_int32          r2;         /* max r index in the vbox             */
+    l_int32          g1;         /* min g index in the vbox             */
+    l_int32          g2;         /* max g index in the vbox             */
+    l_int32          b1;         /* min b index in the vbox             */
+    l_int32          b2;         /* max b index in the vbox             */
 };
 typedef struct L_Box3d  L_BOX3D;
 
@@ -420,7 +422,7 @@ PIXCMAP   *cmap;
         /* Re-sort by the product of pixel occupancy times the size
 	 * in color space. */
     phs = pheapCreate(0, L_SORT_DECREASING);
-    while (vbox = (L_BOX3D *)pheapRemove(ph)) {
+    while ((vbox = (L_BOX3D *)pheapRemove(ph))) {
         vbox->sortparam = vbox->npix * vbox->vol;
         pheapAdd(phs, vbox);
     }
@@ -460,7 +462,7 @@ PIXCMAP   *cmap;
         /* Re-sort by pixel occupancy.  This is not necessary,
          * but it makes a more useful listing.  */
     ph = pheapCreate(0, L_SORT_DECREASING);
-    while (vbox = (L_BOX3D *)pheapRemove(phs)) {
+    while ((vbox = (L_BOX3D *)pheapRemove(phs))) {
         vbox->sortparam = vbox->npix;
 /*        vbox->sortparam = vbox->npix * vbox->vol; */
         pheapAdd(ph, vbox);
@@ -742,9 +744,9 @@ PIX       *pixd;
                 bval = buf1b[j] / 64;
                 index = ((rval >> rshift) << (2 * sigbits)) +
                         ((gval >> rshift) << sigbits) + (bval >> rshift);
-		cmapindex = indexmap[index];
+                cmapindex = indexmap[index];
                 SET_DATA_BYTE(lined, j, cmapindex);
-		pixcmapGetColor(cmap, cmapindex, &rc, &gc, &bc);
+                pixcmapGetColor(cmap, cmapindex, &rc, &gc, &bc);
 
                 dif = buf1r[j] / 8 - 8 * rc;
                 if (dif > DIF_CAP) dif = DIF_CAP;
@@ -834,7 +836,6 @@ PIX       *pixd;
         FREE(buf2g);
         FREE(buf2b);
     }
-
 
     return pixd;
 }

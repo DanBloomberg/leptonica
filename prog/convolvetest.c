@@ -110,7 +110,7 @@ static char  mainName[] = "convolvetest";
         pixg = pixScale(pixs, 0.5, 0.5);
     pixDisplay(pixg, 0, 600);
     kel1 = kernelCreateFromString(5, 5, 2, 2, kdatastr);
-    pixd = pixConvolve(pixg, kel1);
+    pixd = pixConvolve(pixg, kel1, 8, 1);
     pixDisplay(pixd, 700, 0);
     pixWrite("junkpixd4", pixd, IFF_BMP);
     pixDestroy(&pixd);
@@ -124,7 +124,7 @@ static char  mainName[] = "convolvetest";
             kernelSetElement(kel2, i, j, 1);
     }
     startTimer();
-    pixd = pixConvolve(pixg, kel2);
+    pixd = pixConvolve(pixg, kel2, 8, 1);
     fprintf(stderr, "Generic convolution: %7.3f sec\n", stopTimer());
     pixDisplay(pixd, 1200, 0);
     pixWrite("junkpixd5", pixd, IFF_BMP);

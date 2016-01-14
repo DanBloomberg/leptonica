@@ -85,7 +85,7 @@ static char  mainName[] = "jbcorrelation";
         npages = atoi(argv[6]);
     }
 
-#if 1
+#if 0
 
     /*--------------------------------------------------------------*/
 
@@ -112,6 +112,7 @@ static char  mainName[] = "jbcorrelation";
         /* Save and write out the result */
     data = jbDataSave(classer);
     jbDataWrite(rootname, data);
+    fprintf(stderr, "Number of classes: %d\n", classer->nclass);
 
         /* Render the pages from the classifier data.
 	 * Use debugflag == FALSE to omit outlines of each component. */

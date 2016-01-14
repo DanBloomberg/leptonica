@@ -32,8 +32,8 @@ l_float32   pi, angle, val;
 BOX        *box;
 BOXA       *boxa, *boxa1, *boxa2;
 NUMA       *na1, *na2;
-PIX        *pix, *pix1, *pix2;
-PIXA       *pixa1, *pixa2;
+PIX        *pix, *pix1, *pix2, *pix3, *pixd;
+PIXA       *pixa1, *pixa2, *pixa3, *pixa4;
 static char     mainName[] = "inserttest";
 
 #if 1
@@ -86,8 +86,10 @@ static char     mainName[] = "inserttest";
     boxa = pixConnComp(pix2, &pixa1, 8);
     boxaDestroy(&boxa);
     pixaWrite("junkpixa1", pixa1);
+
     pixa2 = pixaCopy(pixa1, L_COPY);
     n = pixaGetCount(pixa2);
+        /* Remove and insert each one */
     for (i = 0; i < n; i++) {
       pix = pixaGetPix(pixa2, i, L_COPY);
       box = pixaGetBox(pixa2, i, L_COPY);
@@ -95,10 +97,33 @@ static char     mainName[] = "inserttest";
       pixaInsertPix(pixa2, i, pix, box);
     }
     pixaWrite("junkpixa2", pixa2);
+
+        /* Move the last to the beginning; do it n times */
+    pixa3 = pixaCopy(pixa2, L_COPY);
+    for (i = 0; i < n; i++) {
+      pix = pixaGetPix(pixa3, n - 1, L_CLONE);
+      box = pixaGetBox(pixa3, n - 1, L_CLONE);
+      pixaInsertPix(pixa3, 0, pix, box);
+      pixaRemovePix(pixa3, n);
+    }
+    pixaWrite("junkpixa3", pixa3);
+
+        /* Move the first one to the end; do it n times */
+    pixa4 = pixaCopy(pixa3, L_COPY);
+    for (i = 0; i < n; i++) {
+      pix = pixaGetPix(pixa4, 0, L_CLONE);
+      box = pixaGetBox(pixa4, 0, L_CLONE);
+      pixaInsertPix(pixa4, n, pix, box);  /* make sure insert works at end */
+      pixaRemovePix(pixa4, 0);
+    }
+    pixaWrite("junkpixa4", pixa4);
+
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);
+    pixaDestroy(&pixa3);
+    pixaDestroy(&pixa4);
 #endif
 
     return 0;

@@ -14,9 +14,9 @@
  *====================================================================*/
 
 /*
- * thresholdtest.c
+ * grayquant_reg.c
  *
- *     Tests thresholding to 1, 2 and 4 bpp, with and without colormaps
+ *     Tests gray thresholding to 1, 2 and 4 bpp, with and without colormaps
  */
 
 #include <stdio.h>
@@ -31,27 +31,37 @@ static const l_int32  NLEVELS = 4;
 main(int    argc,
      char **argv)
 {
+char        *str;
 l_int32      equal, index, w, h;
 BOX         *box;
-PIX         *pixs, *pixd, *pixt0, *pixt, *pixt1, *pixt2, *pixt3, *pixt4;
+PIX         *pixs, *pixd, *pixt, *pixd1, *pixd2, *pixd3;
+PIX         *pixt0, *pixt1, *pixt2, *pixt3, *pixt4;
+PIXA        *pixa;
 PIXCMAP     *cmap;
-static char  mainName[] = "thresholdtest";
+static char  mainName[] = "grayquant_reg";
 
     if ((pixs = pixRead("test8.jpg")) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 
+    pixa = pixaCreate(0);
+    pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
+
         /* threshold to 1 bpp */
     pixd = pixThresholdToBinary(pixs, THRESHOLD);
-    pixWrite("/usr/tmp/junkthr0.png", pixd, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixWrite("junkthr0.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
         /* dither to 2 bpp, with and without colormap */
     pixd = pixDitherTo2bpp(pixs, 1);
     pixt = pixDitherTo2bpp(pixs, 0);
     pixt2 = pixConvertGrayToColormap(pixt);
-    pixWrite("/usr/tmp/junkthr1.png", pixd, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr2.png", pixt, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr3.png", pixt2, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr1.png", pixd, IFF_PNG);
+    pixWrite("junkthr2.png", pixt, IFF_PNG);
+    pixWrite("junkthr3.png", pixt2, IFF_PNG);
 /*    pixcmapWriteStream(stderr, pixGetColormap(pixd)); */
     pixEqual(pixd, pixt2, &equal);
     if (!equal)
@@ -64,8 +74,11 @@ static char  mainName[] = "thresholdtest";
     pixd = pixThresholdTo2bpp(pixs, 4, 1);
     pixt = pixThresholdTo2bpp(pixs, 4, 0);
     pixt2 = pixConvertGrayToColormap(pixt);
-    pixWrite("/usr/tmp/junkthr4.png", pixd, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr5.png", pixt2, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr4.png", pixd, IFF_PNG);
+    pixWrite("junkthr5.png", pixt2, IFF_PNG);
     pixEqual(pixd, pixt2, &equal);
     if (!equal)
         fprintf(stderr, "Error: thr4 != thr5\n");
@@ -75,8 +88,10 @@ static char  mainName[] = "thresholdtest";
 
     pixd = pixThresholdTo2bpp(pixs, 3, 1);
     pixt = pixThresholdTo2bpp(pixs, 3, 0);
-    pixWrite("/usr/tmp/junkthr6.png", pixd, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr7.png", pixt, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr6.png", pixd, IFF_PNG);
+    pixWrite("junkthr7.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
 
@@ -84,9 +99,12 @@ static char  mainName[] = "thresholdtest";
     pixd = pixThresholdTo4bpp(pixs, 9, 1);
     pixt = pixThresholdTo4bpp(pixs, 9, 0);
     pixt2 = pixConvertGrayToColormap(pixt);
-    pixWrite("/usr/tmp/junkthr8.png", pixd, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr9.png", pixt, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr10.png", pixt2, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr8.png", pixd, IFF_PNG);
+    pixWrite("junkthr9.png", pixt, IFF_PNG);
+    pixWrite("junkthr10.png", pixt2, IFF_PNG);
 /*    pixcmapWriteStream(stderr, pixGetColormap(pixd)); */
     pixDestroy(&pixt);
     pixDestroy(&pixt2);
@@ -96,8 +114,11 @@ static char  mainName[] = "thresholdtest";
     pixd = pixThresholdOn8bpp(pixs, 9, 1);
     pixt = pixThresholdOn8bpp(pixs, 9, 0);
     pixt2 = pixConvertGrayToColormap(pixt);
-    pixWrite("/usr/tmp/junkthr11.png", pixd, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr12.png", pixt2, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr11.png", pixd, IFF_PNG);
+    pixWrite("junkthr12.png", pixt2, IFF_PNG);
 /*    pixcmapWriteStream(stderr, pixGetColormap(pixd)); */
     pixEqual(pixd, pixt2, &equal);
     if (!equal)
@@ -105,6 +126,15 @@ static char  mainName[] = "thresholdtest";
     pixDestroy(&pixt);
     pixDestroy(&pixt2);
     pixDestroy(&pixd);
+
+    pixd1 = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd1, 100, 100);
+    pixWrite("junkpixd1.jpg", pixd1, IFF_JFIF_JPEG);
+    pixDestroy(&pixd1);
+    pixaDestroy(&pixa);
+
+    pixa = pixaCreate(0);
+    pixSaveTiled(pixs, pixa, 1, 1, 20, 32);
 
         /* highlight 2 bpp with colormap */
     pixd = pixThresholdTo2bpp(pixs, 3, 1);
@@ -114,43 +144,50 @@ static char  mainName[] = "thresholdtest";
     pixSetSelectCmap(pixd, box, 2, 255, 255, 100);
     pixcmapWriteStream(stderr, cmap);
     pixDisplay(pixd, 0, 0);
-    pixWrite("/usr/tmp/junkthr13.png", pixd, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixWrite("junkthr13.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     boxDestroy(&box);
 
         /* test pixThreshold8() */
     pixd = pixThreshold8(pixs, 1, 2, 1);  /* cmap */
-    pixWrite("/usr/tmp/junkthr14.png", pixd, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
+    pixWrite("junkthr14.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 0);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 1, 2, 0);  /* no cmap */
-    pixWrite("/usr/tmp/junkthr15.png", pixd, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr15.png", pixd, IFF_PNG);
     pixDisplay(pixd, 200, 0);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 2, 3, 1);  /* highlight one box */
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
     box = boxCreate(278, 35, 122, 50);
     pixSetSelectCmap(pixd, box, 2, 255, 255, 100);
-    pixWrite("/usr/tmp/junkthr16.png", pixd, IFF_PNG);
+    pixWrite("junkthr16.png", pixd, IFF_PNG);
     pixDisplay(pixd, 300, 0);
     cmap = pixGetColormap(pixd);
     pixcmapWriteStream(stderr, cmap);
     boxDestroy(&box);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 2, 4, 0);  /* no cmap */
-    pixWrite("/usr/tmp/junkthr17.png", pixd, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr17.png", pixd, IFF_PNG);
     pixDisplay(pixd, 400, 0);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 4, 6, 1);  /* highlight one box */
     box = boxCreate(278, 35, 122, 50);
     pixSetSelectCmap(pixd, box, 5, 255, 255, 100);
-    pixWrite("/usr/tmp/junkthr18.png", pixd, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr18.png", pixd, IFF_PNG);
     cmap = pixGetColormap(pixd);
     pixcmapWriteStream(stderr, cmap);
     boxDestroy(&box);
     pixDisplay(pixd, 500, 0);
     pixDestroy(&pixd);
     pixd = pixThreshold8(pixs, 4, 6, 0);  /* no cmap */
-    pixWrite("/usr/tmp/junkthr19.png", pixd, IFF_PNG);
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr19.png", pixd, IFF_PNG);
     pixDisplay(pixd, 600, 0);
     pixDestroy(&pixd);
 
@@ -167,8 +204,9 @@ static char  mainName[] = "thresholdtest";
     pixSetSelectCmap(pixd, box, index, 100, 255, 255);  /* use 6 */
     boxDestroy(&box);
     pixcmapWriteStream(stderr, cmap);
+    pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixDisplay(pixd, 700, 0);
-    pixWrite("/usr/tmp/junkthr20.png", pixd, IFF_PNG);
+    pixWrite("junkthr20.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
         /* comparison 8 bpp jpeg with 2 bpp (highlight) */
@@ -182,9 +220,12 @@ static char  mainName[] = "thresholdtest";
     pixDisplay(pixd, 100, 200);
     cmap = pixGetColormap(pixd);
     pixcmapWriteStream(stderr, cmap);
-    pixWrite("/usr/tmp/junkthr21.jpg", pixt, IFF_JFIF_JPEG);
-    pixWrite("/usr/tmp/junkthr22.png", pixt2, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr23.png", pixd, IFF_PNG);
+    pixSaveTiled(pixt, pixa, 1, 1, 20, 0);
+    pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr21.jpg", pixt, IFF_JFIF_JPEG);
+    pixWrite("junkthr22.png", pixt2, IFF_PNG);
+    pixWrite("junkthr23.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixDestroy(&pixt2);
     boxDestroy(&box);
@@ -204,51 +245,57 @@ static char  mainName[] = "thresholdtest";
     cmap = pixGetColormap(pixd);
     pixcmapWriteStream(stderr, cmap);
     pixt2 = pixReduceRankBinaryCascade(pixs, 2, 2, 0, 0);
-    pixWrite("/usr/tmp/junkthr24.png", pixt2, IFF_PNG);
-    pixWrite("/usr/tmp/junkthr25.png", pixd, IFF_PNG);
+    pixSaveTiled(pixt2, pixa, 1, 1, 20, 0);
+    pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
+    pixWrite("junkthr24.png", pixt2, IFF_PNG);
+    pixWrite("junkthr25.png", pixd, IFF_PNG);
     pixDestroy(&pixt2);
     pixDestroy(&pixd);
 
-       /* thresholding to 4 bpp at 2, 3, 4, 5 and 6 levels */
+       /* Thresholding to 4 bpp at 2, 3, 4, 5 and 6 levels */
     box = boxCreate(25, 202, 136, 37);
     pixt1 = pixClipRectangle(pixt, box, NULL);
     pixt2 = pixScale(pixt1, 6., 6.);
-    w = pixGetWidth(pixt2);
-    h = pixGetHeight(pixt2);
+    pixGetDimensions(pixt2, &w, &h, NULL);
+    pixSaveTiled(pixt2, pixa, 1, 1, 20, 0);
     pixDisplay(pixt2, 0, 0);
-    pixWrite("/usr/tmp/junk-8.jpg", pixt2, IFF_JFIF_JPEG);
+    pixWrite("junk-8.jpg", pixt2, IFF_JFIF_JPEG);
     pixd = pixCreate(w, 6 * h, 8);
     pixRasterop(pixd, 0, 0, w, h, PIX_SRC, pixt2, 0, 0);
 
     pixt3 = pixThresholdTo4bpp(pixt2, 6, 1);
     pixt4 = pixRemoveColormap(pixt3, REMOVE_CMAP_TO_GRAYSCALE);
     pixRasterop(pixd, 0, h, w, h, PIX_SRC, pixt4, 0, 0);
+    pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
     pixDisplay(pixt3, 0, 100);
-    pixWrite("/usr/tmp/junk-4-6.png", pixt3, IFF_PNG);
+    pixWrite("junk-4-6.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
     pixt3 = pixThresholdTo4bpp(pixt2, 5, 1);
     pixt4 = pixRemoveColormap(pixt3, REMOVE_CMAP_TO_GRAYSCALE);
     pixRasterop(pixd, 0, 2 * h, w, h, PIX_SRC, pixt4, 0, 0);
+    pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
     pixDisplay(pixt3, 0, 200);
-    pixWrite("/usr/tmp/junk-4-5.png", pixt3, IFF_PNG);
+    pixWrite("junk-4-5.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
     pixt3 = pixThresholdTo4bpp(pixt2, 4, 1);
     pixt4 = pixRemoveColormap(pixt3, REMOVE_CMAP_TO_GRAYSCALE);
     pixRasterop(pixd, 0, 3 * h, w, h, PIX_SRC, pixt4, 0, 0);
+    pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
     pixDisplay(pixt3, 0, 300);
-    pixWrite("/usr/tmp/junk-4-4.png", pixt3, IFF_PNG);
+    pixWrite("junk-4-4.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
     pixt3 = pixThresholdTo4bpp(pixt2, 3, 1);
     pixt4 = pixRemoveColormap(pixt3, REMOVE_CMAP_TO_GRAYSCALE);
     pixRasterop(pixd, 0, 4 * h, w, h, PIX_SRC, pixt4, 0, 0);
+    pixSaveTiled(pixt3, pixa, 1, 1, 20, 0);
     pixDisplay(pixt3, 0, 400);
-    pixWrite("/usr/tmp/junk-4-3.png", pixt3, IFF_PNG);
+    pixWrite("junk-4-3.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
 
@@ -256,17 +303,18 @@ static char  mainName[] = "thresholdtest";
     pixt4 = pixRemoveColormap(pixt3, REMOVE_CMAP_TO_GRAYSCALE);
     pixRasterop(pixd, 0, 5 * h, w, h, PIX_SRC, pixt4, 0, 0);
     pixDisplay(pixt3, 0, 500);
-    pixWrite("/usr/tmp/junk-4-2.png", pixt3, IFF_PNG);
+    pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
+    pixWrite("junk-4-2.png", pixt3, IFF_PNG);
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
-    pixWrite("/usr/tmp/junk-all.png", pixd, IFF_PNG);
-
-    boxDestroy(&box);
-    pixDestroy(&pixt);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pixWrite("junk-all.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
-    pixDestroy(&pixs);
+
+    pixd2 = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd2, 100, 100);
+    pixWrite("junkpixd2.jpg", pixd2, IFF_JFIF_JPEG);
+    pixDestroy(&pixd2);
+    pixaDestroy(&pixa);
 
 #if 0   /* upscale 2x and threshold to 1 bpp; e.g., use test8.jpg */
     startTimer();
@@ -284,7 +332,68 @@ static char  mainName[] = "thresholdtest";
     pixDestroy(&pixd);
 #endif
 
+    boxDestroy(&box);
+    pixDestroy(&pixt);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
     pixDestroy(&pixs);
-    exit(0);
+
+       /* Thresholding with fixed and arbitrary bin boundaries */
+    pixa = pixaCreate(0);
+    pixs = pixRead("stampede2.jpg");
+    pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
+    pixt = pixThresholdTo4bpp(pixs, 5, 1);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+    pixt = pixThresholdTo4bpp(pixs, 7, 1);
+    cmap = pixGetColormap(pixt);
+    pixcmapWriteStream(stderr, cmap);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+    pixt = pixThresholdTo4bpp(pixs, 11, 1);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+
+    pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
+    str = "45 75 115 185";
+    pixt = pixThresholdGrayArb(pixs, str, 8, 0, 0, 0);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+    str = "38 65 85 115 160 210";
+    pixt = pixThresholdGrayArb(pixs, str, 8, 0, 1, 1);
+    cmap = pixGetColormap(pixt);
+    pixcmapWriteStream(stderr, cmap);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+    str = "38 60 75 90 110 130 155 185 208 239";
+    pixt = pixThresholdGrayArb(pixs, str, 8, 0, 0, 0);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+
+    pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
+    str = "45 75 115 185";
+    pixt = pixThresholdGrayArb(pixs, str, 0, 1, 0, 1);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+    str = "38 65 85 115 160 210";
+    pixt = pixThresholdGrayArb(pixs, str, 0, 1, 0, 1);
+    cmap = pixGetColormap(pixt);
+    pixcmapWriteStream(stderr, cmap);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+    str = "38 60 75 90 110 130 155 185 208 239";
+    pixt = pixThresholdGrayArb(pixs, str, 4, 1, 0, 1);
+    pixSaveTiled(pixt, pixa, 1, 0, 20, 0);
+    pixDestroy(&pixt);
+
+    pixd3 = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd3, 100, 100);
+    pixWrite("junkpixd3.jpg", pixd3, IFF_JFIF_JPEG);
+    pixDestroy(&pixd3);
+    pixaDestroy(&pixa);
+
+    pixDestroy(&pixs);
+
+    return 0;
 }
 

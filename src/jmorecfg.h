@@ -224,6 +224,16 @@ typedef unsigned int JDIMENSION;
  * Defining HAVE_BOOLEAN before including jpeglib.h should make it work.
  */
 
+/*
+ * Added note [10 Jul 08]:
+ * The jpeg library may crash if it is compiled with a different jmorecfg.h.
+ * For example, if compiled under MSVC with
+ *     typedef unsigned char boolean;
+ * there will be a runtime error due to a struct size mismatch
+ * if you use this file with
+ *     typedef int boolean;
+ */
+
 #ifndef HAVE_BOOLEAN
 typedef int boolean;
 #endif

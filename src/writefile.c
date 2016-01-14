@@ -18,34 +18,31 @@
  * writefile.c
  *
  *     High-level procedures for writing images to file:
- *        l_int32    pixaWriteFiles() 
- *        l_int32    pixWrite() 
- *        l_int32    pixWriteStream() 
- *        l_int32    pixWriteImpliedFormat() 
+ *        l_int32     pixaWriteFiles() 
+ *        l_int32     pixWrite() 
+ *        l_int32     pixWriteStream() 
+ *        l_int32     pixWriteImpliedFormat() 
  *
  *     Selection of output format if default is requested
- *        l_int32    pixChooseOutputFormat()
- *        l_int32    getImpliedFileFormat()
+ *        l_int32     pixChooseOutputFormat()
+ *        l_int32     getImpliedFileFormat()
+ *        const char *getFormatExtension()
  *
  *     Write to memory
- *        l_int32    pixWriteMem()
+ *        l_int32     pixWriteMem()
  *
  *     Image display for debugging
- *        l_int32    pixDisplay()
- *        l_int32    pixDisplayWithTitle()
- *        l_int32    pixDisplayWrite()
- *        l_int32    pixDisplayWriteFormat()
- *        l_int32    pixSaveTiled()
+ *        l_int32     pixDisplay()
+ *        l_int32     pixDisplayWithTitle()
+ *        l_int32     pixDisplayWrite()
+ *        l_int32     pixDisplayWriteFormat()
+ *        l_int32     pixSaveTiled()
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
-#if defined(__MINGW32__) || defined(_WIN32)
-#define snprintf _snprintf
-#endif
 
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE      512
@@ -59,6 +56,7 @@ static const l_float32  DEFAULT_SCALING = 1.0;
 
     /* Global array of image file format extension names.
      * This is in 1-1 corrspondence with format enum in imageio.h. */
+static const l_int32  NUM_EXTENSIONS = 14;
 const char *ImageFileFormatExtensions[] = {"unknown",
                                            "bmp",
                                            "jpg",
@@ -71,8 +69,8 @@ const char *ImageFileFormatExtensions[] = {"unknown",
                                            "tif",
                                            "tif",
                                            "pnm",
-                                           "gif",
-                                           "ps"};
+                                           "ps",
+                                           "gif"};
 
     /* Local map of image file name extension to output format */
 struct ExtensionMap
@@ -371,6 +369,28 @@ l_int32  format = IFF_UNKNOWN;
 }
 
 
+/*!
+ *  getFormatExtension()
+ *
+ *      Input:  format (integer)
+ *      Return: extension (string), or null if format is out of range
+ *
+ *  Notes:
+ *      (1) This string is NOT owned by the caller; it is just a pointer
+ *          to a global string.  Do not free it.
+ */
+const char *
+getFormatExtension(l_int32  format)
+{
+    PROCNAME("getFormatExtension");
+
+    if (format < 0 || format >= NUM_EXTENSIONS)
+        return (const char *)ERROR_PTR("format out of bounds", procName, NULL);
+
+    return ImageFileFormatExtensions[format];
+}
+
+
 /*---------------------------------------------------------------------*
  *                            Write to memory                          *
  *---------------------------------------------------------------------*/
@@ -497,7 +517,7 @@ pixDisplayWithTitle(PIX         *pixs,
                     l_int32      x,
                     l_int32      y,
                     const char  *title,
-		    l_int32      dispflag)
+                    l_int32      dispflag)
 {
 char           *tempname;
 char            buffer[L_BUF_SIZE];
@@ -513,8 +533,12 @@ PIX            *pixt;
         return ERROR_INT("pixs not defined", procName, 1);
 
     pixGetDimensions(pixs, &w, &h, &d);
-    if (w <= MAX_DISPLAY_WIDTH && h <= MAX_DISPLAY_HEIGHT)
-        pixt = pixClone(pixs);
+    if (w <= MAX_DISPLAY_WIDTH && h <= MAX_DISPLAY_HEIGHT) {
+        if (d == 16)  /* take MSB */
+            pixt = pixConvert16To8(pixs, 1);
+        else
+            pixt = pixClone(pixs);
+    }
     else {
         ratw = (l_float32)MAX_DISPLAY_WIDTH / (l_float32)w;
         rath = (l_float32)MAX_DISPLAY_HEIGHT / (l_float32)h;

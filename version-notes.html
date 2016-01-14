@@ -22,6 +22,43 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.58   27 Sept 08
+       Added serialization for numaa.
+       New octree quantizer pixOctreeQuantByPopulation(), that uses a
+       mixture of level2 and level4 octcubes.  Renamed many functions
+       in colorquant1.c, and arranged/documented them more carefully.
+       Revised documentation in leptonica.org/papers/colorquant.pdf.
+       Simplified customization for I/O libraries and fmemopen() in environ.h.
+       Fixed bugs in colormap.c, viewfiles.c, pixarith.c.
+       Verified Adam Langley's jbig2enc (encoding jbig2 and generating pdf from
+       these encoded files) works properly with the current version -- see
+       Section 24 of README.html for usage and build hints.
+       New separable convolution; let pixConvolve() take 8, 16 and 32 bpp input.
+       New floating pt pix (FPix) utility, which allows convolution and
+       arithmetic operations on FPix; also interconversion to Pix.
+       Ability to read headers on multipage tiff.
+       More robust updown text detection in flipdetect.c.
+       Use of sharpening to improve scaling when the scale factor is near 1.0.
+       See prog/fpix_reg.c for regression test and usage.
+       See prog/blend_reg.c for blending regression test, with new functions.
+
+1.57   13 Jul 08
+       Improved the Otsu-type approach for finding a binarization threshold,
+       by choosing the min in the histogram subject to constraints
+       (numafunc2.c, adaptmap.c)
+       New function pixSeedspread() in seedfill.c, similar to a voronoi tiling,
+       that is used for adaptive thresholding in pixThresholdSpreadNorm().
+       In the process, fixed a small bug in pixDistanceFunction().
+       (The approach was suggested by Ray Smith, and uses the fast
+       Vincent distance function method to expand each seed.)
+       Generalized the functions in kernel.c to use float weights
+       for general convolution (Version 2 for kernel), and added
+       gaussian kernel generation.
+       Put all jpeg header functions into jpegio.c, where they belong.
+       Fixed bugs in pixaInsertPix() and pixaRemovePix().
+       Added read/write serialization for Numaa.
+       New functions for comparing two images using bounding boxes (classapp.c).
+
 1.56   12 May 08
        Added several new 1d barcode decoders.  The functional interface
        is still in flux.

@@ -475,7 +475,7 @@ boxIntersectByLine(BOX       *box,
                    l_int32   *py2,
                    l_int32   *pn)
 {
-l_int32    bx, by, bw, bh, x1, y1, x2, y2, xp, yp, xt, yt, i, n;
+l_int32    bx, by, bw, bh, xp, yp, xt, yt, i, n;
 l_float32  invslope;
 PTA       *pta;
 
@@ -2074,7 +2074,16 @@ PIX   *pixd;
  *      (1) This can be used with:
  *              pixd = NULL  (makes a new pixd)
  *              pixd = pixs  (in-place)
- *      (2) This simple function is typically used with 1 bpp images.
+ *      (2) If pixd == NULL, this first makes a copy of pixs, and then
+ *          bit-twiddles over the boxes.  Otherwise, it operates directly
+ *          on pixs.
+ *      (3) This simple function is typically used with 1 bpp images.
+ *          It uses the 1-image rasterop function, rasteropUniLow(),
+ *          to set, clear or flip the pixels in pixd.  
+ *      (4) If you want to generate a 1 bpp mask of ON pixels from the boxes
+ *          in a Boxa, in a pix of size (w,h):
+ *              pix = pixCreate(w, h, 1);
+ *              pixMaskBoxa(pix, pix, boxa, L_SET_PIXELS);
  */
 PIX *
 pixMaskBoxa(PIX     *pixd,
@@ -2112,7 +2121,7 @@ BOX     *box;
         else if (op == L_CLEAR_PIXELS)
             pixRasterop(pixd, x, y, w, h, PIX_CLR, NULL, 0, 0);
         else  /* op == L_FLIP_PIXELS */
-            pixRasterop(pixd, x, y, w, h, PIX_NOT(PIX_SRC), NULL, 0, 0);
+            pixRasterop(pixd, x, y, w, h, PIX_NOT(PIX_DST), NULL, 0, 0);
         boxDestroy(&box);
     }
 
@@ -2181,9 +2190,7 @@ PIXCMAP  *cmap;
     d = pixGetDepth(pixd);
     if (d == 8) {  /* colormapped */
         cmap = pixGetColormap(pixd);
-        rval = GET_DATA_BYTE(&val, COLOR_RED); 
-        gval = GET_DATA_BYTE(&val, COLOR_GREEN); 
-        bval = GET_DATA_BYTE(&val, COLOR_BLUE); 
+        extractRGBValues(val, &rval, &gval, &bval);
         if (pixcmapAddNewColor(cmap, rval, gval, bval, &newindex))
             return (PIX *)ERROR_PTR("cmap full; can't add", procName, NULL);
     }
@@ -2318,9 +2325,7 @@ PIXCMAP  *cmap;
     if (!pixd)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    rval = GET_DATA_BYTE(&val, COLOR_RED); 
-    gval = GET_DATA_BYTE(&val, COLOR_GREEN); 
-    bval = GET_DATA_BYTE(&val, COLOR_BLUE); 
+    extractRGBValues(val, &rval, &gval, &bval);
     if (pixGetDepth(pixd) == 8) {  /* colormapped */
         cmap = pixGetColormap(pixd);
         pixcmapAddNewColor(cmap, rval, gval, bval, &newindex);
@@ -2430,12 +2435,8 @@ PIXCMAP  *cmap;
     pix = pixCreate(w, h, 8);
     cmap = pixcmapCreate(8);
     pixSetColormap(pix, cmap);
-    rbox = GET_DATA_BYTE(&colorb, COLOR_RED);
-    gbox = GET_DATA_BYTE(&colorb, COLOR_GREEN);
-    bbox = GET_DATA_BYTE(&colorb, COLOR_BLUE);
-    rboxa = GET_DATA_BYTE(&colorba, COLOR_RED);
-    gboxa = GET_DATA_BYTE(&colorba, COLOR_GREEN);
-    bboxa = GET_DATA_BYTE(&colorba, COLOR_BLUE);
+    extractRGBValues(colorb, &rbox, &gbox, &bbox);
+    extractRGBValues(colorba, &rboxa, &gboxa, &bboxa);
     pixcmapAddColor(cmap, 255, 255, 255);
     pixcmapAddColor(cmap, rbox, gbox, bbox);
     pixcmapAddColor(cmap, rboxa, gboxa, bboxa);

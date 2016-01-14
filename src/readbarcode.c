@@ -61,8 +61,9 @@
  *  contribute decoders for other barcode formats.  Both the functional
  *  interfaces and ABI will almost certainly change in the coming
  *  few months.  The actual decoder, in bardecode.c, at present only
- *  works on Code I2of5 and Code 93.  To add another barcode format,
- *  it is necessary to make changes in readbarcode.h and bardecode.c.
+ *  works on the following codes: Code I2of5, Code 2of5, Code 39, Code 93
+ *  Codabar and UPCA.  To add another barcode format, it is necessary
+ *  to make changes in readbarcode.h and bardecode.c.
  *  The program prog/barcodetest shows how to run from the top level
  *  (image --> decoded data).
  */
@@ -249,7 +250,6 @@ pixReadBarcodes(PIXA     *pixa,
 {
 char      *barstr, *data;
 l_int32    i, j, n, nbars, ival;
-l_float32  winwidth;
 NUMA      *na;
 PIX       *pixt;
 SARRAY    *saw, *sad;

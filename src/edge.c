@@ -19,6 +19,9 @@
  *      Sobel edge detecting filter
  *          PIX      *pixSobelEdgeFilter()
  *
+ *      Two-sided edge gradient filter
+ *          PIX      *pixTwoSidedEdgeFilter()
+ *
  *  The Sobel edge detector uses these two simple gradient filters.
  *
  *       1    2    1             1    0   -1 
@@ -64,7 +67,7 @@
  *          the loop.
  *      (4) This runs at about 45 Mpix/sec on a 3 GHz processor.
  */
-PIX  *
+PIX *
 pixSobelEdgeFilter(PIX     *pixs,
                    l_int32  orientflag)
 {
@@ -139,4 +142,106 @@ PIX       *pixt, *pixd;
     pixDestroy(&pixt);
     return pixd;
 }
+
+
+/*----------------------------------------------------------------------*
+ *                   Two-sided edge gradient filter                     *
+ *----------------------------------------------------------------------*/
+/*!
+ *  pixTwoSidedEdgeFilter()
+ *
+ *      Input:  pixs (8 bpp; no colormap)
+ *              orientflag (L_HORIZONTAL_EDGES, L_VERTICAL_EDGES)
+ *      Return: pixd (8 bpp, edges are brighter), or null on error
+ *
+ *  Notes:
+ *      (1) For detecting vertical edges, this considers the 
+ *          difference of the central pixel from those on the left
+ *          and right.  For situations where the gradient is the same
+ *          sign on both sides, this computes and stores the minimum
+ *          (absolute value of the) difference.  The reason for
+ *          checking the sign is that we are looking for pixels within
+ *          a transition.  By contrast, for single pixel noise, the pixel
+ *          value is either larger than or smaller than its neighbors,
+ *          so the gradient would change direction on each side.  Horizontal
+ *          edges are handled similarly, looking for vertical gradients.
+ *      (2) To generate a binary image of the edges, threshold
+ *          the result using pixThresholdToBinary().  If the high
+ *          edge values are to be fg (1), invert after running
+ *          pixThresholdToBinary().
+ *      (3) This runs at about 60 Mpix/sec on a 3 GHz processor.
+ *          It is about 30% faster than Sobel, and the results are
+ *          similar.
+ */
+PIX *
+pixTwoSidedEdgeFilter(PIX     *pixs,
+                      l_int32  orientflag)
+{
+l_int32    w, h, d, i, j, wpls, wpld;
+l_int32    cval, rval, bval, val, lgrad, rgrad, tgrad, bgrad;
+l_uint32  *datas, *lines, *datad, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixTwoSidedEdgeFilter");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (orientflag != L_HORIZONTAL_EDGES && orientflag != L_VERTICAL_EDGES)
+        return (PIX *)ERROR_PTR("invalid orientflag", procName, NULL);
+
+    pixd = pixCreateTemplate(pixs);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    if (orientflag == L_VERTICAL_EDGES) {
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
+            cval = GET_DATA_BYTE(lines, 1);
+            lgrad = cval - GET_DATA_BYTE(lines, 0);
+            for (j = 1; j < w - 1; j++) {
+                rval = GET_DATA_BYTE(lines, j + 1);
+                rgrad = rval - cval;
+                if (lgrad * rgrad > 0) {
+                    if (lgrad < 0)
+                        val = -L_MAX(lgrad, rgrad);
+                    else
+                        val = L_MIN(lgrad, rgrad);
+                    SET_DATA_BYTE(lined, j, val);
+                }
+                lgrad = rgrad;
+                cval = rval;
+            }
+        }
+    }
+    else {  /* L_HORIZONTAL_EDGES) */
+        for (j = 0; j < w; j++) {
+            lines = datas + wpls;
+            cval = GET_DATA_BYTE(lines, j);  /* for line 1 */
+            tgrad = cval - GET_DATA_BYTE(datas, j);
+            for (i = 1; i < h - 1; i++) {
+                lines += wpls;  /* for line i + 1 */
+                lined = datad + i * wpld;
+                bval = GET_DATA_BYTE(lines, j);
+                bgrad = bval - cval;
+                if (tgrad * bgrad > 0) {
+                    if (tgrad < 0)
+                        val = -L_MAX(tgrad, bgrad);
+                    else
+                        val = L_MIN(tgrad, bgrad);
+                    SET_DATA_BYTE(lined, j, val);
+                }
+                tgrad = bgrad;
+                cval = bval;
+            }
+        }
+    }
+                
+    return pixd;
+}
+
 

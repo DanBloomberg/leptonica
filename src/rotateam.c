@@ -85,7 +85,6 @@
 
 #include <stdio.h>
 #include <string.h>
-/* #include <math.h> */
 #include "allheaders.h"
 
 static const l_float32  VERY_SMALL_ANGLE = 0.001;  /* radians; ~0.06 degrees */
@@ -106,8 +105,6 @@ static const l_float32  VERY_SMALL_ANGLE = 0.001;  /* radians; ~0.06 degrees */
  *      (1) Rotates about image center.
  *      (2) A positive angle gives a clockwise rotation.
  *      (3) Brings in either black or white pixels from the boundary.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixRotateAM(PIX       *pixs,
@@ -115,7 +112,7 @@ pixRotateAM(PIX       *pixs,
             l_int32    incolor)
 {
 l_int32   d;
-l_uint32  grayval;
+l_uint32  fillval;
 PIX      *pixt1, *pixt2, *pixd;
 
     PROCNAME("pixRotateAM");
@@ -138,18 +135,18 @@ PIX      *pixt1, *pixt2, *pixd;
     d = pixGetDepth(pixt2);
 
         /* Compute actual incoming color */
-    grayval = 0;
+    fillval = 0;
     if (incolor == L_BRING_IN_WHITE) {
         if (d == 8)
-            grayval = 255;
+            fillval = 255;
         else  /* d == 32 */
-            grayval = 0xffffff00;
+            fillval = 0xffffff00;
     }
 
     if (d == 8)
-        pixd = pixRotateAMGray(pixt2, angle, grayval);
+        pixd = pixRotateAMGray(pixt2, angle, fillval);
     else   /* d == 32 */
-        pixd = pixRotateAMColor(pixt2, angle, grayval);
+        pixd = pixRotateAMColor(pixt2, angle, fillval);
 
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -169,8 +166,6 @@ PIX      *pixt1, *pixt2, *pixd;
  *      (1) Rotates about image center.
  *      (2) A positive angle gives a clockwise rotation.
  *      (3) Specify the color to be brought in from outside the image.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixRotateAMColor(PIX       *pixs,
@@ -179,7 +174,7 @@ pixRotateAMColor(PIX       *pixs,
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixRotateAMColor");
 
@@ -191,8 +186,7 @@ PIX              *pixd;
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
         return pixClone(pixs);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixd = pixCreateTemplate(pixs);
@@ -225,7 +219,7 @@ pixRotateAMGray(PIX       *pixs,
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX        *pixd;
 
     PROCNAME("pixRotateAMGray");
 
@@ -237,8 +231,7 @@ PIX              *pixd;
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
         return pixClone(pixs);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixd = pixCreateTemplate(pixs);
@@ -257,7 +250,7 @@ PIX              *pixd;
 /*!
  *  pixRotateAMCorner()
  *
- *      Input:  pixs (2, 4, 8 bpp gray or colormapped, or 32 bpp RGB)
+ *      Input:  pixs (1, 2, 4, 8 bpp gray or colormapped, or 32 bpp RGB)
  *              angle (radians; clockwise is positive)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
  *      Return: pixd, or null on error
@@ -266,8 +259,6 @@ PIX              *pixd;
  *      (1) Rotates about the UL corner of the image.
  *      (2) A positive angle gives a clockwise rotation.
  *      (3) Brings in either black or white pixels from the boundary.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 PIX *
 pixRotateAMCorner(PIX       *pixs,
@@ -275,15 +266,13 @@ pixRotateAMCorner(PIX       *pixs,
                   l_int32    incolor)
 {
 l_int32   d;
-l_uint32  grayval;
+l_uint32  fillval;
 PIX      *pixt1, *pixt2, *pixd;
 
     PROCNAME("pixRotateAMCorner");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) == 1)
-        return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
         return pixClone(pixs);
@@ -298,18 +287,18 @@ PIX      *pixt1, *pixt2, *pixd;
     d = pixGetDepth(pixt2);
 
         /* Compute actual incoming color */
-    grayval = 0;
+    fillval = 0;
     if (incolor == L_BRING_IN_WHITE) {
         if (d == 8)
-            grayval = 255;
+            fillval = 255;
         else  /* d == 32 */
-            grayval = 0xffffff00;
+            fillval = 0xffffff00;
     }
 
     if (d == 8)
-        pixd = pixRotateAMGrayCorner(pixt2, angle, grayval);
+        pixd = pixRotateAMGrayCorner(pixt2, angle, fillval);
     else   /* d == 32 */
-        pixd = pixRotateAMColorCorner(pixt2, angle, grayval);
+        pixd = pixRotateAMColorCorner(pixt2, angle, fillval);
 
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -322,24 +311,22 @@ PIX      *pixt1, *pixt2, *pixd;
  *
  *      Input:  pixs
  *              angle (radians; clockwise is positive)
- *              grayval (0 to bring in BLACK, 255 for WHITE)
+ *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
  *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Rotates the image about the UL corner.
  *      (2) A positive angle gives a clockwise rotation.
- *      (3) Specify the grayvalue to be brought in from outside the image.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
+ *      (3) Specify the color to be brought in from outside the image.
  */
 PIX *
 pixRotateAMColorCorner(PIX       *pixs,
                        l_float32  angle,
-                       l_uint8    grayval)
+                       l_uint32   fillval)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixRotateAMColorCorner");
 
@@ -351,15 +338,14 @@ PIX              *pixd;
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
         return pixClone(pixs);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixd = pixCreateTemplate(pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-    rotateAMColorCornerLow(datad, w, h, wpld, datas, wpls, angle, grayval);
+    rotateAMColorCornerLow(datad, w, h, wpld, datas, wpls, angle, fillval);
 
     return pixd;
 }
@@ -385,7 +371,7 @@ pixRotateAMGrayCorner(PIX       *pixs,
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixRotateAMGrayCorner");
 
@@ -397,8 +383,7 @@ PIX              *pixd;
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
         return pixClone(pixs);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixd = pixCreateTemplate(pixs);
@@ -419,7 +404,7 @@ PIX              *pixd;
  *
  *      Input:  pixs
  *              angle (radians; clockwise is positive)
- *              grayval (0 to bring in BLACK, 255 for WHITE)
+ *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
  *      Return: pixd, or null on error
  *
  *  Notes:
@@ -436,11 +421,11 @@ PIX              *pixd;
 PIX *
 pixRotateAMColorFast(PIX       *pixs,
                      l_float32  angle,
-                     l_uint8    grayval)
+                     l_uint32   colorval)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX              *pixd;
+PIX       *pixd;
 
     PROCNAME("pixRotateAMColorFast");
 
@@ -452,15 +437,14 @@ PIX              *pixd;
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
         return pixClone(pixs);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixd = pixCreateTemplate(pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-    rotateAMColorFastLow(datad, w, h, wpld, datas, wpls, angle, grayval);
+    rotateAMColorFastLow(datad, w, h, wpld, datas, wpls, angle, colorval);
 
     return pixd;
 }
