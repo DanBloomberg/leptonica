@@ -710,7 +710,7 @@ l_uint32  val;
 PTA *
 pixSearchGrayMaze(PIX     *pixs,
                   l_int32  xi,
-                  l_int32  yi, 
+                  l_int32  yi,
                   l_int32  xf,
                   l_int32  yf,
                   PIX    **ppixd)

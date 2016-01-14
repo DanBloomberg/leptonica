@@ -88,7 +88,7 @@ static char  mainName[] = "pixadisp_reg";
     pixDestroy(&pixd);
 
         /* pixaDisplayTiledInRows() */
-    pixd = pixaDisplayTiledInRows(pixac, 1000, 0, 10);
+    pixd = pixaDisplayTiledInRows(pixac, 1, 1000, 1.0, 0, 10, 2);
     pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
 

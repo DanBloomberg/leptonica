@@ -32,6 +32,7 @@
  *           l_int32     pixCombineMaskedGeneral()
  *           l_int32     pixPaintThroughMask()
  *           PIX        *pixPaintSelfThroughMask()
+ *           PIX        *pixMakeMaskFromLUT()
  *
  *    One and two-image boolean operations on arbitrary depth images
  *           PIX        *pixInvert()
@@ -46,7 +47,10 @@
  *           NUMA       *pixaCountPixels()
  *           l_int32     pixCountPixelsInRow()
  *           NUMA       *pixCountPixelsByRow()
- *           l_int32     pixThresholdPixels()
+ *           NUMA       *pixCountPixelsByColumn()
+ *           NUMA       *pixSumPixelsByRow()
+ *           NUMA       *pixSumPixelsByColumn()
+ *           l_int32     pixThresholdPixelSum()
  *           l_int32    *makePixelSumTab8()
  *           l_int32    *makePixelCentroidTab8()
  *
@@ -797,6 +801,62 @@ PIXA     *pixa;
 }
 
 
+/*!
+ *  pixMakeMaskFromLUT()
+ *
+ *      Input:  pixs (2, 4 or 8 bpp; can be colormapped)
+ *              tab (256-entry LUT; 1 means to write to mask)
+ *      Return: pixd (1 bpp mask), or null on error
+ *
+ *  Notes:
+ *      (1) This generates a 1 bpp mask image, where a 1 is written in
+ *          the mask for each pixel in pixs that has a value corresponding
+ *          to a 1 in the LUT.
+ *      (2) The LUT should be of size 256.
+ */
+PIX *
+pixMakeMaskFromLUT(PIX      *pixs,
+                   l_int32  *tab)
+{
+l_int32    w, h, d, i, j, val, wpls, wpld;
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixMakeMaskFromLUT");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!tab)
+        return (PIX *)ERROR_PTR("tab not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 2 && d != 4 && d != 8)
+        return (PIX *)ERROR_PTR("pix not 2, 4 or 8 bpp", procName, NULL);
+
+    pixd = pixCreate(w, h, 1);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            if (d == 2)
+                val = GET_DATA_DIBIT(lines, j);
+            else if (d == 4)
+                val = GET_DATA_QBIT(lines, j);
+            else  /* d == 8 */
+                val = GET_DATA_BYTE(lines, j);
+            if (tab[val] == 1)
+                SET_DATA_BIT(lined, j);
+        }
+    }
+
+    return pixd;
+}
+
+
+
 /*-------------------------------------------------------------*
  *    One and two-image boolean ops on arbitrary depth images  *
  *-------------------------------------------------------------*/
@@ -1106,7 +1166,7 @@ l_int32  w, h;
 /*!
  *  pixZero()
  *
- *      Input:  pix
+ *      Input:  pix (all depths; not colormapped)
  *              &empty  (<return> 1 if all bits in image are 0; 0 otherwise)
  *      Return: 0 if OK; 1 on error
  *
@@ -1131,6 +1191,8 @@ l_uint32  *data, *line;
     *pempty = 1;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
+    if (pixGetColormap(pix) != NULL)
+        return ERROR_INT("pix is colormapped", procName, 1);
 
     w = pixGetWidth(pix) * pixGetDepth(pix);
     h = pixGetHeight(pix);
@@ -1162,7 +1224,7 @@ l_uint32  *data, *line;
 /*!
  *  pixCountPixels()
  *
- *      Input:  binary pix
+ *      Input:  pix (1 bpp)
  *              &count (<return> count of ON pixels)
  *              tab8  (<optional> 8-bit pixel lookup table)
  *      Return: 0 if OK; 1 on error
@@ -1230,7 +1292,7 @@ l_uint32  *data;
 /*!
  *  pixaCountPixels()
  *
- *      Input:  pixa (array of binary pix)
+ *      Input:  pixa (array of 1 bpp pix)
  *      Return: na of ON pixels in each pix, or null on error
  */
 NUMA *
@@ -1273,7 +1335,7 @@ PIX      *pix;
 /*!
  *  pixCountPixelsInRow()
  *
- *      Input:  binary pix
+ *      Input:  pix (1 bpp)
  *              row number
  *              &count (<return> sum of ON pixels in raster line)
  *              tab8  (<optional> 8-bit pixel lookup table)
@@ -1343,7 +1405,7 @@ l_uint32  *line;
 /*!
  *  pixCountPixelsByRow()
  *
- *      Input:  binary pix
+ *      Input:  pix (1 bpp)
  *              tab8  (<optional> 8-bit pixel lookup table)
  *      Return: na of counts, or null on error
  */
@@ -1365,10 +1427,9 @@ NUMA     *na;
     else
         tab = tab8;
 
+    h = pixGetHeight(pix);
     if ((na = numaCreate(h)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
-
-    h = pixGetHeight(pix);
     for (i = 0; i < h; i++) {
         pixCountPixelsInRow(pix, i, &count, tab);
         numaAddNumber(na, count);
@@ -1382,9 +1443,155 @@ NUMA     *na;
 
 
 /*!
- *  pixThresholdPixels()
+ *  pixCountPixelsByColumn()
  *
- *      Input:  binary pix
+ *      Input:  pix (1 bpp)
+ *      Return: na of counts in each column, or null on error
+ */
+NUMA *
+pixCountPixelsByColumn(PIX  *pix)
+{
+l_int32     i, j, w, h, wpl;
+l_uint32   *line, *data;
+l_float32  *array;
+NUMA       *na;
+
+    PROCNAME("pixCountPixelsByColumn");
+
+    if (!pix || pixGetDepth(pix) != 1)
+        return (NUMA *)ERROR_PTR("pix undefined or not 1 bpp", procName, NULL);
+
+    pixGetDimensions(pix, &w, &h, NULL);
+    if ((na = numaCreate(w)) == NULL)
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    numaSetCount(na, w);
+    array = numaGetFArray(na, L_NOCOPY);
+    data = pixGetData(pix);
+    wpl = pixGetWpl(pix);
+    for (i = 0; i < h; i++) {
+        line = data + wpl * i;
+        for (j = 0; j < w; j++) {
+            if (GET_DATA_BIT(line, j))
+                array[j] += 1.0;
+        }
+    }
+
+    return na;
+}
+
+
+/*!
+ *  pixSumPixelsByRow()
+ *
+ *      Input:  pix (1, 8 or 16 bpp; no colormap)
+ *              tab8  (<optional> lookup table for 1 bpp; use null for 8 bpp)
+ *      Return: na of pixel sums by row, or null on error
+ *
+ *  Notes:
+ *      (1) To resample for a different bin size, use numaUniformSampling()
+ */
+NUMA *
+pixSumPixelsByRow(PIX      *pix,
+                  l_int32  *tab8)
+{
+l_int32    i, j, w, h, d, wpl;
+l_uint32  *line, *data;
+l_float32  sum;
+NUMA      *na;
+
+    PROCNAME("pixSumPixelsByRow");
+
+    if (!pix)
+        return (NUMA *)ERROR_PTR("pix not defined", procName, NULL);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1 && d != 8 && d != 16)
+        return (NUMA *)ERROR_PTR("pix not 1, 8 or 16 bpp", procName, NULL);
+    if (pixGetColormap(pix) != NULL)
+        return (NUMA *)ERROR_PTR("pix colormapped", procName, NULL);
+
+    if (d == 1)
+        return pixCountPixelsByRow(pix, tab8);
+
+    if ((na = numaCreate(h)) == NULL)
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    data = pixGetData(pix);
+    wpl = pixGetWpl(pix);
+    for (i = 0; i < h; i++) {
+        sum = 0.0;
+        line = data + i * wpl;
+        if (d == 8) {
+            sum += w * 255;
+            for (j = 0; j < w; j++)
+                sum -= GET_DATA_BYTE(line, j);
+        }
+        else {  /* d == 16 */
+            sum += w * 0xffff;
+            for (j = 0; j < w; j++)
+                sum -= GET_DATA_TWO_BYTES(line, j);
+        }
+        numaAddNumber(na, sum);
+    }
+
+    return na;
+}
+
+
+/*!
+ *  pixSumPixelsByColumn()
+ *
+ *      Input:  pix (1, 8 or 16 bpp; no colormap)
+ *      Return: na of pixel sums by column, or null on error
+ *
+ *  Notes:
+ *      (1) To resample for a different bin size, use numaUniformSampling()
+ */
+NUMA *
+pixSumPixelsByColumn(PIX  *pix)
+{
+l_int32     i, j, w, h, d, wpl;
+l_uint32   *line, *data;
+l_float32  *array;
+NUMA       *na;
+
+    PROCNAME("pixSumPixelsByColumn");
+
+    if (!pix)
+        return (NUMA *)ERROR_PTR("pix not defined", procName, NULL);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1 && d != 8 && d != 16)
+        return (NUMA *)ERROR_PTR("pix not 1, 8 or 16 bpp", procName, NULL);
+    if (pixGetColormap(pix) != NULL)
+        return (NUMA *)ERROR_PTR("pix colormapped", procName, NULL);
+
+    if (d == 1)
+        return pixCountPixelsByColumn(pix);
+
+    if ((na = numaCreate(w)) == NULL)
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    numaSetCount(na, w);
+    array = numaGetFArray(na, L_NOCOPY);
+    data = pixGetData(pix);
+    wpl = pixGetWpl(pix);
+    for (i = 0; i < h; i++) {
+        line = data + wpl * i;
+        if (d == 8) {
+            for (j = 0; j < w; j++)
+                array[j] += 255 - GET_DATA_BYTE(line, j);
+        }
+        else {  /* d == 16 */
+            for (j = 0; j < w; j++)
+                array[j] += 0xffff - GET_DATA_TWO_BYTES(line, j);
+        }
+    }
+
+    return na;
+}
+
+
+/*!
+ *  pixThresholdPixelSum()
+ *
+ *      Input:  pix (1 bpp)
  *              threshold
  *              &above (<return> 1 if above threshold;
  *                               0 if equal to or less than threshold)
@@ -1399,10 +1606,10 @@ NUMA     *na;
  *          pixels before returning.
  */
 l_int32
-pixThresholdPixels(PIX      *pix,
-                   l_int32   thresh,
-                   l_int32  *pabove,
-                   l_int32  *tab8)
+pixThresholdPixelSum(PIX      *pix,
+                     l_int32   thresh,
+                     l_int32  *pabove,
+                     l_int32  *tab8)
 {
 l_uint32   word, endmask;
 l_int32   *tab;
@@ -1410,7 +1617,7 @@ l_int32    w, h, wpl, i, j;
 l_int32    fullwords, endbits, sum;
 l_uint32  *line, *data;
 
-    PROCNAME("pixThresholdPixels");
+    PROCNAME("pixThresholdPixelSum");
 
     if (!pabove)
         return ERROR_INT("pabove not defined", procName, 1);

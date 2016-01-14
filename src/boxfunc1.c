@@ -28,7 +28,7 @@
  *           l_int32   boxContainsPt()
  *           BOX      *boxaGetNearestToPt()
  *           l_int32   boxIntersectByLine()
- *           l_int32   boxGetCentroid()
+ *           l_int32   boxGetCenter()
  *           BOX      *boxClipToRectangle()
  *           BOX      *boxRelocateOneSide()
  *           BOX      *boxAdjustSides()
@@ -411,8 +411,8 @@ boxaGetNearestToPt(BOXA    *boxa,
                    l_int32  x,
                    l_int32  y)
 {
-l_int32    i, n, cx, cy, minindex;
-l_float32  delx, dely, dist, mindist;
+l_int32    i, n, minindex;
+l_float32  delx, dely, dist, mindist, cx, cy;
 BOX       *box;
 
     PROCNAME("boxaGetNearestToPt");
@@ -426,7 +426,7 @@ BOX       *box;
     minindex = 0;
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
-        boxGetCentroid(box, &cx, &cy);
+        boxGetCenter(box, &cx, &cy);
         delx = (l_float32)(cx - x);
         dely = (l_float32)(cy - y);
         dist = delx * delx + dely * dely;
@@ -442,29 +442,29 @@ BOX       *box;
 
 
 /*!
- *  boxGetCentroid()
+ *  boxGetCenter()
  *
  *      Input:  box
- *              &x, &y (<return> location of center of box)
+ *              &cx, &cy (<return> location of center of box)
  *      Return  0 if OK, 1 on error
  */
 l_int32
-boxGetCentroid(BOX      *box,
-                l_int32  *px,
-                l_int32  *py)
+boxGetCenter(BOX        *box,
+             l_float32  *pcx,
+             l_float32  *pcy)
 {
 l_int32  x, y, w, h;
 
-    PROCNAME("boxGetCentroid");
+    PROCNAME("boxGetCenter");
 
-    if (!px || !py)
-        return ERROR_INT("&x, &y not both defined", procName, 1);
-    *px = *py = 0;
+    if (!pcx || !pcy)
+        return ERROR_INT("&cx, &cy not both defined", procName, 1);
+    *pcx = *pcy = 0;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
     boxGetGeometry(box, &x, &y, &w, &h);
-    *px = x + w / 2;
-    *py = y + h / 2;
+    *pcx = (l_float32)(x + 0.5 * w);
+    *pcy = (l_float32)(y + 0.5 * h);
 
     return 0;
 }
@@ -863,7 +863,10 @@ BOX     *box;
         return ERROR_INT("boxad not defined", procName, 1);
     if (!boxas)
         return ERROR_INT("boxas not defined", procName, 1);
-    ns = boxaGetCount(boxas);
+    if ((ns = boxaGetCount(boxas)) == 0) {
+        L_INFO("empty boxas", procName);
+        return 0;
+    }
     if (istart < 0)
         istart = 0;
     if (istart >= ns)

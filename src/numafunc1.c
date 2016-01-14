@@ -35,6 +35,7 @@
  *          l_int32      numaGetCountRelativeToZero()
  *          NUMA        *numaClipToInterval()
  *          NUMA        *numaMakeThresholdIndicator()
+ *          NUMA        *numaUniformSampling()
  *
  *      Interpolation
  *          l_int32      numaInterpolateEqxVal()
@@ -765,6 +766,8 @@ NUMA      *nai;
 
     PROCNAME("numaMakeThresholdIndicator");
 
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
     n = numaGetCount(nas);
     nai = numaCreate(n);
     for (i = 0; i < n; i++) {
@@ -793,6 +796,70 @@ NUMA      *nai;
 
     return nai;
 }
+
+
+/*!
+ *  numaUniformSampling()
+ *
+ *      Input:  nas (input numa)
+ *              nsamp (number of samples)
+ *      Output: nad (resampled array), or null on error
+ *
+ *  Notes:
+ *      (1) This resamples the values in the array, using @nsamp
+ *          equal divisions.
+ */
+NUMA *
+numaUniformSampling(NUMA    *nas,
+                    l_int32  nsamp)
+{
+l_int32     n, i, j, ileft, iright;
+l_float32   left, right, binsize, lfract, rfract, sum, startx, delx;
+l_float32  *array;
+NUMA       *nad;
+
+    PROCNAME("numaUniformSampling");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (nsamp <= 0)
+        return (NUMA *)ERROR_PTR("nsamp must be > 0", procName, NULL);
+
+    n = numaGetCount(nas);
+    nad = numaCreate(nsamp);
+    array = numaGetFArray(nas, L_NOCOPY);
+    binsize = (l_float32)n / (l_float32)nsamp;
+    numaGetXParameters(nas, &startx, &delx);
+    numaSetXParameters(nad, startx, binsize * delx);
+    left = 0.0;
+    for (i = 0; i < nsamp; i++) {
+        sum = 0.0;
+        right = left + binsize;
+        ileft = (l_int32)left;
+        lfract = 1.0 - left + ileft;
+        if (lfract >= 1.0)  /* on left bin boundary */
+            lfract = 0.0;
+        iright = (l_int32)right;
+        rfract = right - iright;
+        iright = L_MIN(iright, n - 1);
+        if (ileft == iright) {  /* both are within the same original sample */
+            sum += (lfract + rfract - 1.0) * array[ileft];
+        }
+        else {
+            if (lfract > 0.0001)  /* left fraction */
+                sum += lfract * array[ileft];
+            if (rfract > 0.0001)  /* right fraction */
+                sum += rfract * array[iright];
+            for (j = ileft + 1; j < iright; j++)  /* entire pixels */
+                sum += array[j];
+        }
+
+        numaAddNumber(nad, sum);
+        left = right;
+    }
+    return nad;
+}
+
 
 
 /*----------------------------------------------------------------------*

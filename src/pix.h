@@ -34,34 +34,38 @@
  *       struct PixTiling
  *       struct FPix
  *       struct DPix
+ *       struct PixComp
+ *       struct PixaComp
  *
  *   Contains definitions for:
- *       colors for RGB
- *       colormap conversion flags
- *       rasterop bit flags
- *       structure access flags (for insert, copy, clone, copy-clone)
- *       sorting flags (by type and direction)
- *       blending flags
- *       graphics pixel setting flags
- *       size filtering flags
- *       rotation and shear flags
- *       affine transform order flags                        *
- *       grayscale filling flags
- *       dithering flags
- *       distance flags
- *       statistical measures
- *       set selection flags
- *       text orientation flags
- *       edge orientation flags
- *       line orientation flags
- *       scan direction flags
- *       thinning flags
- *       runlength flags
- *       edge filter flags
- *       handling negative values in conversion to unsigned int
- *       relative to zero flags
+ *       Colors for RGB
+ *       Colormap conversion flags
+ *       Rasterop bit flags
+ *       Structure access flags (for insert, copy, clone, copy-clone)
+ *       Sorting flags (by type and direction)
+ *       Blending flags
+ *       Graphics pixel setting flags
+ *       Size filtering flags
+ *       Rotation and shear flags
+ *       Affine transform order flags
+ *       Grayscale filling flags
+ *       Dithering flags
+ *       Distance flags
+ *       Statistical measures
+ *       Set selection flags
+ *       Text orientation flags
+ *       Edge orientation flags
+ *       Line orientation flags
+ *       Scan direction flags
+ *       Thinning flags
+ *       Runlength flags
+ *       Edge filter flags
+ *       Handling negative values in conversion to unsigned int
+ *       Subpixel color component ordering in LCD display
+ *       Relative to zero flags
  *       HSV histogram flags
- *       region flags (inclusion, exclusion)
+ *       Region flags (inclusion, exclusion)
+ *       Flags for adding text to a pix
  */
 
 
@@ -355,7 +359,6 @@ struct Pixaa
 typedef struct Pixaa PIXAA;
 
 
-
 /*-------------------------------------------------------------------------*
  *                    Basic rectangle and rectangle arrays                 *
  *-------------------------------------------------------------------------*/
@@ -480,6 +483,43 @@ struct DPix
     l_float64           *data;        /* the double image data             */
 };
 typedef struct DPix DPIX;
+
+
+/*-------------------------------------------------------------------------*
+ *                        PixComp: compressed pix                          *
+ *-------------------------------------------------------------------------*/
+struct PixComp
+{
+    l_int32              w;           /* width in pixels                   */
+    l_int32              h;           /* height in pixels                  */
+    l_int32              d;           /* depth in bits                     */
+    l_uint32             xres;        /* image res (ppi) in x direction    */
+                                      /*   (use 0 if unknown)              */
+    l_uint32             yres;        /* image res (ppi) in y direction    */
+                                      /*   (use 0 if unknown)              */
+    l_int32              comptype;    /* compressed format (IFF_TIFF_G4,   */
+                                      /*   IFF_PNG, IFF_JFIF_JPEG)         */
+    char                *text;        /* text string associated with pix   */
+    l_int32              cmapflag;    /* flag (1 for cmap, 0 otherwise)    */
+    l_uint8             *data;        /* the compressed image data         */
+    l_int32              size;        /* size of the data array            */
+};
+typedef struct PixComp PIXC;
+
+
+/*-------------------------------------------------------------------------*
+ *                     PixaComp: array of compressed pix                   *
+ *-------------------------------------------------------------------------*/
+#define  PIXACOMP_VERSION_NUMBER      1
+
+struct PixaComp
+{
+    l_int32              n;           /* number of PixComp in ptr array    */
+    l_int32              nalloc;      /* number of PixComp ptrs allocated  */
+    struct PixComp     **pixc;        /* the array of ptrs to PixComp      */
+    struct Boxa         *boxa;        /* array of boxes                    */
+};
+typedef struct PixaComp PIXAC;
 
 
 /*-------------------------------------------------------------------------*
@@ -761,6 +801,15 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
+ *             Subpixel color component ordering in LCD display            *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_SUBPIXEL_ORDER_RGB = 1,   /* sensor order left-to-right RGB          */
+    L_SUBPIXEL_ORDER_BGR = 2    /* sensor order left-to-right BGR          */
+};
+
+
+/*-------------------------------------------------------------------------*
  *                         Relative to zero flags                          *
  *-------------------------------------------------------------------------*/
 enum {
@@ -786,6 +835,17 @@ enum {
 enum {
     L_INCLUDE_REGION = 1,      /* Use hue-saturation histogram             */
     L_EXCLUDE_REGION = 2       /* Use hue-value histogram                  */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                    Flags for adding text to a pix                       *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_ADD_ABOVE = 1,           /* Add text above the image                 */
+    L_ADD_AT_TOP = 2,          /* Add text over the top of the image       */
+    L_ADD_AT_BOTTOM = 3,       /* Add text over the bottom of the image    */
+    L_ADD_BELOW = 4            /* Add text below the image                 */
 };
 
 

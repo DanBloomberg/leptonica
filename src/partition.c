@@ -462,9 +462,9 @@ boxaSelectPivotBox(BOX       *box,
                    l_int32    maxperim,
                    l_float32  fract)
 {
-l_int32    i, n, cx, cy, bw, bh, x, y, w, h;
+l_int32    i, n, bw, bh, w, h;
 l_int32    smallfound, minindex, perim, minsize;
-l_float32  delx, dely, mindist, threshdist, dist;
+l_float32  delx, dely, mindist, threshdist, dist, x, y, cx, cy;
 BOX       *boxt;
 
     PROCNAME("boxaSelectPivotBox");
@@ -482,7 +482,7 @@ BOX       *boxt;
     }
 
     boxGetGeometry(box, NULL, NULL, &w, &h);
-    boxGetCentroid(box, &x, &y);
+    boxGetCenter(box, &x, &y);
     threshdist = fract * (w * w + h * h);
     mindist = 1000000000.;
     minindex = 0;
@@ -490,13 +490,13 @@ BOX       *boxt;
     for (i = 0; i < n; i++) {
         boxt = boxaGetBox(boxa, i, L_CLONE);
         boxGetGeometry(boxt, NULL, NULL, &bw, &bh);
-        boxGetCentroid(boxt, &cx, &cy);
-	boxDestroy(&boxt);
+        boxGetCenter(boxt, &cx, &cy);
+        boxDestroy(&boxt);
         if (bw + bh > maxperim)
             continue;
-	smallfound = TRUE;
-        delx = (l_float32)(cx - x);
-        dely = (l_float32)(cy - y);
+        smallfound = TRUE;
+        delx = cx - x;
+        dely = cy - y;
         dist = delx * delx + dely * dely;
         if (dist <= threshdist)
             return boxaGetBox(boxa, i, L_COPY);

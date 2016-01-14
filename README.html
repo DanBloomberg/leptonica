@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (26 Jul 09)
+README  (8 Nov 09)
 --------------------
 
-gunzip leptonlib-1.62.tar.gz
-tar -xvf leptonlib-1.62.tar
+gunzip leptonlib-1.63.tar.gz
+tar -xvf leptonlib-1.63.tar
 
 
 1.  This tar includes:
@@ -120,11 +120,11 @@ tar -xvf leptonlib-1.62.tar
 
     We also provide project files for compiling the library under MSVC:
        (1)  With VC++ 2008:
-              src/leptonlib.sln
-              src/leptonlib.vcproj
+              leptonlib.sln
+              leptonlib.vcproj
        (2)  With VC++ Version 6:
-              src/leptonlib.dsw
-              src/leptonlib.dsp
+              leptonlib.dsw
+              leptonlib.dsp
     The second can be used to generate a liblept DLL.
 
 3.  When you compile liblept using the supplied makefile (not autoconf),
@@ -159,7 +159,8 @@ tar -xvf leptonlib-1.62.tar
           providing example code.
       (3) Programs that are useful applications in their own right.
           Examples of these are the PostScript conversion programs
-          converttops, convertfilestops, printimage and printsplitimage.
+          converttops, convertfilestops, convertsegfilestops,
+          printimage and printsplitimage.
 
 5.  The prototype header file leptprotos.h (supplied) can be
     automatically generated using xtractprotos.  To generate leptprotos.h,
@@ -186,7 +187,7 @@ tar -xvf leptonlib-1.62.tar
           in linux.  The tar file is available at:
                www.leptonica.com/source/xtractlib-1.4.tar.gz
 
-6.  New with 1.56, you can now build liblept with autoconf.  Do the
+6.  Starting with 1.56, you can now build liblept with autoconf.  Do the
     following in the root directory (the directory with configure):
        ./configure
        make
@@ -194,7 +195,7 @@ tar -xvf leptonlib-1.62.tar
 
 7.  Customization (in environ.h) can be done for using external libraries.
     The default is to link to these four libraries:
-        libjpeg.a  (standard jfif jpeg library, version 62 (aka 6b))
+        libjpeg.a  (standard jfif jpeg library, version 6b))
 	libtiff.a  (standard Leffler tiff library, version 3.7.4 or later;
         libpng.a   (standard png library, suggest version 1.2.8 or later)
 	libz.a     (standard gzip library, suggest version 1.2.3)
@@ -282,9 +283,6 @@ tar -xvf leptonlib-1.62.tar
 	       extract protos with xtractprotos, add ".exe" appropriately
 	Make the following changes to the prog/makefile:
            (1) remove -fPIC from $CC
-	   All prog files should link, including those that call
-           getFilenamesInDirectory (convertfilestops, jbcorrelation,
-           jbrankhaus, maketile and viewertest).
 
     (d) Windows via MS VC++
         (1) Project files are provided for building liblept under MSVC:
@@ -396,9 +394,9 @@ tar -xvf leptonlib-1.62.tar
 14. This is also a source for simple and relatively efficient
     implementations of image scaling, shear and rotation.
 
-    There are many different scaling operations, some of which
-    are listed here.  Grayscale and color image scaling are done
-    by sampling, lowpass filtering followed by sampling,
+    There are many different scaling operations in liblept, some of
+    which are listed here.  Grayscale and color image scaling are
+    done by sampling, lowpass filtering followed by sampling,
     area mapping, and linear interpolation.
     Scaling operations with antialiased sampling, area mapping,
     and linear interpolation are limited to 2, 4 and 8 bpp gray,
@@ -410,7 +408,9 @@ tar -xvf leptonlib-1.62.tar
     mapping scaling.  With very high downsampling, either area mapping
     or antialias sampling (lowpass filter followed by sampling) give
     good results.  Fast area map with power-of-2 reduction are also
-    provided.
+    provided.  Optional sharpening after resampling is provided to
+    improve appearance by reducing the visual effect of averaging
+    across sharp boundaries.
 
     For fast analysis of grayscale and color images, it is useful to
     have integer subsampling combined with pixel depth reduction.
@@ -484,7 +484,8 @@ tar -xvf leptonlib-1.62.tar
     sequential algorithms are used to generate a distance map from
     a binary image, and for grayscale seedfill.  We also use Heckbert's 
     stack-based filling algorithm for identifying 4- and 8-connected
-    components in a binary image.
+    components in a binary image.  A fast implementation of the
+    watershed transform, using a priority queue, is included.
 
 16. A few simple image enhancement routines for grayscale and
     color images have been provided.  These include intensity mapping
@@ -565,15 +566,19 @@ tar -xvf leptonlib-1.62.tar
     Use prog/ioformats_reg for a regression test on all but GIF.
     Use prog/gifio_reg for testing GIF.
 
-    We also provide wrappers for PS output, from the following
-    input images: binary Pix, 8 bpp gray Pix, 24 bpp full color Pix, 
-    JFIF JPEG file and TIFF G4 file, all with a variety of options
-    for scaling and placing the image, and for printing it at
-    different resolutions.  See psio.c for examples of how to output
-    PS for different applications.  As examples of usage, see:
-       * prog/converttops.c for a general image --> PS conversion for printing
-       * prog/convertfilestops.c to generate a multipage level 2 compressed
+    We also provide wrappers for PS output, from all types of input images.
+    The output can be either uncompressed or compressed with level 2
+    (ccittg4 or dct) or level 3 (flate) encoding.  You have flexibility
+    for scaling and placing of images, and for printing at different
+    resolutions.  You can also compose mixed raster (text, image) PS.
+    See psio1.c for examples of how to output PS for different applications.
+    As examples of usage, see:
+       * prog/converttops.c for a general image --> PS conversion
+             for printing.  You can specify compression level (1, 2, or 3).
+       * prog/convertfilestops.c to generate a multipage level 3 compressed
              PS file that can then be converted to pdf with ps2pdf.
+       * prog/convertsegfilestops.c to generate a multipage, mixed raster,
+             level 2 compressed PS file.
 
     Note: any or all of these I/O library calls can be stubbed out at
           compile time, using the environment variables in environ.h.
@@ -616,7 +621,7 @@ tar -xvf leptonlib-1.62.tar
     xpdf and acroread.  The leptonica program xvdisp generates
     nice quality images for display with xv.  Finally, a set of images
     can be saved into a pixa (array of pix), specifying the eventual
-    layout into a single pix, using pixSaveTiled().
+    layout into a single pix, using pixSaveTiled*().
 
 20. Simple data structures are provided for safe and
     efficient handling of arrays of numbers, strings, pointers,
@@ -759,8 +764,10 @@ tar -xvf leptonlib-1.62.tar
     archived at http://code.google.com/p/leptonica
 
     A brief version chronology is maintained in version-notes.html.
-    The library compiles without warnings with either g++ or gcc,
-    but you will get warnings with the -Wall flag.
+    Starting with gcc 4.3.3, error warnings (-Werror) are given for
+    minor infractions like not checking return values of built-in C
+    functions.  With earlier versions, the library compiles with g++ or gcc
+    without "errors".  You will get some warnings with the -Wall flag.
 
 
 </pre>

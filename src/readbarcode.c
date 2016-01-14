@@ -218,7 +218,7 @@ PIXA      *pixa;
     }
 
 #if  DEBUG_DESKEW
-    pixt = pixaDisplayTiledInRows(pixa, 1000, 0, 30);
+    pixt = pixaDisplayTiledInRows(pixa, 8, 1000, 1.0, 0, 30, 2);
     pixWrite("junkpixt", pixt, IFF_PNG);
     pixDestroy(&pixt);
 #endif  /* DEBUG_DESKEW */

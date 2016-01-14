@@ -14,8 +14,9 @@
  *====================================================================*/
 
 /*
- * heaptest.c
+ * heap_reg.c
  *
+ *   Tests the heap utility.
  */
 
 #include <stdio.h>
@@ -40,10 +41,10 @@ l_float32    frand, fval;
 HEAPEL      *item;
 NUMA        *na;
 L_HEAP      *lh;
-static char  mainName[] = "heaptest";
+static char  mainName[] = "heap_reg";
 
     if (argc != 1)
-	exit(ERROR_INT(" Syntax: heaptest", mainName, 1));
+	exit(ERROR_INT(" Syntax: heap_reg", mainName, 1));
 
         /* make a numa of random numbers */
     na = numaCreate(5);

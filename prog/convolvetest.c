@@ -90,14 +90,14 @@ static char  mainName[] = "convolvetest";
     pixDestroy(&pixacc);
 #endif
 
-#if 0  /* Test pixWoodfillTransform() */
+#if 0  /* Test pixCensusTransform() */
     d = pixGetDepth(pixs);
     if (d == 32)
         pixt = pixConvertRGBToLuminance(pixs);
     else
         pixt = pixClone(pixs);
     pixacc = pixBlockconvAccum(pixt);
-    pixd = pixWoodfillTransform(pixt, wc, NULL);
+    pixd = pixCensusTransform(pixt, wc, NULL);
     pixDestroy(&pixt);
     pixDestroy(&pixacc);
     pixWrite(fileout, pixd, IFF_PNG);

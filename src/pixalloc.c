@@ -340,17 +340,20 @@ void
 pmsCustomDealloc(void  *data)
 {
 l_int32           level;
-FILE             *fp;
 L_PIX_MEM_STORE  *pms;
 L_PTRA           *pa;
 
     PROCNAME("pmsCustomDealloc");
 
-    if ((pms = CustomPMS) == NULL)
-        return ERROR_VOID("pms not defined", procName);
+    if ((pms = CustomPMS) == NULL) {
+        L_ERROR("pms not defined", procName);
+        return;
+    }
 
-    if (pmsGetLevelForDealloc(data, &level) == 1)
-        return ERROR_VOID("level not found", procName);
+    if (pmsGetLevelForDealloc(data, &level) == 1) {
+        L_ERROR("level not found", procName);
+        return;
+    }
 
     if (level < 0)  /* no logging; just free the data */
         FREE(data);
@@ -394,7 +397,7 @@ L_PIX_MEM_STORE  *pms;
         return (void *)ERROR_PTR("data not made", procName, NULL);
     if (pms->logfile && nbytes >= pms->smallest) {
         fp = fopen(pms->logfile, "a");
-        fprintf(fp, "Alloc %d bytes at %x\n", nbytes, data);
+        fprintf(fp, "Alloc %d bytes at %p\n", nbytes, data);
         fclose(fp);
     }
 

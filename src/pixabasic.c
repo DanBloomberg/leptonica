@@ -949,7 +949,10 @@ PIX     *pix;
         return ERROR_INT("pixad not defined", procName, 1);
     if (!pixas)
         return ERROR_INT("pixas not defined", procName, 1);
-    ns = pixaGetCount(pixas);
+    if ((ns = pixaGetCount(pixas)) == 0) {
+        L_INFO("empty pixas", procName);
+        return 0;
+    }
     if (istart < 0)
         istart = 0;
     if (istart >= ns)
@@ -1065,7 +1068,7 @@ PIXAA   *pixaa;
     if (copyflag != L_CLONE && copyflag != L_COPY)
         return (PIXAA *)ERROR_PTR("invalid copyflag", procName, NULL);
 
-    if (L_CHOOSE_CONSECUTIVE)
+    if (type == L_CHOOSE_CONSECUTIVE)
         npixa = (count + n - 1) / n;
     else  /* L_CHOOSE_SKIP_BY */
         npixa = L_MIN(n, count);

@@ -14,7 +14,7 @@
  *====================================================================*/
 
 /*
- *  extrematest.c
+ *  extrema_reg.c
  *
  *     Tests procedure for locating extrema (minima and maxima)
  *     of a sampled function.
@@ -33,11 +33,12 @@ l_int32      i, ival, n;
 l_float32    f, val;
 GPLOT       *gplot;
 NUMA        *na1, *na2, *na3;
-static char  mainName[] = "extrematest";
+static char  mainName[] = "extrema_reg";
 
     if (argc != 1)
-        return ERROR_INT("Syntax: extrematest", mainName, 1);
+        return ERROR_INT("Syntax: extrema_reg", mainName, 1);
 
+        /* Generate a 1D signal and plot it */
     na1 = numaCreate(500);
     for (i = 0; i < 500; i++) {
         f = 48.3 * sin(0.13 * (l_float32)i);
@@ -47,6 +48,7 @@ static char  mainName[] = "extrematest";
     gplot = gplotCreate("junktest", GPLOT_X11, "Extrema test", "x", "y");
     gplotAddPlot(gplot, NULL, na1, GPLOT_LINES, "plot 1");
 
+        /* Find the local min and max and plot them */
     na2 = numaFindExtrema(na1, 38.3);
     n = numaGetCount(na2);
     na3 = numaCreate(n);

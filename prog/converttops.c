@@ -18,20 +18,7 @@
  *
  *   Syntax: converttops filein fileout [level]
  *
- *      where level = {1,2} and 2 is the default
- *
- *   This program converts any of the supported images (png,
- *   jpeg, tiff, bmp, png) into a PS file that prints at the
- *   highest resolution possible that fills the page.
- *   Images with colormaps are converted to grayscale or rgb.
- *   The output PS file is either uncompressed (level 1) or
- *   compressed (level2). 
- *
- *   Details of imaging call sequence for level 1:
- *      convertToPSEmbed()
- *         --> pixWritePSEmbed()
- *            --> pixWriteStreamPS()
- *               --> pixConvertForPSWrap() ...
+ *      where level = {1,2,3} and 2 is the default
  */
 
 #include <stdio.h>
@@ -43,7 +30,7 @@ main(int    argc,
      char **argv)
 {
 char        *filein, *fileout;
-char         error_msg[] = " ps level = {1,2}; level 2 is default";
+char         error_msg[] = " ps level = {1,2,3}; level 2 is default";
 l_int32      level;
 PIX         *pix, *pixs;
 static char  mainName[] = "converttops";
@@ -60,8 +47,8 @@ static char  mainName[] = "converttops";
     level = 2;
     if (argc == 4) {
         level = atoi(argv[3]);
-	if (level != 1 && level != 2) {
-	    L_WARNING("ps level must be 1 or 2; setting to 2", mainName);
+	if (level != 1 && level != 2 && level != 3) {
+	    L_WARNING("ps level must be 1, 2 or 3; setting to 2", mainName);
 	    level = 2;
 	}
     }
@@ -69,4 +56,5 @@ static char  mainName[] = "converttops";
     convertToPSEmbed(filein, fileout, level);
     return 0;
 }
+
 

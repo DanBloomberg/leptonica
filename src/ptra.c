@@ -366,7 +366,7 @@ l_float32  nexpected;
          * of holes between index and n to determine the shift mode */
     if (imax + 1 == pa->nactual)
         shiftflag = L_FULL_DOWNSHIFT;
-    else if (L_AUTO_DOWNSHIFT) {
+    else if (shiftflag == L_AUTO_DOWNSHIFT) {
         if (imax < 10)
             shiftflag = L_FULL_DOWNSHIFT;  /* no big deal */
         else {
@@ -1053,7 +1053,7 @@ L_PTRA    *paindex;
          * successively in requested order. */
     ptraGetMaxIndex(paindex, &imax);
     nad = numaCreate(0);
-    if (L_SORT_INCREASING) {
+    if (sortorder == L_SORT_INCREASING) {
         for (i = 0; i <= imax; i++) {
             na = (NUMA *)ptraRemove(paindex, i, L_NO_COMPACTION);
             numaJoin(nad, na, 0, 0);

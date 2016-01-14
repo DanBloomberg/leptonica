@@ -92,20 +92,21 @@ INCLUDES =	-I. $(EXTRAINCLUDES)
 PROTOTYPE_DIR =	.
 
 #   Which flags to use?
-#     use -Werror to verify there are no serious warnings
-#     use g++ to apply stricter rules.  Libraries made with g++ may not
-#        link to programs compiled with gcc (depends on the glibc version).
-#     use -Wunused to identify unused varables
-#     use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING, L_ERROR and
+#     - With gcc 4.3.3, not checking the return value of built-in C
+#       functions like fgets() is now considered an error, unfortunately.
+#       So we can no longer use the -Werror flag with the compiler.
+#     - use g++ to apply stricter rules.  Libraries made with g++ may not
+#       link to programs compiled with gcc (depends on the glibc version).
+#     - use -Wunused to identify unused varables
+#     - use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING, L_ERROR and
 #        ERROR_* logging, and to remove all DEBUG information dependent
 #        on whether or not NO_CONSOLE_IO has been defined.
-#     use -D_CYGWIN_ENVIRON (and without -fPIC) for cygwin
-CC =		gcc -ansi -Werror -D_BSD_SOURCE -DANSI -fPIC
-#CC =		gcc -ansi -Werror -D_CYGWIN_ENVIRON -DANSI
-#CC =		gcc -ansi -Werror -DNO_CONSOLE_IO -D_BSD_SOURCE -DANSI -fPIC
-#CC =		g++ -Werror -D_BSD_SOURCE -fPIC
+#     - use -D_CYGWIN_ENVIRON (and without -fPIC) for cygwin
+CC =		gcc -ansi -D_BSD_SOURCE -DANSI -fPIC
+#CC =		g++ -D_BSD_SOURCE -fPIC
 #CC =		g++ -Wunused -D_BSD_SOURCE -fPIC
-#CC =		gcc -ansi -D_BSD_SOURCE -DANSI
+#CC =		gcc -ansi -DNO_CONSOLE_IO -D_BSD_SOURCE -DANSI -fPIC
+#CC =		gcc -ansi -D_CYGWIN_ENVIRON -DANSI
 
 #   Test for processor endianness (valid with gnu make only)
 ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
@@ -140,7 +141,7 @@ LIBRARIAN_SHARED =	gcc -shared
 #   Links are created among the files <libname>.X.Y,
 #   <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 62
+MINOR_REV = 63
 
 #########################################################
 
@@ -167,7 +168,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		dwacomb.2.c dwacomblow.2.c \
 		edge.c enhance.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
-		flipdetect.c fliphmtgen.c \
+		finditalic.c flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
 		fpix1.c fpix2.c \
 		gifio.c gifiostub.c gplot.c graphics.c \
@@ -183,9 +184,10 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		pixabasic.c pixacc.c \
 		pixafunc1.c pixafunc2.c \
 		pixalloc.c pixarith.c \
-		pixconv.c pixtiling.c \
+		pixcomp.c pixconv.c pixtiling.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
-		projective.c psio.c psiostub.c \
+		projective.c psio1.c psio1stub.c \
+		psio2.c psio2stub.c \
 		ptra.c pts.c queue.c rank.c \
 		readbarcode.c readfile.c \
 		rop.c ropiplow.c roplow.c \

@@ -98,6 +98,6 @@ static char  mainName[] = "renderfonts";
 
     pixDestroy(&pixs);
     bmfDestroy(&bmf);
-    exit(0);
+    return 0;
 }
 

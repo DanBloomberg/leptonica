@@ -30,7 +30,6 @@
  *   For the second case, timing shows that the custom allocator does
  *   about as well as (malloc, free), even for thousands of very small pix.
  *   (Turn off logging to get a fair comparison).
- *
  */
 
 #include <stdio.h>
@@ -38,30 +37,116 @@
 #include <math.h>
 #include "allheaders.h"
 
+static const l_int32 logging = FALSE;
+
+static const l_int32 ncopies = 2;
+static const l_int32 nlevels = 4;
+static const l_int32 ntimes = 30;
+
+
+PIXA *GenerateSetOfMargePix(void);
+void CopyStoreClean(PIXA *pixas, l_int32 nlevels, l_int32 ncopies);
+
 
 main(int    argc,
      char **argv)
 {
-l_int32      i, j;
-l_float32    factor;
-BOX         *box;
+l_int32      i;
 BOXA        *boxa;
-NUMA        *na;
-PIX         *pix, *pixt, *pixs;
-PIX         *pixt1, *pixt2, *pixt3, *pixt4;
+NUMA        *nas, *nab;
+PIX         *pixs;
 PIXA        *pixa, *pixas;
-PIXAA       *paa;
 static char  mainName[] = "pixalloc_reg";
 
-    setPixMemoryManager(pmsCustomAlloc, pmsCustomDealloc);
 
-        /* Make a few large pix */
-    na = numaCreate(4);
-    numaAddNumber(na, 5);
-    numaAddNumber(na, 4);
-    numaAddNumber(na, 3);
-    numaAddNumber(na, 3);
-    pmsCreate(200000, 400000, na, "junklog1");
+    /* ----------------- Custom with a few large pix -----------------*/
+        /* Set up pms */
+    nas = numaCreate(4);  /* small */
+    numaAddNumber(nas, 5);   
+    numaAddNumber(nas, 4);
+    numaAddNumber(nas, 3);
+    numaAddNumber(nas, 2);
+    setPixMemoryManager(pmsCustomAlloc, pmsCustomDealloc);
+    pmsCreate(200000, 400000, nas, "junklog1");
+
+        /* Make the pix and do successive copies and removals of the copies */
+    pixas = GenerateSetOfMargePix();
+    startTimer();
+    for (i = 0; i < ntimes; i++)
+        CopyStoreClean(pixas, nlevels, ncopies);
+    fprintf(stderr, "Time (big pix; custom) = %7.3f sec\n", stopTimer());
+
+        /* Clean up */
+    numaDestroy(&nas);
+    pixaDestroy(&pixas);
+    pmsDestroy();
+
+
+    /* ----------------- Standard with a few large pix -----------------*/
+    setPixMemoryManager(malloc, free);
+
+        /* Make the pix and do successive copies and removals of the copies */
+    startTimer();
+    pixas = GenerateSetOfMargePix();
+    for (i = 0; i < ntimes; i++)
+        CopyStoreClean(pixas, nlevels, ncopies);
+    fprintf(stderr, "Time (big pix; standard) = %7.3f sec\n", stopTimer());
+    pixaDestroy(&pixas);
+
+
+    /* ----------------- Custom with many small pix -----------------*/
+        /* Set up pms */
+    nab = numaCreate(10);
+    numaAddNumber(nab, 2000);
+    numaAddNumber(nab, 2000);
+    numaAddNumber(nab, 2000);
+    numaAddNumber(nab, 500);
+    numaAddNumber(nab, 100);
+    numaAddNumber(nab, 100);
+    numaAddNumber(nab, 100);
+    setPixMemoryManager(pmsCustomAlloc, pmsCustomDealloc);
+    if (logging)   /* use logging == 0 for speed comparison */
+        pmsCreate(20, 40, nab, "junklog2");
+    else
+        pmsCreate(20, 40, nab, NULL);
+    pixs = pixRead("feyn.tif");
+
+    startTimer();
+    for (i = 0; i < 5; i++) {
+        boxa = pixConnComp(pixs, &pixa, 8);
+        boxaDestroy(&boxa);
+        pixaDestroy(&pixa);
+    }
+
+    numaDestroy(&nab);
+    pixDestroy(&pixs);
+    pmsDestroy();
+    fprintf(stderr, "Time (custom) = %7.3f sec\n", stopTimer());
+
+
+    /* ----------------- Standard with many small pix -----------------*/
+    setPixMemoryManager(malloc, free);
+    pixs = pixRead("feyn.tif");
+
+    startTimer();
+    for (i = 0; i < 5; i++) {
+        boxa = pixConnComp(pixs, &pixa, 8);
+        boxaDestroy(&boxa);
+        pixaDestroy(&pixa);
+    }
+    pixDestroy(&pixs);
+    fprintf(stderr, "Time (standard) = %7.3f sec\n", stopTimer());
+}
+
+
+PIXA *
+GenerateSetOfMargePix(void)
+{
+l_float32  factor;
+BOX   *box;
+PIX   *pixs, *pixt1, *pixt2, *pixt3, *pixt4;
+PIXA  *pixa;
+
     pixs = pixRead("marge.jpg");
     box = boxCreate(130, 93, 263, 253);
     factor = sqrt(2.0);
@@ -69,108 +154,40 @@ static char  mainName[] = "pixalloc_reg";
     pixt2 = pixScale(pixt1, factor, factor);    /* 532 KB */
     pixt3 = pixScale(pixt2, factor, factor);    /* 1064 KB */
     pixt4 = pixScale(pixt3, factor, factor);    /* 2128 KB */
-    pixas = pixaCreate(4);
-    pixaAddPix(pixas, pixt1, L_INSERT);
-    pixaAddPix(pixas, pixt2, L_INSERT);
-    pixaAddPix(pixas, pixt3, L_INSERT);
-    pixaAddPix(pixas, pixt4, L_INSERT);
-
-    paa = pixaaCreate(0);
-    for (i = 0; i < 4; i++) {
-        pixa = pixaCreate(0);
-        pixaaAddPixa(paa, pixa, L_INSERT);
-        pix = pixaGetPix(pixas, i, L_CLONE);
-        for (j = 0; j < 4; j++) {
-            pixt = pixCopy(NULL, pix);
-            pixaAddPix(pixa, pixt, L_INSERT);
-        }
-        pixDestroy(&pix);
-    }
-    pixaaDestroy(&paa);
-
-    paa = pixaaCreate(0);
-    for (i = 0; i < 4; i++) {
-        pixa = pixaCreate(0);
-        pixaaAddPixa(paa, pixa, L_INSERT);
-        pix = pixaGetPix(pixas, i, L_CLONE);
-        for (j = 0; j < 4; j++) {
-            pixt = pixCopy(NULL, pix);
-            pixaAddPix(pixa, pixt, L_INSERT);
-        }
-        pixDestroy(&pix);
-    }
-    pixaaDestroy(&paa);
-
-    paa = pixaaCreate(0);
-    for (i = 0; i < 4; i++) {
-        pixa = pixaCreate(0);
-        pixaaAddPixa(paa, pixa, L_INSERT);
-        pix = pixaGetPix(pixas, i, L_CLONE);
-        for (j = 0; j < 4; j++) {
-            pixt = pixCopy(NULL, pix);
-            pixaAddPix(pixa, pixt, L_INSERT);
-        }
-        pixDestroy(&pix);
-    }
-    pixaaDestroy(&paa);
-
-    numaDestroy(&na);
+    pixa = pixaCreate(4);
+    pixaAddPix(pixa, pixt1, L_INSERT);
+    pixaAddPix(pixa, pixt2, L_INSERT);
+    pixaAddPix(pixa, pixt3, L_INSERT);
+    pixaAddPix(pixa, pixt4, L_INSERT);
     boxDestroy(&box);
     pixDestroy(&pixs);
-    pixaDestroy(&pixas);
-    pmsDestroy();
-
-        /* Make many small pix */
-    startTimer();
-    na = numaCreate(10);
-    numaAddNumber(na, 2000);
-    numaAddNumber(na, 2000);
-    numaAddNumber(na, 2000);
-    numaAddNumber(na, 500);
-    numaAddNumber(na, 100);
-    numaAddNumber(na, 100);
-    numaAddNumber(na, 100);
-    if (1)   /* 1 for logging; 0 for speed comparison */
-        pmsCreate(20, 40, na, "junklog2");
-    else
-        pmsCreate(20, 40, na, NULL);
-    pixs = pixRead("feyn.tif");
-
-    for (i = 0; i < 5; i++) {
-        boxa = pixConnComp(pixs, &pixa, 8);
-        boxaDestroy(&boxa);
-        pixaDestroy(&pixa);
-    }
-
-    numaDestroy(&na);
-    pixDestroy(&pixs);
-    pmsDestroy();
-    fprintf(stderr, "Time (custom) = %7.3f sec\n", stopTimer());
-
-        /* Use malloc and free for speed comparison */
-    setPixMemoryManager(malloc, free);
-    startTimer();
-    na = numaCreate(10);
-    numaAddNumber(na, 2000);
-    numaAddNumber(na, 2000);
-    numaAddNumber(na, 2000);
-    numaAddNumber(na, 500);
-    numaAddNumber(na, 100);
-    numaAddNumber(na, 100);
-    numaAddNumber(na, 100);
-    pixs = pixRead("feyn.tif");
-
-    for (i = 0; i < 5; i++) {
-        boxa = pixConnComp(pixs, &pixa, 8);
-        boxaDestroy(&boxa);
-        pixaDestroy(&pixa);
-    }
-
-    numaDestroy(&na);
-    pixDestroy(&pixs);
-    fprintf(stderr, "Time (default) = %7.3f sec\n", stopTimer());
-
-
+    return pixa;
 }
 
+
+void
+CopyStoreClean(PIXA    *pixas,
+               l_int32  nlevels,
+               l_int32  ncopies)
+{
+l_int32  i, j;
+PIX     *pix, *pixt;
+PIXA    *pixa;
+PIXAA   *paa;
+
+    paa = pixaaCreate(0);
+    for (i = 0; i < nlevels ; i++) {
+        pixa = pixaCreate(0);
+        pixaaAddPixa(paa, pixa, L_INSERT);
+        pix = pixaGetPix(pixas, i, L_CLONE);
+        for (j = 0; j < ncopies; j++) {
+            pixt = pixCopy(NULL, pix);
+            pixaAddPix(pixa, pixt, L_INSERT);
+        }
+        pixDestroy(&pix);
+    }
+    pixaaDestroy(&paa);
+
+    return;
+}
 

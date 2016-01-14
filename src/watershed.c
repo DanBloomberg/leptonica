@@ -551,8 +551,10 @@ PIX  *pix;
 
     PROCNAME("wshedSaveBasin");
 
-    if (!wshed)
-        return ERROR_VOID("wshed not defined", procName);
+    if (!wshed) {
+        L_ERROR("wshed not defined", procName);
+        return;
+    }
 
     if (identifyWatershedBasin(wshed, index, level, &box, &pix) == 0) {
         pixaAddPix(wshed->pixad, pix, L_INSERT);
@@ -810,8 +812,10 @@ L_NEWPIXEL  *np;
 
     PROCNAME("pushNewPixel");
 
-    if (!lq)
-        return ERROR_VOID(procName, "queue not defined");
+    if (!lq) {
+        L_ERROR(procName, "queue not defined");
+        return;
+    }
 
         /* Adjust bounding box */
     *pminx = L_MIN(*pminx, x);
@@ -853,8 +857,10 @@ L_NEWPIXEL  *np;
 
     PROCNAME("popNewPixel");
 
-    if (!lq)
-        return ERROR_VOID(procName, "lqueue not defined");
+    if (!lq) {
+        L_ERROR(procName, "lqueue not defined");
+        return;
+    }
 
     if ((np = (L_NEWPIXEL *)lqueueRemove(lq)) == NULL)
         return;
@@ -891,10 +897,14 @@ L_WSPIXEL  *wsp;
 
     PROCNAME("pushWSPixel");
 
-    if (!lh)
-        return ERROR_VOID(procName, "heap not defined");
-    if (!stack)
-        return ERROR_VOID(procName, "stack not defined");
+    if (!lh) {
+        L_ERROR(procName, "heap not defined");
+        return;
+    }
+    if (!stack) {
+        L_ERROR(procName, "stack not defined");
+        return;
+    }
 
         /* Get a wspixel to use */
     if (lstackGetCount(stack) > 0)
@@ -938,12 +948,18 @@ L_WSPIXEL  *wsp;
 
     PROCNAME("popWSPixel");
 
-    if (!lh)
-        return ERROR_VOID(procName, "lheap not defined");
-    if (!stack)
-        return ERROR_VOID(procName, "stack not defined");
-    if (!pval || !px || !py || !pindex)
-        return ERROR_VOID(procName, "data can't be returned");
+    if (!lh) {
+        L_ERROR(procName, "lheap not defined");
+        return;
+    }
+    if (!stack) {
+        L_ERROR(procName, "stack not defined");
+        return;
+    }
+    if (!pval || !px || !py || !pindex) {
+        L_ERROR(procName, "data can't be returned");
+        return;
+    }
 
     if ((wsp = (L_WSPIXEL *)lheapRemove(lh)) == NULL)
         return;

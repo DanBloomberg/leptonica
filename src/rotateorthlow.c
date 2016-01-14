@@ -153,7 +153,7 @@ l_uint32  *lines, *lined;
                 }
                 break;
             default:
-                ERROR_VOID("illegal depth", procName);
+                L_ERROR("illegal depth", procName);
         }
     }
     else  {     /* direction counter-clockwise */
@@ -241,7 +241,7 @@ l_uint32  *lines, *lined;
                 }
                 break;
             default:
-                ERROR_VOID("illegal depth", procName);
+                L_ERROR("illegal depth", procName);
         }
     }
 
@@ -380,7 +380,7 @@ l_uint32  *line;
             }
             break;
         default:
-            ERROR_VOID("depth not permitted for LR rot", procName);
+            L_ERROR("depth not permitted for LR rot", procName);
             return;
     }
 

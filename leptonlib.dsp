@@ -260,6 +260,10 @@ SOURCE=.\src\fhmtgenlow.1.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\finditalic.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\flipdetect.c
 # End Source File
 # Begin Source File
@@ -424,6 +428,10 @@ SOURCE=.\src\pixarith.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\pixcomp.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\pixconv.c
 # End Source File
 # Begin Source File
@@ -444,7 +452,11 @@ SOURCE=.\src\projective.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\src\psio.c
+SOURCE=.\src\psio1.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\psio2.c
 # End Source File
 # Begin Source File
 

@@ -17,7 +17,7 @@
  * convertfilestops.c
  *
  *    Converts all files in the given directory with matching substring
- *    to a level 2 compressed PostScript file, at the specified resolution.
+ *    to a level 3 compressed PostScript file, at the specified resolution.
  *
  *    To convert all files in the directory, use 'allfiles' for the substring.
  *
@@ -31,8 +31,6 @@
  *    be rendered with larger pixels (i.e., be magnified) and you will
  *    lose a quarter of the page on the right side and a quarter
  *    at the bottom.
- *
- *    Note: this program only runs under Unix; it will not compile under cygwin.
  */
 
 #include <stdio.h>

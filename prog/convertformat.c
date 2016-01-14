@@ -105,7 +105,7 @@ static char  mainName[] = "convertformat";
     else if (strcmp(format, "PNG") == 0)
         pixWrite(fileout, pixs, IFF_PNG);
     else if (strcmp(format, "TIFF") == 0)
-        pixWrite(fileout, pixs, IFF_TIFF);
+        pixWrite(fileout, pixs, IFF_TIFF_ZIP);
     else if (strcmp(format, "TIFF_G4") == 0)
         pixWrite(fileout, pixs, IFF_TIFF_G4);
     else if (strcmp(format, "PNM") == 0)

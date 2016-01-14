@@ -31,6 +31,9 @@
  *      Blending two colormapped images
  *           l_int32          pixBlendCmap()
  *           
+ *      Blending two images using a third (alpha mask)
+ *           PIX             *pixBlendWithGrayMask()
+ *           
  *      Coloring "gray" pixels
  *           l_int32          pixColorGray()
  *
@@ -177,8 +180,7 @@ PIX       *pixc, *pixt, *pixd;
          * functions do the clipping directly in the pixel loop
          * over pixs2, but it's included here to show how it can
          * easily be done on pixs2 first. */
-    w1 = pixGetWidth(pixs1);
-    h1 = pixGetHeight(pixs1);
+    pixGetDimensions(pixs1, &w1, &h1, NULL);
     box = boxCreate(-x, -y, w1, h1);  /* box of pixs1 relative to pixs2 */
     pixc = pixClipRectangle(pixt, box, NULL);
     boxDestroy(&box);
@@ -1448,6 +1450,181 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
 
 
 /*---------------------------------------------------------------------*
+ *                  Blending two images using a third                  *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixBlendWithGrayMask()
+ *
+ *      Input:  pixs1 (8 bpp gray, rgb or colormapped)
+ *              pixs2 (8 bpp gray, rgb or colormapped)
+ *              pixg (8 bpp gray, for transparency of pixs2; can be null)
+ *              x, y (UL corner of pixg with respect to pixs1)
+ *      Return: pixd (blended image), or null on error
+ *
+ *  Notes:
+ *      (1) The result is 8 bpp grayscale if both pixs1 and pixs2 are
+ *          8 bpp gray.  Otherwise, the result is 32 bpp rgb.
+ *      (2) pixg is an 8 bpp transparency image, where 0 is transparent
+ *          and 255 is opaque.  It determines the transparency of pixs2
+ *          when applied over pixs1.  It can be null if pixs2 is rgb,
+ *          in which case we use the alpha component of pixs2.
+ *      (3) If pixg exists, both it and pixs2 must be the same size,
+ *          and they are applied with both their UL corners at the
+ *          location (x, y) in pixs1.
+ *      (4) The pixels in pixd are a combination of those in pixs1
+ *          and pixs2, where the amount from pixs2 is proportional to
+ *          the value of the pixel (p) in pixg, and the amount from pixs1
+ *          is proportional to (255 - p).  Thus pixg is a transparency
+ *          image (usually called an alpha blender) where each pixel
+ *          can be associated with a pixel in pixs2, and determines
+ *          the amount of the pixs2 pixel in the final result.
+ *          For example, if pixg is all 0, pixs2 is transparent and
+ *          the result in pixd is simply pixs1.
+ *      (5) A typical use is for the pixs2/pixg combination to be
+ *          a small watermark that is applied to pixs1.
+ */
+PIX *
+pixBlendWithGrayMask(PIX     *pixs1,
+                     PIX     *pixs2,
+                     PIX     *pixg,
+                     l_int32  x,
+                     l_int32  y)
+{
+l_int32    w1, h1, d1, w2, h2, d2, hg, wg, wpld, wpls, wplg;
+l_int32    i, j, val, dval, sval;
+l_int32    drval, dgval, dbval, srval, sgval, sbval;
+l_uint32   dval32, sval32;
+l_uint32  *datad, *datas, *datag, *lined, *lines, *lineg;
+l_float32  fract;
+PIX       *pixr1, *pixr2, *pix1, *pix2, *pixalpha, *pixd;
+
+    PROCNAME("pixBlendWithGrayMask");
+
+    if (!pixs1)
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
+    if (!pixs2)
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
+    pixGetDimensions(pixs1, &w1, &h1, &d1);
+    pixGetDimensions(pixs2, &w2, &h2, &d2);
+    if (d1 == 1 || d2 == 1)
+        return (PIX *)ERROR_PTR("pixs1 or pixs2 is 1 bpp", procName, NULL);
+    if (pixg) {
+        if (pixGetDepth(pixg) != 8)
+            return (PIX *)ERROR_PTR("pixg not 8 bpp", procName, NULL);
+        pixGetDimensions(pixg, &wg, &hg, NULL);
+        if (w2 != wg || h2 != hg)
+            return (PIX *)ERROR_PTR("pixs2 & pixg sizes differ",
+                                    procName, NULL);
+        pixalpha = pixClone(pixg);
+    }
+    else {  /* use the alpha component of pixs2 */
+        if (d2 != 32)
+            return (PIX *)ERROR_PTR("no alpha; pixs2 not rgba", procName, NULL);
+        pixalpha = pixGetRGBComponent(pixs2, L_ALPHA_CHANNEL);
+    }
+
+        /* Remove colormaps if they exist */
+    if (pixGetColormap(pixs1))
+        pixr1 = pixRemoveColormap(pixs1, REMOVE_CMAP_BASED_ON_SRC);
+    else
+        pixr1 = pixClone(pixs1);
+    if (pixGetColormap(pixs2))
+        pixr2 = pixRemoveColormap(pixs2, REMOVE_CMAP_BASED_ON_SRC);
+    else
+        pixr2 = pixClone(pixs2);
+
+        /* Regularize to the same depth if necessary */
+    d1 = pixGetDepth(pixr1);
+    d2 = pixGetDepth(pixr2);
+    if (d1 == 32) {  /* convert d2 to rgb if necessary */
+        pix1 = pixClone(pixr1);
+        if (d2 != 32)
+            pix2 = pixConvertTo32(pixr2);
+        else
+            pix2 = pixClone(pixr2);
+    }
+    else if (d2 == 32) {   /* and d1 != 32; convert to 32 */
+        pix2 = pixClone(pixr2);
+        pix1 = pixConvertTo32(pixr1);
+    }
+    else {  /* both are 8 bpp or less */
+        pix1 = pixConvertTo8(pixr1, FALSE);
+        pix2 = pixConvertTo8(pixr2, FALSE);
+    }
+    pixDestroy(&pixr1);
+    pixDestroy(&pixr2);
+
+        /* Sanity check */
+    d1 = pixGetDepth(pix1);
+    d2 = pixGetDepth(pix2);
+    if (d1 != d2) {
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        return (PIX *)ERROR_PTR("depths not regularized! bad!", procName, NULL);
+    }
+        
+        /* Start off with a copy of pix1.  Then only change
+         * pixels that will be blended with pix2. */
+    pixd = pixCopy(NULL, pix1);
+    pixDestroy(&pix1);
+
+        /*
+         * Let the normalized pixel value of pixg be f = pixval / 255,
+         * and the pixel values of pixs1 and pixs2 be p1 and p2, rsp.
+         * Then the blended value is:
+         *      p = (1.0 - f) * p1 + f * p2
+         * Blending is done component-wise if rgb.
+         *
+         * Scan over pixs2 and pixg, doing clipping on pixs1 where necessary.
+         */
+    datad = pixGetData(pixd);
+    datas = pixGetData(pix2);
+    datag = pixGetData(pixalpha);
+    wpld = pixGetWpl(pixd);
+    wpls = pixGetWpl(pix2);
+    wplg = pixGetWpl(pixalpha);
+    for (i = 0; i < h2; i++) {
+        if (i + y < 0  || i + y >= h1) continue; 
+        lined = datad + (i + y) * wpld;
+        lines = datas + i * wpls;
+        lineg = datag + i * wplg;
+        for (j = 0; j < w2; j++) {
+            if (j + x < 0  || j + x >= w1) continue; 
+            val = GET_DATA_BYTE(lineg, j);
+            if (val == 0) continue;  /* pix2 is transparent */
+            fract = (l_float32)val / 255.;
+            switch (d1)
+            {
+            case 8:
+                dval = GET_DATA_BYTE(lined, j + x);
+                sval = GET_DATA_BYTE(lines, j);
+                dval = (l_int32)((1.0 - fract) * dval + fract * sval);
+                SET_DATA_BYTE(lined, j + x, dval);
+                break;
+            case 32:
+                dval32 = *(lined + j + x);
+                sval32 = *(lines + j);
+                extractRGBValues(dval32, &drval, &dgval, &dbval);
+                extractRGBValues(sval32, &srval, &sgval, &sbval);
+                drval = (l_int32)((1.0 - fract) * drval + fract * srval);
+                dgval = (l_int32)((1.0 - fract) * dgval + fract * sgval);
+                dbval = (l_int32)((1.0 - fract) * dbval + fract * sbval);
+                composeRGBPixel(drval, dgval, dbval, &dval32);
+                *(lined + j + x) = dval32;
+                break;
+            default:
+                return (PIX *)ERROR_PTR("impossible error", procName, NULL);
+            }
+        }
+    }
+
+    pixDestroy(&pixalpha);
+    pixDestroy(&pix2);
+    return pixd;
+}
+
+
+/*---------------------------------------------------------------------*
  *                        Coloring "gray" pixels                       *
  *---------------------------------------------------------------------*/
 /*!
@@ -1460,7 +1637,7 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
  *              rval, gval, bval (new color to paint)
  *      Return: 0 if OK; 1 on error
  *
- *  Note:
+ *  Notes:
  *      (1) This is an in-place operation.
  *      (2) If type == L_PAINT_LIGHT, it colorizes non-black pixels,
  *          preserving antialiasing.
@@ -1505,8 +1682,8 @@ PIXCMAP    *cmap;
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
     if (type != L_PAINT_LIGHT && type != L_PAINT_DARK)
         return ERROR_INT("invalid type", procName, 1);
 
@@ -1697,9 +1874,10 @@ pixSnapColorCmap(PIX      *pixd,
                  l_uint32  dstval,
                  l_int32   diff)
 {
-l_int32    i, w, h, ncolors, index, found;
+l_int32    i, ncolors, index, found;
 l_int32    rval, gval, bval, rsval, gsval, bsval, rdval, gdval, bdval;
-PIX       *pixm, *pixt;
+l_int32   *tab;
+PIX       *pixm;
 PIXCMAP   *cmap;
 
     PROCNAME("pixSnapColorCmap");
@@ -1736,7 +1914,8 @@ PIXCMAP   *cmap;
     }
     else {  /* just add the new color */
         pixcmapAddColor(cmap, rdval, gdval, bdval);
-        index = ncolors;  /* index of new destination color */
+        ncolors = pixcmapGetCount(cmap);
+        index = ncolors - 1;  /* index of new destination color */
         found = TRUE;
     }
 
@@ -1746,24 +1925,24 @@ PIXCMAP   *cmap;
     }
 
         /* For each color in cmap that is close enough to srcval,
-         * add that pixel to a binary mask. */
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
-    pixm = pixCreate(w, h, 1);
+         * set the tab value to 1.  Then generate a 1 bpp mask with
+         * fg pixels for every pixel in pixd that is close enough
+         * to srcval (i.e., has value 1 in tab). */
+    if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
+        return (PIX *)ERROR_PTR("tab not made", procName, pixd);
     for (i = 0; i < ncolors; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
         if ((L_ABS(rval - rsval) <= diff) &&
             (L_ABS(gval - gsval) <= diff) &&
-            (L_ABS(bval - bsval) <= diff)) {
-            pixt = pixGenerateMaskByValue(pixd, i);
-            pixOr(pixm, pixm, pixt);
-            pixDestroy(&pixt);
-        }
+            (L_ABS(bval - bsval) <= diff))
+            tab[i] = 1;
     }
+    pixm = pixMakeMaskFromLUT(pixd, tab);
+    FREE(tab);
 
         /* Use the binary mask to set all selected pixels to
          * the dest color index. */
-    pixSetMasked(pixd, pixm, index);
+    pixSetMasked(pixd, pixm, dstval);
     pixDestroy(&pixm);
 
         /* Remove all unused colors from the colormap. */

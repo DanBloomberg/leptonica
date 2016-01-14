@@ -587,12 +587,10 @@ PIXCMAP   *cmap;
         index = pixcmapGetCount(cmap) - 1;
     }
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);
-    wm = pixGetWidth(pixm);
-    hm = pixGetHeight(pixm);
+    pixGetDimensions(pixm, &wm, &hm, NULL);
     wplm = pixGetWpl(pixm);
     datam = pixGetData(pixm);
     for (i = 0; i < hm; i++) {

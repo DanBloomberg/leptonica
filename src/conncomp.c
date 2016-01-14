@@ -1038,8 +1038,10 @@ L_STACK  *auxstack;
 
     PROCNAME("pushFillsegBB");
 
-    if (!lstack)
-        return ERROR_VOID(procName, "lstack not defined");
+    if (!lstack) {
+        L_ERROR(procName, "lstack not defined");
+        return;
+    }
 
     *pminx = L_MIN(*pminx, xleft);
     *pmaxx = L_MAX(*pmaxx, xright);
@@ -1047,15 +1049,19 @@ L_STACK  *auxstack;
     *pmaxy = L_MAX(*pmaxy, y);
 
     if (y + dy >= 0 && y + dy <= ymax) {
-        if ((auxstack = lstack->auxstack) == NULL)
-            return ERROR_VOID("auxstack not defined", procName);
+        if ((auxstack = lstack->auxstack) == NULL) {
+            L_ERROR("auxstack not defined", procName);
+            return;
+        }
 
             /* Get a fillseg to use */
         if (lstackGetCount(auxstack) > 0)
             fseg = (FILLSEG *)lstackRemove(auxstack);
         else {
-            if ((fseg = (FILLSEG *)CALLOC(1, sizeof(FILLSEG))) == NULL)
-                return ERROR_VOID("fillseg not made", procName);
+            if ((fseg = (FILLSEG *)CALLOC(1, sizeof(FILLSEG))) == NULL) {
+                L_ERROR("fillseg not made", procName);
+                return;
+            }
         }
 
         fseg->xleft = xleft;
@@ -1097,19 +1103,25 @@ L_STACK  *auxstack;
 
     PROCNAME("pushFillseg");
 
-    if (!lstack)
-        return ERROR_VOID(procName, "lstack not defined");
+    if (!lstack) {
+        L_ERROR(procName, "lstack not defined");
+        return;
+    }
 
     if (y + dy >= 0 && y + dy <= ymax) {
-        if ((auxstack = lstack->auxstack) == NULL)
-            return ERROR_VOID("auxstack not defined", procName);
+        if ((auxstack = lstack->auxstack) == NULL) {
+            L_ERROR("auxstack not defined", procName);
+            return;
+        }
 
             /* Get a fillseg to use */
         if (lstackGetCount(auxstack) > 0)
             fseg = (FILLSEG *)lstackRemove(auxstack);
         else {
-            if ((fseg = (FILLSEG *)CALLOC(1, sizeof(FILLSEG))) == NULL)
-                return ERROR_VOID("fillseg not made", procName);
+            if ((fseg = (FILLSEG *)CALLOC(1, sizeof(FILLSEG))) == NULL) {
+                L_ERROR("fillseg not made", procName);
+                return;
+            }
         }
 
         fseg->xleft = xleft;
@@ -1149,10 +1161,14 @@ L_STACK  *auxstack;
 
     PROCNAME("popFillseg");
 
-    if (!lstack)
-        return ERROR_VOID("lstack not defined", procName);
-    if ((auxstack = lstack->auxstack) == NULL)
-        return ERROR_VOID("auxstack not defined", procName);
+    if (!lstack) {
+        L_ERROR("lstack not defined", procName);
+        return;
+    }
+    if ((auxstack = lstack->auxstack) == NULL) {
+        L_ERROR("auxstack not defined", procName);
+        return;
+    }
 
     if ((fseg = (FILLSEG *)lstackRemove(lstack)) == NULL)
         return;

@@ -281,7 +281,7 @@ l_uint32  *lined;
             }
             else {  /* d == 32 */
                 for (j = 0; j < w; j++) {
-                    if (*(lined + j) - threshval >= 0)
+                    if (*(lined + j) >= threshval)
                         *(lined + j) = setval;
                 }
             }
@@ -301,7 +301,7 @@ l_uint32  *lined;
             }
             else {  /* d == 32 */
                 for (j = 0; j < w; j++) {
-                    if (*(lined + j) - threshval <= 0)
+                    if (*(lined + j) <= threshval)
                         *(lined + j) = setval;
                 }
             }
@@ -587,7 +587,7 @@ l_uint32  *lines1, *lines2, *lined, *pdword;
         }
         break;
     default:
-        ERROR_VOID("source depth must be 8, 16 or 32 bpp", procName);
+        L_ERROR("source depth must be 8, 16 or 32 bpp", procName);
         break;
     }
 

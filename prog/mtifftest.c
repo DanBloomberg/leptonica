@@ -38,7 +38,7 @@ char         buffer[512];
 l_int32      i, count, npages, length;
 FILE        *fp;
 NUMA        *naflags, *nasizes;
-PIX         *pix;
+PIX         *pix, *pixd;
 PIXA        *pixa;
 PIXCMAP     *cmap;
 SARRAY      *savals, *satypes, *sa;
@@ -49,6 +49,25 @@ static char  mainName[] = "mtifftest";
 
     filein = argv[1];
     fileout = argv[2];
+
+#if 1   /* ------------------  Test multipage I/O  -------------------*/
+        /* This puts every image file in the directory with a string
+         * match to "weasel" into a multipage tiff file.
+         * Images with 1 bpp are coded as g4; the others as zip.
+         * It then reads back into a pix and displays.  */
+    writeMultipageTiff(".", "weasel", "/tmp/junkout.tif");
+    pixa = pixaReadMultipageTiff("/tmp/junkout.tif");
+    pixd = pixaDisplayTiledInRows(pixa, 1, 1200, 0.5, 0, 15, 4);
+    pixDisplay(pixd, 100, 0);
+    pixDestroy(&pixd);
+    pixd = pixaDisplayTiledInRows(pixa, 8, 1200, 0.8, 0, 15, 4);
+    pixDisplay(pixd, 100, 200);
+    pixDestroy(&pixd);
+    pixd = pixaDisplayTiledInRows(pixa, 32, 1200, 1.2, 0, 15, 4);
+    pixDisplay(pixd, 100, 400);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+#endif
 
 #if 0   /* ------------ Test single-to-multipage I/O  -------------------*/
         /* Use 'filein' to specify a directory of tiff files.
@@ -78,7 +97,7 @@ static char  mainName[] = "mtifftest";
     sarrayDestroy(&sa);
 #endif
 
-#if 1   /* ------------------  Test multipage I/O  -------------------*
+#if 0   /* ------------------  Test multipage I/O  -------------------*/
         /* read count of tiff multipage */
     fp = fopen(filein, "r");
     if (fileFormatIsTiff(fp)) {

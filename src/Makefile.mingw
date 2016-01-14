@@ -125,7 +125,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 62
+MINOR_REV = 63
 
 #########################################################
 
@@ -152,7 +152,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		dwacomb.2.c dwacomblow.2.c \
 		edge.c enhance.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
-		flipdetect.c fliphmtgen.c \
+		finditalic.c flipdetect.c fliphmtgen.c \
 		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
 		fpix1.c fpix2.c \
 		gifio.c gifiostub.c \
@@ -169,9 +169,10 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		pixabasic.c pixacc.c \
 		pixafunc1.c pixafunc2.c \
 		pixalloc.c pixarith.c \
-		pixconv.c pixtiling.c \
+		pixcomp.c pixconv.c pixtiling.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
-		projective.c psio.c psiostub.c \
+		projective.c psio1.c psio1stub.c \
+		psio2.c psio2stub.c \
 		ptra.c pts.c queue.c rank.c \
 		readbarcode.c readfile.c \
 		rop.c ropiplow.c roplow.c \

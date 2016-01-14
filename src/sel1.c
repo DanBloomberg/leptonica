@@ -2263,7 +2263,7 @@ SEL     *sel;
     }
     width += (ncols + 1) * spacing;  /* add spacing all around as well */
     
-    pixd = pixaDisplayTiledInRows(pixa, width, 0, spacing);
+    pixd = pixaDisplayTiledInRows(pixa, 1, width, 1.0, 0, spacing, 0);
     pixaDestroy(&pixa);
     return pixd;
 }

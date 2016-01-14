@@ -22,6 +22,40 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.63   8 Nov 09
+       Added pixScaleToGrayFast(), a faster version with very similar quality.
+       Fixed scaleGrayLILow() to handle edge pixels more accurately
+       Text processing:
+         new text application (finditalic.c, prog/finditalic.c) for locating
+           words in italic type style.
+         Easier to add text to a pix using the bitmap font stored in
+           the font directory; see, e.g., prog/writetxt_reg.c.
+       Blending of 2 images with an alpha channel: pixBlendWithGrayMask()
+       Fixed bug in color segmentation; it now (again) works properly.
+       New utility (pixcomp.c) for handling compressed pix arrays in
+          memory; new PixComp and PixaComp structs.
+       Fast serialization of pix without compressing (pixSerializeToMemory
+          and pixDeserializeFromMemory); required serialized colormaps
+       FileI/O: new functions for reading file headers.
+          PostScript generation modernized; split psio.c into psio1.c
+            and psio2.c; added level 3 (flate) encoding.
+          new functions for reading and writing multipage tiffs, for
+            arbitrary input images.  For writing, compression is lossless
+            (either g4 or zip)
+          update all I/O stub files
+       Miscellaneous: new pixaAddBorderGeneral(); new functions in pix3.c
+          for counting fg pixels and summing 8 bpp pixels by column and row;
+          new numaUniformSampling() for resampling with interpolation;
+          subpixel scaling.
+       New or improved regression tests in prog:
+          extrema_reg, pixalloc_reg, blend2_reg, rotateorth_reg,
+          ioformats_reg, colorseg_reg, pixcomp_reg, pixserial_reg,
+          writetext_reg, psioseg_reg, subpixel_reg.
+       Interface changes:
+         findFileFormat() and findFileFormatBuffer(): now returns format
+             using input ptr.  The function return value is 0 if OK; 1 on error
+         rename: pixThresholdPixels() --> pixThresholdPixelSum()
+
 1.62   26 Jul 09
        Expanded composite Dwa implementation as a sequence of operations,
        so that it now works beyond a size of 63.  It's typically about 2x

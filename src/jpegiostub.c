@@ -30,37 +30,52 @@
 #if  !HAVE_LIBJPEG   /* defined in environ.h */
 /* --------------------------------------------*/
 
-PIX * pixReadJpeg(const char *filename, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn)
+PIX * pixReadJpeg(const char *filename, l_int32 cmflag, l_int32 reduction,
+                  l_int32 *pnwarn)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadJpeg", NULL);
 }
 
-PIX * pixReadStreamJpeg(FILE *fp, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
+PIX * pixReadStreamJpeg(FILE *fp, l_int32 cmflag, l_int32 reduction,
+                        l_int32 *pnwarn, l_int32 hint)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadStreamJpeg", NULL);
 }
 
-l_int32 pixWriteJpeg(const char *filename, PIX *pix, l_int32 quality, l_int32 progressive)
+l_int32 pixWriteJpeg(const char *filename, PIX *pix, l_int32 quality,
+                     l_int32 progressive)
 {
     return ERROR_INT("function not present", "pixWriteJpeg", 1);
 }
 
-l_int32 pixWriteStreamJpeg(FILE *fp, PIX *pix, l_int32 quality, l_int32 progressive)
+l_int32 pixWriteStreamJpeg(FILE *fp, PIX *pix, l_int32 quality,
+                           l_int32 progressive)
 {
     return ERROR_INT("function not present", "pixWriteStreamJpeg", 1);
 }
 
-l_int32  extractJpegDataFromFile(const char *filein, l_uint8 **pdata, l_int32 *pnbytes, l_int32 *pw, l_int32 *ph, l_int32 *pbps, l_int32 *pspp)
+l_int32 extractJpegDataFromFile(const char *filein, l_uint8 **pdata,
+                                l_int32 *pnbytes, l_int32 *pw, l_int32 *ph,
+                                l_int32 *pbps, l_int32 *pspp)
 {
     return ERROR_INT("function not present", "extractJpegDataFromFile", 1);
 }
 
-PIX * pixReadMemJpeg(const l_uint8 *cdata, size_t size, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
+l_int32 extractJpegDataFromArray(const void *data, l_int32 nbytes,
+                                 l_int32 *pw, l_int32 *ph, l_int32 *pbps,
+                                 l_int32 *pspp)
+{
+    return ERROR_INT("function not present", "extractJpegDataFromArray", 1);
+}
+
+PIX * pixReadMemJpeg(const l_uint8 *cdata, size_t size, l_int32 cmflag,
+                     l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadMemJpeg", NULL);
 }
 
-l_int32 pixWriteMemJpeg(l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 quality, l_int32 progressive)
+l_int32 pixWriteMemJpeg(l_uint8 **pdata, size_t *psize, PIX *pix,
+                        l_int32 quality, l_int32 progressive)
 {
     return ERROR_INT("function not present", "pixWriteMemJpeg", 1);
 }

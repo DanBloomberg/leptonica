@@ -15,7 +15,7 @@
 
 /*
  *  colorseg.c
- *                     
+ *
  *    Unsupervised color segmentation
  *
  *               PIX     *pixColorSegment()
@@ -100,7 +100,7 @@ static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
  *  Then remove unused colors from the colormap, and reassign those
  *  pixels to the nearest remaining cluster, using the original pixel values.
  *
- *  Notes: 
+ *  Notes:
  *      (1) The goal is to generate a small number of colors.
  *          Typically this would be specified by 'finalcolors',
  *          a number that would be somewhere between 3 and 6.
@@ -122,7 +122,7 @@ static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
  *                   4             8           90
  *                   5            10           75
  *                   6            12           60
- * 
+ *
  *          For a given number of finalcolors, if you use too many
  *          maxcolors, the result will be noisy.  If you use too few,
  *          the result will be a relatively poor assignment of colors.
@@ -239,7 +239,7 @@ PIXCMAP   *cmap;
     return pixd;
 }
 
-   
+
 /*!
  *  pixColorSegmentTryCluster()
  *
@@ -322,9 +322,9 @@ PIXCMAP   *cmap;
                     rmap[index] = rval;
                     gmap[index] = gval;
                     bmap[index] = bval;
-                    rsum[index] = rval; 
-                    gsum[index] = gval; 
-                    bsum[index] = bval; 
+                    rsum[index] = rval;
+                    gsum[index] = gval;
+                    bsum[index] = bval;
                 }
                 else  {
                     L_INFO_INT("maxcolors exceeded for maxdist = %d",
@@ -454,7 +454,7 @@ PIXCMAP   *cmap;
                 countarray[index]++;
             SET_DATA_BYTE(lined, j, index);
         }
-    } 
+    }
 
     FREE(cmaptab);
     FREE(rtab);
@@ -486,6 +486,7 @@ pixColorSegmentClean(PIX      *pixs,
                      l_int32  *countarray)
 {
 l_int32    i, ncolors, val;
+l_uint32   val32;
 NUMA      *na, *nasi;
 PIX       *pixt1, *pixt2;
 PIXCMAP   *cmap;
@@ -519,17 +520,17 @@ SEL       *sel;
     sel = selCreateBrick(selsize, selsize, selsize / 2, selsize / 2, SEL_HIT);
     for (i = 0; i < ncolors; i++) {
         numaGetIValue(nasi, i, &val);
-        pixt1 = pixGenerateMaskByValue(pixs, val);
+        pixt1 = pixGenerateMaskByValue(pixs, val, 1);
         pixt2 = pixClose(NULL, pixt1, sel);
         pixXor(pixt2, pixt2, pixt1);  /* pixels to be added to type 'val' */
-        pixSetMasked(pixs, pixt2, val);  /* add them */
+        pixcmapGetColor32(cmap, val, &val32);
+        pixSetMasked(pixs, pixt2, val32);  /* add them */
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
     selDestroy(&sel);
     numaDestroy(&na);
     numaDestroy(&nasi);
-
     return 0;
 }
 
@@ -556,9 +557,10 @@ pixColorSegmentRemoveColors(PIX     *pixd,
                             PIX     *pixs,
                             l_int32  finalcolors)
 {
-l_int32    i, w, h, npix, minpix, ncolors, index, selected, tempcolor;
+l_int32    i, npix, minpix, ncolors, index, tempcolor;
+l_int32   *tab;
 NUMA      *na, *nasi;
-PIX       *pixm, *pixt;
+PIX       *pixm;
 PIXCMAP   *cmap;
 
     PROCNAME("pixColorSegmentRemoveColors");
@@ -577,28 +579,25 @@ PIXCMAP   *cmap;
 
         /* Generate a mask over all pixels that are not in the
          * 'finalcolors' most populated colors.  Save the colormap
-         * index of any one of the retained colors in 'tempcolor'. */
+         * index of any one of the retained colors in 'tempcolor'.
+         * The LUT has values 0 for the 'finalcolors' most populated colors,
+         * and 1 for the rest, which are marked by fg pixels in pixm. */
     na = pixGetGrayHistogram(pixd, 1);
     if ((nasi = numaGetSortIndex(na, L_SORT_DECREASING)) == NULL)
         return ERROR_INT("nasi not made", procName, 1);
     numaGetIValue(nasi, finalcolors - 1, &index);  /* retain down to this */
+    tempcolor = index;
     numaGetIValue(na, index, &minpix);
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
-    pixm = pixCreate(w, h, 1);  /* initial mask with no fg pixels */
-    selected = FALSE;
+    if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
+        return ERROR_INT("tab not made", procName, 1);
     for (i = 0; i < ncolors; i++) {
         numaGetIValue(na, i, &npix);
-        if (npix < minpix && npix > 0) {  /* these pixels to be reassigned */
-            pixt = pixGenerateMaskByValue(pixd, i);
-            pixOr(pixm, pixm, pixt);
-            pixDestroy(&pixt);
-        }
-        else if (selected == FALSE) {
-            tempcolor = i;
-            selected = TRUE;
-        }
+        if (npix < minpix && npix > 0)  /* these pixels to be reassigned */
+            tab[i] = 1;
     }
+    pixm = pixMakeMaskFromLUT(pixd, tab);
+    FREE(tab);
+
 
         /* Reassign the masked pixels temporarily to the saved index
          * (tempcolor).  This guarantees that no pixels are labeled by
@@ -609,7 +608,7 @@ PIXCMAP   *cmap;
          * in the colormap. */
     pixSetMasked(pixd, pixm, tempcolor);
 
-        /* Now remove unused colors from the colormap.  This reassigns 
+        /* Now remove unused colors from the colormap.  This reassigns
          * image pixels as required. */
     pixRemoveUnusedColors(pixd);
 
@@ -618,7 +617,7 @@ PIXCMAP   *cmap;
          * This is the function used in phase 2 on all image pixels; here
          * it is only used on the masked pixels given by pixm. */
     pixAssignToNearestColor(pixd, pixs, pixm, LEVEL_IN_OCTCUBE, NULL);
-            
+
     pixDestroy(&pixm);
     numaDestroy(&na);
     numaDestroy(&nasi);
@@ -866,7 +865,7 @@ PIX       *pixt, *pixd;
     if (regionflag != L_INCLUDE_REGION && regionflag != L_EXCLUDE_REGION)
         return (PIX *)ERROR_PTR("invalid regionflag", procName, NULL);
 
-        /* Set up LUTs for saturation and max intensity (val). 
+        /* Set up LUTs for saturation and max intensity (val).
          * These have the value 1 within the specified intervals of
          * saturation and max intensity. */
     slut = (l_int32 *)CALLOC(256, sizeof(l_int32));
@@ -1230,7 +1229,7 @@ PTA      *pta;
     else  /* type == L_HS_HISTO or type == L_HV_HISTO */
         pixh = pixAddMixedBorder(pixs, width + 1, width + 1, height + 1,
                                  height + 1);
-    
+
         /* Get the total count in the sliding window.  If the window
          * fully covers the peak, this will be the integrated
          * volume under the peak. */
@@ -1261,7 +1260,8 @@ PTA      *pta;
 
         pixClearInRect(pixw, box);
         boxDestroy(&box);
-        if (L_HS_HISTO || L_HV_HISTO) {  /* clear wraps at bottom and top */
+        if (type == L_HS_HISTO || type == L_HV_HISTO) {
+                /* clear wraps at bottom and top */
             if (ymax - eheight < 0) {  /* overlap to bottom */
                 box = boxCreate(xmax - ewidth, 240 + ymax - eheight,
                                 2 * ewidth + 1, eheight - ymax);

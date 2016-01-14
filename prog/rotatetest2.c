@@ -33,33 +33,46 @@ static const l_int32    MODSIZE = 7;  /* set to 7 for display */
 static const l_float32  ANGLE1 = 3.14159265 / 12;
 static const l_int32    NTIMES = 24;
 
-void rotateTest(const char *fname);
+void rotateTest(const char *fname, PIXA *pixa);
 
 
 main(int    argc,
      char **argv)
 {
+PIX         *pixd;
+PIXA        *pixa;
 static char  mainName[] = "rotatetest2";
 
     if (argc != 1)
 	exit(ERROR_INT(" Syntax:  rotatetest2", mainName, 1));
 
+    pixa = pixaCreate(0);
+
     fprintf(stderr, "Test binary image:\n");
-    rotateTest(BINARY_IMAGE);
+    rotateTest((char *)BINARY_IMAGE, pixa);
     fprintf(stderr, "Test 4 bpp colormapped image:\n");
-    rotateTest(FOUR_BPP_IMAGE);
+    rotateTest((char *)FOUR_BPP_IMAGE, pixa);
     fprintf(stderr, "Test grayscale image:\n");
-    rotateTest(GRAYSCALE_IMAGE);
+    rotateTest((char *)GRAYSCALE_IMAGE, pixa);
     fprintf(stderr, "Test colormap image:\n");
-    rotateTest(COLORMAP_IMAGE);
+    rotateTest((char *)COLORMAP_IMAGE, pixa);
     fprintf(stderr, "Test rgb image:\n");
-    rotateTest(RGB_IMAGE);
+    rotateTest((char *)RGB_IMAGE, pixa);
+
+        /* Display results */
+    pixd = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd, 100, 100);
+    pixWrite("/tmp/junkrot2.jpg", pixd, IFF_JFIF_JPEG);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+
     return 0;
 }
 
 
 void
-rotateTest(const char *fname)
+rotateTest(const char *fname,
+           PIXA       *pixa)
 {
 l_int32   w, h, d, i;
 PIX      *pixs, *pixt, *pixd1, *pixd2;
@@ -67,16 +80,17 @@ PIXCMAP  *cmap;
 
     PROCNAME("rotateTest");
 
-    if ((pixs = pixRead(fname)) == NULL)
-        return ERROR_VOID("pixs not read", procName);
+    if ((pixs = pixRead(fname)) == NULL) {
+        L_ERROR("pixs not read", procName);
+        return;
+    }
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     cmap = pixGetColormap(pixs);
     pixd1 = pixRotate(pixs, ANGLE1, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
-        if (((i + MODSIZE - 1) % MODSIZE) == 0) pixDisplay(pixd1, 100, 100);
+        if (((i + MODSIZE - 1) % MODSIZE) == 0)
+            pixSaveTiledOutline(pixd1, pixa, 1, (i == 1) ? 1 : 0, 20, 2, 32);
         pixt = pixRotate(pixd1, ANGLE1, L_ROTATE_SHEAR,
                          L_BRING_IN_WHITE, w, h);
         pixDestroy(&pixd1);
@@ -85,7 +99,8 @@ PIXCMAP  *cmap;
 
     pixd2 = pixRotate(pixs, ANGLE1, L_ROTATE_AREA_MAP, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
-        if (((i + MODSIZE - 1) % MODSIZE) == 0) pixDisplay(pixd2, 100, 100);
+        if (((i + MODSIZE - 1) % MODSIZE) == 0)
+            pixSaveTiledOutline(pixd2, pixa, 1, (i == 1) ? 1 : 0, 20, 2, 32);
         pixt = pixRotate(pixd2, ANGLE1, L_ROTATE_AREA_MAP,
                          L_BRING_IN_WHITE, w, h);
         pixDestroy(&pixd2);

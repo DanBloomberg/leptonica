@@ -43,8 +43,8 @@
  *          PIX      *pixBlockrank()
  *          PIX      *pixBlocksum()
  *
- *      Woodfill transform
- *          PIX      *pixWoodfillTransform()
+ *      Census transform
+ *          PIX      *pixCensusTransform()
  *
  *      Generic convolution (with Pix)
  *          PIX      *pixConvolve()
@@ -982,10 +982,10 @@ PIX       *pixt, *pixd;
 
 
 /*----------------------------------------------------------------------*
- *                         Woodfill transform                           *
+ *                          Census transform                            *
  *----------------------------------------------------------------------*/
 /*!
- *  pixWoodfillTransform()
+ *  pixCensusTransform()
  *
  *      Input:  pixs (8 bpp)
  *              halfsize (of square over which neighbors are averaged)
@@ -993,11 +993,15 @@ PIX       *pixt, *pixd;
  *      Return: pixd (1 bpp)
  *
  *  Notes:
- *      (1) The Woodfill transform compares each pixel against
- *          the average of its neighbors (in a square of odd
- *          dimension centered on the pixel).  If the pixel is
- *          greater than the average of its neighbors, the output
- *          pixel value is 1; otherwise it is 0.
+ *      (1) The Census transform was invented by Ramin Zabih and John Woodfill
+ *          ("Non-parametric local transforms for computing visual
+ *          correspondence", Third European Conference on Computer Vision,
+ *          Stockholm, Sweden, May 1994); see publications at
+ *             http://www.cs.cornell.edu/~rdz/index.htm
+ *          This compares each pixel against the average of its neighbors,
+ *          in a square of odd dimension centered on the pixel.
+ *          If the pixel is greater than the average of its neighbors,
+ *          the output pixel value is 1; otherwise it is 0.
  *      (2) This can be used as an encoding for an image that is
  *          fairly robust against slow illumination changes, with
  *          applications in image comparison and mosaicing.
@@ -1007,16 +1011,16 @@ PIX       *pixt, *pixd;
  *          before returning; otherwise, just use the input accum pix
  */
 PIX *
-pixWoodfillTransform(PIX     *pixs,
-                     l_int32  halfsize,
-                     PIX     *pixacc)
+pixCensusTransform(PIX     *pixs,
+                   l_int32  halfsize,
+                   PIX     *pixacc)
 {
 l_int32    i, j, w, h, wpls, wplv, wpld;
 l_int32    vals, valv;
 l_uint32  *datas, *datav, *datad, *lines, *linev, *lined;
 PIX       *pixav, *pixd;
 
-    PROCNAME("pixWoodfillTransform");
+    PROCNAME("pixCensusTransform");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);

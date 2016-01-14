@@ -501,9 +501,14 @@ PIXA    *pixat;
  *  pixaDisplayTiledInRows()
  *
  *      Input:  pixa
+ *              outdepth (output depth: 1, 8 or 32 bpp)
  *              maxwidth (of output image)
- *              background (0 for white, 1 for black)
- *              spacing
+ *              scalefactor (applied to every pix; use 1.0 for no scaling)
+ *              background (0 for white, 1 for black; this is the color
+ *                 of the spacing between the images)
+ *              spacing  (between images, and on outside)
+ *              border (width of black border added to each image;
+ *                      use 0 for no border)
  *      Return: pixd (of tiled images), or null on error
  *
  *  Notes:
@@ -511,68 +516,90 @@ PIXA    *pixat;
  *          exceed maxwidth, with background color either white or black,
  *          and with each row tiled such that the top of each pix is
  *          aligned and separated by 'spacing' from the next one.
- *      (2) All pix in the pixa must be of equal depth.
- *      (3) If any pix has a colormap, all pix are rendered in rgb.
- *      (4) This does a reasonably spacewise-efficient job of laying
+ *          A black border can be added to each pix.
+ *      (2) All pix are converted to outdepth; existing colormaps are removed.
+ *      (3) This does a reasonably spacewise-efficient job of laying
  *          out the individual pix images into a tiled composite.
  */
 PIX *
-pixaDisplayTiledInRows(PIXA    *pixa,
-                       l_int32  maxwidth,
-                       l_int32  background,
-                       l_int32  spacing)
+pixaDisplayTiledInRows(PIXA      *pixa,
+                       l_int32    outdepth,
+                       l_int32    maxwidth,
+                       l_float32  scalefactor,
+                       l_int32    background,
+                       l_int32    spacing,
+                       l_int32    border)
 {
 l_int32  h;  /* cumulative height over all the rows */
 l_int32  w;  /* cumulative height in the current row */
-l_int32  wtry, wt, ht, d, hascmap;
+l_int32  bordval, wtry, wt, ht;
 l_int32  irow;  /* index of current pix in current row */
 l_int32  wmaxrow;  /* width of the largest row */
 l_int32  maxh;  /* max height in row */
 l_int32  i, j, index, n, x, y, nrows, ninrow;
 NUMA    *nainrow;  /* number of pix in the row */
 NUMA    *namaxh;  /* height of max pix in the row */
-PIX     *pix, *pixt, *pixd;
-PIXA    *pixat;
+PIX     *pix, *pixn, *pixt, *pixd;
+PIXA    *pixan;
 
     PROCNAME("pixaDisplayTiledInRows");
 
     if (!pixa)
         return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+    if (outdepth != 1 && outdepth != 8 && outdepth != 32)
+        return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
+    if (border < 0)
+        border = 0;
+    if (scalefactor <= 0.0) scalefactor = 1.0;
     
-        /* If any pix have colormaps, generate rgb */
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
-    pixaAnyColormaps(pixa, &hascmap);
-    if (hascmap) {
-        pixat = pixaCreate(n);
-        for (i = 0; i < n; i++) {
-            pixt = pixaGetPix(pixa, i, L_CLONE);
-            pix = pixConvertTo32(pixt);
-            pixaAddPix(pixat, pix, L_INSERT);
-            pixDestroy(&pixt);
+
+        /* Normalize depths, scale, remove colormaps; optionally add border */
+    pixan = pixaCreate(n);
+    bordval = (outdepth == 1) ? 1 : 0;
+    for (i = 0; i < n; i++) {
+        if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
+            continue;
+
+        if (outdepth == 1)
+            pixn = pixConvertTo1(pix, 128);
+        else if (outdepth == 8)
+            pixn = pixConvertTo8(pix, FALSE);
+        else  /* outdepth == 32 */
+            pixn = pixConvertTo32(pix);
+        pixDestroy(&pix);
+
+        if (scalefactor != 1.0)
+            pixt = pixScale(pixn, scalefactor, scalefactor);
+        else
+            pixt = pixClone(pixn);
+        if (border)
+            pixd = pixAddBorder(pixt, border, bordval);
+        else
+            pixd = pixClone(pixt);
+        pixDestroy(&pixn);
+        pixDestroy(&pixt);
+
+        pixaAddPix(pixan, pixd, L_INSERT);
+    }
+    if (pixaGetCount(pixan) != n) {
+        n = pixaGetCount(pixan);
+        L_WARNING_INT("only got %d components", procName, n);
+        if (n == 0) {
+            pixaDestroy(&pixan);
+            return (PIX *)ERROR_PTR("no components", procName, NULL);
         }
     }
-    else
-        pixat = pixaCopy(pixa, L_CLONE);
 
+        /* Compute parameters for layout */
     nainrow = numaCreate(0);
     namaxh = numaCreate(0);
     wmaxrow = 0;
-
-        /* Compute parameters for layout */
     w = h = spacing;
     maxh = 0;  /* max height in row */
     for (i = 0, irow = 0; i < n; i++, irow++) {
-        pixt = pixaGetPix(pixat, i, L_CLONE);
-        if (i == 0)
-            d = pixGetDepth(pixt);
-        else if (d != pixGetDepth(pixt)) {
-            pixDestroy(&pixt);
-            pixaDestroy(&pixat);
-            return (PIX *)ERROR_PTR("depths not equal", procName, NULL);
-        }
-        pixGetDimensions(pixt, &wt, &ht, NULL);
-        pixDestroy(&pixt);
+        pixaGetPixDimensions(pixan, i, &wt, &ht, NULL);
         wtry = w + wt + spacing;
         if (wtry > maxwidth) {  /* end the current row and start next one */
             numaAddNumber(nainrow, irow); 
@@ -594,13 +621,16 @@ PIXA    *pixat;
     wmaxrow = L_MAX(wmaxrow, w);
     h += maxh + spacing;
             
-    if ((pixd = pixCreate(wmaxrow, h, d)) == NULL) {
-        pixaDestroy(&pixat);
+    if ((pixd = pixCreate(wmaxrow, h, outdepth)) == NULL) {
+        numaDestroy(&nainrow);
+        numaDestroy(&namaxh);
+        pixaDestroy(&pixan);
 	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
 
         /* Reset the background color if necessary */
-    if ((background == 1 && d == 1) || (background == 0 && d != 1))
+    if ((background == 1 && outdepth == 1) ||
+        (background == 0 && outdepth != 1))
         pixSetAll(pixd);
 
         /* Blit the images to the dest */
@@ -611,10 +641,10 @@ PIXA    *pixat;
         numaGetIValue(namaxh, i, &maxh);
         x = spacing;
         for (j = 0; j < ninrow; j++, index++) {   /* over pix in row */
-            pixt = pixaGetPix(pixat, index, L_CLONE);
-            pixGetDimensions(pixt, &wt, &ht, NULL);
-            pixRasterop(pixd, x, y, wt, ht, PIX_SRC, pixt, 0, 0);
-            pixDestroy(&pixt);
+            pix = pixaGetPix(pixan, index, L_CLONE);
+            pixGetDimensions(pix, &wt, &ht, NULL);
+            pixRasterop(pixd, x, y, wt, ht, PIX_SRC, pix, 0, 0);
+            pixDestroy(&pix);
             x += wt + spacing;
         }
         y += maxh + spacing;
@@ -622,7 +652,7 @@ PIXA    *pixat;
 
     numaDestroy(&nainrow);
     numaDestroy(&namaxh);
-    pixaDestroy(&pixat);
+    pixaDestroy(&pixan);
     return pixd;
 }
 
@@ -652,11 +682,11 @@ PIXA    *pixat;
 PIX *
 pixaDisplayTiledAndScaled(PIXA    *pixa,
                           l_int32  outdepth,
-			  l_int32  tilewidth,
-			  l_int32  ncols,
+                          l_int32  tilewidth,
+                          l_int32  ncols,
                           l_int32  background,
                           l_int32  spacing,
-			  l_int32  border)
+                          l_int32  border)
 {
 l_int32    x, y, w, h, wd, hd, d;
 l_int32    i, n, nrows, maxht, ninrow, irow, bordval;
@@ -704,9 +734,9 @@ PIXA      *pixan;
         else
             pixb = pixClone(pixn);
 
-	pixaAddPix(pixan, pixb, L_INSERT);
-	pixDestroy(&pix);
-	pixDestroy(&pixn);
+        pixaAddPix(pixan, pixb, L_INSERT);
+        pixDestroy(&pix);
+        pixDestroy(&pixn);
     }
     if ((n = pixaGetCount(pixan)) == 0) { /* should not have changed! */
         pixaDestroy(&pixan);
@@ -723,19 +753,19 @@ PIXA      *pixan;
     irow = 0;
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixan, i, L_CLONE);
-	ninrow++;
-	pixGetDimensions(pix, &w, &h, NULL);
-	maxht = L_MAX(h, maxht);
-	if (ninrow == ncols) {
+        ninrow++;
+        pixGetDimensions(pix, &w, &h, NULL);
+        maxht = L_MAX(h, maxht);
+        if (ninrow == ncols) {
             rowht[irow] = maxht;
-	    maxht = ninrow = 0;  /* reset */
-	    irow++;
-	}
-	pixDestroy(&pix);
+            maxht = ninrow = 0;  /* reset */
+            irow++;
+        }
+        pixDestroy(&pix);
     }
     if (ninrow > 0) {   /* last fencepost */
         rowht[irow] = maxht;
-	irow++;  /* total number of rows */
+        irow++;  /* total number of rows */
     }
     nrows = irow;
     hd = spacing * (nrows + 1);
@@ -752,15 +782,15 @@ PIXA      *pixan;
     irow = 0;
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixan, i, L_CLONE);
-	pixGetDimensions(pix, &w, &h, NULL);
-	if (i && ((i % ncols) == 0)) {  /* start new row */
+        pixGetDimensions(pix, &w, &h, NULL);
+        if (i && ((i % ncols) == 0)) {  /* start new row */
             x = spacing;
-	    y += spacing + rowht[irow];
-	    irow++;
-	}
-	pixRasterop(pixd, x, y, w, h, PIX_SRC, pix, 0, 0);
-	x += tilewidth + spacing;
-	pixDestroy(&pix);
+            y += spacing + rowht[irow];
+            irow++;
+        }
+        pixRasterop(pixd, x, y, w, h, PIX_SRC, pix, 0, 0);
+        x += tilewidth + spacing;
+        pixDestroy(&pix);
     }
 
     pixaDestroy(&pixan);

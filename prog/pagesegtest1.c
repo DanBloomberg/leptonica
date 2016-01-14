@@ -17,7 +17,7 @@
  * pagesegtest1.c
  *
  *   Use on, e.g.:   feyn1.tif, witten.tif,
- *                   pageseg1.tif, pageseg2.png, pageseg3.tif
+ *                   pageseg1.tif, pageseg1.tif, pageseg3.tif, pageseg4.tif
  */
 
 #include <stdio.h>

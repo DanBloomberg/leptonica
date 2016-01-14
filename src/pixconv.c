@@ -109,6 +109,8 @@
  *           PIX        *pixConvertRGBToSaturation()
  *           PIX        *pixConvertRGBToValue()
  *
+ *      Conversion from grayscale to scaled color
+ *           PIX        *pixConvertGrayToScaledColor()
  *
  *      *** indicates implicit assumption about RGB component ordering
  */
@@ -3296,5 +3298,104 @@ PIX       *pixt, *pixd;
 
 
 
+/*---------------------------------------------------------------------------*
+ *                 Conversion from grayscale to subpixel RGB                 *
+ *---------------------------------------------------------------------------*/
+/*!
+ *  pixConvertGrayToSubpixelRGB()
+ *
+ *      Input:  pixs (8 bpp or colormapped)
+ *              scalefactor (between destination and source)
+ *              direction (of subpixels: L_HORIZ or L_VERT)
+ *              order (of subpixel rgb color components in composition of pixd:
+ *                     L_SUBPIXEL_ORDER_RGB and L_SUBPIXEL_ORDER_BGR)
+ *      Return: pixd (32 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) If pixs has a colormap, it is removed to 8 bpp.
+ *      (2) The input gray image is rescaled by the scalefactor
+ *          vertically and by 3.0 times the scalefactor horizontally.
+ *          Then each horizontal triplet of pixels is mapped back to
+ *          a single rgb pixel, with the r, g and b values being assigned
+ *          from the triplet of gray values.
+ *      (3) This is a form of sub-pixel rendering that tends to give the
+ *          resulting text a sharper and somewhat chromatic display.
+ *          The observable difference between @order=1 and @order=-1
+ *          is reduced by light diffusers in the display that make the
+ *          pixel color appear to emerge from the entire pixel.
+ */
+PIX *
+pixConvertGrayToSubpixelRGB(PIX       *pixs,
+                            l_float32  scalefactor,
+                            l_int32    direction,
+                            l_int32    order)
+{
+l_int32    w, h, d, wd, hd, wplt, wpld, i, j, rval, gval, bval;
+l_uint32  *datat, *datad, *linet, *lined;
+PIX       *pixt1, *pixt2, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixConvertGrayToSubpixelRGB");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    d = pixGetDepth(pixs);
+    cmap = pixGetColormap(pixs);
+    if (d != 8 && !cmap)
+        return (PIX *)ERROR_PTR("pix not 8 bpp & not cmapped", procName, NULL);
+    if (direction != L_HORIZ && direction != L_VERT)
+        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+    if (order != L_SUBPIXEL_ORDER_RGB && order != L_SUBPIXEL_ORDER_BGR)
+        return (PIX *)ERROR_PTR("invalid subpixel order", procName, NULL);
+
+    pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    if (direction == L_HORIZ)
+        pixt2 = pixScale(pixt1, 3.0 * scalefactor, scalefactor);
+    else  /* L_VERT */
+        pixt2 = pixScale(pixt1, scalefactor, 3.0 * scalefactor);
+
+    pixGetDimensions(pixt2, &w, &h, NULL);
+    wd = (direction == L_HORIZ) ? w / 3 : w;
+    hd = (direction == L_VERT) ? h / 3 : h;
+    pixd = pixCreate(wd, hd, 32);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    datat = pixGetData(pixt2);
+    wplt = pixGetWpl(pixt2);
+    if (direction == L_HORIZ) {
+        for (i = 0; i < hd; i++) {
+            linet = datat + i * wplt;
+            lined = datad + i * wpld;
+            for (j = 0; j < wd; j++) {
+                rval = GET_DATA_BYTE(linet, 3 * j);
+                gval = GET_DATA_BYTE(linet, 3 * j + 1);
+                bval = GET_DATA_BYTE(linet, 3 * j + 2);
+                if (order == L_SUBPIXEL_ORDER_RGB)
+                    composeRGBPixel(rval, gval, bval, &lined[j]);
+                else  /* order BGA */
+                    composeRGBPixel(bval, gval, rval, &lined[j]);
+            }
+        }
+    }
+    else {  /* L_VERT */
+        for (i = 0; i < hd; i++) {
+            linet = datat + 3 * i * wplt;
+            lined = datad + i * wpld;
+            for (j = 0; j < wd; j++) {
+                rval = GET_DATA_BYTE(linet, j);
+                gval = GET_DATA_BYTE(linet + wplt, j);
+                bval = GET_DATA_BYTE(linet + 2 * wplt, j);
+                if (order == L_SUBPIXEL_ORDER_RGB)
+                    composeRGBPixel(rval, gval, bval, &lined[j]);
+                else  /* order BGA */
+                    composeRGBPixel(bval, gval, rval, &lined[j]);
+            }
+        }
+    }
+
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    return pixd;
+}
 
 

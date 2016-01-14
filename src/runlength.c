@@ -46,7 +46,7 @@
  *               color (0 for white runs, 1 for black runs)
  *               direction (L_HORIZONTAL_RUNS, L_VERTICAL_RUNS)
  *               depth (8 or 16 bpp)
- *      Return:  0 if OK; 1 on error
+ *      Return:  pixd (8 or 16 bpp), or null on error
  *
  *  Notes:
  *      (1) The dest Pix is 8 or 16 bpp, with the pixel values
@@ -79,8 +79,7 @@ PIX       *pixt, *pixd;
     if (depth != 8 && depth != 16)
         return (PIX *)ERROR_PTR("depth must be 8 or 16 bpp", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if (direction == L_HORIZONTAL_RUNS)
         maxsize = 1 + w / 2;
     else if (direction == L_VERTICAL_RUNS)

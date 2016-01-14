@@ -75,8 +75,8 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	compare.$(OBJEXT) conncomp.$(OBJEXT) convolve.$(OBJEXT) \
 	convolvelow.$(OBJEXT) correlscore.$(OBJEXT) \
 	dwacomb.2.$(OBJEXT) dwacomblow.2.$(OBJEXT) edge.$(OBJEXT) \
-	endiantest.$(OBJEXT) enhance.$(OBJEXT) fhmtauto.$(OBJEXT) \
-	fhmtgen.1.$(OBJEXT) fhmtgenlow.1.$(OBJEXT) \
+	enhance.$(OBJEXT) fhmtauto.$(OBJEXT) fhmtgen.1.$(OBJEXT) \
+	fhmtgenlow.1.$(OBJEXT) finditalic.$(OBJEXT) \
 	flipdetect.$(OBJEXT) fliphmtgen.$(OBJEXT) fmorphauto.$(OBJEXT) \
 	fmorphgen.1.$(OBJEXT) fmorphgenlow.1.$(OBJEXT) fpix1.$(OBJEXT) \
 	fpix2.$(OBJEXT) gifio.$(OBJEXT) gifiostub.$(OBJEXT) \
@@ -91,22 +91,23 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	partition.$(OBJEXT) pix1.$(OBJEXT) pix2.$(OBJEXT) \
 	pix3.$(OBJEXT) pix4.$(OBJEXT) pixabasic.$(OBJEXT) \
 	pixacc.$(OBJEXT) pixafunc1.$(OBJEXT) pixafunc2.$(OBJEXT) \
-	pixalloc.$(OBJEXT) pixarith.$(OBJEXT) pixconv.$(OBJEXT) \
-	pixtiling.$(OBJEXT) pngio.$(OBJEXT) pngiostub.$(OBJEXT) \
-	pnmio.$(OBJEXT) pnmiostub.$(OBJEXT) projective.$(OBJEXT) \
-	psio.$(OBJEXT) psiostub.$(OBJEXT) ptra.$(OBJEXT) pts.$(OBJEXT) \
-	queue.$(OBJEXT) rank.$(OBJEXT) readbarcode.$(OBJEXT) \
-	readfile.$(OBJEXT) rop.$(OBJEXT) ropiplow.$(OBJEXT) \
-	roplow.$(OBJEXT) rotateam.$(OBJEXT) rotateamlow.$(OBJEXT) \
-	rotate.$(OBJEXT) rotateorth.$(OBJEXT) rotateorthlow.$(OBJEXT) \
-	rotateshear.$(OBJEXT) runlength.$(OBJEXT) sarray.$(OBJEXT) \
-	scale.$(OBJEXT) scalelow.$(OBJEXT) seedfill.$(OBJEXT) \
-	seedfilllow.$(OBJEXT) sel1.$(OBJEXT) sel2.$(OBJEXT) \
-	selgen.$(OBJEXT) shear.$(OBJEXT) skew.$(OBJEXT) \
-	stack.$(OBJEXT) textops.$(OBJEXT) tiffio.$(OBJEXT) \
-	tiffiostub.$(OBJEXT) utils.$(OBJEXT) viewfiles.$(OBJEXT) \
-	warper.$(OBJEXT) watershed.$(OBJEXT) writefile.$(OBJEXT) \
-	zlibmem.$(OBJEXT) zlibmemstub.$(OBJEXT)
+	pixalloc.$(OBJEXT) pixarith.$(OBJEXT) pixcomp.$(OBJEXT) \
+	pixconv.$(OBJEXT) pixtiling.$(OBJEXT) pngio.$(OBJEXT) \
+	pngiostub.$(OBJEXT) pnmio.$(OBJEXT) pnmiostub.$(OBJEXT) \
+	projective.$(OBJEXT) psio1.$(OBJEXT) psio1stub.$(OBJEXT) \
+	psio2.$(OBJEXT) psio2stub.$(OBJEXT) ptra.$(OBJEXT) \
+	pts.$(OBJEXT) queue.$(OBJEXT) rank.$(OBJEXT) \
+	readbarcode.$(OBJEXT) readfile.$(OBJEXT) rop.$(OBJEXT) \
+	ropiplow.$(OBJEXT) roplow.$(OBJEXT) rotateam.$(OBJEXT) \
+	rotateamlow.$(OBJEXT) rotate.$(OBJEXT) rotateorth.$(OBJEXT) \
+	rotateorthlow.$(OBJEXT) rotateshear.$(OBJEXT) \
+	runlength.$(OBJEXT) sarray.$(OBJEXT) scale.$(OBJEXT) \
+	scalelow.$(OBJEXT) seedfill.$(OBJEXT) seedfilllow.$(OBJEXT) \
+	sel1.$(OBJEXT) sel2.$(OBJEXT) selgen.$(OBJEXT) shear.$(OBJEXT) \
+	skew.$(OBJEXT) stack.$(OBJEXT) textops.$(OBJEXT) \
+	tiffio.$(OBJEXT) tiffiostub.$(OBJEXT) utils.$(OBJEXT) \
+	viewfiles.$(OBJEXT) warper.$(OBJEXT) watershed.$(OBJEXT) \
+	writefile.$(OBJEXT) zlibmem.$(OBJEXT) zlibmemstub.$(OBJEXT)
 liblept_a_OBJECTS = $(am_liblept_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -263,9 +264,9 @@ liblept_a_SOURCES = adaptmap.c \
  convolve.c convolvelow.c \
  correlscore.c dwacomb.2.c \
  dwacomblow.2.c edge.c \
- endiantest.c \
  enhance.c fhmtauto.c \
  fhmtgen.1.c fhmtgenlow.1.c \
+ finditalic.c \
  flipdetect.c fliphmtgen.c \
  fmorphauto.c fmorphgen.1.c \
  fmorphgenlow.1.c fpix1.c fpix2.c \
@@ -285,10 +286,11 @@ liblept_a_SOURCES = adaptmap.c \
  pixabasic.c pixacc.c \
  pixafunc1.c pixafunc2.c \
  pixalloc.c pixarith.c \
- pixconv.c pixtiling.c \
+ pixcomp.c pixconv.c pixtiling.c \
  pngio.c pngiostub.c \
  pnmio.c pnmiostub.c \
- projective.c psio.c psiostub.c \
+ projective.c psio1.c psio1stub.c \
+ psio2.c psio2stub.c \
  ptra.c pts.c queue.c \
  rank.c readbarcode.c readfile.c \
  rop.c ropiplow.c \
@@ -313,8 +315,8 @@ include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
  morph.h pix.h ptra.h queue.h readbarcode.h stack.h watershed.h
 
 EXTRA_DIST = Makefile.mingw arrayaccess.h.vc arrayaccess.h.vc60 \
- hmttemplate1.txt hmttemplate2.txt leptonica-license.txt \
- leptonlib.sln leptonlib.vcproj leptonlib.dsp leptonlib.dsw \
+ endiantest.c hmttemplate1.txt hmttemplate2.txt leptonica-license.txt \
+ ../leptonlib.sln ../leptonlib.vcproj ../leptonlib.dsp ../leptonlib.dsw \
  morphtemplate1.txt morphtemplate2.txt xtractprotos.c
 
 all: all-recursive
@@ -429,11 +431,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dwacomb.2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dwacomblow.2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/edge.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/endiantest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/enhance.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fhmtauto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fhmtgen.1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fhmtgenlow.1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/finditalic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flipdetect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fliphmtgen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmorphauto.Po@am__quote@
@@ -477,6 +479,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixafunc2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixalloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixarith.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixcomp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixconv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixtiling.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pngio.Po@am__quote@
@@ -484,8 +487,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pnmio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pnmiostub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/projective.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psiostub.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio1stub.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio2stub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/queue.Po@am__quote@
@@ -689,6 +694,7 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
+	$(mkdir_p) $(distdir)/..
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

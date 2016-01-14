@@ -31,6 +31,12 @@ PIX * pixReadStreamPnm(FILE *fp)
     return (PIX * )ERROR_PTR("function not present", "pixReadStreamPnm", NULL);
 }
 
+l_int32 freadHeaderPnm(FILE *fp, PIX **ppix, l_int32 *pwidth, l_int32 *pheight,                        l_int32 *pdepth, l_int32 *ptype, l_int32 *pbpc,
+                       l_int32 *pcpp)
+{
+    return ERROR_INT("function not present", "freadHeaderPnm", 1);
+}
+
 l_int32 pixWriteStreamPnm(FILE *fp, PIX *pix)
 {
     return ERROR_INT("function not present", "pixWriteStreamPnm", 1);
@@ -46,11 +52,19 @@ PIX * pixReadMemPnm(const l_uint8 *cdata, size_t size)
     return (PIX * )ERROR_PTR("function not present", "pixReadMemPnm", NULL);
 }
 
+l_int32 sreadHeaderPnm(const l_uint8 *cdata, size_t size, l_int32 *pwidth,
+                       l_int32 *pheight, l_int32 *pdepth, l_int32 *ptype,
+                       l_int32 *pbpc, l_int32 *pcpp)
+{
+    return ERROR_INT("function not present", "sreadHeaderPnm", 1);
+}
 
 l_int32 pixWriteMemPnm(l_uint8 **pdata, size_t *psize, PIX *pix)
 {
     return ERROR_INT("function not present", "pixWritememPnm", 1);
 }
+
+
 
 /* --------------------------------------------*/
 #endif  /* !USE_PNMIO */

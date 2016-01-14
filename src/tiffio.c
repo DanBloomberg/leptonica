@@ -28,6 +28,11 @@
  *      static l_int32    pixWriteToTiffStream()
  *      static l_int32    writeCustomTiffTags()
  *
+ *     Reading and writing multipage tiff
+ *             PIXA       pixaReadMultipageTiff()
+ *             l_int32    writeMultipageTiff()  [ special top level ]
+ *             l_int32    writeMultipageTiffSA()
+ *
  *     Information about tiff file
  *             l_int32    fprintTiffInfo()
  *             l_int32    tiffGetCount()
@@ -37,6 +42,7 @@
  *             l_int32    readHeaderMemTiff()
  *      static l_int32    tiffReadHeaderTiff()
  *             l_int32    findTiffCompression()
+ *      static l_int32    getTiffCompressedFormat()
  *
  *     Extraction of tiff g4 data:
  *             l_int32    extractTiffG4DataFromFile()
@@ -97,10 +103,12 @@ static l_int32   pixWriteToTiffStream(TIFF *tif, PIX *pix, l_int32 comptype,
                                       SARRAY *satypes, NUMA *nasizes);
 static TIFF     *fopenTiff(FILE *fp, const char *modestr); 
 
-    /* Static function for memory I/O */
-static TIFF *fopenTiffMemstream(const char *filename, const char *operation,
-                                l_uint8 **pdata, size_t *pdatasize);
+    /* Static helper for tiff compression type */
+static l_int32   getTiffCompressedFormat(l_uint16 tiffcomp);
 
+    /* Static function for memory I/O */
+static TIFF     *fopenTiffMemstream(const char *filename, const char *operation,
+                                    l_uint8 **pdata, size_t *pdatasize);
 
     /* This structure defines a transform to be performed on a TIFF image
      * (note that the same transformation can be represented in
@@ -143,16 +151,13 @@ static struct tiff_transform tiff_orientation_transforms[] = {
  *  Notes:
  *      (1) This is a version of pixRead(), specialized for tiff
  *          files, that allows specification of the page to be returned
- *      (2) We must call findFileFormat() to get the actual tiff 
- *          compression format.
  */
 PIX *
 pixReadTiff(const char  *filename,
             l_int32      n)
 {
-l_int32  format;
-FILE    *fp;
-PIX     *pix;
+FILE  *fp;
+PIX   *pix;
 
     PROCNAME("pixReadTiff");
 
@@ -165,9 +170,7 @@ PIX     *pix;
         fclose(fp);
         return (PIX *)ERROR_PTR("pix not read", procName, NULL);
     }
-    format = findFileFormat(fp);
     fclose(fp);
-    pixSetInputFormat(pix, format);
 
     return pix;
 }
@@ -220,9 +223,6 @@ TIFF    *tif;
         return NULL;
     }
 
-        /* Set to generic input format; refinement is done
-         * in pixReadStream() using findFileFormat(). */
-    pixSetInputFormat(pix, IFF_TIFF);
     TIFFCleanup(tif);
     return pix;
 }
@@ -238,9 +238,9 @@ static PIX *
 pixReadFromTiffStream(TIFF  *tif)
 {
 l_uint8   *linebuf, *data;
-l_uint16   spp, bps, bpp, tiffbpl, photometry, compress, orientation;
+l_uint16   spp, bps, bpp, tiffbpl, photometry, tiffcomp, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
-l_int32    d, wpl, bpl, i, j, k, ncolors, rval, gval, bval;
+l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval;
 l_uint32   w, h, xres, yres, tiffword;
 l_uint32  *line, *ppixel, *tiffdata;
 PIX       *pix;
@@ -326,6 +326,11 @@ PIXCMAP   *cmap;
         pixSetYRes(pix, yres);
     }
 
+        /* Find and save the compression type */
+    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
+    comptype = getTiffCompressedFormat(tiffcomp);
+    pixSetInputFormat(pix, comptype);
+
     if (TIFFGetField(tif, TIFFTAG_COLORMAP, &redmap, &greenmap, &bluemap)) {
             /* Save the colormap as a pix cmap.  Because the
              * tiff colormap components are 16 bit unsigned,
@@ -345,11 +350,10 @@ PIXCMAP   *cmap;
         if (!TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometry)) {
                 /* Guess default photometry setting.  Assume min_is_white
                  * if compressed 1 bpp; min_is_black otherwise. */
-            TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &compress);
-            if (compress == COMPRESSION_CCITTFAX3 ||
-                compress == COMPRESSION_CCITTFAX4 ||
-                compress == COMPRESSION_CCITTRLE ||
-                compress == COMPRESSION_CCITTRLEW) {
+            if (tiffcomp == COMPRESSION_CCITTFAX3 ||
+                tiffcomp == COMPRESSION_CCITTFAX4 ||
+                tiffcomp == COMPRESSION_CCITTRLE ||
+                tiffcomp == COMPRESSION_CCITTRLEW) {
                 photometry = PHOTOMETRIC_MINISWHITE;
             }
             else
@@ -841,7 +845,7 @@ l_uint32   uval, uval2;
             }
         }
         else if (!strcmp(type, "l_float64")) {
-            if (sscanf(sval, "%f", &dval) == 1) {
+            if (sscanf(sval, "%lf", &dval) == 1) {
                 TIFFSetField(tif, tagval, dval);
             }
             else {
@@ -866,7 +870,159 @@ l_uint32   uval, uval2;
     
 
 /*--------------------------------------------------------------*
- *                   Print info to stream                       *
+ *               Reading and writing multipage tiff             *
+ *--------------------------------------------------------------*/
+/*
+ *  pixaReadMultipageTiff()
+ *
+ *      Input:  filename (input tiff file)
+ *      Return: pixa (of page images), or null on error
+ */
+PIXA *
+pixaReadMultipageTiff(const char  *filename)
+{
+l_int32  i, npages;
+FILE    *fp;
+PIX     *pix;
+PIXA    *pixa;
+
+    PROCNAME("pixaReadMultipageTiff");
+
+    if (!filename)
+        return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
+
+    if ((fp = fopen(filename, "r")) == NULL)
+        return (PIXA *)ERROR_PTR("stream not opened", procName, NULL);
+    if (fileFormatIsTiff(fp)) {
+        tiffGetCount(fp, &npages);
+        L_INFO_INT(" Tiff: %d pages\n", procName, npages);
+    }
+    else
+        return (PIXA *)ERROR_PTR("file not tiff", procName, NULL);
+    fclose(fp);
+
+    pixa = pixaCreate(npages);
+    for (i = 0; i < npages; i++) {
+        pix = pixReadTiff(filename, i);
+        if (!pix) {
+            L_WARNING_INT("pix not read for page %d", procName, i);
+            continue;
+        }
+        pixaAddPix(pixa, pix, L_INSERT);
+    }
+
+    return pixa;
+}
+
+
+/*
+ *  writeMultipageTiff()
+ *
+ *      Input:  dirin (input directory)
+ *              substr (<optional> substring filter on filenames; can be NULL)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This writes a set of image files in a directory out
+ *          as a multipage tiff file.  The images can be in any
+ *          initial file format.
+ *      (2) Images with a colormap have the colormap removed before
+ *          re-encoding as tiff.
+ *      (3) All images are encoded losslessly.  Those with 1 bpp are
+ *          encoded 'g4'.  The rest are encoded as 'zip' (flate encoding).
+ *          Because it is lossless, this is an expensive method for
+ *          saving most rgb images.
+ */
+l_int32
+writeMultipageTiff(const char  *dirin,
+                   const char  *substr,
+                   const char  *fileout)
+{
+SARRAY  *sa;
+
+    PROCNAME("writeMultipageTiff");
+
+    if (!dirin)
+        return ERROR_INT("dirin not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+
+        /* Get all filtered and sorted full pathnames. */
+    sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
+
+        /* Generate the tiff file */
+    writeMultipageTiffSA(sa, fileout);
+    sarrayDestroy(&sa);
+    return 0;
+}
+
+
+/*
+ *  writeMultipageTiffSA()
+ *
+ *      Input:  sarray (of full path names)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See writeMultipageTiff()
+ */
+l_int32
+writeMultipageTiffSA(SARRAY      *sa,
+                     const char  *fileout)
+{
+char        *fname;
+const char  *op;
+l_int32      i, nfiles, firstfile, format;
+FILE        *fp;
+PIX         *pix, *pixt;
+
+    PROCNAME("writeMultipageTiffSA");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+
+    nfiles = sarrayGetCount(sa);
+    firstfile = TRUE;
+    for (i = 0; i < nfiles; i++) {
+        op = (firstfile) ? "w" : "a";
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        if ((fp = fopen(fname, "r")) == NULL)
+            continue;
+        findFileFormat(fp, &format);
+        fclose(fp);
+        if (format == IFF_UNKNOWN) {
+            L_INFO_STRING("format unknown for file: %s", procName, fname);
+            continue;
+        }
+
+        if ((pix = pixRead(fname)) == NULL) {
+            L_WARNING_STRING("pix not made for file: %s", procName, fname);
+            continue;
+        }
+        if (pixGetDepth(pix) == 1)
+            pixWriteTiff(fileout, pix, IFF_TIFF_G4, op);
+        else {
+            if (pixGetColormap(pix))
+                pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+            else
+                pixt = pixClone(pix);
+            pixWriteTiff(fileout, pixt, IFF_TIFF_ZIP, op);
+            pixDestroy(&pixt);
+        }
+        firstfile = FALSE;
+        pixDestroy(&pix);
+    }
+
+    return 0;
+}
+        
+
+/*--------------------------------------------------------------*
+ *                    Print info to stream                      *
  *--------------------------------------------------------------*/
 /*
  *  fprintTiffInfo()
@@ -1082,7 +1238,7 @@ TIFF    *tif;
     if (pres) *pres = 0;
     if (pcmap) *pcmap = 0;
 
-    format = findFileFormat(fp);
+    findFileFormat(fp, &format);
     if (format != IFF_TIFF &&
         format != IFF_TIFF_G3 && format != IFF_TIFF_G4 &&
         format != IFF_TIFF_RLE && format != IFF_TIFF_PACKBITS &&
@@ -1223,8 +1379,8 @@ l_uint32   w, h, xres, yres;
 /*!
  *  findTiffCompression()
  *
- *      Input:  stream
- *              &comp (<return> compression type)
+ *      Input:  stream (must be rewound to BOF)
+ *              &comptype (<return> compression type)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1233,52 +1389,76 @@ l_uint32   w, h, xres, yres;
  *      (2) The compression type is initialized to IFF_UNKNOWN.
  *          If it is not one of the specified types, the returned
  *          type is IFF_TIFF, which indicates no compression.
+ *      (3) When this function is called, the stream must be at BOF.
+ *          If the opened stream is to be used again to read the
+ *          file, it must be rewound to BOF after calling this function.
  */
 l_int32
 findTiffCompression(FILE     *fp,
-                    l_int32  *pcomp)
+                    l_int32  *pcomptype)
 {
-l_uint16  comp;
+l_uint16  tiffcomp;
 TIFF     *tif;
 
     PROCNAME("findTiffCompression");
 
-    if (!pcomp)
-        return ERROR_INT("&comp not defined", procName, 1);
-    *pcomp = IFF_UNKNOWN;  /* init */
+    if (!pcomptype)
+        return ERROR_INT("&comptype not defined", procName, 1);
+    *pcomptype = IFF_UNKNOWN;  /* init */
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
     
     if ((tif = fopenTiff(fp, "r")) == NULL)
         return ERROR_INT("tif not opened", procName, 1);
-    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &comp);
-    switch (comp)
-    {
-    case COMPRESSION_CCITTFAX4:
-        *pcomp = IFF_TIFF_G4;
-        break;
-    case COMPRESSION_CCITTFAX3:
-        *pcomp = IFF_TIFF_G3;
-        break;
-    case COMPRESSION_CCITTRLE:
-        *pcomp = IFF_TIFF_RLE;
-        break;
-    case COMPRESSION_PACKBITS:
-        *pcomp = IFF_TIFF_PACKBITS;
-        break;
-    case COMPRESSION_LZW:
-        *pcomp = IFF_TIFF_LZW;
-        break;
-    case COMPRESSION_ADOBE_DEFLATE:
-        *pcomp = IFF_TIFF_ZIP;
-        break;
-    default:
-        *pcomp = IFF_TIFF;
-        break;
-    }
-
+    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
+    *pcomptype = getTiffCompressedFormat(tiffcomp);
     TIFFCleanup(tif);
     return 0;
+}
+
+
+/*!
+ *  getTiffCompressedFormat()
+ *
+ *      Input:  tiffcomp (defined in tiff.h)
+ *      Return: compression format (defined in imageio.h)
+ *
+ *  Notes:
+ *      (1) The input must be the actual tiff compression type
+ *          returned by a tiff library call.  It should always be
+ *          a valid tiff type.
+ *      (2) The return type is defined in the enum in imageio.h.
+ */
+static l_int32
+getTiffCompressedFormat(l_uint16  tiffcomp)
+{
+l_int32  comptype;
+
+    switch (tiffcomp)
+    {
+    case COMPRESSION_CCITTFAX4:
+        comptype = IFF_TIFF_G4;
+        break;
+    case COMPRESSION_CCITTFAX3:
+        comptype = IFF_TIFF_G3;
+        break;
+    case COMPRESSION_CCITTRLE:
+        comptype = IFF_TIFF_RLE;
+        break;
+    case COMPRESSION_PACKBITS:
+        comptype = IFF_TIFF_PACKBITS;
+        break;
+    case COMPRESSION_LZW:
+        comptype = IFF_TIFF_LZW;
+        break;
+    case COMPRESSION_ADOBE_DEFLATE:
+        comptype = IFF_TIFF_ZIP;
+        break;
+    default:
+        comptype = IFF_TIFF;
+        break;
+    }
+    return comptype;
 }
 
 

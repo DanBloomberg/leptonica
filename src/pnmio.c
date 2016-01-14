@@ -18,11 +18,13 @@
  *
  *      Stream interface
  *          PIX             *pixReadStreamPnm()
+ *          l_int32          freadHeaderPnm()
  *          l_int32          pixWriteStreamPnm()
  *          l_int32          pixWriteStreamAsciiPnm()
  *
  *      Read/write to memory   [not on windows]
  *          PIX             *pixReadMemPnm()
+ *          l_int32          sreadHeaderPnm()
  *          l_int32          pixWriteMemPnm()
  *
  *      Local helpers
@@ -97,7 +99,7 @@ pixReadStreamPnm(FILE  *fp)
 l_uint8    val8, rval8, gval8, bval8;
 l_uint16   val16;
 l_int32    w, h, d, bpl, wpl, i, j, type;
-l_int32    maxval, val, rval, gval, bval;
+l_int32    val, rval, gval, bval;
 l_uint32   rgbval;
 l_uint32  *line, *data;
 PIX       *pix;
@@ -107,43 +109,7 @@ PIX       *pix;
     if (!fp)
         return (PIX *)ERROR_PTR("fp not defined", procName, NULL);
 
-    fscanf(fp, "P%d\n", &type);
-    if (type < 1 || type > 6)
-        return (PIX *)ERROR_PTR("invalid pnm file", procName, NULL);
-
-    if (pnmSkipCommentLines(fp))
-        return (PIX *)ERROR_PTR("no data in file", procName, NULL);
-
-    fscanf(fp, "%d %d\n", &w, &h);
-    if (w <= 0 || h <= 0 || w > MAX_PNM_WIDTH || h > MAX_PNM_HEIGHT)
-        return (PIX *)ERROR_PTR("invalid sizes", procName, NULL);
-
-        /* Get depth of pix */
-    if (type == 1 || type == 4)
-        d = 1;
-    else if (type == 2 || type == 5) {
-        fscanf(fp, "%d\n", &maxval);
-        if (maxval == 3)
-            d = 2;
-        else if (maxval == 15)
-            d = 4;
-        else if (maxval == 255)
-            d = 8;
-        else if (maxval == 0xffff)
-            d = 16;
-        else {
-            fprintf(stderr, "maxval = %d\n", maxval);
-            return (PIX *)ERROR_PTR("invalid maxval", procName, NULL);
-        }
-    }
-    else {  /* type == 3 || type == 6; this is rgb  */
-        fscanf(fp, "%d\n", &maxval);
-        if (maxval != 255)
-            L_WARNING_INT("unexpected maxval = %d", procName, maxval);
-        d = 32;
-    }
-    
-    if ((pix = pixCreate(w, h, d)) == NULL)
+    if (freadHeaderPnm(fp, &pix, &w, &h, &d, &type, NULL, NULL))
         return (PIX *)ERROR_PTR( "pix not made", procName, NULL);
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
@@ -223,6 +189,95 @@ PIX       *pix;
         }
     }
     return pix;
+}
+
+
+/*!
+ *  freadHeaderPnm()
+ *
+ *      Input:  stream opened for read
+ *              &pix (<optional return> use null to return only header data)
+ *              &width (<return>)
+ *              &height (<return>)
+ *              &depth (<return>)
+ *              &type (<return> pnm type)
+ *              &bpc (<optional return>, bits/component)
+ *              &cpp (<optional return>, components/pixel)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) To get only the header data, set @getpix == 0.
+ *          However, if this is called as part of reading a pix from a file,
+ *          set @getpix == 1 to return the pix without the image data.
+ */
+l_int32
+freadHeaderPnm(FILE     *fp,
+               PIX     **ppix,
+               l_int32  *pwidth,
+               l_int32  *pheight,
+               l_int32  *pdepth,
+               l_int32  *ptype,
+               l_int32  *pbpc,
+               l_int32  *pcpp)
+{
+l_int32  w, h, d, type;
+l_int32  maxval;
+
+    PROCNAME("freadHeaderPnm");
+
+    if (!fp)
+        return ERROR_INT("fp not defined", procName, 1);
+    if (!pwidth || !pheight || !pdepth || !ptype)
+        return ERROR_INT("input ptr(s) not defined", procName, 1);
+
+    fscanf(fp, "P%d\n", &type);
+    if (type < 1 || type > 6)
+        return ERROR_INT("invalid pnm file", procName, 1);
+
+    if (pnmSkipCommentLines(fp))
+        return ERROR_INT("no data in file", procName, 1);
+
+    fscanf(fp, "%d %d\n", &w, &h);
+    if (w <= 0 || h <= 0 || w > MAX_PNM_WIDTH || h > MAX_PNM_HEIGHT)
+        return ERROR_INT("invalid sizes", procName, 1);
+
+        /* Get depth of pix */
+    if (type == 1 || type == 4)
+        d = 1;
+    else if (type == 2 || type == 5) {
+        fscanf(fp, "%d\n", &maxval);
+        if (maxval == 3)
+            d = 2;
+        else if (maxval == 15)
+            d = 4;
+        else if (maxval == 255)
+            d = 8;
+        else if (maxval == 0xffff)
+            d = 16;
+        else {
+            fprintf(stderr, "maxval = %d\n", maxval);
+            return ERROR_INT("invalid maxval", procName, 1);
+        }
+    }
+    else {  /* type == 3 || type == 6; this is rgb  */
+        fscanf(fp, "%d\n", &maxval);
+        if (maxval != 255)
+            L_WARNING_INT("unexpected maxval = %d", procName, maxval);
+        d = 32;
+    }
+    *pwidth = w;
+    *pheight = h;
+    *pdepth = d;
+    *ptype = type;
+    if (pbpc) *pbpc = (d == 32) ? 8 : d;
+    if (pcpp) *pcpp = (d == 32) ? 3 : 1;
+    
+    if (!ppix)
+        return 0;
+
+    if ((*ppix = pixCreate(w, h, d)) == NULL)
+        return ERROR_INT( "pix not made", procName, 1);
+    return 0;
 }
 
 
@@ -512,6 +567,49 @@ PIX      *pix;
 
 
 /*!
+ *  sreadHeaderPnm()
+ *
+ *      Input:  cdata (const; pnm-encoded)
+ *              size (of data)
+ *              &width (<return>)
+ *              &height (<return>)
+ *              &depth (<return>)
+ *              &type (<return> pnm type)
+ *              &bpc (<optional return>, bits/component)
+ *              &cpp (<optional return>, components/pixel)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+sreadHeaderPnm(const l_uint8  *cdata,
+               size_t          size,
+               l_int32        *pwidth,
+               l_int32        *pheight,
+               l_int32        *pdepth,
+               l_int32        *ptype,
+               l_int32        *pbpc,
+               l_int32        *pcpp)
+{
+l_int32   ret;
+l_uint8  *data;
+FILE     *fp;
+
+    PROCNAME("sreadHeaderPnm");
+
+    if (!cdata)
+        return ERROR_INT("cdata not defined", procName, 1);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    if ((fp = fmemopen(data, size, "r")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = freadHeaderPnm(fp, NULL, pwidth, pheight, pdepth, ptype, pbpc, pcpp);
+    fclose(fp);
+    if (ret)
+        return ERROR_INT("header data read failed", procName, 1);
+    return 0;
+}
+
+
+/*!
  *  pixWriteMemPnm()
  *
  *      Input:  &data (<return> data of tiff compressed image)
@@ -556,6 +654,22 @@ pixReadMemPnm(const l_uint8  *cdata,
     return (PIX *)ERROR_PTR(
         "pnm read from memory not implemented on this platform",
         "pixReadMemPnm", NULL);
+}
+
+
+l_int32
+sreadHeaderPnm(const l_uint8  *cdata,
+               size_t          size,
+               l_int32        *pwidth,
+               l_int32        *pheight,
+               l_int32        *pdepth,
+               l_int32        *ptype,
+               l_int32        *pbpc,
+               l_int32        *pcpp)
+{
+    return ERROR_INT(
+        "pnm read header from memory not implemented on this platform",
+        "sreadHeaderPnm", 1);
 }
 
 

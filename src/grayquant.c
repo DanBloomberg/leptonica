@@ -396,24 +396,25 @@ PIX       *pixt, *pixd;
 /*!
  *  pixGenerateMaskByValue()
  *
- *      Input:  pixs (8 bpp, or colormapped)
+ *      Input:  pixs (4 or 8 bpp, or colormapped)
  *              val (of pixels for which we set 1 in dest)
+ *              usecmap (1 to retain cmap values; 0 to convert to gray)
  *      Return: pixd (1 bpp), or null on error
  *
  *  Notes:
  *      (1) @val is the gray value of the pixels that we are selecting.
- *      (2) If pixs is colormapped, this first removes the colormap to
- *          generate an approximate grayscale value for each pixel, and
- *          then looks for gray pixels with the value @val.
- *      (3) If pixs is colormapped and you want to use @val to select
- *          the colormap index, you must first call pixDestroyColormap(pixs)
- *          to remove the colormap from pixs.
+ *      (2) If pixs is colormapped, @usecmap determines if the colormap
+ *          values are used, or if the colormap is removed to gray and
+ *          the gray values are used.  For the latter, it generates
+ *          an approximate grayscale value for each pixel, and then looks
+ *          for gray pixels with the value @val.
  */
 PIX *
 pixGenerateMaskByValue(PIX     *pixs,
-                       l_int32  val)
+                       l_int32  val,
+                       l_int32  usecmap)
 {
-l_int32    i, j, w, h, wplg, wpld;
+l_int32    i, j, w, h, d, wplg, wpld;
 l_uint32  *datag, *datad, *lineg, *lined;
 PIX       *pixg, *pixd;
 
@@ -421,12 +422,20 @@ PIX       *pixg, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("not 8 bpp", procName, NULL);
-    if (val < 0 || val > 255)
-        return (PIX *)ERROR_PTR("val out of 8 bpp range", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 4 && d != 8)
+        return (PIX *)ERROR_PTR("not 4 or 8 bpp", procName, NULL);
+    if (d == 4 && usecmap == TRUE) {
+        if (val < 0 || val > 15)
+            return (PIX *)ERROR_PTR("val out of 4 bpp range", procName, NULL);
+    }
+    else {
+        d == 8;
+        if (val < 0 || val > 255)
+            return (PIX *)ERROR_PTR("val out of 8 bpp range", procName, NULL);
+    }
 
-    if (pixGetColormap(pixs))
+    if (!usecmap && pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     else
         pixg = pixClone(pixs);
@@ -442,8 +451,14 @@ PIX       *pixg, *pixd;
         lineg = datag + i * wplg;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
-            if (GET_DATA_BYTE(lineg, j) == val)
-                SET_DATA_BIT(lined, j);
+            if (d == 4) {
+                if (GET_DATA_QBIT(lineg, j) == val)
+                    SET_DATA_BIT(lined, j);
+            }
+            else {  /* d == 8 */
+                if (GET_DATA_BYTE(lineg, j) == val)
+                    SET_DATA_BIT(lined, j);
+            }
         }
     }
 
@@ -455,13 +470,14 @@ PIX       *pixg, *pixd;
 /*!
  *  pixGenerateMaskByBand()
  *
- *      Input:  pixs (8 bpp, or colormapped)
+ *      Input:  pixs (4 or 8 bpp, or colormapped)
  *              lower, upper (two pixel values from which a range, either
  *                            between (inband) or outside of (!inband),
  *                            determines which pixels in pixs cause us to
  *                            set a 1 in the dest mask)
  *              inband (1 for finding pixels in [lower, upper];
  *                      0 for finding pixels in [0, lower) union (upper, 255])
+ *              usecmap (1 to retain cmap values; 0 to convert to gray)
  *      Return: pixd (1 bpp), or null on error
  *
  *  Notes:
@@ -469,20 +485,20 @@ PIX       *pixg, *pixd;
  *          the fg pixels in the mask are those either within the specified
  *          band (for inband == 1) or outside the specified band
  *          (for inband == 0).
- *      (2) If pixs is colormapped, this first removes the colormap to
- *          generate an approximate grayscale value for each pixel, and
- *          then looks for gray pixels in or out of the given band.
- *      (3) If pixs is colormapped and you want to the band of values to
- *          select the colormap indices directly, you must first call
- *          pixDestroyColormap(pixs) to remove the colormap from pixs.
+ *      (2) If pixs is colormapped, @usecmap determines if the colormap
+ *          values are used, or if the colormap is removed to gray and
+ *          the gray values are used.  For the latter, it generates
+ *          an approximate grayscale value for each pixel, and then looks
+ *          for gray pixels with the value @val.
  */
 PIX *
 pixGenerateMaskByBand(PIX     *pixs,
                       l_int32  lower,
                       l_int32  upper,
-                      l_int32  inband)
+                      l_int32  inband,
+                      l_int32  usecmap)
 {
-l_int32    i, j, w, h, wplg, wpld, val;
+l_int32    i, j, w, h, d, wplg, wpld, val;
 l_uint32  *datag, *datad, *lineg, *lined;
 PIX       *pixg, *pixd;
 
@@ -490,14 +506,22 @@ PIX       *pixg, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("not 8 bpp", procName, NULL);
-    if (lower < 0 || upper > 255)
-        return (PIX *)ERROR_PTR("invalid lower and/or upper", procName, NULL);
-    if (lower > upper)
-        return (PIX *)ERROR_PTR("lower > upper!", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 4 && d != 8)
+        return (PIX *)ERROR_PTR("not 4 or 8 bpp", procName, NULL);
+    if (lower < 0 || lower > upper)
+        return (PIX *)ERROR_PTR("lower < 0 or lower > upper!", procName, NULL);
+    if (d == 4 && usecmap == TRUE) {
+        if (upper > 15)
+            return (PIX *)ERROR_PTR("upper > 15", procName, NULL);
+    }
+    else {
+        d = 8;
+        if (upper > 255)
+            return (PIX *)ERROR_PTR("upper > 255", procName, NULL);
+    }
 
-    if (pixGetColormap(pixs))
+    if (!usecmap && pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     else
         pixg = pixClone(pixs);
@@ -513,7 +537,10 @@ PIX       *pixg, *pixd;
         lineg = datag + i * wplg;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
-            val = GET_DATA_BYTE(lineg, j);
+            if (d == 4)
+                val = GET_DATA_QBIT(lineg, j);
+            else  /* d == 8 */
+                val = GET_DATA_BYTE(lineg, j);
             if (inband) {
                 if (val >= lower && val <= upper)
                     SET_DATA_BIT(lined, j);

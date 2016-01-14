@@ -109,24 +109,22 @@ pixOtsuAdaptiveThreshold(PIX       *pixs,
                          PIX      **ppixth,
                          PIX      **ppixd)
 {
-l_int32     w, h, d, nx, ny, i, j, thresh;
+l_int32     w, h, nx, ny, i, j, thresh;
 l_uint32    val;
 PIX        *pixt, *pixb, *pixthresh, *pixth, *pixd;
 PIXTILING  *pt;
 
     PROCNAME("pixOtsuAdaptiveThreshold");
 
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 8)
-        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
     if (sx < 16 || sy < 16)
         return ERROR_INT("sx and sy must be >= 16", procName, 1);
     if (!ppixth && !ppixd)
         return ERROR_INT("neither &pixth nor &pixd defined", procName, 1);
 
         /* Compute the threshold array for the tiles */
+    pixGetDimensions(pixs, &w, &h, NULL);
     nx = L_MAX(1, w / sx);
     ny = L_MAX(1, h / sy);
     smoothx = L_MIN(smoothx, (nx - 1) / 2);
@@ -183,7 +181,7 @@ PIXTILING  *pt;
 /*!
  *  pixOtsuThreshOnBackgroundNorm()
  *
- *      Input:  pixs (8 bpp grayscale or 32 bpp rgb)
+ *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              pixim (<optional> 1 bpp 'image' mask; can be null)
  *              sx, sy (tile size in pixels)
  *              thresh (threshold for determining foreground)
@@ -226,18 +224,17 @@ pixOtsuThreshOnBackgroundNorm(PIX       *pixs,
                               l_float32  scorefract,
                               l_int32   *pthresh)
 {
-l_int32   w, h, d;
+l_int32   w, h;
 l_uint32  val;
 PIX      *pixn, *pixt, *pixd;
 
     PROCNAME("pixOtsuThreshOnBackgroundNorm");
 
     if (pthresh) *pthresh = 0;
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs is colormapped", procName, NULL);
     if (sx < 4 || sy < 4)
         return (PIX *)ERROR_PTR("sx and sy must be >= 4", procName, NULL);
     if (mincount > sx * sy) {
@@ -252,6 +249,7 @@ PIX      *pixn, *pixt, *pixd;
 
         /* Just use 1 tile for a global threshold, which is stored
          * as a single pixel in pixt. */
+    pixGetDimensions(pixn, &w, &h, NULL);
     pixOtsuAdaptiveThreshold(pixn, w, h, 0, 0, scorefract, &pixt, &pixd);
     pixDestroy(&pixn);
 
@@ -275,7 +273,7 @@ PIX      *pixn, *pixt, *pixd;
 /*!
  *  pixMaskedThreshOnBackgroundNorm()
  *
- *      Input:  pixs (8 bpp grayscale or 32 bpp rgb)
+ *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              pixim (<optional> 1 bpp 'image' mask; can be null)
  *              sx, sy (tile size in pixels)
  *              thresh (threshold for determining foreground)
@@ -321,18 +319,17 @@ pixMaskedThreshOnBackgroundNorm(PIX       *pixs,
                                 l_float32  scorefract,
                                 l_int32   *pthresh)
 {
-l_int32   w, h, d;
+l_int32   w, h;
 l_uint32  val;
 PIX      *pixn, *pixm, *pixd, *pixt1, *pixt2, *pixt3, *pixt4;
 
     PROCNAME("pixMaskedThreshOnBackgroundNorm");
 
     if (pthresh) *pthresh = 0;
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs is colormapped", procName, NULL);
     if (sx < 4 || sy < 4)
         return (PIX *)ERROR_PTR("sx and sy must be >= 4", procName, NULL);
     if (mincount > sx * sy) {
@@ -361,6 +358,7 @@ PIX      *pixn, *pixm, *pixd, *pixt1, *pixt2, *pixt3, *pixt4;
 
         /* Use Otsu to get a global threshold estimate for the image,
          * which is stored as a single pixel in pixt3. */
+    pixGetDimensions(pixs, &w, &h, NULL);
     pixOtsuAdaptiveThreshold(pixs, w, h, 0, 0, scorefract, &pixt3, NULL);
     if (pixt3 && pthresh) {
         pixGetPixel(pixt3, 0, 0, &val);
@@ -397,7 +395,7 @@ PIX      *pixn, *pixm, *pixd, *pixt1, *pixt2, *pixt3, *pixt4;
 /*!
  *  pixSauvolaBinarizeTiled()
  *
- *      Input:  pixs (8 bpp grayscale, not cmapped)
+ *      Input:  pixs (8 bpp grayscale, not colormapped)
  *              whsize (window half-width for measuring local statistics)
  *              factor (factor for reducing threshold due to variance; >= 0)
  *              nx, ny (subdivision into tiles; >= 1)
@@ -513,7 +511,7 @@ PIXTILING  *pt;
 /*!
  *  pixSauvolaBinarize()
  *
- *      Input:  pixs (8 bpp grayscale)
+ *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              whsize (window half-width for measuring local statistics)
  *              factor (factor for reducing threshold due to variance; >= 0)
  *              addborder (1 to add border of width (@whsize + 1) on all sides)
@@ -624,7 +622,7 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
 /*!
  *  pixSauvolaGetThreshold()
  *
- *      Input:  pixm (8 bpp grayscale)
+ *      Input:  pixm (8 bpp grayscale; not colormapped)
  *              pixms (32 bpp)
  *              factor (factor for reducing threshold due to variance; >= 0)
  *              &pixsd (<optional return> local standard deviation)
@@ -674,7 +672,9 @@ PIX        *pixsd, *pixd;
     
     if (ppixsd) *ppixsd = NULL;
     if (!pixm || pixGetDepth(pixm) != 8)
-        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixm undefined or not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixm))
+        return (PIX *)ERROR_PTR("pixm is colormapped", procName, NULL);
     if (!pixms || pixGetDepth(pixms) != 32)
         return (PIX *)ERROR_PTR("pixms undefined or not 32 bpp",
                                 procName, NULL);
@@ -732,7 +732,7 @@ PIX        *pixsd, *pixd;
 /*!
  *  pixApplyLocalThreshold()
  *
- *      Input:  pixs (8 bpp grayscale)
+ *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              pixth (8 bpp array of local thresholds)
  *              redfactor ( ... )
  *      Return: pixd (1 bpp, thresholded image), or null on error
@@ -750,6 +750,8 @@ PIX       *pixd;
     
     if (!pixs || pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs is colormapped", procName, NULL);
     if (!pixth || pixGetDepth(pixth) != 8)
         return (PIX *)ERROR_PTR("pixth undefined or not 8 bpp", procName, NULL);
 

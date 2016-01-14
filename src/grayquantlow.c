@@ -374,7 +374,7 @@ l_uint32 sword, dword;
 #endif
         break;
     default:
-        ERROR_VOID("src depth not 4 or 8 bpp", procName);
+        L_ERROR("src depth not 4 or 8 bpp", procName);
         break;
     }
     return;

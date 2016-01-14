@@ -37,6 +37,7 @@
  *        l_int32     pixDisplayWrite()
  *        l_int32     pixDisplayWriteFormat()
  *        l_int32     pixSaveTiled()
+ *        l_int32     pixSaveTiledOutline()
  */
 
 #include <stdio.h>
@@ -56,8 +57,12 @@ static const l_int32  MAX_SIZE_FOR_PNG = 200;
 static const l_float32  DEFAULT_SCALING = 1.0;
 
     /* Global array of image file format extension names.
-     * This is in 1-1 corrspondence with format enum in imageio.h. */
-static const l_int32  NUM_EXTENSIONS = 14;
+     * This is in 1-1 corrspondence with format enum in imageio.h.
+     * (Note on 'const': The size of the array can't be defined 'const'
+     * because that makes it static.  The 'const' in the definition of
+     * the array refers to the strings in the array; the ptr to the
+     * array is not const and can be used 'extern' in other files.)  */
+l_int32  NumImageFileFormatExtensions = 14;  /* array size */
 const char *ImageFileFormatExtensions[] = {"unknown",
                                            "bmp",
                                            "jpg",
@@ -117,6 +122,8 @@ PIX     *pix;
         return ERROR_INT("rootname not defined", procName, 1);
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
+    if (format < 0 || format >= NumImageFileFormatExtensions)
+        return ERROR_INT("invalid format", procName, 1);
 
     n = pixaGetCount(pixa);
     for (i = 0; i < n; i++) {
@@ -385,8 +392,8 @@ getFormatExtension(l_int32  format)
 {
     PROCNAME("getFormatExtension");
 
-    if (format < 0 || format >= NUM_EXTENSIONS)
-        return (const char *)ERROR_PTR("format out of bounds", procName, NULL);
+    if (format < 0 || format >= NumImageFileFormatExtensions)
+        return (const char *)ERROR_PTR("invalid format", procName, NULL);
 
     return ImageFileFormatExtensions[format];
 }
@@ -715,6 +722,31 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
  *              space (horizontal and vertical spacing, in pixels)
  *              dp (depth of pixa; 8 or 32 bpp; only used on first call)
  *      Return: 0 if OK, 1 on error.
+ */
+l_int32
+pixSaveTiled(PIX     *pixs,
+             PIXA    *pixa,
+             l_int32  reduction,
+             l_int32  newrow,
+             l_int32  space,
+             l_int32  dp)
+{
+        /* Save without an outline */
+    return pixSaveTiledOutline(pixs, pixa, reduction, newrow, space, 0, dp);
+}
+
+
+/*!
+ *  pixSaveTiledOutline()
+ *
+ *      Input:  pixs (1, 2, 4, 8, 32 bpp)
+ *              pixa (the pix are accumulated here)
+ *              reduction (0 to disable; otherwise this is a reduction factor)
+ *              newrow (0 if placed on the same row as previous; 1 otherwise)
+ *              space (horizontal and vertical spacing, in pixels)
+ *              linewidth (width of added outline for image; 0 for no outline)
+ *              dp (depth of pixa; 8 or 32 bpp; only used on first call)
+ *      Return: 0 if OK, 1 on error.
  *
  *  Notes:
  *      (1) Before calling this function for the first time, use
@@ -741,19 +773,20 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
  *          field, which is the only field available for storing an int.
  */
 l_int32
-pixSaveTiled(PIX     *pixs,
-             PIXA    *pixa,
-             l_int32  reduction,
-             l_int32  newrow,
-             l_int32  space,
-             l_int32  dp)
+pixSaveTiledOutline(PIX     *pixs,
+                    PIXA    *pixa,
+                    l_int32  reduction,
+                    l_int32  newrow,
+                    l_int32  space,
+                    l_int32  linewidth,
+                    l_int32  dp)
 {
 l_int32         n, top, left, bx, by, bw, w, h, depth, bottom;
 l_float32       scale;
 BOX            *box;
-PIX            *pix, *pixt1, *pixt2;
+PIX            *pix, *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixSaveTiled");
+    PROCNAME("pixSaveTiledOutline");
 
     if (reduction == 0) return 0;
 
@@ -778,6 +811,7 @@ PIX            *pix, *pixt1, *pixt2;
         pixDestroy(&pix);
     }
         
+        /* Scale and convert to output depth */
     if (reduction == 1)
         pixt1 = pixClone(pixs);
     else {
@@ -792,6 +826,13 @@ PIX            *pix, *pixt1, *pixt2;
     else
         pixt2 = pixConvertTo32(pixt1);
     pixDestroy(&pixt1);
+
+        /* Add black outline */
+    if (linewidth > 0)
+        pixt3 = pixAddBorder(pixt2, linewidth, 0);
+    else
+        pixt3 = pixClone(pixt2);
+    pixDestroy(&pixt2);
 
         /* Find position of current pix (UL corner plus size) */
     if (n == 0) {
@@ -808,10 +849,10 @@ PIX            *pix, *pixt1, *pixt2;
         left = bx + bw + space;
     }
 
-    pixGetDimensions(pixt2, &w, &h, NULL);
+    pixGetDimensions(pixt3, &w, &h, NULL);
     bottom = L_MAX(bottom, top + h);
     box = boxCreate(left, top, w, h);
-    pixaAddPix(pixa, pixt2, L_INSERT);
+    pixaAddPix(pixa, pixt3, L_INSERT);
     pixaAddBox(pixa, box, L_INSERT);
 
         /* Save the new bottom value */

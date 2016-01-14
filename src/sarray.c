@@ -678,7 +678,7 @@ sarrayToStringRange(SARRAY  *sa,
                     l_int32  nstrings,
                     l_int32  addnlflag)
 {
-char    *dest, *src;
+char    *dest, *src, *str;
 l_int32  n, i, last, size, index, len;
 
     PROCNAME("sarrayToStringRange");
@@ -711,15 +711,18 @@ l_int32  n, i, last, size, index, len;
     last = first + nstrings - 1;
 
     size = 0;
-    for (i = first; i <= last; i++) 
-        size += strlen(sarrayGetString(sa, i, L_NOCOPY)) + 2;
+    for (i = first; i <= last; i++) {
+        if ((str = sarrayGetString(sa, i, L_NOCOPY)) == NULL)
+            return (char *)ERROR_PTR("str not found", procName, NULL);
+        size += strlen(str) + 2;
+    }
 
     if ((dest = (char *)CALLOC(size + 1, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("dest not made", procName, NULL);
 
     index = 0;
     for (i = first; i <= last; i++) {
-        src = sa->array[i];
+        src = sarrayGetString(sa, i, L_NOCOPY);
         len = strlen(src);
         memcpy(dest + index, src, len);
         index += len;
@@ -1522,7 +1525,7 @@ struct dirent  *pdirentry;
         /* It's nice to ignore directories.  For this it is necessary to
          * define _BSD_SOURCE in the CC command, because the DT_DIR
          * flag is non-standard.  */ 
-#if !defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(__SOLARIS__)
+#if !defined(__MINGW32__) && !defined(__SOLARIS__)
         if (pdirentry->d_type == DT_DIR)
             continue;
 #endif

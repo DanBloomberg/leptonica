@@ -488,10 +488,10 @@ PIX     *pixm;
     if (!ppixd)
         return ERROR_INT("&pixd not defined", procName, 1);
     *ppixd = NULL;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if (pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs is colormapped", procName, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", procName, 1);
     if (sx < 4 || sy < 4)
@@ -746,7 +746,7 @@ PIX     *pixmr, *pixmg, *pixmb;
 /*!
  *  pixGetBackgroundGrayMap()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8 bpp grayscale; not cmapped)
  *              pixim (<optional> 1 bpp 'image' mask; can be null; it
  *                     should not have all foreground pixels)
  *              sx, sy (tile size in pixels)
@@ -782,10 +782,10 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
     if (!ppixd)
         return ERROR_INT("&pixd not defined", procName, 1);
     *ppixd = NULL;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if (pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs is colormapped", procName, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", procName, 1);
     if (sx < 4 || sy < 4)
@@ -1109,7 +1109,7 @@ PIX       *pixmr, *pixmg, *pixmb;
 /*!
  *  pixGetBackgroundGrayMapMorph()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8 bpp grayscale; not cmapped)
  *              pixim (<optional> 1 bpp 'image' mask; can be null; it
  *                     should not have all foreground pixels)
  *              reduction (factor at which closing is performed)
@@ -1133,10 +1133,10 @@ PIX       *pixm, *pixt1, *pixt2, *pixt3, *pixims;
     if (!ppixm)
         return ERROR_INT("&pixm not defined", procName, 1);
     *ppixm = NULL;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if (pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs is colormapped", procName, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", procName, 1);
 
@@ -1360,20 +1360,20 @@ pixFillMapHoles(PIX     *pix,
                 l_int32  ny,
                 l_int32  filltype)
 {
-l_int32   w, h, d, y, nmiss, goodcol, i, j, found, ival, valtest;
+l_int32   w, h, y, nmiss, goodcol, i, j, found, ival, valtest;
 l_uint32  val, lastval;
 NUMA     *na;  /* indicates if there is any data in the column */
 PIX      *pixt;
 
     PROCNAME("pixFillMapHoles");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
-    pixGetDimensions(pix, &w, &h, &d);
-    if (d != 8)
-        return ERROR_INT("pix not 8 bpp", procName, 1);
+    if (!pix || pixGetDepth(pix) != 8)
+        return ERROR_INT("pix not defined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pix))
+        return ERROR_INT("pix is colormapped", procName, 1);
 
     /* ------------- Fill holes in the mapping image columns ----------- */
+    pixGetDimensions(pix, &w, &h, NULL);
     na = numaCreate(0);  /* holds flag for which columns have data */
     nmiss = 0;
     valtest = (filltype == L_FILL_WHITE) ? 255 : 0;
@@ -1475,16 +1475,13 @@ PIX      *pixd;
 
     PROCNAME("pixExtendByReplication");
 
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
     if (addw == 0 && addh == 0)
         return pixCopy(NULL, pixs);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w + addw, h + addh, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixRasterop(pixd, 0, 0, w, h, PIX_SRC, pixs, 0, 0);
@@ -1512,7 +1509,7 @@ PIX      *pixd;
 /*!
  *  pixSmoothConnectedRegions()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8 bpp grayscale; no colormap)
  *              pixm (<optional> 1 bpp; if null, this is a no-op)
  *              factor (subsampling factor for getting average; >= 1)
  *      Return: 0 if OK, 1 on error
@@ -1540,10 +1537,10 @@ PIXA      *pixa;
 
     PROCNAME("pixSmoothConnectedRegions");
 
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if (pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs has colormap", procName, 1);
     if (!pixm) {
         L_INFO("pixm not defined", procName);
         return 0;
@@ -1713,7 +1710,7 @@ PIX     *pixd, *piximi, *pixim2, *pixims, *pixs2, *pixb, *pixt1, *pixt2, *pixt3;
 /*!
  *  pixGetInvBackgroundMap()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8 bpp grayscale; no colormap)
  *              bgval (target bg val; typ. > 128)
  *              smoothx (half-width of block convolution kernel width)
  *              smoothy (half-width of block convolution kernel height)
@@ -1737,12 +1734,11 @@ PIX       *pixsm, *pixd;
 
     PROCNAME("pixGetInvBackgroundMap");
 
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if (w < 5 || h < 5)
         return (PIX *)ERROR_PTR("w and h must be >= 5", procName, NULL);
 
@@ -1781,7 +1777,7 @@ PIX       *pixsm, *pixd;
 /*!
  *  pixApplyInvBackgroundGrayMap()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8 bpp grayscale; no colormap)
  *              pixm (16 bpp, inverse background map)
  *              sx (tile width in pixels)
  *              sy (tile height in pixels)
@@ -1801,23 +1797,19 @@ PIX       *pixd;
 
     PROCNAME("pixApplyInvBackgroundGrayMap");
 
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
-    if (!pixm)
-        return (PIX *)ERROR_PTR("pixm not defined", procName, NULL);
-    if (pixGetDepth(pixm) != 16)
-        return (PIX *)ERROR_PTR("pixm not 16 bpp", procName, NULL);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+    if (!pixm || pixGetDepth(pixm) != 16)
+        return (PIX *)ERROR_PTR("pixm undefined or not 16 bpp", procName, NULL);
     if (sx == 0 || sy == 0)
         return (PIX *)ERROR_PTR("invalid sx and/or sy", procName, NULL);
 
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    wm = pixGetWidth(pixm);
-    hm = pixGetHeight(pixm);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixGetDimensions(pixm, &wm, &hm, NULL);
     pixd = pixCreateTemplate(pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
@@ -2231,7 +2223,7 @@ l_float32  rfract, gfract, bfract, maxfract;
 /*!
  *  pixThresholdSpreadNorm()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              filtertype (L_SOBEL_EDGE or L_TWO_SIDED_EDGE);
  *              edgethresh (threshold on magnitude of edge filter; typ 10-20)
  *              smoothx, smoothy (half-width of convolution kernel applied to
@@ -2281,7 +2273,6 @@ pixThresholdSpreadNorm(PIX       *pixs,
                        PIX      **ppixb,
                        PIX      **ppixd)
 {
-l_int32  w, h, d;
 PIX     *pixe, *pixet, *pixsd, *pixg1, *pixg2, *pixth;
 
     PROCNAME("pixThresholdSpreadNorm");
@@ -2289,11 +2280,10 @@ PIX     *pixe, *pixet, *pixsd, *pixg1, *pixg2, *pixth;
     if (ppixth) *ppixth = NULL;
     if (ppixb) *ppixb = NULL;
     if (ppixd) *ppixd = NULL;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 8)
-        return ERROR_INT("pixs not 8 bpp", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs is colormapped", procName, 1);
     if (!ppixth && !ppixb && !ppixd)
         return ERROR_INT("no output requested", procName, 1);
     if (filtertype != L_SOBEL_EDGE && filtertype != L_TWO_SIDED_EDGE)
@@ -2349,7 +2339,7 @@ PIX     *pixe, *pixet, *pixsd, *pixg1, *pixg2, *pixth;
 /*!
  *  pixBackgroundNormFlex()
  *
- *      Input:  pixs (8 bpp)
+ *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              sx, sy (desired tile dimensions; actual size may vary; use
  *                      values between 3 and 10)
  *              smoothx, smoothy (half-width of convolution kernel applied to
@@ -2388,6 +2378,8 @@ PIX       *pixt, *pixsd, *pixmin, *pixbg, *pixbgi, *pixd;
 
     if (!pixs || pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (PIX *)ERROR_PTR("pixs is colormapped", procName, NULL);
     if (sx < 3 || sy < 3)
         return (PIX *)ERROR_PTR("sx and/or sy less than 3", procName, NULL);
     if (sx > 10 || sy > 10)
@@ -2431,7 +2423,7 @@ PIX       *pixt, *pixsd, *pixmin, *pixbg, *pixbgi, *pixd;
  *  pixContrastNorm()
  *
  *      Input:  pixd (<optional> 8 bpp; null or equal to pixs)
- *              pixs (8 bpp, not colormapped)
+ *              pixs (8 bpp grayscale; not colormapped)
  *              sx, sy (tile dimensions)
  *              mindiff (minimum difference to accept as valid)
  *              smoothx, smoothy (half-width of convolution kernel applied to
@@ -2508,7 +2500,7 @@ PIX  *pixmin, *pixmax;
 /*!
  *  pixMinMaxTiles()
  *
- *      Input:  pixs (8 bpp, not colormapped)
+ *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              sx, sy (tile dimensions)
  *              mindiff (minimum difference to accept as valid)
  *              smoothx, smoothy (half-width of convolution kernel applied to

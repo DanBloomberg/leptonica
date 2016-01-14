@@ -135,7 +135,7 @@ l_float32  scx, scy;
     wm2 = ws - 2;
     hm2 = hs - 2;
 
-        /* iterate over the destination pixels */
+        /* Iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
         ypm = (l_int32)(scy * (l_float32)i);
         yp = ypm >> 4;
@@ -147,18 +147,34 @@ l_float32  scx, scy;
             xp = xpm >> 4;
             xf = xpm & 0x0f;
 
-                /* if near the edge, just use the src pixel value */
+                /* Do bilinear interpolation.  This is a simple
+                 * generalization of the calculation in scaleGrayLILow().
+                 * Without this, we could simply subsample:
+                 *     *(lined + j) = *(lines + xp);
+                 * which is faster but gives lousy results!  */
+            pixels1 = *(lines + xp);
+
             if (xp > wm2 || yp > hm2) {
-                *(lined + j) = *(lines + xp);
-                continue;
+                if (yp > hm2 && xp <= wm2) {  /* pixels near bottom */
+                    pixels2 = *(lines + xp + 1);
+                    pixels3 = pixels1;
+                    pixels4 = pixels2;
+                }
+                else if (xp > wm2 && yp <= hm2) {  /* pixels near right side */
+                    pixels2 = pixels1;
+                    pixels3 = *(lines + wpls + xp);
+                    pixels4 = pixels3;
+                }
+                else {  /* pixels at LR corner */
+                    pixels4 = pixels3 = pixels2 = pixels1;
+                }
+            }
+            else {
+                pixels2 = *(lines + xp + 1);
+                pixels3 = *(lines + wpls + xp);
+                pixels4 = *(lines + wpls + xp + 1);
             }
 
-                /* do bilinear interpolation.  This is a simple
-                 * generalization of the calculation in scaleGrayLILow() */
-            pixels1 = *(lines + xp);                 
-            pixels2 = *(lines + xp + 1);                 
-            pixels3 = *(lines + wpls + xp);                 
-            pixels4 = *(lines + wpls + xp + 1);                 
             area00 = (16 - xf) * (16 - yf);
             area10 = xf * (16 - yf);
             area01 = (16 - xf) * yf;
@@ -211,7 +227,7 @@ scaleGrayLILow(l_uint32  *datad,
 l_int32    i, j, wm2, hm2;
 l_int32    xpm, ypm;  /* location in src image, to 1/16 of a pixel */
 l_int32    xp, yp, xf, yf;  /* src pixel and pixel fraction coordinates */
-l_int32    v00, v01, v10, v11;
+l_int32    v00, v01, v10, v11, v00_val, v01_val, v10_val, v11_val;
 l_uint8    val;
 l_uint32  *lines, *lined;
 l_float32  scx, scy;
@@ -238,21 +254,37 @@ l_float32  scx, scy;
             xp = xpm >> 4;
             xf = xpm & 0x0f;
 
-                /* If near the dest boundary, just use the src pixel value */
-            if (xp > wm2 || yp > hm2) {
-                SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
-                continue;
-            }
-
                 /* Do bilinear interpolation.  Without this, we could
                  * simply subsample:
                  *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
-                 * which is faster but gives lousy results!
-                 */
-            v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
-            v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
-            v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
-            v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
+                 * which is faster but gives lousy results!  */
+            v00_val = GET_DATA_BYTE(lines, xp);
+            if (xp > wm2 || yp > hm2) {
+                if (yp > hm2 && xp <= wm2) {  /* pixels near bottom */
+                    v01_val = v00_val;
+                    v10_val = GET_DATA_BYTE(lines, xp + 1);
+                    v11_val = v10_val;
+                }
+                else if (xp > wm2 && yp <= hm2) {  /* pixels near right side */
+                    v01_val = GET_DATA_BYTE(lines + wpls, xp);
+                    v10_val = v00_val;
+                    v11_val = v01_val;
+                }
+                else {  /* pixels at LR corner */
+                    v10_val = v01_val = v11_val = v00_val;
+                }
+            }
+            else {
+                v10_val = GET_DATA_BYTE(lines, xp + 1);
+                v01_val = GET_DATA_BYTE(lines + wpls, xp);
+                v11_val = GET_DATA_BYTE(lines + wpls, xp + 1);
+            }
+
+            v00 = (16 - xf) * (16 - yf) * v00_val;
+            v10 = xf * (16 - yf) * v10_val;
+            v01 = (16 - xf) * yf * v01_val;
+            v11 = xf * yf * v11_val;
+
             val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
             SET_DATA_BYTE(lined, j, val);
         }

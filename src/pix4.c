@@ -1413,7 +1413,7 @@ l_uint32  *lines, *datas;
     for (i = 0; i < 256; i++)  /* gray value --> histo bin */
         gray2bin[i] = (i * nbins) / 256;
     for (i = 0; i < nbins; i++)  /* histo bin --> gray value */
-        bin2gray[i] = (i * 255 + 128) / nbins;
+        bin2gray[i] = (i * 256 + 128) / nbins;
 
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
@@ -1426,7 +1426,7 @@ l_uint32  *lines, *datas;
 
         if (type == L_MEDIAN_VAL) {
             sum = 0;
-            target = w / 2;
+            target = (w + 1) / 2;
             for (k = 0; k < nbins; k++) {
                 sum += histo[k];
                 if (sum >= target) {
@@ -1537,7 +1537,7 @@ l_uint32  *datas;
     for (i = 0; i < 256; i++)  /* gray value --> histo bin */
         gray2bin[i] = (i * nbins) / 256;
     for (i = 0; i < nbins; i++)  /* histo bin --> gray value */
-        bin2gray[i] = (i * 255 + 128) / nbins;
+        bin2gray[i] = (i * 256 + 128) / nbins;
 
     for (j = 0; j < w; j++) {
         for (i = 0; i < h; i++) {
@@ -1547,7 +1547,7 @@ l_uint32  *datas;
 
         if (type == L_MEDIAN_VAL) {
             sum = 0;
-            target = h / 2;
+            target = (h + 1) / 2;
             for (k = 0; k < nbins; k++) {
                 sum += histo[k];
                 if (sum >= target) {
@@ -2412,17 +2412,12 @@ BOX     *boxt, *boxd;
         return pixClipToForeground(pixs, ppixd, pboxd);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    if (boxs) {
-        boxGetGeometry(boxs, &bx, &by, &bw, &bh);
-        cbw = L_MIN(bw, w - bx);
-        cbh = L_MIN(bh, h - by);
-        if (cbw < 0 || cbh < 0)
-            return ERROR_INT("box not within image", procName, 1);
-        boxt = boxCreate(bx, by, cbw, cbh);
-    }
-    else
-        boxt = boxCreate(0, 0, w, h);
-   
+    boxGetGeometry(boxs, &bx, &by, &bw, &bh);
+    cbw = L_MIN(bw, w - bx);
+    cbh = L_MIN(bh, h - by);
+    if (cbw < 0 || cbh < 0)
+        return ERROR_INT("box not within image", procName, 1);
+    boxt = boxCreate(bx, by, cbw, cbh);
 
     if (pixScanForForeground(pixs, boxt, L_FROM_LEFT, &left)) {
         boxDestroy(&boxt);

@@ -96,7 +96,7 @@ static char  mainName[] = "ccthin2_reg";
 
         /* Display the sels used in the examples */
     pixa = pixaReadFiles(".", "junksel_example");
-    pixd = pixaDisplayTiledInRows(pixa, 500, 0, 50);
+    pixd = pixaDisplayTiledInRows(pixa, 1, 500, 1.0, 0, 50, 2);
     pixWrite("junksels", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

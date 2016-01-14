@@ -211,11 +211,13 @@ static void
 pix_free(void  *ptr)
 {
 #ifndef COMPILER_MSVC
-    return (*pix_mem_manager.deallocator)(ptr);
+    (*pix_mem_manager.deallocator)(ptr);
+    return;
 #else  /* COMPILER_MSVC */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
-    return free(ptr);
+    free(ptr);
+    return;
 #endif  /* COMPILER_MSVC */
 }
 
@@ -1517,6 +1519,8 @@ void     **lines;
 /*--------------------------------------------------------------------*
  *                    Print output for debugging                      *
  *--------------------------------------------------------------------*/
+extern const char *ImageFileFormatExtensions[];
+
 /*!
  *  pixPrintStreamInfo()
  *
@@ -1530,6 +1534,7 @@ pixPrintStreamInfo(FILE        *fp,
                    PIX         *pix,
                    const char  *text)
 {
+l_int32   informat;
 PIXCMAP  *cmap;
 
     PROCNAME("pixPrintStreamInfo");
@@ -1549,6 +1554,9 @@ PIXCMAP  *cmap;
         pixcmapWriteStream(fp, cmap);
     else
         fprintf(fp, "    no colormap\n");
+    informat = pixGetInputFormat(pix);
+    fprintf(fp, "    input format: %d (%s)\n", informat,
+            ImageFileFormatExtensions[informat]);
 
     return 0;
 }

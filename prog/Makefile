@@ -136,32 +136,35 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		bilinear_reg.c binarize_reg.c \
 		binmorph1_reg.c binmorph2_reg.c \
 		binmorph3_reg.c binmorph4_reg.c binmorph5_reg.c \
-		blend_reg.c ccthin1_reg.c ccthin2_reg.c \
+		blend_reg.c blend2_reg.c \
+		ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorquant_reg.c \
-		compfilter_reg.c \
+		colorseg_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c \
 		distance_reg.c dwamorph1_reg.c enhance_reg.c \
-		equal_reg.c expand_reg.c \
+		equal_reg.c expand_reg.c extrema_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
 		fmorphauto_reg.c fpix_reg.c gifio_reg.c \
 		grayfill_reg.c graymorph_reg.c grayquant_reg.c \
-		hardlight_reg.c ioformats_reg.c \
+		hardlight_reg.c heap_reg.c ioformats_reg.c \
 		kernel_reg.c locminmax_reg.c \
 		logicops_reg.c lowaccess_reg.c \
 		morphseq_reg.c numa_reg.c \
 		paint_reg.c paintmask_reg.c \
 		pixa_reg.c pixadisp_reg.c \
 		pixalloc_reg.c \
-		pixmem_reg.c pixtile_reg.c \
-		projective_reg.c pta_reg.c ptra1_reg.c \
+		pixcomp_reg.c pixmem_reg.c \
+		pixserial_reg.c pixtile_reg.c \
+		projective_reg.c psioseg_reg.c \
+		pta_reg.c ptra1_reg.c \
 		ptra2_reg.c rank_reg.c \
 		rasterop_reg.c rasteropip_reg.c \
 		rotate1_reg.c rotate2_reg.c rotateorth_reg.c \
 		scale_reg.c selio_reg.c \
 		shear_reg.c  skew_reg.c \
 		smallpix_reg.c splitcomp_reg.c \
-		string_reg.c threshnorm_reg.c \
-		warper_reg.c xformbox_reg.c \
+		string_reg.c subpixel_reg.c threshnorm_reg.c \
+		warper_reg.c writetext_reg.c xformbox_reg.c \
 		adaptmaptest.c \
 		arithtest.c barcodetest.c \
 		baselinetest.c \
@@ -175,14 +178,14 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		convertsegfilestops.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
 		croptext.c digitprep1.c dithertest.c \
-		edgetest.c extrematest.c falsecolortest.c \
+		edgetest.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c \
 		fmorphautogen.c gammatest.c \
 		genfonts.c graphicstest.c \
 		graymazetest.c graymorphtest.c \
-		heaptest.c histotest.c iotest.c inserttest.c \
+		histotest.c iotest.c inserttest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		lineremoval.c listtest.c \
 		maketile.c misctest1.c \
@@ -215,23 +218,33 @@ SRC3 =		dwalinear.3.c dwalinearlow.3.c
 
 all:	$(SRC:%.c=%)
 
-debian:	binmazetest buffertest comparetest \
-	cctest1 ccthin1_reg colormorphtest colorquant_reg \
-	colorspacetest conversion_reg \
+debian:	binarize_reg binmazetest \
+	binmorph1_reg binmorph2_reg binmorph3_reg \
+	binmorph4_reg binmorph5_reg \
+	blend_reg blend2_reg buffertest comparetest \
+	cctest1 ccthin1_reg \
+	colormorphtest colorquant_reg colorspacetest \
+	conncomp_reg conversion_reg \
 	convertfilestops convertformat \
 	convertsegfilestops converttops distance_reg \
-	dithertest edgetest equal_reg extrematest \
+	dithertest edgetest enhance_reg \
+	equal_reg expand_reg extrema_reg \
 	fhmtauto_reg fhmtautogen fileinfo \
 	flipdetect_reg flipselgen fmorphauto_reg fmorphautogen \
-	gammatest graphicstest graymazetest graymorph_reg \
-	grayquant_reg heaptest histotest ioformats_reg \
+	fpix_reg gammatest graphicstest grayfill_reg \
+	graymazetest graymorph_reg \
+	grayquant_reg hardlight_reg heap_reg histotest ioformats_reg \
 	jbcorrelation jbrankhaus jbwords \
-	kernel_reg lineremoval numaranktest pagesegtest1 \
+	kernel_reg lineremoval locminmax_reg \
+	lowaccess_reg numaranktest numa_reg pagesegtest1 \
 	pagesegtest2 pagesegtest3 paint_reg paintmask_reg \
-	partitiontest plottest \
+	partitiontest pixalloc_reg pixmem_reg plottest \
 	printimage printsplitimage printtiff \
-	ranktest rank_reg removecmap scale_reg \
-	sharptest splitimage2pdf viewertest
+	ranktest rank_reg removecmap rotate1_reg rotate2_reg \
+	scale_reg selio_reg \
+	sharptest shear_reg smallpix_reg \
+	splitcomp_reg splitimage2pdf \
+	viewertest warper_reg writetext_reg xtractprotos
 
 ######################################################################
 
@@ -265,6 +278,9 @@ binmorph5_reg:	binmorph5_reg.o $(LEPTLIB)
 blend_reg:	blend_reg.o $(LEPTLIB)
 	$(CC) -o blend_reg blend_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+blend2_reg:	blend2_reg.o $(LEPTLIB)
+	$(CC) -o blend2_reg blend2_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 ccthin1_reg:	ccthin1_reg.o $(LEPTLIB)
 	$(CC) -o ccthin1_reg ccthin1_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -276,6 +292,9 @@ cmapquant_reg:	cmapquant_reg.o $(LEPTLIB)
 
 colorquant_reg:	colorquant_reg.o $(LEPTLIB)
 	$(CC) -o colorquant_reg colorquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+colorseg_reg:	colorseg_reg.o $(LEPTLIB)
+	$(CC) -o colorseg_reg colorseg_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 compfilter_reg: compfilter_reg.o $(LEPTLIB)
 	$(CC) -o compfilter_reg compfilter_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -307,6 +326,9 @@ equal_reg:	equal_reg.o $(LEPTLIB)
 expand_reg:	expand_reg.o $(LEPTLIB)
 	$(CC) -o expand_reg expand_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+extrema_reg:	extrema_reg.o $(LEPTLIB)
+	$(CC) -o extrema_reg extrema_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 fhmtauto_reg:	fhmtauto_reg.o $(LEPTLIB)
 	$(CC) -o fhmtauto_reg fhmtauto_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -333,6 +355,9 @@ grayquant_reg:	grayquant_reg.o $(LEPTLIB)
 
 hardlight_reg:	hardlight_reg.o $(LEPTLIB)
 	$(CC) -o hardlight_reg hardlight_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+heap_reg:	heap_reg.o $(LEPTLIB)
+	$(CC) -o heap_reg heap_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 ioformats_reg:	ioformats_reg.o $(LEPTLIB)
 	$(CC) -o ioformats_reg ioformats_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -370,14 +395,23 @@ pixadisp_reg:	pixadisp_reg.o $(LEPTLIB)
 pixalloc_reg:	pixalloc_reg.o $(LEPTLIB)
 	$(CC) -o pixalloc_reg pixalloc_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+pixcomp_reg:	pixcomp_reg.o $(LEPTLIB)
+	$(CC) -o pixcomp_reg pixcomp_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 pixmem_reg:	pixmem_reg.o $(LEPTLIB)
 	$(CC) -o pixmem_reg pixmem_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+pixserial_reg:	pixserial_reg.o $(LEPTLIB)
+	$(CC) -o pixserial_reg pixserial_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 pixtile_reg:	pixtile_reg.o $(LEPTLIB)
 	$(CC) -o pixtile_reg pixtile_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 projective_reg:	projective_reg.o $(LEPTLIB)
 	$(CC) -o projective_reg projective_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+psioseg_reg:	psioseg_reg.o $(LEPTLIB)
+	$(CC) -o psioseg_reg psioseg_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 pta_reg:	pta_reg.o $(LEPTLIB)
 	$(CC) -o pta_reg pta_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -427,11 +461,17 @@ splitcomp_reg:	splitcomp_reg.o $(LEPTLIB)
 string_reg:	string_reg.o $(LEPTLIB)
 	$(CC) -o string_reg string_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+subpixel_reg:	subpixel_reg.o $(LEPTLIB)
+	$(CC) -o subpixel_reg subpixel_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 threshnorm_reg:	threshnorm_reg.o $(LEPTLIB)
 	$(CC) -o threshnorm_reg threshnorm_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 warper_reg:	warper_reg.o $(LEPTLIB)
 	$(CC) -o warper_reg warper_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+writetext_reg:	writetext_reg.o $(LEPTLIB)
+	$(CC) -o writetext_reg writetext_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 xformbox_reg:	xformbox_reg.o $(LEPTLIB)
 	$(CC) -o xformbox_reg xformbox_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -520,9 +560,6 @@ dithertest:	dithertest.o $(LEPTLIB)
 edgetest:	edgetest.o $(LEPTLIB)
 	$(CC) -o edgetest edgetest.o $(ALL_LIBS) $(EXTRALIBS)
 
-extrematest:	extrematest.o $(LEPTLIB)
-	$(CC) -o extrematest extrematest.o $(ALL_LIBS) $(EXTRALIBS)
-
 falsecolortest:	falsecolortest.o $(LEPTLIB)
 	$(CC) -o falsecolortest falsecolortest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -564,9 +601,6 @@ graymazetest:	graymazetest.o $(LEPTLIB)
 
 graymorphtest:	graymorphtest.o $(LEPTLIB)
 	$(CC) -o graymorphtest graymorphtest.o $(ALL_LIBS) $(EXTRALIBS)
-
-heaptest:	heaptest.o $(LEPTLIB)
-	$(CC) -o heaptest heaptest.o $(ALL_LIBS) $(EXTRALIBS)
 
 histotest:	histotest.o $(LEPTLIB)
 	$(CC) -o histotest histotest.o $(ALL_LIBS) $(EXTRALIBS)

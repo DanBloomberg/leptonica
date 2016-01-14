@@ -24,6 +24,7 @@
  *           void        pixcmapDestroy()
  *           l_int32     pixcmapAddColor()
  *           l_int32     pixcmapAddNewColor()
+ *           l_int32     pixcmapUsableColor()
  *           l_int32     pixcmapAddBlackOrWhite()
  *           l_int32     pixcmapSetBlackAndWhite()
  *           l_int32     pixcmapGetCount()
@@ -34,6 +35,7 @@
  *
  *      Colormap random access and test
  *           l_int32     pixcmapGetColor()
+ *           l_int32     pixcmapGetColor32()
  *           l_int32     pixcmapResetColor()
  *           l_int32     pixcmapGetIndex()
  *           l_int32     pixcmapHasColor()
@@ -51,9 +53,11 @@
  *           l_int32     pixcmapReadStream()
  *           l_int32     pixcmapWriteStream()
  *
- *      Extract colormap arrays
+ *      Extract colormap arrays and serialization
  *           l_int32     pixcmapToArrays()
  *           l_int32     pixcmapToRGBTable()
+ *           l_int32     pixcmapSerializeToMemory()
+ *           PIXCMAP    *pixcmapDeserializeFromMemory()
  *
  *      Colormap transforms
  *           l_int32     pixcmapGammaTRC()
@@ -338,6 +342,49 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
 
 
 /*!
+ *  pixcmapUsableColor()
+ *
+ *      Input:  cmap
+ *              rval, gval, bval (colormap entry to be added; each number
+ *                                is in range [0, ... 255])
+ *              usable (<return> 1 if usable; 0 if not)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This checks if the color already exists or if there is
+ *          room to add it.  It makes no change in the colormap.
+ */
+l_int32
+pixcmapUsableColor(PIXCMAP  *cmap,
+                   l_int32   rval,
+                   l_int32   gval,
+                   l_int32   bval,
+                   l_int32  *pusable)
+{
+l_int32  index;
+
+    PROCNAME("pixcmapUsableColor");
+
+    if (!pusable)
+        return ERROR_INT("&usable not defined", procName, 1);
+    *pusable = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+
+        /* Is there room to add it? */
+    if (cmap->n < cmap->nalloc) {
+        *pusable = 1;
+        return 0;
+    }
+
+        /* No room; check if the color is already present. */
+    if (!pixcmapGetIndex(cmap, rval, gval, bval, &index))   /* found */
+        *pusable = 1;
+    return 0;
+}
+
+
+/*!
  *  pixcmapAddBlackOrWhite()
  *
  *      Input:  cmap
@@ -561,6 +608,38 @@ RGBA_QUAD  *cta;
     *pgval = cta[index].green;
     *pbval = cta[index].blue;
 
+    return 0;
+}
+
+
+/*!
+ *  pixcmapGetColor32()
+ *
+ *      Input:  cmap
+ *              index
+ *              &val32 (<return> 32-bit rgba color value)
+ *      Return: 0 if OK, 1 if not accessable (caller should check)
+ *
+ *  Notes:
+ *      (1) The returned alpha channel value is zero, because it is
+ *          not used in leptonica colormaps.
+ */
+l_int32
+pixcmapGetColor32(PIXCMAP   *cmap,
+                  l_int32    index,
+                  l_uint32  *pval32)
+{
+l_int32  rval, gval, bval;
+
+    PROCNAME("pixcmapGetColor32");
+
+    if (!pval32)
+        return ERROR_INT("&val32 not defined", procName, 1);
+    *pval32 = 0;
+
+    if (pixcmapGetColor(cmap, index, &rval, &gval, &bval) != 0)
+        return ERROR_INT("rgb values not found", procName, 1);
+    composeRGBPixel(rval, gval, bval, pval32);
     return 0;
 }
 
@@ -1112,9 +1191,9 @@ l_int32   i;
 }
 
 
-/*-------------------------------------------------------------*
- *                   Extract colormap arrays                   *
- *-------------------------------------------------------------*/
+/*----------------------------------------------------------------------*
+ *               Extract colormap arrays and serialization              *
+ *----------------------------------------------------------------------*/
 /*!
  *  pixcmapToArrays()
  *
@@ -1200,6 +1279,111 @@ l_uint32  *tab;
         fprintf(stderr, "Color[%d] = %x\n", i, tab[i]); */
 
     return 0;
+}
+
+
+/*!
+ *  pixcmapSerializeToMemory()
+ *
+ *      Input:  colormap
+ *              cpc (components/color: 3 for rgb, 4 for rgba)
+ *              &ncolors (<return> number of colors in table)
+ *              &data (<return> binary string, 3 or 4 bytes per color)
+ *              &nbytes (<return> size of data)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) If @cpc == 4, we leave room for the alpha channel
+ *          value in each color entry, but it is set to 0.
+ */
+l_int32
+pixcmapSerializeToMemory(PIXCMAP   *cmap,
+                         l_int32    cpc,
+                         l_int32   *pncolors,
+                         l_uint8  **pdata,
+                         l_int32   *pnbytes)
+{
+l_int32   i, ncolors, rval, gval, bval;
+l_uint8  *data;
+
+    PROCNAME("pixcmapSerializeToMemory");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    *pdata = NULL;
+    if (!pncolors || !pnbytes)
+        return ERROR_INT("&ncolors and &nbytes not defined", procName, 1);
+    *pncolors = *pnbytes = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+    if (cpc != 3 && cpc != 4)
+        return ERROR_INT("cpc not 3 or 4", procName, 1);
+
+    ncolors = pixcmapGetCount(cmap);
+    *pncolors = ncolors;
+    *pnbytes = cpc * ncolors;
+    if ((data = (l_uint8 *)CALLOC(cpc * ncolors, sizeof(l_uint8))) == NULL)
+        return ERROR_INT("data not made", procName, 1);
+    *pdata = data;
+
+    for (i = 0; i < ncolors; i++) {
+        pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+        data[cpc * i] = rval;
+        data[cpc * i + 1] = gval;
+        data[cpc * i + 2] = bval;
+    }
+    return 0;
+}
+
+
+/*!
+ *  pixcmapDeserializeFromMemory()
+ *
+ *      Input:  data (binary string, 3 or 4 bytes per color)
+ *              ncolors
+ *              nbytes (size of returned data)
+ *      Return: cmap, or null on error
+ */
+PIXCMAP *
+pixcmapDeserializeFromMemory(l_uint8  *data,
+                             l_int32   ncolors,
+                             l_int32   nbytes)
+{
+l_int32   i, cpc, d, rval, gval, bval;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixcmapDeserializeFromMemory");
+
+    if (!data)
+        return (PIXCMAP *)ERROR_PTR("data not defined", procName, NULL);
+    if (nbytes == 0 || ncolors == 0)
+        return (PIXCMAP *)ERROR_PTR("no entries", procName, NULL);
+    if (ncolors > 256)
+        return (PIXCMAP *)ERROR_PTR("ncolors > 256", procName, NULL);
+    if (nbytes == 3 * ncolors)
+        cpc = 3;
+    else if (nbytes == 4 * ncolors)
+        cpc = 4;
+    else  /* there must be either 3 or 4 bytes for each color */
+        return (PIXCMAP *)ERROR_PTR("invalid table size", procName, NULL);
+
+    if (ncolors > 16)
+        d = 8;
+    else if (ncolors > 4)
+        d = 4;
+    else if (ncolors > 2)
+        d = 2;
+    else
+        d = 1;
+    cmap = pixcmapCreate(d);
+    for (i = 0; i < ncolors; i++) {
+        rval = data[cpc * i];
+        gval = data[cpc * i + 1];
+        bval = data[cpc * i + 2];
+        pixcmapAddColor(cmap, rval, gval, bval);
+    }
+
+    return cmap;
 }
 
 

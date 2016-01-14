@@ -26,13 +26,8 @@
  *          /tmp/junk_print_image.ps
  *   is generated for the image.
  *
- *   The PS file generated is level 1.  This is large, but is most
- *   likely to work on all PS printers.
- *
- *   The imaging call sequence is:
- *      pixWriteStreamPS() 
- *         --> pixConvertForPSWrap()  [gets in appropriate pix format]
- *         --> pixWriteStringPS()
+ *   The PS file generated is level 1.  This is large, but will work
+ *   on all PS printers.
  */
 
 #include <stdio.h>
@@ -74,12 +69,10 @@ static char  mainName[] = "printimage";
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if (w > h) {
         pixt = pixRotate90(pixs, 1);
-        w = pixGetWidth(pixt);
-        h = pixGetHeight(pixt);
+        pixGetDimensions(pixt, &w, &h, NULL);
     }
     else
         pixt = pixClone(pixs);

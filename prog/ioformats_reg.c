@@ -63,12 +63,16 @@ static l_int32 testcomp_mem(PIX *pixs, PIX **ppixt, l_int32 index,
                             l_int32 format);
 static l_int32 test_writemem(PIX *pixs, l_int32 format, char *psfile);
 static PIX *make_24_bpp_pix(PIX *pixs);
+static l_int32 get_header_data(const char  *filename);
+
+extern const char *ImageFileFormatExtensions[];
 
 
 main(int    argc,
      char **argv)
 {
 char         psname[256];
+const char  *tempname;
 l_uint8     *data;
 l_int32      i, d, n, success, nbytes, same;
 l_int32      w, h, bps, spp;
@@ -330,6 +334,30 @@ static char  mainName[] = "ioformats_reg";
     pixDestroy(&pix);
     pixDestroy(&pixt);
 
+    /* -------------- Part 7: Read header information -------------- */
+    success = TRUE;
+    if (get_header_data(FILE_1BPP)) success = FALSE;
+    if (get_header_data(FILE_2BPP)) success = FALSE;
+    if (get_header_data(FILE_2BPP_C)) success = FALSE;
+    if (get_header_data(FILE_4BPP)) success = FALSE;
+    if (get_header_data(FILE_4BPP_C)) success = FALSE;
+    if (get_header_data(FILE_8BPP_1)) success = FALSE;
+    if (get_header_data(FILE_8BPP_2)) success = FALSE;
+    if (get_header_data(FILE_8BPP_3)) success = FALSE;
+    if (get_header_data(FILE_16BPP)) success = FALSE;
+    if (get_header_data(FILE_32BPP)) success = FALSE;
+    pix = pixRead(FILE_8BPP_1);
+    tempname = genTempFilename((const char *)"/tmp", (const char *)".pnm");
+    pixWrite(tempname, pix, IFF_PNM);
+    if (get_header_data(tempname)) success = FALSE;
+    pixDestroy(&pix);
+    if (success)
+        fprintf(stderr,
+            "\n  ******* Success on reading headers *******\n");
+    else
+        fprintf(stderr,
+            "\n  ******* Failure on reading headers *******\n");
+
     exit(0);
 }
 
@@ -345,7 +373,7 @@ FILE    *fp;
 PIX     *pixt;
 
     fp = fopen(filename, "r");
-    format = findFileFormat(fp);
+    findFileFormat(fp, &format);
     sameformat = TRUE;
     if (format != comptype) {
         fprintf(stderr, "File %s has format %d, not comptype %d\n",
@@ -453,6 +481,27 @@ PIX       *pixd;
     }
 
     return pixd;
+}
+
+
+    /* Retrieve header data from file */
+static l_int32
+get_header_data(const char  *filename)
+{
+l_int32  ret, format, w, h, d, bps, spp, iscmap;
+
+    ret = pixReadHeader(filename, &format, &w, &h, &bps, &spp, &iscmap);
+    d = bps * spp;
+    if (d == 24) d = 32;
+    if (ret)
+        fprintf(stderr, "Error: couldn't read header data: %s\n", filename);
+    else
+        fprintf(stderr, "Format data for image %s:\n"
+                "  format: %s, size (w, h, d) = (%d, %d, %d)\n"
+                "  bps = %d, spp = %d, iscmap = %d\n",
+                filename, ImageFileFormatExtensions[format],
+                w, h, d, bps, spp, iscmap);
+    return ret;
 }
 
 

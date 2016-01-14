@@ -26,9 +26,14 @@
  *          l_int32     pixWritePng()  [ special top level ]
  *          l_int32     pixWriteStreamPng()
  *          
+ *    Read and write of png to/from RGBA pix
+ *          PIX        *pixReadRGGAPng();
+ *          l_int32     pixWriteRGBAPng();
+ *
  *    Setting flags for special modes
  *          void        l_pngSetStrip16To8()
  *          void        l_pngSetStripAlpha()
+ *          void        l_pngSetWriteAlpha()
  *          void        l_pngSetZlibCompression()
  *
  *    Read/write to memory   [not on windows]
@@ -50,23 +55,42 @@
  *       cpp == component/pixel
  *       bpp == bits/pixel of image in Pix (memory)
  *
- *    Flags can be set for special reading from png compression
- *    into a pix, with either 16 bpc or 32 bpp with alpha channel.
- *    Otherwise, the default reading values are as follows:
- *      (1) 16 bpc input images are read into a Pix with 8 bpc.
+ *    There are three special flags for determining the number or
+ *    size of components retained or written:
+ *    (1) L_PNG_STRIP_16_to_8: default is TRUE.  This strips each
+ *        16 bit component down to 8 bpc:
  *         - For 16 bpc rgb (16 bpc, 3 cpp) --> 32 bpp rgb Pix
  *         - For 16 bpc gray (16 bpc, 1 cpp) --> 8 bpp grayscale Pix
- *      (2) The alpha layer is stripped out
+ *    (2) L_PNG_STRIP_ALPHA: default is TRUE.  This does not copy
+ *        the alpha channel to the pix:
  *         - For 8 bpc rgba (8 bpc, 4 cpp) --> 32 bpp rgb Pix
+ *    (3) L_PNG_WRITE_ALPHA: default is FALSE.  The default generates
+ *        an RGB png file with 3 cpp.  If set to TRUE, this generates
+ *        an RGBA png file with 4 cpp, and writes the alpha channel.
+ *    These are set with accessors.
  *
+ *    Two convenience functions are included for reading the alpha
+ *    channel (if it exists) into the pix, and for writing out the
+ *    alpha component of a pix to a png file:
+ *        pixReadRGBAPng()
+ *        pixWriteRGBAPng()
+ *    These use two of the special flags, setting to the non-default
+ *    value before use and resetting to default afterwards.
+ *    In leptonica, we make almost no explicit use of the alpha channel.
+ *        
+ *    Another special flag, L_ZLIB_COMPRESSION, is used to determine
+ *    the compression level.  Default is for standard png compression.
  *    The zlib compression value can be set [0 ... 9], with
  *         0     no compression (huge files)
  *         1     fastest compression
- *         6     default compression
+ *         -1    default compression  (equivalent to 6 in latest version)
  *         9     best compression
  *    If not set, we use the default compression in zlib.
  *    Note that if you are using the defined constants in zlib instead
  *    of the compression integers given above, you must include zlib.h.
+ *
+ *    Note: All special flags use global constants, so if used with
+ *          multi-threaded applications, results can be non-deterministic.
  */
 
 #include <stdio.h>
@@ -89,7 +113,9 @@
 static l_int32   L_PNG_STRIP_16_TO_8 = 1;
     /* strip alpha on reading png; default is for stripping */
 static l_int32   L_PNG_STRIP_ALPHA = 1;
-    /* zlib compression in png; default (5) is for standard compression */
+    /* write alpha for 32 bpp images; default is to write only RGB */
+static l_int32   L_PNG_WRITE_ALPHA = 0;
+    /* zlib compression in png; default is for standard compression */
 static l_int32   L_ZLIB_COMPRESSION = Z_DEFAULT_COMPRESSION;
 
 
@@ -194,12 +220,8 @@ PIXCMAP     *cmap;
         d = 2 * bit_depth;
         L_WARNING("there shouldn't be 2 spp!", procName);
     }
-    else if (spp == 3)
+    else  /* spp == 3 (rgb), spp == 4 (rgba) */
         d = 4 * bit_depth;
-    else  {  /* spp == 4 */
-        d = 4 * bit_depth;
-        L_WARNING("there shouldn't be 4 spp!", procName);
-    }
 
         /* Remove if/when this is implemented for all bit_depths */
     if (spp == 3 && bit_depth != 8) {
@@ -239,7 +261,7 @@ PIXCMAP     *cmap;
             }
         }
     }
-    else  {   /* spp == 3 */
+    else  {   /* spp == 3 or spp == 4 */
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;
             rowptr = row_pointers[i];
@@ -247,6 +269,8 @@ PIXCMAP     *cmap;
                 SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k++]);
                 SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k++]);
                 SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
+                if (spp == 4)
+                    SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, rowptr[k++]);
                 ppixel++;
             }
         }
@@ -472,9 +496,9 @@ l_uint32  *pword;
  *          When using pixWrite(), no field is given for gamma.
  */
 l_int32
-pixWritePng(const char *filename,
-            PIX        *pix,
-            l_float32   gamma)
+pixWritePng(const char  *filename,
+            PIX         *pix,
+            l_float32    gamma)
 {
 FILE  *fp;
 
@@ -619,17 +643,24 @@ char        *text;
         cmflag = 1;
     else
         cmflag = 0;
-    if ((d == 32) || (d == 24)) {
+
+        /* Set the color type and bit depth. */
+    if (d == 32 && L_PNG_WRITE_ALPHA == 1) {
         bit_depth = 8;
-        color_type = PNG_COLOR_TYPE_RGB;
+        color_type = PNG_COLOR_TYPE_RGBA;   /* 6 */
+        cmflag = 0;  /* ignore if it exists */
+    }
+    else if (d == 24 || d == 32) {
+        bit_depth = 8;
+        color_type = PNG_COLOR_TYPE_RGB;   /* 2 */
         cmflag = 0;  /* ignore if it exists */
     }
     else {
         bit_depth = d;
-        color_type = PNG_COLOR_TYPE_GRAY;
+        color_type = PNG_COLOR_TYPE_GRAY;  /* 0 */
     }
     if (cmflag)
-        color_type = PNG_COLOR_TYPE_PALETTE;
+        color_type = PNG_COLOR_TYPE_PALETTE;  /* 3 */
 
 #if  DEBUG
     fprintf(stderr, "cmflag = %d, bit_depth = %d, color_type = %d\n",
@@ -745,8 +776,8 @@ char        *text;
             png_write_rows(png_ptr, (png_bytepp)&ppixel, 1);
         }
     }
-    else {  /* standard 32 bpp rgb */
-        if ((rowbuffer = (png_bytep)CALLOC(w, 3)) == NULL)
+    else {  /* 32 bpp rgb and rgba */
+        if ((rowbuffer = (png_bytep)CALLOC(w, 4)) == NULL)
             return ERROR_INT("rowbuffer not made", procName, 1);
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;
@@ -754,6 +785,8 @@ char        *text;
                 rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
                 rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
                 rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                if (L_PNG_WRITE_ALPHA == 1)
+                    rowbuffer[k++] = GET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL);
                 ppixel++;
             }
 
@@ -769,6 +802,105 @@ char        *text;
     png_destroy_write_struct(&png_ptr, &info_ptr);
     return 0;
 
+}
+
+
+/*---------------------------------------------------------------------*
+ *                    Read and write of png to RGBA                    *
+ *---------------------------------------------------------------------*/
+extern const char *ImageFileFormatExtensions[];
+
+/*!
+ *  pixReadRGBAPng()
+ *
+ *      Input:  filename (of png file)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) Wrapper to keep the alpha channel of a png, if it exists.
+ *      (2) The default behavior of pix read functions is to ignore
+ *          the alpha channel.
+ *      (3) This always leaves alpha stripping in the same mode as
+ *          when this function begins.  So if alpha stripping is in
+ *          default mode, this disables it, reads the file (including
+ *          the alpha channel), and resets back to stripping.  Otherwise,
+ *          it leaves stripping disabled.
+ */
+PIX *
+pixReadRGBAPng(const char  *filename)
+{
+l_int32  format;
+FILE    *fp;
+PIX     *pix;
+
+    PROCNAME("pixReadRGBAPng");
+
+    if (!filename)
+        return (PIX *)ERROR_PTR("filename not defined", procName, NULL);
+
+        /* If alpha channel reading is enabled, just read it */
+    if (L_PNG_STRIP_ALPHA == FALSE)
+        return pixRead(filename);
+
+        /* Make sure it's a png file */
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (PIX *)ERROR_PTR("image file not found", procName, NULL);
+    findFileFormat(fp, &format);
+    if (format != IFF_PNG) {
+        fclose(fp);
+        L_ERROR_STRING("file format is %s, not png", procName,
+                       ImageFileFormatExtensions[format]);
+        return NULL;
+    }
+
+    l_pngSetStripAlpha(0);
+    pix = pixReadStreamPng(fp);
+    l_pngSetStripAlpha(1);  /* reset to default */
+    fclose(fp);
+    if (!pix) L_ERROR("pix not read", procName);
+    return pix;
+}
+
+
+/*!
+ *  pixWriteRGBAPng()
+ *
+ *      Input:  filename
+ *              pix (rgba)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Wrapper to write the alpha component of a 32 bpp pix to
+ *          a png file in rgba format.
+ *      (2) The default behavior of pix write to png is to ignore
+ *          the alpha component.
+ *      (3) This always leaves alpha writing in the same mode as
+ *          when this function begins.  So if alpha writing is in
+ *          default mode, this enables it, writes out a rgba png file
+ *          that includes the alpha channel, and resets to default.
+ *          Otherwise, it leaves alpha writing enabled.
+ */
+l_int32
+pixWriteRGBAPng(const char *filename,
+                PIX        *pix)
+{
+l_int32  ret;
+
+    PROCNAME("pixWriteRGBAPng");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+
+        /* If alpha channel writing is enabled, just write it */
+    if (L_PNG_WRITE_ALPHA == TRUE)
+        return pixWrite(filename, pix, IFF_PNG);
+
+    l_pngSetWriteAlpha(1);
+    ret = pixWritePng(filename, pix, 0.0);
+    l_pngSetWriteAlpha(0);  /* reset to default */
+    return ret;
 }
 
 
@@ -804,6 +936,22 @@ l_pngSetStripAlpha(l_int32  flag)
         L_PNG_STRIP_ALPHA = 1;
     else
         L_PNG_STRIP_ALPHA = 0;
+}
+
+
+/*!
+ *  l_pngSetWriteAlpha()
+ *
+ *      Input:  flag (1 for writing alpha channel; 0 for just writing rgb)
+ *      Return: void
+ */
+void
+l_pngSetWriteAlpha(l_int32  flag)
+{
+    if (flag == 1)
+        L_PNG_WRITE_ALPHA = 1;
+    else
+        L_PNG_WRITE_ALPHA = 0;
 }
 
 

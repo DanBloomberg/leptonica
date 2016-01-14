@@ -239,7 +239,7 @@ l_uint32  *lines, *linem;
         break;
 
     default:
-        ERROR_VOID("connectivity must be 4 or 8", procName);
+        L_ERROR("connectivity must be 4 or 8", procName);
     }
 
     return;
@@ -698,7 +698,7 @@ L_QUEUE  *lq_pixel;
         break;
 
     default:
-        ERROR_VOID("connectivity must be 4 or 8", procName);
+        L_ERROR("connectivity must be 4 or 8", procName);
         lqueueDestroy(&lq_pixel, TRUE);
     }
 
@@ -1158,7 +1158,7 @@ L_QUEUE  *lq_pixel;
 
     default:
         lqueueDestroy(&lq_pixel, TRUE);
-        ERROR_VOID("connectivity must be 4 or 8", procName);
+        L_ERROR("connectivity must be 4 or 8", procName);
     }
 
     lqueueDestroy(&lq_pixel, TRUE);
@@ -1327,7 +1327,7 @@ l_uint32  *lines, *linem;
         break;
 
     default:
-        ERROR_VOID("connectivity must be 4 or 8", procName);
+        L_ERROR("connectivity must be 4 or 8", procName);
     }
 
     return;
@@ -1485,7 +1485,7 @@ l_uint32  *lines, *linem;
         break;
 
     default:
-        ERROR_VOID("connectivity must be 4 or 8", procName);
+        L_ERROR("connectivity must be 4 or 8", procName);
     }
 
     return;
@@ -1658,7 +1658,7 @@ l_uint32  *lined;
         break;
 
     default:
-        ERROR_VOID("connectivity must be 4 or 8", procName);
+        L_ERROR("connectivity must be 4 or 8", procName);
         break;
     }
 
@@ -1801,7 +1801,7 @@ l_uint32  *linet, *lined;
         }
         break;
     default:
-        ERROR_VOID("connectivity must be 4 or 8", procName);
+        L_ERROR("connectivity must be 4 or 8", procName);
         break;
     }
 

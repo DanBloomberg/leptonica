@@ -633,7 +633,7 @@ FILE     *fpin;
 
     if ((fpin = fopen(filein, "r")) == NULL)
         return ERROR_INT("filein not defined", procName, 1);
-    format = findFileFormat(fpin);
+    findFileFormat(fpin, &format);
     fclose(fpin);
     if (format != IFF_JFIF_JPEG)
         return ERROR_INT("filein not jfif jpeg", procName, 1);

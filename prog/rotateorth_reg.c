@@ -41,15 +41,15 @@ static char  mainName[] = "rotateorth_reg";
 	exit(ERROR_INT(" Syntax:  rotateorth_reg", mainName, 1));
 
     fprintf(stderr, "Test binary image:\n");
-    rotateOrthTest(BINARY_IMAGE);
+    rotateOrthTest((char *)BINARY_IMAGE);
     fprintf(stderr, "Test 4 bpp colormapped image:\n");
-    rotateOrthTest(FOUR_BPP_IMAGE);
+    rotateOrthTest((char *)FOUR_BPP_IMAGE);
     fprintf(stderr, "Test grayscale image:\n");
-    rotateOrthTest(GRAYSCALE_IMAGE);
+    rotateOrthTest((char *)GRAYSCALE_IMAGE);
     fprintf(stderr, "Test colormap image:\n");
-    rotateOrthTest(COLORMAP_IMAGE);
+    rotateOrthTest((char *)COLORMAP_IMAGE);
     fprintf(stderr, "Test rgb image:\n");
-    rotateOrthTest(RGB_IMAGE);
+    rotateOrthTest((char *)RGB_IMAGE);
     return 0;
 }
 
@@ -62,8 +62,10 @@ PIX      *pixs, *pixt, *pixd;
 
     PROCNAME("rotateOrthTest");
 
-    if ((pixs = pixRead(fname)) == NULL)
-	return ERROR_VOID("pixs not read", procName);
+    if ((pixs = pixRead(fname)) == NULL) {
+        L_ERROR("pixs not read", procName);
+	return;
+    }
 
 	/* Test 4 successive 90 degree rotations */
     pixt = pixRotate90(pixs, 1);

@@ -36,6 +36,7 @@
  *           PIXAA    *pixaSort2dByIndex()
  *
  *      Miscellaneous
+ *           PIXA     *pixaAddBorderGeneral()
  *           PIXA     *pixaaFlattenToPixa()
  *           l_int32   pixaSizeRange()
  *           PIXA     *pixaClipToPix()
@@ -1130,6 +1131,88 @@ PIXAA   *pixaa;
 /*---------------------------------------------------------------------*
  *                        Miscellaneous functions                      *
  *---------------------------------------------------------------------*/
+/*!
+ *  pixaAddBorderGeneral()
+ *
+ *      Input:  pixad (can be null or equal to pixas)
+ *              pixas (containing pix of all depths; colormap ok)
+ *              left, right, top, bot  (number of pixels added)
+ *              val   (value of added border pixels)
+ *      Return: pixad (with border added to each pix), including on error
+ *
+ *  Notes:
+ *      (1) For binary images:
+ *             white:  val = 0
+ *             black:  val = 1
+ *          For grayscale images:
+ *             white:  val = 2 ** d - 1
+ *             black:  val = 0
+ *          For rgb color images:
+ *             white:  val = 0xffffff00
+ *             black:  val = 0
+ *          For colormapped images, use 'index' found this way:
+ *             white: pixcmapGetRankIntensity(cmap, 1.0, &index);
+ *             black: pixcmapGetRankIntensity(cmap, 0.0, &index);
+ *      (2) For in-place replacement of each pix with a bordered version,
+ *          use @pixad = @pixas.  To make a new pixa, use @pixad = NULL.
+ *      (3) In both cases, the boxa has sides adjusted as if it were
+ *          expanded by the border.
+ */
+PIXA *
+pixaAddBorderGeneral(PIXA     *pixad,
+                     PIXA     *pixas,
+                     l_int32   left,
+                     l_int32   right,
+                     l_int32   top,
+                     l_int32   bot,
+                     l_uint32  val)
+{
+l_int32  i, n, nbox;
+BOX     *box;
+BOXA    *boxad;
+PIX     *pixs, *pixd;
+
+    PROCNAME("pixaAddBorderGeneral");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, pixad);
+    if (left < 0 || right < 0 || top < 0 || bot < 0)
+        return (PIXA *)ERROR_PTR("negative border added!", procName, pixad);
+    if (pixad && (pixad != pixas))
+        return (PIXA *)ERROR_PTR("pixad defined but != pixas", procName, pixad);
+
+    n = pixaGetCount(pixas);
+    if (!pixad)
+        pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pixs = pixaGetPix(pixas, i, L_CLONE);
+        pixd = pixAddBorderGeneral(pixs, left, right, top, bot, val);
+        if (pixad == pixas)  /* replace */
+            pixaReplacePix(pixad, i, pixd, NULL);
+        else
+            pixaAddPix(pixad, pixd, L_INSERT);
+        pixDestroy(&pixs);
+    }
+
+    nbox = pixaGetBoxaCount(pixas);
+    boxad = pixaGetBoxa(pixad, L_CLONE);
+    for (i = 0; i < nbox; i++) {
+        if ((box = pixaGetBox(pixas, i, L_COPY)) == NULL) {
+            L_WARNING_INT("box %d not found", procName, i);
+            break;
+        }
+        boxAdjustSides(box, box, -left, -right, top, bot);
+        if (pixad == pixas)  /* replace */
+            boxaReplaceBox(boxad, i, box);
+        else
+            boxaAddBox(boxad, box, L_INSERT);
+    }
+    boxaDestroy(&boxad);
+
+    return pixad;
+}
+
+
 /*!
  *  pixaaFlattenToPixa()
  *

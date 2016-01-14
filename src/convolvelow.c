@@ -97,8 +97,10 @@ l_uint32  *linemina, *linemaxa, *line;
 
     wmwc = w - wc;
     hmhc = h - hc;
-    if (wmwc <= 0 || hmhc <= 0)
-        return ERROR_VOID("wc >= w || hc >=h", procName);
+    if (wmwc <= 0 || hmhc <= 0) {
+        L_ERROR("wc >= w || hc >=h", procName);
+        return;
+    }
     fwc = 2 * wc + 1;
     fhc = 2 * hc + 1;
     norm = 1. / (fwc * fhc);
@@ -308,7 +310,7 @@ l_uint32  *lines, *lined, *linedp;
         }
     }
     else
-        ERROR_VOID("depth not 1, 8 or 32 bpp", procName);
+        L_ERROR("depth not 1, 8 or 32 bpp", procName);
 
     return;
 }
@@ -368,8 +370,10 @@ l_uint32  *linemina, *linemaxa, *lined;
 
     wmwc = w - wc;
     hmhc = h - hc;
-    if (wmwc <= 0 || hmhc <= 0)
-        return ERROR_VOID("wc >= w || hc >=h", procName);
+    if (wmwc <= 0 || hmhc <= 0) {
+        L_ERROR("wc >= w || hc >=h", procName);
+        return;
+    }
     fwc = 2 * wc + 1;
     fhc = 2 * hc + 1;
     norm = 255. / (fwc * fhc);

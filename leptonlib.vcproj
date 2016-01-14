@@ -422,6 +422,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\finditalic.c"
+				>
+			</File>
+			<File
 				RelativePath=".\flipdetect.c"
 				>
 			</File>
@@ -586,6 +590,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pixcomp.c"
+				>
+			</File>
+			<File
 				RelativePath=".\pixconv.c"
 				>
 			</File>
@@ -606,7 +614,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\psio.c"
+				RelativePath=".\psio1.c"
+				>
+			</File>
+			<File
+				RelativePath=".\psio2.c"
 				>
 			</File>
 			<File

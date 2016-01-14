@@ -29,7 +29,8 @@ static const l_uint32   LEPTONICA_YELLOW = 0xffffe400;
 main(int    argc,
      char **argv)
 {
-PIX         *pixs, *pixd;
+PIX         *pixs, *pixc, *pixd;
+PIXA        *pixa;
 static char  mainName[] = "snapcolortest";
 
     if (argc != 1)
@@ -38,18 +39,20 @@ static char  mainName[] = "snapcolortest";
     if ((pixs = pixRead("Leptonica.jpg")) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 
+    pixa = pixaCreate(0);
+
         /* First, snap the color directly on the input rgb image. */
-    pixDisplay(pixs, 100, 75);
+    pixSaveTiledOutline(pixs, pixa, 1, 1, 25, 2, 32);
     pixd = pixSnapColor(NULL, pixs, 0xffffff00, LEPTONICA_YELLOW, 30);
-    pixDisplay(pixd, 100, 220);
+    pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
     pixWrite("junklogo1", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
 
         /* Then make a colormapped version and snap the color */
     pixd = pixOctreeQuantNumColors(pixs, 250, 0);
-    pixDisplay(pixd, 500, 75);
+    pixSaveTiledOutline(pixd, pixa, 1, 1, 25, 2, 32);
     pixSnapColor(pixd, pixd, 0xffffff00, LEPTONICA_YELLOW, 30);
-    pixDisplay(pixd, 500, 220);
+    pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
     pixWrite("junklogo2", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixDestroy(&pixs);
@@ -59,14 +62,37 @@ static char  mainName[] = "snapcolortest";
 	 * The input image is colormapped with all 256 colors used. */
     if ((pixs = pixRead("google-searchbox.png")) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
-
-    pixDisplay(pixs, 900, 75);
+    pixSaveTiledOutline(pixs, pixa, 1, 1, 25, 2, 32);
     pixd = pixSnapColor(NULL, pixs, 0xffffff00, LEPTONICA_YELLOW, 30);
-    pixDisplay(pixd, 900, 220);
+    pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
     pixWrite("junklogo3", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixDestroy(&pixs);
 
-    exit(0);
+        /* A couple of more, setting pixels near white to strange colors */
+    pixs = pixRead("weasel4.11c.png");
+    pixSaveTiledOutline(pixs, pixa, 1, 1, 25, 2, 32);
+    pixd = pixSnapColor(NULL, pixs, 0xfefefe00, 0x80800000, 50);
+    pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
+    pixDestroy(&pixs);
+    pixDestroy(&pixd);
+
+    pixs = pixRead("wyom.jpg");
+    pixc = pixFixedOctcubeQuant256(pixs, 0);
+    pixSaveTiledOutline(pixc, pixa, 1, 1, 25, 2, 32);
+    pixd = pixSnapColor(NULL, pixc, 0xf0f0f000, 0x80008000, 100);
+    pixSaveTiledOutline(pixd, pixa, 1, 0, 25, 2, 32);
+    pixDestroy(&pixs);
+    pixDestroy(&pixc);
+    pixDestroy(&pixd);
+
+        /* --- Display results --- */
+    pixd = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd, 100, 100);
+    pixWrite("/tmp/junksnap.jpg", pixd, IFF_PNG);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+
+    return 0;
 }
 
