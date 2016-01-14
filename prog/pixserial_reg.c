@@ -42,40 +42,75 @@ static const char  *filename[] = {
 main(int    argc,
      char **argv)
 {
-l_int32      i, nbytes, errorfound, same;
-l_uint32    *data32, *data32r;
-PIX         *pixs, *pixd;
-static char  mainName[] = "pixserial_reg";
+char       buf[256];
+size_t     nbytes;
+l_int32    i, w, h, success, display;
+l_int32    format, bps, spp, iscmap, format2, w2, h2, bps2, spp2, iscmap2;
+l_uint8   *data;
+l_uint32  *data32, *data32r;
+BOX       *box;
+FILE      *fp;
+PIX       *pixs, *pixt, *pixt2, *pixd;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  pixserial_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+        return 1;
 
-    errorfound = FALSE;
+            /* Test basic serialization/deserialization */
     for (i = 0; i < nfiles; i++) {
         pixs = pixRead(filename[i]);
+            /* Serialize to memory */
         pixSerializeToMemory(pixs, &data32, &nbytes);
             /* Just for fun, write and read back from file */
-        arrayWrite("/tmp/junkarray", "w", data32, nbytes);
-        data32r = (l_uint32 *)arrayRead("/tmp/junkarray", &nbytes); 
+        arrayWrite("/tmp/array", "w", data32, nbytes);
+        data32r = (l_uint32 *)arrayRead("/tmp/array", (l_int32 *)(&nbytes)); 
+            /* Deserialize */
         pixd = pixDeserializeFromMemory(data32r, nbytes);
-        pixEqual(pixs, pixd, &same);
-        if (same)
-            L_INFO_INT("success for image %d", mainName, i);
-        else {
-            L_INFO_STRING("FAILURE for image %s", mainName, filename[i]);
-            errorfound = TRUE;
-        }
-        pixDestroy(&pixs);
+        regTestComparePix(fp, argv, pixs, pixd, i, &success);
         pixDestroy(&pixd);
+        pixDestroy(&pixs);
         FREE(data32);
         FREE(data32r);
     }
-    if (errorfound == TRUE)
-        fprintf(stderr, "***********\nERROR FOUND\n***********\n");
-    else
-        fprintf(stderr, "******\nALL OK\n******\n");
+
+            /* Test read/write fileio interface */
+    for (i = 0; i < nfiles; i++) {
+        pixs = pixRead(filename[i]);
+        pixGetDimensions(pixs, &w, &h, NULL);
+        box = boxCreate(0, 0, L_MIN(150, w), L_MIN(150, h));
+        pixt = pixClipRectangle(pixs, box, NULL);
+        boxDestroy(&box);
+        snprintf(buf, sizeof(buf), "/tmp/pixs.%d", i);
+        pixWrite(buf, pixt, IFF_SPIX);
+        regTestCheckFile(fp, argv, buf, i, &success);
+        pixt2 = pixRead(buf);
+        regTestComparePix(fp, argv, pixt, pixt2, nfiles + i, &success);
+        pixDestroy(&pixs);
+        pixDestroy(&pixt);
+        pixDestroy(&pixt2);
+    }
     
-        /* Now do timing */
+            /* Test read header.  Note that for rgb input, spp = 3,
+             * but for 32 bpp spix, we set spp = 4. */
+    for (i = 0; i < nfiles; i++) {
+        pixs = pixRead(filename[i]);
+        pixWriteMem(&data, &nbytes, pixs, IFF_SPIX);
+        pixReadHeader(filename[i], &format, &w, &h, &bps, &spp, &iscmap);
+        pixReadHeaderMem(data, nbytes, &format2, &w2, &h2, &bps2,
+                         &spp2, &iscmap2);
+        if (format2 != 16 || w != w2 || h != h2 || bps != bps2 ||
+            iscmap != iscmap2) {
+            if (fp)
+                fprintf(fp, "Failure comparing data");
+            else
+                fprintf(stderr, "Failure comparing data");
+            success = FALSE;
+        }
+        pixDestroy(&pixs);
+        FREE(data);
+    }
+
+#if 0
+        /* Do timing */
     for (i = 0; i < nfiles; i++) {
         pixs = pixRead(filename[i]);
         startTimer();
@@ -86,7 +121,9 @@ static char  mainName[] = "pixserial_reg";
         pixDestroy(&pixs);
         pixDestroy(&pixd);
     }
+#endif
 
+    regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
 }
 

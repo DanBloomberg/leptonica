@@ -183,13 +183,13 @@ PIXA        *pixa;
 	if (i == 0) {   /* 1 bpp */
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_G3);
             nbytes = nbytesInFile("/tmp/junkg3.tif");
-            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            fprintf(stderr, "nbytes = %d, size = %ld\n", nbytes, size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_G3)) success = FALSE;
 	    FREE(data);
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_G4);
             nbytes = nbytesInFile("/tmp/junkg4.tif");
-            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            fprintf(stderr, "nbytes = %d, size = %ld\n", nbytes, size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_G4)) success = FALSE;
             readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp,
@@ -198,13 +198,13 @@ PIXA        *pixa;
 	    FREE(data);
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_RLE);
             nbytes = nbytesInFile("/tmp/junkrle.tif");
-            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            fprintf(stderr, "nbytes = %d, size = %ld\n", nbytes, size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_RLE)) success = FALSE;
 	    FREE(data);
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_PACKBITS);
             nbytes = nbytesInFile("/tmp/junkpb.tif");
-            fprintf(stderr, "nbytes = %d, size = %d\n", nbytes, size);
+            fprintf(stderr, "nbytes = %d, size = %ld\n", nbytes, size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_PACKBITS)) success = FALSE;
 	    FREE(data);
@@ -359,16 +359,14 @@ PIXA        *pixa;
 
 #if HAVE_FMEMOPEN
     pix = pixRead(FILE_8BPP_1);
-    tempname = genTempFilename((const char *)"/tmp", NULL,
-                               (const char *)".pnm");
+    tempname = genTempFilename((const char *)"/tmp", (const char *)".pnm", 1);
     pixWrite(tempname, pix, IFF_PNM);
     if (get_header_data(tempname, IFF_PNM)) success = FALSE;
     pixDestroy(&pix);
 #endif  /* HAVE_FMEMOPEN */
 
     pix = pixRead(FILE_1BPP);
-    tempname = genTempFilename((const char *)"/tmp", NULL,
-                               (const char *)".tif");
+    tempname = genTempFilename((const char *)"/tmp", (const char *)".tif", 1);
     pixWrite(tempname, pix, IFF_TIFF_G3);
     if (get_header_data(tempname, IFF_TIFF_G3)) success = FALSE;
     pixWrite(tempname, pix, IFF_TIFF_G4);
@@ -448,7 +446,7 @@ PIX     *pixt;
     pixt = *ppixt;
     pixEqual(pixs, pixt, &sameimage);
     if (!sameimage)
-        fprintf(stderr, "Mem Write/read fail for file %s with format %d\n",
+        fprintf(stderr, "Mem Write/read fail for file %d with format %d\n",
                 index, format);
     pixDestroy(&pixt);
     *ppixt = NULL;
@@ -484,7 +482,7 @@ PIX      *pixd = NULL;
         return 1;
     }
     if (format == IFF_JFIF_JPEG) {
-        fprintf(stderr, "jpeg size = %d\n", size);
+        fprintf(stderr, "jpeg size = %ld\n", size);
         pixDisplayWrite(pixd, 1);
         same = TRUE;
     }

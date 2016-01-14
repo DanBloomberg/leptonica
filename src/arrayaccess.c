@@ -105,11 +105,12 @@ l_clearDataBit(void    *line,
  *
  *      Input:  line  (ptr to beginning of data line)
  *              n     (pixel index)
- *              val   (val to be inserted: 0 - 3)
+ *              val   (val to be inserted: 0 or 1)
  *      Return: void
  *
  *  Notes:
- *      (1) This is actually a little slower than using:
+ *      (1) This is an accessor for a 1 bpp pix.
+ *      (2) It is actually a little slower than using:
  *            if (val == 0)
  *                l_ClearDataBit(line, n);
  *            else
@@ -161,7 +162,7 @@ l_uint32    *pword;
 
     pword = (l_uint32 *)line + (n >> 4);
     *pword &= ~(0xc0000000 >> (2 * (n & 15)));  /* clear */
-    *pword |= val << (30 - 2 * (n & 15));   /* set */
+    *pword |= (val & 3) << (30 - 2 * (n & 15));   /* set */
     return;
 }
 
@@ -215,7 +216,7 @@ l_uint32    *pword;
 
     pword = (l_uint32 *)line + (n >> 3);
     *pword &= ~(0xf0000000 >> (4 * (n & 7)));  /* clear */
-    *pword |= val << (28 - 4 * (n & 7));   /* set */
+    *pword |= (val & 15) << (28 - 4 * (n & 7));   /* set */
     return;
 }
 

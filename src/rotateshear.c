@@ -32,7 +32,7 @@
  *  Rotation is measured in radians; clockwise rotations are positive.
  *
  *  Rotation by shear works on images of any depth, 
- *  including 8 bpp color paletted images and 24 bpp
+ *  including 8 bpp color paletted images and 32 bpp
  *  rgb images.  It works by translating each src pixel
  *  value to the appropriate pixel in the rotated dest.
  *  For 8 bpp grayscale images, it is about 10-15x faster

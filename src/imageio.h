@@ -42,7 +42,8 @@ enum {
     IFF_PS             = 12,
     IFF_GIF            = 13,
     IFF_JP2            = 14,
-    IFF_DEFAULT        = 15
+    IFF_DEFAULT        = 15,
+    IFF_SPIX           = 16
 };
 
 

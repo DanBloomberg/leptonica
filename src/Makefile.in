@@ -73,7 +73,7 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	colorcontent.$(OBJEXT) colormap.$(OBJEXT) colormorph.$(OBJEXT) \
 	colorquant1.$(OBJEXT) colorquant2.$(OBJEXT) colorseg.$(OBJEXT) \
 	compare.$(OBJEXT) conncomp.$(OBJEXT) convolve.$(OBJEXT) \
-	convolvelow.$(OBJEXT) correlscore.$(OBJEXT) \
+	convolvelow.$(OBJEXT) correlscore.$(OBJEXT) dewarp.$(OBJEXT) \
 	dwacomb.2.$(OBJEXT) dwacomblow.2.$(OBJEXT) edge.$(OBJEXT) \
 	enhance.$(OBJEXT) fhmtauto.$(OBJEXT) fhmtgen.1.$(OBJEXT) \
 	fhmtgenlow.1.$(OBJEXT) finditalic.$(OBJEXT) \
@@ -84,31 +84,32 @@ am_liblept_a_OBJECTS = adaptmap.$(OBJEXT) affine.$(OBJEXT) \
 	graymorphlow.$(OBJEXT) grayquant.$(OBJEXT) \
 	grayquantlow.$(OBJEXT) heap.$(OBJEXT) jbclass.$(OBJEXT) \
 	jpegio.$(OBJEXT) jpegiostub.$(OBJEXT) kernel.$(OBJEXT) \
-	list.$(OBJEXT) maze.$(OBJEXT) morphapp.$(OBJEXT) \
-	morph.$(OBJEXT) morphdwa.$(OBJEXT) morphseq.$(OBJEXT) \
+	list.$(OBJEXT) maze.$(OBJEXT) morph.$(OBJEXT) \
+	morphapp.$(OBJEXT) morphdwa.$(OBJEXT) morphseq.$(OBJEXT) \
 	numabasic.$(OBJEXT) numafunc1.$(OBJEXT) numafunc2.$(OBJEXT) \
 	pageseg.$(OBJEXT) paintcmap.$(OBJEXT) parseprotos.$(OBJEXT) \
 	partition.$(OBJEXT) pix1.$(OBJEXT) pix2.$(OBJEXT) \
-	pix3.$(OBJEXT) pix4.$(OBJEXT) pixabasic.$(OBJEXT) \
-	pixacc.$(OBJEXT) pixafunc1.$(OBJEXT) pixafunc2.$(OBJEXT) \
-	pixalloc.$(OBJEXT) pixarith.$(OBJEXT) pixcomp.$(OBJEXT) \
-	pixconv.$(OBJEXT) pixtiling.$(OBJEXT) pngio.$(OBJEXT) \
-	pngiostub.$(OBJEXT) pnmio.$(OBJEXT) pnmiostub.$(OBJEXT) \
-	projective.$(OBJEXT) psio1.$(OBJEXT) psio1stub.$(OBJEXT) \
-	psio2.$(OBJEXT) psio2stub.$(OBJEXT) ptra.$(OBJEXT) \
-	pts.$(OBJEXT) queue.$(OBJEXT) rank.$(OBJEXT) \
-	readbarcode.$(OBJEXT) readfile.$(OBJEXT) regutils.$(OBJEXT) \
-	rop.$(OBJEXT) ropiplow.$(OBJEXT) roplow.$(OBJEXT) \
-	rotateam.$(OBJEXT) rotateamlow.$(OBJEXT) rotate.$(OBJEXT) \
-	rotateorth.$(OBJEXT) rotateorthlow.$(OBJEXT) \
-	rotateshear.$(OBJEXT) runlength.$(OBJEXT) sarray.$(OBJEXT) \
-	scale.$(OBJEXT) scalelow.$(OBJEXT) seedfill.$(OBJEXT) \
-	seedfilllow.$(OBJEXT) sel1.$(OBJEXT) sel2.$(OBJEXT) \
-	selgen.$(OBJEXT) shear.$(OBJEXT) skew.$(OBJEXT) \
-	stack.$(OBJEXT) textops.$(OBJEXT) tiffio.$(OBJEXT) \
-	tiffiostub.$(OBJEXT) utils.$(OBJEXT) viewfiles.$(OBJEXT) \
-	warper.$(OBJEXT) watershed.$(OBJEXT) writefile.$(OBJEXT) \
-	zlibmem.$(OBJEXT) zlibmemstub.$(OBJEXT)
+	pix3.$(OBJEXT) pix4.$(OBJEXT) pix5.$(OBJEXT) \
+	pixabasic.$(OBJEXT) pixacc.$(OBJEXT) pixafunc1.$(OBJEXT) \
+	pixafunc2.$(OBJEXT) pixalloc.$(OBJEXT) pixarith.$(OBJEXT) \
+	pixcomp.$(OBJEXT) pixconv.$(OBJEXT) pixtiling.$(OBJEXT) \
+	pngio.$(OBJEXT) pngiostub.$(OBJEXT) pnmio.$(OBJEXT) \
+	pnmiostub.$(OBJEXT) projective.$(OBJEXT) psio1.$(OBJEXT) \
+	psio1stub.$(OBJEXT) psio2.$(OBJEXT) psio2stub.$(OBJEXT) \
+	ptabasic.$(OBJEXT) ptafunc1.$(OBJEXT) ptra.$(OBJEXT) \
+	queue.$(OBJEXT) rank.$(OBJEXT) readbarcode.$(OBJEXT) \
+	readfile.$(OBJEXT) regutils.$(OBJEXT) rop.$(OBJEXT) \
+	ropiplow.$(OBJEXT) roplow.$(OBJEXT) rotate.$(OBJEXT) \
+	rotateam.$(OBJEXT) rotateamlow.$(OBJEXT) rotateorth.$(OBJEXT) \
+	rotateorthlow.$(OBJEXT) rotateshear.$(OBJEXT) \
+	runlength.$(OBJEXT) sarray.$(OBJEXT) scale.$(OBJEXT) \
+	scalelow.$(OBJEXT) seedfill.$(OBJEXT) seedfilllow.$(OBJEXT) \
+	sel1.$(OBJEXT) sel2.$(OBJEXT) selgen.$(OBJEXT) shear.$(OBJEXT) \
+	skew.$(OBJEXT) spixio.$(OBJEXT) stack.$(OBJEXT) \
+	textops.$(OBJEXT) tiffio.$(OBJEXT) tiffiostub.$(OBJEXT) \
+	utils.$(OBJEXT) viewfiles.$(OBJEXT) warper.$(OBJEXT) \
+	watershed.$(OBJEXT) writefile.$(OBJEXT) zlibmem.$(OBJEXT) \
+	zlibmemstub.$(OBJEXT)
 liblept_a_OBJECTS = $(am_liblept_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -263,8 +264,8 @@ liblept_a_SOURCES = adaptmap.c \
  colorseg.c \
  compare.c conncomp.c \
  convolve.c convolvelow.c \
- correlscore.c dwacomb.2.c \
- dwacomblow.2.c edge.c \
+ correlscore.c dewarp.c \
+ dwacomb.2.c dwacomblow.2.c edge.c \
  enhance.c fhmtauto.c \
  fhmtgen.1.c fhmtgenlow.1.c \
  finditalic.c \
@@ -277,13 +278,13 @@ liblept_a_SOURCES = adaptmap.c \
  grayquantlow.c heap.c jbclass.c \
  jpegio.c jpegiostub.c \
  kernel.c list.c \
- maze.c morphapp.c \
- morph.c morphdwa.c \
+ maze.c morph.c \
+ morphapp.c morphdwa.c \
  morphseq.c numabasic.c \
  numafunc1.c numafunc2.c pageseg.c \
  paintcmap.c parseprotos.c \
  partition.c \
- pix1.c pix2.c pix3.c pix4.c \
+ pix1.c pix2.c pix3.c pix4.c pix5.c \
  pixabasic.c pixacc.c \
  pixafunc1.c pixafunc2.c \
  pixalloc.c pixarith.c \
@@ -292,27 +293,26 @@ liblept_a_SOURCES = adaptmap.c \
  pnmio.c pnmiostub.c \
  projective.c psio1.c psio1stub.c \
  psio2.c psio2stub.c \
- ptra.c pts.c queue.c \
+ ptabasic.c ptafunc1.c ptra.c queue.c \
  rank.c readbarcode.c readfile.c \
  regutils.c rop.c ropiplow.c \
- roplow.c rotateam.c \
- rotateamlow.c rotate.c \
+ roplow.c rotate.c \
+ rotateam.c rotateamlow.c \
  rotateorth.c rotateorthlow.c \
  rotateshear.c runlength.c \
- sarray.c scale.c \
- scalelow.c seedfill.c \
- seedfilllow.c sel1.c \
- sel2.c selgen.c \
- shear.c skew.c \
+ sarray.c scale.c scalelow.c \
+ seedfill.c seedfilllow.c \
+ sel1.c sel2.c selgen.c \
+ shear.c skew.c spixio.c \
  stack.c textops.c \
  tiffio.c tiffiostub.c \
  utils.c viewfiles.c \
  warper.c watershed.c writefile.c \
  zlibmem.c zlibmemstub.c
 
-include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
- array.h bbuffer.h bmf.h bmp.h ccbord.h environ.h \
- gplot.h heap.h imageio.h jbclass.h jmorecfg.h jpeglib.h leptprotos.h list.h \
+include_HEADERS = allheaders.h alltypes.h array.h \
+ arrayaccess.h bbuffer.h bmf.h bmp.h ccbord.h dewarp.h environ.h \
+ gplot.h heap.h imageio.h jbclass.h leptprotos.h list.h \
  morph.h pix.h ptra.h queue.h readbarcode.h regutils.h \
  stack.h watershed.h
 
@@ -430,6 +430,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convolve.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convolvelow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/correlscore.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dewarp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dwacomb.2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dwacomblow.2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/edge.Po@am__quote@
@@ -475,6 +476,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix4.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pix5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixabasic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixacc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixafunc1.Po@am__quote@
@@ -493,8 +495,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio1stub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psio2stub.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptabasic.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptafunc1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptra.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/queue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rank.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/readbarcode.Po@am__quote@
@@ -520,6 +523,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/selgen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shear.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/skew.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spixio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stack.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/textops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tiffio.Po@am__quote@

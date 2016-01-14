@@ -22,6 +22,9 @@
  *      useful in applications.  Most are morphological in
  *      nature.
  *
+ *      Extraction of boundary pixels
+ *            PIX     *pixExtractBoundary()
+ *
  *      Selective morph sequence operation under mask
  *            PIX     *pixMorphSequenceMasked()
  *
@@ -66,6 +69,40 @@
 #include "allheaders.h"
 
 #define   SWAP(x, y)   {temp = (x); (x) = (y); (y) = temp;}
+
+
+/*-----------------------------------------------------------------*
+ *                   Extraction of boundary pixels                 *
+ *-----------------------------------------------------------------*/
+/*!
+ *  pixExtractBoundary()
+ *
+ *      Input:  pixs (1 bpp)
+ *              type (0 for background pixels; 1 for foreground pixels)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) Extracts the fg or bg boundary pixels for each component.
+ *          Components are assumed to end at the boundary of pixs.
+ */
+PIX *
+pixExtractBoundary(PIX     *pixs,
+                   l_int32  type)
+{
+PIX  *pixd;
+
+    PROCNAME("pixExtractBoundary");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    if (type == 0)
+        pixd = pixDilateBrick(NULL, pixs, 3, 3);
+    else
+        pixd = pixErodeBrick(NULL, pixs, 3, 3);
+    pixXor(pixd, pixd, pixs);
+    return pixd;
+}
 
 
 /*-----------------------------------------------------------------*

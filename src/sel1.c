@@ -1882,7 +1882,7 @@ SEL     *sel;
     if (n == 0)
         return (SEL *)ERROR_PTR("no pts in pta", procName, NULL);
 
-    box = ptaGetExtent(pta);
+    box = ptaGetBoundingRegion(pta);
     boxGetGeometry(box, &x, &y, &w, &h);
     boxDestroy(&box);
     if (x < 0 || y < 0)

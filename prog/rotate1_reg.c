@@ -33,92 +33,100 @@
 #define   EIGHT_BPP_CMAP_IMAGE2     "test24.jpg"
 #define   RGB_IMAGE                 "marge.jpg"
 
-static const l_int32    MODSIZE = 5;  /* set to 5 for display */
+static const l_int32    MODSIZE = 11;  /* set to 11 for display */
 
 static const l_float32  ANGLE1 = 3.14159265 / 12.;
 static const l_float32  ANGLE2 = 3.14159265 / 120.;
 static const l_int32    NTIMES = 24;
 
-void rotateTest(PIX *pixs, const char *filename, l_int32 reduction);
+static void RotateTest(PIX *pixs, l_int32 reduction, l_int32 *pcount,
+                       L_REGPARAMS *rp);
 
 
 l_int32 main(int    argc,
              char **argv)
 {
-PIX         *pixs, *pixd;
-static char  mainName[] = "rotate1_reg";
+l_int32       count, display, success;
+FILE         *fp;
+PIX          *pixs, *pixd;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  rotate1_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+              return 1;
 
+    count = 0;
     fprintf(stderr, "Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
-    rotateTest(pixs, "/tmp/junk1bpp.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 2 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(TWO_BPP_IMAGE);
-    rotateTest(pixs, "/tmp/junk2bpp.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
-    rotateTest(pixs, "/tmp/junk4bpp1.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
-    rotateTest(pixs, "/tmp/junk4bpp2.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
-    rotateTest(pixs, "/tmp/junk8bpp1.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
-    rotateTest(pixs, "/tmp/junk8bpp2.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
-    rotateTest(pixd, "/tmp/junk8bpp3.png", 4);
+    RotateTest(pixs, 4, &count, rp);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
-    rotateTest(pixs, "/tmp/junkrgb.png", 1);
+    RotateTest(pixs, 1, &count, rp);
     pixDestroy(&pixs);
 
+    regTestCleanup(argc, argv, fp, success, rp);
     return 0;
 }
 
 
-void
-rotateTest(PIX          *pixs,
-           const char  *filename,
-           l_int32      reduction)
+static void
+RotateTest(PIX          *pixs,
+           l_int32       reduction,
+           l_int32      *pcount,
+           L_REGPARAMS  *rp)
 {
-l_int32   w, h, d, i;
+l_int32   w, h, d, i, outformat;
 PIX      *pixt, *pixd;
 PIXA     *pixa;
 PIXCMAP  *cmap;
 
-    PROCNAME("rotateTest");
-
     pixa = pixaCreate(0);
     pixGetDimensions(pixs, &w, &h, &d);
+    outformat = (d == 8 || d == 32) ? IFF_JFIF_JPEG : IFF_PNG;
     cmap = pixGetColormap(pixs);
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE)
+            if (i == MODSIZE) {
                 pixSaveTiled(pixd, pixa, reduction, 1, 20, 32);
-            else
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            } else {
                 pixSaveTiled(pixd, pixa, reduction, 0, 20, 32);
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            }
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_SHEAR,
                          L_BRING_IN_WHITE, w, h);
@@ -130,10 +138,13 @@ PIXCMAP  *cmap;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_SAMPLING, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE)
+            if (i == MODSIZE) {
                 pixSaveTiled(pixd, pixa, reduction, 1, 20, 32);
-            else
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            } else {
                 pixSaveTiled(pixd, pixa, reduction, 0, 20, 32);
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            }
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_SAMPLING,
                          L_BRING_IN_WHITE, w, h);
@@ -145,10 +156,13 @@ PIXCMAP  *cmap;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_AREA_MAP, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE)
+            if (i == MODSIZE) {
                 pixSaveTiled(pixd, pixa, reduction, 1, 20, 32);
-            else
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            } else {
                 pixSaveTiled(pixd, pixa, reduction, 0, 20, 32);
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            }
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_AREA_MAP,
                          L_BRING_IN_WHITE, w, h);
@@ -160,10 +174,13 @@ PIXCMAP  *cmap;
     pixd = pixRotateAMCorner(pixs, ANGLE2, L_BRING_IN_WHITE);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE)
+            if (i == MODSIZE) {
                 pixSaveTiled(pixd, pixa, reduction, 1, 20, 32);
-            else
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            } else {
                 pixSaveTiled(pixd, pixa, reduction, 0, 20, 32);
+                regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+            }
         }
         pixt = pixRotateAMCorner(pixd, ANGLE2, L_BRING_IN_WHITE);
         pixDestroy(&pixd);
@@ -175,10 +192,13 @@ PIXCMAP  *cmap;
         pixd = pixRotateAMColorFast(pixs, ANGLE1, 0xb0ffb000);
         for (i = 1; i < NTIMES; i++) {
             if ((i % MODSIZE) == 0) {
-                if (i == MODSIZE)
+                if (i == MODSIZE) {
                     pixSaveTiled(pixd, pixa, reduction, 1, 20, 32);
-                else
+                    regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+                } else {
                     pixSaveTiled(pixd, pixa, reduction, 0, 20, 32);
+                    regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+                }
             }
             pixt = pixRotateAMColorFast(pixd, ANGLE1, 0xb0ffb000);
             pixDestroy(&pixd);
@@ -188,11 +208,9 @@ PIXCMAP  *cmap;
     pixDestroy(&pixd);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/junkrotate1.jpg", pixd, IFF_JFIF_JPEG);
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
-
     return;
 }
 

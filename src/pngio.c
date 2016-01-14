@@ -576,13 +576,15 @@ FILE  *fp;
  *          and 32.  However, it is possible, and in some cases desirable,
  *          to write out a png file using an rgb pix that has 24 bpp.
  *          For example, the open source xpdf SplashBitmap class generates
- *          24 bpp rgb images.  To write these directly to file in leptonica,
- *          you can make a 24 bpp pix without data and assign the data array
- *          to the pix; e.g.,
+ *          24 bpp rgb images.  Consequently, we anble writing 24 bpp pix.
+ *          To generate such a pix, you can make a 24 bpp pix without data
+ *          and assign the data array to the pix; e.g.,
  *              pix = pixCreateHeader(w, h, 24);
  *              pixSetData(pix, rgbdata);
- *              pixSetPadBits(pix, 0);
- *          Consequently, we enable writing 24 bpp pix.
+ *          See pixConvert32To24() for an example, where we get rgbdata
+ *          from the 32 bpp pix.  Caution: do not call pixSetPadBits(),
+ *          because the alignment is wrong and you may erase part of the
+ *          last pixel on each line.
  */
 l_int32
 pixWriteStreamPng(FILE      *fp,

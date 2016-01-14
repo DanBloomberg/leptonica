@@ -133,7 +133,7 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 #########################################################################
 
 SRC =		adaptnorm_reg.c affine_reg.c \
-		alltests_reg.c alphaclean_reg.c \
+		alltests_reg.c alphaclean_reg.c alphaxform_reg.c \
 		bilinear_reg.c binarize_reg.c \
 		binmorph1_reg.c binmorph2_reg.c \
 		binmorph3_reg.c binmorph4_reg.c binmorph5_reg.c \
@@ -141,18 +141,20 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorquant_reg.c \
 		colorseg_reg.c compfilter_reg.c \
-		conncomp_reg.c conversion_reg.c \
-		distance_reg.c dwamorph1_reg.c \
-		dwamorph2_reg.c enhance_reg.c \
-		equal_reg.c expand_reg.c extrema_reg.c \
-		fhmtauto_reg.c flipdetect_reg.c \
-		fmorphauto_reg.c fpix_reg.c gifio_reg.c \
+		conncomp_reg.c conversion_reg.c convolve_reg.c \
+		dewarp_reg.c distance_reg.c \
+		dwamorph1_reg.c dwamorph2_reg.c \
+		enhance_reg.c equal_reg.c \
+		expand_reg.c extrema_reg.c \
+		fhmtauto_reg.c findpattern_reg.c \
+		flipdetect_reg.c fmorphauto_reg.c \
+		fpix_reg.c gifio_reg.c \
 		grayfill_reg.c graymorph_reg.c grayquant_reg.c \
 		hardlight_reg.c heap_reg.c ioformats_reg.c \
 		kernel_reg.c locminmax_reg.c \
 		logicops_reg.c lowaccess_reg.c \
 		maze_reg.c morphseq_reg.c numa_reg.c \
-		paint_reg.c paintmask_reg.c \
+		overlap_reg.c paint_reg.c paintmask_reg.c \
 		pixa1_reg.c pixa2_reg.c \
 		pixadisp_reg.c pixalloc_reg.c \
 		pixcomp_reg.c pixmem_reg.c \
@@ -179,7 +181,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		convertfilestops.c convertformat.c \
 		convertsegfilestops.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
-		croptext.c digitprep1.c dithertest.c \
+		croptext.c dewarptest.c digitprep1.c dithertest.c \
 		dwalineargen.c edgetest.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
@@ -189,10 +191,13 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		histotest.c iotest.c inserttest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		lineremoval.c listtest.c \
+		livre_adapt.c livre_hmt.c \
+		livre_makefigs.c livre_orient.c \
+		livre_pageseg.c livre_seedgen.c livre_tophat.c \
 		maketile.c misctest1.c \
 		modifyhuesat.c morphtest1.c mtifftest.c \
-		numaranktest.c otsutest.c \
-		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
+		numaranktest.c otsutest1.c otsutest2.c \
+		pagesegtest1.c pagesegtest2.c \
 		partitiontest.c pixaatest.c \
 		plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
@@ -235,7 +240,7 @@ debian:	binarize_reg \
 	jbcorrelation jbrankhaus jbwords \
 	kernel_reg lineremoval locminmax_reg \
 	lowaccess_reg maze_reg numaranktest numa_reg pagesegtest1 \
-	pagesegtest2 pagesegtest3 paint_reg paintmask_reg \
+	pagesegtest2 paint_reg paintmask_reg \
 	partitiontest pixalloc_reg pixmem_reg plottest \
 	printimage printsplitimage printtiff \
 	ranktest rank_reg removecmap rotate1_reg rotate2_reg \
@@ -257,6 +262,9 @@ alltests_reg:	alltests_reg.o $(LEPTLIB)
 
 alphaclean_reg:	alphaclean_reg.o $(LEPTLIB)
 	$(CC) -o alphaclean_reg alphaclean_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+alphaxform_reg:	alphaxform_reg.o $(LEPTLIB)
+	$(CC) -o alphaxform_reg alphaxform_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 bilinear_reg:	bilinear_reg.o $(LEPTLIB)
 	$(CC) -o bilinear_reg bilinear_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -309,6 +317,12 @@ conncomp_reg: conncomp_reg.o $(LEPTLIB)
 conversion_reg: conversion_reg.o $(LEPTLIB)
 	$(CC) -o conversion_reg conversion_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+convolve_reg:	convolve_reg.o $(LEPTLIB)
+	$(CC) -o convolve_reg convolve_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+dewarp_reg:	dewarp_reg.o $(LEPTLIB)
+	$(CC) -o dewarp_reg dewarp_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 distance_reg:	distance_reg.o $(LEPTLIB)
 	$(CC) -o distance_reg distance_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -332,6 +346,9 @@ extrema_reg:	extrema_reg.o $(LEPTLIB)
 
 fhmtauto_reg:	fhmtauto_reg.o $(LEPTLIB)
 	$(CC) -o fhmtauto_reg fhmtauto_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+findpattern_reg:	findpattern_reg.o $(LEPTLIB)
+	$(CC) -o findpattern_reg findpattern_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 flipdetect_reg:	flipdetect_reg.o $(LEPTLIB)
 	$(CC) -o flipdetect_reg flipdetect_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -383,6 +400,9 @@ morphseq_reg:	morphseq_reg.o $(LEPTLIB)
 
 numa_reg:	numa_reg.o $(LEPTLIB)
 	$(CC) -o numa_reg numa_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+overlap_reg:	overlap_reg.o $(LEPTLIB)
+	$(CC) -o overlap_reg overlap_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 paint_reg:	paint_reg.o $(LEPTLIB)
 	$(CC) -o paint_reg paint_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -570,6 +590,9 @@ cornertest:	cornertest.o $(LEPTLIB)
 croptext:	croptext.o $(LEPTLIB)
 	$(CC) -o croptext croptext.o $(ALL_LIBS) $(EXTRALIBS)
 
+dewarptest:	dewarptest.o $(LEPTLIB)
+	$(CC) -o dewarptest dewarptest.o $(ALL_LIBS) $(EXTRALIBS)
+
 digitprep1:	digitprep1.o $(LEPTLIB)
 	$(CC) -o digitprep1 digitprep1.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -645,6 +668,27 @@ lineremoval:	lineremoval.o $(LEPTLIB)
 listtest:	listtest.o $(LEPTLIB)
 	$(CC) -o listtest listtest.o $(ALL_LIBS) $(EXTRALIBS)
 
+livre_adapt:	livre_adapt.o $(LEPTLIB)
+	$(CC) -o livre_adapt livre_adapt.o $(ALL_LIBS) $(EXTRALIBS)
+
+livre_hmt:	livre_hmt.o $(LEPTLIB)
+	$(CC) -o livre_hmt livre_hmt.o $(ALL_LIBS) $(EXTRALIBS)
+
+livre_makefigs:	livre_makefigs.o $(LEPTLIB)
+	$(CC) -o livre_makefigs livre_makefigs.o $(ALL_LIBS) $(EXTRALIBS)
+
+livre_orient:	livre_orient.o $(LEPTLIB)
+	$(CC) -o livre_orient livre_orient.o $(ALL_LIBS) $(EXTRALIBS)
+
+livre_pageseg:	livre_pageseg.o $(LEPTLIB)
+	$(CC) -o livre_pageseg livre_pageseg.o $(ALL_LIBS) $(EXTRALIBS)
+
+livre_seedgen:	livre_seedgen.o $(LEPTLIB)
+	$(CC) -o livre_seedgen livre_seedgen.o $(ALL_LIBS) $(EXTRALIBS)
+
+livre_tophat:	livre_tophat.o $(LEPTLIB)
+	$(CC) -o livre_tophat livre_tophat.o $(ALL_LIBS) $(EXTRALIBS)
+
 maketile:	maketile.o $(LEPTLIB)
 	$(CC) -o maketile maketile.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -663,17 +707,17 @@ mtifftest:	mtifftest.o $(LEPTLIB)
 numaranktest:	numaranktest.o $(LEPTLIB)
 	$(CC) -o numaranktest numaranktest.o $(ALL_LIBS) $(EXTRALIBS)
 
-otsutest:	otsutest.o $(LEPTLIB)
-	$(CC) -o otsutest otsutest.o $(ALL_LIBS) $(EXTRALIBS)
+otsutest1:	otsutest1.o $(LEPTLIB)
+	$(CC) -o otsutest1 otsutest1.o $(ALL_LIBS) $(EXTRALIBS)
+
+otsutest2:	otsutest2.o $(LEPTLIB)
+	$(CC) -o otsutest2 otsutest2.o $(ALL_LIBS) $(EXTRALIBS)
 
 pagesegtest1:	pagesegtest1.o $(LEPTLIB)
 	$(CC) -o pagesegtest1 pagesegtest1.o $(ALL_LIBS) $(EXTRALIBS)
 
 pagesegtest2:	pagesegtest2.o $(LEPTLIB)
 	$(CC) -o pagesegtest2 pagesegtest2.o $(ALL_LIBS) $(EXTRALIBS)
-
-pagesegtest3:	pagesegtest3.o $(LEPTLIB)
-	$(CC) -o pagesegtest3 pagesegtest3.o $(ALL_LIBS) $(EXTRALIBS)
 
 partitiontest:	partitiontest.o $(LEPTLIB)
 	$(CC) -o partitiontest partitiontest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -767,6 +811,7 @@ wordsinorder:	wordsinorder.o $(LEPTLIB)
 
 xtractprotos:   xtractprotos.o $(LEPTLIB)
 	$(CC) -o xtractprotos xtractprotos.o $(ALL_LIBS) $(EXTRALIBS)
+	cp xtractprotos ../src
 
 xvdisp:		xvdisp.o $(LEPTLIB)
 	$(CC) -o xvdisp xvdisp.o $(ALL_LIBS) $(EXTRALIBS)

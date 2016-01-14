@@ -91,10 +91,12 @@ static l_int32 findTilePatchCenter(PIX *pixs, BOX *box, l_int32 dir,
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) In-place operation.  Calls pixSetMaskedCmap() for colormapped
- *          images.
+ *      (1) In-place operation.
+ *      (2) NOTE: For cmapped images, this calls pixSetMaskedCmap().
+ *          @val must be the 32-bit color representation of the RGB pixel.
+ *          It is not the index into the colormap!
  *      (2) If pixm == NULL, a warning is given.
- *      (3) It is an implicitly aligned operation, where the UL
+ *      (3) This is an implicitly aligned operation, where the UL
  *          corners of pixd and pixm coincide.  A warning is
  *          issued if the two image sizes differ significantly,
  *          but the operation proceeds.
@@ -960,7 +962,7 @@ PIXA     *pixa;
         pixSaveTiled(pixb, pixa, 1, 0, 20, 0);
         pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
         pixt = pixaDisplay(pixa, 0, 0);
-        pixWrite("/tmp/junkrgb.png", pixt, IFF_PNG);
+        pixWriteTempfile("/tmp", "rgb.png", pixt, IFF_PNG, NULL);
         pixDestroy(&pixt);
         pixaDestroy(&pixa);
     }

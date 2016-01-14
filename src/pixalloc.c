@@ -397,7 +397,7 @@ L_PIX_MEM_STORE  *pms;
         return (void *)ERROR_PTR("data not made", procName, NULL);
     if (pms->logfile && nbytes >= pms->smallest) {
         fp = fopen(pms->logfile, "a");
-        fprintf(fp, "Alloc %d bytes at %p\n", nbytes, data);
+        fprintf(fp, "Alloc %ld bytes at %p\n", nbytes, data);
         fclose(fp);
     }
 
@@ -500,17 +500,17 @@ L_PIX_MEM_STORE  *pms;
 
     fprintf(stderr, "Total number of pix used at each level\n");
     for (i = 0; i < pms->nlevels; i++)
-         fprintf(stderr, " Level %d (%d bytes): %d\n", i, pms->sizes[i],
+         fprintf(stderr, " Level %d (%ld bytes): %d\n", i, pms->sizes[i],
                  pms->memused[i]);
 
     fprintf(stderr, "Max number of pix in use at any time in each level\n");
     for (i = 0; i < pms->nlevels; i++)
-         fprintf(stderr, " Level %d (%d bytes): %d\n", i, pms->sizes[i],
+         fprintf(stderr, " Level %d (%ld bytes): %d\n", i, pms->sizes[i],
                  pms->memmax[i]);
 
     fprintf(stderr, "Number of pix alloc'd because none were available\n");
     for (i = 0; i < pms->nlevels; i++)
-         fprintf(stderr, " Level %d (%d bytes): %d\n", i, pms->sizes[i],
+         fprintf(stderr, " Level %d (%ld bytes): %d\n", i, pms->sizes[i],
                  pms->memempty[i]);
 
     return;

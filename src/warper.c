@@ -63,6 +63,11 @@ static l_int32 applyWarpTransform(l_float32 xmag, l_float32 ymag,
 
 #define  USE_SIN_TABLE    0
 
+    /* Suggested input to pixStereoFromPair().  These are weighting
+     * factors for input to the red channel from the left image. */
+static const l_float32  L_DEFAULT_RED_WEIGHT   = 0.0;
+static const l_float32  L_DEFAULT_GREEN_WEIGHT = 0.7;
+static const l_float32  L_DEFAULT_BLUE_WEIGHT  = 0.3;
 
 
 /*----------------------------------------------------------------------*
@@ -480,10 +485,12 @@ l_float32  twopi, invtwopi, findex, diff;
  *                    quadratic curvature out of the image plane)
  *              zshiftt (uniform pixel translation difference between
  *                      red and cyan, that pushes the top of the image
- *                      plane in (zshiftt < 0) or out (zshiftt > 0))
+ *                      plane away from the viewer (zshiftt > 0) or 
+ *                      towards the viewer (zshiftt < 0))
  *              zshiftb (uniform pixel translation difference between
  *                      red and cyan, that pushes the bottom of the image
- *                      plane in (zshiftb < 0) or out (zshiftb > 0))
+ *                      plane away from the viewer (zshiftb > 0) or 
+ *                      towards the viewer (zshiftb < 0))
  *              ybendt (multiplicative parameter for in-plane vertical
  *                      displacement at the left or right edge at the top:
  *                        y = ybendt * (2x/w - 1)^2 )
@@ -645,8 +652,7 @@ PIX       *pixd;
 
         /* Perform a combination of horizontal shift and shear of
          * red pixels.  The causes the plane of the image to tilt and
-         * also move forward or backward.
-         * to tilt the plane of the image and move it forward or backward. */
+         * also move forward or backward. */
     if (zshiftt == 0 && zshiftb == 0)
         pixrss = pixClone(pixrs);
     else if (zshiftt == zshiftb)
@@ -1318,9 +1324,9 @@ PIX       *pixd;
         /* Make sure the sum of weights is 1.0; otherwise, you can get
          * overflow in the gray value. */
     if (rwt == 0.0 && gwt == 0.0 && bwt == 0.0) {
-        rwt = L_RED_WEIGHT;
-        gwt = L_GREEN_WEIGHT;
-        bwt = L_BLUE_WEIGHT;
+        rwt = L_DEFAULT_RED_WEIGHT;
+        gwt = L_DEFAULT_GREEN_WEIGHT;
+        bwt = L_DEFAULT_BLUE_WEIGHT;
     }
     sum = rwt + gwt + bwt;
     if (L_ABS(sum - 1.0) > 0.0001) {  /* maintain ratios with sum == 1.0 */

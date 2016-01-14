@@ -25,6 +25,9 @@
  *           l_int32    regTestCheckFile()
  *           l_int32    regTestCompareFiles()
  *           l_int32    regTestWritePixAndCheck()
+ *
+ *       Static function
+ *           char      *getRootNameFromArgv0()
  */
 
 #include <stdio.h>
@@ -35,6 +38,8 @@
 
 extern l_int32 NumImageFileFormatExtensions;
 extern const char *ImageFileFormatExtensions[];
+
+static char *getRootNameFromArgv0(const char *argv0);
 
 
 /*--------------------------------------------------------------------*
@@ -110,7 +115,7 @@ L_REGPARAMS  *rp;
 
     *pdisplay = (argc == 1) ? TRUE : FALSE;
     if (argc == 1 || strcmp(argv[1], "generate")) {
-        tempname = genTempFilename("/tmp", "junk_regtest_output", ".txt");
+        tempname = genTempFilename("/tmp", "regtest_output.txt", 1);
         *pfp = fopen(tempname, "wb");
         FREE(tempname);
         if (*pfp == NULL)
@@ -169,7 +174,7 @@ l_int32  nbytes;
     fclose(fp);
 
         /* Read back data from temp file */
-    tempname = genTempFilename("/tmp", "junk_regtest_output", ".txt");
+    tempname = genTempFilename("/tmp", "regtest_output.txt", 1);
     text = (char *)arrayRead(tempname, &nbytes);
     FREE(tempname);
     if (!text) {
@@ -188,7 +193,7 @@ l_int32  nbytes;
     FREE(text);
 
     if (argc == 1)
-        fprintf(stderr, message);
+        fprintf(stderr, "%s", message);
     else
         fileAppendString(argv[1], message);
     FREE(message);
@@ -369,7 +374,7 @@ regTestCheckFile(FILE        *fp,
 {
 char    *root, *ext;
 char     namebuf[64];
-l_int32  n, ret, same;
+l_int32  ret, same;
 
     PROCNAME("regTestCheckFile");
 
@@ -379,12 +384,10 @@ l_int32  n, ret, same;
         return ERROR_INT("local name not defined", procName, 1);
     if (index < 0)
         return ERROR_INT("index is negative", procName, 1);
-    if ((n = strlen(argv[0])) < 5)
-        return ERROR_INT("invalid argv; too small", procName, 1);
 
         /* Generate the golden file name */
-    root = stringNew(argv[0]);
-    root[n - 4] = '\0';
+    if ((root = getRootNameFromArgv0(argv[0])) == NULL)
+        return ERROR_INT("invalid root", procName, 1);
     splitPathAtExtension(localname, NULL, &ext);
     snprintf(namebuf, sizeof(namebuf), "/tmp/%s_golden.%d%s", root, index, ext);
     FREE(root);
@@ -445,7 +448,7 @@ regTestCompareFiles(FILE        *fp,
 {
 char    *root, *name1, *name2;
 char     namebuf[64];
-l_int32  n, error,same;
+l_int32  error,same;
 SARRAY  *sa;
 
     PROCNAME("regTestCompareFiles");
@@ -456,8 +459,6 @@ SARRAY  *sa;
         return ERROR_INT("index1 and/or index2 is negative", procName, 1);
     if (index1 == index2)
         return ERROR_INT("index1 must differ from index2", procName, 1);
-    if ((n = strlen(argv[0])) < 5)
-        return ERROR_INT("invalid argv; too small", procName, 1);
     if (!fp)  /* no-op */
         return 0;
 
@@ -465,8 +466,8 @@ SARRAY  *sa;
          * paths to them. */
     error = FALSE;
     name1 = name2 = NULL;
-    root = stringNew(argv[0]);
-    root[n - 4] = '\0';
+    if ((root = getRootNameFromArgv0(argv[0])) == NULL)
+        return ERROR_INT("invalid root", procName, 1);
     snprintf(namebuf, sizeof(namebuf), "%s_golden.%d.", root, index1);
     sa = getSortedPathnamesInDirectory("/tmp", namebuf, 0, 0);
     if (sarrayGetCount(sa) != 1)
@@ -520,9 +521,9 @@ SARRAY  *sa;
  *      (2) This function can be called repeatedly in a single reg test.
  *          Each time it is called, the count is incremented.
  *      (3) The canonical format of the local filename is:
- *             /tmp/junk<root of main name>.<count>.<format extension string>
+ *             /tmp/<root of main name>.<count>.<format extension string>
  *          e.g., for scale_reg,
- *             /tmp/junkscale.0.png
+ *             /tmp/scale.0.png
  */
 l_int32
 regTestWritePixAndCheck(PIX          *pix,
@@ -532,7 +533,6 @@ regTestWritePixAndCheck(PIX          *pix,
 {
 char    *root;
 char     namebuf[256];
-l_int32  n;
 
     PROCNAME("regTestWritePixAndCheck");
 
@@ -544,13 +544,11 @@ l_int32  n;
         return ERROR_INT("invalid format", procName, 1);
     if (!rp)
         return ERROR_INT("rp not defined", procName, 1);
-    if ((n = strlen(rp->argv[0])) < 5)
-        return ERROR_INT("invalid argv; too small", procName, 1);
 
         /* Generate the local file name */
-    root = stringNew(rp->argv[0]);
-    root[n - 4] = '\0';
-    snprintf(namebuf, sizeof(namebuf), "/tmp/junk%s.%d.%s", root, *pcount,
+    if ((root = getRootNameFromArgv0(rp->argv[0])) == NULL)
+        return ERROR_INT("invalid root", procName, 1);
+    snprintf(namebuf, sizeof(namebuf), "/tmp/%s.%d.%s", root, *pcount,
              ImageFileFormatExtensions[format]);
     FREE(root);
 
@@ -560,4 +558,42 @@ l_int32  n;
     regTestCheckFile(rp->fp, rp->argv, namebuf, (*pcount)++, &rp->success);
     return 0;
 }
+
+
+
+/*!
+ *  getRootNameFromArgv0()
+ *
+ *      Input:  argv0
+ *      Return: root name (without the '_reg'), or null on error
+ *
+ *  Notes:
+ *      (1) In windows, argv[0] is a long pathname with multiple
+ *          subdirectories, and ending with '.exe'.  In unix it
+ *          is just the tail name; e.g., psioseg_reg.
+ *          From psioseg_reg, we want to extract just 'psioseg'
+ *          as the root.
+ */
+static char *
+getRootNameFromArgv0(const char  *argv0)
+{
+l_int32  len;
+char    *root;
+
+    PROCNAME("getRootNameFromArgv0");
+
+#ifdef _WIN32
+    if ((len = strlen(argv0)) < 9)
+        return (char *)ERROR_PTR("invalid argv0; too small", procName, NULL);
+    splitPathAtDirectory(argv0, NULL, &root);
+    root[len - 8] = '\0';
+#else
+    if ((len = strlen(argv0)) < 5)
+        return (char *)ERROR_PTR("invalid argv0", procName, NULL);
+    root = stringNew(argv0);
+    root[len - 4] = '\0';
+#endif  /*  _WIN32 */
+    return root;
+}
+
 

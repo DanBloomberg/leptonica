@@ -64,12 +64,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
 #include <unistd.h>
-#else  /* COMPILER_MSVC */
+#else  /* _MSC_VER */
 #include <io.h>
 #define seek _seek;
-#endif  /* COMPILER_MSVC */
+#endif  /* _MSC_VER */
 #include <fcntl.h>
 #include "allheaders.h"
 
@@ -233,6 +233,22 @@ TIFF    *tif;
  *
  *      Input:  stream
  *      Return: pix, or null on error
+ *
+ * Quoting the libtiff documenation at http://libtiff.maptools.org/libtiff.html
+ *
+ * libtiff provides a high-level interface for reading image data from
+ * a TIFF file. This interface handles the details of data
+ * organization and format for a wide variety of TIFF files; at least
+ * the large majority of those files that one would normally
+ * encounter. Image data is, by default, returned as ABGR pixels
+ * packed into 32-bit words (8 bits per sample). Rectangular rasters
+ * can be read or data can be intercepted at an intermediate level and
+ * packed into memory in a format more suitable to the
+ * application. The library handles all the details of the format of
+ * data stored on disk and, in most cases, if any colorspace
+ * conversions are required: bilevel to RGB, greyscale to RGB, CMYK to
+ * RGB, YCbCr to RGB, 16-bit samples to 8-bit samples,
+ * associated/unassociated alpha, etc.
  */
 static PIX *
 pixReadFromTiffStream(TIFF  *tif)
@@ -255,14 +271,14 @@ PIXCMAP   *cmap;
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
     bpp = bps * spp;
-    if (bpp > 24)
-        return (PIX *)ERROR_PTR("can't handle bpp > 24", procName, NULL);
+    if (bpp > 32)
+        return (PIX *)ERROR_PTR("can't handle bpp > 32", procName, NULL);
     if (spp == 1)
         d = bps;
-    else if (spp == 3)
+    else if (spp == 3 || spp == 4)
         d = 32;
     else
-        return (PIX *)ERROR_PTR("spp not in set {1,3}", procName, NULL);
+        return (PIX *)ERROR_PTR("spp not in set {1,3,4}", procName, NULL);
 
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
@@ -2031,4 +2047,3 @@ TIFF    *tif;
 /* --------------------------------------------*/
 #endif  /* HAVE_LIBTIFF */
 /* --------------------------------------------*/
-

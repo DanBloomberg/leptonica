@@ -16,7 +16,13 @@
 /*
  *   numafunc2.c
  *
- *      Transformations
+ *      Morphological (min/max) operations
+ *          NUMA        *numaErode()
+ *          NUMA        *numaDilate()
+ *          NUMA        *numaOpen()
+ *          NUMA        *numaClose()
+ *
+ *      Other transforms
  *          NUMA        *numaTransform()
  *          NUMA        *numaConvolve()
  *          NUMA        *numaConvertToInt()
@@ -42,6 +48,7 @@
  *      Extrema finding
  *          NUMA        *numaFindPeaks()
  *          NUMA        *numaFindExtrema()
+ *          l_int32     *numaCountReversals()
  *
  *      Threshold crossings and frequency analysis
  *          l_int32      numaSelectCrossingThreshold()
@@ -107,7 +114,235 @@ static const l_int32 NBinSizes = 24;
 
 
 /*----------------------------------------------------------------------*
- *                             Transformations                          *
+ *                     Morphological operations                         *
+ *----------------------------------------------------------------------*/
+/*!
+ *  numaErode()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (eroded), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ *      (3) General comment.  The morphological operations are equivalent
+ *          to those that would be performed on a 1-dimensional fpix.
+ *          However, because we have not implemented morphological
+ *          operations on fpix, we do this here.  Because it is only
+ *          1 dimensional, there is no reason to use the more
+ *          complicated van Herk/Gil-Werman algorithm, and we do it
+ *          by brute force.
+ */
+NUMA *
+numaErode(NUMA    *nas,
+          l_int32  size)
+{
+l_int32     i, j, n, hsize, len;
+l_float32   minval;
+l_float32  *fa, *fas, *fad;
+NUMA       *nad;
+
+    PROCNAME("numaErode");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+        /* Make a source fa (fas) that has an added (size / 2) boundary
+         * on left and right, contains a copy of nas in the interior region
+         * (between 'size' and 'size + n', and has large values
+         * inserted in the boundary (because it is an erosion). */
+    n = numaGetCount(nas);
+    hsize = size / 2;
+    len = n + 2 * hsize;
+    if ((fas = (l_float32 *)CALLOC(len, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("fas not made", procName, NULL);
+    for (i = 0; i < hsize; i++)
+         fas[i] = 1.0e37;
+    for (i = hsize + n; i < len; i++)
+         fas[i] = 1.0e37;
+    fa = numaGetFArray(nas, L_NOCOPY);
+    for (i = 0; i < n; i++)
+         fas[hsize + i] = fa[i];
+
+    nad = numaMakeConstant(0, n);
+    numaCopyXParameters(nad, nas);
+    fad = numaGetFArray(nad, L_NOCOPY);
+    for (i = 0; i < n; i++) {
+        minval = 1.0e37;  /* start big */
+        for (j = 0; j < size; j++)
+            minval = L_MIN(minval, fas[i + j]);
+        fad[i] = minval;
+    }
+
+    FREE(fas);
+    return nad;
+}
+
+
+/*!
+ *  numaDilate()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (dilated), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ */
+NUMA *
+numaDilate(NUMA    *nas,
+           l_int32  size)
+{
+l_int32     i, j, n, hsize, len;
+l_float32   maxval;
+l_float32  *fa, *fas, *fad;
+NUMA       *nad;
+
+    PROCNAME("numaDilate");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+        /* Make a source fa (fas) that has an added (size / 2) boundary
+         * on left and right, contains a copy of nas in the interior region
+         * (between 'size' and 'size + n', and has small values
+         * inserted in the boundary (because it is a dilation). */
+    n = numaGetCount(nas);
+    hsize = size / 2;
+    len = n + 2 * hsize;
+    if ((fas = (l_float32 *)CALLOC(len, sizeof(l_float32))) == NULL)
+        return (NUMA *)ERROR_PTR("fas not made", procName, NULL);
+    for (i = 0; i < hsize; i++)
+         fas[i] = -1.0e37;
+    for (i = hsize + n; i < len; i++)
+         fas[i] = -1.0e37;
+    fa = numaGetFArray(nas, L_NOCOPY);
+    for (i = 0; i < n; i++)
+         fas[hsize + i] = fa[i];
+
+    nad = numaMakeConstant(0, n);
+    numaCopyXParameters(nad, nas);
+    fad = numaGetFArray(nad, L_NOCOPY);
+    for (i = 0; i < n; i++) {
+        maxval = -1.0e37;  /* start small */
+        for (j = 0; j < size; j++)
+            maxval = L_MAX(maxval, fas[i + j]);
+        fad[i] = maxval;
+    }
+
+    FREE(fas);
+    return nad;
+}
+
+
+/*!
+ *  numaOpen()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (opened), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ */
+NUMA *
+numaOpen(NUMA    *nas,
+         l_int32  size)
+{
+NUMA  *nat, *nad;
+
+    PROCNAME("numaOpen");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+    nat = numaErode(nas, size);
+    nad = numaDilate(nat, size);
+    numaDestroy(&nat);
+    return nad;
+}
+
+
+/*!
+ *  numaClose()
+ *
+ *      Input:  nas
+ *              size (of sel; greater than 0, odd; origin implicitly in center)
+ *      Return: nad (opened), or null on error
+ *
+ *  Notes:
+ *      (1) The structuring element (sel) is linear, all "hits"
+ *      (2) If size == 1, this returns a copy
+ *      (3) We add a border before doing this operation, for the same
+ *          reason that we add a border to a pix before doing a safe closing.
+ *          Without the border, a small component near the border gets
+ *          clipped at the border on dilation, and can be entirely removed
+ *          by the following erosion, violating the basic extensivity
+ *          property of closing.
+ */
+NUMA *
+numaClose(NUMA    *nas,
+          l_int32  size)
+{
+NUMA  *nab, *nat1, *nat2, *nad;
+
+    PROCNAME("numaClose");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+    if ((size & 1) == 0 ) {
+        L_WARNING("sel size must be odd; increasing by 1", procName);
+        size++;
+    }
+
+    if (size == 1)
+        return numaCopy(nas);
+
+    nab = numaAddBorder(nas, size, size, 0);  /* to preserve extensivity */
+    nat1 = numaDilate(nab, size);
+    nat2 = numaErode(nat1, size);
+    nad = numaRemoveBorder(nat2, size, size);
+    numaDestroy(&nab);
+    numaDestroy(&nat1);
+    numaDestroy(&nat2);
+    return nad;
+}
+
+
+/*----------------------------------------------------------------------*
+ *                            Other transforms                          *
  *----------------------------------------------------------------------*/
 /*!
  *  numaTransform()
@@ -433,6 +668,7 @@ NUMA      *nah;
     for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &fval);
         ibin = (l_int32)((fval - minval) / binsize);
+        ibin = L_MIN(ibin, maxbins - 1);  /* "edge" case; stay in bounds */
         numaGetIValue(nah, ibin, &ival);
         numaSetValue(nah, ibin, ival + 1.0);
     }
@@ -1156,12 +1392,15 @@ l_float32  sum, midrank, endrank, val;
     start = 0;
     for (i = 0; i < nbins; i++) {
         numaGetIValue(nabb, i, &rightedge);
-        numaGetFValue(nam, i, &val);
         for (j = start; j < npts; j++) {
-            if ((j <= rightedge) && (start < npts - 1))
+            if (j <= rightedge)
                 numaAddNumber(narbin, i);
-            if ((j > rightedge) || (j == npts - 1)) {
+            if (j > rightedge) {
                 start = j;
+                break;
+            }
+            if (j == npts - 1) {  /* we're done */
+                start = j + 1;
                 break;
             }
         }
@@ -1262,23 +1501,33 @@ l_float32  maxval, delx;
  *  Notes:
  *      (1) This function is intended to be used on a distribution of
  *          values that represent two sets, such as a histogram of
- *          pixel values, and the goal is to determine the means of
- *          the two sets and the best splitting point.
+ *          pixel values for an image with a fg and bg, and the goal
+ *          is to determine the averages of the two sets and the
+ *          best splitting point.
  *      (2) The Otsu method finds a split point that divides the distribution
  *          into two parts by maximizing a score function that is the
  *          product of two terms:
  *            (a) the square of the difference of centroids, (ave1 - ave2)^2
  *            (b) fract1 * (1 - fract1)
  *          where fract1 is the fraction in the lower distribution.
- *          This biases the split point into the larger "bump" (i.e., toward
- *          the point where the (b) term reaches its maximum of 0.25 at
- *          fract1 = 0.5.  To avoid this, we define a range of values near
- *          the maximum of the score function, and choose the value within
+ *      (3) This works well for images where the fg and bg are
+ *          each relatively homogeneous and well-separated in color.
+ *          However, if the actual fg and bg sets are very different
+ *          in size, and the bg is highly varied, as can occur in some
+ *          scanned document images, this will bias the split point
+ *          into the larger "bump" (i.e., toward the point where the
+ *          (b) term reaches its maximum of 0.25 at fract1 = 0.5.
+ *          To avoid this, we define a range of values near the
+ *          maximum of the score function, and choose the value within
  *          this range such that the histogram itself has a minimum value.
  *          The range is determined by scorefract: we include all abscissa
  *          values to the left and right of the value that maximizes the
  *          score, such that the score stays above (1 - scorefract) * maxscore.
- *      (3) We normalize the score so that if the two distributions
+ *          The intuition behind this modification is to try to find
+ *          a split point that both has a high variance score and is
+ *          at or near a minimum in the histogram, so that the histogram
+ *          slope is small at the split point.
+ *      (4) We normalize the score so that if the two distributions
  *          were of equal size and at opposite ends of the numa, the
  *          score would be 1.0.
  */
@@ -1381,6 +1630,11 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
         }
     }
 
+        /* Add one to the bestsplit value to get the threshold value,
+         * because when we take a threshold, as in pixThresholdToBinary(),
+         * we always choose the set with values below the threshold. */
+    bestsplit = L_MIN(255, bestsplit + 1);
+
     if (psplitindex) *psplitindex = bestsplit;
     if (pave1) numaGetFValue(naave1, bestsplit, pave1);
     if (pave2) numaGetFValue(naave2, bestsplit, pave2);
@@ -1390,7 +1644,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
     if (pnascore) {  /* debug mode */
         fprintf(stderr, "minrange = %d, maxrange = %d\n", minrange, maxrange);
         fprintf(stderr, "minval = %10.0f\n", minval);
-        gplotSimple1(nascore, GPLOT_X11, "junkoutroot",
+        gplotSimple1(nascore, GPLOT_PNG, "/tmp/nascore",
                      "Score for split distribution");
         *pnascore = nascore;
     }
@@ -1604,6 +1858,54 @@ NUMA      *nad;
         /* Save the final extremum */
 /*    numaAddNumber(nad, loc); */
     return nad;
+}
+
+
+/*!
+ *  numaCountReversals()
+ *
+ *      Input:  nas (input values)
+ *              minreversal (relative amount to resolve peaks and valleys)
+ *              &nr (<optional return> number of reversals
+ *              &nrpl (<optional return> reversal density: reversals/length)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The input numa is can be generated from pixExtractAlongLine().
+ *          If so, the x parameters can be used to find the reversal
+ *          frequency along a line.
+ */
+l_int32
+numaCountReversals(NUMA       *nas,
+                   l_float32   minreversal,
+                   l_int32    *pnr,
+                   l_float32  *pnrpl)
+{
+l_int32    n, nr;
+l_float32  delx, len;
+NUMA      *nat;
+
+    PROCNAME("numaCountReversals");
+
+    if (!pnr && !pnrpl)
+        return ERROR_INT("neither &nr nor &nrpl are defined", procName, 1);
+    if (pnr) *pnr = 0;
+    if (pnrpl) *pnrpl = 0.0;
+    if (!nas)
+        return ERROR_INT("nas not defined", procName, 1);
+
+    n = numaGetCount(nas);
+    nat = numaFindExtrema(nas, minreversal);
+    nr = numaGetCount(nat);
+    if (pnr) *pnr = nr;
+    if (pnrpl) {
+        numaGetXParameters(nas, NULL, &delx);
+        len = delx * n;
+        *pnrpl = (l_float32)nr / len;
+    }
+
+    numaDestroy(&nat);
+    return 0;
 }
 
 

@@ -208,8 +208,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }
@@ -342,8 +347,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }
@@ -468,8 +478,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }
@@ -593,8 +608,13 @@ PIXA    *pixas, *pixad;
         count = pixaGetCount(pixad);
         if (count == 0)  /* return empty pix */
             pixd = pixCreateTemplate(pixs);
-        else
+        else {
             pixd = pixaDisplay(pixad, w, h);
+            pixCopyResolution(pixd, pixs);
+            pixCopyColormap(pixd, pixs);
+            pixCopyText(pixd, pixs);
+            pixCopyInputFormat(pixd, pixs);
+        }
         pixaDestroy(&pixad);
         return pixd;
     }

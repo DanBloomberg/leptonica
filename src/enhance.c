@@ -19,6 +19,7 @@
  *      Gamma TRC (tone reproduction curve) mapping
  *           PIX     *pixGammaTRC()
  *           PIX     *pixGammaTRCMasked()
+ *           PIX     *pixGammaTRCWithAlpha()
  *           NUMA    *numaGammaTRC()
  *
  *      Contrast enhancement
@@ -87,6 +88,9 @@
  *      is transformed to HSV, modified, and transformed back.
  *      It's not the fastest way to do this, but the method is
  *      easily understood.
+ *
+ *      Unsharp masking is never in-place, and returns a clone if no
+ *      operation is to be performed.
  */
 
 
@@ -118,28 +122,32 @@ static const l_int32  DEFAULT_HISTO_SAMPLES = 100000;
  *
  *  Notes:
  *      (1) pixd must either be null or equal to pixs.
- *          Set pixd == pixs to get in-place operation;
- *          set pixd == null to get new image.
+ *          For in-place operation, set pixd == pixs:
+ *             pixGammaTRC(pixs, pixs, ...);
+ *          To get a new image, set pixd == null:
+ *             pixd = pixGammaTRC(NULL, pixs, ...);
  *      (2) If pixs is colormapped, the colormap is transformed,
  *          either in-place or in a copy of pixs.
  *      (3) We use a gamma mapping between minval and maxval.
  *      (4) If gamma < 1.0, the image will appear darker;
  *          if gamma > 1.0, the image will appear lighter;
- *          if gamma == 1.0 and minval == 0 and maxval == 255, return a clone
- *      (5) For color images that are not colormapped, the mapping
+ *      (5) If gamma = 1.0 and minval = 0 and maxval = 255, no
+ *          enhancement is performed; return a copy unless in-place,
+ *          in which case this is a no-op.
+ *      (6) For color images that are not colormapped, the mapping
  *          is applied to each component.
- *      (6) minval and maxval are not restricted to the interval [0, 255].
+ *      (7) minval and maxval are not restricted to the interval [0, 255].
  *          If minval < 0, an input value of 0 is mapped to a
  *          nonzero output.  This will turn black to gray.
  *          If maxval > 255, an input value of 255 is mapped to
  *          an output value less than 255.  This will turn
  *          white (e.g., in the background) to gray.
- *      (7) Increasing minval darkens the image.
- *      (8) Decreasing maxval bleaches the image.
- *      (9) Simultaneously increasing minval and decreasing maxval
- *          will darken the image and make the colors more intense;
- *          e.g., minval = 50, maxval = 200.
- *      (10) See numaGammaTRC() for further examples of use.
+ *      (8) Increasing minval darkens the image.
+ *      (9) Decreasing maxval bleaches the image.
+ *      (10) Simultaneously increasing minval and decreasing maxval
+ *           will darken the image and make the colors more intense;
+ *           e.g., minval = 50, maxval = 200.
+ *      (11) See numaGammaTRC() for further examples of use.
  */
 PIX *
 pixGammaTRC(PIX       *pixd,
@@ -164,14 +172,13 @@ PIXCMAP  *cmap;
     }
     if (minval >= maxval)
         return (PIX *)ERROR_PTR("minval not < maxval", procName, pixd);
-
-    if (gamma == 1.0 && minval == 0 && maxval == 255)
-        return pixClone(pixs);
-
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
     if (!cmap && d != 8 && d != 32)
         return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, pixd);
+
+    if (gamma == 1.0 && minval == 0 && maxval == 255)  /* no-op */
+        return pixCopy(pixd, pixs);
 
     if (!pixd)  /* start with a copy if not in-place */
         pixd = pixCopy(NULL, pixs);
@@ -235,11 +242,13 @@ NUMA    *nag;
         return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, pixd);
     if (minval >= maxval)
         return (PIX *)ERROR_PTR("minval not < maxval", procName, pixd);
-
     if (gamma <= 0.0) {
         L_WARNING("gamma must be > 0.0; setting to 1.0", procName);
         gamma = 1.0;
     }
+
+    if (gamma == 1.0 && minval == 0 && maxval == 255)
+        return pixCopy(pixd, pixs);
 
     if (!pixd)  /* start with a copy if not in-place */
         pixd = pixCopy(NULL, pixs);
@@ -249,6 +258,62 @@ NUMA    *nag;
     pixTRCMap(pixd, pixm, nag);
     numaDestroy(&nag);
 
+    return pixd;
+}
+
+
+/*!
+ *  pixGammaTRCWithAlpha()
+ *
+ *      Input:  pixd (<optional> null or equal to pixs)
+ *              pixs (32 bpp)
+ *              gamma (gamma correction; must be > 0.0)
+ *              minval  (input value that gives 0 for output; can be < 0)
+ *              maxval  (input value that gives 255 for output; can be > 255)
+ *      Return: pixd always
+ *
+ *  Notes:
+ *      (1) See usage notes in pixGammaTRC().
+ *      (2) This version saves the alpha channel.  It is only valid
+ *          for 32 bpp (no colormap), and is a bit slower.
+ */
+PIX *
+pixGammaTRCWithAlpha(PIX       *pixd,
+                     PIX       *pixs,
+                     l_float32  gamma,
+                     l_int32    minval,
+                     l_int32    maxval)
+{
+NUMA  *nag;
+PIX   *pixalpha;
+
+    PROCNAME("pixGammaTRCWithAlpha");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, pixd);
+    if (pixd && (pixd != pixs))
+        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+    if (gamma <= 0.0) {
+        L_WARNING("gamma must be > 0.0; setting to 1.0", procName);
+        gamma = 1.0;
+    }
+    if (minval >= maxval)
+        return (PIX *)ERROR_PTR("minval not < maxval", procName, pixd);
+
+    if (gamma == 1.0 && minval == 0 && maxval == 255)
+        return pixCopy(pixd, pixs);
+
+    pixalpha = pixGetRGBComponent(pixs, L_ALPHA_CHANNEL);  /* save */
+    if (!pixd)  /* start with a copy if not in-place */
+        pixd = pixCopy(NULL, pixs);
+
+    if ((nag = numaGammaTRC(gamma, minval, maxval)) == NULL)
+        return (PIX *)ERROR_PTR("nag not made", procName, pixd);
+    pixTRCMap(pixd, NULL, nag);
+    pixSetRGBComponent(pixd, pixalpha, L_ALPHA_CHANNEL);  /* restore */
+
+    numaDestroy(&nag);
+    pixDestroy(&pixalpha);
     return pixd;
 }
 
@@ -321,8 +386,10 @@ NUMA      *na;
  *
  *  Notes:
  *      (1) pixd must either be null or equal to pixs.
- *          Set pixd == pixs to get in-place operation;
- *          set pixd == null to get new image.
+ *          For in-place operation, set pixd == pixs:
+ *             pixContrastTRC(pixs, pixs, ...);
+ *          To get a new image, set pixd == null:
+ *             pixd = pixContrastTRC(NULL, pixs, ...);
  *      (2) If pixs is colormapped, the colormap is transformed,
  *          either in-place or in a copy of pixs.
  *      (3) Contrast is enhanced by mapping each color component
@@ -331,8 +398,9 @@ NUMA      *na;
  *          above 127 are increased.
  *      (4) The useful range for the contrast factor is scaled to
  *          be in (0.0 to 1.0), but larger values can also be used.
- *          0.0 corresponds to no enhancement; return a clone.
- *      (5) For color images that are not colormapped, the mapping
+ *      (5) If factor == 0.0, no enhancement is performed; return a copy
+ *          unless in-place, in which case this is a no-op.
+ *      (6) For color images that are not colormapped, the mapping
  *          is applied to each component.
  */
 PIX *
@@ -355,7 +423,7 @@ PIXCMAP  *cmap;
         factor = 0.0;
     }
     if (factor == 0.0)
-        return pixClone(pixs);
+        return pixCopy(pixd, pixs);
 
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
@@ -424,7 +492,7 @@ NUMA    *nac;
         factor = 0.0;
     }
     if (factor == 0.0)
-        return pixClone(pixs);
+        return pixCopy(pixd, pixs);
 
     if (!pixd)  /* start with a copy if not in-place */
         pixd = pixCopy(NULL, pixs);
@@ -492,24 +560,29 @@ NUMA      *na;
  *  pixEqualizeTRC()
  *
  *      Input:  pixd (<optional> null or equal to pixs)
- *              pixs (8 bpp, or colormapped)
+ *              pixs (8 bpp gray, 32 bpp rgb, or colormapped)
  *              fract (fraction of equalization movement of pixel values)
  *              factor (subsampling factor; integer >= 1)
  *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) pixd must either be null or equal to pixs.
- *          Set pixd == pixs to get in-place operation;
- *          set pixd == null to get new image.
+ *          For in-place operation, set pixd == pixs:
+ *             pixEqualizeTRC(pixs, pixs, ...);
+ *          To get a new image, set pixd == null:
+ *             pixd = pixEqualizeTRC(NULL, pixs, ...);
  *      (2) In histogram equalization, a tone reproduction curve
  *          mapping is used to make the number of pixels at each
  *          intensity equal.
- *      (3) If fract == 0.0, no equalization is performed; return a copy.
+ *      (3) If fract == 0.0, no equalization is performed; return a copy
+ *          unless in-place, in which case this is a no-op.
  *          If fract == 1.0, equalization is complete.
  *      (4) Set the subsampling factor > 1 to reduce the amount of computation.
- *      (5) If the pix is colormapped, the colormap is removed and
- *          it is converted to grayscale.
- *      (6) Note that even if there is a colormap, we can get an
+ *      (5) If pixs is colormapped, the colormap is removed and
+ *          converted to rgb or grayscale.
+ *      (6) If pixs has color, equalization is done in each channel
+ *          separately.
+ *      (7) Note that even if there is a colormap, we can get an
  *          in-place operation because the intermediate image pixt
  *          is copied back to pixs (which for in-place is the same
  *          as pixd).
@@ -520,8 +593,9 @@ pixEqualizeTRC(PIX       *pixd,
                l_float32  fract,
 	       l_int32    factor)
 {
+l_int32   d;
 NUMA     *na;
-PIX      *pixt;
+PIX      *pixt, *pix8;
 PIXCMAP  *cmap;
 
     PROCNAME("pixEqualizeTRC");
@@ -531,8 +605,9 @@ PIXCMAP  *cmap;
     if (pixd && (pixd != pixs))
         return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
     cmap = pixGetColormap(pixs);
-    if ((pixGetDepth(pixs) != 8) && !cmap)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp or cmapped", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 8 && d != 32 && !cmap)
+        return (PIX *)ERROR_PTR("pixs not 8/32 bpp or cmapped", procName, NULL);
     if (fract < 0.0 || fract > 1.0)
         return (PIX *)ERROR_PTR("fract not in [0.0 ... 1.0]", procName, NULL);
     if (factor < 1)
@@ -543,7 +618,7 @@ PIXCMAP  *cmap;
  
         /* If there is a colormap, remove it. */
     if (cmap)
-        pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+        pixt = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     else
         pixt = pixClone(pixs);
 
@@ -551,10 +626,32 @@ PIXCMAP  *cmap;
     pixd = pixCopy(pixd, pixt);
     pixDestroy(&pixt);
 
-    if ((na = numaEqualizeTRC(pixd, fract, factor)) == NULL)
-        return (PIX *)ERROR_PTR("na not made", procName, pixd);
-    pixTRCMap(pixd, NULL, na);
-    numaDestroy(&na);
+    d = pixGetDepth(pixd);
+    if (d == 8) {
+        na = numaEqualizeTRC(pixd, fract, factor);
+        pixTRCMap(pixd, NULL, na);
+        numaDestroy(&na);
+    }
+    else {  /* 32 bpp */
+        pix8 = pixGetRGBComponent(pixd, COLOR_RED);
+        na = numaEqualizeTRC(pix8, fract, factor);
+        pixTRCMap(pix8, NULL, na);
+        pixSetRGBComponent(pixd, pix8, COLOR_RED);
+        numaDestroy(&na);
+        pixDestroy(&pix8);
+        pix8 = pixGetRGBComponent(pixd, COLOR_GREEN);
+        na = numaEqualizeTRC(pix8, fract, factor);
+        pixTRCMap(pix8, NULL, na);
+        pixSetRGBComponent(pixd, pix8, COLOR_GREEN);
+        numaDestroy(&na);
+        pixDestroy(&pix8);
+        pix8 = pixGetRGBComponent(pixd, COLOR_BLUE);
+        na = numaEqualizeTRC(pix8, fract, factor);
+        pixTRCMap(pix8, NULL, na);
+        pixSetRGBComponent(pixd, pix8, COLOR_BLUE);
+        numaDestroy(&na);
+        pixDestroy(&pix8);
+    }
 
     return pixd;
 }
@@ -639,6 +736,7 @@ NUMA      *nah, *nasum, *nad;
  *      (4) If defined, the optional 1 bpp mask pixm has its origin
  *          aligned with pixs, and the map function is applied only
  *          to pixels in pixs under the fg of pixm.
+ *      (5) For 32 bpp, this does not save the alpha channel.
  */
 l_int32
 pixTRCMap(PIX   *pixs,
@@ -762,6 +860,7 @@ l_uint32  *data, *datam, *line, *linem;
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
  *      (2) The fract parameter is typically taken in the
  *          range:  0.2 < fract < 0.7
+ *      (3) Returns a clone if no sharpening is requested.
  */
 PIX *
 pixUnsharpMasking(PIX       *pixs,
@@ -826,6 +925,7 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
  *      (2) The fract parameter is typically taken in the range:
  *          0.2 < fract < 0.7
+ *      (3) Returns a clone if no sharpening is requested.
  */
 PIX *
 pixUnsharpMaskingGray(PIX       *pixs,
@@ -920,6 +1020,7 @@ PIXACC  *pixacc;
  *          to the filter origin, and v.v.   So we either do the full
  *          2D filter (for @halfwidth == 1) or do the low-pass
  *          convolution separably and then compose with the original pix.
+ *      (6) Returns a clone if no sharpening is requested.
  */
 PIX *
 pixUnsharpMaskingFast(PIX       *pixs,
@@ -986,6 +1087,7 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
  *  Notes:
  *      (1) For usage and explanation of the algorithm, see notes
  *          in pixUnsharpMaskingFast().
+ *      (2) Returns a clone if no sharpening is requested.
  */
 PIX *
 pixUnsharpMaskingGrayFast(PIX       *pixs,
@@ -1032,6 +1134,7 @@ PIX  *pixd;
  *  Notes:
  *      (1) For usage and explanation of the algorithm, see notes
  *          in pixUnsharpMaskingFast().
+ *      (2) Returns a clone if no sharpening is requested.
  */
 PIX *
 pixUnsharpMaskingGray1D(PIX       *pixs,
@@ -1168,6 +1271,7 @@ PIX       *pixd;
  *      (1) For halfwidth == 1, we implement the full sharpening filter
  *          directly.  For halfwidth == 2, we implement the the lowpass
  *          filter separably and then compute the sharpening result locally.
+ *      (2) Returns a clone if no sharpening is requested.
  */
 PIX *
 pixUnsharpMaskingGray2D(PIX       *pixs,
@@ -1288,14 +1392,21 @@ FPIX       *fpix;
 /*!
  *  pixModifyHue()
  *
- *      Input:  pixd (<optional> can be null, existing or equal to pixs)
+ *      Input:  pixd (<optional> can be null or equal to pixs)
  *              pixs (32 bpp rgb)
  *              fract (between -1.0 and 1.0)
  *      Return: pixd, or null on error
  *
  *  Notes:
+ *      (1) pixd must either be null or equal to pixs.
+ *          For in-place operation, set pixd == pixs:
+ *             pixEqualizeTRC(pixs, pixs, ...);
+ *          To get a new image, set pixd == null:
+ *             pixd = pixEqualizeTRC(NULL, pixs, ...);
  *      (1) Use fract > 0.0 to increase hue value; < 0.0 to decrease it.
  *          1.0 (or -1.0) represents a 360 degree rotation; i.e., no change.
+ *      (2) If no modification is requested (fract = -1.0 or 0 or 1.0),
+ *          return a copy unless in-place, in which case this is a no-op.
  */
 PIX  *
 pixModifyHue(PIX       *pixd,
@@ -1310,6 +1421,10 @@ l_uint32  *data, *line;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetColormap(pixs) != NULL)
+        return (PIX *)ERROR_PTR("pixs colormapped", procName, NULL);
+    if (pixd && (pixd != pixs))
+        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 32) 
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
@@ -1358,6 +1473,8 @@ l_uint32  *data, *line;
  *          saturation is moved from its initial value toward 0.
  *          The limiting values for fract = -1.0 (1.0) thus set the
  *          saturation to 0 (255).
+ *      (2) If fract = 0, no modification is requested; return a copy
+ *          unless in-place, in which case this is a no-op.
  */
 PIX  *
 pixModifySaturation(PIX       *pixd,
@@ -1716,5 +1833,4 @@ PIX     *pixg, *pixacc, *pixc1, *pixc2;
     pixDestroy(&pixc2);
     return pixc1;
 }
-
 

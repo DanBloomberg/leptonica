@@ -24,6 +24,7 @@
 #include "bbuffer.h"
 #include "bmf.h"
 #include "ccbord.h"
+#include "dewarp.h"
 #include "gplot.h"
 #include "heap.h"
 #include "jbclass.h"

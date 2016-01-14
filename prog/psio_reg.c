@@ -48,10 +48,10 @@ PIX          *pixs, *pixt;
     pixs = pixRead("feyn-fract.tif");
     pixGetDimensions(pixs, &w, &h, NULL);
     scale = L_MIN(factor * 2550 / w, factor * 3300 / h);
-    fp1 = fopen("/tmp/junkpsio0.ps", "wb+");
+    fp1 = fopen("/tmp/psio0.ps", "wb+");
     pixWriteStreamPS(fp1, pixs, NULL, 300, scale);
     fclose(fp1);
-    regTestCheckFile(fp, argv, "/tmp/junkpsio0.ps", 0, &success);
+    regTestCheckFile(fp, argv, "/tmp/psio0.ps", 0, &success);
     pixDestroy(&pixs);
 
         /* Uncompressed PS with scaling, with LL corner at (1500, 1500) mils */
@@ -60,48 +60,48 @@ PIX          *pixs, *pixt;
     scale = L_MIN(factor * 2550 / w, factor * 3300 / h);
     box = boxCreate(1500, 1500, (l_int32)(1000 * scale * w / 300),
                     (l_int32)(1000 * scale * h / 300));
-    fp1 = fopen("/tmp/junkpsio1.ps", "wb+");
+    fp1 = fopen("/tmp/psio1.ps", "wb+");
     pixWriteStreamPS(fp1, pixs, box, 300, 1.0);
     fclose(fp1);
-    regTestCheckFile(fp, argv, "/tmp/junkpsio1.ps", 1, &success);
+    regTestCheckFile(fp, argv, "/tmp/psio1.ps", 1, &success);
     boxDestroy(&box);
     pixDestroy(&pixs);
 
         /* DCT compressed PS with LL corner at (300, 1000) pixels */
     pixs = pixRead("marge.jpg");
     pixt = pixConvertTo32(pixs);
-    pixWrite("/tmp/junkpsio2.jpg", pixt, IFF_JFIF_JPEG);
-    convertJpegToPS("/tmp/junkpsio2.jpg", "/tmp/junkpsio3.ps",
+    pixWrite("/tmp/psio2.jpg", pixt, IFF_JFIF_JPEG);
+    convertJpegToPS("/tmp/psio2.jpg", "/tmp/psio3.ps",
                     "w", 300, 1000, 0, 4.0, 1, 1);
-    regTestCheckFile(fp, argv, "/tmp/junkpsio2.jpg", 2, &success);
-    regTestCheckFile(fp, argv, "/tmp/junkpsio3.ps", 3, &success);
+    regTestCheckFile(fp, argv, "/tmp/psio2.jpg", 2, &success);
+    regTestCheckFile(fp, argv, "/tmp/psio3.ps", 3, &success);
     pixDestroy(&pixt);
     pixDestroy(&pixs);
 
         /* For each page, apply tiff g4 image first; then jpeg or png over it */
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio4.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio4.ps",
                       "w", 0, 0, 0, 1.0, 1, 1, 0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio4.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio4.ps",
                     "a", 500, 100, 300, 2.0, 1,  0);
-    convertFlateToPS("weasel4.11c.png", "/tmp/junkpsio4.ps",
+    convertFlateToPS("weasel4.11c.png", "/tmp/psio4.ps",
                      "a", 300, 400, 300, 6.0, 1,  0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio4.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio4.ps",
                     "a", 100, 800, 300, 1.5, 1, 1);
 
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio4.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio4.ps",
                       "a", 0, 0, 0, 1.0, 2, 1, 0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio4.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio4.ps",
                     "a", 1000, 700, 300, 2.0, 2, 0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio4.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio4.ps",
                     "a", 100, 200, 300, 2.0, 2, 1);
 
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio4.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio4.ps",
                       "a", 0, 0, 0, 1.0, 3, 1, 0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio4.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio4.ps",
                     "a", 200, 200, 300, 2.0, 3, 0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio4.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio4.ps",
                     "a", 200, 900, 300, 2.0, 3, 1);
-    regTestCheckFile(fp, argv, "/tmp/junkpsio4.ps", 4, &success);
+    regTestCheckFile(fp, argv, "/tmp/psio4.ps", 4, &success);
 
         /* Now apply jpeg first; then paint through a g4 mask.
          * For gv, the first image with a b.b. determines the
@@ -115,55 +115,55 @@ PIX          *pixs, *pixt;
          * set of images rendered on the page. */
     pixs = pixRead("wyom.jpg");
     pixt = pixScaleToSize(pixs, 2528, 3300);
-    pixWrite("/tmp/junkpsio5.jpg", pixt, IFF_JFIF_JPEG);
+    pixWrite("/tmp/psio5.jpg", pixt, IFF_JFIF_JPEG);
     pixDestroy(&pixs);
     pixDestroy(&pixt);
-    convertJpegToPS("/tmp/junkpsio5.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("/tmp/psio5.jpg", "/tmp/psio5.ps",
                       "w", 0, 0, 0, 1.0, 1, 0);
-    convertFlateToPS("weasel8.240c.png", "/tmp/junkpsio5.ps",
+    convertFlateToPS("weasel8.240c.png", "/tmp/psio5.ps",
                      "a", 100, 100, 300, 5.0, 1, 0);
-    convertFlateToPS("weasel8.149g.png", "/tmp/junkpsio5.ps",
+    convertFlateToPS("weasel8.149g.png", "/tmp/psio5.ps",
                      "a", 200, 300, 300, 5.0, 1, 0);
-    convertFlateToPS("weasel4.11c.png", "/tmp/junkpsio5.ps",
+    convertFlateToPS("weasel4.11c.png", "/tmp/psio5.ps",
                      "a", 300, 500, 300, 5.0, 1, 0);
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio5.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio5.ps",
                       "a", 0, 0, 0, 1.0, 1, 1, 1);
 
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 500, 100, 300, 2.0, 2,  0);
-    convertFlateToPS("weasel4.11c.png", "/tmp/junkpsio5.ps",
+    convertFlateToPS("weasel4.11c.png", "/tmp/psio5.ps",
                      "a", 300, 400, 300, 6.0, 2,  0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 100, 800, 300, 1.5, 2, 0);
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio5.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio5.ps",
                       "a", 0, 0, 0, 1.0, 2, 1, 1);
 
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 500, 100, 300, 2.0, 3,  0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 100, 800, 300, 2.0, 3, 0);
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio5.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio5.ps",
                       "a", 0, 0, 0, 1.0, 3, 1, 1);
 
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 1000, 700, 300, 2.0, 4, 0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 100, 200, 300, 2.0, 4, 0);
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio5.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio5.ps",
                       "a", 0, 0, 0, 1.0, 4, 1, 1);
 
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 200, 200, 300, 2.0, 5, 0);
-    convertJpegToPS("marge.jpg", "/tmp/junkpsio5.ps",
+    convertJpegToPS("marge.jpg", "/tmp/psio5.ps",
                     "a", 200, 900, 300, 2.0, 5, 0);
-    convertTiffG4ToPS("feyn.tif", "/tmp/junkpsio5.ps",
+    convertTiffG4ToPS("feyn.tif", "/tmp/psio5.ps",
                       "a", 0, 0, 0, 1.0, 5, 1, 1);
-    regTestCheckFile(fp, argv, "/tmp/junkpsio5.ps", 5, &success);
+    regTestCheckFile(fp, argv, "/tmp/psio5.ps", 5, &success);
  
         /* Generation using segmentation masks */
     convertSegmentedPagesToPS(".", "lion-page", ".", "lion-mask",
-                              10, 0, 100, 2.0, 0.8, 190, "/tmp/junkpsio6.ps");
-    regTestCheckFile(fp, argv, "/tmp/junkpsio6.ps", 6, &success);
+                              10, 0, 100, 2.0, 0.8, 190, "/tmp/psio6.ps");
+    regTestCheckFile(fp, argv, "/tmp/psio6.ps", 6, &success);
 
 
     regTestCleanup(argc, argv, fp, success, NULL);

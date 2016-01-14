@@ -27,6 +27,10 @@
  *     Nice (slow) rotation of 1 bpp image
  *              PIX     *pixRotateBinaryNice()
  *
+ *     Rotation including alpha (blend) component and gamma transform
+ *              PIX     *pixRotateWithAlpha()
+ *              PIX     *pixRotateGammaXform()
+ *
  *     Rotations are measured in radians; clockwise is positive.
  *
  *     The general rotation pixRotate() does the best job for
@@ -42,6 +46,7 @@
 #include <math.h>
 #include "allheaders.h"
 
+extern l_float32  AlphaMaskBorderVals[2];
 static const l_float32  VERY_SMALL_ANGLE = 0.001;  /* radians; ~0.06 degrees */
 
 
@@ -441,5 +446,147 @@ PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixd;
     pixDestroy(&pixt4);
     return pixd;
 }
-    
+
+
+/*------------------------------------------------------------------*
+ *             Rotation including alpha (blend) component           *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixRotateWithAlpha()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              angle (radians; clockwise is positive)
+ *              pixg (<optional> 8 bpp, can be null)
+ *              fract (between 0.0 and 1.0, with 0.0 fully transparent
+ *                     and 1.0 fully opaque)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The alpha channel is transformed separately from pixs,
+ *          and aligns with it, being fully transparent outside the
+ *          boundary of the transformed pixs.  For pixels that are fully
+ *          transparent, a blending function like pixBlendWithGrayMask()
+ *          will give zero weight to corresponding pixels in pixs.
+ *      (2) Rotation is about the center of the image; for very small
+ *          rotations, just return a clone.  The dest is automatically
+ *          expanded so that no image pixels are lost.
+ *      (3) Rotation is by area mapping.  It doesn't matter what
+ *          color is brought in because the alpha channel will
+ *          be transparent (black) there.
+ *      (4) If pixg is NULL, it is generated as an alpha layer that is
+ *          partially opaque, using @fract.  Otherwise, it is cropped
+ *          to pixs if required and @fract is ignored.  The alpha
+ *          channel in pixs is never used.
+ *      (4) Colormaps are removed.
+ *      (5) The default setting for the border values in the alpha channel
+ *          is 0 (transparent) for the outermost ring of pixels and
+ *          (0.5 * fract * 255) for the second ring.  When blended over
+ *          a second image, this
+ *          (a) shrinks the visible image to make a clean overlap edge
+ *              with an image below, and
+ *          (b) softens the edges by weakening the aliasing there.
+ *          Use l_setAlphaMaskBorder() to change these values.
+ *
+ *  *** Warning: implicit assumption about RGB component ordering ***
+ */
+PIX *
+pixRotateWithAlpha(PIX       *pixs,
+                   l_float32  angle,
+                   PIX       *pixg,
+                   l_float32  fract)
+{
+l_int32  ws, hs, d;
+PIX     *pixd, *pixg2, *pixgr;
+
+    PROCNAME("pixRotateWithAlpha");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    if (d != 32 && pixGetColormap(pixs) == NULL)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+    if (pixg && pixGetDepth(pixg) != 8) {
+        L_WARNING("pixg not 8 bpp; using @fract transparent alpha", procName);
+        pixg = NULL;
+    }
+    if (!pixg && (fract < 0.0 || fract > 1.0)) {
+        L_WARNING("invalid fract; using 1.0 (fully transparent)", procName);
+        fract = 1.0;
+    }
+    if (!pixg && fract == 0.0)
+        L_WARNING("fully opaque alpha; image cannot be blended", procName);
+
+        /* Do separate rotation of rgb channels of pixs and of pixg */
+    pixd = pixRotate(pixs, angle, L_ROTATE_AREA_MAP, L_BRING_IN_WHITE, ws, hs);
+    if (!pixg) {
+        pixg2 = pixCreate(ws, hs, 8);
+        if (fract == 1.0)
+            pixSetAll(pixg2);
+        else
+            pixSetAllArbitrary(pixg2, (l_int32)(255.0 * fract));
+    }
+    else
+        pixg2 = pixResizeToMatch(pixg, NULL, ws, hs);
+    if (ws > 10 && hs > 10) {  /* see note 8 */
+        pixSetBorderRingVal(pixg2, 1,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[0]));
+        pixSetBorderRingVal(pixg2, 2,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[1]));
+    }
+    pixgr = pixRotate(pixg2, angle, L_ROTATE_AREA_MAP,
+                      L_BRING_IN_BLACK, ws, hs);
+    pixSetRGBComponent(pixd, pixgr, L_ALPHA_CHANNEL);
+
+    pixDestroy(&pixg2);
+    pixDestroy(&pixgr);
+    return pixd;
+}
+
+
+/*!
+ *  pixRotateGammaXform()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              gamma (gamma correction; must be > 0.0)
+ *              angle (radians; clockwise is positive)
+ *              fract (between 0.0 and 1.0, with 1.0 fully transparent)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This wraps a gamma/inverse-gamma photometric transform
+ *          around pixRotateWithAlpha().
+ *      (2) For usage, see notes in pixRotateWithAlpha() and
+ *          pixGammaTRCWithAlpha().
+ *      (3) The basic idea of a gamma/inverse-gamma transform is
+ *          to remove gamma correction before rotating and restore
+ *          it afterward.  The effects can be subtle, but important for
+ *          some applications.  For example, using gamma > 1.0 will
+ *          cause the dark areas to become somewhat lighter and slightly
+ *          reduce aliasing effects when blending using the alpha channel.
+ */
+PIX *
+pixRotateGammaXform(PIX       *pixs,
+                    l_float32  gamma,
+                    l_float32  angle,
+                    l_float32  fract)
+{
+PIX  *pixg, *pixd;
+
+    PROCNAME("pixRotateGammaXform");
+
+    if (!pixs || (pixGetDepth(pixs) != 32))
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (fract == 0.0)
+        L_WARNING("fully opaque alpha; image cannot be blended", procName);
+    if (gamma <= 0.0)  {
+        L_WARNING("gamma must be > 0.0; setting to 1.0", procName);
+        gamma = 1.0;
+    }
+
+    pixg = pixGammaTRCWithAlpha(NULL, pixs, 1.0 / gamma, 0, 255);
+    pixd = pixRotateWithAlpha(pixg, angle, NULL, fract);
+    pixGammaTRCWithAlpha(pixd, pixd, gamma, 0, 255);
+    pixDestroy(&pixg);
+    return pixd;
+}
 

@@ -24,13 +24,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef  COMPILER_MSVC
+#ifndef  _WIN32
 #include <unistd.h>
 #else
     /* Need declaration of Sleep() defined in WinBase.h, but must
      * include Windows.h to avoid errors  */
 #include <Windows.h>
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
 
 #include "allheaders.h"
 
@@ -64,9 +64,9 @@ PIX     *pixs, *pixt, *pixd;
         /* Make the rank bin arrays of median values, with 10 bins */
     numaGetRankBinValues(naw, 10, NULL, &naw_med);
     numaGetRankBinValues(nah, 10, NULL, &nah_med);
-    gplotSimple1(naw_med, GPLOT_PNG, "/tmp/junkw_10bin", 
+    gplotSimple1(naw_med, GPLOT_PNG, "/tmp/w_10bin", 
                  "width vs rank bins (10)");
-    gplotSimple1(nah_med, GPLOT_PNG, "/tmp/junkh_10bin", 
+    gplotSimple1(nah_med, GPLOT_PNG, "/tmp/h_10bin", 
                  "height vs rank bins (10)");
     numaDestroy(&naw_med);
     numaDestroy(&nah_med);
@@ -74,37 +74,37 @@ PIX     *pixs, *pixt, *pixd;
         /* Make the rank bin arrays of median values, with 30 bins */
     numaGetRankBinValues(naw, 30, NULL, &naw_med);
     numaGetRankBinValues(nah, 30, NULL, &nah_med);
-    gplotSimple1(naw_med, GPLOT_PNG, "/tmp/junkw_30bin", 
+    gplotSimple1(naw_med, GPLOT_PNG, "/tmp/w_30bin", 
                  "width vs rank bins (30)");
-    gplotSimple1(nah_med, GPLOT_PNG, "/tmp/junkh_30bin", 
+    gplotSimple1(nah_med, GPLOT_PNG, "/tmp/h_30bin", 
                  "height vs rank bins (30)");
     numaDestroy(&naw_med);
     numaDestroy(&nah_med);
 
         /* Give gnuplot time to write out the files */
-#ifndef  COMPILER_MSVC
+#ifndef  _WIN32
     sleep(2);
 #else
     Sleep(2000);
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
 
         /* Save as golden files, or check against them */
-    regTestCheckFile(fp, argv, "/tmp/junkw_10bin.png", 0, &success);
-    regTestCheckFile(fp, argv, "/tmp/junkh_10bin.png", 1, &success);
-    regTestCheckFile(fp, argv, "/tmp/junkw_30bin.png", 2, &success);
-    regTestCheckFile(fp, argv, "/tmp/junkh_30bin.png", 3, &success);
+    regTestCheckFile(fp, argv, "/tmp/w_10bin.png", 0, &success);
+    regTestCheckFile(fp, argv, "/tmp/h_10bin.png", 1, &success);
+    regTestCheckFile(fp, argv, "/tmp/w_30bin.png", 2, &success);
+    regTestCheckFile(fp, argv, "/tmp/h_30bin.png", 3, &success);
 
         /* Display results for debugging */
-    pixt = pixRead("/tmp/junkw_10bin.png");
+    pixt = pixRead("/tmp/w_10bin.png");
     pixDisplayWithTitle(pixt, 0, 0, NULL, display);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkh_10bin.png");
+    pixt = pixRead("/tmp/h_10bin.png");
     pixDisplayWithTitle(pixt, 650, 0, NULL, display);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkw_30bin.png");
+    pixt = pixRead("/tmp/w_30bin.png");
     pixDisplayWithTitle(pixt, 0, 550, NULL, display);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkh_30bin.png");
+    pixt = pixRead("/tmp/h_30bin.png");
     pixDisplayWithTitle(pixt, 650, 550, NULL, display);
     pixDestroy(&pixt);
 

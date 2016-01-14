@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (5 Apr 2010)
+README  (3 Aug 2010)
 --------------------
 
-gunzip leptonlib-1.65.tar.gz
-tar -xvf leptonlib-1.65.tar
+gunzip leptonlib-1.66.tar.gz
+tar -xvf leptonlib-1.66.tar
 
 
 1.  This tar includes:
@@ -86,7 +86,7 @@ tar -xvf leptonlib-1.65.tar
     Libraries, executables and prototypes are easily made, as described below.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.65'.  In that directory you will
+    subdirectory 'leptonlib-1.66'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -149,7 +149,7 @@ tar -xvf leptonlib-1.65.tar
 4.  To make the programs in the prog directory, first make liblept in src
     and then do 'make' in the prog directory.
 
-    VERY IMPORTANT: the 170+ programs in the prog directory are
+    VERY IMPORTANT: the 190+ programs in the prog directory are
     an integral part of this package.  These can be divided into
     three types:
       (1) Programs that are complete regression tests.  The most
@@ -176,16 +176,12 @@ tar -xvf leptonlib-1.65.tar
     Things to note about xtractprotos, assuming that you are developing
     in Leptonica and need to regenerate the prototype file leptprotos.h:
 
-      (1) xtractprotos is part of Leptonica; specifically, it is the only
-          program you can make in the src directory (see the makefile).
-      (2) xtractprotos uses cpp, and older versions of cpp give useless warnings
-          about the comment on line 23 of /usr/include/jmorecfg.h.  For
-          that reason, a local version of jmorecfg.h is included that has
-          the comment elided.
-      (3) You can output the prototypes for any C file by running:
+      (1) xtractprotos is part of Leptonica.  You can 'make' it in either
+          src or prog (see the makefile).
+      (2) You can output the prototypes for any C file by running:
                 xtractprotos <cfile>     or
                 xtractprotos -prestring=[string] <cfile>
-      (4) The source for xtractprotos has been packaged up into a tar
+      (3) The source for xtractprotos has been packaged up into a tar
           containing just the Leptonica files necessary for building it
           in linux.  The tar file is available at:
                www.leptonica.com/source/xtractlib-1.4.tar.gz
@@ -195,6 +191,8 @@ tar -xvf leptonlib-1.65.tar
        ./configure
        make
        make install  (as root; this puts liblept.a into /usr/local/lib/)
+    In 1.67, expected sometime in Aug 2010, we will supply an improved
+    version that also allows you to build the programs in prog.
 
 7.  Customization (in environ.h) can be done for using external libraries.
     The default is to link to these four libraries:
@@ -372,9 +370,9 @@ tar -xvf leptonlib-1.65.tar
     The low-level code is in graymorphlow.c.
 
     In use, the most common morphological Sels are separable bricks,
-    of dimension n x m (where n or m is commonly 1).  Accordingly,
-    we provide separable morphological operations on brick Sels,
-    using for binary both rasterops and dwa, and for grayscale,
+    of dimension n x m (where either n or m, but not both, is commonly 1).
+    Accordingly, we provide separable morphological operations on brick
+    Sels, using for binary both rasterops and dwa, and for grayscale,
     the fast van Herk/Gil-Werman method.  Parsers are provided
     for a sequence of separable binary (rasterop and dwa) and grayscale
     brick morphological operations, in morphseq.c.  The main
@@ -383,7 +381,9 @@ tar -xvf leptonlib-1.65.tar
 
     We also give composable separable brick functions for binary images,
     for both rasterop and dwa.  These decompose each of the linear
-    operations into a sequence of two operations at different scales.
+    operations into a sequence of two operations at different scales,
+    reducing the operation count to a sum of decomposition factors,
+    rather than the (un-decomposed) product of factors.
     As always, parsers are provided for a sequence of such operations.
 
     Finally, we provide grayscale rank order filters for brick filters.
@@ -504,7 +504,7 @@ tar -xvf leptonlib-1.65.tar
     document image analysis.  These include skew and text orientation
     detection; page segmentation; baseline finding for text;
     unsupervised classification of connected components, characters
-    and words; and digit recognition.
+    and words; dewarping camera images, and digit recognition.
 
 19. Some facilities have been provided for image input and output.
     This is of course required to build executables that handle images,
@@ -584,14 +584,15 @@ tar -xvf leptonlib-1.65.tar
     Note: any or all of these I/O library calls can be stubbed out at
           compile time, using the environment variables in environ.h.
 
-    For all formatted reads, and all formatted writes except to GIF,
-    we support read from memory and write to memory.  For all but
-    TIFF, these are supported through open_memstream() and fmemopen(),
+    For all formatted reads and writes, we support read from memory
+    and write to memory.  (We cheat with gif, using a file intermediary.)
+    For all formats except for TIFF, these memory I/O functions
+    are supported through open_memstream() and fmemopen(),
     which only is available with the gnu C runtime library (glibc).
     Therefore, except for TIFF, you will not be able to do memory
     supported read/writes on these platforms:
          OSX, Windows, Solaris
-    By default, these non-POSIX calls are disabled.  To enable memory
+    By default, these non-POSIX functions are disabled.  To enable memory
     I/O for image formatted read/writes, see environ.h.
 
     We also provide colormap removal for conversion to 8 bpp gray or
@@ -668,6 +669,9 @@ tar -xvf leptonlib-1.65.tar
      - a 1D barcode reader.  This is in an early stage of development,
        with little testing, and it only decodes 6 formats.
 
+     - a utility that will dewarp images of text that were captured
+       with a camera at close range.
+
      - see (18) for other document image applications.
 
 22. A deficiency of C is that no standard has been universally
@@ -710,7 +714,7 @@ tar -xvf leptonlib-1.65.tar
     For compatibility with 64 bit hardware and compilers, where
     necessary we use the typedefs in stdint.h to specify the pointer
     size (either 4 or 8 byte).  This may not work properly if you use
-    an ancient compiler before gcc 2.95.3.
+    an ancient gcc compilers before 2.95.3.
 	 
 23. Leptonica provides some compile-time control over messages
     and debug output.  Messages are of three types: error,
@@ -740,14 +744,7 @@ tar -xvf leptonlib-1.65.tar
     downloaded and built from:
         http://jbig2dec.sourceforge.net/
 
-25. For C++ compatibility, we have included a local version of
-    jpeglib.h (version 6b), with the 'extern "C"' macro added.
-    The -I./ flag includes this local file, rather than the one
-    in /usr/include, because of the order of include directories
-    on the compile line.  jpeglib.h will by default include the
-    locally-supplied version of jmorecfg.h.
-
-26. If you use Leptonica with other imaging libraries, you have three
+25. If you use Leptonica with other imaging libraries, you have three
     choices with respect to the Pix data structure.  It is
     easiest if you can use the Pix directly.  Next easiest is to
     make a Pix from a local image data structure or the unbundled
@@ -758,7 +755,7 @@ tar -xvf leptonlib-1.65.tar
     which take only built-in C data types.  It would be an inordinately
     large task to do this for the entire library.
 
-27. New versions of the Leptonica library are released approximately
+26. New versions of the Leptonica library are released approximately
     8 times a year, and version numbers are provided for each release in
     the makefile and in allheaders.h.  All even versions from 1.42 to 1.60
     are archived at http://code.google.com/p/leptonica, as well as all
@@ -767,9 +764,9 @@ tar -xvf leptonlib-1.65.tar
     A brief version chronology is maintained in version-notes.html.
     Starting with gcc 4.3.3, error warnings (-Werror) are given for
     minor infractions like not checking return values of built-in C
-    functions.  With earlier versions, the library compiles with g++ or gcc
-    without "errors".  You can expect some warnings with the -Wall flag.
-
+    functions.  With earlier versions of gcc, the library compiles
+    with g++ or gcc without "errors".  You can expect some warnings
+    with the -Wall flag.
 
 </pre>
 

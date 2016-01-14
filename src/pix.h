@@ -47,6 +47,7 @@
  *       Blending flags
  *       Graphics pixel setting flags
  *       Size filtering flags
+ *       Color component selection flags
  *       Rotation and shear flags
  *       Affine transform order flags
  *       Grayscale filling flags
@@ -649,6 +650,18 @@ enum {
     L_SELECT_IF_GT = 2,           /* save if value is more than threshold  */
     L_SELECT_IF_LTE = 3,          /* save if value is <= to the threshold  */
     L_SELECT_IF_GTE = 4           /* save if value is >= to the threshold  */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                     Color component selection flags                     *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_SELECT_RED = 1,             /* use red component                     */
+    L_SELECT_GREEN = 2,           /* use green component                   */
+    L_SELECT_BLUE = 3,            /* use blue component                    */
+    L_SELECT_MIN = 4,             /* use min color component               */
+    L_SELECT_MAX = 5              /* use max color component               */
 };
 
 

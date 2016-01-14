@@ -13,7 +13,6 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  scale.c
  *
@@ -88,6 +87,10 @@
  *               PIX    *pixScaleGrayRankCascade()
  *               PIX    *pixScaleGrayRank2()
  *
+ *         RGB scaling including alpha (blend) component and gamma transform
+ *               PIX    *pixScaleWithAlpha()   ***
+ *               PIX    *pixScaleGammaXform()  ***
+ *
  *  *** Note: these functions make an implicit assumption about RGB
  *            component ordering.
  */
@@ -96,6 +99,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
+
+extern l_float32  AlphaMaskBorderVals[2];
 
 
 /*------------------------------------------------------------------*
@@ -3017,6 +3022,146 @@ PIX       *pixd;
         }
     }
             
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------------*
+ *    RGB scaling including alpha (blend) component and gamma transform   *
+ *------------------------------------------------------------------------*/
+/*!
+ *  pixScaleWithAlpha()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              scalex, scaley
+ *              pixg (<optional> 8 bpp, can be null)
+ *              fract (between 0.0 and 1.0, with 0.0 fully transparent
+ *                     and 1.0 fully opaque)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The alpha channel is transformed separately from pixs,
+ *          and aligns with it, being fully transparent outside the
+ *          boundary of the transformed pixs.  For pixels that are fully
+ *          transparent, a blending function like pixBlendWithGrayMask()
+ *          will give zero weight to corresponding pixels in pixs.
+ *      (2) Scaling is done with area mapping or linear interpolation,
+ *          depending on the scale factors.  Default sharpening is done.
+ *      (3) If pixg is NULL, it is generated as an alpha layer that is
+ *          partially opaque, using @fract.  Otherwise, it is cropped
+ *          to pixs if required, and @fract is ignored.  The alpha
+ *          channel in pixs is never used.
+ *      (3) Colormaps are removed.
+ *      (4) The default setting for the border values in the alpha channel
+ *          is 0 (transparent) for the outermost ring of pixels and
+ *          (0.5 * fract * 255) for the second ring.  When blended over
+ *          a second image, this
+ *          (a) shrinks the visible image to make a clean overlap edge
+ *              with an image below, and
+ *          (b) softens the edges by weakening the aliasing there.
+ *          Use l_setAlphaMaskBorder() to change these values.
+ *
+ *  *** Warning: implicit assumption about RGB component ordering ***
+ */
+PIX *
+pixScaleWithAlpha(PIX       *pixs,
+                  l_float32  scalex,
+                  l_float32  scaley,
+                  PIX       *pixg,
+                  l_float32  fract)
+{
+l_int32  ws, hs, d;
+PIX     *pixd, *pixg2, *pixgs;
+
+    PROCNAME("pixScaleWithAlpha");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    if (d != 32 && pixGetColormap(pixs) == NULL)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+    if (pixg && pixGetDepth(pixg) != 8) {
+        L_WARNING("pixg not 8 bpp; using @fract transparent alpha", procName);
+        pixg = NULL;
+    }
+    if (!pixg && (fract < 0.0 || fract > 1.0)) {
+        L_WARNING("invalid fract; using 1.0 (fully transparent)", procName);
+        fract = 1.0;
+    }
+    if (!pixg && fract == 0.0)
+        L_WARNING("fully opaque alpha; image will not be blended", procName);
+
+        /* Do separate scaling of rgb channels of pixs and of pixg */
+    pixd = pixScale(pixs, scalex, scaley);
+    if (!pixg) {
+        pixg2 = pixCreate(ws, hs, 8);
+        if (fract == 1.0)
+            pixSetAll(pixg2);
+        else
+            pixSetAllArbitrary(pixg2, (l_int32)(255.0 * fract));
+    }
+    else
+        pixg2 = pixResizeToMatch(pixg, NULL, ws, hs);
+    if (ws > 10 && hs > 10) {  /* see note 4 */
+        pixSetBorderRingVal(pixg2, 1,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[0]));
+        pixSetBorderRingVal(pixg2, 2,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[1]));
+    }
+    pixgs = pixScaleGeneral(pixg2, scalex, scaley, 0.0, 0);
+    pixSetRGBComponent(pixd, pixgs, L_ALPHA_CHANNEL);
+
+    pixDestroy(&pixg2);
+    pixDestroy(&pixgs);
+    return pixd;
+}
+
+
+/*!
+ *  pixScaleGammaXform()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              gamma (gamma correction; must be > 0.0)
+ *              scalex, scaley
+ *              fract (between 0.0 and 1.0, with 1.0 fully transparent)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This wraps a gamma/inverse-gamma photometric transform
+ *          around pixScaleWithAlpha().
+ *      (2) For usage, see notes in pixScaleWithAlpha() and
+ *          pixGammaTRCWithAlpha().
+ *      (3) The basic idea of a gamma/inverse-gamma transform is
+ *          to remove gamma correction before scaling and restore
+ *          it afterward.  The effects can be subtle, but important for
+ *          some applications.  For example, using gamma > 1.0 will
+ *          cause the dark areas to become somewhat lighter and slightly
+ *          reduce aliasing effects when blending using the alpha channel.
+ */
+PIX *
+pixScaleGammaXform(PIX       *pixs,
+                   l_float32  gamma,
+                   l_float32  scalex,
+                   l_float32  scaley,
+                   l_float32  fract)
+{
+PIX  *pixg, *pixd;
+
+    PROCNAME("pixScaleGammaXform");
+
+    if (!pixs || (pixGetDepth(pixs) != 32))
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (fract == 0.0)
+        L_WARNING("fully opaque alpha; image cannot be blended", procName);
+    if (gamma <= 0.0)  {
+        L_WARNING("gamma must be > 0.0; setting to 1.0", procName);
+        gamma = 1.0;
+    }
+
+    pixg = pixGammaTRCWithAlpha(NULL, pixs, 1.0 / gamma, 0, 255);
+    pixd = pixScaleWithAlpha(pixg, scalex, scaley, NULL, fract);
+    pixGammaTRCWithAlpha(pixd, pixd, gamma, 0, 255);
+    pixDestroy(&pixg);
     return pixd;
 }
 

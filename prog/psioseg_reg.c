@@ -92,13 +92,13 @@ PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
     regTestCheckFile(fp, argv, "/tmp/junkpsioseg.4.png", 4, &success);
 
          /* Write out the files to be imaged */
-#ifndef COMPILER_MSVC
+#ifndef _WIN32
     system("mkdir /tmp/junkimagedir");
     system("mkdir /tmp/junkmaskdir");
 #else
     system("mkdir \\tmp\\junkimagedir");
     system("mkdir \\tmp\\junkmaskdir");
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
     pixWrite("/tmp/junkimagedir/001.tif", pixs, IFF_TIFF_G4);
     pixWrite("/tmp/junkimagedir/002.tif", pixht, IFF_TIFF_G4);
     pixWrite("/tmp/junkimagedir/003.tif", pixtxt, IFF_TIFF_G4);

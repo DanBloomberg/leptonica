@@ -78,6 +78,12 @@ l_int32 convertToPSEmbed(const char *filein, const char *fileout, l_int32 level)
     return ERROR_INT("function not present", "convertToPSEmbed", 1);
 }
 
+l_int32 pixaWriteCompressedToPS(PIXA *pixa, const char *fileout,
+                                l_int32 res, l_int32 level)
+{
+    return ERROR_INT("function not present", "pixaWriteCompressedtoPS", 1);
+}
+
 /* --------------------------------------------*/
 #endif  /* !USE_PSIO */
 /* --------------------------------------------*/

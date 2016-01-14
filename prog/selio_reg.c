@@ -61,11 +61,11 @@ SELA    *sela1, *sela2;
 
         /* selaRead() / selaWrite()  */
     sela1 = selaAddBasic(NULL);
-    selaWrite("/tmp/junksel.0.sela", sela1);
-    regTestCheckFile(fp, argv, "/tmp/junksel.0.sela", 0, &success);
-    sela2 = selaRead("/tmp/junksel.0.sela");
-    selaWrite("/tmp/junksel.1.sela", sela2);
-    regTestCheckFile(fp, argv, "/tmp/junksel.1.sela", 1, &success);
+    selaWrite("/tmp/sel.0.sela", sela1);
+    regTestCheckFile(fp, argv, "/tmp/sel.0.sela", 0, &success);
+    sela2 = selaRead("/tmp/sel.0.sela");
+    selaWrite("/tmp/sel.1.sela", sela2);
+    regTestCheckFile(fp, argv, "/tmp/sel.1.sela", 1, &success);
     regTestCompareFiles(fp, argv, 0, 1, &success);
     selaDestroy(&sela1);
     selaDestroy(&sela2);
@@ -73,11 +73,11 @@ SELA    *sela1, *sela2;
 	/* Create from file and display result */
     sela1 = selaCreateFromFile("flipsels.txt");
     pix = selaDisplayInPix(sela1, 31, 3, 15, 4);
-    pixWrite("/tmp/junksel.2.png", pix, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksel.2.png", 2, &success);
+    pixWrite("/tmp/sel.2.png", pix, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/sel.2.png", 2, &success);
     pixDisplayWithTitle(pix, 100, 100, NULL, display);
-    selaWrite("/tmp/junksel.3.sela", sela1);
-    regTestCheckFile(fp, argv, "/tmp/junksel.3.sela", 3, &success);
+    selaWrite("/tmp/sel.3.sela", sela1);
+    regTestCheckFile(fp, argv, "/tmp/sel.3.sela", 3, &success);
     pixDestroy(&pix);
     selaDestroy(&sela1);
 
@@ -91,8 +91,8 @@ SELA    *sela1, *sela2;
     selaAddSel(sela2, sel, NULL, 0);
     sel = selCreateFromString(textsel4, 5, 6, "textsel4");
     selaAddSel(sela2, sel, NULL, 0);
-    selaWrite("/tmp/junksel.4.sela", sela2);
-    regTestCheckFile(fp, argv, "/tmp/junksel.4.sela", 4, &success);
+    selaWrite("/tmp/sel.4.sela", sela2);
+    regTestCheckFile(fp, argv, "/tmp/sel.4.sela", 4, &success);
     regTestCompareFiles(fp, argv, 3, 4, &success);
     selaDestroy(&sela2);
 

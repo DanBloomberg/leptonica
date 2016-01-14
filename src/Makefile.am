@@ -27,8 +27,8 @@ liblept_a_SOURCES = adaptmap.c \
  colorseg.c \
  compare.c conncomp.c \
  convolve.c convolvelow.c \
- correlscore.c dwacomb.2.c \
- dwacomblow.2.c edge.c \
+ correlscore.c dewarp.c \
+ dwacomb.2.c dwacomblow.2.c edge.c \
  enhance.c fhmtauto.c \
  fhmtgen.1.c fhmtgenlow.1.c \
  finditalic.c \
@@ -41,13 +41,13 @@ liblept_a_SOURCES = adaptmap.c \
  grayquantlow.c heap.c jbclass.c \
  jpegio.c jpegiostub.c \
  kernel.c list.c \
- maze.c morphapp.c \
- morph.c morphdwa.c \
+ maze.c morph.c \
+ morphapp.c morphdwa.c \
  morphseq.c numabasic.c \
  numafunc1.c numafunc2.c pageseg.c \
  paintcmap.c parseprotos.c \
  partition.c \
- pix1.c pix2.c pix3.c pix4.c \
+ pix1.c pix2.c pix3.c pix4.c pix5.c \
  pixabasic.c pixacc.c \
  pixafunc1.c pixafunc2.c \
  pixalloc.c pixarith.c \
@@ -56,27 +56,26 @@ liblept_a_SOURCES = adaptmap.c \
  pnmio.c pnmiostub.c \
  projective.c psio1.c psio1stub.c \
  psio2.c psio2stub.c \
- ptra.c pts.c queue.c \
+ ptabasic.c ptafunc1.c ptra.c queue.c \
  rank.c readbarcode.c readfile.c \
  regutils.c rop.c ropiplow.c \
- roplow.c rotateam.c \
- rotateamlow.c rotate.c \
+ roplow.c rotate.c \
+ rotateam.c rotateamlow.c \
  rotateorth.c rotateorthlow.c \
  rotateshear.c runlength.c \
- sarray.c scale.c \
- scalelow.c seedfill.c \
- seedfilllow.c sel1.c \
- sel2.c selgen.c \
- shear.c skew.c \
+ sarray.c scale.c scalelow.c \
+ seedfill.c seedfilllow.c \
+ sel1.c sel2.c selgen.c \
+ shear.c skew.c spixio.c \
  stack.c textops.c \
  tiffio.c tiffiostub.c \
  utils.c viewfiles.c \
  warper.c watershed.c writefile.c \
  zlibmem.c zlibmemstub.c
 
-include_HEADERS = allheaders.h alltypes.h arrayaccess.h \
- array.h bbuffer.h bmf.h bmp.h ccbord.h environ.h \
- gplot.h heap.h imageio.h jbclass.h jmorecfg.h jpeglib.h leptprotos.h list.h \
+include_HEADERS = allheaders.h alltypes.h array.h \
+ arrayaccess.h bbuffer.h bmf.h bmp.h ccbord.h dewarp.h environ.h \
+ gplot.h heap.h imageio.h jbclass.h leptprotos.h list.h \
  morph.h pix.h ptra.h queue.h readbarcode.h regutils.h \
  stack.h watershed.h
 

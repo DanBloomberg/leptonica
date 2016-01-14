@@ -16,15 +16,33 @@
 #ifndef  LEPTONICA_ENVIRON_H
 #define  LEPTONICA_ENVIRON_H
 
-#if defined(WIN32) || defined(WIN64)
-/* WINDOWS_SPECIFICS */
-/* Provide intptr_t from the non-existent stdint.h. */
-#if defined(WIN32)
+/*------------------------------------------------------------------------*
+ *  Defines and includes differ for Unix and Windows.  Also for Windows,  *
+ *  differentiate between conditionals based on platform and compiler.    *
+ *      For platforms:                                                    *
+ *          _WIN32       =>     Windows, 32- or 64-bit                    *
+ *          _WIN64       =>     Windows, 64-bit only                      *
+ *          __CYGWIN__   =>     Cygwin                                    *
+ *      For compilers:                                                    *
+ *          __GNUC__     =>     gcc                                       *
+ *          _MSC_VER     =>     msvc                                      *
+ *------------------------------------------------------------------------*/
+
+/* MS VC++ does not provide stdint.h, so define the missing types here */
+
+#ifndef _MSC_VER
+#include <stdint.h>
+
+#else
+/* Note that _WIN32 is defined for both 32 and 64 bit applications,
+   whereas _WIN64 is defined only for the latter */
+
+#ifdef _WIN64
+typedef __int64 intptr_t;
+typedef unsigned __int64 uintptr_t;
+#else
 typedef int intptr_t;
 typedef unsigned int uintptr_t;
-#else
-typedef long int intptr_t;
-typedef unsigned long int uintptr_t;
 #endif
 
 /* VC++6 doesn't seem to have powf, expf. */
@@ -32,6 +50,12 @@ typedef unsigned long int uintptr_t;
 #define powf(x, y) (float)pow((double)(x), (double)(y))
 #define expf(x) (float)exp((double)(x))
 #endif
+
+#endif /* _MSC_VER */
+
+/* Windows specifics */
+
+#ifdef _WIN32
 
 /* DLL EXPORT/IMPORT */
 #ifdef LEPTONLIB_EXPORTS
@@ -41,10 +65,11 @@ typedef unsigned long int uintptr_t;
 #else
 #define LEPT_DLL
 #endif
+
 #else  /* non-WINDOWS-SPECIFICS */
 #include <stdint.h>
 #define LEPT_DLL
-#endif
+#endif  /* _WIN32 */
 
 typedef intptr_t l_intptr_t;
 typedef uintptr_t l_uintptr_t;
@@ -59,7 +84,7 @@ typedef uintptr_t l_uintptr_t;
  *--------------------------------------------------------------------*/
 /*
  *  Leptonica provides interfaces to link to four external image I/O
- *  libraries, plus zlib.  Setting any of these to 0 causes
+ *  libraries, plus zlib.  Setting any of these to 0 here causes
  *  non-functioning stubs to be linked.
  */
 #ifndef HAVE_CONFIG_H
@@ -75,7 +100,7 @@ typedef uintptr_t l_uintptr_t;
  * On linux systems, you can do I/O between Pix and memory.  Specifically,
  * you can compress (write compressed data to memory from a Pix) and
  * uncompress (read from compressed data in memory to a Pix).
- * For all but TIFF and PS, these use the non-posix GNU functions
+ * For jpeg, png, pnm and bmp, these use the non-posix GNU functions
  * fmemopen() and open_memstream().  These functions are not
  * available on other systems.  To use these functions in linux,
  * you must define HAVE_FMEMOPEN to be 1 here.
@@ -242,7 +267,7 @@ enum {
 /*------------------------------------------------------------------------*
  *                        snprintf() renamed in MSVC                      *
  *------------------------------------------------------------------------*/
-#if defined(__MINGW32__) || defined(WIN32)
+#ifdef _MSC_VER
 #define snprintf _snprintf
 #endif
 

@@ -22,6 +22,43 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.66   3 Aug 10
+       More tweaks for including (or not) bounding box hints for
+         PS wrapping.  Default is to write b.b., but not in functions
+         that wrap images as full pages (psio1.c, psio2.c)
+       pix4.c split in two files, and added function to identify c.c.
+         that are sufficiently similar in shape to rectangles (pix5.c)
+       Modify 2 and 4 bit setters to clip the input value so that it can
+         only affect the pixel requested (arrayaccess.c, arrayaccess,h)
+       New pseudorandom sequence functions (numafunc1.c)
+       Dewarping camera-based images using textlines (dewarp.c, prog/dewarp*)
+       Geometrical function for aggregating overlapping bounding boxes.
+       Programs to generate figures for book chapter "Document Image
+         Applications" in "Mathematical Morphology: theory and applications"
+         (see: http:/www.leptonica.org/najman-talbot-book-chapter.html)
+         (prog/livre*.c)
+       Functions that do affine and other operations in images with
+         alpha blending at edges: pix*WithAlpha().  Also do this
+         with a gamma/inverse-gamma wrapper to further reduce edge aliasing.
+          (rotate.c, scale.c, projective.c, affine.c, bilinear.c,
+           prog/alphaxform_reg.c)
+       Improved color segmentation (fixed bugs; made faster)
+       Higher order least square fits: quadratic, cubic, quartic. (pts.c)
+       Various mods for otsu binarization and the *SplitDistribution*()
+         functions (numafunc2.c, prog/otsutest2.c)
+       Control sampling in convolution output (convolve.c, prog/fpix_reg.c)
+       Morphological operations on numas (numafunc1.c, numafunc2.c,
+         prog/numa_reg.c)
+       Pix serialization wrapped so we can use pixRead(), etc on these
+         files (spixio.c, readfile.c, writefile.c)
+       Gif read/write to memory fixed (and cheated -- using files) (gifio.c)
+       New fpix and dpix accessors; contour rendering on fpix (fpix1.c, fpix2.c)
+       Various functions for linearly mapping colors and displaying arrays
+         of colors (pix4.c, blend.c, prog/rankhisto_reg.c)
+       Functions for getting approximate ranges of colors and color
+         components in an image (pix4.c, colormap.c)
+       Cleaned up windows platform and compiler defines and macros.
+
 1.65   5 Apr 10
        Added regression test utility functions for standardizing and
          automating construction and running of regression tests.  Makes the

@@ -25,13 +25,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#ifndef  COMPILER_MSVC
+#ifndef  _WIN32
 #include <unistd.h>
 #else
     /* Need declaration of Sleep() defined in WinBase.h, but must
      * include Windows.h to avoid errors  */
 #include <Windows.h>
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
 #include "allheaders.h"
 
 static PIXA *PixSavePlots1(void);
@@ -41,12 +41,11 @@ static PIXA *PixSavePlots2(void);
 main(int    argc,
      char **argv)
 {
-char       textstr[256], fname[256];
-l_int32    i, w, h, nbins, factor, rval, gval, bval, success, display;
+char       fname[256];
+l_int32    i, w, h, nbins, factor, success, display;
 l_int32    spike;
-l_uint32  *array;
+l_uint32  *array, *marray;
 FILE      *fp;
-L_BMF     *bmf6;
 NUMA      *na, *nan, *nai, *narbin;
 PIX       *pixs, *pixt, *pixd;
 PIXA      *pixa;
@@ -54,43 +53,43 @@ PIXA      *pixa;
     if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
         return 1;
 
+        /* Find the rank bin colors */
     pixs = pixRead("map1.jpg");
     pixGetDimensions(pixs, &w, &h, NULL);
     factor = L_MAX(1, (l_int32)sqrt((l_float64)(w * h / 20000.0)));
-    fprintf(stderr, "factor: %d\n", factor);
     nbins = 10;
-    pixGetRankColorArray(pixs, nbins, factor, &array, 2);
+    pixGetRankColorArray(pixs, nbins, L_SELECT_MIN, factor, &array, 2);
     for (i = 0; i < nbins; i++)
         fprintf(stderr, "%d: %x\n", i, array[i]);
-    bmf6 = bmfCreate("./fonts", 6);
-    pixa = pixaCreate(nbins);
-    for (i = 0; i < nbins; i++) {
-        pixt = pixCreate(200, 200, 32);
-        pixSetAllArbitrary(pixt, array[i]);
-        extractRGBValues(array[i], &rval, &gval, &bval);
-        snprintf(textstr, sizeof(textstr),
-                 "%d: (%d %d %d)", i, rval, gval, bval);
-        pixSaveTiledWithText(pixt, pixa, 200, (i % 5 == 0) ? 1 : 0,
-                             20, 2, bmf6, textstr, 0xff000000, L_ADD_BELOW);
-        pixDestroy(&pixt);
-    }
-    pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkrankhisto.0.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkrankhisto.0.png", 0, &success);
+    pixd = pixDisplayColorArray(array, nbins, 200, 5, 1);
+    pixWrite("/tmp/rankhisto.0.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/rankhisto.0.png", 0, &success);
     pixDisplayWithTitle(pixd, 100, 100, NULL, display);
-    pixaDestroy(&pixa);
     pixDestroy(&pixd);
 
+        /* Modify the rank bin colors by mapping them such
+         * that the lightest color is mapped to white */
+    marray = (l_uint32 *)CALLOC(nbins, sizeof(l_uint32));
+    for (i = 0; i < nbins; i++)
+        pixelLinearMapToTargetColor(array[i], array[nbins - 1],
+                                    0xffffff00, &marray[i]);
+    pixd = pixDisplayColorArray(marray, nbins, 200, 5, 1);
+    pixWrite("/tmp/rankhisto.1.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/rankhisto.1.png", 1, &success);
+    pixDisplayWithTitle(pixd, 100, 600, NULL, display);
+    pixDestroy(&pixd);
+    FREE(marray);
+
         /* Save the histogram plots */
-#ifndef  COMPILER_MSVC
+#ifndef  _WIN32
     sleep(2);  /* give gnuplot time to write out the files */
 #else
     Sleep(2000);
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
     pixa = PixSavePlots1();
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkrankhisto.1.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkrankhisto.1.png", 1, &success);
+    pixWrite("/tmp/rankhisto.2.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/rankhisto.2.png", 2, &success);
     pixDisplayWithTitle(pixd, 100, 600, NULL, display);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
@@ -98,8 +97,8 @@ PIXA      *pixa;
         /* Map to the lightest bin; then do TRC adjustment */
     pixt = pixLinearMapToTargetColor(NULL, pixs, array[nbins - 1], 0xffffff00);
     pixd = pixGammaTRC(NULL, pixt, 1.0, 0, 240);
-    pixWrite("/tmp/junkrankhisto.2.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkrankhisto.2.png", 2, &success);
+    pixWrite("/tmp/rankhisto.3.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/rankhisto.3.png", 3, &success);
     pixDisplayWithTitle(pixd, 600, 100, NULL, display);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
@@ -118,32 +117,31 @@ PIXA      *pixa;
         numaReplaceNumber(na, spike, 200.0);
         nan = numaNormalizeHistogram(na, 1.0);
         numaDiscretizeRankAndIntensity(nan, 10, &narbin, &nai, NULL, NULL);
-        snprintf(fname, sizeof(fname), "/tmp/junkrtnan%d", i + 1);
+        snprintf(fname, sizeof(fname), "/tmp/rtnan%d", i + 1);
         gplotSimple1(nan, GPLOT_PNG, fname, "Normalized Histogram");
-        snprintf(fname, sizeof(fname), "/tmp/junkrtnai%d", i + 1);
+        snprintf(fname, sizeof(fname), "/tmp/rtnai%d", i + 1);
         gplotSimple1(nai, GPLOT_PNG, fname, "Intensity vs. rank bin");
-        snprintf(fname, sizeof(fname), "/tmp/junkrtnarbin%d", i + 1);
+        snprintf(fname, sizeof(fname), "/tmp/rtnarbin%d", i + 1);
         gplotSimple1(narbin, GPLOT_PNG, fname, "LUT: rank bin vs. Intensity");
         numaDestroy(&na);
         numaDestroy(&nan);
         numaDestroy(&narbin);
         numaDestroy(&nai);
     }
-#ifndef  COMPILER_MSVC
+#ifndef  _WIN32
     sleep(2);  /* give gnuplot time to write out the files */
 #else
     Sleep(2000);
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
     pixa = PixSavePlots2();
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkrankhisto.3.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkrankhisto.3.png", 3, &success);
+    pixWrite("/tmp/rankhisto.4.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/rankhisto.4.png", 4, &success);
     pixDisplayWithTitle(pixd, 500, 600, NULL, display);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 
     pixDestroy(&pixs);
-    bmfDestroy(&bmf6);
     FREE(array);
     regTestCleanup(argc, argv, fp, success, NULL);
     return 0;
@@ -157,28 +155,28 @@ PIX    *pixt;
 PIXA   *pixa;
 
     pixa = pixaCreate(8);
-    pixt = pixRead("/tmp/junkrtnan.png");
+    pixt = pixRead("/tmp/rtnan.png");
     pixSaveTiled(pixt, pixa, 1, 1, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnar.png");
+    pixt = pixRead("/tmp/rtnar.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnai.png");
+    pixt = pixRead("/tmp/rtnai.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnarbin.png");
+    pixt = pixRead("/tmp/rtnarbin.png");
     pixSaveTiled(pixt, pixa, 1, 1, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnabb.png");
+    pixt = pixRead("/tmp/rtnabb.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnared.png");
+    pixt = pixRead("/tmp/rtnared.png");
     pixSaveTiled(pixt, pixa, 1, 1, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnagreen.png");
+    pixt = pixRead("/tmp/rtnagreen.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnablue.png");
+    pixt = pixRead("/tmp/rtnablue.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
     return pixa;
@@ -192,31 +190,31 @@ PIX    *pixt;
 PIXA   *pixa;
 
     pixa = pixaCreate(9);
-    pixt = pixRead("/tmp/junkrtnan1.png");
+    pixt = pixRead("/tmp/rtnan1.png");
     pixSaveTiled(pixt, pixa, 1, 1, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnai1.png");
+    pixt = pixRead("/tmp/rtnai1.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnarbin1.png");
+    pixt = pixRead("/tmp/rtnarbin1.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnan2.png");
+    pixt = pixRead("/tmp/rtnan2.png");
     pixSaveTiled(pixt, pixa, 1, 1, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnai2.png");
+    pixt = pixRead("/tmp/rtnai2.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnarbin2.png");
+    pixt = pixRead("/tmp/rtnarbin2.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnan3.png");
+    pixt = pixRead("/tmp/rtnan3.png");
     pixSaveTiled(pixt, pixa, 1, 1, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnai3.png");
+    pixt = pixRead("/tmp/rtnai3.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
-    pixt = pixRead("/tmp/junkrtnarbin3.png");
+    pixt = pixRead("/tmp/rtnarbin3.png");
     pixSaveTiled(pixt, pixa, 1, 0, 20, 8);
     pixDestroy(&pixt);
     return pixa;

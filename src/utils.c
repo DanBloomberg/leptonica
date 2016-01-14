@@ -88,10 +88,12 @@
  *           l_int32    splitPathAtExtension()
  *           char      *genPathname()
  *           char      *genTempFilename()
+ *           char      *mungePathnameForWindows()
  *           l_int32    extractNumberFromFilename()
  *
  *       Version number
  *           char      *getLeptonlibVersion()
+ *           char      *getImagelibVersions()
  *
  *       Timing
  *           void       startTimer()
@@ -101,14 +103,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if COMPILER_MSVC
-#include <windows.h>
+#ifdef _MSC_VER
+#include <process.h>
 #else
 #include <unistd.h>
-#endif
+#endif   /* _MSC_VER */
 #include "allheaders.h"
 
-#if COMPILER_MSVC
+#ifdef _WIN32
+#include <windows.h>
 static const char sepchar = '\\';
 #else
 static const char sepchar = '/';
@@ -1349,14 +1352,13 @@ l_uint8  *data;
     if (!fp)
         return (l_uint8 *)ERROR_PTR("stream not defined", procName, NULL);
     if (!pnbytes)
-        return (l_uint8 *)ERROR_PTR("ptr to nbytes not defined", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("ptr to nbytes not defined",
+                                    procName, NULL);
 
     *pnbytes = fnbytesInFile(fp);
-
     if ((data = (l_uint8 *)CALLOC(1, *pnbytes + 1)) == NULL)
         return (l_uint8 *)ERROR_PTR("CALLOC fail for data", procName, NULL);
     fread(data, *pnbytes, 1, fp);
-
     return data;
 }
 
@@ -1557,7 +1559,7 @@ FILE  *fp;
 
     if ((fp = fopen(filename, "a")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    fprintf(fp, str);
+    fprintf(fp, "%s", str);
     fclose(fp);
     return 0;
 }
@@ -1884,7 +1886,7 @@ l_int32  dirlen, namelen, totlen;
     if ((charbuf = (char *)CALLOC(totlen, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("charbuf not made", procName, NULL);
 
-#if COMPILER_MSVC
+#ifdef _WIN32
     if (stringFindSubstr(dir, "/", NULL) > 0) {
         char *tempname;
         tempname = stringReplaceEachSubstr(dir, "/", "\\", NULL);
@@ -1896,7 +1898,7 @@ l_int32  dirlen, namelen, totlen;
     }
 #else
     strncpy(charbuf, dir, dirlen);
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
 
     dirlen = strlen(charbuf);
     if (charbuf[dirlen - 1] != sepchar)  /* append sepchar */
@@ -1910,9 +1912,11 @@ l_int32  dirlen, namelen, totlen;
  *  genTempFilename()
  *
  *      Input:  dir (directory name; use '.' for local dir; no trailing '/')
- *              segment (an additional part of the name; can be null)
- *              extension (<optional> filename extension with '.'; can be null)
- *      Return: tempname (with pid embedded in file name), or null on error
+ *              tail (<optional>  tailname, including extension if any;
+ *                                can be null)
+ *              usepid (1 to include pid in filename before the tail;
+ *                      0 to omit the pid.
+ *      Return: temp filename, or null on error
  *
  *  Notes:
  *      (1) This function is useful when there can be more than one
@@ -1922,44 +1926,90 @@ l_int32  dirlen, namelen, totlen;
  *          provides easily guessed temporary filenames, it is not designed
  *          to be safe from an attack where the intruder is logged onto
  *          the server.
+ *      (2) For windows, if the caller requests '/tmp', use GetTempPath()
+ *          to select the actual directory.  This avoids using
+ *          platform-conditional code wherever this is used.
+ *      (3) When @usepid == 1, the output filename is:
+ *              <dir>/<pid>_<tail>
+ *          Otherwise it is simply
+ *              <dir>/<tail>
  */
 char *
 genTempFilename(const char  *dir,
-                const char  *segment,
-                const char  *extension)
+                const char  *tail,
+                l_int32      usepid)
 {
 char     buf[256];
-char    *name, *outname;
-l_int32  pid, nseg, next;
+l_int32  pid;
     
     PROCNAME("genTempFilename");
 
     if (!dir)
         return (char *)ERROR_PTR("dir not defined", procName, NULL);
-#if COMPILER_MSVC
-    pid=GetCurrentProcessId();
-#else
-    pid = getpid();
-#endif
-    if (segment)
-        nseg = strlen(segment);
-    else
-        nseg = 0;
-    if (extension)
-        next = strlen(extension);
-    else
-        next = 0;
 
-#if COMPILER_MSVC
-    snprintf(buf, 255 - nseg - next, "%s\\%d_", dir, pid);
+    if (usepid) pid = getpid();
+
+#ifdef _WIN32
+    {  /* do not assume /tmp exists */
+    char  dirt[MAX_PATH];
+    if (!strcmp(dir, "/tmp"))
+        GetTempPath(sizeof(dirt), dirt);
+    else
+        snprintf(dirt, sizeof(dirt), "%s\\", dir);  /* add trailing '\' */
+    if (usepid)
+        snprintf(buf, sizeof(buf), "%s%d_", dirt, pid);
+    else
+        snprintf(buf, sizeof(buf), "%s", dirt);
+    }
 #else
-    snprintf(buf, 255 - nseg - next, "%s/%d_", dir, pid);
+    if (usepid)
+        snprintf(buf, sizeof(buf), "%s/%d_", dir, pid);
+    else
+        snprintf(buf, sizeof(buf), "%s/", dir);
 #endif
 
-    name = stringJoin(buf, segment);
-    outname = stringJoin(name, extension);
-    FREE(name);
-    return outname;
+    return stringJoin(buf, tail);
+}
+
+
+/*! 
+ *  mungePathnameForWindows()
+ *
+ *      Input:  namein (pathname)
+ *      Return: nameout (in Windows, replace '/tmp')
+ *
+ *  Notes:
+ *      (1) This returns a new string.  The caller is responsible
+ *          for freeing it.
+ *      (2) For windows, if the caller requests '/tmp', use GetTempPath()
+ *          to select the actual directory.  This avoids using
+ *          platform-conditional code wherever this is used.
+ */
+char *
+mungePathnameForWindows(const char  *namein)
+{
+    PROCNAME("mungePathnameForWindows");
+
+    if (!namein)
+        return (char *)ERROR_PTR("namein not defined", procName, NULL);
+
+#ifdef _WIN32
+    {  /* do not assume /tmp exists */
+    char   dirt[MAX_PATH];
+    char  *tail, *nameout;
+    if (strncmp(namein, "/tmp", 4) != 0)
+        return stringNew(namein);
+    GetTempPath(sizeof(dirt), dirt);
+    if (strlen(namein) == 4)
+        return stringNew(dirt);
+    tail = stringNew(namein + 4);
+    nameout = stringJoin(dirt, tail);
+    FREE(tail);
+    return nameout;
+    }
+#else
+    return stringNew(namein);
+#endif
 }
 
 
@@ -2016,7 +2066,7 @@ l_int32  len, nret, num;
 /*---------------------------------------------------------------------*
  *                          Version number                             *
  *---------------------------------------------------------------------*/
-/*! 
+/*!
  *  getLeptonlibVersion()
  *
  *      Return: string of version number (e.g., 'leptonlib-1.65')
@@ -2029,7 +2079,7 @@ getLeptonlibVersion()
 {
     char *version = (char *)CALLOC(100, sizeof(char));
 
-#if COMPILER_MSVC
+#ifdef _MSC_VER
   #ifdef _DLL
     char dllStr[] = "DLL";
   #else
@@ -2056,8 +2106,107 @@ getLeptonlibVersion()
     snprintf(version, 100, "leptonlib-%d.%d", LIBLEPT_MAJOR_VERSION,
              LIBLEPT_MINOR_VERSION);
 
-#endif   /* COMPILER_MSVC */
+#endif   /* _MSC_VER */
     return version;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                    Image Library Version number                     *
+ *---------------------------------------------------------------------*/
+/*! 
+ *  getImagelibVersions()
+ *
+ *      Return: string of version numbers (e.g.,
+ *               libgiff 4.1.6
+ *               libjpeg 8b
+ *               libpng 1.4.3
+ *               libtiff 3.9.4
+ *               zlib 1.2.5
+ *
+ *  Notes:
+ *      (1) The caller has responsibility to free the memory.
+ */
+#if HAVE_LIBGIF
+#include "gif_lib.h"
+#endif
+
+#if HAVE_LIBJPEG
+#include "jpeglib.h"
+#include "jerror.h"
+#endif
+
+#if HAVE_LIBPNG
+#include "png.h"
+#endif
+
+#if HAVE_LIBTIFF
+#include "tiffio.h"
+#endif
+
+#if HAVE_LIBZ
+#include "zlib.h"
+#endif
+
+#define stringJoinInPlace(s1, s2) \
+    tempStrP = stringJoin(s1,s2); FREE(s1); s1 = tempStrP;
+
+char *
+getImagelibVersions()
+{
+#if HAVE_LIBJPEG
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr err;
+    char buffer[JMSG_LENGTH_MAX];
+#endif
+    char *tempStrP;
+    char *versionNumP;
+    char *nextTokenP;
+    char *versionStrP = stringNew("");
+
+#if HAVE_LIBGIF
+    stringJoinInPlace(versionStrP, "libgiff 4.1.6\n");
+    //strncat_s(version, 1000, GIF_LIB_VERSION, _TRUNCATE);
+    //GIF_LIB_VERSION is just "4.1" so manually specify the full version.
+#endif
+
+#if HAVE_LIBJPEG
+    cinfo.err = jpeg_std_error(&err);
+    err.msg_code = JMSG_VERSION;
+    (*err.format_message) ((j_common_ptr ) &cinfo, buffer);
+
+    stringJoinInPlace(versionStrP, "libjpeg ");
+    versionNumP = strtokSafe(buffer, " ", &nextTokenP);
+    stringJoinInPlace(versionStrP, versionNumP);
+    stringJoinInPlace(versionStrP, "\n");
+    FREE(versionNumP);
+#endif
+
+#if HAVE_LIBPNG
+    stringJoinInPlace(versionStrP, "libpng ");
+    stringJoinInPlace(versionStrP, png_get_libpng_ver(NULL));
+    stringJoinInPlace(versionStrP, "\n");
+#endif
+
+#if HAVE_LIBTIFF
+    stringJoinInPlace(versionStrP, "libtiff ");
+    versionNumP = strtokSafe((char *)TIFFGetVersion(), " \n", &nextTokenP);
+    FREE(versionNumP);
+    versionNumP = strtokSafe(NULL, " \n", &nextTokenP);
+    FREE(versionNumP);
+    versionNumP = strtokSafe(NULL, " \n", &nextTokenP);
+    stringJoinInPlace(versionStrP, versionNumP);
+    stringJoinInPlace(versionStrP, "\n");
+    FREE(versionNumP);
+#endif
+
+#if HAVE_LIBZ
+    stringJoinInPlace(versionStrP, "zlib ");
+    stringJoinInPlace(versionStrP, zlibVersion());
+    stringJoinInPlace(versionStrP, "\n");
+#endif
+
+    return versionStrP;
 }
 
 
@@ -2071,7 +2220,7 @@ getLeptonlibVersion()
  *      ....
  *      fprintf(stderr, "Elapsed time = %7.3f sec\n", stopTimer());
  */
-#if !defined(__MINGW32__) && !defined(COMPILER_MSVC)
+#ifndef _WIN32
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -2099,9 +2248,7 @@ l_int32  tsec, tusec;
     return (tsec + ((l_float32)tusec) / 1000000.0);
 }
 
-#else   /* __MINGW32__ : resource.h not implemented under MINGW */
-
-#include <windows.h>
+#else   /* _WIN32 : resource.h not implemented under Windows */
 
 static ULARGE_INTEGER utime_before;
 static ULARGE_INTEGER utime_after;
@@ -2112,9 +2259,9 @@ startTimer(void)
 HANDLE    this_process;
 FILETIME  start, stop, kernel, user;
     
-    this_process = GetCurrentProcess ();
+    this_process = GetCurrentProcess();
 
-    GetProcessTimes (this_process, &start, &stop, &kernel, &user);
+    GetProcessTimes(this_process, &start, &stop, &kernel, &user);
 
     utime_before.LowPart  = user.dwLowDateTime;
     utime_before.HighPart = user.dwHighDateTime;
@@ -2126,9 +2273,9 @@ stopTimer(void)
 HANDLE    this_process;
 FILETIME  start, stop, kernel, user;
     
-    this_process = GetCurrentProcess ();
+    this_process = GetCurrentProcess();
 
-    GetProcessTimes (this_process, &start, &stop, &kernel, &user);
+    GetProcessTimes(this_process, &start, &stop, &kernel, &user);
 
     utime_after.LowPart  = user.dwLowDateTime;
     utime_after.HighPart = user.dwHighDateTime;

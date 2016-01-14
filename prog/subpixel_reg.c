@@ -70,8 +70,8 @@ PIXA      *pixa;
     pixd = pixAddSingleTextblock(pixt, bmftop,
                                  "Regression test for subpixel scaling: gray",
                                  0xff00ff00, L_ADD_ABOVE, NULL);
-    pixWrite("/tmp/junksub0.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junksub0.jpg", 0, &success);
+    pixWrite("/tmp/sub0.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/sub0.jpg", 0, &success);
     pixDisplayWithTitle(pixd, 50, 50, NULL, display);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
@@ -103,8 +103,8 @@ PIXA      *pixa;
     pixd = pixAddSingleTextblock(pixt, bmftop,
                                  "Regression test for subpixel scaling: color",
                                  0xff00ff00, L_ADD_ABOVE, NULL);
-    pixWrite("/tmp/junksub1.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junksub1.jpg", 1, &success);
+    pixWrite("/tmp/sub1.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/sub1.jpg", 1, &success);
     pixDisplayWithTitle(pixd, 50, 350, NULL, display);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
@@ -126,30 +126,30 @@ PIXA      *pixa;
     pixs = pixRead("patent.png");   /* sharp, 300 ppi, 1 bpp image */
     pix1 = pixConvertTo8(pixs, FALSE);  /* use 8 bpp input */
     pix2 = pixScale(pix1, scalefact, scalefact);
-    pixWrite("/tmp/junksub2.png", pix2, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksub2.png", 2, &success);
+    pixWrite("/tmp/sub2.png", pix2, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/sub2.png", 2, &success);
 
         /* Subpixel scaling; bad because there is very little aliasing. */
     pix3 = pixConvertToSubpixelRGB(pix1, scalefact, scalefact,
                                    L_SUBPIXEL_ORDER_RGB);
-    pixWrite("/tmp/junksub3.png", pix3, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksub3.png", 3, &success);
+    pixWrite("/tmp/sub3.png", pix3, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/sub3.png", 3, &success);
 
        /* Get same (bad) result doing subpixel rendering on RGB input */
     pix4 = pixConvertTo32(pixs);
     pix5 = pixConvertToSubpixelRGB(pix4, scalefact, scalefact,
                                    L_SUBPIXEL_ORDER_RGB);
     regTestComparePix(fp, argv, pix3, pix5, 0, &success);
-    pixWrite("/tmp/junksub4.png", pix5, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksub4.png", 4, &success);
+    pixWrite("/tmp/sub4.png", pix5, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/sub4.png", 4, &success);
 
         /* Now apply a small lowpass filter before scaling. */
     makeGaussianKernelSep(2, 2, 1.0, 1.0, &kelx, &kely);
     startTimer();
     pix6 = pixConvolveSep(pix1, kelx, kely, 8, 1);  /* normalized */
     fprintf(stderr, "Time sep: %7.3f\n", stopTimer());
-    pixWrite("/tmp/junksub5.png", pix6, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksub5.png", 5, &success);
+    pixWrite("/tmp/sub5.png", pix6, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/sub5.png", 5, &success);
 
         /* Get same lowpass result with non-separated convolution */
     kel = makeGaussianKernel(2, 2, 1.0, 1.0);
@@ -161,8 +161,8 @@ PIXA      *pixa;
         /* Now do the subpixel scaling on this slightly blurred image */
     pix8 = pixConvertToSubpixelRGB(pix6, scalefact, scalefact,
                                    L_SUBPIXEL_ORDER_RGB);
-    pixWrite("/tmp/junksub6.png", pix8, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksub6.png", 6, &success);
+    pixWrite("/tmp/sub6.png", pix8, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/sub6.png", 6, &success);
 
     regTestCleanup(argc, argv, fp, success, NULL);
     return 0;

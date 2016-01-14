@@ -19,24 +19,29 @@
  *    This file has these operations:
  *
  *      (1) Pixel histograms
- *      (2) Foreground/background estimation
- *      (3) Rectangle extraction
+ *      (2) Pixel row/column statistics
+ *      (3) Foreground/background estimation
  *
  *    Pixel histogram, rank val, averaging and min/max
  *           NUMA       *pixGetGrayHistogram()
  *           NUMA       *pixGetGrayHistogramMasked()
  *           l_int32     pixGetColorHistogram()
  *           l_int32     pixGetColorHistogramMasked()
+ *           NUMA       *pixGetCmapHistogram()
+ *           NUMA       *pixGetCmapHistogramMasked()
  *           l_int32     pixGetRankValueMaskedRGB()
  *           l_int32     pixGetRankValueMasked()
  *           l_int32     pixGetAverageMaskedRGB()
  *           l_int32     pixGetAverageMasked()
  *           l_int32     pixGetAverageTiledRGB()
  *           PIX        *pixGetAverageTiled()
+ *           l_int32     pixGetComponentRange()
  *           l_int32     pixGetExtremeValue()
  *           l_int32     pixGetMaxValueInRect()
+ *           l_int32     pixGetBinnedComponentRange()
  *           l_int32     pixGetRankColorArray()
  *           l_int32     pixGetBinnedColor()
+ *           PIX        *pixDisplayColorArray()
  *
  *    Pixelwise aligned statistics
  *           PIX        *pixaGetAlignedStats()
@@ -48,28 +53,6 @@
  *    Foreground/background estimation
  *           l_int32     pixThresholdForFgBg()
  *           l_int32     pixSplitDistributionFgBg()
- *
- *    Measurement of properties
- *           l_int32     pixaFindDimensions()
- *           NUMA        pixaFindAreaPerimRatio()
- *           l_int32     pixFindAreaPerimRatio()
- *           NUMA        pixaFindPerimSizeRatio()
- *           l_int32     pixFindPerimSizeRatio()
- *           NUMA        pixaFindAreaFraction()
- *           l_int32     pixFindAreaFraction()
- *           NUMA        pixaFindWidthHeightRatio()
- *           NUMA        pixaFindWidthHeightProduct()
- *
- *    Extract rectangle
- *           PIX        *pixClipRectangle()
- *           PIX        *pixClipMasked()
- *
- *    Clip to foreground
- *           PIX        *pixClipToForeground()
- *           l_int32     pixClipBoxToForeground()
- *           l_int32     pixScanForForeground()
- *           l_int32     pixClipBoxToEdges()
- *           l_int32     pixScanForEdge()
  */
 
 #include <stdio.h>
@@ -77,20 +60,6 @@
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
-
-static const l_uint32 rmask32[] = {0x0,
-    0x00000001, 0x00000003, 0x00000007, 0x0000000f,
-    0x0000001f, 0x0000003f, 0x0000007f, 0x000000ff,
-    0x000001ff, 0x000003ff, 0x000007ff, 0x00000fff,
-    0x00001fff, 0x00003fff, 0x00007fff, 0x0000ffff,
-    0x0001ffff, 0x0003ffff, 0x0007ffff, 0x000fffff,
-    0x001fffff, 0x003fffff, 0x007fffff, 0x00ffffff,
-    0x01ffffff, 0x03ffffff, 0x07ffffff, 0x0fffffff,
-    0x1fffffff, 0x3fffffff, 0x7fffffff, 0xffffffff};
-
-#ifndef  NO_CONSOLE_IO
-#define  DEBUG_EDGES         0
-#endif  /* ~NO_CONSOLE_IO */
 
 
 /*------------------------------------------------------------------*
@@ -104,27 +73,23 @@ static const l_uint32 rmask32[] = {0x0,
  *      Return: na (histogram), or null on error
  *
  *  Notes:
- *      (1) This generates a histogram of gray or cmapped pixels.
- *          The image must not be rgb.
+ *      (1) If pixs has a colormap, it is converted to 8 bpp gray.
+ *          If you want a histogram of the colormap indices, use
+ *          pixGetCmapHistogram().
  *      (2) If pixs does not have a colormap, the output histogram is
  *          of size 2^d, where d is the depth of pixs.
- *      (3) If pixs has has a colormap with color entries, the histogram
- *          generated is of the colormap indices, and is of size 2^d.
- *      (4) If pixs has a gray (r=g=b) colormap, a temporary 8 bpp image
- *          without the colormap is used to construct a histogram of
- *          size 256.
- *      (5) Set the subsampling factor > 1 to reduce the amount of computation.
+ *      (3) This always returns a 256-value histogram of pixel values.
+ *      (4) Set the subsampling factor > 1 to reduce the amount of computation.
  */
 NUMA *
 pixGetGrayHistogram(PIX     *pixs,
                     l_int32  factor)
 {
-l_int32     i, j, w, h, d, wpl, val, size, count, colorfound;
+l_int32     i, j, w, h, d, wpl, val, size, count;
 l_uint32   *data, *line;
 l_float32  *array;
 NUMA       *na;
 PIX        *pixg;
-PIXCMAP    *cmap;
 
     PROCNAME("pixGetGrayHistogram");
 
@@ -136,9 +101,7 @@ PIXCMAP    *cmap;
     if (factor < 1)
         return (NUMA *)ERROR_PTR("sampling factor < 1", procName, NULL);
 
-    if ((cmap = pixGetColormap(pixs)) != NULL)
-        pixcmapHasColor(cmap, &colorfound);
-    if (cmap && !colorfound)
+    if (pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     else
         pixg = pixClone(pixs);
@@ -162,7 +125,7 @@ PIXCMAP    *cmap;
     data = pixGetData(pixg);
     for (i = 0; i < h; i += factor) {
         line = data + i * wpl;
-        switch (d) 
+        switch (d)
         {
         case 2:
             for (j = 0; j < w; j += factor) {
@@ -204,14 +167,16 @@ PIXCMAP    *cmap;
  *
  *      Input:  pixs (8 bpp, or colormapped)
  *              pixm (<optional> 1 bpp mask over which histogram is
- *                    to be computed; use use all pixels if null)
- *              x, y (UL corner of pixm relative to the UL corner of pixs; 
+ *                    to be computed; use all pixels if null)
+ *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0; these values are ignored if pixm is null)
  *              factor (subsampling factor; integer >= 1)
  *      Return: na (histogram), or null on error
  *
  *  Notes:
  *      (1) If pixs is cmapped, it is converted to 8 bpp gray.
+ *          If you want a histogram of the colormap indices, use
+ *          pixGetCmapHistogramMasked().
  *      (2) This always returns a 256-value histogram of pixel values.
  *      (3) Set the subsampling factor > 1 to reduce the amount of computation.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
@@ -372,15 +337,15 @@ PIXCMAP    *cmap;
 
     return 0;
 }
-            
+
 
 /*!
  *  pixGetColorHistogramMasked()
  *
  *      Input:  pixs (32 bpp rgb, or colormapped)
  *              pixm (<optional> 1 bpp mask over which histogram is
- *                    to be computed; use use all pixels if null)
- *              x, y (UL corner of pixm relative to the UL corner of pixs; 
+ *                    to be computed; use all pixels if null)
+ *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0; these values are ignored if pixm is null)
  *              factor (subsampling factor; integer >= 1)
  *              &nar (<return> red histogram)
@@ -495,12 +460,150 @@ PIXCMAP    *cmap;
 
 
 /*!
+ *  pixGetCmapHistogram()
+ *
+ *      Input:  pixs (colormapped: d = 2, 4 or 8)
+ *              factor (subsampling factor; integer >= 1)
+ *      Return: na (histogram of cmap indices), or null on error
+ *
+ *  Notes:
+ *      (1) This generates a histogram of colormap pixel indices,
+ *          and is of size 2^d.
+ *      (2) Set the subsampling factor > 1 to reduce the amount of computation.
+ */
+NUMA *
+pixGetCmapHistogram(PIX     *pixs,
+                    l_int32  factor)
+{
+l_int32     i, j, w, h, d, wpl, val, size;
+l_uint32   *data, *line;
+l_float32  *array;
+NUMA       *na;
+
+    PROCNAME("pixGetCmapHistogram");
+
+    if (!pixs)
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetColormap(pixs) == NULL)
+        return (NUMA *)ERROR_PTR("pixs not cmapped", procName, NULL);
+    if (factor < 1)
+        return (NUMA *)ERROR_PTR("sampling factor < 1", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 2 && d != 4 && d != 8)
+        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", procName, NULL);
+
+    size = 1 << d;
+    if ((na = numaCreate(size)) == NULL)
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    numaSetCount(na, size);  /* all initialized to 0.0 */
+    array = numaGetFArray(na, L_NOCOPY);
+
+    wpl = pixGetWpl(pixs);
+    data = pixGetData(pixs);
+    for (i = 0; i < h; i += factor) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j += factor) {
+            if (d == 8)
+                val = GET_DATA_BYTE(line, j);
+            else if (d == 4)
+                val = GET_DATA_QBIT(line, j);
+            else  /* d == 2 */
+                val = GET_DATA_DIBIT(line, j);
+            array[val] += 1.0;
+        }
+    }
+
+    return na;
+}
+
+
+/*!
+ *  pixGetCmapHistogramMasked()
+ *
+ *      Input:  pixs (colormapped: d = 2, 4 or 8)
+ *              pixm (<optional> 1 bpp mask over which histogram is
+ *                    to be computed; use all pixels if null)
+ *              x, y (UL corner of pixm relative to the UL corner of pixs;
+ *                    can be < 0; these values are ignored if pixm is null)
+ *              factor (subsampling factor; integer >= 1)
+ *      Return: na (histogram), or null on error
+ *
+ *  Notes:
+ *      (1) This generates a histogram of colormap pixel indices,
+ *          and is of size 2^d.
+ *      (2) Set the subsampling factor > 1 to reduce the amount of computation.
+ *      (3) Clipping of pixm to pixs is done in the inner loop.
+ */
+NUMA *
+pixGetCmapHistogramMasked(PIX     *pixs,
+                          PIX     *pixm,
+                          l_int32  x,
+                          l_int32  y,
+                          l_int32  factor)
+{
+l_int32     i, j, w, h, d, wm, hm, dm, wpls, wplm, val, size;
+l_uint32   *datas, *datam, *lines, *linem;
+l_float32  *array;
+NUMA       *na;
+
+    PROCNAME("pixGetCmapHistogramMasked");
+
+    if (!pixm)
+        return pixGetCmapHistogram(pixs, factor);
+
+    if (!pixs)
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetColormap(pixs) == NULL)
+        return (NUMA *)ERROR_PTR("pixs not cmapped", procName, NULL);
+    pixGetDimensions(pixm, &wm, &hm, &dm);
+    if (dm != 1)
+        return (NUMA *)ERROR_PTR("pixm not 1 bpp", procName, NULL);
+    if (factor < 1)
+        return (NUMA *)ERROR_PTR("sampling factor < 1", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 2 && d != 4 && d != 8)
+        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", procName, NULL);
+
+    size = 1 << d;
+    if ((na = numaCreate(size)) == NULL)
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    numaSetCount(na, size);  /* all initialized to 0.0 */
+    array = numaGetFArray(na, L_NOCOPY);
+
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datam = pixGetData(pixm);
+    wplm = pixGetWpl(pixm);
+
+    for (i = 0; i < hm; i += factor) {
+        if (y + i < 0 || y + i >= h) continue;
+        lines = datas + (y + i) * wpls;
+        linem = datam + i * wplm;
+        for (j = 0; j < wm; j += factor) {
+            if (x + j < 0 || x + j >= w) continue;
+            if (GET_DATA_BIT(linem, j)) {
+                if (d == 8)
+                    val = GET_DATA_BYTE(lines, x + j);
+                else if (d == 4)
+                    val = GET_DATA_QBIT(lines, x + j);
+                else  /* d == 2 */
+                    val = GET_DATA_DIBIT(lines, x + j);
+                array[val] += 1.0;
+            }
+        }
+    }
+
+    return na;
+}
+
+
+/*!
  *  pixGetRankValueMaskedRGB()
  *
  *      Input:  pixs (32 bpp)
  *              pixm (<optional> 1 bpp mask over which rank val is to be taken;
  *                    use all pixels if null)
- *              x, y (UL corner of pixm relative to the UL corner of pixs; 
+ *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0; these values are ignored if pixm is null)
  *              factor (subsampling factor; integer >= 1)
  *              rank (between 0.0 and 1.0; 1.0 is brightest, 0.0 is darkest)
@@ -582,7 +685,7 @@ PIX       *pixmt, *pixt;
  *      Input:  pixs (8 bpp, or colormapped)
  *              pixm (<optional> 1 bpp mask over which rank val is to be taken;
  *                    use all pixels if null)
- *              x, y (UL corner of pixm relative to the UL corner of pixs; 
+ *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0; these values are ignored if pixm is null)
  *              factor (subsampling factor; integer >= 1)
  *              rank (between 0.0 and 1.0; 1.0 is brightest, 0.0 is darkest)
@@ -654,7 +757,7 @@ NUMA  *na;
  *      Input:  pixs (32 bpp, or colormapped)
  *              pixm (<optional> 1 bpp mask over which average is to be taken;
  *                    use all pixels if null)
- *              x, y (UL corner of pixm relative to the UL corner of pixs; 
+ *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0)
  *              factor (subsampling factor; >= 1)
  *              type (L_MEAN_ABSVAL, L_ROOT_MEAN_SQUARE,
@@ -737,7 +840,7 @@ PIXCMAP  *cmap;
  *      Input:  pixs (8 or 16 bpp, or colormapped)
  *              pixm (<optional> 1 bpp mask over which average is to be taken;
  *                    use all pixels if null)
- *              x, y (UL corner of pixm relative to the UL corner of pixs; 
+ *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0)
  *              factor (subsampling factor; >= 1)
  *              type (L_MEAN_ABSVAL, L_ROOT_MEAN_SQUARE,
@@ -1030,11 +1133,83 @@ PIX       *pixt, *pixd;
 
 
 /*!
+ *  pixGetComponentRange()
+ *
+ *      Input:  pixs (8 bpp grayscale, 32 bpp rgb, or colormapped)
+ *              factor (subsampling factor; >= 1; ignored if colormapped)
+ *              color (L_SELECT_RED, L_SELECT_GREEN or L_SELECT_BLUE)
+ *              &minval (<optional return> minimum value of component)
+ *              &maxval (<optional return> maximum value of component)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) If pixs is 8 bpp grayscale, the color selection type is ignored.
+ */
+l_int32
+pixGetComponentRange(PIX      *pixs,
+                     l_int32   factor,
+                     l_int32   color,
+                     l_int32  *pminval,
+                     l_int32  *pmaxval)
+{
+l_int32   d;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixGetComponentRange");
+
+    if (pminval) *pminval = 0;
+    if (pmaxval) *pmaxval = 0;
+    if (!pminval && !pmaxval)
+        return ERROR_INT("no result requested", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+
+    cmap = pixGetColormap(pixs);
+    if (cmap)
+        return pixcmapGetComponentRange(cmap, color, pminval, pmaxval);
+
+    if (factor < 1)
+        return ERROR_INT("subsampling factor < 1", procName, 1);
+    d = pixGetDepth(pixs);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
+
+    if (d == 8) {
+        pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
+                           NULL, NULL, NULL, pminval);
+        pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
+                           NULL, NULL, NULL, pmaxval);
+    } else if (color = L_SELECT_RED) {
+        pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
+                           pminval, NULL, NULL, NULL);
+        pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
+                           pmaxval, NULL, NULL, NULL);
+    }
+    else if (color = L_SELECT_GREEN) {
+        pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
+                           NULL, pminval, NULL, NULL);
+        pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
+                           NULL, pmaxval, NULL, NULL);
+    }
+    else if (color = L_SELECT_BLUE) {
+        pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
+                           NULL, NULL, pminval, NULL);
+        pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
+                           NULL, NULL, pmaxval, NULL);
+    }
+    else
+        return ERROR_INT("invalid color", procName, 1);
+
+    return 0;
+}
+
+
+/*!
  *  pixGetExtremeValue()
  *
  *      Input:  pixs (8 bpp grayscale, 32 bpp rgb, or colormapped)
  *              factor (subsampling factor; >= 1; ignored if colormapped)
- *              type (L_CHOOSE_MIN or L_CHOOSE_MAX)
+ *              type (L_SELECT_MIN or L_SELECT_MAX)
  *              &rval (<optional return> red component)
  *              &gval (<optional return> green component)
  *              &bval (<optional return> blue component)
@@ -1072,7 +1247,7 @@ PIXCMAP   *cmap;
         return pixcmapGetExtremeValue(cmap, type, prval, pgval, pbval);
 
     pixGetDimensions(pixs, &w, &h, &d);
-    if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
+    if (type != L_SELECT_MIN && type != L_SELECT_MAX)
         return ERROR_INT("invalid type", procName, 1);
     if (factor < 1)
         return ERROR_INT("subsampling factor < 1", procName, 1);
@@ -1086,7 +1261,7 @@ PIXCMAP   *cmap;
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
     if (d == 8) {
-        if (type == L_CHOOSE_MIN)
+        if (type == L_SELECT_MIN)
             extval = 100000;
         else  /* get max */
             extval = 0;
@@ -1095,8 +1270,8 @@ PIXCMAP   *cmap;
             line = data + i * wpl;
             for (j = 0; j < w; j += factor) {
                 val = GET_DATA_BYTE(line, j);
-                if ((type == L_CHOOSE_MIN && val < extval) ||
-                    (type == L_CHOOSE_MAX && val > extval))
+                if ((type == L_SELECT_MIN && val < extval) ||
+                    (type == L_SELECT_MAX && val > extval))
                     extval = val;
             }
         }
@@ -1105,7 +1280,7 @@ PIXCMAP   *cmap;
     }
 
         /* 32 bpp rgb */
-    if (type == L_CHOOSE_MIN) {
+    if (type == L_SELECT_MIN) {
         extrval = 100000;
         extgval = 100000;
         extbval = 100000;
@@ -1121,20 +1296,20 @@ PIXCMAP   *cmap;
             pixel = line[j];
             if (prval) {
                 rval = (pixel >> L_RED_SHIFT) & 0xff;
-                if ((type == L_CHOOSE_MIN && rval < extrval) ||
-                    (type == L_CHOOSE_MAX && rval > extrval))
+                if ((type == L_SELECT_MIN && rval < extrval) ||
+                    (type == L_SELECT_MAX && rval > extrval))
                     extrval = rval;
             }
             if (pgval) {
                 gval = (pixel >> L_GREEN_SHIFT) & 0xff;
-                if ((type == L_CHOOSE_MIN && gval < extgval) ||
-                    (type == L_CHOOSE_MAX && gval > extgval))
+                if ((type == L_SELECT_MIN && gval < extgval) ||
+                    (type == L_SELECT_MAX && gval > extgval))
                     extgval = gval;
             }
             if (pbval) {
                 bval = (pixel >> L_BLUE_SHIFT) & 0xff;
-                if ((type == L_CHOOSE_MIN && bval < extbval) ||
-                    (type == L_CHOOSE_MAX && bval > extbval))
+                if ((type == L_SELECT_MIN && bval < extbval) ||
+                    (type == L_SELECT_MAX && bval > extbval))
                     extbval = bval;
             }
         }
@@ -1230,40 +1405,127 @@ l_uint32  *data, *line;
 
 
 /*!
+ *  pixGetBinnedComponentRange()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              nbins (number of equal population bins; must be > 1)
+ *              factor (subsampling factor; >= 1)
+ *              color (L_SELECT_RED, L_SELECT_GREEN or L_SELECT_BLUE)
+ *              &minval (<optional return> minimum value of component)
+ *              &maxval (<optional return> maximum value of component)
+ *              &carray (<optional return> color array of bins)
+ *              debugflag (1 for debug output)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This returns the min and max average values of the
+ *          selected color component in the set of rank bins,
+ *          where the ranking is done using the specified component.
+ */
+l_int32
+pixGetBinnedComponentRange(PIX        *pixs,
+                           l_int32     nbins,
+                           l_int32     factor,
+                           l_int32     color,
+                           l_int32    *pminval,
+                           l_int32    *pmaxval,
+                           l_uint32  **pcarray,
+                           l_int32     debugflag)
+{
+l_int32    i, minval, maxval, rval, gval, bval;
+l_uint32  *carray;
+PIX       *pixt;
+
+    PROCNAME("pixGetBinnedComponentRange");
+
+    if (pminval) *pminval = 0;
+    if (pmaxval) *pmaxval = 0;
+    if (pcarray) *pcarray = NULL;
+    if (!pminval && !pmaxval)
+        return ERROR_INT("no result requested", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("subsampling factor < 1", procName, 1);
+    if (color != L_SELECT_RED && color != L_SELECT_GREEN &&
+        color != L_SELECT_BLUE)
+        return ERROR_INT("invalid color", procName, 1);
+
+    pixGetRankColorArray(pixs, nbins, color, factor, &carray, 0);
+    if (debugflag) {
+        for (i = 0; i < nbins; i++)
+            fprintf(stderr, "c[%d] = %x\n", i, carray[i]);
+        pixt = pixDisplayColorArray(carray, nbins, 200, 5, 1);
+        pixDisplay(pixt, 100, 100);
+        pixDestroy(&pixt);
+    }
+
+    extractRGBValues(carray[0], &rval, &gval, &bval);
+    minval = rval;
+    if (color == L_SELECT_GREEN)
+        minval = gval;
+    else if (color == L_SELECT_BLUE)
+        minval = bval;
+    extractRGBValues(carray[nbins - 1], &rval, &gval, &bval);
+    maxval = rval;
+    if (color == L_SELECT_GREEN)
+        maxval = gval;
+    else if (color == L_SELECT_BLUE)
+        maxval = bval;
+
+    if (pminval) *pminval = minval;
+    if (pmaxval) *pmaxval = maxval;
+    if (pcarray)
+        *pcarray = carray;
+    else
+        FREE(carray);
+    return 0;
+}
+
+
+/*!
  *  pixGetRankColorArray()
  *
  *      Input:  pixs (32 bpp or cmapped)
  *              nbins (number of equal population bins; must be > 1)
+ *              type (color selection flag)
  *              factor (subsampling factor; integer >= 1)
  *              &carray (<return> array of colors, ranked by intensity)
- *              debugflag (1 to display output debug plots of color
+ *              debugflag (1 to display color squares and plots of color
  *                         components; 2 to write them as png to file)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Computes the histogram of the minimum component in each RGB
- *          pixel.  Then for each of the @nbins sets of pixels,
- *          ordered by this min component value, find the average color,
+ *      (1) The color selection flag is one of: L_SELECT_RED, L_SELECT_GREEN,
+ *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX.
+ *      (2) Then it finds the histogram of the selected component in each
+ *          RGB pixel.  For each of the @nbins sets of pixels,
+ *          ordered by this component value, find the average color,
  *          and return this as a "rank color" array.  The output array
  *          has @nbins colors.
- *      (2) Set the subsampling factor > 1 to reduce the amount of
+ *      (3) Set the subsampling factor > 1 to reduce the amount of
  *          computation.  Typically you want at least 10,000 pixels
  *          for reasonable statistics.
- *      (3) The rank color as a function of rank can then be found from
+ *      (4) The rank color as a function of rank can then be found from
  *             rankint = (l_int32)(rank * (nbins - 1) + 0.5);
  *             extractRGBValues(array[rankint], &rval, &gval, &bval);
  *          where the rank is in [0.0 ... 1.0].
  *          This function is meant to be simple and approximate.
+ *      (5) Compare this with pixGetBinnedColor(), which generates equal
+ *          width intensity bins and finds the average color in each bin.
  */
 l_int32
-pixGetRankColorArray(PIX        *pixs,
-                     l_int32     nbins,
-                     l_int32     factor,
-                     l_uint32  **pcarray,
-                     l_int32     debugflag)
+pixGetRankColorArray(PIX         *pixs,
+                     l_int32      nbins,
+                     l_int32      type,
+                     l_int32      factor,
+                     l_uint32   **pcarray,
+                     l_int32      debugflag)
 {
+l_int32    ret;
+l_uint32  *array;
 NUMA      *na, *nan, *narbin;
-PIX       *pixt, *pixc, *pixg;
+PIX       *pixt, *pixc, *pixg, *pixd;
 PIXCMAP   *cmap;
 
     PROCNAME("pixGetRankColorArray");
@@ -1280,6 +1542,10 @@ PIXCMAP   *cmap;
     cmap = pixGetColormap(pixs);
     if (pixGetDepth(pixs) != 32 && !cmap)
         return ERROR_INT("pixs neither 32 bpp nor cmapped", procName, 1);
+    if (type != L_SELECT_RED && type != L_SELECT_GREEN &&
+        type != L_SELECT_BLUE && type != L_SELECT_MIN &&
+        type != L_SELECT_MAX)
+        return ERROR_INT("invalid type", procName, 1);
 
         /* Downscale by factor and remove colormap if it exists */
     pixt = pixScaleByIntSubsampling(pixs, factor);
@@ -1289,8 +1555,17 @@ PIXCMAP   *cmap;
         pixc = pixClone(pixt);
     pixDestroy(&pixt);
 
-        /* Get normalized histogram of the minimum component */
-    pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MIN);
+        /* Get normalized histogram of the selected component */
+    if (type == L_SELECT_RED)
+        pixg = pixGetRGBComponent(pixc, COLOR_RED);
+    else if (type == L_SELECT_GREEN)
+        pixg = pixGetRGBComponent(pixc, COLOR_GREEN);
+    else if (type == L_SELECT_BLUE)
+        pixg = pixGetRGBComponent(pixc, COLOR_BLUE);
+    else if (type == L_SELECT_MIN)
+        pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MIN);
+    else  /* type == L_SELECT_MAX */
+        pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MAX);
     if ((na = pixGetGrayHistogram(pixg, 1)) == NULL)
         return ERROR_INT("na not made", procName, 1);
     nan = numaNormalizeHistogram(na, 1.0);
@@ -1298,7 +1573,7 @@ PIXCMAP   *cmap;
         /* Get the following arrays:
          * (1) nar: cumulative normalized histogram (rank vs intensity value).
          *     With 256 intensity values, we have 257 rank values.
-         * (2) nai: "average" intensity as function of rank, within
+         * (2) nai: "average" intensity as function of rank bin, for
          *     @nbins equally spaced in rank between 0.0 and 1.0.
          * (3) narbin: bin number of discretized rank as a function of
          *     intensity.  This is the 'inverse' of nai.
@@ -1311,12 +1586,12 @@ PIXCMAP   *cmap;
         NUMA    *nai, *nar, *nabb;
         numaDiscretizeRankAndIntensity(nan, nbins, &narbin, &nai, &nar, &nabb);
         type = (debugflag == 1) ? GPLOT_X11 : GPLOT_PNG;
-        gplotSimple1(nan, type, "/tmp/junkrtnan", "Normalized Histogram");
-        gplotSimple1(nar, type, "/tmp/junkrtnar", "Cumulative Histogram");
-        gplotSimple1(nai, type, "/tmp/junkrtnai", "Intensity vs. rank bin");
-        gplotSimple1(narbin, type, "/tmp/junkrtnarbin",
+        gplotSimple1(nan, type, "/tmp/rtnan", "Normalized Histogram");
+        gplotSimple1(nar, type, "/tmp/rtnar", "Cumulative Histogram");
+        gplotSimple1(nai, type, "/tmp/rtnai", "Intensity vs. rank bin");
+        gplotSimple1(narbin, type, "/tmp/rtnarbin",
                      "LUT: rank bin vs. Intensity");
-        gplotSimple1(nabb, type, "/tmp/junkrtnabb",
+        gplotSimple1(nabb, type, "/tmp/rtnabb",
                      "Intensity of right edge vs. rank bin");
         numaDestroy(&nai);
         numaDestroy(&nar);
@@ -1326,8 +1601,26 @@ PIXCMAP   *cmap;
         /* Get the average color in each bin for pixels whose grayscale
          * values fall in the bin range.  @narbin is the LUT that
          * determines the bin number from the grayscale version of
-         * the image. */
+         * the image.  Because this mapping may not be unique,
+         * some bins may not be represented in the LUT. In use, to get fair
+         * allocation into all the bins, bin population is monitored
+         * as pixels are accumulated, and when bins fill up,
+         * pixels are required to overflow into succeeding bins. */
     pixGetBinnedColor(pixc, pixg, 1, nbins, narbin, pcarray, debugflag);
+    ret = 0;
+    if ((array = *pcarray) == NULL) {
+        L_ERROR("color array not returned", procName);
+        ret = 1;
+        debugflag = 0;  /* make sure to skip the following */
+    }
+    if (debugflag) {
+        pixd = pixDisplayColorArray(array, nbins, 200, 5, 1);
+        if (debugflag == 1)
+            pixDisplayWithTitle(pixd, 0, 500, "binned colors", 1);
+        else  /* debugflag == 2 */
+            pixWriteTempfile("/tmp", "rankhisto.png", pixd, IFF_PNG, NULL);
+        pixDestroy(&pixd);
+    }
 
     pixDestroy(&pixc);
     pixDestroy(&pixg);
@@ -1357,6 +1650,12 @@ PIXCMAP   *cmap;
  *          It computes the average color for pixels whose intensity
  *          is in each bin.  This is returned as an array of l_uint32
  *          colors in our standard RGBA ordering.
+ *      (2) This function generates equal width intensity bins and
+ *          finds the average color in each bin.  Compare this with
+ *          pixGetRankColorArray(), which rank orders the pixels
+ *          by the value of the selected component in each pixel,
+ *          sets up bins with equal population (not intensity width!),
+ *          and gets the average color in each bin.
  */
 l_int32
 pixGetBinnedColor(PIX        *pixs,
@@ -1368,6 +1667,7 @@ pixGetBinnedColor(PIX        *pixs,
                   l_int32     debugflag)
 {
 l_int32     i, j, w, h, wpls, wplg, grayval, bin, rval, gval, bval;
+l_int32     npts, avepts, maxpts;
 l_uint32   *datas, *datag, *lines, *lineg, *carray;
 l_float64   norm;
 l_float64  *rarray, *garray, *barray, *narray;
@@ -1388,8 +1688,16 @@ l_float64  *rarray, *garray, *barray, *narray;
         factor = 1;
     }
 
-        /* Find the color for each rank bin */
+        /* Find the color for each rank bin.  Note that we can have
+         * multiple bins filled with pixels having the same gray value.
+         * Therefore, because in general the mapping from gray value
+         * to bin number is not unique, if a bin fills up (actually,
+         * we allow it to slightly overfill), we roll the excess
+         * over to the next bin, etc. */
     pixGetDimensions(pixs, &w, &h, NULL);
+    npts = (w + factor - 1) * (h + factor - 1) / (factor * factor);
+    avepts = (npts + nbins - 1) / nbins;  /* average number of pts in a bin */
+    maxpts = (l_int32)((1.0 + 0.5 / (l_float32)nbins) * avepts);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     datag = pixGetData(pixg);
@@ -1405,6 +1713,8 @@ l_float64  *rarray, *garray, *barray, *narray;
             grayval = GET_DATA_BYTE(lineg, j);
             numaGetIValue(nalut, grayval, &bin);
             extractRGBValues(lines[j], &rval, &gval, &bval);
+            while (narray[bin] >= maxpts && bin < nbins - 1)
+                bin++;
             rarray[bin] += rval;
             garray[bin] += gval;
             barray[bin] += bval;
@@ -1417,6 +1727,7 @@ l_float64  *rarray, *garray, *barray, *narray;
         rarray[i] *= norm;
         garray[i] *= norm;
         barray[i] *= norm;
+/*        fprintf(stderr, "narray[%d] = %f\n", i, narray[i]);  */
     }
 
     if (debugflag) {
@@ -1431,11 +1742,11 @@ l_float64  *rarray, *garray, *barray, *narray;
             numaAddNumber(nablue, barray[i]);
         }
         type = (debugflag == 1) ? GPLOT_X11 : GPLOT_PNG;
-        gplotSimple1(nared, type, "/tmp/junkrtnared",
+        gplotSimple1(nared, type, "/tmp/rtnared",
                      "Average red val vs. rank bin");
-        gplotSimple1(nagreen, type, "/tmp/junkrtnagreen",
+        gplotSimple1(nagreen, type, "/tmp/rtnagreen",
                      "Average green val vs. rank bin");
-        gplotSimple1(nablue, type, "/tmp/junkrtnablue",
+        gplotSimple1(nablue, type, "/tmp/rtnablue",
                      "Average blue val vs. rank bin");
         numaDestroy(&nared);
         numaDestroy(&nagreen);
@@ -1458,6 +1769,61 @@ l_float64  *rarray, *garray, *barray, *narray;
     FREE(barray);
     FREE(narray);
     return 0;
+}
+
+
+/*!
+ *  pixDisplayColorArray()
+ *
+ *      Input:  carray (array of colors: 0xrrggbb00)
+ *              ncolors (size of array)
+ *              side (size of each color square; suggest 200)
+ *              ncols (number of columns in output color matrix)
+ *              textflag (1 to label each square with text; 0 otherwise)
+ *      Return: pixd (color array), or null on error
+ */
+PIX *
+pixDisplayColorArray(l_uint32  *carray,
+                     l_int32    ncolors,
+                     l_int32    side,
+                     l_int32    ncols,
+                     l_int32    textflag)
+{
+char     textstr[256];
+l_int32  i, rval, gval, bval;
+L_BMF   *bmf6;
+PIX     *pixt, *pixd;
+PIXA    *pixa;
+
+    PROCNAME("pixDisplayColorArray");
+
+    if (!carray)
+        return (PIX *)ERROR_PTR("carray not defined", procName, NULL);
+
+    bmf6 = NULL;
+    if (textflag)
+        bmf6 = bmfCreate("./fonts", 6);
+
+    pixa = pixaCreate(ncolors);
+    for (i = 0; i < ncolors; i++) {
+        pixt = pixCreate(side, side, 32);
+        pixSetAllArbitrary(pixt, carray[i]);
+        if (textflag) {
+            extractRGBValues(carray[i], &rval, &gval, &bval);
+            snprintf(textstr, sizeof(textstr),
+                     "%d: (%d %d %d)", i, rval, gval, bval);
+            pixSaveTiledWithText(pixt, pixa, side, (i % ncols == 0) ? 1 : 0,
+                                 20, 2, bmf6, textstr, 0xff000000, L_ADD_BELOW);
+        }
+        else
+            pixSaveTiled(pixt, pixa, 1, (i % ncols == 0) ? 1 : 0, 20, 32);
+        pixDestroy(&pixt);
+    }
+    pixd = pixaDisplay(pixa, 0, 0);
+
+    pixaDestroy(&pixa);
+    bmfDestroy(&bmf6);
+    return pixd;
 }
 
 
@@ -1520,7 +1886,7 @@ PIX        *pixt, *pixd;
     pixDestroy(&pixt);
     return pixd;
 }
-    
+
 
 /*!
  *  pixaExtractColumnFromEachPix()
@@ -1639,7 +2005,7 @@ l_uint32  *lines, *datas;
         }
         return 0;
     }
-            
+
         /* We need a histogram; binwidth ~ 256 / nbins */
     histo = (l_int32 *)CALLOC(nbins, sizeof(l_int32));
     gray2bin = (l_int32 *)CALLOC(256, sizeof(l_int32));
@@ -1763,7 +2129,7 @@ l_uint32  *datas;
         }
         return 0;
     }
-            
+
         /* We need a histogram; binwidth ~ 256 / nbins */
     histo = (l_int32 *)CALLOC(nbins, sizeof(l_int32));
     gray2bin = (l_int32 *)CALLOC(256, sizeof(l_int32));
@@ -1936,6 +2302,7 @@ pixSplitDistributionFgBg(PIX       *pixs,
                          l_int32   *pbgval,
                          l_int32    debugflag)
 {
+char       buf[256];
 l_int32    thresh;
 l_float32  avefg, avebg, maxnum;
 GPLOT     *gplot;
@@ -1969,14 +2336,15 @@ PIX       *pixg;
     if (pbgval) *pbgval = (l_int32)(avebg + 0.5);
 
     if (debugflag) {
-        gplot = gplotCreate("junk_histplot", GPLOT_X11, "Histogram",
+        gplot = gplotCreate("/tmp/histplot", GPLOT_PNG, "Histogram",
                             "Grayscale value", "Number of pixels");
         gplotAddPlot(gplot, NULL, na, GPLOT_LINES, NULL);
         nax = numaMakeConstant(thresh, 2);
         numaGetMax(na, &maxnum, NULL);
         nay = numaMakeConstant(0, 2);
         numaReplaceNumber(nay, 1, (l_int32)(0.5 * maxnum));
-        gplotAddPlot(gplot, nax, nay, GPLOT_LINES, NULL);
+        snprintf(buf, sizeof(buf), "score fract = %3.1f", scorefract);
+        gplotAddPlot(gplot, nax, nay, GPLOT_LINES, buf);
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
         numaDestroy(&nax);
@@ -1988,1103 +2356,4 @@ PIX       *pixg;
     return 0;
 }
 
-
-/*-------------------------------------------------------------*
- *                 Measurement of properties                   *
- *-------------------------------------------------------------*/
-/*!
- *  pixaFindDimensions()
- *
- *      Input:  pixa
- *              &naw (<optional return> numa of pix widths)
- *              &nah (<optional return> numa of pix heights)
- *      Return: 0 if OK, 1 on error
- */
-l_int32
-pixaFindDimensions(PIXA   *pixa,
-                   NUMA  **pnaw,
-                   NUMA  **pnah)
-{
-l_int32  i, n, w, h;
-PIX     *pixt;
-
-    PROCNAME("pixaFindDimensions");
-
-    if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
-    if (!pnaw && !pnah) 
-        return 0;
-
-    n = pixaGetCount(pixa);
-    if (pnaw) *pnaw = numaCreate(n);
-    if (pnah) *pnah = numaCreate(n);
-    for (i = 0; i < n; i++) {
-        pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixGetDimensions(pixt, &w, &h, NULL);
-        if (pnaw)
-            numaAddNumber(*pnaw, w);
-        if (pnah)
-            numaAddNumber(*pnah, h);
-        pixDestroy(&pixt);
-    }
-    return 0;
-}
-
-
-/*!
- *  pixaFindAreaPerimRatio()
- *
- *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of area/perimeter ratio for each pix), or null on error
- *
- *  Notes:
- *      (1) This is typically used for a pixa consisting of
- *          1 bpp connected components.
- */
-NUMA *
-pixaFindAreaPerimRatio(PIXA  *pixa)
-{
-l_int32    i, n;
-l_int32   *tab;
-l_float32  fract;
-NUMA      *na;
-PIX       *pixt;
-
-    PROCNAME("pixaFindAreaPerimRatio");
-
-    if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
-
-    n = pixaGetCount(pixa);
-    na = numaCreate(n);
-    tab = makePixelSumTab8();
-    for (i = 0; i < n; i++) {
-        pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixFindAreaPerimRatio(pixt, tab, &fract);
-        numaAddNumber(na, fract);
-        pixDestroy(&pixt);
-    }
-    FREE(tab);
-    return na;
-}
-
-
-/*!
- *  pixFindAreaPerimRatio()
- *
- *      Input:  pixs (1 bpp)
- *              tab (<optional> pixel sum table, can be NULL)
- *              &fract (<return> area/perimeter ratio)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) The area is the number of fg pixels that are not on the
- *          boundary (i.e., not 8-connected to a bg pixel), and the
- *          perimeter is the number of boundary fg pixels.
- *      (2) This is typically used for a pixa consisting of
- *          1 bpp connected components.
- */
-l_int32
-pixFindAreaPerimRatio(PIX        *pixs,
-                      l_int32    *tab,
-                      l_float32  *pfract)
-{
-l_int32  *tab8;
-l_int32   nin, nbound;
-PIX      *pixt;
-
-    PROCNAME("pixFindAreaPerimRatio");
-
-    if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
-    *pfract = 0.0;
-    if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-
-    if (!tab)
-        tab8 = makePixelSumTab8();
-    else
-        tab8 = tab;
-
-    pixt = pixErodeBrick(NULL, pixs, 3, 3);
-    pixCountPixels(pixt, &nin, tab8);
-    pixXor(pixt, pixt, pixs);
-    pixCountPixels(pixt, &nbound, tab8);
-    *pfract = (l_float32)nin / (l_float32)nbound;
-
-    if (!tab)
-        FREE(tab8);
-    pixDestroy(&pixt);
-    return 0;
-}
-
-
-/*!
- *  pixaFindPerimSizeRatio()
- *
- *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of fg perimeter/(w*h) ratio for each pix), or null on error
- *
- *  Notes:
- *      (1) This is typically used for a pixa consisting of
- *          1 bpp connected components.
- */
-NUMA *
-pixaFindPerimSizeRatio(PIXA  *pixa)
-{
-l_int32    i, n;
-l_int32   *tab;
-l_float32  ratio;
-NUMA      *na;
-PIX       *pixt;
-
-    PROCNAME("pixaFindPerimSizeRatio");
-
-    if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
-
-    n = pixaGetCount(pixa);
-    na = numaCreate(n);
-    tab = makePixelSumTab8();
-    for (i = 0; i < n; i++) {
-        pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixFindPerimSizeRatio(pixt, tab, &ratio);
-        numaAddNumber(na, ratio);
-        pixDestroy(&pixt);
-    }
-    FREE(tab);
-    return na;
-}
-
-
-/*!
- *  pixFindPerimSizeRatio()
- *
- *      Input:  pixs (1 bpp)
- *              tab (<optional> pixel sum table, can be NULL)
- *              &ratio (<return> perimeter/size ratio)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) The size is the sum of the width and height of the pix,
- *          and the perimeter is the number of boundary fg pixels.
- *      (2) This has a large value for dendritic, fractal-like components
- *          with highly irregular boundaries.
- *      (3) This is typically used for a single connected component.
- */
-l_int32
-pixFindPerimSizeRatio(PIX        *pixs,
-                      l_int32    *tab,
-                      l_float32  *pratio)
-{
-l_int32  *tab8;
-l_int32   w, h, nbound;
-PIX      *pixt;
-
-    PROCNAME("pixFindPerimSizeRatio");
-
-    if (!pratio)
-        return ERROR_INT("&ratio not defined", procName, 1);
-    *pratio = 0.0;
-    if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-
-    if (!tab)
-        tab8 = makePixelSumTab8();
-    else
-        tab8 = tab;
-
-    pixt = pixErodeBrick(NULL, pixs, 3, 3);
-    pixXor(pixt, pixt, pixs);
-    pixCountPixels(pixt, &nbound, tab8);
-    pixGetDimensions(pixs, &w, &h, NULL);
-    *pratio = (l_float32)nbound / (l_float32)(w + h);
-
-    if (!tab)
-        FREE(tab8);
-    pixDestroy(&pixt);
-    return 0;
-}
-
-
-/*!
- *  pixaFindAreaFraction()
- *
- *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of area fractions for each pix), or null on error
- *
- *  Notes:
- *      (1) This is typically used for a pixa consisting of
- *          1 bpp connected components.
- */
-NUMA *
-pixaFindAreaFraction(PIXA  *pixa)
-{
-l_int32    i, n;
-l_int32   *tab;
-l_float32  fract;
-NUMA      *na;
-PIX       *pixt;
-
-    PROCNAME("pixaFindAreaFraction");
-
-    if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
-
-    n = pixaGetCount(pixa);
-    na = numaCreate(n);
-    tab = makePixelSumTab8();
-    for (i = 0; i < n; i++) {
-        pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixFindAreaFraction(pixt, tab, &fract);
-        numaAddNumber(na, fract);
-        pixDestroy(&pixt);
-    }
-    FREE(tab);
-    return na;
-}
-
-
-/*!
- *  pixFindAreaFraction()
- *
- *      Input:  pixs (1 bpp)
- *              tab (<optional> pixel sum table, can be NULL)
- *              &fract (<return> fg area/size ratio)
- *      Return: 0 if OK, 1 on error
- *
- *  Notes:
- *      (1) This finds the ratio of the number of fg pixels to the
- *          size of the pix (w * h).  It is typically used for a
- *          single connected component.
- */
-l_int32
-pixFindAreaFraction(PIX        *pixs,
-                    l_int32    *tab,
-                    l_float32  *pfract)
-{
-l_int32   w, h, d, sum;
-l_int32  *tab8;
-
-    PROCNAME("pixFindAreaFraction");
-
-    if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
-    *pfract = 0.0;
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (!pixs || d != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-
-    if (!tab)
-        tab8 = makePixelSumTab8();
-    else
-        tab8 = tab;
-
-    pixCountPixels(pixs, &sum, tab8);
-    *pfract = (l_float32)sum / (l_float32)(w * h);
-
-    if (!tab)
-        FREE(tab8);
-    return 0;
-}
-
-
-/*!
- *  pixaFindWidthHeightRatio()
- *
- *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of width/height ratios for each pix), or null on error
- *
- *  Notes:
- *      (1) This is typically used for a pixa consisting of
- *          1 bpp connected components.
- */
-NUMA *
-pixaFindWidthHeightRatio(PIXA  *pixa)
-{
-l_int32  i, n, w, h;
-NUMA    *na;
-PIX     *pixt;
-
-    PROCNAME("pixaFindWidthHeightRatio");
-
-    if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
-
-    n = pixaGetCount(pixa);
-    na = numaCreate(n);
-    for (i = 0; i < n; i++) {
-        pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixGetDimensions(pixt, &w, &h, NULL);
-        numaAddNumber(na, (l_float32)w / (l_float32)h);
-        pixDestroy(&pixt);
-    }
-    return na;
-}
-
-
-/*!
- *  pixaFindWidthHeightProduct()
- *
- *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of width*height products for each pix), or null on error
- *
- *  Notes:
- *      (1) This is typically used for a pixa consisting of
- *          1 bpp connected components.
- */
-NUMA *
-pixaFindWidthHeightProduct(PIXA  *pixa)
-{
-l_int32  i, n, w, h;
-NUMA    *na;
-PIX     *pixt;
-
-    PROCNAME("pixaFindWidthHeightProduct");
-
-    if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
-
-    n = pixaGetCount(pixa);
-    na = numaCreate(n);
-    for (i = 0; i < n; i++) {
-        pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixGetDimensions(pixt, &w, &h, NULL);
-        numaAddNumber(na, w * h);
-        pixDestroy(&pixt);
-    }
-    return na;
-}
-
-
-/*-------------------------------------------------------------*
- *                Extract rectangular region                   *
- *-------------------------------------------------------------*/
-/*!
- *  pixClipRectangle()
- *
- *      Input:  pixs
- *              box  (requested clipping region; const)
- *              &boxc (<optional return> actual box of clipped region)
- *      Return: clipped pix, or null on error or if rectangle
- *              doesn't intersect pixs
- *
- *  Notes:
- *
- *  This should be simple, but there are choices to be made.
- *  The box is defined relative to the pix coordinates.  However,
- *  if the box is not contained within the pix, we have two choices:
- *
- *      (1) clip the box to the pix
- *      (2) make a new pix equal to the full box dimensions,
- *          but let rasterop do the clipping and positioning
- *          of the src with respect to the dest
- *
- *  Choice (2) immediately brings up the problem of what pixel values
- *  to use that were not taken from the src.  For example, on a grayscale
- *  image, do you want the pixels not taken from the src to be black
- *  or white or something else?  To implement choice 2, one needs to
- *  specify the color of these extra pixels.
- *
- *  So we adopt (1), and clip the box first, if necessary,
- *  before making the dest pix and doing the rasterop.  But there
- *  is another issue to consider.  If you want to paste the
- *  clipped pix back into pixs, it must be properly aligned, and
- *  it is necessary to use the clipped box for alignment.
- *  Accordingly, this function has a third (optional) argument, which is
- *  the input box clipped to the src pix.
- */
-PIX *
-pixClipRectangle(PIX   *pixs,
-                 BOX   *box,
-                 BOX  **pboxc)
-{
-l_int32  w, h, d, bx, by, bw, bh;
-BOX     *boxc;
-PIX     *pixd;
-
-    PROCNAME("pixClipRectangle");
-
-    if (pboxc)
-        *pboxc = NULL;
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (!box)
-        return (PIX *)ERROR_PTR("box not defined", procName, NULL);
-
-        /* Clip the input box to the pix */
-    pixGetDimensions(pixs, &w, &h, &d);
-    if ((boxc = boxClipToRectangle(box, w, h)) == NULL) {
-        L_WARNING("box doesn't overlap pix", procName);
-        return NULL;
-    }
-    boxGetGeometry(boxc, &bx, &by, &bw, &bh);
-
-        /* Extract the block */
-    if ((pixd = pixCreate(bw, bh, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixCopyResolution(pixd, pixs);
-    pixCopyColormap(pixd, pixs);
-    pixRasterop(pixd, 0, 0, bw, bh, PIX_SRC, pixs, bx, by);
-
-    if (pboxc)
-        *pboxc = boxc;
-    else
-        boxDestroy(&boxc);
-
-    return pixd;
-}
-
-
-/*!
- *  pixClipMasked()
- *
- *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp; colormap ok)
- *              pixm  (clipping mask, 1 bpp)
- *              x, y (origin of clipping mask relative to pixs)
- *              outval (val to use for pixels that are outside the mask)
- *      Return: pixd, (clipped pix) or null on error or if pixm doesn't
- *              intersect pixs
- *
- *  Notes:
- *      (1) If pixs has a colormap, it is preserved in pixd.
- *      (2) The depth of pixd is the same as that of pixs.
- *      (3) If the depth of pixs is 1, use @outval = 0 for white background
- *          and 1 for black; otherwise, use the max value for white
- *          and 0 for black.  If pixs has a colormap, the max value for
- *          @outval is 0xffffffff; otherwise, it is 2^d - 1.
- *      (4) When using 1 bpp pixs, this is a simple clip and
- *          blend operation.  For example, if both pix1 and pix2 are
- *          black text on white background, and you want to OR the
- *          fg on the two images, let pixm be the inverse of pix2.
- *          Then the operation takes all of pix1 that's in the bg of
- *          pix2, and for the remainder (which are the pixels
- *          corresponding to the fg of the pix2), paint them black
- *          (1) in pix1.  The function call looks like
- *             pixClipMasked(pix2, pixInvert(pix1, pix1), x, y, 1);
- */
-PIX *
-pixClipMasked(PIX      *pixs,
-              PIX      *pixm,
-              l_int32   x,
-              l_int32   y,
-              l_uint32  outval)
-{
-l_int32   wm, hm, d, index, rval, gval, bval;
-l_uint32  pixel;
-BOX      *box;
-PIX      *pixmi, *pixd;
-PIXCMAP  *cmap;
-
-    PROCNAME("pixClipMasked");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (!pixm || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
-
-        /* Clip out the region specified by pixm and (x,y) */
-    pixGetDimensions(pixm, &wm, &hm, NULL);
-    box = boxCreate(x, y, wm, hm);
-    pixd = pixClipRectangle(pixs, box, NULL);
-
-        /* Paint 'outval' (or something close to it if cmapped) through
-         * the pixels not masked by pixm */
-    cmap = pixGetColormap(pixd);
-    pixmi = pixInvert(NULL, pixm);
-    d = pixGetDepth(pixd);
-    if (cmap) {
-        extractRGBValues(outval, &rval, &gval, &bval);
-        pixcmapGetNearestIndex(cmap, rval, gval, bval, &index);
-        pixcmapGetColor(cmap, index, &rval, &gval, &bval);
-        composeRGBPixel(rval, gval, bval, &pixel);
-        pixPaintThroughMask(pixd, pixmi, 0, 0, pixel);
-    }
-    else
-        pixPaintThroughMask(pixd, pixmi, 0, 0, outval);
-
-    boxDestroy(&box);
-    pixDestroy(&pixmi);
-    return pixd;
-}
-
-
-/*---------------------------------------------------------------------*
- *                          Clipping to Foreground                     *
- *---------------------------------------------------------------------*/
-/*!
- *  pixClipToForeground()
- *
- *      Input:  pixs (1 bpp)
- *              &pixd  (<optional return> clipped pix returned)
- *              &box   (<optional return> bounding box)
- *      Return: 0 if OK; 1 on error or if there are no fg pixels
- *
- *  Notes:
- *      (1) At least one of {&pixd, &box} must be specified.
- *      (2) If there are no fg pixels, the returned ptrs are null.
- */
-l_int32
-pixClipToForeground(PIX   *pixs,
-                    PIX  **ppixd,
-                    BOX  **pbox)
-{
-l_int32    w, h, wpl, nfullwords, extra, i, j;
-l_int32    minx, miny, maxx, maxy;
-l_uint32   result, mask;
-l_uint32  *data, *line;
-BOX       *box;
-
-    PROCNAME("pixClipToForeground");
-
-    if (!ppixd && !pbox)
-        return ERROR_INT("neither &pixd nor &box defined", procName, 1);
-    if (ppixd)
-        *ppixd = NULL;
-    if (pbox)
-        *pbox = NULL;
-    if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-
-    pixGetDimensions(pixs, &w, &h, NULL);
-    nfullwords = w / 32;
-    extra = w & 31;
-    mask = ~rmask32[32 - extra];
-    wpl = pixGetWpl(pixs);
-    data = pixGetData(pixs);
-
-    result = 0;
-    for (i = 0, miny = 0; i < h; i++, miny++) {
-        line = data + i * wpl;
-        for (j = 0; j < nfullwords; j++)
-            result |= line[j];
-        if (extra)
-            result |= (line[j] & mask);
-        if (result)
-            break;
-    }
-    if (miny == h)  /* no ON pixels */
-        return 1;
-
-    result = 0;
-    for (i = h - 1, maxy = h - 1; i >= 0; i--, maxy--) {
-        line = data + i * wpl;
-        for (j = 0; j < nfullwords; j++)
-            result |= line[j];
-        if (extra)
-            result |= (line[j] & mask);
-        if (result)
-            break;
-    }
-
-    minx = 0;
-    for (j = 0, minx = 0; j < w; j++, minx++) {
-        for (i = 0; i < h; i++) {
-            line = data + i * wpl;
-            if (GET_DATA_BIT(line, j))
-                goto minx_found;
-        }
-    }
-
-minx_found:
-    for (j = w - 1, maxx = w - 1; j >= 0; j--, maxx--) {
-        for (i = 0; i < h; i++) {
-            line = data + i * wpl;
-            if (GET_DATA_BIT(line, j))
-                goto maxx_found;
-        }
-    }
-
-maxx_found:
-    box = boxCreate(minx, miny, maxx - minx + 1, maxy - miny + 1);
-
-    if (ppixd)
-        *ppixd = pixClipRectangle(pixs, box, NULL);
-    if (pbox)
-        *pbox = box;
-    else
-        boxDestroy(&box);
-
-    return 0;
-}
-
-
-/*!
- *  pixClipBoxToForeground()
- *
- *      Input:  pixs (1 bpp)
- *              boxs  (<optional> ; use full image if null)
- *              &pixd  (<optional return> clipped pix returned)
- *              &boxd  (<optional return> bounding box)
- *      Return: 0 if OK; 1 on error or if there are no fg pixels
- *
- *  Notes:
- *      (1) At least one of {&pixd, &boxd} must be specified.
- *      (2) If there are no fg pixels, the returned ptrs are null.
- *      (3) Do not use &pixs for the 3rd arg or &boxs for the 4th arg;
- *          this will leak memory.
- */
-l_int32
-pixClipBoxToForeground(PIX   *pixs,
-                       BOX   *boxs,
-                       PIX  **ppixd,
-                       BOX  **pboxd)
-{
-l_int32  w, h, bx, by, bw, bh, cbw, cbh, left, right, top, bottom;
-BOX     *boxt, *boxd;
-
-    PROCNAME("pixClipBoxToForeground");
-
-    if (!ppixd && !pboxd)
-        return ERROR_INT("neither &pixd nor &boxd defined", procName, 1);
-    if (ppixd) *ppixd = NULL;
-    if (pboxd) *pboxd = NULL;
-    if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-
-    if (!boxs)
-        return pixClipToForeground(pixs, ppixd, pboxd);
-
-    pixGetDimensions(pixs, &w, &h, NULL);
-    boxGetGeometry(boxs, &bx, &by, &bw, &bh);
-    cbw = L_MIN(bw, w - bx);
-    cbh = L_MIN(bh, h - by);
-    if (cbw < 0 || cbh < 0)
-        return ERROR_INT("box not within image", procName, 1);
-    boxt = boxCreate(bx, by, cbw, cbh);
-
-    if (pixScanForForeground(pixs, boxt, L_FROM_LEFT, &left)) {
-        boxDestroy(&boxt);
-        return 1;
-    }
-    pixScanForForeground(pixs, boxt, L_FROM_RIGHT, &right);
-    pixScanForForeground(pixs, boxt, L_FROM_TOP, &top);
-    pixScanForForeground(pixs, boxt, L_FROM_BOTTOM, &bottom);
-
-    boxd = boxCreate(left, top, right - left + 1, bottom - top + 1);
-    if (ppixd)
-        *ppixd = pixClipRectangle(pixs, boxd, NULL);
-    if (pboxd)
-        *pboxd = boxd;
-    else
-        boxDestroy(&boxd);
-
-    boxDestroy(&boxt);
-    return 0;
-}
-
-
-/*!
- *  pixScanForForeground()
- *
- *      Input:  pixs (1 bpp)
- *              box  (<optional> within which the search is conducted)
- *              scanflag (direction of scan; e.g., L_FROM_LEFT)
- *              &loc (location in scan direction of first black pixel)
- *      Return: 0 if OK; 1 on error or if no fg pixels are found
- *
- *  Notes:
- *      (1) If there are no fg pixels, the position is set to 0.
- *          Caller must check the return value!
- *      (2) Use @box == NULL to scan from edge of pixs
- */
-l_int32
-pixScanForForeground(PIX      *pixs,
-                     BOX      *box,
-                     l_int32   scanflag,
-                     l_int32  *ploc)
-{
-l_int32    bx, by, bw, bh, x, xstart, xend, y, ystart, yend, wpl;
-l_uint32  *data, *line;
-BOX       *boxt;
-
-    PROCNAME("pixScanForForeground");
-
-    if (!ploc)
-        return ERROR_INT("&ploc not defined", procName, 1);
-    *ploc = 0;
-    if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-
-        /* Clip box to pixs if it exists */
-    pixGetDimensions(pixs, &bw, &bh, NULL);
-    if (box) {
-        if ((boxt = boxClipToRectangle(box, bw, bh)) == NULL)
-            return ERROR_INT("invalid box", procName, 1);
-        boxGetGeometry(boxt, &bx, &by, &bw, &bh);
-        boxDestroy(&boxt);
-    }
-    else
-        bx = by = 0;
-    xstart = bx;
-    ystart = by;
-    xend = bx + bw - 1;
-    yend = by + bh - 1;
-
-    data = pixGetData(pixs);
-    wpl = pixGetWpl(pixs);
-    if (scanflag == L_FROM_LEFT) {
-        for (x = xstart; x <= xend; x++) {
-            for (y = ystart; y <= yend; y++) {
-                line = data + y * wpl;
-                if (GET_DATA_BIT(line, x)) {
-                    *ploc = x;
-                    return 0;
-                }
-            }
-        }
-    }
-    else if (scanflag == L_FROM_RIGHT) {
-        for (x = xend; x >= xstart; x--) {
-            for (y = ystart; y <= yend; y++) {
-                line = data + y * wpl;
-                if (GET_DATA_BIT(line, x)) {
-                    *ploc = x;
-                    return 0;
-                }
-            }
-        }
-    }
-    else if (scanflag == L_FROM_TOP) {
-        for (y = ystart; y <= yend; y++) {
-            line = data + y * wpl;
-            for (x = xstart; x <= xend; x++) {
-                if (GET_DATA_BIT(line, x)) {
-                    *ploc = y;
-                    return 0;
-                }
-            }
-        }
-    }
-    else if (scanflag == L_FROM_BOTTOM) {
-        for (y = yend; y >= ystart; y--) {
-            line = data + y * wpl;
-            for (x = xstart; x <= xend; x++) {
-                if (GET_DATA_BIT(line, x)) {
-                    *ploc = y;
-                    return 0;
-                }
-            }
-        }
-    }
-    else
-        return ERROR_INT("invalid scanflag", procName, 1);
-
-    return 1;  /* no fg found */
-}
-
-
-/*!
- *  pixClipBoxToEdges()
- *
- *      Input:  pixs (1 bpp)
- *              boxs  (<optional> ; use full image if null)
- *              lowthresh (threshold to choose clipping location)
- *              highthresh (threshold required to find an edge)
- *              maxwidth (max allowed width between low and high thresh locs)
- *              factor (sampling factor along pixel counting direction)
- *              &pixd  (<optional return> clipped pix returned)
- *              &boxd  (<optional return> bounding box)
- *      Return: 0 if OK; 1 on error or if a fg edge is not found from
- *              all four sides.
- *
- *  Notes:
- *      (1) At least one of {&pixd, &boxd} must be specified.
- *      (2) If there are no fg pixels, the returned ptrs are null.
- *      (3) This function attempts to locate rectangular "image" regions
- *          of high-density fg pixels, that have well-defined edges
- *          on the four sides.
- *      (4) Edges are searched for on each side, iterating in order
- *          from left, right, top and bottom.  As each new edge is
- *          found, the search box is resized to use that location.
- *          Once an edge is found, it is held.  If no more edges
- *          are found in one iteration, the search fails.
- *      (5) See pixScanForEdge() for usage of the thresholds and @maxwidth.
- *      (6) The thresholds must be at least 1, and the low threshold
- *          cannot be larger than the high threshold.
- *      (7) If the low and high thresholds are both 1, this is equivalent
- *          to pixClipBoxToForeground().
- */
-l_int32
-pixClipBoxToEdges(PIX     *pixs,
-                  BOX     *boxs,
-                  l_int32  lowthresh,
-                  l_int32  highthresh,
-                  l_int32  maxwidth,
-                  l_int32  factor,
-                  PIX    **ppixd,
-                  BOX    **pboxd)
-{
-l_int32  w, h, bx, by, bw, bh, cbw, cbh, left, right, top, bottom;
-l_int32  lfound, rfound, tfound, bfound, change;
-BOX     *boxt, *boxd;
-
-    PROCNAME("pixClipBoxToEdges");
-
-    if (!ppixd && !pboxd)
-        return ERROR_INT("neither &pixd nor &boxd defined", procName, 1);
-    if (ppixd) *ppixd = NULL;
-    if (pboxd) *pboxd = NULL;
-    if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-    if (lowthresh < 1 || highthresh < 1 ||
-        lowthresh > highthresh || maxwidth < 1)
-        return ERROR_INT("invalid thresholds", procName, 1);
-    factor = L_MIN(1, factor);
-
-    if (lowthresh == 1 && highthresh == 1)
-        return pixClipBoxToForeground(pixs, boxs, ppixd, pboxd);
-
-    pixGetDimensions(pixs, &w, &h, NULL);
-    if (boxs) {
-        boxGetGeometry(boxs, &bx, &by, &bw, &bh);
-        cbw = L_MIN(bw, w - bx);
-        cbh = L_MIN(bh, h - by);
-        if (cbw < 0 || cbh < 0)
-            return ERROR_INT("box not within image", procName, 1);
-        boxt = boxCreate(bx, by, cbw, cbh);
-    }
-    else
-        boxt = boxCreate(0, 0, w, h);
-
-    lfound = rfound = tfound = bfound = 0;
-    while (!lfound || !rfound || !tfound || !bfound) { 
-        change = 0;
-        if (!lfound) {
-            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
-                                factor, L_FROM_LEFT, &left)) {
-                lfound = 1;
-                change = 1;
-                boxRelocateOneSide(boxt, boxt, left, L_FROM_LEFT);
-            }
-        }
-        if (!rfound) {
-            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
-                                factor, L_FROM_RIGHT, &right)) {
-                rfound = 1;
-                change = 1;
-                boxRelocateOneSide(boxt, boxt, right, L_FROM_RIGHT);
-            }
-        }
-        if (!tfound) {
-            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
-                                factor, L_FROM_TOP, &top)) {
-                tfound = 1;
-                change = 1;
-                boxRelocateOneSide(boxt, boxt, top, L_FROM_TOP);
-            }
-        }
-        if (!bfound) {
-            if (!pixScanForEdge(pixs, boxt, lowthresh, highthresh, maxwidth,
-                                factor, L_FROM_BOTTOM, &bottom)) {
-                bfound = 1;
-                change = 1;
-                boxRelocateOneSide(boxt, boxt, bottom, L_FROM_BOTTOM);
-            }
-        }
-
-#if DEBUG_EDGES
-        fprintf(stderr, "iter: %d %d %d %d\n", lfound, rfound, tfound, bfound);
-#endif  /* DEBUG_EDGES */
-
-        if (change == 0) break;
-    }
-    boxDestroy(&boxt);
-
-    if (change == 0)
-        return ERROR_INT("not all edges found", procName, 1);
-
-    boxd = boxCreate(left, top, right - left + 1, bottom - top + 1);
-    if (ppixd)
-        *ppixd = pixClipRectangle(pixs, boxd, NULL);
-    if (pboxd)
-        *pboxd = boxd;
-    else
-        boxDestroy(&boxd);
-
-    return 0;
-}
-
-
-/*!
- *  pixScanForEdge()
- *
- *      Input:  pixs (1 bpp)
- *              box  (<optional> within which the search is conducted)
- *              lowthresh (threshold to choose clipping location)
- *              highthresh (threshold required to find an edge)
- *              maxwidth (max allowed width between low and high thresh locs)
- *              factor (sampling factor along pixel counting direction)
- *              scanflag (direction of scan; e.g., L_FROM_LEFT)
- *              &loc (location in scan direction of first black pixel)
- *      Return: 0 if OK; 1 on error or if the edge is not found
- *
- *  Notes:
- *      (1) If there are no fg pixels, the position is set to 0.
- *          Caller must check the return value!
- *      (2) Use @box == NULL to scan from edge of pixs
- *      (3) As the scan progresses, the location where the sum of
- *          pixels equals or excees @lowthresh is noted (loc).  The
- *          scan is stopped when the sum of pixels equals or exceeds
- *          @highthresh.  If the scan distance between loc and that
- *          point does not exceed @maxwidth, an edge is found and
- *          its position is taken to be loc.  @maxwidth implicitly
- *          sets a minimum on the required gradient of the edge.
- *      (4) The thresholds must be at least 1, and the low threshold
- *          cannot be larger than the high threshold.
- */
-l_int32
-pixScanForEdge(PIX      *pixs,
-               BOX      *box,
-               l_int32   lowthresh,
-               l_int32   highthresh,
-               l_int32   maxwidth,
-               l_int32   factor,
-               l_int32   scanflag,
-               l_int32  *ploc)
-{
-l_int32    bx, by, bw, bh, foundmin, loc, sum, wpl;
-l_int32    x, xstart, xend, y, ystart, yend;
-l_uint32  *data, *line;
-BOX       *boxt;
-
-    PROCNAME("pixScanForEdge");
-
-    if (!ploc)
-        return ERROR_INT("&ploc not defined", procName, 1);
-    *ploc = 0;
-    if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-    if (lowthresh < 1 || highthresh < 1 ||
-        lowthresh > highthresh || maxwidth < 1)
-        return ERROR_INT("invalid thresholds", procName, 1);
-    factor = L_MIN(1, factor);
-
-        /* Clip box to pixs if it exists */
-    pixGetDimensions(pixs, &bw, &bh, NULL);
-    if (box) {
-        if ((boxt = boxClipToRectangle(box, bw, bh)) == NULL)
-            return ERROR_INT("invalid box", procName, 1);
-        boxGetGeometry(boxt, &bx, &by, &bw, &bh);
-        boxDestroy(&boxt);
-    }
-    else
-        bx = by = 0;
-    xstart = bx;
-    ystart = by;
-    xend = bx + bw - 1;
-    yend = by + bh - 1;
-
-    data = pixGetData(pixs);
-    wpl = pixGetWpl(pixs);
-    foundmin = 0;
-    if (scanflag == L_FROM_LEFT) {
-        for (x = xstart; x <= xend; x++) {
-            sum = 0;
-            for (y = ystart; y <= yend; y += factor) {
-                line = data + y * wpl;
-                if (GET_DATA_BIT(line, x))
-                    sum++;
-            }
-            if (!foundmin && sum < lowthresh)
-                continue;
-            if (!foundmin) {  /* save the loc of the beginning of the edge */
-                foundmin = 1;
-                loc = x;
-            }
-            if (sum >= highthresh) {
-#if DEBUG_EDGES
-                fprintf(stderr, "Left: x = %d, loc = %d\n", x, loc);
-#endif  /* DEBUG_EDGES */
-                if (x - loc < maxwidth) {
-                    *ploc = loc;
-                    return 0;
-                }
-                else return 1;
-            }
-        }
-    }
-    else if (scanflag == L_FROM_RIGHT) {
-        for (x = xend; x >= xstart; x--) {
-            sum = 0;
-            for (y = ystart; y <= yend; y += factor) {
-                line = data + y * wpl;
-                if (GET_DATA_BIT(line, x))
-                    sum++;
-            }
-            if (!foundmin && sum < lowthresh)
-                continue;
-            if (!foundmin) {
-                foundmin = 1;
-                loc = x;
-            }
-            if (sum >= highthresh) {
-#if DEBUG_EDGES
-                fprintf(stderr, "Right: x = %d, loc = %d\n", x, loc);
-#endif  /* DEBUG_EDGES */
-                if (loc - x < maxwidth) {
-                    *ploc = loc;
-                    return 0;
-                }
-                else return 1;
-            }
-        }
-    }
-    else if (scanflag == L_FROM_TOP) {
-        for (y = ystart; y <= yend; y++) {
-            sum = 0;
-            line = data + y * wpl;
-            for (x = xstart; x <= xend; x += factor) {
-                if (GET_DATA_BIT(line, x))
-                    sum++;
-            }
-            if (!foundmin && sum < lowthresh)
-                continue;
-            if (!foundmin) {
-                foundmin = 1;
-                loc = y;
-            }
-            if (sum >= highthresh) {
-#if DEBUG_EDGES
-                fprintf(stderr, "Top: y = %d, loc = %d\n", y, loc);
-#endif  /* DEBUG_EDGES */
-                if (y - loc < maxwidth) {
-                    *ploc = loc;
-                    return 0;
-                }
-                else return 1;
-            }
-        }
-    }
-    else if (scanflag == L_FROM_BOTTOM) {
-        for (y = yend; y >= ystart; y--) {
-            sum = 0;
-            line = data + y * wpl;
-            for (x = xstart; x <= xend; x += factor) {
-                if (GET_DATA_BIT(line, x))
-                    sum++;
-            }
-            if (!foundmin && sum < lowthresh)
-                continue;
-            if (!foundmin) {
-                foundmin = 1;
-                loc = y;
-            }
-            if (sum >= highthresh) {
-#if DEBUG_EDGES
-                fprintf(stderr, "Bottom: y = %d, loc = %d\n", y, loc);
-#endif  /* DEBUG_EDGES */
-                if (loc - y < maxwidth) {
-                    *ploc = loc;
-                    return 0;
-                }
-                else return 1;
-            }
-        }
-    }
-    else
-        return ERROR_INT("invalid scanflag", procName, 1);
-
-    return 1;  /* edge not found */
-}
 

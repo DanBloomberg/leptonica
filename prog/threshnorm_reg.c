@@ -55,8 +55,8 @@ PIXA    *pixa;
 
     pixDestroy(&pixs);
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkthresh.0.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junkthresh.0.jpg", 0, &success);
+    pixWrite("/tmp/thresh.0.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/thresh.0.jpg", 0, &success);
     pixDisplayWithTitle(pixd, 100, 100, NULL, display);
 
     pixDestroy(&pixd);

@@ -60,6 +60,7 @@ pixGetRegionsBinary(PIX     *pixs,
                     PIX    **ppixtb,
                     l_int32  debug)
 {
+char    *tempname;
 l_int32  htfound, tlfound;
 PIX     *pixr, *pixt1, *pixt2;
 PIX     *pixtext;  /* text pixels only */
@@ -103,7 +104,7 @@ PIX     *pixtb;    /* textblock mask */
     pixtbf2 = pixSelectBySize(pixtb2, 60, 60, 4, L_SELECT_IF_EITHER,
                               L_SELECT_IF_GTE, NULL);
     pixDestroy(&pixtb2);
-    pixDisplayWrite(pixtbf2, debug);
+    pixDisplayWriteFormat(pixtbf2, debug, IFF_PNG);
 
         /* Expand all masks to full resolution, and do filling or
          * small dilations for better coverage. */
@@ -111,17 +112,17 @@ PIX     *pixtb;    /* textblock mask */
     pixt1 = pixSeedfillBinary(NULL, pixhm, pixs, 8);
     pixOr(pixhm, pixhm, pixt1);
     pixDestroy(&pixt1);
-    pixDisplayWrite(pixhm, debug);
+    pixDisplayWriteFormat(pixhm, debug, IFF_PNG);
 
     pixt1 = pixExpandReplicate(pixtm2, 2);
     pixtm = pixDilateBrick(NULL, pixt1, 3, 3);
     pixDestroy(&pixt1);
-    pixDisplayWrite(pixtm, debug);
+    pixDisplayWriteFormat(pixtm, debug, IFF_PNG);
 
     pixt1 = pixExpandReplicate(pixtbf2, 2);
     pixtb = pixDilateBrick(NULL, pixt1, 3, 3);
     pixDestroy(&pixt1);
-    pixDisplayWrite(pixtb, debug);
+    pixDisplayWriteFormat(pixtb, debug, IFF_PNG);
 
     pixDestroy(&pixhm2);
     pixDestroy(&pixtm2);
@@ -131,7 +132,7 @@ PIX     *pixtb;    /* textblock mask */
     if (debug) {
         pixt1 = pixSubtract(NULL, pixs, pixtm);  /* remove text pixels */
         pixt2 = pixSubtract(NULL, pixt1, pixhm);  /* remove halftone pixels */
-        pixDisplayWrite(pixt2, 1);
+        pixDisplayWriteFormat(pixt2, 1, IFF_PNG);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
@@ -146,7 +147,7 @@ PIX     *pixtb;    /* textblock mask */
         pixt1 = pixaDisplayRandomCmap(pixa, w, h);
         pixcmapResetColor(pixGetColormap(pixt1), 0, 255, 255, 255);
         pixDisplay(pixt1, 100, 100);
-        pixDisplayWrite(pixt1, 1);
+        pixDisplayWriteFormat(pixt1, 1, IFF_PNG);
         pixaDestroy(&pixa);
         boxaDestroy(&boxa);
         pixDestroy(&pixt1);
@@ -157,12 +158,14 @@ PIX     *pixtb;    /* textblock mask */
         PIXCMAP  *cmap;
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
-	ptaaWrite("/tmp/junk_tb_outlines.ptaa", ptaa, 1);
+        tempname = genTempFilename("/tmp", "tb_outlines.ptaa", 0);
+	ptaaWrite(tempname, ptaa, 1);
+        FREE(tempname);
         pixt1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
         cmap = pixGetColormap(pixt1);
         pixcmapResetColor(cmap, 0, 130, 130, 130);
         pixDisplay(pixt1, 500, 100);
-        pixDisplayWrite(pixt1, 1);
+        pixDisplayWriteFormat(pixt1, 1, IFF_PNG);
         pixDestroy(&pixt1);
         ptaaDestroy(&ptaa);
     }
@@ -173,9 +176,15 @@ PIX     *pixtb;    /* textblock mask */
         bahm = pixConnComp(pixhm, NULL, 4);
         batm = pixConnComp(pixtm, NULL, 4);
         batb = pixConnComp(pixtb, NULL, 4);
-        boxaWrite("junk_htmask.boxa", bahm);
-        boxaWrite("junk_textmask.boxa", batm);
-        boxaWrite("junk_textblock.boxa", batb);
+        tempname = genTempFilename("/tmp", "htmask.boxa", 0);
+        boxaWrite(tempname, bahm);
+        FREE(tempname);
+        tempname = genTempFilename("/tmp", "textmask.boxa", 0);
+        boxaWrite(tempname, batm);
+        FREE(tempname);
+        tempname = genTempFilename("/tmp", "textblock.boxa", 0);
+        boxaWrite(tempname, batb);
+        FREE(tempname);
 	boxaDestroy(&bahm);
 	boxaDestroy(&batm);
 	boxaDestroy(&batb);
@@ -233,11 +242,11 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
     pixhs = pixExpandReplicate(pixt2, 8);  /* back to 2x reduction */
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
-    pixDisplayWrite(pixhs, debug);
+    pixDisplayWriteFormat(pixhs, debug, IFF_PNG);
 
         /* Compute mask for connected regions */
     pixhm = pixCloseSafeBrick(NULL, pixs, 4, 4);
-    pixDisplayWrite(pixhm, debug);
+    pixDisplayWriteFormat(pixhm, debug, IFF_PNG);
 
         /* Fill seed into mask to get halftone mask */
     pixd = pixSeedfillBinary(NULL, pixhs, pixhm, 4);
@@ -262,7 +271,7 @@ PIX     *pixt1, *pixt2, *pixhs, *pixhm, *pixd;
             *ppixtext = pixCopy(NULL, pixs);
         else
             *ppixtext = pixSubtract(NULL, pixs, pixd);
-        pixDisplayWrite(*ppixtext, debug);
+        pixDisplayWriteFormat(*ppixtext, debug, IFF_PNG);
     }
 
     pixDestroy(&pixhs);
@@ -319,7 +328,7 @@ PIX     *pixt1, *pixt2, *pixvws, *pixd;
 	 * textlines), and subtracting this from the bg. */
     pixt2 = pixMorphCompSequence(pixt1, "o80.60", 0);
     pixSubtract(pixt1, pixt1, pixt2);
-    pixDisplayWrite(pixt1, debug);
+    pixDisplayWriteFormat(pixt1, debug, IFF_PNG);
     pixDestroy(&pixt2);
 
         /* Identify vertical whitespace by opening the remaining bg.
@@ -327,7 +336,7 @@ PIX     *pixt1, *pixt2, *pixvws, *pixd;
          * long vertical bg lines. */
     pixvws = pixMorphCompSequence(pixt1, "o5.1 + o1.200", 0);
     *ppixvws = pixvws;
-    pixDisplayWrite(pixvws, debug);
+    pixDisplayWriteFormat(pixvws, debug, IFF_PNG);
     pixDestroy(&pixt1);
 
         /* Three steps to getting text line mask:
@@ -338,7 +347,7 @@ PIX     *pixt1, *pixt2, *pixvws, *pixd;
     pixDisplayWrite(pixt1, debug);
     pixd = pixSubtract(NULL, pixt1, pixvws);
     pixOpenBrick(pixd, pixd, 3, 3);
-    pixDisplayWrite(pixd, debug);
+    pixDisplayWriteFormat(pixd, debug, IFF_PNG);
     pixDestroy(&pixt1);
 
         /* Check if text line mask is empty */
@@ -391,7 +400,7 @@ PIX  *pixt1, *pixt2, *pixt3, *pixd;
 
         /* Join pixels vertically to make a textblock mask */
     pixt1 = pixMorphSequence(pixs, "c1.10 + o4.1", 0);
-    pixDisplayWrite(pixt1, debug);
+    pixDisplayWriteFormat(pixt1, debug, IFF_PNG);
 
         /* Solidify the textblock mask and remove noise: 
          *   (1) For each cc, close the blocks and dilate slightly
@@ -401,12 +410,12 @@ PIX  *pixt1, *pixt2, *pixt3, *pixd;
          *   (4) Remove small components. */
     pixt2 = pixMorphSequenceByComponent(pixt1, "c30.30 + d3.3", 8, 0, 0, NULL);
     pixCloseSafeBrick(pixt2, pixt2, 10, 1);
-    pixDisplayWrite(pixt2, debug);
+    pixDisplayWriteFormat(pixt2, debug, IFF_PNG);
     pixt3 = pixSubtract(NULL, pixt2, pixvws);
-    pixDisplayWrite(pixt3, debug);
+    pixDisplayWriteFormat(pixt3, debug, IFF_PNG);
     pixd = pixSelectBySize(pixt3, 25, 5, 8, L_SELECT_IF_BOTH,
                             L_SELECT_IF_GTE, NULL);
-    pixDisplayWrite(pixd, debug);
+    pixDisplayWriteFormat(pixd, debug, IFF_PNG);
 
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);

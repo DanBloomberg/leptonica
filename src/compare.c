@@ -37,12 +37,14 @@
  *           l_int32     pixTestforSimilarity()
  *           l_int32     pixGetDifferenceStats()
  *           NUMA       *pixGetDifferenceHistogram()
+ *           l_int32     pixGetPSNR()
  */
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "allheaders.h"
 
     /* Small enough to consider equal to 0.0, for plot output */
@@ -739,7 +741,7 @@ PIX     *pixt;
         na = pixGetGrayHistogram(pixt, 1);
         numaGetNonzeroRange(na, TINY, &first, &last);
         nac = numaClipToInterval(na, 0, last);
-        gplot = gplotCreate("/tmp/junkgrayroot", plottype, 
+        gplot = gplotCreate("/tmp/grayroot", plottype, 
                             "Pixel Difference Histogram", "diff val",
                             "number of pixels");
         gplotAddPlot(gplot, NULL, nac, GPLOT_LINES, "gray");
@@ -855,7 +857,7 @@ PIX       *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2, *pixr, *pixg, *pixb;
         narc = numaClipToInterval(nar, 0, last);
         nagc = numaClipToInterval(nag, 0, last);
         nabc = numaClipToInterval(nab, 0, last);
-        gplot = gplotCreate("/tmp/junkrgbroot", plottype, 
+        gplot = gplotCreate("/tmp/rgbroot", plottype, 
                             "Pixel Difference Histogram", "diff val",
                             "number of pixels");
         gplotAddPlot(gplot, NULL, narc, GPLOT_LINES, "red");
@@ -1352,4 +1354,86 @@ PIX        *pixt1, *pixt2;
     return na;
 }
 
+
+/*!
+ *  pixGetPSNR()
+ *
+ *      Input:  pix1, pix2 (8 or 32 bpp; no colormap)
+ *              factor (sampling factor; >= 1)
+ *              &psnr (<return> power signal/noise ratio difference)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This computes the power S/N ratio, in dB, for the difference
+ *          between two images.  By convention, the power S/N
+ *          for a grayscale image is ('log' == log base 10,
+ *          and 'ln == log base e):
+ *            PSNR = 10 * log((255/MSE)^2)
+ *                 = 4.3429 * ln((255/MSE)^2)
+ *                 = -4.3429 * ln((MSE/255)^2)
+ *          where MSE is the mean squared error.
+ */
+l_int32
+pixGetPSNR(PIX        *pix1,
+           PIX        *pix2,
+           l_int32     factor,
+           l_float32  *ppsnr)
+{
+l_int32    i, j, w, h, d, wpl1, wpl2, v1, v2, r1, g1, b1, r2, g2, b2;
+l_uint32  *data1, *data2, *line1, *line2;
+l_float32  mse;  /* mean squared error */
+
+    PROCNAME("pixGetPSNR");
+
+    if (!ppsnr)
+        return ERROR_INT("&psnr not defined", procName, 1);
+    *ppsnr = 0.0;
+    if (!pix1 || !pix2)
+        return ERROR_INT("empty input pix", procName, 1);
+    if (!pixSizesEqual(pix1, pix2))
+        return ERROR_INT("pix sizes unequal", procName, 1);
+    if (pixGetColormap(pix1))
+        return ERROR_INT("pix1 has colormap", procName, 1);
+    if (pixGetColormap(pix2))
+        return ERROR_INT("pix2 has colormap", procName, 1);
+    pixGetDimensions(pix1, &w, &h, &d);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pix not 8 or 32 bpp", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("invalid sampling factor", procName, 1);
+
+    data1 = pixGetData(pix1);
+    data2 = pixGetData(pix2);
+    wpl1 = pixGetWpl(pix1);
+    wpl2 = pixGetWpl(pix2);
+    mse = 0.0;
+    if (d == 8) {
+        for (i = 0; i < h; i += factor) {
+            line1 = data1 + i * wpl1;
+            line2 = data2 + i * wpl2;
+            for (j = 0; j < w; j += factor) {
+                v1 = GET_DATA_BYTE(line1, j);
+                v2 = GET_DATA_BYTE(line2, j);
+                mse += (v1 - v2) * (v1 - v2);
+            }
+        }
+    }
+    else {  /* d == 32 */
+        for (i = 0; i < h; i += factor) {
+            line1 = data1 + i * wpl1;
+            line2 = data2 + i * wpl2;
+            for (j = 0; j < w; j += factor) {
+                extractRGBValues(line1[j], &r1, &g1, &b1);
+                extractRGBValues(line2[j], &r2, &g2, &b2);
+                mse += ((r1 - r2) * (r1 - r2) +
+                        (g1 - g2) * (g1 - g2) +
+                        (b1 - b2) * (b1 - b2)) / 3.0;
+            }
+        }
+    }
+    mse = mse / (w * h);
+
+    *ppsnr = -4.3429448 * log(mse / (255 * 255));
+    return 0;
+}
 

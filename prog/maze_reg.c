@@ -61,10 +61,10 @@ L_REGPARAMS  *rp;
 
         /* Find the shortest path between two points */
     pta = pixSearchBinaryMaze(pixm, 20, 20, 170, 170, NULL);
-    pixt = pixDisplayPta(pixm, pta);
+    pixt = pixDisplayPta(NULL, pixm, pta);
     pixd = pixScaleBySampling(pixt, 3., 3.);
     pixSaveTiledOutline(pixd, pixa, 1, 0, 20, 2, 32);
-    pixWrite("/tmp/junkpix0.png", pixd, IFF_PNG);
+    pixWrite("/tmp/pix0.png", pixd, IFF_PNG);
     ptaDestroy(&pta);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
@@ -87,7 +87,7 @@ L_REGPARAMS  *rp;
     pixt = pixDisplayPtaa(pixg, ptaa);
     pixd = pixScaleBySampling(pixt, 2., 2.);
     pixSaveTiledOutline(pixd, pixa, 1, 1, 20, 2, 32);
-    pixWrite("/tmp/junkpix1.jpg", pixd, IFF_PNG);
+    pixWrite("/tmp/pix1.jpg", pixd, IFF_PNG);
     ptaaDestroy(&ptaa);
     pixDestroy(&pixg);
     pixDestroy(&pixt);
@@ -119,21 +119,21 @@ L_REGPARAMS  *rp;
         boxDestroy(&box);
     }
     pixSaveTiledOutline(pixd, pixa, 1, 1, 20, 2, 32);
-    pixWrite("/tmp/junkpix2.png", pixd, IFF_PNG);
+    pixWrite("/tmp/pix2.png", pixd, IFF_PNG);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
     boxaDestroy(&boxa);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkpix3.png", pixd, IFF_PNG);
+    pixWrite("/tmp/pix3.png", pixd, IFF_PNG);
     pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
-    regTestCheckFile(fp, argv, "/tmp/junkpix0.png", 0, &success);
-    regTestCheckFile(fp, argv, "/tmp/junkpix1.jpg", 1, &success);
-    regTestCheckFile(fp, argv, "/tmp/junkpix2.png", 2, &success);
-    regTestCheckFile(fp, argv, "/tmp/junkpix3.png", 3, &success);
+    regTestCheckFile(fp, argv, "/tmp/pix0.png", 0, &success);
+    regTestCheckFile(fp, argv, "/tmp/pix1.jpg", 1, &success);
+    regTestCheckFile(fp, argv, "/tmp/pix2.png", 2, &success);
+    regTestCheckFile(fp, argv, "/tmp/pix3.png", 3, &success);
     regTestCleanup(argc, argv, fp, success, rp);
     return 0;
 }

@@ -54,6 +54,7 @@
  *           l_int32   boxaInsertBox()
  *           l_int32   boxaRemoveBox()
  *           l_int32   boxaInitFull()
+ *           l_int32   boxaClear()
  *
  *      Boxaa creation, copy, destruction
  *           BOXAA    *boxaaCreate()
@@ -885,6 +886,34 @@ BOX     *boxt;
         boxt = boxCopy(box);
         boxaReplaceBox(boxa, i, boxt);
     }
+    return 0;
+}
+
+
+/*!
+ *  boxaClear()
+ *
+ *      Input:  boxa
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This destroys all boxes in the boxa, setting the ptrs
+ *          to null.  The number of allocated boxes, n, is set to 0.
+ */
+l_int32
+boxaClear(BOXA  *boxa)
+{
+l_int32  i, n;
+
+    PROCNAME("boxaClear");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    n = boxaGetCount(boxa);
+    for (i = 0; i < n; i++)
+        boxDestroy(&boxa->box[i]);
+    boxa->n = 0;
     return 0;
 }
 

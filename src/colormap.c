@@ -43,6 +43,7 @@
  *           l_int32     pixcmapGetRankIntensity()
  *           l_int32     pixcmapGetNearestIndex()
  *           l_int32     pixcmapGetNearestGrayIndex()
+ *           l_int32     pixcmapGetComponentRange()
  *           l_int32     pixcmapGetExtremeValue()
  *
  *      Colormap conversion
@@ -653,8 +654,9 @@ l_int32  rval, gval, bval;
  *                                is in range [0, ... 255])
  *      Return: 0 if OK, 1 if not accessable (caller should check)
  *
- *  Note: this resets sets the color of an entry that has already
- *        been set and included in the count of colors
+ *  Notes:
+ *      (1) This resets sets the color of an entry that has already
+ *          been set and included in the count of colors.
  */
 l_int32
 pixcmapResetColor(PIXCMAP  *cmap,
@@ -955,10 +957,56 @@ RGBA_QUAD  *cta;
 
 
 /*!
+ *  pixcmapGetComponentRange()
+ *
+ *      Input:  cmap
+ *              color (L_SELECT_RED, L_SELECT_GREEN or L_SELECT_BLUE)
+ *              &minval (<optional return> minimum value of component)
+ *              &maxval (<optional return> minimum value of component)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Returns for selected components the extreme value
+ *          (either min or max) of the color component that is
+ *          found in the colormap.
+ */
+l_int32
+pixcmapGetComponentRange(PIXCMAP  *cmap,
+                         l_int32   color,
+                         l_int32  *pminval,
+                         l_int32  *pmaxval)
+{
+    PROCNAME("pixcmapGetComponentRange");
+
+    if (pminval) *pminval = 0;
+    if (pmaxval) *pmaxval = 0;
+    if (!pminval && !pmaxval)
+        return ERROR_INT("no result requested", procName, 1);
+
+    if (color == L_SELECT_RED) {
+        pixcmapGetExtremeValue(cmap, L_SELECT_MIN, pminval, NULL, NULL);
+        pixcmapGetExtremeValue(cmap, L_SELECT_MAX, pmaxval, NULL, NULL);
+    }
+    else if (color == L_SELECT_GREEN) {
+        pixcmapGetExtremeValue(cmap, L_SELECT_MIN, NULL, pminval, NULL);
+        pixcmapGetExtremeValue(cmap, L_SELECT_MAX, NULL, pmaxval, NULL);
+    }
+    else if (color == L_SELECT_BLUE) {
+        pixcmapGetExtremeValue(cmap, L_SELECT_MIN, NULL, NULL, pminval);
+        pixcmapGetExtremeValue(cmap, L_SELECT_MAX, NULL, NULL, pmaxval);
+    }
+    else
+        return ERROR_INT("invalid color", procName, 1);
+
+    return 0;
+}
+
+
+/*!
  *  pixcmapGetExtremeValue()
  *
  *      Input:  cmap
- *              type (L_CHOOSE_MIN or L_CHOOSE_MAX)
+ *              type (L_SELECT_MIN or L_SELECT_MAX)
  *              &rval (<optional return> red component)
  *              &gval (<optional return> green component)
  *              &bval (<optional return> blue component)
@@ -987,10 +1035,10 @@ l_int32  i, n, rval, gval, bval, extrval, extgval, extbval;
     if (pbval) *pbval = 0;
     if (!cmap)
         return ERROR_INT("cmap not defined", procName, 1);
-    if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
+    if (type != L_SELECT_MIN && type != L_SELECT_MAX)
         return ERROR_INT("invalid type", procName, 1);
 
-    if (type == L_CHOOSE_MIN) {
+    if (type == L_SELECT_MIN) {
         extrval = 100000;
         extgval = 100000;
         extbval = 100000;
@@ -1004,14 +1052,14 @@ l_int32  i, n, rval, gval, bval, extrval, extgval, extbval;
     n = pixcmapGetCount(cmap);
     for (i = 0; i < n; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
-        if ((type == L_CHOOSE_MIN && rval < extrval) ||
-            (type == L_CHOOSE_MAX && rval > extrval))
+        if ((type == L_SELECT_MIN && rval < extrval) ||
+            (type == L_SELECT_MAX && rval > extrval))
             extrval = rval;
-        if ((type == L_CHOOSE_MIN && gval < extgval) ||
-            (type == L_CHOOSE_MAX && gval > extgval))
+        if ((type == L_SELECT_MIN && gval < extgval) ||
+            (type == L_SELECT_MAX && gval > extgval))
             extgval = gval;
-        if ((type == L_CHOOSE_MIN && bval < extbval) ||
-            (type == L_CHOOSE_MAX && bval > extbval))
+        if ((type == L_SELECT_MIN && bval < extbval) ||
+            (type == L_SELECT_MAX && bval > extbval))
             extbval = bval;
     }
     if (prval) *prval = extrval;
@@ -1423,6 +1471,9 @@ NUMA     *nag;
     }
     if (minval >= maxval)
         return ERROR_INT("minval not < maxval", procName, 1);
+
+    if (gamma == 1.0 && minval == 0 && maxval == 255)  /* no-op */
+        return 0;
 
     if ((nag = numaGammaTRC(gamma, minval, maxval)) == NULL)
         return ERROR_INT("nag not made", procName, 1);

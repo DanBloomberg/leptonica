@@ -32,6 +32,10 @@
  *           PIX        *pixAffinePtaGray()
  *           PIX        *pixAffineGray()
  *
+ *      Affine transform including alpha (blend) component and gamma transform
+ *           PIX        *pixAffinePtaWithAlpha()
+ *           PIX        *pixAffinePtaGammaXform()
+ *
  *      Affine coordinate transformation
  *           l_int32     getAffineXformCoeffs()
  *           l_int32     affineInvertXform()
@@ -221,6 +225,8 @@
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
+
+extern l_float32  AlphaMaskBorderVals[2];
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
@@ -699,6 +705,175 @@ PIX       *pixd;
         }
     }
 
+    return pixd;
+}
+
+
+/*---------------------------------------------------------------------------*
+ *   Affine transform including alpha (blend) component and gamma transform  *
+ *---------------------------------------------------------------------------*/
+/*!
+ *  pixAffinePtaWithAlpha()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              ptad  (3 pts of final coordinate space)
+ *              ptas  (3 pts of initial coordinate space)
+ *              pixg (<optional> 8 bpp, can be null)
+ *              fract (between 0.0 and 1.0, with 0.0 fully transparent
+ *                     and 1.0 fully opaque)
+ *              border (of pixels added to capture transformed source pixels)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) The alpha channel is transformed separately from pixs,
+ *          and aligns with it, being fully transparent outside the
+ *          boundary of the transformed pixs.  For pixels that are fully
+ *          transparent, a blending function like pixBlendWithGrayMask()
+ *          will give zero weight to corresponding pixels in pixs.
+ *      (2) If pixg is NULL, it is generated as an alpha layer that is
+ *          partially opaque, using @fract.  Otherwise, it is cropped
+ *          to pixs if required and @fract is ignored.  The alpha channel
+ *          in pixs is never used.
+ *      (3) Colormaps are removed.
+ *      (4) When pixs is transformed, it doesn't matter what color is brought
+ *          in because the alpha channel will be transparent (0) there.
+ *      (5) To avoid losing source pixels in the destination, it may be
+ *          necessary to add a border to the source pix before doing
+ *          the affine transformation.  This can be any non-negative number.
+ *      (6) The input @ptad and @ptas are in a coordinate space before
+ *          the border is added.  Internally, we compensate for this
+ *          before doing the affine transform on the image after the border
+ *          is added.
+ *      (7) The default setting for the border values in the alpha channel
+ *          is 0 (transparent) for the outermost ring of pixels and
+ *          (0.5 * fract * 255) for the second ring.  When blended over
+ *          a second image, this
+ *          (a) shrinks the visible image to make a clean overlap edge
+ *              with an image below, and
+ *          (b) softens the edges by weakening the aliasing there.
+ *          Use l_setAlphaMaskBorder() to change these values.
+ */
+PIX *
+pixAffinePtaWithAlpha(PIX       *pixs,
+                      PTA       *ptad,
+                      PTA       *ptas,
+                      PIX       *pixg,
+                      l_float32  fract,
+                      l_int32    border)
+{
+l_int32  ws, hs, d;
+PIX     *pixd, *pixb1, *pixb2, *pixg2, *pixga;
+PTA     *ptad2, *ptas2;
+
+    PROCNAME("pixAffinePtaWithAlpha");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    if (d != 32 && pixGetColormap(pixs) == NULL)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+    if (pixg && pixGetDepth(pixg) != 8) {
+        L_WARNING("pixg not 8 bpp; using @fract transparent alpha", procName);
+        pixg = NULL;
+    }
+    if (!pixg && (fract < 0.0 || fract > 1.0)) {
+        L_WARNING("invalid fract; using 1.0 (fully transparent)", procName);
+        fract = 1.0;
+    }
+    if (!pixg && fract == 0.0)
+        L_WARNING("fully opaque alpha; image will not be blended", procName);
+    if (!ptad)
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+    if (!ptas)
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+
+        /* Add border; the color doesn't matter */
+    pixb1 = pixAddBorder(pixs, border, 0);
+
+        /* Transform the ptr arrays to work on the bordered image */
+    ptad2 = ptaTransform(ptad, border, border, 1.0, 1.0);
+    ptas2 = ptaTransform(ptas, border, border, 1.0, 1.0);
+
+        /* Do separate affine transform of rgb channels of pixs and of pixg */
+    pixd = pixAffinePtaColor(pixb1, ptad2, ptas2, 0);
+    if (!pixg) {
+        pixg2 = pixCreate(ws, hs, 8);
+        if (fract == 1.0)
+            pixSetAll(pixg2);
+        else
+            pixSetAllArbitrary(pixg2, (l_int32)(255.0 * fract));
+    }
+    else
+        pixg2 = pixResizeToMatch(pixg, NULL, ws, hs);
+    if (ws > 10 && hs > 10) {  /* see note 7 */
+        pixSetBorderRingVal(pixg2, 1,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[0]));
+        pixSetBorderRingVal(pixg2, 2,
+                            (l_int32)(255.0 * fract * AlphaMaskBorderVals[1]));
+
+    }
+    pixb2 = pixAddBorder(pixg2, border, 0);  /* must be black border */
+    pixga = pixAffinePtaGray(pixb2, ptad2, ptas2, 0);
+    pixSetRGBComponent(pixd, pixga, L_ALPHA_CHANNEL);
+
+    pixDestroy(&pixg2);
+    pixDestroy(&pixb1);
+    pixDestroy(&pixb2);
+    pixDestroy(&pixga);
+    ptaDestroy(&ptad2);
+    ptaDestroy(&ptas2);
+    return pixd;
+}
+
+
+/*!
+ *  pixAffinePtaGammaXform()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              gamma (gamma correction; must be > 0.0)
+ *              ptad  (3 pts of final coordinate space)
+ *              ptas  (3 pts of initial coordinate space)
+ *              fract (between 0.0 and 1.0, with 1.0 fully transparent)
+ *              border (of pixels to capture transformed source pixels)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This wraps a gamma/inverse-gamma photometric transform around
+ *          pixAffinePtaWithAlpha().
+ *      (2) For usage, see notes in pixAffinePtaWithAlpha() and
+ *          pixGammaTRCWithAlpha().
+ *      (3) The basic idea of a gamma/inverse-gamma transform is to remove
+ *          any gamma correction before the affine transform, and restore
+ *          it afterward.  The effects can be subtle, but important for
+ *          some applications.  For example, using gamma > 1.0 will
+ *          cause the dark areas to become somewhat lighter and slightly
+ *          reduce aliasing effects when blending using the alpha channel.
+ */
+PIX *
+pixAffinePtaGammaXform(PIX       *pixs,
+                       l_float32  gamma,
+                       PTA       *ptad,
+                       PTA       *ptas,
+                       l_float32  fract,
+                       l_int32    border)
+{
+PIX  *pixg, *pixd;
+
+    PROCNAME("pixAffinePtaGammaXform");
+
+    if (!pixs || (pixGetDepth(pixs) != 32))
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (fract == 0.0)
+        L_WARNING("fully opaque alpha; image cannot be blended", procName);
+    if (gamma <= 0.0)  {
+        L_WARNING("gamma must be > 0.0; setting to 1.0", procName);
+        gamma = 1.0;
+    }
+
+    pixg = pixGammaTRCWithAlpha(NULL, pixs, 1.0 / gamma, 0, 255);
+    pixd = pixAffinePtaWithAlpha(pixg, ptad, ptas, NULL, fract, border);
+    pixGammaTRCWithAlpha(pixd, pixd, gamma, 0, 255);
+    pixDestroy(&pixg);
     return pixd;
 }
 

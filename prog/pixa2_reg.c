@@ -59,7 +59,7 @@ static char  mainName[] = "pixa2_reg";
     pixaInitFull(pixa, pixt1, NULL);  /* fill it up */
     pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 25, 2);
     pixDisplayWithTitle(pixd, 100, 100, NULL, display);
-    pixWrite("/tmp/junkpix1.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/pix1.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixt1);
     pixDestroy(&pixd);
 
@@ -73,7 +73,7 @@ static char  mainName[] = "pixa2_reg";
     }
     pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 25, 2);
     pixDisplayWithTitle(pixd, 400, 100, NULL, display);
-    pixWrite("/tmp/junkpix2.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/pix2.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
 
     /* ---------------- And again, reversing the order ------------------*/
@@ -91,7 +91,7 @@ static char  mainName[] = "pixa2_reg";
     }
     pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 25, 2);
     pixDisplayWithTitle(pixd, 700, 100, NULL, display);
-    pixWrite("/tmp/junkpix3.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/pix3.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
 
     pixaDestroy(&pixa);

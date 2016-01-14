@@ -30,9 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "allheaders.h"
-
 
     /* for pixGenerateSelWithRuns() */
 static const l_int32  NumHorLines = 11;
@@ -121,6 +119,6 @@ static char  mainName[] = "findpattern1";
     selDestroy(&sel_2h);
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
-    exit(0);
+    return 0;
 }
 

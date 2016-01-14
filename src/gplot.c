@@ -131,6 +131,7 @@ gplotCreate(const char  *rootname,
             const char  *xlabel,
             const char  *ylabel)
 {
+char   *newroot;
 char    buf[L_BUF_SIZE];
 GPLOT  *gplot;
 
@@ -152,18 +153,19 @@ GPLOT  *gplot;
     gplot->plotstyles = numaCreate(0);
 
         /* Save title, labels, rootname, outformat, cmdname, outname */
-    gplot->rootname = stringNew(rootname);
+    newroot = mungePathnameForWindows(rootname);  /* remove '/tmp' on windows */
+    gplot->rootname = newroot;
     gplot->outformat = outformat;
-    snprintf(buf, L_BUF_SIZE, "%s.cmd", rootname);
+    snprintf(buf, L_BUF_SIZE, "%s.cmd", newroot);
     gplot->cmdname = stringNew(buf);
     if (outformat == GPLOT_PNG)
-        snprintf(buf, L_BUF_SIZE, "%s.png", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.png", newroot);
     else if (outformat == GPLOT_PS)
-        snprintf(buf, L_BUF_SIZE, "%s.ps", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.ps", newroot);
     else if (outformat == GPLOT_EPS)
-        snprintf(buf, L_BUF_SIZE, "%s.eps", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.eps", newroot);
     else if (outformat == GPLOT_LATEX)
-        snprintf(buf, L_BUF_SIZE, "%s.tex", rootname);
+        snprintf(buf, L_BUF_SIZE, "%s.tex", newroot);
     else  /* outformat == GPLOT_X11 */
         buf[0] = '\0';
     gplot->outname = stringNew(buf);
@@ -357,7 +359,7 @@ char  buf[L_BUF_SIZE];
     gplotGenCommandFile(gplot);
     gplotGenDataFiles(gplot);
 
-#ifndef COMPILER_MSVC
+#ifndef _WIN32
     if (gplot->outformat != GPLOT_X11)
         snprintf(buf, L_BUF_SIZE, "gnuplot %s &", gplot->cmdname);
     else
@@ -369,7 +371,7 @@ char  buf[L_BUF_SIZE];
    else
        snprintf(buf, L_BUF_SIZE,
                "wgnuplot -persist %s", gplot->cmdname);
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
     system(buf);
     return 0;
 }
@@ -425,11 +427,11 @@ FILE    *fp;
         snprintf(buf, L_BUF_SIZE, "set terminal latex; set output '%s'",
                  gplot->outname);
     else  /* gplot->outformat == GPLOT_X11 */
-#ifndef COMPILER_MSVC
+#ifndef _WIN32
         snprintf(buf, L_BUF_SIZE, "set terminal x11");
 #else
         snprintf(buf, L_BUF_SIZE, "set terminal windows");
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
     sarrayAddString(gplot->cmddata, buf, L_COPY);
 
     if (gplot->scaling == GPLOT_LOG_SCALE_X ||

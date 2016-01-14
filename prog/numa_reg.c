@@ -16,13 +16,19 @@
 /*
  * numa_reg.c
  *
+ *   Tests:
+ *     * histograms
+ *     * interpolation
+ *     * integration/differentiation
+ *     * rank extraction
+ *     * numa-morphology
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 #include "allheaders.h"
-
 
 #define   DO_ALL     1
 
@@ -30,32 +36,35 @@
 main(int    argc,
      char **argv)
 {
-l_int32      i, n, binsize, binstart, nbins;
+l_int32      i, n, binsize, binstart, nbins, size;
 l_float32    pi, val, angle, xval, yval, x0, y0, rank, startval, fbinsize;
 l_float32    minval, maxval, meanval, median, variance, rankval;
 GPLOT       *gplot;
 NUMA        *na, *nahisto, *nax, *nay, *nap, *nasx, *nasy;
-NUMA        *nadx, *nady, *nafx, *nafy;
-PIX         *pixs;
+NUMA        *nadx, *nady, *nafx, *nafy, *nae, *nad, *nao, *nac;
+PIX         *pixs, *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixd;
+PIXA        *pixa;
 static char  mainName[] = "numa_reg";
 
     if (argc != 1)
 	exit(ERROR_INT(" Syntax:  numa_reg", mainName, 1));
 
-#if  1
     pi = 3.1415926535;
     na = numaCreate(5000);
     for (i = 0; i < 500000; i++) {
         angle = 0.02293 * i * pi;
-	val = (l_float32)(999. * sin(angle));
-	numaAddNumber(na, val);
+        val = (l_float32)(999. * sin(angle));
+        numaAddNumber(na, val);
     }
 
+    /* -------------------------------------------------------------------*
+     *                              Histograms                            *
+     * -------------------------------------------------------------------*/
     nahisto = numaMakeHistogramClipped(na, 6, 2000);
     nbins = numaGetCount(nahisto);
     nax = numaMakeSequence(0, 1, nbins);
     gplot = gplotCreate("/tmp/junkroot1", GPLOT_X11, "example histo 1",
-	    "i", "histo[i]");
+                        "i", "histo[i]");
     gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
@@ -67,7 +76,7 @@ static char  mainName[] = "numa_reg";
     nax = numaMakeSequence(binstart, binsize, nbins);
     fprintf(stderr, " binsize = %d, binstart = %d\n", binsize, binstart);
     gplot = gplotCreate("/tmp/junkroot2", GPLOT_X11, "example histo 2",
-	    "i", "histo[i]");
+                        "i", "histo[i]");
     gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
@@ -79,7 +88,7 @@ static char  mainName[] = "numa_reg";
     nax = numaMakeSequence(0, binsize, nbins);
     fprintf(stderr, " binsize = %d, binstart = %d\n", binsize, 0);
     gplot = gplotCreate("/tmp/junkroot3", GPLOT_X11, "example histo 3",
-	    "i", "histo[i]");
+                        "i", "histo[i]");
     gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
@@ -93,7 +102,7 @@ static char  mainName[] = "numa_reg";
     fprintf(stderr, " binsize = %7.4f, binstart = %8.3f\n",
             fbinsize, startval);
     gplot = gplotCreate("/tmp/junkroot4", GPLOT_X11, "example histo 4",
-	    "i", "histo[i]");
+                        "i", "histo[i]");
     gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
@@ -114,10 +123,11 @@ static char  mainName[] = "numa_reg";
     numaHistogramGetRankFromVal(nahisto, 808.15, &rank);
     fprintf(stderr, "  rank     = %7.3f    -- should be  0.800\n", rank);
     numaDestroy(&nahisto);
-
     numaDestroy(&na);
-#endif
 
+    /* -------------------------------------------------------------------*
+     *                            Interpolation                           *
+     * -------------------------------------------------------------------*/
 #if  DO_ALL
         /* Test numaInterpolateEqxInterval() */
     pixs = pixRead("test8.jpg");
@@ -225,6 +235,9 @@ static char  mainName[] = "numa_reg";
     numaDestroy(&nay);
 #endif
 
+    /* -------------------------------------------------------------------*
+     *                   Integration and differentiation                  *
+     * -------------------------------------------------------------------*/
 #if  DO_ALL 
         /* Test integration and differentiation */
     nasx = numaRead("testangle.numa");
@@ -269,6 +282,9 @@ static char  mainName[] = "numa_reg";
     numaDestroy(&nay);
 #endif
 
+    /* -------------------------------------------------------------------*
+     *                             Rank extraction                        *
+     * -------------------------------------------------------------------*/
 #if  DO_ALL 
         /* Rank extraction with interpolation */
     pixs = pixRead("test8.jpg");
@@ -300,6 +316,48 @@ static char  mainName[] = "numa_reg";
     numaDestroy(&nap);
     pixDestroy(&pixs);
 #endif
+
+    /* -------------------------------------------------------------------*
+     *                             Numa-morphology                        *
+     * -------------------------------------------------------------------*/
+    na = numaRead("lyra-5.numa");
+    gplotSimple1(na, GPLOT_PNG, "/tmp/junkroot1", "Original");
+    nae = numaErode(na, 21);
+    gplotSimple1(nae, GPLOT_PNG, "/tmp/junkroot2", "Erosion");
+    nad = numaDilate(na, 21);
+    gplotSimple1(nad, GPLOT_PNG, "/tmp/junkroot3", "Dilation");
+    nao = numaOpen(na, 21);
+    gplotSimple1(nao, GPLOT_PNG, "/tmp/junkroot4", "Opening");
+    nac = numaClose(na, 21);
+    gplotSimple1(nac, GPLOT_PNG, "/tmp/junkroot5", "Closing");
+    sleep(1);
+    pixa = pixaCreate(5);
+    pixt1 = pixRead("/tmp/junkroot1.png");
+    pixt2 = pixRead("/tmp/junkroot2.png");
+    pixt3 = pixRead("/tmp/junkroot3.png");
+    pixt4 = pixRead("/tmp/junkroot4.png");
+    pixt5 = pixRead("/tmp/junkroot5.png");
+    pixSaveTiled(pixt1, pixa, 1, 1, 25, 32);
+    pixSaveTiled(pixt2, pixa, 1, 1, 25, 32);
+    pixSaveTiled(pixt3, pixa, 1, 0, 25, 32);
+    pixSaveTiled(pixt4, pixa, 1, 1, 25, 32);
+    pixSaveTiled(pixt5, pixa, 1, 0, 25, 32);
+    pixd = pixaDisplay(pixa, 0, 0);
+    pixDisplay(pixd, 100, 100);
+    pixWrite("/tmp/numamorph2.jpg", pixd, IFF_JFIF_JPEG);
+    numaDestroy(&na);
+    numaDestroy(&nae);
+    numaDestroy(&nad);
+    numaDestroy(&nao);
+    numaDestroy(&nac);
+    pixaDestroy(&pixa);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    pixDestroy(&pixt3);
+    pixDestroy(&pixt4);
+    pixDestroy(&pixt5);
+    pixDestroy(&pixd);
+
 
     return 0;
 }

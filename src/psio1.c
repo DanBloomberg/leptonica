@@ -47,8 +47,10 @@
  *     Convert any image file to PS for embedding
  *          l_int32          convertToPSEmbed()
  *
+ *     Write all images in a pixa out to PS
+ *          l_int32          pixaWriteCompressedToPS()
+ *
  *  These PostScript converters are used in three different ways.
- *  All images are output with bounding box hints and page numbers.
  *
  *  (1) For embedding a PS file in a program like TeX.
  *      convertToPSEmbed() handles this for levels 1, 2 and 3 output,
@@ -73,6 +75,16 @@
  *      convertFilesToPS()
  *      convertFilesFittedToPS()
  *      convertSegmentedPagesToPS()
+ *
+ *  All images are output with page numbers.  Bounding box hints are
+ *  more subtle.  They must be included for embeding images in
+ *  TeX, for example, and the low-level writers include bounding
+ *  box hints by default.  However, these hints should not be included for
+ *  multi-page PostScript that is composed of a sequence of images;
+ *  consequently, they are not written when calling higher level
+ *  functions such as convertFilesToPS(), convertFilesFittedToPS()
+ *  and convertSegmentedPagesToPS().  The function l_psWriteBoundingBox()
+ *  sets a flag to give low-level control over this.
  */
 
 #include <stdio.h>
@@ -147,8 +159,10 @@ SARRAY  *sa;
         /* Get all filtered and sorted full pathnames. */
     sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
 
-        /* Generate the PS file. */
+        /* Generate the PS file.  Don't use bounding boxes. */
+    l_psWriteBoundingBox(FALSE);
     sarrayConvertFilesToPS(sa, res, fileout);
+    l_psWriteBoundingBox(TRUE);
     sarrayDestroy(&sa);
     return 0;
 }
@@ -259,8 +273,10 @@ SARRAY  *sa;
         /* Get all filtered and sorted full pathnames. */
     sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
 
-        /* Generate the PS file. */
+        /* Generate the PS file.  Don't use bounding boxes. */
+    l_psWriteBoundingBox(FALSE);
     sarrayConvertFilesFittedToPS(sa, xpts, ypts, fileout);
+    l_psWriteBoundingBox(TRUE);
     sarrayDestroy(&sa);
     return 0;
 }
@@ -653,7 +669,10 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
         pixDestroy(&pixt);
     }
 
+        /* Generate the PS file.  Don't use bounding boxes. */
+    l_psWriteBoundingBox(FALSE);
     ret = pixWriteMixedToPS(pixb, pixc, scaleratio, pageno, fileout);
+    l_psWriteBoundingBox(TRUE);
     pixDestroy(&pixb);
     pixDestroy(&pixc);
     return ret;
@@ -847,6 +866,98 @@ PIX        *pix, *pixs;
     pixDestroy(&pixs);
     return 0;
 }
+
+
+/*-------------------------------------------------------------*
+ *              Write all images in a pixa out to PS           *
+ *-------------------------------------------------------------*/
+/*
+ *  pixaWriteCompressedToPS()
+ *
+ *      Input:  pixa (any set of images)
+ *              fileout (output ps file)
+ *              res (of input image)
+ *              level (compression: 2 or 3)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a PS file of multiple page images, all
+ *          with bounding boxes.
+ *      (2) It compresses to:
+ *              1 bpp:          tiffg4
+ *              cmap + level3:  flate
+ *              cmap + level2:  jpeg
+ *              16 bpp:         flate
+ *              2, 4 or 8 bpp:  jpeg (after conversion to 8 bpp)
+ *              32 bpp:         jpeg
+ *      (3) To generate a pdf, use: ps2pdf <infile.ps> <outfile.pdf>
+ */
+l_int32
+pixaWriteCompressedToPS(PIXA        *pixa,
+                        const char  *fileout,
+                        l_int32      res,
+                        l_int32      level)
+{
+l_int32   i, n, firstfile, index, writeout, d;
+PIX      *pix, *pixt;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixaWriteCompressedToPS");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (level != 2 && level != 3) {
+        L_ERROR("only levels 2 and 3 permitted; using level 2", procName);
+        level = 2;
+    }
+
+    n = pixaGetCount(pixa);
+    firstfile = TRUE;
+    index = 0;
+    for (i = 0; i < n; i++) {
+        writeout = TRUE;
+        pix = pixaGetPix(pixa, i, L_CLONE);
+        d = pixGetDepth(pix);
+        cmap = pixGetColormap(pix);
+        if (d == 1)
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_TIFF_G4);
+        else if (cmap) {
+            if (level == 3)
+                pixWrite("/tmp/junk_compr_tmp", pix, IFF_PNG);
+            else {
+                pixt = pixConvertForPSWrap(pix);
+                pixWrite("/tmp/junk_compr_tmp", pixt, IFF_JFIF_JPEG);
+                pixDestroy(&pixt);
+            }
+        }
+        else if (d == 16) {
+            L_WARNING("d = 16; must write out flate", procName);
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_PNG);
+        }
+        else if (d == 2 || d == 4 || d == 8) {
+            pixt = pixConvertTo8(pix, 0);
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_JFIF_JPEG);
+            pixDestroy(&pixt);
+        }
+        else if (d == 32)
+            pixWrite("/tmp/junk_compr_tmp", pix, IFF_JFIF_JPEG);
+        else {  /* shouldn't happen */
+            L_ERROR_INT("invalid depth: %d", procName, d);
+            writeout = FALSE;
+        }
+        pixDestroy(&pix);
+
+        if (writeout)
+            writeImageCompressedToPSFile("/tmp/junk_compr_tmp", fileout,
+                                         res, &firstfile, &index);
+    }
+
+    return 0;
+}
+
+
 
 /* --------------------------------------------*/
 #endif  /* USE_PSIO */

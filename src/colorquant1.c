@@ -242,7 +242,7 @@ static l_int32 pixDitherOctindexWithCmap(PIX *pixs, PIX *pixd, l_uint32 *rtab,
  *  pixOctreeColorQuant()
  *
  *      Input:  pixs  (32 bpp; 24-bit color)
- *              colors  (in colormap; some number in range [32 ... 256];
+ *              colors  (in colormap; some number in range [128 ... 256];
  *                      the actual number of colors used will be smaller)
  *              ditherflag  (1 to dither, 0 otherwise)
  *      Return: pixd (8 bpp with colormap), or null on error

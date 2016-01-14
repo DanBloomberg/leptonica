@@ -73,6 +73,9 @@
  *          l_int32         *convertChunkToAscii85()
  *          l_uint8         *decodeAscii85()
  *
+ *     Setting flag for writing bounding box hint
+ *          void             l_psWriteBoundingBox()
+ *
  *  See psio1.c for higher-level functions and their usage.
  */
 
@@ -84,7 +87,9 @@
 /* --------------------------------------------*/
 #if  USE_PSIO   /* defined in environ.h */
  /* --------------------------------------------*/
-
+ 
+    /* Set default for writing bounding box hint */
+static l_int32   var_PS_WRITE_BOUNDING_BOX = 1;
 
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE      512
@@ -663,9 +668,10 @@ l_float32  xpt, ypt, wpt, hpt;
         wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /* Generate the PS, inserting bounding box information */
+        /* Generate the PS.
+         * The bounding box information should be inserted (default). */
     outstr = generateJpegPS(filein, data85, w, h, bps, spp,
-                            xpt, ypt, wpt, hpt, 1, 1, 1);
+                            xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -862,9 +868,9 @@ l_float32  xpt, ypt, wpt, hpt;
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_JPEG */
 
-        /* Generate the PS, including bounding box information. */
+        /* Generate the PS */
     outstr = generateJpegPS(filein, data85, w, h, bps, spp,
-                            xpt, ypt, wpt, hpt, 1, pageno, endpage);
+                            xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -885,7 +891,6 @@ l_float32  xpt, ypt, wpt, hpt;
  *                        to the PostScript origin (0,0) at the LL corner
  *                        of the page)
  *              wpt, hpt (rendered image size in pts)
- *              bbflag (boolean: 1 to print b.b. info)
  *              pageno (page number; must start with 1; you can use 0
  *                      if there is only one page.)
  *              endpage (boolean: use TRUE if this is the last image to be
@@ -906,7 +911,6 @@ generateJpegPS(const char  *filein,
                l_float32    ypt,
                l_float32    wpt,
                l_float32    hpt,
-               l_int32      bbflag,
                l_int32      pageno,
                l_int32      endpage)
 {
@@ -930,7 +934,7 @@ SARRAY  *sa;
     }
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
-    if (bbflag) {
+    if (var_PS_WRITE_BOUNDING_BOX == 1) {
         sprintf(bigbuf,
             "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                        xpt, ypt, xpt + wpt, ypt + hpt);
@@ -1066,10 +1070,10 @@ l_float32  xpt, ypt, wpt, hpt;
         wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /* Generate the PS, inserting bounding box information and
-         * painting through the image mask. */
+        /* Generate the PS, painting through the image mask.
+         * The bounding box information should be inserted (default). */
     outstr = generateTiffG4PS(filein, data85, w, h, xpt, ypt, wpt, hpt,
-                              1, minisblack, 1, 1, 1);
+                              minisblack, 1, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -1268,9 +1272,9 @@ l_float32  xpt, ypt, wpt, hpt;
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_G4 */
 
-        /* Generate the PS, including bounding box information. */
+        /* Generate the PS */
     outstr = generateTiffG4PS(filein, data85, w, h, xpt, ypt, wpt, hpt,
-                              1, minisblack, maskflag, pageno, endpage);
+                              minisblack, maskflag, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -1289,7 +1293,6 @@ l_float32  xpt, ypt, wpt, hpt;
  *                        to the PostScript origin (0,0) at the LL corner
  *                        of the page)
  *              wpt, hpt (rendered image size in pts)
- *              bbflag (boolean: 1 to print b.b. info)
  *              minisblack (boolean: typ. FALSE for 1 bpp images)
  *              maskflag (boolean: use TRUE if just painting through fg;
  *                        FALSE if painting both fg and bg.
@@ -1311,7 +1314,6 @@ generateTiffG4PS(const char  *filein,
                  l_float32    ypt,
                  l_float32    wpt,
                  l_float32    hpt,
-                 l_int32      bbflag,
                  l_int32      minisblack,
                  l_int32      maskflag,
                  l_int32      pageno,
@@ -1337,7 +1339,7 @@ SARRAY  *sa;
     }
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
-    if (bbflag) {
+    if (var_PS_WRITE_BOUNDING_BOX == 1) {
         sprintf(bigbuf,
             "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                     xpt, ypt, xpt + wpt, ypt + hpt);
@@ -1597,9 +1599,10 @@ PIXCMAP   *cmap;
         wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /* Generate the PS, inserting bounding box information */
+        /* Generate the PS.
+         * The bounding box information should be inserted (default). */
     outstr = generateFlatePS(filein, data85, cmapdata85, ncolors,
-                             w, h, bps, spp, xpt, ypt, wpt, hpt, 1, 1, 1);
+                             w, h, bps, spp, xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -1837,10 +1840,9 @@ PIXCMAP   *cmap;
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_FLATE */
 
-        /* Generate the PS, including bounding box information. */
-    outstr = generateFlatePS(filein, data85, cmapdata85, ncolors,
-                             w, h, bps, spp, xpt, ypt, wpt, hpt,
-                             1, pageno, endpage);
+        /* Generate the PS */
+    outstr = generateFlatePS(filein, data85, cmapdata85, ncolors, w, h,
+                             bps, spp, xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -1863,7 +1865,6 @@ PIXCMAP   *cmap;
  *                        to the PostScript origin (0,0) at the LL corner
  *                        of the page)
  *              wpt, hpt (rendered image size in pts)
- *              bbflag (boolean: 1 to print b.b. info)
  *              pageno (page number; must start with 1; you can use 0
  *                      if there is only one page)
  *              endpage (boolean: use TRUE if this is the last image to be
@@ -1883,7 +1884,6 @@ generateFlatePS(const char  *filein,
                 l_float32    ypt,
                 l_float32    wpt,
                 l_float32    hpt,
-                l_int32      bbflag,
                 l_int32      pageno,
                 l_int32      endpage)
 {
@@ -1907,7 +1907,7 @@ SARRAY  *sa;
     }
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
-    if (bbflag) {
+    if (var_PS_WRITE_BOUNDING_BOX == 1) {
         sprintf(bigbuf,
             "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
                        xpt, ypt, xpt + wpt, ypt + hpt);
@@ -2315,6 +2315,17 @@ l_uint32  oword;
 
     return outa;
 }
+
+
+/*-------------------------------------------------------------*
+ *           Setting flag for writing bounding box hint        *
+ *-------------------------------------------------------------*/
+void
+l_psWriteBoundingBox(l_int32  flag)
+{
+    var_PS_WRITE_BOUNDING_BOX = flag;
+}
+
 
 /* --------------------------------------------*/
 #endif  /* USE_PSIO */

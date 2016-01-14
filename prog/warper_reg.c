@@ -62,7 +62,7 @@ PIXA    *pixac;
         }
         pixd = pixaDisplay(pixac, 0, 0);
 
-        snprintf(namebuf, 240, "/tmp/junkwarp.%d.png", count);
+        snprintf(namebuf, 240, "/tmp/warp.%d.png", count);
         pixWrite(namebuf, pixd, IFF_PNG);
         regTestCheckFile(fp, argv, namebuf, count++, &success);
         pixDisplayWithTitle(pixd, 100, 100, NULL, display);
@@ -80,7 +80,7 @@ PIXA    *pixac;
             DisplayCaptcha(pixac, pixs, k, 7 * i, newline);
         }
         pixd = pixaDisplay(pixac, 0, 0);
-        snprintf(namebuf, 240, "/tmp/junkwarp.%d.png", count);
+        snprintf(namebuf, 240, "/tmp/warp.%d.png", count);
         pixWrite(namebuf, pixd, IFF_PNG);
         regTestCheckFile(fp, argv, namebuf, count++, &success);
         pixDisplayWithTitle(pixd, 100, 100, NULL, display);

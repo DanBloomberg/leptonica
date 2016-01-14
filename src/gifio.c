@@ -20,8 +20,9 @@
  *          PIX        *pixReadStreamGif()
  *          l_int32     pixWriteStreamGif()
  *
- *    Read from memory   [not on windows]
+ *    Read/write from/to memory
  *          PIX        *pixReadMemGif()
+ *          l_int32     pixWriteMemGif()
  *
  *    This uses the gif library, version 4.1.6.  Do not use 4.1.4.
  *
@@ -33,11 +34,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
 #include <unistd.h>
 #else
 #include <io.h>
-#endif  /* COMPILER_MSVC */
+#endif  /* _MSC_VER */
 #include "allheaders.h"
 
 #ifdef HAVE_CONFIG_H
@@ -75,11 +76,11 @@ SavedImage       si;
 
     if ((fd = fileno(fp)) < 0)
         return (PIX *)ERROR_PTR("invalid file descriptor", procName, NULL);
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
     lseek(fd, 0, SEEK_SET);
 #else
     _lseek(fd, 0, SEEK_SET);
-#endif  /* COMPILER_MSVC */
+#endif  /* _MSC_VER */
 
     if ((gif = DGifOpenFileHandle(fd)) == NULL)
         return (PIX *)ERROR_PTR("invalid file or file not found",
@@ -365,55 +366,84 @@ GifByteType     *gif_line;
 
 
 /*---------------------------------------------------------------------*
- *                           Read from memory                          *
+ *                      Read/write from/to memory                      *
  *---------------------------------------------------------------------*/
-#if HAVE_FMEMOPEN
-
-extern FILE *fmemopen(void *data, size_t size, const char *mode);
-
 /*!
  *  pixReadMemGif()
  *
- *      Input:  cdata (const; png-encoded)
+ *      Input:  data (const; gif-encoded)
  *              size (of data)
  *      Return: pix, or null on error
  *
  *  Notes:
- *      (1) The @size byte of @data must be a null character.
+ *      (1) Of course, we are cheating here -- writing the data out
+ *          to file and then reading it back in as a gif format.
  */
 PIX *
 pixReadMemGif(const l_uint8  *cdata,
               size_t          size)
 {
+char     *tname;
 l_uint8  *data;
-FILE     *fp;
-PIX      *pix;
+PIX   *pix;
 
     PROCNAME("pixReadMemGif");
 
     if (!cdata)
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
 
+    tname = genTempFilename("/tmp/", "junk_mem_gif.blah", 1);
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
-    if ((fp = fmemopen(data, size, "r")) == NULL)
-        return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
-    pix = pixReadStreamGif(fp);
-    fclose(fp);
+    arrayWrite(tname, "w", data, size);
+    pix = pixRead(tname);
+    FREE(tname);
+    if (!pix)
+        return (PIX *)ERROR_PTR("pix not read", procName, NULL);
     return pix;
 }
 
-#else
 
-PIX *
-pixReadMemGif(const l_uint8  *cdata,
-              size_t           size)
+/*!
+ *  pixWriteMemGif()
+ *
+ *      Input:  &data (<return> data of tiff compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Of course, we are cheating here -- writing the pix out
+ *          as a gif file and then reading it back into memory.
+ */
+l_int32
+pixWriteMemGif(l_uint8  **pdata,
+               size_t    *psize,
+               PIX       *pix)
 {
-    return (PIX *)ERROR_PTR(
-        "gif read from memory not implemented on this platform",
-        "pixReadMemGif", NULL);
-}
+char     *tname;
+l_uint8  *data;
+l_int32   nbytes;
 
-#endif  /* HAVE_FMEMOPEN */
+    PROCNAME("pixWriteMemGif");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    tname = genTempFilename("/tmp/", "junk_mem_gif.blah", 1);
+    pixWrite(tname, pix, IFF_GIF);
+    data = arrayRead(tname, &nbytes);
+    FREE(tname);
+    if (!data)
+        return ERROR_INT("data not returned", procName, 1 );
+    *pdata = data;
+    *psize = nbytes;
+    return 0;
+}
+    
 
 /* -----------------------------------------------------------------*/
 #endif    /* HAVE_LIBGIF || HAVE_LIBUNGIF  */

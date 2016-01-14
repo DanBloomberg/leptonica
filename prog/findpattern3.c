@@ -31,7 +31,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "allheaders.h"
 
     /* for pixDisplayHitMissSel() */
@@ -76,18 +75,18 @@ static char  mainName[] = "findpattern3";
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 1.0, 5);
-    pixWrite("junkpixd11", pixd1, IFF_PNG);
+    pixWrite("/tmp/junkpixd11", pixd1, IFF_PNG);
 
         /* Color each instance at 0.3 scale */
     pixd2 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 0.5, 5);
-    pixWrite("junkpixd12", pixd2, IFF_PNG);
+    pixWrite("/tmp/junkpixd12", pixd2, IFF_PNG);
 
         /* Remove each instance from the input image */
     pixd3 = pixCopy(NULL, pixs);
     pixRemoveMatchedPattern(pixd3, pixp, pixhmt, selhm->cx,
                                     selhm->cy, 1);
-    pixWrite("junkpixr1", pixd3, IFF_PNG);
+    pixWrite("/tmp/junkpixr1", pixd3, IFF_PNG);
 
     boxDestroy(&box);
     selDestroy(&selhm);
@@ -122,18 +121,18 @@ static char  mainName[] = "findpattern3";
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 1.0, 5);
-    pixWrite("junkpixd21", pixd1, IFF_PNG);
+    pixWrite("/tmp/junkpixd21", pixd1, IFF_PNG);
 
         /* Color each instance at 0.3 scale */
     pixd2 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 0.5, 5);
-    pixWrite("junkpixd22", pixd2, IFF_PNG);
+    pixWrite("/tmp/junkpixd22", pixd2, IFF_PNG);
 
         /* Remove each instance from the input image */
     pixd3 = pixCopy(NULL, pixs);
     pixRemoveMatchedPattern(pixd3, pixp, pixhmt, selhm->cx,
                                     selhm->cy, 1);
-    pixWrite("junkpixr2", pixd3, IFF_PNG);
+    pixWrite("/tmp/junkpixr2", pixd3, IFF_PNG);
 
     selDestroy(&selhm);
     boxDestroy(&box);
@@ -144,8 +143,7 @@ static char  mainName[] = "findpattern3";
     pixDestroy(&pixd1);
     pixDestroy(&pixd2);
     pixDestroy(&pixd3);
-
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 

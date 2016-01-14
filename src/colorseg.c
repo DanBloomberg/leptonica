@@ -490,7 +490,6 @@ l_uint32   val32;
 NUMA      *na, *nasi;
 PIX       *pixt1, *pixt2;
 PIXCMAP   *cmap;
-SEL       *sel;
 
     PROCNAME("pixColorSegmentClean");
 
@@ -517,18 +516,16 @@ SEL       *sel;
          * do a closing and absorb the added pixels.  Note that
          * if the closing removes pixels at the border, they'll
          * still appear in the xor and will be properly (re)set. */
-    sel = selCreateBrick(selsize, selsize, selsize / 2, selsize / 2, SEL_HIT);
     for (i = 0; i < ncolors; i++) {
         numaGetIValue(nasi, i, &val);
         pixt1 = pixGenerateMaskByValue(pixs, val, 1);
-        pixt2 = pixClose(NULL, pixt1, sel);
+        pixt2 = pixCloseSafeCompBrick(NULL, pixt1, selsize, selsize);
         pixXor(pixt2, pixt2, pixt1);  /* pixels to be added to type 'val' */
         pixcmapGetColor32(cmap, val, &val32);
         pixSetMasked(pixs, pixt2, val32);  /* add them */
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
-    selDestroy(&sel);
     numaDestroy(&na);
     numaDestroy(&nasi);
     return 0;
@@ -539,7 +536,7 @@ SEL       *sel;
  *  pixColorSegmentRemoveColors()
  *
  *      Input:  pixd  (8 bpp, colormapped)
- *              pixs  (24 bpp rgb, with initial pixel values)
+ *              pixs  (32 bpp rgb, with initial pixel values)
  *              finalcolors (max number of colors to retain)
  *      Return: 0 if OK, 1 on error
  *
@@ -557,8 +554,9 @@ pixColorSegmentRemoveColors(PIX     *pixd,
                             PIX     *pixs,
                             l_int32  finalcolors)
 {
-l_int32    i, npix, minpix, ncolors, index, tempcolor;
+l_int32    i, ncolors, index, tempindex;
 l_int32   *tab;
+l_uint32   tempcolor;
 NUMA      *na, *nasi;
 PIX       *pixm;
 PIXCMAP   *cmap;
@@ -579,28 +577,28 @@ PIXCMAP   *cmap;
 
         /* Generate a mask over all pixels that are not in the
          * 'finalcolors' most populated colors.  Save the colormap
-         * index of any one of the retained colors in 'tempcolor'.
+         * index of any one of the retained colors in 'tempindex'.
          * The LUT has values 0 for the 'finalcolors' most populated colors,
-         * and 1 for the rest, which are marked by fg pixels in pixm. */
-    na = pixGetGrayHistogram(pixd, 1);
-    if ((nasi = numaGetSortIndex(na, L_SORT_DECREASING)) == NULL)
+         * which will be retained; and 1 for the rest, which are marked
+         * by fg pixels in pixm and will be removed. */
+    na = pixGetCmapHistogram(pixd, 1);
+    if ((nasi = numaGetSortIndex(na, L_SORT_DECREASING)) == NULL) {
+        numaDestroy(&na);
         return ERROR_INT("nasi not made", procName, 1);
-    numaGetIValue(nasi, finalcolors - 1, &index);  /* retain down to this */
-    tempcolor = index;
-    numaGetIValue(na, index, &minpix);
-    if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-        return ERROR_INT("tab not made", procName, 1);
-    for (i = 0; i < ncolors; i++) {
-        numaGetIValue(na, i, &npix);
-        if (npix < minpix && npix > 0)  /* these pixels to be reassigned */
-            tab[i] = 1;
     }
+    numaGetIValue(nasi, finalcolors - 1, &tempindex);  /* retain down to this */
+    pixcmapGetColor32(cmap, tempindex, &tempcolor);  /* use this color */
+    tab = (l_int32 *)CALLOC(256, sizeof(l_int32));
+    for (i = finalcolors; i < ncolors; i++) {
+        numaGetIValue(nasi, i, &index);
+        tab[index] = 1;
+    }
+
     pixm = pixMakeMaskFromLUT(pixd, tab);
     FREE(tab);
 
-
         /* Reassign the masked pixels temporarily to the saved index
-         * (tempcolor).  This guarantees that no pixels are labeled by
+         * (tempindex).  This guarantees that no pixels are labeled by
          * a colormap index of any colors that will be removed.
          * The actual value doesn't matter, as long as it's one
          * of the retained colors, because these pixels will later
@@ -613,7 +611,7 @@ PIXCMAP   *cmap;
     pixRemoveUnusedColors(pixd);
 
         /* Finally, reassign the pixels under the mask (those that were
-         * given a 'tempcolor' value) to the nearest color in the colormap.
+         * given a 'tempindex' value) to the nearest color in the colormap.
          * This is the function used in phase 2 on all image pixels; here
          * it is only used on the masked pixels given by pixm. */
     pixAssignToNearestColor(pixd, pixs, pixm, LEVEL_IN_OCTCUBE, NULL);
@@ -631,7 +629,7 @@ PIXCMAP   *cmap;
 /*!
  *  pixMakeRangeMaskHS()
  *
- *      Input:  pixs  (24 bpp rgb)
+ *      Input:  pixs  (32 bpp rgb)
  *              huecenter (center value of hue range)
  *              huehw (half-width of hue range)
  *              satcenter (center value of saturation range)
@@ -729,7 +727,7 @@ PIX       *pixt, *pixd;
 /*!
  *  pixMakeRangeMaskHV()
  *
- *      Input:  pixs  (24 bpp rgb)
+ *      Input:  pixs  (32 bpp rgb)
  *              huecenter (center value of hue range)
  *              huehw (half-width of hue range)
  *              valcenter (center value of max intensity range)
@@ -827,7 +825,7 @@ PIX       *pixt, *pixd;
 /*!
  *  pixMakeRangeMaskSV()
  *
- *      Input:  pixs  (24 bpp rgb)
+ *      Input:  pixs  (32 bpp rgb)
  *              satcenter (center value of saturation range)
  *              sathw (half-width of saturation range)
  *              valcenter (center value of max intensity range)

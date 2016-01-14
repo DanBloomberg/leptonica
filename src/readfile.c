@@ -66,8 +66,14 @@ static const char *FILE_PB   =  "/tmp/junkout_packbits.tif";
 static const char *FILE_LZW  =  "/tmp/junkout_lzw.tif";
 static const char *FILE_ZIP  =  "/tmp/junkout_zip.tif";
 static const char *FILE_TIFF =  "/tmp/junkout.tif";
-static const char *FILE_JPG  =  "/tmp/junkout.jpg"; 
+static const char *FILE_JPG  =  "/tmp/junkout.jpg";
 
+    /* I found these from the source code to the unix file */
+    /* command. man 1 file */
+static const char JP2K_CODESTREAM[4] = { 0xff, 0x4f, 0xff, 0x51 };
+static const char JP2K_IMAGE_DATA[12] = { 0x00, 0x00, 0x00, 0x0C,
+                                          0x6A, 0x50, 0x20, 0x20,
+                                          0x0D, 0x0A, 0x87, 0x0A };
 
 /*---------------------------------------------------------------------*
  *          Top-level functions for reading images from file           *
@@ -161,8 +167,15 @@ PIX   *pix;
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIX *)ERROR_PTR("image file not found", procName, NULL);
     pix = pixReadStream(fp, 0);
-    if (pixGetInputFormat(pix) != IFF_GIF)  /* DGifCloseFile() closes stream! */
+
+        /* Close the stream except if GIF under windows, because
+         * DGifCloseFile() closes the windows file stream! */
+    if (pixGetInputFormat(pix) != IFF_GIF)
         fclose(fp);
+#ifndef _WIN32
+    else  /* gif file */
+        fclose(fp);
+#endif  /* ! _WIN32 */
 
     if (!pix)
         return (PIX *)ERROR_PTR("image not returned", procName, NULL);
@@ -326,6 +339,11 @@ PIX     *pix;
         return (PIX *)ERROR_PTR("jp2: format not supported", procName, NULL);
         break;
 
+    case IFF_SPIX:
+        if ((pix = pixReadStreamSpix(fp)) == NULL)
+            return (PIX *)ERROR_PTR("spix: no pix returned", procName, NULL);
+        break;
+
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR( "Unknown format: no pix returned",
                 procName, NULL);
@@ -452,6 +470,12 @@ PIX      *pix;
         return ERROR_INT("jp2: format not supported", procName, 1);
         break;
 
+    case IFF_SPIX:
+        ret = readHeaderSpix(filename, &w, &h, &bps, &spp, &iscmap);
+        if (ret)
+            return ERROR_INT( "spix: no header info returned", procName, 1);
+        break;
+
     case IFF_UNKNOWN:
         L_ERROR_STRING("unknown format in file %s", procName, filename);
         return 1;
@@ -485,7 +509,7 @@ l_int32
 findFileFormat(FILE     *fp,
                l_int32  *pformat)
 {
-l_uint8  firstbytes[8]; 
+l_uint8  firstbytes[12];
 l_int32  format;
 
     PROCNAME("findFileFormat");
@@ -497,11 +521,11 @@ l_int32  format;
         return ERROR_INT("stream not defined", procName, 1);
 
     rewind(fp);
-    if (fnbytesInFile(fp) < 8)
+    if (fnbytesInFile(fp) < 12)
         return ERROR_INT("truncated file", procName, 1);
 
-    if (fread((char *)&firstbytes, 1, 8, fp) != 8)
-        return ERROR_INT("failed to read first 8 bytes of file", procName, 1);
+    if (fread((char *)&firstbytes, 1, 12, fp) != 12)
+        return ERROR_INT("failed to read first 12 bytes of file", procName, 1);
     rewind(fp);
 
     findFileFormatBuffer(firstbytes, &format);
@@ -520,12 +544,12 @@ l_int32  format;
 /*!
  *  findFileFormatBuffer()
  *
- *      Input:  byte buffer (at least 8 bytes in size; we can't check) 
+ *      Input:  byte buffer (at least 12 bytes in size; we can't check)
  *              &format (<return>)
  *      Return: 0 if OK, 1 on error or if format is not recognized
  *
  *  Notes:
- *      (1) This determines the file format from the first 8 bytes in
+ *      (1) This determines the file format from the first 12 bytes in
  *          the compressed data stream, which are stored in memory.
  *      (2) For tiff files, this returns IFF_TIFF.  The specific tiff
  *          compression is then determined using findTiffCompression().
@@ -579,7 +603,7 @@ l_uint16  twobytepw;
 
         /*  Consider the first 11 bytes of the standard JFIF JPEG header:
          *    - The first two bytes are the most important:  0xffd8.
-         *    - The next two bytes are the jfif marker: 0xffe0. 
+         *    - The next two bytes are the jfif marker: 0xffe0.
          *      Not all jpeg files have this marker.
          *    - The next two bytes are the header length.
          *    - The next 5 bytes are a null-terminated string.
@@ -608,8 +632,16 @@ l_uint16  twobytepw;
         return 0;
     }
 
-    if (buf[0] == 0xff && buf[1] == 0x4f && buf[2] == 0xff && buf[3] == 0x51) {
+        /* Check for both types of jp2k file */
+    if (strncmp((const char *)buf, JP2K_CODESTREAM, 4) == 0 ||
+        strncmp((const char *)buf, JP2K_IMAGE_DATA, 12) == 0) {
         *pformat = IFF_JP2;
+        return 0;
+    }
+
+        /* Check for "spix" serialized pix */
+    if (buf[0] == 's' && buf[1] == 'p' && buf[2] == 'i' && buf[3] == 'x') {
+        *pformat = IFF_SPIX;
         return 0;
     }
 
@@ -722,6 +754,11 @@ PIX     *pix;
 
     case IFF_JP2:
         return (PIX *)ERROR_PTR("jp2: format not supported", procName, NULL);
+        break;
+
+    case IFF_SPIX:
+        if ((pix = pixReadMemSpix(data, size)) == NULL)
+            return (PIX *)ERROR_PTR("spix: no pix returned", procName, NULL);
         break;
 
     case IFF_UNKNOWN:
@@ -849,6 +886,13 @@ PIX     *pix;
 
     case IFF_JP2:
         return ERROR_INT("jp2: format not supported", procName, 1);
+        break;
+
+    case IFF_SPIX:
+        ret = sreadHeaderSpix((l_uint32 *)data, &w, &h, &bps,
+                               &spp, &iscmap);
+        if (ret)
+            return ERROR_INT( "pnm: no header info returned", procName, 1);
         break;
 
     case IFF_UNKNOWN:
@@ -1080,4 +1124,3 @@ PIXCMAP  *cmap;
     pixDestroy(&pixs);
     return problems;
 }
-

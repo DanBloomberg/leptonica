@@ -110,8 +110,8 @@ PIXA    *pixas, *pixad;
 
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
-    pixWrite("/tmp/junksplit.0.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksplit.0.png", 0, &success);
+    pixWrite("/tmp/split.0.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/split.0.png", 0, &success);
     pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);
@@ -141,8 +141,8 @@ PIXA    *pixas, *pixad;
 
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
-    pixWrite("/tmp/junksplit.1.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junksplit.1.png", 1, &success);
+    pixWrite("/tmp/split.1.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/split.1.png", 1, &success);
     pixDisplayWithTitle(pixd, 600, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);

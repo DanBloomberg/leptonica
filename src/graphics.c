@@ -63,6 +63,7 @@
  *      Contour rendering on grayscale images
  *
  *          PIX        *pixRenderContours()
+ *          PIX        *fpixRenderContours()
  *
  *  The line rendering functions are relatively crude, but they
  *  get the job done for most simple situations.  We use the pta
@@ -216,7 +217,7 @@ PTA     *pta, *ptaj;
  *  generatePtaBox()
  *
  *      Input:  box
- *              width
+ *              width (of line)
  *      Return: ptad, or null on error
  *
  *  Notes:
@@ -237,6 +238,8 @@ PTA     *ptad, *pta;
 
         /* Generate line points and add them to the pta. */
     boxGetGeometry(box, &x, &y, &w, &h);
+    if (w == 0 || h == 0)
+        return (PTA *)ERROR_PTR("box has w = 0 or h = 0", procName, NULL);
     ptad = ptaCreate(0);
     if ((width & 1) == 1) {   /* odd width */
         pta = generatePtaWideLine(x - width / 2, y,
@@ -284,7 +287,7 @@ PTA     *ptad, *pta;
  *
  *      Input:  box
  *              spacing (spacing between lines; must be > 1)
- *              width  (line width)
+ *              width  (of line)
  *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
  *              outline  (0 to skip drawing box outline)
  *      Return: ptad, or null on error
@@ -313,9 +316,11 @@ PTA     *ptad, *pta;
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
         return (PTA *)ERROR_PTR("invalid line orientation", procName, NULL);
+    boxGetGeometry(box, &bx, &by, &bw, &bh);
+    if (bw == 0 || bh == 0)
+        return (PTA *)ERROR_PTR("box has bw = 0 or bh = 0", procName, NULL);
 
         /* Generate line points and add them to the pta. */
-    boxGetGeometry(box, &bx, &by, &bw, &bh);
     ptad = ptaCreate(0);
     if (outline) {
         pta = generatePtaBox(box, width);
@@ -1570,15 +1575,16 @@ PIX      *pixd;
 /*!
  *  pixRenderContours()
  *
- *      Input:  pixs (8 or 16 bpp)
+ *      Input:  pixs (8 or 16 bpp; no colormap)
  *              startval (value of lowest contour; must be in [0 ... maxval])
  *              incr  (increment to next contour; must be > 0)
  *              outdepth (either 1 or depth of pixs)
  *      Return: pixd, or null on error
  *
- *  The output can be either 1 bpp, showing just the contour
- *  lines, or a copy of the input pixs with the contour lines
- *  superposed.
+ *  Notes:
+ *      (1) The output can be either 1 bpp, showing just the contour
+ *          lines, or a copy of the input pixs with the contour lines
+ *          superposed.
  */
 PIX *
 pixRenderContours(PIX     *pixs,
@@ -1596,7 +1602,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 16)
         return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
     if (outdepth != 1 && outdepth != d) {
@@ -1610,8 +1616,6 @@ PIX       *pixd;
     if (incr < 1)
         return (PIX *)ERROR_PTR("incr < 1", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if (outdepth == d)
         pixd = pixCopy(NULL, pixs);
     else
@@ -1693,4 +1697,60 @@ PIX       *pixd;
 
     return pixd;
 }
+
+
+/*!
+ *  fpixRenderContours()
+ *
+ *      Input:  fpixs
+ *              startval (value of lowest contour
+ *              incr  (increment to next contour; must be > 0.0)
+ *              proxim (required proximity to target value; typ. 0.1 * incr)
+ *      Return: pixd (1 bpp), or null on error
+ */
+PIX *
+fpixRenderContours(FPIX      *fpixs,
+                   l_float32  startval,
+                   l_float32  incr,
+                   l_float32  proxim)
+{
+l_int32     i, j, w, h, wpls, wpld;
+l_float32   val, invincr, finter, diff;
+l_uint32   *datad, *lined;
+l_float32  *datas, *lines;
+PIX        *pixd;
+
+    PROCNAME("fpixRenderContours");
+
+    if (!fpixs)
+        return (PIX *)ERROR_PTR("fpixs not defined", procName, NULL);
+    if (incr <= 0.0)
+        return (PIX *)ERROR_PTR("incr <= 0.0", procName, NULL);
+
+    fpixGetDimensions(fpixs, &w, &h);
+    if ((pixd = pixCreate(w, h, 1)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+    datas = fpixGetData(fpixs);
+    wpls = fpixGetWpl(fpixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    invincr = 1.0 / incr;
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            val = lines[j];
+            if (val < startval)
+                continue;
+            finter = L_ABS(invincr * (val - startval));
+            diff = finter - floorf(finter);
+            if (diff <= proxim)
+                SET_DATA_BIT(lined, j); 
+        }
+    }
+
+    return pixd;
+}
+
 

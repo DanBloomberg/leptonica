@@ -213,7 +213,7 @@ char      *fileout;
 
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
-    sprintf(buf, "/tmp/junkdisp.%d.jpg", i);
+    sprintf(buf, "/tmp/disp.%d.jpg", i);
     pixWrite(buf, pixd, IFF_JFIF_JPEG);
 
     pixDestroy(&pixs);
@@ -232,7 +232,7 @@ PIX  *pix32;
     pix32 = pixConvertTo32(pixc);
     pixSaveTiled(pix32, pixa, 1, 0, SPACE, 0);
 
-    snprintf(namebuf, 240, "/tmp/junkcq.%d.jpg", golden_number);
+    snprintf(namebuf, 240, "/tmp/colorquant.%d.jpg", golden_number);
     pixWrite(namebuf, pix32, IFF_JFIF_JPEG);
     regTestCheckFile(rp->fp, rp->argv, namebuf, golden_number++, &rp->success);
 

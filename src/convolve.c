@@ -55,12 +55,20 @@
  *      Generic convolution (with float arrays)
  *          FPIX     *fpixConvolve()
  *          FPIX     *fpixConvolveSep()
+ *
+ *      Set parameter for convolution subsampling
+ *          void      l_setConvolveSampling()
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
+    /* These globals determine the subsampling factors for
+     * generic convolution of pix and fpix.  Declare extern to use.
+     * To change the values, use l_setConvolveSampling(). */
+LEPT_DLL l_int32  ConvolveSamplingFactX = 1;
+LEPT_DLL l_int32  ConvolveSamplingFactY = 1;
 
 /*----------------------------------------------------------------------*
  *             Top-level grayscale or color block convolution           *
@@ -202,8 +210,10 @@ PIX       *pixd, *pixt;
             return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
     }
         
-    if ((pixd = pixCreateTemplate(pixs)) == NULL)
+    if ((pixd = pixCreateTemplate(pixs)) == NULL) {
+        pixDestroy(&pixt);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     
     wpl = pixGetWpl(pixs);
     wpla = pixGetWpl(pixt);
@@ -327,11 +337,14 @@ PIX       *pixsb, *pixacc, *pixd;
 
     if ((pixsb = pixAddMirroredBorder(pixs, wc + 1, wc, hc + 1, hc)) == NULL)
         return (PIX *)ERROR_PTR("pixsb not made", procName, NULL);
-    if ((pixacc = pixBlockconvAccum(pixsb)) == NULL)
-        return (PIX *)ERROR_PTR("pixacc not made", procName, NULL);
+    pixacc = pixBlockconvAccum(pixsb);
     pixDestroy(&pixsb);
-    if ((pixd = pixCreate(w, h, 32)) == NULL)
+    if (!pixacc)
+        return (PIX *)ERROR_PTR("pixacc not made", procName, NULL);
+    if ((pixd = pixCreate(w, h, 32)) == NULL) {
+	pixDestroy(&pixacc);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     
     wpla = pixGetWpl(pixacc);
     wpld = pixGetWpl(pixd);
@@ -449,7 +462,10 @@ PIXTILING  *pt;
         * although the filter is symmetric with respect to its origin,
         * the implementation is asymmetric -- see the implementation in
         * pixBlockconvGrayTile(). */
-    pixd = pixCreateTemplateNoInit(pixs);
+    if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL) {
+        pixDestroy(&pixs);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pt = pixTilingCreate(pixs, nx, ny, 0, 0, wc + 2, hc + 2);
     for (i = 0; i < ny; i++) {
         for (j = 0; j < nx; j++) {
@@ -551,8 +567,10 @@ PIX       *pixt, *pixd;
             return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
     }
         
-    if ((pixd = pixCreateTemplate(pixs)) == NULL)
+    if ((pixd = pixCreateTemplate(pixs)) == NULL) {
+        pixDestroy(&pixt);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
     datad = pixGetData(pixd);
@@ -644,8 +662,10 @@ PIX       *pixc, *pixd;
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
         /* Make the accumulator pix */
-    if ((pixc = pixBlockconvAccum(pixs)) == NULL)
+    if ((pixc = pixBlockconvAccum(pixs)) == NULL) {
+        pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
+    }
     wplc = pixGetWpl(pixc);
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
@@ -732,8 +752,10 @@ PIX        *pixd;
         /* Strip off 2 * (size + 1) border pixels */
     wd = w - 2 * (size + 1);
     hd = h - 2 * (size + 1);
-    if ((pixd = pixCreate(wd, hd, 32)) == NULL)
+    if ((pixd = pixCreate(wd, hd, 32)) == NULL) {
+        dpixDestroy(&dpix);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
 
@@ -871,10 +893,13 @@ PIX     *pixt, *pixd;
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (rank < 0.0 || rank > 1.0)
         return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", procName, NULL);
+
     if (rank == 0.0) {
         pixd = pixCreateTemplate(pixs);
         pixSetAll(pixd);
+	return pixd;
     }
+
     if (wc < 0) wc = 0;
     if (hc < 0) hc = 0;
     if (w < 2 * wc + 1 || h < 2 * hc + 1) {
@@ -968,8 +993,10 @@ PIX       *pixt, *pixd;
     }
         
         /* 8 bpp block sum output */
-    if ((pixd = pixCreate(w, h, 8)) == NULL)
+    if ((pixd = pixCreate(w, h, 8)) == NULL) {
+        pixDestroy(&pixt);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyResolution(pixd, pixs);
 
     wpld = pixGetWpl(pixd);
@@ -1039,8 +1066,10 @@ PIX       *pixav, *pixd;
         /* Subtract the pixel from the average, and then compare
          * the pixel value with the remaining average */
     pixGetDimensions(pixs, &w, &h, NULL);
-    if ((pixd = pixCreate(w, h, 1)) == NULL)
+    if ((pixd = pixCreate(w, h, 1)) == NULL) {
+        pixDestroy(&pixav);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     datas = pixGetData(pixs);
     datav = pixGetData(pixav);
     datad = pixGetData(pixd);
@@ -1096,7 +1125,10 @@ PIX       *pixav, *pixd;
  *          a second unsigned image for the negative values.
  *      (6) This uses a mirrored border to avoid special casing on
  *          the boundaries.
- *      (7) The function is slow, running at about 12 machine cycles for
+ *      (7) To get a subsampled output, call l_setConvolveSampling().
+ *          The time to make a subsampled output is reduced by the
+ *          product of the sampling factors.
+ *      (8) The function is slow, running at about 12 machine cycles for
  *          each pixel-op in the convolution.  For example, with a 3 GHz
  *          cpu, a 1 Mpixel grayscale image, and a kernel with
  *          (sx * sy) = 25 elements, the convolution takes about 100 msec.
@@ -1107,7 +1139,7 @@ pixConvolve(PIX       *pixs,
 	    l_int32    outdepth,
 	    l_int32    normflag)
 {
-l_int32    i, j, k, m, w, h, d, sx, sy, cx, cy, wplt, wpld;
+l_int32    i, j, id, jd, k, m, w, h, d, wd, hd, sx, sy, cx, cy, wplt, wpld;
 l_int32    val;
 l_uint32  *datat, *datad, *linet, *lined;
 l_float32  sum;
@@ -1136,14 +1168,16 @@ PIX       *pixt, *pixd;
     if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
-    pixd = pixCreate(w, h, outdepth);
+    wd = (w + ConvolveSamplingFactX - 1) / ConvolveSamplingFactX;
+    hd = (h + ConvolveSamplingFactY - 1) / ConvolveSamplingFactY;
+    pixd = pixCreate(wd, hd, outdepth);
     datat = pixGetData(pixt);
     datad = pixGetData(pixd);
     wplt = pixGetWpl(pixt);
     wpld = pixGetWpl(pixd);
-    for (i = 0; i < h; i++) {
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
+    for (i = 0, id = 0; id < hd; i += ConvolveSamplingFactY, id++) {
+        lined = datad + id * wpld;
+        for (j = 0, jd = 0; jd < wd; j += ConvolveSamplingFactX, jd++) {
             sum = 0.0;
             for (k = 0; k < sy; k++) {
                 linet = datat + (i + k) * wplt;
@@ -1170,11 +1204,11 @@ PIX       *pixt, *pixd;
 	    if (sum < 0.0) sum = -sum;  /* make it non-negative */
 #endif
             if (outdepth == 8)
-                SET_DATA_BYTE(lined, j, (l_int32)(sum + 0.5));
+                SET_DATA_BYTE(lined, jd, (l_int32)(sum + 0.5));
             else if (outdepth == 16)
-                SET_DATA_TWO_BYTES(lined, j, (l_int32)(sum + 0.5));
+                SET_DATA_TWO_BYTES(lined, jd, (l_int32)(sum + 0.5));
             else  /* outdepth == 32 */
-                *(lined + j) = (l_uint32)(sum + 0.5);
+                *(lined + jd) = (l_uint32)(sum + 0.5);
         }
     }
 
@@ -1215,7 +1249,15 @@ PIX       *pixt, *pixd;
  *          to clip to 0 or take the absolute value.  We're choosing
  *          the former for now.  Another possibility would be to output
  *          a second unsigned image for the negative values.
- *      (5) This uses mirrored borders to avoid special casing on
+ *      (5) Warning: if you use l_setConvolveSampling() to get a
+ *          subsampled output, and the sampling factor is larger than
+ *          the kernel half-width, it is faster to use the non-separable
+ *          version pixConvolve().  This is because the first convolution
+ *          here must be done on every raster line, regardless of the
+ *          vertical sampling factor.  If the sampling factor is smaller
+ *          than kernel half-width, it's faster to use the separable
+ *          convolution.
+ *      (6) This uses mirrored borders to avoid special casing on
  *          the boundaries.
  */
 PIX *
@@ -1225,7 +1267,7 @@ pixConvolveSep(PIX       *pixs,
                l_int32    outdepth,
                l_int32    normflag)
 {
-l_int32    w, h, d;
+l_int32    d, xfact, yfact;
 L_KERNEL  *kelxn, *kelyn;
 PIX       *pixt, *pixd;
 
@@ -1233,7 +1275,7 @@ PIX       *pixt, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, &d);
+    d = pixGetDepth(pixs);
     if (d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not 8, 16, or 32 bpp", procName, NULL);
     if (!kelx)
@@ -1241,17 +1283,25 @@ PIX       *pixt, *pixd;
     if (!kely)
         return (PIX *)ERROR_PTR("kely not defined", procName, NULL);
 
+    xfact = ConvolveSamplingFactX;
+    yfact = ConvolveSamplingFactY;
     if (normflag) {
         kelxn = kernelNormalize(kelx, 1000.0);
         kelyn = kernelNormalize(kely, 0.001);
+        l_setConvolveSampling(xfact, 1);
         pixt = pixConvolve(pixs, kelxn, 32, 0);
+        l_setConvolveSampling(1, yfact);
         pixd = pixConvolve(pixt, kelyn, outdepth, 0);
+        l_setConvolveSampling(xfact, yfact);  /* restore */
         kernelDestroy(&kelxn);
         kernelDestroy(&kelyn);
     }
     else {  /* don't normalize */
+        l_setConvolveSampling(xfact, 1);
         pixt = pixConvolve(pixs, kelx, 32, 0);
+        l_setConvolveSampling(1, yfact);
         pixd = pixConvolve(pixt, kely, outdepth, 0);
+        l_setConvolveSampling(xfact, yfact);
     }
 
     pixDestroy(&pixt);
@@ -1275,7 +1325,10 @@ PIX       *pixt, *pixd;
  *          result for the convolution can only be stored as a positive
  *          number.  Consequently, if it goes negative, we clip the
  *          result to 0.
- *      (4) This uses a mirrored border to avoid special casing on
+ *      (4) To get a subsampled output, call l_setConvolveSampling().
+ *          The time to make a subsampled output is reduced by the
+ *          product of the sampling factors.
+ *      (5) This uses a mirrored border to avoid special casing on
  *          the boundaries.
  */
 PIX *
@@ -1329,7 +1382,10 @@ PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
  *          result for the convolution can only be stored as a positive
  *          number.  Consequently, if it goes negative, we clip the
  *          result to 0.
- *      (3) This uses a mirrored border to avoid special casing on
+ *      (3) To get a subsampled output, call l_setConvolveSampling().
+ *          The time to make a subsampled output is reduced by the
+ *          product of the sampling factors.
+ *      (4) This uses a mirrored border to avoid special casing on
  *          the boundaries.
  */
 PIX *
@@ -1385,7 +1441,10 @@ PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
  *      (3) With the FPix, there are no issues about negative
  *          array or kernel values.  The convolution is performed
  *          with single precision arithmetic.
- *      (4) This uses a mirrored border to avoid special casing on
+ *      (4) To get a subsampled output, call l_setConvolveSampling().
+ *          The time to make a subsampled output is reduced by the
+ *          product of the sampling factors.
+ *      (5) This uses a mirrored border to avoid special casing on
  *          the boundaries.
  */
 FPIX *
@@ -1393,7 +1452,7 @@ fpixConvolve(FPIX      *fpixs,
              L_KERNEL  *kel,
 	     l_int32    normflag)
 {
-l_int32     i, j, k, m, w, h, sx, sy, cx, cy, wplt, wpld;
+l_int32     i, j, id, jd, k, m, w, h, wd, hd, sx, sy, cx, cy, wplt, wpld;
 l_float32   val;
 l_float32  *datat, *datad, *linet, *lined;
 l_float32   sum;
@@ -1419,14 +1478,16 @@ FPIX       *fpixt, *fpixd;
     if (!fpixt)
         return (FPIX *)ERROR_PTR("fpixt not made", procName, NULL);
 
-    fpixd = fpixCreate(w, h);
+    wd = (w + ConvolveSamplingFactX - 1) / ConvolveSamplingFactX;
+    hd = (h + ConvolveSamplingFactY - 1) / ConvolveSamplingFactY;
+    fpixd = fpixCreate(wd, hd);
     datat = fpixGetData(fpixt);
     datad = fpixGetData(fpixd);
     wplt = fpixGetWpl(fpixt);
     wpld = fpixGetWpl(fpixd);
-    for (i = 0; i < h; i++) {
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
+    for (i = 0, id = 0; id < hd; i += ConvolveSamplingFactY, id++) {
+        lined = datad + id * wpld;
+        for (j = 0, jd = 0; jd < wd; j += ConvolveSamplingFactX, jd++) {
             sum = 0.0;
             for (k = 0; k < sy; k++) {
                 linet = datat + (i + k) * wplt;
@@ -1435,7 +1496,7 @@ FPIX       *fpixt, *fpixd;
                     sum += val * keln->data[k][m];
                 }
             }
-            *(lined + j) = sum;
+            *(lined + jd) = sum;
         }
     }
 
@@ -1462,7 +1523,15 @@ FPIX       *fpixt, *fpixd;
  *          the full kernel is the product of these components.
  *          The support for the full kernel is thus a rectangular region.
  *      (2) The normflag parameter is used as in fpixConvolve().
- *      (3) This uses mirrored borders to avoid special casing on
+ *      (3) Warning: if you use l_setConvolveSampling() to get a
+ *          subsampled output, and the sampling factor is larger than
+ *          the kernel half-width, it is faster to use the non-separable
+ *          version pixConvolve().  This is because the first convolution
+ *          here must be done on every raster line, regardless of the
+ *          vertical sampling factor.  If the sampling factor is smaller
+ *          than kernel half-width, it's faster to use the separable
+ *          convolution.
+ *      (4) This uses mirrored borders to avoid special casing on
  *          the boundaries.
  */
 FPIX *
@@ -1471,6 +1540,7 @@ fpixConvolveSep(FPIX      *fpixs,
                 L_KERNEL  *kely,
                 l_int32    normflag)
 {
+l_int32    xfact, yfact;
 L_KERNEL  *kelxn, *kelyn;
 FPIX      *fpixt, *fpixd;
 
@@ -1483,17 +1553,25 @@ FPIX      *fpixt, *fpixd;
     if (!kely)
         return (FPIX *)ERROR_PTR("kely not defined", procName, NULL);
 
+    xfact = ConvolveSamplingFactX;
+    yfact = ConvolveSamplingFactY;
     if (normflag) {
         kelxn = kernelNormalize(kelx, 1.0);
         kelyn = kernelNormalize(kely, 1.0);
+        l_setConvolveSampling(xfact, 1);
         fpixt = fpixConvolve(fpixs, kelxn, 0);
+        l_setConvolveSampling(1, yfact);
         fpixd = fpixConvolve(fpixt, kelyn, 0);
+        l_setConvolveSampling(xfact, yfact);  /* restore */
         kernelDestroy(&kelxn);
         kernelDestroy(&kelyn);
     }
     else {  /* don't normalize */
+        l_setConvolveSampling(xfact, 1);
         fpixt = fpixConvolve(fpixs, kelx, 0);
+        l_setConvolveSampling(1, yfact);
         fpixd = fpixConvolve(fpixt, kely, 0);
+        l_setConvolveSampling(xfact, yfact);
     }
 
     fpixDestroy(&fpixt);
@@ -1501,4 +1579,26 @@ FPIX      *fpixt, *fpixd;
 }
 
 
+/*------------------------------------------------------------------------*
+ *                Set parameter for convolution subsampling               *
+ *------------------------------------------------------------------------*/
+/*!
+ *  l_setConvolveSampling()
+ *
+ *      Input:  xfact, yfact (integer >= 1)
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) This sets the x and y output subsampling factors for generic pix
+ *          and fpix convolution.  The default values are 1 (no subsampling).
+ */
+void
+l_setConvolveSampling(l_int32  xfact,
+                      l_int32  yfact)
+{
+    if (xfact < 1) xfact = 1;
+    if (yfact < 1) yfact = 1;
+    ConvolveSamplingFactX = xfact;
+    ConvolveSamplingFactY = yfact;
+}
 

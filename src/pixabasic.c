@@ -46,6 +46,7 @@
  *           l_int32   pixaInsertPix()
  *           l_int32   pixaRemovePix()
  *           l_int32   pixaInitFull()
+ *           l_int32   pixaClear()
  *
  *      Pixa combination
  *           PIXA     *pixaJoin()
@@ -996,6 +997,36 @@ PIX     *pixt;
     if (box)
         boxaInitFull(pixa->boxa, box);
 
+    return 0;
+}
+
+
+/*!
+ *  pixaClear()
+ *
+ *      Input:  pixa
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This destroys all pix in the pixa, as well as
+ *          all boxes in the boxa.  The ptrs in the pix ptr array
+ *          are all null'd.  The number of allocated pix, n, is set to 0.
+ */
+l_int32
+pixaClear(PIXA  *pixa)
+{
+l_int32  i, n;
+
+    PROCNAME("pixaClear");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+
+    n = pixaGetCount(pixa);
+    for (i = 0; i < n; i++)
+        pixDestroy(&pixa->pix[i]);
+    pixa->n = 0;
+    boxaClear(pixa->boxa);
     return 0;
 }
 

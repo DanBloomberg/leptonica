@@ -68,8 +68,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 32);
-    pixWrite("/tmp/junkenh.0.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.0.png", 0, &success);
+    pixWrite("/tmp/enhance.0.png", pixt1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.0.png", 0, &success);
     pixDisplayWithTitle(pixt1, 0, 100, "TRC Gamma", display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -82,8 +82,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/junkenh.1.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.1.png", 1, &success);
+    pixWrite("/tmp/enhance.1.png", pixt1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.1.png", 1, &success);
     pixDisplayWithTitle(pixt1, 300, 100, "TRC", display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -96,8 +96,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/junkenh.2.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.2.png", 2, &success);
+    pixWrite("/tmp/enhance.2.png", pixt1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.2.png", 2, &success);
     pixDisplayWithTitle(pixt1, 600, 100, "Hue", display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -113,9 +113,9 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    gplotSimple1(na, GPLOT_PNG, "/tmp/junkenh.7", "Average Saturation");
-    pixWrite("/tmp/junkenh.3.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.3.png", 3, &success);
+    gplotSimple1(na, GPLOT_PNG, "/tmp/enhance.7", "Average Saturation");
+    pixWrite("/tmp/enhance.3.png", pixt1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.3.png", 3, &success);
     pixDisplayWithTitle(pixt1, 900, 100, "Saturation", display);
     numaDestroy(&na);
     pixDestroy(&pixt1);
@@ -129,8 +129,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/junkenh.4.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.4.png", 4, &success);
+    pixWrite("/tmp/enhance.4.png", pixt1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.4.png", 4, &success);
     pixDisplayWithTitle(pixt1, 0, 400, "Contrast", display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -143,8 +143,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/junkenh.5.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.5.png", 5, &success);
+    pixWrite("/tmp/enhance.5.png", pixt1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.5.png", 5, &success);
     pixDisplayWithTitle(pixt1, 300, 400, "Sharp", display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -169,20 +169,20 @@ static char  mainName[] = "enhance_reg";
 
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplayWithTitle(pixd, 600, 400, "Constant hue", display);
-    pixWrite("/tmp/junkenh.6.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.6.jpg", 6, &success);
+    pixWrite("/tmp/enhance.6.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.6.jpg", 6, &success);
     bmfDestroy(&bmf8);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 
         /* Delayed testing of saturation plot */
-    regTestCheckFile(fp, argv, "/tmp/junkenh.7.png", 7, &success);
+    regTestCheckFile(fp, argv, "/tmp/enhance.7.png", 7, &success);
 
         /* Display results */
     pixd = pixaDisplay(pixaf, 0, 0);
     pixDisplayWithTitle(pixd, 100, 100, "All", display);
-    pixWrite("/tmp/junkenh.8.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.8.jpg", 8, &success);
+    pixWrite("/tmp/enhance.8.jpg", pixd, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.8.jpg", 8, &success);
     pixDestroy(&pixd);
     pixaDestroy(&pixaf);
 
@@ -214,8 +214,8 @@ static char  mainName[] = "enhance_reg";
     pixt4 = pixMultConstantColor(pixs2, 0.7, 0.4, 1.3);
     regTestComparePix(fp, argv, pixt3, pixt4, 2, &success);
     regTestComparePix(fp, argv, pixt1, pixt3, 3, &success);
-    pixWrite("/tmp/junkenh.9.jpg", pixt1, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junkenh.9.jpg", 9, &success);
+    pixWrite("/tmp/enhance.9.jpg", pixt1, IFF_JFIF_JPEG);
+    regTestCheckFile(fp, argv, "/tmp/enhance.9.jpg", 9, &success);
 
     regTestCleanup(argc, argv, fp, success, NULL);
     pixDestroy(&pix);

@@ -30,19 +30,20 @@
  *
  *      Blending two colormapped images
  *           l_int32          pixBlendCmap()
- *           
+ *
  *      Blending two images using a third (alpha mask)
  *           PIX             *pixBlendWithGrayMask()
- *           
+ *
  *      Coloring "gray" pixels
  *           l_int32          pixColorGray()
  *
  *      Adjusting one or more colors to a target color
  *           PIX             *pixSnapColor()
  *           PIX             *pixSnapColorCmap()
- *           
+ *
  *      Mapping colors based on a source/target pair
  *           PIX             *pixLinearMapToTargetColor()
+ *           l_uint32         pixelLinearMapToTargetColor()
  *
  *      Fractional shift of RGB towards black or white
  *           l_uint32         pixelFractionalShift()
@@ -146,10 +147,11 @@ static l_int32 blendHardLightComponents(l_int32 a, l_int32 b, l_float32 fract);
  *              x,y  (origin (UL corner) of pixs2 relative to
  *                    the origin of pixs1; can be < 0)
  *              fract (blending fraction)
- *      Return: 0 if OK; 1 on error
+ *      Return: pixd (blended image), or null on error
  *
- *  Note: simple top-level interface.  For more flexibility, call
- *        directly into pixBlendMask(), etc.
+ *  Notes:
+ *      (1) This is a simple top-level interface.  For more flexibility,
+ *          call directly into pixBlendMask(), etc.
  */
 PIX *
 pixBlend(PIX       *pixs1,
@@ -310,10 +312,10 @@ PIX       *pixc, *pixt1, *pixt2;
              *      p -->  p + f * (1 - 2 * p)
              */
         for (i = 0; i < hc; i++) {
-            if (i + y < 0  || i + y >= h) continue; 
+            if (i + y < 0  || i + y >= h) continue;
             linec = datac + i * wplc;
             for (j = 0; j < wc; j++) {
-                if (j + x < 0  || j + x >= w) continue; 
+                if (j + x < 0  || j + x >= w) continue;
                 bval = GET_DATA_BIT(linec, j);
                 if (bval) {
                     switch (d)
@@ -341,10 +343,10 @@ PIX       *pixc, *pixt1, *pixt2;
         break;
     case L_BLEND_TO_WHITE:
         for (i = 0; i < hc; i++) {
-            if (i + y < 0  || i + y >= h) continue; 
+            if (i + y < 0  || i + y >= h) continue;
             linec = datac + i * wplc;
             for (j = 0; j < wc; j++) {
-                if (j + x < 0  || j + x >= w) continue; 
+                if (j + x < 0  || j + x >= w) continue;
                 bval = GET_DATA_BIT(linec, j);
                 if (bval) {
                     switch (d)
@@ -372,10 +374,10 @@ PIX       *pixc, *pixt1, *pixt2;
         break;
     case L_BLEND_TO_BLACK:
         for (i = 0; i < hc; i++) {
-            if (i + y < 0  || i + y >= h) continue; 
+            if (i + y < 0  || i + y >= h) continue;
             linec = datac + i * wplc;
             for (j = 0; j < wc; j++) {
-                if (j + x < 0  || j + x >= w) continue; 
+                if (j + x < 0  || j + x >= w) continue;
                 bval = GET_DATA_BIT(linec, j);
                 if (bval) {
                     switch (d)
@@ -405,7 +407,7 @@ PIX       *pixc, *pixt1, *pixt2;
         L_WARNING("invalid binary mask blend type", procName);
         break;
     }
-    
+
     pixDestroy(&pixc);
     return pixd;
 }
@@ -519,14 +521,14 @@ PIX       *pixc, *pixt1, *pixt2;
         /* check limits for src1, in case clipping was not done */
     if (type == L_BLEND_GRAY) {
         for (i = 0; i < hc; i++) {
-            if (i + y < 0  || i + y >= h) continue; 
+            if (i + y < 0  || i + y >= h) continue;
             linec = datac + i * wplc;
             lined = datad + (i + y) * wpld;
             switch (d)
             {
             case 8:
                 for (j = 0; j < wc; j++) {
-                    if (j + x < 0  || j + x >= w) continue; 
+                    if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
@@ -538,7 +540,7 @@ PIX       *pixc, *pixt1, *pixt2;
                 break;
             case 32:
                 for (j = 0; j < wc; j++) {
-                    if (j + x < 0  || j + x >= w) continue; 
+                    if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
@@ -559,7 +561,7 @@ PIX       *pixc, *pixt1, *pixt2;
     }
     else {  /* L_BLEND_GRAY_WITH_INVERSE */
         for (i = 0; i < hc; i++) {
-            if (i + y < 0  || i + y >= h) continue; 
+            if (i + y < 0  || i + y >= h) continue;
             linec = datac + i * wplc;
             lined = datad + (i + y) * wpld;
             switch (d)
@@ -576,7 +578,7 @@ PIX       *pixc, *pixt1, *pixt2;
                  * src2, respectively, with normalization to 255.
                  */
                 for (j = 0; j < wc; j++) {
-                    if (j + x < 0  || j + x >= w) continue; 
+                    if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
@@ -590,7 +592,7 @@ PIX       *pixc, *pixt1, *pixt2;
             case 32:
                 /* Each component is shifted by the same formula for 8 bpp */
                 for (j = 0; j < wc; j++) {
-                    if (j + x < 0  || j + x >= w) continue; 
+                    if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
                     if (transparent == 0 ||
                         (transparent != 0 && cval != transpix)) {
@@ -707,15 +709,15 @@ PIX       *pixc, *pixt1, *pixt2;
 
         /* check limits for src1, in case clipping was not done */
     for (i = 0; i < hc; i++) {
-        if (i + y < 0  || i + y >= h) continue; 
+        if (i + y < 0  || i + y >= h) continue;
         linec = datac + i * wplc;
         lined = datad + (i + y) * wpld;
         for (j = 0; j < wc; j++) {
-            if (j + x < 0  || j + x >= w) continue; 
+            if (j + x < 0  || j + x >= w) continue;
             cval32 = *(linec + j);
             if (transparent == 0 ||
                 (transparent != 0 &&
-                     ((cval32 & 0xffffff00) != (transpix & 0xffffff00)))) { 
+                     ((cval32 & 0xffffff00) != (transpix & 0xffffff00)))) {
                 val32 = *(lined + j + x);
                 extractRGBValues(cval32, &rcval, &gcval, &bcval);
                 extractRGBValues(val32, &rval, &gval, &bval);
@@ -733,14 +735,14 @@ PIX       *pixc, *pixt1, *pixt2;
 }
 
 
-/* 
+/*
  *  pixBlendColorByChannel()
  *
  *  This is an extended version of pixBlendColor.  All parameters have the
  *  same meaning except it takes one mixing fraction per channel, and the
  *  mixing fraction may be < 0 or > 1, in which case, the min or max of two
  *  images are taken.  More specifically,
- *  
+ *
  *   for a = pixs1[i], b = pixs2[i]:
  *       frac < 0.0 --> min(a, b)
  *       frac > 1.0 --> max(a, b)
@@ -750,7 +752,7 @@ PIX       *pixc, *pixt1, *pixt2;
  *
  * Notes:
  *     (1) See usage notes in pixBlendColor()
- *     (2) pixBlendColor() would be equivalent to 
+ *     (2) pixBlendColor() would be equivalent to
  *           pixBlendColorChannel(..., fract, fract, fract, ...);
  *         at a small cost of efficiency.
  */
@@ -813,15 +815,15 @@ PIX       *pixc, *pixt1, *pixt2;
 
         /* Check limits for src1, in case clipping was not done */
     for (i = 0; i < hc; i++) {
-        if (i + y < 0  || i + y >= h) continue; 
+        if (i + y < 0  || i + y >= h) continue;
         linec = datac + i * wplc;
         lined = datad + (i + y) * wpld;
         for (j = 0; j < wc; j++) {
-            if (j + x < 0  || j + x >= w) continue; 
+            if (j + x < 0  || j + x >= w) continue;
             cval32 = *(linec + j);
             if (transparent == 0 ||
                 (transparent != 0 &&
-                     ((cval32 & 0xffffff00) != (transpix & 0xffffff00)))) { 
+                     ((cval32 & 0xffffff00) != (transpix & 0xffffff00)))) {
                 val32 = *(lined + j + x);
                 extractRGBValues(cval32, &rcval, &gcval, &bcval);
                 extractRGBValues(val32, &rval, &gval, &bval);
@@ -989,7 +991,7 @@ PIX       *pixc, *pixt1, *pixt2;
     datac = pixGetData(pixc);
     wplc = pixGetWpl(pixc);
     for (i = 0; i < hc; i++) {
-        if (i + y < 0  || i + y >= h) continue; 
+        if (i + y < 0  || i + y >= h) continue;
         linec = datac + i * wplc;
         lined = datad + (i + y) * wpld;
         switch (d)
@@ -1007,7 +1009,7 @@ PIX       *pixc, *pixt1, *pixt2;
                  * to 255.
                  */
             for (j = 0; j < wc; j++) {
-                if (j + x < 0  || j + x >= w) continue; 
+                if (j + x < 0  || j + x >= w) continue;
                 dval = GET_DATA_BYTE(lined, j + x);
                 cval = GET_DATA_BYTE(linec, j);
                 delta = (pivot - dval) * (255 - cval) / 256;
@@ -1030,7 +1032,7 @@ PIX       *pixc, *pixt1, *pixt2;
                  * to 255.  Likewise for the green and blue components.
                  */
             for (j = 0; j < wc; j++) {
-                if (j + x < 0  || j + x >= w) continue; 
+                if (j + x < 0  || j + x >= w) continue;
                 cval = GET_DATA_BYTE(linec, j);
                 val32 = *(lined + j + x);
                 extractRGBValues(val32, &rval, &gval, &bval);
@@ -1149,7 +1151,7 @@ PIXCMAP   *cmap;
             }
         }
     }
-    
+
     return pixd;
 }
 
@@ -1198,7 +1200,7 @@ l_int32    cval, dval, rcval, gcval, bcval, rdval, gdval, bdval;
 l_uint32   cval32, dval32;
 l_uint32  *linec, *lined, *datac, *datad;
 PIX       *pixc, *pixt;
-  
+
     PROCNAME("pixBlendHardLight");
 
     if (!pixs1)
@@ -1217,7 +1219,7 @@ PIX       *pixc, *pixt;
         return (PIX *)ERROR_PTR("inplace and pixs1 cmapped", procName, pixd);
     if (pixd && d != 8 && d != 32)
         return (PIX *)ERROR_PTR("inplace and not 8 or 32 bpp", procName, pixd);
-  
+
     if (fract < 0.0 || fract > 1.0) {
         L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
         fract = 0.5;
@@ -1238,7 +1240,7 @@ PIX       *pixc, *pixt;
     if (dc == 32) {
         if (pixGetColormap(pixs1))  /* pixd == NULL */
             pixd = pixRemoveColormap(pixs1, REMOVE_CMAP_TO_FULL_COLOR);
-        else { 
+        else {
             if (!pixd)
                 pixd = pixConvertTo32(pixs1);
             else {
@@ -1251,7 +1253,7 @@ PIX       *pixc, *pixt;
     } else {  /* dc == 8 */
         if (pixGetColormap(pixs1))   /* pixd == NULL */
             pixd = pixRemoveColormap(pixs1, REMOVE_CMAP_BASED_ON_SRC);
-        else 
+        else
             pixd = pixCopy(pixd, pixs1);
         d = pixGetDepth(pixd);
     }
@@ -1268,11 +1270,11 @@ PIX       *pixc, *pixt;
     datac = pixGetData(pixc);
     wplc = pixGetWpl(pixc);
     for (i = 0; i < hc; i++) {
-        if (i + y < 0  || i + y >= h) continue; 
+        if (i + y < 0  || i + y >= h) continue;
         linec = datac + i * wplc;
         lined = datad + (i + y) * wpld;
         for (j = 0; j < wc; j++) {
-            if (j + x < 0  || j + x >= w) continue; 
+            if (j + x < 0  || j + x >= w) continue;
             if (d == 8 && dc == 8) {
                 dval = GET_DATA_BYTE(lined, x + j);
                 cval = GET_DATA_BYTE(linec, j);
@@ -1300,7 +1302,7 @@ PIX       *pixc, *pixt;
             }
         }
     }
-  
+
     pixDestroy(&pixc);
     return pixd;
 }
@@ -1342,7 +1344,7 @@ static l_int32 blendHardLightComponents(l_int32    a,
  *  Note:
  *      (1) This function combines two colormaps, and replaces the pixels
  *          in pixs that have a specified color value with those in pixb.
- *      (2) sindex must be in the existing colormap; otherwise an 
+ *      (2) sindex must be in the existing colormap; otherwise an
  *          error is returned.  In use, sindex will typically be the index
  *          for white (255, 255, 255).
  *      (3) Blender colors that already exist in the colormap are used;
@@ -1413,16 +1415,16 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
     else
         pixSetColormap(pixs, cmapsc);
 
-        /* Replace each pixel value sindex by mapped colormap index when 
+        /* Replace each pixel value sindex by mapped colormap index when
          * a blender pixel in pixbc overlays it. */
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     pixGetDimensions(pixb, &wb, &hb, NULL);
     for (i = 0; i < hb; i++) {
-        if (i + y < 0  || i + y >= h) continue; 
+        if (i + y < 0  || i + y >= h) continue;
         lines = datas + (y + i) * wpls;
         for (j = 0; j < wb; j++) {
-            if (j + x < 0  || j + x >= w) continue; 
+            if (j + x < 0  || j + x >= w) continue;
             switch (d) {
             case 2:
                 val = GET_DATA_DIBIT(lines, x + j);
@@ -1569,7 +1571,7 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixalpha, *pixd;
         pixDestroy(&pix2);
         return (PIX *)ERROR_PTR("depths not regularized! bad!", procName, NULL);
     }
-        
+
         /* Start off with a copy of pix1.  Then only change
          * pixels that will be blended with pix2. */
     pixd = pixCopy(NULL, pix1);
@@ -1591,12 +1593,12 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixalpha, *pixd;
     wpls = pixGetWpl(pix2);
     wplg = pixGetWpl(pixalpha);
     for (i = 0; i < hmin; i++) {
-        if (i + y < 0  || i + y >= h1) continue; 
+        if (i + y < 0  || i + y >= h1) continue;
         lined = datad + (i + y) * wpld;
         lines = datas + i * wpls;
         lineg = datag + i * wplg;
         for (j = 0; j < wmin; j++) {
-            if (j + x < 0  || j + x >= w1) continue; 
+            if (j + x < 0  || j + x >= w1) continue;
             val = GET_DATA_BYTE(lineg, j);
             if (val == 0) continue;  /* pix2 is transparent */
             fract = (l_float32)val / 255.;
@@ -1734,7 +1736,7 @@ PIXCMAP   *cmap;
         x2 = x1 + bw - 1;
         y2 = y1 + bh - 1;
     }
-    
+
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
     factor = 1. / 255.;
@@ -1851,7 +1853,7 @@ l_uint32  *line, *data;
                 extractRGBValues(pixel, &rval, &gval, &bval);
                 if ((L_ABS(rval - rsval) <= diff) &&
                     (L_ABS(gval - gsval) <= diff) &&
-                    (L_ABS(bval - bsval) <= diff)) 
+                    (L_ABS(bval - bsval) <= diff))
                     *(line + j) = dstval;  /* replace */
             }
         }
@@ -2060,6 +2062,72 @@ l_uint32  *line, *data;
     FREE(gtab);
     FREE(btab);
     return pixd;
+}
+
+
+/*!
+ *  pixelLinearMapToTargetColor()
+ *
+ *      Input:  scolor (rgb source color: 0xrrggbb00)
+ *              srcmap (source mapping color: 0xrrggbb00)
+ *              dstmap (target mapping color: 0xrrggbb00)
+ *              &pdcolor (<return> rgb dest color: 0xrrggbb00)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This does this does a piecewise linear mapping of each
+ *          component of @scolor to @dcolor, based on the relation
+ *          between the components of @srcmap and @dstmap.  It is the
+ *          same transformation, performed on a single color, as mapped
+ *          on every pixel in a pix by pixLinearMapToTargetColor().
+ *      (2) For each component, if the sval is larger than the smap,
+ *          the dval will be pushed up from dmap towards white.
+ *          Otherwise, dval will be pushed down from dmap towards black.
+ *          This is because you can visualize the transformation as
+ *          a linear stretching where smap moves to dmap, and everything
+ *          else follows linearly with 0 and 255 fixed.
+ *      (3) The mapping will in general change the hue of @scolor.
+ *          However, if the @srcmap and @dstmap targets are related by
+ *          a transformation given by pixelFractionalShift(), the hue
+ *          will be invariant.
+ */
+l_int32
+pixelLinearMapToTargetColor(l_uint32   scolor,
+                            l_uint32   srcmap,
+                            l_uint32   dstmap,
+                            l_uint32  *pdcolor)
+{
+l_int32    srval, sgval, sbval, drval, dgval, dbval;
+l_int32    srmap, sgmap, sbmap, drmap, dgmap, dbmap;
+
+    PROCNAME("pixelLinearMapToTargetColor");
+
+    if (!pdcolor)
+        return ERROR_INT("&dcolor not defined", procName, 1);
+    *pdcolor = 0;
+
+    extractRGBValues(scolor, &srval, &sgval, &sbval);
+    extractRGBValues(srcmap, &srmap, &sgmap, &sbmap);
+    extractRGBValues(dstmap, &drmap, &dgmap, &dbmap);
+    srmap = L_MIN(254, L_MAX(1, srmap));
+    sgmap = L_MIN(254, L_MAX(1, sgmap));
+    sbmap = L_MIN(254, L_MAX(1, sbmap));
+
+    if (srval < srmap)
+        drval = (srval * drmap) / srmap;
+    else
+        drval = drmap + ((255 - drmap) * (srval - srmap)) / (255 - srmap);
+    if (sgval < sgmap)
+        dgval = (sgval * dgmap) / sgmap;
+    else
+        dgval = dgmap + ((255 - dgmap) * (sgval - sgmap)) / (255 - sgmap);
+    if (sbval < sbmap)
+        dbval = (sbval * dbmap) / sbmap;
+    else
+        dbval = dbmap + ((255 - dbmap) * (sbval - sbmap)) / (255 - sbmap);
+
+    composeRGBPixel(drval, dgval, dbval, pdcolor);
+    return 0;
 }
 
 

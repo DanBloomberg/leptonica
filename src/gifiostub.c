@@ -45,6 +45,11 @@ PIX * pixReadMemGif(const l_uint8 *cdata, size_t size)
     return (PIX *)ERROR_PTR("function not present", "pixReadMemGif", NULL);
 }
 
+l_int32 pixWriteMemGif(l_uint8 **pdata, size_t *psize, PIX *pix)
+{
+    return ERROR_INT("function not present", "pixWriteMemGif", 1);
+}
+
 /* -----------------------------------------------------------------*/
 #endif      /* !HAVE_LIBGIF && !HAVE_LIBUNGIF */
 /* -----------------------------------------------------------------*/

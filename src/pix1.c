@@ -198,27 +198,27 @@ static struct PixMemoryManager  pix_mem_manager = {
 static void *
 pix_malloc(size_t  size)
 {
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
     return (*pix_mem_manager.allocator)(size);
-#else  /* COMPILER_MSVC */
+#else  /* _MSC_VER */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
     return malloc(size);
-#endif  /* COMPILER_MSVC */
+#endif  /* _MSC_VER */
 }
 
 static void
 pix_free(void  *ptr)
 {
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
     (*pix_mem_manager.deallocator)(ptr);
     return;
-#else  /* COMPILER_MSVC */
+#else  /* _MSC_VER */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
     free(ptr);
     return;
-#endif  /* COMPILER_MSVC */
+#endif  /* _MSC_VER */
 }
 
 /*!
@@ -232,7 +232,7 @@ pix_free(void  *ptr)
  *      (1) Use this to change the alloc and/or dealloc functions;
  *          e.g., setPixMemoryManager(my_malloc, my_free).
  */
-#ifndef COMPILER_MSVC
+#ifndef _MSC_VER
 void
 setPixMemoryManager(void  *(allocator(size_t)),
                     void  (deallocator(void *)))
@@ -241,7 +241,7 @@ setPixMemoryManager(void  *(allocator(size_t)),
     if (deallocator) pix_mem_manager.deallocator = deallocator;
     return;
 }
-#else  /* COMPILER_MSVC */
+#else  /* _MSC_VER */
     /* MSVC++ wants type (*fun)(types...) syntax */
 void
 setPixMemoryManager(void  *((*allocator)(size_t)),
@@ -251,7 +251,7 @@ setPixMemoryManager(void  *((*allocator)(size_t)),
     if (deallocator) pix_mem_manager.deallocator = deallocator;
     return;
 }
-#endif /* COMPILER_MSVC */
+#endif /* _MSC_VER */
 
 
 /*--------------------------------------------------------------------*
@@ -301,8 +301,8 @@ PIX       *pixd;
 l_uint32  *data;
 
     PROCNAME("pixCreateNoInit");
-    pixd = pixCreateHeader(width, height, depth);
-    if (!pixd) return NULL;
+    if ((pixd = pixCreateHeader(width, height, depth)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     wpl = pixGetWpl(pixd);
     if ((data = (l_uint32 *)pix_malloc(4 * wpl * height)) == NULL)
         return (PIX *)ERROR_PTR("pix_malloc fail for data", procName, NULL);
@@ -1498,7 +1498,7 @@ l_uint32  *data;
  *          need to reverse the byte order in each 32-bit word.
  *          Here's a typical usage pattern:
  *              pixEndianByteSwap(pix);   // always safe; no-op on big-endians
- *              l_uint8 **lineptrs = (l_uint8 **)pixGetLinePtrs(pix);
+ *              l_uint8 **lineptrs = (l_uint8 **)pixGetLinePtrs(pix, NULL);
  *              pixGetDimensions(pix, &w, &h, NULL);
  *              for (i = 0; i < h; i++) {
  *                  l_uint8 *line = lineptrs[i];
@@ -1534,6 +1534,7 @@ void     **lines;
         return (void **)ERROR_PTR("pix not defined", procName, NULL);
 
     h = pixGetHeight(pix);
+    if (psize) *psize = h;
     if ((lines = (void **)CALLOC(h, sizeof(void *))) == NULL)
         return (void **)ERROR_PTR("lines not made", procName, NULL);
     wpl = pixGetWpl(pix);

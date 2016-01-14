@@ -29,43 +29,57 @@
 #define   COLORMAP_IMAGE      "dreyfus8.png"
 #define   RGB_IMAGE           "marge.jpg"
 
-void rotateOrthTest(char *fname);
+void RotateOrthTest(PIX *pix, l_int32 *pcount, L_REGPARAMS *rp);
 
 
 main(int    argc,
      char **argv)
 {
-static char  mainName[] = "rotateorth_reg";
+l_int32       count, success, display;
+FILE         *fp;
+PIX          *pixs;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-	exit(ERROR_INT(" Syntax:  rotateorth_reg", mainName, 1));
+    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+              return 1;
 
-    fprintf(stderr, "Test binary image:\n");
-    rotateOrthTest((char *)BINARY_IMAGE);
-    fprintf(stderr, "Test 4 bpp colormapped image:\n");
-    rotateOrthTest((char *)FOUR_BPP_IMAGE);
-    fprintf(stderr, "Test grayscale image:\n");
-    rotateOrthTest((char *)GRAYSCALE_IMAGE);
-    fprintf(stderr, "Test colormap image:\n");
-    rotateOrthTest((char *)COLORMAP_IMAGE);
-    fprintf(stderr, "Test rgb image:\n");
-    rotateOrthTest((char *)RGB_IMAGE);
+    count = 0;
+    fprintf(stderr, "\nTest binary image:\n");
+    pixs = pixRead(BINARY_IMAGE);
+    RotateOrthTest(pixs, &count, rp);
+    pixDestroy(&pixs);
+    fprintf(stderr, "\nTest 4 bpp colormapped image:\n");
+    pixs = pixRead(FOUR_BPP_IMAGE);
+    RotateOrthTest(pixs, &count, rp);
+    pixDestroy(&pixs);
+    fprintf(stderr, "\nTest grayscale image:\n");
+    pixs = pixRead(GRAYSCALE_IMAGE);
+    RotateOrthTest(pixs, &count, rp);
+    pixDestroy(&pixs);
+    fprintf(stderr, "\nTest colormap image:\n");
+    pixs = pixRead(COLORMAP_IMAGE);
+    RotateOrthTest(pixs, &count, rp);
+    pixDestroy(&pixs);
+    fprintf(stderr, "\nTest rgb image:\n");
+    pixs = pixRead(RGB_IMAGE);
+    RotateOrthTest(pixs, &count, rp);
+    pixDestroy(&pixs);
+
+    regTestCleanup(argc, argv, fp, success, rp);
     return 0;
 }
 
 
 void
-rotateOrthTest(char *fname)
+RotateOrthTest(PIX          *pixs,
+               l_int32      *pcount,
+               L_REGPARAMS  *rp)
 {
 l_int32   zero, count;
-PIX      *pixs, *pixt, *pixd;
+PIX      *pixt, *pixd;
+PIXCMAP  *cmap;
 
-    PROCNAME("rotateOrthTest");
-
-    if ((pixs = pixRead(fname)) == NULL) {
-        L_ERROR("pixs not read", procName);
-	return;
-    }
+    cmap = pixGetColormap(pixs);
 
 	/* Test 4 successive 90 degree rotations */
     pixt = pixRotate90(pixs, 1);
@@ -75,60 +89,68 @@ PIX      *pixs, *pixt, *pixd;
     pixDestroy(&pixd);
     pixd = pixRotate90(pixt, 1);
     pixDestroy(&pixt);
-    pixXor(pixd, pixd, pixs);
-    pixZero(pixd, &zero);
-    if (zero)
-	fprintf(stderr, "OK.  Four 90-degree rotations gives I\n");
-    else {
-	pixCountPixels(pixd, &count, NULL);
-	fprintf(stderr, "Failure for four 90-degree rotations; count = %d\n",
-		count);
+    regTestComparePix(rp->fp, rp->argv, pixs, pixd, (*pcount)++, &rp->success);
+    if (!cmap) {
+        pixXor(pixd, pixd, pixs);
+        pixZero(pixd, &zero);
+        if (zero)
+            fprintf(stderr, "OK.  Four 90-degree rotations gives I\n");
+        else {
+             pixCountPixels(pixd, &count, NULL);
+             fprintf(stderr, "Failure for four 90-degree rots; count = %d\n",
+                     count);
+        }
     }
     pixDestroy(&pixd);
 
 	/* Test 2 successive 180 degree rotations */
     pixt = pixRotate180(NULL, pixs);
     pixRotate180(pixt, pixt);
-    pixXor(pixt, pixt, pixs);
-    pixZero(pixt, &zero);
-    if (zero)
-	fprintf(stderr, "OK.  Two 180-degree rotations gives I\n");
-    else {
-	pixCountPixels(pixt, &count, NULL);
-	fprintf(stderr, "Failure for two 180-degree rotations; count = %d\n",
-		count);
+    regTestComparePix(rp->fp, rp->argv, pixs, pixt, (*pcount)++, &rp->success);
+    if (!cmap) {
+        pixXor(pixt, pixt, pixs);
+        pixZero(pixt, &zero);
+        if (zero)
+            fprintf(stderr, "OK.  Two 180-degree rotations gives I\n");
+        else {
+            pixCountPixels(pixt, &count, NULL);
+            fprintf(stderr, "Failure for two 180-degree rots; count = %d\n",
+                    count);
+        }
     }
     pixDestroy(&pixt);
 
 	/* Test 2 successive LR flips */
     pixt = pixFlipLR(NULL, pixs);
     pixFlipLR(pixt, pixt);
-    pixXor(pixt, pixt, pixs);
-    pixZero(pixt, &zero);
-    if (zero)
-	fprintf(stderr, "OK.  Two LR flips gives I\n");
-    else {
-	pixCountPixels(pixt, &count, NULL);
-	fprintf(stderr, "Failure for two LR flips; count = %d\n",
-		count);
+    regTestComparePix(rp->fp, rp->argv, pixs, pixt, (*pcount)++, &rp->success);
+    if (!cmap) {
+        pixXor(pixt, pixt, pixs);
+        pixZero(pixt, &zero);
+        if (zero)
+            fprintf(stderr, "OK.  Two LR flips gives I\n");
+        else {
+            pixCountPixels(pixt, &count, NULL);
+            fprintf(stderr, "Failure for two LR flips; count = %d\n", count);
+        }
     }
     pixDestroy(&pixt);
 
 	/* Test 2 successive TB flips */
     pixt = pixFlipTB(NULL, pixs);
     pixFlipTB(pixt, pixt);
-    pixXor(pixt, pixt, pixs);
-    pixZero(pixt, &zero);
-    if (zero)
-	fprintf(stderr, "OK.  Two TB flips gives I\n");
-    else {
-	pixCountPixels(pixt, &count, NULL);
-	fprintf(stderr, "Failure for two TB flips; count = %d\n",
-		count);
+    regTestComparePix(rp->fp, rp->argv, pixs, pixt, (*pcount)++, &rp->success);
+    if (!cmap) {
+        pixXor(pixt, pixt, pixs);
+        pixZero(pixt, &zero);
+        if (zero)
+            fprintf(stderr, "OK.  Two TB flips gives I\n");
+        else {
+            pixCountPixels(pixt, &count, NULL);
+            fprintf(stderr, "Failure for two TB flips; count = %d\n", count);
+        }
     }
     pixDestroy(&pixt);
-
-    pixDestroy(&pixs);
     return;
 }
 

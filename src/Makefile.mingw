@@ -125,7 +125,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 65
+MINOR_REV = 66
 
 #########################################################
 
@@ -149,7 +149,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		colorquant.c colorseg.c \
 		compare.c conncomp.c \
 		convolve.c convolvelow.c correlscore.c \
-		dwacomb.2.c dwacomblow.2.c \
+		dewarp.c dwacomb.2.c dwacomblow.2.c \
 		edge.c enhance.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		finditalic.c flipdetect.c fliphmtgen.c \
@@ -165,7 +165,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		numabasic.c numafunc1.c numafunc2.c \
 		pageseg.c paintcmap.c \
 		parseprotos.c partition.c \
-		pix1.c pix2.c pix3.c pix4.c \
+		pix1.c pix2.c pix3.c pix4.c pix5.c \
 		pixabasic.c pixacc.c \
 		pixafunc1.c pixafunc2.c \
 		pixalloc.c pixarith.c \
@@ -173,7 +173,8 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		pngio.c pngiostub.c pnmio.c pnmiostub.c \
 		projective.c psio1.c psio1stub.c \
 		psio2.c psio2stub.c \
-		ptra.c pts.c queue.c rank.c \
+		ptabasic.c ptafunc1.c \
+                ptra.c queue.c rank.c \
 		readbarcode.c readfile.c regutils.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \
@@ -182,7 +183,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		scale.c scalelow.c \
 		seedfill.c seedfilllow.c \
 		sel1.c sel2.c selgen.c \
-		shear.c skew.c stack.c \
+		shear.c skew.c spixio.c stack.c \
 		textops.c tiffio.c tiffiostub.c \
 		utils.c viewfiles.c \
 		warper.c watershed.c writefile.c \
@@ -191,7 +192,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 LEPTLIB_H =	allheaders.h alltypes.h \
 		array.h arrayaccess.h bbuffer.h \
 		bmf.h bmp.h ccbord.h \
-		environ.h gplot.h \
+		dewarp.h environ.h gplot.h \
 		heap.h imageio.h \
 		jbclass.h jpeglib.h \
 		leptprotos.h list.h \
@@ -238,8 +239,8 @@ leptprotos:	$(LEPTLIB_C)
 
 #  xtractprotos
 
-xtractprotos:	leptlib xtractprotos.o
-	$(CC) -o xtractprotos xtractprotos.o $(LIB_NODEBUG)/liblept.a
+xtractprotos:	dirs leptlib
+	cd ../prog; make xtractprotos
 
 xtractprotos.o:	xtractprotos.c
 

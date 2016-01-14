@@ -80,7 +80,7 @@ l_int32 convertJpegToPSString(const char *filein, char **poutstr,
 char * generateJpegPS(const char *filein, char *data85, l_int32 w,
                       l_int32 h, l_int32 bps, l_int32 spp, l_float32 xpt,
                       l_float32 ypt, l_float32 wpt, l_float32 hpt,
-                      l_int32 bbflag, l_int32 pageno, l_int32 endpage)
+                      l_int32 pageno, l_int32 endpage)
 {
     return (char *)ERROR_PTR("function not present", "generateJpegPS", NULL);
 }
@@ -108,7 +108,7 @@ l_int32 convertTiffG4ToPSString(const char *filein, char **poutstr,
 
 char * generateTiffG4PS(const char *filein, char *data85, l_int32 w,
                         l_int32 h, l_float32 xpt, l_float32 ypt,
-                        l_float32 wpt, l_float32 hpt, l_int32 bbflag,
+                        l_float32 wpt, l_float32 hpt,
                         l_int32 minisblack, l_int32 maskflag,
                         l_int32 pageno, l_int32 endpage)
 {
@@ -140,7 +140,7 @@ l_int32 convertFlateToPSString(const char *filein, char **poutstr,
 char * generateFlatePS(const char *filein, char *data85, char *cmapdata85,
                        l_int32 ncolors, l_int32 w, l_int32 h, l_int32 bps,
                        l_int32 spp, l_float32 xpt, l_float32 ypt,
-                       l_float32 wpt, l_float32 hpt, l_int32 bbflag,
+                       l_float32 wpt, l_float32 hpt,
                        l_int32 pageno, l_int32 endpage)
 {
     return (char *)ERROR_PTR("function not present", "generateFlatePS", NULL);
@@ -181,6 +181,12 @@ l_int32 convertChunkToAscii85(l_uint8 *inarray, l_int32 insize, l_int32 *pindex,
 l_uint8 * decodeAscii85(char *ina, l_int32 insize, l_int32 *poutsize)
 {
     return (l_uint8 *)ERROR_PTR("function not present", "decodeAscii85", NULL);
+}
+
+void l_psWriteBoundingBox(l_int32 flag)
+{
+    L_ERROR("function not present", "l_psWriteBoundingBox");
+    return;
 }
 
 /* --------------------------------------------*/

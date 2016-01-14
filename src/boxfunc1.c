@@ -22,6 +22,7 @@
  *           BOXA     *boxaContainedInBox()
  *           BOXA     *boxaIntersectsBox()
  *           BOXA     *boxaClipToBox()
+ *           BOXA     *boxaCombineOverlaps()
  *           BOX      *boxOverlapRegion()
  *           BOX      *boxBoundingRegion()
  *           l_int32   boxOverlapFraction()
@@ -250,6 +251,89 @@ BOXA    *boxad;
     }
 
     return boxad;
+}
+
+
+/*!
+ *  boxaCombineOverlaps()
+ *
+ *      Input:  boxas
+ *      Return: boxad (where each set of boxes in boxas that overlap are
+ *                     combined into a single bounding box in boxad), or
+ *                     null on error.
+ *
+ *  Notes:
+ *      (1) If there are no overlapping boxes, it simply returns a copy
+ *          of @boxas.
+ *      (2) The alternative method of painting each rectanle and finding
+ *          the 4-connected components gives the wrong result, because
+ *          two non-overlapping rectangles, when rendered, can still
+ *          be 4-connected, and hence they will be joined. 
+ *      (3) A bad case is to have n boxes, none of which overlap.
+ *          Then you have one iteration with O(n^2) compares.  This
+ *          is still faster than painting each rectangle and finding
+ *          the connected components, even for thousands of rectangles.
+ */
+BOXA *
+boxaCombineOverlaps(BOXA  *boxas)
+{
+l_int32  i, j, n1, n2, inter, interfound, niters;
+BOX     *box1, *box2, *box3;
+BOXA    *boxat1, *boxat2;
+
+    PROCNAME("boxaCombineOverlaps");
+
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+
+    boxat1 = boxaCopy(boxas, L_COPY);
+    n1 = boxaGetCount(boxat1);
+    niters = 0;
+/*    fprintf(stderr, "%d iters: %d boxes\n", niters, n1); */
+    while (1) {  /* loop until no change from previous iteration */
+        niters++;
+        boxat2 = boxaCreate(n1);
+        for (i = 0; i < n1; i++) {
+            box1 = boxaGetBox(boxat1, i, L_COPY);
+            if (i == 0) {
+                boxaAddBox(boxat2, box1, L_INSERT);
+                continue;
+            }
+            n2 = boxaGetCount(boxat2);
+                /* Now test box1 against all boxes already put in boxat2.
+                 * If it is found to intersect with an existing box,
+                 * replace that box by the union of the two boxes,
+                 * and break to the outer loop.  If no overlap is
+                 * found, add box1 to boxat2. */
+            interfound = FALSE;
+            for (j = 0; j < n2; j++) {
+                box2 = boxaGetBox(boxat2, j, L_CLONE);
+                boxIntersects(box1, box2, &inter);
+                if (inter == 1) {
+                    box3 = boxBoundingRegion(box1, box2);
+                    boxaReplaceBox(boxat2, j, box3);
+                    boxDestroy(&box1);
+                    boxDestroy(&box2);
+                    interfound = TRUE;
+                    break;
+                }
+                boxDestroy(&box2);
+            }
+            if (interfound == FALSE)
+                boxaAddBox(boxat2, box1, L_INSERT);
+        }
+        n2 = boxaGetCount(boxat2);
+/*        fprintf(stderr, "%d iters: %d boxes\n", niters, n2); */
+        if (n2 == n1)  /* we're done */
+            break;
+        else {
+            n1 = n2;
+            boxaDestroy(&boxat1);
+            boxat1 = boxat2;
+        }
+    }
+    boxaDestroy(&boxat1);
+    return boxat2;
 }
 
 

@@ -39,6 +39,8 @@
  *          l_int32        fpixCopyResolution()
  *          l_float32     *fpixGetData()
  *          l_int32        fpixSetData()
+ *          l_int32        fpixGetPixel()
+ *          l_int32        fpixSetPixel()
  *
  *    DPix Create/copy/destroy
  *          DPIX          *dpixCreate()
@@ -60,6 +62,8 @@
  *          l_int32        dpixCopyResolution()
  *          l_float64     *dpixGetData()
  *          l_int32        dpixSetData()
+ *          l_int32        dpixGetPixel()
+ *          l_int32        dpixSetPixel()
  */
 
 #include <stdio.h>
@@ -235,6 +239,10 @@ l_float32  *datas, *datad;
  *
  *      Input:  fpixd, fpixs
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This destroys the existing data and allocates a new,
+ *          uninitialized, data array.
  */
 l_int32
 fpixResizeImageData(FPIX  *fpixd,
@@ -471,6 +479,73 @@ fpixSetData(FPIX       *fpix,
         return ERROR_INT("fpix not defined", procName, 1);
 
     fpix->data = data;
+    return 0;
+}
+
+
+/*!
+ *  fpixGetPixel()
+ *
+ *      Input:  fpix
+ *              (x,y) pixel coords
+ *              &val (<return> pixel value)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+fpixGetPixel(FPIX       *fpix,
+             l_int32     x,
+             l_int32     y,
+             l_float32  *pval)
+{
+l_int32  w, h;
+
+    PROCNAME("fpixGetPixel");
+
+    if (!pval)
+        return ERROR_INT("pval not defined", procName, 1);
+    *pval = 0.0;
+    if (!fpix)
+        return ERROR_INT("fpix not defined", procName, 1);
+
+    fpixGetDimensions(fpix, &w, &h);
+    if (x < 0 || x >= w)
+        return ERROR_INT("x out of bounds", procName, 1);
+    if (y < 0 || y >= h)
+        return ERROR_INT("y out of bounds", procName, 1);
+
+    *pval = *(fpix->data + y * w + x);
+    return 0;
+}
+
+
+/*!
+ *  fpixSetPixel()
+ *
+ *      Input:  fpix
+ *              (x,y) pixel coords
+ *              val (pixel value)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+fpixSetPixel(FPIX      *fpix,
+             l_int32    x,
+             l_int32    y,
+             l_float32  val)
+{
+l_int32  w, h;
+
+    PROCNAME("fpixSetPixel");
+
+    if (!fpix)
+        return ERROR_INT("fpix not defined", procName, 1);
+
+    fpixGetDimensions(fpix, &w, &h);
+    if (x < 0 || x >= w)
+        return ERROR_INT("x out of bounds", procName, 1);
+    if (y < 0 || y >= h)
+        return ERROR_INT("y out of bounds", procName, 1);
+
+    *(fpix->data + y * w + x) = val;
     return 0;
 }
 
@@ -878,6 +953,73 @@ dpixSetData(DPIX       *dpix,
         return ERROR_INT("dpix not defined", procName, 1);
 
     dpix->data = data;
+    return 0;
+}
+
+
+/*!
+ *  dpixGetPixel()
+ *
+ *      Input:  dpix
+ *              (x,y) pixel coords
+ *              &val (<return> pixel value)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+dpixGetPixel(DPIX       *dpix,
+             l_int32     x,
+             l_int32     y,
+             l_float64  *pval)
+{
+l_int32  w, h;
+
+    PROCNAME("dpixGetPixel");
+
+    if (!pval)
+        return ERROR_INT("pval not defined", procName, 1);
+    *pval = 0.0;
+    if (!dpix)
+        return ERROR_INT("dpix not defined", procName, 1);
+
+    dpixGetDimensions(dpix, &w, &h);
+    if (x < 0 || x >= w)
+        return ERROR_INT("x out of bounds", procName, 1);
+    if (y < 0 || y >= h)
+        return ERROR_INT("y out of bounds", procName, 1);
+
+    *pval = *(dpix->data + y * w + x);
+    return 0;
+}
+
+
+/*!
+ *  dpixSetPixel()
+ *
+ *      Input:  dpix
+ *              (x,y) pixel coords
+ *              val (pixel value)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+dpixSetPixel(DPIX      *dpix,
+             l_int32    x,
+             l_int32    y,
+             l_float64  val)
+{
+l_int32  w, h;
+
+    PROCNAME("dpixSetPixel");
+
+    if (!dpix)
+        return ERROR_INT("dpix not defined", procName, 1);
+
+    dpixGetDimensions(dpix, &w, &h);
+    if (x < 0 || x >= w)
+        return ERROR_INT("x out of bounds", procName, 1);
+    if (y < 0 || y >= h)
+        return ERROR_INT("y out of bounds", procName, 1);
+
+    *(dpix->data + y * w + x) = val;
     return 0;
 }
 

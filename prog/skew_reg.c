@@ -59,8 +59,8 @@ PIXA      *pixa;
     pixs = pixRead("feyn.tif");
     pixSetOrClearBorder(pixs, 100, 250, 100, 0, PIX_CLR);
     pixb1 = pixReduceRankBinaryCascade(pixs, 2, 2, 0, 0);
-    pixWrite("/tmp/junkskew.0.png", pixb1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkskew.0.png", 0, &success);
+    pixWrite("/tmp/skew.0.png", pixb1, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/skew.0.png", 0, &success);
     pixDisplayWithTitle(pixb1, 0, 100, NULL, display);
 
         /* Add a border and locate and deskew a 40 degree rotation */
@@ -69,8 +69,8 @@ PIXA      *pixa;
     pixSaveTiled(pixb2, pixa, 2, 1, 20, 8);
     pixr = pixRotateBySampling(pixb2, w / 2, h / 2,
                                     deg2rad * 40., L_BRING_IN_WHITE);
-    pixWrite("/tmp/junkskew.1.png", pixr, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkskew.1.png", 1, &success);
+    pixWrite("/tmp/skew.1.png", pixr, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/skew.1.png", 1, &success);
     pixSaveTiled(pixr, pixa, 2, 0, 20, 0);
     pixFindSkewSweepAndSearchScorePivot(pixr, &angle, &conf, NULL, 1, 1,
                                         0.0, 45.0, 2.0, 0.03,
@@ -80,8 +80,8 @@ PIXA      *pixa;
     pixf = pixRotateBySampling(pixr, w / 2, h / 2,
                                     deg2rad * angle, L_BRING_IN_WHITE);
     pixd = pixRemoveBorder(pixf, BORDER);
-    pixWrite("/tmp/junkskew.2.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkskew.2.png", 2, &success);
+    pixWrite("/tmp/skew.2.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/skew.2.png", 2, &success);
     pixSaveTiled(pixd, pixa, 2, 0, 20, 0);
     pixDestroy(&pixr);
     pixDestroy(&pixf);
@@ -93,8 +93,8 @@ PIXA      *pixa;
     pixGetDimensions(pixb1, &w, &h, NULL);
     pixr = pixRotate(pixb1, deg2rad * 37., L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
-    pixWrite("/tmp/junkskew.3.png", pixr, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkskew.3.png", 3, &success);
+    pixWrite("/tmp/skew.3.png", pixr, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/skew.3.png", 3, &success);
     pixSaveTiled(pixr, pixa, 2, 1, 20, 0);
     startTimer();
     pixFindSkewOrthogonalRange(pixr, &angle, &conf, 2, 1,
@@ -103,13 +103,13 @@ PIXA      *pixa;
     fprintf(stderr, "Should be about -128 degrees: angle = %7.3f\n", angle);
     pixd = pixRotate(pixr, deg2rad * angle, L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
-    pixWrite("/tmp/junkskew.4.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkskew.4.png", 4, &success);
+    pixWrite("/tmp/skew.4.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/skew.4.png", 4, &success);
     pixGetDimensions(pixd, &wd, &hd, NULL);
     pixc = pixCreate(w, h, 1);
     pixRasterop(pixc, 0, 0, w, h, PIX_SRC, pixd, (wd - w) / 2, (hd - h) / 2);
-    pixWrite("/tmp/junkskew.5.png", pixc, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkskew.5.png", 5, &success);
+    pixWrite("/tmp/skew.5.png", pixc, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/skew.5.png", 5, &success);
     pixSaveTiled(pixc, pixa, 2, 0, 20, 0);
     pixDestroy(&pixr);
     pixDestroy(&pixf);
@@ -117,8 +117,8 @@ PIXA      *pixa;
     pixDestroy(&pixc);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkskew.6.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkskew.6.png", 6, &success);
+    pixWrite("/tmp/skew.6.png", pixd, IFF_PNG);
+    regTestCheckFile(fp, argv, "/tmp/skew.6.png", 6, &success);
     pixDisplayWithTitle(pixd, 100, 100, NULL, display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

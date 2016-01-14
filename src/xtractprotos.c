@@ -47,17 +47,18 @@
 #include <string.h>
 #include "allheaders.h"
 
-    /* MS VC++ can't handle array initialization with static consts */
+    /* MS VC++ can't handle array initialization in C with static consts */
 #define  L_BUF_SIZE   512
 
-static const char *tempfile = "/tmp/temp_cpp_output";
+    /* Cygwin needs any extension, or it will append ".exe" to the filename! */
+static const char *tempfile = "/tmp/temp_cpp_output.txt";
 static const char *version = "1.4";
 
 
 main(int    argc,
      char **argv)
 {
-char        *filename, *filein, *str, *prestring;
+char        *filein, *str, *prestring;
 const char  *spacestr = " ";
 char         buf[L_BUF_SIZE];
 l_int32      i, firstfile, len, ret;
@@ -75,7 +76,7 @@ static char  mainName[] = "xtractprotos";
     sarrayAddString(sa, (char *)"extern \"C\" {", 1);
     sarrayAddString(sa, (char *)"#endif  /* __cplusplus */\n", 1);
     str = sarrayToString(sa, 1);
-    fprintf(stdout, str);
+    fprintf(stdout, "%s", str);
     sarrayDestroy(&sa);
     FREE(str);
 
@@ -110,20 +111,13 @@ static char  mainName[] = "xtractprotos";
 	    continue;
 	}
 
-#ifndef _CYGWIN_ENVIRON
-        filename = stringNew(tempfile);
-#else
-        filename = stringJoin(tempfile, ".exe");
-#endif  /* ~ _CYGWIN_ENVIRON */
-
-	if ((str = parseForProtos(filename, prestring)) == NULL) {
+	if ((str = parseForProtos(tempfile, prestring)) == NULL) {
             fprintf(stderr, "parse failure for %s; continuing\n", filein);
 	    continue;
 	}
 	if (strlen(str) > 1)  /* strlen(str) == 1 is a file without protos */
-            fprintf(stdout, str);
+            fprintf(stdout, "%s", str);
         FREE(str);
-	FREE(filename);
     }
 
         /* Output extern C tail */
@@ -132,12 +126,13 @@ static char  mainName[] = "xtractprotos";
     sarrayAddString(sa, (char *)"}", 1);
     sarrayAddString(sa, (char *)"#endif  /* __cplusplus */", 1);
     str = sarrayToString(sa, 1);
-    fprintf(stdout, str);
+    fprintf(stdout, "%s", str);
     sarrayDestroy(&sa);
     FREE(str);
     if (prestring)
         FREE(prestring);
 
+    remove(tempfile);
     return 0;
 }
 

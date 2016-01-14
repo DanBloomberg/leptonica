@@ -119,9 +119,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#ifndef COMPILER_MSVC
+#ifndef _WIN32
 #include <dirent.h>     /* unix only */
-#endif  /* !COMPILER_MSVC */
+#endif  /* ! _WIN32 */
 #include "allheaders.h"
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;     /* n'importe quoi */
@@ -278,6 +278,8 @@ SARRAY  *sa;
         for (i = 0; i < size; i++) {
             if (cstring[i] == '\n') {
                 cstring[i] = '\0';
+                if (i > 0 && cstring[i - 1] == '\r')
+                    cstring[i - 1] = '\0';  /* also remove Windows CR */
                 if ((substring = stringNew(cstring + startptr)) == NULL)
                     return (SARRAY *)ERROR_PTR("substring not made",
                                                 procName, NULL);
@@ -296,7 +298,7 @@ SARRAY  *sa;
         FREE(cstring);
     }
     else {  /* remove blank lines; use strtok */
-        sarraySplitString(sa, string, "\n");
+        sarraySplitString(sa, string, "\r\n");
     }
 
     return sa;
@@ -1591,7 +1593,9 @@ FILE  *fp;
  *      Input:  directory name
  *              substr (<optional> substring filter on filenames; can be NULL)
  *              numpre (number of characters in name before number)
- *              numpost (number of characters in name after number)
+ *              numpost (number of characters in name after number, up
+ *                       to a dot before an extension)
+ *                       including an extension and the dot separator)
  *              maxnum (only consider page numbers up to this value)
  *      Return: sarray of sorted pathnames, or NULL on error
  *
@@ -1612,7 +1616,8 @@ FILE  *fp;
  *          the basename (the filename without directory or extension).
  *          @numpre is the number of characters in the basename
  *          preceeding the actual page number; @numpost is the number
- *          following the page number. 
+ *          following the page number, up to either the end of the
+ *          basename or a ".", whichever comes first.
  *      (5) To use a O(n) matching algorithm, the largest page number
  *          is found and two internal arrays of this size are created.
  *          This maximum is constrained not to exceed @maxsum,
@@ -1763,7 +1768,7 @@ SARRAY  *sa, *safiles, *saout;
  *          the d_name field).
  */
 
-#ifndef COMPILER_MSVC
+#ifndef _WIN32
 
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
@@ -1788,7 +1793,7 @@ struct dirent  *pdirentry;
         /* It's nice to ignore directories.  For this it is necessary to
          * define _BSD_SOURCE in the CC command, because the DT_DIR
          * flag is non-standard.  */ 
-#if !defined(__MINGW32__) && !defined(_CYGWIN_ENVIRON) && !defined(__SOLARIS__)
+#if !defined(__SOLARIS__)
         if (pdirentry->d_type == DT_DIR)
             continue;
 #endif
@@ -1805,16 +1810,16 @@ struct dirent  *pdirentry;
     return safiles;
 }
 
-#else  /* COMPILER_MSVC */
+#else  /* _WIN32 */
 
     /* http://msdn2.microsoft.com/en-us/library/aa365200(VS.85).aspx */
 #include <windows.h>
+
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
-char              szDir[MAX_PATH];
+char             *pszDir;
 char             *tempname;
-l_int32           dirlen;
 HANDLE            hFind = INVALID_HANDLE_VALUE;
 SARRAY           *safiles;
 WIN32_FIND_DATAA  ffd;
@@ -1824,24 +1829,26 @@ WIN32_FIND_DATAA  ffd;
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    dirlen = strlen(dirname);
-    if (dirlen > (MAX_PATH - 3))
+    tempname = stringReplaceEachSubstr(dirname, "/", "\\", NULL);
+    if (tempname == NULL)
+        tempname = stringNew(dirname);
+    pszDir = stringJoin(tempname, "\\*");
+    FREE(tempname);
+
+    if (strlen(pszDir) + 1 > MAX_PATH) {
+        FREE(pszDir);
         return (SARRAY *)ERROR_PTR("dirname is too long", procName, NULL);
-
-    if (stringFindSubstr(dirname, "/", NULL) > 0) {
-        tempname = stringReplaceEachSubstr(dirname, "/", "\\", NULL);
-        strncpy_s(szDir, sizeof(szDir), tempname, _TRUNCATE);
-        FREE(tempname);
     }
-    else
-        strncpy_s(szDir, sizeof(szDir), dirname, _TRUNCATE);
-    strncat_s(szDir, sizeof(szDir), TEXT("\\*"), MAX_PATH - strlen(szDir) - 1);
 
-    if ((safiles = sarrayCreate(0)) == NULL)
+    if ((safiles = sarrayCreate(0)) == NULL) {
+        FREE(pszDir);
         return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
-    hFind = FindFirstFileA(szDir, &ffd);
+    }
+
+    hFind = FindFirstFileA(pszDir, &ffd);
     if (INVALID_HANDLE_VALUE == hFind) {
         sarrayDestroy(&safiles);
+        FREE(pszDir);
         return (SARRAY *)ERROR_PTR("hFind not opened", procName, NULL);
     }
 
@@ -1852,8 +1859,9 @@ WIN32_FIND_DATAA  ffd;
     }
 
     FindClose(hFind);
+    FREE(pszDir);
     return safiles;
 }
 
-#endif  /* COMPILER_MSVC */
+#endif  /* _WIN32 */
 

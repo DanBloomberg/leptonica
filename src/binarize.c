@@ -70,7 +70,8 @@
  *              sx, sy (desired tile dimensions; actual size may vary)
  *              smoothx, smoothy (half-width of convolution kernel applied to
  *                                threshold array: use 0 for no smoothing)
- *              scorefract (fraction of the max Otsu score; typ. 0.1)
+ *              scorefract (fraction of the max Otsu score; typ. 0.1;
+ *                          use 0.0 for standard Otsu)
  *              &pixth (<optional return> array of threshold values
  *                      found for each tile)
  *              &pixd (<optional return> thresholded input pixs, based on
@@ -85,19 +86,32 @@
  *          a highly downscaled image.  This array is optionally
  *          smoothed using a convolution.  The full width and height of the
  *          convolution kernel are (2 * @smoothx + 1) and (2 * @smoothy + 1).
- *      (3) To get a single global threshold for the entire image, use
+ *      (3) The minimum tile dimension allowed is 16.  If such small
+ *          tiles are used, it is recommended to use smoothing, because
+ *          without smoothing, each small tile determines the splitting
+ *          threshold independently.  A tile that is entirely in the
+ *          image bg will then hallucinate fg, resulting in a very noisy
+ *          binarization.  The smoothing should be large enough that no
+ *          tile is only influenced by one type (fg or bg) of pixels,
+ *          because it will force a split of its pixels.
+ *      (4) To get a single global threshold for the entire image, use
  *          input values of @sx and @sy that are larger than the image.
  *          For this situation, the smoothing parameters are ignored.
- *      (4) The scorefract is the fraction of the maximum Otsu score, which
+ *      (5) The threshold values partition the image pixels into two classes:
+ *          one whose values are less than the threshold and another
+ *          whose values are greater than or equal to the threshold.
+ *          This is the same use of 'threshold' as in pixThresholdToBinary().
+ *      (6) The scorefract is the fraction of the maximum Otsu score, which
  *          is used to determine the range over which the histogram minimum
  *          is searched.  See numaSplitDistribution() for details on the
  *          underlying method of choosing a threshold.
- *      (5) This uses a modified version of the Otsu criterion for
+ *      (7) This uses enables a modified version of the Otsu criterion for
  *          splitting the distribution of pixels in each tile into a
  *          fg and bg part.  The modification consists of searching for
  *          a minimum in the histogram over a range of pixel values where
  *          the Otsu score is within a defined fraction, @scorefract,
- *          of the max score.
+ *          of the max score.  To get the original Otsu algorithm, set
+ *          @scorefract == 0.
  */
 l_int32
 pixOtsuAdaptiveThreshold(PIX       *pixs,
@@ -116,12 +130,14 @@ PIXTILING  *pt;
 
     PROCNAME("pixOtsuAdaptiveThreshold");
 
+    if (!ppixth && !ppixd)
+        return ERROR_INT("neither &pixth nor &pixd defined", procName, 1);
+    if (ppixth) *ppixth = NULL;
+    if (ppixd) *ppixd = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
         return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
     if (sx < 16 || sy < 16)
         return ERROR_INT("sx and sy must be >= 16", procName, 1);
-    if (!ppixth && !ppixd)
-        return ERROR_INT("neither &pixth nor &pixd defined", procName, 1);
 
         /* Compute the threshold array for the tiles */
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -136,7 +152,7 @@ PIXTILING  *pt;
             pixt = pixTilingGetTile(pt, i, j);
             pixSplitDistributionFgBg(pixt, scorefract, 1, &thresh,
                                      NULL, NULL, 0);
-            pixSetPixel(pixthresh, j, i, thresh);
+            pixSetPixel(pixthresh, j, i, thresh);  /* see note (4) */
             pixDestroy(&pixt);
         }
     }
@@ -172,7 +188,6 @@ PIXTILING  *pt;
     pixTilingDestroy(&pt);
     return 0;
 }
-
 
 
 /*------------------------------------------------------------------*

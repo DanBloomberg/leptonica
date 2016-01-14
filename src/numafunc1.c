@@ -31,11 +31,19 @@
  *          NUMA        *numaSubsample()
  *          NUMA        *numaMakeSequence()
  *          NUMA        *numaMakeConstant()
+ *          NUMA        *numaAddBorder()
+ *          NUMA        *numaRemoveBorder()
  *          l_int32      numaGetNonzeroRange()
  *          l_int32      numaGetCountRelativeToZero()
  *          NUMA        *numaClipToInterval()
  *          NUMA        *numaMakeThresholdIndicator()
  *          NUMA        *numaUniformSampling()
+ *
+ *      Signal feature extraction
+ *          NUMA        *numaLowPassIntervals()
+ *          NUMA        *numaThresholdEdges()
+ *          NUMA        *numaGetSpanValues()
+ *          NUMA        *numaGetEdgeValues()
  *
  *      Interpolation
  *          l_int32      numaInterpolateEqxVal()
@@ -54,7 +62,10 @@
  *          NUMA        *numaSortByIndex()
  *          l_int32      numaIsSorted()
  *          l_int32      numaSortPair()
+ *
+ *      Random permutation
  *          NUMA        *numaPseudorandomSequence()
+ *          NUMA        *numaRandomPermutation()
  *
  *      Functions requiring sorting
  *          l_int32      numaGetRankValue()
@@ -138,11 +149,11 @@ l_float32  val1, val2;
                 return (NUMA *)ERROR_PTR("na2 has 0 element", procName, nad);
         }
     }
-            
+
         /* If nad is not identical to na1, make it an identical copy */
     if (!nad)
         nad = numaCopy(na1);
-        
+
     for (i = 0; i < n; i++) {
         numaGetFValue(nad, i, &val1);
         numaGetFValue(na2, i, &val2);
@@ -208,11 +219,11 @@ l_int32  i, n, val1, val2, val;
     if (op != L_UNION && op != L_INTERSECTION &&
         op != L_SUBTRACTION && op != L_EXCLUSIVE_OR)
         return (NUMA *)ERROR_PTR("invalid op", procName, nad);
-            
+
         /* If nad is not identical to na1, make it an identical copy */
     if (!nad)
         nad = numaCopy(na1);
-        
+
     for (i = 0; i < n; i++) {
         numaGetIValue(nad, i, &val1);
         numaGetIValue(na2, i, &val2);
@@ -397,7 +408,7 @@ l_float32  val, sum;
     sum = 0.0;
     n = numaGetCount(na);
     for (i = 0; i < n; i++) {
-        numaGetFValue(na, i, &val);        
+        numaGetFValue(na, i, &val);
         sum += val;
     }
     *psum = sum;
@@ -411,7 +422,7 @@ l_float32  val, sum;
  *      Input:  na
  *      Return: nasum, or null on error
  *
- *  Notes: 
+ *  Notes:
  *      (1) nasum[i] is the sum for all j <= i of na[j].
  *          So nasum[0] = na[0].
  *      (2) If you want to generate a rank function, where rank[0] - 0.0,
@@ -433,7 +444,7 @@ NUMA      *nasum;
     nasum = numaCreate(n);
     sum = 0.0;
     for (i = 0; i < n; i++) {
-        numaGetFValue(na, i, &val);        
+        numaGetFValue(na, i, &val);
         sum += val;
         numaAddNumber(nasum, sum);
     }
@@ -474,7 +485,7 @@ l_float32  val, sum;
     truelast = L_MIN(last, n - 1);
 
     for (i = first; i <= truelast; i++) {
-        numaGetFValue(na, i, &val);        
+        numaGetFValue(na, i, &val);
         sum += val;
     }
     *psum = sum;
@@ -517,7 +528,7 @@ l_float32  val;
     else
         incr = (l_int32)((n + maxsamples - 1) / maxsamples);
     for (i = 0; i < n; i += incr) {
-        numaGetFValue(na, i, &val);        
+        numaGetFValue(na, i, &val);
         if (val != (l_int32)val) {
             *pallints = FALSE;
             return 0;
@@ -606,6 +617,89 @@ numaMakeConstant(l_float32  val,
                  l_int32    size)
 {
     return numaMakeSequence(val, 0.0, size);
+}
+
+
+/*!
+ *  numaAddBorder()
+ *
+ *      Input:  nas
+ *              left, right (number of elements to add on each side)
+ *              val (initialize border elements)
+ *      Return: nad (with added elements at left and right), or null on error
+ */
+NUMA *
+numaAddBorder(NUMA      *nas,
+              l_int32    left,
+              l_int32    right,
+              l_float32  val)
+{
+l_int32     i, n, len;
+l_float32   startx, delx;
+l_float32  *fas, *fad;
+NUMA       *nad;
+
+    PROCNAME("numaAddBorder");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (left < 0) left = 0;
+    if (right < 0) right = 0;
+    if (left == 0 && right == 0)
+        return numaCopy(nas);
+
+    n = numaGetCount(nas);
+    len = n + left + right;
+    nad = numaMakeConstant(val, len);
+    numaGetXParameters(nas, &startx, &delx);
+    numaSetXParameters(nad, startx - delx * left, delx);
+    fas = numaGetFArray(nas, L_NOCOPY);
+    fad = numaGetFArray(nad, L_NOCOPY);
+    for (i = 0; i < n; i++)
+        fad[left + i] = fas[i];
+
+    return nad;
+}
+
+
+/*!
+ *  numaRemoveBorder()
+ *
+ *      Input:  nas
+ *              left, right (number of elements to remove from each side)
+ *      Return: nad (with removed elements at left and right), or null on error
+ */
+NUMA *
+numaRemoveBorder(NUMA      *nas,
+                 l_int32    left,
+                 l_int32    right)
+{
+l_int32     i, n, len;
+l_float32   startx, delx;
+l_float32  *fas, *fad;
+NUMA       *nad;
+
+    PROCNAME("numaRemoveBorder");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (left < 0) left = 0;
+    if (right < 0) right = 0;
+    if (left == 0 && right == 0)
+        return numaCopy(nas);
+
+    n = numaGetCount(nas);
+    if ((len = n - left - right) < 0)
+        return (NUMA *)ERROR_PTR("len < 0 after removal", procName, NULL);
+    nad = numaMakeConstant(0, len);
+    numaGetXParameters(nas, &startx, &delx);
+    numaSetXParameters(nad, startx + delx * left, delx);
+    fas = numaGetFArray(nas, L_NOCOPY);
+    fad = numaGetFArray(nad, L_NOCOPY);
+    for (i = 0; i < len; i++)
+        fad[i] = fas[left + i];
+
+    return nad;
 }
 
 
@@ -737,7 +831,7 @@ NUMA      *nad;
         numaGetFValue(nas, i, &val);
         numaAddNumber(nad, val);
     }
-    
+
     return nad;
 }
 
@@ -862,6 +956,285 @@ NUMA       *nad;
 }
 
 
+/*----------------------------------------------------------------------*
+ *                       Signal feature extraction                      *
+ *----------------------------------------------------------------------*/
+/*!
+ *  numaLowPassIntervals()
+ *
+ *      Input:  nas (input numa)
+ *              thresh (threshold fraction of max; in [0.0 ... 1.0])
+ *              maxn (for normalizing; set maxn = 0.0 to use the max in nas)
+ *      Output: nad (interval abscissa pairs), or null on error
+ *
+ *  Notes:
+ *      (1) For each interval where the value is less than a specified
+ *          fraction of the maximum, this records the left and right "x"
+ *          value.
+ */
+NUMA *
+numaLowPassIntervals(NUMA      *nas,
+                     l_float32  thresh,
+                     l_float32  maxn)
+{
+l_int32    n, i, inrun;
+l_float32  maxval, threshval, fval, startx, delx, x0, x1;
+NUMA      *nad;
+
+    PROCNAME("numaLowPassIntervals");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (thresh < 0.0 || thresh > 1.0)
+        return (NUMA *)ERROR_PTR("invalid thresh", procName, NULL);
+
+        /* The input threshold is a fraction of the max.
+         * The first entry in nad is the value of the max. */
+    n = numaGetCount(nas);
+    if (maxn == 0.0)
+        numaGetMax(nas, &maxval, NULL);
+    else
+        maxval = maxn;
+    numaGetXParameters(nas, &startx, &delx);
+    threshval = thresh * maxval;
+    nad = numaCreate(0);
+    numaAddNumber(nad, maxval);
+
+        /* Write pairs of pts (x0, x1) for the intervals */
+    inrun = FALSE;
+    for (i = 0; i < n; i++) {
+        numaGetFValue(nas, i, &fval);
+        if (fval < threshval && inrun == FALSE) {  /* start a new run */
+            inrun = TRUE;
+            x0 = startx + i * delx;
+        }
+        else if (fval > threshval && inrun == TRUE) {  /* end the run */
+            inrun = FALSE;
+            x1 = startx + i * delx;
+            numaAddNumber(nad, x0);
+            numaAddNumber(nad, x1);
+        }
+    }
+    if (inrun == TRUE) {  /* must end the last run */
+        x1 = startx + (n - 1) * delx;
+        numaAddNumber(nad, x0);
+        numaAddNumber(nad, x1);
+    }
+
+    return nad;
+}
+
+
+/*!
+ *  numaThresholdEdges()
+ *
+ *      Input:  nas (input numa)
+ *              thresh1 (low threshold as fraction of max; in [0.0 ... 1.0])
+ *              thresh2 (high threshold as fraction of max; in [0.0 ... 1.0])
+ *              maxn (for normalizing; set maxn = 0.0 to use the max in nas)
+ *      Output: nad (edge interval triplets), or null on error
+ *
+ *  Notes:
+ *      (1) For each edge interval, where where the value is less
+ *          than @thresh1 on one side, greater than @thresh2 on
+ *          the other, and between these thresholds throughout the
+ *          interval, this records a triplet of values: the
+ *          'left' and 'right' edges, and either +1 or -1, depending
+ *          on whether the edge is rising or falling.
+ *      (2) No assumption is made about the value outside the array,
+ *          so if the value at the array edge is between the threshold
+ *          values, it is not considered part of an edge.  We start
+ *          looking for edge intervals only after leaving the thresholded
+ *          band.
+ */
+NUMA *
+numaThresholdEdges(NUMA      *nas,
+                   l_float32  thresh1,
+                   l_float32  thresh2,
+                   l_float32  maxn)
+{
+l_int32    n, i, istart, inband, output, sign;
+l_int32    startbelow, below, above, belowlast, abovelast;
+l_float32  maxval, threshval1, threshval2, fval, startx, delx, x0, x1;
+NUMA      *nad;
+
+    PROCNAME("numaThresholdEdges");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (thresh1 < 0.0 || thresh1 > 1.0 || thresh2 < 0.0 || thresh2 > 1.0)
+        return (NUMA *)ERROR_PTR("invalid thresholds", procName, NULL);
+    if (thresh2 < thresh1)
+        return (NUMA *)ERROR_PTR("thresh2 < thresh1", procName, NULL);
+
+        /* The input thresholds are fractions of the max.
+         * The first entry in nad is the value of the max used
+         * here for normalization. */
+    n = numaGetCount(nas);
+    if (maxn == 0.0)
+        numaGetMax(nas, &maxval, NULL);
+    else
+        maxval = maxn;
+    numaGetMax(nas, &maxval, NULL);
+    numaGetXParameters(nas, &startx, &delx);
+    threshval1 = thresh1 * maxval;
+    threshval2 = thresh2 * maxval;
+    nad = numaCreate(0);
+    numaAddNumber(nad, maxval);
+
+        /* Write triplets of pts (x0, x1, sign) for the edges.
+         * First make sure we start search from outside the band.
+         * Only one of {belowlast, abovelast} is true. */
+    for (i = 0; i < n; i++) {
+        istart = i;
+        numaGetFValue(nas, i, &fval);
+        belowlast = (fval < threshval1) ? TRUE : FALSE;
+        abovelast = (fval > threshval2) ? TRUE : FALSE;
+        if (belowlast == TRUE || abovelast == TRUE)
+            break;
+    }
+    if (istart == n)  /* no intervals found */
+        return nad;
+
+        /* x0 and x1 can only be set from outside the edge.
+         * They are the values just before entering the band,
+         * and just after entering the band.  We can jump through
+         * the band, in which case they differ by one index in nas. */
+    inband = FALSE;
+    startbelow = belowlast; /* one of these is true */
+    output = FALSE;
+    x0 = startx + istart * delx;
+    for (i = istart + 1; i < n; i++) {
+        numaGetFValue(nas, i, &fval);
+        below = (fval < threshval1) ? TRUE : FALSE;
+        above = (fval > threshval2) ? TRUE : FALSE;
+        if (!inband && belowlast && above) {  /* full jump up */
+            x1 = startx + i * delx;
+            sign = 1;
+            startbelow = FALSE;  /* for the next transition */
+            output = TRUE;
+        }
+        else if (!inband && abovelast && below) {  /* full jump down */
+            x1 = startx + i * delx;
+            sign = -1;
+            startbelow = TRUE;  /* for the next transition */
+            output = TRUE;
+        }
+        else if (inband && startbelow && above) {  /* exit rising; success */
+            x1 = startx + i * delx;
+            sign = 1;
+            inband = FALSE;
+            startbelow = FALSE;  /* for the next transition */
+            output = TRUE;
+        }
+        else if (inband && !startbelow && below) {  /* exit falling; success */
+            x1 = startx + i * delx;
+            sign = -1;
+            inband = FALSE;
+            startbelow = TRUE;  /* for the next transition */
+            output = TRUE;
+        }
+        else if (inband && !startbelow && above) {  /* exit rising; failure */
+            x0 = startx + i * delx;
+            inband = FALSE;
+        }
+        else if (inband && startbelow && below) {  /* exit falling; failure */
+            x0 = startx + i * delx;
+            inband = FALSE;
+        }
+        else if (!inband && !above && !below) {  /* enter */
+            inband = TRUE;
+            startbelow = belowlast;
+        }
+        else if (!inband && (above || below)) {  /* outside and remaining */
+            x0 = startx + i * delx;  /* update position */
+        }
+        belowlast = below;
+        abovelast = above;
+        if (output) {  /* we have exited; save new x0 */
+            numaAddNumber(nad, x0);
+            numaAddNumber(nad, x1);
+            numaAddNumber(nad, sign);
+            output = FALSE;
+            x0 = startx + i * delx;
+        }
+    }
+
+    return nad;
+}
+
+
+/*!
+ *  numaGetSpanValues()
+ *
+ *      Input:  na (numa that is output of numaLowPassIntervals())
+ *              span (span number, zero-based)
+ *              &start (<optional return> location of start of transition)
+ *              &end (<optional return> location of end of transition)
+ *      Output: 0 if OK, 1 on error
+ */
+l_int32
+numaGetSpanValues(NUMA    *na,
+                  l_int32  span,
+                  l_int32 *pstart,
+                  l_int32 *pend)
+{
+l_int32  n, nspans;
+
+    PROCNAME("numaGetSpanValues");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = numaGetCount(na);
+    if (n % 2 != 1)
+        return ERROR_INT("n is not odd", procName, 1);
+    nspans = n / 2;
+    if (nspans < 0 || span >= nspans)
+        return ERROR_INT("invalid span", procName, 1);
+
+    if (pstart) numaGetIValue(na, 2 * span + 1, pstart);
+    if (pend) numaGetIValue(na, 2 * span + 2, pend);
+    return 0;
+}
+
+
+/*!
+ *  numaGetEdgeValues()
+ *
+ *      Input:  na (numa that is output of numaThresholdEdges())
+ *              edge (edge number, zero-based)
+ *              &start (<optional return> location of start of transition)
+ *              &end (<optional return> location of end of transition)
+ *              &sign (<optional return> transition sign: +1 is rising,
+ *                     -1 is falling)
+ *      Output: 0 if OK, 1 on error
+ */
+l_int32
+numaGetEdgeValues(NUMA    *na,
+                  l_int32  edge,
+                  l_int32 *pstart,
+                  l_int32 *pend,
+                  l_int32 *psign)
+{
+l_int32  n, nedges;
+
+    PROCNAME("numaGetEdgeValues");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = numaGetCount(na);
+    if (n % 3 != 1)
+        return ERROR_INT("n % 3 is not 1", procName, 1);
+    nedges = (n - 1) / 3;
+    if (edge < 0 || edge >= nedges)
+        return ERROR_INT("invalid edge", procName, 1);
+
+    if (pstart) numaGetIValue(na, 3 * edge + 1, pstart);
+    if (pend) numaGetIValue(na, 3 * edge + 2, pend);
+    if (psign) numaGetIValue(na, 3 * edge + 3, psign);
+    return 0;
+}
+
 
 /*----------------------------------------------------------------------*
  *                             Interpolation                            *
@@ -894,7 +1267,7 @@ NUMA       *nad;
 l_int32
 numaInterpolateEqxVal(l_float32   startx,
                       l_float32   deltax,
-		      NUMA       *nay,
+                      NUMA       *nay,
                       l_int32     type,
                       l_float32   xval,
                       l_float32  *pyval)
@@ -931,12 +1304,12 @@ l_float32  *fa;
     del = fi - i;
     if (del == 0.0) {  /* no interpolation required */
         *pyval = fa[i];
-	return 0;
+        return 0;
     }
 
     if (type == L_LINEAR_INTERP) {
         *pyval = fa[i] + del * (fa[i + 1] - fa[i]);
-	return 0;
+        return 0;
     }
 
         /* Quadratic interpolation */
@@ -944,13 +1317,13 @@ l_float32  *fa;
     d2 = -2. * d1;
     if (i == 0) {
         i1 = i;
-	i2 = i + 1;
-	i3 = i + 2;
+        i2 = i + 1;
+        i3 = i + 2;
     }
     else {
         i1 = i - 1;
-	i2 = i;
-	i3 = i + 1;
+        i2 = i;
+        i3 = i + 1;
     }
     x1 = startx + i1 * deltax;
     x2 = startx + i2 * deltax;
@@ -1033,7 +1406,7 @@ l_float32  *fax, *fay;
     }
     for (i = 1; i < nx; i++) {
         delu = fax[i] - xval;
-	if (delu >= 0.0) {  /* we've passed it */
+        if (delu >= 0.0) {  /* we've passed it */
             if (delu == 0.0) {
                 *pyval = fay[i];
                 return 0;
@@ -1047,19 +1420,19 @@ l_float32  *fax, *fay;
 
     if (type == L_LINEAR_INTERP) {
         *pyval = fay[i] + fract * (fay[i + 1] - fay[i]);
-	return 0;
+        return 0;
     }
 
         /* Quadratic interpolation */
     if (im == 0) {
         i1 = im;
-	i2 = im + 1;
-	i3 = im + 2;
+        i2 = im + 1;
+        i3 = im + 2;
     }
     else {
         i1 = im - 1;
-	i2 = im;
-	i3 = im + 1;
+        i2 = im;
+        i3 = im + 1;
     }
     d1 = (fax[i1] - fax[i2]) * (fax[i1] - fax[i3]);
     d2 = (fax[i2] - fax[i1]) * (fax[i2] - fax[i3]);
@@ -1093,7 +1466,7 @@ l_float32  *fax, *fay;
  *      (3) If the interval (x0, x1) lies partially outside the array
  *          nasy (as interpreted by startx and deltax), it is an
  *          error and returns 1.
- *      (4) Note that deltax is the intrinsic x-increment for the input 
+ *      (4) Note that deltax is the intrinsic x-increment for the input
  *          array nasy, whereas delx is the intrinsic x-increment for the
  *          output interpolated array nay.
  */
@@ -1142,7 +1515,7 @@ NUMA       *nax, *nay;
     *pnay = nay;
     if (pnax) {
         nax = numaCreate(npts);
-	*pnax = nax;
+        *pnax = nax;
     }
 
     for (i = 0; i < npts; i++) {
@@ -1150,12 +1523,12 @@ NUMA       *nax, *nay;
         if (pnax)
             numaAddNumber(nax, x);
         numaInterpolateEqxVal(startx, deltax, nasy, type, x, &yval);
-	numaAddNumber(nay, yval);
+        numaAddNumber(nay, yval);
     }
 
     return 0;
 }
-   
+
 
 /*!
  *  numaInterpolateArbxInterval()
@@ -1261,25 +1634,25 @@ NUMA       *nasx, *nasy, *nadx, *nady;
     *pnady = nady;
     if (pnadx) {
         nadx = numaCreate(npts);
-	*pnadx = nadx;
+        *pnadx = nadx;
     }
     for (i = 0; i < npts; i++) {
         xval = x0 + i * del;
-	if (pnadx)
+        if (pnadx)
             numaAddNumber(nadx, xval);
-	im = index[i];
+        im = index[i];
         excess = xval - fax[im];
-	if (excess == 0.0) {
+        if (excess == 0.0) {
             numaAddNumber(nady, fay[im]);
             continue;
         }
-	fract = excess / (fax[im + 1] - fax[im]);
+        fract = excess / (fax[im + 1] - fax[im]);
 
         if (type == L_LINEAR_INTERP) {
             yval = fay[im] + fract * (fay[im + 1] - fay[im]);
             numaAddNumber(nady, yval);
-	    continue;
-	}
+            continue;
+        }
 
             /* Quadratic interpolation */
         if (im == 0) {
@@ -1377,7 +1750,7 @@ l_float32  x1, x2, x3, y1, y2, y3, c1, c2, c3, a, b, xmax, ymax;
             numaGetFValue(naloc, imaxloc, &val);
             *pmaxloc = val;
         }
-        else 
+        else
             *pmaxloc = imaxloc;
         return 0;
     }
@@ -1592,7 +1965,7 @@ NUMA       *naiy;
  *              nain (input numa)
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
  *      Return: naout (output sorted numa), or null on error
- *       
+ *
  *  Notes:
  *      (1) Set naout = nain for in-place; otherwise, set naout = NULL.
  *      (2) Source: Shell sort, modified from K&R, 2nd edition, p.62.
@@ -1625,7 +1998,7 @@ l_float32  *array;
         for (i = gap; i < n; i++) {
             for (j = i - gap; j >= 0; j -= gap) {
                 if ((sortorder == L_SORT_INCREASING &&
-                     array[j] > array[j + gap]) || 
+                     array[j] > array[j + gap]) ||
                     (sortorder == L_SORT_DECREASING &&
                      array[j] < array[j + gap]))
                 {
@@ -1679,7 +2052,7 @@ NUMA       *naisort;
         for (i = gap; i < n; i++) {
             for (j = i - gap; j >= 0; j -= gap) {
                 if ((sortorder == L_SORT_INCREASING &&
-                     array[j] > array[j + gap]) || 
+                     array[j] > array[j + gap]) ||
                     (sortorder == L_SORT_DECREASING &&
                      array[j] < array[j + gap]))
                 {
@@ -1695,7 +2068,7 @@ NUMA       *naisort;
     }
 
     naisort = numaCreate(n);
-    for (i = 0; i < n; i++) 
+    for (i = 0; i < n; i++)
         numaAddNumber(naisort, iarray[i]);
 
     FREE(array);
@@ -1706,7 +2079,7 @@ NUMA       *naisort;
 
 /*!
  *  numaSortByIndex()
- * 
+ *
  *      Input:  nas
  *              naindex (na that maps from the new numa to the input numa)
  *      Return: nad (sorted), or null on error
@@ -1740,7 +2113,7 @@ NUMA      *nad;
 
 /*!
  *  numaIsSorted()
- * 
+ *
  *      Input:  nas
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
  *              &sorted (<return> 1 if sorted; 0 if not)
@@ -1754,7 +2127,7 @@ NUMA      *nad;
 l_int32
 numaIsSorted(NUMA     *nas,
              l_int32   sortorder,
-	     l_int32  *psorted)
+             l_int32  *psorted)
 {
 l_int32    i, n;
 l_float32  preval, val;
@@ -1785,7 +2158,7 @@ l_float32  preval, val;
 
 /*!
  *  numaSortPair()
- * 
+ *
  *      Input:  nax, nay (input arrays)
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
  *              &nasx (<return> sorted)
@@ -1827,51 +2200,91 @@ NUMA    *naindex;
     }
     else {
         naindex = numaGetSortIndex(nax, sortorder);
-	*pnasx = numaSortByIndex(nax, naindex);
-	*pnasy = numaSortByIndex(nay, naindex);
-	numaDestroy(&naindex);
+        *pnasx = numaSortByIndex(nax, naindex);
+        *pnasy = numaSortByIndex(nay, naindex);
+        numaDestroy(&naindex);
     }
 
     return 0;
 }
 
 
+/*----------------------------------------------------------------------*
+ *                          Random permutation                          *
+ *----------------------------------------------------------------------*/
 /*!
  *  numaPseudorandomSequence()
- * 
+ *
  *      Input:  size (of sequence)
- *              seed (prime number; use 0 for default)
+ *              seed (for random number generation)
  *      Return: na (pseudorandom on {0,...,size - 1}), or null on error
  *
  *  Notes:
- *      (1) Result is a permutation of the sequence of integers
- *          from 0 to size - 1, where (seed % size) is repeatedly
- *          added to the previous result, and the result is taken mod size.
- *          This is not particularly random!
+ *      (1) This uses the Durstenfeld shuffle.
+ *          See: http://en.wikipedia.org/wiki/Fisher–Yates_shuffle.
+ *          Result is a pseudorandom permutation of the sequence of integers
+ *          from 0 to size - 1.
  */
 NUMA *
 numaPseudorandomSequence(l_int32  size,
                          l_int32  seed)
 {
-l_int32  i, val;
-NUMA    *na;
+l_int32   i, index, temp;
+l_int32  *array;
+NUMA     *na;
 
     PROCNAME("numaPseudorandomSequence");
 
     if (size <= 0)
         return (NUMA *)ERROR_PTR("size <= 0", procName, NULL);
-    if (seed == 0)
-        seed = 165653;
 
-    if ((na = numaCreate(size)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
-    val = seed / 7;
-    for (i = 0; i < size; i++) {
-        val = (val + seed) % size;
-        numaAddNumber(na, val);
+    if ((array = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
+        return (NUMA *)ERROR_PTR("array not made", procName, NULL);
+    for (i = 0; i < size; i++)
+        array[i] = i;
+    srand(seed);
+    for (i = size - 1; i > 0; i--) {
+        index = (l_int32)((i + 1) * ((l_float64)rand() / (l_float64)RAND_MAX));
+        index = L_MIN(index, i);
+        temp = array[i];
+        array[i] = array[index];
+        array[index] = temp;
     }
 
+    na = numaCreateFromIArray(array, size);
+    FREE(array);
     return na;
+}
+
+
+/*!
+ *  numaRandomPermutation()
+ *
+ *      Input:  nas (input array)
+ *              seed (for random number generation)
+ *      Return: nas (randomly shuggled array), or null on error
+ */
+NUMA *
+numaRandomPermutation(NUMA    *nas,
+                      l_int32  seed)
+{
+l_int32    i, index, size;
+l_float32  val;
+NUMA      *naindex, *nad;
+
+    PROCNAME("numaRandomPermutation");
+
+    size = numaGetCount(nas);
+    naindex = numaPseudorandomSequence(size, seed);
+    nad = numaCreate(size);
+    for (i = 0; i < size; i++) {
+        numaGetIValue(naindex, i, &index);
+        numaGetFValue(nas, index, &val);
+        numaAddNumber(nad, val);
+    }
+
+    numaDestroy(&naindex);
+    return nad;
 }
 
 
@@ -2114,5 +2527,4 @@ NUMA   **array;
 
     return nad;
 }
-
 
