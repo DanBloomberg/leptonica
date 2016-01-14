@@ -63,5 +63,5 @@ www.leptonica.org
 
 ## Open Source Projects that use Leptonica ##
   * [php](http://en.wikipedia.org/wiki/PHP)  (scripting language for dynamic web pages)
-  * [tesseract](http://code.google.com/p/tesseract-ocr/) (optical character recognition)
+  * [tesseract](https://github.com/tesseract-ocr/tesseract/) (optical character recognition)
   * [jbig2enc](http://www.imperialviolet.org/jbig2.html) (encodes multipage binary image documents with jbig2 compression)
