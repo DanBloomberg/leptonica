@@ -82,3 +82,9 @@ l_int32 freadHeaderTiff ( FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *
     return ERROR_INT("function not present", procName, 1);
 }
 
+l_int32 findTiffCompression ( FILE *fp, l_int32 *pcomp )
+{
+    PROCNAME("findTiffCompression");
+    return ERROR_INT("function not present", procName, 1);
+}
+

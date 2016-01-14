@@ -29,9 +29,9 @@
  *           PIX        *pixAddGrayColormap8()
  *
  *      Conversion from RGB color to grayscale
+ *           PIX        *pixConvertRGBToLuminance()
  *           PIX        *pixConvertRGBToGray()
  *           PIX        *pixConvertRGBToGrayFast()
- *           PIX        *pixConvertRGBToLuminance()
  *
  *      Conversion from grayscale to colormap
  *           PIX        *pixConvertGrayToColormap()  -- 2, 4, 8 bpp
@@ -46,6 +46,11 @@
  *      Conversion from grayscale to false color
  *           PIX        *pixConvertGrayToFalseColor()
  *
+ *      Unpacking conversion from 1 bpp to 2, 4, 8, 16 and 32 bpp
+ *           PIX        *pixUnpackBinary()
+ *           PIX        *pixConvert1To16()
+ *           PIX        *pixConvert1To32()
+ *
  *      Unpacking conversion from 1 bpp to 2 bpp
  *           PIX        *pixConvert1To2Cmap()
  *           PIX        *pixConvert1To2()
@@ -53,11 +58,6 @@
  *      Unpacking conversion from 1 bpp to 4 bpp
  *           PIX        *pixConvert1To4Cmap()
  *           PIX        *pixConvert1To4()
- *
- *      Unpacking conversion from 1 bpp to 8, 16 and 32 bpp
- *           PIX        *pixUnpackBinary()
- *           PIX        *pixConvert1To16()
- *           PIX        *pixConvert1To32()
  *
  *      Unpacking conversion from 1, 2 and 4 bpp to 8 bpp
  *           PIX        *pixConvert1To8()
@@ -74,7 +74,7 @@
  *           PIX        *pixConvertTo32()   ***
  *           PIX        *pixConvert8To32()  ***
  *
- *      Lossless unpacking
+ *      Lossless depth conversion (unpacking)
  *           PIX        *pixConvertLossless()
  *
  *      Conversion for printing in PostScript
@@ -113,6 +113,7 @@ static const l_int32  SAFE_VALUE_FOR_REQUESTED_COLORS = 220;
 
 #ifndef  NO_CONSOLE_IO
 #define DEBUG_CONVERT_TO_COLORMAP  0
+#define DEBUG_UNROLLING 0
 #endif   /* ~NO_CONSOLE_IO */
 
 
@@ -218,10 +219,11 @@ pixRemoveColormap(PIX     *pixs,
                   l_int32  type)
 {
 l_int32    sval, rval, gval, bval;
-l_int32    i, j, w, h, d, wpls, wpld;
+l_int32    i, j, k, w, h, d, wpls, wpld, count;
 l_int32    colorfound;
-l_int32   *rmap, *gmap, *bmap;
+l_int32   *rmap, *gmap, *bmap, *graymap;
 l_uint32  *datas, *lines, *datad, *lined;
+l_uint32   sword, dword;
 PIXCMAP   *cmap;
 PIX       *pixd;
 
@@ -283,31 +285,153 @@ PIX       *pixd;
         pixCopyResolution(pixd, pixs);
         datad = pixGetData(pixd);
         wpld = pixGetWpl(pixd);
+        if ((graymap = (l_int32 *)CALLOC(pixcmapGetCount(cmap),
+                                         sizeof(l_int32))) == NULL) {
+            return (PIX *)ERROR_PTR("calloc fail for graymap", procName, NULL);
+        }
+        for (i = 0; i < pixcmapGetCount(cmap); i++) {
+            graymap[i] = (rmap[i] + 2 * gmap[i] + bmap[i]) / 4;
+        }
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
             lined = datad + i * wpld;
-            for (j = 0; j < w; j++) {
-                switch (d)   /* depth test above; no default permitted */
-                {
+            switch (d)   /* depth test above; no default permitted */
+            {
                 case 8:
-                    sval = GET_DATA_BYTE(lines, j);
+                        /* Unrolled 4x */
+                    for (j = 0, count = 0; j + 3 < w; j += 4, count++) {
+                        sword = lines[count];
+                        dword = (graymap[(sword >> 24) & 0xff] << 24) |
+                            (graymap[(sword >> 16) & 0xff] << 16) |
+                            (graymap[(sword >> 8) & 0xff] << 8) |
+                            graymap[sword & 0xff];
+                        lined[count] = dword;
+                    }
+                        /* Cleanup partial word */
+                    for (; j < w; j++) {
+                        sval = GET_DATA_BYTE(lines, j);
+                        gval = graymap[sval];
+                        SET_DATA_BYTE(lined, j, gval);
+                    }
+#if DEBUG_UNROLLING
+#define CHECK_VALUE(a, b, c) if (GET_DATA_BYTE(a, b) != c) { \
+    fprintf(stderr, "Error: mismatch at %d, %d vs %d\n", \
+            j, GET_DATA_BYTE(a, b), c); }
+                    for (j = 0; j < w; j++) {
+                        sval = GET_DATA_BYTE(lines, j);
+                        gval = graymap[sval];
+                        CHECK_VALUE(lined, j, gval);
+                    }
+#endif
                     break;
                 case 4:
-                    sval = GET_DATA_QBIT(lines, j);
+                        /* Unrolled 8x */
+                    for (j = 0, count = 0; j + 7 < w; j += 8, count++) {
+                        sword = lines[count];
+                        dword = (graymap[(sword >> 28) & 0xf] << 24) |
+                            (graymap[(sword >> 24) & 0xf] << 16) |
+                            (graymap[(sword >> 20) & 0xf] << 8) |
+                            graymap[(sword >> 16) & 0xf];
+                        lined[2 * count] = dword;
+                        dword = (graymap[(sword >> 12) & 0xf] << 24) |
+                            (graymap[(sword >> 8) & 0xf] << 16) |
+                            (graymap[(sword >> 4) & 0xf] << 8) |
+                            graymap[sword & 0xf];
+                        lined[2 * count + 1] = dword;
+                    }
+                        /* Cleanup partial word */
+                    for (; j < w; j++) {
+                        sval = GET_DATA_QBIT(lines, j);
+                        gval = graymap[sval];
+                        SET_DATA_BYTE(lined, j, gval);
+                    }
+#if DEBUG_UNROLLING
+                    for (j = 0; j < w; j++) {
+                        sval = GET_DATA_QBIT(lines, j);
+                        gval = graymap[sval];
+                        CHECK_VALUE(lined, j, gval);
+                    }
+#endif
                     break;
                 case 2:
-                    sval = GET_DATA_DIBIT(lines, j);
+                        /* Unrolled 16x */
+                    for (j = 0, count = 0; j + 15 < w; j += 16, count++) {
+                        sword = lines[count];
+                        dword = (graymap[(sword >> 30) & 0x3] << 24) |
+                            (graymap[(sword >> 28) & 0x3] << 16) |
+                            (graymap[(sword >> 26) & 0x3] << 8) |
+                            graymap[(sword >> 24) & 0x3];
+                        lined[4 * count] = dword;
+                        dword = (graymap[(sword >> 22) & 0x3] << 24) |
+                            (graymap[(sword >> 20) & 0x3] << 16) |
+                            (graymap[(sword >> 18) & 0x3] << 8) |
+                            graymap[(sword >> 16) & 0x3];
+                        lined[4 * count + 1] = dword;
+                        dword = (graymap[(sword >> 14) & 0x3] << 24) |
+                            (graymap[(sword >> 12) & 0x3] << 16) |
+                            (graymap[(sword >> 10) & 0x3] << 8) |
+                            graymap[(sword >> 8) & 0x3];
+                        lined[4 * count + 2] = dword;
+                        dword = (graymap[(sword >> 6) & 0x3] << 24) |
+                            (graymap[(sword >> 4) & 0x3] << 16) |
+                            (graymap[(sword >> 2) & 0x3] << 8) |
+                            graymap[sword & 0x3];
+                        lined[4 * count + 3] = dword;
+                    }
+                        /* Cleanup partial word */
+                    for (; j < w; j++) {
+                        sval = GET_DATA_DIBIT(lines, j);
+                        gval = graymap[sval];
+                        SET_DATA_BYTE(lined, j, gval);
+                    }
+#if DEBUG_UNROLLING
+                    for (j = 0; j < w; j++) {
+                        sval = GET_DATA_DIBIT(lines, j);
+                        gval = graymap[sval];
+                        CHECK_VALUE(lined, j, gval);
+                    }
+#endif
                     break;
                 case 1:
-                    sval = GET_DATA_BIT(lines, j);
+                        /* Unrolled 8x */
+                    for (j = 0, count = 0; j + 31 < w; j += 32, count++) {
+                        sword = lines[count];
+                        for (k = 0; k < 4; k++) {
+                                /* The top byte is always the relevant one */
+                            dword = (graymap[(sword >> 31) & 0x1] << 24) |
+                                (graymap[(sword >> 30) & 0x1] << 16) |
+                                (graymap[(sword >> 29) & 0x1] << 8) |
+                                graymap[(sword >> 28) & 0x1];
+                            lined[8 * count + 2 * k] = dword;
+                            dword = (graymap[(sword >> 27) & 0x1] << 24) |
+                                (graymap[(sword >> 26) & 0x1] << 16) |
+                                (graymap[(sword >> 25) & 0x1] << 8) |
+                                graymap[(sword >> 24) & 0x1];
+                            lined[8 * count + 2 * k + 1] = dword;
+                            sword <<= 8;  /* Move up the next byte */
+                        }
+                    }
+                        /* Cleanup partial word */
+                    for (; j < w; j++) {
+                        sval = GET_DATA_BIT(lines, j);
+                        gval = graymap[sval];
+                        SET_DATA_BYTE(lined, j, gval);
+                    }
+#if DEBUG_UNROLLING
+                    for (j = 0; j < w; j++) {
+                        sval = GET_DATA_BIT(lines, j);
+                        gval = graymap[sval];
+                        CHECK_VALUE(lined, j, gval);
+                    }
+#undef CHECK_VALUE
+#endif
                     break;
                 default:
                     return NULL;
-                }
-                gval = (rmap[sval] + 2 * gmap[sval] + bmap[sval]) / 4;
-                SET_DATA_BYTE(lined, j, gval);
             }
         }
+        if (graymap)
+            FREE(graymap);
     }
     else {  /* type == REMOVE_CMAP_TO_FULL_COLOR */
         if ((pixd = pixCreate(w, h, 32)) == NULL)
@@ -383,7 +507,8 @@ PIXCMAP  *cmap;
  *      Input:  pix (32 bpp RGB)
  *      Return: 8 bpp pix, or null on error
  *
- *  Note: we use a standard luminance conversion
+ *  Notes:
+ *      (1) Use a standard luminance conversion.
  */
 PIX *
 pixConvertRGBToLuminance(PIX *pixs)
@@ -400,7 +525,8 @@ pixConvertRGBToLuminance(PIX *pixs)
  *                              or use 0.0 for default)
  *      Return: 8 bpp pix, or null on error
  *
- *  Note: we use a weighted average of the RGB values
+ *  Notes:
+ *      (1) Use a weighted average of the RGB values.
  */
 PIX *
 pixConvertRGBToGray(PIX       *pixs,
@@ -492,8 +618,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
@@ -838,7 +963,8 @@ PIXCMAP   *cmap;
  *              whichbyte (1 for MSB, 0 for LSB)
  *      Return: pixd (8 bpp), or null on error
  *
- *  For each dest pixel, use either the MSB or LSB of each src pixel.
+ *  Notes:
+ *      (1) For each dest pixel, use either the MSB or LSB of each src pixel.
  */
 PIX *
 pixConvert16To8(PIX     *pixs,
@@ -903,11 +1029,11 @@ PIX       *pixd;
  *                            2.0 is quite nice)
  *      Return: pixd (8 bpp with colormap), or null on error
  *
- *  Note:
- *      - For 8 bpp input, this simply adds a colormap to the input image.
- *      - For 16 bpp input, it first converts to 8 bpp and then
- *        adds the colormap.
- *      - The colormap is modeled after the Matlab "jet" configuration.
+ *  Notes:
+ *      (1) For 8 bpp input, this simply adds a colormap to the input image.
+ *      (2) For 16 bpp input, it first converts to 8 bpp and then
+ *          adds the colormap.
+ *      (3) The colormap is modeled after the Matlab "jet" configuration.
  */     
 PIX *
 pixConvertGrayToFalseColor(PIX       *pixs,
@@ -987,28 +1113,29 @@ PIXCMAP   *cmap;
 
 
 /*---------------------------------------------------------------------------*
- *            Unpacking conversion from 1 bpp to 8, 16 and 32 bpp            *
+ *         Unpacking conversion from 1 bpp to 2, 4, 8, 16 and 32 bpp         *
  *---------------------------------------------------------------------------*/
 /*!
  *  pixUnpackBinary()
  *
  *      Input:  pixs (1 bpp)
- *              depth (of destination: 8, 16 or 32 bpp)
+ *              depth (of destination: 2, 4, 8, 16 or 32 bpp)
  *              invert (0:  binary 0 --> grayscale 0
  *                          binary 1 --> grayscale 0xff...
  *                      1:  binary 0 --> grayscale 0xff...
  *                          binary 1 --> grayscale 0)
- *      Return: pixd (8, 16 or 32 bpp), or null on error
+ *      Return: pixd (2, 4, 8, 16 or 32 bpp), or null on error
  *
- *  Note: This function calls special cases of pixConvert1To*(),
- *        for 8, 16 and 32 bpp destinations.
+ *  Notes:
+ *      (1) This function calls special cases of pixConvert1To*(),
+ *          for 2, 4, 8, 16 and 32 bpp destinations.
  */     
 PIX *
 pixUnpackBinary(PIX     *pixs,
                 l_int32  depth,
                 l_int32  invert)
 {
-PIX       *pixd;
+PIX  *pixd;
 
     PROCNAME("pixUnpackBinary");
 
@@ -1016,10 +1143,23 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    if (depth != 8 && depth != 16 && depth != 32)
-        return (PIX *)ERROR_PTR("depth not 8, 16 or 32 bpp", procName, NULL);
+    if (depth != 2 && depth != 4 && depth != 8 && depth != 16 && depth != 32)
+        return (PIX *)ERROR_PTR("depth not 2, 4, 8, 16 or 32 bpp",
+                                procName, NULL);
 
-    if (depth == 8) {
+    if (depth == 2) {
+        if (invert == 0)
+            pixd = pixConvert1To2(NULL, pixs, 0, 3);
+        else  /* invert bits */
+            pixd = pixConvert1To2(NULL, pixs, 3, 0);
+    }
+    else if (depth == 4) {
+        if (invert == 0)
+            pixd = pixConvert1To4(NULL, pixs, 0, 15);
+        else  /* invert bits */
+            pixd = pixConvert1To4(NULL, pixs, 15, 0);
+    }
+    else if (depth == 8) {
         if (invert == 0)
             pixd = pixConvert1To8(NULL, pixs, 0, 255);
         else  /* invert bits */
@@ -2510,5 +2650,3 @@ PIX       *pixt, *pixd;
 
     return pixd;
 }
-
-

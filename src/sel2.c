@@ -19,32 +19,48 @@
  *      Contains definitions of simple structuring elements
  *
  *          SELA    *selaAddBasic()
- *
- *               Linear horizontal
- *               Linear Vertical
+ *               Linear horizontal and vertical
  *               Square
  *               Diagonals
  *
  *          SELA    *selaAddHitMiss()
- *
  *               Isolated foreground pixel
  *               Horizontal and vertical edges
  *               Slanted edge
+ *
+ *          SELA    *selaAddDwaLinear()
+ *          SELA    *selaAddDwaCombs()
  */
 
 #include <stdio.h>
 #include "allheaders.h"
 
+static const l_int32  BUF_SIZE = 512;
 
-/*!
+    /* Linear brick sel sizes, including all those that are required
+     * for decomposable sels up to size 63. */
+static const l_int32  num_linear = 25;
+static const l_int32  basic_linear[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21, 25, 30, 31, 35, 40, 41, 45, 50, 51};
+
+
+/*! 
  *  selaAddBasic()
  *
  *      Input:  sela (<optional>)
  *      Return: sela with additional sels, or null on error
+ *
+ *  Notes:
+ *      (1) Adds the following sels:
+ *            - all linear (horiz, vert) brick sels that are
+ *              necessary for decomposable sels up to size 63
+ *            - square brick sels up to size 10
+ *            - 4 diagonal sels
  */
 SELA *
 selaAddBasic(SELA  *sela)
 {
+char     name[BUF_SIZE];
+l_int32  i, size;
 SEL  *sel;
 
     PROCNAME("selaAddBasic");
@@ -55,161 +71,29 @@ SEL  *sel;
     }
 
     /*--------------------------------------------------------------*
-     *                     Linear horizontal sels                   *
+     *             Linear horizontal and vertical sels              *
      *--------------------------------------------------------------*/
-    sel = selCreateBrick(1, 2, 0, 1, 1);
-    selaAddSel(sela, sel, "sel_2h", 0);
-
-    sel = selCreateBrick(1, 3, 0, 1, 1);
-    selaAddSel(sela, sel, "sel_3h", 0);
-
-    sel = selCreateBrick(1, 4, 0, 2, 1);
-    selaAddSel(sela, sel, "sel_4h", 0);
-
-    sel = selCreateBrick(1, 5, 0, 2, 1);
-    selaAddSel(sela, sel, "sel_5h", 0);
-
-    sel = selCreateBrick(1, 6, 0, 3, 1);
-    selaAddSel(sela, sel, "sel_6h", 0);
-
-    sel = selCreateBrick(1, 7, 0, 3, 1);
-    selaAddSel(sela, sel, "sel_7h", 0);
-
-    sel = selCreateBrick(1, 8, 0, 4, 1);
-    selaAddSel(sela, sel, "sel_8h", 0);
-
-    sel = selCreateBrick(1, 9, 0, 4, 1);
-    selaAddSel(sela, sel, "sel_9h", 0);
-
-    sel = selCreateBrick(1, 10, 0, 5, 1);
-    selaAddSel(sela, sel, "sel_10h", 0);
-
-    sel = selCreateBrick(1, 11, 0, 5, 1);
-    selaAddSel(sela, sel, "sel_11h", 0);
-
-    sel = selCreateBrick(1, 15, 0, 7, 1);
-    selaAddSel(sela, sel, "sel_15h", 0);
-
-    sel = selCreateBrick(1, 20, 0, 10, 1);
-    selaAddSel(sela, sel, "sel_20h", 0);
-
-    sel = selCreateBrick(1, 21, 0, 10, 1);
-    selaAddSel(sela, sel, "sel_21h", 0);
-
-    sel = selCreateBrick(1, 30, 0, 15, 1);
-    selaAddSel(sela, sel, "sel_30h", 0);
-
-    sel = selCreateBrick(1, 31, 0, 15, 1);
-    selaAddSel(sela, sel, "sel_31h", 0);
-
-    sel = selCreateBrick(1, 40, 0, 20, 1);
-    selaAddSel(sela, sel, "sel_40h", 0);
-
-    sel = selCreateBrick(1, 41, 0, 20, 1);
-    selaAddSel(sela, sel, "sel_41h", 0);
-
-    sel = selCreateBrick(1, 50, 0, 25, 1);
-    selaAddSel(sela, sel, "sel_50h", 0);
-
-    sel = selCreateBrick(1, 51, 0, 25, 1);
-    selaAddSel(sela, sel, "sel_51h", 0);
-
-
-    /*--------------------------------------------------------------*
-     *                      Linear vertical sels                    *
-     *--------------------------------------------------------------*/
-    sel = selCreateBrick(2, 1, 1, 0, 1);
-    selaAddSel(sela, sel, "sel_2v", 0);
-
-    sel = selCreateBrick(3, 1, 1, 0, 1);
-    selaAddSel(sela, sel, "sel_3v", 0);
-
-    sel = selCreateBrick(4, 1, 2, 0, 1);
-    selaAddSel(sela, sel, "sel_4v", 0);
-
-    sel = selCreateBrick(5, 1, 2, 0, 1);
-    selaAddSel(sela, sel, "sel_5v", 0);
-
-    sel = selCreateBrick(6, 1, 3, 0, 1);
-    selaAddSel(sela, sel, "sel_6v", 0);
-
-    sel = selCreateBrick(7, 1, 3, 0, 1);
-    selaAddSel(sela, sel, "sel_7v", 0);
-
-    sel = selCreateBrick(8, 1, 4, 0, 1);
-    selaAddSel(sela, sel, "sel_8v", 0);
-
-    sel = selCreateBrick(9, 1, 4, 0, 1);
-    selaAddSel(sela, sel, "sel_9v", 0);
-
-    sel = selCreateBrick(10, 1, 5, 0, 1);
-    selaAddSel(sela, sel, "sel_10v", 0);
-
-    sel = selCreateBrick(11, 1, 5, 0, 1);
-    selaAddSel(sela, sel, "sel_11v", 0);
-
-    sel = selCreateBrick(15, 1, 7, 0, 1);
-    selaAddSel(sela, sel, "sel_15v", 0);
-
-    sel = selCreateBrick(20, 1, 10, 0, 1);
-    selaAddSel(sela, sel, "sel_20v", 0);
-
-    sel = selCreateBrick(21, 1, 10, 0, 1);
-    selaAddSel(sela, sel, "sel_21v", 0);
-
-    sel = selCreateBrick(30, 1, 15, 0, 1);
-    selaAddSel(sela, sel, "sel_30v", 0);
-
-    sel = selCreateBrick(31, 1, 15, 0, 1);
-    selaAddSel(sela, sel, "sel_31v", 0);
-
-    sel = selCreateBrick(40, 1, 20, 0, 1);
-    selaAddSel(sela, sel, "sel_40v", 0);
-
-    sel = selCreateBrick(41, 1, 20, 0, 1);
-    selaAddSel(sela, sel, "sel_41v", 0);
-
-    sel = selCreateBrick(50, 1, 25, 0, 1);
-    selaAddSel(sela, sel, "sel_50v", 0);
-
-    sel = selCreateBrick(51, 1, 25, 0, 1);
-    selaAddSel(sela, sel, "sel_51v", 0);
-
+    for (i = 0; i < num_linear; i++) {
+        size = basic_linear[i];
+        sel = selCreateBrick(1, size, 0, size / 2, 1);
+        snprintf(name, BUF_SIZE, "sel_%dh", size);
+        selaAddSel(sela, sel, name, 0);
+    }
+    for (i = 0; i < num_linear; i++) {
+        size = basic_linear[i];
+        sel = selCreateBrick(size, 1, size / 2, 0, 1);
+        snprintf(name, BUF_SIZE, "sel_%dv", size);
+        selaAddSel(sela, sel, name, 0);
+    }
 
     /*-----------------------------------------------------------*
      *                      2-d Bricks                           *
      *-----------------------------------------------------------*/
-    sel = selCreateBrick(1, 1, 0, 0, 1);
-    selaAddSel(sela, sel, "sel_1", 0);
-
-    sel = selCreateBrick(2, 2, 1, 1, 1);
-    selaAddSel(sela, sel, "sel_2", 0);
-
-    sel = selCreateBrick(3, 3, 1, 1, 1);
-    selaAddSel(sela, sel, "sel_3", 0);
-
-    sel = selCreateBrick(4, 4, 2, 2, 1);
-    selaAddSel(sela, sel, "sel_4", 0);
-
-    sel = selCreateBrick(5, 5, 2, 2, 1);
-    selaAddSel(sela, sel, "sel_5", 0);
-
-    sel = selCreateBrick(6, 6, 3, 3, 1);
-    selaAddSel(sela, sel, "sel_6", 0);
-
-    sel = selCreateBrick(7, 7, 3, 3, 1);
-    selaAddSel(sela, sel, "sel_7", 0);
-
-    sel = selCreateBrick(8, 8, 4, 4, 1);
-    selaAddSel(sela, sel, "sel_8", 0);
-
-    sel = selCreateBrick(9, 9, 4, 4, 1);
-    selaAddSel(sela, sel, "sel_9", 0);
-
-    sel = selCreateBrick(10, 10, 5, 5, 1);
-    selaAddSel(sela, sel, "sel_10", 0);
-
-
+    for (i = 2; i <= 5; i++) {
+        sel = selCreateBrick(i, i, i / 2, i / 2, 1);
+        snprintf(name, BUF_SIZE, "sel_%d", i);
+        selaAddSel(sela, sel, name, 0);
+    }
 
     /*-----------------------------------------------------------*
      *                        Diagonals                          *
@@ -330,4 +214,89 @@ SEL  *sel;
 
     return sela;
 }
+
+
+/*!
+ *  selaAddDwaLinear()
+ *
+ *      Input:  sela (<optional>)
+ *      Return: sela with additional sels, or null on error
+ *
+ *  Notes:
+ *      (1) Adds all linear (horizontal, vertical) sels from
+ *          2 to 63 pixels in length, which are the sizes over
+ *          which dwa code can be generated.
+ */
+SELA *
+selaAddDwaLinear(SELA  *sela)
+{
+char     name[BUF_SIZE];
+l_int32  i;
+SEL     *sel;
+
+    PROCNAME("selaAddDwaLinear");
+
+    if (!sela) {
+        if ((sela = selaCreate(0)) == NULL)
+            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+    }
+
+    for (i = 2; i < 64; i++) {
+        sel = selCreateBrick(1, i, 0, i / 2, 1);
+        snprintf(name, BUF_SIZE, "sel_%dh", i);
+        selaAddSel(sela, sel, name, 0);
+    }
+    for (i = 2; i < 64; i++) {
+        sel = selCreateBrick(i, 1, i / 2, 0, 1);
+        snprintf(name, BUF_SIZE, "sel_%dv", i);
+        selaAddSel(sela, sel, name, 0);
+    }
+    return sela;
+}
+
+
+/*!
+ *  selaAddDwaCombs()
+ *
+ *      Input:  sela (<optional>)
+ *      Return: sela with additional sels, or null on error
+ *
+ *  Notes:
+ *      (1) Adds all comb (horizontal, vertical) Sels that are
+ *          used in composite linear morphological operations
+ *          up to 63 pixels in length, which are the sizes over
+ *          which dwa code can be generated.
+ */
+SELA *
+selaAddDwaCombs(SELA  *sela)
+{
+char     name[BUF_SIZE];
+l_int32  i, f1, f2, prevsize, size;
+SEL     *selh, *selv;
+
+    PROCNAME("selaAddDwaCombs");
+
+    if (!sela) {
+        if ((sela = selaCreate(0)) == NULL)
+            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+    }
+
+    prevsize = 0;
+    for (i = 4; i < 64; i++) {
+        selectComposableSizes(i, &f1, &f2);
+	size = f1 * f2;
+        if (size == prevsize)
+            continue;
+        selectComposableSels(i, L_HORIZ, NULL, &selh);
+        selectComposableSels(i, L_VERT, NULL, &selv);
+        snprintf(name, BUF_SIZE, "sel_comb_%dh", size);
+        selaAddSel(sela, selh, name, 0);
+        snprintf(name, BUF_SIZE, "sel_comb_%dv", size);
+        selaAddSel(sela, selv, name, 0);
+	prevsize = size;
+    }
+
+    return sela;
+}
+
 

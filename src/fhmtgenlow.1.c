@@ -17,10 +17,10 @@
  *     Low-level fast hit-miss transform with auto-generated sels
  *
  *      Dispatcher:
- *            l_int32   fhmtgen_low_*()
+ *             l_int32    fhmtgen_low_1()
  *
  *      Static Low-level:
- *            void      fhmt_*_*()
+ *             void       fhmt_1_*()
  */
 
 #include <stdio.h>
@@ -35,10 +35,10 @@ static void  fhmt_1_5(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32
 
 
 /*---------------------------------------------------------------------*
- *                            Fast hmt dispatcher                      *
+ *                           Fast hmt dispatcher                       *
  *---------------------------------------------------------------------*/
 /*
- *  fhmtgen_low_*()
+ *  fhmtgen_low_1()
  *
  *       a dispatcher to appropriate low-level code
  */
@@ -82,14 +82,13 @@ fhmtgen_low_1(l_uint32  *datad,
  *                 Low-level auto-generated static routines                 *
  *--------------------------------------------------------------------------*/
 /*
- *  N.B.  in all the low-level routines, the part of the image
- *        that is accessed has been clipped by ADDED_BORDER pixels
- *        on all four sides.  This is done in the higher level
+ *  N.B.  In all the low-level routines, the part of the image
+ *        that is accessed has been clipped by 32 pixels on
+ *        all four sides.  This is done in the higher level
  *        code by redefining w and h smaller and by moving the
  *        start-of-image pointers up to the beginning of this
  *        interior rectangle.
  */
-
 static void
 fhmt_1_0(l_uint32  *datad,
          l_int32    w,
@@ -98,9 +97,9 @@ fhmt_1_0(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
+l_int32             i;
+register l_int32    j, pwpls;
+register l_uint32  *sptr, *dptr;
     
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -121,7 +120,6 @@ register l_uint32   *sptr, *dptr;
     }
 }
 
-
 static void
 fhmt_1_1(l_uint32  *datad,
          l_int32    w,
@@ -130,9 +128,9 @@ fhmt_1_1(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
+l_int32             i;
+register l_int32    j, pwpls;
+register l_uint32  *sptr, *dptr;
     
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -150,7 +148,6 @@ register l_uint32   *sptr, *dptr;
     }
 }
 
-
 static void
 fhmt_1_2(l_uint32  *datad,
          l_int32    w,
@@ -159,9 +156,9 @@ fhmt_1_2(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
+l_int32             i;
+register l_int32    j, pwpls;
+register l_uint32  *sptr, *dptr;
     
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -179,7 +176,6 @@ register l_uint32   *sptr, *dptr;
     }
 }
 
-
 static void
 fhmt_1_3(l_uint32  *datad,
          l_int32    w,
@@ -188,9 +184,9 @@ fhmt_1_3(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
+l_int32             i;
+register l_int32    j, pwpls;
+register l_uint32  *sptr, *dptr;
     
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -208,7 +204,6 @@ register l_uint32   *sptr, *dptr;
     }
 }
 
-
 static void
 fhmt_1_4(l_uint32  *datad,
          l_int32    w,
@@ -217,9 +212,9 @@ fhmt_1_4(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
+l_int32             i;
+register l_int32    j, pwpls;
+register l_uint32  *sptr, *dptr;
     
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -237,7 +232,6 @@ register l_uint32   *sptr, *dptr;
     }
 }
 
-
 static void
 fhmt_1_5(l_uint32  *datad,
          l_int32    w,
@@ -246,11 +240,11 @@ fhmt_1_5(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
-l_int32              wpls2, wpls3, wpls4;
-l_int32              wpls5, wpls6;
+l_int32             i;
+register l_int32    j, pwpls;
+register l_uint32  *sptr, *dptr;
+l_int32             wpls2, wpls3, wpls4;
+l_int32             wpls5, wpls6;
     
     wpls2 = 2 * wpls;
     wpls3 = 3 * wpls;
@@ -274,5 +268,4 @@ l_int32              wpls5, wpls6;
         }
     }
 }
-
 

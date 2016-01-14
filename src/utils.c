@@ -37,6 +37,7 @@
  *           l_int32    stringReplace()
  *           char      *stringJoin()
  *           char      *strtokSafe()
+ *           l_int32    stringSplitOnToken()
  *
  *       find and replace procs
  *           char      *stringRemoveChars()
@@ -542,12 +543,13 @@ l_int32  srclen1, srclen2, destlen;
 /*!
  *  strtokSafe()
  *
- *      Input:  cstr (input string to be parsed;
+ *      Input:  cstr (input string to be sequentially parsed;
  *                    use NULL after the first call)
  *              seps (a string of character separators)
  *              &saveptr (<return> ptr to the next char after
  *                        the last encountered separator)
- *      Return: substr (a new string from the previous saveptr to the first
+ *      Return: substr (a new string that is copied from the previous
+ *                      saveptr up to but not including the next
  *                      separator character), or NULL if end of cstr.
  *
  *  Notes:
@@ -632,6 +634,56 @@ l_int32  istart, i, j, nchars;
     }
 
     return substr;
+}
+
+
+/*!
+ *  stringSplitOnToken()
+ *
+ *      Input:  cstr (input string to be split; not altered)
+ *              seps (a string of character separators)
+ *              &head (<return> ptr to copy of the input string, up to
+ *                     the first separator token encountered)
+ *              &tail (<return> ptr to copy of the part of the input string
+ *                     starting with the first non-separator character
+ *                     that occurs after the first separator is found)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The input string is not altered; all split parts are new strings.
+ *      (2) The split occurs around the first consecutive sequence of
+ *          tokens encountered.
+ *      (3) The head goes from the beginning of the string up to
+ *          but not including the first token found.
+ *      (4) The tail contains the second part of the string, starting
+ *          with the first char in that part that is NOT a token.
+ *      (5) If no separator token is found, 'head' contains a copy
+ *          of the input string and 'tail' is null.
+ */
+l_int32
+stringSplitOnToken(char        *cstr,
+                   const char  *seps,
+                   char       **phead,
+                   char       **ptail)
+{
+char  *saveptr;
+
+    PROCNAME("stringSplitOnToken");
+
+    if (!phead)
+        return ERROR_INT("&head not defined", procName, 1);
+    if (!ptail)
+        return ERROR_INT("&tail not defined", procName, 1);
+    *phead = *ptail = NULL;
+    if (!cstr)
+        return ERROR_INT("cstr not defined", procName, 1);
+    if (!seps)
+        return ERROR_INT("seps not defined", procName, 1);
+
+    *phead = strtokSafe(cstr, seps, &saveptr);
+    if (saveptr)
+        *ptail = stringNew(saveptr);
+    return 0;
 }
 
 
@@ -858,7 +910,6 @@ l_int32  i, j, found, lastpos;
 
     return 0;
 }
-
 
 
 /*--------------------------------------------------------------------*

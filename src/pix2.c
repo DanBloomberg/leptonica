@@ -42,10 +42,10 @@
  *
  *      Add and remove border
  *           PIX        *pixAddBorder()
- *           PIX        *pixRemoveBorder()
  *           PIX        *pixAddBorderGeneral()
- *           PIX        *pixAddMirroredBorder()
+ *           PIX        *pixRemoveBorder()
  *           PIX        *pixRemoveBorderGeneral()
+ *           PIX        *pixAddMirroredBorder()
  *
  *      Color sample setting and extraction
  *           PIX        *pixCreateRGBImage()
@@ -756,90 +756,26 @@ l_uint32  *datas, *lines;
 /*!
  *  pixAddBorder()
  *
- *      Input:  pix
+ *      Input:  pixs (all depths; colormap ok)
  *              npix (number of pixels to be added to each side)
  *              val  (value of added border pixels)
- *      Return: pix with the input pix centered, or null on error.
+ *      Return: pixd (with the input pixs centered), or null on error
  *
  *  Notes:
- *      (1) For binary images:
- *             white:  val = 0
- *             black:  val = 1
- *      (2) For grayscale images:
- *             white:  val = 2 ** d - 1
- *             black:  val = 0
- *      (3) For rgb color images:
- *             white:  val = 0xffffff00
- *             black:  val = 0
+ *      (1) See pixAddBorderGeneral() for values of white & black pixels.
  */
 PIX *
 pixAddBorder(PIX      *pixs,
              l_int32   npix,
              l_uint32  val)
 {
-l_int32  ws, hs, wd, hd, d;
-PIX     *pixd;
-
     PROCNAME("pixAddBorder");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-
     if (npix == 0)
         return pixClone(pixs);
-
-    pixGetDimensions(pixs, &ws, &hs, &d);
-    wd = ws + 2 * npix;
-    hd = hs + 2 * npix;
-    if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixCopyResolution(pixd, pixs);
-    pixCopyColormap(pixd, pixs);
-
-    pixSetAllArbitrary(pixd, val);   /* a little extra writing ! */
-    pixRasterop(pixd, npix, npix, ws, hs, PIX_SRC, pixs, 0, 0);
-    return pixd;
-}
-
-
-/*!
- *  pixRemoveBorder()
- *
- *      Input:  pixs
- *              npix (number to be removed from each of the 4 sides)
- *      Return: pixd, or null on error
- */
-PIX *
-pixRemoveBorder(PIX     *pixs,
-                l_int32  npix)
-{
-l_int32  ws, hs, wd, hd, d;
-PIX     *pixd;
-
-    PROCNAME("pixRemoveBorder");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-
-    if (npix == 0)
-        return pixClone(pixs);
-
-    pixGetDimensions(pixs, &ws, &hs, &d);
-    wd = ws - 2 * npix;
-    hd = hs - 2 * npix;
-    if (wd <= 0)
-        return (PIX *)ERROR_PTR("width must be > 0", procName, NULL);
-    if (hd <= 0)
-        return (PIX *)ERROR_PTR("height must be > 0", procName, NULL);
-    if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixCopyResolution(pixd, pixs);
-    pixCopyColormap(pixd, pixs);
-
-        /* Rasterop from the center */
-    pixRasterop(pixd, 0, 0, wd, hd, PIX_SRC, pixs, npix, npix);
-    
-    return pixd;
+    return pixAddBorderGeneral(pixs, npix, npix, npix, npix, val);
 }
 
 
@@ -849,7 +785,7 @@ PIX     *pixd;
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot  (number of pixels added)
  *              val   (value of added border pixels)
- *      Return: pixd with the input pixs inserted, or null on error
+ *      Return: pixd (with the input pixs inserted), or null on error
  *
  *  Notes:
  *      (1) For binary images:
@@ -870,25 +806,105 @@ pixAddBorderGeneral(PIX      *pixs,
                     l_int32   bot,
                     l_uint32  val)
 {
-l_int32  ws, hs, wd, hd, d;
+l_int32  ws, hs, wd, hd, d, op;
 PIX     *pixd;
 
     PROCNAME("pixAddBorderGeneral");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (left < 0 || right < 0 || top < 0 || bot < 0)
+        return (PIX *)ERROR_PTR("negative border added!", procName, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, &d);
     wd = ws + left + right;
     hd = hs + top + bot;
-    if ((pixd = pixCreate(wd, hd, d)) == NULL)
+    if ((pixd = pixCreateNoInit(wd, hd, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
 
-    pixSetAllArbitrary(pixd, val);   /* a little extra writing ! */
-    pixRasterop(pixd, left, top, ws, hs, PIX_SRC, pixs, 0, 0);
+        /* Set the new border pixels */
+    op = UNDEF;
+    if (val == 0)
+        op = PIX_CLR;
+    else if ((d == 1 && val == 1) || (d == 2 && val == 3) ||
+             (d == 4 && val == 0xf) || (d == 8 && val == 0xff) || 
+             (d == 32 && (val >> 8) == 0xffffff))
+        op = PIX_SET;
+    if (op == UNDEF)
+        pixSetAllArbitrary(pixd, val);   /* a little extra writing ! */
+    else {
+        pixRasterop(pixd, 0, 0, left, hd, op, NULL, 0, 0); 
+        pixRasterop(pixd, wd - right, 0, right, hd, op, NULL, 0, 0); 
+        pixRasterop(pixd, 0, 0, wd, top, op, NULL, 0, 0); 
+        pixRasterop(pixd, 0, hd - bot, wd, bot, op, NULL, 0, 0); 
+    }
 
+        /* Copy pixs into the interior */
+    pixRasterop(pixd, left, top, ws, hs, PIX_SRC, pixs, 0, 0);
+    return pixd;
+}
+
+
+/*!
+ *  pixRemoveBorder()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              npix (number to be removed from each of the 4 sides)
+ *      Return: pixd (with pixels removed around border), or null on error
+ */
+PIX *
+pixRemoveBorder(PIX     *pixs,
+                l_int32  npix)
+{
+    PROCNAME("pixRemoveBorder");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (npix == 0)
+        return pixClone(pixs);
+    return pixRemoveBorderGeneral(pixs, npix, npix, npix, npix);
+}
+
+
+/*!
+ *  pixRemoveBorderGeneral()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              left, right, top, bot  (number of pixels added)
+ *      Return: pixd (with pixels removed around border), or null on error
+ */
+PIX *
+pixRemoveBorderGeneral(PIX     *pixs,
+                       l_int32  left,
+                       l_int32  right,
+                       l_int32  top,
+                       l_int32  bot)
+{
+l_int32  ws, hs, wd, hd, d;
+PIX     *pixd;
+
+    PROCNAME("pixRemoveBorderGeneral");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (left < 0 || right < 0 || top < 0 || bot < 0)
+        return (PIX *)ERROR_PTR("negative border removed!", procName, NULL);
+
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    wd = ws - left - right;
+    hd = hs - top - bot;
+    if (wd <= 0)
+        return (PIX *)ERROR_PTR("width must be > 0", procName, NULL);
+    if (hd <= 0)
+        return (PIX *)ERROR_PTR("height must be > 0", procName, NULL);
+    if ((pixd = pixCreateNoInit(wd, hd, d)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    pixCopyColormap(pixd, pixs);
+
+    pixRasterop(pixd, 0, 0, wd, hd, PIX_SRC, pixs, left, top);
     return pixd;
 }
 
@@ -948,45 +964,6 @@ PIX     *pixd;
     return pixd;
 }
      
-
-/*!
- *  pixRemoveBorderGeneral()
- *
- *      Input:  pixs (all depths; colormap ok)
- *              left, right, top, bot  (number of pixels added)
- *      Return: pixd (with pixels removed around border), or null on error
- */
-PIX *
-pixRemoveBorderGeneral(PIX     *pixs,
-                       l_int32  left,
-                       l_int32  right,
-                       l_int32  top,
-                       l_int32  bot)
-{
-l_int32  ws, hs, wd, hd, d;
-PIX     *pixd;
-
-    PROCNAME("pixRemoveBorderGeneral");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-
-    pixGetDimensions(pixs, &ws, &hs, &d);
-    wd = ws - left - right;
-    hd = hs - top - bot;
-    if (wd <= 0)
-        return (PIX *)ERROR_PTR("width must be > 0", procName, NULL);
-    if (hd <= 0)
-        return (PIX *)ERROR_PTR("height must be > 0", procName, NULL);
-    if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixCopyResolution(pixd, pixs);
-    pixCopyColormap(pixd, pixs);
-
-    pixRasterop(pixd, 0, 0, wd, hd, PIX_SRC, pixs, left, top);
-    return pixd;
-}
-
 
 
 /*-------------------------------------------------------------*

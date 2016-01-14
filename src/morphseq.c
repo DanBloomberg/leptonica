@@ -25,6 +25,9 @@
  *      Run a sequence of binary dwa morphological operations
  *            PIX     *pixMorphSequenceDwa()
  *
+ *      Run a sequence of binary composite dwa morphological operations
+ *            PIX     *pixMorphCompSequenceDwa()
+ *
  *      Parser verifier for binary morphological operations
  *            l_int32  morphSequenceVerify()
  *
@@ -526,6 +529,167 @@ SARRAY  *sa;
         case 'C':
             sscanf(&op[1], "%d.%d", &w, &h);
             pixCloseBrickDwa(pixt1, pixt1, w, h);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'r':
+        case 'R':
+            nred = strlen(op) - 1;
+            for (j = 0; j < nred; j++)
+                level[j] = op[j + 1] - '0';
+            for (j = nred; j < 4; j++)
+                level[j] = 0;
+            pixt2 = pixReduceRankBinaryCascade(pixt1, level[0], level[1],
+                                               level[2], level[3]);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'x':
+        case 'X':
+            sscanf(&op[1], "%d", &fact);
+            pixt2 = pixExpandReplicate(pixt1, fact);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'b':
+        case 'B':
+            sscanf(&op[1], "%d", &border);
+            pixt2 = pixAddBorder(pixt1, border, 0);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        default:
+            /* All invalid ops are caught in the first pass */
+            break;
+        }
+        FREE(op);
+    }
+    if (border > 0) {
+        pixt2 = pixRemoveBorder(pixt1, border);
+        pixDestroy(&pixt1);
+        pixt1 = pixClone(pixt2);
+        pixDestroy(&pixt2);
+    }
+
+    sarrayDestroy(&sa);
+    return pixt1;
+}
+
+
+/*-------------------------------------------------------------------------*
+ *      Run a sequence of binary composite dwa morphological operations    *
+ *-------------------------------------------------------------------------*/
+/*!
+ *  pixMorphCompSequenceDwa()
+ *
+ *      Input:  pixs
+ *              sequence (string specifying sequence)
+ *              dispsep (horizontal separation in pixels between
+ *                       successive displays; use zero to suppress display)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This does dwa morphology on binary images, using brick Sels.
+ *      (2) This runs a pipeline of operations; no branching is allowed.
+ *      (3) It implements all brick Sels that have dimensions up to 63
+ *          on each side, using a composite (linear + comb) when useful.
+ *      (4) A new image is always produced; the input image is not changed.
+ *      (5) This contains an interpreter, allowing sequences to be
+ *          generated and run.
+ *      (6) See pixMorphSequence() for further information about usage.
+ */
+PIX *
+pixMorphCompSequenceDwa(PIX         *pixs,
+                        const char  *sequence,
+                        l_int32      dispsep)
+{
+char    *rawop, *op;
+l_int32  nops, i, j, nred, fact, w, h, x, y, border;
+l_int32  level[4];
+PIX     *pixt1, *pixt2;
+SARRAY  *sa;
+
+    PROCNAME("pixMorphCompSequenceDwa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!sequence)
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+
+        /* Split sequence into individual operations */
+    sa = sarrayCreate(0);
+    sarraySplitString(sa, sequence, "+");
+    nops = sarrayGetCount(sa);
+
+    if (!morphSequenceVerify(sa)) {
+        sarrayDestroy(&sa);
+        return (PIX *)ERROR_PTR("sequence not valid", procName, NULL);
+    }
+
+        /* Parse and operate */
+    border = 0;
+    pixt1 = pixCopy(NULL, pixs);
+    pixt2 = NULL;
+    x = y = 0;
+    for (i = 0; i < nops; i++) {
+        rawop = sarrayGetString(sa, i, 0);
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixDilateCompBrickDwa(NULL, pixt1, w, h);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'e':
+        case 'E':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixErodeCompBrickDwa(NULL, pixt1, w, h);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'o':
+        case 'O':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixOpenCompBrickDwa(pixt1, pixt1, w, h);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'c':
+        case 'C':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixCloseCompBrickDwa(pixt1, pixt1, w, h);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;

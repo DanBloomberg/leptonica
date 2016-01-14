@@ -62,7 +62,7 @@ main(int    argc,
 {
 SEL         *sel1, *sel2, *sel3, *sel4;
 SELA        *sela;
-PIX         *pix;
+PIX         *pix, *pixd;
 PIXA        *pixa;
 static char  mainName[] = "flipselgen";
 
@@ -92,11 +92,13 @@ static char  mainName[] = "flipselgen";
     pix = selDisplayInPix(sel4, 23, 2);
     pixDisplayWithTitle(pix, 625, 100, "sel4", DFLAG);
     pixaAddPix(pixa, pix, L_INSERT);
-    pix = pixaDisplayTiled(pixa, 800, 0, 15);
-    pixDisplayWithTitle(pix, 100, 300, "allsels", DFLAG);
+
+    pixd = pixaDisplayTiled(pixa, 800, 0, 15);
+    pixDisplayWithTitle(pixd, 100, 300, "allsels", DFLAG);
+    pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
-    if (fhmtautogen(sela, INDEX))
+    if (fhmtautogen(sela, INDEX, NULL))
         exit(ERROR_INT(" Generation failed", mainName, 1));
 
     selaDestroy(&sela);

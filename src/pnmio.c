@@ -30,7 +30,7 @@
  *
  *      The pnm formats are exceedingly simple, because they have
  *      no compression and no colormaps.  They support images that
- *      are 1 bpp; 2, 4 and 8 bpp grayscale; and rgb.
+ *      are 1 bpp; 2, 4, 8 and 16 bpp grayscale; and rgb.
  *
  *      The original pnm formats ("ascii") are included for completeness,
  *      but their use is deprecated for all but tiny iconic images.
@@ -110,7 +110,7 @@ PIX       *pix;
     if (w <= 0 || h <= 0 || w > MAX_PNM_WIDTH || h > MAX_PNM_HEIGHT)
         return (PIX *)ERROR_PTR("invalid sizes", procName, NULL);
 
-        /* get depth of pix */
+        /* Get depth of pix */
     if (type == 1 || type == 4)
         d = 1;
     else if (type == 2 || type == 5) {
@@ -121,6 +121,8 @@ PIX       *pix;
             d = 4;
         else if (maxval == 255)
             d = 8;
+        else if (maxval == 0xffff)
+            d = 16;
         else {
             fprintf(stderr, "maxval = %d\n", maxval);
             return (PIX *)ERROR_PTR("invalid maxval", procName, NULL);
@@ -138,7 +140,7 @@ PIX       *pix;
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
 
-        /* old "ascii" format */
+        /* Old "ascii" format */
     if (type <= 3) {
         for (i = 0; i < h; i++) {
             for (j = 0; j < w; j++) {
@@ -199,7 +201,7 @@ PIX       *pix;
  *
  *  Writes "raw" packed format only:
  *      1 bpp --> pbm (P4)
- *      2, 4, 8 bpp, no colormap or grayscale colormap --> pgm (P5)
+ *      2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm (P5)
  *      2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm (P6)
  */
 l_int32
@@ -218,13 +220,11 @@ PIX       *pixs;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
-    d =  pixGetDepth(pix);
-    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32)
-        return ERROR_INT("d not in {1,2,4,8,32}", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
+        return ERROR_INT("d not in {1,2,4,8,16,32}", procName, 1);
 
-        /* if a colormap exists, remove and convert to grayscale or rgb */
+        /* If a colormap exists, remove and convert to grayscale or rgb */
     if (pixGetColormap(pix) != NULL)
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
     else
@@ -245,7 +245,7 @@ PIX       *pixs;
             }
         }
     }
-    else if (ds == 2 || ds == 4 || ds == 8) {  /* grayscale */
+    else if (ds == 2 || ds == 4 || ds == 8 || ds == 16) {  /* grayscale */
         maxval = (1 << ds) - 1;
         fprintf(fp, "P5\n# Raw PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
@@ -288,7 +288,7 @@ PIX       *pixs;
  *
  *  Writes "ascii" format only:
  *      1 bpp --> pbm (P1)
- *      2, 4, 8 bpp, no colormap or grayscale colormap --> pgm (P2)
+ *      2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm (P2)
  *      2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm (P3)
  */
 l_int32
@@ -308,13 +308,11 @@ PIX       *pixs;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    w = pixGetWidth(pix);
-    h = pixGetHeight(pix);
-    d =  pixGetDepth(pix);
-    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32)
-        return ERROR_INT("d not in {1,2,4,8,32}", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
+        return ERROR_INT("d not in {1,2,4,8,16,32}", procName, 1);
 
-        /* if a colormap exists, remove and convert to grayscale or rgb */
+        /* If a colormap exists, remove and convert to grayscale or rgb */
     if (pixGetColormap(pix) != NULL)
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
     else
@@ -339,7 +337,7 @@ PIX       *pixs;
             }
         }
     }
-    else if (ds == 2 || ds == 4 || ds == 8) {  /* grayscale */
+    else if (ds == 2 || ds == 4 || ds == 8 || ds == 16) {  /* grayscale */
         maxval = (1 << ds) - 1;
         fprintf(fp, "P2\n# Ascii PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
@@ -357,10 +355,15 @@ PIX       *pixs;
                     fwrite(buffer, 1, 3, fp);
                     count += 3;
                 }
-                else {  /* ds == 8 */
+                else if (ds == 8) {
                     sprintf(buffer, "%3d ", val);
                     fwrite(buffer, 1, 4, fp);
                     count += 4;
+                }
+                else {  /* ds == 16 */
+                    sprintf(buffer, "%5d ", val);
+                    fwrite(buffer, 1, 6, fp);
+                    count += 6;
                 }
                 if (count >= 60) {
                     fputc('\n', fp);
@@ -405,7 +408,8 @@ PIX       *pixs;
  *
  *      Return: 0 if OK, 1 on error or EOF.
  *
- *  Read the next sample value in ascii from the the file.
+ *  Notes:
+ *      (1) This reads the next sample value in ascii from the the file.
  */
 static l_int32
 pnmReadNextAsciiValue(FILE  *fp,
@@ -436,8 +440,9 @@ l_int32   c;
  *
  *      Return: 0 if OK, 1 on error or EOF
  *
- *  Comment lines begin with '#'
- *  Usage: caller should check return value for EOF
+ *  Notes:
+ *      (1) Comment lines begin with '#'
+ *      (2) Usage: caller should check return value for EOF
  */
 static l_int32 
 pnmSkipCommentLines(FILE  *fp)
@@ -461,7 +466,7 @@ l_int32  c;
         } while (c == '#');
     }
 
-        /* back up one byte */
+        /* Back up one byte */
     fseek(fp, -1L, SEEK_CUR);
     return 0;
 }

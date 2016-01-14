@@ -46,6 +46,7 @@
  *           NUMA       *pixCountPixelsByRow()
  *           l_int32     pixThresholdPixels()
  *           l_int32    *makePixelSumTab8()
+ *           l_int32    *makePixelCentroidTab8()
  *
  *      Pixel histogram, rank val, and averaging
  *           NUMA       *pixGetHistogram()
@@ -1132,6 +1133,62 @@ l_int32  *tab;
 }
 
 
+/*!
+ *  makePixelCentroidTab8()
+ *
+ *      Input:  void
+ *      Return: table of 256 l_int32, or null on error
+ *
+ *  Notes:
+ *      (1) This table of integers gives the centroid weight of the 1 bits
+ *          in the 8 bit index.  In other words, if sumtab is obtained by
+ *          makePixelSumTab8, and centroidtab is obtained by
+ *          makePixelCentroidTab8, then, for 1 <= i <= 255,
+ *          centroidtab[i] / (float)sumtab[i]
+ *          is the centroid of the 1 bits in the 8-bit index i, where the
+ *          MSB is considered to have position 0 and the LSB is considered
+ *          to have position 7.
+ */
+l_int32 *
+makePixelCentroidTab8(void)
+{
+l_uint8   byte;
+l_int32   i;
+l_int32  *tab;
+
+    PROCNAME("makePixelCentroidTab8");
+
+    if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
+        return (l_int32 *)ERROR_PTR("tab not made", procName, NULL);
+
+    tab[0] = 0;
+    tab[1] = 7;
+    for (i = 2; i < 4; i++) {
+        tab[i] = tab[i - 2] + 6;
+    }
+    for (i = 4; i < 8; i++) {
+        tab[i] = tab[i - 4] + 5;
+    }
+    for (i = 8; i < 16; i++) {
+        tab[i] = tab[i - 8] + 4;
+    }
+    for (i = 16; i < 32; i++) {
+        tab[i] = tab[i - 16] + 3;
+    }
+    for (i = 32; i < 64; i++) {
+        tab[i] = tab[i - 32] + 2;
+    }
+    for (i = 64; i < 128; i++) {
+        tab[i] = tab[i - 64] + 1;
+    }
+    for (i = 128; i < 256; i++) {
+        tab[i] = tab[i - 128];
+    }
+
+    return tab;
+}
+
+
 /*------------------------------------------------------------------*
  *                  Pixel histogram and averaging                   *
  *------------------------------------------------------------------*/
@@ -1734,7 +1791,8 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("box not defined", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    boxc = boxCopy(box);
+    if ((boxc = boxCopy(box)) == NULL)
+        return (PIX *)ERROR_PTR("boxc not made", procName, NULL);
 
         /* Clip boxc if necessary */
     if (boxc->x < 0) {
@@ -1877,4 +1935,3 @@ maxx_found:
 
     return 0;
 }
-

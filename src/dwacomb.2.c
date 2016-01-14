@@ -16,83 +16,101 @@
 /*
  *      Top-level fast binary morphology with auto-generated sels
  *
- *             PIX     *pixMorphDwa_1()
- *             PIX     *pixFMorphopGen_1()
+ *             PIX     *pixMorphDwa_2()
+ *             PIX     *pixFMorphopGen_2()
  */
 
 #include <stdio.h>
 #include "allheaders.h"
 
-PIX *pixMorphDwa_1(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
-PIX *pixFMorphopGen_1(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
-l_int32 fmorphopgen_low_1(l_uint32 *datad, l_int32 w,
+PIX *pixMorphDwa_2(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
+PIX *pixFMorphopGen_2(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
+l_int32 fmorphopgen_low_2(l_uint32 *datad, l_int32 w,
                           l_int32 h, l_int32 wpld,
                           l_uint32 *datas, l_int32 wpls,
                           l_int32 index);
 
-static l_int32   NUM_SELS_GENERATED = 58;
+static l_int32   NUM_SELS_GENERATED = 76;
 static char  *SEL_NAMES[] = {
-                             "sel_2h",
-                             "sel_3h",
-                             "sel_4h",
-                             "sel_5h",
-                             "sel_6h",
-                             "sel_7h",
-                             "sel_8h",
-                             "sel_9h",
-                             "sel_10h",
-                             "sel_11h",
-                             "sel_12h",
-                             "sel_13h",
-                             "sel_14h",
-                             "sel_15h",
-                             "sel_20h",
-                             "sel_21h",
-                             "sel_25h",
-                             "sel_30h",
-                             "sel_31h",
-                             "sel_35h",
-                             "sel_40h",
-                             "sel_41h",
-                             "sel_45h",
-                             "sel_50h",
-                             "sel_51h",
-                             "sel_2v",
-                             "sel_3v",
-                             "sel_4v",
-                             "sel_5v",
-                             "sel_6v",
-                             "sel_7v",
-                             "sel_8v",
-                             "sel_9v",
-                             "sel_10v",
-                             "sel_11v",
-                             "sel_12v",
-                             "sel_13v",
-                             "sel_14v",
-                             "sel_15v",
-                             "sel_20v",
-                             "sel_21v",
-                             "sel_25v",
-                             "sel_30v",
-                             "sel_31v",
-                             "sel_35v",
-                             "sel_40v",
-                             "sel_41v",
-                             "sel_45v",
-                             "sel_50v",
-                             "sel_51v",
-                             "sel_2",
-                             "sel_3",
-                             "sel_4",
-                             "sel_5",
-                             "sel_2dp",
-                             "sel_2dm",
-                             "sel_5dp",
-                             "sel_5dm"};
+                             "sel_comb_4h",
+                             "sel_comb_4v",
+                             "sel_comb_5h",
+                             "sel_comb_5v",
+                             "sel_comb_6h",
+                             "sel_comb_6v",
+                             "sel_comb_7h",
+                             "sel_comb_7v",
+                             "sel_comb_8h",
+                             "sel_comb_8v",
+                             "sel_comb_9h",
+                             "sel_comb_9v",
+                             "sel_comb_10h",
+                             "sel_comb_10v",
+                             "sel_comb_12h",
+                             "sel_comb_12v",
+                             "sel_comb_14h",
+                             "sel_comb_14v",
+                             "sel_comb_15h",
+                             "sel_comb_15v",
+                             "sel_comb_16h",
+                             "sel_comb_16v",
+                             "sel_comb_18h",
+                             "sel_comb_18v",
+                             "sel_comb_20h",
+                             "sel_comb_20v",
+                             "sel_comb_21h",
+                             "sel_comb_21v",
+                             "sel_comb_22h",
+                             "sel_comb_22v",
+                             "sel_comb_24h",
+                             "sel_comb_24v",
+                             "sel_comb_25h",
+                             "sel_comb_25v",
+                             "sel_comb_27h",
+                             "sel_comb_27v",
+                             "sel_comb_28h",
+                             "sel_comb_28v",
+                             "sel_comb_30h",
+                             "sel_comb_30v",
+                             "sel_comb_32h",
+                             "sel_comb_32v",
+                             "sel_comb_33h",
+                             "sel_comb_33v",
+                             "sel_comb_35h",
+                             "sel_comb_35v",
+                             "sel_comb_36h",
+                             "sel_comb_36v",
+                             "sel_comb_39h",
+                             "sel_comb_39v",
+                             "sel_comb_40h",
+                             "sel_comb_40v",
+                             "sel_comb_42h",
+                             "sel_comb_42v",
+                             "sel_comb_44h",
+                             "sel_comb_44v",
+                             "sel_comb_45h",
+                             "sel_comb_45v",
+                             "sel_comb_48h",
+                             "sel_comb_48v",
+                             "sel_comb_49h",
+                             "sel_comb_49v",
+                             "sel_comb_50h",
+                             "sel_comb_50v",
+                             "sel_comb_52h",
+                             "sel_comb_52v",
+                             "sel_comb_54h",
+                             "sel_comb_54v",
+                             "sel_comb_55h",
+                             "sel_comb_55v",
+                             "sel_comb_56h",
+                             "sel_comb_56v",
+                             "sel_comb_60h",
+                             "sel_comb_60v",
+                             "sel_comb_63h",
+                             "sel_comb_63v"};
 
 /*
- *  pixMorphDwa_1()
+ *  pixMorphDwa_2()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
  *              pixs (1 bpp)
@@ -109,7 +127,7 @@ static char  *SEL_NAMES[] = {
  *          and the boundary conditions.
  */
 PIX *
-pixMorphDwa_1(PIX     *pixd,
+pixMorphDwa_2(PIX     *pixd,
               PIX     *pixs,
               l_int32  operation,
               char    *selname)
@@ -117,7 +135,7 @@ pixMorphDwa_1(PIX     *pixd,
 l_int32  bordercolor, bordersize;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixMorphDwa_1");
+    PROCNAME("pixMorphDwa_2");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
@@ -131,7 +149,7 @@ PIX     *pixt1, *pixt2, *pixt3;
         bordersize += 32;
 
     pixt1 = pixAddBorder(pixs, bordersize, 0);
-    pixt2 = pixFMorphopGen_1(NULL, pixt1, operation, selname);
+    pixt2 = pixFMorphopGen_2(NULL, pixt1, operation, selname);
     pixt3 = pixRemoveBorder(pixt2, bordersize);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -146,7 +164,7 @@ PIX     *pixt1, *pixt2, *pixt3;
 
 
 /*
- *  pixFMorphopGen_1()
+ *  pixFMorphopGen_2()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
  *              pixs (1 bpp)
@@ -167,7 +185,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          near the boundary.
  */
 PIX *
-pixFMorphopGen_1(PIX     *pixd,
+pixFMorphopGen_2(PIX     *pixd,
                  PIX     *pixs,
                  l_int32  operation,
                  char    *selname)
@@ -176,7 +194,7 @@ l_int32    i, index, found, w, h, wpls, wpld, bordercolor, erodeop, borderop;
 l_uint32  *datad, *datas, *datat;
 PIX       *pixt;
 
-    PROCNAME("pixFMorphopGen_1");
+    PROCNAME("pixFMorphopGen_2");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
@@ -230,12 +248,12 @@ PIX       *pixt;
                 return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
             datat = pixGetData(pixt) + 32 * wpls + 1;
             pixSetOrClearBorder(pixt, 32, 32, 32, 32, borderop);
-            fmorphopgen_low_1(datad, w, h, wpld, datat, wpls, index);
+            fmorphopgen_low_2(datad, w, h, wpld, datat, wpls, index);
             pixDestroy(&pixt);
         }
         else { /* not in-place */
             pixSetOrClearBorder(pixs, 32, 32, 32, 32, borderop);
-            fmorphopgen_low_1(datad, w, h, wpld, datas, wpls, index);
+            fmorphopgen_low_2(datad, w, h, wpld, datas, wpls, index);
         }
     }
     else {  /* opening or closing; generate a temp image */
@@ -244,15 +262,15 @@ PIX       *pixt;
         datat = pixGetData(pixt) + 32 * wpls + 1;
         if (operation == L_MORPH_OPEN) {
             pixSetOrClearBorder(pixs, 32, 32, 32, 32, erodeop);
-            fmorphopgen_low_1(datat, w, h, wpls, datas, wpls, index+1);
+            fmorphopgen_low_2(datat, w, h, wpls, datas, wpls, index+1);
             pixSetOrClearBorder(pixt, 32, 32, 32, 32, PIX_CLR);
-            fmorphopgen_low_1(datad, w, h, wpld, datat, wpls, index);
+            fmorphopgen_low_2(datad, w, h, wpld, datat, wpls, index);
         }
         else {  /* closing */
             pixSetOrClearBorder(pixs, 32, 32, 32, 32, PIX_CLR);
-            fmorphopgen_low_1(datat, w, h, wpls, datas, wpls, index);
+            fmorphopgen_low_2(datat, w, h, wpls, datas, wpls, index);
             pixSetOrClearBorder(pixt, 32, 32, 32, 32, erodeop);
-            fmorphopgen_low_1(datad, w, h, wpld, datat, wpls, index+1);
+            fmorphopgen_low_2(datad, w, h, wpld, datat, wpls, index+1);
         }
         pixDestroy(&pixt);
     }

@@ -129,7 +129,7 @@ LIBRARIAN_SHARED =	gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 48
+MINOR_REV = 50
 
 #########################################################
 
@@ -151,7 +151,8 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		colorcontent.c colormap.c colormorph.c \
 		colorquant.c colorseg.c \
 		compare.c conncomp.c \
-		convolve.c convolvelow.c \
+		convolve.c convolvelow.c correlscore.c \
+		dwacomb.2.c dwacomblow.2.c \
 		edge.c enhance.c \
 		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \

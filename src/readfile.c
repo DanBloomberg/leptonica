@@ -50,7 +50,10 @@ enum {
 static const char *FILE_BMP =  "/usr/tmp/junkout.bmp";
 static const char *FILE_PNG =  "/usr/tmp/junkout.png";
 static const char *FILE_PNM =  "/usr/tmp/junkout.pnm";
+static const char *FILE_G3 =   "/usr/tmp/junkout_g3.tif";
 static const char *FILE_G4 =   "/usr/tmp/junkout_g4.tif";
+static const char *FILE_LZW =  "/usr/tmp/junkout_lzw.tif";
+static const char *FILE_ZIP =  "/usr/tmp/junkout_zip.tif";
 static const char *FILE_TIFF = "/usr/tmp/junkout.tif";
 static const char *FILE_JPG =  "/usr/tmp/junkout.jpg"; 
 
@@ -205,6 +208,7 @@ PIX     *pix;
 
     if (!fp)
         return (PIX *)ERROR_PTR("stream not defined", procName, NULL);
+    pix = NULL;
 
     format = findFileFormat(fp);
 
@@ -227,6 +231,12 @@ PIX     *pix;
         break;
 
     case IFF_TIFF:
+    case IFF_TIFF_PACKBITS:
+    case IFF_TIFF_RLE:
+    case IFF_TIFF_G3:
+    case IFF_TIFF_G4:
+    case IFF_TIFF_LZW:
+    case IFF_TIFF_ZIP:
         if ((pix = pixReadStreamTiff(fp, 0)) == NULL)  /* page 0 by default */
             return (PIX *)ERROR_PTR("tiff: no pix returned", procName, NULL);
         break;
@@ -242,7 +252,8 @@ PIX     *pix;
         break;
     }
 
-    pixSetInputFormat(pix, format);
+    if (pix)
+        pixSetInputFormat(pix, format);
     return pix;
 }
 
@@ -258,7 +269,8 @@ PIX     *pix;
 l_int32
 findFileFormat(FILE  *fp)
 {
-l_uint8   firstbytes[12]; 
+l_uint8  firstbytes[12]; 
+l_int32  format;
 
     PROCNAME("findFileFormat");
 
@@ -272,7 +284,12 @@ l_uint8   firstbytes[12];
     fread((char *)&firstbytes, 1, 12, fp);
     rewind(fp);
 
-    return findFileFormatBuffer(firstbytes);
+    format = findFileFormatBuffer(firstbytes);
+    if (format == IFF_TIFF) {
+        findTiffCompression(fp, &format);
+        rewind(fp);
+    }
+    return format;
 }
 
 
@@ -285,6 +302,8 @@ l_uint8   firstbytes[12];
  *  Notes:
  *      (1) This determines the file format from the first 12 bytes in
  *          the compressed data stream, which are stored in memory.
+ *      (2) For tiff files, this returns IFF_TIFF.  The specific tiff
+ *          compression is then determined using findTiffCompression().
  */
 l_int32
 findFileFormatBuffer(const l_uint8  *buf)
@@ -348,14 +367,19 @@ l_uint16  twobytepw;
  *  ioFormatTest()
  *
  *      Input:  filename (input file)
- *      Return: 0 if OK; 1 on error
+ *      Return: 0 if OK; 1 on error or if the test fails
  *
  *  Notes:
- *      (1) This writes and reads a set of output files in different formats
- *          to /usr/tmp/, and tests that the result before and after
- *          is unchanged.
+ *      (1) This writes and reads a set of output files losslessly
+ *          in different formats to /usr/tmp/, and tests that the
+ *          result before and after is unchanged.
  *      (2) This should work properly on input images of any depth,
  *          with and without colormaps.
+ *      (3) All supported formats are tested for bmp, png, tiff and
+ *          non-ascii pnm.  Ascii pnm also works (but who'd ever want
+ *          to use it?)   We allow 2 bpp bmp, although it's not
+ *          supported elsewhere.  And we don't support reading
+ *          16 bpp png, although this can be turned on in pngio.c.
  */
 l_int32
 ioFormatTest(const char  *filename)
@@ -370,25 +394,28 @@ PIXCMAP  *cmap;
         return ERROR_INT("filename not defined", procName, 1);
 
     if ((pixs = pixRead(filename)) == NULL)
-        return ERROR_INT("pix not made", procName, 1);
+        return ERROR_INT("pixs not made", procName, 1);
 
         /* Note that the reader automatically removes colormaps
          * from 1 bpp BMP images, but not from 8 bpp BMP images.
          * Therefore, if our 8 bpp image initially doesn't have a
          * colormap, we are going to need to remove it from any
-         * pix read from a BMP file!  */
+         * pix read from a BMP file. */
     pixc = pixClone(pixs);  /* laziness */
     cmap = pixGetColormap(pixc);  /* colormap; can be NULL */
     d = pixGetDepth(pixc);
 
     problems = FALSE;
-    switch (d)
-    {
-    case 1:
-    case 8:
-    case 32:
-            /* BMP always writes colormaps for 1 and 8 bpp, so we
-             * remove it if the input image doesn't have a colormap */
+
+        /* ----------------------- BMP -------------------------- */
+
+        /* BMP works for 1, 2, 4, 8 and 32 bpp images.
+         * It always writes colormaps for 1 and 8 bpp, so we must
+         * remove it after readback if the input image doesn't have
+         * a colormap.  Although we can write/read 2 bpp BMP, nobody
+         * else can read them! */
+    if (d == 1 || d == 8) {
+        L_INFO("write/read bmp", procName);
         pixWrite(FILE_BMP, pixc, IFF_BMP);
         pixt = pixRead(FILE_BMP);
         if (!cmap)
@@ -397,114 +424,134 @@ PIXCMAP  *cmap;
             pixt2 = pixClone(pixt);
         pixEqual(pixc, pixt2, &equal);
         if (!equal) {
-            fprintf(stderr, "bad bmp image\n");
+            L_INFO("   **** bad bmp image ****", procName);
             problems = TRUE;
         }
         pixDestroy(&pixt);
         pixDestroy(&pixt2);
+    }
 
-        pixWrite(FILE_PNG, pixc, IFF_PNG);
-        pixt = pixRead(FILE_PNG);
-        pixEqual(pixc, pixt, &equal);
-        if (!equal) {
-            fprintf(stderr, "bad png image\n");
-            problems = TRUE;
-        }
-        pixDestroy(&pixt);
-
-            /* Because 8 bpp tiff always writes 256 entry colormaps, the
-             * colormap sizes may be different for 8 bpp images with
-             * colormap; we are testing if the image content is the same */
-        pixWrite(FILE_TIFF, pixc, IFF_TIFF);
-        pixt = pixRead(FILE_TIFF);
-        pixEqual(pixc, pixt, &equal);
-        if (!equal) {
-            fprintf(stderr, "bad tiff uncompressed image\n");
-            problems = TRUE;
-        }
-        pixDestroy(&pixt);
-
-        if (d == 1) {
-            pixWrite(FILE_G4, pixc, IFF_TIFF_G4);
-            pixt = pixRead(FILE_G4);
-            pixEqual(pixc, pixt, &equal);
-            if (!equal) {
-                fprintf(stderr, "bad tiff g4 image\n");
-                problems = TRUE;
-            }
-            pixDestroy(&pixt);
-        }
-
-            /* pnm doesn't have colormaps, so when we write colormapped
-             * pix out as pnm, the colormap is removed.  Thus for the test,
-             * we must remove the colormap from pixc before testing.  */
-        pixWrite(FILE_PNM, pixc, IFF_PNM);
-        pixt = pixRead(FILE_PNM);
-        if (cmap)
-            pixt2 = pixRemoveColormap(pixc, REMOVE_CMAP_BASED_ON_SRC);
-        else
-            pixt2 = pixClone(pixc);
-        pixEqual(pixt, pixt2, &equal);
-        if (!equal) {
-            fprintf(stderr, "bad pnm image\n");
-            problems = TRUE;
-        }
-        pixDestroy(&pixt);
-        pixDestroy(&pixt2);
-        break;
-    case 2:
-    case 4:
-        pixWrite(FILE_PNG, pixc, IFF_PNG);
-        pixt = pixRead(FILE_PNG);
-        pixEqual(pixc, pixt, &equal);
-        if (!equal) {
-            fprintf(stderr, "bad png 2 or 4 bpp image\n");
-            problems = TRUE;
-        }
-        pixDestroy(&pixt);
-
-            /* I believe the 2 and 4 bpp tiff images with colormaps
-             * have colormap sizes 4 and 16, rsp.  This test should
-             * work properly on the content, regardless of the number
-             * of color entries in pixc. */
-        pixWrite(FILE_TIFF, pixc, IFF_TIFF);
-        pixt = pixRead(FILE_TIFF);
-        pixEqual(pixc, pixt, &equal);
-        if (!equal) {
-            fprintf(stderr, "bad tiff uncompressed image\n");
-            problems = TRUE;
-        }
-        pixDestroy(&pixt);
-
-            /* Note: this works in this test, but nobody else can
-             * read 2 bpp colormapped bmp files that are generated here! */
+    if (d == 2 || d == 4 || d == 32) {
+        L_INFO("write/read bmp", procName);
         pixWrite(FILE_BMP, pixc, IFF_BMP);
         pixt = pixRead(FILE_BMP);
         pixEqual(pixc, pixt, &equal);
         if (!equal) {
-            fprintf(stderr, "bad bmp 2 or 4 bpp image\n");
+            L_INFO("   **** bad bmp image ****", procName);
             problems = TRUE;
         }
         pixDestroy(&pixt);
-        break;
-    case 16:
+    }
+
+        /* ----------------------- PNG -------------------------- */
+
+        /* PNG works for all depths, but here, because we strip
+         * 16 --> 8 bpp on reading, we don't test png for 16 bpp. */
+    if (d != 16) {
+        L_INFO("write/read png", procName);
         pixWrite(FILE_PNG, pixc, IFF_PNG);
         pixt = pixRead(FILE_PNG);
         pixEqual(pixc, pixt, &equal);
         if (!equal) {
-            fprintf(stderr, "bad png 16 bpp image\n");
+            L_INFO("   **** bad png image ****", procName);
             problems = TRUE;
         }
         pixDestroy(&pixt);
-    default:
-        return ERROR_INT("d not in {1,2,4,8,16,32}", procName, 1);
     }
 
+        /* ----------------------- TIFF -------------------------- */
+
+        /* TIFF works for 1, 2, 4, 8, 16 and 32 bpp images.
+         * Because 8 bpp tiff always writes 256 entry colormaps, the
+         * colormap sizes may be different for 8 bpp images with
+         * colormap; we are testing if the image content is the same.
+         * Likewise, the 2 and 4 bpp tiff images with colormaps
+         * have colormap sizes 4 and 16, rsp.  This test should
+         * work properly on the content, regardless of the number
+         * of color entries in pixc. */
+
+        /* tiff uncompressed works for all pixel depths */
+    L_INFO("write/read uncompressed tiff", procName);
+    pixWrite(FILE_TIFF, pixc, IFF_TIFF);
+    pixt = pixRead(FILE_TIFF);
+    pixEqual(pixc, pixt, &equal);
+    if (!equal) {
+        L_INFO("   **** bad tiff uncompressed image ****", procName);
+        problems = TRUE;
+    }
+    pixDestroy(&pixt);
+
+        /* tiff lzw works for all pixel depths */
+    L_INFO("write/read lzw compressed tiff", procName);
+    pixWrite(FILE_LZW, pixc, IFF_TIFF_LZW);
+    pixt = pixRead(FILE_LZW);
+    pixEqual(pixc, pixt, &equal);
+    if (!equal) {
+        L_INFO("   **** bad tiff lzw compressed image ****", procName);
+        problems = TRUE;
+    }
+    pixDestroy(&pixt);
+
+        /* tiff adobe deflate (zip) works for all pixel depths */
+    L_INFO("write/read zip compressed tiff", procName);
+    pixWrite(FILE_ZIP, pixc, IFF_TIFF_ZIP);
+    pixt = pixRead(FILE_ZIP);
+    pixEqual(pixc, pixt, &equal);
+    if (!equal) {
+        L_INFO("   **** bad tiff zip compressed image ****", procName);
+        problems = TRUE;
+    }
+    pixDestroy(&pixt);
+
+        /* tiff g4 and g3 work for 1 bpp */
+    if (d == 1) {
+        L_INFO("write/read g4 compressed tiff", procName);
+        pixWrite(FILE_G4, pixc, IFF_TIFF_G4);
+        pixt = pixRead(FILE_G4);
+        pixEqual(pixc, pixt, &equal);
+        if (!equal) {
+            L_INFO("   **** bad tiff g4 image ****", procName);
+            problems = TRUE;
+        }
+        pixDestroy(&pixt);
+
+        L_INFO("write/read g3 compressed tiff", procName);
+        pixWrite(FILE_G3, pixc, IFF_TIFF_G3);
+        pixt = pixRead(FILE_G3);
+        pixEqual(pixc, pixt, &equal);
+        if (!equal) {
+            L_INFO("   **** bad tiff g3 image ****", procName);
+            problems = TRUE;
+        }
+        pixDestroy(&pixt);
+    }
+
+        /* ----------------------- PNM -------------------------- */
+
+        /* pnm works for 1, 2, 4, 8, 16 and 32 bpp.
+         * pnm doesn't have colormaps, so when we write colormapped
+         * pix out as pnm, the colormap is removed.  Thus for the test,
+         * we must remove the colormap from pixc before testing.  */
+    L_INFO("write/read pnm", procName);
+    pixWrite(FILE_PNM, pixc, IFF_PNM);
+    pixt = pixRead(FILE_PNM);
+    if (cmap)
+        pixt2 = pixRemoveColormap(pixc, REMOVE_CMAP_BASED_ON_SRC);
+    else
+        pixt2 = pixClone(pixc);
+    pixEqual(pixt, pixt2, &equal);
+    if (!equal) {
+        L_INFO("   **** bad pnm image ****", procName);
+        problems = TRUE;
+    }
+    pixDestroy(&pixt);
+    pixDestroy(&pixt2);
+
     if (problems == FALSE)
-        L_INFO("all formats read and written OK", procName);
+        L_INFO("All formats read and written OK!", procName);
 
     pixDestroy(&pixc);
     pixDestroy(&pixs);
-    return 0;
+    return problems;
 }
 

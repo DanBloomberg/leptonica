@@ -14,42 +14,54 @@
  *====================================================================*/
 
 /*
- * morphseqtest.c
+ * dwamorph1_reg.c
  *
+ *   Implements full regression test, including autogen of code,
+ *   compilation, and running the result.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define  VALID_SEQUENCE   "O1.3 + C3.1 + R22 + D2.2 + X4"
-#define  BAD_SEQUENCE     "O1.+D8 + E2.4 + e.4 + r25 + R + R.5 + X "\
-                          " + x5 + y7.3"
-
-
 main(int    argc,
      char **argv)
 {
-char        *infile;
-PIX         *pixs, *pixd;
-static char  mainName[] = "morphseqtest";
+char        *filename;
+char         buf[256];
+SELA        *sela;
+static char  mainName[] = "dwamorph1_reg";
 
     if (argc != 2)
-	exit(ERROR_INT(" Syntax:  morphseqtest infile", mainName, 1));
+	exit(ERROR_INT(" Syntax:  dwamorph1_reg filename", mainName, 1));
+    filename = argv[1];
 
-    infile = argv[1];
-    pixs = pixRead(infile);
+        /* Generate the linear sel dwa code */
+    sela = selaAddDwaLinear(NULL);
+    if (fmorphautogen(sela, 3, "dwalinear"))
+        exit(1);
+    selaDestroy(&sela);
 
-    fprintf(stderr, "Valid sequence: %s:\n", VALID_SEQUENCE);
-    pixd = pixMorphSequence(pixs, VALID_SEQUENCE, 250);
-    pixWrite("junkpixd", pixd, IFF_PNG);
-    pixDestroy(&pixd);
+#if 0
+        /* Build dwamorph2_reg, linking in that dwa code */
+    system("make dwamorph2_reg;");
 
-    fprintf(stderr, "\nBad sequence: %s:\n", BAD_SEQUENCE);
-    pixd = pixMorphSequence(pixs, BAD_SEQUENCE, 50);
-    pixDestroy(&pixd);
+        /* Run dwamorph2_reg to test the code */
+    sprintf(buf, "dwamorph2_reg %s;", filename);
+    system(buf);
+#endif
 
-    pixDestroy(&pixs);
+#if 1
+        /* Build dwamorph3_reg, linking in that dwa code */
+    system("make dwamorph3_reg;");
+#endif
+
+#if 0
+        /* Run dwamorph3_reg to test the code */
+    sprintf(buf, "dwamorph3_reg %s;", filename);
+    system(buf);
+#endif
+    
     exit(0);
 }
 

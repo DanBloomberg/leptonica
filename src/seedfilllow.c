@@ -253,7 +253,7 @@ l_uint32  *lines, *linem;
  *          surface, where the highest point is 200 and the low pixels
  *          around the rim are 30.  Beyond the rim, the mask goes up a bit.
  *          Suppose the seed, which is filled, consists of a single point
- *          of height 150 below the max of the mask, with the rest 0.
+ *          of height 150, located below the max of the mask, with the rest 0.
  *          Then in the raster scan, nothing happens until the high
  *          seed point is encountered, and then this value is propagated
  *          right and down, until it hits the side of the sombrero.
@@ -263,9 +263,11 @@ l_uint32  *lines, *linem;
  *          the seed image.  Then on the anti-raster scan, the seed
  *          fills flat inside the sombrero to the upper and left,
  *          and then out from the rim as before.  The final result
- *          has a seed that is flat outside the rim (and at the rim
- *          height), and inside it fills the sombrero but only
- *          up to 150.
+ *          has a seed that is flat outside the rim, and inside
+ *          it fills the sombrero but only up to 150.  If the rim
+ *          height varies, the filled seed outside the rim will be
+ *          at the highest point on the rim, which is a saddle point
+ *          on the rim.
  */
 void
 seedfillGrayLow(l_uint32  *datas,

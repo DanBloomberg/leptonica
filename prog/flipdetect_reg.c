@@ -26,12 +26,13 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
+static void printStarredMessage(const char *msg);
 
 main(int    argc,
      char **argv)
 {
 char        *filein;
-l_int32      i;
+l_int32      i, orient;
 l_float32    upconf1, upconf2, leftconf1, leftconf2, conf1, conf2;
 PIX         *pixs, *pixt1, *pixt2;
 static char  mainName[] = "flipdetect_reg";
@@ -41,25 +42,29 @@ static char  mainName[] = "flipdetect_reg";
 
     filein = argv[1];
 
-    if ((pixs = pixRead(filein)) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
+    if ((pixt1 = pixRead(filein)) == NULL)
+	exit(ERROR_INT("pixt1 not made", mainName, 1));
+    pixs = pixConvertTo1(pixt1, 130);
+    pixDestroy(&pixt1);
 	    
     fprintf(stderr, "\nTest orientation detection\n");
     startTimer();
     pixOrientDetect(pixs, &upconf1, &leftconf1, 0, 0);
     fprintf(stderr, "Time for rop orient test: %7.3f sec\n", stopTimer());
 
+    makeOrientDecision(upconf1, leftconf1, 0, 0, &orient, 1);
+
     startTimer();
     pixOrientDetectDwa(pixs, &upconf2, &leftconf2, 0, 0);
     fprintf(stderr, "Time for dwa orient test: %7.3f sec\n", stopTimer());
 
     if (upconf1 == upconf2 && leftconf1 == leftconf2) {
-        fprintf(stderr, "Orient results identical\n");
+        printStarredMessage("Orient results identical");
         fprintf(stderr, "upconf = %7.3f, leftconf = %7.3f\n",
                 upconf1, leftconf1);
     }
     else {
-        fprintf(stderr, "Orient results differ\n");
+        printStarredMessage("Orient results differ");
         fprintf(stderr, "upconf1 = %7.3f, upconf2 = %7.3f\n", upconf1, upconf2);
         fprintf(stderr, "leftconf1 = %7.3f, leftconf2 = %7.3f\n",
                 leftconf1, leftconf2);
@@ -69,8 +74,7 @@ static char  mainName[] = "flipdetect_reg";
     fprintf(stderr, "\nTest orient detection for 4 orientations\n");
     for (i = 0; i < 4; i++) {
         pixOrientDetectDwa(pixt1, &upconf2, &leftconf2, 0, 0);
-        fprintf(stderr, "upconf2 = %7.3f, leftconf2 = %7.3f\n",
-                upconf2, leftconf2);
+        makeOrientDecision(upconf2, leftconf2, 0, 0, &orient, 1);
         if (i == 3) break;
         pixt2 = pixRotate90(pixt1, 1);
         pixDestroy(&pixt1);
@@ -80,7 +84,7 @@ static char  mainName[] = "flipdetect_reg";
 
     fprintf(stderr, "\nTest mirror reverse detection\n");
     startTimer();
-    pixMirrorDetect(pixs, &conf1, 0, 0);
+    pixMirrorDetect(pixs, &conf1, 0, 1);
     fprintf(stderr, "Time for rop mirror flip test: %7.3f sec\n", stopTimer());
 
     startTimer();
@@ -88,20 +92,29 @@ static char  mainName[] = "flipdetect_reg";
     fprintf(stderr, "Time for dwa mirror flip test: %7.3f sec\n", stopTimer());
 
     if (conf1 == conf2) {
-        fprintf(stderr, "Mirror results identical\n");
+        printStarredMessage("Mirror results identical");
         fprintf(stderr, "conf = %7.3f\n", conf1);
     }
     else {
-        fprintf(stderr, "Mirror results differ\n");
+        printStarredMessage("Mirror results differ");
         fprintf(stderr, "conf1 = %7.3f, conf2 = %7.3f\n", conf1, conf2);
     }
 
-#if 0
-        /* Debug only */
-    pixUpDownDetect(pixs, &conf1, 0);
-#endif
+    fprintf(stderr, "\nOnce more for up-down test\n");
+    pixUpDownDetect(pixs, &conf1, 0, 1);
 
     pixDestroy(&pixs);
     exit(0);
 }
+
+
+void
+printStarredMessage(const char *msg)
+{
+    fprintf(stderr, "****************************************************\n");
+    fprintf(stderr, "***********   %s   ***********\n", msg);
+    fprintf(stderr, "****************************************************\n");
+    return;
+}
+
 

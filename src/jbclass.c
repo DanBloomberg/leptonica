@@ -44,8 +44,6 @@
  *     Binary correlation classifier
  *
  *         l_int32     jbClassifyCorrelation()
- *         l_float32   pixCorrelationScore()
- *         l_float32   pixCorrelationScoreSimple()
  *
  *     Determine the image components we start with
  *
@@ -197,6 +195,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "allheaders.h"
 
 #if defined(__MINGW32__) || defined(_WIN32)
@@ -999,13 +998,14 @@ jbClassifyCorrelation(JBCLASSER  *classer,
                       BOXA       *boxa,
                       PIXA       *pixas)
 {
-l_int32     n, nt, i, iclass, wt, ht, found, area, area1, area2, npages;
-l_int32    *sumtab;
-l_float32   x1, y1, x2, y2;
-l_float32   thresh, weight, threshold, score;
+l_int32     n, nt, i, iclass, wt, ht, found, area, area1, area2, npages,
+            overthreshold;
+l_int32    *sumtab, *centtab;
+l_uint32   *row, word;
+l_float32   x1, y1, x2, y2, xsum, ysum;
+l_float32   thresh, weight, threshold;
 BOX        *box;
 NUMA       *naclass, *napage;
-NUMA       *nafg;    /* fg area of all instances */
 NUMA       *nafgt;   /* fg area of all templates */
 NUMA       *naarea;   /* w * h area of all templates */
 JBFINDCTX  *findcontext;
@@ -1014,6 +1014,10 @@ PIX        *pix, *pix1, *pix2;
 PIXA       *pixa, *pixa1, *pixat;
 PIXAA      *pixaa;
 PTA        *pta, *ptac, *ptact;
+l_int32    *pixcts;  /* pixel counts of each pixa */
+l_int32   **pixrowcts;  /* row-by-row pixel counts of each pixa */
+l_int32     x, y, rowcount, downcount, wpl;
+l_uint8     byte;
 
     PROCNAME("jbClassifyCorrelation");
 
@@ -1038,21 +1042,67 @@ PTA        *pta, *ptac, *ptact;
         pixDestroy(&pix);
     }
 
-        /* Get the centroids of all the bordered images.
-         * These are relative to the UL corner of each (bordered) pix.  */
-    pta = pixaCentroids(pixa1);  /* centroids for this page; use here */
-    ptac = classer->ptac;  /* holds centroids of components up to this page */
-    ptaJoin(ptac, pta, 0, 0);  /* save centroids of all components */
-    ptact = classer->ptact;  /* holds centroids of templates */
-        
         /* Use these to save the class and page of each component. */
     naclass = classer->naclass;
     napage = classer->napage;
 
         /* Get the number of fg pixels in each component.  */
-    nafg = pixaCountPixels(pixa1);
     nafgt = classer->nafgt;    /* holds fg areas of the templates */
     sumtab = makePixelSumTab8();
+
+    pixcts = (l_int32 *)CALLOC(n, sizeof(*pixcts));
+    pixrowcts = (l_int32 **)CALLOC(n, sizeof(*pixrowcts));
+    centtab = makePixelCentroidTab8();
+    if (!pixcts || !pixrowcts || !centtab)
+        return ERROR_INT("calloc fail in pix*cts or centtab", procName, 1);
+
+        /* Count the "1" pixels in each row of the pix in pixa1; this
+         * allows pixCorrelationScoreThresholded to abort early if a match
+         * is impossible.  This loop merges three calculations: the total
+         * number of "1" pixels, the number of "1" pixels in each row, and
+         * the centroid.  The centroids are relative to the UL corner of
+         * each (bordered) pix.  The pixrowcts[i][y] are the total number
+         * of fg pixels in pixa[i] below row y. */
+    pta = ptaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixa1, i, L_CLONE);
+        pixrowcts[i] = (l_int32 *)CALLOC(pixGetHeight(pix),
+                                         sizeof(**pixrowcts));
+        xsum = 0;
+        ysum = 0;
+        wpl = pixGetWpl(pix);
+        row = pixGetData(pix) + (pixGetHeight(pix) - 1) * wpl;
+        downcount = 0;
+        for (y = pixGetHeight(pix) - 1; y >= 0; y--, row -= wpl) {
+            pixrowcts[i][y] = downcount;
+            rowcount = 0;
+            for (x = 0; x < wpl; x++) {
+                word = row[x];
+                byte = word & 0xff;
+                rowcount += sumtab[byte];
+                xsum += centtab[byte] + (x * 32 + 24) * sumtab[byte];
+                byte = (word >> 8) & 0xff;
+                rowcount += sumtab[byte];
+                xsum += centtab[byte] + (x * 32 + 16) * sumtab[byte];
+                byte = (word >> 16) & 0xff;
+                rowcount += sumtab[byte];
+                xsum += centtab[byte] + (x * 32 + 8) * sumtab[byte];
+                byte = (word >> 24) & 0xff;
+                rowcount += sumtab[byte];
+                xsum += centtab[byte] + x * 32 * sumtab[byte];
+            }
+            downcount += rowcount;
+            ysum += rowcount * y;
+        }
+        pixcts[i] = downcount;
+        ptaAddPt(pta,
+                 xsum / (l_float32)downcount, ysum / (l_float32)downcount);
+        pixDestroy(&pix);
+    }
+
+    ptac = classer->ptac;  /* holds centroids of components up to this page */
+    ptaJoin(ptac, pta, 0, 0);  /* save centroids of all components */
+    ptact = classer->ptact;  /* holds centroids of templates */
 
     /* Store the unbordered pix in a pixaa, in a hierarchical
      * set of arrays.  There is one pixa for each class,
@@ -1094,30 +1144,16 @@ PTA        *pta, *ptac, *ptact;
     nahash = classer->nahash;
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixa1, i, L_CLONE);
-        numaGetIValue(nafg, i, &area1);
+        area1 = pixcts[i];
         ptaGetPt(pta, i, &x1, &y1);  /* centroid for this instance */
         nt = pixaGetCount(pixat);
         found = FALSE;
         findcontext = findSimilarSizedTemplatesInit(classer, pix1);
         while ( (iclass = findSimilarSizedTemplatesNext(findcontext)) > -1) {
-                /* Find score for this template */
+                /* Get the template */
             pix2 = pixaGetPix(pixat, iclass, L_CLONE);
             numaGetIValue(nafgt, iclass, &area2);
             ptaGetPt(ptact, iclass, &x2, &y2);  /* template centroid */
-            score = pixCorrelationScore(pix1, pix2, area1, area2,
-                        x1 - x2, y1 - y2, sumtab);
-#if DEBUG_CORRELATION_SCORE
-            {
-                l_float32 testscore;
-                testscore = pixCorrelationScoreSimple(pix1, pix2, area1, area2,
-                                x1 - x2, y1 - y2, sumtab);
-                if (score != testscore) {
-                    fprintf(stderr, "Correlation score mismatch: %g vs %g\n",
-                            score, testscore);
-                }
-            }
-#endif  /* DEBUG_CORRELATION_SCORE */
-            pixDestroy(&pix2);
 
                 /* Find threshold for this template */
             if (weight > 0.0) {
@@ -1127,7 +1163,40 @@ PTA        *pta, *ptac, *ptact;
             else
                 threshold = thresh;
 
-            if (score >= threshold) {  /* greedy match */
+                /* Find score for this template */
+            overthreshold = pixCorrelationScoreThresholded(pix1, pix2,
+                                                           area1, area2,
+                                                           x1 - x2, y1 - y2,
+                                                           sumtab,
+                                                           pixrowcts[i],
+                                                           threshold);
+#if DEBUG_CORRELATION_SCORE
+            {
+                l_float32 score, testscore;
+                l_int32 count, testcount;
+                score = pixCorrelationScore(pix1, pix2, area1, area2,
+                                            x1 - x2, y1 - y2, sumtab);
+
+                testscore = pixCorrelationScoreSimple(pix1, pix2, area1, area2,
+                                  x1 - x2, y1 - y2, sumtab);
+                count = (l_int32)rint(sqrt(score * area1 * area2));
+                testcount = (l_int32)rint(sqrt(testscore * area1 * area2));
+                if ((score >= threshold) != (testscore >= threshold)) {
+                    fprintf(stderr, "Correlation score mismatch: %d(%g,%d) vs %d(%g,%d) (%g)\n",
+                            count, score, score >= threshold,
+                            testcount, testscore, testscore >= threshold,
+                            score - testscore);
+                }
+
+                if ((score >= threshold) != overthreshold) {
+                    fprintf(stderr, "Mismatch between correlation/threshold comparison: %g(%g,%d) >= %g(%g) vs %s\n",
+                            score, score*area1*area2, count, threshold, threshold*area1*area2, (overthreshold ? "true" : "false"));
+                }
+            }
+#endif  /* DEBUG_CORRELATION_SCORE */
+            pixDestroy(&pix2);
+
+            if (overthreshold) {  /* greedy match */
                 found = TRUE;
                 numaAddNumber(naclass, iclass);
                 numaAddNumber(napage, npages);
@@ -1169,387 +1238,17 @@ PTA        *pta, *ptac, *ptact;
     }
     classer->nclass = pixaGetCount(pixat);
 
+    FREE(pixcts);
+    FREE(centtab);
+    for (i = 0; i < n; i++) {
+        FREE(pixrowcts[i]);
+    }
+    FREE(pixrowcts);
+
     FREE(sumtab);
     ptaDestroy(&pta);
     pixaDestroy(&pixa1);
-    numaDestroy(&nafg);
     return 0;
-}
-
-
-/*!
- *  pixCorrelationScore()
- *
- *      Input:  pix1   (test pix)
- *              pix2   (exemplar pix)
- *              area1  (number of on pixels in pix1)
- *              area2  (number of on pixels in pix2)
- *              delx   (x comp of centroid difference)
- *              dely   (y comp of centroid difference)
- *              tab    (sum tab for byte)
- *      Return: correlation score 
- *
- *  Note: we check first that the two pix are roughly the same size.
- *  Only if they meet that criterion do we compare the bitmaps. 
- *  The centroid difference is used to align the two images to the
- *  nearest integer for the correlation.
- *
- *  The correlation score is the ratio of the square of the number of
- *  pixels in the AND of the two bitmaps to the product of the number
- *  of ON pixels in each.  Denote the number of ON pixels in pix1
- *  by |1|, the number in pix2 by |2|, and the number in the AND
- *  of pix1 and pix2 by |1 & 2|.  The correlation score is then
- *  (|1 & 2|)**2 / (|1|*|2|).
- *
- *  This score is compared with an input threshold, which can
- *  be modified depending on the weight of the template.
- *  The modified threshold is
- *     thresh + (1.0 - thresh) * weight * R
- *  where 
- *     weight is a fixed input factor between 0.0 and 1.0
- *     R = |2| / area(2)
- *  and area(2) is the total number of pixels in 2 (i.e., width x height).
- *
- *  To understand why a weight factor is useful, consider what happens
- *  with thick, sans-serif characters that look similar and have a value
- *  of R near 1.  Different characters can have a high correlation value,
- *  and the classifier will make incorrect substitutions.  The weight
- *  factor raises the threshold for these characters.
- *
- *  Yet another approach to reduce such substitutions is to run the classifier
- *  in a non-greedy way, matching to the template with the highest
- *  score, not the first template with a score satisfying the matching
- *  constraint.  However, this is not particularly effective.
- *
- *  The implementation here gives the same result as in
- *  pixCorrelationScoreSimple(), where a temporary Pix is made to hold
- *  the AND and implementation uses rasterop:
- *      pixt = pixCreateTemplate(pix1);
- *      pixRasterop(pixt, idelx, idely, wt, ht, PIX_SRC, pix2, 0, 0);
- *      pixRasterop(pixt, 0, 0, wi, hi, PIX_SRC & PIX_DST, pix1, 0, 0);
- *      pixCountPixels(pixt, &count, tab);
- *      pixDestroy(&pixt);
- *  However, here it is done in a streaming fashion, counting as it goes,
- *  and touching memory exactly once, giving a 3-4x speedup over the
- *  simple implementation.
- */
-l_float32
-pixCorrelationScore(PIX       *pix1,
-                    PIX       *pix2,
-                    l_int32    area1,
-                    l_int32    area2,
-                    l_float32  delx,   /* x(1) - x(3) */
-                    l_float32  dely,   /* y(1) - y(3) */
-                    l_int32   *tab)
-{
-l_int32    wi, hi, wt, ht, delw, delh, idelx, idely, count;
-l_int32    wpl1, wpl2, lorow, hirow, locol, hicol, rowwords2;
-l_int32    x, y;
-l_uint32   word1, word2, andw;
-l_uint32  *row1, *row2;
-l_float32  score;
-
-    PROCNAME("pixCorrelationScore");
-
-    if (!pix1)
-        return (l_float32)ERROR_FLOAT("pix1 not defined", procName, 0.0);
-    if (!pix2)
-        return (l_float32)ERROR_FLOAT("pix2 not defined", procName, 0.0);
-    if (!tab)
-        return (l_float32)ERROR_FLOAT("tab not defined", procName, 0.0);
-    if (!area1 || !area2)
-        return (l_float32)ERROR_FLOAT("areas must be > 0", procName, 0.0);
-
-        /* Eliminate based on size difference */
-    pixGetDimensions(pix1, &wi, &hi, NULL);
-    pixGetDimensions(pix2, &wt, &ht, NULL);
-    delw = L_ABS(wi - wt);
-    if (delw > MAX_DIFF_WIDTH)
-        return 0.0;
-    delh = L_ABS(hi - ht);
-    if (delh > MAX_DIFF_HEIGHT)
-        return 0.0;
-
-        /* Round difference to nearest integer */
-    if (delx >= 0)
-        idelx = (l_int32)(delx + 0.5);
-    else
-        idelx = (l_int32)(delx - 0.5);
-    if (dely >= 0)
-        idely = (l_int32)(dely + 0.5);
-    else
-        idely = (l_int32)(dely - 0.5);
-
-    count = 0;
-    wpl1 = pixGetWpl(pix1);
-    wpl2 = pixGetWpl(pix2);
-    rowwords2 = wpl2;
-
-    /* What rows of pix1 need to be considered?  Only those underlying the
-     * shifted pix2. */
-    lorow = L_MAX(idely, 0);
-    hirow = L_MIN(ht + idely, hi);
-
-    /* Get the pointer to the first row of each image that will be
-     * considered. */
-    row1 = pixGetData(pix1) + wpl1 * lorow;
-    row2 = pixGetData(pix2) + wpl2 * (lorow - idely);
-
-    /* Similarly, figure out which columns of pix1 will be considered. */
-    locol = L_MAX(idelx, 0);
-    hicol = L_MIN(wt + idelx, wi);
-
-    if (idelx >= 32) {
-        /* pix2 is shifted far enough to the right that pix1's first
-         * word(s) won't contribute to the count.  Increment its pointer to
-         * point to the first word that will contribute, and adjust other
-         * values accordingly. */
-        l_int32 pix1lskip = idelx >> 5;  /* How many words to skip on the left */
-        row1 += pix1lskip;
-        locol -= pix1lskip << 5;
-        hicol -= pix1lskip << 5;
-        idelx &= 31;
-    } else if (idelx <= -32) {
-        /* pix2 is shifted far enough to the left that its first word(s)
-         * won't contribute to the count.  Increment its pointer to point
-         * to the first word that will contribute, and adjust other values
-         * accordingly. */
-        l_int32 pix2lskip = -(idelx >> 5);  /* How many words to skip on the
-                                             * left */
-        row2 += pix2lskip;
-        rowwords2 -= pix2lskip;
-        idelx += pix2lskip << 5;
-    }
-
-    if ((locol >= hicol) || (lorow >= hirow)) {
-        /* There is no overlap. */
-        count = 0;
-    } else {
-        /* How many words of each row of pix1 need to be considered? */
-        l_int32 rowwords1 = (hicol + 31) >> 5;
-
-        if (idelx == 0) {
-            /* There's no lateral offset; simple case. */
-            for (y = lorow; y < hirow; y++, row1 += wpl1, row2 += wpl2) {
-                for (x = 0; x < rowwords1; x++) {
-                    andw = row1[x] & row2[x];
-                    count += tab[andw & 0xff] +
-                        tab[(andw >> 8) & 0xff] +
-                        tab[(andw >> 16) & 0xff] +
-                        tab[andw >> 24];
-                }
-            }
-        } else if (idelx > 0) {
-            /* pix2 is shifted to the right.  word 0 of pix1 is touched by
-             * word 0 of pix2; word 1 of pix1 is touched by word 0 and word
-             * 1 of pix2, and so on up to the last word of pix1 (word N),
-             * which is touched by words N-1 and N of pix1... if there is a
-             * word N.  Handle the two cases (pix2 has N-1 words and pix2
-             * has at least N words) separately.
-             *
-             * Note: we know that pix2 has at least N-1 words (i.e.,
-             * rowwords2 >= rowwords1 - 1) by the following
-             * logic.  We can pretend that idelx <= 31 because the >= 32 logic
-             * above adjusted everything appropriately.  Then
-             * hicol <= wt + idelx <= wt + 31, so
-             * hicol + 31 <= wt + 62
-             * rowwords1 = (hicol + 31) >> 5 <= (wt + 62) >> 5
-             * rowwords2 == (wt + 31) >> 5, so
-             * rowwords1 <= rowwords2 + 1 */
-            if (rowwords2 < rowwords1) {
-                for (y = lorow; y < hirow; y++, row1 += wpl1, row2 += wpl2) {
-                    /* Do the first iteration so the loop can be
-                     * branch-free. */
-                    word1 = row1[0];
-                    word2 = row2[0] >> idelx;
-                    andw = word1 & word2;
-                    count += tab[andw & 0xff] +
-                        tab[(andw >> 8) & 0xff] +
-                        tab[(andw >> 16) & 0xff] +
-                        tab[andw >> 24];
-
-                    for (x = 1; x < rowwords2; x++) {
-                        word1 = row1[x];
-                        word2 = (row2[x] >> idelx) |
-                            (row2[x - 1] << (32 - idelx));
-                        andw = word1 & word2;
-                        count += tab[andw & 0xff] +
-                            tab[(andw >> 8) & 0xff] +
-                            tab[(andw >> 16) & 0xff] +
-                            tab[andw >> 24];
-                    }
-
-                    /* Now the last iteration - we know that this is safe
-                     * (i.e.  rowwords1 >= 2) because rowwords1 > rowwords2
-                     * > 0 (if it was 0, we'd have taken the "count = 0"
-                     * fast-path out of here). */
-                    word1 = row1[x];
-                    word2 = row2[x - 1] << (32 - idelx);
-                    andw = word1 & word2;
-                    count += tab[andw & 0xff] +
-                        tab[(andw >> 8) & 0xff] +
-                        tab[(andw >> 16) & 0xff] +
-                        tab[andw >> 24];
-                }
-            } else {
-                for (y = lorow; y < hirow; y++, row1 += wpl1, row2 += wpl2) {
-                    /* Do the first iteration so the loop can be
-                     * branch-free.  This section is the same as above
-                     * except for the different limit on the loop, since
-                     * the last iteration is the same as all the other
-                     * iterations (beyond the first). */
-                    word1 = row1[0];
-                    word2 = row2[0] >> idelx;
-                    andw = word1 & word2;
-                    count += tab[andw & 0xff] +
-                        tab[(andw >> 8) & 0xff] +
-                        tab[(andw >> 16) & 0xff] +
-                        tab[andw >> 24];
-
-                    for (x = 1; x < rowwords1; x++) {
-                        word1 = row1[x];
-                        word2 = (row2[x] >> idelx) |
-                            (row2[x - 1] << (32 - idelx));
-                        andw = word1 & word2;
-                        count += tab[andw & 0xff] +
-                            tab[(andw >> 8) & 0xff] +
-                            tab[(andw >> 16) & 0xff] +
-                            tab[andw >> 24];
-                    }
-                }
-            }
-        } else {
-            /* pix2 is shifted to the left.  word 0 of pix1 is touched by
-             * word 0 and word 1 of pix2, and so on up to the last word of
-             * pix1 (word N), which is touched by words N and N+1 of
-             * pix2... if there is a word N+1.  Handle the two cases (pix2
-             * has N words and pix2 has at least N+1 words) separately. */
-            if (rowwords1 < rowwords2) {
-                /* pix2 has at least N+1 words, so every iteration through
-                 * the loop can be the same. */
-                for (y = lorow; y < hirow; y++, row1 += wpl1, row2 += wpl2) {
-                    for (x = 0; x < rowwords1; x++) {
-                        word1 = row1[x];
-                        word2 = row2[x] << -idelx;
-                        word2 |= row2[x + 1] >> (32 + idelx);
-                        andw = word1 & word2;
-                        count += tab[andw & 0xff] +
-                            tab[(andw >> 8) & 0xff] +
-                            tab[(andw >> 16) & 0xff] +
-                            tab[andw >> 24];
-                    }
-                }
-            } else {
-                /* pix2 has only N words, so the last iteration is broken
-                 * out. */
-                for (y = lorow; y < hirow; y++, row1 += wpl1, row2 += wpl2) {
-                    for (x = 0; x < rowwords1 - 1; x++) {
-                        word1 = row1[x];
-                        word2 = row2[x] << -idelx;
-                        word2 |= row2[x + 1] >> (32 + idelx);
-                        andw = word1 & word2;
-                        count += tab[andw & 0xff] +
-                            tab[(andw >> 8) & 0xff] +
-                            tab[(andw >> 16) & 0xff] +
-                            tab[andw >> 24];
-                    }
-
-                    word1 = row1[x];
-                    word2 = row2[x] << -idelx;
-                    andw = word1 & word2;
-                    count += tab[andw & 0xff] +
-                        tab[(andw >> 8) & 0xff] +
-                        tab[(andw >> 16) & 0xff] +
-                        tab[andw >> 24];
-                }
-            }
-        }
-    }
-
-    score = (l_float32)(count * count) / (l_float32)(area1 * area2);
-/*    fprintf(stderr, "score = %7.3f, count = %d, area1 = %d, area2 = %d\n",
-             score, count, area1, area2); */
-    return score;
-}
-
-
-/*!
- *  pixCorrelationScoreSimple()
- *
- *      Input:  pix1   (test pix)
- *              pix2   (exemplar pix)
- *              area1  (number of on pixels in pix1)
- *              area2  (number of on pixels in pix2)
- *              delx   (x comp of centroid difference)
- *              dely   (y comp of centroid difference)
- *              tab    (sum tab for byte)
- *      Return: correlation score 
- *
- *  Notes:
- *      (1) This calculates exactly the same value as pixCorrelationScore().
- *          It is 2-3x slower, but much simpler to understand.
- */
-l_float32
-pixCorrelationScoreSimple(PIX       *pix1,
-                          PIX       *pix2,
-                          l_int32    area1,
-                          l_int32    area2,
-                          l_float32  delx,   /* x(1) - x(3) */
-                          l_float32  dely,   /* y(1) - y(3) */
-                          l_int32   *tab)
-{
-l_int32    wi, hi, wt, ht, delw, delh, idelx, idely, count;
-l_float32  score;
-PIX       *pixt;
-
-    PROCNAME("pixCorrelationScoreSimple");
-
-    if (!pix1)
-        return (l_float32)ERROR_FLOAT("pix1 not defined", procName, 0.0);
-    if (!pix2)
-        return (l_float32)ERROR_FLOAT("pix2 not defined", procName, 0.0);
-    if (!tab)
-        return (l_float32)ERROR_FLOAT("tab not defined", procName, 0.0);
-    if (!area1 || !area2)
-        return (l_float32)ERROR_FLOAT("areas must be > 0", procName, 0.0);
-
-        /* Eliminate based on size difference */
-    pixGetDimensions(pix1, &wi, &hi, NULL);
-    pixGetDimensions(pix2, &wt, &ht, NULL);
-    delw = L_ABS(wi - wt);
-    if (delw > MAX_DIFF_WIDTH)
-        return 0.0;
-    delh = L_ABS(hi - ht);
-    if (delh > MAX_DIFF_HEIGHT)
-        return 0.0;
-
-        /* Round difference to nearest integer */
-    if (delx >= 0)
-        idelx = (l_int32)(delx + 0.5);
-    else
-        idelx = (l_int32)(delx - 0.5);
-    if (dely >= 0)
-        idely = (l_int32)(dely + 0.5);
-    else
-        idely = (l_int32)(dely - 0.5);
-
-        /*  pixt = pixAnd(NULL, pix1, pix2), including shift.
-         *  To insure that pixels are ON only within the
-         *  intersection of pix1 and the shifted pix2:
-         *  (1) Start with pixt cleared and equal in size to pix1.
-         *  (2) Blit the shifted pix2 onto pixt.  Then all ON pixels
-         *      are within the intersection of pix1 and the shifted pix2.
-         *  (3) AND pix1 with pixt. */
-    pixt = pixCreateTemplate(pix1);
-    pixRasterop(pixt, idelx, idely, wt, ht, PIX_SRC, pix2, 0, 0);
-    pixRasterop(pixt, 0, 0, wi, hi, PIX_SRC & PIX_DST, pix1, 0, 0);
-    pixCountPixels(pixt, &count, tab);
-    pixDestroy(&pixt);
-
-    score = (l_float32)(count * count) / (l_float32)(area1 * area2);
-/*    fprintf(stderr, "score = %7.3f, count = %d, area1 = %d, area2 = %d\n",
-             score, count, area1, area2); */
-    return score;
 }
 
 

@@ -185,15 +185,9 @@ static const l_float32  DEFAULT_MIN_UP_DOWN_RATIO = 2.5;
 static const l_int32  DEFAULT_MIN_MIRROR_FLIP_COUNT = 100;
 static const l_float32  DEFAULT_MIN_MIRROR_FLIP_CONF = 5.0;
 
-    /* Debug function */
+    /* Static debug function */
 static void pixDebugFlipDetect(const char *filename, PIX *pixs,
                                PIX *pixhm, l_int32 enable);
-
-#ifndef NO_CONSOLE_IO
-#define  DEBUG_UD_DISPLAY  0
-#define  DEBUG_M_DISPLAY   0
-#define  DEBUG_MIRROR      0
-#endif   /* ~NO_CONSOLE_IO */
 
 
 /*----------------------------------------------------------------*
@@ -432,7 +426,7 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     pixOr(pixt1, pixt1, pixt2);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countup, NULL);
-    pixDebugFlipDetect("junkpixup", pixs, pixt1, DEBUG_UD_DISPLAY);
+    pixDebugFlipDetect("junkpixup", pixs, pixt1, debug);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -442,7 +436,7 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     pixOr(pixt1, pixt1, pixt2);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countdown, NULL);
-    pixDebugFlipDetect("junkpixdown", pixs, pixt1, DEBUG_UD_DISPLAY);
+    pixDebugFlipDetect("junkpixdown", pixs, pixt1, debug);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -689,7 +683,7 @@ SEL       *sel1, *sel2;
     pixt1 = pixHMT(NULL, pixt0, sel1);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &count1, NULL);
-    pixDebugFlipDetect("junkpixright", pixs, pixt1, DEBUG_M_DISPLAY);
+    pixDebugFlipDetect("junkpixright", pixs, pixt1, debug);
     pixDestroy(&pixt1);
     pixDestroy(&pixt3);
 
@@ -697,7 +691,7 @@ SEL       *sel1, *sel2;
     pixt2 = pixHMT(NULL, pixt0, sel2);
     pixt3 = pixReduceRankBinaryCascade(pixt2, 1, 1, 0, 0);
     pixCountPixels(pixt3, &count2, NULL);
-    pixDebugFlipDetect("junkpixleft", pixs, pixt2, DEBUG_M_DISPLAY);
+    pixDebugFlipDetect("junkpixleft", pixs, pixt2, debug);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
 
@@ -829,7 +823,7 @@ PIX  *pixt, *pixthm;
 
    if (!enable) return;
 
-        /* display with red dot at counted locations */
+        /* Display with red dot at counted locations */
     pixt = pixConvert1To4Cmap(pixs);
     pixthm = pixMorphSequence(pixhm, "d5.5", 0);
     pixSetMaskedCmap(pixt, pixthm, 0, 0, 255, 0, 0);

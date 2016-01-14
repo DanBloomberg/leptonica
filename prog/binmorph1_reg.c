@@ -34,6 +34,7 @@
  *           morph sequence rasterop brick
  *           dwa brick
  *           morph sequence dwa brick
+ *           morph sequence dwa composite brick
  *      when using ASYMMETRIC_MORPH_BC.
  *      However, when using SYMMETRIC_MORPH_BC, there are differences
  *      in two of the safe closing operations.  These differences
@@ -52,8 +53,8 @@
 #include "allheaders.h"
 
     /* set these ad lib. */
-#define    WIDTH           21     /* brick sel width */
-#define    HEIGHT          7      /* brick sel height */
+#define    WIDTH            21    /* brick sel width */
+#define    HEIGHT           15    /* brick sel height */
 #define    TEST_SYMMETRIC   0     /* set to 1 to set symmetric b.c.;
                                      otherwise, it tests asymmetric b.c. */
 
@@ -61,11 +62,12 @@
 main(int    argc,
      char **argv)
 {
-l_int32      ok, same;
+l_int32      i, ok, same;
 char         sequence[512];
 PIX         *pixs, *pixref;
 PIX         *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6;
-PIX         *pixt7, *pixt8, *pixt9, *pixt10, *pixt11, *pixt12;
+PIX         *pixt7, *pixt8, *pixt9, *pixt10, *pixt11;
+PIX         *pixt12, *pixt13, *pixt14;
 SEL         *sel;
 static char  mainName[] = "binmorph1_reg";
 
@@ -144,11 +146,22 @@ static char  mainName[] = "binmorph1_reg";
     if (!same) {
         fprintf(stderr, "pixref != pixt10 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "d%d.%d", WIDTH, HEIGHT);
-    pixt11 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixt11 = pixCreateTemplate(pixs);
+    pixDilateCompBrickDwa(pixt11, pixs, WIDTH, HEIGHT);  /* existing one */
     pixEqual(pixref, pixt11, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt11!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
+    }
+    sprintf(sequence, "d%d.%d", WIDTH, HEIGHT);
+    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
+    pixEqual(pixref, pixt12, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+    }
+    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pixt13, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
     }
     pixDestroy(&pixref);
     pixDestroy(&pixt1);
@@ -162,6 +175,8 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt9);
     pixDestroy(&pixt10);
     pixDestroy(&pixt11);
+    pixDestroy(&pixt12);
+    pixDestroy(&pixt13);
 
         /* Erosion */
     fprintf(stderr, "Testing erosion\n");
@@ -224,11 +239,31 @@ static char  mainName[] = "binmorph1_reg";
     if (!same) {
         fprintf(stderr, "pixref != pixt10 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "e%d.%d", WIDTH, HEIGHT);
-    pixt11 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixt11 = pixCreateTemplate(pixs);
+    pixErodeCompBrickDwa(pixt11, pixs, WIDTH, HEIGHT);  /* existing one */
     pixEqual(pixref, pixt11, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt11!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
+    }
+    
+#if 0
+    pixWrite("junkref", pixref, IFF_PNG);
+    pixWrite("junk11", pixt11, IFF_PNG);
+    pixt12 = pixXor(NULL, pixref, pixt11);
+    pixWrite("junk12", pixt12, IFF_PNG);
+    pixDestroy(&pixt12);
+#endif
+
+    sprintf(sequence, "e%d.%d", WIDTH, HEIGHT);
+    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
+    pixEqual(pixref, pixt12, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+    }
+    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pixt13, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
     }
     pixDestroy(&pixref);
     pixDestroy(&pixt1);
@@ -242,6 +277,8 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt9);
     pixDestroy(&pixt10);
     pixDestroy(&pixt11);
+    pixDestroy(&pixt12);
+    pixDestroy(&pixt13);
 
         /* Opening */
     fprintf(stderr, "Testing opening\n");
@@ -312,10 +349,21 @@ static char  mainName[] = "binmorph1_reg";
         fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
     }
     sprintf(sequence, "o%d.%d", WIDTH, HEIGHT);
-    pixt12 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
     pixEqual(pixref, pixt12, &same);
     if (!same) {
         fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+    }
+    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pixt13, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
+    }
+    pixt14 = pixCreateTemplate(pixs);
+    pixOpenCompBrickDwa(pixt14, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pixt14, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt14 !\n"); ok = FALSE;
     }
     pixDestroy(&pixref);
     pixDestroy(&pixt1);
@@ -330,6 +378,8 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt10);
     pixDestroy(&pixt11);
     pixDestroy(&pixt12);
+    pixDestroy(&pixt13);
+    pixDestroy(&pixt14);
 
         /* Closing */
     fprintf(stderr, "Testing closing\n");
@@ -454,10 +504,21 @@ static char  mainName[] = "binmorph1_reg";
         fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
     }
     sprintf(sequence, "c%d.%d", WIDTH, HEIGHT);
-    pixt12 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
     pixEqual(pixref, pixt12, &same);
     if (!same) {
         fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+    }
+    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pixt13, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
+    }
+    pixt14 = pixCreateTemplate(pixs);
+    pixCloseCompBrickDwa(pixt14, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pixt14, &same);
+    if (!same) {
+        fprintf(stderr, "pixref != pixt14 !\n"); ok = FALSE;
     }
     pixDestroy(&pixref);
     pixDestroy(&pixt1);
@@ -472,6 +533,8 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt10);
     pixDestroy(&pixt11);
     pixDestroy(&pixt12);
+    pixDestroy(&pixt13);
+    pixDestroy(&pixt14);
 
     if (ok)
         fprintf(stderr, "All morph tests OK!\n");

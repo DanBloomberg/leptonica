@@ -35,6 +35,7 @@
  *           l_int32     pixcmapGetIndex()
  *           l_int32     pixcmapHasColor()
  *           l_int32     pixcmapGetRankIntensity()
+ *           l_int32     pixcmapGetNearestIndex()
  *
  *      Colormap I/O
  *           l_int32     pixcmapReadStream()
@@ -607,6 +608,62 @@ NUMA    *na, *nasort;
 }
 
 
+/*!
+ *  pixcmapGetNearestIndex()
+ *
+ *      Input:  cmap
+ *              rval, gval, bval (colormap colors to search for; each number
+ *                                is in range [0, ... 255])
+ *              &index (<return> the index of the nearest color)
+ *      Return: 0 if OK, 1 on error (caller must check)
+ *
+ *  Notes:
+ *      (1) Returns the index of the exact color if possible, otherwise the
+ *          index of the color closest to the target color.
+ *      (2) Nearest color is that which is the least sum-of-squares distance
+ *          from the target color.
+ */
+l_int32
+pixcmapGetNearestIndex(PIXCMAP  *cmap,
+                       l_int32   rval,
+                       l_int32   gval,
+                       l_int32   bval,
+                       l_int32  *pindex)
+{
+l_int32     i, n, delta, dist, mindist;
+RGBA_QUAD  *cta;
+
+    PROCNAME("pixcmapGetNearestIndex");
+
+    if (!pindex)
+        return ERROR_INT("&index not defined", procName, 1);
+    *pindex = UNDEF;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+
+    if ((cta = (RGBA_QUAD *)cmap->array) == NULL)
+        return ERROR_INT("cta not defined(!)", procName, 1);
+    n = pixcmapGetCount(cmap);
+
+    mindist = 3 * 255 * 255 + 1;
+    for (i = 0; i < n; i++) {
+        delta = cta[i].red - rval;
+        dist = delta * delta;
+        delta = cta[i].green - gval;
+        dist += delta * delta;
+        delta = cta[i].blue - bval;
+        dist += delta * delta;
+        if (dist < mindist) {
+            *pindex = i; 
+            if (dist == 0)
+                break;
+            mindist = dist;
+        }
+    }
+
+    return 0;
+}
+
 
 /*-------------------------------------------------------------*
  *                         Colormap I/O                        *
@@ -671,7 +728,7 @@ l_int32   i;
         return ERROR_INT("cmap not defined", procName, 1);
 
     if (pixcmapToArrays(cmap, &rmap, &gmap, &bmap))
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("colormap arrays not made", procName, 1);
 
     fprintf(fp, "\nPixcmap: depth = %d bpp; %d colors\n", cmap->depth, cmap->n);
     fprintf(fp, "Color    R-val    G-val    B-val\n");

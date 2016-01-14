@@ -33,6 +33,7 @@
  *             l_int32    tiffGetCount()
  *             l_int32    readHeaderTiff()
  *             l_int32    freadHeaderTiff()
+ *             l_int32    findTiffCompression()
  *
  *     Open tiff stream from file stream
  *      static TIFF      *fopenTiff()
@@ -97,13 +98,16 @@ static struct tiff_transform tiff_orientation_transforms[] = {
  *  Notes:
  *      (1) This is a version of pixRead(), specialized for tiff
  *          files, that allows specification of the page to be returned
+ *      (2) We must call findFileFormat() to get the actual tiff 
+ *          compression format.
  */
 PIX *
 pixReadTiff(const char  *filename,
             l_int32      n)
 {
-FILE  *fp;
-PIX   *pix;
+l_int32  format;
+FILE    *fp;
+PIX     *pix;
 
     PROCNAME("pixReadTiff");
 
@@ -113,7 +117,9 @@ PIX   *pix;
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIX *)ERROR_PTR("image file not found", procName, NULL);
     pix = pixReadStreamTiff(fp, n);
+    format = findFileFormat(fp);
     fclose(fp);
+    pixSetInputFormat(pix, format);
 
     if (!pix)
         return (PIX *)ERROR_PTR("image not returned", procName, NULL);
@@ -158,13 +164,20 @@ TIFF    *tif;
         if (TIFFReadDirectory(tif) == 0)
             break;
     }
+
     if (pagefound == FALSE) {
         L_WARNING_INT("tiff page %d not found", procName, n);
+        TIFFCleanup(tif);
+        return NULL;
     }
 
+        /* Set to generic input format; refinement is done
+	 * in pixReadStream() using findFileFormat(). */
+    pixSetInputFormat(pix, IFF_TIFF);
     TIFFCleanup(tif);
     return pix;
 }
+
 
 /*!
  *  pixReadFromTiffStream()
@@ -302,6 +315,7 @@ PIXCMAP   *cmap;
  *              pix
  *              comptype (IFF_TIFF, IFF_TIFF_PACKBITS,
  *                        IFF_TIFF_G3, IFF_TIFF_G4)
+ *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
  *              modestring ("a" or "w")
  *              natags (<optional> NUMA of custom tiff tags)
  *              savals (<optional> SARRAY of values)
@@ -376,7 +390,8 @@ TIFF    *tif;
  *      Input:  filename (to write to)
  *              pix
  *              comptype (IFF_TIFF, IFF_TIFF_PACKBITS,
- *                        IFF_TIFF_G3, IFF_TIFF_G4)
+ *                        IFF_TIFF_G3, IFF_TIFF_G4,
+ *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
  *              modestring ("a" or "w")
  *      Return: 0 if OK, 1 on error
  *
@@ -418,7 +433,8 @@ TIFF    *tif;
  *      Input:  stream (opened for append or write)
  *              pix
  *              comptype (IFF_TIFF, IFF_TIFF_PACKBITS,
- *                        IFF_TIFF_G3, IFF_TIFF_G4)
+ *                        IFF_TIFF_G3, IFF_TIFF_G4,
+ *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -448,8 +464,9 @@ TIFF  *tif;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1 );
 
-    if (pixGetDepth(pix) != 1 && comptype != IFF_TIFF) {
-        L_WARNING("no compression on images with bpp > 1", procName);
+    if (pixGetDepth(pix) != 1 && comptype != IFF_TIFF &&
+        comptype != IFF_TIFF_LZW && comptype != IFF_TIFF_ZIP) {
+        L_WARNING("invalid compression type for image with bpp > 1", procName);
         comptype = IFF_TIFF;
     }
 
@@ -472,8 +489,9 @@ TIFF  *tif;
  *      Input:  tif (data structure, opened to a file)
  *              pix
  *              comptype  (IFF_TIFF: for any image; no compression
- *                         IFF_TIFF_PACKBITS: for 1 bpp only)
- *                         IFF_TIFF_G4 and IFF_TIFF_G3: for 1 bpp only)
+ *                         IFF_TIFF_PACKBITS: for 1 bpp only
+ *                         IFF_TIFF_G4 and IFF_TIFF_G3: for 1 bpp only
+ *                         IFF_TIFF_LZW, IFF_TIFF_ZIP: for any image
  *              natags (<optional> NUMA of custom tiff tags)
  *              savals (<optional> SARRAY of values)
  *              satypes (<optional> SARRAY of types)
@@ -586,6 +604,10 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_CCITTFAX3);
     else if (comptype == IFF_TIFF_PACKBITS)
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_PACKBITS);
+    else if (comptype == IFF_TIFF_LZW)
+        TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_LZW);
+    else if (comptype == IFF_TIFF_ZIP)
+        TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_ADOBE_DEFLATE);
     else { 
         L_WARNING("unknown tiff compression; using none", procName);
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
@@ -818,7 +840,7 @@ tiffGetCount(FILE     *fp,
              l_int32  *pn)
 {
 l_int32  i;
-TIFF        *tif;
+TIFF    *tif;
 
     PROCNAME("tiffGetCount");
 
@@ -868,7 +890,7 @@ readHeaderTiff(const char *filename,
                l_int32    *pres,
                l_int32    *pcmap)
 {
-l_int32  ret;
+l_int32  ret, format;
 FILE    *fp;
 
     PROCNAME("readHeaderTiff");
@@ -882,7 +904,10 @@ FILE    *fp;
     if (pcmap) *pcmap = 0;
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    if (findFileFormat(fp) != IFF_TIFF)
+    format = findFileFormat(fp);
+    if (format != IFF_TIFF && format != IFF_TIFF_PACKBITS &&
+        format != IFF_TIFF_G3 && format != IFF_TIFF_G4 &&
+        format != IFF_TIFF_LZW && format != IFF_TIFF_ZIP)
         return ERROR_INT("file not tiff format", procName, 1);
     ret = freadHeaderTiff(fp, pwidth, pheight, pbps, pspp, pres, pcmap);
     fclose(fp);
@@ -946,6 +971,68 @@ TIFF      *tif;
         *pcmap = 0;
         if (TIFFGetField(tif, TIFFTAG_COLORMAP, &rmap, &gmap, &bmap))
             *pcmap = 1;
+    }
+
+    TIFFCleanup(tif);
+    return 0;
+}
+
+
+/*!
+ *  findTiffCompression()
+ *
+ *      Input:  stream
+ *              &comp (<return> compression type)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The returned compression type is that defined in 
+ *          the enum in imageio.h.  It is not the tiff flag value.
+ *      (2) The compression type is initialized to IFF_UNKNOWN.
+ *          If it is not one of the specified types, the returned
+ *          type is IFF_TIFF, which indicates no compression.
+ */
+l_int32
+findTiffCompression(FILE     *fp,
+                    l_int32  *pcomp)
+{
+l_uint16  comp;
+TIFF     *tif;
+
+    PROCNAME("findTiffCompression");
+
+    if (!pcomp)
+        return ERROR_INT("&comp not defined", procName, 1);
+    *pcomp = IFF_UNKNOWN;  /* init */
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    
+    if ((tif = fopenTiff(fp, "r")) == NULL)
+        return ERROR_INT("tif not opened", procName, 1);
+    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &comp);
+    switch (comp)
+    {
+    case COMPRESSION_CCITTFAX4:
+        *pcomp = IFF_TIFF_G4;
+        break;
+    case COMPRESSION_CCITTFAX3:
+        *pcomp = IFF_TIFF_G3;
+        break;
+    case COMPRESSION_CCITTRLE:
+        *pcomp = IFF_TIFF_RLE;
+        break;
+    case COMPRESSION_PACKBITS:
+        *pcomp = IFF_TIFF_PACKBITS;
+        break;
+    case COMPRESSION_LZW:
+        *pcomp = IFF_TIFF_LZW;
+        break;
+    case COMPRESSION_ADOBE_DEFLATE:
+        *pcomp = IFF_TIFF_ZIP;
+        break;
+    default:
+        *pcomp = IFF_TIFF;
+        break;
     }
 
     TIFFCleanup(tif);

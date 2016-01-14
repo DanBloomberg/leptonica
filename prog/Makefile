@@ -92,11 +92,11 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 
 #########################################################################
 
-SRC =		binmorph1_reg.c binmorph2_reg.c \
+SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c \
-		equal_reg.c expand_reg.c \
+		dwamorph1_reg.c equal_reg.c expand_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
 		fmorphauto_reg.c \
 		graymorph_reg.c ioformats_reg.c \
@@ -119,7 +119,7 @@ SRC =		binmorph1_reg.c binmorph2_reg.c \
 		converttops.c convolvetest.c cornertest.c \
 		croptext.c distancetest.c dithertest.c \
 		edgetest.c extrematest.c falsecolortest.c \
-		fhmtautogen.c fileinfo.c \
+		fcombautogen.c fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c \
 		fmorphautogen.c \
@@ -138,12 +138,18 @@ SRC =		binmorph1_reg.c binmorph2_reg.c \
 		rotatefastalt.c rotateorthtest1.c \
 		rotatetest1.c runlengthtest.c \
 		scaletest1.c scaletest2.c \
-		seedfilltest.c \
+		seedfilltest.c seliotest.c \
 		sharptest.c sheartest.c showedges.c \
 		skewtest.c snapcolortest.c \
 		sorttest.c splitimage2pdf.c \
 		thresholdtest.c viewertest.c wordsinorder.c \
 		xvdisp.c
+
+#  Source files that are compiled after running program(s) from SRC
+SRC2 =		dwamorph2_reg.c dwamorph3_reg.c
+
+#  Remove these files and their .o's on clean
+SRC3 =		dwalinear.3.c dwalinearlow.3.c
 
 ######################################################################
 
@@ -170,6 +176,9 @@ binmorph1_reg:	binmorph1_reg.o $(LEPTLIB)
 binmorph2_reg:	binmorph2_reg.o $(LEPTLIB)
 	$(CC) -o binmorph2_reg binmorph2_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+binmorph3_reg:	binmorph3_reg.o $(LEPTLIB)
+	$(CC) -o binmorph3_reg binmorph3_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 ccthin1_reg:	ccthin1_reg.o $(LEPTLIB)
 	$(CC) -o ccthin1_reg ccthin1_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -187,6 +196,15 @@ conncomp_reg: conncomp_reg.o $(LEPTLIB)
 
 conversion_reg: conversion_reg.o $(LEPTLIB)
 	$(CC) -o conversion_reg conversion_reg.o $(ALL_LIBS)
+
+dwamorph1_reg: dwamorph1_reg.o $(LEPTLIB)
+	$(CC) -o dwamorph1_reg dwamorph1_reg.o $(ALL_LIBS)
+
+dwamorph2_reg:  dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
+	$(CC) -o dwamorph2_reg dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS)
+
+dwamorph3_reg:  dwamorph3_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
+	$(CC) -o dwamorph3_reg dwamorph3_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS)
 
 equal_reg:	equal_reg.o $(LEPTLIB)
 	$(CC) -o equal_reg equal_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -359,6 +377,9 @@ findpattern3:	findpattern3.o $(LEPTLIB)
 flipselgen:	flipselgen.o $(LEPTLIB)
 	$(CC) -o flipselgen flipselgen.o $(ALL_LIBS) $(EXTRALIBS)
 
+fcombautogen:	fcombautogen.o $(LEPTLIB)
+	$(CC) -o fcombautogen fcombautogen.o $(ALL_LIBS) $(EXTRALIBS)
+
 fmorphautogen:	fmorphautogen.o $(LEPTLIB)
 	$(CC) -o fmorphautogen fmorphautogen.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -473,6 +494,9 @@ scaletest2:	scaletest2.o $(LEPTLIB)
 seedfilltest:	seedfilltest.o $(LEPTLIB)
 	$(CC) -o seedfilltest seedfilltest.o $(ALL_LIBS) $(EXTRALIBS)
 
+seliotest:	seliotest.o $(LEPTLIB)
+	$(CC) -o seliotest seliotest.o $(ALL_LIBS) $(EXTRALIBS)
+
 sharptest:	sharptest.o $(LEPTLIB)
 	$(CC) -o sharptest sharptest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -513,6 +537,18 @@ clean:
 		rm -f $$file; \
 	done ;
 	-@ for file in $(SRC:%.c=%.o) ; do \
+		rm -f $$file; \
+	done ;
+	-@ for file in $(SRC2:%.c=%) ; do \
+		rm -f $$file; \
+	done ;
+	-@ for file in $(SRC2:%.c=%.o) ; do \
+		rm -f $$file; \
+	done ;
+	-@ for file in $(SRC3) ; do \
+		rm -f $$file; \
+	done ;
+	-@ for file in $(SRC3:%.c=%.o) ; do \
 		rm -f $$file; \
 	done ;
 

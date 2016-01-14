@@ -18,11 +18,11 @@
  *
  *    Basic regression test for erosion & dilation: rasterops & dwa.
  *
- *    Tests erosion and dilation from all 52 structuring elements
+ *    Tests erosion and dilation from 58 structuring elements
  *    by comparing the full image rasterop results with the
  *    automatically generated dwa results.
  *
- *    Results are identical for all operations.
+ *    Results must be identical for all operations.
  */
 
 #include <stdio.h>

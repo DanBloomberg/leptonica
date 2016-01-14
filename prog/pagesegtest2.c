@@ -29,10 +29,10 @@
 #include "allheaders.h"
 
     /* Control the output */
-#define   HT_DISP      0
+#define   HT_DISP      1
 #define   WS_MASK      1
-#define   TEXT_DISP    0
-#define   BLOCK_DISP   0
+#define   TEXT_DISP    1
+#define   BLOCK_DISP   1
 #define   DFLAG        0
 
 

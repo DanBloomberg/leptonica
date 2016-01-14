@@ -34,8 +34,8 @@
  *         PIX     *pixCloseSafeBrick()
  *
  *     Binary composed morphological (raster) ops with brick Sels
- *         l_int32  selectComposableSizes()
  *         l_int32  selectComposableSels()
+ *         l_int32  selectComposableSizes()
  *         PIX     *pixDilateCompBrick()
  *         PIX     *pixErodeCompBrick()
  *         PIX     *pixOpenCompBrick()
@@ -76,6 +76,8 @@
  *      You can get the result as a new Pix, in-place back into the src Pix,
  *      or written to another existing Pix.  For large Sels, these are
  *      considerably faster than the corresponding pix*Brick() functions.
+ *      N.B.:  The size of the Sels that are actually used are typically
+ *      close to, but not exactly equal to, the size input to the function.
  *
  *  (3) Brick Sels: pix*BrickDwa(), where * = {Dilate, Erode, Open, Close}.
  *      These are separable dwa (destination word accumulation)
@@ -143,8 +145,8 @@
  *  of a hit-miss Sel), followed by the HMT.
  *  Both of these 'generalized' functions are idempotent.
  *
- *  These functions are extensively tested in prog/morphtest3.c and
- *  prog/morphtest4.c
+ *  These functions are extensively tested in prog/binmorph1_reg.c,
+ *  prog/binmorph2_reg.c, and prog/binmorph3_reg.c.
  */
 
 #include <stdio.h>
@@ -981,8 +983,8 @@ SEL     *sel, *selh, *selv;
  *
  *      Input:  size (of composed sel)
  *              direction (L_HORIZ, L_VERT)
- *              &sel1 (<return> contiguous sel)
- *              &sel2 (<return> comb sel)
+ *              &sel1 (<optional return> contiguous sel; can be null)
+ *              &sel2 (<optional return> comb sel; can be null)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1011,9 +1013,10 @@ l_int32  factor1, factor2;
 
     PROCNAME("selectComposableSels");
 
-    if (!psel1 || !psel2)
-        return ERROR_INT("&sel1 or &sel2 not defined", procName, 1);
-    *psel1 = *psel2 = NULL;
+    if (!psel1 && !psel2)
+        return ERROR_INT("neither &sel1 nor &sel2 are defined", procName, 1);
+    if (psel1) *psel1 = NULL;
+    if (psel2) *psel2 = NULL;
     if (size < 1 || size > 250 * 250)
         return ERROR_INT("size < 1", procName, 1);
     if (direction != L_HORIZ && direction != L_VERT)
@@ -1022,11 +1025,14 @@ l_int32  factor1, factor2;
     if (selectComposableSizes(size, &factor1, &factor2))
         return ERROR_INT("factors not found", procName, 1);
 
-    if (direction == L_HORIZ)
-        *psel1 = selCreateBrick(1, factor1, 0, factor1 / 2, SEL_HIT);
-    else
-        *psel1 = selCreateBrick(factor1, 1, factor1 / 2 , 0, SEL_HIT);
-    *psel2 = selCreateComb(factor1, factor2, direction);
+    if (psel1) {
+        if (direction == L_HORIZ)
+            *psel1 = selCreateBrick(1, factor1, 0, factor1 / 2, SEL_HIT);
+        else
+            *psel1 = selCreateBrick(factor1, 1, factor1 / 2 , 0, SEL_HIT);
+    }
+    if (psel2)
+        *psel2 = selCreateComb(factor1, factor2, direction);
     return 0;
 }
 
@@ -1047,6 +1053,8 @@ l_int32  factor1, factor2;
  *      (3) We choose an overall cost function where the penalty for
  *          the size difference between input and actual is 4 times
  *          the penalty for additional rasterops.
+ *      (4) Returned values: factor1 >= factor2
+ *          If size > 1, then factor1 > 1.
  */
 l_int32
 selectComposableSizes(l_int32   size,
@@ -1143,7 +1151,20 @@ l_int32  diff[256];  /* diff between product (sel size) and input size */
  *          (a) pixd = pixDilateCompBrick(NULL, pixs, ...);
  *          (b) pixDilateCompBrick(pixs, pixs, ...);
  *          (c) pixDilateCompBrick(pixd, pixs, ...);
- *      (7) The size of the result is determined by pixs.
+ *      (7) The dimensions of the resulting image are determined by pixs.
+ *      (8) CAUTION: both hsize and vsize are being decomposed.
+ *          The decomposer chooses a product of sizes (call them
+ *          'terms') for each that is close to the input size,
+ *          but not necessarily equal to it.  It attempts to optimize:
+ *             (a) for consistency with the input values: the product
+ *                 of terms is close to the input size
+ *             (b) for efficiency of the operation: the sum of the
+ *                 terms is small; ideally about twice the square
+ *                 root of the input size.
+ *          So, for example, if the input hsize = 37, which is
+ *          a prime number, the decomposer will break this into two
+ *          terms, 6 and 6, so that the net result is a dilation
+ *          with hsize = 36.
  */
 PIX *
 pixDilateCompBrick(PIX     *pixd,
@@ -1151,7 +1172,7 @@ pixDilateCompBrick(PIX     *pixd,
                    l_int32  hsize,
                    l_int32  vsize)
 {
-PIX  *pixt;
+PIX  *pixt1, *pixt2, *pixt3;
 SEL  *selh1, *selh2, *selv1, *selv2;
 
     PROCNAME("pixDilateCompBrick");
@@ -1163,6 +1184,8 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     if (hsize < 1 || vsize < 1)
         return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
+    pixt1 = pixAddBorder(pixs, 32, 0);
+
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
     if (hsize > 1)
@@ -1170,20 +1193,21 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     if (vsize > 1)
         selectComposableSels(vsize, L_VERT, &selv1, &selv2);
     if (vsize == 1) {
-        pixt = pixDilate(NULL, pixs, selh1);
-        pixd = pixDilate(pixd, pixt, selh2);
+        pixt2 = pixDilate(NULL, pixt1, selh1);
+        pixt3 = pixDilate(NULL, pixt2, selh2);
     } 
     else if (hsize == 1) {
-        pixt = pixDilate(NULL, pixs, selv1);
-        pixd = pixDilate(pixd, pixt, selv2);
+        pixt2 = pixDilate(NULL, pixt1, selv1);
+        pixt3 = pixDilate(NULL, pixt2, selv2);
     } 
     else {
-        pixt = pixDilate(NULL, pixs, selh1);
-        pixd = pixDilate(pixd, pixt, selh2);
-        pixDilate(pixt, pixd, selv1);
-        pixDilate(pixd, pixt, selv2);
+        pixt2 = pixDilate(NULL, pixt1, selh1);
+        pixt3 = pixDilate(NULL, pixt2, selh2);
+        pixDilate(pixt2, pixt3, selv1);
+        pixDilate(pixt3, pixt2, selv2);
     }
-    pixDestroy(&pixt);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
 
     if (hsize > 1) {
         selDestroy(&selh1);
@@ -1194,6 +1218,12 @@ SEL  *selh1, *selh2, *selv1, *selv2;
         selDestroy(&selv2);
     }
 
+    pixt1 = pixRemoveBorder(pixt3, 32);
+    pixDestroy(&pixt3);
+    if (!pixd)
+        return pixt1;
+    pixCopy(pixd, pixt1);
+    pixDestroy(&pixt1);
     return pixd;
 }
 
@@ -1221,7 +1251,20 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *          (a) pixd = pixErodeCompBrick(NULL, pixs, ...);
  *          (b) pixErodeCompBrick(pixs, pixs, ...);
  *          (c) pixErodeCompBrick(pixd, pixs, ...);
- *      (7) The size of the result is determined by pixs.
+ *      (7) The dimensions of the resulting image are determined by pixs.
+ *      (8) CAUTION: both hsize and vsize are being decomposed.
+ *          The decomposer chooses a product of sizes (call them
+ *          'terms') for each that is close to the input size,
+ *          but not necessarily equal to it.  It attempts to optimize:
+ *             (a) for consistency with the input values: the product
+ *                 of terms is close to the input size
+ *             (b) for efficiency of the operation: the sum of the
+ *                 terms is small; ideally about twice the square
+ *                 root of the input size.
+ *          So, for example, if the input hsize = 37, which is
+ *          a prime number, the decomposer will break this into two
+ *          terms, 6 and 6, so that the net result is a dilation
+ *          with hsize = 36.
  */
 PIX *
 pixErodeCompBrick(PIX     *pixd,
@@ -1299,7 +1342,20 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *          (a) pixd = pixOpenCompBrick(NULL, pixs, ...);
  *          (b) pixOpenCompBrick(pixs, pixs, ...);
  *          (c) pixOpenCompBrick(pixd, pixs, ...);
- *      (7) The size of the result is determined by pixs.
+ *      (7) The dimensions of the resulting image are determined by pixs.
+ *      (8) CAUTION: both hsize and vsize are being decomposed.
+ *          The decomposer chooses a product of sizes (call them
+ *          'terms') for each that is close to the input size,
+ *          but not necessarily equal to it.  It attempts to optimize:
+ *             (a) for consistency with the input values: the product
+ *                 of terms is close to the input size
+ *             (b) for efficiency of the operation: the sum of the
+ *                 terms is small; ideally about twice the square
+ *                 root of the input size.
+ *          So, for example, if the input hsize = 37, which is
+ *          a prime number, the decomposer will break this into two
+ *          terms, 6 and 6, so that the net result is a dilation
+ *          with hsize = 36.
  */
 PIX *
 pixOpenCompBrick(PIX     *pixd,
@@ -1385,7 +1441,20 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *          (a) pixd = pixCloseCompBrick(NULL, pixs, ...);
  *          (b) pixCloseCompBrick(pixs, pixs, ...);
  *          (c) pixCloseCompBrick(pixd, pixs, ...);
- *      (7) The size of the result is determined by pixs.
+ *      (7) The dimensions of the resulting image are determined by pixs.
+ *      (8) CAUTION: both hsize and vsize are being decomposed.
+ *          The decomposer chooses a product of sizes (call them
+ *          'terms') for each that is close to the input size,
+ *          but not necessarily equal to it.  It attempts to optimize:
+ *             (a) for consistency with the input values: the product
+ *                 of terms is close to the input size
+ *             (b) for efficiency of the operation: the sum of the
+ *                 terms is small; ideally about twice the square
+ *                 root of the input size.
+ *          So, for example, if the input hsize = 37, which is
+ *          a prime number, the decomposer will break this into two
+ *          terms, 6 and 6, so that the net result is a dilation
+ *          with hsize = 36.
  */
 PIX *
 pixCloseCompBrick(PIX     *pixd,
@@ -1476,7 +1545,20 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *          (a) pixd = pixCloseSafeCompBrick(NULL, pixs, ...);
  *          (b) pixCloseSafeCompBrick(pixs, pixs, ...);
  *          (c) pixCloseSafeCompBrick(pixd, pixs, ...);
- *      (8) The size of the result is determined by pixs.
+ *      (8) The dimensions of the resulting image are determined by pixs.
+ *      (9) CAUTION: both hsize and vsize are being decomposed.
+ *          The decomposer chooses a product of sizes (call them
+ *          'terms') for each that is close to the input size,
+ *          but not necessarily equal to it.  It attempts to optimize:
+ *             (a) for consistency with the input values: the product
+ *                 of terms is close to the input size
+ *             (b) for efficiency of the operation: the sum of the
+ *                 terms is small; ideally about twice the square
+ *                 root of the input size.
+ *          So, for example, if the input hsize = 37, which is
+ *          a prime number, the decomposer will break this into two
+ *          terms, 6 and 6, so that the net result is a dilation
+ *          with hsize = 36.
  */
 PIX *
 pixCloseSafeCompBrick(PIX     *pixd,

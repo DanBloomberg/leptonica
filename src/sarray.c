@@ -44,6 +44,7 @@
  *
  *      Concatenate 2 sarrays
  *          l_int32    sarrayConcatenate()
+ *          l_int32    sarrayAppendRange()
  *
  *      Convert word sarray to (formatted) line sarray
  *          SARRAY    *sarrayConvertWordsToLines()
@@ -53,6 +54,7 @@
  *
  *      Filter sarray
  *          SARRAY    *sarraySelectBySubstring()
+ *          l_int32    sarrayParseRange()
  *
  *      Sort
  *          SARRAY    *sarraySort()
@@ -714,8 +716,8 @@ l_int32  n, i, last, size, index, len;
 /*!
  *  sarrayConcatenate()
  *
- *      Input:  sarray1  (to be added to)
- *              sarray2  (append to sarray1)
+ *      Input:  sa1  (to be added to)
+ *              sa2  (append to sa1)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -725,7 +727,7 @@ l_int32
 sarrayConcatenate(SARRAY  *sa1,
                   SARRAY  *sa2)
 {
-char    *string;
+char    *str;
 l_int32  n, i;
 
     PROCNAME("sarrayConcatenate");
@@ -737,8 +739,53 @@ l_int32  n, i;
 
     n = sarrayGetCount(sa2);
     for (i = 0; i < n; i++) {
-        string = sarrayGetString(sa2, i, L_NOCOPY);
-        sarrayAddString(sa1, string, L_COPY);
+        str = sarrayGetString(sa2, i, L_NOCOPY);
+        sarrayAddString(sa1, str, L_COPY);
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  sarrayAppendRange()
+ *
+ *      Input:  sa1  (to be added to)
+ *              sa2  (append specified range of strings in sa2 to sa1)
+ *              start (index of first string of sa2 to append)
+ *              end (index of last string of sa2 to append)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Copies of the strings in sarray2 are added to sarray1.
+ *      (2) The [start ... end] range is truncated if necessary.
+ */
+l_int32
+sarrayAppendRange(SARRAY  *sa1,
+                  SARRAY  *sa2,
+		  l_int32  start,
+		  l_int32  end)
+{
+char    *str;
+l_int32  n, i;
+
+    PROCNAME("sarrayAppendRange");
+
+    if (!sa1)
+        return ERROR_INT("sa1 not defined", procName, 1);
+    if (!sa2)
+        return ERROR_INT("sa2 not defined", procName, 1);
+    if (start < 0)
+        start = 0;
+    n = sarrayGetCount(sa2);
+    if (end >= n)
+        end = n - 1;
+    if (start > end)
+        return ERROR_INT("start > end", procName, 1);
+
+    for (i = start; i <= end; i++) {
+        str = sarrayGetString(sa2, i, L_NOCOPY);
+        sarrayAddString(sa1, str, L_COPY);
     }
 
     return 0;
@@ -901,9 +948,9 @@ SARRAY *
 sarraySelectBySubstring(SARRAY      *sain,
                         const char  *substr)
 {
-char      *str;
-l_int32    n, i, offset, found;
-SARRAY    *saout;
+char    *str;
+l_int32  n, i, offset, found;
+SARRAY  *saout;
 
     PROCNAME("sarraySelectBySubstring");
 
@@ -924,6 +971,116 @@ SARRAY    *saout;
     }
 
     return saout;
+}
+
+
+/*!
+ *  sarrayParseRange()
+ *
+ *      Input:  sa (input sarray)
+ *              start (index to start range search)
+ *             &actualstart (<return> index of actual start; may be > 'start')
+ *             &end (<return> index of end)
+ *             &newstart (<return> index of start of next range)
+ *              substr (substring for matching at beginning of string)
+ *              loc (byte offset within the string for the pattern; use
+ *                   -1 if the location does not matter);
+ *      Return: 0 if valid range found; 1 otherwise
+ *
+ *  Notes:
+ *      (1) This finds the range of the next set of strings in SA,
+ *          beginning the search at 'start', that does NOT have
+ *          the substring 'substr' either at the indicated location
+ *          in the string or anywhere in the string.  The input
+ *          variable 'loc' is the specified offset within the string;
+ *          use -1 to indicate 'anywhere in the string'.
+ *      (2) Always check the return value to verify that a valid range
+ *          was found.
+ *      (3) If a valid range is not found, the values of actstart,
+ *          end and newstart are all set to the size of sa.
+ *      (4) If this is the last valid range, newstart returns the value n.
+ *          In use, this should be tested before calling the function.
+ *      (5) Usage example.  To find all the valid ranges in a file
+ *          where the invalid lines begin with two dashes, copy each
+ *          line in the file to a string in an sarray, and do:
+ *             start = 0;
+ *             while (!sarrayParseRange(sa, start, &actstart, &end, &start,
+ *                    "--", 0))
+ *                 fprintf(stderr, "start = %d, end = %d\n", actstart, end);
+ */
+l_int32
+sarrayParseRange(SARRAY      *sa,
+                 l_int32      start,
+                 l_int32     *pactualstart,
+                 l_int32     *pend,
+                 l_int32     *pnewstart,
+                 const char  *substr,
+		 l_int32      loc)
+{
+char    *str;
+l_int32  n, i, offset, found;
+
+    PROCNAME("sarrayParseRange");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+    if (!pactualstart || !pend || !pnewstart)
+        return ERROR_INT("not all range addresses defined", procName, 1);
+    n = sarrayGetCount(sa);
+    *pactualstart = *pend = *pnewstart = n;
+    if (!substr)
+        return ERROR_INT("substr not defined", procName, 1);
+
+        /* Look for the first string without the marker */
+    if (start < 0 || start >= n)
+        return 1;
+    for (i = start; i < n; i++) {
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        arrayFindSequence((l_uint8 *)str, strlen(str), (l_uint8 *)substr,
+                          strlen(substr), &offset, &found);
+	if (loc < 0) {
+            if (!found) break;
+	} else {
+            if (!found || offset != loc) break;
+	}
+    }
+    start = i;
+    if (i == n)  /* couldn't get started */
+        return 1;
+
+        /* Look for the last string without the marker */
+    *pactualstart = start;
+    for (i = start + 1; i < n; i++) {
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        arrayFindSequence((l_uint8 *)str, strlen(str), (l_uint8 *)substr,
+                          strlen(substr), &offset, &found);
+	if (loc < 0) {
+            if (found) break;
+	} else {
+            if (found && offset == loc) break;
+	}
+    }
+    *pend = i - 1;
+    start = i;
+    if (i == n)  /* no further range */
+        return 0;
+
+        /* Look for the first string after *pend without the marker.
+         * This will start the next run of strings, if it exists. */
+    for (i = start; i < n; i++) {
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        arrayFindSequence((l_uint8 *)str, strlen(str), (l_uint8 *)substr,
+                          strlen(substr), &offset, &found);
+	if (loc < 0) {
+            if (!found) break;
+	} else {
+            if (!found || offset != loc) break;
+	}
+    }
+    if (i < n)
+        *pnewstart = i;
+
+    return 0;
 }
 
 

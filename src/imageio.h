@@ -17,12 +17,14 @@
 #ifndef  IMAGEIO_H_INCLUDED
 #define  IMAGEIO_H_INCLUDED
 
-/* ------------------ image file format types -------------- */
+/* ------------------ Image file format types -------------- */
 /*  
- *  The IFF_DEFAULT flags attempts to write the file out in the
- *  same file format that the pix was read from.  If the pix
- *  was not read from file, the IFF_DEFAULT file format is
- *  chosen to be IFF_PNG for d <= 4 and IFF_JFIF_JPEG for d >= 8.
+ *  The IFF_DEFAULT flag is used to write the file out in the
+ *  same (input) file format that the pix was read from.  If the pix
+ *  was not read from file, the input format field will be
+ *  IFF_UNKNOWN and the output file format will be chosen to
+ *  be compressed and lossless; namely, IFF_TIFF_G4 for d = 1
+ *  and IFF_PNG for everything else.
  */
 enum {
     IFF_UNKNOWN        = 0,
@@ -31,22 +33,25 @@ enum {
     IFF_PNG            = 3,
     IFF_TIFF           = 4,
     IFF_TIFF_PACKBITS  = 5,
-    IFF_TIFF_G3        = 6,
-    IFF_TIFF_G4        = 7,
-    IFF_PNM            = 8,
-    IFF_PS             = 9,
-    IFF_DEFAULT        = 10
+    IFF_TIFF_RLE       = 6,
+    IFF_TIFF_G3        = 7,
+    IFF_TIFF_G4        = 8,
+    IFF_TIFF_LZW       = 9,
+    IFF_TIFF_ZIP       = 10,
+    IFF_PNM            = 11,
+    IFF_PS             = 12,
+    IFF_DEFAULT        = 13
 };
 
 
-/* ------------------ format header ids --------------- */
+/* ------------------ Format header ids --------------- */
 enum {
     BMP_ID             = 0x4d42,
     TIFF_BIGEND_ID     = 0x4d4d,     /* MM - for 'motorola' */
     TIFF_LITTLEEND_ID  = 0x4949      /* II - for 'intel' */
 };
 
-/* ------------------ format header ids --------------- */
+/* ------------------ Format header ids --------------- */
 enum {
     L_HINT_GRAY = 1,  /* only want grayscale information */
 };

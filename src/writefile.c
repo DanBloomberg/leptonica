@@ -21,9 +21,11 @@
  *        l_int32    pixaWriteFiles() 
  *        l_int32    pixWrite() 
  *        l_int32    pixWriteStream() 
+ *        l_int32    pixWriteImpliedFormat() 
  *
- *     Choose output format if default is requested
+ *     Selection of output format if default is requested
  *        l_int32    pixChooseOutputFormat()
+ *        l_int32    getImpliedFileFormat()
  *
  *     Image display for debugging
  *        l_int32    pixDisplay()
@@ -59,8 +61,26 @@ const char *ImageFileFormatExtensions[] = {"unknown",
                                            "tif",
                                            "tif",
                                            "tif",
+                                           "tif",
+                                           "tif",
                                            "pnm",
                                            "ps"};
+
+    /* Local map of image file name extension to output format */
+struct ExtensionMap
+{
+    char    *extension;
+    l_int32  format;
+}; 
+static const struct ExtensionMap extension_map[] = 
+                            { { ".bmp",  IFF_BMP       },    
+                              { ".jpg",  IFF_JFIF_JPEG },    
+                              { ".jpeg", IFF_JFIF_JPEG },    
+                              { ".png",  IFF_PNG       },    
+                              { ".tif",  IFF_TIFF      },    
+                              { ".tiff", IFF_TIFF      },    
+                              { ".pnm",  IFF_PNM       },    
+                              { ".ps",   IFF_PS        } };
 
 
 /*---------------------------------------------------------------------*
@@ -182,24 +202,19 @@ pixWriteStream(FILE    *fp,
         return pixWriteStreamPng(fp, pix, 0.0);
         break;
     
-    case IFF_TIFF:  /* uncompressed */
-        return pixWriteStreamTiff(fp, pix, IFF_TIFF);
-        break;
-
-    case IFF_TIFF_PACKBITS:  /* on binary only */
-        return pixWriteStreamTiff(fp, pix, IFF_TIFF_PACKBITS);
-        break;
-
-    case IFF_TIFF_G3:  /* on binary only */
-        return pixWriteStreamTiff(fp, pix, IFF_TIFF_G3);
-        break;
-
-    case IFF_TIFF_G4:  /* on binary only */
-        return pixWriteStreamTiff(fp, pix, IFF_TIFF_G4);
+    case IFF_TIFF:           /* uncompressed */
+    case IFF_TIFF_PACKBITS:  /* compressed, binary only */
+    case IFF_TIFF_RLE:       /* compressed, binary only */
+    case IFF_TIFF_G3:        /* compressed, binary only */
+    case IFF_TIFF_G4:        /* compressed, binary only */
+    case IFF_TIFF_LZW:       /* compressed, all depths */
+    case IFF_TIFF_ZIP:       /* compressed, all depths */
+        return pixWriteStreamTiff(fp, pix, format);
         break;
 
     case IFF_PNM:
         return pixWriteStreamPnm(fp, pix);
+        break;
 
     case IFF_PS:
         return pixWriteStreamPS(fp, pix, NULL, 0, DEFAULT_SCALING);
@@ -214,9 +229,66 @@ pixWriteStream(FILE    *fp,
 }
 
 
+/*!
+ *  pixWriteImpliedFormat()
+ *
+ *      Input:  filename
+ *              pix
+ *              quality (iff JPEG; 1 - 100, 0 for default)
+ *              progressive (iff JPEG; 0 for baseline seq., 1 for progressive)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This determines the output format from the filename extension.
+ *      (2) The last two args are ignored except for requests for jpeg files.
+ *      (3) The jpeg default quality is 75.
+ */
+l_int32
+pixWriteImpliedFormat(const char  *filename,
+                      PIX         *pix,
+                      l_int32      quality,
+                      l_int32      progressive)
+{
+l_int32  format;
+
+    PROCNAME("pixWriteImpliedFormat");
+
+    if (!filename)
+        return ERROR_INT ("filename not defined", procName, 1);
+    if (!pix)
+        return ERROR_INT ("pix not defined", procName, 1);
+
+        /* Determine output format */
+    format = getImpliedFileFormat(filename);
+    if (format == IFF_UNKNOWN)
+        format = IFF_PNG;
+    else if (format == IFF_TIFF) {
+        if (pixGetDepth(pix) == 1)
+            format = IFF_TIFF_G4;
+        else
+            format = IFF_TIFF_LZW;
+    }
+
+    if (format == IFF_JFIF_JPEG) {
+        quality = L_MIN(quality, 100);
+        quality = L_MAX(quality, 0);
+        if (progressive != 0 && progressive != 1) {
+            progressive = 0;
+            L_WARNING("invalid progressive; setting to baseline", procName);
+        }
+        if (quality == 0)
+            quality = 75;
+        pixWriteJpeg (filename, pix, quality, progressive);
+    }
+    else
+        pixWrite(filename, pix, format);
+
+    return 0;
+}
+
 
 /*---------------------------------------------------------------------*
- *                           Choose output format                      *
+ *          Selection of output format if default is requested         *
  *---------------------------------------------------------------------*/
 /*!
  *  pixChooseOutputFormat()
@@ -226,6 +298,9 @@ pixWriteStream(FILE    *fp,
  *
  *  Notes:
  *      (1) This should only be called if the requested format is IFF_DEFAULT.
+ *      (2) If the pix wasn't read from a file, its input format value
+ *          will be IFF_UNKNOWN, and in that case it is written out
+ *          in a compressed but lossless format.
  */
 l_int32
 pixChooseOutputFormat(PIX  *pix)
@@ -239,18 +314,48 @@ l_int32  d, format;
 
     d = pixGetDepth(pix);
     format = pixGetInputFormat(pix);
-    if (format == IFF_UNKNOWN) {
-        if (d < 8)
-            format = IFF_PNG;
+    if (format == IFF_UNKNOWN) {  /* output lossless */
+        if (d == 1)
+            format = IFF_TIFF_G4;
         else
-            format = IFF_JFIF_JPEG;
+            format = IFF_PNG;
     }
-    else if (format == IFF_TIFF && d == 1)
-        format = IFF_TIFF_G4;
 
     return format;
 }
 
+
+/*!
+ *  getImpliedFileFormat()
+ *
+ *      Input:  filename
+ *      Return: output format, or IFF_UNKNOWN on error or invalid extension.
+ *
+ *  Notes:
+ *      (1) This determines the output file format from the extension
+ *          of the input filename.
+ */
+l_int32
+getImpliedFileFormat(const char  *filename)
+{
+char    *extension;
+int      i, numext;
+l_int32  format = IFF_UNKNOWN;
+
+    if (splitPathAtExtension (filename, NULL, &extension))
+        return IFF_UNKNOWN;
+
+    numext = sizeof(extension_map) / sizeof(extension_map[0]);
+    for (i = 0; i < numext; i++) {
+        if (!strcmp(extension, extension_map[i].extension)) { 
+            format = extension_map[i].format;
+            break;
+        }
+    }
+
+    FREE(extension);
+    return format;
+}
 
 
 /*---------------------------------------------------------------------*

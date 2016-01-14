@@ -40,6 +40,7 @@
  *            l_int32    selaGetCount()
  *            SEL       *selaGetSel()
  *            char      *selGetName()
+ *            l_int32    selSetName()
  *            l_int32    selaFindSelByName()
  *            l_int32    selGetElement()
  *            l_int32    selSetElement()
@@ -47,6 +48,10 @@
  *            l_int32    selSetOrigin()
  *            l_int32    selGetTypeAtOrigin()
  *            char      *selaGetBrickName()
+ *            char      *selaGetCombName()
+ *     static char      *selaComputeCompositeParameters()
+ *            l_int32    getCompositeParameters()
+ *            SARRAY    *selaGetSelnames()
  *
  *         Max translations for erosion and hmt
  *            l_int32    selFindMaxTranslations()
@@ -64,19 +69,28 @@
  *            l_int32    selWrite()
  *            l_int32    selWriteStream()
  *       
- *         Building custom hit-miss sels
+ *         Building custom hit-miss sels from compiled strings
  *            SEL       *selCreateFromString()
- *            void       selPrintToString()     [for debugging]
+ *            char      *selPrintToString()     [for debugging]
+ *
+ *         Building custom hit-miss sels from a simple file format
+ *            SELA      *selaCreateFromFile()
+ *            static SEL *selCreateFromSArray()
  *
  *         Making hit-only sels from Pta and Pix
  *            SEL       *selCreateFromPta()
  *            SEL       *selCreateFromPix()
  *
+ *         Making hit-miss sels from Pix and image files
+ *            SEL       *selReadFromColorImage()
+ *            SEL       *selCreateFromColorPix()
+ *
  *         Printable display of sel
  *            PIX       *selDisplayInPix()
+ *            PIX       *selaDisplayInPix()
  *
  *     Usage notes:
- *        In this file we have five functions that make sels:
+ *        In this file we have seven functions that make sels:
  *          (1)  selCreate(), with input (h, w, [name])
  *               The generic function.  Roll your own, using selSetElement().
  *          (2)  selCreateBrick(), with input (h, w, cy, cx, val)
@@ -88,10 +102,17 @@
  *               Adam Langley's clever function, allows you to make a hit-miss
  *               sel from a string in code that is geometrically laid out
  *               just like the actual sel.
- *          (4)  selCreateFromPta() with input (pta, cy, cx, [name])
+ *          (4)  selaCreateFromFile() with input (filename)
+ *               This parses a simple file format to create an array of
+ *               hit-miss sels.  The sel data uses the same encoding
+ *               as in (3), with geometrical layout enforced.
+ *          (5)  selCreateFromPta() with input (pta, cy, cx, [name])
  *               Another way to make a sel with only hits.
- *          (5)  selCreateFromPix() with input (pix, cy, cx, [name])
+ *          (6)  selCreateFromPix() with input (pix, cy, cx, [name])
  *               Yet another way to make a sel from hits.
+ *          (7)  selCreateFromColorPix() with input (pix, name).
+ *               Another way to make a general hit-miss sel, starting with
+ *               an image editor.
  *        In addition, there are three functions in selgen.c that
  *        automatically generate a hit-miss sel from a pix and
  *        a number of parameters.  This is useful for problems like
@@ -105,8 +126,6 @@
  *             selSetElement(), with input (row, col, type)
  */
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,6 +136,84 @@
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;  /* n'import quoi */
 static const l_int32  MANY_SELS = 1000;
+
+static SEL *selCreateFromSArray(SARRAY *sa, l_int32 first, l_int32 last);
+static void selaComputeCompositeParameters(const char *fileout);
+
+struct CompParameterMap
+{
+    l_int32  size;
+    l_int32  size1;
+    l_int32  size2;
+    char    *selnameh1;
+    char    *selnameh2;
+    char    *selnamev1;
+    char    *selnamev2;
+};
+static const struct CompParameterMap  comp_parameter_map[] =
+    { { 2, 2, 1, "sel_2h", "", "sel_2v", "" },
+      { 3, 3, 1, "sel_3h", "", "sel_3v", "" },
+      { 4, 2, 2, "sel_2h", "sel_comb_4h", "sel_2v", "sel_comb_4v" },
+      { 5, 5, 1, "sel_5h", "", "sel_5v", "" },
+      { 6, 3, 2, "sel_3h", "sel_comb_6h", "sel_3v", "sel_comb_6v" },
+      { 7, 7, 1, "sel_7h", "", "sel_7v", "" },
+      { 8, 4, 2, "sel_4h", "sel_comb_8h", "sel_4v", "sel_comb_8v" },
+      { 9, 3, 3, "sel_3h", "sel_comb_9h", "sel_3v", "sel_comb_9v" },
+      { 10, 5, 2, "sel_5h", "sel_comb_10h", "sel_5v", "sel_comb_10v" },
+      { 11, 4, 3, "sel_4h", "sel_comb_12h", "sel_4v", "sel_comb_12v" },
+      { 12, 4, 3, "sel_4h", "sel_comb_12h", "sel_4v", "sel_comb_12v" },
+      { 13, 4, 3, "sel_4h", "sel_comb_12h", "sel_4v", "sel_comb_12v" },
+      { 14, 7, 2, "sel_7h", "sel_comb_14h", "sel_7v", "sel_comb_14v" },
+      { 15, 5, 3, "sel_5h", "sel_comb_15h", "sel_5v", "sel_comb_15v" },
+      { 16, 4, 4, "sel_4h", "sel_comb_16h", "sel_4v", "sel_comb_16v" },
+      { 17, 4, 4, "sel_4h", "sel_comb_16h", "sel_4v", "sel_comb_16v" },
+      { 18, 6, 3, "sel_6h", "sel_comb_18h", "sel_6v", "sel_comb_18v" },
+      { 19, 5, 4, "sel_5h", "sel_comb_20h", "sel_5v", "sel_comb_20v" },
+      { 20, 5, 4, "sel_5h", "sel_comb_20h", "sel_5v", "sel_comb_20v" },
+      { 21, 7, 3, "sel_7h", "sel_comb_21h", "sel_7v", "sel_comb_21v" },
+      { 22, 11, 2, "sel_11h", "sel_comb_22h", "sel_11v", "sel_comb_22v" },
+      { 23, 6, 4, "sel_6h", "sel_comb_24h", "sel_6v", "sel_comb_24v" },
+      { 24, 6, 4, "sel_6h", "sel_comb_24h", "sel_6v", "sel_comb_24v" },
+      { 25, 5, 5, "sel_5h", "sel_comb_25h", "sel_5v", "sel_comb_25v" },
+      { 26, 5, 5, "sel_5h", "sel_comb_25h", "sel_5v", "sel_comb_25v" },
+      { 27, 9, 3, "sel_9h", "sel_comb_27h", "sel_9v", "sel_comb_27v" },
+      { 28, 7, 4, "sel_7h", "sel_comb_28h", "sel_7v", "sel_comb_28v" },
+      { 29, 6, 5, "sel_6h", "sel_comb_30h", "sel_6v", "sel_comb_30v" },
+      { 30, 6, 5, "sel_6h", "sel_comb_30h", "sel_6v", "sel_comb_30v" },
+      { 31, 6, 5, "sel_6h", "sel_comb_30h", "sel_6v", "sel_comb_30v" },
+      { 32, 8, 4, "sel_8h", "sel_comb_32h", "sel_8v", "sel_comb_32v" },
+      { 33, 11, 3, "sel_11h", "sel_comb_33h", "sel_11v", "sel_comb_33v" },
+      { 34, 7, 5, "sel_7h", "sel_comb_35h", "sel_7v", "sel_comb_35v" },
+      { 35, 7, 5, "sel_7h", "sel_comb_35h", "sel_7v", "sel_comb_35v" },
+      { 36, 6, 6, "sel_6h", "sel_comb_36h", "sel_6v", "sel_comb_36v" },
+      { 37, 6, 6, "sel_6h", "sel_comb_36h", "sel_6v", "sel_comb_36v" },
+      { 38, 6, 6, "sel_6h", "sel_comb_36h", "sel_6v", "sel_comb_36v" },
+      { 39, 13, 3, "sel_13h", "sel_comb_39h", "sel_13v", "sel_comb_39v" },
+      { 40, 8, 5, "sel_8h", "sel_comb_40h", "sel_8v", "sel_comb_40v" },
+      { 41, 7, 6, "sel_7h", "sel_comb_42h", "sel_7v", "sel_comb_42v" },
+      { 42, 7, 6, "sel_7h", "sel_comb_42h", "sel_7v", "sel_comb_42v" },
+      { 43, 7, 6, "sel_7h", "sel_comb_42h", "sel_7v", "sel_comb_42v" },
+      { 44, 11, 4, "sel_11h", "sel_comb_44h", "sel_11v", "sel_comb_44v" },
+      { 45, 9, 5, "sel_9h", "sel_comb_45h", "sel_9v", "sel_comb_45v" },
+      { 46, 9, 5, "sel_9h", "sel_comb_45h", "sel_9v", "sel_comb_45v" },
+      { 47, 8, 6, "sel_8h", "sel_comb_48h", "sel_8v", "sel_comb_48v" },
+      { 48, 8, 6, "sel_8h", "sel_comb_48h", "sel_8v", "sel_comb_48v" },
+      { 49, 7, 7, "sel_7h", "sel_comb_49h", "sel_7v", "sel_comb_49v" },
+      { 50, 10, 5, "sel_10h", "sel_comb_50h", "sel_10v", "sel_comb_50v" },
+      { 51, 10, 5, "sel_10h", "sel_comb_50h", "sel_10v", "sel_comb_50v" },
+      { 52, 13, 4, "sel_13h", "sel_comb_52h", "sel_13v", "sel_comb_52v" },
+      { 53, 9, 6, "sel_9h", "sel_comb_54h", "sel_9v", "sel_comb_54v" },
+      { 54, 9, 6, "sel_9h", "sel_comb_54h", "sel_9v", "sel_comb_54v" },
+      { 55, 11, 5, "sel_11h", "sel_comb_55h", "sel_11v", "sel_comb_55v" },
+      { 56, 8, 7, "sel_8h", "sel_comb_56h", "sel_8v", "sel_comb_56v" },
+      { 57, 8, 7, "sel_8h", "sel_comb_56h", "sel_8v", "sel_comb_56v" },
+      { 58, 8, 7, "sel_8h", "sel_comb_56h", "sel_8v", "sel_comb_56v" },
+      { 59, 10, 6, "sel_10h", "sel_comb_60h", "sel_10v", "sel_comb_60v" },
+      { 60, 10, 6, "sel_10h", "sel_comb_60h", "sel_10v", "sel_comb_60v" },
+      { 61, 10, 6, "sel_10h", "sel_comb_60h", "sel_10v", "sel_comb_60v" },
+      { 62, 9, 7, "sel_9h", "sel_comb_63h", "sel_9v", "sel_comb_63v" },
+      { 63, 9, 7, "sel_9h", "sel_comb_63h", "sel_9v", "sel_comb_63v" } };
+
 
 
 /*------------------------------------------------------------------------*
@@ -560,6 +657,30 @@ selGetName(SEL  *sel)
 
 
 /*!
+ *  selSetName()
+ *
+ *      Input:  sel
+ *              name (<optional>; can be null)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Always frees the existing sel name, if defined.
+ *      (2) If name is not defined, just clears any existing sel name.
+ */
+l_int32
+selSetName(SEL         *sel,
+           const char  *name)
+{
+    PROCNAME("selSetName");
+
+    if (!sel)
+        return ERROR_INT("sel not defined", procName, 1);
+
+    return stringReplace(&sel->name, name);
+}
+
+
+/*!
  *  selaFindSelByName()
  *
  *      Input:  sela
@@ -785,7 +906,202 @@ SEL     *sel;
             return stringNew(selGetName(sel));
     }
 
-    return NULL;
+    return (char *)ERROR_PTR("sel not found", procName, NULL);
+}
+
+
+/*!
+ *  selaGetCombName()
+ *
+ *      Input:  sela
+ *              size (the product of sizes of the brick and comb parts)
+ *              direction (L_HORIZ, L_VERT)
+ *      Return: sel name (new string), or null if name not found or on error
+ *
+ *  Notes:
+ *      (1) Combs are by definition 1-dimensional, either horiz or vert.
+ *      (2) Use this with comb Sels; e.g., from selaAddDwaCombs().
+ */
+char *
+selaGetCombName(SELA    *sela,
+                l_int32  size,
+		l_int32  direction)
+{
+char    *selname;
+char     combname[L_BUF_SIZE];
+l_int32  i, nsels, sx, sy, found;
+SEL     *sel;
+
+    PROCNAME("selaGetCombName");
+
+    if (!sela)
+        return (char *)ERROR_PTR("sela not defined", procName, NULL);
+    if (direction != L_HORIZ && direction != L_VERT)
+        return (char *)ERROR_PTR("invalid direction", procName, NULL);
+
+        /* Derive the comb name we're looking for */
+    if (direction == L_HORIZ)
+        snprintf(combname, L_BUF_SIZE, "sel_comb_%dh", size);
+    else  /* direction == L_VERT */
+        snprintf(combname, L_BUF_SIZE, "sel_comb_%dv", size);
+
+    found = FALSE;
+    nsels = selaGetCount(sela);
+    for (i = 0; i < nsels; i++) {
+        sel = selaGetSel(sela, i);
+        selGetParameters(sel, &sy, &sx, NULL, NULL);
+	if (sy != 1 && sx != 1)  /* 2-D; not a comb */
+            continue;
+	selname = selGetName(sel);
+        if (!strcmp(selname, combname)) {
+            found = TRUE;
+	    break;
+	}
+    }
+
+    if (found)
+        return stringNew(selname);
+    else
+        return (char *)ERROR_PTR("sel not found", procName, NULL);
+}
+
+
+/*!
+ *  selaComputeCompParameters()
+ *
+ *      Input:  output filename
+ *      Return: void 
+ *
+ *  Notes:
+ *      (1) This static function was used to construct the comp_parameter_map[]
+ *          array at the top of this file.  It is static because it does
+ *          not need to be called again.
+ *      (2) The output file was pasted directly into comp_parameter_map[].
+ *          It is used to quickly determine the linear decomposition
+ *          parameters and sel names.
+ */
+static void
+selaComputeCompositeParameters(const char  *fileout)
+{
+char    *str, *nameh1, *nameh2, *namev1, *namev2;
+char     buf[L_BUF_SIZE];
+l_int32  size, size1, size2, len;
+SARRAY  *sa;
+SELA    *selabasic, *selacomb;
+
+    selabasic = selaAddBasic(NULL);
+    selacomb = selaAddDwaCombs(NULL);
+    sa = sarrayCreate(64);
+    for (size = 2; size < 64; size++) {
+        selectComposableSizes(size, &size1, &size2);
+        nameh1 = selaGetBrickName(selabasic, size1, 1);
+        namev1 = selaGetBrickName(selabasic, 1, size1);
+        if (size2 > 1) {
+            nameh2 = selaGetCombName(selacomb, size1 * size2, L_HORIZ);
+            namev2 = selaGetCombName(selacomb, size1 * size2, L_VERT);
+        }
+        else {
+            nameh2 = stringNew("");
+            namev2 = stringNew("");
+        }
+        snprintf(buf, L_BUF_SIZE,
+                 "      { %d, %d, %d, \"%s\", \"%s\", \"%s\", \"%s\" },",
+                 size, size1, size2, nameh1, nameh2, namev1, namev2);
+	sarrayAddString(sa, buf, L_COPY);
+        FREE(nameh1);
+        FREE(nameh2);
+        FREE(namev1);
+        FREE(namev2);
+    }
+    str = sarrayToString(sa, 1);
+    len = strlen(str);
+    arrayWrite(fileout, "w", str, len + 1);
+    FREE(str);
+    sarrayDestroy(&sa);
+    selaDestroy(&selabasic);
+    selaDestroy(&selacomb);
+    return;
+}
+
+
+/*!
+ *  getCompositeParameters()
+ *
+ *      Input:  size
+ *              &size1 (<optional return> brick factor size)
+ *              &size2 (<optional return> comb factor size)
+ *              &nameh1 (<optional return> name of horiz brick)
+ *              &nameh2 (<optional return> name of horiz comb)
+ *              &namev1 (<optional return> name of vert brick)
+ *              &namev2 (<optional return> name of vert comb)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This uses the big lookup table at the top of this file.
+ *      (2) All returned strings are copies that must be freed.
+ */
+l_int32
+getCompositeParameters(l_int32   size,
+                       l_int32  *psize1,
+                       l_int32  *psize2,
+                       char    **pnameh1,
+                       char    **pnameh2,
+                       char    **pnamev1,
+                       char    **pnamev2)
+{
+l_int32  index;
+
+    PROCNAME("selaGetSelnames");
+
+    if (size < 2 || size > 63)
+        return ERROR_INT("valid size range is {2 ... 63}", procName, 1);
+    index = size - 2;
+    if (psize1)
+        *psize1 = comp_parameter_map[index].size1;
+    if (psize2)
+        *psize2 = comp_parameter_map[index].size2;
+    if (pnameh1)
+        *pnameh1 = stringNew(comp_parameter_map[index].selnameh1);
+    if (pnameh2)
+        *pnameh2 = stringNew(comp_parameter_map[index].selnameh2);
+    if (pnamev1)
+        *pnamev1 = stringNew(comp_parameter_map[index].selnamev1);
+    if (pnamev2)
+        *pnamev2 = stringNew(comp_parameter_map[index].selnamev2);
+    return 0;
+}
+
+
+/*!
+ *  selaGetSelnames()
+ *
+ *      Input:  sela
+ *      Return: sa (of all sel names), or null on error
+ */
+SARRAY *
+selaGetSelnames(SELA  *sela)
+{
+char    *selname;
+l_int32  i, n;
+SEL     *sel;
+SARRAY  *sa;
+
+    PROCNAME("selaGetSelnames");
+
+    if (!sela)
+        return (SARRAY *)ERROR_PTR("sela not defined", procName, NULL);
+    if ((n = selaGetCount(sela)) == 0)
+        return (SARRAY *)ERROR_PTR("no sels in sela", procName, NULL);
+
+    if ((sa = sarrayCreate(n)) == NULL)
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        sel = selaGetSel(sela, i);
+        selname = selGetName(sel);
+        sarrayAddString(sa, selname, 1);
+    }
+
+    return sa;
 }
 
 
@@ -888,6 +1204,8 @@ SEL     *seld;
         ncy = sx - cx - 1;
     }
     seld = selCreateBrick(nsy, nsx, ncy, ncx, SEL_DONT_CARE);
+    if (sel->name)
+        seld->name = stringNew(sel->name);
 
     for (i = 0; i < sy; i++) {
         for (j = 0; j < sx; j++) {
@@ -1185,7 +1503,7 @@ l_int32  sx, sy, cx, cy, i, j;
 
 
 /*----------------------------------------------------------------------*
- *                   Building custom hit-miss sels                      *
+ *           Building custom hit-miss sels from compiled strings        *
  *----------------------------------------------------------------------*/
 /*!
  *  selCreateFromString()
@@ -1326,6 +1644,198 @@ l_int32  sx, sy, cx, cy, x, y;
 
 
 /*----------------------------------------------------------------------*
+ *         Building custom hit-miss sels from a simple file format      *
+ *----------------------------------------------------------------------*/
+/*!
+ *  selaCreateFromFile()
+ *
+ *      Input:  filename
+ *      Return: sela, or null on error
+ *
+ *  Notes:
+ *      (1) The file contains a sequence of Sel descriptions.
+ *      (2) Each Sel is formatted as follows:
+ *           - Any number of comment lines starting with '#' are ignored
+ *           - The next line contains the selname
+ *           - The next lines contain the Sel data.  They must be
+ *             formatted similarly to the string format in
+ *             selCreateFromString(), with each line beginning and
+ *             ending with a double-quote, and showing the 2D layout.
+ *           - Each Sel ends when a blank line, a comment line, or
+ *             the end of file is reached.
+ *      (3) See selCreateFromString() for a description of the string
+ *          format for the Sel data.  As an example, here are the lines
+ *          of is a valid file for a single Sel.  In the file, all lines 
+ *          are left-justified:
+ *                    # diagonal sel
+ *                    sel_5diag
+ *                    "x    "
+ *                    " x   "
+ *                    "  X  "
+ *                    "   x "
+ *                    "    x"
+ */
+SELA *
+selaCreateFromFile(const char  *filename)
+{
+char    *filestr, *line;
+l_int32  nbytes, i, n, first, last, nsel, insel;
+NUMA    *nafirst, *nalast;
+SARRAY  *sa;
+SEL     *sel;
+SELA    *sela;
+
+    PROCNAME("selaCreateFromFile");
+
+    if (!filename)
+        return (SELA *)ERROR_PTR("filename not defined", procName, NULL);
+    
+    filestr = (char *)arrayRead(filename, &nbytes);
+    sa = sarrayCreateLinesFromString(filestr, 1);
+    FREE(filestr);
+    n = sarrayGetCount(sa);
+    sela = selaCreate(0);
+
+        /* Find the start and end lines for each Sel.
+         * We allow the "blank" lines to be null strings or
+         * to have standard whitespace (' ','\t',\'n') or be '#'. */
+    nafirst = numaCreate(0);
+    nalast = numaCreate(0);
+    insel = FALSE;
+    for (i = 0; i < n; i++) {
+        line = sarrayGetString(sa, i, L_NOCOPY);
+        if (!insel &&
+            (line[0] != '\0' && line[0] != ' ' &&
+             line[0] != '\t' && line[0] != '\n' && line[0] != '#')) {
+            numaAddNumber(nafirst, i);
+            insel = TRUE;
+	    continue;
+        }	    
+	if (insel &&
+            (line[0] == '\0' || line[0] == ' ' ||
+             line[0] == '\t' || line[0] == '\n' || line[0] == '#')) {
+            numaAddNumber(nalast, i - 1);
+            insel = FALSE;
+            continue;
+        }	    
+    }
+    if (insel)  /* fell off the end of the file */
+        numaAddNumber(nalast, n - 1);
+
+        /* Extract sels */
+    nsel = numaGetCount(nafirst);
+    for (i = 0; i < nsel; i++) {
+        numaGetIValue(nafirst, i, &first);
+        numaGetIValue(nalast, i, &last);
+        if ((sel = selCreateFromSArray(sa, first, last)) == NULL) {
+            fprintf(stderr, "Error reading sel from %d to %d\n", first, last);
+            selaDestroy(&sela);
+            sarrayDestroy(&sa);
+            numaDestroy(&nafirst);
+            numaDestroy(&nalast);
+            return (SELA *)ERROR_PTR("bad sela file", procName, NULL);
+        }
+	selaAddSel(sela, sel, NULL, 0);
+    }
+
+    numaDestroy(&nafirst);
+    numaDestroy(&nalast);
+    sarrayDestroy(&sa);
+    return sela;
+}
+
+
+/*!
+ *  selCreateFromSArray()
+ *
+ *      Input:  sa
+ *              first (line of sarray where Sel begins)
+ *              last (line of sarray where Sel ends)
+ *      Return: sela, or null on error
+ *
+ *  Notes:
+ *      (1) The Sel contains the following lines:
+ *          - The first line is the selname
+ *          - The remaining lines contain the Sel data.  They must
+ *            be formatted similarly to the string format in
+ *            selCreateFromString(), with each line beginning and
+ *            ending with a double-quote, and showing the 2D layout.
+ *          - 'last' gives the last line in the Sel data.
+ *      (2) See selCreateFromString() for a description of the string
+ *          format for the Sel data.  As an example, here are the lines
+ *          of is a valid file for a single Sel.  In the file, all lines 
+ *          are left-justified:
+ *                    # diagonal sel
+ *                    sel_5diag
+ *                    "x    "
+ *                    " x   "
+ *                    "  X  "
+ *                    "   x "
+ *                    "    x"
+ */
+static SEL *
+selCreateFromSArray(SARRAY  *sa,
+		    l_int32  first,
+		    l_int32  last)
+{
+char     ch;
+char    *name, *line;
+l_int32  n, len, i, w, h, y, x;
+SEL     *sel;
+
+    PROCNAME("selCreateFromSArray");
+
+    if (!sa)
+        return (SEL *)ERROR_PTR("sa not defined", procName, NULL);
+    n = sarrayGetCount(sa);
+    if (first < 0 || first >= n || last <= first || last >= n)
+        return (SEL *)ERROR_PTR("invalid range", procName, NULL);
+    
+    name = sarrayGetString(sa, first, L_NOCOPY);
+    h = last - first;
+    line = sarrayGetString(sa, first + 1, L_NOCOPY);
+    len = strlen(line);
+    if (line[0] != '"' || line[len - 1] != '"')
+        return (SEL *)ERROR_PTR("invalid format", procName, NULL);
+    w = len - 2;
+    if ((sel = selCreate(h, w, name)) == NULL)
+        return (SEL *)ERROR_PTR("sel not made", procName, NULL);
+    for (i = first + 1; i <= last; i++) {
+        line = sarrayGetString(sa, i, L_NOCOPY);
+        y = i - first - 1;
+        for (x = 0; x < w; ++x) {
+            ch = line[x + 1];  /* skip the leading double-quote */
+            switch (ch)
+            {
+                case 'X':
+                    selSetOrigin(sel, y, x);
+                case 'x':
+                    selSetElement(sel, y, x, SEL_HIT);
+                    break;
+
+                case 'O':
+                    selSetOrigin(sel, y, x);
+                case 'o':
+                    selSetElement(sel, y, x, SEL_MISS);
+                    break;
+
+                case 'C':
+                    selSetOrigin(sel, y, x);
+                case ' ':
+                    selSetElement(sel, y, x, SEL_DONT_CARE);
+                    break;
+                default:
+                    selDestroy(&sel);
+                    return (SEL *)ERROR_PTR("unknown char", procName, NULL);
+            }
+        }
+    }
+
+    return sel;
+}
+
+
+/*----------------------------------------------------------------------*
  *               Making hit-only SELs from Pta and Pix                  *
  *----------------------------------------------------------------------*/
 /*!
@@ -1417,6 +1927,137 @@ l_uint32  val;
         }
     }
 
+    return sel;
+}
+
+
+/*----------------------------------------------------------------------*
+ *            Making hit-miss sels from color Pix and image files             *
+ *----------------------------------------------------------------------*/
+/*!
+ *
+ *  selReadFromColorImage()
+ *
+ *      Input:  pathname
+ *      Return: sel if OK; null on error
+ *
+ *  Notes:
+ *      (1) Loads an image from a file and creates a (hit-miss) sel.
+ *      (2) The sel name is taken from the pathname without the directory
+ *          and extension.
+ */
+SEL *
+selReadFromColorImage(const char  *pathname)
+{
+PIX   *pix;
+SEL   *sel;
+char  *basename, *selname;
+
+    PROCNAME("selReadFromColorImage");
+
+    splitPathAtExtension (pathname, &basename, NULL);
+    splitPathAtDirectory (basename, NULL, &selname);
+    FREE(basename);
+
+    if ((pix = pixRead(pathname)) == NULL)
+        return (SEL *)ERROR_PTR("pix not returned", procName, NULL);
+    if ((sel = selCreateFromColorPix(pix, selname)) == NULL)
+        return (SEL *)ERROR_PTR("sel not made", procName, NULL);
+    FREE(selname);
+    pixDestroy(&pix);
+
+    return sel;
+}
+
+
+/*!
+ *
+ *  selCreateFromColorPix()
+ *
+ *      Input:  pixs (cmapped or rgb)
+ *              selname (<optional> sel name; can be null)
+ *      Return: sel if OK, null on error
+ *
+ *  Notes:
+ *      (1) The sel size is given by the size of pixs.
+ *      (2) In pixs, hits are represented by green pixels, misses by red
+ *          pixels, and don't-cares by white pixels.
+ *      (3) In pixs, there may be no misses, but there must be at least 1 hit.
+ *      (4) At most there can be only one origin pixel, which is optionally
+ *          specified by using a lower-intensity pixel:
+ *            if a hit:  dark green
+ *            if a miss: dark red
+ *            if a don't care: gray
+ *          If there is no such pixel, the origin defaults to the approximate
+ *          center of the sel.
+ */
+SEL *
+selCreateFromColorPix(PIX   *pixs,
+                      char  *selname)
+{
+PIXCMAP  *cmap;
+SEL      *sel;
+l_int32   hascolor, hasorigin, nohits;
+l_int32   w, h, d, i, j, red, green, blue;
+l_uint32  pixval;
+
+    PROCNAME("selCreateFromColorPix");
+
+    if (!pixs)
+        return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    hascolor = FALSE;
+    cmap = pixGetColormap(pixs);
+    if (cmap)
+        pixcmapHasColor(cmap, &hascolor);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (hascolor == FALSE && d != 32)
+        return (SEL *)ERROR_PTR("pixs has no color", procName, NULL);
+
+    if ((sel = selCreate (h, w, NULL)) == NULL)
+        return (SEL *)ERROR_PTR ("sel not made", procName, NULL);
+    selSetOrigin (sel, h / 2, w / 2);
+    selSetName(sel, selname);
+
+    hasorigin = FALSE;
+    nohits = TRUE;
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) {
+            pixGetPixel (pixs, j, i, &pixval);
+
+            if (cmap)
+                pixcmapGetColor (cmap, pixval, &red, &green, &blue);
+            else {
+                red = GET_DATA_BYTE (&pixval, COLOR_RED);
+                green = GET_DATA_BYTE (&pixval, COLOR_GREEN);
+                blue = GET_DATA_BYTE (&pixval, COLOR_BLUE);
+            }
+
+            if (red < 255 && green < 255 && blue < 255) {
+                if (hasorigin)
+                    L_WARNING("multiple origins in sel image", procName);
+                selSetOrigin (sel, i, j);
+                hasorigin = TRUE;
+            }
+            if (!red && green && !blue) {
+                nohits = FALSE;
+                selSetElement (sel, i, j, SEL_HIT);
+            }
+            else if (red && !green && !blue)
+                selSetElement (sel, i, j, SEL_MISS);
+            else if (red && green && blue)
+                selSetElement (sel, i, j, SEL_DONT_CARE);
+            else {
+                selDestroy(&sel);
+                return (SEL *)ERROR_PTR("invalid color", procName, NULL);
+            }
+        }
+    }
+
+    if (nohits) {
+        selDestroy(&sel);
+        return (SEL *)ERROR_PTR("no hits in sel", procName, NULL);
+    }
     return sel;
 }
 
@@ -1614,5 +2255,4 @@ SEL     *sel;
     pixaDestroy(&pixa);
     return pixd;
 }
-
 

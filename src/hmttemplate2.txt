@@ -17,30 +17,30 @@
  *     Low-level fast hit-miss transform with auto-generated sels
  *
  *      Dispatcher:
- *            l_int32   fhmtgen_low_*()
+--- *            l_int32   fhmtgen_low_*()
  *
  *      Static Low-level:
- *            void      fhmt_*_*()
+--- *            void      fhmt_*_*()
  */
 
 #include <stdio.h>
 #include "allheaders.h"
 
-------------------   This file is:  hmttemplate2.txt  ---------------------
-
-----------------    insert static protos here  ----------------------------
+---                This file is:  hmttemplate2.txt
+---
+---      insert static protos here
 
 
 /*---------------------------------------------------------------------*
- *                            Fast hmt dispatcher                      *
+ *                           Fast hmt dispatcher                       *
  *---------------------------------------------------------------------*/
 /*
- *  fhmtgen_low_*()
+--- *  fhmtgen_low_*()
  *
  *       a dispatcher to appropriate low-level code
  */
 l_int32
-------   fhmtgen_low_*(l_uint32  *datad,     --------  substitute!
+---   fhmtgen_low_*(l_uint32  *datad,
               l_int32    w,
               l_int32    h,
               l_int32    wpld,
@@ -51,9 +51,7 @@ l_int32
 
     switch (index)
     {
-
---------   insert dispatcher code for fhmt* routines ------
-     
+---    insert dispatcher code for fhmt* routines
     }
 
     return 0;
@@ -64,40 +62,32 @@ l_int32
  *                 Low-level auto-generated static routines                 *
  *--------------------------------------------------------------------------*/
 /*
- *  N.B.  in all the low-level routines, the part of the image
- *        that is accessed has been clipped by ADDED_BORDER pixels
- *        on all four sides.  This is done in the higher level
+ *  N.B.  In all the low-level routines, the part of the image
+ *        that is accessed has been clipped by 32 pixels on
+ *        all four sides.  This is done in the higher level
  *        code by redefining w and h smaller and by moving the
  *        start-of-image pointers up to the beginning of this
  *        interior rectangle.
  */
-
---------  start with header:  static void fhmt_*_*(l_uint32  *datad, ----
-
+---   static void fhmt_*_*(l_uint32  *datad,
          l_int32    w,
          l_int32    h,
          l_int32    wpld,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
-
----------  declare wplsN args as necessary ----------------------
----------  define wplsN args as necessary -----------------------
-
+l_int32             i;
+register l_int32    j, pwpls;
+register l_uint32  *sptr, *dptr;
+---     declare wplsN args as necessary ----------------------
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
         sptr = datas + i * wpls;
         dptr = datad + i * wpld;
         for (j = 0; j < pwpls; j++, sptr++, dptr++) {
-
----------   insert barrel-op code for *dptr here  ----------
-
+---        insert barrel-op code for *dptr here ...
         }
     }
 }
-
 

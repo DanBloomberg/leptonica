@@ -16,14 +16,21 @@
 /*
  *      Top-level fast hit-miss transform with auto-generated sels
  *
- *            PIX      *pixFHMTGen_*()
+ *             PIX     *pixHMTDwa_1()
+ *             PIX     *pixFHMTGen_1()
  */
 
 #include <stdio.h>
 #include "allheaders.h"
 
-static l_int32   NUM_SELS_GENERATED = 6;
+PIX *pixHMTDwa_1(PIX *pixd, PIX *pixs, char *selname);
+PIX *pixFHMTGen_1(PIX *pixd, PIX *pixs, char *selname);
+l_int32 fhmtgen_low_1(l_uint32 *datad, l_int32 w,
+                      l_int32 h, l_int32 wpld,
+                      l_uint32 *datas, l_int32 wpls,
+                      l_int32 index);
 
+static l_int32   NUM_SELS_GENERATED = 6;
 static char  *SEL_NAMES[] = {
                              "sel_3hm",
                              "sel_3de",
@@ -33,27 +40,74 @@ static char  *SEL_NAMES[] = {
                              "sel_sl1"};
 
 /*
- *  pixFHMTGen_*()
+ *  pixHMTDwa_1()
  *
- *     Input:  pixd (usual 3 choices: null, == pixs, != pixs)
- *             pixs 
- *             sel name
- *     Return: pixd
+ *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
+ *              pixs (1 bpp)
+ *              sel name
+ *      Return: pixd
  *
- *     Action: hit-miss transform on pixs by the sel
- *     N.B.: the sel must have at least one hit, and it
- *           can have any number of misses.
+ *  Notes:
+ *      (1) This simply adds a 32 pixel border, calls the appropriate
+ *          pixFHMTGen_*(), and removes the border.
+ *          See notes below for that function.
  */
 PIX *
-pixFHMTGen_1(PIX    *pixd,
-             PIX    *pixs,
-             char   *selname)
+pixHMTDwa_1(PIX   *pixd,
+            PIX   *pixs,
+            char  *selname)
+{
+PIX  *pixt1, *pixt2, *pixt3;
+
+    PROCNAME("pixHMTDwa_1");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
+
+    pixt1 = pixAddBorder(pixs, 32, 0);
+    pixt2 = pixFHMTGen_1(NULL, pixt1, selname);
+    pixt3 = pixRemoveBorder(pixt2, 32);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+    if (!pixd)
+        return pixt3;
+
+    pixCopy(pixd, pixt3);
+    pixDestroy(&pixt3);
+    return pixd;
+}
+
+
+/*
+ *  pixFHMTGen_1()
+ *
+ *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
+ *              pixs (1 bpp)
+ *              sel name
+ *      Return: pixd
+ *
+ *  Notes:
+ *      (1) This is a dwa implementation of the hit-miss transform
+ *          on pixs by the sel.
+ *      (2) The sel must be limited in size to not more than 31 pixels
+ *          about the origin.  It must have at least one hit, and it
+ *          can have any number of misses.
+ *      (3) This handles all required setting of the border pixels
+ *          before erosion and dilation.
+ */
+PIX *
+pixFHMTGen_1(PIX   *pixd,
+             PIX   *pixs,
+             char  *selname)
 {
 l_int32    i, index, found, w, h, wpls, wpld;
 l_uint32  *datad, *datas, *datat;
 PIX       *pixt;
 
-    PROCNAME("pixFHMTGen_*");
+    PROCNAME("pixFHMTGen_1");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
@@ -71,35 +125,32 @@ PIX       *pixt;
     if (found == FALSE)
         return (PIX *)ERROR_PTR("sel index not found", procName, pixd);
 
-    if (pixd) {
-        if (!pixSizesEqual(pixs, pixd))
-            return (PIX *)ERROR_PTR("sizes not equal", procName, pixd);
-    }
-    else {
+    if (!pixd) {
         if ((pixd = pixCreateTemplate(pixs)) == NULL)
             return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
-
+    else  /* for in-place or pre-allocated */
+        pixResizeImageData(pixd, pixs);
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-        /*  The images must be surrounded with ADDED_BORDER white pixels,
-         *  that we'll read from.  We fabricate a "proper"
+        /*  The images must be surrounded with 32 additional border
+         *  pixels, that we'll read from.  We fabricate a "proper"
          *  image as the subimage within the border, having the 
          *  following parameters:  */
-    w = pixGetWidth(pixs) - 2 * ADDED_BORDER;
-    h = pixGetHeight(pixs) - 2 * ADDED_BORDER;
-    datas = pixGetData(pixs) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
-    datad = pixGetData(pixd) + ADDED_BORDER * wpld + ADDED_BORDER / 32;
+    w = pixGetWidth(pixs) - 64;
+    h = pixGetHeight(pixs) - 64;
+    datas = pixGetData(pixs) + 32 * wpls + 1;
+    datad = pixGetData(pixd) + 32 * wpld + 1;
 
     if (pixd == pixs) {  /* need temp image if in-place */
         if ((pixt = pixCopy(NULL, pixs)) == NULL)
             return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
-        datat = pixGetData(pixt) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
+        datat = pixGetData(pixt) + 32 * wpls + 1;
         fhmtgen_low_1(datad, w, h, wpld, datat, wpls, index);
         pixDestroy(&pixt);
     }
-    else {  /* simple and not in-place */
+    else {  /* not in-place */
         fhmtgen_low_1(datad, w, h, wpld, datas, wpls, index);
     }
 

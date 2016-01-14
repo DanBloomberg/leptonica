@@ -55,6 +55,10 @@
 
 #include "allheaders.h"
 
+#ifndef  NO_CONSOLE_IO
+#define DEBUG_UNROLLING 0
+#endif   /* ~NO_CONSOLE_IO */
+
 
 /*------------------------------------------------------------------*
  *             Binarization by Floyd-Steinberg Dithering            *
@@ -271,25 +275,106 @@ thresholdToBinaryLineLow(l_uint32  *lined,
                          l_int32    d,
                          l_int32    thresh)
 {
-l_int32  j, gval;
+l_int32  j, k, gval, scount, dcount;
+l_uint32 sword, dword;
 
     PROCNAME("thresholdToBinaryLineLow");
 
     switch (d)
     {
     case 4:
+            /* Unrolled as 4 source words, 1 dest word */
+        for (j = 0, scount = 0, dcount = 0; j + 31 < w; j += 32) {
+            dword = 0;
+            for (k = 0; k < 4; k++) {
+                sword = lines[scount++];
+                dword <<= 8;
+                gval = (sword >> 28) & 0xf;
+                    /* Trick used here and below: if gval < thresh then
+                     * gval - thresh < 0, so its high-order bit is 1, and
+                     * ((gval - thresh) >> 31) & 1 == 1; likewise, if
+                     * gval >= thresh, then ((gval - thresh) >> 31) & 1 == 0
+                     * Doing it this way avoids a random (and thus easily
+                     * mispredicted) branch on each pixel. */
+                dword |= ((gval - thresh) >> 24) & 128;
+                gval = (sword >> 24) & 0xf;
+                dword |= ((gval - thresh) >> 25) & 64;
+                gval = (sword >> 20) & 0xf;
+                dword |= ((gval - thresh) >> 26) & 32;
+                gval = (sword >> 16) & 0xf;
+                dword |= ((gval - thresh) >> 27) & 16;
+                gval = (sword >> 12) & 0xf;
+                dword |= ((gval - thresh) >> 28) & 8;
+                gval = (sword >> 8) & 0xf;
+                dword |= ((gval - thresh) >> 29) & 4;
+                gval = (sword >> 4) & 0xf;
+                dword |= ((gval - thresh) >> 30) & 2;
+                gval = sword & 0xf;
+                dword |= ((gval - thresh) >> 31) & 1;
+            }
+            lined[dcount++] = dword;
+        }
+
+        if (j < w) {
+          dword = 0;
+          for (; j < w; j++) {
+              if ((j & 7) == 0) {
+                  sword = lines[scount++];
+              }
+              gval = (sword >> 28) & 0xf;
+              sword <<= 4;
+              dword |= (((gval - thresh) >> 31) & 1) << (31 - (j & 31));
+          }
+          lined[dcount] = dword;
+        }
+#if DEBUG_UNROLLING
+#define CHECK_BIT(a, b, c) if (GET_DATA_BIT(a, b) != c) { \
+    fprintf(stderr, "Error: mismatch at %d/%d(%d), %d vs %d\n", \
+            j, w, d, GET_DATA_BIT(a, b), c); }
         for (j = 0; j < w; j++) {
             gval = GET_DATA_QBIT(lines, j);
-            if (gval < thresh) 
-                SET_DATA_BIT(lined, j);
+            CHECK_BIT(lined, j, gval < thresh ? 1 : 0);
         }
+#endif
         break;
     case 8:
+            /* Unrolled as 8 source words, 1 dest word */
+        for (j = 0, scount = 0, dcount = 0; j + 31 < w; j += 32) {
+            dword = 0;
+            for (k = 0; k < 8; k++) {
+                sword = lines[scount++];
+                dword <<= 4;
+                gval = (sword >> 24) & 0xff;
+                dword |= ((gval - thresh) >> 28) & 8;
+                gval = (sword >> 16) & 0xff;
+                dword |= ((gval - thresh) >> 29) & 4;
+                gval = (sword >> 8) & 0xff;
+                dword |= ((gval - thresh) >> 30) & 2;
+                gval = sword & 0xff;
+                dword |= ((gval - thresh) >> 31) & 1;
+            }
+            lined[dcount++] = dword;
+        }
+
+        if (j < w) {
+            dword = 0;
+            for (; j < w; j++) {
+                if ((j & 3) == 0) {
+                    sword = lines[scount++];
+                }
+                gval = (sword >> 24) & 0xff;
+                sword <<= 8;
+                dword |= (((gval - thresh) >> 31) & 1) << (31 - (j & 31));
+            }
+            lined[dcount] = dword;
+        }
+#if DEBUG_UNROLLING
         for (j = 0; j < w; j++) {
             gval = GET_DATA_BYTE(lines, j);
-            if (gval < thresh) 
-                SET_DATA_BIT(lined, j);
+            CHECK_BIT(lined, j, gval < thresh ? 1 : 0);
         }
+#undef CHECK_BIT
+#endif
         break;
     default:
         ERROR_VOID("src depth not 4 or 8 bpp", procName);
@@ -865,5 +950,3 @@ l_int32   j, k;
     }
     return;
 }
-
-

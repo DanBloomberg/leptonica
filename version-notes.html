@@ -18,9 +18,60 @@
 
 <pre>
 
+1.50   07 Oct 07
+       |||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+       NOTE CAREFULLY: The  image format enum in imageio.h has
+       changed.  This is an ABI change, and it requires
+       recompilation of the library.
+       |||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+       Suggestions by David Bryan again resulted in several changes,
+       including improvements to the dwa generating functions and interfaces.
+       Major improvements for dwa code generation, including an
+       optional filename for the output code, adding function prototypes
+       to the code so it can easily be linked outside the library.
+       Addition of 2-way composable dwa functions for bricks, with
+       code addition to the library, and a new interpreter for dwa
+       composable brick sequences  (fmorphauto.c, fhmtauto.c,
+       morphtemplate1.c, hmttemplate1.c, morphdwa.c, dwacomb*.2.c, morphseq.c)
+       Exhaustively tested in six programs (prog/binmorph*_reg,
+       prog/dwamorph*_reg).
+       New input modes for Sels, from both color bitmap editors
+       and a simple file format (sel1.c).
+       Better Sel generation functions in sel2.c, including combs for
+       composable brick operations and linear bricks for comparison.
+       Removed unnecessary copies for more efficient border add'n & removal. 
+       Added RLE basline enc/dec for tiff.
+       Binary morphology documentation on the web page updated for these
+       changes/additions.
+       William Rucklidge unrolled inner loops and added LUTs to
+       speed up several more functions, including correlation
+       (correlscore.c), centroid calculation (morphapp.c),
+       2x linear interp grayscale scanning (scalelow.c),
+       thresholding to binary (grayquantlow.c), and removal
+       of colormaps to gray (pixconv.c).
+
+1.49   23 Sep 07
+       |||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+       NOTE CAREFULLY: The  image format enum in imageio.h has
+       changed.  This is an ABI change, and it requires
+       recompilation of the library.
+       |||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+       Suggestions by David Bryan resulted in several changes.
+       pixUnpackBinary() unpacks to all depths.
+       Can now write and read tiff in LZW and ZIP (gzip) formats.
+       These, like uncompressed tiff, work on all bit depths.
+       Also enabled pnm 16 bpp r/w, both non-ascii and ascii.
+       ioFormatTest() now has better coverage and clarity; this is
+       used in prog/ioformats_reg.c.
+       Rewrite of morphautogen code to implement opening and closing atomically.
+       Cleaner interaction with new text templates (fmorphauto.c,
+       fhmtauto.c, sarray.c, *template*.txt,).
+       More regression testing (e.g., binmorph1_reg.c, binmorph3_reg.c).
+
 1.48   30 Aug 07
-       Generalize rank filtering from 8 bpp to color (rank.c).
-       Speedup for pixCorrelationScore() by in-lining all bit operations.
+       William Rucklidge sped up pixCorrelationScore() by in-lining
+       all bit operations (jbclass.c).
+       Generalized rank filtering from 8 bpp to color (rank.c).
        Fixed many functions that take a dest pix so that they don't fail if
        the dimensions or depth are not consistent with the src pix.
        The underlying change for this is to pixCopy() (pix1.c).

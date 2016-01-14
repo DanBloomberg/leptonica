@@ -19,11 +19,11 @@
  *
  *    Basic regression test for hit-miss transform: rasterops & dwa.
  *
- *    Tests hmt from all hmt structuring elements
+ *    Tests hmt from a set of hmt structuring elements
  *    by comparing the full image rasterop results with the
  *    automatically generated dwa results.
  *
- *    Results are identical for all operations.
+ *    Results must be identical for all operations.
  */
 
 #include <stdio.h>
@@ -34,9 +34,9 @@
 main(int    argc,
      char **argv)
 {
-l_int32      i, nsels, same, xorcount;
+l_int32      i, nsels, same1, same2, ok;
 char        *filein, *selname;
-PIX         *pixs, *pixs1, *pixt1, *pixt2, *pixt3, *pixt4;
+PIX         *pixs, *pixref, *pixt1, *pixt2, *pixt3, *pixt4;
 SEL         *sel;
 SELA        *sela;
 static char  mainName[] = "fhmtauto_reg";
@@ -45,46 +45,49 @@ static char  mainName[] = "fhmtauto_reg";
 	exit(ERROR_INT(" Syntax:  fhmtauto_reg filein", mainName, 1));
 
     filein = argv[1];
-
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 
     sela = selaAddHitMiss(NULL);
     nsels = selaGetCount(sela);
 
+    ok = TRUE;
     for (i = 0; i < nsels; i++)
     {
 	sel = selaGetSel(sela, i);
 	selname = selGetName(sel);
 
-	pixt1 = pixHMT(NULL, pixs, sel);
+	pixref = pixHMT(NULL, pixs, sel);
 
-	pixs1 = pixAddBorder(pixs, 32, 0);
-	pixt2 = pixFHMTGen_1(NULL, pixs1, selname);
+	pixt1 = pixAddBorder(pixs, 32, 0);
+	pixt2 = pixFHMTGen_1(NULL, pixt1, selname);
 	pixt3 = pixRemoveBorder(pixt2, 32);
+       
+	pixt4 = pixHMTDwa_1(NULL, pixs, selname);
 
-	pixt4 = pixXor(NULL, pixt1, pixt3);
-	pixZero(pixt4, &same);
-
-	if (same == 1) {
+	pixEqual(pixref, pixt3, &same1);
+	pixEqual(pixref, pixt4, &same2);
+	if (same1 && same2)
 	    fprintf(stderr, "hmt are identical for sel %d (%s)\n", i, selname);
-	}
 	else {
 	    fprintf(stderr, "hmt differ for sel %d (%s)\n", i, selname);
-	    pixCountPixels(pixt4, &xorcount, NULL);
-	    fprintf(stderr, "Number of pixels in XOR: %d\n", xorcount);
+	    ok = FALSE;
 	}
 
+	pixDestroy(&pixref);
 	pixDestroy(&pixt1);
 	pixDestroy(&pixt2);
 	pixDestroy(&pixt3);
 	pixDestroy(&pixt4);
-	pixDestroy(&pixs1);
     }
+
+    if (ok)
+        fprintf(stderr, "\n ********  All hmt are correct *******\n");
+    else
+        fprintf(stderr, "\n ********  ERROR in at least one hmt *******\n");
 
     pixDestroy(&pixs);
     selaDestroy(&sela);
-
     exit(0);
 }
 

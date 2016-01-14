@@ -17,8 +17,10 @@
 /*
  *  fhmtauto.c
  *      
- *    Main call:
+ *    Main function calls:
  *       l_int32             fhmtautogen()
+ *       l_int32             fhmtautogen1()
+ *       l_int32             fhmtautogen2()
  *
  *    Static helpers:
  *       static SARRAY      *sarrayMakeWplsCode()
@@ -33,11 +35,12 @@
  *           (a) calling the function selaAddHitMiss() for
  *               pre-compiled SELs
  *           (b) generating the SELA in code in line
- *           (c) reading in a SELA from file using selaRead()
+ *           (c) reading in a SELA from file, using selaRead()
+ *               or various other formats.
  *
- *    (2) You call fhmtautogen() on this SELA.  This uses the
- *        text files hmttemplate1.txt and hmttemplate2.txt for
- *        building up the source code.  See the file
+ *    (2) You call fhmtautogen1() and fhmtautogen2() on this SELA.
+ *        This uses the text files hmttemplate1.txt and
+ *        hmttemplate2.txt for building up the source code.  See the file
  *        prog/fhmtautogen.c for an example of how this is done.
  *        The output is written to files named fhmtgen.*.c
  *        and fhmtgenlow.*.c, where "*" is an integer that you
@@ -50,67 +53,37 @@
  *        
  *    (3) You copy the generated source code back to your src
  *        directory for compilation.  Put their names in the
- *        Makefile and recompile the libraries.  Check the Makefile
- *        to see in which libraries I have placed the example
- *        ones (which are named fhmtgen.1.c and fhmtgenlow.1.c).
+ *        Makefile, regnerate the prototypes, and recompile
+ *        the libraries.  Look at the Makefile to see how I've
+ *        included fhmtgen.1.c and fhmtgenlow.1.c.  These files
+ *        provide the high-level interfaces for the hmt, and
+ *        the low-level interfaces to do the actual work.
  *
- *    (4) You make the library again, compiling in the code.
- *        For the example one I made, using the integer "1",
- *        you have a high-level interface in fhmtgen.1.c to the
- *        dwa hit-miss transform using any of the SELs given there.
- *
- *    (5) In an application, you now use this interface.  Again
+ *    (4) In an application, you now use this interface.  Again
  *        for the example files generated, using integer "1":
  *
- *         PIX   *pixFHMTGen_1(PIX *pixd, PIX *pixs, char *selname);
+ *           PIX   *pixHMTDwa_1(PIX *pixd, PIX *pixs, char *selname);
  *
- *        The selname is one of the set that were defined
+ *              or
+ *
+ *           PIX   *pixFHMTGen_1(PIX *pixd, PIX *pixs, char *selname);
+ *
+ *        where the selname is one of the set that were defined
  *        as the name field of sels.  This set is listed at the
  *        beginning of the file fhmtgen.1.c.
- *        As an example, see the file prog/fhmttest.c, which
+ *        As an example, see the file prog/fmtauto_reg.c, which
  *        verifies the correctness of the implementation by
  *        comparing the dwa result with that of full-image
  *        rasterops. 
- *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "allheaders.h"
 
 #define   OUTROOT         "fhmtgen"
-#define   OUTROOTLOW      "fhmtgenlow"
-
 #define   TEMPLATE1       "hmttemplate1.txt"
 #define   TEMPLATE2       "hmttemplate2.txt"
-
-#define   NSTART1         0
-#define   NSTOP1          23
-#define   NSTART2         31
-#define   NSTOP2          43
-#define   NSTART3         45
-#define   NSTOP3          94
-#define   NSTART4         96
-#define   NSTOP4          98 
-#define   NSTART5         100
-#define   NSTOP5          104
-
-#define   NSTART6         0
-#define   NSTOP6          27
-#define   NSTART7         31
-#define   NSTOP7          41
-#define   NSTART8         43
-#define   NSTOP8          52
-#define   NSTART9         56
-#define   NSTOP9          73
-#define   NSTART10        76 
-#define   NSTOP10         84
-#define   NSTART11        89
-#define   NSTOP11         94
-#define   NSTART12        98
-#define   NSTOP12         102
-
 
 #define   BUFFER_SIZE     512
 
@@ -121,36 +94,36 @@ static SARRAY * sarrayMakeInnerLoopDWACode(SEL *sel, l_int32 nhits, l_int32 nmis
 static SARRAY * sarrayMakeWplsCode(SEL *sel);
 
 static  char   *wpldecls[] = {
-            "l_int32              wpls2;",
-            "l_int32              wpls2, wpls3;",
-            "l_int32              wpls2, wpls3, wpls4;",
-            "l_int32              wpls5;",
-            "l_int32              wpls5, wpls6;",
-            "l_int32              wpls5, wpls6, wpls7;",
-            "l_int32              wpls5, wpls6, wpls7, wpls8;",
-            "l_int32              wpls9;",
-            "l_int32              wpls9, wpls10;",
-            "l_int32              wpls9, wpls10, wpls11;",
-            "l_int32              wpls9, wpls10, wpls11, wpls12;",
-            "l_int32              wpls13;",
-            "l_int32              wpls13, wpls14;",
-            "l_int32              wpls13, wpls14, wpls15;",
-            "l_int32              wpls13, wpls14, wpls15, wpls16;",
-            "l_int32              wpls17;",
-            "l_int32              wpls17, wpls18;",
-            "l_int32              wpls17, wpls18, wpls19;",
-            "l_int32              wpls17, wpls18, wpls19, wpls20;",
-            "l_int32              wpls21;",
-            "l_int32              wpls21, wpls22;",
-            "l_int32              wpls21, wpls22, wpls23;",
-            "l_int32              wpls21, wpls22, wpls23, wpls24;",
-            "l_int32              wpls25;",
-            "l_int32              wpls25, wpls26;",
-            "l_int32              wpls25, wpls26, wpls27;",
-            "l_int32              wpls25, wpls26, wpls27, wpls28;",
-            "l_int32              wpls29;",
-            "l_int32              wpls29, wpls30;",
-            "l_int32              wpls29, wpls30, wpls31;"};
+            "l_int32             wpls2;",
+            "l_int32             wpls2, wpls3;",
+            "l_int32             wpls2, wpls3, wpls4;",
+            "l_int32             wpls5;",
+            "l_int32             wpls5, wpls6;",
+            "l_int32             wpls5, wpls6, wpls7;",
+            "l_int32             wpls5, wpls6, wpls7, wpls8;",
+            "l_int32             wpls9;",
+            "l_int32             wpls9, wpls10;",
+            "l_int32             wpls9, wpls10, wpls11;",
+            "l_int32             wpls9, wpls10, wpls11, wpls12;",
+            "l_int32             wpls13;",
+            "l_int32             wpls13, wpls14;",
+            "l_int32             wpls13, wpls14, wpls15;",
+            "l_int32             wpls13, wpls14, wpls15, wpls16;",
+            "l_int32             wpls17;",
+            "l_int32             wpls17, wpls18;",
+            "l_int32             wpls17, wpls18, wpls19;",
+            "l_int32             wpls17, wpls18, wpls19, wpls20;",
+            "l_int32             wpls21;",
+            "l_int32             wpls21, wpls22;",
+            "l_int32             wpls21, wpls22, wpls23;",
+            "l_int32             wpls21, wpls22, wpls23, wpls24;",
+            "l_int32             wpls25;",
+            "l_int32             wpls25, wpls26;",
+            "l_int32             wpls25, wpls26, wpls27;",
+            "l_int32             wpls25, wpls26, wpls27, wpls28;",
+            "l_int32             wpls29;",
+            "l_int32             wpls29, wpls30;",
+            "l_int32             wpls29, wpls30, wpls31;"};
 
 static  char   *wpldefs[] = {
             "    wpls2 = 2 * wpls;",
@@ -206,31 +179,72 @@ static char   *wplstrm[] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
 /*!
  *  fhmtautogen()
  *
- *      Input:  sel array
+ *      Input:  sela
  *              fileindex
+ *              filename (<optional>; can be null)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This function writes two C source files to carry out a
- *          hit-miss transform by the fast dwa method, using all sels
- *          in the input array.  The output filenames are composed
- *          using the fileindex.
- *      (2) Each sel must have at least one hit.  A sel with only misses
+ *      (1) This function generates all the code for implementing
+ *          dwa morphological operations using all the sels in the sela.
+ *      (2) See fhmtautogen1() and fhmtautogen2() for details.
+ */
+l_int32
+fhmtautogen(SELA        *sela,
+            l_int32      fileindex,
+            const char  *filename)
+{
+l_int32  ret1, ret2;
+
+    PROCNAME("fhmtautogen");
+
+    if (!sela)
+        return ERROR_INT("sela not defined", procName, 1);
+    ret1 = fhmtautogen1(sela, fileindex, filename);
+    ret2 = fhmtautogen2(sela, fileindex, filename);
+    if (ret1 || ret2)
+        return ERROR_INT("code generation problem", procName, 1);
+    return 0;
+}
+
+
+/*!
+ *  fhmtautogen1()
+ *
+ *      Input:  sel array
+ *              fileindex
+ *              filename (<optional>; can be null)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This function uses hmttemplate1.txt to create a
+ *          top-level file that contains two functions that carry
+ *          out the hit-miss transform for any of the sels in
+ *          the input sela.
+ *      (2) The fileindex parameter is inserted into the output
+ *          filename, as described below.
+ *      (3) If filename == NULL, the output file is fhmtgen.<n>.c,
+ *          where <n> is equal to the 'fileindex' parameter.
+ *      (4) If filename != NULL, the output file is <filename>.<n>.c.
+ *      (5) Each sel must have at least one hit.  A sel with only misses
  *          generates code that will abort the operation if it is called.
  */
 l_int32
-fhmtautogen(SELA    *sela,
-            l_int32  fileindex)
+fhmtautogen1(SELA        *sela,
+             l_int32      fileindex,
+             const char  *filename)
 {
-char    *sname, *filestr, *linestr, *fname;
-char    *toplevelcall, *lowlevelcall1, *lowlevelcall2;
-char    *lowleveldefine;
+char    *filestr;
+char    *str_proto1, *str_proto2, *str_proto3;
+char    *str_doc1, *str_doc2, *str_doc3, *str_doc4;
+char    *str_def1, *str_def2, *str_proc1, *str_proc2;
+char    *str_dwa1, *str_low_dt, *str_low_ds;
 char     bigbuf[BUFFER_SIZE];
-l_int32  i, j, k, l, nsels, nbytes, nhits, nmisses;
-SARRAY  *sa1, *sa2, *sa3, *sa4, *sa5, *sa6;
-SEL     *sel;
+l_int32  i, nsels, nbytes;
+l_int32  actstart, end, newstart;
+SARRAY  *sa1, *sa2, *sa3;
 
-    PROCNAME("fhmtautogen");
+    PROCNAME("fhmtautogen1");
 
     if (!sela)
         return ERROR_INT("sela not defined", procName, 1);
@@ -239,129 +253,194 @@ SEL     *sel;
     if ((nsels = selaGetCount(sela)) == 0)
         return ERROR_INT("no sels in sela", procName, 1);
     
-    /* --------------------------------------------------------------*
-     *                    Generate data for first file               *
-     * --------------------------------------------------------------*/
-
         /* Make array of sel names */
-    if ((sa1 = sarrayCreate(nsels)) == NULL)
-        return ERROR_INT("sa1 not made", procName, 1);
-    for (i = 0; i < nsels; i++) {
-        if ((sel = selaGetSel(sela, i)) == NULL)
-            return ERROR_INT("sel not returned", procName, 1);
-        sname = selGetName(sel);
-        sarrayAddString(sa1, sname, 1);
-    }
+    sa1 = selaGetSelnames(sela);
 
-/*    sarrayWriteStream(stderr, sa1); */
-
-        /* Get textlines from hmttemplate1.txt */
+        /* Make array of textlines from from hmttemplate1.txt */
     if ((filestr = (char *)arrayRead(TEMPLATE1, &nbytes)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa2 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa2 not made", procName, 1);
     FREE(filestr);
 
-/*    sarrayWriteStream(stderr, sa2); */
-
-        /* Special function call strings */
-    sprintf(bigbuf, "pixFHMTGen_%d(PIX    *pixd,", fileindex);
-    toplevelcall = stringNew(bigbuf);
+        /* Make strings containing function call names */
+    sprintf(bigbuf, "PIX *pixHMTDwa_%d(PIX *pixd, PIX *pixs, "
+                    "char *selname);", fileindex);
+    str_proto1 = stringNew(bigbuf);
+    sprintf(bigbuf, "PIX *pixFHMTGen_%d(PIX *pixd, PIX *pixs, "
+                    "char *selname);", fileindex);
+    str_proto2 = stringNew(bigbuf);
+    sprintf(bigbuf, "l_int32 fhmtgen_low_%d(l_uint32 *datad, l_int32 w,\n"
+            "                      l_int32 h, l_int32 wpld,\n"
+            "                      l_uint32 *datas, l_int32 wpls,\n"
+            "                      l_int32 index);", fileindex);
+    str_proto3 = stringNew(bigbuf);
+    sprintf(bigbuf, " *             PIX     *pixHMTDwa_%d()", fileindex);
+    str_doc1 = stringNew(bigbuf);
+    sprintf(bigbuf, " *             PIX     *pixFHMTGen_%d()", fileindex);
+    str_doc2 = stringNew(bigbuf);
+    sprintf(bigbuf, " *  pixHMTDwa_%d()", fileindex);
+    str_doc3 = stringNew(bigbuf);
+    sprintf(bigbuf, " *  pixFHMTGen_%d()", fileindex);
+    str_doc4 = stringNew(bigbuf);
+    sprintf(bigbuf, "pixHMTDwa_%d(PIX   *pixd,", fileindex);
+    str_def1 = stringNew(bigbuf);
+    sprintf(bigbuf, "pixFHMTGen_%d(PIX   *pixd,", fileindex);
+    str_def2 = stringNew(bigbuf);
+    sprintf(bigbuf, "    PROCNAME(\"pixHMTDwa_%d\");", fileindex);
+    str_proc1 = stringNew(bigbuf);
+    sprintf(bigbuf, "    PROCNAME(\"pixFHMTGen_%d\");", fileindex);
+    str_proc2 = stringNew(bigbuf);
+    sprintf(bigbuf, "    pixt2 = pixFHMTGen_%d(NULL, pixt1, selname);",
+            fileindex);
+    str_dwa1 = stringNew(bigbuf);
     sprintf(bigbuf,
-        "        fhmtgen_low_%d(datad, w, h, wpld, datat, wpls, index);",
-        fileindex);
-    lowlevelcall1 = stringNew(bigbuf);
+	    "        fhmtgen_low_%d(datad, w, h, wpld, datat, wpls, index);",
+            fileindex);
+    str_low_dt = stringNew(bigbuf);
     sprintf(bigbuf,
-        "        fhmtgen_low_%d(datad, w, h, wpld, datas, wpls, index);",
-        fileindex);
-    lowlevelcall2 = stringNew(bigbuf);
+	    "        fhmtgen_low_%d(datad, w, h, wpld, datas, wpls, index);",
+            fileindex);
+    str_low_ds = stringNew(bigbuf);
 
-        /* Output to this sa */
+        /* Make the output sa */
     if ((sa3 = sarrayCreate(0)) == NULL)
         return ERROR_INT("sa3 not made", procName, 1);
 
-        /* Copyright notice and info header: lines 1-24  */
-    for (i = NSTART1; i <= NSTOP1; i++) {
-        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa3, linestr, 0);
-    }
-        
-        /* Static globals */
-    sprintf(bigbuf, "static l_int32   NUM_SELS_GENERATED = %d;\n", nsels);
-    sarrayAddString(sa3, bigbuf, 1);
+        /* Copyright notice and info header */
+    sarrayParseRange(sa2, 0, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+
+        /* Insert function names as documentation */
+    sarrayAddString(sa3, str_doc1, L_INSERT);
+    sarrayAddString(sa3, str_doc2, L_INSERT);
+
+        /* Add '#include's */
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+
+        /* Insert function prototypes */
+    sarrayAddString(sa3, str_proto1, L_INSERT);
+    sarrayAddString(sa3, str_proto2, L_INSERT);
+    sarrayAddString(sa3, str_proto3, L_INSERT);
+
+        /* Add static globals */
+    sprintf(bigbuf, "\nstatic l_int32   NUM_SELS_GENERATED = %d;", nsels);
+    sarrayAddString(sa3, bigbuf, L_COPY);
     sprintf(bigbuf, "static char  *SEL_NAMES[] = {");
-    sarrayAddString(sa3, bigbuf, 1);
+    sarrayAddString(sa3, bigbuf, L_COPY);
     for (i = 0; i < nsels - 1; i++) {
-        sprintf(bigbuf, "                             \"%s\",", sarrayGetString(sa1, i, 0));
-        sarrayAddString(sa3, bigbuf, 1);
+        sprintf(bigbuf,
+        "                             \"%s\",", sarrayGetString(sa1, i, 0));
+        sarrayAddString(sa3, bigbuf, L_COPY);
     }
-    sprintf(bigbuf, "                             \"%s\"};\n", sarrayGetString(sa1, i, 0));
-    sarrayAddString(sa3, bigbuf, 1);
+    sprintf(bigbuf,
+        "                             \"%s\"};", sarrayGetString(sa1, i, 0));
+    sarrayAddString(sa3, bigbuf, L_COPY);
 
-        /* Descriptive function header: lines 32-44 */
-    for (i = NSTART2; i <= NSTOP2; i++) {
-        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa3, linestr, 0);
-    }
+        /* Start pixHMTDwa_*() function description */
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+    sarrayAddString(sa3, str_doc3, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
 
-        /* Incorporate first line of toplevel function call */
-    sarrayAddString(sa3, toplevelcall, 0);
+        /* Finish pixMorphDwa_*() function definition */
+    sarrayAddString(sa3, str_def1, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+    sarrayAddString(sa3, str_proc1, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+    sarrayAddString(sa3, str_dwa1, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
 
-        /* Next patch of function: lines 46-95 */
-    for (i = NSTART3; i <= NSTOP3; i++) {
-        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa3, linestr, 0);
-    }
+        /* Start pixFHMTGen_*() function description */
+    sarrayAddString(sa3, str_doc4, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
 
-        /* Incorporate first lowlevel function call */
-    sarrayAddString(sa3, lowlevelcall1, 0);
-
-        /* Next patch of function: lines 97-99 */
-    for (i = NSTART4; i <= NSTOP4; i++) {
-        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa3, linestr, 0);
-    }
-
-        /* Incorporate second lowlevel function call */
-    sarrayAddString(sa3, lowlevelcall2, 0);
-
-        /* Rest of hmttemplate1.txt: lines 101-105 */
-    for (i = NSTART5; i <= NSTOP5; i++) {
-        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa3, linestr, 0);
-    }
-
-    /* --------------------------------------------------------------*
-     *                       Output to first file                    *
-     * --------------------------------------------------------------*/
+        /* Finish pixFHMTGen_*() function description */
+    sarrayAddString(sa3, str_def2, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+    sarrayAddString(sa3, str_proc2, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+    sarrayAddString(sa3, str_low_dt, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
+    sarrayAddString(sa3, str_low_ds, L_INSERT);
+    sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa3, sa2, actstart, end);
 
     if ((filestr = sarrayToString(sa3, 1)) == NULL)
         return ERROR_INT("filestr from sa3 not made", procName, 1);
     nbytes = strlen(filestr);
-    sprintf(bigbuf, "%s.%d.c", OUTROOT, fileindex);
+    if (filename)
+        sprintf(bigbuf, "%s.%d.c", filename, fileindex);
+    else
+        sprintf(bigbuf, "%s.%d.c", OUTROOT, fileindex);
     arrayWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
     FREE(filestr);
-        
-    /* --------------------------------------------------------------*
-     *                   Generate data for second file               *
-     * --------------------------------------------------------------*/
+    return 0;
+}
 
-        /* Get textlines from hmttemplate2.txt */
+
+/*!
+ *  fhmtautogen2()
+ *
+ *      Input:  sel array
+ *              fileindex
+ *              filename (<optional>; can be null)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This function uses hmttemplate2.txt to create a
+ *          low-level file that contains the low-level functions for
+ *          implementing the hit-miss transform for every sel
+ *          in the input sela.
+ *      (2) The fileindex parameter is inserted into the output
+ *          filename, as described below.
+ *      (3) If filename == NULL, the output file is fhmtgenlow.<n>.c,
+ *          where <n> is equal to the 'fileindex' parameter.
+ *      (4) If filename != NULL, the output file is <filename>low.<n>.c.
+ */
+l_int32
+fhmtautogen2(SELA        *sela,
+             l_int32      fileindex,
+             const char  *filename)
+{
+char    *filestr, *fname, *linestr;
+char    *str_doc1, *str_doc2, *str_doc3, *str_def1;
+char     bigbuf[BUFFER_SIZE];
+l_int32  i, k, l, nsels, nbytes, nhits, nmisses;
+l_int32  actstart, end, newstart;
+l_int32  argstart, argend, loopstart, loopend, finalstart, finalend;
+SARRAY  *sa1, *sa2, *sa3, *sa4, *sa5, *sa6;
+SEL     *sel;
+
+    PROCNAME("fhmtautogen2");
+
+    if (!sela)
+        return ERROR_INT("sela not defined", procName, 1);
+    if (fileindex < 0)
+        fileindex = 0;
+    if ((nsels = selaGetCount(sela)) == 0)
+        return ERROR_INT("no sels in sela", procName, 1);
+    
+        /* Make the array of textlines from hmttemplate2.txt */
     if ((filestr = (char *)arrayRead(TEMPLATE2, &nbytes)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa1 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa1 not made", procName, 1);
     FREE(filestr);
 
-        /* Make the static function names */
+        /* Make the array of static function names */
     if ((sa2 = sarrayCreate(nsels)) == NULL)
         return ERROR_INT("sa2 not made", procName, 1);
     for (i = 0; i < nsels; i++) {
@@ -378,76 +457,81 @@ SEL     *sel;
         sarrayAddString(sa3, bigbuf, 1);
     }
 
-        /* Make the dispatcher first line */
+        /* Make strings containing function names */
+    sprintf(bigbuf, " *             l_int32    fhmtgen_low_%d()",
+            fileindex);
+    str_doc1 = stringNew(bigbuf);
+    sprintf(bigbuf, " *             void       fhmt_%d_*()", fileindex);
+    str_doc2 = stringNew(bigbuf);
+    sprintf(bigbuf, " *  fhmtgen_low_%d()", fileindex);
+    str_doc3 = stringNew(bigbuf);
     sprintf(bigbuf, "fhmtgen_low_%d(l_uint32  *datad,", fileindex);
-    lowleveldefine = stringNew(bigbuf);
+    str_def1 = stringNew(bigbuf);
 
         /* Output to this sa */
     if ((sa4 = sarrayCreate(0)) == NULL)
         return ERROR_INT("sa4 not made", procName, 1);
 
-        /* Copyright notice and info header: lines 1-28  */
-    for (i = NSTART6; i <= NSTOP6; i++) {
-        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa4, linestr, 0);
-    }
-        
+        /* Copyright notice and info header */
+    sarrayParseRange(sa1, 0, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa4, sa1, actstart, end);
+
+        /* Insert function names as documentation */
+    sarrayAddString(sa4, str_doc1, L_INSERT);
+    sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa4, sa1, actstart, end);
+    sarrayAddString(sa4, str_doc2, L_INSERT);
+    sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa4, sa1, actstart, end);
+
         /* Insert static protos */
     for (i = 0; i < nsels; i++) {
-        if ((linestr = sarrayGetString(sa3, i, 1)) == NULL)
+        if ((linestr = sarrayGetString(sa3, i, L_COPY)) == NULL)
             return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa4, linestr, 0);
+        sarrayAddString(sa4, linestr, L_INSERT);
     }
         
-        /* Function info header: lines 32-42  */
-    for (i = NSTART7; i <= NSTOP7; i++) {
-        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa4, linestr, 0);
-    }
-        
-        /* Incorporate first line of dispatcher */
-    sarrayAddString(sa4, lowleveldefine, 0);
+        /* Insert function header */
+    sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa4, sa1, actstart, end);
+    sarrayAddString(sa4, str_doc3, L_INSERT);
+    sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa4, sa1, actstart, end);
+    sarrayAddString(sa4, str_def1, L_INSERT);
+    sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa4, sa1, actstart, end);
 
-        /* Beginning of function body: lines 44-55  */
-    for (i = NSTART8; i <= NSTOP8; i++) {
-        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa4, linestr, 0);
-    }
-
-        /* Make the dispatcher code */
+        /* Generate and insert the dispatcher code */
     for (i = 0; i < nsels; i++) {
         sprintf(bigbuf, "    case %d:", i);
-        sarrayAddString(sa4, bigbuf, 1);
+        sarrayAddString(sa4, bigbuf, L_COPY);
         sprintf(bigbuf, "        %s(datad, w, h, wpld, datas, wpls);",
-               sarrayGetString(sa2, i, 0));
-        sarrayAddString(sa4, bigbuf, 1);
-        sarrayAddString(sa4, "        break;", 1);
+               sarrayGetString(sa2, i, L_NOCOPY));
+        sarrayAddString(sa4, bigbuf, L_COPY);
+        sarrayAddString(sa4, "        break;", L_COPY);
     }
 
-        /* Intro to static function routines: lines 59-76  */
-    for (i = NSTART9; i <= NSTOP9; i++) {
-        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-            return ERROR_INT("linestr not retrieved", procName, 1);
-        sarrayAddString(sa4, linestr, 0);
-    }
+        /* Finish the dispatcher and introduce the low-level code */
+    sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
+    sarrayAppendRange(sa4, sa1, actstart, end);
+
+        /* Get the range for the args common to all functions */
+    sarrayParseRange(sa1, newstart, &argstart, &argend, &newstart, "--", 0);
+
+        /* Get the range for the loop code common to all functions */
+    sarrayParseRange(sa1, newstart, &loopstart, &loopend, &newstart, "--", 0);
+
+        /* Get the range for the ending code common to all functions */
+    sarrayParseRange(sa1, newstart, &finalstart, &finalend, &newstart, "--", 0);
 
         /* Do all the static functions */
     for (i = 0; i < nsels; i++) {
-
-        sarrayAddString(sa4, "static void", 1);
-        fname = sarrayGetString(sa2, i, 0);
+            /* Generate the function header and add the common args */
+        sarrayAddString(sa4, "static void", L_COPY);
+        fname = sarrayGetString(sa2, i, L_NOCOPY);
         sprintf(bigbuf, "%s(l_uint32  *datad,", fname);
-        sarrayAddString(sa4, bigbuf, 1);
-
-            /* Finish function header:  lines 79-87 */
-        for (j = NSTART10; j <= NSTOP10; j++) {
-            if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
-                return ERROR_INT("linestr not retrieved", procName, 1);
-            sarrayAddString(sa4, linestr, 0);
-        }
+        sarrayAddString(sa4, bigbuf, L_COPY);
+        sarrayAppendRange(sa4, sa1, argstart, argend);
 
             /* Declare and define wplsN args, as necessary */
         if ((sel = selaGetSel(sela, i)) == NULL)
@@ -470,16 +554,12 @@ SEL     *sel;
         }
         if (nhits == 0) {
             linestr = stringNew("    fprintf(stderr, \"Error in HMT: no hits in sel!\\n\");\n}\n\n");
-            sarrayAddString(sa4, linestr, 0);
+            sarrayAddString(sa4, linestr, L_INSERT);
             continue;
         }
 
-            /* Start function loop definition:  lines 92-97 */
-        for (j = NSTART11; j <= NSTOP11; j++) {
-            if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
-                return ERROR_INT("linestr not retrieved", procName, 1);
-            sarrayAddString(sa4, linestr, 0);
-        }
+            /* Add the function loop code */
+        sarrayAppendRange(sa4, sa1, loopstart, loopend);
 
             /* Insert barrel-op code for *dptr */
         if ((sa6 = sarrayMakeInnerLoopDWACode(sel, nhits, nmisses)) == NULL)
@@ -487,23 +567,18 @@ SEL     *sel;
         sarrayConcatenate(sa4, sa6);
         sarrayDestroy(&sa6);
 
-            /* Finish function loop definition:  lines 101-105 */
-        for (j = NSTART12; j <= NSTOP12; j++) {
-            if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
-                return ERROR_INT("linestr not retrieved", procName, 1);
-            sarrayAddString(sa4, linestr, 0);
-        }
-
+            /* Finish the function code */
+        sarrayAppendRange(sa4, sa1, finalstart, finalend);
     }
 
-    /* --------------------------------------------------------------*
-     *                     Output to second file                     *
-     * --------------------------------------------------------------*/
-
+        /* Output to file */
     if ((filestr = sarrayToString(sa4, 1)) == NULL)
         return ERROR_INT("filestr from sa4 not made", procName, 1);
     nbytes = strlen(filestr);
-    sprintf(bigbuf, "%s.%d.c", OUTROOTLOW, fileindex);
+    if (filename)
+        sprintf(bigbuf, "%slow.%d.c", filename, fileindex);
+    else
+        sprintf(bigbuf, "%slow.%d.c", OUTROOT, fileindex);
     arrayWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
@@ -513,6 +588,7 @@ SEL     *sel;
         
     return 0;
 }
+
 
 
 /*--------------------------------------------------------------------------*

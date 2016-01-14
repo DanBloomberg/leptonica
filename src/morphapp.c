@@ -719,10 +719,10 @@ PIX  *pixd;
 /*!
  *  pixHDome()
  *
- *      Input:  pixs
- *              height (of hdome; must be >= 0)
+ *      Input:  pixs (8 bpp, filling mask)
+ *              height (of seed below the filling maskhdome; must be >= 0)
  *              connectivity (4 or 8)
- *      Return: pixd, or null on error
+ *      Return: pixd (8 bpp), or null on error
  *
  *  Notes:
  *      (1) It is more efficient to use a connectivity of 4 for the fill.
@@ -731,9 +731,14 @@ PIX  *pixd;
  *          not exceeding the size of the structuring element used
  *          in the opening or closing, rsp.  The height of the peak is
  *          irrelevant.  By contrast, for the HDome, the gray seedfill
- *          is be used to extract all peaks that have a height not exceeding
+ *          is used to extract all peaks that have a height not exceeding
  *          a given value, regardless of their width!
- *      (3) The method: the filling mask, pixs, is the image whose peaks
+ *      (3) Slightly more precisely, suppose you set 'height' = 40.
+ *          Then all bumps in pixs with a height greater than or equal
+ *          to 40 become, in pixd, bumps with a max value of exactly 40.
+ *          All shorter bumps have a max value in pixd equal to the height
+ *          of the bump.
+ *      (4) The method: the filling mask, pixs, is the image whose peaks
  *          are to be extracted.  The height of a peak is the distance
  *          between the top of the peak and the highest "leak" to the
  *          outside -- think of a sombrero, where the leak occurs
@@ -751,6 +756,8 @@ PIX  *pixd;
  *            (c) Subtract the filled seed (pixd) from the filling mask (pixs).
  *          Note that in this procedure, everything is done starting
  *          with the filling mask, pixs.
+ *      (5) For segmentation, the resulting image, pixd, can be thresholded
+ *          and used as a seed for another filling operation.
  */
 PIX *
 pixHDome(PIX     *pixs,
@@ -921,11 +928,15 @@ PIX  *pixg, *pixd;
 PTA *
 pixaCentroids(PIXA  *pixa)
 {
-l_int32    d, i, j, k, n, w, h, wpl, pixsum, val;
+l_int32    d, i, j, k, n, w, h, wpl, pixsum, rowsum, val;
 l_float32  xsum, ysum, xave, yave;
 l_uint32  *data, *line;
+l_uint32   word;
+l_uint8    byte;
 PIX       *pix;
 PTA       *pta;
+static l_int32 *centtab = NULL;
+static l_int32 *sumtab = NULL;
 
     PROCNAME("pixaCentroids");
 
@@ -942,6 +953,14 @@ PTA       *pta;
     if ((pta = ptaCreate(n)) == NULL)
         return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
 
+    if ((centtab == NULL) &&
+        ((centtab = makePixelCentroidTab8()) == NULL))
+        return (PTA *)ERROR_PTR("couldn't make centtab", procName, NULL);
+
+    if ((sumtab == NULL) &&
+        ((sumtab = makePixelSumTab8()) == NULL))
+        return (PTA *)ERROR_PTR("couldn't make sumtab", procName, NULL);
+
     for (k = 0; k < n; k++) {
         pix = pixaGetPix(pixa, k, L_CLONE);
         w = pixGetWidth(pix);
@@ -952,14 +971,41 @@ PTA       *pta;
         pixsum = 0;
         if (d == 1) {
             for (i = 0; i < h; i++) {
+                    /* The body of this loop computes the sum of the set
+                     * (1) bits on this row, weighted by their distance
+                     * from the left edge of pix, and accumulates that into
+                     * xsum; it accumulates their distance from the top
+                     * edge of pix into ysum, and their total count into
+                     * pixsum.  It's equivalent to
+                     * for (j = 0; j < w; j++) {
+                     *     if (GET_DATA_BIT(line, j)) {
+                     *         xsum += j;
+                     *         ysum += i;
+                     *         pixsum++;
+                     *     }
+                     * }
+                     */
                 line = data + wpl * i;
-                for (j = 0; j < w; j++) {
-                    if (GET_DATA_BIT(line, j)) {
-                        xsum += j;
-                        ysum += i;
-                        pixsum++;
+                rowsum = 0;
+                for (j = 0; j < wpl; j++) {
+                    word = line[j];
+                    if (word) {
+                        byte = word & 0xff;
+                        rowsum += sumtab[byte];
+                        xsum += centtab[byte] + (j * 32 + 24) * sumtab[byte];
+                        byte = (word >> 8) & 0xff;
+                        rowsum += sumtab[byte];
+                        xsum += centtab[byte] + (j * 32 + 16) * sumtab[byte];
+                        byte = (word >> 16) & 0xff;
+                        rowsum += sumtab[byte];
+                        xsum += centtab[byte] + (j * 32 + 8) * sumtab[byte];
+                        byte = (word >> 24) & 0xff;
+                        rowsum += sumtab[byte];
+                        xsum += centtab[byte] + j * 32 * sumtab[byte];
                     }
                 }
+                pixsum += rowsum;
+                ysum += rowsum * i;
             }
             if (pixsum == 0) {
                 L_WARNING("no ON pixels in pix", procName);
@@ -996,4 +1042,3 @@ PTA       *pta;
 
     return pta;
 }
-

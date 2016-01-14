@@ -89,6 +89,7 @@
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_OVERFLOW   0
+#define  DEBUG_UNROLLING  0
 #endif  /* ~NO_CONSOLE_IO */
 
 
@@ -570,18 +571,71 @@ scaleGray2xLILineLow(l_uint32  *lined,
                      l_int32    wpls,
                      l_int32    lastlineflag)
 {
-l_int32    j, jd, wsm;
+l_int32    j, jd, wsm, w;
 l_int32    sval1, sval2, sval3, sval4;
 l_uint32  *linesp, *linedp;
+l_uint32   words, wordsp, wordd, worddp;
 
     wsm = ws - 1;
 
     if (lastlineflag == 0) {
         linesp = lines + wpls;
         linedp = lined + wpld;
-        sval2 = GET_DATA_BYTE(lines, 0);
-        sval4 = GET_DATA_BYTE(linesp, 0);
-        for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
+
+            /* Unroll the loop 4x and work on full words */
+        words = lines[0];
+        wordsp = linesp[0];
+        sval2 = (words >> 24) & 0xff;
+        sval4 = (wordsp >> 24) & 0xff;
+        for (j = 0, jd = 0, w = 0; j + 3 < wsm; j += 4, jd += 8, w++) {
+                /* At the top of the loop,
+                 * words == lines[w], wordsp == linesp[w]
+                 * and the top bytes of those have been loaded into
+                 * sval2 and sval4. */
+            sval1 = sval2;
+            sval2 = (words >> 16) & 0xff;
+            sval3 = sval4;
+            sval4 = (wordsp >> 16) & 0xff;
+            wordd = (sval1 << 24) | (((sval1 + sval2) >> 1) << 16);
+            worddp = (((sval1 + sval3) >> 1) << 24) |
+                (((sval1 + sval2 + sval3 + sval4) >> 2) << 16);
+
+            sval1 = sval2;
+            sval2 = (words >> 8) & 0xff;
+            sval3 = sval4;
+            sval4 = (wordsp >> 8) & 0xff;
+            wordd |= (sval1 << 8) | ((sval1 + sval2) >> 1);
+            worddp |= (((sval1 + sval3) >> 1) << 8) |
+                ((sval1 + sval2 + sval3 + sval4) >> 2);
+            lined[w * 2] = wordd;
+            linedp[w * 2] = worddp;
+
+            sval1 = sval2;
+            sval2 = words & 0xff;
+            sval3 = sval4;
+            sval4 = wordsp & 0xff;
+            wordd = (sval1 << 24) |                              /* pix 1 */
+                (((sval1 + sval2) >> 1) << 16);                  /* pix 2 */
+            worddp = (((sval1 + sval3) >> 1) << 24) |            /* pix 3 */
+                (((sval1 + sval2 + sval3 + sval4) >> 2) << 16);  /* pix 4 */
+
+                /* Load the next word as we need its first byte */
+            words = lines[w + 1];
+            wordsp = linesp[w + 1];
+            sval1 = sval2;
+            sval2 = (words >> 24) & 0xff;
+            sval3 = sval4;
+            sval4 = (wordsp >> 24) & 0xff;
+            wordd |= (sval1 << 8) |                              /* pix 1 */
+                ((sval1 + sval2) >> 1);                          /* pix 2 */
+            worddp |= (((sval1 + sval3) >> 1) << 8) |            /* pix 3 */
+                ((sval1 + sval2 + sval3 + sval4) >> 2);          /* pix 4 */
+            lined[w * 2 + 1] = wordd;
+            linedp[w * 2 + 1] = worddp;
+        }
+
+            /* Finish up the last word */
+        for (; j < wsm; j++, jd += 2) {
             sval1 = sval2;
             sval3 = sval4;
             sval2 = GET_DATA_BYTE(lines, j + 1);
@@ -591,13 +645,40 @@ l_uint32  *linesp, *linedp;
             SET_DATA_BYTE(linedp, jd, (sval1 + sval3) / 2);      /* pix 3 */
             SET_DATA_BYTE(linedp, jd + 1,
                           (sval1 + sval2 + sval3 + sval4) / 4);  /* pix 4 */
-        }  
+        }
         sval1 = sval2;
         sval3 = sval4;
         SET_DATA_BYTE(lined, 2 * wsm, sval1);                     /* pix 1 */
         SET_DATA_BYTE(lined, 2 * wsm + 1, sval1);                 /* pix 2 */
         SET_DATA_BYTE(linedp, 2 * wsm, (sval1 + sval3) / 2);      /* pix 3 */
         SET_DATA_BYTE(linedp, 2 * wsm + 1, (sval1 + sval3) / 2);  /* pix 4 */
+
+#if DEBUG_UNROLLING
+#define CHECK_BYTE(a, b, c) if (GET_DATA_BYTE(a, b) != c) {\
+     fprintf(stderr, "Error: mismatch at %d, %d vs %d\n", \
+             j, GET_DATA_BYTE(a, b), c); }
+
+        sval2 = GET_DATA_BYTE(lines, 0);
+        sval4 = GET_DATA_BYTE(linesp, 0);
+        for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
+            sval1 = sval2;
+            sval3 = sval4;
+            sval2 = GET_DATA_BYTE(lines, j + 1);
+            sval4 = GET_DATA_BYTE(linesp, j + 1);
+            CHECK_BYTE(lined, jd, sval1);                     /* pix 1 */
+            CHECK_BYTE(lined, jd + 1, (sval1 + sval2) / 2);   /* pix 2 */
+            CHECK_BYTE(linedp, jd, (sval1 + sval3) / 2);      /* pix 3 */
+            CHECK_BYTE(linedp, jd + 1,
+                          (sval1 + sval2 + sval3 + sval4) / 4);  /* pix 4 */
+        }
+        sval1 = sval2;
+        sval3 = sval4;
+        CHECK_BYTE(lined, 2 * wsm, sval1);                     /* pix 1 */
+        CHECK_BYTE(lined, 2 * wsm + 1, sval1);                 /* pix 2 */
+        CHECK_BYTE(linedp, 2 * wsm, (sval1 + sval3) / 2);      /* pix 3 */
+        CHECK_BYTE(linedp, 2 * wsm + 1, (sval1 + sval3) / 2);  /* pix 4 */
+#undef CHECK_BYTE
+#endif
     }
     else {   /* last row of src pixels: lastlineflag == 1 */
         linedp = lined + wpld;
@@ -2352,4 +2433,3 @@ l_float32  ratio, w1, w2;
     FREE(scol);
     return 0;
 }
-
