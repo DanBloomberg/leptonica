@@ -18,7 +18,8 @@
  *  readfile.c:  reads image on file into memory
  *
  *      High level read functions
- *           PIXA      *pixaReadFiles()
+ *           PIXA      *pixaReadFiles()     [unix only]
+ *           PIXA      *pixaReadFilesSA()
  *           PIX       *pixRead()
  *           PIX       *pixReadWithHint()
  *           PIX       *pixReadStream()
@@ -57,9 +58,6 @@ static const char *FILE_JPG =  "/usr/tmp/junkout.jpg";
 /*---------------------------------------------------------------------*
  *         Top-level procedures for reading images from file           *
  *---------------------------------------------------------------------*/
-
-#ifndef CYGWIN_ENVIRON  /* this uses unix-type directory lookup */
-
 /*!
  *  pixaReadFiles()
  *
@@ -73,14 +71,12 @@ static const char *FILE_JPG =  "/usr/tmp/junkout.jpg";
  *          the directory) that is to be matched.  All matching
  *          filenames are read into the Pixa.  If substr is NULL,
  *          all filenames are read into the Pixa.
+ *      (3) This is unix only; it does not work on Windows.
  */
 PIXA *
 pixaReadFiles(const char  *dirname,
               const char  *substr)
 {
-char    *str;
-l_int32  i, n;
-PIX     *pix;
 PIXA    *pixa;
 SARRAY  *sa;
 
@@ -91,6 +87,31 @@ SARRAY  *sa;
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
         return (PIXA *)ERROR_PTR("sa not made", procName, NULL);
+
+    pixa = pixaReadFilesSA(sa);
+    sarrayDestroy(&sa);
+    return pixa;
+}
+
+
+/*!
+ *  pixaReadFilesSA()
+ *
+ *      Input:  sarray (full pathnames for all files)
+ *      Return: pixa, or null on error
+ */
+PIXA *
+pixaReadFilesSA(SARRAY  *sa)
+{
+char    *str;
+l_int32  i, n;
+PIX     *pix;
+PIXA    *pixa;
+
+    PROCNAME("pixaReadFilesSA");
+
+    if (!sa)
+        return (PIXA *)ERROR_PTR("sa not defined", procName, NULL);
 
     n = sarrayGetCount(sa);
     pixa = pixaCreate(n);
@@ -103,11 +124,8 @@ SARRAY  *sa;
 	pixaAddPix(pixa, pix, L_INSERT);
     }
 
-    sarrayDestroy(&sa);
     return pixa;
 }
-
-#endif  /* ~CYGWIN_ENVIRON */
 
 
 /*!
@@ -229,7 +247,6 @@ PIX     *pix;
 }
 
 
-
 /*!
  *  findFileFormat()
  *
@@ -265,9 +282,9 @@ l_uint8   firstbytes[12];
  *      Input:  byte buffer (at least 12 bytes in size; we can't check) 
  *      Return: format integer; 0 on error or if format not recognized
  *
- *  Note: this allows you to determine the file format from the first
- *        12 bytes in the compressed data stream, which are stored
- *        in memory.
+ *  Notes:
+ *      (1) This determines the file format from the first 12 bytes in
+ *          the compressed data stream, which are stored in memory.
  */
 l_int32
 findFileFormatBuffer(const l_uint8  *buf)
@@ -279,7 +296,7 @@ l_uint16  twobytepw;
     if (!buf)
         return ERROR_INT("byte buffer not defined", procName, 0);
 
-        /* check the bmp and tiff 2-byte header ids */
+        /* Check the bmp and tiff 2-byte header ids */
     ((char *)(&twobytepw))[0] = buf[0];
     ((char *)(&twobytepw))[1] = buf[1];
 
@@ -289,7 +306,7 @@ l_uint16  twobytepw;
     if (twobytepw == TIFF_BIGEND_ID || twobytepw == TIFF_LITTLEEND_ID)
         return IFF_TIFF;
 
-        /* check for the p*m 2-byte header ids */
+        /* Check for the p*m 2-byte header ids */
     if ((buf[0] == 'P' && buf[1] == '4') || /* newer packed */
         (buf[0] == 'P' && buf[1] == '1'))   /* old format */
             return IFF_PNM;
@@ -316,34 +333,36 @@ l_uint16  twobytepw;
     if (buf[0] == 0xff && buf[1] == 0xd8)
         return IFF_JFIF_JPEG;
 
-        /*  check for the 8 byte PNG signature (png_signature in png.c):
-         *        {137, 80, 78, 71, 13, 10, 26, 10}      */
+        /* Check for the 8 byte PNG signature (png_signature in png.c):
+         *       {137, 80, 78, 71, 13, 10, 26, 10}      */
     if (buf[0] == 137 && buf[1] == 80  && buf[2] == 78  && buf[3] == 71  &&
         buf[4] == 13  && buf[5] == 10  && buf[6] == 26  && buf[7] == 10)
             return IFF_PNG;
 
-        /* format header not found */
+        /* Format header not found */
     return IFF_UNKNOWN;
 }
 
 
-/*
+/*!
  *  ioFormatTest()
  *
  *      Input:  filename (input file)
  *      Return: 0 if OK; 1 on error
  *
- *  Note: This writes and reads a set of output files in different formats
- *        to /usr/tmp/, and tests that the result before and after
- *        is unchanged.  It should work properly on input images of
- *        any depth, with and without colormaps.
+ *  Notes:
+ *      (1) This writes and reads a set of output files in different formats
+ *          to /usr/tmp/, and tests that the result before and after
+ *          is unchanged.
+ *      (2) This should work properly on input images of any depth,
+ *          with and without colormaps.
  */
 l_int32
 ioFormatTest(const char  *filename)
 {
-l_int32      d, equal, problems;
-PIX         *pixs, *pixc, *pixt, *pixt2;
-PIXCMAP     *cmap;
+l_int32   d, equal, problems;
+PIX      *pixs, *pixc, *pixt, *pixt2;
+PIXCMAP  *cmap;
 
     PROCNAME("ioFormatTest");
 

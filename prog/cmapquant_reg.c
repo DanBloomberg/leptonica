@@ -40,7 +40,7 @@ PIX         *pixs, *pixt1, *pixt2, *pixt3, *pixt4;
 PIXCMAP     *cmap;
 static char  mainName[] = "cmapquant_reg";
 
-    pixs = pixRead("lucasta.jpg");
+    pixs = pixRead("lucasta-frag.jpg");
     if (argc != 1)
         exit(ERROR_INT("syntax: cmapquant_req", mainName, 1));
 

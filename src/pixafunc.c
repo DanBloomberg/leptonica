@@ -33,17 +33,64 @@
  *           PIXA     *pixaSelectByAreaPerimRatio()
  *           PIXA     *pixaSelectWithIndicator()
  *
- *      Pixa Display
+ *      Pixa Display (render into a pix)
  *           PIX      *pixaDisplay()
  *           PIX      *pixaDisplayRandomCmap()
  *           PIX      *pixaDisplayOnLattice()
  *           PIX      *pixaDisplayUnsplit()
  *           PIX      *pixaDisplayTiled()
+ *           PIX      *pixaDisplayTiledInRows()
  *           PIX      *pixaDisplayTiledAndScaled()
  *
- *      Pixaa Display
+ *      Pixaa Display (render into a pix)
  *           PIX      *pixaaDisplay()
  *           PIX      *pixaaDisplayByPixa()
+ *
+ *  We give seven methods for displaying a pixa in a pix.
+ *  Some work for 1 bpp input; others for any input depth.
+ *  Some give an output depth that depends on the input depth;
+ *  others give a different output depth or allow you to choose it.
+ *  Some use a boxes to determine where each pix goes; others tile
+ *  onto a regular lattice; yet others tile onto an irregular lattice.
+ *
+ *  Here is a brief description of what these functions do.
+ *
+ *    pixaDisplay()
+ *        This uses the boxes to lay out each pix.  It is typically
+ *        used to reconstruct a pix that has been broken into components.
+ *    pixaDisplayRandomCmap()
+ *        This also uses the boxes to lay out each pix.  However, it creates
+ *        a colormapped dest, where each 1 bpp pix is given a randomly
+ *        generated color (up to 256 are used).
+ *    pixaDisplayOnLattice()
+ *        This puts each pix, sequentially, onto a regular lattice,
+ *        omitting any pix that are too big for the lattice size.
+ *        This is useful, for example, to store bitmapped fonts,
+ *        where all the characters are stored in a single image.
+ *    pixaDisplayUnsplit()
+ *        This lays out a mosaic of tiles (the pix in the pixa) that
+ *        are all of equal size.  (Don't use this for unequal sized pix!)
+ *        For example, it can be used to invert the action of
+ *        pixaSplitPix().
+ *    pixaDisplayTiled()
+ *        Like pixaDisplayOnLattice(), this places each pix on a regular
+ *        lattice, but here the lattice size is determined by the
+ *        largest component, and no components are omitted.  This is
+ *        dangerous if there are thousands of small components and
+ *        one or more very large one, because the size of the resulting
+ *        pix can be huge!
+ *    pixaDisplayTiledInRows()
+ *        This puts each pix down in a series of rows, where the upper
+ *        edges of each pix in a row are alined and there is a uniform
+ *        spacing between the pix.  The height of each row is determined
+ *        by the tallest pix that was put in the row.  This function
+ *        is a reasonably efficient way to pack the subimages.
+ *    pixaDisplayTiledAndScaled()
+ *        This scales each pix to a given width and output depth,
+ *        and then tiles them in rows with a given number placed in
+ *        each row.  This is very useful for presenting a sequence
+ *        of images that can be at different resolutions, but which
+ *        are derived from the same initial image.
  */
 
 #include <stdio.h>
@@ -956,8 +1003,7 @@ PIX     *pixt, *pixd;
     for (i = 0; i < nh; i++) {
         for (j = 0; j < nw && index < n; j++, index++) {
             pixt = pixaGetPix(pixa, index, L_CLONE);
-            wt = pixGetWidth(pixt);
-            ht = pixGetHeight(pixt);
+            pixGetDimensions(pixt, &wt, &ht, NULL);
             if (wt > xspace || ht > yspace) {
                 fprintf(stderr, "pix(%d) omitted; size %dx%d\n", index, wt, ht);
                 pixDestroy(&pixt);
@@ -1016,11 +1062,7 @@ PIX     *pixt, *pixd;
         return (PIX *)ERROR_PTR("n != nx * ny", procName, NULL);
     borderwidth = L_MAX(0, borderwidth);
 
-    pixt = pixaGetPix(pixa, 0, L_CLONE);
-    wt = pixGetWidth(pixt);
-    ht = pixGetHeight(pixt);
-    d = pixGetDepth(pixt);
-    pixDestroy(&pixt);
+    pixaGetPixDimensions(pixa, 0, &wt, &ht, &d);
     w = nx * (wt + 2 * borderwidth);
     h = ny * (ht + 2 * borderwidth);
 
@@ -1061,6 +1103,10 @@ PIX     *pixt, *pixd;
  *      (2) The lattice size is determined from the largest width and height,
  *          separately, of all pix in the pixa.
  *      (3) All pix in the pixa must be of equal depth.
+ *      (4) Careful: because no components are omitted, this is
+ *          dangerous if there are thousands of small components and
+ *          one or more very large one, because the size of the
+ *          resulting pix can be huge!
  */
 PIX *
 pixaDisplayTiled(PIXA    *pixa,
@@ -1084,8 +1130,7 @@ PIX     *pix, *pixd;
     wmax = hmax = 0;
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
-        w = pixGetWidth(pix);
-        h = pixGetHeight(pix);
+        pixGetDimensions(pix, &w, &h, NULL);
         if (i == 0)
             d = pixGetDepth(pix);
         else if (d != pixGetDepth(pix)) {
@@ -1132,6 +1177,114 @@ PIX     *pix, *pixd;
         }
     }
 
+    return pixd;
+}
+
+
+/*!
+ *  pixaDisplayTiledInRows()
+ *
+ *      Input:  pixa
+ *              maxwidth (of output image)
+ *              background (0 for white, 1 for black)
+ *              spacing
+ *      Return: pixd (of tiled images), or null on error
+ *
+ *  Notes:
+ *      (1) This saves a pixa to a single image file of width not to
+ *          exceed maxwidth, with background color either white or black,
+ *          and with each row tiled such that the top of each pix is
+ *          aligned and separated by 'spacing' from the next one.
+ *      (2) All pix in the pixa must be of equal depth.
+ *      (3) This does a reasonably spacewise-efficient job of laying
+ *          out the individual pix images into a tiled composite.
+ */
+PIX *
+pixaDisplayTiledInRows(PIXA    *pixa,
+                       l_int32  maxwidth,
+                       l_int32  background,
+                       l_int32  spacing)
+{
+l_int32  h;  /* cumulative height over all the rows */
+l_int32  w;  /* cumulative height in the current row */
+l_int32  wtry, wt, ht, d;
+l_int32  irow;  /* index of current pix in current row */
+l_int32  wmaxrow;  /* width of the largest row */
+l_int32  maxh;  /* max height in row */
+l_int32  i, j, index, n, x, y, nrows, ninrow;
+NUMA    *nainrow;  /* number of pix in the row */
+NUMA    *namaxh;  /* height of max pix in the row */
+PIX     *pixt, *pixd;
+
+    PROCNAME("pixaDisplayTiledInRows");
+
+    if (!pixa)
+        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+    if ((n = pixaGetCount(pixa)) == 0)
+        return (PIX *)ERROR_PTR("no components", procName, NULL);
+    
+    nainrow = numaCreate(0);
+    namaxh = numaCreate(0);
+    wmaxrow = 0;
+
+        /* Compute parameters for layout */
+    w = h = spacing;
+    maxh = 0;  /* max height in row */
+    for (i = 0, irow = 0; i < n; i++, irow++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        if (i == 0)
+            d = pixGetDepth(pixt);
+        else if (d != pixGetDepth(pixt))
+            return (PIX *)ERROR_PTR("depths not equal", procName, NULL);
+        pixGetDimensions(pixt, &wt, &ht, NULL);
+        pixDestroy(&pixt);
+        wtry = w + wt + spacing;
+        if (wtry > maxwidth) {  /* end the current row and start next one */
+            numaAddNumber(nainrow, irow); 
+            numaAddNumber(namaxh, maxh); 
+            wmaxrow = L_MAX(wmaxrow, w);
+            h += maxh + spacing;
+            irow = 0;
+            w = wt + 2 * spacing;
+            maxh = ht;
+        } else {
+            w = wtry;
+            maxh = L_MAX(maxh, ht);
+        }
+    }
+
+        /* Enter the parameters for the last row */
+    numaAddNumber(nainrow, irow); 
+    numaAddNumber(namaxh, maxh); 
+    wmaxrow = L_MAX(wmaxrow, w);
+    h += maxh + spacing;
+            
+    if ((pixd = pixCreate(wmaxrow, h, d)) == NULL)
+	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+        /* Reset the background color if necessary */
+    if ((background == 1 && d == 1) || (background == 0 && d != 1))
+        pixSetAll(pixd);
+
+        /* Blit the images to the dest */
+    nrows = numaGetCount(nainrow);
+    y = spacing;
+    for (i = 0, index = 0; i < nrows; i++) {  /* over rows */
+        numaGetIValue(nainrow, i, &ninrow);
+        numaGetIValue(namaxh, i, &maxh);
+        x = spacing;
+        for (j = 0; j < ninrow; j++, index++) {   /* over pix in row */
+            pixt = pixaGetPix(pixa, index, L_CLONE);
+            pixGetDimensions(pixt, &wt, &ht, NULL);
+            pixRasterop(pixd, x, y, wt, ht, PIX_SRC, pixt, 0, 0);
+            pixDestroy(&pixt);
+            x += wt + spacing;
+        }
+        y += maxh + spacing;
+    }
+
+    numaDestroy(&nainrow);
+    numaDestroy(&namaxh);
     return pixd;
 }
 

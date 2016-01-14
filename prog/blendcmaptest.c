@@ -37,7 +37,7 @@ PIXCMAP   *cmap;
 static char   mainName[] = "blendcmaptest";
 
     pixs = pixRead("rabi.png");
-    pixb = pixRead("weasel-11c.png");
+    pixb = pixRead("weasel4.11c.png");
 
         /* fade the blender */
     pixcmapShiftIntensity(pixGetColormap(pixb), 0.75);

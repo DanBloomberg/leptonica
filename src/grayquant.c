@@ -142,7 +142,7 @@ pixDitherToBinarySpec(PIX     *pixs,
                       l_int32  lowerclip,
                       l_int32  upperclip)
 {
-l_int32    w, h, wplt, wpld;
+l_int32    w, h, d, wplt, wpld;
 l_uint32  *datat, *datad;
 l_uint32  *bufs1, *bufs2;
 PIX       *pixt, *pixd;
@@ -151,15 +151,14 @@ PIX       *pixt, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
     if (lowerclip < 0 || lowerclip > 255)
         return (PIX *)ERROR_PTR("invalid value for lowerclip", procName, NULL);
     if (upperclip < 0 || upperclip > 255)
         return (PIX *)ERROR_PTR("invalid value for upperclip", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -214,7 +213,7 @@ PIX       *pixt, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 4 && d != 8)
         return (PIX *)ERROR_PTR("must be 4 or 8 bpp", procName, NULL);
     if (thresh < 0)
@@ -224,8 +223,6 @@ PIX       *pixt, *pixd;
     if (d == 8 && thresh > 256)
         return (PIX *)ERROR_PTR("8 bpp thresh not in {0-256}", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -267,7 +264,7 @@ pixDitherToBinaryLUT(PIX     *pixs,
                      l_int32  lowerclip,
                      l_int32  upperclip)
 {
-l_int32    w, h, wplt, wpld;
+l_int32    w, h, d, wplt, wpld;
 l_int32   *tabval, *tab38, *tab14;
 l_uint32  *datat, *datad;
 l_uint32  *bufs1, *bufs2;
@@ -277,15 +274,14 @@ PIX       *pixt, *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
     if (lowerclip < 0)
         lowerclip = DEFAULT_CLIP_LOWER_1;
     if (upperclip < 0)
         upperclip = DEFAULT_CLIP_UPPER_1;
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -352,8 +348,7 @@ PIX       *pixg, *pixd;
     else
         pixg = pixClone(pixs);
 
-    w = pixGetWidth(pixg);
-    h = pixGetHeight(pixg);
+    pixGetDimensions(pixg, &w, &h, NULL);
     pixd = pixCreate(w, h, 1);
     pixCopyResolution(pixd, pixg);
     datag = pixGetData(pixg);
@@ -418,8 +413,7 @@ PIX       *pixg, *pixd;
     else
         pixg = pixClone(pixs);
 
-    w = pixGetWidth(pixg);
-    h = pixGetHeight(pixg);
+    pixGetDimensions(pixg, &w, &h, NULL);
     pixd = pixCreate(w, h, 1);
     pixCopyResolution(pixd, pixg);
     datag = pixGetData(pixg);
@@ -527,7 +521,7 @@ pixDitherTo2bppSpec(PIX     *pixs,
                     l_int32  upperclip,
                     l_int32  cmapflag)
 {
-l_int32    w, h, wplt, wpld;
+l_int32    w, h, d, wplt, wpld;
 l_int32   *tabval, *tab38, *tab14;
 l_uint32  *datat, *datad;
 l_uint32  *bufs1, *bufs2;
@@ -538,15 +532,14 @@ PIXCMAP   *cmap;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
     if (lowerclip < 0 || lowerclip > 255)
         return (PIX *)ERROR_PTR("invalid value for lowerclip", procName, NULL);
     if (upperclip < 0 || upperclip > 255)
         return (PIX *)ERROR_PTR("invalid value for upperclip", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 2)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -637,7 +630,7 @@ pixThresholdTo2bpp(PIX     *pixs,
                    l_int32  cmapflag)
 {
 l_int32   *qtab;
-l_int32    w, h, wplt, wpld;
+l_int32    w, h, d, wplt, wpld;
 l_uint32  *datat, *datad;
 PIX       *pixt, *pixd;
 PIXCMAP   *cmap;
@@ -646,7 +639,8 @@ PIXCMAP   *cmap;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (nlevels < 2 || nlevels > 4)
         return (PIX *)ERROR_PTR("nlevels not in {2, 3, 4}", procName, NULL);
@@ -657,8 +651,6 @@ PIXCMAP   *cmap;
     else
         qtab = makeGrayQuantTargetTable(4, 2);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 2)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -736,7 +728,7 @@ pixThresholdTo4bpp(PIX     *pixs,
                    l_int32  cmapflag)
 {
 l_int32   *qtab;
-l_int32    w, h, wplt, wpld;
+l_int32    w, h, d, wplt, wpld;
 l_uint32  *datat, *datad;
 PIX       *pixt, *pixd;
 PIXCMAP   *cmap;
@@ -745,7 +737,8 @@ PIXCMAP   *cmap;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 8)
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (nlevels < 2 || nlevels > 16)
         return (PIX *)ERROR_PTR("nlevels not in [2,...,16]", procName, NULL);
@@ -756,8 +749,6 @@ PIXCMAP   *cmap;
     else
         qtab = makeGrayQuantTargetTable(16, 4);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 4)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -839,8 +830,7 @@ PIXCMAP   *cmap;
         pixSetColormap(pixd, cmap);
     }
 
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
+    pixGetDimensions(pixd, &w, &h, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     for (i = 0; i < h; i++) {

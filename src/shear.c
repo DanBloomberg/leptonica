@@ -52,27 +52,33 @@
 /*!
  *  pixHShear()
  *
- *      Input:  pixd (<optional>, can be equal to pixs for in-place)
- *              pixs
+ *      Input:  pixd (<optional>, this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (no restrictions on depth)
  *              liney  (location of horizontal line, measured from origin)
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd
- *
- *  Action: horizontal shear about the line at y with (+) shear pushing
- *          increasingly leftward (-x) with increasing y (downward). 
+ *      Return: pixd, or null on error
  *
  *  Notes:
- *      (1) This shear leaves the horizontal line of pixels at y = liney
+ *      (1) There are 3 cases:
+ *            (a) pixd == null (make a new pixd)
+ *            (b) pixd == pixs (in-place)
+ *            (c) pixd != pixs
+ *      (2) For these three cases, use these patterns, respectively:
+ *              pixd = pixHShear(NULL, pixs, ...);
+ *              pixHShear(pixs, pixs, ...);
+ *              pixHShear(pixd, pixs, ...);
+ *      (3) This shear leaves the horizontal line of pixels at y = liney
  *          invariant.  For a positive shear angle, pixels above this
  *          line are shoved to the right, and pixels below this line
  *          move to the left.
- *      (2) With positive shear angle, this can be used, along with
+ *      (4) With positive shear angle, this can be used, along with
  *          pixVShear(), to perform a cw rotation, either with 2 shears
  *          (for small angles) or in the general case with 3 shears.
- *      (3) Changing the value of liney is equivalent to translating
+ *      (5) Changing the value of liney is equivalent to translating
  *          the result horizontally.
- *      (4) This brings in 'incolor' pixels from outside the image.
+ *      (6) This brings in 'incolor' pixels from outside the image.
  */
 PIX *
 pixHShear(PIX       *pixd,
@@ -88,25 +94,29 @@ l_float32  tanangle, invangle;
     PROCNAME("pixHShear");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
 
     if (pixd == pixs) {  /* in place */
         pixHShearIP(pixd, liney, radang, incolor);
         return pixd;
     }
 
+        /* Make sure pixd exists and is same size as pixs */
+    if (!pixd) {
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
+    else  /* pixd != pixs */
+        pixResizeImageData(pixd, pixs);
+
+        /* If no rotation, return a copy */
     if (radang == 0.0 || tan(radang) == 0.0)
         return pixCopy(pixd, pixs);
 
-    if (!pixd) {
-        if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
-    }
-
-        /* Set incoming pixels (and the rest as well) */
-    d = pixGetDepth(pixd);
+        /* Initialize to value of incoming pixels */
+    pixGetDimensions(pixs, &w, &h, &d);
     if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
         (d > 1 && incolor == L_BRING_IN_BLACK))
         pixClearAll(pixd);
@@ -114,8 +124,6 @@ l_float32  tanangle, invangle;
         pixSetAll(pixd);
 
     sign = L_SIGN(radang);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     tanangle = tan(radang);
     invangle = L_ABS(1. / tanangle); 
     inityincr = (l_int32)(invangle / 2.);
@@ -155,27 +163,33 @@ l_float32  tanangle, invangle;
 /*!
  *  pixVShear()
  *
- *      Input:  pixd (<optional>, can be equal to pixs for in-place)
- *              pixs
+ *      Input:  pixd (<optional>, this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (no restrictions on depth)
  *              linex  (location of vertical line, measured from origin)
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd
- *
- *  Action: vertical shear about the line at x with (+) shear pushing
- *          increasingly downward (+y) with increasing x. 
+ *      Return: pixd, or null on error
  *
  *  Notes:
- *      (1) This shear leaves the vertical line of pixels at x = linex
+ *      (1) There are 3 cases:
+ *            (a) pixd == null (make a new pixd)
+ *            (b) pixd == pixs (in-place)
+ *            (c) pixd != pixs
+ *      (2) For these three cases, use these patterns, respectively:
+ *              pixd = pixVShear(NULL, pixs, ...);
+ *              pixVShear(pixs, pixs, ...);
+ *              pixVShear(pixd, pixs, ...);
+ *      (3) This shear leaves the vertical line of pixels at x = linex
  *          invariant.  For a positive shear angle, pixels to the right
  *          of this line are shoved downward, and pixels to the left
  *          of the line move upward.
- *      (2) With positive shear angle, this can be used, along with
+ *      (4) With positive shear angle, this can be used, along with
  *          pixHShear(), to perform a cw rotation, either with 2 shears
  *          (for small angles) or in the general case with 3 shears.
- *      (3) Changing the value of linex is equivalent to translating
+ *      (5) Changing the value of linex is equivalent to translating
  *          the result vertically.
- *      (4) This brings in 'incolor' pixels from outside the image.
+ *      (6) This brings in 'incolor' pixels from outside the image.
  */
 PIX *
 pixVShear(PIX       *pixd,
@@ -191,25 +205,29 @@ l_float32  tanangle, invangle;
     PROCNAME("pixVShear");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
 
     if (pixd == pixs) {  /* in place */
         pixVShearIP(pixd, linex, radang, incolor);
         return pixd;
     }
 
+        /* Make sure pixd exists and is same size as pixs */
+    if (!pixd) {
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
+    else  /* pixd != pixs */
+        pixResizeImageData(pixd, pixs);
+
+       /* If no rotation, return a copy */
     if (radang == 0.0 || tan(radang) == 0.0)
         return pixCopy(pixd, pixs);
 
-    if (!pixd) {
-        if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
-    }
-
-        /* Set incoming pixels (and the rest as well) */
-    d = pixGetDepth(pixd);
+        /* Initialize to value of incoming pixels */
+    pixGetDimensions(pixs, &w, &h, &d);
     if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
         (d > 1 && incolor == L_BRING_IN_BLACK))
         pixClearAll(pixd);
@@ -217,15 +235,13 @@ l_float32  tanangle, invangle;
         pixSetAll(pixd);
 
     sign = L_SIGN(radang);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
     tanangle = tan(radang);
     invangle = L_ABS(1. / tanangle); 
     initxincr = (l_int32)(invangle / 2.);
     xincr = (l_int32)invangle;
 
     pixRasterop(pixd, linex - initxincr, 0, 2 * initxincr, h, PIX_SRC,
-               pixs, linex - initxincr, 0);
+                pixs, linex - initxincr, 0);
 
     for (vshift = 1, x = linex + initxincr; x < w; vshift++) {
         xincr = (l_int32)(invangle * (vshift + 0.5) + 0.5) - (x - linex);
@@ -262,16 +278,16 @@ l_float32  tanangle, invangle;
 /*!
  *  pixHShearCorner()
  *
- *      Input:  pixd (<optional>)
+ *      Input:  pixd (<optional>, if not null, must be equal to pixs)
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd
+ *      Return: pixd, or null on error.
  *
  *  Notes:
- *      (1) Horizontal shear about the UL corner, with (+) shear
+ *      (1) See pixHShear() for usage.
+ *      (2) This does a horizontal shear about the UL corner, with (+) shear
  *          pushing increasingly leftward (-x) with increasing y. 
- *      (2) This brings in 'incolor' pixels from outside the image.
  */
 PIX *
 pixHShearCorner(PIX       *pixd,
@@ -291,16 +307,16 @@ pixHShearCorner(PIX       *pixd,
 /*!
  *  pixVShearCorner()
  *
- *      Input:  pixd (<optional>)
+ *      Input:  pixd (<optional>, if not null, must be equal to pixs)
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd
+ *      Return: pixd, or null on error.
  *
  *  Notes:
- *      (1) Vertical shear about the UL corner, with (+) shear
+ *      (1) See pixVShear() for usage.
+ *      (2) This does a vertical shear about the UL corner, with (+) shear
  *          pushing increasingly downward (+y) with increasing x. 
- *      (2) This brings in 'incolor' pixels from outside the image.
  */
 PIX *
 pixVShearCorner(PIX       *pixd,
@@ -320,16 +336,16 @@ pixVShearCorner(PIX       *pixd,
 /*!
  *  pixHShearCenter()
  *
- *      Input:  pixd (<optional>)
+ *      Input:  pixd (<optional>, if not null, must be equal to pixs)
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd
+ *      Return: pixd, or null on error.
  *
  *  Notes:
- *      (1) Horizontal shear about the center, with (+) shear
+ *      (1) See pixHShear() for usage.
+ *      (2) This does a horizontal shear about the center, with (+) shear
  *          pushing increasingly leftward (-x) with increasing y. 
- *      (2) This brings in 'incolor' pixels from outside the image.
  */
 PIX *
 pixHShearCenter(PIX       *pixd,
@@ -349,16 +365,16 @@ pixHShearCenter(PIX       *pixd,
 /*!
  *  pixVShearCenter()
  *
- *      Input:  pixd (<optional>)
+ *      Input:  pixd (<optional>, if not null, must be equal to pixs)
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd
+ *      Return: pixd, or null on error.
  *
  *  Notes:
- *      (1) Vertical shear about the center, with (+) shear
+ *      (1) See pixVShear() for usage.
+ *      (2) This does a vertical shear about the center, with (+) shear
  *          pushing increasingly downward (+y) with increasing x. 
- *      (2) This brings in 'incolor' pixels from outside the image.
  */
 PIX *
 pixVShearCenter(PIX       *pixd,
@@ -415,8 +431,7 @@ l_float32  tanangle, invangle;
         return 0;
 
     sign = L_SIGN(radang);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     tanangle = tan(radang);
     invangle = L_ABS(1. / tanangle); 
     inityincr = (l_int32)(invangle / 2.);
@@ -480,8 +495,7 @@ l_float32  tanangle, invangle;
         return 0;
 
     sign = L_SIGN(radang);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     tanangle = tan(radang);
     invangle = L_ABS(1. / tanangle); 
     initxincr = (l_int32)(invangle / 2.);

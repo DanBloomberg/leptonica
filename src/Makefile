@@ -37,9 +37,8 @@
 #       Then use it with 'make allprotos'
 #
 #   Customization for cygwin:
-#   (1) Remove viewfiles.c from source
-#   (2) Use the appropriate $CC
-#   (3) For the leptprotos target, the executable that has been
+#   (1) Use the appropriate $CC
+#   (2) For the leptprotos target, the executable that has been
 #       built is xtractprotos.exe.  (add the ".exe")
 #
 #   Customization for Microsoft compilers (e.g., VC++6.0):
@@ -130,7 +129,7 @@ LIBRARIAN_SHARED =	gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 46
+MINOR_REV = 48
 
 #########################################################
 
@@ -141,28 +140,22 @@ LEPTLIB_SHARED =	liblept.so
 
 #########################################################
 
-LEPTLIB_C =	adaptmap.c \
-		affine.c \
-		arithlow.c \
-		arrayaccess.c \
-		baseline.c \
-		bbuffer.c \
-		bilinear.c \
+LEPTLIB_C =	adaptmap.c affine.c \
+		arithlow.c arrayaccess.c baseline.c \
+		bbuffer.c bilinear.c \
 		binexpand.c binexpandlow.c \
 		binreduce.c binreducelow.c \
 		blend.c bmf.c bmpio.c \
 		boxbasic.c boxfunc.c \
-		ccbord.c classapp.c \
+		ccbord.c ccthin.c classapp.c \
 		colorcontent.c colormap.c colormorph.c \
 		colorquant.c colorseg.c \
 		compare.c conncomp.c \
 		convolve.c convolvelow.c \
-		enhance.c \
-		fhmtauto.c \
-		fhmtgen.1.c fhmtgenlow.1.c \
+		edge.c enhance.c \
+		fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c \
 		flipdetect.c fliphmtgen.c \
-		fmorphauto.c \
-		fmorphgen.1.c fmorphgenlow.1.c \
+		fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c \
 		gplot.c graphics.c \
 		graymorph.c graymorphlow.c \
 		grayquant.c grayquantlow.c \
@@ -177,13 +170,11 @@ LEPTLIB_C =	adaptmap.c \
 		pngio.c pnmio.c pqueue.c \
 		projective.c psio.c \
 		pts.c \
-		readfile.c \
+		rank.c readfile.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \
-		rotateorth.c rotateorthlow.c \
-		rotateshear.c \
-		runlength.c \
-		sarray.c \
+		rotateorth.c rotateorthlow.c rotateshear.c \
+		runlength.c sarray.c \
 		scale.c scalelow.c \
 		seedfill.c seedfilllow.c \
 		sel1.c sel2.c selgen.c \

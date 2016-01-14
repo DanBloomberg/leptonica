@@ -186,7 +186,8 @@ static const l_int32  DEFAULT_MIN_MIRROR_FLIP_COUNT = 100;
 static const l_float32  DEFAULT_MIN_MIRROR_FLIP_CONF = 5.0;
 
     /* Debug function */
-static void pixDebugFlipDetect(const char *filename, PIX *pixs, PIX *pixhm);
+static void pixDebugFlipDetect(const char *filename, PIX *pixs,
+                               PIX *pixhm, l_int32 enable);
 
 #ifndef NO_CONSOLE_IO
 #define  DEBUG_UD_DISPLAY  0
@@ -431,9 +432,7 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     pixOr(pixt1, pixt1, pixt2);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countup, NULL);
-#if DEBUG_UD_DISPLAY
-    pixDebugFlipDetect("junkpixup", pixs, pixt1);
-#endif   /* DEBUG_UD_DISPLAY */
+    pixDebugFlipDetect("junkpixup", pixs, pixt1, DEBUG_UD_DISPLAY);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -443,9 +442,7 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     pixOr(pixt1, pixt1, pixt2);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &countdown, NULL);
-#if DEBUG_UD_DISPLAY
-    pixDebugFlipDetect("junkpixdown", pixs, pixt1);
-#endif   /* DEBUG_UD_DISPLAY */
+    pixDebugFlipDetect("junkpixdown", pixs, pixt1, DEBUG_UD_DISPLAY);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -692,9 +689,7 @@ SEL       *sel1, *sel2;
     pixt1 = pixHMT(NULL, pixt0, sel1);
     pixt3 = pixReduceRankBinaryCascade(pixt1, 1, 1, 0, 0);
     pixCountPixels(pixt3, &count1, NULL);
-#if DEBUG_M_DISPLAY
-    pixDebugFlipDetect("junkpixright", pixs, pixt1);
-#endif   /* DEBUG_M_DISPLAY */
+    pixDebugFlipDetect("junkpixright", pixs, pixt1, DEBUG_M_DISPLAY);
     pixDestroy(&pixt1);
     pixDestroy(&pixt3);
 
@@ -702,9 +697,7 @@ SEL       *sel1, *sel2;
     pixt2 = pixHMT(NULL, pixt0, sel2);
     pixt3 = pixReduceRankBinaryCascade(pixt2, 1, 1, 0, 0);
     pixCountPixels(pixt3, &count2, NULL);
-#if DEBUG_M_DISPLAY
-    pixDebugFlipDetect("junkpixleft", pixs, pixt2);
-#endif   /* DEBUG_M_DISPLAY */
+    pixDebugFlipDetect("junkpixleft", pixs, pixt2, DEBUG_M_DISPLAY);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
 
@@ -823,14 +816,18 @@ PIX       *pixt0, *pixt1, *pixt2, *pixt3;
  *      Input:  filename (for output debug file)
  *              pixs (input to pix*Detect)
  *              pixhm (hit-miss result from ascenders or descenders)
+ *              enable (1 to enable this function; 0 to disable)
  *      Return: void
  */
 static void
 pixDebugFlipDetect(const char *filename,
                    PIX        *pixs,
-                   PIX        *pixhm)
+                   PIX        *pixhm,
+                   l_int32     enable)
 {
 PIX  *pixt, *pixthm;
+
+   if (!enable) return;
 
         /* display with red dot at counted locations */
     pixt = pixConvert1To4Cmap(pixs);

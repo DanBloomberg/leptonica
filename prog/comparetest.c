@@ -113,7 +113,7 @@ static char  mainName[] = "comparetest";
     fprintf(stderr, "na1[200] = %20.10f\n", na1->array[200]);
     fprintf(stderr, "na1[250] = %20.10f\n", na1->array[250]);
     numaGetNonzeroRange(na1, 0.00005, &first, &last);
-    fprintf(stderr, "first: %d, last: %d\n", first, last);
+    fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n", first, last);
     na2 = numaClipToInterval(na1, first, last);
     gplot = gplotCreate("/usr/tmp/junkrank", GPLOT_X11,
                         "Pixel Rank Difference", "pixel val",

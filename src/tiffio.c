@@ -192,10 +192,10 @@ PIXCMAP   *cmap;
 
         /* Use default fields for bps and spp */
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
-    if (bps > 8)
-        return (PIX *)ERROR_PTR("bps > 8", procName, NULL);
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
     bpp = bps * spp;
+    if (bpp > 24)
+        return (PIX *)ERROR_PTR("can't handle bpp > 24", procName, NULL);
     if (spp == 1)
         d = bps;
     else if (spp == 3)
@@ -224,9 +224,12 @@ PIXCMAP   *cmap;
             memcpy((char *)data, (char *)linebuf, tiffbpl);
             data += bpl;
         }
-        pixEndianByteSwap(pix);
+        if (bps <= 8)
+            pixEndianByteSwap(pix);
+        else   /* bps == 16 */
+            pixEndianTwoByteSwap(pix);
     }
-    else {
+    else {  /* rgb */
         line = pixGetData(pix);
         for (i = 0 ; i < h ; i++, line += wpl)
         {
@@ -469,8 +472,8 @@ TIFF  *tif;
  *      Input:  tif (data structure, opened to a file)
  *              pix
  *              comptype  (IFF_TIFF: for any image; no compression
- *                         IFF_TIFF_PACKBITS: for any image except 32 bpp
- *                         IFF_TIFF_G4 and IFF_TIFF_G3: for binary only)
+ *                         IFF_TIFF_PACKBITS: for 1 bpp only)
+ *                         IFF_TIFF_G4 and IFF_TIFF_G3: for 1 bpp only)
  *              natags (<optional> NUMA of custom tiff tags)
  *              savals (<optional> SARRAY of values)
  *              satypes (<optional> SARRAY of types)
@@ -481,7 +484,8 @@ TIFF  *tif;
  *      (1) This static function should be called through higher level
  *          functions, such as pixWriteTiffCustom(), pixWriteTiff(), or
  *          pixWriteStreamTiff().
- *      (2) There is no compression for 32 bpp pix.
+ *      (2) We only allow PACKBITS for bpp = 1, because for bpp > 1
+ *          it typically expands images that are not synthetically generated.
  *      (3) See pixWriteTiffCustom() for details on how to use
  *          the last four parameters for customized tiff tags.
  */
@@ -590,7 +594,7 @@ char      *text;
         /* This is a no-op if arrays are NULL */
     writeCustomTiffTags(tif, natags, savals, satypes, nasizes);
 
-        /* ------------- write out the image data -------------  */
+        /* ------------- Write out the image data -------------  */
     tiffbpl = TIFFScanlineSize(tif);
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
@@ -603,10 +607,10 @@ char      *text;
     TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, h);
 
     if (d != 32) {
-        if ((pixt = pixEndianByteSwapNew(pix)) == NULL) {
-            FREE(linebuf);
-            return ERROR_INT("pixt not made", procName, 1);
-        }
+        if (d == 16)
+            pixt = pixEndianTwoByteSwapNew(pix);
+        else
+            pixt = pixEndianByteSwapNew(pix);
         data = (l_uint8 *)pixGetData(pixt);
         for (i = 0 ; i < h; i++, data += bpl) {
             memcpy((char *)linebuf, (char *)data, tiffbpl);
@@ -615,7 +619,7 @@ char      *text;
         }
         pixDestroy(&pixt);
     }
-    else {
+    else {  /* d == 32 */
         line = pixGetData(pix);
         for (i = 0 ; i < h; i++, line += wpl) {
             line = pixGetData(pix) + i * wpl;

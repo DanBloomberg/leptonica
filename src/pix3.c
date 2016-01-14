@@ -446,17 +446,21 @@ l_uint32  *data, *datam, *line, *linem;
 /*!
  *  pixInvert()
  *
- *      Input:  pixd  (<optional> destination: this can be null, 
- *                     equal to pixs, or different from pixs)
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
  *              pixs
- *      Return: pixd always
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This inverts pixs, for all pixel depths.
  *      (2) There are 3 cases:
- *              if pixd == null,   ~src --> new pixd
- *              if pixd == pixs,   ~src --> src  (in-place)
- *              if pixd != pixs,   ~src --> input pixd
+ *           (a) pixd == null,   ~src --> new pixd
+ *           (b) pixd == pixs,   ~src --> src  (in-place)
+ *           (c) pixd != pixs,   ~src --> input pixd
+ *      (3) For clarity, if the case is known, use these patterns:
+ *           (a) pixd = pixInvert(NULL, pixs);
+ *           (b) pixInvert(pixs, pixs);
+ *           (c) pixInvert(pixd, pixs);
  */
 PIX *
 pixInvert(PIX  *pixd,
@@ -465,12 +469,11 @@ pixInvert(PIX  *pixd,
     PROCNAME("pixInvert");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
 
-    if (pixs != pixd) {
-        if ((pixd = pixCopy(pixd, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
+        /* Prepare pixd for in-place operation */
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd),
                 PIX_NOT(PIX_DST), NULL, 0, 0);   /* invert pixd */
@@ -482,20 +485,25 @@ pixInvert(PIX  *pixd,
 /*!
  *  pixOr()
  *
- *      Input:  pixd  (<optional> destination: this can be null, 
- *                     equal to pixs1, or different from pixs1)
- *              pixs1 (can be == to pixd)
- *              pixs2 
- *      Return: pixd always
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs1,
+ *                     different from pixs1)
+ *              pixs1 (can be == pixd)
+ *              pixs2
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This gives the union of two images with equal depth,
- *          aligning them to the the UL corner.
+ *          aligning them to the the UL corner.  pixs1 and pixs2
+ *          need not have the same width and height.
  *      (2) There are 3 cases:
- *            if pixd == null,   (src1 | src2) --> new pixd
- *            if pixd == pixs1,  (src1 | src2) --> src1  (in-place)
- *            if pixd != pixs1,  (src1 | src2) --> input pixd
- *      (3) The size of the result is determined by pixs1.
+ *            (a) pixd == null,   (src1 | src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 | src2) --> src1  (in-place)
+ *            (c) pixd != pixs1,  (src1 | src2) --> input pixd
+ *      (3) For clarity, if the case is known, use these patterns:
+ *            (a) pixd = pixOr(NULL, pixs1, pixs2);
+ *            (b) pixOr(pixs1, pixs1, pixs2);
+ *            (c) pixOr(pixd, pixs1, pixs2);
+ *      (4) The size of the result is determined by pixs1.
  */
 PIX *
 pixOr(PIX  *pixd,
@@ -505,23 +513,18 @@ pixOr(PIX  *pixd,
     PROCNAME("pixOr");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
-    if (pixs1 == pixs2)
-        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
-    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
-        return (PIX *)ERROR_PTR("depths not the same", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))
         L_WARNING("pixs1 and pixs2 not equal sizes", procName);
 #endif  /* EQUAL_SIZE_WARNING */
 
-    if (pixs1 != pixd) {
-        if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
+        /* Prepare pixd to be a copy of pixs1 */
+    if ((pixd = pixCopy(pixd, pixs1)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
         /* src1 | src2 --> dest */
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd),
@@ -534,20 +537,25 @@ pixOr(PIX  *pixd,
 /*!
  *  pixAnd()
  *
- *      Input:  pixd  (<optional> destination: this can be null, 
- *                     equal to pixs1, or different from pixs1)
- *              pixs1 (can be == to pixd)
- *              pixs2 
- *      Return: pixd always
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs1,
+ *                     different from pixs1)
+ *              pixs1 (can be == pixd)
+ *              pixs2
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This gives the intersection of two images with equal depth,
- *          aligning them to the the UL corner.
+ *          aligning them to the the UL corner.  pixs1 and pixs2 
+ *          need not have the same width and height.
  *      (2) There are 3 cases:
- *            if pixd == null,   (src1 & src2) --> new pixd
- *            if pixd == pixs1,  (src1 & src2) --> src1  (in-place)
- *            if pixd != pixs1,  (src1 & src2) --> input pixd
- *      (3) The size of the result is determined by pixs1.
+ *            (a) pixd == null,   (src1 & src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 & src2) --> src1  (in-place)
+ *            (c) pixd != pixs1,  (src1 & src2) --> input pixd
+ *      (3) For clarity, if the case is known, use these patterns:
+ *            (a) pixd = pixAnd(NULL, pixs1, pixs2);
+ *            (b) pixAnd(pixs1, pixs1, pixs2);
+ *            (c) pixAnd(pixd, pixs1, pixs2);
+ *      (4) The size of the result is determined by pixs1.
  */
 PIX *
 pixAnd(PIX  *pixd,
@@ -557,23 +565,18 @@ pixAnd(PIX  *pixd,
     PROCNAME("pixAnd");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
-    if (pixs1 == pixs2)
-        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
-    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
-        return (PIX *)ERROR_PTR("depths not the same", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))
         L_WARNING("pixs1 and pixs2 not equal sizes", procName);
 #endif  /* EQUAL_SIZE_WARNING */
 
-    if (pixs1 != pixd) {
-        if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
+        /* Prepare pixd to be a copy of pixs1 */
+    if ((pixd = pixCopy(pixd, pixs1)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
         /* src1 & src2 --> dest */
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd),
@@ -586,20 +589,25 @@ pixAnd(PIX  *pixd,
 /*!
  *  pixXor()
  *
- *      Input:  pixd  (<optional> destination: this can be null, 
- *                     equal to pixs1, or different from pixs1)
- *              pixs1 (can be == to pixd)
- *              pixs2 
- *      Return: pixd always
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs1,
+ *                     different from pixs1)
+ *              pixs1 (can be == pixd)
+ *              pixs2
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This gives the XOR of two images with equal depth,
- *          aligning them to the the UL corner.
+ *          aligning them to the the UL corner.  pixs1 and pixs2
+ *          need not have the same width and height.
  *      (2) There are 3 cases:
- *            if pixd == null,   (src1 ^ src2) --> new pixd
- *            if pixd == pixs1,  (src1 ^ src2) --> src1  (in-place)
- *            if pixd != pixs1,  (src1 ^ src2) --> input pixd
- *      (3) The size of the result is determined by pixs1.
+ *            (a) pixd == null,   (src1 ^ src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 ^ src2) --> src1  (in-place)
+ *            (c) pixd != pixs1,  (src1 ^ src2) --> input pixd
+ *      (3) For clarity, if the case is known, use these patterns:
+ *            (a) pixd = pixXor(NULL, pixs1, pixs2);
+ *            (b) pixXor(pixs1, pixs1, pixs2);
+ *            (c) pixXor(pixd, pixs1, pixs2);
+ *      (4) The size of the result is determined by pixs1.
  */
 PIX *
 pixXor(PIX  *pixd,
@@ -609,23 +617,18 @@ pixXor(PIX  *pixd,
     PROCNAME("pixXor");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
-    if (pixs1 == pixs2)
-        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
-    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
-        return (PIX *)ERROR_PTR("depths not the same", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))
         L_WARNING("pixs1 and pixs2 not equal sizes", procName);
 #endif  /* EQUAL_SIZE_WARNING */
 
-    if (pixs1 != pixd) {
-        if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
+        /* Prepare pixd to be a copy of pixs1 */
+    if ((pixd = pixCopy(pixd, pixs1)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
         /* src1 ^ src2 --> dest */
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd),
@@ -638,27 +641,31 @@ pixXor(PIX  *pixd,
 /*!
  *  pixSubtract()
  *
- *      Input:  pixd  (<optional> destination: this can be null, 
- *                     equal to pixs1, equal to pixs2, or different
- *                     from both pixs1 and pixs2)
- *              pixs1 (can be == to pixd)
- *              pixs2 (can be == to pixd)
- *      Return: pixd always
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs1,
+ *                     equal to pixs2, or different from both pixs1 and pixs2)
+ *              pixs1 (can be == pixd)
+ *              pixs2 (can be == pixd)
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This gives the set subtraction of two images with equal depth,
- *          aligning them to the the UL corner.
+ *          aligning them to the the UL corner.  pixs1 and pixs2
+ *          need not have the same width and height.
  *      (2) Source pixs2 is always subtracted from source pixs1.
  *          The result is
  *                  pixs1 \ pixs2 = pixs1 & (~pixs2)
- *      (3) There are 4 cases.  The result can go to a new dest,
- *          in-place to either pixs1 or pixs2, or to an existing input dest:
- *              if pixd == null,   (src1 - src2) --> new pixd
- *              if pixd == pixs1,  (src1 - src2) --> src1  (in-place)
- *              if pixd == pixs2,  (src1 - src2) --> src2  (in-place)
- *              if pixd != pixs1 && pixd != pixs2),
+ *      (3) There are 4 cases:
+ *            (a) pixd == null,   (src1 - src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 - src2) --> src1  (in-place)
+ *            (c) pixd == pixs2,  (src1 - src2) --> src2  (in-place)
+ *            (d) pixd != pixs1 && pixd != pixs2),
  *                                 (src1 - src2) --> input pixd
- *      (4) If pixd == NULL, the size of the result is determined by pixs1.
+ *      (4) For clarity, if the case is known, use these patterns:
+ *            (a) pixd = pixSubtract(NULL, pixs1, pixs2);
+ *            (b) pixSubtract(pixs1, pixs1, pixs2);
+ *            (c) pixSubtract(pixs2, pixs1, pixs2);
+ *            (d) pixSubtract(pixd, pixs1, pixs2);
+ *      (5) The size of the result is determined by pixs1.
  */
 PIX *
 pixSubtract(PIX  *pixd,
@@ -670,25 +677,18 @@ l_int32  w, h;
     PROCNAME("pixSubtract");
 
     if (!pixs1)
-        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
     if (!pixs2)
-        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
-    if (pixs1 == pixs2)
-        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
-    if (pixGetDepth(pixs1) != pixGetDepth(pixs2))
-        return (PIX *)ERROR_PTR("depths not the same", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
 
 #if  EQUAL_SIZE_WARNING
     if (!pixSizesEqual(pixs1, pixs2))
         L_WARNING("pixs1 and pixs2 not equal sizes", procName);
 #endif  /* EQUAL_SIZE_WARNING */
 
-    w = pixGetWidth(pixs1);
-    h = pixGetHeight(pixs1);
-
+    pixGetDimensions(pixs1, &w, &h, NULL);
     if (!pixd) {
-        if ((pixd = pixCopy(NULL, pixs1)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        pixd = pixCopy(NULL, pixs1);
         pixRasterop(pixd, 0, 0, w, h, PIX_DST & PIX_NOT(PIX_SRC),
             pixs2, 0, 0);   /* src1 & (~src2)  */
     }
@@ -701,13 +701,7 @@ l_int32  w, h;
             pixs1, 0, 0);   /* src1 & (~src2)  */
     }
     else  { /* pixd != pixs1 && pixd != pixs2 */
-        if (pixGetDepth(pixd) != 1)
-            return (PIX *)ERROR_PTR("pixd not binary", procName, pixd);
-#if  EQUAL_SIZE_WARNING
-        if (!pixSizesEqual(pixd, pixs1))
-            L_WARNING("pixd and pixs1 not equal sizes", procName);
-#endif  /* EQUAL_SIZE_WARNING */
-        pixRasterop(pixd, 0, 0, w, h, PIX_SRC, pixs1, 0, 0);   /* copy */
+        pixCopy(pixd, pixs1);  /* sizes pixd to pixs1 if unequal */
         pixRasterop(pixd, 0, 0, w, h, PIX_DST & PIX_NOT(PIX_SRC),
             pixs2, 0, 0);   /* src1 & (~src2)  */
     }

@@ -290,20 +290,26 @@ PIX       *pixd;
 /*!
  *  pixBlockrank()
  *
- *      Input:  pix (1 bpp)
+ *      Input:  pixs (1 bpp)
  *              accum pix (<optional> 32 bpp)
  *              wc, hc   (half width/height of block sum/rank kernel)
  *              rank   (between 0.0 and 1.0; 0.5 is median filter)
- *      Return: pix (1 bpp)
+ *      Return: pixd (1 bpp)
  *
  *  Notes:
- *      (1) If accum pix is null, make one, use it, and destroy it
- *          before returning; otherwise, just use the input accum pix
- *      (2) The full width and height of the convolution kernel
+ *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
- *      (3) If both wc and hc are 0, returns a copy unless rank == 0.0,
- *          in which case this returns an all-set image.
- *      (4) Require that wc < w and hc < h, where (w,h) are the dimensions
+ *      (2) This returns a pixd where each pixel is a 1 if the
+ *          neighborhood (2 * wc + 1) x (2 * hc + 1)) pixels
+ *          contains the rank fraction of 1 pixels.  Otherwise,
+ *          the returned pixel is 0.  Note that the special case
+ *          of rank = 0.0 is always satisfied, so the returned
+ *          pixd has all pixels with value 1.
+ *      (3) If accum pix is null, make one, use it, and destroy it
+ *          before returning; otherwise, just use the input accum pix
+ *      (4) If both wc and hc are 0, returns a copy unless rank == 0.0,
+ *          in which case this returns an all-ones image.
+ *      (5) Require that wc < w and hc < h, where (w,h) are the dimensions
  *          of pixs.
  */
 PIX *
@@ -313,10 +319,8 @@ pixBlockrank(PIX       *pixs,
              l_int32    hc,
              l_float32  rank)
 {
-l_int32    i, j, w, h, d, wplbs, wpld;
-l_uint8    thresh, val;
-l_uint32  *databs, *datad, *linebs, *lined;
-PIX       *pixbs, *pixd;
+l_int32  w, h, d, thresh;
+PIX     *pixt, *pixd;
 
     PROCNAME("pixBlockrank");
 
@@ -327,46 +331,32 @@ PIX       *pixbs, *pixd;
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (rank < 0.0 || rank > 1.0)
         return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", procName, NULL);
-    if (wc < 0) wc = 0;
-    if (hc < 0) hc = 0;
+    if (wc < 0 || hc < 0)
+        return (PIX *)ERROR_PTR("wc and hc not both >= 0", procName, NULL);
+    if (rank == 0.0) {
+        pixd = pixCreateTemplate(pixs);
+        pixSetAll(pixd);
+    }
+
     if (wc == 0 && hc == 0) {
         L_WARNING("block of unit size", procName);
-        if (rank == 0.0) {
-            pixd = pixCreateTemplate(pixs);
-            pixSetAll(pixd);
-        }
-        else
-            pixd = pixCopy(NULL, pixs);
-        return pixd;
+        return pixCopy(NULL, pixs);
     }
     if (w <= wc || h <= hc) {
         L_WARNING("conv kernel half-size >= image dimension!", procName);
         return pixCopy(NULL, pixs);
     }
 
-    if ((pixbs = pixBlocksum(pixs, pixacc, wc, hc)) == NULL)
-        return (PIX *)ERROR_PTR("block sum pix not made", procName, NULL);
+    if ((pixt = pixBlocksum(pixs, pixacc, wc, hc)) == NULL)
+        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
-        /* 1 bpp block rank filter output */
-    if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    databs = pixGetData(pixbs);
-    wplbs = pixGetWpl(pixbs);
-    datad = pixGetData(pixd);
-    wpld = pixGetWpl(pixd);
-    
-    thresh = (l_int32)(rank * (l_float32)255);
-    for (i = 0; i < h; i++) {
-        linebs = databs + i * wplbs;
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
-            val = GET_DATA_BYTE(linebs, j);
-            if (val >= thresh)
-                SET_DATA_BIT(lined, j);
-        }
-    }
-
-    pixDestroy(&pixbs);
+        /* 1 bpp block rank filter output.
+         * Must invert because threshold gives 1 for values < thresh,
+         * but we need a 1 if the value is >= thresh. */
+    thresh = (l_int32)(255. * rank);
+    pixd = pixThresholdToBinary(pixt, thresh);
+    pixInvert(pixd, pixd);
+    pixDestroy(&pixt);
     return pixd;
 }
 
@@ -377,7 +367,7 @@ PIX       *pixbs, *pixd;
  *      Input:  pixs (1 bpp)
  *              accum pix (<optional> 32 bpp)
  *              wc, hc   (half width/height of block sum/rank kernel)
- *      Return: pix (8 bpp)
+ *      Return: pixd (8 bpp)
  *
  *  Notes:
  *      (1) If accum pix is null, make one and destroy it before
@@ -406,9 +396,9 @@ pixBlocksum(PIX     *pixs,
             l_int32  wc,
             l_int32  hc)
 {
-l_int32    w, h, d, wplb, wpla;
-l_uint32  *dataa, *datab;
-PIX       *pixt, *pixb;
+l_int32    w, h, d, wplt, wpld;
+l_uint32  *datat, *datad;
+PIX       *pixt, *pixd;
 
     PROCNAME("pixBlocksum");
 
@@ -432,18 +422,18 @@ PIX       *pixt, *pixb;
     }
         
         /* 8 bpp block sum output */
-    if ((pixb = pixCreate(w, h, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixb not made", procName, NULL);
-    pixCopyResolution(pixb, pixs);
+    if ((pixd = pixCreate(w, h, 8)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
 
-    wplb = pixGetWpl(pixb);
-    wpla = pixGetWpl(pixt);
-    datab = pixGetData(pixb);
-    dataa = pixGetData(pixt);
-    blocksumLow(datab, w, h, wplb, dataa, wpla, wc, hc);
+    wpld = pixGetWpl(pixd);
+    wplt = pixGetWpl(pixt);
+    datad = pixGetData(pixd);
+    datat = pixGetData(pixt);
+    blocksumLow(datad, w, h, wpld, datat, wplt, wc, hc);
 
     pixDestroy(&pixt);
-    return pixb;
+    return pixd;
 }
 
 

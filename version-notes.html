@@ -18,6 +18,31 @@
 
 <pre>
 
+1.48   30 Aug 07
+       Generalize rank filtering from 8 bpp to color (rank.c).
+       Speedup for pixCorrelationScore() by in-lining all bit operations.
+       Fixed many functions that take a dest pix so that they don't fail if
+       the dimensions or depth are not consistent with the src pix.
+       The underlying change for this is to pixCopy() (pix1.c).
+       Improved display of Sel as a pix; added selaDisplayInPix() to
+       display all Sels in a Sela, orthogonal rotations of Sels (sel1.c).
+       New functions for thinning and thickening while preserving connectivity
+       and avoiding both free end erosion and dendritic cruft (ccthin.c,
+       prog/ccthin1_reg.c, prog/ccthin2_reg.c).
+       New function pixaDisplayTiledInRows() for compactly tiling pix
+       in a pixa, plus documentation of different existing methods. (pixafunc.c)
+
+1.47   22 Jul 07
+       New brick rank order filter (rank.c, prog/ranktest.c, prog/rank_reg.c).
+       Use mirror reflection b.c. to avoid special processing at
+       boundaries (pix2.c).  Simple sobel edge detector (edge.c).
+       Utility for assempling level 2 compressed images in PostScript
+       (psio.c, prog/convertfilestops.c).  Enable read/write of 16 bpp,
+       grayscale tiff (tiffio.c, pix2.c).
+       New function for finding the number of c.c., which is a bit
+         faster than finding the b.b. or the component images (conncomp.c)
+       New functions for finding local extrema in grayscale image (seedfill.c)
+
 1.46   28 Jun 07
        Added interpreted mode for color morphology (morphseq.c).
        In functions, make effort to consistently do early initialization
@@ -145,7 +170,7 @@
        OK (graymorph.c).  For testing of graymorph dualities, the 
        the graymorph interpreter, etc., see prog/morphgraytest.c. 
 
-1.37   10 July 06
+1.37   10 Jul 06
        [After v.36 was released, Jeff Breidenbach built a Debian
        distribution of Leptonica based on v.36, and you can now get Leptonica
        as a Debian package.  Use "apt-cache search leptonica" to see
@@ -229,7 +254,7 @@
        of binary morphology boundary conditions.  Added (yet) another
        simple octcube color quantizer.  New colormap operations.
 
-1.27   24 Sept 05
+1.27   24 Sep 05
        Renamed many of the enums and typedefs to avoid namespace
        collisions.  This includes structs and typedefs for BMP.
        Interface change to pixClipRectangle(); apologies to everyone
@@ -246,7 +271,7 @@
        Generalized pixEqual() to include all cases with and without
        colormaps.  New regression tests in prog: ioformats, equaltest.
 
-1.26   24 July 05
+1.26   24 Jul 05
        Generalized affine pointwise to do interpolation as well as
        sampling.  For both projective and bilinear transforms,
        implemented using both sampling and interpolation.
@@ -254,12 +279,12 @@
        projective transform and doing it.  Also find baselines in text images.
        Added downscaling using accurate area-mapping over subpixels.
 
-1.25   25 June 05
+1.25   25 Jun 05
        Better endian conversion fctns for 2 and 4 byte words.
        Remove colormaps before converting by thresholds.
        Added functions to read header parameters for png and tiff.
 
-1.24   5 June 05
+1.24   5 Jun 05
        Added image splitting to allow printing in tiles (as several pages).
        Added new octree quantization function to generate 4 and 8 bpp
        colormapped output (not dithered).  Fixed bmp resolution.
@@ -291,7 +316,7 @@
        (e.g., ADD --> ARITH_ADD, HORIZ --> MORPH_HORIZ) to avoid
        possible interactions with other libraries.
 
-1.20   31 January 05
+1.20   31 Jan 05
        Speed up of tiffio and pngio with byte swap generating new pix.
        In textops.c, ability to split string into paragraphs, 
        in preparation for more general typesetting.
@@ -301,7 +326,7 @@
        to work on colormapped images.  Improved scale-to-gray and
        scaling reduction operations to be antialiased for best results.
 
-1.19   30 November 04
+1.19   30 Nov 04
        Additions to fileIO: (1) new jpeg reading options, such as
        returning warnings and scaled raster; (2) ability to write
        custom tiff flags.  Better tiling functions.
@@ -314,7 +339,7 @@
        sizes: allows painting the text on an image (binary, gray, RGB).
        (People have asked for the ability to write text on images).
 
-1.18   25 August 04
+1.18   25 Aug 04
        Changed typedefs of built-in types to avoid possible conflicts.
        Cleaned up and tested all programs in the prog directory.
        Simplified and fixed the pixSetMasked() and pixCombineMasked()
@@ -329,13 +354,13 @@
        Allow read/write of multipage TIFF files.  Implemented
        read/write of PNM files.
 
-1.16   31 March 04
+1.16   31 Mar 04
        New depth conversion functions, improved conversion to false color,
        new contour rendering (onto 1 bpp or onto the src grayscale image),
        new orthogonal rotations, better interface for doing arithmetic
        on 2-d arrays using a pix, improved distance function.
 
-1.15   31 January 04
+1.15   31 Jan 04
        Fast interpolated color rotation with 4x4 subpixels; has
        nearly the accuracy of the slower method using 16x16 subpixels.
        Demonstration of line removal from grayscale sketch in
@@ -343,7 +368,7 @@
        Fixed shear and rotation functions to handle angle = 0.0 properly.
        Other small fixes and interface improvements.
 
-1.14   30 November 03
+1.14   30 Nov 03
        Small implementation changes to list.c.  Better sorting
        routines for number arrays (numa), plus sorting for box
        arrays (boxa) and pix arrays (pixa).  PostScript wrapper
@@ -353,13 +378,13 @@
        for JFIF JPEG and TIFF G4 files.  Comments compatible
        with doxygen for automatic documentation.
 
-1.13   31 October 03
+1.13   31 Oct 03
        Cleaned up documentation in src.  Made libraries and test programs
        ANSI C++ compliant.  Added special cases to rasterops for
        alignment to word boundaries.  Fixed pngio.c to work with
        most recent libpng (1.2.5).
 
-1.12   30 June 03
+1.12   30 Jun 03
        Implemented border chain representation from a binary image,
        writes/reads a compressed version, and renders the original
        image back from the borders.   Also writes outline file out

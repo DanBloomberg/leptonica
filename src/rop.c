@@ -354,7 +354,17 @@ l_int32  w, d, op;
  *              hshift (horizontal shift; hshift > 0 is to right)
  *              vshift (vertical shift; vshift > 0 is down)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd always
+ *      Return: pixd, or null on error.
+ *
+ *  Notes:
+ *      (1) The general pattern is:
+ *            pixd = pixTranslate(pixd, pixs, ...);
+ *          For clarity, when you know the case, use one of these:
+ *            pixd = pixTranslate(NULL, pixs, ...);  // new
+ *            pixTranslate(pixs, pixs, ...);         // in-place
+ *            pixTranslate(pixd, pixs, ...);         // to existing pixd
+ *      (2) If an existing pixd is not the same size as pixs, the
+ *          image data will be reallocated.
  */
 PIX *
 pixTranslate(PIX     *pixd,
@@ -366,11 +376,11 @@ pixTranslate(PIX     *pixd,
     PROCNAME("pixTranslate");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
-    if (pixs != pixd) {
-        if ((pixd = pixCopy(pixd, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
-    }
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+        /* Prepare pixd for in-place operation */
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     pixRasteropIP(pixd, hshift, vshift, incolor);
     return pixd;

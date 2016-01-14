@@ -36,7 +36,7 @@ static char  mainName[] = "paint_reg";
     if (argc != 1)
         exit(ERROR_INT(" Syntax: paint_reg", mainName, 1));
 
-    if ((pixs = pixRead("lucasta.jpg")) == NULL)
+    if ((pixs = pixRead("lucasta-frag.jpg")) == NULL)
         exit(ERROR_INT("pixs not made", mainName, 1));
 
         /* Color non-white pixels on RGB */

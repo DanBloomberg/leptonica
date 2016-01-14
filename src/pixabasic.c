@@ -38,6 +38,7 @@
  *           l_int32   pixaGetBoxaCount()
  *           BOX      *pixaGetBox()
  *           l_int32   pixaGetBoxGeometry()
+ *           PIX     **pixaGetPixArray()
  *
  *      Pixa array modifiers
  *           l_int32   pixaReplacePix()
@@ -148,9 +149,7 @@ PIXA    *pixa;
 
     if ((pixa = pixaCreate(n)) == NULL)
         return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if ((pixt = pixCreate(cellw, cellh, d)) == NULL)
         return (PIXA *)ERROR_PTR("pixt not made", procName, NULL);
 
@@ -282,9 +281,7 @@ PIXA    *pixa;
 
     if ((pixa = pixaCreate(nx * ny)) == NULL)
         return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     cellw = (w + nx - 1) / nx;  /* round up */
     cellh = (h + ny - 1) / ny;
 
@@ -739,6 +736,31 @@ BOX  *box;
     boxDestroy(&box);
     return 0;
 }
+
+
+/*!
+ *  pixaGetPixArray()
+ *
+ *      Input:  pixa
+ *      Return: pix array, or null on error
+ *
+ *  Notes:
+ *      (1) This returns a ptr to the actual array.  The array is
+ *          owned by the pixa, so it must not be destroyed.
+ *      (2) The caller should always check if the return value is NULL
+ *          before accessing any of the pix ptrs in this array!
+ */
+PIX **
+pixaGetPixArray(PIXA  *pixa)
+{
+    PROCNAME("pixaGetPixArray");
+
+    if (!pixa)
+        return (PIX **)ERROR_PTR("pixa not defined", procName, NULL);
+
+    return pixa->pix;
+}
+
 
 
 /*---------------------------------------------------------------------*

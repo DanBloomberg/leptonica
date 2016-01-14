@@ -37,23 +37,28 @@
  *      Debug output
  *          l_int32    pheapPrint()
  *
- *    The pheap is used here as a priority queue, that is sorted on
- *    a key in each element of the heap.  The heap is an array
- *    of nearly arbitrary structs (it must have a field keyval that
- *    is a float).    Internally, it keeps track of the size of the
- *    heap, n.  The item at the root of the heap is at the head of
- *    the array.  When it is removed, the item at the end of the
- *    array is moved to the head.  Items are added at the end
- *    of the array.  When items are either added or removed, it is
- *    usually necesary to swap array items to restore the heap property.
- *    It is guaranteed that the number of swaps does not exceed log(n).
+ *    The pheap is useful to implement a priority queue, that is sorted
+ *    on a key in each element of the heap.  The heap is an array
+ *    of nearly arbitrary structs, with a l_float32 the first field.
+ *    This field is the key on which the heap is sorted.
  *
- *    N.B.  The items on the heap (or, equivalently, in the array)
- *          are cast to void*.  Their key is a l_float32, and it is
- *          REQUIRED that the key be the first field in the struct.
- *          That is because we get the key by dereferencing the struct.
- *          Alternatively, we could choose to pass an application-specific
- *          comparison function into the calls.
+ *    Internally, we keep track of the heap size, n.  The item at the
+ *    root of the heap is at the head of the array.  Items are removed
+ *    from the head of the array and added to the end of the array.
+ *    When an item is removed from the head, the item at the end
+ *    of the array is moved to the head.  When items are either
+ *    added or removed, it is usually necesary to swap array items
+ *    to restore the heap order.  It is guaranteed that the number
+ *    of swaps does not exceed log(n).
+ *
+ *    --------------------------  N.B.  ------------------------------
+ *    The items on the heap (or, equivalently, in the array) are cast
+ *    to void*.  Their key is a l_float32, and it is REQUIRED that the
+ *    key be the first field in the struct.  That allows us to get the
+ *    key by simply dereferencing the struct.  Alternatively, we could
+ *    choose (but don't) to pass an application-specific comparison
+ *    function into the heap operation functions.
+ *    --------------------------  N.B.  ------------------------------
  */
 
 #include <stdio.h>
@@ -77,8 +82,6 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 128;   /* n'importe quoi */
  *
  *      Input:  size of ptr array to be alloc'd (0 for default)
  *      Return: pheap, or null on error
- *
- *  Action: allocates a ptr array of given size, and initializes counters.
  */
 PHEAP *
 pheapCreate(l_int32  nalloc,
@@ -91,6 +94,7 @@ PHEAP  *ph;
     if (nalloc < MIN_BUFFER_SIZE)
         nalloc = MIN_BUFFER_SIZE;
 
+        /* Allocate ptr array and initialize counters. */
     if ((ph = (PHEAP *)CALLOC(1, sizeof(PHEAP))) == NULL)
         return (PHEAP *)ERROR_PTR("ph not made", procName, NULL);
     if ((ph->array = (void **)CALLOC(nalloc, sizeof(l_intptr_t))) == NULL)
@@ -109,14 +113,14 @@ PHEAP  *ph;
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
- *  Action: If freeflag is TRUE, frees each struct in the array.
- *          If freeflag is FALSE but there are elements on the array,
- *            gives a warning and destroys the array.  This will
- *            cause a memory leak of all the items that were on the queue.
- *            So if the items require their own destroy function, they
- *            must be destroyed before the queue.
- *          To destroy the PHeap, we destroy the ptr array, then
- *            the pheap, and then null the contents of the input ptr.
+ *  Notes:
+ *      (1) Use freeflag == TRUE when the items in the array can be
+ *          simply destroyed using free.  If those items require their
+ *          own destroy function, they must be destroyed before
+ *          calling this function, and then this function is called
+ *          with freeflag == FALSE.
+ *      (2) To destroy the pheap, we destroy the ptr array, then
+ *          the pheap, and then null the contents of the input ptr.
  */
 void
 pheapDestroy(PHEAP   **pph,
@@ -134,16 +138,16 @@ PHEAP   *ph;
     if ((ph = *pph) == NULL)
         return;
 
-    if (freeflag) {
+    if (freeflag) {  /* free each struct in the array */
         for (i = 0; i < ph->n; i++)
             FREE(ph->array[i]);
     }
-    else if (ph->n > 0)
+    else if (ph->n > 0)  /* freeflag == FALSE but elements exist on array */
         L_WARNING_INT("memory leak of %d items in pheap!", procName, ph->n);
 
     if (ph->array)
         FREE(ph->array);
-    FREE((void *)ph);
+    FREE(ph);
     *pph = NULL;
 
     return;
@@ -261,17 +265,19 @@ pheapGetCount(PHEAP  *ph)
  *                               Heap operations                            *
  *--------------------------------------------------------------------------*/
 /*!
- *  pheadSwapUp()
+ *  pheapSwapUp()
  *
  *      Input:  ph (heap)
  *              index (of array corresponding to node to be swapped up)
  *      Return: 0 if OK, 1 on error
  *
- *  This is called after a new item is put on the heap, at the
- *  bottom of a complete tree.  To regain the heap property, we
- *  let it bubble up, iteratively swapping with its parent, until
- *  it either reaches the root of the heap or it finds a parent
- *  that is in the correct position already vis-a-vis the child.
+ *  Notes:
+ *      (1) This is called after a new item is put on the heap, at the
+ *          bottom of a complete tree.
+ *      (2) To regain the heap order, we let it bubble up,
+ *          iteratively swapping with its parent, until it either
+ *          reaches the root of the heap or it finds a parent that
+ *          is in the correct position already vis-a-vis the child.
  */
 l_int32
 pheapSwapUp(PHEAP   *ph,
@@ -320,20 +326,23 @@ l_float32  valp, valc;
 
 
 /*!
- *  pheadSwapDown()
+ *  pheapSwapDown()
  *
  *      Input:  ph (heap)
  *      Return: 0 if OK, 1 on error
  *
- *  This is called after an item has been popped off the root of
- *  the heap, and the last item in the heap has been placed at the
- *  root.  To regain the heap property, we let it bubble down,
- *  iteratively swapping with one of its children.  For a decreasing
- *  sort, it swaps with the largest child; for an increasing sort,
- *  the smallest.  This continues until it either reaches the lowest
- *  level in the heap, or the parent finds that neither child should
- *  swap with it (e.g., for a decreasing heap, the parent is
- *  larger than or equal to both children).
+ *  Notes:
+ *      (1) This is called after an item has been popped off the
+ *          root of the heap, and the last item in the heap has
+ *          been placed at the root.
+ *      (2) To regain the heap order, we let it bubble down,
+ *          iteratively swapping with one of its children.  For a
+ *          decreasing sort, it swaps with the largest child; for
+ *          an increasing sort, the smallest.  This continues until
+ *          it either reaches the lowest level in the heap, or the
+ *          parent finds that neither child should swap with it
+ *          (e.g., for a decreasing heap, the parent is larger
+ *          than or equal to both children).
  */
 l_int32
 pheapSwapDown(PHEAP  *ph)
@@ -417,8 +426,9 @@ l_float32  valp, valcl, valcr;
  *      Input:  ph (heap, with internal array)
  *      Return: 0 if OK, 1 on error
  *
- *  Action: sorts an array into heap order.  If the heap is
- *  already in heap order for the direction given, this has no effect.
+ *  Notes:
+ *      (1) This sorts an array into heap order.  If the heap is already
+ *          in heap order for the direction given, this has no effect.
  */
 l_int32
 pheapSort(PHEAP  *ph)
@@ -443,12 +453,14 @@ l_int32  i;
  *      Input:  ph (heap, with internal array)
  *      Return: 0 if OK, 1 on error
  *
- *  Action: sorts a heap into strict order.  For each element, starting
- *  at the end of the array and working forward, the element is swapped
- *  with the head element and then allowed to swap down onto a
- *  heap of size reduced by one.  The result is that the heap
- *  is reversed but in strict order.  We then reverse the
- *  array elements to put it in the original order.
+ *  Notes:
+ *      (1) This sorts a heap into strict order.
+ *      (2) For each element, starting at the end of the array and
+ *          working forward, the element is swapped with the head
+ *          element and then allowed to swap down onto a heap of
+ *          size reduced by one.  The result is that the heap is
+ *          reversed but in strict order.  The array elements are
+ *          then reversed to put it in the original order.
  */
 l_int32
 pheapSortStrictOrder(PHEAP  *ph)

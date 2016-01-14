@@ -35,10 +35,10 @@
 #   On a bigendian machine (e.g., Mac), use
 #      CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN
 #
-#   On cygwin, remove -fPIC from CC and remove the following targets:
-#      alljpeg2ps.c      alltiff2ps.c
-#      jbcorrelation.c   jbrankhaus.c
-#      maketile.c        viewertest.c
+#   On cygwin, remove -fPIC from CC.  I believe that these files --
+#   convertfilestops.c, jbcorrelation.c, jbrankhaus.c, maketile.c,
+#   and viewertest.c -- which use posix directory functions, will
+#   now work properly.
 
 
 # Libraries are built into a binary tree with its root in the
@@ -93,19 +93,20 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 #########################################################################
 
 SRC =		binmorph1_reg.c binmorph2_reg.c \
+		ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c \
 		equal_reg.c expand_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
 		fmorphauto_reg.c \
 		graymorph_reg.c ioformats_reg.c \
+		locminmax_reg.c logicops_reg.c \
 		morphseq_reg.c numa_reg.c \
-		paint_reg.c pixa_reg.c \
-		rank_reg.c rasterop_reg.c \
+		paint_reg.c pixa_reg.c pixadisp_reg.c \
+		rank_reg.c rasterop_reg.c rasteropip_reg.c \
 		rotate_reg.c rotateorth_reg.c \
 		scale_reg.c string_reg.c \
 		adaptmaptest.c affinetest.c \
-		alljpeg2ps.c alltiff2ps.c \
 		arithtest.c \
 		baselinetest.c bilineartest.c \
 		bincompare.c binmazetest.c \
@@ -114,10 +115,10 @@ SRC =		binmorph1_reg.c binmorph2_reg.c \
 		colormorphtest.c \
 		colorquanttest.c colorsegtest.c \
 		colorspacetest.c comparetest.c contrasttest.c \
-		convertformat.c converttogray.c \
+		convertfilestops.c convertformat.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
 		croptext.c distancetest.c dithertest.c \
-		extrematest.c falsecolortest.c \
+		edgetest.c extrematest.c falsecolortest.c \
 		fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c \
@@ -126,12 +127,13 @@ SRC =		binmorph1_reg.c binmorph2_reg.c \
 		graymazetest.c graymorphtest.c \
 		heaptest.c histotest.c iotest.c inserttest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
-		lineremoval.c listtest.c maketile.c \
+		lineremoval.c listtest.c \
+		maketile.c \
 		morphtest1.c mtifftest.c numaranktest.c \
 		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
 		plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
-		projectivetest.c reducetest.c \
+		projectivetest.c ranktest.c reducetest.c \
 		removecmap.c renderfonts.c \
 		rotatefastalt.c rotateorthtest1.c \
 		rotatetest1.c runlengthtest.c \
@@ -147,9 +149,10 @@ SRC =		binmorph1_reg.c binmorph2_reg.c \
 
 all:	$(SRC:%.c=%)
 
-debian:	alljpeg2ps alltiff2ps binmazetest buffertest comparetest \
-	cctest1 colormorphtest colorspacetest convertformat \
-	converttops dithertest extrematest \
+debian:	binmazetest buffertest comparetest \
+	cctest1 ccthin1_reg colormorphtest colorspacetest \
+	convertfilestops convertformat \
+	converttops dithertest edgetest extrematest \
 	fhmtauto_reg fhmtautogen fileinfo \
 	flipdetect_reg flipselgen fmorphauto_reg fmorphautogen \
 	gammatest graphicstest graymazetest graymorph_reg \
@@ -157,7 +160,7 @@ debian:	alljpeg2ps alltiff2ps binmazetest buffertest comparetest \
 	lineremoval numaranktest pagesegtest1 \
 	pagesegtest2 pagesegtest3 plottest \
 	printimage printsplitimage printtiff \
-	rank_reg removecmap sharptest splitimage2pdf viewertest
+	ranktest rank_reg removecmap sharptest splitimage2pdf viewertest
 
 ######################################################################
 
@@ -166,6 +169,12 @@ binmorph1_reg:	binmorph1_reg.o $(LEPTLIB)
 
 binmorph2_reg:	binmorph2_reg.o $(LEPTLIB)
 	$(CC) -o binmorph2_reg binmorph2_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+ccthin1_reg:	ccthin1_reg.o $(LEPTLIB)
+	$(CC) -o ccthin1_reg ccthin1_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+ccthin2_reg:	ccthin2_reg.o $(LEPTLIB)
+	$(CC) -o ccthin2_reg ccthin2_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 cmapquant_reg:	cmapquant_reg.o $(LEPTLIB)
 	$(CC) -o cmapquant_reg cmapquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -200,6 +209,12 @@ graymorph_reg:	graymorph_reg.o $(LEPTLIB)
 ioformats_reg:	ioformats_reg.o $(LEPTLIB)
 	$(CC) -o ioformats_reg ioformats_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+locminmax_reg:	locminmax_reg.o $(LEPTLIB)
+	$(CC) -o locminmax_reg locminmax_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+logicops_reg:	logicops_reg.o $(LEPTLIB)
+	$(CC) -o logicops_reg logicops_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 morphseq_reg:	morphseq_reg.o $(LEPTLIB)
 	$(CC) -o morphseq_reg morphseq_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -212,11 +227,17 @@ paint_reg:	paint_reg.o $(LEPTLIB)
 pixa_reg:	pixa_reg.o $(LEPTLIB)
 	$(CC) -o pixa_reg pixa_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+pixadisp_reg:	pixadisp_reg.o $(LEPTLIB)
+	$(CC) -o pixadisp_reg pixadisp_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 rank_reg:	rank_reg.o $(LEPTLIB)
 	$(CC) -o rank_reg rank_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 rasterop_reg:	rasterop_reg.o $(LEPTLIB)
 	$(CC) -o rasterop_reg rasterop_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rasteropip_reg:	rasteropip_reg.o $(LEPTLIB)
+	$(CC) -o rasteropip_reg rasteropip_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 rotate_reg:	rotate_reg.o $(LEPTLIB)
 	$(CC) -o rotate_reg rotate_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -235,12 +256,6 @@ adaptmaptest:	adaptmaptest.o $(LEPTLIB)
 
 affinetest:	affinetest.o $(LEPTLIB)
 	$(CC) -o affinetest affinetest.o $(ALL_LIBS) $(EXTRALIBS)
-
-alljpeg2ps:	alljpeg2ps.o $(LEPTLIB)
-	$(CC) -o alljpeg2ps alljpeg2ps.o $(ALL_LIBS) $(EXTRALIBS)
-
-alltiff2ps:	alltiff2ps.o $(LEPTLIB)
-	$(CC) -o alltiff2ps alltiff2ps.o $(ALL_LIBS) $(EXTRALIBS)
 
 arithtest:	arithtest.o $(LEPTLIB)
 	$(CC) -o arithtest arithtest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -269,7 +284,7 @@ buffertest:	buffertest.o $(LEPTLIB)
 ccbordtest:	ccbordtest.o $(LEPTLIB)
 	$(CC) -o ccbordtest ccbordtest.o $(ALL_LIBS) $(EXTRALIBS)
 
-cctest1:		cctest1.o $(LEPTLIB)
+cctest1:	cctest1.o $(LEPTLIB)
 	$(CC) -o cctest1 cctest1.o $(ALL_LIBS) $(EXTRALIBS)
 
 colormorphtest:	colormorphtest.o $(LEPTLIB)
@@ -289,6 +304,9 @@ comparetest:	comparetest.o $(LEPTLIB)
 
 contrasttest:	contrasttest.o $(LEPTLIB)
 	$(CC) -o contrasttest contrasttest.o $(ALL_LIBS) $(EXTRALIBS)
+
+convertfilestops:	convertfilestops.o $(LEPTLIB)
+	$(CC) -o convertfilestops convertfilestops.o $(ALL_LIBS) $(EXTRALIBS)
 
 convertformat:	convertformat.o $(LEPTLIB)
 	$(CC) -o convertformat convertformat.o $(ALL_LIBS) $(EXTRALIBS)
@@ -314,11 +332,8 @@ distancetest:	distancetest.o $(LEPTLIB)
 dithertest:	dithertest.o $(LEPTLIB)
 	$(CC) -o dithertest dithertest.o $(ALL_LIBS) $(EXTRALIBS)
 
-docseg1:	docseg1.o $(LEPTLIB)
-	$(CC) -o docseg1 docseg1.o $(ALL_LIBS) $(EXTRALIBS)
-
-docseg2:	docseg2.o $(LEPTLIB)
-	$(CC) -o docseg2 docseg2.o $(ALL_LIBS) $(EXTRALIBS)
+edgetest:	edgetest.o $(LEPTLIB)
+	$(CC) -o edgetest edgetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 extrematest:	extrematest.o $(LEPTLIB)
 	$(CC) -o extrematest extrematest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -424,6 +439,9 @@ printtiff:	printtiff.o $(LEPTLIB)
 
 projectivetest:	projectivetest.o $(LEPTLIB)
 	$(CC) -o projectivetest projectivetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+ranktest:	ranktest.o $(LEPTLIB)
+	$(CC) -o ranktest ranktest.o $(ALL_LIBS) $(EXTRALIBS)
 
 reducetest:	reducetest.o $(LEPTLIB)
 	$(CC) -o reducetest reducetest.o $(ALL_LIBS) $(EXTRALIBS)

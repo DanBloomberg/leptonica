@@ -90,14 +90,15 @@ STACK  *stack;
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
- *  Action: If freeflag is TRUE, frees each struct in the array.
- *          If freeflag is FALSE but there are elements on the array,
- *            gives a warning and destroys the array.  This will
- *            cause a memory leak of all the items that were on the stack.
- *            So if the items require their own destroy function, they
- *            must be destroyed before the stack.
- *          To destroy the Stack, we destroy the ptr array, then
- *            the stack, and then null the contents of the input ptr.
+ *  Notes:
+ *      (1) If freeflag is TRUE, frees each struct in the array.
+ *      (2) If freeflag is FALSE but there are elements on the array,
+ *          gives a warning and destroys the array.  This will
+ *          cause a memory leak of all the items that were on the stack.
+ *          So if the items require their own destroy function, they
+ *          must be destroyed before the stack.
+ *      (3) To destroy the Stack, we destroy the ptr array, then
+ *          the stack, and then null the contents of the input ptr.
  */
 void
 stackDestroy(STACK  **pstack,
@@ -128,8 +129,8 @@ STACK  *stack;
         stackDestroy(&stack->auxstack, freeflag);
 
     if (stack->array)
-        FREE((void *)stack->array);
-    FREE((void *)stack);
+        FREE(stack->array);
+    FREE(stack);
     *pstack = NULL;
 }
 
@@ -156,11 +157,11 @@ stackAdd(STACK  *stack,
     if (!item)
         return ERROR_INT("item not defined", procName, 1);
 
-        /* do we need to extend the array? */
+        /* Do we need to extend the array? */
     if (stack->n >= stack->nalloc)
         stackExtendArray(stack);
 
-        /* store the new pointer */
+        /* Store the new pointer */
     stack->array[stack->n] = (void *)item;
     stack->n++;
 

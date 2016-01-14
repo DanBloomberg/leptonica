@@ -610,7 +610,7 @@ SEL       *sel_2a;
     if ((pixt3 = pixCreateTemplate(pixs)) == NULL)
         return (NUMA *)ERROR_PTR("pix3 not made", procName, NULL);
 
-        /* get pixel counts at different stages of erosion */
+        /* Get pixel counts at different stages of erosion */
     pixCountPixels(pixt1, &count, NULL);
     numaAddNumber(na, count);
     pixErode(pixt2, pixt1, sel_2a);
@@ -623,17 +623,15 @@ SEL       *sel_2a;
         pixErode(pixt2, pixt3, sel_2a);
         pixCountPixels(pixt2, &count, NULL);
         numaAddNumber(na, count);
-/*        if (i == 4) pixWrite("junkoutt", pixt2, IFF_PNG); */
     }
 
-        /* compute length histogram */
+        /* Compute length histogram */
     if ((nah = numaCreate(na->n)) == NULL)
         return (NUMA *)ERROR_PTR("nah not made", procName, NULL);
     numaAddNumber(nah, 0); /* number at length 0 */
     for (i = 1; i < na->n - 1; i++) {
         val = na->array[i+1] - 2 * na->array[i] + na->array[i-1];
         numaAddNumber(nah, val);
-/*        fprintf(stderr, "i = %d, val = %f\n", i, nah->array[i]); */
     }
 
     pixDestroy(&pixt1);
@@ -894,11 +892,11 @@ PIX  *pixg, *pixd;
         vsize++;
     }
 
-        /* optionally smooth first to remove noise.
+        /* Optionally smooth first to remove noise.
          * If smoothing is 0, just get a copy */
     pixg = pixBlockconvGray(pixs, NULL, smoothing, smoothing);
 
-        /* this gives approximately the gradient of a transition */
+        /* This gives approximately the gradient of a transition */
     pixd = pixDilateGray(pixg, hsize, vsize);
     pixSubtractGray(pixd, pixd, pixg);
     pixDestroy(&pixg);

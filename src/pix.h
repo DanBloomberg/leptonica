@@ -42,10 +42,12 @@
  *       graphics pixel setting flags
  *       size filtering flags
  *       rotation and shear flags
- *       grayscale filling flags
  *       dithering flags
+ *       grayscale filling flags
  *       distance flags
+ *       average measures
  *       text orientation flags
+ *       thinning flags
  */
 
 
@@ -542,6 +544,15 @@ enum {
     L_TEXT_ORIENT_LEFT = 2,      /* landscape, text up to left             */
     L_TEXT_ORIENT_DOWN = 3,      /* portrait, text upside-down             */
     L_TEXT_ORIENT_RIGHT = 4      /* landscape, text up to right            */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                             Thinning flags                              *
+ *-------------------------------------------------------------------------*/
+enum {
+    L_THIN_FG = 1,               /* thin foreground of 1 bpp image         */
+    L_THIN_BG = 2                /* thin background of 1 bpp image         */
 };
 
 

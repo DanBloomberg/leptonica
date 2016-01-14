@@ -21,6 +21,10 @@
  *     interpreter, such as gs or the embedded interpreter in a
  *     PostScript printer.
  *
+ *     Convert specified files to PS
+ *          l_int32          convertFilesToPS()    [unix only]
+ *          l_int32          sarrayConvertFilesToPS()
+ *
  *     Convert any image file to PS for embedding
  *          l_int32          convertToPSEmbed()
  *
@@ -140,6 +144,185 @@ static l_int32  getTwoByteParameter(l_uint8 *, l_int32);
      * can be embedded in TeX files, e.g. */
 #define  PRINT_BOUNDING_BOX      0
 
+
+/*-------------------------------------------------------------*
+ *                Convert files in a directory to PS           *
+ *-------------------------------------------------------------*/
+/*
+ *  convertFilesToPS()
+ *
+ *      Input:  dirin (input directory)
+ *              substr (<optional> substring filter on filenames; can be NULL)
+ *              res (typ. 300 or 600 ppi)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a PS file for all files in a specified directory
+ *          that contain the substr pattern to be matched.
+ *      (2) Colormaps are removed.
+ *      (3) All images are written with level 2 compression.
+ *          If the image is 1 bpp, use G4.  Otherwise, use DCT.
+ *          If the image is not 1 bpp and not jpeg compressed,
+ *          it is jpeg compressed with quality = 75, which will
+ *          in general cause some degradation in the image.
+ *      (4) The resolution is always confusing.  It is interpreted
+ *          as the resolution of the output display device:  "If the
+ *          input image were digitized at 300 ppi, what would it
+ *          look like when displayed at res ppi."  So, for example,
+ *          if res = 100 ppi, then the display pixels are 3x larger
+ *          than the 300 ppi pixels, and the image will be rendered
+ *          3x larger.
+ *      (5) The size of the PostScript file is independent of the resolution,
+ *          because the entire file is encoded.  The res parameter just
+ *          tells the PS decomposer how to render the page.  Therefore,
+ *          for minimum file size without loss of visual information,
+ *          if the output res is less than 300, you should downscale
+ *          the image to the output resolution before wrapping in PS.
+ *      (6) The "canvas" on which the image is rendered, at the given
+ *          output resolution, is a standard page size (8.5 x 11 in).
+ *      (7) If the image is jpeg or tiffg4, we use the existing
+ *          compressed string; otherwise it is necessary to decompress
+ *          it, remove any existing colormap, and write it out in
+ *          a temp file in one of these two formats.
+ *      (8) This is unix only; it does not work on Windows.  However,
+ *          see sarrayConvertFilesToPS(), which does the real work
+ *          and compiles on all platforms.
+ */
+l_int32
+convertFilesToPS(const char  *dirin,
+                 const char  *substr,
+                 l_int32      res,
+                 const char  *fileout)
+{
+SARRAY  *sa;
+
+    PROCNAME("convertFilesToPS");
+
+    if (!dirin)
+        return ERROR_INT("dirin not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (res <= 0) {
+        L_INFO("setting res to 300 ppi", procName);
+        res = 300;
+    }
+    if (res < 10 || res > 4000)
+        L_WARNING("res is typically in the range 300-600 ppi", procName);
+
+        /* Get all filtered and sorted full pathnames. */
+    sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
+
+        /* Generate the PS file. */
+    sarrayConvertFilesToPS(sa, res, fileout);
+    sarrayDestroy(&sa);
+    return 0;
+}
+
+
+/*
+ *  sarrayConvertFilesToPS()
+ *
+ *      Input:  sarray (of full path names)
+ *              res (typ. 300 or 600 ppi)
+ *              fileout (output ps file)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) See convertFilesToPS()
+ */
+l_int32
+sarrayConvertFilesToPS(SARRAY      *sa,
+                       l_int32      res,
+                       const char  *fileout)
+{
+char    *fname;
+l_int32  i, d, nfiles, index, firstfile, format, retval;
+FILE    *fp;
+PIX     *pix, *pixt;
+
+    PROCNAME("sarrayConvertFilesToPS");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    if (res <= 0) {
+        L_INFO("setting res to 300 ppi", procName);
+        res = 300;
+    }
+    if (res < 10 || res > 4000)
+        L_WARNING("res is typically in the range 300-600 ppi", procName);
+
+    nfiles = sarrayGetCount(sa);
+    firstfile = TRUE;
+    for (i = 0, index = 0; i < nfiles; i++) {
+        fname = sarrayGetString(sa, i, 0);
+        if ((fp = fopen(fname, "r")) == NULL)
+            continue;
+        format = findFileFormat(fp);
+        fclose(fp);
+
+            /* Convert to tiffg4 or jpeg if necessary */
+        if (format != IFF_JFIF_JPEG && format != IFF_TIFF_G4) {
+            if ((pix = pixRead(fname)) == NULL)
+                continue;
+            d = pixGetDepth(pix);
+            if (d == 1) {
+                pixWrite(TEMP_G4TIFF_FILE, pix, IFF_TIFF_G4);
+                fname = stringNew(TEMP_G4TIFF_FILE);
+                format = IFF_TIFF;
+            }
+            else {
+                pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+                pixWrite(TEMP_JPEG_FILE, pixt, IFF_JFIF_JPEG);
+                pixDestroy(&pixt);
+                fname = stringNew(TEMP_JPEG_FILE);
+                format = IFF_JFIF_JPEG;
+            }
+            pixDestroy(&pix);
+        }
+        else
+            fname = stringNew(fname);
+
+            /* Write it out */
+        if (format == IFF_JFIF_JPEG) {
+            if (firstfile) {
+                retval = convertJpegToPS(fname, fileout, "w", 0, 0,
+                                         res, 1.0, index + 1, TRUE);
+                if (retval == 0) {
+                    firstfile = FALSE;
+                    index++;
+                }
+            }
+            else {
+                retval = convertJpegToPS(fname, fileout, "a", 0, 0,
+                                         res, 1.0, index + 1, TRUE);
+                if (retval == 0)
+                    index++;
+            }
+        }
+        else {  /* format == IFF_TIFF) */
+            if (firstfile) {
+                retval = convertTiffG4ToPS(fname, fileout, "w", 0, 0,
+                                           res, 1.0, index + 1, FALSE, TRUE);
+                if (retval == 0) {
+                    firstfile = FALSE;
+                    index++;
+                }
+            }
+            else {
+                retval = convertTiffG4ToPS(fname, fileout, "a", 0, 0,
+                                           res, 1.0, index + 1, FALSE, TRUE);
+                if (retval == 0)
+                    index++;
+            }
+        }
+        FREE(fname);
+    }
+    
+    return 0;
+}
 
 
 /*-------------------------------------------------------------*

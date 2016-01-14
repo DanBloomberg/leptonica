@@ -44,6 +44,7 @@
  *           PIX        *pixAddBorder()
  *           PIX        *pixRemoveBorder()
  *           PIX        *pixAddBorderGeneral()
+ *           PIX        *pixAddMirroredBorder()
  *           PIX        *pixRemoveBorderGeneral()
  *
  *      Color sample setting and extraction
@@ -56,6 +57,7 @@
  *      Conversion between big and little endians
  *           PIX        *pixEndianByteSwapNew()
  *           l_int32     pixEndianByteSwap()
+ *           PIX        *pixEndianTwoByteSwapNew()
  *           l_int32     pixEndianTwoByteSwap()
  */
 
@@ -618,7 +620,7 @@ l_uint32  *data, *pword;
  *  pixSetOrClearBorder()
  *
  *      Input:  pixs (all depths)
- *              leftpix, rightpix, toppix, bottompix
+ *              left, right, top, bot (amount to set or clear)
  *              operation (PIX_SET or PIX_CLR)
  *      Return: 0 if OK; 1 on error
  *
@@ -634,10 +636,10 @@ l_uint32  *data, *pword;
  */
 l_int32
 pixSetOrClearBorder(PIX     *pixs,
-                    l_int32  leftpix,
-                    l_int32  rightpix,
-                    l_int32  toppix,
-                    l_int32  bottompix,
+                    l_int32  left,
+                    l_int32  right,
+                    l_int32  top,
+                    l_int32  bot,
                     l_int32  op)
 {
 l_int32  w, h;
@@ -650,10 +652,10 @@ l_int32  w, h;
         return ERROR_INT("op must be PIX_SET or PIX_CLR", procName, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixRasterop(pixs, 0, 0, leftpix, h, op, NULL, 0, 0);
-    pixRasterop(pixs, w - rightpix, 0, rightpix, h, op, NULL, 0, 0);
-    pixRasterop(pixs, 0, 0, w, toppix, op, NULL, 0, 0);
-    pixRasterop(pixs, 0, h - bottompix, w, bottompix, op, NULL, 0, 0);
+    pixRasterop(pixs, 0, 0, left, h, op, NULL, 0, 0);
+    pixRasterop(pixs, w - right, 0, right, h, op, NULL, 0, 0);
+    pixRasterop(pixs, 0, 0, w, top, op, NULL, 0, 0);
+    pixRasterop(pixs, 0, h - bot, w, bot, op, NULL, 0, 0);
 
     return 0;
 }
@@ -663,7 +665,7 @@ l_int32  w, h;
  *  pixSetBorderVal()
  *
  *      Input:  pixs (8 or 32 bpp)
- *              leftpix, rightpix, toppix, bottompix
+ *              left, right, top, bot (amount to set)
  *              val (value to set at each border pixel)
  *      Return: 0 if OK; 1 on error
  *
@@ -681,10 +683,10 @@ l_int32  w, h;
  */
 l_int32
 pixSetBorderVal(PIX      *pixs,
-                l_int32   leftpix,
-                l_int32   rightpix,
-                l_int32   toppix,
-                l_int32   bottompix,
+                l_int32   left,
+                l_int32   right,
+                l_int32   top,
+                l_int32   bot,
                 l_uint32  val)
 {
 l_int32    w, h, d, wpls, i, j, bstart, rstart;
@@ -702,16 +704,16 @@ l_uint32  *datas, *lines;
     wpls = pixGetWpl(pixs);
     if (d == 8) {
         val &= 0xff;
-        for (i = 0; i < toppix; i++) {
+        for (i = 0; i < top; i++) {
             lines = datas + i * wpls;
             for (j = 0; j < w; j++)
                 SET_DATA_BYTE(lines, j, val);
         }
-        rstart = w - rightpix;
-        bstart = h - bottompix;
-        for (i = toppix; i < bstart; i++) {
+        rstart = w - right;
+        bstart = h - bot;
+        for (i = top; i < bstart; i++) {
             lines = datas + i * wpls;
-            for (j = 0; j < leftpix; j++)
+            for (j = 0; j < left; j++)
                 SET_DATA_BYTE(lines, j, val);
             for (j = rstart; j < w; j++)
                 SET_DATA_BYTE(lines, j, val);
@@ -723,16 +725,16 @@ l_uint32  *datas, *lines;
         }
     }
     else {   /* d == 32 */
-        for (i = 0; i < toppix; i++) {
+        for (i = 0; i < top; i++) {
             lines = datas + i * wpls;
             for (j = 0; j < w; j++)
                 *(lines + j) = val;
         }
-        rstart = w - rightpix;
-        bstart = h - bottompix;
-        for (i = toppix; i < bstart; i++) {
+        rstart = w - right;
+        bstart = h - bot;
+        for (i = top; i < bstart; i++) {
             lines = datas + i * wpls;
-            for (j = 0; j < leftpix; j++)
+            for (j = 0; j < left; j++)
                 *(lines + j) = val;
             for (j = rstart; j < w; j++)
                 *(lines + j) = val;
@@ -795,9 +797,7 @@ PIX     *pixd;
     pixCopyColormap(pixd, pixs);
 
     pixSetAllArbitrary(pixd, val);   /* a little extra writing ! */
-
     pixRasterop(pixd, npix, npix, ws, hs, PIX_SRC, pixs, 0, 0);
-
     return pixd;
 }
 
@@ -846,11 +846,10 @@ PIX     *pixd;
 /*!
  *  pixAddBorderGeneral()
  *
- *      Input:  pix
- *              leftpix, rightpix, toppix, bottompix  (number of pixels
- *                   to be added to each side)
+ *      Input:  pixs (all depths; colormap ok)
+ *              left, right, top, bot  (number of pixels added)
  *              val   (value of added border pixels)
- *      Return: pix with the input pix placed properly, or null on error
+ *      Return: pixd with the input pixs inserted, or null on error
  *
  *  Notes:
  *      (1) For binary images:
@@ -865,10 +864,10 @@ PIX     *pixd;
  */
 PIX *
 pixAddBorderGeneral(PIX      *pixs,
-                    l_int32   leftpix,
-                    l_int32   rightpix,
-                    l_int32   toppix,
-                    l_int32   bottompix,
+                    l_int32   left,
+                    l_int32   right,
+                    l_int32   top,
+                    l_int32   bot,
                     l_uint32  val)
 {
 l_int32  ws, hs, wd, hd, d;
@@ -880,35 +879,89 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, &d);
-    wd = ws + leftpix + rightpix;
-    hd = hs + toppix + bottompix;
+    wd = ws + left + right;
+    hd = hs + top + bot;
     if ((pixd = pixCreate(wd, hd, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
 
     pixSetAllArbitrary(pixd, val);   /* a little extra writing ! */
-
-    pixRasterop(pixd, leftpix, toppix, ws, hs, PIX_SRC, pixs, 0, 0);
+    pixRasterop(pixd, left, top, ws, hs, PIX_SRC, pixs, 0, 0);
 
     return pixd;
 }
 
 
 /*!
+ *  pixAddMirroredBorder()
+ *
+ *      Input:  pixs (all depths; colormap ok)
+ *              left, right, top, bot (number of pixels added)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This applies what is effectively mirror boundary conditions.
+ *          For the added border pixels in pixd, the pixels in pixs
+ *          near the border are mirror-copied into the border region.
+ *      (2) This is useful for avoiding special operations near
+ *          boundaries when doing image processing operations
+ *          such as rank filters and convolution.  In use, one first
+ *          adds mirrored pixels to each side of the image.  The number
+ *          of pixels added on each side is half the filter dimension.
+ *          Then the image processing operations proceed over a
+ *          region equal to the size of the original image, and
+ *          write directly into a dest pix of the same size as pixs.
+ *      (3) The general pixRasterop() is used for an in-place operation here
+ *          because there is no overlap between the src and dest rectangles.
+ */
+PIX  *
+pixAddMirroredBorder(PIX      *pixs,
+                      l_int32  left,
+                      l_int32  right,
+                      l_int32  top,
+                      l_int32  bot)
+{
+l_int32  i, j, w, h;
+PIX     *pixd;
+
+    PROCNAME("pixAddMirroredBorder");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixd = pixAddBorderGeneral(pixs, left, right, top, bot, 0);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    for (j = 0; j < left; j++)
+        pixRasterop(pixd, left - 1 - j, top, 1, h, PIX_SRC,
+                    pixd, left + j, top);
+    for (j = 0; j < right; j++)
+        pixRasterop(pixd, left + w + j, top, 1, h, PIX_SRC,
+                    pixd, left + w - 1 - j, top);
+    for (i = 0; i < top; i++)
+        pixRasterop(pixd, 0, top - 1 - i, left + w + right, 1, PIX_SRC,
+                    pixd, 0, top + i);
+    for (i = 0; i < bot; i++)
+        pixRasterop(pixd, 0, top + h + i, left + w + right, 1, PIX_SRC,
+                    pixd, 0, top + h - 1 - i);
+
+    return pixd;
+}
+     
+
+/*!
  *  pixRemoveBorderGeneral()
  *
- *      Input:  pixs
- *              leftpix, rightpix, toppix, bottompix  (number of pixels
- *                   to be removed from each side)
+ *      Input:  pixs (all depths; colormap ok)
+ *              left, right, top, bot  (number of pixels added)
  *      Return: pixd (with pixels removed around border), or null on error
  */
 PIX *
 pixRemoveBorderGeneral(PIX     *pixs,
-                       l_int32  leftpix,
-                       l_int32  rightpix,
-                       l_int32  toppix,
-                       l_int32  bottompix)
+                       l_int32  left,
+                       l_int32  right,
+                       l_int32  top,
+                       l_int32  bot)
 {
 l_int32  ws, hs, wd, hd, d;
 PIX     *pixd;
@@ -919,8 +972,8 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, &d);
-    wd = ws - leftpix - rightpix;
-    hd = hs - toppix - bottompix;
+    wd = ws - left - right;
+    hd = hs - top - bot;
     if (wd <= 0)
         return (PIX *)ERROR_PTR("width must be > 0", procName, NULL);
     if (hd <= 0)
@@ -930,10 +983,10 @@ PIX     *pixd;
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
 
-    pixRasterop(pixd, 0, 0, wd, hd, PIX_SRC, pixs, leftpix, toppix);
-    
+    pixRasterop(pixd, 0, 0, wd, hd, PIX_SRC, pixs, left, top);
     return pixd;
 }
+
 
 
 /*-------------------------------------------------------------*
@@ -1253,7 +1306,7 @@ PIX       *pixd;
 /*!
  *  pixEndianByteSwap()
  *
- *      Input:  pix
+ *      Input:  pixs
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1271,7 +1324,7 @@ PIX       *pixd;
  *          order when serialized, so no byte flipping is required.
  */
 l_int32
-pixEndianByteSwap(PIX  *pix)
+pixEndianByteSwap(PIX  *pixs)
 {
 l_uint32  *data;
 l_int32    i, j, h, wpl;
@@ -1285,12 +1338,12 @@ l_uint32   word;
 
 #else   /* L_LITTLE_ENDIAN */
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
 
-    data = pixGetData(pix);
-    wpl = pixGetWpl(pix);
-    h = pixGetHeight(pix);
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    h = pixGetHeight(pixs);
     for (i = 0; i < h; i++) {
         for (j = 0; j < wpl; j++, data++) {
             word = *data;
@@ -1309,9 +1362,64 @@ l_uint32   word;
 
 
 /*!
+ *  pixEndianTwoByteSwapNew()
+ *
+ *      Input:  pixs
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This is used on little-endian platforms to swap the
+ *          2-byte entities within a 32-bit word.
+ *      (2) This is equivalent to a full byte swap, as performed
+ *          by pixEndianByteSwap(), followed by byte swaps in
+ *          each of the 16-bit entities separately.
+ *      (3) Unlike pixEndianTwoByteSwap(), which swaps the shorts in-place,
+ *          this returns a new pix (or a clone).  We provide this
+ *          to avoid having to swap twice in situations where the input
+ *          pix must be restored to canonical little-endian order.
+ */
+PIX *
+pixEndianTwoByteSwapNew(PIX  *pixs)
+{
+l_uint32  *datas, *datad;
+l_int32    i, j, h, wpl;
+l_uint32   word;
+PIX       *pixd;
+
+    PROCNAME("pixEndianTwoByteSwapNew");
+        
+#ifdef L_BIG_ENDIAN
+
+    return pixClone(pixs);
+
+#else   /* L_LITTLE_ENDIAN */
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    datas = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    h = pixGetHeight(pixs);
+    pixd = pixCreateTemplate(pixs);
+    datad = pixGetData(pixd);
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < wpl; j++, datas++, datad++) {
+            word = *datas;
+            *datad = (word << 16) | (word >> 16);
+        }
+    }
+
+    return pixd;
+
+#endif   /* L_BIG_ENDIAN */
+
+}
+
+
+/*!
  *  pixEndianTwoByteSwap()
  *
- *      Input:  pix
+ *      Input:  pixs
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1322,7 +1430,7 @@ l_uint32   word;
  *          each of the 16-bit entities separately.
  */
 l_int32
-pixEndianTwoByteSwap(PIX  *pix)
+pixEndianTwoByteSwap(PIX  *pixs)
 {
 l_uint32  *data;
 l_int32    i, j, h, wpl;
@@ -1336,17 +1444,16 @@ l_uint32   word;
 
 #else   /* L_LITTLE_ENDIAN */
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
 
-    data = pixGetData(pix);
-    wpl = pixGetWpl(pix);
-    h = pixGetHeight(pix);
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    h = pixGetHeight(pixs);
     for (i = 0; i < h; i++) {
         for (j = 0; j < wpl; j++, data++) {
             word = *data;
-            *data = ((word << 16) & 0xffff0000) |
-                    ((word >> 16) & 0x0000ffff);
+            *data = (word << 16) | (word >> 16);
         }
     }
 

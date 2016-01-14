@@ -34,14 +34,14 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-#define  NTIMES             5
+#define  NTIMES             2
 
 
 main(int    argc,
      char **argv)
 {
 char        *filein;
-l_int32      i, n, np, same;
+l_int32      i, n, np, same, count;
 FILE        *fp;
 BOX         *box;
 BOXA        *boxa, *boxa2;
@@ -60,6 +60,18 @@ static char  mainName[] = "cctest1";
     if (pixGetDepth(pixs) != 1)
 	exit(ERROR_INT("pixs not 1 bpp", mainName, 1));
 	    
+	/* Test speed of pixCountConnComp() */
+    startTimer();
+    for (i = 0; i < NTIMES; i++)
+	pixCountConnComp(pixs, 4, &count);
+    fprintf(stderr, "Time to compute 4-cc: %6.3f sec\n", stopTimer()/NTIMES);
+    fprintf(stderr, "Number of 4-cc: %d\n", count);
+    startTimer();
+    for (i = 0; i < NTIMES; i++)
+	pixCountConnComp(pixs, 8, &count);
+    fprintf(stderr, "Time to compute 8-cc: %6.3f sec\n", stopTimer()/NTIMES);
+    fprintf(stderr, "Number of 8-cc: %d\n", count);
+
 	/* Test speed of pixConnComp(), with only boxa output  */
     startTimer();
     for (i = 0; i < NTIMES; i++) {
@@ -77,6 +89,7 @@ static char  mainName[] = "cctest1";
 	/* Draw outline of each c.c. box */
     boxa = pixConnComp(pixs, NULL, 4);
     n = boxaGetCount(boxa);
+    fprintf(stderr, "Num 4-cc boxes: %d\n", n);
     for (i = 0; i < n; i++) {
 	box = boxaGetBox(boxa, i, L_CLONE);
 	pixRenderBox(pixs, box, 3, L_FLIP_PIXELS);

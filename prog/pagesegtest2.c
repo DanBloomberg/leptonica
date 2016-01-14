@@ -29,9 +29,10 @@
 #include "allheaders.h"
 
     /* Control the output */
-#define   HT_DISP      1
-#define   TEXT_DISP    1
-#define   BLOCK_DISP   1
+#define   HT_DISP      0
+#define   WS_MASK      1
+#define   TEXT_DISP    0
+#define   BLOCK_DISP   0
 #define   DFLAG        0
 
 
@@ -72,7 +73,7 @@ static char  mainName[] = "pagesegtest2";
 
         /* Reduce to 150 ppi */
     pixt1 = pixScaleToGray2(pixs);
-    pixDisplayWrite(pixt1, L_MAX(HT_DISP, BLOCK_DISP));
+    pixDisplayWrite(pixt1, L_MAX(WS_MASK, L_MAX(HT_DISP, BLOCK_DISP)));
     pixWrite("junk_orig.gray.150.png", pixt1, IFF_PNG);
     pixDestroy(&pixt1);
     pixr = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
@@ -114,6 +115,7 @@ static char  mainName[] = "pagesegtest2";
         /* Get bit-inverted image */
     pixi = pixInvert(NULL, pixnht);
     pixWrite("junk_invert.150.png", pixi, IFF_PNG);
+    pixDisplayWrite(pixi, WS_MASK);
 
         /* The whitespace mask will break textlines where there
          * is a large amount of white space below or above.
@@ -124,18 +126,19 @@ static char  mainName[] = "pagesegtest2";
          * textlines), and subtracting this from the whitespace mask. */
     pixt1 = pixMorphCompSequence(pixi, "o80.60", 0);
     pixt2 = pixSubtract(NULL, pixi, pixt1);
+    pixDisplayWrite(pixt2, WS_MASK);
     pixDestroy(&pixt1);
 
 	/* Identify vertical whitespace by opening inverted image */
     pixt3 = pixOpenBrick(NULL, pixt2, 5, 1);  /* removes thin vertical lines */
     pixvws = pixOpenBrick(NULL, pixt3, 1, 200);  /* gets long vertical lines */
-    pixDisplayWrite(pixvws, TEXT_DISP);
+    pixDisplayWrite(pixvws, L_MAX(TEXT_DISP, WS_MASK));
     pixWrite("junk_vertws.150.png", pixvws, IFF_PNG);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
 
-        /* Get proto (early processed) text line mask */
-	/* first close the characters and words in the textlines */
+        /* Get proto (early processed) text line mask. */
+	/* First close the characters and words in the textlines */
     pixtm1 = pixCloseSafeBrick(NULL, pixnht, 30, 1);
     pixDisplayWrite(pixtm1, TEXT_DISP);
     pixWrite("junk_textmask1.150.png", pixtm1, IFF_PNG);

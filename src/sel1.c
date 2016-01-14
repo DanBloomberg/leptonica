@@ -51,6 +51,9 @@
  *         Max translations for erosion and hmt
  *            l_int32    selFindMaxTranslations()
  *
+ *         Rotation by multiples of 90 degrees
+ *            SEL       *selRotateOrth()
+ *
  *         Sela and Sel serialized I/O
  *            SELA      *selaRead()
  *            SELA      *selaReadStream()
@@ -276,7 +279,8 @@ SEL     *csel;
         for (j = 0; j < sx; j++)
             csel->data[i][j] = sel->data[i][j];
 
-    csel->name = stringNew(sel->name);
+    if (sel->name)
+        csel->name = stringNew(sel->name);
 
     return csel;
 }
@@ -840,6 +844,71 @@ l_int32  maxxp, maxyp, maxxn, maxyn;
 }
 
 
+/*----------------------------------------------------------------------*
+ *                   Rotation by multiples of 90 degrees                *
+ *----------------------------------------------------------------------*/
+/*!
+ *  selRotateOrth()
+ *
+ *      Input:  sel
+ *              quads (0 - 4; number of 90 degree cw rotations)
+ *      Return: seld, or null on error
+ */
+SEL  *
+selRotateOrth(SEL     *sel,
+              l_int32  quads)
+{
+l_int32  i, j, ni, nj, sx, sy, cx, cy, nsx, nsy, ncx, ncy, type;
+SEL     *seld;
+
+    PROCNAME("selRotateOrth");
+
+    if (!sel)
+        return (SEL *)ERROR_PTR("sel not defined", procName, NULL);
+    if (quads < 0 || quads > 4)
+        return (SEL *)ERROR_PTR("quads not in {0,1,2,3,4}", procName, NULL);
+    if (quads == 0 || quads == 4)
+        return selCopy(sel);
+
+    selGetParameters(sel, &sy, &sx, &cy, &cx);
+    if (quads == 1) {  /* 90 degrees cw */
+        nsx = sy;
+        nsy = sx;
+        ncx = sy - cy - 1;
+        ncy = cx;
+    } else if (quads == 2) {  /* 180 degrees cw */
+        nsx = sx;
+        nsy = sy; 
+        ncx = sx - cx - 1;
+        ncy = sy - cy - 1;
+    } else {  /* 270 degrees cw */
+        nsx = sy;
+        nsy = sx;
+        ncx = cy;
+        ncy = sx - cx - 1;
+    }
+    seld = selCreateBrick(nsy, nsx, ncy, ncx, SEL_DONT_CARE);
+
+    for (i = 0; i < sy; i++) {
+        for (j = 0; j < sx; j++) {
+            selGetElement(sel, i, j, &type);
+            if (quads == 1) {
+               ni = j;
+               nj = sy - i - 1;
+            } else if (quads == 2) {
+               ni = sy - i - 1;
+               nj = sx - j - 1;
+            } else {  /* quads == 3 */
+               ni = sx - j - 1;
+               nj = i;
+            }
+            selSetElement(seld, ni, nj, type);
+        }
+    }
+
+    return seld;
+}
+
 
 /*----------------------------------------------------------------------*
  *                       Sela and Sel serialized I/O                    *
@@ -1359,83 +1428,93 @@ l_uint32  val;
  *  selDisplayInPix()
  *
  *      Input:  sel
- *              size (odd; minimum size of 9 is enforced)
- *              separation (between cells; valid in [0, ... 10]; suggest 2)
+ *              size (of grid interiors; odd; minimum size of 17 is enforced)
+ *              gthick (grid thickness; minimum size of 2 is enforced)
  *      Return: pix (display of sel), or null on error
  *
  *  Notes:
- *      (1) This gives a visual representation of a hit-miss sel.
- *      (2) Four different patterns are generated:
- *          - hit (solid black square)
- *          - miss (black square with a circular white hole)
- *          - don't-care (white square with a thin black boundary)
- *          - origin (for one of the above three, inverts the pixels
- *                    in a small circle centered in the square)
- *      (3) You can also specify how much white space (if any)
- *          you want between these sel patterns.  Using separation = 0
- *          is not advised.
+ *      (1) This gives a visual representation of a general (hit-miss) sel.
+ *      (2) The empty sel is represented by a grid of intersecting lines.
+ *      (3) Three different patterns are generated for the sel elements:
+ *          - hit (solid black circle)
+ *          - miss (black ring; inner radius is radius2)
+ *          - origin (cross, XORed with whatever is there)
  */
 PIX *
-selDisplayInPix(SEL  *sel,
+selDisplayInPix(SEL     *sel,
                 l_int32  size,
-                l_int32  separation)
+                l_int32  gthick)
 {
-l_int32  i, j, w, h, sx, sy, cx, cy, type;
-l_int32  radius1, radius2, shift1, shift2, borderdc, x0, y0;
-PIX     *pixd, *pix1, *pix2, *pixh, *pixm, *pixdc, *pixorig;
+l_int32  i, j, w, h, sx, sy, cx, cy, type, width;
+l_int32  radius1, radius2, shift1, shift2, x0, y0;
+PIX     *pixd, *pix2, *pixh, *pixm, *pixorig;
 PTA     *pta1, *pta2, *pta1t, *pta2t;
 
     PROCNAME("selDisplayInPix");
 
     if (!sel)
         return (PIX *)ERROR_PTR("sel not defined", procName, NULL);
-    if (size < 9) {
-        L_WARNING("size < 9; setting to 9", procName);
-        size = 9;
+    if (size < 17) {
+        L_WARNING("size < 17; setting to 17", procName);
+        size = 17;
     }
     if (size % 2 == 0)
         size++;
-    if (separation < 0 || separation > 10) {
-        L_WARNING("invalid separation; setting to 2", procName);
-        separation = 2;
+    if (gthick < 2) {
+        L_WARNING("grid thickness < 2; setting to 2", procName);
+        gthick = 2;
     }
     selGetParameters(sel, &sy, &sx, &cy, &cx);
-    w = size * sx + separation * (sx - 1);
-    h = size * sy + separation * (sy - 1);
+    w = size * sx + gthick * (sx + 1);
+    h = size * sy + gthick * (sy + 1);
     pixd = pixCreate(w, h, 1);
-    selGetTypeAtOrigin(sel, &type);
 
-        /* Generate various patterns */
-    radius1 = (l_int32)(0.3 * ((size - 1) / 2) + 0.5);  /* origin */
-    radius2 = (l_int32)(0.7 * ((size - 1) / 2) + 0.5);  /* miss hole */
-    borderdc = size / 8;
+        /* Generate grid lines */
+    for (i = 0; i <= sy; i++)
+        pixRenderLine(pixd, 0, gthick / 2 + i * (size + gthick),
+                      w - 1, gthick / 2 + i * (size + gthick),
+                      gthick, L_SET_PIXELS);
+    for (j = 0; j <= sx; j++)
+        pixRenderLine(pixd, gthick / 2 + j * (size + gthick), 0,
+                      gthick / 2 + j * (size + gthick), h - 1,
+                      gthick, L_SET_PIXELS);
+
+        /* Generate hit and miss patterns */
+    radius1 = (l_int32)(0.85 * ((size - 1) / 2) + 0.5);  /* of hit */
+    radius2 = (l_int32)(0.65 * ((size - 1) / 2) + 0.5);  /* inner miss radius */
     pta1 = ptaGenerateFilledCircle(radius1);
     pta2 = ptaGenerateFilledCircle(radius2);
-    shift1 = (size - 1) / 2 - radius1;
+    shift1 = (size - 1) / 2 - radius1;  /* center circle in square */
     shift2 = (size - 1) / 2 - radius2;
     pta1t = ptaTransform(pta1, shift1, shift1, 1.0, 1.0);
     pta2t = ptaTransform(pta2, shift2, shift2, 1.0, 1.0);
-    pix1 = pixGenerateFromPta(pta1t, size, size);
+    pixh = pixGenerateFromPta(pta1t, size, size);  /* hits */
     pix2 = pixGenerateFromPta(pta2t, size, size);
-    pixh = pixCreate(size, size, 1);  /* hits */
-    pixSetAll(pixh);
-    pixm = pixCreate(size, size, 1);  /* misses */
-    pixSetAll(pixm);
-    pixSubtract(pixm, pixm, pix2);
-    pixdc = pixCreate(size, size, 1);   /* dont-cares */
-    pixSetOrClearBorder(pixdc, borderdc, borderdc, borderdc, borderdc, PIX_SET);
-    if (type == SEL_HIT)
-        pixorig = pixCopy(NULL, pixh);
-    else if (type == SEL_MISS)
-        pixorig = pixCopy(NULL, pixm);
-    else  /* type == SEL_DONT_CARE */
-        pixorig = pixCopy(NULL, pixdc);
-    pixXor(pixorig, pixorig, pix1);   /* origin */
+    pixm = pixSubtract(NULL, pixh, pix2);
 
-        /* Paste them in! */
-    y0 = 0;
+        /* Generate crossed lines for origin pattern */
+    pixorig = pixCreate(size, size, 1);
+    width = size / 8;
+    pixRenderLine(pixorig, size / 2, (l_int32)(0.12 * size),
+                           size / 2, (l_int32)(0.88 * size),
+                           width, L_SET_PIXELS);
+    pixRenderLine(pixorig, (l_int32)(0.15 * size), size / 2,
+                           (l_int32)(0.85 * size), size / 2,
+                           width, L_FLIP_PIXELS);
+    pixRasterop(pixorig, size / 2 - width, size / 2 - width,
+                2 * width, 2 * width, PIX_NOT(PIX_DST), NULL, 0, 0);
+
+        /* Specialize origin pattern for this sel */
+    selGetTypeAtOrigin(sel, &type);
+    if (type == SEL_HIT)
+        pixXor(pixorig, pixorig, pixh);
+    else if (type == SEL_MISS)
+        pixXor(pixorig, pixorig, pixm);
+
+        /* Paste the patterns in */
+    y0 = gthick;
     for (i = 0; i < sy; i++) {
-        x0 = 0;
+        x0 = gthick;
         for (j = 0; j < sx; j++) {
             selGetElement(sel, i, j, &type);
 	    if (i == cy && j == cx)  /* origin */
@@ -1444,24 +1523,95 @@ PTA     *pta1, *pta2, *pta1t, *pta2t;
                 pixRasterop(pixd, x0, y0, size, size, PIX_SRC, pixh, 0, 0);
 	    else if (type == SEL_MISS)
                 pixRasterop(pixd, x0, y0, size, size, PIX_SRC, pixm, 0, 0);
-	    else  /* dont-care */
-                pixRasterop(pixd, x0, y0, size, size, PIX_SRC, pixdc, 0, 0);
-            x0 += size + separation;
+            x0 += size + gthick;
         }
-        y0 += size + separation;
+        y0 += size + gthick;
     }
 
-    pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pixh);
     pixDestroy(&pixm);
-    pixDestroy(&pixdc);
     pixDestroy(&pixorig);
     ptaDestroy(&pta1);
     ptaDestroy(&pta1t);
     ptaDestroy(&pta2);
     ptaDestroy(&pta2t);
 
+    return pixd;
+}
+
+
+/*!
+ *  selaDisplayInPix()
+ *
+ *      Input:  sela
+ *              size (of grid interiors; odd; minimum size of 17 is enforced)
+ *              gthick (grid thickness; minimum size of 2 is enforced)
+ *              spacing (between sels, both horizontally and vertically)
+ *              ncols (number of sels per "line")
+ *      Return: pix (display of all sels in sela), or null on error
+ *
+ *  Notes:
+ *      (1) This gives a visual representation of all the sels in a sela.
+ *      (2) See notes in selDisplayInPix() for display params of each sel.
+ *      (3) This gives the nicest results when all sels in the sela
+ *          are the same size.
+ */
+PIX *
+selaDisplayInPix(SELA    *sela,
+                 l_int32  size,
+                 l_int32  gthick,
+                 l_int32  spacing,
+                 l_int32  ncols)
+{
+l_int32  nsels, i, w, width;
+PIX     *pixt, *pixd;
+PIXA    *pixa;
+SEL     *sel;
+
+    PROCNAME("selaDisplayInPix");
+
+    if (!sela)
+        return (PIX *)ERROR_PTR("sela not defined", procName, NULL);
+    if (size < 17) {
+        L_WARNING("size < 17; setting to 17", procName);
+        size = 17;
+    }
+    if (size % 2 == 0)
+        size++;
+    if (gthick < 2) {
+        L_WARNING("grid thickness < 2; setting to 2", procName);
+        gthick = 2;
+    }
+    if (spacing < 5) {
+        L_WARNING("spacing < 5; setting to 5", procName);
+        spacing = 5;
+    }
+
+        /* Accumulate the pix of each sel */
+    nsels = selaGetCount(sela);
+    pixa = pixaCreate(nsels);
+    for (i = 0; i < nsels; i++) {
+        sel = selaGetSel(sela, i);
+        pixt = selDisplayInPix(sel, size, gthick);
+        pixaAddPix(pixa, pixt, L_INSERT);
+    }
+
+        /* Find the tiled output width, using just the first
+         * ncols pix in the pixa.   If all pix have the same width,
+         * they will align properly in columns. */
+    width = 0;
+    ncols = L_MIN(nsels, ncols);
+    for (i = 0; i < ncols; i++) {
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixGetDimensions(pixt, &w, NULL, NULL);
+        width += w;
+        pixDestroy(&pixt);
+    }
+    width += (ncols + 1) * spacing;  /* add spacing all around as well */
+    
+    pixd = pixaDisplayTiledInRows(pixa, width, 0, spacing);
+    pixaDestroy(&pixa);
     return pixd;
 }
 

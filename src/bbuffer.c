@@ -100,10 +100,11 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;   /* n'importe quoi */
  *              size of byte array to be alloc'd (0 for default)
  *      Return: bbuffer, or null on error
  *
- *  Action: allocates a bbuffer with associated byte array of
+ *  Notes:
+ *      (1) If a buffer address is given, you should read all the data in.
+ *      (2) Allocates a bbuffer with associated byte array of
  *          the given size.  If a buffer address is given,
  *          it then reads the number of bytes into the byte array.
- *  Note: If a buffer address is given, you should read all the data in.
  */
 BBUFFER *
 bbufferCreate(l_uint8  *indata,
@@ -140,7 +141,8 @@ BBUFFER  *bb;
  *      Input:  &bbuffer  (<to be nulled>)
  *      Return: void
  *
- *  Action: destroys the byte array in the bbuffer and then the bbuffer;
+ *  Notes:
+ *      (1) Destroys the byte array in the bbuffer and then the bbuffer;
  *          then nulls the contents of the input ptr.
  */
 void
@@ -159,8 +161,8 @@ BBUFFER  *bb;
         return;
 
     if (bb->array)
-        FREE((void *)bb->array);
-    FREE((void *)bb);
+        FREE(bb->array);
+    FREE(bb);
     *pbb = NULL;
 
     return;
@@ -174,7 +176,8 @@ BBUFFER  *bb;
  *              &nbytes  (<return> number of bytes saved in array)
  *      Return: barray (newly allocated array of data)
  *
- *  Action: copies data to newly allocated array; then destroys the bbuffer.
+ *  Notes:
+ *      (1) Copies data to newly allocated array; then destroys the bbuffer.
  */
 l_uint8 *
 bbufferDestroyAndSaveData(BBUFFER  **pbb,
@@ -225,13 +228,14 @@ BBUFFER  *bb;
  *              nbytes   (bytes to be read)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: For a read after write, we first remove the written
- *        bytes by shifting the unwritten bytes in the array,
- *        then check if there is enough room to add the new bytes.
- *        If not, we realloc with bbufferExpandArray(), resulting
- *        in a second writing of the unwritten bytes.  While less
- *        efficient, this is simpler than making a special case
- *        of reallocNew().
+ *  Notes:
+ *      (1) For a read after write, first remove the written
+ *          bytes by shifting the unwritten bytes in the array,
+ *          then check if there is enough room to add the new bytes.
+ *          If not, realloc with bbufferExpandArray(), resulting
+ *          in a second writing of the unwritten bytes.  While less
+ *          efficient, this is simpler than making a special case
+ *          of reallocNew().
  */
 l_int32
 bbufferRead(BBUFFER  *bb,
@@ -326,8 +330,9 @@ l_int32  navail, nadd, nread, nwritten;
  *              nbytes  (number of bytes to extend array size)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: reallocNew() copies all bb->nalloc bytes, even though
- *        only bb->n are data.
+ *  Notes:
+ *      (1) reallocNew() copies all bb->nalloc bytes, even though
+ *          only bb->n are data.
  */
 l_int32
 bbufferExtendArray(BBUFFER  *bb,
@@ -394,7 +399,7 @@ l_int32  nleft, nout;
     memcpy(dest, (l_uint8 *)(bb->array + bb->nwritten), nout);
     bb->nwritten += nout;
 
-        /* if all written; "empty" the buffer */
+        /* If all written; "empty" the buffer */
     if (nout == nleft) { 
         bb->n = 0;
         bb->nwritten = 0;
@@ -446,7 +451,7 @@ l_int32  nleft, nout;
     fwrite((void *)(bb->array + bb->nwritten), 1, nout, fp);
     bb->nwritten += nout;
 
-        /* if all written; "empty" the buffer */
+        /* If all written; "empty" the buffer */
     if (nout == nleft) { 
         bb->n = 0;
         bb->nwritten = 0;
@@ -471,7 +476,6 @@ l_int32
 bbufferBytesToWrite(BBUFFER  *bb,
                     l_int32  *pnbytes)
 {
-
     PROCNAME("bbufferBytesToWrite");
 
     if (!bb)

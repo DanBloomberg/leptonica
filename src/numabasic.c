@@ -18,7 +18,7 @@
  *
  *      Numa creation, destruction, copy, clone, etc.
  *          NUMA        *numaCreate()
- *          NUMA        *numaCreateWithIArray()
+ *          NUMA        *numaCreateFromIArray()
  *          void        *numaDestroy()
  *          NUMA        *numaCopy()
  *          NUMA        *numaClone()
@@ -155,7 +155,7 @@ NUMA  *na;
 
 
 /*!
- *  numaCreateWithIArray()
+ *  numaCreateFromIArray()
  *
  *      Input:  int array
  *              size (of the array)
@@ -166,13 +166,13 @@ NUMA  *na;
  *      (2) The input array is NOT owned by the numa.
  */
 NUMA *
-numaCreateWithIArray(l_int32  *array,
+numaCreateFromIArray(l_int32  *array,
                      l_int32   size)
 {
 l_int32  i;
 NUMA    *na;
 
-    PROCNAME("numaCreateWithIArray");
+    PROCNAME("numaCreateFromIArray");
 
     if (!array)
         return (NUMA *)ERROR_PTR("array not defined", procName, NULL);
@@ -259,7 +259,6 @@ NUMA    *cna;
 NUMA *
 numaClone(NUMA  *na)
 {
-
     PROCNAME("numaClone");
 
     if (!na)
@@ -284,7 +283,6 @@ numaClone(NUMA  *na)
 l_int32
 numaEmpty(NUMA  *na)
 {
-
     PROCNAME("numaEmpty");
 
     if (!na)
@@ -335,7 +333,6 @@ l_int32  n;
 l_int32
 numaExtendArray(NUMA  *na)
 {
-
     PROCNAME("numaExtendArray");
 
     if (!na)
@@ -436,7 +433,6 @@ l_int32  i, n;
 l_int32
 numaGetCount(NUMA  *na)
 {
-
     PROCNAME("numaGetCount");
 
     if (!na)
@@ -516,7 +512,6 @@ numaSetValue(NUMA      *na,
              l_int32    index,
              l_float32  val)
 {
-
     PROCNAME("numaSetValue");
 
     if (!na)
@@ -906,7 +901,6 @@ NUMA    *nac;
 l_int32
 numaaExtendArray(NUMAA  *naa)
 {
-
     PROCNAME("numaaExtendArray");
 
     if (!naa)
@@ -1231,7 +1225,8 @@ NUMA  *na;
  *              col of 2d array
  *      Return: na (a clone of the numa if it exists) or null if it doesn't
  *
- *  Note: this does not give an error if the index is out of bounds.
+ *  Notes:
+ *      (1) This does not give an error if the index is out of bounds.
  */
 NUMA *
 numa2dGetNuma(NUMA2D     *na2d,

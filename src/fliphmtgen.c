@@ -17,7 +17,7 @@
  *    fliphmtgen.c
  *
  *       DWA implementation of hit-miss transforms with auto-generated sels
- *       for pixPageFlipDetectDWA() in flipdetect.c
+ *       for pixOrientDetectDwa() and pixUpDownDetectDwa() in flipdetect.c
  *
  *            PIX             *pixFlipFHMTGen()
  *              static l_int32   flipfhmtgen_low()  -- dispatcher

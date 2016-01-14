@@ -370,16 +370,19 @@ PIX            *pixt;
  *  pixDisplayWrite()
  *
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
- *              reduction (0 to disable; otherwise this is a reduction factor)
+ *              reduction (-1 to reset/erase; 0 to disable;
+ *                         otherwise this is a reduction factor)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
  *      (1) This writes files if reduction > 0.  These can be
  *          displayed, ordered in a tiled representation, with,
  *          for example, gthumb.
- *      (2) If reduction > 1 and depth == 1, this does a scale-to-gray
+ *      (2) All previously written files can be erased by calling with
+ *          reduction < 0; the value of pixs is ignored.
+ *      (3) If reduction > 1 and depth == 1, this does a scale-to-gray
  *          reduction.
- *      (3) This function uses a static internal variable to number
+ *      (4) This function uses a static internal variable to number
  *          output files written by a single process.  Behavior
  *          with a shared library may be unpredictable.
  */
@@ -394,7 +397,12 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     PROCNAME("pixDisplayWrite");
 
-    if (reduction <= 0) return 0;
+    if (reduction == 0) return 0;
+
+    if (reduction < 0) {
+        index = 0;  /* reset; this will cause erasure at next call to write */
+	return 0;
+    }
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);

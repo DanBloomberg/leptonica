@@ -29,8 +29,6 @@
  *           with windows.
  */
 
-#ifndef  CYGWIN_ENVIRON
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -274,10 +272,12 @@ struct dirent  *pdirentry;
     if ((pdir = opendir(dirname)) == NULL)
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
     while ((pdirentry = readdir(pdir)))  {
-#if !defined (__MINGW32__)
+
+#if !defined (__MINGW32__) && !defined(_CYGWIN_ENVIRON) 
         if (pdirentry->d_type == DT_DIR)  /* ignore directories */
             continue;
 #endif
+
             /* Filter out "." and ".." if they're passed through */
         name = pdirentry->d_name;
         len = strlen(name);
@@ -353,7 +353,4 @@ SARRAY  *sa, *safiles, *saout;
     sarrayDestroy(&safiles);
     return saout;
 }
-
-#endif  /* ~CYGWIN_ENVIRON */
-
 

@@ -32,14 +32,40 @@ main(int    argc,
      char **argv)
 {
 char        *filein, *fileout;
-l_int32      i, w, h, liney, linex;
+l_int32      i, w, h, liney, linex, same;
 l_float32    angle, deg2rad;
-PIX         *pixs, *pixd;
+PIX         *pixt1, *pixt2, *pixs, *pixd;
 static char  mainName[] = "sheartest";
 
     if (argc != 4)
 	exit(ERROR_INT(" Syntax:  sheartest filein angle fileout",
 		    mainName, 1));
+
+        /* Compare in-place H shear with H shear to a new pix */
+    pixt1 = pixRead("marge.jpg");
+    pixGetDimensions(pixt1, &w, &h, NULL);
+    pixt2 = pixHShear(NULL, pixt1, (l_int32)(0.3 * h), 0.17, L_BRING_IN_WHITE);
+    pixHShearIP(pixt1, (l_int32)(0.3 * h), 0.17, L_BRING_IN_WHITE);
+    pixEqual(pixt1, pixt2, &same);
+    if (same)
+        fprintf(stderr, "Correct for H shear\n");
+    else
+        fprintf(stderr, "Error for H shear\n");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
+        /* Compare in-place V shear with V shear to a new pix */
+    pixt1 = pixRead("marge.jpg");
+    pixGetDimensions(pixt1, &w, &h, NULL);
+    pixt2 = pixVShear(NULL, pixt1, (l_int32)(0.3 * w), 0.17, L_BRING_IN_WHITE);
+    pixVShearIP(pixt1, (l_int32)(0.3 * w), 0.17, L_BRING_IN_WHITE);
+    pixEqual(pixt1, pixt2, &same);
+    if (same)
+        fprintf(stderr, "Correct for V shear\n");
+    else
+        fprintf(stderr, "Error for V shear\n");
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
 
     filein = argv[1];
     angle = atof(argv[2]);
@@ -49,8 +75,7 @@ static char  mainName[] = "sheartest";
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pix not made", mainName, 1));
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
 
 #if 0
         /* Select an operation from this list ...

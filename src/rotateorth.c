@@ -17,6 +17,9 @@
 /*
  *  rotateorth.c
  *
+ *      Top-level rotation by multiples of 90 degrees
+ *            PIX     *pixRotateOrth()
+ *
  *      180-degree rotation
  *            PIX     *pixRotate180()
  *
@@ -36,11 +39,41 @@
 
 
 /*!
+ *  pixRotateOrth()
+ *
+ *      Input:  pixs (all depths)
+ *              quads (0-3; number of 90 degree cw rotations)
+ *      Return: pixd, or null on error
+ */
+PIX *
+pixRotateOrth(PIX     *pixs,
+              l_int32  quads)
+{
+    PROCNAME("pixRotateOrth");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (quads < 0 || quads > 4)
+        return (PIX *)ERROR_PTR("quads not in {0,1,2,3,4}", procName, NULL);
+
+    if (quads == 0 || quads == 4)
+        return pixCopy(NULL, pixs);
+    else if (quads == 1)
+        return pixRotate90(pixs, 1);
+    else if (quads == 2)
+        return pixRotate180(NULL, pixs);
+    else /* quads == 3 */
+        return pixRotate90(pixs, -1);
+}
+    
+
+/*!
  *  pixRotate180()
  *
- *      Input:  pixd  (<optional>; can be equal to pixs)
- *              pixs
- *      Return: pixd
+ *      Input:  pixd  (<optional>; can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (all depths)
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This does a 180 rotation of the image about the center,
@@ -48,11 +81,13 @@
  *          line through the image center, followed by a top-bottom
  *          flip about a horizontal line through the image center.
  *      (2) There are 3 cases for input:
- *          (i) pixd = NULL (creates a new pixd)
- *          (ii) pixd == pixs (in-place operation)
- *          (iii) pixd defined but != pixs (puts result in pixd, by first
- *                copying to pixd and then doing an in-place operation)
- *      (3) For case (iii), pixd and pixs must be the same size and depth
+ *          (a) pixd == null (creates a new pixd)
+ *          (b) pixd == pixs (in-place operation)
+ *          (c) pixd != pixs (existing pixd)
+ *      (3) For clarity, use these three patterns, respectively:
+ *          (a) pixd = pixRotate180(NULL, pixs);
+ *          (b) pixRotate180(pixs, pixs);
+ *          (c) pixRotate180(pixd, pixs);
  */
 PIX *
 pixRotate180(PIX  *pixd,
@@ -63,16 +98,15 @@ l_int32  d;
     PROCNAME("pixRotate180");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
-                                procName, pixd);
+                                procName, NULL);
 
-    if (pixs != pixd) {
-        if ((pixd = pixCopy(pixd, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("copy fail", procName, pixd);
-    }
+        /* Prepare pixd for in-place operation */
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     pixFlipLR(pixd, pixd);
     pixFlipTB(pixd, pixd);
@@ -83,7 +117,7 @@ l_int32  d;
 /*!
  *  pixRotate90()
  *
- *      Input:  pixs
+ *      Input:  pixs (all depths)
  *              direction (1 = clockwise,  -1 = counter-clockwise)
  *      Return: pixd, or null on error
  *
@@ -133,20 +167,25 @@ PIX       *pixd;
 /*!
  *  pixFlipLR()
  *
- *      Input:  pixd  (<optional>; can be equal to pixs)
- *              pixs
- *      Return: pixd
+ *      Input:  pixd  (<optional>; can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (all depths)
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This does a left-right flip of the image, which is
  *          equivalent to a rotation out of the plane about a
  *          vertical line through the image center.
  *      (2) There are 3 cases for input:
- *          (i) pixd = NULL (creates a new pixd)
- *          (ii) pixd == pixs (in-place operation)
- *          (iii) pixd defined but != pixs (puts result in pixd, by first
- *                copying to pixd and then doing an in-place operation)
- *      (3) For case (iii), pixd and pixs must be the same size and depth
+ *          (a) pixd == null (creates a new pixd)
+ *          (b) pixd == pixs (in-place operation)
+ *          (c) pixd != pixs (existing pixd)
+ *      (3) For clarity, use these three patterns, respectively:
+ *          (a) pixd = pixFlipLR(NULL, pixs);
+ *          (b) pixFlipLR(pixs, pixs);
+ *          (c) pixFlipLR(pixd, pixs);
+ *      (4) If an existing pixd is not the same size as pixs, the
+ *          image data will be reallocated.
  */
 PIX *
 pixFlipLR(PIX  *pixd,
@@ -159,35 +198,28 @@ l_uint32  *datad, *buffer;
     PROCNAME("pixFlipLR");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
-    d = pixGetDepth(pixs);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
-                                procName, pixd);
+                                procName, NULL);
 
-    if (pixs != pixd) {
-        if ((pixd = pixCopy(pixd, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("copy fail", procName, pixd);
-    }
+        /* Prepare pixd for in-place operation */
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     switch (d)
     {
     case 1:
-        if ((tab = makeReverseByteTab1()) == NULL)
-              return (PIX *)ERROR_PTR("tab not made", procName, pixd);
+        tab = makeReverseByteTab1();
         break;
     case 2:
-        if ((tab = makeReverseByteTab2()) == NULL)
-              return (PIX *)ERROR_PTR("tab not made", procName, pixd);
+        tab = makeReverseByteTab2();
         break;
     case 4:
-        if ((tab = makeReverseByteTab4()) == NULL)
-              return (PIX *)ERROR_PTR("tab not made", procName, pixd);
+        tab = makeReverseByteTab4();
         break;
     default:
         tab = NULL;
@@ -195,7 +227,7 @@ l_uint32  *datad, *buffer;
     }
 
     if ((buffer = (l_uint32 *)CALLOC(wpld, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
+        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
 
     flipLRLow(datad, w, h, d, wpld, tab, buffer);
 
@@ -208,20 +240,25 @@ l_uint32  *datad, *buffer;
 /*!
  *  pixFlipTB()
  *
- *      Input:  pixd  (<optional>; can be equal to pixs)
- *              pixs
- *      Return: pixd
+ *      Input:  pixd  (<optional>; can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (all depths)
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) This does a top-bottom flip of the image, which is
  *          equivalent to a rotation out of the plane about a
  *          horizontal line through the image center.
  *      (2) There are 3 cases for input:
- *          (i) pixd = NULL (creates a new pixd)
- *          (ii) pixd == pixs (in-place operation)
- *          (iii) pixd defined but != pixs (puts result in pixd, by first
- *                copying to pixd and then doing an in-place operation)
- *      (3) For case (iii), pixd and pixs must be the same size and depth
+ *          (a) pixd == null (creates a new pixd)
+ *          (b) pixd == pixs (in-place operation)
+ *          (c) pixd != pixs (existing pixd)
+ *      (3) For clarity, use these three patterns, respectively:
+ *          (a) pixd = pixFlipTB(NULL, pixs);
+ *          (b) pixFlipTB(pixs, pixs);
+ *          (c) pixFlipTB(pixd, pixs);
+ *      (4) If an existing pixd is not the same size as pixs, the
+ *          image data will be reallocated.
  */
 PIX *
 pixFlipTB(PIX  *pixd,
@@ -233,27 +270,24 @@ l_uint32  *datad, *buffer;
     PROCNAME("pixFlipTB");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
-    d = pixGetDepth(pixs);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, NULL, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
-                                procName, pixd);
+                                procName, NULL);
 
-    if (pixs != pixd) {
-        if ((pixd = pixCopy(pixd, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("copy fail", procName, pixd);
-    }
+        /* Prepare pixd for in-place operation */
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-    h = pixGetHeight(pixd);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-
     if ((buffer = (l_uint32 *)CALLOC(wpld, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
+        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
 
     flipTBLow(datad, h, wpld, buffer);
 
-    FREE((void *)buffer);
+    FREE(buffer);
     return pixd;
 }
 

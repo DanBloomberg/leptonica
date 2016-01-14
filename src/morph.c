@@ -171,17 +171,23 @@ static PIX * processMorphArgs2(PIX *pixd, PIX *pixs, SEL *sel);
 /*!
  *  pixDilate()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
  *  Notes:
  *      (1) This dilates src using hits in Sel.
- *      (2) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (2) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (3) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixDilate(NULL, pixs, ...);
+ *          (b) pixDilate(pixs, pixs, ...);
+ *          (c) pixDilate(pixd, pixs, ...);
+ *      (4) The size of the result is determined by pixs.
  */
 PIX *
 pixDilate(PIX  *pixd,
@@ -217,17 +223,23 @@ PIX     *pixt;
 /*!
  *  pixErode()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
  *  Notes:
  *      (1) This erodes src using hits in Sel.
- *      (2) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (2) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (3) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixErode(NULL, pixs, ...);
+ *          (b) pixErode(pixs, pixs, ...);
+ *          (c) pixErode(pixd, pixs, ...);
+ *      (4) The size of the result is determined by pixs.
  */
 PIX *
 pixErode(PIX  *pixd,
@@ -282,8 +294,9 @@ PIX     *pixt;
 /*!
  *  pixHMT()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd (<optional>; this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
@@ -291,10 +304,15 @@ PIX     *pixt;
  *      (1) The hit-miss transform erodes the src, using both hits
  *          and misses in the Sel.  It ANDs the shifted src for hits
  *          and ANDs the inverted shifted src for misses.
- *      (2) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (2) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (3) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixHMT(NULL, pixs, ...);
+ *          (b) pixHMT(pixs, pixs, ...);
+ *          (c) pixHMT(pixd, pixs, ...);
+ *      (4) The size of the result is determined by pixs.
  */
 PIX *
 pixHMT(PIX  *pixd,
@@ -363,17 +381,23 @@ PIX     *pixt;
 /*!
  *  pixOpen()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
  *  Notes:
  *      (1) Generic morphological opening, using hits in the Sel.
- *      (2) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (2) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (3) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixOpen(NULL, pixs, ...);
+ *          (b) pixOpen(pixs, pixs, ...);
+ *          (c) pixOpen(pixd, pixs, ...);
+ *      (4) The size of the result is determined by pixs.
  */
 PIX *
 pixOpen(PIX  *pixd,
@@ -399,8 +423,9 @@ PIX  *pixt;
 /*!
  *  pixClose()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd (<optional>; this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
@@ -409,10 +434,15 @@ PIX  *pixt;
  *      (2) This implementation is a strict dual of the opening if
  *          symmetric boundary conditions are used (see notes at top
  *          of this file).
- *      (3) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (3) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (4) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixClose(NULL, pixs, ...);
+ *          (b) pixClose(pixs, pixs, ...);
+ *          (c) pixClose(pixd, pixs, ...);
+ *      (5) The size of the result is determined by pixs.
  */
 PIX *
 pixClose(PIX  *pixd,
@@ -438,8 +468,9 @@ PIX  *pixt;
 /*!
  *  pixCloseSafe()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd (<optional>; this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
@@ -452,10 +483,15 @@ PIX  *pixt;
  *          It thus enforces a correct extensive result for closing.
  *      (3) If symmetric b.c. are used, it is not necessary to add
  *          and remove this border.
- *      (4) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (5) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixCloseSafe(NULL, pixs, ...);
+ *          (b) pixCloseSafe(pixs, pixs, ...);
+ *          (c) pixCloseSafe(pixd, pixs, ...);
+ *      (6) The size of the result is determined by pixs.
  */
 PIX *
 pixCloseSafe(PIX  *pixd,
@@ -473,11 +509,6 @@ PIX     *pixt1, *pixt2;
         return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
-
-    if (pixd) {
-        if (!pixSizesEqual(pixs, pixd))
-            L_WARNING("pix src and dest sizes unequal", procName);
-    }
 
         /* Symmetric b.c. handles correctly without added pixels */
     if (MORPH_BC == SYMMETRIC_MORPH_BC)
@@ -506,8 +537,9 @@ PIX     *pixt1, *pixt2;
 /*!
  *  pixOpenGeneralized()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd (<optional>; this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
@@ -516,10 +548,15 @@ PIX     *pixt1, *pixt2;
  *          misses in the Sel.
  *      (2) This does a hit-miss transform, followed by a dilation
  *          using the hits.
- *      (3) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (3) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (4) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixOpenGeneralized(NULL, pixs, ...);
+ *          (b) pixOpenGeneralized(pixs, pixs, ...);
+ *          (c) pixOpenGeneralized(pixd, pixs, ...);
+ *      (5) The size of the result is determined by pixs.
  */
 PIX *
 pixOpenGeneralized(PIX  *pixd,
@@ -537,7 +574,6 @@ PIX  *pixt;
         return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
     pixDilate(pixd, pixt, sel);
     pixDestroy(&pixt);
-
     return pixd;
 }
     
@@ -545,8 +581,9 @@ PIX  *pixt;
 /*!
  *  pixCloseGeneralized()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd (<optional>; this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *      Return: pixd
  *
@@ -556,10 +593,15 @@ PIX  *pixt;
  *      (2) This does a dilation using the hits, followed by a
  *          hit-miss transform.
  *      (3) This operation is a dual of the generalized opening.
- *      (4) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (5) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixCloseGeneralized(NULL, pixs, ...);
+ *          (b) pixCloseGeneralized(pixs, pixs, ...);
+ *          (c) pixCloseGeneralized(pixd, pixs, ...);
+ *      (6) The size of the result is determined by pixs.
  */
 PIX *
 pixCloseGeneralized(PIX  *pixd,
@@ -588,8 +630,9 @@ PIX  *pixt;
 /*!
  *  pixDilateBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
  *      Return: pixd
@@ -598,10 +641,15 @@ PIX  *pixt;
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (5) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixDilateBrick(NULL, pixs, ...);
+ *          (b) pixDilateBrick(pixs, pixs, ...);
+ *          (c) pixDilateBrick(pixd, pixs, ...);
+ *      (6) The size of the result is determined by pixs.
  */
 PIX *
 pixDilateBrick(PIX     *pixd,
@@ -645,8 +693,9 @@ SEL  *sel, *selh, *selv;
 /*!
  *  pixErodeBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
  *      Return: pixd
@@ -655,10 +704,15 @@ SEL  *sel, *selh, *selv;
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (5) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixErodeBrick(NULL, pixs, ...);
+ *          (b) pixErodeBrick(pixs, pixs, ...);
+ *          (c) pixErodeBrick(pixd, pixs, ...);
+ *      (6) The size of the result is determined by pixs.
  */
 PIX *
 pixErodeBrick(PIX     *pixd,
@@ -702,20 +756,26 @@ SEL  *sel, *selh, *selv;
 /*!
  *  pixOpenBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (5) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixOpenBrick(NULL, pixs, ...);
+ *          (b) pixOpenBrick(pixs, pixs, ...);
+ *          (c) pixOpenBrick(pixd, pixs, ...);
+ *      (6) The size of the result is determined by pixs.
  */
 PIX *
 pixOpenBrick(PIX     *pixd,
@@ -761,20 +821,26 @@ SEL  *sel, *selh, *selv;
 /*!
  *  pixCloseBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (5) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixCloseBrick(NULL, pixs, ...);
+ *          (b) pixCloseBrick(pixs, pixs, ...);
+ *          (c) pixCloseBrick(pixd, pixs, ...);
+ *      (6) The size of the result is determined by pixs.
  */
 PIX *
 pixCloseBrick(PIX     *pixd,
@@ -820,11 +886,12 @@ SEL  *sel, *selh, *selv;
 /*!
  *  pixCloseSafeBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -835,10 +902,15 @@ SEL  *sel, *selh, *selv;
  *          32-bit words in the expanded image.  As a result, there is
  *          no special processing for pixels near the boundary, and there
  *          are no boundary effects.  The border is removed at the end.
- *      (5) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (5) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (6) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixCloseBrick(NULL, pixs, ...);
+ *          (b) pixCloseBrick(pixs, pixs, ...);
+ *          (c) pixCloseBrick(pixd, pixs, ...);
+ *      (7) The size of the result is determined by pixs.
  */
 PIX *
 pixCloseSafeBrick(PIX     *pixd,
@@ -1051,21 +1123,27 @@ l_int32  diff[256];  /* diff between product (sel size) and input size */
 /*!
  *  pixDilateCompBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do compositely for each dimension > 1.
  *      (4) Do separably if both hsize and vsize are > 1.
- *      (5) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (5) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (6) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixDilateCompBrick(NULL, pixs, ...);
+ *          (b) pixDilateCompBrick(pixs, pixs, ...);
+ *          (c) pixDilateCompBrick(pixd, pixs, ...);
+ *      (7) The size of the result is determined by pixs.
  */
 PIX *
 pixDilateCompBrick(PIX     *pixd,
@@ -1123,21 +1201,27 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 /*!
  *  pixErodeCompBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do compositely for each dimension > 1.
  *      (4) Do separably if both hsize and vsize are > 1.
- *      (5) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (5) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (6) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixErodeCompBrick(NULL, pixs, ...);
+ *          (b) pixErodeCompBrick(pixs, pixs, ...);
+ *          (c) pixErodeCompBrick(pixd, pixs, ...);
+ *      (7) The size of the result is determined by pixs.
  */
 PIX *
 pixErodeCompBrick(PIX     *pixd,
@@ -1195,21 +1279,27 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 /*!
  *  pixOpenCompBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do compositely for each dimension > 1.
  *      (4) Do separably if both hsize and vsize are > 1.
- *      (5) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (5) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (6) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixOpenCompBrick(NULL, pixs, ...);
+ *          (b) pixOpenCompBrick(pixs, pixs, ...);
+ *          (c) pixOpenCompBrick(pixd, pixs, ...);
+ *      (7) The size of the result is determined by pixs.
  */
 PIX *
 pixOpenCompBrick(PIX     *pixd,
@@ -1275,21 +1365,27 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 /*!
  *  pixCloseCompBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do compositely for each dimension > 1.
  *      (4) Do separably if both hsize and vsize are > 1.
- *      (5) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (5) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (6) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixCloseCompBrick(NULL, pixs, ...);
+ *          (b) pixCloseCompBrick(pixs, pixs, ...);
+ *          (c) pixCloseCompBrick(pixd, pixs, ...);
+ *      (7) The size of the result is determined by pixs.
  */
 PIX *
 pixCloseCompBrick(PIX     *pixd,
@@ -1355,11 +1451,12 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 /*!
  *  pixCloseSafeCompBrick()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd
+ *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1371,10 +1468,15 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *          32-bit words in the expanded image.  As a result, there is
  *          no special processing for pixels near the boundary, and there
  *          are no boundary effects.  The border is removed at the end.
- *      (6) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (6) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (7) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixCloseSafeCompBrick(NULL, pixs, ...);
+ *          (b) pixCloseSafeCompBrick(pixs, pixs, ...);
+ *          (c) pixCloseSafeCompBrick(pixd, pixs, ...);
+ *      (8) The size of the result is determined by pixs.
  */
 PIX *
 pixCloseSafeCompBrick(PIX     *pixd,
@@ -1517,8 +1619,9 @@ getMorphBorderPixelColor(l_int32  type,
 /*!
  *  processMorphArgs1()
  *
- *      Input:  pixd (<optional>
- *              pixs
+ *      Input:  pixd (<optional>; this can be null, equal to pixs,
+ *                    or different from pixs)
+ *              pixs (1 bpp)
  *              sel
  *              &pixt (<returned>)
  *      Return: pixd, or null on error.
@@ -1550,15 +1653,16 @@ l_int32  sx, sy;
     if (sx == 0 || sy == 0)
         return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
 
+        /* We require pixd to exist and to be the same size as pixs.
+         * Further, pixt must be a copy (or clone) of pixs.  */
     if (!pixd) {
         if ((pixd = pixCreateTemplate(pixs)) == NULL)
             return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
         *ppixt = pixClone(pixs);
     }
     else {
-        if (!pixSizesEqual(pixs, pixd))
-            return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
-        if (pixd == pixs) {
+        pixResizeImageData(pixd, pixs);
+        if (pixd == pixs) {  /* in-place; must make a copy of pixs */
             if ((*ppixt = pixCopy(NULL, pixs)) == NULL)
                 return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
         }
@@ -1596,8 +1700,7 @@ l_int32  sx, sy;
 
     if (!pixd)
         return pixCreateTemplate(pixs);
-    if (!pixSizesEqual(pixs, pixd))
-        return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
+    pixResizeImageData(pixd, pixs);
     return pixd;
 }
 

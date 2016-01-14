@@ -25,11 +25,11 @@
 #include "allheaders.h"
 
 #define  BINARY_IMAGE             "feyn.tif"
-#define  TWO_BPP_IMAGE_NO_CMAP    "weasel-4g.png"
+#define  TWO_BPP_IMAGE_NO_CMAP    "weasel2.png"
 #define  TWO_BPP_IMAGE_CMAP       "weasel2.4c.png"
-#define  FOUR_BPP_IMAGE_NO_CMAP   "weasel-16g.png"
+#define  FOUR_BPP_IMAGE_NO_CMAP   "weasel4.png"
 #define  FOUR_BPP_IMAGE_CMAP      "weasel4.16c.png"
-#define  EIGHT_BPP_IMAGE_NO_CMAP  "weasel-149g.png"
+#define  EIGHT_BPP_IMAGE_NO_CMAP  "weasel8.png"
 #define  EIGHT_BPP_IMAGE_CMAP     "weasel8.240c.png"
 #define  RGB_IMAGE                "marge.jpg"
 

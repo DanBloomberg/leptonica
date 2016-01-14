@@ -28,7 +28,7 @@ main(int    argc,
      char **argv)
 {
 l_int32      i, wc, hc;
-PIX         *pixs, *pixacc, *pixd;
+PIX         *pixs, *pixacc, *pixt, *pixd;
 char        *filein, *fileout;
 static char  mainName[] = "convolvetest";
 
@@ -75,12 +75,20 @@ static char  mainName[] = "convolvetest";
     pixDestroy(&pixacc);
 #endif
 
-#if 1  /* test pixBlocksum() */
+#if 0  /* test pixBlocksum() */
     pixacc = pixBlockconvAccum(pixs);
     pixd = pixBlocksum(pixs, pixacc, wc, hc);
     pixInvert(pixd, pixd);
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixacc);
+#endif
+
+#if 1
+    pixd = pixWoodfillTransform(pixs, wc, NULL);
+    pixt = pixReduceRankBinaryCascade(pixd, 4, 4, 2, 0);
+    pixWrite(fileout, pixt, IFF_PNG);
+    pixDestroy(&pixt);
+    pixDestroy(&pixd);
 #endif
 
     pixDestroy(&pixs);

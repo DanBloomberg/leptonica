@@ -56,20 +56,28 @@
 /*!
  *  pixDilateBrickDwa()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
  *      Return: pixd
- *
+ * 
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) It is necessary that both horizontal and vertical Sels
+ *          of the input size are defined in the basic sela.
+ *      (5) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (6) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixDilateBrickDwa(NULL, pixs, ...);
+ *          (b) pixDilateBrickDwa(pixs, pixs, ...);
+ *          (c) pixDilateBrickDwa(pixd, pixs, ...);
+ *      (7) The size of the result is determined by pixs.
  */
 PIX *
 pixDilateBrickDwa(PIX     *pixd,
@@ -137,23 +145,31 @@ PIX   *pixt1, *pixt2, *pixt3, *pixt4;
 /*!
  *  pixErodeBrickDwa()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
  *      Return: pixd
- *
+ * 
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Note that we must always set or clear the border pixels
+ *      (4) It is necessary that both horizontal and vertical Sels
+ *          of the input size are defined in the basic sela.
+ *      (5) Note that we must always set or clear the border pixels
  *          before each operation, depending on the the b.c.
  *          (symmetric or asymmetric).
- *      (5) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (6) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (7) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixErodeBrickDwa(NULL, pixs, ...);
+ *          (b) pixErodeBrickDwa(pixs, pixs, ...);
+ *          (c) pixErodeBrickDwa(pixd, pixs, ...);
+ *      (8) The size of the result is determined by pixs.
  */
 PIX *
 pixErodeBrickDwa(PIX     *pixd,
@@ -229,23 +245,31 @@ PIX     *pixt1, *pixt2, *pixt3, *pixt4;
 /*!
  *  pixOpenBrickDwa()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
  *      Return: pixd
- *
+ * 
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Note that we must always set or clear the border pixels
- *          before each operation, depending on the type of operation
- *          and the b.c. (symmetric or asymmetric).
- *      (5) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (4) It is necessary that both horizontal and vertical Sels
+ *          of the input size are defined in the basic sela.
+ *      (5) Note that we must always set or clear the border pixels
+ *          before each operation, depending on the the b.c.
+ *          (symmetric or asymmetric).
+ *      (6) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (7) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixOpenBrickDwa(NULL, pixs, ...);
+ *          (b) pixOpenBrickDwa(pixs, pixs, ...);
+ *          (c) pixOpenBrickDwa(pixd, pixs, ...);
+ *      (8) The size of the result is determined by pixs.
  */
 PIX *
 pixOpenBrickDwa(PIX     *pixd,
@@ -336,25 +360,33 @@ PIX     *pixt1, *pixt2;
 /*!
  *  pixCloseBrickDwa()
  *
- *      Input:  pixd  (<optional>)
- *              pixs
+ *      Input:  pixd  (<optional>; this can be null, equal to pixs,
+ *                     or different from pixs)
+ *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
  *      Return: pixd
- *
+ * 
  *  Notes:
- *      (1) Sel is a brick with all elements being hits
- *      (2) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) This is a 'safe' closing; we add an extra border of 32 OFF
+ *      (1) This is a 'safe' closing; we add an extra border of 32 OFF
  *          pixels for the standard asymmetric b.c.
- *      (5) Note that we must always set or clear the border pixels
- *          before each operation, depending on the type of operation
- *          and the b.c. (symmetric or asymmetric).
- *      (6) Three modes of usage:
- *          - pixd = NULL : result into new pixd, which is returned
- *          - pixd exists, != pixs : puts result into pixd
- *          - pixd == pixs : in-place operation; writes result back to pixs
+ *      (2) Sel is a brick with all elements being hits
+ *      (3) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
+ *      (4) Do separably if both hsize and vsize are > 1.
+ *      (5) It is necessary that both horizontal and vertical Sels
+ *          of the input size are defined in the basic sela.
+ *      (6) Note that we must always set or clear the border pixels
+ *          before each operation, depending on the the b.c.
+ *          (symmetric or asymmetric).
+ *      (7) There are three cases:
+ *          (a) pixd == null   (result into new pixd)
+ *          (b) pixd == pixs   (in-place; writes result back to pixs)
+ *          (c) pixd != pixs   (puts result into existing pixd)
+ *      (8) For clarity, if the case is known, use these patterns:
+ *          (a) pixd = pixCloseBrickDwa(NULL, pixs, ...);
+ *          (b) pixCloseBrickDwa(pixs, pixs, ...);
+ *          (c) pixCloseBrickDwa(pixd, pixs, ...);
+ *      (9) The size of the result is determined by pixs.
  */
 PIX *
 pixCloseBrickDwa(PIX     *pixd,

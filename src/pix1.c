@@ -40,6 +40,7 @@
  *
  *      Pix copy
  *          PIX          *pixCopy()
+ *          l_int32       pixResizeImageData()
  *          l_int32       pixCopyColormap()
  *          l_int32       pixSizesEqual()
  *
@@ -345,16 +346,29 @@ char      *text;
 /*!
  *  pixCopy()
  *
- *      Input:  pixd (<optional>)
+ *      Input:  pixd (<optional>; can be null, or equal to pixs,
+ *                    or different from pixs)
  *              pixs
  *      Return: pixd, or null on error
  *
  *  Notes:
- *      (1) If pixd = NULL, this makes a new copy, with refcount of 1.
- *          If pixd != NULL, this makes sure pixs and pixd are the same
- *          size, and then copies the image data, leaving the refcounts
- *          of pixs and pixd unchanged.
- *      (2) This operation, like all others that may involve a pre-existing
+ *      (1) There are three cases:
+ *            (a) pixd == null  (makes a new pix; refcount = 1)
+ *            (b) pixd == pixs  (no-op)
+ *            (c) pixd != pixs  (data copy; no change in refcount)
+ *          If the refcount of pixd > 1, case (c) will side-effect
+ *          these handles.
+ *      (2) The general pattern of use is:
+ *             pixd = pixCopy(pixd, pixs);
+ *          This will work for all three cases.
+ *          For clarity when the case is known, you can use:
+ *            (a) pixd = pixCopy(NULL, pixs);
+ *            (c) pixCopy(pixd, pixs);
+ *      (3) For case (c), we check if pixs and pixd are the same
+ *          size (w,h,d).  If so, the data is copied directly.
+ *          Otherwise, the data is reallocated to the correct size
+ *          and the copy proceeds.  The refcount of pixd is unchanged.
+ *      (4) This operation, like all others that may involve a pre-existing
  *          pixd, will side-effect any existing clones of pixd.
  */
 PIX *
@@ -367,11 +381,9 @@ l_uint32  *datas, *datad;
     PROCNAME("pixCopy");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
-    if (pixs == pixd) {
-        L_WARNING("pix copied to itself", procName);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixs == pixd)
         return pixd;
-    }
 
         /* Total bytes in image data */
     bytes = 4 * pixGetWpl(pixs) * pixGetHeight(pixs);
@@ -386,20 +398,59 @@ l_uint32  *datas, *datad;
         return pixd;
     }
 
-        /* Check sizes */
-    if (!pixSizesEqual(pixs, pixd))
-        return (PIX *)ERROR_PTR("pix sizes not equal", procName, pixd);
+        /* Reallocate image data if sizes are different */
+    pixResizeImageData(pixd, pixs);
+
+        /* Copy non-image data fields */
     pixCopyColormap(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     pixCopyText(pixd, pixs);
 
-        /* Copy the data */
+        /* Copy image data */
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     memcpy((char*)datad, (char*)datas, bytes);
-
     return pixd;
+}
+
+
+/*!
+ *  pixResizeImageData()
+ *
+ *      Input:  pixd, pixs
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixResizeImageData(PIX  *pixd,
+                   PIX  *pixs)
+{
+l_int32    w, h, d, wpl, bytes;
+l_uint32  *data;
+
+    PROCNAME("pixResizeImageData");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pixd)
+        return ERROR_INT("pixd not defined", procName, 1);
+
+    if (pixSizesEqual(pixs, pixd))  /* nothing to do */
+        return 0;
+
+    pixGetDimensions(pixs, &w, &h, &d);
+    wpl = pixGetWpl(pixs);
+    pixSetWidth(pixd, w);
+    pixSetHeight(pixd, h);
+    pixSetDepth(pixd, d);
+    pixSetWpl(pixd, wpl);
+    bytes = 4 * wpl * h;
+    if ((data = pixGetData(pixd)))
+        FREE(data);
+    if ((data = (l_uint32 *)MALLOC(bytes)) == NULL)
+        return ERROR_INT("MALLOC fail for data", procName, 1);
+    pixSetData(pixd, data);
+    return 0;
 }
 
 
@@ -436,8 +487,8 @@ PIXCMAP  *cmaps, *cmapd;
 /*!
  *  pixSizesEqual()
  *
- *      Input:  two Pix
- *      Return: 1 if the two Pix have same {h, w, d}; 0 otherwise.
+ *      Input:  two pix
+ *      Return: 1 if the two pix have same {h, w, d}; 0 otherwise.
  */
 l_int32
 pixSizesEqual(PIX  *pix1,
@@ -445,10 +496,11 @@ pixSizesEqual(PIX  *pix1,
 {
     PROCNAME("pixSizesEqual");
 
-    if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 0);
-    if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 0);
+    if (!pix1 || !pix2)
+        return ERROR_INT("pix1 and pix2 not both defined", procName, 0);
+
+    if (pix1 == pix2)
+        return 1;
 
     if ((pixGetWidth(pix1) != pixGetWidth(pix2)) ||
         (pixGetHeight(pix1) != pixGetHeight(pix2)) ||

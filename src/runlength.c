@@ -16,18 +16,18 @@
 /*
  *  runlength.c
  *
- *  Label pixels by membership in runs
- *        PIX        *pixRunlengthTransform()
+ *     Label pixels by membership in runs
+ *           PIX        *pixRunlengthTransform()
  *
- *  Find runs along horizontal and vertical lines
- *        l_int32     pixFindHorizontalRuns()
- *        l_int32     pixFindVerticalRuns()
+ *     Find runs along horizontal and vertical lines
+ *           l_int32     pixFindHorizontalRuns()
+ *           l_int32     pixFindVerticalRuns()
  *
- *  Compute runlength-to-membership transform on a line
- *        l_int32     runlengthMembershipOnLine()
+ *     Compute runlength-to-membership transform on a line
+ *           l_int32     runlengthMembershipOnLine()
  *
- *  Make byte position LUT
- *        l_int32     makeMSBitLocTab()
+ *     Make byte position LUT
+ *           l_int32     makeMSBitLocTab()
  */
 
 #include <stdio.h>
@@ -38,7 +38,7 @@
 /*-----------------------------------------------------------------------*
  *                   Label pixels by membership in runs                  *
  *-----------------------------------------------------------------------*/
-/*
+/*!
  *  pixRunlengthTransform()
  *
  *      Input:   pixs (1 bpp)
@@ -64,10 +64,10 @@ pixRunlengthTransform(PIX     *pixs,
                       l_int32  direction,
                       l_int32  depth)
 {
-l_int32     i, j, w, h, wpld, bufsize, maxsize, n;
-l_int32    *start, *end, *buffer;
-l_uint32   *datad, *lined;
-PIX        *pixt, *pixd;
+l_int32    i, j, w, h, wpld, bufsize, maxsize, n;
+l_int32   *start, *end, *buffer;
+l_uint32  *datad, *lined;
+PIX       *pixt, *pixd;
 
     PROCNAME("pixRunlengthTransform");
 
@@ -138,9 +138,9 @@ PIX        *pixt, *pixd;
     }
 
     pixDestroy(&pixt);
-    FREE((void *)start);
-    FREE((void *)end);
-    FREE((void *)buffer);
+    FREE(start);
+    FREE(end);
+    FREE(buffer);
     return pixd;
 }
 
@@ -148,15 +148,15 @@ PIX        *pixt, *pixd;
 /*-----------------------------------------------------------------------*
  *               Find runs along horizontal and vertical lines           *
  *-----------------------------------------------------------------------*/
-/*
+/*!
  *  pixFindHorizontalRuns()
  *
- *      Input:   pix (1 bpp)
- *               y (line to traverse)
- *               xstart (returns array of start positions for fg runs)
- *               xend (returns array of end positions for fg runs)
- *               &n   (<return> the number of runs found)
- *      Return:  0 if OK; 1 on error
+ *      Input:  pix (1 bpp)
+ *              y (line to traverse)
+ *              xstart (returns array of start positions for fg runs)
+ *              xend (returns array of end positions for fg runs)
+ *              &n  (<return> the number of runs found)
+ *      Return: 0 if OK; 1 on error
  *
  *  Notes:
  *      (1) This finds foreground horizontal runs on a single scanline.
@@ -174,27 +174,26 @@ pixFindHorizontalRuns(PIX      *pix,
                       l_int32  *pn)
 {
 l_int32    inrun;  /* boolean */
-l_int32    index, w, j, wpl, val;
+l_int32    index, w, h, d, j, wpl, val;
 l_uint32  *line;
 
     PROCNAME("pixFindHorizontalRuns");
 
-
+    if (!pn)
+        return ERROR_INT("&n not defined", procName, 1);
+    *pn = 0;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (pixGetDepth(pix) != 1)
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1)
         return ERROR_INT("pix not 1 bpp", procName, 1);
-    if (y < 0 || y >= pixGetHeight(pix))
+    if (y < 0 || y >= h)
         return ERROR_INT("y not in [0 ... h - 1]", procName, 1);
     if (!xstart)
         return ERROR_INT("xstart not defined", procName, 1);
     if (!xend)
         return ERROR_INT("xend not defined", procName, 1);
-    if (!pn)
-        return ERROR_INT("&n not defined", procName, 1);
-    *pn = 0;
 
-    w = pixGetWidth(pix);
     wpl = pixGetWpl(pix);
     line = pixGetData(pix) + y * wpl;
     
@@ -216,7 +215,7 @@ l_uint32  *line;
         }
     }
 
-        /* finish last run if necessary */
+        /* Finish last run if necessary */
     if (inrun)
         xend[index++] = w - 1;
 
@@ -225,15 +224,15 @@ l_uint32  *line;
 }
 
 
-/*
+/*!
  *  pixFindVerticalRuns()
  *
- *      Input:   pix (1 bpp)
- *               x (line to traverse)
- *               ystart (returns array of start positions for fg runs)
- *               yend (returns array of end positions for fg runs)
- *               &n   (<return> the number of runs found)
- *      Return:  0 if OK; 1 on error
+ *      Input:  pix (1 bpp)
+ *              x (line to traverse)
+ *              ystart (returns array of start positions for fg runs)
+ *              yend (returns array of end positions for fg runs)
+ *              &n   (<return> the number of runs found)
+ *      Return: 0 if OK; 1 on error
  *
  *  Notes:
  *      (1) This finds foreground vertical runs on a single scanline.
@@ -251,26 +250,26 @@ pixFindVerticalRuns(PIX      *pix,
                     l_int32  *pn)
 {
 l_int32    inrun;  /* boolean */
-l_int32    index, h, i, wpl, val;
+l_int32    index, w, h, d, i, wpl, val;
 l_uint32  *data, *line;
 
     PROCNAME("pixFindVerticalRuns");
 
+    if (!pn)
+        return ERROR_INT("&n not defined", procName, 1);
+    *pn = 0;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (pixGetDepth(pix) != 1)
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1)
         return ERROR_INT("pix not 1 bpp", procName, 1);
-    if (x < 0 || x >= pixGetWidth(pix))
+    if (x < 0 || x >= w)
         return ERROR_INT("x not in [0 ... w - 1]", procName, 1);
     if (!ystart)
         return ERROR_INT("ystart not defined", procName, 1);
     if (!yend)
         return ERROR_INT("yend not defined", procName, 1);
-    if (!pn)
-        return ERROR_INT("&n not defined", procName, 1);
-    *pn = 0;
 
-    h = pixGetHeight(pix);
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
     
@@ -293,7 +292,7 @@ l_uint32  *data, *line;
         }
     }
 
-        /* finish last run if necessary */
+        /* Finish last run if necessary */
     if (inrun)
         yend[index++] = h - 1;
 
@@ -305,7 +304,7 @@ l_uint32  *data, *line;
 /*-----------------------------------------------------------------------*
  *            Compute runlength-to-membership transform on a line        *
  *-----------------------------------------------------------------------*/
-/*
+/*!
  *  runlengthMembershipOnLine()
  *
  *      Input:   buffer (into which full line of data is placed)
@@ -319,6 +318,8 @@ l_uint32  *data, *line;
  *  Notes:
  *      (1) Converts a set of runlengths into a buffer of
  *          runlength membership values.
+ *      (2) Initialization of the array gives pixels that are
+ *          not within a run the value 0.
  */
 l_int32
 runlengthMembershipOnLine(l_int32  *buffer,
@@ -362,17 +363,17 @@ l_int32  i, j, first, last, diff, max;
 /*-----------------------------------------------------------------------*
  *                       Make byte position LUT                          *
  *-----------------------------------------------------------------------*/
-/*
+/*!
  *  makeMSBitLocTab()
  *
  *      Input:  bitval (either 0 or 1)
- *      Return: table giving the MS bit location (starting at 0
- *              with the MSBit in the byte) of an input byte,
- *              or null on error.
+ *      Return: table (giving, for an input byte, the MS bit location,
+ *                     starting at 0 with the MSBit in the byte),
+ *                     or null on error.
  *
  *  Notes:
- *      (1) If bitval = 1, it finds the leftmost ON pixel in a byte;
- *          otherwise it finds the leftmost OFF pixel.
+ *      (1) If bitval == 1, it finds the leftmost ON pixel in a byte;
+ *          otherwise if bitval == 0, it finds the leftmost OFF pixel.
  *      (2) If there are no pixels of the indicated color in the byte,
  *          this returns 8. 
  */
