@@ -29,18 +29,20 @@ extern const char *ImageFileFormatExtensions[];
 main(int    argc,
      char **argv)
 {
-l_int32      w, h, d, wpl, count, i, format;
+l_int32      w, h, d, wpl, count, i, format, nerrors;
 FILE        *fp;
 PIX         *pix, *pixt, *pixt2;
 PIXCMAP     *cmap;
-char        *filein, *fileout;
+char        *filein;
+char        *fileout = NULL;
 static char  mainName[] = "iotest";
 
-    if (argc != 3)
-	exit(ERROR_INT(" Syntax:  iotest filein fileout", mainName, 1));
+    if (argc != 2 && argc != 3)
+	exit(ERROR_INT(" Syntax:  iotest filein [fileout]", mainName, 1));
 
     filein = argv[1];
-    fileout = argv[2];
+    if (argc == 3)
+        fileout = argv[2];
 
 #if 1
     if ((pix = pixRead(filein)) == NULL)
@@ -50,40 +52,85 @@ static char  mainName[] = "iotest";
 	exit(ERROR_INT("pix not made", mainName, 1));
 #endif
 
-#if 1
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
     d = pixGetDepth(pix);
     wpl = pixGetWpl(pix);
     fprintf(stderr, "w = %d, h = %d, d = %d, wpl = %d\n", w, h, d, wpl);
     if (pixGetColormap(pix)) {
-	fprintf(stderr, "colormap exists\n");
-	pixcmapWriteStream(stderr, pixGetColormap(pix));
-	fp = fopen("junkcmap", "w");
-	pixcmapWriteStream(fp, pixGetColormap(pix));
-	fclose(fp);
-	fp = fopen("junkcmap", "r");
-	cmap = pixcmapReadStream(fp);
-	fclose(fp);
-	fp = fopen("junkcmap1", "w");
-	pixcmapWriteStream(fp, cmap);
-	fclose(fp);
-	pixcmapDestroy(&cmap);
+        fprintf(stderr, "colormap exists\n");
+
+	    /* Write and read back the colormap */
+        pixcmapWriteStream(stderr, pixGetColormap(pix));
+        fp = fopen("junkcmap", "w");
+        pixcmapWriteStream(fp, pixGetColormap(pix));
+        fclose(fp);
+        fp = fopen("junkcmap", "r");
+        cmap = pixcmapReadStream(fp);
+        fclose(fp);
+        fp = fopen("junkcmap1", "w");
+        pixcmapWriteStream(fp, cmap);
+        fclose(fp);
+        pixcmapDestroy(&cmap);
+
+            /* Remove and regenerate colormap */
+        pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+        pixt2 = pixConvertRGBToColormap(pixt, 5, &nerrors);
+        fprintf(stderr, "Number of colormap errors = %d\n", nerrors);
+        pixWrite("junkcmap2", pixt2, IFF_PNG);
+        pixDestroy(&pixt);
+        pixDestroy(&pixt2);
     }
-    else
-	fprintf(stderr, "no colormap\n");
+    else {
+        fprintf(stderr, "no colormap\n");
+    }
     format = pixGetInputFormat(pix);
     fprintf(stderr, "Input format extension: %s\n",
             ImageFileFormatExtensions[format]);
-#endif
+    if (format == IFF_JFIF_JPEG)
+        fprintf(stderr, "Jpeg comment: %s\n", pixGetText(pix));
 
-#if 1
     if (d == 1) {
         pixCountPixels(pix, &count, NULL);
-	fprintf(stderr, "pixel ratio ON/OFF = %6.3f\n",
+        fprintf(stderr, "pixel ratio ON/OFF = %6.3f\n",
           (l_float32)count / (l_float32)(pixGetWidth(pix) * pixGetHeight(pix)));
     }
-#endif
+
+    if (argc == 3) {
+#if 1
+        d = pixGetDepth(pix);
+        if (d < 8 || pixGetColormap(pix))
+            pixWrite(fileout, pix, IFF_PNG);
+        else
+            pixWriteJpeg(fileout, pix, 75, 0);
+#elif 0
+        pixWrite(fileout, pix, IFF_BMP);
+#elif 0
+        pixWrite(fileout, pix, IFF_PNG);
+#elif 0
+        pixWrite(fileout, pix, IFF_TIFF);
+        fprintTiffInfo(stderr, fileout);
+#elif 0
+        pixWrite(fileout, pix, IFF_TIFF_PACKBITS);
+        fprintTiffInfo(stderr, fileout);
+#elif 0
+        pixWrite(fileout, pix, IFF_TIFF_G3);
+        fprintTiffInfo(stderr, fileout);
+#elif 0
+        pixWrite(fileout, pix, IFF_TIFF_G4);
+        fprintTiffInfo(stderr, fileout);
+#elif 0
+        pixWrite(fileout, pix, IFF_JFIF_JPEG);
+#elif 0
+        pixWriteJpeg(fileout, pix, 75, 0);
+#elif 0
+        pixWrite(fileout, pix, IFF_PNM);
+#elif 0
+        pixWrite(fileout, pix, IFF_PS);
+#endif 
+    }
+
+    pixDestroy(&pix);
 
 #if 0   /* test tiff header reader */
 { l_int32 w, h, bps, spp, res, cmap;
@@ -93,51 +140,6 @@ static char  mainName[] = "iotest";
         w, h, bps, spp, res, cmap);
 }
 #endif
-
-#if 0
-    pixWrite(fileout, pix, IFF_BMP);
-#elif 0
-    pixWrite(fileout, pix, IFF_PNG);
-#elif 0
-    pixWrite(fileout, pix, IFF_TIFF);
-    fprintTiffInfo(stderr, fileout);
-#elif 0
-    pixWrite(fileout, pix, IFF_TIFF_PACKBITS);
-    fprintTiffInfo(stderr, fileout);
-#elif 0
-    pixWrite(fileout, pix, IFF_TIFF_G3);
-    fprintTiffInfo(stderr, fileout);
-#elif 0
-    pixWrite(fileout, pix, IFF_TIFF_G4);
-    fprintTiffInfo(stderr, fileout);
-#elif 0
-    pixWrite(fileout, pix, IFF_JFIF_JPEG);
-#elif 0
-    pixWriteJpeg(fileout, pix, 75, 0);
-#elif 0
-    pixWrite(fileout, pix, IFF_PNM);
-#elif 0
-    pixWrite(fileout, pix, IFF_PS);
-#endif 
-
-#if 1
-    d = pixGetDepth(pix);
-    if (d == 8 || d == 32)
-        pixWriteJpeg(fileout, pix, 75, 0);
-    else
-	pixWrite(fileout, pix, IFF_PNG);
-#endif
-
-#if 0    /* use on 2, 4 or 8 bpp colormapped images */
-    pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-    pixt2 = pixConvertRGBToColormap(pixt, 5, &nerrors);
-    fprintf(stderr, "nerrors = %d\n", nerrors);
-    pixWrite(fileout, pixt2, IFF_PNG);
-    pixDestroy(&pixt);
-    pixDestroy(&pixt2);
-#endif
-
-    pixDestroy(&pix);
 
     exit(0);
 }

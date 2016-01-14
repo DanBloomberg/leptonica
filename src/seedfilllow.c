@@ -471,9 +471,9 @@ l_uint32  *lined;
                         val7 = GET_DATA_BYTE(lined + wpld, j);
                         val5 = GET_DATA_BYTE(lined, j + 1);
                         minval = L_MIN(val5, val7);
-                        minval = L_MIN(minval, val);
-                        minval = L_MIN(minval, 254);
-                        SET_DATA_BYTE(lined, j, minval + 1);
+                        minval = L_MIN(minval + 1, val);
+                        minval = L_MIN(minval, 255);
+                        SET_DATA_BYTE(lined, j, minval);
                     }
                 }
             }
@@ -500,8 +500,8 @@ l_uint32  *lined;
                         val7 = GET_DATA_TWO_BYTES(lined + wpld, j);
                         val5 = GET_DATA_TWO_BYTES(lined, j + 1);
                         minval = L_MIN(val5, val7);
-                        minval = L_MIN(minval, val);
-                        SET_DATA_TWO_BYTES(lined, j, minval + 1);
+                        minval = L_MIN(minval + 1, val);
+                        SET_DATA_TWO_BYTES(lined, j, minval);
                     }
                 }
             }
@@ -540,9 +540,9 @@ l_uint32  *lined;
                         minval = L_MIN(val8, val7);
                         minval = L_MIN(minval, val6);
                         minval = L_MIN(minval, val5);
-                        minval = L_MIN(minval, val);
-                        minval = L_MIN(minval, 254);
-                        SET_DATA_BYTE(lined, j, minval + 1);
+                        minval = L_MIN(minval + 1, val);
+                        minval = L_MIN(minval, 255);
+                        SET_DATA_BYTE(lined, j, minval);
                     }
                 }
             }
@@ -577,8 +577,8 @@ l_uint32  *lined;
                         minval = L_MIN(val8, val7);
                         minval = L_MIN(minval, val6);
                         minval = L_MIN(minval, val5);
-                        minval = L_MIN(minval, val);
-                        SET_DATA_TWO_BYTES(lined, j, minval + 1);
+                        minval = L_MIN(minval + 1, val);
+                        SET_DATA_TWO_BYTES(lined, j, minval);
                     }
                 }
             }

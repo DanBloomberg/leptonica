@@ -35,7 +35,7 @@ main(int    argc,
 {
 char        *filein, *fileout, *str, *fname, *filename;
 char         buffer[512];
-l_int32      i, count, npages, format, length;
+l_int32      i, count, npages, length;
 FILE        *fp;
 NUMA        *naflags, *nasizes;
 PIX         *pix;
@@ -70,7 +70,7 @@ static char  mainName[] = "mtifftest";
         else
 	    pixWriteTiff(tempmtiff, pix, IFF_TIFF_G4, "a");
         pixDestroy(&pix);
-        FREE((void *)filename);
+        FREE(filename);
     }
 
         /* write it out as a PS file */
@@ -81,8 +81,7 @@ static char  mainName[] = "mtifftest";
 #if 1   /* ------------------  Test multipage I/O  -------------------*
         /* read count of tiff multipage */
     fp = fopen(filein, "r");
-    format = findFileFormat(fp);
-    if (format == IFF_TIFF) {
+    if (fileFormatIsTiff(fp)) {
 	tiffGetCount(fp, &npages);
 	fprintf(stderr, " Tiff: %d page\n", npages);
     }

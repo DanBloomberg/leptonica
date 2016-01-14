@@ -49,6 +49,7 @@
  *          NUMA        *numaSortByIndex()
  *          l_int32      numaIsSorted()
  *          l_int32      numaSortPair()
+ *          NUMA        *numaPseudorandomSequence()
  *
  *      Functions requiring sorting
  *          l_int32      numaGetMedian()
@@ -64,6 +65,7 @@
  *          NUMA        *numaMakeHistogramClipped()
  *          NUMA        *numaRebinHistogram()
  *          NUMA        *numaNormalizeHistogram()
+ *          l_int32      numaGetHistogramStats()
  *          l_int32      numaMakeRankFromHistogram()
  *          l_int32      numaHistogramGetRankFromVal()
  *          l_int32      numaHistogramGetValFromRank()
@@ -86,6 +88,24 @@
  *
  *    (3) Occasionally, in the comments we denote the i-th element of a
  *        numa by na[i].  This is conceptual only -- the numa is not an array!
+ *
+ *    Some general comments on histograms:
+ *
+ *    (1) Histograms are the generic statistical representation of
+ *        the data about some attribute.  Typically they're not
+ *        normalized -- they simply give the number of occurrences
+ *        within each range of values of the attribute.  This range
+ *        of values is referred to as a 'bucket'.  For example,
+ *        the histogram could specify how many connected components
+ *        are found for each value of their width; in that case,
+ *        the bucket size is 1.
+ *
+ *    (2) In leptonica, all buckets have the same size.  Histograms
+ *        are therefore specified by a numa of occurrences, along
+ *        with two other numbers: the 'value' associated with the
+ *        occupants of the first bucket and the size (i.e., 'width')
+ *        of each bucket.  These two numbers allow us to calculate
+ *        the value associated with the occupants of each bucket.
  */
 
 #include <stdio.h>
@@ -1571,6 +1591,44 @@ NUMA    *naindex;
 }
 
 
+/*!
+ *  numaPseudorandomSequence()
+ * 
+ *      Input:  size (of sequence)
+ *              seed (prime number; use 0 for default)
+ *      Return: na (pseudorandom on {0,...,size - 1}), or null on error
+ *
+ *  Notes:
+ *      (1) Result is a permutation of the sequence of integers
+ *          from 0 to size - 1, where (seed % size) is repeatedly
+ *          added to the previous result, and the result is taken mod size.
+ *          This is not particularly random!
+ */
+NUMA *
+numaPseudorandomSequence(l_int32  size,
+                         l_int32  seed)
+{
+l_int32  i, val;
+NUMA    *na;
+
+    PROCNAME("numaPseudorandomSequence");
+
+    if (size <= 0)
+        return (NUMA *)ERROR_PTR("size <= 0", procName, NULL);
+    if (seed == 0)
+        seed = 165653;
+
+    if ((na = numaCreate(size)) == NULL)
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    val = seed / 7;
+    for (i = 0; i < size; i++) {
+        val = (val + seed) % size;
+        numaAddNumber(na, val);
+    }
+
+    return na;
+}
+
 
 /*----------------------------------------------------------------------*
  *                     Functions requiring sorting                      *
@@ -1581,6 +1639,10 @@ NUMA    *naindex;
  *      Input:  na
  *              &val  (<return> median val)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Computes the median value of the numbers in the numa, by
+ *          sorting and finding the middle value in the sorted array.
  */
 l_int32
 numaGetMedian(NUMA       *na,
@@ -1614,8 +1676,14 @@ NUMA    *nasort;
  *
  *      Input:  na
  *              &val  (<return> mode val)
- *              &count  (<return> mode count)
+ *              &count  (<optional return> mode count)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Computes the mode value of the numbers in the numa, by
+ *          sorting and finding the value of the number with the
+ *          largest count.
+ *      (2) Optionally, also returns that count.
  */
 l_int32
 numaGetMode(NUMA       *na,
@@ -1633,18 +1701,15 @@ NUMA       *nasort;
         return ERROR_INT("na not defined", procName, 1);
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
-    if (!pcount)
-        return ERROR_INT("&count not defined", procName, 1);
 
     *pval = 0.0;
-    *pcount = 0;
+    if (pcount) *pcount = 0;
     if ((n = numaGetCount(na)) == 0)
         return 1;
 
     if ((nasort = numaSort(NULL, na, L_SORT_DECREASING)) == NULL)
         return ERROR_INT("nas not made", procName, 1);
-    if ((array = numaGetFArray(nasort, L_NOCOPY)) == NULL)
-        return ERROR_INT("array not made", procName, 1);
+    array = numaGetFArray(nasort, L_NOCOPY);
 
         /* Initialize with array[0] */
     prevval = array[0];
@@ -1652,7 +1717,7 @@ NUMA       *nasort;
     maxval = prevval;
     maxcount = prevcount;
 
-        /* Scan the sorted array */
+        /* Scan the sorted array, aggregating duplicates */
     for (i = 1; i < n; i++) {
         val = array[i];
         if (val == prevval)
@@ -1674,7 +1739,8 @@ NUMA       *nasort;
     }
 
     *pval = maxval;
-    *pcount = maxcount;
+    if (pcount)
+        *pcount = maxcount;
 
     numaDestroy(&nasort);
     return 0;
@@ -2071,6 +2137,94 @@ NUMA      *nad;
     }
 
     return nad;
+}
+
+
+/*!
+ *  numaGetHistogramStats()
+ *
+ *      Input:  nahisto (histogram: y(x(i)), i = 0 ... nbins - 1)
+ *              startx (x value of first bin: x(0))
+ *              deltax (x increment between bins; the bin size; x(1) - x(0))
+ *              &xmean (<optional return> mean value of histogram)
+ *              &xmedian (<optional return> median value of histogram)
+ *              &xmode (<optional return> mode value of histogram:
+ *                     xmode = x(imode), where y(xmode) >= y(x(i)) for
+ *                     all i != imode)
+ *              &xvariance (<optional return> variance of x)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) If the histogram represents the relation y(x), the
+ *          computed values that are returned are the x values.
+ *          These are NOT the bucket indices i; they are related to the
+ *          bucket indices by
+ *                x(i) = startx + i * deltax
+ */
+l_int32
+numaGetHistogramStats(NUMA       *nahisto,
+                      l_float32   startx,
+                      l_float32   deltax,
+                      l_float32  *pxmean,
+                      l_float32  *pxmedian,
+                      l_float32  *pxmode,
+                      l_float32  *pxvariance)
+{
+l_int32    i, n, imax;
+l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
+
+    PROCNAME("numaGetHistogramStats");
+
+    if (pxmean) *pxmean = 0.0;
+    if (pxmedian) *pxmedian = 0.0;
+    if (pxmode) *pxmode = 0.0;
+    if (pxvariance) *pxvariance = 0.0;
+    if (!nahisto)
+        return ERROR_INT("nahisto not defined", procName, 1);
+    if (!pxmean && !pxmedian && !pxmode && !pxvariance)
+        return ERROR_INT("nothing to compute", procName, 1);
+
+    n = numaGetCount(nahisto);
+    for (sum = 0.0, moment = 0.0, var = 0.0, i = 0; i < n; i++) {
+        x = startx + i * deltax;
+        numaGetFValue(nahisto, i, &y);
+        sum += y;
+        moment += x * y;
+        var += x * x * y;
+    }
+    if (sum == 0.0)
+        return ERROR_INT("sum is 0", procName, 1);
+
+    if (pxmean)
+        *pxmean = moment / sum;
+    if (pxvariance)
+        *pxvariance = var / sum - moment * moment / (sum * sum);
+
+    if (pxmedian) {
+        halfsum = sum / 2.0;
+        for (sumval = 0.0, i = 0; i < n; i++) {
+            numaGetFValue(nahisto, i, &y);
+            sumval += y;
+            if (sumval >= halfsum) {
+                *pxmedian = startx + i * deltax;
+                break;
+            }
+        }
+    }
+
+    if (pxmode) {
+        ymax = -1.0e10;
+        for (i = 0; i < n; i++) {
+            numaGetFValue(nahisto, i, &y);
+            if (y > ymax) {
+                ymax = y;
+                imax = i;
+            }
+        }
+        *pxmode = startx + imax * deltax;
+    }
+
+    return 0;
 }
 
 

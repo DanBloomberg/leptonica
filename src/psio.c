@@ -271,7 +271,7 @@ PIX     *pix, *pixt;
             if (d == 1) {
                 pixWrite(TEMP_G4TIFF_FILE, pix, IFF_TIFF_G4);
                 fname = stringNew(TEMP_G4TIFF_FILE);
-                format = IFF_TIFF;
+                format = IFF_TIFF_G4;
             }
             else {
                 pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
@@ -302,7 +302,7 @@ PIX     *pix, *pixt;
                     index++;
             }
         }
-        else {  /* format == IFF_TIFF) */
+        else {  /* format == IFF_TIFF_G4) */
             if (firstfile) {
                 retval = convertTiffG4ToPS(fname, fileout, "w", 0, 0,
                                            res, 1.0, index + 1, FALSE, TRUE);
@@ -375,14 +375,18 @@ PIX     *pix, *pixs;
         return ERROR_INT("filein not found", procName, 1);
     format = findFileFormat(fp);
     fclose(fp);
-    if (format == IFF_JFIF_JPEG) {  /* write out directly */
+
+        /* Write out directly if in jpeg or tiff g4 formats */
+    if (format == IFF_JFIF_JPEG) {
         convertJpegToPSEmbed(filein, fileout);
         return 0;
     }
+    else if (format == IFF_TIFF_G4) {
+        convertTiffG4ToPSEmbed(filein, fileout);
+	return 0;
+    }
 
-        /* We need to convert to jpeg or tiff g4.
-         * If it's already in tiff g4 format, we take the hit of
-         * reading it in and writing it back out the same way. */
+        /* Must convert to jpeg or tiff g4 */
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("image not read from file", procName, 1);
     d = pixGetDepth(pixs);
@@ -2029,7 +2033,7 @@ extractTiffG4DataFromFile(const char  *filein,
 {
 l_uint8  *inarray, *data;
 l_uint16  minisblack, comptype;  /* accessors require l_uint16 */
-l_int32   format, fbytes, nbytes;
+l_int32   istiff, fbytes, nbytes;
 l_uint32  w, h, rowsperstrip;  /* accessors require l_uint32 */
 l_uint32  diroff;
 FILE     *fpin;
@@ -2047,9 +2051,9 @@ TIFF     *tif;
 
     if ((fpin = fopen(filein, "r")) == NULL)
         return ERROR_INT("filein not defined", procName, 1);
-    format = findFileFormat(fpin);
+    istiff = fileFormatIsTiff(fpin);
     fclose(fpin);
-    if (format != IFF_TIFF)
+    if (!istiff)
         return ERROR_INT("filein not tiff", procName, 1);
 
     if ((inarray = arrayRead(filein, &fbytes)) == NULL)
@@ -2137,7 +2141,7 @@ convertTiffMultipageToPS(const char  *filein,
 {
 const char   tempdefault[] = "/usr/tmp/junk_temp_g4.tif";
 const char  *tempname;
-l_int32      i, npages, w, h;
+l_int32      i, npages, w, h, istiff;
 l_float32    scale;
 PIX         *pix, *pixs;
 FILE        *fp;
@@ -2151,8 +2155,11 @@ FILE        *fp;
 
     if ((fp = fopen(filein, "r")) == NULL)
         return ERROR_INT("file not found", procName, 1);
-    if (findFileFormat(fp) != IFF_TIFF)
+    istiff = fileFormatIsTiff(fp);
+    if (!istiff) {
+        fclose(fp);
         return ERROR_INT("file not tiff format", procName, 1);
+    }
     tiffGetCount(fp, &npages);
     fclose(fp);
 

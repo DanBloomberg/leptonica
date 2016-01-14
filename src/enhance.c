@@ -18,22 +18,27 @@
  *  enhance.c
  *
  *      Gamma TRC (tone reproduction curve) mapping
- *           PIX     *pixGammaTRC()     *** see warning ***   
- *           PIX     *pixGammaTRCMasked()     *** see warning ***   
+ *           PIX     *pixGammaTRC()                *** see warning ***   
+ *           PIX     *pixGammaTRCMasked()          *** see warning ***   
  *           NUMA    *numaGammaTRC()
  *
  *      Contrast enhancement
- *           PIX     *pixContrastTRC()   *** see warning ***
- *           PIX     *pixContrastTRCMasked()   *** see warning ***
+ *           PIX     *pixContrastTRC()             *** see warning ***
+ *           PIX     *pixContrastTRCMasked()       *** see warning ***
  *           NUMA    *numaContrastTRC()
  *
  *      Generic TRC mapper
- *           PIX     *pixTRCMap()       *** see warning ***
+ *           PIX     *pixTRCMap()                  *** see warning ***
  *
  *      Unsharp-masking
- *           PIX     *pixUnsharpMask()
- *           PIX     *pixUnsharpMaskColor()
- *           PIX     *pixUnsharpMaskGray()
+ *           PIX     *pixUnsharpMasking()
+ *           PIX     *pixUnsharpMaskingColor()
+ *           PIX     *pixUnsharpMaskingGray()
+ *
+ *      Hue and saturation modification
+ *           PIX     *pixModifyHue()               *** see warning ***
+ *           PIX     *pixModifySaturation()        *** see warning ***
+ *           l_int32  pixMeasureSaturation()       *** see warning ***
  *
  *      Edge by bandpass
  *           PIX     *pixHalfEdgeByBandpass()
@@ -432,8 +437,10 @@ NUMA      *na;
 
     if (factor < 0.0) {
         L_WARNING("factor must be >= 0.0; using 0.0; no enhancement", procName);
-        return numaMakeSequence(0, 1, 256);  /* linear map */
+        factor = 0.0;
     }
+    if (factor == 0.0)
+        return numaMakeSequence(0, 1, 256);  /* linear map */
 
     scale = ENHANCE_SCALE_FACTOR;
     ymax = atan((l_float64)(1.0 * factor * scale));
@@ -480,7 +487,7 @@ pixTRCMap(PIX   *pixs,
           PIX   *pixm,
           NUMA  *na)
 {
-l_int32    w, h, d, wm, hm, wpl, wplm, i, j, ival, sval8, dval8;
+l_int32    w, h, d, wm, hm, wpl, wplm, i, j, sval8, dval8;
 l_int32   *tab;
 l_uint32   sval32, dval32;
 l_uint32  *data, *datam, *line, *linem;
@@ -503,14 +510,7 @@ l_uint32  *data, *datam, *line, *linem;
             return ERROR_INT("pixm not 1 bpp", procName, 1);
     }
 
-        /* Get an integer lut from the numa */
-    if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-        return ERROR_INT("tab not made", procName, 1);
-    for (i = 0; i < 256; i++) {
-        numaGetIValue(na, i, &ival);
-        tab[i] = ival;
-    }
-
+    tab = numaGetIArray(na);  /* get the array for efficiency */
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     wpl = pixGetWpl(pixs);
@@ -592,7 +592,7 @@ l_uint32  *data, *datam, *line, *linem;
  *                        Unsharp masking                      *
  *-------------------------------------------------------------*/
 /*!
- *  pixUnsharpMask()
+ *  pixUnsharpMasking()
  *
  *      Input:  pix (8 or 32 bpp; or 2, 4 or 8 bpp with colormap)
  *              smooth  ("half-width" of smoothing filter)
@@ -606,14 +606,14 @@ l_uint32  *data, *datam, *line, *linem;
  *            range:  0.2 < fract < 0.7
  */
 PIX *
-pixUnsharpMask(PIX       *pix,
-               l_int32    smooth,
-               l_float32  fract)
+pixUnsharpMasking(PIX       *pix,
+                  l_int32    smooth,
+                  l_float32  fract)
 {
 l_int32  d;
 PIX     *pixs, *pixd;
 
-    PROCNAME("pixUnsharpMask");
+    PROCNAME("pixUnsharpMasking");
 
     if (!pix)
         return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
@@ -638,9 +638,9 @@ PIX     *pixs, *pixd;
     }
 
     if (d == 8)
-        pixd = pixUnsharpMaskGray(pixs, smooth, fract);
+        pixd = pixUnsharpMaskingGray(pixs, smooth, fract);
     else  /* d == 32 */
-        pixd = pixUnsharpMaskColor(pixs, smooth, fract);
+        pixd = pixUnsharpMaskingColor(pixs, smooth, fract);
     pixDestroy(&pixs);
     
     return pixd;
@@ -648,7 +648,7 @@ PIX     *pixs, *pixd;
 
 
 /*!
- *  pixUnsharpMaskColor()
+ *  pixUnsharpMaskingColor()
  *
  *      Input:  pixs (32 bpp; 24 bpp RGB color)
  *              smooth  ("half-width" of smoothing filter)
@@ -663,15 +663,15 @@ PIX     *pixs, *pixd;
  *           0.2 < fract < 0.7
  */
 PIX *
-pixUnsharpMaskColor(PIX       *pixs,
-                    l_int32    smooth,
-                    l_float32  fract)
+pixUnsharpMaskingColor(PIX       *pixs,
+                       l_int32    smooth,
+                       l_float32  fract)
 {
 PIX  *pixRed, *pixGreen, *pixBlue;
 PIX  *pixRedSharp, *pixGreenSharp, *pixBlueSharp;
 PIX  *pixd;
 
-    PROCNAME("pixUnsharpMaskColor");
+    PROCNAME("pixUnsharpMaskingColor");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
@@ -684,13 +684,13 @@ PIX  *pixd;
     }
 
     pixRed = pixGetRGBComponent(pixs, COLOR_RED);
-    pixRedSharp = pixUnsharpMaskGray(pixRed, smooth, fract);
+    pixRedSharp = pixUnsharpMaskingGray(pixRed, smooth, fract);
     pixDestroy(&pixRed);
     pixGreen = pixGetRGBComponent(pixs, COLOR_GREEN);
-    pixGreenSharp = pixUnsharpMaskGray(pixGreen, smooth, fract);
+    pixGreenSharp = pixUnsharpMaskingGray(pixGreen, smooth, fract);
     pixDestroy(&pixGreen);
     pixBlue = pixGetRGBComponent(pixs, COLOR_BLUE);
-    pixBlueSharp = pixUnsharpMaskGray(pixBlue, smooth, fract);
+    pixBlueSharp = pixUnsharpMaskingGray(pixBlue, smooth, fract);
     pixDestroy(&pixBlue);
 
     if ((pixd = pixCreateRGBImage(pixRedSharp, pixGreenSharp, pixBlueSharp))
@@ -706,7 +706,7 @@ PIX  *pixd;
 
 
 /*!
- *  pixUnsharpMaskGray()
+ *  pixUnsharpMaskingGray()
  *
  *      Input:  pixs (8 bpp)
  *              smooth  ("half-width" of smoothing filter)
@@ -721,14 +721,14 @@ PIX  *pixd;
  *          0.2 < fract < 0.7
  */
 PIX *
-pixUnsharpMaskGray(PIX       *pixs,
-                   l_int32    smooth,
-                   l_float32  fract)
+pixUnsharpMaskingGray(PIX       *pixs,
+                      l_int32    smooth,
+                      l_float32  fract)
 {
 l_int32  w, h;
 PIX     *pixc, *pixt, *pixd;
 
-    PROCNAME("pixUnsharpMaskGray");
+    PROCNAME("pixUnsharpMaskingGray");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
@@ -763,6 +763,187 @@ PIX     *pixc, *pixt, *pixd;
     pixDestroy(&pixt);
 
     return pixd;
+}
+
+/*-------------------------------------------------------------*
+ *               Hue and saturation modification               *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixModifyHue()
+ *
+ *      Input:  pixd (<optional> can be null, existing or equal to pixs)
+ *              pixs (32 bpp rgb)
+ *              fract (between -1.0 and 1.0)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) Use fract > 0.0 to increase hue value; < 0.0 to decrease it.
+ *          1.0 (or -1.0) represents a 360 degree rotation; i.e., no change.
+ */
+PIX  *
+pixModifyHue(PIX       *pixd,
+             PIX       *pixs,
+             l_float32  fract)
+{
+l_int32    w, h, d, i, j, wpl, delhue;
+l_int32    rval, gval, bval, hval, sval, vval;
+l_uint32   pixel;
+l_uint32  *data, *line;
+
+    PROCNAME("pixModifyHue");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 32) 
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (L_ABS(fract) > 1.0)
+        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", procName, NULL);
+
+    pixd = pixCopy(pixd, pixs);
+
+    delhue = (l_int32)(240 * fract);
+    if (delhue == 0 || delhue == 240 || delhue == -240) {
+        L_WARNING("no change requested in hue", procName);
+        return pixd;
+    }
+    if (delhue < 0)
+        delhue += 240;
+
+    data = pixGetData(pixd);
+    wpl = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j++) {
+            pixel = line[j];
+            rval = pixel >> 24;
+            gval = (pixel >> 16) & 0xff;
+            bval = (pixel >> 8) & 0xff;
+            convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
+            hval = (hval + delhue) % 240;
+            convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
+            line[j] = rval << 24 | gval << 16 | bval << 8;
+        }
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixModifySaturation()
+ *
+ *      Input:  pixd (<optional> can be null, existing or equal to pixs)
+ *              pixs (32 bpp rgb)
+ *              fract (between -1.0 and 1.0)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) If fract > 0.0, it gives the fraction that the pixel
+ *          saturation is moved from its initial value toward 255.
+ *          If fract < 0.0, it gives the fraction that the pixel
+ *          saturation is moved from its initial value toward 0.
+ *          The limiting values for fract = -1.0 (1.0) thus set the
+ *          saturation to 0 (255).
+ */
+PIX  *
+pixModifySaturation(PIX       *pixd,
+                    PIX       *pixs,
+                    l_float32  fract)
+{
+l_int32    w, h, d, i, j, wpl;
+l_int32    rval, gval, bval, hval, sval, vval;
+l_uint32   pixel;
+l_uint32  *data, *line;
+
+    PROCNAME("pixModifySaturation");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 32) 
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (L_ABS(fract) > 1.0)
+        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", procName, NULL);
+
+    pixd = pixCopy(pixd, pixs);
+    if (fract == 0.0) {
+        L_WARNING("no change requested in saturation", procName);
+        return pixd;
+    }
+
+    data = pixGetData(pixd);
+    wpl = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j++) {
+            pixel = line[j];
+            rval = pixel >> 24;
+            gval = (pixel >> 16) & 0xff;
+            bval = (pixel >> 8) & 0xff;
+            convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
+            if (fract < 0.0)
+                sval = (l_int32)(sval * (1.0 + fract));
+            else
+                sval = (l_int32)(sval + fract * (255 - sval));
+            convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
+            line[j] = rval << 24 | gval << 16 | bval << 8;
+        }
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixMeasureSaturation()
+ *
+ *      Input:  pixs (32 bpp rgb)
+ *              factor (subsampling factor; integer >= 1)
+ *              &sat (<return> average saturation)
+ *      Return: pixd, or null on error
+ */
+l_int32
+pixMeasureSaturation(PIX        *pixs,
+                     l_int32     factor,
+                     l_float32  *psat)
+{
+l_int32    w, h, d, i, j, wpl, sum, count;
+l_int32    rval, gval, bval, hval, sval, vval;
+l_uint32   pixel;
+l_uint32  *data, *line;
+
+    PROCNAME("pixMeasureSaturation");
+
+    if (!psat)
+        return ERROR_INT("pixs not defined", procName, 1);
+    *psat = 0.0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 32) 
+        return ERROR_INT("pixs not 32 bpp", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("subsampling factor < 1", procName, 1);
+
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    for (i = 0, sum = 0, count = 0; i < h; i += factor) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j += factor) {
+            pixel = line[j];
+            rval = pixel >> 24;
+            gval = (pixel >> 16) & 0xff;
+            bval = (pixel >> 8) & 0xff;
+            convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
+            sum += sval;
+            count++;
+        }
+    }
+
+    if (count > 0)
+        *psat = (l_float32)sum / (l_float32)count;
+    return 0;
 }
 
 

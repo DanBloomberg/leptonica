@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (7 Oct 07)
+README  (25 Nov 07)
 --------------------
 
-gunzip leptonlib-1.50.tar.gz
-tar -xvf leptonlib-1.50.tar
+gunzip leptonlib-1.52.tar.gz
+tar -xvf leptonlib-1.52.tar
 
 
 1.  This tar includes library source, function prototypes,
@@ -83,7 +83,7 @@ tar -xvf leptonlib-1.50.tar
     as described in 2, 3 and 4, respectively.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.50'.  In that directory you will
+    subdirectory 'leptonlib-1.52'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -115,7 +115,7 @@ tar -xvf leptonlib-1.50.tar
           providing example code.
       (3) Programs that are useful applications in their own right.
           Examples of these are the PostScript conversion programs
-          converttops and printsplitimage.
+          converttops, convertfilestops and printsplitimage.
 
 4.  The prototype header file leptprotos.h (supplied) can be
     automatically generated using xtractprotos.  You first have to
@@ -144,9 +144,10 @@ tar -xvf leptonlib-1.50.tar
     The only dependencies required for using leptonlib are four
     libraries that are standard with all linux installations:
         libjpeg.a  (standard jfif jpeg library, version 62 (aka 6b))
-        libpng.a   (standard png library, suggest version 1.2.8)
+        libpng.a   (standard png library, suggest version 1.2.8 or later)
 	libz.a     (standard gzip library, suggest version 1.2.3)
-	libtiff.a  (standard Leffler tiff library, version 3.7.2 or later)
+	libtiff.a  (standard Leffler tiff library, version 3.7.2 or later;
+                    current non-beta version is 3.8.2)
     These libraries (and their shared versions) should be in /usr/lib.
     (If they're not, you can change the LDFLAGS variable in the Makefile.)
     Additionally, for compilation, the following header files are
@@ -177,9 +178,10 @@ tar -xvf leptonlib-1.50.tar
 	run for I/O and library components have passed on OS-X,
 	but not every function has been tested, and it is possible
 	that some may depend on byte ordering.  Please let me know
-	if you find any problems.
-	Make the following change to both src/Makefile and prog/Makefile:
-          (1) change $CPPFLAGS to define -DL_BIG_ENDIAN
+	if you find any problems.  This should compile properly, because
+        it compiles and runs a little program (endiantest.c, courtesy of
+        Bill Janssen) that sets $CPPFLAGS to define -DL_BIG_ENDIAN
+        in both src/Makefile and prog/Makefile.
 	For program development, 'make xtractprotos' in src to generate
 	a mac-compatible version
     (b) Windows via mingw (cross-compilation)
@@ -265,32 +267,32 @@ tar -xvf leptonlib-1.50.tar
     and replicative expansion).  See morphseq.c.
 
     The structuring element is represented by a simple Sel data structure
-    defined in morph.h.  We provide seven ways to generate Sels in sel1.c,
-    and several simple methods to generate hit-miss Sels for pattern
-    finding in selgen.c.
+    defined in morph.h.  We provide (at least) seven ways to generate
+    Sels in sel1.c, and several simple methods to generate hit-miss
+    Sels for pattern finding in selgen.c.
 
     We also give a fast implementation of grayscale morphology for
-    brick structuring elements (i.e., Sels that are decomposable
+    brick structuring elements (i.e., Sels that are separable
     into linear horizontal and vertical elements).  This uses
     the van Herk/Gil-Werman algorithm that performs the calculations
     in a time that is independent of the size of the Sels.
     Implementations of tophat and hdome are also given. 
     The low-level code is in graymorphlow.c.
 
-    A function with a simple parser is also provided to execute a
-    sequence of grayscale morphological operations (plus tophat).
-    See morphseq.c.
-
     In use, the most common morphological Sels are separable bricks,
     of dimension n x m (where n or m is commonly 1).  Accordingly,
     we provide separable morphological operations on brick Sels,
     using for binary both rasterops and dwa, and for grayscale,
-    the fast van Herk/Gil-Werman method.  We also give composable
-    separable brick functions for binary images.  These brick
-    operations are implemented by the morphological parsers.
-    The main advantage in using the parsers is that you don't
-    have to create and destroy Sels, or do any of the intermediate
-    image bookkeeping.
+    the fast van Herk/Gil-Werman method.  Parsers are provided
+    for a sequence of separable binary (rasterop and dwa) and grayscale
+    brick morphological operations, in morphseq.c.  The main
+    advantage in using the parsers is that you don't have to create
+    and destroy Sels, or do any of the intermediate image bookkeeping.
+
+    We also give composable separable brick functions for binary images,
+    for both rasterop and dwa.  These decompose each of the linear
+    operations into a sequence of two operations at different scales.
+    As always, parsers are provided for a sequence of such operations.
 
     Finally, we provide grayscale rank order filters for brick filters.
     The rank order filter is a generalization of grayscale morphology
@@ -572,8 +574,8 @@ tar -xvf leptonlib-1.50.tar
 
     For compatibility with 64 bit hardware and compilers, where
     necessary we use the typedefs in stdint.h to specify the pointer
-    size (either 4 or 8 byte).  This may not work properly if you use a
-    compiler before gcc 2.95.3.
+    size (either 4 or 8 byte).  This may not work properly if you use
+    an ancient compiler before gcc 2.95.3.
 	 
 19. For C++ compatibility, we have included a local version of
     jpeglib.h (version 6b), with the 'extern "C"' macro added.
@@ -602,7 +604,7 @@ tar -xvf leptonlib-1.50.tar
     which take only built-in C data types.  It would be an inordinately
     large task to do this for the entire library.
 
-22. New versions of the Leptonlib library are released approximately
+22. New versions of the Leptonica library are released approximately
     monthly, and version numbers are provided for each release.
     A brief version chronology is maintained in version-notes.html.
     The library compiles without warnings with either g++ or gcc,

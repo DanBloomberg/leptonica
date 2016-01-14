@@ -24,6 +24,27 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
+static const char *textsel1 = "x  oo "
+                              "x oOo "
+                              "x  o  "
+                              "x     "
+                              "xxxxxx";
+static const char *textsel2 = " oo  x"
+                              " oOo x"
+                              "  o  x"
+                              "     x"
+                              "xxxxxx";
+static const char *textsel3 = "xxxxxx"
+                              "x     "
+                              "x  o  "
+                              "x oOo "
+                              "x  oo ";
+static const char *textsel4 = "xxxxxx"
+                              "     x"
+                              "  o  x"
+                              " oOo x"
+                              " oo  x";
+
 
 main(int    argc,
      char **argv)
@@ -31,6 +52,7 @@ main(int    argc,
 char           *str1, *str2;
 l_int32         nbytes1, nbytes2;
 PIX            *pix;
+SEL            *sel;
 SELA           *sela1, *sela2;
 static char     mainName[] = "seliotest";
 
@@ -57,8 +79,30 @@ static char     mainName[] = "seliotest";
     sela1 = selaCreateFromFile("flipsels.txt");
     pix = selaDisplayInPix(sela1, 31, 3, 15, 4);
     pixDisplay(pix, 100, 100);
-    selaDestroy(&sela1);
     pixDestroy(&pix);
+    selaWrite("junkout3", sela1);
+
+        /* Create from compiled strings and compare */
+    sela2 = selaCreate(4);
+    sel = selCreateFromString(textsel1, 5, 6, "textsel1");
+    selaAddSel(sela2, sel, NULL, 0);
+    sel = selCreateFromString(textsel2, 5, 6, "textsel2");
+    selaAddSel(sela2, sel, NULL, 0);
+    sel = selCreateFromString(textsel3, 5, 6, "textsel3");
+    selaAddSel(sela2, sel, NULL, 0);
+    sel = selCreateFromString(textsel4, 5, 6, "textsel4");
+    selaAddSel(sela2, sel, NULL, 0);
+    selaWrite("junkout4", sela2);
+    str1 = (char *)arrayRead("junkout3", &nbytes1);
+    str2 = (char *)arrayRead("junkout4", &nbytes2);
+    if (nbytes1 == nbytes2 && !strcmp(str1, str2))
+        fprintf(stderr, "Success:  reading from file and string\n");
+    else
+        fprintf(stderr, "Failure:  reading from file and string\n");
+    FREE(str1);
+    FREE(str2);
+    selaDestroy(&sela1);
+    selaDestroy(&sela2);
 
     return 0;
 }

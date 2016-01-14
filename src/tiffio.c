@@ -313,7 +313,7 @@ PIXCMAP   *cmap;
  *
  *      Input:  filename (to write to)
  *              pix
- *              comptype (IFF_TIFF, IFF_TIFF_PACKBITS,
+ *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
  *                        IFF_TIFF_G3, IFF_TIFF_G4)
  *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
  *              modestring ("a" or "w")
@@ -389,7 +389,7 @@ TIFF    *tif;
  *
  *      Input:  filename (to write to)
  *              pix
- *              comptype (IFF_TIFF, IFF_TIFF_PACKBITS,
+ *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
  *                        IFF_TIFF_G3, IFF_TIFF_G4,
  *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
  *              modestring ("a" or "w")
@@ -432,7 +432,7 @@ TIFF    *tif;
  *
  *      Input:  stream (opened for append or write)
  *              pix
- *              comptype (IFF_TIFF, IFF_TIFF_PACKBITS,
+ *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
  *                        IFF_TIFF_G3, IFF_TIFF_G4,
  *                        IFF_TIFF_LZW, IFF_TIFF_ZIP)
  *      Return: 0 if OK, 1 on error
@@ -489,7 +489,7 @@ TIFF  *tif;
  *      Input:  tif (data structure, opened to a file)
  *              pix
  *              comptype  (IFF_TIFF: for any image; no compression
- *                         IFF_TIFF_PACKBITS: for 1 bpp only
+ *                         IFF_TIFF_RLE, IFF_TIFF_PACKBITS: for 1 bpp only
  *                         IFF_TIFF_G4 and IFF_TIFF_G3: for 1 bpp only
  *                         IFF_TIFF_LZW, IFF_TIFF_ZIP: for any image
  *              natags (<optional> NUMA of custom tiff tags)
@@ -602,6 +602,8 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_CCITTFAX4);
     else if (comptype == IFF_TIFF_G3)
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_CCITTFAX3);
+    else if (comptype == IFF_TIFF_RLE)
+        TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_CCITTRLE);
     else if (comptype == IFF_TIFF_PACKBITS)
         TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_PACKBITS);
     else if (comptype == IFF_TIFF_LZW)
@@ -905,8 +907,9 @@ FILE    *fp;
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
     format = findFileFormat(fp);
-    if (format != IFF_TIFF && format != IFF_TIFF_PACKBITS &&
+    if (format != IFF_TIFF &&
         format != IFF_TIFF_G3 && format != IFF_TIFF_G4 &&
+        format != IFF_TIFF_RLE && format != IFF_TIFF_PACKBITS &&
         format != IFF_TIFF_LZW && format != IFF_TIFF_ZIP)
         return ERROR_INT("file not tiff format", procName, 1);
     ret = freadHeaderTiff(fp, pwidth, pheight, pbps, pspp, pres, pcmap);

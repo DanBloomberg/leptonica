@@ -395,7 +395,7 @@ PIXCMAP  *cmap;
         return 0;
 
         /* The cmap has color entries.  Are they used? */
-    na = pixGetHistogram(pixs);
+    na = pixGetGrayHistogram(pixs, 1);
     n = pixcmapGetCount(cmap);
     for (i = 0; i < n; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
@@ -666,7 +666,7 @@ PIX     *pixt;
         pixGetAverageMasked(pixt, NULL, 0, 0, 1, L_MEAN_ABSVAL, pdiff);
 
     if (plottype) {
-        na = pixGetHistogram(pixt);
+        na = pixGetGrayHistogram(pixt, 1);
         numaGetNonzeroRange(na, TINY, &first, &last);
         nac = numaClipToInterval(na, 0, last);
         gplot = gplotCreate("/usr/tmp/junkgrayroot", plottype, 
@@ -774,9 +774,9 @@ PIX       *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2, *pixr, *pixg, *pixb;
     }
 
     if (plottype) {
-        nar = pixGetHistogram(pixr);
-        nag = pixGetHistogram(pixg);
-        nab = pixGetHistogram(pixb);
+        nar = pixGetGrayHistogram(pixr, 1);
+        nag = pixGetGrayHistogram(pixg, 1);
+        nab = pixGetGrayHistogram(pixb, 1);
         numaGetNonzeroRange(nar, TINY, &first, &rlast);
         numaGetNonzeroRange(nag, TINY, &first, &glast);
         numaGetNonzeroRange(nab, TINY, &first, &blast);
@@ -977,7 +977,7 @@ PIX        *pixt1, *pixt2;
     }
 
     nah = numaCreate(256);
-    nah->n = 256;  /* all initialized to 0.0 */
+    numaSetCount(nah, 256);  /* all initialized to 0.0 */
     array1 = numaGetFArray(nah, L_NOCOPY);
     w = L_MIN(w1, w2);
     h = L_MIN(h1, h2);
@@ -1024,7 +1024,7 @@ PIX        *pixt1, *pixt2;
     array1 = numaGetFArray(nan, L_NOCOPY);
 
     nad = numaCreate(256);
-    nad->n = 256;  /* all initialized to 0.0 */
+    numaSetCount(nad, 256);  /* all initialized to 0.0 */
     array2 = numaGetFArray(nad, L_NOCOPY);
 
         /* Finally, do rank accumulation on normalized histo of diffs */

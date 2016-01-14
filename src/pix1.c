@@ -117,6 +117,10 @@ PIX       *pixd;
  *      Input:  width, height, depth
  *      Return: pixd (with data allocated but not initialized),
  *                    or null on error
+ *
+ *  Notes:
+ *      (1) Must set pad bits to avoid reading unitialized data, because
+ *          some optimized routines (e.g., pixConnComp()) read from pad bits.
  */
 PIX *
 pixCreateNoInit(l_int32  width,
@@ -134,6 +138,7 @@ l_uint32  *data;
     if ((data = (l_uint32 *)MALLOC(4 * wpl * height)) == NULL)
         return (PIX *)ERROR_PTR("MALLOC fail for data", procName, NULL);
     pixSetData(pixd, data);
+    pixSetPadBits(pixd, 0);
     return pixd;
 }
 

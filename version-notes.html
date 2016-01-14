@@ -18,6 +18,32 @@
 
 <pre>
 
+1.52   25 Nov 07
+       Implemented Breuel's whitespace partitioning algorithm (partition.c).
+       Generalized pixColorMagnitude() to allow different methods
+       for computing the color amount of a pixel (colorcontent.c).
+       New methods for computing overlap of boxes (boxfunc.c).
+       New methods for painting (solid) and drawing (outline) of boxes,
+       replacing boxaDisplay() with pixDrawBoxa*() and pixPaintBoxa*()
+       (pix2.c, boxfunc.c).
+       Ray Smith fixed bug in the distance function (seedfilllow.c).
+       For pixConvertTo1() and pixConvertTo8(), treat input pixs as a
+       const and never return a clone or altered cmap (pixconv.c).
+       Make pixGlobalNormalRGB() crash-proof (adaptmap.c).
+       Tony Dovgal added ability to read jpeg comment (jpegio.c).
+
+1.51   21 Oct 07
+       Improved histogramming of gray and color images (pix3.c)
+       Histogram statistics (numafunc.c).  Better handling of tiff
+       formats, testing rle and packbits output and improving
+       level 2 postscript conversion efficiency (readfile.c, psio.c).
+       Test program for r/w and display of Sels (prog/seliotest.c).
+       Use endiantest to determine automatically which flags to set
+       when compiling for big- or little-endians (endiantest.c)
+       Compute a color magnitude for each rgb pixel (colorcontent.c).
+       Allow separate modification of hue and saturation (enhance.c).
+       Global transform of color image for arbitrary white point (adaptmap.c).
+   
 1.50   07 Oct 07
        |||||||||||||||||||||||||||||||||||||||||||||||||||||||||
        NOTE CAREFULLY: The  image format enum in imageio.h has

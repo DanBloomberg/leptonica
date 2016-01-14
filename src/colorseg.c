@@ -564,7 +564,7 @@ PIXCMAP   *cmap;
         /* Generate a mask over all pixels that are not in the
          * 'finalcolors' most populated colors.  Save the colormap
          * index of any one of the retained colors in 'tempcolor'. */
-    na = pixGetHistogram(pixd);
+    na = pixGetGrayHistogram(pixd, 1);
     if ((nasi = numaGetSortIndex(na, L_SORT_DECREASING)) == NULL)
         return ERROR_INT("nasi not made", procName, 1);
     numaGetIValue(nasi, finalcolors - 1, &index);  /* retain down to this */

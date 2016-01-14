@@ -112,6 +112,14 @@ enum {
     L_COMPARE_ABS_DIFF = 3
 };
 
+/*
+ *  Use in determining color difference from gray
+ */
+enum {
+    L_MAX_DIFF_FROM_AVERAGE_2 = 1,
+    L_MAX_MIN_DIFF_FROM_2 = 2
+};
+
 
 /*-------------------------------------------------------------------------*
  *                                Sel and Sel array                          *

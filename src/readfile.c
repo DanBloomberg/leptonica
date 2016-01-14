@@ -17,16 +17,17 @@
 /*
  *  readfile.c:  reads image on file into memory
  *
- *      High level read functions
+ *      Top-level functions for reading images from file
  *           PIXA      *pixaReadFiles()     [unix only]
  *           PIXA      *pixaReadFilesSA()
  *           PIX       *pixRead()
  *           PIX       *pixReadWithHint()
  *           PIX       *pixReadStream()
  *
- *      Format helper
+ *      Format finders
  *           l_int32    findFileFormat()
  *           l_int32    findFileFormatBuffer()
+ *           l_int32    fileFormatIsTiff()
  *
  *      Test function for I/O with different formats 
  *           l_int32    ioFormatTest()
@@ -47,19 +48,21 @@ enum {
 
     /* Output files for ioFormatTest().
      * Note that the test for jpeg is not yet implemented */
-static const char *FILE_BMP =  "/usr/tmp/junkout.bmp";
-static const char *FILE_PNG =  "/usr/tmp/junkout.png";
-static const char *FILE_PNM =  "/usr/tmp/junkout.pnm";
-static const char *FILE_G3 =   "/usr/tmp/junkout_g3.tif";
-static const char *FILE_G4 =   "/usr/tmp/junkout_g4.tif";
-static const char *FILE_LZW =  "/usr/tmp/junkout_lzw.tif";
-static const char *FILE_ZIP =  "/usr/tmp/junkout_zip.tif";
-static const char *FILE_TIFF = "/usr/tmp/junkout.tif";
-static const char *FILE_JPG =  "/usr/tmp/junkout.jpg"; 
+static const char *FILE_BMP  =  "/usr/tmp/junkout.bmp";
+static const char *FILE_PNG  =  "/usr/tmp/junkout.png";
+static const char *FILE_PNM  =  "/usr/tmp/junkout.pnm";
+static const char *FILE_G3   =  "/usr/tmp/junkout_g3.tif";
+static const char *FILE_G4   =  "/usr/tmp/junkout_g4.tif";
+static const char *FILE_RLE  =  "/usr/tmp/junkout_rle.tif";
+static const char *FILE_PB   =  "/usr/tmp/junkout_packbits.tif";
+static const char *FILE_LZW  =  "/usr/tmp/junkout_lzw.tif";
+static const char *FILE_ZIP  =  "/usr/tmp/junkout_zip.tif";
+static const char *FILE_TIFF =  "/usr/tmp/junkout.tif";
+static const char *FILE_JPG  =  "/usr/tmp/junkout.jpg"; 
 
 
 /*---------------------------------------------------------------------*
- *         Top-level procedures for reading images from file           *
+ *          Top-level functions for reading images from file           *
  *---------------------------------------------------------------------*/
 /*!
  *  pixaReadFiles()
@@ -258,6 +261,9 @@ PIX     *pix;
 }
 
 
+/*---------------------------------------------------------------------*
+ *                            Format finders                           *
+ *---------------------------------------------------------------------*/
 /*!
  *  findFileFormat()
  *
@@ -363,6 +369,36 @@ l_uint16  twobytepw;
 }
 
 
+/*!
+ *  fileFormatIsTiff()
+ *
+ *      Input:  fp
+ *      Return: 1 if file is tiff; 0 otherwise or on error
+ */
+l_int32
+fileFormatIsTiff(FILE  *fp)
+{
+l_int32  format;
+
+    PROCNAME("fileFormatIsTiff");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 0);
+
+    format = findFileFormat(fp);
+    if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
+        format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
+        format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
+        format == IFF_TIFF_ZIP)
+        return 1;
+    else
+        return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *             Test function for I/O with different formats            *
+ *---------------------------------------------------------------------*/
 /*!
  *  ioFormatTest()
  *
@@ -503,7 +539,7 @@ PIXCMAP  *cmap;
     }
     pixDestroy(&pixt);
 
-        /* tiff g4 and g3 work for 1 bpp */
+        /* tiff g4, g3, rle and packbits work for 1 bpp */
     if (d == 1) {
         L_INFO("write/read g4 compressed tiff", procName);
         pixWrite(FILE_G4, pixc, IFF_TIFF_G4);
@@ -521,6 +557,26 @@ PIXCMAP  *cmap;
         pixEqual(pixc, pixt, &equal);
         if (!equal) {
             L_INFO("   **** bad tiff g3 image ****", procName);
+            problems = TRUE;
+        }
+        pixDestroy(&pixt);
+
+        L_INFO("write/read rle compressed tiff", procName);
+        pixWrite(FILE_RLE, pixc, IFF_TIFF_RLE);
+        pixt = pixRead(FILE_RLE);
+        pixEqual(pixc, pixt, &equal);
+        if (!equal) {
+            L_INFO("   **** bad tiff rle image ****", procName);
+            problems = TRUE;
+        }
+        pixDestroy(&pixt);
+
+        L_INFO("write/read packbits compressed tiff", procName);
+        pixWrite(FILE_PB, pixc, IFF_TIFF_PACKBITS);
+        pixt = pixRead(FILE_PB);
+        pixEqual(pixc, pixt, &equal);
+        if (!equal) {
+            L_INFO("   **** bad tiff packbits image ****", procName);
             problems = TRUE;
         }
         pixDestroy(&pixt);

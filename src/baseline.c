@@ -41,7 +41,6 @@
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_PLOT          0
-#define  DISPLAY_BASELINES   0
 #endif  /* NO_CONSOLE_IO */
 
     /* Min to travel after finding max before abandoning peak */
@@ -75,6 +74,7 @@ static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
  *      Input:  pixs (1 bpp)
  *              &pta (<optional return> pairs of pts corresponding to
  *                    approx. ends of each text line)
+ *              debug (usually 0; set to 1 for debugging output)
  *      Return: na (of baseline y values), or null on error
  *
  *  Notes:
@@ -103,8 +103,9 @@ static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
  *          with the debug flag.
  */
 NUMA *
-pixFindBaselines(PIX   *pixs,
-                 PTA  **ppta)
+pixFindBaselines(PIX     *pixs,
+                 PTA    **ppta,
+                 l_int32  debug)
 {
 l_int32    w, h, i, j, nbox, val1, val2, ndiff, bx, by, bw, bh;
 l_int32    imaxloc, peakthresh, zerothresh, inpeak;
@@ -112,6 +113,7 @@ l_int32    mintosearch, max, maxloc, nloc, locval;
 l_int32   *array;
 l_float32  maxval;
 BOXA      *boxa1, *boxa2, *boxa3;
+GPLOT     *gplot;
 NUMA      *nasum, *nadiff, *naloc, *naval;
 PIX       *pixt1, *pixt2;
 PTA       *pta;
@@ -143,9 +145,8 @@ PTA       *pta;
         numaAddNumber(nadiff, val1 - val2);
     }
 
-#if  DEBUG_PLOT
-    gplotSimple1(nadiff, GPLOT_X11, "junkdiff", "difference");
-#endif   /* DEBUG_PLOT */
+    if (debug)  /* show the difference signal */
+        gplotSimple1(nadiff, GPLOT_X11, "junkdiff", "difference");
 
         /* Use the zeroes of the profile to locate each baseline. */
     array = numaGetIArray(nadiff);
@@ -189,15 +190,13 @@ PTA       *pta;
     }
     FREE(array);
 
-#if  DEBUG_PLOT
-{ GPLOT  *gplot;
-    gplot = gplotCreate("junkloc", GPLOT_X11, "Peak locations",
-                        "rasterline", "height");
-    gplotAddPlot(gplot, naloc, naval, GPLOT_POINTS, "locs");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
-}
-#endif   /* DEBUG_PLOT */
+    if (debug) {  /* show the raster locations for the peaks */
+        gplot = gplotCreate("junkloc", GPLOT_X11, "Peak locations",
+                            "rasterline", "height");
+        gplotAddPlot(gplot, naloc, naval, GPLOT_POINTS, "locs");
+        gplotMakeOutput(gplot);
+        gplotDestroy(&gplot);
+    }
                 
         /* Generate an approximate profile of text line width.
          * First, filter the boxes of text, where there may be
@@ -224,23 +223,22 @@ PTA       *pta;
       }
     }
 
-#if  DISPLAY_BASELINES
-{ PIX  *pixd;
-  l_int32  npts, x1, y1, x2, y2;
-    if (pta) {  /* display */
-        pixd = pixConvertTo32(pixs);
-        npts = ptaGetCount(pta);
-        for (i = 0; i < npts; i += 2) {
-            ptaGetIPt(pta, i, &x1, &y1);
-            ptaGetIPt(pta, i + 1, &x2, &y2);
-            pixRenderLineArb(pixd, x1, y1, x2, y2, 1, 255, 0, 0);
+    if (debug) {  /* display baselines */
+        PIX     *pixd; 
+        l_int32  npts, x1, y1, x2, y2;
+        if (pta) {
+            pixd = pixConvertTo32(pixs);
+            npts = ptaGetCount(pta);
+            for (i = 0; i < npts; i += 2) {
+                ptaGetIPt(pta, i, &x1, &y1);
+                ptaGetIPt(pta, i + 1, &x2, &y2);
+                pixRenderLineArb(pixd, x1, y1, x2, y2, 1, 255, 0, 0);
+            }
+            pixDisplay(pixd, 200, 200);
+            pixWrite("junkbaselines", pixd, IFF_PNG);
+            pixDestroy(&pixd);
         }
-        pixDisplay(pixd, 200, 200);
-/*        pixWrite("junkpixd", pixd, IFF_PNG); */
-        pixDestroy(&pixd);
     }
-}
-#endif  /* DISPLAY_BASELINES */
             
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);

@@ -15,16 +15,19 @@
 
 /*
  *  jpegio.c
- *                     
+ *
  *    Reading jpeg:
- *          PIX          *pixReadJpeg()  [ special top level ]
- *          PIX          *pixReadStreamJpeg()
+ *          PIX            *pixReadJpeg()  [ special top level ]
+ *          PIX            *pixReadStreamJpeg()
  *
  *    Writing jpeg:
- *          l_int32       pixWriteJpeg()  [ special top level ]
- *          l_int32       pixWriteStreamJpeg()
+ *          l_int32         pixWriteJpeg()  [ special top level ]
+ *          l_int32         pixWriteStreamJpeg()
  *
- *          static void   jpeg_error_do_not_exit();
+ *    Static helpers
+ *          static void     jpeg_error_do_not_exit()
+ *          static l_uint8  jpeg_getc()
+ *          static l_int32  jpeg_comment_callback()
  *
  *    Documentation: libjpeg.doc can be found, along with all
  *    source code, at ftp://ftp.uu.net/graphics/jpeg
@@ -51,10 +54,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "allheaders.h"
 
 static void jpeg_error_do_not_exit(j_common_ptr cinfo);
+static l_uint8 jpeg_getc(j_decompress_ptr cinfo);
+static l_int32 jpeg_comment_callback(j_decompress_ptr cinfo);
 static jmp_buf jpeg_jmpbuf;
 
 
@@ -70,7 +74,7 @@ static jmp_buf jpeg_jmpbuf;
  *                               palette image if color)
  *              reduction (scaling factor: 1, 2, 4 or 8)
  *             &pnwarn (<optional return> number of warnings about
- *                      corrupted data) 
+ *                      corrupted data)
  *      Return: pix, or null on error
  *
  *  Images reduced by factors of 2, 4 or 8 can be returned
@@ -87,10 +91,10 @@ static jmp_buf jpeg_jmpbuf;
  *        to exit (caught by our error handler) and no pix will be returned.
  */
 PIX *
-pixReadJpeg(const char *filename,
-            l_int32     cmflag,
-            l_int32     reduction,
-            l_int32    *pnwarn)
+pixReadJpeg(const char  *filename,
+            l_int32      cmflag,
+            l_int32      reduction,
+            l_int32     *pnwarn)
 {
 FILE  *fp;
 PIX   *pix;
@@ -125,7 +129,7 @@ PIX   *pix;
  *                             1 means create colormap and return 8 bpp
  *                               palette image if color)
  *              reduction (scaling factor: 1, 2, 4 or 8)
- *             &pnwarn (<optional return> number of warnings) 
+ *             &pnwarn (<optional return> number of warnings)
  *              hint: a bitwise OR of L_HINT_* values
  *      Return: pix, or null on error
  *
@@ -138,16 +142,18 @@ pixReadStreamJpeg(FILE     *fp,
                   l_int32  *pnwarn,
                   l_int32   hint)
 {
-l_uint8                        rval, gval, bval;
-l_int32                               i, j, k;
+l_uint8                        cyan, yellow, magenta, black, white;
+l_int32                        rval, gval, bval;
+l_int32                        i, j, k;
 l_int32                        w, h, wpl, spp, ncolors, cindex;
 l_uint32                      *data;
 l_uint32                      *line, *ppixel;
 JSAMPROW                       rowbuffer;
-PIX                               *pix;
+PIX                           *pix;
 PIXCMAP                       *cmap;
 struct jpeg_decompress_struct  cinfo;
 struct jpeg_error_mgr          jerr;
+l_uint8                       *comment = NULL;
 
     PROCNAME("pixReadStreamJpeg");
 
@@ -177,6 +183,9 @@ struct jpeg_error_mgr          jerr;
     jerr.error_exit = jpeg_error_do_not_exit; /* catch error; do not exit! */
 
     jpeg_create_decompress(&cinfo);
+
+    cinfo.client_data = &comment;
+    jpeg_set_marker_processor(&cinfo, JPEG_COM, jpeg_comment_callback);
     jpeg_stdio_src(&cinfo, fp);
     jpeg_read_header(&cinfo, TRUE);
     cinfo.scale_denom = reduction;
@@ -186,28 +195,37 @@ struct jpeg_error_mgr          jerr;
 
         /* Allocate the image and a row buffer */
     spp = cinfo.out_color_components;
-    if (spp != 1 && spp != 3)
-        return (PIX *)ERROR_PTR("spp must be 1 or 3", procName, NULL);
     w = cinfo.output_width;
     h = cinfo.output_height;
-    if ((spp == 3) && (cmflag == 0))  /* get full color pix */
-    {
-        if ((rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), spp * w)) == NULL)
-            return (PIX *)ERROR_PTR("rowbuffer not made", procName, NULL);
-        if ((pix = pixCreate(w, h, 32)) == NULL)
-            return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+    int ycck = (cinfo.jpeg_color_space == JCS_YCCK && spp == 4 && cmflag == 0);
+    if (spp != 1 && spp != 3 && !ycck) {
+        if (comment) FREE(comment);
+        return (PIX *)ERROR_PTR("spp must be 1 or 3 or YCCK", procName, NULL);
+    }
+    if ((spp == 3 && cmflag == 0) || ycck) {  /* rgb pix */
+        rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), spp * w);
+        pix = pixCreate(w, h, 32);
     }
     else {  /* 8 bpp gray or colormapped */
-        if ((rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), w)) == NULL)
-            return (PIX *)ERROR_PTR("rowbuffer not made", procName, NULL);
-        if ((pix = pixCreate(w, h, 8)) == NULL)
-            return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+        rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), w);
+        pix = pixCreate(w, h, 8);
+    }
+    if (!rowbuffer || !pix) {
+        if (comment) FREE(comment);
+	if (rowbuffer) FREE(rowbuffer);
+	pixDestroy(&pix);
+        return (PIX *)ERROR_PTR("rowbuffer or pix not made", procName, NULL);
+    }
+
+    if (comment) {
+        pixSetText(pix, (char *)comment);
+	FREE(comment);
     }
 
     if (spp == 1)  /* Grayscale or colormapped */
         jpeg_start_decompress(&cinfo);
-    else  {        /* Color; spp == 3 */
-        if (cmflag == 0) {   /* -- 24 bit color in 32 bit pix -- */
+    else  {        /* Color; spp == 3 or YCCK */
+        if (cmflag == 0) {   /* -- 24 bit color in 32 bit pix or CYYK -- */
             cinfo.quantize_colors = FALSE;
             jpeg_start_decompress(&cinfo);
         }
@@ -229,23 +247,47 @@ struct jpeg_error_mgr          jerr;
             pixSetColormap(pix, cmap);
         }
     }
-
     wpl  = pixGetWpl(pix);
     data = pixGetData(pix);
 
         /* Decompress */
-    if ((spp == 3) && (cmflag == 0))
-    {        /* -- 24 bit color -- */
+    if ((spp == 3 && cmflag == 0) || ycck) {   /* -- 24 bit color -- */
         for (i = 0; i < h; i++) {
             if (jpeg_read_scanlines(&cinfo, &rowbuffer, (JDIMENSION)1) != 1)
                 return (PIX *)ERROR_PTR("bad read scanline", procName, NULL);
             ppixel = data + i * wpl;
-            for (j = k = 0; j < w; j++)
-            {
-                SET_DATA_BYTE(ppixel, COLOR_RED, rowbuffer[k++]);
-                SET_DATA_BYTE(ppixel, COLOR_GREEN, rowbuffer[k++]);
-                SET_DATA_BYTE(ppixel, COLOR_BLUE, rowbuffer[k++]);
-                ppixel++;
+            if (spp == 3) {
+                for (j = k = 0; j < w; j++) {
+                    SET_DATA_BYTE(ppixel, COLOR_RED, rowbuffer[k++]);
+                    SET_DATA_BYTE(ppixel, COLOR_GREEN, rowbuffer[k++]);
+                    SET_DATA_BYTE(ppixel, COLOR_BLUE, rowbuffer[k++]);
+                    ppixel++;
+                }
+            } else {
+                    /* This is a conversion from CMYK -> RGB that ignores
+                       color profiles, and is invoked when the image header
+                       claims to be in YCCK colorspace.  libjpeg may be
+                       doing YCCK -> CMYK under the hood. To understand why
+                       the colors are inverted on read-in, see the "Special
+                       color spaces" section of "Using the IJG JPEG Library"
+                       by Thomas G. Lane.  */
+                for (j = k = 0; j < w; j++) {
+                    cyan = 255 - rowbuffer[k++];
+                    magenta = 255 - rowbuffer[k++];
+                    yellow = 255 - rowbuffer[k++];
+                    white = rowbuffer[k++];
+                    black = 255 - white;
+                    rval = 255 - (cyan    * white) / 255 - black;
+                    gval = 255 - (magenta * white) / 255 - black;
+                    bval = 255 - (yellow  * white) / 255 - black;
+                    rval = L_MIN(L_MAX(rval, 0), 255);
+                    gval = L_MIN(L_MAX(gval, 0), 255);
+                    bval = L_MIN(L_MAX(bval, 0), 255);
+                    SET_DATA_BYTE(ppixel, COLOR_RED, rval);
+                    SET_DATA_BYTE(ppixel, COLOR_GREEN, gval);
+                    SET_DATA_BYTE(ppixel, COLOR_BLUE, bval);
+                    ppixel++;
+                }
             }
         }
     }
@@ -298,10 +340,10 @@ struct jpeg_error_mgr          jerr;
  *      Return: 0 if OK; 1 on error
  */
 l_int32
-pixWriteJpeg(const char *filename, 
-             PIX        *pix, 
-             l_int32     quality,
-             l_int32     progressive)
+pixWriteJpeg(const char  *filename,
+             PIX         *pix,
+             l_int32      quality,
+             l_int32      progressive)
 {
 FILE  *fp;
 
@@ -334,14 +376,6 @@ FILE  *fp;
  *              progressive (0 for baseline sequential; 1 for progressive)
  *      Return: 0 if OK, 1 on error
  *
- *  Action: there are three possibilities
- *     (1) grayscale image, no colormap: compress as 8 bpp image.
- *     (2) 24 bpp full color image: copy each line into the color
- *         line buffer, and compress as three 8 bpp images.
- *     (3) 8 bpp colormapped image: convert each line to three
- *         8 bpp line images in the color line buffer, and
- *         compress as three 8 bpp images.
- *
  *  Notes:
  *      (1) Under the covers, the library transforms rgb to a
  *          luminence-chromaticity triple, each component of which is
@@ -350,6 +384,13 @@ FILE  *fp;
  *          for luminosity and a lower resolution one for the chromas.
  *      (2) Progressive encoding gives better compression, at the
  *          expense of slower encoding and decoding.
+ *      (3) There are three possibilities:
+ *          * Grayscale image, no colormap: compress as 8 bpp image.
+ *          * 24 bpp full color image: copy each line into the color
+ *            line buffer, and compress as three 8 bpp images.
+ *          * 8 bpp colormapped image: convert each line to three
+ *            8 bpp line images in the color line buffer, and
+ *            compress as three 8 bpp images.
  */
 l_int32
 pixWriteStreamJpeg(FILE    *fp,
@@ -404,7 +445,7 @@ const char                  *text;
         colorflg = 2;    /* 24 bpp rgb; no colormap */
     else if ((cmap = pixGetColormap(pix)) == NULL)
         colorflg = 0;    /* 8 bpp grayscale; no colormap */
-    else {   
+    else {
         colorflg = 1;    /* 8 bpp; colormap */
         pixcmapToArrays(cmap, &rmap, &gmap, &bmap);
     }
@@ -428,6 +469,10 @@ const char                  *text;
     }
 
     jpeg_set_defaults(&cinfo);
+
+        /* Setting optimize_coding to TRUE seems to improve compression
+	 * by approx 2-4 percent, and increases comp time by approx 20%. */
+    cinfo.optimize_coding = FALSE;
 
     xres = pixGetXRes(pix);
     yres = pixGetYRes(pix);
@@ -492,7 +537,6 @@ const char                  *text;
     }
 
     jpeg_destroy_compress(&cinfo);
-    
     return 0;
 }
 
@@ -507,4 +551,49 @@ static void jpeg_error_do_not_exit(j_common_ptr cinfo)
     jpeg_destroy(cinfo);
     longjmp(jpeg_jmpbuf, 0);
     return;
+}
+
+    /* This function was borrowed from libjpeg. */
+static l_uint8 jpeg_getc(j_decompress_ptr cinfo)
+{
+struct jpeg_source_mgr *datasrc;
+
+    datasrc = cinfo->src;
+    if (datasrc->bytes_in_buffer == 0) {
+        if (! (*datasrc->fill_input_buffer) (cinfo)) {
+            return 0;
+        }
+    }
+    datasrc->bytes_in_buffer--;
+    return GETJOCTET(*datasrc->next_input_byte++);
+}
+
+
+    /* This function is required for reading jpeg comments, and
+     * was contributed by Antony Dovgal. */
+static l_int32 jpeg_comment_callback(j_decompress_ptr cinfo)
+{
+l_int32    length, i;
+l_uint32   c;
+l_uint8  **comment;
+
+    comment = (l_uint8 **)cinfo->client_data;
+    length = jpeg_getc(cinfo) << 8;
+    length += jpeg_getc(cinfo);
+    length -= 2;
+
+    if (length <= 0)
+        return 1;
+
+    *comment = (l_uint8 *)MALLOC(length + 1);
+    if (!(*comment))
+        return 0;
+
+    for (i = 0; i < length; i++) {
+        c = jpeg_getc(cinfo);
+        (*comment)[i] = c;
+    }
+    (*comment)[length] = 0;
+
+    return 1;
 }

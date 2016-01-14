@@ -18,12 +18,13 @@
  *                     
  *      Pta generation for arbitrary shapes built with lines
  *
- *          PTA        *ptaGenerateLine()
- *          PTA        *ptaGenerateWideLine()
- *          PTA        *ptaGenerateBox()
- *          PTA        *ptaGenerateBoxa()
- *          PTA        *ptaGeneratePolyline()
- *          PTA        *ptaGenerateFilledCircle()
+ *          PTA        *generatePtaLine()
+ *          PTA        *generatePtaWideLine()
+ *          PTA        *generatePtaBox()
+ *          PTA        *generatePtaBoxa()
+ *          PTAA       *generatePtaaBoxa()
+ *          PTA        *generatePtaPolyline()
+ *          PTA        *generatePtaFilledCircle()
  *
  *      Pta rendering
  *
@@ -73,14 +74,14 @@
  *        Pta generation for arbitrary shapes built with lines      *
  *------------------------------------------------------------------*/
 /*!
- *  ptaGenerateLine()
+ *  generatePtaLine()
  *
  *      Input:  x1, y1  (end point 1)
  *              x2, y2  (end point 2)
  *      Return: pta, or null on error
  */
 PTA  *
-ptaGenerateLine(l_int32  x1,
+generatePtaLine(l_int32  x1,
                 l_int32  y1,
                 l_int32  x2,
                 l_int32  y2)
@@ -89,9 +90,9 @@ l_int32    npts, diff, getyofx, sign, i, x, y;
 l_float32  slope;
 PTA       *pta;
 
-    PROCNAME("ptaGenerateLine");
+    PROCNAME("generatePtaLine");
 
-        /* generate line parameters */
+        /* Generate line parameters */
     if (L_ABS(x2 - x1) >= L_ABS(y2 - y1)) {
         getyofx = TRUE;
         npts = L_ABS(x2 - x1) + 1;
@@ -115,7 +116,7 @@ PTA       *pta;
         return pta;
     }
 
-        /* generate the set of points */
+        /* Generate the set of points */
     if (getyofx) {  /* y = y(x) */
         for (i = 0; i < npts; i++) {
             x = x1 + sign * i;
@@ -136,14 +137,14 @@ PTA       *pta;
 
 
 /*!
- *  ptaGenerateWideLine()
+ *  generatePtaWideLine()
  *
  *      Input:  x1, y1  (end point 1)
  *              x2, y2  (end point 2)
  *      Return: ptaj, or null on error
  */
 PTA  *
-ptaGenerateWideLine(l_int32  x1,
+generatePtaWideLine(l_int32  x1,
                     l_int32  y1,
                     l_int32  x2,
                     l_int32  y2,
@@ -152,14 +153,14 @@ ptaGenerateWideLine(l_int32  x1,
 l_int32  i, x1a, x2a, y1a, y2a;
 PTA     *pta, *ptaj;
 
-    PROCNAME("ptaGenerateWideLine");
+    PROCNAME("generatePtaWideLine");
 
     if (width < 1) {
         L_WARNING("width < 1; setting to 1", procName);
         width = 1;
     }
 
-    if ((ptaj = ptaGenerateLine(x1, y1, x2, y2)) == NULL)
+    if ((ptaj = generatePtaLine(x1, y1, x2, y2)) == NULL)
         return (PTA *)ERROR_PTR("ptaj not made", procName, NULL);
     if (width == 1)
         return ptaj;
@@ -175,7 +176,7 @@ PTA     *pta, *ptaj;
                 y1a = y1 + (i + 1) / 2;
                 y2a = y2 + (i + 1) / 2;
             }
-            if ((pta = ptaGenerateLine(x1, y1a, x2, y2a)) == NULL)
+            if ((pta = generatePtaLine(x1, y1a, x2, y2a)) == NULL)
                 return (PTA *)ERROR_PTR("pta not made", procName, NULL);
             ptaJoin(ptaj, pta, 0, 0);
             ptaDestroy(&pta);
@@ -191,7 +192,7 @@ PTA     *pta, *ptaj;
                 x1a = x1 + (i + 1) / 2;
                 x2a = x2 + (i + 1) / 2;
             }
-            if ((pta = ptaGenerateLine(x1a, y1, x2a, y2)) == NULL)
+            if ((pta = generatePtaLine(x1a, y1, x2a, y2)) == NULL)
                 return (PTA *)ERROR_PTR("pta not made", procName, NULL);
             ptaJoin(ptaj, pta, 0, 0);
             ptaDestroy(&pta);
@@ -203,7 +204,7 @@ PTA     *pta, *ptaj;
 
 
 /*!
- *  ptaGenerateBox()
+ *  generatePtaBox()
  *
  *      Input:  box
  *              width
@@ -214,13 +215,13 @@ PTA     *pta, *ptaj;
  *          overlapping lines, there is no need to remove duplicates.
  */
 PTA  *
-ptaGenerateBox(BOX     *box,
+generatePtaBox(BOX     *box,
                l_int32  width)
 {
 l_int32  x, y, w, h;
 PTA     *ptad, *pta;
 
-    PROCNAME("ptaGenerateBox");
+    PROCNAME("generatePtaBox");
 
     if (!box)
         return (PTA *)ERROR_PTR("box not defined", procName, NULL);
@@ -229,38 +230,38 @@ PTA     *ptad, *pta;
     boxGetGeometry(box, &x, &y, &w, &h);
     ptad = ptaCreate(0);
     if ((width & 1) == 1) {   /* odd width */
-        pta = ptaGenerateWideLine(x - width / 2, y,
+        pta = generatePtaWideLine(x - width / 2, y,
                                   x + w - 1 + width / 2, y, width);
         ptaJoin(ptad, pta, 0, 0);
         ptaDestroy(&pta);
-        pta = ptaGenerateWideLine(x - width / 2, y + h - 1,
-                                  x + w - 1 + width / 2, y + h - 1, width);
-        ptaJoin(ptad, pta, 0, 0);
-        ptaDestroy(&pta);
-        pta = ptaGenerateWideLine(x, y + 1 + width / 2,
-                                  x, y + h - 2 - width / 2, width);
-        ptaJoin(ptad, pta, 0, 0);
-        ptaDestroy(&pta);
-        pta = ptaGenerateWideLine(x + w - 1, y + 1 + width / 2,
+        pta = generatePtaWideLine(x + w - 1, y + 1 + width / 2,
                                   x + w - 1, y + h - 2 - width / 2, width);
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = generatePtaWideLine(x + w - 1 + width / 2, y + h - 1,
+                                  x - width / 2, y + h - 1, width);
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = generatePtaWideLine(x, y + h - 2 - width / 2,
+                                  x, y + 1 + width / 2, width);
         ptaJoin(ptad, pta, 0, 0);
         ptaDestroy(&pta);
     }
     else {   /* even width */
-        pta = ptaGenerateWideLine(x - width / 2, y,
+        pta = generatePtaWideLine(x - width / 2, y,
                                   x + w - 2 + width / 2, y, width);
         ptaJoin(ptad, pta, 0, 0);
         ptaDestroy(&pta);
-        pta = ptaGenerateWideLine(x - width / 2, y + h - 1,
-                                  x + w - 2 + width / 2, y + h - 1, width);
-        ptaJoin(ptad, pta, 0, 0);
-        ptaDestroy(&pta);
-        pta = ptaGenerateWideLine(x, y + 0 + width / 2,
-                                  x, y + h - 2 - width / 2, width);
-        ptaJoin(ptad, pta, 0, 0);
-        ptaDestroy(&pta);
-        pta = ptaGenerateWideLine(x + w - 1, y + 0 + width / 2,
+        pta = generatePtaWideLine(x + w - 1, y + 0 + width / 2,
                                   x + w - 1, y + h - 2 - width / 2, width);
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = generatePtaWideLine(x + w - 2 + width / 2, y + h - 1,
+                                  x - width / 2, y + h - 1, width);
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = generatePtaWideLine(x, y + h - 2 - width / 2,
+                                  x, y + 0 + width / 2, width);
         ptaJoin(ptad, pta, 0, 0);
         ptaDestroy(&pta);
     }
@@ -270,7 +271,7 @@ PTA     *ptad, *pta;
 
 
 /*!
- *  ptaGenerateBoxa()
+ *  generatePtaBoxa()
  *
  *      Input:  boxa
  *              width
@@ -284,7 +285,7 @@ PTA     *ptad, *pta;
  *          removedups = 1.
  */
 PTA  *
-ptaGenerateBoxa(BOXA    *boxa,
+generatePtaBoxa(BOXA    *boxa,
                 l_int32  width,
                 l_int32  removedups)
 {
@@ -292,7 +293,7 @@ l_int32  i, n;
 BOX     *box;
 PTA     *ptad, *ptat, *pta;
 
-    PROCNAME("ptaGenerateBoxa");
+    PROCNAME("generatePtaBoxa");
 
     if (!boxa)
         return (PTA *)ERROR_PTR("boxa not defined", procName, NULL);
@@ -301,7 +302,7 @@ PTA     *ptad, *ptat, *pta;
     ptat = ptaCreate(0);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
-        pta = ptaGenerateBox(box, width);
+        pta = generatePtaBox(box, width);
         ptaJoin(ptat, pta, 0, 0);
         ptaDestroy(&pta);
         boxDestroy(&box);
@@ -318,7 +319,50 @@ PTA     *ptad, *ptat, *pta;
 
 
 /*!
- *  ptaGeneratePolyline()
+ *  generatePtaaBoxa()
+ *
+ *      Input:  boxa
+ *      Return: ptaa, or null on error
+ *
+ *  Notes:
+ *      (1) This generates a pta of the four corners for each box in
+ *          the boxa.
+ *      (2) Each of these pta can be rendered onto a pix with random colors,
+ *          by using pixRenderRandomCmapPtaa() with closeflag = 1.
+ */
+PTAA  *
+generatePtaaBoxa(BOXA  *boxa)
+{
+l_int32  i, n, x, y, w, h;
+BOX     *box;
+PTA     *pta;
+PTAA    *ptaa;
+
+    PROCNAME("generatePtaaBoxa");
+
+    if (!boxa)
+        return (PTAA *)ERROR_PTR("boxa not defined", procName, NULL);
+
+    n = boxaGetCount(boxa);
+    ptaa = ptaaCreate(n);
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        boxGetGeometry(box, &x, &y, &w, &h);
+        pta = ptaCreate(4);
+        ptaAddPt(pta, x, y);
+        ptaAddPt(pta, x + w - 1, y);
+        ptaAddPt(pta, x + w - 1, y + h - 1);
+        ptaAddPt(pta, x, y + h - 1);
+        ptaaAddPta(ptaa, pta, L_INSERT);
+        boxDestroy(&box);
+    }
+
+    return ptaa;
+}
+
+
+/*!
+ *  generatePtaPolyline()
  *
  *      Input:  pta (vertices of polyline)
  *              width
@@ -333,7 +377,7 @@ PTA     *ptad, *ptat, *pta;
  *          removedups = 1.
  */
 PTA  *
-ptaGeneratePolyline(PTA     *ptas,
+generatePtaPolyline(PTA     *ptas,
                     l_int32  width,
                     l_int32  closeflag,
                     l_int32  removedups)
@@ -341,7 +385,7 @@ ptaGeneratePolyline(PTA     *ptas,
 l_int32  i, n, x1, y1, x2, y2;
 PTA     *ptad, *ptat, *pta;
 
-    PROCNAME("ptaGeneratePolyline");
+    PROCNAME("generatePtaPolyline");
 
     if (!ptas)
         return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
@@ -354,7 +398,7 @@ PTA     *ptad, *ptat, *pta;
     ptaGetIPt(ptas, 0, &x1, &y1);
     for (i = 1; i < n; i++) {
         ptaGetIPt(ptas, i, &x2, &y2);
-        pta = ptaGenerateWideLine(x1, y1, x2, y2, width);
+        pta = generatePtaWideLine(x1, y1, x2, y2, width);
         ptaJoin(ptat, pta, 0, 0);
         ptaDestroy(&pta);
         x1 = x2;
@@ -363,7 +407,7 @@ PTA     *ptad, *ptat, *pta;
 
     if (closeflag) {
         ptaGetIPt(ptas, 0, &x2, &y2);
-        pta = ptaGenerateWideLine(x1, y1, x2, y2, width);
+        pta = generatePtaWideLine(x1, y1, x2, y2, width);
         ptaJoin(ptat, pta, 0, 0);
         ptaDestroy(&pta);
     }
@@ -379,7 +423,7 @@ PTA     *ptad, *ptat, *pta;
 
 
 /*!
- *  ptaGenerateFilledCircle()
+ *  generatePtaFilledCircle()
  *
  *      Input:  radius
  *      Return: pta, or null on error
@@ -392,13 +436,13 @@ PTA     *ptad, *ptat, *pta;
  *          it is to represent a set of pixels in an image.
  */
 PTA  *
-ptaGenerateFilledCircle(l_int32  radius)
+generatePtaFilledCircle(l_int32  radius)
 {
 l_int32    x, y;
 l_float32  radthresh, sqdist;
 PTA       *pta;
 
-    PROCNAME("ptaGenerateFilledCircle");
+    PROCNAME("generatePtaFilledCircle");
 
     if (radius < 1)
         return (PTA *)ERROR_PTR("radius must be >= 1", procName, NULL);
@@ -688,7 +732,7 @@ PTA  *pta;
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
         return ERROR_INT("invalid op", procName, 1);
 
-    if ((pta = ptaGenerateWideLine(x1, y1, x2, y2, width)) == NULL)
+    if ((pta = generatePtaWideLine(x1, y1, x2, y2, width)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
@@ -728,7 +772,7 @@ PTA  *pta;
         width = 1;
     }
 
-    if ((pta = ptaGenerateWideLine(x1, y1, x2, y2, width)) == NULL)
+    if ((pta = generatePtaWideLine(x1, y1, x2, y2, width)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
@@ -770,7 +814,7 @@ PTA  *pta;
         width = 1;
     }
 
-    if ((pta = ptaGenerateWideLine(x1, y1, x2, y2, width)) == NULL)
+    if ((pta = generatePtaWideLine(x1, y1, x2, y2, width)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
@@ -804,7 +848,7 @@ PTA  *pta;
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
         return ERROR_INT("invalid op", procName, 1);
 
-    if ((pta = ptaGenerateBox(box, width)) == NULL)
+    if ((pta = generatePtaBox(box, width)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
@@ -838,7 +882,7 @@ PTA  *pta;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
 
-    if ((pta = ptaGenerateBox(box, width)) == NULL)
+    if ((pta = generatePtaBox(box, width)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
@@ -875,7 +919,7 @@ PTA  *pta;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
 
-    if ((pta = ptaGenerateBox(box, width)) == NULL)
+    if ((pta = generatePtaBox(box, width)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
@@ -909,7 +953,7 @@ PTA  *pta;
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
         return ERROR_INT("invalid op", procName, 1);
 
-    if ((pta = ptaGenerateBoxa(boxa, width, 0)) == NULL)
+    if ((pta = generatePtaBoxa(boxa, width, 0)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
@@ -943,7 +987,7 @@ PTA  *pta;
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 
-    if ((pta = ptaGenerateBoxa(boxa, width, 0)) == NULL)
+    if ((pta = generatePtaBoxa(boxa, width, 0)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
@@ -982,7 +1026,7 @@ PTA  *pta;
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 
-    if ((pta = ptaGenerateBoxa(boxa, width, removedups)) == NULL)
+    if ((pta = generatePtaBoxa(boxa, width, removedups)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
@@ -1020,7 +1064,7 @@ PTA  *pta;
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
         return ERROR_INT("invalid op", procName, 1);
 
-    if ((pta = ptaGeneratePolyline(ptas, width, closeflag, 0)) == NULL)
+    if ((pta = generatePtaPolyline(ptas, width, closeflag, 0)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
@@ -1058,7 +1102,7 @@ PTA  *pta;
     if (!ptas)
         return ERROR_INT("ptas not defined", procName, 1);
 
-    if ((pta = ptaGeneratePolyline(ptas, width, closeflag, 0)) == NULL)
+    if ((pta = generatePtaPolyline(ptas, width, closeflag, 0)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
@@ -1099,7 +1143,7 @@ PTA  *pta;
     if (!ptas)
         return ERROR_INT("ptas not defined", procName, 1);
 
-    if ((pta = ptaGeneratePolyline(ptas, width, closeflag, removedups)) == NULL)
+    if ((pta = generatePtaPolyline(ptas, width, closeflag, removedups)) == NULL)
         return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
@@ -1153,7 +1197,7 @@ PIX      *pixd;
         index = 1 + (i % 255);
         pixcmapGetColor(cmap, index, &rval, &gval, &bval);
         pta = ptaaGetPta(ptaa, i, L_CLONE);
-        ptat = ptaGeneratePolyline(pta, width, closeflag, 0);
+        ptat = generatePtaPolyline(pta, width, closeflag, 0);
         pixRenderPtaArb(pixd, ptat, rval, gval, bval);
         ptaDestroy(&pta);
         ptaDestroy(&ptat);
@@ -1162,7 +1206,7 @@ PIX      *pixd;
     return pixd;
 }
 
-        
+
 /*------------------------------------------------------------------*
  *             Contour rendering on grayscale images                *
  *------------------------------------------------------------------*/

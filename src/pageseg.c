@@ -17,19 +17,15 @@
  *   pageseg.c
  *
  *      Top level page segmentation
- *
  *          l_int32   pixGetRegionsBinary()
  *
  *      Halftone region extraction
- *
  *          PIX      *pixGenHalftoneMask()
  *
  *      Textline extraction
- *
  *          PIX      *pixGenTextlineMask()
  *
  *      Textblock extraction
- *
  *          PIX      *pixGenTextblockMask()
  */
 

@@ -490,6 +490,8 @@ PIX            *pixt;
  *      (4) This function uses a static internal variable to number
  *          output files written by a single process.  Behavior
  *          with a shared library may be unpredictable.
+ *      (5) Output is png if d < 8 or if the output pix has a colormap.
+ *          Otherwise, output is jpg.
  */
 l_int32
 pixDisplayWrite(PIX     *pixs,
@@ -529,7 +531,7 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
             pixt = pixScale(pixs, scale, scale);
     }
 
-    if (pixGetDepth(pixt) < 8) {
+    if (pixGetDepth(pixt) < 8 || pixGetColormap(pixt)) {
         snprintf(buffer, L_BUF_SIZE, "junk_write_display.%03d.png", index);
         pixWrite(buffer, pixt, IFF_PNG);
     }

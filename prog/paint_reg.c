@@ -38,16 +38,16 @@ static char  mainName[] = "paint_reg";
 
     if ((pixs = pixRead("lucasta-frag.jpg")) == NULL)
         exit(ERROR_INT("pixs not made", mainName, 1));
+    pixDisplayWrite(NULL, -1);
+    pixDisplayWrite(pixs, 1);
 
         /* Color non-white pixels on RGB */
     pixt = pixConvert8To32(pixs);
     box = boxCreate(120, 30, 200, 200);
     pixColorGray(pixt, box, L_PAINT_DARK, 220, 0, 0, 255);
-    pixWrite("junkpixt1.jpg", pixt, IFF_JFIF_JPEG);
-    pixDisplay(pixt, 0, 0);
+    pixDisplayWrite(pixt, 1);
     pixColorGray(pixt, NULL, L_PAINT_DARK, 220, 255, 100, 100);
-    pixWrite("junkpixt2.jpg", pixt, IFF_JFIF_JPEG);
-    pixDisplay(pixt, 200, 0);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
     boxDestroy(&box);
 
@@ -55,11 +55,9 @@ static char  mainName[] = "paint_reg";
     pixt = pixThresholdTo4bpp(pixs, 6, 1);
     box = boxCreate(120, 30, 200, 200);
     pixColorGray(pixt, box, L_PAINT_DARK, 220, 0, 0, 255);
-    pixWrite("junkpixt3.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 400, 0);
+    pixDisplayWrite(pixt, 1);
     pixColorGray(pixt, NULL, L_PAINT_DARK, 220, 255, 100, 100);
-    pixWrite("junkpixt4.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 0, 150);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
     boxDestroy(&box);
 
@@ -67,11 +65,9 @@ static char  mainName[] = "paint_reg";
     pixt = pixConvert8To32(pixs);
     box = boxCreate(120, 30, 200, 200);
     pixColorGray(pixt, box, L_PAINT_LIGHT, 20, 0, 0, 255);
-    pixWrite("junkpixt5.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 200, 150);
+    pixDisplayWrite(pixt, 1);
     pixColorGray(pixt, NULL, L_PAINT_LIGHT, 80, 255, 100, 100);
-    pixWrite("junkpixt6.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 400, 150);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
     boxDestroy(&box);
 
@@ -79,11 +75,9 @@ static char  mainName[] = "paint_reg";
     pixt = pixThresholdTo4bpp(pixs, 6, 1);
     box = boxCreate(120, 30, 200, 200);
     pixColorGray(pixt, box, L_PAINT_LIGHT, 20, 0, 0, 255);
-    pixWrite("junkpixt7.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 0, 300);
+    pixDisplayWrite(pixt, 1);
     pixColorGray(pixt, NULL, L_PAINT_LIGHT, 20, 255, 100, 100);
-    pixWrite("junkpixt8.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 200, 300);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
     boxDestroy(&box);
 
@@ -93,8 +87,7 @@ static char  mainName[] = "paint_reg";
     pixg = pixClipRectangle(pixs, box, NULL);
     pixb = pixThresholdToBinary(pixg, 180);
     pixInvert(pixb, pixb);
-    pixWrite("junkpixb.png", pixb, IFF_PNG);
-    pixDisplay(pixb, 800, 1000);
+    pixDisplayWrite(pixb, 1);
     composeRGBPixel(50, 0, 250, &val32);
     pixPaintThroughMask(pixt, pixb, box->x, box->y, val32);
     boxDestroy(&box);
@@ -118,8 +111,7 @@ static char  mainName[] = "paint_reg";
     boxDestroy(&box);
     pixDestroy(&pixg);
     pixDestroy(&pixb);
-    pixWrite("junkpixt9.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 400, 300);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
 
         /* Add highlight color to colormap */
@@ -135,8 +127,7 @@ static char  mainName[] = "paint_reg";
     box = boxCreate(222, 208, 247, 43);
     pixSetSelectCmap(pixt, box, index, 60, 250, 60);
     boxDestroy(&box);
-    pixWrite("junkpixt10.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 0, 450);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
 
         /* Paint lines on RGB */
@@ -145,8 +136,7 @@ static char  mainName[] = "paint_reg";
     pixRenderLineArb(pixt, 30, 40, 440, 40, 5, 100, 200, 25);
     box = boxCreate(70, 80, 300, 245);
     pixRenderBoxArb(pixt, box, 3, 200, 200, 25);
-    pixWrite("junkpixt11.jpg", pixt, IFF_JFIF_JPEG);
-    pixDisplay(pixt, 200, 450);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
     boxDestroy(&box);
 
@@ -156,8 +146,7 @@ static char  mainName[] = "paint_reg";
     pixRenderLineArb(pixt, 30, 40, 440, 40, 5, 100, 200, 25);
     box = boxCreate(70, 80, 300, 245);
     pixRenderBoxArb(pixt, box, 3, 200, 200, 25);
-    pixWrite("junkpixt12.png", pixt, IFF_PNG);
-    pixDisplay(pixt, 400, 450);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
     boxDestroy(&box);
 
@@ -167,12 +156,13 @@ static char  mainName[] = "paint_reg";
     pixRenderLineBlend(pixt, 30, 40, 440, 40, 5, 100, 200, 25, 0.35);
     box = boxCreate(70, 80, 300, 245);
     pixRenderBoxBlend(pixt, box, 3, 200, 200, 25, 0.6);
-    pixWrite("junkpixt13.jpg", pixt, IFF_JFIF_JPEG);
-    pixDisplay(pixt, 0, 550);
+    pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
     boxDestroy(&box);
 
     pixDestroy(&pixs);
+    system("gthumb junk_write_display* &");
+    return 0;
 }
 
 

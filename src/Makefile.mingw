@@ -123,7 +123,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 50
+MINOR_REV = 52
 
 #########################################################
 
@@ -159,7 +159,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		morph.c morphapp.c morphdwa.c morphseq.c \
 		numabasic.c numafunc.c \
 		pageseg.c paintcmap.c \
-		parseprotos.c pheap.c \
+		parseprotos.c partition.c pheap.c \
 		pix1.c pix2.c pix3.c pixabasic.c \
 		pixacc.c pixafunc.c pixarith.c pixconv.c \
 		pngio.c pnmio.c pqueue.c \

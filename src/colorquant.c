@@ -2401,8 +2401,8 @@ NUMA       *na;
 
     if ((na = numaCreate(size)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
-    na->n = size;  /* fake storage of n zeroes */
-    array = na->array;  /* don't do this at home */
+    numaSetCount(na, size);
+    array = numaGetFArray(na, L_NOCOPY);
 
     for (i = 0; i < h; i++) {
         line = data + i * wpl;

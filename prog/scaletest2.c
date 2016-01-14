@@ -131,7 +131,7 @@ PIX *pixt1, *pixt2;
     fprintf(stderr, "fast scale: %5.3f sec\n", stopTimer());
     pixDisplay(pixt1, 0, 0);
     pixWrite("junkout1", pixt1, IFF_PNG);
-    pixt2 = pixUnsharpMask(pixt1, 1, 0.3);
+    pixt2 = pixUnsharpMasking(pixt1, 1, 0.3);
     pixWrite("junkout2", pixt2, IFF_PNG);
     pixDisplay(pixt2, 200, 0);
 }
@@ -139,7 +139,7 @@ PIX *pixt1, *pixt2;
 
 
         /* Test a large range of scale-to-gray reductions */
-#if 1
+#if 0
     for (i = 2; i < 15; i++) {
         scale = 1. / (l_float32)i;
 	startTimer();
@@ -199,7 +199,7 @@ l_float32 FRACT = 1.0;
     fprintf(stderr, "fast scale: %5.3f sec\n", stopTimer());
     pixDisplay(pixt1, 0, 0);
     pixWrite("junkout1", pixt1, IFF_PNG);
-    pixt2 = pixUnsharpMask(pixt1, 1, 0.3);
+    pixt2 = pixUnsharpMasking(pixt1, 1, 0.3);
     pixDisplay(pixt2, 150, 0);
 
     startTimer();
@@ -210,7 +210,7 @@ l_float32 FRACT = 1.0;
     pixWrite("junkout4", pixt4, IFF_PNG);
 
     startTimer();
-    pixt5 = pixUnsharpMask(pixs, smooth, FRACT);
+    pixt5 = pixUnsharpMasking(pixs, smooth, FRACT);
     pixt6 = pixBlockconv(pixt5, smooth, smooth);
     pixt7 = pixScaleBySampling(pixt6, SCALING, SCALING);
     fprintf(stderr, "very slow scale + sharp: %5.3f sec\n", stopTimer());
@@ -232,10 +232,10 @@ l_float32 FRACT = 1.0;
         /* Test the color scaling function, comparing the
 	 * special case of scaling factor 2.0 with the 
 	 * general case. */
-#if 0
+#if 1
     {
-    PIX    *pix1, *pix2, *pixr, *pixg, *pixb;
-    NUMA   *nared, *nagreen, *nablue, *naseq;
+    PIX    *pix1, *pix2;
+    NUMA   *nar, *nag, *nab, *naseq;
     GPLOT  *gplot;
 
     startTimer();
@@ -248,32 +248,75 @@ l_float32 FRACT = 1.0;
     pixWrite("junkcolor2", pix2, IFF_JFIF_JPEG);
 
     pixd = pixAbsDifference(pix1, pix2);
-    pixr = pixGetRGBComponent(pixd, COLOR_RED);
-    nared = pixGrayHistogram(pixr);
-    pixg = pixGetRGBComponent(pixd, COLOR_GREEN);
-    nagreen = pixGrayHistogram(pixg);
-    pixb = pixGetRGBComponent(pixd, COLOR_BLUE);
-    nablue = pixGrayHistogram(pixb);
+    pixGetColorHistogram(pixd, 1, &nar, &nag, &nab);
     naseq = numaMakeSequence(0., 1., 256);
-    gplot = gplotCreate(naseq, nared, "absdiff",
-    GPLOT_X11, GPLOT_POINTS, "Number vs diff",
-    "red", "diff", "number");
-    gplotAddPlot(gplot, naseq, nagreen, GPLOT_POINTS, "green");
-    gplotAddPlot(gplot, naseq, nablue, GPLOT_POINTS, "blue");
+    gplot = gplotCreate("junk_c_absdiff", GPLOT_X11, "Number vs diff",
+        "diff", "number");
+    gplotSetScaling(gplot, GPLOT_LOG_SCALE_Y);
+    gplotAddPlot(gplot, naseq, nar, GPLOT_POINTS, "red");
+    gplotAddPlot(gplot, naseq, nag, GPLOT_POINTS, "green");
+    gplotAddPlot(gplot, naseq, nab, GPLOT_POINTS, "blue");
     gplotMakeOutput(gplot);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pixr);
-    pixDestroy(&pixg);
-    pixDestroy(&pixb);
     pixDestroy(&pixd);
     numaDestroy(&naseq);
-    numaDestroy(&nared);
-    numaDestroy(&nagreen);
-    numaDestroy(&nablue);
+    numaDestroy(&nar);
+    numaDestroy(&nag);
+    numaDestroy(&nab);
     gplotDestroy(&gplot);
     }
 #endif
+
+        /* Test the gray LI scaling function, comparing the
+	 * special cases of scaling factor 2.0 and 4.0 with the 
+	 * general case */
+#if 1
+    {
+    PIX    *pixt, *pix0, *pix1, *pix2;
+    NUMA   *nagray, *naseq;
+    GPLOT  *gplot;
+
+    pixt = pixConvertRGBToGray(pixs, 0.33, 0.34, 0.33);
+    pix0 = pixScaleGrayLI(pixt, 0.5, 0.5);
+
+#if 1
+    startTimer();
+    pix1 = pixScaleGrayLI(pix0, 2.00001, 2.0);
+    fprintf(stderr, " Time with regular LI 2x: %7.3f\n", stopTimer());
+    startTimer();
+    pix2 = pixScaleGrayLI(pix0, 2.0, 2.0);
+    fprintf(stderr, " Time with 2x LI: %7.3f\n", stopTimer());
+#else
+    startTimer();
+    pix1 = pixScaleGrayLI(pix0, 4.00001, 4.0);
+    fprintf(stderr, " Time with regular LI 4x: %7.3f\n", stopTimer());
+    startTimer();
+    pix2 = pixScaleGrayLI(pix0, 4.0, 4.0);
+    fprintf(stderr, " Time with 2x LI: %7.3f\n", stopTimer());
+#endif
+    pixWrite("junkgray1", pix1, IFF_JFIF_JPEG);
+    pixWrite("junkgray2", pix2, IFF_JFIF_JPEG);
+
+    pixd = pixAbsDifference(pix1, pix2);
+    nagray = pixGetGrayHistogram(pixd, 1);
+    naseq = numaMakeSequence(0., 1., 256);
+    gplot = gplotCreate("junk_g_absdiff", GPLOT_X11, "Number vs diff",
+        "diff", "number");
+    gplotSetScaling(gplot, GPLOT_LOG_SCALE_Y);
+    gplotAddPlot(gplot, naseq, nagray, GPLOT_POINTS, "gray");
+    gplotMakeOutput(gplot);
+    pixDestroy(&pixt);
+    pixDestroy(&pix0);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pixd);
+    numaDestroy(&naseq);
+    numaDestroy(&nagray);
+    gplotDestroy(&gplot);
+    }
+#endif
+
 
     pixDestroy(&pixs);
     exit(0);

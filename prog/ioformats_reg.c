@@ -108,13 +108,15 @@ static char  mainName[] = "ioformats_reg";
         pix = pixaGetPix(pixa, i, L_CLONE);
 	d = pixGetDepth(pix);
         fprintf(stderr, "%d bpp\n", d);
-	if (i == 0) {
-            pixWrite("junkpb.tif", pix, IFF_TIFF_PACKBITS);
+	if (i == 0) {   /* 1 bpp */
             pixWrite("junkg3.tif", pix, IFF_TIFF_G3);
             pixWrite("junkg4.tif", pix, IFF_TIFF_G4);
-	    if (testcomp("junkpb.tif", pix, IFF_TIFF_PACKBITS)) success = FALSE;
+            pixWrite("junkrle.tif", pix, IFF_TIFF_RLE);
+            pixWrite("junkpb.tif", pix, IFF_TIFF_PACKBITS);
 	    if (testcomp("junkg3.tif", pix, IFF_TIFF_G3)) success = FALSE;
 	    if (testcomp("junkg4.tif", pix, IFF_TIFF_G4)) success = FALSE;
+	    if (testcomp("junkrle.tif", pix, IFF_TIFF_RLE)) success = FALSE;
+	    if (testcomp("junkpb.tif", pix, IFF_TIFF_PACKBITS)) success = FALSE;
 	}
         pixWrite("junklzw.tif", pix, IFF_TIFF_LZW);
         pixWrite("junkzip.tif", pix, IFF_TIFF_ZIP);
@@ -142,22 +144,25 @@ testcomp(const char  *filename,
          PIX         *pix,
          l_int32      comptype)
 {
-l_int32  format, same;
+l_int32  format, sameformat, sameimage;
 FILE    *fp;
 PIX     *pixt;
 
     fp = fopen(filename, "r");
     format = findFileFormat(fp);
-    if (format != comptype)
+    sameformat = TRUE;
+    if (format != comptype) {
         fprintf(stderr, "File %s has format %d, not comptype %d\n",
                 filename, format, comptype);
+        sameformat = FALSE;
+    }
     fclose(fp);
     pixt = pixRead(filename);
-    pixEqual(pix, pixt, &same);
+    pixEqual(pix, pixt, &sameimage);
     pixDestroy(&pixt);
-    if (!same)
+    if (!sameimage)
         fprintf(stderr, "Write/read fail for file %s with format %d\n",
                 filename, format);
-    return !same;
+    return (!sameformat || !sameimage);
 }
 

@@ -32,6 +32,7 @@
  *
  *      Numa accessors
  *          l_int32      numaGetCount()
+ *          l_int32      numaSetCount()
  *          l_int32      numaGetIValue()
  *          l_int32      numaGetFValue()
  *          l_int32      numaSetValue()
@@ -442,6 +443,40 @@ numaGetCount(NUMA  *na)
         
 
 /*!
+ *  numaSetCount()
+ *
+ *      Input:  na
+ *              newcount
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) If newcount <= na->nalloc, this resets na->n.
+ *          Using newcount = 0 is equivalent to numaEmpty().
+ *      (2) If newcount > na->nalloc, this causes a realloc
+ *          to a size na->nalloc = newcount.
+ *      (3) All the previously unused values in na are set to 0.0.
+ */
+l_int32
+numaSetCount(NUMA    *na,
+             l_int32  newcount)
+{
+    PROCNAME("numaSetCount");
+
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (newcount > na->nalloc) {
+        if ((na->array = (l_float32 *)reallocNew((void **)&na->array,
+                         sizeof(l_float32) * na->nalloc,
+                         sizeof(l_float32) * newcount)) == NULL)
+            return ERROR_INT("new ptr array not returned", procName, 1);
+        na->nalloc = newcount;
+    }
+    na->n = newcount;
+    return 0;
+}
+        
+
+/*!
  *  numaGetFValue()
  *
  *      Input:  na
@@ -573,14 +608,12 @@ l_int32  *array;
  *      (1) If copyflag == L_COPY, it makes a copy which the caller
  *          is responsible for freeing.  Otherwise, it operates
  *          directly on the bare array of the numa.
- *      (2) Very important: remember that the count field is, in general,
- *          less than the size of the array (the alloc field).  If
- *          you are accessing the bare array of a numa, you must be
- *          sure that the count field equals the size of the array.
- *          Otherwise, operations on array elements beyond the count
- *          will not be accessable from the numa.  If the count field
- *          is less than the array size, it is increased to the array size
- *          and a warning is issued.
+ *      (2) Very important: for L_NOCOPY, any writes to the array
+ *          will be in the numa.  Do not write beyond the size of
+ *          the count field, because it will not be accessable
+ *          from the numa!  If necessary, be sure to set the count
+ *          the count field to a larger number (such as the alloc
+ *          size) BEFORE calling this function.
  */
 l_float32 *
 numaGetFArray(NUMA    *na,
@@ -595,13 +628,8 @@ l_float32  *array;
         return (l_float32 *)ERROR_PTR("na not defined", procName, NULL);
 
     n = numaGetCount(na);
-    if (copyflag == L_NOCOPY) {
-        if (n < na->nalloc) { 
-            na->n = na->nalloc;
-            L_WARNING("count field increased to nalloc!", procName);
-        }
+    if (copyflag == L_NOCOPY)
         array = na->array;
-    }
     else {  /* copyflag == L_COPY */
         if ((array = (l_float32 *)CALLOC(n, sizeof(l_float32))) == NULL)
             return (l_float32 *)ERROR_PTR("array not made", procName, NULL);

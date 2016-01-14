@@ -25,6 +25,10 @@
  *           l_int32   boxIntersects()
  *           BOXA     *boxaContainedInBox()
  *           BOXA     *boxaIntersectsBox()
+ *           BOX      *boxOverlapRegion()
+ *           l_int32   boxOverlapFraction()
+ *           BOX      *boxaGetNearestToPoint()
+ *           l_int32   boxGetCentroid()
  *           BOX      *boxClipToRectangle()
  *
  *      Boxa combination
@@ -36,6 +40,9 @@
  *           BOXA     *boxaSelectBySize()
  *           NUMA     *boxaMakeSizeIndicator()
  *           BOXA     *boxaSelectWithIndicator()
+ *           BOXA     *boxaPermutePseudorandom()
+ *           BOXA     *boxaPermuteRandom()
+ *           l_int32   boxaSwapBoxes()
  *
  *      Boxa/Box transform (shift, scale) and orthogonal rotation
  *           BOXA     *boxaTransform()
@@ -55,8 +62,14 @@
  *           l_int32   boxaaAlignBox()
  *
  *      Boxa/Boxaa display
- *           PIX      *boxaDisplay() 
+ *           PIX      *pixPaintBoxa()
+ *           PIX      *pixPaintBoxaRandom()
+ *           PIX      *pixDrawBoxa()
+ *           PIX      *pixDrawBoxaRandom()
  *           PIX      *boxaaDisplay() 
+ *
+ *  See summary in pixPaintBoxa() of various ways to paint and draw
+ *  boxes on images.
  */
 
 #include <stdio.h>
@@ -207,6 +220,161 @@ BOXA    *boxad;
     }
 
     return boxad;
+}
+
+
+/*!
+ *  boxOverlapRegion()
+ *
+ *      Input:  box1, box2 (two boxes)
+ *      Return: box of overlap region between input boxes,
+ *              or NULL if no overlap or on error
+ */
+BOX *
+boxOverlapRegion(BOX  *box1,
+                 BOX  *box2)
+{
+l_int32  x, y, w, h, left1, left2, top1, top2, right1, right2, bot1, bot2;
+
+    PROCNAME("boxOverlapRegion");
+
+    if (!box1)
+        return (BOX *)ERROR_PTR("box1 not defined", procName, NULL);
+    if (!box2)
+        return (BOX *)ERROR_PTR("box2 not defined", procName, NULL);
+
+    left1 = box1->x;
+    left2 = box2->x;
+    top1 = box1->y;
+    top2 = box2->y;
+    right1 = box1->x + box1->w - 1;
+    bot1 = box1->y + box1->h - 1;
+    right2 = box2->x + box2->w - 1;
+    bot2 = box2->y + box2->h - 1;
+    if ((bot2 < top1) || (bot1 < top2) ||
+         (right1 < left2) || (right2 < left1))
+        return NULL;
+
+    x = (left1 > left2) ? left1 : left2;
+    y = (top1 > top2) ? top1 : top2;
+    w = L_MIN(right1 - x + 1, right2 - x + 1);
+    h = L_MIN(bot1 - y + 1, bot2 - y + 1);
+    return boxCreate(x, y, w, h);
+}
+
+
+/*!
+ *  boxOverlapFraction()
+ *
+ *      Input:  box1, box2 (two boxes)
+ *              &fract (<return> the fraction of box2 overlapped by box1)
+ *      Return: 0 if OK, 1 on error.
+ *
+ *  Notes:
+ *      (1) The result depends on the order of the input boxes,
+ *          because the overlap is taken as a fraction of box2.
+ */
+l_int32
+boxOverlapFraction(BOX        *box1,
+                   BOX        *box2,
+                   l_float32  *pfract)
+{
+l_int32  w2, h2, w, h;
+BOX     *boxo;
+
+    PROCNAME("boxOverlapFraction");
+
+    if (!pfract)
+        return ERROR_INT("&fract not defined", procName, 1);
+    *pfract = 0.0;
+    if (!box1)
+        return ERROR_INT("box1 not defined", procName, 1);
+    if (!box2)
+        return ERROR_INT("box2 not defined", procName, 1);
+
+    if ((boxo = boxOverlapRegion(box1, box2)) == NULL)  /* no overlap */
+        return 0;
+
+    boxGetGeometry(box2, NULL, NULL, &w2, &h2);
+    boxGetGeometry(boxo, NULL, NULL, &w, &h);
+    *pfract = (l_float32)(w * h) / (l_float32)(w2 * h2);
+    boxDestroy(&boxo);
+    return 0;
+}
+
+
+/*!
+ *  boxaGetNearestToPoint()
+ *
+ *      Input:  boxa
+ *              x, y  (point)
+ *      Return  box (box with centroid closest to the given point [x,y]),
+ *              or NULL if no boxes in boxa)
+ *
+ *  Notes:
+ *      (1) Uses euclidean distance between centroid and point.
+ */
+BOX *
+boxaGetNearestToPoint(BOXA    *boxa,
+                      l_int32  x,
+                      l_int32  y)
+{
+l_int32    i, n, cx, cy, minindex;
+l_float32  delx, dely, dist, mindist;
+BOX       *box;
+
+    PROCNAME("boxaGetNearestToPoint");
+
+    if (!boxa)
+        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return (BOX *)ERROR_PTR("n = 0", procName, NULL);
+    
+    mindist = 1000000000.;
+    minindex = 0;
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        boxGetCentroid(box, &cx, &cy);
+        delx = (l_float32)(cx - x);
+        dely = (l_float32)(cy - y);
+        dist = delx * delx + dely * dely;
+        if (dist < mindist) {
+            minindex = i;
+            mindist = dist;
+        }
+        boxDestroy(&box);
+    }
+
+    return boxaGetBox(boxa, minindex, L_COPY);
+}
+
+
+/*!
+ *  boxGetCentroid()
+ *
+ *      Input:  box
+ *              &x, &y (<return> location of center of box)
+ *      Return  0 if OK, 1 on error
+ */
+l_int32
+boxGetCentroid(BOX      *box,
+                l_int32  *px,
+                l_int32  *py)
+{
+l_int32  x, y, w, h;
+
+    PROCNAME("boxGetCentroid");
+
+    if (!px || !py)
+        return ERROR_INT("&x, &y not both defined", procName, 1);
+    *px = *py = 0;
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    boxGetGeometry(box, &x, &y, &w, &h);
+    *px = x + w / 2;
+    *py = y + h / 2;
+
+    return 0;
 }
 
 
@@ -604,6 +772,117 @@ BOXA    *boxad;
     }
 
     return boxad;
+}
+
+
+/*!
+ *  boxaPermutePseudorandom()
+ *
+ *      Input:  boxas (input boxa)
+ *      Return: boxad (with boxes permuted), or null on error
+ *
+ *  Notes:
+ *      (1) This does a pseudorandom in-place permutation of the boxes.
+ *      (2) The result is guaranteed not to have any boxes in their
+ *          original position, but it is not very random.  If you
+ *          need randomness, use boxaPermuteRandom().
+ */
+BOXA *
+boxaPermutePseudorandom(BOXA  *boxas)
+{
+l_int32  n;
+NUMA    *na;
+BOXA    *boxad;
+
+    PROCNAME("boxaPermutePseudorandom");
+
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
+
+    n = boxaGetCount(boxas);
+    na = numaPseudorandomSequence(n, 0);
+    boxad = boxaSortByIndex(boxas, na);
+    numaDestroy(&na);
+    return boxad;
+}
+
+
+/*!
+ *  boxaPermuteRandom()
+ *
+ *      Input:  boxad (<optional> can be null or equal to boxas)
+ *              boxas (input boxa)
+ *      Return: boxad (with boxes permuted), or null on error
+ *
+ *  Notes:
+ *      (1) If boxad is null, make a copy of boxas and permute the copy.
+ *          Otherwise, boxad must be equal to boxas, and the operation
+ *          is done in-place.
+ *      (2) This does a random in-place permutation of the boxes,
+ *          by swapping each box in turn with a random box.  The
+ *          result is almost guaranteed not to have any boxes in their
+ *          original position.
+ */
+BOXA *
+boxaPermuteRandom(BOXA  *boxad,
+                  BOXA  *boxas)
+{
+l_int32  i, n, index;
+
+    PROCNAME("boxaPermuteRandom");
+
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (boxad && (boxad != boxas))
+        return (BOXA *)ERROR_PTR("boxad defined but in-place", procName, NULL);
+
+    if (!boxad)
+        boxad = boxaCopy(boxas, L_COPY);
+    n = boxaGetCount(boxad);
+    index = (rand() >> 16) % n;
+    index = L_MAX(1, index);
+    boxaSwapBoxes(boxad, 0, index);
+    for (i = 1; i < n; i++) {
+        index = (rand() >> 16) % n;
+        if (index == i) index--;
+        boxaSwapBoxes(boxad, i, index);
+    }
+
+    return boxad;
+}
+
+
+/*!
+ *  boxaSwapBoxes()
+ *
+ *      Input:  boxa
+ *              i, j (two indices of boxes, that are to be swapped)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+boxaSwapBoxes(BOXA    *boxa,
+              l_int32  i,
+              l_int32  j)
+{
+l_int32  n;
+BOX     *box;
+
+    PROCNAME("boxaSwapBoxes");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    n = boxaGetCount(boxa);
+    if (i < 0 || i >= n)
+        return ERROR_INT("i invalid", procName, 1);
+    if (j < 0 || j >= n)
+        return ERROR_INT("j invalid", procName, 1);
+    if (i == j)
+        return ERROR_INT("i == j", procName, 1);
+
+    box = boxa->box[i];
+    boxa->box[i] = boxa->box[j];
+    boxa->box[j] = box;
+    return 0;
 }
 
 
@@ -1305,40 +1584,275 @@ BOXA    *boxa;
  *                          Boxa/Boxaa display                         *
  *---------------------------------------------------------------------*/
 /*!
- *  boxaDisplay()
+ *  pixPaintBoxa()
  *
- *      Input:  boxa
- *              linewidth
- *              w (of pix; use 0 if determined by boxa)
- *              h (of pix; use 0 if determined by boxa)
- *      Return: 0 if OK, 1 on error
+ *      Input:  pixs (any depth, can be cmapped)
+ *              boxa (of boxes, to paint)
+ *              val (rgba color to paint)
+ *      Return: pixd (with painted boxes), or null on error
+ *
+ *  Notes:
+ *      (1) If pixs is 1 bpp or is colormapped, it is converted to 8 bpp
+ *          and the boxa is painted using a colormap; otherwise,
+ *          it is converted to 32 bpp rgb.
+ *      (2) There are several ways to display a box on an image:
+ *            * Paint it as a solid color
+ *            * Draw the outline
+ *            * Blend the outline or region with the existing image
+ *          We provide painting and drawing here; blending is in blend.c.
+ *          When painting or drawing, the result can be either a 
+ *          cmapped image or an rgb image.  The dest will be cmapped
+ *          if the src is either 1 bpp or has a cmap that is not full.
+ *          To force RGB output, use pixConvertTo8(pixs, FALSE)
+ *          before calling any of these paint and draw functions.
  */
 PIX *
-boxaDisplay(BOXA    *boxa,
-            l_int32  linewidth,
-            l_int32  w,
-            l_int32  h)
+pixPaintBoxa(PIX      *pixs,
+             BOXA     *boxa,
+             l_uint32  val)
 {
-l_int32  i, n;
-BOX     *box;
-PIX     *pix;
+l_int32   i, n, d, rval, gval, bval, newindex;
+l_int32   mapvacancy;   /* true only if cmap and not full */
+BOX      *box;
+PIX      *pixd;
+PIXCMAP  *cmap;
 
-    PROCNAME("boxaDisplay");
+    PROCNAME("pixPaintBoxa");
 
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!boxa)
         return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
-    if (w == 0 || h == 0) 
-        boxaGetExtent(boxa, &w, &h, NULL);
 
-    pix = pixCreate(w, h, 1);
-    n = boxaGetCount(boxa);
+    if ((n = boxaGetCount(boxa)) == 0) {
+        L_WARNING("no boxes to paint; returning a copy", procName);
+        return pixCopy(NULL, pixs);
+    }
+
+    mapvacancy = FALSE;
+    if ((cmap = pixGetColormap(pixs)) != NULL) {
+        if (pixcmapGetCount(cmap) < 256)
+            mapvacancy = TRUE;
+    }
+    if (pixGetDepth(pixs) == 1 || mapvacancy)
+        pixd = pixConvertTo8(pixs, TRUE);
+    else
+        pixd = pixConvertTo32(pixs);
+    if (!pixd)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+    d = pixGetDepth(pixd);
+    if (d == 8) {  /* colormapped */
+        cmap = pixGetColormap(pixd);
+        rval = GET_DATA_BYTE(&val, COLOR_RED); 
+        gval = GET_DATA_BYTE(&val, COLOR_GREEN); 
+        bval = GET_DATA_BYTE(&val, COLOR_BLUE); 
+        if (pixcmapAddNewColor(cmap, rval, gval, bval, &newindex))
+            return (PIX *)ERROR_PTR("cmap full; can't add", procName, NULL);
+    }
+
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
-        pixRenderBox(pix, box, linewidth, L_SET_PIXELS);
+        if (d == 8)
+            pixSetInRectArbitrary(pixd, box, newindex);
+        else
+            pixSetInRectArbitrary(pixd, box, val);
         boxDestroy(&box);
     }
 
-    return pix;
+    return pixd;
+}
+
+
+/*!
+ *  pixPaintBoxaRandom()
+ *
+ *      Input:  pixs (any depth, can be cmapped)
+ *              boxa (of boxes, to paint)
+ *      Return: pixd (with painted boxes), or null on error
+ *
+ *  Notes:
+ *      (1) If pixs is 1 bpp, we paint the boxa using a colormap;
+ *          otherwise, we convert to 32 bpp.
+ *      (2) We use up to 254 different colors for painting the regions.
+ *      (3) If boxes overlap, the later ones paint over earlier ones.
+ */
+PIX *
+pixPaintBoxaRandom(PIX   *pixs,
+                   BOXA  *boxa)
+{
+l_int32   i, n, d, rval, gval, bval, index;
+l_uint32  val;
+BOX      *box;
+PIX      *pixd;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixPaintBoxaRandom");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!boxa)
+        return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
+
+    if ((n = boxaGetCount(boxa)) == 0) {
+        L_WARNING("no boxes to paint; returning a copy", procName);
+        return pixCopy(NULL, pixs);
+    }
+
+    if (pixGetDepth(pixs) == 1)
+        pixd = pixConvert1To8(NULL, pixs, 255, 0);
+    else
+        pixd = pixConvertTo32(pixs);
+    if (!pixd)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+    cmap = pixcmapCreateRandom(8);
+    d = pixGetDepth(pixd);
+    if (d == 8)  /* colormapped */
+        pixSetColormap(pixd, cmap);
+
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        index = (i % 254) + 1;
+        if (d == 8)
+            pixSetInRectArbitrary(pixd, box, index);
+        else {  /* d == 32 */
+            pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+            composeRGBPixel(rval, gval, bval, &val);
+            pixSetInRectArbitrary(pixd, box, val);
+        }
+        boxDestroy(&box);
+    }
+
+    if (d == 32)
+        pixcmapDestroy(&cmap);
+    return pixd;
+}
+
+
+/*!
+ *  pixDrawBoxa()
+ *
+ *      Input:  pixs (any depth, can be cmapped)
+ *              boxa (of boxes, to draw)
+ *              width (of lines)
+ *              val (rgba color to draw)
+ *      Return: pixd (with outlines of boxes added), or null on error
+ *
+ *  Notes:
+ *      (1) If pixs is 1 bpp or is colormapped, it is converted to 8 bpp
+ *          and the boxa is drawn using a colormap; otherwise,
+ *          it is converted to 32 bpp rgb.
+ */
+PIX *
+pixDrawBoxa(PIX      *pixs,
+            BOXA     *boxa,
+            l_int32   width,
+            l_uint32  val)
+{
+l_int32   n, rval, gval, bval, newindex;
+l_int32   mapvacancy;   /* true only if cmap and not full */
+PIX      *pixd;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixDrawBoxa");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!boxa)
+        return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (width < 1)
+        return (PIX *)ERROR_PTR("width must be >= 1", procName, NULL);
+
+    if (boxaGetCount(boxa) == 0) {
+        L_WARNING("no boxes to draw; returning a copy", procName);
+        return pixCopy(NULL, pixs);
+    }
+
+    mapvacancy = FALSE;
+    if ((cmap = pixGetColormap(pixs)) != NULL) {
+        if (pixcmapGetCount(cmap) < 256)
+            mapvacancy = TRUE;
+    }
+    if (pixGetDepth(pixs) == 1 || mapvacancy)
+        pixd = pixConvertTo8(pixs, TRUE);
+    else
+        pixd = pixConvertTo32(pixs);
+    if (!pixd)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+    rval = GET_DATA_BYTE(&val, COLOR_RED); 
+    gval = GET_DATA_BYTE(&val, COLOR_GREEN); 
+    bval = GET_DATA_BYTE(&val, COLOR_BLUE); 
+    if (pixGetDepth(pixd) == 8) {  /* colormapped */
+        cmap = pixGetColormap(pixd);
+        pixcmapAddNewColor(cmap, rval, gval, bval, &newindex);
+    }
+
+    pixRenderBoxaArb(pixd, boxa, width, rval, gval, bval);
+    return pixd;
+}
+
+
+/*!
+ *  pixDrawBoxaRandom()
+ *
+ *      Input:  pixs (any depth, can be cmapped)
+ *              boxa (of boxes, to draw)
+ *              width (thickness of line)
+ *      Return: pixd (with box outlines drawn), or null on error
+ *
+ *  Notes:
+ *      (1) If pixs is 1 bpp, we draw the boxa using a colormap;
+ *          otherwise, we convert to 32 bpp.
+ *      (2) We use up to 254 different colors for drawing the boxes.
+ *      (3) If boxes overlap, the later ones draw over earlier ones.
+ */
+PIX *
+pixDrawBoxaRandom(PIX     *pixs,
+                  BOXA    *boxa,
+                  l_int32  width)
+{
+l_int32   i, n, rval, gval, bval, index;
+BOX      *box;
+PIX      *pixd;
+PIXCMAP  *cmap;
+PTAA     *ptaa;
+
+    PROCNAME("pixDrawBoxaRandom");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!boxa)
+        return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (width < 1)
+        return (PIX *)ERROR_PTR("width must be >= 1", procName, NULL);
+
+    if ((n = boxaGetCount(boxa)) == 0) {
+        L_WARNING("no boxes to draw; returning a copy", procName);
+        return pixCopy(NULL, pixs);
+    }
+
+        /* Input depth = 1 bpp; generate cmapped output */
+    if (pixGetDepth(pixs) == 1) {
+        ptaa = generatePtaaBoxa(boxa);
+        pixd = pixRenderRandomCmapPtaa(pixs, ptaa, width, 1);
+        ptaaDestroy(&ptaa);
+        return pixd;
+    }
+
+        /* Generate rgb output */
+    pixd = pixConvertTo32(pixs);
+    cmap = pixcmapCreateRandom(8);
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        index = (i % 254) + 1;
+        pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+        pixRenderBoxArb(pixd, box, width, rval, gval, bval);
+        boxDestroy(&box);
+    }
+    pixcmapDestroy(&cmap);
+    return pixd;
 }
 
 

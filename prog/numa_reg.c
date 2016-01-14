@@ -90,7 +90,7 @@ static char  mainName[] = "numa_reg";
 #if  DO_ALL
         /* Test numaInterpolateEqxInterval() */
     pixs = pixRead("test8.jpg");
-    na = pixGetHistogramMasked(pixs, NULL, 0, 0, 1);
+    na = pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
 /*    numaWriteStream(stderr, na); */
     nasy = numaGetPartialSums(na);
     gplotSimple1(nasy, GPLOT_X11, "junkroot4", "partial sums");
@@ -112,7 +112,7 @@ static char  mainName[] = "numa_reg";
 #if  DO_ALL
         /* Test numaInterpolateArbxInterval() */
     pixs = pixRead("test8.jpg");
-    na = pixGetHistogramMasked(pixs, NULL, 0, 0, 1);
+    na = pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
     nasy = numaGetPartialSums(na);
     numaInsertNumber(nasy, 0, 0.0);
     nasx = numaMakeSequence(0.0, 1.0, 257);
@@ -135,7 +135,7 @@ static char  mainName[] = "numa_reg";
 #if  DO_ALL
         /* Test numaInterpolateArbxVal() */
     pixs = pixRead("test8.jpg");
-    na = pixGetHistogramMasked(pixs, NULL, 0, 0, 1);
+    na = pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
     nasy = numaGetPartialSums(na);
     numaInsertNumber(nasy, 0, 0.0);
     nasx = numaMakeSequence(0.0, 1.0, 257);
@@ -241,7 +241,7 @@ static char  mainName[] = "numa_reg";
 #if  DO_ALL 
         /* Rank extraction with interpolation */
     pixs = pixRead("test8.jpg");
-    nasy= pixGetHistogramMasked(pixs, NULL, 0, 0, 1);
+    nasy= pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
     numaMakeRankFromHistogram(0.0, 1.0, nasy, 350, &nax, &nay);
     gplot = gplotCreate("junkroot13", GPLOT_X11, "test rank extractor",
                         "pix val", "rank val");

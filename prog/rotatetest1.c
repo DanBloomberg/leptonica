@@ -125,12 +125,12 @@ static char  mainName[] = "rotatetest1";
 	pixWrite(fileout, pixd, IFF_JFIF_JPEG);
 #endif
 
-#if 0
+#if 1
 	/* compare the standard area-map color rotation with
 	 * the fast area-map color rotation, on a pixel basis */
     {
-    PIX    *pix1, *pix2, *pixr, *pixg, *pixb;
-    NUMA   *nared, *nagreen, *nablue, *naseq;
+    PIX    *pix1, *pix2;
+    NUMA   *nar, *nag, *nab, *naseq;
     GPLOT  *gplot;
 
     startTimer();
@@ -142,29 +142,21 @@ static char  mainName[] = "rotatetest1";
     fprintf(stderr, " fast color rotate: %7.2f sec\n", stopTimer());
     pixWrite("junkcolor2", pix2, IFF_JFIF_JPEG);
     pixd = pixAbsDifference(pix1, pix2);
-    pixr = pixGetRGBComponent(pixd, COLOR_RED);
-    nared = pixGrayHistogram(pixr);
-    pixg = pixGetRGBComponent(pixd, COLOR_GREEN);
-    nagreen = pixGrayHistogram(pixg);
-    pixb = pixGetRGBComponent(pixd, COLOR_BLUE);
-    nablue = pixGrayHistogram(pixb);
+    pixGetColorHistogram(pixd, 1, &nar, &nag, &nab);
     naseq = numaMakeSequence(0., 1., 256);
-    gplot = gplotCreate(naseq, nared, "junk_absdiff",
-	    GPLOT_X11, GPLOT_POINTS, "Number vs diff",
-	    "red", "diff", "number");
-    gplotAddPlot(gplot, naseq, nagreen, GPLOT_POINTS, "green");
-    gplotAddPlot(gplot, naseq, nablue, GPLOT_POINTS, "blue");
+    gplot = gplotCreate("junk_absdiff", GPLOT_X11, "Number vs diff",
+			"diff", "number");
+    gplotAddPlot(gplot, naseq, nar, GPLOT_POINTS, "red");
+    gplotAddPlot(gplot, naseq, nag, GPLOT_POINTS, "green");
+    gplotAddPlot(gplot, naseq, nab, GPLOT_POINTS, "blue");
     gplotMakeOutput(gplot);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pixd);
-    pixDestroy(&pixr);
-    pixDestroy(&pixg);
-    pixDestroy(&pixb);
+    numaDestroy(&nar);
+    numaDestroy(&nag);
+    numaDestroy(&nab);
     numaDestroy(&naseq);
-    numaDestroy(&nared);
-    numaDestroy(&nagreen);
-    numaDestroy(&nablue);
     gplotDestroy(&gplot);
     }
 #endif
@@ -175,7 +167,7 @@ static char  mainName[] = "rotatetest1";
 	 * of distortion after successive rotations, after all
 	 * 360 rotations, the resulting image is restored to
 	 * its original pristine condition! */
-#if 1
+#if 0
     ang = 7.0 * deg2rad;
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);

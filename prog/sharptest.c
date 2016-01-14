@@ -49,7 +49,7 @@ static char  mainName[] = "sharptest";
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 	    
-    pixd = pixUnsharpMask(pixs, smooth, fract);
+    pixd = pixUnsharpMasking(pixs, smooth, fract);
 
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);
 

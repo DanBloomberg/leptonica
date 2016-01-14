@@ -50,7 +50,8 @@ static char  mainName[] = "baselinetest";
     pixWrite(fileout, pixd, IFF_TIFF_G4);
 
         /* test baseline finder */
-    na = pixFindBaselines(pixd, &pta);
+    na = pixFindBaselines(pixd, &pta, 1);
+/*    ptaWriteStream(stderr, pta, 1); */
     pixDestroy(&pixd);
     numaDestroy(&na);
     ptaDestroy(&pta);

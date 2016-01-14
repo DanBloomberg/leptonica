@@ -49,8 +49,10 @@
  *           l_int32    *makePixelCentroidTab8()
  *
  *      Pixel histogram, rank val, and averaging
- *           NUMA       *pixGetHistogram()
- *           NUMA       *pixGetHistogramMasked()
+ *           NUMA       *pixGetGrayHistogram()
+ *           NUMA       *pixGetGrayHistogramMasked()
+ *           l_int32     pixGetColorHistogram()
+ *           l_int32     pixGetColorHistogramMasked()
  *           l_int32     pixGetRankValMasked()
  *           l_int32     pixGetAverageMasked()
  *           PIX        *pixGetAverageTiled()
@@ -1193,22 +1195,27 @@ l_int32  *tab;
  *                  Pixel histogram and averaging                   *
  *------------------------------------------------------------------*/
 /*!
- *  pixGetHistogram()
+ *  pixGetGrayHistogram()
  *
  *      Input:  pixs (1, 2, 4, 8, 16 bpp; can be colormapped)
+ *              factor (subsampling factor; integer >= 1)
  *      Return: na (histogram), or null on error
  *
  *  Notes:
  *      (1) This generates a histogram of gray or cmapped pixels.
  *          The image must not be rgb.
- *      (2) The output histogram is of size 2^d, where d = depth.
- *      (3) If pixs has a gray (r=g=b) colormap, it is removed
- *          and the histogram is of size 256.
- *      (4) If pixs has a colormap with color entries, it is not
- *          removed, and the histogram of cmap indices is generated.
+ *      (2) If pixs does not have a colormap, the output histogram is
+ *          of size 2^d, where d is the depth of pixs.
+ *      (3) If pixs has has a colormap with color entries, the histogram
+ *          generated is of the colormap indices, and is of size 2^d.
+ *      (4) If pixs has a gray (r=g=b) colormap, the colormap is removed
+ *          and a histogram of size 256 is generated for the resulting
+ *          8 bpp gray image.
+ *      (5) Set the subsampling factor > 1 to reduce the amount of computation.
  */
 NUMA *
-pixGetHistogram(PIX  *pixs)
+pixGetGrayHistogram(PIX     *pixs,
+                    l_int32  factor)
 {
 l_int32     i, j, w, h, d, wpl, val, size, count, colorfound;
 l_uint32   *data, *line;
@@ -1217,13 +1224,15 @@ NUMA       *na;
 PIX        *pixg;
 PIXCMAP    *cmap;
 
-    PROCNAME("pixGetHistogram");
+    PROCNAME("pixGetGrayHistogram");
 
     if (!pixs)
         return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
     d = pixGetDepth(pixs);
     if (d > 16)
         return (NUMA *)ERROR_PTR("depth not in {1,2,4,8,16}", procName, NULL);
+    if (factor < 1)
+        return (NUMA *)ERROR_PTR("sampling factor < 1", procName, NULL);
 
     if ((cmap = pixGetColormap(pixs)) != NULL)
         pixcmapHasColor(cmap, &colorfound);
@@ -1236,8 +1245,8 @@ PIXCMAP    *cmap;
     size = 1 << d;
     if ((na = numaCreate(size)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
-    na->n = size;  /* fake storage of zeroes */
-    array = na->array;  /* don't do this at home */
+    numaSetCount(na, size);  /* all initialized to 0.0 */
+    array = numaGetFArray(na, L_NOCOPY);
 
     if (d == 1) {  /* special case */
         pixCountPixels(pixg, &count, NULL);
@@ -1249,30 +1258,30 @@ PIXCMAP    *cmap;
 
     wpl = pixGetWpl(pixg);
     data = pixGetData(pixg);
-    for (i = 0; i < h; i++) {
+    for (i = 0; i < h; i += factor) {
         line = data + i * wpl;
         switch (d) 
         {
         case 2:
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < w; j += factor) {
                 val = GET_DATA_DIBIT(line, j);
                 array[val] += 1.0;
             }
             break;
         case 4:
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < w; j += factor) {
                 val = GET_DATA_QBIT(line, j);
                 array[val] += 1.0;
             }
             break;
         case 8:
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < w; j += factor) {
                 val = GET_DATA_BYTE(line, j);
                 array[val] += 1.0;
             }
             break;
         case 16:
-            for (j = 0; j < w; j++) {
+            for (j = 0; j < w; j += factor) {
                 val = GET_DATA_TWO_BYTES(line, j);
                 array[val] += 1.0;
             }
@@ -1289,7 +1298,7 @@ PIXCMAP    *cmap;
 
 
 /*!
- *  pixGetHistogramMasked()
+ *  pixGetGrayHistogramMasked()
  *
  *      Input:  pixs (8 bpp, or colormapped)
  *              pixm (<optional> 1 bpp mask over which histogram is
@@ -1307,34 +1316,38 @@ PIXCMAP    *cmap;
  *      (5) Input x,y are ignored unless pixm exists.
  */
 NUMA *
-pixGetHistogramMasked(PIX        *pixs,
-                      PIX        *pixm,
-                      l_int32     x,
-                      l_int32     y,
-                      l_int32     factor)
+pixGetGrayHistogramMasked(PIX        *pixs,
+                          PIX        *pixm,
+                          l_int32     x,
+                          l_int32     y,
+                          l_int32     factor)
 {
-l_int32     i, j, w, h, wm, hm, wplg, wplm, val;
+l_int32     i, j, w, h, wm, hm, dm, wplg, wplm, val;
 l_uint32   *datag, *datam, *lineg, *linem;
 l_float32  *array;
 NUMA       *na;
 PIX        *pixg;
 
-    PROCNAME("pixGetHistogramMasked");
+    PROCNAME("pixGetGrayHistogramMasked");
+
+    if (!pixm)
+        return pixGetGrayHistogram(pixs, factor);
 
     if (!pixs)
         return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
         return (NUMA *)ERROR_PTR("pixs neither 8 bpp nor colormapped",
                                  procName, NULL);
-    if (pixm && pixGetDepth(pixm) != 1)
+    pixGetDimensions(pixm, &wm, &hm, &dm);
+    if (dm != 1)
         return (NUMA *)ERROR_PTR("pixm not 1 bpp", procName, NULL);
     if (factor < 1)
         return (NUMA *)ERROR_PTR("sampling factor < 1", procName, NULL);
 
     if ((na = numaCreate(256)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
-    na->n = 256;  /* fake storage of zeroes */
-    array = na->array;  /* don't do this at home */
+    numaSetCount(na, 256);  /* all initialized to 0.0 */
+    array = numaGetFArray(na, L_NOCOPY);
 
     if (pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
@@ -1343,37 +1356,247 @@ PIX        *pixg;
     pixGetDimensions(pixg, &w, &h, NULL);
     datag = pixGetData(pixg);
     wplg = pixGetWpl(pixg);
+    datam = pixGetData(pixm);
+    wplm = pixGetWpl(pixm);
 
         /* Generate the histogram */
-    if (!pixm) {
-        for (i = 0; i < h; i += factor) {
-            lineg = datag + i * wplg;
-            for (j = 0; j < w; j += factor) {
-                val = GET_DATA_BYTE(lineg, j);
+    for (i = 0; i < hm; i += factor) {
+        if (y + i < 0 || y + i >= h) continue;
+        lineg = datag + (y + i) * wplg;
+        linem = datam + i * wplm;
+        for (j = 0; j < wm; j += factor) {
+            if (x + j < 0 || x + j >= w) continue;
+            if (GET_DATA_BIT(linem, j)) {
+                val = GET_DATA_BYTE(lineg, x + j);
                 array[val] += 1.0;
-            }
-        }
-    }
-    else {
-        pixGetDimensions(pixm, &wm, &hm, NULL);
-        datam = pixGetData(pixm);
-        wplm = pixGetWpl(pixm);
-        for (i = 0; i < hm; i += factor) {
-            if (y + i < 0 || y + i >= h) continue;
-            lineg = datag + (y + i) * wplg;
-            linem = datam + i * wplm;
-            for (j = 0; j < wm; j += factor) {
-                if (x + j < 0 || x + j >= w) continue;
-                if (GET_DATA_BIT(linem, j)) {
-                    val = GET_DATA_BYTE(lineg, x + j);
-                    array[val] += 1.0;
-                }
             }
         }
     }
 
     pixDestroy(&pixg);
     return na;
+}
+
+
+/*!
+ *  pixGetColorHistogram()
+ *
+ *      Input:  pixs (rgb or colormapped)
+ *              factor (subsampling factor; integer >= 1)
+ *              &nar (<return> red histogram)
+ *              &nag (<return> green histogram)
+ *              &nab (<return> blue histogram)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a set of three 256 entry histograms,
+ *          one for each color component (r,g,b).
+ *      (2) Set the subsampling factor > 1 to reduce the amount of computation.
+ */
+l_int32
+pixGetColorHistogram(PIX     *pixs,
+                     l_int32  factor,
+                     NUMA   **pnar,
+                     NUMA   **pnag,
+                     NUMA   **pnab)
+{
+l_int32     i, j, w, h, d, wpl, index, rval, gval, bval;
+l_uint32    pixel;
+l_uint32   *data, *line;
+l_float32  *rarray, *garray, *barray;
+NUMA       *nar, *nag, *nab;
+PIXCMAP    *cmap;
+
+    PROCNAME("pixGetColorHistogram");
+
+    if (!pnar || !pnag || !pnab)
+        return ERROR_INT("&nar, &nag, &nab not all defined", procName, 1);
+    *pnar = *pnag = *pnab = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    cmap = pixGetColormap(pixs);
+    if (cmap && (d != 2 && d != 4 && d != 8))
+        return ERROR_INT("colormap and not 2, 4, or 8 bpp", procName, 1);
+    if (!cmap && d != 32)
+        return ERROR_INT("no colormap and not rgb", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("sampling factor < 1", procName, 1);
+
+        /* Set up the histogram arrays */
+    nar = numaCreate(256);
+    nag = numaCreate(256);
+    nab = numaCreate(256);
+    numaSetCount(nar, 256);
+    numaSetCount(nag, 256);
+    numaSetCount(nab, 256);
+    rarray = numaGetFArray(nar, L_NOCOPY);
+    garray = numaGetFArray(nag, L_NOCOPY);
+    barray = numaGetFArray(nab, L_NOCOPY);
+    *pnar = nar;
+    *pnag = nag;
+    *pnab = nab;
+
+        /* Generate the color histograms */
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    if (cmap) {
+        for (i = 0; i < h; i += factor) {
+            line = data + i * wpl;
+            for (j = 0; j < w; j += factor) {
+                if (d == 8)
+                    index = GET_DATA_BYTE(line, j);
+                else if (d == 4)
+                    index = GET_DATA_QBIT(line, j);
+                else   /* 2 bpp */
+                    index = GET_DATA_DIBIT(line, j);
+                pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+                rarray[rval] += 1.0;
+                garray[gval] += 1.0;
+                barray[bval] += 1.0;
+            }
+        }
+    }
+    else {  /* 32 bpp rgb */
+        for (i = 0; i < h; i += factor) {
+            line = data + i * wpl;
+            for (j = 0; j < w; j += factor) {
+                pixel = line[j];
+                rval = (pixel >> 24);
+                gval = (pixel >> 16) & 0xff;
+                bval = (pixel >> 8) & 0xff;
+                rarray[rval] += 1.0;
+                garray[gval] += 1.0;
+                barray[bval] += 1.0;
+            }
+        }
+    }
+
+    return 0;
+}
+            
+
+/*!
+ *  pixGetColorHistogramMasked()
+ *
+ *      Input:  pixs (32 bpp rgb, or colormapped)
+ *              pixm (<optional> 1 bpp mask over which histogram is
+ *                    to be computed; use use all pixels if null)
+ *              x, y (UL corner of pixm relative to the UL corner of pixs; 
+ *                    can be < 0; these values are ignored if pixm is null)
+ *              factor (subsampling factor; integer >= 1)
+ *              &nar (<return> red histogram)
+ *              &nag (<return> green histogram)
+ *              &nab (<return> blue histogram)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This generates a set of three 256 entry histograms,
+ *      (2) Set the subsampling factor > 1 to reduce the amount of computation.
+ *      (3) Clipping of pixm (if it exists) to pixs is done in the inner loop.
+ *      (4) Input x,y are ignored unless pixm exists.
+ */
+l_int32
+pixGetColorHistogramMasked(PIX        *pixs,
+                           PIX        *pixm,
+                           l_int32     x,
+                           l_int32     y,
+                           l_int32     factor,
+                           NUMA      **pnar,
+                           NUMA      **pnag,
+                           NUMA      **pnab)
+{
+l_int32     i, j, w, h, d, wm, hm, dm, wpls, wplm, index, rval, gval, bval;
+l_uint32    pixel;
+l_uint32   *datas, *datam, *lines, *linem;
+l_float32  *rarray, *garray, *barray;
+NUMA       *nar, *nag, *nab;
+PIXCMAP    *cmap;
+
+    PROCNAME("pixGetColorHistogramMasked");
+
+    if (!pixm)
+        return pixGetColorHistogram(pixs, factor, pnar, pnag, pnab);
+
+    if (!pnar || !pnag || !pnab)
+        return ERROR_INT("&nar, &nag, &nab not all defined", procName, 1);
+    *pnar = *pnag = *pnab = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    cmap = pixGetColormap(pixs);
+    if (cmap && (d != 2 && d != 4 && d != 8))
+        return ERROR_INT("colormap and not 2, 4, or 8 bpp", procName, 1);
+    if (!cmap && d != 32)
+        return ERROR_INT("no colormap and not rgb", procName, 1);
+    pixGetDimensions(pixm, &wm, &hm, &dm);
+    if (dm != 1)
+        return ERROR_INT("pixm not 1 bpp", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("sampling factor < 1", procName, 1);
+
+        /* Set up the histogram arrays */
+    nar = numaCreate(256);
+    nag = numaCreate(256);
+    nab = numaCreate(256);
+    numaSetCount(nar, 256);
+    numaSetCount(nag, 256);
+    numaSetCount(nab, 256);
+    rarray = numaGetFArray(nar, L_NOCOPY);
+    garray = numaGetFArray(nag, L_NOCOPY);
+    barray = numaGetFArray(nab, L_NOCOPY);
+    *pnar = nar;
+    *pnag = nag;
+    *pnab = nab;
+
+        /* Generate the color histograms */
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    datam = pixGetData(pixm);
+    wplm = pixGetWpl(pixm);
+    if (cmap) {
+        for (i = 0; i < hm; i += factor) {
+            if (y + i < 0 || y + i >= h) continue;
+            lines = datas + (y + i) * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < wm; j += factor) {
+                if (x + j < 0 || x + j >= w) continue;
+                if (GET_DATA_BIT(linem, j)) {
+                    if (d == 8)
+                        index = GET_DATA_BYTE(lines, x + j);
+                    else if (d == 4)
+                        index = GET_DATA_QBIT(lines, x + j);
+                    else   /* 2 bpp */
+                        index = GET_DATA_DIBIT(lines, x + j);
+                    pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+                    rarray[rval] += 1.0;
+                    garray[gval] += 1.0;
+                    barray[bval] += 1.0;
+                }
+            }
+        }
+    }
+    else {  /* 32 bpp rgb */
+        for (i = 0; i < hm; i += factor) {
+            if (y + i < 0 || y + i >= h) continue;
+            lines = datas + (y + i) * wpls;
+            linem = datam + i * wplm;
+            for (j = 0; j < wm; j += factor) {
+                if (x + j < 0 || x + j >= w) continue;
+                if (GET_DATA_BIT(linem, j)) {
+                    pixel = lines[x + j];
+                    rval = (pixel >> 24);
+                    gval = (pixel >> 16) & 0xff;
+                    bval = (pixel >> 8) & 0xff;
+                    rarray[rval] += 1.0;
+                    garray[gval] += 1.0;
+                    barray[bval] += 1.0;
+                }
+            }
+        }
+    }
+
+    return 0;
 }
 
 
@@ -1437,7 +1660,7 @@ NUMA  *na;
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0.0;  /* init */
 
-    if ((na = pixGetHistogramMasked(pixs, pixm, x, y, factor)) == NULL)
+    if ((na = pixGetGrayHistogramMasked(pixs, pixm, x, y, factor)) == NULL)
         return ERROR_INT("na not made", procName, 1);
     numaHistogramGetValFromRank(na, 0, 1, rank, pval);
     if (pna)
@@ -1703,11 +1926,9 @@ PIX      *pixt;
  *
  *  Notes:
  *
- *  This should be simple.  Yet it is not, and there are choices to
- *  be made.
- *
+ *  This should be simple, but there are choices to be made.
  *  The box is defined relative to the pix coordinates.  However,
- *  if the box exceeds the pix boundaries, we have two choices:
+ *  if the box is not contained within the pix, we have two choices:
  *
  *      (1) clip the box to the pix
  *      (2) make a new pix equal to the full box dimensions,
@@ -1715,69 +1936,25 @@ PIX      *pixt;
  *          of the src with respect to the dest
  *
  *  Choice (2) immediately brings up the problem of what pixel values
- *  to use that were not taken from the src!  For example, on a grayscale
+ *  to use that were not taken from the src.  For example, on a grayscale
  *  image, do you want the pixels not taken from the src to be black
  *  or white or something else?  To implement choice 2, one needs to
  *  specify the color of these extra pixels.
  *
  *  So we adopt (1), and clip the box first, if necessary,
  *  before making the dest pix and doing the rasterop.  But there
- *  are still problems to consider.
- *
- *  First, imagine that the box has y < 0, so that some of it is
- *  above the src.  If you clip a piece of the image using this box,
- *  you get a Pix with a height less than the box height.  The trouble
- *  comes when you then paste the Pix back in using the same box:
- *  it will be shifted up, and clipped to the top of the dest Pix,
- *  thus losing pixels at the top!  Remember that we are first clipping
- *  the box to the src, and then extracting the pix using the clipped
- *  box.  So to prevent the shift on replacement, it is necessary to
- *  use the clipped box!
- *
+ *  is another issue to consider.  If you want to paste the
+ *  clipped pix back into pixs, it must be properly aligned, and
+ *  it is necessary to use the clipped box for alignment.
  *  Accordingly, this function has a third (optional) argument, which is
  *  the input box clipped to the src pix.
- *
- *  Now, imagine that the box extends past the bottom of the pix:
- *       box->y  >  pixGetHeight(pixs) - 1
- *  This will not cause any trouble on replacement using the
- *  original box, because the piece clipped out will go back
- *  in the same place when replaced.
- *
- *  We're not finished!  Here's a different use.
- *
- *  Suppose you want to clip a small pix (pix2) to a
- *  large one (pix1), and to preserve the alignment for some later operation.
- *  (For example, see blend.c).  The aligment of the two images is
- *  typically given by the origin of the smaller pix2 at (x, y)
- *  relative to the origin of the larger pix1.  Here, the "box" you
- *  use to clip pix2 is actually pix1 (properly translated), and
- *  it is defined by:
- *       box->x = -x
- *       box->y = -y
- *       box->w = pixGetWidth(pix1)
- *       box->h = pixGetHeight(pix1)
- *
- *  Consider again the two cases:
- *     (1) pix2 overhangs pix1 at the bottom, where
- *            y + pixGetHeight(pix2) > pixGetHeight(pix1)
- *         Then the lower part of pix2 is clipped, and
- *         it is properly placed with its origin at (x, y)
- *     (2) pix2 overhangs pix1 at the top, where
- *            y < 0
- *         Then the upper part of the pix2 is clipped, and it is
- *         properly placed with its origin at (x, y = 0)
- *
- *  So the general prescription for this use is:
- *     clipping: boxCreate(-x, -y, pixGetWidth(pix1), pixGetHeight(pix1))
- *     placement: origin (x, y) of pix2 is at:
- *          (L_MAX(0, x),  L_MAX(0, y))
  */
 PIX *
 pixClipRectangle(PIX   *pixs,
                  BOX   *box,
                  BOX  **pboxc)
 {
-l_int32  w, h, overw, overh, d;
+l_int32  w, h, d, bx, by, bw, bh;
 BOX     *boxc;
 PIX     *pixd;
 
@@ -1790,41 +1967,20 @@ PIX     *pixd;
     if (!box)
         return (PIX *)ERROR_PTR("box not defined", procName, NULL);
 
-    pixGetDimensions(pixs, &w, &h, NULL);
-    if ((boxc = boxCopy(box)) == NULL)
-        return (PIX *)ERROR_PTR("boxc not made", procName, NULL);
-
-        /* Clip boxc if necessary */
-    if (boxc->x < 0) {
-        boxc->w += boxc->x;  /* decrease the width */
-        boxc->x = 0;
-    }
-    overw = boxc->x + boxc->w - w;
-    if (overw > 0)
-        boxc->w -= overw;  /* decrease the width */
-    if (boxc->y < 0) {
-        boxc->h += boxc->y;  /* decrease the height */
-        boxc->y = 0;
-    }
-    overh = boxc->y + boxc->h - h;
-    if (overh > 0)
-        boxc->h -= overh;  /* decrease the height */
-
-        /* Check: any pixels in the box? */
-    if (boxc->w == 0 || boxc->h == 0) {  /* box outside of pix */
-        boxDestroy(&boxc);
+        /* Clip the input box to the pix */
+    pixGetDimensions(pixs, &w, &h, &d);
+    if ((boxc = boxClipToRectangle(box, w, h)) == NULL) {
         L_WARNING("box doesn't overlap pix", procName);
         return NULL;
     }
+    boxGetGeometry(boxc, &bx, &by, &bw, &bh);
 
-        /* Now, we are guaranteed that boxc fits within pixs,
-         * so that all pixels in pixd are written by the rasterop. */
-    d = pixGetDepth(pixs);
-    if ((pixd = pixCreate(boxc->w, boxc->h, d)) == NULL)
+        /* Extract the block */
+    if ((pixd = pixCreate(bw, bh, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
-    pixRasterop(pixd, 0, 0, boxc->w, boxc->h, PIX_SRC, pixs, boxc->x, boxc->y);
+    pixRasterop(pixd, 0, 0, bw, bh, PIX_SRC, pixs, bx, by);
 
     if (pboxc)
         *pboxc = boxc;

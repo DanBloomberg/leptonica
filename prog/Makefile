@@ -76,7 +76,13 @@ INCLUDES =	-I$(IMAGELIB_INCL) -I/usr/X11R6/include $(EXTRAINCLUDES)
 #INCLUDES =	-I$(IMAGELIB_INCL) -I/usr/X11R6/include -I/usr/local/include $(EXTRAINCLUDES)
 
 CFLAGS =	$(OPTIMIZE) $(OPTIONS)
-CPPFLAGS =      $(INCLUDES) -DL_LITTLE_ENDIAN
+
+# Test for processor endianness (valid with gnu make only)
+ENDIANNESS := $(shell $(CC) -o endiantest ../src/endiantest.c; endiantest; rm -f endiantest)
+
+# Conditional compilation (depending on processor endian-ness)
+CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
+#CPPFLAGS =      $(INCLUDES) -DL_LITTLE_ENDIAN
 #CPPFLAGS =      $(INCLUDES) -DL_BIG_ENDIAN
 
 LDFLAGS +=	-L$(LIB_DIR) -L/usr/X11R6/lib -L/usr/lib $(EXTRALIBS)
@@ -96,7 +102,8 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c \
-		dwamorph1_reg.c equal_reg.c expand_reg.c \
+		dwamorph1_reg.c enhance_reg.c \
+		equal_reg.c expand_reg.c \
 		fhmtauto_reg.c flipdetect_reg.c \
 		fmorphauto_reg.c \
 		graymorph_reg.c ioformats_reg.c \
@@ -131,7 +138,7 @@ SRC =		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 		maketile.c \
 		morphtest1.c mtifftest.c numaranktest.c \
 		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
-		plottest.c \
+		partitiontest.c plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
 		projectivetest.c ranktest.c reducetest.c \
 		removecmap.c renderfonts.c \
@@ -164,7 +171,7 @@ debian:	binmazetest buffertest comparetest \
 	gammatest graphicstest graymazetest graymorph_reg \
 	heaptest histotest jbcorrelation jbrankhaus jbwords \
 	lineremoval numaranktest pagesegtest1 \
-	pagesegtest2 pagesegtest3 plottest \
+	pagesegtest2 pagesegtest3 partitiontest plottest \
 	printimage printsplitimage printtiff \
 	ranktest rank_reg removecmap sharptest splitimage2pdf viewertest
 
@@ -189,22 +196,25 @@ cmapquant_reg:	cmapquant_reg.o $(LEPTLIB)
 	$(CC) -o cmapquant_reg cmapquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 compfilter_reg: compfilter_reg.o $(LEPTLIB)
-	$(CC) -o compfilter_reg compfilter_reg.o $(ALL_LIBS)
+	$(CC) -o compfilter_reg compfilter_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 conncomp_reg: conncomp_reg.o $(LEPTLIB)
-	$(CC) -o conncomp_reg conncomp_reg.o $(ALL_LIBS)
+	$(CC) -o conncomp_reg conncomp_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 conversion_reg: conversion_reg.o $(LEPTLIB)
-	$(CC) -o conversion_reg conversion_reg.o $(ALL_LIBS)
+	$(CC) -o conversion_reg conversion_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 dwamorph1_reg: dwamorph1_reg.o $(LEPTLIB)
-	$(CC) -o dwamorph1_reg dwamorph1_reg.o $(ALL_LIBS)
+	$(CC) -o dwamorph1_reg dwamorph1_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 dwamorph2_reg:  dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
-	$(CC) -o dwamorph2_reg dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS)
+	$(CC) -o dwamorph2_reg dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS) $(EXTRALIBS)
 
 dwamorph3_reg:  dwamorph3_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
-	$(CC) -o dwamorph3_reg dwamorph3_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS)
+	$(CC) -o dwamorph3_reg dwamorph3_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS) $(EXTRALIBS)
+
+enhance_reg:	enhance_reg.o $(LEPTLIB)
+	$(CC) -o enhance_reg enhance_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 equal_reg:	equal_reg.o $(LEPTLIB)
 	$(CC) -o equal_reg equal_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -445,6 +455,9 @@ pagesegtest2:	pagesegtest2.o $(LEPTLIB)
 
 pagesegtest3:	pagesegtest3.o $(LEPTLIB)
 	$(CC) -o pagesegtest3 pagesegtest3.o $(ALL_LIBS) $(EXTRALIBS)
+
+partitiontest:	partitiontest.o $(LEPTLIB)
+	$(CC) -o partitiontest partitiontest.o $(ALL_LIBS) $(EXTRALIBS)
 
 plottest:	plottest.o $(LEPTLIB)
 	$(CC) -o plottest plottest.o $(ALL_LIBS) $(EXTRALIBS)

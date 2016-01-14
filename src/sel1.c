@@ -2123,8 +2123,8 @@ PTA     *pta1, *pta2, *pta1t, *pta2t;
         /* Generate hit and miss patterns */
     radius1 = (l_int32)(0.85 * ((size - 1) / 2) + 0.5);  /* of hit */
     radius2 = (l_int32)(0.65 * ((size - 1) / 2) + 0.5);  /* inner miss radius */
-    pta1 = ptaGenerateFilledCircle(radius1);
-    pta2 = ptaGenerateFilledCircle(radius2);
+    pta1 = generatePtaFilledCircle(radius1);
+    pta2 = generatePtaFilledCircle(radius2);
     shift1 = (size - 1) / 2 - radius1;  /* center circle in square */
     shift2 = (size - 1) / 2 - radius2;
     pta1t = ptaTransform(pta1, shift1, shift1, 1.0, 1.0);

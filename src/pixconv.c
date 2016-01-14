@@ -744,7 +744,7 @@ PIXCMAP   *cmap;
         return pixCopy(NULL, pixs);
     }
 
-    na = pixGetHistogram(pixs);
+    na = pixGetGrayHistogram(pixs, 1);
     ncolors = numaGetCount(na);
     if (mindepth == 8 || ncolors > 16)
         depth = 8;
@@ -1882,7 +1882,7 @@ PIXCMAP   *cmaps, *cmapd;
  *          used in pixConvertTo8() if unpacking is necessary.
  *      (2) Any existing colormap is removed.
  *      (3) If the input image has 1 bpp and no colormap, the operation is
- *          lossless and a clone is returned.
+ *          lossless and a copy is returned.
  */     
 PIX *
 pixConvertTo1(PIX     *pixs,
@@ -1903,7 +1903,7 @@ PIXCMAP  *cmap;
     cmap = pixGetColormap(pixs);
     if (d == 1) {
         if (!cmap)
-            return pixClone(pixs);
+            return pixCopy(NULL, pixs);
         else {  /* strip the colormap off, and invert if reasonable
                    for standard binary photometry.  */
             pixcmapGetColor(cmap, 0, &rval, &gval, &bval);
@@ -1941,7 +1941,7 @@ PIXCMAP  *cmap;
  *          for unpacking.
  *      (2) The result, pixd, is made with a colormap if specified.
  *      (3) If d == 8, and cmapflag matches the existence of a cmap
- *          in pixs, the operation is lossless and it returns a clone.
+ *          in pixs, the operation is lossless and it returns a copy.
  *      (4) The default values used are:
  *          - 1 bpp: val0 = 255, val1 = 0
  *          - 2 bpp: 4 bpp:  even increments over dynamic range
@@ -1986,12 +1986,13 @@ PIXCMAP  *cmap;
     else if (d == 8) {
         cmap = pixGetColormap(pixs);
         if ((cmap && cmapflag) || (!cmap && !cmapflag))
-            return pixClone(pixs);
-        else if (cmap)
+            return pixCopy(NULL, pixs);
+        else if (cmap)  /* !cmapflag */
             return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-        else {  /* no cmap in pixs; add colormap to pixd */
-            pixAddGrayColormap8(pixs);
-	    return pixClone(pixs);
+        else {  /* !cmap && cmapflag; add colormap to pixd */
+            pixd = pixCopy(NULL, pixs);
+            pixAddGrayColormap8(pixd);
+	    return pixd;
 	}
     }
     else if (d == 16) {

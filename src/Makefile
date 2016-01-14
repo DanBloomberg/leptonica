@@ -83,24 +83,6 @@ LIB_SHARED =	$(ROOT_DIR)/lib/shared
 INCLUDES =	-I. $(EXTRAINCLUDES)
 PROTOTYPE_DIR =	.
 
-# Conditional compilation (depending on processor endian-ness)
-CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN
-#CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN
-
-# Shared library linker options
-SONAME_OPTION = -Wl,-h,
-
-ifdef  SHARED
-    OPTIMIZE =		-O2 -fPIC
-else
-    ifdef  DEBUG
-	OPTIMIZE =	-g
-    else
-	OPTIMIZE =	-O2
-    endif
-endif
-
-
 #  which to use?
 #     use -Werror to verify there are no serious warnings
 #     use g++ to apply stricter rules.  Libraries made with g++ may not
@@ -117,6 +99,27 @@ CC =		gcc -ansi -Werror -D_BSD_SOURCE -DANSI -fPIC
 #CC =		g++ -Wunused -D_BSD_SOURCE -fPIC
 #CC =		gcc -ansi -D_BSD_SOURCE -DANSI
 
+# Test for processor endianness (valid with gnu make only)
+ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
+
+# Conditional compilation (depending on processor endian-ness)
+CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
+#CPPFLAGS =	$(INCLUDES) -DL_LITTLE_ENDIAN
+#CPPFLAGS =	$(INCLUDES) -DL_BIG_ENDIAN
+
+# Shared library linker options
+SONAME_OPTION = -Wl,-h,
+
+ifdef  SHARED
+    OPTIMIZE =		-O2 -fPIC
+else
+    ifdef  DEBUG
+	OPTIMIZE =	-g
+    else
+	OPTIMIZE =	-O2
+    endif
+endif
+
 
 OPTIONS =
 CFLAGS =		$(OPTIMIZE) $(OPTIONS)
@@ -129,7 +132,7 @@ LIBRARIAN_SHARED =	gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 50
+MINOR_REV = 52
 
 #########################################################
 
@@ -165,7 +168,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		morph.c morphapp.c morphdwa.c morphseq.c \
 		numabasic.c numafunc.c \
 		pageseg.c paintcmap.c \
-		parseprotos.c pheap.c \
+		parseprotos.c partition.c pheap.c \
 		pix1.c pix2.c pix3.c pixabasic.c \
 		pixacc.c pixafunc.c pixarith.c pixconv.c \
 		pngio.c pnmio.c pqueue.c \

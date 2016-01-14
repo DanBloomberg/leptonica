@@ -717,7 +717,7 @@ PTA      *pta;
     if (y2 < 0 || y2 >= h)
         return (NUMA *)ERROR_PTR("y2 not valid", procName, NULL);
 
-    if ((pta = ptaGenerateLine(x1, y1, x2, y2)) == NULL)
+    if ((pta = generatePtaLine(x1, y1, x2, y2)) == NULL)
         return (NUMA *)ERROR_PTR("pta not made", procName, NULL);
     if ((npts = ptaGetCount(pta)) == 0)
         return (NUMA *)ERROR_PTR("pta has no pts", procName, NULL);

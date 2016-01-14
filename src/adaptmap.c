@@ -46,6 +46,9 @@
  *          PIX       *pixApplyInvBackgroundGrayMap()  8 bpp
  *          PIX       *pixApplyInvBackgroundRGBMap()   32 bpp
  *
+ *      Non-adaptive (global) mapping
+ *          PIX       *pixGlobalNormRGB()              32 bpp or cmapped
+ *
  *  Normalization is done by generating a reduced map (or set
  *  of maps) representing the estimated background value of the
  *  input image, and using this to shift the pixel values so that
@@ -71,6 +74,8 @@
  *        into pixels covered by an optional image mask.  Invert the
  *        background map without preconditioning by convolutional smoothing.
  *
+ *  Note: Most of these functions make an implicit assumption about RGB
+ *        component ordering.
  */
 
 #include <stdio.h>
@@ -224,8 +229,10 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
     if (d == 8) {
         pixm = NULL;
         pixGetBackgroundGrayMap(pixs, pixim, sx, sy, thresh, mincount, &pixm);
-        if (!pixm)
-            return (PIX *)ERROR_PTR("pixm not made", procName, NULL);
+        if (!pixm) {
+            L_WARNING("map not made; returning a copy of the source", procName);
+            return pixCopy(NULL, pixs);
+        }
 
         pixmi = pixGetInvBackgroundMap(pixm, bgval, smoothx, smoothy);
         if (!pixmi)
@@ -244,7 +251,8 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
             pixDestroy(&pixmr);
             pixDestroy(&pixmg);
             pixDestroy(&pixmb);
-            return (PIX *)ERROR_PTR("not all pixm*", procName, NULL);
+            L_WARNING("map not made; returning a copy of the source", procName);
+            return pixCopy(NULL, pixs);
         }
 
         pixmri = pixGetInvBackgroundMap(pixmr, bgval, smoothx, smoothy);
@@ -841,7 +849,8 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
         /* Fill all the holes in the map. */
     if (pixFillMapHoles(pixd, nx, ny, L_FILL_BLACK)) {
         pixDestroy(&pixd);
-        return ERROR_INT("fill error", procName, 1);
+        L_WARNING("can't make the map", procName);
+        return 1;
     }
 
         /* Finally, for each connected region corresponding to the
@@ -1029,7 +1038,8 @@ PIX       *pixmr, *pixmg, *pixmb;
         pixDestroy(&pixmr);
         pixDestroy(&pixmg);
         pixDestroy(&pixmb);
-        return ERROR_INT("fill error", procName, 1);
+        L_WARNING("can't make the maps", procName);
+        return 1;
     }
 
         /* Finally, for each connected region corresponding to the
@@ -1123,7 +1133,8 @@ PIX       *pixm, *pixt1, *pixt2, *pixt3, *pixims;
     ny = pixGetHeight(pixs) / reduction;
     if (pixFillMapHoles(pixm, nx, ny, L_FILL_BLACK)) {
         pixDestroy(&pixm);
-        return ERROR_INT("fill error", procName, 1);
+        L_WARNING("can't make the map", procName);
+        return 1;
     }
 
         /* Finally, for each connected region corresponding to the
@@ -1207,7 +1218,6 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         pixmr = pixAnd(NULL, pixm, pixt3);
     else
         pixmr = pixClone(pixt3);
-    *ppixmr = pixmr;
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -1219,7 +1229,6 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         pixmg = pixAnd(NULL, pixm, pixt3);
     else
         pixmg = pixClone(pixt3);
-    *ppixmg = pixmg;
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixDestroy(&pixt3);
@@ -1231,7 +1240,6 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         pixmb = pixAnd(NULL, pixm, pixt3);
     else
         pixmb = pixClone(pixt3);
-    *ppixmb = pixmb;
     pixDestroy(&pixm);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -1240,9 +1248,15 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         /* Fill all the holes in the three maps. */
     nx = pixGetWidth(pixs) / reduction;
     ny = pixGetHeight(pixs) / reduction;
-    pixFillMapHoles(pixmr, nx, ny, L_FILL_BLACK);
-    pixFillMapHoles(pixmg, nx, ny, L_FILL_BLACK);
-    pixFillMapHoles(pixmb, nx, ny, L_FILL_BLACK);
+    if (pixFillMapHoles(pixmr, nx, ny, L_FILL_BLACK) ||
+        pixFillMapHoles(pixmg, nx, ny, L_FILL_BLACK) ||
+        pixFillMapHoles(pixmb, nx, ny, L_FILL_BLACK)) {
+        pixDestroy(&pixmr);
+        pixDestroy(&pixmg);
+        pixDestroy(&pixmb);
+        L_WARNING("can't make the maps", procName);
+        return 1;
+    }
 
         /* Finally, for each connected region corresponding to the
          * fg mask in each component, reset all pixels to their
@@ -1254,6 +1268,9 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         pixDestroy(&pixims);
     }
 
+    *ppixmr = pixmr;
+    *ppixmg = pixmg;
+    *ppixmb = pixmb;
     return 0;
 }
 
@@ -1347,7 +1364,8 @@ PIX      *pixt;
     
     if (nmiss == nx) {  /* no data in any column! */
         numaDestroy(&na);
-        return ERROR_INT("no background found", procName, 1);
+        L_WARNING("no bg found; no data in any column", procName);
+        return 1;
     }
 
     /* ---------- Fill in missing columns by replication ----------- */
@@ -1515,6 +1533,8 @@ PIXA      *pixa;
 /*------------------------------------------------------------------*
  *                 Measurement of local foreground                  *
  *------------------------------------------------------------------*/
+#if 0    /* Not working properly: do not use */
+
 /*!
  *  pixGetForegroundGrayMap()
  *
@@ -1639,6 +1659,7 @@ PIX     *pixd, *piximi, *pixim2, *pixims, *pixs2, *pixb, *pixt1, *pixt2, *pixt3;
     pixDestroy(&pixt3);
     return 0;
 }
+#endif   /* Not working properly: do not use */
 
 
 /*------------------------------------------------------------------*
@@ -1855,6 +1876,121 @@ PIX       *pixd;
         }
     }
 
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------*
+ *                  Non-adaptive (global) mapping                   *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixGlobalNormRGB()
+ *
+ *      Input:  pixd (<optional> null, existing or equal to pixs)
+ *              pixs (32 bpp rgb, or colormapped)
+ *              rval, gval, bval (pixel values in pixs that are 
+ *                                linearly mapped to mapval)
+ *              mapval (use 255 for mapping to white)
+ *      Return: pixd (32 bpp rgb or colormapped), or null on error
+ *
+ *  Notes:
+ *    (1) The value of pixd determines if the results are written to a
+ *        new pix (use NULL), in-place to pixs (use pixs), or to some
+ *        other existing pix.
+ *    (2) This does a global normalization of an image where the
+ *        r,g,b color components are not balanced.  Thus, white in pixs is
+ *        represented by a set of r,g,b values that are not all 255.
+ *    (3) The input values (rval, gval, bval) should be chosen to
+ *        represent the gray color (mapval, mapval, mapval) in src.
+ *        Thus, this function will map (rval, gval, bval) to that gray color.
+ *    (4) Typically, mapval = 255, so that (rval, gval, bval)
+ *        corresponds to the white point of src.  In that case, these
+ *        parameters should be chosen so that few pixels have higher values.
+ *    (5) In all cases, we do a linear TRC separately on each of the
+ *        components, saturating at 255.
+ *    (6) If the input pix is 8 bpp without a colormap, you can get
+ *        this functionality with mapval = 255 by calling:
+ *            pixGammaTRC(pixd, pixs, 1.0, 0, bgval);
+ *        where bgval is the value you want to be mapped to 255.
+ *        Or more generally, if you want bgval to be mapped to mapval:
+ *            pixGammaTRC(pixd, pixs, 1.0, 0, 255 * bgval / mapval);
+ */
+PIX *
+pixGlobalNormRGB(PIX     *pixd,
+                 PIX     *pixs,
+                 l_int32  rval,
+                 l_int32  gval,
+                 l_int32  bval,
+                 l_int32  mapval)
+{
+l_int32    w, h, d, i, j, ncolors, rv, gv, bv, wpl;
+l_int32   *rarray, *garray, *barray;
+l_uint32   pixel;
+l_uint32  *data, *line;
+NUMA      *nar, *nag, *nab;
+PIX       *pixc;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixGlobalNormRGB");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    cmap = pixGetColormap(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (!cmap && d != 32)
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+    if (mapval <= 0) {
+        L_WARNING("mapval must be > 0; setting to 255", procName);
+        mapval = 255;
+    }
+
+        /* Prepare pixd to be a copy of pixs */
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+        /* Generate the TRC maps for each component */
+    nar = numaGammaTRC(1.0, 0, 255 * rval / mapval);
+    nag = numaGammaTRC(1.0, 0, 255 * gval / mapval);
+    nab = numaGammaTRC(1.0, 0, 255 * bval / mapval);
+    if (!nar || !nag || !nab)
+        return (PIX *)ERROR_PTR("trc maps not all made", procName, pixd);
+
+        /* Extract copies of the internal arrays */
+    rarray = numaGetIArray(nar);
+    garray = numaGetIArray(nag);
+    barray = numaGetIArray(nab);
+    if (!rarray || !garray || !barray)
+        return (PIX *)ERROR_PTR("*arrays not all made", procName, pixd);
+
+    if (cmap) {
+        ncolors = pixcmapGetCount(cmap);
+        for (i = 0; i < ncolors; i++) {
+            pixcmapGetColor(cmap, i, &rv, &gv, &bv);
+            pixcmapResetColor(cmap, i, rarray[rv], garray[gv], barray[bv]);
+        }
+    }
+    else {
+        data = pixGetData(pixd);
+        wpl = pixGetWpl(pixd);
+        for (i = 0; i < h; i++) {
+            line = data + i * wpl;
+            for (j = 0; j < w; j++) {
+                pixel = line[j];
+                rv = pixel >> 24;
+                gv = (pixel >> 16) & 0xff;
+                bv = (pixel >> 8) & 0xff;
+                pixel = rarray[rv] << 24 | garray[gv] << 16 | barray[bv] << 8;
+                line[j] = pixel;
+            }
+        }
+    }
+
+    numaDestroy(&nar);
+    numaDestroy(&nag);
+    numaDestroy(&nab);
+    FREE(rarray);
+    FREE(garray);
+    FREE(barray);
     return pixd;
 }
 

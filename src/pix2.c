@@ -18,13 +18,16 @@
  *
  *    This file has these basic operations:
  *
- *      (1) Get and set of image pixels, pad pixels, border pixels,
- *          and color components for RGB
- *      (2) Endian byte swaps
+ *      (1) Get and set: individual pixels, full image, rectangular region,
+ *          pad pixels, border pixels, and color components for RGB
+ *      (2) Add and remove border pixels
+ *      (3) Endian byte swaps
  *
  *      Pixel poking
  *           l_int32     pixGetPixel()
  *           l_int32     pixSetPixel()
+ *           l_int32     pixGetRGBPixel()
+ *           l_int32     pixSetRGBPixel()
  *           l_int32     pixClearPixel()
  *           l_int32     pixFlipPixel()
  *           void        setPixelLow()
@@ -33,6 +36,13 @@
  *           l_int32     pixClearAll()
  *           l_int32     pixSetAll()
  *           l_int32     pixSetAllArbitrary()
+ *
+ *      Rectangular region clear/set/set-to-arbitrary-value
+ *           l_int32     pixClearInRect()
+ *           l_int32     pixSetInRect()
+ *           l_int32     pixSetInRectArbitrary()
+ *
+ *      Set pad bits
  *           l_int32     pixSetPadBits()
  *           l_int32     pixSetPadBitsBand()
  *
@@ -209,6 +219,91 @@ l_uint32  *line, *data;
     return 0;
 }
 
+
+/*!
+ *  pixGetRGBPixel()
+ *
+ *      Input:  pix
+ *              (x,y) pixel coords
+ *              &rval (<optional return> red component)
+ *              &gval (<optional return> green component)
+ *              &bval (<optional return> blue component)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+pixGetRGBPixel(PIX      *pix,
+               l_int32   x,
+               l_int32   y,
+               l_int32  *prval,
+               l_int32  *pgval,
+               l_int32  *pbval)
+{
+l_int32    w, h, d, wpl;
+l_uint32  *data, *ppixel;
+
+    PROCNAME("pixGetRGBPixel");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 32)
+        return ERROR_INT("pix not 32 bpp", procName, 1);
+    if (x < 0 || x >= w)
+        return ERROR_INT("x out of bounds", procName, 1);
+    if (y < 0 || y >= h)
+        return ERROR_INT("y out of bounds", procName, 1);
+
+    wpl = pixGetWpl(pix);
+    data = pixGetData(pix);
+    ppixel = data + y * wpl + x;
+    if (prval) *prval = GET_DATA_BYTE(ppixel, COLOR_RED);
+    if (pgval) *pgval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+    if (pbval) *pbval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+    return 0;
+}
+
+
+/*!
+ *  pixSetRGBPixel()
+ *
+ *      Input:  pix
+ *              (x,y) pixel coords
+ *              rval (red component)
+ *              gval (green component)
+ *              bval (blue component)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+pixSetRGBPixel(PIX     *pix,
+               l_int32  x,
+               l_int32  y,
+               l_int32  rval,
+               l_int32  gval,
+               l_int32  bval)
+{
+l_int32    w, h, d, wpl;
+l_uint32   pixel;
+l_uint32  *data, *line;
+
+    PROCNAME("pixSetRGBPixel");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 32)
+        return ERROR_INT("pix not 32 bpp", procName, 1);
+    if (x < 0 || x >= w)
+        return ERROR_INT("x out of bounds", procName, 1);
+    if (y < 0 || y >= h)
+        return ERROR_INT("y out of bounds", procName, 1);
+
+    wpl = pixGetWpl(pix);
+    data = pixGetData(pix);
+    line = data + y * wpl;
+    composeRGBPixel(rval, gval, bval, &pixel);
+    *(line + x) = pixel;
+    return 0;
+}
 
 
 /*!
@@ -387,7 +482,6 @@ setPixelLow(l_uint32  *line,
 }
 
 
-
 /*-------------------------------------------------------------*
  *     Full image clear/set/set-to-arbitrary-value/invert      *
  *-------------------------------------------------------------*/
@@ -489,6 +583,160 @@ l_uint32  *data, *line;
 }
 
 
+/*-------------------------------------------------------------*
+ *     Rectangular region clear/set/set-to-arbitrary-value     *
+ *-------------------------------------------------------------*/
+/*!
+ *  pixClearInRect()
+ *
+ *      Input:  pix (all depths)
+ *              box (in which all pixels will be cleared)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixClearInRect(PIX  *pix,
+               BOX  *box)
+{
+l_int32  x, y, w, h;
+
+    PROCNAME("pixClearInRect");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+
+    boxGetGeometry(box, &x, &y, &w, &h);
+    pixRasterop(pix, x, y, w, h, PIX_CLR, NULL, 0, 0);
+    return 0;
+}
+
+
+/*!
+ *  pixSetInRect()
+ *
+ *      Input:  pix (all depths)
+ *              box (in which all pixels will be set)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+pixSetInRect(PIX  *pix,
+             BOX  *box)
+{
+l_int32  x, y, w, h;
+
+    PROCNAME("pixSetInRect");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+
+    boxGetGeometry(box, &x, &y, &w, &h);
+    pixRasterop(pix, x, y, w, h, PIX_SET, NULL, 0, 0);
+    return 0;
+}
+
+
+/*!
+ *  pixSetInRectArbitrary()
+ *
+ *      Input:  pix (all depths)
+ *              box (in which all pixels will be set to val)
+ *              val  (value to set all pixels)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+pixSetInRectArbitrary(PIX      *pix,
+                      BOX      *box,
+                      l_uint32  val)
+{
+l_int32    x, y, xstart, xend, ystart, yend, bw, bh, w, h, d, wpl, maxval;
+l_uint32  *data, *line;
+BOX       *boxc;
+
+    PROCNAME("pixSetInRectArbitrary");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 1 && d != 2 && d != 4 && d !=8 && d != 16 && d != 32)
+        return ERROR_INT("depth must be in {1,2,4,8,16,32} bpp", procName, 1);
+
+    if (d == 32)
+        maxval = 0xffffffff;
+    else
+        maxval = (1 << d) - 1;
+    if (val < 0) {
+        L_WARNING("invalid pixel value; set to 0", procName);
+        val = 0;
+    }
+    if (val > maxval) {
+        L_WARNING_INT("invalid pixel val; set to maxval = %d",
+                      procName, maxval);
+        val = maxval;
+    }
+
+        /* Handle the simple cases: the min and max values */
+    if (val == 0) {
+        pixClearInRect(pix, box);
+        return 0;
+    }
+    if (d == 1 ||
+        d == 2 && val == 3 ||
+        d == 4 && val == 0xf ||
+        d == 8 && val == 0xff ||
+        d == 16 && val == 0xffff ||
+        d == 32 && ((val ^ 0xffffff00) >> 8 == 0)) {
+        pixSetInRect(pix, box);
+        return 0;
+    }
+
+        /* Find the overlap of box with the input pix */
+    if ((boxc = boxClipToRectangle(box, w, h)) == NULL)
+        return ERROR_INT("no overlap of box with image", procName, 1);
+    boxGetGeometry(boxc, &xstart, &ystart, &bw, &bh);
+    xend = xstart + bw - 1;
+    yend = ystart + bh - 1;
+    boxDestroy(&boxc);
+
+    wpl = pixGetWpl(pix);
+    data = pixGetData(pix);
+    for (y = ystart; y <= yend; y++) {
+        line = data + y * wpl;
+        for (x = xstart; x <= xend; x++) {
+            switch(d)
+            {
+            case 2:
+                SET_DATA_DIBIT(line, x, val);
+                break;
+            case 4:
+                SET_DATA_QBIT(line, x, val);
+                break;
+            case 8:
+                SET_DATA_BYTE(line, x, val);
+                break;
+            case 16:
+                SET_DATA_TWO_BYTES(line, x, val);
+                break;
+            case 32:
+                line[x] = val;
+                break;
+            default:
+                return ERROR_INT("depth not 2|4|8|16|32 bpp", procName, 1);
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+/*-------------------------------------------------------------*
+ *                         Set pad bits                        *
+ *-------------------------------------------------------------*/
 /*!
  *  pixSetPadBits()
  *
