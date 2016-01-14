@@ -41,26 +41,26 @@ static const l_int32  SHIFT_RIGHT = 1;
 
 static void rasteropUniWordAlignedLow(l_uint32 *datad, l_int32 dwpl, l_int32 dx,
                                       l_int32 dy, l_int32  dw, l_int32 dh,
-			              l_int32 op);
+                                      l_int32 op);
 
 static void rasteropUniGeneralLow(l_uint32 *datad, l_int32 dwpl, l_int32 dx,
                                   l_int32 dy, l_int32 dw, l_int32  dh,
-			          l_int32 op);
+                                  l_int32 op);
 
 static void rasteropWordAlignedLow(l_uint32 *datad, l_int32 dwpl, l_int32 dx,
                                    l_int32 dy, l_int32 dw, l_int32 dh,
-			           l_int32 op, l_uint32 *datas, l_int32 swpl,
-			           l_int32 sx, l_int32 sy);
+                                   l_int32 op, l_uint32 *datas, l_int32 swpl,
+                                   l_int32 sx, l_int32 sy);
 
 static void rasteropVAlignedLow(l_uint32 *datad, l_int32 dwpl, l_int32 dx,
-				l_int32 dy, l_int32 dw, l_int32 dh,
-				l_int32 op, l_uint32 *datas, l_int32 swpl,
-				l_int32 sx, l_int32 sy);
+                                l_int32 dy, l_int32 dw, l_int32 dh,
+                                l_int32 op, l_uint32 *datas, l_int32 swpl,
+                                l_int32 sx, l_int32 sy);
 
 static void rasteropGeneralLow(l_uint32 *datad, l_int32 dwpl, l_int32 dx,
                                l_int32 dy, l_int32 dw, l_int32 dh,
-			       l_int32 op, l_uint32 *datas, l_int32 swpl,
-			       l_int32 sx, l_int32 sy);
+                               l_int32 op, l_uint32 *datas, l_int32 swpl,
+                               l_int32 sx, l_int32 sy);
 
 
 static const l_uint32 lmask32[] = {0x0,
@@ -109,12 +109,12 @@ void
 rasteropUniLow(l_uint32  *datad,
                l_int32    dpixw,
                l_int32    dpixh,
-	       l_int32    depth,
-	       l_int32    dwpl,
-	       l_int32    dx,
-	       l_int32    dy,
-	       l_int32    dw,
-	       l_int32    dh,
+               l_int32    depth,
+               l_int32    dwpl,
+               l_int32    dx,
+               l_int32    dy,
+               l_int32    dw,
+               l_int32    dh,
                l_int32    op)
 {
 l_int32  dhangw, dhangh;
@@ -124,8 +124,8 @@ l_int32  dhangw, dhangh;
     * -------------------------------------------------------*/
     if (depth != 1) {
         dpixw *= depth;
-	dx *= depth;
-	dw *= depth;
+        dx *= depth;
+        dw *= depth;
     }
 
    /* -------------------------------------------------------*
@@ -133,8 +133,8 @@ l_int32  dhangw, dhangh;
     * -------------------------------------------------------*/
        /* first, clip horizontally (dx, dw) */
     if (dx < 0) {
-	dw += dx;  /* reduce dw */
-	dx = 0;
+        dw += dx;  /* reduce dw */
+        dx = 0;
     }
     dhangw = dx + dw - dpixw;  /* rect ovhang dest to right */
     if (dhangw > 0)
@@ -142,8 +142,8 @@ l_int32  dhangw, dhangh;
 
        /* then, clip vertically (dy, dh) */
     if (dy < 0) {
-	dh += dy;  /* reduce dh */
-	dy = 0;
+        dh += dy;  /* reduce dh */
+        dy = 0;
     }
     dhangh = dy + dh - dpixh;  /* rect ovhang dest below */
     if (dhangh > 0)
@@ -151,15 +151,15 @@ l_int32  dhangw, dhangh;
 
         /* if clipped entirely, quit */
     if ((dw <= 0) || (dh <= 0))
-	return;
+        return;
 
    /* -------------------------------------------------------*
     *       dispatch to aligned or non-aligned blitters
     * -------------------------------------------------------*/
     if ((dx & 31) == 0)
-	rasteropUniWordAlignedLow(datad, dwpl, dx, dy, dw, dh, op);
+        rasteropUniWordAlignedLow(datad, dwpl, dx, dy, dw, dh, op);
     else
-	rasteropUniGeneralLow(datad, dwpl, dx, dy, dw, dh, op);
+        rasteropUniGeneralLow(datad, dwpl, dx, dy, dw, dh, op);
     return;
 }
 
@@ -188,12 +188,12 @@ l_int32  dhangw, dhangh;
  */
 static void
 rasteropUniWordAlignedLow(l_uint32  *datad,
-		          l_int32    dwpl,
+                          l_int32    dwpl,
                           l_int32    dx,
-		          l_int32    dy,
-		          l_int32    dw,
-		          l_int32    dh,
-		          l_int32    op)
+                          l_int32    dy,
+                          l_int32    dw,
+                          l_int32    dh,
+                          l_int32    op)
 {
 l_int32    nfullw;     /* number of full words */
 l_uint32  *pfword;     /* ptr to first word */
@@ -208,7 +208,7 @@ l_int32    i, j;
     nfullw = dw >> 5;
     lwbits = dw & 31;
     if (lwbits)
-	lwmask = lmask32[lwbits];
+        lwmask = lmask32[lwbits];
     pfword = datad + dwpl * dy + (dx >> 5);
     
 
@@ -218,34 +218,34 @@ l_int32    i, j;
     switch (op)
     {
     case PIX_CLR:
-	for (i = 0; i < dh; i++) {
-	    lined = pfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++)
-		*lined++ = 0x0;
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, 0x0, lwmask);
+        for (i = 0; i < dh; i++) {
+            lined = pfword + i * dwpl;
+            for (j = 0; j < nfullw; j++)
+                *lined++ = 0x0;
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, 0x0, lwmask);
         }
-	break;
+        break;
     case PIX_SET:
-	for (i = 0; i < dh; i++) {
-	    lined = pfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++)
-		*lined++ = 0xffffffff;
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, 0xffffffff, lwmask);
+        for (i = 0; i < dh; i++) {
+            lined = pfword + i * dwpl;
+            for (j = 0; j < nfullw; j++)
+                *lined++ = 0xffffffff;
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, 0xffffffff, lwmask);
         }
-	break;
+        break;
     case PIX_NOT(PIX_DST):
-	for (i = 0; i < dh; i++) {
-	    lined = pfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = ~(*lined);
-		lined++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, ~(*lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lined = pfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = ~(*lined);
+                lined++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, ~(*lined), lwmask);
         }
-	break;
+        break;
     default:
         fprintf(stderr, "Operation %d not permitted here!\n", op);
     }
@@ -271,12 +271,12 @@ l_int32    i, j;
  */
 static void
 rasteropUniGeneralLow(l_uint32  *datad,
-		      l_int32    dwpl,
+                      l_int32    dwpl,
                       l_int32    dx,
-		      l_int32    dy,
-		      l_int32    dw,
-		      l_int32    dh,
-		      l_int32    op)
+                      l_int32    dy,
+                      l_int32    dw,
+                      l_int32    dh,
+                      l_int32    op)
 {
 l_int32    dfwpartb;   /* boolean (1, 0) if first dest word is partial */
 l_int32    dfwpart2b;  /* boolean (1, 0) if first dest word is doubly partial */
@@ -296,16 +296,16 @@ l_int32    i, j;
     /*--------------------------------------------------------*
      *                Preliminary calculations                *
      *--------------------------------------------------------*/
-	/* is the first word partial? */
+        /* is the first word partial? */
     if ((dx & 31) == 0) {  /* if not */
         dfwpartb = 0;
-	dfwbits = 0;
+        dfwbits = 0;
     }
     else {  /* if so */
         dfwpartb = 1;
-	dfwbits = 32 - (dx & 31);
-	dfwmask = rmask32[dfwbits];
-	pdfwpart = datad + dwpl * dy + (dx >> 5);
+        dfwbits = 32 - (dx & 31);
+        dfwmask = rmask32[dfwbits];
+        pdfwpart = datad + dwpl * dy + (dx >> 5);
     }
 
         /* is the first word doubly partial? */
@@ -319,32 +319,32 @@ l_int32    i, j;
         /* is there a full dest word? */
     if (dfwpart2b == 1) {  /* not */
         dfwfullb = 0;
-	dnfullw = 0;
+        dnfullw = 0;
     }
     else {
-	dnfullw = (dw - dfwbits) >> 5;
-	if (dnfullw == 0)  /* if not */
-	    dfwfullb = 0;
-	else {  /* if so */
-	    dfwfullb = 1;
-	    if (dfwpartb)
-		pdfwfull = pdfwpart + 1;
-	    else
-		pdfwfull = datad + dwpl * dy + (dx >> 5);
-	}
+        dnfullw = (dw - dfwbits) >> 5;
+        if (dnfullw == 0)  /* if not */
+            dfwfullb = 0;
+        else {  /* if so */
+            dfwfullb = 1;
+            if (dfwpartb)
+                pdfwfull = pdfwpart + 1;
+            else
+                pdfwfull = datad + dwpl * dy + (dx >> 5);
+        }
     }
 
-	/* is the last word partial? */
+        /* is the last word partial? */
     dlwbits = (dx + dw) & 31;
     if (dfwpart2b == 1 || dlwbits == 0)  /* if not */
         dlwpartb = 0;
     else {
-	dlwpartb = 1;
+        dlwpartb = 1;
         dlwmask = lmask32[dlwbits];
-	if (dfwpartb)
-	    pdlwpart = pdfwpart + 1 + dnfullw;
-	else
-	    pdlwpart = datad + dwpl * dy + (dx >> 5) + dnfullw;
+        if (dfwpartb)
+            pdlwpart = pdfwpart + 1 + dnfullw;
+        else
+            pdlwpart = datad + dwpl * dy + (dx >> 5) + dnfullw;
     }
 
 
@@ -354,83 +354,83 @@ l_int32    i, j;
     switch (op)
     {
     case PIX_CLR:
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart, 0x0, dfwmask);
-		pdfwpart += dwpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart, 0x0, dfwmask);
+                pdfwpart += dwpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = 0x0;
-		pdfwfull += dwpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = 0x0;
+                pdfwfull += dwpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart, 0x0, dlwmask);
-		pdlwpart += dwpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart, 0x0, dlwmask);
+                pdlwpart += dwpl;
+            }
+        }
+        break;
     case PIX_SET:
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart, 0xffffffff, dfwmask);
-		pdfwpart += dwpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart, 0xffffffff, dfwmask);
+                pdfwpart += dwpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = 0xffffffff;
-		pdfwfull += dwpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = 0xffffffff;
+                pdfwfull += dwpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart, 0xffffffff, dlwmask);
-		pdlwpart += dwpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart, 0xffffffff, dlwmask);
+                pdlwpart += dwpl;
+            }
+        }
+        break;
     case PIX_NOT(PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart, ~(*pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart, ~(*pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = ~(*(pdfwfull + j));
-		pdfwfull += dwpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = ~(*(pdfwfull + j));
+                pdfwfull += dwpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart, ~(*pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart, ~(*pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+            }
+        }
+        break;
     default:
         fprintf(stderr, "Operation %d not permitted here!\n", op);
     }
@@ -473,12 +473,12 @@ void
 rasteropLow(l_uint32  *datad,
             l_int32    dpixw,
             l_int32    dpixh,
-	    l_int32    depth,
-	    l_int32    dwpl,
-	    l_int32    dx,
-	    l_int32    dy,
-	    l_int32    dw,
-	    l_int32    dh,
+            l_int32    depth,
+            l_int32    dwpl,
+            l_int32    dx,
+            l_int32    dy,
+            l_int32    dw,
+            l_int32    dh,
             l_int32    op,
             l_uint32  *datas,
             l_int32    spixw,
@@ -494,10 +494,10 @@ l_int32  dhangw, shangw, dhangh, shangh;
     * -------------------------------------------------------*/
     if (depth != 1) {
         dpixw *= depth;
-	dx *= depth;
-	dw *= depth;
+        dx *= depth;
+        dw *= depth;
         spixw *= depth;
-	sx *= depth;
+        sx *= depth;
     }
 
 
@@ -507,13 +507,13 @@ l_int32  dhangw, shangw, dhangh, shangh;
        /* first, clip horizontally (sx, dx, dw) */
     if (dx < 0) {
         sx -= dx;  /* increase sx */
-	dw += dx;  /* reduce dw */
-	dx = 0;
+        dw += dx;  /* reduce dw */
+        dx = 0;
     }
     if (sx < 0) {
         dx -= sx;  /* increase dx */
-	dw += sx;  /* reduce dw */
-	sx = 0;
+        dw += sx;  /* reduce dw */
+        sx = 0;
     }
     dhangw = dx + dw - dpixw;  /* rect ovhang dest to right */
     if (dhangw > 0)
@@ -525,13 +525,13 @@ l_int32  dhangw, shangw, dhangh, shangh;
        /* then, clip vertically (sy, dy, dh) */
     if (dy < 0) {
         sy -= dy;  /* increase sy */
-	dh += dy;  /* reduce dh */
-	dy = 0;
+        dh += dy;  /* reduce dh */
+        dy = 0;
     }
     if (sy < 0) {
         dy -= sy;  /* increase dy */
-	dh += sy;  /* reduce dh */
-	sy = 0;
+        dh += sy;  /* reduce dh */
+        sy = 0;
     }
     dhangh = dy + dh - dpixh;  /* rect ovhang dest below */
     if (dhangh > 0)
@@ -542,20 +542,20 @@ l_int32  dhangw, shangw, dhangh, shangh;
 
         /* if clipped entirely, quit */
     if ((dw <= 0) || (dh <= 0))
-	return;
+        return;
 
    /* -------------------------------------------------------*
     *       dispatch to aligned or non-aligned blitters
     * -------------------------------------------------------*/
     if (((dx & 31) == 0) && ((sx & 31) == 0))
-	rasteropWordAlignedLow(datad, dwpl, dx, dy, dw, dh, op,
-	                       datas, swpl, sx, sy);
+        rasteropWordAlignedLow(datad, dwpl, dx, dy, dw, dh, op,
+                               datas, swpl, sx, sy);
     else if ((dx & 31) == (sx & 31))
-	rasteropVAlignedLow(datad, dwpl, dx, dy, dw, dh, op,
-	                    datas, swpl, sx, sy);
+        rasteropVAlignedLow(datad, dwpl, dx, dy, dw, dh, op,
+                            datas, swpl, sx, sy);
     else
-	rasteropGeneralLow(datad, dwpl, dx, dy, dw, dh, op,
-	                   datas, swpl, sx, sy);
+        rasteropGeneralLow(datad, dwpl, dx, dy, dw, dh, op,
+                           datas, swpl, sx, sy);
 
     return;
 }
@@ -590,16 +590,16 @@ l_int32  dhangw, shangw, dhangh, shangh;
  */
 static void
 rasteropWordAlignedLow(l_uint32  *datad,
-		       l_int32    dwpl,
+                       l_int32    dwpl,
                        l_int32    dx,
-		       l_int32    dy,
-		       l_int32    dw,
-		       l_int32    dh,
-		       l_int32    op,
-	               l_uint32  *datas,
-		       l_int32    swpl,
-		       l_int32    sx,
-		       l_int32    sy)
+                       l_int32    dy,
+                       l_int32    dw,
+                       l_int32    dh,
+                       l_int32    op,
+                       l_uint32  *datas,
+                       l_int32    swpl,
+                       l_int32    sx,
+                       l_int32    sy)
 {
 l_int32    nfullw;     /* number of full words */
 l_uint32  *psfword;    /* ptr to first src word */
@@ -616,7 +616,7 @@ l_int32    i, j;
     nfullw = dw >> 5;
     lwbits = dw & 31;
     if (lwbits)
-	lwmask = lmask32[lwbits];
+        lwmask = lmask32[lwbits];
     psfword = datas + swpl * sy + (sx >> 5);
     pdfword = datad + dwpl * dy + (dx >> 5);
     
@@ -626,164 +626,164 @@ l_int32    i, j;
     switch (op)
     {
     case PIX_SRC:
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = *lines;
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, *lines, lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = *lines;
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, *lines, lwmask);
         }
-	break;
+        break;
     case PIX_NOT(PIX_SRC):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = ~(*lines);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, ~(*lines), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = ~(*lines);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, ~(*lines), lwmask);
         }
-	break;
+        break;
     case (PIX_SRC | PIX_DST):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = (*lines | *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, (*lines | *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = (*lines | *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, (*lines | *lined), lwmask);
         }
-	break;
+        break;
     case (PIX_SRC & PIX_DST):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = (*lines & *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, (*lines & *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = (*lines & *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, (*lines & *lined), lwmask);
         }
-	break;
+        break;
     case (PIX_SRC ^ PIX_DST):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = (*lines ^ *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, (*lines ^ *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = (*lines ^ *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, (*lines ^ *lined), lwmask);
         }
-	break;
+        break;
     case (PIX_NOT(PIX_SRC) | PIX_DST):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = (~(*lines) | *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, (~(*lines) | *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = (~(*lines) | *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, (~(*lines) | *lined), lwmask);
         }
-	break;
+        break;
     case (PIX_NOT(PIX_SRC) & PIX_DST):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = (~(*lines) & *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, (~(*lines) & *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = (~(*lines) & *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, (~(*lines) & *lined), lwmask);
         }
-	break;
+        break;
     case (PIX_SRC | PIX_NOT(PIX_DST)):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = (*lines | ~(*lined));
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, (*lines | ~(*lined)), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = (*lines | ~(*lined));
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, (*lines | ~(*lined)), lwmask);
         }
-	break;
+        break;
     case (PIX_SRC & PIX_NOT(PIX_DST)):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = (*lines & ~(*lined));
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, (*lines & ~(*lined)), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = (*lines & ~(*lined));
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, (*lines & ~(*lined)), lwmask);
         }
-	break;
+        break;
     case (PIX_NOT(PIX_SRC | PIX_DST)):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = ~(*lines  | *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, ~(*lines  | *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = ~(*lines  | *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, ~(*lines  | *lined), lwmask);
         }
-	break;
+        break;
     case (PIX_NOT(PIX_SRC & PIX_DST)):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = ~(*lines  & *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, ~(*lines  & *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = ~(*lines  & *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, ~(*lines  & *lined), lwmask);
         }
-	break;
+        break;
         /* this is three cases: ~(s ^ d), ~s ^ d, s ^ ~d  */
     case (PIX_NOT(PIX_SRC ^ PIX_DST)):
-	for (i = 0; i < dh; i++) {
-	    lines = psfword + i * swpl;
-	    lined = pdfword + i * dwpl;
-	    for (j = 0; j < nfullw; j++) {
-		*lined = ~(*lines ^ *lined);
-		lined++;
-		lines++;
-	    }
-	    if (lwbits)
-		*lined = COMBINE_PARTIAL(*lined, ~(*lines ^ *lined), lwmask);
+        for (i = 0; i < dh; i++) {
+            lines = psfword + i * swpl;
+            lined = pdfword + i * dwpl;
+            for (j = 0; j < nfullw; j++) {
+                *lined = ~(*lines ^ *lined);
+                lined++;
+                lines++;
+            }
+            if (lwbits)
+                *lined = COMBINE_PARTIAL(*lined, ~(*lines ^ *lined), lwmask);
         }
-	break;
+        break;
     default:
-	fprintf(stderr, "Operation %d invalid\n", op);
+        fprintf(stderr, "Operation %d invalid\n", op);
     }
 
     return;
@@ -816,16 +816,16 @@ l_int32    i, j;
  */
 static void
 rasteropVAlignedLow(l_uint32  *datad,
-		    l_int32    dwpl,
+                    l_int32    dwpl,
                     l_int32    dx,
-		    l_int32    dy,
-		    l_int32    dw,
-		    l_int32    dh,
-		    l_int32    op,
-	            l_uint32  *datas,
-		    l_int32    swpl,
-		    l_int32    sx,
-		    l_int32    sy)
+                    l_int32    dy,
+                    l_int32    dw,
+                    l_int32    dh,
+                    l_int32    op,
+                    l_uint32  *datas,
+                    l_int32    swpl,
+                    l_int32    sx,
+                    l_int32    sy)
 {
 l_int32    dfwpartb;   /* boolean (1, 0) if first dest word is partial */
 l_int32    dfwpart2b;  /* boolean (1, 0) if first dest word is doubly partial */
@@ -848,17 +848,17 @@ l_int32    i, j;
     /*--------------------------------------------------------*
      *                Preliminary calculations                *
      *--------------------------------------------------------*/
-	/* is the first word partial? */
+        /* is the first word partial? */
     if ((dx & 31) == 0) {  /* if not */
         dfwpartb = 0;
-	dfwbits = 0;
+        dfwbits = 0;
     }
     else {  /* if so */
         dfwpartb = 1;
-	dfwbits = 32 - (dx & 31);
-	dfwmask = rmask32[dfwbits];
-	pdfwpart = datad + dwpl * dy + (dx >> 5);
-	psfwpart = datas + swpl * sy + (sx >> 5);
+        dfwbits = 32 - (dx & 31);
+        dfwmask = rmask32[dfwbits];
+        pdfwpart = datad + dwpl * dy + (dx >> 5);
+        psfwpart = datas + swpl * sy + (sx >> 5);
     }
 
         /* is the first word doubly partial? */
@@ -872,40 +872,40 @@ l_int32    i, j;
         /* is there a full dest word? */
     if (dfwpart2b == 1) {  /* not */
         dfwfullb = 0;
-	dnfullw = 0;
+        dnfullw = 0;
     }
     else {
-	dnfullw = (dw - dfwbits) >> 5;
-	if (dnfullw == 0)  /* if not */
-	    dfwfullb = 0;
-	else {  /* if so */
-	    dfwfullb = 1;
-	    if (dfwpartb) {
-		pdfwfull = pdfwpart + 1;
-		psfwfull = psfwpart + 1;
-	    }
-	    else {
-		pdfwfull = datad + dwpl * dy + (dx >> 5);
-		psfwfull = datas + swpl * sy + (sx >> 5);
-	    }
-	}
+        dnfullw = (dw - dfwbits) >> 5;
+        if (dnfullw == 0)  /* if not */
+            dfwfullb = 0;
+        else {  /* if so */
+            dfwfullb = 1;
+            if (dfwpartb) {
+                pdfwfull = pdfwpart + 1;
+                psfwfull = psfwpart + 1;
+            }
+            else {
+                pdfwfull = datad + dwpl * dy + (dx >> 5);
+                psfwfull = datas + swpl * sy + (sx >> 5);
+            }
+        }
     }
 
-	/* is the last word partial? */
+        /* is the last word partial? */
     dlwbits = (dx + dw) & 31;
     if (dfwpart2b == 1 || dlwbits == 0)  /* if not */
         dlwpartb = 0;
     else {
-	dlwpartb = 1;
+        dlwpartb = 1;
         dlwmask = lmask32[dlwbits];
-	if (dfwpartb) {
-	    pdlwpart = pdfwpart + 1 + dnfullw;
-	    pslwpart = psfwpart + 1 + dnfullw;
-	}
-	else {
-	    pdlwpart = datad + dwpl * dy + (dx >> 5) + dnfullw;
-	    pslwpart = datas + swpl * sy + (sx >> 5) + dnfullw;
-	}
+        if (dfwpartb) {
+            pdlwpart = pdfwpart + 1 + dnfullw;
+            pslwpart = psfwpart + 1 + dnfullw;
+        }
+        else {
+            pdlwpart = datad + dwpl * dy + (dx >> 5) + dnfullw;
+            pslwpart = datas + swpl * sy + (sx >> 5) + dnfullw;
+        }
     }
 
 
@@ -915,374 +915,374 @@ l_int32    i, j;
     switch (op)
     {
     case PIX_SRC:
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart, *psfwpart, dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart, *psfwpart, dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = *(psfwfull + j);
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = *(psfwfull + j);
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart, *pslwpart, dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart, *pslwpart, dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case PIX_NOT(PIX_SRC):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart, ~(*psfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart, ~(*psfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = ~(*(psfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = ~(*(psfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart, ~(*pslwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart, ~(*pslwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC | PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    (*psfwpart | *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    (*psfwpart | *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) |= *(psfwfull + j);
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) |= *(psfwfull + j);
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     (*pslwpart | *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     (*pslwpart | *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC & PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    (*psfwpart & *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    (*psfwpart & *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) &= *(psfwfull + j);
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) &= *(psfwfull + j);
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     (*pslwpart & *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     (*pslwpart & *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC ^ PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    (*psfwpart ^ *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    (*psfwpart ^ *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) ^= *(psfwfull + j);
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) ^= *(psfwfull + j);
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     (*pslwpart ^ *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     (*pslwpart ^ *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC) | PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    (~(*psfwpart) | *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    (~(*psfwpart) | *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) |= ~(*(psfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) |= ~(*(psfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     (~(*pslwpart) | *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     (~(*pslwpart) | *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC) & PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    (~(*psfwpart) & *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    (~(*psfwpart) & *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) &= ~(*(psfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) &= ~(*(psfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     (~(*pslwpart) & *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     (~(*pslwpart) & *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC | PIX_NOT(PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    (*psfwpart | ~(*pdfwpart)), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    (*psfwpart | ~(*pdfwpart)), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = *(psfwfull + j) | ~(*(pdfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = *(psfwfull + j) | ~(*(pdfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     (*pslwpart | ~(*pdlwpart)), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     (*pslwpart | ~(*pdlwpart)), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC & PIX_NOT(PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    (*psfwpart & ~(*pdfwpart)), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    (*psfwpart & ~(*pdfwpart)), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = *(psfwfull + j) & ~(*(pdfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = *(psfwfull + j) & ~(*(pdfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     (*pslwpart & ~(*pdlwpart)), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     (*pslwpart & ~(*pdlwpart)), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC | PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    ~(*psfwpart | *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    ~(*psfwpart | *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = ~(*(psfwfull + j) | *(pdfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = ~(*(psfwfull + j) | *(pdfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     ~(*pslwpart | *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     ~(*pslwpart | *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC & PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    ~(*psfwpart & *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    ~(*psfwpart & *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = ~(*(psfwfull + j) & *(pdfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = ~(*(psfwfull + j) & *(pdfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     ~(*pslwpart & *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     ~(*pslwpart & *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
         /* this is three cases: ~(s ^ d), ~s ^ d, s ^ ~d  */
     case (PIX_NOT(PIX_SRC ^ PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                    ~(*psfwpart ^ *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                    ~(*psfwpart ^ *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++)
-		    *(pdfwfull + j) = ~(*(psfwfull + j) ^ *(pdfwfull + j));
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++)
+                    *(pdfwfull + j) = ~(*(psfwfull + j) ^ *(pdfwfull + j));
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		                     ~(*pslwpart ^ *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                                     ~(*pslwpart ^ *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     default: 
         fprintf(stderr, "Operation %x invalid\n", op);
     }
@@ -1339,16 +1339,16 @@ l_int32    i, j;
  */
 static void
 rasteropGeneralLow(l_uint32  *datad,
-		   l_int32    dwpl,
+                   l_int32    dwpl,
                    l_int32    dx,
-		   l_int32    dy,
-		   l_int32    dw,
-		   l_int32    dh,
-		   l_int32    op,
-	           l_uint32  *datas,
-		   l_int32    swpl,
-		   l_int32    sx,
-		   l_int32    sy)
+                   l_int32    dy,
+                   l_int32    dw,
+                   l_int32    dh,
+                   l_int32    op,
+                   l_uint32  *datas,
+                   l_int32    swpl,
+                   l_int32    sx,
+                   l_int32    sy)
 {
 l_int32    dfwpartb;    /* boolean (1, 0) if first dest word is partial      */
 l_int32    dfwpart2b;   /* boolean (1, 0) if 1st dest word is doubly partial */
@@ -1374,10 +1374,10 @@ l_int32    shang;       /* source overhang in the first partial word,        */
                         /* or 0 if src is word aligned (not same as sfwbits) */
 l_int32    sleftshift;  /* bits to shift left for source word to align       */
                         /* with the dest.  Also the number of bits that      */
-		        /* get shifted to the right to align with the dest.  */
+                        /* get shifted to the right to align with the dest.  */
 l_int32    srightshift; /* bits to shift right for source word to align      */
                         /* with dest.  Also, the number of bits that get     */
-		        /* shifted left to align with the dest.              */
+                        /* shifted left to align with the dest.              */
 l_int32    srightmask;  /* mask for selecting sleftshift bits that have      */
                         /* been shifted right by srightshift bits            */
 l_int32    sfwshiftdir; /* either SHIFT_LEFT or SHIFT_RIGHT                  */
@@ -1389,17 +1389,17 @@ l_int32    i, j;
     /*--------------------------------------------------------*
      *                Preliminary calculations                *
      *--------------------------------------------------------*/
-	/* To get alignment of src with dst (e.g., in the
-	 * full words) the src must do a left shift of its
-	 * relative overhang in the current src word,
-	 * and OR that with a right shift of
-	 * (31 -  relative overhang) from the next src word.
-	 * We find the absolute overhangs, the relative overhangs,
-	 * the required shifts and the src mask */
+        /* To get alignment of src with dst (e.g., in the
+         * full words) the src must do a left shift of its
+         * relative overhang in the current src word,
+         * and OR that with a right shift of
+         * (31 -  relative overhang) from the next src word.
+         * We find the absolute overhangs, the relative overhangs,
+         * the required shifts and the src mask */
     if ((sx & 31) == 0)
-	shang = 0;
+        shang = 0;
     else
-	shang = 32 - (sx & 31);
+        shang = 32 - (sx & 31);
     if ((dx & 31) == 0)
         dhang = 0;
     else
@@ -1407,41 +1407,41 @@ l_int32    i, j;
 
     if (shang == 0 && dhang == 0) {  /* this should be treated by an
                                         aligned operation, not by
-					this general rasterop! */
+                                        this general rasterop! */
         sleftshift = 0;
         srightshift = 0;
-	srightmask = rmask32[0];
+        srightmask = rmask32[0];
     }
     else {
-	if (dhang > shang)
-	    sleftshift = dhang - shang;
-	else
-	    sleftshift = 32 - (shang - dhang);
-	srightshift = 32 - sleftshift; 
-	srightmask = rmask32[sleftshift];
+        if (dhang > shang)
+            sleftshift = dhang - shang;
+        else
+            sleftshift = 32 - (shang - dhang);
+        srightshift = 32 - sleftshift; 
+        srightmask = rmask32[sleftshift];
     }
     
-	/* is the first dest word partial? */
+        /* is the first dest word partial? */
     if ((dx & 31) == 0) {  /* if not */
         dfwpartb = 0;
-	dfwbits = 0;
+        dfwbits = 0;
     }
     else {  /* if so */
         dfwpartb = 1;
-	dfwbits = 32 - (dx & 31);
-	dfwmask = rmask32[dfwbits];
-	pdfwpart = datad + dwpl * dy + (dx >> 5);
-	psfwpart = datas + swpl * sy + (sx >> 5);
-	sfwbits = 32 - (sx & 31);
-	if (dfwbits > sfwbits) {
-	    sfwshiftdir = SHIFT_LEFT;  /* and shift by sleftshift */
-	    if (dw < shang)
-	        sfwaddb = 0;
-	    else
-	        sfwaddb = 1;   /* and rshift in next src word by srightshift */
-	}
-	else
-	    sfwshiftdir = SHIFT_RIGHT;  /* and shift by srightshift */
+        dfwbits = 32 - (dx & 31);
+        dfwmask = rmask32[dfwbits];
+        pdfwpart = datad + dwpl * dy + (dx >> 5);
+        psfwpart = datas + swpl * sy + (sx >> 5);
+        sfwbits = 32 - (sx & 31);
+        if (dfwbits > sfwbits) {
+            sfwshiftdir = SHIFT_LEFT;  /* and shift by sleftshift */
+            if (dw < shang)
+                sfwaddb = 0;
+            else
+                sfwaddb = 1;   /* and rshift in next src word by srightshift */
+        }
+        else
+            sfwshiftdir = SHIFT_RIGHT;  /* and shift by srightshift */
     }
 
         /* is the first dest word doubly partial? */
@@ -1455,32 +1455,32 @@ l_int32    i, j;
         /* is there a full dest word? */
     if (dfwpart2b == 1) {  /* not */
         dfwfullb = 0;
-	dnfullw = 0;
+        dnfullw = 0;
     }
     else {
-	dnfullw = (dw - dfwbits) >> 5;
-	if (dnfullw == 0)  /* if not */
-	    dfwfullb = 0;
-	else {  /* if so */
-	    dfwfullb = 1;
-	    pdfwfull = datad + dwpl * dy + ((dx + dhang) >> 5);
-	    psfwfull = datas + swpl * sy + ((sx + dhang) >> 5); /* yes, dhang */
-	}
+        dnfullw = (dw - dfwbits) >> 5;
+        if (dnfullw == 0)  /* if not */
+            dfwfullb = 0;
+        else {  /* if so */
+            dfwfullb = 1;
+            pdfwfull = datad + dwpl * dy + ((dx + dhang) >> 5);
+            psfwfull = datas + swpl * sy + ((sx + dhang) >> 5); /* yes, dhang */
+        }
     }
 
-	/* is the last dest word partial? */
+        /* is the last dest word partial? */
     dlwbits = (dx + dw) & 31;
     if (dfwpart2b == 1 || dlwbits == 0)  /* if not */
         dlwpartb = 0;
     else {
-	dlwpartb = 1;
+        dlwpartb = 1;
         dlwmask = lmask32[dlwbits];
-	pdlwpart = datad + dwpl * dy + ((dx + dhang) >> 5) + dnfullw;
-	pslwpart = datas + swpl * sy + ((sx + dhang) >> 5) + dnfullw;
-	if (dlwbits <= srightshift)   /* must be <= here !!! */
-	    slwaddb = 0;  /* we got enough bits from current src word */
-	else
-	    slwaddb = 1;   /* must rshift in next src word by srightshift */
+        pdlwpart = datad + dwpl * dy + ((dx + dhang) >> 5) + dnfullw;
+        pslwpart = datas + swpl * sy + ((sx + dhang) >> 5) + dnfullw;
+        if (dlwbits <= srightshift)   /* must be <= here !!! */
+            slwaddb = 0;  /* we got enough bits from current src word */
+        else
+            slwaddb = 1;   /* must rshift in next src word by srightshift */
     }
 
 
@@ -1490,626 +1490,626 @@ l_int32    i, j;
     switch (op)
     {
     case PIX_SRC:
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart, sword, dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart, sword, dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) = sword;
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) = sword;
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart, sword, dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart, sword, dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case PIX_NOT(PIX_SRC):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart, ~sword, dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart, ~sword, dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) = ~sword;
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) = ~sword;
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart, ~sword, dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart, ~sword, dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC | PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 (sword | *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 (sword | *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) |= sword;
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) |= sword;
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               (sword | *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               (sword | *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC & PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 (sword & *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 (sword & *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) &= sword;
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) &= sword;
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               (sword & *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               (sword & *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC ^ PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 (sword ^ *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 (sword ^ *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) ^= sword;
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) ^= sword;
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               (sword ^ *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               (sword ^ *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC) | PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 (~sword | *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 (~sword | *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) |= ~sword;
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) |= ~sword;
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               (~sword | *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               (~sword | *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC) & PIX_DST):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 (~sword & *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 (~sword & *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) &= ~sword;
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) &= ~sword;
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               (~sword & *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               (~sword & *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC | PIX_NOT(PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 (sword | ~(*pdfwpart)), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 (sword | ~(*pdfwpart)), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) = sword | ~(*(pdfwfull + j));
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) = sword | ~(*(pdfwfull + j));
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               (sword | ~(*pdlwpart)), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               (sword | ~(*pdlwpart)), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_SRC & PIX_NOT(PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 (sword & ~(*pdfwpart)), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 (sword & ~(*pdfwpart)), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) = sword & ~(*(pdfwfull + j));
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) = sword & ~(*(pdfwfull + j));
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               (sword & ~(*pdlwpart)), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               (sword & ~(*pdlwpart)), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC | PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 ~(sword | *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 ~(sword | *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) = ~(sword | *(pdfwfull + j));
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) = ~(sword | *(pdfwfull + j));
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               ~(sword | *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               ~(sword | *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     case (PIX_NOT(PIX_SRC & PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 ~(sword & *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 ~(sword & *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) = ~(sword & *(pdfwfull + j));
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) = ~(sword & *(pdfwfull + j));
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               ~(sword & *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               ~(sword & *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
         /* this is three cases: ~(s ^ d), ~s ^ d, s ^ ~d  */
     case (PIX_NOT(PIX_SRC ^ PIX_DST)):
-	    /* do the first partial word */
-	if (dfwpartb) {
-	    for (i = 0; i < dh; i++)
-	    {
-		if (sfwshiftdir == SHIFT_LEFT) {
-		    sword = *psfwpart << sleftshift;
-	            if (sfwaddb) 
-		        sword = COMBINE_PARTIAL(sword,
-			              *(psfwpart + 1) >> srightshift,
-				       srightmask);
-		}
-		else /* shift right */
-		    sword = *psfwpart >> srightshift;
+            /* do the first partial word */
+        if (dfwpartb) {
+            for (i = 0; i < dh; i++)
+            {
+                if (sfwshiftdir == SHIFT_LEFT) {
+                    sword = *psfwpart << sleftshift;
+                    if (sfwaddb) 
+                        sword = COMBINE_PARTIAL(sword,
+                                      *(psfwpart + 1) >> srightshift,
+                                       srightmask);
+                }
+                else /* shift right */
+                    sword = *psfwpart >> srightshift;
 
-		*pdfwpart = COMBINE_PARTIAL(*pdfwpart,
-		                 ~(sword ^ *pdfwpart), dfwmask);
-		pdfwpart += dwpl;
-		psfwpart += swpl;
-	    }
-	}
+                *pdfwpart = COMBINE_PARTIAL(*pdfwpart,
+                                 ~(sword ^ *pdfwpart), dfwmask);
+                pdfwpart += dwpl;
+                psfwpart += swpl;
+            }
+        }
 
-	    /* do the full words */
-	if (dfwfullb) {
-	    for (i = 0; i < dh; i++) {
-		for (j = 0; j < dnfullw; j++) {
-		    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
-		                   *(psfwfull + j + 1) >> srightshift,
-				   srightmask);
-		    *(pdfwfull + j) = ~(sword ^ *(pdfwfull + j));
-		}
-		pdfwfull += dwpl;
-		psfwfull += swpl;
-	    }
-	}
+            /* do the full words */
+        if (dfwfullb) {
+            for (i = 0; i < dh; i++) {
+                for (j = 0; j < dnfullw; j++) {
+                    sword = COMBINE_PARTIAL(*(psfwfull + j) << sleftshift,
+                                   *(psfwfull + j + 1) >> srightshift,
+                                   srightmask);
+                    *(pdfwfull + j) = ~(sword ^ *(pdfwfull + j));
+                }
+                pdfwfull += dwpl;
+                psfwfull += swpl;
+            }
+        }
 
-	    /* do the last partial word */
-	if (dlwpartb) {
-	    for (i = 0; i < dh; i++) {
-		sword = *pslwpart << sleftshift;
-		if (slwaddb) 
-		    sword = COMBINE_PARTIAL(sword,
-		                  *(pslwpart + 1) >> srightshift,
-		                  srightmask);
+            /* do the last partial word */
+        if (dlwpartb) {
+            for (i = 0; i < dh; i++) {
+                sword = *pslwpart << sleftshift;
+                if (slwaddb) 
+                    sword = COMBINE_PARTIAL(sword,
+                                  *(pslwpart + 1) >> srightshift,
+                                  srightmask);
 
-		*pdlwpart = COMBINE_PARTIAL(*pdlwpart,
-		               ~(sword ^ *pdlwpart), dlwmask);
-		pdlwpart += dwpl;
-		pslwpart += swpl;
-	    }
-	}
-	break;
+                *pdlwpart = COMBINE_PARTIAL(*pdlwpart,
+                               ~(sword ^ *pdlwpart), dlwmask);
+                pdlwpart += dwpl;
+                pslwpart += swpl;
+            }
+        }
+        break;
     default: 
         fprintf(stderr, "Operation %x invalid\n", op);
     }

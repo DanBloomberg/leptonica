@@ -60,9 +60,9 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
 SARRAY *
 bmfGetLineStrings(BMF         *bmf,
                   const char  *textstr,
-		  l_int32      maxw,
-		  l_int32      firstindent,
-		  l_int32     *ph)
+                  l_int32      maxw,
+                  l_int32      firstindent,
+                  l_int32     *ph)
 {
 char    *linestr;
 l_int32  i, ifirst, sumw, newsum, w, nwords, nlines, len, xwidth;
@@ -94,20 +94,20 @@ SARRAY  *sa, *sawords;
     sumw = firstindent * xwidth + w;
     for (i = 1; i < nwords; i++) {
         numaGetIValue(na, i, &w);
-	newsum = sumw + bmf->spacewidth + w;
-	if (newsum > maxw) {
-	    linestr = sarrayToStringRange(sawords, ifirst, i - ifirst, 2);
+        newsum = sumw + bmf->spacewidth + w;
+        if (newsum > maxw) {
+            linestr = sarrayToStringRange(sawords, ifirst, i - ifirst, 2);
             if (!linestr)
                 continue;
-	    len = strlen(linestr);
+            len = strlen(linestr);
             if (len > 0)  /* it should always be */
                 linestr[len - 1] = '\0';  /* remove the last space */
-	    sarrayAddString(sa, linestr, 0);
-	    ifirst = i;
-	    sumw = w;
-	}
-	else
-	    sumw += bmf->spacewidth + w;
+            sarrayAddString(sa, linestr, 0);
+            ifirst = i;
+            sumw = w;
+        }
+        else
+            sumw += bmf->spacewidth + w;
     }
     linestr = sarrayToStringRange(sawords, ifirst, nwords - 1, 2);
     if (linestr)
@@ -133,7 +133,7 @@ SARRAY  *sa, *sawords;
 NUMA *
 bmfGetWordWidths(BMF         *bmf,
                  const char  *textstr,
-		 SARRAY      *sa)
+                 SARRAY      *sa)
 {
 char    *wordstr;
 l_int32  i, nwords, width;
@@ -155,7 +155,7 @@ NUMA    *na;
     for (i = 0; i < nwords; i++) {
         wordstr = sarrayGetString(sa, i, 0);  /* not a copy */
         bmfGetStringWidth(bmf, wordstr, &width);
-	numaAddNumber(na, width);
+        numaAddNumber(na, width);
     }
 
     return na;
@@ -174,7 +174,7 @@ NUMA    *na;
 l_int32
 bmfGetStringWidth(BMF         *bmf,
                   const char  *textstr,
-	          l_int32     *pw)
+                  l_int32     *pw)
 {
 char     chr; 
 l_int32  i, w, width, nchar;
@@ -192,9 +192,9 @@ l_int32  i, w, width, nchar;
     w = 0;
     for (i = 0; i < nchar; i++) {
         chr = textstr[i];
-	bmfGetWidth(bmf, chr, &width);
-	if (width != UNDEF)
-	    w += width + bmf->kernwidth;
+        bmfGetWidth(bmf, chr, &width);
+        if (width != UNDEF)
+            w += width + bmf->kernwidth;
     }
     w -= bmf->kernwidth;  /* remove last one */
 
@@ -238,13 +238,13 @@ l_int32  i, w, width, nchar;
 l_int32
 pixSetTextblock(PIX         *pixs,
                 BMF         *bmf,
-	        const char  *textstr,
-	        l_uint32     val,
-	        l_int32      x0,
-	        l_int32      y0,
-	        l_int32      wtext,
-	        l_int32      firstindent,
-	        l_int32     *poverflow)
+                const char  *textstr,
+                l_uint32     val,
+                l_int32      x0,
+                l_int32      y0,
+                l_int32      wtext,
+                l_int32      firstindent,
+                l_int32     *poverflow)
 {
 char     *linestr;
 l_int32   d, h, i, w, x, y, nlines, htext, xwidth, wline, ovf, overflow;
@@ -272,35 +272,35 @@ SARRAY   *salines;
     w = pixGetWidth(pixs);
     if (w < x0 + wtext) {
         L_WARNING("reducing width of textblock", procName);
-	wtext = w - x0 - w / 10;
-	if (wtext <= 0)
+        wtext = w - x0 - w / 10;
+        if (wtext <= 0)
             return ERROR_INT("wtext too small; no room for text", procName, 1);
     }
 
     salines = bmfGetLineStrings(bmf, textstr, wtext, firstindent, &htext);
     if (!salines)
-	return ERROR_INT("line string sa not made", procName, 1);
+        return ERROR_INT("line string sa not made", procName, 1);
     nlines = sarrayGetCount(salines);
     bmfGetWidth(bmf, 'x', &xwidth);
 
     y = y0;
     overflow = 0;
     for (i = 0; i < nlines; i++) {
-	if (i == 0)
-	    x = x0 + firstindent * xwidth;
+        if (i == 0)
+            x = x0 + firstindent * xwidth;
         else
-	    x = x0;
+            x = x0;
         linestr = sarrayGetString(salines, i, 0);
-	pixSetTextline(pixs, bmf, linestr, val, x, y, &wline, &ovf);
-	y += bmf->lineheight + bmf->vertlinesep;
-	if (ovf)
-	    overflow = 1;
+        pixSetTextline(pixs, bmf, linestr, val, x, y, &wline, &ovf);
+        y += bmf->lineheight + bmf->vertlinesep;
+        if (ovf)
+            overflow = 1;
     }
 
     h = pixGetHeight(pixs);
        /* (y0 - baseline) is the top of the printed text.  Character
         * 93 was chosen at random, as all the baselines are essentially
-	* equal for each character in a font. */
+        * equal for each character in a font. */
     if (h < y0 - bmf->baselinetab[93] + htext)
         overflow = 1;
     *poverflow = overflow;
@@ -340,12 +340,12 @@ SARRAY   *salines;
 l_int32
 pixSetTextline(PIX         *pixs,
                BMF         *bmf,
-	       const char  *textstr,
-	       l_uint32     val,
-	       l_int32      x0,
-	       l_int32      y0,
-	       l_int32     *pwidth,
-	       l_int32     *poverflow)
+               const char  *textstr,
+               l_uint32     val,
+               l_int32      x0,
+               l_int32      y0,
+               l_int32     *pwidth,
+               l_int32     *poverflow)
 {
 char      chr; 
 l_int32   d, i, x, w, nchar, baseline;
@@ -374,12 +374,12 @@ PIX      *pix;
     x = x0;
     for (i = 0; i < nchar; i++) {
         chr = textstr[i];
-	pix = bmfGetPix(bmf, chr);
-	bmfGetBaseline(bmf, chr, &baseline);
-	pixSetMaskedGeneral(pixs, pix, val, x, y0 - baseline);
-	w = pixGetWidth(pix);
-	x += w + bmf->kernwidth;
-	pixDestroy(&pix);
+        pix = bmfGetPix(bmf, chr);
+        bmfGetBaseline(bmf, chr, &baseline);
+        pixSetMaskedGeneral(pixs, pix, val, x, y0 - baseline);
+        w = pixGetWidth(pix);
+        x += w + bmf->kernwidth;
+        pixDestroy(&pix);
     }
 
     *pwidth = x - bmf->kernwidth - x0;
@@ -424,17 +424,17 @@ SARRAY   *salines, *satemp, *saout;
     sarrayAddString(satemp, linestr, 1);
     for (i = 1; i < nlines; i++) {
         linestr = sarrayGetString(salines, i, 0);
-	stringAllWhitespace(linestr, &allwhite);
-	stringLeadingWhitespace(linestr, &leadwhite);
-	if ((splitflag == SPLIT_ON_LEADING_WHITE && leadwhite) ||
-	    (splitflag == SPLIT_ON_BLANK_LINE && allwhite) ||
-	    (splitflag == SPLIT_ON_BOTH && (allwhite || leadwhite))) {
-	    parastring = sarrayToString(satemp, 1);  /* add nl to each line */
-	    sarrayAddString(saout, parastring, 0);  /* insert */
-	    sarrayDestroy(&satemp);
-	    satemp = sarrayCreate(0);
-	}
-	sarrayAddString(satemp, linestr, 1);
+        stringAllWhitespace(linestr, &allwhite);
+        stringLeadingWhitespace(linestr, &leadwhite);
+        if ((splitflag == SPLIT_ON_LEADING_WHITE && leadwhite) ||
+            (splitflag == SPLIT_ON_BLANK_LINE && allwhite) ||
+            (splitflag == SPLIT_ON_BOTH && (allwhite || leadwhite))) {
+            parastring = sarrayToString(satemp, 1);  /* add nl to each line */
+            sarrayAddString(saout, parastring, 0);  /* insert */
+            sarrayDestroy(&satemp);
+            satemp = sarrayCreate(0);
+        }
+        sarrayAddString(satemp, linestr, 1);
     }
     parastring = sarrayToString(satemp, 1);  /* add nl to each line */
     sarrayAddString(saout, parastring, 0);  /* insert */
@@ -468,9 +468,9 @@ l_int32  len, i;
     *pval = 1;
     for (i = 0; i < len; i++) {
         if (textstr[i] != ' ' && textstr[i] != '\t' && textstr[i] != '\n') {
-	    *pval = 0;
-	    return 0;
-	}
+            *pval = 0;
+            return 0;
+        }
     }
     return 0;
 }
@@ -496,7 +496,7 @@ stringLeadingWhitespace(char     *textstr,
 
     *pval = 0;
     if (textstr[0] == ' ' || textstr[0] == '\t')
-	*pval = 1;
+        *pval = 1;
 
     return 0;
 }

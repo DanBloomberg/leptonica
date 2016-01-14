@@ -154,9 +154,10 @@ static char  mainName[] = "adaptmaptest";
     startTimer();
     pixim = pixCreate(pixGetWidth(pixs), pixGetHeight(pixs), 1);
     pixRasterop(pixim, XS, YS, WS, HS, PIX_SET, NULL, 0, 0);
-/*    pixd = pixBackgroundNorm(pixs, pixim, SIZE_X, SIZE_Y, BINTHRESH, MINCOUNT,
+/*    pixd = pixBackgroundNorm(pixs, pixim, NULL,SIZE_X, SIZE_Y,
+                               BINTHRESH, MINCOUNT,
                                BGVAL, SMOOTH_X, SMOOTH_Y); */
-    pixd = pixBackgroundNorm(pixs, pixim, 5, 10, BINTHRESH, 20,
+    pixd = pixBackgroundNorm(pixs, pixim, NULL, 5, 10, BINTHRESH, 20,
                              BGVAL, SMOOTH_X, SMOOTH_Y);
     fprintf(stderr, "time for bg normalization: %7.3f\n", stopTimer());
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);

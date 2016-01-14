@@ -60,7 +60,7 @@ rotate90Low(l_uint32  *datad,
             l_int32    wpld,
             l_uint32  *datas, 
             l_int32    wpls,
-	    l_int32    direction)
+            l_int32    direction)
 {
 l_int32    i, j, k, m, iend, nswords;
 l_uint32   val, word;
@@ -69,180 +69,180 @@ l_uint32  *lines, *lined;
     PROCNAME("rotate90Low");
 
     if (direction == 1) {  /* clockwise */
-	switch (d)
-	{
-	    case 32: 
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas + (wd - 1) * wpls;
-		    for (j = 0; j < wd; j++) {
-			lined[j] = lines[i];
-			lines -= wpls;
-		    }
-		}
-		break;
-	    case 16:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas + (wd - 1) * wpls;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_TWO_BYTES(lines, i)))
-			    SET_DATA_TWO_BYTES(lined, j, val);
-			lines -= wpls;
-		    }
-		}
-		break;
-	    case 8:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas + (wd - 1) * wpls;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_BYTE(lines, i)))
-			    SET_DATA_BYTE(lined, j, val);
-			lines -= wpls;
-		    }
-		}
-		break;
-	    case 4:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas + (wd - 1) * wpls;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_QBIT(lines, i)))
-			    SET_DATA_QBIT(lined, j, val);
-			lines -= wpls;
-		    }
-		}
-		break;
-	    case 2:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas + (wd - 1) * wpls;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_DIBIT(lines, i)))
-			    SET_DATA_DIBIT(lined, j, val);
-			lines -= wpls;
-		    }
-		}
-		break;
-	    case 1:
-		nswords = hd / 32;
-		for (j = 0; j < wd; j++) {
-		    lined = datad;
-		    lines = datas + (wd - 1 - j) * wpls;
-		    for (k = 0; k < nswords; k++) {
-		        word = lines[k];
-			if (!word) {
-			    lined += 32 * wpld;
-			    continue;
-			}
-			else {
-			    iend = 32 * (k + 1);
-			    for (m = 0, i = 32 * k; i < iend; i++, m++) {
-				if ((word << m) & 0x80000000)
-				    SET_DATA_BIT(lined, j);
-				lined += wpld;
-			    }
-			}
-		    }
-		    for (i = 32 * nswords; i < hd; i++) {
-			if (GET_DATA_BIT(lines, i))
-			    SET_DATA_BIT(lined, j);
-			lined += wpld;
-		    }
-		}
-		break;
-	    default:
-		ERROR_VOID("illegal depth", procName);
-	}
+        switch (d)
+        {
+            case 32: 
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas + (wd - 1) * wpls;
+                    for (j = 0; j < wd; j++) {
+                        lined[j] = lines[i];
+                        lines -= wpls;
+                    }
+                }
+                break;
+            case 16:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas + (wd - 1) * wpls;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_TWO_BYTES(lines, i)))
+                            SET_DATA_TWO_BYTES(lined, j, val);
+                        lines -= wpls;
+                    }
+                }
+                break;
+            case 8:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas + (wd - 1) * wpls;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_BYTE(lines, i)))
+                            SET_DATA_BYTE(lined, j, val);
+                        lines -= wpls;
+                    }
+                }
+                break;
+            case 4:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas + (wd - 1) * wpls;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_QBIT(lines, i)))
+                            SET_DATA_QBIT(lined, j, val);
+                        lines -= wpls;
+                    }
+                }
+                break;
+            case 2:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas + (wd - 1) * wpls;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_DIBIT(lines, i)))
+                            SET_DATA_DIBIT(lined, j, val);
+                        lines -= wpls;
+                    }
+                }
+                break;
+            case 1:
+                nswords = hd / 32;
+                for (j = 0; j < wd; j++) {
+                    lined = datad;
+                    lines = datas + (wd - 1 - j) * wpls;
+                    for (k = 0; k < nswords; k++) {
+                        word = lines[k];
+                        if (!word) {
+                            lined += 32 * wpld;
+                            continue;
+                        }
+                        else {
+                            iend = 32 * (k + 1);
+                            for (m = 0, i = 32 * k; i < iend; i++, m++) {
+                                if ((word << m) & 0x80000000)
+                                    SET_DATA_BIT(lined, j);
+                                lined += wpld;
+                            }
+                        }
+                    }
+                    for (i = 32 * nswords; i < hd; i++) {
+                        if (GET_DATA_BIT(lines, i))
+                            SET_DATA_BIT(lined, j);
+                        lined += wpld;
+                    }
+                }
+                break;
+            default:
+                ERROR_VOID("illegal depth", procName);
+        }
     }
     else  {     /* direction counter-clockwise */
-	switch (d)
-	{
-	    case 32: 
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas;
-		    for (j = 0; j < wd; j++) {
-			lined[j] = lines[hd - 1 - i];
-			lines += wpls;
-		    }
-		}
-		break;
-	    case 16:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_TWO_BYTES(lines, hd - 1 - i)))
-			    SET_DATA_TWO_BYTES(lined, j, val);
-			lines += wpls;
-		    }
-		}
-		break;
-	    case 8:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_BYTE(lines, hd - 1 - i)))
-			    SET_DATA_BYTE(lined, j, val);
-			lines += wpls;
-		    }
-		}
-		break;
-	    case 4:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_QBIT(lines, hd - 1 - i)))
-			    SET_DATA_QBIT(lined, j, val);
-			lines += wpls;
-		    }
-		}
-		break;
-	    case 2:
-		for (i = 0; i < hd; i++) {
-		    lined = datad + i * wpld;
-		    lines = datas;
-		    for (j = 0; j < wd; j++) {
-			if ((val = GET_DATA_DIBIT(lines, hd - 1 - i)))
-			    SET_DATA_DIBIT(lined, j, val);
-			lines += wpls;
-		    }
-		}
-		break;
-	    case 1:
-		nswords = hd / 32;
-		for (j = 0; j < wd; j++) {
-		    lined = datad + (hd - 1) * wpld;
-		    lines = datas + (wd - 1 - j) * wpls;
-		    for (k = 0; k < nswords; k++) {
-		        word = lines[k];
-			if (!word) {
-			    lined -= 32 * wpld;
-			    continue;
-			}
-			else {
-			    iend = 32 * (k + 1);
-			    for (m = 0, i = 32 * k; i < iend; i++, m++) {
-				if ((word << m) & 0x80000000)
-				    SET_DATA_BIT(lined, wd - 1 - j);
-				lined -= wpld;
-			    }
-			}
-		    }
-		    for (i = 32 * nswords; i < hd; i++) {
-			if (GET_DATA_BIT(lines, i))
-			    SET_DATA_BIT(lined, wd - 1 - j);
-			lined -= wpld;
-		    }
-		}
-		break;
-	    default:
-		ERROR_VOID("illegal depth", procName);
-	}
+        switch (d)
+        {
+            case 32: 
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas;
+                    for (j = 0; j < wd; j++) {
+                        lined[j] = lines[hd - 1 - i];
+                        lines += wpls;
+                    }
+                }
+                break;
+            case 16:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_TWO_BYTES(lines, hd - 1 - i)))
+                            SET_DATA_TWO_BYTES(lined, j, val);
+                        lines += wpls;
+                    }
+                }
+                break;
+            case 8:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_BYTE(lines, hd - 1 - i)))
+                            SET_DATA_BYTE(lined, j, val);
+                        lines += wpls;
+                    }
+                }
+                break;
+            case 4:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_QBIT(lines, hd - 1 - i)))
+                            SET_DATA_QBIT(lined, j, val);
+                        lines += wpls;
+                    }
+                }
+                break;
+            case 2:
+                for (i = 0; i < hd; i++) {
+                    lined = datad + i * wpld;
+                    lines = datas;
+                    for (j = 0; j < wd; j++) {
+                        if ((val = GET_DATA_DIBIT(lines, hd - 1 - i)))
+                            SET_DATA_DIBIT(lined, j, val);
+                        lines += wpls;
+                    }
+                }
+                break;
+            case 1:
+                nswords = hd / 32;
+                for (j = 0; j < wd; j++) {
+                    lined = datad + (hd - 1) * wpld;
+                    lines = datas + (wd - 1 - j) * wpls;
+                    for (k = 0; k < nswords; k++) {
+                        word = lines[k];
+                        if (!word) {
+                            lined -= 32 * wpld;
+                            continue;
+                        }
+                        else {
+                            iend = 32 * (k + 1);
+                            for (m = 0, i = 32 * k; i < iend; i++, m++) {
+                                if ((word << m) & 0x80000000)
+                                    SET_DATA_BIT(lined, wd - 1 - j);
+                                lined -= wpld;
+                            }
+                        }
+                    }
+                    for (i = 32 * nswords; i < hd; i++) {
+                        if (GET_DATA_BIT(lines, i))
+                            SET_DATA_BIT(lined, wd - 1 - j);
+                        lined -= wpld;
+                    }
+                }
+                break;
+            default:
+                ERROR_VOID("illegal depth", procName);
+        }
     }
 
     return;
@@ -269,9 +269,9 @@ l_uint32  *lines, *lined;
  *              for (i = 0; i < h; i++) {
  *                  line = data + i * wpl;
  *                  memcpy(buffer, line, bpl);
- *	            for (j = 0; j < w; j++) {
+ *                    for (j = 0; j < w; j++) {
  *                      val = GET_DATA_QBIT(buffer, w - 1 - j);
- *	                SET_DATA_QBIT(line, j, val);
+ *                        SET_DATA_QBIT(line, j, val);
  *                  }
  *              }
  *      (2) This operation is in-place.
@@ -294,94 +294,94 @@ l_uint32  *line;
     bpl = 4 * wpl;
     switch (d)
     {
-	case 32: 
-	    for (i = 0; i < h; i++) {
-		line = data + i * wpl;
-	        memcpy(buffer, line, bpl);
-		for (j = 0; j < w; j++)
-		    line[j] = buffer[w - 1 - j];
-	    }
-	    break;
-	case 16:
-	    for (i = 0; i < h; i++) {
-		line = data + i * wpl;
-	        memcpy(buffer, line, bpl);
-		for (j = 0; j < w; j++) {
-		    val = GET_DATA_TWO_BYTES(buffer, w - 1 - j);
-		    SET_DATA_TWO_BYTES(line, j, val);
-		}
-	    }
-	    break;
-	case 8:
-	    for (i = 0; i < h; i++) {
-		line = data + i * wpl;
-	        memcpy(buffer, line, bpl);
-		for (j = 0; j < w; j++) {
-		    val = GET_DATA_BYTE(buffer, w - 1 - j);
-		    SET_DATA_BYTE(line, j, val);
-		}
-	    }
-	    break;
-	case 4:
-	    extra = (w * d) & 31;
-	    if (extra)
-		shift = 8 - extra / 4;
-	    else
-		shift = 0;
-	    if (shift)
-		rasteropHipLow(data, h, d, wpl, 0, h, shift);
+        case 32: 
+            for (i = 0; i < h; i++) {
+                line = data + i * wpl;
+                memcpy(buffer, line, bpl);
+                for (j = 0; j < w; j++)
+                    line[j] = buffer[w - 1 - j];
+            }
+            break;
+        case 16:
+            for (i = 0; i < h; i++) {
+                line = data + i * wpl;
+                memcpy(buffer, line, bpl);
+                for (j = 0; j < w; j++) {
+                    val = GET_DATA_TWO_BYTES(buffer, w - 1 - j);
+                    SET_DATA_TWO_BYTES(line, j, val);
+                }
+            }
+            break;
+        case 8:
+            for (i = 0; i < h; i++) {
+                line = data + i * wpl;
+                memcpy(buffer, line, bpl);
+                for (j = 0; j < w; j++) {
+                    val = GET_DATA_BYTE(buffer, w - 1 - j);
+                    SET_DATA_BYTE(line, j, val);
+                }
+            }
+            break;
+        case 4:
+            extra = (w * d) & 31;
+            if (extra)
+                shift = 8 - extra / 4;
+            else
+                shift = 0;
+            if (shift)
+                rasteropHipLow(data, h, d, wpl, 0, h, shift);
 
-	    databpl = (w + 1) / 2;
-	    for (i = 0; i < h; i++) {
-		line = data + i * wpl;
-	        memcpy(buffer, line, bpl);
-		for (j = 0; j < databpl; j++) {
-		    val = GET_DATA_BYTE(buffer, bpl - 1 - j);
-		    SET_DATA_BYTE(line, j, tab[val]);
-		}
-	    }
-	    break;
-	case 2:
-	    extra = (w * d) & 31;
-	    if (extra)
-		shift = 16 - extra / 2;
-	    else
-		shift = 0;
-	    if (shift)
-		rasteropHipLow(data, h, d, wpl, 0, h, shift);
+            databpl = (w + 1) / 2;
+            for (i = 0; i < h; i++) {
+                line = data + i * wpl;
+                memcpy(buffer, line, bpl);
+                for (j = 0; j < databpl; j++) {
+                    val = GET_DATA_BYTE(buffer, bpl - 1 - j);
+                    SET_DATA_BYTE(line, j, tab[val]);
+                }
+            }
+            break;
+        case 2:
+            extra = (w * d) & 31;
+            if (extra)
+                shift = 16 - extra / 2;
+            else
+                shift = 0;
+            if (shift)
+                rasteropHipLow(data, h, d, wpl, 0, h, shift);
 
-	    databpl = (w + 3) / 4;
-	    for (i = 0; i < h; i++) {
-		line = data + i * wpl;
-	        memcpy(buffer, line, bpl);
-		for (j = 0; j < databpl; j++) {
-		    val = GET_DATA_BYTE(buffer, bpl - 1 - j);
-		    SET_DATA_BYTE(line, j, tab[val]);
-		}
-	    }
-	    break;
-	case 1:
-	    extra = (w * d) & 31;
-	    if (extra)
-		shift = 32 - extra;
-	    else
-		shift = 0;
-	    if (shift)
-		rasteropHipLow(data, h, d, wpl, 0, h, shift);
+            databpl = (w + 3) / 4;
+            for (i = 0; i < h; i++) {
+                line = data + i * wpl;
+                memcpy(buffer, line, bpl);
+                for (j = 0; j < databpl; j++) {
+                    val = GET_DATA_BYTE(buffer, bpl - 1 - j);
+                    SET_DATA_BYTE(line, j, tab[val]);
+                }
+            }
+            break;
+        case 1:
+            extra = (w * d) & 31;
+            if (extra)
+                shift = 32 - extra;
+            else
+                shift = 0;
+            if (shift)
+                rasteropHipLow(data, h, d, wpl, 0, h, shift);
 
-	    databpl = (w + 7) / 8;
-	    for (i = 0; i < h; i++) {
-		line = data + i * wpl;
-	        memcpy(buffer, line, bpl);
-		for (j = 0; j < databpl; j++) {
-		    val = GET_DATA_BYTE(buffer, bpl - 1 - j);
-		    SET_DATA_BYTE(line, j, tab[val]);
-		}
-	    }
-	    break;
-	default:
-	    ERROR_VOID("depth not permitted for LR rot", procName);
-	    return;
+            databpl = (w + 7) / 8;
+            for (i = 0; i < h; i++) {
+                line = data + i * wpl;
+                memcpy(buffer, line, bpl);
+                for (j = 0; j < databpl; j++) {
+                    val = GET_DATA_BYTE(buffer, bpl - 1 - j);
+                    SET_DATA_BYTE(line, j, tab[val]);
+                }
+            }
+            break;
+        default:
+            ERROR_VOID("depth not permitted for LR rot", procName);
+            return;
     }
 
     return;
@@ -442,17 +442,17 @@ l_uint8  *tab;
     PROCNAME("makeReverseByteTab1");
 
     if ((tab = (l_uint8 *)CALLOC(256, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 256; i++)
-	tab[i] = ((0x80 & i) >> 7) |
-	         ((0x40 & i) >> 5) |
-	         ((0x20 & i) >> 3) |
-	         ((0x10 & i) >> 1) |
-	         ((0x08 & i) << 1) |
-	         ((0x04 & i) << 3) |
-	         ((0x02 & i) << 5) |
-	         ((0x01 & i) << 7);
+        tab[i] = ((0x80 & i) >> 7) |
+                 ((0x40 & i) >> 5) |
+                 ((0x20 & i) >> 3) |
+                 ((0x10 & i) >> 1) |
+                 ((0x08 & i) << 1) |
+                 ((0x04 & i) << 3) |
+                 ((0x02 & i) << 5) |
+                 ((0x01 & i) << 7);
 
     return tab;
 }
@@ -474,13 +474,13 @@ l_uint8  *tab;
     PROCNAME("makeReverseByteTab2");
 
     if ((tab = (l_uint8 *)CALLOC(256, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 256; i++)
-	tab[i] = ((0xc0 & i) >> 6) |
-	         ((0x30 & i) >> 2) |
-	         ((0x0c & i) << 2) |
-	         ((0x03 & i) << 6);
+        tab[i] = ((0xc0 & i) >> 6) |
+                 ((0x30 & i) >> 2) |
+                 ((0x0c & i) << 2) |
+                 ((0x03 & i) << 6);
     return tab;
 }
 
@@ -501,10 +501,10 @@ l_uint8  *tab;
     PROCNAME("makeReverseByteTab4");
 
     if ((tab = (l_uint8 *)CALLOC(256, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 256; i++)
-	tab[i] = ((0xf0 & i) >> 4) | ((0x0f & i) << 4);
+        tab[i] = ((0xf0 & i) >> 4) | ((0x0f & i) << 4);
     return tab;
 }
 

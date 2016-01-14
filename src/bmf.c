@@ -38,7 +38,7 @@
  *   4 to 20 pts, rendered at 300 ppi.  Generalization to different
  *   fonts, styles and sizes is straightforward.
  *
- *   The only reason I chose Palatino-Roman is because I like it.
+ *   I chose Palatino-Roman is because I like it.
  *   The input font images were generated from a set of small
  *   PostScript files, such as chars-12.ps, which were rendered
  *   into the inputfont[] bitmap files using GhostScript.  See, for
@@ -70,9 +70,9 @@ static const char  *outputfonts[] = {"chars-4.pixa", "chars-6.pixa",
                                      "chars-20.pixa"};
 static const l_int32 baselines[NFONTS][3] = {{11, 12, 12}, {18, 18, 18},
                                              {24, 24, 24}, {30, 30, 30},
-				             {36, 36, 36}, {42, 42, 42},
+                                             {36, 36, 36}, {42, 42, 42},
                                              {48, 48, 48}, {54, 54, 54},
-				             {60, 60, 60}};
+                                             {60, 60, 60}};
 static const l_float32  VERT_FRACT_SEP = 0.3;
 
 #ifndef  NO_CONSOLE_IO
@@ -95,10 +95,11 @@ static l_int32 bmfMakeAsciiTables(BMF *bmf);
  *              size (4, 6, 8, ... , 20)
  *      Return: bmf (holding the bitmap font and associated information)
  *
- *  This first tries to read a pre-computed pixa file with the
- *  95 ascii chars in it.  If the file is not found, it
- *  creates the pixa from the raw image.  It then generates all 
- *  associated data required to use the bmf.
+ *  Notes:
+ *      (1) This first tries to read a pre-computed pixa file with the
+ *          95 ascii chars in it.  If the file is not found, it
+ *          creates the pixa from the raw image.  It then generates all 
+ *          associated data required to use the bmf.
  */
 BMF *
 bmfCreate(const char  *dir,
@@ -112,19 +113,19 @@ PIXA  *pixa;
     if ((bmf = (BMF *)CALLOC(1, sizeof(BMF))) == NULL)
         return (BMF *)ERROR_PTR("bmf not made", procName, NULL);
 
-        /* look for the pixa */
+        /* Look for the pixa */
     pixa = pixaGetFont(dir, size, &bmf->baseline1, &bmf->baseline2,
                        &bmf->baseline3);
 
-        /* if not found, make it */
+        /* If not found, make it */
     if (!pixa) {
-	L_INFO("Generating pixa of bitmap fonts", procName);
-	pixa = pixaGenerateFont(dir, size, &bmf->baseline1, &bmf->baseline2,
-			        &bmf->baseline3);
+        L_INFO("Generating pixa of bitmap fonts", procName);
+        pixa = pixaGenerateFont(dir, size, &bmf->baseline1, &bmf->baseline2,
+                                &bmf->baseline3);
         if (!pixa) {
-	    bmfDestroy(&bmf);
-	    return (BMF *)ERROR_PTR("font pixa not made", procName, NULL);
-	}
+            bmfDestroy(&bmf);
+            return (BMF *)ERROR_PTR("font pixa not made", procName, NULL);
+        }
     }
 
     bmf->pixa = pixa;
@@ -150,18 +151,18 @@ BMF  *bmf;
 
     if (pbmf == NULL) {
         L_WARNING("ptr address is null!", procName);
-	return;
+        return;
     }
 
     if ((bmf = *pbmf) == NULL)
         return;
 
     pixaDestroy(&bmf->pixa);
-    FREE((void *)bmf->directory);
-    FREE((void *)bmf->fonttab);
-    FREE((void *)bmf->baselinetab);
-    FREE((void *)bmf->widthtab);
-    FREE((void *)bmf);
+    FREE(bmf->directory);
+    FREE(bmf->fonttab);
+    FREE(bmf->baselinetab);
+    FREE(bmf->widthtab);
+    FREE(bmf);
     *pbmf = NULL;
     return;
 }
@@ -204,13 +205,13 @@ PIXA    *pixa;
  *
  *      Input:  bmf
  *              chr (should be one of the 95 supported bitmaps)
- *             &w (<return> character width; -1 if not printable)
+ *              &w (<return> character width; -1 if not printable)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
 bmfGetWidth(BMF     *bmf,
             char     chr,
-	    l_int32  *pw)
+            l_int32  *pw)
 {
 l_int32  i;
 PIX     *pix;
@@ -242,13 +243,13 @@ PIXA    *pixa;
  *
  *      Input:  bmf
  *              chr (should be one of the 95 supported bitmaps)
- *             &baseline (<return>; distance below UL corner of bitmap char)
+ *              &baseline (<return>; distance below UL corner of bitmap char)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
 bmfGetBaseline(BMF      *bmf,
                char      chr,
-	       l_int32  *pbaseline)
+               l_int32  *pbaseline)
 {
 l_int32  bl;
 
@@ -276,12 +277,13 @@ l_int32  bl;
  *
  *      Input:  dir (directory holding pixa of character set)
  *              size (4, 6, 8, ... , 20)
- *             &bl1 (<return> baseline of row 1)
- *             &bl2 (<return> baseline of row 2)
- *             &bl3 (<return> baseline of row 3)
+ *              &bl1 (<return> baseline of row 1)
+ *              &bl2 (<return> baseline of row 2)
+ *              &bl3 (<return> baseline of row 3)
  *      Return: pixa of font bitmaps for 95 characters, or null on error
  *
- *  Note: This simply reads a pre-computed pixa file with the 95 ascii chars.
+ *  Notes:
+ *      (1) This reads a pre-computed pixa file with the 95 ascii chars.
  */
 PIXA *
 pixaGetFont(const char  *dir,
@@ -307,7 +309,7 @@ PIXA     *pixa;
 
     pathname = genPathname(dir, outputfonts[fileno]);
     pixa = pixaRead(pathname);
-    FREE((void *)pathname);
+    FREE(pathname);
 
     if (!pixa)
         ERROR_PTR("pixa of char bitmaps not found", procName, NULL);
@@ -325,9 +327,10 @@ PIXA     *pixa;
  *              size (in pts, at 300 ppi)
  *      Return: 0 if OK, 1 on error
  *
- *  Saves a font of a particular size.  prog/genfonts calls this
- *  function for each of the nine font sizes, to generate all the 
- *  font pixa files.
+ *  Notes:
+ *      (1) This saves a font of a particular size.
+ *      (2) prog/genfonts calls this function for each of the
+ *          nine font sizes, to generate all the font pixa files.
  */
 l_int32
 pixaSaveFont(const char  *indir,
@@ -354,7 +357,7 @@ PIXA    *pixa;
     fprintf(stderr, "Baselines are at: %d, %d, %d\n", bl1, bl2, bl3);
 #endif  /* DEBUG_FONT_GEN */
 
-    FREE((void *)pathname);
+    FREE(pathname);
     pixaDestroy(&pixa);
     return 0;
 }
@@ -402,10 +405,9 @@ l_int32   baseline[3];
 l_int32  *tab;
 BOX      *box, *box1, *box2;
 BOXA     *boxar, *boxac, *boxacs;
-PIX      *pixs, *pixt1, *pixt2, *pixt3, *pixt4;
+PIX      *pixs, *pixt1, *pixt2, *pixt3;
 PIX      *pixr, *pixrc, *pixc;
 PIXA     *pixa;
-SEL      *sel_35v, *sel_101h;
 
     PROCNAME("pixaGenerateFont");
 
@@ -416,85 +418,82 @@ SEL      *sel_35v, *sel_101h;
     fileno = (size / 2) - 2;
     if (fileno < 0 || fileno > NFONTS)
         return (PIXA *)ERROR_PTR("font size invalid", procName, NULL);
-    sel_35v = selCreateBrick(35, 1, 17, 0, SEL_HIT);
-    sel_101h = selCreateBrick(1, 101, 0, 50, SEL_HIT);
     tab = makePixelSumTab8();
     pathname = genPathname(dir, inputfonts[fileno]);
     if ((pixs = pixRead(pathname)) == NULL)
         return (PIXA *)ERROR_PTR("pixs not all defined", procName, NULL);
-    FREE((void *)pathname);
+    FREE(pathname);
 
     pixa = pixaCreate(95);
-    pixt1 = pixClose(NULL, pixs, sel_35v);
-    pixt2 = pixCloseSafe(NULL, pixt1, sel_101h);
-    boxar = pixConnComp(pixt2, NULL, 8);  /* one box for each row */
+    pixt1 = pixMorphSequence(pixs, "c1.35 + c101.1", 0);
+    boxar = pixConnComp(pixt1, NULL, 8);  /* one box for each row */
+    pixDestroy(&pixt1);
     nrows = boxaGetCount(boxar);
 #if  DEBUG_FONT_GEN
     fprintf(stderr, "For font %s, number of rows is %d\n",
             inputfonts[fileno], nrows);
 #endif  /* DEBUG_FONT_GEN */
     if (nrows != 3) {
-	L_INFO_INT2("nrows = %d; skipping font %d", procName, nrows, fileno);
+        L_INFO_INT2("nrows = %d; skipping font %d", procName, nrows, fileno);
         return (PIXA *)ERROR_PTR("3 rows not generated", procName, NULL);
     }
     for (i = 0; i < nrows; i++) {
-	box = boxaGetBox(boxar, i, L_CLONE);
-	pixr = pixClipRectangle(pixs, box, NULL);  /* row of chars */
-	pixGetTextBaseline(pixr, tab, &yval);
-	baseline[i] = yval;
+        box = boxaGetBox(boxar, i, L_CLONE);
+        pixr = pixClipRectangle(pixs, box, NULL);  /* row of chars */
+        pixGetTextBaseline(pixr, tab, &yval);
+        baseline[i] = yval;
 
 #if DEBUG_BASELINE
       { PIX *pixbl;
-	fprintf(stderr, "row %d, yval = %d, h = %d\n",
-		i, yval, pixGetHeight(pixr));
-	pixbl = pixCopy(NULL, pixr);
-	pixRenderLine(pixbl, 0, yval, pixGetWidth(pixbl), yval, 1,
-	              L_FLIP_PIXELS);
-	if (i == 0 )
-	    pixWrite("junktl0", pixbl, IFF_PNG);
+        fprintf(stderr, "row %d, yval = %d, h = %d\n",
+                i, yval, pixGetHeight(pixr));
+        pixbl = pixCopy(NULL, pixr);
+        pixRenderLine(pixbl, 0, yval, pixGetWidth(pixbl), yval, 1,
+                      L_FLIP_PIXELS);
+        if (i == 0 )
+            pixWrite("junktl0", pixbl, IFF_PNG);
         else if (i == 1)
-	    pixWrite("junktl1", pixbl, IFF_PNG);
+            pixWrite("junktl1", pixbl, IFF_PNG);
         else
-	    pixWrite("junktl2", pixbl, IFF_PNG);
-	pixDestroy(&pixbl);
+            pixWrite("junktl2", pixbl, IFF_PNG);
+        pixDestroy(&pixbl);
       }
 #endif  /* DEBUG_BASELINE */
 
-	boxDestroy(&box);
-	pixrc = pixCloseSafe(NULL, pixr, sel_35v);
-/*      pixDisplay(pixrc, 300, 300); */
-	boxac = pixConnComp(pixrc, NULL, 8);
-	boxacs = boxaSort(boxac, L_SORT_BY_X, L_SORT_INCREASING, NULL);
-	if (i == 0) {  /* consolidate the two components of '"' */
-	    box1 = boxaGetBox(boxacs, 1, L_CLONE);
-	    box2 = boxaGetBox(boxacs, 2, L_CLONE);
-	    box1->w = box2->x + box2->w - box1->x;  /* increase width */
-	    boxDestroy(&box1);
-	    boxDestroy(&box2);
-	    boxaRemoveBox(boxacs, 2);
-	}
-	h = pixGetHeight(pixr);
-	nrowchars = boxaGetCount(boxacs);
-	for (j = 0; j < nrowchars; j++) {
-	    box = boxaGetBox(boxacs, j, L_COPY);
-	    if (box->w <= 2 &&box->h == 1) {  /* skip 1x1, 2x1 components */
-		boxDestroy(&box);
-		continue;
-	    }
-	    box->y = 0;
-	    box->h = h - 1;
-	    pixc = pixClipRectangle(pixr, box, NULL);
-	    boxDestroy(&box);
-	    if (i == 0 && j == 0)  /* add a pix for the space; change later */
-	        pixaAddPix(pixa, pixc, L_COPY);
-	    if (i == 2 && j == 0)  /* add a pix for the '\'; change later */
-	        pixaAddPix(pixa, pixc, L_COPY);
-	    pixaAddPix(pixa, pixc, L_INSERT);
-	}
-	pixDestroy(&pixr);
-	pixDestroy(&pixrc);
-	boxaDestroy(&boxac);
-	boxaDestroy(&boxacs);
+        boxDestroy(&box);
+        pixrc = pixCloseSafeBrick(NULL, pixr, 1, 35);
+        boxac = pixConnComp(pixrc, NULL, 8);
+        boxacs = boxaSort(boxac, L_SORT_BY_X, L_SORT_INCREASING, NULL);
+        if (i == 0) {  /* consolidate the two components of '"' */
+            box1 = boxaGetBox(boxacs, 1, L_CLONE);
+            box2 = boxaGetBox(boxacs, 2, L_CLONE);
+            box1->w = box2->x + box2->w - box1->x;  /* increase width */
+            boxDestroy(&box1);
+            boxDestroy(&box2);
+            boxaRemoveBox(boxacs, 2);
+        }
+        h = pixGetHeight(pixr);
+        nrowchars = boxaGetCount(boxacs);
+        for (j = 0; j < nrowchars; j++) {
+            box = boxaGetBox(boxacs, j, L_COPY);
+            if (box->w <= 2 &&box->h == 1) {  /* skip 1x1, 2x1 components */
+                boxDestroy(&box);
+                continue;
+            }
+            box->y = 0;
+            box->h = h - 1;
+            pixc = pixClipRectangle(pixr, box, NULL);
+            boxDestroy(&box);
+            if (i == 0 && j == 0)  /* add a pix for the space; change later */
+                pixaAddPix(pixa, pixc, L_COPY);
+            if (i == 2 && j == 0)  /* add a pix for the '\'; change later */
+                pixaAddPix(pixa, pixc, L_COPY);
+            pixaAddPix(pixa, pixc, L_INSERT);
+        }
+        pixDestroy(&pixr);
+        pixDestroy(&pixrc);
+        boxaDestroy(&boxac);
+        boxaDestroy(&boxacs);
     }
 
     nchars = pixaGetCount(pixa);
@@ -505,20 +504,20 @@ SEL      *sel_35v, *sel_101h;
     *pbl1 = baseline[1];
     *pbl2 = baseline[2];
         
-        /* fix the space character up; it should have no ON pixels,
-	 * and be about twice as wide as the '!' character.    */
-    pixt3 = pixaGetPix(pixa, 0, L_CLONE);
-    width = 2 * pixGetWidth(pixt3);
-    height = pixGetHeight(pixt3);
-    pixDestroy(&pixt3);
-    pixt3 = pixCreate(width, height, 1);
-    pixaReplacePix(pixa, 0, pixt3, NULL);
+        /* Fix the space character up; it should have no ON pixels,
+         * and be about twice as wide as the '!' character.    */
+    pixt2 = pixaGetPix(pixa, 0, L_CLONE);
+    width = 2 * pixGetWidth(pixt2);
+    height = pixGetHeight(pixt2);
+    pixDestroy(&pixt2);
+    pixt2 = pixCreate(width, height, 1);
+    pixaReplacePix(pixa, 0, pixt2, NULL);
 
-        /* fix up the '\' character; use a LR flip of the '/' char */
-    pixt3 = pixaGetPix(pixa, 15, L_CLONE);
-    pixt4 = pixFlipLR(NULL, pixt3);
-    pixDestroy(&pixt3);
-    pixaReplacePix(pixa, 60, pixt4, NULL);
+        /* Fix up the '\' character; use a LR flip of the '/' char */
+    pixt2 = pixaGetPix(pixa, 15, L_CLONE);
+    pixt3 = pixFlipLR(NULL, pixt2);
+    pixDestroy(&pixt2);
+    pixaReplacePix(pixa, 60, pixt3, NULL);
     
 #if DEBUG_CHARS
   { PIX *pixd;
@@ -529,12 +528,8 @@ SEL      *sel_35v, *sel_101h;
 #endif  /* DEBUG_CHARS */
 
     pixDestroy(&pixs);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
     boxaDestroy(&boxar);
-    FREE((void *)tab);
-    selDestroy(&sel_35v);
-    selDestroy(&sel_101h);
+    FREE(tab);
 
     return pixa;
 }
@@ -548,14 +543,15 @@ SEL      *sel_35v, *sel_101h;
  *              &y   (<return> baseline value)
  *      Return: 0 if OK, 1 on error
  *
- *  We simply find the largest difference in pixel sums from one raster
- *  line to the next one below it.  The baseline is the upper line
- *  for the line pair that maximizes this function.
+ *  Notes:
+ *      (1) Method: find the largest difference in pixel sums from one
+ *          raster line to the next one below it.  The baseline is the
+ *          upper line for the line pair that maximizes this function.
  */
 static l_int32
 pixGetTextBaseline(PIX      *pixs,
                    l_int32  *tab8,
-		   l_int32  *py)
+                   l_int32  *py)
 {
 l_int32   i, h, val1, val2, diff, diffmax, ymax;
 l_int32  *tab;
@@ -578,18 +574,18 @@ NUMA     *na;
     diffmax = 0;
     ymax = 0;
     for (i = 1; i < h; i++) {
-	numaGetIValue(na, i - 1, &val1);
-	numaGetIValue(na, i, &val2);
+        numaGetIValue(na, i - 1, &val1);
+        numaGetIValue(na, i, &val2);
         diff = L_MAX(0, val1 - val2);
-	if (diff > diffmax) {
-	    diffmax = diff;
-	    ymax = i - 1;
-	}
+        if (diff > diffmax) {
+            diffmax = diff;
+            ymax = i - 1;
+        }
     }
     *py = ymax;
 
     if (!tab8)
-        FREE((void *)tab);
+        FREE(tab);
     numaDestroy(&na);
     return 0;
 }
@@ -638,10 +634,10 @@ PIX      *pix;
     if (!bmf)
         return ERROR_INT("bmf not defined", procName, 1);
 
-	/* first get the fonttab; we use this later for the char widths */
+        /* First get the fonttab; we use this later for the char widths */
     if ((fonttab = (l_int32 *)CALLOC(128, sizeof(l_int32))) == NULL)
         return ERROR_INT("fonttab not made", procName, 1);
-    bmf->fonttab = fonttab;	
+    bmf->fonttab = fonttab;        
     for (i = 0; i < 128; i++)
         fonttab[i] = UNDEF;
     for (i = 32; i < 127; i++)
@@ -649,7 +645,7 @@ PIX      *pix;
 
     if ((baselinetab = (l_int32 *)CALLOC(128, sizeof(l_int32))) == NULL)
         return ERROR_INT("baselinetab not made", procName, 1);
-    bmf->baselinetab = baselinetab;	
+    bmf->baselinetab = baselinetab;        
     for (i = 0; i < 128; i++)
         baselinetab[i] = UNDEF;
     for (i = 32; i <= 57; i++)
@@ -663,16 +659,16 @@ PIX      *pix;
         /* Generate array of character widths; req's fonttab to exist */
     if ((widthtab = (l_int32 *)CALLOC(128, sizeof(l_int32))) == NULL)
         return ERROR_INT("widthtab not made", procName, 1);
-    bmf->widthtab = widthtab;	
+    bmf->widthtab = widthtab;        
     for (i = 0; i < 128; i++)
         widthtab[i] = UNDEF;
     for (i = 32; i < 127; i++) {
         bmfGetWidth(bmf, i, &charwidth);
-	widthtab[i] = charwidth;
+        widthtab[i] = charwidth;
     }
 
         /* Get the line height of text characters, from the highest
-	 * ascender to the lowest descender; req's fonttab to exist. */
+         * ascender to the lowest descender; req's fonttab to exist. */
     pix =  bmfGetPix(bmf, 32);
     maxh =  pixGetHeight(pix);
     pixDestroy(&pix);
@@ -687,9 +683,9 @@ PIX      *pix;
     bmf->lineheight = maxh;
 
         /* Get the kern width (distance between characters).
-	 * We let it be the same for all characters in a given
-	 * font size, and scale it linearly with the size; 
-	 * req's fonttab to be built first. */
+         * We let it be the same for all characters in a given
+         * font size, and scale it linearly with the size; 
+         * req's fonttab to be built first. */
     bmfGetWidth(bmf, 120, &xwidth);
     kernwidth = (l_int32)(0.08 * (l_float32)xwidth + 0.5);
     bmf->kernwidth = L_MAX(1, kernwidth);

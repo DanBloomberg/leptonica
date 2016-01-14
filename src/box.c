@@ -22,6 +22,7 @@
  *           BOX      *boxCopy()
  *           BOX      *boxClone()
  *           void      boxDestroy()
+ *           void      boxFree()
  *
  *      Box accessors
  *           l_int32   boxGetGeometry()
@@ -147,20 +148,20 @@ BOX  *box;
     if (w <= 0 || h <= 0)
         return (BOX *)ERROR_PTR("w and h not both > 0", procName, NULL);
     if (x < 0) {  /* take part in +quad */
-	w = w + x;
-	x = 0;
-	if (w <= 0)
+        w = w + x;
+        x = 0;
+        if (w <= 0)
             return (BOX *)ERROR_PTR("x < 0 and box off +quad", procName, NULL);
     }
     if (y < 0) {  /* take part in +quad */
-	h = h + y;
-	y = 0;
-	if (h <= 0)
+        h = h + y;
+        y = 0;
+        if (h <= 0)
             return (BOX *)ERROR_PTR("y < 0 and box off +quad", procName, NULL);
     }
 
     if ((box = (BOX *) CALLOC(1, sizeof(BOX))) == NULL)
-	return (BOX *)ERROR_PTR("box not made", procName, NULL);
+        return (BOX *)ERROR_PTR("box not made", procName, NULL);
     box->x = x;
     box->y = y;
     box->w = w;
@@ -185,7 +186,7 @@ BOX  *boxc;
     PROCNAME("boxCopy");
 
     if (!box)
-	return (BOX *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("box not defined", procName, NULL);
 
     boxc = boxCreate(box->x, box->y, box->w, box->h);
 
@@ -206,10 +207,9 @@ boxClone(BOX  *box)
     PROCNAME("boxClone");
 
     if (!box)
-	return (BOX *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("box not defined", procName, NULL);
 
     boxChangeRefcount(box, 1);
-
     return box;
 }
 
@@ -233,18 +233,36 @@ BOX  *box;
 
     if (pbox == NULL) {
         L_WARNING("ptr address is null!", procName);
-	return;
+        return;
     }
 
     if ((box = *pbox) == NULL)
-	return;
+        return;
+
+    boxFree(box);
+    *pbox = NULL;
+    return;
+}
+
+
+/*!
+ *  boxFree()
+ *
+ *      Input:  box
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) Decrements the ref count and, if 0, destroys the box.
+ */
+void
+boxFree(BOX  *box)
+{
+    if (!box) return;
 
 	/* Decrement the ref count.  If it is 0, destroy the box. */
     boxChangeRefcount(box, -1);
     if (boxGetRefcount(box) <= 0)
         FREE(box);
-
-    *pbox = NULL;
     return;
 }
 
@@ -269,7 +287,7 @@ boxGetGeometry(BOX      *box,
     PROCNAME("boxGetGeometry");
 
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
     if (px) *px = box->x;
     if (py) *py = box->y;
     if (pw) *pw = box->w;
@@ -284,7 +302,7 @@ boxGetRefcount(BOX  *box)
     PROCNAME("boxGetRefcount");
 
     if (!box)
-	return ERROR_INT("box not defined", procName, UNDEF);
+        return ERROR_INT("box not defined", procName, UNDEF);
 
     return box->refcount;
 }
@@ -297,7 +315,7 @@ boxChangeRefcount(BOX     *box,
     PROCNAME("boxChangeRefcount");
 
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
 
     box->refcount += delta;
     return 0;
@@ -318,13 +336,13 @@ boxChangeRefcount(BOX     *box,
  */
 l_int32
 boxContains(BOX     *box1,
-	    BOX     *box2,
+            BOX     *box2,
             l_int32 *presult)
 {
     PROCNAME("boxContains");
 
     if (!box1 || !box2)
-	return ERROR_INT("box1 and box2 not both defined", procName, 1);
+        return ERROR_INT("box1 and box2 not both defined", procName, 1);
 
     if ((box1->x <= box2->x) &&
         (box1->y <= box2->y) &&
@@ -335,7 +353,7 @@ boxContains(BOX     *box1,
         *presult = 0;
     return 0;
 }
-        	
+                
 
 
 /*!
@@ -348,7 +366,7 @@ boxContains(BOX     *box1,
  */
 l_int32
 boxIntersects(BOX      *box1,
-	      BOX      *box2,
+              BOX      *box2,
               l_int32  *presult)
 {
 l_int32  left1, left2, top1, top2, right1, right2, bot1, bot2;
@@ -356,7 +374,7 @@ l_int32  left1, left2, top1, top2, right1, right2, bot1, bot2;
     PROCNAME("boxIntersects");
 
     if (!box1 || !box2)
-	return ERROR_INT("box1 and box2 not both defined", procName, 1);
+        return ERROR_INT("box1 and box2 not both defined", procName, 1);
 
     left1 = box1->x;
     left2 = box2->x;
@@ -373,7 +391,7 @@ l_int32  left1, left2, top1, top2, right1, right2, bot1, bot2;
         *presult = 0;
     return 0;
 }
-        	
+                
 
 /*!
  *  boxaContainedInBox()
@@ -385,7 +403,7 @@ l_int32  left1, left2, top1, top2, right1, right2, bot1, bot2;
  */
 BOXA *
 boxaContainedInBox(BOXA  *boxas,
-	           BOX   *box)
+                   BOX   *box)
 {
 l_int32  i, n, val;
 BOX     *boxt;
@@ -394,11 +412,11 @@ BOXA    *boxad;
     PROCNAME("boxaContainedInBox");
 
     if (!boxas)
-	return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (!box)
-	return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
     if ((n = boxaGetCount(boxas)) == 0)
-	return (BOXA *)ERROR_PTR("no boxes in boxas", procName, NULL);
+        return (BOXA *)ERROR_PTR("no boxes in boxas", procName, NULL);
 
     boxad = boxaCreate(0);
     for (i = 0; i < n; i++) {
@@ -406,7 +424,7 @@ BOXA    *boxad;
         boxContains(box, boxt, &val);
         if (val == 1)
             boxaAddBox(boxad, boxt, L_COPY);
-	boxDestroy(&boxt);  /* destroy the clone */
+        boxDestroy(&boxt);  /* destroy the clone */
     }
 
     return boxad;
@@ -422,7 +440,7 @@ BOXA    *boxad;
  */
 BOXA *
 boxaIntersectsBox(BOXA  *boxas,
-	          BOX   *box)
+                  BOX   *box)
 {
 l_int32  i, n, val;
 BOX     *boxt;
@@ -431,11 +449,11 @@ BOXA    *boxad;
     PROCNAME("boxaIntersectsBox");
 
     if (!boxas)
-	return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (!box)
-	return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
     if ((n = boxaGetCount(boxas)) == 0)
-	return (BOXA *)ERROR_PTR("no boxes in boxas", procName, NULL);
+        return (BOXA *)ERROR_PTR("no boxes in boxas", procName, NULL);
 
     boxad = boxaCreate(0);
     for (i = 0; i < n; i++) {
@@ -443,7 +461,7 @@ BOXA    *boxad;
         boxIntersects(box, boxt, &val);
         if (val == 1)
             boxaAddBox(boxad, boxt, L_COPY);
-	boxDestroy(&boxt);  /* destroy the clone */
+        boxDestroy(&boxt);  /* destroy the clone */
     }
 
     return boxad;
@@ -470,18 +488,18 @@ BOX  *boxd;
     PROCNAME("boxClipToRectangle");
 
     if (!box)
-	return (BOX *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("box not defined", procName, NULL);
     if (box->x >= wi || box->y >= hi ||
-	box->x + box->w <= 0 || box->y + box->h <= 0)
-	return (BOX *)ERROR_PTR("box outside rectangle", procName, NULL);
+        box->x + box->w <= 0 || box->y + box->h <= 0)
+        return (BOX *)ERROR_PTR("box outside rectangle", procName, NULL);
 
     boxd = boxCopy(box);
     if (boxd->x < 0) {
-	boxd->w += boxd->x;
+        boxd->w += boxd->x;
         boxd->x = 0;
     }
     if (boxd->y < 0) {
-	boxd->h += boxd->y;
+        boxd->h += boxd->y;
         boxd->y = 0;
     }
     if (boxd->x + boxd->w > wi)
@@ -510,16 +528,16 @@ BOXA  *boxa;
     PROCNAME("boxaCreate");
 
     if (n <= 0)
-	n = INITIAL_PTR_ARRAYSIZE;
+        n = INITIAL_PTR_ARRAYSIZE;
 
     if ((boxa = (BOXA *)CALLOC(1, sizeof(BOXA))) == NULL)
-	return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
     boxa->n = 0;
     boxa->nalloc = n;
     boxa->refcount = 1;
     
     if ((boxa->box = (BOX **)CALLOC(n, sizeof(BOX *))) == NULL)
-	return (BOXA *)ERROR_PTR("boxa ptrs not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa ptrs not made", procName, NULL);
 
     return boxa;
 }
@@ -547,24 +565,24 @@ BOXA    *boxac;
     PROCNAME("boxaCopy");
 
     if (!boxa)
-	return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
 
     if (copyflag == L_CLONE) {
-	boxa->refcount++;
-	return boxa;
+        boxa->refcount++;
+        return boxa;
     }
 
     if (copyflag != L_COPY && copyflag != L_COPY_CLONE)
-	return (BOXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid copyflag", procName, NULL);
 
     if ((boxac = boxaCreate(boxa->nalloc)) == NULL)
-	return (BOXA *)ERROR_PTR("boxac not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxac not made", procName, NULL);
     for (i = 0; i < boxa->n; i++) {
         if (copyflag == L_COPY)
             boxc = boxaGetBox(boxa, i, L_COPY);
-	else   /* copy-clone */
+        else   /* copy-clone */
             boxc = boxaGetBox(boxa, i, L_CLONE);
-	boxaAddBox(boxac, boxc, L_INSERT);
+        boxaAddBox(boxac, boxc, L_INSERT);
     }
     return boxac;
 }
@@ -590,13 +608,13 @@ BOXA    *boxa;
 
     if (pboxa == NULL) {
         L_WARNING("ptr address is null!", procName);
-	return;
+        return;
     }
 
     if ((boxa = *pboxa) == NULL)
-	return;
+        return;
 
-	/* Decrement the ref count.  If it is 0, destroy the boxa. */
+        /* Decrement the ref count.  If it is 0, destroy the boxa. */
     boxa->refcount--;
     if (boxa->refcount <= 0) {
         for (i = 0; i < boxa->n; i++)
@@ -629,24 +647,24 @@ BOX     *boxc;
     PROCNAME("boxaAddBox");
 
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
 
     if (copyflag == L_INSERT)
-	boxc = box;
+        boxc = box;
     else if (copyflag == L_COPY)
-	boxc = boxCopy(box);
+        boxc = boxCopy(box);
     else if (copyflag == L_CLONE)
-	boxc = boxClone(box);
+        boxc = boxClone(box);
     else
-	return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", procName, 1);
     if (!boxc)
-	return ERROR_INT("boxc not made", procName, 1);
+        return ERROR_INT("boxc not made", procName, 1);
 
     n = boxaGetCount(boxa);
     if (n >= boxa->nalloc)
-	boxaExtendArray(boxa);
+        boxaExtendArray(boxa);
     boxa->box[n] = boxc;
     boxa->n++;
 
@@ -667,12 +685,12 @@ boxaExtendArray(BOXA  *boxa)
     PROCNAME("boxaExtendArray");
 
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
 
     if ((boxa->box = (BOX **)reallocNew((void **)&boxa->box,
                                sizeof(l_intptr_t) * boxa->nalloc,
-			       2 * sizeof(l_intptr_t) * boxa->nalloc)) == NULL)
-	return ERROR_INT("new ptr array not returned", procName, 1);
+                               2 * sizeof(l_intptr_t) * boxa->nalloc)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     boxa->nalloc = 2 * boxa->nalloc;
     return 0;
@@ -696,7 +714,7 @@ boxaGetCount(BOXA  *boxa)
     PROCNAME("boxaGetCount");
 
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 0);
+        return ERROR_INT("boxa not defined", procName, 0);
 
     return boxa->n;
 }
@@ -713,21 +731,21 @@ boxaGetCount(BOXA  *boxa)
 BOX *
 boxaGetBox(BOXA    *boxa,
            l_int32  index,
-	   l_int32  accessflag)
+           l_int32  accessflag)
 {
     PROCNAME("boxaGetBox");
 
     if (!boxa)
-	return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
     if (index < 0 || index >= boxa->n)
-	return (BOX *)ERROR_PTR("index not valid", procName, NULL);
+        return (BOX *)ERROR_PTR("index not valid", procName, NULL);
 
     if (accessflag == L_COPY)
-	return boxCopy(boxa->box[index]);
+        return boxCopy(boxa->box[index]);
     else if (accessflag == L_CLONE)
-	return boxClone(boxa->box[index]);
+        return boxClone(boxa->box[index]);
     else
-	return (BOX *)ERROR_PTR("invalid accessflag", procName, NULL);
+        return (BOX *)ERROR_PTR("invalid accessflag", procName, NULL);
 }
 
 
@@ -752,12 +770,12 @@ BOX  *box;
     PROCNAME("boxaGetBoxGeometry");
 
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
     if (index < 0 || index >= boxa->n)
-	return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", procName, 1);
 
     if ((box = boxaGetBox(boxa, index, L_CLONE)) == NULL)
-	return ERROR_INT("box not found!", procName, 1);
+        return ERROR_INT("box not found!", procName, 1);
     boxGetGeometry(box, px, py, pw, ph);
     boxDestroy(&box);
     return 0;
@@ -803,43 +821,44 @@ boxaReplaceBox(BOXA    *boxa,
  *  boxaInsertBox()
  *
  *      Input:  boxa
- *              index (of box to be inserted before)
- *              boxs (new box to be inserted)
+ *              index (location in boxa to insert new value)
+ *              box (new box to be inserted)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This does in-place insertion BEFORE the indexed box, so that
- *          the new box is placed at the index position in the array.
- *          To insert at the beginning of the array, set index = 0.
- *      (2) If you want to add a box after the last one in the array,
- *          use boxaAddBox().
+ *      (1) This shifts boxa[i] --> boxa[i + 1] for all i >= index,
+ *          and then inserts val as na[index].
+ *      (2) To insert at the beginning of the array, set index = 0.
+ *      (3) To append to the array, it's easier to use boxaAddBox().
+ *      (4) This should not be used repeatedly on large arrays,
+ *          because the function is O(n).
  */
 l_int32
 boxaInsertBox(BOXA    *boxa,
               l_int32  index,
-              BOX     *boxs)
+              BOX     *box)
 {
-l_int32  i, nbox;
+l_int32  i, n;
 BOX    **array;
 
     PROCNAME("boxaInsertBox");
 
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
-    nbox = boxaGetCount(boxa);
-    if (index < 0 || (index >= nbox && nbox > 0))
-        return ERROR_INT("index not valid", procName, 1);
-    if (!boxs)
-        return ERROR_INT("boxs not defined", procName, 1);
+    n = boxaGetCount(boxa);
+    if (index < 0 || index > n)
+        return ERROR_INT("index not in {0...n}", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
 
         /* Insert the new box; use internals; extend array first if req'd */
-    if (nbox >= boxa->nalloc)
+    if (n >= boxa->nalloc)
         boxaExtendArray(boxa);
     array = boxa->box;
     boxa->n++;
-    for (i = nbox - 1; i >= index; i--)
-        array[i + 1] = array[i];
-    array[index] = boxs;
+    for (i = n; i > index; i--)
+        array[i] = array[i - 1];
+    array[index] = box;
 
     return 0;
 }
@@ -852,29 +871,33 @@ BOX    **array;
  *              index (of box to be removed)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: in-place removal of one box
+ *  Notes:
+ *      (1) This removes boxa[index] and then shifts
+ *          boxa[i] --> boxa[i - 1] for all i > index.
+ *      (2) It should not be used repeatedly on large arrays,
+ *          because the function is O(n).
  */
 l_int32
 boxaRemoveBox(BOXA    *boxa,
               l_int32  index)
 {
-l_int32  i, nbox;
+l_int32  i, n;
 BOX    **array;
 
     PROCNAME("boxaRemoveBox");
 
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
-    nbox = boxaGetCount(boxa);
-    if (index < 0 || index >= nbox)
-	return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
+    n = boxaGetCount(boxa);
+    if (index < 0 || index >= n)
+        return ERROR_INT("index not in {0...n - 1}", procName, 1);
 
         /* Use internals for simplicity */
     array = boxa->box;
     boxDestroy(&array[index]);
-    for (i = index + 1; i < nbox; i++)
+    for (i = index + 1; i < n; i++)
         array[i - 1] = array[i];
-    array[nbox - 1] = NULL;
+    array[n - 1] = NULL;
     boxa->n--;
 
     return 0;
@@ -910,24 +933,24 @@ BOX     *box;
     PROCNAME("boxaJoin");
 
     if (!boxad)
-	return ERROR_INT("boxad not defined", procName, 1);
+        return ERROR_INT("boxad not defined", procName, 1);
     if (!boxas)
-	return ERROR_INT("boxas not defined", procName, 1);
+        return ERROR_INT("boxas not defined", procName, 1);
     ns = boxaGetCount(boxas);
     if (istart < 0)
-	istart = 0;
+        istart = 0;
     if (istart >= ns)
-	return ERROR_INT("istart out of bounds", procName, 1);
+        return ERROR_INT("istart out of bounds", procName, 1);
     if (iend <= 0)
-	iend = ns - 1;
+        iend = ns - 1;
     if (iend >= ns)
-	return ERROR_INT("iend out of bounds", procName, 1);
+        return ERROR_INT("iend out of bounds", procName, 1);
     if (istart > iend)
-	return ERROR_INT("istart > iend; nothing to add", procName, 1);
+        return ERROR_INT("istart > iend; nothing to add", procName, 1);
 
     for (i = istart; i <= iend; i++) {
-	box = boxaGetBox(boxas, i, L_CLONE);
-	boxaAddBox(boxad, box, L_INSERT);
+        box = boxaGetBox(boxas, i, L_CLONE);
+        boxaAddBox(boxad, box, L_INSERT);
     }
 
     return 0;
@@ -963,9 +986,9 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin;
     PROCNAME("boxaGetExtent");
 
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
     if (!pw && !ph && !pbox) {
-	L_WARNING("no ptrs defined", procName);
+        L_WARNING("no ptrs defined", procName);
         return 1;
     }
 
@@ -974,16 +997,16 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin;
     if (pbox) *pbox = NULL;
     n = boxaGetCount(boxa);
     if (n == 0)
-	return ERROR_INT("no boxes in boxa", procName, 1);
+        return ERROR_INT("no boxes in boxa", procName, 1);
 
     xmax = ymax = 0;
     xmin = ymin = 100000000;
     for (i = 0; i < n; i++) {
         boxaGetBoxGeometry(boxa, i, &x, &y, &w, &h);
-	xmin = L_MIN(xmin, x);
-	ymin = L_MIN(ymin, y);
-	xmax = L_MAX(xmax, x + w);
-	ymax = L_MAX(ymax, y + h);
+        xmin = L_MIN(xmin, x);
+        ymin = L_MIN(ymin, y);
+        xmax = L_MAX(xmax, x + w);
+        ymax = L_MAX(ymax, y + h);
     }
     if (pw) *pw = xmax;
     if (ph) *ph = ymax;
@@ -1046,7 +1069,7 @@ l_int32  minw, minh, maxw, maxh, i, n, w, h;
  *  boxaRemoveLargeComponents()
  *
  *      Input:  boxa
- *              maxwidth, maxheight (<return> max dimensions allowed)
+ *              maxwidth, maxheight (max dimensions allowed)
  *              type (L_REMOVE_IF_EITHER, L_REMOVE_IF_BOTH)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
  *      Return: 0 if OK, 1 on error
@@ -1063,7 +1086,7 @@ BOXA *
 boxaRemoveLargeComponents(BOXA     *boxas,
                           l_int32   maxwidth,
                           l_int32   maxheight,
-			  l_int32   type,
+                          l_int32   type,
                           l_int32  *pchanged)
 {
 l_int32  i, n, w, h, maxw, maxh;
@@ -1089,16 +1112,16 @@ BOXA    *boxad;
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     for (i = 0; i < n; i++) {
-	if ((box = boxaGetBox(boxas, i, L_CLONE)) == NULL)
-	    return (BOXA *)ERROR_PTR("box not found", procName, NULL);
+        if ((box = boxaGetBox(boxas, i, L_CLONE)) == NULL)
+            return (BOXA *)ERROR_PTR("box not found", procName, NULL);
         boxGetGeometry(box, NULL, NULL, &w, &h);
-	if ((type == L_REMOVE_IF_EITHER && (w > maxwidth || h > maxheight)) ||
-	    (type == L_REMOVE_IF_BOTH && (w > maxwidth && h > maxheight)))
+        if ((type == L_REMOVE_IF_EITHER && (w > maxwidth || h > maxheight)) ||
+            (type == L_REMOVE_IF_BOTH && (w > maxwidth && h > maxheight)))
             boxDestroy(&box);
         else
             boxaAddBox(boxad, box, L_INSERT);
     }
-	        
+                
     return boxad;
 }
 
@@ -1124,7 +1147,7 @@ BOXA *
 boxaRemoveSmallComponents(BOXA     *boxas,
                           l_int32   minwidth,
                           l_int32   minheight,
-			  l_int32   type,
+                          l_int32   type,
                           l_int32  *pchanged)
 {
 l_int32  i, n, w, h, minw, minh;
@@ -1150,16 +1173,16 @@ BOXA    *boxad;
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     for (i = 0; i < n; i++) {
-	if ((box = boxaGetBox(boxas, i, L_CLONE)) == NULL)
-	    return (BOXA *)ERROR_PTR("box not found", procName, NULL);
+        if ((box = boxaGetBox(boxas, i, L_CLONE)) == NULL)
+            return (BOXA *)ERROR_PTR("box not found", procName, NULL);
         boxGetGeometry(box, NULL, NULL, &w, &h);
-	if ((type == L_REMOVE_IF_EITHER && (w < minwidth || h < minheight)) ||
-	    (type == L_REMOVE_IF_BOTH && (w < minwidth && h < minheight)))
+        if ((type == L_REMOVE_IF_EITHER && (w < minwidth || h < minheight)) ||
+            (type == L_REMOVE_IF_BOTH && (w < minwidth && h < minheight)))
             boxDestroy(&box);
         else
             boxaAddBox(boxad, box, L_INSERT);
     }
-	        
+                
     return boxad;
 }
 
@@ -1180,10 +1203,10 @@ BOXA    *boxad;
  */
 BOXA *
 boxaTransform(BOXA      *boxas,
-	      l_int32    shiftx,
-	      l_int32    shifty,
-	      l_float32  scalex,
-	      l_float32  scaley)
+              l_int32    shiftx,
+              l_int32    shifty,
+              l_float32  scalex,
+              l_float32  scaley)
 {
 l_int32  i, n;
 BOX     *boxs, *boxd;
@@ -1192,16 +1215,16 @@ BOXA    *boxad;
     PROCNAME("boxaTransform");
 
     if (!boxas)
-	return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     n = boxaGetCount(boxas);
     if ((boxad = boxaCreate(n)) == NULL)
-	return (BOXA *)ERROR_PTR("boxad not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxad not made", procName, NULL);
     for (i = 0; i < n; i++) {
         if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL)
-	    return (BOXA *)ERROR_PTR("boxs not found", procName, NULL);
-	boxd = boxTransform(boxs, shiftx, shifty, scalex, scaley);
-	boxDestroy(&boxs);
-	boxaAddBox(boxad, boxd, L_INSERT);
+            return (BOXA *)ERROR_PTR("boxs not found", procName, NULL);
+        boxd = boxTransform(boxs, shiftx, shifty, scalex, scaley);
+        boxDestroy(&boxs);
+        boxaAddBox(boxad, boxd, L_INSERT);
     }
 
     return boxad;
@@ -1220,19 +1243,19 @@ BOXA    *boxad;
  */
 BOX *
 boxTransform(BOX       *box,
-	     l_int32    shiftx,
-	     l_int32    shifty,
-	     l_float32  scalex,
-	     l_float32  scaley)
+             l_int32    shiftx,
+             l_int32    shifty,
+             l_float32  scalex,
+             l_float32  scaley)
 {
     PROCNAME("boxTransform");
 
     if (!box)
-	return (BOX *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("box not defined", procName, NULL);
     return boxCreate((l_int32)(scalex * (box->x + shiftx) + 0.5),
                      (l_int32)(scaley * (box->y + shifty) + 0.5),
-		     (l_int32)(L_MAX(1.0, scalex * box->w + 0.5)),
-		     (l_int32)(L_MAX(1.0, scaley * box->h + 0.5)));
+                     (l_int32)(L_MAX(1.0, scalex * box->w + 0.5)),
+                     (l_int32)(L_MAX(1.0, scaley * box->h + 0.5)));
 }
 
 
@@ -1254,8 +1277,8 @@ boxTransform(BOX       *box,
  */
 BOXA *
 boxaSort(BOXA    *boxas,
-	 l_int32  sorttype,
-	 l_int32  sortorder,
+         l_int32  sorttype,
+         l_int32  sortorder,
          NUMA   **pnaindex)
 {
 l_int32  i, n, size;
@@ -1266,63 +1289,63 @@ NUMA    *na, *naindex;
     PROCNAME("boxaSort");
 
     if (!boxas)
-	return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y && 
         sorttype != L_SORT_BY_WIDTH && sorttype != L_SORT_BY_HEIGHT &&
-	sorttype != L_SORT_BY_MIN_DIMENSION &&
-	sorttype != L_SORT_BY_MAX_DIMENSION &&
-	sorttype != L_SORT_BY_PERIMETER && sorttype != L_SORT_BY_AREA)
-	return (BOXA *)ERROR_PTR("invalid sort type", procName, NULL);
+        sorttype != L_SORT_BY_MIN_DIMENSION &&
+        sorttype != L_SORT_BY_MAX_DIMENSION &&
+        sorttype != L_SORT_BY_PERIMETER && sorttype != L_SORT_BY_AREA)
+        return (BOXA *)ERROR_PTR("invalid sort type", procName, NULL);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
-	return (BOXA *)ERROR_PTR("invalid sort order", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid sort order", procName, NULL);
 
         /* Build up numa of specific data */
     n = boxaGetCount(boxas);
     if ((na = numaCreate(n)) == NULL)
-	return (BOXA *)ERROR_PTR("na not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("na not made", procName, NULL);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxas, i, L_CLONE);
         if (!box)
           return (BOXA *)ERROR_PTR("box not found", procName, NULL);
-	switch (sorttype)
-	{
-	case L_SORT_BY_X:
-	    numaAddNumber(na, box->x);
-	    break;
-	case L_SORT_BY_Y:
-	    numaAddNumber(na, box->y);
-	    break;
-	case L_SORT_BY_WIDTH:
-	    numaAddNumber(na, box->w);
-	    break;
-	case L_SORT_BY_HEIGHT:
-	    numaAddNumber(na, box->h);
-	    break;
-	case L_SORT_BY_MIN_DIMENSION:
-	    size = L_MIN(box->w, box->h);
-	    numaAddNumber(na, size);
-	    break;
-	case L_SORT_BY_MAX_DIMENSION:
-	    size = L_MAX(box->w, box->h);
-	    numaAddNumber(na, size);
-	    break;
-	case L_SORT_BY_PERIMETER:
-	    size = box->w + box->h;
-	    numaAddNumber(na, size);
-	    break;
-	case L_SORT_BY_AREA:
-	    size = box->w * box->h;
-	    numaAddNumber(na, size);
-	    break;
+        switch (sorttype)
+        {
+        case L_SORT_BY_X:
+            numaAddNumber(na, box->x);
+            break;
+        case L_SORT_BY_Y:
+            numaAddNumber(na, box->y);
+            break;
+        case L_SORT_BY_WIDTH:
+            numaAddNumber(na, box->w);
+            break;
+        case L_SORT_BY_HEIGHT:
+            numaAddNumber(na, box->h);
+            break;
+        case L_SORT_BY_MIN_DIMENSION:
+            size = L_MIN(box->w, box->h);
+            numaAddNumber(na, size);
+            break;
+        case L_SORT_BY_MAX_DIMENSION:
+            size = L_MAX(box->w, box->h);
+            numaAddNumber(na, size);
+            break;
+        case L_SORT_BY_PERIMETER:
+            size = box->w + box->h;
+            numaAddNumber(na, size);
+            break;
+        case L_SORT_BY_AREA:
+            size = box->w * box->h;
+            numaAddNumber(na, size);
+            break;
         default:
-	    L_WARNING("invalid sort type", procName);
-	}
-	boxDestroy(&box);
+            L_WARNING("invalid sort type", procName);
+        }
+        boxDestroy(&box);
     }
 
         /* Get the sort index for data array */
     if ((naindex = numaGetSortIndex(na, sortorder)) == NULL)
-	return (BOXA *)ERROR_PTR("naindex not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("naindex not made", procName, NULL);
 
         /* Build up sorted boxa using sort index */
     boxad = boxaSortByIndex(boxas, naindex);
@@ -1345,7 +1368,7 @@ NUMA    *na, *naindex;
  */
 BOXA *
 boxaSortByIndex(BOXA  *boxas,
-		NUMA  *naindex)
+                NUMA  *naindex)
 {
 l_int32  i, n, index;
 BOX     *box;
@@ -1354,16 +1377,16 @@ BOXA    *boxad;
     PROCNAME("boxaSortByIndex");
 
     if (!boxas)
-	return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (!naindex)
-	return (BOXA *)ERROR_PTR("naindex not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("naindex not defined", procName, NULL);
 
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     for (i = 0; i < n; i++) {
         numaGetIValue(naindex, i, &index);
-	box = boxaGetBox(boxas, index, L_COPY);
-	boxaAddBox(boxad, box, L_INSERT);
+        box = boxaGetBox(boxas, index, L_COPY);
+        boxaAddBox(boxad, box, L_INSERT);
     }
 
     return boxad;
@@ -1410,9 +1433,9 @@ BOXA    *boxad;
 BOXAA *
 boxaSort2d(BOXA    *boxas,
            NUMAA  **pnaad,
-	   l_int32  delta1,
-	   l_int32  delta2,
-	   l_int32  minh1)
+           l_int32  delta1,
+           l_int32  delta2,
+           l_int32  minh1)
 {
 l_int32  i, index, h, nt, ne, n, m, ival;
 BOX     *box;
@@ -1424,12 +1447,12 @@ NUMAA   *naa, *naad;
     PROCNAME("boxaSort2d");
 
     if (!boxas)
-	return (BOXAA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXAA *)ERROR_PTR("boxas not defined", procName, NULL);
 
         /* Sort from left to right */
     if ((boxa = boxaSort(boxas, L_SORT_BY_X, L_SORT_INCREASING, &naindex))
-		    == NULL)
-	return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
+                    == NULL)
+        return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
 
         /* First pass: assign taller boxes to boxa by row */
     nt = boxaGetCount(boxa);
@@ -1500,7 +1523,7 @@ NUMAA   *naa, *naad;
     }
 
         /* Sort boxa vertically within boxaa, using the first box
-	 * in each boxa. */
+         * in each boxa. */
     m = boxaaGetCount(baa);
     boxav = boxaCreate(m);  /* holds first box in each boxa in baa */
     naad = numaaCreate(m);
@@ -1510,16 +1533,16 @@ NUMAA   *naa, *naad;
     for (i = 0; i < m; i++) {
         boxat1 = boxaaGetBoxa(baa, i, L_CLONE);
         box = boxaGetBox(boxat1, 0, L_CLONE); 
-	boxaAddBox(boxav, box, L_INSERT);
-	boxaDestroy(&boxat1);
+        boxaAddBox(boxav, box, L_INSERT);
+        boxaDestroy(&boxat1);
     }
     boxavs = boxaSort(boxav, L_SORT_BY_Y, L_SORT_INCREASING, &nav);
     for (i = 0; i < m; i++) {
         numaGetIValue(nav, i, &index);
-	boxa = boxaaGetBoxa(baa, index, L_CLONE);
-	boxaaAddBoxa(baad, boxa, L_INSERT);
-	nad = numaaGetNuma(naa, index, L_CLONE);
-	numaaAddNuma(naad, nad, L_INSERT);
+        boxa = boxaaGetBoxa(baa, index, L_CLONE);
+        boxaaAddBoxa(baad, boxa, L_INSERT);
+        nad = numaaGetNuma(naa, index, L_CLONE);
+        numaaAddNuma(naad, nad, L_INSERT);
     }
 
 /*    fprintf(stderr, "box count = %d, numaa count = %d\n", nt,
@@ -1548,7 +1571,7 @@ NUMAA   *naa, *naad;
  */
 BOXAA *
 boxaSort2dByIndex(BOXA   *boxas,
-		  NUMAA  *naa)
+                  NUMAA  *naa)
 {
 l_int32  ntot, boxtot, i, j, n, nn, index;
 BOX     *box;
@@ -1559,29 +1582,29 @@ NUMA    *na;
     PROCNAME("boxaSort2dByIndex");
 
     if (!boxas)
-	return (BOXAA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXAA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (!naa)
-	return (BOXAA *)ERROR_PTR("naindex not defined", procName, NULL);
+        return (BOXAA *)ERROR_PTR("naindex not defined", procName, NULL);
 
         /* Check counts */
     ntot = numaaGetNumberCount(naa);
     boxtot = boxaGetCount(boxas);
     if (ntot != boxtot)
-	return (BOXAA *)ERROR_PTR("element count mismatch", procName, NULL);
+        return (BOXAA *)ERROR_PTR("element count mismatch", procName, NULL);
 
     n = numaaGetCount(naa);
     baa = boxaaCreate(n);
     for (i = 0; i < n; i++) {
         na = numaaGetNuma(naa, i, L_CLONE);
-	nn = numaGetCount(na);
-	boxa = boxaCreate(nn);
-	for (j = 0; j < nn; j++) {
+        nn = numaGetCount(na);
+        boxa = boxaCreate(nn);
+        for (j = 0; j < nn; j++) {
             numaGetIValue(na, i, &index);
-	    box = boxaGetBox(boxas, index, L_COPY);
-	    boxaAddBox(boxa, box, L_INSERT);
-	}
-	boxaaAddBoxa(baa, boxa, L_INSERT);
-	numaDestroy(&na);
+            box = boxaGetBox(boxas, index, L_COPY);
+            boxaAddBox(boxa, box, L_INSERT);
+        }
+        boxaaAddBoxa(baa, boxa, L_INSERT);
+        numaDestroy(&na);
     }
 
     return baa;
@@ -1605,7 +1628,7 @@ BOXAA  *baa;
     PROCNAME("numaaCreate");
 
     if (n <= 0)
-	n = INITIAL_PTR_ARRAYSIZE;
+        n = INITIAL_PTR_ARRAYSIZE;
 
     if ((baa = (BOXAA *)CALLOC(1, sizeof(BOXAA))) == NULL)
         return (BOXAA *)ERROR_PTR("baa not made", procName, NULL);
@@ -1634,15 +1657,15 @@ BOXAA   *baa;
     PROCNAME("boxnumaaDestroy");
 
     if (pbaa == NULL) {
-	L_WARNING("ptr address is NULL!", procName);
-	return;
+        L_WARNING("ptr address is NULL!", procName);
+        return;
     }
 
     if ((baa = *pbaa) == NULL)
-	return;
+        return;
 
     for (i = 0; i < baa->n; i++)
-	boxaDestroy(&baa->boxa[i]);
+        boxaDestroy(&baa->boxa[i]);
     FREE(baa->boxa);
     FREE(baa);
     *pbaa = NULL;
@@ -1666,7 +1689,7 @@ BOXAA   *baa;
 l_int32
 boxaaAddBoxa(BOXAA   *baa,
              BOXA    *ba,
-	     l_int32  copyflag)
+             l_int32  copyflag)
 {
 l_int32  n;
 BOXA    *bac;
@@ -1681,13 +1704,13 @@ BOXA    *bac;
         return ERROR_INT("invalid copyflag", procName, 1);
     
     if (copyflag == L_INSERT)
-	bac = ba;
+        bac = ba;
     else
         bac = boxaCopy(ba, copyflag);
 
     n = boxaaGetCount(baa);
     if (n >= baa->nalloc)
-	boxaaExtendArray(baa);
+        boxaaExtendArray(baa);
     baa->boxa[n] = bac;
     baa->n++;
     return 0;
@@ -1712,7 +1735,7 @@ boxaaExtendArray(BOXAA  *baa)
     if ((baa->boxa = (BOXA **)reallocNew((void **)&baa->boxa,
                               sizeof(l_intptr_t) * baa->nalloc,
                               2 * sizeof(l_intptr_t) * baa->nalloc)) == NULL)
-	    return ERROR_INT("new ptr array not returned", procName, 1);
+            return ERROR_INT("new ptr array not returned", procName, 1);
 
     baa->nalloc *= 2;
     return 0;
@@ -1737,7 +1760,7 @@ boxaaGetCount(BOXAA  *baa)
         return ERROR_INT("baa not defined", procName, 0);
     return baa->n;
 }
-	
+        
 
 /*!
  *  boxaaGetBoxCount()
@@ -1765,7 +1788,7 @@ l_int32  n, sum, i;
 
     return sum;
 }
-	
+        
 
 /*!
  *  boxaaGetBoxa()
@@ -1778,17 +1801,17 @@ l_int32  n, sum, i;
 BOXA *
 boxaaGetBoxa(BOXAA   *baa,
              l_int32  index,
-	     l_int32  accessflag)
+             l_int32  accessflag)
 {
 l_int32  n;
 
     PROCNAME("boxaaGetBoxa");
 
     if (!baa)
-	return (BOXA *)ERROR_PTR("baa not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("baa not defined", procName, NULL);
     n = boxaaGetCount(baa);
     if (index < 0 || index >= n)
-	return (BOXA *)ERROR_PTR("index not valid", procName, NULL);
+        return (BOXA *)ERROR_PTR("index not valid", procName, NULL);
     if (accessflag != L_COPY && accessflag != L_CLONE)
         return (BOXA *)ERROR_PTR("invalid accessflag", procName, NULL);
 
@@ -1812,19 +1835,19 @@ l_int32  n;
 l_int32
 boxaaReplaceBoxa(BOXAA   *baa,
                  l_int32  index,
-	         BOXA    *boxa)
+                 BOXA    *boxa)
 {
 l_int32  n;
 
     PROCNAME("boxaaReplaceBoxa");
 
     if (!baa)
-	return ERROR_INT("baa not defined", procName, 1);
+        return ERROR_INT("baa not defined", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
     n = boxaaGetCount(baa);
     if (index < 0 || index >= n)
-	return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", procName, 1);
 
     boxaDestroy(&baa->boxa[index]);
     baa->boxa[index] = boxa;
@@ -1847,18 +1870,18 @@ l_int32  n;
 l_int32
 boxaaAddBox(BOXAA   *baa,
             l_int32  index,
-	    BOX     *box,
-	    l_int32  accessflag)
+            BOX     *box,
+            l_int32  accessflag)
 {
 l_int32  n;
 BOXA    *boxa;
     PROCNAME("boxaaAddBox");
 
     if (!baa)
-	return ERROR_INT("baa not defined", procName, 1);
+        return ERROR_INT("baa not defined", procName, 1);
     n = boxaaGetCount(baa);
     if (index < 0 || index >= n)
-	return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", procName, 1);
     if (accessflag != L_INSERT && accessflag != L_COPY && accessflag != L_CLONE)
         return ERROR_INT("invalid accessflag", procName, 1);
 
@@ -1898,7 +1921,7 @@ BOXA    *boxa;
     PROCNAME("boxaaGetExtent");
 
     if (!boxaa)
-	return ERROR_INT("boxaa not defined", procName, 1);
+        return ERROR_INT("boxaa not defined", procName, 1);
     if (!pw && !ph && !pbox) {
         L_WARNING("no ptrs defined", procName);
         return 1;
@@ -1909,7 +1932,7 @@ BOXA    *boxa;
     if (pbox) *pbox = NULL;
     n = boxaaGetCount(boxaa);
     if (n == 0)
-	return ERROR_INT("no boxa in boxaa", procName, 1);
+        return ERROR_INT("no boxa in boxaa", procName, 1);
 
     xmax = ymax = 0;
     xmin = ymin = 100000000;
@@ -1950,7 +1973,7 @@ BOXA    *boxa;
 BOXA *
 boxaaFlattenToBoxa(BOXAA   *baa,
                    NUMA   **pnaindex,
-	           l_int32  copyflag)
+                   l_int32  copyflag)
 {
 l_int32  i, j, m, n;
 BOXA    *boxa, *boxat;
@@ -1960,9 +1983,9 @@ NUMA    *naindex;
     PROCNAME("boxaaFlattenToBoxa");
 
     if (!baa)
-	return (BOXA *)ERROR_PTR("baa not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("baa not defined", procName, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-	return (BOXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid copyflag", procName, NULL);
     if (pnaindex) {
         naindex = numaCreate(0);
         *pnaindex = naindex;
@@ -1972,14 +1995,14 @@ NUMA    *naindex;
     boxa = boxaCreate(n);
     for (i = 0; i < n; i++) {
         boxat = boxaaGetBoxa(baa, i, L_CLONE);
-	m = boxaGetCount(boxat);
-	for (j = 0; j < m; j++) {
+        m = boxaGetCount(boxat);
+        for (j = 0; j < m; j++) {
             box = boxaGetBox(boxat, j, copyflag);
-	    boxaAddBox(boxa, box, L_INSERT);
-	    if (pnaindex)
+            boxaAddBox(boxa, box, L_INSERT);
+            if (pnaindex)
                 numaAddNumber(naindex, i);  /* save 'row' number */
-	}
-	boxaDestroy(&boxat);
+        }
+        boxaDestroy(&boxat);
     }
 
     return boxa;
@@ -2005,8 +2028,8 @@ NUMA    *naindex;
 l_int32
 boxaaAlignBox(BOXAA    *baa,
               BOX      *box,
-	      l_int32   delta,
-	      l_int32  *pindex)
+              l_int32   delta,
+              l_int32  *pindex)
 {
 l_int32  i, n, m, y, yt, h, ht, ovlp, maxovlp, maxindex;
 BOXA    *boxa;
@@ -2014,33 +2037,33 @@ BOXA    *boxa;
     PROCNAME("boxaaAlignBox");
 
     if (!baa)
-	return ERROR_INT("baa not defined", procName, 1);
+        return ERROR_INT("baa not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
     if (!pindex)
-	return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", procName, 1);
 
     n = boxaaGetCount(baa);
     boxGetGeometry(box, NULL, &y, NULL, &h);
     maxovlp = -10000000;
     for (i = 0; i < n; i++) {
         boxa = boxaaGetBoxa(baa, i, L_CLONE);
-	if ((m = boxaGetCount(boxa)) == 0) {
+        if ((m = boxaGetCount(boxa)) == 0) {
             L_WARNING("no boxes in boxa", procName);
-	    continue;
-	}
-	boxaGetBoxGeometry(boxa, m - 1, NULL, &yt, NULL, &ht);  /* last one */
-	boxaDestroy(&boxa);
+            continue;
+        }
+        boxaGetBoxGeometry(boxa, m - 1, NULL, &yt, NULL, &ht);  /* last one */
+        boxaDestroy(&boxa);
 
-	    /* Overlap < 0 means the components do not overlap vertically */
-	if (yt >= y)
+            /* Overlap < 0 means the components do not overlap vertically */
+        if (yt >= y)
             ovlp = y + h - 1 - yt;
-	else
+        else
             ovlp = yt + ht - 1 - y;
-	if (ovlp > maxovlp) {
+        if (ovlp > maxovlp) {
             maxovlp = ovlp;
-	    maxindex = i;
-	}
+            maxindex = i;
+        }
     }
 
     if (maxovlp + delta >= 0)
@@ -2076,7 +2099,7 @@ PIX     *pix;
     PROCNAME("boxaDisplay");
 
     if (!boxa)
-	return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
     if (w == 0 || h == 0) 
         boxaGetExtent(boxa, &w, &h, NULL);
 
@@ -2122,7 +2145,7 @@ PIXCMAP  *cmap;
     PROCNAME("boxaaDisplay");
 
     if (!boxaa)
-	return (PIX *)ERROR_PTR("boxaa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("boxaa not defined", procName, NULL);
     if (w == 0 || h == 0) 
         boxaaGetExtent(boxaa, &w, &h, NULL);
 
@@ -2176,13 +2199,13 @@ BOXAA  *baa;
     PROCNAME("boxaaRead");
 
     if (!filename)
-	return (BOXAA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (BOXAA *)ERROR_PTR("filename not defined", procName, NULL);
     if ((fp = fopenReadStream(filename)) == NULL)
-	return (BOXAA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (BOXAA *)ERROR_PTR("stream not opened", procName, NULL);
 
     if ((baa = boxaaReadStream(fp)) == NULL) {
-	fclose(fp);
-	return (BOXAA *)ERROR_PTR("boxaa not read", procName, NULL);
+        fclose(fp);
+        return (BOXAA *)ERROR_PTR("boxaa not read", procName, NULL);
     }
 
     fclose(fp);
@@ -2199,7 +2222,7 @@ BOXAA  *baa;
 BOXAA *
 boxaaReadStream(FILE  *fp)
 {
-l_int32  n, i, x, y, w, h;
+l_int32  n, i, x, y, w, h, version;
 l_int32  ignore;
 BOXA    *boxa;
 BOXAA   *baa;
@@ -2207,20 +2230,25 @@ BOXAA   *baa;
     PROCNAME("boxaaReadStream");
 
     if (!fp)
-	return (BOXAA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (BOXAA *)ERROR_PTR("stream not defined", procName, NULL);
 
-    if (fscanf(fp, "boxaa: number of boxa = %d\n", &n) != 1)
-	return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
+    if (fscanf(fp, "\nBoxaa Version %d\n", &version) != 1)
+        return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
+    if (version != BOXA_VERSION_NUMBER)
+        return (BOXAA *)ERROR_PTR("invalid boxa version", procName, NULL);
+    if (fscanf(fp, "Number of boxa = %d\n", &n) != 1)
+        return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
+
     if ((baa = boxaaCreate(n)) == NULL)
-	return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
-	
+        return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
+        
     for (i = 0; i < n; i++) {
-	if (fscanf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
-	        &ignore, &x, &y, &w, &h) != 5)
-	    return (BOXAA *)ERROR_PTR("boxa descr not valid", procName, NULL);
+        if (fscanf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
+                &ignore, &x, &y, &w, &h) != 5)
+            return (BOXAA *)ERROR_PTR("boxa descr not valid", procName, NULL);
         if ((boxa = boxaReadStream(fp)) == NULL)
-	    return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
-	boxaaAddBoxa(baa, boxa, L_INSERT);
+            return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
+        boxaaAddBoxa(baa, boxa, L_INSERT);
     }
 
     return baa;
@@ -2243,14 +2271,14 @@ FILE  *fp;
     PROCNAME("boxaaWrite");
 
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
     if (!baa)
-	return ERROR_INT("baa not defined", procName, 1);
+        return ERROR_INT("baa not defined", procName, 1);
 
     if ((fp = fopen(filename, "w")) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
     if (boxaaWriteStream(fp, baa))
-	return ERROR_INT("baa not written to stream", procName, 1);
+        return ERROR_INT("baa not written to stream", procName, 1);
     fclose(fp);
 
     return 0;
@@ -2275,21 +2303,22 @@ BOXA    *boxa;
     PROCNAME("boxaaWriteStream");
 
     if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", procName, 1);
     if (!baa)
-	return ERROR_INT("baa not defined", procName, 1);
+        return ERROR_INT("baa not defined", procName, 1);
 
     n = boxaaGetCount(baa);
-    fprintf(fp, "boxaa: number of boxa = %d\n", n);
+    fprintf(fp, "\nBoxaa Version %d\n", BOXA_VERSION_NUMBER);
+    fprintf(fp, "Number of boxa = %d\n", n);
     for (i = 0; i < n; i++) {
-	if ((boxa = boxaaGetBoxa(baa, i, L_CLONE)) == NULL)
-	    return ERROR_INT("boxa not found", procName, 1);
+        if ((boxa = boxaaGetBoxa(baa, i, L_CLONE)) == NULL)
+            return ERROR_INT("boxa not found", procName, 1);
         boxaGetExtent(boxa, NULL, NULL, &box);
         boxGetGeometry(box, &x, &y, &w, &h);
-	fprintf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
-	        i, x, y, w, h);
+        fprintf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
+                i, x, y, w, h);
         boxaWriteStream(fp, boxa);
-	boxDestroy(&box);
+        boxDestroy(&box);
         boxaDestroy(&boxa);
     }
     return 0;
@@ -2314,13 +2343,13 @@ BOXA  *boxa;
     PROCNAME("boxaRead");
 
     if (!filename)
-	return (BOXA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("filename not defined", procName, NULL);
     if ((fp = fopenReadStream(filename)) == NULL)
-	return (BOXA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (BOXA *)ERROR_PTR("stream not opened", procName, NULL);
 
     if ((boxa = boxaReadStream(fp)) == NULL) {
-	fclose(fp);
-	return (BOXA *)ERROR_PTR("boxa not read", procName, NULL);
+        fclose(fp);
+        return (BOXA *)ERROR_PTR("boxa not read", procName, NULL);
     }
 
     fclose(fp);
@@ -2337,7 +2366,7 @@ BOXA  *boxa;
 BOXA *
 boxaReadStream(FILE  *fp)
 {
-l_int32  n, i, x, y, w, h;
+l_int32  n, i, x, y, w, h, version;
 l_int32  ignore;
 BOX     *box;
 BOXA    *boxa;
@@ -2345,20 +2374,25 @@ BOXA    *boxa;
     PROCNAME("boxaReadStream");
 
     if (!fp)
-	return (BOXA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("stream not defined", procName, NULL);
 
-    if (fscanf(fp, " boxa: number of boxes = %d\n", &n) != 1)
-	return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
+    if (fscanf(fp, "\nBoxa Version %d\n", &version) != 1)
+        return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
+    if (version != BOXA_VERSION_NUMBER)
+        return (BOXA *)ERROR_PTR("invalid boxa version", procName, NULL);
+    if (fscanf(fp, "Number of boxes = %d\n", &n) != 1)
+        return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
+
     if ((boxa = boxaCreate(n)) == NULL)
-	return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
-	
+        return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
+        
     for (i = 0; i < n; i++) {
-	if (fscanf(fp, "  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
-	        &ignore, &x, &y, &w, &h) != 5)
-	    return (BOXA *)ERROR_PTR("box descr not valid", procName, NULL);
-	if ((box = boxCreate(x, y, w, h)) == NULL)
-	    return (BOXA *)ERROR_PTR("box not made", procName, NULL);
-	boxaAddBox(boxa, box, L_INSERT);
+        if (fscanf(fp, "  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
+                &ignore, &x, &y, &w, &h) != 5)
+            return (BOXA *)ERROR_PTR("box descr not valid", procName, NULL);
+        if ((box = boxCreate(x, y, w, h)) == NULL)
+            return (BOXA *)ERROR_PTR("box not made", procName, NULL);
+        boxaAddBox(boxa, box, L_INSERT);
     }
 
     return boxa;
@@ -2374,21 +2408,21 @@ BOXA    *boxa;
  */
 l_int32
 boxaWrite(const char  *filename,
-	  BOXA        *boxa)
+          BOXA        *boxa)
 {
 FILE  *fp;
 
     PROCNAME("boxaWrite");
 
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
 
     if ((fp = fopen(filename, "w")) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
     if (boxaWriteStream(fp, boxa))
-	return ERROR_INT("boxa not written to stream", procName, 1);
+        return ERROR_INT("boxa not written to stream", procName, 1);
     fclose(fp);
 
     return 0;
@@ -2404,7 +2438,7 @@ FILE  *fp;
  */
 l_int32
 boxaWriteStream(FILE  *fp,
-	        BOXA  *boxa)
+                BOXA  *boxa)
 {
 l_int32  n, i;
 BOX     *box;
@@ -2412,18 +2446,19 @@ BOX     *box;
     PROCNAME("boxaWriteStream");
 
     if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
 
     n = boxaGetCount(boxa);
-    fprintf(fp, " boxa: number of boxes = %d\n", n);
+    fprintf(fp, "\nBoxa Version %d\n", BOXA_VERSION_NUMBER);
+    fprintf(fp, "Number of boxes = %d\n", n);
     for (i = 0; i < n; i++) {
-	if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
-	    return ERROR_INT("box not found", procName, 1);
-	fprintf(fp, "  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
-	        i, box->x, box->y, box->w, box->h);
-	boxDestroy(&box);
+        if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
+            return ERROR_INT("box not found", procName, 1);
+        fprintf(fp, "  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
+                i, box->x, box->y, box->w, box->h);
+        boxDestroy(&box);
     }
     return 0;
 }
@@ -2447,14 +2482,14 @@ BOX     *box;
  */
 l_int32
 boxPrintStreamInfo(FILE  *fp,
-	           BOX   *box)
+                   BOX   *box)
 {
     PROCNAME("boxPrintStreamInfo");
 
     if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
 
     fprintf(fp, " Box x (pixels) =           %d\n", box->x);
     fprintf(fp, " Box y (pixels) =           %d\n", box->y);

@@ -74,9 +74,9 @@ l_int32
 pixHtmlViewer(const char  *dirin,
               const char  *dirout,
               const char  *rootname,
-	      l_int32      thumbwidth,
-	      l_int32      viewwidth,
-	      l_int32      copyorig)
+              l_int32      thumbwidth,
+              l_int32      viewwidth,
+              l_int32      copyorig)
 {
 char      *fname, *fullname, *outname;
 char      *mainname, *linkname, *linknameshort;
@@ -98,16 +98,16 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         return ERROR_INT("rootname not defined", procName, 1);
 
     if (thumbwidth == 0)
-	thumbwidth = DEFAULT_THUMB_WIDTH;
+        thumbwidth = DEFAULT_THUMB_WIDTH;
     if (thumbwidth < MIN_THUMB_WIDTH) {
-	L_WARNING("thumbwidth too small; using min value", procName);
-	thumbwidth = MIN_THUMB_WIDTH;
+        L_WARNING("thumbwidth too small; using min value", procName);
+        thumbwidth = MIN_THUMB_WIDTH;
     }
     if (viewwidth == 0)
-	viewwidth = DEFAULT_VIEW_WIDTH;
+        viewwidth = DEFAULT_VIEW_WIDTH;
     if (viewwidth < MIN_VIEW_WIDTH) {
-	L_WARNING("viewwidth too small; using min value", procName);
-	viewwidth = MIN_VIEW_WIDTH;
+        L_WARNING("viewwidth too small; using min value", procName);
+        viewwidth = MIN_VIEW_WIDTH;
     }
 
         /* Make the output directory if it doesn't already exist */
@@ -130,90 +130,90 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     if ((saviews = sarrayCreate(0)) == NULL)
         return ERROR_INT("saviews not made", procName, 1);
 
-	/* Generate the thumbs and views */
+        /* Generate the thumbs and views */
     nfiles = sarrayGetCount(safiles);
     index = 0;
     for (i = 0; i < nfiles; i++) {
-	fname = sarrayGetString(safiles, i, 0);
-	fullname = genPathname(dirin, fname);
-	fprintf(stderr, "name: %s\n", fullname);
-	if ((pix = pixRead(fullname)) == NULL) {
-	    fprintf(stderr, "file %s not a readable image\n", fullname);
-	    FREE((void *)fullname);
-	    continue;
-	}
-	FREE((void *)fullname);
-	if (copyorig) {
-	    outname = genPathname(dirout, fname);
-	    pixWrite(outname, pix, IFF_JFIF_JPEG);
-	    FREE((void *)outname);
-	}
+        fname = sarrayGetString(safiles, i, L_NOCOPY);
+        fullname = genPathname(dirin, fname);
+        fprintf(stderr, "name: %s\n", fullname);
+        if ((pix = pixRead(fullname)) == NULL) {
+            fprintf(stderr, "file %s not a readable image\n", fullname);
+            FREE(fullname);
+            continue;
+        }
+        FREE(fullname);
+        if (copyorig) {
+            outname = genPathname(dirout, fname);
+            pixWrite(outname, pix, IFF_JFIF_JPEG);
+            FREE(outname);
+        }
 
-	    /* Make and store the thumb */
-	w = pixGetWidth(pix);
-	factor = (l_float32)thumbwidth / (l_float32)w;
-	if ((pixthumb = pixScale(pix, factor, factor)) == NULL)
-	    return ERROR_INT("pixthumb not made", procName, 1);
-	sprintf(charbuf, "%s_thumb_%03d.jpg", rootname, index);
-	sarrayAddString(sathumbs, charbuf, 1);
-	outname = genPathname(dirout, charbuf);
-	pixWrite(outname, pixthumb, IFF_JFIF_JPEG);
-	FREE((void *)outname);
-	pixDestroy(&pixthumb);
+            /* Make and store the thumb */
+        w = pixGetWidth(pix);
+        factor = (l_float32)thumbwidth / (l_float32)w;
+        if ((pixthumb = pixScale(pix, factor, factor)) == NULL)
+            return ERROR_INT("pixthumb not made", procName, 1);
+        sprintf(charbuf, "%s_thumb_%03d.jpg", rootname, index);
+        sarrayAddString(sathumbs, charbuf, L_COPY);
+        outname = genPathname(dirout, charbuf);
+        pixWrite(outname, pixthumb, IFF_JFIF_JPEG);
+        FREE(outname);
+        pixDestroy(&pixthumb);
 
-	    /* Make and store the view */
-	factor = (l_float32)viewwidth / (l_float32)w;
-	if (factor >= 1.0)
-	    pixview = pixClone(pix);   /* no upscaling */
-	else {
-	    if ((pixview = pixScale(pix, factor, factor)) == NULL)
-		return ERROR_INT("pixview not made", procName, 1);
-	}
-	sprintf(charbuf, "%s_view_%03d.jpg", rootname, index);
-	sarrayAddString(saviews, charbuf, 1);
-	outname = genPathname(dirout, charbuf);
-	pixWrite(outname, pixview, IFF_JFIF_JPEG);
-	FREE((void *)outname);
-	pixDestroy(&pixview);
+            /* Make and store the view */
+        factor = (l_float32)viewwidth / (l_float32)w;
+        if (factor >= 1.0)
+            pixview = pixClone(pix);   /* no upscaling */
+        else {
+            if ((pixview = pixScale(pix, factor, factor)) == NULL)
+                return ERROR_INT("pixview not made", procName, 1);
+        }
+        sprintf(charbuf, "%s_view_%03d.jpg", rootname, index);
+        sarrayAddString(saviews, charbuf, L_COPY);
+        outname = genPathname(dirout, charbuf);
+        pixWrite(outname, pixview, IFF_JFIF_JPEG);
+        FREE(outname);
+        pixDestroy(&pixview);
 
-	pixDestroy(&pix);
-	index++;
+        pixDestroy(&pix);
+        index++;
     }
 
-	/* Generate the main html file */
+        /* Generate the main html file */
     if ((sahtml = sarrayCreate(0)) == NULL)
         return ERROR_INT("sahtml not made", procName, 1);
-    sarrayAddString(sahtml, "<html>", 1);
+    sarrayAddString(sahtml, "<html>", L_COPY);
     sprintf(charbuf, "<frameset cols=\"%d, *\">", thumbwidth + 30);
-    sarrayAddString(sahtml, charbuf, 1);
+    sarrayAddString(sahtml, charbuf, L_COPY);
     sprintf(charbuf, "<frame name=\"thumbs\" src=\"%s\">", linknameshort); 
-    sarrayAddString(sahtml, charbuf, 1);
+    sarrayAddString(sahtml, charbuf, L_COPY);
     sprintf(charbuf, "<frame name=\"views\" src=\"%s\">",
-            sarrayGetString(saviews, 0, 0)); 
-    sarrayAddString(sahtml, charbuf, 1);
-    sarrayAddString(sahtml, "</frameset></html>", 1);
+            sarrayGetString(saviews, 0, L_NOCOPY)); 
+    sarrayAddString(sahtml, charbuf, L_COPY);
+    sarrayAddString(sahtml, "</frameset></html>", L_COPY);
     shtml = sarrayToString(sahtml, 1);
     arrayWrite(mainname, "w", shtml, strlen(shtml));
-    FREE((void *)shtml);
-    FREE((void *)mainname);
+    FREE(shtml);
+    FREE(mainname);
 
-	/* Generate the link html file */
+        /* Generate the link html file */
     nimages = sarrayGetCount(saviews);
     fprintf(stderr, "num. images = %d\n", nimages);
     if ((salink = sarrayCreate(0)) == NULL)
         return ERROR_INT("salink not made", procName, 1);
     for (i = 0; i < nimages; i++) {
-        viewfile = sarrayGetString(saviews, i, 0);
-        thumbfile = sarrayGetString(sathumbs, i, 0);
-	sprintf(charbuf, "<a href=\"%s\" TARGET=views><img src=\"%s\"></a>",
-	    viewfile, thumbfile);
-	sarrayAddString(salink, charbuf, 1);
+        viewfile = sarrayGetString(saviews, i, L_NOCOPY);
+        thumbfile = sarrayGetString(sathumbs, i, L_NOCOPY);
+        sprintf(charbuf, "<a href=\"%s\" TARGET=views><img src=\"%s\"></a>",
+            viewfile, thumbfile);
+        sarrayAddString(salink, charbuf, L_COPY);
     }
     slink = sarrayToString(salink, 1);
     arrayWrite(linkname, "w", slink, strlen(slink));
-    FREE((void *)slink);
-    FREE((void *)linkname);
-    FREE((void *)linknameshort);
+    FREE(slink);
+    FREE(linkname);
+    FREE(linknameshort);
 
     sarrayDestroy(&safiles);
     sarrayDestroy(&sathumbs);
@@ -237,16 +237,20 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
  *  Notes:
  *      (1) This uses the POSIX C library commands for handling directories.
  *          It will NOT work on Windows.
- *      (2) It will compile under MINGW, except for d_type member in dirent.
- *      (3) It returns an array of filename tails; i.e., only the part of
+ *      (2) It returns an array of filename tails; i.e., only the part of
  *          the path after the last slash.
- *      (4) On some systems, the directories '.' and '..'
- *          do not have pdirentry->d_type == DT_DIR, so we check
- *          and remove if they exist.  This should not be surprising:
+ *      (3) Use of the d_type field of dirent is not portable:
  *          "According to POSIX, the dirent structure contains a field
  *          char d_name[] of unspecified size, with at most NAME_MAX
  *          characters preceding the terminating null character.  Use
  *          of other fields will harm the portability of your programs."
+ *      (4) As a consequence of (3), we note several things:
+ *           - MINGW doesn't have a d_type member.
+ *           - Older versions of gcc (e.g., 2.95.3) return DT_UNKNOWN
+ *             for d_type from all files.
+ *          On these systems, this function will return directories
+ *          (except for '.' and '..', which are eliminated using
+ *          the d_name field).
  */
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
@@ -268,15 +272,15 @@ struct dirent  *pdirentry;
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
     while ((pdirentry = readdir(pdir)))  {
 #if !defined (__MINGW32__)
-	if (pdirentry->d_type == DT_DIR)  /* ignore directories */
-	    continue;
+        if (pdirentry->d_type == DT_DIR)  /* ignore directories */
+            continue;
 #endif
-	    /* Filter out "." and ".." if they're passed through */
-	name = pdirentry->d_name;
-	len = strlen(name);
-	if (len == 1 && name[len - 1] == '.') continue;
-	if (len == 2 && name[len - 1] == '.' && name[len - 2] == '.') continue;
-	sarrayAddString(safiles, name, 1);
+            /* Filter out "." and ".." if they're passed through */
+        name = pdirentry->d_name;
+        len = strlen(name);
+        if (len == 1 && name[len - 1] == '.') continue;
+        if (len == 2 && name[len - 1] == '.' && name[len - 2] == '.') continue;
+        sarrayAddString(safiles, name, L_COPY);
     }
     closedir(pdir);
 
@@ -305,7 +309,7 @@ struct dirent  *pdirentry;
 SARRAY *
 getSortedPathnamesInDirectory(const char  *dirname,
                               l_int32      firstpage,
-			      l_int32      npages)
+                              l_int32      npages)
 {
 char    *fname, *fullname;
 l_int32  i, nfiles, lastpage;
@@ -328,9 +332,9 @@ SARRAY  *safiles, *saout;
 
     saout = sarrayCreate(lastpage - firstpage + 1);
     for (i = firstpage; i <= lastpage; i++) {
-	fname = sarrayGetString(safiles, i, 0);
-	fullname = genPathname(dirname, fname);
-	sarrayAddString(saout, fullname, 0);  /* insert */
+        fname = sarrayGetString(safiles, i, L_NOCOPY);
+        fullname = genPathname(dirname, fname);
+        sarrayAddString(saout, fullname, L_INSERT);
     }
 
     sarrayDestroy(&safiles);

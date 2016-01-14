@@ -42,7 +42,7 @@ static char  mainName[] = "arithtest";
 
         /* input a grayscale image and convert it to 16 bpp */
     pix1 = pixInitAccumulate(w, h, 0);
-    pixAccumulate(pix1, pixs, ARITH_ADD);
+    pixAccumulate(pix1, pixs, L_ARITH_ADD);
     pixMultConstAccumulate(pix1, 255., 0);
     pix2 = pixFinalAccumulate(pix1, 0, 16);
     pixWrite("junkpix2", pix2, IFF_PNG);

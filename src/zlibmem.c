@@ -64,7 +64,7 @@ static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
 l_uint8 *
 zlibCompress(l_uint8  *datain,
              l_int32   nin,
-	     l_int32  *pnout)
+             l_int32  *pnout)
 {
 l_uint8  *dataout;
 l_int32   status, nbytes;
@@ -75,19 +75,19 @@ z_stream  z;
     PROCNAME("zlibCompress");
 
     if (!datain)
-	return (l_uint8 *)ERROR_PTR("datain not defined", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("datain not defined", procName, NULL);
 
-	/* set up fixed size buffers used in z_stream */
+        /* set up fixed size buffers used in z_stream */
     if ((bufferin = (l_uint8 *)CALLOC(L_BUF_SIZE, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("bufferin not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bufferin not made", procName, NULL);
     if ((bufferout = (l_uint8 *)CALLOC(L_BUF_SIZE, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("bufferout not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bufferout not made", procName, NULL);
 
-	/* set up bbuffers and load bbin with the data */
+        /* set up bbuffers and load bbin with the data */
     if ((bbin = bbufferCreate(datain, nin)) == NULL)
-	return (l_uint8 *)ERROR_PTR("bbin not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bbin not made", procName, NULL);
     if ((bbout = bbufferCreate(NULL, 0)) == NULL)
-	return (l_uint8 *)ERROR_PTR("bbout not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bbout not made", procName, NULL);
 
     z.zalloc = (alloc_func)0;
     z.zfree = (free_func)0;
@@ -101,24 +101,24 @@ z_stream  z;
     deflateInit(&z, ZLIB_COMPRESSION_LEVEL);
 
     for ( ; ; ) {
-	if (z.avail_in == 0) {
-	    z.next_in = bufferin;
-	    bbufferWrite(bbin, bufferin, L_BUF_SIZE, &nbytes);
-/*	    fprintf(stderr, " wrote %d bytes to bufferin\n", nbytes); */
-	    z.avail_in = nbytes;
-	}
-	if (z.avail_in == 0)
-	    break;
-	status = deflate(&z, Z_SYNC_FLUSH);
-/*	fprintf(stderr, " status is %d, bytesleft = %d, totalout = %d\n",
-	          status, z.avail_out, z.total_out); */
-	nbytes = L_BUF_SIZE - z.avail_out;
-	if (nbytes) {
-	    bbufferRead(bbout, bufferout, nbytes);
-/*	    fprintf(stderr, " read %d bytes from bufferout\n", nbytes); */
-	}
-	z.next_out = bufferout;
-	z.avail_out = L_BUF_SIZE;
+        if (z.avail_in == 0) {
+            z.next_in = bufferin;
+            bbufferWrite(bbin, bufferin, L_BUF_SIZE, &nbytes);
+/*            fprintf(stderr, " wrote %d bytes to bufferin\n", nbytes); */
+            z.avail_in = nbytes;
+        }
+        if (z.avail_in == 0)
+            break;
+        status = deflate(&z, Z_SYNC_FLUSH);
+/*        fprintf(stderr, " status is %d, bytesleft = %d, totalout = %d\n",
+                  status, z.avail_out, z.total_out); */
+        nbytes = L_BUF_SIZE - z.avail_out;
+        if (nbytes) {
+            bbufferRead(bbout, bufferout, nbytes);
+/*            fprintf(stderr, " read %d bytes from bufferout\n", nbytes); */
+        }
+        z.next_out = bufferout;
+        z.avail_out = L_BUF_SIZE;
     }
 
     deflateEnd(&z);
@@ -130,7 +130,7 @@ z_stream  z;
     FREE((void *)bufferout);
     return dataout;
 }
-	
+        
 
 /*!
  *  zlibUncompress()
@@ -145,7 +145,7 @@ z_stream  z;
 l_uint8 *
 zlibUncompress(l_uint8  *datain,
                l_int32   nin,
-	       l_int32  *pnout)
+               l_int32  *pnout)
 {
 l_uint8  *dataout;
 l_int32   status, nbytes;
@@ -156,17 +156,17 @@ z_stream  z;
     PROCNAME("zlibUncompress");
 
     if (!datain)
-	return (l_uint8 *)ERROR_PTR("datain not defined", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("datain not defined", procName, NULL);
     
     if ((bufferin = (l_uint8 *)CALLOC(L_BUF_SIZE, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("bufferin not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bufferin not made", procName, NULL);
     if ((bufferout = (l_uint8 *)CALLOC(L_BUF_SIZE, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("bufferout not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bufferout not made", procName, NULL);
 
     if ((bbin = bbufferCreate(datain, nin)) == NULL)
-	return (l_uint8 *)ERROR_PTR("bbin not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bbin not made", procName, NULL);
     if ((bbout = bbufferCreate(NULL, 0)) == NULL)
-	return (l_uint8 *)ERROR_PTR("bbout not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bbout not made", procName, NULL);
 
     z.zalloc = (alloc_func)0;
     z.zfree = (free_func)0;
@@ -179,24 +179,24 @@ z_stream  z;
     inflateInit(&z);
 
     for ( ; ; ) {
-	if (z.avail_in == 0) {
-	    z.next_in = bufferin;
-	    bbufferWrite(bbin, bufferin, L_BUF_SIZE, &nbytes);
-/*	    fprintf(stderr, " wrote %d bytes to bufferin\n", nbytes); */
-	    z.avail_in = nbytes;
-	}
-	if (z.avail_in == 0)
-	    break;
-	status = inflate(&z, Z_SYNC_FLUSH);
-/*	fprintf(stderr, " status is %d, bytesleft = %d, totalout = %d\n",
-	          status, z.avail_out, z.total_out); */
-	nbytes = L_BUF_SIZE - z.avail_out;
-	if (nbytes) {
-	    bbufferRead(bbout, bufferout, nbytes);
-/*	    fprintf(stderr, " read %d bytes from bufferout\n", nbytes); */
-	}
-	z.next_out = bufferout;
-	z.avail_out = L_BUF_SIZE;
+        if (z.avail_in == 0) {
+            z.next_in = bufferin;
+            bbufferWrite(bbin, bufferin, L_BUF_SIZE, &nbytes);
+/*            fprintf(stderr, " wrote %d bytes to bufferin\n", nbytes); */
+            z.avail_in = nbytes;
+        }
+        if (z.avail_in == 0)
+            break;
+        status = inflate(&z, Z_SYNC_FLUSH);
+/*        fprintf(stderr, " status is %d, bytesleft = %d, totalout = %d\n",
+                  status, z.avail_out, z.total_out); */
+        nbytes = L_BUF_SIZE - z.avail_out;
+        if (nbytes) {
+            bbufferRead(bbout, bufferout, nbytes);
+/*            fprintf(stderr, " read %d bytes from bufferout\n", nbytes); */
+        }
+        z.next_out = bufferout;
+        z.avail_out = L_BUF_SIZE;
     }
 
     inflateEnd(&z);

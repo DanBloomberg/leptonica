@@ -24,10 +24,10 @@
  *
  *     Initialization
  *
- *         JbClasser  *jbRankHausInit()      [rank hausdorff encoder]
- *         JbClasser  *jbCorrelationInit()   [correlation encoder]
- *         JbClasser  *jbCorrelationInitWithoutComponents()  [ditto]
- *         static JBCLASSER   *jbCorrelationInitInternal()
+ *         JBCLASSER         *jbRankHausInit()      [rank hausdorff encoder]
+ *         JBCLASSER         *jbCorrelationInit()   [correlation encoder]
+ *         JBCLASSER         *jbCorrelationInitWithoutComponents()  [ditto]
+ *         static JBCLASSER  *jbCorrelationInitInternal()
  *
  *     Classify the pages
  *
@@ -230,35 +230,28 @@ static const l_int32  MAX_COMP_HEIGHT = 120;  /* default max component height */
      * similar sized templates */
 struct JbFindTemplatesState
 {
-  JBCLASSER            *classer;    /* classer                               */
-  l_int32               w;          /* desired width                         */
-  l_int32               h;          /* desired height                        */
-  l_int32               i;          /* index into two_by_two step array      */
-  NUMA                 *numa;       /* current number array                  */
-  l_int32               n;          /* current element of numa               */
+  JBCLASSER       *classer;    /* classer                               */
+  l_int32          w;          /* desired width                         */
+  l_int32          h;          /* desired height                        */
+  l_int32          i;          /* index into two_by_two step array      */
+  NUMA            *numa;       /* current number array                  */
+  l_int32          n;          /* current element of numa               */
 };
 typedef struct JbFindTemplatesState JBFINDCTX;
 
 
     /* Static initialization function */
-static JBCLASSER *
-jbCorrelationInitInternal(l_int32 components, l_int32 maxwidth,
-                          l_int32 maxheight, l_float32 thresh,
-                          l_float32 weightfactor, l_int32 keep_components);
+static JBCLASSER * jbCorrelationInitInternal(l_int32 components,
+                       l_int32 maxwidth, l_int32 maxheight, l_float32 thresh,
+                       l_float32 weightfactor, l_int32 keep_components);
 
     /* Static helper functions */
-static JBFINDCTX *
-findSimilarSizedTemplatesInit(JBCLASSER *classer, PIX *pixs);
-static l_int32
-findSimilarSizedTemplatesNext(JBFINDCTX *context);
-static void
-findSimilarSizedTemplatesDestroy(JBFINDCTX **pcontext);
-
-static l_int32
-finalPositioningForAlignment(PIX *pixs, l_int32 x, l_int32 y,
+static JBFINDCTX * findSimilarSizedTemplatesInit(JBCLASSER *classer, PIX *pixs);
+static l_int32 findSimilarSizedTemplatesNext(JBFINDCTX *context);
+static void findSimilarSizedTemplatesDestroy(JBFINDCTX **pcontext);
+static l_int32 finalPositioningForAlignment(PIX *pixs, l_int32 x, l_int32 y,
                              l_int32 idelx, l_int32 idely, PIX *pixt,
                              l_int32 *sumtab, l_int32 *pdx, l_int32 *pdy);
-
 
 
 /*----------------------------------------------------------------------*
@@ -291,24 +284,24 @@ JBCLASSER  *classer;
 
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-	return (JBCLASSER *)ERROR_PTR("invalid components", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid components", procName, NULL);
     if (size < 1 || size > 10)
-	return (JBCLASSER *)ERROR_PTR("size not reasonable", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("size not reasonable", procName, NULL);
     if (rank < 0.5 || rank > 1.0)
-	return (JBCLASSER *)ERROR_PTR("rank not in [0.5-1.0]", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("rank not in [0.5-1.0]", procName, NULL);
     if (maxwidth == 0) {
         if (components == JB_CONN_COMPS)
-	    maxwidth = MAX_CONN_COMP_WIDTH;
+            maxwidth = MAX_CONN_COMP_WIDTH;
         else if (components == JB_CHARACTERS)
-	    maxwidth = MAX_CHAR_COMP_WIDTH;
+            maxwidth = MAX_CHAR_COMP_WIDTH;
         else  /* JB_WORDS */
-	    maxwidth = MAX_WORD_COMP_WIDTH;
+            maxwidth = MAX_WORD_COMP_WIDTH;
     }
     if (maxheight == 0)
-	maxheight = MAX_COMP_HEIGHT;
+        maxheight = MAX_COMP_HEIGHT;
 
     if ((classer = jbClasserCreate(JB_RANKHAUS, components)) == NULL)
-	return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
     classer->maxwidth = maxwidth;
     classer->maxheight = maxheight;
     classer->sizehaus = size;
@@ -374,27 +367,27 @@ JBCLASSER  *classer;
 
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-	return (JBCLASSER *)ERROR_PTR("invalid components", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid components", procName, NULL);
     if (thresh < 0.4 || thresh > 0.9)
-	return (JBCLASSER *)ERROR_PTR("thresh not in range [0.4 - 0.9]",
-	        procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("thresh not in range [0.4 - 0.9]",
+                procName, NULL);
     if (weightfactor < 0.0 || weightfactor > 1.0)
-	return (JBCLASSER *)ERROR_PTR("weightfactor not in range [0.0 - 1.0]",
-	        procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("weightfactor not in range [0.0 - 1.0]",
+                procName, NULL);
     if (maxwidth == 0) {
         if (components == JB_CONN_COMPS)
-	    maxwidth = MAX_CONN_COMP_WIDTH;
+            maxwidth = MAX_CONN_COMP_WIDTH;
         else if (components == JB_CHARACTERS)
-	    maxwidth = MAX_CHAR_COMP_WIDTH;
+            maxwidth = MAX_CHAR_COMP_WIDTH;
         else  /* JB_WORDS */
-	    maxwidth = MAX_WORD_COMP_WIDTH;
+            maxwidth = MAX_WORD_COMP_WIDTH;
     }
     if (maxheight == 0)
-	maxheight = MAX_COMP_HEIGHT;
+        maxheight = MAX_COMP_HEIGHT;
 
 
     if ((classer = jbClasserCreate(JB_CORRELATION, components)) == NULL)
-	return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
     classer->maxwidth = maxwidth;
     classer->maxheight = maxheight;
     classer->thresh = thresh;
@@ -430,20 +423,20 @@ PIX     *pix;
     PROCNAME("jbAddPages");
 
     if (!classer)
-	return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", procName, 1);
     if (!safiles)
-	return ERROR_INT("safiles not defined", procName, 1);
+        return ERROR_INT("safiles not defined", procName, 1);
 
     classer->safiles = sarrayCopy(safiles);
     nfiles = sarrayGetCount(safiles);
     for (i = 0; i < nfiles; i++) {
-	fname = sarrayGetString(safiles, i, 0);
-	if ((pix = pixRead(fname)) == NULL) {
-	    L_WARNING_INT("image file %d not read", procName, i);
-	    continue;
-	}
-	jbAddPage(classer, pix);
-	pixDestroy(&pix);
+        fname = sarrayGetString(safiles, i, 0);
+        if ((pix = pixRead(fname)) == NULL) {
+            L_WARNING_INT("image file %d not read", procName, i);
+            continue;
+        }
+        jbAddPage(classer, pix);
+        pixDestroy(&pix);
     }
 
     return 0;
@@ -467,17 +460,17 @@ PIXA  *pixas;
     PROCNAME("jbAddPage");
 
     if (!classer)
-	return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", procName, 1);
     if (!pixs)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     classer->w = pixGetWidth(pixs);
     classer->h = pixGetHeight(pixs);
 
-	/* Get the appropriate components and their bounding boxes */
+        /* Get the appropriate components and their bounding boxes */
     if (jbGetComponents(pixs, classer->components, classer->maxwidth,
                         classer->maxheight, &boxas, &pixas)) {
-	return ERROR_INT("components not made", procName, 1);
+        return ERROR_INT("components not made", procName, 1);
     }
 
     jbAddPageComponents(classer, pixs, boxas, pixas);
@@ -503,26 +496,26 @@ PIXA  *pixas;
 l_int32
 jbAddPageComponents(JBCLASSER  *classer,
                     PIX        *pixs,
-		    BOXA       *boxas,
-		    PIXA       *pixas)
+                    BOXA       *boxas,
+                    PIXA       *pixas)
 {
 l_int32  n;
 
     PROCNAME("jbAddPageComponents");
 
     if (!classer)
-	return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", procName, 1);
     if (!pixs)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
         /* Test for no components on the current page.  Always update the
-	 * number of pages processed, even if nothing is on it. */
+         * number of pages processed, even if nothing is on it. */
     if (!boxas || !pixas || (boxaGetCount(boxas) == 0)) {
         classer->npages++;
         return 0;
     }
 
-	/* Get classes.  For hausdorff, it uses a specified size of
+        /* Get classes.  For hausdorff, it uses a specified size of
          * structuring element and specified rank.  For correlation,
          * it uses a specified threshold. */
     if (classer->method == JB_RANKHAUS) {
@@ -534,12 +527,12 @@ l_int32  n;
             return ERROR_INT("correlation classification failed", procName, 1);
     }
 
-	/* Find the global UL corners, adjusted for each instance so
-	 * that the class template and instance will have their
-	 * centroids in the same place.  Then the template can be
-	 * used to replace the instance. */
+        /* Find the global UL corners, adjusted for each instance so
+         * that the class template and instance will have their
+         * centroids in the same place.  Then the template can be
+         * used to replace the instance. */
     if (jbGetULCorners(classer, pixs, boxas))
-	return ERROR_INT("UL corners not found", procName, 1);
+        return ERROR_INT("UL corners not found", procName, 1);
 
         /* Update total component counts and number of pages processed. */
     n = boxaGetCount(boxas);
@@ -587,102 +580,102 @@ SEL        *sel;
     PROCNAME("jbClassifyRankHaus");
 
     if (!classer)
-	return ERROR_INT("classer not found", procName, 1);
+        return ERROR_INT("classer not found", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not found", procName, 1);
+        return ERROR_INT("boxa not found", procName, 1);
     if (!pixas)
-	return ERROR_INT("pixas not found", procName, 1);
+        return ERROR_INT("pixas not found", procName, 1);
 
     npages = classer->npages;
     size = classer->sizehaus;
     sel = selCreateBrick(size, size, size / 2, size / 2, SEL_HIT);
 
-	/* Generate the bordered pixa, with and without dilation.
-	 * pixa1 and pixa2 contain all the input components. */
+        /* Generate the bordered pixa, with and without dilation.
+         * pixa1 and pixa2 contain all the input components. */
     n = pixaGetCount(pixas);
     pixa1 = pixaCreate(n);
     pixa2 = pixaCreate(n);
     for (i = 0; i < n; i++) {
-	pix = pixaGetPix(pixas, i, L_CLONE);
-	pix1 = pixAddBorderGeneral(pix, JB_ADDED_PIXELS, JB_ADDED_PIXELS,
-	            JB_ADDED_PIXELS, JB_ADDED_PIXELS, 0);
-	pix2 = pixDilate(NULL, pix1, sel);
-	pixaAddPix(pixa1, pix1, L_INSERT);   /* un-dilated */
-	pixaAddPix(pixa2, pix2, L_INSERT);   /* dilated */
-	pixDestroy(&pix);
+        pix = pixaGetPix(pixas, i, L_CLONE);
+        pix1 = pixAddBorderGeneral(pix, JB_ADDED_PIXELS, JB_ADDED_PIXELS,
+                    JB_ADDED_PIXELS, JB_ADDED_PIXELS, 0);
+        pix2 = pixDilate(NULL, pix1, sel);
+        pixaAddPix(pixa1, pix1, L_INSERT);   /* un-dilated */
+        pixaAddPix(pixa2, pix2, L_INSERT);   /* dilated */
+        pixDestroy(&pix);
     }
 
-	/* Get the centroids of all the bordered images.
-	 * These are relative to the UL corner of each (bordered) pix.  */
+        /* Get the centroids of all the bordered images.
+         * These are relative to the UL corner of each (bordered) pix.  */
     pta = pixaCentroids(pixa1);  /* centroids for this page; use here */
     ptac = classer->ptac;  /* holds centroids of components up to this page */
     ptaJoin(ptac, pta, 0, 0);  /* save centroids of all components */
     ptact = classer->ptact;  /* holds centroids of templates */
-	
-	/* Use these to save the class and page of each component. */
+        
+        /* Use these to save the class and page of each component. */
     naclass = classer->naclass;
     napage = classer->napage;
     sumtab = makePixelSumTab8();
 
-	/* Store the unbordered pix in a pixaa, in a hierarchical
-	 * set of arrays.  There is one pixa for each class,
-	 * and the pix in each pixa are all the instances found
-	 * of that class.  This is actually more than one would need
-	 * for a jbig2 encoder, but there are two reasons to keep
-	 * them around: (1) the set of instances for each class
-	 * can be used to make an improved binary (or, better,
-	 * a grayscale) template, rather than simply using the first
-	 * one in the set; (2) we can investigate the failures
-	 * of the classifier.  This pixaa grows as we process
-	 * successive pages. */
+        /* Store the unbordered pix in a pixaa, in a hierarchical
+         * set of arrays.  There is one pixa for each class,
+         * and the pix in each pixa are all the instances found
+         * of that class.  This is actually more than one would need
+         * for a jbig2 encoder, but there are two reasons to keep
+         * them around: (1) the set of instances for each class
+         * can be used to make an improved binary (or, better,
+         * a grayscale) template, rather than simply using the first
+         * one in the set; (2) we can investigate the failures
+         * of the classifier.  This pixaa grows as we process
+         * successive pages. */
     pixaa = classer->pixaa;
 
-	/* arrays to store class exemplars (templates) */
+        /* arrays to store class exemplars (templates) */
     pixat = classer->pixat;   /* un-dilated */
     pixatd = classer->pixatd;   /* dilated */
 
-	/* Fill up the pixaa tree with the template exemplars as
-	 * the first pix in each pixa.  As we add each pix,
-	 * we also add the associated box to the pixa.
-	 * We also keep track of the centroid of each pix,
-	 * and use the difference between centroids (of the
-	 * pix with the exemplar we are checking it with)
-	 * to align the two when checking that the Hausdorff
-	 * distance does not exceed a threshold.
-	 * The threshold is set by the Sel used for dilating.
-	 * For example, a 3x3 brick, sel_3, corresponds to a
-	 * Hausdorff distance of 1.  In general, for an NxN brick,
-	 * with N odd, corresponds to a Hausdorff distance of (N - 1)/2.
-	 * It turns out that we actually need to use a sel of size 2x2
-	 * to avoid small bad components when there is a halftone image
-	 * from which components can be chosen.
-	 * The larger the Sel you use, the fewer the number of classes,
-	 * and the greater the likelihood of putting semantically
-	 * different objects in the same class.  For simplicity,
-	 * we do this separately for the case of rank == 1.0 (exact
-	 * match within the Hausdorff distance) and rank < 1.0.  */
+        /* Fill up the pixaa tree with the template exemplars as
+         * the first pix in each pixa.  As we add each pix,
+         * we also add the associated box to the pixa.
+         * We also keep track of the centroid of each pix,
+         * and use the difference between centroids (of the
+         * pix with the exemplar we are checking it with)
+         * to align the two when checking that the Hausdorff
+         * distance does not exceed a threshold.
+         * The threshold is set by the Sel used for dilating.
+         * For example, a 3x3 brick, sel_3, corresponds to a
+         * Hausdorff distance of 1.  In general, for an NxN brick,
+         * with N odd, corresponds to a Hausdorff distance of (N - 1)/2.
+         * It turns out that we actually need to use a sel of size 2x2
+         * to avoid small bad components when there is a halftone image
+         * from which components can be chosen.
+         * The larger the Sel you use, the fewer the number of classes,
+         * and the greater the likelihood of putting semantically
+         * different objects in the same class.  For simplicity,
+         * we do this separately for the case of rank == 1.0 (exact
+         * match within the Hausdorff distance) and rank < 1.0.  */
     rank = classer->rankhaus;
     nahash = classer->nahash;
     if (rank == 1.0) {
-	for (i = 0; i < n; i++) {
-	    pix1 = pixaGetPix(pixa1, i, L_CLONE);
-	    pix2 = pixaGetPix(pixa2, i, L_CLONE);
-	    ptaGetPt(pta, i, &x1, &y1);
+        for (i = 0; i < n; i++) {
+            pix1 = pixaGetPix(pixa1, i, L_CLONE);
+            pix2 = pixaGetPix(pixa2, i, L_CLONE);
+            ptaGetPt(pta, i, &x1, &y1);
             nt = pixaGetCount(pixat);  /* number of templates */
-	    found = FALSE;
+            found = FALSE;
             findcontext = findSimilarSizedTemplatesInit(classer, pix1);
             while ((iclass = findSimilarSizedTemplatesNext(findcontext)) > -1) {
-		    /* Find score for this template */
-		pix3 = pixaGetPix(pixat, iclass, L_CLONE);
-		pix4 = pixaGetPix(pixatd, iclass, L_CLONE);
-		ptaGetPt(ptact, iclass, &x2, &y2);
-		testval = pixHaustest(pix1, pix2, pix3, pix4, x1 - x2, y1 - y2);
-		pixDestroy(&pix3);
-		pixDestroy(&pix4);
-		if (testval == 1) {
-		    found = TRUE;
-		    numaAddNumber(naclass, iclass);
-		    numaAddNumber(napage, npages);
+                    /* Find score for this template */
+                pix3 = pixaGetPix(pixat, iclass, L_CLONE);
+                pix4 = pixaGetPix(pixatd, iclass, L_CLONE);
+                ptaGetPt(ptact, iclass, &x2, &y2);
+                testval = pixHaustest(pix1, pix2, pix3, pix4, x1 - x2, y1 - y2);
+                pixDestroy(&pix3);
+                pixDestroy(&pix4);
+                if (testval == 1) {
+                    found = TRUE;
+                    numaAddNumber(naclass, iclass);
+                    numaAddNumber(napage, npages);
                     if (classer->keep_pixaa) {
                         pixa = pixaaGetPixa(pixaa, iclass, L_CLONE);
                         pix = pixaGetPix(pixas, i, L_CLONE);
@@ -691,96 +684,96 @@ SEL        *sel;
                         pixaAddBox(pixa, box, L_INSERT);
                         pixaDestroy(&pixa);
                     }
-		    break;
-		}
-	    }
+                    break;
+                }
+            }
             findSimilarSizedTemplatesDestroy(&findcontext);
-	    if (found == FALSE) {  /* new class */
-		numaAddNumber(naclass, nt);
-		numaAddNumber(napage, npages);
-		pixa = pixaCreate(0);
-		pix = pixaGetPix(pixas, i, L_CLONE);  /* unbordered instance */
-		pixaAddPix(pixa, pix, L_INSERT);
-		wt = pixGetWidth(pix);
-	        ht = pixGetHeight(pix);
-                numaHashAdd(nahash, ht * wt, nt);
-		box = boxaGetBox(boxa, i, L_CLONE);
-		pixaAddBox(pixa, box, L_INSERT);
-		pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
-		ptaAddPt(ptact, x1, y1);
-		pixaAddPix(pixat, pix1, L_INSERT);  /* bordered template */
-		pixaAddPix(pixatd, pix2, L_INSERT);  /* bordered dil template */
-	    }
-	    else {   /* don't save them */
-		pixDestroy(&pix1);
-		pixDestroy(&pix2);
-	    }
-	}
-    }
-    else {  /* rank < 1.0 */
-	if ((nafg = pixaCountPixels(pixas)) == NULL)  /* areas for this page */
-	    return ERROR_INT("nafg not made", procName, 1);
-	nafgt = classer->nafgt;
-	tab8 = makePixelSumTab8();
-	for (i = 0; i < n; i++) {   /* all instances on this page */
-	    pix1 = pixaGetPix(pixa1, i, L_CLONE);
-	    numaGetIValue(nafg, i, &area1);
-	    pix2 = pixaGetPix(pixa2, i, L_CLONE);
-	    ptaGetPt(pta, i, &x1, &y1);   /* use pta for this page */
-	    nt = pixaGetCount(pixat);  /* number of templates */
-	    found = FALSE;
-            findcontext = findSimilarSizedTemplatesInit(classer, pix1);
-            while ((iclass = findSimilarSizedTemplatesNext(findcontext)) > -1) {
-		    /* Find score for this template */
-		pix3 = pixaGetPix(pixat, iclass, L_CLONE);
-		numaGetIValue(nafgt, iclass, &area3);
-		pix4 = pixaGetPix(pixatd, iclass, L_CLONE);
-		ptaGetPt(ptact, iclass, &x2, &y2);
-		testval = pixRankHaustest(pix1, pix2, pix3, pix4,
-					  x1 - x2, y1 - y2,
-					  area1, area3, rank, tab8);
-		pixDestroy(&pix3);
-		pixDestroy(&pix4);
-		if (testval == 1) {  /* greedy match; take the first */
-		    found = TRUE;
-		    numaAddNumber(naclass, iclass);
-		    numaAddNumber(napage, npages);
-                    if (classer->keep_pixaa) {
-                        pixa = pixaaGetPixa(pixaa, iclass, L_CLONE);
-                        pix = pixaGetPix(pixas, i, L_CLONE);
-                        pixaAddPix(pixa, pix, L_INSERT);
-                        box = boxaGetBox(boxa, i, L_CLONE);
-                        pixaAddBox(pixa, box, L_INSERT);
-                        pixaDestroy(&pixa);
-                    }
-		    break;
-		}
-	    }
-            findSimilarSizedTemplatesDestroy(&findcontext);
-	    if (found == FALSE) {  /* new class */
-		numaAddNumber(naclass, nt);
-		numaAddNumber(napage, npages);
-		pixa = pixaCreate(0);
-		pix = pixaGetPix(pixas, i, L_CLONE);  /* unbordered instance */
-		pixaAddPix(pixa, pix, L_INSERT);
+            if (found == FALSE) {  /* new class */
+                numaAddNumber(naclass, nt);
+                numaAddNumber(napage, npages);
+                pixa = pixaCreate(0);
+                pix = pixaGetPix(pixas, i, L_CLONE);  /* unbordered instance */
+                pixaAddPix(pixa, pix, L_INSERT);
                 wt = pixGetWidth(pix);
                 ht = pixGetHeight(pix);
                 numaHashAdd(nahash, ht * wt, nt);
-		box = boxaGetBox(boxa, i, L_CLONE);
-		pixaAddBox(pixa, box, L_INSERT);
-		pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
-		ptaAddPt(ptact, x1, y1);
-		pixaAddPix(pixat, pix1, L_INSERT);  /* bordered template */
-		pixaAddPix(pixatd, pix2, L_INSERT);  /* ditto */
-		numaAddNumber(nafgt, area1);
-	    }
-	    else {   /* don't save them */
-		pixDestroy(&pix1);
-		pixDestroy(&pix2);
-	    }
-	}
-	FREE(tab8);
-	numaDestroy(&nafg);
+                box = boxaGetBox(boxa, i, L_CLONE);
+                pixaAddBox(pixa, box, L_INSERT);
+                pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
+                ptaAddPt(ptact, x1, y1);
+                pixaAddPix(pixat, pix1, L_INSERT);  /* bordered template */
+                pixaAddPix(pixatd, pix2, L_INSERT);  /* bordered dil template */
+            }
+            else {   /* don't save them */
+                pixDestroy(&pix1);
+                pixDestroy(&pix2);
+            }
+        }
+    }
+    else {  /* rank < 1.0 */
+        if ((nafg = pixaCountPixels(pixas)) == NULL)  /* areas for this page */
+            return ERROR_INT("nafg not made", procName, 1);
+        nafgt = classer->nafgt;
+        tab8 = makePixelSumTab8();
+        for (i = 0; i < n; i++) {   /* all instances on this page */
+            pix1 = pixaGetPix(pixa1, i, L_CLONE);
+            numaGetIValue(nafg, i, &area1);
+            pix2 = pixaGetPix(pixa2, i, L_CLONE);
+            ptaGetPt(pta, i, &x1, &y1);   /* use pta for this page */
+            nt = pixaGetCount(pixat);  /* number of templates */
+            found = FALSE;
+            findcontext = findSimilarSizedTemplatesInit(classer, pix1);
+            while ((iclass = findSimilarSizedTemplatesNext(findcontext)) > -1) {
+                    /* Find score for this template */
+                pix3 = pixaGetPix(pixat, iclass, L_CLONE);
+                numaGetIValue(nafgt, iclass, &area3);
+                pix4 = pixaGetPix(pixatd, iclass, L_CLONE);
+                ptaGetPt(ptact, iclass, &x2, &y2);
+                testval = pixRankHaustest(pix1, pix2, pix3, pix4,
+                                          x1 - x2, y1 - y2,
+                                          area1, area3, rank, tab8);
+                pixDestroy(&pix3);
+                pixDestroy(&pix4);
+                if (testval == 1) {  /* greedy match; take the first */
+                    found = TRUE;
+                    numaAddNumber(naclass, iclass);
+                    numaAddNumber(napage, npages);
+                    if (classer->keep_pixaa) {
+                        pixa = pixaaGetPixa(pixaa, iclass, L_CLONE);
+                        pix = pixaGetPix(pixas, i, L_CLONE);
+                        pixaAddPix(pixa, pix, L_INSERT);
+                        box = boxaGetBox(boxa, i, L_CLONE);
+                        pixaAddBox(pixa, box, L_INSERT);
+                        pixaDestroy(&pixa);
+                    }
+                    break;
+                }
+            }
+            findSimilarSizedTemplatesDestroy(&findcontext);
+            if (found == FALSE) {  /* new class */
+                numaAddNumber(naclass, nt);
+                numaAddNumber(napage, npages);
+                pixa = pixaCreate(0);
+                pix = pixaGetPix(pixas, i, L_CLONE);  /* unbordered instance */
+                pixaAddPix(pixa, pix, L_INSERT);
+                wt = pixGetWidth(pix);
+                ht = pixGetHeight(pix);
+                numaHashAdd(nahash, ht * wt, nt);
+                box = boxaGetBox(boxa, i, L_CLONE);
+                pixaAddBox(pixa, box, L_INSERT);
+                pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
+                ptaAddPt(ptact, x1, y1);
+                pixaAddPix(pixat, pix1, L_INSERT);  /* bordered template */
+                pixaAddPix(pixatd, pix2, L_INSERT);  /* ditto */
+                numaAddNumber(nafgt, area1);
+            }
+            else {   /* don't save them */
+                pixDestroy(&pix1);
+                pixDestroy(&pix2);
+            }
+        }
+        FREE(tab8);
+        numaDestroy(&nafg);
     }
     classer->nclass = pixaGetCount(pixat);
 
@@ -818,57 +811,57 @@ SEL        *sel;
 l_int32
 pixHaustest(PIX       *pix1,
             PIX       *pix2,
-	    PIX       *pix3,
-	    PIX       *pix4,
-	    l_float32  delx,   /* x(1) - x(3) */
-	    l_float32  dely)   /* y(1) - y(3) */
+            PIX       *pix3,
+            PIX       *pix4,
+            l_float32  delx,   /* x(1) - x(3) */
+            l_float32  dely)   /* y(1) - y(3) */
 {
 l_int32  wi, hi, wt, ht, delw, delh, idelx, idely, boolmatch;
 PIX     *pixt;
 
-	/* Eliminate possible matches based on size difference */
+        /* Eliminate possible matches based on size difference */
     wi = pixGetWidth(pix1);
     hi = pixGetHeight(pix1);
     wt = pixGetWidth(pix3);
     ht = pixGetHeight(pix3);
     delw = L_ABS(wi - wt);
     if (delw > MAX_DIFF_WIDTH)
-	return FALSE;
+        return FALSE;
     delh = L_ABS(hi - ht);
     if (delh > MAX_DIFF_HEIGHT)
-	return FALSE;
+        return FALSE;
 
-	/* Round difference in centroid location to nearest integer;
-	 * use this as a shift when doing the matching. */
+        /* Round difference in centroid location to nearest integer;
+         * use this as a shift when doing the matching. */
     if (delx >= 0)
-	idelx = (l_int32)(delx + 0.5);
+        idelx = (l_int32)(delx + 0.5);
     else
-	idelx = (l_int32)(delx - 0.5);
+        idelx = (l_int32)(delx - 0.5);
     if (dely >= 0)
-	idely = (l_int32)(dely + 0.5);
+        idely = (l_int32)(dely + 0.5);
     else
-	idely = (l_int32)(dely - 0.5);
+        idely = (l_int32)(dely - 0.5);
 
-	/*  Do 1-direction hausdorff, checking that every pixel in pix1
-	 *  is within a dilation distance of some pixel in pix3.  Namely,
-	 *  that pix4 entirely covers pix1:
-	 *       pixt = pixSubtract(NULL, pix1, pix4), including shift
-	 *  where pixt has no ON pixels.  */
+        /*  Do 1-direction hausdorff, checking that every pixel in pix1
+         *  is within a dilation distance of some pixel in pix3.  Namely,
+         *  that pix4 entirely covers pix1:
+         *       pixt = pixSubtract(NULL, pix1, pix4), including shift
+         *  where pixt has no ON pixels.  */
     pixt = pixCreateTemplate(pix1);
     pixRasterop(pixt, 0, 0, wi, hi, PIX_SRC, pix1, 0, 0);
     pixRasterop(pixt, idelx, idely, wi, hi, PIX_DST & PIX_NOT(PIX_SRC),
                 pix4, 0, 0);
     pixZero(pixt, &boolmatch);
     if (boolmatch == 0) {
-	pixDestroy(&pixt);
-	return FALSE;
+        pixDestroy(&pixt);
+        return FALSE;
     }
 
-	/*  Do 1-direction hausdorff, checking that every pixel in pix3
-	 *  is within a dilation distance of some pixel in pix1.  Namely,
-	 *  that pix2 entirely covers pix3:
-	 *      pixSubtract(pixt, pix3, pix2), including shift
-	 *  where pixt has no ON pixels. */
+        /*  Do 1-direction hausdorff, checking that every pixel in pix3
+         *  is within a dilation distance of some pixel in pix1.  Namely,
+         *  that pix2 entirely covers pix3:
+         *      pixSubtract(pixt, pix3, pix2), including shift
+         *  where pixt has no ON pixels. */
     pixRasterop(pixt, idelx, idely, wt, ht, PIX_SRC, pix3, 0, 0);
     pixRasterop(pixt, 0, 0, wt, ht, PIX_DST & PIX_NOT(PIX_SRC), pix2, 0, 0);
     pixZero(pixt, &boolmatch);
@@ -909,74 +902,74 @@ PIX     *pixt;
 l_int32
 pixRankHaustest(PIX       *pix1,
                 PIX       *pix2,
-	        PIX       *pix3,
-	        PIX       *pix4,
-	        l_float32  delx,   /* x(1) - x(3) */
-	        l_float32  dely,   /* y(1) - y(3) */
-		l_int32    area1,
-		l_int32    area3,
-	        l_float32  rank,
-		l_int32   *tab8)
+                PIX       *pix3,
+                PIX       *pix4,
+                l_float32  delx,   /* x(1) - x(3) */
+                l_float32  dely,   /* y(1) - y(3) */
+                l_int32    area1,
+                l_int32    area3,
+                l_float32  rank,
+                l_int32   *tab8)
 {
 l_int32  wi, hi, wt, ht, delw, delh, idelx, idely, boolmatch;
 l_int32  thresh1, thresh3;
 PIX     *pixt;
 
-	/* Eliminate possible matches based on size difference */
+        /* Eliminate possible matches based on size difference */
     wi = pixGetWidth(pix1);
     hi = pixGetHeight(pix1);
     wt = pixGetWidth(pix3);
     ht = pixGetHeight(pix3);
     delw = L_ABS(wi - wt);
     if (delw > MAX_DIFF_WIDTH)
-	return FALSE;
+        return FALSE;
     delh = L_ABS(hi - ht);
     if (delh > MAX_DIFF_HEIGHT)
-	return FALSE;
+        return FALSE;
 
-	/* Upper bounds in remaining pixels for allowable match */
+        /* Upper bounds in remaining pixels for allowable match */
     thresh1 = (l_int32)(area1 * (1. - rank) + 0.5);
     thresh3 = (l_int32)(area3 * (1. - rank) + 0.5);
 
-	/* Round difference in centroid location to nearest integer;
-	 * use this as a shift when doing the matching. */
+        /* Round difference in centroid location to nearest integer;
+         * use this as a shift when doing the matching. */
     if (delx >= 0)
-	idelx = (l_int32)(delx + 0.5);
+        idelx = (l_int32)(delx + 0.5);
     else
-	idelx = (l_int32)(delx - 0.5);
+        idelx = (l_int32)(delx - 0.5);
     if (dely >= 0)
-	idely = (l_int32)(dely + 0.5);
+        idely = (l_int32)(dely + 0.5);
     else
-	idely = (l_int32)(dely - 0.5);
+        idely = (l_int32)(dely - 0.5);
 
-	/*  Do 1-direction hausdorff, checking that every pixel in pix1
-	 *  is within a dilation distance of some pixel in pix3.  Namely,
-	 *  that pix4 entirely covers pix1:
-	 *       pixt = pixSubtract(NULL, pix1, pix4), including shift
-	 *  where pixt has no ON pixels.  */
+        /*  Do 1-direction hausdorff, checking that every pixel in pix1
+         *  is within a dilation distance of some pixel in pix3.  Namely,
+         *  that pix4 entirely covers pix1:
+         *       pixt = pixSubtract(NULL, pix1, pix4), including shift
+         *  where pixt has no ON pixels.  */
     pixt = pixCreateTemplate(pix1);
     pixRasterop(pixt, 0, 0, wi, hi, PIX_SRC, pix1, 0, 0);
     pixRasterop(pixt, idelx, idely, wi, hi, PIX_DST & PIX_NOT(PIX_SRC),
                 pix4, 0, 0);
     pixThresholdPixels(pixt, thresh1, &boolmatch, tab8);
     if (boolmatch == 1) { /* above thresh1 */
-	pixDestroy(&pixt);
-	return FALSE;
+        pixDestroy(&pixt);
+        return FALSE;
     }
 
-	/*  Do 1-direction hausdorff, checking that every pixel in pix3
-	 *  is within a dilation distance of some pixel in pix1.  Namely,
-	 *  that pix2 entirely covers pix3:
-	 *      pixSubtract(pixt, pix3, pix2), including shift
-	 *  where pixt has no ON pixels. */
+        /*  Do 1-direction hausdorff, checking that every pixel in pix3
+         *  is within a dilation distance of some pixel in pix1.  Namely,
+         *  that pix2 entirely covers pix3:
+         *      pixSubtract(pixt, pix3, pix2), including shift
+         *  where pixt has no ON pixels. */
     pixRasterop(pixt, idelx, idely, wt, ht, PIX_SRC, pix3, 0, 0);
     pixRasterop(pixt, 0, 0, wt, ht, PIX_DST & PIX_NOT(PIX_SRC), pix2, 0, 0);
     pixThresholdPixels(pixt, thresh3, &boolmatch, tab8);
     pixDestroy(&pixt);
     if (boolmatch == 1)  /* above thresh3 */
-	return FALSE;
+        return FALSE;
     else
-	return TRUE;
+        return TRUE;
 }
 
 
@@ -1015,38 +1008,38 @@ PTA        *pta, *ptac, *ptact;
     PROCNAME("jbClassifyCorrelation");
 
     if (!classer)
-	return ERROR_INT("classer not found", procName, 1);
+        return ERROR_INT("classer not found", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not found", procName, 1);
+        return ERROR_INT("boxa not found", procName, 1);
     if (!pixas)
-	return ERROR_INT("pixas not found", procName, 1);
+        return ERROR_INT("pixas not found", procName, 1);
 
     npages = classer->npages;
 
-	/* Generate the bordered pixa, which contains all the the
-	 * input components.  This will not be saved.   */
+        /* Generate the bordered pixa, which contains all the the
+         * input components.  This will not be saved.   */
     n = pixaGetCount(pixas);
     pixa1 = pixaCreate(n);
     for (i = 0; i < n; i++) {
-	pix = pixaGetPix(pixas, i, L_CLONE);
-	pix1 = pixAddBorderGeneral(pix, JB_ADDED_PIXELS, JB_ADDED_PIXELS,
-	            JB_ADDED_PIXELS, JB_ADDED_PIXELS, 0);
-	pixaAddPix(pixa1, pix1, L_INSERT);
-	pixDestroy(&pix);
+        pix = pixaGetPix(pixas, i, L_CLONE);
+        pix1 = pixAddBorderGeneral(pix, JB_ADDED_PIXELS, JB_ADDED_PIXELS,
+                    JB_ADDED_PIXELS, JB_ADDED_PIXELS, 0);
+        pixaAddPix(pixa1, pix1, L_INSERT);
+        pixDestroy(&pix);
     }
 
-	/* Get the centroids of all the bordered images.
-	 * These are relative to the UL corner of each (bordered) pix.  */
+        /* Get the centroids of all the bordered images.
+         * These are relative to the UL corner of each (bordered) pix.  */
     pta = pixaCentroids(pixa1);  /* centroids for this page; use here */
     ptac = classer->ptac;  /* holds centroids of components up to this page */
     ptaJoin(ptac, pta, 0, 0);  /* save centroids of all components */
     ptact = classer->ptact;  /* holds centroids of templates */
-	
+        
         /* Use these to save the class and page of each component. */
     naclass = classer->naclass;
     napage = classer->napage;
 
-	/* Get the number of fg pixels in each component.  */
+        /* Get the number of fg pixels in each component.  */
     nafg = pixaCountPixels(pixa1);
     nafgt = classer->nafgt;    /* holds fg areas of the templates */
     sumtab = makePixelSumTab8();
@@ -1064,46 +1057,46 @@ PTA        *pta, *ptac, *ptact;
      * successive pages. */
     pixaa = classer->pixaa;
 
-	/* Array to store class exemplars */
+        /* Array to store class exemplars */
     pixat = classer->pixat;
 
-	/* Fill up the pixaa tree with the template exemplars as
-	 * the first pix in each pixa.  As we add each pix,
-	 * we also add the associated box to the pixa.
-	 * We also keep track of the centroid of each pix,
-	 * and use the difference between centroids (of the
-	 * pix with the exemplar we are checking it with)
-	 * to align the two when checking that the correlation
-	 * score exceeds a threshold.  The correlation score
-	 * is given by the square of the area of the AND
-	 * between aligned instance and template, divided by
-	 * the product of areas of each image.  For identical
-	 * template and instance, the score is 1.0.
-	 * If the threshold is too small, non-equivalent instances
-	 * will be placed in the same class; if too large, there will
-	 * be an unnecessary division of classes representing the
-	 * same character.  The weightfactor adds in some of the
-	 * difference (1.0 - thresh), depending on the heaviness
-	 * of the template (measured as the fraction of fg pixels). */
+        /* Fill up the pixaa tree with the template exemplars as
+         * the first pix in each pixa.  As we add each pix,
+         * we also add the associated box to the pixa.
+         * We also keep track of the centroid of each pix,
+         * and use the difference between centroids (of the
+         * pix with the exemplar we are checking it with)
+         * to align the two when checking that the correlation
+         * score exceeds a threshold.  The correlation score
+         * is given by the square of the area of the AND
+         * between aligned instance and template, divided by
+         * the product of areas of each image.  For identical
+         * template and instance, the score is 1.0.
+         * If the threshold is too small, non-equivalent instances
+         * will be placed in the same class; if too large, there will
+         * be an unnecessary division of classes representing the
+         * same character.  The weightfactor adds in some of the
+         * difference (1.0 - thresh), depending on the heaviness
+         * of the template (measured as the fraction of fg pixels). */
     thresh = classer->thresh;
     weight = classer->weightfactor;
     naarea = classer->naarea;
     nahash = classer->nahash;
     for (i = 0; i < n; i++) {
-	pix1 = pixaGetPix(pixa1, i, L_CLONE);
-	numaGetIValue(nafg, i, &area1);
-	ptaGetPt(pta, i, &x1, &y1);  /* centroid for this instance */
-	nt = pixaGetCount(pixat);
-	found = FALSE;
+        pix1 = pixaGetPix(pixa1, i, L_CLONE);
+        numaGetIValue(nafg, i, &area1);
+        ptaGetPt(pta, i, &x1, &y1);  /* centroid for this instance */
+        nt = pixaGetCount(pixat);
+        found = FALSE;
         findcontext = findSimilarSizedTemplatesInit(classer, pix1);
         while ( (iclass = findSimilarSizedTemplatesNext(findcontext)) > -1) {
                 /* Find score for this template */
-	    pix2 = pixaGetPix(pixat, iclass, L_CLONE);
-	    numaGetIValue(nafgt, iclass, &area2);
-	    ptaGetPt(ptact, iclass, &x2, &y2);  /* template centroid */
-	    score = pixCorrelationScore(pix1, pix2, area1, area2,
-	                x1 - x2, y1 - y2, sumtab);
-	    pixDestroy(&pix2);
+            pix2 = pixaGetPix(pixat, iclass, L_CLONE);
+            numaGetIValue(nafgt, iclass, &area2);
+            ptaGetPt(ptact, iclass, &x2, &y2);  /* template centroid */
+            score = pixCorrelationScore(pix1, pix2, area1, area2,
+                        x1 - x2, y1 - y2, sumtab);
+            pixDestroy(&pix2);
 
                 /* Find threshold for this template */
             if (weight > 0.0) {
@@ -1113,10 +1106,10 @@ PTA        *pta, *ptac, *ptact;
             else
                 threshold = thresh;
 
-	    if (score >= threshold) {  /* greedy match */
-		found = TRUE;
-		numaAddNumber(naclass, iclass);
-		numaAddNumber(napage, npages);
+            if (score >= threshold) {  /* greedy match */
+                found = TRUE;
+                numaAddNumber(naclass, iclass);
+                numaAddNumber(napage, npages);
                 if (classer->keep_pixaa) {
                         /* We are keeping a record of all components */
                     pixa = pixaaGetPixa(pixaa, iclass, L_CLONE);
@@ -1126,32 +1119,32 @@ PTA        *pta, *ptac, *ptact;
                     pixaAddBox(pixa, box, L_INSERT);
                     pixaDestroy(&pixa);
                 }
-		break;
-	    }
-	}
+                break;
+            }
+        }
         findSimilarSizedTemplatesDestroy(&findcontext);
-	if (found == FALSE) {  /* new class */
-	    numaAddNumber(naclass, nt);
-	    numaAddNumber(napage, npages);
-	    pixa = pixaCreate(0);
-	    pix = pixaGetPix(pixas, i, L_CLONE);  /* unbordered instance */
-	    pixaAddPix(pixa, pix, L_INSERT);
-	    wt = pixGetWidth(pix);
-	    ht = pixGetHeight(pix);
+        if (found == FALSE) {  /* new class */
+            numaAddNumber(naclass, nt);
+            numaAddNumber(napage, npages);
+            pixa = pixaCreate(0);
+            pix = pixaGetPix(pixas, i, L_CLONE);  /* unbordered instance */
+            pixaAddPix(pixa, pix, L_INSERT);
+            wt = pixGetWidth(pix);
+            ht = pixGetHeight(pix);
             numaHashAdd(nahash, ht * wt, nt);
-	    box = boxaGetBox(boxa, i, L_CLONE);
-	    pixaAddBox(pixa, box, L_INSERT);
-	    pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
-	    ptaAddPt(ptact, x1, y1);
-	    numaAddNumber(nafgt, area1);
-	    pixaAddPix(pixat, pix1, L_INSERT);   /* bordered template */
+            box = boxaGetBox(boxa, i, L_CLONE);
+            pixaAddBox(pixa, box, L_INSERT);
+            pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
+            ptaAddPt(ptact, x1, y1);
+            numaAddNumber(nafgt, area1);
+            pixaAddPix(pixat, pix1, L_INSERT);   /* bordered template */
             area = (pixGetWidth(pix1) - 2 * JB_ADDED_PIXELS) *
                    (pixGetHeight(pix1) - 2 * JB_ADDED_PIXELS);
-	    numaAddNumber(naarea, area);
-	}
-	else {   /* don't save it */
-	    pixDestroy(&pix1);
-	}
+            numaAddNumber(naarea, area);
+        }
+        else {   /* don't save it */
+            pixDestroy(&pix1);
+        }
     }
     classer->nclass = pixaGetCount(pixat);
 
@@ -1184,8 +1177,8 @@ PTA        *pta, *ptac, *ptact;
  *  pixels in the AND of the two bitmaps to the product of the number
  *  of ON pixels in each.  Denote the number of ON pixels in pix1
  *  by |1|, the number in pix2 by |2|, and the number in the AND
- *  of pix1 and pix2 by |1 ^ 2|.  The correlation score is then
- *  (|1 ^ 2|)**2 / (|1|*|2|).
+ *  of pix1 and pix2 by |1 & 2|.  The correlation score is then
+ *  (|1 & 2|)**2 / (|1|*|2|).
  *
  *  This score is compared with an input threshold, which can
  *  be modified depending on the weight of the template.
@@ -1210,11 +1203,11 @@ PTA        *pta, *ptac, *ptact;
 l_float32
 pixCorrelationScore(PIX       *pix1,
                     PIX       *pix2,
-		    l_int32    area1,
-		    l_int32    area2,
-	            l_float32  delx,   /* x(1) - x(3) */
-	            l_float32  dely,   /* y(1) - y(3) */
-		    l_int32   *tab)
+                    l_int32    area1,
+                    l_int32    area2,
+                    l_float32  delx,   /* x(1) - x(3) */
+                    l_float32  dely,   /* y(1) - y(3) */
+                    l_int32   *tab)
 {
 l_int32    wi, hi, wt, ht, delw, delh, idelx, idely, count;
 l_float32  score;
@@ -1223,39 +1216,39 @@ PIX       *pixt;
     PROCNAME("pixCorrelationScore");
 
     if (!pix1)
-	return (l_float32)ERROR_FLOAT("pix1 not defined", procName, 0.0);
+        return (l_float32)ERROR_FLOAT("pix1 not defined", procName, 0.0);
     if (!pix2)
-	return (l_float32)ERROR_FLOAT("pix2 not defined", procName, 0.0);
+        return (l_float32)ERROR_FLOAT("pix2 not defined", procName, 0.0);
 
-	/* eliminate based on size difference */
+        /* eliminate based on size difference */
     wi = pixGetWidth(pix1);
     hi = pixGetHeight(pix1);
     wt = pixGetWidth(pix2);
     ht = pixGetHeight(pix2);
     delw = L_ABS(wi - wt);
     if (delw > MAX_DIFF_WIDTH)
-	return FALSE;
+        return FALSE;
     delh = L_ABS(hi - ht);
     if (delh > MAX_DIFF_HEIGHT)
-	return FALSE;
+        return FALSE;
 
-	/* round difference to nearest integer */
+        /* round difference to nearest integer */
     if (delx >= 0)
-	idelx = (l_int32)(delx + 0.5);
+        idelx = (l_int32)(delx + 0.5);
     else
-	idelx = (l_int32)(delx - 0.5);
+        idelx = (l_int32)(delx - 0.5);
     if (dely >= 0)
-	idely = (l_int32)(dely + 0.5);
+        idely = (l_int32)(dely + 0.5);
     else
-	idely = (l_int32)(dely - 0.5);
+        idely = (l_int32)(dely - 0.5);
 
-	/*  pixt = pixAnd(NULL, pix1, pix2), including shift.
-	 *  To insure that pixels are ON only within the
-	 *  intersection of pix1 and the shifted pix2:
+        /*  pixt = pixAnd(NULL, pix1, pix2), including shift.
+         *  To insure that pixels are ON only within the
+         *  intersection of pix1 and the shifted pix2:
          *  (1) Start with pixt cleared and equal in size to pix1.
-	 *  (2) Blit the shifted pix2 onto pixt.  Then all ON pixels
-	 *      are within the intersection of pix1 and the shifted pix2.
-	 *  (3) AND pix1 with pixt. */
+         *  (2) Blit the shifted pix2 onto pixt.  Then all ON pixels
+         *      are within the intersection of pix1 and the shifted pix2.
+         *  (3) AND pix1 with pixt. */
     pixt = pixCreateTemplate(pix1);
     pixRasterop(pixt, idelx, idely, wt, ht, PIX_SRC, pix2, 0, 0);
     pixRasterop(pixt, 0, 0, wi, hi, PIX_SRC & PIX_DST, pix1, 0, 0);
@@ -1298,14 +1291,14 @@ PIXA      *pixa, *pixat;
     PROCNAME("jbGetComponents");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pboxad)
-	return ERROR_INT("&boxad not defined", procName, 1);
+        return ERROR_INT("&boxad not defined", procName, 1);
     if (!ppixad)
-	return ERROR_INT("&pixad not defined", procName, 1);
+        return ERROR_INT("&pixad not defined", procName, 1);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-	return ERROR_INT("invalid components", procName, 1);
+        return ERROR_INT("invalid components", procName, 1);
 
     pixZero(pixs, &empty);
     if (empty) {
@@ -1317,46 +1310,50 @@ PIXA      *pixa, *pixat;
         /* If required, preprocess input pixs.  The method for both
          * characters and words is to generate a connected component
          * mask over the units that we want to aggregrate, which are,
-	 * in general, sets of related connected components in pixs.
-	 * For characters, we want to include the dots with
-	 * 'i', 'j' and '!', so we do a small vertical closing to
-	 * generate the mask.  For words, we make a mask over all
-	 * characters in each word.  This is a bit more tricky, because
-	 * the spacing between words is difficult to predict a priori,
-	 * and words can be typeset with variable spacing that can
-	 * in some cases be barely larger than the space between
-	 * characters.  The first step is to generate the mask and
-	 * identify each of its connected components.  */
+         * in general, sets of related connected components in pixs.
+         * For characters, we want to include the dots with
+         * 'i', 'j' and '!', so we do a small vertical closing to
+         * generate the mask.  For words, we make a mask over all
+         * characters in each word.  This is a bit more tricky, because
+         * the spacing between words is difficult to predict a priori,
+         * and words can be typeset with variable spacing that can
+         * in some cases be barely larger than the space between
+         * characters.  The first step is to generate the mask and
+         * identify each of its connected components.  */
     if (components == JB_CONN_COMPS) {  /* no preprocessing */
         boxa = pixConnComp(pixs, &pixa, 8);
     } 
     else if (components == JB_CHARACTERS) {
         pixt1 = pixMorphSequence(pixs, "c1.6", 0);
         boxa = pixConnComp(pixt1, &pixat, 8);
-	pixa = pixaClipToPix(pixat, pixs);
-	pixDestroy(&pixt1);
-	pixaDestroy(&pixat);
+        pixa = pixaClipToPix(pixat, pixs);
+        pixDestroy(&pixt1);
+        pixaDestroy(&pixat);
     } 
     else {  /* components == JB_WORDS */
 
-	    /* Do the operations at about 150 ppi resolution.
-	     * It is much faster at 75 ppi, but the results are
-	     * more accurate at 150 ppi.  This will segment the
-	     * words in body text.  It can be expected that relatively
-	     * infrequent words in a larger font will be split. */
+            /* Do the operations at about 150 ppi resolution.
+             * It is much faster at 75 ppi, but the results are
+             * more accurate at 150 ppi.  This will segment the
+             * words in body text.  It can be expected that relatively
+             * infrequent words in a larger font will be split. */
         res = pixGetXRes(pixs);
-        if (res < 600) {
+        if (res <= 200) {
+            redfactor = 1;
+            pixt1 = pixClone(pixs);
+        }
+        else if (res <= 400) {
             redfactor = 2;
             pixt1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
         }
         else {
             redfactor = 4;
             pixt1 = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
-	}
+        }
 
         pixt2 = pixWordMaskByDilation(pixt1, NULL);
 
-	    /* Expand the optimally dilated word mask to full res. */
+            /* Expand the optimally dilated word mask to full res. */
         pixt3 = pixExpandBinary(pixt2, redfactor);
 
             /* Pull out the pixels in pixs corresponding to the mask
@@ -1370,9 +1367,9 @@ PIXA      *pixa, *pixat;
              *       pixOr(pixt3, pixt3, pixt4);
              * to insure that the mask coverage is complete over pixs.  */
         boxa = pixConnComp(pixt3, &pixat, 4);
-	pixa = pixaClipToPix(pixat, pixs);
-	pixaDestroy(&pixat);
-	pixDestroy(&pixt1);
+        pixa = pixaClipToPix(pixat, pixs);
+        pixaDestroy(&pixat);
+        pixDestroy(&pixt1);
         pixDestroy(&pixt2);
         pixDestroy(&pixt3);
     }
@@ -1413,7 +1410,7 @@ PIXA    *pixa;
     PROCNAME("pixWordMaskbyDilation");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
 
         /* Find the optimal dilation to create the word mask.
          * Look for successively increasing dilations where the
@@ -1487,15 +1484,15 @@ PTA       *ptat, *pta;
     PROCNAME("jbAccumulateComposites");
 
     if (!pixaa)
-	return (PIXA *)ERROR_PTR("pixaa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixaa not defined", procName, NULL);
     if (!pptat)
-	return (PIXA *)ERROR_PTR("&ptat not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&ptat not defined", procName, NULL);
     if (!pna)
-	return (PIXA *)ERROR_PTR("&na not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&na not defined", procName, NULL);
 
     n = pixaaGetCount(pixaa);
     if ((ptat = ptaCreate(n)) == NULL)
-	return (PIXA *)ERROR_PTR("ptat not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("ptat not made", procName, NULL);
     *pptat = ptat;
     pixad = pixaCreate(n);
     na = numaCreate(n);
@@ -1503,7 +1500,7 @@ PTA       *ptat, *pta;
 
     for (i = 0; i < n; i++) {
         pixa = pixaaGetPixa(pixaa, i, L_CLONE);
-	nt = pixaGetCount(pixa);
+        nt = pixaGetCount(pixa);
         numaAddNumber(na, nt);
         if (nt == 0) {
             L_WARNING("empty pixa found!", procName);
@@ -1514,38 +1511,38 @@ PTA       *ptat, *pta;
         pix = pixaGetPix(pixa, 0, L_CLONE);
         d = pixGetDepth(pix);
         pixDestroy(&pix);
-	pixt1 = pixCreate(maxw, maxh, d);
-	pixsum = pixInitAccumulate(maxw, maxh, 0);
+        pixt1 = pixCreate(maxw, maxh, d);
+        pixsum = pixInitAccumulate(maxw, maxh, 0);
         pta = pixaCentroids(pixa);
 
-	    /* Find the average value of the centroids ... */
-	xave = yave = 0;
-	for (j = 0; j < nt; j++) {
-	    ptaGetPt(pta, j, &x, &y);
-	    xave += x;
-	    yave += y;
-	}
-	xave = xave / (l_float32)nt;
-	yave = yave / (l_float32)nt;
+            /* Find the average value of the centroids ... */
+        xave = yave = 0;
+        for (j = 0; j < nt; j++) {
+            ptaGetPt(pta, j, &x, &y);
+            xave += x;
+            yave += y;
+        }
+        xave = xave / (l_float32)nt;
+        yave = yave / (l_float32)nt;
 
-	    /* and place all centroids at their average value */
-	for (j = 0; j < nt; j++) {
-	    pixt2 = pixaGetPix(pixa, j, L_CLONE);
-	    ptaGetPt(pta, j, &x, &y);
+            /* and place all centroids at their average value */
+        for (j = 0; j < nt; j++) {
+            pixt2 = pixaGetPix(pixa, j, L_CLONE);
+            ptaGetPt(pta, j, &x, &y);
             xdiff = (l_int32)(x - xave);
             ydiff = (l_int32)(y - yave);
-	    pixClearAll(pixt1);
-	    pixRasterop(pixt1, xdiff, ydiff, maxw, maxh, PIX_SRC,
-	                pixt2, 0, 0);
-            pixAccumulate(pixsum, pixt1, ARITH_ADD);
-	    pixDestroy(&pixt2);
-	}
-	pixaAddPix(pixad, pixsum, L_INSERT);
-	ptaAddPt(ptat, xave, yave);
+            pixClearAll(pixt1);
+            pixRasterop(pixt1, xdiff, ydiff, maxw, maxh, PIX_SRC,
+                        pixt2, 0, 0);
+            pixAccumulate(pixsum, pixt1, L_ARITH_ADD);
+            pixDestroy(&pixt2);
+        }
+        pixaAddPix(pixad, pixsum, L_INSERT);
+        ptaAddPt(ptat, xave, yave);
 
-	pixaDestroy(&pixa);
-	pixDestroy(&pixt1);
-	ptaDestroy(&pta);
+        pixaDestroy(&pixa);
+        pixDestroy(&pixt1);
+        ptaDestroy(&pta);
     }
 
     return pixad;
@@ -1574,9 +1571,9 @@ PIXA      *pixad;
     PROCNAME("jbTemplatesFromComposites");
 
     if (!pixac)
-	return (PIXA *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixac not defined", procName, NULL);
     if (!na)
-	return (PIXA *)ERROR_PTR("na not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("na not defined", procName, NULL);
 
     n = pixaGetCount(pixac);
     pixad = pixaCreate(n);
@@ -1614,12 +1611,12 @@ JBCLASSER  *classer;
     PROCNAME("jbClasserCreate");
 
     if ((classer = (JBCLASSER *)CALLOC(1, sizeof(JBCLASSER))) == NULL)
-	return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
     if (method != JB_RANKHAUS && method != JB_CORRELATION)
-	return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-	return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
 
     classer->method = method;
     classer->components = components;
@@ -1702,16 +1699,16 @@ PIX     *pix;
     PROCNAME("jbDataSave");
 
     if (!classer)
-	return (JBDATA *)ERROR_PTR("classer not defined", procName, NULL);
+        return (JBDATA *)ERROR_PTR("classer not defined", procName, NULL);
 
         /* Write the templates into an array. */
     pixaSizeRange(classer->pixat, NULL, NULL, &maxw, &maxh);
     if ((pix = pixaDisplayOnLattice(classer->pixat, maxw + 1, maxh + 1))
-	    == NULL)
-	return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
+            == NULL)
+        return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
 
     if ((data = (JBDATA *)CALLOC(1, sizeof(JBDATA))) == NULL)
-	return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
     data->pix = pix;
     data->npages = classer->npages;
     data->w = classer->w;
@@ -1796,7 +1793,7 @@ FILE    *fp;
 
     snprintf(buf, L_BUF_SIZE, "%s%s", rootout, JB_DATA_EXT); 
     if ((fp = fopen(buf, "w")) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
     ncomp = ptaGetCount(ptaul);
     fprintf(fp, "jb data file\n");
     fprintf(fp, "num pages = %d\n", npages);
@@ -1805,10 +1802,10 @@ FILE    *fp;
     fprintf(fp, "num classes = %d\n", nclass);
     fprintf(fp, "template lattice size: w = %d, h = %d\n", cellw, cellh);
     for (i = 0; i < ncomp; i++) {
-	numaGetIValue(napage, i, &ipage);
-	numaGetIValue(naclass, i, &iclass);
-	ptaGetIPt(ptaul, i, &x, &y);
-	fprintf(fp, "%d %d %d %d\n", ipage, iclass, x, y);
+        numaGetIValue(napage, i, &ipage);
+        numaGetIValue(naclass, i, &iclass);
+        ptaGetIPt(ptaul, i, &x, &y);
+        fprintf(fp, "%d %d %d %d\n", ipage, iclass, x, y);
     }
     fclose(fp);
 
@@ -1840,18 +1837,18 @@ SARRAY   *sa;
 
     snprintf(fname, L_BUF_SIZE, "%s%s", rootname, JB_TEMPLATE_EXT);
     if ((pixs = pixRead(fname)) == NULL)
-	return (JBDATA *)ERROR_PTR("pix not read", procName, NULL);
+        return (JBDATA *)ERROR_PTR("pix not read", procName, NULL);
 
     snprintf(fname, L_BUF_SIZE, "%s%s", rootname, JB_DATA_EXT);
     if ((data = arrayRead(fname, &nbytes)) == NULL)
-	return (JBDATA *)ERROR_PTR("data not read", procName, NULL);
+        return (JBDATA *)ERROR_PTR("data not read", procName, NULL);
 
     if ((sa = sarrayCreateLinesFromString((char *)data, 0)) == NULL)
-	return (JBDATA *)ERROR_PTR("sa not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("sa not made", procName, NULL);
     nsa = sarrayGetCount(sa);   /* number of cc + 6 */
     linestr = sarrayGetString(sa, 0, 0);
     if (strcmp(linestr, "jb data file"))
-	return (JBDATA *)ERROR_PTR("invalid jb data file", procName, NULL);
+        return (JBDATA *)ERROR_PTR("invalid jb data file", procName, NULL);
     linestr = sarrayGetString(sa, 1, 0);
     sscanf(linestr, "num pages = %d", &npages);
     linestr = sarrayGetString(sa, 2, 0);
@@ -1872,21 +1869,21 @@ SARRAY   *sa;
 #endif
 
     if ((naclass = numaCreate(ncomp)) == NULL)
-	return (JBDATA *)ERROR_PTR("naclass not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("naclass not made", procName, NULL);
     if ((napage = numaCreate(ncomp)) == NULL)
-	return (JBDATA *)ERROR_PTR("napage not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("napage not made", procName, NULL);
     if ((ptaul = ptaCreate(ncomp)) == NULL)
-	return (JBDATA *)ERROR_PTR("pta not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("pta not made", procName, NULL);
     for (i = 6; i < nsa; i++) {
-	linestr = sarrayGetString(sa, i, 0);
-	sscanf(linestr, "%d %d %d %d\n", &ipage, &iclass, &x, &y);
-	numaAddNumber(napage, ipage);
-	numaAddNumber(naclass, iclass);
-	ptaAddPt(ptaul, x, y);
+        linestr = sarrayGetString(sa, i, 0);
+        sscanf(linestr, "%d %d %d %d\n", &ipage, &iclass, &x, &y);
+        numaAddNumber(napage, ipage);
+        numaAddNumber(naclass, iclass);
+        ptaAddPt(ptaul, x, y);
     }
 
     if ((jbdata = (JBDATA *)CALLOC(1, sizeof(JBDATA))) == NULL)
-	return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
     jbdata->pix = pixs;
     jbdata->npages = npages;
     jbdata->w = w;
@@ -1941,50 +1938,50 @@ PTA      *ptaul;
     ptaul = data->ptaul;
     ncomp = numaGetCount(naclass);
     
-	/* Reconstruct the original set of images from the templates
-	 * and the data associated with each component.  First,
+        /* Reconstruct the original set of images from the templates
+         * and the data associated with each component.  First,
          * generate the output pixa as a set of empty pix. */
     if ((pixad = pixaCreate(npages)) == NULL)
-	return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
     for (i = 0; i < npages; i++) {
-	if (debugflag == FALSE)
-	    pix = pixCreate(w, h, 1);
-	else {
-	    pix = pixCreate(w, h, 2);
-	    cmap = pixcmapCreate(2);
-	    pixcmapAddColor(cmap, 255, 255, 255);
-	    pixcmapAddColor(cmap, 0, 0, 0);
-	    pixcmapAddColor(cmap, 255, 0, 0);  /* for box outlines */
-	    pixSetColormap(pix, cmap);
-	}
+        if (debugflag == FALSE)
+            pix = pixCreate(w, h, 1);
+        else {
+            pix = pixCreate(w, h, 2);
+            cmap = pixcmapCreate(2);
+            pixcmapAddColor(cmap, 255, 255, 255);
+            pixcmapAddColor(cmap, 0, 0, 0);
+            pixcmapAddColor(cmap, 255, 0, 0);  /* for box outlines */
+            pixSetColormap(pix, cmap);
+        }
         pixaAddPix(pixad, pix, L_INSERT);
     }
     
         /* Put the class templates into a pixa. */
     if ((pixat = pixaCreateFromPix(pixt, nclass, cellw, cellh)) == NULL)
-	return (PIXA *)ERROR_PTR("pixat not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixat not made", procName, NULL);
 
-	/* Place each component in the right location on its page. */
+        /* Place each component in the right location on its page. */
     for (i = 0; i < ncomp; i++) {
-	numaGetIValue(napage, i, &ipage);
-	numaGetIValue(naclass, i, &iclass);
-	pix = pixaGetPix(pixat, iclass, L_CLONE);  /* the template */
-	wp = pixGetWidth(pix);
-	hp = pixGetHeight(pix);
-	ptaGetIPt(ptaul, i, &x, &y);
-	pixd = pixaGetPix(pixad, ipage, L_CLONE);   /* the output page */
-	if (debugflag == FALSE)
-	    pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pix, 0, 0);
+        numaGetIValue(napage, i, &ipage);
+        numaGetIValue(naclass, i, &iclass);
+        pix = pixaGetPix(pixat, iclass, L_CLONE);  /* the template */
+        wp = pixGetWidth(pix);
+        hp = pixGetHeight(pix);
+        ptaGetIPt(ptaul, i, &x, &y);
+        pixd = pixaGetPix(pixad, ipage, L_CLONE);   /* the output page */
+        if (debugflag == FALSE)
+            pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pix, 0, 0);
         else {
-	    pixt2 = pixConvert1To2Cmap(pix);
-	    pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pixt2, 0, 0);
-	    box = boxCreate(x, y, wp, hp);
-	    pixRenderBoxArb(pixd, box, 1, 255, 0, 0);
-	    pixDestroy(&pixt2);
-	    boxDestroy(&box);
-	}
-	pixDestroy(&pix);   /* the clone only */
-	pixDestroy(&pixd);  /* the clone only */
+            pixt2 = pixConvert1To2Cmap(pix);
+            pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pixt2, 0, 0);
+            box = boxCreate(x, y, wp, hp);
+            pixRenderBoxArb(pixd, box, 1, 255, 0, 0);
+            pixDestroy(&pixt2);
+            boxDestroy(&box);
+        }
+        pixDestroy(&pix);   /* the clone only */
+        pixDestroy(&pixd);  /* the clone only */
     }
 
     pixaDestroy(&pixat);
@@ -2030,9 +2027,9 @@ PTA       *ptac, *ptact, *ptaul;
     PROCNAME("jbGetULCorners");
 
     if (!classer)
-	return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
 
     n = boxaGetCount(boxa);
     ptaul = classer->ptaul;
@@ -2042,34 +2039,34 @@ PTA       *ptac, *ptact, *ptaul;
     baseindex = classer->baseindex;  /* num components before this page */
     sumtab = makePixelSumTab8();
     for (i = 0; i < n; i++) {
-	index = baseindex + i;
-	ptaGetPt(ptac, index, &x1, &y1);
-	numaGetIValue(naclass, index, &iclass);
-	ptaGetPt(ptact, iclass, &x2, &y2);
-	delx = x2 - x1;
-	dely = y2 - y1;
-	if (delx >= 0)
-	    idelx = (l_int32)(delx + 0.5);
-	else
-	    idelx = (l_int32)(delx - 0.5);
-	if (dely >= 0)
-	    idely = (l_int32)(dely + 0.5);
-	else
-	    idely = (l_int32)(dely - 0.5);
-	if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
-	    return ERROR_INT("box not found", procName, 1);
-	x = box->x;
-	y = box->y;
+        index = baseindex + i;
+        ptaGetPt(ptac, index, &x1, &y1);
+        numaGetIValue(naclass, index, &iclass);
+        ptaGetPt(ptact, iclass, &x2, &y2);
+        delx = x2 - x1;
+        dely = y2 - y1;
+        if (delx >= 0)
+            idelx = (l_int32)(delx + 0.5);
+        else
+            idelx = (l_int32)(delx - 0.5);
+        if (dely >= 0)
+            idely = (l_int32)(dely + 0.5);
+        else
+            idely = (l_int32)(dely - 0.5);
+        if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
+            return ERROR_INT("box not found", procName, 1);
+        x = box->x;
+        y = box->y;
 
             /* Get final increments dx and dy for best alignment */
-	pixt = pixaGetPix(classer->pixat, iclass, L_CLONE);
-	finalPositioningForAlignment(pixs, x, y, idelx, idely,
-	                             pixt, sumtab, &dx, &dy);
-/*	if (i % 20 == 0)
-	    fprintf(stderr, "dx = %d, dy = %d\n", dx, dy); */
-	ptaAddPt(ptaul, x - idelx + dx, y - idely + dy);
-	boxDestroy(&box);
-	pixDestroy(&pixt);
+        pixt = pixaGetPix(classer->pixat, iclass, L_CLONE);
+        finalPositioningForAlignment(pixs, x, y, idelx, idely,
+                                     pixt, sumtab, &dx, &dy);
+/*        if (i % 20 == 0)
+            fprintf(stderr, "dx = %d, dy = %d\n", dx, dy); */
+        ptaAddPt(ptaul, x - idelx + dx, y - idely + dy);
+        boxDestroy(&box);
+        pixDestroy(&pixt);
     }
 
     FREE(sumtab);
@@ -2113,7 +2110,7 @@ PTA       *ptaul, *ptall;
     PROCNAME("jbGetLLCorners");
 
     if (!classer)
-	return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", procName, 1);
 
     ptaul = classer->ptaul;
     naclass = classer->naclass;
@@ -2130,12 +2127,12 @@ PTA       *ptaul, *ptall;
          * JB_ADDED_PIXELS on each side, we add h - 1 - 2 * JB_ADDED_PIXELS
          * to the UL corner y-value.  */
     for (i = 0; i < n; i++) {
-	ptaGetIPt(ptaul, i, &x1, &y1);
-	numaGetIValue(naclass, i, &iclass);
-	pix = pixaGetPix(pixat, iclass, L_CLONE);
-	h = pixGetHeight(pix);
-	ptaAddPt(ptall, x1, y1 + h - 1 - 2 * JB_ADDED_PIXELS);
-	pixDestroy(&pix);
+        ptaGetIPt(ptaul, i, &x1, &y1);
+        numaGetIValue(naclass, i, &iclass);
+        pix = pixaGetPix(pixat, iclass, L_CLONE);
+        h = pixGetHeight(pix);
+        ptaAddPt(ptall, x1, y1 + h - 1 - 2 * JB_ADDED_PIXELS);
+        pixDestroy(&pix);
     }
 
     return 0;
@@ -2208,7 +2205,7 @@ JBFINDCTX  *state;
 
     if (pstate == NULL) {
         L_WARNING("ptr address is null", procName);
-	return;
+        return;
     }
     if ((state = *pstate) == NULL)
         return;
@@ -2343,15 +2340,15 @@ BOX     *box;
     mincount = 0x7fffffff;
     for (i = -1; i <= 1; i++) {
         for (j = -1; j <= 1; j++) {
-	    pixCopy(pixr, pixi);
-	    pixRasterop(pixr, j, i, w, h, PIX_SRC ^ PIX_DST, pixt, 0, 0);
-	    pixCountPixels(pixr, &count, sumtab);
-	    if (count < mincount) {
-	        minx = j;
-		miny = i;
-		mincount = count;
-	    }
-	}
+            pixCopy(pixr, pixi);
+            pixRasterop(pixr, j, i, w, h, PIX_SRC ^ PIX_DST, pixt, 0, 0);
+            pixCountPixels(pixr, &count, sumtab);
+            if (count < mincount) {
+                minx = j;
+                miny = i;
+                mincount = count;
+            }
+        }
     }
     pixDestroy(&pixi);
     pixDestroy(&pixr);

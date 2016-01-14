@@ -101,7 +101,7 @@
 l_int32
 l_errorInt(const char  *msg, 
            const char  *procname, 
-	   l_int32      ival)
+           l_int32      ival)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
     return ival;
@@ -118,8 +118,8 @@ l_errorInt(const char  *msg,
  */
 l_float32
 l_errorFloat(const char  *msg, 
-	     const char  *procname, 
-	     l_float32    fval)
+             const char  *procname, 
+             l_float32    fval)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
     return fval;
@@ -137,7 +137,7 @@ l_errorFloat(const char  *msg,
 void *
 l_errorPtr(const char  *msg,
            const char  *procname, 
-	   void        *pval)
+           void        *pval)
 {
     fprintf(stderr, "Error in %s: %s\n", procname, msg);
     return pval;
@@ -184,20 +184,20 @@ l_warning(const char  *msg,
 void
 l_warningInt(const char  *msg,
              const char  *procname, 
-	     l_int32      ival)
+             l_int32      ival)
 {
 l_int32  bufsize;
 char    *charbuf;
 
     if (!msg || !procname) {
-	ERROR_VOID("msg or procname not defined in l_warningInt()", procname);
-	return;
+        ERROR_VOID("msg or procname not defined in l_warningInt()", procname);
+        return;
     }
 
     bufsize = strlen(msg) + strlen(procname) + 128;
     if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
-	ERROR_VOID("charbuf not made in l_warningInt()", procname);
-	return;
+        ERROR_VOID("charbuf not made in l_warningInt()", procname);
+        return;
     }
 
     sprintf(charbuf, "Warning in %s: %s\n", procname, msg);
@@ -239,14 +239,14 @@ l_int32  bufsize;
 char    *charbuf;
 
     if (!msg || !procname) {
-	ERROR_VOID("msg or procname not defined in l_infoInt()", procname);
-	return;
+        ERROR_VOID("msg or procname not defined in l_infoInt()", procname);
+        return;
     }
 
     bufsize = strlen(msg) + strlen(procname) + 128;
     if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
-	ERROR_VOID("charbuf not made in l_infoInt()", procname);
-	return;
+        ERROR_VOID("charbuf not made in l_infoInt()", procname);
+        return;
     }
 
     sprintf(charbuf, "Info in %s: %s\n", procname, msg);
@@ -274,14 +274,14 @@ l_int32  bufsize;
 char    *charbuf;
 
     if (!msg || !procname) {
-	ERROR_VOID("msg or procname not defined in l_infoInt2()", procname);
-	return;
+        ERROR_VOID("msg or procname not defined in l_infoInt2()", procname);
+        return;
     }
 
     bufsize = strlen(msg) + strlen(procname) + 128;
     if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
-	ERROR_VOID("charbuf not made in l_infoInt2()", procname);
-	return;
+        ERROR_VOID("charbuf not made in l_infoInt2()", procname);
+        return;
     }
 
     sprintf(charbuf, "Info in %s: %s\n", procname, msg);
@@ -308,14 +308,14 @@ l_int32  bufsize;
 char    *charbuf;
 
     if (!msg || !procname) {
-	ERROR_VOID("msg or procname not defined in l_infoFloat()", procname);
-	return;
+        ERROR_VOID("msg or procname not defined in l_infoFloat()", procname);
+        return;
     }
 
     bufsize = strlen(msg) + strlen(procname) + 128;
     if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
-	ERROR_VOID("charbuf not made in l_infoFloat()", procname);
-	return;
+        ERROR_VOID("charbuf not made in l_infoFloat()", procname);
+        return;
     }
 
     sprintf(charbuf, "from %s: %s\n", procname, msg);
@@ -343,14 +343,14 @@ l_int32  bufsize;
 char    *charbuf;
 
     if (!msg || !procname) {
-	ERROR_VOID("msg or procname not defined in l_infoFloat2()", procname);
-	return;
+        ERROR_VOID("msg or procname not defined in l_infoFloat2()", procname);
+        return;
     }
 
     bufsize = strlen(msg) + strlen(procname) + 128;
     if ((charbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL) {
-	ERROR_VOID("charbuf not made in l_infoFloat()", procname);
-	return;
+        ERROR_VOID("charbuf not made in l_infoFloat()", procname);
+        return;
     }
 
     sprintf(charbuf, "from %s: %s\n", procname, msg);
@@ -379,10 +379,10 @@ char  *dest;
     PROCNAME("stringNew");
 
     if (!src)
-	return (char *)ERROR_PTR("src not defined", procName, NULL);
+        return (char *)ERROR_PTR("src not defined", procName, NULL);
     
     if ((dest = (char *)CALLOC(strlen(src) + 2, sizeof(char))) == NULL)
-	return (char *)ERROR_PTR("dest not made", procName, NULL);
+        return (char *)ERROR_PTR("dest not made", procName, NULL);
     strcpy(dest, src);
 
     return dest;
@@ -403,7 +403,7 @@ char  *dest;
  */
 l_int32
 stringReplace(char       **pdest,
-	      const char  *src)
+              const char  *src)
 {
 char  *scopy;
 
@@ -413,16 +413,16 @@ char  *scopy;
         return ERROR_INT("pdest not defined", procName, 1);
 
     if (*pdest)
-	FREE(*pdest);
+        FREE(*pdest);
     
     if (src) {
-	if ((scopy = (char *)CALLOC(strlen(src) + 2, sizeof(char))) == NULL)
-	    return ERROR_INT("scopy not made", procName, 1);
-	strcpy(scopy, src);
-	*pdest = scopy;
+        if ((scopy = (char *)CALLOC(strlen(src) + 2, sizeof(char))) == NULL)
+            return ERROR_INT("scopy not made", procName, 1);
+        strcpy(scopy, src);
+        *pdest = scopy;
     }
     else
-	*pdest = NULL;
+        *pdest = NULL;
 
     return 0;
 }
@@ -442,7 +442,7 @@ char  *scopy;
  */
 char *
 stringJoin(const char  *src1, 
-	   const char  *src2)
+           const char  *src2)
 {
 char    *dest;
 l_int32  srclen1, srclen2, destlen;
@@ -451,18 +451,18 @@ l_int32  srclen1, srclen2, destlen;
 
     srclen1 = srclen2 = 0;
     if (src1)
-	srclen1 = strlen(src1);
+        srclen1 = strlen(src1);
     if (src2)
-	srclen2 = strlen(src2);
+        srclen2 = strlen(src2);
     destlen = srclen1 + srclen2 + 3;
 
     if ((dest = (char *)CALLOC(destlen, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("calloc fail for dest", procName, NULL);
 
     if (src1)
-	strcpy(dest, src1);
+        strcpy(dest, src1);
     if (src2)
-	strcat(dest, src2);
+        strcat(dest, src2);
     return dest;
 }
 
@@ -498,8 +498,8 @@ l_int32  srclen1, srclen2, destlen;
  */
 char *
 strtokSafe(char        *cstr,
-	   const char  *seps,
-	   char       **psaveptr)
+           const char  *seps,
+           char       **psaveptr)
 {
 char     nextc;
 char    *start, *substr;
@@ -513,7 +513,7 @@ l_int32  istart, i, j, nchars;
         return (char *)ERROR_PTR("&saveptr not defined", procName, NULL);
 
     if (!cstr)
-	start = *psaveptr;
+        start = *psaveptr;
     else
         start = cstr;
     if (!start)  /* nothing to do */
@@ -533,11 +533,11 @@ l_int32  istart, i, j, nchars;
     }
 
         /* Scan through, looking for a sep character; if none is
-	 * found, 'i' will be at the end of the string. */
+         * found, 'i' will be at the end of the string. */
     for (i = istart;; i++) {
         if ((nextc = start[i]) == '\0')
             break;
-	if (strchr(seps, nextc))
+        if (strchr(seps, nextc))
             break;
     }
 
@@ -547,16 +547,16 @@ l_int32  istart, i, j, nchars;
     strncpy(substr, start + istart, nchars);
 
         /* Look for the next non-sep character.
-	 * If this is the last substring, return a null saveptr. */
+         * If this is the last substring, return a null saveptr. */
     for (j = i;; j++) {
         if ((nextc = start[j]) == '\0') {
             *psaveptr = NULL;  /* no more non-sep characters */
-	    break;
-	}
+            break;
+        }
         if (!strchr(seps, nextc)) {
             *psaveptr = start + j;  /* start here on next call */
-    	    break;
-	}
+                break;
+        }
     }
 
     return substr;
@@ -584,12 +584,12 @@ l_int32  nsrc, i, k;
     PROCNAME("stringRemoveChars");
 
     if (!src)
-	return (char *)ERROR_PTR("src not defined", procName, NULL);
+        return (char *)ERROR_PTR("src not defined", procName, NULL);
     if (!remchars)
         return stringNew(src);
     
     if ((dest = (char *)CALLOC(strlen(src) + 1, sizeof(char))) == NULL)
-	return (char *)ERROR_PTR("dest not made", procName, NULL);
+        return (char *)ERROR_PTR("dest not made", procName, NULL);
     nsrc = strlen(src);
     for (i = 0, k = 0; i < nsrc; i++) {
         ch = src[i];
@@ -637,11 +637,11 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
     PROCNAME("stringReplaceSubstr");
 
     if (!src)
-	return (char *)ERROR_PTR("src not defined", procName, NULL);
+        return (char *)ERROR_PTR("src not defined", procName, NULL);
     if (!sub1)
-	return (char *)ERROR_PTR("sub1 not defined", procName, NULL);
+        return (char *)ERROR_PTR("sub1 not defined", procName, NULL);
     if (!sub2)
-	return (char *)ERROR_PTR("sub2 not defined", procName, NULL);
+        return (char *)ERROR_PTR("sub2 not defined", procName, NULL);
     
     if (pfound)
         *pfound = 0;
@@ -660,7 +660,7 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
     nsub2 = strlen(sub2);
     len = nsrc + nsub2 - nsub1;
     if ((dest = (char *)CALLOC(len + 1, sizeof(char))) == NULL)
-	return (char *)ERROR_PTR("dest not made", procName, NULL);
+        return (char *)ERROR_PTR("dest not made", procName, NULL);
     npre = ptr - src;
     memcpy(dest, src, npre);
     strcpy(dest + npre, sub2);
@@ -700,11 +700,11 @@ l_int32  loc;
     PROCNAME("stringReplaceEachSubstr");
 
     if (!src)
-	return (char *)ERROR_PTR("src not defined", procName, NULL);
+        return (char *)ERROR_PTR("src not defined", procName, NULL);
     if (!sub1)
-	return (char *)ERROR_PTR("sub1 not defined", procName, NULL);
+        return (char *)ERROR_PTR("sub1 not defined", procName, NULL);
     if (!sub2)
-	return (char *)ERROR_PTR("sub2 not defined", procName, NULL);
+        return (char *)ERROR_PTR("sub2 not defined", procName, NULL);
 
     if (pcount)
         *pcount = 0;
@@ -818,8 +818,8 @@ l_int32  i, j, found, lastpos;
  */
 void *
 reallocNew(void   **pindata,
-	   l_int32  oldsize,
-	   l_int32  newsize)
+           l_int32  oldsize,
+           l_int32  newsize)
 {
 l_int32  minsize;
 void    *indata; 
@@ -828,27 +828,27 @@ void    *newdata;
     PROCNAME("reallocNew");
 
     if (!pindata)
-	return ERROR_PTR("input data not defined", procName, NULL);
+        return ERROR_PTR("input data not defined", procName, NULL);
     indata = *pindata;
 
     if (newsize <= 0) {   /* nonstandard usage */
-	if (indata) {
-	    FREE(indata);
-	    *pindata = NULL;
-	}
-	return NULL;
+        if (indata) {
+            FREE(indata);
+            *pindata = NULL;
+        }
+        return NULL;
     }
 
     if (!indata)   /* nonstandard usage */
     {
-	if ((newdata = (void *)CALLOC(1, newsize)) == NULL)
-	    return ERROR_PTR("newdata not made", procName, NULL);
-	return newdata;
+        if ((newdata = (void *)CALLOC(1, newsize)) == NULL)
+            return ERROR_PTR("newdata not made", procName, NULL);
+        return newdata;
     }
 
-	/* Standard usage */
+        /* Standard usage */
     if ((newdata = (void *)CALLOC(1, newsize)) == NULL)
-	return ERROR_PTR("newdata not made", procName, NULL);
+        return ERROR_PTR("newdata not made", procName, NULL);
     minsize = L_MIN(oldsize, newsize);
     memcpy((char *)newdata, (char *)indata, minsize);
 
@@ -872,7 +872,7 @@ void    *newdata;
  */
 l_uint8 *
 arrayRead(const char  *fname, 
- 	  l_int32     *pnbytes)
+           l_int32     *pnbytes)
 {
 l_uint8  *data;
 FILE     *fp;
@@ -909,7 +909,7 @@ FILE     *fp;
  */
 l_uint8 *
 arrayReadStream(FILE     *fp, 
-	        l_int32  *pnbytes)
+                l_int32  *pnbytes)
 {
 l_uint8  *data;
 
@@ -944,7 +944,7 @@ l_int32  nbytes, pos;
     PROCNAME("nbytesInFile");
 
     if (!fp)
-	return ERROR_INT("stream not open", procName, 0);
+        return ERROR_INT("stream not open", procName, 0);
 
     pos = ftell(fp);          /* initial position */
     fseek(fp, 0, SEEK_END);   /* EOF */
@@ -970,28 +970,28 @@ l_int32  nbytes, pos;
  */
 l_int32
 arrayWrite(const char  *filename,
-	   const char  *operation,
-	   void        *data,
-	   l_int32      nbytes)
+           const char  *operation,
+           void        *data,
+           l_int32      nbytes)
 {
 FILE  *fp;
 
     PROCNAME("arrayWrite");
 
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
     if (!operation)
-	return ERROR_INT("operation not defined", procName, 1);
+        return ERROR_INT("operation not defined", procName, 1);
     if (!data)
-	return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", procName, 1);
     if (nbytes <= 0)
-	return ERROR_INT("nbytes must be > 0", procName, 1);
+        return ERROR_INT("nbytes must be > 0", procName, 1);
 
     if (!strcmp(operation, "w") && !strcmp(operation, "a"))
-	return ERROR_INT("operation not one of {'w','a'}", procName, 1);
+        return ERROR_INT("operation not one of {'w','a'}", procName, 1);
 
     if ((fp = fopen(filename, operation)) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
     fwrite(data, 1, nbytes, fp);
     fclose(fp);
 
@@ -1096,17 +1096,17 @@ FILE  *fp;
     PROCNAME("fopenReadStream");
 
     if (!filename)
-	return (FILE *)ERROR_PTR("filename not defined", procName, NULL);
+        return (FILE *)ERROR_PTR("filename not defined", procName, NULL);
 
-	/* Try input filename */
+        /* Try input filename */
     if ((fp = fopen(filename, "rb")))
-	return fp;
+        return fp;
 
-	/* Else, strip directory and try locally */
+        /* Else, strip directory and try locally */
     splitPathAtDirectory(filename, NULL, &tail);
     if ((fp = fopen(tail, "rb"))) {
-	FREE(tail);
-	return fp;
+        FREE(tail);
+        return fp;
     }
     FREE(tail);
 
@@ -1154,22 +1154,22 @@ char  *cpathname, *lastslash;
 
     cpathname = stringNew(pathname);
     if ((lastslash = strrchr(cpathname, '/'))) {
-	if (ptail)
-	    *ptail = stringNew(lastslash + 1);
-	if (pdir) {
-	    *(lastslash + 1) = '\0';
-	    *pdir = cpathname;
-	}
-	else
-	    FREE(cpathname);
+        if (ptail)
+            *ptail = stringNew(lastslash + 1);
+        if (pdir) {
+            *(lastslash + 1) = '\0';
+            *pdir = cpathname;
+        }
+        else
+            FREE(cpathname);
     }
     else {  /* no directory */
-	if (pdir)
-	    *pdir = stringNew("");
-	if (ptail)
-	    *ptail = cpathname;
-	else
-	    FREE(cpathname);
+        if (pdir)
+            *pdir = stringNew("");
+        if (ptail)
+            *ptail = cpathname;
+        else
+            FREE(cpathname);
     }
 
     return 0;
@@ -1255,20 +1255,20 @@ char    *charbuf;
     PROCNAME("genPathname");
 
     if (!dir)
-	return (char *)ERROR_PTR("dir not defined", procName, NULL);
+        return (char *)ERROR_PTR("dir not defined", procName, NULL);
     if (!fname)
-	return (char *)ERROR_PTR("fname not defined", procName, NULL);
+        return (char *)ERROR_PTR("fname not defined", procName, NULL);
 
     dirlen = strlen(dir);
     namelen = strlen(fname);
     if ((charbuf = (char *)CALLOC(dirlen + namelen + 10, sizeof(char)))
             == NULL)
-	return (char *)ERROR_PTR("charbuf not made", procName, NULL);
+        return (char *)ERROR_PTR("charbuf not made", procName, NULL);
 
     if (dir[dirlen - 1] != '/')
-	sprintf(charbuf, "%s/", dir);
+        sprintf(charbuf, "%s/", dir);
     else
-	strcpy(charbuf, dir);
+        strcpy(charbuf, dir);
     strcat(charbuf, fname);
     return charbuf;
 }
@@ -1347,7 +1347,7 @@ FILETIME  start, stop, kernel, user;
     utime_after.HighPart = user.dwHighDateTime;
 
     return ((l_float32)(signed)(utime_after.QuadPart - utime_before.QuadPart) /
-	     10000000.0);
+             10000000.0);
 }
 
 #endif

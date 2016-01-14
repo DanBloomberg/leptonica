@@ -106,12 +106,11 @@ NUMA *
 pixFindBaselines(PIX   *pixs,
                  PTA  **ppta)
 {
-l_int32    w, h, i, j, nbox, val1, val2, ndiff;
+l_int32    w, h, i, j, nbox, val1, val2, ndiff, bx, by, bw, bh;
 l_int32    imaxloc, peakthresh, zerothresh, inpeak;
 l_int32    mintosearch, max, maxloc, nloc, locval;
 l_int32   *array;
 l_float32  maxval;
-BOX       *box;
 BOXA      *boxa1, *boxa2, *boxa3;
 NUMA      *nasum, *nadiff, *naloc, *naval;
 PIX       *pixt1, *pixt2;
@@ -141,46 +140,46 @@ PTA       *pta;
     for (i = 0; i < h - 1; i++) {
         val1 = val2;
         numaGetIValue(nasum, i + 1, &val2);
-	numaAddNumber(nadiff, val1 - val2);
+        numaAddNumber(nadiff, val1 - val2);
     }
 
 #if  DEBUG_PLOT
     gplotSimple1(nadiff, GPLOT_X11, "junkdiff", "difference");
 #endif   /* DEBUG_PLOT */
 
-	/* Use the zeroes of the profile to locate each baseline. */
+        /* Use the zeroes of the profile to locate each baseline. */
     array = numaGetIArray(nadiff);
     ndiff = numaGetCount(nadiff);
     numaGetMax(nadiff, &maxval, &imaxloc);
-        /* use this to begin locating a new peak: */
+        /* Use this to begin locating a new peak: */
     peakthresh = (l_int32)maxval / PEAK_THRESHOLD_RATIO;
-        /* use this to begin a region between peaks: */
+        /* Use this to begin a region between peaks: */
     zerothresh = (l_int32)maxval / ZERO_THRESHOLD_RATIO;
     naloc = numaCreate(0);
     naval = numaCreate(0);
     inpeak = FALSE;
     for (i = 0; i < ndiff; i++) {
         if (inpeak == FALSE) {
-	    if (array[i] > peakthresh) {  /* transition to in-peak */
-	        inpeak = TRUE;
-		mintosearch = i + MIN_DIST_IN_PEAK; /* accept no zeros
+            if (array[i] > peakthresh) {  /* transition to in-peak */
+                inpeak = TRUE;
+                mintosearch = i + MIN_DIST_IN_PEAK; /* accept no zeros
                                                * between i and mintosearch */
-		max = array[i];
-		maxloc = i;
-	    }
-	}
-	else {  /* inpeak == TRUE; look for max */
-	    if (array[i] > max) {
-	        max = array[i];
-		maxloc = i;
-		mintosearch = i + MIN_DIST_IN_PEAK;
-	    }
-	    else if (i > mintosearch && array[i] <= zerothresh) {  /* leave */
-	        inpeak = FALSE;
-		numaAddNumber(naval, max);
-		numaAddNumber(naloc, maxloc);
-	    }
-	}
+                max = array[i];
+                maxloc = i;
+            }
+        }
+        else {  /* inpeak == TRUE; look for max */
+            if (array[i] > max) {
+                max = array[i];
+                maxloc = i;
+                mintosearch = i + MIN_DIST_IN_PEAK;
+            }
+            else if (i > mintosearch && array[i] <= zerothresh) {  /* leave */
+                inpeak = FALSE;
+                numaAddNumber(naval, max);
+                numaAddNumber(naloc, maxloc);
+            }
+        }
     }
 
         /* If array[ndiff-1] is max, eg. no descenders, baseline at bottom */
@@ -192,13 +191,14 @@ PTA       *pta;
 
 #if  DEBUG_PLOT
 { GPLOT  *gplot;
-    gplot = gplotCreate(naloc, naval, "junkloc", GPLOT_X11, GPLOT_POINTS, 
-                        "Peak locations", "locs", "rasterline", "height");
+    gplot = gplotCreate("junkloc", GPLOT_X11, "Peak locations",
+                        "rasterline", "height");
+    gplotAddPlot(gplot, naloc, naval, GPLOT_POINTS, "locs");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
 }
 #endif   /* DEBUG_PLOT */
-	        
+                
         /* Generate an approximate profile of text line width.
          * First, filter the boxes of text, where there may be
          * more than one box for a given textline. */
@@ -212,14 +212,13 @@ PTA       *pta;
       nloc = numaGetCount(naloc);
       nbox = boxaGetCount(boxa3);
       for (i = 0; i < nbox; i++) {
-          box = boxaGetBox(boxa3, i, L_CLONE);
+          boxaGetBoxGeometry(boxa3, i, &bx, &by, &bw, &bh);
           for (j = 0; j < nloc; j++) {
               numaGetIValue(naloc, j, &locval);
-              if (L_ABS(locval - (box->y + box->h)) > 25)
+              if (L_ABS(locval - (by + bh)) > 25)
                   continue;
-              ptaAddPt(pta, box->x, locval);
-              ptaAddPt(pta, box->x + box->w, locval);
-              boxDestroy(&box);
+              ptaAddPt(pta, bx, locval);
+              ptaAddPt(pta, bx + bw, locval);
               break;
           }
       }
@@ -230,19 +229,19 @@ PTA       *pta;
   l_int32  npts, x1, y1, x2, y2;
     if (pta) {  /* display */
         pixd = pixConvertTo32(pixs);
-	npts = ptaGetCount(pta);
-	for (i = 0; i < npts; i += 2) {
-	    ptaGetIPt(pta, i, &x1, &y1);
-	    ptaGetIPt(pta, i + 1, &x2, &y2);
-	    pixRenderLineArb(pixd, x1, y1, x2, y2, 1, 255, 0, 0);
-	}
-	pixDisplay(pixd, 200, 200);
-/*	pixWrite("junkpixd", pixd, IFF_PNG); */
+        npts = ptaGetCount(pta);
+        for (i = 0; i < npts; i += 2) {
+            ptaGetIPt(pta, i, &x1, &y1);
+            ptaGetIPt(pta, i + 1, &x2, &y2);
+            pixRenderLineArb(pixd, x1, y1, x2, y2, 1, 255, 0, 0);
+        }
+        pixDisplay(pixd, 200, 200);
+/*        pixWrite("junkpixd", pixd, IFF_PNG); */
         pixDestroy(&pixd);
     }
 }
 #endif  /* DISPLAY_BASELINES */
-	    
+            
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
     boxaDestroy(&boxa3);
@@ -311,7 +310,7 @@ PTA       *ptas, *ptad;
     PROCNAME("pixDeskewLocal");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
 
         /* Skew array gives skew angle (deg) as fctn of raster line
          * where it intersects the LHS of the image */
@@ -319,7 +318,7 @@ PTA       *ptas, *ptad;
                                    sweeprange, sweepdelta, minbsdelta,
                                    &ptas, &ptad);
     if (ret != 0)
-	return (PIX *)ERROR_PTR("transform pts not found", procName, NULL);
+        return (PIX *)ERROR_PTR("transform pts not found", procName, NULL);
 
         /* Use a projective transform */
     pixd = pixProjectiveSampled(pixs, ptad, ptas, L_BRING_IN_WHITE); 
@@ -364,13 +363,13 @@ PTA       *ptas, *ptad;
 l_int32
 pixGetLocalSkewTransform(PIX       *pixs,
                          l_int32    nslices,
-		         l_int32    redsweep,
-		         l_int32    redsearch,
-		         l_float32  sweeprange,
-		         l_float32  sweepdelta,
-		         l_float32  minbsdelta,
-			 PTA      **pptas,
-			 PTA      **pptad)
+                         l_int32    redsweep,
+                         l_int32    redsearch,
+                         l_float32  sweeprange,
+                         l_float32  sweepdelta,
+                         l_float32  minbsdelta,
+                         PTA      **pptas,
+                         PTA      **pptad)
 {
 l_int32    w, h, i;
 l_float32  deg2rad, angr, angd, dely;
@@ -380,15 +379,15 @@ PTA       *ptas, *ptad;
     PROCNAME("pixGetLocalSkewTransform");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pptas || !pptad)
-	return ERROR_INT("&ptas and &ptad not defined", procName, 1);
+        return ERROR_INT("&ptas and &ptad not defined", procName, 1);
     if (nslices < 2 || nslices > 20)
-	nslices = DEFAULT_SLICES;
+        nslices = DEFAULT_SLICES;
     if (redsweep < 1 || redsweep > 8)
-	redsweep = DEFAULT_SWEEP_REDUCTION;
+        redsweep = DEFAULT_SWEEP_REDUCTION;
     if (redsearch < 1 || redsearch > redsweep)
-	redsearch = DEFAULT_BS_REDUCTION;
+        redsearch = DEFAULT_BS_REDUCTION;
     if (sweeprange == 0.0)
         sweeprange = DEFAULT_SWEEP_RANGE;
     if (sweepdelta == 0.0)
@@ -397,10 +396,10 @@ PTA       *ptas, *ptad;
         minbsdelta = DEFAULT_MINBS_DELTA;
 
     naskew = pixGetLocalSkewAngles(pixs, nslices, redsweep, redsearch,
-			           sweeprange, sweepdelta, minbsdelta,
-				   NULL, NULL);
+                                   sweeprange, sweepdelta, minbsdelta,
+                                   NULL, NULL);
     if (!naskew)
-	return ERROR_INT("naskew not made", procName, 1);
+        return ERROR_INT("naskew not made", procName, 1);
 
     deg2rad = 3.14159265 / 180.;
     w = pixGetWidth(pixs);
@@ -413,10 +412,10 @@ PTA       *ptas, *ptad;
         /* Find i for skew line that intersects LHS at i and RHS at h / 20 */
     for (i = 0; i < h; i++) {
         numaGetFValue(naskew, i, &angd);
-	angr = angd * deg2rad;
-	dely = w * tan(angr);
-	if (i - dely > 0.05 * h)
-	    break;
+        angr = angd * deg2rad;
+        dely = w * tan(angr);
+        if (i - dely > 0.05 * h)
+            break;
     }
     ptaAddPt(ptas, 0, i);
     ptaAddPt(ptas, w - 1, i - dely);
@@ -426,10 +425,10 @@ PTA       *ptas, *ptad;
         /* Find i for skew line that intersects LHS at i and RHS at 19h / 20 */
     for (i = h - 1; i > 0; i--) {
         numaGetFValue(naskew, i, &angd);
-	angr = angd * deg2rad;
-	dely = w * tan(angr);
-	if (i - dely < 0.95 * h)
-	    break;
+        angr = angd * deg2rad;
+        dely = w * tan(angr);
+        if (i - dely < 0.95 * h)
+            break;
     }
     ptaAddPt(ptas, 0, i);
     ptaAddPt(ptas, w - 1, i - dely);
@@ -478,13 +477,13 @@ PTA       *ptas, *ptad;
 NUMA *
 pixGetLocalSkewAngles(PIX        *pixs,
                       l_int32     nslices,
-		      l_int32     redsweep,
-		      l_int32     redsearch,
-		      l_float32   sweeprange,
-		      l_float32   sweepdelta,
-		      l_float32   minbsdelta,
-		      l_float32  *pa,
-		      l_float32  *pb)
+                      l_int32     redsweep,
+                      l_int32     redsearch,
+                      l_float32   sweeprange,
+                      l_float32   sweepdelta,
+                      l_float32   minbsdelta,
+                      l_float32  *pa,
+                      l_float32  *pb)
 {
 l_int32    w, h, hs, i, ystart, yend, ovlap, npts;
 l_float32  angle, conf, ycenter, a, b;
@@ -496,13 +495,13 @@ PTA       *pta;
     PROCNAME("pixGetLocalSkewAngles");
 
     if (!pixs)
-	return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (nslices < 2 || nslices > 20)
-	nslices = DEFAULT_SLICES;
+        nslices = DEFAULT_SLICES;
     if (redsweep < 1 || redsweep > 8)
-	redsweep = DEFAULT_SWEEP_REDUCTION;
+        redsweep = DEFAULT_SWEEP_REDUCTION;
     if (redsearch < 1 || redsearch > redsweep)
-	redsearch = DEFAULT_BS_REDUCTION;
+        redsearch = DEFAULT_BS_REDUCTION;
     if (sweeprange == 0.0)
         sweeprange = DEFAULT_SWEEP_RANGE;
     if (sweepdelta == 0.0)
@@ -518,22 +517,22 @@ PTA       *pta;
     for (i = 0; i < nslices; i++) {
         ystart = L_MAX(0, hs * i - ovlap);
         yend = L_MIN(h - 1, hs * (i + 1) + ovlap);
-	ycenter = (ystart + yend) / 2;
-	box = boxCreate(0, ystart, w, yend - ystart + 1);
-	pix = pixClipRectangle(pixs, box, NULL);
-	pixFindSkewSweepAndSearch(pix, &angle, &conf, redsweep, redsearch,
-	                          sweeprange, sweepdelta, minbsdelta);
-	if (conf > MIN_ALLOWED_CONFIDENCE)
-	    ptaAddPt(pta, ycenter, angle);
+        ycenter = (ystart + yend) / 2;
+        box = boxCreate(0, ystart, w, yend - ystart + 1);
+        pix = pixClipRectangle(pixs, box, NULL);
+        pixFindSkewSweepAndSearch(pix, &angle, &conf, redsweep, redsearch,
+                                  sweeprange, sweepdelta, minbsdelta);
+        if (conf > MIN_ALLOWED_CONFIDENCE)
+            ptaAddPt(pta, ycenter, angle);
         pixDestroy(&pix);
-	boxDestroy(&box);
+        boxDestroy(&box);
     }
 /*    ptaWriteStream(stderr, pta, 0); */
 
         /* Do linear least squares fit */
     if ((npts = ptaGetCount(pta)) < 2) {
-	ptaDestroy(&pta);
-	return (NUMA *)ERROR_PTR("can't fit skew", procName, NULL);
+        ptaDestroy(&pta);
+        return (NUMA *)ERROR_PTR("can't fit skew", procName, NULL);
     }
     ptaGetLinearLSF(pta, &a, &b);
     if (pa) *pa = a;
@@ -543,16 +542,16 @@ PTA       *pta;
     naskew = numaCreate(h);
     for (i = 0; i < h; i++) {
         angle = a * i + b;
-	numaAddNumber(naskew, angle);
+        numaAddNumber(naskew, angle);
     }
 
 #if  DEBUG_PLOT
 { NUMA   *nax, *nay;
   GPLOT  *gplot;
     ptaGetArrays(pta, &nax, &nay);
-    gplot = gplotCreate(NULL, naskew, "junkskew", GPLOT_X11, GPLOT_LINES,
-                        "skew as fctn of y", "linear lsf",
-			"y (in raster lines from top)", "angle (in degrees)");
+    gplot = gplotCreate("junkskew", GPLOT_X11, "skew as fctn of y",
+                        "y (in raster lines from top)", "angle (in degrees)");
+    gplotAddPlot(gplot, NULL, naskew, GPLOT_POINTS, "linear lsf");
     gplotAddPlot(gplot, nax, nay, GPLOT_POINTS, "actual data pts");
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);

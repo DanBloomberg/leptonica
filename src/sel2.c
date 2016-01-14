@@ -50,8 +50,8 @@ SEL  *sel;
     PROCNAME("selaAddBasic");
 
     if (!sela) {
-	if ((sela = selaCreate(0)) == NULL)
-	    return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+        if ((sela = selaCreate(0)) == NULL)
+            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
     }
 
     /*--------------------------------------------------------------*
@@ -214,21 +214,21 @@ SEL  *sel;
     /*-----------------------------------------------------------*
      *                        Diagonals                          *
      *-----------------------------------------------------------*/
-	/*  0c  1
-	    1   0  */ 
+        /*  0c  1
+            1   0  */ 
     sel = selCreateBrick(2, 2, 0, 0, 1);
     selSetElement(sel, 0, 0, 0);
     selSetElement(sel, 1, 1, 0);
     selaAddSel(sela, sel, "sel_2dp", 0);
 
-	/*  1c  0
-	    0   1   */ 
+        /*  1c  0
+            0   1   */ 
     sel = selCreateBrick(2, 2, 0, 0, 1);
     selSetElement(sel, 0, 1, 0);
     selSetElement(sel, 1, 0, 0);
     selaAddSel(sela, sel, "sel_2dm", 0);
 
-	/*  Diagonal, slope +, size 5 */
+        /*  Diagonal, slope +, size 5 */
     sel = selCreate(5, 5, "sel_5dp");
     sel->cy = 2;
     sel->cx = 2;
@@ -239,7 +239,7 @@ SEL  *sel;
     selSetElement(sel, 4, 0, 1);
     selaAddSel(sela, sel, "sel_5dp", 0);
 
-	/*  Diagonal, slope -, size 5 */
+        /*  Diagonal, slope -, size 5 */
     sel = selCreate(5, 5, "sel_5dm");
     sel->cy = 2;
     sel->cx = 2;
@@ -268,8 +268,8 @@ SEL  *sel;
     PROCNAME("selaAddHitMiss");
 
     if (!sela) {
-	if ((sela = selaCreate(0)) == NULL)
-	    return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+        if ((sela = selaCreate(0)) == NULL)
+            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
     }
 
 #if 0   /*  use just for testing */

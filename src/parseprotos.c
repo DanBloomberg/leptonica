@@ -45,17 +45,17 @@ static l_int32 getNextNonBlankLine(SARRAY *sa, l_int32 start, l_int32 *pnext);
 static l_int32 getNextNonDoubleSlashLine(SARRAY *sa, l_int32 start,
             l_int32 *pnext);
 static l_int32 searchForProtoSignature(SARRAY *sa, l_int32 begin,
-	    l_int32 *pstart, l_int32 *pstop, l_int32 *pcharindex,
-	    l_int32 *pfound);
+            l_int32 *pstart, l_int32 *pstop, l_int32 *pcharindex,
+            l_int32 *pfound);
 static char * captureProtoSignature(SARRAY *sa, l_int32 start, l_int32 stop,
-	    l_int32 charindex);
+            l_int32 charindex);
 static char * cleanProtoSignature(char *str);
 static l_int32 skipToEndOfFunction(SARRAY *sa, l_int32 start,
-	    l_int32 charindex, l_int32 *pnext);
+            l_int32 charindex, l_int32 *pnext);
 static l_int32 skipToMatchingBrace(SARRAY *sa, l_int32 start,
-	    l_int32 lbindex, l_int32 *prbline, l_int32 *prbindex);
+            l_int32 lbindex, l_int32 *prbline, l_int32 *prbindex);
 static l_int32 skipToSemicolon(SARRAY *sa, l_int32 start,
-	    l_int32 charindex, l_int32 *pnext);
+            l_int32 charindex, l_int32 *pnext);
 static l_int32 getOffsetForCharacter(SARRAY *sa, l_int32 start, char tchar,
             l_int32 *psoffset, l_int32 *pboffset, l_int32 *ptoffset);
 
@@ -128,36 +128,36 @@ SARRAY    *sa, *saout, *satest;
     PROCNAME("parseForProtos");
 
     if (!filein)
-	return (char *)ERROR_PTR("filein not defined", procName, NULL);
+        return (char *)ERROR_PTR("filein not defined", procName, NULL);
 
         /* Read in the cpp output into memory, one string for each
-	 * line in the file, omitting blank lines.  */
+         * line in the file, omitting blank lines.  */
     strdata = (char *)arrayRead(filein, &nbytes);
     sa = sarrayCreateLinesFromString(strdata, 0);
 
     saout = sarrayCreate(0);
     next = 0;
     while (1) {  /* repeat after each non-static prototype is extracted */
-	searchForProtoSignature(sa, next, &start, &stop, &charindex, &found);
-	if (!found)
-	    break;
-/*	fprintf(stderr, "  start = %d, stop = %d, charindex = %d\n",
-		start, stop, charindex); */
-	str = captureProtoSignature(sa, start, stop, charindex);
+        searchForProtoSignature(sa, next, &start, &stop, &charindex, &found);
+        if (!found)
+            break;
+/*        fprintf(stderr, "  start = %d, stop = %d, charindex = %d\n",
+                start, stop, charindex); */
+        str = captureProtoSignature(sa, start, stop, charindex);
 
-	    /* Make sure it is not static.  Note that 'extern' has
-	     * been prepended to the prototype, so the 'static'
-	     * keyword, if it exists, would be the second word. */
-	satest = sarrayCreateWordsFromString(str);
-	secondword = sarrayGetString(satest, 1, 0);
-	if (strcmp(secondword, "static"))  /* not static */
-	    sarrayAddString(saout, str, 0);
-	else
-	    FREE(str);
-	sarrayDestroy(&satest);
+            /* Make sure it is not static.  Note that 'extern' has
+             * been prepended to the prototype, so the 'static'
+             * keyword, if it exists, would be the second word. */
+        satest = sarrayCreateWordsFromString(str);
+        secondword = sarrayGetString(satest, 1, 0);
+        if (strcmp(secondword, "static"))  /* not static */
+            sarrayAddString(saout, str, 0);
+        else
+            FREE(str);
+        sarrayDestroy(&satest);
 
-	skipToEndOfFunction(sa, stop, charindex, &next);
-	if (next == -1) break;
+        skipToEndOfFunction(sa, stop, charindex, &next);
+        if (next == -1) break;
     }
 
         /* Flatten into a string with newlines between prototypes */
@@ -185,8 +185,8 @@ SARRAY    *sa, *saout, *satest;
  */
 static l_int32
 getNextNonCommentLine(SARRAY  *sa,
-	              l_int32  start,
-	              l_int32 *pnext)
+                      l_int32  start,
+                      l_int32 *pnext)
 {
 char    *str;
 l_int32  i, n;
@@ -194,21 +194,21 @@ l_int32  i, n;
     PROCNAME("getNextNonCommentLine");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!pnext)
-	return ERROR_INT("&pnext not defined", procName, 1);
+        return ERROR_INT("&pnext not defined", procName, 1);
 
         /* Init for situation where this line and all following are comments */
     *pnext = -1;
 
     n = sarrayGetCount(sa);
     for (i = start; i < n; i++) {
-	if ((str = sarrayGetString(sa, i, 0)) == NULL)
-	    return ERROR_INT("str not returned; shouldn't happen", procName, 1);
-	if (str[0] != '#') {
-	    *pnext = i;
-	    return 0;
-	}
+        if ((str = sarrayGetString(sa, i, 0)) == NULL)
+            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+        if (str[0] != '#') {
+            *pnext = i;
+            return 0;
+        }
     }
 
     return 0;
@@ -231,8 +231,8 @@ l_int32  i, n;
  */
 static l_int32
 getNextNonBlankLine(SARRAY  *sa,
-	            l_int32  start,
-	            l_int32 *pnext)
+                    l_int32  start,
+                    l_int32 *pnext)
 {
 char    *str;
 l_int32  i, j, n, len;
@@ -240,17 +240,17 @@ l_int32  i, j, n, len;
     PROCNAME("getNextNonBlankLine");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!pnext)
-	return ERROR_INT("&pnext not defined", procName, 1);
+        return ERROR_INT("&pnext not defined", procName, 1);
 
         /* Init for situation where this line and all following are blank */
     *pnext = -1;
 
     n = sarrayGetCount(sa);
     for (i = start; i < n; i++) {
-	if ((str = sarrayGetString(sa, i, 0)) == NULL)
-	    return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+        if ((str = sarrayGetString(sa, i, 0)) == NULL)
+            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
         len = strlen(str);
         for (j = 0; j < len; j++) {
             if (str[j] != ' ' && str[j] != '\t'
@@ -258,7 +258,7 @@ l_int32  i, j, n, len;
                 *pnext = i;
                 return 0;
             }
-	}
+        }
     }
 
     return 0;
@@ -280,8 +280,8 @@ l_int32  i, j, n, len;
  */
 static l_int32
 getNextNonDoubleSlashLine(SARRAY  *sa,
-	                  l_int32  start,
-	                  l_int32 *pnext)
+                          l_int32  start,
+                          l_int32 *pnext)
 {
 char    *str;
 l_int32  i, n, len;
@@ -289,9 +289,9 @@ l_int32  i, n, len;
     PROCNAME("getNextNonDoubleSlashLine");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!pnext)
-	return ERROR_INT("&pnext not defined", procName, 1);
+        return ERROR_INT("&pnext not defined", procName, 1);
 
         /* Init for situation where this line and all following
          * start with '//' */
@@ -299,13 +299,13 @@ l_int32  i, n, len;
 
     n = sarrayGetCount(sa);
     for (i = start; i < n; i++) {
-	if ((str = sarrayGetString(sa, i, 0)) == NULL)
-	    return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+        if ((str = sarrayGetString(sa, i, 0)) == NULL)
+            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
         len = strlen(str);
-	if (len < 2 || str[0] != '/' || str[1] != '/') {
-	    *pnext = i;
-	    return 0;
-	}
+        if (len < 2 || str[0] != '/' || str[1] != '/') {
+            *pnext = i;
+            return 0;
+        }
     }
 
     return 0;
@@ -344,11 +344,11 @@ l_int32  i, n, len;
  */
 static l_int32
 searchForProtoSignature(SARRAY   *sa,
-	                l_int32   begin,
-	                l_int32  *pstart,
-			l_int32  *pstop,
-			l_int32  *pcharindex,
-			l_int32  *pfound)
+                        l_int32   begin,
+                        l_int32  *pstart,
+                        l_int32  *pstop,
+                        l_int32  *pcharindex,
+                        l_int32  *pfound)
 {
 l_int32  next, rbline, rbindex, scline;
 l_int32  soffsetlp, soffsetrp, soffsetlb, soffsetsc;
@@ -358,15 +358,15 @@ l_int32  toffsetlp, toffsetrp, toffsetlb, toffsetsc;
     PROCNAME("searchForProtoSignature");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!pstart)
-	return ERROR_INT("&start not defined", procName, 1);
+        return ERROR_INT("&start not defined", procName, 1);
     if (!pstop)
-	return ERROR_INT("&stop not defined", procName, 1);
+        return ERROR_INT("&stop not defined", procName, 1);
     if (!pcharindex)
-	return ERROR_INT("&charindex not defined", procName, 1);
+        return ERROR_INT("&charindex not defined", procName, 1);
     if (!pfound)
-	return ERROR_INT("&found not defined", procName, 1);
+        return ERROR_INT("&found not defined", procName, 1);
 
     *pfound = FALSE;
 
@@ -396,45 +396,45 @@ l_int32  toffsetlp, toffsetrp, toffsetlb, toffsetsc;
             continue;
         }
 
-	    /* Search for specific character sequence patterns */
-	getOffsetForCharacter(sa, next, '(', &soffsetlp, &boffsetlp,
-		&toffsetlp);
-	getOffsetForCharacter(sa, next, ')', &soffsetrp, &boffsetrp,
-		&toffsetrp);
-	getOffsetForCharacter(sa, next, '{', &soffsetlb, &boffsetlb,
-		&toffsetlb);
-	getOffsetForCharacter(sa, next, ';', &soffsetsc, &boffsetsc,
-		&toffsetsc);
+            /* Search for specific character sequence patterns */
+        getOffsetForCharacter(sa, next, '(', &soffsetlp, &boffsetlp,
+                &toffsetlp);
+        getOffsetForCharacter(sa, next, ')', &soffsetrp, &boffsetrp,
+                &toffsetrp);
+        getOffsetForCharacter(sa, next, '{', &soffsetlb, &boffsetlb,
+                &toffsetlb);
+        getOffsetForCharacter(sa, next, ';', &soffsetsc, &boffsetsc,
+                &toffsetsc);
 
-	    /* First weed out cases where lp, rp and lb are not all found */
-	if (soffsetlp == -1 || soffsetrp == -1 || soffsetlb == -1)
-	    break;
+            /* First weed out cases where lp, rp and lb are not all found */
+        if (soffsetlp == -1 || soffsetrp == -1 || soffsetlb == -1)
+            break;
 
-	    /* Check if a left brace occurs before a left parenthesis;
-	     * if so, skip it */
-	if (toffsetlb < toffsetlp) {  
+            /* Check if a left brace occurs before a left parenthesis;
+             * if so, skip it */
+        if (toffsetlb < toffsetlp) {  
             skipToMatchingBrace(sa, next + soffsetlb, boffsetlb,
-		&rbline, &rbindex);
+                &rbline, &rbindex);
             skipToSemicolon(sa, rbline, rbindex, &scline);
-	    begin = scline + 1;
-	    continue;
-	}
+            begin = scline + 1;
+            continue;
+        }
 
-	    /* Check if a semicolon occurs before a left brace or
+            /* Check if a semicolon occurs before a left brace or
              * a left parenthesis; if so, skip it */
-	if ((soffsetsc != -1)
+        if ((soffsetsc != -1)
             && (toffsetsc < toffsetlb) || (toffsetsc < toffsetlp)) {  
             skipToSemicolon(sa, next, 0, &scline);
-	    begin = scline + 1;
-	    continue;
-	}
+            begin = scline + 1;
+            continue;
+        }
 
-	    /* OK, it should be a function definition */
-	*pstart = next;
-	*pstop = next + soffsetrp;
-	*pcharindex = boffsetrp;
-	*pfound = TRUE;
-	break;
+            /* OK, it should be a function definition */
+        *pstart = next;
+        *pstop = next + soffsetrp;
+        *pcharindex = boffsetrp;
+        *pfound = TRUE;
+        break;
     }
 
     return 0;
@@ -466,12 +466,12 @@ l_int32  i;
     PROCNAME("captureProtoSignature");
 
     if (!sa)
-	return (char *)ERROR_PTR("sa not defined", procName, NULL);
+        return (char *)ERROR_PTR("sa not defined", procName, NULL);
 
     sap = sarrayCreate(0);
     for (i = start; i < stop; i++) {
         str = sarrayGetString(sa, i, 1);
-	sarrayAddString(sap, str, 0);
+        sarrayAddString(sap, str, 0);
     }
     str = sarrayGetString(sa, stop, 1);
     str[charindex + 1] = '\0';
@@ -508,7 +508,7 @@ SARRAY  *sa, *saout;
     PROCNAME("cleanProtoSignature");
 
     if (!instr)
-	return (char *)ERROR_PTR("instr not defined", procName, NULL);
+        return (char *)ERROR_PTR("instr not defined", procName, NULL);
 
     sa = sarrayCreateWordsFromString(instr);
     nwords = sarrayGetCount(sa);
@@ -516,29 +516,29 @@ SARRAY  *sa, *saout;
     sarrayAddString(saout, "extern", 1);
     for (i = 0; i < nwords; i++) {
         str = sarrayGetString(sa, i, 0);
-	nchars = strlen(str);
-	index = 0;
-	for (j = 0; j < nchars; j++) {
-	    if (index > L_BUF_SIZE - 6)
-		return (char *)ERROR_PTR("token too large", procName, NULL);
-	    if (str[j] == '(') {
-		buf[index++] = ' ';
-		buf[index++] = '(';
-		buf[index++] = ' ';
-	    }
-	    else if (str[j] == ')') {
-		buf[index++] = ' ';
-		buf[index++] = ')';
-	    }
-	    else 
-		buf[index++] = str[j];
-	}
-	buf[index] = '\0';
-	sarrayAddString(saout, buf, 1);
+        nchars = strlen(str);
+        index = 0;
+        for (j = 0; j < nchars; j++) {
+            if (index > L_BUF_SIZE - 6)
+                return (char *)ERROR_PTR("token too large", procName, NULL);
+            if (str[j] == '(') {
+                buf[index++] = ' ';
+                buf[index++] = '(';
+                buf[index++] = ' ';
+            }
+            else if (str[j] == ')') {
+                buf[index++] = ' ';
+                buf[index++] = ')';
+            }
+            else 
+                buf[index++] = str[j];
+        }
+        buf[index] = '\0';
+        sarrayAddString(saout, buf, 1);
     }
 
         /* Flatten to a prototype string with spaces added after
-	 * each word, and remove the last space */
+         * each word, and remove the last space */
     cleanstr = sarrayToString(saout, 2);
     len = strlen(cleanstr);
     cleanstr[len - 1] = '\0';
@@ -570,16 +570,16 @@ l_int32 soffsetlb, boffsetlb, toffsetlb;
     PROCNAME("skipToEndOfFunction");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!pnext)
-	return ERROR_INT("&next not defined", procName, 1);
+        return ERROR_INT("&next not defined", procName, 1);
 
     getOffsetForCharacter(sa, start, '{', &soffsetlb, &boffsetlb,
-		&toffsetlb);
+                &toffsetlb);
     skipToMatchingBrace(sa, start + soffsetlb, boffsetlb, &end, &rbindex);
     if (end == -1) {  /* shouldn't happen! */
-	*pnext = -1;
-	return 1;
+        *pnext = -1;
+        return 1;
     }
 
     *pnext = end + 1;
@@ -614,11 +614,11 @@ l_int32  i, j, jstart, n, sumbrace, found, instring, nchars;
     PROCNAME("skipToMatchingBrace");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!pstop)
-	return ERROR_INT("&stop not defined", procName, 1);
+        return ERROR_INT("&stop not defined", procName, 1);
     if (!prbindex)
-	return ERROR_INT("&rbindex not defined", procName, 1);
+        return ERROR_INT("&rbindex not defined", procName, 1);
 
     instring = 0;  /* init to FALSE; toggle on double quotes */
     *pstop = -1;
@@ -626,35 +626,35 @@ l_int32  i, j, jstart, n, sumbrace, found, instring, nchars;
     sumbrace = 1;
     found = FALSE;
     for (i = start; i < n; i++) {
-	str = sarrayGetString(sa, i, 0);
-	jstart = 0;
-	if (i == start)
-	    jstart = lbindex + 1;
-	nchars = strlen(str);
-	for (j = jstart; j < nchars; j++) {
-		/* Toggle the instring state every time you encounter
-		 * a double quote that is NOT escaped. */
-	    if (j == jstart && str[j] == '\"')
-		instring = 1 - instring;
-	    if (j > jstart && str[j] == '\"' && str[j-1] != '\\')
-		instring = 1 - instring;
-	        /* Record the braces if they are neither a literal character
-		 * nor within a string. */
-	    if (str[j] == '{' && str[j+1] != '\'' && !instring)
-		sumbrace++;
-	    else if (str[j] == '}' && str[j+1] != '\'' && !instring) {
-		sumbrace--;
-		if (sumbrace == 0) {
-		    found = TRUE;
-		    *prbindex = j;
-		    break;
-		}
-	    }
-	}
-	if (found) {
-	    *pstop = i;
-	    return 0;
-	}
+        str = sarrayGetString(sa, i, 0);
+        jstart = 0;
+        if (i == start)
+            jstart = lbindex + 1;
+        nchars = strlen(str);
+        for (j = jstart; j < nchars; j++) {
+                /* Toggle the instring state every time you encounter
+                 * a double quote that is NOT escaped. */
+            if (j == jstart && str[j] == '\"')
+                instring = 1 - instring;
+            if (j > jstart && str[j] == '\"' && str[j-1] != '\\')
+                instring = 1 - instring;
+                /* Record the braces if they are neither a literal character
+                 * nor within a string. */
+            if (str[j] == '{' && str[j+1] != '\'' && !instring)
+                sumbrace++;
+            else if (str[j] == '}' && str[j+1] != '\'' && !instring) {
+                sumbrace--;
+                if (sumbrace == 0) {
+                    found = TRUE;
+                    *prbindex = j;
+                    break;
+                }
+            }
+        }
+        if (found) {
+            *pstop = i;
+            return 0;
+        }
     }
 
     return ERROR_INT("matching right brace not found", procName, 1);
@@ -688,29 +688,29 @@ l_int32  i, j, n, jstart, nchars, found;
     PROCNAME("skipToSemicolon");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!pnext)
-	return ERROR_INT("&next not defined", procName, 1);
+        return ERROR_INT("&next not defined", procName, 1);
 
     *pnext = -1;
     n = sarrayGetCount(sa);
     found = FALSE;
     for (i = start; i < n; i++) {
-	str = sarrayGetString(sa, i, 0);
-	jstart = 0;
-	if (i == start)
-	    jstart = charindex + 1;
-	nchars = strlen(str);
-	for (j = jstart; j < nchars; j++) {
-	    if (str[j] == ';') {
-		found = TRUE;;
-	        break;
-	    }
-	}
-	if (found) {
-	    *pnext = i;
-	    return 0;
-	}
+        str = sarrayGetString(sa, i, 0);
+        jstart = 0;
+        if (i == start)
+            jstart = charindex + 1;
+        nchars = strlen(str);
+        for (j = jstart; j < nchars; j++) {
+            if (str[j] == ';') {
+                found = TRUE;;
+                break;
+            }
+        }
+        if (found) {
+            *pnext = i;
+            return 0;
+        }
     }
 
     return ERROR_INT("semicolon not found", procName, 1);
@@ -754,13 +754,13 @@ l_int32  i, j, n, nchars, totchars, found;
     PROCNAME("getOffsetForCharacter");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!psoffset)
-	return ERROR_INT("&soffset not defined", procName, 1);
+        return ERROR_INT("&soffset not defined", procName, 1);
     if (!pboffset)
-	return ERROR_INT("&boffset not defined", procName, 1);
+        return ERROR_INT("&boffset not defined", procName, 1);
     if (!ptoffset)
-	return ERROR_INT("&toffset not defined", procName, 1);
+        return ERROR_INT("&toffset not defined", procName, 1);
 
     *psoffset = -1;  /* init to not found */
     *pboffset = 100000000;
@@ -771,21 +771,21 @@ l_int32  i, j, n, nchars, totchars, found;
     totchars = 0;
     for (i = start; i < n; i++) {
         if ((str = sarrayGetString(sa, i, 0)) == NULL)
-	    return ERROR_INT("str not returned; shouldn't happen", procName, 1);
-	nchars = strlen(str);
-	for (j = 0; j < nchars; j++) {
-	    if (str[j] == tchar) {
-		found = TRUE;
-		break;
-	    }
-	}
-	if (found)
-	    break;
-	totchars += nchars;
+            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+        nchars = strlen(str);
+        for (j = 0; j < nchars; j++) {
+            if (str[j] == tchar) {
+                found = TRUE;
+                break;
+            }
+        }
+        if (found)
+            break;
+        totchars += nchars;
     }
 
     if (found) {
-	*psoffset = i - start;
+        *psoffset = i - start;
         *pboffset = j;
         *ptoffset = totchars + j;
     }

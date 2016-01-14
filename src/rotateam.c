@@ -111,7 +111,7 @@ static const l_float32  VERY_SMALL_ANGLE = 0.001;  /* radians; ~0.06 degrees */
  */
 PIX *
 pixRotateAM(PIX       *pixs,
-	    l_float32  angle,
+            l_float32  angle,
             l_int32    incolor)
 {
 l_int32   d;
@@ -126,13 +126,13 @@ PIX      *pixt1, *pixt2, *pixd;
         return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
         /* Remove cmap if it exists, and unpack to 8 bpp if necessary */
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     d = pixGetDepth(pixt1);
     if (d < 8)
-        pixt2 = pixConvertTo8(pixt1);
+        pixt2 = pixConvertTo8(pixt1, FALSE);
     else
         pixt2 = pixClone(pixt1);
     d = pixGetDepth(pixt2);
@@ -174,12 +174,12 @@ PIX      *pixt1, *pixt2, *pixd;
  */
 PIX *
 pixRotateAMColor(PIX       *pixs,
-	         l_float32  angle,
+                 l_float32  angle,
                  l_uint32   colorval)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixRotateAMColor");
 
@@ -189,7 +189,7 @@ PIX    	  *pixd;
         return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -220,12 +220,12 @@ PIX    	  *pixd;
  */
 PIX *
 pixRotateAMGray(PIX       *pixs,
-	        l_float32  angle,
-		l_uint8    grayval)
+                l_float32  angle,
+                l_uint8    grayval)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixRotateAMGray");
 
@@ -235,7 +235,7 @@ PIX    	  *pixd;
         return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -286,13 +286,13 @@ PIX      *pixt1, *pixt2, *pixd;
         return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
         /* Remove cmap if it exists, and unpack to 8 bpp if necessary */
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     d = pixGetDepth(pixt1);
     if (d < 8)
-        pixt2 = pixConvertTo8(pixt1);
+        pixt2 = pixConvertTo8(pixt1, FALSE);
     else
         pixt2 = pixClone(pixt1);
     d = pixGetDepth(pixt2);
@@ -334,12 +334,12 @@ PIX      *pixt1, *pixt2, *pixd;
  */
 PIX *
 pixRotateAMColorCorner(PIX       *pixs,
-	               l_float32  angle,
+                       l_float32  angle,
                        l_uint8    grayval)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixRotateAMColorCorner");
 
@@ -349,7 +349,7 @@ PIX    	  *pixd;
         return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -380,12 +380,12 @@ PIX    	  *pixd;
  */
 PIX *
 pixRotateAMGrayCorner(PIX       *pixs,
-	              l_float32  angle,
-		      l_uint8    grayval)
+                      l_float32  angle,
+                      l_uint8    grayval)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixRotateAMGrayCorner");
 
@@ -395,7 +395,7 @@ PIX    	  *pixd;
         return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -435,12 +435,12 @@ PIX    	  *pixd;
  */
 PIX *
 pixRotateAMColorFast(PIX       *pixs,
-	             l_float32  angle,
-		     l_uint8    grayval)
+                     l_float32  angle,
+                     l_uint8    grayval)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixRotateAMColorFast");
 
@@ -450,7 +450,7 @@ PIX    	  *pixd;
         return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);

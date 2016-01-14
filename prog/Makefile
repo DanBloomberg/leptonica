@@ -92,43 +92,57 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 
 #########################################################################
 
-SRC =		adaptmaptest.c affinetest.c \
+SRC =		binmorph1_reg.c binmorph2_reg.c \
+		cmapquant_reg.c \
+		conncomp_reg.c conversion_reg.c \
+		equal_reg.c \
+		fhmtauto_reg.c flipdetect_reg.c \
+		fmorphauto_reg.c \
+		graymorph_reg.c ioformats_reg.c \
+		morphseq_reg.c numa_reg.c \
+		paint_reg.c \
+		pixa_reg.c rasterop_reg.c \
+		rotate_reg.c rotateorth_reg.c \
+		scale_reg.c \
+		adaptmaptest.c affinetest.c \
 		alljpeg2ps.c alltiff2ps.c \
 		arithtest.c \
 		baselinetest.c bilineartest.c \
 		bincompare.c binmazetest.c \
 		blendcmaptest.c blendtest1.c buffertest.c \
-		ccbordtest.c cctest.c cmapquanttest.c \
-		colormaptest.c colorquanttest.c \
-		colorsegtest.c colorspacetest.c \
-		contrasttest.c convertformat.c converttogray.c \
+		ccbordtest.c cctest1.c \
+		colormaptest.c colormorphtest.c \
+		colorquanttest.c colorsegtest.c \
+		colorspacetest.c comparetest.c contrasttest.c \
+		convertformat.c converttogray.c \
 		converttops.c convolvetest.c cornertest.c \
 		croptext.c distancetest.c dithertest.c \
-		docseg1.c docseg2.c \
-		equaltest.c expandtest.c falsecolortest.c \
-		fhmtautogen.c fhmtautotest.c fileinfo.c \
+		expandtest.c falsecolortest.c \
+		fhmtautogen.c fileinfo.c \
 		findpattern1.c findpattern2.c findpattern3.c \
-		flipselgen.c fliptest.c \
-		fmorphautogen.c fmorphautotest.c \
-		gammatest.c genfonts.c graphicstest.c graymazetest.c \
-		heaptest.c histotest.c ioformats.c iotest.c \
+		flipselgen.c \
+		fmorphautogen.c \
+		gammatest.c genfonts.c graphicstest.c \
+		graymazetest.c graymorphtest.c \
+		heaptest.c histotest.c iotest.c inserttest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		lineremoval.c listtest.c maketile.c \
-		morphgraytest.c morphseqtest.c \
-		morphtest1.c morphtest2.c morphtest3.c \
+		morphtest1.c \
 		mtifftest.c \
-		numaranktest.c numatest.c painttest.c \
-		pixcompare.c pixatest.c plotfile.c plotprog.c \
+		numaranktest.c numatest2.c \
+		pagesegtest1.c pagesegtest2.c pagesegtest3.c \
+		plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
-		projectivetest.c reducetest.c renderfonts.c \
-		rotatefastalt.c rotateorthtest1.c rotateorthtest2.c \
-		rotatetest1.c rotatetest2.c runlengthtest.c \
-		scaletest1.c scaletest2.c scaletest3.c \
+		projectivetest.c \
+		reducetest.c renderfonts.c \
+		rotatefastalt.c rotateorthtest1.c \
+		rotatetest1.c runlengthtest.c \
+		scaletest1.c scaletest2.c \
 		seedfilltest.c \
 		sharptest.c sheartest.c showedges.c \
 		skewtest.c snapcolortest.c \
 		sorttest.c splitimage2pdf.c \
-		thresholdtest.c viewertest.c \
+		thresholdtest.c viewertest.c wordsinorder.c \
 		xvdisp.c
 
 ######################################################################
@@ -136,6 +150,63 @@ SRC =		adaptmaptest.c affinetest.c \
 all:	$(SRC:%.c=%)
 
 ######################################################################
+
+binmorph1_reg:	binmorph1_reg.o $(LEPTLIB)
+	$(CC) -o binmorph1_reg binmorph1_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+binmorph2_reg:	binmorph2_reg.o $(LEPTLIB)
+	$(CC) -o binmorph2_reg binmorph2_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+cmapquant_reg:	cmapquant_reg.o $(LEPTLIB)
+	$(CC) -o cmapquant_reg cmapquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+conncomp_reg: conncomp_reg.o $(LEPTLIB)
+	$(CC) -o conncomp_reg conncomp_reg.o $(ALL_LIBS)
+
+conversion_reg: conversion_reg.o $(LEPTLIB)
+	$(CC) -o conversion_reg conversion_reg.o $(ALL_LIBS)
+
+equal_reg:	equal_reg.o $(LEPTLIB)
+	$(CC) -o equal_reg equal_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+fhmtauto_reg:	fhmtauto_reg.o $(LEPTLIB)
+	$(CC) -o fhmtauto_reg fhmtauto_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+flipdetect_reg:	flipdetect_reg.o $(LEPTLIB)
+	$(CC) -o flipdetect_reg flipdetect_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+fmorphauto_reg:	fmorphauto_reg.o $(LEPTLIB)
+	$(CC) -o fmorphauto_reg fmorphauto_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+graymorph_reg:	graymorph_reg.o $(LEPTLIB)
+	$(CC) -o graymorph_reg graymorph_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+ioformats_reg:	ioformats_reg.o $(LEPTLIB)
+	$(CC) -o ioformats_reg ioformats_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+morphseq_reg:	morphseq_reg.o $(LEPTLIB)
+	$(CC) -o morphseq_reg morphseq_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+numa_reg:	numa_reg.o $(LEPTLIB)
+	$(CC) -o numa_reg numa_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+paint_reg:	paint_reg.o $(LEPTLIB)
+	$(CC) -o paint_reg paint_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+pixa_reg:	pixa_reg.o $(LEPTLIB)
+	$(CC) -o pixa_reg pixa_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rasterop_reg:	rasterop_reg.o $(LEPTLIB)
+	$(CC) -o rasterop_reg rasterop_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotate_reg:	rotate_reg.o $(LEPTLIB)
+	$(CC) -o rotate_reg rotate_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rotateorth_reg:	rotateorth_reg.o $(LEPTLIB)
+	$(CC) -o rotateorth_reg rotateorth_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+scale_reg:	scale_reg.o $(LEPTLIB)
+	$(CC) -o scale_reg scale_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 adaptmaptest:	adaptmaptest.o $(LEPTLIB)
 	$(CC) -o adaptmaptest adaptmaptest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -176,14 +247,14 @@ buffertest:	buffertest.o $(LEPTLIB)
 ccbordtest:	ccbordtest.o $(LEPTLIB)
 	$(CC) -o ccbordtest ccbordtest.o $(ALL_LIBS) $(EXTRALIBS)
 
-cctest:		cctest.o $(LEPTLIB)
-	$(CC) -o cctest cctest.o $(ALL_LIBS) $(EXTRALIBS)
-
-cmapquanttest:	cmapquanttest.o $(LEPTLIB)
-	$(CC) -o cmapquanttest cmapquanttest.o $(ALL_LIBS) $(EXTRALIBS)
+cctest1:		cctest1.o $(LEPTLIB)
+	$(CC) -o cctest1 cctest1.o $(ALL_LIBS) $(EXTRALIBS)
 
 colormaptest:	colormaptest.o $(LEPTLIB)
 	$(CC) -o colormaptest colormaptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+colormorphtest:	colormorphtest.o $(LEPTLIB)
+	$(CC) -o colormorphtest colormorphtest.o $(ALL_LIBS) $(EXTRALIBS)
 
 colorquanttest:	colorquanttest.o $(LEPTLIB)
 	$(CC) -o colorquanttest colorquanttest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -193,6 +264,9 @@ colorsegtest:	colorsegtest.o $(LEPTLIB)
 
 colorspacetest:	colorspacetest.o $(LEPTLIB)
 	$(CC) -o colorspacetest colorspacetest.o $(ALL_LIBS) $(EXTRALIBS)
+
+comparetest:	comparetest.o $(LEPTLIB)
+	$(CC) -o comparetest comparetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 contrasttest:	contrasttest.o $(LEPTLIB)
 	$(CC) -o contrasttest contrasttest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -227,9 +301,6 @@ docseg1:	docseg1.o $(LEPTLIB)
 docseg2:	docseg2.o $(LEPTLIB)
 	$(CC) -o docseg2 docseg2.o $(ALL_LIBS) $(EXTRALIBS)
 
-equaltest:	equaltest.o $(LEPTLIB)
-	$(CC) -o equaltest equaltest.o $(ALL_LIBS) $(EXTRALIBS)
-
 expandtest:	expandtest.o $(LEPTLIB)
 	$(CC) -o expandtest expandtest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -238,9 +309,6 @@ falsecolortest:	falsecolortest.o $(LEPTLIB)
 
 fhmtautogen:	fhmtautogen.o $(LEPTLIB)
 	$(CC) -o fhmtautogen fhmtautogen.o $(ALL_LIBS) $(EXTRALIBS)
-
-fhmtautotest:	fhmtautotest.o $(LEPTLIB)
-	$(CC) -o fhmtautotest fhmtautotest.o $(ALL_LIBS) $(EXTRALIBS)
 
 fileinfo:	fileinfo.o $(LEPTLIB)
 	$(CC) -o fileinfo fileinfo.o $(ALL_LIBS) $(EXTRALIBS)
@@ -257,14 +325,8 @@ findpattern3:	findpattern3.o $(LEPTLIB)
 flipselgen:	flipselgen.o $(LEPTLIB)
 	$(CC) -o flipselgen flipselgen.o $(ALL_LIBS) $(EXTRALIBS)
 
-fliptest:	fliptest.o $(LEPTLIB)
-	$(CC) -o fliptest fliptest.o $(ALL_LIBS) $(EXTRALIBS)
-
 fmorphautogen:	fmorphautogen.o $(LEPTLIB)
 	$(CC) -o fmorphautogen fmorphautogen.o $(ALL_LIBS) $(EXTRALIBS)
-
-fmorphautotest:	fmorphautotest.o $(LEPTLIB)
-	$(CC) -o fmorphautotest fmorphautotest.o $(ALL_LIBS) $(EXTRALIBS)
 
 gammatest:	gammatest.o $(LEPTLIB)
 	$(CC) -o gammatest gammatest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -278,17 +340,20 @@ graphicstest:	graphicstest.o $(LEPTLIB)
 graymazetest:	graymazetest.o $(LEPTLIB)
 	$(CC) -o graymazetest graymazetest.o $(ALL_LIBS) $(EXTRALIBS)
 
+graymorphtest:	graymorphtest.o $(LEPTLIB)
+	$(CC) -o graymorphtest graymorphtest.o $(ALL_LIBS) $(EXTRALIBS)
+
 heaptest:	heaptest.o $(LEPTLIB)
 	$(CC) -o heaptest heaptest.o $(ALL_LIBS) $(EXTRALIBS)
 
 histotest:	histotest.o $(LEPTLIB)
 	$(CC) -o histotest histotest.o $(ALL_LIBS) $(EXTRALIBS)
 
-ioformats:	ioformats.o $(LEPTLIB)
-	$(CC) -o ioformats ioformats.o $(ALL_LIBS) $(EXTRALIBS)
-
 iotest:		iotest.o $(LEPTLIB)
 	$(CC) -o iotest iotest.o $(ALL_LIBS) $(EXTRALIBS)
+
+inserttest:	inserttest.o $(LEPTLIB)
+	$(CC) -o inserttest inserttest.o $(ALL_LIBS) $(EXTRALIBS)
 
 jbcorrelation:	jbcorrelation.o $(LEPTLIB)
 	$(CC) -o jbcorrelation jbcorrelation.o $(ALL_LIBS) $(EXTRALIBS)
@@ -308,20 +373,8 @@ listtest:	listtest.o $(LEPTLIB)
 maketile:	maketile.o $(LEPTLIB)
 	$(CC) -o maketile maketile.o $(ALL_LIBS) $(EXTRALIBS)
 
-morphgraytest:	morphgraytest.o $(LEPTLIB)
-	$(CC) -o morphgraytest morphgraytest.o $(ALL_LIBS) $(EXTRALIBS)
-
-morphseqtest:	morphseqtest.o $(LEPTLIB)
-	$(CC) -o morphseqtest morphseqtest.o $(ALL_LIBS) $(EXTRALIBS)
-
 morphtest1:	morphtest1.o $(LEPTLIB)
 	$(CC) -o morphtest1 morphtest1.o $(ALL_LIBS) $(EXTRALIBS)
-
-morphtest2:	morphtest2.o $(LEPTLIB)
-	$(CC) -o morphtest2 morphtest2.o $(ALL_LIBS) $(EXTRALIBS)
-
-morphtest3:	morphtest3.o $(LEPTLIB)
-	$(CC) -o morphtest3 morphtest3.o $(ALL_LIBS) $(EXTRALIBS)
 
 mtifftest:	mtifftest.o $(LEPTLIB)
 	$(CC) -o mtifftest mtifftest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -329,23 +382,20 @@ mtifftest:	mtifftest.o $(LEPTLIB)
 numaranktest:	numaranktest.o $(LEPTLIB)
 	$(CC) -o numaranktest numaranktest.o $(ALL_LIBS) $(EXTRALIBS)
 
-numatest:	numatest.o $(LEPTLIB)
-	$(CC) -o numatest numatest.o $(ALL_LIBS) $(EXTRALIBS)
+numatest2:	numatest2.o $(LEPTLIB)
+	$(CC) -o numatest2 numatest2.o $(ALL_LIBS) $(EXTRALIBS)
 
-painttest:	painttest.o $(LEPTLIB)
-	$(CC) -o painttest painttest.o $(ALL_LIBS) $(EXTRALIBS)
+pagesegtest1:	pagesegtest1.o $(LEPTLIB)
+	$(CC) -o pagesegtest1 pagesegtest1.o $(ALL_LIBS) $(EXTRALIBS)
 
-pixatest:	pixatest.o $(LEPTLIB)
-	$(CC) -o pixatest pixatest.o $(ALL_LIBS) $(EXTRALIBS)
+pagesegtest2:	pagesegtest2.o $(LEPTLIB)
+	$(CC) -o pagesegtest2 pagesegtest2.o $(ALL_LIBS) $(EXTRALIBS)
 
-pixcompare:	pixcompare.o $(LEPTLIB)
-	$(CC) -o pixcompare pixcompare.o $(ALL_LIBS) $(EXTRALIBS)
+pagesegtest3:	pagesegtest3.o $(LEPTLIB)
+	$(CC) -o pagesegtest3 pagesegtest3.o $(ALL_LIBS) $(EXTRALIBS)
 
-plotfile:	plotfile.o $(LEPTLIB)
-	$(CC) -o plotfile plotfile.o $(ALL_LIBS) $(EXTRALIBS)
-
-plotprog:	plotprog.o $(LEPTLIB)
-	$(CC) -o plotprog plotprog.o $(ALL_LIBS) $(EXTRALIBS)
+plottest:	plottest.o $(LEPTLIB)
+	$(CC) -o plottest plottest.o $(ALL_LIBS) $(EXTRALIBS)
 
 printimage:	printimage.o $(LEPTLIB)
 	$(CC) -o printimage printimage.o $(ALL_LIBS) $(EXTRALIBS)
@@ -371,14 +421,8 @@ rotatefastalt:	rotatefastalt.o $(LEPTLIB)
 rotateorthtest1:	rotateorthtest1.o $(LEPTLIB)
 	$(CC) -o rotateorthtest1 rotateorthtest1.o $(ALL_LIBS) $(EXTRALIBS)
 
-rotateorthtest2:	rotateorthtest2.o $(LEPTLIB)
-	$(CC) -o rotateorthtest2 rotateorthtest2.o $(ALL_LIBS) $(EXTRALIBS)
-
 rotatetest1:	rotatetest1.o $(LEPTLIB)
 	$(CC) -o rotatetest1 rotatetest1.o $(ALL_LIBS) $(EXTRALIBS)
-
-rotatetest2:	rotatetest2.o $(LEPTLIB)
-	$(CC) -o rotatetest2 rotatetest2.o $(ALL_LIBS) $(EXTRALIBS)
 
 runlengthtest:	runlengthtest.o $(LEPTLIB)
 	$(CC) -o runlengthtest runlengthtest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -388,9 +432,6 @@ scaletest1:	scaletest1.o $(LEPTLIB)
 
 scaletest2:	scaletest2.o $(LEPTLIB)
 	$(CC) -o scaletest2 scaletest2.o $(ALL_LIBS) $(EXTRALIBS)
-
-scaletest3:	scaletest3.o $(LEPTLIB)
-	$(CC) -o scaletest3 scaletest3.o $(ALL_LIBS) $(EXTRALIBS)
 
 seedfilltest:	seedfilltest.o $(LEPTLIB)
 	$(CC) -o seedfilltest seedfilltest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -421,6 +462,9 @@ thresholdtest:	thresholdtest.o $(LEPTLIB)
 
 viewertest:	viewertest.o $(LEPTLIB)
 	$(CC) -o viewertest viewertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+wordsinorder:	wordsinorder.o $(LEPTLIB)
+	$(CC) -o wordsinorder wordsinorder.o $(ALL_LIBS) $(EXTRALIBS)
 
 xvdisp:		xvdisp.o $(LEPTLIB)
 	$(CC) -o xvdisp xvdisp.o $(ALL_LIBS) $(EXTRALIBS)

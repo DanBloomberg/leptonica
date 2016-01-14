@@ -110,26 +110,26 @@ PIX       *pix;
     if (w <= 0 || h <= 0 || w > MAX_PNM_WIDTH || h > MAX_PNM_HEIGHT)
         return (PIX *)ERROR_PTR("invalid sizes", procName, NULL);
 
-	/* get depth of pix */
+        /* get depth of pix */
     if (type == 1 || type == 4)
         d = 1;
     else if (type == 2 || type == 5) {
         fscanf(fp, "%d\n", &maxval);
-	if (maxval == 3)
-	    d = 2;
-	else if (maxval == 15)
-	    d = 4;
-	else if (maxval == 255)
-	    d = 8;
-	else {
-	    fprintf(stderr, "maxval = %d\n", maxval);
+        if (maxval == 3)
+            d = 2;
+        else if (maxval == 15)
+            d = 4;
+        else if (maxval == 255)
+            d = 8;
+        else {
+            fprintf(stderr, "maxval = %d\n", maxval);
             return (PIX *)ERROR_PTR("invalid maxval", procName, NULL);
-	}
+        }
     }
     else {  /* type == 3 || type == 6; this is rgb  */
         fscanf(fp, "%d\n", &maxval);
         if (maxval != 255)
-	    L_WARNING_INT("unexpected maxval = %d", procName, maxval);
+            L_WARNING_INT("unexpected maxval = %d", procName, maxval);
         d = 32;
     }
     
@@ -141,13 +141,13 @@ PIX       *pix;
         /* old "ascii" format */
     if (type <= 3) {
         for (i = 0; i < h; i++) {
-	    for (j = 0; j < w; j++) {
-		if (type == 1 || type == 2) {
+            for (j = 0; j < w; j++) {
+                if (type == 1 || type == 2) {
                     if (pnmReadNextAsciiValue(fp, &val))
                         return (PIX *)ERROR_PTR( "read abend", procName, pix);
                     pixSetPixel(pix, j, i, val);
-		}
-		else {  /* type == 3 */
+                }
+                else {  /* type == 3 */
                     if (pnmReadNextAsciiValue(fp, &rval))
                         return (PIX *)ERROR_PTR( "read abend", procName, pix);
                     if (pnmReadNextAsciiValue(fp, &gval))
@@ -156,35 +156,35 @@ PIX       *pix;
                         return (PIX *)ERROR_PTR( "read abend", procName, pix);
                     composeRGBPixel(rval, gval, bval, &rgbval);
                     pixSetPixel(pix, j, i, rgbval);
-		}
-	    }
-	}
-	return pix;
+                }
+            }
+        }
+        return pix;
     }
 
         /* "raw" format; binary and grayscale */
     if (type == 4 || type == 5) {
         bpl = (d * w + 7) / 8;
         for (i = 0; i < h; i++) {
-	    line = data + i * wpl;
-	    for (j = 0; j < bpl; j++) {
-		fread(&val8, 1, 1, fp);
-		SET_DATA_BYTE(line, j, val8);
-	    }
-	}
-	return pix;
+            line = data + i * wpl;
+            for (j = 0; j < bpl; j++) {
+                fread(&val8, 1, 1, fp);
+                SET_DATA_BYTE(line, j, val8);
+            }
+        }
+        return pix;
     }
 
         /* "raw" format, type == 6; rgb */
     for (i = 0; i < h; i++) {
-	line = data + i * wpl;
-	for (j = 0; j < wpl; j++) {
-	    fread(&rval8, 1, 1, fp);
-	    fread(&gval8, 1, 1, fp);
-	    fread(&bval8, 1, 1, fp);
-	    composeRGBPixel(rval8, gval8, bval8, &rgbval);
-	    line[j] = rgbval;
-	}
+        line = data + i * wpl;
+        for (j = 0; j < wpl; j++) {
+            fread(&rval8, 1, 1, fp);
+            fread(&gval8, 1, 1, fp);
+            fread(&bval8, 1, 1, fp);
+            composeRGBPixel(rval8, gval8, bval8, &rgbval);
+            line[j] = rgbval;
+        }
     }
     return pix;
 }
@@ -236,42 +236,42 @@ PIX       *pixs;
     if (ds == 1) {  /* binary */
         fprintf(fp, "P4\n# Raw PBM file written by leptonlib (www.leptonica.com)\n%d %d\n", w, h);
 
-	bpl = (w + 7) / 8;
+        bpl = (w + 7) / 8;
         for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
+            lines = datas + i * wpls;
             for (j = 0; j < bpl; j++) {
-	        byteval = GET_DATA_BYTE(lines, j);
-		fwrite(&byteval, 1, 1, fp);
-	    }
-	}
+                byteval = GET_DATA_BYTE(lines, j);
+                fwrite(&byteval, 1, 1, fp);
+            }
+        }
     }
     else if (ds == 2 || ds == 4 || ds == 8) {  /* grayscale */
-	maxval = (1 << ds) - 1;
+        maxval = (1 << ds) - 1;
         fprintf(fp, "P5\n# Raw PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
-	bpl = (ds * w + 7) / 8;
+        bpl = (ds * w + 7) / 8;
         for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
+            lines = datas + i * wpls;
             for (j = 0; j < bpl; j++) {
-	        byteval = GET_DATA_BYTE(lines, j);
-		fwrite(&byteval, 1, 1, fp);
-	    }
-	}
+                byteval = GET_DATA_BYTE(lines, j);
+                fwrite(&byteval, 1, 1, fp);
+            }
+        }
     }
     else {  /* rgb color */
         fprintf(fp, "P6\n# Raw PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
 
         for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
+            lines = datas + i * wpls;
             for (j = 0; j < wpls; j++) {
-	        rval = GET_DATA_BYTE(lines + j, COLOR_RED);
-	        gval = GET_DATA_BYTE(lines + j, COLOR_GREEN);
-	        bval = GET_DATA_BYTE(lines + j, COLOR_BLUE);
-		fwrite(&rval, 1, 1, fp);
-		fwrite(&gval, 1, 1, fp);
-		fwrite(&bval, 1, 1, fp);
-	    }
-	}
+                rval = GET_DATA_BYTE(lines + j, COLOR_RED);
+                gval = GET_DATA_BYTE(lines + j, COLOR_GREEN);
+                bval = GET_DATA_BYTE(lines + j, COLOR_BLUE);
+                fwrite(&rval, 1, 1, fp);
+                fwrite(&gval, 1, 1, fp);
+                fwrite(&bval, 1, 1, fp);
+            }
+        }
     }
 
     pixDestroy(&pixs);
@@ -324,72 +324,72 @@ PIX       *pixs;
     if (ds == 1) {  /* binary */
         fprintf(fp, "P1\n# Ascii PBM file written by leptonlib (www.leptonica.com)\n%d %d\n", w, h);
 
-	count = 0;
+        count = 0;
         for (i = 0; i < h; i++) {
             for (j = 0; j < w; j++) {
-	        pixGetPixel(pixs, j, i, &val);
-		if (val == 0)
-		    fputc('0', fp);
+                pixGetPixel(pixs, j, i, &val);
+                if (val == 0)
+                    fputc('0', fp);
                 else  /* val == 1 */
-		    fputc('1', fp);
+                    fputc('1', fp);
                 fputc(' ', fp);
-		count += 2;
-		if (count >= 70)
-		    fputc('\n', fp);
-	    }
-	}
+                count += 2;
+                if (count >= 70)
+                    fputc('\n', fp);
+            }
+        }
     }
     else if (ds == 2 || ds == 4 || ds == 8) {  /* grayscale */
-	maxval = (1 << ds) - 1;
+        maxval = (1 << ds) - 1;
         fprintf(fp, "P2\n# Ascii PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
-	count = 0;
+        count = 0;
         for (i = 0; i < h; i++) {
             for (j = 0; j < w; j++) {
-	        pixGetPixel(pixs, j, i, &val);
-		if (ds == 2) {
-		    sprintf(buffer, "%1d ", val);
-		    fwrite(buffer, 1, 2, fp);
-		    count += 2;
-		}
+                pixGetPixel(pixs, j, i, &val);
+                if (ds == 2) {
+                    sprintf(buffer, "%1d ", val);
+                    fwrite(buffer, 1, 2, fp);
+                    count += 2;
+                }
                 else if (ds == 4) {
-		    sprintf(buffer, "%2d ", val);
-		    fwrite(buffer, 1, 3, fp);
-		    count += 3;
-		}
+                    sprintf(buffer, "%2d ", val);
+                    fwrite(buffer, 1, 3, fp);
+                    count += 3;
+                }
                 else {  /* ds == 8 */
-		    sprintf(buffer, "%3d ", val);
-		    fwrite(buffer, 1, 4, fp);
-		    count += 4;
-		}
-		if (count >= 60) {
-		    fputc('\n', fp);
-		    count = 0;
-		}
-	    }
-	}
+                    sprintf(buffer, "%3d ", val);
+                    fwrite(buffer, 1, 4, fp);
+                    count += 4;
+                }
+                if (count >= 60) {
+                    fputc('\n', fp);
+                    count = 0;
+                }
+            }
+        }
     }
     else {  /* rgb color */
         fprintf(fp, "P3\n# Ascii PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
 
-	count = 0;
+        count = 0;
         for (i = 0; i < h; i++) {
             for (j = 0; j < w; j++) {
-	        pixGetPixel(pixs, j, i, &val);
-	        cval[0] = GET_DATA_BYTE(&val, COLOR_RED);
-	        cval[1] = GET_DATA_BYTE(&val, COLOR_GREEN);
-	        cval[2] = GET_DATA_BYTE(&val, COLOR_BLUE);
-		for (k = 0; k < 3; k++) {
-		    sprintf(buffer, "%3d ", cval[k]);
-		    fwrite(buffer, 1, 4, fp);
-		    count += 4;
-		    if (count >= 60) {
-			fputc('\n', fp);
-			count = 0;
-		    }
-		}
-	    }
-	}
+                pixGetPixel(pixs, j, i, &val);
+                cval[0] = GET_DATA_BYTE(&val, COLOR_RED);
+                cval[1] = GET_DATA_BYTE(&val, COLOR_GREEN);
+                cval[2] = GET_DATA_BYTE(&val, COLOR_BLUE);
+                for (k = 0; k < 3; k++) {
+                    sprintf(buffer, "%3d ", cval[k]);
+                    fwrite(buffer, 1, 4, fp);
+                    count += 4;
+                    if (count >= 60) {
+                        fputc('\n', fp);
+                        count = 0;
+                    }
+                }
+            }
+        }
     }
 
     pixDestroy(&pixs);
@@ -425,7 +425,7 @@ l_int32   c;
             return 1;
     } while (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 
-    fseek(fp, -1L, SEEK_CUR);	/* back up one byte */
+    fseek(fp, -1L, SEEK_CUR);        /* back up one byte */
     fscanf(fp, "%d", pval);
     return 0;
 }
@@ -453,11 +453,11 @@ l_int32  c;
     if (c == '#') {
         do {  /* each line starting with '#' */
             do {  /* this entire line */
-	        if ((c = fgetc(fp)) == EOF)
-		    return 1;
+                if ((c = fgetc(fp)) == EOF)
+                    return 1;
             } while (c != '\n');
             if ((c = fgetc(fp)) == EOF)
-		return 1;
+                return 1;
         } while (c == '#');
     }
 

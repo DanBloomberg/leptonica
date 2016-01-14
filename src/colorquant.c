@@ -160,11 +160,11 @@ PIXCMAP   *cmap;
     PROCNAME("pixColorQuant1Pass");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
-	/* Find the centers of the 256 cells, each of which represents
+        /* Find the centers of the 256 cells, each of which represents
          * the 3 MSBits of the red and green components, and the
          * 2 MSBits of the blue component.  This gives a mapping
          * from a "cube index" to the rgb values.  Save all 256
@@ -174,163 +174,163 @@ PIXCMAP   *cmap;
          * offset to the center of the cell, which is 0x10. */
     cmap = pixcmapCreate(8);
     for (cindex = 0; cindex < 256; cindex++) {
-	rval = (cindex & 0xe0) | 0x10;
-	gval = ((cindex << 3) & 0xe0) | 0x10;
-	bval = ((cindex << 6) & 0xc0) | 0x20;
-	pixcmapAddColor(cmap, rval, gval, bval);
+        rval = (cindex & 0xe0) | 0x10;
+        gval = ((cindex << 3) & 0xe0) | 0x10;
+        bval = ((cindex << 6) & 0xc0) | 0x20;
+        pixcmapAddColor(cmap, rval, gval, bval);
     }
 
-	/* Make output 8 bpp palette image */
+        /* Make output 8 bpp palette image */
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-	/* Set dest pix values to colortable indices */
+        /* Set dest pix values to colortable indices */
     if (ditherflag == 0) {   /* no dithering */
-	for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + i * wpld;
-	    for (j = 0; j < w; j++) {
-		ppixel = lines + j;
-		rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-		gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-		bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-		index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
-		SET_DATA_BYTE(lined, j, index);
-	    }
-	}
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
+            for (j = 0; j < w; j++) {
+                ppixel = lines + j;
+                rval = GET_DATA_BYTE(ppixel, COLOR_RED);
+                gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+                bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
+                SET_DATA_BYTE(lined, j, index);
+            }
+        }
     }
     else {  /* ditherflag == 1 */
-	bufu8r = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
-	bufu8g = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
-	bufu8b = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
-	buf1r = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf1g = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf1b = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf2r = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf2g = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf2b = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	if (!bufu8r || !bufu8g || !bufu8b)
-	    return (PIX *)ERROR_PTR("uint8 mono line buf not made",
-	        procName, NULL);
-	if (!buf1r || !buf1g || !buf1b || !buf2r || !buf2g || !buf2b)
-	    return (PIX *)ERROR_PTR("mono line buf not made", procName, NULL);
+        bufu8r = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
+        bufu8g = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
+        bufu8b = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
+        buf1r = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf1g = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf1b = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf2r = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf2g = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf2b = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        if (!bufu8r || !bufu8g || !bufu8b)
+            return (PIX *)ERROR_PTR("uint8 mono line buf not made",
+                procName, NULL);
+        if (!buf1r || !buf1g || !buf1b || !buf2r || !buf2g || !buf2b)
+            return (PIX *)ERROR_PTR("mono line buf not made", procName, NULL);
 
-	    /* Start by priming buf2; line 1 is above line 2 */
-	pixGetRGBLine(pixs, 0, bufu8r, bufu8g, bufu8b);
-	for (j = 0; j < w; j++) {
-	    buf2r[j] = 64 * bufu8r[j];
-	    buf2g[j] = 64 * bufu8g[j];
-	    buf2b[j] = 64 * bufu8b[j];
-	}
+            /* Start by priming buf2; line 1 is above line 2 */
+        pixGetRGBLine(pixs, 0, bufu8r, bufu8g, bufu8b);
+        for (j = 0; j < w; j++) {
+            buf2r[j] = 64 * bufu8r[j];
+            buf2g[j] = 64 * bufu8g[j];
+            buf2b[j] = 64 * bufu8b[j];
+        }
 
-	for (i = 0; i < h - 1; i++) {
-		/* Swap data 2 --> 1, and read in new line 2 */
-	    memcpy(buf1r, buf2r, 4 * w);
-	    memcpy(buf1g, buf2g, 4 * w);
-	    memcpy(buf1b, buf2b, 4 * w);
-	    pixGetRGBLine(pixs, i + 1, bufu8r, bufu8g, bufu8b);
-	    for (j = 0; j < w; j++) {
-		buf2r[j] = 64 * bufu8r[j];
-		buf2g[j] = 64 * bufu8g[j];
-		buf2b[j] = 64 * bufu8b[j];
-	    }
+        for (i = 0; i < h - 1; i++) {
+                /* Swap data 2 --> 1, and read in new line 2 */
+            memcpy(buf1r, buf2r, 4 * w);
+            memcpy(buf1g, buf2g, 4 * w);
+            memcpy(buf1b, buf2b, 4 * w);
+            pixGetRGBLine(pixs, i + 1, bufu8r, bufu8g, bufu8b);
+            for (j = 0; j < w; j++) {
+                buf2r[j] = 64 * bufu8r[j];
+                buf2g[j] = 64 * bufu8g[j];
+                buf2b[j] = 64 * bufu8b[j];
+            }
 
-		/* Dither */
-	    lined = datad + i * wpld;
-	    for (j = 0; j < w - 1; j++) {
-		rval = buf1r[j] / 64;
-		gval = buf1g[j] / 64;
-		bval = buf1b[j] / 64;
-		index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
-		SET_DATA_BYTE(lined, j, index);
+                /* Dither */
+            lined = datad + i * wpld;
+            for (j = 0; j < w - 1; j++) {
+                rval = buf1r[j] / 64;
+                gval = buf1g[j] / 64;
+                bval = buf1b[j] / 64;
+                index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
+                SET_DATA_BYTE(lined, j, index);
 
-		dif = buf1r[j] / 8 - 8 * ((rval | 0x10) & 0xf0);
-		if (dif != 0) {
-		    val1 = buf1r[j + 1] + 3 * dif;
-		    val2 = buf2r[j] + 3 * dif;
-		    val3 = buf2r[j + 1] + 2 * dif;
-		    if (dif > 0) {
-			buf1r[j + 1] = L_MIN(16383, val1);
-			buf2r[j] = L_MIN(16383, val2);
-			buf2r[j + 1] = L_MIN(16383, val3);
-		    }
-		    else if (dif < 0) {
-			buf1r[j + 1] = L_MAX(0, val1);
-			buf2r[j] = L_MAX(0, val2);
-			buf2r[j + 1] = L_MAX(0, val3);
-		    }
-		}
+                dif = buf1r[j] / 8 - 8 * ((rval | 0x10) & 0xf0);
+                if (dif != 0) {
+                    val1 = buf1r[j + 1] + 3 * dif;
+                    val2 = buf2r[j] + 3 * dif;
+                    val3 = buf2r[j + 1] + 2 * dif;
+                    if (dif > 0) {
+                        buf1r[j + 1] = L_MIN(16383, val1);
+                        buf2r[j] = L_MIN(16383, val2);
+                        buf2r[j + 1] = L_MIN(16383, val3);
+                    }
+                    else if (dif < 0) {
+                        buf1r[j + 1] = L_MAX(0, val1);
+                        buf2r[j] = L_MAX(0, val2);
+                        buf2r[j + 1] = L_MAX(0, val3);
+                    }
+                }
 
-		dif = buf1g[j] / 8 - 8 * ((gval | 0x10) & 0xf0);
-		if (dif != 0) {
-		    val1 = buf1g[j + 1] + 3 * dif;
-		    val2 = buf2g[j] + 3 * dif;
-		    val3 = buf2g[j + 1] + 2 * dif;
-		    if (dif > 0) {
-			buf1g[j + 1] = L_MIN(16383, val1);
-			buf2g[j] = L_MIN(16383, val2);
-			buf2g[j + 1] = L_MIN(16383, val3);
-		    }
-		    else if (dif < 0) {
-			buf1g[j + 1] = L_MAX(0, val1);
-			buf2g[j] = L_MAX(0, val2);
-			buf2g[j + 1] = L_MAX(0, val3);
-		    }
-		}
+                dif = buf1g[j] / 8 - 8 * ((gval | 0x10) & 0xf0);
+                if (dif != 0) {
+                    val1 = buf1g[j + 1] + 3 * dif;
+                    val2 = buf2g[j] + 3 * dif;
+                    val3 = buf2g[j + 1] + 2 * dif;
+                    if (dif > 0) {
+                        buf1g[j + 1] = L_MIN(16383, val1);
+                        buf2g[j] = L_MIN(16383, val2);
+                        buf2g[j + 1] = L_MIN(16383, val3);
+                    }
+                    else if (dif < 0) {
+                        buf1g[j + 1] = L_MAX(0, val1);
+                        buf2g[j] = L_MAX(0, val2);
+                        buf2g[j + 1] = L_MAX(0, val3);
+                    }
+                }
 
-		dif = buf1b[j] / 8 - 8 * ((bval | 0x20) & 0xe0);
-		if (dif != 0) {
-		    val1 = buf1b[j + 1] + 3 * dif;
-		    val2 = buf2b[j] + 3 * dif;
-		    val3 = buf2b[j + 1] + 2 * dif;
-		    if (dif > 0) {
-			buf1b[j + 1] = L_MIN(16383, val1);
-			buf2b[j] = L_MIN(16383, val2);
-			buf2b[j + 1] = L_MIN(16383, val3);
-		    }
-		    else if (dif < 0) {
-			buf1b[j + 1] = L_MAX(0, val1);
-			buf2b[j] = L_MAX(0, val2);
-			buf2b[j + 1] = L_MAX(0, val3);
-		    }
-		}
-	    }
+                dif = buf1b[j] / 8 - 8 * ((bval | 0x20) & 0xe0);
+                if (dif != 0) {
+                    val1 = buf1b[j + 1] + 3 * dif;
+                    val2 = buf2b[j] + 3 * dif;
+                    val3 = buf2b[j + 1] + 2 * dif;
+                    if (dif > 0) {
+                        buf1b[j + 1] = L_MIN(16383, val1);
+                        buf2b[j] = L_MIN(16383, val2);
+                        buf2b[j + 1] = L_MIN(16383, val3);
+                    }
+                    else if (dif < 0) {
+                        buf1b[j + 1] = L_MAX(0, val1);
+                        buf2b[j] = L_MAX(0, val2);
+                        buf2b[j + 1] = L_MAX(0, val3);
+                    }
+                }
+            }
 
-		/* Get last pixel in row; no downward propagation */
-	    rval = buf1r[w - 1] / 64;
-	    gval = buf1g[w - 1] / 64;
-	    bval = buf1b[w - 1] / 64;
-	    index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
-	    SET_DATA_BYTE(lined, w - 1, index);
-	}
+                /* Get last pixel in row; no downward propagation */
+            rval = buf1r[w - 1] / 64;
+            gval = buf1g[w - 1] / 64;
+            bval = buf1b[w - 1] / 64;
+            index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
+            SET_DATA_BYTE(lined, w - 1, index);
+        }
 
-	    /* Get last row of pixels; no leftward propagation */
-	lined = datad + (h - 1) * wpld;
-	for (j = 0; j < w; j++) {
-	    rval = buf2r[j] / 64;
-	    gval = buf2g[j] / 64;
-	    bval = buf2b[j] / 64;
-	    index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
-	    SET_DATA_BYTE(lined, j, index);
-	}
+            /* Get last row of pixels; no leftward propagation */
+        lined = datad + (h - 1) * wpld;
+        for (j = 0; j < w; j++) {
+            rval = buf2r[j] / 64;
+            gval = buf2g[j] / 64;
+            bval = buf2b[j] / 64;
+            index = (rval & 0xe0) | ((gval >> 3) & 0x1c) | (bval >> 6);
+            SET_DATA_BYTE(lined, j, index);
+        }
 
-	FREE(bufu8r);
-	FREE(bufu8g);
-	FREE(bufu8b);
-	FREE(buf1r);
-	FREE(buf1g);
-	FREE(buf1b);
-	FREE(buf2r);
-	FREE(buf2g);
-	FREE(buf2b);
+        FREE(bufu8r);
+        FREE(bufu8g);
+        FREE(bufu8b);
+        FREE(buf1r);
+        FREE(buf1g);
+        FREE(buf1b);
+        FREE(buf2r);
+        FREE(buf2g);
+        FREE(buf2b);
     }
 
     return pixd;
@@ -569,7 +569,7 @@ PIXCMAP   *cmap;
 PIX *
 pixOctreeColorQuant(PIX      *pixs,
                     l_int32   colors,
-		    l_int32   ditherflag)
+                    l_int32   ditherflag)
 {
 CQCELL  ***cqcaa;
 PIX       *pixd, *pixsub;
@@ -578,31 +578,31 @@ PIXCMAP   *cmap;
     PROCNAME("pixOctreeColorQuant");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (colors < 128 || colors > 256)
-	return (PIX *)ERROR_PTR("colors must be in [128, 256]", procName, NULL);
+        return (PIX *)ERROR_PTR("colors must be in [128, 256]", procName, NULL);
 
-	/* Subsample to speed up the first pass */
+        /* Subsample to speed up the first pass */
     if ((pixsub = pixScaleBySampling(pixs, SUBSAMPLE_FACTOR, SUBSAMPLE_FACTOR))
-	    == NULL)
-	return (PIX *)ERROR_PTR("pixsub not made", procName, NULL);
+            == NULL)
+        return (PIX *)ERROR_PTR("pixsub not made", procName, NULL);
 
-	/* Make the pruned octree */
+        /* Make the pruned octree */
     cqcaa = octreeGenerateAndPrune(pixsub, colors, CQ_RESERVED_COLORS, &cmap);
     if (!cqcaa)
-	return (PIX *)ERROR_PTR("tree not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tree not made", procName, NULL);
     L_INFO_INT(" Colors requested = %d", procName, colors);
     L_INFO_INT(" Actual colors = %d", procName, cmap->n);
 
-	/* Traverse tree from root, looking for lowest cube
-	 * that is a leaf, and set dest pix value to its 
-	 * colortable index */
+        /* Traverse tree from root, looking for lowest cube
+         * that is a leaf, and set dest pix value to its 
+         * colortable index */
     if ((pixd = pixOctreeQuantizePixels(pixs, cqcaa, ditherflag)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
-	/* Attach colormap and copy res */
+        /* Attach colormap and copy res */
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
 
@@ -629,8 +629,8 @@ PIXCMAP   *cmap;
 CQCELL ***
 octreeGenerateAndPrune(PIX       *pixs,
                        l_int32    colors,
-		       l_int32    reservedcolors,
-		       PIXCMAP  **pcmap)
+                       l_int32    reservedcolors,
+                       PIXCMAP  **pcmap)
 {
 l_int32    rval, gval, bval;
 l_int32    level, ncells, octindex;
@@ -655,22 +655,22 @@ NUMA      *nar;  /* accumulates levels for residual cells */
     PROCNAME("octreeGenerateAndPrune");
 
     if (!pixs)
-	return (CQCELL ***)ERROR_PTR("pixs not defined", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (CQCELL ***)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
     if (colors < 128 || colors > 256)
-	return (CQCELL ***)ERROR_PTR("colors not in [128,256]", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("colors not in [128,256]", procName, NULL);
     if (!pcmap)
-	return (CQCELL ***)ERROR_PTR("&cmap not defined", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("&cmap not defined", procName, NULL);
 
-	/* Make the canonical index tables */
+        /* Make the canonical index tables */
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, CQ_NLEVELS))
-	return (CQCELL ***)ERROR_PTR("tables not made", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("tables not made", procName, NULL);
 
     if ((cqcaa = cqcellTreeCreate()) == NULL)
-	return (CQCELL ***)ERROR_PTR("cqcaa not made", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("cqcaa not made", procName, NULL);
 
-	/* Generate an 8 bpp cmap (max size 256) */
+        /* Generate an 8 bpp cmap (max size 256) */
     cmap = pixcmapCreate(8);
     *pcmap = cmap;
 
@@ -682,74 +682,74 @@ NUMA      *nar;  /* accumulates levels for residual cells */
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
-	/* Accumulate the centers of each cluster at level CQ_NLEVELS */
+        /* Accumulate the centers of each cluster at level CQ_NLEVELS */
     ncells = 1 << (3 * CQ_NLEVELS);
     cqca = cqcaa[CQ_NLEVELS];
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	for (j = 0; j < w; j++) {
-	    ppixel = lines + j;
-	    rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-	    gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-	    bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-	    octindex = rtab[rval] | gtab[gval] | btab[bval];
-	    cqc = cqca[octindex];
-	    cqc->n++;
-	}
+        lines = datas + i * wpls;
+        for (j = 0; j < w; j++) {
+            ppixel = lines + j;
+            rval = GET_DATA_BYTE(ppixel, COLOR_RED);
+            gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+            bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
+            cqc = cqca[octindex];
+            cqc->n++;
+        }
     }
 
-	/* Arrays for storing statistics */
+        /* Arrays for storing statistics */
     if ((nat = numaCreate(0)) == NULL)
-	return (CQCELL ***)ERROR_PTR("nat not made", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("nat not made", procName, NULL);
     if ((nar = numaCreate(0)) == NULL)
-	return (CQCELL ***)ERROR_PTR("nar not made", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("nar not made", procName, NULL);
 
-	/* Prune back from the lowest level and generate the colormap */
+        /* Prune back from the lowest level and generate the colormap */
     for (level = CQ_NLEVELS - 1; level >= 2; level--) {
-	thresh = thresholdFactor[level];
-	cqca = cqcaa[level];
-	cqcasub = cqcaa[level + 1];
-	ncells = 1 << (3 * level);
-	for (i = 0; i < ncells; i++) {  /* i is octindex at level */
-	    cqc = cqca[i];
-	    for (j = 0; j < 8; j++) {  /* check all subnodes */
-		isub = 8 * i + j;   /* isub is octindex at level+1 */
-		cqcsub = cqcasub[isub];
-		if (cqcsub->bleaf == 1) {  /* already a leaf? */
-		    cqc->nleaves++;   /* count the subcube leaves */
-		    continue;
-		}
-		if (cqcsub->n >= thresh * ppc) {  /* make it a true leaf? */
-		    cqcsub->bleaf = 1;
-		    if (cmap->n < 256) {
-			cqcsub->index = cmap->n;  /* assign the color index */
-			getRGBFromOctcube(isub, level + 1, &rv, &gv, &bv); 
-			pixcmapAddColor(cmap, rv, gv, bv);
+        thresh = thresholdFactor[level];
+        cqca = cqcaa[level];
+        cqcasub = cqcaa[level + 1];
+        ncells = 1 << (3 * level);
+        for (i = 0; i < ncells; i++) {  /* i is octindex at level */
+            cqc = cqca[i];
+            for (j = 0; j < 8; j++) {  /* check all subnodes */
+                isub = 8 * i + j;   /* isub is octindex at level+1 */
+                cqcsub = cqcasub[isub];
+                if (cqcsub->bleaf == 1) {  /* already a leaf? */
+                    cqc->nleaves++;   /* count the subcube leaves */
+                    continue;
+                }
+                if (cqcsub->n >= thresh * ppc) {  /* make it a true leaf? */
+                    cqcsub->bleaf = 1;
+                    if (cmap->n < 256) {
+                        cqcsub->index = cmap->n;  /* assign the color index */
+                        getRGBFromOctcube(isub, level + 1, &rv, &gv, &bv); 
+                        pixcmapAddColor(cmap, rv, gv, bv);
 #if 1   /* save values */
-			cqcsub->rc = rv;
-			cqcsub->gc = gv;
-			cqcsub->bc = bv;
+                        cqcsub->rc = rv;
+                        cqcsub->gc = gv;
+                        cqcsub->bc = bv;
 #endif
-		    }
-		    else {
-			L_WARNING("possibly assigned pixels to wrong color",
-			        procName);
-			cqcsub->index = 255;  /* assign to the last; bad */
-			pixcmapGetColor(cmap, 255, &rval, &gval, &bval);
-			cqcsub->rc = rval;
-			cqcsub->gc = gval;
-			cqcsub->bc = bval;
-		    }
-		    cqc->nleaves++;
-		    npix -= cqcsub->n;
-		    ncolor--;
-		    if (ncolor > 0)
-			ppc = npix / ncolor;
-		    else if (ncolor + reservedcolors > 0)
-		        ppc = npix / (ncolor + reservedcolors);
-		    else
-		        ppc = 1000000;  /* make it big */
-		    numaAddNumber(nat, level + 1);
+                    }
+                    else {
+                        L_WARNING("possibly assigned pixels to wrong color",
+                                procName);
+                        cqcsub->index = 255;  /* assign to the last; bad */
+                        pixcmapGetColor(cmap, 255, &rval, &gval, &bval);
+                        cqcsub->rc = rval;
+                        cqcsub->gc = gval;
+                        cqcsub->bc = bval;
+                    }
+                    cqc->nleaves++;
+                    npix -= cqcsub->n;
+                    ncolor--;
+                    if (ncolor > 0)
+                        ppc = npix / ncolor;
+                    else if (ncolor + reservedcolors > 0)
+                        ppc = npix / (ncolor + reservedcolors);
+                    else
+                        ppc = 1000000;  /* make it big */
+                    numaAddNumber(nat, level + 1);
 
 #if  DEBUG_CMAP
     fprintf(stderr, "Exceeds threshold: colors used = %d, colors remaining = %d\n",
@@ -761,46 +761,46 @@ NUMA      *nar;  /* accumulates levels for residual cells */
     fprintf(stderr, "  rv = %d, gv = %d, bv = %d\n", rv, gv, bv);
 #endif  /* DEBUG_CMAP */
 
-		}
-	    }
-	    if (cqc->nleaves > 0 || level == 2) { /* make the cube a leaf now */
-		cqc->bleaf = 1;
-		if (cqc->nleaves < 8) {  /* residual CTE cube: acquire the
-		                          * remaining pixels */
-		    for (j = 0; j < 8; j++) {  /* check all subnodes */
-			isub = 8 * i + j;
-			cqcsub = cqcasub[isub];
-			if (cqcsub->bleaf == 0)  /* absorb */
-			    cqc->n += cqcsub->n;
-		    }
-		    if (cmap->n < 256) {
-			cqc->index = cmap->n;  /* assign the color index */
-			getRGBFromOctcube(i, level, &rv, &gv, &bv); 
-			pixcmapAddColor(cmap, rv, gv, bv);
+                }
+            }
+            if (cqc->nleaves > 0 || level == 2) { /* make the cube a leaf now */
+                cqc->bleaf = 1;
+                if (cqc->nleaves < 8) {  /* residual CTE cube: acquire the
+                                          * remaining pixels */
+                    for (j = 0; j < 8; j++) {  /* check all subnodes */
+                        isub = 8 * i + j;
+                        cqcsub = cqcasub[isub];
+                        if (cqcsub->bleaf == 0)  /* absorb */
+                            cqc->n += cqcsub->n;
+                    }
+                    if (cmap->n < 256) {
+                        cqc->index = cmap->n;  /* assign the color index */
+                        getRGBFromOctcube(i, level, &rv, &gv, &bv); 
+                        pixcmapAddColor(cmap, rv, gv, bv);
 #if 1   /* save values */
-			cqc->rc = rv;
-			cqc->gc = gv;
-			cqc->bc = bv;
+                        cqc->rc = rv;
+                        cqc->gc = gv;
+                        cqc->bc = bv;
 #endif
-		    }
-		    else {
-			L_WARNING("possibly assigned pixels to wrong color",
-			        procName);
-			cqc->index = 255;  /* assign to the last */
-			pixcmapGetColor(cmap, 255, &rval, &gval, &bval);
-			cqc->rc = rval;
-			cqc->gc = gval;
-			cqc->bc = bval;
-		    }
-		    npix -= cqc->n;
-		    ncolor--;
-		    if (ncolor > 0)
-			ppc = npix / ncolor;
-		    else if (ncolor + reservedcolors > 0)
-		        ppc = npix / (ncolor + reservedcolors);
-		    else
-		        ppc = 1000000;  /* make it big */
-		    numaAddNumber(nar, level);
+                    }
+                    else {
+                        L_WARNING("possibly assigned pixels to wrong color",
+                                procName);
+                        cqc->index = 255;  /* assign to the last */
+                        pixcmapGetColor(cmap, 255, &rval, &gval, &bval);
+                        cqc->rc = rval;
+                        cqc->gc = gval;
+                        cqc->bc = bval;
+                    }
+                    npix -= cqc->n;
+                    ncolor--;
+                    if (ncolor > 0)
+                        ppc = npix / ncolor;
+                    else if (ncolor + reservedcolors > 0)
+                        ppc = npix / (ncolor + reservedcolors);
+                    else
+                        ppc = 1000000;  /* make it big */
+                    numaAddNumber(nar, level);
 
 #if  DEBUG_CMAP
     fprintf(stderr, "By remainder: colors used = %d, colors remaining = %d\n",
@@ -811,16 +811,16 @@ NUMA      *nar;  /* accumulates levels for residual cells */
     fprintf(stderr, "  rv = %d, gv = %d, bv = %d\n", rv, gv, bv);
 #endif  /* DEBUG_CMAP */
 
-		}
-	    }
-	    else {  /* absorb all the subpixels but don't make it a leaf */
-		for (j = 0; j < 8; j++) {  /* absorb from all subnodes */
-		    isub = 8 * i + j;
-		    cqcsub = cqcasub[isub];
-		    cqc->n += cqcsub->n;
-		}
-	    }
-	}
+                }
+            }
+            else {  /* absorb all the subpixels but don't make it a leaf */
+                for (j = 0; j < 8; j++) {  /* absorb from all subnodes */
+                    isub = 8 * i + j;
+                    cqcsub = cqcasub[isub];
+                    cqc->n += cqcsub->n;
+                }
+            }
+        }
     }
 
 #if  PRINT_STATISTICS
@@ -832,19 +832,19 @@ l_int32    nt, nr, ival;
     nt = numaGetCount(nat);
     nr = numaGetCount(nar);
     for (i = 0; i < nt; i++) {
-	numaGetIValue(nat, i, &ival);
-	tc[ival]++;
+        numaGetIValue(nat, i, &ival);
+        tc[ival]++;
     }
     for (i = 0; i < nr; i++) {
-	numaGetIValue(nar, i, &ival);
-	rc[ival]++;
+        numaGetIValue(nar, i, &ival);
+        rc[ival]++;
     }
     fprintf(stderr, " Threshold cells formed: %d\n", nt);
     for (i = 1; i < CQ_NLEVELS + 1; i++)
-	fprintf(stderr, "   level %d:  %d\n", i, tc[i]);
+        fprintf(stderr, "   level %d:  %d\n", i, tc[i]);
     fprintf(stderr, "\n Residual cells formed: %d\n", nr);
     for (i = 0; i < CQ_NLEVELS ; i++)
-	fprintf(stderr, "   level %d:  %d\n", i, rc[i]);
+        fprintf(stderr, "   level %d:  %d\n", i, rc[i]);
 }
 #endif  /* PRINT_STATISTICS */
 
@@ -882,7 +882,7 @@ l_int32    nt, nr, ival;
 PIX *
 pixOctreeQuantizePixels(PIX       *pixs,
                         CQCELL  ***cqcaa,
-			l_int32    ditherflag)
+                        l_int32    ditherflag)
 {
 l_uint8    rval, gval, bval;
 l_uint8   *bufu8r, *bufu8g, *bufu8b;
@@ -899,174 +899,174 @@ PIX       *pixd;
     PROCNAME("pixOctreeQuantizePixels");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
     if (!cqcaa)
-	return (PIX *)ERROR_PTR("cqcaa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cqcaa not defined", procName, NULL);
 
-	/* Make the canonical index tables */
+        /* Make the canonical index tables */
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, CQ_NLEVELS))
-	return (PIX *)ERROR_PTR("tables not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tables not made", procName, NULL);
 
-	/* Make output 8 bpp palette image */
+        /* Make output 8 bpp palette image */
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-	/* Traverse tree from root, looking for lowest cube
-	 * that is a leaf, and set dest pix to its 
-	 * colortable index value.  The results are far
-	 * better when dithering to get a more accurate
-	 * average color.  */
+        /* Traverse tree from root, looking for lowest cube
+         * that is a leaf, and set dest pix to its 
+         * colortable index value.  The results are far
+         * better when dithering to get a more accurate
+         * average color.  */
     if (ditherflag == 0) {    /* no dithering */
-	for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + i * wpld;
-	    for (j = 0; j < w; j++) {
-		ppixel = lines + j;
-		rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-		gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-		bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-		octindex = rtab[rval] | gtab[gval] | btab[bval];
-		octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
-		SET_DATA_BYTE(lined, j, index);
-	    }
-	}
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
+            for (j = 0; j < w; j++) {
+                ppixel = lines + j;
+                rval = GET_DATA_BYTE(ppixel, COLOR_RED);
+                gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+                bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                octindex = rtab[rval] | gtab[gval] | btab[bval];
+                octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
+                SET_DATA_BYTE(lined, j, index);
+            }
+        }
     }
     else {  /* Dither */
-	bufu8r = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
-	bufu8g = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
-	bufu8b = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
-	buf1r = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf1g = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf1b = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf2r = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf2g = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	buf2b = (l_int32 *)CALLOC(w, sizeof(l_int32));
-	if (!bufu8r || !bufu8g || !bufu8b)
-	    return (PIX *)ERROR_PTR("uint8 mono line buf not made",
-	        procName, NULL);
-	if (!buf1r || !buf1g || !buf1b || !buf2r || !buf2g || !buf2b)
-	    return (PIX *)ERROR_PTR("mono line buf not made", procName, NULL);
+        bufu8r = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
+        bufu8g = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
+        bufu8b = (l_uint8 *)CALLOC(w, sizeof(l_uint8));
+        buf1r = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf1g = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf1b = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf2r = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf2g = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        buf2b = (l_int32 *)CALLOC(w, sizeof(l_int32));
+        if (!bufu8r || !bufu8g || !bufu8b)
+            return (PIX *)ERROR_PTR("uint8 mono line buf not made",
+                procName, NULL);
+        if (!buf1r || !buf1g || !buf1b || !buf2r || !buf2g || !buf2b)
+            return (PIX *)ERROR_PTR("mono line buf not made", procName, NULL);
 
-	    /* Start by priming buf2; line 1 is above line 2 */
-	pixGetRGBLine(pixs, 0, bufu8r, bufu8g, bufu8b);
-	for (j = 0; j < w; j++) {
-	    buf2r[j] = 64 * bufu8r[j];
-	    buf2g[j] = 64 * bufu8g[j];
-	    buf2b[j] = 64 * bufu8b[j];
-	}
+            /* Start by priming buf2; line 1 is above line 2 */
+        pixGetRGBLine(pixs, 0, bufu8r, bufu8g, bufu8b);
+        for (j = 0; j < w; j++) {
+            buf2r[j] = 64 * bufu8r[j];
+            buf2g[j] = 64 * bufu8g[j];
+            buf2b[j] = 64 * bufu8b[j];
+        }
 
-	for (i = 0; i < h - 1; i++) {
-		/* Swap data 2 --> 1, and read in new line 2 */
-	    memcpy(buf1r, buf2r, 4 * w);
-	    memcpy(buf1g, buf2g, 4 * w);
-	    memcpy(buf1b, buf2b, 4 * w);
-	    pixGetRGBLine(pixs, i + 1, bufu8r, bufu8g, bufu8b);
-	    for (j = 0; j < w; j++) {
-		buf2r[j] = 64 * bufu8r[j];
-		buf2g[j] = 64 * bufu8g[j];
-		buf2b[j] = 64 * bufu8b[j];
-	    }
+        for (i = 0; i < h - 1; i++) {
+                /* Swap data 2 --> 1, and read in new line 2 */
+            memcpy(buf1r, buf2r, 4 * w);
+            memcpy(buf1g, buf2g, 4 * w);
+            memcpy(buf1b, buf2b, 4 * w);
+            pixGetRGBLine(pixs, i + 1, bufu8r, bufu8g, bufu8b);
+            for (j = 0; j < w; j++) {
+                buf2r[j] = 64 * bufu8r[j];
+                buf2g[j] = 64 * bufu8g[j];
+                buf2b[j] = 64 * bufu8b[j];
+            }
 
-		/* Dither */
-	    lined = datad + i * wpld;
-	    for (j = 0; j < w - 1; j++) {
-		rval = buf1r[j] / 64;
-		gval = buf1g[j] / 64;
-		bval = buf1b[j] / 64;
-		octindex = rtab[rval] | gtab[gval] | btab[bval];
-		octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
-		SET_DATA_BYTE(lined, j, index);
+                /* Dither */
+            lined = datad + i * wpld;
+            for (j = 0; j < w - 1; j++) {
+                rval = buf1r[j] / 64;
+                gval = buf1g[j] / 64;
+                bval = buf1b[j] / 64;
+                octindex = rtab[rval] | gtab[gval] | btab[bval];
+                octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
+                SET_DATA_BYTE(lined, j, index);
 
-		dif = buf1r[j] / 8 - 8 * rc;
-		if (dif != 0) {
-		    val1 = buf1r[j + 1] + 3 * dif;
-		    val2 = buf2r[j] + 3 * dif;
-		    val3 = buf2r[j + 1] + 2 * dif;
-		    if (dif > 0) {
-			buf1r[j + 1] = L_MIN(16383, val1);
-			buf2r[j] = L_MIN(16383, val2);
-			buf2r[j + 1] = L_MIN(16383, val3);
-		    }
-		    else if (dif < 0) {
-			buf1r[j + 1] = L_MAX(0, val1);
-			buf2r[j] = L_MAX(0, val2);
-			buf2r[j + 1] = L_MAX(0, val3);
-		    }
-		}
+                dif = buf1r[j] / 8 - 8 * rc;
+                if (dif != 0) {
+                    val1 = buf1r[j + 1] + 3 * dif;
+                    val2 = buf2r[j] + 3 * dif;
+                    val3 = buf2r[j + 1] + 2 * dif;
+                    if (dif > 0) {
+                        buf1r[j + 1] = L_MIN(16383, val1);
+                        buf2r[j] = L_MIN(16383, val2);
+                        buf2r[j + 1] = L_MIN(16383, val3);
+                    }
+                    else if (dif < 0) {
+                        buf1r[j + 1] = L_MAX(0, val1);
+                        buf2r[j] = L_MAX(0, val2);
+                        buf2r[j + 1] = L_MAX(0, val3);
+                    }
+                }
 
-		dif = buf1g[j] / 8 - 8 * gc;
-		if (dif != 0) {
-		    val1 = buf1g[j + 1] + 3 * dif;
-		    val2 = buf2g[j] + 3 * dif;
-		    val3 = buf2g[j + 1] + 2 * dif;
-		    if (dif > 0) {
-			buf1g[j + 1] = L_MIN(16383, val1);
-			buf2g[j] = L_MIN(16383, val2);
-			buf2g[j + 1] = L_MIN(16383, val3);
-		    }
-		    else if (dif < 0) {
-			buf1g[j + 1] = L_MAX(0, val1);
-			buf2g[j] = L_MAX(0, val2);
-			buf2g[j + 1] = L_MAX(0, val3);
-		    }
-		}
+                dif = buf1g[j] / 8 - 8 * gc;
+                if (dif != 0) {
+                    val1 = buf1g[j + 1] + 3 * dif;
+                    val2 = buf2g[j] + 3 * dif;
+                    val3 = buf2g[j + 1] + 2 * dif;
+                    if (dif > 0) {
+                        buf1g[j + 1] = L_MIN(16383, val1);
+                        buf2g[j] = L_MIN(16383, val2);
+                        buf2g[j + 1] = L_MIN(16383, val3);
+                    }
+                    else if (dif < 0) {
+                        buf1g[j + 1] = L_MAX(0, val1);
+                        buf2g[j] = L_MAX(0, val2);
+                        buf2g[j + 1] = L_MAX(0, val3);
+                    }
+                }
 
-		dif = buf1b[j] / 8 - 8 * bc;
-		if (dif != 0) {
-		    val1 = buf1b[j + 1] + 3 * dif;
-		    val2 = buf2b[j] + 3 * dif;
-		    val3 = buf2b[j + 1] + 2 * dif;
-		    if (dif > 0) {
-			buf1b[j + 1] = L_MIN(16383, val1);
-			buf2b[j] = L_MIN(16383, val2);
-			buf2b[j + 1] = L_MIN(16383, val3);
-		    }
-		    else if (dif < 0) {
-			buf1b[j + 1] = L_MAX(0, val1);
-			buf2b[j] = L_MAX(0, val2);
-			buf2b[j + 1] = L_MAX(0, val3);
-		    }
-		}
-	    }
+                dif = buf1b[j] / 8 - 8 * bc;
+                if (dif != 0) {
+                    val1 = buf1b[j + 1] + 3 * dif;
+                    val2 = buf2b[j] + 3 * dif;
+                    val3 = buf2b[j + 1] + 2 * dif;
+                    if (dif > 0) {
+                        buf1b[j + 1] = L_MIN(16383, val1);
+                        buf2b[j] = L_MIN(16383, val2);
+                        buf2b[j + 1] = L_MIN(16383, val3);
+                    }
+                    else if (dif < 0) {
+                        buf1b[j + 1] = L_MAX(0, val1);
+                        buf2b[j] = L_MAX(0, val2);
+                        buf2b[j + 1] = L_MAX(0, val3);
+                    }
+                }
+            }
 
-		/* Get last pixel in row; no downward propagation */
-	    rval = buf1r[w - 1] / 64;
-	    gval = buf1g[w - 1] / 64;
-	    bval = buf1b[w - 1] / 64;
-	    octindex = rtab[rval] | gtab[gval] | btab[bval];
-	    octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
-	    SET_DATA_BYTE(lined, w - 1, index);
-	}
+                /* Get last pixel in row; no downward propagation */
+            rval = buf1r[w - 1] / 64;
+            gval = buf1g[w - 1] / 64;
+            bval = buf1b[w - 1] / 64;
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
+            octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
+            SET_DATA_BYTE(lined, w - 1, index);
+        }
 
-	    /* Get last row of pixels; no leftward propagation */
-	lined = datad + (h - 1) * wpld;
-	for (j = 0; j < w; j++) {
-	    rval = buf2r[j] / 64;
-	    gval = buf2g[j] / 64;
-	    bval = buf2b[j] / 64;
-	    octindex = rtab[rval] | gtab[gval] | btab[bval];
-	    octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
-	    SET_DATA_BYTE(lined, j, index);
-	}
+            /* Get last row of pixels; no leftward propagation */
+        lined = datad + (h - 1) * wpld;
+        for (j = 0; j < w; j++) {
+            rval = buf2r[j] / 64;
+            gval = buf2g[j] / 64;
+            bval = buf2b[j] / 64;
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
+            octreeFindColorCell(octindex, cqcaa, &index, &rc, &gc, &bc);
+            SET_DATA_BYTE(lined, j, index);
+        }
 
-	FREE(bufu8r);
-	FREE(bufu8g);
-	FREE(bufu8b);
-	FREE(buf1r);
-	FREE(buf1g);
-	FREE(buf1b);
-	FREE(buf2r);
-	FREE(buf2g);
-	FREE(buf2b);
+        FREE(bufu8r);
+        FREE(bufu8g);
+        FREE(bufu8b);
+        FREE(buf1r);
+        FREE(buf1g);
+        FREE(buf1b);
+        FREE(buf2r);
+        FREE(buf2g);
+        FREE(buf2b);
     }
 
     FREE(rtab);
@@ -1098,10 +1098,10 @@ PIX       *pixd;
 l_int32
 octreeFindColorCell(l_int32    octindex,
                     CQCELL  ***cqcaa,
-		    l_int32   *pindex,
-		    l_int32   *prval,
-		    l_int32   *pgval,
-		    l_int32   *pbval)
+                    l_int32   *pindex,
+                    l_int32   *prval,
+                    l_int32   *pgval,
+                    l_int32   *pbval)
 {
 l_int32  level;
 l_int32  baseindex, subindex;
@@ -1109,48 +1109,48 @@ CQCELL  *cqc, *cqcsub;
 
         /* Use rgb values stored in the cubes; a little faster */
     for (level = 2; level < CQ_NLEVELS; level++) {
-	getOctcubeIndices(octindex, level, &baseindex, &subindex);
-	cqc = cqcaa[level][baseindex];
-	cqcsub = cqcaa[level + 1][subindex];
-	if (cqcsub->bleaf == 0) {  /* use cell at level above */
-	    *pindex = cqc->index;
-	    *prval = cqc->rc;
-	    *pgval = cqc->gc;
-	    *pbval = cqc->bc;
-	    break;
-	}
-	else if (level == CQ_NLEVELS - 1) {  /* reached the bottom */
-	   *pindex = cqcsub->index;
-	   *prval = cqcsub->rc;
-	   *pgval = cqcsub->gc;
-	   *pbval = cqcsub->bc;
-	    break;
-	}
+        getOctcubeIndices(octindex, level, &baseindex, &subindex);
+        cqc = cqcaa[level][baseindex];
+        cqcsub = cqcaa[level + 1][subindex];
+        if (cqcsub->bleaf == 0) {  /* use cell at level above */
+            *pindex = cqc->index;
+            *prval = cqc->rc;
+            *pgval = cqc->gc;
+            *pbval = cqc->bc;
+            break;
+        }
+        else if (level == CQ_NLEVELS - 1) {  /* reached the bottom */
+           *pindex = cqcsub->index;
+           *prval = cqcsub->rc;
+           *pgval = cqcsub->gc;
+           *pbval = cqcsub->bc;
+            break;
+        }
     }
 
 #if 0
         /* Generate rgb values for each cube on the fly; slower */
     for (level = 2; level < CQ_NLEVELS; level++) {
         l_int32  rv, gv, bv;
-	getOctcubeIndices(octindex, level, &baseindex, &subindex);
-	cqc = cqcaa[level][baseindex];
-	cqcsub = cqcaa[level + 1][subindex];
-	if (cqcsub->bleaf == 0) {  /* use cell at level above */
-	    getRGBFromOctcube(baseindex, level, &rv, &gv, &bv);
-	    *pindex = cqc->index;
-	    *prval = rv;
-	    *pgval = gv;
-	    *pbval = bv;
-	    break;
-	}
-	else if (level == CQ_NLEVELS - 1) {  /* reached the bottom */
-	    getRGBFromOctcube(subindex, level + 1, &rv, &gv, &bv);
-	   *pindex = cqcsub->index;
-	    *prval = rv;
-	    *pgval = gv;
-	    *pbval = bv;
-	    break;
-	}
+        getOctcubeIndices(octindex, level, &baseindex, &subindex);
+        cqc = cqcaa[level][baseindex];
+        cqcsub = cqcaa[level + 1][subindex];
+        if (cqcsub->bleaf == 0) {  /* use cell at level above */
+            getRGBFromOctcube(baseindex, level, &rv, &gv, &bv);
+            *pindex = cqc->index;
+            *prval = rv;
+            *pgval = gv;
+            *pbval = bv;
+            break;
+        }
+        else if (level == CQ_NLEVELS - 1) {  /* reached the bottom */
+            getRGBFromOctcube(subindex, level + 1, &rv, &gv, &bv);
+           *pindex = cqcsub->index;
+            *prval = rv;
+            *pgval = gv;
+            *pbval = bv;
+            break;
+        }
     }
 #endif
 
@@ -1177,18 +1177,18 @@ CQCELL   **cqca;   /* one array for each octree level */
 
     PROCNAME("cqcellTreeCreate");
 
-	/* Make array of accumulation cell arrays from levels 1 to 5 */
+        /* Make array of accumulation cell arrays from levels 1 to 5 */
     if ((cqcaa = (CQCELL ***)CALLOC(CQ_NLEVELS + 1, sizeof(CQCELL **))) == NULL)
-	return (CQCELL ***)ERROR_PTR("cqcaa not made", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("cqcaa not made", procName, NULL);
     for (level = 0; level <= CQ_NLEVELS; level++) {
-	ncells = 1 << (3 * level);
-	if ((cqca = (CQCELL **)CALLOC(ncells, sizeof(CQCELL *))) == NULL)
-	    return (CQCELL ***)ERROR_PTR("cqca not made", procName, NULL);
-	cqcaa[level] = cqca;
-	for (i = 0; i < ncells; i++) {
-	    if ((cqca[i] = (CQCELL *)CALLOC(1, sizeof(CQCELL))) == NULL)
-		return (CQCELL ***)ERROR_PTR("cqc not made", procName, NULL);
-	}
+        ncells = 1 << (3 * level);
+        if ((cqca = (CQCELL **)CALLOC(ncells, sizeof(CQCELL *))) == NULL)
+            return (CQCELL ***)ERROR_PTR("cqca not made", procName, NULL);
+        cqcaa[level] = cqca;
+        for (i = 0; i < ncells; i++) {
+            if ((cqca[i] = (CQCELL *)CALLOC(1, sizeof(CQCELL))) == NULL)
+                return (CQCELL ***)ERROR_PTR("cqc not made", procName, NULL);
+        }
     }
 
     return cqcaa;
@@ -1211,19 +1211,19 @@ CQCELL   **cqca;
     PROCNAME("cqcellTreeDestroy");
 
     if (pcqcaa == NULL) {
-	L_WARNING("ptr address is NULL", procName);
-	return;
+        L_WARNING("ptr address is NULL", procName);
+        return;
     }
 
     if ((cqcaa = *pcqcaa) == NULL)
-	return;
+        return;
 
     for (level = 0; level <= CQ_NLEVELS; level++) {
-	cqca = cqcaa[level];
-	ncells = 1 << (3 * level);
-	for (i = 0; i < ncells; i++)
-	    FREE(cqca[i]);
-	FREE(cqca);
+        cqca = cqcaa[level];
+        ncells = 1 << (3 * level);
+        for (i = 0; i < ncells; i++)
+            FREE(cqca[i]);
+        FREE(cqca);
     }
     FREE(cqcaa);
     *pcqcaa = NULL;
@@ -1267,7 +1267,7 @@ l_int32
 makeRGBToIndexTables(l_uint32  **prtab,
                      l_uint32  **pgtab,
                      l_uint32  **pbtab,
-		     l_int32     cqlevels)
+                     l_int32     cqlevels)
 {
 l_int32    i;
 l_uint32  *rtab, *gtab, *btab;
@@ -1275,85 +1275,85 @@ l_uint32  *rtab, *gtab, *btab;
     PROCNAME("makeRGBToIndexTables");
 
     if (cqlevels < 1 || cqlevels > 6)
-	return ERROR_INT("cqlevels must be in {1,...6}", procName, 1);
+        return ERROR_INT("cqlevels must be in {1,...6}", procName, 1);
 
     if (!prtab || !pgtab || !pbtab)
-	return ERROR_INT("&*tab not defined", procName, 1);
+        return ERROR_INT("&*tab not defined", procName, 1);
     if ((rtab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL)
-	return ERROR_INT("rtab not made", procName, 1);
+        return ERROR_INT("rtab not made", procName, 1);
     if ((gtab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL)
-	return ERROR_INT("gtab not made", procName, 1);
+        return ERROR_INT("gtab not made", procName, 1);
     if ((btab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL)
-	return ERROR_INT("btab not made", procName, 1);
+        return ERROR_INT("btab not made", procName, 1);
     *prtab = rtab;
     *pgtab = gtab;
     *pbtab = btab;
-	
+        
     switch (cqlevels)
     {
     case 1:
-	for (i = 0; i < 256; i++) {
-	    rtab[i] = (i >> 5) & 0x0004;
-	    gtab[i] = (i >> 6) & 0x0002;
-	    btab[i] = (i >> 7);
-	}
-	break;
+        for (i = 0; i < 256; i++) {
+            rtab[i] = (i >> 5) & 0x0004;
+            gtab[i] = (i >> 6) & 0x0002;
+            btab[i] = (i >> 7);
+        }
+        break;
     case 2:
-	for (i = 0; i < 256; i++) {
-	    rtab[i] = ((i >> 2) & 0x0020) | ((i >> 4) & 0x0004);
-	    gtab[i] = ((i >> 3) & 0x0010) | ((i >> 5) & 0x0002);
-	    btab[i] = ((i >> 4) & 0x0008) | ((i >> 6) & 0x0001);
-	}
-	break;
+        for (i = 0; i < 256; i++) {
+            rtab[i] = ((i >> 2) & 0x0020) | ((i >> 4) & 0x0004);
+            gtab[i] = ((i >> 3) & 0x0010) | ((i >> 5) & 0x0002);
+            btab[i] = ((i >> 4) & 0x0008) | ((i >> 6) & 0x0001);
+        }
+        break;
     case 3:
-	for (i = 0; i < 256; i++) {
-	    rtab[i] = ((i << 1) & 0x0100) | ((i >> 1) & 0x0020) |
-		      ((i >> 3) & 0x0004);
-	    gtab[i] = (i & 0x0080) | ((i >> 2) & 0x0010) |
-		      ((i >> 4) & 0x0002);
-	    btab[i] = ((i >> 1) & 0x0040) | ((i >> 3) & 0x0008) |
-		      ((i >> 5) & 0x0001);
-	}
-	break;
+        for (i = 0; i < 256; i++) {
+            rtab[i] = ((i << 1) & 0x0100) | ((i >> 1) & 0x0020) |
+                      ((i >> 3) & 0x0004);
+            gtab[i] = (i & 0x0080) | ((i >> 2) & 0x0010) |
+                      ((i >> 4) & 0x0002);
+            btab[i] = ((i >> 1) & 0x0040) | ((i >> 3) & 0x0008) |
+                      ((i >> 5) & 0x0001);
+        }
+        break;
     case 4:
-	for (i = 0; i < 256; i++) {
-	    rtab[i] = ((i << 4) & 0x0800) | ((i << 2) & 0x0100) |
-		      (i & 0x0020) | ((i >> 2) & 0x0004);
-	    gtab[i] = ((i << 3) & 0x0400) | ((i << 1) & 0x0080) |
-		      ((i >> 1) & 0x0010) | ((i >> 3) & 0x0002);
-	    btab[i] = ((i << 2) & 0x0200) | (i & 0x0040) |
-		      ((i >> 2) & 0x0008) | ((i >> 4) & 0x0001);
-	}
-	break;
+        for (i = 0; i < 256; i++) {
+            rtab[i] = ((i << 4) & 0x0800) | ((i << 2) & 0x0100) |
+                      (i & 0x0020) | ((i >> 2) & 0x0004);
+            gtab[i] = ((i << 3) & 0x0400) | ((i << 1) & 0x0080) |
+                      ((i >> 1) & 0x0010) | ((i >> 3) & 0x0002);
+            btab[i] = ((i << 2) & 0x0200) | (i & 0x0040) |
+                      ((i >> 2) & 0x0008) | ((i >> 4) & 0x0001);
+        }
+        break;
     case 5:
-	for (i = 0; i < 256; i++) {
-	    rtab[i] = ((i << 7) & 0x4000) | ((i << 5) & 0x0800) |
-		      ((i << 3) & 0x0100) | ((i << 1) & 0x0020) |
-		      ((i >> 1) & 0x0004);
-	    gtab[i] = ((i << 6) & 0x2000) | ((i << 4) & 0x0400) |
-		      ((i << 2) & 0x0080) | (i & 0x0010) |
-		      ((i >> 2) & 0x0002);
-	    btab[i] = ((i << 5) & 0x1000) | ((i << 3) & 0x0200) |
-		      ((i << 1) & 0x0040) | ((i >> 1) & 0x0008) |
-		      ((i >> 3) & 0x0001);
-	}
-	break;
+        for (i = 0; i < 256; i++) {
+            rtab[i] = ((i << 7) & 0x4000) | ((i << 5) & 0x0800) |
+                      ((i << 3) & 0x0100) | ((i << 1) & 0x0020) |
+                      ((i >> 1) & 0x0004);
+            gtab[i] = ((i << 6) & 0x2000) | ((i << 4) & 0x0400) |
+                      ((i << 2) & 0x0080) | (i & 0x0010) |
+                      ((i >> 2) & 0x0002);
+            btab[i] = ((i << 5) & 0x1000) | ((i << 3) & 0x0200) |
+                      ((i << 1) & 0x0040) | ((i >> 1) & 0x0008) |
+                      ((i >> 3) & 0x0001);
+        }
+        break;
     case 6:
-	for (i = 0; i < 256; i++) {
-	    rtab[i] = ((i << 10) & 0x20000) | ((i << 8) & 0x4000) |
-		      ((i << 6) & 0x0800) | ((i << 4) & 0x0100) |
-		      ((i << 2) & 0x0020) | (i & 0x0004);
-	    gtab[i] = ((i << 9) & 0x10000) | ((i << 7) & 0x2000) |
-		      ((i << 5) & 0x0400) | ((i << 3) & 0x0080) |
-		      ((i << 1) & 0x0010) | ((i >> 1) & 0x0002);
-	    btab[i] = ((i << 8) & 0x8000) | ((i << 6) & 0x1000) |
-		      ((i << 4) & 0x0200) | ((i << 2) & 0x0040) |
-		      (i & 0x0008) | ((i >> 2) & 0x0001);
-	}
-	break;
+        for (i = 0; i < 256; i++) {
+            rtab[i] = ((i << 10) & 0x20000) | ((i << 8) & 0x4000) |
+                      ((i << 6) & 0x0800) | ((i << 4) & 0x0100) |
+                      ((i << 2) & 0x0020) | (i & 0x0004);
+            gtab[i] = ((i << 9) & 0x10000) | ((i << 7) & 0x2000) |
+                      ((i << 5) & 0x0400) | ((i << 3) & 0x0080) |
+                      ((i << 1) & 0x0010) | ((i >> 1) & 0x0002);
+            btab[i] = ((i << 8) & 0x8000) | ((i << 6) & 0x1000) |
+                      ((i << 4) & 0x0200) | ((i << 2) & 0x0040) |
+                      (i & 0x0008) | ((i >> 2) & 0x0001);
+        }
+        break;
     default:
         ERROR_INT("cqlevels not in [1...6]", procName, 1);
-	break;
+        break;
     }
 
     return 0;
@@ -1393,18 +1393,18 @@ l_uint32  *rtab, *gtab, *btab;
 void
 getRGBFromOctcube(l_int32   cubeindex,
                   l_int32   level,
-		  l_int32  *prval,
-		  l_int32  *pgval,
-		  l_int32  *pbval)
+                  l_int32  *prval,
+                  l_int32  *pgval,
+                  l_int32  *pbval)
 {
 l_int32  rgbindex;
 
-	/* Bring to format in 21 bits: (r7 g7 b7 r6 g6 b6 ...) */
-	/* This is valid for levels from 0 to 6 */
+        /* Bring to format in 21 bits: (r7 g7 b7 r6 g6 b6 ...) */
+        /* This is valid for levels from 0 to 6 */
     rgbindex = cubeindex << (3 * (7 - level));  /* upper corner of cube */
     rgbindex |= (0x7 << (3 * (6 - level)));   /* index to center of cube */
 
-	/* Extract separate pieces */
+        /* Extract separate pieces */
     *prval = ((rgbindex >> 13) & 0x80) |
              ((rgbindex >> 11) & 0x40) |
              ((rgbindex >> 9) & 0x20) |
@@ -1418,7 +1418,7 @@ l_int32  rgbindex;
              ((rgbindex >> 6) & 0x10) |
              ((rgbindex >> 4) & 0x08) |
              ((rgbindex >> 2) & 0x04) |
-	     (rgbindex & 0x02);
+             (rgbindex & 0x02);
     *pbval = ((rgbindex >> 11) & 0x80) |
              ((rgbindex >> 9) & 0x40) |
              ((rgbindex >> 7) & 0x20) |
@@ -1467,17 +1467,17 @@ l_int32  rgbindex;
 l_int32
 getOctcubeIndices(l_int32   rgbindex,
                   l_int32   level,
-	          l_int32  *pbindex,
-		  l_int32  *psindex)
+                  l_int32  *pbindex,
+                  l_int32  *psindex)
 {
     PROCNAME("getOctcubeIndex");
 
     if (level < 0 || level > CQ_NLEVELS - 1)
-	return ERROR_INT("level must be in e.g., [0 ... 5]", procName, 1);
+        return ERROR_INT("level must be in e.g., [0 ... 5]", procName, 1);
     if (!pbindex)
-	return ERROR_INT("&bindex not defined", procName, 1);
+        return ERROR_INT("&bindex not defined", procName, 1);
     if (!psindex)
-	return ERROR_INT("&sindex not defined", procName, 1);
+        return ERROR_INT("&sindex not defined", procName, 1);
 
     *pbindex = rgbindex >> (3 * (CQ_NLEVELS - level));
     *psindex = rgbindex >> (3 * (CQ_NLEVELS - 1 - level));
@@ -1497,12 +1497,12 @@ getOctcubeIndices(l_int32   rgbindex,
  */
 void
 getOctcubeIndexFromRGB(l_int32    rval,
-	               l_int32    gval,
-	               l_int32    bval,
-	               l_uint32  *rtab,
-	               l_uint32  *gtab,
-	               l_uint32  *btab,
-		       l_uint32  *pindex)
+                       l_int32    gval,
+                       l_int32    bval,
+                       l_uint32  *rtab,
+                       l_uint32  *gtab,
+                       l_uint32  *btab,
+                       l_uint32  *pindex)
 {
     *pindex = rtab[rval] | gtab[gval] | btab[bval];
     return;
@@ -1627,7 +1627,7 @@ octcubeGetCount(l_int32   level,
  */     
 PIX *
 pixOctreeQuant(PIX     *pixs,
-	       l_int32  maxcolors,
+               l_int32  maxcolors,
                l_int32  subsample)
 {
 l_int32    w, h, minside, bpp, wpls, wpld, i, j, actualcolors;
@@ -1645,9 +1645,9 @@ PIXCMAP   *cmap;
     PROCNAME("pixOctreeQuant");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -1659,144 +1659,144 @@ PIXCMAP   *cmap;
     }
 
     if (maxcolors >= 8 && maxcolors <= 16) {
-	bpp = 4;
+        bpp = 4;
         pixd = pixCreate(w, h, bpp);
-	maxlevel = 2;
-	ncubes = 64;   /* 2^6 */
-	nbase = 8;
-	nextra = maxcolors - nbase;
+        maxlevel = 2;
+        ncubes = 64;   /* 2^6 */
+        nbase = 8;
+        nextra = maxcolors - nbase;
     }
     else if (maxcolors < 64) {
-	bpp = 8;
+        bpp = 8;
         pixd = pixCreate(w, h, bpp);
-	maxlevel = 2;
-	ncubes = 64;  /* 2^6 */
-	nbase = 8;
-	nextra = maxcolors - nbase;
+        maxlevel = 2;
+        ncubes = 64;  /* 2^6 */
+        nbase = 8;
+        nextra = maxcolors - nbase;
     }
     else if (maxcolors >= 64 && maxcolors <= 256) {
-	bpp = 8;
+        bpp = 8;
         pixd = pixCreate(w, h, bpp);
-	maxlevel = 3;
-	ncubes = 512;  /* 2^9 */
-	nbase = 64;
-	nextra = maxcolors - nbase;
+        maxlevel = 3;
+        ncubes = 512;  /* 2^9 */
+        nbase = 64;
+        nextra = maxcolors - nbase;
     }
     else
-	return (PIX *)ERROR_PTR("maxcolors not in {8...256}", procName, NULL);
+        return (PIX *)ERROR_PTR("maxcolors not in {8...256}", procName, NULL);
 
     pixCopyResolution(pixd, pixs);
 
         /*----------------------------------------------------------*
-	 * If we're using the minimum number of colors, it is       *
-	 * much simpler.  We just use 'nbase' octcubes.             *
-	 * For this case, we don't eliminate any extra colors.      *
-	 *----------------------------------------------------------*/
+         * If we're using the minimum number of colors, it is       *
+         * much simpler.  We just use 'nbase' octcubes.             *
+         * For this case, we don't eliminate any extra colors.      *
+         *----------------------------------------------------------*/
     if (nextra == 0) {
-	    /* prepare the OctcubeQuantCell array */
-	if ((oqca = (OQCELL **)CALLOC(nbase, sizeof(OQCELL *))) == NULL)
-	    return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
-	for (i = 0; i < nbase; i++) {
-	    oqca[i] = (OQCELL *)CALLOC(1, sizeof(OQCELL));
-	    oqca[i]->n = 0.0;
-	}
+            /* prepare the OctcubeQuantCell array */
+        if ((oqca = (OQCELL **)CALLOC(nbase, sizeof(OQCELL *))) == NULL)
+            return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
+        for (i = 0; i < nbase; i++) {
+            oqca[i] = (OQCELL *)CALLOC(1, sizeof(OQCELL));
+            oqca[i]->n = 0.0;
+        }
 
-	makeRGBToIndexTables(&rtab, &gtab, &btab, maxlevel - 1);
+        makeRGBToIndexTables(&rtab, &gtab, &btab, maxlevel - 1);
 
-	    /* Go through the entire image, gathering statistics and
-	     * assigning pixels to their quantized value */
-	datad = pixGetData(pixd);
-	wpld = pixGetWpl(pixd);
-	for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + i * wpld;
-	    for (j = 0; j < w; j++) {
-		pspixel = lines + j;
-		rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-		gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-		bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
-		getOctcubeIndexFromRGB(rval, gval, bval,
-		                       rtab, gtab, btab, &index);
-/*		fprintf(stderr, "rval = %d, gval = %d, bval = %d, index = %d\n",
-			rval, gval, bval, index); */
-		switch (bpp) {
-		case 4:
-		    SET_DATA_QBIT(lined, j, index);
-		    break;
-		case 8:
-		    SET_DATA_BYTE(lined, j, index);
-		    break;
-		default:
-		    return (PIX *)ERROR_PTR("bpp not 4 or 8!", procName, NULL);
-		    break;
-		}
-		oqca[index]->n += 1.0;
-		oqca[index]->rcum += rval;
-		oqca[index]->gcum += gval;
-		oqca[index]->bcum += bval;
-	    }
-	}
+            /* Go through the entire image, gathering statistics and
+             * assigning pixels to their quantized value */
+        datad = pixGetData(pixd);
+        wpld = pixGetWpl(pixd);
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
+            for (j = 0; j < w; j++) {
+                pspixel = lines + j;
+                rval = GET_DATA_BYTE(pspixel, COLOR_RED);
+                gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
+                bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+                getOctcubeIndexFromRGB(rval, gval, bval,
+                                       rtab, gtab, btab, &index);
+/*                fprintf(stderr, "rval = %d, gval = %d, bval = %d, index = %d\n",
+                        rval, gval, bval, index); */
+                switch (bpp) {
+                case 4:
+                    SET_DATA_QBIT(lined, j, index);
+                    break;
+                case 8:
+                    SET_DATA_BYTE(lined, j, index);
+                    break;
+                default:
+                    return (PIX *)ERROR_PTR("bpp not 4 or 8!", procName, NULL);
+                    break;
+                }
+                oqca[index]->n += 1.0;
+                oqca[index]->rcum += rval;
+                oqca[index]->gcum += gval;
+                oqca[index]->bcum += bval;
+            }
+        }
 
-	    /* Compute average color values in each octcube, and
-	     * generate colormap */
-	cmap = pixcmapCreate(bpp);
-	pixSetColormap(pixd, cmap);
-	for (i = 0; i < nbase; i++) {
-	    oqc = oqca[i];
-	    if (oqc->n != 0) {
-		oqc->rval = (l_int32)(oqc->rcum / oqc->n);
-		oqc->gval = (l_int32)(oqc->gcum / oqc->n);
-		oqc->bval = (l_int32)(oqc->bcum / oqc->n);
-	    }
-	    else 
-	        getRGBFromOctcube(i, maxlevel - 1, &oqc->rval,
-		                  &oqc->gval, &oqc->bval);
-	    pixcmapAddColor(cmap, oqc->rval, oqc->gval, oqc->bval);
-	}
+            /* Compute average color values in each octcube, and
+             * generate colormap */
+        cmap = pixcmapCreate(bpp);
+        pixSetColormap(pixd, cmap);
+        for (i = 0; i < nbase; i++) {
+            oqc = oqca[i];
+            if (oqc->n != 0) {
+                oqc->rval = (l_int32)(oqc->rcum / oqc->n);
+                oqc->gval = (l_int32)(oqc->gcum / oqc->n);
+                oqc->bval = (l_int32)(oqc->bcum / oqc->n);
+            }
+            else 
+                getRGBFromOctcube(i, maxlevel - 1, &oqc->rval,
+                                  &oqc->gval, &oqc->bval);
+            pixcmapAddColor(cmap, oqc->rval, oqc->gval, oqc->bval);
+        }
 /*        pixcmapWriteStream(stderr, cmap); */
 
-	for (i = 0; i < nbase; i++)
-	    FREE(oqca[i]);
-	FREE(oqca);
-	FREE(rtab);
-	FREE(gtab);
-	FREE(btab);
-	return pixd;
+        for (i = 0; i < nbase; i++)
+            FREE(oqca[i]);
+        FREE(oqca);
+        FREE(rtab);
+        FREE(gtab);
+        FREE(btab);
+        return pixd;
     }
-	    
+            
         /*------------------------------------------------------------*
-	 * General case: we will use colors in octcubes at maxlevel.  *
-	 * We also remove any colors that are not populated from      *
-	 * the colormap.                                              *
-	 *------------------------------------------------------------*/
-	/* Prepare the OctcubeQuantCell array */
+         * General case: we will use colors in octcubes at maxlevel.  *
+         * We also remove any colors that are not populated from      *
+         * the colormap.                                              *
+         *------------------------------------------------------------*/
+        /* Prepare the OctcubeQuantCell array */
     if ((oqca = (OQCELL **)CALLOC(ncubes, sizeof(OQCELL *))) == NULL)
-	return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
+        return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
     for (i = 0; i < ncubes; i++) {
         oqca[i] = (OQCELL *)CALLOC(1, sizeof(OQCELL));
-	oqca[i]->n = 0.0;
+        oqca[i]->n = 0.0;
     }
 
         /* Make the tables to map color to the octindex,
-	 * of which there are 'ncubes' at 'maxlevel' */
+         * of which there are 'ncubes' at 'maxlevel' */
     makeRGBToIndexTables(&rtab, &gtab, &btab, maxlevel);
 
         /* Estimate the color distribution; we want to find the
-	 * most popular nextra colors at 'maxlevel' */
+         * most popular nextra colors at 'maxlevel' */
     for (i = 0; i < h; i += subsample) {
-	lines = datas + i * wpls;
-	for (j = 0; j < w; j += subsample) {
-	    pspixel = lines + j;
-	    rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-	    gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-	    bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+        lines = datas + i * wpls;
+        for (j = 0; j < w; j += subsample) {
+            pspixel = lines + j;
+            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
+            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
+            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
             getOctcubeIndexFromRGB(rval, gval, bval, rtab, gtab, btab, &index);
-	    oqca[index]->n += 1.0;
-	    oqca[index]->octindex = index;
-	    oqca[index]->rcum += rval;
-	    oqca[index]->gcum += gval;
-	    oqca[index]->bcum += bval;
-	}
+            oqca[index]->n += 1.0;
+            oqca[index]->octindex = index;
+            oqca[index]->rcum += rval;
+            oqca[index]->gcum += gval;
+            oqca[index]->bcum += bval;
+        }
     }
 
         /* Transfer the OQCELL from the array, and order in a heap */
@@ -1807,111 +1807,111 @@ PIXCMAP   *cmap;
 
         /* Prepare a new OctcubeQuantCell array, with maxcolors cells  */
     if ((oqca = (OQCELL **)CALLOC(maxcolors, sizeof(OQCELL *))) == NULL)
-	return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
+        return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
     for (i = 0; i < nbase; i++) {  /* make nbase cells */
         oqca[i] = (OQCELL *)CALLOC(1, sizeof(OQCELL));
-	oqca[i]->n = 0.0;
+        oqca[i]->n = 0.0;
     }
 
         /* Remove the nextra most populated ones, and put them in the array */
     for (i = 0; i < nextra; i++) {
-	oqc = (OQCELL *)pheapRemove(ph);
-	oqc->n = 0.0;  /* reinit */
-	oqc->rcum = 0;
-	oqc->gcum = 0;
-	oqc->bcum = 0;
+        oqc = (OQCELL *)pheapRemove(ph);
+        oqc->n = 0.0;  /* reinit */
+        oqc->rcum = 0;
+        oqc->gcum = 0;
+        oqc->bcum = 0;
         oqca[nbase + i] = oqc;  /* store it in the array */
     }
 
-	/* Destroy the heap and its remaining contents */
+        /* Destroy the heap and its remaining contents */
     pheapDestroy(&ph, TRUE);
 
         /* Generate a lookup table from octindex at maxlevel
-	 * to color table index */
+         * to color table index */
     if ((lut1 = (l_int32 *)CALLOC(ncubes, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("lut1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("lut1 not made", procName, NULL);
     for (i = 0; i < nextra; i++)
         lut1[oqca[nbase + i]->octindex] = nbase + i;
     for (index = 0; index < ncubes; index++) {
         if (lut1[index] == 0)  /* not one of the extras; need to assign */
-	    lut1[index] = index >> 3;  /* remove the least significant bits */
+            lut1[index] = index >> 3;  /* remove the least significant bits */
 /*        fprintf(stderr, "lut1[%d] = %d\n", index, lut1[index]); */
     }
         
         /* Go through the entire image, gathering statistics and
-	 * assigning pixels to their quantized value */
+         * assigning pixels to their quantized value */
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    pspixel = lines + j;
-	    rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-	    gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-	    bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pspixel = lines + j;
+            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
+            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
+            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
             getOctcubeIndexFromRGB(rval, gval, bval, rtab, gtab, btab, &index);
-/*	    fprintf(stderr, "rval = %d, gval = %d, bval = %d, index = %d\n",
-	            rval, gval, bval, index); */
-	    val = lut1[index];
-	    switch (bpp) {
-	    case 4:
-	        SET_DATA_QBIT(lined, j, val);
-		break;
-	    case 8:
-	        SET_DATA_BYTE(lined, j, val);
-		break;
-	    default:
-	        return (PIX *)ERROR_PTR("bpp not 4 or 8!", procName, NULL);
-		break;
-	    }
-	    oqca[val]->n += 1.0;
-	    oqca[val]->rcum += rval;
-	    oqca[val]->gcum += gval;
-	    oqca[val]->bcum += bval;
-	}
+/*            fprintf(stderr, "rval = %d, gval = %d, bval = %d, index = %d\n",
+                    rval, gval, bval, index); */
+            val = lut1[index];
+            switch (bpp) {
+            case 4:
+                SET_DATA_QBIT(lined, j, val);
+                break;
+            case 8:
+                SET_DATA_BYTE(lined, j, val);
+                break;
+            default:
+                return (PIX *)ERROR_PTR("bpp not 4 or 8!", procName, NULL);
+                break;
+            }
+            oqca[val]->n += 1.0;
+            oqca[val]->rcum += rval;
+            oqca[val]->gcum += gval;
+            oqca[val]->bcum += bval;
+        }
     }
     
         /* Compute averages, set up a colormap, and make a second
-	 * lut that converts from the color values currently in
-	 * the image to a minimal set */
+         * lut that converts from the color values currently in
+         * the image to a minimal set */
     if ((lut2 = (l_int32 *)CALLOC(ncubes, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("lut2 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("lut2 not made", procName, NULL);
     cmap = pixcmapCreate(bpp);
     pixSetColormap(pixd, cmap);
     for (i = 0, index = 0; i < maxcolors; i++) {
         oqc = oqca[i];
-	lut2[i] = index;
-	if (oqc->n == 0)  /* no occupancy; don't bump up index */
-	    continue;
-	oqc->rval = (l_int32)(oqc->rcum / oqc->n);
-	oqc->gval = (l_int32)(oqc->gcum / oqc->n);
-	oqc->bval = (l_int32)(oqc->bcum / oqc->n);
-	pixcmapAddColor(cmap, oqc->rval, oqc->gval, oqc->bval);
-	index++;
+        lut2[i] = index;
+        if (oqc->n == 0)  /* no occupancy; don't bump up index */
+            continue;
+        oqc->rval = (l_int32)(oqc->rcum / oqc->n);
+        oqc->gval = (l_int32)(oqc->gcum / oqc->n);
+        oqc->bval = (l_int32)(oqc->bcum / oqc->n);
+        pixcmapAddColor(cmap, oqc->rval, oqc->gval, oqc->bval);
+        index++;
     }
 /*    pixcmapWriteStream(stderr, cmap); */
     actualcolors = pixcmapGetCount(cmap);
 /*    fprintf(stderr, "Number of different colors = %d\n", actualcolors); */
 
         /* Last time through the image; use the lookup table to
-	 * remap the pixel value to the minimal colormap */
+         * remap the pixel value to the minimal colormap */
     if (actualcolors < maxcolors) {
-	for (i = 0; i < h; i++) {
-	    lined = datad + i * wpld;
-	    for (j = 0; j < w; j++) {
-		switch (bpp) {
-		case 4:
-		    val = GET_DATA_QBIT(lined, j);
-		    SET_DATA_QBIT(lined, j, lut2[val]);
-		    break;
-		case 8:
-		    val = GET_DATA_BYTE(lined, j);
-		    SET_DATA_BYTE(lined, j, lut2[val]);
-		    break;
-		}
-	    }
-	}
+        for (i = 0; i < h; i++) {
+            lined = datad + i * wpld;
+            for (j = 0; j < w; j++) {
+                switch (bpp) {
+                case 4:
+                    val = GET_DATA_QBIT(lined, j);
+                    SET_DATA_QBIT(lined, j, lut2[val]);
+                    break;
+                case 8:
+                    val = GET_DATA_BYTE(lined, j);
+                    SET_DATA_BYTE(lined, j, lut2[val]);
+                    break;
+                }
+            }
+        }
     }
 
     for (i = 0; i < maxcolors; i++)
@@ -1946,18 +1946,18 @@ PIXCMAP   *cmap;
  */     
 PIX *
 pixFixedOctcubeQuant(PIX     *pixs,
-	             l_int32  level)
+                     l_int32  level)
 {
 PIX       *pixd;
 
     PROCNAME("pixFixedOctcubeQuant");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (level < 1 || level > 6)
-	return (PIX *)ERROR_PTR("level not in {1,...6}", procName, NULL);
+        return (PIX *)ERROR_PTR("level not in {1,...6}", procName, NULL);
 
     if ((pixd = pixFixedOctcubeQuantCmap(pixs, level)))
         return pixd;
@@ -1979,7 +1979,7 @@ PIX       *pixd;
  */     
 PIX *
 pixFixedOctcubeQuantRGB(PIX     *pixs,
-	                l_int32  level)
+                        l_int32  level)
 {
 l_int32    w, h, wpls, wpld, i, j;
 l_int32    rval, gval, bval;
@@ -1991,14 +1991,14 @@ PIX       *pixd;
     PROCNAME("pixFixedOctcubeQuantRGB");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (level < 1 || level > 6)
-	return (PIX *)ERROR_PTR("level not in {1,...6}", procName, NULL);
+        return (PIX *)ERROR_PTR("level not in {1,...6}", procName, NULL);
 
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
-	return (PIX *)ERROR_PTR("tables not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tables not made", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -2010,18 +2010,18 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
 
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    pspixel = lines + j;
-	    pdpixel = lined + j;
-	    rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-	    gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-	    bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
-	    octindex = rtab[rval] | gtab[gval] | btab[bval];
-	    getRGBFromOctcube(octindex, level, &rval, &gval, &bval);
-	    composeRGBPixel(rval, gval, bval, pdpixel);
-	}
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pspixel = lines + j;
+            pdpixel = lined + j;
+            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
+            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
+            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
+            getRGBFromOctcube(octindex, level, &rval, &gval, &bval);
+            composeRGBPixel(rval, gval, bval, pdpixel);
+        }
     }
 
     FREE(rtab);
@@ -2049,7 +2049,7 @@ PIX       *pixd;
  */     
 PIX *
 pixFixedOctcubeQuantCmap(PIX     *pixs,
-	                 l_int32  level)
+                         l_int32  level)
 {
 l_int32    w, h, wpls, wpld, i, j, depth, size, ncolors, index;
 l_int32    rval, gval, bval;
@@ -2063,23 +2063,23 @@ PIXCMAP   *cmap;
     PROCNAME("pixFixedOctcubeQuantCmap");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-	return (PIX *)ERROR_PTR("size not returned", procName, NULL);
+        return (PIX *)ERROR_PTR("size not returned", procName, NULL);
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
-	return (PIX *)ERROR_PTR("tables not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tables not made", procName, NULL);
 
     if ((carray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("carray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("carray not made", procName, NULL);
     if ((rarray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("rarray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("rarray not made", procName, NULL);
     if ((garray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("garray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("garray not made", procName, NULL);
     if ((barray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("barray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("barray not made", procName, NULL);
 
         /* Find the number of different colors */
     w = pixGetWidth(pixs);
@@ -2088,18 +2088,18 @@ PIXCMAP   *cmap;
     wpls = pixGetWpl(pixs);
     pixd = NULL;
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	for (j = 0; j < w; j++) {
-	    pspixel = lines + j;
-	    rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-	    gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-	    bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
-	    octindex = rtab[rval] | gtab[gval] | btab[bval];
+        lines = datas + i * wpls;
+        for (j = 0; j < w; j++) {
+            pspixel = lines + j;
+            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
+            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
+            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
             carray[octindex]++;
             rarray[octindex] += rval;
             garray[octindex] += gval;
             barray[octindex] += bval;
-	}
+        }
     }
     for (i = 0, ncolors = 0; i < size; i++) {
         if (carray[i] > 0)
@@ -2138,14 +2138,14 @@ PIXCMAP   *cmap;
     wpld = pixGetWpl(pixd);
 
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    pspixel = lines + j;
-	    rval = GET_DATA_BYTE(pspixel, COLOR_RED);
-	    gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
-	    bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
-	    octindex = rtab[rval] | gtab[gval] | btab[bval];
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pspixel = lines + j;
+            rval = GET_DATA_BYTE(pspixel, COLOR_RED);
+            gval = GET_DATA_BYTE(pspixel, COLOR_GREEN);
+            bval = GET_DATA_BYTE(pspixel, COLOR_BLUE);
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
             switch (depth) 
             {
             case 2:
@@ -2160,7 +2160,7 @@ PIXCMAP   *cmap;
             default:
                 L_WARNING("shouldn't get here", procName);
             }
-	}
+        }
     }
 
 array_cleanup:
@@ -2204,9 +2204,9 @@ array_cleanup:
  */     
 PIX *
 pixOctcubeQuantMixed(PIX     *pixs,
-	             l_int32  depth,
-	             l_int32  graylevels,
-		     l_int32  delta)
+                     l_int32  depth,
+                     l_int32  graylevels,
+                     l_int32  delta)
 {
 l_int32    w, h, wpls, wpld, i, j, size, octlevels;
 l_int32    rval, gval, bval, del, val, midval;
@@ -2221,124 +2221,124 @@ PIXCMAP   *cmap;
     PROCNAME("pixOctcubeQuantMixed");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (depth == 4) {
         octlevels = 1;
-	size = 8;   /* 2 ** 3 */
-	if (graylevels > 8)
-	    return (PIX *)ERROR_PTR("max 8 gray levels", procName, NULL);
+        size = 8;   /* 2 ** 3 */
+        if (graylevels > 8)
+            return (PIX *)ERROR_PTR("max 8 gray levels", procName, NULL);
     }
     else if (depth == 8) {
         octlevels = 2;
-	size = 64;   /* 2 ** 6 */
-	if (graylevels > 192)
-	    return (PIX *)ERROR_PTR("max 192 gray levels", procName, NULL);
+        size = 64;   /* 2 ** 6 */
+        if (graylevels > 192)
+            return (PIX *)ERROR_PTR("max 192 gray levels", procName, NULL);
     }
     else
-	return (PIX *)ERROR_PTR("output depth not 4 or 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("output depth not 4 or 8 bpp", procName, NULL);
     
         /* Make octcube index tables */
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, octlevels))
-	return (PIX *)ERROR_PTR("tables not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tables not made", procName, NULL);
 
         /* Make octcube arrays for storing points in each cube */
     if ((carray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("carray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("carray not made", procName, NULL);
     if ((rarray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("rarray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("rarray not made", procName, NULL);
     if ((garray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("garray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("garray not made", procName, NULL);
     if ((barray = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (PIX *)ERROR_PTR("barray not made", procName, NULL);
+        return (PIX *)ERROR_PTR("barray not made", procName, NULL);
 
         /* Make lookup table, using computed thresholds  */
     if ((tabval = makeGrayQuantIndexTable(graylevels)) == NULL)
-	return (PIX *)ERROR_PTR("tabval not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tabval not made", procName, NULL);
 
         /* Make colormapped output pixd */
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     cmap = pixcmapCreate(depth);
     for (j = 0; j < size; j++)  /* reserve octcube colors */
         pixcmapAddColor(cmap, 1, 1, 1);  /* a color that won't be used */
     for (j = 0; j < graylevels; j++) {  /* set grayscale colors */
         val = (255 * j) / (graylevels - 1);
-	pixcmapAddColor(cmap, val, val, val);
+        pixcmapAddColor(cmap, val, val, val);
     }
     pixSetColormap(pixd, cmap);
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
 
         /* Go through src image: assign dest pixels to colormap values
-	 * and compute average colors in each occupied octcube */
+         * and compute average colors in each occupied octcube */
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    pixel = *(lines + j);
-	    rval = pixel >> 24;
-	    gval = (pixel >> 16) & 0xff;
-	    bval = (pixel >> 8) & 0xff;
-	    if (rval > gval) {
-	        if (gval > bval) {   /* r > g > b */
-		    del = rval - bval;
-		    midval = gval;
-		}
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            pixel = *(lines + j);
+            rval = pixel >> 24;
+            gval = (pixel >> 16) & 0xff;
+            bval = (pixel >> 8) & 0xff;
+            if (rval > gval) {
+                if (gval > bval) {   /* r > g > b */
+                    del = rval - bval;
+                    midval = gval;
+                }
                 else {
-		    if (rval > bval) {  /* r > b > g */
-			del = rval - gval;
-			midval = bval;
-		    }
-		    else {  /* b > r > g */
-			del = bval - gval;
-			midval = rval;
-		    }
-		}
-	    }
-	    else  {  /* gval >= rval */
-	        if (rval > bval) {  /* g > r > b */
-		    del = gval - bval;
-		    midval = rval;
-		}
+                    if (rval > bval) {  /* r > b > g */
+                        del = rval - gval;
+                        midval = bval;
+                    }
+                    else {  /* b > r > g */
+                        del = bval - gval;
+                        midval = rval;
+                    }
+                }
+            }
+            else  {  /* gval >= rval */
+                if (rval > bval) {  /* g > r > b */
+                    del = gval - bval;
+                    midval = rval;
+                }
                 else {
-		    if (gval > bval) {  /* g > b > r */
-			del = gval - rval;
-			midval = bval;
-		    }
-		    else {  /* b > g > r */
-			del = bval - rval;
-			midval = gval;
-		    }
-		}
-	    }
-	    if (del > delta) {  /* assign to color */
-		octindex = rtab[rval] | gtab[gval] | btab[bval];
-		carray[octindex]++;
-		rarray[octindex] += rval;
-		garray[octindex] += gval;
-		barray[octindex] += bval;
-		if (depth == 4)
-		    SET_DATA_QBIT(lined, j, octindex);
+                    if (gval > bval) {  /* g > b > r */
+                        del = gval - rval;
+                        midval = bval;
+                    }
+                    else {  /* b > g > r */
+                        del = bval - rval;
+                        midval = gval;
+                    }
+                }
+            }
+            if (del > delta) {  /* assign to color */
+                octindex = rtab[rval] | gtab[gval] | btab[bval];
+                carray[octindex]++;
+                rarray[octindex] += rval;
+                garray[octindex] += gval;
+                barray[octindex] += bval;
+                if (depth == 4)
+                    SET_DATA_QBIT(lined, j, octindex);
                 else  /* depth == 8 */
-		    SET_DATA_BYTE(lined, j, octindex);
-	    }
-	    else {  /* assign to grayscale */
-		val = size + tabval[midval];
-		if (depth == 4)
-		    SET_DATA_QBIT(lined, j, val);
+                    SET_DATA_BYTE(lined, j, octindex);
+            }
+            else {  /* assign to grayscale */
+                val = size + tabval[midval];
+                if (depth == 4)
+                    SET_DATA_QBIT(lined, j, val);
                 else  /* depth == 8 */
-		    SET_DATA_BYTE(lined, j, val);
-	    }
-	}
+                    SET_DATA_BYTE(lined, j, val);
+            }
+        }
     }
 
         /* Average the colors in each bin and reset the colormap */
@@ -2373,7 +2373,7 @@ PIXCMAP   *cmap;
  */     
 NUMA *
 pixOctcubeHistogram(PIX     *pixs,
-	            l_int32  level)
+                    l_int32  level)
 {
 l_int32     size, i, j, w, h, wpl;
 l_uint32    rval, gval, bval, octindex;
@@ -2385,9 +2385,9 @@ NUMA       *na;
     PROCNAME("pixOctcubeHistogram");
 
     if (!pixs)
-	return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (NUMA *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -2395,37 +2395,37 @@ NUMA       *na;
     data = pixGetData(pixs);
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-	return (NUMA *)ERROR_PTR("size not returned", procName, NULL);
+        return (NUMA *)ERROR_PTR("size not returned", procName, NULL);
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
-	return (NUMA *)ERROR_PTR("tables not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("tables not made", procName, NULL);
 
     if ((na = numaCreate(size)) == NULL)
-	return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
     na->n = size;  /* fake storage of n zeroes */
     array = na->array;  /* don't do this at home */
 
     for (i = 0; i < h; i++) {
-	line = data + i * wpl;
-	for (j = 0; j < w; j++) {
-	    ppixel = line + j;
-	    rval = GET_DATA_BYTE(ppixel, COLOR_RED);
-	    gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-	    bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-	    octindex = rtab[rval] | gtab[gval] | btab[bval];
+        line = data + i * wpl;
+        for (j = 0; j < w; j++) {
+            ppixel = line + j;
+            rval = GET_DATA_BYTE(ppixel, COLOR_RED);
+            gval = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+            bval = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+            octindex = rtab[rval] | gtab[gval] | btab[bval];
 #if DEBUG_OCTINDEX
-	    if ((level == 1 && octindex > 7) ||
-	        (level == 2 && octindex > 63) ||
-	        (level == 3 && octindex > 511) ||
-	        (level == 4 && octindex > 4097) ||
-	        (level == 5 && octindex > 32783) ||
-	        (level == 6 && octindex > 262271)) {
-		fprintf(stderr, "level = %d, octindex = %d, index error!\n",
-		        level, octindex);
+            if ((level == 1 && octindex > 7) ||
+                (level == 2 && octindex > 63) ||
+                (level == 3 && octindex > 511) ||
+                (level == 4 && octindex > 4097) ||
+                (level == 5 && octindex > 32783) ||
+                (level == 6 && octindex > 262271)) {
+                fprintf(stderr, "level = %d, octindex = %d, index error!\n",
+                        level, octindex);
                 continue;
-	    }
+            }
 #endif  /* DEBUG_OCTINDEX */
-  	    array[octindex] += 1.0;
-	}
+              array[octindex] += 1.0;
+        }
     }
 
     FREE(rtab);
@@ -2509,21 +2509,21 @@ PIX       *pixd;
     PROCNAME("pixOctcubeQuantFromCmap");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (!cmap)
-	return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
     if (level < 1 || level > 6)
-	return (PIX *)ERROR_PTR("level not in {1...6}", procName, NULL);
+        return (PIX *)ERROR_PTR("level not in {1...6}", procName, NULL);
     if (metric != L_MANHATTAN_DISTANCE && metric != L_EUCLIDEAN_DISTANCE)
-	return (PIX *)ERROR_PTR("invalid metric", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid metric", procName, NULL);
 
         /* Set up the tables to map rgb to the nearest colormap index */
     if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
         return (PIX *)ERROR_PTR("index tables not made", procName, NULL);
     if ((cmaptab = pixcmapToOctcubeLUT(cmap, level, metric)) == NULL)
-	return (PIX *)ERROR_PTR("cmaptab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("cmaptab not made", procName, NULL);
 
     pixd = pixOctcubeQuantFromCmapLUT(pixs, cmap, cmaptab, rtab, gtab, btab);
 
@@ -2575,13 +2575,13 @@ PIXCMAP   *cmapc;
     PROCNAME("pixOctcubeQuantFromCmapLUT");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (!cmap)
-	return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
     if (!rtab || !gtab || !btab || !cmaptab)
-	return (PIX *)ERROR_PTR("tables not all defined", procName, NULL);
+        return (PIX *)ERROR_PTR("tables not all defined", procName, NULL);
 
         /* Init dest pix (with minimum bpp depending on cmap) */
     ncolors = pixcmapGetCount(cmap);
@@ -2594,7 +2594,7 @@ PIXCMAP   *cmapc;
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     cmapc = pixcmapCopy(cmap);
     pixSetColormap(pixd, cmapc);
 
@@ -2678,16 +2678,16 @@ l_int32  *tab;
     PROCNAME("pixcmapToOctcubeLUT");
 
     if (!cmap)
-	return (l_int32 *)ERROR_PTR("cmap not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("cmap not defined", procName, NULL);
     if (level < 1 || level > 6)
-	return (l_int32 *)ERROR_PTR("level not in {1...6}", procName, NULL);
+        return (l_int32 *)ERROR_PTR("level not in {1...6}", procName, NULL);
     if (metric != L_MANHATTAN_DISTANCE && metric != L_EUCLIDEAN_DISTANCE)
-	return (l_int32 *)ERROR_PTR("invalid metric", procName, NULL);
+        return (l_int32 *)ERROR_PTR("invalid metric", procName, NULL);
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-	return (l_int32 *)ERROR_PTR("size not returned", procName, NULL);
+        return (l_int32 *)ERROR_PTR("size not returned", procName, NULL);
     if ((tab = (l_int32 *)CALLOC(size, sizeof(l_int32))) == NULL)
-	return (l_int32 *)ERROR_PTR("tab not allocated", procName, NULL);
+        return (l_int32 *)ERROR_PTR("tab not allocated", procName, NULL);
 
     ncolors = pixcmapGetCount(cmap);
     pixcmapToArrays(cmap, &rmap, &gmap, &bmap);
@@ -2748,18 +2748,18 @@ PIXCMAP    *cmap, *cmapd;
     PROCNAME("pixRemoveUnusedColors");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if ((cmap = pixGetColormap(pixs)) == NULL)
         return 0;
 
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8)
-	return ERROR_INT("d not in {2, 4, 8}", procName, 1);
+        return ERROR_INT("d not in {2, 4, 8}", procName, 1);
 
         /* Find which indices are actually used */
     nc = pixcmapGetCount(cmap);
     if ((histo = (l_int32 *)CALLOC(nc, sizeof(l_int32))) == NULL)
-	return ERROR_INT("histo not made", procName, 1);
+        return ERROR_INT("histo not made", procName, 1);
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     wpls = pixGetWpl(pixs);
@@ -2779,7 +2779,7 @@ PIXCMAP    *cmap, *cmapd;
                 val = GET_DATA_BYTE(lines, j);
                 break;
             default:
-	        return ERROR_INT("switch ran off end!", procName, 1);
+                return ERROR_INT("switch ran off end!", procName, 1);
             }
             if (val >= nc) {
                 L_WARNING("cmap index out of bounds!", procName);
@@ -2804,9 +2804,9 @@ PIXCMAP    *cmap, *cmapd;
 
         /* Generate mapping tables between indices */
     if ((map1 = (l_int32 *)CALLOC(nc, sizeof(l_int32))) == NULL)
-	return ERROR_INT("map1 not made", procName, 1);
+        return ERROR_INT("map1 not made", procName, 1);
     if ((map2 = (l_int32 *)CALLOC(nc, sizeof(l_int32))) == NULL)
-	return ERROR_INT("map2 not made", procName, 1);
+        return ERROR_INT("map2 not made", procName, 1);
     index = 0;
     for (i = 0; i < nc; i++) {
         if (histo[i] != 0) {
@@ -2846,7 +2846,7 @@ PIXCMAP    *cmap, *cmapd;
                 SET_DATA_BYTE(lines, j, newval);
                 break;
             default:
-	        return ERROR_INT("switch ran off end!", procName, 1);
+                return ERROR_INT("switch ran off end!", procName, 1);
             }
         }
     }

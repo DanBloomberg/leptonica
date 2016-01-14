@@ -114,7 +114,7 @@ BBUFFER  *bb;
     PROCNAME("bbufferCreate");
 
     if (nalloc <= 0)
-	nalloc = INITIAL_BUFFER_ARRAYSIZE;
+        nalloc = INITIAL_BUFFER_ARRAYSIZE;
 
     if ((bb = (BBUFFER *)CALLOC(1, sizeof(BBUFFER))) == NULL)
         return (BBUFFER *)ERROR_PTR("bb not made", procName, NULL);
@@ -124,11 +124,11 @@ BBUFFER  *bb;
     bb->nwritten = 0;
 
     if (indata) {
-	memcpy((l_uint8 *)bb->array, indata, nalloc);
-	bb->n = nalloc;
+        memcpy((l_uint8 *)bb->array, indata, nalloc);
+        bb->n = nalloc;
     }
     else
-	bb->n = 0;
+        bb->n = 0;
 
     return bb;
 }
@@ -151,15 +151,15 @@ BBUFFER  *bb;
     PROCNAME("bbufferDestroy");
 
     if (pbb == NULL) {
-	L_WARNING("ptr address is NULL", procName);
-	return;
+        L_WARNING("ptr address is NULL", procName);
+        return;
     }
 
     if ((bb = *pbb) == NULL)
-	return;
+        return;
 
     if (bb->array)
-	FREE((void *)bb->array);
+        FREE((void *)bb->array);
     FREE((void *)bb);
     *pbb = NULL;
 
@@ -187,24 +187,24 @@ BBUFFER  *bb;
     PROCNAME("bbufferDestroyAndSaveData");
 
     if (pbb == NULL) {
-	L_WARNING("ptr address is NULL", procName);
-	return NULL;
+        L_WARNING("ptr address is NULL", procName);
+        return NULL;
     }
     if (pnbytes == NULL) {
-	L_WARNING("&nbytes is NULL", procName);
-	bbufferDestroy(pbb);
-	return NULL;
+        L_WARNING("&nbytes is NULL", procName);
+        bbufferDestroy(pbb);
+        return NULL;
     }
 
     if ((bb = *pbb) == NULL)
-	return NULL;
+        return NULL;
 
-	/* write all unwritten bytes out to a new array */
+        /* write all unwritten bytes out to a new array */
     nbytes = bb->n - bb->nwritten;
     *pnbytes = nbytes;
     if ((array = (l_uint8 *)CALLOC(nbytes, sizeof(l_uint8))) == NULL) {
-	L_WARNING("calloc failure for array", procName);
-	return NULL;
+        L_WARNING("calloc failure for array", procName);
+        return NULL;
     }
     memcpy((void *)array, (void *)(bb->array + bb->nwritten), nbytes);
 
@@ -236,7 +236,7 @@ BBUFFER  *bb;
 l_int32
 bbufferRead(BBUFFER  *bb,
             l_uint8  *src,
-	    l_int32   nbytes)
+            l_int32   nbytes)
 {
 l_int32  navail, nadd, nwritten;
 
@@ -250,21 +250,21 @@ l_int32  navail, nadd, nwritten;
         return ERROR_INT("no bytes to read", procName, 1);
     
     if ((nwritten = bb->nwritten)) {  /* move the unwritten bytes over */
-	memmove((l_uint8 *)bb->array, (l_uint8 *)(bb->array + nwritten),
-	         bb->n - nwritten);
-	bb->nwritten = 0;
-	bb->n -= nwritten;
+        memmove((l_uint8 *)bb->array, (l_uint8 *)(bb->array + nwritten),
+                 bb->n - nwritten);
+        bb->nwritten = 0;
+        bb->n -= nwritten;
     }
 
-	/* If necessary, expand the allocated array.  Do so by
-	 * by at least a factor of two. */
+        /* If necessary, expand the allocated array.  Do so by
+         * by at least a factor of two. */
     navail = bb->nalloc - bb->n;
     if (nbytes > navail) {
         nadd = L_MAX(bb->nalloc, nbytes);
-	bbufferExtendArray(bb, nadd);
+        bbufferExtendArray(bb, nadd);
     }
 
-	/* Read in the new bytes */
+        /* Read in the new bytes */
     memcpy((l_uint8 *)(bb->array + bb->n), src, nbytes);
     bb->n += nbytes;
 
@@ -283,7 +283,7 @@ l_int32  navail, nadd, nwritten;
 l_int32
 bbufferReadStream(BBUFFER  *bb,
                   FILE     *fp,
-	          l_int32   nbytes)
+                  l_int32   nbytes)
 {
 l_int32  navail, nadd, nread, nwritten;
 
@@ -297,21 +297,21 @@ l_int32  navail, nadd, nread, nwritten;
         return ERROR_INT("no bytes to read", procName, 1);
     
     if ((nwritten = bb->nwritten)) {  /* move any unwritten bytes over */
-	memmove((l_uint8 *)bb->array, (l_uint8 *)(bb->array + nwritten),
-	         bb->n - nwritten);
-	bb->nwritten = 0;
-	bb->n -= nwritten;
+        memmove((l_uint8 *)bb->array, (l_uint8 *)(bb->array + nwritten),
+                 bb->n - nwritten);
+        bb->nwritten = 0;
+        bb->n -= nwritten;
     }
 
-	/* If necessary, expand the allocated array.  Do so by
-	 * by at least a factor of two. */
+        /* If necessary, expand the allocated array.  Do so by
+         * by at least a factor of two. */
     navail = bb->nalloc - bb->n;
     if (nbytes > navail) {
         nadd = L_MAX(bb->nalloc, nbytes);
-	bbufferExtendArray(bb, nadd);
+        bbufferExtendArray(bb, nadd);
     }
 
-	/* Read in the new bytes */
+        /* Read in the new bytes */
     nread = fread((void *)(bb->array + bb->n), 1, nbytes, fp);
     bb->n += nread;
 
@@ -339,9 +339,9 @@ bbufferExtendArray(BBUFFER  *bb,
         return ERROR_INT("bb not defined", procName, 1);
 
     if ((bb->array = (l_uint8 *)reallocNew((void **)&bb->array,
-				bb->nalloc,
-				bb->nalloc + nbytes)) == NULL)
-	    return ERROR_INT("new ptr array not returned", procName, 1);
+                                bb->nalloc,
+                                bb->nalloc + nbytes)) == NULL)
+            return ERROR_INT("new ptr array not returned", procName, 1);
 
     bb->nalloc += nbytes;
     return 0;
@@ -364,8 +364,8 @@ bbufferExtendArray(BBUFFER  *bb,
 l_int32
 bbufferWrite(BBUFFER  *bb,
              l_uint8  *dest,
-	     l_int32   nbytes,
-	     l_int32  *pnout)
+             l_int32   nbytes,
+             l_int32  *pnout)
 {
 l_int32  nleft, nout;
 
@@ -385,19 +385,19 @@ l_int32  nleft, nout;
     *pnout = nout;
 
     if (nleft == 0) {   /* nothing to write; reinitialize the buffer */
-	bb->n = 0;
-	bb->nwritten = 0;
-	return 0;
+        bb->n = 0;
+        bb->nwritten = 0;
+        return 0;
     }
 
-	/* nout > 0; transfer the data out */
+        /* nout > 0; transfer the data out */
     memcpy(dest, (l_uint8 *)(bb->array + bb->nwritten), nout);
     bb->nwritten += nout;
 
-	/* if all written; "empty" the buffer */
+        /* if all written; "empty" the buffer */
     if (nout == nleft) { 
-	bb->n = 0;
-	bb->nwritten = 0;
+        bb->n = 0;
+        bb->nwritten = 0;
     }
 
     return 0;
@@ -416,8 +416,8 @@ l_int32  nleft, nout;
 l_int32
 bbufferWriteStream(BBUFFER  *bb,
                    FILE     *fp,
-	           l_int32   nbytes,
-	           l_int32  *pnout)
+                   l_int32   nbytes,
+                   l_int32  *pnout)
 {
 l_int32  nleft, nout;
 
@@ -437,19 +437,19 @@ l_int32  nleft, nout;
     *pnout = nout;
 
     if (nleft == 0) {   /* nothing to write; reinitialize the buffer */
-	bb->n = 0;
-	bb->nwritten = 0;
-	return 0;
+        bb->n = 0;
+        bb->nwritten = 0;
+        return 0;
     }
 
-	/* nout > 0; transfer the data out */
+        /* nout > 0; transfer the data out */
     fwrite((void *)(bb->array + bb->nwritten), 1, nout, fp);
     bb->nwritten += nout;
 
-	/* if all written; "empty" the buffer */
+        /* if all written; "empty" the buffer */
     if (nout == nleft) { 
-	bb->n = 0;
-	bb->nwritten = 0;
+        bb->n = 0;
+        bb->nwritten = 0;
     }
 
     return 0;
@@ -482,5 +482,5 @@ bbufferBytesToWrite(BBUFFER  *bb,
     *pnbytes = bb->n - bb->nwritten;
     return 0;
 }
-	
+        
 

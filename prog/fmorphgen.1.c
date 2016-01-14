@@ -83,7 +83,7 @@ static char  *SEL_NAMES[] = {
  *
  *     Input:  pixd (usual 3 choices: null, == pixs, != pixs)
  *             pixs 
- *             operation  (MORPH_DILATION, MORPH_EROSION)
+ *             operation  (L_MORPH_DILATE, L_MORPH_ERODE)
  *             sel name
  *     Return: pixd
  *
@@ -92,7 +92,7 @@ static char  *SEL_NAMES[] = {
 PIX *
 pixFMorphopGen_1(PIX      *pixd,
                  PIX      *pixs,
-	         l_int32   operation,
+                 l_int32   operation,
                  char     *selname)
 {
 l_int32    i, index, found, w, h, wpls, wpld;
@@ -102,39 +102,39 @@ PIX       *pixt;
     PROCNAME("pixFMorphopGen_*");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
 
     found = FALSE;
     for (i = 0; i < NUM_SELS_GENERATED; i++) {
-	if (strcmp(selname, SEL_NAMES[i]) == 0) {
-	    found = TRUE;
-	    index = 2 * i;
-	    if (operation == MORPH_EROSION)
-		index++;
-	    break;
-	}
+        if (strcmp(selname, SEL_NAMES[i]) == 0) {
+            found = TRUE;
+            index = 2 * i;
+            if (operation == L_MORPH_ERODE)
+                index++;
+            break;
+        }
     }
     if (found == FALSE)
-	return (PIX *)ERROR_PTR("sel index not found", procName, pixd);
+        return (PIX *)ERROR_PTR("sel index not found", procName, pixd);
 
     if (pixd) {
-	if (!pixSizesEqual(pixs, pixd))
-	    return (PIX *)ERROR_PTR("sizes not equal", procName, pixd);
+        if (!pixSizesEqual(pixs, pixd))
+            return (PIX *)ERROR_PTR("sizes not equal", procName, pixd);
     }
     else {
-	if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
 
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-	/*  The images must be surrounded with ADDED_BORDER pixels,
-	 *  that we'll read from.  We fabricate a "proper"
-	 *  image as the subimage within the border, having the 
-	 *  following parameters:  */
+        /*  The images must be surrounded with ADDED_BORDER pixels,
+         *  that we'll read from.  We fabricate a "proper"
+         *  image as the subimage within the border, having the 
+         *  following parameters:  */
     w = pixGetWidth(pixs) - 2 * ADDED_BORDER;
     h = pixGetHeight(pixs) - 2 * ADDED_BORDER;
     datas = pixGetData(pixs) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
@@ -142,10 +142,10 @@ PIX       *pixt;
 
     if (pixd == pixs) {  /* need temp image if in-place */
         if ((pixt = pixCopy(NULL, pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
-	datat = pixGetData(pixt) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
+            return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        datat = pixGetData(pixt) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
         fmorphopgen_low_1(datad, w, h, wpld, datat, wpls, index);
-	pixDestroy(&pixt);
+        pixDestroy(&pixt);
     }
     else {  /* simple and not in-place */
         fmorphopgen_low_1(datad, w, h, wpld, datas, wpls, index);

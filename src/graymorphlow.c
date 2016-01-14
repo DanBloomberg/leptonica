@@ -114,14 +114,14 @@
 void
 dilateGrayLow(l_uint32  *datad,
               l_int32    w,
-	      l_int32    h,
-	      l_int32    wpld,
-	      l_uint32  *datas,
-	      l_int32    wpls,
-	      l_int32    size,
-	      l_int32    direction,
-	      l_uint8   *buffer,
-	      l_uint8   *maxarray)
+              l_int32    h,
+              l_int32    wpld,
+              l_uint32  *datas,
+              l_int32    wpls,
+              l_int32    size,
+              l_int32    direction,
+              l_uint8   *buffer,
+              l_uint8   *maxarray)
 {
 l_int32    i, j, k;
 l_int32    hsize, nsteps, startmax, startx, starty;
@@ -129,76 +129,76 @@ l_uint8    maxval;
 l_uint32  *lines, *lined;
 
     if (direction == L_HORIZ) {
-	hsize = size / 2;
-	nsteps = (w - 2 * hsize) / size;
-	for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + i * wpld;
+        hsize = size / 2;
+        nsteps = (w - 2 * hsize) / size;
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
 
-		/* fill buffer with pixels in byte order */
-	    for (j = 0; j < w; j++)
-		buffer[j] = GET_DATA_BYTE(lines, j);
+                /* fill buffer with pixels in byte order */
+            for (j = 0; j < w; j++)
+                buffer[j] = GET_DATA_BYTE(lines, j);
 
-	    for (j = 0; j < nsteps; j++)
-	    {
-		    /* refill the minarray */
-		startmax = (j + 1) * size - 1;
-		maxarray[size - 1] = buffer[startmax];
-		for (k = 1; k < size; k++) {
-		    maxarray[size - 1 - k] =
-			L_MAX(maxarray[size - k], buffer[startmax - k]);
-		    maxarray[size - 1 + k] =
-			L_MAX(maxarray[size + k - 2], buffer[startmax + k]);
-		}
+            for (j = 0; j < nsteps; j++)
+            {
+                    /* refill the minarray */
+                startmax = (j + 1) * size - 1;
+                maxarray[size - 1] = buffer[startmax];
+                for (k = 1; k < size; k++) {
+                    maxarray[size - 1 - k] =
+                        L_MAX(maxarray[size - k], buffer[startmax - k]);
+                    maxarray[size - 1 + k] =
+                        L_MAX(maxarray[size + k - 2], buffer[startmax + k]);
+                }
 
-		    /* compute dilation values */
-		startx = hsize + j * size;
-		SET_DATA_BYTE(lined, startx, maxarray[0]);
-		SET_DATA_BYTE(lined, startx + size - 1, maxarray[2 * size - 2]);
-		for (k = 1; k < size - 1; k++) {
-		    maxval = L_MAX(maxarray[k], maxarray[k + size - 1]);
-		    SET_DATA_BYTE(lined, startx + k, maxval);
-		}
-	    }
-	}
+                    /* compute dilation values */
+                startx = hsize + j * size;
+                SET_DATA_BYTE(lined, startx, maxarray[0]);
+                SET_DATA_BYTE(lined, startx + size - 1, maxarray[2 * size - 2]);
+                for (k = 1; k < size - 1; k++) {
+                    maxval = L_MAX(maxarray[k], maxarray[k + size - 1]);
+                    SET_DATA_BYTE(lined, startx + k, maxval);
+                }
+            }
+        }
     }
     else {   /* direction == L_VERT */ 
-	hsize = size / 2;
-	nsteps = (h - 2 * hsize) / size;
-	for (j = 0; j < w; j++) {
+        hsize = size / 2;
+        nsteps = (h - 2 * hsize) / size;
+        for (j = 0; j < w; j++) {
 
-		/* fill buffer with pixels in byte order */
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		buffer[i] = GET_DATA_BYTE(lines, j);
-	    }
+                /* fill buffer with pixels in byte order */
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                buffer[i] = GET_DATA_BYTE(lines, j);
+            }
 
-	    for (i = 0; i < nsteps; i++)
-	    {
-		    /* refill the minarray */
-		startmax = (i + 1) * size - 1;
-		maxarray[size - 1] = buffer[startmax];
-		for (k = 1; k < size; k++) {
-		    maxarray[size - 1 - k] =
-			L_MAX(maxarray[size - k], buffer[startmax - k]);
-		    maxarray[size - 1 + k] =
-			L_MAX(maxarray[size + k - 2], buffer[startmax + k]);
-		}
+            for (i = 0; i < nsteps; i++)
+            {
+                    /* refill the minarray */
+                startmax = (i + 1) * size - 1;
+                maxarray[size - 1] = buffer[startmax];
+                for (k = 1; k < size; k++) {
+                    maxarray[size - 1 - k] =
+                        L_MAX(maxarray[size - k], buffer[startmax - k]);
+                    maxarray[size - 1 + k] =
+                        L_MAX(maxarray[size + k - 2], buffer[startmax + k]);
+                }
 
-		    /* compute dilation values */
-		starty = hsize + i * size;
-		lined = datad + starty * wpld;
-		SET_DATA_BYTE(lined, j, maxarray[0]);
-		SET_DATA_BYTE(lined + (size - 1) * wpld, j,
-			maxarray[2 * size - 2]);
-		for (k = 1; k < size - 1; k++) {
-		    maxval = L_MAX(maxarray[k], maxarray[k + size - 1]);
-		    SET_DATA_BYTE(lined + wpld * k, j, maxval);
-		}
-	    }
-	}
+                    /* compute dilation values */
+                starty = hsize + i * size;
+                lined = datad + starty * wpld;
+                SET_DATA_BYTE(lined, j, maxarray[0]);
+                SET_DATA_BYTE(lined + (size - 1) * wpld, j,
+                        maxarray[2 * size - 2]);
+                for (k = 1; k < size - 1; k++) {
+                    maxval = L_MAX(maxarray[k], maxarray[k + size - 1]);
+                    SET_DATA_BYTE(lined + wpld * k, j, maxval);
+                }
+            }
+        }
     }
-	    
+            
     return;
 }
 
@@ -230,14 +230,14 @@ l_uint32  *lines, *lined;
 void
 erodeGrayLow(l_uint32  *datad,
              l_int32    w,
-	     l_int32    h,
-	     l_int32    wpld,
-	     l_uint32  *datas,
-	     l_int32    wpls,
-	     l_int32    size,
-	     l_int32    direction,
-	     l_uint8   *buffer,
-	     l_uint8   *minarray)
+             l_int32    h,
+             l_int32    wpld,
+             l_uint32  *datas,
+             l_int32    wpls,
+             l_int32    size,
+             l_int32    direction,
+             l_uint8   *buffer,
+             l_uint8   *minarray)
 {
 l_int32    i, j, k;
 l_int32    hsize, nsteps, startmin, startx, starty;
@@ -245,76 +245,76 @@ l_uint8    minval;
 l_uint32  *lines, *lined;
 
     if (direction == L_HORIZ) {
-	hsize = size / 2;
-	nsteps = (w - 2 * hsize) / size;
-	for (i = 0; i < h; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + i * wpld;
+        hsize = size / 2;
+        nsteps = (w - 2 * hsize) / size;
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            lined = datad + i * wpld;
 
-		/* fill buffer with pixels in byte order */
-	    for (j = 0; j < w; j++)
-		buffer[j] = GET_DATA_BYTE(lines, j);
+                /* fill buffer with pixels in byte order */
+            for (j = 0; j < w; j++)
+                buffer[j] = GET_DATA_BYTE(lines, j);
 
-	    for (j = 0; j < nsteps; j++)
-	    {
-		    /* refill the minarray */
-		startmin = (j + 1) * size - 1;
-		minarray[size - 1] = buffer[startmin];
-		for (k = 1; k < size; k++) {
-		    minarray[size - 1 - k] =
-			L_MIN(minarray[size - k], buffer[startmin - k]);
-		    minarray[size - 1 + k] =
-			L_MIN(minarray[size + k - 2], buffer[startmin + k]);
-		}
+            for (j = 0; j < nsteps; j++)
+            {
+                    /* refill the minarray */
+                startmin = (j + 1) * size - 1;
+                minarray[size - 1] = buffer[startmin];
+                for (k = 1; k < size; k++) {
+                    minarray[size - 1 - k] =
+                        L_MIN(minarray[size - k], buffer[startmin - k]);
+                    minarray[size - 1 + k] =
+                        L_MIN(minarray[size + k - 2], buffer[startmin + k]);
+                }
 
-		    /* compute erosion values */
-		startx = hsize + j * size;
-		SET_DATA_BYTE(lined, startx, minarray[0]);
-		SET_DATA_BYTE(lined, startx + size - 1, minarray[2 * size - 2]);
-		for (k = 1; k < size - 1; k++) {
-		    minval = L_MIN(minarray[k], minarray[k + size - 1]);
-		    SET_DATA_BYTE(lined, startx + k, minval);
-		}
-	    }
-	}
+                    /* compute erosion values */
+                startx = hsize + j * size;
+                SET_DATA_BYTE(lined, startx, minarray[0]);
+                SET_DATA_BYTE(lined, startx + size - 1, minarray[2 * size - 2]);
+                for (k = 1; k < size - 1; k++) {
+                    minval = L_MIN(minarray[k], minarray[k + size - 1]);
+                    SET_DATA_BYTE(lined, startx + k, minval);
+                }
+            }
+        }
     }
     else {   /* direction == L_VERT */ 
-	hsize = size / 2;
-	nsteps = (h - 2 * hsize) / size;
-	for (j = 0; j < w; j++) {
+        hsize = size / 2;
+        nsteps = (h - 2 * hsize) / size;
+        for (j = 0; j < w; j++) {
 
-		/* fill buffer with pixels in byte order */
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		buffer[i] = GET_DATA_BYTE(lines, j);
-	    }
+                /* fill buffer with pixels in byte order */
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                buffer[i] = GET_DATA_BYTE(lines, j);
+            }
 
-	    for (i = 0; i < nsteps; i++)
-	    {
-		    /* refill the minarray */
-		startmin = (i + 1) * size - 1;
-		minarray[size - 1] = buffer[startmin];
-		for (k = 1; k < size; k++) {
-		    minarray[size - 1 - k] =
-			L_MIN(minarray[size - k], buffer[startmin - k]);
-		    minarray[size - 1 + k] =
-			L_MIN(minarray[size + k - 2], buffer[startmin + k]);
-		}
+            for (i = 0; i < nsteps; i++)
+            {
+                    /* refill the minarray */
+                startmin = (i + 1) * size - 1;
+                minarray[size - 1] = buffer[startmin];
+                for (k = 1; k < size; k++) {
+                    minarray[size - 1 - k] =
+                        L_MIN(minarray[size - k], buffer[startmin - k]);
+                    minarray[size - 1 + k] =
+                        L_MIN(minarray[size + k - 2], buffer[startmin + k]);
+                }
 
-		    /* compute erosion values */
-		starty = hsize + i * size;
-		lined = datad + starty * wpld;
-		SET_DATA_BYTE(lined, j, minarray[0]);
-		SET_DATA_BYTE(lined + (size - 1) * wpld, j,
-			minarray[2 * size - 2]);
-		for (k = 1; k < size - 1; k++) {
-		    minval = L_MIN(minarray[k], minarray[k + size - 1]);
-		    SET_DATA_BYTE(lined + wpld * k, j, minval);
-		}
-	    }
-	}
+                    /* compute erosion values */
+                starty = hsize + i * size;
+                lined = datad + starty * wpld;
+                SET_DATA_BYTE(lined, j, minarray[0]);
+                SET_DATA_BYTE(lined + (size - 1) * wpld, j,
+                        minarray[2 * size - 2]);
+                for (k = 1; k < size - 1; k++) {
+                    minval = L_MIN(minarray[k], minarray[k + size - 1]);
+                    SET_DATA_BYTE(lined + wpld * k, j, minval);
+                }
+            }
+        }
     }
-	    
+            
     return;
 }
 

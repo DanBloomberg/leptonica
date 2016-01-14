@@ -114,7 +114,7 @@ scaleColorLILow(l_uint32  *datad,
                l_int32    hd,
                l_int32    wpld,
                l_uint32  *datas,
-	       l_int32    ws,
+               l_int32    ws,
                l_int32    hs,
                l_int32    wpls)
 {
@@ -127,61 +127,61 @@ l_uint32   pixels1, pixels2, pixels3, pixels4, pixel;
 l_uint32  *lines, *lined;
 l_float32  scx, scy;
 
-	/* (scx, scy) are scaling factors that are applied to the
-	 * dest coords to get the corresponding src coords.
-	 * We need them because we iterate over dest pixels
-	 * and must find the corresponding set of src pixels. */
+        /* (scx, scy) are scaling factors that are applied to the
+         * dest coords to get the corresponding src coords.
+         * We need them because we iterate over dest pixels
+         * and must find the corresponding set of src pixels. */
     scx = 16. * (l_float32)ws / (l_float32)wd;
     scy = 16. * (l_float32)hs / (l_float32)hd;
 
     wm2 = ws - 2;
     hm2 = hs - 2;
 
-	/* iterate over the destination pixels */
+        /* iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-	ypm = (l_int32)(scy * (l_float32)i + 0.5);
-	yp = ypm >> 4;
-	yf = ypm & 0x0f;
-	lined = datad + i * wpld;
-	lines = datas + yp * wpls;
-	for (j = 0; j < wd; j++) {
-	    xpm = (l_int32)(scx * (l_float32)j + 0.5);
-	    xp = xpm >> 4;
-	    xf = xpm & 0x0f;
+        ypm = (l_int32)(scy * (l_float32)i + 0.5);
+        yp = ypm >> 4;
+        yf = ypm & 0x0f;
+        lined = datad + i * wpld;
+        lines = datas + yp * wpls;
+        for (j = 0; j < wd; j++) {
+            xpm = (l_int32)(scx * (l_float32)j + 0.5);
+            xp = xpm >> 4;
+            xf = xpm & 0x0f;
 
-		/* if near the edge, just use the src pixel value */
-	    if (xp > wm2 || yp > hm2) {
-	        *(lined + j) = *(lines + xp);
-		continue;
-	    }
+                /* if near the edge, just use the src pixel value */
+            if (xp > wm2 || yp > hm2) {
+                *(lined + j) = *(lines + xp);
+                continue;
+            }
 
-		/* do bilinear interpolation.  This is a simple
-		 * generalization of the calculation in scaleGrayLILow() */
-            pixels1 = *(lines + xp);		 
-            pixels2 = *(lines + xp + 1);		 
-            pixels3 = *(lines + wpls + xp);		 
-            pixels4 = *(lines + wpls + xp + 1);		 
-	    area00 = (16 - xf) * (16 - yf);
-	    area10 = xf * (16 - yf);
-	    area01 = (16 - xf) * yf;
-	    area11 = xf * yf;
-	    v00r = area00 * (pixels1 >> 24);
-	    v00g = area00 * ((pixels1 >> 16) & 0xff);
-	    v00b = area00 * ((pixels1 >> 8) & 0xff);
-	    v10r = area10 * (pixels2 >> 24);
-	    v10g = area10 * ((pixels2 >> 16) & 0xff);
-	    v10b = area10 * ((pixels2 >> 8) & 0xff);
-	    v01r = area01 * (pixels3 >> 24);
-	    v01g = area01 * ((pixels3 >> 16) & 0xff);
-	    v01b = area01 * ((pixels3 >> 8) & 0xff);
-	    v11r = area11 * (pixels4 >> 24);
-	    v11g = area11 * ((pixels4 >> 16) & 0xff);
-	    v11b = area11 * ((pixels4 >> 8) & 0xff);
-	    pixel = (((v00r + v10r + v01r + v11r + 128) << 16) & 0xff000000) |
-	            (((v00g + v10g + v01g + v11g + 128) << 8) & 0x00ff0000) |
-	            ((v00b + v10b + v01b + v11b + 128) & 0x0000ff00);
+                /* do bilinear interpolation.  This is a simple
+                 * generalization of the calculation in scaleGrayLILow() */
+            pixels1 = *(lines + xp);                 
+            pixels2 = *(lines + xp + 1);                 
+            pixels3 = *(lines + wpls + xp);                 
+            pixels4 = *(lines + wpls + xp + 1);                 
+            area00 = (16 - xf) * (16 - yf);
+            area10 = xf * (16 - yf);
+            area01 = (16 - xf) * yf;
+            area11 = xf * yf;
+            v00r = area00 * (pixels1 >> 24);
+            v00g = area00 * ((pixels1 >> 16) & 0xff);
+            v00b = area00 * ((pixels1 >> 8) & 0xff);
+            v10r = area10 * (pixels2 >> 24);
+            v10g = area10 * ((pixels2 >> 16) & 0xff);
+            v10b = area10 * ((pixels2 >> 8) & 0xff);
+            v01r = area01 * (pixels3 >> 24);
+            v01g = area01 * ((pixels3 >> 16) & 0xff);
+            v01b = area01 * ((pixels3 >> 8) & 0xff);
+            v11r = area11 * (pixels4 >> 24);
+            v11g = area11 * ((pixels4 >> 16) & 0xff);
+            v11b = area11 * ((pixels4 >> 8) & 0xff);
+            pixel = (((v00r + v10r + v01r + v11r + 128) << 16) & 0xff000000) |
+                    (((v00g + v10g + v01g + v11g + 128) << 8) & 0x00ff0000) |
+                    ((v00b + v10b + v01b + v11b + 128) & 0x0000ff00);
             *(lined + j) = pixel;
-	}
+        }
     }
 
     return;
@@ -206,7 +206,7 @@ scaleGrayLILow(l_uint32  *datad,
                l_int32    hd,
                l_int32    wpld,
                l_uint32  *datas,
-	       l_int32    ws,
+               l_int32    ws,
                l_int32    hs,
                l_int32    wpls)
 {
@@ -218,46 +218,46 @@ l_uint8    val;
 l_uint32  *lines, *lined;
 l_float32  scx, scy;
 
-	/* (scx, scy) are scaling factors that are applied to the
-	 * dest coords to get the corresponding src coords.
-	 * We need them because we iterate over dest pixels
-	 * and must find the corresponding set of src pixels. */
+        /* (scx, scy) are scaling factors that are applied to the
+         * dest coords to get the corresponding src coords.
+         * We need them because we iterate over dest pixels
+         * and must find the corresponding set of src pixels. */
     scx = 16. * (l_float32)ws / (l_float32)wd;
     scy = 16. * (l_float32)hs / (l_float32)hd;
 
     wm2 = ws - 2;
     hm2 = hs - 2;
 
-	/* iterate over the destination pixels */
+        /* iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-	ypm = (l_int32)(scy * (l_float32)i + 0.5);
-	yp = ypm >> 4;
-	yf = ypm & 0x0f;
-	lined = datad + i * wpld;
-	lines = datas + yp * wpls;
-	for (j = 0; j < wd; j++) {
-	    xpm = (l_int32)(scx * (l_float32)j + 0.5);
-	    xp = xpm >> 4;
-	    xf = xpm & 0x0f;
+        ypm = (l_int32)(scy * (l_float32)i + 0.5);
+        yp = ypm >> 4;
+        yf = ypm & 0x0f;
+        lined = datad + i * wpld;
+        lines = datas + yp * wpls;
+        for (j = 0; j < wd; j++) {
+            xpm = (l_int32)(scx * (l_float32)j + 0.5);
+            xp = xpm >> 4;
+            xf = xpm & 0x0f;
 
-		/* if near the edge, just use the src pixel value */
-	    if (xp > wm2 || yp > hm2) {
-		SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
-		continue;
-	    }
+                /* if near the edge, just use the src pixel value */
+            if (xp > wm2 || yp > hm2) {
+                SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
+                continue;
+            }
 
-		/* do bilinear interpolation.  Without this, we could
-		 * simply subsample:
-	         *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
-		 * which is faster but gives lousy results!
-		 */
-	    v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
-	    v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
-	    v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
-	    v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
-	    val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
-	    SET_DATA_BYTE(lined, j, val);
-	}
+                /* do bilinear interpolation.  Without this, we could
+                 * simply subsample:
+                 *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
+                 * which is faster but gives lousy results!
+                 */
+            v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
+            v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
+            v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
+            v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
+            val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
+            SET_DATA_BYTE(lined, j, val);
+        }
     }
 
     return;
@@ -319,21 +319,21 @@ l_uint32  *lines, *lined;
 
     hsm = hs - 1;
 
-	/* We're taking 2 src and 2 dest lines at a time,
-	 * and for each src line, we're computing 2 dest lines.
-	 * Call these 2 dest lines:  destline1 and destline2.
-	 * The first src line is used for destline 1.
-	 * On all but the last src line, both src lines are 
-	 * used in the linear interpolation for destline2.
-	 * On the last src line, both destline1 and destline2
-	 * are computed using only that src line (because there
-	 * isn't a lower src line). */
+        /* We're taking 2 src and 2 dest lines at a time,
+         * and for each src line, we're computing 2 dest lines.
+         * Call these 2 dest lines:  destline1 and destline2.
+         * The first src line is used for destline 1.
+         * On all but the last src line, both src lines are 
+         * used in the linear interpolation for destline2.
+         * On the last src line, both destline1 and destline2
+         * are computed using only that src line (because there
+         * isn't a lower src line). */
 
-	/* iterate over all but the last src line */
+        /* iterate over all but the last src line */
     for (i = 0; i < hsm; i++) {
-	lines = datas + i * wpls;
-	lined = datad + 2 * i * wpld;
-	scaleColor2xLILineLow(lined, wpld, lines, ws, wpls, 0);
+        lines = datas + i * wpls;
+        lined = datad + 2 * i * wpld;
+        scaleColor2xLILineLow(lined, wpld, lines, ws, wpls, 0);
     }
     
         /* last src line */
@@ -361,10 +361,10 @@ l_uint32  *lines, *lined;
 void
 scaleColor2xLILineLow(l_uint32  *lined,
                       l_int32    wpld,
-	 	      l_uint32  *lines,
-	 	      l_int32    ws,
-		      l_int32    wpls,
-		      l_int32    lastlineflag)
+                       l_uint32  *lines,
+                       l_int32    ws,
+                      l_int32    wpls,
+                      l_int32    lastlineflag)
 {
 l_int32    j, jd, wsm;
 l_int32    rval1, rval2, rval3, rval4, gval1, gval2, gval3, gval4;
@@ -378,98 +378,98 @@ l_uint32  *linesp, *linedp;
         linesp = lines + wpls;
         linedp = lined + wpld;
         pixels1 = *lines;
-	pixels3 = *linesp;
+        pixels3 = *linesp;
 
-	    /* initialize with v(2) and v(4) */
-	rval2 = pixels1 >> 24;
-	gval2 = (pixels1 >> 16) & 0xff;
-	bval2 = (pixels1 >> 8) & 0xff;
-	rval4 = pixels3 >> 24;
-	gval4 = (pixels3 >> 16) & 0xff;
-	bval4 = (pixels3 >> 8) & 0xff;
+            /* initialize with v(2) and v(4) */
+        rval2 = pixels1 >> 24;
+        gval2 = (pixels1 >> 16) & 0xff;
+        bval2 = (pixels1 >> 8) & 0xff;
+        rval4 = pixels3 >> 24;
+        gval4 = (pixels3 >> 16) & 0xff;
+        bval4 = (pixels3 >> 8) & 0xff;
 
-	for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
-	        /* shift in previous src values */
-	    rval1 = rval2;
-	    gval1 = gval2;
-	    bval1 = bval2;
-	    rval3 = rval4;
-	    gval3 = gval4;
-	    bval3 = bval4;
-	        /* get new src values */
-	    pixels2 = *(lines + j + 1);
-	    pixels4 = *(linesp + j + 1);
-	    rval2 = pixels2 >> 24;
-	    gval2 = (pixels2 >> 16) & 0xff;
-	    bval2 = (pixels2 >> 8) & 0xff;
-	    rval4 = pixels4 >> 24;
-	    gval4 = (pixels4 >> 16) & 0xff;
-	    bval4 = (pixels4 >> 8) & 0xff;
-	        /* save dest values */
-	    pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
-	    *(lined + jd) = pixel;                               /* pix 1 */
-	    pixel = (((rval1 + rval2) << 23) & 0xff000000 |
-		     ((gval1 + gval2) << 15) & 0x00ff0000 |
-		     ((bval1 + bval2) << 7) & 0x0000ff00);
-	    *(lined + jd + 1) = pixel;                           /* pix 2 */
-	    pixel = (((rval1 + rval3) << 23) & 0xff000000 |
-		     ((gval1 + gval3) << 15) & 0x00ff0000 |
-		     ((bval1 + bval3) << 7) & 0x0000ff00);
-	    *(linedp + jd) = pixel;                              /* pix 3 */
-	    pixel = (((rval1 + rval2 + rval3 + rval4) << 22) & 0xff000000 | 
-		     ((gval1 + gval2 + gval3 + gval4) << 14) & 0x00ff0000 |
-		     ((bval1 + bval2 + bval3 + bval4) << 6) & 0x0000ff00);
-	    *(linedp + jd + 1) = pixel;                          /* pix 4 */
+        for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
+                /* shift in previous src values */
+            rval1 = rval2;
+            gval1 = gval2;
+            bval1 = bval2;
+            rval3 = rval4;
+            gval3 = gval4;
+            bval3 = bval4;
+                /* get new src values */
+            pixels2 = *(lines + j + 1);
+            pixels4 = *(linesp + j + 1);
+            rval2 = pixels2 >> 24;
+            gval2 = (pixels2 >> 16) & 0xff;
+            bval2 = (pixels2 >> 8) & 0xff;
+            rval4 = pixels4 >> 24;
+            gval4 = (pixels4 >> 16) & 0xff;
+            bval4 = (pixels4 >> 8) & 0xff;
+                /* save dest values */
+            pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
+            *(lined + jd) = pixel;                               /* pix 1 */
+            pixel = (((rval1 + rval2) << 23) & 0xff000000 |
+                     ((gval1 + gval2) << 15) & 0x00ff0000 |
+                     ((bval1 + bval2) << 7) & 0x0000ff00);
+            *(lined + jd + 1) = pixel;                           /* pix 2 */
+            pixel = (((rval1 + rval3) << 23) & 0xff000000 |
+                     ((gval1 + gval3) << 15) & 0x00ff0000 |
+                     ((bval1 + bval3) << 7) & 0x0000ff00);
+            *(linedp + jd) = pixel;                              /* pix 3 */
+            pixel = (((rval1 + rval2 + rval3 + rval4) << 22) & 0xff000000 | 
+                     ((gval1 + gval2 + gval3 + gval4) << 14) & 0x00ff0000 |
+                     ((bval1 + bval2 + bval3 + bval4) << 6) & 0x0000ff00);
+            *(linedp + jd + 1) = pixel;                          /* pix 4 */
         }  
-	    /* last src pixel on line */
-	rval1 = rval2;
-	gval1 = gval2;
-	bval1 = bval2;
-	rval3 = rval4;
-	gval3 = gval4;
-	bval3 = bval4;
-	pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
-	*(lined + 2 * wsm) = pixel;                        /* pix 1 */
-	*(lined + 2 * wsm + 1) = pixel;                    /* pix 2 */
-	pixel = (((rval1 + rval3) << 23) & 0xff000000 |
-		 ((gval1 + gval3) << 15) & 0x00ff0000 |
-		 ((bval1 + bval3) << 7) & 0x0000ff00);
-	*(linedp + 2 * wsm) = pixel;                       /* pix 3 */
-	*(linedp + 2 * wsm + 1) = pixel;                   /* pix 4 */
+            /* last src pixel on line */
+        rval1 = rval2;
+        gval1 = gval2;
+        bval1 = bval2;
+        rval3 = rval4;
+        gval3 = gval4;
+        bval3 = bval4;
+        pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
+        *(lined + 2 * wsm) = pixel;                        /* pix 1 */
+        *(lined + 2 * wsm + 1) = pixel;                    /* pix 2 */
+        pixel = (((rval1 + rval3) << 23) & 0xff000000 |
+                 ((gval1 + gval3) << 15) & 0x00ff0000 |
+                 ((bval1 + bval3) << 7) & 0x0000ff00);
+        *(linedp + 2 * wsm) = pixel;                       /* pix 3 */
+        *(linedp + 2 * wsm + 1) = pixel;                   /* pix 4 */
     }
     else {   /* last row of src pixels: lastlineflag == 1 */
-	linedp = lined + wpld;
-	pixels2 = *lines;
-	rval2 = pixels2 >> 24;
-	gval2 = (pixels2 >> 16) & 0xff;
-	bval2 = (pixels2 >> 8) & 0xff;
-	for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
-	    rval1 = rval2;
-	    gval1 = gval2;
-	    bval1 = bval2;
-	    pixels2 = *(lines + j + 1);
-	    rval2 = pixels2 >> 24;
-	    gval2 = (pixels2 >> 16) & 0xff;
-	    bval2 = (pixels2 >> 8) & 0xff;
-	    pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
-	    *(lined + jd) = pixel;                            /* pix 1 */
-	    *(linedp + jd) = pixel;                           /* pix 2 */
-	    pixel = (((rval1 + rval2) << 23) & 0xff000000 |
-		     ((gval1 + gval2) << 15) & 0x00ff0000 |
-		     ((bval1 + bval2) << 7) & 0x0000ff00);
-	    *(lined + jd + 1) = pixel;                        /* pix 3 */
-	    *(linedp + jd + 1) = pixel;                       /* pix 4 */
-	}  
-	rval1 = rval2;
-	gval1 = gval2;
-	bval1 = bval2;
-	pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
-	*(lined + 2 * wsm) = pixel;                           /* pix 1 */
-	*(lined + 2 * wsm + 1) = pixel;                       /* pix 2 */
-	*(linedp + 2 * wsm) = pixel;                          /* pix 3 */
-	*(linedp + 2 * wsm + 1) = pixel;                      /* pix 4 */
+        linedp = lined + wpld;
+        pixels2 = *lines;
+        rval2 = pixels2 >> 24;
+        gval2 = (pixels2 >> 16) & 0xff;
+        bval2 = (pixels2 >> 8) & 0xff;
+        for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
+            rval1 = rval2;
+            gval1 = gval2;
+            bval1 = bval2;
+            pixels2 = *(lines + j + 1);
+            rval2 = pixels2 >> 24;
+            gval2 = (pixels2 >> 16) & 0xff;
+            bval2 = (pixels2 >> 8) & 0xff;
+            pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
+            *(lined + jd) = pixel;                            /* pix 1 */
+            *(linedp + jd) = pixel;                           /* pix 2 */
+            pixel = (((rval1 + rval2) << 23) & 0xff000000 |
+                     ((gval1 + gval2) << 15) & 0x00ff0000 |
+                     ((bval1 + bval2) << 7) & 0x0000ff00);
+            *(lined + jd + 1) = pixel;                        /* pix 3 */
+            *(linedp + jd + 1) = pixel;                       /* pix 4 */
+        }  
+        rval1 = rval2;
+        gval1 = gval2;
+        bval1 = bval2;
+        pixel = (rval1 << 24 | gval1 << 16 | bval1 << 8);
+        *(lined + 2 * wsm) = pixel;                           /* pix 1 */
+        *(lined + 2 * wsm + 1) = pixel;                       /* pix 2 */
+        *(linedp + 2 * wsm) = pixel;                          /* pix 3 */
+        *(linedp + 2 * wsm + 1) = pixel;                      /* pix 4 */
     }
-	
+        
     return;
 }
 
@@ -525,21 +525,21 @@ l_uint32  *lines, *lined;
 
     hsm = hs - 1;
 
-	/* We're taking 2 src and 2 dest lines at a time,
-	 * and for each src line, we're computing 2 dest lines.
-	 * Call these 2 dest lines:  destline1 and destline2.
-	 * The first src line is used for destline 1.
-	 * On all but the last src line, both src lines are 
-	 * used in the linear interpolation for destline2.
-	 * On the last src line, both destline1 and destline2
-	 * are computed using only that src line (because there
-	 * isn't a lower src line). */
+        /* We're taking 2 src and 2 dest lines at a time,
+         * and for each src line, we're computing 2 dest lines.
+         * Call these 2 dest lines:  destline1 and destline2.
+         * The first src line is used for destline 1.
+         * On all but the last src line, both src lines are 
+         * used in the linear interpolation for destline2.
+         * On the last src line, both destline1 and destline2
+         * are computed using only that src line (because there
+         * isn't a lower src line). */
 
-	/* iterate over all but the last src line */
+        /* iterate over all but the last src line */
     for (i = 0; i < hsm; i++) {
-	lines = datas + i * wpls;
-	lined = datad + 2 * i * wpld;
-	scaleGray2xLILineLow(lined, wpld, lines, ws, wpls, 0);
+        lines = datas + i * wpls;
+        lined = datad + 2 * i * wpld;
+        scaleGray2xLILineLow(lined, wpld, lines, ws, wpls, 0);
     }
     
         /* last src line */
@@ -565,10 +565,10 @@ l_uint32  *lines, *lined;
 void
 scaleGray2xLILineLow(l_uint32  *lined,
                      l_int32    wpld,
-		     l_uint32  *lines,
-		     l_int32    ws,
-		     l_int32    wpls,
-		     l_int32    lastlineflag)
+                     l_uint32  *lines,
+                     l_int32    ws,
+                     l_int32    wpls,
+                     l_int32    lastlineflag)
 {
 l_int32    j, jd, wsm;
 l_int32    sval1, sval2, sval3, sval4;
@@ -577,46 +577,46 @@ l_uint32  *linesp, *linedp;
     wsm = ws - 1;
 
     if (lastlineflag == 0) {
-	linesp = lines + wpls;
-	linedp = lined + wpld;
-	sval2 = GET_DATA_BYTE(lines, 0);
-	sval4 = GET_DATA_BYTE(linesp, 0);
-	for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
-	    sval1 = sval2;
-	    sval3 = sval4;
-	    sval2 = GET_DATA_BYTE(lines, j + 1);
-	    sval4 = GET_DATA_BYTE(linesp, j + 1);
-	    SET_DATA_BYTE(lined, jd, sval1);                     /* pix 1 */
-	    SET_DATA_BYTE(lined, jd + 1, (sval1 + sval2) / 2);   /* pix 2 */
-	    SET_DATA_BYTE(linedp, jd, (sval1 + sval3) / 2);      /* pix 3 */
-	    SET_DATA_BYTE(linedp, jd + 1,
-	                  (sval1 + sval2 + sval3 + sval4) / 4);  /* pix 4 */
+        linesp = lines + wpls;
+        linedp = lined + wpld;
+        sval2 = GET_DATA_BYTE(lines, 0);
+        sval4 = GET_DATA_BYTE(linesp, 0);
+        for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
+            sval1 = sval2;
+            sval3 = sval4;
+            sval2 = GET_DATA_BYTE(lines, j + 1);
+            sval4 = GET_DATA_BYTE(linesp, j + 1);
+            SET_DATA_BYTE(lined, jd, sval1);                     /* pix 1 */
+            SET_DATA_BYTE(lined, jd + 1, (sval1 + sval2) / 2);   /* pix 2 */
+            SET_DATA_BYTE(linedp, jd, (sval1 + sval3) / 2);      /* pix 3 */
+            SET_DATA_BYTE(linedp, jd + 1,
+                          (sval1 + sval2 + sval3 + sval4) / 4);  /* pix 4 */
         }  
-	sval1 = sval2;
-	sval3 = sval4;
-	SET_DATA_BYTE(lined, 2 * wsm, sval1);                     /* pix 1 */
-	SET_DATA_BYTE(lined, 2 * wsm + 1, sval1);                 /* pix 2 */
-	SET_DATA_BYTE(linedp, 2 * wsm, (sval1 + sval3) / 2);      /* pix 3 */
-	SET_DATA_BYTE(linedp, 2 * wsm + 1, (sval1 + sval3) / 2);  /* pix 4 */
+        sval1 = sval2;
+        sval3 = sval4;
+        SET_DATA_BYTE(lined, 2 * wsm, sval1);                     /* pix 1 */
+        SET_DATA_BYTE(lined, 2 * wsm + 1, sval1);                 /* pix 2 */
+        SET_DATA_BYTE(linedp, 2 * wsm, (sval1 + sval3) / 2);      /* pix 3 */
+        SET_DATA_BYTE(linedp, 2 * wsm + 1, (sval1 + sval3) / 2);  /* pix 4 */
     }
     else {   /* last row of src pixels: lastlineflag == 1 */
-	linedp = lined + wpld;
-	sval2 = GET_DATA_BYTE(lines, 0);
-	for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
-	    sval1 = sval2;
-	    sval2 = GET_DATA_BYTE(lines, j + 1);
-	    SET_DATA_BYTE(lined, jd, sval1);                       /* pix 1 */
-	    SET_DATA_BYTE(linedp, jd, sval1);                      /* pix 3 */
-	    SET_DATA_BYTE(lined, jd + 1, (sval1 + sval2) / 2);     /* pix 2 */
-	    SET_DATA_BYTE(linedp, jd + 1, (sval1 + sval2) / 2);    /* pix 4 */
-	}  
-	sval1 = sval2;
-	SET_DATA_BYTE(lined, 2 * wsm, sval1);                     /* pix 1 */
-	SET_DATA_BYTE(lined, 2 * wsm + 1, sval1);                 /* pix 2 */
-	SET_DATA_BYTE(linedp, 2 * wsm, sval1);                    /* pix 3 */
-	SET_DATA_BYTE(linedp, 2 * wsm + 1, sval1);                /* pix 4 */
+        linedp = lined + wpld;
+        sval2 = GET_DATA_BYTE(lines, 0);
+        for (j = 0, jd = 0; j < wsm; j++, jd += 2) {
+            sval1 = sval2;
+            sval2 = GET_DATA_BYTE(lines, j + 1);
+            SET_DATA_BYTE(lined, jd, sval1);                       /* pix 1 */
+            SET_DATA_BYTE(linedp, jd, sval1);                      /* pix 3 */
+            SET_DATA_BYTE(lined, jd + 1, (sval1 + sval2) / 2);     /* pix 2 */
+            SET_DATA_BYTE(linedp, jd + 1, (sval1 + sval2) / 2);    /* pix 4 */
+        }  
+        sval1 = sval2;
+        SET_DATA_BYTE(lined, 2 * wsm, sval1);                     /* pix 1 */
+        SET_DATA_BYTE(lined, 2 * wsm + 1, sval1);                 /* pix 2 */
+        SET_DATA_BYTE(linedp, 2 * wsm, sval1);                    /* pix 3 */
+        SET_DATA_BYTE(linedp, 2 * wsm + 1, sval1);                /* pix 4 */
     }
-	
+        
     return;
 }
 
@@ -688,19 +688,19 @@ l_uint32  *lines, *lined;
 
     hsm = hs - 1;
 
-	/* We're taking 2 src and 4 dest lines at a time,
-	 * and for each src line, we're computing 4 dest lines.
-	 * Call these 4 dest lines:  destline1 - destline4.
-	 * The first src line is used for destline 1.
-	 * Two src lines are used for all other dest lines,
-	 * except for the last 4 dest lines, which are computed
-	 * using only the last src line. */
+        /* We're taking 2 src and 4 dest lines at a time,
+         * and for each src line, we're computing 4 dest lines.
+         * Call these 4 dest lines:  destline1 - destline4.
+         * The first src line is used for destline 1.
+         * Two src lines are used for all other dest lines,
+         * except for the last 4 dest lines, which are computed
+         * using only the last src line. */
 
-	/* iterate over all but the last src line */
+        /* iterate over all but the last src line */
     for (i = 0; i < hsm; i++) {
-	lines = datas + i * wpls;
-	lined = datad + 4 * i * wpld;
-	scaleGray4xLILineLow(lined, wpld, lines, ws, wpls, 0);
+        lines = datas + i * wpls;
+        lined = datad + 4 * i * wpld;
+        scaleGray4xLILineLow(lined, wpld, lines, ws, wpls, 0);
     }
     
         /* last src line */
@@ -726,10 +726,10 @@ l_uint32  *lines, *lined;
 void
 scaleGray4xLILineLow(l_uint32  *lined,
                      l_int32    wpld,
-		     l_uint32  *lines,
-		     l_int32    ws,
-		     l_int32    wpls,
-		     l_int32    lastlineflag)
+                     l_uint32  *lines,
+                     l_int32    ws,
+                     l_int32    wpls,
+                     l_int32    lastlineflag)
 {
 l_int32    j, jd, wsm, wsm4;
 l_int32    s1, s2, s3, s4, s1t, s2t, s3t, s4t;
@@ -739,105 +739,105 @@ l_uint32  *linesp, *linedp1, *linedp2, *linedp3;
     wsm4 = 4 * wsm;
 
     if (lastlineflag == 0) {
-	linesp = lines + wpls;
-	linedp1 = lined + wpld;
-	linedp2 = lined + 2 * wpld;
-	linedp3 = lined + 3 * wpld;
-	s2 = GET_DATA_BYTE(lines, 0);
-	s4 = GET_DATA_BYTE(linesp, 0);
-	for (j = 0, jd = 0; j < wsm; j++, jd += 4) {
-	    s1 = s2;
-	    s3 = s4;
-	    s2 = GET_DATA_BYTE(lines, j + 1);
-	    s4 = GET_DATA_BYTE(linesp, j + 1);
-	    s1t = 3 * s1;
-	    s2t = 3 * s2;
-	    s3t = 3 * s3;
-	    s4t = 3 * s4;
-	    SET_DATA_BYTE(lined, jd, s1);                             /* d1 */
-	    SET_DATA_BYTE(lined, jd + 1, (s1t + s2) / 4);             /* d2 */
-	    SET_DATA_BYTE(lined, jd + 2, (s1 + s2) / 2);              /* d3 */
-	    SET_DATA_BYTE(lined, jd + 3, (s1 + s2t) / 4);             /* d4 */
-	    SET_DATA_BYTE(linedp1, jd, (s1t + s3) / 4);                /* d5 */
-	    SET_DATA_BYTE(linedp1, jd + 1, (9*s1 + s2t + s3t + s4) / 16); /*d6*/
-	    SET_DATA_BYTE(linedp1, jd + 2, (s1t + s2t + s3 + s4) / 8); /* d7 */
-	    SET_DATA_BYTE(linedp1, jd + 3, (s1t + 9*s2 + s3 + s4t) / 16);/*d8*/
-	    SET_DATA_BYTE(linedp2, jd, (s1 + s3) / 2);                /* d9 */
-	    SET_DATA_BYTE(linedp2, jd + 1, (s1t + s2 + s3t + s4) / 8);/* d10 */
-	    SET_DATA_BYTE(linedp2, jd + 2, (s1 + s2 + s3 + s4) / 4);  /* d11 */
-	    SET_DATA_BYTE(linedp2, jd + 3, (s1 + s2t + s3 + s4t) / 8);/* d12 */
-	    SET_DATA_BYTE(linedp3, jd, (s1 + s3t) / 4);               /* d13 */
-	    SET_DATA_BYTE(linedp3, jd + 1, (s1t + s2 + 9*s3 + s4t) / 16);/*d14*/
-	    SET_DATA_BYTE(linedp3, jd + 2, (s1 + s2 + s3t + s4t) / 8); /* d15 */
-	    SET_DATA_BYTE(linedp3, jd + 3, (s1 + s2t + s3t + 9*s4) / 16);/*d16*/
+        linesp = lines + wpls;
+        linedp1 = lined + wpld;
+        linedp2 = lined + 2 * wpld;
+        linedp3 = lined + 3 * wpld;
+        s2 = GET_DATA_BYTE(lines, 0);
+        s4 = GET_DATA_BYTE(linesp, 0);
+        for (j = 0, jd = 0; j < wsm; j++, jd += 4) {
+            s1 = s2;
+            s3 = s4;
+            s2 = GET_DATA_BYTE(lines, j + 1);
+            s4 = GET_DATA_BYTE(linesp, j + 1);
+            s1t = 3 * s1;
+            s2t = 3 * s2;
+            s3t = 3 * s3;
+            s4t = 3 * s4;
+            SET_DATA_BYTE(lined, jd, s1);                             /* d1 */
+            SET_DATA_BYTE(lined, jd + 1, (s1t + s2) / 4);             /* d2 */
+            SET_DATA_BYTE(lined, jd + 2, (s1 + s2) / 2);              /* d3 */
+            SET_DATA_BYTE(lined, jd + 3, (s1 + s2t) / 4);             /* d4 */
+            SET_DATA_BYTE(linedp1, jd, (s1t + s3) / 4);                /* d5 */
+            SET_DATA_BYTE(linedp1, jd + 1, (9*s1 + s2t + s3t + s4) / 16); /*d6*/
+            SET_DATA_BYTE(linedp1, jd + 2, (s1t + s2t + s3 + s4) / 8); /* d7 */
+            SET_DATA_BYTE(linedp1, jd + 3, (s1t + 9*s2 + s3 + s4t) / 16);/*d8*/
+            SET_DATA_BYTE(linedp2, jd, (s1 + s3) / 2);                /* d9 */
+            SET_DATA_BYTE(linedp2, jd + 1, (s1t + s2 + s3t + s4) / 8);/* d10 */
+            SET_DATA_BYTE(linedp2, jd + 2, (s1 + s2 + s3 + s4) / 4);  /* d11 */
+            SET_DATA_BYTE(linedp2, jd + 3, (s1 + s2t + s3 + s4t) / 8);/* d12 */
+            SET_DATA_BYTE(linedp3, jd, (s1 + s3t) / 4);               /* d13 */
+            SET_DATA_BYTE(linedp3, jd + 1, (s1t + s2 + 9*s3 + s4t) / 16);/*d14*/
+            SET_DATA_BYTE(linedp3, jd + 2, (s1 + s2 + s3t + s4t) / 8); /* d15 */
+            SET_DATA_BYTE(linedp3, jd + 3, (s1 + s2t + s3t + 9*s4) / 16);/*d16*/
         }  
-	s1 = s2;
-	s3 = s4;
-	s1t = 3 * s1;
-	s3t = 3 * s3;
-	SET_DATA_BYTE(lined, wsm4, s1);                               /* d1 */
-	SET_DATA_BYTE(lined, wsm4 + 1, s1);                           /* d2 */
-	SET_DATA_BYTE(lined, wsm4 + 2, s1);                           /* d3 */
-	SET_DATA_BYTE(lined, wsm4 + 3, s1);                           /* d4 */
-	SET_DATA_BYTE(linedp1, wsm4, (s1t + s3) / 4);                 /* d5 */
-	SET_DATA_BYTE(linedp1, wsm4 + 1, (s1t + s3) / 4);             /* d6 */
-	SET_DATA_BYTE(linedp1, wsm4 + 2, (s1t + s3) / 4);             /* d7 */
-	SET_DATA_BYTE(linedp1, wsm4 + 3, (s1t + s3) / 4);             /* d8 */
-	SET_DATA_BYTE(linedp2, wsm4, (s1 + s3) / 2);                  /* d9 */
-	SET_DATA_BYTE(linedp2, wsm4 + 1, (s1 + s3) / 2);              /* d10 */
-	SET_DATA_BYTE(linedp2, wsm4 + 2, (s1 + s3) / 2);              /* d11 */
-	SET_DATA_BYTE(linedp2, wsm4 + 3, (s1 + s3) / 2);              /* d12 */
-	SET_DATA_BYTE(linedp3, wsm4, (s1 + s3t) / 4);                 /* d13 */
-	SET_DATA_BYTE(linedp3, wsm4 + 1, (s1 + s3t) / 4);             /* d14 */
-	SET_DATA_BYTE(linedp3, wsm4 + 2, (s1 + s3t) / 4);             /* d15 */
-	SET_DATA_BYTE(linedp3, wsm4 + 3, (s1 + s3t) / 4);             /* d16 */
+        s1 = s2;
+        s3 = s4;
+        s1t = 3 * s1;
+        s3t = 3 * s3;
+        SET_DATA_BYTE(lined, wsm4, s1);                               /* d1 */
+        SET_DATA_BYTE(lined, wsm4 + 1, s1);                           /* d2 */
+        SET_DATA_BYTE(lined, wsm4 + 2, s1);                           /* d3 */
+        SET_DATA_BYTE(lined, wsm4 + 3, s1);                           /* d4 */
+        SET_DATA_BYTE(linedp1, wsm4, (s1t + s3) / 4);                 /* d5 */
+        SET_DATA_BYTE(linedp1, wsm4 + 1, (s1t + s3) / 4);             /* d6 */
+        SET_DATA_BYTE(linedp1, wsm4 + 2, (s1t + s3) / 4);             /* d7 */
+        SET_DATA_BYTE(linedp1, wsm4 + 3, (s1t + s3) / 4);             /* d8 */
+        SET_DATA_BYTE(linedp2, wsm4, (s1 + s3) / 2);                  /* d9 */
+        SET_DATA_BYTE(linedp2, wsm4 + 1, (s1 + s3) / 2);              /* d10 */
+        SET_DATA_BYTE(linedp2, wsm4 + 2, (s1 + s3) / 2);              /* d11 */
+        SET_DATA_BYTE(linedp2, wsm4 + 3, (s1 + s3) / 2);              /* d12 */
+        SET_DATA_BYTE(linedp3, wsm4, (s1 + s3t) / 4);                 /* d13 */
+        SET_DATA_BYTE(linedp3, wsm4 + 1, (s1 + s3t) / 4);             /* d14 */
+        SET_DATA_BYTE(linedp3, wsm4 + 2, (s1 + s3t) / 4);             /* d15 */
+        SET_DATA_BYTE(linedp3, wsm4 + 3, (s1 + s3t) / 4);             /* d16 */
     }
     else {   /* last row of src pixels: lastlineflag == 1 */
-	linedp1 = lined + wpld;
-	linedp2 = lined + 2 * wpld;
-	linedp3 = lined + 3 * wpld;
-	s2 = GET_DATA_BYTE(lines, 0);
-	for (j = 0, jd = 0; j < wsm; j++, jd += 4) {
-	    s1 = s2;
-	    s2 = GET_DATA_BYTE(lines, j + 1);
-	    s1t = 3 * s1;
-	    s2t = 3 * s2;
-	    SET_DATA_BYTE(lined, jd, s1);                            /* d1 */
-	    SET_DATA_BYTE(lined, jd + 1, (s1t + s2) / 4 );           /* d2 */
-	    SET_DATA_BYTE(lined, jd + 2, (s1 + s2) / 2 );            /* d3 */
-	    SET_DATA_BYTE(lined, jd + 3, (s1 + s2t) / 4 );           /* d4 */
-	    SET_DATA_BYTE(linedp1, jd, s1);                          /* d5 */
-	    SET_DATA_BYTE(linedp1, jd + 1, (s1t + s2) / 4 );         /* d6 */
-	    SET_DATA_BYTE(linedp1, jd + 2, (s1 + s2) / 2 );          /* d7 */
-	    SET_DATA_BYTE(linedp1, jd + 3, (s1 + s2t) / 4 );         /* d8 */
-	    SET_DATA_BYTE(linedp2, jd, s1);                          /* d9 */
-	    SET_DATA_BYTE(linedp2, jd + 1, (s1t + s2) / 4 );         /* d10 */
-	    SET_DATA_BYTE(linedp2, jd + 2, (s1 + s2) / 2 );          /* d11 */
-	    SET_DATA_BYTE(linedp2, jd + 3, (s1 + s2t) / 4 );         /* d12 */
-	    SET_DATA_BYTE(linedp3, jd, s1);                          /* d13 */
-	    SET_DATA_BYTE(linedp3, jd + 1, (s1t + s2) / 4 );         /* d14 */
-	    SET_DATA_BYTE(linedp3, jd + 2, (s1 + s2) / 2 );          /* d15 */
-	    SET_DATA_BYTE(linedp3, jd + 3, (s1 + s2t) / 4 );         /* d16 */
-	}  
-	s1 = s2;
-	SET_DATA_BYTE(lined, wsm4, s1);                              /* d1 */
-	SET_DATA_BYTE(lined, wsm4 + 1, s1);                          /* d2 */
-	SET_DATA_BYTE(lined, wsm4 + 2, s1);                          /* d3 */
-	SET_DATA_BYTE(lined, wsm4 + 3, s1);                          /* d4 */
-	SET_DATA_BYTE(linedp1, wsm4, s1);                            /* d5 */
-	SET_DATA_BYTE(linedp1, wsm4 + 1, s1);                        /* d6 */
-	SET_DATA_BYTE(linedp1, wsm4 + 2, s1);                        /* d7 */
-	SET_DATA_BYTE(linedp1, wsm4 + 3, s1);                        /* d8 */
-	SET_DATA_BYTE(linedp2, wsm4, s1);                            /* d9 */
-	SET_DATA_BYTE(linedp2, wsm4 + 1, s1);                        /* d10 */
-	SET_DATA_BYTE(linedp2, wsm4 + 2, s1);                        /* d11 */
-	SET_DATA_BYTE(linedp2, wsm4 + 3, s1);                        /* d12 */
-	SET_DATA_BYTE(linedp3, wsm4, s1);                            /* d13 */
-	SET_DATA_BYTE(linedp3, wsm4 + 1, s1);                        /* d14 */
-	SET_DATA_BYTE(linedp3, wsm4 + 2, s1);                        /* d15 */
-	SET_DATA_BYTE(linedp3, wsm4 + 3, s1);                        /* d16 */
+        linedp1 = lined + wpld;
+        linedp2 = lined + 2 * wpld;
+        linedp3 = lined + 3 * wpld;
+        s2 = GET_DATA_BYTE(lines, 0);
+        for (j = 0, jd = 0; j < wsm; j++, jd += 4) {
+            s1 = s2;
+            s2 = GET_DATA_BYTE(lines, j + 1);
+            s1t = 3 * s1;
+            s2t = 3 * s2;
+            SET_DATA_BYTE(lined, jd, s1);                            /* d1 */
+            SET_DATA_BYTE(lined, jd + 1, (s1t + s2) / 4 );           /* d2 */
+            SET_DATA_BYTE(lined, jd + 2, (s1 + s2) / 2 );            /* d3 */
+            SET_DATA_BYTE(lined, jd + 3, (s1 + s2t) / 4 );           /* d4 */
+            SET_DATA_BYTE(linedp1, jd, s1);                          /* d5 */
+            SET_DATA_BYTE(linedp1, jd + 1, (s1t + s2) / 4 );         /* d6 */
+            SET_DATA_BYTE(linedp1, jd + 2, (s1 + s2) / 2 );          /* d7 */
+            SET_DATA_BYTE(linedp1, jd + 3, (s1 + s2t) / 4 );         /* d8 */
+            SET_DATA_BYTE(linedp2, jd, s1);                          /* d9 */
+            SET_DATA_BYTE(linedp2, jd + 1, (s1t + s2) / 4 );         /* d10 */
+            SET_DATA_BYTE(linedp2, jd + 2, (s1 + s2) / 2 );          /* d11 */
+            SET_DATA_BYTE(linedp2, jd + 3, (s1 + s2t) / 4 );         /* d12 */
+            SET_DATA_BYTE(linedp3, jd, s1);                          /* d13 */
+            SET_DATA_BYTE(linedp3, jd + 1, (s1t + s2) / 4 );         /* d14 */
+            SET_DATA_BYTE(linedp3, jd + 2, (s1 + s2) / 2 );          /* d15 */
+            SET_DATA_BYTE(linedp3, jd + 3, (s1 + s2t) / 4 );         /* d16 */
+        }  
+        s1 = s2;
+        SET_DATA_BYTE(lined, wsm4, s1);                              /* d1 */
+        SET_DATA_BYTE(lined, wsm4 + 1, s1);                          /* d2 */
+        SET_DATA_BYTE(lined, wsm4 + 2, s1);                          /* d3 */
+        SET_DATA_BYTE(lined, wsm4 + 3, s1);                          /* d4 */
+        SET_DATA_BYTE(linedp1, wsm4, s1);                            /* d5 */
+        SET_DATA_BYTE(linedp1, wsm4 + 1, s1);                        /* d6 */
+        SET_DATA_BYTE(linedp1, wsm4 + 2, s1);                        /* d7 */
+        SET_DATA_BYTE(linedp1, wsm4 + 3, s1);                        /* d8 */
+        SET_DATA_BYTE(linedp2, wsm4, s1);                            /* d9 */
+        SET_DATA_BYTE(linedp2, wsm4 + 1, s1);                        /* d10 */
+        SET_DATA_BYTE(linedp2, wsm4 + 2, s1);                        /* d11 */
+        SET_DATA_BYTE(linedp2, wsm4 + 3, s1);                        /* d12 */
+        SET_DATA_BYTE(linedp3, wsm4, s1);                            /* d13 */
+        SET_DATA_BYTE(linedp3, wsm4 + 1, s1);                        /* d14 */
+        SET_DATA_BYTE(linedp3, wsm4 + 2, s1);                        /* d15 */
+        SET_DATA_BYTE(linedp3, wsm4 + 3, s1);                        /* d16 */
     }
-	
+        
     return;
 }
 
@@ -864,7 +864,7 @@ scaleBySamplingLow(l_uint32  *datad,
                    l_int32    hd,
                    l_int32    wpld,
                    l_uint32  *datas,
-	           l_int32    ws,
+                   l_int32    ws,
                    l_int32    hs,
                    l_int32    d,
                    l_int32    wpls)
@@ -878,104 +878,104 @@ l_float32  wratio, hratio;
 
     PROCNAME("scaleBySamplingLow");
 
-	/* clear dest */
+        /* clear dest */
     bpld = 4 * wpld;
     memset((char *)datad, 0, hd * bpld);
     
-	/* the source row corresponding to dest row i ==> srow[i]
-	 * the source col corresponding to dest col j ==> scol[j]  */
+        /* the source row corresponding to dest row i ==> srow[i]
+         * the source col corresponding to dest col j ==> scol[j]  */
     if ((srow = (l_int32 *)CALLOC(hd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", procName, 1);
     if ((scol = (l_int32 *)CALLOC(wd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", procName, 1);
 
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
     for (i = 0; i < hd; i++)
-	srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - 1);
+        srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - 1);
     for (j = 0; j < wd; j++)
-	scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - 1);
+        scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - 1);
 
     prevlines = NULL;
     for (i = 0; i < hd; i++) {
-	lines = datas + srow[i] * wpls;
-	lined = datad + i * wpld;
-	if (lines != prevlines) {  /* make dest from new source row */
-	    prevxs = -1;
-	    sval = 0;
+        lines = datas + srow[i] * wpls;
+        lined = datad + i * wpld;
+        if (lines != prevlines) {  /* make dest from new source row */
+            prevxs = -1;
+            sval = 0;
             csval = 0;
-	    switch (d)
-	    {
-	    case 2:
-		for (j = 0; j < wd; j++) {
-		    xs = scol[j];
-		    if (xs != prevxs) {  /* get dest pix from source col */
-			sval = GET_DATA_DIBIT(lines, xs);
-			SET_DATA_DIBIT(lined, j, sval);
-			prevxs = xs;
-		    }
-		    else   /* copy prev dest pix */
-			SET_DATA_DIBIT(lined, j, sval);
-		}
-		break;
-	    case 4:
-		for (j = 0; j < wd; j++) {
-		    xs = scol[j];
-		    if (xs != prevxs) {  /* get dest pix from source col */
-			sval = GET_DATA_QBIT(lines, xs);
-			SET_DATA_QBIT(lined, j, sval);
-			prevxs = xs;
-		    }
-		    else   /* copy prev dest pix */
-			SET_DATA_QBIT(lined, j, sval);
-		}
-		break;
-	    case 8:
-		for (j = 0; j < wd; j++) {
-		    xs = scol[j];
-		    if (xs != prevxs) {  /* get dest pix from source col */
-			sval = GET_DATA_BYTE(lines, xs);
-			SET_DATA_BYTE(lined, j, sval);
-			prevxs = xs;
-		    }
-		    else   /* copy prev dest pix */
-			SET_DATA_BYTE(lined, j, sval);
-		}
-		break;
-	    case 16:
-		for (j = 0; j < wd; j++) {
-		    xs = scol[j];
-		    if (xs != prevxs) {  /* get dest pix from source col */
-			sval = GET_DATA_TWO_BYTES(lines, xs);
-			SET_DATA_TWO_BYTES(lined, j, sval);
-			prevxs = xs;
-		    }
-		    else   /* copy prev dest pix */
-			SET_DATA_TWO_BYTES(lined, j, sval);
-		}
-		break;
-	    case 32:
-		for (j = 0; j < wd; j++) {
-		    xs = scol[j];
-		    if (xs != prevxs) {  /* get dest pix from source col */
-			csval = lines[xs];
-			lined[j] = csval;
-			prevxs = xs;
-		    }
-		    else   /* copy prev dest pix */
-			lined[j] = csval;
-		}
-		break;
-	    default:
-		return ERROR_INT("pixel depth not supported", procName, 1);
-		break;
-	    }
-	}
-	else {  /* lines == prevlines; copy prev dest row */
-	    prevlined = lined - wpld;
-	    memcpy((char *)lined, (char *)prevlined, bpld);
-	}
-	prevlines = lines;
+            switch (d)
+            {
+            case 2:
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_DIBIT(lines, xs);
+                        SET_DATA_DIBIT(lined, j, sval);
+                        prevxs = xs;
+                    }
+                    else   /* copy prev dest pix */
+                        SET_DATA_DIBIT(lined, j, sval);
+                }
+                break;
+            case 4:
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_QBIT(lines, xs);
+                        SET_DATA_QBIT(lined, j, sval);
+                        prevxs = xs;
+                    }
+                    else   /* copy prev dest pix */
+                        SET_DATA_QBIT(lined, j, sval);
+                }
+                break;
+            case 8:
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_BYTE(lines, xs);
+                        SET_DATA_BYTE(lined, j, sval);
+                        prevxs = xs;
+                    }
+                    else   /* copy prev dest pix */
+                        SET_DATA_BYTE(lined, j, sval);
+                }
+                break;
+            case 16:
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_TWO_BYTES(lines, xs);
+                        SET_DATA_TWO_BYTES(lined, j, sval);
+                        prevxs = xs;
+                    }
+                    else   /* copy prev dest pix */
+                        SET_DATA_TWO_BYTES(lined, j, sval);
+                }
+                break;
+            case 32:
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        csval = lines[xs];
+                        lined[j] = csval;
+                        prevxs = xs;
+                    }
+                    else   /* copy prev dest pix */
+                        lined[j] = csval;
+                }
+                break;
+            default:
+                return ERROR_INT("pixel depth not supported", procName, 1);
+                break;
+            }
+        }
+        else {  /* lines == prevlines; copy prev dest row */
+            prevlined = lined - wpld;
+            memcpy((char *)lined, (char *)prevlined, bpld);
+        }
+        prevlines = lines;
     }
 
     FREE(srow);
@@ -1020,68 +1020,68 @@ l_float32  wratio, hratio, norm;
 
     PROCNAME("scaleSmoothLow");
 
-	/* Clear dest */
+        /* Clear dest */
     memset((char *)datad, 0, 4 * wpld * hd);
     
-	/* Each dest pixel at (j,i) is computed as the average
-	   of size^2 corresponding src pixels.
-	   We store the UL corner location of the square of
-	   src pixels that correspond to dest pixel (j,i).
-	   The are labelled by the arrays srow[i] and scol[j]. */
+        /* Each dest pixel at (j,i) is computed as the average
+           of size^2 corresponding src pixels.
+           We store the UL corner location of the square of
+           src pixels that correspond to dest pixel (j,i).
+           The are labelled by the arrays srow[i] and scol[j]. */
     if ((srow = (l_int32 *)CALLOC(hd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", procName, 1);
     if ((scol = (l_int32 *)CALLOC(wd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", procName, 1);
 
     norm = 1. / (l_float32)(size * size);
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
     for (i = 0; i < hd; i++)
-	srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - size);
+        srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - size);
     for (j = 0; j < wd; j++)
-	scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - size);
+        scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - size);
 
         /* For each dest pixel, compute average */
     if (d == 8) {
-	for (i = 0; i < hd; i++) {
-	    lines = datas + srow[i] * wpls;
-	    lined = datad + i * wpld;
-	    for (j = 0; j < wd; j++) {
-		xstart = scol[j];
-		val = 0;
-		for (m = 0; m < size; m++) {
-		    line = lines + m * wpls;
-		    for (n = 0; n < size; n++) {
-			val += GET_DATA_BYTE(line, xstart + n);
-		    }
-		}
-		val = (l_int32)((l_float32)val * norm);
-		SET_DATA_BYTE(lined, j, val);
-	    }
-	}
+        for (i = 0; i < hd; i++) {
+            lines = datas + srow[i] * wpls;
+            lined = datad + i * wpld;
+            for (j = 0; j < wd; j++) {
+                xstart = scol[j];
+                val = 0;
+                for (m = 0; m < size; m++) {
+                    line = lines + m * wpls;
+                    for (n = 0; n < size; n++) {
+                        val += GET_DATA_BYTE(line, xstart + n);
+                    }
+                }
+                val = (l_int32)((l_float32)val * norm);
+                SET_DATA_BYTE(lined, j, val);
+            }
+        }
     }
     else {  /* d == 32 */
-	for (i = 0; i < hd; i++) {
-	    lines = datas + srow[i] * wpls;
-	    lined = datad + i * wpld;
-	    for (j = 0; j < wd; j++) {
-		xstart = scol[j];
-		rval = gval = bval = 0;
-		for (m = 0; m < size; m++) {
-		    ppixel = lines + m * wpls + xstart;
-		    for (n = 0; n < size; n++) {
-			pixel = *(ppixel + n);
-			rval += (pixel >> 24);
-			gval += (pixel >> 16 & 0xff);
-			bval += (pixel >> 8 & 0xff);
-		    }
-		}
-		rval = (l_int32)((l_float32)rval * norm);
-		gval = (l_int32)((l_float32)gval * norm);
-		bval = (l_int32)((l_float32)bval * norm);
-		*(lined + j) = rval << 24 | gval << 16 | bval << 8;
-	    }
-	}
+        for (i = 0; i < hd; i++) {
+            lines = datas + srow[i] * wpls;
+            lined = datad + i * wpld;
+            for (j = 0; j < wd; j++) {
+                xstart = scol[j];
+                rval = gval = bval = 0;
+                for (m = 0; m < size; m++) {
+                    ppixel = lines + m * wpls + xstart;
+                    for (n = 0; n < size; n++) {
+                        pixel = *(ppixel + n);
+                        rval += (pixel >> 24);
+                        gval += (pixel >> 16 & 0xff);
+                        bval += (pixel >> 8 & 0xff);
+                    }
+                }
+                rval = (l_int32)((l_float32)rval * norm);
+                gval = (l_int32)((l_float32)gval * norm);
+                bval = (l_int32)((l_float32)bval * norm);
+                *(lined + j) = rval << 24 | gval << 16 | bval << 8;
+            }
+        }
     }
 
     FREE(srow);
@@ -1191,119 +1191,119 @@ l_uint32   pixel00, pixel10, pixel01, pixel11, pixel;
 l_uint32  *lines, *lined;
 l_float32  scx, scy;
 
-	/* (scx, scy) are scaling factors that are applied to the
-	 * dest coords to get the corresponding src coords.
-	 * We need them because we iterate over dest pixels
-	 * and must find the corresponding set of src pixels. */
+        /* (scx, scy) are scaling factors that are applied to the
+         * dest coords to get the corresponding src coords.
+         * We need them because we iterate over dest pixels
+         * and must find the corresponding set of src pixels. */
     scx = 16. * (l_float32)ws / (l_float32)wd;
     scy = 16. * (l_float32)hs / (l_float32)hd;
 
     wm2 = ws - 2;
     hm2 = hs - 2;
 
-	/* Iterate over the destination pixels */
+        /* Iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-	yu = (l_int32)(scy * i + 0.5);
-	yl = (l_int32)(scy * (i + 1.0) + 0.5);
-	yup = yu >> 4;
-	yuf = yu & 0x0f;
-	ylp = yl >> 4;
-	ylf = yl & 0x0f;
+        yu = (l_int32)(scy * i + 0.5);
+        yl = (l_int32)(scy * (i + 1.0) + 0.5);
+        yup = yu >> 4;
+        yuf = yu & 0x0f;
+        ylp = yl >> 4;
+        ylf = yl & 0x0f;
         dely = ylp - yup;
-	lined = datad + i * wpld;
-	lines = datas + yup * wpls;
-	for (j = 0; j < wd; j++) {
-	    xu = (l_int32)(scx * j + 0.5);
-	    xl = (l_int32)(scx * (j + 1.0) + 0.5);
-	    xup = xu >> 4;
-	    xuf = xu & 0x0f;
-	    xlp = xl >> 4;
-	    xlf = xl & 0x0f;
+        lined = datad + i * wpld;
+        lines = datas + yup * wpls;
+        for (j = 0; j < wd; j++) {
+            xu = (l_int32)(scx * j + 0.5);
+            xl = (l_int32)(scx * (j + 1.0) + 0.5);
+            xup = xu >> 4;
+            xuf = xu & 0x0f;
+            xlp = xl >> 4;
+            xlf = xl & 0x0f;
             delx = xlp - xup;
 
-		/* If near the edge, just use a src pixel value */
-	    if (xlp > wm2 || ylp > hm2) {
-		*(lined + j) = *(lines + xup);
-		continue;
-	    }
+                /* If near the edge, just use a src pixel value */
+            if (xlp > wm2 || ylp > hm2) {
+                *(lined + j) = *(lines + xup);
+                continue;
+            }
 
-	        /* Area summed over, in subpixels.  This varies
+                /* Area summed over, in subpixels.  This varies
                  * due to the quantization, so we can't simply take
                  * the area to be a constant: area = scx * scy. */
             area = ((16 - xuf) + 16 * (delx - 1) + xlf) *
                    ((16 - yuf) + 16 * (dely - 1) + ylf);
 
-		/* Do area map summation */
-	    pixel00 = *(lines + xup);
-	    pixel10 = *(lines + xlp);
-	    pixel01 = *(lines + dely * wpls +  xup);
-	    pixel11 = *(lines + dely * wpls +  xlp);
-	    area00 = (16 - xuf) * (16 - yuf);
-	    area10 = xlf * (16 - yuf);
-	    area01 = (16 - xuf) * ylf;
-	    area11 = xlf * ylf;
-	    v00r = area00 * (pixel00 >> 24);
-	    v00g = area00 * ((pixel00 >> 16) & 0xff);
-	    v00b = area00 * ((pixel00 >> 8) & 0xff);
-	    v10r = area10 * (pixel10 >> 24);
-	    v10g = area10 * ((pixel10 >> 16) & 0xff);
-	    v10b = area10 * ((pixel10 >> 8) & 0xff);
-	    v01r = area01 * (pixel01 >> 24);
-	    v01g = area01 * ((pixel01 >> 16) & 0xff);
-	    v01b = area01 * ((pixel01 >> 8) & 0xff);
-	    v11r = area11 * (pixel11 >> 24);
-	    v11g = area11 * ((pixel11 >> 16) & 0xff);
-	    v11b = area11 * ((pixel11 >> 8) & 0xff);
-	    vinr = ving = vinb = 0;
+                /* Do area map summation */
+            pixel00 = *(lines + xup);
+            pixel10 = *(lines + xlp);
+            pixel01 = *(lines + dely * wpls +  xup);
+            pixel11 = *(lines + dely * wpls +  xlp);
+            area00 = (16 - xuf) * (16 - yuf);
+            area10 = xlf * (16 - yuf);
+            area01 = (16 - xuf) * ylf;
+            area11 = xlf * ylf;
+            v00r = area00 * (pixel00 >> 24);
+            v00g = area00 * ((pixel00 >> 16) & 0xff);
+            v00b = area00 * ((pixel00 >> 8) & 0xff);
+            v10r = area10 * (pixel10 >> 24);
+            v10g = area10 * ((pixel10 >> 16) & 0xff);
+            v10b = area10 * ((pixel10 >> 8) & 0xff);
+            v01r = area01 * (pixel01 >> 24);
+            v01g = area01 * ((pixel01 >> 16) & 0xff);
+            v01b = area01 * ((pixel01 >> 8) & 0xff);
+            v11r = area11 * (pixel11 >> 24);
+            v11g = area11 * ((pixel11 >> 16) & 0xff);
+            v11b = area11 * ((pixel11 >> 8) & 0xff);
+            vinr = ving = vinb = 0;
             for (k = 1; k < dely; k++) {  /* for full src pixels */
                 for (m = 1; m < delx; m++) {
-		    pixel = *(lines + k * wpls + xup + m);
-		    vinr += 256 * (pixel >> 24);
-		    ving += 256 * ((pixel >> 16) & 0xff);
-		    vinb += 256 * ((pixel >> 8) & 0xff);
+                    pixel = *(lines + k * wpls + xup + m);
+                    vinr += 256 * (pixel >> 24);
+                    ving += 256 * ((pixel >> 16) & 0xff);
+                    vinb += 256 * ((pixel >> 8) & 0xff);
                 }
             }
-	    vmidr = vmidg = vmidb = 0;
-	    areal = (16 - xuf) * 16;
-	    arear = xlf * 16;
-	    areat = 16 * (16 - yuf);
-	    areab = 16 * ylf;
+            vmidr = vmidg = vmidb = 0;
+            areal = (16 - xuf) * 16;
+            arear = xlf * 16;
+            areat = 16 * (16 - yuf);
+            areab = 16 * ylf;
             for (k = 1; k < dely; k++) {  /* for left side */
-		pixel = *(lines + k * wpls + xup);
-		vmidr += areal * (pixel >> 24);
-		vmidg += areal * ((pixel >> 16) & 0xff);
-		vmidb += areal * ((pixel >> 8) & 0xff);
-	    }
+                pixel = *(lines + k * wpls + xup);
+                vmidr += areal * (pixel >> 24);
+                vmidg += areal * ((pixel >> 16) & 0xff);
+                vmidb += areal * ((pixel >> 8) & 0xff);
+            }
             for (k = 1; k < dely; k++) {  /* for right side */
-		pixel = *(lines + k * wpls + xlp);
-		vmidr += arear * (pixel >> 24);
-		vmidg += arear * ((pixel >> 16) & 0xff);
-		vmidb += arear * ((pixel >> 8) & 0xff);
-	    }
+                pixel = *(lines + k * wpls + xlp);
+                vmidr += arear * (pixel >> 24);
+                vmidg += arear * ((pixel >> 16) & 0xff);
+                vmidb += arear * ((pixel >> 8) & 0xff);
+            }
             for (m = 1; m < delx; m++) {  /* for top side */
-		pixel = *(lines + xup + m);
-		vmidr += areat * (pixel >> 24);
-		vmidg += areat * ((pixel >> 16) & 0xff);
-		vmidb += areat * ((pixel >> 8) & 0xff);
-	    }
+                pixel = *(lines + xup + m);
+                vmidr += areat * (pixel >> 24);
+                vmidg += areat * ((pixel >> 16) & 0xff);
+                vmidb += areat * ((pixel >> 8) & 0xff);
+            }
             for (m = 1; m < delx; m++) {  /* for bottom side */
-		pixel = *(lines + dely * wpls + xup + m);
-		vmidr += areab * (pixel >> 24);
-		vmidg += areab * ((pixel >> 16) & 0xff);
-		vmidb += areab * ((pixel >> 8) & 0xff);
-	    }
+                pixel = *(lines + dely * wpls + xup + m);
+                vmidr += areab * (pixel >> 24);
+                vmidg += areab * ((pixel >> 16) & 0xff);
+                vmidb += areab * ((pixel >> 8) & 0xff);
+            }
 
-	        /* Sum all the contributions */
-	    valr = (v00r + v01r + v10r + v11r + vinr + vmidr + 128) / area;
-	    valg = (v00g + v01g + v10g + v11g + ving + vmidg + 128) / area;
-	    valb = (v00b + v01b + v10b + v11b + vinb + vmidb + 128) / area;
+                /* Sum all the contributions */
+            valr = (v00r + v01r + v10r + v11r + vinr + vmidr + 128) / area;
+            valg = (v00g + v01g + v10g + v11g + ving + vmidg + 128) / area;
+            valb = (v00b + v01b + v10b + v11b + vinb + vmidb + 128) / area;
 #if  DEBUG_OVERFLOW
             if (valr > 255) fprintf(stderr, "valr ovfl: %d\n", valr);
             if (valg > 255) fprintf(stderr, "valg ovfl: %d\n", valg);
             if (valb > 255) fprintf(stderr, "valb ovfl: %d\n", valb);
 #endif  /* DEBUG_OVERFLOW */
-	    *(lined + j) = (valr << 24 ) | (valg << 16) | (valb << 8);
-	}
+            *(lined + j) = (valr << 24 ) | (valg << 16) | (valb << 8);
+        }
     }
 
     return;
@@ -1347,53 +1347,53 @@ l_int32    val;
 l_uint32  *lines, *lined;
 l_float32  scx, scy;
 
-	/* (scx, scy) are scaling factors that are applied to the
-	 * dest coords to get the corresponding src coords.
-	 * We need them because we iterate over dest pixels
-	 * and must find the corresponding set of src pixels. */
+        /* (scx, scy) are scaling factors that are applied to the
+         * dest coords to get the corresponding src coords.
+         * We need them because we iterate over dest pixels
+         * and must find the corresponding set of src pixels. */
     scx = 16. * (l_float32)ws / (l_float32)wd;
     scy = 16. * (l_float32)hs / (l_float32)hd;
 
     wm2 = ws - 2;
     hm2 = hs - 2;
 
-	/* Iterate over the destination pixels */
+        /* Iterate over the destination pixels */
     for (i = 0; i < hd; i++) {
-	yu = (l_int32)(scy * i + 0.5);
-	yl = (l_int32)(scy * (i + 1.0) + 0.5);
-	yup = yu >> 4;
-	yuf = yu & 0x0f;
-	ylp = yl >> 4;
-	ylf = yl & 0x0f;
+        yu = (l_int32)(scy * i + 0.5);
+        yl = (l_int32)(scy * (i + 1.0) + 0.5);
+        yup = yu >> 4;
+        yuf = yu & 0x0f;
+        ylp = yl >> 4;
+        ylf = yl & 0x0f;
         dely = ylp - yup;
-	lined = datad + i * wpld;
-	lines = datas + yup * wpls;
-	for (j = 0; j < wd; j++) {
-	    xu = (l_int32)(scx * j + 0.5);
-	    xl = (l_int32)(scx * (j + 1.0) + 0.5);
-	    xup = xu >> 4;
-	    xuf = xu & 0x0f;
-	    xlp = xl >> 4;
-	    xlf = xl & 0x0f;
+        lined = datad + i * wpld;
+        lines = datas + yup * wpls;
+        for (j = 0; j < wd; j++) {
+            xu = (l_int32)(scx * j + 0.5);
+            xl = (l_int32)(scx * (j + 1.0) + 0.5);
+            xup = xu >> 4;
+            xuf = xu & 0x0f;
+            xlp = xl >> 4;
+            xlf = xl & 0x0f;
             delx = xlp - xup;
 
-		/* If near the edge, just use a src pixel value */
-	    if (xlp > wm2 || ylp > hm2) {
-		SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xup));
-		continue;
-	    }
+                /* If near the edge, just use a src pixel value */
+            if (xlp > wm2 || ylp > hm2) {
+                SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xup));
+                continue;
+            }
 
-	        /* Area summed over, in subpixels.  This varies
+                /* Area summed over, in subpixels.  This varies
                  * due to the quantization, so we can't simply take
                  * the area to be a constant: area = scx * scy. */
             area = ((16 - xuf) + 16 * (delx - 1) + xlf) *
                    ((16 - yuf) + 16 * (dely - 1) + ylf);
 
-		/* Do area map summation */
-	    v00 = (16 - xuf) * (16 - yuf) * GET_DATA_BYTE(lines, xup);
-	    v10 = xlf * (16 - yuf) * GET_DATA_BYTE(lines, xlp);
-	    v01 = (16 - xuf) * ylf * GET_DATA_BYTE(lines + dely * wpls, xup);
-	    v11 = xlf * ylf * GET_DATA_BYTE(lines + dely * wpls, xlp);
+                /* Do area map summation */
+            v00 = (16 - xuf) * (16 - yuf) * GET_DATA_BYTE(lines, xup);
+            v10 = xlf * (16 - yuf) * GET_DATA_BYTE(lines, xlp);
+            v01 = (16 - xuf) * ylf * GET_DATA_BYTE(lines + dely * wpls, xup);
+            v11 = xlf * ylf * GET_DATA_BYTE(lines + dely * wpls, xlp);
             for (vin = 0, k = 1; k < dely; k++) {  /* for full src pixels */
                  for (m = 1; m < delx; m++) {
                      vin += 256 * GET_DATA_BYTE(lines + k * wpls, xup + m);
@@ -1407,12 +1407,12 @@ l_float32  scx, scy;
                 vmid += 16 * (16 - yuf) * GET_DATA_BYTE(lines, xup + m);
             for (m = 1; m < delx; m++)  /* for bottom side */
                 vmid += 16 * ylf * GET_DATA_BYTE(lines + dely * wpls, xup + m);
-	    val = (v00 + v01 + v10 + v11 + vin + vmid + 128) / area;
+            val = (v00 + v01 + v10 + v11 + vin + vmid + 128) / area;
 #if  DEBUG_OVERFLOW
-	    if (val > 255) fprintf(stderr, "val overflow: %d\n", val);
+            if (val > 255) fprintf(stderr, "val overflow: %d\n", val);
 #endif  /* DEBUG_OVERFLOW */
-	    SET_DATA_BYTE(lined, j, val);
-	}
+            SET_DATA_BYTE(lined, j, val);
+        }
     }
 
     return;
@@ -1508,7 +1508,7 @@ scaleBinaryLow(l_uint32  *datad,
                l_int32    hd,
                l_int32    wpld,
                l_uint32  *datas,
-	       l_int32    ws,
+               l_int32    ws,
                l_int32    hs,
                l_int32    wpls)
 {
@@ -1520,49 +1520,49 @@ l_float32  wratio, hratio;
 
     PROCNAME("scaleBinaryLow");
 
-	/* clear dest */
+        /* clear dest */
     bpld = 4 * wpld;
     memset((char *)datad, 0, hd * bpld);
     
-	/* The source row corresponding to dest row i ==> srow[i]
-	 * The source col corresponding to dest col j ==> scol[j]  */
+        /* The source row corresponding to dest row i ==> srow[i]
+         * The source col corresponding to dest col j ==> scol[j]  */
     if ((srow = (l_int32 *)CALLOC(hd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", procName, 1);
     if ((scol = (l_int32 *)CALLOC(wd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", procName, 1);
 
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
     for (i = 0; i < hd; i++)
-	srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - 1);
+        srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - 1);
     for (j = 0; j < wd; j++)
-	scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - 1);
+        scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - 1);
 
     prevlines = NULL;
     prevxs = -1;
     sval = 0;
     for (i = 0; i < hd; i++) {
-	lines = datas + srow[i] * wpls;
-	lined = datad + i * wpld;
-	if (lines != prevlines) {  /* make dest from new source row */
-	    for (j = 0; j < wd; j++) {
-		xs = scol[j];
-		if (xs != prevxs) {  /* get dest pix from source col */
-		    if ((sval = GET_DATA_BIT(lines, xs)))
-			SET_DATA_BIT(lined, j);
-		    prevxs = xs;
-		}
-		else {  /* copy prev dest pix, if set */
-		    if (sval)
-			SET_DATA_BIT(lined, j);
-		}
-	    }
-	}
-	else {  /* lines == prevlines; copy prev dest row */
-	    prevlined = lined - wpld;
-	    memcpy((char *)lined, (char *)prevlined, bpld);
-	}
-	prevlines = lines;
+        lines = datas + srow[i] * wpls;
+        lined = datad + i * wpld;
+        if (lines != prevlines) {  /* make dest from new source row */
+            for (j = 0; j < wd; j++) {
+                xs = scol[j];
+                if (xs != prevxs) {  /* get dest pix from source col */
+                    if ((sval = GET_DATA_BIT(lines, xs)))
+                        SET_DATA_BIT(lined, j);
+                    prevxs = xs;
+                }
+                else {  /* copy prev dest pix, if set */
+                    if (sval)
+                        SET_DATA_BIT(lined, j);
+                }
+            }
+        }
+        else {  /* lines == prevlines; copy prev dest row */
+            prevlined = lined - wpld;
+            memcpy((char *)lined, (char *)prevlined, bpld);
+        }
+        prevlines = lines;
     }
 
     FREE(srow);
@@ -1595,36 +1595,36 @@ l_float32  wratio, hratio;
  */
 void
 scaleToGray2Low(l_uint32  *datad,
-		l_int32    wd,
-		l_int32    hd,
-		l_int32    wpld,
+                l_int32    wd,
+                l_int32    hd,
+                l_int32    wpld,
                 l_uint32  *datas,
-		l_int32    wpls,
-		l_uint32  *sumtab,
-		l_uint8   *valtab)
+                l_int32    wpls,
+                l_uint32  *sumtab,
+                l_uint8   *valtab)
 {
 l_int32    i, j, l, k;
 l_uint32   sbyte1, sbyte2, sum;
 l_uint32  *lines, *lined;
 
-	/* i indexes the dest lines
-	 * l indexes the source lines
-	 * j indexes the dest bytes
-	 * k indexes the source bytes
-	 * We take two bytes from the source (in 2 lines of 8 pixels
-	 * each) and convert them into four 8 bpp bytes of the dest. */
+        /* i indexes the dest lines
+         * l indexes the source lines
+         * j indexes the dest bytes
+         * k indexes the source bytes
+         * We take two bytes from the source (in 2 lines of 8 pixels
+         * each) and convert them into four 8 bpp bytes of the dest. */
     for (i = 0, l = 0; i < hd; i++, l += 2) {
-	lines = datas + l * wpls;
-	lined = datad + i * wpld; 
-	for (j = 0, k = 0; j < wd; j += 4, k++) {
-	    sbyte1 = GET_DATA_BYTE(lines, k);
-	    sbyte2 = GET_DATA_BYTE(lines + wpls, k);
-	    sum = sumtab[sbyte1] + sumtab[sbyte2];
-	    SET_DATA_BYTE(lined, j, valtab[sum >> 24]);
-	    SET_DATA_BYTE(lined, j + 1, valtab[(sum >> 16) & 0xff]);
-	    SET_DATA_BYTE(lined, j + 2, valtab[(sum >> 8) & 0xff]);
-	    SET_DATA_BYTE(lined, j + 3, valtab[sum & 0xff]);
-	}
+        lines = datas + l * wpls;
+        lined = datad + i * wpld; 
+        for (j = 0, k = 0; j < wd; j += 4, k++) {
+            sbyte1 = GET_DATA_BYTE(lines, k);
+            sbyte2 = GET_DATA_BYTE(lines + wpls, k);
+            sum = sumtab[sbyte1] + sumtab[sbyte2];
+            SET_DATA_BYTE(lined, j, valtab[sum >> 24]);
+            SET_DATA_BYTE(lined, j + 1, valtab[(sum >> 16) & 0xff]);
+            SET_DATA_BYTE(lined, j + 2, valtab[(sum >> 8) & 0xff]);
+            SET_DATA_BYTE(lined, j + 3, valtab[sum & 0xff]);
+        }
     }
 
     return;
@@ -1650,12 +1650,12 @@ l_uint32  *tab;
     PROCNAME("makeSumTabSG2");
 
     if ((tab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL)
-	return (l_uint32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
-	/* Pack the four sums separately in four bytes */
+        /* Pack the four sums separately in four bytes */
     for (i = 0; i < 256; i++) {
-	tab[i] = (sum[i & 0x3] | sum[(i >> 2) & 0x3] << 8 |
-	          sum[(i >> 4) & 0x3] << 16 | sum[(i >> 6) & 0x3] << 24);
+        tab[i] = (sum[i & 0x3] | sum[(i >> 2) & 0x3] << 8 |
+                  sum[(i >> 4) & 0x3] << 16 | sum[(i >> 6) & 0x3] << 24);
     }
 
     return tab;
@@ -1681,10 +1681,10 @@ l_uint8  *tab;
     PROCNAME("makeValTabSG2");
 
     if ((tab = (l_uint8 *)CALLOC(5, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 5; i++)
-	tab[i] = 255 - (i * 255) / 4;
+        tab[i] = 255 - (i * 255) / 4;
 
     return tab;
 }
@@ -1723,63 +1723,63 @@ l_uint8  *tab;
  */
 void
 scaleToGray3Low(l_uint32  *datad,
-		l_int32    wd,
-		l_int32    hd,
-		l_int32    wpld,
+                l_int32    wd,
+                l_int32    hd,
+                l_int32    wpld,
                 l_uint32  *datas,
-		l_int32    wpls,
-		l_uint32  *sumtab,
-		l_uint8   *valtab)
+                l_int32    wpls,
+                l_uint32  *sumtab,
+                l_uint8   *valtab)
 {
 l_int32    i, j, l, k;
 l_uint32   threebytes1, threebytes2, threebytes3, sum;
 l_uint32  *lines, *lined;
 
-	/* i indexes the dest lines
-	 * l indexes the source lines
-	 * j indexes the dest bytes
-	 * k indexes the source bytes
-	 * We take 9 bytes from the source (72 binary pixels
-	 * in three lines of 24 pixels each) and convert it
-	 * into 8 bytes of the dest (8 8bpp pixels in one line)   */
+        /* i indexes the dest lines
+         * l indexes the source lines
+         * j indexes the dest bytes
+         * k indexes the source bytes
+         * We take 9 bytes from the source (72 binary pixels
+         * in three lines of 24 pixels each) and convert it
+         * into 8 bytes of the dest (8 8bpp pixels in one line)   */
     for (i = 0, l = 0; i < hd; i++, l += 3) {
-	lines = datas + l * wpls;
-	lined = datad + i * wpld; 
-	for (j = 0, k = 0; j < wd; j += 8, k += 3) {
-	    threebytes1 = (GET_DATA_BYTE(lines, k) << 16) |
-			  (GET_DATA_BYTE(lines, k + 1) << 8) |
-			  GET_DATA_BYTE(lines, k + 2);
-	    threebytes2 = (GET_DATA_BYTE(lines + wpls, k) << 16) |
-			  (GET_DATA_BYTE(lines + wpls, k + 1) << 8) |
-			  GET_DATA_BYTE(lines + wpls, k + 2);
-	    threebytes3 = (GET_DATA_BYTE(lines + 2 * wpls, k) << 16) |
-			  (GET_DATA_BYTE(lines + 2 * wpls, k + 1) << 8) |
-			  GET_DATA_BYTE(lines + 2 * wpls, k + 2);
+        lines = datas + l * wpls;
+        lined = datad + i * wpld; 
+        for (j = 0, k = 0; j < wd; j += 8, k += 3) {
+            threebytes1 = (GET_DATA_BYTE(lines, k) << 16) |
+                          (GET_DATA_BYTE(lines, k + 1) << 8) |
+                          GET_DATA_BYTE(lines, k + 2);
+            threebytes2 = (GET_DATA_BYTE(lines + wpls, k) << 16) |
+                          (GET_DATA_BYTE(lines + wpls, k + 1) << 8) |
+                          GET_DATA_BYTE(lines + wpls, k + 2);
+            threebytes3 = (GET_DATA_BYTE(lines + 2 * wpls, k) << 16) |
+                          (GET_DATA_BYTE(lines + 2 * wpls, k + 1) << 8) |
+                          GET_DATA_BYTE(lines + 2 * wpls, k + 2);
 
-	    sum = sumtab[(threebytes1 >> 18)] +
-		  sumtab[(threebytes2 >> 18)] +
-		  sumtab[(threebytes3 >> 18)];
-	    SET_DATA_BYTE(lined, j, valtab[GET_DATA_BYTE(&sum, 2)]);
-	    SET_DATA_BYTE(lined, j + 1, valtab[GET_DATA_BYTE(&sum, 3)]);
+            sum = sumtab[(threebytes1 >> 18)] +
+                  sumtab[(threebytes2 >> 18)] +
+                  sumtab[(threebytes3 >> 18)];
+            SET_DATA_BYTE(lined, j, valtab[GET_DATA_BYTE(&sum, 2)]);
+            SET_DATA_BYTE(lined, j + 1, valtab[GET_DATA_BYTE(&sum, 3)]);
 
-	    sum = sumtab[((threebytes1 >> 12) & 0x3f)] +
-		  sumtab[((threebytes2 >> 12) & 0x3f)] +
-		  sumtab[((threebytes3 >> 12) & 0x3f)];
-	    SET_DATA_BYTE(lined, j + 2, valtab[GET_DATA_BYTE(&sum, 2)]);
-	    SET_DATA_BYTE(lined, j + 3, valtab[GET_DATA_BYTE(&sum, 3)]);
+            sum = sumtab[((threebytes1 >> 12) & 0x3f)] +
+                  sumtab[((threebytes2 >> 12) & 0x3f)] +
+                  sumtab[((threebytes3 >> 12) & 0x3f)];
+            SET_DATA_BYTE(lined, j + 2, valtab[GET_DATA_BYTE(&sum, 2)]);
+            SET_DATA_BYTE(lined, j + 3, valtab[GET_DATA_BYTE(&sum, 3)]);
 
-	    sum = sumtab[((threebytes1 >> 6) & 0x3f)] +
-		  sumtab[((threebytes2 >> 6) & 0x3f)] +
-		  sumtab[((threebytes3 >> 6) & 0x3f)];
-	    SET_DATA_BYTE(lined, j + 4, valtab[GET_DATA_BYTE(&sum, 2)]);
-	    SET_DATA_BYTE(lined, j + 5, valtab[GET_DATA_BYTE(&sum, 3)]);
+            sum = sumtab[((threebytes1 >> 6) & 0x3f)] +
+                  sumtab[((threebytes2 >> 6) & 0x3f)] +
+                  sumtab[((threebytes3 >> 6) & 0x3f)];
+            SET_DATA_BYTE(lined, j + 4, valtab[GET_DATA_BYTE(&sum, 2)]);
+            SET_DATA_BYTE(lined, j + 5, valtab[GET_DATA_BYTE(&sum, 3)]);
 
-	    sum = sumtab[(threebytes1 & 0x3f)] +
-		  sumtab[(threebytes2 & 0x3f)] +
-		  sumtab[(threebytes3 & 0x3f)];
-	    SET_DATA_BYTE(lined, j + 6, valtab[GET_DATA_BYTE(&sum, 2)]);
-	    SET_DATA_BYTE(lined, j + 7, valtab[GET_DATA_BYTE(&sum, 3)]);
-	}
+            sum = sumtab[(threebytes1 & 0x3f)] +
+                  sumtab[(threebytes2 & 0x3f)] +
+                  sumtab[(threebytes3 & 0x3f)];
+            SET_DATA_BYTE(lined, j + 6, valtab[GET_DATA_BYTE(&sum, 2)]);
+            SET_DATA_BYTE(lined, j + 7, valtab[GET_DATA_BYTE(&sum, 3)]);
+        }
     }
 
     return;
@@ -1807,11 +1807,11 @@ l_uint32  *tab;
     PROCNAME("makeSumTabSG3");
 
     if ((tab = (l_uint32 *)CALLOC(64, sizeof(l_uint32))) == NULL)
-	return (l_uint32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
-	/* Pack the two sums separately in two bytes */
+        /* Pack the two sums separately in two bytes */
     for (i = 0; i < 64; i++) {
-	tab[i] = (sum[i & 0x07]) | (sum[(i >> 3) & 0x07] << 8);
+        tab[i] = (sum[i & 0x07]) | (sum[(i >> 3) & 0x07] << 8);
     }
 
     return tab;
@@ -1835,10 +1835,10 @@ l_uint8  *tab;
     PROCNAME("makeValTabSG3");
 
     if ((tab = (l_uint8 *)CALLOC(10, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 10; i++)
-	tab[i] = 0xff - (i * 255) / 9;
+        tab[i] = 0xff - (i * 255) / 9;
 
     return tab;
 }
@@ -1867,37 +1867,37 @@ l_uint8  *tab;
  */
 void
 scaleToGray4Low(l_uint32  *datad,
-		l_int32    wd,
-		l_int32    hd,
-		l_int32    wpld,
+                l_int32    wd,
+                l_int32    hd,
+                l_int32    wpld,
                 l_uint32  *datas,
-		l_int32    wpls,
-		l_uint32  *sumtab,
-		l_uint8   *valtab)
+                l_int32    wpls,
+                l_uint32  *sumtab,
+                l_uint8   *valtab)
 {
 l_int32    i, j, l, k;
 l_uint32   sbyte1, sbyte2, sbyte3, sbyte4, sum;
 l_uint32  *lines, *lined;
 
-	/* i indexes the dest lines
-	 * l indexes the source lines
-	 * j indexes the dest bytes
-	 * k indexes the source bytes
-	 * We take four bytes from the source (in 4 lines of 8 pixels
-	 * each) and convert it into two 8 bpp bytes of the dest. */
+        /* i indexes the dest lines
+         * l indexes the source lines
+         * j indexes the dest bytes
+         * k indexes the source bytes
+         * We take four bytes from the source (in 4 lines of 8 pixels
+         * each) and convert it into two 8 bpp bytes of the dest. */
     for (i = 0, l = 0; i < hd; i++, l += 4) {
-	lines = datas + l * wpls;
-	lined = datad + i * wpld; 
-	for (j = 0, k = 0; j < wd; j += 2, k++) {
-	    sbyte1 = GET_DATA_BYTE(lines, k);
-	    sbyte2 = GET_DATA_BYTE(lines + wpls, k);
-	    sbyte3 = GET_DATA_BYTE(lines + 2 * wpls, k);
-	    sbyte4 = GET_DATA_BYTE(lines + 3 * wpls, k);
-	    sum = sumtab[sbyte1] + sumtab[sbyte2] +
-	          sumtab[sbyte3] + sumtab[sbyte4];
-	    SET_DATA_BYTE(lined, j, valtab[GET_DATA_BYTE(&sum, 2)]);
-	    SET_DATA_BYTE(lined, j + 1, valtab[GET_DATA_BYTE(&sum, 3)]);
-	}
+        lines = datas + l * wpls;
+        lined = datad + i * wpld; 
+        for (j = 0, k = 0; j < wd; j += 2, k++) {
+            sbyte1 = GET_DATA_BYTE(lines, k);
+            sbyte2 = GET_DATA_BYTE(lines + wpls, k);
+            sbyte3 = GET_DATA_BYTE(lines + 2 * wpls, k);
+            sbyte4 = GET_DATA_BYTE(lines + 3 * wpls, k);
+            sum = sumtab[sbyte1] + sumtab[sbyte2] +
+                  sumtab[sbyte3] + sumtab[sbyte4];
+            SET_DATA_BYTE(lined, j, valtab[GET_DATA_BYTE(&sum, 2)]);
+            SET_DATA_BYTE(lined, j + 1, valtab[GET_DATA_BYTE(&sum, 3)]);
+        }
     }
 
     return;
@@ -1923,11 +1923,11 @@ l_uint32  *tab;
     PROCNAME("makeSumTabSG4");
 
     if ((tab = (l_uint32 *)CALLOC(256, sizeof(l_uint32))) == NULL)
-	return (l_uint32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
-	/* Pack the two sums separately in two bytes */
+        /* Pack the two sums separately in two bytes */
     for (i = 0; i < 256; i++) {
-	tab[i] = (sum[i & 0xf]) | (sum[(i >> 4) & 0xf] << 8);
+        tab[i] = (sum[i & 0xf]) | (sum[(i >> 4) & 0xf] << 8);
     }
 
     return tab;
@@ -1953,10 +1953,10 @@ l_uint8  *tab;
     PROCNAME("makeValTabSG4");
 
     if ((tab = (l_uint8 *)CALLOC(17, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 17; i++)
-	tab[i] = 0xff - (i * 255) / 16;
+        tab[i] = 0xff - (i * 255) / 16;
 
     return tab;
 }
@@ -1995,85 +1995,85 @@ l_uint8  *tab;
  */
 void
 scaleToGray6Low(l_uint32  *datad,
-		l_int32    wd,
-		l_int32    hd,
-		l_int32    wpld,
+                l_int32    wd,
+                l_int32    hd,
+                l_int32    wpld,
                 l_uint32  *datas,
-		l_int32    wpls,
-		l_int32   *tab8,
-		l_uint8   *valtab)
+                l_int32    wpls,
+                l_int32   *tab8,
+                l_uint8   *valtab)
 {
 l_int32    i, j, l, k;
 l_uint32   threebytes1, threebytes2, threebytes3;
 l_uint32   threebytes4, threebytes5, threebytes6, sum;
 l_uint32  *lines, *lined;
 
-	/* i indexes the dest lines
-	 * l indexes the source lines
-	 * j indexes the dest bytes
-	 * k indexes the source bytes
-	 * We take 18 bytes from the source (144 binary pixels
-	 * in six lines of 24 pixels each) and convert it
-	 * into 4 bytes of the dest (four 8 bpp pixels in one line)   */
+        /* i indexes the dest lines
+         * l indexes the source lines
+         * j indexes the dest bytes
+         * k indexes the source bytes
+         * We take 18 bytes from the source (144 binary pixels
+         * in six lines of 24 pixels each) and convert it
+         * into 4 bytes of the dest (four 8 bpp pixels in one line)   */
     for (i = 0, l = 0; i < hd; i++, l += 6) {
-	lines = datas + l * wpls;
-	lined = datad + i * wpld; 
-	for (j = 0, k = 0; j < wd; j += 4, k += 3) {
+        lines = datas + l * wpls;
+        lined = datad + i * wpld; 
+        for (j = 0, k = 0; j < wd; j += 4, k += 3) {
                 /* First grab the 18 bytes, 3 at a time, and put each set
                  * of 3 bytes into the LS bytes of a 32-bit word. */
-	    threebytes1 = (GET_DATA_BYTE(lines, k) << 16) |
-			  (GET_DATA_BYTE(lines, k + 1) << 8) |
-			  GET_DATA_BYTE(lines, k + 2);
-	    threebytes2 = (GET_DATA_BYTE(lines + wpls, k) << 16) |
-			  (GET_DATA_BYTE(lines + wpls, k + 1) << 8) |
-			  GET_DATA_BYTE(lines + wpls, k + 2);
-	    threebytes3 = (GET_DATA_BYTE(lines + 2 * wpls, k) << 16) |
-			  (GET_DATA_BYTE(lines + 2 * wpls, k + 1) << 8) |
-			  GET_DATA_BYTE(lines + 2 * wpls, k + 2);
-	    threebytes4 = (GET_DATA_BYTE(lines + 3 * wpls, k) << 16) |
-			  (GET_DATA_BYTE(lines + 3 * wpls, k + 1) << 8) |
-			  GET_DATA_BYTE(lines + 3 * wpls, k + 2);
-	    threebytes5 = (GET_DATA_BYTE(lines + 4 * wpls, k) << 16) |
-			  (GET_DATA_BYTE(lines + 4 * wpls, k + 1) << 8) |
-			  GET_DATA_BYTE(lines + 4 * wpls, k + 2);
-	    threebytes6 = (GET_DATA_BYTE(lines + 5 * wpls, k) << 16) |
-			  (GET_DATA_BYTE(lines + 5 * wpls, k + 1) << 8) |
-			  GET_DATA_BYTE(lines + 5 * wpls, k + 2);
+            threebytes1 = (GET_DATA_BYTE(lines, k) << 16) |
+                          (GET_DATA_BYTE(lines, k + 1) << 8) |
+                          GET_DATA_BYTE(lines, k + 2);
+            threebytes2 = (GET_DATA_BYTE(lines + wpls, k) << 16) |
+                          (GET_DATA_BYTE(lines + wpls, k + 1) << 8) |
+                          GET_DATA_BYTE(lines + wpls, k + 2);
+            threebytes3 = (GET_DATA_BYTE(lines + 2 * wpls, k) << 16) |
+                          (GET_DATA_BYTE(lines + 2 * wpls, k + 1) << 8) |
+                          GET_DATA_BYTE(lines + 2 * wpls, k + 2);
+            threebytes4 = (GET_DATA_BYTE(lines + 3 * wpls, k) << 16) |
+                          (GET_DATA_BYTE(lines + 3 * wpls, k + 1) << 8) |
+                          GET_DATA_BYTE(lines + 3 * wpls, k + 2);
+            threebytes5 = (GET_DATA_BYTE(lines + 4 * wpls, k) << 16) |
+                          (GET_DATA_BYTE(lines + 4 * wpls, k + 1) << 8) |
+                          GET_DATA_BYTE(lines + 4 * wpls, k + 2);
+            threebytes6 = (GET_DATA_BYTE(lines + 5 * wpls, k) << 16) |
+                          (GET_DATA_BYTE(lines + 5 * wpls, k + 1) << 8) |
+                          GET_DATA_BYTE(lines + 5 * wpls, k + 2);
 
                 /* Sum first set of 36 bits and convert to 0-255 */
-	    sum = tab8[(threebytes1 >> 18)] +
-		  tab8[(threebytes2 >> 18)] +
-		  tab8[(threebytes3 >> 18)] +
-		  tab8[(threebytes4 >> 18)] +
-		  tab8[(threebytes5 >> 18)] +
- 	          tab8[(threebytes6 >> 18)];
-	    SET_DATA_BYTE(lined, j, valtab[GET_DATA_BYTE(&sum, 3)]);
+            sum = tab8[(threebytes1 >> 18)] +
+                  tab8[(threebytes2 >> 18)] +
+                  tab8[(threebytes3 >> 18)] +
+                  tab8[(threebytes4 >> 18)] +
+                  tab8[(threebytes5 >> 18)] +
+                   tab8[(threebytes6 >> 18)];
+            SET_DATA_BYTE(lined, j, valtab[GET_DATA_BYTE(&sum, 3)]);
 
                 /* Ditto for second set */
-	    sum = tab8[((threebytes1 >> 12) & 0x3f)] +
-		  tab8[((threebytes2 >> 12) & 0x3f)] +
-		  tab8[((threebytes3 >> 12) & 0x3f)] +
-		  tab8[((threebytes4 >> 12) & 0x3f)] +
-		  tab8[((threebytes5 >> 12) & 0x3f)] +
-		  tab8[((threebytes6 >> 12) & 0x3f)];
-	    SET_DATA_BYTE(lined, j + 1, valtab[GET_DATA_BYTE(&sum, 3)]);
+            sum = tab8[((threebytes1 >> 12) & 0x3f)] +
+                  tab8[((threebytes2 >> 12) & 0x3f)] +
+                  tab8[((threebytes3 >> 12) & 0x3f)] +
+                  tab8[((threebytes4 >> 12) & 0x3f)] +
+                  tab8[((threebytes5 >> 12) & 0x3f)] +
+                  tab8[((threebytes6 >> 12) & 0x3f)];
+            SET_DATA_BYTE(lined, j + 1, valtab[GET_DATA_BYTE(&sum, 3)]);
 
-	    sum = tab8[((threebytes1 >> 6) & 0x3f)] +
-		  tab8[((threebytes2 >> 6) & 0x3f)] +
-		  tab8[((threebytes3 >> 6) & 0x3f)] +
-		  tab8[((threebytes4 >> 6) & 0x3f)] +
-		  tab8[((threebytes5 >> 6) & 0x3f)] +
-		  tab8[((threebytes6 >> 6) & 0x3f)];
-	    SET_DATA_BYTE(lined, j + 2, valtab[GET_DATA_BYTE(&sum, 3)]);
+            sum = tab8[((threebytes1 >> 6) & 0x3f)] +
+                  tab8[((threebytes2 >> 6) & 0x3f)] +
+                  tab8[((threebytes3 >> 6) & 0x3f)] +
+                  tab8[((threebytes4 >> 6) & 0x3f)] +
+                  tab8[((threebytes5 >> 6) & 0x3f)] +
+                  tab8[((threebytes6 >> 6) & 0x3f)];
+            SET_DATA_BYTE(lined, j + 2, valtab[GET_DATA_BYTE(&sum, 3)]);
 
-	    sum = tab8[(threebytes1 & 0x3f)] +
-		  tab8[(threebytes2 & 0x3f)] +
-		  tab8[(threebytes3 & 0x3f)] +
-		  tab8[(threebytes4 & 0x3f)] +
-		  tab8[(threebytes5 & 0x3f)] +
-		  tab8[(threebytes6 & 0x3f)];
-	    SET_DATA_BYTE(lined, j + 3, valtab[GET_DATA_BYTE(&sum, 3)]);
-	}
+            sum = tab8[(threebytes1 & 0x3f)] +
+                  tab8[(threebytes2 & 0x3f)] +
+                  tab8[(threebytes3 & 0x3f)] +
+                  tab8[(threebytes4 & 0x3f)] +
+                  tab8[(threebytes5 & 0x3f)] +
+                  tab8[(threebytes6 & 0x3f)];
+            SET_DATA_BYTE(lined, j + 3, valtab[GET_DATA_BYTE(&sum, 3)]);
+        }
     }
 
     return;
@@ -2097,10 +2097,10 @@ l_uint8  *tab;
     PROCNAME("makeValTabSG6");
 
     if ((tab = (l_uint8 *)CALLOC(37, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 37; i++)
-	tab[i] = 0xff - (i * 255) / 36;
+        tab[i] = 0xff - (i * 255) / 36;
 
     return tab;
 }
@@ -2127,41 +2127,41 @@ l_uint8  *tab;
  */
 void
 scaleToGray8Low(l_uint32  *datad,
-		l_int32    wd,
-		l_int32    hd,
-		l_int32    wpld,
+                l_int32    wd,
+                l_int32    hd,
+                l_int32    wpld,
                 l_uint32  *datas,
-		l_int32    wpls,
-		l_int32   *tab8,
-		l_uint8   *valtab)
+                l_int32    wpls,
+                l_int32   *tab8,
+                l_uint8   *valtab)
 {
 l_int32    i, j, k;
 l_int32    sbyte0, sbyte1, sbyte2, sbyte3, sbyte4, sbyte5, sbyte6, sbyte7, sum;
 l_uint32  *lines, *lined;
 
-	/* i indexes the dest lines
-	 * k indexes the source lines
-	 * j indexes the src and dest bytes
-	 * We take 8 bytes from the source (in 8 lines of 8 pixels
-	 * each) and convert it into one 8 bpp byte of the dest. */
+        /* i indexes the dest lines
+         * k indexes the source lines
+         * j indexes the src and dest bytes
+         * We take 8 bytes from the source (in 8 lines of 8 pixels
+         * each) and convert it into one 8 bpp byte of the dest. */
     for (i = 0, k = 0; i < hd; i++, k += 8) {
-	lines = datas + k * wpls;
-	lined = datad + i * wpld; 
-	for (j = 0; j < wd; j++) {
-	    sbyte0 = GET_DATA_BYTE(lines, j);
-	    sbyte1 = GET_DATA_BYTE(lines + wpls, j);
-	    sbyte2 = GET_DATA_BYTE(lines + 2 * wpls, j);
-	    sbyte3 = GET_DATA_BYTE(lines + 3 * wpls, j);
-	    sbyte4 = GET_DATA_BYTE(lines + 4 * wpls, j);
-	    sbyte5 = GET_DATA_BYTE(lines + 5 * wpls, j);
-	    sbyte6 = GET_DATA_BYTE(lines + 6 * wpls, j);
-	    sbyte7 = GET_DATA_BYTE(lines + 7 * wpls, j);
-	    sum = tab8[sbyte0] + tab8[sbyte1] +
-	          tab8[sbyte2] + tab8[sbyte3] +
-	          tab8[sbyte4] + tab8[sbyte5] +
-	          tab8[sbyte6] + tab8[sbyte7];
-	    SET_DATA_BYTE(lined, j, valtab[sum]);
-	}
+        lines = datas + k * wpls;
+        lined = datad + i * wpld; 
+        for (j = 0; j < wd; j++) {
+            sbyte0 = GET_DATA_BYTE(lines, j);
+            sbyte1 = GET_DATA_BYTE(lines + wpls, j);
+            sbyte2 = GET_DATA_BYTE(lines + 2 * wpls, j);
+            sbyte3 = GET_DATA_BYTE(lines + 3 * wpls, j);
+            sbyte4 = GET_DATA_BYTE(lines + 4 * wpls, j);
+            sbyte5 = GET_DATA_BYTE(lines + 5 * wpls, j);
+            sbyte6 = GET_DATA_BYTE(lines + 6 * wpls, j);
+            sbyte7 = GET_DATA_BYTE(lines + 7 * wpls, j);
+            sum = tab8[sbyte0] + tab8[sbyte1] +
+                  tab8[sbyte2] + tab8[sbyte3] +
+                  tab8[sbyte4] + tab8[sbyte5] +
+                  tab8[sbyte6] + tab8[sbyte7];
+            SET_DATA_BYTE(lined, j, valtab[sum]);
+        }
     }
 
     return;
@@ -2185,10 +2185,10 @@ l_uint8  *tab;
     PROCNAME("makeValTabSG8");
 
     if ((tab = (l_uint8 *)CALLOC(65, sizeof(l_uint8))) == NULL)
-	return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
 
     for (i = 0; i < 65; i++)
-	tab[i] = 0xff - (i * 255) / 64;
+        tab[i] = 0xff - (i * 255) / 64;
 
     return tab;
 }
@@ -2214,63 +2214,63 @@ l_uint8  *tab;
  */
 void
 scaleToGray16Low(l_uint32  *datad,
-	 	 l_int32    wd,
-		 l_int32    hd,
-		 l_int32    wpld,
+                  l_int32    wd,
+                 l_int32    hd,
+                 l_int32    wpld,
                  l_uint32  *datas,
-		 l_int32    wpls,
-		 l_int32   *tab8)
+                 l_int32    wpls,
+                 l_int32   *tab8)
 {
 l_int32    i, j, k, m;
 l_int32    sum;
 l_uint32  *lines, *lined;
 
-	/* i indexes the dest lines
-	 * k indexes the source lines
-	 * j indexes the dest bytes
-	 * m indexes the src bytes
-	 * We take 32 bytes from the source (in 16 lines of 16 pixels
-	 * each) and convert it into one 8 bpp byte of the dest. */
+        /* i indexes the dest lines
+         * k indexes the source lines
+         * j indexes the dest bytes
+         * m indexes the src bytes
+         * We take 32 bytes from the source (in 16 lines of 16 pixels
+         * each) and convert it into one 8 bpp byte of the dest. */
     for (i = 0, k = 0; i < hd; i++, k += 16) {
-	lines = datas + k * wpls;
-	lined = datad + i * wpld; 
-	for (j = 0; j < wd; j++) {
+        lines = datas + k * wpls;
+        lined = datad + i * wpld; 
+        for (j = 0; j < wd; j++) {
             m = 2 * j;
-	    sum = tab8[GET_DATA_BYTE(lines, m)];
-	    sum += tab8[GET_DATA_BYTE(lines, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 2 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 2 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 3 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 3 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 4 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 4 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 5 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 5 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 6 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 6 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 7 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 7 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 8 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 8 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 9 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 9 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 10 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 10 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 11 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 11 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 12 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 12 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 13 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 13 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 14 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 14 * wpls, m + 1)];
-	    sum += tab8[GET_DATA_BYTE(lines + 15 * wpls, m)];
-	    sum += tab8[GET_DATA_BYTE(lines + 15 * wpls, m + 1)];
+            sum = tab8[GET_DATA_BYTE(lines, m)];
+            sum += tab8[GET_DATA_BYTE(lines, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 2 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 2 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 3 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 3 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 4 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 4 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 5 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 5 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 6 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 6 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 7 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 7 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 8 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 8 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 9 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 9 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 10 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 10 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 11 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 11 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 12 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 12 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 13 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 13 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 14 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 14 * wpls, m + 1)];
+            sum += tab8[GET_DATA_BYTE(lines + 15 * wpls, m)];
+            sum += tab8[GET_DATA_BYTE(lines + 15 * wpls, m + 1)];
             sum = L_MIN(sum, 255);
-	    SET_DATA_BYTE(lined, j, 255 - sum);
-	}
+            SET_DATA_BYTE(lined, j, 255 - sum);
+        }
     }
 
     return;
@@ -2306,26 +2306,26 @@ l_float32  ratio, w1, w2;
 
     PROCNAME("scaleMipmapLow");
 
-	/* Clear dest */
+        /* Clear dest */
     memset((char *)datad, 0, 4 * wpld * hd);
     
-	/* Each dest pixel at (j,i) is computed by interpolating
-	   between the two src images at the corresponding location.
-	   We store the UL corner locations of the square of
-	   src pixels in thelower-resolution image that correspond
+        /* Each dest pixel at (j,i) is computed by interpolating
+           between the two src images at the corresponding location.
+           We store the UL corner locations of the square of
+           src pixels in thelower-resolution image that correspond
            to dest pixel (j,i).  The are labelled by the arrays
            srow[i], scol[j].  The UL corner locations of the higher
            resolution src pixels are obtained from these arrays
            by multiplying by 2. */
     if ((srow = (l_int32 *)CALLOC(hd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", procName, 1);
     if ((scol = (l_int32 *)CALLOC(wd, sizeof(l_int32))) == NULL)
-	return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", procName, 1);
     ratio = 1. / (2. * red);  /* 0.5 for red = 1, 1 for red = 0.5 */
     for (i = 0; i < hd; i++)
-	srow[i] = (l_int32)(ratio * i);
+        srow[i] = (l_int32)(ratio * i);
     for (j = 0; j < wd; j++)
-	scol[j] = (l_int32)(ratio * j);
+        scol[j] = (l_int32)(ratio * j);
 
         /* Get weights for linear interpolation: these are the
          * 'distances' of the dest image plane from the two

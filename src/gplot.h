@@ -15,40 +15,62 @@
 
 
 /*
- *     gplot.h
+ *   gplot.h
  *
- *          Data structures used to generate gnuplot files
- *
+ *       Data structures and parameters for generating gnuplot files
  */
 
 #ifndef GPLOT_H_INCLUDED
 #define GPLOT_H_INCLUDED
 
-enum GPLOT_MODE  {Y_VS_I = 1, Y_VS_X};
+#define  GPLOT_VERSION_NUMBER    1
 
 #define  NUM_GPLOT_STYLES      5
-enum GPLOT_STYLE  {GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
-                   GPLOT_LINESPOINTS, GPLOT_DOTS};
+enum GPLOT_STYLE {
+    GPLOT_LINES       = 0,
+    GPLOT_POINTS      = 1,
+    GPLOT_IMPULSES    = 2,
+    GPLOT_LINESPOINTS = 3,
+    GPLOT_DOTS        = 4
+};
 
-#define  NUM_GPLOT_OUTPUTS     5
-enum GPLOT_OUTPUT  {GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11, GPLOT_LATEX};
+#define  NUM_GPLOT_OUTPUTS     6
+enum GPLOT_OUTPUT {
+    GPLOT_NONE  = 0,
+    GPLOT_PNG   = 1,
+    GPLOT_PS    = 2,
+    GPLOT_EPS   = 3,
+    GPLOT_X11   = 4,
+    GPLOT_LATEX = 5
+};
+
+enum GPLOT_SCALING {
+    GPLOT_LINEAR_SCALE  = 0,   /* default */
+    GPLOT_LOG_SCALE_X   = 1,
+    GPLOT_LOG_SCALE_Y   = 2,
+    GPLOT_LOG_SCALE_X_Y = 3
+};
 
 extern const char  *gplotstylenames[];  /* used in gnuplot cmd file */
 extern const char  *gplotfilestyles[];  /* used in simple file input */
 extern const char  *gplotfileoutputs[]; /* used in simple file input */
 
-
 struct GPlot
 {
-    char          *rootname;   /* for cmd, data, output         */
-    char          *cmdname;    /* command file name             */
-    char          *outname;    /* output file name              */
-    l_int32        plotmode;   /* GPLOT_MODE values             */
-    l_int32        outformat;  /* GPLOT_OUTPUT values           */
-    l_int32        nplots;     /* current number of plots       */
-    char          *title;      /* optional                      */
-    char          *xlabel;     /* optional x axis label         */
-    char          *ylabel;     /* optional y axis label         */
+    char          *rootname;   /* for cmd, data, output            */
+    char          *cmdname;    /* command file name                */
+    struct Sarray *cmddata;    /* command file contents            */
+    struct Sarray *datanames;  /* data file names                  */
+    struct Sarray *plotdata;   /* plot data (1 string/file)        */
+    struct Sarray *plottitles; /* title for each individual plot   */
+    struct Numa   *plotstyles; /* plot style for individual plots  */
+    l_int32        nplots;     /* current number of plots          */
+    char          *outname;    /* output file name                 */
+    l_int32        outformat;  /* GPLOT_OUTPUT values              */
+    l_int32        scaling;    /* GPLOT_SCALING values             */
+    char          *title;      /* optional                         */
+    char          *xlabel;     /* optional x axis label            */
+    char          *ylabel;     /* optional y axis label            */
 };
 typedef struct GPlot  GPLOT;
 

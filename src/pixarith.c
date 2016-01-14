@@ -98,10 +98,10 @@ l_uint32  *data;
     PROCNAME("pixAddConstantGray");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 16 && d != 32)
-	return ERROR_INT("pixs not 8, 16 or 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 8, 16 or 32 bpp", procName, 1);
 
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
@@ -112,7 +112,7 @@ l_uint32  *data;
     return 0;
 }
 
-	    
+            
 /*-------------------------------------------------------------*
  *             Two-image grayscale arithmetic ops              *
  *-------------------------------------------------------------*/
@@ -128,7 +128,8 @@ l_uint32  *data;
  *      (1) Arithmetic addition of two 8, 16 or 32 bpp images.
  *      (2) For 8 and 16 bpp, we do explicit clipping to 0xff and 0xffff,
  *          respectively.
- *      (3) There are 3 cases.  The result can go to a new dest,
+ *      (3) Alignment is to UL corner.
+ *      (4) There are 3 cases.  The result can go to a new dest,
  *          in-place to pixs1, or to an existing input dest:
  *          * pixd == null:   (src1 + src2) --> new pixd
  *          * pixd == pixs1:  (src1 + src2) --> src1  (in-place)
@@ -139,41 +140,41 @@ pixAddGray(PIX  *pixd,
            PIX  *pixs1,
            PIX  *pixs2)
 {
-l_int32    d, w, h, wpls, wpld;
+l_int32    d, ws, hs, w, h, wpls, wpld;
 l_uint32  *datas, *datad;
 
     PROCNAME("pixAddGray");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
     if (pixs1 == pixs2)
-	return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
-    if (!pixSizesEqual(pixs1, pixs2))
-	return (PIX *)ERROR_PTR("pixs1 and pixs2 not equal size",
-	                         procName, pixd);
-    if (pixd) {
-	if (!pixSizesEqual(pixs1, pixd))
-	    return (PIX *)ERROR_PTR("pixs1 and pixd not equal size",
-	                             procName, pixd);
-    }
+        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
     d = pixGetDepth(pixs1);
     if (d != 8 && d != 16 && d != 32)
-	return (PIX *)ERROR_PTR("pix are not 8, 16 or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pix are not 8, 16 or 32 bpp", procName, pixd);
+    if (pixGetDepth(pixs2) != d)
+        return (PIX *)ERROR_PTR("depths differ (pixs1, pixs2)", procName, pixd);
+    if (pixd && (pixGetDepth(pixd) != d))
+        return (PIX *)ERROR_PTR("depths differ (pixs1, pixd)", procName, pixd);
 
-    if (pixs1 != pixd) {
-	if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
+    if (!pixSizesEqual(pixs1, pixs2))
+        L_WARNING("pixs1 and pixs2 not equal in size", procName);
+    if (pixd && !pixSizesEqual(pixs1, pixd))
+        L_WARNING("pixs1 and pixd not equal in size", procName);
 
-    w = pixGetWidth(pixs2);
-    h = pixGetHeight(pixs2);
+    if (pixs1 != pixd)
+        pixd = pixCopy(pixd, pixs1);
+
     datas = pixGetData(pixs2);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs2);
     wpld = pixGetWpl(pixd);
-
+    pixGetDimensions(pixs2, &ws, &hs, NULL);
+    pixGetDimensions(pixd, &w, &h, NULL);
+    w = L_MIN(ws, w);
+    h = L_MIN(hs, h);
     addGrayLow(datad, w, h, d, wpld, datas, wpls);
 
     return pixd;
@@ -192,14 +193,15 @@ l_uint32  *datas, *datad;
  *      (1) Arithmetic subtraction of two 8, 16 or 32 bpp images.
  *      (2) Source pixs2 is always subtracted from source pixs1.
  *      (3) Do explicit clipping to 0.
- *      (4) There are 4 cases.  The result can go to a new dest,
+ *      (4) Alignment is to UL corner.
+ *      (5) There are 4 cases.  The result can go to a new dest,
  *          in-place to either pixs1 or pixs2, or to an
  *          existing input dest:
  *          (a) pixd == null   (src1 - src2) --> new pixd
  *          (b) pixd == pixs1  (src1 - src2) --> src1  (in-place)
  *          (c) pixd == pixs2  (src1 - src2) --> src2  (in-place)
  *          (d) pixd != pixs1 && pixd != pixs2)   (src1 - src2) --> input pixd
- *      (5) Case (c) requires swap = 1. For the other three, we can
+ *      (6) Case (c) requires swap = 1. For the other three, we can
  *          arrange for the data in pixs1 to be copied to pixd before
  *          calling the low-level code.
  */
@@ -208,50 +210,53 @@ pixSubtractGray(PIX  *pixd,
                 PIX  *pixs1,
                 PIX  *pixs2)
 {
-l_int32    w, h, d, wpls, wpld, swap;
+l_int32    w, h, ws, hs, d, wpls, wpld, swap;
 l_uint32  *datas, *datad;
 
     PROCNAME("pixSubtractGray");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixd);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixd);
     if (pixs1 == pixs2)
-	return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
-    if (!pixSizesEqual(pixs1, pixs2))
-	return (PIX *)ERROR_PTR("pixs1 and pixs2 not equal size",
-	                         procName, pixd);
-    if (pixd) {
-	if (!pixSizesEqual(pixs1, pixd))
-	    return (PIX *)ERROR_PTR("pixs1 and pixd not equal size",
-	                             procName, pixd);
-    }
+        return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
     d = pixGetDepth(pixs1);
     if (d != 8 && d != 16 && d != 32)
-	return (PIX *)ERROR_PTR("pix are not 8, 16 or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pix are not 8, 16 or 32 bpp", procName, pixd);
+    if (pixGetDepth(pixs2) != d)
+        return (PIX *)ERROR_PTR("depths differ (pixs1, pixs2)", procName, pixd);
+    if (pixd && (pixGetDepth(pixd) != d))
+        return (PIX *)ERROR_PTR("depths differ (pixs1, pixd)", procName, pixd);
 
-    if (!pixd || (pixd != pixs1 && pixd != pixs2)) {  /* not in-place */
-	if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
+    if (!pixSizesEqual(pixs1, pixs2))
+        L_WARNING("pixs1 and pixs2 not equal in size", procName);
+    if (pixd && !pixSizesEqual(pixs1, pixd))
+        L_WARNING("pixs1 and pixd not equal in size", procName);
 
-    w = pixGetWidth(pixs2);
-    h = pixGetHeight(pixs2);
+    if (!pixd || (pixd != pixs1 && pixd != pixs2))
+        pixd = pixCopy(pixd, pixs1);
+
     if (pixd != pixs2) {   /* straightforward:  pixd - pixs2 ==> pixd  */
-	datas = pixGetData(pixs2);
-	datad = pixGetData(pixd);
-	wpls = pixGetWpl(pixs2);
-	wpld = pixGetWpl(pixd);
-	swap = 0;
+        pixGetDimensions(pixs2, &ws, &hs, NULL);
+        pixGetDimensions(pixd, &w, &h, NULL);
+        datas = pixGetData(pixs2);
+        datad = pixGetData(pixd);
+        wpls = pixGetWpl(pixs2);
+        wpld = pixGetWpl(pixd);
+        swap = 0;
     }
     else {  /* swap around:  pixs1 - pixd ==> pixd */
-	datas = pixGetData(pixs1);
-	datad = pixGetData(pixd);
-	wpls = pixGetWpl(pixs1);
-	wpld = pixGetWpl(pixd);
-	swap = 1;
+        pixGetDimensions(pixs1, &ws, &hs, NULL);
+        pixGetDimensions(pixd, &w, &h, NULL);
+        datas = pixGetData(pixs1);
+        datad = pixGetData(pixd);
+        wpls = pixGetWpl(pixs1);
+        wpld = pixGetWpl(pixd);
+        swap = 1;
     }
+    w = L_MIN(ws, w);
+    h = L_MIN(hs, h);
     subtractGrayLow(datad, w, h, d, wpld, datas, wpls, swap);
 
     return pixd;
@@ -280,7 +285,7 @@ PIX *
 pixThresholdToValue(PIX      *pixd,
                     PIX      *pixs,
                     l_int32   threshval,
-		    l_int32   setval)
+                    l_int32   setval)
 {
 l_int32    w, h, d, wpld;
 l_uint32  *datad;
@@ -288,24 +293,24 @@ l_uint32  *datad;
     PROCNAME("pixThresholdToValue");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 16 && d != 32)
-	return (PIX *)ERROR_PTR("pixs not 8, 16 or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 8, 16 or 32 bpp", procName, pixd);
     if (pixd && (pixs != pixd))
-	return (PIX *)ERROR_PTR("pixd exists and is not pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists and is not pixs", procName, pixd);
     if (threshval < 0 || setval < 0)
-	return (PIX *)ERROR_PTR("threshval & setval not < 0", procName, pixd);
+        return (PIX *)ERROR_PTR("threshval & setval not < 0", procName, pixd);
     if (d == 8 && setval > 255)
-	return (PIX *)ERROR_PTR("setval > 255 for 8 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("setval > 255 for 8 bpp", procName, pixd);
     if (d == 16 && setval > 0xffff)
-	return (PIX *)ERROR_PTR("setval > 0xffff for 16 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("setval > 0xffff for 16 bpp", procName, pixd);
 
     if (!pixd)
         pixd = pixCopy(NULL, pixs);
     if (setval == threshval) {
         L_WARNING("setval == threshval; no operation", procName);
-	return pixd;
+        return pixd;
     }
 
     datad = pixGetData(pixd);
@@ -345,15 +350,15 @@ l_uint32  *datad;
  */
 PIX *
 pixInitAccumulate(l_int32   w,
-	          l_int32   h,
-		  l_uint32  offset)
+                  l_int32   h,
+                  l_uint32  offset)
 {
 PIX  *pixd;
 
     PROCNAME("pixInitAccumulate");
 
     if ((pixd = pixCreate(w, h, 32)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     if (offset > 0x40000000)
         offset = 0x40000000;
     pixSetAllArbitrary(pixd, offset);
@@ -378,7 +383,7 @@ PIX  *pixd;
 PIX *
 pixFinalAccumulate(PIX      *pixs,
                    l_uint32  offset,
-		   l_int32   depth)
+                   l_int32   depth)
 {
 l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
@@ -387,18 +392,18 @@ PIX       *pixd;
     PROCNAME("pixFinalAccumulate");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (depth != 8 && depth != 16 && depth != 32)
-	return (PIX *)ERROR_PTR("dest depth not 8, 16, 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("dest depth not 8, 16, 32 bpp", procName, NULL);
     if (offset > 0x40000000)
         offset = 0x40000000;
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);  /* but how did pixs get it initially? */
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -434,16 +439,16 @@ PIX       *pixd;
     PROCNAME("pixFinalAccumulateThreshold");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (offset > 0x40000000)
         offset = 0x40000000;
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);  /* but how did pixs get it initially? */
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -460,7 +465,7 @@ PIX       *pixd;
  *
  *      Input:  pixd (32 bpp)
  *              pixs (1, 8, 16 or 32 bpp)
- *              op  (ARITH_ADD or ARITH_SUBTRACT)
+ *              op  (L_ARITH_ADD or L_ARITH_SUBTRACT)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
@@ -472,7 +477,7 @@ PIX       *pixd;
 l_int32
 pixAccumulate(PIX     *pixd,
               PIX     *pixs,
-	      l_int32  op)
+              l_int32  op)
 {
 l_int32    w, h, d, wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
@@ -480,27 +485,24 @@ l_uint32  *datas, *datad;
     PROCNAME("pixAccumulate");
 
     if (!pixd || (pixGetDepth(pixd) != 32))
-	return ERROR_INT("pixd not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixd not defined or not 32 bpp", procName, 1);
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 8 && d != 16 && d != 32)
-	return ERROR_INT("pixs not 1, 8, 16 or 32 bpp", procName, 1);
-    if (op != ARITH_ADD && op != ARITH_SUBTRACT)
-	return ERROR_INT("op must be in {ARITH_ADD, ARITH_SUBTRACT}",
+        return ERROR_INT("pixs not 1, 8, 16 or 32 bpp", procName, 1);
+    if (op != L_ARITH_ADD && op != L_ARITH_SUBTRACT)
+        return ERROR_INT("op must be in {L_ARITH_ADD, L_ARITH_SUBTRACT}",
                          procName, 1);
-
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    wd = pixGetWidth(pixd);
-    hd = pixGetHeight(pixd);
-    w = L_MIN(w, wd);
-    h = L_MIN(h, hd);
 
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixGetDimensions(pixd, &wd, &hd, NULL);
+    w = L_MIN(w, wd);
+    h = L_MIN(h, hd);
 
     accumulateLow(datad, w, h, wpld, datas, d, wpls, op);
     return 0;
@@ -522,8 +524,8 @@ l_uint32  *datas, *datad;
  */
 l_int32
 pixMultConstAccumulate(PIX       *pixs,
-		       l_float32  factor,
-		       l_uint32   offset)
+                       l_float32  factor,
+                       l_uint32   offset)
 {
 l_int32    w, h, wpl;
 l_uint32  *data;
@@ -531,14 +533,13 @@ l_uint32  *data;
     PROCNAME("pixMultConstAccumulate");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 32)
-	return ERROR_INT("pixs not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 32 bpp", procName, 1);
     if (offset > 0x40000000)
         offset = 0x40000000;
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
 
@@ -569,7 +570,7 @@ PIX *
 pixAbsDifference(PIX  *pixs1,
                  PIX  *pixs2)
 {
-l_int32    w, h, d, wpls, wpld;
+l_int32    w, h, w2, h2, d, wpls, wpld;
 l_uint32  *datas1, *datas2, *datad;
 PIX       *pixd;
 
@@ -585,12 +586,12 @@ PIX       *pixd;
     if (d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("depths not in {8, 16, 32}", procName, NULL);
 
-    w = pixGetWidth(pixs1);
-    w = L_MIN(w, pixGetWidth(pixs2));
-    h = pixGetHeight(pixs1);
-    h = L_MIN(h, pixGetHeight(pixs1));
+    pixGetDimensions(pixs1, &w, &h, NULL);
+    pixGetDimensions(pixs2, &w2, &h2, NULL);
+    w = L_MIN(w, w2);
+    h = L_MIN(h, h2);
     if ((pixd = pixCreate(w, h, d)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs1);
     datas1 = pixGetData(pixs1);
     datas2 = pixGetData(pixs2);
@@ -627,11 +628,11 @@ PIX       *pixd;
  */
 PIX *
 pixMinOrMax(PIX     *pixd,
-	    PIX     *pixs1,
-	    PIX     *pixs2,
-	    l_int32  type)
+            PIX     *pixs1,
+            PIX     *pixs2,
+            l_int32  type)
 {
-l_int32    d, ws, hs, wd, hd, w, h, wpls, wpld, i, j;
+l_int32    d, ws, hs, w, h, wpls, wpld, i, j;
 l_int32    vals, vald, val;
 l_uint32  *datas, *datad, *lines, *lined;
 
@@ -645,21 +646,19 @@ l_uint32  *datas, *datad, *lines, *lined;
         return (PIX *)ERROR_PTR("pixs1 and pixs2 must differ", procName, pixd);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX)
         return (PIX *)ERROR_PTR("invalid type", procName, pixd);
-
-    if (pixs1 != pixd) {
-        if ((pixd = pixCopy(pixd, pixs1)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    }
-    d = pixGetDepth(pixd);
+    d = pixGetDepth(pixs1);
     if (pixGetDepth(pixs2) != d)
-	return (PIX *)ERROR_PTR("depths unequal", procName, pixd);
+        return (PIX *)ERROR_PTR("depths unequal", procName, pixd);
+    if (d != 8 && d != 16)
+        return (PIX *)ERROR_PTR("depth not 8 or 16 bpp", procName, pixd);
 
-    ws = pixGetWidth(pixs2);
-    hs = pixGetHeight(pixs2);
-    wd = pixGetWidth(pixd);
-    hd = pixGetHeight(pixd);
-    w = L_MIN(ws, wd);
-    h = L_MIN(hs, hd);
+    if (pixs1 != pixd)
+        pixd = pixCopy(pixd, pixs1);
+
+    pixGetDimensions(pixs2, &ws, &hs, NULL);
+    pixGetDimensions(pixd, &w, &h, NULL);
+    w = L_MIN(w, ws);
+    h = L_MIN(h, hs);
     datas = pixGetData(pixs2);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs2);
@@ -667,39 +666,39 @@ l_uint32  *datas, *datad, *lines, *lined;
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
-	if (d == 8) {
-	    if (type == L_CHOOSE_MIN) {
-		for (j = 0; j < w; j++) {
-		    vals = GET_DATA_BYTE(lines, j);
-		    vald = GET_DATA_BYTE(lined, j);
-		    val = L_MIN(vals, vald);
-		    SET_DATA_BYTE(lined, j, val);
-		}
-	    } else {  /* type == L_CHOOSE_MAX */
-		for (j = 0; j < w; j++) {
-		    vals = GET_DATA_BYTE(lines, j);
-		    vald = GET_DATA_BYTE(lined, j);
-		    val = L_MAX(vals, vald);
-		    SET_DATA_BYTE(lined, j, val);
-		}
-	    }
-	} else {  /* d == 16 */
-	    if (type == L_CHOOSE_MIN) {
-		for (j = 0; j < w; j++) {
-		    vals = GET_DATA_TWO_BYTES(lines, j);
-		    vald = GET_DATA_TWO_BYTES(lined, j);
-		    val = L_MIN(vals, vald);
-		    SET_DATA_TWO_BYTES(lined, j, val);
-		}
-	    } else {  /* type == L_CHOOSE_MAX */
-		for (j = 0; j < w; j++) {
-		    vals = GET_DATA_TWO_BYTES(lines, j);
-		    vald = GET_DATA_TWO_BYTES(lined, j);
-		    val = L_MAX(vals, vald);
-		    SET_DATA_TWO_BYTES(lined, j, val);
-		}
-	    }
-	}
+        if (d == 8) {
+            if (type == L_CHOOSE_MIN) {
+                for (j = 0; j < w; j++) {
+                    vals = GET_DATA_BYTE(lines, j);
+                    vald = GET_DATA_BYTE(lined, j);
+                    val = L_MIN(vals, vald);
+                    SET_DATA_BYTE(lined, j, val);
+                }
+            } else {  /* type == L_CHOOSE_MAX */
+                for (j = 0; j < w; j++) {
+                    vals = GET_DATA_BYTE(lines, j);
+                    vald = GET_DATA_BYTE(lined, j);
+                    val = L_MAX(vals, vald);
+                    SET_DATA_BYTE(lined, j, val);
+                }
+            }
+        } else {  /* d == 16 */
+            if (type == L_CHOOSE_MIN) {
+                for (j = 0; j < w; j++) {
+                    vals = GET_DATA_TWO_BYTES(lines, j);
+                    vald = GET_DATA_TWO_BYTES(lined, j);
+                    val = L_MIN(vals, vald);
+                    SET_DATA_TWO_BYTES(lined, j, val);
+                }
+            } else {  /* type == L_CHOOSE_MAX */
+                for (j = 0; j < w; j++) {
+                    vals = GET_DATA_TWO_BYTES(lines, j);
+                    vald = GET_DATA_TWO_BYTES(lined, j);
+                    val = L_MAX(vals, vald);
+                    SET_DATA_TWO_BYTES(lined, j, val);
+                }
+            }
+        }
     }
 
     return pixd;
@@ -746,7 +745,7 @@ PIX        *pixd;
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -760,29 +759,29 @@ PIX        *pixd;
         for (j = 0; j < wpls; j++) {
             word = *(lines + j);
             if (d == 4) {
-		max = L_MAX(max, word >> 28);
-		max = L_MAX(max, (word >> 24) & 0xf);
-		max = L_MAX(max, (word >> 20) & 0xf);
-		max = L_MAX(max, (word >> 16) & 0xf);
-		max = L_MAX(max, (word >> 12) & 0xf);
-		max = L_MAX(max, (word >> 8) & 0xf);
-		max = L_MAX(max, (word >> 4) & 0xf);
-		max = L_MAX(max, word & 0xf);
-	    } else if (d == 8) {
-		max = L_MAX(max, word >> 24);
-		max = L_MAX(max, (word >> 16) & 0xff);
-		max = L_MAX(max, (word >> 8) & 0xff);
-		max = L_MAX(max, word & 0xff);
-	    } else {   /* d == 16 */
-		max = L_MAX(max, word >> 16);
-		max = L_MAX(max, word & 0xffff);
-	    }
-	}
+                max = L_MAX(max, word >> 28);
+                max = L_MAX(max, (word >> 24) & 0xf);
+                max = L_MAX(max, (word >> 20) & 0xf);
+                max = L_MAX(max, (word >> 16) & 0xf);
+                max = L_MAX(max, (word >> 12) & 0xf);
+                max = L_MAX(max, (word >> 8) & 0xf);
+                max = L_MAX(max, (word >> 4) & 0xf);
+                max = L_MAX(max, word & 0xf);
+            } else if (d == 8) {
+                max = L_MAX(max, word >> 24);
+                max = L_MAX(max, (word >> 16) & 0xff);
+                max = L_MAX(max, (word >> 8) & 0xff);
+                max = L_MAX(max, word & 0xff);
+            } else {   /* d == 16 */
+                max = L_MAX(max, word >> 16);
+                max = L_MAX(max, word & 0xffff);
+            }
+        }
     }
 
         /* Map to the full dynamic range of 8 bpp output */
     if (d == 4) {
-	if (type == L_LINEAR_SCALE) {
+        if (type == L_LINEAR_SCALE) {
             factor = 255. / (l_float32)max;
             for (i = 0; i < h; i++) {
                 lines = datas + i * wpls;
@@ -793,72 +792,72 @@ PIX        *pixd;
                     SET_DATA_QBIT(lined, j, dval);
                 }
             }
-	} else {  /* type == L_LOG_SCALE) */
+        } else {  /* type == L_LOG_SCALE) */
             tab = makeLogBase2Tab();
-	    factor = 255. / getLogBase2(max, tab);
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    sval = GET_DATA_BYTE(lines, j);
-		    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
-		    SET_DATA_BYTE(lined, j, dval);
-		}
-	    }
-            FREE((void *)tab);
-	}
+            factor = 255. / getLogBase2(max, tab);
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    sval = GET_DATA_BYTE(lines, j);
+                    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
+                    SET_DATA_BYTE(lined, j, dval);
+                }
+            }
+            FREE(tab);
+        }
     } else if (d == 8) {
-	if (type == L_LINEAR_SCALE) {
-	    factor = 255 / (l_float32)max;
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    sval = GET_DATA_BYTE(lines, j);
-		    dval = (l_uint8)(factor * (l_float32)sval + 0.5);
-		    SET_DATA_BYTE(lined, j, dval);
-		}
-	    }
-	} else  /* type == L_LOG_SCALE) */ {
+        if (type == L_LINEAR_SCALE) {
+            factor = 255 / (l_float32)max;
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    sval = GET_DATA_BYTE(lines, j);
+                    dval = (l_uint8)(factor * (l_float32)sval + 0.5);
+                    SET_DATA_BYTE(lined, j, dval);
+                }
+            }
+        } else  /* type == L_LOG_SCALE) */ {
             tab = makeLogBase2Tab();
-	    factor = 255. / getLogBase2(max, tab);
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    sval = GET_DATA_BYTE(lines, j);
-		    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
-		    SET_DATA_BYTE(lined, j, dval);
-		}
-	    }
-            FREE((void *)tab);
-	}
+            factor = 255. / getLogBase2(max, tab);
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    sval = GET_DATA_BYTE(lines, j);
+                    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
+                    SET_DATA_BYTE(lined, j, dval);
+                }
+            }
+            FREE(tab);
+        }
     } else {   /* d == 16 */
-	if (type == L_LINEAR_SCALE) {
-	    factor = 255 / (l_float32)max;
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    sval = GET_DATA_TWO_BYTES(lines, j);
-		    dval = (l_uint8)(factor * (l_float32)sval + 0.5);
-		    SET_DATA_BYTE(lined, j, dval);
-		}
-	    }
-	} else  /* type == L_LOG_SCALE) */ {
+        if (type == L_LINEAR_SCALE) {
+            factor = 255 / (l_float32)max;
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    sval = GET_DATA_TWO_BYTES(lines, j);
+                    dval = (l_uint8)(factor * (l_float32)sval + 0.5);
+                    SET_DATA_BYTE(lined, j, dval);
+                }
+            }
+        } else  /* type == L_LOG_SCALE) */ {
             tab = makeLogBase2Tab();
-	    factor = 255. / getLogBase2(max, tab);
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    sval = GET_DATA_TWO_BYTES(lines, j);
-		    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
-		    SET_DATA_BYTE(lined, j, dval);
-		}
-	    }
-            FREE((void *)tab);
-	}
+            factor = 255. / getLogBase2(max, tab);
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    sval = GET_DATA_TWO_BYTES(lines, j);
+                    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
+                    SET_DATA_BYTE(lined, j, dval);
+                }
+            }
+            FREE(tab);
+        }
     }
 
     return pixd;

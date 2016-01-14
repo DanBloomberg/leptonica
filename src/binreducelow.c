@@ -59,10 +59,10 @@
 void
 reduceBinary2Low(l_uint32  *datad,
                  l_int32    wpld,
-	         l_uint32  *datas,
+                 l_uint32  *datas,
                  l_int32    hs,
                  l_int32    wpls,
-	         l_uint8   *tab)
+                 l_uint8   *tab)
 {
 l_int32    i, id, j, wplsi;
 l_uint8    byte0, byte1;
@@ -70,21 +70,21 @@ l_uint16   shortd;
 l_uint32   word;
 l_uint32  *lines, *lined;
 
-	/* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
+        /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
     wplsi = L_MIN(wpls, 2 * wpld);  /* iterate over this number of words */
 
     for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
-	lines = datas + i * wpls;
-	lined = datad + id * wpld;
-	for (j = 0; j < wplsi; j++) {
-	    word = *(lines + j);
-	    word = word & 0xaaaaaaaa;  /* mask */
-	    word = word | (word << 7);  /* fold; data in bytes 0 & 2 */
-	    byte0 = word >> 24;
-	    byte1 = (word >> 8) & 0xff;
-	    shortd = (tab[byte0] << 8) | tab[byte1];
-	    SET_DATA_TWO_BYTES(lined, j, shortd);
-	}
+        lines = datas + i * wpls;
+        lined = datad + id * wpld;
+        for (j = 0; j < wplsi; j++) {
+            word = *(lines + j);
+            word = word & 0xaaaaaaaa;  /* mask */
+            word = word | (word << 7);  /* fold; data in bytes 0 & 2 */
+            byte0 = word >> 24;
+            byte1 = (word >> 8) & 0xff;
+            shortd = (tab[byte0] << 8) | tab[byte1];
+            SET_DATA_TWO_BYTES(lined, j, shortd);
+        }
     }
 
     return;
@@ -106,10 +106,10 @@ l_uint32  *lines, *lined;
 void
 reduceRankBinary2Low(l_uint32  *datad,
                      l_int32    wpld,
-		     l_uint32  *datas,
+                     l_uint32  *datas,
                      l_int32    hs,
                      l_int32    wpls,
-		     l_uint8   *tab,
+                     l_uint8   *tab,
                      l_int32    level)
 {
 l_int32    i, id, j, wplsi;
@@ -118,105 +118,105 @@ l_uint16   shortd;
 l_uint32   word1, word2, word3, word4;
 l_uint32  *lines, *lined;
 
-	/* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
+        /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
     wplsi = L_MIN(wpls, 2 * wpld);  /* iterate over this number of words */
 
     switch (level)
     {
 
     case 1:
-	for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
-	    lines = datas + i * wpls;
-	    lined = datad + id * wpld;
-	    for (j = 0; j < wplsi; j++) {
-		word1 = *(lines + j);
-		word2 = *(lines + wpls + j);
+        for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
+            lines = datas + i * wpls;
+            lined = datad + id * wpld;
+            for (j = 0; j < wplsi; j++) {
+                word1 = *(lines + j);
+                word2 = *(lines + wpls + j);
 
-		    /* OR/OR */
-		word2 = word1 | word2;
-		word2 = word2 | (word2 << 1);
+                    /* OR/OR */
+                word2 = word1 | word2;
+                word2 = word2 | (word2 << 1);
 
-		word2 = word2 & 0xaaaaaaaa;  /* mask */
-		word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
-		byte0 = word1 >> 24;
-		byte1 = (word1 >> 8) & 0xff;
-		shortd = (tab[byte0] << 8) | tab[byte1];
-		SET_DATA_TWO_BYTES(lined, j, shortd);
-	    }
-	}
-	break;
+                word2 = word2 & 0xaaaaaaaa;  /* mask */
+                word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
+                byte0 = word1 >> 24;
+                byte1 = (word1 >> 8) & 0xff;
+                shortd = (tab[byte0] << 8) | tab[byte1];
+                SET_DATA_TWO_BYTES(lined, j, shortd);
+            }
+        }
+        break;
 
     case 2:
-	for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
-	    lines = datas + i * wpls;
-	    lined = datad + id * wpld;
-	    for (j = 0; j < wplsi; j++) {
-		word1 = *(lines + j);
-		word2 = *(lines + wpls + j);
+        for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
+            lines = datas + i * wpls;
+            lined = datad + id * wpld;
+            for (j = 0; j < wplsi; j++) {
+                word1 = *(lines + j);
+                word2 = *(lines + wpls + j);
 
-		    /* (AND/OR) OR (OR/AND) */
-		word3 = word1 & word2;
-		word3 = word3 | (word3 << 1);
-		word4 = word1 | word2;
-		word4 = word4 & (word4 << 1);
-		word2 = word3 | word4;
+                    /* (AND/OR) OR (OR/AND) */
+                word3 = word1 & word2;
+                word3 = word3 | (word3 << 1);
+                word4 = word1 | word2;
+                word4 = word4 & (word4 << 1);
+                word2 = word3 | word4;
 
-		word2 = word2 & 0xaaaaaaaa;  /* mask */
-		word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
-		byte0 = word1 >> 24;
-		byte1 = (word1 >> 8) & 0xff;
-		shortd = (tab[byte0] << 8) | tab[byte1];
-		SET_DATA_TWO_BYTES(lined, j, shortd);
-	    }
-	}
-	break;
+                word2 = word2 & 0xaaaaaaaa;  /* mask */
+                word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
+                byte0 = word1 >> 24;
+                byte1 = (word1 >> 8) & 0xff;
+                shortd = (tab[byte0] << 8) | tab[byte1];
+                SET_DATA_TWO_BYTES(lined, j, shortd);
+            }
+        }
+        break;
 
     case 3:
-	for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
-	    lines = datas + i * wpls;
-	    lined = datad + id * wpld;
-	    for (j = 0; j < wplsi; j++) {
-		word1 = *(lines + j);
-		word2 = *(lines + wpls + j);
+        for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
+            lines = datas + i * wpls;
+            lined = datad + id * wpld;
+            for (j = 0; j < wplsi; j++) {
+                word1 = *(lines + j);
+                word2 = *(lines + wpls + j);
 
-		    /* (AND/OR) AND (OR/AND) */
-		word3 = word1 & word2;
-		word3 = word3 | (word3 << 1);
-		word4 = word1 | word2;
-		word4 = word4 & (word4 << 1);
-		word2 = word3 & word4;
+                    /* (AND/OR) AND (OR/AND) */
+                word3 = word1 & word2;
+                word3 = word3 | (word3 << 1);
+                word4 = word1 | word2;
+                word4 = word4 & (word4 << 1);
+                word2 = word3 & word4;
 
-		word2 = word2 & 0xaaaaaaaa;  /* mask */
-		word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
-		byte0 = word1 >> 24;
-		byte1 = (word1 >> 8) & 0xff;
-		shortd = (tab[byte0] << 8) | tab[byte1];
-		SET_DATA_TWO_BYTES(lined, j, shortd);
-	    }
-	}
-	break;
+                word2 = word2 & 0xaaaaaaaa;  /* mask */
+                word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
+                byte0 = word1 >> 24;
+                byte1 = (word1 >> 8) & 0xff;
+                shortd = (tab[byte0] << 8) | tab[byte1];
+                SET_DATA_TWO_BYTES(lined, j, shortd);
+            }
+        }
+        break;
 
     case 4:
-	for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
-	    lines = datas + i * wpls;
-	    lined = datad + id * wpld;
-	    for (j = 0; j < wplsi; j++) {
-		word1 = *(lines + j);
-		word2 = *(lines + wpls + j);
+        for (i = 0, id = 0; i < hs - 1; i += 2, id++) {
+            lines = datas + i * wpls;
+            lined = datad + id * wpld;
+            for (j = 0; j < wplsi; j++) {
+                word1 = *(lines + j);
+                word2 = *(lines + wpls + j);
 
-		    /* AND/AND */
-		word2 = word1 & word2;
-		word2 = word2 & (word2 << 1);
+                    /* AND/AND */
+                word2 = word1 & word2;
+                word2 = word2 & (word2 << 1);
 
-		word2 = word2 & 0xaaaaaaaa;  /* mask */
-		word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
-		byte0 = word1 >> 24;
-		byte1 = (word1 >> 8) & 0xff;
-		shortd = (tab[byte0] << 8) | tab[byte1];
-		SET_DATA_TWO_BYTES(lined, j, shortd);
-	    }
-	}
-	break;
+                word2 = word2 & 0xaaaaaaaa;  /* mask */
+                word1 = word2 | (word2 << 7);  /* fold; data in bytes 0 & 2 */
+                byte0 = word1 >> 24;
+                byte1 = (word1 >> 8) & 0xff;
+                shortd = (tab[byte0] << 8) | tab[byte1];
+                SET_DATA_TWO_BYTES(lined, j, shortd);
+            }
+        }
+        break;
     }
 
     return;
@@ -245,14 +245,14 @@ l_int32   i;
         return (l_uint8 *)ERROR_PTR("tab not made", procName, NULL);
 
     for (i = 0; i < 256; i++)
-	tab[i] = ((i & 0x01)     ) |    /* 7 */
-		 ((i & 0x04) >> 1) |    /* 6 */
-		 ((i & 0x10) >> 2) |    /* 5 */
-		 ((i & 0x40) >> 3) |    /* 4 */
-		 ((i & 0x02) << 3) |    /* 3 */
-		 ((i & 0x08) << 2) |    /* 2 */
-		 ((i & 0x20) << 1) |    /* 1 */
-		 ((i & 0x80)     );     /* 0 */
+        tab[i] = ((i & 0x01)     ) |    /* 7 */
+                 ((i & 0x04) >> 1) |    /* 6 */
+                 ((i & 0x10) >> 2) |    /* 5 */
+                 ((i & 0x40) >> 3) |    /* 4 */
+                 ((i & 0x02) << 3) |    /* 3 */
+                 ((i & 0x08) << 2) |    /* 2 */
+                 ((i & 0x20) << 1) |    /* 1 */
+                 ((i & 0x80)     );     /* 0 */
 
     return tab;
 }

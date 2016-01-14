@@ -73,37 +73,37 @@ PIX       *pixt;
     PROCNAME("pixFlipFHMTGen");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
 
     found = FALSE;
     for (i = 0; i < NUM_SELS_GENERATED; i++) {
-	if (strcmp(selname, SEL_NAMES[i]) == 0) {
-	    found = TRUE;
-	    index = i;
-	    break;
-	}
+        if (strcmp(selname, SEL_NAMES[i]) == 0) {
+            found = TRUE;
+            index = i;
+            break;
+        }
     }
     if (found == FALSE)
-	return (PIX *)ERROR_PTR("sel index not found", procName, pixd);
+        return (PIX *)ERROR_PTR("sel index not found", procName, pixd);
 
     if (pixd) {
-	if (!pixSizesEqual(pixs, pixd))
-	    return (PIX *)ERROR_PTR("sizes not equal", procName, pixd);
+        if (!pixSizesEqual(pixs, pixd))
+            return (PIX *)ERROR_PTR("sizes not equal", procName, pixd);
     }
     else {
-	if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
 
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-	/*  The images must be surrounded with ADDED_BORDER white pixels,
-	 *  that we'll read from.  We fabricate a "proper"
-	 *  image as the subimage within the border, having the 
-	 *  following parameters:  */
+        /*  The images must be surrounded with ADDED_BORDER white pixels,
+         *  that we'll read from.  We fabricate a "proper"
+         *  image as the subimage within the border, having the 
+         *  following parameters:  */
     w = pixGetWidth(pixs) - 2 * ADDED_BORDER;
     h = pixGetHeight(pixs) - 2 * ADDED_BORDER;
     datas = pixGetData(pixs) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
@@ -111,10 +111,10 @@ PIX       *pixt;
 
     if (pixd == pixs) {  /* need temp image if in-place */
         if ((pixt = pixCopy(NULL, pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
-	datat = pixGetData(pixt) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
+            return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        datat = pixGetData(pixt) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
         flipfhmtgen_low(datad, w, h, wpld, datat, wpls, index);
-	pixDestroy(&pixt);
+        pixDestroy(&pixt);
     }
     else {  /* simple and not in-place */
         flipfhmtgen_low(datad, w, h, wpld, datas, wpls, index);
@@ -134,12 +134,12 @@ PIX       *pixt;
  */
 static l_int32
 flipfhmtgen_low(l_uint32  *datad,
-	        l_int32    w,
-	        l_int32    h,
-	        l_int32    wpld,
-	        l_uint32  *datas,
-	        l_int32    wpls,
-	        l_int32    index)
+                l_int32    w,
+                l_int32    h,
+                l_int32    wpld,
+                l_uint32  *datas,
+                l_int32    wpls,
+                l_int32    index)
 {
 
     switch (index)
@@ -176,11 +176,11 @@ flipfhmtgen_low(l_uint32  *datad,
 
 static void
 fhmt_1_0(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -192,9 +192,9 @@ l_int32              wpls2, wpls3;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((*(sptr - wpls) >> 3) | (*(sptr - wpls - 1) << 29)) &
                     (~*(sptr - wpls)) &
                     ((~*(sptr - wpls) << 1) | (~*(sptr - wpls + 1) >> 31)) &
@@ -211,18 +211,18 @@ l_int32              wpls2, wpls3;
                     (*(sptr + wpls3)) &
                     ((*(sptr + wpls3) << 1) | (*(sptr + wpls3 + 1) >> 31)) &
                     ((*(sptr + wpls3) << 2) | (*(sptr + wpls3 + 1) >> 30));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_1(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -234,9 +234,9 @@ l_int32              wpls2, wpls3;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((~*(sptr - wpls) >> 1) | (~*(sptr - wpls - 1) << 31)) &
                     (~*(sptr - wpls)) &
                     ((*(sptr - wpls) << 3) | (*(sptr - wpls + 1) >> 29)) &
@@ -253,18 +253,18 @@ l_int32              wpls2, wpls3;
                     ((*(sptr + wpls3) << 1) | (*(sptr + wpls3 + 1) >> 31)) &
                     ((*(sptr + wpls3) << 2) | (*(sptr + wpls3 + 1) >> 30)) &
                     ((*(sptr + wpls3) << 3) | (*(sptr + wpls3 + 1) >> 29));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_2(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -276,9 +276,9 @@ l_int32              wpls2, wpls3;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((*(sptr - wpls3) >> 3) | (*(sptr - wpls3 - 1) << 29)) &
                     ((*(sptr - wpls3) >> 2) | (*(sptr - wpls3 - 1) << 30)) &
                     ((*(sptr - wpls3) >> 1) | (*(sptr - wpls3 - 1) << 31)) &
@@ -295,18 +295,18 @@ l_int32              wpls2, wpls3;
                     ((*(sptr + wpls) >> 3) | (*(sptr + wpls - 1) << 29)) &
                     (~*(sptr + wpls)) &
                     ((~*(sptr + wpls) << 1) | (~*(sptr + wpls + 1) >> 31));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_3(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -318,9 +318,9 @@ l_int32              wpls2, wpls3;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((*(sptr - wpls3) >> 2) | (*(sptr - wpls3 - 1) << 30)) &
                     ((*(sptr - wpls3) >> 1) | (*(sptr - wpls3 - 1) << 31)) &
                     (*(sptr - wpls3)) &
@@ -337,7 +337,7 @@ l_int32              wpls2, wpls3;
                     ((~*(sptr + wpls) >> 1) | (~*(sptr + wpls - 1) << 31)) &
                     (~*(sptr + wpls)) &
                     ((*(sptr + wpls) << 3) | (*(sptr + wpls + 1) >> 29));
-	}
+        }
     }
 }
 

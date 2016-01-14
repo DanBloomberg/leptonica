@@ -44,12 +44,12 @@ static void  fhmt_1_5(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32
  */
 l_int32
 fhmtgen_low_1(l_uint32  *datad,
-	      l_int32    w,
-	      l_int32    h,
-	      l_int32    wpld,
-	      l_uint32  *datas,
-	      l_int32    wpls,
-	      l_int32    index)
+              l_int32    w,
+              l_int32    h,
+              l_int32    wpld,
+              l_uint32  *datas,
+              l_int32    wpls,
+              l_int32    index)
 {
 
     switch (index)
@@ -92,11 +92,11 @@ fhmtgen_low_1(l_uint32  *datad,
 
 static void
 fhmt_1_0(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -105,9 +105,9 @@ register l_uint32   *sptr, *dptr;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((~*(sptr - wpls) >> 1) | (~*(sptr - wpls - 1) << 31)) &
                     (~*(sptr - wpls)) &
                     ((~*(sptr - wpls) << 1) | (~*(sptr - wpls + 1) >> 31)) &
@@ -117,18 +117,18 @@ register l_uint32   *sptr, *dptr;
                     ((~*(sptr + wpls) >> 1) | (~*(sptr + wpls - 1) << 31)) &
                     (~*(sptr + wpls)) &
                     ((~*(sptr + wpls) << 1) | (~*(sptr + wpls + 1) >> 31));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_1(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -137,27 +137,27 @@ register l_uint32   *sptr, *dptr;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((*(sptr) >> 1) | (*(sptr - 1) << 31)) &
                     (*sptr) &
                     ((*(sptr) << 1) | (*(sptr + 1) >> 31)) &
                     ((~*(sptr + wpls) >> 1) | (~*(sptr + wpls - 1) << 31)) &
                     (~*(sptr + wpls)) &
                     ((~*(sptr + wpls) << 1) | (~*(sptr + wpls + 1) >> 31));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_2(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -166,27 +166,27 @@ register l_uint32   *sptr, *dptr;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((~*(sptr - wpls) >> 1) | (~*(sptr - wpls - 1) << 31)) &
                     (~*(sptr - wpls)) &
                     ((~*(sptr - wpls) << 1) | (~*(sptr - wpls + 1) >> 31)) &
                     ((*(sptr) >> 1) | (*(sptr - 1) << 31)) &
                     (*sptr) &
                     ((*(sptr) << 1) | (*(sptr + 1) >> 31));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_3(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -195,27 +195,27 @@ register l_uint32   *sptr, *dptr;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = (*(sptr - wpls)) &
                     ((~*(sptr - wpls) << 1) | (~*(sptr - wpls + 1) >> 31)) &
                     (*sptr) &
                     ((~*(sptr) << 1) | (~*(sptr + 1) >> 31)) &
                     (*(sptr + wpls)) &
                     ((~*(sptr + wpls) << 1) | (~*(sptr + wpls + 1) >> 31));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_4(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -224,27 +224,27 @@ register l_uint32   *sptr, *dptr;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((~*(sptr - wpls) >> 1) | (~*(sptr - wpls - 1) << 31)) &
                     (*(sptr - wpls)) &
                     ((~*(sptr) >> 1) | (~*(sptr - 1) << 31)) &
                     (*sptr) &
                     ((~*(sptr + wpls) >> 1) | (~*(sptr + wpls - 1) << 31)) &
                     (*(sptr + wpls));
-	}
+        }
     }
 }
 
 
 static void
 fhmt_1_5(l_uint32  *datad,
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -260,9 +260,9 @@ l_int32              wpls5, wpls6;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
             *dptr = ((~*(sptr - wpls6) << 1) | (~*(sptr - wpls6 + 1) >> 31)) &
                     ((*(sptr - wpls6) << 3) | (*(sptr - wpls6 + 1) >> 29)) &
                     (~*(sptr - wpls2)) &
@@ -271,7 +271,7 @@ l_int32              wpls5, wpls6;
                     ((*(sptr + wpls2) << 1) | (*(sptr + wpls2 + 1) >> 31)) &
                     ((~*(sptr + wpls6) >> 2) | (~*(sptr + wpls6 - 1) << 30)) &
                     (*(sptr + wpls6));
-	}
+        }
     }
 }
 

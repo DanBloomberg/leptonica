@@ -151,11 +151,11 @@ SEL       *seld, *sel;
     PROCNAME("pixGenerateSelWithRuns");
 
     if (!pixs)
-	return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (nhlines < 1 && nvlines < 1)
-	return (SEL *)ERROR_PTR("nvlines and nhlines both < 1", procName, NULL);
+        return (SEL *)ERROR_PTR("nvlines and nhlines both < 1", procName, NULL);
 
     if (distance <= 0)
         distance = DEFAULT_DISTANCE_TO_BOUNDARY;
@@ -169,14 +169,14 @@ SEL       *seld, *sel;
         /* Locate the foreground */
     pixClipToForeground(pixs, &pixt1, NULL);
     if (!pixt1)
-	return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
+        return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
     ws = pixGetWidth(pixt1);
     hs = pixGetHeight(pixt1);
     w = ws;
     h = hs;
 
         /* Crop out a region including the foreground, and add pixels
-	 * on sides depending on the side flags */
+         * on sides depending on the side flags */
     if (toppix || botpix || leftpix || rightpix) {
         x = y = 0;
         if (toppix) {
@@ -225,43 +225,43 @@ SEL       *seld, *sel;
     ptam = ptaCreate(0);
     if (nhlines >= 1) {
         delh = (l_float32)h / (l_float32)(nhlines + 1);
-	for (i = 0, y = 0; i < nhlines; i++) {
-	    y += (l_int32)(delh + 0.5); 
-	    nah = pixGetRunCentersOnLine(pixfg, -1, y, minlength);
-	    nam = pixGetRunCentersOnLine(pixbg, -1, y, minlength);
-	    nh = numaGetCount(nah);
-	    nm = numaGetCount(nam);
-	    for (j = 0; j < nh; j++) {
-		numaGetIValue(nah, j, &xval);
-	        ptaAddPt(ptah, xval, y);
-	    }
-	    for (j = 0; j < nm; j++) {
-		numaGetIValue(nam, j, &xval);
-	        ptaAddPt(ptam, xval, y);
-	    }
-	    numaDestroy(&nah);
-	    numaDestroy(&nam);
-	}
+        for (i = 0, y = 0; i < nhlines; i++) {
+            y += (l_int32)(delh + 0.5); 
+            nah = pixGetRunCentersOnLine(pixfg, -1, y, minlength);
+            nam = pixGetRunCentersOnLine(pixbg, -1, y, minlength);
+            nh = numaGetCount(nah);
+            nm = numaGetCount(nam);
+            for (j = 0; j < nh; j++) {
+                numaGetIValue(nah, j, &xval);
+                ptaAddPt(ptah, xval, y);
+            }
+            for (j = 0; j < nm; j++) {
+                numaGetIValue(nam, j, &xval);
+                ptaAddPt(ptam, xval, y);
+            }
+            numaDestroy(&nah);
+            numaDestroy(&nam);
+        }
     }
     if (nvlines >= 1) {
         delw = (l_float32)w / (l_float32)(nvlines + 1);
-	for (i = 0, x = 0; i < nvlines; i++) {
-	    x += (l_int32)(delw + 0.5); 
-	    nah = pixGetRunCentersOnLine(pixfg, x, -1, minlength);
-	    nam = pixGetRunCentersOnLine(pixbg, x, -1, minlength);
-	    nh = numaGetCount(nah);
-	    nm = numaGetCount(nam);
-	    for (j = 0; j < nh; j++) {
-		numaGetIValue(nah, j, &yval);
-	        ptaAddPt(ptah, x, yval);
-	    }
-	    for (j = 0; j < nm; j++) {
-		numaGetIValue(nam, j, &yval);
-	        ptaAddPt(ptam, x, yval);
-	    }
-	    numaDestroy(&nah);
-	    numaDestroy(&nam);
-	}
+        for (i = 0, x = 0; i < nvlines; i++) {
+            x += (l_int32)(delw + 0.5); 
+            nah = pixGetRunCentersOnLine(pixfg, x, -1, minlength);
+            nam = pixGetRunCentersOnLine(pixbg, x, -1, minlength);
+            nh = numaGetCount(nah);
+            nm = numaGetCount(nam);
+            for (j = 0; j < nh; j++) {
+                numaGetIValue(nah, j, &yval);
+                ptaAddPt(ptah, x, yval);
+            }
+            for (j = 0; j < nm; j++) {
+                numaGetIValue(nam, j, &yval);
+                ptaAddPt(ptam, x, yval);
+            }
+            numaDestroy(&nah);
+            numaDestroy(&nam);
+        }
     }
 
         /* Make the Sel with those points */
@@ -269,12 +269,12 @@ SEL       *seld, *sel;
     nh = ptaGetCount(ptah);
     for (i = 0; i < nh; i++) {
         ptaGetIPt(ptah, i, &x, &y);
-	selSetElement(sel, y, x, SEL_HIT);
+        selSetElement(sel, y, x, SEL_HIT);
     }
     nm = ptaGetCount(ptam);
     for (i = 0; i < nm; i++) {
         ptaGetIPt(ptam, i, &x, &y);
-	selSetElement(sel, y, x, SEL_MISS);
+        selSetElement(sel, y, x, SEL_MISS);
     }
 
     pixDestroy(&pixfg);
@@ -335,13 +335,13 @@ SEL       *seld, *sel;
     PROCNAME("pixGenerateSelRandom");
 
     if (!pixs)
-	return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (hitfract <= 0.0 && missfract <= 0.0)
-	return (SEL *)ERROR_PTR("no hits or misses", procName, NULL);
+        return (SEL *)ERROR_PTR("no hits or misses", procName, NULL);
     if (hitfract > 1.0 || missfract > 1.0) 
-	return (SEL *)ERROR_PTR("fraction can't be > 1.0", procName, NULL);
+        return (SEL *)ERROR_PTR("fraction can't be > 1.0", procName, NULL);
 
     if (distance <= 0)
         distance = DEFAULT_DISTANCE_TO_BOUNDARY;
@@ -353,14 +353,14 @@ SEL       *seld, *sel;
         /* Locate the foreground */
     pixClipToForeground(pixs, &pixt1, NULL);
     if (!pixt1)
-	return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
+        return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
     ws = pixGetWidth(pixt1);
     hs = pixGetHeight(pixt1);
     w = ws;
     h = hs;
 
         /* Crop out a region including the foreground, and add pixels
-	 * on sides depending on the side flags */
+         * on sides depending on the side flags */
     if (toppix || botpix || leftpix || rightpix) {
         x = y = 0;
         if (toppix) {
@@ -486,25 +486,25 @@ PTA     *ptah, *ptam;
     PROCNAME("pixGenerateSelBoundary");
 
     if (!pixs)
-	return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (hitdist < 0 || hitdist > 4 || missdist < 0 || missdist > 4) 
-	return (SEL *)ERROR_PTR("dist not in {0 .. 4}", procName, NULL);
+        return (SEL *)ERROR_PTR("dist not in {0 .. 4}", procName, NULL);
     if (hitskip < 0 && missskip < 0)
-	return (SEL *)ERROR_PTR("no hits or misses", procName, NULL);
+        return (SEL *)ERROR_PTR("no hits or misses", procName, NULL);
 
         /* Locate the foreground */
     pixClipToForeground(pixs, &pixt1, NULL);
     if (!pixt1)
-	return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
+        return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
     ws = pixGetWidth(pixt1);
     hs = pixGetHeight(pixt1);
     w = ws;
     h = hs;
 
         /* Crop out a region including the foreground, and add pixels
-	 * on sides depending on the side flags */
+         * on sides depending on the side flags */
     if (topflag || botflag || leftflag || rightflag) {
         x = y = 0;
         if (topflag) {
@@ -530,30 +530,30 @@ PTA     *ptah, *ptam;
     pixDestroy(&pixt1);
 
         /* Identify fg and bg pixels that are exactly hitdist and
-	 * missdist (rsp) away from the boundary pixels in their set.
-	 * Then get a subsampled set of these points. */
+         * missdist (rsp) away from the boundary pixels in their set.
+         * Then get a subsampled set of these points. */
     sel_3 = selCreateBrick(3, 3, 1, 1, SEL_HIT);
     if (hitskip >= 0) {
-	selh = selCreateBrick(2 * hitdist + 1, 2 * hitdist + 1,
-			      hitdist, hitdist, SEL_HIT);
-	pixt3 = pixErode(NULL, pixt2, selh);
-	pixfg = pixErode(NULL, pixt3, sel_3);
-	pixXor(pixfg, pixfg, pixt3);
-	ptah = pixSubsampleBoundaryPixels(pixfg, hitskip);
-	pixDestroy(&pixt3);
-	pixDestroy(&pixfg);
-	selDestroy(&selh);
+        selh = selCreateBrick(2 * hitdist + 1, 2 * hitdist + 1,
+                              hitdist, hitdist, SEL_HIT);
+        pixt3 = pixErode(NULL, pixt2, selh);
+        pixfg = pixErode(NULL, pixt3, sel_3);
+        pixXor(pixfg, pixfg, pixt3);
+        ptah = pixSubsampleBoundaryPixels(pixfg, hitskip);
+        pixDestroy(&pixt3);
+        pixDestroy(&pixfg);
+        selDestroy(&selh);
     }
     if (missskip >= 0) {
-	selm = selCreateBrick(2 * missdist + 1, 2 * missdist + 1,
-			      missdist, missdist, SEL_HIT);
-	pixt3 = pixDilate(NULL, pixt2, selm);
-	pixbg = pixDilate(NULL, pixt3, sel_3);
-	pixXor(pixbg, pixbg, pixt3);
-	ptam = pixSubsampleBoundaryPixels(pixbg, missskip);
-	pixDestroy(&pixt3);
-	pixDestroy(&pixbg);
-	selDestroy(&selm);
+        selm = selCreateBrick(2 * missdist + 1, 2 * missdist + 1,
+                              missdist, missdist, SEL_HIT);
+        pixt3 = pixDilate(NULL, pixt2, selm);
+        pixbg = pixDilate(NULL, pixt3, sel_3);
+        pixXor(pixbg, pixbg, pixt3);
+        ptam = pixSubsampleBoundaryPixels(pixbg, missskip);
+        pixDestroy(&pixt3);
+        pixDestroy(&pixbg);
+        selDestroy(&selm);
     }
     selDestroy(&sel_3);
     pixDestroy(&pixt2);
@@ -562,17 +562,17 @@ PTA     *ptah, *ptam;
     sel = selCreateBrick(h, w, h / 2, w / 2, SEL_DONT_CARE);
     if (hitskip >= 0) {
         npt = ptaGetCount(ptah);
-	for (i = 0; i < npt; i++) {
-	    ptaGetIPt(ptah, i, &ix, &iy);
-	    selSetElement(sel, iy, ix, SEL_HIT);
-	}
+        for (i = 0; i < npt; i++) {
+            ptaGetIPt(ptah, i, &ix, &iy);
+            selSetElement(sel, iy, ix, SEL_HIT);
+        }
     }
     if (missskip >= 0) {
         npt = ptaGetCount(ptam);
-	for (i = 0; i < npt; i++) {
-	    ptaGetIPt(ptam, i, &ix, &iy);
-	    selSetElement(sel, iy, ix, SEL_MISS);
-	}
+        for (i = 0; i < npt; i++) {
+            ptaGetIPt(ptam, i, &ix, &iy);
+            selSetElement(sel, iy, ix, SEL_MISS);
+        }
     }
 
     ptaDestroy(&ptah);
@@ -623,26 +623,26 @@ NUMA     *naruns, *nad;
     PROCNAME("pixGetRunCentersOnLine");
 
     if (!pixs)
-	return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (NUMA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (x != -1 && y != -1)
-	return (NUMA *)ERROR_PTR("x or y must be -1", procName, NULL);
+        return (NUMA *)ERROR_PTR("x or y must be -1", procName, NULL);
     if (x == -1 && y == -1)
-	return (NUMA *)ERROR_PTR("x or y cannot both be -1", procName, NULL);
+        return (NUMA *)ERROR_PTR("x or y cannot both be -1", procName, NULL);
 
     if ((nad = numaCreate(0)) == NULL)
-	return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if (x == -1) {  /* horizontal run */
-	if (y < 0 || y >= h)
-	    return nad;
+        if (y < 0 || y >= h)
+            return nad;
         naruns = pixGetRunsOnLine(pixs, 0, y, w - 1, y);
     }
     else {  /* vertical run */
-	if (x < 0 || x >= w)
-	    return nad;
+        if (x < 0 || x >= w)
+            return nad;
         naruns = pixGetRunsOnLine(pixs, x, 0, x, h - 1);
     }
     nruns = numaGetCount(naruns);
@@ -651,16 +651,16 @@ NUMA     *naruns, *nad;
     r = 0;  /* cumulative distance along line */
     for (i = 0; i < nruns; i++) {
         if (i % 2 == 0) {  /* bg run */
-	    numaGetIValue(naruns, i, &len);
-	    r += len;
-	    continue;
-	}
-	else {
-	    numaGetIValue(naruns, i, &len);
-	    if (len >= minlength)
-	        numaAddNumber(nad, r + len / 2);
+            numaGetIValue(naruns, i, &len);
             r += len;
-	}
+            continue;
+        }
+        else {
+            numaGetIValue(naruns, i, &len);
+            if (len >= minlength)
+                numaAddNumber(nad, r + len / 2);
+            r += len;
+        }
     }
 
     numaDestroy(&naruns);
@@ -699,49 +699,49 @@ PTA      *pta;
     PROCNAME("pixGetRunsOnLine");
 
     if (!pixs)
-	return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (NUMA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if (x1 < 0 || x1 >= w)
-	return (NUMA *)ERROR_PTR("x1 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("x1 not valid", procName, NULL);
     if (x2 < 0 || x2 >= w)
-	return (NUMA *)ERROR_PTR("x2 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("x2 not valid", procName, NULL);
     if (y1 < 0 || y1 >= h)
-	return (NUMA *)ERROR_PTR("y1 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("y1 not valid", procName, NULL);
     if (y2 < 0 || y2 >= h)
-	return (NUMA *)ERROR_PTR("y2 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("y2 not valid", procName, NULL);
 
     if ((pta = ptaGenerateLine(x1, y1, x2, y2)) == NULL)
-	return (NUMA *)ERROR_PTR("pta not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("pta not made", procName, NULL);
     if ((npts = ptaGetCount(pta)) == 0)
-	return (NUMA *)ERROR_PTR("pta has no pts", procName, NULL);
+        return (NUMA *)ERROR_PTR("pta has no pts", procName, NULL);
 
     if ((numa = numaCreate(0)) == NULL)
-	return (NUMA *)ERROR_PTR("numa not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("numa not made", procName, NULL);
 
     for (i = 0; i < npts; i++) {
         ptaGetIPt(pta, i, &x, &y);
-	pixGetPixel(pixs, x, y, &val);
-	if (i == 0) {
-	    if (val == 1) {  /* black pixel; append white run of size 0 */
-		numaAddNumber(numa, 0);
-	    }
-	    preval = val;
-	    runlen = 1;
-	    continue;
-	}
-	if (val == preval) {  /* extend current run */
-	    preval = val;
-	    runlen++;
-	}
-	else {  /* end previous run */
-	    numaAddNumber(numa, runlen);
-	    preval = val;
-	    runlen = 1;
-	}
+        pixGetPixel(pixs, x, y, &val);
+        if (i == 0) {
+            if (val == 1) {  /* black pixel; append white run of size 0 */
+                numaAddNumber(numa, 0);
+            }
+            preval = val;
+            runlen = 1;
+            continue;
+        }
+        if (val == preval) {  /* extend current run */
+            preval = val;
+            runlen++;
+        }
+        else {  /* end previous run */
+            numaAddNumber(numa, runlen);
+            preval = val;
+            runlen = 1;
+        }
     }
     numaAddNumber(numa, runlen);  /* append last run */
 
@@ -776,7 +776,7 @@ PTA      *pta;
  */
 PTA *
 pixSubsampleBoundaryPixels(PIX     *pixs,
-			   l_int32  skip)
+                           l_int32  skip)
 {
 l_int32  x, y, xn, yn, xs, ys, xa, ya, count;
 PIX     *pixt;
@@ -785,11 +785,11 @@ PTA     *pta;
     PROCNAME("pixSubsampleBoundaryPixels");
 
     if (!pixs)
-	return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (skip < 0)
-	return (PTA *)ERROR_PTR("skip < 0", procName, NULL);
+        return (PTA *)ERROR_PTR("skip < 0", procName, NULL);
         
     if (skip == 0)
         return ptaGetPixelsFromPix(pixs);
@@ -799,28 +799,28 @@ PTA     *pta;
     xs = ys = 0;
     while (nextOnPixelInRaster(pixt, xs, ys, &xn, &yn)) {  /* new series */
         xs = xn;
-	ys = yn;
+        ys = yn;
 
-	    /* Add first point in this series */
-	ptaAddPt(pta, xs, ys);
+            /* Add first point in this series */
+        ptaAddPt(pta, xs, ys);
 
-	    /* Trace out boundary, erasing all and saving every (skip + 1)th */
-	x = xs;
-	y = ys;
-	pixSetPixel(pixt, x, y, 0);
-	count = 0;
-	while (adjacentOnPixelInRaster(pixt, x, y, &xa, &ya)) {
-	    x = xa;
-	    y = ya;
-	    pixSetPixel(pixt, x, y, 0);
-	    if (count == skip) {
-	        ptaAddPt(pta, x, y);
-		count = 0;
-	    }
-	    else {
-	        count++;
+            /* Trace out boundary, erasing all and saving every (skip + 1)th */
+        x = xs;
+        y = ys;
+        pixSetPixel(pixt, x, y, 0);
+        count = 0;
+        while (adjacentOnPixelInRaster(pixt, x, y, &xa, &ya)) {
+            x = xa;
+            y = ya;
+            pixSetPixel(pixt, x, y, 0);
+            if (count == skip) {
+                ptaAddPt(pta, x, y);
+                count = 0;
             }
-	}
+            else {
+                count++;
+            }
+        }
     }
 
     pixDestroy(&pixt);
@@ -855,24 +855,24 @@ l_uint32  val;
     PROCNAME("adjacentOnPixelInRaster");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 0);
+        return ERROR_INT("pixs not defined", procName, 0);
     if (pixGetDepth(pixs) != 1)
-	return ERROR_INT("pixs not 1 bpp", procName, 0);
+        return ERROR_INT("pixs not 1 bpp", procName, 0);
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     found = 0;
     for (i = 0; i < 8; i++) {
         xa = x + xdel[i];
         ya = y + ydel[i];
-	if (xa < 0 || xa >= w || ya < 0 || ya >= h)
-	    continue;
+        if (xa < 0 || xa >= w || ya < 0 || ya >= h)
+            continue;
         pixGetPixel(pixs, xa, ya, &val);
-	if (val == 1) {
-	    found = 1;
-	    *pxa = xa;
-	    *pya = ya;
-	    break;
-	}
+        if (val == 1) {
+            found = 1;
+            *pxa = xa;
+            *pya = ya;
+            break;
+        }
     }
     return found;
 }
@@ -900,8 +900,8 @@ PIX *
 pixDisplayHitMissSel(PIX      *pixs,
                      SEL      *sel,
                      l_int32   scalefactor,
-		     l_uint32  hitcolor,
-		     l_uint32  misscolor)
+                     l_uint32  hitcolor,
+                     l_uint32  misscolor)
 {
 l_int32    i, j, type;
 l_float32  fscale;
@@ -911,11 +911,11 @@ PIXCMAP   *cmap;
     PROCNAME("pixDisplayHitMissSel");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (!sel)
-	return (PIX *)ERROR_PTR("sel not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sel not defined", procName, NULL);
 
     if (scalefactor <= 0)
         scalefactor = DEFAULT_SEL_SCALEFACTOR;
@@ -937,10 +937,10 @@ PIXCMAP   *cmap;
 
         /* Color the hits and misses */
     for (i = 0; i < sel->sy; i++) {
-	for (j = 0; j < sel->sx; j++) {
-	    selGetElement(sel, i, j, &type);
-	    if (type == SEL_DONT_CARE)
-	        continue;
+        for (j = 0; j < sel->sx; j++) {
+            selGetElement(sel, i, j, &type);
+            if (type == SEL_DONT_CARE)
+                continue;
             if (type == SEL_HIT)
                 pixSetPixel(pixt, j, i, 2);
             else  /* type == SEL_MISS */

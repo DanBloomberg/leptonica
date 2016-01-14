@@ -67,7 +67,7 @@ struct PHeap
     l_int32      n;           /* number of elements stored in the heap       */
     void       **array;       /* ptr array                                   */
     l_int32      direction;   /* of sort:                                    */
-			      /*   L_SORT_INCREASING or L_SORT_DECREASING    */
+                              /*   L_SORT_INCREASING or L_SORT_DECREASING    */
 };
 typedef struct PHeap PHEAP;
 

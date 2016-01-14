@@ -95,20 +95,20 @@ PIXCMAP   *cmap;
     PROCNAME("pixSetSelectCmap");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if ((cmap = pixGetColormap(pixs)) == NULL)
-	return ERROR_INT("no colormap", procName, 1);
+        return ERROR_INT("no colormap", procName, 1);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8)
-	return ERROR_INT("depth not in {1,2,4,8}", procName, 1);
+        return ERROR_INT("depth not in {1,2,4,8}", procName, 1);
 
         /* Add new color if necessary; get index of this color in cmap */
     n = pixcmapGetCount(cmap);
     if (sindex >= n)
-	return ERROR_INT("sindex too large; no cmap entry", procName, 1);
+        return ERROR_INT("sindex too large; no cmap entry", procName, 1);
     if (pixcmapGetIndex(cmap, rval, gval, bval, &index)) { /* not found */
-	if (pixcmapAddColor(cmap, rval, gval, bval))
-	    return ERROR_INT("error adding cmap entry", procName, 1);
+        if (pixcmapAddColor(cmap, rval, gval, bval))
+            return ERROR_INT("error adding cmap entry", procName, 1);
         else
             index = n;  /* we've added one color */
     }
@@ -117,15 +117,15 @@ PIXCMAP   *cmap;
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if (!box) {
-	x1 = y1 = 0;
-	x2 = w;
-	y2 = h;
+        x1 = y1 = 0;
+        x2 = w;
+        y2 = h;
     }
     else {
-	x1 = box->x;
-	y1 = box->y;
-	x2 = x1 + box->w - 1;
-	y2 = y1 + box->h - 1;
+        x1 = box->x;
+        y1 = box->y;
+        x2 = x1 + box->w - 1;
+        y2 = y1 + box->h - 1;
     }
 
         /* Replace pixel value sindex by index in the region */
@@ -133,40 +133,40 @@ PIXCMAP   *cmap;
     wpls = pixGetWpl(pixs);
     for (i = y1; i <= y2; i++) {
         if (i < 0 || i >= h)  /* clip */
-	    continue;
+            continue;
         lines = datas + i * wpls;
-	for (j = x1; j <= x2; j++) {
-	    if (j < 0 || j >= w)  /* clip */
-	        continue;
-	    switch (d) {
-	    case 1:
-	        val = GET_DATA_BIT(lines, j);
-		if (val == sindex) {
-		    if (index == 0)
-			CLEAR_DATA_BIT(lines, j);
+        for (j = x1; j <= x2; j++) {
+            if (j < 0 || j >= w)  /* clip */
+                continue;
+            switch (d) {
+            case 1:
+                val = GET_DATA_BIT(lines, j);
+                if (val == sindex) {
+                    if (index == 0)
+                        CLEAR_DATA_BIT(lines, j);
                     else
-			SET_DATA_BIT(lines, j);
-		}
+                        SET_DATA_BIT(lines, j);
+                }
                 break;
-	    case 2:
-	        val = GET_DATA_DIBIT(lines, j);
-		if (val == sindex)
-		    SET_DATA_DIBIT(lines, j, index);
+            case 2:
+                val = GET_DATA_DIBIT(lines, j);
+                if (val == sindex)
+                    SET_DATA_DIBIT(lines, j, index);
                 break;
-	    case 4:
-	        val = GET_DATA_QBIT(lines, j);
-		if (val == sindex)
-		    SET_DATA_QBIT(lines, j, index);
+            case 4:
+                val = GET_DATA_QBIT(lines, j);
+                if (val == sindex)
+                    SET_DATA_QBIT(lines, j, index);
                 break;
-	    case 8:
-	        val = GET_DATA_BYTE(lines, j);
-		if (val == sindex)
-		    SET_DATA_BYTE(lines, j, index);
+            case 8:
+                val = GET_DATA_BYTE(lines, j);
+                if (val == sindex)
+                    SET_DATA_BYTE(lines, j, index);
                 break;
             default:
-		return ERROR_INT("depth not in {1,2,4,8}", procName, 1);
-	    }
-	}
+                return ERROR_INT("depth not in {1,2,4,8}", procName, 1);
+            }
+        }
     }
 
     return 0;
@@ -211,7 +211,7 @@ PIXCMAP   *cmap;
 l_int32
 pixColorGrayCmap(PIX     *pixs,
                  BOX     *box,
-		 l_int32  type,
+                 l_int32  type,
                  l_int32  rval,
                  l_int32  gval,
                  l_int32  bval)
@@ -227,48 +227,48 @@ PIXCMAP   *cmap;
     PROCNAME("pixColorGrayCmap");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if ((cmap = pixGetColormap(pixs)) == NULL)
-	return ERROR_INT("no colormap", procName, 1);
+        return ERROR_INT("no colormap", procName, 1);
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8)
-	return ERROR_INT("depth not in {2, 4, 8}", procName, 1);
+        return ERROR_INT("depth not in {2, 4, 8}", procName, 1);
     if (type != L_PAINT_DARK && type != L_PAINT_LIGHT)
-	return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", procName, 1);
 
         /* Find gray colors, add the corresponding new colors,
-	 * and set up the mapping table from gray to new. */
+         * and set up the mapping table from gray to new. */
     n = pixcmapGetCount(cmap);
     na = numaCreate(n);
     for (i = 0; i < n; i++) {
         pixcmapGetColor(cmap, i, &erval, &egval, &ebval);
-	if (type == L_PAINT_LIGHT) {
-	    if (erval == egval && erval == ebval && erval != 0) {
-		nrval = (l_int32)(rval * (l_float32)erval / 255.);
-		ngval = (l_int32)(gval * (l_float32)egval / 255.);
-		nbval = (l_int32)(bval * (l_float32)ebval / 255.);
-		if (pixcmapAddNewColor(cmap, nrval, ngval, nbval, &newindex))
-		    return ERROR_INT("no room; colormap full;", procName, 1);
-		numaAddNumber(na, newindex);
-	    }
-	    else
-		numaAddNumber(na, 256);  /* invalid number */
-	}
-	else {  /* L_PAINT_DARK */
-	    if (erval == egval && erval == ebval && erval != 255) {
-		nrval = rval +
-		        (l_int32)((255. - rval) * (l_float32)erval / 255.);
-		ngval = gval +
-		        (l_int32)((255. - gval) * (l_float32)egval / 255.);
-		nbval = bval +
-		        (l_int32)((255. - bval) * (l_float32)ebval / 255.);
-		if (pixcmapAddNewColor(cmap, nrval, ngval, nbval, &newindex))
-		    return ERROR_INT("no room; colormap full;", procName, 1);
-		numaAddNumber(na, newindex);
-	    }
-	    else
-		numaAddNumber(na, 256);  /* invalid number */
-	}
+        if (type == L_PAINT_LIGHT) {
+            if (erval == egval && erval == ebval && erval != 0) {
+                nrval = (l_int32)(rval * (l_float32)erval / 255.);
+                ngval = (l_int32)(gval * (l_float32)egval / 255.);
+                nbval = (l_int32)(bval * (l_float32)ebval / 255.);
+                if (pixcmapAddNewColor(cmap, nrval, ngval, nbval, &newindex))
+                    return ERROR_INT("no room; colormap full;", procName, 1);
+                numaAddNumber(na, newindex);
+            }
+            else
+                numaAddNumber(na, 256);  /* invalid number */
+        }
+        else {  /* L_PAINT_DARK */
+            if (erval == egval && erval == ebval && erval != 255) {
+                nrval = rval +
+                        (l_int32)((255. - rval) * (l_float32)erval / 255.);
+                ngval = gval +
+                        (l_int32)((255. - gval) * (l_float32)egval / 255.);
+                nbval = bval +
+                        (l_int32)((255. - bval) * (l_float32)ebval / 255.);
+                if (pixcmapAddNewColor(cmap, nrval, ngval, nbval, &newindex))
+                    return ERROR_INT("no room; colormap full;", procName, 1);
+                numaAddNumber(na, newindex);
+            }
+            else
+                numaAddNumber(na, 256);  /* invalid number */
+        }
     }
     map = numaGetIArray(na);
     
@@ -278,47 +278,47 @@ PIXCMAP   *cmap;
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
     if (!box) {
-	x1 = y1 = 0;
-	x2 = w;
-	y2 = h;
+        x1 = y1 = 0;
+        x2 = w;
+        y2 = h;
     }
     else {
-	x1 = box->x;
-	y1 = box->y;
-	x2 = x1 + box->w - 1;
-	y2 = y1 + box->h - 1;
+        x1 = box->x;
+        y1 = box->y;
+        x2 = x1 + box->w - 1;
+        y2 = y1 + box->h - 1;
     }
 
         /* Remap gray pixels in the region */
     for (i = y1; i <= y2; i++) {
-	if (i < 0 || i >= h)  /* clip */
-	    continue;
-	line = data + i * wpl;
-	for (j = x1; j <= x2; j++) {
-	    if (j < 0 || j >= w)  /* clip */
-		continue;
+        if (i < 0 || i >= h)  /* clip */
+            continue;
+        line = data + i * wpl;
+        for (j = x1; j <= x2; j++) {
+            if (j < 0 || j >= w)  /* clip */
+                continue;
             switch (d)
-	    {
-	    case 2:
-	        val = GET_DATA_DIBIT(line, j);
-		nval = map[val];
-		if (nval != 256)
-		    SET_DATA_DIBIT(line, j, nval);
-		break;
-	    case 4:
-	        val = GET_DATA_QBIT(line, j);
-		nval = map[val];
-		if (nval != 256)
-		    SET_DATA_QBIT(line, j, nval);
-		break;
-	    case 8:
-	        val = GET_DATA_BYTE(line, j);
-		nval = map[val];
-		if (nval != 256)
-		    SET_DATA_BYTE(line, j, nval);
-		break;
-	    }
-	}
+            {
+            case 2:
+                val = GET_DATA_DIBIT(line, j);
+                nval = map[val];
+                if (nval != 256)
+                    SET_DATA_DIBIT(line, j, nval);
+                break;
+            case 4:
+                val = GET_DATA_QBIT(line, j);
+                nval = map[val];
+                if (nval != 256)
+                    SET_DATA_QBIT(line, j, nval);
+                break;
+            case 8:
+                val = GET_DATA_BYTE(line, j);
+                nval = map[val];
+                if (nval != 256)
+                    SET_DATA_BYTE(line, j, nval);
+                break;
+            }
+        }
     }
 
     FREE((void *)map);
@@ -370,9 +370,9 @@ PIXCMAP   *cmap;
     PROCNAME("pixSetSelectMaskedCmap");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if ((cmap = pixGetColormap(pixs)) == NULL)
-	return ERROR_INT("no colormap", procName, 1);
+        return ERROR_INT("no colormap", procName, 1);
     if (!pixm) {
         L_WARNING("no mask; nothing to do", procName);
         return 0;
@@ -380,15 +380,15 @@ PIXCMAP   *cmap;
 
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8)
-	return ERROR_INT("depth not in {2, 4, 8}", procName, 1);
+        return ERROR_INT("depth not in {2, 4, 8}", procName, 1);
 
         /* add new color if necessary; get index of this color in cmap */
     n = pixcmapGetCount(cmap);
     if (sindex >= n)
-	return ERROR_INT("sindex too large; no cmap entry", procName, 1);
+        return ERROR_INT("sindex too large; no cmap entry", procName, 1);
     if (pixcmapGetIndex(cmap, rval, gval, bval, &index)) { /* not found */
-	if (pixcmapAddColor(cmap, rval, gval, bval))
-	    return ERROR_INT("error adding cmap entry", procName, 1);
+        if (pixcmapAddColor(cmap, rval, gval, bval))
+            return ERROR_INT("error adding cmap entry", procName, 1);
         else
             index = n;  /* we've added one color */
     }
@@ -407,7 +407,7 @@ PIXCMAP   *cmap;
         if (i + y < 0 || i + y >= h) continue;
         lines = datas + (y + i) * wpls;
         linem = datam + i * wplm;
-	for (j = 0; j < wm; j++) {
+        for (j = 0; j < wm; j++) {
             if (j + x < 0  || j + x >= w) continue;
             if (GET_DATA_BIT(linem, j)) {
                 switch (d) {
@@ -439,7 +439,7 @@ PIXCMAP   *cmap;
                     return ERROR_INT("depth not in {1,2,4,8}", procName, 1);
                 }
             }
-	}
+        }
     }
 
     return 0;
@@ -473,11 +473,11 @@ PIXCMAP   *cmap;
 l_int32
 pixSetMaskedCmap(PIX      *pixs,
                  PIX      *pixm,
-		 l_int32   x,
-		 l_int32   y,
-	         l_int32   rval,
-	         l_int32   gval,
-	         l_int32   bval)
+                 l_int32   x,
+                 l_int32   y,
+                 l_int32   rval,
+                 l_int32   gval,
+                 l_int32   bval)
 {
 l_int32    w, h, d, wpl, wm, hm, wplm;
 l_int32    i, j, index;
@@ -487,18 +487,18 @@ PIXCMAP   *cmap;
     PROCNAME("pixSetMaskedCmap");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if ((cmap = pixGetColormap(pixs)) == NULL)
-	return ERROR_INT("no colormap in pixs", procName, 1);
+        return ERROR_INT("no colormap in pixs", procName, 1);
     if (!pixm) {
         L_WARNING("no mask; nothing to do", procName);
         return 0;
     }
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8)
-	return ERROR_INT("depth not in {2,4,8}", procName, 1);
+        return ERROR_INT("depth not in {2,4,8}", procName, 1);
     if (pixGetDepth(pixm) != 1)
-	return ERROR_INT("pixm not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not 1 bpp", procName, 1);
 
         /* Add new color if necessary; store in 'index' */
     if (pixcmapGetIndex(cmap, rval, gval, bval, &index)) {  /* not found */

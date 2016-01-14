@@ -102,9 +102,9 @@ pixDitherToBinary(PIX  *pixs)
     PROCNAME("pixDitherToBinary");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
+        return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
 
     return pixDitherToBinarySpec(pixs, DEFAULT_CLIP_LOWER_1,
                                  DEFAULT_CLIP_UPPER_1);
@@ -119,12 +119,12 @@ pixDitherToBinary(PIX  *pixs)
  *              upperclip (upper clip distance to white; use 0 for default)
  *      Return: pixd (dithered binary), or null on error
  *
- *  See comments above in pixDitherToBinary() for details.
- *
- *  The input parameters lowerclip and upperclip specify the range
- *  of lower and upper values (near 0 and 255, rsp) that are
- *  clipped to black and white without propagating the excess.
- *  For that reason, lowerclip and upperclip should be small numbers.
+ *  Notes:
+ *      (1) See comments above in pixDitherToBinary() for details.
+ *      (2) The input parameters lowerclip and upperclip specify the range
+ *          of lower and upper values (near 0 and 255, rsp) that are
+ *          clipped to black and white without propagating the excess.
+ *          For that reason, lowerclip and upperclip should be small numbers.
  */
 PIX *
 pixDitherToBinarySpec(PIX     *pixs,
@@ -139,38 +139,38 @@ PIX       *pixt, *pixd;
     PROCNAME("pixDitherToBinarySpec");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
+        return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
     if (lowerclip < 0 || lowerclip > 255)
-	return (PIX *)ERROR_PTR("invalid value for lowerclip", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid value for lowerclip", procName, NULL);
     if (upperclip < 0 || upperclip > 255)
-	return (PIX *)ERROR_PTR("invalid value for upperclip", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid value for upperclip", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-        /* remove colormap if it exists */
+        /* Remove colormap if it exists */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
-	/* two line buffers, 1 for current line and 2 for next line */
+        /* Two line buffers, 1 for current line and 2 for next line */
     if ((bufs1 = (l_uint32 *)CALLOC(wplt, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
     if ((bufs2 = (l_uint32 *)CALLOC(wplt, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
 
     ditherToBinaryLow(datad, w, h, wpld, datat, wplt, bufs1, bufs2,
                       lowerclip, upperclip);
 
-    FREE((void *)bufs1);
-    FREE((void *)bufs2);
+    FREE(bufs1);
+    FREE(bufs2);
     pixDestroy(&pixt);
 
     return pixd;
@@ -187,8 +187,9 @@ PIX       *pixt, *pixd;
  *              threshold value
  *      Return: pixd (1 bpp), or null on error
  *
- *  If the source pixel is less than the threshold value,
- *  the dest will be 1; otherwise, it will be 0
+ *  Notes:
+ *      (1) If the source pixel is less than the threshold value,
+ *          the dest will be 1; otherwise, it will be 0
  */
 PIX *
 pixThresholdToBinary(PIX     *pixs,
@@ -201,26 +202,26 @@ PIX       *pixt, *pixd;
     PROCNAME("pixThresholdToBinary");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     d = pixGetDepth(pixs);
     if (d != 4 && d != 8)
-	return (PIX *)ERROR_PTR("must be 4 or 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("must be 4 or 8 bpp", procName, NULL);
     if (thresh < 0)
-	return (PIX *)ERROR_PTR("thresh must be non-negative", procName, NULL);
+        return (PIX *)ERROR_PTR("thresh must be non-negative", procName, NULL);
     if (d == 4 && thresh > 16)
-	return (PIX *)ERROR_PTR("4 bpp thresh not in {0-16}", procName, NULL);
+        return (PIX *)ERROR_PTR("4 bpp thresh not in {0-16}", procName, NULL);
     if (d == 8 && thresh > 256)
-	return (PIX *)ERROR_PTR("8 bpp thresh not in {0-256}", procName, NULL);
+        return (PIX *)ERROR_PTR("8 bpp thresh not in {0-256}", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-        /* remove colormap if it exists */
+        /* Remove colormap if it exists */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
@@ -264,44 +265,44 @@ PIX       *pixt, *pixd;
     PROCNAME("pixDitherToBinaryLUT");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
+        return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
     if (lowerclip < 0)
-	lowerclip = DEFAULT_CLIP_LOWER_1;
+        lowerclip = DEFAULT_CLIP_LOWER_1;
     if (upperclip < 0)
-	upperclip = DEFAULT_CLIP_UPPER_1;
+        upperclip = DEFAULT_CLIP_UPPER_1;
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-        /* remove colormap if it exists */
+        /* Remove colormap if it exists */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
-	/* two line buffers, 1 for current line and 2 for next line */
+        /* Two line buffers, 1 for current line and 2 for next line */
     if ((bufs1 = (l_uint32 *)CALLOC(wplt, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
     if ((bufs2 = (l_uint32 *)CALLOC(wplt, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
 
-	/* 3 lookup tables: 1-bit value, (3/8)excess, and (1/4)excess */
+        /* 3 lookup tables: 1-bit value, (3/8)excess, and (1/4)excess */
     make8To1DitherTables(&tabval, &tab38, &tab14, lowerclip, upperclip);
 
     ditherToBinaryLUTLow(datad, w, h, wpld, datat, wplt, bufs1, bufs2,
                          tabval, tab38, tab14);
 
-    FREE((void *)bufs1);
-    FREE((void *)bufs2);
-    FREE((void *)tabval);
-    FREE((void *)tab38);
-    FREE((void *)tab14);
+    FREE(bufs1);
+    FREE(bufs2);
+    FREE(tabval);
+    FREE(tab38);
+    FREE(tab14);
     pixDestroy(&pixt);
 
     return pixd;
@@ -329,11 +330,11 @@ PIX       *pixg, *pixd;
     PROCNAME("pixGenerateMaskByValue");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("not 8 bpp", procName, NULL);
     if (val < 0 || val > 255)
-	return (PIX *)ERROR_PTR("val out of 8 bpp range", procName, NULL);
+        return (PIX *)ERROR_PTR("val out of 8 bpp range", procName, NULL);
 
     if (pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
@@ -393,13 +394,13 @@ PIX       *pixg, *pixd;
     PROCNAME("pixGenerateMaskByBand");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("not 8 bpp", procName, NULL);
     if (lower < 0 || upper > 255)
-	return (PIX *)ERROR_PTR("invalid lower and/or upper", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid lower and/or upper", procName, NULL);
     if (lower > upper)
-	return (PIX *)ERROR_PTR("lower > upper!", procName, NULL);
+        return (PIX *)ERROR_PTR("lower > upper!", procName, NULL);
 
     if (pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
@@ -481,14 +482,14 @@ PIX       *pixg, *pixd;
  */
 PIX *
 pixDitherTo2bpp(PIX     *pixs,
-		l_int32  cmapflag)
+                l_int32  cmapflag)
 {
     PROCNAME("pixDitherTo2bpp");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
+        return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
 
     return pixDitherTo2bppSpec(pixs, DEFAULT_CLIP_LOWER_2,
                                DEFAULT_CLIP_UPPER_2, cmapflag);
@@ -504,18 +505,18 @@ pixDitherTo2bpp(PIX     *pixs,
  *              cmapflag (1 to generate a colormap)
  *      Return: pixd (dithered 2 bpp), or null on error
  *
- *  See comments above in pixDitherTo2bpp() for details.
- *
- *  The input parameters lowerclip and upperclip specify the range
- *  of lower and upper values (near 0 and 255, rsp) that
- *  are clipped to black and white without propagating the excess.
- *  For that reason, lowerclip and upperclip should be small numbers.
+ *  Notes:
+ *      (1) See comments above in pixDitherTo2bpp() for details.
+ *      (2) The input parameters lowerclip and upperclip specify the range
+ *          of lower and upper values (near 0 and 255, rsp) that are
+ *          clipped to black and white without propagating the excess.
+ *          For that reason, lowerclip and upperclip should be small numbers.
  */
 PIX *
 pixDitherTo2bppSpec(PIX     *pixs,
                     l_int32  lowerclip,
-		    l_int32  upperclip,
-		    l_int32  cmapflag)
+                    l_int32  upperclip,
+                    l_int32  cmapflag)
 {
 l_int32    w, h, wplt, wpld;
 l_int32   *tabval, *tab38, *tab14;
@@ -527,32 +528,32 @@ PIXCMAP   *cmap;
     PROCNAME("pixDitherTo2bppSpec");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
+        return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
     if (lowerclip < 0 || lowerclip > 255)
-	return (PIX *)ERROR_PTR("invalid value for lowerclip", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid value for lowerclip", procName, NULL);
     if (upperclip < 0 || upperclip > 255)
-	return (PIX *)ERROR_PTR("invalid value for upperclip", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid value for upperclip", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 2)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-        /* if there is a colormap, remove it */
+        /* If there is a colormap, remove it */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
-	/* two line buffers, 1 for current line and 2 for next line */
+        /* Two line buffers, 1 for current line and 2 for next line */
     if ((bufs1 = (l_uint32 *)CALLOC(wplt, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
     if ((bufs2 = (l_uint32 *)CALLOC(wplt, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
 
         /* 3 lookup tables: 2-bit value, (3/8)excess, and (1/4)excess */
     make8To2DitherTables(&tabval, &tab38, &tab14, lowerclip, upperclip);
@@ -561,19 +562,15 @@ PIXCMAP   *cmap;
                     tabval, tab38, tab14);
 
     if (cmapflag) {
-        cmap = pixcmapCreate(2);
-	pixcmapAddColor(cmap, 0, 0, 0);
-	pixcmapAddColor(cmap, 85, 85, 85);
-	pixcmapAddColor(cmap, 170, 170, 170);
-	pixcmapAddColor(cmap, 255, 255, 255);
-	pixSetColormap(pixd, cmap);
+        cmap = pixcmapCreateLinear(2, 4);
+        pixSetColormap(pixd, cmap);
     }
 
-    FREE((void *)bufs1);
-    FREE((void *)bufs2);
-    FREE((void *)tabval);
-    FREE((void *)tab38);
-    FREE((void *)tab14);
+    FREE(bufs1);
+    FREE(bufs2);
+    FREE(tabval);
+    FREE(tab38);
+    FREE(tab14);
     pixDestroy(&pixt);
 
     return pixd;
@@ -628,10 +625,10 @@ PIXCMAP   *cmap;
 PIX *
 pixThresholdTo2bpp(PIX     *pixs,
                    l_int32  nlevels,
-		   l_int32  cmapflag)
+                   l_int32  cmapflag)
 {
 l_int32   *qtab;
-l_int32    i, w, h, wplt, wpld, val;
+l_int32    w, h, wplt, wpld;
 l_uint32  *datat, *datad;
 PIX       *pixt, *pixd;
 PIXCMAP   *cmap;
@@ -639,43 +636,39 @@ PIXCMAP   *cmap;
     PROCNAME("pixThresholdTo2bpp");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (nlevels < 2 || nlevels > 4)
-	return (PIX *)ERROR_PTR("nlevels not in {2, 3, 4}", procName, NULL);
+        return (PIX *)ERROR_PTR("nlevels not in {2, 3, 4}", procName, NULL);
 
-	/* Make the appropriate table */
+        /* Make the appropriate table */
     if (cmapflag)
-	qtab = makeGrayQuantIndexTable(nlevels);
+        qtab = makeGrayQuantIndexTable(nlevels);
     else
-	qtab = makeGrayQuantTargetTable(4, 2);
+        qtab = makeGrayQuantTargetTable(4, 2);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 2)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
     if (cmapflag) {   /* hold out (4 - nlevels) cmap entries */
-	cmap = pixcmapCreate(2);
-	for (i = 0; i < nlevels; i++) {
-	    val = (255 * i) / (nlevels - 1);
-	    pixcmapAddColor(cmap, val, val, val);
-	}
-	pixSetColormap(pixd, cmap);
+        cmap = pixcmapCreateLinear(2, nlevels);
+        pixSetColormap(pixd, cmap);
     }
 
-        /* if there is a colormap in the src, remove it */
+        /* If there is a colormap in the src, remove it */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
     thresholdTo2bppLow(datad, h, wpld, datat, wplt, qtab);
 
-    if (qtab) FREE((void *)qtab);
+    if (qtab) FREE(qtab);
     pixDestroy(&pixt);
     return pixd;
 }
@@ -731,10 +724,10 @@ PIXCMAP   *cmap;
 PIX *
 pixThresholdTo4bpp(PIX     *pixs,
                    l_int32  nlevels,
-		   l_int32  cmapflag)
+                   l_int32  cmapflag)
 {
 l_int32   *qtab;
-l_int32    i, w, h, wplt, wpld, val;
+l_int32    w, h, wplt, wpld;
 l_uint32  *datat, *datad;
 PIX       *pixt, *pixd;
 PIXCMAP   *cmap;
@@ -742,9 +735,9 @@ PIXCMAP   *cmap;
     PROCNAME("pixThresholdTo4bpp");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (nlevels < 2 || nlevels > 16)
         return (PIX *)ERROR_PTR("nlevels not in [2,...,16]", procName, NULL);
 
@@ -757,28 +750,24 @@ PIXCMAP   *cmap;
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, 4)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
     if (cmapflag) {   /* hold out (16 - nlevels) cmap entries */
-	cmap = pixcmapCreate(4);
-	for (i = 0; i < nlevels; i++) {
-	    val = (255 * i) / (nlevels - 1);
-	    pixcmapAddColor(cmap, val, val, val);
-	}
-	pixSetColormap(pixd, cmap);
+        cmap = pixcmapCreateLinear(4, nlevels);
+        pixSetColormap(pixd, cmap);
     }
 
-        /* if there is a colormap in the src, remove it */
+        /* If there is a colormap in the src, remove it */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
     thresholdTo4bppLow(datad, h, wpld, datat, wplt, qtab);
 
-    if (qtab) FREE((void *)qtab);
+    if (qtab) FREE(qtab);
     pixDestroy(&pixt);
     return pixd;
 }
@@ -808,7 +797,7 @@ PIXCMAP   *cmap;
 PIX *
 pixThresholdOn8bpp(PIX     *pixs,
                    l_int32  nlevels,
-		   l_int32  cmapflag)
+                   l_int32  cmapflag)
 {
 l_int32   *qtab;  /* quantization table */
 l_int32    i, j, w, h, wpld, val, newval;
@@ -819,11 +808,11 @@ PIXCMAP   *cmap;
     PROCNAME("pixThresholdOn8bpp");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (nlevels < 2 || nlevels > 256)
-	return (PIX *)ERROR_PTR("nlevels not in [2,...,256]", procName, NULL);
+        return (PIX *)ERROR_PTR("nlevels not in [2,...,256]", procName, NULL);
 
     if (cmapflag)
         qtab = makeGrayQuantIndexTable(nlevels);
@@ -837,12 +826,8 @@ PIXCMAP   *cmap;
         pixd = pixCopy(NULL, pixs);
 
     if (cmapflag) {   /* hold out (256 - nlevels) cmap entries */
-	cmap = pixcmapCreate(8);
-	for (i = 0; i < nlevels; i++) {
-	    val = (255 * i) / (nlevels - 1);
-	    pixcmapAddColor(cmap, val, val, val);
-	}
-	pixSetColormap(pixd, cmap);
+        cmap = pixcmapCreateLinear(8, nlevels);
+        pixSetColormap(pixd, cmap);
     }
 
     w = pixGetWidth(pixd);
@@ -858,7 +843,7 @@ PIXCMAP   *cmap;
         }
     }
 
-    if (qtab) FREE((void *)qtab);
+    if (qtab) FREE(qtab);
     return pixd;
 }
 
@@ -886,16 +871,16 @@ l_int32    i, j, thresh;
     PROCNAME("makeGrayQuantIndexTable");
 
     if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return (l_int32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_int32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
     for (i = 0; i < 256; i++) {
-	for (j = 0; j < nlevels; j++) {
-	    thresh = 255 * (2 * j + 1) / (2 * nlevels - 2);
-	    if (i <= thresh) {
-		tab[i] = j;
-/*		fprintf(stderr, "tab[%d] = %d\n", i, j); */
-		break;
-	    }
-	}
+        for (j = 0; j < nlevels; j++) {
+            thresh = 255 * (2 * j + 1) / (2 * nlevels - 2);
+            if (i <= thresh) {
+                tab[i] = j;
+/*                fprintf(stderr, "tab[%d] = %d\n", i, j); */
+                break;
+            }
+        }
     }
     return tab;
 }
@@ -937,20 +922,20 @@ l_int32    i, j, thresh, maxval, quantval;
     PROCNAME("makeGrayQuantTargetTable");
 
     if ((tab = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return (l_int32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+        return (l_int32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
     maxval = (1 << depth) - 1;
     if (depth < 8)
         nlevels = 1 << depth;
     for (i = 0; i < 256; i++) {
-	for (j = 0; j < nlevels; j++) {
-	    thresh = 255 * (2 * j + 1) / (2 * nlevels - 2);
-	    if (i <= thresh) {
+        for (j = 0; j < nlevels; j++) {
+            thresh = 255 * (2 * j + 1) / (2 * nlevels - 2);
+            if (i <= thresh) {
                 quantval = maxval * j / (nlevels - 1);
-		tab[i] = quantval;
-/*		fprintf(stderr, "tab[%d] = %d\n", i, tab[i]); */
-		break;
-	    }
-	}
+                tab[i] = quantval;
+/*                fprintf(stderr, "tab[%d] = %d\n", i, tab[i]); */
+                break;
+            }
+        }
     }
     return tab;
 }

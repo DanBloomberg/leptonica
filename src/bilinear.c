@@ -121,9 +121,9 @@
  */
 PIX *
 pixBilinearSampled(PIX     *pixs,
-	           PTA     *ptad,
-	           PTA     *ptas,
-		   l_int32  incolor)
+                   PTA     *ptad,
+                   PTA     *ptas,
+                   l_int32  incolor)
 {
 l_int32     i, j, w, h, d, x, y, wpls, wpld, color, cmapindex;
 l_uint32    val;
@@ -135,19 +135,19 @@ PIXCMAP    *cmap;
     PROCNAME("pixBilinearSampled");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
     if (ptaGetCount(ptas) != 4)
-	return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
     if (ptaGetCount(ptad) != 4)
-	return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
 
-	/* Get backwards transform from dest to src */
+        /* Get backwards transform from dest to src */
     bilinearXformCoeffs(ptad, ptas, &vc);
 
     w = pixGetWidth(pixs);
@@ -161,50 +161,50 @@ PIXCMAP    *cmap;
 
         /* Init all dest pixels to color to be brought in from outside */
     if ((cmap = pixGetColormap(pixs)) != NULL) {
-	if (incolor == L_BRING_IN_WHITE)
-	    color = 1;
-	else
-	    color = 0;
-	pixcmapAddBlackOrWhite(cmap, color, &cmapindex);
-	pixSetAllArbitrary(pixd, cmapindex);
+        if (incolor == L_BRING_IN_WHITE)
+            color = 1;
+        else
+            color = 0;
+        pixcmapAddBlackOrWhite(cmap, color, &cmapindex);
+        pixSetAllArbitrary(pixd, cmapindex);
     }
     else {
-	if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
-	    (d > 1 && incolor == L_BRING_IN_BLACK))
-	    pixClearAll(pixd);
-	else
-	    pixSetAll(pixd);
+        if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
+            (d > 1 && incolor == L_BRING_IN_BLACK))
+            pixClearAll(pixd);
+        else
+            pixSetAll(pixd);
     }
 
-	/* Scan over dest pixels */
+        /* Scan over dest pixels */
     for (i = 0; i < h; i++) {
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    bilinearXformSampled(vc, j, i, &x, &y);
-	    if (x < 0 || y < 0 || x >=w || y >= h)
-		continue;
-	    if (d == 1) {
-		lines = datas + y * wpls;
-		if (GET_DATA_BIT(lines, x))
-		    SET_DATA_BIT(lined, j);
-	    }
-	    else if (d == 8) {
-		lines = datas + y * wpls;
-		val = GET_DATA_BYTE(lines, x);
-		SET_DATA_BYTE(lined, j, val);
-	    }
-	    else if (d == 32) {
-		lines = datas + y * wpls;
-		lined[j] = lines[x];
-	    }
-	    else {  /* all other depths */
-		pixGetPixel(pixs, x, y, &val);
-		pixSetPixel(pixd, j, i, val);
-	    }
-	}
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            bilinearXformSampled(vc, j, i, &x, &y);
+            if (x < 0 || y < 0 || x >=w || y >= h)
+                continue;
+            if (d == 1) {
+                lines = datas + y * wpls;
+                if (GET_DATA_BIT(lines, x))
+                    SET_DATA_BIT(lined, j);
+            }
+            else if (d == 8) {
+                lines = datas + y * wpls;
+                val = GET_DATA_BYTE(lines, x);
+                SET_DATA_BYTE(lined, j, val);
+            }
+            else if (d == 32) {
+                lines = datas + y * wpls;
+                lined[j] = lines[x];
+            }
+            else {  /* all other depths */
+                pixGetPixel(pixs, x, y, &val);
+                pixSetPixel(pixd, j, i, val);
+            }
+        }
     }
 
-    FREE((void *)vc);
+    FREE(vc);
     return pixd;
 }
 
@@ -227,9 +227,9 @@ PIXCMAP    *cmap;
  */
 PIX *
 pixBilinearInterpolated(PIX      *pixs,
-	                PTA      *ptad,
-	                PTA      *ptas,
-			l_uint32  incolor)
+                        PTA      *ptad,
+                        PTA      *ptas,
+                        l_uint32  incolor)
 {
 l_int32   d;
 l_uint32  colorval;
@@ -238,36 +238,36 @@ PIX      *pixt1, *pixt2, *pixd;
     PROCNAME("pixBilinearInterpolated");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) == 1)
-	return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
     if (ptaGetCount(ptas) != 4)
-	return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
     if (ptaGetCount(ptad) != 4)
-	return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
 
-	/* Remove cmap if it exists, and unpack to 8 bpp if necessary */
+        /* Remove cmap if it exists, and unpack to 8 bpp if necessary */
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     d = pixGetDepth(pixt1);
     if (d < 8)
-	pixt2 = pixConvertTo8(pixt1);
+        pixt2 = pixConvertTo8(pixt1, FALSE);
     else
-	pixt2 = pixClone(pixt1);
+        pixt2 = pixClone(pixt1);
     d = pixGetDepth(pixt2);
 
-	/* Compute actual color to bring in from edges */
+        /* Compute actual color to bring in from edges */
     colorval = 0;
     if (incolor == L_BRING_IN_WHITE) {
-	if (d == 8)
-	    colorval = 255;
-	else  /* d == 32 */
-	    colorval = 0xffffff00;
+        if (d == 8)
+            colorval = 255;
+        else  /* d == 32 */
+            colorval = 0xffffff00;
     }
 
     if (d == 8)
@@ -293,9 +293,9 @@ PIX      *pixt1, *pixt2, *pixd;
  */
 PIX *
 pixBilinearInterpolatedColor(PIX      *pixs,
-	                     PTA      *ptad,
-	                     PTA      *ptas,
-			     l_uint32  colorval)
+                             PTA      *ptad,
+                             PTA      *ptas,
+                             l_uint32  colorval)
 {
 l_int32     w, h, wpls, wpld;
 l_float32  *vc;
@@ -305,19 +305,19 @@ PIX        *pixd;
     PROCNAME("pixBilinearInterpolatedColor");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
     if (ptaGetCount(ptas) != 4)
-	return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
     if (ptaGetCount(ptad) != 4)
-	return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
 
-	/* Get backwards transform from dest to src */
+        /* Get backwards transform from dest to src */
     bilinearXformCoeffs(ptad, ptas, &vc);
 
     w = pixGetWidth(pixs);
@@ -330,7 +330,7 @@ PIX        *pixd;
     wpld = pixGetWpl(pixd);
 
     bilinearInterpolatedColorLow(datad, w, h, wpld, datas, wpls, vc);
-    FREE((void *)vc);
+    FREE(vc);
 
     return pixd;
 }
@@ -347,9 +347,9 @@ PIX        *pixd;
  */
 PIX *
 pixBilinearInterpolatedGray(PIX     *pixs,
-	                    PTA     *ptad,
-	                    PTA     *ptas,
-			    l_uint8  grayval)
+                            PTA     *ptad,
+                            PTA     *ptas,
+                            l_uint8  grayval)
 {
 l_int32     w, h, wpls, wpld;
 l_float32  *vc;
@@ -359,19 +359,19 @@ PIX        *pixd;
     PROCNAME("pixBilinearInterpolatedGray");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
     if (ptaGetCount(ptas) != 4)
-	return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
     if (ptaGetCount(ptad) != 4)
-	return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
 
-	/* Get backwards transform from dest to src */
+        /* Get backwards transform from dest to src */
     bilinearXformCoeffs(ptad, ptas, &vc);
 
     w = pixGetWidth(pixs);
@@ -384,7 +384,7 @@ PIX        *pixd;
     wpld = pixGetWpl(pixd);
 
     bilinearInterpolatedGrayLow(datad, w, h, wpld, datas, wpls, vc);
-    FREE((void *)vc);
+    FREE(vc);
 
     return pixd;
 }
@@ -412,38 +412,38 @@ l_uint32  *lines, *lined;
     hm2 = h - 2;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	        /* Compute src pixel and fraction corresponding to (i,j) */
-	    bilinearXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
+        for (j = 0; j < w; j++) {
+                /* Compute src pixel and fraction corresponding to (i,j) */
+            bilinearXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
 
-		/* Skip if off the edge; omit x = 0 and y = 0 because
-		 * xf and yf can be < 0, in which case overflow is
-		 * possible for val, and black pixels can be rendered
-		 * on pixels at the src boundaries. */
-	    if (x < 1 || y < 1 || x > wm2 || y > hm2)
-		continue;
+                /* Skip if off the edge; omit x = 0 and y = 0 because
+                 * xf and yf can be < 0, in which case overflow is
+                 * possible for val, and black pixels can be rendered
+                 * on pixels at the src boundaries. */
+            if (x < 1 || y < 1 || x > wm2 || y > hm2)
+                continue;
 
-	        /* Do area weighting (eqiv. to linear interpolation) */
-	    lines = datas + y * wpls;
+                /* Do area weighting (eqiv. to linear interpolation) */
+            lines = datas + y * wpls;
             word00 = *(lines + x);
-	    word10 = *(lines + x + 1);
-	    word01 = *(lines + wpls + x);
-	    word11 = *(lines + wpls + x + 1);
-	    rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-		xf * (16 - yf) * (word10 >> 24) +
-		(16 - xf) * yf * (word01 >> 24) +
-		xf * yf * (word11 >> 24) + 128) / 256;
-	    gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-		xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-		(16 - xf) * yf * ((word01 >> 16) & 0xff) +
-		xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
-	    bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-		xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-		(16 - xf) * yf * ((word01 >> 8) & 0xff) +
-		xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
-	    val = (rval << 24) | (gval << 16) | (bval << 8);
-	    *(lined + j) = val;
-	}
+            word10 = *(lines + x + 1);
+            word01 = *(lines + wpls + x);
+            word11 = *(lines + wpls + x + 1);
+            rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
+                xf * (16 - yf) * (word10 >> 24) +
+                (16 - xf) * yf * (word01 >> 24) +
+                xf * yf * (word11 >> 24) + 128) / 256;
+            gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
+                xf * (16 - yf) * ((word10 >> 16) & 0xff) +
+                (16 - xf) * yf * ((word01 >> 16) & 0xff) +
+                xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
+            bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
+                xf * (16 - yf) * ((word10 >> 8) & 0xff) +
+                (16 - xf) * yf * ((word01 >> 8) & 0xff) +
+                xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
+            val = (rval << 24) | (gval << 16) | (bval << 8);
+            *(lined + j) = val;
+        }
     }
 
     return;
@@ -472,26 +472,26 @@ l_uint32   *lines, *lined;
     hm2 = h - 2;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	        /* Compute src pixel and fraction corresponding to (i,j) */
-	    bilinearXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
+        for (j = 0; j < w; j++) {
+                /* Compute src pixel and fraction corresponding to (i,j) */
+            bilinearXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
 
-		/* Skip if off the edge; omit x = 0 and y = 0 because
-		 * xf and yf can be < 0, in which case overflow is
-		 * possible for val, and black pixels can be rendered
-		 * on pixels at the src boundaries. */
-	    if (x < 1 || y < 1 || x > wm2 || y > hm2)
-		continue;
+                /* Skip if off the edge; omit x = 0 and y = 0 because
+                 * xf and yf can be < 0, in which case overflow is
+                 * possible for val, and black pixels can be rendered
+                 * on pixels at the src boundaries. */
+            if (x < 1 || y < 1 || x > wm2 || y > hm2)
+                continue;
 
-	        /* Do area weighting (eqiv. to linear interpolation) */
-	    lines = datas + y * wpls;
-	    v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, x);
-	    v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, x + 1);
-	    v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, x);
-	    v11 = xf * yf * GET_DATA_BYTE(lines + wpls, x + 1);
-	    val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
-	    SET_DATA_BYTE(lined, j, val);
-	}
+                /* Do area weighting (eqiv. to linear interpolation) */
+            lines = datas + y * wpls;
+            v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, x);
+            v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, x + 1);
+            v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, x);
+            v11 = xf * yf * GET_DATA_BYTE(lines + wpls, x + 1);
+            val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
+            SET_DATA_BYTE(lined, j, val);
+        }
     }
 
     return;
@@ -557,7 +557,7 @@ l_uint32   *lines, *lined;
 l_int32
 bilinearXformCoeffs(PTA         *ptas,
                     PTA         *ptad,
-	            l_float32  **pvc)
+                    l_float32  **pvc)
 {
 l_int32     i;
 l_float32   x1, y1, x2, y2, x3, y3, x4, y4;
@@ -567,14 +567,14 @@ l_float32  *a[8];  /* 8x8 matrix A  */
     PROCNAME("bilinearXformCoeffs");
 
     if (!ptas)
-	return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", procName, 1);
     if (!ptad)
-	return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", procName, 1);
     if (!pvc)
-	return ERROR_INT("&vc not defined", procName, 1);
-	
+        return ERROR_INT("&vc not defined", procName, 1);
+        
     if ((b = (l_float32 *)CALLOC(8, sizeof(l_float32))) == NULL)
-	return ERROR_INT("b not made", procName, 1);
+        return ERROR_INT("b not made", procName, 1);
     *pvc = b;
 
     ptaGetPt(ptas, 0, &x1, &y1);
@@ -587,8 +587,8 @@ l_float32  *a[8];  /* 8x8 matrix A  */
     ptaGetPt(ptad, 3, &b[6], &b[7]);
 
     for (i = 0; i < 8; i++) {
-	if ((a[i] = (l_float32 *)CALLOC(8, sizeof(l_float32))) == NULL)
-	    return ERROR_INT("a[i] not made", procName, 1);
+        if ((a[i] = (l_float32 *)CALLOC(8, sizeof(l_float32))) == NULL)
+            return ERROR_INT("a[i] not made", procName, 1);
     }
 
     a[0][0] = x1;
@@ -627,7 +627,7 @@ l_float32  *a[8];  /* 8x8 matrix A  */
     gaussjordan(a, b, 8);
 
     for (i = 0; i < 8; i++)
-	FREE((void *)a[i]);
+        FREE(a[i]);
 
     return 0;
 }
@@ -646,15 +646,15 @@ l_float32  *a[8];  /* 8x8 matrix A  */
 l_int32
 bilinearXformSampled(l_float32  *vc,
                l_int32     x,
-	       l_int32     y,
-	       l_int32    *pxp,
-	       l_int32    *pyp)
+               l_int32     y,
+               l_int32    *pxp,
+               l_int32    *pyp)
 {
 
     PROCNAME("bilinearXformSampled");
 
     if (!vc)
-	return ERROR_INT("vc not defined", procName, 1);
+        return ERROR_INT("vc not defined", procName, 1);
 
     *pxp = (l_int32)(vc[0] * x + vc[1] * y + vc[2] * x * y + vc[3] + 0.5);
     *pyp = (l_int32)(vc[4] * x + vc[5] * y + vc[6] * x * y + vc[7] + 0.5);
@@ -677,18 +677,18 @@ bilinearXformSampled(l_float32  *vc,
 l_int32
 bilinearXformInterpolated(l_float32  *vc,
                           l_int32     x,
-	                  l_int32     y,
-	                  l_int32    *pxp,
-	                  l_int32    *pyp,
-	                  l_int32    *pfxp,
-	                  l_int32    *pfyp)
+                          l_int32     y,
+                          l_int32    *pxp,
+                          l_int32    *pyp,
+                          l_int32    *pfxp,
+                          l_int32    *pfyp)
 {
 l_float32  xp, yp;
 
     PROCNAME("bilinearXformInterpolated");
 
     if (!vc)
-	return ERROR_INT("vc not defined", procName, 1);
+        return ERROR_INT("vc not defined", procName, 1);
 
     xp = vc[0] * x + vc[1] * y + vc[2] * x * y + vc[3];
     yp = vc[4] * x + vc[5] * y + vc[6] * x * y + vc[7];

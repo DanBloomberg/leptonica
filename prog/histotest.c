@@ -19,6 +19,12 @@
  *    Makes histograms of grayscale and color pixels
  *    from a pix.  For RGB color, this uses
  *    rgb --> octcube indexing.
+ *
+ *       histotest filein sigbits
+ *
+ *    where the number of octcubes is 8^(sigbits)
+ *
+ *    For gray, sigbits is ignored.
  */
 
 #include <stdio.h>
@@ -36,39 +42,37 @@ NUMA        *na;
 PIX         *pixs, *pixd;
 static char  mainName[] = "histotest";
 
-    if (argc != 2 && argc != 3)
-	exit(ERROR_INT(" Syntax:  histotest filein [sigbits]",
-	                 mainName, 1));
+    if (argc != 3)
+	exit(ERROR_INT(" Syntax:  histotest filein sigbits", mainName, 1));
 
     filein = argv[1];
-    if (argc == 3) {
-	sigbits = atoi(argv[2]);
-	fprintf(stderr, "using %d sig bits for octcube\n", sigbits);
-    }
+    sigbits = atoi(argv[2]);
 
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
     d = pixGetDepth(pixs);
+    if (d != 8 && d != 32)
+	exit(ERROR_INT("depth not 8 or 32 bpp", mainName, 1));
 	    
     if (d == 32) {
-	if (argc == 2)
-	    exit(ERROR_INT("specify sig bits for color histo", mainName, 1));
+	startTimer();
 	if ((na = pixOctcubeHistogram(pixs, sigbits)) == NULL)
 	    exit(ERROR_INT("na not made", mainName, 1));
-	gplot = gplotCreate(NULL, na, "junkroot", GPLOT_X11, GPLOT_LINES,
-		"color histogram with octcube indexing", "input pix",
+	fprintf(stderr, "histo time = %7.3f sec\n", stopTimer());
+	gplot = gplotCreate("junkroot", GPLOT_X11,
+		"color histogram with octcube indexing",
 		"octcube index", "number of pixels in cube");
+	gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");
 	gplotMakeOutput(gplot);
 	gplotDestroy(&gplot);
     }
     else {
-	if (argc == 3)
-	    fprintf(stderr, "gray histogram; ignoring sigbits param\n");
-	if ((na = pixGrayHistogram(pixs)) == NULL)
+	if ((na = pixGetHistogram(pixs)) == NULL)
 	    exit(ERROR_INT("na not made", mainName, 1));
-	gplot = gplotCreate(NULL, na, "junkroot", GPLOT_X11, GPLOT_LINES,
-		"grayscale histogram", "input pix", "gray value",
-		"number of pixels");
+	numaWrite("junkna", na);
+	gplot = gplotCreate("junkroot", GPLOT_X11, "grayscale histogram",
+                            "gray value", "number of pixels");
+	gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");
 	gplotMakeOutput(gplot);
 	gplotDestroy(&gplot);
     }

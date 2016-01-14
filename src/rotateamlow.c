@@ -48,12 +48,12 @@
 void
 rotateAMColorLow(l_uint32  *datad,
                  l_int32    w,
-	         l_int32    h,
-	         l_int32    wpld,
-	         l_uint32  *datas,
-	         l_int32    wpls,
-	         l_float32  angle,
-	         l_uint32   colorval)
+                 l_int32    h,
+                 l_int32    wpld,
+                 l_uint32  *datas,
+                 l_int32    wpls,
+                 l_float32  angle,
+                 l_uint32   colorval)
 {
 l_int32    i, j, xcen, ycen, wm2, hm2;
 l_int32    xdif, ydif, xpm, ypm, xp, yp, xf, yf;
@@ -70,49 +70,49 @@ l_float32  sina, cosa;
     cosa = 16. * cos(angle);
 
     for (i = 0; i < h; i++) {
-	ydif = ycen - i;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    xdif = xcen - j;
-	    xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
-	    ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
-	    xp = xcen + (xpm >> 4);
-	    yp = ycen + (ypm >> 4);
-	    xf = xpm & 0x0f;
-	    yf = ypm & 0x0f;
+        ydif = ycen - i;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            xdif = xcen - j;
+            xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
+            ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
+            xp = xcen + (xpm >> 4);
+            yp = ycen + (ypm >> 4);
+            xf = xpm & 0x0f;
+            yf = ypm & 0x0f;
 
-		/* if off the edge, write input colorval */
-	    if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
-		*(lined + j) = colorval;
-		continue;
-	    }
+                /* if off the edge, write input colorval */
+            if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
+                *(lined + j) = colorval;
+                continue;
+            }
 
-	    lines = datas + yp * wpls;
+            lines = datas + yp * wpls;
 
-		/* do area weighting.  Without this, we would
-		 * simply do:
-	         *   *(lined + j) = *(lines + xp);
-		 * which is faster but gives lousy results!
-		 */
+                /* do area weighting.  Without this, we would
+                 * simply do:
+                 *   *(lined + j) = *(lines + xp);
+                 * which is faster but gives lousy results!
+                 */
             word00 = *(lines + xp);
             word10 = *(lines + xp + 1);
             word01 = *(lines + wpls + xp);
             word11 = *(lines + wpls + xp + 1);
             rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-	            xf * (16 - yf) * (word10 >> 24) +
-	            (16 - xf) * yf * (word01 >> 24) +
-	            xf * yf * (word11 >> 24) + 128) / 256;
+                    xf * (16 - yf) * (word10 >> 24) +
+                    (16 - xf) * yf * (word01 >> 24) +
+                    xf * yf * (word11 >> 24) + 128) / 256;
             gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-	            xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-	            (16 - xf) * yf * ((word01 >> 16) & 0xff) +
-	            xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
+                    xf * (16 - yf) * ((word10 >> 16) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> 16) & 0xff) +
+                    xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
             bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-	            xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-	            (16 - xf) * yf * ((word01 >> 8) & 0xff) +
-	            xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
+                    xf * (16 - yf) * ((word10 >> 8) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> 8) & 0xff) +
+                    xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
             val = (rval << 24) | (gval << 16) | (bval << 8);
             *(lined + j) = val;
-	}
+        }
     }
 
     return;
@@ -125,12 +125,12 @@ l_float32  sina, cosa;
 void
 rotateAMGrayLow(l_uint32  *datad,
                 l_int32    w,
-	        l_int32    h,
-	        l_int32    wpld,
-	        l_uint32  *datas,
-	        l_int32    wpls,
-	        l_float32  angle,
-	        l_uint8    grayval)
+                l_int32    h,
+                l_int32    wpld,
+                l_uint32  *datas,
+                l_int32    wpls,
+                l_float32  angle,
+                l_uint8    grayval)
 {
 l_int32    i, j, xcen, ycen, wm2, hm2;
 l_int32    xdif, ydif, xpm, ypm, xp, yp, xf, yf;
@@ -147,37 +147,37 @@ l_float32  sina, cosa;
     cosa = 16. * cos(angle);
 
     for (i = 0; i < h; i++) {
-	ydif = ycen - i;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    xdif = xcen - j;
-	    xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
-	    ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
-	    xp = xcen + (xpm >> 4);
-	    yp = ycen + (ypm >> 4);
-	    xf = xpm & 0x0f;
-	    yf = ypm & 0x0f;
+        ydif = ycen - i;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            xdif = xcen - j;
+            xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
+            ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
+            xp = xcen + (xpm >> 4);
+            yp = ycen + (ypm >> 4);
+            xf = xpm & 0x0f;
+            yf = ypm & 0x0f;
 
-		/* if off the edge, write input grayval */
-	    if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
-		SET_DATA_BYTE(lined, j, grayval);
-		continue;
-	    }
+                /* if off the edge, write input grayval */
+            if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
+                SET_DATA_BYTE(lined, j, grayval);
+                continue;
+            }
 
-	    lines = datas + yp * wpls;
+            lines = datas + yp * wpls;
 
-		/* do area weighting.  Without this, we would
-		 * simply do:
-	         *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
-		 * which is faster but gives lousy results!
-		 */
-	    v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
-	    v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
-	    v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
-	    v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
-	    val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
-	    SET_DATA_BYTE(lined, j, val);
-	}
+                /* do area weighting.  Without this, we would
+                 * simply do:
+                 *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
+                 * which is faster but gives lousy results!
+                 */
+            v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
+            v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
+            v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
+            v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
+            val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
+            SET_DATA_BYTE(lined, j, val);
+        }
     }
 
     return;
@@ -190,12 +190,12 @@ l_float32  sina, cosa;
 void
 rotateAMColorCornerLow(l_uint32  *datad,
                        l_int32    w,
-	               l_int32    h,
-	               l_int32    wpld,
-	               l_uint32  *datas,
-	               l_int32    wpls,
-	               l_float32  angle,
-	               l_uint32   colorval)
+                       l_int32    h,
+                       l_int32    wpld,
+                       l_uint32  *datas,
+                       l_int32    wpls,
+                       l_float32  angle,
+                       l_uint32   colorval)
 {
 l_int32    i, j, wm2, hm2;
 l_int32    xpm, ypm, xp, yp, xf, yf;
@@ -210,47 +210,47 @@ l_float32  sina, cosa;
     cosa = 16. * cos(angle);
 
     for (i = 0; i < h; i++) {
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    xpm = (l_int32)(j * cosa + i * sina + 0.5);
-	    ypm = (l_int32)(i * cosa - j * sina + 0.5);
-	    xp = xpm >> 4;
-	    yp = ypm >> 4;
-	    xf = xpm & 0x0f;
-	    yf = ypm & 0x0f;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            xpm = (l_int32)(j * cosa + i * sina + 0.5);
+            ypm = (l_int32)(i * cosa - j * sina + 0.5);
+            xp = xpm >> 4;
+            yp = ypm >> 4;
+            xf = xpm & 0x0f;
+            yf = ypm & 0x0f;
 
-		/* if off the edge, write input colorval */
-	    if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
-		*(lined + j) = colorval;
-		continue;
-	    }
+                /* if off the edge, write input colorval */
+            if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
+                *(lined + j) = colorval;
+                continue;
+            }
 
-	    lines = datas + yp * wpls;
+            lines = datas + yp * wpls;
 
-		/* do area weighting.  Without this, we would
-		 * simply do:
-	         *   *(lined + j) = *(lines + xp);
-		 * which is faster but gives lousy results!
-		 */
+                /* do area weighting.  Without this, we would
+                 * simply do:
+                 *   *(lined + j) = *(lines + xp);
+                 * which is faster but gives lousy results!
+                 */
             word00 = *(lines + xp);
             word10 = *(lines + xp + 1);
             word01 = *(lines + wpls + xp);
             word11 = *(lines + wpls + xp + 1);
             rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-	            xf * (16 - yf) * (word10 >> 24) +
-	            (16 - xf) * yf * (word01 >> 24) +
-	            xf * yf * (word11 >> 24) + 128) / 256;
+                    xf * (16 - yf) * (word10 >> 24) +
+                    (16 - xf) * yf * (word01 >> 24) +
+                    xf * yf * (word11 >> 24) + 128) / 256;
             gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-	            xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-	            (16 - xf) * yf * ((word01 >> 16) & 0xff) +
-	            xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
+                    xf * (16 - yf) * ((word10 >> 16) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> 16) & 0xff) +
+                    xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
             bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-	            xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-	            (16 - xf) * yf * ((word01 >> 8) & 0xff) +
-	            xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
+                    xf * (16 - yf) * ((word10 >> 8) & 0xff) +
+                    (16 - xf) * yf * ((word01 >> 8) & 0xff) +
+                    xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
             val = (rval << 24) | (gval << 16) | (bval << 8);
             *(lined + j) = val;
-	}
+        }
     }
 
     return;
@@ -284,35 +284,35 @@ l_float32  sina, cosa;
     cosa = 16. * cos(angle);
 
     for (i = 0; i < h; i++) {
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    xpm = (l_int32)(j * cosa + i * sina + 0.5);
-	    ypm = (l_int32)(i * cosa - j * sina + 0.5);
-	    xp = xpm >> 4;
-	    yp = ypm >> 4;
-	    xf = xpm & 0x0f;
-	    yf = ypm & 0x0f;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            xpm = (l_int32)(j * cosa + i * sina + 0.5);
+            ypm = (l_int32)(i * cosa - j * sina + 0.5);
+            xp = xpm >> 4;
+            yp = ypm >> 4;
+            xf = xpm & 0x0f;
+            yf = ypm & 0x0f;
 
-		/* if off the edge, write input grayval */
-	    if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
-		SET_DATA_BYTE(lined, j, grayval);
-		continue;
-	    }
+                /* if off the edge, write input grayval */
+            if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
+                SET_DATA_BYTE(lined, j, grayval);
+                continue;
+            }
 
-	    lines = datas + yp * wpls;
+            lines = datas + yp * wpls;
 
-		/* do area weighting.  Without this, we would
-		 * simply do:
-	         *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
-		 * which is faster but gives lousy results!
-		 */
-	    v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
-	    v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
-	    v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
-	    v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
-	    val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
-	    SET_DATA_BYTE(lined, j, val);
-	}
+                /* do area weighting.  Without this, we would
+                 * simply do:
+                 *   SET_DATA_BYTE(lined, j, GET_DATA_BYTE(lines, xp));
+                 * which is faster but gives lousy results!
+                 */
+            v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, xp);
+            v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, xp + 1);
+            v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, xp);
+            v11 = xf * yf * GET_DATA_BYTE(lines + wpls, xp + 1);
+            val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
+            SET_DATA_BYTE(lined, j, val);
+        }
     }
 
     return;
@@ -395,12 +395,12 @@ l_float32  sina, cosa;
 void
 rotateAMColorFastLow(l_uint32  *datad,
                      l_int32    w,
-	             l_int32    h,
-	             l_int32    wpld,
-	             l_uint32  *datas,
-	             l_int32    wpls,
-	             l_float32  angle,
-		     l_uint8    grayval)
+                     l_int32    h,
+                     l_int32    wpld,
+                     l_uint32  *datas,
+                     l_int32    wpls,
+                     l_float32  angle,
+                     l_uint8    grayval)
 {
 l_int32    i, j, xcen, ycen, wm2, hm2;
 l_int32    xdif, ydif, xpm, ypm, xp, yp, xf, yf;
@@ -417,251 +417,251 @@ l_float32  sina, cosa;
 
     edgeval = (grayval << 24) | (grayval << 16) | (grayval << 8);
     for (i = 0; i < h; i++) {
-	ydif = ycen - i;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    xdif = xcen - j;
-	    xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
-	    ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
-	    xp = xcen + (xpm >> 2);
-	    yp = ycen + (ypm >> 2);
-	    xf = xpm & 0x03;
-	    yf = ypm & 0x03;
+        ydif = ycen - i;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            xdif = xcen - j;
+            xpm = (l_int32)(-xdif * cosa - ydif * sina + 0.5);
+            ypm = (l_int32)(-ydif * cosa + xdif * sina + 0.5);
+            xp = xcen + (xpm >> 2);
+            yp = ycen + (ypm >> 2);
+            xf = xpm & 0x03;
+            yf = ypm & 0x03;
 
-		/* if off the edge, write input grayval */
-	    if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
-	        *(lined + j) = edgeval;
-		continue;
-	    }
+                /* if off the edge, write input grayval */
+            if (xp < 0 || yp < 0 || xp > wm2 || yp > hm2) {
+                *(lined + j) = edgeval;
+                continue;
+            }
 
-	    lines = datas + yp * wpls;
-	    pword = lines + xp;
+            lines = datas + yp * wpls;
+            pword = lines + xp;
 
-	    switch (xf + 4 * yf)
-	    {
+            switch (xf + 4 * yf)
+            {
             case 0:
-	        *(lined + j) = *pword;
-	        break;
+                *(lined + j) = *pword;
+                break;
             case 1:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		red = 3 * (word1 >> 24) + (word2 >> 24);
-		green = 3 * ((word1 >> 16) & 0xff) +
-		            ((word2 >> 16) & 0xff);
-		blue = 3 * ((word1 >> 8) & 0xff) +
-		            ((word2 >> 8) & 0xff);
-		*(lined + j) = ((red << 22) & 0xff000000) |
-		               ((green << 14) & 0x00ff0000) |
-			       ((blue << 6) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                red = 3 * (word1 >> 24) + (word2 >> 24);
+                green = 3 * ((word1 >> 16) & 0xff) +
+                            ((word2 >> 16) & 0xff);
+                blue = 3 * ((word1 >> 8) & 0xff) +
+                            ((word2 >> 8) & 0xff);
+                *(lined + j) = ((red << 22) & 0xff000000) |
+                               ((green << 14) & 0x00ff0000) |
+                               ((blue << 6) & 0x0000ff00);
                 break;
             case 2:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		red = (word1 >> 24) + (word2 >> 24);
-		green = ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff);
-		*(lined + j) = ((red << 23) & 0xff000000) |
-		               ((green << 15) & 0x00ff0000) |
-			       ((blue << 7) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                red = (word1 >> 24) + (word2 >> 24);
+                green = ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff);
+                *(lined + j) = ((red << 23) & 0xff000000) |
+                               ((green << 15) & 0x00ff0000) |
+                               ((blue << 7) & 0x0000ff00);
                 break;
             case 3:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		red = (word1 >> 24) + 3 * (word2 >> 24);
-		green = ((word1 >> 16) & 0xff) +
-		          3 * ((word2 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) +
-		          3 * ((word2 >> 8) & 0xff);
-		*(lined + j) = ((red << 22) & 0xff000000) |
-		               ((green << 14) & 0x00ff0000) |
-			       ((blue << 6) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                red = (word1 >> 24) + 3 * (word2 >> 24);
+                green = ((word1 >> 16) & 0xff) +
+                          3 * ((word2 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) +
+                          3 * ((word2 >> 8) & 0xff);
+                *(lined + j) = ((red << 22) & 0xff000000) |
+                               ((green << 14) & 0x00ff0000) |
+                               ((blue << 6) & 0x0000ff00);
                 break;
             case 4:
-		word1 = *pword;
-		word3 = *(pword + wpls);
-		red = 3 * (word1 >> 24) + (word3 >> 24);
-		green = 3 * ((word1 >> 16) & 0xff) +
-		            ((word3 >> 16) & 0xff);
-		blue = 3 * ((word1 >> 8) & 0xff) +
-		            ((word3 >> 8) & 0xff);
-		*(lined + j) = ((red << 22) & 0xff000000) |
-		               ((green << 14) & 0x00ff0000) |
-			       ((blue << 6) & 0x0000ff00);
+                word1 = *pword;
+                word3 = *(pword + wpls);
+                red = 3 * (word1 >> 24) + (word3 >> 24);
+                green = 3 * ((word1 >> 16) & 0xff) +
+                            ((word3 >> 16) & 0xff);
+                blue = 3 * ((word1 >> 8) & 0xff) +
+                            ((word3 >> 8) & 0xff);
+                *(lined + j) = ((red << 22) & 0xff000000) |
+                               ((green << 14) & 0x00ff0000) |
+                               ((blue << 6) & 0x0000ff00);
                 break;
             case 5:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = 9 * (word1 >> 24) + 3 * (word2 >> 24) +
-		      3 * (word3 >> 24) + (word4 >> 24);
-		green = 9 * ((word1 >> 16) & 0xff) +
-		        3 * ((word2 >> 16) & 0xff) +
-		        3 * ((word3 >> 16) & 0xff) +
-		        ((word4 >> 16) & 0xff);
-		blue = 9 * ((word1 >> 8) & 0xff) + 
-		       3 * ((word2 >> 8) & 0xff) +
-		       3 * ((word3 >> 8) & 0xff) +
-		       ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 20) & 0xff000000) |
-		               ((green << 12) & 0x00ff0000) |
-			       ((blue << 4) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = 9 * (word1 >> 24) + 3 * (word2 >> 24) +
+                      3 * (word3 >> 24) + (word4 >> 24);
+                green = 9 * ((word1 >> 16) & 0xff) +
+                        3 * ((word2 >> 16) & 0xff) +
+                        3 * ((word3 >> 16) & 0xff) +
+                        ((word4 >> 16) & 0xff);
+                blue = 9 * ((word1 >> 8) & 0xff) + 
+                       3 * ((word2 >> 8) & 0xff) +
+                       3 * ((word3 >> 8) & 0xff) +
+                       ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 20) & 0xff000000) |
+                               ((green << 12) & 0x00ff0000) |
+                               ((blue << 4) & 0x0000ff00);
                 break;
             case 6:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = 3 * (word1 >> 24) +  3 * (word2 >> 24) +
-		      (word3 >> 24) + (word4 >> 24);
-		green = 3 * ((word1 >> 16) & 0xff) + 
-		        3 * ((word2 >> 16) & 0xff) +
-		        ((word3 >> 16) & 0xff) +
-		        ((word4 >> 16) & 0xff);
-		blue = 3 * ((word1 >> 8) & 0xff) +
-		       3 * ((word2 >> 8) & 0xff) +
-		       ((word3 >> 8) & 0xff) +
-		       ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 21) & 0xff000000) |
-		               ((green << 13) & 0x00ff0000) |
-			       ((blue << 5) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = 3 * (word1 >> 24) +  3 * (word2 >> 24) +
+                      (word3 >> 24) + (word4 >> 24);
+                green = 3 * ((word1 >> 16) & 0xff) + 
+                        3 * ((word2 >> 16) & 0xff) +
+                        ((word3 >> 16) & 0xff) +
+                        ((word4 >> 16) & 0xff);
+                blue = 3 * ((word1 >> 8) & 0xff) +
+                       3 * ((word2 >> 8) & 0xff) +
+                       ((word3 >> 8) & 0xff) +
+                       ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 21) & 0xff000000) |
+                               ((green << 13) & 0x00ff0000) |
+                               ((blue << 5) & 0x0000ff00);
                 break;
             case 7:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = 3 * (word1 >> 24) + 9 * (word2 >> 24) +
-		      (word3 >> 24) + 3 * (word4 >> 24);
-		green = 3 * ((word1 >> 16) & 0xff) + 
-		        9 * ((word2 >> 16) & 0xff) +
-		        ((word3 >> 16) & 0xff) +
-		        3 * ((word4 >> 16) & 0xff);
-		blue = 3 * ((word1 >> 8) & 0xff) +
-		       9 * ((word2 >> 8) & 0xff) +
-	  	       ((word3 >> 8) & 0xff) +
-	  	       3 * ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 20) & 0xff000000) |
-		               ((green << 12) & 0x00ff0000) |
-			       ((blue << 4) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = 3 * (word1 >> 24) + 9 * (word2 >> 24) +
+                      (word3 >> 24) + 3 * (word4 >> 24);
+                green = 3 * ((word1 >> 16) & 0xff) + 
+                        9 * ((word2 >> 16) & 0xff) +
+                        ((word3 >> 16) & 0xff) +
+                        3 * ((word4 >> 16) & 0xff);
+                blue = 3 * ((word1 >> 8) & 0xff) +
+                       9 * ((word2 >> 8) & 0xff) +
+                         ((word3 >> 8) & 0xff) +
+                         3 * ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 20) & 0xff000000) |
+                               ((green << 12) & 0x00ff0000) |
+                               ((blue << 4) & 0x0000ff00);
                 break;
             case 8:
-		word1 = *pword;
-		word3 = *(pword + wpls);
-		red = (word1 >> 24) + (word3 >> 24);
-		green = ((word1 >> 16) & 0xff) + ((word3 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) + ((word3 >> 8) & 0xff);
-		*(lined + j) = ((red << 23) & 0xff000000) |
-		               ((green << 15) & 0x00ff0000) |
-			       ((blue << 7) & 0x0000ff00);
+                word1 = *pword;
+                word3 = *(pword + wpls);
+                red = (word1 >> 24) + (word3 >> 24);
+                green = ((word1 >> 16) & 0xff) + ((word3 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) + ((word3 >> 8) & 0xff);
+                *(lined + j) = ((red << 23) & 0xff000000) |
+                               ((green << 15) & 0x00ff0000) |
+                               ((blue << 7) & 0x0000ff00);
                 break;
             case 9:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = 3 * (word1 >> 24) + (word2 >> 24) +
-		      3 * (word3 >> 24) + (word4 >> 24);
-		green = 3 * ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff) +
-		        3 * ((word3 >> 16) & 0xff) + ((word4 >> 16) & 0xff);
-		blue = 3 * ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
-		       3 * ((word3 >> 8) & 0xff) + ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 21) & 0xff000000) |
-		               ((green << 13) & 0x00ff0000) |
-			       ((blue << 5) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = 3 * (word1 >> 24) + (word2 >> 24) +
+                      3 * (word3 >> 24) + (word4 >> 24);
+                green = 3 * ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff) +
+                        3 * ((word3 >> 16) & 0xff) + ((word4 >> 16) & 0xff);
+                blue = 3 * ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
+                       3 * ((word3 >> 8) & 0xff) + ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 21) & 0xff000000) |
+                               ((green << 13) & 0x00ff0000) |
+                               ((blue << 5) & 0x0000ff00);
                 break;
             case 10:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = (word1 >> 24) + (word2 >> 24) +
-		      (word3 >> 24) + (word4 >> 24);
-		green = ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff) +
-		        ((word3 >> 16) & 0xff) + ((word4 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
-		       ((word3 >> 8) & 0xff) + ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 22) & 0xff000000) |
-		               ((green << 14) & 0x00ff0000) |
-			       ((blue << 6) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = (word1 >> 24) + (word2 >> 24) +
+                      (word3 >> 24) + (word4 >> 24);
+                green = ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff) +
+                        ((word3 >> 16) & 0xff) + ((word4 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
+                       ((word3 >> 8) & 0xff) + ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 22) & 0xff000000) |
+                               ((green << 14) & 0x00ff0000) |
+                               ((blue << 6) & 0x0000ff00);
                 break;
             case 11:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = (word1 >> 24) + 3 * (word2 >> 24) +
-		      (word3 >> 24) + 3 * (word4 >> 24);
-		green = ((word1 >> 16) & 0xff) + 3 * ((word2 >> 16) & 0xff) +
-		        ((word3 >> 16) & 0xff) + 3 * ((word4 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) + 3 * ((word2 >> 8) & 0xff) +
-		       ((word3 >> 8) & 0xff) + 3 * ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 21) & 0xff000000) |
-		               ((green << 13) & 0x00ff0000) |
-			       ((blue << 5) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = (word1 >> 24) + 3 * (word2 >> 24) +
+                      (word3 >> 24) + 3 * (word4 >> 24);
+                green = ((word1 >> 16) & 0xff) + 3 * ((word2 >> 16) & 0xff) +
+                        ((word3 >> 16) & 0xff) + 3 * ((word4 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) + 3 * ((word2 >> 8) & 0xff) +
+                       ((word3 >> 8) & 0xff) + 3 * ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 21) & 0xff000000) |
+                               ((green << 13) & 0x00ff0000) |
+                               ((blue << 5) & 0x0000ff00);
                 break;
             case 12:
-		word1 = *pword;
-		word3 = *(pword + wpls);
-		red = (word1 >> 24) + 3 * (word3 >> 24);
-		green = ((word1 >> 16) & 0xff) +
-		          3 * ((word3 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) +
-		          3 * ((word3 >> 8) & 0xff);
-		*(lined + j) = ((red << 22) & 0xff000000) |
-		               ((green << 14) & 0x00ff0000) |
-			       ((blue << 6) & 0x0000ff00);
+                word1 = *pword;
+                word3 = *(pword + wpls);
+                red = (word1 >> 24) + 3 * (word3 >> 24);
+                green = ((word1 >> 16) & 0xff) +
+                          3 * ((word3 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) +
+                          3 * ((word3 >> 8) & 0xff);
+                *(lined + j) = ((red << 22) & 0xff000000) |
+                               ((green << 14) & 0x00ff0000) |
+                               ((blue << 6) & 0x0000ff00);
                 break;
             case 13:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = 3 * (word1 >> 24) + (word2 >> 24) +
-		      9 * (word3 >> 24) + 3 * (word4 >> 24);
-		green = 3 * ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff) +
-		        9 * ((word3 >> 16) & 0xff) + 3 * ((word4 >> 16) & 0xff);
-		blue = 3 *((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
-		       9 * ((word3 >> 8) & 0xff) + 3 * ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 20) & 0xff000000) |
-		               ((green << 12) & 0x00ff0000) |
-			       ((blue << 4) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = 3 * (word1 >> 24) + (word2 >> 24) +
+                      9 * (word3 >> 24) + 3 * (word4 >> 24);
+                green = 3 * ((word1 >> 16) & 0xff) + ((word2 >> 16) & 0xff) +
+                        9 * ((word3 >> 16) & 0xff) + 3 * ((word4 >> 16) & 0xff);
+                blue = 3 *((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
+                       9 * ((word3 >> 8) & 0xff) + 3 * ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 20) & 0xff000000) |
+                               ((green << 12) & 0x00ff0000) |
+                               ((blue << 4) & 0x0000ff00);
                 break;
             case 14:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = (word1 >> 24) + (word2 >> 24) +
-		      3 * (word3 >> 24) + 3 * (word4 >> 24);
-		green = ((word1 >> 16) & 0xff) +((word2 >> 16) & 0xff) +
-		        3 * ((word3 >> 16) & 0xff) + 3 * ((word4 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
-		       3 * ((word3 >> 8) & 0xff) + 3 * ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 21) & 0xff000000) |
-		               ((green << 13) & 0x00ff0000) |
-			       ((blue << 5) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = (word1 >> 24) + (word2 >> 24) +
+                      3 * (word3 >> 24) + 3 * (word4 >> 24);
+                green = ((word1 >> 16) & 0xff) +((word2 >> 16) & 0xff) +
+                        3 * ((word3 >> 16) & 0xff) + 3 * ((word4 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) + ((word2 >> 8) & 0xff) +
+                       3 * ((word3 >> 8) & 0xff) + 3 * ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 21) & 0xff000000) |
+                               ((green << 13) & 0x00ff0000) |
+                               ((blue << 5) & 0x0000ff00);
                 break;
             case 15:
-		word1 = *pword;
-		word2 = *(pword + 1);
-		word3 = *(pword + wpls);
-		word4 = *(pword + wpls + 1);
-		red = (word1 >> 24) + 3 * (word2 >> 24) +
-		      3 * (word3 >> 24) + 9 * (word4 >> 24);
-		green = ((word1 >> 16) & 0xff) + 3 * ((word2 >> 16) & 0xff) +
-		        3 * ((word3 >> 16) & 0xff) + 9 * ((word4 >> 16) & 0xff);
-		blue = ((word1 >> 8) & 0xff) + 3 * ((word2 >> 8) & 0xff) +
-		       3 * ((word3 >> 8) & 0xff) + 9 * ((word4 >> 8) & 0xff);
-		*(lined + j) = ((red << 20) & 0xff000000) |
-		               ((green << 12) & 0x00ff0000) |
-			       ((blue << 4) & 0x0000ff00);
+                word1 = *pword;
+                word2 = *(pword + 1);
+                word3 = *(pword + wpls);
+                word4 = *(pword + wpls + 1);
+                red = (word1 >> 24) + 3 * (word2 >> 24) +
+                      3 * (word3 >> 24) + 9 * (word4 >> 24);
+                green = ((word1 >> 16) & 0xff) + 3 * ((word2 >> 16) & 0xff) +
+                        3 * ((word3 >> 16) & 0xff) + 9 * ((word4 >> 16) & 0xff);
+                blue = ((word1 >> 8) & 0xff) + 3 * ((word2 >> 8) & 0xff) +
+                       3 * ((word3 >> 8) & 0xff) + 9 * ((word4 >> 8) & 0xff);
+                *(lined + j) = ((red << 20) & 0xff000000) |
+                               ((green << 12) & 0x00ff0000) |
+                               ((blue << 4) & 0x0000ff00);
                 break;
             default:
-	        fprintf(stderr, "shouldn't get here\n");
-		break;
+                fprintf(stderr, "shouldn't get here\n");
+                break;
             }
-	}
+        }
     }
 
     return;

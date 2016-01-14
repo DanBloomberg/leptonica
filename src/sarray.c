@@ -23,16 +23,20 @@
  *          SARRAY    *sarrayCreateLinesFromString()
  *          void      *sarrayDestroy()
  *          SARRAY    *sarrayCopy()
+ *          SARRAY    *sarrayClone()
  *
  *      Add/Remove string
  *          l_int32    sarrayAddString()
  *          l_int32    sarrayExtendArray()
  *          char      *sarrayRemoveString()
+ *          l_int32    sarrayClear()
  *
  *      Accessors
  *          l_int32    sarrayGetCount()
  *          char     **sarrayGetArray()
  *          char      *sarrayGetString()
+ *          l_int32    sarrayGetRefcount()
+ *          l_int32    sarrayChangeRefcount()
  *
  *      Conversion back to string
  *          char      *sarrayToString()
@@ -67,27 +71,33 @@
  *          correctly disposing of strings that have been extracted
  *          from sarrays.
  *
- *            - When you want a string to inspect it, or plan to
- *              make a copy of it later, use sarrayGetString() with
- *              copyflag = 0.  In this case, you must neither free
+ *            - When you want a string from an Sarray to inspect it, or
+ *              plan to make a copy of it later, use sarrayGetString()
+ *              with copyflag = 0.  In this case, you must neither free
  *              the string nor put it directly in another array.
+ *              We provide the copyflag constant L_NOCOPY, which is 0,
+ *              for this purpose:
+ *                 str-not-owned = sarrayGetString(sa, index, L_NOCOPY);
+ *              To extract a copy of a string, use:
+ *                 str-owned = sarrayGetString(sa, index, L_COPY);
  *
  *            - When you want to insert a string that is in one
  *              array into another array (always leaving the first
  *              array intact), you have two options:
- *
- *                 (1) use copyflag = 1 to make an immediate copy,
+ *                 (1) use copyflag = L_COPY to make an immediate copy,
  *                     which you must then add to the second array
- *                     by insertion; namely, using 
- *                     sarrayAddString(sa, str, 0), or
- *                 (2) use copyflag = 0 to get another handle to
+ *                     by insertion; namely,
+ *                       str-owned = sarrayGetString(sa, index, L_COPY);
+ *                       sarrayAddString(sa, str-owned, L_INSERT);
+ *                 (2) use copyflag = L_NOCOPY to get another handle to
  *                     the string, in which case you must add
- *                     a copy of it to the second string array,
- *                     using sarrayAddString(sa, str, 1).
+ *                     a copy of it to the second string array:
+ *                       str-not-owned = sarrayGetString(sa, index, L_NOCOPY);
+ *                       sarrayAddString(sa, str-not-owned, L_COPY).
  *
- *              In all cases, when you use copyflag = 1 to extract
+ *              In all cases, when you use copyflag = L_COPY to extract
  *              a string from an array, you must either free it
- *              or put it in an array that will be freed later.
+ *              or insert it in an array that will be freed later.
  */
 
 #include <stdio.h>
@@ -96,7 +106,7 @@
 #include "allheaders.h"
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;     /* n'importe quoi */
-static const l_int32  BUFFER_SIZE = 512;
+static const l_int32  L_BUF_SIZE = 512;
 
 
 /*--------------------------------------------------------------------------*
@@ -117,7 +127,7 @@ SARRAY  *sa;
     PROCNAME("sarrayCreate");
 
     if (n <= 0)
-	n = INITIAL_PTR_ARRAYSIZE;
+        n = INITIAL_PTR_ARRAYSIZE;
 
     if ((sa = (SARRAY *)CALLOC(1, sizeof(SARRAY))) == NULL)
         return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
@@ -126,7 +136,7 @@ SARRAY  *sa;
 
     sa->nalloc = n;
     sa->n = 0;
-
+    sa->refcount = 1;
     return sa;
 }
 
@@ -153,25 +163,25 @@ SARRAY  *sa;
     if (!string)
         return (SARRAY *)ERROR_PTR("textstr not defined", procName, NULL);
 
-	/* Find the number of words */
+        /* Find the number of words */
     size = strlen(string);
     nsub = 0;
     separators = " \n\t";
     inword = FALSE;
     for (i = 0; i < size; i++) {
-	if (inword == FALSE &&
-	   (string[i] != ' ' && string[i] != '\t' && string[i] != '\n')) {
-	   inword = TRUE;
-	   nsub++;
-	}
-	else if (inword == TRUE &&
-	   (string[i] == ' ' || string[i] == '\t' || string[i] == '\n')) {
-	   inword = FALSE;
-	}
+        if (inword == FALSE &&
+           (string[i] != ' ' && string[i] != '\t' && string[i] != '\n')) {
+           inword = TRUE;
+           nsub++;
+        }
+        else if (inword == TRUE &&
+           (string[i] == ' ' || string[i] == '\t' || string[i] == '\n')) {
+           inword = FALSE;
+        }
     }
 
     if ((sa = sarrayCreate(nsub)) == NULL)
-	return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
     sarraySplitString(sa, string, separators);
 
     return sa;
@@ -202,45 +212,45 @@ SARRAY  *sa;
     if (!string)
         return (SARRAY *)ERROR_PTR("textstr not defined", procName, NULL);
 
-	/* find the number of lines */
+        /* find the number of lines */
     size = strlen(string);
     nsub = 0;
     for (i = 0; i < size; i++) {
-	if (string[i] == '\n')
-	    nsub++;
+        if (string[i] == '\n')
+            nsub++;
     }
 
     if ((sa = sarrayCreate(nsub)) == NULL)
-	return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
 
     if (blankflag) {  /* keep blank lines as null strings */
-	    /* Make a copy for munging */
-	if ((cstring = stringNew(string)) == NULL)
-	    return (SARRAY *)ERROR_PTR("cstring not made", procName, NULL);
-	    /* We'll insert nulls like strtok */
-	startptr = 0;
-	for (i = 0; i < size; i++) {
-	    if (cstring[i] == '\n') {
-		cstring[i] = '\0';
-		if ((substring = stringNew(cstring + startptr)) == NULL)
-		    return (SARRAY *)ERROR_PTR("substring not made",
-		                                procName, NULL);
-		sarrayAddString(sa, substring, 0);
-/*		fprintf(stderr, "substring = %s\n", substring); */
-		startptr = i + 1;
-	    }
-	}
-	if (startptr < size) {  /* no newline at end of last line */
-	    if ((substring = stringNew(cstring + startptr)) == NULL)
-		return (SARRAY *)ERROR_PTR("substring not made",
-		                            procName, NULL);
-	    sarrayAddString(sa, substring, 0);
-/*	    fprintf(stderr, "substring = %s\n", substring); */
-	}
-	FREE(cstring);
+            /* Make a copy for munging */
+        if ((cstring = stringNew(string)) == NULL)
+            return (SARRAY *)ERROR_PTR("cstring not made", procName, NULL);
+            /* We'll insert nulls like strtok */
+        startptr = 0;
+        for (i = 0; i < size; i++) {
+            if (cstring[i] == '\n') {
+                cstring[i] = '\0';
+                if ((substring = stringNew(cstring + startptr)) == NULL)
+                    return (SARRAY *)ERROR_PTR("substring not made",
+                                                procName, NULL);
+                sarrayAddString(sa, substring, L_INSERT);
+/*                fprintf(stderr, "substring = %s\n", substring); */
+                startptr = i + 1;
+            }
+        }
+        if (startptr < size) {  /* no newline at end of last line */
+            if ((substring = stringNew(cstring + startptr)) == NULL)
+                return (SARRAY *)ERROR_PTR("substring not made",
+                                            procName, NULL);
+            sarrayAddString(sa, substring, L_INSERT);
+/*            fprintf(stderr, "substring = %s\n", substring); */
+        }
+        FREE(cstring);
     }
     else {  /* remove blank lines; use strtok */
-	sarraySplitString(sa, string, "\n");
+        sarraySplitString(sa, string, "\n");
     }
 
     return sa;
@@ -254,7 +264,8 @@ SARRAY  *sa;
  *      Return: void
  *
  *  Notes:
- *      (1) Destroys the sarray and nulls the contents of the input ptr
+ *      (1) Decrements the ref count and, if 0, destroys the sarray.
+ *      (2) Always nulls the input ptr.
  */
 void
 sarrayDestroy(SARRAY  **psa)
@@ -265,19 +276,22 @@ SARRAY  *sa;
     PROCNAME("sarrayDestroy");
 
     if (psa == NULL) {
-	L_WARNING("ptr address is NULL!", procName);
-	return;
+        L_WARNING("ptr address is NULL!", procName);
+        return;
     }
     if ((sa = *psa) == NULL)
-	return;
+        return;
 
-    if (sa->array) {
-	for (i = 0; i < sa->n; i++)
-	    FREE(sa->array[i]);
-	FREE(sa->array);
+    sarrayChangeRefcount(sa, -1);
+    if (sarrayGetRefcount(sa) <= 0) {
+        if (sa->array) {
+            for (i = 0; i < sa->n; i++)
+                FREE(sa->array[i]);
+            FREE(sa->array);
+        }
+        FREE(sa);
     }
 
-    FREE(sa);
     *psa = NULL;
     return;
 }
@@ -304,11 +318,28 @@ SARRAY  *csa;
         return (SARRAY *)ERROR_PTR("csa not made", procName, NULL);
 
     for (i = 0; i < sa->n; i++)
-	sarrayAddString(csa, sa->array[i], 1);
+        sarrayAddString(csa, sa->array[i], L_COPY);
 
     return csa;
 }
 
+
+/*!
+ *  sarrayClone()
+ *
+ *      Input:  sarray
+ *      Return: ptr to same sarray, or null on error
+ */
+SARRAY *
+sarrayClone(SARRAY  *sa)
+{
+    PROCNAME("sarrayClone");
+
+    if (!sa)
+        return (SARRAY *)ERROR_PTR("sa not defined", procName, NULL);
+    sarrayChangeRefcount(sa, 1);
+    return sa;
+}
 
 
 /*!
@@ -316,13 +347,20 @@ SARRAY  *csa;
  *
  *      Input:  sarray
  *              string  (string to be added)
- *              copyflag (0 for insertion; 1 for copy)
+ *              copyflag (L_INSERT, L_COPY)
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Legacy usage decrees that we always use 0 to insert a string
+ *          directly and 1 to insert a copy of the string.  The
+ *          enums for L_INSERT and L_COPY agree with this convention,
+ *          and will not change in the future.
+ *      (2) See usage comments at the top of this file.
  */
 l_int32
 sarrayAddString(SARRAY  *sa,
                 char    *string,
-	        l_int32  copyflag)
+                l_int32  copyflag)
 {
 l_int32  n;
 
@@ -332,17 +370,17 @@ l_int32  n;
         return ERROR_INT("sa not defined", procName, 1);
     if (!string)
         return ERROR_INT("string not defined", procName, 1);
+    if (copyflag != L_INSERT && copyflag != L_COPY)
+        return ERROR_INT("invalid copyflag", procName, 1);
     
     n = sarrayGetCount(sa);
     if (n >= sa->nalloc)
-	sarrayExtendArray(sa);
+        sarrayExtendArray(sa);
 
-    if (copyflag == TRUE) {
-	if ((sa->array[n] = stringNew(string)) == NULL)
-	    return ERROR_INT("cstring not made", procName, 1);
-    }
-    else   /* insert */
-	sa->array[n] = string;
+    if (copyflag == L_INSERT)
+        sa->array[n] = string;
+    else  /* L_COPY */
+        sa->array[n] = stringNew(string);
     sa->n++;
 
     return 0;
@@ -366,7 +404,7 @@ sarrayExtendArray(SARRAY  *sa)
     if ((sa->array = (char **)reallocNew((void **)&sa->array,
                               sizeof(l_intptr_t) * sa->nalloc,
                               2 * sizeof(l_intptr_t) * sa->nalloc)) == NULL)
-	    return ERROR_INT("new ptr array not returned", procName, 1);
+            return ERROR_INT("new ptr array not returned", procName, 1);
 
     sa->nalloc *= 2;
     return 0;
@@ -401,18 +439,41 @@ l_int32  i, n, nalloc;
 
     string = array[index];
 
-	/* If removed string is not at end of array, shift
-	 * to fill in, maintaining original ordering.
-	 * Note: if we didn't care about the order, we could
-	 * put the last string array[n - 1] directly into the hole.  */
+        /* If removed string is not at end of array, shift
+         * to fill in, maintaining original ordering.
+         * Note: if we didn't care about the order, we could
+         * put the last string array[n - 1] directly into the hole.  */
     for (i = index; i < n - 1; i++)
-	array[i] = array[i + 1];
+        array[i] = array[i + 1];
 
     sa->n--;
     return string;
 }
 
 
+/*!
+ *  sarrayClear()
+ *
+ *      Input:  sarray
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+sarrayClear(SARRAY  *sa)
+{
+l_int32  i;
+
+    PROCNAME("sarrayClear");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 0);
+    for (i = 0; i < sa->n; i++) {  /* free strings and null ptrs */
+        FREE(sa->array[i]);
+        sa->array[i] = NULL;
+    }
+    sa->n = 0;
+}
+
+        
 /*----------------------------------------------------------------------*
  *                               Accessors                              *
  *----------------------------------------------------------------------*/
@@ -431,7 +492,7 @@ sarrayGetCount(SARRAY  *sa)
         return ERROR_INT("sa not defined", procName, 0);
     return sa->n;
 }
-	
+        
 
 /*!
  *  sarrayGetArray()
@@ -448,7 +509,7 @@ sarrayGetCount(SARRAY  *sa)
 char **
 sarrayGetArray(SARRAY   *sa,
                l_int32  *pnalloc,
-	       l_int32  *pn)
+               l_int32  *pn)
 {
 char  **array;
 
@@ -470,8 +531,20 @@ char  **array;
  *
  *      Input:  sarray
  *              index   (to the index-th string)
- *              copyflag  (0 for string itself; 1 for a copy)
+ *              copyflag  (L_NOCOPY or L_COPY)
  *      Return: string, or null on error
+ *
+ *  Notes:
+ *      (1) Legacy usage decrees that we always use 0 to get the
+ *          pointer to the string itself, and 1 to get a copy of
+ *          the string.
+ *      (2) See usage comments at the top of this file.
+ *      (3) To get a pointer to the string itself, use for copyflag:
+ *             L_NOCOPY or 0 or FALSE
+ *          To get a copy of the string, use for copyflag:
+ *             L_COPY or 1 or TRUE
+ *          The const values of L_NOCOPY and L_COPY are guaranteed not
+ *          to change.
  */
 char *
 sarrayGetString(SARRAY  *sa,
@@ -482,17 +555,53 @@ sarrayGetString(SARRAY  *sa,
 
     if (!sa)
         return (char *)ERROR_PTR("sa not defined", procName, NULL);
-
     if (index < 0 || index >= sa->n)
         return (char *)ERROR_PTR("index not valid", procName, NULL);
+    if (copyflag != L_NOCOPY && copyflag != L_COPY)
+        return (char *)ERROR_PTR("invalid copyflag", procName, NULL);
 
-    if (copyflag == 1)
-	return stringNew(sa->array[index]);
-    else
-	return sa->array[index];
+    if (copyflag == L_NOCOPY)
+        return sa->array[index];
+    else  /* L_COPY */
+        return stringNew(sa->array[index]);
 }
 
 
+/*!
+ *  sarrayGetRefCount()
+ *
+ *      Input:  sarray
+ *      Return: refcount, or UNDEF on error
+ */
+l_int32
+sarrayGetRefcount(SARRAY  *sa)
+{
+    PROCNAME("sarrayGetRefcount");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, UNDEF);
+    return sa->refcount;
+}
+
+
+/*!
+ *  sarrayChangeRefCount()
+ *
+ *      Input:  sarray
+ *              delta (change to be applied)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+sarrayChangeRefcount(SARRAY  *sa,
+		     l_int32  delta)
+{
+    PROCNAME("sarrayChangeRefcount");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, UNDEF);
+    sa->refcount += delta;
+    return 0;
+}
 
 
 /*----------------------------------------------------------------------*
@@ -514,7 +623,7 @@ sarrayGetString(SARRAY  *sa,
  *          each substring.
  *      (3) This function was NOT implemented as:
  *            for (i = 0; i < n; i++)
- *   	          strcat(dest, sarrayGetString(sa, i, 0));
+ *                     strcat(dest, sarrayGetString(sa, i, L_NOCOPY));
  *          Do you see why?
  */
 char *
@@ -571,25 +680,25 @@ l_int32  n, i, last, size, index, len;
 
     size = 0;
     for (i = first; i <= last; i++) 
-	size += strlen(sarrayGetString(sa, i, 0)) + 2;
+        size += strlen(sarrayGetString(sa, i, L_NOCOPY)) + 2;
 
     if ((dest = (char *)CALLOC(size + 1, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("dest not made", procName, NULL);
 
     index = 0;
     for (i = first; i <= last; i++) {
-	src = sa->array[i];
-	len = strlen(src);
-	memcpy(dest + index, src, len);
-	index += len;
-	if (addnlflag == 1) {
-	    dest[index] = '\n';
-	    index++;
-	}
-	else if (addnlflag == 2) {
-	    dest[index] = ' ';
-	    index++;
-	}
+        src = sa->array[i];
+        len = strlen(src);
+        memcpy(dest + index, src, len);
+        index += len;
+        if (addnlflag == 1) {
+            dest[index] = '\n';
+            index++;
+        }
+        else if (addnlflag == 2) {
+            dest[index] = ' ';
+            index++;
+        }
     }
 
     return dest;
@@ -625,8 +734,8 @@ l_int32  n, i;
 
     n = sarrayGetCount(sa2);
     for (i = 0; i < n; i++) {
-        string = sarrayGetString(sa2, i, 0);
-	sarrayAddString(sa1, string, 1);
+        string = sarrayGetString(sa2, i, L_NOCOPY);
+        sarrayAddString(sa1, string, L_COPY);
     }
 
     return 0;
@@ -684,42 +793,42 @@ SARRAY  *sal, *saout;
     totlen = 0;
     sal = NULL;
     for (i = 0; i < n; i++) {
-	if (!sal) {
-	    if ((sal = sarrayCreate(0)) == NULL)
-		return (SARRAY *)ERROR_PTR("sal not made", procName, NULL);
-	}
-        wd = sarrayGetString(sa, i, 0);
-	len = strlen(wd);
-	if (len == 0) {  /* end of paragraph: end line & insert blank line */
-	    if (totlen > 0) {
-		strl = sarrayToString(sal, 2);
-		sarrayAddString(saout, strl, 0);
-	    }
-	    sarrayAddString(saout, "", 1);
-	    sarrayDestroy(&sal);
-	    totlen = 0;
-	}
-	else if (totlen == 0 && len + 1 > linesize) {  /* long word! */
-	    sarrayAddString(saout, wd, 1);  /* copy to one line */
-	}
-	else if (totlen + len + 1 > linesize) {  /* end line & start new one */
-	    strl = sarrayToString(sal, 2);
-	    sarrayAddString(saout, strl, 0);
-	    sarrayDestroy(&sal);
-	    if ((sal = sarrayCreate(0)) == NULL)
-		return (SARRAY *)ERROR_PTR("sal not made", procName, NULL);
-	    sarrayAddString(sal, wd, 1);
-	    totlen = len + 1;
-	}
-	else {   /* add to current line */
-	    sarrayAddString(sal, wd, 1);
-	    totlen += len + 1;
-	}
+        if (!sal) {
+            if ((sal = sarrayCreate(0)) == NULL)
+                return (SARRAY *)ERROR_PTR("sal not made", procName, NULL);
+        }
+        wd = sarrayGetString(sa, i, L_NOCOPY);
+        len = strlen(wd);
+        if (len == 0) {  /* end of paragraph: end line & insert blank line */
+            if (totlen > 0) {
+                strl = sarrayToString(sal, 2);
+                sarrayAddString(saout, strl, L_INSERT);
+            }
+            sarrayAddString(saout, "", L_COPY);
+            sarrayDestroy(&sal);
+            totlen = 0;
+        }
+        else if (totlen == 0 && len + 1 > linesize) {  /* long word! */
+            sarrayAddString(saout, wd, L_COPY);  /* copy to one line */
+        }
+        else if (totlen + len + 1 > linesize) {  /* end line & start new one */
+            strl = sarrayToString(sal, 2);
+            sarrayAddString(saout, strl, L_INSERT);
+            sarrayDestroy(&sal);
+            if ((sal = sarrayCreate(0)) == NULL)
+                return (SARRAY *)ERROR_PTR("sal not made", procName, NULL);
+            sarrayAddString(sal, wd, L_COPY);
+            totlen = len + 1;
+        }
+        else {   /* add to current line */
+            sarrayAddString(sal, wd, L_COPY);
+            totlen += len + 1;
+        }
     }
     if (totlen > 0) {   /* didn't end with blank line; output last line */
-	strl = sarrayToString(sal, 2);
-	sarrayAddString(saout, strl, 0);
-	sarrayDestroy(&sal);
+        strl = sarrayToString(sal, 2);
+        sarrayAddString(saout, strl, L_INSERT);
+        sarrayDestroy(&sal);
     }
 
     return saout;
@@ -751,18 +860,18 @@ char  *cstr, *substr, *saveptr;
     PROCNAME("sarraySplitString");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
     if (!str)
-	return ERROR_INT("str not defined", procName, 1);
+        return ERROR_INT("str not defined", procName, 1);
     if (!separators)
-	return ERROR_INT("separators not defined", procName, 1);
+        return ERROR_INT("separators not defined", procName, 1);
 
     cstr = stringNew(str);  /* preserves const-ness of input str */
     substr = strtokSafe(cstr, separators, &saveptr);
     if (substr)
-	sarrayAddString(sa, substr, 0);
+        sarrayAddString(sa, substr, L_INSERT);
     while ((substr = strtokSafe(NULL, separators, &saveptr)))
-	sarrayAddString(sa, substr, 0);
+        sarrayAddString(sa, substr, L_INSERT);
     FREE(cstr);
 
     return 0;
@@ -797,13 +906,13 @@ l_int32  n, i, j, gap;
     PROCNAME("sarraySort");
 
     if (!sain)
-	return (SARRAY *)ERROR_PTR("sain not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sain not defined", procName, NULL);
 
         /* Make saout if necessary; otherwise do in-place */
     if (!saout)
         saout = sarrayCopy(sain);
     else if (sain != saout)
-	return (SARRAY *)ERROR_PTR("invalid: not in-place", procName, NULL);
+        return (SARRAY *)ERROR_PTR("invalid: not in-place", procName, NULL);
     array = saout->array;  /* operate directly on the array */
     n = sarrayGetCount(saout);
 
@@ -848,9 +957,9 @@ l_int32  i, len1, len2, len;
     PROCNAME("sarrayCompareLexical");
 
     if (!str1)
-	return ERROR_INT("str1 not defined", procName, 1);
+        return ERROR_INT("str1 not defined", procName, 1);
     if (!str2)
-	return ERROR_INT("str2 not defined", procName, 1);
+        return ERROR_INT("str2 not defined", procName, 1);
 
     len1 = strlen(str1);
     len2 = strlen(str2);
@@ -890,14 +999,14 @@ SARRAY  *sa;
     PROCNAME("sarrayRead");
 
     if (!filename)
-	return (SARRAY *)ERROR_PTR("filename not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("filename not defined", procName, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-	return (SARRAY *)ERROR_PTR("stream not opened", procName, NULL);
+        return (SARRAY *)ERROR_PTR("stream not opened", procName, NULL);
 
     if ((sa = sarrayReadStream(fp)) == NULL) {
-	fclose(fp);
-	return (SARRAY *)ERROR_PTR("sa not read", procName, NULL);
+        fclose(fp);
+        return (SARRAY *)ERROR_PTR("sa not read", procName, NULL);
     }
 
     fclose(fp);
@@ -910,38 +1019,53 @@ SARRAY  *sa;
  *
  *      Input:  stream
  *      Return: sarray, or null on error
+ *
+ *  Notes:
+ *      (1) We store the size of each string along with the string.
+ *      (2) This allows a string to have embedded newlines.  By reading
+ *          the entire string, as determined by its size, we are
+ *          not affected by any number of embedded newlines.
  */
 SARRAY *
 sarrayReadStream(FILE  *fp)
 {
-char    *stringbuf, *string;
-l_int32  i, j, n, size;
+char    *stringbuf;
+l_int32  i, n, size, index, bufsize, ret, version;
 SARRAY  *sa;
 
     PROCNAME("sarrayReadStream");
 
     if (!fp)
-	return (SARRAY *)ERROR_PTR("stream not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("stream not defined", procName, NULL);
 
-    if (fscanf(fp, "\nsarray: number of strings = %d\n", &n) != 1)
-	return (SARRAY *)ERROR_PTR("not an sarray file", procName, NULL);
+    ret = fscanf(fp, "\nSarray Version %d\n", &version);
+    if (ret != 1)
+        return (SARRAY *)ERROR_PTR("not an sarray file", procName, NULL);
+    if (version != SARRAY_VERSION_NUMBER)
+        return (SARRAY *)ERROR_PTR("invalid sarray version", procName, NULL);
+    fscanf(fp, "Number of strings = %d\n", &n);
 
     if ((sa = sarrayCreate(n)) == NULL)
-	return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
-    
-    if ((stringbuf = (char *)CALLOC(BUFFER_SIZE + 1, sizeof(char))) == NULL)
-	return (SARRAY *)ERROR_PTR("stringbuf not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+    bufsize = L_BUF_SIZE + 1;
+    if ((stringbuf = (char *)CALLOC(bufsize, sizeof(char))) == NULL)
+        return (SARRAY *)ERROR_PTR("stringbuf not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-	fgets(stringbuf, BUFFER_SIZE, fp);
-	for (j = 0; j < BUFFER_SIZE; j++) {
-	    if (stringbuf[j] == ':')
-		break;
+	    /* Get the size of the stored string */
+        fscanf(fp, "%d[%d]:", &index, &size);
+	    /* Expand the string buffer if necessary */
+	if (size > bufsize - 5) {
+            FREE(stringbuf);
+	    bufsize = (l_int32)(1.5 * size);
+            stringbuf = (char *)CALLOC(bufsize, sizeof(char));
 	}
-	string = stringbuf + j + 3;   /* beginning of stored string */
-	size = strlen(string);
-	string[size - 1] = '\0';   /* remove \n added by sarrayWriteStream */
-	sarrayAddString(sa, string, 1);   /* copy it in */
+	    /* Read the stored string, plus leading spaces and trailing \n */
+	fread(stringbuf, 1, size + 3, fp);
+	    /* Remove the \n that was added by sarrayWriteStream() */
+	stringbuf[size + 2] = '\0';
+	    /* Copy it in, skipping the 2 leading spaces */
+        sarrayAddString(sa, stringbuf + 2, L_COPY);
     }
     fscanf(fp, "\n");
 
@@ -959,22 +1083,22 @@ SARRAY  *sa;
  */
 l_int32
 sarrayWrite(const char  *filename,
-	    SARRAY      *sa)
+            SARRAY      *sa)
 {
 FILE  *fp;
 
     PROCNAME("sarrayWrite");
 
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
 
     if ((fp = fopen(filename, "w")) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
 
     if (sarrayWriteStream(fp, sa))
-	return ERROR_INT("sa not written to stream", procName, 1);
+        return ERROR_INT("sa not written to stream", procName, 1);
     
     fclose(fp);
     return 0;
@@ -987,24 +1111,31 @@ FILE  *fp;
  *      Input:  stream
  *              sarray
  *      Returns 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This appends a '\n' to each string, which is stripped
+ *          off by sarrayReadStream().
  */
 l_int32
 sarrayWriteStream(FILE    *fp,
                   SARRAY  *sa)
 {
-l_int32  i, n;
+l_int32  i, n, len;
 
     PROCNAME("sarrayWriteStream");
 
     if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", procName, 1);
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
 
     n = sarrayGetCount(sa);
-    fprintf(fp, "\nsarray: number of strings = %d\n", n);
-    for (i = 0; i < n; i++)
-	fprintf(fp, "  array[%d]:  %s\n", i, sa->array[i]);
+    fprintf(fp, "\nSarray Version %d\n", SARRAY_VERSION_NUMBER);
+    fprintf(fp, "Number of strings = %d\n", n);
+    for (i = 0; i < n; i++) {
+        len = strlen(sa->array[i]);
+        fprintf(fp, "  %d[%d]:  %s\n", i, len, sa->array[i]);
+    }
     fprintf(fp, "\n");
 
     return 0;
@@ -1020,22 +1151,22 @@ l_int32  i, n;
  */
 l_int32
 sarrayAppend(const char  *filename,
-	     SARRAY      *sa)
+             SARRAY      *sa)
 {
 FILE  *fp;
 
     PROCNAME("sarrayAppend");
 
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
     if (!sa)
-	return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", procName, 1);
 
     if ((fp = fopen(filename, "a")) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
 
     if (sarrayWriteStream(fp, sa))
-	return ERROR_INT("sa not appended to stream", procName, 1);
+        return ERROR_INT("sa not appended to stream", procName, 1);
     
     fclose(fp);
     return 0;

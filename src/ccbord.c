@@ -34,6 +34,8 @@
  *     Top-level border-finding routines
  *         CCBORDA     *pixGetAllCCBorders()
  *         CCBORD      *pixGetCCBorders()
+ *         PTAA        *pixGetOuterBordersPtaa()
+ *         PTA         *pixGetOuterBorderPta()
  *
  *     Lower-level border location routines
  *         l_int32      pixGetOuterBorder()
@@ -238,9 +240,25 @@
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
 
-    /* use in ccbaGenerateSinglePath(): don't save holes
+    /* In ccbaGenerateSinglePath(): don't save holes
      * in c.c. with ridiculously many small holes   */
 static const l_int32  NMAX_HOLES = 150;
+
+    /*  Tables used to trace the border.
+     *   - The 8 pixel positions of neighbors Q are labelled:
+     *                  1   2   3
+     *                  0   P   4
+     *                  7   6   5
+     *     where the labels are the index offset [0, ... 7] of Q relative to P.
+     *   - xpostab[] and ypostab[] give the actual x and y pixel offsets
+     *     of Q relative to P, indexed by the index offset.
+     *   - qpostab[pos] gives the new index offset of Q relative to P, at
+     *     the time that a new P has been chosen to be in index offset
+     *     position 'pos' relative to the previous P.   The relation
+     *     between P and Q is always 4-connected.  */
+static const l_int32   xpostab[] = {-1, -1, 0, 1, 1, 1, 0, -1};
+static const l_int32   ypostab[] = {0, -1, -1, -1, 0, 1, 1, 1};
+static const l_int32   qpostab[] = {6, 6, 0, 0, 2, 2, 4, 4};
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_PRINT   0
@@ -266,20 +284,20 @@ CCBORDA  *ccba;
     PROCNAME("ccbaCreate");
 
     if (n <= 0)
-	n = INITIAL_PTR_ARRAYSIZE;
+        n = INITIAL_PTR_ARRAYSIZE;
 
     if ((ccba = (CCBORDA *)CALLOC(1, sizeof(CCBORDA))) == NULL)
-	return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
     if (pixs) {
-	ccba->pix = pixClone(pixs);
-	ccba->w = pixGetWidth(pixs);
-	ccba->h = pixGetHeight(pixs);
+        ccba->pix = pixClone(pixs);
+        ccba->w = pixGetWidth(pixs);
+        ccba->h = pixGetHeight(pixs);
     }
     ccba->n = 0;
     ccba->nalloc = n;
 
     if ((ccba->ccb = (CCBORD **)CALLOC(n, sizeof(CCBORD *))) == NULL)
-	return (CCBORDA *)ERROR_PTR("ccba ptrs not made", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("ccba ptrs not made", procName, NULL);
 
     return ccba;
 }
@@ -300,18 +318,18 @@ CCBORDA  *ccba;
     PROCNAME("ccbaDestroy");
 
     if (pccba == NULL) {
-	L_WARNING("ptr address is NULL!", procName);
-	return;
+        L_WARNING("ptr address is NULL!", procName);
+        return;
     }
 
     if ((ccba = *pccba) == NULL)
-	return;
+        return;
 
     pixDestroy(&ccba->pix);
     for (i = 0; i < ccba->n; i++) 
-	ccbDestroy(&ccba->ccb[i]);
-    FREE((void *)ccba->ccb);
-    FREE((void *)ccba);
+        ccbDestroy(&ccba->ccb[i]);
+    FREE(ccba->ccb);
+    FREE(ccba);
     *pccba = NULL;
     return;
 }
@@ -334,23 +352,23 @@ PTAA    *local;
     PROCNAME("ccbCreate");
 
     if (pixs) {
-	if (pixGetDepth(pixs) != 1)
-	    return (CCBORD *)ERROR_PTR("pixs not binary", procName, NULL);
+        if (pixGetDepth(pixs) != 1)
+            return (CCBORD *)ERROR_PTR("pixs not binary", procName, NULL);
     }
 
     if ((ccb = (CCBORD *)CALLOC(1, sizeof(CCBORD))) == NULL)
-	return (CCBORD *)ERROR_PTR("ccb not made", procName, NULL);
+        return (CCBORD *)ERROR_PTR("ccb not made", procName, NULL);
     ccb->refcount++;
     if (pixs)
-	ccb->pix = pixClone(pixs);
+        ccb->pix = pixClone(pixs);
     if ((boxa = boxaCreate(1)) == NULL)
-	return (CCBORD *)ERROR_PTR("boxa not made", procName, NULL);
+        return (CCBORD *)ERROR_PTR("boxa not made", procName, NULL);
     ccb->boxa = boxa;
     if ((start = ptaCreate(1)) == NULL)
-	return (CCBORD *)ERROR_PTR("start pta not made", procName, NULL);
+        return (CCBORD *)ERROR_PTR("start pta not made", procName, NULL);
     ccb->start = start;
     if ((local = ptaaCreate(1)) == NULL)
-	return (CCBORD *)ERROR_PTR("local ptaa not made", procName, NULL);
+        return (CCBORD *)ERROR_PTR("local ptaa not made", procName, NULL);
     ccb->local = local;
 
     return ccb;
@@ -371,33 +389,33 @@ CCBORD  *ccb;
     PROCNAME("ccbDestroy");
 
     if (pccb == NULL) {
-	L_WARNING("ptr address is NULL!", procName);
-	return;
+        L_WARNING("ptr address is NULL!", procName);
+        return;
     }
 
     if ((ccb = *pccb) == NULL)
-	return;
+        return;
 
     ccb->refcount--;
     if (ccb->refcount == 0) {
-	if (ccb->pix)
-	    pixDestroy(&ccb->pix);
-	if (ccb->boxa)
-	    boxaDestroy(&ccb->boxa);
-	if (ccb->start)
-	    ptaDestroy(&ccb->start);
-	if (ccb->local)
-	    ptaaDestroy(&ccb->local);
-	if (ccb->global)
-	    ptaaDestroy(&ccb->global);
-	if (ccb->step)
-	    numaaDestroy(&ccb->step);
-	if (ccb->splocal)
-	    ptaDestroy(&ccb->splocal);
-	if (ccb->spglobal)
-	    ptaDestroy(&ccb->spglobal);
-	FREE((void *)ccb);
-	*pccb = NULL;
+        if (ccb->pix)
+            pixDestroy(&ccb->pix);
+        if (ccb->boxa)
+            boxaDestroy(&ccb->boxa);
+        if (ccb->start)
+            ptaDestroy(&ccb->start);
+        if (ccb->local)
+            ptaaDestroy(&ccb->local);
+        if (ccb->global)
+            ptaaDestroy(&ccb->global);
+        if (ccb->step)
+            numaaDestroy(&ccb->step);
+        if (ccb->splocal)
+            ptaDestroy(&ccb->splocal);
+        if (ccb->spglobal)
+            ptaDestroy(&ccb->spglobal);
+        FREE(ccb);
+        *pccb = NULL;
     }
     return;
 }
@@ -422,13 +440,13 @@ l_int32  n;
     PROCNAME("ccbaAddCcb");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
     if (!ccb)
-	return ERROR_INT("ccb not defined", procName, 1);
+        return ERROR_INT("ccb not defined", procName, 1);
 
     n = ccbaGetCount(ccba);
     if (n >= ccba->nalloc)
-	ccbaExtendArray(ccba);
+        ccbaExtendArray(ccba);
     ccba->ccb[n] = ccb;
     ccba->n++;
     return 0;
@@ -447,12 +465,12 @@ ccbaExtendArray(CCBORDA  *ccba)
     PROCNAME("ccbaExtendArray");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
     if ((ccba->ccb = (CCBORD **)reallocNew((void **)&ccba->ccb,
                                 sizeof(l_intptr_t) * ccba->nalloc,
                                 2 * sizeof(l_intptr_t) * ccba->nalloc)) == NULL)
-	return ERROR_INT("new ptr array not returned", procName, 1);
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     ccba->nalloc = 2 * ccba->nalloc;
     return 0;
@@ -476,7 +494,7 @@ ccbaGetCount(CCBORDA  *ccba)
     PROCNAME("ccbaGetCount");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 0);
+        return ERROR_INT("ccba not defined", procName, 0);
 
     return ccba->n;
 }
@@ -497,9 +515,9 @@ CCBORD  *ccb;
     PROCNAME("ccbaGetCcb");
 
     if (!ccba)
-	return (CCBORD *)ERROR_PTR("ccba not defined", procName, NULL);
+        return (CCBORD *)ERROR_PTR("ccba not defined", procName, NULL);
     if (index < 0 || index >= ccba->n)
-	return (CCBORD *)ERROR_PTR("index out of bounds", procName, NULL);
+        return (CCBORD *)ERROR_PTR("index out of bounds", procName, NULL);
 
     ccb = ccba->ccb[index];
     ccb->refcount++;
@@ -516,28 +534,11 @@ CCBORD  *ccb;
  *
  *      Input:  pixs (1 bpp)
  *      Return: ccborda, or null on error
- *
- *  The 8 pixel positions of neighbors Q of pixel P are labelled:
- *                  1   2   3
- *                  0   P   4
- *                  7   6   5
- *  where the labels are the index offset [0, ... 7] of Q relative to P.
- *
- *  xpostab[] and ypostab[] give the actual x and y pixel offsets
- *  of Q relative to P, indexed by the index offset.
- *
- *  qpostab[pos] gives the new index offset of Q relative to P, at
- *  the time that a new P has been chosen to be in index offset
- *  position 'pos' relative to the previous P.   Note that the
- *  relation between P and Q is always 4-connected.
  */
 CCBORDA *
 pixGetAllCCBorders(PIX  *pixs)
 {
 l_int32   n, i;
-l_int32   xpostab[] = {-1, -1, 0, 1, 1, 1, 0, -1};
-l_int32   ypostab[] = {0, -1, -1, -1, 0, 1, 1, 1};
-l_int32   qpostab[] = {6, 6, 0, 0, 2, 2, 4, 4};
 BOX      *box;
 BOXA     *boxa;
 CCBORDA  *ccba;
@@ -548,29 +549,28 @@ PIXA     *pixa;
     PROCNAME("pixGetAllCCBorders");
 
     if (!pixs)
-	return (CCBORDA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (CCBORDA *)ERROR_PTR("pixs not binary", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("pixs not binary", procName, NULL);
 
     if ((boxa = pixConnComp(pixs, &pixa, 8)) == NULL)
-	return (CCBORDA *)ERROR_PTR("boxa not made", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("boxa not made", procName, NULL);
     n = boxaGetCount(boxa);
 
     if ((ccba = ccbaCreate(pixs, n)) == NULL)
-	return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-	if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
-	    return (CCBORDA *)ERROR_PTR("pix not found", procName, NULL);
-	if ((box = pixaGetBox(pixa, i, L_CLONE)) == NULL)
-	    return (CCBORDA *)ERROR_PTR("box not found", procName, NULL);
-	if ((ccb = pixGetCCBorders(pix, box, xpostab, ypostab, qpostab))
-					== NULL)
-	    return (CCBORDA *)ERROR_PTR("ccb not made", procName, NULL);
-/*	ptaWriteStream(stderr, ccb->local, 1); */
-	ccbaAddCcb(ccba, ccb);
-	pixDestroy(&pix);
-	boxDestroy(&box);
+        if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
+            return (CCBORDA *)ERROR_PTR("pix not found", procName, NULL);
+        if ((box = pixaGetBox(pixa, i, L_CLONE)) == NULL)
+            return (CCBORDA *)ERROR_PTR("box not found", procName, NULL);
+        if ((ccb = pixGetCCBorders(pix, box)) == NULL)
+            return (CCBORDA *)ERROR_PTR("ccb not made", procName, NULL);
+/*        ptaWriteStream(stderr, ccb->local, 1); */
+        ccbaAddCcb(ccba, ccb);
+        pixDestroy(&pix);
+        boxDestroy(&box);
     }
 
     boxaDestroy(&boxa);
@@ -582,13 +582,8 @@ PIXA     *pixa;
 /*!
  *  pixGetCCBorders()
  *
- *      Input:  pixs (1 bpp)
+ *      Input:  pixs (1 bpp, one 8-connected component)
  *              box  (xul, yul, width, height) in global coords
- *              xpostab, ypostab:  tables giving the relative x,y position
- *                  of Q with respect to P (see diagram below)
- *              qpostab: table giving the index of Q' relative to P',
- *                       which is the starting position for the next iteration
- *                       along the border.
  *      Return: ccbord, or null on error
  *
  *  Notes:
@@ -605,27 +600,12 @@ PIXA     *pixa;
  *          added border, but the saved pixel coordinates
  *          are the correct (relative) ones for the input pix
  *          (without a 1-pixel border)
- *
- *  The 8 pixel positions of neighbors Q are labelled:
- *                  1   2   3
- *                  0   P   4
- *                  7   6   5
- *  where the labels are the index offset [0, ... 7] of Q relative to P.
- *
- *  xpostab[] and ypostab[] give the actual x and y pixel offsets
- *  of Q relative to P, indexed by the index offset.
- *
- *  qpostab[pos] gives the new index offset of Q relative to P, at
- *  the time that a new P has been chosen to be in index offset
- *  position 'pos' relative to the previous P.   Note that the
- *  relation between P and Q is always 4-connected.
+ *      (4) For the definition of the three tables -- xpostab[], ypostab[]
+ *          and qpostab[] -- see above where they are defined.
  */
 CCBORD *
 pixGetCCBorders(PIX      *pixs,
-                BOX      *box,
-	        l_int32  *xpostab,
-	        l_int32  *ypostab,
-	        l_int32  *qpostab)
+                BOX      *box)
 {
 l_int32   allzero, i, x, xh, w, nh;
 l_int32   xs, ys;   /* starting hole border pixel, relative in pixs */
@@ -640,93 +620,202 @@ PIXA     *pixa;
     PROCNAME("pixGetCCBorders");
 
     if (!pixs)
-	return (CCBORD *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (CCBORD *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!box)
-	return (CCBORD *)ERROR_PTR("box not defined", procName, NULL);
+        return (CCBORD *)ERROR_PTR("box not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (CCBORD *)ERROR_PTR("pixs not binary", procName, NULL);
-    if (!xpostab)
-	return (CCBORD *)ERROR_PTR("xpostab not defined", procName, NULL);
-    if (!ypostab)
-	return (CCBORD *)ERROR_PTR("ypostab not defined", procName, NULL);
-    if (!qpostab)
-	return (CCBORD *)ERROR_PTR("qpostab not defined", procName, NULL);
+        return (CCBORD *)ERROR_PTR("pixs not binary", procName, NULL);
 
     pixZero(pixs, &allzero);
     if (allzero)
-	return (CCBORD *)ERROR_PTR("pixs all 0", procName, NULL);
+        return (CCBORD *)ERROR_PTR("pixs all 0", procName, NULL);
 
     if ((ccb = ccbCreate(pixs)) == NULL)
-	return (CCBORD *)ERROR_PTR("ccb not made", procName, NULL);
+        return (CCBORD *)ERROR_PTR("ccb not made", procName, NULL);
 
-	/* get the exterior border */
-    pixGetOuterBorder(ccb, pixs, box, xpostab, ypostab, qpostab);
+        /* Get the exterior border */
+    pixGetOuterBorder(ccb, pixs, box);
 
-	/* find the holes, if any */
+        /* Find the holes, if any */
     if ((pixh = pixHolesByFilling(pixs, 4)) == NULL)
-	return (CCBORD *)ERROR_PTR("pixh not made", procName, NULL);
+        return (CCBORD *)ERROR_PTR("pixh not made", procName, NULL);
     pixZero(pixh, &allzero);
     if (allzero) {  /* no holes */
-	pixDestroy(&pixh);
-	return ccb;
+        pixDestroy(&pixh);
+        return ccb;
     }
 
-	/* get c.c. and locations of the holes */
+        /* Get c.c. and locations of the holes */
     if ((boxa = pixConnComp(pixh, &pixa, 4)) == NULL)
-	return (CCBORD *)ERROR_PTR("boxa not made", procName, NULL);
+        return (CCBORD *)ERROR_PTR("boxa not made", procName, NULL);
     nh = boxaGetCount(boxa);
 /*    fprintf(stderr, "%d holes\n", nh); */
 
-	/* for each hole, find an interior pixel within the hole,
-	 * then march to the right and stop at the first border
-	 * pixel.  Save the bounding box of the border, which
-	 * is 1 pixel bigger on each side than the bounding box
-	 * of the hole itself.  Note that we use a pix of the
-	 * c.c. of the hole itself to be sure that we start
-	 * with a pixel in the hole of the proper component.
-	 * If we did everything from the parent component, it is
-	 * possible to start in a different hole that is within
-	 * the b.b. of a larger hole.  */
+        /* For each hole, find an interior pixel within the hole,
+         * then march to the right and stop at the first border
+         * pixel.  Save the bounding box of the border, which
+         * is 1 pixel bigger on each side than the bounding box
+         * of the hole itself.  Note that we use a pix of the
+         * c.c. of the hole itself to be sure that we start
+         * with a pixel in the hole of the proper component.
+         * If we did everything from the parent component, it is
+         * possible to start in a different hole that is within
+         * the b.b. of a larger hole.  */
     w = pixGetWidth(pixs);
     for (i = 0; i < nh; i++) {
-	boxt = boxaGetBox(boxa, i, L_CLONE);
-	pixt = pixaGetPix(pixa, i, L_CLONE);
-	ys = boxt->y;   /* there must be a hole pixel on this raster line */
-	for (x = 0; x < boxt->w; x++) {  /* look for (fg) hole pixel */
-	    pixGetPixel(pixt, x, 0, &val);
-	    if (val == 1) {
-	        xh = x;
-		break;
-	    }
-	}
-	if (x == boxt->w) {
-	    L_WARNING("no hole pixel found!", procName);
-	    continue;
-	}
-	for (x = xh + boxt->x; x < w; x++) {  /* look for (fg) border pixel */
-	    pixGetPixel(pixs, x, ys, &val);
-	    if (val == 1) {
-	        xs = x;
-		break;
-	    }
-	}
-	boxe = boxCreate(boxt->x - 1, boxt->y - 1, boxt->w + 2, boxt->h + 2);
+        boxt = boxaGetBox(boxa, i, L_CLONE);
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        ys = boxt->y;   /* there must be a hole pixel on this raster line */
+        for (x = 0; x < boxt->w; x++) {  /* look for (fg) hole pixel */
+            pixGetPixel(pixt, x, 0, &val);
+            if (val == 1) {
+                xh = x;
+                break;
+            }
+        }
+        if (x == boxt->w) {
+            L_WARNING("no hole pixel found!", procName);
+            continue;
+        }
+        for (x = xh + boxt->x; x < w; x++) {  /* look for (fg) border pixel */
+            pixGetPixel(pixs, x, ys, &val);
+            if (val == 1) {
+                xs = x;
+                break;
+            }
+        }
+        boxe = boxCreate(boxt->x - 1, boxt->y - 1, boxt->w + 2, boxt->h + 2);
 #if  DEBUG_PRINT
-	boxPrintStreamInfo(stderr, box);
-	boxPrintStreamInfo(stderr, boxe);
-	fprintf(stderr, "xs = %d, ys = %d\n", xs, ys);
+        boxPrintStreamInfo(stderr, box);
+        boxPrintStreamInfo(stderr, boxe);
+        fprintf(stderr, "xs = %d, ys = %d\n", xs, ys);
 #endif   /* DEBUG_PRINT */
-	pixGetHoleBorder(ccb, pixs, boxe, xs, ys, xpostab, ypostab, qpostab);
-	boxDestroy(&boxt);
-	boxDestroy(&boxe);
-	pixDestroy(&pixt);
+        pixGetHoleBorder(ccb, pixs, boxe, xs, ys);
+        boxDestroy(&boxt);
+        boxDestroy(&boxe);
+        pixDestroy(&pixt);
     }
 
     boxaDestroy(&boxa);
     pixaDestroy(&pixa);
     pixDestroy(&pixh);
-	
+        
     return ccb;
+}
+
+
+/*!
+ *  pixGetOuterBordersPtaa()
+ *
+ *      Input:  pixs (1 bpp)
+ *      Return: ptaa (of outer borders, in global coords), or null on error
+ */
+PTAA *
+pixGetOuterBordersPtaa(PIX  *pixs)
+{
+l_int32  i, n;
+BOX     *box;
+BOXA    *boxa;
+PIX     *pix;
+PIXA    *pixa;
+PTA     *pta;
+PTAA    *ptaa;
+
+    PROCNAME("pixGetOuterBordersPtaa");
+
+    if (!pixs)
+        return (PTAA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 1)
+        return (PTAA *)ERROR_PTR("pixs not binary", procName, NULL);
+
+    boxa = pixConnComp(pixs, &pixa, 8);
+    n = boxaGetCount(boxa);
+    if (n == 0) {
+        boxaDestroy(&boxa);
+        pixaDestroy(&pixa);
+        return (PTAA *)ERROR_PTR("pixs empty", procName, NULL);
+    }
+
+    ptaa = ptaaCreate(n);
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        pix = pixaGetPix(pixa, i, L_CLONE);
+        pta = pixGetOuterBorderPta(pix, box);
+        if (pta)
+            ptaaAddPta(ptaa, pta, L_INSERT);
+        boxDestroy(&box);
+        pixDestroy(&pix);
+    }
+
+    pixaDestroy(&pixa);
+    boxaDestroy(&boxa);
+    return ptaa;
+}
+
+
+/*!
+ *  pixGetOuterBorderPta()
+ *
+ *      Input:  pixs (1 bpp, one 8-connected component)
+ *              box  (<optional> of pixs, in global coordinates)
+ *      Return: pta (of outer border, in global coords), or null on error
+ *
+ *  Notes:
+ *      (1) We are finding the exterior border of a single 8-connected
+ *          component.
+ *      (2) If box is NULL, the outline returned is in the local coords
+ *          of the input pix.  Otherwise, box is assumed to give the
+ *          location of the pix in global coordinates, and the returned
+ *          pta will be in those global coordinates.
+ */
+PTA *
+pixGetOuterBorderPta(PIX  *pixs,
+                     BOX  *box)
+{
+l_int32  allzero, x, y;
+BOX     *boxt;
+CCBORD  *ccb;
+PTA     *ptaloc, *ptad;
+
+    PROCNAME("pixGetOuterBorderPta");
+
+    if (!pixs)
+        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 1)
+        return (PTA *)ERROR_PTR("pixs not binary", procName, NULL);
+
+    pixZero(pixs, &allzero);
+    if (allzero)
+        return (PTA *)ERROR_PTR("pixs all 0", procName, NULL);
+
+    if ((ccb = ccbCreate(pixs)) == NULL)
+        return (PTA *)ERROR_PTR("ccb not made", procName, NULL);
+    if (!box)
+        boxt = boxCreate(0, 0, pixGetWidth(pixs), pixGetHeight(pixs));
+    else
+        boxt = boxClone(box);
+
+        /* Get the exterior border in local coords */
+    pixGetOuterBorder(ccb, pixs, boxt);
+    if ((ptaloc = ptaaGetPta(ccb->local, 0, L_CLONE)) == NULL) {
+        ccbDestroy(&ccb);
+        boxDestroy(&boxt);
+        return (PTA *)ERROR_PTR("ptaloc not made", procName, NULL);
+    }
+
+        /* Transform to global coordinates, if they are given */
+    if (box) {
+        boxGetGeometry(box, &x, &y, NULL, NULL);
+        ptad = ptaTransform(ptaloc, x, y, 1.0, 1.0);
+    }
+    else {
+        ptad = ptaClone(ptaloc);
+    }
+
+    ptaDestroy(&ptaloc);
+    boxDestroy(&boxt);
+    ccbDestroy(&ccb);
+    return ptad;
 }
 
 
@@ -739,11 +828,6 @@ PIXA     *pixa;
  *      Input:  ccb  (unfilled)
  *              pixs (for the component at hand)
  *              box  (for the component, in global coords)
- *              xpostab, ypostab:  tables giving the relative x,y position
- *                  of Q with respect to P (see diagram below)
- *              qpostab: table giving the index of Q' relative to P',
- *                  which is the starting position for the next iteration
- *                  along the border.
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -759,10 +843,7 @@ PIXA     *pixa;
 l_int32
 pixGetOuterBorder(CCBORD   *ccb,
                   PIX      *pixs,
-                  BOX      *box,
-	          l_int32  *xpostab,
-	          l_int32  *ypostab,
-	          l_int32  *qpostab)
+                  BOX      *box)
 {
 l_int32    fpx, fpy, spx, spy, qpos;
 l_int32    px, py, npx, npy;
@@ -774,33 +855,27 @@ PIX       *pixb;  /* with 1 pixel border */
     PROCNAME("pixGetOuterBorder");
 
     if (!ccb)
-	return ERROR_INT("ccb not defined", procName, 1);
+        return ERROR_INT("ccb not defined", procName, 1);
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
-    if (!xpostab)
-	return ERROR_INT("xpostab not defined", procName, 1);
-    if (!ypostab)
-	return ERROR_INT("ypostab not defined", procName, 1);
-    if (!qpostab)
-	return ERROR_INT("qpostab not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
 
-	/* add 1-pixel border all around, and find start pixel */
+        /* Add 1-pixel border all around, and find start pixel */
     if ((pixb = pixAddBorder(pixs, 1, 0)) == NULL)
-	return ERROR_INT("pixs not made", procName, 1);
+        return ERROR_INT("pixs not made", procName, 1);
     if (!nextOnPixelInRaster(pixb, 1, 1, &px, &py))
-	return ERROR_INT("no start pixel found", procName, 1);
+        return ERROR_INT("no start pixel found", procName, 1);
     qpos = 0;   /* relative to p */
     fpx = px;  /* save location of first pixel on border */
     fpy = py;
 
-	/* save box and start pixel in relative coords */
+        /* Save box and start pixel in relative coords */
     boxaAddBox(ccb->boxa, box, L_COPY);
     ptaAddPt(ccb->start, px - 1, py - 1);
 
     if ((pta = ptaCreate(0)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     ptaaAddPta(ccb->local, pta, L_INSERT);
     ptaAddPt(pta, px - 1, py - 1);   /* initial point */
 
@@ -809,11 +884,10 @@ PIX       *pixb;  /* with 1 pixel border */
     data = pixGetData(pixb);
     wpl = pixGetWpl(pixb);
 
-	/* get the second point; if there is none, return */
-    if (findNextBorderPixel(w, h, data, wpl, px, py, &qpos, &npx, &npy,
-	                    xpostab, ypostab, qpostab)) {  /* isolated */
-	pixDestroy(&pixb);
-	return 0;
+        /* Get the second point; if there is none, return */
+    if (findNextBorderPixel(w, h, data, wpl, px, py, &qpos, &npx, &npy)) {
+        pixDestroy(&pixb);
+        return 0;
     }
 
     spx = npx;  /* save location of second pixel on border */
@@ -823,13 +897,12 @@ PIX       *pixb;  /* with 1 pixel border */
     py = npy;
 
     while (1) {
-	findNextBorderPixel(w, h, data, wpl, px, py, &qpos, &npx, &npy,
-	                    xpostab, ypostab, qpostab);
-	if (px == fpx && py == fpy && npx == spx && npy == spy)
-	    break;
-	ptaAddPt(pta, npx - 1, npy - 1);
-	px = npx;
-	py = npy;
+        findNextBorderPixel(w, h, data, wpl, px, py, &qpos, &npx, &npy);
+        if (px == fpx && py == fpy && npx == spx && npy == spy)
+            break;
+        ptaAddPt(pta, npx - 1, npy - 1);
+        px = npx;
+        py = npy;
     }
     
     pixDestroy(&pixb);
@@ -845,11 +918,6 @@ PIX       *pixb;  /* with 1 pixel border */
  *              box  (for the specific hole border, in relative
  *                    coordinates to the c.c.)
  *              xs, ys   (first pixel on hole border, relative to c.c.)
- *              xpostab, ypostab:  tables giving the relative x,y position
- *                  of Q with respect to P (see diagram below)
- *              qpostab: table giving the index of Q' relative to P',
- *                  which is the starting position for the next iteration
- *                  along the border.
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -863,11 +931,8 @@ l_int32
 pixGetHoleBorder(CCBORD   *ccb,
                  PIX      *pixs,
                  BOX      *box,
-		 l_int32   xs,
-		 l_int32   ys,
-	         l_int32  *xpostab,
-	         l_int32  *ypostab,
-	         l_int32  *qpostab)
+                 l_int32   xs,
+                 l_int32   ys)
 {
 l_int32    fpx, fpy, spx, spy, qpos;
 l_int32    px, py, npx, npy;
@@ -878,29 +943,23 @@ PTA       *pta;
     PROCNAME("pixGetHoleBorder");
 
     if (!ccb)
-	return ERROR_INT("ccb not defined", procName, 1);
+        return ERROR_INT("ccb not defined", procName, 1);
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
-    if (!xpostab)
-	return ERROR_INT("xpostab not defined", procName, 1);
-    if (!ypostab)
-	return ERROR_INT("ypostab not defined", procName, 1);
-    if (!qpostab)
-	return ERROR_INT("qpostab not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
 
-	/* add border and find start pixel */
+        /* Add border and find start pixel */
     qpos = 0;   /* orientation of Q relative to P */
     fpx = xs;  /* save location of first pixel on border */
     fpy = ys;
 
-	/* save box and start pixel */
+        /* Save box and start pixel */
     boxaAddBox(ccb->boxa, box, L_COPY);
     ptaAddPt(ccb->start, xs, ys);
 
     if ((pta = ptaCreate(0)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     ptaaAddPta(ccb->local, pta, L_INSERT);
     ptaAddPt(pta, xs, ys);   /* initial pixel */
 
@@ -909,11 +968,10 @@ PTA       *pta;
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
 
-	/* get the second point; there should always be at least 4 pts
-	 * in a minimal hole border!  */
-    if (findNextBorderPixel(w, h, data, wpl, xs, ys, &qpos, &npx, &npy,
-	                    xpostab, ypostab, qpostab))
-	return ERROR_INT("isolated hole border point!", procName, 1);
+        /* Get the second point; there should always be at least 4 pts
+         * in a minimal hole border!  */
+    if (findNextBorderPixel(w, h, data, wpl, xs, ys, &qpos, &npx, &npy))
+        return ERROR_INT("isolated hole border point!", procName, 1);
 
     spx = npx;  /* save location of second pixel on border */
     spy = npy;
@@ -922,13 +980,12 @@ PTA       *pta;
     py = npy;
 
     while (1) {
-	findNextBorderPixel(w, h, data, wpl, px, py, &qpos, &npx, &npy,
-	                    xpostab, ypostab, qpostab);
-	if (px == fpx && py == fpy && npx == spx && npy == spy)
-	    break;
-	ptaAddPt(pta, npx, npy);
-	px = npx;
-	py = npy;
+        findNextBorderPixel(w, h, data, wpl, px, py, &qpos, &npx, &npy);
+        if (px == fpx && py == fpy && npx == spx && npy == spy)
+            break;
+        ptaAddPt(pta, npx, npy);
+        px = npx;
+        py = npy;
     }
     
     return 0;
@@ -942,14 +999,13 @@ PTA       *pta;
  *              (px, py),     (current P)
  *              &qpos (input current Q; <return> new Q)
  *              (&npx, &npy)    (<return> new P)
- *              xpostab, ypostab, qpostab   (LUTs)
  *      Return: 0 if next pixel found; 1 otherwise
  *
  *  Notes:
  *      (1) qpos increases clockwise from 0 to 7, with 0 at
  *          location with Q to left of P:   Q P
- *      (2) this is a low-level function that does not check
- *          input arrays.  All functions calling it should check.
+ *      (2) this is a low-level function that does not check input
+ *          parameters.  All calling functions should check them.
  */
 l_int32
 findNextBorderPixel(l_int32    w,
@@ -960,32 +1016,29 @@ findNextBorderPixel(l_int32    w,
                     l_int32    py,
                     l_int32   *pqpos,
                     l_int32   *pnpx,
-                    l_int32   *pnpy,
-		    l_int32   *xpostab,
-		    l_int32   *ypostab,
-		    l_int32   *qpostab)
+                    l_int32   *pnpy)
 {
 l_int32    qpos, i, pos, npx, npy, val;
 l_uint32  *line;
 
     qpos = *pqpos;
     for (i = 1; i < 8; i++) {
-	pos = (qpos + i) % 8;
-	npx = px + xpostab[pos];
-	npy = py + ypostab[pos];
-	line = data + npy * wpl;
-	val = GET_DATA_BIT(line, npx);
-	if (val) {
-	    *pnpx = npx;
-	    *pnpy = npy;
-	    *pqpos = qpostab[pos];
-	    return 0;
-	}
+        pos = (qpos + i) % 8;
+        npx = px + xpostab[pos];
+        npy = py + ypostab[pos];
+        line = data + npy * wpl;
+        val = GET_DATA_BIT(line, npx);
+        if (val) {
+            *pnpx = npx;
+            *pnpy = npy;
+            *pqpos = qpostab[pos];
+            return 0;
+        }
     }
 
     return 1;
 }
-	
+        
 
 /*!
  *  locateOutsideSeedPixel()
@@ -1006,10 +1059,10 @@ l_uint32  *line;
 void
 locateOutsideSeedPixel(l_int32   fpx, 
                        l_int32   fpy,
-		       l_int32   spx,
-		       l_int32   spy,
-		       l_int32  *pxs,
-		       l_int32  *pys)
+                       l_int32   spx,
+                       l_int32   spy,
+                       l_int32  *pxs,
+                       l_int32  *pys)
 {
 l_int32  dx, dy;
 
@@ -1017,20 +1070,20 @@ l_int32  dx, dy;
     dy = spy - fpy;
 
     if (dx * dy == 1) {
-	*pxs = fpx + dx;
-	*pys = fpy;
+        *pxs = fpx + dx;
+        *pys = fpy;
     }
     else if (dx * dy == -1) {
-	*pxs = fpx;
-	*pys = fpy + dy;
+        *pxs = fpx;
+        *pys = fpy + dy;
     }
     else if (dx == 0) {
-	*pxs = fpx + dy;
-	*pys = fpy + dy;
+        *pxs = fpx + dy;
+        *pys = fpy + dy;
     }
     else  /* dy == 0 */ {
-	*pxs = fpx + dx;
-	*pys = fpy - dx;
+        *pxs = fpx + dx;
+        *pys = fpy - dx;
     }
 
     return;
@@ -1063,42 +1116,42 @@ PTA     *ptal, *ptag;
     PROCNAME("ccbaGenerateGlobalLocs");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
     ncc = ccbaGetCount(ccba);  /* number of c.c. */
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
+        ccb = ccbaGetCcb(ccba, i);
 
-	    /* get the (xul, yul) of the c.c. */
-	if ((box = boxaGetBox(ccb->boxa, 0, L_CLONE)) == NULL)
-	    return ERROR_INT("bounding rectangle not found", procName, 1);
-	xul = box->x;  /* UL corner in global coords */
-	yul = box->y;
-	boxDestroy(&box);
+            /* Get the (xul, yul) of the c.c. */
+        if ((box = boxaGetBox(ccb->boxa, 0, L_CLONE)) == NULL)
+            return ERROR_INT("bounding rectangle not found", procName, 1);
+        xul = box->x;  /* UL corner in global coords */
+        yul = box->y;
+        boxDestroy(&box);
 
-	    /* make a new global ptaa, removing any old one */
-	ptaal = ccb->local;
-	nb = ptaaGetCount(ptaal);   /* number of borders */
-	if (ccb->global)   /* remove old one */
-	    ptaaDestroy(&ccb->global);
-	if ((ptaag = ptaaCreate(nb)) == NULL)
-	    return ERROR_INT("ptaag not made", procName, 1);
-	ccb->global = ptaag;  /* save new one */
+            /* Make a new global ptaa, removing any old one */
+        ptaal = ccb->local;
+        nb = ptaaGetCount(ptaal);   /* number of borders */
+        if (ccb->global)   /* remove old one */
+            ptaaDestroy(&ccb->global);
+        if ((ptaag = ptaaCreate(nb)) == NULL)
+            return ERROR_INT("ptaag not made", procName, 1);
+        ccb->global = ptaag;  /* save new one */
 
-	    /* iterate through the borders for this c.c. */
-	for (j = 0; j < nb; j++) {
-	    ptal = ptaaGetPta(ptaal, j, L_CLONE);
-	    n = ptaGetCount(ptal);   /* number of pixels in border */
-	    if ((ptag = ptaCreate(n)) == NULL)
-		return ERROR_INT("ptag not made", procName, 1);
-	    ptaaAddPta(ptaag, ptag, L_INSERT);
-	    for (k = 0; k < n; k++) {
-		ptaGetIPt(ptal, k, &x, &y);
-		ptaAddPt(ptag, x  + xul, y + yul);
-	    }
-	    ptaDestroy(&ptal);
-	}
-	ccbDestroy(&ccb);
+            /* Iterate through the borders for this c.c. */
+        for (j = 0; j < nb; j++) {
+            ptal = ptaaGetPta(ptaal, j, L_CLONE);
+            n = ptaGetCount(ptal);   /* number of pixels in border */
+            if ((ptag = ptaCreate(n)) == NULL)
+                return ERROR_INT("ptag not made", procName, 1);
+            ptaaAddPta(ptaag, ptag, L_INSERT);
+            for (k = 0; k < n; k++) {
+                ptaGetIPt(ptal, k, &x, &y);
+                ptaAddPt(ptag, x  + xul, y + yul);
+            }
+            ptaDestroy(&ptal);
+        }
+        ccbDestroy(&ccb);
     }
 
     return 0;
@@ -1111,21 +1164,19 @@ PTA     *ptal, *ptag;
  *      Input:  ccba (with local chain ptaa of borders computed)
  *      Return: 0 if OK, 1 on error
  *
- *  Action: this uses the pixel locs in the local ptaa,
+ *  Notes:
+ *      (1) This uses the pixel locs in the local ptaa,
  *          which are all relative to each c.c., to find
  *          the step directions for successive pixels in
  *          the chain, and stores them in the step numaa.
- *
- *  To get the step direction, use
- *
+ *      (2) To get the step direction, use
  *              1   2   3
  *              0   P   4
  *              7   6   5
- *
- *  P is the previous pixel at (px, py).  The step direction
- *  is the number (from 0 through 7) for each relative location
- *  of the current pixel at (cx, cy).  It is easily found by
- *  indexing into a 2-d 3x3 array (dirtab).
+ *          where P is the previous pixel at (px, py).  The step direction
+ *          is the number (from 0 through 7) for each relative location
+ *          of the current pixel at (cx, cy).  It is easily found by
+ *          indexing into a 2-d 3x3 array (dirtab).
  */
 l_int32
 ccbaGenerateStepChains(CCBORDA  *ccba)
@@ -1142,43 +1193,43 @@ PTAA    *ptaal;  /* local chain code */
     PROCNAME("ccbaGenerateStepChains");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
     ncc = ccbaGetCount(ccba);  /* number of c.c. */
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
+        ccb = ccbaGetCcb(ccba, i);
 
-	    /* make a new step numaa, removing any old one */
-	ptaal = ccb->local;
-	nb = ptaaGetCount(ptaal);   /* number of borders */
-	if (ccb->step)   /* remove old one */
-	    numaaDestroy(&ccb->step);
-	if ((naa = numaaCreate(nb)) == NULL)
-	    return ERROR_INT("naa not made", procName, 1);
-	ccb->step = naa;  /* save new one */
+            /* Make a new step numaa, removing any old one */
+        ptaal = ccb->local;
+        nb = ptaaGetCount(ptaal);   /* number of borders */
+        if (ccb->step)   /* remove old one */
+            numaaDestroy(&ccb->step);
+        if ((naa = numaaCreate(nb)) == NULL)
+            return ERROR_INT("naa not made", procName, 1);
+        ccb->step = naa;  /* save new one */
 
-	    /* iterate through the borders for this c.c. */
-	for (j = 0; j < nb; j++) {
-	    ptal = ptaaGetPta(ptaal, j, L_CLONE);
-	    n = ptaGetCount(ptal);   /* number of pixels in border */
-	    if (n == 1)  /* isolated pixel */
-		na = numaCreate(1);   /* but leave it empty */
-	    else {   /* trace out the boundary */
-		if ((na = numaCreate(n)) == NULL)
-		    return ERROR_INT("na not made", procName, 1);
-		ptaGetIPt(ptal, 0, &px, &py);
-		for (k = 1; k < n; k++) {
-		    ptaGetIPt(ptal, k, &cx, &cy);
-		    stepdir = dirtab[1 + cy - py][1 + cx - px];
-		    numaAddNumber(na, stepdir);
-		    px = cx;
-		    py = cy;
-		}
-	    }
-	    numaaAddNuma(naa, na, L_INSERT);
-	    ptaDestroy(&ptal);
-	}
-	ccbDestroy(&ccb);  /* just decrement refcount */
+            /* Iterate through the borders for this c.c. */
+        for (j = 0; j < nb; j++) {
+            ptal = ptaaGetPta(ptaal, j, L_CLONE);
+            n = ptaGetCount(ptal);   /* number of pixels in border */
+            if (n == 1)  /* isolated pixel */
+                na = numaCreate(1);   /* but leave it empty */
+            else {   /* trace out the boundary */
+                if ((na = numaCreate(n)) == NULL)
+                    return ERROR_INT("na not made", procName, 1);
+                ptaGetIPt(ptal, 0, &px, &py);
+                for (k = 1; k < n; k++) {
+                    ptaGetIPt(ptal, k, &cx, &cy);
+                    stepdir = dirtab[1 + cy - py][1 + cx - px];
+                    numaAddNumber(na, stepdir);
+                    px = cx;
+                    py = cy;
+                }
+            }
+            numaaAddNuma(naa, na, L_INSERT);
+            ptaDestroy(&ptal);
+        }
+        ccbDestroy(&ccb);  /* just decrement refcount */
     }
 
     return 0;
@@ -1192,7 +1243,8 @@ PTAA    *ptaal;  /* local chain code */
  *              coordtype  (GLOBAL_COORDS or LOCAL_COORDS)
  *      Return: 0 if OK, 1 on error
  *
- *  Action: this uses the step chain data in each ccb to determine
+ *  Notes:
+ *      (1) This uses the step chain data in each ccb to determine
  *          the pixel locations, either global or local,
  *          and stores them in the appropriate ptaa,
  *          either global or local.  For the latter, the
@@ -1204,8 +1256,6 @@ ccbaStepChainsToPixCoords(CCBORDA  *ccba,
 {
 l_int32  ncc, nb, n, i, j, k;
 l_int32  xul, yul, xstart, ystart, x, y, stepdir;
-l_int32  xpostab[] = {-1, -1, 0, 1, 1, 1, 0, -1};
-l_int32  ypostab[] = {0, -1, -1, -1, 0, 1, 1, 1};
 BOX     *box;
 BOXA    *boxa;
 CCBORD  *ccb;
@@ -1217,69 +1267,69 @@ PTA     *ptas, *ptan;
     PROCNAME("ccbaStepChainsToPixCoords");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
     if (coordtype != GLOBAL_COORDS && coordtype != LOCAL_COORDS)
-	return ERROR_INT("coordtype not valid", procName, 1);
+        return ERROR_INT("coordtype not valid", procName, 1);
 
     ncc = ccbaGetCount(ccba);  /* number of c.c. */
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
-	if ((naa = ccb->step) == NULL)
-	    return ERROR_INT("step numaa not found", procName, 1);
-	if ((boxa = ccb->boxa) == NULL)
-	    return ERROR_INT("boxa not found", procName, 1);
-	if ((ptas = ccb->start) == NULL)
-	    return ERROR_INT("start pta not found", procName, 1);
+        ccb = ccbaGetCcb(ccba, i);
+        if ((naa = ccb->step) == NULL)
+            return ERROR_INT("step numaa not found", procName, 1);
+        if ((boxa = ccb->boxa) == NULL)
+            return ERROR_INT("boxa not found", procName, 1);
+        if ((ptas = ccb->start) == NULL)
+            return ERROR_INT("start pta not found", procName, 1);
 
-	    /* for global coords, get the (xul, yul) of the c.c.;
-	     * otherwise, use relative coords. */
-	if (coordtype == LOCAL_COORDS) {
-	    xul = 0;
-	    yul = 0;
-	}
-	else {   /* coordtype == GLOBAL_COORDS */
-	    if ((box = boxaGetBox(boxa, 0, L_CLONE)) == NULL)
-		return ERROR_INT("bounding rectangle not found", procName, 1);
-	    xul = box->x;  /* UL corner in global coords */
-	    yul = box->y;
-	    boxDestroy(&box);
-	}
+            /* For global coords, get the (xul, yul) of the c.c.;
+             * otherwise, use relative coords. */
+        if (coordtype == LOCAL_COORDS) {
+            xul = 0;
+            yul = 0;
+        }
+        else {   /* coordtype == GLOBAL_COORDS */
+            if ((box = boxaGetBox(boxa, 0, L_CLONE)) == NULL)
+                return ERROR_INT("bounding rectangle not found", procName, 1);
+            xul = box->x;  /* UL corner in global coords */
+            yul = box->y;
+            boxDestroy(&box);
+        }
 
-	    /* make a new ptaa, removing any old one */
-	nb = numaaGetCount(naa);   /* number of borders */
-	if ((ptaan = ptaaCreate(nb)) == NULL)
-	    return ERROR_INT("ptaan not made", procName, 1);
-	if (coordtype == LOCAL_COORDS) {
-	    if (ccb->local)   /* remove old one */
-		ptaaDestroy(&ccb->local);
-	    ccb->local = ptaan;  /* save new local chain */
-	}
-	else {   /* coordtype == GLOBAL_COORDS */
-	    if (ccb->global)   /* remove old one */
-		ptaaDestroy(&ccb->global);
-	    ccb->global = ptaan;  /* save new global chain */
-	}
+            /* Make a new ptaa, removing any old one */
+        nb = numaaGetCount(naa);   /* number of borders */
+        if ((ptaan = ptaaCreate(nb)) == NULL)
+            return ERROR_INT("ptaan not made", procName, 1);
+        if (coordtype == LOCAL_COORDS) {
+            if (ccb->local)   /* remove old one */
+                ptaaDestroy(&ccb->local);
+            ccb->local = ptaan;  /* save new local chain */
+        }
+        else {   /* coordtype == GLOBAL_COORDS */
+            if (ccb->global)   /* remove old one */
+                ptaaDestroy(&ccb->global);
+            ccb->global = ptaan;  /* save new global chain */
+        }
 
-	    /* iterate through the borders for this c.c. */
-	for (j = 0; j < nb; j++) {
-	    na = numaaGetNuma(naa, j, L_CLONE);
-	    n = numaGetCount(na);   /* number of steps in border */
-	    if ((ptan = ptaCreate(n + 1)) == NULL)
-		return ERROR_INT("ptan not made", procName, 1);
-	    ptaaAddPta(ptaan, ptan, L_INSERT);
-	    ptaGetIPt(ptas, j, &xstart, &ystart);
-	    x = xul + xstart;
-	    y = yul + ystart;
-	    ptaAddPt(ptan, x, y);
-	    for (k = 0; k < n; k++) {
-		numaGetIValue(na, k, &stepdir);
-		x += xpostab[stepdir];
-		y += ypostab[stepdir];
-		ptaAddPt(ptan, x, y);
-	    }
-	    numaDestroy(&na);
-	}
-	ccbDestroy(&ccb);
+            /* Iterate through the borders for this c.c. */
+        for (j = 0; j < nb; j++) {
+            na = numaaGetNuma(naa, j, L_CLONE);
+            n = numaGetCount(na);   /* number of steps in border */
+            if ((ptan = ptaCreate(n + 1)) == NULL)
+                return ERROR_INT("ptan not made", procName, 1);
+            ptaaAddPta(ptaan, ptan, L_INSERT);
+            ptaGetIPt(ptas, j, &xstart, &ystart);
+            x = xul + xstart;
+            y = yul + ystart;
+            ptaAddPt(ptan, x, y);
+            for (k = 0; k < n; k++) {
+                numaGetIValue(na, k, &stepdir);
+                x += xpostab[stepdir];
+                y += ypostab[stepdir];
+                ptaAddPt(ptan, x, y);
+            }
+            numaDestroy(&na);
+        }
+        ccbDestroy(&ccb);
     }
 
     return 0;
@@ -1293,15 +1343,15 @@ PTA     *ptas, *ptan;
  *              ptsflag  (SAVE_ALL_PTS or SAVE_TURNING_PTS)
  *      Return: 0 if OK, 1 on error
  *
- *  Action: (1) calculates the splocal rep if not yet made
- *          (2) uses the local pixel values in splocal,
- *              the single path pta, which are all relative to each
- *              c.c., to find the corresponding global pixel
- *              locations, and stores them in the spglobal pta.
- *
- *  Note: listing only the turning points makes a valid svg file
- *        and is typically about half the size as listing all
- *        the border points.
+ *  Notes:
+ *      (1) This calculates the splocal rep if not yet made.
+ *      (2) It uses the local pixel values in splocal, the single
+ *          path pta, which are all relative to each c.c., to find
+ *          the corresponding global pixel locations, and stores
+ *          them in the spglobal pta.
+ *      (3) This lists only the turning points: it both makes a
+ *          valid svg file and is typically about half the size
+ *          when all border points are listed.
  */
 l_int32
 ccbaGenerateSPGlobalLocs(CCBORDA  *ccba,
@@ -1316,71 +1366,71 @@ PTA     *ptal, *ptag;
     PROCNAME("ccbaGenerateSPGlobalLocs");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
-	/* make sure we have a local single path representation */
+        /* Make sure we have a local single path representation */
     if ((ccb = ccbaGetCcb(ccba, 0)) == NULL)
-	return ERROR_INT("no ccb", procName, 1);
+        return ERROR_INT("no ccb", procName, 1);
     if (!ccb->splocal)
-	ccbaGenerateSinglePath(ccba);
+        ccbaGenerateSinglePath(ccba);
     ccbDestroy(&ccb);  /* clone ref */
 
     ncc = ccbaGetCount(ccba);  /* number of c.c. */
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
+        ccb = ccbaGetCcb(ccba, i);
 
-	    /* get the (xul, yul) of the c.c. */
-	if ((box = boxaGetBox(ccb->boxa, 0, L_CLONE)) == NULL)
-	    return ERROR_INT("bounding rectangle not found", procName, 1);
-	xul = box->x;  /* UL corner in global coords */
-	yul = box->y;
-	boxDestroy(&box);  /* clone ref */
+            /* Get the (xul, yul) of the c.c. */
+        if ((box = boxaGetBox(ccb->boxa, 0, L_CLONE)) == NULL)
+            return ERROR_INT("bounding rectangle not found", procName, 1);
+        xul = box->x;  /* UL corner in global coords */
+        yul = box->y;
+        boxDestroy(&box);  /* clone ref */
 
-	    /* make a new spglobal pta, removing any old one */
-	ptal = ccb->splocal;
-	npt = ptaGetCount(ptal);   /* number of points */
-	if (ccb->spglobal)   /* remove old one */
-	    ptaDestroy(&ccb->spglobal);
-	if ((ptag = ptaCreate(npt)) == NULL)
-	    return ERROR_INT("ptag not made", procName, 1);
-	ccb->spglobal = ptag;  /* save new one */
+            /* Make a new spglobal pta, removing any old one */
+        ptal = ccb->splocal;
+        npt = ptaGetCount(ptal);   /* number of points */
+        if (ccb->spglobal)   /* remove old one */
+            ptaDestroy(&ccb->spglobal);
+        if ((ptag = ptaCreate(npt)) == NULL)
+            return ERROR_INT("ptag not made", procName, 1);
+        ccb->spglobal = ptag;  /* save new one */
 
-	    /* convert local to global */
-	if (ptsflag == SAVE_ALL_PTS) {
-	    for (j = 0; j < npt; j++) {
-		ptaGetIPt(ptal, j, &x, &y);
-		ptaAddPt(ptag, x  + xul, y + yul);
-	    }
-	}
-	else {   /* ptsflag = SAVE_TURNING_PTS */
-	    ptaGetIPt(ptal, 0, &xp, &yp);   /* get the 1st pt */
-	    ptaAddPt(ptag, xp  + xul, yp + yul);   /* save the 1st pt */
-	    if (npt == 2) {  /* get and save the 2nd pt  */
-		ptaGetIPt(ptal, 1, &x, &y);
-		ptaAddPt(ptag, x  + xul, y + yul);
-	    }
-	    else if (npt > 2)  {
-		ptaGetIPt(ptal, 1, &x, &y);
-		delxp = x - xp;
-		delyp = y - yp;
-		xp = x;
-		yp = y;
-		for (j = 2; j < npt; j++) {
-		    ptaGetIPt(ptal, j, &x, &y);
-		    delx = x - xp;
-		    dely = y - yp;
-		    if (delx != delxp || dely != delyp)
-			ptaAddPt(ptag, xp  + xul, yp + yul);
-		    xp = x;
-		    yp = y;
-		    delxp = delx;
-		    delyp = dely;
-		}
-		ptaAddPt(ptag, xp  + xul, yp + yul);
-	    }
-	}
+            /* Convert local to global */
+        if (ptsflag == SAVE_ALL_PTS) {
+            for (j = 0; j < npt; j++) {
+                ptaGetIPt(ptal, j, &x, &y);
+                ptaAddPt(ptag, x  + xul, y + yul);
+            }
+        }
+        else {   /* ptsflag = SAVE_TURNING_PTS */
+            ptaGetIPt(ptal, 0, &xp, &yp);   /* get the 1st pt */
+            ptaAddPt(ptag, xp  + xul, yp + yul);   /* save the 1st pt */
+            if (npt == 2) {  /* get and save the 2nd pt  */
+                ptaGetIPt(ptal, 1, &x, &y);
+                ptaAddPt(ptag, x  + xul, y + yul);
+            }
+            else if (npt > 2)  {
+                ptaGetIPt(ptal, 1, &x, &y);
+                delxp = x - xp;
+                delyp = y - yp;
+                xp = x;
+                yp = y;
+                for (j = 2; j < npt; j++) {
+                    ptaGetIPt(ptal, j, &x, &y);
+                    delx = x - xp;
+                    dely = y - yp;
+                    if (delx != delxp || dely != delyp)
+                        ptaAddPt(ptag, xp  + xul, yp + yul);
+                    xp = x;
+                    yp = y;
+                    delxp = delx;
+                    delyp = dely;
+                }
+                ptaAddPt(ptag, xp  + xul, yp + yul);
+            }
+        }
 
-	ccbDestroy(&ccb);  /* clone ref */
+        ccbDestroy(&ccb);  /* clone ref */
     }
 
     return 0;
@@ -1397,32 +1447,32 @@ PTA     *ptal, *ptag;
  *      Input:  ccba
  *      Return: 0 if OK, 1 on error
  *
- *  Action:  Generates a single border in local pixel coordinates.
- *           For each c.c., if there is just an outer border, copy
- *           it.  If there are also hole borders, for each hole
- *           border, determine the smallest horizontal or vertical
- *           distance from the border to the outside of the c.c.,
- *           and find a path through the c.c. for this cut.
- *           We do this in a way that guarantees a pixel from the
- *           hole border is the starting point of the path, and
- *           we must verify that the path intersects the outer
- *           border (if it intersects it, then it ends on it).
- *           One can imagine pathological cases, but they may not
- *           occur in images of text characters and un-textured
- *           line graphics.
- *
- *           Once it is verified that the path through the c.c.
- *           intersects both the hole and outer borders, we
- *           generate the full single path for all borders in the
- *           c.c.  Starting at the start point on the outer
- *           border, when we hit a line on a cut, we take
- *           the cut, do the hold border, and return on the cut
- *           to the outer border.  We compose a pta of the
- *           outer border pts that are on cut paths, and for
- *           every point on the outer border (as we go around),
- *           we check against this pta.  When we find a matching
- *           point in the pta, we do its cut path and hole border.
- *           The single path is saved in the ccb.
+ *  Notes:
+ *      (1) Generates a single border in local pixel coordinates.
+ *          For each c.c., if there is just an outer border, copy it.
+ *          If there are also hole borders, for each hole border,
+ *          determine the smallest horizontal or vertical
+ *          distance from the border to the outside of the c.c.,
+ *          and find a path through the c.c. for this cut.
+ *          We do this in a way that guarantees a pixel from the
+ *          hole border is the starting point of the path, and
+ *          we must verify that the path intersects the outer
+ *          border (if it intersects it, then it ends on it).
+ *          One can imagine pathological cases, but they may not
+ *          occur in images of text characters and un-textured
+ *          line graphics.
+ *      (2) Once it is verified that the path through the c.c.
+ *          intersects both the hole and outer borders, we
+ *          generate the full single path for all borders in the
+ *          c.c.  Starting at the start point on the outer
+ *          border, when we hit a line on a cut, we take
+ *          the cut, do the hold border, and return on the cut
+ *          to the outer border.  We compose a pta of the
+ *          outer border pts that are on cut paths, and for
+ *          every point on the outer border (as we go around),
+ *          we check against this pta.  When we find a matching
+ *          point in the pta, we do its cut path and hole border.
+ *          The single path is saved in the ccb.
  */
 l_int32
 ccbaGenerateSinglePath(CCBORDA  *ccba)
@@ -1444,120 +1494,120 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
     PROCNAME("ccbaGenerateSinglePath");
 
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
     ncc = ccbaGetCount(ccba);   /* number of c.c. */
     lostholes = 0;
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
-	if ((ptaa = ccb->local) == NULL) {
-	    L_WARNING("local pixel loc array not found", procName);
-	    continue;
-	}
-	nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
+        ccb = ccbaGetCcb(ccba, i);
+        if ((ptaa = ccb->local) == NULL) {
+            L_WARNING("local pixel loc array not found", procName);
+            continue;
+        }
+        nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
 
-	    /* prepare the output pta */
-	if (ccb->splocal)
-	    ptaDestroy(&ccb->splocal);
-	if ((ptas = ptaCreate(0)) == NULL)
-	    return ERROR_INT("ptas not made", procName, 1);
-	ccb->splocal = ptas;
+            /* Prepare the output pta */
+        if (ccb->splocal)
+            ptaDestroy(&ccb->splocal);
+        if ((ptas = ptaCreate(0)) == NULL)
+            return ERROR_INT("ptas not made", procName, 1);
+        ccb->splocal = ptas;
 
-	    /* if no holes, just concat the outer border */
-	pta = ptaaGetPta(ptaa, 0, L_CLONE);
-	if (nb == 1 || nb > NMAX_HOLES + 1) {
-	    ptaJoin(ptas, pta, 0, 0);
-	    ptaDestroy(&pta);  /* remove clone */
-	    ccbDestroy(&ccb);  /* remove clone */
-	    continue;
-	}
+            /* If no holes, just concat the outer border */
+        pta = ptaaGetPta(ptaa, 0, L_CLONE);
+        if (nb == 1 || nb > NMAX_HOLES + 1) {
+            ptaJoin(ptas, pta, 0, 0);
+            ptaDestroy(&pta);  /* remove clone */
+            ccbDestroy(&ccb);  /* remove clone */
+            continue;
+        }
 
-	    /* Find the (nb - 1) cut paths that connect holes
-	     * with outer border */
-	boxa = ccb->boxa;
-	if ((ptaap = ptaaCreate(nb - 1)) == NULL)
-	    return ERROR_INT("ptaap not made", procName, 1);
-	if ((ptaf = ptaCreate(nb - 1)) == NULL)
-	    return ERROR_INT("ptaf not made", procName, 1);
-	if ((ptal = ptaCreate(nb - 1)) == NULL)
-	    return ERROR_INT("ptal not made", procName, 1);
-	for (j = 1; j < nb; j++) {
-	    boxinner = boxaGetBox(boxa, j, L_CLONE);
+            /* Find the (nb - 1) cut paths that connect holes
+             * with outer border */
+        boxa = ccb->boxa;
+        if ((ptaap = ptaaCreate(nb - 1)) == NULL)
+            return ERROR_INT("ptaap not made", procName, 1);
+        if ((ptaf = ptaCreate(nb - 1)) == NULL)
+            return ERROR_INT("ptaf not made", procName, 1);
+        if ((ptal = ptaCreate(nb - 1)) == NULL)
+            return ERROR_INT("ptal not made", procName, 1);
+        for (j = 1; j < nb; j++) {
+            boxinner = boxaGetBox(boxa, j, L_CLONE);
 
-		/* find a short path and store it */
-	    ptac = getCutPathForHole(ccb->pix, pta, boxinner, &dir, &len);
-	    if (len == 0) {  /* bad: we lose the hole! */
-		lostholes++;
-/*		boxPrintStreamInfo(stderr, boxa->box[0]); */
-	    }
-	    ptaaAddPta(ptaap, ptac, L_INSERT);
-/*	    fprintf(stderr, "dir = %d, length = %d\n", dir, len); */
-/*	    ptaWriteStream(stderr, ptac, 1); */
+                /* Find a short path and store it */
+            ptac = getCutPathForHole(ccb->pix, pta, boxinner, &dir, &len);
+            if (len == 0) {  /* bad: we lose the hole! */
+                lostholes++;
+/*                boxPrintStreamInfo(stderr, boxa->box[0]); */
+            }
+            ptaaAddPta(ptaap, ptac, L_INSERT);
+/*            fprintf(stderr, "dir = %d, length = %d\n", dir, len); */
+/*            ptaWriteStream(stderr, ptac, 1); */
 
-		/* store the first and last points in the cut path,
-		 * which must be on a hole border and the outer
-		 * border, respectively */
-	    ncut = ptaGetCount(ptac);
-	    if (ncut == 0) {   /* missed hole; neg coords won't match */
-		ptaAddPt(ptaf, -1, -1);
-		ptaAddPt(ptal, -1, -1);
-	    }
-	    else {
-		ptaGetIPt(ptac, 0, &x, &y);
-		ptaAddPt(ptaf, x, y);
-		ptaGetIPt(ptac, ncut - 1, &x, &y);
-		ptaAddPt(ptal, x, y);
-	    }
-	    boxDestroy(&boxinner);
-	}
-		
-	    /* make a single path for the c.c. using these connections */
-	npt = ptaGetCount(pta);  /* outer border pts */
-	for (k = 0; k < npt; k++) {
-	    ptaGetIPt(pta, k, &x, &y);
-	    if (k == 0) {   /* if there is a cut at the first point,
-	                     * we can wait until the end to take it */
-		ptaAddPt(ptas, x, y); 
-		continue;
-	    }
-	    state = L_NOT_FOUND;
-	    for (j = 0; j < nb - 1; j++) {  /* iterate over cut end pts */
-		ptaGetIPt(ptal, j, &xl, &yl);  /* cut point on outer border */
-		if (x == xl && y == yl) {  /* take this cut to the hole */
-		    state = L_FOUND;
-		    ptap = ptaaGetPta(ptaap, j, L_CLONE);
-		    if ((ptarp = ptaReverse(ptap, 1)) == NULL)
-			return ERROR_INT("ptarp not made", procName, 1);
-		        /* cut point on hole border: */
-		    ptaGetIPt(ptaf, j, &xf, &yf);
-		        /* hole border: */
-		    ptah = ptaaGetPta(ptaa, j + 1, L_CLONE);
-		    ptahc = ptaCyclicPerm(ptah, xf, yf);
-/*		    ptaWriteStream(stderr, ptahc, 1); */
-		    ptaJoin(ptas, ptarp, 0, 0);
-		    ptaJoin(ptas, ptahc, 0, 0);
-		    ptaJoin(ptas, ptap, 0, 0);
-		    ptaDestroy(&ptap);
-		    ptaDestroy(&ptarp);
-		    ptaDestroy(&ptah);
-		    ptaDestroy(&ptahc);
-		    break;
-		}
-	    }
-	    if (state == L_NOT_FOUND)
-		ptaAddPt(ptas, x, y);
-	}
-	
-/*	ptaWriteStream(stderr, ptas, 1); */
-	ptaaDestroy(&ptaap);
-	ptaDestroy(&ptaf);
-	ptaDestroy(&ptal);
-	ptaDestroy(&pta);  /* remove clone */
-	ccbDestroy(&ccb);  /* remove clone */
+                /* Store the first and last points in the cut path,
+                 * which must be on a hole border and the outer
+                 * border, respectively */
+            ncut = ptaGetCount(ptac);
+            if (ncut == 0) {   /* missed hole; neg coords won't match */
+                ptaAddPt(ptaf, -1, -1);
+                ptaAddPt(ptal, -1, -1);
+            }
+            else {
+                ptaGetIPt(ptac, 0, &x, &y);
+                ptaAddPt(ptaf, x, y);
+                ptaGetIPt(ptac, ncut - 1, &x, &y);
+                ptaAddPt(ptal, x, y);
+            }
+            boxDestroy(&boxinner);
+        }
+                
+            /* Make a single path for the c.c. using these connections */
+        npt = ptaGetCount(pta);  /* outer border pts */
+        for (k = 0; k < npt; k++) {
+            ptaGetIPt(pta, k, &x, &y);
+            if (k == 0) {   /* if there is a cut at the first point,
+                             * we can wait until the end to take it */
+                ptaAddPt(ptas, x, y); 
+                continue;
+            }
+            state = L_NOT_FOUND;
+            for (j = 0; j < nb - 1; j++) {  /* iterate over cut end pts */
+                ptaGetIPt(ptal, j, &xl, &yl);  /* cut point on outer border */
+                if (x == xl && y == yl) {  /* take this cut to the hole */
+                    state = L_FOUND;
+                    ptap = ptaaGetPta(ptaap, j, L_CLONE);
+                    if ((ptarp = ptaReverse(ptap, 1)) == NULL)
+                        return ERROR_INT("ptarp not made", procName, 1);
+                        /* Cut point on hole border: */
+                    ptaGetIPt(ptaf, j, &xf, &yf);
+                        /* Hole border: */
+                    ptah = ptaaGetPta(ptaa, j + 1, L_CLONE);
+                    ptahc = ptaCyclicPerm(ptah, xf, yf);
+/*                    ptaWriteStream(stderr, ptahc, 1); */
+                    ptaJoin(ptas, ptarp, 0, 0);
+                    ptaJoin(ptas, ptahc, 0, 0);
+                    ptaJoin(ptas, ptap, 0, 0);
+                    ptaDestroy(&ptap);
+                    ptaDestroy(&ptarp);
+                    ptaDestroy(&ptah);
+                    ptaDestroy(&ptahc);
+                    break;
+                }
+            }
+            if (state == L_NOT_FOUND)
+                ptaAddPt(ptas, x, y);
+        }
+        
+/*        ptaWriteStream(stderr, ptas, 1); */
+        ptaaDestroy(&ptaap);
+        ptaDestroy(&ptaf);
+        ptaDestroy(&ptal);
+        ptaDestroy(&pta);  /* remove clone */
+        ccbDestroy(&ccb);  /* remove clone */
     }
 
     if (lostholes > 0)
-	L_WARNING_INT("***** %d lost holes *****", procName, lostholes);
+        L_WARNING_INT("***** %d lost holes *****", procName, lostholes);
 
     return 0;
 }
@@ -1575,23 +1625,23 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
  *              to the outer border, including end points on
  *              both borders; or null on error
  *
- *  Note: if we don't find a path, we return a pta with no pts in it and len=0
- *       
- *  Goal: to get a reasonably short path between the inner and outer
- *        borders, that goes entirely within the fg of the pix.
- *        This function is cheap-and-dirty, may fail for some holes
- *        in complex topologies such as those you might find in a
- *        moderately dark scanned halftone.  If it fails to find a
- *        path to any particular hole, it gives a warning, and
- *        because that hole path is not included, the hole will not
- *        be rendered.
+ *  Notes:
+ *      (1) If we don't find a path, we return a pta with no pts
+ *          in it and len = 0.
+ *      (2) The goal is to get a reasonably short path between the
+ *          inner and outer borders, that goes entirely within the fg of
+ *          the pix.  This function is cheap-and-dirty, may fail for some
+ *          holes in complex topologies such as those you might find in a
+ *          moderately dark scanned halftone.  If it fails to find a
+ *          path to any particular hole, it gives a warning, and because
+ *          that hole path is not included, the hole will not be rendered.
  */
 PTA *
 getCutPathForHole(PIX      *pix,
-		  PTA      *pta,
-		  BOX      *boxinner,
-		  l_int32  *pdir,
-		  l_int32  *plen)
+                  PTA      *pta,
+                  BOX      *boxinner,
+                  l_int32  *pdir,
+                  l_int32  *plen)
 {
 l_int32   w, h, nc, x, y, xl, yl, xmid, ymid;
 l_uint32  val;
@@ -1600,116 +1650,116 @@ PTA      *ptac;
     PROCNAME("getCutPathForHole");
     
     if (!pix)
-	return (PTA *)ERROR_PTR("pix not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pix not defined", procName, NULL);
     if (!pta)
-	return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
     if (!boxinner)
-	return (PTA *)ERROR_PTR("boxinner not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("boxinner not defined", procName, NULL);
 
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
 
     if ((ptac = ptaCreate(4)) == NULL)
-	return (PTA *)ERROR_PTR("ptac not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptac not made", procName, NULL);
     xmid = boxinner->x + boxinner->w / 2;
     ymid = boxinner->y + boxinner->h / 2;
 
-	/* try top first */
+        /* try top first */
     for (y = ymid; y >= 0; y--) { 
-	pixGetPixel(pix, xmid, y, &val);
-	if (val == 1) {
-	    ptaAddPt(ptac, xmid, y);
-	    break;
-	}
+        pixGetPixel(pix, xmid, y, &val);
+        if (val == 1) {
+            ptaAddPt(ptac, xmid, y);
+            break;
+        }
     }
     for (y = y - 1; y >= 0; y--) {
-	pixGetPixel(pix, xmid, y, &val);
-	if (val == 1)
-	    ptaAddPt(ptac, xmid, y);
-	else
-	    break;
+        pixGetPixel(pix, xmid, y, &val);
+        if (val == 1)
+            ptaAddPt(ptac, xmid, y);
+        else
+            break;
     }
     nc = ptaGetCount(ptac);
     ptaGetIPt(ptac, nc - 1, &xl, &yl);
     if (ptaContainsPt(pta, xl, yl)) {
-	*pdir = 1;
-	*plen = nc;
-	return ptac;
+        *pdir = 1;
+        *plen = nc;
+        return ptac;
     }
 
-	/* next try bottom */
+        /* Next try bottom */
     ptaEmpty(ptac);
     for (y = ymid; y < h; y++) { 
-	pixGetPixel(pix, xmid, y, &val);
-	if (val == 1) {
-	    ptaAddPt(ptac, xmid, y);
-	    break;
-	}
+        pixGetPixel(pix, xmid, y, &val);
+        if (val == 1) {
+            ptaAddPt(ptac, xmid, y);
+            break;
+        }
     }
     for (y = y + 1; y < h; y++) {
-	pixGetPixel(pix, xmid, y, &val);
-	if (val == 1)
-	    ptaAddPt(ptac, xmid, y);
-	else
-	    break;
+        pixGetPixel(pix, xmid, y, &val);
+        if (val == 1)
+            ptaAddPt(ptac, xmid, y);
+        else
+            break;
     }
     nc = ptaGetCount(ptac);
     ptaGetIPt(ptac, nc - 1, &xl, &yl);
     if (ptaContainsPt(pta, xl, yl)) {
-	*pdir = 3;
-	*plen = nc;
-	return ptac;
+        *pdir = 3;
+        *plen = nc;
+        return ptac;
     }
 
-	/* next try left */
+        /* Next try left */
     ptaEmpty(ptac);
     for (x = xmid; x >= 0; x--) { 
-	pixGetPixel(pix, x, ymid, &val);
-	if (val == 1) {
-	    ptaAddPt(ptac, x, ymid);
-	    break;
-	}
+        pixGetPixel(pix, x, ymid, &val);
+        if (val == 1) {
+            ptaAddPt(ptac, x, ymid);
+            break;
+        }
     }
     for (x = x - 1; x >= 0; x--) {
-	pixGetPixel(pix, x, ymid, &val);
-	if (val == 1)
-	    ptaAddPt(ptac, x, ymid);
-	else
-	    break;
+        pixGetPixel(pix, x, ymid, &val);
+        if (val == 1)
+            ptaAddPt(ptac, x, ymid);
+        else
+            break;
     }
     nc = ptaGetCount(ptac);
     ptaGetIPt(ptac, nc - 1, &xl, &yl);
     if (ptaContainsPt(pta, xl, yl)) {
-	*pdir = 0;
-	*plen = nc;
-	return ptac;
+        *pdir = 0;
+        *plen = nc;
+        return ptac;
     }
 
-	/* finally try right */
+        /* Finally try right */
     ptaEmpty(ptac);
     for (x = xmid; x < w; x++) { 
-	pixGetPixel(pix, x, ymid, &val);
-	if (val == 1) {
-	    ptaAddPt(ptac, x, ymid);
-	    break;
-	}
+        pixGetPixel(pix, x, ymid, &val);
+        if (val == 1) {
+            ptaAddPt(ptac, x, ymid);
+            break;
+        }
     }
     for (x = x + 1; x < w; x++) {
-	pixGetPixel(pix, x, ymid, &val);
-	if (val == 1)
-	    ptaAddPt(ptac, x, ymid);
-	else
-	    break;
+        pixGetPixel(pix, x, ymid, &val);
+        if (val == 1)
+            ptaAddPt(ptac, x, ymid);
+        else
+            break;
     }
     nc = ptaGetCount(ptac);
     ptaGetIPt(ptac, nc - 1, &xl, &yl);
     if (ptaContainsPt(pta, xl, yl)) {
-	*pdir = 2;
-	*plen = nc;
-	return ptac;
+        *pdir = 2;
+        *plen = nc;
+        return ptac;
     }
 
-	/* if we get here, we've failed! */
+        /* If we get here, we've failed! */
     ptaEmpty(ptac);
 /*    L_WARNING("no path found", procName); */
     *plen = 0;
@@ -1727,9 +1777,10 @@ PTA      *ptac;
  *      Input:  ccba
  *      Return: pix of border pixels, or null on error
  *
- *  Note: uses global ptaa, which gives each border pixel in
- *        global coordinates, and must be computed in advance
- *        by calling ccbaGenerateGlobalLocs().
+ *  Notes:
+ *      (1) Uses global ptaa, which gives each border pixel in
+ *          global coordinates, and must be computed in advance
+ *          by calling ccbaGenerateGlobalLocs().
  */
 PIX *
 ccbaDisplayBorder(CCBORDA  *ccba)
@@ -1743,28 +1794,28 @@ PTA     *pta;
     PROCNAME("ccbaDisplayBorder");
 
     if (!ccba)
-	return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
 
     if ((pixd = pixCreate(ccba->w, ccba->h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     ncc = ccbaGetCount(ccba);   /* number of c.c. */
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
-	if ((ptaa = ccb->global) == NULL) {
-	    L_WARNING("global pixel loc array not found", procName);
-	    continue;
-	}
-	nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
-	for (j = 0; j < nb; j++) {
-	    pta = ptaaGetPta(ptaa, j, L_CLONE);
-	    n = ptaGetCount(pta);   /* number of pixels in the border */
-	    for (k = 0; k < n; k++) {
-		ptaGetIPt(pta, k, &x, &y);
-		pixSetPixel(pixd, x, y, 1);
-	    }
-	    ptaDestroy(&pta);
-	}
-	ccbDestroy(&ccb);
+        ccb = ccbaGetCcb(ccba, i);
+        if ((ptaa = ccb->global) == NULL) {
+            L_WARNING("global pixel loc array not found", procName);
+            continue;
+        }
+        nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
+        for (j = 0; j < nb; j++) {
+            pta = ptaaGetPta(ptaa, j, L_CLONE);
+            n = ptaGetCount(pta);   /* number of pixels in the border */
+            for (k = 0; k < n; k++) {
+                ptaGetIPt(pta, k, &x, &y);
+                pixSetPixel(pixd, x, y, 1);
+            }
+            ptaDestroy(&pta);
+        }
+        ccbDestroy(&ccb);
     }
     
     return pixd;
@@ -1777,9 +1828,10 @@ PTA     *pta;
  *      Input:  ccba
  *      Return: pix of border pixels, or null on error
  *
- *  Note: uses spglobal pta, which gives each border pixel in
- *        global coordinates, one path per c.c., and must
- *        be computed in advance by calling ccbaGenerateSPGlobalLocs()
+ *  Notes:
+ *      (1) Uses spglobal pta, which gives each border pixel in
+ *          global coordinates, one path per c.c., and must
+ *          be computed in advance by calling ccbaGenerateSPGlobalLocs().
  */
 PIX *
 ccbaDisplaySPBorder(CCBORDA  *ccba)
@@ -1792,23 +1844,23 @@ PTA     *ptag;
     PROCNAME("ccbaDisplaySPBorder");
 
     if (!ccba)
-	return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
 
     if ((pixd = pixCreate(ccba->w, ccba->h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     ncc = ccbaGetCount(ccba);   /* number of c.c. */
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
-	if ((ptag = ccb->spglobal) == NULL) {
-	    L_WARNING("spglobal pixel loc array not found", procName);
-	    continue;
-	}
-	npt = ptaGetCount(ptag);   /* number of pixels on path */
-	for (j = 0; j < npt; j++) {
-	    ptaGetIPt(ptag, j, &x, &y);
-	    pixSetPixel(pixd, x, y, 1);
-	}
-	ccbDestroy(&ccb);  /* clone ref */
+        ccb = ccbaGetCcb(ccba, i);
+        if ((ptag = ccb->spglobal) == NULL) {
+            L_WARNING("spglobal pixel loc array not found", procName);
+            continue;
+        }
+        npt = ptaGetCount(ptag);   /* number of pixels on path */
+        for (j = 0; j < npt; j++) {
+            ptaGetIPt(ptag, j, &x, &y);
+            pixSetPixel(pixd, x, y, 1);
+        }
+        ccbDestroy(&ccb);  /* clone ref */
     }
     
     return pixd;
@@ -1821,15 +1873,14 @@ PTA     *ptag;
  *      Input:  ccborda
  *      Return: pix of image, or null on error
  *
- *  Action: uses topological properties (Method 1) to do scan
- *          conversion to raster
- *
  *  Notes:
- *      (1) uses local ptaa, which gives each border pixel in
+ *      (1) Uses local ptaa, which gives each border pixel in
  *          local coordinates, so the actual pixel positions must
  *          be computed using all offsets.
- *      (2) for the holes, use coordinates relative to the c.c.
- *      (3) this is slower than Method 2.
+ *      (2) For the holes, use coordinates relative to the c.c.
+ *      (3) This is slower than Method 2.
+ *      (4) This uses topological properties (Method 1) to do scan
+ *          conversion to raster
  *
  *  This algorithm deserves some commentary. 
  *
@@ -1885,88 +1936,88 @@ PTA     *pta;
     PROCNAME("ccbaDisplayImage1");
 
     if (!ccba)
-	return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
 
     if ((pixd = pixCreate(ccba->w, ccba->h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     ncc = ccbaGetCount(ccba);
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
-	if ((boxa = ccb->boxa) == NULL)
-	    return (PIX *)ERROR_PTR("boxa not found", procName, NULL);
+        ccb = ccbaGetCcb(ccba, i);
+        if ((boxa = ccb->boxa) == NULL)
+            return (PIX *)ERROR_PTR("boxa not found", procName, NULL);
 
-	    /* render border in pixt */
-	if ((ptaa = ccb->local) == NULL) {
-	    L_WARNING("local chain array not found", procName);
-	    continue;
-	}
+            /* Render border in pixt */
+        if ((ptaa = ccb->local) == NULL) {
+            L_WARNING("local chain array not found", procName);
+            continue;
+        }
 
-	nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
-	for (j = 0; j < nb; j++) {
-	    if ((box = boxaGetBox(boxa, j, L_CLONE)) == NULL)
-		return (PIX *)ERROR_PTR("b. box not found", procName, NULL);
-	    if (j == 0) {
-		xul = box->x;
-		yul = box->y;
-		xoff = yoff = 0;
-	    } else {
-		xoff = box->x;
-		yoff = box->y;
-	    }
-	    w = box->w;
-	    h = box->h;
+        nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
+        for (j = 0; j < nb; j++) {
+            if ((box = boxaGetBox(boxa, j, L_CLONE)) == NULL)
+                return (PIX *)ERROR_PTR("b. box not found", procName, NULL);
+            if (j == 0) {
+                xul = box->x;
+                yul = box->y;
+                xoff = yoff = 0;
+            } else {
+                xoff = box->x;
+                yoff = box->y;
+            }
+            w = box->w;
+            h = box->h;
 
-		/* render the border in a minimum-sized pix;
-		 * subtract xoff and yoff because the pixel
-		 * location is stored relative to the c.c., but
-		 * we need it relative to just the hole border. */
-	    if ((pixt = pixCreate(w, h, 1)) == NULL)
-		return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-	    boxDestroy(&box);
-	    pta = ptaaGetPta(ptaa, j, L_CLONE);
-	    n = ptaGetCount(pta);   /* number of pixels in the border */
-	    for (k = 0; k < n; k++) {
-		ptaGetIPt(pta, k, &x, &y);
-		pixSetPixel(pixt, x - xoff, y - yoff, 1);
-		if (j > 0) {   /* need this for finding hole border pixel */
-		    if (k == 0) {
-			fpx = x - xoff;
-			fpy = y - yoff;
-		    }
-		    if (k == 1) {
-			spx = x - xoff;
-			spy = y - yoff;
-		    }
-		}
-	    }
-	    ptaDestroy(&pta);
+                /* Render the border in a minimum-sized pix;
+                 * subtract xoff and yoff because the pixel
+                 * location is stored relative to the c.c., but
+                 * we need it relative to just the hole border. */
+            if ((pixt = pixCreate(w, h, 1)) == NULL)
+                return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            boxDestroy(&box);
+            pta = ptaaGetPta(ptaa, j, L_CLONE);
+            n = ptaGetCount(pta);   /* number of pixels in the border */
+            for (k = 0; k < n; k++) {
+                ptaGetIPt(pta, k, &x, &y);
+                pixSetPixel(pixt, x - xoff, y - yoff, 1);
+                if (j > 0) {   /* need this for finding hole border pixel */
+                    if (k == 0) {
+                        fpx = x - xoff;
+                        fpy = y - yoff;
+                    }
+                    if (k == 1) {
+                        spx = x - xoff;
+                        spy = y - yoff;
+                    }
+                }
+            }
+            ptaDestroy(&pta);
 
-		/* get the filled component */
-	    if (j == 0) {  /* if outer border, fill from outer boundary */
-		if ((pixh = pixFillClosedBorders(pixt, 4)) == NULL)
-		    return (PIX *)ERROR_PTR("pixh not made", procName, NULL);
-	    }
-	    else {   /* fill the hole from inside */
-		    /* get the location of a seed pixel in the hole */
-		locateOutsideSeedPixel(fpx, fpy, spx, spy, &xs, &ys);
+                /* Get the filled component */
+            if (j == 0) {  /* if outer border, fill from outer boundary */
+                if ((pixh = pixFillClosedBorders(pixt, 4)) == NULL)
+                    return (PIX *)ERROR_PTR("pixh not made", procName, NULL);
+            }
+            else {   /* fill the hole from inside */
+                    /* get the location of a seed pixel in the hole */
+                locateOutsideSeedPixel(fpx, fpy, spx, spy, &xs, &ys);
 
-		    /* put seed in hole and fill interior of hole,
-		     * using pixt as clipping mask */
-		if ((pixh = pixCreateTemplate(pixt)) == NULL)
-		    return (PIX *)ERROR_PTR("pixh not made", procName, NULL);
-		pixSetPixel(pixh, xs, ys, 1);  /* put seed pixel in hole */
-		pixInvert(pixt, pixt);  /* to make filling mask */
-		pixSeedfillBinary(pixh, pixh, pixt, 4);  /* 4-fill hole */
-	    }
+                    /* Put seed in hole and fill interior of hole,
+                     * using pixt as clipping mask */
+                if ((pixh = pixCreateTemplate(pixt)) == NULL)
+                    return (PIX *)ERROR_PTR("pixh not made", procName, NULL);
+                pixSetPixel(pixh, xs, ys, 1);  /* put seed pixel in hole */
+                pixInvert(pixt, pixt);  /* to make filling mask */
+                pixSeedfillBinary(pixh, pixh, pixt, 4);  /* 4-fill hole */
+            }
 
-		/* XOR into the dest */
-	    pixRasterop(pixd, xul + xoff, yul + yoff, w, h, PIX_XOR,
-			pixh, 0, 0);
-	    pixDestroy(&pixt);
-	    pixDestroy(&pixh);
-	}
+                /* XOR into the dest */
+            pixRasterop(pixd, xul + xoff, yul + yoff, w, h, PIX_XOR,
+                        pixh, 0, 0);
+            pixDestroy(&pixt);
+            pixDestroy(&pixh);
+        }
 
-	ccbDestroy(&ccb);
+        ccbDestroy(&ccb);
     }
     
     return pixd;
@@ -1980,20 +2031,18 @@ PTA     *pta;
  *      Input: ccborda
  *      Return: pix of image, or null on error
  *
- *  Action: uses topological properties (Method 2) to do scan
- *          conversion to raster
- *
  *  Notes:
- *      (1) uses local chain ptaa, which gives each border pixel in
+ *      (1) Uses local chain ptaa, which gives each border pixel in
  *          local coordinates, so the actual pixel positions must
  *          be computed using all offsets.
- *      (2) treats exterior and hole borders on equivalent
+ *      (2) Treats exterior and hole borders on equivalent
  *          footing, and does all calculations on a pix
  *          that spans the c.c. with a 1 pixel added boundary.
- *
- *  The algorithm is described at the top of this file (Method 2).
- *  It is preferred to Method 1 because it is between 1.2x and 2x
- *  faster than Method 1.
+ *      (3) This uses topological properties (Method 2) to do scan
+ *          conversion to raster
+ *      (4) The algorithm is described at the top of this file (Method 2).
+ *          It is preferred to Method 1 because it is between 1.2x and 2x
+ *          faster than Method 1.
  */
 PIX *
 ccbaDisplayImage2(CCBORDA  *ccba)
@@ -2010,80 +2059,80 @@ PTA     *pta;
     PROCNAME("ccbaDisplayImage2");
 
     if (!ccba)
-	return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ccba not defined", procName, NULL);
 
     if ((pixd = pixCreate(ccba->w, ccba->h, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     ncc = ccbaGetCount(ccba);
     for (i = 0; i < ncc; i++) {
 
-	    /* generate clipping mask from border pixels and seed image
-	     * from one seed for each closed border. */
-	ccb = ccbaGetCcb(ccba, i);
-	if ((boxa = ccb->boxa) == NULL)
-	    return (PIX *)ERROR_PTR("boxa not found", procName, NULL);
-	if ((box = boxaGetBox(boxa, 0, L_CLONE)) == NULL)
-	    return (PIX *)ERROR_PTR("b. box not found", procName, NULL);
-	xul = box->x;
-	yul = box->y;
-	w = box->w;
-	h = box->h;
-	if ((pixc = pixCreate(w + 2, h + 2, 1)) == NULL)
-	    return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
-	if ((pixs = pixCreateTemplate(pixc)) == NULL)
-	    return (PIX *)ERROR_PTR("pixs not made", procName, NULL);
-	boxDestroy(&box);
+            /* Generate clipping mask from border pixels and seed image
+             * from one seed for each closed border. */
+        ccb = ccbaGetCcb(ccba, i);
+        if ((boxa = ccb->boxa) == NULL)
+            return (PIX *)ERROR_PTR("boxa not found", procName, NULL);
+        if ((box = boxaGetBox(boxa, 0, L_CLONE)) == NULL)
+            return (PIX *)ERROR_PTR("b. box not found", procName, NULL);
+        xul = box->x;
+        yul = box->y;
+        w = box->w;
+        h = box->h;
+        if ((pixc = pixCreate(w + 2, h + 2, 1)) == NULL)
+            return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
+        if ((pixs = pixCreateTemplate(pixc)) == NULL)
+            return (PIX *)ERROR_PTR("pixs not made", procName, NULL);
+        boxDestroy(&box);
 
-	if ((ptaa = ccb->local) == NULL) {
-	    L_WARNING("local chain array not found", procName);
-	    continue;
-	}
-	nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
-	for (j = 0; j < nb; j++) {
-	    pta = ptaaGetPta(ptaa, j, L_CLONE);
-	    n = ptaGetCount(pta);   /* number of pixels in the border */
+        if ((ptaa = ccb->local) == NULL) {
+            L_WARNING("local chain array not found", procName);
+            continue;
+        }
+        nb = ptaaGetCount(ptaa);   /* number of borders in the c.c.  */
+        for (j = 0; j < nb; j++) {
+            pta = ptaaGetPta(ptaa, j, L_CLONE);
+            n = ptaGetCount(pta);   /* number of pixels in the border */
 
-		/* render border pixels in pixc */
-	    for (k = 0; k < n; k++) {
-		ptaGetIPt(pta, k, &x, &y);
-		pixSetPixel(pixc, x + 1, y + 1, 1);
-		if (k == 0) {
-		    fpx = x + 1;
-		    fpy = y + 1;
-		}
-		else if (k == 1) {
-		    spx = x + 1;
-		    spy = y + 1;
-		}
-	    }
+                /* Render border pixels in pixc */
+            for (k = 0; k < n; k++) {
+                ptaGetIPt(pta, k, &x, &y);
+                pixSetPixel(pixc, x + 1, y + 1, 1);
+                if (k == 0) {
+                    fpx = x + 1;
+                    fpy = y + 1;
+                }
+                else if (k == 1) {
+                    spx = x + 1;
+                    spy = y + 1;
+                }
+            }
 
-		/* get and set seed pixel for this border in pixs */
-	    if (n > 1)
-		locateOutsideSeedPixel(fpx, fpy, spx, spy, &xs, &ys);
-	    else  /* isolated c.c. */
-		xs = ys = 0;
-	    pixSetPixel(pixs, xs, ys, 1);
-	    ptaDestroy(&pta);
-	}
+                /* Get and set seed pixel for this border in pixs */
+            if (n > 1)
+                locateOutsideSeedPixel(fpx, fpy, spx, spy, &xs, &ys);
+            else  /* isolated c.c. */
+                xs = ys = 0;
+            pixSetPixel(pixs, xs, ys, 1);
+            ptaDestroy(&pta);
+        }
 
-	    /* fill from seeds in pixs, using pixc as the clipping mask,
-	     * to reconstruct the c.c. */
-	pixInvert(pixc, pixc);  /* to convert clipping -> filling mask */
-	pixSeedfillBinary(pixs, pixs, pixc, 4);  /* 4-fill */
-	pixInvert(pixs, pixs);  /* to make the c.c. */
+            /* Fill from seeds in pixs, using pixc as the clipping mask,
+             * to reconstruct the c.c. */
+        pixInvert(pixc, pixc);  /* to convert clipping -> filling mask */
+        pixSeedfillBinary(pixs, pixs, pixc, 4);  /* 4-fill */
+        pixInvert(pixs, pixs);  /* to make the c.c. */
 
-	    /* XOR into the dest */
-	pixRasterop(pixd, xul, yul, w, h, PIX_XOR, pixs, 1, 1);
+            /* XOR into the dest */
+        pixRasterop(pixd, xul, yul, w, h, PIX_XOR, pixs, 1, 1);
 
-	pixDestroy(&pixc);
-	pixDestroy(&pixs);
-	ccbDestroy(&ccb);  /* ref-counted */
+        pixDestroy(&pixc);
+        pixDestroy(&pixs);
+        ccbDestroy(&ccb);  /* ref-counted */
     }
 
     return pixd;
 }
-	
+        
 
 
 /*---------------------------------------------------------------------*
@@ -2105,15 +2154,15 @@ FILE  *fp;
     PROCNAME("ccbaWrite");
 
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
     if ((fp = fopen(filename, "wb+")) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
     if (ccbaWriteStream(fp, ccba)) {
-	fclose(fp);
-	return ERROR_INT("ccba not written to stream", procName, 1);
+        fclose(fp);
+        return ERROR_INT("ccba not written to stream", procName, 1);
     }
 
     fclose(fp);
@@ -2166,12 +2215,12 @@ PTA      *pta;
     PROCNAME("ccbaWriteStream");
 
     if (!fp)
-	return ERROR_INT("stream not open", procName, 1);
+        return ERROR_INT("stream not open", procName, 1);
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
     if ((bbuf = bbufferCreate(NULL, 1000)) == NULL)
-	return ERROR_INT("bbuf not made", procName, 1);
+        return ERROR_INT("bbuf not made", procName, 1);
 
     ncc = ccbaGetCount(ccba);
     sprintf(strbuf, "ccba: %7d cc\n", ncc);
@@ -2181,55 +2230,55 @@ PTA      *pta;
     bbufferRead(bbuf, (l_uint8 *)&w, 4);  /* width */
     bbufferRead(bbuf, (l_uint8 *)&h, 4);  /* height */
     for (i = 0; i < ncc; i++) {
-	ccb = ccbaGetCcb(ccba, i);
-	box = boxaGetBox(ccb->boxa, 0, L_CLONE);
-	bbufferRead(bbuf, (l_uint8 *)&box->x, 4);  /* ulx of c.c. */
-	bbufferRead(bbuf, (l_uint8 *)&box->y, 4);  /* uly of c.c. */
-	bbufferRead(bbuf, (l_uint8 *)&box->w, 4);  /* w of c.c. */
-	bbufferRead(bbuf, (l_uint8 *)&box->h, 4);  /* h of c.c. */
-	boxDestroy(&box);
-	if ((naa = ccb->step) == NULL) {
-	    ccbaGenerateStepChains(ccba);
-	    naa = ccb->step;
-	}
-	nb = numaaGetCount(naa);
-	bbufferRead(bbuf, (l_uint8 *)&nb, 4);  /* number of borders in c.c. */
-	pta = ccb->start;
-	for (j = 0; j < nb; j++) {
-	    ptaGetIPt(pta, j, &startx, &starty);
-	    bbufferRead(bbuf, (l_uint8 *)&startx, 4);  /* starting x in border */
-	    bbufferRead(bbuf, (l_uint8 *)&starty, 4);  /* starting y in border */
-	    na = numaaGetNuma(naa, j, L_CLONE);
-	    n = numaGetCount(na);
-	    for (k = 0; k < n; k++) {
-		numaGetIValue(na, k, &val);
-		if (k % 2 == 0)
-		    bval = (l_uint8)val << 4;
-		else
-		    bval |= (l_uint8)val;
-		if (k % 2 == 1)
-		    bbufferRead(bbuf, (l_uint8 *)&bval, 1);  /* 2 border steps */
-	    }
-	    if (n % 2 == 1) {
-		bval |= 0x8;
-		bbufferRead(bbuf, (l_uint8 *)&bval, 1); /* end with 0xz8,   */
-		                             /* where z = {0..7} */
-	    }
-	    else {  /* n % 2 == 0 */
-		bval = 0x88;
-		bbufferRead(bbuf, (l_uint8 *)&bval, 1);   /* end with 0x88 */
-	    }
-	    numaDestroy(&na);
-	}
-	ccbDestroy(&ccb);
+        ccb = ccbaGetCcb(ccba, i);
+        box = boxaGetBox(ccb->boxa, 0, L_CLONE);
+        bbufferRead(bbuf, (l_uint8 *)&box->x, 4);  /* ulx of c.c. */
+        bbufferRead(bbuf, (l_uint8 *)&box->y, 4);  /* uly of c.c. */
+        bbufferRead(bbuf, (l_uint8 *)&box->w, 4);  /* w of c.c. */
+        bbufferRead(bbuf, (l_uint8 *)&box->h, 4);  /* h of c.c. */
+        boxDestroy(&box);
+        if ((naa = ccb->step) == NULL) {
+            ccbaGenerateStepChains(ccba);
+            naa = ccb->step;
+        }
+        nb = numaaGetCount(naa);
+        bbufferRead(bbuf, (l_uint8 *)&nb, 4);  /* number of borders in c.c. */
+        pta = ccb->start;
+        for (j = 0; j < nb; j++) {
+            ptaGetIPt(pta, j, &startx, &starty);
+            bbufferRead(bbuf, (l_uint8 *)&startx, 4);  /* starting x in border */
+            bbufferRead(bbuf, (l_uint8 *)&starty, 4);  /* starting y in border */
+            na = numaaGetNuma(naa, j, L_CLONE);
+            n = numaGetCount(na);
+            for (k = 0; k < n; k++) {
+                numaGetIValue(na, k, &val);
+                if (k % 2 == 0)
+                    bval = (l_uint8)val << 4;
+                else
+                    bval |= (l_uint8)val;
+                if (k % 2 == 1)
+                    bbufferRead(bbuf, (l_uint8 *)&bval, 1);  /* 2 border steps */
+            }
+            if (n % 2 == 1) {
+                bval |= 0x8;
+                bbufferRead(bbuf, (l_uint8 *)&bval, 1); /* end with 0xz8,   */
+                                             /* where z = {0..7} */
+            }
+            else {  /* n % 2 == 0 */
+                bval = 0x88;
+                bbufferRead(bbuf, (l_uint8 *)&bval, 1);   /* end with 0x88 */
+            }
+            numaDestroy(&na);
+        }
+        ccbDestroy(&ccb);
     }
 
     datain = bbufferDestroyAndSaveData(&bbuf, &inbytes);
     dataout = zlibCompress(datain, inbytes, &outbytes);
     fwrite(dataout, 1, outbytes, fp);
 
-    FREE((void *)datain);
-    FREE((void *)dataout);
+    FREE(datain);
+    FREE(dataout);
     return 0;
 }
 
@@ -2249,15 +2298,15 @@ CCBORDA  *ccba;
     PROCNAME("ccbaRead");
 
     if (!filename)
-	return (CCBORDA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("filename not defined", procName, NULL);
 
     if ((fp = fopen(filename, "r")) == NULL)
-	return (CCBORDA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("stream not opened", procName, NULL);
     ccba = ccbaReadStream(fp);
     fclose(fp);
 
     if (!ccba)
-	return (CCBORDA *)ERROR_PTR("ccba not returned", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("ccba not returned", procName, NULL);
     return ccba;
 }
 
@@ -2303,23 +2352,23 @@ NUMAA    *step;
     PROCNAME("ccbaReadStream");
 
     if (!fp)
-	return (CCBORDA *)ERROR_PTR("stream not open", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("stream not open", procName, NULL);
 
     if ((datain = arrayReadStream(fp, &inbytes)) == NULL)
-	return (CCBORDA *)ERROR_PTR("data not read from file", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("data not read from file", procName, NULL);
 
     if ((dataout = zlibUncompress(datain, inbytes, &outbytes)) == NULL)
-	return (CCBORDA *)ERROR_PTR("dataout not made", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("dataout not made", procName, NULL);
 
     offset = 18;
     memcpy((void *)strbuf, (void *)dataout, offset);
     strbuf[17] = '\0';
     if (strncmp(strbuf, "ccba:", 5))
-	return (CCBORDA *)ERROR_PTR("file not type ccba", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("file not type ccba", procName, NULL);
     sscanf(strbuf, "ccba: %7d cc\n", &ncc);
 /*    fprintf(stderr, "ncc = %d\n", ncc); */
     if ((ccba = ccbaCreate(NULL, ncc)) == NULL)
-	return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
+        return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
 
     memcpy((void *)&width, (void *)(dataout + offset), 4);
     offset += 4;
@@ -2330,60 +2379,60 @@ NUMAA    *step;
 /*    fprintf(stderr, "width = %d, height = %d\n", width, height); */
 
     for (i = 0; i < ncc; i++) {  /* should be ncc */
-	if ((ccb = ccbCreate(NULL)) == NULL)
-	    return (CCBORDA *)ERROR_PTR("ccb not made", procName, NULL);
-	ccbaAddCcb(ccba, ccb);
+        if ((ccb = ccbCreate(NULL)) == NULL)
+            return (CCBORDA *)ERROR_PTR("ccb not made", procName, NULL);
+        ccbaAddCcb(ccba, ccb);
 
-	memcpy((void *)&xoff, (void *)(dataout + offset), 4);
-	offset += 4;
-	memcpy((void *)&yoff, (void *)(dataout + offset), 4);
-	offset += 4;
-	memcpy((void *)&w, (void *)(dataout + offset), 4);
-	offset += 4;
-	memcpy((void *)&h, (void *)(dataout + offset), 4);
-	offset += 4;
-	if ((box = boxCreate(xoff, yoff, w, h)) == NULL)
-	    return (CCBORDA *)ERROR_PTR("box not made", procName, NULL);
-	boxaAddBox(ccb->boxa, box, L_INSERT);
-/*	fprintf(stderr, "xoff = %d, yoff = %d, w = %d, h = %d\n",
-	        xoff, yoff, w, h); */
+        memcpy((void *)&xoff, (void *)(dataout + offset), 4);
+        offset += 4;
+        memcpy((void *)&yoff, (void *)(dataout + offset), 4);
+        offset += 4;
+        memcpy((void *)&w, (void *)(dataout + offset), 4);
+        offset += 4;
+        memcpy((void *)&h, (void *)(dataout + offset), 4);
+        offset += 4;
+        if ((box = boxCreate(xoff, yoff, w, h)) == NULL)
+            return (CCBORDA *)ERROR_PTR("box not made", procName, NULL);
+        boxaAddBox(ccb->boxa, box, L_INSERT);
+/*        fprintf(stderr, "xoff = %d, yoff = %d, w = %d, h = %d\n",
+                xoff, yoff, w, h); */
    
-	memcpy((void *)&nb, (void *)(dataout + offset), 4);
-	offset += 4;
-/*	fprintf(stderr, "num borders = %d\n", nb); */
-	if ((step = numaaCreate(nb)) == NULL)
-	    return (CCBORDA *)ERROR_PTR("step numaa not made", procName, NULL);
-	ccb->step = step;
+        memcpy((void *)&nb, (void *)(dataout + offset), 4);
+        offset += 4;
+/*        fprintf(stderr, "num borders = %d\n", nb); */
+        if ((step = numaaCreate(nb)) == NULL)
+            return (CCBORDA *)ERROR_PTR("step numaa not made", procName, NULL);
+        ccb->step = step;
 
-	for (j = 0; j < nb; j++) {  /* should be nb */
-	    memcpy((void *)&startx, (void *)(dataout + offset), 4);
-	    offset += 4;
-	    memcpy((void *)&starty, (void *)(dataout + offset), 4);
-	    offset += 4;
-	    ptaAddPt(ccb->start, startx, starty);
-/*	    fprintf(stderr, "startx = %d, starty = %d\n", startx, starty); */
-	    if ((na = numaCreate(0)) == NULL)
-		return (CCBORDA *)ERROR_PTR("na not made", procName, NULL);
-	    numaaAddNuma(step, na, L_INSERT);
+        for (j = 0; j < nb; j++) {  /* should be nb */
+            memcpy((void *)&startx, (void *)(dataout + offset), 4);
+            offset += 4;
+            memcpy((void *)&starty, (void *)(dataout + offset), 4);
+            offset += 4;
+            ptaAddPt(ccb->start, startx, starty);
+/*            fprintf(stderr, "startx = %d, starty = %d\n", startx, starty); */
+            if ((na = numaCreate(0)) == NULL)
+                return (CCBORDA *)ERROR_PTR("na not made", procName, NULL);
+            numaaAddNuma(step, na, L_INSERT);
 
-	    while(1) {
-		bval = *(dataout + offset);
-		offset++;
-		nib1 = (bval >> 4);
-		nib2 = bval & 0xf;
-		if (nib1 != 8)
-		    numaAddNumber(na, nib1);
-		else
-		    break;
-		if (nib2 != 8)
-		    numaAddNumber(na, nib2);
-		else
-		    break;
-	    }
-	}
+            while(1) {
+                bval = *(dataout + offset);
+                offset++;
+                nib1 = (bval >> 4);
+                nib2 = bval & 0xf;
+                if (nib1 != 8)
+                    numaAddNumber(na, nib1);
+                else
+                    break;
+                if (nib2 != 8)
+                    numaAddNumber(na, nib2);
+                else
+                    break;
+            }
+        }
     }
-    FREE((void *)datain);
-    FREE((void *)dataout);
+    FREE(datain);
+    FREE(dataout);
 
     return ccba;
 }
@@ -2408,15 +2457,15 @@ char  *svgstr;
     PROCNAME("ccbaWriteSVG");
 
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
     if (!ccba)
-	return ERROR_INT("ccba not defined", procName, 1);
+        return ERROR_INT("ccba not defined", procName, 1);
 
     if ((svgstr = ccbaWriteSVGString(filename, ccba)) == NULL)
-	return ERROR_INT("svgstr not made", procName, 1);
+        return ERROR_INT("svgstr not made", procName, 1);
 
     arrayWrite(filename, "w", svgstr, strlen(svgstr));
-    FREE((void *)svgstr);
+    FREE(svgstr);
 
     return 0;
 }
@@ -2450,31 +2499,31 @@ SARRAY  *sa;
     PROCNAME("ccbaWriteSVGString");
 
     if (!filename)
-	return (char *)ERROR_PTR("filename not defined", procName, NULL);
+        return (char *)ERROR_PTR("filename not defined", procName, NULL);
     if (!ccba)
-	return (char *)ERROR_PTR("ccba not defined", procName, NULL);
+        return (char *)ERROR_PTR("ccba not defined", procName, NULL);
 
     if ((sa = sarrayCreate(0)) == NULL)
-	return (char *)ERROR_PTR("sa not made", procName, NULL);
+        return (char *)ERROR_PTR("sa not made", procName, NULL);
     sarrayAddString(sa, line0, 1);
     sarrayAddString(sa, line1, 1);
     sarrayAddString(sa, line2, 1);
 
     ncc = ccbaGetCount(ccba);
     for (i = 0; i < ncc; i++) {
-	if ((ccb = ccbaGetCcb(ccba, i)) == NULL)
-	    return (char *)ERROR_PTR("ccb not found", procName, NULL);
-	if ((pta = ccb->spglobal) == NULL)
-	    return (char *)ERROR_PTR("spglobal not made", procName, NULL);
-	sarrayAddString(sa, line3, 1);
-	npt = ptaGetCount(pta);
-	for (j = 0; j < npt; j++) {
-	    ptaGetIPt(pta, j, &x, &y);
-	    sprintf(smallbuf, "%0d,%0d", x, y);
-	    sarrayAddString(sa, smallbuf, 1);
-	}
-	sarrayAddString(sa, line4, 1);
-	ccbDestroy(&ccb);
+        if ((ccb = ccbaGetCcb(ccba, i)) == NULL)
+            return (char *)ERROR_PTR("ccb not found", procName, NULL);
+        if ((pta = ccb->spglobal) == NULL)
+            return (char *)ERROR_PTR("spglobal not made", procName, NULL);
+        sarrayAddString(sa, line3, 1);
+        npt = ptaGetCount(pta);
+        for (j = 0; j < npt; j++) {
+            ptaGetIPt(pta, j, &x, &y);
+            sprintf(smallbuf, "%0d,%0d", x, y);
+            sarrayAddString(sa, smallbuf, 1);
+        }
+        sarrayAddString(sa, line4, 1);
+        ccbDestroy(&ccb);
     }
     sarrayAddString(sa, line5, 1);
     sarrayAddString(sa, " ", 1);
@@ -2485,5 +2534,6 @@ SARRAY  *sa;
     sarrayDestroy(&sa);
     return svgstr;
 }
+
 
 

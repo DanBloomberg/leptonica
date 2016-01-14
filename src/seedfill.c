@@ -38,12 +38,12 @@
  *
  *           ITERATIVE RASTER-ORDER SEEDFILL
  *
- *      The basic method in the Vincent seedfill (aka
- *      reconstruction) algorithm is simple.  We describe here the
- *      situation for binary seedfill.  Pixels are sampled
- *      in raster order in the seed image.  If they are 4-connected
- *      to ON pixels either directly above or to the left, and are
- *      not masked out by the mask image, they are turned on (or remain on).
+ *      The basic method in the Vincent seedfill (aka reconstruction)
+ *      algorithm is simple.  We describe here the situation for
+ *      binary seedfill.  Pixels are sampled in raster order in
+ *      the seed image.  If they are 4-connected to ON pixels
+ *      either directly above or to the left, and are not masked
+ *      out by the mask image, they are turned on (or remain on).
  *      (Ditto for 8-connected, except you need to check 3 pixels
  *      on the previous line as well as the pixel to the left 
  *      on the current line.  This is extra computational work
@@ -54,6 +54,9 @@
  *      These double sweeps are iterated until there is no change.
  *      At this point, the seed has entirely filled the region it
  *      is allowed to, as delimited by the mask image. 
+ *
+ *      The grayscale seedfill is a straightforward generalization
+ *      of the binary seedfill, and is described in seedfillLowGray().
  *
  *      For some applications, the filled seed will later be OR'd
  *      with the negative of the mask.   This is used, for example,
@@ -76,8 +79,7 @@
  *      
  *      For efficiency, the pixels can be taken in larger units
  *      for processing, but still in raster order.  It is natural
- *      to take them in 32-bit words, because the machine operations
- *      on the PIII work on 32-bit words.  The outline of the work
+ *      to take them in 32-bit words.  The outline of the work
  *      to be done for 4-cc (not including special cases for boundary
  *      words, such as the first line or the last word in each line)
  *      is as follows.  Let the filling mask be m.  The
@@ -107,14 +109,13 @@
  *      until t stops changing.  Then write t back into w.
  *
  *      Finally, the boundary conditions require we note that in doing
- *      the above steps,
- *          (a) the words in the first row have no wa
- *          (b) the first word in each row has no wp in that row
- *          (c) the last word in each row must be masked so that
+ *      the above steps:
+ *          (a) The words in the first row have no wa
+ *          (b) The first word in each row has no wp in that row
+ *          (c) The last word in each row must be masked so that
  *              pixels don't propagate beyond the right edge of the
  *              actual image.  (This is easily accomplished by
  *              setting the out-of-bound pixels in m to OFF.)
- *
  */
 
 #include <stdio.h>
@@ -157,8 +158,8 @@ static const l_int32  MAX_ITERS = 40;
 PIX *
 pixSeedfillBinary(PIX     *pixd,
                   PIX     *pixs,
-	          PIX     *pixm,
-	          l_int32  connectivity)
+                  PIX     *pixm,
+                  l_int32  connectivity)
 {
 l_int32    i, boolval;
 l_int32    hd, hm, wpld, wplm;
@@ -176,15 +177,15 @@ PIX       *pixt;
     if (pixGetDepth(pixs) != 1 || pixGetDepth(pixm) != 1)
         return (PIX *)ERROR_PTR("pixs must be binary", procName, pixd);
 
-	/* pixd starts out as a copy or identity with pixs */
+        /* pixd starts out as a copy or identity with pixs */
     if (pixd != pixs) {
-	if ((pixd = pixCopy(pixd, pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
+        if ((pixd = pixCopy(pixd, pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
     }
 
-	/* pixt is used to test for completion */
+        /* pixt is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
 
     hd = pixGetHeight(pixd);
     hm = pixGetHeight(pixm);  /* included so seedfillBinaryLow() can clip */
@@ -196,15 +197,15 @@ PIX       *pixt;
     pixSetPadBits(pixm, 0);
 
     for (i = 0; i < MAX_ITERS; i++) {
-	pixCopy(pixt, pixd);
-	seedfillBinaryLow(datad, hd, wpld, datam, hm, wplm, connectivity);
-	pixEqual(pixd, pixt, &boolval);
-	if (boolval == 1) {
+        pixCopy(pixt, pixd);
+        seedfillBinaryLow(datad, hd, wpld, datam, hm, wplm, connectivity);
+        pixEqual(pixd, pixt, &boolval);
+        if (boolval == 1) {
 #if DEBUG_PRINT_ITERS
-	    fprintf(stderr, "Binary seed fill converged: %d iters\n", i + 1);
+            fprintf(stderr, "Binary seed fill converged: %d iters\n", i + 1);
 #endif  /* DEBUG_PRINT_ITERS */
-	    break;
-	}
+            break;
+        }
     }
 
     pixDestroy(&pixt);
@@ -219,16 +220,17 @@ PIX       *pixt;
  *      Return: pixd  (inverted image of all holes), or null on error
  *
  * Action:
- *     (1) start with 1-pixel black border on otherwise white pixd
- *     (2) use the inverted pixs as the filling mask to fill in
+ *     (1) Start with 1-pixel black border on otherwise white pixd
+ *     (2) Use the inverted pixs as the filling mask to fill in
  *         all the pixels from the border to the pixs foreground
  *     (3) OR the result with pixs to have an image with all
  *         ON pixels except for the holes.
- *     (4) invert the result to get the holes as foreground
+ *     (4) Invert the result to get the holes as foreground
  *
- * Note: To get 4-c.c. holes of the 8-c.c. as foreground, use
- *       4-connected filling; to get 8-c.c. holes of the 4-c.c.
- *       as foreground, use 8-connected filling.
+ * Notes:
+ *     (1) To get 4-c.c. holes of the 8-c.c. as foreground, use
+ *         4-connected filling; to get 8-c.c. holes of the 4-c.c.
+ *         as foreground, use 8-connected filling.
  */
 PIX *
 pixHolesByFilling(PIX     *pixs,
@@ -266,18 +268,17 @@ PIX  *pixsi, *pixd;
  *      Return: pixd  (all topologically outer closed borders are filled
  *                     as connected comonents), or null on error
  *
- *  Action:
- *      (1) start with 1-pixel black border on otherwise white pixd
- *      (2) subtract input pixs to remove border pixels that were
+ *  Notes:
+ *      (1) Start with 1-pixel black border on otherwise white pixd
+ *      (2) Subtract input pixs to remove border pixels that were
  *          also on the closed border
- *      (3) use the inverted pixs as the filling mask to fill in
+ *      (3) Use the inverted pixs as the filling mask to fill in
  *          all the pixels from the outer border to the closed border
  *          on pixs
- *      (4) invert the result to get the filled component, including
+ *      (4) Invert the result to get the filled component, including
  *          the input border
- *
- *  Note: (1) if the borders are 4-c.c., use 8-c.c. filling, and v.v.
- *        (2) closed borders within c.c. that represent holes, etc., are filled.
+ *      (5) If the borders are 4-c.c., use 8-c.c. filling, and v.v.
+ *      (6) Closed borders within c.c. that represent holes, etc., are filled.
  */
 PIX *
 pixFillClosedBorders(PIX     *pixs,
@@ -315,9 +316,10 @@ PIX  *pixsi, *pixd;
  *      Return: pixd  (all pixels in the src that are not touching the
  *                     border) or null on error
  *
- *  Note: This is a very simple application of seedfill, where
- *        we find all components that are touching the borders
- *        and remove them.
+ *  Notes:
+ *      (1) This is a very simple application of seedfill, where
+ *          we find all components that are touching the borders
+ *          and remove them.
  */
 PIX *
 pixRemoveBorderConnComps(PIX     *pixs,
@@ -340,11 +342,11 @@ PIX  *pixd;
         /* pixd is the seed; start with 1 pixel wide black border */
     pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
 
-       /* fill from the seed, using pixs as the filling mask,
+       /* Fill from the seed, using pixs as the filling mask,
         * to fill in all components that are touching the border */
     pixSeedfillBinary(pixd, pixd, pixs, connectivity);
 
-       /* get components in filling mask but not in seed */
+       /* Get components in filling mask but not in seed */
     pixXor(pixd, pixd, pixs);
 
     return pixd;
@@ -450,11 +452,16 @@ PIXA      *pixa;
  *              pixm  (filling mask)
  *              connectivity  (4 or 8)
  *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) For details of the operation, see the description in
+ *          seedfillGrayLow() and the code there.
+ *      (2) For use of the operation, see the description in pixHDome().
  */
 l_int32
 pixSeedfillGray(PIX     *pixs,
-	        PIX     *pixm,
-	        l_int32  connectivity)
+                PIX     *pixm,
+                l_int32  connectivity)
 {
 l_int32    i, h, w, wpls, wplm, boolval;
 l_uint32  *datas, *datam;
@@ -471,36 +478,35 @@ PIX       *pixt;
     if (pixGetDepth(pixs) != 8)
         return ERROR_INT("pixs must be 8 bpp", procName, 1);
     
-	/* make sure the sizes of seed and mask images are the same */
+        /* Make sure the sizes of seed and mask images are the same */
     if (pixSizesEqual(pixs, pixm) == 0)
         return ERROR_INT("pixs and pixm sizes differ", procName, 1);
     h = pixGetHeight(pixs);
     w = pixGetWidth(pixs);
 
-	/* pixt is used to test for completion */
+        /* This is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
-	return ERROR_INT("pixt not made", procName, 1);
+        return ERROR_INT("pixt not made", procName, 1);
 
     datas = pixGetData(pixs);
     datam = pixGetData(pixm);
     wpls = pixGetWpl(pixs);
     wplm = pixGetWpl(pixm);
     for (i = 0; i < MAX_ITERS; i++) {
-	pixCopy(pixt, pixs);
-	seedfillGrayLow(datas, w, h, wpls, datam, wplm, connectivity);
-	pixEqual(pixs, pixt, &boolval);
-	if (boolval == 1) {
+        pixCopy(pixt, pixs);
+        seedfillGrayLow(datas, w, h, wpls, datam, wplm, connectivity);
+        pixEqual(pixs, pixt, &boolval);
+        if (boolval == 1) {
 #if DEBUG_PRINT_ITERS
-	    fprintf(stderr, "Gray seed fill converged: %d iters\n", i + 1);
+            fprintf(stderr, "Gray seed fill converged: %d iters\n", i + 1);
 #endif  /* DEBUG_PRINT_ITERS */
-	    break;
-	}
+            break;
+        }
     }
 
     pixDestroy(&pixt);
     return 0;
 }
-
 
 
 /*-----------------------------------------------------------------------*
@@ -523,7 +529,7 @@ PIX       *pixt;
  *  a distance 0 and the bg pixel distances increase linearly
  *  from 1 at the boundary.
  *
- *  The algorithm, described at Leptonica on the page on seed
+ *  The algorithm, described in Leptonica on the page on seed
  *  filling and connected components, is due to Luc Vincent.
  *  In brief, we generate an 8 or 16 bpp image, initialized to 1 for
  *  the fg pixels of the input pix, subject to the constraint that
@@ -535,8 +541,8 @@ PIX       *pixt;
  */
 PIX *
 pixDistanceFunction(PIX     *pixs,
-	            l_int32  connectivity,
-		    l_int32  depth)
+                    l_int32  connectivity,
+                    l_int32  depth)
 {
 l_int32    w, h, wpld;
 l_uint32  *datad;
@@ -556,8 +562,7 @@ PIX       *pixd;
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 

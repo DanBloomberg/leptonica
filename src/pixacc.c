@@ -62,16 +62,16 @@ PIXACC  *pixacc;
     PROCNAME("pixaccCreate");
 
     if ((pixacc = (PIXACC *)CALLOC(1, sizeof(PIXACC))) == NULL)
-	return (PIXACC *)ERROR_PTR("pixacc not made", procName, NULL);
+        return (PIXACC *)ERROR_PTR("pixacc not made", procName, NULL);
     pixacc->w = w;
     pixacc->h = h;
     
     if ((pixacc->pix = pixCreate(w, h, 32)) == NULL)
-	return (PIXACC *)ERROR_PTR("pix not made", procName, NULL);
+        return (PIXACC *)ERROR_PTR("pix not made", procName, NULL);
 
     if (subflag) {
-	pixacc->offset = 0x40000000;
-	pixSetAllArbitrary(pixacc->pix, pixacc->offset);
+        pixacc->offset = 0x40000000;
+        pixSetAllArbitrary(pixacc->pix, pixacc->offset);
     }
 
     return pixacc;
@@ -96,11 +96,11 @@ PIXACC  *pixacc;
 
     if (ppixacc == NULL) {
         L_WARNING("ptr address is NULL!", procName);
-	return;
+        return;
     }
 
     if ((pixacc = *ppixacc) == NULL)
-	return;
+        return;
 
     pixDestroy(&pixacc->pix);
     FREE(pixacc);
@@ -148,7 +148,7 @@ pixaccGetPix(PIXACC  *pixacc)
     PROCNAME("pixaccGetPix");
 
     if (!pixacc)
-	return (PIX *)ERROR_PTR("pixacc not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixacc not defined", procName, NULL);
     return pixacc->pix;
 }
 
@@ -165,7 +165,7 @@ pixaccGetOffset(PIXACC  *pixacc)
     PROCNAME("pixaccGetOffset");
 
     if (!pixacc)
-	return ERROR_INT("pixacc not defined", procName, -1);
+        return ERROR_INT("pixacc not defined", procName, -1);
     return pixacc->offset;
 }
 
@@ -182,15 +182,15 @@ pixaccGetOffset(PIXACC  *pixacc)
  */
 l_int32
 pixaccAdd(PIXACC  *pixacc,
-	  PIX     *pix)
+          PIX     *pix)
 {
     PROCNAME("pixaccAdd");
 
     if (!pixacc)
-	return ERROR_INT("pixacc not defined", procName, 1);
+        return ERROR_INT("pixacc not defined", procName, 1);
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
-    pixAccumulate(pixaccGetPix(pixacc), pix, ARITH_ADD);
+        return ERROR_INT("pix not defined", procName, 1);
+    pixAccumulate(pixaccGetPix(pixacc), pix, L_ARITH_ADD);
     return 0;
 }
 
@@ -204,15 +204,15 @@ pixaccAdd(PIXACC  *pixacc,
  */
 l_int32
 pixaccSubtract(PIXACC  *pixacc,
-	       PIX     *pix)
+               PIX     *pix)
 {
     PROCNAME("pixaccSubtract");
 
     if (!pixacc)
-	return ERROR_INT("pixacc not defined", procName, 1);
+        return ERROR_INT("pixacc not defined", procName, 1);
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
-    pixAccumulate(pixaccGetPix(pixacc), pix, ARITH_SUBTRACT);
+        return ERROR_INT("pix not defined", procName, 1);
+    pixAccumulate(pixaccGetPix(pixacc), pix, L_ARITH_SUBTRACT);
     return 0;
 }
 
@@ -226,14 +226,14 @@ pixaccSubtract(PIXACC  *pixacc,
  */
 l_int32
 pixaccMultConst(PIXACC    *pixacc,
-	        l_float32  factor)
+                l_float32  factor)
 {
     PROCNAME("pixaccMultConst");
 
     if (!pixacc)
-	return ERROR_INT("pixacc not defined", procName, 1);
+        return ERROR_INT("pixacc not defined", procName, 1);
     pixMultConstAccumulate(pixaccGetPix(pixacc), factor,
-	                   pixaccGetOffset(pixacc));
+                           pixaccGetOffset(pixacc));
     return 0;
 }
 

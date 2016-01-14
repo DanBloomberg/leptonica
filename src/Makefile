@@ -130,7 +130,7 @@ LIBRARIAN_SHARED =	gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 42
+MINOR_REV = 44
 
 #########################################################
 
@@ -156,8 +156,9 @@ LEPTLIB_C =	adaptmap.c \
 		blend.c bmf.c bmpio.c \
 		box.c \
 		ccbord.c classapp.c \
-		colorcontent.c colormap.c colorquant.c colorseg.c \
-		conncomp.c \
+		colorcontent.c colormap.c colormorph.c \
+		colorquant.c colorseg.c \
+		compare.c conncomp.c \
 		convolve.c convolvelow.c \
 		enhance.c \
 		fhmtauto.c \
@@ -171,9 +172,10 @@ LEPTLIB_C =	adaptmap.c \
 		jbclass.c jpegio.c \
 		list.c maze.c \
 		morph.c morphapp.c morphdwa.c morphseq.c \
-		numarray.c paintcmap.c \
+		numabasic.c numafunc.c \
+		pageseg.c paintcmap.c \
 		parseprotos.c pheap.c \
-		pix1.c pix2.c pixa.c \
+		pix1.c pix2.c pix3.c pixa.c \
 		pixacc.c pixarith.c pixconv.c \
 		pngio.c pnmio.c pqueue.c \
 		projective.c psio.c \

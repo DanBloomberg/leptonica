@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include "allheaders.h"
 
-    /* Choose one of these */
+    /* Eliminate very large "words" */
 static const l_int32  MAX_WORD_WIDTH = 500;
 static const l_int32  MAX_WORD_HEIGHT = 100;
 

@@ -47,11 +47,11 @@ expandBinaryLow(l_uint32  *datad,
                 l_int32    wd,
                 l_int32    hd,
                 l_int32    wpld,
-	        l_uint32  *datas,
+                l_uint32  *datas,
                 l_int32    ws,
                 l_int32    hs,
                 l_int32    wpls,
-	        l_int32    factor)
+                l_int32    factor)
 {
 l_int32    i, j, k, sdibits, sqbits, sbytes;
 l_uint8    sval;
@@ -64,69 +64,69 @@ l_uint32  *lines, *lined;
     switch (factor)
     {
     case 2:
-	if ((tab2 = makeExpandTab2x()) == NULL)
+        if ((tab2 = makeExpandTab2x()) == NULL)
             return ERROR_INT("tab2 not made", procName, 1);
-	sbytes = (ws + 7) / 8;
-	for (i = 0; i < hs; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + 2 * i * wpld;
-	    for (j = 0; j < sbytes; j++) {
-		sval = GET_DATA_BYTE(lines, j);
-		SET_DATA_TWO_BYTES(lined, j, tab2[sval]);
-	    }
-	    memcpy((char *)(lined + wpld), (char *)lined, 2 * sbytes);
-	}
-	FREE((void *)tab2);
+        sbytes = (ws + 7) / 8;
+        for (i = 0; i < hs; i++) {
+            lines = datas + i * wpls;
+            lined = datad + 2 * i * wpld;
+            for (j = 0; j < sbytes; j++) {
+                sval = GET_DATA_BYTE(lines, j);
+                SET_DATA_TWO_BYTES(lined, j, tab2[sval]);
+            }
+            memcpy((char *)(lined + wpld), (char *)lined, 2 * sbytes);
+        }
+        FREE((void *)tab2);
         break;
     case 4:
-	if ((tab4 = makeExpandTab4x()) == NULL)
+        if ((tab4 = makeExpandTab4x()) == NULL)
             return ERROR_INT("tab4 not made", procName, 1);
-	sbytes = (ws + 7) / 8;
-	for (i = 0; i < hs; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + 4 * i * wpld;
-	    for (j = 0; j < sbytes; j++) {
-		sval = GET_DATA_BYTE(lines, j);
-		lined[j] = tab4[sval];
-	    }
-	    for (k = 1; k < 4; k++) 
-		memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sbytes);
-	}
-	FREE((void *)tab4);
+        sbytes = (ws + 7) / 8;
+        for (i = 0; i < hs; i++) {
+            lines = datas + i * wpls;
+            lined = datad + 4 * i * wpld;
+            for (j = 0; j < sbytes; j++) {
+                sval = GET_DATA_BYTE(lines, j);
+                lined[j] = tab4[sval];
+            }
+            for (k = 1; k < 4; k++) 
+                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sbytes);
+        }
+        FREE((void *)tab4);
         break;
     case 8:
-	if ((tab8 = makeExpandTab8x()) == NULL)
+        if ((tab8 = makeExpandTab8x()) == NULL)
             return ERROR_INT("tab8 not made", procName, 1);
-	sqbits = (ws + 3) / 4;
-	for (i = 0; i < hs; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + 8 * i * wpld;
-	    for (j = 0; j < sqbits; j++) {
-		sval = GET_DATA_QBIT(lines, j);
-		if (sval > 15)
-		    L_WARNING_INT("sval = %d; should be < 16", procName, sval);
-		lined[j] = tab8[sval];
-	    }
-	    for (k = 1; k < 8; k++) 
-		memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sqbits);
-	}
-	FREE((void *)tab8);
+        sqbits = (ws + 3) / 4;
+        for (i = 0; i < hs; i++) {
+            lines = datas + i * wpls;
+            lined = datad + 8 * i * wpld;
+            for (j = 0; j < sqbits; j++) {
+                sval = GET_DATA_QBIT(lines, j);
+                if (sval > 15)
+                    L_WARNING_INT("sval = %d; should be < 16", procName, sval);
+                lined[j] = tab8[sval];
+            }
+            for (k = 1; k < 8; k++) 
+                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sqbits);
+        }
+        FREE((void *)tab8);
         break;
     case 16:
-	sdibits = (ws + 1) / 2;
-	for (i = 0; i < hs; i++) {
-	    lines = datas + i * wpls;
-	    lined = datad + 16 * i * wpld;
-	    for (j = 0; j < sdibits; j++) {
-		sval = GET_DATA_DIBIT(lines, j);
-		lined[j] = expandtab16[sval];
-	    }
-	    for (k = 1; k < 16; k++) 
-		memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sdibits);
-	}
+        sdibits = (ws + 1) / 2;
+        for (i = 0; i < hs; i++) {
+            lines = datas + i * wpls;
+            lined = datad + 16 * i * wpld;
+            for (j = 0; j < sdibits; j++) {
+                sval = GET_DATA_DIBIT(lines, j);
+                lined[j] = expandtab16[sval];
+            }
+            for (k = 1; k < 16; k++) 
+                memcpy((char *)(lined + k * wpld), (char *)lined, 4 * sdibits);
+        }
         break;
     default:
-	return ERROR_INT("expansion factor not in {2,4,8,16}", procName, 1);
+        return ERROR_INT("expansion factor not in {2,4,8,16}", procName, 1);
     }
 
     return 0;
@@ -149,22 +149,22 @@ l_int32    i;
         return (l_uint16 *)ERROR_PTR("tab not made", procName, NULL);
 
     for (i = 0; i < 256; i++) {
-	if (i & 0x01)
-	    tab[i] = 0x3;
-	if (i & 0x02)
-	    tab[i] |= 0xc;
-	if (i & 0x04)
-	    tab[i] |= 0x30;
-	if (i & 0x08)
-	    tab[i] |= 0xc0;
-	if (i & 0x10)
-	    tab[i] |= 0x300;
-	if (i & 0x20)
-	    tab[i] |= 0xc00;
-	if (i & 0x40)
-	    tab[i] |= 0x3000;
-	if (i & 0x80)
-	    tab[i] |= 0xc000;
+        if (i & 0x01)
+            tab[i] = 0x3;
+        if (i & 0x02)
+            tab[i] |= 0xc;
+        if (i & 0x04)
+            tab[i] |= 0x30;
+        if (i & 0x08)
+            tab[i] |= 0xc0;
+        if (i & 0x10)
+            tab[i] |= 0x300;
+        if (i & 0x20)
+            tab[i] |= 0xc00;
+        if (i & 0x40)
+            tab[i] |= 0x3000;
+        if (i & 0x80)
+            tab[i] |= 0xc000;
     }
 
     return tab;
@@ -183,22 +183,22 @@ l_int32    i;
         return (l_uint32 *)ERROR_PTR("tab not made", procName, NULL);
 
     for (i = 0; i < 256; i++) {
-	if (i & 0x01)
-	    tab[i] = 0xf;
-	if (i & 0x02)
-	    tab[i] |= 0xf0;
-	if (i & 0x04)
-	    tab[i] |= 0xf00;
-	if (i & 0x08)
-	    tab[i] |= 0xf000;
-	if (i & 0x10)
-	    tab[i] |= 0xf0000;
-	if (i & 0x20)
-	    tab[i] |= 0xf00000;
-	if (i & 0x40)
-	    tab[i] |= 0xf000000;
-	if (i & 0x80)
-	    tab[i] |= 0xf0000000;
+        if (i & 0x01)
+            tab[i] = 0xf;
+        if (i & 0x02)
+            tab[i] |= 0xf0;
+        if (i & 0x04)
+            tab[i] |= 0xf00;
+        if (i & 0x08)
+            tab[i] |= 0xf000;
+        if (i & 0x10)
+            tab[i] |= 0xf0000;
+        if (i & 0x20)
+            tab[i] |= 0xf00000;
+        if (i & 0x40)
+            tab[i] |= 0xf000000;
+        if (i & 0x80)
+            tab[i] |= 0xf0000000;
     }
 
     return tab;
@@ -217,14 +217,14 @@ l_int32    i;
         return (l_uint32 *)ERROR_PTR("tab not made", procName, NULL);
 
     for (i = 0; i < 16; i++) {
-	if (i & 0x01)
-	    tab[i] = 0xff;
-	if (i & 0x02)
-	    tab[i] |= 0xff00;
-	if (i & 0x04)
-	    tab[i] |= 0xff0000;
-	if (i & 0x08)
-	    tab[i] |= 0xff000000;
+        if (i & 0x01)
+            tab[i] = 0xff;
+        if (i & 0x02)
+            tab[i] |= 0xff00;
+        if (i & 0x04)
+            tab[i] |= 0xff0000;
+        if (i & 0x08)
+            tab[i] |= 0xff000000;
     }
 
     return tab;

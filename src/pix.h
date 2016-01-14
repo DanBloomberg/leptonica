@@ -58,9 +58,9 @@ struct Pix
     l_uint32             wpl;         /* 32-bit words/line                 */
     l_uint32             refcount;    /* reference count (1 if no clones)  */
     l_uint32             xres;        /* image res (ppi) in x direction    */
-				      /* (use 0 if unknown)                */
+                                      /* (use 0 if unknown)                */
     l_uint32             yres;        /* image res (ppi) in y direction    */
-				      /* (use 0 if unknown)                */
+                                      /* (use 0 if unknown)                */
     l_int32              informat;    /* input file format, IFF_*          */
     char                *text;        /* text string associated with pix   */
     struct PixColormap  *colormap;    /* colormap (may be null)            */
@@ -72,9 +72,9 @@ typedef struct Pix PIX;
 struct PixColormap
 {
         void        *array;     /* colormap table (array of RGBA_QUAD)     */
-	l_int32      depth;     /* of pix (1, 2, 4 or 8 bpp)               */
-	l_int32      nalloc;    /* number of color entries allocated       */
-	l_int32      n;         /* number of color entries used            */
+        l_int32      depth;     /* of pix (1, 2, 4 or 8 bpp)               */
+        l_int32      nalloc;    /* number of color entries allocated       */
+        l_int32      n;         /* number of color entries used            */
 };
 typedef struct PixColormap  PIXCMAP;
 
@@ -269,6 +269,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                              Array of pix                               *
  *-------------------------------------------------------------------------*/
+#define  PIXA_VERSION_NUMBER      2
+
 struct Pixa
 {
     l_int32             n;            /* number of Pix in ptr array        */
@@ -293,6 +295,8 @@ typedef struct Pixaa PIXAA;
 /*-------------------------------------------------------------------------*
  *                    Basic rectangle and rectangle arrays                 *
  *-------------------------------------------------------------------------*/
+#define  BOXA_VERSION_NUMBER      2
+
 struct Box
 {
     l_int32            x;
@@ -325,6 +329,8 @@ typedef struct Boxaa  BOXAA;
 /*-------------------------------------------------------------------------*
  *                               Array of points                           *
  *-------------------------------------------------------------------------*/
+#define  PTA_VERSION_NUMBER      1
+
 struct Pta
 {
     l_int32            n;             /* actual number of pts              */
@@ -381,14 +387,28 @@ typedef struct Pixacc PIXACC;
  *  structs, there is an additional method:
  *     (4) copy-clone (Makes a new higher-level struct with a refcount
  *                     of 1, but clones all the structs in the array.)
+ *
+ *  Unlike the other structs, when retrieving a string from an Sarray,
+ *  you are allowed to get a handle without a copy or clone (i.e., that
+ *  you don't own!).  You must not free or insert such a string!
+ *  Specifically, for an Sarray, the copyflag for retrieval is either:
+ *         TRUE (or 1 or L_COPY)
+ *  or
+ *         FALSE (or 0 or L_NOCOPY)
+ *  For insertion, the copyflag is either:
+ *         TRUE (or 1 or L_COPY)
+ *  or
+ *         FALSE (or 0 or L_INSERT)
+ *  Note that L_COPY is always 1, and L_INSERT and L_NOCOPY are always 0.
  */
 enum {
     L_INSERT = 0,     /* stuff it in; no copy, clone or copy-clone    */
     L_COPY = 1,       /* make/use a copy of the object                */
     L_CLONE = 2,      /* make/use clone (ref count) of the object     */
     L_COPY_CLONE = 3  /* make a new object and fill with with clones  */
-	              /* of each object in the array(s)               */
+                      /* of each object in the array(s)               */
 };
+static const l_int32  L_NOCOPY = 0;  /* copyflag value in sarrayGetString() */
 
 
 /*-------------------------------------------------------------------------*

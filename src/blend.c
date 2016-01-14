@@ -127,7 +127,7 @@ static l_uint8 blendComponentValues(l_uint8 a, l_uint8 b, l_float32 f);
  */
 PIX *
 pixBlend(PIX       *pixs1,
-	 PIX       *pixs2,
+         PIX       *pixs2,
          l_int32    x,
          l_int32    y,
          l_float32  fract)
@@ -139,23 +139,23 @@ PIX       *pixc, *pixt, *pixd;
     PROCNAME("pixBlend");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
 
         /* check relative depths */
     d1 = pixGetDepth(pixs1);
     d2 = pixGetDepth(pixs2);
     if (d1 == 1 && d2 > 1)
-	return (PIX *)ERROR_PTR("mixing gray or color with 1 bpp",
-	                        procName, NULL);
+        return (PIX *)ERROR_PTR("mixing gray or color with 1 bpp",
+                                procName, NULL);
 
-	/* remove colormap from pixs2 if necessary */
+        /* remove colormap from pixs2 if necessary */
     pixt = pixRemoveColormap(pixs2, REMOVE_CMAP_BASED_ON_SRC);
     d2 = pixGetDepth(pixt);
 
         /* Check if pixs2 is clipped by its position with respect
-	 * to pixs1; if so, clip it and redefine x and y if necessary.
+         * to pixs1; if so, clip it and redefine x and y if necessary.
          * This actually isn't necessary, as the specific blending
          * functions do the clipping directly in the pixel loop
          * over pixs2, but it's included here to show how it can
@@ -166,8 +166,8 @@ PIX       *pixc, *pixt, *pixd;
     pixc = pixClipRectangle(pixt, box, NULL);
     boxDestroy(&box);
     if (!pixc) {
-	L_WARNING("box doesn't overlap pix", procName);
-	return NULL;
+        L_WARNING("box doesn't overlap pix", procName);
+        return NULL;
     }
     x = L_MAX(0, x);
     y = L_MAX(0, y);
@@ -212,7 +212,7 @@ PIX       *pixc, *pixt, *pixd;
 PIX *
 pixBlendMask(PIX       *pixd,
              PIX       *pixs1,
-	     PIX       *pixs2,
+             PIX       *pixs2,
              l_int32    x,
              l_int32    y,
              l_float32  fract,
@@ -227,20 +227,20 @@ PIX       *pixc, *pixt1, *pixt2;
     PROCNAME("pixBlendMask");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
     if (pixGetDepth(pixs1) == 1)
-	return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
     if (pixGetDepth(pixs2) != 1)
-	return (PIX *)ERROR_PTR("pixs2 not 1 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not 1 bpp", procName, pixs1);
     if (pixd == pixs1 && pixGetColormap(pixs1))
-	return (PIX *)ERROR_PTR("inplace; pixs1 has colormap", procName, pixs1);
+        return (PIX *)ERROR_PTR("inplace; pixs1 has colormap", procName, pixs1);
     if (pixd && (pixd != pixs1))
-	return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
     if (fract < 0.0 || fract > 1.0) {
-	L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
-	fract = 0.5;
+        L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
+        fract = 0.5;
     }
     if (type != L_BLEND_WITH_INVERSE && type != L_BLEND_TO_WHITE &&
         type != L_BLEND_TO_BLACK) {
@@ -251,17 +251,17 @@ PIX       *pixc, *pixt1, *pixt2;
 
 
         /* If pixd != NULL, we know that it is equal to pixs1 and
-	 * that pixs1 does not have a colormap, so that an in-place operation
-	 * can be done.  Otherwise, remove colormap from pixs1 if
+         * that pixs1 does not have a colormap, so that an in-place operation
+         * can be done.  Otherwise, remove colormap from pixs1 if
          * it exists and unpack to at least 8 bpp if necessary,
          * to do the blending on a new pix. */
     if (!pixd) {
         pixt1 = pixRemoveColormap(pixs1, REMOVE_CMAP_BASED_ON_SRC);
         if (pixGetDepth(pixt1) < 8)
-            pixt2 = pixConvertTo8(pixt1);
+            pixt2 = pixConvertTo8(pixt1, FALSE);
         else
             pixt2 = pixClone(pixt1);
-	pixd = pixCopy(NULL, pixt2);
+        pixd = pixCopy(NULL, pixt2);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
@@ -279,111 +279,111 @@ PIX       *pixc, *pixt1, *pixt2;
     switch (type)
     {
     case L_BLEND_WITH_INVERSE:
-	for (i = 0; i < hc; i++) {
+        for (i = 0; i < hc; i++) {
             if (i + y < 0  || i + y >= h) continue; 
-	    linec = datac + i * wplc;
-	    for (j = 0; j < wc; j++) {
+            linec = datac + i * wplc;
+            for (j = 0; j < wc; j++) {
                 if (j + x < 0  || j + x >= w) continue; 
-		bval = GET_DATA_BIT(linec, j);
-		if (bval) {
-		    switch (d)
-		    {
-		    case 8:
-			pixGetPixel(pixd, x + j, y + i, &pixval);
-			val = (l_uint8)((1. - fract) * pixval +
-					     fract * (255 - pixval));
-			pixSetPixel(pixd, x + j, y + i, val);
-			break;
-		    case 32:
-			pixGetPixel(pixd, x + j, y + i, &pixval);
-			val = GET_DATA_BYTE(&pixval, COLOR_RED);
-			rval = (l_uint8)((1. - fract) * val
-			                  + fract * (255 - val));
-			val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
-			gval = (l_uint8)((1. - fract) * val
-			                  + fract * (255 - val));
-			val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
-			bval = (l_uint8)((1. - fract) * val
-			                  + fract * (255 - val));
-			composeRGBPixel(rval, gval, bval, &pixval);
-			pixSetPixel(pixd, x + j, y + i, pixval);
-			break;
-		    default:
-			L_WARNING("d neither 8 nor 32 bpp; no blend", procName);
-		    }
-		}
-	    }
-	}
-	break;
+                bval = GET_DATA_BIT(linec, j);
+                if (bval) {
+                    switch (d)
+                    {
+                    case 8:
+                        pixGetPixel(pixd, x + j, y + i, &pixval);
+                        val = (l_uint8)((1. - fract) * pixval +
+                                             fract * (255 - pixval));
+                        pixSetPixel(pixd, x + j, y + i, val);
+                        break;
+                    case 32:
+                        pixGetPixel(pixd, x + j, y + i, &pixval);
+                        val = GET_DATA_BYTE(&pixval, COLOR_RED);
+                        rval = (l_uint8)((1. - fract) * val
+                                          + fract * (255 - val));
+                        val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
+                        gval = (l_uint8)((1. - fract) * val
+                                          + fract * (255 - val));
+                        val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
+                        bval = (l_uint8)((1. - fract) * val
+                                          + fract * (255 - val));
+                        composeRGBPixel(rval, gval, bval, &pixval);
+                        pixSetPixel(pixd, x + j, y + i, pixval);
+                        break;
+                    default:
+                        L_WARNING("d neither 8 nor 32 bpp; no blend", procName);
+                    }
+                }
+            }
+        }
+        break;
     case L_BLEND_TO_WHITE:
-	for (i = 0; i < hc; i++) {
+        for (i = 0; i < hc; i++) {
             if (i + y < 0  || i + y >= h) continue; 
-	    linec = datac + i * wplc;
-	    for (j = 0; j < wc; j++) {
+            linec = datac + i * wplc;
+            for (j = 0; j < wc; j++) {
                 if (j + x < 0  || j + x >= w) continue; 
-		bval = GET_DATA_BIT(linec, j);
-		if (bval) {
-		    switch (d)
-		    {
-		    case 8:
-			pixGetPixel(pixd, x + j, y + i, &pixval);
-			val = (l_uint8)(pixval + fract * (255 - pixval));
-			pixSetPixel(pixd, x + j, y + i, val);
-			break;
-		    case 32:
-			pixGetPixel(pixd, x + j, y + i, &pixval);
-			val = GET_DATA_BYTE(&pixval, COLOR_RED);
-			rval = (l_uint8)(val + fract * (255 - val));
-			val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
-			gval = (l_uint8)(val + fract * (255 - val));
-			val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
-			bval = (l_uint8)(val + fract * (255 - val));
-			composeRGBPixel(rval, gval, bval, &pixval);
-			pixSetPixel(pixd, x + j, y + i, pixval);
-			break;
-		    default:
-			L_WARNING("d neither 8 nor 32 bpp; no blend", procName);
-		    }
-		}
-	    }
-	}
-	break;
+                bval = GET_DATA_BIT(linec, j);
+                if (bval) {
+                    switch (d)
+                    {
+                    case 8:
+                        pixGetPixel(pixd, x + j, y + i, &pixval);
+                        val = (l_uint8)(pixval + fract * (255 - pixval));
+                        pixSetPixel(pixd, x + j, y + i, val);
+                        break;
+                    case 32:
+                        pixGetPixel(pixd, x + j, y + i, &pixval);
+                        val = GET_DATA_BYTE(&pixval, COLOR_RED);
+                        rval = (l_uint8)(val + fract * (255 - val));
+                        val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
+                        gval = (l_uint8)(val + fract * (255 - val));
+                        val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
+                        bval = (l_uint8)(val + fract * (255 - val));
+                        composeRGBPixel(rval, gval, bval, &pixval);
+                        pixSetPixel(pixd, x + j, y + i, pixval);
+                        break;
+                    default:
+                        L_WARNING("d neither 8 nor 32 bpp; no blend", procName);
+                    }
+                }
+            }
+        }
+        break;
     case L_BLEND_TO_BLACK:
-	for (i = 0; i < hc; i++) {
+        for (i = 0; i < hc; i++) {
             if (i + y < 0  || i + y >= h) continue; 
-	    linec = datac + i * wplc;
-	    for (j = 0; j < wc; j++) {
+            linec = datac + i * wplc;
+            for (j = 0; j < wc; j++) {
                 if (j + x < 0  || j + x >= w) continue; 
-		bval = GET_DATA_BIT(linec, j);
-		if (bval) {
-		    switch (d)
-		    {
-		    case 8:
-			pixGetPixel(pixd, x + j, y + i, &pixval);
-			val = (l_uint8)((1. - fract) * pixval);
-			pixSetPixel(pixd, x + j, y + i, val);
-			break;
-		    case 32:
-			pixGetPixel(pixd, x + j, y + i, &pixval);
-			val = GET_DATA_BYTE(&pixval, COLOR_RED);
-			rval = (l_uint8)((1. - fract) * val);
-			val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
-			gval = (l_uint8)((1. - fract) * val);
-			val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
-			bval = (l_uint8)((1. - fract) * val);
-			composeRGBPixel(rval, gval, bval, &pixval);
-			pixSetPixel(pixd, x + j, y + i, pixval);
-			break;
-		    default:
-			L_WARNING("d neither 8 nor 32 bpp; no blend", procName);
-		    }
-		}
-	    }
-	}
-	break;
+                bval = GET_DATA_BIT(linec, j);
+                if (bval) {
+                    switch (d)
+                    {
+                    case 8:
+                        pixGetPixel(pixd, x + j, y + i, &pixval);
+                        val = (l_uint8)((1. - fract) * pixval);
+                        pixSetPixel(pixd, x + j, y + i, val);
+                        break;
+                    case 32:
+                        pixGetPixel(pixd, x + j, y + i, &pixval);
+                        val = GET_DATA_BYTE(&pixval, COLOR_RED);
+                        rval = (l_uint8)((1. - fract) * val);
+                        val = GET_DATA_BYTE(&pixval, COLOR_GREEN);
+                        gval = (l_uint8)((1. - fract) * val);
+                        val = GET_DATA_BYTE(&pixval, COLOR_BLUE);
+                        bval = (l_uint8)((1. - fract) * val);
+                        composeRGBPixel(rval, gval, bval, &pixval);
+                        pixSetPixel(pixd, x + j, y + i, pixval);
+                        break;
+                    default:
+                        L_WARNING("d neither 8 nor 32 bpp; no blend", procName);
+                    }
+                }
+            }
+        }
+        break;
     default:
         L_WARNING("invalid binary mask blend type", procName);
-	break;
+        break;
     }
     
     pixDestroy(&pixc);
@@ -431,7 +431,7 @@ PIX       *pixc, *pixt1, *pixt2;
 PIX *
 pixBlendGray(PIX       *pixd,
              PIX       *pixs1,
-	     PIX       *pixs2,
+             PIX       *pixs2,
              l_int32    x,
              l_int32    y,
              l_float32  fract,
@@ -449,22 +449,22 @@ PIX       *pixc, *pixt1, *pixt2;
     PROCNAME("pixBlendGray");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
     if (pixGetDepth(pixs1) == 1)
-	return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
     if (pixGetDepth(pixs2) != 8)
-	return (PIX *)ERROR_PTR("pixs2 not 8 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not 8 bpp", procName, pixs1);
     if (pixGetColormap(pixs2))
-	return (PIX *)ERROR_PTR("pixs2 has a colormap", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 has a colormap", procName, pixs1);
     if (pixd == pixs1 && pixGetColormap(pixs1))
-	return (PIX *)ERROR_PTR("can't do in-place with cmap", procName, pixs1);
+        return (PIX *)ERROR_PTR("can't do in-place with cmap", procName, pixs1);
     if (pixd && (pixd != pixs1))
-	return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
     if (fract < 0.0 || fract > 1.0) {
-	L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
-	fract = 0.5;
+        L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
+        fract = 0.5;
     }
     if (type != L_BLEND_GRAY && type != L_BLEND_GRAY_WITH_INVERSE) {
         L_WARNING("invalid blend type; setting to L_BLEND_GRAY", procName);
@@ -472,17 +472,17 @@ PIX       *pixc, *pixt1, *pixt2;
     }
 
         /* If pixd != NULL, we know that it is equal to pixs1 and
-	 * that pixs1 does not have a colormap, so that an in-place operation
-	 * can be done.  Otherwise, remove colormap from pixs1 if
+         * that pixs1 does not have a colormap, so that an in-place operation
+         * can be done.  Otherwise, remove colormap from pixs1 if
          * it exists and unpack to at least 8 bpp if necessary,
          * to do the blending on a new pix. */
     if (!pixd) {
         pixt1 = pixRemoveColormap(pixs1, REMOVE_CMAP_BASED_ON_SRC);
         if (pixGetDepth(pixt1) < 8)
-            pixt2 = pixConvertTo8(pixt1);
+            pixt2 = pixConvertTo8(pixt1, FALSE);
         else
             pixt2 = pixClone(pixt1);
-	pixd = pixCopy(NULL, pixt2);
+        pixd = pixCopy(NULL, pixt2);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
@@ -556,7 +556,7 @@ PIX       *pixc, *pixt1, *pixt2;
                         (transparent != 0 && cval != transpix)) {
                         ival = GET_DATA_BYTE(lined, j + x);
                         delta = (cval * ival + (255 - cval) * (255 - ival))
-			        / 256 - ival;
+                                / 256 - ival;
                         ival = ival + (l_int32)(fract * delta);
                         SET_DATA_BYTE(lined, j + x, ival);
                     }
@@ -571,15 +571,15 @@ PIX       *pixc, *pixt1, *pixt2;
                         val32 = *(lined + j + x);
                         irval = GET_DATA_BYTE(&val32, COLOR_RED);
                         delta = (cval * irval + (255 - cval) * (255 - irval))
-			        / 256 - irval;
+                                / 256 - irval;
                         irval = irval + (l_int32)(fract * delta);
                         igval = GET_DATA_BYTE(&val32, COLOR_GREEN);
                         delta = (cval * igval + (255 - cval) * (255 - igval))
-			        / 256 - igval;
+                                / 256 - igval;
                         igval = igval + (l_int32)(fract * delta);
                         ibval = GET_DATA_BYTE(&val32, COLOR_BLUE);
                         delta = (cval * ibval + (255 - cval) * (255 - ibval))
-			        / 256 - ibval;
+                                / 256 - ibval;
                         ibval = ibval + (l_int32)(fract * delta);
                         composeRGBPixel(irval, igval, ibval, &val32);
                         *(lined + j + x) = val32;
@@ -628,7 +628,7 @@ PIX       *pixc, *pixt1, *pixt2;
 PIX *
 pixBlendColor(PIX       *pixd,
               PIX       *pixs1,
-	      PIX       *pixs2,
+              PIX       *pixs2,
               l_int32    x,
               l_int32    y,
               l_float32  fract,
@@ -644,25 +644,25 @@ PIX       *pixc, *pixt1, *pixt2;
     PROCNAME("pixBlendColor");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
     if (pixGetDepth(pixs1) == 1)
-	return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
     if (pixGetDepth(pixs2) != 32)
-	return (PIX *)ERROR_PTR("pixs2 not 32 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not 32 bpp", procName, pixs1);
     if (pixd == pixs1 && pixGetDepth(pixs1) != 32)
-	return (PIX *)ERROR_PTR("inplace; pixs1 not 32 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("inplace; pixs1 not 32 bpp", procName, pixs1);
     if (pixd && (pixd != pixs1))
-	return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
     if (fract < 0.0 || fract > 1.0) {
-	L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
-	fract = 0.5;
+        L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
+        fract = 0.5;
     }
 
         /* If pixd != NULL, we know that it is equal to pixs1 and
-	 * that pixs1 is 32 bpp rgb, so that an in-place operation
-	 * can be done.  Otherwise, remove colormap from pixs1 if
+         * that pixs1 is 32 bpp rgb, so that an in-place operation
+         * can be done.  Otherwise, remove colormap from pixs1 if
          * it exists and unpack to 32 bpp if necessary, to do the
          * blending on a new 32 bpp Pix. */
     if (!pixd) {
@@ -671,7 +671,7 @@ PIX       *pixc, *pixt1, *pixt2;
             pixt2 = pixConvertTo32(pixt1);
         else
             pixt2 = pixClone(pixt1);
-	pixd = pixCopy(NULL, pixt2);
+        pixd = pixCopy(NULL, pixt2);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
@@ -689,8 +689,8 @@ PIX       *pixc, *pixt1, *pixt2;
         /* check limits for src1, in case clipping was not done */
     for (i = 0; i < hc; i++) {
         if (i + y < 0  || i + y >= h) continue; 
-	linec = datac + i * wplc;
-	lined = datad + (i + y) * wpld;
+        linec = datac + i * wplc;
+        lined = datad + (i + y) * wpld;
         for (j = 0; j < wc; j++) {
             if (j + x < 0  || j + x >= w) continue; 
             cval32 = *(linec + j);
@@ -742,7 +742,7 @@ PIX       *pixc, *pixt1, *pixt2;
 PIX *
 pixBlendColorByChannel(PIX       *pixd,
                        PIX       *pixs1,
-            	       PIX       *pixs2,
+                           PIX       *pixs2,
                        l_int32    x,
                        l_int32    y,
                        l_float32  rfract,
@@ -760,21 +760,21 @@ PIX       *pixc, *pixt1, *pixt2;
     PROCNAME("pixBlendColorByChannel");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, pixs1);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, pixs1);
     if (pixGetDepth(pixs1) == 1)
-	return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs1 is 1 bpp", procName, pixs1);
     if (pixGetDepth(pixs2) != 32)
-	return (PIX *)ERROR_PTR("pixs2 not 32 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixs2 not 32 bpp", procName, pixs1);
     if (pixd == pixs1 && pixGetDepth(pixs1) != 32)
-	return (PIX *)ERROR_PTR("inplace; pixs1 not 32 bpp", procName, pixs1);
+        return (PIX *)ERROR_PTR("inplace; pixs1 not 32 bpp", procName, pixs1);
     if (pixd && (pixd != pixs1))
-	return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
+        return (PIX *)ERROR_PTR("pixd must be NULL or pixs1", procName, pixs1);
 
         /* If pixd != NULL, we know that it is equal to pixs1 and
-	 * that pixs1 is 32 bpp rgb, so that an in-place operation
-	 * can be done.  Otherwise, remove colormap from pixs1 if
+         * that pixs1 is 32 bpp rgb, so that an in-place operation
+         * can be done.  Otherwise, remove colormap from pixs1 if
          * it exists and unpack to 32 bpp if necessary, to do the
          * blending on a new 32 bpp Pix. */
     if (!pixd) {
@@ -783,7 +783,7 @@ PIX       *pixc, *pixt1, *pixt2;
             pixt2 = pixConvertTo32(pixt1);
         else
             pixt2 = pixClone(pixt1);
-	pixd = pixCopy(NULL, pixt2);
+        pixd = pixCopy(NULL, pixt2);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
@@ -801,8 +801,8 @@ PIX       *pixc, *pixt1, *pixt2;
         /* check limits for src1, in case clipping was not done */
     for (i = 0; i < hc; i++) {
         if (i + y < 0  || i + y >= h) continue; 
-	linec = datac + i * wplc;
-	lined = datad + (i + y) * wpld;
+        linec = datac + i * wplc;
+        lined = datad + (i + y) * wpld;
         for (j = 0; j < wc; j++) {
             if (j + x < 0  || j + x >= w) continue; 
             cval32 = *(linec + j);
@@ -832,13 +832,13 @@ PIX       *pixc, *pixt1, *pixt2;
 
 static l_uint8
 blendComponentValues(l_uint8 a,
-		     l_uint8 b,
-		     l_float32 f)
+                     l_uint8 b,
+                     l_float32 f)
 {
     if (f < 0.)
         return (l_uint8)((a < b) ? a : b);
     if (f > 1.)
-	return (l_uint8)((a > b) ? a : b);
+        return (l_uint8)((a > b) ? a : b);
     return (l_uint8)((1. - f) * a + f * b);
 }
 
@@ -890,13 +890,13 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
     PROCNAME("pixBlendCmap");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pixb)
-	return ERROR_INT("pixb not defined", procName, 1);
+        return ERROR_INT("pixb not defined", procName, 1);
     if ((cmaps = pixGetColormap(pixs)) == NULL)
-	return ERROR_INT("no colormap in pixs", procName, 1);
+        return ERROR_INT("no colormap in pixs", procName, 1);
     if ((cmapb = pixGetColormap(pixb)) == NULL)
-	return ERROR_INT("no colormap in pixb", procName, 1);
+        return ERROR_INT("no colormap in pixb", procName, 1);
     ncb = pixcmapGetCount(cmapb);
 
         /* Make a copy of cmaps; we'll add to this if necessary
@@ -906,7 +906,7 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
 
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8)
-	return ERROR_INT("depth not in {2,4,8}", procName, 1);
+        return ERROR_INT("depth not in {2,4,8}", procName, 1);
 
         /* Add new colors if necessary; get mapping array between
          * cmaps and cmapb. */
@@ -941,7 +941,7 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
     for (i = 0; i < hb; i++) {
         if (i + y < 0  || i + y >= h) continue; 
         lines = datas + (y + i) * wpls;
-	for (j = 0; j < wb; j++) {
+        for (j = 0; j < wb; j++) {
             if (j + x < 0  || j + x >= w) continue; 
             switch (d) {
             case 2:
@@ -968,7 +968,7 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
             default:
                 return ERROR_INT("depth not in {2,4,8}", procName, 1);
             }
-	}
+        }
     }
 
     return 0;
@@ -1032,33 +1032,33 @@ PIXCMAP    *cmap;
     PROCNAME("pixColorGray");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (type != L_PAINT_LIGHT && type != L_PAINT_DARK)
         return ERROR_INT("invalid type", procName, 1);
 
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
     if (!cmap && d != 32)
-	return ERROR_INT("pixs not cmapped or rgb", procName, 1);
+        return ERROR_INT("pixs not cmapped or rgb", procName, 1);
     if (cmap)
         return pixColorGrayCmap(pixs, box, type, rval, gval, bval);
 
         /* rgb image; check the thresh */
     if (type == L_PAINT_LIGHT) {  /* thresh should be low */
-	if (thresh >= 255)
-	    return ERROR_INT("thresh must be < 255; else this is a no-op",
-			     procName, 1);
-	if (thresh > 127)
-	    L_WARNING("threshold set very high", procName);
+        if (thresh >= 255)
+            return ERROR_INT("thresh must be < 255; else this is a no-op",
+                             procName, 1);
+        if (thresh > 127)
+            L_WARNING("threshold set very high", procName);
     }
     else {  /* type == L_PAINT_DARK; thresh should be high */
-	if (thresh <= 0)
-	    return ERROR_INT("thresh must be > 0; else this is a no-op",
-			     procName, 1);
-	if (thresh < 128)
-	    L_WARNING("threshold set very low", procName);
+        if (thresh <= 0)
+            return ERROR_INT("thresh must be > 0; else this is a no-op",
+                             procName, 1);
+        if (thresh < 128)
+            L_WARNING("threshold set very low", procName);
     }
 
     w = pixGetWidth(pixs);
@@ -1088,20 +1088,20 @@ PIXCMAP    *cmap;
             val32 = *(line + j);
             aveval = ((val32 >> 24) + ((val32 >> 16) & 0xff) +
                       ((val32 >> 8) & 0xff)) / 3;
-	    if (type == L_PAINT_LIGHT) {
-		if (aveval < thresh)  /* skip sufficiently dark pixels */
-		    continue;
-		nrval = (l_int32)(rval * aveval * factor);
-		ngval = (l_int32)(gval * aveval * factor);
-		nbval = (l_int32)(bval * aveval * factor);
-	    }
-	    else {  /* type == L_PAINT_DARK */
-		if (aveval > thresh)  /* skip sufficiently light pixels */
-		    continue;
-		nrval = rval + (l_int32)((255. - rval) * aveval * factor);
-		ngval = gval + (l_int32)((255. - gval) * aveval * factor);
-		nbval = bval + (l_int32)((255. - bval) * aveval * factor);
-	    }
+            if (type == L_PAINT_LIGHT) {
+                if (aveval < thresh)  /* skip sufficiently dark pixels */
+                    continue;
+                nrval = (l_int32)(rval * aveval * factor);
+                ngval = (l_int32)(gval * aveval * factor);
+                nbval = (l_int32)(bval * aveval * factor);
+            }
+            else {  /* type == L_PAINT_DARK */
+                if (aveval > thresh)  /* skip sufficiently light pixels */
+                    continue;
+                nrval = rval + (l_int32)((255. - rval) * aveval * factor);
+                ngval = gval + (l_int32)((255. - gval) * aveval * factor);
+                nbval = bval + (l_int32)((255. - bval) * aveval * factor);
+            }
             composeRGBPixel(nrval, ngval, nbval, &val32);
             *(line + j) = val32;
         }
@@ -1151,9 +1151,9 @@ l_uint32  *line, *data;
     PROCNAME("pixSnapColor");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixs);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixs);
     if (pixd && (pixd != pixs))
-	return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixs);
+        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixs);
 
     if (pixGetColormap(pixs))
         return pixSnapColorCmap(pixd, pixs, srcval, dstval, diff);
@@ -1161,11 +1161,11 @@ l_uint32  *line, *data;
         /* pixs does not have a colormap; it must be 8 bpp gray or
          * 32 bpp rgb. */
     if (pixGetDepth(pixs) < 8)
-	return (PIX *)ERROR_PTR("pixs is < 8 bpp", procName, pixs);
+        return (PIX *)ERROR_PTR("pixs is < 8 bpp", procName, pixs);
 
         /* Do the work on pixd */
     if (!pixd)
-	pixd = pixCopy(NULL, pixs);
+        pixd = pixCopy(NULL, pixs);
 
     d = pixGetDepth(pixd);
     w = pixGetWidth(pixd);
@@ -1242,17 +1242,17 @@ PIXCMAP   *cmap;
     PROCNAME("pixSnapColorCmap");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixs);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixs);
     if (!pixGetColormap(pixs))
-	return (PIX *)ERROR_PTR("cmap not found", procName, pixs);
+        return (PIX *)ERROR_PTR("cmap not found", procName, pixs);
     if (pixd && (pixd != pixs))
-	return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixs);
+        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixs);
 
     if (!pixd)
         pixd = pixCopy(NULL, pixs);
 
         /* If no free colors, look for one close to the target
-	 * that can be commandeered. */
+         * that can be commandeered. */
     cmap = pixGetColormap(pixd);
     ncolors = pixcmapGetCount(cmap);
     rsval = GET_DATA_BYTE(&srcval, COLOR_RED);
@@ -1263,27 +1263,27 @@ PIXCMAP   *cmap;
     bdval = GET_DATA_BYTE(&dstval, COLOR_BLUE);
     found = FALSE;
     if (pixcmapGetFreeCount(cmap) == 0) {
-	for (i = 0; i < ncolors; i++) {
-	    pixcmapGetColor(cmap, i, &rval, &gval, &bval);
-	    if ((L_ABS(rval - rsval) <= diff) &&
-		(L_ABS(gval - gsval) <= diff) &&
-		(L_ABS(bval - bsval) <= diff)) {
-		index = i;
-		pixcmapResetColor(cmap, index, rdval, gdval, bdval);
-		found = TRUE;
-		break;
-	    }
-	}
+        for (i = 0; i < ncolors; i++) {
+            pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+            if ((L_ABS(rval - rsval) <= diff) &&
+                (L_ABS(gval - gsval) <= diff) &&
+                (L_ABS(bval - bsval) <= diff)) {
+                index = i;
+                pixcmapResetColor(cmap, index, rdval, gdval, bdval);
+                found = TRUE;
+                break;
+            }
+        }
     }
     else {  /* just add the new color */
-	pixcmapAddColor(cmap, rdval, gdval, bdval);
-	index = ncolors;  /* index of new destination color */
-	found = TRUE;
+        pixcmapAddColor(cmap, rdval, gdval, bdval);
+        index = ncolors;  /* index of new destination color */
+        found = TRUE;
     }
 
     if (!found) {
         L_INFO("nothing to do", procName);
-	return pixd;
+        return pixd;
     }
 
         /* For each color in cmap that is close enough to srcval,

@@ -49,7 +49,7 @@ static char  mainName[] = "contrasttest";
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 	    
-#if 1
+#if 0
     startTimer();
     pixContrastTRC(pixs, pixs, factor);
     fprintf(stderr, "Time for contrast: %7.3f sec\n", stopTimer());
@@ -72,16 +72,13 @@ static char  mainName[] = "contrasttest";
 
 #if 1     /* plot contrast TRC maps */
     nax = numaMakeSequence(0.0, 1.0, 256);
+    gplot = gplotCreate("junkmap", GPLOT_X11,
+        "Atan mapping function for contrast enhancement",
+        "value in", "value out");
     for (iplot = 0; iplot < NPLOTS; iplot++) {
 	na = numaContrastTRC(fact[iplot]);
 	sprintf(bigbuf, "factor = %3.1f", fact[iplot]);
-	if (iplot == 0)
-	    gplot = gplotCreate(nax, na, "junkmap",
-		GPLOT_X11, GPLOT_LINES,
-		"Atan mapping function for contrast enhancement",
-		bigbuf, "value in", "value out");
-	else
-	    gplotAddPlot(gplot, nax, na, GPLOT_LINES, bigbuf);
+        gplotAddPlot(gplot, nax, na, GPLOT_LINES, bigbuf);
 	numaDestroy(&na);
     }
     gplotMakeOutput(gplot);

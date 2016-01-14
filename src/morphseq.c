@@ -20,6 +20,9 @@
  *      Run a sequence of binary rasterop morphological operations
  *            PIX     *pixMorphSequence()
  *
+ *      Run a sequence of binary composite rasterop morphological operations
+ *            PIX     *pixMorphCompSequence()
+ *
  *      Run a sequence of binary dwa morphological operations
  *            PIX     *pixMorphSequenceDwa()
  *
@@ -110,7 +113,7 @@
 PIX *
 pixMorphSequence(PIX         *pixs,
                  const char  *sequence,
-		 l_int32      dispsep)
+                 l_int32      dispsep)
 {
 char    *rawop, *op;
 l_int32  nops, i, j, nred, fact, w, h, x, y, border;
@@ -121,9 +124,9 @@ SARRAY  *sa;
     PROCNAME("pixMorphSequence");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!sequence)
-	return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
 
         /* Split sequence into individual operations */
     sa = sarrayCreate(0);
@@ -132,7 +135,7 @@ SARRAY  *sa;
 
     if (!morphSequenceVerify(sa)) {
         sarrayDestroy(&sa);
-	return (PIX *)ERROR_PTR("sequence not valid", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not valid", procName, NULL);
     }
 
         /* Parse and operate */
@@ -142,58 +145,58 @@ SARRAY  *sa;
     x = y = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, 0);
-	op = stringRemoveChars(rawop, " \n\t");
-	switch (op[0])
-	{
-	case 'd':
-	case 'D':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixDilateBrick(NULL, pixt1, w, h);
-	    pixDestroy(&pixt1);
+            pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'e':
-	case 'E':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'e':
+        case 'E':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixErodeBrick(NULL, pixt1, w, h);
-	    pixDestroy(&pixt1);
+            pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'o':
-	case 'O':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'o':
+        case 'O':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixOpenBrick(pixt1, pixt1, w, h);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'c':
-	case 'C':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'c':
+        case 'C':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixCloseSafeBrick(pixt1, pixt1, w, h);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'r':
-	case 'R':
-	    nred = strlen(op) - 1;
-	    for (j = 0; j < nred; j++)
-	        level[j] = op[j + 1] - '0';
+            break;
+        case 'r':
+        case 'R':
+            nred = strlen(op) - 1;
+            for (j = 0; j < nred; j++)
+                level[j] = op[j + 1] - '0';
             for (j = nred; j < 4; j++)
-	        level[j] = 0;
+                level[j] = 0;
             pixt2 = pixReduceRankBinaryCascade(pixt1, level[0], level[1],
                                                level[2], level[3]);
             pixDestroy(&pixt1);
@@ -203,9 +206,9 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'x':
-	case 'X':
+            break;
+        case 'x':
+        case 'X':
             sscanf(&op[1], "%d", &fact);
             pixt2 = pixExpandBinary(pixt1, fact);
             pixDestroy(&pixt1);
@@ -215,11 +218,11 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'b':
-	case 'B':
+            break;
+        case 'b':
+        case 'B':
             sscanf(&op[1], "%d", &border);
-	    pixt2 = pixAddBorder(pixt1, border, 0);
+            pixt2 = pixAddBorder(pixt1, border, 0);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
@@ -229,10 +232,190 @@ SARRAY  *sa;
             }
             break;
         default:
-	    /* All invalid ops are caught in the first pass */
-	    break;
-	}
-	FREE(op);
+            /* All invalid ops are caught in the first pass */
+            break;
+        }
+        FREE(op);
+    }
+    if (border > 0) {
+        pixt2 = pixRemoveBorder(pixt1, border);
+        pixDestroy(&pixt1);
+        pixt1 = pixClone(pixt2);
+        pixDestroy(&pixt2);
+    }
+
+    sarrayDestroy(&sa);
+    return pixt1;
+}
+
+
+/*-------------------------------------------------------------------------*
+ *   Run a sequence of binary composite rasterop morphological operations  *
+ *-------------------------------------------------------------------------*/
+/*!
+ *  pixMorphCompSequence()
+ *
+ *      Input:  pixs
+ *              sequence (string specifying sequence)
+ *              dispsep (horizontal separation in pixels between
+ *                       successive displays; use zero to suppress display)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) This does rasterop morphology on binary images, using composite
+ *          operations for extra speed on large Sels.
+ *      (2) Safe closing is used atomically.  However, if you implement a
+ *          closing as a sequence with a dilation followed by an
+ *          erosion, it will not be safe, and to ensure that you have
+ *          no boundary effects you must add a border in advance and
+ *          remove it at the end.
+ *      (3) For other usage details, see the notes for pixMorphSequence().
+ *      (4) The sequence string is formatted as follows:
+ *            - An arbitrary number of operations,  each separated
+ *              by a '+' character.  White space is ignored.
+ *            - Each operation begins with a case-independent character
+ *              specifying the operation:
+ *                 d or D  (dilation)
+ *                 e or E  (erosion)
+ *                 o or O  (opening)
+ *                 c or C  (closing)
+ *                 r or R  (rank binary reduction)
+ *                 x or X  (replicative binary expansion)
+ *                 b or B  (add a border of 0 pixels of this size)
+ *            - The args to the morphological operations are bricks of hits,
+ *              and are formatted as a.b, where a and b are horizontal and
+ *              vertical dimensions, rsp.
+ *            - The args to the reduction are a sequence of up to 4 integers,
+ *              each from 1 to 4.
+ *            - The arg to the expansion is a power of two, in the set
+ *              {2, 4, 8, 16}.
+ */
+PIX *
+pixMorphCompSequence(PIX         *pixs,
+                     const char  *sequence,
+                     l_int32      dispsep)
+{
+char    *rawop, *op;
+l_int32  nops, i, j, nred, fact, w, h, x, y, border;
+l_int32  level[4];
+PIX     *pixt1, *pixt2;
+SARRAY  *sa;
+
+    PROCNAME("pixMorphCompSequence");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!sequence)
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+
+        /* Split sequence into individual operations */
+    sa = sarrayCreate(0);
+    sarraySplitString(sa, sequence, "+");
+    nops = sarrayGetCount(sa);
+
+    if (!morphSequenceVerify(sa)) {
+        sarrayDestroy(&sa);
+        return (PIX *)ERROR_PTR("sequence not valid", procName, NULL);
+    }
+
+        /* Parse and operate */
+    border = 0;
+    pixt1 = pixCopy(NULL, pixs);
+    pixt2 = NULL;
+    x = y = 0;
+    for (i = 0; i < nops; i++) {
+        rawop = sarrayGetString(sa, i, 0);
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixDilateCompBrick(NULL, pixt1, w, h);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'e':
+        case 'E':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixt2 = pixErodeCompBrick(NULL, pixt1, w, h);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'o':
+        case 'O':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixOpenCompBrick(pixt1, pixt1, w, h);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'c':
+        case 'C':
+            sscanf(&op[1], "%d.%d", &w, &h);
+            pixCloseSafeCompBrick(pixt1, pixt1, w, h);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'r':
+        case 'R':
+            nred = strlen(op) - 1;
+            for (j = 0; j < nred; j++)
+                level[j] = op[j + 1] - '0';
+            for (j = nred; j < 4; j++)
+                level[j] = 0;
+            pixt2 = pixReduceRankBinaryCascade(pixt1, level[0], level[1],
+                                               level[2], level[3]);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'x':
+        case 'X':
+            sscanf(&op[1], "%d", &fact);
+            pixt2 = pixExpandBinary(pixt1, fact);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        case 'b':
+        case 'B':
+            sscanf(&op[1], "%d", &border);
+            pixt2 = pixAddBorder(pixt1, border, 0);
+            pixDestroy(&pixt1);
+            pixt1 = pixClone(pixt2);
+            pixDestroy(&pixt2);
+            if (dispsep > 0) {
+                pixDisplay(pixt1, x, y);
+                x += dispsep;
+            }
+            break;
+        default:
+            /* All invalid ops are caught in the first pass */
+            break;
+        }
+        FREE(op);
     }
     if (border > 0) {
         pixt2 = pixRemoveBorder(pixt1, border);
@@ -271,7 +454,7 @@ SARRAY  *sa;
 PIX *
 pixMorphSequenceDwa(PIX         *pixs,
                     const char  *sequence,
-		    l_int32      dispsep)
+                    l_int32      dispsep)
 {
 char    *rawop, *op;
 l_int32  nops, i, j, nred, fact, w, h, x, y, border;
@@ -282,9 +465,9 @@ SARRAY  *sa;
     PROCNAME("pixMorphSequenceDwa");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!sequence)
-	return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
 
         /* Split sequence into individual operations */
     sa = sarrayCreate(0);
@@ -293,7 +476,7 @@ SARRAY  *sa;
 
     if (!morphSequenceVerify(sa)) {
         sarrayDestroy(&sa);
-	return (PIX *)ERROR_PTR("sequence not valid", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not valid", procName, NULL);
     }
 
         /* Parse and operate */
@@ -303,58 +486,58 @@ SARRAY  *sa;
     x = y = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, 0);
-	op = stringRemoveChars(rawop, " \n\t");
-	switch (op[0])
-	{
-	case 'd':
-	case 'D':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixDilateBrickDwa(NULL, pixt1, w, h);
-	    pixDestroy(&pixt1);
+            pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'e':
-	case 'E':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'e':
+        case 'E':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixErodeBrickDwa(NULL, pixt1, w, h);
-	    pixDestroy(&pixt1);
+            pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'o':
-	case 'O':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'o':
+        case 'O':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixOpenBrickDwa(pixt1, pixt1, w, h);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'c':
-	case 'C':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'c':
+        case 'C':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixCloseBrickDwa(pixt1, pixt1, w, h);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'r':
-	case 'R':
-	    nred = strlen(op) - 1;
-	    for (j = 0; j < nred; j++)
-	        level[j] = op[j + 1] - '0';
+            break;
+        case 'r':
+        case 'R':
+            nred = strlen(op) - 1;
+            for (j = 0; j < nred; j++)
+                level[j] = op[j + 1] - '0';
             for (j = nred; j < 4; j++)
-	        level[j] = 0;
+                level[j] = 0;
             pixt2 = pixReduceRankBinaryCascade(pixt1, level[0], level[1],
                                                level[2], level[3]);
             pixDestroy(&pixt1);
@@ -364,9 +547,9 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'x':
-	case 'X':
+            break;
+        case 'x':
+        case 'X':
             sscanf(&op[1], "%d", &fact);
             pixt2 = pixExpandBinary(pixt1, fact);
             pixDestroy(&pixt1);
@@ -376,11 +559,11 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, y);
                 x += dispsep;
             }
-	    break;
-	case 'b':
-	case 'B':
+            break;
+        case 'b':
+        case 'B':
             sscanf(&op[1], "%d", &border);
-	    pixt2 = pixAddBorder(pixt1, border, 0);
+            pixt2 = pixAddBorder(pixt1, border, 0);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
@@ -390,10 +573,10 @@ SARRAY  *sa;
             }
             break;
         default:
-	    /* All invalid ops are caught in the first pass */
-	    break;
-	}
-	FREE(op);
+            /* All invalid ops are caught in the first pass */
+            break;
+        }
+        FREE(op);
     }
     if (border > 0) {
         pixt2 = pixRemoveBorder(pixt1, border);
@@ -428,7 +611,7 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
     PROCNAME("morphSequenceVerify");
 
     if (!sa)
-	return ERROR_INT("sa not defined", procName, FALSE);
+        return ERROR_INT("sa not defined", procName, FALSE);
 
     nops = sarrayGetCount(sa);
     valid = TRUE;
@@ -436,105 +619,105 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
     border = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, 0);
-	op = stringRemoveChars(rawop, " \n\t");
-	switch (op[0])
-	{
-	case 'd':
-	case 'D':
-	case 'e':
-	case 'E':
-	case 'o':
-	case 'O':
-	case 'c':
-	case 'C':
-	    if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
-	        fprintf(stderr, "*** op: %s invalid\n", op);
-		valid = FALSE;
-		break;
-	    }
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+        case 'e':
+        case 'E':
+        case 'o':
+        case 'O':
+        case 'c':
+        case 'C':
+            if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
+                fprintf(stderr, "*** op: %s invalid\n", op);
+                valid = FALSE;
+                break;
+            }
             if (w <= 0 || h <= 0) {
-	        fprintf(stderr,
+                fprintf(stderr,
                         "*** op: %s; w = %d, h = %d; must both be > 0\n",
                         op, w, h);
-		valid = FALSE;
-		break;
-	    }
-/*	    fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
-	    break;
-	case 'r':
-	case 'R':
-	    nred = strlen(op) - 1;
-	    netred += nred;
-	    if (nred < 1 || nred > 4) {
-		fprintf(stderr,
+                valid = FALSE;
+                break;
+            }
+/*            fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
+            break;
+        case 'r':
+        case 'R':
+            nred = strlen(op) - 1;
+            netred += nred;
+            if (nred < 1 || nred > 4) {
+                fprintf(stderr,
                         "*** op = %s; num reduct = %d; must be in {1,2,3,4}\n",
                         op, nred);
-		valid = FALSE;
-		break;
-	    }
-	    for (j = 0; j < nred; j++) {
-	        level[j] = op[j + 1] - '0';
-		if (level[j] < 1 || level[j] > 4) {
-		    fprintf(stderr, "*** op = %s; level[%d] = %d is invalid\n",
+                valid = FALSE;
+                break;
+            }
+            for (j = 0; j < nred; j++) {
+                level[j] = op[j + 1] - '0';
+                if (level[j] < 1 || level[j] > 4) {
+                    fprintf(stderr, "*** op = %s; level[%d] = %d is invalid\n",
                             op, j, level[j]);
-		    valid = FALSE;
+                    valid = FALSE;
                     break;
-		}
-	    }
+                }
+            }
             if (!valid)
                 break;
-/*	    fprintf(stderr, "op = %s", op); */
-	    for (j = 0; j < nred; j++) {
-	        level[j] = op[j + 1] - '0';
-/*		fprintf(stderr, ", level[%d] = %d", j, level[j]); */
+/*            fprintf(stderr, "op = %s", op); */
+            for (j = 0; j < nred; j++) {
+                level[j] = op[j + 1] - '0';
+/*                fprintf(stderr, ", level[%d] = %d", j, level[j]); */
             }
-/*	    fprintf(stderr, "\n"); */
-	    break;
-	case 'x':
-	case 'X':
+/*            fprintf(stderr, "\n"); */
+            break;
+        case 'x':
+        case 'X':
             if (sscanf(&op[1], "%d", &fact) != 1) {
-	        fprintf(stderr, "*** op: %s; fact invalid\n", op);
-		valid = FALSE;
-		break;
-	    }
-	    if (fact != 2 && fact != 4 && fact != 8 && fact != 16) {
-	        fprintf(stderr, "*** op = %s; invalid fact = %d\n", op, fact);
-		valid = FALSE;
-		break;
-	    }
-	    netred -= intlogbase2[fact / 4];
-/*	    fprintf(stderr, "op = %s; fact = %d\n", op, fact); */
-	    break;
-	case 'b':
-	case 'B':
+                fprintf(stderr, "*** op: %s; fact invalid\n", op);
+                valid = FALSE;
+                break;
+            }
+            if (fact != 2 && fact != 4 && fact != 8 && fact != 16) {
+                fprintf(stderr, "*** op = %s; invalid fact = %d\n", op, fact);
+                valid = FALSE;
+                break;
+            }
+            netred -= intlogbase2[fact / 4];
+/*            fprintf(stderr, "op = %s; fact = %d\n", op, fact); */
+            break;
+        case 'b':
+        case 'B':
             if (sscanf(&op[1], "%d", &fact) != 1) {
-	        fprintf(stderr, "*** op: %s; fact invalid\n", op);
-		valid = FALSE;
-		break;
-	    }
-	    if (i > 0) {
-	        fprintf(stderr, "*** op = %s; must be first op\n", op);
-		valid = FALSE;
-		break;
-	    }
-	    if (fact < 1) {
-	        fprintf(stderr, "*** op = %s; invalid fact = %d\n", op, fact);
-		valid = FALSE;
-		break;
-	    }
-	    border = fact;
-/*	    fprintf(stderr, "op = %s; fact = %d\n", op, fact); */
-	    break;
-	default:
-	    fprintf(stderr, "*** nonexistent op = %s\n", op);
-	    valid = FALSE;
-	}
-	FREE(op);
+                fprintf(stderr, "*** op: %s; fact invalid\n", op);
+                valid = FALSE;
+                break;
+            }
+            if (i > 0) {
+                fprintf(stderr, "*** op = %s; must be first op\n", op);
+                valid = FALSE;
+                break;
+            }
+            if (fact < 1) {
+                fprintf(stderr, "*** op = %s; invalid fact = %d\n", op, fact);
+                valid = FALSE;
+                break;
+            }
+            border = fact;
+/*            fprintf(stderr, "op = %s; fact = %d\n", op, fact); */
+            break;
+        default:
+            fprintf(stderr, "*** nonexistent op = %s\n", op);
+            valid = FALSE;
+        }
+        FREE(op);
     }
 
     if (border != 0 && netred != 0) {
         fprintf(stderr, "*** border added but net reduction not 0\n", op);
-	valid = FALSE;
+        valid = FALSE;
     }
     return valid;
 }
@@ -599,72 +782,72 @@ SARRAY  *sa;
     PROCNAME("pixGrayMorphSequence");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!sequence)
-	return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
 
         /* Split sequence into individual operations */
     sa = sarrayCreate(0);
     sarraySplitString(sa, sequence, "+");
     nops = sarrayGetCount(sa);
 
-	/* Verify that the operation sequence is valid */
+        /* Verify that the operation sequence is valid */
     valid = TRUE;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, 0);
-	op = stringRemoveChars(rawop, " \n\t");
-	switch (op[0])
-	{
-	case 'd':
-	case 'D':
-	case 'e':
-	case 'E':
-	case 'o':
-	case 'O':
-	case 'c':
-	case 'C':
-	    if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
-	        fprintf(stderr, "*** op: %s invalid\n", op);
-		valid = FALSE;
-		break;
-	    }
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+        case 'e':
+        case 'E':
+        case 'o':
+        case 'O':
+        case 'c':
+        case 'C':
+            if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
+                fprintf(stderr, "*** op: %s invalid\n", op);
+                valid = FALSE;
+                break;
+            }
             if (w < 1 || (w & 1) == 0 || h < 1 || (h & 1) == 0 ) {
-	        fprintf(stderr,
+                fprintf(stderr,
                         "*** op: %s; w = %d, h = %d; must both be odd\n",
                         op, w, h);
-		valid = FALSE;
-		break;
-	    }
-/*	    fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
-	    break;
-	case 't':
-	case 'T':
-	    if (op[1] != 'w' && op[1] != 'W' &&
+                valid = FALSE;
+                break;
+            }
+/*            fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
+            break;
+        case 't':
+        case 'T':
+            if (op[1] != 'w' && op[1] != 'W' &&
                 op[1] != 'b' && op[1] != 'B') {
-		fprintf(stderr,
+                fprintf(stderr,
                         "*** op = %s; arg %c must be 'w' or 'b'\n", op, op[1]);
-		valid = FALSE;
-		break;
-	    }
-	    sscanf(&op[2], "%d.%d", &w, &h);
+                valid = FALSE;
+                break;
+            }
+            sscanf(&op[2], "%d.%d", &w, &h);
             if (w < 1 || (w & 1) == 0 || h < 1 || (h & 1) == 0 ) {
-	        fprintf(stderr,
+                fprintf(stderr,
                         "*** op: %s; w = %d, h = %d; must both be odd\n",
                         op, w, h);
-		valid = FALSE;
-		break;
-	    }
-/*	    fprintf(stderr, "op = %s", op); */
-	    break;
-	default:
-	    fprintf(stderr, "*** nonexistent op = %s\n", op);
-	    valid = FALSE;
-	}
-	FREE(op);
+                valid = FALSE;
+                break;
+            }
+/*            fprintf(stderr, "op = %s", op); */
+            break;
+        default:
+            fprintf(stderr, "*** nonexistent op = %s\n", op);
+            valid = FALSE;
+        }
+        FREE(op);
     }
     if (!valid) {
         sarrayDestroy(&sa);
-	return (PIX *)ERROR_PTR("sequence invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence invalid", procName, NULL);
     }
 
         /* Parse and operate */
@@ -673,24 +856,24 @@ SARRAY  *sa;
     x = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, 0);
-	op = stringRemoveChars(rawop, " \n\t");
-	switch (op[0])
-	{
-	case 'd':
-	case 'D':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+        op = stringRemoveChars(rawop, " \n\t");
+        switch (op[0])
+        {
+        case 'd':
+        case 'D':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixDilateGray(pixt1, w, h);
-	    pixDestroy(&pixt1);
+            pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
             if (dispsep > 0) {
                 pixDisplay(pixt1, x, dispy);
                 x += dispsep;
             }
-	    break;
-	case 'e':
-	case 'E':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'e':
+        case 'E':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixErodeGray(pixt1, w, h);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
@@ -699,10 +882,10 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, dispy);
                 x += dispsep;
             }
-	    break;
-	case 'o':
-	case 'O':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'o':
+        case 'O':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixOpenGray(pixt1, w, h);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
@@ -711,10 +894,10 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, dispy);
                 x += dispsep;
             }
-	    break;
-	case 'c':
-	case 'C':
-	    sscanf(&op[1], "%d.%d", &w, &h);
+            break;
+        case 'c':
+        case 'C':
+            sscanf(&op[1], "%d.%d", &w, &h);
             pixt2 = pixCloseGray(pixt1, w, h);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
@@ -723,14 +906,14 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, dispy);
                 x += dispsep;
             }
-	    break;
-	case 't':
-	case 'T':
-	    sscanf(&op[2], "%d.%d", &w, &h);
-	    if (op[1] == 'w' || op[1] == 'W')
-		pixt2 = pixTophat(pixt1, w, h, TOPHAT_WHITE);
-	    else   /* 'b' or 'B' */
-		pixt2 = pixTophat(pixt1, w, h, TOPHAT_BLACK);
+            break;
+        case 't':
+        case 'T':
+            sscanf(&op[2], "%d.%d", &w, &h);
+            if (op[1] == 'w' || op[1] == 'W')
+                pixt2 = pixTophat(pixt1, w, h, L_TOPHAT_WHITE);
+            else   /* 'b' or 'B' */
+                pixt2 = pixTophat(pixt1, w, h, L_TOPHAT_BLACK);
             pixDestroy(&pixt1);
             pixt1 = pixClone(pixt2);
             pixDestroy(&pixt2);
@@ -738,12 +921,12 @@ SARRAY  *sa;
                 pixDisplay(pixt1, x, dispy);
                 x += dispsep;
             }
-	    break;
+            break;
         default:
-	    /* All invalid ops are caught in the first pass */
-	    break;
-	}
-	FREE(op);
+            /* All invalid ops are caught in the first pass */
+            break;
+        }
+        FREE(op);
     }
 
     sarrayDestroy(&sa);

@@ -19,14 +19,15 @@
  *      General rasterop
  *           l_int32    pixRasterop()
  *
- *      In-place full band rasterop
+ *      In-place full band translation
  *           l_int32    pixRasteropVip()
  *           l_int32    pixRasteropHip()
  *
- *      In-place shift
+ *      Full image translation (general and in-place)
+ *           l_int32    pixTranslate()
  *           l_int32    pixRasteropIP()
  *
- *      Full image rasterop with no shifts
+ *      Full image rasterop with no translation
  *           l_int32    pixRasteropFullImage()
  */
 
@@ -38,7 +39,7 @@
 
 
 /*--------------------------------------------------------------------*
- *               Intermediate-level rasterop interface                *
+ *                General rasterop (basic pix interface)              *
  *--------------------------------------------------------------------*/
 /*!
  *  pixRasterop()
@@ -54,10 +55,12 @@
  *              sy     (y val of UL corner of src rectangle)
  *      Return: 0 if OK; 1 on error.
  *
- *  Action: If the operation involves only dest, this calls
+ *  Notes:
+ *      (1) This has the standard set of 9 args for rasterop.
+ *          This function is your friend; it is worth memorizing!
+ *      (2) If the operation involves only dest, this calls
  *          rasteropUniLow().  Otherwise, checks depth of the
  *          src and dest, and if they match, calls rasteropLow().
- *          This has the standard set of 9 args for rasterop.
  *
  *  Background:
  *  -----------
@@ -184,45 +187,45 @@ l_int32  dd;
     PROCNAME("pixRasterop");
 
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
 
     if (op == PIX_DST)   /* no-op */
-	return 0;
+        return 0;
 
-	/* check if operation is only on dest */
+        /* Check if operation is only on dest */
     dd = pixGetDepth(pixd);
     if (op == PIX_CLR || op == PIX_SET || op == PIX_NOT(PIX_DST)) {
         rasteropUniLow(pixGetData(pixd),
-	               pixGetWidth(pixd), pixGetHeight(pixd), dd,
-	 	       pixGetWpl(pixd),
-		       dx, dy, dw, dh,
-		       op);
-	return 0;
+                       pixGetWidth(pixd), pixGetHeight(pixd), dd,
+                        pixGetWpl(pixd),
+                       dx, dy, dw, dh,
+                       op);
+        return 0;
     }
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
 
-	/* check depth of src and depth; these must agree */
+        /* Check depth of src and depth; these must agree */
     if (dd != pixGetDepth(pixs))
-	return ERROR_INT("depths of pixs and pixd differ", procName, 1);
+        return ERROR_INT("depths of pixs and pixd differ", procName, 1);
 
     rasteropLow(pixGetData(pixd),
-		pixGetWidth(pixd), pixGetHeight(pixd), dd,
-		pixGetWpl(pixd),
-		dx, dy, dw, dh,
-		op,
-		pixGetData(pixs),
-		pixGetWidth(pixs), pixGetHeight(pixs),
-		pixGetWpl(pixs),
-		sx, sy);
+                pixGetWidth(pixd), pixGetHeight(pixd), dd,
+                pixGetWpl(pixd),
+                dx, dy, dw, dh,
+                op,
+                pixGetData(pixs),
+                pixGetWidth(pixs), pixGetHeight(pixs),
+                pixGetWpl(pixs),
+                sx, sy);
 
     return 0;
 }
 
 
 /*--------------------------------------------------------------------*
- *                     In-place full band rasterop                    *
+ *                    In-place full band translation                  *
  *--------------------------------------------------------------------*/
 /*!
  *  pixRasteropVip()
@@ -235,46 +238,48 @@ l_int32  dd;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This rasterop brings in either white or black pixels
- *          from outside the image.
+ *      (1) This rasterop translates a vertical band of the
+ *          image either up or down, bringing in either white
+ *          or black pixels from outside the image.
+ *      (2) The vertical band extends the full height of pixd.
  */
 l_int32
 pixRasteropVip(PIX     *pixd,
                l_int32  x,
                l_int32  w,
                l_int32  vshift,
-	       l_int32  incolor)
+               l_int32  incolor)
 {
 l_int32  h, d, op;
 
     PROCNAME("pixRasteropVip");
 
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return ERROR_INT("invalid value for incolor", procName, 1);
+        return ERROR_INT("invalid value for incolor", procName, 1);
 
     if (vshift == 0)
-	return 0;
+        return 0;
 
     rasteropVipLow(pixGetData(pixd),
                    pixGetWidth(pixd), pixGetHeight(pixd),
-		   pixGetDepth(pixd), pixGetWpl(pixd),
-		   x, w, vshift);
+                   pixGetDepth(pixd), pixGetWpl(pixd),
+                   x, w, vshift);
 
     d = pixGetDepth(pixd);
     if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
         (d > 1 && incolor == L_BRING_IN_WHITE))
-	op = PIX_SET;
+        op = PIX_SET;
     else
-	op = PIX_CLR;
+        op = PIX_CLR;
 
         /* Set the pixels brought in at top or bottom */
     if (vshift > 0)
-	pixRasterop(pixd, x, 0, w, vshift, op, NULL, 0, 0);
+        pixRasterop(pixd, x, 0, w, vshift, op, NULL, 0, 0);
     else {   /* vshift < 0 */
-	h = pixGetHeight(pixd);
-	pixRasterop(pixd, x, h + vshift, w, -vshift, op, NULL, 0, 0);
+        h = pixGetHeight(pixd);
+        pixRasterop(pixd, x, h + vshift, w, -vshift, op, NULL, 0, 0);
     }
 
     return 0;
@@ -284,7 +289,7 @@ l_int32  h, d, op;
 /*!
  *  pixRasteropHip()
  *
- *      Input:  pixd (in-place)
+ *      Input:  pixd (in-place operation)
  *              y    (top of horizontal band)
  *              h    (height of horizontal band)
  *              hshift (horizontal shift of band; hshift > 0 is to right)
@@ -292,43 +297,45 @@ l_int32  h, d, op;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This rasterop brings in either white or black pixels
- *          from outside the image.
+ *      (1) This rasterop translates a horizontal band of the
+ *          image either left or right, bringing in either white
+ *          or black pixels from outside the image.
+ *      (2) The horizontal band extends the full width of pixd.
  */
 l_int32
 pixRasteropHip(PIX     *pixd,
                l_int32  y,
                l_int32  h,
                l_int32  hshift,
-	       l_int32  incolor)
+               l_int32  incolor)
 {
 l_int32  w, d, op;
 
     PROCNAME("pixRasteropHip");
 
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
 
     if (hshift == 0)
-	return 0;
+        return 0;
 
     rasteropHipLow(pixGetData(pixd), pixGetHeight(pixd),
-		   pixGetDepth(pixd), pixGetWpl(pixd),
-		   y, h, hshift);
+                   pixGetDepth(pixd), pixGetWpl(pixd),
+                   y, h, hshift);
 
     d = pixGetDepth(pixd);
     if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
         (d > 1 && incolor == L_BRING_IN_WHITE))
-	op = PIX_SET;
+        op = PIX_SET;
     else
-	op = PIX_CLR;
+        op = PIX_CLR;
 
         /* Set the pixels brought in at left or right */
     if (hshift > 0)
-	pixRasterop(pixd, 0, y, hshift, h, op, NULL, 0, 0);
+        pixRasterop(pixd, 0, y, hshift, h, op, NULL, 0, 0);
     else {   /* hshift < 0 */
-	w = pixGetWidth(pixd);
-	pixRasterop(pixd, w + hshift, y, -hshift, h, op, NULL, 0, 0);
+        w = pixGetWidth(pixd);
+        pixRasterop(pixd, w + hshift, y, -hshift, h, op, NULL, 0, 0);
     }
 
     return 0;
@@ -336,12 +343,44 @@ l_int32  w, d, op;
 
 
 /*--------------------------------------------------------------------*
- *                            In-place shift                          *
+ *             Full image translation (general and in-place)          *
  *--------------------------------------------------------------------*/
+/*!
+ *  pixTranslate()
+ *
+ *      Input:  pixd (<optional> destination: this can be null,
+ *                    equal to pixs, or different from pixs)
+ *              pixs
+ *              hshift (horizontal shift; hshift > 0 is to right)
+ *              vshift (vertical shift; vshift > 0 is down)
+ *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
+ *      Return: pixd always
+ */
+PIX *
+pixTranslate(PIX     *pixd,
+             PIX     *pixs,
+             l_int32  hshift,
+             l_int32  vshift,
+             l_int32  incolor)
+{
+    PROCNAME("pixTranslate");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixs != pixd) {
+        if ((pixd = pixCopy(pixd, pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
+    }
+
+    pixRasteropIP(pixd, hshift, vshift, incolor);
+    return pixd;
+}
+
+
 /*!
  *  pixRasteropIP()
  *
- *      Input:  pixd (in-place)
+ *      Input:  pixd (in-place translation)
  *              hshift (horizontal shift; hshift > 0 is to right)
  *              vshift (vertical shift; vshift > 0 is down)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
@@ -351,14 +390,14 @@ l_int32
 pixRasteropIP(PIX     *pixd,
               l_int32  hshift,
               l_int32  vshift,
-	      l_int32  incolor)
+              l_int32  incolor)
 {
 l_int32  w, h;
 
     PROCNAME("pixRasteropIP");
 
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
 
     w = pixGetWidth(pixd);
     h = pixGetHeight(pixd);
@@ -390,18 +429,17 @@ l_int32  w, h;
 l_int32
 pixRasteropFullImage(PIX     *pixd,
                      PIX     *pixs,
-		     l_int32  op)
+                     l_int32  op)
 {
     PROCNAME("pixRasteropFullImage");
 
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
 
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd), op,
-	        pixs, 0, 0);
+                pixs, 0, 0);
     return 0;
 }
-
 

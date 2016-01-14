@@ -84,11 +84,11 @@ PIX   *pixt1, *pixt2, *pixt3, *pixt4;
     PROCNAME("pixDilateBrickDwa");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -96,28 +96,28 @@ PIX   *pixt1, *pixt2, *pixt3, *pixt4;
     sela = selaAddBasic(NULL);
     if (hsize > 1) {
         if ((selnameh = selaGetBrickName(sela, hsize, 1)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
+        }
     }
     if (vsize > 1) {
         if ((selnamev = selaGetBrickName(sela, 1, vsize)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
+        }
     }
     selaDestroy(&sela);
 
     pixt1 = pixAddBorder(pixs, ADDED_BORDER, 0);
     if (hsize > 1) {
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_DILATION, selnameh);
-	FREE(selnameh);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh);
+        FREE(selnameh);
     }
     else
         pixt2 = pixClone(pixt1);
     if (vsize > 1) {
-        pixt3 = pixFMorphopGen_1(NULL, pixt2, MORPH_DILATION, selnamev);
-	FREE(selnamev);
+        pixt3 = pixFMorphopGen_1(NULL, pixt2, L_MORPH_DILATE, selnamev);
+        FREE(selnamev);
     }
     else
         pixt3 = pixClone(pixt2);
@@ -169,11 +169,11 @@ PIX     *pixt1, *pixt2, *pixt3, *pixt4;
     PROCNAME("pixErodeBrickDwa");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -181,35 +181,35 @@ PIX     *pixt1, *pixt2, *pixt3, *pixt4;
     sela = selaAddBasic(NULL);
     if (hsize > 1) {
         if ((selnameh = selaGetBrickName(sela, hsize, 1)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
+        }
     }
     if (vsize > 1) {
         if ((selnamev = selaGetBrickName(sela, 1, vsize)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
+        }
     }
     selaDestroy(&sela);
 
-    bordercolor = getMorphBorderPixelColor(MORPH_EROSION, 1);
+    bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
     if (bordercolor == 1)
         erodeop = PIX_SET;
     else
         erodeop = PIX_CLR;
     pixt1 = pixAddBorder(pixs, ADDED_BORDER, bordercolor);
     if (hsize > 1) {
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_EROSION, selnameh);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, erodeop);
-	FREE(selnameh);
+        FREE(selnameh);
     }
     else
         pixt2 = pixClone(pixt1);
     if (vsize > 1) {
-        pixt3 = pixFMorphopGen_1(NULL, pixt2, MORPH_EROSION, selnamev);
-	FREE(selnamev);
+        pixt3 = pixFMorphopGen_1(NULL, pixt2, L_MORPH_ERODE, selnamev);
+        FREE(selnamev);
     }
     else
         pixt3 = pixClone(pixt2);
@@ -261,11 +261,11 @@ PIX     *pixt1, *pixt2;
     PROCNAME("pixOpenBrickDwa");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -273,54 +273,54 @@ PIX     *pixt1, *pixt2;
     sela = selaAddBasic(NULL);
     if (hsize > 1) {
         if ((selnameh = selaGetBrickName(sela, hsize, 1)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
+        }
     }
     if (vsize > 1) {
         if ((selnamev = selaGetBrickName(sela, 1, vsize)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
+        }
     }
     selaDestroy(&sela);
 
-    bordercolor = getMorphBorderPixelColor(MORPH_EROSION, 1);
+    bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
     if (bordercolor == 1)
         erodeop = PIX_SET;
     else
         erodeop = PIX_CLR;
     pixt1 = pixAddBorder(pixs, ADDED_BORDER, bordercolor);
     if (vsize == 1) {   /* horizontal only */
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_EROSION, selnameh);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, PIX_CLR);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_DILATION, selnameh);
-	FREE(selnameh);
-	pixDestroy(&pixt2);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_DILATE, selnameh);
+        FREE(selnameh);
+        pixDestroy(&pixt2);
     }
     else if (hsize == 1) {   /* vertical only */
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_EROSION, selnamev);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnamev);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, PIX_CLR);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_DILATION, selnamev);
-	FREE(selnamev);
-	pixDestroy(&pixt2);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_DILATE, selnamev);
+        FREE(selnamev);
+        pixDestroy(&pixt2);
     }
     else {  /* do separable */
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_EROSION, selnameh);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, erodeop);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_EROSION, selnamev);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_ERODE, selnamev);
         pixSetOrClearBorder(pixt1, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, PIX_CLR);
-        pixFMorphopGen_1(pixt2, pixt1, MORPH_DILATION, selnameh);
+        pixFMorphopGen_1(pixt2, pixt1, L_MORPH_DILATE, selnameh);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, PIX_CLR);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_DILATION, selnamev);
-	FREE(selnameh);
-	FREE(selnamev);
-	pixDestroy(&pixt2);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_DILATE, selnamev);
+        FREE(selnameh);
+        FREE(selnamev);
+        pixDestroy(&pixt2);
     }
     pixt2 = pixRemoveBorder(pixt1, ADDED_BORDER);
     pixDestroy(&pixt1);
@@ -370,11 +370,11 @@ PIX     *pixt1, *pixt2;
     PROCNAME("pixCloseBrickDwa");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -382,22 +382,22 @@ PIX     *pixt1, *pixt2;
     sela = selaAddBasic(NULL);
     if (hsize > 1) {
         if ((selnameh = selaGetBrickName(sela, hsize, 1)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa h-sel not defined", procName, pixd);
+        }
     }
     if (vsize > 1) {
         if ((selnamev = selaGetBrickName(sela, 1, vsize)) == NULL) {
-	    selaDestroy(&sela);
-	    return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
-	}
+            selaDestroy(&sela);
+            return (PIX *)ERROR_PTR("dwa v-sel not defined", procName, pixd);
+        }
     }
     selaDestroy(&sela);
 
         /* For "safe closing" with ASYMMETRIC_MORPH_BC, we always need
          * an extra 32 OFF pixels around the image, whereas with
          * SYMMETRIC_MORPH_BC this is not necessary. */
-    bordercolor = getMorphBorderPixelColor(MORPH_EROSION, 1);
+    bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
     if (bordercolor == 0) {  /* asymmetric b.c. */
         erodeop = PIX_CLR;
         bordersize = 2 * ADDED_BORDER;  /* we need the extra 32 pixels of 0 */
@@ -409,35 +409,35 @@ PIX     *pixt1, *pixt2;
     pixt1 = pixAddBorder(pixs, bordersize, 0);
 
     if (vsize == 1) {   /* horizontal only */
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_DILATION, selnameh);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, erodeop);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_EROSION, selnameh);
-	FREE(selnameh);
-	pixDestroy(&pixt2);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_ERODE, selnameh);
+        FREE(selnameh);
+        pixDestroy(&pixt2);
     }
     else if (hsize == 1) {   /* vertical only */
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_DILATION, selnamev);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnamev);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, erodeop);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_EROSION, selnamev);
-	FREE(selnamev);
-	pixDestroy(&pixt2);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_ERODE, selnamev);
+        FREE(selnamev);
+        pixDestroy(&pixt2);
     }
     else {  /* do separable */
-        pixt2 = pixFMorphopGen_1(NULL, pixt1, MORPH_DILATION, selnameh);
+        pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, PIX_CLR);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_DILATION, selnamev);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_DILATE, selnamev);
         pixSetOrClearBorder(pixt1, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, erodeop);
-        pixFMorphopGen_1(pixt2, pixt1, MORPH_EROSION, selnameh);
+        pixFMorphopGen_1(pixt2, pixt1, L_MORPH_ERODE, selnameh);
         pixSetOrClearBorder(pixt2, ADDED_BORDER, ADDED_BORDER, 
                             ADDED_BORDER, ADDED_BORDER, erodeop);
-        pixFMorphopGen_1(pixt1, pixt2, MORPH_EROSION, selnamev);
-	FREE(selnameh);
-	FREE(selnamev);
-	pixDestroy(&pixt2);
+        pixFMorphopGen_1(pixt1, pixt2, L_MORPH_ERODE, selnamev);
+        FREE(selnameh);
+        FREE(selnamev);
+        pixDestroy(&pixt2);
     }
     pixt2 = pixRemoveBorder(pixt1, bordersize);
     pixDestroy(&pixt1);

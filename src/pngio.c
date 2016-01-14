@@ -68,7 +68,7 @@ PIX *
 pixReadStreamPng(FILE  *fp)
 {
 l_uint8      rval, gval, bval;
-l_int32	     i, j, k;
+l_int32             i, j, k;
 l_int32      wpl, d, spp, cindex;
 l_uint32     png_transforms;
 l_uint32    *data, *line, *ppixel;
@@ -96,27 +96,27 @@ PIXCMAP     *cmap;
         return (PIX *)ERROR_PTR("png_ptr not made", procName, NULL);
 
     if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
-	png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+        png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
         return (PIX *)ERROR_PTR("info_ptr not made", procName, NULL);
     }
 
     if ((end_info = png_create_info_struct(png_ptr)) == NULL) {
-	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
         return (PIX *)ERROR_PTR("end_info not made", procName, NULL);
     }
 
-	/* Set up png setjmp error handling */
+        /* Set up png setjmp error handling */
     if (setjmp(png_jmpbuf(png_ptr))) {
-	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
         return (PIX *)ERROR_PTR("internal png error", procName, NULL);
     }
 
     png_init_io(png_ptr, fp);
 
-	/* Set the transforms flags.  Whatever you do here,
-	 * DO NOT invert binary using PNG_TRANSFORM_INVERT_MONO!!
-	 * To remove alpha channel, use PNG_TRANSFORM_STRIP_ALPHA
-	 * To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
+        /* Set the transforms flags.  Whatever you do here,
+         * DO NOT invert binary using PNG_TRANSFORM_INVERT_MONO!!
+         * To remove alpha channel, use PNG_TRANSFORM_STRIP_ALPHA
+         * To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
 #if 0  /* this does both */
     png_transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_STRIP_ALPHA;
 #else  /* this just strips alpha */
@@ -137,104 +137,104 @@ PIXCMAP     *cmap;
     spp = channels;
 
     if (spp == 1)
-	d = bit_depth;
+        d = bit_depth;
     else if (spp == 2) {
-	d = 2 * bit_depth;
-	L_WARNING("there shouldn't be 2 spp!", procName);
+        d = 2 * bit_depth;
+        L_WARNING("there shouldn't be 2 spp!", procName);
     }
     else if (spp == 3)
-	d = 4 * bit_depth;
+        d = 4 * bit_depth;
     else  {  /* spp == 4 */
-	d = 4 * bit_depth;
-	L_WARNING("there shouldn't be 4 spp!", procName);
+        d = 4 * bit_depth;
+        L_WARNING("there shouldn't be 4 spp!", procName);
     }
 
-	/* Remove if/when this is implemented for all bit_depths */
+        /* Remove if/when this is implemented for all bit_depths */
     if (spp == 3 && bit_depth != 8) {
-	fprintf(stderr, "Help: spp = 3 and depth = %d != 8\n!!", bit_depth);
-	return (PIX *)ERROR_PTR("not implemented for this depth",
-	    procName, NULL);
+        fprintf(stderr, "Help: spp = 3 and depth = %d != 8\n!!", bit_depth);
+        return (PIX *)ERROR_PTR("not implemented for this depth",
+            procName, NULL);
     }
 
     if (color_type == PNG_COLOR_TYPE_PALETTE ||
         color_type == PNG_COLOR_MASK_PALETTE) {   /* generate a colormap */
-	png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
-	cmap = pixcmapCreate(d);  /* spp == 1 */
-	for (cindex = 0; cindex < num_palette; cindex++) {
-	    rval = palette[cindex].red;
-	    gval = palette[cindex].green;
-	    bval = palette[cindex].blue;
-	    pixcmapAddColor(cmap, rval, gval, bval);
-	}
+        png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
+        cmap = pixcmapCreate(d);  /* spp == 1 */
+        for (cindex = 0; cindex < num_palette; cindex++) {
+            rval = palette[cindex].red;
+            gval = palette[cindex].green;
+            bval = palette[cindex].blue;
+            pixcmapAddColor(cmap, rval, gval, bval);
+        }
     }
     else
-	cmap = NULL;
+        cmap = NULL;
 
     if ((pix = pixCreate(w, h, d)) == NULL) {
-	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-	return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     }
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
     pixSetColormap(pix, cmap);
 
     if (spp == 1) {   /* copy straight from buffer to pix */
-	for (i = 0; i < h; i++) {
-	    line = data + i * wpl;
-	    rowptr = row_pointers[i];
-	    for (j = 0; j < rowbytes; j++) {
-		SET_DATA_BYTE(line, j, rowptr[j]);
-	    }
-	}
+        for (i = 0; i < h; i++) {
+            line = data + i * wpl;
+            rowptr = row_pointers[i];
+            for (j = 0; j < rowbytes; j++) {
+                SET_DATA_BYTE(line, j, rowptr[j]);
+            }
+        }
     }
     else  {   /* spp == 3 */
-	for (i = 0; i < h; i++) {
-	    ppixel = data + i * wpl;
-	    rowptr = row_pointers[i];
+        for (i = 0; i < h; i++) {
+            ppixel = data + i * wpl;
+            rowptr = row_pointers[i];
             for (j = k = 0; j < w; j++) {
-		SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k++]);
-		SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k++]);
-		SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
-		ppixel++;
-	    }
-	}
+                SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k++]);
+                SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k++]);
+                SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
+                ppixel++;
+            }
+        }
     }
 
 #if  DEBUG
     if (cmap) {
-	for (i = 0; i < 16; i++) {
-	    fprintf(stderr, "[%d] = %d\n", i,
-		   ((l_uint8 *)(cmap->array))[i]);
-	}
+        for (i = 0; i < 16; i++) {
+            fprintf(stderr, "[%d] = %d\n", i,
+                   ((l_uint8 *)(cmap->array))[i]);
+        }
     }
 #endif  /* DEBUG */
 
-	/* If there is no colormap, PNG defines black = 0 and
-	 * white = 1 by default for binary monochrome.  Therefore,
-	 * since we use the opposite definition, we must invert
-	 * the image in either of these cases:
-	 *    (i) there is no colormap (default)
-	 *    (ii) there is a colormap which defines black to
-	 *         be 0 and white to be 1.
-	 * We cannot use the PNG_TRANSFORM_INVERT_MONO flag
-	 * because that flag (since version 1.0.9) inverts 8 bpp
-	 * grayscale as well, which we don't want to do.
-	 * (It also doesn't work if there is a colormap.)
-	 * If there is a colormap that defines black = 1 and
-	 * white = 0, we don't need to do anything.
-	 * 
-	 * How do we check the polarity of the colormap?
-	 * The colormap determines the values of black and
-	 * white pixels in the following way:
-	 *     if black = 1 (255), white = 0
-	 *          255, 255, 255, 0, 0, 0, 0, 0, 0
-	 *     if black = 0, white = 1 (255)
-	 *          0, 0, 0, 0, 255, 255, 255, 0
-	 * So we test the first byte to see if it is 0;
+        /* If there is no colormap, PNG defines black = 0 and
+         * white = 1 by default for binary monochrome.  Therefore,
+         * since we use the opposite definition, we must invert
+         * the image in either of these cases:
+         *    (i) there is no colormap (default)
+         *    (ii) there is a colormap which defines black to
+         *         be 0 and white to be 1.
+         * We cannot use the PNG_TRANSFORM_INVERT_MONO flag
+         * because that flag (since version 1.0.9) inverts 8 bpp
+         * grayscale as well, which we don't want to do.
+         * (It also doesn't work if there is a colormap.)
+         * If there is a colormap that defines black = 1 and
+         * white = 0, we don't need to do anything.
+         * 
+         * How do we check the polarity of the colormap?
+         * The colormap determines the values of black and
+         * white pixels in the following way:
+         *     if black = 1 (255), white = 0
+         *          255, 255, 255, 0, 0, 0, 0, 0, 0
+         *     if black = 0, white = 1 (255)
+         *          0, 0, 0, 0, 255, 255, 255, 0
+         * So we test the first byte to see if it is 0;
          * if so, invert the data.  */
     if (d == 1 && (!cmap || (cmap && ((l_uint8 *)(cmap->array))[0] == 0x0))) {
-/*	fprintf(stderr, "Inverting binary data on png read\n"); */
-	pixInvert(pix, pix);
+/*        fprintf(stderr, "Inverting binary data on png read\n"); */
+        pixInvert(pix, pix);
     }
 
     xres = png_get_x_pixels_per_meter(png_ptr, info_ptr);
@@ -494,7 +494,7 @@ pixWriteStreamPng(FILE      *fp,
                   PIX       *pix,
                   l_float32  gamma)
 {
-l_int32	     i, j, k;
+l_int32             i, j, k;
 l_int32      wpl, d, cmflag;
 l_int32      ncolors;
 l_int32     *rmap, *gmap, *bmap;
@@ -524,13 +524,13 @@ char        *text;
         return ERROR_INT("png_ptr not made", procName, 1);
 
     if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
-	png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
         return ERROR_INT("info_ptr not made", procName, 1);
     }
 
-	/* Set up png setjmp error handling */
+        /* Set up png setjmp error handling */
     if (setjmp(png_jmpbuf(png_ptr))) {
-	png_destroy_write_struct(&png_ptr, &info_ptr);
+        png_destroy_write_struct(&png_ptr, &info_ptr);
         return ERROR_INT("internal png error", procName, 1);
     }
 
@@ -540,20 +540,20 @@ char        *text;
     h = pixGetHeight(pix);
     d = pixGetDepth(pix);
     if ((cmap = pixGetColormap(pix)))
-	cmflag = 1;
+        cmflag = 1;
     else
-	cmflag = 0;
+        cmflag = 0;
     if (d == 32) {
-	bit_depth = 8;
-	color_type = PNG_COLOR_TYPE_RGB;
-	cmflag = 0;  /* ignore if it exists */
+        bit_depth = 8;
+        color_type = PNG_COLOR_TYPE_RGB;
+        cmflag = 0;  /* ignore if it exists */
     }
     else {
-	bit_depth = d;
-	color_type = PNG_COLOR_TYPE_GRAY;
+        bit_depth = d;
+        color_type = PNG_COLOR_TYPE_GRAY;
     }
     if (cmflag)
-	color_type = PNG_COLOR_TYPE_PALETTE;
+        color_type = PNG_COLOR_TYPE_PALETTE;
 
 #if  DEBUG
     fprintf(stderr, "cmflag = %d, bit_depth = %d, color_type = %d\n",
@@ -562,36 +562,36 @@ char        *text;
 
     png_set_IHDR(png_ptr, info_ptr, w, h, bit_depth, color_type,
                  PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-		 PNG_FILTER_TYPE_BASE);
+                 PNG_FILTER_TYPE_BASE);
 
         /* Store resolution in ppm, if known */
     xres = (png_uint_32)(39.37 * (l_float32)pixGetXRes(pix) + 0.5);
     yres = (png_uint_32)(39.37 * (l_float32)pixGetYRes(pix) + 0.5);
     if ((xres == 0) || (yres == 0))
-	png_set_pHYs(png_ptr, info_ptr, 0, 0, PNG_RESOLUTION_UNKNOWN);
+        png_set_pHYs(png_ptr, info_ptr, 0, 0, PNG_RESOLUTION_UNKNOWN);
     else
-	png_set_pHYs(png_ptr, info_ptr, xres, yres, PNG_RESOLUTION_METER);
+        png_set_pHYs(png_ptr, info_ptr, xres, yres, PNG_RESOLUTION_METER);
 
     if (cmflag) {
-	pixcmapToArrays(cmap, &rmap, &gmap, &bmap);
-	ncolors = pixcmapGetCount(cmap);
+        pixcmapToArrays(cmap, &rmap, &gmap, &bmap);
+        ncolors = pixcmapGetCount(cmap);
 
-	    /* Make and save the palette */
-	if ((palette = (png_colorp)(CALLOC(ncolors, sizeof(png_color))))
-		== NULL)
-	    return ERROR_INT("palette not made", procName, 1);
+            /* Make and save the palette */
+        if ((palette = (png_colorp)(CALLOC(ncolors, sizeof(png_color))))
+                == NULL)
+            return ERROR_INT("palette not made", procName, 1);
 
-	for (i = 0; i < ncolors; i++) {
-	    palette[i].red = (png_byte)rmap[i];
-	    palette[i].green = (png_byte)gmap[i];
-	    palette[i].blue = (png_byte)bmap[i];
-	}
+        for (i = 0; i < ncolors; i++) {
+            palette[i].red = (png_byte)rmap[i];
+            palette[i].green = (png_byte)gmap[i];
+            palette[i].blue = (png_byte)bmap[i];
+        }
 
-	png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
+        png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
 
-	FREE(rmap);
-	FREE(gmap);
-	FREE(bmap);
+        FREE(rmap);
+        FREE(gmap);
+        FREE(bmap);
     }
 
         /* 0.4545 is treated as the default by some image
@@ -613,74 +613,74 @@ char        *text;
 #endif
         png_set_text(png_ptr, info_ptr, &text_chunk, 1);
     }
-	/* Write header and palette info */
+        /* Write header and palette info */
     png_write_info(png_ptr, info_ptr);
 
     if (d != 32) {  /* not 24 bit color */
-	    /* Generate a temporary pix with bytes swapped.
-	     * For a binary image, there are two conditions in
-	     * which you must first invert the data for writing png:
-	     *    (a) no colormap
-	     *    (b) colormap with BLACK set to 0
-	     * png writes binary with BLACK = 0, unless contradicted
-	     * by a colormap.  If the colormap has BLACK = "1"
-	     * (typ. about 255), do not invert the data.  If there
-	     * is no colormap, you must invert the data to store
-	     * in default BLACK = 0 state.  */
-	if (d == 1 &&
+            /* Generate a temporary pix with bytes swapped.
+             * For a binary image, there are two conditions in
+             * which you must first invert the data for writing png:
+             *    (a) no colormap
+             *    (b) colormap with BLACK set to 0
+             * png writes binary with BLACK = 0, unless contradicted
+             * by a colormap.  If the colormap has BLACK = "1"
+             * (typ. about 255), do not invert the data.  If there
+             * is no colormap, you must invert the data to store
+             * in default BLACK = 0 state.  */
+        if (d == 1 &&
             (!cmap || (cmap && ((l_uint8 *)(cmap->array))[0] == 0x0))) {
-	    pixt = pixInvert(NULL, pix);
+            pixt = pixInvert(NULL, pix);
             pixEndianByteSwap(pixt);
         }
         else 
             pixt = pixEndianByteSwapNew(pix);
         if (!pixt) {
-	    png_destroy_write_struct(&png_ptr, &info_ptr);
-	    return ERROR_INT("pixt not made", procName, 1);
-	}
+            png_destroy_write_struct(&png_ptr, &info_ptr);
+            return ERROR_INT("pixt not made", procName, 1);
+        }
 
-	    /* Make and assign array of image row pointers */
-	if ((row_pointers = (png_bytep *)CALLOC(h, sizeof(png_bytep))) == NULL)
-	    return ERROR_INT("row-pointers not made", procName, 1);
+            /* Make and assign array of image row pointers */
+        if ((row_pointers = (png_bytep *)CALLOC(h, sizeof(png_bytep))) == NULL)
+            return ERROR_INT("row-pointers not made", procName, 1);
         wpl = pixGetWpl(pixt);
         data = pixGetData(pixt);
-	for (i = 0; i < h; i++)
-	    row_pointers[i] = (png_bytep)(data + i * wpl);
-	png_set_rows(png_ptr, info_ptr, row_pointers);
+        for (i = 0; i < h; i++)
+            row_pointers[i] = (png_bytep)(data + i * wpl);
+        png_set_rows(png_ptr, info_ptr, row_pointers);
 
             /* Transfer the data */
-	png_write_image(png_ptr, row_pointers);
-	png_write_end(png_ptr, info_ptr);
+        png_write_image(png_ptr, row_pointers);
+        png_write_end(png_ptr, info_ptr);
 
-	if (cmflag)
-	    FREE(palette);
-	FREE(row_pointers);
-	pixDestroy(&pixt);
-	png_destroy_write_struct(&png_ptr, &info_ptr);
-	return 0;
+        if (cmflag)
+            FREE(palette);
+        FREE(row_pointers);
+        pixDestroy(&pixt);
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+        return 0;
     }
 
-	/* 24 bit color; write a row at a time */
+        /* 24 bit color; write a row at a time */
     if ((rowbuffer = (png_bytep)CALLOC(w, 3)) == NULL)
-	return ERROR_INT("rowbuffer not made", procName, 1);
+        return ERROR_INT("rowbuffer not made", procName, 1);
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
     for (i = 0; i < h; i++) {
-	ppixel = data + i * wpl;
-	for (j = k = 0; j < w; j++) {
-	    rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
-	    rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-	    rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-	    ppixel++;
-	}
+        ppixel = data + i * wpl;
+        for (j = k = 0; j < w; j++) {
+            rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
+            rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+            rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+            ppixel++;
+        }
 
-	png_write_rows(png_ptr, &rowbuffer, 1);
+        png_write_rows(png_ptr, &rowbuffer, 1);
     }
 
     png_write_end(png_ptr, info_ptr);
 
     if (cmflag)
-	FREE(palette);
+        FREE(palette);
     FREE(rowbuffer);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     return 0;

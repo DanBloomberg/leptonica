@@ -66,7 +66,7 @@
  *         PIX   *pixFMorphopGen_1(PIX *pixd, PIX *pixs,
  *                                 l_int32 operation, char *selname);
  *
- *        The operation is either MORPH_DILATION or MORPH_EROSION.
+ *        The operation is either L_MORPH_DILATE or L_MORPH_ERODE.
  *        The selname is one of the set that were defined
  *        as the name field of sels.  This set is listed at the
  *        beginning of the file fmorphgen.1.c.
@@ -124,86 +124,86 @@ static SARRAY * sarrayMakeInnerLoopDWACode(SEL *sel, l_int32 index);
 static SARRAY * sarrayMakeWplsCode(SEL *sel);
 
 static  char   *wpldecls[] = {
-	    "l_int32              wpls2;",
-	    "l_int32              wpls2, wpls3;",
-	    "l_int32              wpls2, wpls3, wpls4;",
-	    "l_int32              wpls5;",
-	    "l_int32              wpls5, wpls6;",
-	    "l_int32              wpls5, wpls6, wpls7;",
-	    "l_int32              wpls5, wpls6, wpls7, wpls8;",
-	    "l_int32              wpls9;",
-	    "l_int32              wpls9, wpls10;",
-	    "l_int32              wpls9, wpls10, wpls11;",
-	    "l_int32              wpls9, wpls10, wpls11, wpls12;",
-	    "l_int32              wpls13;",
-	    "l_int32              wpls13, wpls14;",
-	    "l_int32              wpls13, wpls14, wpls15;",
-	    "l_int32              wpls13, wpls14, wpls15, wpls16;",
-	    "l_int32              wpls17;",
-	    "l_int32              wpls17, wpls18;",
-	    "l_int32              wpls17, wpls18, wpls19;",
-	    "l_int32              wpls17, wpls18, wpls19, wpls20;",
-	    "l_int32              wpls21;",
-	    "l_int32              wpls21, wpls22;",
-	    "l_int32              wpls21, wpls22, wpls23;",
-	    "l_int32              wpls21, wpls22, wpls23, wpls24;",
-	    "l_int32              wpls25;",
-	    "l_int32              wpls25, wpls26;",
-	    "l_int32              wpls25, wpls26, wpls27;",
-	    "l_int32              wpls25, wpls26, wpls27, wpls28;",
-	    "l_int32              wpls29;",
-	    "l_int32              wpls29, wpls30;",
-	    "l_int32              wpls29, wpls30, wpls31;"};
+            "l_int32              wpls2;",
+            "l_int32              wpls2, wpls3;",
+            "l_int32              wpls2, wpls3, wpls4;",
+            "l_int32              wpls5;",
+            "l_int32              wpls5, wpls6;",
+            "l_int32              wpls5, wpls6, wpls7;",
+            "l_int32              wpls5, wpls6, wpls7, wpls8;",
+            "l_int32              wpls9;",
+            "l_int32              wpls9, wpls10;",
+            "l_int32              wpls9, wpls10, wpls11;",
+            "l_int32              wpls9, wpls10, wpls11, wpls12;",
+            "l_int32              wpls13;",
+            "l_int32              wpls13, wpls14;",
+            "l_int32              wpls13, wpls14, wpls15;",
+            "l_int32              wpls13, wpls14, wpls15, wpls16;",
+            "l_int32              wpls17;",
+            "l_int32              wpls17, wpls18;",
+            "l_int32              wpls17, wpls18, wpls19;",
+            "l_int32              wpls17, wpls18, wpls19, wpls20;",
+            "l_int32              wpls21;",
+            "l_int32              wpls21, wpls22;",
+            "l_int32              wpls21, wpls22, wpls23;",
+            "l_int32              wpls21, wpls22, wpls23, wpls24;",
+            "l_int32              wpls25;",
+            "l_int32              wpls25, wpls26;",
+            "l_int32              wpls25, wpls26, wpls27;",
+            "l_int32              wpls25, wpls26, wpls27, wpls28;",
+            "l_int32              wpls29;",
+            "l_int32              wpls29, wpls30;",
+            "l_int32              wpls29, wpls30, wpls31;"};
 
 static  char   *wpldefs[] = {
-	    "    wpls2 = 2 * wpls;",
-	    "    wpls3 = 3 * wpls;",
-	    "    wpls4 = 4 * wpls;",
-	    "    wpls5 = 5 * wpls;",
-	    "    wpls6 = 6 * wpls;",
-	    "    wpls7 = 7 * wpls;",
-	    "    wpls8 = 8 * wpls;",
-	    "    wpls9 = 9 * wpls;",
-	    "    wpls10 = 10 * wpls;",
-	    "    wpls11 = 11 * wpls;",
-	    "    wpls12 = 12 * wpls;",
-	    "    wpls13 = 13 * wpls;",
-	    "    wpls14 = 14 * wpls;",
-	    "    wpls15 = 15 * wpls;",
-	    "    wpls16 = 16 * wpls;",
-	    "    wpls17 = 17 * wpls;",
-	    "    wpls18 = 18 * wpls;",
-	    "    wpls19 = 19 * wpls;",
-	    "    wpls20 = 20 * wpls;",
-	    "    wpls21 = 21 * wpls;",
-	    "    wpls22 = 22 * wpls;",
-	    "    wpls23 = 23 * wpls;",
-	    "    wpls24 = 24 * wpls;",
-	    "    wpls25 = 25 * wpls;",
-	    "    wpls26 = 26 * wpls;",
-	    "    wpls27 = 27 * wpls;",
-	    "    wpls28 = 28 * wpls;",
-	    "    wpls29 = 29 * wpls;",
-	    "    wpls30 = 30 * wpls;",
-	    "    wpls31 = 31 * wpls;"};
+            "    wpls2 = 2 * wpls;",
+            "    wpls3 = 3 * wpls;",
+            "    wpls4 = 4 * wpls;",
+            "    wpls5 = 5 * wpls;",
+            "    wpls6 = 6 * wpls;",
+            "    wpls7 = 7 * wpls;",
+            "    wpls8 = 8 * wpls;",
+            "    wpls9 = 9 * wpls;",
+            "    wpls10 = 10 * wpls;",
+            "    wpls11 = 11 * wpls;",
+            "    wpls12 = 12 * wpls;",
+            "    wpls13 = 13 * wpls;",
+            "    wpls14 = 14 * wpls;",
+            "    wpls15 = 15 * wpls;",
+            "    wpls16 = 16 * wpls;",
+            "    wpls17 = 17 * wpls;",
+            "    wpls18 = 18 * wpls;",
+            "    wpls19 = 19 * wpls;",
+            "    wpls20 = 20 * wpls;",
+            "    wpls21 = 21 * wpls;",
+            "    wpls22 = 22 * wpls;",
+            "    wpls23 = 23 * wpls;",
+            "    wpls24 = 24 * wpls;",
+            "    wpls25 = 25 * wpls;",
+            "    wpls26 = 26 * wpls;",
+            "    wpls27 = 27 * wpls;",
+            "    wpls28 = 28 * wpls;",
+            "    wpls29 = 29 * wpls;",
+            "    wpls30 = 30 * wpls;",
+            "    wpls31 = 31 * wpls;"};
 
 static char   *wplstrp[] = {"+ wpls", "+ wpls2", "+ wpls3", "+ wpls4",
                             "+ wpls5", "+ wpls6", "+ wpls7", "+ wpls8",
-			    "+ wpls9", "+ wpls10", "+ wpls11", "+ wpls12",
-			    "+ wpls13", "+ wpls14", "+ wpls15", "+ wpls16",
-			    "+ wpls17", "+ wpls18", "+ wpls19", "+ wpls20",
-			    "+ wpls21", "+ wpls22", "+ wpls23", "+ wpls24",
-			    "+ wpls25", "+ wpls26", "+ wpls27", "+ wpls28",
-			    "+ wpls29", "+ wpls30", "+ wpls31"};
+                            "+ wpls9", "+ wpls10", "+ wpls11", "+ wpls12",
+                            "+ wpls13", "+ wpls14", "+ wpls15", "+ wpls16",
+                            "+ wpls17", "+ wpls18", "+ wpls19", "+ wpls20",
+                            "+ wpls21", "+ wpls22", "+ wpls23", "+ wpls24",
+                            "+ wpls25", "+ wpls26", "+ wpls27", "+ wpls28",
+                            "+ wpls29", "+ wpls30", "+ wpls31"};
 
 static char   *wplstrm[] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
                             "- wpls5", "- wpls6", "- wpls7", "- wpls8",
-			    "- wpls9", "- wpls10", "- wpls11", "- wpls12",
-			    "- wpls13", "- wpls14", "- wpls15", "- wpls16",
-			    "- wpls17", "- wpls18", "- wpls19", "- wpls20",
-			    "- wpls21", "- wpls22", "- wpls23", "- wpls24",
-			    "- wpls25", "- wpls26", "- wpls27", "- wpls28",
-			    "- wpls29", "- wpls30", "- wpls31"};
+                            "- wpls9", "- wpls10", "- wpls11", "- wpls12",
+                            "- wpls13", "- wpls14", "- wpls15", "- wpls16",
+                            "- wpls17", "- wpls18", "- wpls19", "- wpls20",
+                            "- wpls21", "- wpls22", "- wpls23", "- wpls24",
+                            "- wpls25", "- wpls26", "- wpls27", "- wpls28",
+                            "- wpls29", "- wpls30", "- wpls31"};
 
 
 /*!
@@ -233,107 +233,107 @@ SEL     *sel;
     PROCNAME("fmorphautogen");
 
     if (!sela)
-	return ERROR_INT("sela not defined", procName, 1);
+        return ERROR_INT("sela not defined", procName, 1);
     if (fileindex < 0)
-	fileindex = 0;
+        fileindex = 0;
     if ((nsels = selaGetCount(sela)) == 0)
-	return ERROR_INT("no sels in sela", procName, 1);
+        return ERROR_INT("no sels in sela", procName, 1);
     
     /* --------------------------------------------------------------*
      *                    generate data for first file               *
      * --------------------------------------------------------------*/
 
-	/* make array of sel names */
+        /* make array of sel names */
     if ((sa1 = sarrayCreate(nsels)) == NULL)
-	return ERROR_INT("sa1 not made", procName, 1);
+        return ERROR_INT("sa1 not made", procName, 1);
     for (i = 0; i < nsels; i++) {
-	if ((sel = selaGetSel(sela, i)) == NULL)
-	    return ERROR_INT("sel not returned", procName, 1);
-	sname = selGetName(sel);
-	sarrayAddString(sa1, sname, 1);
+        if ((sel = selaGetSel(sela, i)) == NULL)
+            return ERROR_INT("sel not returned", procName, 1);
+        sname = selGetName(sel);
+        sarrayAddString(sa1, sname, 1);
     }
 
 /*    sarrayWriteStream(stderr, sa1); */
 
-	/* get textlines from morphtemplate1.txt */
+        /* get textlines from morphtemplate1.txt */
     if ((filestr = (char *)arrayRead(TEMPLATE1, &nbytes)) == NULL)
-	return ERROR_INT("filestr not made", procName, 1);
+        return ERROR_INT("filestr not made", procName, 1);
     if ((sa2 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
-	return ERROR_INT("sa2 not made", procName, 1);
-    FREE((void *)filestr);
+        return ERROR_INT("sa2 not made", procName, 1);
+    FREE(filestr);
 
 /*    sarrayWriteStream(stderr, sa2); */
 
-	/* special function call strings */
+        /* special function call strings */
     sprintf(bigbuf, "pixFMorphopGen_%d(PIX      *pixd,", fileindex);
     toplevelcall = stringNew(bigbuf);
     sprintf(bigbuf,
         "        fmorphopgen_low_%d(datad, w, h, wpld, datat, wpls, index);",
-	fileindex);
+        fileindex);
     lowlevelcall1 = stringNew(bigbuf);
     sprintf(bigbuf,
         "        fmorphopgen_low_%d(datad, w, h, wpld, datas, wpls, index);",
         fileindex);
     lowlevelcall2 = stringNew(bigbuf);
 
-	/* output to this sa */
+        /* output to this sa */
     if ((sa3 = sarrayCreate(0)) == NULL)
-	return ERROR_INT("sa3 not made", procName, 1);
+        return ERROR_INT("sa3 not made", procName, 1);
 
-	/* copyright notice and info header: lines 1-24  */
+        /* copyright notice and info header: lines 1-24  */
     for (i = NSTART1; i <= NSTOP1; i++) {
-	if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa3, linestr, 0);
+        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa3, linestr, 0);
     }
-	
+        
         /* static globals */
     sprintf(bigbuf, "static l_int32   NUM_SELS_GENERATED = %d;\n", nsels);
     sarrayAddString(sa3, bigbuf, 1);
     sprintf(bigbuf, "static char  *SEL_NAMES[] = {");
     sarrayAddString(sa3, bigbuf, 1);
     for (i = 0; i < nsels - 1; i++) {
-	sprintf(bigbuf, "                             \"%s\",", sarrayGetString(sa1, i, 0));
-	sarrayAddString(sa3, bigbuf, 1);
+        sprintf(bigbuf, "                             \"%s\",", sarrayGetString(sa1, i, 0));
+        sarrayAddString(sa3, bigbuf, 1);
     }
     sprintf(bigbuf, "                             \"%s\"};\n", sarrayGetString(sa1, i, 0));
     sarrayAddString(sa3, bigbuf, 1);
 
-	/* descriptive function header: lines 32-43 */
+        /* descriptive function header: lines 32-43 */
     for (i = NSTART2; i <= NSTOP2; i++) {
-	if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa3, linestr, 0);
+        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa3, linestr, 0);
     }
 
-	/* incorporate first line of toplevel function call */
+        /* incorporate first line of toplevel function call */
     sarrayAddString(sa3, toplevelcall, 0);
 
-	/* next patch of function: lines 45-97 */
+        /* next patch of function: lines 45-97 */
     for (i = NSTART3; i <= NSTOP3; i++) {
-	if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa3, linestr, 0);
+        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa3, linestr, 0);
     }
 
-	/* incorporate first lowlevel function call */
+        /* incorporate first lowlevel function call */
     sarrayAddString(sa3, lowlevelcall1, 0);
 
-	/* next patch of function: lines 99-101 */
+        /* next patch of function: lines 99-101 */
     for (i = NSTART4; i <= NSTOP4; i++) {
-	if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa3, linestr, 0);
+        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa3, linestr, 0);
     }
 
-	/* incorporate second lowlevel function call */
+        /* incorporate second lowlevel function call */
     sarrayAddString(sa3, lowlevelcall2, 0);
 
-	/* rest of morphtemplate1.txt: lines 103-107 */
+        /* rest of morphtemplate1.txt: lines 103-107 */
     for (i = NSTART5; i <= NSTOP5; i++) {
-	if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa3, linestr, 0);
+        if ((linestr = sarrayGetString(sa2, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa3, linestr, 0);
     }
 
     /* --------------------------------------------------------------*
@@ -341,143 +341,143 @@ SEL     *sel;
      * --------------------------------------------------------------*/
 
     if ((filestr = sarrayToString(sa3, 1)) == NULL)
-	return ERROR_INT("filestr from sa3 not made", procName, 1);
+        return ERROR_INT("filestr from sa3 not made", procName, 1);
     nbytes = strlen(filestr);
     sprintf(bigbuf, "%s.%d.c", OUTROOT, fileindex);
     arrayWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
-    FREE((void *)filestr);
-	
+    FREE(filestr);
+        
     /* --------------------------------------------------------------*
      *                   generate data for second file               *
      * --------------------------------------------------------------*/
 
-	/* get textlines from morphtemplate2.txt */
+        /* get textlines from morphtemplate2.txt */
     if ((filestr = (char *)arrayRead(TEMPLATE2, &nbytes)) == NULL)
-	return ERROR_INT("filestr not made", procName, 1);
+        return ERROR_INT("filestr not made", procName, 1);
     if ((sa1 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
-	return ERROR_INT("sa1 not made", procName, 1);
-    FREE((void *)filestr);
+        return ERROR_INT("sa1 not made", procName, 1);
+    FREE(filestr);
 
-	/* make the static function names */
+        /* make the static function names */
     if ((sa2 = sarrayCreate(2 * nsels)) == NULL)
-	return ERROR_INT("sa2 not made", procName, 1);
+        return ERROR_INT("sa2 not made", procName, 1);
     for (i = 0; i < nsels; i++) {
-	sprintf(bigbuf, "fdilate_%d_%d", fileindex, i);
-	sarrayAddString(sa2, bigbuf, 1);
-	sprintf(bigbuf, "ferode_%d_%d", fileindex, i);
-	sarrayAddString(sa2, bigbuf, 1);
+        sprintf(bigbuf, "fdilate_%d_%d", fileindex, i);
+        sarrayAddString(sa2, bigbuf, 1);
+        sprintf(bigbuf, "ferode_%d_%d", fileindex, i);
+        sarrayAddString(sa2, bigbuf, 1);
     }
 
-	/* make the static prototype strings */
+        /* make the static prototype strings */
     if ((sa3 = sarrayCreate(2 * nsels)) == NULL)
-	return ERROR_INT("sa3 not made", procName, 1);
+        return ERROR_INT("sa3 not made", procName, 1);
     for (i = 0; i < 2 * nsels; i++) {
-	fname = sarrayGetString(sa2, i, 0);
-	sprintf(bigbuf, "static void  %s%s", fname, PROTOARGS);
-	sarrayAddString(sa3, bigbuf, 1);
+        fname = sarrayGetString(sa2, i, 0);
+        sprintf(bigbuf, "static void  %s%s", fname, PROTOARGS);
+        sarrayAddString(sa3, bigbuf, 1);
     }
 
-	/* make the dispatcher first line */
+        /* make the dispatcher first line */
     sprintf(bigbuf, "fmorphopgen_low_%d(l_uint32  *datad,", fileindex);
     lowleveldefine = stringNew(bigbuf);
 
-	/* output to this sa */
+        /* output to this sa */
     if ((sa4 = sarrayCreate(0)) == NULL)
-	return ERROR_INT("sa4 not made", procName, 1);
+        return ERROR_INT("sa4 not made", procName, 1);
 
-	/* copyright notice and info header: lines 1-29  */
+        /* copyright notice and info header: lines 1-29  */
     for (i = NSTART6; i <= NSTOP6; i++) {
-	if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa4, linestr, 0);
+        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa4, linestr, 0);
     }
-	
-	/* insert static protos */
+        
+        /* insert static protos */
     for (i = 0; i < 2 * nsels; i++) {
-	if ((linestr = sarrayGetString(sa3, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa4, linestr, 0);
+        if ((linestr = sarrayGetString(sa3, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa4, linestr, 0);
     }
-	
-	/* function info header: lines 33-43  */
+        
+        /* function info header: lines 33-43  */
     for (i = NSTART7; i <= NSTOP7; i++) {
-	if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa4, linestr, 0);
+        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa4, linestr, 0);
     }
-	
-	/* incorporate first line of dispatcher */
+        
+        /* incorporate first line of dispatcher */
     sarrayAddString(sa4, lowleveldefine, 0);
 
-	/* beginning of function body: lines 45-56  */
+        /* beginning of function body: lines 45-56  */
     for (i = NSTART8; i <= NSTOP8; i++) {
-	if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa4, linestr, 0);
+        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa4, linestr, 0);
     }
 
-	/* make the dispatcher code */
+        /* make the dispatcher code */
     for (i = 0; i < 2 * nsels; i++) {
-	sprintf(bigbuf, "    case %d:", i);
-	sarrayAddString(sa4, bigbuf, 1);
-	sprintf(bigbuf, "        %s(datad, w, h, wpld, datas, wpls);",
-	       sarrayGetString(sa2, i, 0));
-	sarrayAddString(sa4, bigbuf, 1);
-	sarrayAddString(sa4, "        break;", 1);
+        sprintf(bigbuf, "    case %d:", i);
+        sarrayAddString(sa4, bigbuf, 1);
+        sprintf(bigbuf, "        %s(datad, w, h, wpld, datas, wpls);",
+               sarrayGetString(sa2, i, 0));
+        sarrayAddString(sa4, bigbuf, 1);
+        sarrayAddString(sa4, "        break;", 1);
     }
 
-	/* intro to static function routines: lines 60-77  */
+        /* intro to static function routines: lines 60-77  */
     for (i = NSTART9; i <= NSTOP9; i++) {
-	if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
-	    return ERROR_INT("linestr not retrieved", procName, 1);
-	sarrayAddString(sa4, linestr, 0);
+        if ((linestr = sarrayGetString(sa1, i, 1)) == NULL)
+            return ERROR_INT("linestr not retrieved", procName, 1);
+        sarrayAddString(sa4, linestr, 0);
     }
 
-	/* do all the static functions */
+        /* do all the static functions */
     for (i = 0; i < 2 * nsels; i++) {
 
-	sarrayAddString(sa4, "static void", 1);
-	fname = sarrayGetString(sa2, i, 0);
-	sprintf(bigbuf, "%s(l_uint32  *datad,", fname);
-	sarrayAddString(sa4, bigbuf, 1);
+        sarrayAddString(sa4, "static void", 1);
+        fname = sarrayGetString(sa2, i, 0);
+        sprintf(bigbuf, "%s(l_uint32  *datad,", fname);
+        sarrayAddString(sa4, bigbuf, 1);
 
-	    /* finish function header:  lines 80-88 */
-	for (j = NSTART10; j <= NSTOP10; j++) {
-	    if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
-		return ERROR_INT("linestr not retrieved", procName, 1);
-	    sarrayAddString(sa4, linestr, 0);
-	}
+            /* finish function header:  lines 80-88 */
+        for (j = NSTART10; j <= NSTOP10; j++) {
+            if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
+                return ERROR_INT("linestr not retrieved", procName, 1);
+            sarrayAddString(sa4, linestr, 0);
+        }
 
-	    /* declare and define wplsN args, as necessary */
-	if ((sel = selaGetSel(sela, i/2)) == NULL)
-	    return ERROR_INT("sel not returned", procName, 1);
-	if ((sa5 = sarrayMakeWplsCode(sel)) == NULL) 
-	    return ERROR_INT("sa5 not made", procName, 1);
-	sarrayConcatenate(sa4, sa5);
-	sarrayDestroy(&sa5);
-	
-	    /* start function loop definition:  lines 92-98 */
-	for (j = NSTART11; j <= NSTOP11; j++) {
-	    if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
-		return ERROR_INT("linestr not retrieved", procName, 1);
-	    sarrayAddString(sa4, linestr, 0);
-	}
+            /* declare and define wplsN args, as necessary */
+        if ((sel = selaGetSel(sela, i/2)) == NULL)
+            return ERROR_INT("sel not returned", procName, 1);
+        if ((sa5 = sarrayMakeWplsCode(sel)) == NULL) 
+            return ERROR_INT("sa5 not made", procName, 1);
+        sarrayConcatenate(sa4, sa5);
+        sarrayDestroy(&sa5);
+        
+            /* start function loop definition:  lines 92-98 */
+        for (j = NSTART11; j <= NSTOP11; j++) {
+            if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
+                return ERROR_INT("linestr not retrieved", procName, 1);
+            sarrayAddString(sa4, linestr, 0);
+        }
 
-	    /* insert barrel-op code for *dptr */
-	if ((sa6 = sarrayMakeInnerLoopDWACode(sel, i)) == NULL)
-	    return ERROR_INT("sa6 not made", procName, 1);
-	sarrayConcatenate(sa4, sa6);
-	sarrayDestroy(&sa6);
+            /* insert barrel-op code for *dptr */
+        if ((sa6 = sarrayMakeInnerLoopDWACode(sel, i)) == NULL)
+            return ERROR_INT("sa6 not made", procName, 1);
+        sarrayConcatenate(sa4, sa6);
+        sarrayDestroy(&sa6);
 
-	    /* finish function loop definition:  lines 102-106 */
-	for (j = NSTART12; j <= NSTOP12; j++) {
-	    if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
-		return ERROR_INT("linestr not retrieved", procName, 1);
-	    sarrayAddString(sa4, linestr, 0);
-	}
+            /* finish function loop definition:  lines 102-106 */
+        for (j = NSTART12; j <= NSTOP12; j++) {
+            if ((linestr = sarrayGetString(sa1, j, 1)) == NULL)
+                return ERROR_INT("linestr not retrieved", procName, 1);
+            sarrayAddString(sa4, linestr, 0);
+        }
 
     }
 
@@ -486,7 +486,7 @@ SEL     *sel;
      * --------------------------------------------------------------*/
 
     if ((filestr = sarrayToString(sa4, 1)) == NULL)
-	return ERROR_INT("filestr from sa4 not made", procName, 1);
+        return ERROR_INT("filestr from sa4 not made", procName, 1);
     nbytes = strlen(filestr);
     sprintf(bigbuf, "%s.%d.c", OUTROOTLOW, fileindex);
     arrayWrite(bigbuf, "w", filestr, nbytes);
@@ -494,8 +494,8 @@ SEL     *sel;
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
-    FREE((void *)filestr);
-	
+    FREE(filestr);
+        
     return 0;
 }
 
@@ -515,48 +515,48 @@ SARRAY  *sa;
     PROCNAME("sarrayMakeWplsCode");
 
     if (!sel)
-	return (SARRAY *)ERROR_PTR("sel not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sel not defined", procName, NULL);
 
     ymax = 0;
     for (i = 0; i < sel->sy; i++) {
-	for (j = 0; j < sel->sx; j++) {
-	    if (sel->data[i][j] == 1) {
-		dely = L_ABS(i - sel->cy);
-		ymax = L_MAX(ymax, dely);
-	    }
-	}
+        for (j = 0; j < sel->sx; j++) {
+            if (sel->data[i][j] == 1) {
+                dely = L_ABS(i - sel->cy);
+                ymax = L_MAX(ymax, dely);
+            }
+        }
     }
     if (ymax > 31) {
-	L_WARNING("ymax > 31; truncating to 31", procName);
-	ymax = 31;
+        L_WARNING("ymax > 31; truncating to 31", procName);
+        ymax = 31;
     }
 
     if ((sa = sarrayCreate(0)) == NULL)
-	return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
 
-	/* declarations */
+        /* declarations */
     if (ymax > 4)
-	sarrayAddString(sa, wpldecls[2], 1);
+        sarrayAddString(sa, wpldecls[2], 1);
     if (ymax > 8)
-	sarrayAddString(sa, wpldecls[6], 1);
+        sarrayAddString(sa, wpldecls[6], 1);
     if (ymax > 12)
-	sarrayAddString(sa, wpldecls[10], 1);
+        sarrayAddString(sa, wpldecls[10], 1);
     if (ymax > 16)
-	sarrayAddString(sa, wpldecls[14], 1);
+        sarrayAddString(sa, wpldecls[14], 1);
     if (ymax > 20)
-	sarrayAddString(sa, wpldecls[18], 1);
+        sarrayAddString(sa, wpldecls[18], 1);
     if (ymax > 24)
-	sarrayAddString(sa, wpldecls[22], 1);
+        sarrayAddString(sa, wpldecls[22], 1);
     if (ymax > 28)
-	sarrayAddString(sa, wpldecls[26], 1);
+        sarrayAddString(sa, wpldecls[26], 1);
     if (ymax > 1)
-	sarrayAddString(sa, wpldecls[ymax - 2], 1);
+        sarrayAddString(sa, wpldecls[ymax - 2], 1);
 
     sarrayAddString(sa, "    ", 1);
 
-	/* definitions */
+        /* definitions */
     for (i = 2; i <= ymax; i++)
-	sarrayAddString(sa, wpldefs[i - 2], 1);
+        sarrayAddString(sa, wpldefs[i - 2], 1);
 
     return sa;
 }
@@ -579,57 +579,57 @@ SARRAY  *sa;
     PROCNAME("sarrayMakeInnerLoopDWACode");
 
     if (!sel)
-	return (SARRAY *)ERROR_PTR("sel not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sel not defined", procName, NULL);
 
     if (index % 2 == 0) {
-        optype = MORPH_DILATION;
-	tstr = logicalor;
+        optype = L_MORPH_DILATE;
+        tstr = logicalor;
     }
     else {
-        optype = MORPH_EROSION;
-	tstr = logicaland;
+        optype = L_MORPH_ERODE;
+        tstr = logicaland;
     }
 
     count = 0;
     for (i = 0; i < sel->sy; i++) {
-	for (j = 0; j < sel->sx; j++) {
-	    if (sel->data[i][j] == 1)
-		count++;
-	}
+        for (j = 0; j < sel->sx; j++) {
+            if (sel->data[i][j] == 1)
+                count++;
+        }
     }
 
     if ((sa = sarrayCreate(0)) == NULL)
-	return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
 
     nfound = 0;
     for (i = 0; i < sel->sy; i++) {
-	for (j = 0; j < sel->sx; j++) {
-	    if (sel->data[i][j] == 1) {
-		nfound++;
-		if (optype == MORPH_DILATION) {
-		    dely = sel->cy - i;
-		    delx = sel->cx - j;
-		}
-		else if (optype == MORPH_EROSION) {
-		    dely = i - sel->cy;
-		    delx = j - sel->cx;
-		}
-		if ((string = makeBarrelshiftString(delx, dely)) == NULL) {
-		    L_WARNING("barrel shift string not made", procName);
-		    continue;
-		}
-		if (count == 1)  /* just one item */
-		    sprintf(bigbuf, "            *dptr = %s;", string);
-		else if (nfound == 1)
-		    sprintf(bigbuf, "            *dptr = %s %s", string, tstr);
-		else if (nfound < count)
-		    sprintf(bigbuf, "                    %s %s", string, tstr);
-		else  /* nfound == count */
-		    sprintf(bigbuf, "                    %s;", string);
-		sarrayAddString(sa, bigbuf, 1);
-		FREE((void *)string);
-	    }
-	}
+        for (j = 0; j < sel->sx; j++) {
+            if (sel->data[i][j] == 1) {
+                nfound++;
+                if (optype == L_MORPH_DILATE) {
+                    dely = sel->cy - i;
+                    delx = sel->cx - j;
+                }
+                else if (optype == L_MORPH_ERODE) {
+                    dely = i - sel->cy;
+                    delx = j - sel->cx;
+                }
+                if ((string = makeBarrelshiftString(delx, dely)) == NULL) {
+                    L_WARNING("barrel shift string not made", procName);
+                    continue;
+                }
+                if (count == 1)  /* just one item */
+                    sprintf(bigbuf, "            *dptr = %s;", string);
+                else if (nfound == 1)
+                    sprintf(bigbuf, "            *dptr = %s %s", string, tstr);
+                else if (nfound < count)
+                    sprintf(bigbuf, "                    %s %s", string, tstr);
+                else  /* nfound == count */
+                    sprintf(bigbuf, "                    %s;", string);
+                sarrayAddString(sa, bigbuf, 1);
+                FREE(string);
+            }
+        }
     }
 
     return sa;
@@ -649,36 +649,36 @@ char     bigbuf[BUFFER_SIZE];
     PROCNAME("makeBarrelshiftString");
 
     if (delx < -31 || delx > 31)
-	return (char *)ERROR_PTR("delx out of bounds", procName, NULL);
+        return (char *)ERROR_PTR("delx out of bounds", procName, NULL);
     if (dely < -31 || dely > 31)
-	return (char *)ERROR_PTR("dely out of bounds", procName, NULL);
+        return (char *)ERROR_PTR("dely out of bounds", procName, NULL);
     absx = L_ABS(delx);
     absy = L_ABS(dely);
 
     if ((delx == 0) && (dely == 0))
-	sprintf(bigbuf, "(*sptr)");
+        sprintf(bigbuf, "(*sptr)");
     else if ((delx == 0) && (dely < 0))
-	sprintf(bigbuf, "(*(sptr %s))", wplstrm[absy - 1]);
+        sprintf(bigbuf, "(*(sptr %s))", wplstrm[absy - 1]);
     else if ((delx == 0) && (dely > 0))
-	sprintf(bigbuf, "(*(sptr %s))", wplstrp[absy - 1]);
+        sprintf(bigbuf, "(*(sptr %s))", wplstrp[absy - 1]);
     else if ((delx < 0) && (dely == 0))
-	sprintf(bigbuf, "((*(sptr) >> %d) | (*(sptr - 1) << %d))",
-	      absx, 32 - absx);
+        sprintf(bigbuf, "((*(sptr) >> %d) | (*(sptr - 1) << %d))",
+              absx, 32 - absx);
     else if ((delx > 0) && (dely == 0))
-	sprintf(bigbuf, "((*(sptr) << %d) | (*(sptr + 1) >> %d))",
-	      absx, 32 - absx);
+        sprintf(bigbuf, "((*(sptr) << %d) | (*(sptr + 1) >> %d))",
+              absx, 32 - absx);
     else if ((delx < 0) && (dely < 0))
-	sprintf(bigbuf, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
-	      wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
+        sprintf(bigbuf, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
+              wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
     else if ((delx > 0) && (dely < 0))
-	sprintf(bigbuf, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
-	      wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
+        sprintf(bigbuf, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
+              wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
     else if ((delx < 0) && (dely > 0))
-	sprintf(bigbuf, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
-	      wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
+        sprintf(bigbuf, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
+              wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
     else  /*  ((delx > 0) && (dely > 0))  */
-	sprintf(bigbuf, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
-	      wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
+        sprintf(bigbuf, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
+              wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
             
     return stringNew(bigbuf);
 }

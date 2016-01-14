@@ -69,12 +69,12 @@ ditherToBinaryLow(l_uint32  *datad,
                   l_int32    w,
                   l_int32    h,
                   l_int32    wpld,
-	          l_uint32  *datas,
-	          l_int32    wpls,
-	          l_uint32  *bufs1,
-	          l_uint32  *bufs2,
-		  l_int32    lowerclip,
-		  l_int32    upperclip)
+                  l_uint32  *datas,
+                  l_int32    wpls,
+                  l_uint32  *bufs1,
+                  l_uint32  *bufs2,
+                  l_int32    lowerclip,
+                  l_int32    upperclip)
 {
 l_int32      i;
 l_uint32    *lined;
@@ -82,10 +82,10 @@ l_uint32    *lined;
         /* do all lines except last line */
     memcpy(bufs2, datas, 4 * wpls);  /* prime the buffer */
     for (i = 0; i < h - 1; i++) {
-	memcpy(bufs1, bufs2, 4 * wpls);
-	memcpy(bufs2, datas + (i + 1) * wpls, 4 * wpls);
-	lined = datad + i * wpld;
-	ditherToBinaryLineLow(lined, w, bufs1, bufs2, lowerclip, upperclip, 0);
+        memcpy(bufs1, bufs2, 4 * wpls);
+        memcpy(bufs2, datas + (i + 1) * wpls, 4 * wpls);
+        lined = datad + i * wpld;
+        ditherToBinaryLineLow(lined, w, bufs1, bufs2, lowerclip, upperclip, 0);
     }
 
         /* do last line */
@@ -124,104 +124,104 @@ l_uint32    *lined;
 void
 ditherToBinaryLineLow(l_uint32  *lined,
                       l_int32    w,
-		      l_uint32  *bufs1,
-		      l_uint32  *bufs2,
-		      l_int32    lowerclip,
-		      l_int32    upperclip,
-		      l_int32    lastlineflag)
+                      l_uint32  *bufs1,
+                      l_uint32  *bufs2,
+                      l_int32    lowerclip,
+                      l_int32    upperclip,
+                      l_int32    lastlineflag)
 {
 l_int32   j;
 l_int32   oval, eval;
 l_uint8   fval1, fval2, rval, bval, dval;
 
     if (lastlineflag == 0) {
-	for (j = 0; j < w - 1; j++) {
-	    oval = GET_DATA_BYTE(bufs1, j);
-	    if (oval > 127) {   /* binarize to OFF */
-		if ((eval = 255 - oval) > upperclip) {
-			/* subtract from neighbors */
-		    fval1 = (3 * eval) / 8;
-		    fval2 = eval / 4;
-		    rval = GET_DATA_BYTE(bufs1, j + 1);
-		    rval = L_MAX(0, rval - fval1);
-		    SET_DATA_BYTE(bufs1, j + 1, rval);
-		    bval = GET_DATA_BYTE(bufs2, j);
-		    bval = L_MAX(0, bval - fval1);
-		    SET_DATA_BYTE(bufs2, j, bval);
-		    dval = GET_DATA_BYTE(bufs2, j + 1);
-		    dval = L_MAX(0, dval - fval2);
-		    SET_DATA_BYTE(bufs2, j + 1, dval);
-		}
-	    }
-	    else {   /* oval <= 127; binarize to ON  */
-		SET_DATA_BIT(lined, j);   /* ON pixel */
-		if (oval > lowerclip) {
-		        /* add to neighbors */
-		    fval1 = (3 * oval) / 8;
-		    fval2 = oval / 4;
-		    rval = GET_DATA_BYTE(bufs1, j + 1);
-		    rval = L_MIN(255, rval + fval1);
-		    SET_DATA_BYTE(bufs1, j + 1, rval);
-		    bval = GET_DATA_BYTE(bufs2, j);
-		    bval = L_MIN(255, bval + fval1);
-		    SET_DATA_BYTE(bufs2, j, bval);
-		    dval = GET_DATA_BYTE(bufs2, j + 1);
-		    dval = L_MIN(255, dval + fval2);
-		    SET_DATA_BYTE(bufs2, j + 1, dval);
-		}
-	    }
-	}
+        for (j = 0; j < w - 1; j++) {
+            oval = GET_DATA_BYTE(bufs1, j);
+            if (oval > 127) {   /* binarize to OFF */
+                if ((eval = 255 - oval) > upperclip) {
+                        /* subtract from neighbors */
+                    fval1 = (3 * eval) / 8;
+                    fval2 = eval / 4;
+                    rval = GET_DATA_BYTE(bufs1, j + 1);
+                    rval = L_MAX(0, rval - fval1);
+                    SET_DATA_BYTE(bufs1, j + 1, rval);
+                    bval = GET_DATA_BYTE(bufs2, j);
+                    bval = L_MAX(0, bval - fval1);
+                    SET_DATA_BYTE(bufs2, j, bval);
+                    dval = GET_DATA_BYTE(bufs2, j + 1);
+                    dval = L_MAX(0, dval - fval2);
+                    SET_DATA_BYTE(bufs2, j + 1, dval);
+                }
+            }
+            else {   /* oval <= 127; binarize to ON  */
+                SET_DATA_BIT(lined, j);   /* ON pixel */
+                if (oval > lowerclip) {
+                        /* add to neighbors */
+                    fval1 = (3 * oval) / 8;
+                    fval2 = oval / 4;
+                    rval = GET_DATA_BYTE(bufs1, j + 1);
+                    rval = L_MIN(255, rval + fval1);
+                    SET_DATA_BYTE(bufs1, j + 1, rval);
+                    bval = GET_DATA_BYTE(bufs2, j);
+                    bval = L_MIN(255, bval + fval1);
+                    SET_DATA_BYTE(bufs2, j, bval);
+                    dval = GET_DATA_BYTE(bufs2, j + 1);
+                    dval = L_MIN(255, dval + fval2);
+                    SET_DATA_BYTE(bufs2, j + 1, dval);
+                }
+            }
+        }
 
-	    /* do last column: j = w - 1 */
-	oval = GET_DATA_BYTE(bufs1, j);
-	if (oval > 127) {  /* binarize to OFF */
-	    if ((eval = 255 - oval) > upperclip) {
-		    /* subtract from neighbors */
-		fval1 = (3 * eval) / 8;
-		bval = GET_DATA_BYTE(bufs2, j);
-		bval = L_MAX(0, bval - fval1);
-		SET_DATA_BYTE(bufs2, j, bval);
-	    }
-	}
-	else {  /*oval <= 127; binarize to ON */
-	    SET_DATA_BIT(lined, j);   /* ON pixel */
-	    if (oval > lowerclip) { 
-		    /* add to neighbors */
-		fval1 = (3 * oval) / 8;
-		bval = GET_DATA_BYTE(bufs2, j);
-		bval = L_MIN(255, bval + fval1);
-		SET_DATA_BYTE(bufs2, j, bval);
-	    }
-	}
+            /* do last column: j = w - 1 */
+        oval = GET_DATA_BYTE(bufs1, j);
+        if (oval > 127) {  /* binarize to OFF */
+            if ((eval = 255 - oval) > upperclip) {
+                    /* subtract from neighbors */
+                fval1 = (3 * eval) / 8;
+                bval = GET_DATA_BYTE(bufs2, j);
+                bval = L_MAX(0, bval - fval1);
+                SET_DATA_BYTE(bufs2, j, bval);
+            }
+        }
+        else {  /*oval <= 127; binarize to ON */
+            SET_DATA_BIT(lined, j);   /* ON pixel */
+            if (oval > lowerclip) { 
+                    /* add to neighbors */
+                fval1 = (3 * oval) / 8;
+                bval = GET_DATA_BYTE(bufs2, j);
+                bval = L_MIN(255, bval + fval1);
+                SET_DATA_BYTE(bufs2, j, bval);
+            }
+        }
     }
     else {   /* lastlineflag == 1 */
-	for (j = 0; j < w - 1; j++) {
-	    oval = GET_DATA_BYTE(bufs1, j);
-	    if (oval > 127) {   /* binarize to OFF */
-		if ((eval = 255 - oval) > upperclip) {
-		        /* subtract from neighbors */
-		    fval1 = (3 * eval) / 8;
-		    rval = GET_DATA_BYTE(bufs1, j + 1);
-		    rval = L_MAX(0, rval - fval1);
-		    SET_DATA_BYTE(bufs1, j + 1, rval);
-		}
-	    }
-	    else {   /* oval <= 127; binarize to ON  */
-		SET_DATA_BIT(lined, j);   /* ON pixel */
-		if (oval > lowerclip) { 
-		        /* add to neighbors */
-		    fval1 = (3 * oval) / 8;
-		    rval = GET_DATA_BYTE(bufs1, j + 1);
-		    rval = L_MIN(255, rval + fval1);
-		    SET_DATA_BYTE(bufs1, j + 1, rval);
-		}
-	    }
-	}
+        for (j = 0; j < w - 1; j++) {
+            oval = GET_DATA_BYTE(bufs1, j);
+            if (oval > 127) {   /* binarize to OFF */
+                if ((eval = 255 - oval) > upperclip) {
+                        /* subtract from neighbors */
+                    fval1 = (3 * eval) / 8;
+                    rval = GET_DATA_BYTE(bufs1, j + 1);
+                    rval = L_MAX(0, rval - fval1);
+                    SET_DATA_BYTE(bufs1, j + 1, rval);
+                }
+            }
+            else {   /* oval <= 127; binarize to ON  */
+                SET_DATA_BIT(lined, j);   /* ON pixel */
+                if (oval > lowerclip) { 
+                        /* add to neighbors */
+                    fval1 = (3 * oval) / 8;
+                    rval = GET_DATA_BYTE(bufs1, j + 1);
+                    rval = L_MIN(255, rval + fval1);
+                    SET_DATA_BYTE(bufs1, j + 1, rval);
+                }
+            }
+        }
 
-	    /* do last pixel: (i, j) = (h - 1, w - 1) */
-	oval = GET_DATA_BYTE(bufs1, j);
-	if (oval < 128)
-	    SET_DATA_BIT(lined, j);   /* ON pixel */
+            /* do last pixel: (i, j) = (h - 1, w - 1) */
+        oval = GET_DATA_BYTE(bufs1, j);
+        if (oval < 128)
+            SET_DATA_BIT(lined, j);   /* ON pixel */
     }
 
     return;
@@ -243,18 +243,18 @@ thresholdToBinaryLow(l_uint32  *datad,
                      l_int32    w,
                      l_int32    h,
                      l_int32    wpld,
-	             l_uint32  *datas,
+                     l_uint32  *datas,
                      l_int32    d,
-	             l_int32    wpls,
-	             l_int32    thresh)
+                     l_int32    wpls,
+                     l_int32    thresh)
 {
 l_int32    i;
 l_uint32  *lines, *lined;
 
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	lined = datad + i * wpld;
-	thresholdToBinaryLineLow(lined, w, lines, d, thresh);
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        thresholdToBinaryLineLow(lined, w, lines, d, thresh);
     }
     return;
 }
@@ -267,9 +267,9 @@ l_uint32  *lines, *lined;
 void
 thresholdToBinaryLineLow(l_uint32  *lined,
                          l_int32    w,
-			 l_uint32  *lines,
-			 l_int32    d,
-			 l_int32    thresh)
+                         l_uint32  *lines,
+                         l_int32    d,
+                         l_int32    thresh)
 {
 l_int32  j, gval;
 
@@ -278,22 +278,22 @@ l_int32  j, gval;
     switch (d)
     {
     case 4:
-	for (j = 0; j < w; j++) {
-	    gval = GET_DATA_QBIT(lines, j);
-	    if (gval < thresh) 
-		SET_DATA_BIT(lined, j);
-	}
-	break;
+        for (j = 0; j < w; j++) {
+            gval = GET_DATA_QBIT(lines, j);
+            if (gval < thresh) 
+                SET_DATA_BIT(lined, j);
+        }
+        break;
     case 8:
-	for (j = 0; j < w; j++) {
-	    gval = GET_DATA_BYTE(lines, j);
-	    if (gval < thresh) 
-		SET_DATA_BIT(lined, j);
-	}
-	break;
+        for (j = 0; j < w; j++) {
+            gval = GET_DATA_BYTE(lines, j);
+            if (gval < thresh) 
+                SET_DATA_BIT(lined, j);
+        }
+        break;
     default:
         ERROR_VOID("src depth not 4 or 8 bpp", procName);
-	break;
+        break;
     }
     return;
 }
@@ -321,13 +321,13 @@ ditherToBinaryLUTLow(l_uint32  *datad,
                      l_int32    w,
                      l_int32    h,
                      l_int32    wpld,
-	             l_uint32  *datas,
-	             l_int32    wpls,
-	             l_uint32  *bufs1,
-	             l_uint32  *bufs2,
-		     l_int32   *tabval,
-		     l_int32   *tab38,
-		     l_int32   *tab14)
+                     l_uint32  *datas,
+                     l_int32    wpls,
+                     l_uint32  *bufs1,
+                     l_uint32  *bufs2,
+                     l_int32   *tabval,
+                     l_int32   *tab38,
+                     l_int32   *tab14)
 {
 l_int32      i;
 l_uint32    *lined;
@@ -335,11 +335,11 @@ l_uint32    *lined;
         /* do all lines except last line */
     memcpy(bufs2, datas, 4 * wpls);  /* prime the buffer */
     for (i = 0; i < h - 1; i++) {
-	memcpy(bufs1, bufs2, 4 * wpls);
-	memcpy(bufs2, datas + (i + 1) * wpls, 4 * wpls);
-	lined = datad + i * wpld;
-	ditherToBinaryLineLUTLow(lined, w, bufs1, bufs2,
-	                         tabval, tab38, tab14, 0);
+        memcpy(bufs1, bufs2, 4 * wpls);
+        memcpy(bufs2, datas + (i + 1) * wpls, 4 * wpls);
+        lined = datad + i * wpld;
+        ditherToBinaryLineLUTLow(lined, w, bufs1, bufs2,
+                                 tabval, tab38, tab14, 0);
     }
 
         /* do last line */
@@ -366,79 +366,79 @@ l_uint32    *lined;
 void
 ditherToBinaryLineLUTLow(l_uint32  *lined,
                          l_int32    w,
-		         l_uint32  *bufs1,
-		         l_uint32  *bufs2,
-		         l_int32   *tabval,
-		         l_int32   *tab38,
-		         l_int32   *tab14,
-		         l_int32    lastlineflag)
+                         l_uint32  *bufs1,
+                         l_uint32  *bufs2,
+                         l_int32   *tabval,
+                         l_int32   *tab38,
+                         l_int32   *tab14,
+                         l_int32    lastlineflag)
 {
 l_int32  j;
 l_int32  oval, tab38val, tab14val;
 l_uint8  rval, bval, dval;
 
     if (lastlineflag == 0) {
-	for (j = 0; j < w - 1; j++) {
-	    oval = GET_DATA_BYTE(bufs1, j);
-	    if (tabval[oval])
-	        SET_DATA_BIT(lined, j);
-	    rval = GET_DATA_BYTE(bufs1, j + 1);
-	    bval = GET_DATA_BYTE(bufs2, j);
-	    dval = GET_DATA_BYTE(bufs2, j + 1);
-	    tab38val = tab38[oval];
-	    if (tab38val == 0)
-	        continue;
-	    tab14val = tab14[oval];
-	    if (tab38val < 0) {
-		rval = L_MAX(0, rval + tab38val);
-		bval = L_MAX(0, bval + tab38val);
-		dval = L_MAX(0, dval + tab14val);
-	    }
-	    else  {
-		rval = L_MIN(255, rval + tab38val);
-		bval = L_MIN(255, bval + tab38val);
-		dval = L_MIN(255, dval + tab14val);
-	    }
-	    SET_DATA_BYTE(bufs1, j + 1, rval);
-	    SET_DATA_BYTE(bufs2, j, bval);
-	    SET_DATA_BYTE(bufs2, j + 1, dval);
-	}
+        for (j = 0; j < w - 1; j++) {
+            oval = GET_DATA_BYTE(bufs1, j);
+            if (tabval[oval])
+                SET_DATA_BIT(lined, j);
+            rval = GET_DATA_BYTE(bufs1, j + 1);
+            bval = GET_DATA_BYTE(bufs2, j);
+            dval = GET_DATA_BYTE(bufs2, j + 1);
+            tab38val = tab38[oval];
+            if (tab38val == 0)
+                continue;
+            tab14val = tab14[oval];
+            if (tab38val < 0) {
+                rval = L_MAX(0, rval + tab38val);
+                bval = L_MAX(0, bval + tab38val);
+                dval = L_MAX(0, dval + tab14val);
+            }
+            else  {
+                rval = L_MIN(255, rval + tab38val);
+                bval = L_MIN(255, bval + tab38val);
+                dval = L_MIN(255, dval + tab14val);
+            }
+            SET_DATA_BYTE(bufs1, j + 1, rval);
+            SET_DATA_BYTE(bufs2, j, bval);
+            SET_DATA_BYTE(bufs2, j + 1, dval);
+        }
 
-	    /* do last column: j = w - 1 */
-	oval = GET_DATA_BYTE(bufs1, j);
-	if (tabval[oval])
-	    SET_DATA_BIT(lined, j);
-	bval = GET_DATA_BYTE(bufs2, j);
-	tab38val = tab38[oval];
-	if (tab38val < 0) {
-	    bval = L_MAX(0, bval + tab38val);
-	    SET_DATA_BYTE(bufs2, j, bval);
-	}
-	else if (tab38val > 0 ) {
-	    bval = L_MIN(255, bval + tab38val);
-	    SET_DATA_BYTE(bufs2, j, bval);
-	}
+            /* do last column: j = w - 1 */
+        oval = GET_DATA_BYTE(bufs1, j);
+        if (tabval[oval])
+            SET_DATA_BIT(lined, j);
+        bval = GET_DATA_BYTE(bufs2, j);
+        tab38val = tab38[oval];
+        if (tab38val < 0) {
+            bval = L_MAX(0, bval + tab38val);
+            SET_DATA_BYTE(bufs2, j, bval);
+        }
+        else if (tab38val > 0 ) {
+            bval = L_MIN(255, bval + tab38val);
+            SET_DATA_BYTE(bufs2, j, bval);
+        }
     }
     else {   /* lastlineflag == 1 */
-	for (j = 0; j < w - 1; j++) {
-	    oval = GET_DATA_BYTE(bufs1, j);
-	    if (tabval[oval])
-		SET_DATA_BIT(lined, j);
-	    rval = GET_DATA_BYTE(bufs1, j + 1);
-	    tab38val = tab38[oval];
-	    if (tab38val == 0)
-	        continue;
-	    if (tab38val < 0)
-		rval = L_MAX(0, rval + tab38val);
-	    else
-		rval = L_MIN(255, rval + tab38val);
-	    SET_DATA_BYTE(bufs1, j + 1, rval);
-	}
+        for (j = 0; j < w - 1; j++) {
+            oval = GET_DATA_BYTE(bufs1, j);
+            if (tabval[oval])
+                SET_DATA_BIT(lined, j);
+            rval = GET_DATA_BYTE(bufs1, j + 1);
+            tab38val = tab38[oval];
+            if (tab38val == 0)
+                continue;
+            if (tab38val < 0)
+                rval = L_MAX(0, rval + tab38val);
+            else
+                rval = L_MIN(255, rval + tab38val);
+            SET_DATA_BYTE(bufs1, j + 1, rval);
+        }
 
-	    /* do last pixel: (i, j) = (h - 1, w - 1) */
-	oval = GET_DATA_BYTE(bufs1, j);
-	if (tabval[oval])
-	    SET_DATA_BIT(lined, j);
+            /* do last pixel: (i, j) = (h - 1, w - 1) */
+        oval = GET_DATA_BYTE(bufs1, j);
+        if (tabval[oval])
+            SET_DATA_BIT(lined, j);
     }
 
     return;
@@ -459,9 +459,9 @@ l_uint8  rval, bval, dval;
 l_int32
 make8To1DitherTables(l_int32 **ptabval,
                      l_int32 **ptab38,
-		     l_int32 **ptab14,
-		     l_int32   lowerclip,
-		     l_int32   upperclip)
+                     l_int32 **ptab14,
+                     l_int32   lowerclip,
+                     l_int32   upperclip)
 {
 l_int32   i;
 l_int32  *tabval, *tab38, *tab14;
@@ -469,40 +469,40 @@ l_int32  *tabval, *tab38, *tab14;
     PROCNAME("make8To1DitherTables");
 
     if (!ptabval || !ptab38 || !ptab14)
-	return ERROR_INT("table ptrs not all defined", procName, 1);
+        return ERROR_INT("table ptrs not all defined", procName, 1);
 
-	/* 3 lookup tables: 1-bit value, (3/8)excess, and (1/4)excess */
+        /* 3 lookup tables: 1-bit value, (3/8)excess, and (1/4)excess */
     if ((tabval = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return ERROR_INT("tabval not made", procName, 1);
+        return ERROR_INT("tabval not made", procName, 1);
     if ((tab38 = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return ERROR_INT("tab38 not made", procName, 1);
+        return ERROR_INT("tab38 not made", procName, 1);
     if ((tab14 = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return ERROR_INT("tab14 not made", procName, 1);
+        return ERROR_INT("tab14 not made", procName, 1);
     *ptabval = tabval;
     *ptab38 = tab38;
     *ptab14 = tab14;
 
     for (i = 0; i < 256; i++) {
-	if (i <= lowerclip) {
-	    tabval[i] = 1;
-	    tab38[i] = 0;
-	    tab14[i] = 0;
-	}
-	else if (i < 128) {
-	    tabval[i] = 1;
-	    tab38[i] = (3 * i + 4) / 8;
-	    tab14[i] = (i + 2) / 4;
-	}
-	else if (i < 255 - upperclip) {
-	    tabval[i] = 0;
-	    tab38[i] = (3 * (i - 255) + 4) / 8;
-	    tab14[i] = ((i - 255) + 2) / 4;
-	}
-	else {  /* i >= 255 - upperclip */
-	    tabval[i] = 0;
-	    tab38[i] = 0;
-	    tab14[i] = 0;
-	}
+        if (i <= lowerclip) {
+            tabval[i] = 1;
+            tab38[i] = 0;
+            tab14[i] = 0;
+        }
+        else if (i < 128) {
+            tabval[i] = 1;
+            tab38[i] = (3 * i + 4) / 8;
+            tab14[i] = (i + 2) / 4;
+        }
+        else if (i < 255 - upperclip) {
+            tabval[i] = 0;
+            tab38[i] = (3 * (i - 255) + 4) / 8;
+            tab14[i] = ((i - 255) + 2) / 4;
+        }
+        else {  /* i >= 255 - upperclip */
+            tabval[i] = 0;
+            tab38[i] = 0;
+            tab14[i] = 0;
+        }
     }
 
     return 0;
@@ -531,13 +531,13 @@ ditherTo2bppLow(l_uint32  *datad,
                 l_int32    w,
                 l_int32    h,
                 l_int32    wpld,
-	        l_uint32  *datas,
-	        l_int32    wpls,
-	        l_uint32  *bufs1,
-	        l_uint32  *bufs2,
-		l_int32   *tabval,
-		l_int32   *tab38,
-		l_int32   *tab14)
+                l_uint32  *datas,
+                l_int32    wpls,
+                l_uint32  *bufs1,
+                l_uint32  *bufs2,
+                l_int32   *tabval,
+                l_int32   *tab38,
+                l_int32   *tab14)
 {
 l_int32      i;
 l_uint32    *lined;
@@ -545,10 +545,10 @@ l_uint32    *lined;
         /* do all lines except last line */
     memcpy(bufs2, datas, 4 * wpls);  /* prime the buffer */
     for (i = 0; i < h - 1; i++) {
-	memcpy(bufs1, bufs2, 4 * wpls);
-	memcpy(bufs2, datas + (i + 1) * wpls, 4 * wpls);
-	lined = datad + i * wpld;
-	ditherTo2bppLineLow(lined, w, bufs1, bufs2, tabval, tab38, tab14, 0);
+        memcpy(bufs1, bufs2, 4 * wpls);
+        memcpy(bufs2, datas + (i + 1) * wpls, 4 * wpls);
+        lined = datad + i * wpld;
+        ditherTo2bppLineLow(lined, w, bufs1, bufs2, tabval, tab38, tab14, 0);
     }
 
         /* do last line */
@@ -590,9 +590,9 @@ ditherTo2bppLineLow(l_uint32  *lined,
                     l_int32    w,
                     l_uint32  *bufs1,
                     l_uint32  *bufs2,
-		    l_int32   *tabval,
-		    l_int32   *tab38,
-		    l_int32   *tab14,
+                    l_int32   *tabval,
+                    l_int32   *tab38,
+                    l_int32   *tab14,
                     l_int32    lastlineflag)
 {
 l_int32  j;
@@ -600,56 +600,56 @@ l_int32  oval, tab38val, tab14val;
 l_uint8  rval, bval, dval;
 
     if (lastlineflag == 0) {
-	for (j = 0; j < w - 1; j++) {
-	    oval = GET_DATA_BYTE(bufs1, j);
-	    SET_DATA_DIBIT(lined, j, tabval[oval]);
-	    rval = GET_DATA_BYTE(bufs1, j + 1);
-	    bval = GET_DATA_BYTE(bufs2, j);
-	    dval = GET_DATA_BYTE(bufs2, j + 1);
-	    tab38val = tab38[oval];
-	    tab14val = tab14[oval];
-	    if (tab38val < 0) {
-		rval = L_MAX(0, rval + tab38val);
-		bval = L_MAX(0, bval + tab38val);
-		dval = L_MAX(0, dval + tab14val);
-	    }
-	    else {
-		rval = L_MIN(255, rval + tab38val);
-		bval = L_MIN(255, bval + tab38val);
-		dval = L_MIN(255, dval + tab14val);
-	    }
-	    SET_DATA_BYTE(bufs1, j + 1, rval);
-	    SET_DATA_BYTE(bufs2, j, bval);
-	    SET_DATA_BYTE(bufs2, j + 1, dval);
-	}
+        for (j = 0; j < w - 1; j++) {
+            oval = GET_DATA_BYTE(bufs1, j);
+            SET_DATA_DIBIT(lined, j, tabval[oval]);
+            rval = GET_DATA_BYTE(bufs1, j + 1);
+            bval = GET_DATA_BYTE(bufs2, j);
+            dval = GET_DATA_BYTE(bufs2, j + 1);
+            tab38val = tab38[oval];
+            tab14val = tab14[oval];
+            if (tab38val < 0) {
+                rval = L_MAX(0, rval + tab38val);
+                bval = L_MAX(0, bval + tab38val);
+                dval = L_MAX(0, dval + tab14val);
+            }
+            else {
+                rval = L_MIN(255, rval + tab38val);
+                bval = L_MIN(255, bval + tab38val);
+                dval = L_MIN(255, dval + tab14val);
+            }
+            SET_DATA_BYTE(bufs1, j + 1, rval);
+            SET_DATA_BYTE(bufs2, j, bval);
+            SET_DATA_BYTE(bufs2, j + 1, dval);
+        }
 
-	    /* do last column: j = w - 1 */
-	oval = GET_DATA_BYTE(bufs1, j);
-	SET_DATA_DIBIT(lined, j, tabval[oval]);
-	bval = GET_DATA_BYTE(bufs2, j);
-	tab38val = tab38[oval];
-	if (tab38val < 0)
-	    bval = L_MAX(0, bval + tab38val);
-	else
-	    bval = L_MIN(255, bval + tab38val);
-	SET_DATA_BYTE(bufs2, j, bval);
+            /* do last column: j = w - 1 */
+        oval = GET_DATA_BYTE(bufs1, j);
+        SET_DATA_DIBIT(lined, j, tabval[oval]);
+        bval = GET_DATA_BYTE(bufs2, j);
+        tab38val = tab38[oval];
+        if (tab38val < 0)
+            bval = L_MAX(0, bval + tab38val);
+        else
+            bval = L_MIN(255, bval + tab38val);
+        SET_DATA_BYTE(bufs2, j, bval);
     }
     else {   /* lastlineflag == 1 */
-	for (j = 0; j < w - 1; j++) {
-	    oval = GET_DATA_BYTE(bufs1, j);
-	    SET_DATA_DIBIT(lined, j, tabval[oval]);
-	    rval = GET_DATA_BYTE(bufs1, j + 1);
-	    tab38val = tab38[oval];
-	    if (tab38val < 0)
-		rval = L_MAX(0, rval + tab38val);
-	    else
-		rval = L_MIN(255, rval + tab38val);
-	    SET_DATA_BYTE(bufs1, j + 1, rval);
-	}
+        for (j = 0; j < w - 1; j++) {
+            oval = GET_DATA_BYTE(bufs1, j);
+            SET_DATA_DIBIT(lined, j, tabval[oval]);
+            rval = GET_DATA_BYTE(bufs1, j + 1);
+            tab38val = tab38[oval];
+            if (tab38val < 0)
+                rval = L_MAX(0, rval + tab38val);
+            else
+                rval = L_MIN(255, rval + tab38val);
+            SET_DATA_BYTE(bufs1, j + 1, rval);
+        }
 
-	    /* do last pixel: (i, j) = (h - 1, w - 1) */
-	oval = GET_DATA_BYTE(bufs1, j);
-	SET_DATA_DIBIT(lined, j, tabval[oval]);
+            /* do last pixel: (i, j) = (h - 1, w - 1) */
+        oval = GET_DATA_BYTE(bufs1, j);
+        SET_DATA_DIBIT(lined, j, tabval[oval]);
     }
 
     return;
@@ -681,62 +681,62 @@ l_int32  *tabval, *tab38, *tab14;
 
         /* 3 lookup tables: 2-bit value, (3/8)excess, and (1/4)excess */
     if ((tabval = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return ERROR_INT("tabval not made", procName, 1);
+        return ERROR_INT("tabval not made", procName, 1);
     if ((tab38 = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return ERROR_INT("tab38 not made", procName, 1);
+        return ERROR_INT("tab38 not made", procName, 1);
     if ((tab14 = (l_int32 *)CALLOC(256, sizeof(l_int32))) == NULL)
-	return ERROR_INT("tab14 not made", procName, 1);
+        return ERROR_INT("tab14 not made", procName, 1);
     *ptabval = tabval;
     *ptab38 = tab38;
     *ptab14 = tab14;
 
     for (i = 0; i < 256; i++) {
         if (i <= cliptoblack) {
-	    tabval[i] = 0;
-	    tab38[i] = 0;
-	    tab14[i] = 0;
-	}
-	else if (i < 43) {
-	    tabval[i] = 0;
-	    tab38[i] = (3 * i + 4) / 8;
-	    tab14[i] = (i + 2) / 4;
-	}
-	else if (i < 85) {
-	    tabval[i] = 1;
-	    tab38[i] = (3 * (i - 85) - 4) / 8;
-	    tab14[i] = ((i - 85) - 2) / 4;
-	}
-	else if (i < 128) {
-	    tabval[i] = 1;
-	    tab38[i] = (3 * (i - 85) + 4) / 8;
-	    tab14[i] = ((i - 85) + 2) / 4;
-	}
-	else if (i < 170) {
-	    tabval[i] = 2;
-	    tab38[i] = (3 * (i - 170) - 4) / 8;
-	    tab14[i] = ((i - 170) - 2) / 4;
-	}
-	else if (i < 213) {
-	    tabval[i] = 2;
-	    tab38[i] = (3 * (i - 170) + 4) / 8;
-	    tab14[i] = ((i - 170) + 2) / 4;
-	}
-	else if (i < 255 - cliptowhite) {
-	    tabval[i] = 3;
-	    tab38[i] = (3 * (i - 255) - 4) / 8;
-	    tab14[i] = ((i - 255) - 2) / 4;
-	}
-	else {  /* i >= 255 - cliptowhite */
-	    tabval[i] = 3;
-	    tab38[i] = 0;
-	    tab14[i] = 0;
-	}
+            tabval[i] = 0;
+            tab38[i] = 0;
+            tab14[i] = 0;
+        }
+        else if (i < 43) {
+            tabval[i] = 0;
+            tab38[i] = (3 * i + 4) / 8;
+            tab14[i] = (i + 2) / 4;
+        }
+        else if (i < 85) {
+            tabval[i] = 1;
+            tab38[i] = (3 * (i - 85) - 4) / 8;
+            tab14[i] = ((i - 85) - 2) / 4;
+        }
+        else if (i < 128) {
+            tabval[i] = 1;
+            tab38[i] = (3 * (i - 85) + 4) / 8;
+            tab14[i] = ((i - 85) + 2) / 4;
+        }
+        else if (i < 170) {
+            tabval[i] = 2;
+            tab38[i] = (3 * (i - 170) - 4) / 8;
+            tab14[i] = ((i - 170) - 2) / 4;
+        }
+        else if (i < 213) {
+            tabval[i] = 2;
+            tab38[i] = (3 * (i - 170) + 4) / 8;
+            tab14[i] = ((i - 170) + 2) / 4;
+        }
+        else if (i < 255 - cliptowhite) {
+            tabval[i] = 3;
+            tab38[i] = (3 * (i - 255) - 4) / 8;
+            tab14[i] = ((i - 255) - 2) / 4;
+        }
+        else {  /* i >= 255 - cliptowhite */
+            tabval[i] = 3;
+            tab38[i] = 0;
+            tab14[i] = 0;
+        }
     }
 
 #if 0
     for (i = 0; i < 256; i++)
-	fprintf(stderr, "tabval[%d] = %d, tab38[%d] = %d, tab14[%d] = %d\n",
-	        i, tabval[i], i, tab38[i], i, tab14[i]);
+        fprintf(stderr, "tabval[%d] = %d, tab38[%d] = %d, tab14[%d] = %d\n",
+                i, tabval[i], i, tab38[i], i, tab14[i]);
 #endif
 
     return 0;
@@ -759,17 +759,17 @@ void
 thresholdTo2bppLow(l_uint32  *datad,
                    l_int32    h,
                    l_int32    wpld,
-	           l_uint32  *datas,
-	           l_int32    wpls,
+                   l_uint32  *datas,
+                   l_int32    wpls,
                    l_int32   *tab)
 {
 l_int32    i;
 l_uint32  *lines, *lined;
 
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	lined = datad + i * wpld;
-	thresholdTo2bppLineLow(lined, lines, wpls, tab);
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        thresholdTo2bppLineLow(lined, lines, wpls, tab);
     }
     return;
 }
@@ -792,14 +792,14 @@ l_uint8   sval1, sval2, sval3, sval4, dval;
 l_int32   j, k;
 
     for (j = 0; j < wpls; j++) {
-	k = 4 * j;
-	sval1 = GET_DATA_BYTE(lines, k);
-	sval2 = GET_DATA_BYTE(lines, k + 1);
-	sval3 = GET_DATA_BYTE(lines, k + 2);
-	sval4 = GET_DATA_BYTE(lines, k + 3);
-	dval = (tab[sval1] << 6) | (tab[sval2] << 4) |
-	       (tab[sval3] << 2) | tab[sval4];
-	SET_DATA_BYTE(lined, j, dval);
+        k = 4 * j;
+        sval1 = GET_DATA_BYTE(lines, k);
+        sval2 = GET_DATA_BYTE(lines, k + 1);
+        sval3 = GET_DATA_BYTE(lines, k + 2);
+        sval4 = GET_DATA_BYTE(lines, k + 3);
+        dval = (tab[sval1] << 6) | (tab[sval2] << 4) |
+               (tab[sval3] << 2) | tab[sval4];
+        SET_DATA_BYTE(lined, j, dval);
     }
     return;
 }
@@ -820,17 +820,17 @@ void
 thresholdTo4bppLow(l_uint32  *datad,
                    l_int32    h,
                    l_int32    wpld,
-	           l_uint32  *datas,
-	           l_int32    wpls,
+                   l_uint32  *datas,
+                   l_int32    wpls,
                    l_int32   *tab)
 {
 l_int32    i;
 l_uint32  *lines, *lined;
 
     for (i = 0; i < h; i++) {
-	lines = datas + i * wpls;
-	lined = datad + i * wpld;
-	thresholdTo4bppLineLow(lined, lines, wpls, tab);
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        thresholdTo4bppLineLow(lined, lines, wpls, tab);
     }
     return;
 }
@@ -854,14 +854,14 @@ l_uint16  dval;
 l_int32   j, k;
 
     for (j = 0; j < wpls; j++) {
-	k = 4 * j;
-	sval1 = GET_DATA_BYTE(lines, k);
-	sval2 = GET_DATA_BYTE(lines, k + 1);
-	sval3 = GET_DATA_BYTE(lines, k + 2);
-	sval4 = GET_DATA_BYTE(lines, k + 3);
-	dval = (tab[sval1] << 12) | (tab[sval2] << 8) |
-	       (tab[sval3] << 4) | tab[sval4];
-	SET_DATA_TWO_BYTES(lined, j, dval);
+        k = 4 * j;
+        sval1 = GET_DATA_BYTE(lines, k);
+        sval2 = GET_DATA_BYTE(lines, k + 1);
+        sval3 = GET_DATA_BYTE(lines, k + 2);
+        sval4 = GET_DATA_BYTE(lines, k + 3);
+        dval = (tab[sval1] << 12) | (tab[sval2] << 8) |
+               (tab[sval3] << 4) | tab[sval4];
+        SET_DATA_TWO_BYTES(lined, j, dval);
     }
     return;
 }

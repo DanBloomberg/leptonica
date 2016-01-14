@@ -30,14 +30,14 @@ typedef uintptr_t l_uintptr_t;
 /*--------------------------------------------------------------------*
  *                          Built-in types                            *
  *--------------------------------------------------------------------*/
-typedef signed char		l_int8;
-typedef unsigned char      	l_uint8;
+typedef signed char                l_int8;
+typedef unsigned char              l_uint8;
 typedef short                   l_int16;
 typedef unsigned short          l_uint16;
 typedef int                     l_int32;
 typedef unsigned int            l_uint32;
-typedef float			l_float32;
-typedef double			l_float64;
+typedef float                        l_float32;
+typedef double                        l_float64;
 
 
 /*------------------------------------------------------------------------*

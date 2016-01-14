@@ -16,12 +16,11 @@
 #ifndef  ARRAY_H
 #define  ARRAY_H
 
-    /* Flags for parsing and splitting strings into an sarray */
+    /* Flags for interpolation in Numa */
 enum {
-    WORD_SUBSTRING = 1,  /* split strings on any white space */
-    LINE_SUBSTRING = 2,  /* split strings on newline */
+    L_LINEAR_INTERP = 1,        /* linear */
+    L_QUADRATIC_INTERP = 2      /* quadratic */
 };
-
 
     /* Array of number arrays */
 struct Numaa
@@ -32,6 +31,8 @@ struct Numaa
 };
 typedef struct Numaa  NUMAA;
 
+
+#define  NUMA_VERSION_NUMBER     1
 
     /* Number array: an array of floats */
 struct Numa
@@ -65,11 +66,14 @@ struct NumaHash
 typedef struct NumaHash NUMAHASH;
 
 
+#define  SARRAY_VERSION_NUMBER     1
+
     /* String array: an array of C strings */
 struct Sarray
 {
     l_int32          nalloc;    /* size of allocated ptr array         */
     l_int32          n;         /* number of strings allocated         */
+    l_int32          refcount;  /* reference count (1 if no clones)    */
     char           **array;     /* string array                        */
 };
 typedef struct Sarray SARRAY;

@@ -66,7 +66,7 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 128;   /* n'importe quoi */
 
 #define SWAP_ITEMS(i, j)       { void *tempitem = ph->array[(i)]; \
                                  ph->array[(i)] = ph->array[(j)]; \
-				 ph->array[(j)] = tempitem; }
+                                 ph->array[(j)] = tempitem; }
 
 
 /*--------------------------------------------------------------------------*
@@ -89,7 +89,7 @@ PHEAP  *ph;
     PROCNAME("pheapCreate");
 
     if (nalloc < MIN_BUFFER_SIZE)
-	nalloc = MIN_BUFFER_SIZE;
+        nalloc = MIN_BUFFER_SIZE;
 
     if ((ph = (PHEAP *)CALLOC(1, sizeof(PHEAP))) == NULL)
         return (PHEAP *)ERROR_PTR("ph not made", procName, NULL);
@@ -128,21 +128,21 @@ PHEAP   *ph;
     PROCNAME("pheapDestroy");
 
     if (pph == NULL) {
-	L_WARNING("ptr address is NULL", procName);
-	return;
+        L_WARNING("ptr address is NULL", procName);
+        return;
     }
     if ((ph = *pph) == NULL)
-	return;
+        return;
 
     if (freeflag) {
         for (i = 0; i < ph->n; i++)
-	    FREE(ph->array[i]);
+            FREE(ph->array[i]);
     }
     else if (ph->n > 0)
         L_WARNING_INT("memory leak of %d items in pheap!", procName, ph->n);
 
     if (ph->array)
-	FREE(ph->array);
+        FREE(ph->array);
     FREE((void *)ph);
     *pph = NULL;
 
@@ -170,9 +170,9 @@ pheapAdd(PHEAP  *ph,
     if (!item)
         return ERROR_INT("item not defined", procName, 1);
     
-	/* If necessary, expand the allocated array by a factor of 2 */
+        /* If necessary, expand the allocated array by a factor of 2 */
     if (ph->n >= ph->nalloc)
-	pheapExtendArray(ph);
+        pheapExtendArray(ph);
 
         /* Add the item */
     ph->array[ph->n] = item;
@@ -254,7 +254,7 @@ pheapGetCount(PHEAP  *ph)
 
     return ph->n;
 }
-	
+        
 
 
 /*--------------------------------------------------------------------------*
@@ -291,28 +291,28 @@ l_float32  valp, valc;
   ic = index + 1;  /* index into heap: add 1 to array index */
   if (ph->direction == L_SORT_INCREASING) {
       while (1) {
-	  if (ic == 1)  /* root of heap */
-	      break;
-	  ip = ic / 2;
-	  valc = *(l_float32 *)(ph->array[ic - 1]);
-	  valp = *(l_float32 *)(ph->array[ip - 1]);
-	  if (valp <= valc)
-	     break;
-	  SWAP_ITEMS(ip - 1, ic - 1);
-	  ic = ip;
+          if (ic == 1)  /* root of heap */
+              break;
+          ip = ic / 2;
+          valc = *(l_float32 *)(ph->array[ic - 1]);
+          valp = *(l_float32 *)(ph->array[ip - 1]);
+          if (valp <= valc)
+             break;
+          SWAP_ITEMS(ip - 1, ic - 1);
+          ic = ip;
       }
   }
   else {  /* ph->direction == L_SORT_DECREASING */
       while (1) {
-	  if (ic == 1)  /* root of heap */
-	      break;
-	  ip = ic / 2;
-	  valc = *(l_float32 *)(ph->array[ic - 1]);
-	  valp = *(l_float32 *)(ph->array[ip - 1]);
-	  if (valp >= valc)
-	     break;
-	  SWAP_ITEMS(ip - 1, ic - 1);
-	  ic = ip;
+          if (ic == 1)  /* root of heap */
+              break;
+          ip = ic / 2;
+          valc = *(l_float32 *)(ph->array[ic - 1]);
+          valp = *(l_float32 *)(ph->array[ip - 1]);
+          if (valp >= valc)
+             break;
+          SWAP_ITEMS(ip - 1, ic - 1);
+          ic = ip;
       }
   }
   return 0;
@@ -352,58 +352,58 @@ l_float32  valp, valcl, valcr;
   ip = 1;  /* index into top of heap: corresponds to array[0] */
   if (ph->direction == L_SORT_INCREASING) {
       while (1) {
-	  icl = 2 * ip;
-	  if (icl > ph->n)
-	     break;
-	  valp = *(l_float32 *)(ph->array[ip - 1]);
-	  valcl = *(l_float32 *)(ph->array[icl - 1]);
-	  icr = icl + 1;
-	  if (icr > ph->n) {  /* only a left child; no iters below */
-	      if (valp > valcl)
-		  SWAP_ITEMS(ip - 1, icl - 1);
-	      break;
-	  }
-	  else {  /* both children present; swap with the smallest if bigger */
-	      valcr = *(l_float32 *)(ph->array[icr - 1]);
-	      if (valp <= valcl && valp <= valcr)  /* smaller than both */
-	          break;
-	      if (valcl <= valcr) {  /* left smaller; swap */
-		  SWAP_ITEMS(ip - 1, icl - 1);
-		  ip = icl;
-	      }
-	      else { /* right smaller; swap */
-		  SWAP_ITEMS(ip - 1, icr - 1);
-		  ip = icr;
-	      }
-	  }
+          icl = 2 * ip;
+          if (icl > ph->n)
+             break;
+          valp = *(l_float32 *)(ph->array[ip - 1]);
+          valcl = *(l_float32 *)(ph->array[icl - 1]);
+          icr = icl + 1;
+          if (icr > ph->n) {  /* only a left child; no iters below */
+              if (valp > valcl)
+                  SWAP_ITEMS(ip - 1, icl - 1);
+              break;
+          }
+          else {  /* both children present; swap with the smallest if bigger */
+              valcr = *(l_float32 *)(ph->array[icr - 1]);
+              if (valp <= valcl && valp <= valcr)  /* smaller than both */
+                  break;
+              if (valcl <= valcr) {  /* left smaller; swap */
+                  SWAP_ITEMS(ip - 1, icl - 1);
+                  ip = icl;
+              }
+              else { /* right smaller; swap */
+                  SWAP_ITEMS(ip - 1, icr - 1);
+                  ip = icr;
+              }
+          }
       }
   }
   else {  /* ph->direction == L_SORT_DECREASING */
       while (1) {
-	  icl = 2 * ip;
-	  if (icl > ph->n)
-	     break;
-	  valp = *(l_float32 *)(ph->array[ip - 1]);
-	  valcl = *(l_float32 *)(ph->array[icl - 1]);
-	  icr = icl + 1;
-	  if (icr > ph->n) {  /* only a left child; no iters below */
-	      if (valp < valcl)
-		  SWAP_ITEMS(ip - 1, icl - 1);
-	      break;
-	  }
-	  else {  /* both children present; swap with the biggest if smaller */
-	      valcr = *(l_float32 *)(ph->array[icr - 1]);
-	      if (valp >= valcl && valp >= valcr)  /* bigger than both */
-	          break;
-	      if (valcl >= valcr) {  /* left bigger; swap */
-		  SWAP_ITEMS(ip - 1, icl - 1);
-		  ip = icl;
-	      }
-	      else { /* right bigger; swap */
-		  SWAP_ITEMS(ip - 1, icr - 1);
-		  ip = icr;
-	      }
-	  }
+          icl = 2 * ip;
+          if (icl > ph->n)
+             break;
+          valp = *(l_float32 *)(ph->array[ip - 1]);
+          valcl = *(l_float32 *)(ph->array[icl - 1]);
+          icr = icl + 1;
+          if (icr > ph->n) {  /* only a left child; no iters below */
+              if (valp < valcl)
+                  SWAP_ITEMS(ip - 1, icl - 1);
+              break;
+          }
+          else {  /* both children present; swap with the biggest if smaller */
+              valcr = *(l_float32 *)(ph->array[icr - 1]);
+              if (valp >= valcl && valp >= valcr)  /* bigger than both */
+                  break;
+              if (valcl >= valcr) {  /* left bigger; swap */
+                  SWAP_ITEMS(ip - 1, icl - 1);
+                  ip = icl;
+              }
+              else { /* right bigger; swap */
+                  SWAP_ITEMS(ip - 1, icr - 1);
+                  ip = icr;
+              }
+          }
       }
   }
 
@@ -496,14 +496,14 @@ l_int32  i;
     PROCNAME("pheapPrint");
 
     if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", procName, 1);
     if (!ph)
-	return ERROR_INT("ph not defined", procName, 1);
+        return ERROR_INT("ph not defined", procName, 1);
 
     fprintf(fp, "\n PHeap: nalloc = %d, n = %d, array = %p\n",
-	    ph->nalloc, ph->n, ph->array);
+            ph->nalloc, ph->n, ph->array);
     for (i = 0; i < ph->n; i++)
-	fprintf(fp,   "keyval[%d] = %f\n", i, *(l_float32 *)ph->array[i]);
+        fprintf(fp,   "keyval[%d] = %f\n", i, *(l_float32 *)ph->array[i]);
 
     return 0;
 }

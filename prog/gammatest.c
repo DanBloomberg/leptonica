@@ -73,17 +73,14 @@ static char  mainName[] = "gammatest";
     numaDestroy(&na);
 
 #if 1     /* plot gamma TRC maps */
+    gplot = gplotCreate("junkmap", GPLOT_X11,
+                        "Mapping function for gamma correction",
+		       	"value in", "value out");
     nax = numaMakeSequence(0.0, 1.0, 256);
     for (iplot = 0; iplot < NPLOTS; iplot++) {
         na = numaGammaTRC(gamma[iplot], 30, 215);
 	sprintf(bigbuf, "gamma = %3.1f", gamma[iplot]);
-	if (iplot == 0)
-	    gplot = gplotCreate(nax, na, "junkmap",
-		GPLOT_X11, GPLOT_LINES,
-		"Mapping function for gamma correction",
-		bigbuf, "value in", "value out");
-	else
-	    gplotAddPlot(gplot, nax, na, GPLOT_LINES, bigbuf);
+        gplotAddPlot(gplot, nax, na, GPLOT_LINES, bigbuf);
 	numaDestroy(&na);
     }
     gplotMakeOutput(gplot);

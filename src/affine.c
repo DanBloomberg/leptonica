@@ -251,10 +251,10 @@
  */
 PIX *
 pixAffineSequential(PIX     *pixs,
-	            PTA     *ptad,
-	            PTA     *ptas,
-	            l_int32  bw,
-	            l_int32  bh)
+                    PTA     *ptad,
+                    PTA     *ptas,
+                    l_int32  bw,
+                    l_int32  bh)
 {
 l_int32    x1, y1, x2, y2, x3, y3;    /* ptas */
 l_int32    x1p, y1p, x2p, y2p, x3p, y3p;   /* ptad */
@@ -267,16 +267,16 @@ PIX       *pixt1, *pixt2, *pixd;
     PROCNAME("pixAffineSequential");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
 
     if (ptaGetCount(ptas) != 3)
-	return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
     if (ptaGetCount(ptad) != 3)
-	return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
     ptaGetIPt(ptas, 0, &x1, &y1);
     ptaGetIPt(ptas, 1, &x2, &y2);
     ptaGetIPt(ptas, 2, &x3, &y3);
@@ -287,72 +287,72 @@ PIX       *pixt1, *pixt2, *pixd;
     rad2deg = 180. / 3.1415926535;
 
     if (y1 == y3)
-	return (PIX *)ERROR_PTR("y1 == y3!", procName, NULL);
+        return (PIX *)ERROR_PTR("y1 == y3!", procName, NULL);
     if (y1p == y3p)
-	return (PIX *)ERROR_PTR("y1p == y3p!", procName, NULL);
-	
+        return (PIX *)ERROR_PTR("y1p == y3p!", procName, NULL);
+        
     if (bw != 0 || bh != 0) {
-	    /* resize all points and add border to pixs */
-	x1 = x1 + bw;
-	y1 = y1 + bh;
-	x2 = x2 + bw;
-	y2 = y2 + bh;
-	x3 = x3 + bw;
-	y3 = y3 + bh;
-	x1p = x1p + bw;
-	y1p = y1p + bh;
-	x2p = x2p + bw;
-	y2p = y2p + bh;
-	x3p = x3p + bw;
-	y3p = y3p + bh;
+            /* resize all points and add border to pixs */
+        x1 = x1 + bw;
+        y1 = y1 + bh;
+        x2 = x2 + bw;
+        y2 = y2 + bh;
+        x3 = x3 + bw;
+        y3 = y3 + bh;
+        x1p = x1p + bw;
+        y1p = y1p + bh;
+        x2p = x2p + bw;
+        y2p = y2p + bh;
+        x3p = x3p + bw;
+        y3p = y3p + bh;
 
-	if ((pixt1 = pixAddBorderGeneral(pixs, bw, bw, bh, bh, 0)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
+        if ((pixt1 = pixAddBorderGeneral(pixs, bw, bw, bh, bh, 0)) == NULL)
+            return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
     }
     else
-	pixt1 = pixClone(pixs);
+        pixt1 = pixClone(pixs);
 
     /*-------------------------------------------------------------*
-	The horizontal shear is done to move the 3rd point to the
-	y axis.  This moves the 2nd point either towards or away
-	from the y axis, depending on whether it is above or below
-	the x axis.  That motion must be computed so that we know
-	the angle of vertical shear to use to get the 2nd point
-	on the x axis.  We must also know the x coordinate of the
-	2nd point in order to compute how much scaling is required
-	to match points on the axis.
+        The horizontal shear is done to move the 3rd point to the
+        y axis.  This moves the 2nd point either towards or away
+        from the y axis, depending on whether it is above or below
+        the x axis.  That motion must be computed so that we know
+        the angle of vertical shear to use to get the 2nd point
+        on the x axis.  We must also know the x coordinate of the
+        2nd point in order to compute how much scaling is required
+        to match points on the axis.
      *-------------------------------------------------------------*/
 
-	/* Shear angles required to put src points on x and y axes */
+        /* Shear angles required to put src points on x and y axes */
     th3 = atan2(x1 - x3, y1 - y3);
     x2s = (l_float32)(x2 - ((l_float32)(y1 - y2) * (x3 - x1)) / (y1 - y3));
     if (x2s == (l_float32)x1)
-	return (PIX *)ERROR_PTR("x2s == x1!", procName, NULL);
+        return (PIX *)ERROR_PTR("x2s == x1!", procName, NULL);
     ph2 = atan2(y1 - y2, x2s - x1);
 
-	/* Shear angles required to put dest points on x and y axes.
-	 * Use the negative of these values to instead move the
-	 * src points from the axes to the actual dest position.
-	 * These values are also needed to scale the image. */
+        /* Shear angles required to put dest points on x and y axes.
+         * Use the negative of these values to instead move the
+         * src points from the axes to the actual dest position.
+         * These values are also needed to scale the image. */
     th3p = atan2(x1p - x3p, y1p - y3p);
     x2sp = (l_float32)(x2p - ((l_float32)(y1p - y2p) * (x3p - x1p)) / (y1p - y3p));
     if (x2sp == (l_float32)x1p)
-	return (PIX *)ERROR_PTR("x2sp == x1p!", procName, NULL);
+        return (PIX *)ERROR_PTR("x2sp == x1p!", procName, NULL);
     ph2p = atan2(y1p - y2p, x2sp - x1p);
 
-	/* Shear image to first put src point 3 on the y axis,
-	 * and then to put src point 2 on the x axis */
+        /* Shear image to first put src point 3 on the y axis,
+         * and then to put src point 2 on the x axis */
     pixHShearIP(pixt1, y1, th3, L_BRING_IN_WHITE);
     pixVShearIP(pixt1, x1, ph2, L_BRING_IN_WHITE);
 
-	/* Scale image to match dest scale.  The dest scale
-	 * is calculated above from the angles th3p and ph2p
-	 * that would be required to move the dest points to
-	 * the x and y axes. */
+        /* Scale image to match dest scale.  The dest scale
+         * is calculated above from the angles th3p and ph2p
+         * that would be required to move the dest points to
+         * the x and y axes. */
     scalex = (l_float32)(x2sp - x1p) / (x2s - x1);
     scaley = (l_float32)(y3p - y1p) / (y3 - y1);
     if ((pixt2 = pixScale(pixt1, scalex, scaley)) == NULL)
-	return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
 
 #if  DEBUG
     fprintf(stderr, "th3 = %5.1f deg, ph2 = %5.1f deg\n",
@@ -363,31 +363,31 @@ PIX       *pixt1, *pixt2, *pixd;
 #endif  /* DEBUG */
 
     /*-------------------------------------------------------------*
-	Scaling moves the 1st src point, which is the origin. 
-	It must now be moved again to coincide with the origin
-	(1st point) of the dest.  After this is done, the 2nd
-	and 3rd points must be sheared back to the original
-	positions of the 2nd and 3rd dest points.  We use the
-	negative of the angles that were previously computed
-	for shearing those points in the dest image to x and y
-	axes, and take the shears in reverse order as well.
+        Scaling moves the 1st src point, which is the origin. 
+        It must now be moved again to coincide with the origin
+        (1st point) of the dest.  After this is done, the 2nd
+        and 3rd points must be sheared back to the original
+        positions of the 2nd and 3rd dest points.  We use the
+        negative of the angles that were previously computed
+        for shearing those points in the dest image to x and y
+        axes, and take the shears in reverse order as well.
      *-------------------------------------------------------------*/
-	/* Shift image to match dest origin. */
+        /* Shift image to match dest origin. */
     x1sc = (l_int32)(scalex * x1 + 0.5);   /* x comp of origin after scaling */
     y1sc = (l_int32)(scaley * y1 + 0.5);   /* y comp of origin after scaling */
     pixRasteropIP(pixt2, x1p - x1sc, y1p - y1sc, L_BRING_IN_WHITE);
 
-	/* Shear image to take points 2 and 3 off the axis and
-	 * put them in the original dest position */
+        /* Shear image to take points 2 and 3 off the axis and
+         * put them in the original dest position */
     pixVShearIP(pixt2, x1p, -ph2p, L_BRING_IN_WHITE);
     pixHShearIP(pixt2, y1p, -th3p, L_BRING_IN_WHITE);
 
     if (bw != 0 || bh != 0) {
-	if ((pixd = pixRemoveBorderGeneral(pixt2, bw, bw, bh, bh)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixRemoveBorderGeneral(pixt2, bw, bw, bh, bh)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
     else
-	pixd = pixClone(pixt2);
+        pixd = pixClone(pixt2);
 
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -428,9 +428,9 @@ PIX       *pixt1, *pixt2, *pixd;
  */
 PIX *
 pixAffineSampled(PIX     *pixs,
-	         PTA     *ptad,
-	         PTA     *ptas,
-		 l_int32  incolor)
+                 PTA     *ptad,
+                 PTA     *ptas,
+                 l_int32  incolor)
 {
 l_int32     i, j, w, h, d, x, y, wpls, wpld, color, cmapindex;
 l_uint32    val;
@@ -442,19 +442,19 @@ PIXCMAP    *cmap;
     PROCNAME("pixAffineSampled");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
     if (ptaGetCount(ptas) != 3)
-	return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
     if (ptaGetCount(ptad) != 3)
-	return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
 
-	/* Get backwards transform from dest to src */
+        /* Get backwards transform from dest to src */
     affineXformCoeffs(ptad, ptas, &vc);
 
     w = pixGetWidth(pixs);
@@ -468,50 +468,50 @@ PIXCMAP    *cmap;
 
         /* Init all dest pixels to color to be brought in from outside */
     if ((cmap = pixGetColormap(pixs)) != NULL) {
-	if (incolor == L_BRING_IN_WHITE)
-	    color = 1;
-	else
-	    color = 0;
-	pixcmapAddBlackOrWhite(cmap, color, &cmapindex);
-	pixSetAllArbitrary(pixd, cmapindex);
+        if (incolor == L_BRING_IN_WHITE)
+            color = 1;
+        else
+            color = 0;
+        pixcmapAddBlackOrWhite(cmap, color, &cmapindex);
+        pixSetAllArbitrary(pixd, cmapindex);
     }
     else {
-	if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
-	    (d > 1 && incolor == L_BRING_IN_BLACK))
-	    pixClearAll(pixd);
-	else
-	    pixSetAll(pixd);
+        if ((d == 1 && incolor == L_BRING_IN_WHITE) ||
+            (d > 1 && incolor == L_BRING_IN_BLACK))
+            pixClearAll(pixd);
+        else
+            pixSetAll(pixd);
     }
 
-	/* Scan over dest pixels */
+        /* Scan over dest pixels */
     for (i = 0; i < h; i++) {
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    affineXformSampled(vc, j, i, &x, &y);
-	    if (x < 0 || y < 0 || x >=w || y >= h)
-		continue;
-	    if (d == 1) {
-		lines = datas + y * wpls;
-		if (GET_DATA_BIT(lines, x))
-		    SET_DATA_BIT(lined, j);
-	    }
-	    else if (d == 8) {
-		lines = datas + y * wpls;
-		val = GET_DATA_BYTE(lines, x);
-		SET_DATA_BYTE(lined, j, val);
-	    }
-	    else if (d == 32) {
-		lines = datas + y * wpls;
-		lined[j] = lines[x];
-	    }
-	    else {  /* all other depths */
-		pixGetPixel(pixs, x, y, &val);
-		pixSetPixel(pixd, j, i, val);
-	    }
-	}
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            affineXformSampled(vc, j, i, &x, &y);
+            if (x < 0 || y < 0 || x >=w || y >= h)
+                continue;
+            if (d == 1) {
+                lines = datas + y * wpls;
+                if (GET_DATA_BIT(lines, x))
+                    SET_DATA_BIT(lined, j);
+            }
+            else if (d == 8) {
+                lines = datas + y * wpls;
+                val = GET_DATA_BYTE(lines, x);
+                SET_DATA_BYTE(lined, j, val);
+            }
+            else if (d == 32) {
+                lines = datas + y * wpls;
+                lined[j] = lines[x];
+            }
+            else {  /* all other depths */
+                pixGetPixel(pixs, x, y, &val);
+                pixSetPixel(pixd, j, i, val);
+            }
+        }
     }
 
-    FREE((void *)vc);
+    FREE(vc);
     return pixd;
 }
 
@@ -534,8 +534,8 @@ PIXCMAP    *cmap;
  */
 PIX *
 pixAffineInterpolated(PIX     *pixs,
-	              PTA     *ptad,
-	              PTA     *ptas,
+                      PTA     *ptad,
+                      PTA     *ptas,
                       l_int32  incolor)
 {
 l_int32   d;
@@ -545,42 +545,42 @@ PIX      *pixt1, *pixt2, *pixd;
     PROCNAME("pixAffineInterpolated");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) == 1)
-	return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
     if (ptaGetCount(ptas) != 3)
-	return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
     if (ptaGetCount(ptad) != 3)
-	return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
 
         /* Remove cmap if it exists, and unpack to 8 bpp if necessary */
     pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     d = pixGetDepth(pixt1);
     if (d < 8)
-	pixt2 = pixConvertTo8(pixt1);
+        pixt2 = pixConvertTo8(pixt1, FALSE);
     else
-	pixt2 = pixClone(pixt1);
+        pixt2 = pixClone(pixt1);
     d = pixGetDepth(pixt2);
 
-	/* Compute actual color to bring in from edges */
+        /* Compute actual color to bring in from edges */
     colorval = 0;
     if (incolor == L_BRING_IN_WHITE) {
-	if (d == 8)
-	    colorval = 255;
-	else  /* d == 32 */
-	    colorval = 0xffffff00;
+        if (d == 8)
+            colorval = 255;
+        else  /* d == 32 */
+            colorval = 0xffffff00;
     }
     
     if (d == 8)
-	pixd = pixAffineInterpolatedGray(pixt2, ptad, ptas, colorval);
+        pixd = pixAffineInterpolatedGray(pixt2, ptad, ptas, colorval);
     else  /* d == 32 */
-	pixd = pixAffineInterpolatedColor(pixt2, ptad, ptas, colorval);
+        pixd = pixAffineInterpolatedColor(pixt2, ptad, ptas, colorval);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     return pixd;
@@ -612,19 +612,19 @@ PIX        *pixd;
     PROCNAME("pixAffineInterpolatedColor");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-	return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
     if (ptaGetCount(ptas) != 3)
-	return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
     if (ptaGetCount(ptad) != 3)
-	return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
 
-	/* Get backwards transform from dest to src */
+        /* Get backwards transform from dest to src */
     affineXformCoeffs(ptad, ptas, &vc);
 
     w = pixGetWidth(pixs);
@@ -637,7 +637,7 @@ PIX        *pixd;
     wpld = pixGetWpl(pixd);
 
     affineInterpolatedColorLow(datad, w, h, wpld, datas, wpls, vc);
-    FREE((void *)vc);
+    FREE(vc);
 
     return pixd;
 }
@@ -666,19 +666,19 @@ PIX        *pixd;
     PROCNAME("pixAffineInterpolatedGray");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!ptas)
-	return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
     if (!ptad)
-	return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
     if (ptaGetCount(ptas) != 3)
-	return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 3", procName, NULL);
     if (ptaGetCount(ptad) != 3)
-	return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 3", procName, NULL);
 
-	/* Get backwards transform from dest to src */
+        /* Get backwards transform from dest to src */
     affineXformCoeffs(ptad, ptas, &vc);
 
     w = pixGetWidth(pixs);
@@ -691,7 +691,7 @@ PIX        *pixd;
     wpld = pixGetWpl(pixd);
 
     affineInterpolatedGrayLow(datad, w, h, wpld, datas, wpls, vc);
-    FREE((void *)vc);
+    FREE(vc);
 
     return pixd;
 }
@@ -719,45 +719,45 @@ l_uint32  *lines, *lined;
     hm2 = h - 2;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	        /* Compute src pixel and fraction corresponding to (i,j) */
-	    affineXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
+        for (j = 0; j < w; j++) {
+                /* Compute src pixel and fraction corresponding to (i,j) */
+            affineXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
 
-		/* Skip if off the edge; omit x = 0 and y = 0 because
-		 * xf and yf can be < 0, in which case overflow is
-		 * possible for val, and black pixels can be rendered
-		 * on pixels at the src boundaries. */
-	    if (x < 1 || y < 1 || x > wm2 || y > hm2)
-		continue;
+                /* Skip if off the edge; omit x = 0 and y = 0 because
+                 * xf and yf can be < 0, in which case overflow is
+                 * possible for val, and black pixels can be rendered
+                 * on pixels at the src boundaries. */
+            if (x < 1 || y < 1 || x > wm2 || y > hm2)
+                continue;
 
 #if  DEBUG
-	    if (xf < 0 || yf < 0)
+            if (xf < 0 || yf < 0)
                 fprintf(stderr, "x = %d, y = %d, xf = %d, yf = %d\n",
-		     x, y, xf, yf);
+                     x, y, xf, yf);
 #endif  /* DEBUG */
 
-	    lines = datas + y * wpls;
+            lines = datas + y * wpls;
 
-	        /* Do area weighting (eqiv. to linear interpolation) */
+                /* Do area weighting (eqiv. to linear interpolation) */
             word00 = *(lines + x);
-	    word10 = *(lines + x + 1);
-	    word01 = *(lines + wpls + x);
-	    word11 = *(lines + wpls + x + 1);
-	    rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
-		xf * (16 - yf) * (word10 >> 24) +
-		(16 - xf) * yf * (word01 >> 24) +
-		xf * yf * (word11 >> 24) + 128) / 256;
-	    gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
-		xf * (16 - yf) * ((word10 >> 16) & 0xff) +
-		(16 - xf) * yf * ((word01 >> 16) & 0xff) +
-		xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
-	    bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
-		xf * (16 - yf) * ((word10 >> 8) & 0xff) +
-		(16 - xf) * yf * ((word01 >> 8) & 0xff) +
-		xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
-	    val = (rval << 24) | (gval << 16) | (bval << 8);
-	    *(lined + j) = val;
-	}
+            word10 = *(lines + x + 1);
+            word01 = *(lines + wpls + x);
+            word11 = *(lines + wpls + x + 1);
+            rval = ((16 - xf) * (16 - yf) * (word00 >> 24) +
+                xf * (16 - yf) * (word10 >> 24) +
+                (16 - xf) * yf * (word01 >> 24) +
+                xf * yf * (word11 >> 24) + 128) / 256;
+            gval = ((16 - xf) * (16 - yf) * ((word00 >> 16) & 0xff) +
+                xf * (16 - yf) * ((word10 >> 16) & 0xff) +
+                (16 - xf) * yf * ((word01 >> 16) & 0xff) +
+                xf * yf * ((word11 >> 16) & 0xff) + 128) / 256;
+            bval = ((16 - xf) * (16 - yf) * ((word00 >> 8) & 0xff) +
+                xf * (16 - yf) * ((word10 >> 8) & 0xff) +
+                (16 - xf) * yf * ((word01 >> 8) & 0xff) +
+                xf * yf * ((word11 >> 8) & 0xff) + 128) / 256;
+            val = (rval << 24) | (gval << 16) | (bval << 8);
+            *(lined + j) = val;
+        }
     }
 
     return;
@@ -786,32 +786,32 @@ l_uint32   *lines, *lined;
     hm2 = h - 2;
     for (i = 0; i < h; i++) {
         lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	        /* Compute src pixel and fraction corresponding to (i,j) */
-	    affineXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
+        for (j = 0; j < w; j++) {
+                /* Compute src pixel and fraction corresponding to (i,j) */
+            affineXformInterpolated(vc, j, i, &x, &y, &xf, &yf);
 
-		/* Skip if off the edge; omit x = 0 and y = 0 because
-		 * xf and yf can be < 0, in which case overflow is
-		 * possible for val, and black pixels can be rendered
-		 * on pixels at the src boundaries. */
-	    if (x < 1 || y < 1 || x > wm2 || y > hm2)
-		continue;
+                /* Skip if off the edge; omit x = 0 and y = 0 because
+                 * xf and yf can be < 0, in which case overflow is
+                 * possible for val, and black pixels can be rendered
+                 * on pixels at the src boundaries. */
+            if (x < 1 || y < 1 || x > wm2 || y > hm2)
+                continue;
 
 #if  DEBUG
-	    if (xf < 0 || yf < 0)
+            if (xf < 0 || yf < 0)
                 fprintf(stderr, "x = %d, y = %d, xf = %d, yf = %d\n",
-		     x, y, xf, yf);
+                     x, y, xf, yf);
 #endif  /* DEBUG */
 
-	        /* Do area weighting (eqiv. to linear interpolation) */
-	    lines = datas + y * wpls;
-	    v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, x);
-	    v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, x + 1);
-	    v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, x);
-	    v11 = xf * yf * GET_DATA_BYTE(lines + wpls, x + 1);
-	    val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
-	    SET_DATA_BYTE(lined, j, val);
-	}
+                /* Do area weighting (eqiv. to linear interpolation) */
+            lines = datas + y * wpls;
+            v00 = (16 - xf) * (16 - yf) * GET_DATA_BYTE(lines, x);
+            v10 = xf * (16 - yf) * GET_DATA_BYTE(lines, x + 1);
+            v01 = (16 - xf) * yf * GET_DATA_BYTE(lines + wpls, x);
+            v11 = xf * yf * GET_DATA_BYTE(lines + wpls, x + 1);
+            val = (l_uint8)((v00 + v01 + v10 + v11 + 128) / 256);
+            SET_DATA_BYTE(lined, j, val);
+        }
     }
 
     return;
@@ -872,7 +872,7 @@ l_uint32   *lines, *lined;
 l_int32
 affineXformCoeffs(PTA         *ptas,
                   PTA         *ptad,
-	          l_float32  **pvc)
+                  l_float32  **pvc)
 {
 l_int32     i;
 l_float32   x1, y1, x2, y2, x3, y3;
@@ -882,14 +882,14 @@ l_float32  *a[6];  /* 6x6 matrix A  */
     PROCNAME("affineXformCoeffs");
 
     if (!ptas)
-	return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", procName, 1);
     if (!ptad)
-	return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", procName, 1);
     if (!pvc)
-	return ERROR_INT("&vc not defined", procName, 1);
-	
+        return ERROR_INT("&vc not defined", procName, 1);
+        
     if ((b = (l_float32 *)CALLOC(6, sizeof(l_float32))) == NULL)
-	return ERROR_INT("b not made", procName, 1);
+        return ERROR_INT("b not made", procName, 1);
     *pvc = b;
 
     ptaGetPt(ptas, 0, &x1, &y1);
@@ -900,8 +900,8 @@ l_float32  *a[6];  /* 6x6 matrix A  */
     ptaGetPt(ptad, 2, &b[4], &b[5]);
 
     for (i = 0; i < 6; i++)
-	if ((a[i] = (l_float32 *)CALLOC(6, sizeof(l_float32))) == NULL)
-	    return ERROR_INT("a[i] not made", procName, 1);
+        if ((a[i] = (l_float32 *)CALLOC(6, sizeof(l_float32))) == NULL)
+            return ERROR_INT("a[i] not made", procName, 1);
 
     a[0][0] = x1;
     a[0][1] = y1;
@@ -925,7 +925,7 @@ l_float32  *a[6];  /* 6x6 matrix A  */
     gaussjordan(a, b, 6);
 
     for (i = 0; i < 6; i++)
-	FREE((void *)a[i]);
+        FREE(a[i]);
 
     return 0;
 }
@@ -942,14 +942,14 @@ l_float32  *a[6];  /* 6x6 matrix A  */
 l_int32
 affineXformSampled(l_float32  *vc,
                    l_int32     x,
-	           l_int32     y,
-	           l_int32    *pxp,
-	           l_int32    *pyp)
+                   l_int32     y,
+                   l_int32    *pxp,
+                   l_int32    *pyp)
 {
     PROCNAME("affineXformSampled");
 
     if (!vc)
-	return ERROR_INT("vc not defined", procName, 1);
+        return ERROR_INT("vc not defined", procName, 1);
 
     *pxp = (l_int32)(vc[0] * x + vc[1] * y + vc[2] + 0.5);
     *pyp = (l_int32)(vc[3] * x + vc[4] * y + vc[5] + 0.5);
@@ -983,7 +983,7 @@ l_float32  xp, yp;
     PROCNAME("affineXformInterpolated");
 
     if (!vc)
-	return ERROR_INT("vc not defined", procName, 1);
+        return ERROR_INT("vc not defined", procName, 1);
 
     xp = vc[0] * x + vc[1] * y + vc[2];
     yp = vc[3] * x + vc[4] * y + vc[5];
@@ -1028,70 +1028,70 @@ l_float32  big, dum, pivinv, temp;
     PROCNAME("gaussjordan");
 
     if (!a)
-	return ERROR_INT("a not defined", procName, 1);
+        return ERROR_INT("a not defined", procName, 1);
     if (!b)
-	return ERROR_INT("b not defined", procName, 1);
+        return ERROR_INT("b not defined", procName, 1);
 
     if ((indexc = (l_int32 *)CALLOC(n, sizeof(l_int32))) == NULL)
-	return ERROR_INT("indexc not made", procName, 1);
+        return ERROR_INT("indexc not made", procName, 1);
     if ((indexr = (l_int32 *)CALLOC(n, sizeof(l_int32))) == NULL)
-	return ERROR_INT("indexr not made", procName, 1);
+        return ERROR_INT("indexr not made", procName, 1);
     if ((ipiv = (l_int32 *)CALLOC(n, sizeof(l_int32))) == NULL)
-	return ERROR_INT("ipiv not made", procName, 1);
+        return ERROR_INT("ipiv not made", procName, 1);
 
     for (i = 0; i < n; i++) {
-	big = 0.0;
-	for (j = 0; j < n; j++) {
-	    if (ipiv[j] != 1)
-		for (k = 0; k < n; k++) {
-		    if (ipiv[k] == 0) {
-			if (fabs(a[j][k]) >= big) {
-			    big = fabs(a[j][k]);
-			    irow = j;
-			    icol = k;
-			}
-		    }
-		    else if (ipiv[k] > 1)
-			return ERROR_INT("singular matrix", procName, 1);
-		}
-	}
-	++(ipiv[icol]);
-	
-	if (irow != icol) {
-	    for (l = 0; l < n; l++)
-		SWAP(a[irow][l], a[icol][l]);
-	    SWAP(b[irow], b[icol]);
-	}
+        big = 0.0;
+        for (j = 0; j < n; j++) {
+            if (ipiv[j] != 1)
+                for (k = 0; k < n; k++) {
+                    if (ipiv[k] == 0) {
+                        if (fabs(a[j][k]) >= big) {
+                            big = fabs(a[j][k]);
+                            irow = j;
+                            icol = k;
+                        }
+                    }
+                    else if (ipiv[k] > 1)
+                        return ERROR_INT("singular matrix", procName, 1);
+                }
+        }
+        ++(ipiv[icol]);
+        
+        if (irow != icol) {
+            for (l = 0; l < n; l++)
+                SWAP(a[irow][l], a[icol][l]);
+            SWAP(b[irow], b[icol]);
+        }
 
-	indexr[i] = irow;
-	indexc[i] = icol;
-	if (a[icol][icol] == 0.0)
-	    return ERROR_INT("singular matrix", procName, 1);
-	pivinv = 1.0 / a[icol][icol];
-	a[icol][icol] = 1.0;
-	for (l = 0; l < n; l++)
-	    a[icol][l] *= pivinv;
-	b[icol] *= pivinv;
+        indexr[i] = irow;
+        indexc[i] = icol;
+        if (a[icol][icol] == 0.0)
+            return ERROR_INT("singular matrix", procName, 1);
+        pivinv = 1.0 / a[icol][icol];
+        a[icol][icol] = 1.0;
+        for (l = 0; l < n; l++)
+            a[icol][l] *= pivinv;
+        b[icol] *= pivinv;
 
-	for (ll = 0; ll < n; ll++) 
-	    if (ll != icol) {
-		dum = a[ll][icol];
-		a[ll][icol] = 0.0;
-		for (l = 0; l < n; l++)
-		    a[ll][l] -= a[icol][l] * dum;
-		b[ll] -= b[icol] * dum;
-	    }
+        for (ll = 0; ll < n; ll++) 
+            if (ll != icol) {
+                dum = a[ll][icol];
+                a[ll][icol] = 0.0;
+                for (l = 0; l < n; l++)
+                    a[ll][l] -= a[icol][l] * dum;
+                b[ll] -= b[icol] * dum;
+            }
     }
 
     for (l = n - 1; l >= 0; l--) {
-	if (indexr[l] != indexc[l])
-	    for (k = 0; k < n; k++)
-		SWAP(a[k][indexr[l]], a[k][indexc[l]]);
+        if (indexr[l] != indexc[l])
+            for (k = 0; k < n; k++)
+                SWAP(a[k][indexr[l]], a[k][indexc[l]]);
     }
 
-    FREE((void *)indexr);
-    FREE((void *)indexc);
-    FREE((void *)ipiv);
+    FREE(indexr);
+    FREE(indexc);
+    FREE(ipiv);
     return 0;
 }
 

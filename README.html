@@ -65,15 +65,16 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (26 Dec 06)
+README  (1 May 07)
 --------------------
 
-gunzip leptonlib-1.42.tar.gz
-tar -xvf leptonlib-1.42.tar
+gunzip leptonlib-1.44.tar.gz
+tar -xvf leptonlib-1.44.tar
 
 
 1.  This tar includes library source, function prototypes,
-    test program source, and sample images for Linux on x86 (i386)
+    source for regression test and usage example programs,,
+    and sample images for Linux on x86 (i386)
     and AMD 64 (x64), and on OSX (both powerPC and x86).
     It should compile properly with any version of gcc
     from 2.95.3 onward.
@@ -82,7 +83,7 @@ tar -xvf leptonlib-1.42.tar
     as described in 2, 3 and 4, respectively.
 
     When you extract from the archive, all files are put in a
-    subdirectory 'leptonlib-1.39'.  In that directory you will
+    subdirectory 'leptonlib-1.44'.  In that directory you will
     find a src directory containing the source files for the library,
     and a prog directory containing source files for various
     testing and example programs.
@@ -90,7 +91,11 @@ tar -xvf leptonlib-1.42.tar
 2.  When you compile, object code is by default put into a tree
     whose root is also the parent of the src and prog directories.
     If you want to change the location of the generated object code,
-    change the ROOT_DIR variable in the Makefile.
+    change the ROOT_DIR variable in the Makefile.  To make
+    an optimized version of the library, along with the prototype
+    extraction program, type:
+          make
+          make xtractprotos
 
 3.  To compile and link with gcc on a little-endian machine,
     just run 'make' in the src and prog directories.
@@ -99,10 +104,24 @@ tar -xvf leptonlib-1.42.tar
     libraries, you need to add the location of the shared
     libraries to the LD_LIBRARY_PATH.  See the Makefile for details.
 
+    VERY IMPORTANT: the 100+ programs in the prog directory are
+    an integral part of this package.  These can be divided into
+    three types:
+      (1) Programs that are complete regression tests.  The most
+          important of these are named *_reg.
+      (2) Programs that were used to test library functions or
+          auto-gen library code.  These are useful for testing
+          the behavior of small sets of functions, and for
+          providing example code.
+      (3) Programs that are useful applications in their own right.
+          Examples of these are the PostScript conversion programs
+          converttops and printsplitimage.
+
 4.  The prototype header file leptprotos.h (supplied) can be
     automatically generated using xtractprotos.  You first have to
     make this program:
          make xtractprotos
+    which should be done after you first build the library.
     Then, to re-make leptprotos.h:
          make allprotos
 
@@ -136,6 +155,11 @@ tar -xvf leptonlib-1.42.tar
 	png:   png.h, pngconf.h
 	tiff:  tiff.h, tiffio.h
     What about jpeglib.h?  See item 17 below.
+
+    These libraries are easy to obtain.  For example, using the
+    debian package manager:
+          sudo apt-get install <package>
+    where <package> = {libpng12-dev, libjpeg62-dev, libtiff4-dev}.
 
     If for some reason you do not want to include some or all of the leptonlib
     I/O functions, stub files are included for the six different output
@@ -263,9 +287,18 @@ tar -xvf leptonlib-1.42.tar
     Implementations of tophat and hdome are also given. 
     The low-level code is in graymorphlow.c.
 
-    A function with a simple parser is provided to execute a
+    A function with a simple parser is also provided to execute a
     sequence of grayscale morphological operations (plus tophat).
     See morphseq.c.
+
+    In use, the most common morphological Sels are separable bricks,
+    of dimension n x m (where n or m is commonly 1).  Accordingly,
+    we provide separable morphological operations on brick Sels,
+    using for binary both rasterops and dwa, and for grayscale,
+    the fast van Herk/Gil-Werman method.  These also provide the underlying
+    functions for the morphological parsers.  The advantage in using them is
+    that you don't have to create and destroy Sels, or do any of the
+    intermediate image bookkeeping necessary for separable operations.
 
 10. This is also a source for simple and relatively efficient
     implementations of image scaling, shear and rotation.
@@ -339,9 +372,7 @@ tar -xvf leptonlib-1.42.tar
 	operates on the image in-place.
 
     We also provide orthogonal rotators (90, 180, 270 degree; left-right
-    flip and top-bottom flip) for arbitrary image depth.  The low-level
-    code is in rotateorthlow.c.
-
+    flip and top-bottom flip) for arbitrary image depth.
     And we provide implementations of affine, projective and bilinear
     transforms, with both sampling (for speed) and interpolation
     (for antialiasing).
@@ -413,7 +444,7 @@ tar -xvf leptonlib-1.42.tar
 	- PNG and PNM support 2 and 4 bpp images.
 	- PNG supports 2 and 4 bpp palette, and 16 bpp without palette.
 	- PNG, JPEG and TIFF support image compression; PNM and BMP do not.
-    Use prog/ioformats for a regression test.
+    Use prog/ioformats_reg for a regression test.
 
     We also provide wrappers for PS output, from the following
     sources: binary Pix, 8 bpp gray Pix, 24 bpp full color Pix, 
@@ -423,7 +454,10 @@ tar -xvf leptonlib-1.42.tar
     PS for different applications.  As an example of usage, see
     prog/converttops.c for a general image --> PS conversion for printing.
 
-    We provide colormap removal for conversion to 8 bpp gray or
+    Note: any or all of these library calls can be stubbed out.
+    Details in (5) above, and in src/Makefile.
+
+    We also provide colormap removal for conversion to 8 bpp gray or
     for conversion to 24 bpp full color, as well as conversion
     from RGB to 8 bpp grayscale.  We also provide the inverse
     function to colormap removal; namely, color quantization
@@ -433,12 +467,11 @@ tar -xvf leptonlib-1.42.tar
     see pixConvertRGBToColormap(), pixOctreeColorQuant() and
     pixOctreeQuant().
 
-    A function can be called to display an image programmatically on
-    an X display using xv.  If necessary to fit on the screen,
-    the image is reduced using scale-to-gray for readability.
-
-    Note: any or all of these library calls can be stubbed out.
-    Details in (5) above, and in src/Makefile.
+    For debugging, several pixDisplay* functions are given.  Two can be
+    called to display an image programmatically on an X display using xv.
+    If necessary to fit on the screen, the image is reduced using
+    scale-to-gray for readability.  Another writes images to disk
+    under control of a debug flag, for viewing with (e.g.) gthumb.
 
 14. Simple data structures are provided for safe and
     efficient handling of arrays of numbers, strings, pointers,
@@ -450,34 +483,36 @@ tar -xvf leptonlib-1.42.tar
 
 15. Examples of programs that are easily built using the library:
 
-        - for plotting x-y data, both programmatic and file
-          interfaces to the gnuplot program (e.g., plotprog
-	  and plotfile) and with output to X11, png, ps or eps.
+     - for plotting x-y data, we give a programmatic interface
+       to the gnuplot program, with output to X11, png, ps or eps.
+       We also allow serialization of the plot data, in a form
+       such that the data can be read, the commands generated,
+       and (finally) the plot constructed by running gnuplot.
 
-	- a simple jbig2-type classifier, using various distance
-	  metrics between image components (correlation, rank
-	  hausdorff); see prog/jbcorrelation.c, prog/jbrankhaus.c.
+     - a simple jbig2-type classifier, using various distance
+       metrics between image components (correlation, rank
+       hausdorff); see prog/jbcorrelation.c, prog/jbrankhaus.c.
 
-        - a simple color segmenter, giving a smoothed image
-	  with a small number of the most significant colors.
+     - a simple color segmenter, giving a smoothed image
+       with a small number of the most significant colors.
 
-        - a program for converting all tiff images in a directory
-	  to a PostScript file, and a program for printing an image
-	  in any (supported) format to a PostScript printer.
+     - a program for converting all tiff images in a directory
+       to a PostScript file, and a program for printing an image
+       in any (supported) format to a PostScript printer.
 
-        - converters between binary images and SVG format.
+     - converters between binary images and SVG format.
 
-        - a bitmap font facility that allows painting text onto
-	  images.  We currently support one font in several sizes.
-	  The font images and postscript programs for generating
-	  them are stored in prog/fonts/.
+     - a bitmap font facility that allows painting text onto
+       images.  We currently support one font in several sizes.
+       The font images and postscript programs for generating
+       them are stored in prog/fonts/.
 
-        - a binary maze game lets you generate mazes and find shortest
-	  paths between two arbitrary points, if such a path exists.
-	  You can also compute the "shortest" (i.e., least cost) path
-	  between points on a grayscale image.
+     - a binary maze game lets you generate mazes and find shortest
+       paths between two arbitrary points, if such a path exists.
+       You can also compute the "shortest" (i.e., least cost) path
+       between points on a grayscale image.
 
-16. A serious deficiency of C is that no standard has been universally
+16. A deficiency of C is that no standard has been universally
     adopted for typedefs of the built-in types.  As a result,
     typedef conflicts are common, and cause no end of havoc when
     you try to link different libraries.  If you're lucky, you
@@ -497,7 +532,7 @@ tar -xvf leptonlib-1.42.tar
 
     The png library avoids typedef conflicts by altruistically
     appending "png_" to the type names.  Following that approach,
-    Leptonica now appends "l_" to the type name.  This should avoid
+    Leptonica appends "l_" to the type name.  This should avoid
     just about all conflicts.  In the highly unlikely event that it doesn't,
     here's a simple way to change the type declarations throughout
     the Leptonica code:

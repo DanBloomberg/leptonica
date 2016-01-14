@@ -139,11 +139,11 @@ pixDeskew(PIX     *pixs,
     PROCNAME("pixDeskew");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (redsearch != 1 && redsearch != 2 && redsearch != 4)
-	return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
+        return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
 
     return pixFindSkewAndDeskew(pixs, redsearch, NULL, NULL);
 }
@@ -178,32 +178,32 @@ PIX       *pixd;
     PROCNAME("pixFindSkewAndDeskew");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (redsearch != 1 && redsearch != 2 && redsearch != 4)
-	return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
+        return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
 
     deg2rad = 3.1415926535 / 180.;
     ret = pixFindSkewSweepAndSearch(pixs, &angle, &conf,
-	       	DEFAULT_SWEEP_REDUCTION, redsearch,
-	       	DEFAULT_SWEEP_RANGE, DEFAULT_SWEEP_DELTA,
-	       	DEFAULT_MINBS_DELTA);
+                       DEFAULT_SWEEP_REDUCTION, redsearch,
+                       DEFAULT_SWEEP_RANGE, DEFAULT_SWEEP_DELTA,
+                       DEFAULT_MINBS_DELTA);
     if (pangle)
         *pangle = angle;
     if (pconf)
         *pconf = conf;
     if (ret)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     if (L_ABS(angle) < MIN_DESKEW_ANGLE || conf < MIN_ALLOWED_CONFIDENCE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     if ((pixd = pixRotateShear(pixs, 0, 0, deg2rad * angle, L_BRING_IN_WHITE))
              == NULL)
-	return pixClone(pixs);
+        return pixClone(pixs);
     else
-	return pixd;
+        return pixd;
 }
 
 
@@ -230,20 +230,20 @@ pixFindSkew(PIX        *pixs,
     PROCNAME("pixFindSkew");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 1)
-	return ERROR_INT("pixs not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not 1 bpp", procName, 1);
     if (!pangle)
-	return ERROR_INT("&angle not defined", procName, 1);
+        return ERROR_INT("&angle not defined", procName, 1);
     if (!pconf)
-	return ERROR_INT("&conf not defined", procName, 1);
+        return ERROR_INT("&conf not defined", procName, 1);
 
     return pixFindSkewSweepAndSearch(pixs, pangle, pconf,
-				     DEFAULT_SWEEP_REDUCTION,
-				     DEFAULT_BS_REDUCTION,
-				     DEFAULT_SWEEP_RANGE,
-				     DEFAULT_SWEEP_DELTA,
-				     DEFAULT_MINBS_DELTA);
+                                     DEFAULT_SWEEP_REDUCTION,
+                                     DEFAULT_BS_REDUCTION,
+                                     DEFAULT_SWEEP_RANGE,
+                                     DEFAULT_SWEEP_DELTA,
+                                     DEFAULT_MINBS_DELTA);
 }
 
 
@@ -266,10 +266,10 @@ pixFindSkew(PIX        *pixs,
  */
 l_int32
 pixFindSkewSweep(PIX        *pixs,
-		 l_float32  *pangle,
-		 l_int32     reduction,
-		 l_float32   sweeprange,
-		 l_float32   sweepdelta)
+                 l_float32  *pangle,
+                 l_int32     reduction,
+                 l_float32   sweeprange,
+                 l_float32   sweepdelta)
 {
 l_int32    bzero, i, nangles;
 l_float32  deg2rad, rad2deg, theta;
@@ -280,64 +280,64 @@ PIX       *pix, *pixt;
     PROCNAME("pixFindSkewSweep");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 1)
-	return ERROR_INT("pixs not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not 1 bpp", procName, 1);
     if (!pangle)
-	return ERROR_INT("&angle not defined", procName, 1);
+        return ERROR_INT("&angle not defined", procName, 1);
     if (reduction != 1 && reduction != 2 && reduction != 4 && reduction != 8)
-	return ERROR_INT("reduction must be in {1,2,4,8}", procName, 1);
+        return ERROR_INT("reduction must be in {1,2,4,8}", procName, 1);
 
     *pangle = 0.0;  /* init */
     deg2rad = 3.1415926535 / 180.;
     rad2deg = 1. / deg2rad;
 
-	/* Generate reduced image, if requested */
+        /* Generate reduced image, if requested */
     if (reduction == 1)
-	pix = pixClone(pixs);
+        pix = pixClone(pixs);
     else if (reduction == 2)
-	pix = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
+        pix = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
     else if (reduction == 4)
-	pix = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
+        pix = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
     else /* reduction == 8 */
-	pix = pixReduceRankBinaryCascade(pixs, 1, 1, 2, 0);
+        pix = pixReduceRankBinaryCascade(pixs, 1, 1, 2, 0);
 
     pixZero(pix, &bzero);
     if (bzero) {
-	pixDestroy(&pix);
-	return 1;
+        pixDestroy(&pix);
+        return 1;
     }
 
     nangles = (l_int32)((2. * sweeprange) / sweepdelta + 1);
     if ((natheta = numaCreate(nangles)) == NULL)
-	return ERROR_INT("natheta not made", procName, 1);
+        return ERROR_INT("natheta not made", procName, 1);
     if ((nascore = numaCreate(nangles)) == NULL)
-	return ERROR_INT("nascore not made", procName, 1);
+        return ERROR_INT("nascore not made", procName, 1);
 
     if ((pixt = pixCreateTemplate(pix)) == NULL)
-	return ERROR_INT("pixt not made", procName, 1);
+        return ERROR_INT("pixt not made", procName, 1);
 
     for (i = 0; i < nangles; i++) {
-	theta = -sweeprange + i * sweepdelta;   /* degrees */
+        theta = -sweeprange + i * sweepdelta;   /* degrees */
 
-	    /* Shear pix about the UL corner and put the result in pixt */
-	pixVShearCorner(pixt, pix, deg2rad * theta, L_BRING_IN_WHITE);
+            /* Shear pix about the UL corner and put the result in pixt */
+        pixVShearCorner(pixt, pix, deg2rad * theta, L_BRING_IN_WHITE);
 
-	    /* Get score */
-	pixFindDifferentialSquareSum(pixt, &sum);
+            /* Get score */
+        pixFindDifferentialSquareSum(pixt, &sum);
 
 #if  DEBUG_PRINT_SCORES
-	L_INFO_FLOAT2("sum(%7.2f) = %7.0f", procName, theta, sum);
+        L_INFO_FLOAT2("sum(%7.2f) = %7.0f", procName, theta, sum);
 #endif  /* DEBUG_PRINT_SCORES */
 
-	    /* Save the result in the output arrays */
-	numaAddNumber(nascore, sum);
-	numaAddNumber(natheta, theta);
+            /* Save the result in the output arrays */
+        numaAddNumber(nascore, sum);
+        numaAddNumber(natheta, theta);
     }
 
-	/* Find the location of the maximum (i.e., the skew angle)
-	 * by fitting the largest data point and its two neighbors
-	 * to a quadratic, using lagrangian interpolation.  */
+        /* Find the location of the maximum (i.e., the skew angle)
+         * by fitting the largest data point and its two neighbors
+         * to a quadratic, using lagrangian interpolation.  */
     numaFitMax(nascore, &maxscore, natheta, &maxangle);
     *pangle = maxangle;
 
@@ -348,21 +348,21 @@ PIX       *pix, *pixt;
 
 #if  DEBUG_PLOT_SCORES
         /* Plot the result -- the scores versus rotation angle --
-	 * using gnuplot with GPLOT_LINES (lines connecting data points).
-	 * The GPLOT data structure is first created, with the
-	 * appropriate data incorporated from the two input NUMAs,
-	 * and then the function gplotMakeOutput() uses gnuplot to
-	 * generate the output plot.  This can be either a .png file
-	 * or a .ps file, depending on whether you use GPLOT_PNG
-	 * or GPLOT_PS.  */
+         * using gnuplot with GPLOT_LINES (lines connecting data points).
+         * The GPLOT data structure is first created, with the
+         * appropriate data incorporated from the two input NUMAs,
+         * and then the function gplotMakeOutput() uses gnuplot to
+         * generate the output plot.  This can be either a .png file
+         * or a .ps file, depending on whether you use GPLOT_PNG
+         * or GPLOT_PS.  */
     {GPLOT  *gplot;
-	gplot = gplotCreate(natheta, nascore, "sweep_output",
-		    GPLOT_PNG, GPLOT_LINES,
-		    "Sweep. Variance of difference of ON pixels vs. angle",
-		    "plot1", "angle (deg)", "score");
-	gplotAddPlot(gplot, natheta, nascore, GPLOT_POINTS, "plot2");
-	gplotMakeOutput(gplot);
-	gplotDestroy(&gplot);
+        gplot = gplotCreate("sweep_output", GPLOT_PNG,
+                    "Sweep. Variance of difference of ON pixels vs. angle",
+                    "angle (deg)", "score");
+        gplotAddPlot(gplot, natheta, nascore, GPLOT_LINES, "plot1");
+        gplotAddPlot(gplot, natheta, nascore, GPLOT_POINTS, "plot2");
+        gplotMakeOutput(gplot);
+        gplotDestroy(&gplot);
     }
 #endif  /* DEBUG_PLOT_SCORES */
 
@@ -397,13 +397,13 @@ PIX       *pix, *pixt;
  */
 l_int32
 pixFindSkewSweepAndSearch(PIX        *pixs,
-		          l_float32  *pangle,
-			  l_float32  *pconf,
-		          l_int32     redsweep,
-		          l_int32     redsearch,
-		          l_float32   sweeprange,
-		          l_float32   sweepdelta,
-		          l_float32   minbsdelta)
+                          l_float32  *pangle,
+                          l_float32  *pconf,
+                          l_int32     redsweep,
+                          l_int32     redsearch,
+                          l_float32   sweeprange,
+                          l_float32   sweepdelta,
+                          l_float32   minbsdelta)
 {
     return pixFindSkewSweepAndSearchScore(pixs, pangle, pconf, NULL,
                                           redsweep, redsearch, 0.0, sweeprange, 
@@ -444,15 +444,15 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
  */
 l_int32
 pixFindSkewSweepAndSearchScore(PIX        *pixs,
-		               l_float32  *pangle,
-			       l_float32  *pconf,
-			       l_float32  *endscore,
-		               l_int32     redsweep,
-		               l_int32     redsearch,
+                               l_float32  *pangle,
+                               l_float32  *pconf,
+                               l_float32  *endscore,
+                               l_int32     redsweep,
+                               l_int32     redsearch,
                                l_float32   sweepcenter,
-		               l_float32   sweeprange,
-		               l_float32   sweepdelta,
-		               l_float32   minbsdelta)
+                               l_float32   sweeprange,
+                               l_float32   sweepdelta,
+                               l_float32   minbsdelta)
 {
 l_int32    bzero, i, nangles, n, ratio, maxindex, minloc;
 l_int32    width, height;
@@ -469,90 +469,90 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     PROCNAME("pixFindSkewSweepAndSearchScore");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 1)
-	return ERROR_INT("pixs not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not 1 bpp", procName, 1);
     if (!pangle)
-	return ERROR_INT("&angle not defined", procName, 1);
+        return ERROR_INT("&angle not defined", procName, 1);
     if (!pconf)
-	return ERROR_INT("&conf not defined", procName, 1);
+        return ERROR_INT("&conf not defined", procName, 1);
     if (redsweep != 1 && redsweep != 2 && redsweep != 4 && redsweep != 8)
-	return ERROR_INT("redsweep must be in {1,2,4,8}", procName, 1);
+        return ERROR_INT("redsweep must be in {1,2,4,8}", procName, 1);
     if (redsearch != 1 && redsearch != 2 && redsearch != 4 && redsearch != 8)
-	return ERROR_INT("redsearch must be in {1,2,4,8}", procName, 1);
+        return ERROR_INT("redsearch must be in {1,2,4,8}", procName, 1);
     if (redsearch > redsweep)
-	return ERROR_INT("redsearch must not exceed redsweep", procName, 1);
+        return ERROR_INT("redsearch must not exceed redsweep", procName, 1);
 
     *pangle = 0.0;
     *pconf = 0.0;
     deg2rad = 3.1415926535 / 180.;
     rad2deg = 1. / deg2rad;
 
-	/* Generate reduced image for binary search, if requested */
+        /* Generate reduced image for binary search, if requested */
     if (redsearch == 1)
-	pixsch = pixClone(pixs);
+        pixsch = pixClone(pixs);
     else if (redsearch == 2)
-	pixsch = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
+        pixsch = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
     else if (redsearch == 4)
-	pixsch = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
+        pixsch = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
     else  /* redsearch == 8 */
-	pixsch = pixReduceRankBinaryCascade(pixs, 1, 1, 2, 0);
+        pixsch = pixReduceRankBinaryCascade(pixs, 1, 1, 2, 0);
 
     pixZero(pixsch, &bzero);
     if (bzero) {
-	pixDestroy(&pixsch);
-	return 1;
+        pixDestroy(&pixsch);
+        return 1;
     }
 
-	/* Generate reduced image for sweep, if requested */
+        /* Generate reduced image for sweep, if requested */
     ratio = redsweep / redsearch;
     if (ratio == 1)
-	pixsw = pixClone(pixsch);
+        pixsw = pixClone(pixsch);
     else {  /* ratio > 1 */
-	if (ratio == 2)
-	    pixsw = pixReduceRankBinaryCascade(pixsch, 1, 0, 0, 0);
-	else if (ratio == 4)
-	    pixsw = pixReduceRankBinaryCascade(pixsch, 1, 2, 0, 0);
-	else  /* ratio == 8 */
-	    pixsw = pixReduceRankBinaryCascade(pixsch, 1, 2, 2, 0);
+        if (ratio == 2)
+            pixsw = pixReduceRankBinaryCascade(pixsch, 1, 0, 0, 0);
+        else if (ratio == 4)
+            pixsw = pixReduceRankBinaryCascade(pixsch, 1, 2, 0, 0);
+        else  /* ratio == 8 */
+            pixsw = pixReduceRankBinaryCascade(pixsch, 1, 2, 2, 0);
     }
 
     if ((pixt1 = pixCreateTemplate(pixsw)) == NULL)
-	return ERROR_INT("pixt1 not made", procName, 1);
+        return ERROR_INT("pixt1 not made", procName, 1);
     if (ratio == 1)
-	pixt2 = pixClone(pixt1);
+        pixt2 = pixClone(pixt1);
     else {
-	if ((pixt2 = pixCreateTemplate(pixsch)) == NULL)
-	    return ERROR_INT("pixt2 not made", procName, 1);
+        if ((pixt2 = pixCreateTemplate(pixsch)) == NULL)
+            return ERROR_INT("pixt2 not made", procName, 1);
     }
 
     nangles = (l_int32)((2. * sweeprange) / sweepdelta + 1);
     if ((natheta = numaCreate(nangles)) == NULL)
-	return ERROR_INT("natheta not made", procName, 1);
+        return ERROR_INT("natheta not made", procName, 1);
     if ((nascore = numaCreate(nangles)) == NULL)
-	return ERROR_INT("nascore not made", procName, 1);
+        return ERROR_INT("nascore not made", procName, 1);
 
-	/* Do sweep */
+        /* Do sweep */
     rangeleft = sweepcenter - sweeprange;
     for (i = 0; i < nangles; i++) {
-	theta = rangeleft + i * sweepdelta;   /* degrees */
+        theta = rangeleft + i * sweepdelta;   /* degrees */
 
-	    /* Shear pix about the UL corner and put the result in pixt1 */
-	pixVShearCorner(pixt1, pixsw, deg2rad * theta, L_BRING_IN_WHITE);
+            /* Shear pix about the UL corner and put the result in pixt1 */
+        pixVShearCorner(pixt1, pixsw, deg2rad * theta, L_BRING_IN_WHITE);
 
-	    /* Get score */
-	pixFindDifferentialSquareSum(pixt1, &sum);
+            /* Get score */
+        pixFindDifferentialSquareSum(pixt1, &sum);
 
 #if  DEBUG_PRINT_SCORES
-	L_INFO_FLOAT2("sum(%7.2f) = %7.0f", procName, theta, sum);
+        L_INFO_FLOAT2("sum(%7.2f) = %7.0f", procName, theta, sum);
 #endif  /* DEBUG_PRINT_SCORES */
 
-	    /* Save the result in the output arrays */
-	numaAddNumber(nascore, sum);
-	numaAddNumber(natheta, theta);
+            /* Save the result in the output arrays */
+        numaAddNumber(nascore, sum);
+        numaAddNumber(natheta, theta);
     }
 
-	/* Find the largest of the set (maxscore at maxangle) */
+        /* Find the largest of the set (maxscore at maxangle) */
     numaGetMax(nascore, &maxscore, &maxindex);
     numaGetFValue(natheta, maxindex, &maxangle);
 
@@ -561,19 +561,33 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
                   maxangle, maxscore);
 #endif  /* DEBUG_PRINT_SWEEP */
 
-	/* Check if the max is at the end of the sweep. */
+#if  DEBUG_PLOT_SCORES
+        /* Plot the sweep result -- the scores versus rotation angle --
+         * using gnuplot with GPLOT_LINES (lines connecting data points). */
+    {GPLOT  *gplot;
+        gplot = gplotCreate("sweep_output", GPLOT_PNG,
+                    "Sweep. Variance of difference of ON pixels vs. angle",
+                    "angle (deg)", "score");
+        gplotAddPlot(gplot, natheta, nascore, GPLOT_LINES, "plot1");
+        gplotAddPlot(gplot, natheta, nascore, GPLOT_POINTS, "plot2");
+        gplotMakeOutput(gplot);
+        gplotDestroy(&gplot);
+    }
+#endif  /* DEBUG_PLOT_SCORES */
+
+        /* Check if the max is at the end of the sweep. */
     n = numaGetCount(natheta);
     if (maxindex == 0 || maxindex == n - 1) {
-	L_WARNING("max found at sweep edge", procName);
+        L_WARNING("max found at sweep edge", procName);
         goto cleanup;
     }
 
-	/* Empty the numas for re-use */
+        /* Empty the numas for re-use */
     numaEmpty(nascore);
     numaEmpty(natheta);
 
-	/* Do binary search to find skew angle.
-	 * First, set up initial three points. */
+        /* Do binary search to find skew angle.
+         * First, set up initial three points. */
     centerangle = maxangle;
     pixVShearCorner(pixt2, pixsch, deg2rad * centerangle, L_BRING_IN_WHITE);
     pixFindDifferentialSquareSum(pixt2, &bsearchscore[2]);
@@ -595,43 +609,43 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     delta = 0.5 * sweepdelta;
     while (delta >= minbsdelta)
     {
-	    /* Get the left intermediate score */
+            /* Get the left intermediate score */
         leftcenterangle = centerangle - delta;
-	pixVShearCorner(pixt2, pixsch, deg2rad * leftcenterangle,
-	                L_BRING_IN_WHITE);
-	pixFindDifferentialSquareSum(pixt2, &bsearchscore[1]);
-	numaAddNumber(nascore, bsearchscore[1]);
-	numaAddNumber(natheta, leftcenterangle);
-	
-	    /* Get the right intermediate score */
-	rightcenterangle = centerangle + delta;
-	pixVShearCorner(pixt2, pixsch, deg2rad * rightcenterangle,
-	                L_BRING_IN_WHITE);
-	pixFindDifferentialSquareSum(pixt2, &bsearchscore[3]);
-	numaAddNumber(nascore, bsearchscore[3]);
-	numaAddNumber(natheta, rightcenterangle);
-	
-	    /* Find the maximum of the five scores and its location.
-	     * Note that the maximum must be in the center
-	     * three values, not in the end two. */
-	maxscore = bsearchscore[1];
-	maxindex = 1;
-	for (i = 2; i < 4; i++) {
-	    if (bsearchscore[i] > maxscore) {
-	        maxscore = bsearchscore[i];
-		maxindex = i;
-	    }
-	}
+        pixVShearCorner(pixt2, pixsch, deg2rad * leftcenterangle,
+                        L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[1]);
+        numaAddNumber(nascore, bsearchscore[1]);
+        numaAddNumber(natheta, leftcenterangle);
+        
+            /* Get the right intermediate score */
+        rightcenterangle = centerangle + delta;
+        pixVShearCorner(pixt2, pixsch, deg2rad * rightcenterangle,
+                        L_BRING_IN_WHITE);
+        pixFindDifferentialSquareSum(pixt2, &bsearchscore[3]);
+        numaAddNumber(nascore, bsearchscore[3]);
+        numaAddNumber(natheta, rightcenterangle);
+        
+            /* Find the maximum of the five scores and its location.
+             * Note that the maximum must be in the center
+             * three values, not in the end two. */
+        maxscore = bsearchscore[1];
+        maxindex = 1;
+        for (i = 2; i < 4; i++) {
+            if (bsearchscore[i] > maxscore) {
+                maxscore = bsearchscore[i];
+                maxindex = i;
+            }
+        }
 
-	    /* Set up score array to interpolate for the next iteration */
-	lefttemp = bsearchscore[maxindex - 1];
-	righttemp = bsearchscore[maxindex + 1];
-	bsearchscore[2] = maxscore;
-	bsearchscore[0] = lefttemp;
-	bsearchscore[4] = righttemp;
+            /* Set up score array to interpolate for the next iteration */
+        lefttemp = bsearchscore[maxindex - 1];
+        righttemp = bsearchscore[maxindex + 1];
+        bsearchscore[2] = maxscore;
+        bsearchscore[0] = lefttemp;
+        bsearchscore[4] = righttemp;
 
-	    /* Get new center angle and delta for next iteration */
-	centerangle = centerangle + delta * (maxindex - 2);
+            /* Get new center angle and delta for next iteration */
+        centerangle = centerangle + delta * (maxindex - 2);
         delta = 0.5 * delta;
     }
     *pangle = centerangle;
@@ -647,7 +661,7 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
         *endscore = bsearchscore[2];
 
         /* Return the ratio of Max score over Min score
-	 * as a confidence value.  Don't trust if the Min score
+         * as a confidence value.  Don't trust if the Min score
          * is too small, which can happen if the image is all black
          * with only a few white pixels interspersed.  In that case,
          * we get a contribution from the top and bottom edges when
@@ -668,9 +682,9 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
 #endif  /* DEBUG_THRESHOLD */
 
     if (minscore > minthresh)
-	*pconf = maxscore / minscore;
+        *pconf = maxscore / minscore;
     else
-	*pconf = 0.0;
+        *pconf = 0.0;
 
         /* Don't trust it if too close to the edge of the sweep
          * range or if maxscore is small */
@@ -686,16 +700,16 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
 
 #if  DEBUG_PLOT_SCORES
         /* Plot the result -- the scores versus rotation angle --
-	 * using gnuplot with GPLOT_POINTS.  Because the data
-	 * points are not in order (increasing or decreasing theta),
-	 * use of GPLOT_LINES would not be informative! */
+         * using gnuplot with GPLOT_POINTS.  Because the data
+         * points are not ordered by theta (increasing or decreasing),
+         * using GPLOT_LINES would be confusing! */
     {GPLOT  *gplot;
-	gplot = gplotCreate(natheta, nascore, "search_output",
-		    GPLOT_PNG, GPLOT_POINTS,
-		    "Binary search.  Variance of diff of ON pixels vs. angle",
-		    "plot1", "angle (deg)", "score");
-	gplotMakeOutput(gplot);
-	gplotDestroy(&gplot);
+        gplot = gplotCreate("search_output", GPLOT_PNG,
+                "Binary search.  Variance of difference of ON pixels vs. angle",
+                "angle (deg)", "score");
+        gplotAddPlot(gplot, natheta, nascore, GPLOT_POINTS, "plot1");
+        gplotMakeOutput(gplot);
+        gplotDestroy(&gplot);
     }
 #endif  /* DEBUG_PLOT_SCORES */
 
@@ -734,12 +748,12 @@ NUMA      *na;
     PROCNAME("pixFindDifferentialSquareSum");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
 
-	/* Generate a number array consisting of the sum
-	 * of pixels in each row of pixs */
+        /* Generate a number array consisting of the sum
+         * of pixels in each row of pixs */
     if ((na = pixCountPixelsByRow(pixs, NULL)) == NULL)
-	return ERROR_INT("na not made", procName, 1);
+        return ERROR_INT("na not made", procName, 1);
 
         /* Compute the number of rows at top and bottom to omit.
          * We omit these to avoid getting a spurious signal from
@@ -750,15 +764,15 @@ NUMA      *na;
     skip = L_MIN(h / 10, skiph);  /* don't remove more than 10% of image */
     nskip = L_MAX(skip / 2, 1);  /* at top & bot; skip at least one line */
 
-	/* Sum the squares of differential row sums, on the
+        /* Sum the squares of differential row sums, on the
          * allowed rows.  Note that nskip must be >= 1. */
     n = numaGetCount(na);
     sum = 0.0;
     for (i = nskip; i < n - nskip; i++) {
-	numaGetFValue(na, i - 1, &val1);
-	numaGetFValue(na, i, &val2);
-	diff = val2 - val1;
-	sum += diff * diff;
+        numaGetFValue(na, i - 1, &val1);
+        numaGetFValue(na, i, &val2);
+        diff = val2 - val1;
+        sum += diff * diff;
     }
     numaDestroy(&na);
     *psum = sum;

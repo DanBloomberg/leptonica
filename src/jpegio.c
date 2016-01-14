@@ -88,9 +88,9 @@ static jmp_buf jpeg_jmpbuf;
  */
 PIX *
 pixReadJpeg(const char *filename,
-	    l_int32     cmflag,
-	    l_int32     reduction,
-	    l_int32    *pnwarn)
+            l_int32     cmflag,
+            l_int32     reduction,
+            l_int32    *pnwarn)
 {
 FILE  *fp;
 PIX   *pix;
@@ -133,18 +133,18 @@ PIX   *pix;
  */
 PIX *
 pixReadStreamJpeg(FILE     *fp,
-	          l_int32   cmflag,
-	          l_int32   reduction,
-	          l_int32  *pnwarn,
+                  l_int32   cmflag,
+                  l_int32   reduction,
+                  l_int32  *pnwarn,
                   l_int32   hint)
 {
 l_uint8                        rval, gval, bval;
-l_int32	                       i, j, k;
+l_int32                               i, j, k;
 l_int32                        w, h, wpl, spp, ncolors, cindex;
 l_uint32                      *data;
 l_uint32                      *line, *ppixel;
 JSAMPROW                       rowbuffer;
-PIX 		              *pix;
+PIX                               *pix;
 PIXCMAP                       *cmap;
 struct jpeg_decompress_struct  cinfo;
 struct jpeg_error_mgr          jerr;
@@ -161,15 +161,15 @@ struct jpeg_error_mgr          jerr;
         return (PIX *)ERROR_PTR("reduction not in {1,2,4,8}", procName, NULL);
 
     if (BITS_IN_JSAMPLE != 8)  /* set in jmorecfg.h */
-	return (PIX *)ERROR_PTR("BITS_IN_JSAMPLE != 8", procName, NULL);
+        return (PIX *)ERROR_PTR("BITS_IN_JSAMPLE != 8", procName, NULL);
 
     rewind(fp);
 
     pix = NULL;  /* init */
     if (setjmp(jpeg_jmpbuf)) {
         pixDestroy(&pix);
-        FREE((void *)rowbuffer);
-	return (PIX *)ERROR_PTR("internal jpeg error", procName, NULL);
+        FREE(rowbuffer);
+        return (PIX *)ERROR_PTR("internal jpeg error", procName, NULL);
     }
 
     rowbuffer = NULL;
@@ -184,10 +184,10 @@ struct jpeg_error_mgr          jerr;
         cinfo.out_color_space = JCS_GRAYSCALE;
     jpeg_calc_output_dimensions(&cinfo);
 
-	/* Allocate the image and a row buffer */
+        /* Allocate the image and a row buffer */
     spp = cinfo.out_color_components;
     if (spp != 1 && spp != 3)
-	return (PIX *)ERROR_PTR("spp must be 1 or 3", procName, NULL);
+        return (PIX *)ERROR_PTR("spp must be 1 or 3", procName, NULL);
     w = cinfo.output_width;
     h = cinfo.output_height;
     if ((spp == 3) && (cmflag == 0))  /* get full color pix */
@@ -195,67 +195,67 @@ struct jpeg_error_mgr          jerr;
         if ((rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), spp * w)) == NULL)
             return (PIX *)ERROR_PTR("rowbuffer not made", procName, NULL);
         if ((pix = pixCreate(w, h, 32)) == NULL)
-	    return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     }
     else {  /* 8 bpp gray or colormapped */
         if ((rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), w)) == NULL)
             return (PIX *)ERROR_PTR("rowbuffer not made", procName, NULL);
         if ((pix = pixCreate(w, h, 8)) == NULL)
-	    return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     }
 
     if (spp == 1)  /* Grayscale or colormapped */
         jpeg_start_decompress(&cinfo);
     else  {        /* Color; spp == 3 */
-	if (cmflag == 0) {   /* -- 24 bit color in 32 bit pix -- */
+        if (cmflag == 0) {   /* -- 24 bit color in 32 bit pix -- */
             cinfo.quantize_colors = FALSE;
             jpeg_start_decompress(&cinfo);
-	}
-	else {      /* Color quantize to 8 bits */
+        }
+        else {      /* Color quantize to 8 bits */
             cinfo.quantize_colors = TRUE;
             cinfo.desired_number_of_colors = 256;
             jpeg_start_decompress(&cinfo);
 
-	        /* Construct a pix cmap */
-	    cmap = pixcmapCreate(8);
-	    ncolors = cinfo.actual_number_of_colors;
+                /* Construct a pix cmap */
+            cmap = pixcmapCreate(8);
+            ncolors = cinfo.actual_number_of_colors;
             for (cindex = 0; cindex < ncolors; cindex++)
-	    {
-	        rval = cinfo.colormap[0][cindex];
-	        gval = cinfo.colormap[1][cindex];
-	        bval = cinfo.colormap[2][cindex];
-		pixcmapAddColor(cmap, rval, gval, bval);
+            {
+                rval = cinfo.colormap[0][cindex];
+                gval = cinfo.colormap[1][cindex];
+                bval = cinfo.colormap[2][cindex];
+                pixcmapAddColor(cmap, rval, gval, bval);
             }
-	    pixSetColormap(pix, cmap);
-	}
+            pixSetColormap(pix, cmap);
+        }
     }
 
     wpl  = pixGetWpl(pix);
     data = pixGetData(pix);
 
-	/* Decompress */
+        /* Decompress */
     if ((spp == 3) && (cmflag == 0))
-    {	/* -- 24 bit color -- */
+    {        /* -- 24 bit color -- */
         for (i = 0; i < h; i++) {
             if (jpeg_read_scanlines(&cinfo, &rowbuffer, (JDIMENSION)1) != 1)
-	        return (PIX *)ERROR_PTR("bad read scanline", procName, NULL);
-	    ppixel = data + i * wpl;
+                return (PIX *)ERROR_PTR("bad read scanline", procName, NULL);
+            ppixel = data + i * wpl;
             for (j = k = 0; j < w; j++)
-	    {
-	        SET_DATA_BYTE(ppixel, COLOR_RED, rowbuffer[k++]);
-	        SET_DATA_BYTE(ppixel, COLOR_GREEN, rowbuffer[k++]);
-	        SET_DATA_BYTE(ppixel, COLOR_BLUE, rowbuffer[k++]);
-		ppixel++;
+            {
+                SET_DATA_BYTE(ppixel, COLOR_RED, rowbuffer[k++]);
+                SET_DATA_BYTE(ppixel, COLOR_GREEN, rowbuffer[k++]);
+                SET_DATA_BYTE(ppixel, COLOR_BLUE, rowbuffer[k++]);
+                ppixel++;
             }
         }
     }
     else {    /* 8 bpp grayscale or colormapped pix */
         for (i = 0; i < h; i++) {
             if (jpeg_read_scanlines(&cinfo, &rowbuffer, (JDIMENSION)1) != 1)
-	        return (PIX *)ERROR_PTR("bad read scanline", procName, NULL);
-	    line = data + i * wpl;
+                return (PIX *)ERROR_PTR("bad read scanline", procName, NULL);
+            line = data + i * wpl;
             for (j = 0; j < w; j++)
-	        SET_DATA_BYTE(line, j, rowbuffer[j]);
+                SET_DATA_BYTE(line, j, rowbuffer[j]);
         }
     }
 
@@ -269,16 +269,16 @@ struct jpeg_error_mgr          jerr;
         pixSetYRes(pix, cinfo.Y_density);
         break;
     case 2:  /* pixels per centimeter */
-	pixSetXRes(pix, (l_int32)((l_float32)cinfo.X_density * 2.54 + 0.5));
-	pixSetYRes(pix, (l_int32)((l_float32)cinfo.Y_density * 2.54 + 0.5));
-	break;
+        pixSetXRes(pix, (l_int32)((l_float32)cinfo.X_density * 2.54 + 0.5));
+        pixSetYRes(pix, (l_int32)((l_float32)cinfo.Y_density * 2.54 + 0.5));
+        break;
     default:   /* the pixel density may not be defined; ignore */
-	break;
+        break;
     }
 
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
-    FREE((void *)rowbuffer);
+    FREE(rowbuffer);
 
     return pix;
 }
@@ -299,7 +299,7 @@ struct jpeg_error_mgr          jerr;
  */
 l_int32
 pixWriteJpeg(const char *filename, 
-	     PIX        *pix, 
+             PIX        *pix, 
              l_int32     quality,
              l_int32     progressive)
 {
@@ -310,13 +310,13 @@ FILE  *fp;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
     if (!filename)
-	return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", procName, 1);
 
     if ((fp = fopen(filename, "wb+")) == NULL)
-	return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", procName, 1);
 
     if (pixWriteStreamJpeg(fp, pix, quality, progressive)) {
-	fclose(fp);
+        fclose(fp);
         return ERROR_INT("pix not written to stream", procName, 1);
     }
 
@@ -353,8 +353,8 @@ FILE  *fp;
  */
 l_int32
 pixWriteStreamJpeg(FILE    *fp,
-	           PIX     *pix,
-		   l_int32  quality,
+                   PIX     *pix,
+                   l_int32  quality,
                    l_int32  progressive)
 {
 l_uint8                      byteval;
@@ -372,19 +372,19 @@ const char                  *text;
     PROCNAME("pixWriteStreamJpeg");
 
     if (!fp)
-	return ERROR_INT("stream not open", procName, 1);
+        return ERROR_INT("stream not open", procName, 1);
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     rewind(fp);
 
     if (setjmp(jpeg_jmpbuf)) {
-        FREE((void *)rowbuffer);
+        FREE(rowbuffer);
         if (colorflg == 1) {
-            FREE((void *)rmap);
-            FREE((void *)gmap);
-            FREE((void *)bmap);
+            FREE(rmap);
+            FREE(gmap);
+            FREE(bmap);
         }
-	return ERROR_INT("internal jpeg error", procName, 1);
+        return ERROR_INT("internal jpeg error", procName, 1);
     }
 
     rowbuffer = NULL;
@@ -395,18 +395,18 @@ const char                  *text;
     h = pixGetHeight(pix);
     d = pixGetDepth(pix);
     if (d != 8 && d != 32)
-	return ERROR_INT("bpp must be 8 or 32", procName, 1);
+        return ERROR_INT("bpp must be 8 or 32", procName, 1);
 
     if (quality <= 0)
         quality = 75;  /* default */
 
     if (d == 32)
-	colorflg = 2;    /* 24 bpp rgb; no colormap */
+        colorflg = 2;    /* 24 bpp rgb; no colormap */
     else if ((cmap = pixGetColormap(pix)) == NULL)
-	colorflg = 0;    /* 8 bpp grayscale; no colormap */
+        colorflg = 0;    /* 8 bpp grayscale; no colormap */
     else {   
-	colorflg = 1;    /* 8 bpp; colormap */
-	pixcmapToArrays(cmap, &rmap, &gmap, &bmap);
+        colorflg = 1;    /* 8 bpp; colormap */
+        pixcmapToArrays(cmap, &rmap, &gmap, &bmap);
     }
 
     cinfo.err = jpeg_std_error(&jerr);
@@ -432,9 +432,9 @@ const char                  *text;
     xres = pixGetXRes(pix);
     yres = pixGetYRes(pix);
     if ((xres != 0) && (yres != 0)) {
-	cinfo.density_unit = 1;  /* designates pixels per inch */
-	cinfo.X_density = xres;
-	cinfo.Y_density = yres;
+        cinfo.density_unit = 1;  /* designates pixels per inch */
+        cinfo.X_density = xres;
+        cinfo.Y_density = yres;
     }
 
     jpeg_set_quality(&cinfo, quality, TRUE);
@@ -448,47 +448,47 @@ const char                  *text;
         jpeg_write_marker(&cinfo, JPEG_COM, (const JOCTET *)text, strlen(text));
     }
 
-	/* Allocate row buffer */
+        /* Allocate row buffer */
     spp = cinfo.input_components;
     rowsamples = spp * w;
     if ((rowbuffer = (JSAMPROW)CALLOC(sizeof(JSAMPLE), rowsamples)) == NULL)
-	return ERROR_INT("calloc fail for rowbuffer", procName, 1);
+        return ERROR_INT("calloc fail for rowbuffer", procName, 1);
 
     data = pixGetData(pix);
     wpl  = pixGetWpl(pix);
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
-	if (colorflg == 0) {	/* 8 bpp gray */
-	    for (j = 0; j < w; j++)
-		rowbuffer[j] = GET_DATA_BYTE(line, j);
-	}
-	else if (colorflg == 1) {  /* 8 bpp colormapped */
-	    for (j = 0; j < w; j++) {
-		byteval = GET_DATA_BYTE(line, j);
-		rowbuffer[3 * j + COLOR_RED] = rmap[byteval];
-		rowbuffer[3 * j + COLOR_GREEN] = gmap[byteval];
-		rowbuffer[3 * j + COLOR_BLUE] = bmap[byteval];
-	    }
-	}
-	else { /* 24 bpp color */
-	    ppixel = line;
-	    for (j = k = 0; j < w; j++) {
-		rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
-		rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-		rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-		ppixel++;
-	    }
-	}
+        if (colorflg == 0) {        /* 8 bpp gray */
+            for (j = 0; j < w; j++)
+                rowbuffer[j] = GET_DATA_BYTE(line, j);
+        }
+        else if (colorflg == 1) {  /* 8 bpp colormapped */
+            for (j = 0; j < w; j++) {
+                byteval = GET_DATA_BYTE(line, j);
+                rowbuffer[3 * j + COLOR_RED] = rmap[byteval];
+                rowbuffer[3 * j + COLOR_GREEN] = gmap[byteval];
+                rowbuffer[3 * j + COLOR_BLUE] = bmap[byteval];
+            }
+        }
+        else { /* 24 bpp color */
+            ppixel = line;
+            for (j = k = 0; j < w; j++) {
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                ppixel++;
+            }
+        }
         jpeg_write_scanlines(&cinfo, &rowbuffer, 1);
     }
 
     jpeg_finish_compress(&cinfo);
 
-    FREE((void *)rowbuffer);
+    FREE(rowbuffer);
     if (colorflg == 1) {
-	FREE((void *)rmap);
-	FREE((void *)gmap);
-	FREE((void *)bmap);
+        FREE(rmap);
+        FREE(gmap);
+        FREE(bmap);
     }
 
     jpeg_destroy_compress(&cinfo);

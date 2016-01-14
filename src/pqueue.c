@@ -78,7 +78,7 @@ PQUEUE  *pq;
     PROCNAME("pqueueCreate");
 
     if (nalloc < MIN_BUFFER_SIZE)
-	nalloc = INITIAL_BUFFER_ARRAYSIZE;
+        nalloc = INITIAL_BUFFER_ARRAYSIZE;
 
     if ((pq = (PQUEUE *)CALLOC(1, sizeof(PQUEUE))) == NULL)
         return (PQUEUE *)ERROR_PTR("pq not made", procName, NULL);
@@ -116,24 +116,24 @@ PQUEUE  *pq;
     PROCNAME("pqueueDestroy");
 
     if (ppq == NULL) {
-	L_WARNING("ptr address is NULL", procName);
-	return;
+        L_WARNING("ptr address is NULL", procName);
+        return;
     }
     if ((pq = *ppq) == NULL)
-	return;
+        return;
 
     if (freeflag) {
         while(pq->nelem > 0) {
-	    item = pqueueRemove(pq);
-	    FREE(item);
-	}
+            item = pqueueRemove(pq);
+            FREE(item);
+        }
     }
     else if (pq->nelem > 0)
         L_WARNING_INT("memory leak of %d items in pqueue!",
-		      procName, pq->nelem);
+                      procName, pq->nelem);
 
     if (pq->array)
-	FREE(pq->array);
+        FREE(pq->array);
     FREE((void *)pq);
     *ppq = NULL;
 
@@ -171,17 +171,17 @@ pqueueAdd(PQUEUE  *pq,
         return ERROR_INT("item not defined", procName, 1);
     
         /* If filled to the end and the ptrs can be shifted to the left,
-	 * shift them. */
+         * shift them. */
     if ((pq->nhead + pq->nelem >= pq->nalloc) && (pq->nhead != 0)) {
         memmove((void *)(pq->array), 
                 (void *)(pq->array + pq->nhead),
-		sizeof(l_intptr_t) * pq->nelem);
+                sizeof(l_intptr_t) * pq->nelem);
         pq->nhead = 0;
     }
 
-	/* If necessary, expand the allocated array by a factor of 2 */
+        /* If necessary, expand the allocated array by a factor of 2 */
     if (pq->nelem > 0.75 * pq->nalloc)
-	pqueueExtendArray(pq);
+        pqueueExtendArray(pq);
 
         /* Now add the item */
     pq->array[pq->nhead + pq->nelem] = (void *)item;
@@ -264,7 +264,7 @@ pqueueGetCount(PQUEUE   *pq)
 
     return pq->nelem;
 }
-	
+        
 
 /*---------------------------------------------------------------------*
  *                            Debug output                             *
@@ -285,12 +285,12 @@ l_int32  i;
     PROCNAME("pqueuePrint");
 
     if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", procName, 1);
     if (!pq)
-	return ERROR_INT("pq not defined", procName, 1);
+        return ERROR_INT("pq not defined", procName, 1);
 
     fprintf(fp, "\n PQueue: nalloc = %d, nhead = %d, nelem = %d, array = %p\n",
-	    pq->nalloc, pq->nhead, pq->nelem, pq->array);
+            pq->nalloc, pq->nhead, pq->nelem, pq->array);
     for (i = pq->nhead; i < pq->nhead + pq->nelem; i++)
     fprintf(fp,   "array[%d] = %p\n", i, pq->array[i]);
 

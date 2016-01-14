@@ -74,7 +74,7 @@ static const l_float32  VERY_SMALL_ANGLE = 0.001;  /* radians; ~0.06 degrees */
  */
 PIX *
 pixRotate(PIX       *pixs,
-	  l_float32  angle,
+          l_float32  angle,
           l_int32    type,
           l_int32    incolor,
           l_int32    width,
@@ -95,11 +95,11 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
         /* If there is a colormap, remove it. */
     if ((cmap = pixGetColormap(pixs)) != NULL)
-	pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+        pixt1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     else
         pixt1 = pixClone(pixs);
 
@@ -107,10 +107,10 @@ PIXCMAP   *cmap;
     pixt2 = pixEmbedForRotation(pixt1, angle, incolor, width, height);
 
         /* Area mapping requires 8 or 32 bpp.
-	 * If 1 bpp, always use shear. */
+         * If 1 bpp, always use shear. */
     d = pixGetDepth(pixt2);
     if (type == L_ROTATE_AREA_MAP && d > 1 && d < 8)
-        pixt3 = pixConvertTo8(pixt2);
+        pixt3 = pixConvertTo8(pixt2, FALSE);
     else
         pixt3 = pixClone(pixt2);
 
@@ -121,15 +121,15 @@ PIXCMAP   *cmap;
         pixd = pixRotateShearCenter(pixt3, angle, incolor);
     else {  /* rotate by area mapping */
         if (d == 8) {
-	    if (incolor == L_BRING_IN_WHITE)
-	        grayval = 0xff;
+            if (incolor == L_BRING_IN_WHITE)
+                grayval = 0xff;
             pixd = pixRotateAMGray(pixt3, angle, grayval);
-	}
+        }
         else {  /* d == 32 */
-	    if (incolor == L_BRING_IN_WHITE)
-	        grayval = 0xffffff00;
+            if (incolor == L_BRING_IN_WHITE)
+                grayval = 0xffffff00;
             pixd = pixRotateAMColor(pixt3, angle, grayval);
-	}
+        }
     }
 
     pixDestroy(&pixt1);
@@ -175,7 +175,7 @@ PIXCMAP   *cmap;
  */
 PIX *
 pixEmbedForRotation(PIX       *pixs,
-	            l_float32  angle,
+                    l_float32  angle,
                     l_int32    incolor,
                     l_int32    width,
                     l_int32    height)
@@ -190,7 +190,7 @@ PIXCMAP   *cmap;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
         /* Test if big enough to hold any rotation */
     w = pixGetWidth(pixs);

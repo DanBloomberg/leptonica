@@ -76,10 +76,10 @@
  */
 PIX *
 pixHShear(PIX       *pixd,
-	  PIX       *pixs,
-	  l_int32    liney,
-	  l_float32  radang,
-	  l_int32    incolor)
+          PIX       *pixs,
+          l_int32    liney,
+          l_float32  radang,
+          l_int32    incolor)
 {
 l_int32    sign, w, h, d;
 l_int32    y, yincr, inityincr, hshift;
@@ -88,21 +88,21 @@ l_float32  tanangle, invangle;
     PROCNAME("pixHShear");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
 
     if (pixd == pixs) {  /* in place */
-	pixHShearIP(pixd, liney, radang, incolor);
-	return pixd;
+        pixHShearIP(pixd, liney, radang, incolor);
+        return pixd;
     }
 
     if (radang == 0.0 || tan(radang) == 0.0)
-	return pixCopy(pixd, pixs);
+        return pixCopy(pixd, pixs);
 
     if (!pixd) {
-	if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
     }
 
         /* Set incoming pixels (and the rest as well) */
@@ -125,32 +125,32 @@ l_float32  tanangle, invangle;
                 pixs, 0, liney - inityincr);
 
     for (hshift = 1, y = liney + inityincr; y < h; hshift++) {
-	yincr = (l_int32)(invangle * (hshift + 0.5) + 0.5) - (y - liney);
-	if (h - y < yincr)  /* reduce for last one if req'd */
-	    yincr = h - y;
-	pixRasterop(pixd, -sign*hshift, y, w, yincr, PIX_SRC, pixs, 0, y);
+        yincr = (l_int32)(invangle * (hshift + 0.5) + 0.5) - (y - liney);
+        if (h - y < yincr)  /* reduce for last one if req'd */
+            yincr = h - y;
+        pixRasterop(pixd, -sign*hshift, y, w, yincr, PIX_SRC, pixs, 0, y);
 #if DEBUG
-	fprintf(stderr, "y = %d, hshift = %d, yincr = %d\n", y, hshift, yincr);
+        fprintf(stderr, "y = %d, hshift = %d, yincr = %d\n", y, hshift, yincr);
 #endif /* DEBUG */
-	y += yincr;
+        y += yincr;
     }
 
     for (hshift = -1, y = liney - inityincr; y > 0; hshift--) {
-	yincr = (y - liney) - (l_int32)(invangle * (hshift - 0.5) + 0.5);
-	if (y < yincr)  /* reduce for last one if req'd */
-	    yincr = y;
-	pixRasterop(pixd, -sign*hshift, y - yincr, w, yincr, PIX_SRC,
-	    pixs, 0, y - yincr);
+        yincr = (y - liney) - (l_int32)(invangle * (hshift - 0.5) + 0.5);
+        if (y < yincr)  /* reduce for last one if req'd */
+            yincr = y;
+        pixRasterop(pixd, -sign*hshift, y - yincr, w, yincr, PIX_SRC,
+            pixs, 0, y - yincr);
 #if DEBUG
-	fprintf(stderr, "y = %d, hshift = %d, yincr = %d\n",
+        fprintf(stderr, "y = %d, hshift = %d, yincr = %d\n",
                 y - yincr, hshift, yincr);
 #endif /* DEBUG */
-	y -= yincr;
+        y -= yincr;
     }
 
     return pixd;
 }
-            	    
+                        
 
 /*!
  *  pixVShear()
@@ -179,10 +179,10 @@ l_float32  tanangle, invangle;
  */
 PIX *
 pixVShear(PIX       *pixd,
-	  PIX       *pixs,
-	  l_int32    linex,
-	  l_float32  radang,
-	  l_int32    incolor)
+          PIX       *pixs,
+          l_int32    linex,
+          l_float32  radang,
+          l_int32    incolor)
 {
 l_int32    sign, w, h, d;
 l_int32    x, xincr, initxincr, vshift;
@@ -191,21 +191,21 @@ l_float32  tanangle, invangle;
     PROCNAME("pixVShear");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
 
     if (pixd == pixs) {  /* in place */
-	pixVShearIP(pixd, linex, radang, incolor);
-	return pixd;
+        pixVShearIP(pixd, linex, radang, incolor);
+        return pixd;
     }
 
     if (radang == 0.0 || tan(radang) == 0.0)
-	return pixCopy(pixd, pixs);
+        return pixCopy(pixd, pixs);
 
     if (!pixd) {
-	if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
     }
 
         /* Set incoming pixels (and the rest as well) */
@@ -228,32 +228,32 @@ l_float32  tanangle, invangle;
                pixs, linex - initxincr, 0);
 
     for (vshift = 1, x = linex + initxincr; x < w; vshift++) {
-	xincr = (l_int32)(invangle * (vshift + 0.5) + 0.5) - (x - linex);
-	if (w - x < xincr)  /* reduce for last one if req'd */
-	    xincr = w - x;
-	pixRasterop(pixd, x, sign*vshift, xincr, h, PIX_SRC, pixs, x, 0);
+        xincr = (l_int32)(invangle * (vshift + 0.5) + 0.5) - (x - linex);
+        if (w - x < xincr)  /* reduce for last one if req'd */
+            xincr = w - x;
+        pixRasterop(pixd, x, sign*vshift, xincr, h, PIX_SRC, pixs, x, 0);
 #if DEBUG
-	fprintf(stderr, "x = %d, vshift = %d, xincr = %d\n", x, vshift, xincr);
+        fprintf(stderr, "x = %d, vshift = %d, xincr = %d\n", x, vshift, xincr);
 #endif /* DEBUG */
-	x += xincr;
+        x += xincr;
     }
 
     for (vshift = -1, x = linex - initxincr; x > 0; vshift--) {
-	xincr = (x - linex) - (l_int32)(invangle * (vshift - 0.5) + 0.5);
-	if (x < xincr)  /* reduce for last one if req'd */
-	    xincr = x;
-	pixRasterop(pixd, x - xincr, sign*vshift, xincr, h, PIX_SRC,
-	    pixs, x - xincr, 0);
+        xincr = (x - linex) - (l_int32)(invangle * (vshift - 0.5) + 0.5);
+        if (x < xincr)  /* reduce for last one if req'd */
+            xincr = x;
+        pixRasterop(pixd, x - xincr, sign*vshift, xincr, h, PIX_SRC,
+            pixs, x - xincr, 0);
 #if DEBUG
-	fprintf(stderr, "x = %d, vshift = %d, xincr = %d\n",
-	        x - xincr, vshift, xincr);
+        fprintf(stderr, "x = %d, vshift = %d, xincr = %d\n",
+                x - xincr, vshift, xincr);
 #endif /* DEBUG */
-	x -= xincr;
+        x -= xincr;
     }
 
     return pixd;
 }
-            	    
+                        
 
 
 /*-------------------------------------------------------------*
@@ -275,14 +275,14 @@ l_float32  tanangle, invangle;
  */
 PIX *
 pixHShearCorner(PIX       *pixd,
-	        PIX       *pixs,
-	        l_float32  radang,
-		l_int32    incolor)
+                PIX       *pixs,
+                l_float32  radang,
+                l_int32    incolor)
 {
     PROCNAME("pixHShearCorner");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
 
     return pixHShear(pixd, pixs, 0, radang, incolor);
 }
@@ -304,18 +304,18 @@ pixHShearCorner(PIX       *pixd,
  */
 PIX *
 pixVShearCorner(PIX       *pixd,
-	        PIX       *pixs,
-	        l_float32  radang,
-		l_int32    incolor)
+                PIX       *pixs,
+                l_float32  radang,
+                l_int32    incolor)
 {
     PROCNAME("pixVShearCorner");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
 
     return pixVShear(pixd, pixs, 0, radang, incolor);
 }
-            	    
+                        
 
 /*!
  *  pixHShearCenter()
@@ -333,14 +333,14 @@ pixVShearCorner(PIX       *pixd,
  */
 PIX *
 pixHShearCenter(PIX       *pixd,
-	        PIX       *pixs,
-	        l_float32  radang,
-		l_int32    incolor)
+                PIX       *pixs,
+                l_float32  radang,
+                l_int32    incolor)
 {
     PROCNAME("pixHShearCenter");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
 
     return pixHShear(pixd, pixs, pixGetHeight(pixs) / 2, radang, incolor);
 }
@@ -362,14 +362,14 @@ pixHShearCenter(PIX       *pixd,
  */
 PIX *
 pixVShearCenter(PIX       *pixd,
-	        PIX       *pixs,
-	        l_float32  radang,
-		l_int32    incolor)
+                PIX       *pixs,
+                l_float32  radang,
+                l_int32    incolor)
 {
     PROCNAME("pixVShearCenter");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
 
     return pixVShear(pixd, pixs, pixGetWidth(pixs) / 2, radang, incolor);
 }
@@ -396,9 +396,9 @@ pixVShearCenter(PIX       *pixd,
  */
 l_int32
 pixHShearIP(PIX       *pixs,
-	    l_int32    liney,
-	    l_float32  radang,
-	    l_int32    incolor)
+            l_int32    liney,
+            l_float32  radang,
+            l_int32    incolor)
 {
 l_int32    sign, w, h;
 l_int32    y, yincr, inityincr, hshift;
@@ -407,12 +407,12 @@ l_float32  tanangle, invangle;
     PROCNAME("pixHShearIP");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return ERROR_INT("invalid incolor value", procName, 1);
+        return ERROR_INT("invalid incolor value", procName, 1);
 
     if (radang == 0.0 || tan(radang) == 0.0)
-	return 0;
+        return 0;
 
     sign = L_SIGN(radang);
     w = pixGetWidth(pixs);
@@ -425,24 +425,24 @@ l_float32  tanangle, invangle;
     pixRasteropHip(pixs, liney - inityincr, 2 * inityincr, 0, incolor);
 
     for (hshift = 1, y = liney + inityincr; y < h; hshift++) {
-	yincr = (l_int32)(invangle * (hshift + 0.5) + 0.5) - (y - liney);
-	if (h - y < yincr)  /* reduce for last one if req'd */
-	    yincr = h - y;
-	pixRasteropHip(pixs, y, yincr, -sign*hshift, incolor);
-	y += yincr;
+        yincr = (l_int32)(invangle * (hshift + 0.5) + 0.5) - (y - liney);
+        if (h - y < yincr)  /* reduce for last one if req'd */
+            yincr = h - y;
+        pixRasteropHip(pixs, y, yincr, -sign*hshift, incolor);
+        y += yincr;
     }
 
     for (hshift = -1, y = liney - inityincr; y > 0; hshift--) {
-	yincr = (y - liney) - (l_int32)(invangle * (hshift - 0.5) + 0.5);
-	if (y < yincr)  /* reduce for last one if req'd */
-	    yincr = y;
-	pixRasteropHip(pixs, y - yincr, yincr, -sign*hshift, incolor);
-	y -= yincr;
+        yincr = (y - liney) - (l_int32)(invangle * (hshift - 0.5) + 0.5);
+        if (y < yincr)  /* reduce for last one if req'd */
+            yincr = y;
+        pixRasteropHip(pixs, y - yincr, yincr, -sign*hshift, incolor);
+        y -= yincr;
     }
 
     return 0;
 }
-            	    
+                        
 
 /*!
  *  pixVShearIP()
@@ -461,9 +461,9 @@ l_float32  tanangle, invangle;
  */
 l_int32
 pixVShearIP(PIX       *pixs,
-	    l_int32    linex,
-	    l_float32  radang,
-	    l_int32    incolor)
+            l_int32    linex,
+            l_float32  radang,
+            l_int32    incolor)
 {
 l_int32    sign, w, h;
 l_int32    x, xincr, initxincr, vshift;
@@ -472,12 +472,12 @@ l_float32  tanangle, invangle;
     PROCNAME("pixVShearIP");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-	return ERROR_INT("invalid incolor value", procName, 1);
+        return ERROR_INT("invalid incolor value", procName, 1);
 
     if (radang == 0.0 || tan(radang) == 0.0)
-	return 0;
+        return 0;
 
     sign = L_SIGN(radang);
     w = pixGetWidth(pixs);
@@ -490,19 +490,19 @@ l_float32  tanangle, invangle;
     pixRasteropVip(pixs, linex - initxincr, 2 * initxincr, 0, incolor);
 
     for (vshift = 1, x = linex + initxincr; x < w; vshift++) {
-	xincr = (l_int32)(invangle * (vshift + 0.5) + 0.5) - (x - linex);
-	if (w - x < xincr)  /* reduce for last one if req'd */
-	    xincr = w - x;
-	pixRasteropVip(pixs, x, xincr, sign*vshift, incolor);
-	x += xincr;
+        xincr = (l_int32)(invangle * (vshift + 0.5) + 0.5) - (x - linex);
+        if (w - x < xincr)  /* reduce for last one if req'd */
+            xincr = w - x;
+        pixRasteropVip(pixs, x, xincr, sign*vshift, incolor);
+        x += xincr;
     }
 
     for (vshift = -1, x = linex - initxincr; x > 0; vshift--) {
-	xincr = (x - linex) - (l_int32)(invangle * (vshift - 0.5) + 0.5);
-	if (x < xincr)  /* reduce for last one if req'd */
-	    xincr = x;
-	pixRasteropVip(pixs, x - xincr, xincr, sign*vshift, incolor);
-	x -= xincr;
+        xincr = (x - linex) - (l_int32)(invangle * (vshift - 0.5) + 0.5);
+        if (x < xincr)  /* reduce for last one if req'd */
+            xincr = x;
+        pixRasteropVip(pixs, x - xincr, xincr, sign*vshift, incolor);
+        x -= xincr;
     }
 
     return 0;

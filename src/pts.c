@@ -55,17 +55,28 @@
  *           l_int32   ptaaGetCount()
  *           l_int32   ptaaGetPta()
  *  
+ *      Ptaa serialized I/O
+ *           PTAA     *ptaaRead()
+ *           PTAA     *ptaaReadStream()
+ *           l_int32   ptaaWrite()
+ *           l_int32   ptaaWriteStream()
+ *
  *      Pta serialized I/O
- *           l_int32   ptaWriteStream()
+ *           PTA      *ptaRead()
  *           PTA      *ptaReadStream()
+ *           l_int32   ptaWrite()
+ *           l_int32   ptaWriteStream()
  *
  *      In use
- *           PTA      *ptaFindCornerPixels()
+ *           BOX      *ptaGetExtent()
+ *           PTA      *pixFindCornerPixels()
  *           l_int32   pixPlotAlongPta()
  *           l_int32   ptaContainsPt()
  *           l_int32   ptaTestIntersection()
+ *           PTA      *ptaTransform()
  *           l_int32   ptaGetLinearLSF()
  *           PTA      *ptaGetPixelsFromPix()
+ *           PIX      *pixGenerateFromPta()
  */
 
 #include <stdio.h>
@@ -95,18 +106,18 @@ PTA  *pta;
     PROCNAME("ptaCreate");
 
     if (n <= 0)
-	n = INITIAL_PTR_ARRAYSIZE;
+        n = INITIAL_PTR_ARRAYSIZE;
 
     if ((pta = (PTA *)CALLOC(1, sizeof(PTA))) == NULL)
-	return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
     pta->n = 0;
     pta->nalloc = n;
     ptaChangeRefcount(pta, 1);  /* sets to 1 */
     
     if ((pta->x = (l_float32 *)CALLOC(n, sizeof(l_float32))) == NULL)
-	return (PTA *)ERROR_PTR("x array not made", procName, NULL);
+        return (PTA *)ERROR_PTR("x array not made", procName, NULL);
     if ((pta->y = (l_float32 *)CALLOC(n, sizeof(l_float32))) == NULL)
-	return (PTA *)ERROR_PTR("y array not made", procName, NULL);
+        return (PTA *)ERROR_PTR("y array not made", procName, NULL);
 
     return pta;
 }
@@ -131,17 +142,17 @@ PTA  *pta;
 
     if (ppta == NULL) {
         L_WARNING("ptr address is NULL!", procName);
-	return;
+        return;
     }
 
     if ((pta = *ppta) == NULL)
-	return;
+        return;
 
     ptaChangeRefcount(pta, -1);
     if (ptaGetRefcount(pta) <= 0) {
-        FREE((void *)pta->x);
-        FREE((void *)pta->y);
-        FREE((void *)pta);
+        FREE(pta->x);
+        FREE(pta->y);
+        FREE(pta);
     }
 
     *ppta = NULL;
@@ -165,14 +176,14 @@ PTA  *npta;
     PROCNAME("ptaCopy");
 
     if (!pta)
-	return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
 
     if ((npta = ptaCreate(pta->nalloc)) == NULL)
-	return (PTA *)ERROR_PTR("npta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("npta not made", procName, NULL);
 
     for (i = 0; i < pta->n; i++) {
-	ptaGetPt(pta, i, &x, &y);
-	ptaAddPt(npta, x, y);
+        ptaGetPt(pta, i, &x, &y);
+        ptaAddPt(npta, x, y);
     }
 
     return npta;
@@ -191,7 +202,7 @@ ptaClone(PTA  *pta)
     PROCNAME("ptaClone");
 
     if (!pta)
-	return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
 
     ptaChangeRefcount(pta, 1);
     return pta;
@@ -212,7 +223,7 @@ ptaEmpty(PTA  *pta)
     PROCNAME("ptaEmpty");
 
     if (!pta)
-	return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", procName, 1);
     pta->n = 0;
     return 0;
 }
@@ -231,18 +242,18 @@ ptaEmpty(PTA  *pta)
 l_int32
 ptaAddPt(PTA       *pta,
          l_float32  x,
-	 l_float32  y)
+         l_float32  y)
 {
 l_int32  n;
 
     PROCNAME("ptaAddPt");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
 
     n = pta->n;
     if (n >= pta->nalloc)
-	ptaExtendArrays(pta);
+        ptaExtendArrays(pta);
     pta->x[n] = x;
     pta->y[n] = y;
     pta->n++;
@@ -263,16 +274,16 @@ ptaExtendArrays(PTA  *pta)
     PROCNAME("ptaExtendArrays");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
 
     if ((pta->x = (l_float32 *)reallocNew((void **)&pta->x,
                                sizeof(l_float32) * pta->nalloc,
                                2 * sizeof(l_float32) * pta->nalloc)) == NULL)
-	return ERROR_INT("new x array not returned", procName, 1);
+        return ERROR_INT("new x array not returned", procName, 1);
     if ((pta->y = (l_float32 *)reallocNew((void **)&pta->y,
                                sizeof(l_float32) * pta->nalloc,
                                2 * sizeof(l_float32) * pta->nalloc)) == NULL)
-	return ERROR_INT("new y array not returned", procName, 1);
+        return ERROR_INT("new y array not returned", procName, 1);
 
     pta->nalloc = 2 * pta->nalloc;
     return 0;
@@ -307,24 +318,24 @@ l_int32  ns, i, x, y;
     PROCNAME("ptaJoin");
 
     if (!ptad)
-	return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", procName, 1);
     if (!ptas)
-	return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", procName, 1);
     ns = ptaGetCount(ptas);
     if (istart < 0)
-	istart = 0;
+        istart = 0;
     if (istart >= ns)
-	return ERROR_INT("istart out of bounds", procName, 1);
+        return ERROR_INT("istart out of bounds", procName, 1);
     if (iend <= 0)
-	iend = ns - 1;
+        iend = ns - 1;
     if (iend >= ns)
-	return ERROR_INT("iend out of bounds", procName, 1);
+        return ERROR_INT("iend out of bounds", procName, 1);
     if (istart > iend)
-	return ERROR_INT("istart > iend; no pts", procName, 1);
+        return ERROR_INT("istart > iend; no pts", procName, 1);
 
     for (i = istart; i <= iend; i++) {
-	ptaGetIPt(ptas, i, &x, &y);
-	ptaAddPt(ptad, x, y);
+        ptaGetIPt(ptas, i, &x, &y);
+        ptaAddPt(ptad, x, y);
     }
 
     return 0;
@@ -349,20 +360,20 @@ PTA       *ptad;
     PROCNAME("ptaReverse");
 
     if (!ptas)
-	return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
 
     n = ptaGetCount(ptas);
     if ((ptad = ptaCreate(n)) == NULL)
-	return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
     for (i = n - 1; i >= 0; i--) {
-	if (type == 0) {
-	    ptaGetPt(ptas, i, &x, &y);
-	    ptaAddPt(ptad, x, y);
-	}
-	else {  /* type == 1 */
-	    ptaGetIPt(ptas, i, &ix, &iy);
-	    ptaAddPt(ptad, ix, iy);
-	}
+        if (type == 0) {
+            ptaGetPt(ptas, i, &x, &y);
+            ptaAddPt(ptad, x, y);
+        }
+        else {  /* type == 1 */
+            ptaGetIPt(ptas, i, &ix, &iy);
+            ptaAddPt(ptad, ix, iy);
+        }
     }
 
     return ptad;
@@ -394,35 +405,35 @@ PTA     *ptad;
     PROCNAME("ptaCyclicPerm");
 
     if (!ptas)
-	return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
 
     n = ptaGetCount(ptas);
 
-	/* verify input data */
+        /* verify input data */
     ptaGetIPt(ptas, 0, &x1, &y1);
     ptaGetIPt(ptas, n - 1, &x2, &y2);
     if (x1 != x2 || y1 != y2)
-	return (PTA *)ERROR_PTR("start and end pts not same", procName, NULL);
+        return (PTA *)ERROR_PTR("start and end pts not same", procName, NULL);
     state = L_NOT_FOUND;
     for (i = 0; i < n; i++) {
-	ptaGetIPt(ptas, i, &x, &y);
-	if (x == xs && y == ys) {
-	    state = L_FOUND;
-	    break;
-	}
+        ptaGetIPt(ptas, i, &x, &y);
+        if (x == xs && y == ys) {
+            state = L_FOUND;
+            break;
+        }
     }
     if (state == L_NOT_FOUND)
-	return (PTA *)ERROR_PTR("start pt not in ptas", procName, NULL);
+        return (PTA *)ERROR_PTR("start pt not in ptas", procName, NULL);
 
     if ((ptad = ptaCreate(n)) == NULL)
-	return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
     for (j = 0; j < n - 1; j++) {
-	if (i + j < n - 1)
-	    index = i + j;
-	else
-	    index = (i + j + 1) % n;
-	ptaGetIPt(ptas, index, &x, &y);
-	ptaAddPt(ptad, x, y);
+        if (i + j < n - 1)
+            index = i + j;
+        else
+            index = (i + j + 1) % n;
+        ptaGetIPt(ptas, index, &x, &y);
+        ptaAddPt(ptad, x, y);
     }
     ptaAddPt(ptad, xs, ys);
 
@@ -454,35 +465,35 @@ NUMA      *na, *naindex;
     PROCNAME("ptaSort");
 
     if (!ptas)
-	return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y)
-	return (PTA *)ERROR_PTR("invalid sort type", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid sort type", procName, NULL);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
-	return (PTA *)ERROR_PTR("invalid sort order", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid sort order", procName, NULL);
 
         /* Build up numa of specific data */
     n = ptaGetCount(ptas);
     if ((na = numaCreate(n)) == NULL)
-	return (PTA *)ERROR_PTR("na not made", procName, NULL);
+        return (PTA *)ERROR_PTR("na not made", procName, NULL);
     for (i = 0; i < n; i++) {
         ptaGetPt(ptas, i, &x, &y);
-	if (sorttype == L_SORT_BY_X)
-	    numaAddNumber(na, x);
+        if (sorttype == L_SORT_BY_X)
+            numaAddNumber(na, x);
         else
-	    numaAddNumber(na, y);
+            numaAddNumber(na, y);
     }
 
         /* Get the sort index for data array */
     if ((naindex = numaGetSortIndex(na, sortorder)) == NULL)
-	return (PTA *)ERROR_PTR("naindex not made", procName, NULL);
+        return (PTA *)ERROR_PTR("naindex not made", procName, NULL);
 
         /* Build up sorted pta using sort index */
     if ((ptad = ptaCreate(n)) == NULL)
-	return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
     for (i = 0; i < n; i++) {
         numaGetIValue(naindex, i, &index);
         ptaGetPt(ptas, index, &x, &y);
-	ptaAddPt(ptad, x, y);
+        ptaAddPt(ptad, x, y);
     }
 
     if (pnaindex)
@@ -516,7 +527,7 @@ NUMAHASH  *nahash;
     PROCNAME("ptaRemoveDuplicates");
 
     if (!ptas)
-	return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
     if (factor == 0)
         factor = DEFAULT_SPREADING_FACTOR;
 
@@ -532,7 +543,7 @@ NUMAHASH  *nahash;
     }
 
     if ((ptad = ptaCreate(n)) == NULL)
-	return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
     for (i = 0; i < nsize; i++) {
         na = numaHashGetNuma(nahash, i);
         if (!na) continue;
@@ -556,7 +567,7 @@ NUMAHASH  *nahash;
                         ia[k] = 1;
                 }
             }
-            FREE((void *)ia);
+            FREE(ia);
         }
         else {
             numaGetIValue(na, 0, &index);
@@ -581,7 +592,7 @@ ptaGetRefcount(PTA  *pta)
     PROCNAME("ptaGetRefcount");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     return pta->refcount;
 }
 
@@ -593,7 +604,7 @@ ptaChangeRefcount(PTA     *pta,
     PROCNAME("ptaChangeRefcount");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     pta->refcount += delta;
     return 0;
 }
@@ -611,7 +622,7 @@ ptaGetCount(PTA  *pta)
     PROCNAME("ptaGetCount");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 0);
+        return ERROR_INT("pta not defined", procName, 0);
 
     return pta->n;
 }
@@ -629,12 +640,12 @@ l_int32
 ptaGetPt(PTA        *pta,
          l_int32     index,
          l_float32  *px,
-	 l_float32  *py)
+         l_float32  *py)
 {
     PROCNAME("ptaGetPt");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
 
     *px = pta->x[index];
     *py = pta->y[index];
@@ -654,12 +665,12 @@ l_int32
 ptaGetIPt(PTA      *pta,
           l_int32   index,
           l_int32  *px,
-	  l_int32  *py)
+          l_int32  *py)
 {
     PROCNAME("ptaGetIPt");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
 
     *px = (l_int32)(pta->x[index] + 0.5);
     *py = (l_int32)(pta->y[index] + 0.5);
@@ -689,21 +700,21 @@ NUMA     *nax, *nay;
     PROCNAME("ptaGetArrays");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     if (!pnax)
-	return ERROR_INT("&nax not defined", procName, 1);
+        return ERROR_INT("&nax not defined", procName, 1);
     if (!pnay)
-	return ERROR_INT("&nay not defined", procName, 1);
+        return ERROR_INT("&nay not defined", procName, 1);
 
     *pnax = *pnay = NULL;
     if ((n = ptaGetCount(pta)) == 0)
-	return ERROR_INT("pta is empty", procName, 1);
+        return ERROR_INT("pta is empty", procName, 1);
 
     if ((nax = numaCreate(n)) == NULL)
-	return ERROR_INT("nax not made", procName, 1);
+        return ERROR_INT("nax not made", procName, 1);
     *pnax = nax;
     if ((nay = numaCreate(n)) == NULL)
-	return ERROR_INT("nay not made", procName, 1);
+        return ERROR_INT("nay not made", procName, 1);
     *pnay = nay;
 
         /* use arrays directly for efficiency */
@@ -735,15 +746,15 @@ PTAA  *ptaa;
     PROCNAME("ptaaCreate");
 
     if (n <= 0)
-	n = INITIAL_PTR_ARRAYSIZE;
+        n = INITIAL_PTR_ARRAYSIZE;
 
     if ((ptaa = (PTAA *)CALLOC(1, sizeof(PTAA))) == NULL)
-	return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
+        return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
     ptaa->n = 0;
     ptaa->nalloc = n;
 
     if ((ptaa->pta = (PTA **)CALLOC(n, sizeof(PTA *))) == NULL)
-	return (PTAA *)ERROR_PTR("pta ptrs not made", procName, NULL);
+        return (PTAA *)ERROR_PTR("pta ptrs not made", procName, NULL);
     
     return ptaa;
 }
@@ -765,17 +776,17 @@ PTAA    *ptaa;
 
     if (pptaa == NULL) {
         L_WARNING("ptr address is NULL!", procName);
-	return;
+        return;
     }
 
     if ((ptaa = *pptaa) == NULL)
-	return;
+        return;
 
     for (i = 0; i < ptaa->n; i++) 
-	ptaDestroy(&ptaa->pta[i]);
-    FREE((void *)ptaa->pta);
+        ptaDestroy(&ptaa->pta[i]);
+    FREE(ptaa->pta);
 
-    FREE((void *)ptaa);
+    FREE(ptaa);
     *pptaa = NULL;
     return;
 }
@@ -803,26 +814,26 @@ PTA     *ptac;
     PROCNAME("ptaaAddPta");
 
     if (!ptaa)
-	return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", procName, 1);
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
 
     if (copyflag == L_INSERT)
-	ptac = pta;
+        ptac = pta;
     else if (copyflag == L_COPY) {
-	if ((ptac = ptaCopy(pta)) == NULL)
-	    return ERROR_INT("ptac not made", procName, 1);
+        if ((ptac = ptaCopy(pta)) == NULL)
+            return ERROR_INT("ptac not made", procName, 1);
     }
     else if (copyflag == L_CLONE) {
-	if ((ptac = ptaClone(pta)) == NULL)
-	    return ERROR_INT("pta clone not made", procName, 1);
+        if ((ptac = ptaClone(pta)) == NULL)
+            return ERROR_INT("pta clone not made", procName, 1);
     }
     else
-	return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", procName, 1);
 
     n = ptaaGetCount(ptaa);
     if (n >= ptaa->nalloc)
-	ptaaExtendArray(ptaa);
+        ptaaExtendArray(ptaa);
     ptaa->pta[n] = ptac;
     ptaa->n++;
 
@@ -842,12 +853,12 @@ ptaaExtendArray(PTAA  *ptaa)
     PROCNAME("ptaaExtendArray");
 
     if (!ptaa)
-	return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", procName, 1);
 
     if ((ptaa->pta = (PTA **)reallocNew((void **)&ptaa->pta,
                              sizeof(l_intptr_t) * ptaa->nalloc,
                              2 * sizeof(l_intptr_t) * ptaa->nalloc)) == NULL)
-	return ERROR_INT("new ptr array not returned", procName, 1);
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     ptaa->nalloc = 2 * ptaa->nalloc;
     return 0;
@@ -869,7 +880,7 @@ ptaaGetCount(PTAA  *ptaa)
     PROCNAME("ptaaGetCount");
 
     if (!ptaa)
-	return ERROR_INT("ptaa not defined", procName, 0);
+        return ERROR_INT("ptaa not defined", procName, 0);
 
     return ptaa->n;
 }
@@ -886,68 +897,191 @@ ptaaGetCount(PTAA  *ptaa)
 PTA *
 ptaaGetPta(PTAA    *ptaa,
            l_int32  index,
-	   l_int32  accessflag)
+           l_int32  accessflag)
 {
     PROCNAME("ptaaGetPta");
 
     if (!ptaa)
-	return (PTA *)ERROR_PTR("ptaa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptaa not defined", procName, NULL);
     if (index < 0 || index >= ptaa->n)
-	return (PTA *)ERROR_PTR("index not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("index not valid", procName, NULL);
 
     if (accessflag == L_COPY)
-	return ptaCopy(ptaa->pta[index]);
+        return ptaCopy(ptaa->pta[index]);
     else if (accessflag == L_CLONE)
-	return ptaClone(ptaa->pta[index]);
+        return ptaClone(ptaa->pta[index]);
     else
-	return (PTA *)ERROR_PTR("invalid accessflag", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid accessflag", procName, NULL);
 }
 
+
+
+/*---------------------------------------------------------------------*
+ *                         Ptaa serialized I/O                         *
+ *---------------------------------------------------------------------*/
+/*!
+ *  ptaaRead()
+ *
+ *      Input:  filename
+ *      Return: ptaa, or null on error
+ */
+PTAA *
+ptaaRead(const char  *filename)
+{
+FILE  *fp;
+PTAA  *ptaa;
+
+    PROCNAME("ptaaRead");
+
+    if (!filename)
+        return (PTAA *)ERROR_PTR("filename not defined", procName, NULL);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (PTAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    if ((ptaa = ptaaReadStream(fp)) == NULL) {
+        fclose(fp);
+        return (PTAA *)ERROR_PTR("ptaa not read", procName, NULL);
+    }
+
+    fclose(fp);
+    return ptaa;
+}
+
+
+/*!
+ *  ptaaReadStream()
+ *
+ *      Input:  stream
+ *      Return: ptaa, or null on error
+ */
+PTAA *
+ptaaReadStream(FILE  *fp)
+{
+l_int32  i, n, version;
+PTA     *pta;
+PTAA    *ptaa;
+
+    PROCNAME("ptaaReadStream");
+
+    if (!fp)
+        return (PTAA *)ERROR_PTR("stream not defined", procName, NULL);
+
+    if (fscanf(fp, "\nPtaa Version %d\n", &version) != 1)
+        return (PTAA *)ERROR_PTR("not a ptaa file", procName, NULL);
+    if (version != PTA_VERSION_NUMBER)
+        return (PTAA *)ERROR_PTR("invalid ptaa version", procName, NULL);
+    if (fscanf(fp, "Number of Pta = %d\n", &n) != 1)
+        return (PTAA *)ERROR_PTR("not a ptaa file", procName, NULL);
+
+    if ((ptaa = ptaaCreate(n)) == NULL)
+        return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        if ((pta = ptaReadStream(fp)) == NULL)
+            return (PTAA *)ERROR_PTR("error reading pta", procName, NULL);
+        ptaaAddPta(ptaa, pta, L_INSERT);
+    }
+
+    return ptaa;
+}
+
+
+/*!
+ *  ptaaWrite()
+ *
+ *      Input:  filename
+ *              ptaa
+ *              type  (0 for float values; 1 for integer values)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+ptaaWrite(const char  *filename,
+          PTAA        *ptaa,
+          l_int32      type)
+{
+FILE  *fp;
+
+    PROCNAME("ptaaWrite");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!ptaa)
+        return ERROR_INT("ptaa not defined", procName, 1);
+
+    if ((fp = fopen(filename, "w")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    if (ptaaWriteStream(fp, ptaa, type))
+        return ERROR_INT("ptaa not written to stream", procName, 1);
+    fclose(fp);
+
+    return 0;
+}
+
+
+/*!
+ *  ptaaWriteStream()
+ *
+ *      Input:  stream
+ *              ptaa
+ *              type  (0 for float values; 1 for integer values)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+ptaaWriteStream(FILE    *fp,
+                PTAA    *ptaa,
+                l_int32  type)
+{
+l_int32  i, n;
+PTA     *pta;
+
+    PROCNAME("ptaaWriteStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!ptaa)
+        return ERROR_INT("ptaa not defined", procName, 1);
+
+    n = ptaaGetCount(ptaa);
+    fprintf(fp, "\nPtaa Version %d\n", PTA_VERSION_NUMBER);
+    fprintf(fp, "Number of Pta = %d\n", n);
+    for (i = 0; i < n; i++) {
+        pta = ptaaGetPta(ptaa, i, L_CLONE);
+        ptaWriteStream(fp, pta, type);
+        ptaDestroy(&pta);
+    }
+
+    return 0;
+}
 
 
 /*---------------------------------------------------------------------*
  *                         Pta serialized I/O                          *
  *---------------------------------------------------------------------*/
 /*!
- *  ptaWriteStream()
+ *  ptaRead()
  *
- *      Input:  stream
- *              pta
- *              type  (0 for float values; 1 for integer values)
- *      Return: 0 if OK; 1 on error
+ *      Input:  filename
+ *      Return: pta, or null on error
  */
-l_int32
-ptaWriteStream(FILE    *fp,
-               PTA     *pta,
-	       l_int32  type)
+PTA *
+ptaRead(const char  *filename)
 {
-l_int32    i, n, ix, iy;
-l_float32  x, y;
+FILE  *fp;
+PTA   *pta;
 
-    PROCNAME("ptaWriteStream");
+    PROCNAME("ptaRead");
 
-    if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
-    if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+    if (!filename)
+        return (PTA *)ERROR_PTR("filename not defined", procName, NULL);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return (PTA *)ERROR_PTR("stream not opened", procName, NULL);
 
-    n = ptaGetCount(pta);
-    if (type == 0)
-	fprintf(fp, "Point array with %d float points\n", n);
-    else  /* type == 1 */
-	fprintf(fp, "Point array with %d integer points\n", n);
-    for (i = 0; i < n; i++) {
-	if (type == 0) {  /* data is float */
-	    ptaGetPt(pta, i, &x, &y);
-	    fprintf(fp, "   (%f, %f)\n", x, y);
-	}
-	else {   /* data is integer */
-	    ptaGetIPt(pta, i, &ix, &iy);
-	    fprintf(fp, "   (%d, %d)\n", ix, iy);
-	}
+    if ((pta = ptaReadStream(fp)) == NULL) {
+        fclose(fp);
+        return (PTA *)ERROR_PTR("pta not read", procName, NULL);
     }
 
-    return 0;
+    fclose(fp);
+    return pta;
 }
 
 
@@ -961,36 +1095,116 @@ PTA *
 ptaReadStream(FILE  *fp)
 {
 char       typestr[128];
-l_int32    i, n, ix, iy, type;
+l_int32    i, n, ix, iy, type, version;
 l_float32  x, y;
 PTA       *pta;
 
     PROCNAME("ptaReadStream");
 
     if (!fp)
-	return (PTA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("stream not defined", procName, NULL);
 
-    if (fscanf(fp, "Point array with %d %s points\n", &n, typestr) != 2)
-	return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
-    if (strcmp(typestr, "float") == 0)
-	type = 0;
+    if (fscanf(fp, "\n Pta Version %d\n", &version) != 1)
+        return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
+    if (version != PTA_VERSION_NUMBER)
+        return (PTA *)ERROR_PTR("invalid pta version", procName, NULL);
+    if (fscanf(fp, " Number of pts = %d; format = %s\n", &n, typestr) != 2)
+        return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
+    if (!strcmp(typestr, "float"))
+        type = 0;
     else  /* typestr is "integer" */
-	type = 1;
+        type = 1;
 
     if ((pta = ptaCreate(n)) == NULL)
-	return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
     for (i = 0; i < n; i++) {
-	if (type == 0) {  /* data is float */
-	    fscanf(fp, "   (%f, %f)\n", &x, &y);
-	    ptaAddPt(pta, x, y);
-	}
-	else {   /* data is integer */
-	    fscanf(fp, "   (%d, %d)\n", &ix, &iy);
-	    ptaAddPt(pta, ix, iy);
-	}
+        if (type == 0) {  /* data is float */
+            fscanf(fp, "   (%f, %f)\n", &x, &y);
+            ptaAddPt(pta, x, y);
+        }
+        else {   /* data is integer */
+            fscanf(fp, "   (%d, %d)\n", &ix, &iy);
+            ptaAddPt(pta, ix, iy);
+        }
     }
 
     return pta;
+}
+
+
+/*!
+ *  ptaWrite()
+ *
+ *      Input:  filename
+ *              pta
+ *              type  (0 for float values; 1 for integer values)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+ptaWrite(const char  *filename,
+         PTA         *pta,
+         l_int32      type)
+{
+FILE  *fp;
+
+    PROCNAME("ptaWrite");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+
+    if ((fp = fopen(filename, "w")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    if (ptaWriteStream(fp, pta, type))
+        return ERROR_INT("pta not written to stream", procName, 1);
+    fclose(fp);
+
+    return 0;
+}
+
+
+/*!
+ *  ptaWriteStream()
+ *
+ *      Input:  stream
+ *              pta
+ *              type  (0 for float values; 1 for integer values)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+ptaWriteStream(FILE    *fp,
+               PTA     *pta,
+               l_int32  type)
+{
+l_int32    i, n, ix, iy;
+l_float32  x, y;
+
+    PROCNAME("ptaWriteStream");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+
+    n = ptaGetCount(pta);
+    fprintf(fp, "\n Pta Version %d\n", PTA_VERSION_NUMBER);
+    if (type == 0)
+        fprintf(fp, " Number of pts = %d; format = float\n", n);
+    else  /* type == 1 */
+        fprintf(fp, " Number of pts = %d; format = integer\n", n);
+    for (i = 0; i < n; i++) {
+        if (type == 0) {  /* data is float */
+            ptaGetPt(pta, i, &x, &y);
+            fprintf(fp, "   (%f, %f)\n", x, y);
+        }
+        else {   /* data is integer */
+            ptaGetIPt(pta, i, &ix, &iy);
+            fprintf(fp, "   (%d, %d)\n", ix, iy);
+        }
+    }
+
+    return 0;
 }
 
 
@@ -999,13 +1213,50 @@ PTA       *pta;
  *                                In use                               *
  *---------------------------------------------------------------------*/
 /*!
+ *  ptaGetExtent()
+ *
+ *      Input:  pta
+ *      Return: box, or null on error
+ *
+ *  Notes:
+ *      (1) Returns a box of minimum size containing pts in pta.
+ */
+BOX *
+ptaGetExtent(PTA  *pta)
+{
+l_int32  n, i, x, y, minx, maxx, miny, maxy;
+
+    PROCNAME("ptaGetExtent");
+
+    if (!pta)
+        return (BOX *)ERROR_PTR("pta not defined", procName, NULL);
+
+    minx = 10000000;
+    miny = 10000000;
+    maxx = -10000000;
+    maxy = -10000000;
+    n = ptaGetCount(pta);
+    for (i = 0; i < n; i++) {
+        ptaGetIPt(pta, i, &x, &y);
+        if (x < minx) minx = x;
+        if (x > maxx) maxx = x;
+        if (y < miny) miny = y;
+        if (y > maxy) maxy = y;
+    }
+
+    return boxCreate(minx, miny, maxx - minx + 1, maxy - miny + 1);
+}
+
+
+/*!
  *  pixFindCornerPixels()
  *
- *      Input: pixs (1 bpp)
+ *      Input:  pixs (1 bpp)
  *      Return: pta, or null on error
  *
- *  Action: finds the 4 corner-most pixels, as defined by
- *          search inward from each corner
+ *  Notes:
+ *      (1) Finds the 4 corner-most pixels, as defined by a search
+ *          inward from each corner, using a 45 degree line.
  */
 PTA *
 pixFindCornerPixels(PIX  *pixs)
@@ -1017,9 +1268,9 @@ PTA       *pta;
     PROCNAME("pixFindCornerPixels");
 
     if (!pixs)
-	return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -1028,70 +1279,70 @@ PTA       *pta;
     wpl = pixGetWpl(pixs);
 
     if ((pta = ptaCreate(4)) == NULL)
-	return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
 
     for (found = FALSE, i = 0; i < mindim; i++) {
-	for (j = 0; j <= i; j++) {
-	    y = i - j;
-	    line = data + y * wpl;
-	    if (GET_DATA_BIT(line, j)) {
-		ptaAddPt(pta, j, y);
-		found = TRUE;
-		break;
-	    }
-	}
-	if (found == TRUE)
-	    break;
+        for (j = 0; j <= i; j++) {
+            y = i - j;
+            line = data + y * wpl;
+            if (GET_DATA_BIT(line, j)) {
+                ptaAddPt(pta, j, y);
+                found = TRUE;
+                break;
+            }
+        }
+        if (found == TRUE)
+            break;
     }
 
     for (found = FALSE, i = 0; i < mindim; i++) {
-	for (j = 0; j <= i; j++) {
-	    y = i - j;
-	    line = data + y * wpl;
-	    x = w - 1 - j;
-	    if (GET_DATA_BIT(line, x)) {
-		ptaAddPt(pta, x, y);
-		found = TRUE;
-		break;
-	    }
-	}
-	if (found == TRUE)
-	    break;
+        for (j = 0; j <= i; j++) {
+            y = i - j;
+            line = data + y * wpl;
+            x = w - 1 - j;
+            if (GET_DATA_BIT(line, x)) {
+                ptaAddPt(pta, x, y);
+                found = TRUE;
+                break;
+            }
+        }
+        if (found == TRUE)
+            break;
     }
 
     for (found = FALSE, i = 0; i < mindim; i++) {
-	for (j = 0; j <= i; j++) {
-	    y = h - 1 - i + j;
-	    line = data + y * wpl;
-	    if (GET_DATA_BIT(line, j)) {
-		ptaAddPt(pta, j, y);
-		found = TRUE;
-		break;
-	    }
-	}
-	if (found == TRUE)
-	    break;
+        for (j = 0; j <= i; j++) {
+            y = h - 1 - i + j;
+            line = data + y * wpl;
+            if (GET_DATA_BIT(line, j)) {
+                ptaAddPt(pta, j, y);
+                found = TRUE;
+                break;
+            }
+        }
+        if (found == TRUE)
+            break;
     }
 
     for (found = FALSE, i = 0; i < mindim; i++) {
-	for (j = 0; j <= i; j++) {
-	    y = h - 1 - i + j;
-	    line = data + y * wpl;
-	    x = w - 1 - j;
-	    if (GET_DATA_BIT(line, x)) {
-		ptaAddPt(pta, x, y);
-		found = TRUE;
-		break;
-	    }
-	}
-	if (found == TRUE)
-	    break;
+        for (j = 0; j <= i; j++) {
+            y = h - 1 - i + j;
+            line = data + y * wpl;
+            x = w - 1 - j;
+            if (GET_DATA_BIT(line, x)) {
+                ptaAddPt(pta, x, y);
+                found = TRUE;
+                break;
+            }
+        }
+        if (found == TRUE)
+            break;
     }
 
     return pta;
 }
 
-		
+                
 /*!
  *  pixPlotAlongPta()
  *
@@ -1125,9 +1376,9 @@ PIX            *pixt;
     PROCNAME("pixPlotAlongLine");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_X11 &&
         outformat != GPLOT_LATEX) {
@@ -1171,9 +1422,9 @@ PIX            *pixt;
         numaDestroy(&nar);
         numaDestroy(&nag);
         numaDestroy(&nab);
-        FREE((void *)rtitle);
-        FREE((void *)gtitle);
-        FREE((void *)btitle);
+        FREE(rtitle);
+        FREE(gtitle);
+        FREE(btitle);
     }
     else {
         na = numaCreate(npts);
@@ -1213,13 +1464,13 @@ l_int32  i, n, ix, iy;
     PROCNAME("ptaContainsPt");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 0);
+        return ERROR_INT("pta not defined", procName, 0);
 
     n = ptaGetCount(pta);
     for (i = 0; i < n; i++) {
-	ptaGetIPt(pta, i, &ix, &iy);
-	if (x == ix && y == iy)
-	    return 1;
+        ptaGetIPt(pta, i, &ix, &iy);
+        if (x == ix && y == iy)
+            return 1;
     }
     return 0;
 }
@@ -1241,22 +1492,60 @@ l_int32  i, j, n1, n2, x1, y1, x2, y2;
     PROCNAME("ptaTestIntersection");
 
     if (!pta1)
-	return ERROR_INT("pta1 not defined", procName, 0);
+        return ERROR_INT("pta1 not defined", procName, 0);
     if (!pta2)
-	return ERROR_INT("pta2 not defined", procName, 0);
+        return ERROR_INT("pta2 not defined", procName, 0);
 
     n1 = ptaGetCount(pta1);
     n2 = ptaGetCount(pta2);
     for (i = 0; i < n1; i++) {
-	ptaGetIPt(pta1, i, &x1, &y1);
-	for (j = 0; j < n2; j++) {
-	    ptaGetIPt(pta2, i, &x2, &y2);
-	    if (x1 == x2 && y1 == y2)
-		return 1;
-	}
+        ptaGetIPt(pta1, i, &x1, &y1);
+        for (j = 0; j < n2; j++) {
+            ptaGetIPt(pta2, i, &x2, &y2);
+            if (x1 == x2 && y1 == y2)
+                return 1;
+        }
     }
 
     return 0;
+}
+
+
+/*!
+ *  ptaTransform()
+ *
+ *      Input:  pta 
+ *              shiftx, shifty
+ *              scalex, scaley
+ *      Return: pta, or null on error
+ *
+ *  Notes:
+ *      (1) Shift first, then scale.
+ */
+PTA *
+ptaTransform(PTA       *ptas,
+             l_int32    shiftx,
+             l_int32    shifty,
+	     l_float32  scalex,
+	     l_float32  scaley)
+{
+l_int32  n, i, x, y;
+PTA     *ptad;
+
+    PROCNAME("pixTransform");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+    n = ptaGetCount(ptas);
+    ptad = ptaCreate(n);
+    for (i = 0; i < n; i++) {
+        ptaGetIPt(ptas, i, &x, &y);
+        x = (l_int32)(scalex * (x + shiftx) + 0.5);
+        y = (l_int32)(scaley * (y + shifty) + 0.5);
+        ptaAddPt(ptad, x, y);
+    }
+
+    return ptad;
 }
 
 
@@ -1289,7 +1578,7 @@ l_int32  i, j, n1, n2, x1, y1, x2, y2;
 l_int32
 ptaGetLinearLSF(PTA        *pta,
                 l_float32  *pa,
-		l_float32  *pb)
+                l_float32  *pb)
 {
 l_int32     n, i;
 l_float32   factor, sx, sy, sxx, sxy;
@@ -1298,14 +1587,14 @@ l_float32  *xa, *ya;
     PROCNAME("ptaGetLinearLSF");
 
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     if (!pa && !pb)
-	return ERROR_INT("&a and/or &b not defined", procName, 1);
+        return ERROR_INT("&a and/or &b not defined", procName, 1);
     if (pa) *pa = 0.0;
     if (pb) *pb = 0.0;
 
     if ((n = ptaGetCount(pta)) < 2)
-	return ERROR_INT("less than 2 pts not found", procName, 1);
+        return ERROR_INT("less than 2 pts not found", procName, 1);
     xa = pta->x;  /* not a copy */
     ya = pta->y;  /* not a copy */
 
@@ -1362,9 +1651,9 @@ PTA       *pta;
     PROCNAME("pixGetPixelsFromPix");
 
     if (!pixs)
-	return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -1372,15 +1661,55 @@ PTA       *pta;
     wpl = pixGetWpl(pixs);
 
     if ((pta = ptaCreate(0)) == NULL)
-	return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
-	for (j = 0; j < w; j++) {
-	    if (GET_DATA_BIT(line, j))
-	        ptaAddPt(pta, j, i);
-	}
+        for (j = 0; j < w; j++) {
+            if (GET_DATA_BIT(line, j))
+                ptaAddPt(pta, j, i);
+        }
     }
 
     return pta;
 }
+
+
+/*!
+ *  pixGenerateFromPta()
+ *
+ *      Input:  pta
+ *              w, h (of pix) 
+ *      Return: pix (1 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) Points are rounded to nearest ints.
+ *      (2) Any points outside (w,h) are silently discarded.
+ *      (3) Output 1 bpp pix has values 1 for each point in the pta.
+ */
+PIX *
+pixGenerateFromPta(PTA     *pta,
+                   l_int32  w,
+                   l_int32  h)
+{
+l_int32    n, i, x, y;
+PIX       *pix;
+
+    PROCNAME("pixGenerateFromPta");
+
+    if (!pta)
+        return (PIX *)ERROR_PTR("pta not defined", procName, NULL);
+
+    if ((pix = pixCreate(w, h, 1)) == NULL)
+        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+    n = ptaGetCount(pta);
+    for (i = 0; i < n; i++) {
+        ptaGetIPt(pta, i, &x, &y);
+	if (x < 0 || x >= w || y < 0 || y >= h)
+            continue;
+	pixSetPixel(pix, x, y, 1);
+    }
+
+    return pix;
+}
+
 

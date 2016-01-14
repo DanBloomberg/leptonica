@@ -26,6 +26,7 @@
  *
  *         JBCLASSER   *jbWordsInTextlines()
  *         l_int32      pixGetWordsInTextlines()
+ *         l_int32      pixGetWordBoxesInTextlines()
  *
  */
 
@@ -36,6 +37,7 @@
 
 static const l_int32  BUF_SIZE = 512;
 static const l_int32  JB_WORDS_MIN_WIDTH = 5;  /* pixels */
+static const l_int32  JB_WORDS_MIN_HEIGHT = 3;  /* pixels */
 
 
 /*------------------------------------------------------------------*
@@ -224,18 +226,17 @@ SARRAY     *safiles;
  */
 JBCLASSER *
 jbWordsInTextlines(const char  *dirin,
-		   l_int32      maxwidth,
-		   l_int32      maxheight,
+                   l_int32      maxwidth,
+                   l_int32      maxheight,
                    l_float32    thresh,
                    l_float32    weight,
-		   NUMA       **pnatl,
-		   l_int32      firstpage,
-		   l_int32      npages)
+                   NUMA       **pnatl,
+                   l_int32      firstpage,
+                   l_int32      npages)
 {
 char       *fname;
 l_int32     nfiles, i;
 BOXA       *boxa;
-JBDATA     *data;
 JBCLASSER  *classer;
 NUMA       *nai, *natl;
 PIX        *pix;
@@ -259,20 +260,20 @@ SARRAY     *safiles;
     *pnatl = natl;
     for (i = 0; i < nfiles; i++) {
         fname = sarrayGetString(safiles, i, 0);
-	if ((pix = pixRead(fname)) == NULL) {
+        if ((pix = pixRead(fname)) == NULL) {
             L_WARNING_INT("image file %d not read", procName, i);
             continue;
         }
-        classer->w = pixGetWidth(pix);
-        classer->h = pixGetHeight(pix);
-        pixGetWordsInTextlines(pix, JB_WORDS_MIN_WIDTH, maxwidth, maxheight,
-                               &boxa, &pixa, &nai);
-	jbAddPageComponents(classer, pix, boxa, pixa);
-	numaJoin(natl, nai, 0, 0);
-	pixDestroy(&pix);
-	numaDestroy(&nai);
-	boxaDestroy(&boxa);
-	pixaDestroy(&pixa);
+        classer->w = pixGetWidth(pix) / 2;  /* we're computing at 2x reduct */
+        classer->h = pixGetHeight(pix) / 2;
+        pixGetWordsInTextlines(pix, JB_WORDS_MIN_WIDTH, JB_WORDS_MIN_HEIGHT,
+                               maxwidth, maxheight, &boxa, &pixa, &nai);
+        jbAddPageComponents(classer, pix, boxa, pixa);
+        numaJoin(natl, nai, 0, 0);
+        pixDestroy(&pix);
+        numaDestroy(&nai);
+        boxaDestroy(&boxa);
+        pixaDestroy(&pixa);
     }
 
     sarrayDestroy(&safiles);
@@ -284,7 +285,7 @@ SARRAY     *safiles;
  *  pixGetWordsInTextlines()
  *
  *      Input:  pixs (1 bpp, 300 ppi)
- *              minwidth (of saved components)
+ *              minwidth, minheight (of saved components; smaller are discarded)
  *              maxwidth, maxheight (of saved components; larger are discarded)
  *              &boxad (<return> word boxes sorted in textline line order)
  *              &pixad (<return> word images sorted in textline line order)
@@ -294,29 +295,35 @@ SARRAY     *safiles;
  *  Notes:
  *      (1) The input should be at a resolution of about 300 ppi.
  *          The word masks are computed at 2x reduction.
- *      (2) The pixa and boxa interfaces should make this type of
+ *      (2) The four size constraints on saved components are all
+ *          used at 2x reduction.
+ *      (3) The result are word images (and their b.b.), extracted in
+ *          textline order, all at 2x reduction, and with a numa giving
+ *          the textline index for each word.
+ *      (4) The pixa and boxa interfaces should make this type of
  *          application simple to put together.  The steps are:
  *           - generate first estimate of word masks
- *           - get b.b. of these, and remove the small ones
+ *           - get b.b. of these, and remove the small and big ones
  *           - extract pixa of the word mask from these boxes
  *           - extract pixa of the actual word images, using word masks
  *           - sort actual word images in textline order (2d)
  *           - flatten them to a pixa (1d), saving the textline index
  *             for each pix
- *      (3) The result are word images (and their b.b.), extracted in
- *          textline order, and with a numa giving the textline index
- *          for each word.
+ *      (5) In an actual application, it may be desirable to pre-filter
+ *          the input image to remove large components, to extract
+ *          single columns of text, and to deskew them.
  */
 l_int32
 pixGetWordsInTextlines(PIX     *pixs,
                        l_int32  minwidth,
+                       l_int32  minheight,
                        l_int32  maxwidth,
                        l_int32  maxheight,
                        BOXA   **pboxad,
                        PIXA   **ppixad,
                        NUMA   **pnai)
 {
-BOXA     *boxa1, *boxa2, *boxad;
+BOXA     *boxa1, *boxa2, *boxa3, *boxad;
 BOXAA    *baa;
 NUMA     *nai;
 NUMAA    *naa;
@@ -339,11 +346,15 @@ PIXAA    *paa;
 
         /* Get the bounding boxes of the words, and remove the
          * small ones, which can be due to punctuation that was
-         * not joined to a word.  Here, pixa1 contains the
-         * masks over each word.  */
+         * not joined to a word, and the large ones, which are
+         * also not likely to be words.  Here, pixa1 contains
+         * the masks over each word.  */
     boxa1 = pixConnComp(pixt2, NULL, 8);
-    boxa2 = boxaRemoveSmallComponents(boxa1, 5, 4, L_REMOVE_IF_EITHER, NULL);
-    pixa1 = pixaCreateFromBoxa(pixt2, boxa2, NULL);
+    boxa2 = boxaRemoveSmallComponents(boxa1, minwidth, minheight,
+                                      L_REMOVE_IF_EITHER, NULL);
+    boxa3 = boxaRemoveLargeComponents(boxa2, maxwidth, maxheight,
+                                      L_REMOVE_IF_EITHER, NULL);
+    pixa1 = pixaCreateFromBoxa(pixt2, boxa3, NULL);
 
         /* Generate a pixa of the actual words images, not the mask images. */
     pixa2 = pixaClipToPix(pixa1, pixt1);
@@ -367,9 +378,86 @@ PIXAA    *paa;
     pixaDestroy(&pixa2);
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
     boxaaDestroy(&baa);
     pixaaDestroy(&paa);
     numaaDestroy(&naa);
+    return 0;
+}
+
+
+/*!
+ *  pixGetWordBoxesInTextlines()
+ *
+ *      Input:  pixs (1 bpp, 300 ppi)
+ *              minwidth, minheight (of saved components; smaller are discarded)
+ *              maxwidth, maxheight (of saved components; larger are discarded)
+ *              &boxad (<return> word boxes sorted in textline line order)
+ *              &naindex (<return> index of textline for each word)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) The input should be at a resolution of about 300 ppi.
+ *          The word masks are computed at 2x reduction.
+ *      (2) In an actual application, it may be desirable to pre-filter
+ *          the input image to remove large components, to extract
+ *          single columns of text, and to deskew them.
+ *      (3) This is a special version that just finds the word boxes
+ *          in line order, with a numa giving the textline index for
+ *          each word.  See pixGetWordsInTextlines() for more details.
+ */
+l_int32
+pixGetWordBoxesInTextlines(PIX     *pixs,
+                           l_int32  minwidth,
+                           l_int32  minheight,
+                           l_int32  maxwidth,
+                           l_int32  maxheight,
+                           BOXA   **pboxad,
+                           NUMA   **pnai)
+{
+BOXA     *boxa1, *boxa2, *boxa3, *boxad;
+BOXAA    *baa;
+NUMA     *nai;
+PIX      *pixt1, *pixt2;
+
+    PROCNAME("pixGetWordBoxesInTextlines");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pboxad || !pnai)
+        return ERROR_INT("&boxad and &nai not both defined", procName, 1);
+
+        /* Work at about 150 ppi */
+    pixt1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
+
+        /* First estimate of the word masks */
+    pixt2 = pixWordMaskByDilation(pixt1, NULL);
+
+        /* Get the bounding boxes of the words, and remove the
+         * small ones, which can be due to punctuation that was
+         * not joined to a word, and the large ones, which are
+         * also not likely to be words. */
+    boxa1 = pixConnComp(pixt2, NULL, 8);
+    boxa2 = boxaRemoveSmallComponents(boxa1, minwidth, minheight,
+                                      L_REMOVE_IF_EITHER, NULL);
+    boxa3 = boxaRemoveLargeComponents(boxa2, maxwidth, maxheight,
+                                      L_REMOVE_IF_EITHER, NULL);
+
+        /* 2D sort the bounding boxes of these words. */
+    baa = boxaSort2d(boxa3, NULL, 3, -5, 5);
+
+        /* Flatten the boxaa, saving the boxa index for each box */
+    boxad = boxaaFlattenToBoxa(baa, &nai, L_CLONE);
+
+    *pnai = nai;
+    *pboxad = boxad;
+
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+    boxaaDestroy(&baa);
     return 0;
 }
 

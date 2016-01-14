@@ -41,12 +41,12 @@
  */
 l_int32
 ------   fhmtgen_low_*(l_uint32  *datad,     --------  substitute!
-	      l_int32    w,
-	      l_int32    h,
-	      l_int32    wpld,
-	      l_uint32  *datas,
-	      l_int32    wpls,
-	      l_int32    index)
+              l_int32    w,
+              l_int32    h,
+              l_int32    wpld,
+              l_uint32  *datas,
+              l_int32    wpls,
+              l_int32    index)
 {
 
     switch (index)
@@ -74,11 +74,11 @@ l_int32
 
 --------  start with header:  static void fhmt_*_*(l_uint32  *datad, ----
 
-	 l_int32    w,
-	 l_int32    h,
-	 l_int32    wpld,
-	 l_uint32  *datas,
-	 l_int32    wpls)
+         l_int32    w,
+         l_int32    h,
+         l_int32    wpld,
+         l_uint32  *datas,
+         l_int32    wpls)
 {
 l_int32              i;
 register l_int32     j, pwpls;
@@ -90,13 +90,13 @@ register l_uint32   *sptr, *dptr;
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
     for (i = 0; i < h; i++) {
-	sptr = datas + i * wpls;
-	dptr = datad + i * wpld;
-	for (j = 0; j < pwpls; j++, sptr++, dptr++) {
+        sptr = datas + i * wpls;
+        dptr = datad + i * wpld;
+        for (j = 0; j < pwpls; j++, sptr++, dptr++) {
 
 ---------   insert barrel-op code for *dptr here  ----------
 
-	}
+        }
     }
 }
 

@@ -68,13 +68,13 @@ STACK  *stack;
     PROCNAME("stackCreate");
 
     if (nalloc <= 0)
-	nalloc = INITIAL_PTR_ARRAYSIZE;
+        nalloc = INITIAL_PTR_ARRAYSIZE;
 
     if ((stack = (STACK *)CALLOC(1, sizeof(STACK))) == NULL)
-	return (STACK *)ERROR_PTR("stack not made", procName, NULL);
+        return (STACK *)ERROR_PTR("stack not made", procName, NULL);
 
     if ((stack->array = (void **)CALLOC(nalloc, sizeof(void *))) == NULL)
-	return (STACK *)ERROR_PTR("stack ptr array not made", procName, NULL);
+        return (STACK *)ERROR_PTR("stack ptr array not made", procName, NULL);
 
     stack->nalloc = nalloc;
     stack->n = 0;
@@ -110,25 +110,25 @@ STACK  *stack;
 
     if (pstack == NULL) {
         L_WARNING("ptr address is NULL", procName);
-	return;
+        return;
     }
     if ((stack = *pstack) == NULL)
-	return;
+        return;
 
     if (freeflag) {
-	while(stack->n > 0) {
-	    item = stackRemove(stack);
-	    FREE(item);
-	}
+        while(stack->n > 0) {
+            item = stackRemove(stack);
+            FREE(item);
+        }
     }
     else if (stack->n > 0)
-	L_WARNING_INT("memory leak of %d items in stack!", procName, stack->n);
+        L_WARNING_INT("memory leak of %d items in stack!", procName, stack->n);
 
     if (stack->auxstack)
-	stackDestroy(&stack->auxstack, freeflag);
+        stackDestroy(&stack->auxstack, freeflag);
 
     if (stack->array)
-	FREE((void *)stack->array);
+        FREE((void *)stack->array);
     FREE((void *)stack);
     *pstack = NULL;
 }
@@ -147,20 +147,20 @@ STACK  *stack;
  */
 l_int32
 stackAdd(STACK  *stack,
-	 void   *item)
+         void   *item)
 {
     PROCNAME("stackAdd");
 
     if (!stack)
-	return ERROR_INT("stack not defined", procName, 1);
+        return ERROR_INT("stack not defined", procName, 1);
     if (!item)
-	return ERROR_INT("item not defined", procName, 1);
+        return ERROR_INT("item not defined", procName, 1);
 
-	/* do we need to extend the array? */
+        /* do we need to extend the array? */
     if (stack->n >= stack->nalloc)
-	stackExtendArray(stack);
+        stackExtendArray(stack);
 
-	/* store the new pointer */
+        /* store the new pointer */
     stack->array[stack->n] = (void *)item;
     stack->n++;
 
@@ -183,14 +183,14 @@ void  *item;
     PROCNAME("stackRemove");
 
     if (!stack)
-	return ERROR_PTR("stack not defined", procName, NULL);
+        return ERROR_PTR("stack not defined", procName, NULL);
 
     if (stack->n == 0)
-	return NULL;
+        return NULL;
 
     stack->n--;
     item = stack->array[stack->n];
-	
+        
     return item;
 }
 
@@ -207,12 +207,12 @@ stackExtendArray(STACK  *stack)
     PROCNAME("stackExtendArray");
 
     if (!stack)
-	return ERROR_INT("stack not defined", procName, 1);
+        return ERROR_INT("stack not defined", procName, 1);
 
     if ((stack->array = (void **)reallocNew((void **)&stack->array,
                               sizeof(l_intptr_t) * stack->nalloc,
                               2 * sizeof(l_intptr_t) * stack->nalloc)) == NULL)
-	return ERROR_INT("new stack array not defined", procName, 1);
+        return ERROR_INT("new stack array not defined", procName, 1);
 
     stack->nalloc = 2 * stack->nalloc;
     return 0;
@@ -231,7 +231,7 @@ stackGetCount(STACK  *stack)
     PROCNAME("stackGetCount");
 
     if (!stack)
-	return ERROR_INT("stack not defined", procName, 1);
+        return ERROR_INT("stack not defined", procName, 1);
 
     return stack->n;
 }
@@ -250,21 +250,21 @@ stackGetCount(STACK  *stack)
  */
 l_int32
 stackPrint(FILE   *fp,
-	   STACK  *stack)
+           STACK  *stack)
 {
 l_int32  i;
 
     PROCNAME("stackPrint");
 
     if (!fp)
-	return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", procName, 1);
     if (!stack)
-	return ERROR_INT("stack not defined", procName, 1);
+        return ERROR_INT("stack not defined", procName, 1);
 
     fprintf(fp, "\n Stack: nalloc = %d, n = %d, array = %p\n", 
             stack->nalloc, stack->n, stack->array);
     for (i = 0; i < stack->n; i++)
-	fprintf(fp,   "array[%d] = %p\n", i, stack->array[i]);
+        fprintf(fp,   "array[%d] = %p\n", i, stack->array[i]);
     
     return 0;
 }

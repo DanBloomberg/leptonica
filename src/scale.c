@@ -137,8 +137,8 @@
  */
 PIX *
 pixScale(PIX       *pixs,
-	 l_float32  scalex,
-	 l_float32  scaley)
+         l_float32  scalex,
+         l_float32  scaley)
 {
 l_int32    d;
 l_float32  maxscale;
@@ -154,7 +154,7 @@ PIX       *pixt, *pixd;
     maxscale = L_MAX(scalex, scaley);
     d = pixGetDepth(pixs);
     if (d == 1)
-	return pixScaleBinary(pixs, scalex, scaley);
+        return pixScaleBinary(pixs, scalex, scaley);
     else if (d == 16) {
         L_WARNING("pix has 16 bpp; converting to 8 bpp with MSB", procName);
         pixt = pixConvert16To8(pixs, 1);
@@ -164,12 +164,12 @@ PIX       *pixt, *pixd;
         else {  /* maxscale < 0.7 */
             pixd = pixScaleAreaMap(pixt, scalex, scaley);
         } 
-	pixDestroy(&pixt);
-	return pixd;
+        pixDestroy(&pixt);
+        return pixd;
     }
     else if (pixGetColormap(pixs)) {   /* 2, 4 or 8 bpp */
         L_WARNING("pixs has colormap; removing", procName);
-	if ((pixt = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC)) == NULL)
+        if ((pixt = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC)) == NULL)
             return (PIX *)ERROR_PTR("colormap not removed", procName, NULL);
         d = pixGetDepth(pixt);
         if (maxscale >= 0.7) {
@@ -177,25 +177,25 @@ PIX       *pixt, *pixd;
                 pixd = pixScaleGrayLI(pixt, scalex, scaley);
             else  /* d == 32 */
                 pixd = pixScaleColorLI(pixt, scalex, scaley);
-	}
+        }
         else {  /* maxscale < 0.7 */
             pixd = pixScaleAreaMap(pixt, scalex, scaley);
         } 
-	pixDestroy(&pixt);
-	return pixd;
+        pixDestroy(&pixt);
+        return pixd;
     }
     else if (d == 2 || d == 4) {
         L_WARNING("pix has 2 or 4 bpp without colormap; converting to 8 bpp",
                 procName);
-        pixt = pixConvertTo8(pixs);
+        pixt = pixConvertTo8(pixs, FALSE);
         if (maxscale >= 0.7) {
             pixd = pixScaleGrayLI(pixt, scalex, scaley);
         } 
         else {  /* maxscale < 0.7 */
             pixd = pixScaleAreaMap(pixt, scalex, scaley);
         } 
-	pixDestroy(&pixt);
-	return pixd;
+        pixDestroy(&pixt);
+        return pixd;
     }
     else if (d == 8) {
         if (maxscale >= 0.7) {
@@ -207,7 +207,7 @@ PIX       *pixt, *pixd;
     }
     else if (d == 32) {
         if (maxscale >= 0.7) {
-	    return pixScaleColorLI(pixs, scalex, scaley);
+            return pixScaleColorLI(pixs, scalex, scaley);
         } 
         else {  /* maxscale < 0.7 */
             return pixScaleAreaMap(pixs, scalex, scaley);
@@ -248,7 +248,7 @@ pixScaleLI(PIX       *pix,
            l_float32  scaley)
 {
 l_int32    d;
-PIX    	  *pixs, *pixd;
+PIX              *pixs, *pixd;
 
     PROCNAME("pixScaleLI");
 
@@ -263,15 +263,15 @@ PIX    	  *pixs, *pixd;
         return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
 
         /* Remove colormap if necessary.
-	 * If 2 bpp or 4 bpp gray, convert to 8 bpp */
+         * If 2 bpp or 4 bpp gray, convert to 8 bpp */
     if (pixGetColormap(pix)) {
         L_WARNING("pix has colormap; removing", procName);
-	pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-	d = pixGetDepth(pixs);
+        pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+        d = pixGetDepth(pixs);
     }
     else if (d == 2 || d == 4) {
-        pixs = pixConvertTo8(pix);
-	d = 8;
+        pixs = pixConvertTo8(pix, FALSE);
+        d = 8;
     }
     else
         pixs = pixClone(pix);
@@ -311,12 +311,12 @@ PIX    	  *pixs, *pixd;
  */
 PIX *
 pixScaleColorLI(PIX      *pixs,
-	       l_float32  scalex,
-	       l_float32  scaley)
+               l_float32  scalex,
+               l_float32  scaley)
 {
 l_int32    ws, hs, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleColorLI");
 
@@ -329,11 +329,11 @@ PIX    	  *pixd;
 
         /* Do fast special cases if possible */
     if (scalex == 1.0 && scaley == 1.0)
-	return pixCopy(NULL, pixs);
+        return pixCopy(NULL, pixs);
     if (scalex == 2.0 && scaley == 2.0)
-	return pixScaleColor2xLI(pixs);
+        return pixScaleColor2xLI(pixs);
     if (scalex == 4.0 && scaley == 4.0)
-	return pixScaleColor4xLI(pixs);
+        return pixScaleColor4xLI(pixs);
 
         /* General case */
     ws = pixGetWidth(pixs);
@@ -376,7 +376,7 @@ pixScaleColor2xLI(PIX  *pixs)
 {
 l_int32    d, ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleColor2xLI");
 
@@ -531,12 +531,12 @@ PIX  *pixd;
  */
 PIX *
 pixScaleGrayLI(PIX       *pixs,
-	       l_float32  scalex,
-	       l_float32  scaley)
+               l_float32  scalex,
+               l_float32  scaley)
 {
 l_int32    d, ws, hs, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleGrayLI");
 
@@ -551,11 +551,11 @@ PIX    	  *pixd;
 
         /* Do fast special cases if possible */
     if (scalex == 1.0 && scaley == 1.0)
-	return pixCopy(NULL, pixs);
+        return pixCopy(NULL, pixs);
     if (scalex == 2.0 && scaley == 2.0)
-	return pixScaleGray2xLI(pixs);
+        return pixScaleGray2xLI(pixs);
     if (scalex == 4.0 && scaley == 4.0)
-	return pixScaleGray4xLI(pixs);
+        return pixScaleGray4xLI(pixs);
     
         /* General case */
     ws = pixGetWidth(pixs);
@@ -595,7 +595,7 @@ pixScaleGray2xLI(PIX  *pixs)
 {
 l_int32    d, ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleGray2xLI");
 
@@ -641,7 +641,7 @@ pixScaleGray4xLI(PIX  *pixs)
 {
 l_int32    d, ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleGray4xLI");
 
@@ -687,12 +687,12 @@ PIX    	  *pixd;
  */
 PIX *
 pixScaleBySampling(PIX       *pixs,
-	           l_float32  scalex,
-	           l_float32  scaley)
+                   l_float32  scalex,
+                   l_float32  scaley)
 {
 l_int32    ws, hs, d, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleBySampling");
 
@@ -781,7 +781,7 @@ PIX       *pixd;
     wd = ws / factor;
     hd = hs / factor;
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     scale = 1. / (l_float32) factor;
     pixScaleResolution(pixd, scale, scale);
@@ -789,8 +789,8 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
     
     for (i = 0; i < hd; i++) {
-	words = datas + i * factor * wpls;
-	lined = datad + i * wpld;
+        words = datas + i * factor * wpls;
+        lined = datad + i * wpld;
         for (j = 0; j < wd; j++, words += factor) {
             byteval = ((*words) >> shift) & 0xff;
             SET_DATA_BYTE(lined, j, byteval);
@@ -848,7 +848,7 @@ PIX       *pixd;
     wd = ws / factor;
     hd = hs / factor;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     scale = 1. / (l_float32) factor;
     pixScaleResolution(pixd, scale, scale);
@@ -856,13 +856,13 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     for (i = 0; i < hd; i++) {
-	words = datas + i * factor * wpls;
-	lined = datad + i * wpld;
-	for (j = 0; j < wd; j++, words += factor) {
-	    byteval = ((*words) >> 16) & 0xff;
+        words = datas + i * factor * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < wd; j++, words += factor) {
+            byteval = ((*words) >> 16) & 0xff;
             if (byteval < thresh)
                 SET_DATA_BIT(lined, j);
-	}
+        }
     }
 
     return pixd;
@@ -912,7 +912,7 @@ PIX       *pixd;
     wd = ws / factor;
     hd = hs / factor;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     scale = 1. / (l_float32) factor;
     pixScaleResolution(pixd, scale, scale);
@@ -920,13 +920,13 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     for (i = 0; i < hd; i++) {
-	lines = datas + i * factor * wpls;
-	lined = datad + i * wpld;
-	for (j = 0, sj = 0; j < wd; j++, sj += factor) {
+        lines = datas + i * factor * wpls;
+        lined = datad + i * wpld;
+        for (j = 0, sj = 0; j < wd; j++, sj += factor) {
             byteval = GET_DATA_BYTE(lines, sj);
             if (byteval < thresh)
                 SET_DATA_BIT(lined, j);
-	}
+        }
     }
 
     return pixd;
@@ -974,7 +974,7 @@ pixScaleSmooth(PIX       *pix,
 l_int32    ws, hs, d, wd, hd, wpls, wpld, isize;
 l_uint32  *datas, *datad;
 l_float32  minscale, size;
-PIX    	  *pixs, *pixd;
+PIX              *pixs, *pixd;
 
     PROCNAME("pixScaleSmooth");
 
@@ -986,23 +986,23 @@ PIX    	  *pixs, *pixd;
     }
 
         /* Remove colormap if necessary.
-	 * If 2 bpp or 4 bpp gray, convert to 8 bpp */
+         * If 2 bpp or 4 bpp gray, convert to 8 bpp */
     d = pixGetDepth(pix);
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
         L_WARNING("pix has colormap; removing", procName);
-	pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-	d = pixGetDepth(pixs);
+        pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+        d = pixGetDepth(pixs);
     }
     else if (d == 2 || d == 4) {
-        pixs = pixConvertTo8(pix);
-	d = 8;
+        pixs = pixConvertTo8(pix, FALSE);
+        d = 8;
     }
     else
         pixs = pixClone(pix);
 
     if (d != 8 && d != 32) {   /* d == 1 or d == 16 */
         L_WARNING("depth not 8 or 32 bpp; doing regular scaling", procName);
-	pixDestroy(&pixs);
+        pixDestroy(&pixs);
         return pixScale(pix, scalex, scaley);
     }
 
@@ -1016,7 +1016,7 @@ PIX    	  *pixs, *pixd;
     ws = pixGetWidth(pixs);
     hs = pixGetHeight(pixs);
     if ((ws < isize) || (hs < isize)) {
-	pixDestroy(&pixs);
+        pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
     }
     datas = pixGetData(pixs);
@@ -1024,11 +1024,11 @@ PIX    	  *pixs, *pixd;
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
     hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if (wd < 1 || hd < 1) {
-	pixDestroy(&pixs);
+        pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixd too small", procName, NULL);
     }
     if ((pixd = pixCreate(wd, hd, d)) == NULL) {
-	pixDestroy(&pixs);
+        pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
     pixCopyResolution(pixd, pixs);
@@ -1060,7 +1060,7 @@ pixScaleRGBToGray2(PIX       *pixs,
 {
 l_int32    wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleRGBToGray2");
 
@@ -1120,7 +1120,7 @@ pixScaleAreaMap(PIX       *pix,
 {
 l_int32    ws, hs, d, wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixs, *pixd, *pixt1, *pixt2, *pixt3;
+PIX              *pixs, *pixd, *pixt1, *pixt2, *pixt3;
 
     PROCNAME("pixScaleAreaMap");
 
@@ -1163,15 +1163,15 @@ PIX    	  *pixs, *pixd, *pixt1, *pixt2, *pixt3;
     }
 
         /* Remove colormap if necessary.
-	 * If 2 bpp or 4 bpp gray, convert to 8 bpp */
+         * If 2 bpp or 4 bpp gray, convert to 8 bpp */
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
         L_WARNING("pix has colormap; removing", procName);
-	pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-	d = pixGetDepth(pixs);
+        pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+        d = pixGetDepth(pixs);
     }
     else if (d == 2 || d == 4) {
-        pixs = pixConvertTo8(pix);
-	d = 8;
+        pixs = pixConvertTo8(pix, FALSE);
+        d = 8;
     }
     else
         pixs = pixClone(pix);
@@ -1183,11 +1183,11 @@ PIX    	  *pixs, *pixd, *pixt1, *pixt2, *pixt3;
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
     hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if (wd < 1 || hd < 1) {
-	pixDestroy(&pixs);
+        pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixd too small", procName, NULL);
     }
     if ((pixd = pixCreate(wd, hd, d)) == NULL) {
-	pixDestroy(&pixs);
+        pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
     pixCopyResolution(pixd, pixs);
@@ -1234,7 +1234,7 @@ pixScaleAreaMap2(PIX  *pix)
 {
 l_int32    wd, hd, d, wpls, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixs, *pixd;
+PIX              *pixs, *pixd;
 
     PROCNAME("pixScaleAreaMap2");
 
@@ -1245,15 +1245,15 @@ PIX    	  *pixs, *pixd;
         return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
 
         /* Remove colormap if necessary.
-	 * If 2 bpp or 4 bpp gray, convert to 8 bpp */
+         * If 2 bpp or 4 bpp gray, convert to 8 bpp */
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
         L_WARNING("pix has colormap; removing", procName);
-	pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-	d = pixGetDepth(pixs);
+        pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+        d = pixGetDepth(pixs);
     }
     else if (d == 2 || d == 4) {
-        pixs = pixConvertTo8(pix);
-	d = 8;
+        pixs = pixConvertTo8(pix, FALSE);
+        d = 8;
     }
     else
         pixs = pixClone(pix);
@@ -1291,12 +1291,12 @@ PIX    	  *pixs, *pixd;
  */
 PIX *
 pixScaleBinary(PIX       *pixs,
-	       l_float32  scalex,
-	       l_float32  scaley)
+               l_float32  scalex,
+               l_float32  scaley)
 {
 l_int32    ws, hs, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixScaleBinary");
 
@@ -1403,7 +1403,7 @@ PIX       *pixt, *pixd;
     PROCNAME("pixScaleToGray");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (scalefactor >= 1.0)
@@ -1417,70 +1417,70 @@ PIX       *pixt, *pixd;
 
     if (scalefactor > 0.5) {   /* see note (5) */
         mag = 2.0 * scalefactor;  /* will be < 2.0 */
-/*	fprintf(stderr, "2x with mag %7.3f\n", mag);  */
-	if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-	pixd = pixScaleToGray2(pixt);
+/*        fprintf(stderr, "2x with mag %7.3f\n", mag);  */
+        if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        pixd = pixScaleToGray2(pixt);
     }
     else if (scalefactor == 0.5)
-	return pixd = pixScaleToGray2(pixs);
+        return pixd = pixScaleToGray2(pixs);
     else if (scalefactor > 0.33333) {   /* see note (5) */
         mag = 3.0 * scalefactor;   /* will be < 1.5 */
-/*	fprintf(stderr, "3x with mag %7.3f\n", mag);  */
-	if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-	pixd = pixScaleToGray3(pixt);
+/*        fprintf(stderr, "3x with mag %7.3f\n", mag);  */
+        if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        pixd = pixScaleToGray3(pixt);
     }
     else if (scalefactor > 0.25) {  /* see note (5) */
-	mag = 4.0 * scalefactor;   /* will be < 1.3333 */
-/*	fprintf(stderr, "4x with mag %7.3f\n", mag);  */
-	if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-	pixd = pixScaleToGray4(pixt);
+        mag = 4.0 * scalefactor;   /* will be < 1.3333 */
+/*        fprintf(stderr, "4x with mag %7.3f\n", mag);  */
+        if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        pixd = pixScaleToGray4(pixt);
     }
     else if (scalefactor == 0.25)
-	return pixd = pixScaleToGray4(pixs);
+        return pixd = pixScaleToGray4(pixs);
     else if (scalefactor > 0.16667) {  /* see note (5) */
-	mag = 6.0 * scalefactor;   /* will be < 1.5 */
-/*	fprintf(stderr, "6x with mag %7.3f\n", mag); */
-	if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-	pixd = pixScaleToGray6(pixt);
+        mag = 6.0 * scalefactor;   /* will be < 1.5 */
+/*        fprintf(stderr, "6x with mag %7.3f\n", mag); */
+        if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        pixd = pixScaleToGray6(pixt);
     }
     else if (scalefactor == 0.16667)
-	return pixd = pixScaleToGray6(pixs);
+        return pixd = pixScaleToGray6(pixs);
     else if (scalefactor > 0.125) {  /* see note (5) */
-	mag = 8.0 * scalefactor;   /*  will be < 1.3333  */
-/*	fprintf(stderr, "8x with mag %7.3f\n", mag);  */
-	if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-	pixd = pixScaleToGray8(pixt);
+        mag = 8.0 * scalefactor;   /*  will be < 1.3333  */
+/*        fprintf(stderr, "8x with mag %7.3f\n", mag);  */
+        if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        pixd = pixScaleToGray8(pixt);
     }
     else if (scalefactor == 0.125)
-	return pixd = pixScaleToGray8(pixs);
+        return pixd = pixScaleToGray8(pixs);
     else if (scalefactor > 0.0625) {  /* see note (6) */
-	red = 8.0 * scalefactor;   /* will be > 0.5 */
-/*	fprintf(stderr, "8x with red %7.3f\n", red);  */
-	if ((pixt = pixScaleBinary(pixs, red, red)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
-	pixd = pixScaleToGray8(pixt);
+        red = 8.0 * scalefactor;   /* will be > 0.5 */
+/*        fprintf(stderr, "8x with red %7.3f\n", red);  */
+        if ((pixt = pixScaleBinary(pixs, red, red)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        pixd = pixScaleToGray8(pixt);
     }
     else if (scalefactor == 0.0625)
-	return pixd = pixScaleToGray16(pixs);
+        return pixd = pixScaleToGray16(pixs);
     else {  /* see note (7) */
-	red = 16.0 * scalefactor;  /* will be <= 1.0 */
-/*	fprintf(stderr, "16x with red %7.3f\n", red);  */
-	if ((pixt = pixScaleToGray16(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        red = 16.0 * scalefactor;  /* will be <= 1.0 */
+/*        fprintf(stderr, "16x with red %7.3f\n", red);  */
+        if ((pixt = pixScaleToGray16(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
         if (red < 0.7)
-	    pixd = pixScaleSmooth(pixt, red, red);  /* see note (3) */
-        else	
-	    pixd = pixScaleGrayLI(pixt, red, red);  /* see note (2) */
+            pixd = pixScaleSmooth(pixt, red, red);  /* see note (3) */
+        else        
+            pixd = pixScaleGrayLI(pixt, red, red);  /* see note (2) */
     }
 
     pixDestroy(&pixt);
     if (!pixd)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     else
         return pixd;
 }
@@ -1510,7 +1510,7 @@ PIX       *pixd;
     PROCNAME("pixScaleToGray2");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
@@ -1531,9 +1531,9 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     if ((sumtab = makeSumTabSG2()) == NULL)
-	return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
     if ((valtab = makeValTabSG2()) == NULL)
-	return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
 
     scaleToGray2Low(datad, wd, hd, wpld, datas, wpls, sumtab, valtab);
 
@@ -1572,7 +1572,7 @@ PIX       *pixd;
     PROCNAME("pixScaleToGray3");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
@@ -1593,9 +1593,9 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     if ((sumtab = makeSumTabSG3()) == NULL)
-	return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
     if ((valtab = makeValTabSG3()) == NULL)
-	return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
 
     scaleToGray3Low(datad, wd, hd, wpld, datas, wpls, sumtab, valtab);
 
@@ -1629,7 +1629,7 @@ PIX       *pixd;
     PROCNAME("pixScaleToGray4");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
@@ -1650,9 +1650,9 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     if ((sumtab = makeSumTabSG4()) == NULL)
-	return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
     if ((valtab = makeValTabSG4()) == NULL)
-	return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
 
     scaleToGray4Low(datad, wd, hd, wpld, datas, wpls, sumtab, valtab);
 
@@ -1686,7 +1686,7 @@ PIX       *pixd;
     PROCNAME("pixScaleToGray6");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
@@ -1707,9 +1707,9 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     if ((tab8 = makePixelSumTab8()) == NULL)
-	return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
     if ((valtab = makeValTabSG6()) == NULL)
-	return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
 
     scaleToGray6Low(datad, wd, hd, wpld, datas, wpls, tab8, valtab);
 
@@ -1743,7 +1743,7 @@ PIX       *pixd;
     PROCNAME("pixScaleToGray8");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
@@ -1764,9 +1764,9 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     if ((tab8 = makePixelSumTab8()) == NULL)
-	return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
     if ((valtab = makeValTabSG8()) == NULL)
-	return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
 
     scaleToGray8Low(datad, wd, hd, wpld, datas, wpls, tab8, valtab);
 
@@ -1799,7 +1799,7 @@ PIX       *pixd;
     PROCNAME("pixScaleToGray16");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
@@ -1820,7 +1820,7 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
 
     if ((tab8 = makePixelSumTab8()) == NULL)
-	return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
 
     scaleToGray16Low(datad, wd, hd, wpld, datas, wpls, tab8);
 
@@ -1872,7 +1872,7 @@ PIX       *pixs1, *pixs2, *pixt, *pixd;
     PROCNAME("pixScaleToGrayMipmap");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
     if (scalefactor >= 1.0)
@@ -1886,46 +1886,46 @@ PIX       *pixs1, *pixs2, *pixt, *pixd;
 
     if (scalefactor > 0.5) {
         pixs1 = pixConvert1To8(NULL, pixs, 255, 0);
-	pixs2 = pixScaleToGray2(pixs);
-	red = scalefactor;
+        pixs2 = pixScaleToGray2(pixs);
+        red = scalefactor;
     }
     else if (scalefactor == 0.5) {
         return pixScaleToGray2(pixs);
     }
     else if (scalefactor > 0.25) {
-	pixs1 = pixScaleToGray2(pixs);
-	pixs2 = pixScaleToGray4(pixs);
-	red = 2. * scalefactor;
+        pixs1 = pixScaleToGray2(pixs);
+        pixs2 = pixScaleToGray4(pixs);
+        red = 2. * scalefactor;
     }
     else if (scalefactor == 0.25) {
         return pixScaleToGray4(pixs);
     }
     else if (scalefactor > 0.125) {
-	pixs1 = pixScaleToGray4(pixs);
-	pixs2 = pixScaleToGray8(pixs);
-	red = 4. * scalefactor;
+        pixs1 = pixScaleToGray4(pixs);
+        pixs2 = pixScaleToGray8(pixs);
+        red = 4. * scalefactor;
     }
     else if (scalefactor == 0.125) {
         return pixScaleToGray8(pixs);
     }
     else if (scalefactor > 0.0625) {
-	pixs1 = pixScaleToGray8(pixs);
-	pixs2 = pixScaleToGray16(pixs);
-	red = 8. * scalefactor;
+        pixs1 = pixScaleToGray8(pixs);
+        pixs2 = pixScaleToGray16(pixs);
+        red = 8. * scalefactor;
     }
     else if (scalefactor == 0.0625) {
         return pixScaleToGray16(pixs);
     }
     else {  /* end of the pyramid; just do it */
-	red = 16.0 * scalefactor;  /* will be <= 1.0 */
-	if ((pixt = pixScaleToGray16(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        red = 16.0 * scalefactor;  /* will be <= 1.0 */
+        if ((pixt = pixScaleToGray16(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
         if (red < 0.7)
-	    pixd = pixScaleSmooth(pixt, red, red);
-        else	
-	    pixd = pixScaleGrayLI(pixt, red, red);
+            pixd = pixScaleSmooth(pixt, red, red);
+        else        
+            pixd = pixScaleGrayLI(pixt, red, red);
         pixDestroy(&pixt);
-	return pixd;
+        return pixd;
     }
 
     pixd = pixScaleMipmap(pixs1, pixs2, red);
@@ -1965,9 +1965,9 @@ PIX       *pixd;
     PROCNAME("pixScaleMipmap");
 
     if (!pixs1)
-	return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs1 not defined", procName, NULL);
     if (!pixs2)
-	return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs2 not defined", procName, NULL);
     if (pixGetDepth(pixs1) != 8 || pixGetDepth(pixs2) != 8)
         return (PIX *)ERROR_PTR("pixs1, pixs2 not both 8 bpp", procName, NULL);
     if (scale > 1.0 || scale < 0.5)
@@ -1992,7 +1992,7 @@ PIX       *pixd;
     wd = (l_int32)(2. * scale * pixGetWidth(pixs2));
     hd = (l_int32)(2. * scale * pixGetHeight(pixs2));
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs1);
     pixScaleResolution(pixd, scale, scale);
     datad = pixGetData(pixd);
@@ -2030,12 +2030,12 @@ PIX       *pixd;
     PROCNAME("pixScaleGray2xLIThresh");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
     if (thresh < 0 || thresh > 256)
         return (PIX *)ERROR_PTR("thresh must be in [0, ... 256]",
-	    procName, NULL);
+            procName, NULL);
     if (pixGetColormap(pixs))
         L_WARNING("pixs has colormap", procName);
 
@@ -2052,7 +2052,7 @@ PIX       *pixd;
     if ((lineb = (l_uint32 *)CALLOC(2 * wplb, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
 
-	/* Make dest binary image */
+        /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -2062,9 +2062,9 @@ PIX       *pixd;
 
         /* Do all but last src line */
     for (i = 0; i < hsm; i++) {
-	lines = datas + i * wpls;
-	lined = datad + 2 * i * wpld;  /* do 2 dest lines at a time */
-	scaleGray2xLILineLow(lineb, wplb, lines, ws, wpls, 0);
+        lines = datas + i * wpls;
+        lined = datad + 2 * i * wpld;  /* do 2 dest lines at a time */
+        scaleGray2xLILineLow(lineb, wplb, lines, ws, wpls, 0);
         thresholdToBinaryLineLow(lined, wd, lineb, 8, thresh);
         thresholdToBinaryLineLow(lined + wpld, wd, lineb + wplb, 8, thresh);
     }
@@ -2111,7 +2111,7 @@ PIX       *pixd;
     PROCNAME("pixScaleGray2xLIDither");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
     if (pixGetColormap(pixs))
@@ -2138,7 +2138,7 @@ PIX       *pixd;
     if ((linebp = (l_uint32 *)CALLOC(wplb, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("linebp not made", procName, NULL);
 
-	/* Make dest binary image */
+        /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -2153,21 +2153,21 @@ PIX       *pixd;
     lined = datad;
     ditherToBinaryLineLow(lined, wd, lineb, lineb + wplb,
                           DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
-			                            /* 1st d line */
+                                                    /* 1st d line */
 
         /* Do all but last src line */
     for (i = 1; i < hsm; i++) {
-	memcpy(bufs, datas + i * wpls, 4 * wpls);  /* i-th src line */
-	memcpy(bufs + wpls, datas + (i + 1) * wpls, 4 * wpls);
-	memcpy(linebp, lineb + wplb, 4 * wplb);
-	scaleGray2xLILineLow(lineb, wplb, bufs, ws, wpls, 0);  /* 2 i lines */
-	lined = datad + 2 * i * wpld;
+        memcpy(bufs, datas + i * wpls, 4 * wpls);  /* i-th src line */
+        memcpy(bufs + wpls, datas + (i + 1) * wpls, 4 * wpls);
+        memcpy(linebp, lineb + wplb, 4 * wplb);
+        scaleGray2xLILineLow(lineb, wplb, bufs, ws, wpls, 0);  /* 2 i lines */
+        lined = datad + 2 * i * wpld;
         ditherToBinaryLineLow(lined - wpld, wd, linebp, lineb,
                               DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
-	                                           /* odd dest line */
+                                                   /* odd dest line */
         ditherToBinaryLineLow(lined, wd, lineb, lineb + wplb,
                               DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
-	                                           /* even dest line */
+                                                   /* even dest line */
     }
 
         /* Do the last src line and the last 3 dest lines */
@@ -2222,12 +2222,12 @@ PIX       *pixd;
     PROCNAME("pixScaleGray4xLIThresh");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
     if (thresh < 0 || thresh > 256)
         return (PIX *)ERROR_PTR("thresh must be in [0, ... 256]",
-	    procName, NULL);
+            procName, NULL);
     if (pixGetColormap(pixs))
         L_WARNING("pixs has colormap", procName);
 
@@ -2244,7 +2244,7 @@ PIX       *pixd;
     if ((lineb = (l_uint32 *)CALLOC(4 * wplb, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
 
-	/* Make dest binary image */
+        /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -2254,13 +2254,13 @@ PIX       *pixd;
 
         /* Do all but last src line */
     for (i = 0; i < hsm; i++) {
-	lines = datas + i * wpls;
-	lined = datad + 4 * i * wpld;  /* do 4 dest lines at a time */
-	scaleGray4xLILineLow(lineb, wplb, lines, ws, wpls, 0);
-	for (j = 0; j < 4; j++) {
-	    thresholdToBinaryLineLow(lined + j * wpld, wd,
-	                             lineb + j * wplb, 8, thresh);
-	}
+        lines = datas + i * wpls;
+        lined = datad + 4 * i * wpld;  /* do 4 dest lines at a time */
+        scaleGray4xLILineLow(lineb, wplb, lines, ws, wpls, 0);
+        for (j = 0; j < 4; j++) {
+            thresholdToBinaryLineLow(lined + j * wpld, wd,
+                                     lineb + j * wplb, 8, thresh);
+        }
     }
 
         /* Do last src line */
@@ -2268,8 +2268,8 @@ PIX       *pixd;
     lined = datad + 4 * hsm * wpld;
     scaleGray4xLILineLow(lineb, wplb, lines, ws, wpls, 1);
     for (j = 0; j < 4; j++) {
-	thresholdToBinaryLineLow(lined + j * wpld, wd,
-				 lineb + j * wplb, 8, thresh);
+        thresholdToBinaryLineLow(lined + j * wpld, wd,
+                                 lineb + j * wplb, 8, thresh);
     }
 
     FREE(lineb);
@@ -2313,7 +2313,7 @@ PIX       *pixd;
     PROCNAME("pixScaleGray4xLIDither");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
     if (pixGetColormap(pixs))
@@ -2340,7 +2340,7 @@ PIX       *pixd;
     if ((linebp = (l_uint32 *)CALLOC(wplb, sizeof(l_uint32))) == NULL)
         return (PIX *)ERROR_PTR("linebp not made", procName, NULL);
 
-	/* Make dest binary image */
+        /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -2354,26 +2354,26 @@ PIX       *pixd;
     scaleGray4xLILineLow(lineb, wplb, bufs, ws, wpls, 0);  /* 4 b lines */
     lined = datad;
     for (j = 0; j < 3; j++) {  /* first 3 d lines of Q */
-	ditherToBinaryLineLow(lined + j * wpld, wd, lineb + j * wplb,
-	                      lineb + (j + 1) * wplb,
+        ditherToBinaryLineLow(lined + j * wpld, wd, lineb + j * wplb,
+                              lineb + (j + 1) * wplb,
                               DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
     }
 
         /* Do all but last src line */
     for (i = 1; i < hsm; i++) {
-	memcpy(bufs, datas + i * wpls, 4 * wpls);  /* i-th src line */
-	memcpy(bufs + wpls, datas + (i + 1) * wpls, 4 * wpls);
-	memcpy(linebp, lineb + 3 * wplb, 4 * wplb);
-	scaleGray4xLILineLow(lineb, wplb, bufs, ws, wpls, 0);  /* 4 b lines */
-	lined = datad + 4 * i * wpld;
-	ditherToBinaryLineLow(lined - wpld, wd, linebp, lineb,
+        memcpy(bufs, datas + i * wpls, 4 * wpls);  /* i-th src line */
+        memcpy(bufs + wpls, datas + (i + 1) * wpls, 4 * wpls);
+        memcpy(linebp, lineb + 3 * wplb, 4 * wplb);
+        scaleGray4xLILineLow(lineb, wplb, bufs, ws, wpls, 0);  /* 4 b lines */
+        lined = datad + 4 * i * wpld;
+        ditherToBinaryLineLow(lined - wpld, wd, linebp, lineb,
                               DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
-	                                             /* 4th dest line of Q */
-	for (j = 0; j < 3; j++) {  /* next 3 d lines of Quad */
+                                                     /* 4th dest line of Q */
+        for (j = 0; j < 3; j++) {  /* next 3 d lines of Quad */
             ditherToBinaryLineLow(lined + j * wpld, wd, lineb + j * wplb,
-	                          lineb + (j + 1) * wplb,
+                                  lineb + (j + 1) * wplb,
                                  DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
-        }			     
+        }                             
     }
 
         /* Do the last src line and the last 5 dest lines */
@@ -2385,8 +2385,8 @@ PIX       *pixd;
                           DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
                                                    /* 4th dest line of Q */
     for (j = 0; j < 3; j++) {  /* next 3 d lines of Quad */
-	ditherToBinaryLineLow(lined + j * wpld, wd, lineb + j * wplb,
-		              lineb + (j + 1) * wplb,
+        ditherToBinaryLineLow(lined + j * wpld, wd, lineb + j * wplb,
+                              lineb + (j + 1) * wplb,
                               DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 0);
     }
         /* And finally, the last dest line */
@@ -2408,24 +2408,26 @@ PIX       *pixd;
  *  pixScaleGrayMinMax()
  *
  *      Input:  pixs (8 bpp)
- *              factor (integer representing downscaling factor)
+ *              xfact (x downscaling factor; integer)
+ *              yfact (x downscaling factor; integer)
  *              type (L_CHOOSE_MIN, L_CHOOSE_MAX)
- *      Return: pixd (8 bpp downscaled by 2x)
+ *      Return: pixd (8 bpp)
  *
  *  Notes:
  *      (1) The downscaled pixels in pixd are the min or max of the
- *          corresponding set of factor * factor pixels in pixs.
+ *          corresponding set of xfact * yfact pixels in pixs.
  *      (2) This is equivalent to a grayscale morphological operation
  *          (either erosion if using L_CHOOSE_MIN or dilation if
- *          using L_CHOOSE_MAX), using a square Sel of size factor,
- *          followed by subsampling by factor.
- *      (3) For the special case of downscaling by 2x, pixScaleGrayMinMax2()
- *          is about 2x more efficient.
+ *          using L_CHOOSE_MAX), using a brick Sel of size (xfact * yfact),
+ *          followed by subsampling within each (xfact * yfact) cell.
+ *      (3) For the special case of downscaling by 2x in both directions,
+ *          pixScaleGrayMinMax2() is about 2x more efficient.
  */
 PIX *
 pixScaleGrayMinMax(PIX     *pixs,
-                   l_int32  factor,
-	           l_int32  type)
+                   l_int32  xfact,
+                   l_int32  yfact,
+                   l_int32  type)
 {
 l_int32    ws, hs, wd, hd, wpls, wpld, i, j, k, m;
 l_int32    extval, val;
@@ -2443,8 +2445,8 @@ PIX       *pixd;
 
     ws = pixGetWidth(pixs);
     hs = pixGetHeight(pixs);
-    wd = ws / factor;
-    hd = hs / factor;
+    wd = ws / xfact;
+    hd = hs / yfact;
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datas = pixGetData(pixs);
@@ -2454,12 +2456,12 @@ PIX       *pixd;
     for (i = 0; i < hd; i++) {
         lined = datad + i * wpld;
         for (j = 0; j < wd; j++) {
-	    if (type == L_CHOOSE_MIN) {
+            if (type == L_CHOOSE_MIN) {
                 extval = 255;
-                for (k = 0; k < factor; k++) {
-                    lines = datas + (factor * i + k) * wpls;
-                    for (m = 0; m < factor; m++) {
-                        val = GET_DATA_BYTE(lines, factor * j + m);
+                for (k = 0; k < yfact; k++) {
+                    lines = datas + (yfact * i + k) * wpls;
+                    for (m = 0; m < xfact; m++) {
+                        val = GET_DATA_BYTE(lines, xfact * j + m);
                         if (val < extval)
                             extval = val;
                     }
@@ -2467,10 +2469,10 @@ PIX       *pixd;
             }
             else {   /* L_CHOOSE_MAX */
                 extval = 0;
-                for (k = 0; k < factor; k++) {
-                    lines = datas + (factor * i + k) * wpls;
-                    for (m = 0; m < factor; m++) {
-                        val = GET_DATA_BYTE(lines, factor * j + m);
+                for (k = 0; k < yfact; k++) {
+                    lines = datas + (yfact * i + k) * wpls;
+                    for (m = 0; m < xfact; m++) {
+                        val = GET_DATA_BYTE(lines, xfact * j + m);
                         if (val > extval)
                             extval = val;
                     }
@@ -2503,7 +2505,7 @@ PIX       *pixd;
  */
 PIX *
 pixScaleGrayMinMax2(PIX     *pixs,
-	            l_int32  type)
+                    l_int32  type)
 {
 l_int32    ws, hs, wd, hd, wpls, wpld, i, j, k;
 l_int32    extval;
@@ -2538,7 +2540,7 @@ PIX       *pixd;
             val[1] = GET_DATA_BYTE(lines, 2 * j + 1);
             val[2] = GET_DATA_BYTE(lines + wpls, 2 * j);
             val[3] = GET_DATA_BYTE(lines + wpls, 2 * j + 1);
-	    if (type == L_CHOOSE_MIN) {
+            if (type == L_CHOOSE_MIN) {
                 extval = 255;
                 for (k = 0; k < 4; k++) {
                     if (val[k] < extval)

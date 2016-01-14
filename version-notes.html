@@ -18,6 +18,36 @@
 
 <pre>
 
+1.44   1 May 07
+       Split pix2.c into (pix2.c, pix3.c), with basic housekeeping
+       functions (e.g., ops on borders, padding) in pix2.c.
+       Split numarray.c into (numabasic.c, numafunc.c), with
+       constructors and accessors in numabasic.c.  Added a number
+       of histogram, rank value and interpolation functions to numafunc.c.
+       Add rms and rank difference comparison functions (compare.c).
+       Separated orientation and mirror flip detection; fixed the latter
+       (flipdetect.c).
+
+1.43   24 Mar 07
+       New and fixed functions for handling word boxes (classapp.c)
+       More consistent use of L_* flags (e.g., sarray.h, morph.h)
+       Morphology on color images (gray ops on each component) (colormorph.c)
+       New methods for generating sels; we now have five methods in
+       sel1.c and 3 others in selgen.c.  Also a function that
+       displays Sels as an image, for use in documentation (sel1.c)
+       New high-level converters, such as pixConvertTo8(), pixConvertTo32(),
+        pixConvertLossless()   (pixconv.c)
+       Identify regression tests, and rename them as prog/*_reg.c.
+       Complete revision of plotting package (gplot.c)
+       New functions for comparing pix (compare.c)
+       New morph application functions, such as the ability to run a
+       morph sequence separately on selected c.c. in an image, and
+       a fast, quasi-tophat function (morphapp.c)
+       Cleanup and new interfaces to border representations of c.c. (ccbord.c)
+       Page segmentation application (pageseg.c)
+       Better serialization with version control for all major structs.
+       Morphological brick operations with 2-way composite sels (morph.c)
+
 1.42   26 Dec 06
        New sorting functions, including 2-d sorting, for boxa and pixa,
        and functions that sort by index (e.g., pixa --> pixa and

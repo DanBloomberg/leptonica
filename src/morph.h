@@ -33,7 +33,7 @@ enum {
 };
 
 /*
- *  use in structuring elements
+ *  Use in structuring elements
  */
 enum {
     SEL_DONT_CARE  = 0,
@@ -42,7 +42,7 @@ enum {
 };
 
 /*
- *  use in granulometry
+ *  Use in granulometry
  */
 enum {
     L_RUN_OFF = 0,
@@ -50,7 +50,7 @@ enum {
 };
 
 /*
- *  use in grayscale morphology and granulometry
+ *  Use in grayscale morphology, granulometry and composable Sels
  */
 enum {
     L_HORIZ      = 1,
@@ -58,17 +58,19 @@ enum {
 };
 
 enum {
-    MORPH_DILATION   = 1,
-    MORPH_EROSION    = 2
+    L_MORPH_DILATE    = 1,
+    L_MORPH_ERODE     = 2,
+    L_MORPH_OPEN      = 3,
+    L_MORPH_CLOSE     = 4
 };
 
 /*
- * standard size of border added around images for special processing
+ *  Standard size of border added around images for special processing
  */
 static const l_int32  ADDED_BORDER = 32;   /* pixels, not bits */
 
 /*
- *  use in rescaling grayscale images
+ *  Use in rescaling grayscale images
  */
 enum {
     L_LINEAR_SCALE  = 1,
@@ -76,33 +78,44 @@ enum {
 };
 
 /*
- *  use in grayscale tophat
+ *  Use in grayscale tophat
  */
 enum {
-    TOPHAT_WHITE = 0,
-    TOPHAT_BLACK = 1
+    L_TOPHAT_WHITE = 0,
+    L_TOPHAT_BLACK = 1
 };
 
 /*
- *  use in grayscale arithmetic
+ *  Use in grayscale arithmetic
  */
 enum {
-    ARITH_ADD       = 1,
-    ARITH_SUBTRACT  = 2
+    L_ARITH_ADD       = 1,
+    L_ARITH_SUBTRACT  = 2
 };
 
 /*
- *  use in grayscale min/max
+ *  Use in grayscale min/max
  */
 enum {
     L_CHOOSE_MIN = 1,
     L_CHOOSE_MAX = 2
 };
 
+/*
+ *  Use in comparison of two images
+ */
+enum {
+    L_COMPARE_XOR = 1,
+    L_COMPARE_SUBTRACT = 2,
+    L_COMPARE_ABS_DIFF = 3
+};
+
 
 /*-------------------------------------------------------------------------*
- *	                        Sel and Sel array                          *
+ *                                Sel and Sel array                          *
  *-------------------------------------------------------------------------*/
+#define  SEL_VERSION_NUMBER    1
+
 struct Sel
 {
     l_int32       sy;          /* sel height                               */
@@ -113,7 +126,6 @@ struct Sel
     char         *name;        /* used to find sel by name                 */
 };
 typedef struct Sel SEL;
-
 
 struct Sela
 {

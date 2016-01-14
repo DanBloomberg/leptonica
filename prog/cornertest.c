@@ -17,7 +17,7 @@
 /*
  * cornertest.c
  *
- *   e.g., use on witten.png
+ *   e.g., use on witten.tif
  */
 
 #include <stdio.h>
@@ -34,6 +34,7 @@ char        *filein, *fileout;
 l_int32      x, y, n, i;
 PIX         *pixs;
 PTA         *pta;
+PTAA        *ptaa, *ptaa2, *ptaa3;
 static char  mainName[] = "cornertest";
 
     if (argc != 3)
@@ -45,13 +46,31 @@ static char  mainName[] = "cornertest";
     if ((pixs = pixRead(filein)) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
 
-	/* clean noise in LR corner of witten.png */
+	/* Clean noise in LR corner of witten.tif */
     pixSetPixel(pixs, 2252, 3051, 0);
     pixSetPixel(pixs, 2252, 3050, 0);
     pixSetPixel(pixs, 2251, 3050, 0);
 	    
     pta = pixFindCornerPixels(pixs);
-    ptaWriteStream(stdout, pta, 1);
+    ptaWriteStream(stderr, pta, 1);
+
+        /* Test pta and ptaa I/O */
+#if 1
+    ptaa = ptaaCreate(3);
+    ptaaAddPta(ptaa, pta, L_COPY);
+    ptaaAddPta(ptaa, pta, L_COPY);
+    ptaaAddPta(ptaa, pta, L_COPY);
+    ptaaWriteStream(stderr, ptaa, 1);
+    ptaaWrite("junkptaa", ptaa, 1);
+    ptaa2 = ptaaRead("junkptaa");
+    ptaaWrite("junkptaa2", ptaa2, 1);
+    ptaaWrite("junkptaa3", ptaa, 0);
+    ptaa3 = ptaaRead("junkptaa3");
+    ptaaWrite("junkptaa4", ptaa3, 0);
+    ptaaDestroy(&ptaa);
+    ptaaDestroy(&ptaa2);
+    ptaaDestroy(&ptaa3);
+#endif
 
 	/* mark corner pixels */
     n = ptaGetCount(pta);
@@ -64,6 +83,10 @@ static char  mainName[] = "cornertest";
     }
 
     pixWrite(fileout, pixs, IFF_PNG);
+    
+    pixDestroy(&pixs);
+    ptaDestroy(&pta);
+    ptaDestroy(&pta);
 
     exit(0);
 }

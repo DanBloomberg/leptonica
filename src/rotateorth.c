@@ -63,15 +63,15 @@ l_int32  d;
     PROCNAME("pixRotate180");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-	return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
+        return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
                                 procName, pixd);
 
     if (pixs != pixd) {
-	if ((pixd = pixCopy(pixd, pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("copy fail", procName, pixd);
+        if ((pixd = pixCopy(pixd, pixs)) == NULL)
+            return (PIX *)ERROR_PTR("copy fail", procName, pixd);
     }
 
     pixFlipLR(pixd, pixd);
@@ -103,18 +103,18 @@ PIX       *pixd;
     PROCNAME("pixRotate90");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-	return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
+        return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
                                 procName, NULL);
     if (direction != 1 && direction != -1)
-	return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
 
     hd = pixGetWidth(pixs);
     wd = pixGetHeight(pixs);
     if ((pixd = pixCreate(wd, hd, d)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyColormap(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
@@ -159,15 +159,15 @@ l_uint32  *datad, *buffer;
     PROCNAME("pixFlipLR");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-	return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
+        return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
                                 procName, pixd);
 
     if (pixs != pixd) {
-	if ((pixd = pixCopy(pixd, pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("copy fail", procName, pixd);
+        if ((pixd = pixCopy(pixd, pixs)) == NULL)
+            return (PIX *)ERROR_PTR("copy fail", procName, pixd);
     }
 
     w = pixGetWidth(pixd);
@@ -179,15 +179,15 @@ l_uint32  *datad, *buffer;
     {
     case 1:
         if ((tab = makeReverseByteTab1()) == NULL)
-  	    return (PIX *)ERROR_PTR("tab not made", procName, pixd);
+              return (PIX *)ERROR_PTR("tab not made", procName, pixd);
         break;
     case 2:
         if ((tab = makeReverseByteTab2()) == NULL)
-  	    return (PIX *)ERROR_PTR("tab not made", procName, pixd);
+              return (PIX *)ERROR_PTR("tab not made", procName, pixd);
         break;
     case 4:
         if ((tab = makeReverseByteTab4()) == NULL)
-  	    return (PIX *)ERROR_PTR("tab not made", procName, pixd);
+              return (PIX *)ERROR_PTR("tab not made", procName, pixd);
         break;
     default:
         tab = NULL;
@@ -195,7 +195,7 @@ l_uint32  *datad, *buffer;
     }
 
     if ((buffer = (l_uint32 *)CALLOC(wpld, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
+        return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
 
     flipLRLow(datad, w, h, d, wpld, tab, buffer);
 
@@ -233,15 +233,15 @@ l_uint32  *datad, *buffer;
     PROCNAME("pixFlipTB");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-	return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
+        return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
                                 procName, pixd);
 
     if (pixs != pixd) {
-	if ((pixd = pixCopy(pixd, pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("copy fail", procName, pixd);
+        if ((pixd = pixCopy(pixd, pixs)) == NULL)
+            return (PIX *)ERROR_PTR("copy fail", procName, pixd);
     }
 
     h = pixGetHeight(pixd);
@@ -249,7 +249,7 @@ l_uint32  *datad, *buffer;
     wpld = pixGetWpl(pixd);
 
     if ((buffer = (l_uint32 *)CALLOC(wpld, sizeof(l_uint32))) == NULL)
-	return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
+        return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
 
     flipTBLow(datad, h, wpld, buffer);
 

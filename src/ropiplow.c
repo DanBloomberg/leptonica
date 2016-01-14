@@ -87,10 +87,10 @@ void
 rasteropVipLow(l_uint32  *data,
                l_int32    pixw,
                l_int32    pixh,
-	       l_int32    depth,
-	       l_int32    wpl,
-	       l_int32    x,
-	       l_int32    w,
+               l_int32    depth,
+               l_int32    wpl,
+               l_int32    x,
+               l_int32    w,
                l_int32    shift)
 {
 l_int32    fwpartb;    /* boolean (1, 0) if first word is partial */
@@ -119,8 +119,8 @@ l_int32    i, j;
     *--------------------------------------------------------*/
     if (depth != 1) {
         pixw *= depth;
-	x *= depth;
-	w *= depth;
+        x *= depth;
+        w *= depth;
     }
 
 
@@ -128,35 +128,35 @@ l_int32    i, j;
     *                   Clip horizontally                    *
     *--------------------------------------------------------*/
     if (x < 0) {
-	w += x;    /* reduce w */
-	x = 0;     /* clip to x = 0 */
+        w += x;    /* reduce w */
+        x = 0;     /* clip to x = 0 */
     }
     if (x >= pixw || w <= 0)  /* no part of vertical slice is in the image */
-	return;
+        return;
 
     if (x + w > pixw)
-	w = pixw - x;   /* clip to x + w = pixw */
+        w = pixw - x;   /* clip to x + w = pixw */
 
     /*--------------------------------------------------------*
      *                Preliminary calculations                *
      *--------------------------------------------------------*/
-	/* is the first word partial? */
+        /* is the first word partial? */
     if ((x & 31) == 0) {  /* if not */
         fwpartb = 0;
-	fwbits = 0;
+        fwbits = 0;
     }
     else {  /* if so */
         fwpartb = 1;
-	fwbits = 32 - (x & 31);
-	fwmask = rmask32[fwbits];
-	if (shift >= 0) { /* go up from bottom */
-	    pdfwpart = data + wpl * (pixh - 1) + (x >> 5);
-	    psfwpart = data + wpl * (pixh - 1 - shift) + (x >> 5);
-	}
-	else {  /* go down from top */
-	    pdfwpart = data + (x >> 5);
-	    psfwpart = data - wpl * shift + (x >> 5);
-	}
+        fwbits = 32 - (x & 31);
+        fwmask = rmask32[fwbits];
+        if (shift >= 0) { /* go up from bottom */
+            pdfwpart = data + wpl * (pixh - 1) + (x >> 5);
+            psfwpart = data + wpl * (pixh - 1 - shift) + (x >> 5);
+        }
+        else {  /* go down from top */
+            pdfwpart = data + (x >> 5);
+            psfwpart = data - wpl * shift + (x >> 5);
+        }
     }
 
         /* is the first word doubly partial? */
@@ -170,59 +170,59 @@ l_int32    i, j;
         /* is there a full dest word? */
     if (fwpart2b == 1) {  /* not */
         fwfullb = 0;
-	nfullw = 0;
+        nfullw = 0;
     }
     else {
-	nfullw = (w - fwbits) >> 5;
-	if (nfullw == 0)  /* if not */
-	    fwfullb = 0;
-	else {  /* if so */
-	    fwfullb = 1;
-	    if (fwpartb) {
-		pdfwfull = pdfwpart + 1;
-		psfwfull = psfwpart + 1;
-	    }
-	    else {
-		if (shift >= 0) { /* go up from bottom */
-		    pdfwfull = data + wpl * (pixh - 1) + (x >> 5);
-		    psfwfull = data + wpl * (pixh - 1 - shift) + (x >> 5);
-		}
-		else {  /* go down from top */
-		    pdfwfull = data + (x >> 5);
-		    psfwfull = data - wpl * shift + (x >> 5);
-		}
-	    }
-	}
+        nfullw = (w - fwbits) >> 5;
+        if (nfullw == 0)  /* if not */
+            fwfullb = 0;
+        else {  /* if so */
+            fwfullb = 1;
+            if (fwpartb) {
+                pdfwfull = pdfwpart + 1;
+                psfwfull = psfwpart + 1;
+            }
+            else {
+                if (shift >= 0) { /* go up from bottom */
+                    pdfwfull = data + wpl * (pixh - 1) + (x >> 5);
+                    psfwfull = data + wpl * (pixh - 1 - shift) + (x >> 5);
+                }
+                else {  /* go down from top */
+                    pdfwfull = data + (x >> 5);
+                    psfwfull = data - wpl * shift + (x >> 5);
+                }
+            }
+        }
     }
 
-	/* is the last word partial? */
+        /* is the last word partial? */
     lwbits = (x + w) & 31;
     if (fwpart2b == 1 || lwbits == 0)  /* if not */
         lwpartb = 0;
     else {
-	lwpartb = 1;
+        lwpartb = 1;
         lwmask = lmask32[lwbits];
-	if (fwpartb) {
-	    pdlwpart = pdfwpart + 1 + nfullw;
-	    pslwpart = psfwpart + 1 + nfullw;
-	}
-	else {
-	    if (shift >= 0) { /* go up from bottom */
-		pdlwpart = data + wpl * (pixh - 1) + (x >> 5) + nfullw;
-		pslwpart = data + wpl * (pixh - 1 - shift) + (x >> 5) + nfullw;
-	    }
-	    else {  /* go down from top */
-		pdlwpart = data + (x >> 5) + nfullw;
-		pslwpart = data - wpl * shift + (x >> 5) + nfullw;
-	    }
-	}
+        if (fwpartb) {
+            pdlwpart = pdfwpart + 1 + nfullw;
+            pslwpart = psfwpart + 1 + nfullw;
+        }
+        else {
+            if (shift >= 0) { /* go up from bottom */
+                pdlwpart = data + wpl * (pixh - 1) + (x >> 5) + nfullw;
+                pslwpart = data + wpl * (pixh - 1 - shift) + (x >> 5) + nfullw;
+            }
+            else {  /* go down from top */
+                pdlwpart = data + (x >> 5) + nfullw;
+                pslwpart = data - wpl * shift + (x >> 5) + nfullw;
+            }
+        }
     }
 
-	/* determine the direction of flow from the shift
-	 * If the shift >= 0, data flows downard from src
-	 * to dest, starting at the bottom and working up.
-	 * If shift < 0, data flows upward from src to 
-	 * dest, starting at the top and working down. */
+        /* determine the direction of flow from the shift
+         * If the shift >= 0, data flows downard from src
+         * to dest, starting at the bottom and working up.
+         * If shift < 0, data flows upward from src to 
+         * dest, starting at the top and working down. */
     dirwpl = (shift >= 0) ? -wpl : wpl;
     absshift = L_ABS(shift);
     vlimit = L_MAX(0, pixh - absshift);
@@ -232,51 +232,51 @@ l_int32    i, j;
  *            Now we're ready to do the ops               *
  *--------------------------------------------------------*/
 
-	/* Do the first partial word */
+        /* Do the first partial word */
     if (fwpartb) {
-	for (i = 0; i < vlimit; i++) {
-	    *pdfwpart = COMBINE_PARTIAL(*pdfwpart, *psfwpart, fwmask);
-	    pdfwpart += dirwpl;
-	    psfwpart += dirwpl;
-	}
+        for (i = 0; i < vlimit; i++) {
+            *pdfwpart = COMBINE_PARTIAL(*pdfwpart, *psfwpart, fwmask);
+            pdfwpart += dirwpl;
+            psfwpart += dirwpl;
+        }
 
-	    /* Clear the incoming pixels */
-	for (i = vlimit; i < pixh; i++) {
-	    *pdfwpart = COMBINE_PARTIAL(*pdfwpart, 0x0, fwmask);
-	    pdfwpart += dirwpl;
-	}
+            /* Clear the incoming pixels */
+        for (i = vlimit; i < pixh; i++) {
+            *pdfwpart = COMBINE_PARTIAL(*pdfwpart, 0x0, fwmask);
+            pdfwpart += dirwpl;
+        }
     }
 
-	/* Do the full words */
+        /* Do the full words */
     if (fwfullb) {
-	for (i = 0; i < vlimit; i++) {
-	    for (j = 0; j < nfullw; j++)
-		*(pdfwfull + j) = *(psfwfull + j);
-	    pdfwfull += dirwpl;
-	    psfwfull += dirwpl;
-	}
+        for (i = 0; i < vlimit; i++) {
+            for (j = 0; j < nfullw; j++)
+                *(pdfwfull + j) = *(psfwfull + j);
+            pdfwfull += dirwpl;
+            psfwfull += dirwpl;
+        }
 
-	    /* Clear the incoming pixels */
-	for (i = vlimit; i < pixh; i++) {
-	    for (j = 0; j < nfullw; j++)
-		*(pdfwfull + j) = 0x0;
-	    pdfwfull += dirwpl;
-	}
+            /* Clear the incoming pixels */
+        for (i = vlimit; i < pixh; i++) {
+            for (j = 0; j < nfullw; j++)
+                *(pdfwfull + j) = 0x0;
+            pdfwfull += dirwpl;
+        }
     }
 
-	/* Do the last partial word */
+        /* Do the last partial word */
     if (lwpartb) {
-	for (i = 0; i < vlimit; i++) {
-	    *pdlwpart = COMBINE_PARTIAL(*pdlwpart, *pslwpart, lwmask);
-	    pdlwpart += dirwpl;
-	    pslwpart += dirwpl;
-	}
+        for (i = 0; i < vlimit; i++) {
+            *pdlwpart = COMBINE_PARTIAL(*pdlwpart, *pslwpart, lwmask);
+            pdlwpart += dirwpl;
+            pslwpart += dirwpl;
+        }
 
-	    /* Clear the incoming pixels */
-	for (i = vlimit; i < pixh; i++) {
-	    *pdlwpart = COMBINE_PARTIAL(*pdlwpart, 0x0, lwmask);
-	    pdlwpart += dirwpl;
-	}
+            /* Clear the incoming pixels */
+        for (i = vlimit; i < pixh; i++) {
+            *pdlwpart = COMBINE_PARTIAL(*pdlwpart, 0x0, lwmask);
+            pdlwpart += dirwpl;
+        }
     } 
 
     return;
@@ -309,30 +309,30 @@ l_int32    i, j;
  */
 void
 rasteropHipLow(l_uint32  *data,
-	       l_int32    pixh,
-	       l_int32    depth,
-	       l_int32    wpl,
-	       l_int32    y,
-	       l_int32    h,
-	       l_int32    shift)
+               l_int32    pixh,
+               l_int32    depth,
+               l_int32    wpl,
+               l_int32    y,
+               l_int32    h,
+               l_int32    shift)
 {
 l_int32    i;
 l_uint32  *line;
 
-	/* clip band if necessary */
+        /* clip band if necessary */
     if (y < 0) {
-	h += y;  /* reduce h */
-	y = 0;   /* clip to y = 0 */
+        h += y;  /* reduce h */
+        y = 0;   /* clip to y = 0 */
     }
     if (h <= 0 || y > pixh)  /* no part of horizontal slice is in the image */
-	return;
+        return;
 
     if (y + h > pixh)
-	h = pixh - y;   /* clip to y + h = pixh */
+        h = pixh - y;   /* clip to y + h = pixh */
 
     for (i = y; i < y + h; i++) {
-	line = data + i * wpl;
-	shiftDataHorizontalLow(line, wpl, line, wpl, shift * depth);
+        line = data + i * wpl;
+        shiftDataHorizontalLow(line, wpl, line, wpl, shift * depth);
     }
 }
 
@@ -357,9 +357,9 @@ l_uint32  *line;
 void
 shiftDataHorizontalLow(l_uint32  *datad,
                        l_int32    wpld,
-		       l_uint32  *datas,
-		       l_int32    wpls,
-		       l_int32    shift)
+                       l_uint32  *datas,
+                       l_int32    wpls,
+                       l_int32    shift)
 {
 l_int32    j, firstdw, wpl, rshift, lshift;
 l_uint32  *lined, *lines;
@@ -369,65 +369,65 @@ l_uint32  *lined, *lines;
 
     if (shift >= 0) {   /* src shift to right; data flows to
                          * right, starting at right edge and
-			 * progressing leftward. */
+                         * progressing leftward. */
         firstdw = shift / 32;
-	wpl = L_MIN(wpls, wpld - firstdw);
-	lined += firstdw + wpl - 1;
-	lines += wpl - 1;
-	rshift = shift & 31;
-	if (rshift == 0) {
-	    for (j = 0; j < wpl; j++)
-		*lined-- = *lines--;
+        wpl = L_MIN(wpls, wpld - firstdw);
+        lined += firstdw + wpl - 1;
+        lines += wpl - 1;
+        rshift = shift & 31;
+        if (rshift == 0) {
+            for (j = 0; j < wpl; j++)
+                *lined-- = *lines--;
 
-		/* clear out the rest to the left edge */
-	    for (j = 0; j < firstdw; j++)
-	        *lined-- = 0;
-	}
-	else {
-	    lshift = 32 - rshift;
-	    for (j = 1; j < wpl; j++) {
-		*lined-- = *(lines - 1) << lshift | *lines >> rshift;
-		lines--;
-	    }
-	    *lined = *lines >> rshift;  /* partial first */
+                /* clear out the rest to the left edge */
+            for (j = 0; j < firstdw; j++)
+                *lined-- = 0;
+        }
+        else {
+            lshift = 32 - rshift;
+            for (j = 1; j < wpl; j++) {
+                *lined-- = *(lines - 1) << lshift | *lines >> rshift;
+                lines--;
+            }
+            *lined = *lines >> rshift;  /* partial first */
 
-		/* clear out the rest to the left edge */
-	    *lined &= ~lmask32[rshift];
-	    lined--;
-	    for (j = 0; j < firstdw; j++)
-	        *lined-- = 0;
-	}
+                /* clear out the rest to the left edge */
+            *lined &= ~lmask32[rshift];
+            lined--;
+            for (j = 0; j < firstdw; j++)
+                *lined-- = 0;
+        }
     }
     else {  /* src shift to left; data flows to left, starting
              * at left edge and progressing rightward. */
         firstdw = (-shift) / 32;
-	wpl = L_MIN(wpls - firstdw, wpld);
-	lines += firstdw;
-	lshift = (-shift) & 31;
-	if (lshift == 0) {
-	    for (j = 0; j < wpl; j++)
-		*lined++ = *lines++;
+        wpl = L_MIN(wpls - firstdw, wpld);
+        lines += firstdw;
+        lshift = (-shift) & 31;
+        if (lshift == 0) {
+            for (j = 0; j < wpl; j++)
+                *lined++ = *lines++;
 
-		/* clear out the rest to the right edge */
-	    for (j = 0; j < firstdw; j++)
-	        *lined++ = 0;
-	}
-	else {
-	    rshift = 32 - lshift;
-	    for (j = 1; j < wpl; j++) {
-		*lined++ = *lines << lshift | *(lines + 1) >> rshift;
-		lines++;
-	    }
-	    *lined = *lines << lshift;  /* partial last */
+                /* clear out the rest to the right edge */
+            for (j = 0; j < firstdw; j++)
+                *lined++ = 0;
+        }
+        else {
+            rshift = 32 - lshift;
+            for (j = 1; j < wpl; j++) {
+                *lined++ = *lines << lshift | *(lines + 1) >> rshift;
+                lines++;
+            }
+            *lined = *lines << lshift;  /* partial last */
 
-		/* clear out the rest to the right edge */
-		/* first clear the lshift pixels of this partial word */
-	    *lined &= ~rmask32[lshift];
-	    lined++;
-		/* then the remaining words to the right edge */
-	    for (j = 0; j < firstdw; j++)
-	        *lined++ = 0;
-	}
+                /* clear out the rest to the right edge */
+                /* first clear the lshift pixels of this partial word */
+            *lined &= ~rmask32[lshift];
+            lined++;
+                /* then the remaining words to the right edge */
+            for (j = 0; j < firstdw; j++)
+                *lined++ = 0;
+        }
     }
 
     return;

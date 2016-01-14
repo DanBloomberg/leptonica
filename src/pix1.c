@@ -13,23 +13,34 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  pix1.c
+ *
+ *    The pixN.c {N = 1,2,3} files are sorted by the type of operation.
+ *    The primary functions in these files are:
+ *
+ *        pix1.c: constructors, destructors and field accessors
+ *        pix2.c: pixel poking of image, pad and border pixels
+ *        pix3.c: logical and mask ops; counting; histograms
+ *
+ *
+ *    This file has the basic constructors, destructors and field accessors
  *
  *      Pix creation
  *          PIX          *pixCreate()
  *          PIX          *pixCreateNoInit()
  *          PIX          *pixCreateTemplate()
  *          PIX          *pixCreateTemplateNoInit()
+ *          PIX          *pixCreateHeader()
  *          PIX          *pixClone()
  *
  *      Pix destruction
  *          void          pixDestroy()
+ *          void          pixFree()
  *
  *      Pix copy
  *          PIX          *pixCopy()
- *	    l_int32       pixCopyColormap()
+ *          l_int32       pixCopyColormap()
  *          l_int32       pixSizesEqual()
  *
  *      Pix accessors
@@ -77,7 +88,7 @@
  *                              Pix Creation                          *
  *--------------------------------------------------------------------*/
 /*!
- *  pixCreate() 
+ *  pixCreate()
  *
  *      Input:  width, height, depth
  *      Return: pixd (with data allocated and initialized to 0),
@@ -85,22 +96,22 @@
  */
 PIX *
 pixCreate(l_int32  width,
-	  l_int32  height,
-	  l_int32  depth)
+          l_int32  height,
+          l_int32  depth)
 {
 PIX       *pixd;
 
     PROCNAME("pixCreate");
 
     if ((pixd = pixCreateNoInit(width, height, depth)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     memset(pixd->data, 0, 4 * pixd->wpl * pixd->h);
     return pixd;
 }
 
 
 /*!
- *  pixCreateNoInit() 
+ *  pixCreateNoInit()
  *
  *      Input:  width, height, depth
  *      Return: pixd (with data allocated but not initialized),
@@ -108,37 +119,20 @@ PIX       *pixd;
  */
 PIX *
 pixCreateNoInit(l_int32  width,
-	        l_int32  height,
-	        l_int32  depth)
+                l_int32  height,
+                l_int32  depth)
 {
 l_int32    wpl;
 PIX       *pixd;
 l_uint32  *data;
 
     PROCNAME("pixCreateNoInit");
-
-    if ((depth != 1) && (depth != 2) && (depth != 4) && (depth != 8)
-	     && (depth != 16) && (depth != 24) && (depth != 32))
-	return (PIX *)ERROR_PTR("depth must be {1, 2, 4, 8, 16, 24, 32}",
-	     procName, NULL);
-    if (width <= 0)
-	return (PIX *)ERROR_PTR("width must be > 0", procName, NULL);
-    if (height <= 0)
-	return (PIX *)ERROR_PTR("height must be > 0", procName, NULL);
-
-    if ((pixd = (PIX *)CALLOC(1, sizeof(PIX))) == NULL)
-	return (PIX *)ERROR_PTR("CALLOC fail for pixd", procName, NULL);
-    pixSetWidth(pixd, width);
-    pixSetHeight(pixd, height);
-    pixSetDepth(pixd, depth);
-    wpl = (width * depth + 31) / 32;
-    pixSetWpl(pixd, wpl);
+    pixd = pixCreateHeader(width, height, depth);
+    if (!pixd) return NULL;
+    wpl = pixGetWpl(pixd);
     if ((data = (l_uint32 *)MALLOC(4 * wpl * height)) == NULL)
-	return (PIX *)ERROR_PTR("MALLOC fail for data", procName, NULL);
+        return (PIX *)ERROR_PTR("MALLOC fail for data", procName, NULL);
     pixSetData(pixd, data);
-    pixd->refcount = 1;
-    pixd->informat = IFF_UNKNOWN;
-
     return pixd;
 }
 
@@ -165,7 +159,7 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
 
     if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     memset(pixd->data, 0, 4 * pixd->wpl * pixd->h);
     return pixd;
 }
@@ -200,7 +194,47 @@ PIX     *pixd;
     pixCopyColormap(pixd, pixs);
     pixCopyText(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
-    
+
+    return pixd;
+}
+
+
+/*!
+ *  pixCreateHeader()
+ *
+ *      Input:  width, height, depth
+ *      Return: pixd (with no data allocated), or null on error
+ */
+PIX *
+pixCreateHeader(l_int32  width,
+                l_int32  height,
+                l_int32  depth)
+{
+l_int32    wpl;
+PIX       *pixd;
+
+    PROCNAME("pixCreateHeader");
+
+    if ((depth != 1) && (depth != 2) && (depth != 4) && (depth != 8)
+         && (depth != 16) && (depth != 24) && (depth != 32))
+        return (PIX *)ERROR_PTR("depth must be {1, 2, 4, 8, 16, 24, 32}",
+                                procName, NULL);
+    if (width <= 0)
+        return (PIX *)ERROR_PTR("width must be > 0", procName, NULL);
+    if (height <= 0)
+        return (PIX *)ERROR_PTR("height must be > 0", procName, NULL);
+
+    if ((pixd = (PIX *)CALLOC(1, sizeof(PIX))) == NULL)
+        return (PIX *)ERROR_PTR("CALLOC fail for pixd", procName, NULL);
+    pixSetWidth(pixd, width);
+    pixSetHeight(pixd, height);
+    pixSetDepth(pixd, depth);
+    wpl = (width * depth + 31) / 32;
+    pixSetWpl(pixd, wpl);
+
+    pixd->refcount = 1;
+    pixd->informat = IFF_UNKNOWN;
+
     return pixd;
 }
 
@@ -233,12 +267,11 @@ pixClone(PIX  *pixs)
     PROCNAME("pixClone");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     pixChangeRefcount(pixs, 1);
 
     return pixs;
 }
-
 
 
 /*--------------------------------------------------------------------*
@@ -247,7 +280,7 @@ pixClone(PIX  *pixs)
 /*!
  *  pixDestroy()
  *
- *      Input:  &pix <can be nulled>
+ *      Input:  &pix <will be nulled>
  *      Return: void
  *
  *  Notes:
@@ -257,21 +290,42 @@ pixClone(PIX  *pixs)
 void
 pixDestroy(PIX  **ppix)
 {
-l_uint32  *data;
-char      *text;
-PIX       *pix;
+PIX  *pix;
 
     PROCNAME("pixDestroy");
 
     if (!ppix) {
-	L_WARNING("ptr address is null!", procName);
+        L_WARNING("ptr address is null!", procName);
         return;
     }
 
     if ((pix = *ppix) == NULL)
-	return;
+        return;
 
-	/* Decrement the ref count.  If it is 0, destroy the pix. */
+    pixFree(pix);
+    *ppix = NULL;
+    return;
+}
+
+
+/*!
+ *  pixFree()
+ *
+ *      Input:  pix
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) Decrements the ref count and, if 0, destroys the pix.
+ */
+void
+pixFree(PIX *pix)
+{
+l_uint32  *data;
+char      *text;
+
+    if (!pix) return;
+
+        /* Decrement the ref count.  If it is 0, destroy the pix. */
     pixChangeRefcount(pix, -1);
     if (pixGetRefcount(pix) <= 0) {
         if ((data = pixGetData(pix)))
@@ -281,8 +335,6 @@ PIX       *pix;
         pixDestroyColormap(pix);
         FREE(pix);
     }
-
-    *ppix = NULL;
     return;
 }
 
@@ -307,7 +359,7 @@ PIX       *pix;
  */
 PIX *
 pixCopy(PIX  *pixd,   /* can be null */
-	PIX  *pixs)
+        PIX  *pixs)
 {
 l_int32    bytes;
 l_uint32  *datas, *datad;
@@ -316,23 +368,23 @@ l_uint32  *datas, *datad;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
-
-	/* Total bytes in image data */
-    bytes = 4 * pixGetWpl(pixs) * pixGetHeight(pixs);
-
-	/* If we're making a new pix ... */
-    if (!pixd) {
-	if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-	datas = pixGetData(pixs);
-	datad = pixGetData(pixd);
-	memcpy((char *)datad, (char *)datas, bytes);
-	return pixd;
+    if (pixs == pixd) {
+        L_WARNING("pix copied to itself", procName);
+        return pixd;
     }
 
-	/* Programmer error! */
-    if (pixs == pixd)
-        return (PIX *)ERROR_PTR("image data copied to itself", procName, pixd);
+        /* Total bytes in image data */
+    bytes = 4 * pixGetWpl(pixs) * pixGetHeight(pixs);
+
+        /* If we're making a new pix ... */
+    if (!pixd) {
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        datas = pixGetData(pixs);
+        datad = pixGetData(pixd);
+        memcpy((char *)datad, (char *)datas, bytes);
+        return pixd;
+    }
 
         /* Check sizes */
     if (!pixSizesEqual(pixs, pixd))
@@ -342,7 +394,7 @@ l_uint32  *datas, *datad;
     pixCopyInputFormat(pixd, pixs);
     pixCopyText(pixd, pixs);
 
-	/* Copy the data */
+        /* Copy the data */
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     memcpy((char*)datad, (char*)datas, bytes);
@@ -366,15 +418,15 @@ PIXCMAP  *cmaps, *cmapd;
     PROCNAME("pixCopyColormap");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
 
     if ((cmaps = pixGetColormap(pixs)) == NULL)  /* not an error */
         return 0;
 
     if ((cmapd = pixcmapCopy(cmaps)) == NULL)
-	return ERROR_INT("cmapd not made", procName, 1);
+        return ERROR_INT("cmapd not made", procName, 1);
     pixSetColormap(pixd, cmapd);
 
     return 0;
@@ -389,7 +441,7 @@ PIXCMAP  *cmaps, *cmapd;
  */
 l_int32
 pixSizesEqual(PIX  *pix1,
-	      PIX  *pix2)
+              PIX  *pix2)
 {
     PROCNAME("pixSizesEqual");
 
@@ -401,9 +453,9 @@ pixSizesEqual(PIX  *pix1,
     if ((pixGetWidth(pix1) != pixGetWidth(pix2)) ||
         (pixGetHeight(pix1) != pixGetHeight(pix2)) ||
         (pixGetDepth(pix1) != pixGetDepth(pix2)))
-	return 0;
+        return 0;
     else
-	return 1;
+        return 1;
 }
 
 
@@ -417,7 +469,7 @@ pixGetWidth(PIX  *pix)
     PROCNAME("pixGetWidth");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, UNDEF);
 
     return pix->w;
 }
@@ -425,15 +477,15 @@ pixGetWidth(PIX  *pix)
 
 l_int32
 pixSetWidth(PIX     *pix,
-	    l_int32  width)
+            l_int32  width)
 {
     PROCNAME("pixSetWidth");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (width < 0) {
         pix->w = 0;
-	return ERROR_INT("width must be >= 0", procName, 1);
+        return ERROR_INT("width must be >= 0", procName, 1);
     }
 
     pix->w = width;
@@ -447,7 +499,7 @@ pixGetHeight(PIX  *pix)
     PROCNAME("pixGetHeight");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, UNDEF);
 
     return pix->h;
 }
@@ -455,15 +507,15 @@ pixGetHeight(PIX  *pix)
 
 l_int32
 pixSetHeight(PIX     *pix,
-	     l_int32  height)
+             l_int32  height)
 {
     PROCNAME("pixSetHeight");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (height < 0) {
         pix->h = 0;
-	return ERROR_INT("h must be >= 0", procName, 1);
+        return ERROR_INT("h must be >= 0", procName, 1);
     }
 
     pix->h = height;
@@ -471,28 +523,28 @@ pixSetHeight(PIX     *pix,
 }
 
 
-l_int32 
+l_int32
 pixGetDepth(PIX  *pix)
 {
     PROCNAME("pixGetDepth");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, UNDEF);
 
     return pix->d;
 }
 
 
-l_int32  
+l_int32
 pixSetDepth(PIX     *pix,
-	    l_int32  depth)
+            l_int32  depth)
 {
     PROCNAME("pixSetDepth");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
-    if (depth < 1) 
-	return ERROR_INT("d must be >= 1", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
+    if (depth < 1)
+        return ERROR_INT("d must be >= 1", procName, 1);
 
     pix->d = depth;
     return 0;
@@ -506,7 +558,7 @@ pixSetDepth(PIX     *pix,
  *              &w, &h, &d (<optional return>; each can be null)
  *      Return: 0 if OK, 1 on error
  */
-l_int32 
+l_int32
 pixGetDimensions(PIX      *pix,
                  l_int32  *pw,
                  l_int32  *ph,
@@ -515,7 +567,7 @@ pixGetDimensions(PIX      *pix,
     PROCNAME("pixGetDimensions");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (pw) *pw = pix->w;
     if (ph) *ph = pix->h;
     if (pd) *pd = pix->d;
@@ -523,25 +575,25 @@ pixGetDimensions(PIX      *pix,
 }
 
 
-l_int32  
+l_int32
 pixGetWpl(PIX  *pix)
 {
     PROCNAME("pixGetWpl");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, UNDEF);
     return pix->wpl;
 }
 
 
-l_int32  
+l_int32
 pixSetWpl(PIX     *pix,
-	  l_int32  wpl)
+          l_int32  wpl)
 {
     PROCNAME("pixSetWpl");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     pix->wpl = wpl;
     return 0;
@@ -554,71 +606,71 @@ pixGetRefcount(PIX  *pix)
     PROCNAME("pixGetRefcount");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, UNDEF);
     return pix->refcount;
 }
 
 
-l_int32  
+l_int32
 pixChangeRefcount(PIX     *pix,
-	          l_int32  delta)
+                  l_int32  delta)
 {
     PROCNAME("pixChangeRefcount");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     pix->refcount += delta;
     return 0;
 }
 
 
-l_uint32  
+l_uint32
 pixGetXRes(PIX  *pix)
 {
     PROCNAME("pixGetXRes");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 0);
+        return ERROR_INT("pix not defined", procName, 0);
     return pix->xres;
 }
 
 
-l_uint32  
+l_uint32
 pixGetYRes(PIX  *pix)
 {
     PROCNAME("pixGetYRes");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 0);
+        return ERROR_INT("pix not defined", procName, 0);
     return pix->yres;
 }
 
 
-l_int32  
+l_int32
 pixSetXRes(PIX      *pix,
-	   l_uint32  res)
+           l_uint32  res)
 {
     PROCNAME("pixSetXRes");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     pix->xres = res;
     return 0;
 }
 
 
-l_int32  
+l_int32
 pixCopyResolution(PIX  *pixd,
-	          PIX  *pixs)
+                  PIX  *pixs)
 {
     PROCNAME("pixCopyResolution");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
 
     pixSetXRes(pixd, pixGetXRes(pixs));
     pixSetYRes(pixd, pixGetYRes(pixs));
@@ -626,73 +678,73 @@ pixCopyResolution(PIX  *pixd,
 }
 
 
-l_int32  
+l_int32
 pixScaleResolution(PIX       *pix,
-	           l_float32  xscale,
-		   l_float32  yscale)
+                   l_float32  xscale,
+                   l_float32  yscale)
 {
     PROCNAME("pixScaleResolution");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     if (pix->xres != 0 && pix->yres != 0) {
         pix->xres = (l_uint32)(xscale * (l_float32)(pix->xres) + 0.5);
         pix->yres = (l_uint32)(yscale * (l_float32)(pix->yres) + 0.5);
-    } 
+    }
     return 0;
 }
 
 
-l_int32  
+l_int32
 pixSetYRes(PIX      *pix,
-	   l_uint32  res)
+           l_uint32  res)
 {
     PROCNAME("pixSetYRes");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     pix->yres = res;
     return 0;
 }
 
 
-l_int32 
+l_int32
 pixGetInputFormat(PIX  *pix)
 {
     PROCNAME("pixGetInputFormat");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, UNDEF);
     return pix->informat;
 }
 
 
-l_int32  
+l_int32
 pixSetInputFormat(PIX     *pix,
-	          l_int32  informat)
+                  l_int32  informat)
 {
     PROCNAME("pixSetInputFormat");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     pix->informat = informat;
     return 0;
 }
 
 
-l_int32  
+l_int32
 pixCopyInputFormat(PIX  *pixd,
-	           PIX  *pixs)
+                   PIX  *pixs)
 {
     PROCNAME("pixCopyInputFormat");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
 
     pixSetInputFormat(pixd, pixGetInputFormat(pixs));
     return 0;
@@ -709,13 +761,13 @@ pixCopyInputFormat(PIX  *pixd,
  *      (1) The text string belongs to the pix.  The caller must
  *          NOT free it!
  */
-char *  
+char *
 pixGetText(PIX  *pix)
 {
     PROCNAME("pixGetText");
 
     if (!pix)
-	return (char *)ERROR_PTR("pix not defined", procName, NULL);
+        return (char *)ERROR_PTR("pix not defined", procName, NULL);
     return pix->text;
 }
 
@@ -731,14 +783,14 @@ pixGetText(PIX  *pix)
  *      (1) This removes any existing textstring and puts a copy of
  *          the input textstring there.
  */
-l_int32  
+l_int32
 pixSetText(PIX         *pix,
-	   const char  *textstring)
+           const char  *textstring)
 {
     PROCNAME("pixSetText");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     stringReplace(&pix->text, textstring);
     return 0;
@@ -757,16 +809,16 @@ pixSetText(PIX         *pix,
  *      (2) Either or both the existing text and the new text
  *          string can be null.
  */
-l_int32  
+l_int32
 pixAddText(PIX         *pix,
-	   const char  *textstring)
+           const char  *textstring)
 {
 char  *newstring;
 
     PROCNAME("pixAddText");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     newstring = stringJoin(pixGetText(pix), textstring);
     stringReplace(&pix->text, newstring);
@@ -775,16 +827,16 @@ char  *newstring;
 }
 
 
-l_int32  
+l_int32
 pixCopyText(PIX  *pixd,
-	    PIX  *pixs)
+            PIX  *pixs)
 {
     PROCNAME("pixCopyText");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pixd)
-	return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", procName, 1);
 
     pixSetText(pixd, pixGetText(pixs));
     return 0;
@@ -797,7 +849,7 @@ pixCopyText(PIX  *pixd,
  *      Input:  pix
  *      Return: 0 if OK, 1 on error
  */
-l_int32  
+l_int32
 pixDestroyColormap(PIX  *pix)
 {
 PIXCMAP  *cmap;
@@ -805,7 +857,7 @@ PIXCMAP  *cmap;
     PROCNAME("pixDestroyColormap");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     if ((cmap = pix->colormap) == NULL)
         return 0;
@@ -814,27 +866,27 @@ PIXCMAP  *cmap;
     pix->colormap = NULL;
     return 0;
 }
-	
 
-PIXCMAP *  
+
+PIXCMAP *
 pixGetColormap(PIX  *pix)
 {
     PROCNAME("pixGetColormap");
 
     if (!pix)
-	return (PIXCMAP *)ERROR_PTR("pix not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("pix not defined", procName, NULL);
     return pix->colormap;
 }
 
 
-l_int32  
+l_int32
 pixSetColormap(PIX      *pix,
-	       PIXCMAP  *colormap)
+               PIXCMAP  *colormap)
 {
     PROCNAME("pixSetColormap");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     pixDestroyColormap(pix);
     pix->colormap = colormap;
@@ -848,19 +900,19 @@ pixGetData(PIX  *pix)
     PROCNAME("pixGetData");
 
     if (!pix)
-	return (l_uint32 *)ERROR_PTR("pix not defined", procName, NULL);
+        return (l_uint32 *)ERROR_PTR("pix not defined", procName, NULL);
     return pix->data;
 }
 
 
-l_int32  
+l_int32
 pixSetData(PIX       *pix,
-	   l_uint32  *data)
+           l_uint32  *data)
 {
     PROCNAME("pixSetData");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
 
     pix->data = data;
     return 0;
@@ -883,7 +935,7 @@ pixPrintStreamInfo(FILE        *fp,
                    PIX         *pix,
                    const char  *text)
 {
-PIXCMAP  *cmap;  
+PIXCMAP  *cmap;
 
     PROCNAME("pixPrintStreamInfo");
 
@@ -900,7 +952,7 @@ PIXCMAP  *cmap;
     fprintf(fp, "    wpl = %d, data = %p, refcount = %d\n",
                pixGetWpl(pix), pixGetData(pix), pixGetRefcount(pix));
     if ((cmap = pixGetColormap(pix)) != NULL)
-	pixcmapWriteStream(fp, cmap);
+        pixcmapWriteStream(fp, cmap);
     else
         fprintf(fp, "    no colormap\n");
 

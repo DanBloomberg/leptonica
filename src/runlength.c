@@ -111,29 +111,29 @@ PIX        *pixt, *pixd;
             pixFindHorizontalRuns(pixt, i, start, end, &n);
             runlengthMembershipOnLine(buffer, w, depth, start, end, n);
             lined = datad + i * wpld;
-	    if (depth == 8) {
-		for (j = 0; j < w; j++)
-		    SET_DATA_BYTE(lined, j, buffer[j]);
-	    } else {  /* depth == 16 */
-		for (j = 0; j < w; j++)
-		    SET_DATA_TWO_BYTES(lined, j, buffer[j]);
-	    }
+            if (depth == 8) {
+                for (j = 0; j < w; j++)
+                    SET_DATA_BYTE(lined, j, buffer[j]);
+            } else {  /* depth == 16 */
+                for (j = 0; j < w; j++)
+                    SET_DATA_TWO_BYTES(lined, j, buffer[j]);
+            }
         }
     } else {  /* L_VERTICAL_RUNS */
         for (j = 0; j < w; j++) {
             pixFindVerticalRuns(pixt, j, start, end, &n);
             runlengthMembershipOnLine(buffer, h, depth, start, end, n);
-	    if (depth == 8) {
-		for (i = 0; i < h; i++) {
-		    lined = datad + i * wpld;
-		    SET_DATA_BYTE(lined, j, buffer[i]);
-		}
-	    } else {  /* depth == 16 */
-		for (i = 0; i < h; i++) {
-		    lined = datad + i * wpld;
-		    SET_DATA_TWO_BYTES(lined, j, buffer[i]);
-		}
-	    }
+            if (depth == 8) {
+                for (i = 0; i < h; i++) {
+                    lined = datad + i * wpld;
+                    SET_DATA_BYTE(lined, j, buffer[i]);
+                }
+            } else {  /* depth == 16 */
+                for (i = 0; i < h; i++) {
+                    lined = datad + i * wpld;
+                    SET_DATA_TWO_BYTES(lined, j, buffer[i]);
+                }
+            }
         }
     }
 
@@ -169,9 +169,9 @@ PIX        *pixt, *pixd;
 l_int32
 pixFindHorizontalRuns(PIX      *pix,
                       l_int32   y,
-	              l_int32  *xstart,
-	              l_int32  *xend,
-	              l_int32  *pn)
+                      l_int32  *xstart,
+                      l_int32  *xend,
+                      l_int32  *pn)
 {
 l_int32    inrun;  /* boolean */
 l_int32    index, w, j, wpl, val;
@@ -208,7 +208,7 @@ l_uint32  *line;
                 inrun = TRUE;
             }
         }
-	else {
+        else {
             if (!val) {
                 xend[index++] = j - 1;
                 inrun = FALSE;
@@ -216,9 +216,9 @@ l_uint32  *line;
         }
     }
 
-	/* finish last run if necessary */
+        /* finish last run if necessary */
     if (inrun)
-	xend[index++] = w - 1;
+        xend[index++] = w - 1;
 
     *pn = index;
     return 0;
@@ -246,9 +246,9 @@ l_uint32  *line;
 l_int32
 pixFindVerticalRuns(PIX      *pix,
                     l_int32   x,
-	            l_int32  *ystart,
-	            l_int32  *yend,
-	            l_int32  *pn)
+                    l_int32  *ystart,
+                    l_int32  *yend,
+                    l_int32  *pn)
 {
 l_int32    inrun;  /* boolean */
 l_int32    index, h, i, wpl, val;
@@ -285,7 +285,7 @@ l_uint32  *data, *line;
                 inrun = TRUE;
             }
         }
-	else {
+        else {
             if (!val) {
                 yend[index++] = i - 1;
                 inrun = FALSE;
@@ -293,9 +293,9 @@ l_uint32  *data, *line;
         }
     }
 
-	/* finish last run if necessary */
+        /* finish last run if necessary */
     if (inrun)
-	yend[index++] = h - 1;
+        yend[index++] = h - 1;
 
     *pn = index;
     return 0;
@@ -349,7 +349,7 @@ l_int32  i, j, first, last, diff, max;
         first = start[i];
         last = end[i];
         diff = last - first + 1;
-	diff = L_MIN(diff, max);
+        diff = L_MIN(diff, max);
         for (j = first; j <= last; j++)
             buffer[j] = diff;
     }
@@ -389,18 +389,18 @@ l_uint8   byte, mask;
         return (l_int32 *)ERROR_PTR("tab not made", procName, NULL);
 
     for (i = 0; i < 256; i++) {
-	byte = (l_uint8)i;
-	if (bitval == 0)
-	    byte = ~byte;
+        byte = (l_uint8)i;
+        if (bitval == 0)
+            byte = ~byte;
         tab[i] = 8;
-	mask = 0x80;
-	for (j = 0; j < 8; j++) {
-	    if (byte & mask) {
-	        tab[i] = j;
-		break;
-	    }
-	    mask >>= 1;
-	}
+        mask = 0x80;
+        for (j = 0; j < 8; j++) {
+            if (byte & mask) {
+                tab[i] = j;
+                break;
+            }
+            mask >>= 1;
+        }
     }
 
     return tab;

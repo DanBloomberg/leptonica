@@ -49,7 +49,7 @@
  */
 PIX *
 pixReduceBinary2(PIX      *pixs,
-	         l_uint8  *intab)
+                 l_uint8  *intab)
 {
 l_uint8   *tab;
 l_int32    ws, hs, wpls, wpld;
@@ -65,10 +65,10 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
 
     if (intab) /* use input table */
-	tab = intab;
+        tab = intab;
     else {
-	if ((tab = makeSubsampleTab2x()) == NULL)
-	    return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+        if ((tab = makeSubsampleTab2x()) == NULL)
+            return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     }
     
     ws = pixGetWidth(pixs);
@@ -88,7 +88,7 @@ PIX       *pixd;
     reduceBinary2Low(datad, wpld, datas, hs, wpls, tab);
 
     if (intab == NULL)
-	FREE((void *)tab);
+        FREE((void *)tab);
 
     return pixd;
 }
@@ -131,57 +131,57 @@ l_uint8  *tab;
         return (PIX *)ERROR_PTR("pixs must be binary", procName, NULL);
 
     if (level1 <= 0) {
-	L_WARNING("no reduction because level1 not > 0", procName);
-	return pixCopy(NULL, pixs);
+        L_WARNING("no reduction because level1 not > 0", procName);
+        return pixCopy(NULL, pixs);
     }
 
     if (level1 > 4)
         return (PIX *)ERROR_PTR("level1 must be in {1,2,3,4}", procName, NULL);
     if (level2 < 0 || level2 > 4) {
-	L_WARNING("level2 invalid; truncating after 1 reduction", procName);
-	level2 = 0;
+        L_WARNING("level2 invalid; truncating after 1 reduction", procName);
+        level2 = 0;
     }
     else if (level3 < 0 || level3 > 4) {
-	L_WARNING("level3 invalid; truncating after 2 reductions", procName);
-	level3 = 0;
+        L_WARNING("level3 invalid; truncating after 2 reductions", procName);
+        level3 = 0;
     }
     else if (level4 < 0 || level4 > 4) {
-	L_WARNING("level4 invalid; truncating after 3 reductions", procName);
-	level4 = 0;
+        L_WARNING("level4 invalid; truncating after 3 reductions", procName);
+        level4 = 0;
     }
 
     if ((tab = makeSubsampleTab2x()) == NULL)
         return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     
     if ((pix1 = pixReduceRankBinary2(pixs, level1, tab)) == NULL)
-	return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
     if (level2 == 0) {
-	FREE((void *)tab);
-	return pix1;
+        FREE((void *)tab);
+        return pix1;
     }
 
     pix2 = pixReduceRankBinary2(pix1, level2, tab);
     pixDestroy(&pix1);
     if (!pix2)
-	return (PIX *)ERROR_PTR("pix2 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix2 not made", procName, NULL);
     if (level3 == 0) {
-	FREE((void *)tab);
-	return pix2;
+        FREE((void *)tab);
+        return pix2;
     }
 
     pix3 = pixReduceRankBinary2(pix2, level3, tab);
     pixDestroy(&pix2);
     if (!pix3)
-	return (PIX *)ERROR_PTR("pix3 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix3 not made", procName, NULL);
     if (level4 == 0) {
-	FREE((void *)tab);
-	return pix3;
+        FREE((void *)tab);
+        return pix3;
     }
 
     pix4 = pixReduceRankBinary2(pix3, level4, tab);
     pixDestroy(&pix3);
     if (!pix4)
-	return (PIX *)ERROR_PTR("pix4 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix4 not made", procName, NULL);
     FREE((void *)tab);
     return pix4;
 }
@@ -200,7 +200,7 @@ l_uint8  *tab;
 PIX *
 pixReduceRankBinary2(PIX      *pixs,
                      l_int32   level,
-		     l_uint8  *intab)
+                     l_uint8  *intab)
 {
 l_uint8   *tab;
 l_int32    ws, hs, wpls, wpld;
@@ -216,13 +216,13 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
     if (level < 1 || level > 4)
         return (PIX *)ERROR_PTR("level must be in set {1,2,3,4}",
-	    procName, NULL);
+            procName, NULL);
 
     if (intab) /* use input table */
-	tab = intab;
+        tab = intab;
     else {
-	if ((tab = makeSubsampleTab2x()) == NULL)
-	    return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+        if ((tab = makeSubsampleTab2x()) == NULL)
+            return (PIX *)ERROR_PTR("tab not made", procName, NULL);
     }
     
     ws = pixGetWidth(pixs);
@@ -242,7 +242,7 @@ PIX       *pixd;
     reduceRankBinary2Low(datad, wpld, datas, hs, wpls, tab, level);
 
     if (intab == NULL)
-	FREE((void *)tab);
+        FREE((void *)tab);
 
     return pixd;
 }

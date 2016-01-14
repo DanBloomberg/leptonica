@@ -23,6 +23,7 @@
  *          PTA        *ptaGenerateBox()
  *          PTA        *ptaGenerateBoxa()
  *          PTA        *ptaGeneratePolyline()
+ *          PTA        *ptaGenerateFilledCircle()
  *
  *      Pta rendering
  *
@@ -47,6 +48,8 @@
  *          l_int32     pixRenderPolyline()
  *          l_int32     pixRenderPolylineArb()
  *          l_int32     pixRenderPolylineBlend()
+ *
+ *          l_int32     pixRenderRandomCmapPtaa()
  *
  *      Contour rendering on grayscale images
  *
@@ -79,8 +82,8 @@
 PTA  *
 ptaGenerateLine(l_int32  x1,
                 l_int32  y1,
-	        l_int32  x2,
-	        l_int32  y2)
+                l_int32  x2,
+                l_int32  y2)
 {
 l_int32    npts, diff, getyofx, sign, i, x, y;
 l_float32  slope;
@@ -88,44 +91,44 @@ PTA       *pta;
 
     PROCNAME("ptaGenerateLine");
 
-	/* generate line parameters */
+        /* generate line parameters */
     if (L_ABS(x2 - x1) >= L_ABS(y2 - y1)) {
-	getyofx = TRUE;
-	npts = L_ABS(x2 - x1) + 1;
-	diff = x2 - x1;
-	sign = L_SIGN(x2 - x1);
-	slope = (l_float32)(sign * (y2 - y1)) / (l_float32)diff;
+        getyofx = TRUE;
+        npts = L_ABS(x2 - x1) + 1;
+        diff = x2 - x1;
+        sign = L_SIGN(x2 - x1);
+        slope = (l_float32)(sign * (y2 - y1)) / (l_float32)diff;
     }
     else {
-	getyofx = FALSE;
-	npts = L_ABS(y2 - y1) + 1;
-	diff = y2 - y1;
-	sign = L_SIGN(y2 - y1);
-	slope = (l_float32)(sign * (x2 - x1)) / (l_float32)diff;
+        getyofx = FALSE;
+        npts = L_ABS(y2 - y1) + 1;
+        diff = y2 - y1;
+        sign = L_SIGN(y2 - y1);
+        slope = (l_float32)(sign * (x2 - x1)) / (l_float32)diff;
     }
 
     if ((pta = ptaCreate(npts)) == NULL)
-	return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
 
     if (npts == 1) {  /* degenerate case */
-	ptaAddPt(pta, x1, y1);
-	return pta;
+        ptaAddPt(pta, x1, y1);
+        return pta;
     }
 
-	/* generate the set of points */
+        /* generate the set of points */
     if (getyofx) {  /* y = y(x) */
-	for (i = 0; i < npts; i++) {
-	    x = x1 + sign * i;
-	    y = (l_int32)(y1 + (l_float32)i * slope + 0.5);
-	    ptaAddPt(pta, x, y);
-	}
+        for (i = 0; i < npts; i++) {
+            x = x1 + sign * i;
+            y = (l_int32)(y1 + (l_float32)i * slope + 0.5);
+            ptaAddPt(pta, x, y);
+        }
     }
     else {   /* x = x(y) */
-	for (i = 0; i < npts; i++) {
-	    x = (l_int32)(x1 + (l_float32)i * slope + 0.5);
-	    y = y1 + sign * i;
-	    ptaAddPt(pta, x, y);
-	}
+        for (i = 0; i < npts; i++) {
+            x = (l_int32)(x1 + (l_float32)i * slope + 0.5);
+            y = y1 + sign * i;
+            ptaAddPt(pta, x, y);
+        }
     }
 
     return pta;
@@ -142,8 +145,8 @@ PTA       *pta;
 PTA  *
 ptaGenerateWideLine(l_int32  x1,
                     l_int32  y1,
-	            l_int32  x2,
-	            l_int32  y2,
+                    l_int32  x2,
+                    l_int32  y2,
                     l_int32  width)
 {
 l_int32  i, x1a, x2a, y1a, y2a;
@@ -157,42 +160,42 @@ PTA     *pta, *ptaj;
     }
 
     if ((ptaj = ptaGenerateLine(x1, y1, x2, y2)) == NULL)
-	return (PTA *)ERROR_PTR("ptaj not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptaj not made", procName, NULL);
     if (width == 1)
         return ptaj;
 
-	/* width > 1; estimate line direction & join */
+        /* width > 1; estimate line direction & join */
     if (L_ABS(x1 - x2) > L_ABS(y1 - y2)) {  /* "horizontal" line  */
-	for (i = 1; i < width; i++) {
-	    if ((i & 1) == 1) {   /* place above */
-		y1a = y1 - (i + 1) / 2;
-		y2a = y2 - (i + 1) / 2;
-	    }
-	    else {  /* place below */
-		y1a = y1 + (i + 1) / 2;
-		y2a = y2 + (i + 1) / 2;
-	    }
-	    if ((pta = ptaGenerateLine(x1, y1a, x2, y2a)) == NULL)
-		return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        for (i = 1; i < width; i++) {
+            if ((i & 1) == 1) {   /* place above */
+                y1a = y1 - (i + 1) / 2;
+                y2a = y2 - (i + 1) / 2;
+            }
+            else {  /* place below */
+                y1a = y1 + (i + 1) / 2;
+                y2a = y2 + (i + 1) / 2;
+            }
+            if ((pta = ptaGenerateLine(x1, y1a, x2, y2a)) == NULL)
+                return (PTA *)ERROR_PTR("pta not made", procName, NULL);
             ptaJoin(ptaj, pta, 0, 0);
-	    ptaDestroy(&pta);
-	}
+            ptaDestroy(&pta);
+        }
     }
     else  {  /* "vertical" line  */
-	for (i = 1; i < width; i++) {
-	    if ((i & 1) == 1) {   /* place to left */
-		x1a = x1 - (i + 1) / 2;
-		x2a = x2 - (i + 1) / 2;
-	    }
-	    else {  /* place to right */
-		x1a = x1 + (i + 1) / 2;
-		x2a = x2 + (i + 1) / 2;
-	    }
-	    if ((pta = ptaGenerateLine(x1a, y1, x2a, y2)) == NULL)
-		return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        for (i = 1; i < width; i++) {
+            if ((i & 1) == 1) {   /* place to left */
+                x1a = x1 - (i + 1) / 2;
+                x2a = x2 - (i + 1) / 2;
+            }
+            else {  /* place to right */
+                x1a = x1 + (i + 1) / 2;
+                x2a = x2 + (i + 1) / 2;
+            }
+            if ((pta = ptaGenerateLine(x1a, y1, x2a, y2)) == NULL)
+                return (PTA *)ERROR_PTR("pta not made", procName, NULL);
             ptaJoin(ptaj, pta, 0, 0);
-	    ptaDestroy(&pta);
-	}
+            ptaDestroy(&pta);
+        }
     }
 
     return ptaj;
@@ -220,46 +223,46 @@ PTA     *ptad, *pta;
     PROCNAME("ptaGenerateBox");
 
     if (!box)
-	return (PTA *)ERROR_PTR("box not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("box not defined", procName, NULL);
 
-	/* Generate line points and add them to the pta. */
+        /* Generate line points and add them to the pta. */
     boxGetGeometry(box, &x, &y, &w, &h);
     ptad = ptaCreate(0);
     if ((width & 1) == 1) {   /* odd width */
-	pta = ptaGenerateWideLine(x - width / 2, y,
+        pta = ptaGenerateWideLine(x - width / 2, y,
                                   x + w - 1 + width / 2, y, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
-	pta = ptaGenerateWideLine(x - width / 2, y + h - 1,
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = ptaGenerateWideLine(x - width / 2, y + h - 1,
                                   x + w - 1 + width / 2, y + h - 1, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
-	pta = ptaGenerateWideLine(x, y + 1 + width / 2,
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = ptaGenerateWideLine(x, y + 1 + width / 2,
                                   x, y + h - 2 - width / 2, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
-	pta = ptaGenerateWideLine(x + w - 1, y + 1 + width / 2,
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = ptaGenerateWideLine(x + w - 1, y + 1 + width / 2,
                                   x + w - 1, y + h - 2 - width / 2, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
     }
     else {   /* even width */
-	pta = ptaGenerateWideLine(x - width / 2, y,
+        pta = ptaGenerateWideLine(x - width / 2, y,
                                   x + w - 2 + width / 2, y, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
-	pta = ptaGenerateWideLine(x - width / 2, y + h - 1,
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = ptaGenerateWideLine(x - width / 2, y + h - 1,
                                   x + w - 2 + width / 2, y + h - 1, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
-	pta = ptaGenerateWideLine(x, y + 0 + width / 2,
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = ptaGenerateWideLine(x, y + 0 + width / 2,
                                   x, y + h - 2 - width / 2, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
-	pta = ptaGenerateWideLine(x + w - 1, y + 0 + width / 2,
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
+        pta = ptaGenerateWideLine(x + w - 1, y + 0 + width / 2,
                                   x + w - 1, y + h - 2 - width / 2, width);
-	ptaJoin(ptad, pta, 0, 0);
-	ptaDestroy(&pta);
+        ptaJoin(ptad, pta, 0, 0);
+        ptaDestroy(&pta);
     }
 
     return ptad;
@@ -292,16 +295,16 @@ PTA     *ptad, *ptat, *pta;
     PROCNAME("ptaGenerateBoxa");
 
     if (!boxa)
-	return (PTA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("boxa not defined", procName, NULL);
 
     n = boxaGetCount(boxa);
     ptat = ptaCreate(0);
     for (i = 0; i < n; i++) {
-	box = boxaGetBox(boxa, i, L_CLONE);
-	pta = ptaGenerateBox(box, width);
-	ptaJoin(ptat, pta, 0, 0);
-	ptaDestroy(&pta);
-	boxDestroy(&box);
+        box = boxaGetBox(boxa, i, L_CLONE);
+        pta = ptaGenerateBox(box, width);
+        ptaJoin(ptat, pta, 0, 0);
+        ptaDestroy(&pta);
+        boxDestroy(&box);
     }
 
     if (removedups)
@@ -339,7 +342,7 @@ PTA     *ptad, *ptat, *pta;
     PROCNAME("ptaGeneratePolyline");
 
     if (!ptas)
-	return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
 
     n = ptaGetCount(ptas);
     ptat = ptaCreate(0);
@@ -348,12 +351,12 @@ PTA     *ptad, *ptat, *pta;
 
     ptaGetIPt(ptas, 0, &x1, &y1);
     for (i = 1; i < n; i++) {
-	ptaGetIPt(ptas, i, &x2, &y2);
+        ptaGetIPt(ptas, i, &x2, &y2);
         pta = ptaGenerateWideLine(x1, y1, x2, y2, width);
-	ptaJoin(ptat, pta, 0, 0);
-	ptaDestroy(&pta);
-	x1 = x2;
-	y1 = y2;
+        ptaJoin(ptat, pta, 0, 0);
+        ptaDestroy(&pta);
+        x1 = x2;
+        y1 = y2;
     }
 
         /* Close the contour */
@@ -369,6 +372,46 @@ PTA     *ptad, *ptat, *pta;
 
     ptaDestroy(&ptat);
     return ptad;
+}
+
+
+/*!
+ *  ptaGenerateFilledCircle()
+ *
+ *      Input:  radius
+ *      Return: pta, or null on error
+ *
+ *  Notes:
+ *      (1) The circle is has diameter = 2 * radius + 1.
+ *      (2) It is located with the center of the circle at the
+ *          point (radius, radius).
+ *      (3) Consequently, it typically must be translated if
+ *          it is to represent a set of pixels in an image.
+ */
+PTA  *
+ptaGenerateFilledCircle(l_int32  radius)
+{
+l_int32    x, y;
+l_float32  radthresh, sqdist;
+PTA       *pta;
+
+    PROCNAME("ptaGenerateFilledCircle");
+
+    if (radius < 1)
+        return (PTA *)ERROR_PTR("radius must be >= 1", procName, NULL);
+
+    pta = ptaCreate(0);
+    radthresh = (radius + 0.5) * (radius + 0.5);
+    for (y = 0; y <= 2 * radius; y++) {
+        for (x = 0; x <= 2 * radius; x++) {
+            sqdist = (l_float32)((y - radius) * (y - radius) +
+                                 (x - radius) * (x - radius));
+            if (sqdist <= radthresh)
+                ptaAddPt(pta, x, y);
+        }
+    }
+
+    return pta;
 }
 
 
@@ -396,18 +439,18 @@ PTA     *ptad, *ptat, *pta;
 l_int32
 pixRenderPta(PIX     *pix,
              PTA     *pta,
-	     l_int32  op)
+             l_int32  op)
 {
 l_int32  i, n, x, y, w, h, d, maxval;
 
     PROCNAME("pixRenderPta");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-	return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", procName, 1);
 
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
@@ -436,25 +479,25 @@ l_int32  i, n, x, y, w, h, d, maxval;
 
     n = ptaGetCount(pta);
     for (i = 0; i < n; i++) {
-	ptaGetIPt(pta, i, &x, &y);
-	if (x < 0 || x >= w)
-	    continue;
-	if (y < 0 || y >= h)
-	    continue;
+        ptaGetIPt(pta, i, &x, &y);
+        if (x < 0 || x >= w)
+            continue;
+        if (y < 0 || y >= h)
+            continue;
         switch (op)
-	{
-	case L_SET_PIXELS:
-	    pixSetPixel(pix, x, y, maxval);
-	    break;
-	case L_CLEAR_PIXELS:
-	    pixClearPixel(pix, x, y);
-	    break;
-	case L_FLIP_PIXELS:
-	    pixFlipPixel(pix, x, y);
-	    break;
+        {
+        case L_SET_PIXELS:
+            pixSetPixel(pix, x, y, maxval);
+            break;
+        case L_CLEAR_PIXELS:
+            pixClearPixel(pix, x, y);
+            break;
+        case L_FLIP_PIXELS:
+            pixFlipPixel(pix, x, y);
+            break;
         default:
-	    break;
-	}
+            break;
+        }
     }
 
     return 0;
@@ -481,7 +524,7 @@ l_int32  i, n, x, y, w, h, d, maxval;
 l_int32
 pixRenderPtaArb(PIX     *pix,
                 PTA     *pta,
-	        l_uint8  rval,
+                l_uint8  rval,
                 l_uint8  gval,
                 l_uint8  bval)
 {
@@ -493,12 +536,12 @@ PIXCMAP  *cmap;
     PROCNAME("pixRenderPtaArb");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     d = pixGetDepth(pix);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32) 
-	return ERROR_INT("depth not in {1,2,4,8,32}", procName, 1);
+        return ERROR_INT("depth not in {1,2,4,8,32}", procName, 1);
 
     if (d == 1) {
         pixRenderPta(pix, pta, L_SET_PIXELS);
@@ -526,17 +569,17 @@ PIXCMAP  *cmap;
     h = pixGetHeight(pix);
     n = ptaGetCount(pta);
     for (i = 0; i < n; i++) {
-	ptaGetIPt(pta, i, &x, &y);
-	if (x < 0 || x >= w)
-	    continue;
-	if (y < 0 || y >= h)
-	    continue;
+        ptaGetIPt(pta, i, &x, &y);
+        if (x < 0 || x >= w)
+            continue;
+        if (y < 0 || y >= h)
+            continue;
         if (cmap)
-	    pixSetPixel(pix, x, y, index);
+            pixSetPixel(pix, x, y, index);
         else if (d == 32)
-	    pixSetPixel(pix, x, y, val32);
+            pixSetPixel(pix, x, y, val32);
         else
-	    pixSetPixel(pix, x, y, val);
+            pixSetPixel(pix, x, y, val);
     }
 
     return 0;
@@ -557,10 +600,10 @@ PIXCMAP  *cmap;
 l_int32
 pixRenderPtaBlend(PIX     *pix,
                   PTA     *pta,
-	          l_uint8  rval,
+                  l_uint8  rval,
                   l_uint8  gval,
                   l_uint8  bval,
-		  l_float32 fract)
+                  l_float32 fract)
 {
 l_int32    i, n, x, y, w, h;
 l_uint8    nrval, ngval, nbval;
@@ -570,11 +613,11 @@ l_float32  frval, fgval, fbval;
     PROCNAME("pixRenderPtaBlend");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!pta)
-	return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", procName, 1);
     if (pixGetDepth(pix) != 32)
-	return ERROR_INT("depth not 32 bpp", procName, 1);
+        return ERROR_INT("depth not 32 bpp", procName, 1);
     if (fract < 0.0 || fract > 1.0) {
         L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5", procName);
         fract = 0.5;
@@ -587,20 +630,20 @@ l_float32  frval, fgval, fbval;
     fgval = fract * gval;
     fbval = fract * bval;
     for (i = 0; i < n; i++) {
-	ptaGetIPt(pta, i, &x, &y);
-	if (x < 0 || x >= w)
-	    continue;
-	if (y < 0 || y >= h)
-	    continue;
+        ptaGetIPt(pta, i, &x, &y);
+        if (x < 0 || x >= w)
+            continue;
+        if (y < 0 || y >= h)
+            continue;
         pixGetPixel(pix, x, y, &val32);
-	nrval = GET_DATA_BYTE(&val32, COLOR_RED);
-	nrval = (l_uint8)((1. - fract) * nrval + frval);
-	ngval = GET_DATA_BYTE(&val32, COLOR_GREEN);
-	ngval = (l_uint8)((1. - fract) * ngval + fgval);
-	nbval = GET_DATA_BYTE(&val32, COLOR_BLUE);
-	nbval = (l_uint8)((1. - fract) * nbval + fbval);
-	composeRGBPixel(nrval, ngval, nbval, &val32);
-	pixSetPixel(pix, x, y, val32);
+        nrval = GET_DATA_BYTE(&val32, COLOR_RED);
+        nrval = (l_uint8)((1. - fract) * nrval + frval);
+        ngval = GET_DATA_BYTE(&val32, COLOR_GREEN);
+        ngval = (l_uint8)((1. - fract) * ngval + fgval);
+        nbval = GET_DATA_BYTE(&val32, COLOR_BLUE);
+        nbval = (l_uint8)((1. - fract) * nbval + fbval);
+        composeRGBPixel(nrval, ngval, nbval, &val32);
+        pixSetPixel(pix, x, y, val32);
     }
 
     return 0;
@@ -626,24 +669,24 @@ pixRenderLine(PIX     *pix,
               l_int32  y1,
               l_int32  x2,
               l_int32  y2,
-	      l_int32  width,
-	      l_int32  op)
+              l_int32  width,
+              l_int32  op)
 {
 PTA  *pta;
 
     PROCNAME("pixRenderLine");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (width < 1) {
-	L_WARNING("width must be > 0; setting to 1", procName);
-	width = 1;
+        L_WARNING("width must be > 0; setting to 1", procName);
+        width = 1;
     }
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-	return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", procName, 1);
 
     if ((pta = ptaGenerateWideLine(x1, y1, x2, y2, width)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -666,24 +709,24 @@ pixRenderLineArb(PIX     *pix,
                  l_int32  y1,
                  l_int32  x2,
                  l_int32  y2,
-	         l_int32  width,
-	         l_uint8  rval,
-	         l_uint8  gval,
-	         l_uint8  bval)
+                 l_int32  width,
+                 l_uint8  rval,
+                 l_uint8  gval,
+                 l_uint8  bval)
 {
 PTA  *pta;
 
     PROCNAME("pixRenderLineArb");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (width < 1) {
-	L_WARNING("width must be > 0; setting to 1", procName);
-	width = 1;
+        L_WARNING("width must be > 0; setting to 1", procName);
+        width = 1;
     }
 
     if ((pta = ptaGenerateWideLine(x1, y1, x2, y2, width)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -711,21 +754,21 @@ pixRenderLineBlend(PIX       *pix,
                    l_uint8    rval,
                    l_uint8    gval,
                    l_uint8    bval,
-        	   l_float32  fract)
+                   l_float32  fract)
 {
 PTA  *pta;
 
     PROCNAME("pixRenderLineBlend");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (width < 1) {
-	L_WARNING("width must be > 0; setting to 1", procName);
-	width = 1;
+        L_WARNING("width must be > 0; setting to 1", procName);
+        width = 1;
     }
 
     if ((pta = ptaGenerateWideLine(x1, y1, x2, y2, width)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -744,22 +787,22 @@ PTA  *pta;
 l_int32
 pixRenderBox(PIX     *pix,
              BOX     *box,
-	     l_int32  width,
-	     l_int32  op)
+             l_int32  width,
+             l_int32  op)
 {
 PTA  *pta;
 
     PROCNAME("pixRenderBox");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-	return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", procName, 1);
 
     if ((pta = ptaGenerateBox(box, width)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -778,8 +821,8 @@ PTA  *pta;
 l_int32
 pixRenderBoxArb(PIX     *pix,
                 BOX     *box,
-	        l_int32  width,
-	        l_uint8  rval,
+                l_int32  width,
+                l_uint8  rval,
                 l_uint8  gval,
                 l_uint8  bval)
 {
@@ -788,12 +831,12 @@ PTA  *pta;
     PROCNAME("pixRenderBoxArb");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
 
     if ((pta = ptaGenerateBox(box, width)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -814,23 +857,23 @@ PTA  *pta;
 l_int32
 pixRenderBoxBlend(PIX       *pix,
                   BOX       *box,
-	          l_int32    width,
-	          l_uint8    rval,
+                  l_int32    width,
+                  l_uint8    rval,
                   l_uint8    gval,
                   l_uint8    bval,
-		  l_float32  fract)
+                  l_float32  fract)
 {
 PTA  *pta;
 
     PROCNAME("pixRenderBoxBlend");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!box)
-	return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", procName, 1);
 
     if ((pta = ptaGenerateBox(box, width)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -857,14 +900,14 @@ PTA  *pta;
     PROCNAME("pixRenderBoxa");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-	return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", procName, 1);
 
     if ((pta = ptaGenerateBoxa(boxa, width, 0)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -893,12 +936,12 @@ PTA  *pta;
     PROCNAME("pixRenderBoxaArb");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
 
     if ((pta = ptaGenerateBoxa(boxa, width, 0)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -920,8 +963,8 @@ PTA  *pta;
 l_int32
 pixRenderBoxaBlend(PIX       *pix,
                    BOXA      *boxa,
-	           l_int32    width,
-	           l_uint8    rval,
+                   l_int32    width,
+                   l_uint8    rval,
                    l_uint8    gval,
                    l_uint8    bval,
                    l_float32  fract,
@@ -932,12 +975,12 @@ PTA  *pta;
     PROCNAME("pixRenderBoxaBlend");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!boxa)
-	return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
 
     if ((pta = ptaGenerateBoxa(boxa, width, removedups)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -966,14 +1009,14 @@ PTA  *pta;
     PROCNAME("pixRenderPolyline");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!ptas)
-	return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", procName, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-	return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", procName, 1);
 
     if ((pta = ptaGeneratePolyline(ptas, width, 0)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -1004,12 +1047,12 @@ PTA  *pta;
     PROCNAME("pixRenderPolylineArb");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!ptas)
-	return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", procName, 1);
 
     if ((pta = ptaGeneratePolyline(ptas, width, 0)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -1043,17 +1086,70 @@ PTA  *pta;
     PROCNAME("pixRenderPolylineBlend");
 
     if (!pix)
-	return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", procName, 1);
     if (!ptas)
-	return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", procName, 1);
 
     if ((pta = ptaGeneratePolyline(ptas, width, removedups)) == NULL)
-	return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", procName, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
 }
 
+
+/*!
+ *  pixRenderRandomCmapPtaa()
+ *
+ *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
+ *              ptaa
+ *              width  (thickness of line)
+ *      Return: pixd (cmapped, 8 bpp) or null on error
+ *
+ *  Notes:
+ *      (1) This is a debugging routine, that displays a set of
+ *          polylines in random color in a pix.
+ *      (2) The output pix is 8 bpp and colormapped.  A total of 254
+ *          different, randomly selected colors, is used.
+ *      (3) The polyline pixels replace the input pixels.  They will
+ *          be clipped to the input pix.
+ */
+PIX  *
+pixRenderRandomCmapPtaa(PIX     *pix,
+                        PTAA    *ptaa,
+                        l_int32  width)
+{
+l_int32   i, n, index, rval, gval, bval;
+PIXCMAP  *cmap;
+PTA      *pta, *ptat;
+PIX      *pixd;
+
+    PROCNAME("pixRenderRandomCmapPtaa");
+
+    if (!pix)
+        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
+    if (!ptaa)
+        return (PIX *)ERROR_PTR("ptaa not defined", procName, NULL);
+
+    pixd = pixConvertTo8(pix, FALSE);
+    cmap = pixcmapCreateRandom(8);
+    pixSetColormap(pixd, cmap);
+
+    if ((n = ptaaGetCount(ptaa)) == 0)
+        return pixd;
+
+    for (i = 0; i < n; i++) {
+        index = 1 + (i % 255);
+        pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+        pta = ptaaGetPta(ptaa, i, L_CLONE);
+        ptat = ptaGeneratePolyline(pta, width, 0);
+        pixRenderPtaArb(pixd, ptat, rval, gval, bval);
+        ptaDestroy(&pta);
+        ptaDestroy(&ptat);
+    }
+
+    return pixd;
+}
 
         
 /*------------------------------------------------------------------*
@@ -1074,9 +1170,9 @@ PTA  *pta;
  */
 PIX *
 pixRenderContours(PIX     *pixs,
-		  l_int32  startval,
+                  l_int32  startval,
                   l_int32  incr,
-		  l_int32  outdepth)
+                  l_int32  outdepth)
 {
 l_int32    w, h, d, maxval, wpls, wpld, i, j, val, test;
 l_uint32  *datas, *datad, *lines, *lined;
@@ -1085,27 +1181,27 @@ PIX       *pixd;
     PROCNAME("pixRenderContours");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetColormap(pixs))
-	return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 16)
-	return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
     if (outdepth != 1 && outdepth != d) {
         L_WARNING("invalid outdepth; setting to 1", procName);
-	outdepth = 1;
+        outdepth = 1;
     }
     maxval = (1 << d) - 1;
     if (startval < 0 || startval > maxval)
-	return (PIX *)ERROR_PTR("startval not in [0 ... maxval]",
-	       procName, NULL);
+        return (PIX *)ERROR_PTR("startval not in [0 ... maxval]",
+               procName, NULL);
     if (incr < 1)
-	return (PIX *)ERROR_PTR("incr < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("incr < 1", procName, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if (outdepth == d)
-	pixd = pixCopy(NULL, pixs);
+        pixd = pixCopy(NULL, pixs);
     else
         pixd = pixCreate(w, h, 1);
 
@@ -1119,68 +1215,68 @@ PIX       *pixd;
     {
     case 8:
         if (outdepth == 1) {
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    val = GET_DATA_BYTE(lines, j);
-		    if (val < startval)
-		        continue;
-		    test = (val - startval) % incr;
-		    if (!test)
-			SET_DATA_BIT(lined, j); 
-		}
-	    }
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    val = GET_DATA_BYTE(lines, j);
+                    if (val < startval)
+                        continue;
+                    test = (val - startval) % incr;
+                    if (!test)
+                        SET_DATA_BIT(lined, j); 
+                }
+            }
         }
-	else {  /* outdepth == d */
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    val = GET_DATA_BYTE(lines, j);
-		    if (val < startval)
-		        continue;
-		    test = (val - startval) % incr;
-		    if (!test)
-			SET_DATA_BYTE(lined, j, 0); 
-		}
-	    }
+        else {  /* outdepth == d */
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    val = GET_DATA_BYTE(lines, j);
+                    if (val < startval)
+                        continue;
+                    test = (val - startval) % incr;
+                    if (!test)
+                        SET_DATA_BYTE(lined, j, 0); 
+                }
+            }
         }
-	break;
+        break;
 
     case 16:
         if (outdepth == 1) {
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    val = GET_DATA_TWO_BYTES(lines, j);
-		    if (val < startval)
-		        continue;
-		    test = (val - startval) % incr;
-		    if (!test)
-			SET_DATA_BIT(lined, j); 
-		}
-	    }
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    val = GET_DATA_TWO_BYTES(lines, j);
+                    if (val < startval)
+                        continue;
+                    test = (val - startval) % incr;
+                    if (!test)
+                        SET_DATA_BIT(lined, j); 
+                }
+            }
         }
-	else {  /* outdepth == d */
-	    for (i = 0; i < h; i++) {
-		lines = datas + i * wpls;
-		lined = datad + i * wpld;
-		for (j = 0; j < w; j++) {
-		    val = GET_DATA_TWO_BYTES(lines, j);
-		    if (val < startval)
-		        continue;
-		    test = (val - startval) % incr;
-		    if (!test)
-			SET_DATA_TWO_BYTES(lined, j, 0); 
-		}
-	    }
+        else {  /* outdepth == d */
+            for (i = 0; i < h; i++) {
+                lines = datas + i * wpls;
+                lined = datad + i * wpld;
+                for (j = 0; j < w; j++) {
+                    val = GET_DATA_TWO_BYTES(lines, j);
+                    if (val < startval)
+                        continue;
+                    test = (val - startval) % incr;
+                    if (!test)
+                        SET_DATA_TWO_BYTES(lined, j, 0); 
+                }
+            }
         }
-	break;
+        break;
 
     default:
-	return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
     }
 
     return pixd;

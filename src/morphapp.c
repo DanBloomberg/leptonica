@@ -22,8 +22,9 @@
  *      useful in applications.  Most are morphological in
  *      nature.
  *
- *      Selective connected component closing
- *            PIX     *pixSelectiveConnCompClose()
+ *      Selective morph sequence operation on each component          *
+ *            PIX     *pixMorphSequenceByComponent()
+ *            PIXA    *pixaMorphSequenceByComponent()
  *
  *      Selective connected component filling
  *            PIX     *pixSelectiveConnCompFill()
@@ -43,6 +44,7 @@
  *      Composite operations on grayscale images
  *            PIX     *pixTophat()
  *            PIX     *pixHDome()
+ *            PIX     *pixFastTophat()
  *            PIX     *pixMorphGradient()
  *
  *      Centroids of PIXA
@@ -50,78 +52,148 @@
  */
 
 #include <stdio.h>
-
 #include "allheaders.h"
-
 
 #define   SWAP(x, y)   {temp = (x); (x) = (y); (y) = temp;}
 
 
-
 /*-----------------------------------------------------------------*
- *             Selective connected component closing               *
+ *             Morph sequence operation on each component          *
  *-----------------------------------------------------------------*/
 /*!
- *  pixSelectiveConnCompClose()
+ *  pixMorphSequenceByComponent()
  *
  *      Input:  pixs
- *              sel1
- *              sel2  (<optional>)
+ *              sequence (string specifying sequence)
  *              connectivity (4 or 8)
  *              minw  (minimum width to consider; use 0 or 1 for any width)
  *              minh  (minimum height to consider; use 0 or 1 for any height)
+ *              &boxa (<optional> return boxa of c.c. in pixs)
  *      Return: pixd, or null on error
  *
- *  This closes each c.c in the pix that is larger
- *  than a certain minimum size with one or two sels.
+ *  Notes:
+ *      (1) See pixMorphSequence() for composing operation sequences.
+ *      (2) This operates separately on each c.c. in the input pix.
+ *      (3) The dilation does NOT increase the c.c. size; it is clipped
+ *          to the size of the original c.c.   This is necessary to
+ *          keep the c.c. independent after the operation.
+ *      (4) You can specify that the width and/or height must equal
+ *          or exceed a minimum size for the operation to take place.
+ *      (5) Use NULL for boxa to avoid returning the boxa.
  */
 PIX *
-pixSelectiveConnCompClose(PIX     *pixs,
-                          SEL     *sel1,
-                          SEL     *sel2,
-         		  l_int32  connectivity,
-                          l_int32  minw,
-                          l_int32  minh)
+pixMorphSequenceByComponent(PIX         *pixs,
+                            const char  *sequence,
+                            l_int32      connectivity,
+                            l_int32      minw,
+                            l_int32      minh,
+			    BOXA       **pboxa)
 {
 l_int32  n, i, x, y, w, h;
 BOXA    *boxa;
-PIX     *pixt1, *pixt2, *pixd;
-PIXA    *pixa;
+PIX     *pix, *pixd;
+PIXA    *pixas, *pixad;
 
-    PROCNAME("pixSelectiveConnCompClose");
+    PROCNAME("pixMorphSequenceByComponent");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (!sel1)
-	return (PIX *)ERROR_PTR("sel1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!sequence)
+        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
 
     if (minw <= 0) minw = 1;
     if (minh <= 0) minh = 1;
 
-    if ((pixd = pixCopy(NULL, pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        /* Get the c.c. */
+    if ((boxa = pixConnComp(pixs, &pixas, connectivity)) == NULL)
+        return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
 
-    if ((boxa = pixConnComp(pixs, &pixa, connectivity)) == NULL)
-	return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
-    n = boxaGetCount(boxa);
-    for (i = 0; i < n; i++) {
-        boxaGetBoxGeometry(boxa, i, &x, &y, &w, &h);
-	if (w >= minw && h >= minh) {
-	    if ((pixt1 = pixaGetPix(pixa, i, L_CLONE)) == NULL)
-		return (PIX *)ERROR_PTR("pixt1 not found", procName, NULL);
-	    if ((pixt2 = pixCloseSafe(NULL, pixt1, sel1)) == NULL)
-		return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
-	    if (sel2)
-		pixCloseSafe(pixt2, pixt2, sel2);
-	    pixRasterop(pixd, x, y, w, h, PIX_PAINT, pixt2, 0, 0);
-	    pixDestroy(&pixt1);
-	    pixDestroy(&pixt2);
-	}
-    }
-    pixaDestroy(&pixa);
+        /* Operate on each c.c. independently */
+    pixad = pixaMorphSequenceByComponent(pixas, sequence, minw, minh);
+    pixaDestroy(&pixas);
     boxaDestroy(&boxa);
+    if (!pixad)
+        return (PIX *)ERROR_PTR("pixad not made", procName, NULL);
 
+        /* Display the result out into pixd */
+    pixd = pixCreateTemplate(pixs);
+    n = pixaGetCount(pixad);
+    for (i = 0; i < n; i++) {
+        pixaGetBoxGeometry(pixad, i, &x, &y, &w, &h);
+	pix = pixaGetPix(pixad, i, L_CLONE);
+        pixRasterop(pixd, x, y, w, h, PIX_PAINT, pix, 0, 0);
+        pixDestroy(&pix);
+    }
+
+    if (pboxa)
+        *pboxa = pixaGetBoxa(pixad, L_CLONE);
+    pixaDestroy(&pixad);
     return pixd;
+}
+
+
+/*!
+ *  pixaMorphSequenceByComponent()
+ *
+ *      Input:  pixas (of 1 bpp pix)
+ *              sequence (string specifying sequence)
+ *              minw  (minimum width to consider; use 0 or 1 for any width)
+ *              minh  (minimum height to consider; use 0 or 1 for any height)
+ *      Return: pixad, or null on error
+ *
+ *  Notes:
+ *      (1) See pixMorphSequence() for composing operation sequences.
+ *      (2) This operates separately on each c.c. in the input pixa.
+ *      (3) You can specify that the width and/or height must equal
+ *          or exceed a minimum size for the operation to take place.
+ *      (4) The input pixa should have a boxa giving the locations
+ *          of the pix components.
+ */
+PIXA *
+pixaMorphSequenceByComponent(PIXA        *pixas,
+                             const char  *sequence,
+                             l_int32      minw,
+                             l_int32      minh)
+{
+l_int32  n, i, w, h, d;
+BOX     *box;
+PIX     *pixt1, *pixt2;
+PIXA    *pixad;
+
+    PROCNAME("pixaMorphSequenceByComponent");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if ((n = pixaGetCount(pixas)) == 0)
+        return (PIXA *)ERROR_PTR("no pix in pixas", procName, NULL);
+    if (n != pixaGetBoxaCount(pixas))
+        L_WARNING("boxa size != n", procName);
+    pixaGetPixDimensions(pixas, 0, NULL, NULL, &d);
+    if (d != 1)
+        return (PIXA *)ERROR_PTR("depth not 1 bpp", procName, NULL);
+
+    if (!sequence)
+        return (PIXA *)ERROR_PTR("sequence not defined", procName, NULL);
+    if (minw <= 0) minw = 1;
+    if (minh <= 0) minh = 1;
+
+    if ((pixad = pixaCreate(n)) == NULL)
+        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        pixaGetPixDimensions(pixas, i, &w, &h, NULL);
+        if (w >= minw && h >= minh) {
+            if ((pixt1 = pixaGetPix(pixas, i, L_CLONE)) == NULL)
+                return (PIXA *)ERROR_PTR("pixt1 not found", procName, NULL);
+            if ((pixt2 = pixMorphSequence(pixt1, sequence, 0)) == NULL)
+                return (PIXA *)ERROR_PTR("pixt2 not made", procName, NULL);
+	    pixaAddPix(pixad, pixt2, L_INSERT);
+	    box = pixaGetBox(pixas, i, L_COPY);
+	    pixaAddBox(pixad, box, L_INSERT);
+            pixDestroy(&pixt1);
+        }
+    }
+
+    return pixad;
 }
 
 
@@ -135,11 +207,11 @@ PIXA    *pixa;
  *              connectivity (4 or 8)
  *              minw  (minimum width to consider; use 0 or 1 for any width)
  *              minh  (minimum height to consider; use 0 or 1 for any height)
- *      Return: pix with holes filled in selected c.c., or null on error
+ *      Return: pix (with holes filled in selected c.c.), or null on error
  */
 PIX *
 pixSelectiveConnCompFill(PIX     *pixs,
-		         l_int32  connectivity,
+                         l_int32  connectivity,
                          l_int32  minw,
                          l_int32  minh)
 {
@@ -151,30 +223,30 @@ PIXA    *pixa;
     PROCNAME("pixSelectiveConnCompFill");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
     if (minw <= 0) minw = 1;
     if (minh <= 0) minh = 1;
 
     if ((pixd = pixCopy(NULL, pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     if ((boxa = pixConnComp(pixs, &pixa, connectivity)) == NULL)
-	return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
+        return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
     n = boxaGetCount(boxa);
     for (i = 0; i < n; i++) {
         boxaGetBoxGeometry(boxa, i, &x, &y, &w, &h);
-	if (w >= minw && h >= minh) {
-	    if ((pixt1 = pixaGetPix(pixa, i, L_CLONE)) == NULL)
-		return (PIX *)ERROR_PTR("pixt1 not found", procName, NULL);
-	    if ((pixt2 = pixHolesByFilling(pixt1, 12 - connectivity)) == NULL)
-		return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
-	    pixRasterop(pixd, x, y, w, h, PIX_PAINT, pixt2, 0, 0);
-	    pixDestroy(&pixt1);
-	    pixDestroy(&pixt2);
-	}
+        if (w >= minw && h >= minh) {
+            if ((pixt1 = pixaGetPix(pixa, i, L_CLONE)) == NULL)
+                return (PIX *)ERROR_PTR("pixt1 not found", procName, NULL);
+            if ((pixt2 = pixHolesByFilling(pixt1, 12 - connectivity)) == NULL)
+                return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
+            pixRasterop(pixd, x, y, w, h, PIX_PAINT, pixt2, 0, 0);
+            pixDestroy(&pixt1);
+            pixDestroy(&pixt2);
+        }
     }
     pixaDestroy(&pixa);
     boxaDestroy(&boxa);
@@ -225,16 +297,16 @@ SEL     *sel;
     PROCNAME("pixRemoveMatchedPattern");
 
     if (!pixs)
-	return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!pixp)
-	return ERROR_INT("pixp not defined", procName, 1);
+        return ERROR_INT("pixp not defined", procName, 1);
     if (!pixe)
-	return ERROR_INT("pixe not defined", procName, 1);
+        return ERROR_INT("pixe not defined", procName, 1);
     if (pixGetDepth(pixs) != 1 || pixGetDepth(pixp) != 1 ||
         pixGetDepth(pixe) != 1)
-	return ERROR_INT("all input pix not 1 bpp", procName, 1);
+        return ERROR_INT("all input pix not 1 bpp", procName, 1);
     if (dsize < 0 || dsize > 4)
-	return ERROR_INT("dsize not in {0,1,2,3,4}", procName, 1);
+        return ERROR_INT("dsize not in {0,1,2,3,4}", procName, 1);
 
         /* Find the connected components and their centroids */
     boxa = pixConnComp(pixe, &pixa, 8);
@@ -331,14 +403,14 @@ PIXCMAP  *cmap;
     PROCNAME("pixDisplayMatchedPattern");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!pixp)
-	return (PIX *)ERROR_PTR("pixp not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixp not defined", procName, NULL);
     if (!pixe)
-	return (PIX *)ERROR_PTR("pixe not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixe not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1 || pixGetDepth(pixp) != 1 ||
         pixGetDepth(pixe) != 1)
-	return (PIX *)ERROR_PTR("all input pix not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("all input pix not 1 bpp", procName, NULL);
     if (scale > 1.0 || scale <= 0.0) {
         L_WARNING("scale > 1.0 or < 0.0; setting to 1.0", procName);
         scale = 1.0;
@@ -432,41 +504,41 @@ SEL     *sel_3;
     PROCNAME("pixSeedfillMorph");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
     if (!pixm)
-	return (PIX *)ERROR_PTR("mask pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("mask pix not defined", procName, NULL);
     if (connectivity != 4 && connectivity != 8)
-	return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, NULL);
 
     if (pixSizesEqual(pixs, pixm) == 0)
-	return (PIX *)ERROR_PTR("pix sizes unequal", procName, NULL);
+        return (PIX *)ERROR_PTR("pix sizes unequal", procName, NULL);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pix not binary", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not binary", procName, NULL);
 
     if ((sel_3 = selCreateBrick(3, 3, 1, 1, 1)) == NULL)
-	return (PIX *)ERROR_PTR("sel_3 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("sel_3 not made", procName, NULL);
     if (connectivity == 4) {  /* remove corner hits to make a '+' */
-	selSetElement(sel_3, 0, 0, SEL_DONT_CARE);
-	selSetElement(sel_3, 2, 2, SEL_DONT_CARE);
-	selSetElement(sel_3, 2, 0, SEL_DONT_CARE);
-	selSetElement(sel_3, 0, 2, SEL_DONT_CARE);
+        selSetElement(sel_3, 0, 0, SEL_DONT_CARE);
+        selSetElement(sel_3, 2, 2, SEL_DONT_CARE);
+        selSetElement(sel_3, 2, 0, SEL_DONT_CARE);
+        selSetElement(sel_3, 0, 2, SEL_DONT_CARE);
     }
 
     if ((pixt1 = pixCopy(NULL, pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     iter = 0;
     while (1) {
-	iter++;
-	pixDilate(pixd, pixt1, sel_3);
-	pixAnd(pixd, pixd, pixm);
-	pixEqual(pixd, pixt1, &same);
-	if (same)
-	    break;
-	else
-	    SWAP(pixt1, pixd);
+        iter++;
+        pixDilate(pixd, pixt1, sel_3);
+        pixAnd(pixd, pixd, pixm);
+        pixEqual(pixd, pixt1, &same);
+        if (same)
+            break;
+        else
+            SWAP(pixt1, pixd);
     }
     fprintf(stderr, " Num iters in binary reconstruction = %d\n", iter);
 
@@ -492,9 +564,9 @@ SEL     *sel_3;
  */
 NUMA *
 pixRunHistogramMorph(PIX     *pixs,
-		     l_int32  runtype,
-		     l_int32  direction,
-		     l_int32  maxsize)
+                     l_int32  runtype,
+                     l_int32  direction,
+                     l_int32  maxsize)
 {
 l_int32    count, i;
 l_float32  val;
@@ -505,62 +577,62 @@ SEL       *sel_2a;
     PROCNAME("pixRunHistogramMorph");
 
     if (!pixs)
-	return (NUMA *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("seed pix not defined", procName, NULL);
     if (runtype != L_RUN_OFF && runtype != L_RUN_ON)
-	return (NUMA *)ERROR_PTR("invalid run type", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid run type", procName, NULL);
     if (direction != L_HORIZ && direction != L_VERT)
-	return (NUMA *)ERROR_PTR("direction not in {L_HORIZ, L_VERT}",
-	                         procName, NULL);
+        return (NUMA *)ERROR_PTR("direction not in {L_HORIZ, L_VERT}",
+                                 procName, NULL);
 
     if (pixGetDepth(pixs) != 1)
-	return (NUMA *)ERROR_PTR("pixs must be binary", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs must be binary", procName, NULL);
 
     if ((na = numaCreate(0)) == NULL)
-	return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
 
     if (direction == L_HORIZ)
-	sel_2a = selCreateBrick(1, 2, 0, 0, 1);
+        sel_2a = selCreateBrick(1, 2, 0, 0, 1);
     else   /* direction == L_VERT */
-	sel_2a = selCreateBrick(2, 1, 0, 0, 1);
+        sel_2a = selCreateBrick(2, 1, 0, 0, 1);
     if (!sel_2a)
-	return (NUMA *)ERROR_PTR("sel_2a not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("sel_2a not made", procName, NULL);
 
     if (runtype == L_RUN_OFF) {
-	if ((pixt1 = pixCopy(NULL, pixs)) == NULL)
-	    return (NUMA *)ERROR_PTR("pix1 not made", procName, NULL);
-	pixInvert(pixt1, pixt1);
+        if ((pixt1 = pixCopy(NULL, pixs)) == NULL)
+            return (NUMA *)ERROR_PTR("pix1 not made", procName, NULL);
+        pixInvert(pixt1, pixt1);
     }
     else  /* runtype == L_RUN_ON */
-	pixt1 = pixClone(pixs);
+        pixt1 = pixClone(pixs);
 
     if ((pixt2 = pixCreateTemplate(pixs)) == NULL)
-	return (NUMA *)ERROR_PTR("pix2 not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix2 not made", procName, NULL);
     if ((pixt3 = pixCreateTemplate(pixs)) == NULL)
-	return (NUMA *)ERROR_PTR("pix3 not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix3 not made", procName, NULL);
 
-	/* get pixel counts at different stages of erosion */
+        /* get pixel counts at different stages of erosion */
     pixCountPixels(pixt1, &count, NULL);
     numaAddNumber(na, count);
     pixErode(pixt2, pixt1, sel_2a);
     pixCountPixels(pixt2, &count, NULL);
     numaAddNumber(na, count);
     for (i = 0; i < maxsize / 2; i++) {
-	pixErode(pixt3, pixt2, sel_2a);
-	pixCountPixels(pixt3, &count, NULL);
-	numaAddNumber(na, count);
-	pixErode(pixt2, pixt3, sel_2a);
-	pixCountPixels(pixt2, &count, NULL);
-	numaAddNumber(na, count);
-/*	if (i == 4) pixWrite("junkoutt", pixt2, IFF_PNG); */
+        pixErode(pixt3, pixt2, sel_2a);
+        pixCountPixels(pixt3, &count, NULL);
+        numaAddNumber(na, count);
+        pixErode(pixt2, pixt3, sel_2a);
+        pixCountPixels(pixt2, &count, NULL);
+        numaAddNumber(na, count);
+/*        if (i == 4) pixWrite("junkoutt", pixt2, IFF_PNG); */
     }
 
-	/* compute length histogram */
+        /* compute length histogram */
     if ((nah = numaCreate(na->n)) == NULL)
-	return (NUMA *)ERROR_PTR("nah not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nah not made", procName, NULL);
     numaAddNumber(nah, 0); /* number at length 0 */
     for (i = 1; i < na->n - 1; i++) {
-	val = na->array[i+1] - 2 * na->array[i] + na->array[i-1];
-	numaAddNumber(nah, val);
+        val = na->array[i+1] - 2 * na->array[i] + na->array[i-1];
+        numaAddNumber(nah, val);
 /*        fprintf(stderr, "i = %d, val = %f\n", i, nah->array[i]); */
     }
 
@@ -583,105 +655,209 @@ SEL       *sel_2a;
  *      Input:  pixs
  *              hsize (of Sel; must be odd; origin implicitly in center)
  *              vsize (ditto)
- *              type   (TOPHAT_WHITE: image - opening
- *                      TOPHAT_BLACK: closing - image)
+ *              type   (L_TOPHAT_WHITE: image - opening
+ *                      L_TOPHAT_BLACK: closing - image)
  *      Return: pixd, or null on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) If hsize = vsize = 1, returns an image with all 0 data.
- *      (3) The TOPHAT_WHITE flag emphasizes small bright regions,
- *          whereas the TOPHAT_BLACK flag emphasizes small dark regions.
- *          The TOPHAT_WHITE tophat can be accomplished by doing a
- *          TOPHAT_BLACK tophat on the inverse, or v.v.
+ *      (3) The L_TOPHAT_WHITE flag emphasizes small bright regions,
+ *          whereas the L_TOPHAT_BLACK flag emphasizes small dark regions.
+ *          The L_TOPHAT_WHITE tophat can be accomplished by doing a
+ *          L_TOPHAT_BLACK tophat on the inverse, or v.v.
  */
 PIX *
 pixTophat(PIX     *pixs,
-	  l_int32  hsize,
-	  l_int32  vsize,
-	  l_int32  type)
+          l_int32  hsize,
+          l_int32  vsize,
+          l_int32  type)
 {
 PIX  *pixd;
 
     PROCNAME("pixTophat");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
     if ((hsize & 1) == 0 ) {
-	L_WARNING("horiz sel size must be odd; increasing by 1", procName);
-	hsize++;
+        L_WARNING("horiz sel size must be odd; increasing by 1", procName);
+        hsize++;
     }
     if ((vsize & 1) == 0 ) {
-	L_WARNING("vert sel size must be odd; increasing by 1", procName);
-	vsize++;
+        L_WARNING("vert sel size must be odd; increasing by 1", procName);
+        vsize++;
     }
-    if (type != TOPHAT_WHITE && type != TOPHAT_BLACK)
-	return (PIX *)ERROR_PTR("type must be TOPHAT_BLACK or TOPHAT_WHITE",
+    if (type != L_TOPHAT_WHITE && type != L_TOPHAT_BLACK)
+        return (PIX *)ERROR_PTR("type must be L_TOPHAT_BLACK or L_TOPHAT_WHITE",
                                 procName, NULL);
 
     if (hsize == 1 && vsize == 1)
-	return pixCreateTemplate(pixs);
+        return pixCreateTemplate(pixs);
 
     switch (type)
     {
-    case TOPHAT_WHITE:
-	if ((pixd = pixOpenGray(pixs, hsize, vsize)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-	pixSubtractGray(pixd, pixs, pixd);
-	break;
-    case TOPHAT_BLACK:
-	if ((pixd = pixCloseGray(pixs, hsize, vsize)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-	pixSubtractGray(pixd, pixd, pixs);
-	break;
+    case L_TOPHAT_WHITE:
+        if ((pixd = pixOpenGray(pixs, hsize, vsize)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        pixSubtractGray(pixd, pixs, pixd);
+        break;
+    case L_TOPHAT_BLACK:
+        if ((pixd = pixCloseGray(pixs, hsize, vsize)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        pixSubtractGray(pixd, pixd, pixs);
+        break;
     default:
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
     }
 
     return pixd;
 }
-	
+        
 
 /*!
  *  pixHDome()
  *
  *      Input:  pixs
- *              height (of hdome; should be > 0)
+ *              height (of hdome; must be >= 0)
+ *              connectivity (4 or 8)
  *      Return: pixd, or null on error
  *
  *  Notes:
- *      (1) We use connectivity of 4 for the fill.
- *      (2) pixd starts as a seed, with every pixel value set to be
- *          'height' less than the corresponding pixel in pixs.  Then
- *          do a grayscale seed fill, clipping pixd to the mask pixs.
- *          Finally, subtract the result from the original.
+ *      (1) It is more efficient to use a connectivity of 4 for the fill.
+ *      (2) It is useful to compare the HDome operation with the TopHat.
+ *          The latter extracts peaks or valleys that have a width
+ *          not exceeding the size of the structuring element used
+ *          in the opening or closing, rsp.  The height of the peak is
+ *          irrelevant.  By contrast, for the HDome, the gray seedfill
+ *          is be used to extract all peaks that have a height not exceeding
+ *          a given value, regardless of their width!
+ *      (3) The method: the filling mask, pixs, is the image whose peaks
+ *          are to be extracted.  The height of a peak is the distance
+ *          between the top of the peak and the highest "leak" to the
+ *          outside -- think of a sombrero, where the leak occurs
+ *          at the highest point on the rim.
+ *            (a) Generate a seed, pixd, by subtracting some value, p, from
+ *                each pixel in the filling mask, pixs.  The value p is
+ *                the 'height' input to this function.
+ *            (b) Fill in pixd starting with this seed, clipping by pixs,
+ *                in the way described in seedfillGrayLow().  The filling
+ *                stops before the peaks in pixs are filled.
+ *                For peaks that have a height > p, pixd is filled to
+ *                the level equal to the (top-of-the-peak - p).
+ *                For peaks of height < p, the peak is left unfilled
+ *                from its highest saddle point (the leak to the outside).
+ *            (c) Subtract the filled seed (pixd) from the filling mask (pixs).
+ *          Note that in this procedure, everything is done starting
+ *          with the filling mask, pixs.
  */
 PIX *
 pixHDome(PIX     *pixs,
-	 l_int32  height)
+         l_int32  height,
+         l_int32  connectivity)
 {
 PIX  *pixd;
 
     PROCNAME("pixHDome");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("src pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("src pix not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (height < 0)
+        return (PIX *)ERROR_PTR("height not >= 0", procName, NULL);
+    if (height == 0)
+        return pixCreateTemplate(pixs);
 
     if ((pixd = pixCopy(NULL, pixs)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixAddConstantGray(pixd, - L_ABS(height));
-    pixSeedfillGray(pixd, pixs, 4);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixAddConstantGray(pixd, -height);
+    pixSeedfillGray(pixd, pixs, connectivity);
     pixSubtractGray(pixd, pixs, pixd);
 
     return pixd;
 }
 
+
+/*!
+ *  pixFastTophat()
+ *
+ *      Input:  pixs
+ *              xsize (width of max/min op, smoothing; any integer >= 1)
+ *              ysize (height of max/min op, smoothing; any integer >= 1)
+ *              type   (L_TOPHAT_WHITE: image - min
+ *                      L_TOPHAT_BLACK: max - image)
+ *      Return: pixd, or null on error
+ *
+ *  Notes:
+ *      (1) Don't be fooled. This is NOT a tophat.  It is a tophat-like
+ *          operation, where the result is similar to what you'd get
+ *          if you used an erosion instead of an opening, or a dilation
+ *          instead of a closing.
+ *      (2) Instead of opening or closing at full resolution, it does
+ *          a fast downscale/minmax operation, then a quick small smoothing
+ *          at low res, a replicative expansion of the "background"
+ *          to full res, and finally a removal of the background level
+ *          from the input image.  The smoothing step may not be important.
+ *      (3) It does not remove noise as well as a tophat, but it is
+ *          5 to 10 times faster.
+ *          If you need the preciseness of the tophat, don't use this.
+ *      (4) The L_TOPHAT_WHITE flag emphasizes small bright regions,
+ *          whereas the L_TOPHAT_BLACK flag emphasizes small dark regions.
+ */
+PIX *
+pixFastTophat(PIX     *pixs,
+              l_int32  xsize,
+              l_int32  ysize,
+              l_int32  type)
+{
+PIX  *pixt1, *pixt2, *pixd;
+
+    PROCNAME("pixFastTophat");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 8)
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+    if (xsize < 1 || ysize < 1)
+        return (PIX *)ERROR_PTR("size < 1", procName, NULL);
+    if (type != L_TOPHAT_WHITE && type != L_TOPHAT_BLACK)
+        return (PIX *)ERROR_PTR("type must be L_TOPHAT_BLACK or L_TOPHAT_WHITE",
+                                procName, NULL);
+
+    if (xsize == 1 && ysize == 1)
+        return pixCreateTemplate(pixs);
+
+    switch (type)
+    {
+    case L_TOPHAT_WHITE:
+        if ((pixt1 = pixScaleGrayMinMax(pixs, xsize, ysize, L_CHOOSE_MIN))
+               == NULL)
+            return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
+        pixt2 = pixBlockconv(pixt1, 1, 1);  /* small smoothing */
+        pixd = pixScaleBySampling(pixt2, xsize, ysize);
+        pixSubtractGray(pixd, pixs, pixd);
+        break;
+    case L_TOPHAT_BLACK:
+        if ((pixt1 = pixScaleGrayMinMax(pixs, xsize, ysize, L_CHOOSE_MAX))
+               == NULL)
+            return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
+        pixt2 = pixBlockconv(pixt1, 1, 1);  /* small smoothing */
+        pixd = pixScaleBySampling(pixt2, xsize, ysize);
+        pixSubtractGray(pixd, pixd, pixs);
+        break;
+    default:
+        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+    }
+
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    return pixd;
+}
+        
 
 /*!
  *  pixMorphGradient()
@@ -695,31 +871,31 @@ PIX  *pixd;
  */
 PIX *
 pixMorphGradient(PIX     *pixs,
-	         l_int32  hsize,
-	         l_int32  vsize,
-	         l_int32  smoothing)
+                 l_int32  hsize,
+                 l_int32  vsize,
+                 l_int32  smoothing)
 {
 PIX  *pixg, *pixd;
 
     PROCNAME("pixMorphGradient");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
     if (pixGetDepth(pixs) != 8)
-	return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
     if ((hsize & 1) == 0 ) {
-	L_WARNING("horiz sel size must be odd; increasing by 1", procName);
-	hsize++;
+        L_WARNING("horiz sel size must be odd; increasing by 1", procName);
+        hsize++;
     }
     if ((vsize & 1) == 0 ) {
-	L_WARNING("vert sel size must be odd; increasing by 1", procName);
-	vsize++;
+        L_WARNING("vert sel size must be odd; increasing by 1", procName);
+        vsize++;
     }
 
         /* optionally smooth first to remove noise.
-	 * If smoothing is 0, just get a copy */
+         * If smoothing is 0, just get a copy */
     pixg = pixBlockconvGray(pixs, NULL, smoothing, smoothing);
 
         /* this gives approximately the gradient of a transition */
@@ -756,26 +932,26 @@ PTA       *pta;
     PROCNAME("pixaCentroids");
 
     if (!pixa)
-	return (PTA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixa not defined", procName, NULL);
     if ((n = pixaGetCount(pixa)) == 0)
-	return (PTA *)ERROR_PTR("no pix in pixa", procName, NULL);
+        return (PTA *)ERROR_PTR("no pix in pixa", procName, NULL);
     pix = pixaGetPix(pixa, 0, L_CLONE);
     d = pixGetDepth(pix);
     pixDestroy(&pix);
     if (d != 1 && d != 8)
-	return (PTA *)ERROR_PTR("depth not 1 or 8 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("depth not 1 or 8 bpp", procName, NULL);
 
     if ((pta = ptaCreate(n)) == NULL)
-	return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
 
     for (k = 0; k < n; k++) {
-	pix = pixaGetPix(pixa, k, L_CLONE);
-	w = pixGetWidth(pix);
-	h = pixGetHeight(pix);
-	data = pixGetData(pix);
-	wpl = pixGetWpl(pix);
-	xsum = ysum = 0.0;
-	pixsum = 0;
+        pix = pixaGetPix(pixa, k, L_CLONE);
+        w = pixGetWidth(pix);
+        h = pixGetHeight(pix);
+        data = pixGetData(pix);
+        wpl = pixGetWpl(pix);
+        xsum = ysum = 0.0;
+        pixsum = 0;
         if (d == 1) {
             for (i = 0; i < h; i++) {
                 line = data + wpl * i;
@@ -817,7 +993,7 @@ PTA       *pta;
                 ptaAddPt(pta, xave, yave);
             }
         }
-	pixDestroy(&pix);
+        pixDestroy(&pix);
     }
 
     return pta;

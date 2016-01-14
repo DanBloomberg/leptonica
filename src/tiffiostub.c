@@ -52,6 +52,12 @@ l_int32 pixWriteStreamTiff ( FILE *fp, PIX *pix, l_int32 comptype )
     return ERROR_INT("function not present", procName, 1);
 }
 
+l_int32 pixWriteToTiffStream ( TIFF *tif, PIX *pix, l_int32 comptype, NUMA *natags, SARRAY *savals, SARRAY *satypes, NUMA *nasizes )
+{
+    PROCNAME("pixWriteToTiffStream");
+    return ERROR_INT("function not present", procName, 1);
+}
+
 l_int32 fprintTiffInfo ( FILE *fpout, const char *tiffile )
 {
     PROCNAME("fprintTiffInfo");

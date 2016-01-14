@@ -109,7 +109,7 @@ static const l_int32  MIN_RES                 = 5;
 static const l_int32  MAX_RES                 = 3000;
 static const l_int32  MAX_85_LINE_COUNT       = 64;
 
-    /* for computing resolution that fills page to desired amount */
+    /* For computing resolution that fills page to desired amount */
 static const l_int32  LETTER_WIDTH            = 612;   /* points */
 static const l_int32  LETTER_HEIGHT           = 792;   /* points */
 static const l_int32  A4_WIDTH                = 595;   /* points */
@@ -169,11 +169,11 @@ static l_int32  getTwoByteParameter(l_uint8 *, l_int32);
 l_int32
 convertToPSEmbed(const char  *filein,
                  const char  *fileout,
-		 l_int32     level)
+                 l_int32     level)
 {
-l_int32    d, format;
-FILE      *fp;
-PIX       *pix, *pixs;
+l_int32  d, format;
+FILE    *fp;
+PIX     *pix, *pixs;
 
     PROCNAME("convertToPSEmbed");
 
@@ -184,29 +184,29 @@ PIX       *pix, *pixs;
 
     if (level == 1) {
         pixWritePSEmbed(filein, fileout);
-	return 0;
+        return 0;
     }
 
         /* We must write out level 2 PS */
     if ((fp = fopen(filein, "r")) == NULL)
-	return ERROR_INT("filein not found", procName, 1);
+        return ERROR_INT("filein not found", procName, 1);
     format = findFileFormat(fp);
     fclose(fp);
     if (format == IFF_JFIF_JPEG) {  /* write out directly */
         convertJpegToPSEmbed(filein, fileout);
-	return 0;
+        return 0;
     }
 
         /* We need to convert to jpeg or tiff g4.
-	 * If it's already in tiff g4 format, we take the hit of
-	 * reading it in and writing it back out the same way. */
+         * If it's already in tiff g4 format, we take the hit of
+         * reading it in and writing it back out the same way. */
     if ((pixs = pixRead(filein)) == NULL)
-	return ERROR_INT("image not read from file", procName, 1);
+        return ERROR_INT("image not read from file", procName, 1);
     d = pixGetDepth(pixs);
     if (d == 16)
         pix = pixConvert16To8(pixs, 1);
     else
-	pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+        pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     d = pixGetDepth(pix);
     if (d == 1) {
         pixWrite(TEMP_G4TIFF_FILE, pix, IFF_TIFF_G4);
@@ -221,7 +221,6 @@ PIX       *pix, *pixs;
     pixDestroy(&pixs);
     return 0;
 }
-
 
 
 /*-------------------------------------------------------------*
@@ -263,9 +262,9 @@ PIX       *pix;
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
     if (w * 11.0 > h * 8.5)
-	scale = 8.5 * 300. / (l_float32)w;
+        scale = 8.5 * 300. / (l_float32)w;
     else
-	scale = 11.0 * 300. / (l_float32)h;
+        scale = 11.0 * 300. / (l_float32)h;
 
     if ((fp = fopen(fileout, "w")) == NULL)
         return ERROR_INT("file not opened for write", procName, 1);
@@ -287,17 +286,18 @@ PIX       *pix;
  *              scale (to prevent scaling, use either 1.0 or 0.0)
  *      Return: 0 if OK; 1 on error
  *
- *  Action: writes image in PS format, optionally scaled,
+ *  Notes:
+ *      (1) This writes image in PS format, optionally scaled,
  *          adjusted for the printer resolution, and with
- *          a bounding box.  For details on use of parameters,
- *          see pixWriteStringPS().
+ *          a bounding box.
+ *      (2) For details on use of parameters, see pixWriteStringPS().
  */
 l_int32
 pixWriteStreamPS(FILE      *fp,
                  PIX       *pix,
-		 BOX       *box,
-		 l_int32    res,
-		 l_float32  scale)
+                 BOX       *box,
+                 l_int32    res,
+                 l_float32  scale)
 {
 char    *pstring;
 l_int32  length;
@@ -316,7 +316,7 @@ PIX     *pixc;
     pstring = pixWriteStringPS(pixc, box, res, scale);
     length = strlen(pstring);
     fwrite(pstring, 1, length, fp);
-    FREE((void *)pstring);
+    FREE(pstring);
     pixDestroy(&pixc);
 
     return 0;
@@ -385,8 +385,8 @@ PIX     *pixc;
 char *
 pixWriteStringPS(PIX       *pixs,
                  BOX       *box,
-		 l_int32    res,
-		 l_float32  scale)
+                 l_int32    res,
+                 l_float32  scale)
 {
 char       nib1, nib2;
 char       bigbuf[L_BUF_SIZE];
@@ -408,62 +408,62 @@ SARRAY    *sa;
     if (d == 16)
         pix = pixConvert16To8(pixs, 1);
     else
-	pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+        pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     d = pixGetDepth(pix);
 
-        /* get the factors by which PS scales and translates, in pts */
+        /* Get the factors by which PS scales and translates, in pts */
     wpix = pixGetWidth(pix);
     hpix = pixGetHeight(pix);
     if (!box)
-	boxflag = 0;  /* no scaling; b.b. at center */
+        boxflag = 0;  /* no scaling; b.b. at center */
     else
-	boxflag = 1;  /* no b.b., specify placement and optional scaling */
+        boxflag = 1;  /* no b.b., specify placement and optional scaling */
     getScaledParametersPS(box, wpix, hpix, res, scale, &xpt, &ypt, &wpt, &hpt);
 
     if (d == 1)
-	sampledepth = 1;
+        sampledepth = 1;
     else  /* d == 8 || d == 32 */
-	sampledepth = 8;
+        sampledepth = 8;
 
-	/* convert image data to hex string */
+        /* Convert image data to hex string */
     wpl = pixGetWpl(pix);
     if (d == 1 || d == 8)
-	psbpl = (wpix * d + 7) / 8;   /* packed to byte boundary */
+        psbpl = (wpix * d + 7) / 8;   /* packed to byte boundary */
     else /* d == 32 */
-	psbpl = 3 * wpix;   /* packed to byte boundary */
+        psbpl = 3 * wpix;   /* packed to byte boundary */
     data = pixGetData(pix);
     hexbytes = 2 * psbpl * hpix;  /* size of ps hex array */
     if ((hexdata = (char *)CALLOC(hexbytes + 1, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("hexdata not made", procName, NULL);
     if (d == 1 || d == 8) {
-	for (i = 0, k = 0; i < hpix; i++) {
-	    line = data + i * wpl;
-	    for (j = 0; j < psbpl; j++) {
-		byteval = GET_DATA_BYTE(line, j);
-		convertByteToHexAscii(byteval, &nib1, &nib2);
-		hexdata[k++] = nib1;
-		hexdata[k++] = nib2;
-	    }
-	}
+        for (i = 0, k = 0; i < hpix; i++) {
+            line = data + i * wpl;
+            for (j = 0; j < psbpl; j++) {
+                byteval = GET_DATA_BYTE(line, j);
+                convertByteToHexAscii(byteval, &nib1, &nib2);
+                hexdata[k++] = nib1;
+                hexdata[k++] = nib2;
+            }
+        }
     }
     else  {  /* d == 32; hexdata bytes packed RGBRGB..., 2 per sample */
-	for (i = 0, k = 0; i < hpix; i++) {
-	    line = data + i * wpl;
-	    for (j = 0; j < wpix; j++) {
-		byteval = GET_DATA_BYTE(line + j, 0);  /* red */
-		convertByteToHexAscii(byteval, &nib1, &nib2);
-		hexdata[k++] = nib1;
-		hexdata[k++] = nib2;
-		byteval = GET_DATA_BYTE(line + j, 1);  /* green */
-		convertByteToHexAscii(byteval, &nib1, &nib2);
-		hexdata[k++] = nib1;
-		hexdata[k++] = nib2;
-		byteval = GET_DATA_BYTE(line + j, 2);  /* blue */
-		convertByteToHexAscii(byteval, &nib1, &nib2);
-		hexdata[k++] = nib1;
-		hexdata[k++] = nib2;
-	    }
-	}
+        for (i = 0, k = 0; i < hpix; i++) {
+            line = data + i * wpl;
+            for (j = 0; j < wpix; j++) {
+                byteval = GET_DATA_BYTE(line + j, 0);  /* red */
+                convertByteToHexAscii(byteval, &nib1, &nib2);
+                hexdata[k++] = nib1;
+                hexdata[k++] = nib2;
+                byteval = GET_DATA_BYTE(line + j, 1);  /* green */
+                convertByteToHexAscii(byteval, &nib1, &nib2);
+                hexdata[k++] = nib1;
+                hexdata[k++] = nib2;
+                byteval = GET_DATA_BYTE(line + j, 2);  /* blue */
+                convertByteToHexAscii(byteval, &nib1, &nib2);
+                hexdata[k++] = nib1;
+                hexdata[k++] = nib2;
+            }
+        }
     }
     hexdata[k] = '\0';
 
@@ -472,56 +472,57 @@ SARRAY    *sa;
 
     sarrayAddString(sa, "%!Adobe-PS", 1);
     if (boxflag == 0) {
-	sprintf(bigbuf,
-	    "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
+        sprintf(bigbuf,
+            "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
             xpt, ypt, xpt + wpt, ypt + hpt);
-	sarrayAddString(sa, bigbuf, 1);
+        sarrayAddString(sa, bigbuf, 1);
     }
     else    /* boxflag == 1 */
-	sarrayAddString(sa, "gsave", 1);
+        sarrayAddString(sa, "gsave", 1);
 
     if (d == 1)
-	sarrayAddString(sa, "{1 exch sub} settransfer    %invert binary", 1);
+        sarrayAddString(sa, "{1 exch sub} settransfer    %invert binary", 1);
 
     sprintf(bigbuf, "/bpl %d string def         %%bpl as a string", psbpl);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf,
-	"%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
+        "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf,
-	"%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
+        "%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf,
-	"%d %d %d                 %%image dimensions in pixels",
-	    wpix, hpix, sampledepth);
+        "%d %d %d                 %%image dimensions in pixels",
+            wpix, hpix, sampledepth);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf,
-	"[%d %d %d %d %d %d]     %%mapping matrix: [wpix 0 0 -hpix 0 hpix]",
-	       wpix, 0, 0, -hpix, 0, hpix);
+        "[%d %d %d %d %d %d]     %%mapping matrix: [wpix 0 0 -hpix 0 hpix]",
+               wpix, 0, 0, -hpix, 0, hpix);
     sarrayAddString(sa, bigbuf, 1);
 
     if (boxflag == 0) {
         if (d == 1 || d == 8)
-	    sarrayAddString(sa, "{currentfile bpl readhexstring pop} image", 1);
-	else  /* d == 32 */
-	    sarrayAddString(sa,
-	        "{currentfile bpl readhexstring pop} false 3 colorimage", 1);
+            sarrayAddString(sa, "{currentfile bpl readhexstring pop} image", 1);
+        else  /* d == 32 */
+            sarrayAddString(sa,
+                "{currentfile bpl readhexstring pop} false 3 colorimage", 1);
     }
     else {  /* boxflag == 1 */
         if (d == 1 || d == 8)
-	    sarrayAddString(sa,
-	        "{currentfile bpl readhexstring pop} bind image",1);
-	else  /* d == 32 */
-	    sarrayAddString(sa,
-	        "{currentfile bpl readhexstring pop} bind false 3 colorimage",1);
+            sarrayAddString(sa,
+                "{currentfile bpl readhexstring pop} bind image", 1);
+        else  /* d == 32 */
+            sarrayAddString(sa,
+                "{currentfile bpl readhexstring pop} bind false 3 colorimage",
+                 1);
     }
 
     sarrayAddString(sa, hexdata, 0);
 
     if (boxflag == 0)
-	sarrayAddString(sa, "\nshowpage", 1);
+        sarrayAddString(sa, "\nshowpage", 1);
     else  /* boxflag == 1 */
-	sarrayAddString(sa, "\ngrestore", 1);
+        sarrayAddString(sa, "\ngrestore", 1);
 
     if ((pstring = sarrayToString(sa, 1)) == NULL)
         return (char *)ERROR_PTR("pstring not made", procName, NULL);
@@ -541,80 +542,79 @@ SARRAY    *sa;
  *              hpix (pix height in pixels)
  *              res (of printer; use 0 for default)
  *              scale (use 1.0 or 0.0 for no scaling) 
- *             &xpt (location of llx in pts)
- *             &ypt (location of lly in pts)
- *             &wpt (image width in pts)
- *             &hpt (image height in pts)
- *
+ *              &xpt (location of llx in pts)
+ *              &ypt (location of lly in pts)
+ *              &wpt (image width in pts)
+ *              &hpt (image height in pts)
  *      Return: void (no arg checking)
  *
  *  Notes:
- *      (1) the image is always scaled, depending on res and scale
- *      (2) if no box, the image is centered on the page
- *      (3) if there is a box, the image is placed within it
+ *      (1) The image is always scaled, depending on res and scale.
+ *      (2) If no box, the image is centered on the page.
+ *      (3) If there is a box, the image is placed within it.
  */
 void
 getScaledParametersPS(BOX        *box,
-		      l_int32     wpix,
-		      l_int32     hpix,
+                      l_int32     wpix,
+                      l_int32     hpix,
                       l_int32     res,
-		      l_float32   scale,
-		      l_float32  *pxpt,
-		      l_float32  *pypt,
-		      l_float32  *pwpt,
-		      l_float32  *phpt)
+                      l_float32   scale,
+                      l_float32  *pxpt,
+                      l_float32  *pypt,
+                      l_float32  *pwpt,
+                      l_float32  *phpt)
 {
 l_float32  winch, hinch, xinch, yinch, fres;
 
     PROCNAME("getScaledParametersPS");
 
     if (res == 0)
-	res = DEFAULT_PRINTER_RES;
+        res = DEFAULT_PRINTER_RES;
     fres = (l_float32)res;
 
-	/* allow the PS interpreter to scale the resolution */
+        /* Allow the PS interpreter to scale the resolution */
     if (scale == 0.0)
-	scale = 1.0;
+        scale = 1.0;
     if (scale != 1.0) {
-	fres = (l_float32)res / scale;
+        fres = (l_float32)res / scale;
         res = (l_int32)fres;
     }
 
-        /* limit valid resolution interval */
+        /* Limit valid resolution interval */
     if (res < MIN_RES || res > MAX_RES) {
-	L_WARNING_INT("res %d out of bounds; using default res; no scaling",
+        L_WARNING_INT("res %d out of bounds; using default res; no scaling",
                       procName, res);
-	res = DEFAULT_PRINTER_RES;
+        res = DEFAULT_PRINTER_RES;
         fres = (l_float32)res;
     }
 
     if (!box) {  /* center on page */
-	winch = (l_float32)wpix / fres;
-	hinch = (l_float32)hpix / fres;
-	xinch = (8.5 - winch) / 2.;
-	yinch = (11.0 - hinch) / 2.;
+        winch = (l_float32)wpix / fres;
+        hinch = (l_float32)hpix / fres;
+        xinch = (8.5 - winch) / 2.;
+        yinch = (11.0 - hinch) / 2.;
     }
     else {
-	if (box->w == 0)
-	    winch = (l_float32)wpix / fres;
-	else
-	    winch = (l_float32)box->w / 1000.;
-	if (box->h == 0)
-	    hinch = (l_float32)hpix / fres;
-	else
-	    hinch = (l_float32)box->h / 1000.;
-	xinch = (l_float32)box->x / 1000.;
-	yinch = (l_float32)box->y / 1000.;
+        if (box->w == 0)
+            winch = (l_float32)wpix / fres;
+        else
+            winch = (l_float32)box->w / 1000.;
+        if (box->h == 0)
+            hinch = (l_float32)hpix / fres;
+        else
+            hinch = (l_float32)box->h / 1000.;
+        xinch = (l_float32)box->x / 1000.;
+        yinch = (l_float32)box->y / 1000.;
     }
 
     if (xinch < 0)
-	L_WARNING("left edge < 0.0 inch", procName);
+        L_WARNING("left edge < 0.0 inch", procName);
     if (xinch + winch > 8.5)
-	L_WARNING("right edge > 8.5 inch", procName);
+        L_WARNING("right edge > 8.5 inch", procName);
     if (yinch < 0.0)
-	L_WARNING("bottom edge < 0.0 inch", procName);
+        L_WARNING("bottom edge < 0.0 inch", procName);
     if (yinch + hinch > 11.0)
-	L_WARNING("top edge > 11.0 inch", procName);
+        L_WARNING("top edge > 11.0 inch", procName);
 
     *pwpt = 72. * winch;
     *phpt = 72. * hinch;
@@ -634,20 +634,20 @@ l_float32  winch, hinch, xinch, yinch, fres;
 void
 convertByteToHexAscii(l_uint8  byteval,
                       char    *pnib1,
-		      char    *pnib2)
+                      char    *pnib2)
 {
 l_uint8  nib;
 
     nib = byteval >> 4;
     if (nib < 10)
-	*pnib1 = '0' + nib;
+        *pnib1 = '0' + nib;
     else
-	*pnib1 = 'a' + (nib - 10);
+        *pnib1 = 'a' + (nib - 10);
     nib = byteval & 0xf;
     if (nib < 10)
-	*pnib2 = '0' + nib;
+        *pnib2 = '0' + nib;
     else
-	*pnib2 = 'a' + (nib - 10);
+        *pnib2 = 'a' + (nib - 10);
 
     return;
 }
@@ -691,32 +691,32 @@ SARRAY    *sa;
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-        /* the returned jpeg data in memory is the entire jpeg file,
-	 * which starts with ffd8 and ends with ffd9 */
+        /* The returned jpeg data in memory is the entire jpeg file,
+         * which starts with ffd8 and ends with ffd9 */
     if (extractJpegDataFromFile(filein, &bindata, &nbinbytes,
                                 &w, &h, &bps, &spp))
         return ERROR_INT("bindata not extracted from file", procName, 1);
 
-        /* convert entire jpeg file of encoded DCT data to ascii85 */
+        /* Convert entire jpeg file of encoded DCT data to ascii85 */
     data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE((void *)bindata);
+    FREE(bindata);
     if (!data85)
         return ERROR_INT("data85 not made", procName, 1);
 
-        /* scale for 20 pt boundary and otherwise full filling
-	 * in one direction on 8.5 x 11 inch device */
+        /* Scale for 20 pt boundary and otherwise full filling
+         * in one direction on 8.5 x 11 inch device */
     xpt = 20.0;
     ypt = 20.0;
     if (w * 11.0 > h * 8.5) {
         wpt = 572.0;   /* 612 - 2 * 20 */
-	hpt = wpt * (l_float32)h / (l_float32)w;
+        hpt = wpt * (l_float32)h / (l_float32)w;
     }
     else {
         hpt = 752.0;   /* 792 - 2 * 20 */
-	wpt = hpt * (l_float32)w / (l_float32)h;
+        wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /*  -------- generate PostScript output -------- */
+        /*  -------- Generate PostScript output -------- */
     if ((sa = sarrayCreate(50)) == NULL)
         return ERROR_INT("sa not made", procName, 1);
 
@@ -725,8 +725,8 @@ SARRAY    *sa;
     sprintf(bigbuf, "%%%%Title: %s", filein);
     sarrayAddString(sa, bigbuf, 1);
     sprintf(bigbuf,
-	"%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
-		   xpt, ypt, xpt + wpt, ypt + hpt);
+        "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
+                   xpt, ypt, xpt + wpt, ypt + hpt);
     sarrayAddString(sa, bigbuf, 1);
     sarrayAddString(sa, "%%DocumentData: Clean7Bit", 1);
     sarrayAddString(sa, "%%LanguageLevel: 2", 1);
@@ -738,19 +738,19 @@ SARRAY    *sa;
     sarrayAddString(sa, "/Data RawData << >> /DCTDecode filter def", 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
+        "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
     sarrayAddString(sa, bigbuf, 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
+        "%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-	sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
+        sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
     else if (spp == 3)
-	sarrayAddString(sa, "/DeviceRGB setcolorspace", 1);
+        sarrayAddString(sa, "/DeviceRGB setcolorspace", 1);
     else  /*spp == 4 */
-	sarrayAddString(sa, "/DeviceCMYK setcolorspace", 1);
+        sarrayAddString(sa, "/DeviceCMYK setcolorspace", 1);
     
     sarrayAddString(sa, "{ << /ImageType 1", 1);
     sprintf(bigbuf, "     /Width %d", w);
@@ -764,11 +764,11 @@ SARRAY    *sa;
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-	sarrayAddString(sa, "     /Decode [0 1]", 1);
+        sarrayAddString(sa, "     /Decode [0 1]", 1);
     else if (spp == 3)
-	sarrayAddString(sa, "     /Decode [0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1]", 1);
     else   /* spp == 4 */
-	sarrayAddString(sa, "     /Decode [0 1 0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1 0 1]", 1);
     
     sarrayAddString(sa, "  >> image", 1);
     sarrayAddString(sa, "  Data closefile", 1);
@@ -782,18 +782,18 @@ SARRAY    *sa;
     sarrayDestroy(&sa);
     psbytes = strlen(pstring);
 
-	/* add the ascii85 data */
+        /* Add the ascii85 data */
     totbytes = psbytes + nbytes85;
     if ((outstr = (char *)CALLOC(totbytes + 4, sizeof(char))) == NULL)
         return ERROR_INT("outstr not made", procName, 1);
     memcpy(outstr, pstring, psbytes);
     memcpy(outstr + psbytes, data85, nbytes85);
-    FREE((void *)pstring);
-    FREE((void *)data85);
+    FREE(pstring);
+    FREE(data85);
 
     if (arrayWrite(fileout, "w", outstr, totbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
-    FREE((void *)outstr);
+    FREE(outstr);
     return 0;
 }
 
@@ -871,13 +871,13 @@ SARRAY    *sa;
 l_int32
 convertJpegToPS(const char  *filein,
                 const char  *fileout,
-		const char  *operation,
-		l_int32      x,
-		l_int32      y,
-		l_int32      res,
-	        l_float32    scale,
+                const char  *operation,
+                l_int32      x,
+                l_int32      y,
+                l_int32      res,
+                l_float32    scale,
                 l_int32      pageno,
-		l_int32      endpage)
+                l_int32      endpage)
 {
 char    *outstr;
 l_int32  nbytes;
@@ -898,7 +898,7 @@ l_int32  nbytes;
     if (arrayWrite(fileout, operation, outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
 
-    FREE((void *)outstr);
+    FREE(outstr);
     return 0;
 }
 
@@ -922,21 +922,23 @@ l_int32  nbytes;
  *                  added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: The returned PS character array is binary string, not a
- *        null-terminated ascii C string.  It has null bytes embedded in it!
+ *  Notes:
+ *      (1) The returned PS character array is binary string, not a
+ *          null-terminated ascii C string.  It has null bytes
+ *          embedded in it!
  *
  *  Usage:  See convertJpegToPS()
  */
 l_int32
 convertJpegToPSString(const char  *filein,
                       char       **poutstr,
-		      l_int32     *pnbytes,
-		      l_int32      x,
-		      l_int32      y,
-		      l_int32      res,
-	              l_float32    scale,
+                      l_int32     *pnbytes,
+                      l_int32      x,
+                      l_int32      y,
+                      l_int32      res,
+                      l_float32    scale,
                       l_int32      pageno,
-		      l_int32      endpage)
+                      l_int32      endpage)
 {
 char      *pstring, *outstr;
 char      *data85;  /* ascii85 encoded file */
@@ -957,15 +959,15 @@ SARRAY    *sa;
         return ERROR_INT("&nbytes not defined", procName, 1);
     *poutstr = NULL;
 
-        /* the returned jpeg data in memory is the entire jpeg file,
-	 * which starts with ffd8 and ends with ffd9 */
+        /* The returned jpeg data in memory is the entire jpeg file,
+         * which starts with ffd8 and ends with ffd9 */
     if (extractJpegDataFromFile(filein, &bindata, &nbinbytes,
                                 &w, &h, &bps, &spp))
         return ERROR_INT("bindata not extracted from file", procName, 1);
 
-        /* convert entire jpeg file of encoded DCT data to ascii85 */
+        /* Convert entire jpeg file of encoded DCT data to ascii85 */
     data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE((void *)bindata);
+    FREE(bindata);
     if (!data85)
         return ERROR_INT("data85 not made", procName, 1);
 
@@ -975,9 +977,9 @@ SARRAY    *sa;
            nbinbytes, nbytes85, (l_float32)nbytes85 / (l_float32)nbinbytes);
 #endif   /* DEBUG_JPEG */
 
-	/* get scaled location in pts */
+        /* Get scaled location in pts */
     if (scale == 0.0)
-	scale = 1.0;
+        scale = 1.0;
     if (res == 0)
         res = DEFAULT_PRINTER_RES;
     xpt = scale * x * 72. / res;
@@ -993,7 +995,7 @@ SARRAY    *sa;
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_JPEG */
 
-        /*  -------- generate PostScript output -------- */
+        /*  -------- Generate PostScript output -------- */
     if ((sa = sarrayCreate(50)) == NULL)
         return ERROR_INT("sa not made", procName, 1);
 
@@ -1001,10 +1003,11 @@ SARRAY    *sa;
     sarrayAddString(sa, "%%Creator: leptonica", 1);
     sprintf(bigbuf, "%%%%Title: %s", filein);
     sarrayAddString(sa, bigbuf, 1);
+
 #if  PRINT_BOUNDING_BOX
     sprintf(bigbuf,
-	"%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
-		   xpt, ypt, xpt + wpt, ypt + hpt);
+        "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
+                   xpt, ypt, xpt + wpt, ypt + hpt);
     sarrayAddString(sa, bigbuf, 1);
 #endif  /* PRINT_BOUNDING_BOX */
 
@@ -1019,19 +1022,19 @@ SARRAY    *sa;
     sarrayAddString(sa, "/Data RawData << >> /DCTDecode filter def", 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
+        "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
     sarrayAddString(sa, bigbuf, 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
+        "%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-	sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
+        sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
     else if (spp == 3)
-	sarrayAddString(sa, "/DeviceRGB setcolorspace", 1);
+        sarrayAddString(sa, "/DeviceRGB setcolorspace", 1);
     else  /*spp == 4 */
-	sarrayAddString(sa, "/DeviceCMYK setcolorspace", 1);
+        sarrayAddString(sa, "/DeviceCMYK setcolorspace", 1);
     
     sarrayAddString(sa, "{ << /ImageType 1", 1);
     sprintf(bigbuf, "     /Width %d", w);
@@ -1045,17 +1048,17 @@ SARRAY    *sa;
     sarrayAddString(sa, bigbuf, 1);
 
     if (spp == 1)
-	sarrayAddString(sa, "     /Decode [0 1]", 1);
+        sarrayAddString(sa, "     /Decode [0 1]", 1);
     else if (spp == 3)
-	sarrayAddString(sa, "     /Decode [0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1]", 1);
     else   /* spp == 4 */
-	sarrayAddString(sa, "     /Decode [0 1 0 1 0 1 0 1]", 1);
+        sarrayAddString(sa, "     /Decode [0 1 0 1 0 1 0 1]", 1);
     
     sarrayAddString(sa, "  >> image", 1);
     sarrayAddString(sa, "  Data closefile", 1);
     sarrayAddString(sa, "  RawData flushfile", 1);
     if (endpage == TRUE)
-	sarrayAddString(sa, "  showpage", 1);
+        sarrayAddString(sa, "  showpage", 1);
     sarrayAddString(sa, "  restore", 1);
     sarrayAddString(sa, "} exec", 1);
 
@@ -1063,7 +1066,7 @@ SARRAY    *sa;
         return ERROR_INT("pstring not made", procName, 1);
     psbytes = strlen(pstring);
 
-	/* add the ascii85 data */
+        /* Add the ascii85 data */
     totbytes = psbytes + nbytes85;
     *pnbytes = totbytes;
     if ((outstr = (char *)CALLOC(totbytes + 4, sizeof(char))) == NULL)
@@ -1073,8 +1076,8 @@ SARRAY    *sa;
     memcpy(outstr + psbytes, data85, nbytes85);
 
     sarrayDestroy(&sa);
-    FREE((void *)data85);
-    FREE((void *)pstring);
+    FREE(data85);
+    FREE(pstring);
     return 0;
 }
 
@@ -1083,24 +1086,22 @@ SARRAY    *sa;
  *  extractJpegDataFromFile()
  *
  *      Input:  filein
- *             &data (binary data consisting of the entire jpeg file)
- *             &nbytes (size of binary data)
- *             &w (<return> image width)
- *             &h (<return> image height)
- *             &bps (<return> bits/sample; should be 8)
- *             &spp (<return> samples/pixel; should be 1 or 3)
+ *              &data (binary data consisting of the entire jpeg file)
+ *              &nbytes (size of binary data)
+ *              &w (<return> image width)
+ *              &h (<return> image height)
+ *              &bps (<return> bits/sample; should be 8)
+ *              &spp (<return> samples/pixel; should be 1 or 3)
  *      Return: 0 if OK, 1 on error
- *
- *  Note: on error, free the data.
  */
 l_int32
 extractJpegDataFromFile(const char  *filein,
                         l_uint8    **pdata,
-		        l_int32     *pnbytes,
-		        l_int32     *pw,
-		        l_int32     *ph,
-		        l_int32     *pbps,
-		        l_int32     *pspp)
+                        l_int32     *pnbytes,
+                        l_int32     *pw,
+                        l_int32     *ph,
+                        l_int32     *pbps,
+                        l_int32     *pspp)
 {
 l_uint8  *data;
 l_int32   format, nbytes;
@@ -1131,8 +1132,9 @@ FILE     *fpin;
     *pnbytes = nbytes;
     *pdata = data;
 
+        /* On error, free the data */
     if (extractJpegDataFromArray(data, nbytes, pw, ph, pbps, pspp)) {
-      FREE((void *)data);
+      FREE(data);
       *pdata = NULL;
       *pnbytes = 0;
     }
@@ -1146,19 +1148,19 @@ FILE     *fpin;
  *
  *      Input:  data (binary data consisting of the entire jpeg file)
  *              nbytes (size of binary data)
- *             &w (<return> image width)
- *             &h (<return> image height)
- *             &bps (<return> bits/sample; should be 8)
- *             &spp (<return> samples/pixel; should be 1 or 3)
+ *              &w (<return> image width)
+ *              &h (<return> image height)
+ *              &bps (<return> bits/sample; should be 8)
+ *              &spp (<return> samples/pixel; should be 1 or 3)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
 extractJpegDataFromArray(const void  *data,
-		         l_int32      nbytes,
-		         l_int32     *pw,
-		         l_int32     *ph,
-		         l_int32     *pbps,
-		         l_int32     *pspp)
+                         l_int32      nbytes,
+                         l_int32     *pw,
+                         l_int32     *ph,
+                         l_int32     *pbps,
+                         l_int32     *pspp)
 {
 l_uint8  *data8;
 l_int32   imeta, msize, bps, w, h, spp;
@@ -1173,14 +1175,14 @@ l_int32   imeta, msize, bps, w, h, spp;
     data8 = (l_uint8 *)data;
 
         /* Find where the image metadata begins in header:
-	 * 0xc0 is start of metadata for baseline DCT;
-	 * 0xc1 is start of metadata for extended sequential DCT;
-	 * ...   */
+         * 0xc0 is start of metadata for baseline DCT;
+         * 0xc1 is start of metadata for extended sequential DCT;
+         * ...   */
     imeta = 0;
     if (locateJpegImageParameters(data8, nbytes, &imeta))
         return ERROR_INT("metadata not found", procName, 1);
 
-	/* save the metadata */
+        /* Save the metadata */
     msize = getTwoByteParameter(data8, imeta);   /* metadata size */
     bps = data8[imeta + 2];
     h = getTwoByteParameter(data8, imeta + 3);
@@ -1190,14 +1192,15 @@ l_int32   imeta, msize, bps, w, h, spp;
     *ph = h;
     *pw = w;
     *pspp = spp;
+
 #if  DEBUG_JPEG
     fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n", w, h, bps, spp);
     fprintf(stderr, "imeta = %d, msize = %d\n", imeta, msize);
 #endif   /* DEBUG_JPEG */
  
-        /* is the data obviously bad? */
+        /* Is the data obviously bad? */
     if (h <= 0 || w <= 0 || bps != 8 || (spp != 1 && spp !=3 && spp != 4)) {
-	fprintf(stderr, "h = %d, w = %d, bps = %d, spp = %d\n", h, w, bps, spp);
+        fprintf(stderr, "h = %d, w = %d, bps = %d, spp = %d\n", h, w, bps, spp);
         return ERROR_INT("image parameters not valid", procName, 1);
     }
 
@@ -1213,22 +1216,23 @@ l_int32   imeta, msize, bps, w, h, spp;
  *             &index (<return> location of image metadata)
  *      Return: 0 if OK, 1 on error.  Caller must check this!
  *  
- *  The parameters listed here appear to be tho only jpeg flags
- *  we need to worry about.  It would have been nice to have
- *  avoided the switch with all these parameters, but
- *  unfortunately the parser for the jpeg header is set
- *  to accept any old flag that's not on the approved list!
- *  So we have to look for a flag that's not on the list
- *  (and is not 0), and then interpret the size of the
- *  data chunk and skip it.  Sometimes such a chunk contains
- *  a thumbnail version of the image, so if we don't skip it,
- *  we will find a pair of bytes such as 0xffc0, followed
- *  by small w and h dimensions. 
+ *  Notes:
+ *      (1) The parameters listed here appear to be the only jpeg flags
+ *          we need to worry about.  It would have been nice to have
+ *          avoided the switch with all these parameters, but
+ *          unfortunately the parser for the jpeg header is set
+ *          to accept any old flag that's not on the approved list!
+ *          So we have to look for a flag that's not on the list
+ *          (and is not 0), and then interpret the size of the
+ *          data chunk and skip it.  Sometimes such a chunk contains
+ *          a thumbnail version of the image, so if we don't skip it,
+ *          we will find a pair of bytes such as 0xffc0, followed
+ *          by small w and h dimensions. 
  */
 static l_int32
 locateJpegImageParameters(l_uint8  *inarray,
                           l_int32   size,
-			  l_int32  *pindex)
+                          l_int32  *pindex)
 {
 l_uint8  val;
 l_int32  index, skiplength;
@@ -1242,18 +1246,18 @@ l_int32  index, skiplength;
 
     index = *pindex;
     while (1) {
-	if (getNextJpegMarker(inarray, size, &index))
-	    break;
-	if ((val = inarray[index]) == 0)  /* ignore if "escaped" */
-	    continue;
+        if (getNextJpegMarker(inarray, size, &index))
+            break;
+        if ((val = inarray[index]) == 0)  /* ignore if "escaped" */
+            continue;
 /*        fprintf(stderr, " marker %x at %o, %d\n", val, index, index); */
         switch(val)
-	{
+        {
         case 0xc0:  /* M_SOF0 */
-	case 0xc1:  /* M_SOF1 */
-	case 0xc2:  /* M_SOF2 */
+        case 0xc1:  /* M_SOF1 */
+        case 0xc2:  /* M_SOF2 */
         case 0xc3:  /* M_SOF3 */
-	case 0xc5:  /* M_SOF5 */
+        case 0xc5:  /* M_SOF5 */
         case 0xc6:  /* M_SOF6 */
         case 0xc7:  /* M_SOF7 */
         case 0xc9:  /* M_SOF9 */
@@ -1261,11 +1265,11 @@ l_int32  index, skiplength;
         case 0xcd:  /* M_SOF13 */
         case 0xce:  /* M_SOF14 */
         case 0xcf:  /* M_SOF15 */
-	    *pindex = index + 1;  /* found it */
-	    return 0;
+            *pindex = index + 1;  /* found it */
+            return 0;
 
-	case 0x01:  /* M_TEM */
-	case 0xd0:  /* M_RST0 */
+        case 0x01:  /* M_TEM */
+        case 0xd0:  /* M_RST0 */
         case 0xd1:  /* M_RST1 */
         case 0xd2:  /* M_RST2 */
         case 0xd3:  /* M_RST3 */
@@ -1275,14 +1279,14 @@ l_int32  index, skiplength;
         case 0xd7:  /* M_RST7 */
         case 0xd8:  /* M_SOI */
         case 0xd9:  /* M_EOI */
-	case 0xe0:  /* M_APP0 */
+        case 0xe0:  /* M_APP0 */
         case 0xee:  /* M_APP14 */
-	    break;
+            break;
 
-	default:
-	    skiplength = getTwoByteParameter(inarray, index + 1);
-	    index += skiplength;
-	    break;
+        default:
+            skiplength = getTwoByteParameter(inarray, index + 1);
+            index += skiplength;
+            break;
         }
     }
 
@@ -1301,16 +1305,16 @@ l_int32  index, skiplength;
  *                     having encountered at least one 0xff.)
  *      Return: 0 if a marker is found, 1 if the end of the array is reached
  *      
- *  In jpeg, 0xff is used to mark the end of a data segment.
- *  There may be more than one 0xff in succession.  But not every
- *  0xff marks the end of a segment.  It is possible, though
- *  rare, that 0xff can occur within some data.  In that case,
- *  the marker is "escaped", by following it with 0x00.
- *
- *  getNextJpegMarker parses a jpeg data stream.  It
- *  doesn't <really> get the next marker, because it doesn't
- *  check if the 0xff is escaped.  But the caller checks for
- *  this escape condition, and ignores the marker if escaped.
+ *  Notes:
+ *      (1) In jpeg, 0xff is used to mark the end of a data segment.
+ *          There may be more than one 0xff in succession.  But not every
+ *          0xff marks the end of a segment.  It is possible, though
+ *          rare, that 0xff can occur within some data.  In that case,
+ *          the marker is "escaped", by following it with 0x00.
+ *      (2) This function parses a jpeg data stream.  It doesn't
+ *          _really_ get the next marker, because it doesn't check if
+ *          the 0xff is escaped.  But the caller checks for this escape
+ *          condition, and ignores the marker if escaped.
  */ 
 static l_int32
 getNextJpegMarker(l_uint8  *array,
@@ -1332,13 +1336,13 @@ l_int32  index;
     while (index < size) {  /* skip to 0xff */
        val = array[index++];    
        if (val == 0xff)
-	   break;
+           break;
     }
 
     while (index < size) {  /* skip repeated 0xff */
        val = array[index++];    
        if (val != 0xff)
-	   break;
+           break;
     }
 
     *pindex = index - 1;
@@ -1399,33 +1403,33 @@ SARRAY    *sa, *sa2;
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-        /* the returned ccitt g4 data in memory is the block of
-	 * bytes in the tiff file, starting after 8 bytes and
-	 * ending before the directory. */ 
+        /* The returned ccitt g4 data in memory is the block of
+         * bytes in the tiff file, starting after 8 bytes and
+         * ending before the directory. */ 
     if (extractTiffG4DataFromFile(filein, &bindata, &nbinbytes,
                                   &w, &h, &minisblack))
         return ERROR_INT("bindata not extracted from file", procName, 1);
 
         /* Convert the ccittg4 encoded data to ascii85 */
     data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE((void *)bindata);
+    FREE(bindata);
     if (!data85)
         return ERROR_INT("data85 not made", procName, 1);
 
-	/* scale for 20 pt boundary and otherwise full filling
-	 * in one direction on 8.5 x 11 inch device */
+        /* Scale for 20 pt boundary and otherwise full filling
+         * in one direction on 8.5 x 11 inch device */
     xpt = 20.0;
     ypt = 20.0;
     if (w * 11.0 > h * 8.5) {
-	wpt = 572.0;   /* 612 - 2 * 20 */
-	hpt = wpt * (l_float32)h / (l_float32)w;
+        wpt = 572.0;   /* 612 - 2 * 20 */
+        hpt = wpt * (l_float32)h / (l_float32)w;
     }
     else {
-	hpt = 752.0;   /* 792 - 2 * 20 */
-	wpt = hpt * (l_float32)w / (l_float32)h;
+        hpt = 752.0;   /* 792 - 2 * 20 */
+        wpt = hpt * (l_float32)w / (l_float32)h;
     }
 
-        /*  -------- generate PostScript output -------- */
+        /*  -------- Generate PostScript output -------- */
     if ((sa = sarrayCreate(50)) == NULL)
         return ERROR_INT("sa not made", procName, 1);
 
@@ -1435,8 +1439,8 @@ SARRAY    *sa, *sa2;
     sarrayAddString(sa, bigbuf, 1);
     sarrayAddString(sa, "%%DocumentData: Clean7Bit", 1);
     sprintf(bigbuf,
-	"%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
-		xpt, ypt, xpt + wpt, ypt + hpt);
+        "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
+                xpt, ypt, xpt + wpt, ypt + hpt);
     sarrayAddString(sa, bigbuf, 1);
 
     sarrayAddString(sa, "%%LanguageLevel: 2", 1);
@@ -1447,11 +1451,11 @@ SARRAY    *sa, *sa2;
     sarrayAddString(sa, "100 dict begin", 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
+        "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
     sarrayAddString(sa, bigbuf, 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
+        "%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
     sarrayAddString(sa, bigbuf, 1);
 
     sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
@@ -1469,9 +1473,9 @@ SARRAY    *sa, *sa2;
     sarrayAddString(sa, "    /BitsPerComponent 1", 1);
     sarrayAddString(sa, "    /Interpolate true", 1);
     if (minisblack)
-	sarrayAddString(sa, "    /Decode [1 0]", 1);
+        sarrayAddString(sa, "    /Decode [1 0]", 1);
     else  /* miniswhite; typical for 1 bpp */
-	sarrayAddString(sa, "    /Decode [0 1]", 1);
+        sarrayAddString(sa, "    /Decode [0 1]", 1);
     sarrayAddString(sa, "    /DataSource RawData", 1);
     sarrayAddString(sa, "        <<", 1);
     sarrayAddString(sa, "          /K -1", 1);
@@ -1493,7 +1497,7 @@ SARRAY    *sa, *sa2;
     psbytes = strlen(pstring);
     sarrayDestroy(&sa);
 
-	/* concat the trailing data */
+        /* Concat the trailing data */
     sa2 = sarrayCreate(10);
     sarrayAddString(sa2, "%%EndData", 1);
     sarrayAddString(sa2, "end", 1);
@@ -1503,20 +1507,20 @@ SARRAY    *sa, *sa2;
     psbytes2 = strlen(pstring2);
     sarrayDestroy(&sa2);
 
-	/* add the ascii85 data */
+        /* Add the ascii85 data */
     totbytes = psbytes + psbytes2 + nbytes85;
     if ((outstr = (char *)CALLOC(totbytes + 4, sizeof(char))) == NULL)
         return ERROR_INT("outstr not made", procName, 1);
     memcpy(outstr, pstring, psbytes);
     memcpy(outstr + psbytes, data85, nbytes85);
     memcpy(outstr + psbytes + nbytes85, pstring2, psbytes2);
-    FREE((void *)data85);
-    FREE((void *)pstring);
-    FREE((void *)pstring2);
+    FREE(data85);
+    FREE(pstring);
+    FREE(pstring2);
 
     if (arrayWrite(fileout, "w", outstr, totbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
-    FREE((void *)outstr);
+    FREE(outstr);
     return 0;
 }
 
@@ -1588,13 +1592,13 @@ l_int32
 convertTiffG4ToPS(const char  *filein,
                   const char  *fileout,
                   const char  *operation,
-		  l_int32      x,
-		  l_int32      y,
-		  l_int32      res,
-		  l_float32    scale,
-		  l_int32      pageno,
-		  l_int32      mask,
-		  l_int32      endpage)
+                  l_int32      x,
+                  l_int32      y,
+                  l_int32      res,
+                  l_float32    scale,
+                  l_int32      pageno,
+                  l_int32      mask,
+                  l_int32      endpage)
 {
 char    *outstr;
 l_int32  nbytes;
@@ -1615,7 +1619,7 @@ l_int32  nbytes;
     if (arrayWrite(fileout, operation, outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
 
-    FREE((void *)outstr);
+    FREE(outstr);
     return 0;
 }
 
@@ -1643,22 +1647,22 @@ l_int32  nbytes;
  *                  added to the page; FALSE otherwise)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: The returned PS character array is binary string, not a
- *        null-terminated C string.  It has null bytes embedded in it!
- *
- *  Usage:  See convertTiffG4ToPS()
+ *  Notes:
+ *      (1) The returned PS character array is binary string, not a
+ *          null-terminated C string.  It has null bytes embedded in it!
+ *      (2) For usage, see convertTiffG4ToPS()
  */
 l_int32
 convertTiffG4ToPSString(const char  *filein,
                         char       **poutstr,
-		        l_int32     *pnbytes,
-		        l_int32      x,
-      		        l_int32      y,
-		        l_int32      res,
-		        l_float32    scale,
-		        l_int32      pageno,
-		        l_int32      mask,
-		        l_int32      endpage)
+                        l_int32     *pnbytes,
+                        l_int32      x,
+                              l_int32      y,
+                        l_int32      res,
+                        l_float32    scale,
+                        l_int32      pageno,
+                        l_int32      mask,
+                        l_int32      endpage)
 {
 char      *pstring, *pstring2, *outstr;
 char      *data85;  /* ascii85 encoded ccitt g4 data */
@@ -1680,9 +1684,9 @@ SARRAY    *sa, *sa2;
         return ERROR_INT("&nbytes not defined", procName, 1);
     *poutstr = NULL;
 
-        /* the returned ccitt g4 data in memory is the block of
-	 * bytes in the tiff file, starting after 8 bytes and
-	 * ending before the directory. */ 
+        /* The returned ccitt g4 data in memory is the block of
+         * bytes in the tiff file, starting after 8 bytes and
+         * ending before the directory. */ 
     if (extractTiffG4DataFromFile(filein, &bindata, &nbinbytes,
                                   &w, &h, &minisblack))
         return ERROR_INT("bindata not extracted from file", procName, 1);
@@ -1695,17 +1699,17 @@ SARRAY    *sa, *sa2;
 
         /* Convert the ccittg4 encoded data to ascii85 */
     data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE((void *)bindata);
+    FREE(bindata);
     if (!data85)
         return ERROR_INT("data85 not made", procName, 1);
 
-	/* get scaled location in pts */
+        /* Get scaled location in pts */
     if (scale == 0.0)
-	scale = 1.0;
+        scale = 1.0;
     if (res == 0) {
         if (h <= 3300)
-	    res = 300;
-	else
+            res = 300;
+        else
             res = 600;
     }
     xpt = scale * x * 72. / res;
@@ -1727,10 +1731,11 @@ SARRAY    *sa, *sa2;
     sprintf(bigbuf, "%%%%Title: %s", filein);
     sarrayAddString(sa, bigbuf, 1);
     sarrayAddString(sa, "%%DocumentData: Clean7Bit", 1);
+
 #if  PRINT_BOUNDING_BOX
     sprintf(bigbuf,
-	"%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
-		xpt, ypt, xpt + wpt, ypt + hpt);
+        "%%%%BoundingBox: %7.2f %7.2f %7.2f %7.2f",
+                xpt, ypt, xpt + wpt, ypt + hpt);
     sarrayAddString(sa, bigbuf, 1);
 #endif  /* PRINT_BOUNDING_BOX */
 
@@ -1743,11 +1748,11 @@ SARRAY    *sa, *sa2;
     sarrayAddString(sa, "100 dict begin", 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
+        "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
     sarrayAddString(sa, bigbuf, 1);
 
     sprintf(bigbuf,
-	"%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
+        "%7.2f %7.2f scale             %%set image size in pts", wpt, hpt);
     sarrayAddString(sa, bigbuf, 1);
 
     sarrayAddString(sa, "/DeviceGray setcolorspace", 1);
@@ -1765,9 +1770,9 @@ SARRAY    *sa, *sa2;
     sarrayAddString(sa, "    /BitsPerComponent 1", 1);
     sarrayAddString(sa, "    /Interpolate true", 1);
     if (minisblack)
-	sarrayAddString(sa, "    /Decode [1 0]", 1);
+        sarrayAddString(sa, "    /Decode [1 0]", 1);
     else  /* miniswhite; typical for 1 bpp */
-	sarrayAddString(sa, "    /Decode [0 1]", 1);
+        sarrayAddString(sa, "    /Decode [0 1]", 1);
     sarrayAddString(sa, "    /DataSource RawData", 1);
     sarrayAddString(sa, "        <<", 1);
     sarrayAddString(sa, "          /K -1", 1);
@@ -1782,7 +1787,7 @@ SARRAY    *sa, *sa2;
         sarrayAddString(sa, "  >> image", 1);
     sarrayAddString(sa, "  RawData flushfile", 1);
     if (endpage == TRUE)
-	sarrayAddString(sa, "  showpage", 1);
+        sarrayAddString(sa, "  showpage", 1);
     sarrayAddString(sa, "}", 1);
 
     sarrayAddString(sa, "%%BeginData:", 1);
@@ -1792,7 +1797,7 @@ SARRAY    *sa, *sa2;
         return ERROR_INT("pstring not made", procName, 1);
     psbytes = strlen(pstring);
 
-	/* concat the trailing data */
+        /* Concat the trailing data */
     sa2 = sarrayCreate(10);
     sarrayAddString(sa2, "%%EndData", 1);
     sarrayAddString(sa2, "end", 1);
@@ -1801,7 +1806,7 @@ SARRAY    *sa, *sa2;
         return ERROR_INT("pstring2 not made", procName, 1);
     psbytes2 = strlen(pstring2);
 
-	/* add the ascii85 data */
+        /* Add the ascii85 data */
     totbytes = psbytes + psbytes2 + nbytes85;
     *pnbytes = totbytes;
     if ((outstr = (char *)CALLOC(totbytes + 4, sizeof(char))) == NULL)
@@ -1813,9 +1818,9 @@ SARRAY    *sa, *sa2;
 
     sarrayDestroy(&sa);
     sarrayDestroy(&sa2);
-    FREE((void *)data85);
-    FREE((void *)pstring);
-    FREE((void *)pstring2);
+    FREE(data85);
+    FREE(pstring);
+    FREE(pstring2);
     return 0;
 }
 
@@ -1824,20 +1829,20 @@ SARRAY    *sa, *sa2;
  *  extractTiffG4DataFromFile()
  *
  *      Input:  filein
- *             &data (binary data of ccitt g4 encoded stream)
- *             &nbytes (size of binary data)
- *             &w (image width)
- *             &h (image height)
- *             &minisblack (boolean, but must use l_uint16)
+ *              &data (binary data of ccitt g4 encoded stream)
+ *              &nbytes (size of binary data)
+ *              &w (image width)
+ *              &h (image height)
+ *              &minisblack (boolean, but must use l_uint16)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
 extractTiffG4DataFromFile(const char  *filein,
                           l_uint8    **pdata,
-		          l_int32     *pnbytes,
-		          l_int32     *pw,
-		          l_int32     *ph,
-		          l_int32     *pminisblack)
+                          l_int32     *pnbytes,
+                          l_int32     *pw,
+                          l_int32     *ph,
+                          l_int32     *pminisblack)
 {
 l_uint8  *inarray, *data;
 l_uint16  minisblack, comptype;  /* accessors require l_uint16 */
@@ -1853,7 +1858,7 @@ TIFF     *tif;
         return ERROR_INT("&data not defined", procName, 1);
     if (!pnbytes || !pw || !ph || !pminisblack)
         return ERROR_INT("&nbytes, &w, &h, &minisblack not all defined",
-	                 procName, 1);
+                         procName, 1);
     *pdata = NULL;
     *pnbytes = *pw = *ph = *pminisblack = 0;
 
@@ -1867,13 +1872,13 @@ TIFF     *tif;
     if ((inarray = arrayRead(filein, &fbytes)) == NULL)
         return ERROR_INT("inarray not made", procName, 1);
 
-        /* get metadata about the image */
+        /* Get metadata about the image */
     if ((tif = TIFFOpen(filein, "r")) == NULL)
         return ERROR_INT("tif not open for read", procName, 1);
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &comptype);
     if (comptype != COMPRESSION_CCITTFAX4) {
-	FREE((void *)inarray);
-	TIFFClose(tif);
+        FREE(inarray);
+        TIFFClose(tif);
         return ERROR_INT("filein is not g4 compressed", procName, 1);
     }
 
@@ -1890,31 +1895,31 @@ TIFF     *tif;
     *pminisblack = (l_int32)minisblack;
 
         /* The header has 8 bytes: the first 2 are the magic number,
-	 * the next 2 are the version, and the last 4 are the
-	 * offset to the first directory.  That's what we want here.
-	 * We have to test the byte order before decoding 4 bytes! */
+         * the next 2 are the version, and the last 4 are the
+         * offset to the first directory.  That's what we want here.
+         * We have to test the byte order before decoding 4 bytes! */
     if (inarray[0] == 0x4d) {  /* big-endian */
-	diroff = (inarray[4] << 24) | (inarray[5] << 16) |
-		 (inarray[6] << 8) | inarray[7];
+        diroff = (inarray[4] << 24) | (inarray[5] << 16) |
+                 (inarray[6] << 8) | inarray[7];
     }
     else  {   /* inarray[0] == 0x49 :  little-endian */
-	diroff = (inarray[7] << 24) | (inarray[6] << 16) |
-		 (inarray[5] << 8) | inarray[4];
+        diroff = (inarray[7] << 24) | (inarray[6] << 16) |
+                 (inarray[5] << 8) | inarray[4];
     }
 /*    fprintf(stderr, " diroff = %d, %x\n", diroff, diroff); */
 
-	/* Extract the ccittg4 encoded data from the tiff file.
-	 * We skip the 8 byte header and take nbytes of data,
-	 * up to the beginning of the directory (at diroff)  */
+        /* Extract the ccittg4 encoded data from the tiff file.
+         * We skip the 8 byte header and take nbytes of data,
+         * up to the beginning of the directory (at diroff)  */
     nbytes = diroff - 8;
     *pnbytes = nbytes;
     if ((data = (l_uint8 *)CALLOC(nbytes, sizeof(l_uint8))) == NULL) {
-	FREE((void *)inarray);
+        FREE(inarray);
         return ERROR_INT("data not allocated", procName, 1);
     }
     *pdata = data;
     memcpy(data, inarray + 8, nbytes);
-    FREE((void *)inarray);
+    FREE(inarray);
 
     return 0;
 }
@@ -1934,23 +1939,25 @@ TIFF     *tif;
  *                      use 0.0 for DEFAULT_FILL_FRACTION)
  *      Return: 0 if OK, 1 on error
  *      
- *  This converts a multipage tiff file of binary page images
- *  into a ccitt g4 compressed PS file.  If the images are
- *  generated from a standard resolution fax, the vertical
- *  resolution is doubled to give a normal-looking aspect ratio.
+ *  Notes:
+ *      (1) This converts a multipage tiff file of binary page images
+ *          into a ccitt g4 compressed PS file.
+ *      (2) If the images are generated from a standard resolution fax,
+ *          the vertical resolution is doubled to give a normal-looking
+ *          aspect ratio.
  */
 l_int32
 convertTiffMultipageToPS(const char  *filein,
                          const char  *fileout,
                          const char  *tempfile,
-		         l_float32    fillfract)
+                         l_float32    fillfract)
 {
-const char  tempdefault[] = "/usr/tmp/junk_temp_g4.tif";
-const char *tempname;
-l_int32     i, npages, w, h;
-l_float32   scale;
-PIX        *pix, *pixs;
-FILE       *fp;
+const char   tempdefault[] = "/usr/tmp/junk_temp_g4.tif";
+const char  *tempname;
+l_int32      i, npages, w, h;
+l_float32    scale;
+PIX         *pix, *pixs;
+FILE        *fp;
 
     PROCNAME("convertTiffMultipageToPS");
 
@@ -1960,23 +1967,23 @@ FILE       *fp;
         return ERROR_INT("fileout not defined", procName, 1);
 
     if ((fp = fopen(filein, "r")) == NULL)
-	return ERROR_INT("file not found", procName, 1);
+        return ERROR_INT("file not found", procName, 1);
     if (findFileFormat(fp) != IFF_TIFF)
-	return ERROR_INT("file not tiff format", procName, 1);
+        return ERROR_INT("file not tiff format", procName, 1);
     tiffGetCount(fp, &npages);
     fclose(fp);
 
     if (tempfile)
-	tempname = tempfile;
+        tempname = tempfile;
     else
-	tempname = tempdefault;
+        tempname = tempdefault;
 
     if (fillfract == 0.0)
-	fillfract = DEFAULT_FILL_FRACTION;
+        fillfract = DEFAULT_FILL_FRACTION;
 
     for (i = 0; i < npages; i++) {
         if ((pix = pixReadTiff(filein, i)) == NULL)
- 	    return ERROR_INT("pix not made", procName, 1);
+             return ERROR_INT("pix not made", procName, 1);
 
         w = pixGetWidth(pix);
         h = pixGetHeight(pix);
@@ -2063,17 +2070,18 @@ l_int32  resw, resh, res;
  *
  *      Input:  inarray (input data)
  *              insize (number of bytes in input array)
- *             &outsize (<return> number of bytes in output char array)
+ *              &outsize (<return> number of bytes in output char array)
  *      Return: chara (with 64 characters + \n in each line)
  *
- *  Note: Ghostscript has a stack break if the last line of
- *        data only has a '>', so we avoid the problem by
- *        always putting '~>' on the last line.
+ *  Notes:
+ *      (1) Ghostscript has a stack break if the last line of
+ *          data only has a '>', so we avoid the problem by
+ *          always putting '~>' on the last line.
  */
 char *
 encodeAscii85(l_uint8  *inarray,
               l_int32   insize,
-	      l_int32  *poutsize)
+              l_int32  *poutsize)
 {
 char    *chara;
 char    *outbuf;
@@ -2084,8 +2092,9 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
     if (!inarray)
         return (char *)ERROR_PTR("inarray not defined", procName, NULL);
 
-	/* accumulate results in chara */
-    maxsize = (l_int32)(80. + (insize * 5. / 4.) * (1. + 2. / MAX_85_LINE_COUNT));
+        /* Accumulate results in chara */
+    maxsize = (l_int32)(80. + (insize * 5. / 4.) *
+                        (1. + 2. / MAX_85_LINE_COUNT));
     if ((chara = (char *)CALLOC(maxsize, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("chara not made", procName, NULL);
 
@@ -2097,33 +2106,26 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
     outindex = 0;
     while (1) {
         eof = convertChunkToAscii85(inarray, insize, &index, outbuf, &nbout);
-	for (i = 0; i < nbout; i++) {
-	    chara[outindex++] = outbuf[i];
-	    linecount++;
-	    if (linecount >= MAX_85_LINE_COUNT) {
-	        chara[outindex++] = '\n';
-		linecount = 0;
-	    }
-	}
-	if (eof == TRUE) {
-	    if (linecount != 0)
-	        chara[outindex++] = '\n';
+        for (i = 0; i < nbout; i++) {
+            chara[outindex++] = outbuf[i];
+            linecount++;
+            if (linecount >= MAX_85_LINE_COUNT) {
+                chara[outindex++] = '\n';
+                linecount = 0;
+            }
+        }
+        if (eof == TRUE) {
+            if (linecount != 0)
+                chara[outindex++] = '\n';
             chara[outindex++] = '~';
             chara[outindex++] = '>';
             chara[outindex++] = '\n';
-	    break;
-	}
+            break;
+        }
     }
     
-    FREE((void *)outbuf);
+    FREE(outbuf);
     *poutsize = outindex;
-
-#if 0
-    for (i = 0; i < outindex; i++)
-        fprintf(stderr, " %c", chara[i]); 
-    fprintf(stderr, "\n");
-#endif
-
     return chara;
 }
 
@@ -2133,21 +2135,21 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
  *
  *      Input:  inarray (input data)
  *              insize  (number of bytes in input array)
- *             &index (use and <return> -- ptr)
+ *              &index (use and <return> -- ptr)
  *              outbuf (holds 8 ascii chars; we use no more than 7)
- *             &nbsout (<return> number of bytes written to outbuf)
+ *              &nbsout (<return> number of bytes written to outbuf)
  *      Return: boolean for eof (0 if more data, 1 if end of file)
  *    
- *  Note: Attempts to read 4 bytes and write 5.
- *        Writes 1 byte if the value is 0.
- *        Writes 2 extra bytes if EOF.
+ *  Notes:
+ *      (1) Attempts to read 4 bytes and write 5.
+ *      (2) Writes 1 byte if the value is 0; writes 2 extra bytes if EOF.
  */
 l_int32
 convertChunkToAscii85(l_uint8  *inarray,
                       l_int32   insize,
                       l_int32  *pindex,
-		      char     *outbuf,
-		      l_int32  *pnbout)
+                      char     *outbuf,
+                      l_int32  *pnbout)
 {
 l_uint8   inbyte;
 l_uint32  inword, val;
@@ -2160,11 +2162,11 @@ l_int32   eof, index, nread, nbout, i;
         eof = TRUE;
     *pindex += nread;  /* save new index */
 
-        /* read input data and save in l_uint32 */
+        /* Read input data and save in l_uint32 */
     inword = 0;
     for (i = 0; i < nread; i++) {
         inbyte = inarray[index + i];
-	inword += inbyte << (8 * (3 - i));
+        inword += inbyte << (8 * (3 - i));
     }
 
 #if 0
@@ -2173,18 +2175,18 @@ l_int32   eof, index, nread, nbout, i;
     fprintf(stderr, "eof = %d\n", eof);
 #endif
     
-	/* special case: output 1 byte only */
+        /* Special case: output 1 byte only */
     if (inword == 0) {
         outbuf[0] = 'z';
-	nbout = 1;
+        nbout = 1;
     }
     else { /* output nread + 1 bytes */
-	for (i = 4; i >= 4 - nread; i--) {
-	    val = inword / power85[i];
-	    outbuf[4 - i] = (l_uint8)(val + '!');
-	    inword -= val * power85[i];
-	}
-	nbout = nread + 1;
+        for (i = 4; i >= 4 - nread; i--) {
+            val = inword / power85[i];
+            outbuf[4 - i] = (l_uint8)(val + '!');
+            inword -= val * power85[i];
+        }
+        nbout = nread + 1;
     }
     *pnbout = nbout;
 
@@ -2197,12 +2199,14 @@ l_int32   eof, index, nread, nbout, i;
  *
  *      Input:  inarray (ascii85 input data)
  *              insize (number of bytes in input array)
- *             &outsize (<return> number of bytes in output l_uint8 array)
+ *              &outsize (<return> number of bytes in output l_uint8 array)
  *      Return: outarray (binary)
  *
- *  Note: we assume the data is properly encoded, so we do not check
- *        for invalid characters or the final '>' character.   We permit
- *        whitespace to be added to the encoding in an arbitrary way.
+ *  Notes:
+ *      (1) We assume the data is properly encoded, so we do not check
+ *          for invalid characters or the final '>' character.
+ *      (2) We permit whitespace to be added to the encoding in an
+ *          arbitrary way.
  */
 l_uint8 *
 decodeAscii85(char     *ina,
@@ -2221,7 +2225,7 @@ l_uint32  oword;
     if (!ina)
         return (l_uint8 *)ERROR_PTR("ina not defined", procName, NULL);
 
-	/* accumulate results in outa */
+        /* Accumulate results in outa */
     maxsize = (l_int32)(80. + (insize * 4. / 5.));  /* plenty big */
     if ((outa = (l_uint8 *)CALLOC(maxsize, sizeof(l_uint8))) == NULL)
         return (l_uint8 *)ERROR_PTR("outa not made", procName, NULL);
@@ -2232,58 +2236,58 @@ l_uint32  oword;
     for (index = 0, bytecount = 0; index < insize; index++, pin++) {
         inc = *pin;
 
-	if (inc == ' ' || inc == '\t' || inc == '\n' ||
-	    inc == '\f' || inc == '\r' || inc == '\v')  /* ignore white space */
-	    continue;
+        if (inc == ' ' || inc == '\t' || inc == '\n' ||
+            inc == '\f' || inc == '\r' || inc == '\v')  /* ignore white space */
+            continue;
 
-	val = inc - '!';
-	if (val < 85) {
-	    oword = oword * 85 + val;
-	    if (bytecount < 4)
-		bytecount++;
-	    else {  /* we have all 5 input chars for the oword */
-	        outa[ocount] = (oword >> 24) & 0xff;
-	        outa[ocount + 1] = (oword >> 16) & 0xff;
-	        outa[ocount + 2] = (oword >> 8) & 0xff;
-	        outa[ocount + 3] = oword & 0xff;
-		ocount += 4;
-		bytecount = 0;
-		oword = 0;
+        val = inc - '!';
+        if (val < 85) {
+            oword = oword * 85 + val;
+            if (bytecount < 4)
+                bytecount++;
+            else {  /* we have all 5 input chars for the oword */
+                outa[ocount] = (oword >> 24) & 0xff;
+                outa[ocount + 1] = (oword >> 16) & 0xff;
+                outa[ocount + 2] = (oword >> 8) & 0xff;
+                outa[ocount + 3] = oword & 0xff;
+                ocount += 4;
+                bytecount = 0;
+                oword = 0;
             }
-	}
-	else if (inc == 'z' && bytecount == 0) {
-	    outa[ocount] = 0;
-	    outa[ocount + 1] = 0;
-	    outa[ocount + 2] = 0;
-	    outa[ocount + 3] = 0;
-	    ocount += 4;
-	}
-	else if (inc == '~') {  /* end of data */
-	    fprintf(stderr, " %d extra bytes output\n", bytecount - 1);
+        }
+        else if (inc == 'z' && bytecount == 0) {
+            outa[ocount] = 0;
+            outa[ocount + 1] = 0;
+            outa[ocount + 2] = 0;
+            outa[ocount + 3] = 0;
+            ocount += 4;
+        }
+        else if (inc == '~') {  /* end of data */
+            fprintf(stderr, " %d extra bytes output\n", bytecount - 1);
             switch (bytecount) {
-	    case 0:   /* normal eof */
-	    case 1:   /* error */
-	        break;
-	    case 2:   /* 1 extra byte */
-		oword = oword * (85 * 85 * 85) + 0xffffff;
-		outa[ocount] = (oword >> 24) & 0xff; 
-		break;
-	    case 3:   /* 2 extra bytes */
-		oword = oword * (85 * 85) + 0xffff;
-		outa[ocount] = (oword >> 24) & 0xff; 
-		outa[ocount + 1] = (oword >> 16) & 0xff; 
-		break;
-	    case 4:   /* 3 extra bytes */
-		oword = oword * 85 + 0xff;
-		outa[ocount] = (oword >> 24) & 0xff; 
-		outa[ocount + 1] = (oword >> 16) & 0xff; 
-		outa[ocount + 2] = (oword >> 8) & 0xff; 
-		break;
-	    }
-	    if (bytecount > 1)
-	        ocount += (bytecount - 1);
-	    break;
-	}
+            case 0:   /* normal eof */
+            case 1:   /* error */
+                break;
+            case 2:   /* 1 extra byte */
+                oword = oword * (85 * 85 * 85) + 0xffffff;
+                outa[ocount] = (oword >> 24) & 0xff; 
+                break;
+            case 3:   /* 2 extra bytes */
+                oword = oword * (85 * 85) + 0xffff;
+                outa[ocount] = (oword >> 24) & 0xff; 
+                outa[ocount + 1] = (oword >> 16) & 0xff; 
+                break;
+            case 4:   /* 3 extra bytes */
+                oword = oword * 85 + 0xff;
+                outa[ocount] = (oword >> 24) & 0xff; 
+                outa[ocount + 1] = (oword >> 16) & 0xff; 
+                outa[ocount + 2] = (oword >> 8) & 0xff; 
+                break;
+            }
+            if (bytecount > 1)
+                ocount += (bytecount - 1);
+            break;
+        }
     }
     *poutsize = ocount;
 

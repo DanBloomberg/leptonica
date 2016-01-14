@@ -13,7 +13,6 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-
 /*
  *  binexpand.c
  *
@@ -33,13 +32,13 @@
 /*!
  *  pixExpandBinary()
  *
- *      Input:  pixs
- *              factor
- *      Return: pixd (expanded pix), or null on error
+ *      Input:  pixs (1 bpp)
+ *              factor (reduction factor: 1, 2, 4, 8, 16)
+ *      Return: pixd (expanded 1 bpp by replication), or null on error
  */
 PIX *
 pixExpandBinary(PIX     *pixs,
-	        l_int32  factor)
+                l_int32  factor)
 {
 l_int32    ws, hs, wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
@@ -49,11 +48,12 @@ PIX       *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (factor != 2 && factor != 4 && factor != 8 && factor != 16)
-        return (PIX *)ERROR_PTR("factor must be in {2,4,8,16}", procName, NULL);
-
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
+    if (factor == 1)
+        return pixCopy(NULL, pixs);
+    if (factor != 2 && factor != 4 && factor != 8 && factor != 16)
+        return (PIX *)ERROR_PTR("factor must be in {2,4,8,16}", procName, NULL);
 
     ws = pixGetWidth(pixs);
     hs = pixGetHeight(pixs);

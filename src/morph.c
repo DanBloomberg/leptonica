@@ -26,12 +26,21 @@
  *         PIX     *pixOpenGeneralized()
  *         PIX     *pixCloseGeneralized()
  *
- *     Special binary morphological (raster) ops with brick Sels
+ *     Binary morphological (raster) ops with brick Sels
  *         PIX     *pixDilateBrick()
  *         PIX     *pixErodeBrick()
  *         PIX     *pixOpenBrick()
  *         PIX     *pixCloseBrick()
  *         PIX     *pixCloseSafeBrick()
+ *
+ *     Binary composed morphological (raster) ops with brick Sels
+ *         l_int32  selectComposableSizes()
+ *         l_int32  selectComposableSels()
+ *         PIX     *pixDilateCompBrick()
+ *         PIX     *pixErodeCompBrick()
+ *         PIX     *pixOpenCompBrick()
+ *         PIX     *pixCloseCompBrick()
+ *         PIX     *pixCloseSafeCompBrick()
  *
  *     Functions associated with boundary conditions
  *         void     resetMorphBoundaryCondition()
@@ -41,35 +50,72 @@
  *         static PIX     *processMorphArgs1()
  *         static PIX     *processMorphArgs2()
  *
- *  You have a number of choices for using binary morphology.
+ *  You are provided with many simple ways to do binary morphology.
+ *  In particular, if you are using brick Sels, there are six
+ *  convenient methods, all specially tailored for separable operations
+ *  on brick Sels.  A "brick" Sel is a Sel that is a rectangle
+ *  of solid SEL_HITs with the origin at or near the center.
+ *  Note that a brick Sel can have one dimension of size 1.
+ *  This is very common.  All the brick Sel operations are
+ *  separable, meaning the operation is done first in the horizontal
+ *  direction and then in the vertical direction.  If one of the
+ *  dimensions is 1, this is a special case where the operation is
+ *  only performed in the other direction.
  *
- *  (1) If you are using brick Sels and know the sizes in advance,
- *      it is most convenient to use pixMorphSequence(), with
- *      the sequence string compiled in.  All intermediate
- *      images and Sels are created, used and destroyed.  You
- *      just get the result as a new Pix.  You specify separable
- *      operations explicitly, as in:
- *           "o11.1 + o1.11"
+ *  These six brick Sel methods are enumerated as follows:
  *
- *  (2) If you are using brick Sels and may not know the sizes in
- *      advance, it is most convenient to use the pix*BrickSel()
- *      functions.  These likewise generate, use, and destroy
- *      intermediate images and Sels.  They do a separable operation
- *      if it's going to be (significantly) faster; you don't need
- *      to worry about it.  Also, you also have the option
- *      of doing the operation in-place or writing the result into
- *      an existing Pix (as well as making a new Pix for the result).
+ *  (1) Brick Sels: pix*Brick(), where * = {Dilate, Erode, Open, Close}.
+ *      These are separable rasterop implementations.  The Sels are
+ *      automatically generated, used, and destroyed at the end.
+ *      You can get the result as a new Pix, in-place back into the src Pix,
+ *      or written to another existing Pix.
  *
- *  (3) If you are using Sels that are not bricks, you have two choices:
+ *  (2) Brick Sels: pix*CompBrick(), where * = {Dilate, Erode, Open, Close}.
+ *      These are separable, 2-way composite, rasterop implementations.
+ *      The Sels are automatically generated, used, and destroyed at the end.
+ *      You can get the result as a new Pix, in-place back into the src Pix,
+ *      or written to another existing Pix.  For large Sels, these are
+ *      considerably faster than the corresponding pix*Brick() functions.
+ *
+ *  (3) Brick Sels: pix*BrickDwa(), where * = {Dilate, Erode, Open, Close}.
+ *      These are separable dwa (destination word accumulation)
+ *      implementations.  They use auto-gen'd dwa code.  You can get
+ *      the result as a new Pix, in-place back into the src Pix,
+ *      or written to another existing Pix.  This is typically
+ *      about 3x faster than the analogous rasterop pix*Brick()
+ *      function, but it has the limitation that the Sel size must
+ *      be less than 63.  This is pre-set to work on a number
+ *      of pre-generated Sels.  If you want to use other Sels, the
+ *      code can be auto-gen'd for them; see the instructions in morphdwa.c.
+ *
+ *  (4) Same as (1), but you run it through pixMorphSequence(), with
+ *      the sequence string either compiled in or generated using sprintf.
+ *      All intermediate images and Sels are created, used and destroyed.
+ *      You always get the result as a new Pix.  For example, you can
+ *      specify a separable 11 x 17 brick opening as "o11.17",
+ *      or you can specify the horizontal and vertical operations
+ *      explicitly as "o11.1 + o1.11".  See morphseq.c for details.
+ *
+ *  (5) Same as (2), but you run it through pixMorphCompSequence(), with
+ *      the sequence string either compiled in or generated using sprintf.
+ *      All intermediate images and Sels are created, used and destroyed.
+ *      You always get the result as a new Pix.  See morphseq.c for details.
+ *
+ *  (6) Same as (3), but you run it through pixMorphSequenceDwa(), with
+ *      the sequence string either compiled in or generated using sprintf.
+ *      All intermediate images and Sels are created, used and destroyed.
+ *      You always get the result as a new Pix.  See morphseq.c for details.
+ *
+ *  If you are using Sels that are not bricks, you have two choices:
  *      (a) simplest: use the basic rasterop implementations (pixDilate(), ...)
  *      (b) fastest: generate the destination word accumumlation (dwa)
  *          code for your Sels and compile it with the library.
  *
  *      For an example, see flipdetect.c, which gives implementations
- *      using both the rasterop and dwa versions.  For the latter,
- *      the dwa code resides in fliphmtgen.c, and it was generated by
- *      prog/flipselgen.c.  Both the rasterop and dwa implementations
- *      are tested by prog/fliptest.c.
+ *      using hit-miss Sels with both the rasterop and dwa versions.
+ *      For the latter, the dwa code resides in fliphmtgen.c, and it
+ *      was generated by prog/flipselgen.c.  Both the rasterop and dwa
+ *      implementations are tested by prog/fliptest.c.
  *
  *  A global constant MORPH_BC is used to set the boundary conditions
  *  for rasterop-based binary morphology.  MORPH_BC, in morph.c,
@@ -97,10 +143,12 @@
  *  of a hit-miss Sel), followed by the HMT.
  *  Both of these 'generalized' functions are idempotent.
  *
- *  These functions are extensively tested in prog/morphtest3.c
+ *  These functions are extensively tested in prog/morphtest3.c and
+ *  prog/morphtest4.c
  */
 
 #include <stdio.h>
+#include <math.h>
 #include "allheaders.h"
 
     /* Global constant; initialized here; must be declared extern
@@ -109,6 +157,8 @@
      * using resetMorphBoundaryCondition().  */
 l_int32  MORPH_BC = ASYMMETRIC_MORPH_BC;
 
+    /* We accept this cost in extra rasterops for decomposing exactly. */
+static const l_int32  ACCEPTABLE_COST = 5;
 
     /* Static helpers for arg processing */
 static PIX * processMorphArgs1(PIX *pixd, PIX *pixs, SEL *sel, PIX **ppixt);
@@ -144,19 +194,19 @@ PIX     *pixt;
     PROCNAME("pixDilate");
 
     if ((pixd = processMorphArgs1(pixd, pixs, sel, &pixt)) == NULL)
-	return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
+        return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     selGetParameters(sel, &sy, &sx, &cy, &cx);
     pixClearAll(pixd);
     for (i = 0; i < sy; i++) {
-	for (j = 0; j < sx; j++) {
-	    seldata = sel->data[i][j];
-	    if (seldata == 1) {   /* src | dst */
-		pixRasterop(pixd, j - cx, i - cy, w, h, PIX_SRC | PIX_DST,
-		            pixt, 0, 0);
-	    }
-	}
+        for (j = 0; j < sx; j++) {
+            seldata = sel->data[i][j];
+            if (seldata == 1) {   /* src | dst */
+                pixRasterop(pixd, j - cx, i - cy, w, h, PIX_SRC | PIX_DST,
+                            pixt, 0, 0);
+            }
+        }
     }
 
     pixDestroy(&pixt);
@@ -191,37 +241,37 @@ PIX     *pixt;
     PROCNAME("pixErode");
 
     if ((pixd = processMorphArgs1(pixd, pixs, sel, &pixt)) == NULL)
-	return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
+        return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     selGetParameters(sel, &sy, &sx, &cy, &cx);
     pixSetAll(pixd);
     for (i = 0; i < sy; i++) {
-	for (j = 0; j < sx; j++) {
-	    seldata = sel->data[i][j];
-	    if (seldata == 1) {   /* src & dst */
-		    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_SRC & PIX_DST,
-			        pixt, 0, 0);
-	    }
-	}
+        for (j = 0; j < sx; j++) {
+            seldata = sel->data[i][j];
+            if (seldata == 1) {   /* src & dst */
+                    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_SRC & PIX_DST,
+                                pixt, 0, 0);
+            }
+        }
     }
 
-	/* Clear near edges.  We do this for the asymmetric boundary
-	 * condition convention that implements erosion assuming all
-	 * pixels surrounding the image are OFF.  If you use a
-	 * use a symmetric b.c. convention, where the erosion is
-	 * implemented assuming pixels surrounding the image
-	 * are ON, these operations are omitted.  */
+        /* Clear near edges.  We do this for the asymmetric boundary
+         * condition convention that implements erosion assuming all
+         * pixels surrounding the image are OFF.  If you use a
+         * use a symmetric b.c. convention, where the erosion is
+         * implemented assuming pixels surrounding the image
+         * are ON, these operations are omitted.  */
     if (MORPH_BC == ASYMMETRIC_MORPH_BC) {
-	selFindMaxTranslations(sel, &xp, &yp, &xn, &yn);
-	if (xp > 0)
-	    pixRasterop(pixd, 0, 0, xp, h, PIX_CLR, NULL, 0, 0);
-	if (xn > 0)
-	    pixRasterop(pixd, w - xn, 0, xn, h, PIX_CLR, NULL, 0, 0);
-	if (yp > 0)
-	    pixRasterop(pixd, 0, 0, w, yp, PIX_CLR, NULL, 0, 0);
-	if (yn > 0)
-	    pixRasterop(pixd, 0, h - yn, w, yn, PIX_CLR, NULL, 0, 0);
+        selFindMaxTranslations(sel, &xp, &yp, &xn, &yn);
+        if (xp > 0)
+            pixRasterop(pixd, 0, 0, xp, h, PIX_CLR, NULL, 0, 0);
+        if (xn > 0)
+            pixRasterop(pixd, w - xn, 0, xn, h, PIX_CLR, NULL, 0, 0);
+        if (yp > 0)
+            pixRasterop(pixd, 0, 0, w, yp, PIX_CLR, NULL, 0, 0);
+        if (yn > 0)
+            pixRasterop(pixd, 0, h - yn, w, yn, PIX_CLR, NULL, 0, 0);
     }
 
     pixDestroy(&pixt);
@@ -258,52 +308,52 @@ PIX     *pixt;
     PROCNAME("pixHMT");
 
     if ((pixd = processMorphArgs1(pixd, pixs, sel, &pixt)) == NULL)
-	return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
+        return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     selGetParameters(sel, &sy, &sx, &cy, &cx);
     firstrasterop = TRUE;
     for (i = 0; i < sy; i++) {
-	for (j = 0; j < sx; j++) {
-	    seldata = sel->data[i][j];
-	    if (seldata == 1) {  /* hit */
-		if (firstrasterop == TRUE) {  /* src only */
-		    pixClearAll(pixd);
-		    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_SRC,
-		                pixt, 0, 0);
-		    firstrasterop = FALSE;
-		}
-		else {   /* src & dst */
-		    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_SRC & PIX_DST,
-			        pixt, 0, 0);
-		}
-	    }
-	    else if (seldata == 2) {  /* miss */
-		if (firstrasterop == TRUE) {  /* ~src only */
-		    pixSetAll(pixd);
-		    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_NOT(PIX_SRC),
-			     pixt, 0, 0);
-		    firstrasterop = FALSE;
-		}
-		else  {  /* ~src & dst */
-		    pixRasterop(pixd, cx - j, cy - i, w, h,
-		                PIX_NOT(PIX_SRC) & PIX_DST,
-				pixt, 0, 0);
-		}
-	    }
-	}
+        for (j = 0; j < sx; j++) {
+            seldata = sel->data[i][j];
+            if (seldata == 1) {  /* hit */
+                if (firstrasterop == TRUE) {  /* src only */
+                    pixClearAll(pixd);
+                    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_SRC,
+                                pixt, 0, 0);
+                    firstrasterop = FALSE;
+                }
+                else {   /* src & dst */
+                    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_SRC & PIX_DST,
+                                pixt, 0, 0);
+                }
+            }
+            else if (seldata == 2) {  /* miss */
+                if (firstrasterop == TRUE) {  /* ~src only */
+                    pixSetAll(pixd);
+                    pixRasterop(pixd, cx - j, cy - i, w, h, PIX_NOT(PIX_SRC),
+                             pixt, 0, 0);
+                    firstrasterop = FALSE;
+                }
+                else  {  /* ~src & dst */
+                    pixRasterop(pixd, cx - j, cy - i, w, h,
+                                PIX_NOT(PIX_SRC) & PIX_DST,
+                                pixt, 0, 0);
+                }
+            }
+        }
     }
 
-	/* clear near edges */
+        /* clear near edges */
     selFindMaxTranslations(sel, &xp, &yp, &xn, &yn);
     if (xp > 0)
-	pixRasterop(pixd, 0, 0, xp, h, PIX_CLR, NULL, 0, 0);
+        pixRasterop(pixd, 0, 0, xp, h, PIX_CLR, NULL, 0, 0);
     if (xn > 0)
-	pixRasterop(pixd, w - xn, 0, xn, h, PIX_CLR, NULL, 0, 0);
+        pixRasterop(pixd, w - xn, 0, xn, h, PIX_CLR, NULL, 0, 0);
     if (yp > 0)
-	pixRasterop(pixd, 0, 0, w, yp, PIX_CLR, NULL, 0, 0);
+        pixRasterop(pixd, 0, 0, w, yp, PIX_CLR, NULL, 0, 0);
     if (yn > 0)
-	pixRasterop(pixd, 0, h - yn, w, yn, PIX_CLR, NULL, 0, 0);
+        pixRasterop(pixd, 0, h - yn, w, yn, PIX_CLR, NULL, 0, 0);
 
     pixDestroy(&pixt);
     return pixd;
@@ -335,10 +385,10 @@ PIX  *pixt;
     PROCNAME("pixOpen");
 
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
 
     if ((pixt = pixErode(NULL, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
     pixDilate(pixd, pixt, sel);
     pixDestroy(&pixt);
 
@@ -374,10 +424,10 @@ PIX  *pixt;
     PROCNAME("pixClose");
 
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
 
     if ((pixt = pixDilate(NULL, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
     pixErode(pixd, pixt, sel);
     pixDestroy(&pixt);
 
@@ -418,15 +468,15 @@ PIX     *pixt1, *pixt2;
     PROCNAME("pixCloseSafe");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (!sel)
-	return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
 
     if (pixd) {
-	if (!pixSizesEqual(pixs, pixd))
-	    L_WARNING("pix src and dest sizes unequal", procName);
+        if (!pixSizesEqual(pixs, pixd))
+            L_WARNING("pix src and dest sizes unequal", procName);
     }
 
         /* symmetric b.c. handles correctly without added pixels */
@@ -438,14 +488,14 @@ PIX     *pixt1, *pixt2;
     xbord = 32 * ((xmax + 31) / 32);  /* full 32 bit words */
 
     if ((pixt1 = pixAddBorderGeneral(pixs, xbord, xbord, yp, yn, 0)) == NULL)
-	return (PIX *)ERROR_PTR("pixt1 not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt1 not made", procName, pixd);
     pixClose(pixt1, pixt1, sel);
     if ((pixt2 = pixRemoveBorderGeneral(pixt1, xbord, xbord, yp, yn)) == NULL)
-	return (PIX *)ERROR_PTR("pixt2 not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt2 not made", procName, pixd);
     pixDestroy(&pixt1);
 
     if (!pixd)
-	return pixt2;
+        return pixt2;
 
     pixCopy(pixd, pixt2);
     pixDestroy(&pixt2);
@@ -481,10 +531,10 @@ PIX  *pixt;
     PROCNAME("pixOpenGeneralized");
 
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
 
     if ((pixt = pixHMT(NULL, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
     pixDilate(pixd, pixt, sel);
     pixDestroy(&pixt);
 
@@ -521,10 +571,10 @@ PIX  *pixt;
     PROCNAME("pixCloseGeneralized");
 
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
 
     if ((pixt = pixDilate(NULL, pixs, sel)) == NULL)
-	return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
     pixHMT(pixd, pixt, sel);
     pixDestroy(&pixt);
 
@@ -533,7 +583,7 @@ PIX  *pixt;
 
 
 /*-----------------------------------------------------------------*
- *         Special binary morphological ops with brick Sels        *
+ *          Binary morphological (raster) ops with brick Sels      *
  *-----------------------------------------------------------------*/
 /*!
  *  pixDilateBrick()
@@ -565,11 +615,11 @@ SEL  *sel, *selh, *selv;
     PROCNAME("pixDilateBrick");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -581,11 +631,11 @@ SEL  *sel, *selh, *selv;
     else {
         selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
         selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
-	pixt = pixDilate(NULL, pixs, selh);
-	pixd = pixDilate(pixd, pixt, selv);
-	pixDestroy(&pixt);
-	selDestroy(&selh);
-	selDestroy(&selv);
+        pixt = pixDilate(NULL, pixs, selh);
+        pixd = pixDilate(pixd, pixt, selv);
+        pixDestroy(&pixt);
+        selDestroy(&selh);
+        selDestroy(&selv);
     }
 
     return pixd;
@@ -622,27 +672,27 @@ SEL  *sel, *selh, *selv;
     PROCNAME("pixErodeBrick");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
-	pixd = pixErode(pixd, pixs, sel);
-	selDestroy(&sel);
+        pixd = pixErode(pixd, pixs, sel);
+        selDestroy(&sel);
     }
     else {
         selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
         selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
-	pixt = pixErode(NULL, pixs, selh);
-	pixd = pixErode(pixd, pixt, selv);
-	pixDestroy(&pixt);
-	selDestroy(&selh);
-	selDestroy(&selv);
+        pixt = pixErode(NULL, pixs, selh);
+        pixd = pixErode(pixd, pixt, selv);
+        pixDestroy(&pixt);
+        selDestroy(&selh);
+        selDestroy(&selv);
     }
 
     return pixd;
@@ -679,11 +729,11 @@ SEL  *sel, *selh, *selv;
     PROCNAME("pixOpenBrick");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -695,13 +745,13 @@ SEL  *sel, *selh, *selv;
     else {  /* do separably */
         selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
         selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
-	pixt = pixErode(NULL, pixs, selh);
-	pixd = pixErode(pixd, pixt, selv);
-	pixDilate(pixt, pixd, selh);
-	pixDilate(pixd, pixt, selv);
-	pixDestroy(&pixt);
-	selDestroy(&selh);
-	selDestroy(&selv);
+        pixt = pixErode(NULL, pixs, selh);
+        pixd = pixErode(pixd, pixt, selv);
+        pixDilate(pixt, pixd, selh);
+        pixDilate(pixd, pixt, selv);
+        pixDestroy(&pixt);
+        selDestroy(&selh);
+        selDestroy(&selv);
     }
 
     return pixd;
@@ -738,11 +788,11 @@ SEL  *sel, *selh, *selv;
     PROCNAME("pixCloseBrick");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -754,13 +804,13 @@ SEL  *sel, *selh, *selv;
     else {  /* do separably */
         selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
         selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
-	pixt = pixDilate(NULL, pixs, selh);
-	pixd = pixDilate(pixd, pixt, selv);
-	pixErode(pixt, pixd, selh);
-	pixErode(pixd, pixt, selv);
-	pixDestroy(&pixt);
-	selDestroy(&selh);
-	selDestroy(&selv);
+        pixt = pixDilate(NULL, pixs, selh);
+        pixd = pixDilate(pixd, pixt, selv);
+        pixErode(pixt, pixd, selh);
+        pixErode(pixd, pixt, selv);
+        pixDestroy(&pixt);
+        selDestroy(&selh);
+        selDestroy(&selv);
     }
 
     return pixd;
@@ -780,7 +830,11 @@ SEL  *sel, *selh, *selv;
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
  *      (3) Do separably if both hsize and vsize are > 1.
- *      (4) Safe version: add border of sufficient size and remove at end
+ *      (4) Safe closing adds a border of 0 pixels, of sufficient size so
+ *          that all pixels in input image are processed within
+ *          32-bit words in the expanded image.  As a result, there is
+ *          no special processing for pixels near the boundary, and there
+ *          are no boundary effects.  The border is removed at the end.
  *      (5) Three modes of usage:
  *          - pixd = NULL : result into new pixd, which is returned
  *          - pixd exists, != pixs : puts result into pixd
@@ -799,16 +853,16 @@ SEL     *sel, *selh, *selv;
     PROCNAME("pixCloseSafeBrick");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
     if (hsize < 1 || vsize < 1)
-	return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
 
-        /* symmetric b.c. handles correctly without added pixels */
+        /* Symmetric b.c. handles correctly without added pixels */
     if (MORPH_BC == SYMMETRIC_MORPH_BC)
         return pixCloseBrick(pixd, pixs, hsize, vsize);
 
@@ -824,13 +878,13 @@ SEL     *sel, *selh, *selv;
     else {  /* do separably */
         selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
         selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
-	pixt = pixDilate(NULL, pixsb, selh);
-	pixdb = pixDilate(NULL, pixt, selv);
-	pixErode(pixt, pixdb, selh);
-	pixErode(pixdb, pixt, selv);
-	pixDestroy(&pixt);
-	selDestroy(&selh);
-	selDestroy(&selv);
+        pixt = pixDilate(NULL, pixsb, selh);
+        pixdb = pixDilate(NULL, pixt, selv);
+        pixErode(pixt, pixdb, selh);
+        pixErode(pixdb, pixt, selv);
+        pixDestroy(&pixt);
+        selDestroy(&selh);
+        selDestroy(&selv);
     }
 
     pixt = pixRemoveBorder(pixdb, bordsize);
@@ -841,7 +895,563 @@ SEL     *sel, *selh, *selv;
         pixd = pixt;
     else {
         pixCopy(pixd, pixt);
-	pixDestroy(&pixt);
+        pixDestroy(&pixt);
+    }
+
+    return pixd;
+}
+
+
+/*-----------------------------------------------------------------*
+ *     Binary composed morphological (raster) ops with brick Sels  *
+ *-----------------------------------------------------------------*/
+/*  selectComposableSels()
+ *
+ *      Input:  size (of composed sel)
+ *              direction (L_HORIZ, L_VERT)
+ *              &sel1 (<return> contiguous sel)
+ *              &sel2 (<return> comb sel)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) When using composable Sels, where the original Sel is
+ *          decomposed into two, the best you can do in terms
+ *          of reducing the computation is by a factor:
+ *
+ *               2 * sqrt(size) / size
+ *
+ *          In practice, you get quite close to this.  E.g.,
+ *
+ *             Sel size     |   Optimum reduction factor
+ *             --------         ------------------------
+ *                36        |          1/3
+ *                64        |          1/4
+ *               144        |          1/6
+ *               256        |          1/8
+ */
+l_int32
+selectComposableSels(l_int32  size,
+                     l_int32  direction,
+                     SEL    **psel1,
+                     SEL    **psel2)
+{
+l_int32  factor1, factor2;
+
+    PROCNAME("selectComposableSels");
+
+    if (size < 1 || size > 250 * 250)
+        return ERROR_INT("size < 1", procName, 1);
+    if (direction != L_HORIZ && direction != L_VERT)
+        return ERROR_INT("invalid direction", procName, 1);
+    if (!psel1 || !psel2)
+        return ERROR_INT("&sel1 or &sel2 not defined", procName, 1);
+    *psel1 = *psel2 = NULL;
+
+    if (selectComposableSizes(size, &factor1, &factor2))
+        return ERROR_INT("factors not found", procName, 1);
+
+    if (direction == L_HORIZ)
+        *psel1 = selCreateBrick(1, factor1, 0, factor1 / 2, SEL_HIT);
+    else
+        *psel1 = selCreateBrick(factor1, 1, factor1 / 2 , 0, SEL_HIT);
+    *psel2 = selCreateComb(factor1, factor2, direction);
+    return 0;
+}
+
+
+/*!
+ *  selectComposableSizes()
+ *
+ *      Input:  size (of sel to be decomposed)
+ *              &factor1 (<return> larger factor)
+ *              &factor2 (<return> smaller factor)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This works for Sel sizes up to 62500, which seems sufficient.
+ *      (2) The composable sel size is typically within +- 1 of
+ *          the requested size.  Up to size = 300, the maximum difference
+ *          is +- 2.
+ *      (3) We choose an overall cost function where the penalty for
+ *          the size difference between input and actual is 4 times
+ *          the penalty for additional rasterops.
+ */
+l_int32
+selectComposableSizes(l_int32   size,
+                      l_int32  *pfactor1,
+                      l_int32  *pfactor2)
+{
+l_int32  i, midval, val1, val2m, val2p;
+l_int32  index, prodm, prodp;
+l_int32  mincost, totcost, rastcostm, rastcostp, diffm, diffp;
+l_int32  lowval[256];
+l_int32  hival[256];
+l_int32  rastcost[256];  /* excess in sum of sizes (extra rasterops) */
+l_int32  diff[256];  /* diff between product (sel size) and input size */
+
+    PROCNAME("selectComposableSizes");
+
+    if (size < 1 || size > 250 * 250)
+        return ERROR_INT("size < 1", procName, 1);
+    if (!pfactor1 || !pfactor2)
+        return ERROR_INT("&factor1 or &factor2 not defined", procName, 1);
+    
+    midval = (l_int32)(sqrt(size) + 0.001);
+    if (midval * midval == size) {
+        *pfactor1 = *pfactor2 = midval;
+        return 0;
+    }
+
+        /* Set up arrays.  For each val1, optimize for lowest diff,
+         * and save the rastcost, the diff, and the two factors. */
+    for (val1 = midval + 1, i = 0; val1 > 0; val1--, i++) {
+        val2m = size / val1;
+        val2p = val2m + 1;
+        prodm = val1 * val2m;
+        prodp = val1 * val2p;
+        rastcostm = val1 + val2m - 2 * midval;
+        rastcostp = val1 + val2p - 2 * midval;
+        diffm = L_ABS(size - prodm);
+        diffp = L_ABS(size - prodp);
+        if (diffm <= diffp) {
+            lowval[i] = L_MIN(val1, val2m);
+            hival[i] = L_MAX(val1, val2m);
+            rastcost[i] = rastcostm;
+            diff[i] = diffm;
+        }
+        else {
+            lowval[i] = L_MIN(val1, val2p);
+            hival[i] = L_MAX(val1, val2p);
+            rastcost[i] = rastcostp;
+            diff[i] = diffp;
+        }
+    }
+
+        /* Choose the optimum factors; use cost ratio 4 on diff */
+    mincost = 10000;
+    for (i = 0; i < midval + 1; i++) {
+        if (diff[i] == 0 && rastcost[i] < ACCEPTABLE_COST) {
+            *pfactor1 = hival[i];
+            *pfactor2 = lowval[i];
+            return 0;
+        }
+        totcost = 4 * diff[i] + rastcost[i];
+        if (totcost < mincost) {
+            mincost = totcost;
+            index = i;
+        }
+    }
+    *pfactor1 = hival[index];
+    *pfactor2 = lowval[index];
+
+    return 0;
+}
+
+
+/*!
+ *  pixDilateCompBrick()
+ *
+ *      Input:  pixd  (<optional>)
+ *              pixs
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ *
+ *  Notes:
+ *      (1) Sel is a brick with all elements being hits
+ *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
+ *      (5) Three modes of usage:
+ *          - pixd = NULL : result into new pixd, which is returned
+ *          - pixd exists, != pixs : puts result into pixd
+ *          - pixd == pixs : in-place operation; writes result back to pixs
+ */
+PIX *
+pixDilateCompBrick(PIX     *pixd,
+                   PIX     *pixs,
+                   l_int32  hsize,
+                   l_int32  vsize)
+{
+PIX  *pixt;
+SEL  *selh1, *selh2, *selv1, *selv2;
+
+    PROCNAME("pixDilateCompBrick");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    if (hsize == 1 && vsize == 1)
+        return pixCopy(pixd, pixs);
+    if (hsize > 1)
+        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
+    if (vsize > 1)
+        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (vsize == 1) {
+        pixt = pixDilate(NULL, pixs, selh1);
+        pixd = pixDilate(pixd, pixt, selh2);
+    } 
+    else if (hsize == 1) {
+        pixt = pixDilate(NULL, pixs, selv1);
+        pixd = pixDilate(pixd, pixt, selv2);
+    } 
+    else {
+        pixt = pixDilate(NULL, pixs, selh1);
+        pixd = pixDilate(pixd, pixt, selh2);
+        pixDilate(pixt, pixd, selv1);
+        pixDilate(pixd, pixt, selv2);
+    }
+    pixDestroy(&pixt);
+
+    if (hsize > 1) {
+        selDestroy(&selh1);
+        selDestroy(&selh2);
+    }
+    if (vsize > 1) {
+        selDestroy(&selv1);
+        selDestroy(&selv2);
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixErodeCompBrick()
+ *
+ *      Input:  pixd  (<optional>)
+ *              pixs
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ *
+ *  Notes:
+ *      (1) Sel is a brick with all elements being hits
+ *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
+ *      (5) Three modes of usage:
+ *          - pixd = NULL : result into new pixd, which is returned
+ *          - pixd exists, != pixs : puts result into pixd
+ *          - pixd == pixs : in-place operation; writes result back to pixs
+ */
+PIX *
+pixErodeCompBrick(PIX     *pixd,
+                  PIX     *pixs,
+                  l_int32  hsize,
+                  l_int32  vsize)
+{
+PIX  *pixt;
+SEL  *selh1, *selh2, *selv1, *selv2;
+
+    PROCNAME("pixErodeCompBrick");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    if (hsize == 1 && vsize == 1)
+        return pixCopy(pixd, pixs);
+    if (hsize > 1)
+        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
+    if (vsize > 1)
+        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (vsize == 1) {
+        pixt = pixErode(NULL, pixs, selh1);
+        pixd = pixErode(pixd, pixt, selh2);
+    } 
+    else if (hsize == 1) {
+        pixt = pixErode(NULL, pixs, selv1);
+        pixd = pixErode(pixd, pixt, selv2);
+    } 
+    else {
+        pixt = pixErode(NULL, pixs, selh1);
+        pixd = pixErode(pixd, pixt, selh2);
+        pixErode(pixt, pixd, selv1);
+        pixErode(pixd, pixt, selv2);
+    }
+    pixDestroy(&pixt);
+
+    if (hsize > 1) {
+        selDestroy(&selh1);
+        selDestroy(&selh2);
+    }
+    if (vsize > 1) {
+        selDestroy(&selv1);
+        selDestroy(&selv2);
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixOpenCompBrick()
+ *
+ *      Input:  pixd  (<optional>)
+ *              pixs
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ *
+ *  Notes:
+ *      (1) Sel is a brick with all elements being hits
+ *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
+ *      (5) Three modes of usage:
+ *          - pixd = NULL : result into new pixd, which is returned
+ *          - pixd exists, != pixs : puts result into pixd
+ *          - pixd == pixs : in-place operation; writes result back to pixs
+ */
+PIX *
+pixOpenCompBrick(PIX     *pixd,
+                 PIX     *pixs,
+                 l_int32  hsize,
+                 l_int32  vsize)
+{
+PIX  *pixt;
+SEL  *selh1, *selh2, *selv1, *selv2;
+
+    PROCNAME("pixOpenCompBrick");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    if (hsize == 1 && vsize == 1)
+        return pixCopy(pixd, pixs);
+    if (hsize > 1)
+        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
+    if (vsize > 1)
+        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (vsize == 1) {
+        pixt = pixErode(NULL, pixs, selh1);
+        pixd = pixErode(pixd, pixt, selh2);
+        pixDilate(pixt, pixd, selh1);
+        pixDilate(pixd, pixt, selh2);
+    } 
+    else if (hsize == 1) {
+        pixt = pixErode(NULL, pixs, selv1);
+        pixd = pixErode(pixd, pixt, selv2);
+        pixDilate(pixt, pixd, selv1);
+        pixDilate(pixd, pixt, selv2);
+    } 
+    else {  /* do separably */
+        pixt = pixErode(NULL, pixs, selh1);
+        pixd = pixErode(pixd, pixt, selh2);
+        pixErode(pixt, pixd, selv1);
+        pixErode(pixd, pixt, selv2);
+        pixDilate(pixt, pixd, selh1);
+        pixDilate(pixd, pixt, selh2);
+        pixDilate(pixt, pixd, selv1);
+        pixDilate(pixd, pixt, selv2);
+    }
+    pixDestroy(&pixt);
+
+    if (hsize > 1) {
+        selDestroy(&selh1);
+        selDestroy(&selh2);
+    }
+    if (vsize > 1) {
+        selDestroy(&selv1);
+        selDestroy(&selv2);
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixCloseCompBrick()
+ *
+ *      Input:  pixd  (<optional>)
+ *              pixs
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ *
+ *  Notes:
+ *      (1) Sel is a brick with all elements being hits
+ *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
+ *      (5) Three modes of usage:
+ *          - pixd = NULL : result into new pixd, which is returned
+ *          - pixd exists, != pixs : puts result into pixd
+ *          - pixd == pixs : in-place operation; writes result back to pixs
+ */
+PIX *
+pixCloseCompBrick(PIX     *pixd,
+                  PIX     *pixs,
+                  l_int32  hsize,
+                  l_int32  vsize)
+{
+PIX  *pixt;
+SEL  *selh1, *selh2, *selv1, *selv2;
+
+    PROCNAME("pixCloseCompBrick");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    if (hsize == 1 && vsize == 1)
+        return pixCopy(pixd, pixs);
+    if (hsize > 1)
+        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
+    if (vsize > 1)
+        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (vsize == 1) {
+        pixt = pixDilate(NULL, pixs, selh1);
+        pixd = pixDilate(pixd, pixt, selh2);
+        pixErode(pixt, pixd, selh1);
+        pixErode(pixd, pixt, selh2);
+    } 
+    else if (hsize == 1) {
+        pixt = pixDilate(NULL, pixs, selv1);
+        pixd = pixDilate(pixd, pixt, selv2);
+        pixErode(pixt, pixd, selv1);
+        pixErode(pixd, pixt, selv2);
+    } 
+    else {  /* do separably */ 
+        pixt = pixDilate(NULL, pixs, selh1);
+        pixd = pixDilate(pixd, pixt, selh2);
+        pixDilate(pixt, pixd, selv1);
+        pixDilate(pixd, pixt, selv2);
+        pixErode(pixt, pixd, selh1);
+        pixErode(pixd, pixt, selh2);
+        pixErode(pixt, pixd, selv1);
+        pixErode(pixd, pixt, selv2);
+    }
+    pixDestroy(&pixt);
+
+    if (hsize > 1) {
+        selDestroy(&selh1);
+        selDestroy(&selh2);
+    }
+    if (vsize > 1) {
+        selDestroy(&selv1);
+        selDestroy(&selv2);
+    }
+
+    return pixd;
+}
+
+
+/*!
+ *  pixCloseSafeCompBrick()
+ *
+ *      Input:  pixd  (<optional>)
+ *              pixs
+ *              hsize (width of brick Sel)
+ *              vsize (height of brick Sel)
+ *      Return: pixd
+ *
+ *  Notes:
+ *      (1) Sel is a brick with all elements being hits
+ *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
+ *      (5) Safe closing adds a border of 0 pixels, of sufficient size so
+ *          that all pixels in input image are processed within
+ *          32-bit words in the expanded image.  As a result, there is
+ *          no special processing for pixels near the boundary, and there
+ *          are no boundary effects.  The border is removed at the end.
+ *      (6) Three modes of usage:
+ *          - pixd = NULL : result into new pixd, which is returned
+ *          - pixd exists, != pixs : puts result into pixd
+ *          - pixd == pixs : in-place operation; writes result back to pixs
+ */
+PIX *
+pixCloseSafeCompBrick(PIX     *pixd,
+                      PIX     *pixs,
+                      l_int32  hsize,
+                      l_int32  vsize)
+{
+l_int32  maxtrans, bordsize;
+PIX     *pixsb, *pixt, *pixdb;
+SEL     *selh1, *selh2, *selv1, *selv2;
+
+    PROCNAME("pixCloseSafeCompBrick");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+    if (hsize < 1 || vsize < 1)
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+
+    if (hsize == 1 && vsize == 1)
+        return pixCopy(pixd, pixs);
+
+        /* Symmetric b.c. handles correctly without added pixels */
+    if (MORPH_BC == SYMMETRIC_MORPH_BC)
+        return pixCloseCompBrick(pixd, pixs, hsize, vsize);
+
+    maxtrans = L_MAX(hsize / 2, vsize / 2);
+    bordsize = 32 * ((maxtrans + 31) / 32);  /* full 32 bit words */
+    pixsb = pixAddBorder(pixs, bordsize, 0);
+
+    if (hsize > 1)
+        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
+    if (vsize > 1)
+        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (vsize == 1) {
+        pixt = pixDilate(NULL, pixsb, selh1);
+        pixdb = pixDilate(NULL, pixt, selh2);
+        pixErode(pixt, pixdb, selh1);
+        pixErode(pixdb, pixt, selh2);
+    } 
+    else if (hsize == 1) {
+        pixt = pixDilate(NULL, pixsb, selv1);
+        pixdb = pixDilate(NULL, pixt, selv2);
+        pixErode(pixt, pixdb, selv1);
+        pixErode(pixdb, pixt, selv2);
+    } 
+    else {  /* do separably */ 
+        pixt = pixDilate(NULL, pixsb, selh1);
+        pixdb = pixDilate(NULL, pixt, selh2);
+        pixDilate(pixt, pixdb, selv1);
+        pixDilate(pixdb, pixt, selv2);
+        pixErode(pixt, pixdb, selh1);
+        pixErode(pixdb, pixt, selh2);
+        pixErode(pixt, pixdb, selv1);
+        pixErode(pixdb, pixt, selv2);
+    }
+    pixDestroy(&pixt);
+
+    pixt = pixRemoveBorder(pixdb, bordsize);
+    pixDestroy(&pixsb);
+    pixDestroy(&pixdb);
+
+    if (!pixd)
+        pixd = pixt;
+    else {
+        pixCopy(pixd, pixt);
+        pixDestroy(&pixt);
+    }
+
+    if (hsize > 1) {
+        selDestroy(&selh1);
+        selDestroy(&selh2);
+    }
+    if (vsize > 1) {
+        selDestroy(&selv1);
+        selDestroy(&selv2);
     }
 
     return pixd;
@@ -874,7 +1484,7 @@ resetMorphBoundaryCondition(l_int32  bc)
 /*!
  *  getMorphBorderPixelColor()
  *
- *      Input:  type (MORPH_DILATION, MORPH_EROSION) 
+ *      Input:  type (L_MORPH_DILATE, L_MORPH_ERODE) 
  *              depth (of pix)
  *      Return: color of border pixels for this operation
  */
@@ -884,13 +1494,13 @@ getMorphBorderPixelColor(l_int32  type,
 {
     PROCNAME("getMorphBorderPixelColor");
 
-    if (type != MORPH_DILATION && type != MORPH_EROSION)
+    if (type != L_MORPH_DILATE && type != L_MORPH_ERODE)
         return ERROR_INT("invalid type", procName, 0);
     if (depth != 1 && depth != 2 && depth != 4 && depth != 8 &&
         depth != 16 && depth != 32)
         return ERROR_INT("invalid depth", procName, 0);
 
-    if (MORPH_BC == ASYMMETRIC_MORPH_BC || type == MORPH_DILATION)
+    if (MORPH_BC == ASYMMETRIC_MORPH_BC || type == L_MORPH_DILATE)
         return 0;
 
         /* symmetric & erosion */
@@ -927,30 +1537,30 @@ l_int32  sx, sy;
     PROCNAME("processMorphArgs1");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (!sel)
-	return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
 
     selGetParameters(sel, &sx, &sy, NULL, NULL);
     if (sx == 0 || sy == 0)
-	return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
+        return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
 
     if (!pixd) {
-	if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-	*ppixt = pixClone(pixs);
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        *ppixt = pixClone(pixs);
     }
     else {
-	if (!pixSizesEqual(pixs, pixd))
-	    return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
-	if (pixd == pixs) {
-	    if ((*ppixt = pixCopy(NULL, pixs)) == NULL)
-		return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
-	}
-	else
-	    *ppixt = pixClone(pixs);
+        if (!pixSizesEqual(pixs, pixd))
+            return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
+        if (pixd == pixs) {
+            if ((*ppixt = pixCopy(NULL, pixs)) == NULL)
+                return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        }
+        else
+            *ppixt = pixClone(pixs);
     }
     return pixd;
 }
@@ -971,23 +1581,23 @@ l_int32  sx, sy;
     PROCNAME("processMorphArgs2");
 
     if (!pixs)
-	return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (!sel)
-	return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
     if (pixGetDepth(pixs) != 1)
-	return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
 
     selGetParameters(sel, &sx, &sy, NULL, NULL);
     if (sx == 0 || sy == 0)
-	return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
+        return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
 
     if (!pixd) {
-	if ((pixd = pixCreateTemplate(pixs)) == NULL)
-	    return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
+            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
     else {
-	if (!pixSizesEqual(pixs, pixd))
-	    return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
+        if (!pixSizesEqual(pixs, pixd))
+            return (PIX *)ERROR_PTR("pix sizes unequal", procName, pixd);
     }
 
     return pixd;

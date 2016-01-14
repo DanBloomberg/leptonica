@@ -121,10 +121,10 @@ static const l_float32  MAX_2_SHEAR_ANGLE = 0.05;  /* radians; ~3 degrees    */
  */
 PIX *
 pixRotateShear(PIX       *pixs,
-	       l_int32    x,
-	       l_int32    y,
-	       l_float32  angle,
-	       l_int32    incolor)
+               l_int32    x,
+               l_int32    y,
+               l_float32  angle,
+               l_int32    incolor)
 {
     PROCNAME("pixRotateShear");
 
@@ -134,12 +134,12 @@ pixRotateShear(PIX       *pixs,
         return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     if (L_ABS(angle) <= MAX_2_SHEAR_ANGLE)
-	return pixRotate2Shear(pixs, x, y, angle, incolor);
+        return pixRotate2Shear(pixs, x, y, angle, incolor);
     else
-	return pixRotate3Shear(pixs, x, y, angle, incolor);
+        return pixRotate3Shear(pixs, x, y, angle, incolor);
 
 }
 
@@ -167,10 +167,10 @@ pixRotateShear(PIX       *pixs,
  */
 PIX *
 pixRotate2Shear(PIX       *pixs,
-		l_int32    x,
-		l_int32    y,
-	        l_float32  angle,
-		l_int32    incolor)
+                l_int32    x,
+                l_int32    y,
+                l_float32  angle,
+                l_int32    incolor)
 {
 PIX  *pixt, *pixd;
 
@@ -182,7 +182,7 @@ PIX  *pixt, *pixd;
         return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
     
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     if ((pixt = pixHShear(NULL, pixs, y, angle, incolor)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
@@ -218,13 +218,13 @@ PIX  *pixt, *pixd;
  */
 PIX *
 pixRotate3Shear(PIX       *pixs,
-		l_int32    x,
-		l_int32    y,
-	        l_float32  angle,
-		l_int32    incolor)
+                l_int32    x,
+                l_int32    y,
+                l_float32  angle,
+                l_int32    incolor)
 {
 l_float32  hangle;
-PIX    	  *pixt, *pixd;
+PIX              *pixt, *pixd;
 
     PROCNAME("pixRotate3Shear");
 
@@ -234,7 +234,7 @@ PIX    	  *pixt, *pixd;
         return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
     
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     hangle = atan(sin(angle));
     if ((pixd = pixVShear(NULL, pixs, x, angle / 2., incolor)) == NULL)
@@ -274,10 +274,10 @@ PIX    	  *pixt, *pixd;
  */
 l_int32
 pixRotateShearIP(PIX       *pixs,
-		 l_int32    x,
-		 l_int32    y,
-	         l_float32  angle,
-		 l_int32    incolor)
+                 l_int32    x,
+                 l_int32    y,
+                 l_float32  angle,
+                 l_int32    incolor)
 {
 l_float32  hangle;
 
@@ -289,7 +289,7 @@ l_float32  hangle;
         return ERROR_INT("invalid value for incolor", procName, 1);
 
     if (angle == 0.0)
-	return 0;
+        return 0;
     
     hangle = atan(sin(angle));
     pixHShearIP(pixs, y, angle / 2., incolor);
@@ -313,8 +313,8 @@ l_float32  hangle;
  */
 PIX *
 pixRotateShearCenter(PIX       *pixs,
-	             l_float32  angle,
-		     l_int32    incolor)
+                     l_float32  angle,
+                     l_int32    incolor)
 {
     PROCNAME("pixRotateShearCenter");
 
@@ -336,8 +336,8 @@ pixRotateShearCenter(PIX       *pixs,
  */
 l_int32
 pixRotateShearCenterIP(PIX       *pixs,
-	               l_float32  angle,
-		       l_int32    incolor)
+                       l_float32  angle,
+                       l_int32    incolor)
 {
     PROCNAME("pixRotateShearCenterIP");
 
@@ -400,14 +400,14 @@ pixRotateShearCenterIP(PIX       *pixs,
 PIX *
 pixRotateEuclidean(PIX       *pixs,
                    l_int32    xcen,
-		   l_int32    ycen,
-	           l_float32  angle)
+                   l_int32    ycen,
+                   l_float32  angle)
 {
 l_int32    i, j, xdif, ydif, xp, yp;
 l_int32    w, h, wm1, hm1, wpls, wpld;
 l_uint32  *datas, *datad, *lines, *lined;
 l_float32  sina, cosa;
-PIX    	  *pixd;
+PIX              *pixd;
 
     PROCNAME("pixRotateEuclidean");
 
@@ -417,7 +417,7 @@ PIX    	  *pixd;
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
 
     if (L_ABS(angle) < VERY_SMALL_ANGLE)
-	return pixClone(pixs);
+        return pixClone(pixs);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -435,23 +435,23 @@ PIX    	  *pixd;
     cosa = cos(angle);
 
     for (i = 0; i < h; i++) {
-	ydif = ycen - i;
-	lined = datad + i * wpld;
-	for (j = 0; j < w; j++) {
-	    xdif = xcen - j;
-	    xp = xcen + (l_int32)(-xdif * cosa - ydif * sina + 0.5);
-	    yp = ycen + (l_int32)(-ydif * cosa + xdif * sina + 0.5);
+        ydif = ycen - i;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            xdif = xcen - j;
+            xp = xcen + (l_int32)(-xdif * cosa - ydif * sina + 0.5);
+            yp = ycen + (l_int32)(-ydif * cosa + xdif * sina + 0.5);
 
-		/* if off the edge, just write white */
-	    if (xp < 0 || yp < 0 || xp > wm1 || yp > hm1) {
-		CLEAR_DATA_BIT(lined, j);
-		continue;
-	    }
+                /* if off the edge, just write white */
+            if (xp < 0 || yp < 0 || xp > wm1 || yp > hm1) {
+                CLEAR_DATA_BIT(lined, j);
+                continue;
+            }
 
-	    lines = datas + yp * wpls;
-	    if (GET_DATA_BIT(lines, xp))
-		SET_DATA_BIT(lined, j);
-	}
+            lines = datas + yp * wpls;
+            if (GET_DATA_BIT(lines, xp))
+                SET_DATA_BIT(lined, j);
+        }
     }
 
     return pixd;

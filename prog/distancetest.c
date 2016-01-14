@@ -23,69 +23,69 @@
 #include "allheaders.h"
 
 #define   CONNECTIVITY      8
-#define   DEPTH             16
+#define   DEPTH             8  /* or 16 */
 #define   MAP_TYPE          L_LOG_SCALE
 
 
 main(int    argc,
      char **argv)
 {
-char        *filein, *fileout;
-PIX         *pixs, *pixd, *pixt, *pixt2, *pixt3, *pixm;
+BOX         *box;
+PIX         *pix, *pixs, *pixd, *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
 static char  mainName[] = "distancetest";
 
-    if (argc != 3)
-	exit(ERROR_INT(" Syntax:  distancetest filein fileout", mainName, 1));
+    if (argc != 1)
+	exit(ERROR_INT(" Syntax:  distancetest", mainName, 1));
 
-    filein = argv[1];
-    fileout = argv[2];
-
-    if ((pixs = pixRead(filein)) == NULL)
+    if ((pix = pixRead("feyn.tif")) == NULL)
 	exit(ERROR_INT("pixs not made", mainName, 1));
+    box = boxCreate(383, 338, 1480, 1050);
+    pixs = pixClipRectangle(pix, box, NULL);
 	    
-#if 0
-        /* test the distance function */
+        /* Test the distance function */
     pixInvert(pixs, pixs);
-    pixt = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH);
-    pixWrite("junkout1", pixt, IFF_PNG);
-    pixd = pixMaxDynamicRange(pixt, MAP_TYPE);
-    pixWrite(fileout, pixd, IFF_PNG);
-#endif
-
-#if 0
-	/* test the distance function with contour rendering */
-    pixInvert(pixs, pixs);
-    pixt = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH);
-    pixt2 = pixRenderContours(pixt, 5, 10, 1);  /* binary output */
+    pixt1 = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH);
+    pixWrite("junkout1", pixt1, IFF_PNG);
+    pixt2 = pixMaxDynamicRange(pixt1, MAP_TYPE);
     pixWrite("junkout2", pixt2, IFF_PNG);
-    pixt3 = pixRenderContours(pixt, 5, 10, DEPTH);
-/*    pixd = pixMaxDynamicRange(pixt3, L_LINEAR_SCALE); */
-    pixd = pixMaxDynamicRange(pixt3, L_LOG_SCALE);
-    pixWrite(fileout, pixd, IFF_PNG);
-#endif
+    pixInvert(pixs, pixs);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
 
-#if 1
+	/* Test the distance function with contour rendering */
+    pixt1 = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH);
+    pixt2 = pixRenderContours(pixt1, 5, 10, 1);  /* binary output */
+    pixWrite("junkout3", pixt2, IFF_PNG);
+    pixt3 = pixRenderContours(pixt1, 5, 10, DEPTH);
+    pixt4 = pixMaxDynamicRange(pixt3, L_LINEAR_SCALE);
+    pixWrite("junkout4", pixt4, IFF_PNG);
+    pixt5 = pixMaxDynamicRange(pixt3, L_LOG_SCALE);
+    pixWrite("junkout5", pixt5, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    pixDestroy(&pixt3);
+    pixDestroy(&pixt4);
+    pixDestroy(&pixt5);
+
 	/* label all pixels in each c.c. with the max distance */
-    pixd = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH);
-    pixm = pixCreateTemplate(pixd);
-    pixSetMasked(pixm, pixs, 255);
-/*    pixWrite("junkout4", pixm, IFF_PNG); */
-    pixSeedfillGray(pixd, pixm, 4);
-    pixt = pixMaxDynamicRange(pixd, MAP_TYPE);
-    pixWrite(fileout, pixt, IFF_PNG);
-#endif
+    pixt1 = pixDistanceFunction(pixs, CONNECTIVITY, DEPTH);
+    pixt2 = pixCreateTemplate(pixt1);
+    pixSetMasked(pixt2, pixs, 255);
+    pixWrite("junkout6", pixt2, IFF_PNG);
+    pixSeedfillGray(pixt1, pixt2, 4);
+    pixt3 = pixMaxDynamicRange(pixt1, MAP_TYPE);
+    pixWrite("junkout7", pixt3, IFF_PNG);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    pixDestroy(&pixt3);
 
-#if 0
 	/* test the dynamic range map function */
-    pixt = pixMaxDynamicRange(pixs, MAP_TYPE);
-    pixWrite(fileout, pixt, IFF_PNG);
-#endif
+    pixt1 = pixMaxDynamicRange(pixs, MAP_TYPE);
+    pixWrite("junkout8", pixt1, IFF_PNG);
+    pixDestroy(&pixt1);
 
-#if 0
+    pixDestroy(&pix);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
-    pixDestroy(&pixt);
-#endif
     exit(0);
 }
 
