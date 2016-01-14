@@ -20,8 +20,6 @@
  *    Output file is PostScript, 2 bpp dithered
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const l_float32  FACTOR = 0.95;
@@ -78,9 +76,9 @@ static char  mainName[] = "dithertest";
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     scale = L_MIN(FACTOR * 2550 / w, FACTOR * 3300 / h);
-    fp = fopen(fileout, "wb+");
+    fp = lept_fopen(fileout, "wb+");
     pixWriteStreamPS(fp, pixd, NULL, 300, scale);
-    fclose(fp);
+    lept_fclose(fp);
     pixDestroy(&pixd);
 
         /* Dither 2x upscale to 1 bpp */

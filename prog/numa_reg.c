@@ -30,9 +30,7 @@
 #ifndef  _WIN32
 #include <unistd.h>
 #else
-    /* Need declaration of Sleep() defined in WinBase.h, but must
-     * include Windows.h to avoid errors  */
-#include <Windows.h>
+#include <windows.h>   /* for Sleep() */
 #endif  /* _WIN32 */
 #include "allheaders.h"
 
@@ -342,7 +340,11 @@ static char  mainName[] = "numa_reg";
     gplotSimple1(na3, GPLOT_PNG, "/tmp/lyraroot4", "Opening");
     na4 = numaClose(na, 21);
     gplotSimple1(na4, GPLOT_PNG, "/tmp/lyraroot5", "Closing");
+#ifndef  _WIN32
     sleep(1);
+#else
+    Sleep(1000);
+#endif  /* _WIN32 */
     pixa = pixaCreate(5);
     pixt1 = pixRead("/tmp/lyraroot1.png");
     pixt2 = pixRead("/tmp/lyraroot2.png");
@@ -382,7 +384,11 @@ static char  mainName[] = "numa_reg";
     gplotSimple1(na2, GPLOT_PNG, "/tmp/lyraroot8", "Mean Square");
     gplotSimple1(na3, GPLOT_PNG, "/tmp/lyraroot9", "Variance");
     gplotSimple1(na4, GPLOT_PNG, "/tmp/lyraroot10", "RMS Difference");
+#ifndef  _WIN32
     sleep(1);
+#else
+    Sleep(1000);
+#endif  /* _WIN32 */
     pixa = pixaCreate(5);
     pixt1 = pixRead("/tmp/lyraroot6.png");
     pixt2 = pixRead("/tmp/lyraroot7.png");
@@ -444,7 +450,11 @@ static char  mainName[] = "numa_reg";
                 "Slightly more horizontal than vertical");
     gplotSimple1(na4, GPLOT_PNG, "/tmp/extroot4",
                 "Slightly more vertical than horizontal");
+#ifndef  _WIN32
     sleep(1);
+#else
+    Sleep(1000);
+#endif  /* _WIN32 */
     pixa = pixaCreate(4);
     pixt1 = pixRead("/tmp/extroot1.png");
     pixt2 = pixRead("/tmp/extroot2.png");

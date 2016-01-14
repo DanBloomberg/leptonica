@@ -24,9 +24,7 @@
 #ifndef  _WIN32
 #include <unistd.h>
 #else
-    /* Need declaration of Sleep() defined in WinBase.h, but must
-     * include Windows.h to avoid errors  */
-#include <Windows.h>
+#include <windows.h>   /* for Sleep() */
 #endif  /* _WIN32 */
 
 #include "allheaders.h"
@@ -35,13 +33,13 @@
 main(int    argc,
      char **argv)
 {
-l_int32  i, n, w, h, success, display;
-FILE    *fp;
-BOXA    *boxa;
-NUMA    *naindex, *naw, *nah, *naw_med, *nah_med;
-PIX     *pixs, *pixt, *pixd;
+l_int32       i, n, w, h;
+BOXA         *boxa;
+NUMA         *naindex, *naw, *nah, *naw_med, *nah_med;
+PIX          *pixs, *pixt, *pixd;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
         /* Generate arrays of word widths and heights */
@@ -86,29 +84,29 @@ PIX     *pixs, *pixt, *pixd;
 #endif  /* _WIN32 */
 
         /* Save as golden files, or check against them */
-    regTestCheckFile(fp, argv, "/tmp/w_10bin.png", 0, &success);
-    regTestCheckFile(fp, argv, "/tmp/h_10bin.png", 1, &success);
-    regTestCheckFile(fp, argv, "/tmp/w_30bin.png", 2, &success);
-    regTestCheckFile(fp, argv, "/tmp/h_30bin.png", 3, &success);
+    regTestCheckFile(rp, "/tmp/w_10bin.png");  /* 0 */
+    regTestCheckFile(rp, "/tmp/h_10bin.png");  /* 1 */
+    regTestCheckFile(rp, "/tmp/w_30bin.png");  /* 2 */
+    regTestCheckFile(rp, "/tmp/h_30bin.png");  /* 3 */
 
         /* Display results for debugging */
     pixt = pixRead("/tmp/w_10bin.png");
-    pixDisplayWithTitle(pixt, 0, 0, NULL, display);
+    pixDisplayWithTitle(pixt, 0, 0, NULL, rp->display);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/h_10bin.png");
-    pixDisplayWithTitle(pixt, 650, 0, NULL, display);
+    pixDisplayWithTitle(pixt, 650, 0, NULL, rp->display);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/w_30bin.png");
-    pixDisplayWithTitle(pixt, 0, 550, NULL, display);
+    pixDisplayWithTitle(pixt, 0, 550, NULL, rp->display);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/h_30bin.png");
-    pixDisplayWithTitle(pixt, 650, 550, NULL, display);
+    pixDisplayWithTitle(pixt, 650, 550, NULL, rp->display);
     pixDestroy(&pixt);
 
     pixDestroy(&pixs);
     numaDestroy(&naw);
     numaDestroy(&nah);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
 

@@ -20,7 +20,7 @@
  *      Top-level jb2 correlation and rank-hausdorff
  *
  *         l_int32         jbCorrelation()
- *         l_int32         jbRankHausdorff()
+ *         l_int32         jbRankHaus()
  *
  *      Extract and classify words in textline order
  *

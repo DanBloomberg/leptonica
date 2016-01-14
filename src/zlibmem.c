@@ -34,8 +34,6 @@
  *    the background, but the bbuffer implementation is more portable.
  */
 
-#include <stdio.h>
-#include <stdlib.h> 
 #include "allheaders.h"
 
 #ifdef HAVE_CONFIG_H
@@ -73,11 +71,12 @@ static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
  */
 l_uint8 *
 zlibCompress(l_uint8  *datain,
-             l_int32   nin,
-             l_int32  *pnout)
+             size_t    nin,
+             size_t   *pnout)
 {
 l_uint8  *dataout;
-l_int32   status, nbytes;
+l_int32   status;
+size_t    nbytes;
 l_uint8  *bufferin, *bufferout;
 BBUFFER  *bbin, *bbout;
 z_stream  z;
@@ -155,12 +154,13 @@ z_stream  z;
  */
 l_uint8 *
 zlibUncompress(l_uint8  *datain,
-               l_int32   nin,
-               l_int32  *pnout)
+               size_t    nin,
+               size_t   *pnout)
 {
 l_uint8  *dataout;
-l_int32   status, nbytes;
 l_uint8  *bufferin, *bufferout;
+l_int32   status;
+size_t    nbytes;
 BBUFFER  *bbin, *bbout;
 z_stream  z;
 

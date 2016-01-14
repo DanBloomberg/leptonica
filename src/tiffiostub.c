@@ -19,7 +19,6 @@
  *     Stubs for tiffio.c functions
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 #ifdef HAVE_CONFIG_H
@@ -85,6 +84,11 @@ l_int32 tiffGetCount(FILE *fp, l_int32 *pn)
     return ERROR_INT("function not present", "tiffGetCount", 1);
 }
 
+l_int32 getTiffResolution(FILE *fp, l_int32 *pxres, l_int32 *pyres)
+{
+    return ERROR_INT("function not present", "getTiffResolution", 1);
+}
+
 l_int32 readHeaderTiff(const char *filename, l_int32 n, l_int32 *pwidth,
                        l_int32 *pheight, l_int32 *pbps, l_int32 *pspp,
                        l_int32 *pres, l_int32 *pcmap, l_int32 *pformat)
@@ -112,11 +116,11 @@ l_int32 findTiffCompression(FILE *fp, l_int32 *pcomptype)
     return ERROR_INT("function not present", "findTiffCompression", 1);
 }
 
-l_int32 extractTiffG4DataFromFile(const char *filein, l_uint8 **pdata,
-                                  l_int32 *pnbytes, l_int32 *pw,
-                                  l_int32 *ph, l_int32 *pminisblack)
+l_int32 extractG4DataFromFile(const char *filein, l_uint8 **pdata,
+                              size_t *pnbytes, l_int32 *pw,
+                              l_int32 *ph, l_int32 *pminisblack)
 {
-    return ERROR_INT("function not present", "extractTiffG4DataFromFile", 1);
+    return ERROR_INT("function not present", "extractG4DataFromFile", 1);
 }
 
 PIX * pixReadMemTiff(const l_uint8 *cdata, size_t size, l_int32 n)

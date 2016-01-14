@@ -34,66 +34,61 @@
 static const l_float32  ANGLE1 = 3.14159265 / 30.;
 static const l_float32  ANGLE2 = 3.14159265 / 7.;
 
-void RotateTest(PIX *pixs, l_int32 reduction, l_int32 *pcount,
-                L_REGPARAMS *rp);
-
+void RotateTest(PIX *pixs, l_int32 reduction, L_REGPARAMS *rp);
 
 
 main(int    argc,
      char **argv)
 {
-l_int32       count, display, success;
-FILE         *fp;
 PIX          *pixs, *pixd;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    count = 0;
     fprintf(stderr, "Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
-    RotateTest(pixs, 1, &count, rp);
+    RotateTest(pixs, 1, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 2 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(TWO_BPP_IMAGE);
-    RotateTest(pixs, 1, &count, rp);
+    RotateTest(pixs, 1, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
-    RotateTest(pixs, 1, &count, rp);
+    RotateTest(pixs, 1, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
-    RotateTest(pixs, 1, &count, rp);
+    RotateTest(pixs, 1, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
-    RotateTest(pixs, 1, &count, rp);
+    RotateTest(pixs, 1, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
-    RotateTest(pixs, 1, &count, rp);
+    RotateTest(pixs, 1, rp);
     pixDestroy(&pixs);
 
     fprintf(stderr, "Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
-    RotateTest(pixd, 2, &count, rp);
+    RotateTest(pixd, 2, rp);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
-    RotateTest(pixs, 4, &count, rp);
+    RotateTest(pixs, 4, rp);
     pixDestroy(&pixs);
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 
@@ -101,7 +96,6 @@ L_REGPARAMS  *rp;
 void
 RotateTest(PIX          *pixs,
            l_int32       reduction,
-           l_int32      *pcount,
            L_REGPARAMS  *rp)
 {
 l_int32   w, h, d, outformat;
@@ -137,7 +131,7 @@ PIXA     *pixa;
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+    regTestWritePixAndCheck(rp, pixd, outformat);
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
@@ -174,7 +168,7 @@ PIXA     *pixa;
     pixDestroy(&pixt3);
     pixDestroy(&pixt1);
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixd, outformat, pcount, rp);
+    regTestWritePixAndCheck(rp, pixd, outformat);
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

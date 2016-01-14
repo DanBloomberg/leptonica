@@ -1632,12 +1632,16 @@ l_float32  maxval, delx;
 
     PROCNAME("numaGetRankBinValues");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
-    if (nbins < 2)
-        return ERROR_INT("nbins must be > 1", procName, 1);
+    if (pnarbin) *pnarbin = NULL;
+    if (pnam) *pnam = NULL;
     if (!pnarbin && !pnam)
         return ERROR_INT("no output requested", procName, 1);
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (numaGetCount(na) == 0)
+        return ERROR_INT("na is empty", procName, 1);
+    if (nbins < 2)
+        return ERROR_INT("nbins must be > 1", procName, 1);
 
         /* Get normalized histogram  */
     numaGetMax(na, &maxval, NULL);

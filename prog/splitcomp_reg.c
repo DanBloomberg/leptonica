@@ -26,27 +26,24 @@
  *          are identical (rotated) to those on un-rotated components.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
 {
-l_int32  i, j, w, h, display, success;
-l_int32  minsum[5] =    { 2, 40, 50, 50, 70};
-l_int32  skipdist[5] =  { 5,  5, 10, 10, 30};
-l_int32  delta[5] =     { 2, 10, 10, 25, 40};
-l_int32  maxbg[5] =     {10, 15, 10, 20, 40};
-BOX     *box1, *box2, *box3, *box4;
-BOXA    *boxa;
-FILE    *fp;
-PIX     *pixs, *pixc, *pixt, *pixd, *pix32;
-PIXA    *pixas, *pixad;
+l_int32       i, j, w, h;
+l_int32       minsum[5] =    { 2, 40, 50, 50, 70};
+l_int32       skipdist[5] =  { 5,  5, 10, 10, 30};
+l_int32       delta[5] =     { 2, 10, 10, 25, 40};
+l_int32       maxbg[5] =     {10, 15, 10, 20, 40};
+BOX          *box1, *box2, *box3, *box4;
+BOXA         *boxa;
+PIX          *pixs, *pixc, *pixt, *pixd, *pix32;
+PIXA         *pixas, *pixad;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
         /* Generate and save 1 bpp masks */
     pixas = pixaCreate(0);
@@ -110,9 +107,8 @@ PIXA    *pixas, *pixad;
 
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
-    pixWrite("/tmp/split.0.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/split.0.png", 0, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);
 
@@ -141,15 +137,13 @@ PIXA    *pixas, *pixad;
 
         /* Display results */
     pixd = pixaDisplay(pixad, 0, 0);
-    pixWrite("/tmp/split.1.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/split.1.png", 1, &success);
-    pixDisplayWithTitle(pixd, 600, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pixd, 600, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixad);
 
     pixaDestroy(&pixas);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
-
 

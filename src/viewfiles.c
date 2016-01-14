@@ -184,7 +184,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     sarrayAddString(sahtml, charbuf, L_COPY);
     sarrayAddString(sahtml, framestring, L_COPY);
     shtml = sarrayToString(sahtml, 1);
-    arrayWrite(mainname, "w", shtml, strlen(shtml));
+    l_binaryWrite(mainname, "w", shtml, strlen(shtml));
     FREE(shtml);
     FREE(mainname);
 
@@ -201,7 +201,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         sarrayAddString(salink, charbuf, L_COPY);
     }
     slink = sarrayToString(salink, 1);
-    arrayWrite(linkname, "w", slink, strlen(slink));
+    l_binaryWrite(linkname, "w", slink, strlen(slink));
     FREE(slink);
     FREE(linkname);
     FREE(linknameshort);

@@ -19,8 +19,6 @@
  *    Regression test for quadratic shear, both sampled and interpolated.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 void PixSave(PIX **ppixs, PIXA *pixa, l_int32 newrow,
@@ -30,17 +28,14 @@ void PixSave(PIX **ppixs, PIXA *pixa, l_int32 newrow,
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32       count, display, success;
 L_BMF        *bmf;
-FILE         *fp;
 PIX          *pixs1, *pixs2, *pixg, *pixt, *pixd;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    count = 0;
     bmf = bmfCreate("./fonts", 8);
     pixs1 = pixCreate(301, 301, 32);
     pixs2 = pixCreate(601, 601, 32);
@@ -74,8 +69,8 @@ L_REGPARAMS  *rp;
                                    60, -20, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixd, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixd, 50, 50, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+    pixDisplayWithTitle(pixd, 50, 50, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
@@ -95,8 +90,8 @@ L_REGPARAMS  *rp;
                                    60, -20, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixd, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixd, 250, 50, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+    pixDisplayWithTitle(pixd, 250, 50, NULL, rp->display);
     pixDestroy(&pixg);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
@@ -116,8 +111,8 @@ L_REGPARAMS  *rp;
                               120, -40, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixd, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixd, 550, 50, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+    pixDisplayWithTitle(pixd, 550, 50, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
@@ -137,8 +132,8 @@ L_REGPARAMS  *rp;
                               60, -20, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixd, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixd, 850, 50, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+    pixDisplayWithTitle(pixd, 850, 50, NULL, rp->display);
     pixDestroy(&pixg);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
@@ -146,7 +141,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs1);
     pixDestroy(&pixs2);
     bmfDestroy(&bmf);
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 

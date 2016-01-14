@@ -55,10 +55,7 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 /*---------------------------------------------------------------------*
  *                             Box geometry                            *
@@ -662,7 +659,10 @@ PTA       *pta;
  *      Return: part of box within given rectangle, or NULL on error
  *              or if box is entirely outside the rectangle
  *
- *  Note: the rectangle is assumed to go from (0,0) to (wi - 1, hi - 1)
+ *  Notes:
+ *      (1) This can be used to clip a rectangle to an image.
+ *          The clipping rectangle is assumed to have a UL corner at (0, 0),
+ *          and a LR corner at (wi - 1, hi - 1).
  */
 BOX *
 boxClipToRectangle(BOX     *box,
@@ -987,6 +987,8 @@ BOX     *box;
  *  Notes:
  *      (1) The returned w and h are the minimum size image
  *          that would contain all boxes untranslated.
+ *      (2) If there are no boxes, returned w and h are 0 and
+ *          all parameters in the returned box are 0.
  */
 l_int32
 boxaGetExtent(BOXA     *boxa,
@@ -1007,9 +1009,6 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin;
         return ERROR_INT("boxa not defined", procName, 1);
 
     n = boxaGetCount(boxa);
-    if (n == 0)
-        return ERROR_INT("no boxes in boxa", procName, 1);
-
     xmax = ymax = 0;
     xmin = ymin = 100000000;
     for (i = 0; i < n; i++) {
@@ -1019,6 +1018,8 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin;
         xmax = L_MAX(xmax, x + w);
         ymax = L_MAX(ymax, y + h);
     }
+    if (n == 0)
+        xmin = ymin = 0;
     if (pw) *pw = xmax;
     if (ph) *ph = ymax;
     if (pbox)

@@ -33,8 +33,6 @@
  *    in the Document Image Applications chapter.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* for pixDisplayHitMissSel() */
@@ -46,29 +44,26 @@ static const char *patname[2] = {
     "tribune-word.png",   /* patno = 0 */
     "tribune-t.png"};     /* patno = 1 */
 
-l_int32 GeneratePattern(l_int32 patno, l_int32 red, L_REGPARAMS  *rp,
-                        l_int32 *count);
+l_int32 GeneratePattern(l_int32 patno, l_int32 red, L_REGPARAMS  *rp);
 
 
 main(int    argc,
      char **argv)
 {
-l_int32      patno, red, count, success, display;
-FILE         *fp;
+l_int32      patno, red;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    count = 0;
     for (patno = 0; patno < 2; patno++) {
         for (red = 4; red <= 16; red *= 2) {
             if (patno == 1 && red == 16) continue;
-            GeneratePattern(patno, red, rp, &count);
+            GeneratePattern(patno, red, rp);
         }
     }
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 
@@ -76,8 +71,7 @@ L_REGPARAMS  *rp;
 l_int32
 GeneratePattern(l_int32       patno,
                 l_int32       red,
-                L_REGPARAMS  *rp,
-                l_int32      *pcount)
+                L_REGPARAMS  *rp)
 {
 l_int32  width, cx, cy;
 PIX     *pixs, *pixt, *pix, *pixr, *pixp, *pixsel, *pixhmt;
@@ -87,8 +81,10 @@ SEL     *selhm;
 
     PROCNAME("GeneratePattern");
 
-    if ((pixs = pixRead(patname[patno])) == NULL)
+    if ((pixs = pixRead(patname[patno])) == NULL) {
+        rp->success = FALSE;
 	return ERROR_INT("pixs not made", procName, 1);
+    }
 
         /* Make a hit-miss sel at specified reduction factor */
     if (red == 4) {
@@ -112,7 +108,7 @@ SEL     *selhm;
     pixaAddPix(pixa, pixsel, L_CLONE);
     width = (patno == 0) ? 1200 : 400;
     pixd = pixaDisplayTiledAndScaled(pixa, 32, width, 2, 0, 30, 2);
-    regTestWritePixAndCheck(pixd, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixDisplayWithTitle(pixd, 100, 100 + 100 * (3 * patno + red / 4),
                         NULL, rp->display);
     pixaDestroy(&pixa);
@@ -136,18 +132,18 @@ SEL     *selhm;
     selGetParameters(selhm, NULL, NULL, &cy, &cx);
     pixc1 = pixDisplayMatchedPattern(pixr, pixp, pixhmt,
                                      cx, cy, 0x0000ff00, 1.0, 5);
-    regTestWritePixAndCheck(pixc1, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixc1, IFF_PNG);
     pixDisplayWithTitle(pixc1, 500, 100, NULL, rp->display);
     
         /* Color each instance at 0.5 scale */
     pixc2 = pixDisplayMatchedPattern(pixr, pixp, pixhmt,
                                      cx, cy, 0x0000ff00, 0.5, 5);
-    regTestWritePixAndCheck(pixc2, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixc2, IFF_PNG);
 
         /* Remove each instance from the input image */
     pixc3 = pixCopy(NULL, pixr);
     pixRemoveMatchedPattern(pixc3, pixp, pixhmt, cx, cy, 1);
-    regTestWritePixAndCheck(pixc3, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixc3, IFF_PNG);
 
     selDestroy(&selhm);
     pixDestroy(&pixp);
@@ -157,6 +153,7 @@ SEL     *selhm;
     pixDestroy(&pixc2);
     pixDestroy(&pixc3);
     pixDestroy(&pixd);
+    pixDestroy(&pixr);
     pixDestroy(&pixs);
     return 0;
 }

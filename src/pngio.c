@@ -21,6 +21,7 @@
  *          l_int32     readHeaderPng()
  *          l_int32     freadHeaderPng()
  *          l_int32     sreadHeaderPng()
+ *          l_int32     fgetPngResolution()
  *
  *    Write png to file
  *          l_int32     pixWritePng()  [ special top level ]
@@ -480,6 +481,67 @@ l_uint32  *pword;
 }
 
 
+/*
+ *  fgetPngResolution()
+ *
+ *      Input:  stream (opened for read)
+ *              &xres, &yres (<return> resolution in ppi)
+ *      Return: 0 if OK; 0 on error
+ *
+ *  Notes:
+ *      (1) If neither resolution field is set, this is not an error;
+ *          the returned resolution values are 0 (designating 'unknown').
+ *      (2) Side-effect: this rewinds the stream.
+ */
+l_int32
+fgetPngResolution(FILE     *fp,
+                  l_int32  *pxres,
+                  l_int32  *pyres)
+{
+png_uint_32  xres, yres;
+png_structp  png_ptr;
+png_infop    info_ptr;
+
+    PROCNAME("fgetPngResolution");
+
+    if (!pxres || !pyres)
+        return ERROR_INT("&xres and &yres not both defined", procName, 1);
+    *pxres = *pyres = 0;
+    if (!fp)
+        return ERROR_INT("stream not opened", procName, 1);
+
+       /* Make the two required structs */
+   if ((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+                   (png_voidp)NULL, NULL, NULL)) == NULL)
+        return ERROR_INT("png_ptr not made", procName, 1);
+    if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
+        png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+        return ERROR_INT("info_ptr not made", procName, 1);
+    }
+
+        /* Set up png setjmp error handling.
+         * Without this, an error calls exit. */
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+        return ERROR_INT("internal png error", procName, 1);
+    }
+
+        /* Read the metadata */
+    rewind(fp);
+    png_init_io(png_ptr, fp);
+    png_read_png(png_ptr, info_ptr, 0, NULL);
+
+    xres = png_get_x_pixels_per_meter(png_ptr, info_ptr);
+    yres = png_get_y_pixels_per_meter(png_ptr, info_ptr);
+    *pxres = (l_int32)((l_float32)xres / 39.37 + 0.5);  /* to ppi */
+    *pyres = (l_int32)((l_float32)yres / 39.37 + 0.5);
+
+    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+    rewind(fp);
+    return 0;
+}
+
+
 /*---------------------------------------------------------------------*
  *                              Writing png                            *
  *---------------------------------------------------------------------*/
@@ -509,7 +571,7 @@ FILE  *fp;
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
 
-    if ((fp = fopen(filename, "wb+")) == NULL)
+    if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
 
     if (pixWriteStreamPng(fp, pix, gamma)) {
@@ -832,7 +894,6 @@ PIX *
 pixReadRGBAPng(const char  *filename)
 {
 l_int32  format;
-FILE    *fp;
 PIX     *pix;
 
     PROCNAME("pixReadRGBAPng");
@@ -840,25 +901,21 @@ PIX     *pix;
     if (!filename)
         return (PIX *)ERROR_PTR("filename not defined", procName, NULL);
 
-        /* If alpha channel reading is enabled, just read it */
-    if (var_PNG_STRIP_ALPHA == FALSE)
-        return pixRead(filename);
-
         /* Make sure it's a png file */
-    if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR("image file not found", procName, NULL);
-    findFileFormat(fp, &format);
+    findFileFormat(filename, &format);
     if (format != IFF_PNG) {
-        fclose(fp);
         L_ERROR_STRING("file format is %s, not png", procName,
                        ImageFileFormatExtensions[format]);
         return NULL;
     }
 
+        /* If alpha channel reading is enabled, just read it */
+    if (var_PNG_STRIP_ALPHA == FALSE)
+        return pixRead(filename);
+
     l_pngSetStripAlpha(0);
-    pix = pixReadStreamPng(fp);
+    pix = pixRead(filename);
     l_pngSetStripAlpha(1);  /* reset to default */
-    fclose(fp);
     if (!pix) L_ERROR("pix not read", procName);
     return pix;
 }

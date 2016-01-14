@@ -28,6 +28,9 @@
  *   are not 1 bpp, it generates mixed raster PostScript with
  *   g4 encoding for the text and jpeg ("DCT") encoding for the
  *   remaining image parts.
+ *
+ *   Although not required for 'success' on the regression test,
+ *   this program uses ps2pdf to generate the pdf output.
  */
 
 #include "allheaders.h"
@@ -35,14 +38,16 @@
 main(int    argc,
      char **argv)
 {
-l_int32      i, j, w, h, wc, hc, display, success, ignore;
-l_float32    scalefactor;
-FILE        *fp;
-PIX         *pixs, *pixc, *pixht, *pixtxt, *pixmfull;
-PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
+char          buf[512];
+char         *psname, *pdfname;
+l_int32       i, j, w, h, wc, hc, ret;
+l_float32     scalefactor;
+PIX          *pixs, *pixc, *pixht, *pixtxt, *pixmfull;
+PIX          *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
         /* Source for generating images */
     pixs = pixRead("pageseg2.tif");   /* 1 bpp */
@@ -62,8 +67,7 @@ PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
     pixcs2 = pixCreate(w, h, 32);
     pixRasterop(pixcs2, 0, 0, w, hc, PIX_SRC, pixcs, 0, 0);
     pixRasterop(pixcs2, 0, hc, w, hc, PIX_SRC, pixcs, 0, 0);
-    pixWrite("/tmp/junkpsioseg.0.jpg", pixcs2, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.0.jpg", 0, &success);
+    regTestWritePixAndCheck(rp, pixcs2, IFF_JFIF_JPEG);  /* 0 */
     pixmfull = pixCreate(w, h, 1);
     pixSetAll(pixmfull);  /* use as mask to render the color image */
     
@@ -71,45 +75,36 @@ PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
           * page image and image parts from pixcs2. */
     pix32 = pixConvertTo32(pixtxt);
     pixCombineMasked(pix32, pixcs2, pixht);
-    pixWrite("/tmp/junkpsioseg.1.jpg", pix32, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.1.jpg", 1, &success);
+    regTestWritePixAndCheck(rp, pix32, IFF_JFIF_JPEG);  /* 1 */
     
          /* Make an 8 bpp gray version */
     pix8g = pixConvertRGBToLuminance(pix32);
-    pixWrite("/tmp/junkpsioseg.2.jpg", pix8g, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.2.jpg", 2, &success);
+    regTestWritePixAndCheck(rp, pix8g, IFF_JFIF_JPEG);  /* 2 */
     
          /* Make an 8 bpp colormapped version */
     pix8c = pixOctreeColorQuant(pix32, 240, 0);
-    pixWrite("/tmp/junkpsioseg.3.png", pix8c, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.3.png", 3, &success);
+    regTestWritePixAndCheck(rp, pix8c, IFF_PNG);  /* 3 */
     
          /* Make a 4 bpp colormapped version */
     pix4c = pixOctreeQuantNumColors(pix32, 16, 4);
-    pixWrite("/tmp/junkpsioseg.4.png", pix4c, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/junkpsioseg.4.png", 4, &success);
+    regTestWritePixAndCheck(rp, pix4c, IFF_PNG);  /* 4 */
 
          /* Write out the files to be imaged */
-#ifndef _WIN32
-    ignore = system("mkdir /tmp/junkimagedir");
-    ignore = system("mkdir /tmp/junkmaskdir");
-#else
-    ignore = system("mkdir \\tmp\\junkimagedir");
-    ignore = system("mkdir \\tmp\\junkmaskdir");
-#endif  /* _WIN32 */
-    pixWrite("/tmp/junkimagedir/001.tif", pixs, IFF_TIFF_G4);
-    pixWrite("/tmp/junkimagedir/002.tif", pixht, IFF_TIFF_G4);
-    pixWrite("/tmp/junkimagedir/003.tif", pixtxt, IFF_TIFF_G4);
-    pixWrite("/tmp/junkimagedir/004.jpg", pixcs2, IFF_JFIF_JPEG);
-    pixWrite("/tmp/junkmaskdir/004.tif", pixmfull, IFF_TIFF_G4);
-    pixWrite("/tmp/junkimagedir/005.jpg", pix32, IFF_JFIF_JPEG);
-    pixWrite("/tmp/junkmaskdir/005.tif", pixht, IFF_TIFF_G4);
-    pixWrite("/tmp/junkimagedir/006.jpg", pix8g, IFF_JFIF_JPEG);
-    pixWrite("/tmp/junkmaskdir/006.tif", pixht, IFF_TIFF_G4);
-    pixWrite("/tmp/junkimagedir/007.png", pix8c, IFF_PNG);
-    pixWrite("/tmp/junkmaskdir/007.tif", pixht, IFF_TIFF_G4);
-    pixWrite("/tmp/junkimagedir/008.png", pix4c, IFF_PNG);
-    pixWrite("/tmp/junkmaskdir/008.tif", pixht, IFF_TIFF_G4);
+    lept_mkdir("imagedir");
+    lept_mkdir("maskdir");
+    pixWrite("/tmp/imagedir/001.tif", pixs, IFF_TIFF_G4);
+    pixWrite("/tmp/imagedir/002.tif", pixht, IFF_TIFF_G4);
+    pixWrite("/tmp/imagedir/003.tif", pixtxt, IFF_TIFF_G4);
+    pixWrite("/tmp/imagedir/004.jpg", pixcs2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/maskdir/004.tif", pixmfull, IFF_TIFF_G4);
+    pixWrite("/tmp/imagedir/005.jpg", pix32, IFF_JFIF_JPEG);
+    pixWrite("/tmp/maskdir/005.tif", pixht, IFF_TIFF_G4);
+    pixWrite("/tmp/imagedir/006.jpg", pix8g, IFF_JFIF_JPEG);
+    pixWrite("/tmp/maskdir/006.tif", pixht, IFF_TIFF_G4);
+    pixWrite("/tmp/imagedir/007.png", pix8c, IFF_PNG);
+    pixWrite("/tmp/maskdir/007.tif", pixht, IFF_TIFF_G4);
+    pixWrite("/tmp/imagedir/008.png", pix4c, IFF_PNG);
+    pixWrite("/tmp/maskdir/008.tif", pixht, IFF_TIFF_G4);
     pixDestroy(&pixs);
     pixDestroy(&pixc);
     pixDestroy(&pixht);
@@ -123,16 +118,20 @@ PIX         *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
     pixDestroy(&pix4c);
     
         /* Generate the 8 page ps and pdf files */
-    convertSegmentedPagesToPS("/tmp/junkimagedir", NULL,
-                              "/tmp/junkmaskdir", NULL,
+    convertSegmentedPagesToPS("/tmp/imagedir", NULL,
+                              "/tmp/maskdir", NULL,
                               0, 0, 10, 2.0, 0.15, 190, "/tmp/junkseg.ps");
-    regTestCheckFile(fp, argv, "/tmp/junkseg.ps", 5, &success);
+    regTestCheckFile(rp, "/tmp/junkseg.ps");  /* 5 */
     fprintf(stderr, "ps file made: /tmp/junkseg.ps\n");
-    ignore = system("ps2pdf /tmp/junkseg.ps /tmp/junkseg.pdf");
+    psname = genPathname("/tmp", "junkseg.ps");
+    pdfname = genPathname("/tmp", "junkseg.pdf");
+    snprintf(buf, sizeof(buf), "ps2pdf %s %s", psname, pdfname);
+    ret = system(buf);
+    lept_free(psname);
+    lept_free(pdfname);
     fprintf(stderr, "pdf file made: /tmp/junkseg.pdf\n");
 
-    regTestCleanup(argc, argv, fp, success, NULL);
-    return 0;
+    regTestCleanup(rp);
+    return ret;
 }
-
 

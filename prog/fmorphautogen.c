@@ -30,8 +30,6 @@
  *    were made using index = 1.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
@@ -53,9 +51,9 @@ static char  mainName[] = "fmorphautogen";
 
     sela = selaAddBasic(NULL);
     if (fmorphautogen(sela, index, filename))
-        exit(1);
+        return 1;
 
     selaDestroy(&sela);
-    exit(0);
+    return 0;
 }
 

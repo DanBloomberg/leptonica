@@ -19,8 +19,6 @@
  *    Regression test for all rotateorth functions
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define   BINARY_IMAGE        "test1.png"
@@ -29,50 +27,46 @@
 #define   COLORMAP_IMAGE      "dreyfus8.png"
 #define   RGB_IMAGE           "marge.jpg"
 
-void RotateOrthTest(PIX *pix, l_int32 *pcount, L_REGPARAMS *rp);
+void RotateOrthTest(PIX *pix, L_REGPARAMS *rp);
 
 
 main(int    argc,
      char **argv)
 {
-l_int32       count, success, display;
-FILE         *fp;
 PIX          *pixs;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    count = 0;
     fprintf(stderr, "\nTest binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
-    RotateOrthTest(pixs, &count, rp);
+    RotateOrthTest(pixs, rp);
     pixDestroy(&pixs);
     fprintf(stderr, "\nTest 4 bpp colormapped image:\n");
     pixs = pixRead(FOUR_BPP_IMAGE);
-    RotateOrthTest(pixs, &count, rp);
+    RotateOrthTest(pixs, rp);
     pixDestroy(&pixs);
     fprintf(stderr, "\nTest grayscale image:\n");
     pixs = pixRead(GRAYSCALE_IMAGE);
-    RotateOrthTest(pixs, &count, rp);
+    RotateOrthTest(pixs, rp);
     pixDestroy(&pixs);
     fprintf(stderr, "\nTest colormap image:\n");
     pixs = pixRead(COLORMAP_IMAGE);
-    RotateOrthTest(pixs, &count, rp);
+    RotateOrthTest(pixs, rp);
     pixDestroy(&pixs);
     fprintf(stderr, "\nTest rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
-    RotateOrthTest(pixs, &count, rp);
+    RotateOrthTest(pixs, rp);
     pixDestroy(&pixs);
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 
 
 void
 RotateOrthTest(PIX          *pixs,
-               l_int32      *pcount,
                L_REGPARAMS  *rp)
 {
 l_int32   zero, count;
@@ -89,7 +83,7 @@ PIXCMAP  *cmap;
     pixDestroy(&pixd);
     pixd = pixRotate90(pixt, 1);
     pixDestroy(&pixt);
-    regTestComparePix(rp->fp, rp->argv, pixs, pixd, (*pcount)++, &rp->success);
+    regTestComparePix(rp, pixs, pixd);
     if (!cmap) {
         pixXor(pixd, pixd, pixs);
         pixZero(pixd, &zero);
@@ -106,7 +100,7 @@ PIXCMAP  *cmap;
 	/* Test 2 successive 180 degree rotations */
     pixt = pixRotate180(NULL, pixs);
     pixRotate180(pixt, pixt);
-    regTestComparePix(rp->fp, rp->argv, pixs, pixt, (*pcount)++, &rp->success);
+    regTestComparePix(rp, pixs, pixt);
     if (!cmap) {
         pixXor(pixt, pixt, pixs);
         pixZero(pixt, &zero);
@@ -123,7 +117,7 @@ PIXCMAP  *cmap;
 	/* Test 2 successive LR flips */
     pixt = pixFlipLR(NULL, pixs);
     pixFlipLR(pixt, pixt);
-    regTestComparePix(rp->fp, rp->argv, pixs, pixt, (*pcount)++, &rp->success);
+    regTestComparePix(rp, pixs, pixt);
     if (!cmap) {
         pixXor(pixt, pixt, pixs);
         pixZero(pixt, &zero);
@@ -139,7 +133,7 @@ PIXCMAP  *cmap;
 	/* Test 2 successive TB flips */
     pixt = pixFlipTB(NULL, pixs);
     pixFlipTB(pixt, pixt);
-    regTestComparePix(rp->fp, rp->argv, pixs, pixt, (*pcount)++, &rp->success);
+    regTestComparePix(rp, pixs, pixt);
     if (!cmap) {
         pixXor(pixt, pixt, pixs);
         pixZero(pixt, &zero);

@@ -16,28 +16,32 @@
 /*
  * modifyhuesat.c
  *
+ *     modifyhuesat filein nhue dhue nsat dsat fileout
+ *
+ *         where nhue and nsat are odd
+ *
+ *     This gives a rectangle of nhue x nsat output images,
+ *     where the center image is not modified.
+ *
+ *     Example: modifyhuesat test24.jpg 5 0.2 5 0.2 /tmp/junkout.jpg
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
 {
 char        *filein, *fileout;
 l_int32      i, j, w, d, nhue, nsat, tilewidth;
-l_float32    dhue, dsat, delhue, delsat;
-PIX         *pix, *pixs, *pixt1, *pixt2, *pixd;
+l_float32    scale, dhue, dsat, delhue, delsat;
+PIX         *pixs, *pixt1, *pixt2, *pixd;
 PIXA        *pixa;
 static char  mainName[] = "modifyhuesat";
 
-    if (argc != 7) {
-        ERROR_INT(" Syntax: modifyhuesat filein nhue dhue nsat dsat fileout",
-                  mainName, 1);
-        return 1;
-    }
+    if (argc != 7)
+        return ERROR_INT(
+            " Syntax: modifyhuesat filein nhue dhue nsat dsat fileout",
+            mainName, 1);
 
     filein = argv[1];
     nhue = atoi(argv[2]);
@@ -55,9 +59,15 @@ static char  mainName[] = "modifyhuesat";
         fprintf(stderr, "nsat must be odd; raised to %d\n", nsat);
     }
 
-    if ((pix = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not read", mainName, 1);
-    pixs = pixScale(pix, 0.25, 0.25);
+    if ((pixt1 = pixRead(filein)) == NULL)
+        return ERROR_INT("pixt1 not read", mainName, 1);
+    pixGetDimensions(pixt1, &w, NULL, NULL);
+    scale = 250.0 / (l_float32)w;
+    pixt2 = pixScale(pixt1, scale, scale);
+    pixs = pixConvertTo32(pixt2);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+
     pixGetDimensions(pixs, &w, NULL, &d);
     pixa = pixaCreate(nhue * nsat);
     for (i = 0; i < nsat; i++) {
@@ -75,7 +85,6 @@ static char  mainName[] = "modifyhuesat";
     pixd = pixaDisplayTiledAndScaled(pixa, d, tilewidth, nsat, 0, 25, 3);
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);
 
-    pixDestroy(&pix);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

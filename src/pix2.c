@@ -98,8 +98,6 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -722,7 +720,7 @@ PIXCMAP   *cmap;
  *  pixSetBlackOrWhite()
  *
  *      Input:  pixs (all depths; cmap ok)
- *              incolor (L_BRING_IN_BLACK or L_BRING_IN_WHITE)
+ *              op (L_SET_BLACK, L_SET_WHITE)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
@@ -735,7 +733,7 @@ PIXCMAP   *cmap;
  */
 l_int32
 pixSetBlackOrWhite(PIX     *pixs,
-                   l_int32  incolor)
+                   l_int32  op)
 {
 l_int32   d, index;
 PIXCMAP  *cmap;
@@ -744,22 +742,22 @@ PIXCMAP  *cmap;
 
     if (!pixs)
         return ERROR_INT("pix not defined", procName, 1);
-    if (incolor != L_BRING_IN_BLACK && incolor != L_BRING_IN_WHITE)
-        return ERROR_INT("invalid incolor", procName, 1);
+    if (op != L_SET_BLACK && op != L_SET_WHITE)
+        return ERROR_INT("invalid op", procName, 1);
 
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
     if (!cmap) {
-        if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
-            (d > 1 && incolor == L_BRING_IN_WHITE))
+        if ((d == 1 && op == L_SET_BLACK) ||
+            (d > 1 && op == L_SET_WHITE))
             pixSetAll(pixs);
         else 
             pixClearAll(pixs);
     }
     else {  /* handle colormap */
-        if (incolor == L_BRING_IN_BLACK)
+        if (op == L_SET_BLACK)
             pixcmapAddBlackOrWhite(cmap, 0, &index);
-        else  /* L_BRING_IN_WHITE */
+        else  /* L_SET_WHITE */
             pixcmapAddBlackOrWhite(cmap, 1, &index);
         pixSetAllArbitrary(pixs, index);
     }
@@ -1873,7 +1871,7 @@ PIX     *pixd;
  *
  *  Notes:
  *      (1) The alpha channel (in the 4th byte of each RGB pixel)
- *          is not used in leptonica.
+ *          is mostly ignored in leptonica.
  *      (2) Three calls to this function generate the three 8 bpp component
  *          images.  This is much faster than generating the three
  *          images in parallel, by extracting a src pixel and setting
@@ -1936,7 +1934,7 @@ PIX           *pixd;
  *  Notes:
  *      (1) This places the 8 bpp pixel in pixs into the
  *          specified color component (properly interleaved) in pixd.
- *      (2) The alpha channel component is not used in leptonica.
+ *      (2) The alpha channel component mostly ignored in leptonica.
  */
 l_int32
 pixSetRGBComponent(PIX     *pixd,
@@ -2494,7 +2492,7 @@ l_uint32   word;
 l_int32
 pixGetRasterData(PIX       *pixs,
                  l_uint8  **pdata,
-                 l_int32   *pnbytes)
+                 size_t    *pnbytes)
 {
 l_int32    w, h, d, wpl, i, j, rval, gval, bval;
 l_int32    databpl;  /* bytes for each raster line in returned data */

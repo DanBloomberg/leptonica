@@ -501,7 +501,7 @@ L_KERNEL  *kel;
     if (!fname)
         return (L_KERNEL *)ERROR_PTR("fname not defined", procName, NULL);
 
-    if ((fp = fopen(fname, "rb")) == NULL)
+    if ((fp = fopenReadStream(fname)) == NULL)
         return (L_KERNEL *)ERROR_PTR("stream not opened", procName, NULL);
     if ((kel = kernelReadStream(fp)) == NULL)
         return (L_KERNEL *)ERROR_PTR("kel not returned", procName, NULL);
@@ -573,7 +573,7 @@ FILE  *fp;
     if (!kel)
         return ERROR_INT("kel not defined", procName, 1);
 
-    if ((fp = fopen(fname, "wb")) == NULL)
+    if ((fp = fopenWriteStream(fname, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     kernelWriteStream(fp, kel);
     fclose(fp);
@@ -724,8 +724,9 @@ L_KERNEL *
 kernelCreateFromFile(const char  *filename)
 {
 char      *filestr, *line;
-l_int32    nbytes, nlines, i, j, first, index, w, h, cx, cy, n;
+l_int32    nlines, i, j, first, index, w, h, cx, cy, n;
 l_float32  val;
+size_t     size;
 NUMA      *na, *nat;
 SARRAY    *sa;
 L_KERNEL  *kel;
@@ -735,7 +736,7 @@ L_KERNEL  *kel;
     if (!filename)
         return (L_KERNEL *)ERROR_PTR("filename not defined", procName, NULL);
     
-    filestr = (char *)arrayRead(filename, &nbytes);
+    filestr = (char *)l_binaryRead(filename, &size);
     sa = sarrayCreateLinesFromString(filestr, 1);
     FREE(filestr);
     nlines = sarrayGetCount(sa);
@@ -743,7 +744,7 @@ L_KERNEL  *kel;
         /* Find the first data line. */
     for (i = 0; i < nlines; i++) {
         line = sarrayGetString(sa, i, L_NOCOPY);
-	if (line[0] != '#') {
+        if (line[0] != '#') {
             first = i;
             break;
         }
@@ -758,23 +759,23 @@ L_KERNEL  *kel;
         return (L_KERNEL *)ERROR_PTR("error reading cy,cx", procName, NULL);
 
         /* Extract the data.  This ends when we reach eof, or when we
-	 * encounter a line of data that is either a null string or
-	 * contains just a newline. */
+         * encounter a line of data that is either a null string or
+         * contains just a newline. */
     na = numaCreate(0);
     for (i = first + 2; i < nlines; i++) {
         line = sarrayGetString(sa, i, L_NOCOPY);
         if (line[0] == '\0' || line[0] == '\n' || line[0] == '#')
             break;
         nat = parseStringForNumbers(line, " \t\n");
-	numaJoin(na, nat, 0, 0);
-	numaDestroy(&nat);
+        numaJoin(na, nat, 0, 0);
+        numaDestroy(&nat);
     }
     sarrayDestroy(&sa);
 
     n = numaGetCount(na);
     if (n != w * h) {
         numaDestroy(&na);
-	fprintf(stderr, "w = %d, h = %d, num ints = %d\n", w, h, n);
+        fprintf(stderr, "w = %d, h = %d, num ints = %d\n", w, h, n);
         return (L_KERNEL *)ERROR_PTR("invalid integer data", procName, NULL);
     }
 
@@ -785,7 +786,7 @@ L_KERNEL  *kel;
         for (j = 0; j < w; j++) {
             numaGetFValue(na, index, &val);
             kernelSetElement(kel, i, j, val);
-	    index++;
+            index++;
         }
     }
 

@@ -21,10 +21,7 @@
  *     parameters, set DEBUG_PLOT to 1 in baseline.c 
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
@@ -36,15 +33,14 @@ PTA         *pta;
 static char  mainName[] = "baselinetest";
 
     if (argc != 3)
-	exit(ERROR_INT(" Syntax:  baselinetest filein fileout", mainName, 1));
+	return ERROR_INT(" Syntax:  baselinetest filein fileout", mainName, 1);
 
     filein = argv[1];
     fileout = argv[2];
-
     pixs = pixRead(filein);
 
 #if 1
-        /* test function for deskewing using projective transform
+        /* Test function for deskewing using projective transform
 	 * on linear approximation for local skew angle */
     pixd = pixDeskewLocal(pixs, 10, 0, 0, 0.0, 0.0, 0.0);
     pixWrite(fileout, pixd, IFF_TIFF_G4);
@@ -58,13 +54,13 @@ static char  mainName[] = "baselinetest";
 #endif
 
 #if 0
-        /* test function for finding local skew angles */
+        /* Test function for finding local skew angles */
     na = pixGetLocalSkewAngles(pixs, 10, 0, 0, 0.0, 0.0, 0.0, NULL, NULL);
     numaDestroy(&na);
 #endif
 
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 
 

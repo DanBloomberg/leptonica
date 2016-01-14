@@ -26,20 +26,18 @@
  *     maximized.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* deskew */
 #define   DESKEW_REDUCTION      2      /* 1, 2 or 4 */
 
     /* sweep only */
-#define   SWEEP_RANGE           5.     /* degrees */
+#define   SWEEP_RANGE           10.    /* degrees */
 #define   SWEEP_DELTA           0.2    /* degrees */
 #define   SWEEP_REDUCTION       2      /* 1, 2, 4 or 8 */
 
     /* sweep and search */
-#define   SWEEP_RANGE2          5.     /* degrees */
+#define   SWEEP_RANGE2          10.    /* degrees */
 #define   SWEEP_DELTA2          1.     /* degrees */
 #define   SWEEP_REDUCTION2      2      /* 1, 2, 4 or 8 */
 #define   SEARCH_REDUCTION      2      /* 1, 2, 4 or 8 */
@@ -50,54 +48,83 @@ main(int    argc,
      char **argv)
 {
 char        *filein, *fileout;
+l_int32      ret;
 l_float32    deg2rad;
-l_float32    angle, conf;
-PIX         *pixs, *pixd;
+l_float32    angle, conf, score;
+PIX         *pix, *pixs, *pixd;
 static char  mainName[] = "skewtest";
 
     if (argc != 3)
-	exit(ERROR_INT(" Syntax:  skewtest filein fileout", mainName, 1));
+	return ERROR_INT(" Syntax:  skewtest filein fileout", mainName, 1);
 
     filein = argv[1];
     fileout = argv[2];
+    pixd = NULL;
 
     deg2rad = 3.1415926535 / 180.;
 
     if ((pixs = pixRead(filein)) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
+	return ERROR_INT("pixs not made", mainName, 1);
 
-#if 1
-    pixd = pixDeskew(pixs, DESKEW_REDUCTION);
-    pixWrite(fileout, pixd, IFF_PNG);
-    pixDestroy(&pixd);
-#endif
+        /* Find the skew angle various ways */
+    pix = pixConvertTo1(pixs, 130);
+    pixWrite("/tmp/binarized.tif", pix, IFF_TIFF_G4);
+    pixFindSkew(pix, &angle, &conf);
+    fprintf(stderr, "pixFindSkew():\n"
+                    "  conf = %5.3f, angle = %7.3f degrees\n", conf, angle); 
+    
+    pixFindSkewSweepAndSearchScorePivot(pix, &angle, &conf, &score,
+                                        SWEEP_REDUCTION2, SEARCH_REDUCTION,
+                                        0.0, SWEEP_RANGE2, SWEEP_DELTA2,
+                                        SEARCH_MIN_DELTA,
+                                        L_SHEAR_ABOUT_CORNER);
+    fprintf(stderr, "pixFind...Pivot(about corner):\n"
+                    "  conf = %5.3f, angle = %7.3f degrees, score = %f\n",
+            conf, angle, score);
+    
+    pixFindSkewSweepAndSearchScorePivot(pix, &angle, &conf, &score,
+                                        SWEEP_REDUCTION2, SEARCH_REDUCTION,
+                                        0.0, SWEEP_RANGE2, SWEEP_DELTA2,
+                                        SEARCH_MIN_DELTA,
+                                        L_SHEAR_ABOUT_CENTER);
+    fprintf(stderr, "pixFind...Pivot(about center):\n"
+                    "  conf = %5.3f, angle = %7.3f degrees, score = %f\n",
+            conf, angle, score);
+    
+        /* Use top-level */
+    pixd = pixDeskew(pixs, 0);
+    pixWriteImpliedFormat(fileout, pixd, 0, 0);
+
 
 #if 0
-    if (pixFindSkew(pixs, &angle, &conf)) {
-	L_WARNING("skew angle not valid", mainName);
-	exit(1);
+        /* Do it piecemeal; fails if outside the range */
+    if (pixGetDepth(pixs) == 1) {
+        pixd = pixDeskew(pix, DESKEW_REDUCTION);
+        pixWrite(fileout, pixd, IFF_PNG);
     }
-#endif
-
-#if 0
-    if (pixFindSkewSweep(pixs, &angle, SWEEP_REDUCTION,
-                         SWEEP_RANGE, SWEEP_DELTA)) {
-	L_WARNING("skew angle not valid", mainName);
-	exit(1);
-    }
-#endif
-
-#if 0
-    if (pixFindSkewSweepAndSearch(pixs, &angle, &conf, SWEEP_REDUCTION2,
-                         SEARCH_REDUCTION, SWEEP_RANGE2, SWEEP_DELTA2,
-			 SEARCH_MIN_DELTA)) {
-	L_WARNING("skew angle not valid", mainName);
-	exit(1);
+    else {
+        ret = pixFindSkewSweepAndSearch(pix, &angle, &conf, SWEEP_REDUCTION2,
+                                        SEARCH_REDUCTION, SWEEP_RANGE2,
+                                        SWEEP_DELTA2, SEARCH_MIN_DELTA);
+	if (ret)
+            L_WARNING("skew angle not valid", mainName);
+        else {
+            fprintf(stderr, "conf = %5.3f, angle = %7.3f degrees\n",
+                    conf, angle); 
+            if (conf > 2.5)
+                pixd = pixRotate(pixs, angle * deg2rad, L_ROTATE_AREA_MAP,
+                                 L_BRING_IN_WHITE, 0, 0);
+            else
+                pixd = pixClone(pixs);
+            pixWrite(fileout, pixd, IFF_PNG);
+            pixDestroy(&pixd);
+        }
     }
 #endif
 
     pixDestroy(&pixs);
-    exit(0);
+    pixDestroy(&pix);
+    pixDestroy(&pixd);
+    return 0;
 }
-
 

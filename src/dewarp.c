@@ -482,7 +482,7 @@ FPIX       *fpix1, *fpix2, *fpix3;
     numaDestroy(&nacurve);
     numaDestroy(&naflatsi);
     if (debugflag) {
-        tempname = genTempFilename("/tmp", "naflats.na", 0);
+        tempname = genTempFilename("/tmp", "naflats.na", 0, 0);
         numaWrite(tempname, naflats);
         FREE(tempname);
     }
@@ -502,7 +502,7 @@ FPIX       *fpix1, *fpix2, *fpix3;
         ptaDestroy(&pta);
     }
     if (debugflag) {
-        tempname = genTempFilename("/tmp", "ptaa5.ptaa", 0);
+        tempname = genTempFilename("/tmp", "ptaa5.ptaa", 0, 0);
         ptaaWrite(tempname, ptaa5, 0);
         FREE(tempname);
     }
@@ -523,7 +523,7 @@ FPIX       *fpix1, *fpix2, *fpix3;
         ptaaAddPta(ptaa6, pta, L_INSERT);
     }
     if (debugflag) {
-        tempname = genTempFilename("/tmp", "ptaa6.ptaa", 0);
+        tempname = genTempFilename("/tmp", "ptaa6.ptaa", 0, 0);
         ptaaWrite(tempname, ptaa6, 0);
         FREE(tempname);
     }
@@ -546,7 +546,7 @@ FPIX       *fpix1, *fpix2, *fpix3;
         ptaDestroy(&pta);
     }
     if (debugflag) {
-        tempname = genTempFilename("/tmp", "ptaa7.ptaa", 0);
+        tempname = genTempFilename("/tmp", "ptaa7.ptaa", 0, 0);
         ptaaWrite(tempname, ptaa7, 0);
         FREE(tempname);
     }
@@ -1350,7 +1350,7 @@ FILE  *fp;
     if (!dew)
         return ERROR_INT("dew not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (dewarpWriteStream(fp, dew))
         return ERROR_INT("dew not written to stream", procName, 1);
@@ -1363,7 +1363,7 @@ FILE  *fp;
 /*!
  *  dewarpWriteStream()
  *
- *      Input:  stream
+ *      Input:  stream (opened for "wb")
  *              dew
  *      Return: 0 if OK, 1 on error
  */

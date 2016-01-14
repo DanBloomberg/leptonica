@@ -18,8 +18,6 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -39,15 +37,15 @@ PIX         *pixs, *pixd;
 static char  mainName[] = "contrasttest";
 
     if (argc != 4)
-	exit(ERROR_INT(" Syntax:  contrasttest filein factor fileout",
-	    mainName, 1));
+	return ERROR_INT(" Syntax:  contrasttest filein factor fileout",
+	       mainName, 1);
 
     filein = argv[1];
     factor = atof(argv[2]);
     fileout = argv[3];
 
     if ((pixs = pixRead(filein)) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
+	return ERROR_INT("pixs not made", mainName, 1);
 	    
 #if 0
     startTimer();
@@ -86,6 +84,6 @@ static char  mainName[] = "contrasttest";
     numaDestroy(&nax);
 #endif
 
-    exit(0);
+    return 0;
 }
 

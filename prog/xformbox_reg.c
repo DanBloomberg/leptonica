@@ -20,8 +20,6 @@
  *      Also tests the various box hashing graphics operations.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* Consts for second set */
@@ -252,9 +250,9 @@ static char  mainName[] = "xformbox_reg";
     boxaDestroy(&boxa3);
     boxaDestroy(&boxa4);
     boxaDestroy(&boxa5);
-    FREE(mat1);
-    FREE(mat2);
-    FREE(mat3);
+    lept_free(mat1);
+    lept_free(mat2);
+    lept_free(mat3);
 
     pixt = pixaDisplay(pixa, 0, 0);
     pixWrite("/tmp/junkxform2.png", pixt, IFF_PNG);

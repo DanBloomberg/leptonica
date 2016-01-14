@@ -399,7 +399,7 @@ l_float32  nexpected;
  *  ptraGetHandle()
  *
  *      Input:  ptra
- *              index (element to be removed)
+ *              index (element to be retrieved)
  *      Return: item, or null on error
  *
  *  Notes:

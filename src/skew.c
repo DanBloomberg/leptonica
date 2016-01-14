@@ -16,14 +16,15 @@
 /*
  *  skew.c
  *
- *      Simple top-level deskew interfaces
+ *      Top-level deskew interfaces
  *          PIX       *pixDeskew()
  *          PIX       *pixFindSkewAndDeskew()
+ *          PIX       *pixDeskewGeneral()
  *
- *      Simple top-level angle-finding interface
+ *      Top-level angle-finding interface
  *          l_int32    pixFindSkew()
  *
- *      Basic angle-finding functions with all parameters
+ *      Basic angle-finding functions
  *          l_int32    pixFindSkewSweep()
  *          l_int32    pixFindSkewSweepAndSearch()
  *          l_int32    pixFindSkewSweepAndSearchScore()
@@ -80,13 +81,11 @@
  *      handwritten text that may be mixed with printed text.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
     /* Default sweep angle parameters for pixFindSkew() */
-static const l_float32  DEFAULT_SWEEP_RANGE = 5.;    /* degrees */
+static const l_float32  DEFAULT_SWEEP_RANGE = 7.;    /* degrees */
 static const l_float32  DEFAULT_SWEEP_DELTA = 1.;    /* degrees */
 
     /* Default final angle difference parameter for binary
@@ -113,6 +112,8 @@ static const l_int32  MIN_VALID_MAXSCORE = 10000;
      *  (height * width^2) */
 static const l_float32  MINSCORE_THRESHOLD_CONSTANT = 0.000002;
 
+    /* Default binarization threshold value */
+static const l_int32  DEFAULT_BINARY_THRESHOLD = 130;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_PRINT_SCORES     0
@@ -125,19 +126,20 @@ static const l_float32  MINSCORE_THRESHOLD_CONSTANT = 0.000002;
 
 
 
-/*----------------------------------------------------------------*
- *                       Top-level interfaces                     *
- *----------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*
+ *                       Top-level deskew interfaces                     *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixDeskew()
  *
- *      Input:  pixs  (1 bpp)
- *              redsearch  (for binary search: reduction factor = 1, 2 or 4)
- *      Return: deskewed pix, or null on error
+ *      Input:  pixs (any depth)
+ *              redsearch (for binary search: reduction factor = 1, 2 or 4;
+ *                         use 0 for default)
+ *      Return: pixd (deskewed pix), or null on error
  *
  *  Notes:
- *      (1) This is the most simple high level interface, for 1 bpp input.
- *      (2) It first finds the skew angle.  If the angle is large enough,
+ *      (1) This binarizes if necessary and finds the skew angle.  If the
+ *          angle is large enough and there is sufficient confidence,
  *          it returns a deskewed image; otherwise, it returns a clone.
  */
 PIX *
@@ -148,30 +150,31 @@ pixDeskew(PIX     *pixs,
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+    if (redsearch == 0)
+        redsearch = DEFAULT_BS_REDUCTION;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
         return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
 
-    return pixFindSkewAndDeskew(pixs, redsearch, NULL, NULL);
+    return pixDeskewGeneral(pixs, 0, 0.0, 0.0, redsearch, 0, NULL, NULL);
 }
 
 
 /*!
  *  pixFindSkewAndDeskew()
  *
- *      Input:  pixs  (1 bpp)
- *              redsearch  (for binary search: reduction factor = 1, 2 or 4)
+ *      Input:  pixs (any depth)
+ *              redsearch (for binary search: reduction factor = 1, 2 or 4;
+ *                         use 0 for default)
  *              &angle   (<optional return> angle required to deskew,
- *                        in degrees)
- *              &conf    (<optional return> conf value is ratio max/min scores)
- *      Return: deskewed pix, or null on error
+ *                        in degrees; use NULL to skip)
+ *              &conf    (<optional return> conf value is ratio
+ *                        of max/min scores; use NULL to skip)
+ *      Return: pixd (deskewed pix), or null on error
  *
  *  Notes:
- *      (1) This first finds the skew angle.  If the angle is large enough,
+ *      (1) This binarizes if necessary and finds the skew angle.  If the
+ *          angle is large enough and there is sufficient confidence,
  *          it returns a deskewed image; otherwise, it returns a clone.
- *      (2) Use NULL for &angle and/or &conf if you don't want those values
- *          returned.
  */
 PIX *
 pixFindSkewAndDeskew(PIX        *pixs,
@@ -179,24 +182,89 @@ pixFindSkewAndDeskew(PIX        *pixs,
                      l_float32  *pangle,
                      l_float32  *pconf)
 {
-l_int32    ret;
-l_float32  angle, conf, deg2rad;
-PIX       *pixd;
-
     PROCNAME("pixFindSkewAndDeskew");
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
-    if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+    if (redsearch == 0)
+        redsearch = DEFAULT_BS_REDUCTION;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
         return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
 
+    return pixDeskewGeneral(pixs, 0, 0.0, 0.0, redsearch, 0, pangle, pconf);
+}
+
+
+/*!
+ *  pixDeskewGeneral()
+ *
+ *      Input:  pixs  (any depth)
+ *              redsweep  (for linear search: reduction factor = 1, 2 or 4;
+ *                         use 0 for default)
+ *              sweeprange (in degrees in each direction from 0;
+ *                          use 0.0 for default)
+ *              sweepdelta (in degrees; use 0.0 for default)
+ *              redsearch  (for binary search: reduction factor = 1, 2 or 4;
+ *                          use 0 for default;)
+ *              thresh (for binarizing the image; use 0 for default)
+ *              &angle   (<optional return> angle required to deskew,
+ *                        in degrees; use NULL to skip)
+ *              &conf    (<optional return> conf value is ratio
+ *                        of max/min scores; use NULL to skip)
+ *      Return: pixd (deskewed pix), or null on error
+ *
+ *  Notes:
+ *      (1) This binarizes if necessary and finds the skew angle.  If the
+ *          angle is large enough and there is sufficient confidence,
+ *          it returns a deskewed image; otherwise, it returns a clone.
+ */
+PIX *
+pixDeskewGeneral(PIX        *pixs,
+                 l_int32     redsweep,
+                 l_float32   sweeprange,
+                 l_float32   sweepdelta,
+                 l_int32     redsearch,
+                 l_int32     thresh,
+                 l_float32  *pangle,
+                 l_float32  *pconf)
+{
+l_int32    ret, depth;
+l_float32  angle, conf, deg2rad;
+PIX       *pixb, *pixd;
+
+    PROCNAME("pixDeskewGeneral");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (redsweep == 0)
+        redsweep = DEFAULT_SWEEP_REDUCTION;
+    else if (redsweep != 1 && redsweep != 2 && redsweep != 4)
+        return (PIX *)ERROR_PTR("redsweep not in {1,2,4}", procName, NULL);
+    if (sweeprange == 0.0)
+        sweeprange = DEFAULT_SWEEP_RANGE;
+    if (sweepdelta == 0.0)
+        sweepdelta = DEFAULT_SWEEP_DELTA;
+    if (redsearch == 0)
+        redsearch = DEFAULT_BS_REDUCTION;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+        return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
+    if (thresh == 0)
+        thresh = DEFAULT_BINARY_THRESHOLD;
+
     deg2rad = 3.1415926535 / 180.;
-    ret = pixFindSkewSweepAndSearch(pixs, &angle, &conf,
-                       DEFAULT_SWEEP_REDUCTION, redsearch,
-                       DEFAULT_SWEEP_RANGE, DEFAULT_SWEEP_DELTA,
-                       DEFAULT_MINBS_DELTA);
+
+        /* Binarize if necessary */
+    depth = pixGetDepth(pixs);
+    if (depth == 1)
+        pixb = pixClone(pixs);
+    else
+        pixb = pixConvertTo1(pixs, thresh);
+
+        /* Use the 1 bpp image to find the skew */
+    ret = pixFindSkewSweepAndSearch(pixb, &angle, &conf, redsweep, redsearch,
+                                    sweeprange, sweepdelta,
+                                    DEFAULT_MINBS_DELTA);
+    pixDestroy(&pixb);
     if (pangle)
         *pangle = angle;
     if (pconf)
@@ -207,14 +275,17 @@ PIX       *pixd;
     if (L_ABS(angle) < MIN_DESKEW_ANGLE || conf < MIN_ALLOWED_CONFIDENCE)
         return pixClone(pixs);
 
-    if ((pixd = pixRotateShear(pixs, 0, 0, deg2rad * angle, L_BRING_IN_WHITE))
-             == NULL)
+    if ((pixd = pixRotate(pixs, deg2rad * angle, L_ROTATE_AREA_MAP,
+                          L_BRING_IN_WHITE, 0, 0)) == NULL)
         return pixClone(pixs);
     else
         return pixd;
 }
 
 
+/*-----------------------------------------------------------------------*
+ *                  Simple top-level angle-finding interface             *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixFindSkew()
  *
@@ -255,9 +326,9 @@ pixFindSkew(PIX        *pixs,
 }
 
 
-/*----------------------------------------------------------------*
- *         Basic angle-finding functions with all parameters      *
- *----------------------------------------------------------------*/
+/*-----------------------------------------------------------------------*
+ *                       Basic angle-finding functions                   *
+ *-----------------------------------------------------------------------*/
 /*!
  *  pixFindSkewSweep()
  *

@@ -13,7 +13,7 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-/*
+/*!
  *     Low-level fast hit-miss transform with auto-generated sels
  *
  *      Dispatcher:
@@ -23,7 +23,6 @@
  *             void       fhmt_1_*()
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 static void  fhmt_1_0(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32);
@@ -37,7 +36,7 @@ static void  fhmt_1_5(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32
 /*---------------------------------------------------------------------*
  *                           Fast hmt dispatcher                       *
  *---------------------------------------------------------------------*/
-/*
+/*!
  *  fhmtgen_low_1()
  *
  *       a dispatcher to appropriate low-level code

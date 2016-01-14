@@ -58,7 +58,7 @@
 PIX *
 pixReadStreamSpix(FILE  *fp)
 {
-l_int32   nbytes;
+size_t    nbytes;
 l_uint8  *data;
 PIX      *pix;
 
@@ -67,9 +67,9 @@ PIX      *pix;
     if (!fp)
         return (PIX *)ERROR_PTR("stream not defined", procName, NULL);
 
-    if ((data = arrayReadStream(fp, &nbytes)) == NULL)
+    if ((data = l_binaryReadStream(fp, &nbytes)) == NULL)
         return (PIX *)ERROR_PTR("data not read", procName, NULL);
-    if ((pix = pixReadMemSpix(data, (size_t)nbytes)) == NULL) {
+    if ((pix = pixReadMemSpix(data, nbytes)) == NULL) {
         FREE(data);
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     }

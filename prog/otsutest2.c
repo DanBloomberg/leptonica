@@ -35,9 +35,7 @@
 #ifndef  _WIN32
 #include <unistd.h>
 #else
-    /* Need declaration of Sleep() defined in WinBase.h, but must
-     * include Windows.h to avoid errors  */
-#include <Windows.h>
+#include <windows.h>   /* for Sleep() */
 #endif  /* _WIN32 */
 
 #include "allheaders.h"

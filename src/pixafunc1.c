@@ -41,11 +41,10 @@
  *           l_int32   pixaSizeRange()
  *           PIXA     *pixaClipToPix()
  *           l_int32   pixaAnyColormaps()
+ *           l_int32   pixaGetDepthInfo()
  *           l_int32   pixaEqual()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -1431,6 +1430,49 @@ PIXCMAP  *cmap;
         }
     }
 
+    return 0;
+}
+
+
+/*!
+ *  pixaGetDepthInfo()
+ *
+ *      Input:  pixa
+ *              &maxdepth (<optional return> max pixel depth of pix in pixa)
+ *              &same (<optional return> true if all depths are equal)
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+pixaGetDepthInfo(PIXA     *pixa,
+                 l_int32  *pmaxdepth,
+                 l_int32  *psame)
+{
+l_int32  i, n, d, d0;
+l_int32  maxd, same;  /* depth info */
+
+    PROCNAME("pixaGetDepthInfo");
+
+    if (!pmaxdepth && !psame) return 0;
+    if (pmaxdepth) *pmaxdepth = 0;
+    if (psame) *psame = TRUE;
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if ((n = pixaGetCount(pixa)) == 0)
+        return ERROR_INT("pixa is empty", procName, 1);
+
+    same = TRUE;
+    maxd = 0;
+    for (i = 0; i < n; i++) {
+        pixaGetPixDimensions(pixa, i, NULL, NULL, &d);
+        if (i == 0)
+            d0 = d;
+        else if (d != d0)
+            same = FALSE;
+        if (d > maxd) maxd = d;
+    }
+
+    if (pmaxdepth) *pmaxdepth = maxd;
+    if (psame) *psame = same;
     return 0;
 }
 

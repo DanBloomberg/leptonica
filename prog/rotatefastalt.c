@@ -27,9 +27,7 @@
  *          rotateAMColorFastLow2()
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <math.h>   /* required for sin and tan */
 #include "allheaders.h"
 
@@ -69,6 +67,7 @@ static char  mainName[] = "rotatefastalt";
 
     pixDestroy(&pixs);
     pixDestroy(&pixd);
+    return 0;
 }
 
 
@@ -130,7 +129,7 @@ PIX    	  *pixshft, *pixd;
 
 
 /*!
- *  pixShiftRGB256()
+ *  pixShiftRGB258()
  *
  *      Makes a new 32 bpp image with the R, G and B components
  *      right-shifted by 2, 5 and 8 bits, respectively.

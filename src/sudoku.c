@@ -167,15 +167,16 @@ sudokuReadFile(const char  *filename)
 {
 char     *str, *strj;
 l_uint8  *data;
-l_int32   i, j, nlines, nbytes, val, index, error;
+l_int32   i, j, nlines, val, index, error;
 l_int32  *array;
+size_t    size;
 SARRAY   *saline, *sa1, *sa2;
 
     PROCNAME("sudokuReadFile");
 
     if (!filename)
         return (l_int32 *)ERROR_PTR("filename not defined", procName, NULL);
-    data = arrayRead(filename, &nbytes);
+    data = l_binaryRead(filename, &size);
     sa1 = sarrayCreateLinesFromString((char *)data, 0);
     sa2 = sarrayCreate(9);
 

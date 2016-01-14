@@ -19,7 +19,6 @@
  *      Stubs for bmpio.c functions
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 /* --------------------------------------------*/

@@ -153,7 +153,7 @@ PIXC     *pixc;
         return NULL;
     }
     pixc->data = data;
-    pixc->size = (l_int32)size;
+    pixc->size = size;
 
     return pixc;
 }
@@ -174,7 +174,7 @@ PIXC     *pixc;
  */
 PIXC *
 pixcompCreateFromString(l_uint8  *data,
-                        l_int32   size,
+                        size_t    size,
                         l_int32   copyflag)
 {
 l_int32  format, w, h, d, bps, spp, iscmap;
@@ -187,8 +187,7 @@ PIXC    *pixc;
     if (copyflag != L_INSERT && copyflag != L_COPY)
         return (PIXC *)ERROR_PTR("invalid copyflag", procName, NULL);
 
-    if (pixReadHeaderMem(data, (size_t)size, &format, &w, &h,
-                         &bps, &spp, &iscmap) == 1)
+    if (pixReadHeaderMem(data, size, &format, &w, &h, &bps, &spp, &iscmap) == 1)
         return (PIXC *)ERROR_PTR("header data not read", procName, NULL);
     if ((pixc = (PIXC *)CALLOC(1, sizeof(PIXC))) == NULL)
         return (PIXC *)ERROR_PTR("pixc not made", procName, NULL);
@@ -201,7 +200,7 @@ PIXC    *pixc;
     if (copyflag == L_INSERT)
         pixc->data = data;
     else
-        pixc->data = arrayCopy(data, size);
+        pixc->data = l_binaryCopy(data, size);
     pixc->size = size;
     return pixc;
 }
@@ -224,9 +223,9 @@ PIXC *
 pixcompCreateFromFile(const char  *filename,
                       l_int32      comptype)
 {
+l_int32   format;
+size_t    nbytes;
 l_uint8  *data;
-l_int32   nbytes, format;
-FILE     *fp;
 PIX      *pix;
 PIXC     *pixc;
 
@@ -238,10 +237,9 @@ PIXC     *pixc;
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
         return (PIXC *)ERROR_PTR("invalid comptype", procName, NULL);
 
-    if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXC *)ERROR_PTR("image file not found", procName, NULL);
-    findFileFormat(fp, &format);
-    fclose(fp);
+    findFileFormat(filename, &format);
+    if (format == IFF_UNKNOWN)
+        return (PIXC *)ERROR_PTR("image file not readable", procName, NULL);
 
         /* Can we accept the encoded file directly?  Remember that
          * png is the "universal" compression type, so if requested
@@ -251,7 +249,7 @@ PIXC     *pixc;
         (format == IFF_JFIF_JPEG && comptype != IFF_PNG))
         comptype = format;
     if (comptype != IFF_DEFAULT && comptype == format) { 
-        data = arrayRead(filename, &nbytes);
+        data = l_binaryRead(filename, &nbytes);
         if ((pixc = pixcompCreateFromString(data, nbytes, L_INSERT)) == NULL) {
             FREE(data);
             return (PIXC *)ERROR_PTR("pixc not made (string)", procName, NULL);
@@ -1301,7 +1299,7 @@ FILE  *fp;
     if (!pixac)
         return ERROR_INT("pixacomp not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (pixacompWriteStream(fp, pixac))
         return ERROR_INT("pixacomp not written to stream", procName, 1);
@@ -1340,7 +1338,7 @@ PIXC    *pixc;
             return ERROR_INT("pixc not found", procName, 1);
         fprintf(fp, "  Pixcomp[%d]: w = %d, h = %d, d = %d\n",
                 i, pixc->w, pixc->h, pixc->d);
-        fprintf(fp, "    comptype = %d, size = %d, cmapflag = %d\n",
+        fprintf(fp, "    comptype = %d, size = %ld, cmapflag = %d\n",
                 pixc->comptype, pixc->size, pixc->cmapflag);
         fprintf(fp, "    xres = %d, yres = %d\n", pixc->xres, pixc->yres);
         fwrite(pixc->data, 1, pixc->size, fp);
@@ -1421,7 +1419,7 @@ pixcompWriteStreamInfo(FILE        *fp,
         fprintf(fp, "  Pixcomp Info:");
     fprintf(fp, " width = %d, height = %d, depth = %d\n",
             pixc->w, pixc->h, pixc->d);
-    fprintf(fp, "    xres = %d, yres = %d, size in bytes = %d\n",
+    fprintf(fp, "    xres = %d, yres = %d, size in bytes = %ld\n",
             pixc->xres, pixc->yres, pixc->size);
     if (pixc->cmapflag)
         fprintf(fp, "    has colormap\n");

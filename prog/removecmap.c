@@ -26,8 +26,6 @@
  *      Works on palette images of 2, 4 and 8 bpp
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
@@ -50,7 +48,7 @@ static char  mainName[] = "removecmap";
 	exit(ERROR_INT("pixs not made", mainName, 1));
 	    
     fprintf(stderr, " depth = %d\n", pixGetDepth(pixs));
-    if (cmap = pixGetColormap(pixs)) {
+    if ((cmap = pixGetColormap(pixs)) != NULL) {
 	numcolors = pixcmapGetCount(cmap);
 	pixcmapWriteStream(stderr, cmap);
 	fprintf(stderr, " colormap found; num colors = %d\n", numcolors);
@@ -60,7 +58,8 @@ static char  mainName[] = "removecmap";
 
     pixd = pixRemoveColormap(pixs, type);
     pixWrite(fileout, pixd, IFF_PNG);
-
+    pixDestroy(&pixs);
+    pixDestroy(&pixd);
     return 0;
 }
 

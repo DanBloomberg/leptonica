@@ -19,7 +19,6 @@
  *     Stubs for psio2.c functions
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 /* --------------------------------------------*/
@@ -77,44 +76,77 @@ l_int32 convertJpegToPSString(const char *filein, char **poutstr,
     return ERROR_INT("function not present", "convertJpegToPSString", 1);
 }
 
-char * generateJpegPS(const char *filein, char *data85, l_int32 w,
-                      l_int32 h, l_int32 bps, l_int32 spp, l_float32 xpt,
-                      l_float32 ypt, l_float32 wpt, l_float32 hpt,
-                      l_int32 pageno, l_int32 endpage)
+char * generateJpegPS(const char *filein, L_COMPRESSED_DATA *cid,
+                      l_float32 xpt, l_float32 ypt, l_float32 wpt,
+                      l_float32 hpt, l_int32 pageno, l_int32 endpage)
 {
     return (char *)ERROR_PTR("function not present", "generateJpegPS", NULL);
 }
 
-l_int32 convertTiffG4ToPSEmbed(const char *filein, const char *fileout)
+L_COMPRESSED_DATA * pixGenerateJpegData(PIX *pixs, l_int32 ascii85flag,
+                                        l_int32 quality)
 {
-    return ERROR_INT("function not present", "convertTiffG4ToPSEmbed", 1);
+    return (L_COMPRESSED_DATA *)ERROR_PTR("function not present",
+                                          "pixGenerateJpegData", NULL);
 }
 
-l_int32 convertTiffG4ToPS(const char *filein, const char *fileout,
-                          const char *operation, l_int32 x, l_int32 y,
-                          l_int32 res, l_float32 scale, l_int32 pageno,
-                          l_int32 mask, l_int32 endpage)
+L_COMPRESSED_DATA * l_generateJpegData(const char *filein, l_int32 ascii85flag)
 {
-    return ERROR_INT("function not present", "convertTiffG4ToPS", 1);
+    return (L_COMPRESSED_DATA *)ERROR_PTR("function not present",
+                                          "l_generateJpegData", NULL);
 }
 
-l_int32 convertTiffG4ToPSString(const char *filein, char **poutstr,
-                                l_int32 *pnbytes, l_int32 x, l_int32 y,
-                                l_int32 res, l_float32 scale, l_int32 pageno,
-                                l_int32 mask, l_int32 endpage)
+void l_destroyCompressedData(L_COMPRESSED_DATA  **pcid)
 {
-    return ERROR_INT("function not present", "convertTiffG4ToPSString", 1);
+    L_ERROR("function not present", "l_destroyCompressedData");
+    return;
 }
 
-char * generateTiffG4PS(const char *filein, char *data85, l_int32 w,
-                        l_int32 h, l_float32 xpt, l_float32 ypt,
-                        l_float32 wpt, l_float32 hpt,
-                        l_int32 minisblack, l_int32 maskflag,
-                        l_int32 pageno, l_int32 endpage)
+l_int32 convertG4ToPSEmbed(const char *filein, const char *fileout)
 {
-    return (char *)ERROR_PTR("function not present", "generateTiffG4PS", NULL);
+    return ERROR_INT("function not present", "convertG4ToPSEmbed", 1);
 }
 
+l_int32 convertG4ToPS(const char *filein, const char *fileout,
+                      const char *operation, l_int32 x, l_int32 y,
+                      l_int32 res, l_float32 scale, l_int32 pageno,
+                      l_int32 mask, l_int32 endpage)
+{
+    return ERROR_INT("function not present", "convertG4ToPS", 1);
+}
+
+l_int32 convertG4ToPSString(const char *filein, char **poutstr,
+                            l_int32 *pnbytes, l_int32 x, l_int32 y,
+                            l_int32 res, l_float32 scale, l_int32 pageno,
+                            l_int32 mask, l_int32 endpage)
+{
+    return ERROR_INT("function not present", "convertG4ToPSString", 1);
+}
+
+char * generateG4PS(const char *filein, L_COMPRESSED_DATA *cid, l_float32 xpt,
+                    l_float32 ypt, l_float32 wpt, l_float32 hpt,
+                    l_int32 maskflag, l_int32 pageno, l_int32 endpage)
+{
+    return (char *)ERROR_PTR("function not present", "generateG4PS", NULL);
+}
+
+L_COMPRESSED_DATA * pixGenerateG4Data(PIX *pixs, l_int32 ascii85flag)
+{
+    return (L_COMPRESSED_DATA *)ERROR_PTR("function not present",
+                                          "pixGenerateG4Data", NULL);
+}
+
+L_COMPRESSED_DATA * l_generateG4Data(const char *filein, l_int32 ascii85flag)
+{
+    return (L_COMPRESSED_DATA *)ERROR_PTR("function not present",
+                                          "l_generateG4Data", NULL);
+}
+
+l_int32 convertTiffMultipageToPS(const char *filein, const char *fileout,
+                                 const char *tempfile, l_float32 fillfract)
+{
+    return ERROR_INT("function not present", "convertTiffMultipageToPS", 1);
+}
 
 l_int32 convertFlateToPSEmbed(const char *filein, const char *fileout)
 {
@@ -137,19 +169,24 @@ l_int32 convertFlateToPSString(const char *filein, char **poutstr,
     return ERROR_INT("function not present", "convertFlateToPSString", 1);
 }
 
-char * generateFlatePS(const char *filein, char *data85, char *cmapdata85,
-                       l_int32 ncolors, l_int32 w, l_int32 h, l_int32 bps,
-                       l_int32 spp, l_float32 xpt, l_float32 ypt,
-                       l_float32 wpt, l_float32 hpt,
-                       l_int32 pageno, l_int32 endpage)
+char * generateFlatePS(const char *filein, L_COMPRESSED_DATA *lfd,
+                       l_float32 xpt, l_float32 ypt, l_float32 wpt,
+                       l_float32 hpt, l_int32 pageno, l_int32 endpage)
 {
     return (char *)ERROR_PTR("function not present", "generateFlatePS", NULL);
 }
 
-l_int32 convertTiffMultipageToPS(const char *filein, const char *fileout,
-                                 const char *tempfile, l_float32 fillfract)
+L_COMPRESSED_DATA * l_generateFlateData(const char *filein,
+                                        l_int32 ascii85flag)
 {
-    return ERROR_INT("function not present", "convertTiffMultipageToPS", 1);
+    return (L_COMPRESSED_DATA *)ERROR_PTR("function not present",
+                                          "l_generateFlateData", NULL);
+}
+
+L_COMPRESSED_DATA * pixGenerateFlateData(PIX *pixs, l_int32 ascii85flag)
+{
+    return (L_COMPRESSED_DATA *)ERROR_PTR("function not present",
+                                          "pixGenerateFlateData", NULL);
 }
 
 l_int32 pixWriteMemPS(l_uint8 **pdata, size_t *psize, PIX *pix, BOX *box,
@@ -173,7 +210,8 @@ char * encodeAscii85(l_uint8 *inarray, l_int32 insize, l_int32 *poutsize)
     return (char *)ERROR_PTR("function not present", "encodeAscii85", NULL);
 }
 
-l_int32 convertChunkToAscii85(l_uint8 *inarray, l_int32 insize, l_int32 *pindex, char *outbuf, l_int32 *pnbout)
+l_int32 convertChunkToAscii85(l_uint8 *inarray, l_int32 insize,
+                              l_int32 *pindex, char *outbuf, l_int32 *pnbout)
 {
     return ERROR_INT("function not present", "convertChunkToAscii85", 1);
 }

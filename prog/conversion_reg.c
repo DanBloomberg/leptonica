@@ -22,8 +22,6 @@
 
 #define  DFLAG    1
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
@@ -311,7 +309,7 @@ static char  mainName[] = "convert_reg";
     else {
         errorstr = sarrayToString(sa, 1);
         fprintf(stderr, "Errors in the following:\n %s", errorstr);
-        FREE(errorstr);
+        lept_free(errorstr);
     }
 
     sarrayDestroy(&sa);
@@ -324,6 +322,6 @@ static char  mainName[] = "convert_reg";
     pixDestroy(&pixc8);
     pixDestroy(&pixs16);
     pixDestroy(&pixs32);
-    exit(0);
+    return 0;
 }
 

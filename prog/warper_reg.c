@@ -17,8 +17,6 @@
  *   warper_reg.c
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -34,19 +32,17 @@ static const l_float32 yfreq[] = {0.11, 0.13, 0.13, 0.15};
 static const l_int32 nx[] = {4, 3, 2, 1};
 static const l_int32 ny[] = {4, 3, 2, 1};
 
-static l_int32 count = 0;
 
 main(int    argc,
      char **argv)
 {
-char     namebuf[256];
-l_int32  i, k, newline, success, display;
-FILE    *fp;
-PIX     *pixs, *pixt, *pixg, *pixd;
-PIXA    *pixac;
+l_int32       i, k, newline;
+PIX          *pixs, *pixt, *pixg, *pixd;
+PIXA         *pixac;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     pixs = pixRead("feyn-word.tif");
     pixt = pixAddBorder(pixs, 25, 0);
@@ -61,11 +57,8 @@ PIXA    *pixac;
             DisplayResult(pixac, &pixd, newline);
         }
         pixd = pixaDisplay(pixac, 0, 0);
-
-        snprintf(namebuf, 240, "/tmp/warp.%d.png", count);
-        pixWrite(namebuf, pixd, IFF_PNG);
-        regTestCheckFile(fp, argv, namebuf, count++, &success);
-        pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+        regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+        pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
         pixaDestroy(&pixac);
         pixDestroy(&pixd);
     }
@@ -80,16 +73,14 @@ PIXA    *pixac;
             DisplayCaptcha(pixac, pixs, k, 7 * i, newline);
         }
         pixd = pixaDisplay(pixac, 0, 0);
-        snprintf(namebuf, 240, "/tmp/warp.%d.png", count);
-        pixWrite(namebuf, pixd, IFF_PNG);
-        regTestCheckFile(fp, argv, namebuf, count++, &success);
-        pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+        regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+        pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
         pixaDestroy(&pixac);
         pixDestroy(&pixd);
     }
 
     pixDestroy(&pixs);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
 

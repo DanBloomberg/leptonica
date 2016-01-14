@@ -42,8 +42,6 @@
  *      for details.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,

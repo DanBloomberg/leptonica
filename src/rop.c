@@ -32,11 +32,8 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
 
 /*--------------------------------------------------------------------*
  *                General rasterop (basic pix interface)              *
@@ -239,8 +236,8 @@ l_int32  dd;
  *  pixRasteropVip()
  *
  *      Input:  pixd (in-place)
- *              x    (left edge of vertical band)
- *              w    (width of vertical band)
+ *              bx  (left edge of vertical band)
+ *              bw  (width of vertical band)
  *              vshift (vertical shift of band; vshift > 0 is down)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
  *      Return: 0 if OK; 1 on error
@@ -250,15 +247,19 @@ l_int32  dd;
  *          image either up or down, bringing in either white
  *          or black pixels from outside the image.
  *      (2) The vertical band extends the full height of pixd.
+ *      (3) If a colormap exists, the nearest color to white or black
+ *          is brought in.
  */
 l_int32
 pixRasteropVip(PIX     *pixd,
-               l_int32  x,
-               l_int32  w,
+               l_int32  bx,
+               l_int32  bw,
                l_int32  vshift,
                l_int32  incolor)
 {
-l_int32  h, d, op;
+l_int32   w, h, d, index, op;
+PIX      *pixt;
+PIXCMAP  *cmap;
 
     PROCNAME("pixRasteropVip");
 
@@ -266,30 +267,43 @@ l_int32  h, d, op;
         return ERROR_INT("pixd not defined", procName, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return ERROR_INT("invalid value for incolor", procName, 1);
+    if (bw <= 0)
+        return ERROR_INT("width must be > 1", procName, 1);
 
     if (vshift == 0)
         return 0;
 
-    rasteropVipLow(pixGetData(pixd),
-                   pixGetWidth(pixd), pixGetHeight(pixd),
-                   pixGetDepth(pixd), pixGetWpl(pixd),
-                   x, w, vshift);
+    pixGetDimensions(pixd, &w, &h, &d);
+    rasteropVipLow(pixGetData(pixd), w, h, d, pixGetWpl(pixd), bx, bw, vshift);
 
-    d = pixGetDepth(pixd);
-    if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
-        (d > 1 && incolor == L_BRING_IN_WHITE))
-        op = PIX_SET;
-    else
-        op = PIX_CLR;
+    cmap = pixGetColormap(pixd);
+    if (!cmap) {
+        if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
+            (d > 1 && incolor == L_BRING_IN_WHITE))
+            op = PIX_SET;
+        else
+            op = PIX_CLR;
 
-        /* Set the pixels brought in at top or bottom */
-    if (vshift > 0)
-        pixRasterop(pixd, x, 0, w, vshift, op, NULL, 0, 0);
-    else {   /* vshift < 0 */
-        h = pixGetHeight(pixd);
-        pixRasterop(pixd, x, h + vshift, w, -vshift, op, NULL, 0, 0);
+            /* Set the pixels brought in at top or bottom */
+        if (vshift > 0)
+            pixRasterop(pixd, bx, 0, bw, vshift, op, NULL, 0, 0);
+        else  /* vshift < 0 */
+            pixRasterop(pixd, bx, h + vshift, bw, -vshift, op, NULL, 0, 0);
+        return 0;
     }
 
+        /* Get the nearest index and fill with that */
+    if (incolor == L_BRING_IN_BLACK)
+        pixcmapGetRankIntensity(cmap, 0.0, &index);
+    else  /* white */
+        pixcmapGetRankIntensity(cmap, 1.0, &index);
+    pixt = pixCreate(bw, L_ABS(vshift), d);
+    pixSetAllArbitrary(pixt, index);
+    if (vshift > 0)
+        pixRasterop(pixd, bx, 0, bw, vshift, PIX_SRC, pixt, 0, 0);
+    else  /* vshift < 0 */
+        pixRasterop(pixd, bx, h + vshift, bw, -vshift, PIX_SRC, pixt, 0, 0);
+    pixDestroy(&pixt);
     return 0;
 }
 
@@ -298,8 +312,8 @@ l_int32  h, d, op;
  *  pixRasteropHip()
  *
  *      Input:  pixd (in-place operation)
- *              y    (top of horizontal band)
- *              h    (height of horizontal band)
+ *              by  (top of horizontal band)
+ *              bh  (height of horizontal band)
  *              hshift (horizontal shift of band; hshift > 0 is to right)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
  *      Return: 0 if OK; 1 on error
@@ -309,43 +323,63 @@ l_int32  h, d, op;
  *          image either left or right, bringing in either white
  *          or black pixels from outside the image.
  *      (2) The horizontal band extends the full width of pixd.
+ *      (3) If a colormap exists, the nearest color to white or black
+ *          is brought in.
  */
 l_int32
 pixRasteropHip(PIX     *pixd,
-               l_int32  y,
-               l_int32  h,
+               l_int32  by,
+               l_int32  bh,
                l_int32  hshift,
                l_int32  incolor)
 {
-l_int32  w, d, op;
+l_int32   w, h, d, index, op;
+PIX      *pixt;
+PIXCMAP  *cmap;
 
     PROCNAME("pixRasteropHip");
 
     if (!pixd)
         return ERROR_INT("pixd not defined", procName, 1);
+    if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
+        return ERROR_INT("invalid value for incolor", procName, 1);
+    if (bh <= 0)
+        return ERROR_INT("bh must be > 0", procName, 1);
 
     if (hshift == 0)
         return 0;
 
-    rasteropHipLow(pixGetData(pixd), pixGetHeight(pixd),
-                   pixGetDepth(pixd), pixGetWpl(pixd),
-                   y, h, hshift);
+    pixGetDimensions(pixd, &w, &h, &d);
+    rasteropHipLow(pixGetData(pixd), h, d, pixGetWpl(pixd), by, bh, hshift);
 
-    d = pixGetDepth(pixd);
-    if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
-        (d > 1 && incolor == L_BRING_IN_WHITE))
-        op = PIX_SET;
-    else
-        op = PIX_CLR;
+    cmap = pixGetColormap(pixd);
+    if (!cmap) {
+        if ((d == 1 && incolor == L_BRING_IN_BLACK) ||
+            (d > 1 && incolor == L_BRING_IN_WHITE))
+            op = PIX_SET;
+        else
+            op = PIX_CLR;
 
-        /* Set the pixels brought in at left or right */
-    if (hshift > 0)
-        pixRasterop(pixd, 0, y, hshift, h, op, NULL, 0, 0);
-    else {   /* hshift < 0 */
-        w = pixGetWidth(pixd);
-        pixRasterop(pixd, w + hshift, y, -hshift, h, op, NULL, 0, 0);
+            /* Set the pixels brought in at left or right */
+        if (hshift > 0)
+            pixRasterop(pixd, 0, by, hshift, bh, op, NULL, 0, 0);
+        else  /* hshift < 0 */
+            pixRasterop(pixd, w + hshift, by, -hshift, bh, op, NULL, 0, 0);
+        return 0;
     }
 
+        /* Get the nearest index and fill with that */
+    if (incolor == L_BRING_IN_BLACK)
+        pixcmapGetRankIntensity(cmap, 0.0, &index);
+    else  /* white */
+        pixcmapGetRankIntensity(cmap, 1.0, &index);
+    pixt = pixCreate(L_ABS(hshift), bh, d);
+    pixSetAllArbitrary(pixt, index);
+    if (hshift > 0)
+        pixRasterop(pixd, 0, by, hshift, bh, PIX_SRC, pixt, 0, 0);
+    else  /* hshift < 0 */
+        pixRasterop(pixd, w + hshift, by, -hshift, bh, PIX_SRC, pixt, 0, 0);
+    pixDestroy(&pixt);
     return 0;
 }
 
@@ -417,8 +451,7 @@ l_int32  w, h;
     if (!pixd)
         return ERROR_INT("pixd not defined", procName, 1);
 
-    w = pixGetWidth(pixd);
-    h = pixGetHeight(pixd);
+    pixGetDimensions(pixd, &w, &h, NULL);
     pixRasteropHip(pixd, 0, h, hshift, incolor);
     pixRasteropVip(pixd, 0, w, vshift, incolor);
 

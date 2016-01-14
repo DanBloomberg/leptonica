@@ -32,11 +32,8 @@
  *    Note: this program is Unix only; it will not compile under cygwin.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
@@ -72,7 +69,7 @@ static char  mainName[] = "maketile";
         fname = sarrayGetString(safiles, i, 0);
 	fullname = genPathname(dirin, fname);
         pix = pixRead(fullname);
-	FREE((void *)fullname);
+	lept_free(fullname);
         if (!pix)
             continue;
         if (pixGetDepth(pix) != depth) {

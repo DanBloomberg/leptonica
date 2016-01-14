@@ -13,7 +13,7 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-/*
+/*!
  *     Low-level fast binary morphology with auto-generated sels
  *
  *      Dispatcher:
@@ -24,7 +24,6 @@
  *             void       ferode_2_*()
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 static void  fdilate_2_0(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32);
@@ -184,7 +183,7 @@ static void  ferode_2_75(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_in
 /*---------------------------------------------------------------------*
  *                          Fast morph dispatcher                      *
  *---------------------------------------------------------------------*/
-/*
+/*!
  *  fmorphopgen_low_2()
  *
  *       a dispatcher to appropriate low-level code

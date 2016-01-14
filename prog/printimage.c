@@ -47,8 +47,9 @@ PIX         *pixs, *pixt;
 static char  mainName[] = "printimage";
 
     if (argc < 2 || argc > 4)
-	exit(ERROR_INT(" Syntax:  printimage filein [-P<printer>] [-#<number>]",
-                       mainName, 1));
+        return ERROR_INT(
+            " Syntax:  printimage filein [-P<printer>] [-#<number>]",
+            mainName, 1);
 
         /* parse args */
     filein = argv[1];
@@ -62,10 +63,10 @@ static char  mainName[] = "printimage";
         }
     }
 
-    ignore = system("rm -f /tmp/junk_print_image.ps");
+    lept_rm(NULL, "junk_print_image.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
+        return ERROR_INT("pixs not made", mainName, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w > h) {
@@ -75,9 +76,9 @@ static char  mainName[] = "printimage";
     else
         pixt = pixClone(pixs);
     scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
-    fp = fopen("/tmp/junk_print_image.ps", "wb+");
+    fp = lept_fopen("/tmp/junk_print_image.ps", "wb+");
     pixWriteStreamPS(fp, pixt, NULL, 300, scale);
-    fclose(fp);
+    lept_fclose(fp);
 
         /* print it out */
     if (argp && !argn) {

@@ -21,34 +21,30 @@
  *      (2) numaDiscretizeRankAndIntensity()
  */
 
-
 #include <math.h>
 #ifndef  _WIN32
 #include <unistd.h>
 #else
-    /* Need declaration of Sleep() defined in WinBase.h, but must
-     * include Windows.h to avoid errors  */
-#include <Windows.h>
+#include <windows.h>   /* for Sleep() */
 #endif  /* _WIN32 */
 #include "allheaders.h"
 
 static PIXA *PixSavePlots1(void);
 static PIXA *PixSavePlots2(void);
 
-
 main(int    argc,
      char **argv)
 {
-char       fname[256];
-l_int32    i, w, h, nbins, factor, success, display;
-l_int32    spike;
-l_uint32  *array, *marray;
-FILE      *fp;
-NUMA      *na, *nan, *nai, *narbin;
-PIX       *pixs, *pixt, *pixd;
-PIXA      *pixa;
+char          fname[256];
+l_int32       i, w, h, nbins, factor;
+l_int32       spike;
+l_uint32     *array, *marray;
+NUMA         *na, *nan, *nai, *narbin;
+PIX          *pixs, *pixt, *pixd;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
         /* Find the rank bin colors */
@@ -57,26 +53,28 @@ PIXA      *pixa;
     factor = L_MAX(1, (l_int32)sqrt((l_float64)(w * h / 20000.0)));
     nbins = 10;
     pixGetRankColorArray(pixs, nbins, L_SELECT_MIN, factor, &array, 2);
+    if (!array)
+        return ERROR_INT("\n\n\nFAILURE!\n\n\n", rp->testname, 1);
     for (i = 0; i < nbins; i++)
         fprintf(stderr, "%d: %x\n", i, array[i]);
     pixd = pixDisplayColorArray(array, nbins, 200, 5, 1);
     pixWrite("/tmp/rankhisto.0.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/rankhisto.0.png", 0, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestCheckFile(rp, "/tmp/rankhisto.0.png");  /* 0 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
 
         /* Modify the rank bin colors by mapping them such
          * that the lightest color is mapped to white */
-    marray = (l_uint32 *)CALLOC(nbins, sizeof(l_uint32));
+    marray = (l_uint32 *)lept_calloc(nbins, sizeof(l_uint32));
     for (i = 0; i < nbins; i++)
         pixelLinearMapToTargetColor(array[i], array[nbins - 1],
                                     0xffffff00, &marray[i]);
     pixd = pixDisplayColorArray(marray, nbins, 200, 5, 1);
     pixWrite("/tmp/rankhisto.1.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/rankhisto.1.png", 1, &success);
-    pixDisplayWithTitle(pixd, 100, 600, NULL, display);
+    regTestCheckFile(rp, "/tmp/rankhisto.1.png");  /* 1 */
+    pixDisplayWithTitle(pixd, 100, 600, NULL, rp->display);
     pixDestroy(&pixd);
-    FREE(marray);
+    lept_free(marray);
 
         /* Save the histogram plots */
 #ifndef  _WIN32
@@ -87,8 +85,8 @@ PIXA      *pixa;
     pixa = PixSavePlots1();
     pixd = pixaDisplay(pixa, 0, 0);
     pixWrite("/tmp/rankhisto.2.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/rankhisto.2.png", 2, &success);
-    pixDisplayWithTitle(pixd, 100, 600, NULL, display);
+    regTestCheckFile(rp, "/tmp/rankhisto.2.png");  /* 2 */
+    pixDisplayWithTitle(pixd, 100, 600, NULL, rp->display);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 
@@ -96,8 +94,8 @@ PIXA      *pixa;
     pixt = pixLinearMapToTargetColor(NULL, pixs, array[nbins - 1], 0xffffff00);
     pixd = pixGammaTRC(NULL, pixt, 1.0, 0, 240);
     pixWrite("/tmp/rankhisto.3.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/rankhisto.3.png", 3, &success);
-    pixDisplayWithTitle(pixd, 600, 100, NULL, display);
+    regTestCheckFile(rp, "/tmp/rankhisto.3.png");  /* 3 */
+    pixDisplayWithTitle(pixd, 600, 100, NULL, rp->display);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
 
@@ -134,14 +132,14 @@ PIXA      *pixa;
     pixa = PixSavePlots2();
     pixd = pixaDisplay(pixa, 0, 0);
     pixWrite("/tmp/rankhisto.4.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/rankhisto.4.png", 4, &success);
-    pixDisplayWithTitle(pixd, 500, 600, NULL, display);
+    regTestCheckFile(rp, "/tmp/rankhisto.4.png");  /* 4 */
+    pixDisplayWithTitle(pixd, 500, 600, NULL, rp->display);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 
     pixDestroy(&pixs);
-    FREE(array);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    lept_free(array);
+    regTestCleanup(rp);
     return 0;
 }
 
@@ -217,5 +215,4 @@ PIXA   *pixa;
     pixDestroy(&pixt);
     return pixa;
 }
-
 

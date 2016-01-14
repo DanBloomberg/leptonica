@@ -48,8 +48,6 @@
  *      the rasterop brick.  See binmorph2_reg.c.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* set these ad lib. */

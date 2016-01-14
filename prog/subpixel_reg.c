@@ -19,8 +19,6 @@
  *   Regression test for subpixel scaling.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 void AddTextAndSave(PIXA *pixa, PIX *pixs, l_int32 newrow,
@@ -37,16 +35,15 @@ const char  *textstr[] =
 main(int    argc,
      char **argv)
 {
-l_int32    success, display;
-l_float32  scalefact;
-L_BMF     *bmf, *bmftop;
-FILE      *fp;
-L_KERNEL  *kel, *kelx, *kely;
-PIX       *pixs, *pixg, *pixt, *pixd;
-PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
-PIXA      *pixa;
+l_float32     scalefact;
+L_BMF        *bmf, *bmftop;
+L_KERNEL     *kel, *kelx, *kely;
+PIX          *pixs, *pixg, *pixt, *pixd;
+PIX          *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
     /* ----------------- Test on 8 bpp grayscale ---------------------*/
@@ -70,9 +67,8 @@ PIXA      *pixa;
     pixd = pixAddSingleTextblock(pixt, bmftop,
                                  "Regression test for subpixel scaling: gray",
                                  0xff00ff00, L_ADD_ABOVE, NULL);
-    pixWrite("/tmp/sub0.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/sub0.jpg", 0, &success);
-    pixDisplayWithTitle(pixd, 50, 50, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 0 */
+    pixDisplayWithTitle(pixd, 50, 50, NULL, rp->display);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
     pixDestroy(&pixg);
@@ -103,9 +99,8 @@ PIXA      *pixa;
     pixd = pixAddSingleTextblock(pixt, bmftop,
                                  "Regression test for subpixel scaling: color",
                                  0xff00ff00, L_ADD_ABOVE, NULL);
-    pixWrite("/tmp/sub1.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/sub1.jpg", 1, &success);
-    pixDisplayWithTitle(pixd, 50, 350, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 1 */
+    pixDisplayWithTitle(pixd, 50, 350, NULL, rp->display);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
     pixDestroy(&pixt);
@@ -126,45 +121,52 @@ PIXA      *pixa;
     pixs = pixRead("patent.png");   /* sharp, 300 ppi, 1 bpp image */
     pix1 = pixConvertTo8(pixs, FALSE);  /* use 8 bpp input */
     pix2 = pixScale(pix1, scalefact, scalefact);
-    pixWrite("/tmp/sub2.png", pix2, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/sub2.png", 2, &success);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 2 */
 
         /* Subpixel scaling; bad because there is very little aliasing. */
     pix3 = pixConvertToSubpixelRGB(pix1, scalefact, scalefact,
                                    L_SUBPIXEL_ORDER_RGB);
-    pixWrite("/tmp/sub3.png", pix3, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/sub3.png", 3, &success);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 3 */
 
        /* Get same (bad) result doing subpixel rendering on RGB input */
     pix4 = pixConvertTo32(pixs);
     pix5 = pixConvertToSubpixelRGB(pix4, scalefact, scalefact,
                                    L_SUBPIXEL_ORDER_RGB);
-    regTestComparePix(fp, argv, pix3, pix5, 0, &success);
-    pixWrite("/tmp/sub4.png", pix5, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/sub4.png", 4, &success);
+    regTestComparePix(rp, pix3, pix5);  /* 4 */
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 5 */
 
         /* Now apply a small lowpass filter before scaling. */
     makeGaussianKernelSep(2, 2, 1.0, 1.0, &kelx, &kely);
     startTimer();
     pix6 = pixConvolveSep(pix1, kelx, kely, 8, 1);  /* normalized */
     fprintf(stderr, "Time sep: %7.3f\n", stopTimer());
-    pixWrite("/tmp/sub5.png", pix6, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/sub5.png", 5, &success);
+    regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 6 */
 
         /* Get same lowpass result with non-separated convolution */
     kel = makeGaussianKernel(2, 2, 1.0, 1.0);
     startTimer();
     pix7 = pixConvolve(pix1, kel, 8, 1);  /* normalized */
     fprintf(stderr, "Time non-sep: %7.3f\n", stopTimer());
-    regTestComparePix(fp, argv, pix6, pix7, 1, &success);
+    regTestComparePix(rp, pix6, pix7);  /* 7 */
 
         /* Now do the subpixel scaling on this slightly blurred image */
     pix8 = pixConvertToSubpixelRGB(pix6, scalefact, scalefact,
                                    L_SUBPIXEL_ORDER_RGB);
-    pixWrite("/tmp/sub6.png", pix8, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/sub6.png", 6, &success);
+    regTestWritePixAndCheck(rp, pix8, IFF_PNG);  /* 8 */
 
-    regTestCleanup(argc, argv, fp, success, NULL);
+    kernelDestroy(&kelx);
+    kernelDestroy(&kely);
+    kernelDestroy(&kel);
+    pixDestroy(&pixs);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    pixDestroy(&pix7);
+    pixDestroy(&pix8);
+    regTestCleanup(rp);
     return 0;
 }
 

@@ -20,8 +20,6 @@
  *    their bounding regions.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* Determines maximum size of boxes */
@@ -31,18 +29,16 @@ static const l_float32  maxsize[] = {5.0, 10.0, 15.0, 20.0, 25.0, 26.0, 27.0};
 main(int    argc,
      char **argv)
 {
-l_int32       i, k, x, y, w, h, count, success, display;
+l_int32       i, k, x, y, w, h;
 BOX          *box;
 BOXA         *boxa1, *boxa2;
-FILE         *fp;
 PIX          *pix1, *pix2, *pixd;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
 	return 1;
 
-    count = 0;
     for (k = 0; k < 7; k++) {
     srand(45617);
         pixa = pixaCreate(2);
@@ -67,8 +63,8 @@ L_REGPARAMS  *rp;
         pixaAddPix(pixa, pix2, L_INSERT);
 
         pixd = pixaDisplayTiledInRows(pixa, 1, 1500, 1.0, 0, 50, 2);
-        pixDisplayWithTitle(pixd, 100, 100 + 100 * k, NULL, display);
-        regTestWritePixAndCheck(pixd, IFF_PNG, &count, rp);
+        pixDisplayWithTitle(pixd, 100, 100 + 100 * k, NULL, rp->display);
+        regTestWritePixAndCheck(rp, pixd, IFF_PNG);
         fprintf(stderr, "%d: n_init = %d, n_final = %d\n",
                 k, boxaGetCount(boxa1), boxaGetCount(boxa2));
         pixDestroy(&pixd);
@@ -77,7 +73,7 @@ L_REGPARAMS  *rp;
         pixaDestroy(&pixa);
     }
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 

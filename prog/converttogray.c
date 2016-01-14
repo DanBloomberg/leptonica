@@ -18,8 +18,6 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
@@ -102,6 +100,6 @@ static char   mainName[] = "converttogray";
 
     pixDestroy(&pixs);
 
-    exit(0);
+    return 0;
 }
 

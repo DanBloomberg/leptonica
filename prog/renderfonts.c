@@ -19,8 +19,6 @@
  *     This tests the font rendering functions
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define   NFONTS   9
@@ -93,7 +91,7 @@ static char  mainName[] = "renderfonts";
     pixWrite(fileout, pixs, IFF_JFIF_JPEG);
     if (overflow)
         fprintf(stderr, "Text overflow beyond image boundary\n");
-    FREE((void *)textstr);
+    lept_free(textstr);
 #endif
 
     pixDestroy(&pixs);

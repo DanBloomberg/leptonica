@@ -23,8 +23,6 @@
  *   re-quantizing back to the original colormap.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define  LEVEL       3
@@ -86,10 +84,10 @@ static char  mainName[] = "cmapquant_reg";
         fprintf(stderr, "Correct: images are the same\n");
     else
         fprintf(stderr, "Error: images differ\n");
-    FREE(cmaptab);
-    FREE(rtab);
-    FREE(gtab);
-    FREE(btab);
+    lept_free(cmaptab);
+    lept_free(rtab);
+    lept_free(gtab);
+    lept_free(btab);
 
     pixDisplayMultiple("/tmp/junk_write_display*");
 

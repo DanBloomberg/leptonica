@@ -19,7 +19,6 @@
  *     Stubs for pnmio.c functions
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 /* --------------------------------------------*/

@@ -1844,7 +1844,7 @@ FILE    *fp;
     pixWrite(buf, pixt, IFF_PNG);
 
     snprintf(buf, L_BUF_SIZE, "%s%s", rootout, JB_DATA_EXT); 
-    if ((fp = fopen(buf, "wb")) == NULL)
+    if ((fp = fopenWriteStream(buf, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ncomp = ptaGetCount(ptaul);
     fprintf(fp, "jb data file\n");
@@ -1878,7 +1878,8 @@ char      fname[L_BUF_SIZE];
 char     *linestr;
 l_uint8  *data;
 l_int32   nsa, i, w, h, cellw, cellh, x, y, iclass, ipage;
-l_int32   nbytes, npages, nclass, ncomp;
+l_int32   npages, nclass, ncomp;
+size_t    size;
 JBDATA   *jbdata;
 NUMA     *naclass, *napage;
 PIX      *pixs;
@@ -1895,7 +1896,7 @@ SARRAY   *sa;
         return (JBDATA *)ERROR_PTR("pix not read", procName, NULL);
 
     snprintf(fname, L_BUF_SIZE, "%s%s", rootname, JB_DATA_EXT);
-    if ((data = arrayRead(fname, &nbytes)) == NULL)
+    if ((data = l_binaryRead(fname, &size)) == NULL)
         return (JBDATA *)ERROR_PTR("data not read", procName, NULL);
 
     if ((sa = sarrayCreateLinesFromString((char *)data, 0)) == NULL)

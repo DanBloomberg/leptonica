@@ -32,8 +32,6 @@
  *   (Turn off logging to get a fair comparison).
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -136,6 +134,7 @@ static char  mainName[] = "pixalloc_reg";
     }
     pixDestroy(&pixs);
     fprintf(stderr, "Time (standard) = %7.3f sec\n", stopTimer());
+    return 0;
 }
 
 

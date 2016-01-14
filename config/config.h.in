@@ -24,6 +24,9 @@
 /* Define to 1 if you have libtiff. */
 #undef HAVE_LIBTIFF
 
+/* Define to 1 if you have libwebp. */
+#undef HAVE_LIBWEBP
+
 /* Define to 1 if you have zlib. */
 #undef HAVE_LIBZ
 

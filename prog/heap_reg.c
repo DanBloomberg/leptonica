@@ -19,8 +19,6 @@
  *   Tests the heap utility.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 struct HeapElement {
@@ -57,7 +55,7 @@ static char  mainName[] = "heap_reg";
     lh = lheapCreate(5, L_SORT_INCREASING);
     for (i = 0; i < NELEM; i++) {
         numaGetFValue(na, i, &fval);
-        item = (HEAPEL *)CALLOC(1, sizeof(HEAPEL));
+        item = (HEAPEL *)lept_calloc(1, sizeof(HEAPEL));
         item->distance = fval;
         lheapAdd(lh, item);
     }
@@ -81,7 +79,7 @@ static char  mainName[] = "heap_reg";
     for (i = 0; lheapGetCount(lh) > 0; i++) {
         item = (HEAPEL *)lheapRemove(lh);
 	fprintf(stderr, "item %d: %f\n", i, item->distance);
-	FREE(item);
+	lept_free(item);
     }
 
     lheapDestroy(&lh, 1);

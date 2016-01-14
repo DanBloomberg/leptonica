@@ -18,6 +18,7 @@
  *
  *      Pixa Display (render into a pix)
  *           PIX      *pixaDisplay()
+ *           PIX      *pixaDisplayOnColor()
  *           PIX      *pixaDisplayRandomCmap()
  *           PIX      *pixaDisplayOnLattice()
  *           PIX      *pixaDisplayUnsplit()
@@ -42,6 +43,8 @@
  *    pixaDisplay()
  *        This uses the boxes to lay out each pix.  It is typically
  *        used to reconstruct a pix that has been broken into components.
+ *    pixaDisplayOnColor()
+ *        pixaDisplay() with choice of background color
  *    pixaDisplayRandomCmap()
  *        This also uses the boxes to lay out each pix.  However, it creates
  *        a colormapped dest, where each 1 bpp pix is given a randomly
@@ -77,8 +80,6 @@
  *        are derived from the same initial image.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>   /* for sqrt() */
 #include "allheaders.h"
@@ -99,10 +100,11 @@
  *      (1) This uses the boxes to place each pix in the rendered composite.
  *      (2) Set w = h = 0 to use the b.b. of the components to determine
  *          the size of the returned pix.
- *      (3) The background is written "white".  On 1 bpp, each successive
+ *      (3) Uses the first pix in pixa to determine the depth.
+ *      (4) The background is written "white".  On 1 bpp, each successive
  *          pix is "painted" (adding foreground), whereas for grayscale
  *          or color each successive pix is blitted with just the src.
- *      (4) If the pixa is empty, returns an empty 1 bpp pix.
+ *      (5) If the pixa is empty, returns an empty 1 bpp pix.
  */
 PIX *
 pixaDisplay(PIXA    *pixa,
@@ -156,6 +158,97 @@ PIX     *pixt, *pixd;
         pixDestroy(&pixt);
     }
 
+    return pixd;
+}
+
+
+/*!
+ *  pixaDisplayOnColor()
+ *
+ *      Input:  pixa
+ *              w, h (if set to 0, determines the size from the
+ *                    b.b. of the components in pixa)
+ *              color (background color to use)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) This uses the boxes to place each pix in the rendered composite.
+ *      (2) Set w = h = 0 to use the b.b. of the components to determine
+ *          the size of the returned pix.
+ *      (3) If any pix in @pixa are colormapped, or if the pix have
+ *          different depths, it returns a 32 bpp pix.  Otherwise,
+ *          the depth of the returned pixa equals that of the pix in @pixa.
+ *      (4) If the pixa is empty, return null.
+ */
+PIX *
+pixaDisplayOnColor(PIXA     *pixa,
+                   l_int32   w,
+                   l_int32   h,
+                   l_uint32  bgcolor)
+{
+l_int32  i, n, xb, yb, wb, hb, hascmap, maxdepth, same;
+BOXA    *boxa;
+PIX     *pixt1, *pixt2, *pixd;
+PIXA    *pixat;
+
+    PROCNAME("pixaDisplayOnColor");
+
+    if (!pixa)
+        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+    if ((n = pixaGetCount(pixa)) == 0)
+        return (PIX *)ERROR_PTR("no components", procName, NULL);
+
+        /* If w and h are not input, determine the minimum size
+         * required to contain the origin and all c.c. */
+    if (w == 0 || h == 0) {
+        boxa = pixaGetBoxa(pixa, L_CLONE);
+        boxaGetExtent(boxa, &w, &h, NULL);
+        boxaDestroy(&boxa);
+    }
+
+        /* If any pix have colormaps, or if they have different depths,
+         * generate rgb */
+    pixaAnyColormaps(pixa, &hascmap);
+    pixaGetDepthInfo(pixa, &maxdepth, &same);
+    if (hascmap || !same) {
+        maxdepth = 32;
+        pixat = pixaCreate(n);
+        for (i = 0; i < n; i++) {
+            pixt1 = pixaGetPix(pixa, i, L_CLONE);
+            pixt2 = pixConvertTo32(pixt1);
+            pixaAddPix(pixat, pixt2, L_INSERT);
+            pixDestroy(&pixt1);
+        }
+    }
+    else 
+        pixat = pixaCopy(pixa, L_CLONE);
+
+        /* Make the output pix and set the background color */
+    if ((pixd = pixCreate(w, h, maxdepth)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if ((maxdepth == 1 && bgcolor > 0) ||
+        (maxdepth == 2 && bgcolor >= 0x3) ||
+        (maxdepth == 4 && bgcolor >= 0xf) ||
+        (maxdepth == 8 && bgcolor >= 0xff) ||
+        (maxdepth == 16 && bgcolor >= 0xffff) ||
+        (maxdepth == 32 && bgcolor >= 0xffffff00)) {
+        pixSetAll(pixd);
+    }
+    else if (bgcolor > 0)
+        pixSetAllArbitrary(pixd, bgcolor);
+
+        /* Blit each pix into its place */
+    for (i = 0; i < n; i++) {
+        if (pixaGetBoxGeometry(pixat, i, &xb, &yb, &wb, &hb)) {
+            L_WARNING("no box found!", procName);
+            continue;
+        }
+        pixt1 = pixaGetPix(pixat, i, L_CLONE);
+        pixRasterop(pixd, xb, yb, wb, hb, PIX_SRC, pixt1, 0, 0);
+        pixDestroy(&pixt1);
+    }
+
+    pixaDestroy(&pixat);
     return pixd;
 }
 

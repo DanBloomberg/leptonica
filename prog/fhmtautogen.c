@@ -30,8 +30,6 @@
  *    were made using index = 1.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
@@ -43,7 +41,7 @@ SELA        *sela;
 static char  mainName[] = "fhmtautogen";
 
     if (argc != 2 && argc != 3)
-	exit(ERROR_INT(" Syntax:  fhmtautogen index, <filename>", mainName, 1));
+	exit(ERROR_INT(" Syntax:  fhmtautogen index <filename>", mainName, 1));
 
     index = atoi(argv[1]);
     filename = NULL;
@@ -52,9 +50,9 @@ static char  mainName[] = "fhmtautogen";
 
     sela = selaAddHitMiss(NULL);
     if (fhmtautogen(sela, index, filename))
-	exit(1);
+	return 1;
 
     selaDestroy(&sela);
-    exit(0);
+    return 0;
 }
 

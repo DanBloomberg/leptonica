@@ -20,8 +20,6 @@
  *      interface.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const char *image[10] = {"feyn.tif",         /* 1 bpp */
@@ -42,58 +40,56 @@ static const l_float32  FACTOR[5] = {2.3, 1.5, 1.1, 0.6, 0.3};
 
 static void AddScaledImages(PIXA *pixa, const char *fname, l_int32 width);
 static void PixSave32(PIXA *pixa, PIX *pixc);
-static void PixaSaveDisplay(PIXA *pixa, l_int32 *pcount, L_REGPARAMS *rp);
+static void PixaSaveDisplay(PIXA *pixa, L_REGPARAMS *rp);
 
 
 main(int    argc,
      char **argv)
 {
-l_int32       i, display, success, count;
-FILE         *fp;
+l_int32       i;
 PIX          *pixs, *pixc, *pixd;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
-    count = 0;
 
         /* Test 1 bpp */
     fprintf(stderr, "\n-------------- Testing 1 bpp ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[0]);
     pixc = pixScale(pixs, 0.32, 0.32);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     pixSaveTiled(pixc, pixa, 1, 1, SPACE, 32);
     pixDestroy(&pixc);
 
     pixc = pixScaleToGray3(pixs);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
 
     pixc = pixScaleToGray4(pixs);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     pixSaveTiled(pixc, pixa, 1, 1, SPACE, 32);
     pixDestroy(&pixc);
 
     pixc = pixScaleToGray6(pixs);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
 
     pixc = pixScaleToGray8(pixs);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
 
     pixc = pixScaleToGray16(pixs);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
     pixDestroy(&pixs);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
 
     for (i = 1; i < 10; i++) {
         pixa = pixaCreate(0);
         AddScaledImages(pixa, image[i], WIDTH);
-        PixaSaveDisplay(pixa, &count, rp);
+        PixaSaveDisplay(pixa, rp);
     }
 
         /* Test 2 bpp without colormap */
@@ -102,15 +98,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[1]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 2.25, 2.25);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
         /* Test 2 bpp with colormap */
@@ -119,14 +115,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[2]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 2.25, 2.25);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
+    PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
         /* Test 4 bpp without colormap */
@@ -135,15 +132,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[3]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.72, 1.72);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
         /* Test 4 bpp with colormap */
@@ -152,15 +149,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[4]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.72, 1.72);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
         /* Test 8 bpp without colormap */
@@ -169,15 +166,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[5]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.92, 1.92);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
         /* Test 8 bpp with colormap */
@@ -186,15 +183,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[6]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.92, 1.92);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
         /* Test 16 bpp */
@@ -203,15 +200,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[7]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.92, 1.92);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
         /* Test 32 bpp */
@@ -220,18 +217,18 @@ L_REGPARAMS  *rp;
     pixs = pixRead(image[8]);
     pixSaveTiled(pixs, pixa, 1, 1, SPACE, 32);
     pixc = pixScale(pixs, 1.42, 1.42);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.85, 0.85);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
     pixc = pixScale(pixs, 0.65, 0.65);
-    regTestWritePixAndCheck(pixc, IFF_JFIF_JPEG, &count, rp);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);
     PixSave32(pixa, pixc);
-    PixaSaveDisplay(pixa, &count, rp);
+    PixaSaveDisplay(pixa, rp);
     pixDestroy(&pixs);
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 
@@ -275,12 +272,12 @@ PIX  *pix32;
 }
 
 static void
-PixaSaveDisplay(PIXA *pixa, l_int32 *pcount, L_REGPARAMS *rp)
+PixaSaveDisplay(PIXA *pixa, L_REGPARAMS *rp)
 {
 PIX  *pixd;
 
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixd, IFF_JFIF_JPEG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

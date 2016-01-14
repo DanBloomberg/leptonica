@@ -19,7 +19,6 @@
  *     Stubs for gifio.c functions
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 #ifdef HAVE_CONFIG_H

@@ -40,8 +40,8 @@
 /* --------------------------------------------*/
 #if  HAVE_LIBWEBP   /* defined in environ.h */
 /* --------------------------------------------*/
-
-#include "webpimg.h"
+#include "webp/decode.h"
+#include "webp/encode.h"
 
 /*---------------------------------------------------------------------*
  *                              Reading WebP                            *
@@ -60,12 +60,11 @@
 PIX *
 pixReadStreamWebP(FILE  *fp)
 {
-l_int32    w, h, wpl, ret, nbytes;
 l_uint8   *filedata;
-l_uint8   *Y = NULL;
-l_uint8   *U = NULL;
-l_uint8   *V = NULL;
+l_uint8   *out = NULL;
+l_int32    w, h, wpl, stride;
 l_uint32  *data;
+size_t     nbytes, sz, out_size;
 PIX       *pix;
 
     PROCNAME("pixReadStreamWebP");
@@ -75,22 +74,30 @@ PIX       *pix;
 
         /* Read data from file and decode into Y,U,V arrays */
     rewind(fp);
-    if ((filedata = arrayReadStream(fp, &nbytes)) == NULL)
+    if ((filedata = l_binaryReadStream(fp, &nbytes)) == NULL)
         return (PIX *)ERROR_PTR("filedata not read", procName, NULL);
-    ret = WebPDecode(filedata, nbytes, &Y, &U, &V, &w, &h);
-    FREE(filedata);
-    if (ret != webp_success) {
-        if (Y) free(Y);
-        return (PIX *)ERROR_PTR("WebP decode failed", procName, NULL);
+
+    sz = WebPGetInfo(filedata, nbytes, &w, &h);
+    if (sz == 0) {
+        FREE(filedata);
+        return (PIX *)ERROR_PTR("Bad WebP: Can't find size", procName, NULL);
     }
 
         /* Write from Y,U,V arrays to pix data */
     pix = pixCreate(w, h, 32);
-    wpl = pixGetWpl(pix);
     data = pixGetData(pix);
-    YUV420toRGBA(Y, U, V, wpl, w, h, data);
+    wpl = pixGetWpl(pix);
+    stride = wpl * 4;
+    out_size = stride * h;
+    out = WebPDecodeRGBAInto(filedata, nbytes, (uint8_t *)data, out_size,
+                             stride);
+    FREE(filedata);
+    if (out == NULL) {
+        pixDestroy(&pix);
+        return (PIX *)ERROR_PTR("WebP decode failed", procName, NULL);
+    }
+    pixEndianByteSwap(pix);
 
-    if (Y) free(Y);
     return pix;
 }
 
@@ -109,6 +116,7 @@ readHeaderWebP(const char *filename,
                l_int32    *pheight)
 {
 l_uint8  data[10];
+l_int32  sz;
 FILE    *fp;
 
     PROCNAME("readHeaderWebP");
@@ -121,7 +129,11 @@ FILE    *fp;
         return ERROR_INT("image file not found", procName, 1);
     if (fread((char *)data, 1, 10, fp) != 10)
         return ERROR_INT("failed to read 10 bytes of file", procName, 1);
-    WebPGetInfo(data, 10, pwidth, pheight);
+
+    sz = WebPGetInfo(data, 10, pwidth, pheight);
+    if (sz == 0)
+        return ERROR_INT("Bad WebP: Can't find size", procName, 1);
+
     fclose(fp);
     return 0;
 }
@@ -134,32 +146,30 @@ FILE    *fp;
  *  pixWriteWebP()
  *
  *      Input:  filename
- *              pix
- *              quantparam (quantization parameter), controls quality of
- *              generated WebP, smaller quantparam == better quality.
- *              Send -1 to get default value.
+ *              pixs
+ *              quality (1 - 100; 75 is default)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
 pixWriteWebP(const char  *filename,
-             PIX         *pix,
-             l_int32      quantparam)
+             PIX         *pixs,
+             l_int32      quality)
 {
 FILE  *fp;
 
     PROCNAME("pixWriteWebP");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
 
-    if ((fp = fopen(filename, "wb+")) == NULL)
+    if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
 
-    if (pixWriteStreamWebP(fp, pix, quantparam) != 0) {
+    if (pixWriteStreamWebP(fp, pixs, quality) != 0) {
         fclose(fp);
-        return ERROR_INT("pix not written to stream", procName, 1);
+        return ERROR_INT("pixs not written to stream", procName, 1);
     }
 
     fclose(fp);
@@ -171,34 +181,24 @@ FILE  *fp;
  *  pixWriteStreampWebP()
  *
  *      Input:  stream
- *              pix  (32 bpp)
- *              quantparam (quantization parameter; use -1 for default)
+ *              pix  (all depths)
+ *              quality (1 - 100; 75 is default)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The @quantparam controls the quality of the generated WebP;
- *          a smaller quantparam gives better quality.  The following
- *          table shows a rough correspondence between @quantparam
- *          and the jpeg quality parameter:
- *
- *              quantparam               jpeg quality
- *              ----------               ------------
- *              20                         60
- *              15                         75
- *              12                         90
+ *      (1) webp only encodes rgb images, so the input image is converted to rgb
+ *          if necessary.
  */
 l_int32
 pixWriteStreamWebP(FILE    *fp,
                    PIX     *pixs,
-                   l_int32  quantparam)
+                   l_int32  quality)
 {
-l_int32    w, h, d, wpl, uv_width, uv_height, nbytes, ret;
-l_uint8   *Y = NULL;
-l_uint8   *U = NULL;
-l_uint8   *V = NULL;
+l_int32    w, h, d, wpl, stride, ret;
 l_uint8   *filedata = NULL;
 l_uint32  *data;
-PIX       *pix = NULL;
+size_t     nbytes;
+PIX       *pix, *pixt, *pix32;
 
     PROCNAME("pixWriteStreamWebP");
 
@@ -206,12 +206,27 @@ PIX       *pix = NULL;
         return ERROR_INT("stream not open", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (quantparam <= 0) quantparam = 20;
 
-    if ((pix = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR)) == NULL) {
-        return ERROR_INT("cannot remove color map", procName, 1);
-    }
+    if (quality < 1)
+        quality = 1;
+    if (quality > 100)
+        quality = 100;
+
+    if ((pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR)) == NULL)
+        return ERROR_INT("failure to remove color map", procName, 1);
+    pix = pixEndianByteSwapNew(pixt);
+    pixDestroy(&pixt);
     pixGetDimensions(pix, &w, &h, &d);
+
+        /* Convert to rgb if not 32 bpp */
+    if (d != 32) {
+        if ((pix32 = pixConvertTo32(pix)) != NULL) {
+            pixDestroy(&pix);
+            pix = pix32;
+            d = pixGetDepth(pix);
+        }
+    }
+
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
     if (d != 32 || w <= 0 || h <= 0 || wpl <= 0 || !data) {
@@ -219,35 +234,22 @@ PIX       *pix = NULL;
         return ERROR_INT("bad or empty input pix", procName, 1);
     }
 
-        /* Read data into Y,U,V arrays */
-    uv_width = (w + 1) >> 1;
-    uv_height = (h + 1) >> 1;
-    nbytes = w * h + 2 * uv_width * uv_height;
-    if ((Y = (l_uint8 *)CALLOC(nbytes, sizeof(l_uint8))) == NULL) {
-        pixDestroy(&pix);
-        return ERROR_INT("YUV buffer alloc failed", procName, 1);
-    }
-    U = Y + w * h;
-    V = U + uv_width * uv_height;
-    RGBAToYUV420(data, wpl, w, h, Y, U, V);
+    stride = wpl * 4;
+    nbytes = WebPEncodeRGBA((uint8_t *)data, w, h, stride, quality, &filedata);
 
-        /* Encode Y,U,V and write data to file */
-    ret = WebPEncode(Y, U, V, w, h, w, uv_width, uv_height, uv_width,
-                     quantparam, &filedata, &nbytes, NULL);
-    FREE(Y);
-    if (ret != webp_success) {
+    if (nbytes == 0) {
         if (filedata) free(filedata);
         pixDestroy(&pix);
         return ERROR_INT("WebPEncode failed", procName, 1);
     }
 
     rewind(fp);
-    if (fwrite(filedata, 1, nbytes, fp) != nbytes) {
-        pixDestroy(&pix);
-        return ERROR_INT("Write error", procName, 1);
-    }
+
+    ret = (fwrite(filedata, 1, nbytes, fp) != nbytes);
     free(filedata);
     pixDestroy(&pix);
+    if (ret)
+        return ERROR_INT("Write error", procName, 1);
 
     return 0;
 }
@@ -257,38 +259,35 @@ PIX       *pix = NULL;
  *  pixWriteWebPwithTargetPSNR()
  *
  *      Input:  filename
- *              pix  (32 bpp rgb)
- *              target_psnr (target psnr to control the quality [1 ... 99])
- *              pqp (<optional return> final qp value used to obtain
+ *              pix  (all depths)
+ *              target_psnr (target psnr to control the quality [1 ... 100])
+ *              pquality (<optional return> final quality value used to obtain
  *                   the target_psnr; can be null)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The parameter to control quality while encoding WebP is qp.
- *          This function does a line search over the qp values between
- *          MIN_QP and MAX_QP to achieve the target PSNR as closely as
+ *      (1) The parameter to control quality while encoding WebP is quality.
+ *          This function does a line search over the quality values between
+ *          MIN_QUALITY and MAX_QUALITY to achieve the target PSNR as close as
  *          possible.
  */
 l_int32
 pixWriteWebPwithTargetPSNR(const char  *filename,
                            PIX         *pixs,
                            l_float64    target_psnr,
-                           l_int32     *pqp)
+                           l_int32     *pquality)
 {
-l_uint8   *Y = NULL;
-l_uint8   *U = NULL;
-l_uint8   *V = NULL;
 l_uint8   *filedata = NULL;
 l_uint8   *tmp_filedata = NULL;
-l_int32    MIN_QP = 10;  /* min allowed value of qp */
-l_int32    MAX_QP = 63;  /* max allowed value of qp */
-l_int32    w, h, d, wpl, uv_width, uv_height, nbytes, ret;
-l_int32    qp, delta_qp, qp_test, accept;
-l_int32    tmp_nbytes = 0;
+l_int32    MIN_QUALITY = 1;    /* min allowed value of quality */
+l_int32    MAX_QUALITY = 100;  /* max allowed value of quality */
+l_int32    w, h, d, wpl, stride, ret;
+l_int32    quality, delta_quality, quality_test, accept;
 l_uint32  *data;
 l_float64  psnr, psnr_test;
+size_t     nbytes, tmp_nbytes = 0;
 FILE      *fp;
-PIX       *pix = NULL;
+PIX       *pix, *pix32;
 
     PROCNAME("pixWriteWebPwithTargetPSNR");
 
@@ -299,10 +298,19 @@ PIX       *pix = NULL;
     if (target_psnr <= 0 || target_psnr >= 100)
         return ERROR_INT("Target psnr out of range", procName, 1);
 
-    if ((pix = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR)) == NULL) {
+    if ((pix = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR)) == NULL)
         return ERROR_INT("cannot remove color map", procName, 1);
-    }
     pixGetDimensions(pix, &w, &h, &d);
+
+        /* Convert to rgb if not 32 bpp */
+    if (d != 32) {
+        if ((pix32 = pixConvertTo32(pix)) != NULL) {
+            pixDestroy(&pix);
+            pix = pix32;
+            d = pixGetDepth(pix);
+        }
+    }
+
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
     if (d != 32 || w <= 0 || h <= 0 || wpl <= 0 || !data) {
@@ -310,52 +318,39 @@ PIX       *pix = NULL;
         return ERROR_INT("bad or empty input pix", procName, 1);
     }
 
-        /* Set the initial value of the QP parameter.  In each iteration
-         * it will then increase or decrease the QP value, based on
+        /* Set the initial value of the Quality parameter.  In each iteration
+         * it will then increase or decrease the Quality value, based on
          * whether the achieved psnr is higher or lower than the target_psnr */
-    qp = 30;
+    quality = 75;
+    stride = wpl * 4;
 
-        /* Read data into Y,U,V arrays */
-    uv_width = (w + 1) >> 1;
-    uv_height = (h + 1) >> 1;
-    nbytes = w * h + 2 * uv_width * uv_height;
-    if ((Y = (l_uint8 *)CALLOC(nbytes, sizeof(l_uint8))) == NULL) {
-        pixDestroy(&pix);
-        return ERROR_INT("YUV buffer alloc failed", procName, 1);
-    }
-    U = Y + w * h;
-    V = U + uv_width * uv_height;
-    RGBAToYUV420(data, wpl, w, h, Y, U, V);
+    nbytes = WebPEncodeRGBA((uint8_t *)data, w, h, stride, quality, &filedata);
 
-        /* Encode Y,U,V and write data to file */
-    ret = WebPEncode(Y, U, V, w, h, w, uv_width, uv_height, uv_width, qp,
-                     &filedata, &nbytes, &psnr);
-    if (ret != webp_success) {
-        FREE(Y);
+    if (nbytes == 0) {
         if (filedata) free(filedata);
         pixDestroy(&pix);
         return ERROR_INT("WebPEncode failed", procName, 1);
     }
 
-        /* Rationale about the delta_qp being limited: we expect the optimal
-         * qp to be not too far from target qp in practice. So instead of a full
-         * dichotomy for the whole [MIN_QP, MAX_QP] range we cap |delta_qp|
-         * to only explore quickly around the starting value and maximize the
-         * return in investment. */
-    delta_qp = (psnr > target_psnr) ? L_MAX((MAX_QP - qp) / 4, 1) :
-        L_MIN((MIN_QP - qp) / 4, -1);
+        /* Rationale about the delta_quality being limited: we expect optimal
+         * quality to be not too far from target quality in practice.
+         * So instead of a full dichotomy for the whole range we cap
+         * |delta_quality| to only explore quickly around the starting value
+         * and maximize the return in investment. */
+    delta_quality = (psnr > target_psnr) ?
+        L_MAX((MAX_QUALITY - quality) / 4, 1) :
+        L_MIN((MIN_QUALITY - quality) / 4, -1);
 
-    while (delta_qp != 0) {
-            /* Advance qp and clip to valid range */
-        qp_test = L_MIN(L_MAX(qp + delta_qp, MIN_QP), MAX_QP);
-            /* Re-adjust delta value after QP-clipping. */
-        delta_qp = qp_test - qp;
+    while (delta_quality != 0) {
+            /* Advance quality and clip to valid range */
+        quality_test = L_MIN(L_MAX(quality + delta_quality, MIN_QUALITY),
+                             MAX_QUALITY);
+            /* Re-adjust delta value after Quality-clipping. */
+        delta_quality = quality_test - quality;
 
-        ret = WebPEncode(Y, U, V, w, h, w, uv_width, uv_height, uv_width,
-                         qp_test, &tmp_filedata, &tmp_nbytes, &psnr_test);
-
-        if (ret != webp_success) {
-            FREE(Y);
+        tmp_nbytes = WebPEncodeRGBA((uint8_t *)data, w, h, stride, quality_test,
+                                    &tmp_filedata);
+        if (tmp_nbytes == 0) {
             free(filedata);
             if (tmp_filedata) free(tmp_filedata);
             pixDestroy(&pix);
@@ -363,36 +358,34 @@ PIX       *pix = NULL;
         }
 
             /* Accept or reject new settings */
-        accept = (psnr_test > target_psnr) ^ (delta_qp < 0);
+        accept = (psnr_test > target_psnr) ^ (delta_quality < 0);
         if (accept) {
             free(filedata);
             filedata = tmp_filedata;
             nbytes = tmp_nbytes;
-            qp = qp_test;
+            quality = quality_test;
             psnr = psnr_test;
         }
         else {
-            delta_qp /= 2;
+            delta_quality /= 2;
             free(tmp_filedata);
         }
     }
-    if (pqp) *pqp = qp;
-    FREE(Y);
+    if (pquality) *pquality = quality;
 
-    if ((fp = fopen(filename, "wb+")) == NULL) {
+    if ((fp = fopenWriteStream(filename, "wb+")) == NULL) {
         free(filedata);
         pixDestroy(&pix);
         return ERROR_INT("stream not opened", procName, 1);
     }
+
     ret = (fwrite(filedata, 1, nbytes, fp) != nbytes);
     fclose(fp);
     free(filedata);
-    if (ret) {
-        pixDestroy(&pix);
-        return ERROR_INT("Write error", procName, 1);
-    }
-
     pixDestroy(&pix);
+    if (ret)
+        return ERROR_INT("Write error", procName, 1);
+
     return 0;
 }
 

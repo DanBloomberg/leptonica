@@ -27,11 +27,8 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
 
 #define COMBINE_PARTIAL(d, s, m)     ( ((d) & ~(m)) | ((s) & (m)) )
 
@@ -296,7 +293,7 @@ l_int32    i, j;
  *              wpl    (wpl)
  *              y      (y val of UL corner of rectangle)
  *              h      (height of rectangle)
- *              shift  (+ shifts data downward in vertical column)
+ *              shift  (+ shifts data to the left in a horizontal column)
  *      Return: 0 if OK; 1 on error.
  *
  *  Notes:

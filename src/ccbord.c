@@ -234,10 +234,12 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
+
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
 
@@ -265,6 +267,7 @@ static const l_int32   qpostab[] = {6, 6, 0, 0, 2, 2, 4, 4};
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_PRINT   0
 #endif   /* NO CONSOLE_IO */
+
 
 
 /*---------------------------------------------------------------------*
@@ -2137,7 +2140,7 @@ FILE  *fp;
     if (!ccba)
         return ERROR_INT("ccba not defined", procName, 1);
 
-    if ((fp = fopen(filename, "wb+")) == NULL)
+    if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (ccbaWriteStream(fp, ccba)) {
         fclose(fp);
@@ -2181,9 +2184,9 @@ char      strbuf[256];
 l_uint8   bval;
 l_uint8  *datain, *dataout;
 l_int32   i, j, k, bx, by, bw, bh, val, startx, starty; 
-l_int32   inbytes, outbytes;
 l_int32   ncc, nb, n;
 l_uint32  w, h;
+size_t    inbytes, outbytes;
 BBUFFER  *bbuf;
 CCBORD   *ccb;
 NUMA     *na;
@@ -2284,7 +2287,7 @@ CCBORDA  *ccba;
     if (!filename)
         return (CCBORDA *)ERROR_PTR("filename not defined", procName, NULL);
 
-    if ((fp = fopen(filename, "rb")) == NULL)
+    if ((fp = fopenReadStream(filename)) == NULL)
         return (CCBORDA *)ERROR_PTR("stream not opened", procName, NULL);
     ccba = ccbaReadStream(fp);
     fclose(fp);
@@ -2324,9 +2327,10 @@ char      strbuf[256];
 l_uint8   bval;
 l_uint8  *datain, *dataout;
 l_int32   i, j, startx, starty; 
-l_int32   inbytes, outbytes, offset, nib1, nib2;
+l_int32   offset, nib1, nib2;
 l_int32   ncc, nb;
 l_uint32  width, height, w, h, xoff, yoff;
+size_t    inbytes, outbytes;
 BOX      *box;
 CCBORD   *ccb;
 CCBORDA  *ccba;
@@ -2342,7 +2346,7 @@ NUMAA    *step;
     if (!fp)
         return (CCBORDA *)ERROR_PTR("stream not open", procName, NULL);
 
-    if ((datain = arrayReadStream(fp, &inbytes)) == NULL)
+    if ((datain = l_binaryReadStream(fp, &inbytes)) == NULL)
         return (CCBORDA *)ERROR_PTR("data not read from file", procName, NULL);
 
     if ((dataout = zlibUncompress(datain, inbytes, &outbytes)) == NULL)
@@ -2454,7 +2458,7 @@ char  *svgstr;
     if ((svgstr = ccbaWriteSVGString(filename, ccba)) == NULL)
         return ERROR_INT("svgstr not made", procName, 1);
 
-    arrayWrite(filename, "w", svgstr, strlen(svgstr));
+    l_binaryWrite(filename, "w", svgstr, strlen(svgstr));
     FREE(svgstr);
 
     return 0;

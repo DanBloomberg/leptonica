@@ -82,16 +82,16 @@ static char  mainName[] = "printsplitimage";
     n = pixaGetCount(pixa);
     sa = sarrayCreate(n);
     for (i = 0; i < n; i++) {
-      pixt = pixaGetPix(pixa, i, L_CLONE);
-      w = pixGetWidth(pixt);
-      h = pixGetHeight(pixt);
-      scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
-      sprintf(buffer, "/tmp/junk_print_image_%d.ps", i);
-      fp = fopen(buffer, "wb+");
-      sarrayAddString(sa, buffer, 1);
-      pixWriteStreamPS(fp, pixt, NULL, 300, scale);
-      fclose(fp);
-      pixDestroy(&pixt);
+        pixt = pixaGetPix(pixa, i, L_CLONE);
+        w = pixGetWidth(pixt);
+        h = pixGetHeight(pixt);
+        scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
+        sprintf(buffer, "/tmp/junk_print_image_%d.ps", i);
+        fp = lept_fopen(buffer, "wb+");
+        sarrayAddString(sa, buffer, 1);
+        pixWriteStreamPS(fp, pixt, NULL, 300, scale);
+        lept_fclose(fp);
+        pixDestroy(&pixt);
     }
 
     if (argc == 5) {

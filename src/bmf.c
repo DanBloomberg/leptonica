@@ -52,8 +52,6 @@
  *   and I have given it a width equal to twice the width of '!'.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define  NFONTS  9
@@ -181,20 +179,24 @@ PIX *
 bmfGetPix(L_BMF  *bmf,
           char    chr)
 {
-l_int32  i;
+l_int32  i, index;
 PIXA    *pixa;
 
     PROCNAME("bmfGetPix");
 
+    if ((index = (l_int32)chr) == 10)  /* NL */
+        return NULL;
     if (!bmf)
         return (PIX *)ERROR_PTR("bmf not defined", procName, NULL);
 
-    i = bmf->fonttab[(l_int32)chr];
-    if (i == UNDEF)
-        return (PIX *)ERROR_PTR("no bitmap representation", procName, NULL);
+    i = bmf->fonttab[index];
+    if (i == UNDEF) {
+        L_ERROR_INT("no bitmap representation for %d", procName, index);
+        return NULL;
+    }
+
     if ((pixa = bmf->pixa) == NULL)
         return (PIX *)ERROR_PTR("pixa not found", procName, NULL);
-
     return pixaGetPix(pixa, i, L_CLONE);
 }
 
@@ -212,20 +214,26 @@ bmfGetWidth(L_BMF    *bmf,
             char      chr,
             l_int32  *pw)
 {
-l_int32  i;
+l_int32  i, index;
 PIX     *pix;
 PIXA    *pixa;
 
     PROCNAME("bmfGetWidth");
 
-    if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
     if (!pw)
         return ERROR_INT("&w not defined", procName, 1);
     *pw = -1;
-    i = bmf->fonttab[(l_int32)chr];
-    if (i == UNDEF)
-        return ERROR_INT("no bitmap representation", procName, 1);
+    if (!bmf)
+        return ERROR_INT("bmf not defined", procName, 1);
+    if ((index = (l_int32)chr) == 10)  /* NL */
+        return 0;
+
+    i = bmf->fonttab[index];
+    if (i == UNDEF) {
+        L_ERROR_INT("no bitmap representation for %d", procName, index);
+        return 1;
+    }
+
     if ((pixa = bmf->pixa) == NULL)
         return ERROR_INT("pixa not found", procName, 1);
     if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
@@ -250,7 +258,7 @@ bmfGetBaseline(L_BMF    *bmf,
                char      chr,
                l_int32  *pbaseline)
 {
-l_int32  bl;
+l_int32  bl, index;
 
     PROCNAME("bmfGetBaseline");
 
@@ -259,9 +267,14 @@ l_int32  bl;
     *pbaseline = 0;
     if (!bmf)
         return ERROR_INT("bmf not defined", procName, 1);
-    bl = bmf->baselinetab[(l_int32)chr];
-    if (bl == UNDEF)
-        return ERROR_INT("no bitmap representation", procName, 1);
+    if ((index = (l_int32)chr) == 10)  /* NL */
+        return 0;
+
+    bl = bmf->baselinetab[index];
+    if (bl == UNDEF) {
+        L_ERROR_INT("no bitmap representation for %d", procName, index);
+        return 1;
+    }
 
     *pbaseline = bl;
     return 0;

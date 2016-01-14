@@ -16,9 +16,15 @@
 /*
  *   gifio_reg.c
  *
- *     This tests reading and writing gif for various image types.
+ *    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ *    This is the Leptonica regression test for lossless read/write
+ *    I/O in gif format.
+ *    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  *
- *     The relative times for writing of gif and png are interesting.
+ *    This tests reading and writing of images in gif format for
+ *    varioius depths.
+ *
+ *    The relative times for writing of gif and png are interesting.
  *
  *     For 1 bpp:
  *
@@ -35,13 +41,14 @@
  *                       0.22 sec (octree quant with dithering)
  *                       0.12 sec (to compress and write out) 
  *             (note: no lossless mode; gif can't write out rgb)          
- *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
+
+static void test_gif(const char *fname, L_REGPARAMS *rp);
+static l_int32 test_mem_gif(const char *fname, l_int32 index);
+
 
     /* Needed for HAVE_LIBGIF and or HAVE_LIBUNGIF */
 #ifdef HAVE_CONFIG_H
@@ -62,162 +69,140 @@
 main(int    argc,
 char **argv)
 {
-l_int32      w, h, d, same, ret;
-PIX         *pixs, *pix1, *pix2;
-static char  mainName[] = "gifio_reg";
+l_int32       success;
+L_REGPARAMS  *rp;
  
-#if (!HAVE_LIBGIF) && (!HAVE_LIBUNGIF)
-    fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!\n"
-            "gifio not enabled!\n"
+#if !HAVE_LIBGIF && !HAVE_LIBUNGIF
+    fprintf(stderr, "gifio is not enabled\n"
+            "libgif or libungif are required for gifio_reg\n"
             "See environ.h: #define HAVE_LIBGIF or HAVE_LIBUNGIF 1\n"
-            "See prog/Makefile: link in -lgif or -lungif\n"
-            "!!!!!!!!!!!!!!!!!!!!\n");
-    return 1;
-#endif
+            "See prog/Makefile: link in -lgif or -lungif\n\n");
+    return 0;
+#endif  /* abort */
 
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
     pixDisplayWrite(NULL, -1);
 
-    pixs = pixRead(FILE_1BPP);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("/tmp/junk1.gif", pixs, IFF_GIF);
-    startTimer();
-    pix1 = pixRead("/tmp/junk1.gif");
-    fprintf(stderr, "Read time for 8 Mpix 1 bpp: %7.3f sec\n", stopTimer());
-    startTimer();
-    pixWrite("/tmp/junk1n.gif", pix1, IFF_GIF);
-    fprintf(stderr, "Write time for 8 Mpix 1 bpp: %7.3f\n", stopTimer());
-    pix2 = pixRead("/tmp/junk1n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pixs, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_1BPP);
+    /* ------------ Part 1: Test lossless r/w to file ------------*/
+    test_gif(FILE_1BPP, rp);
+    test_gif(FILE_2BPP, rp);
+    test_gif(FILE_4BPP, rp);
+    test_gif(FILE_8BPP_1, rp);
+    test_gif(FILE_8BPP_2, rp);
+    test_gif(FILE_8BPP_3, rp);
+    test_gif(FILE_16BPP, rp);
+    test_gif(FILE_32BPP, rp);
+    if (rp->success)
+        fprintf(stderr,
+            "\n  ****** Success on lossless r/w to file *****\n\n");
     else
-        fprintf(stderr, "Correct for %s\n", FILE_1BPP);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
+        fprintf(stderr,
+            "\n  ******* Failure on at least one r/w to file ******\n\n");
 
-    pixs = pixRead(FILE_2BPP);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("/tmp/junk2.gif", pixs, IFF_GIF);
-    pix1 = pixRead("/tmp/junk2.gif");
-    pixWrite("/tmp/junk2n.gif", pix1, IFF_GIF);
-    pix2 = pixRead("/tmp/junk2n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pixs, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_2BPP);
+    if (rp->display)
+        pixDisplayMultiple("/tmp/junk_write_display*");
+
+    /* ------------ Part 2: Test lossless r/w to memory ------------ */
+    success = TRUE;
+#if HAVE_FMEMOPEN
+    pixDisplayWrite(NULL, -1);
+    if (test_mem_gif(FILE_1BPP, 0)) success = FALSE;
+    if (test_mem_gif(FILE_2BPP, 1)) success = FALSE;
+    if (test_mem_gif(FILE_4BPP, 2)) success = FALSE;
+    if (test_mem_gif(FILE_8BPP_1, 3)) success = FALSE;
+    if (test_mem_gif(FILE_8BPP_2, 4)) success = FALSE;
+    if (test_mem_gif(FILE_8BPP_3, 5)) success = FALSE;
+    if (test_mem_gif(FILE_16BPP, 6)) success = FALSE;
+    if (test_mem_gif(FILE_32BPP, 7)) success = FALSE;
+    if (success)
+        fprintf(stderr,
+            "\n  ****** Success on lossless r/w to memory *****\n\n");
     else
-        fprintf(stderr, "Correct for %s\n", FILE_2BPP);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
+        fprintf(stderr,
+            "\n  ******* Failure on at least one r/w to memory ******\n\n");
 
-    pixs = pixRead(FILE_4BPP);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("/tmp/junk3.gif", pixs, IFF_GIF);
-    pix1 = pixRead("/tmp/junk3.gif");
-    pixWrite("/tmp/junk3n.gif", pix1, IFF_GIF);
-    pix2 = pixRead("/tmp/junk3n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pixs, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_4BPP);
-    else
-        fprintf(stderr, "Correct for %s\n", FILE_4BPP);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
+#else
+        fprintf(stderr,
+            "\n  *****  r/w to memory not enabled *****\n\n");
+#endif  /*  HAVE_FMEMOPEN  */
 
-    pixs = pixRead(FILE_8BPP_1);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("/tmp/junk4.gif", pixs, IFF_GIF);
-    pix1 = pixRead("/tmp/junk4.gif");
-    pixWrite("/tmp/junk4n.gif", pix1, IFF_GIF);
-    pix2 = pixRead("/tmp/junk4n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pixs, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_8BPP_1);
-    else
-        fprintf(stderr, "Correct for %s\n", FILE_8BPP_1);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
+        /* Success only if all tests are passed */
+    if (rp->success == TRUE) rp->success = success;
 
-    pixs = pixRead(FILE_8BPP_2);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("/tmp/junk5.gif", pixs, IFF_GIF);
-    pix1 = pixRead("/tmp/junk5.gif");
-    pixWrite("/tmp/junk5n.gif", pix1, IFF_GIF);
-    pix2 = pixRead("/tmp/junk5n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pixs, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_8BPP_2);
-    else
-        fprintf(stderr, "Correct for %s\n", FILE_8BPP_2);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-
-    pixs = pixRead(FILE_8BPP_3);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("/tmp/junk6.gif", pixs, IFF_GIF);
-    pix1 = pixRead("/tmp/junk6.gif");
-    pixWrite("/tmp/junk6n.gif", pix1, IFF_GIF);
-    pix2 = pixRead("/tmp/junk6n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pixs, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_8BPP_3);
-    else
-        fprintf(stderr, "Correct for %s\n", FILE_8BPP_3);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-
-    pixs = pixRead(FILE_16BPP);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixWrite("/tmp/junk7.gif", pixs, IFF_GIF);
-    pix1 = pixRead("/tmp/junk7.gif");
-    pixWrite("/tmp/junk7n.gif", pix1, IFF_GIF);
-    pix2 = pixRead("/tmp/junk7n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pix1, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_16BPP);
-    else
-        fprintf(stderr, "Correct for %s\n", FILE_16BPP);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-
-    pixs = pixRead(FILE_32BPP);
-    pixGetDimensions(pixs, &w, &h, &d);
-    pixSetText(pixs, "Junk GIF comment");
-    pixWrite("/tmp/junk8.gif", pixs, IFF_GIF);
-    pix1 = pixRead("/tmp/junk8.gif");
-    pixWrite("/tmp/junk8n.gif", pix1, IFF_GIF);
-    pix2 = pixRead("/tmp/junk8n.gif");
-    pixDisplayWrite(pix2, REDUCTION);
-    pixEqual(pix1, pix2, &same);
-    if (!same)
-        fprintf(stderr, "Error for %s\n", FILE_32BPP);
-    else
-        fprintf(stderr, "Correct for %s\n", FILE_32BPP);
-    fprintf(stderr, "   depth: pixs = %d, pix1 = %d\n", d, pixGetDepth(pix1));
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-
-    pixDisplayMultiple("/tmp/junk_write_display*");
+    regTestCleanup(rp);
     return 0;
 }
+
+
+static void
+test_gif(const char   *fname,
+         L_REGPARAMS  *rp)
+{
+char     buf[256];
+l_int32  same;
+PIX     *pixs, *pix1, *pix2;
+
+    pixs = pixRead(fname);
+    snprintf(buf, sizeof(buf), "/tmp/gifio-a.%d.gif", rp->index + 1);
+    pixWrite(buf, pixs, IFF_GIF);
+    pix1 = pixRead(buf);
+    snprintf(buf, sizeof(buf), "/tmp/gifio-b.%d.gif", rp->index + 1);
+    pixWrite(buf, pix1, IFF_GIF);
+    pix2 = pixRead(buf);
+    regTestWritePixAndCheck(rp, pix2, IFF_GIF);
+    pixEqual(pixs, pix2, &same);
+    if (!same && rp->index < 6) {
+        fprintf(stderr, "Error for %s\n", fname);
+        rp->success = FALSE;
+    }
+    if (rp->display) {
+        fprintf(stderr,
+                " depth: pixs = %d, pix1 = %d\n", pixGetDepth(pixs),
+                pixGetDepth(pix1));
+        pixDisplayWrite(pix2, REDUCTION);
+    }
+    pixDestroy(&pixs);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    return;
+}
+
+
+    /* Returns 1 on error */
+static l_int32
+test_mem_gif(const char  *fname,
+             l_int32      index)
+{
+l_uint8  *data = NULL;
+l_int32   same;
+size_t    size = 0;
+PIX      *pixs;
+PIX      *pixd = NULL;
+
+    if ((pixs = pixRead(fname)) == NULL) {
+        fprintf(stderr, "Failure to read %s\n", fname);
+        return 1;
+    }
+    if (pixWriteMem(&data, &size, pixs, IFF_GIF)) {
+        fprintf(stderr, "Mem write fail for gif\n");
+        return 1;
+    }
+    if ((pixd = pixReadMem(data, size)) == NULL) {
+        fprintf(stderr, "Mem read fail for gif\n");
+        lept_free(data);
+        return 1;
+    }
+
+    pixEqual(pixs, pixd, &same);
+    pixDestroy(&pixs);
+    pixDestroy(&pixd);
+    lept_free(data);
+    if (!same && index < 6) {
+        fprintf(stderr, "Mem write/read fail for file %s\n", fname);
+        return 1;
+    }
+    else
+        return 0;
+}
+

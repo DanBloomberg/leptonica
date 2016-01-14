@@ -24,8 +24,6 @@
  *      fileout: debug output showing results
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const l_int32  DEBUG_OUTPUT = 1;
@@ -98,10 +96,10 @@ static char  mainName[] = "textlinemask";
 #if 1
         /* Use full image morphology to find columns, at 2x reduction.
          * This only works for very simple layouts where each column
-         * of text extends the full height of the input image.  */
+         * of text extends the full height of the input image. 
+         * pixam has a pix component over each column.  */
     pixb2 = pixReduceRankBinary2(pixb, 2, NULL);
     pixt1 = pixMorphCompSequence(pixb2, "c5.500", 0);
-    pixam;  /* Mask with a single component over each column */
     boxa = pixConnComp(pixt1, &pixam, 8);
     ncols = boxaGetCount(boxa);
     fprintf(stderr, "Num columns: %d\n", ncols);

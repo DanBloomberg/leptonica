@@ -23,10 +23,9 @@
  *     the plot commands and data required for input to gnuplot.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
 #include "allheaders.h"
 
     /* for GPLOT_STYLE, use one of the following set:
@@ -51,9 +50,10 @@ main(int    argc,
      char **argv)
 {
 char        *str1, *str2;
-l_int32      i, nbytes1, nbytes2;
+l_int32      i;
+size_t       size1, size2;
 l_float32    x, y1, y2, pi;
-GPLOT       *gplot1, *gplot2, *gplot3;
+GPLOT       *gplot1, *gplot2, *gplot3, *gplot4, *gplot5;
 NUMA        *nax, *nay1, *nay2;
 static char  mainName[] = "plottest";
 
@@ -75,7 +75,7 @@ static char  mainName[] = "plottest";
     }
 
 	/* Show the plot */
-    gplot1 = gplotCreate("/tmp/junkplotroot1", GPLOT_OUTPUT, "Example plots",
+    gplot1 = gplotCreate("/tmp/plotroot1", GPLOT_OUTPUT, "Example plots",
 			 "theta", "f(theta)");
     gplotAddPlot(gplot1, nax, nay1, GPLOT_STYLE, "sin (2.4 * theta)");
     gplotAddPlot(gplot1, nax, nay2, GPLOT_STYLE, "cos (2.4 * theta)");
@@ -83,40 +83,55 @@ static char  mainName[] = "plottest";
 
         /* Also save the plot to png */
     gplot1->outformat = GPLOT_PNG;
-    gplot1->outname = stringNew("/tmp/junkplotroot1.png");
+    stringReplace(&gplot1->outname, "/tmp/plotroot1.png");
     gplotMakeOutput(gplot1);
 
         /* Test gplot serialization */
-    gplotWrite("/tmp/junkgplot1.plt", gplot1);
-    if ((gplot2 = gplotRead("/tmp/junkgplot1.plt")) == NULL)
+    gplotWrite("/tmp/gplot1", gplot1);
+    if ((gplot2 = gplotRead("/tmp/gplot1")) == NULL)
         exit(ERROR_INT("gplotRead failure!", mainName, 1));
-    gplotWrite("/tmp/junkgplot2.plt", gplot2);
+    gplotWrite("/tmp/gplot2", gplot2);
 
         /* Are the two written gplot files the same? */
-    str1 = (char *)arrayRead("/tmp/junkgplot1.plt", &nbytes1);
-    str2 = (char *)arrayRead("/tmp/junkgplot2.plt", &nbytes2);
-    if (nbytes1 != nbytes2)
-        fprintf(stderr, "Error: nbytes1 = %d, nbytes2 = %d\n",
-                nbytes1, nbytes2);
+    str1 = (char *)l_binaryRead("/tmp/gplot1", &size1);
+    str2 = (char *)l_binaryRead("/tmp/gplot2", &size2);
+    if (size1 != size2)
+        fprintf(stderr, "Error: size1 = %ld, size2 = %ld\n", size1, size2);
     else
-        fprintf(stderr, "Correct: nbytes1 = nbytes2 = %d\n", nbytes1);
+        fprintf(stderr, "Correct: size1 = size2 = %ld\n", size1);
     if (strcmp(str1, str2))
         fprintf(stderr, "Error: str1 != str2\n");
     else
         fprintf(stderr, "Correct: str1 == str2\n");
+    lept_free(str1);
+    lept_free(str2);
+
+        /* Read from file and regenerate the plot */
+    gplot3 = gplotRead("/tmp/gplot2");
+    stringReplace(&gplot3->title , "Example plots regen");
+    gplot3->outformat = GPLOT_X11;
+    gplotMakeOutput(gplot3);
+
+        /* Build gplot but do not make the output formatted stuff */
+    gplot4 = gplotCreate("/tmp/plotroot2", GPLOT_OUTPUT, "Example plots 2",
+			 "theta", "f(theta)");
+    gplotAddPlot(gplot4, nax, nay1, GPLOT_STYLE, "sin (2.4 * theta)");
+    gplotAddPlot(gplot4, nax, nay2, GPLOT_STYLE, "cos (2.4 * theta)");
+
+        /* Write, read back, and generate the plot */
+    gplotWrite("/tmp/gplot4", gplot4);
+    if ((gplot5 = gplotRead("/tmp/gplot4")) == NULL)
+        exit(ERROR_INT("gplotRead failure!", mainName, 1));
+    gplotMakeOutput(gplot5);
+
+    gplotDestroy(&gplot1);
+    gplotDestroy(&gplot2);
+    gplotDestroy(&gplot3);
+    gplotDestroy(&gplot4);
+    gplotDestroy(&gplot5);
     numaDestroy(&nax);
     numaDestroy(&nay1);
     numaDestroy(&nay2);
-    gplotDestroy(&gplot1);
-    gplotDestroy(&gplot2);
-    FREE(str1);
-    FREE(str2);
-
-        /* Read from file and regenerate the plot */
-    gplot3 = gplotRead("/tmp/junkgplot2.plt");
-    gplot3->outformat = GPLOT_X11;
-    gplotMakeOutput(gplot3);
-    gplotDestroy(&gplot3);
     return 0;
 }
 

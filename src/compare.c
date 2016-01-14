@@ -32,17 +32,17 @@
  *           l_int32     pixCompareRGB()
  *           l_int32     pixCompareTiled()
  *
- *      Other measures of the difference of two images
+ *      Other measures of the difference of two images of the same size
  *           NUMA       *pixCompareRankDifference()
  *           l_int32     pixTestforSimilarity()
  *           l_int32     pixGetDifferenceStats()
  *           NUMA       *pixGetDifferenceHistogram()
  *           l_int32     pixGetPSNR()
+ *
+ *      Translated images at the same resolution
+ *           TODO
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"

@@ -21,8 +21,6 @@
  *       * good contrast but fast varying background
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
@@ -144,7 +142,7 @@ static char  mainName[] = "adaptnorm_reg";
     pixWrite("/tmp/junkflex.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
-
+    return 0;
 }
 
 

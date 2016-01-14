@@ -19,7 +19,6 @@
  *     Stubs for psio1.c functions
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 /* --------------------------------------------*/

@@ -24,6 +24,7 @@
  *           void        pixcmapDestroy()
  *           l_int32     pixcmapAddColor()
  *           l_int32     pixcmapAddNewColor()
+ *           l_int32     pixcmapAddNearestColor()
  *           l_int32     pixcmapUsableColor()
  *           l_int32     pixcmapAddBlackOrWhite()
  *           l_int32     pixcmapSetBlackAndWhite()
@@ -59,14 +60,12 @@
  *           l_int32     pixcmapToRGBTable()
  *           l_int32     pixcmapSerializeToMemory()
  *           PIXCMAP    *pixcmapDeserializeFromMemory()
+ *           char       *pixcmapConvertToHex()
  *
  *      Colormap transforms
  *           l_int32     pixcmapGammaTRC()
  *           l_int32     pixcmapContrastTRC()
  *           l_int32     pixcmapShiftIntensity()
- *           l_int32     pixcmapConvertRGBToHSV()
- *           l_int32     pixcmapConvertHSVToRGB()
- *
  */
 
 #include <string.h>
@@ -336,6 +335,52 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
         /* There's room.  Add it. */
     pixcmapAddColor(cmap, rval, gval, bval);
     *pindex = pixcmapGetCount(cmap) - 1;
+    return 0;
+}
+
+
+/*!
+ *  pixcmapAddNearestColor()
+ *
+ *      Input:  cmap
+ *              rval, gval, bval (colormap entry to be added; each number
+ *                                is in range [0, ... 255])
+ *              &index (<return> index of color)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This only adds color if not already there.
+ *      (2) If it's not in the colormap and there is no room to add
+ *          another color, this returns the index of the nearest color.
+ */
+l_int32
+pixcmapAddNearestColor(PIXCMAP  *cmap,
+                       l_int32   rval,
+                       l_int32   gval,
+                       l_int32   bval,
+                       l_int32  *pindex)
+{
+    PROCNAME("pixcmapAddNearestColor");
+
+    if (!pindex)
+        return ERROR_INT("&index not defined", procName, 1);
+    *pindex = 0;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+
+        /* Check if the color is already present. */
+    if (!pixcmapGetIndex(cmap, rval, gval, bval, pindex))  /* found */
+        return 0;
+
+        /* We need to add the color.  Is there room? */
+    if (cmap->n < cmap->nalloc) {
+        pixcmapAddColor(cmap, rval, gval, bval);
+        *pindex = pixcmapGetCount(cmap) - 1;
+        return 0;
+    }
+
+        /* There's no room.  Return the index of the nearest color */
+    pixcmapGetNearestIndex(cmap, rval, gval, bval, pindex);
     return 0;
 }
 
@@ -1434,6 +1479,68 @@ PIXCMAP  *cmap;
 }
 
 
+/*!
+ *  pixcmapConvertToHex()
+ *
+ *      Input:  data  (binary serialized data)
+ *              nbytes (size of data)
+ *              ncolors (in colormap)
+ *      Return: hexdata (bracketed, space-separated ascii hex string),
+ *                       or null on error.
+ *
+ *  Notes:
+ *      (1) If rgb, there are 3 colors/component; if rgba, there are 4.
+ *      (2) Output is in form:
+ *             < r0g0b0 r1g1b1 ... rngnbn >
+ *          where r0, g0, b0, ... are each 2 bytes of hex ascii
+ *      (3) This is used in pdf files to express the colormap as an
+ *          array in ascii (human-readable) format.
+ */
+char *
+pixcmapConvertToHex(l_uint8 *data,
+                    l_int32  nbytes,
+                    l_int32  ncolors)
+{
+l_int32  i, j, hexbytes;
+l_int32  cpc;  /* colors per component */
+char    *hexdata = NULL;
+char     buf[4];
+
+    PROCNAME("pixcmapConvertToHex");
+
+    if (!data)
+        return (char *)ERROR_PTR("data not defined", procName, NULL);
+    if (ncolors < 1)
+        return (char *)ERROR_PTR("no colors", procName, NULL);
+
+    cpc = nbytes / ncolors;
+    if (cpc != 3 && cpc != 4)
+        return (char *)ERROR_PTR("cpc not 3 or 4", procName, NULL);
+
+    hexbytes = 2 + (2 * cpc + 1) * ncolors + 2;
+    hexdata = (char *)CALLOC(hexbytes, sizeof(char));
+    hexdata[0] = '<';
+    hexdata[1] = ' ';
+
+    for (i = 0; i < ncolors; i++) {
+        j = 2 + (2 * cpc + 1) * i;
+        snprintf(buf, sizeof(buf), "%02x", data[cpc * i]);
+        hexdata[j] = buf[0];
+        hexdata[j + 1] = buf[1];
+        snprintf(buf, sizeof(buf), "%02x", data[cpc * i + 1]);
+        hexdata[j + 2] = buf[0];
+        hexdata[j + 3] = buf[1];
+        snprintf(buf, sizeof(buf), "%02x", data[cpc * i + 2]);
+        hexdata[j + 4] = buf[0];
+        hexdata[j + 5] = buf[1];
+        hexdata[j + 6] = ' ';
+    }
+    hexdata[j + 7] = '>';
+    hexdata[j + 8] = '\0';
+    return hexdata;
+}
+
+
 /*-------------------------------------------------------------*
  *                     Colormap transforms                     *
  *-------------------------------------------------------------*/
@@ -1582,68 +1689,6 @@ l_int32   i, ncolors, rval, gval, bval;
                               bval + (l_int32)(fraction * (255 - bval)));
     }
 
-    return 0;
-}
-
-
-/*!
- *  pixcmapConvertRGBToHSV()
- *
- *      Input:  colormap
- *      Return: 0 if OK; 1 on error
- *
- *  Notes:
- *      - in-place transform
- *      - See convertRGBToHSV() for def'n of HSV space.
- *      - replaces: r --> h, g --> s, b --> v
- */
-l_int32
-pixcmapConvertRGBToHSV(PIXCMAP  *cmap)
-{
-l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
-
-    PROCNAME("pixcmapConvertRGBToHSV");
-
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
-
-    ncolors = pixcmapGetCount(cmap);
-    for (i = 0; i < ncolors; i++) {
-        pixcmapGetColor(cmap, i, &rval, &gval, &bval);
-        convertRGBToHSV(rval, gval, bval, &hval, &sval, &vval);
-        pixcmapResetColor(cmap, i, hval, sval, vval);
-    }
-    return 0;
-}
-
-
-/*!
- *  pixcmapConvertHSVToRGB()
- *
- *      Input:  colormap
- *      Return: 0 if OK; 1 on error
- *
- *  Notes:
- *      - in-place transform
- *      - See convertRGBToHSV() for def'n of HSV space.
- *      - replaces: h --> r, s --> g, v --> b
- */
-l_int32
-pixcmapConvertHSVToRGB(PIXCMAP  *cmap)
-{
-l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
-
-    PROCNAME("pixcmapConvertHSVToRGB");
-
-    if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
-
-    ncolors = pixcmapGetCount(cmap);
-    for (i = 0; i < ncolors; i++) {
-        pixcmapGetColor(cmap, i, &hval, &sval, &vval);
-        convertHSVToRGB(hval, sval, vval, &rval, &gval, &bval);
-        pixcmapResetColor(cmap, i, rval, gval, bval);
-    }
     return 0;
 }
 

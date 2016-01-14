@@ -30,6 +30,7 @@
  *
  *      Format finders
  *           l_int32    findFileFormat()
+ *           l_int32    findFileFormatStream()
  *           l_int32    findFileFormatBuffer()
  *           l_int32    fileFormatIsTiff()
  *
@@ -163,7 +164,10 @@ PIX   *pix;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIX *)ERROR_PTR("image file not found", procName, NULL);
-    pix = pixReadStream(fp, 0);
+    if ((pix = pixReadStream(fp, 0)) == NULL) {
+        fclose(fp);
+        return (PIX *)ERROR_PTR("pix not read", procName, NULL);
+    }
 
         /* Close the stream except if GIF under windows, because
          * DGifCloseFile() closes the windows file stream! */
@@ -174,8 +178,6 @@ PIX   *pix;
         fclose(fp);
 #endif  /* ! _WIN32 */
 
-    if (!pix)
-        return (PIX *)ERROR_PTR("image not returned", procName, NULL);
     return pix;
 }
 
@@ -292,7 +294,7 @@ PIX     *pix;
         return (PIX *)ERROR_PTR("stream not defined", procName, NULL);
     pix = NULL;
 
-    findFileFormat(fp, &format);
+    findFileFormatStream(fp, &format);
     switch (format)
     {
     case IFF_BMP:
@@ -387,11 +389,10 @@ pixReadHeader(const char  *filename,
               l_int32     *pspp,
               l_int32     *piscmap)
 {
-l_int32   size, format, ret, w, h, d, bps, spp, iscmap;
-l_int32   type;  /* ignored */
-l_uint8  *data;
-FILE     *fp;
-PIX      *pix;
+l_int32  format, ret, w, h, d, bps, spp, iscmap;
+l_int32  type;  /* ignored */
+FILE    *fp;
+PIX     *pix;
 
     PROCNAME("pixReadHeader");
 
@@ -407,7 +408,7 @@ PIX      *pix;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    findFileFormat(fp, &format);
+    findFileFormatStream(fp, &format);
     fclose(fp);
 
     switch (format)
@@ -422,11 +423,10 @@ PIX      *pix;
         break;
 
     case IFF_JFIF_JPEG:
-        ret = extractJpegDataFromFile(filename, &data, &size, &w, &h,
-                                      &bps, &spp);
+        ret = readHeaderJpeg(filename, &w, &h, &spp, NULL, NULL);
+        bps = 8;
         if (ret)
             return ERROR_INT( "jpeg: no header info returned", procName, 1);
-        FREE(data);
         break;
 
     case IFF_PNG:
@@ -505,6 +505,36 @@ PIX      *pix;
 /*!
  *  findFileFormat()
  *
+ *      Input:  filename
+ *              &format (<return>)
+ *      Return: 0 if OK, 1 on error or if format is not recognized
+ */
+l_int32
+findFileFormat(const char  *filename,
+               l_int32     *pformat)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("findFileFormat");
+
+    if (!pformat)
+        return ERROR_INT("&format not defined", procName, 1);
+    *pformat = IFF_UNKNOWN;
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return ERROR_INT("image file not found", procName, 1);
+    ret = findFileFormatStream(fp, pformat);
+    fclose(fp);
+    return ret;
+}
+
+
+/*!
+ *  findFileFormatStream()
+ *
  *      Input:  fp (file stream)
  *              &format (<return>)
  *      Return: 0 if OK, 1 on error or if format is not recognized
@@ -513,17 +543,17 @@ PIX      *pix;
  *      (1) Important: Side effect -- this resets fp to BOF.
  */
 l_int32
-findFileFormat(FILE     *fp,
-               l_int32  *pformat)
+findFileFormatStream(FILE     *fp,
+                     l_int32  *pformat)
 {
 l_uint8  firstbytes[12];
 l_int32  format;
 
-    PROCNAME("findFileFormat");
+    PROCNAME("findFileFormatStream");
 
     if (!pformat)
         return ERROR_INT("&format not defined", procName, 1);
-    *pformat = 0;
+    *pformat = IFF_UNKNOWN;
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
 
@@ -680,7 +710,7 @@ l_int32  format;
     if (!fp)
         return ERROR_INT("stream not defined", procName, 0);
 
-    findFileFormat(fp, &format);
+    findFileFormatStream(fp, &format);
     if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
         format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
         format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
@@ -857,7 +887,8 @@ PIX     *pix;
         break;
 
     case IFF_JFIF_JPEG:
-        ret = extractJpegDataFromArray(data, (l_int32)size, &w, &h, &bps, &spp);
+        ret = readHeaderMemJpeg(data, size, &w, &h, &spp, NULL, NULL);
+        bps = 8;
         if (ret)
             return ERROR_INT( "jpeg: no header info returned", procName, 1);
         break;
@@ -927,6 +958,10 @@ PIX     *pix;
 /*---------------------------------------------------------------------*
  *             Test function for I/O with different formats            *
  *---------------------------------------------------------------------*/
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
 /*!
  *  ioFormatTest()
  *
@@ -944,6 +979,8 @@ PIX     *pix;
  *          to use it?)   We allow 2 bpp bmp, although it's not
  *          supported elsewhere.  And we don't support reading
  *          16 bpp png, although this can be turned on in pngio.c.
+ *      (4) This silently skips png or tiff testing if HAVE_LIBPNG
+ *          or HAVE_LIBTIFF are 0, respectively.
  */
 l_int32
 ioFormatTest(const char  *filename)
@@ -1008,7 +1045,7 @@ PIXCMAP  *cmap;
     }
 
         /* ----------------------- PNG -------------------------- */
-
+#if HAVE_LIBPNG
         /* PNG works for all depths, but here, because we strip
          * 16 --> 8 bpp on reading, we don't test png for 16 bpp. */
     if (d != 16) {
@@ -1022,9 +1059,10 @@ PIXCMAP  *cmap;
         }
         pixDestroy(&pixt);
     }
+#endif  /* HAVE_LIBPNG */
 
         /* ----------------------- TIFF -------------------------- */
-
+#if HAVE_LIBTIFF
         /* TIFF works for 1, 2, 4, 8, 16 and 32 bpp images.
          * Because 8 bpp tiff always writes 256 entry colormaps, the
          * colormap sizes may be different for 8 bpp images with
@@ -1109,6 +1147,7 @@ PIXCMAP  *cmap;
         }
         pixDestroy(&pixt);
     }
+#endif  /* HAVE_LIBTIFF */
 
         /* ----------------------- PNM -------------------------- */
 

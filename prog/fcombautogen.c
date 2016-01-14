@@ -33,8 +33,6 @@
  *    using <n> = 2.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 main(int    argc,
@@ -59,7 +57,7 @@ static char  mainName[] = "fcombautogen";
     ret = fmorphautogen(sela, index, filename);
 
     if (argc == 2)
-        FREE(filename);
+        lept_free(filename);
     selaDestroy(&sela);
     return ret;
 }

@@ -65,9 +65,8 @@ PIXA        *pixa, *pixadb;
 static char  mainName[] = "jbcorrelation";
 
     if (argc != 5 && argc != 7)
-	exit(ERROR_INT(
-	     " Syntax: jbcorrelation dirin thresh weight rootname [firstpage, npages]",
-	     mainName, 1));
+	return ERROR_INT(" Syntax: jbcorrelation dirin thresh weight "
+                         "rootname [firstpage, npages]", mainName, 1);
 
     dirin = argv[1];
     thresh = atof(argv[2]);
@@ -201,6 +200,6 @@ static char  mainName[] = "jbcorrelation";
 
 #endif
 
-    exit(0);
+    return 0;
 }
 

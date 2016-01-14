@@ -19,7 +19,6 @@
  *     Stubs for pngio.c functions
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 #ifdef HAVE_CONFIG_H
@@ -48,6 +47,11 @@ l_int32 freadHeaderPng(FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbp
 l_int32 sreadHeaderPng(const l_uint8 *data, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap)
 {
     return ERROR_INT("function not present", "sreadHeaderPng", 1);
+}
+
+l_int32 fgetPngResolution(FILE *fp, l_int32 *pxres, l_int32 *pyres)
+{
+    return ERROR_INT("function not present", "fgetPngResolution", 1);
 }
 
 l_int32 pixWritePng(const char *filename, PIX *pix, l_float32 gamma)

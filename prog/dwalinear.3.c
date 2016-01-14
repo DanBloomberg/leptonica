@@ -13,14 +13,13 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-/*
+/*!
  *      Top-level fast binary morphology with auto-generated sels
  *
  *             PIX     *pixMorphDwa_3()
  *             PIX     *pixFMorphopGen_3()
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -158,7 +157,7 @@ static char  SEL_NAMES[][80] = {
                              "sel_62v",
                              "sel_63v"};
 
-/*
+/*!
  *  pixMorphDwa_3()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
@@ -212,7 +211,7 @@ PIX     *pixt1, *pixt2, *pixt3;
 }
 
 
-/*
+/*!
  *  pixFMorphopGen_3()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
@@ -278,9 +277,9 @@ PIX       *pixt;
     wpld = pixGetWpl(pixd);
 
         /* The images must be surrounded, in advance, with a border of
-	 * size 32 pixels (or 64, for closing), that we'll read from.
-	 * Fabricate a "proper" image as the subimage within the 32
-	 * pixel border, having the following parameters:  */
+         * size 32 pixels (or 64, for closing), that we'll read from.
+         * Fabricate a "proper" image as the subimage within the 32
+         * pixel border, having the following parameters:  */
     w = pixGetWidth(pixs) - 64;
     h = pixGetHeight(pixs) - 64;
     datas = pixGetData(pixs) + 32 * wpls + 1;

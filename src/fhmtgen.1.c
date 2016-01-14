@@ -13,14 +13,13 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-/*
+/*!
  *      Top-level fast hit-miss transform with auto-generated sels
  *
  *             PIX     *pixHMTDwa_1()
  *             PIX     *pixFHMTGen_1()
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -40,7 +39,7 @@ static char  SEL_NAMES[][80] = {
                              "sel_3le",
                              "sel_sl1"};
 
-/*
+/*!
  *  pixHMTDwa_1()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
@@ -82,7 +81,7 @@ PIX  *pixt1, *pixt2, *pixt3;
 }
 
 
-/*
+/*!
  *  pixFHMTGen_1()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)

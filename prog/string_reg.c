@@ -26,17 +26,21 @@
 main(int    argc,
      char **argv)
 {
-l_int32      nbytesin, nbytesout, ignore;
+l_int32      ignore;
+size_t       nbytesin, nbytesout;
 char        *infile, *outfile, *instring, *outstring;
 SARRAY      *sa1, *sa2, *sa3, *sa4, *sa5;
 char         buf[256];
 static char  mainName[] = "string_reg";
 
     if (argc != 2)
-	exit(ERROR_INT(" Syntax:  string_reg infile", mainName, 1));
+	return ERROR_INT(" Syntax:  string_reg infile", mainName, 1);
 
     infile = argv[1];
-    instring = (char *)arrayRead(infile, &nbytesin);
+    instring = (char *)l_binaryRead(infile, &nbytesin);
+
+    if (!instring)
+        return ERROR_INT("file not read", mainName, 1);
 
     sa1 = sarrayCreateWordsFromString(instring);
     sa2 = sarrayCreateLinesFromString(instring, 0);
@@ -44,33 +48,33 @@ static char  mainName[] = "string_reg";
 
     outstring = sarrayToString(sa1, 0);
     nbytesout = strlen(outstring);
-    arrayWrite("/tmp/junk1.txt", "w", outstring, nbytesout);
-    FREE(outstring);
+    l_binaryWrite("/tmp/junk1.txt", "w", outstring, nbytesout);
+    lept_free(outstring);
 
     outstring = sarrayToString(sa1, 1);
     nbytesout = strlen(outstring);
-    arrayWrite("/tmp/junk2.txt", "w", outstring, nbytesout);
-    FREE(outstring);
+    l_binaryWrite("/tmp/junk2.txt", "w", outstring, nbytesout);
+    lept_free(outstring);
 
     outstring = sarrayToString(sa2, 0);
     nbytesout = strlen(outstring);
-    arrayWrite("/tmp/junk3.txt", "w", outstring, nbytesout);
-    FREE(outstring);
+    l_binaryWrite("/tmp/junk3.txt", "w", outstring, nbytesout);
+    lept_free(outstring);
 
     outstring = sarrayToString(sa2, 1);
     nbytesout = strlen(outstring);
-    arrayWrite("/tmp/junk4.txt", "w", outstring, nbytesout);
-    FREE(outstring);
+    l_binaryWrite("/tmp/junk4.txt", "w", outstring, nbytesout);
+    lept_free(outstring);
 
     outstring = sarrayToString(sa3, 0);
     nbytesout = strlen(outstring);
-    arrayWrite("/tmp/junk5.txt", "w", outstring, nbytesout);
-    FREE(outstring);
+    l_binaryWrite("/tmp/junk5.txt", "w", outstring, nbytesout);
+    lept_free(outstring);
 
     outstring = sarrayToString(sa3, 1);
     nbytesout = strlen(outstring);
-    arrayWrite("/tmp/junk6.txt", "w", outstring, nbytesout);
-    FREE(outstring);
+    l_binaryWrite("/tmp/junk6.txt", "w", outstring, nbytesout);
+    lept_free(outstring);
     sprintf(buf, "diff -s /tmp/junk6.txt %s", infile);
     ignore = system(buf);
 
@@ -87,7 +91,7 @@ static char  mainName[] = "string_reg";
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
     sarrayDestroy(&sa5);
-    FREE(instring);
+    lept_free(instring);
 
     return 0;
 }

@@ -22,19 +22,17 @@
  *        test of rasterop.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
 #define  NTIMES             10
 
-
 main(int    argc,
      char **argv)
 {
 l_uint8     *array1, *array2;
-l_int32      i, n, np, same, diff, nbytes1, nbytes2;
+l_int32      i, n, np, same, diff;
+size_t       nbytes1, nbytes2;
 FILE        *fp;
 BOX         *box;
 BOXA        *boxa, *boxa2;
@@ -86,24 +84,24 @@ static char  mainName[] = "conncomp_reg";
 
 	/* Test i/o */
     boxa = pixConnComp(pixs, NULL, 4);
-    fp = fopen("/tmp/junk1.ba", "wb+");
+    fp = lept_fopen("/tmp/junk1.ba", "wb+");
     boxaWriteStream(fp, boxa);
-    fclose(fp);
-    fp = fopen("/tmp/junk1.ba", "r");
+    lept_fclose(fp);
+    fp = lept_fopen("/tmp/junk1.ba", "rb");
     boxa2 = boxaReadStream(fp);
-    fclose(fp);
-    fp = fopen("/tmp/junk2.ba", "wb+");
+    lept_fclose(fp);
+    fp = lept_fopen("/tmp/junk2.ba", "wb+");
     boxaWriteStream(fp, boxa2);
-    fclose(fp);
-    array1 = arrayRead("/tmp/junk1.ba", &nbytes1);
-    array2 = arrayRead("/tmp/junk2.ba", &nbytes2);
+    lept_fclose(fp);
+    array1 = l_binaryRead("/tmp/junk1.ba", &nbytes1);
+    array2 = l_binaryRead("/tmp/junk2.ba", &nbytes2);
     diff = strcmp((char *)array1, (char *)array2);
     if (nbytes1 != nbytes2 || diff)
 	fprintf(stderr, "I/O error for boxes.\n");
     else
 	fprintf(stderr, "I/O valid for boxes.\n");
-    FREE(array1);
-    FREE(array2);
+    lept_free(array1);
+    lept_free(array2);
     boxaDestroy(&boxa);
     boxaDestroy(&boxa2);
 
@@ -119,8 +117,7 @@ static char  mainName[] = "conncomp_reg";
     pixaDestroy(&pixa);
 
     pixDestroy(&pixs);
-
-    exit(0);
+    return 0;
 }
 
 

@@ -13,14 +13,13 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-/*
+/*!
  *      Top-level fast hit-miss transform with auto-generated sels
  *
 --- *            PIX      *pixHMTDwa_*()
 --- *            PIX      *pixFHMTGen_*()
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -35,9 +34,9 @@
 ---
 ---             We need to input two static globals here:
 ---   static l_int32     NUM_SELS_GENERATED =  <some number>;
----   static char  *SEL_NAMES[] =    {"<string1>", "<string2>", ...};
+---   static char  SEL_NAMES[][80] =    {"<string1>", "<string2>", ...};
 
-/*
+/*!
 --- *  pixHMTDwa_*()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)
@@ -79,7 +78,7 @@ PIX  *pixt1, *pixt2, *pixt3;
 }
 
 
-/*
+/*!
 --- *  pixFHMTGen_*()
  *
  *      Input:  pixd (usual 3 choices: null, == pixs, != pixs)

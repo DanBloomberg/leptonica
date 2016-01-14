@@ -126,7 +126,7 @@ LIBRARIAN_SHARED =	i586-mingw32msvc-gcc -shared
 # Links are created among the files <libname>.X.Y,
 # <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 67
+MINOR_REV = 68
 
 #########################################################
 
@@ -145,9 +145,10 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		binreduce.c binreducelow.c \
 		blend.c bmf.c bmpio.c bmpiostub.c \
 		boxbasic.c boxfunc1.c boxfunc2.c boxfunc3.c \
-		ccbord.c ccthin.c classapp.c \
+		bytearray.c ccbord.c ccthin.c classapp.c \
 		colorcontent.c colormap.c colormorph.c \
-		colorquant.c colorseg.c \
+		colorquant1.c colorquant2.c \
+		colorseg.c colorspace.c \
 		compare.c conncomp.c convertfiles.c \
 		convolve.c convolvelow.c correlscore.c \
 		dewarp.c dwacomb.2.c dwacomblow.2.c \
@@ -161,11 +162,12 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		graymorph.c graymorphlow.c \
 		grayquant.c grayquantlow.c heap.c \
 		jbclass.c jpegio.c jpegiostub.c \
-		kernel.c list.c maze.c mediancut.c \
+		kernel.c libversions.c list.c maze.c mediancut.c \
 		morph.c morphapp.c morphdwa.c morphseq.c \
 		numabasic.c numafunc1.c numafunc2.c \
 		pageseg.c paintcmap.c \
 		parseprotos.c partition.c \
+		pdfio.c pdfiostub.c \
 		pix1.c pix2.c pix3.c pix4.c pix5.c \
 		pixabasic.c pixacc.c \
 		pixafunc1.c pixafunc2.c \
@@ -175,7 +177,7 @@ LEPTLIB_C =	adaptmap.c affine.c affinecompose.c \
 		projective.c psio1.c psio1stub.c \
 		psio2.c psio2stub.c \
 		ptabasic.c ptafunc1.c \
-                ptra.c queue.c rank.c \
+                ptra.c queue.c quadtree.c rank.c \
 		readbarcode.c readfile.c regutils.c \
 		rop.c ropiplow.c roplow.c \
 		rotate.c rotateam.c rotateamlow.c \

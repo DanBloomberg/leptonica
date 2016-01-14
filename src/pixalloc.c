@@ -28,10 +28,7 @@
  *          void          pmsLogInfo()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 /*-------------------------------------------------------------------------*
  *                          Pix Memory Storage                             *
@@ -396,7 +393,7 @@ L_PIX_MEM_STORE  *pms;
     if ((data = (void *)CALLOC(nbytes, sizeof(char))) == NULL)
         return (void *)ERROR_PTR("data not made", procName, NULL);
     if (pms->logfile && nbytes >= pms->smallest) {
-        fp = fopen(pms->logfile, "a");
+        fp = fopenWriteStream(pms->logfile, "a");
         fprintf(fp, "Alloc %ld bytes at %p\n", nbytes, data);
         fclose(fp);
     }

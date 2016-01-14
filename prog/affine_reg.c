@@ -18,8 +18,6 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static void MakePtas(l_int32 i, PTA **pptas, PTA **pptad);
@@ -333,12 +331,12 @@ static char  mainName[] = "affine_reg";
     pixaDestroy(&pixa);
     boxaDestroy(&boxa);
     boxaDestroy(&boxa2);
-    FREE(mat1);
-    FREE(mat2);
-    FREE(mat3);
-    FREE(mat1i);
-    FREE(mat2i);
-    FREE(mat3i);
+    lept_free(mat1);
+    lept_free(mat2);
+    lept_free(mat3);
+    lept_free(mat1i);
+    lept_free(mat2i);
+    lept_free(mat3i);
 #endif
 
     return 0;

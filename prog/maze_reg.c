@@ -20,8 +20,6 @@
  *    largest rectangle in bg or fg.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -37,18 +35,17 @@ static const l_int32  POLARITY = 0;  /* background */
 main(int    argc,
      char **argv)
 {
-l_int32      i, w, h, bx, by, bw, bh, index, rval, gval, bval, success, display;
-BOX         *box;
-BOXA        *boxa;
-FILE        *fp;
-PIX         *pixm, *pixs, *pixg, *pixt, *pixd;
-PIXA        *pixa;
-PIXCMAP     *cmap;
-PTA         *pta;
-PTAA        *ptaa;
+l_int32       i, w, h, bx, by, bw, bh, index, rval, gval, bval;
+BOX          *box;
+BOXA         *boxa;
+PIX          *pixm, *pixs, *pixg, *pixt, *pixd;
+PIXA         *pixa;
+PIXCMAP      *cmap;
+PTA          *pta;
+PTAA         *ptaa;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
 	return 1;
     pixa = pixaCreate(0);
 
@@ -64,7 +61,7 @@ L_REGPARAMS  *rp;
     pixt = pixDisplayPta(NULL, pixm, pta);
     pixd = pixScaleBySampling(pixt, 3., 3.);
     pixSaveTiledOutline(pixd, pixa, 1, 0, 20, 2, 32);
-    pixWrite("/tmp/pix0.png", pixd, IFF_PNG);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
     ptaDestroy(&pta);
     pixDestroy(&pixt);
     pixDestroy(&pixd);
@@ -87,7 +84,7 @@ L_REGPARAMS  *rp;
     pixt = pixDisplayPtaa(pixg, ptaa);
     pixd = pixScaleBySampling(pixt, 2., 2.);
     pixSaveTiledOutline(pixd, pixa, 1, 1, 20, 2, 32);
-    pixWrite("/tmp/pix1.jpg", pixd, IFF_PNG);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
     ptaaDestroy(&ptaa);
     pixDestroy(&pixg);
     pixDestroy(&pixt);
@@ -119,22 +116,18 @@ L_REGPARAMS  *rp;
         boxDestroy(&box);
     }
     pixSaveTiledOutline(pixd, pixa, 1, 1, 20, 2, 32);
-    pixWrite("/tmp/pix2.png", pixd, IFF_PNG);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
     pixDestroy(&pixs);
     pixDestroy(&pixd);
     boxaDestroy(&boxa);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/pix3.png", pixd, IFF_PNG);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
-    regTestCheckFile(fp, argv, "/tmp/pix0.png", 0, &success);
-    regTestCheckFile(fp, argv, "/tmp/pix1.jpg", 1, &success);
-    regTestCheckFile(fp, argv, "/tmp/pix2.png", 2, &success);
-    regTestCheckFile(fp, argv, "/tmp/pix3.png", 3, &success);
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 

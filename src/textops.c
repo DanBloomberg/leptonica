@@ -44,8 +44,6 @@
  *    See prog/writetext_reg.c for examples of its use.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -75,9 +73,12 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
  *          is expanded with a border and rendered over the border.
  *      (2) @val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
- *          For RGB, use hex notation: 0xRRGGBB00,
+ *          If it is out of bounds, an intermediate value is chosen.
+ *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
+ *          hex representation of the red intensity, etc.
  *      (3) If textstr == NULL, use the text field in the pix.
- *      (4) If there is a colormap, make sure @val is a valid cmap index
+ *      (4) If there is a colormap, this does the best it can to use
+ *          the requested color, or something similar to it.
  *      (5) Typical usage is for labelling a pix with some text data.
  */
 PIX *
@@ -90,7 +91,7 @@ pixAddSingleTextblock(PIX         *pixs,
 {
 char     *linestr;
 l_int32   w, h, d, i, y, xstart, ystart, extra, spacer, rval, gval, bval;
-l_int32   nlines, htext, ovf, overflow, offset, usable, index;
+l_int32   nlines, htext, ovf, overflow, offset, index;
 l_uint32  textcolor;
 PIX      *pixd;
 PIXCMAP  *cmap, *cmapd;
@@ -115,26 +116,23 @@ SARRAY   *salines;
         return pixCopy(NULL, pixs);
     }
 
-    if ((cmap = pixGetColormap(pixs)) != NULL) {
-        extractRGBValues(val, &rval, &gval, &bval);
-        pixcmapUsableColor(cmap, rval, gval, bval, &usable);
-        if (!usable)
-            return (PIX *)ERROR_PTR("unable to use color", procName, NULL);
-    }
-
+        /* Make sure the "color" value for the text will work
+         * for the pix.  If the pix is not colormapped and the
+         * value is out of range, set it to mid-range. */
     pixGetDimensions(pixs, &w, &h, &d);
+    cmap = pixGetColormap(pixs);
     if (d == 1 && val > 1)
-        return (PIX *)ERROR_PTR("1 bpp: use val <= 1", procName, NULL);
+        val = 1;
     else if (d == 2 && val > 3 && !cmap)
-        return (PIX *)ERROR_PTR("2 bpp: use val <= 3", procName, NULL);
+        val = 2;
     else if (d == 4 && val > 15 && !cmap)
-        return (PIX *)ERROR_PTR("4 bpp: use val <= 15", procName, NULL);
+        val = 8;
     else if (d == 8 && val > 0xff && !cmap)
-        return (PIX *)ERROR_PTR("8 bpp: use val <= 255", procName, NULL);
+        val = 128;
     else if (d == 16 && val > 0xffff)
-        return (PIX *)ERROR_PTR("16 bpp: use val <= 0xffff", procName, NULL);
+        val = 0x8000;
     else if (d == 32 && val < 256)
-        return (PIX *)ERROR_PTR("RGB: use val > 255", procName, NULL);
+        val = 0x80808000;
 
     xstart = (l_int32)(0.1 * w);
     salines = bmfGetLineStrings(bmf, textstr, w - 2 * xstart, 0, &htext);
@@ -173,9 +171,12 @@ SARRAY   *salines;
     else   /* add below */
         ystart = h + offset + spacer;
 
-        /* If colormapped, use the actual rgba color */
+        /* If cmapped, add the color if necessary to the cmap.  If the
+         * cmap is full, use the nearest color to the requested color. */
     if (cmapd) {
-        pixcmapAddNewColor(cmapd, rval, gval, bval, &index);
+        extractRGBValues(val, &rval, &gval, &bval);
+        pixcmapAddNearestColor(cmapd, rval, gval, bval, &index);
+        pixcmapGetColor(cmapd, index, &rval, &gval, &bval);
         composeRGBPixel(rval, gval, bval, &textcolor);
     } else
         textcolor = val;
@@ -224,15 +225,16 @@ SARRAY   *salines;
  *  Notes:
  *      (1) This function paints a set of lines of text over an image.
  *      (2) @val is the pixel value to be painted through the font mask.
- *          For RGB, it is easiest to use hex notation: 0xRRGGBB00,
- *          where RR is the hex representation of the red intensity, etc.
+ *          It should be chosen to agree with the depth of pixs.
+ *          If it is out of bounds, an intermediate value is chosen.
+ *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
+ *          hex representation of the red intensity, etc.
  *          The last two hex digits are 00 (byte value 0), assigned to
  *          the A component.  Note that, as usual, RGBA proceeds from 
  *          left to right in the order from MSB to LSB (see pix.h
  *          for details).
- *      (3) @val should be chosen to agree with the depth of pixs.
- *          For example, if pixs has 8 bpp, val should be some value
- *          between 0 (black) and 255 (white).
+ *      (3) If there is a colormap, this does the best it can to use
+ *          the requested color, or something similar to it.
  */
 l_int32
 pixSetTextblock(PIX         *pixs,
@@ -261,18 +263,23 @@ PIXCMAP  *cmap;
     if (val < 0)
         return ERROR_INT("val must be >= 0", procName, 1);
 
+        /* Make sure the "color" value for the text will work
+         * for the pix.  If the pix is not colormapped and the
+         * value is out of range, set it to mid-range. */
     pixGetDimensions(pixs, &w, &h, &d);
     cmap = pixGetColormap(pixs);
-    if (d == 2 && val > 0x03 && !cmap)
-        return ERROR_INT("for 2 bpp, val must be < 4", procName, 1);
-    if (d == 4 && val > 0x0f && !cmap)
-        return ERROR_INT("for 4 bpp, val must be < 16", procName, 1);
-    if (d == 8 && val > 0xff && !cmap)
-        return ERROR_INT("for 8 bpp, val must be < 256", procName, 1);
-    if (d == 16 && val > 0xffff)
-        return ERROR_INT("for 16 bpp, val must be <= 0xffff", procName, 1);
-    if (d == 32 && val < 256)
-        return ERROR_INT("for RGB, val must be >= 256", procName, 1);
+    if (d == 1 && val > 1)
+        val = 1;
+    else if (d == 2 && val > 3 && !cmap)
+        val = 2;
+    else if (d == 4 && val > 15 && !cmap)
+        val = 8;
+    else if (d == 8 && val > 0xff && !cmap)
+        val = 128;
+    else if (d == 16 && val > 0xffff)
+        val = 0x8000;
+    else if (d == 32 && val < 256)
+        val = 0x80808000;
 
     if (w < x0 + wtext) {
         L_WARNING("reducing width of textblock", procName);
@@ -331,15 +338,16 @@ PIXCMAP  *cmap;
  *  Notes:
  *      (1) This function paints a line of text over an image.
  *      (2) @val is the pixel value to be painted through the font mask.
- *          For RGB, it is easiest to use hex notation: 0xRRGGBB00,
- *          where RR is the hex representation of the red intensity, etc.
+ *          It should be chosen to agree with the depth of pixs.
+ *          If it is out of bounds, an intermediate value is chosen.
+ *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
+ *          hex representation of the red intensity, etc.
  *          The last two hex digits are 00 (byte value 0), assigned to
  *          the A component.  Note that, as usual, RGBA proceeds from 
  *          left to right in the order from MSB to LSB (see pix.h
  *          for details).
- *      (3) @val should be chosen to agree with the depth of pixs.
- *          For example, if pixs has 8 bpp, val should be some value
- *          between 0 (black) and 255 (white).
+ *      (3) If there is a colormap, this does the best it can to use
+ *          the requested color, or something similar to it.
  */
 l_int32
 pixSetTextline(PIX         *pixs,
@@ -352,7 +360,8 @@ pixSetTextline(PIX         *pixs,
                l_int32     *poverflow)
 {
 char      chr; 
-l_int32   d, i, x, w, nchar, baseline;
+l_int32   d, i, x, w, nchar, baseline, index, rval, gval, bval;
+l_uint32  textcolor;
 PIX      *pix;
 PIXCMAP  *cmap;
 
@@ -371,24 +380,37 @@ PIXCMAP  *cmap;
 
     d = pixGetDepth(pixs);
     cmap = pixGetColormap(pixs);
-    if (d == 2 && val > 0x03 && !cmap)
-        return ERROR_INT("for 2 bpp, val must be < 4", procName, 1);
-    if (d == 4 && val > 0x0f && !cmap)
-        return ERROR_INT("for 4 bpp, val must be < 16", procName, 1);
-    if (d == 8 && val > 0xff && !cmap)
-        return ERROR_INT("for 8 bpp, val must be < 256", procName, 1);
-    if (d == 16 && val > 0xffff)
-        return ERROR_INT("for 16 bpp, val must be <= 0xffff", procName, 1);
-    if (d == 32 && val < 256)
-        return ERROR_INT("for RGB, val must be >= 256", procName, 1);
+    if (d == 1 && val > 1)
+        val = 1;
+    else if (d == 2 && val > 3 && !cmap)
+        val = 2;
+    else if (d == 4 && val > 15 && !cmap)
+        val = 8;
+    else if (d == 8 && val > 0xff && !cmap)
+        val = 128;
+    else if (d == 16 && val > 0xffff)
+        val = 0x8000;
+    else if (d == 32 && val < 256)
+        val = 0x80808000;
+
+        /* If cmapped, add the color if necessary to the cmap.  If the
+         * cmap is full, use the nearest color to the requested color. */
+    if (cmap) {
+        extractRGBValues(val, &rval, &gval, &bval);
+        pixcmapAddNearestColor(cmap, rval, gval, bval, &index);
+        pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+        composeRGBPixel(rval, gval, bval, &textcolor);
+    } else
+        textcolor = val;
 
     nchar = strlen(textstr);
     x = x0;
     for (i = 0; i < nchar; i++) {
         chr = textstr[i];
+        if ((l_int32)chr == 10) continue;  /* NL */
         pix = bmfGetPix(bmf, chr);
         bmfGetBaseline(bmf, chr, &baseline);
-        pixPaintThroughMask(pixs, pix, x, y0 - baseline, val);
+        pixPaintThroughMask(pixs, pix, x, y0 - baseline, textcolor);
         w = pixGetWidth(pix);
         x += w + bmf->kernwidth;
         pixDestroy(&pix);

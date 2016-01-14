@@ -34,8 +34,6 @@
  *      the lower-level code directly.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define    TEST_SYMMETRIC   0     /* set to 1 for symmetric b.c.;
@@ -363,12 +361,12 @@ static char  mainName[] = "binmorph3_reg";
         if (ok)
             fprintf(stderr, "All morph tests OK!\n");
 	selDestroy(&sel);
-	FREE(selnameh);
-	FREE(selnamev);
+	lept_free(selnameh);
+	lept_free(selnamev);
 
     }
 
     pixDestroy(&pixs);
-    exit(0);
+    return 0;
 }
 

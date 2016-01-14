@@ -1171,6 +1171,12 @@ l_float32  *famedian, *famode, *famodecount;
 
     PROCNAME("pixRowStats");
 
+    if (pnamean) *pnamean = NULL;
+    if (pnamedian) *pnamedian = NULL;
+    if (pnamode) *pnamode = NULL;
+    if (pnamodecount) *pnamodecount = NULL;
+    if (pnavar) *pnavar = NULL;
+    if (pnarootvar) *pnarootvar = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
         return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
 
@@ -1314,6 +1320,12 @@ l_float32  *famedian, *famode, *famodecount;
 
     PROCNAME("pixColumnStats");
 
+    if (pnamean) *pnamean = NULL;
+    if (pnamedian) *pnamedian = NULL;
+    if (pnamode) *pnamode = NULL;
+    if (pnamodecount) *pnamodecount = NULL;
+    if (pnavar) *pnavar = NULL;
+    if (pnarootvar) *pnarootvar = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
         return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
 
@@ -1462,19 +1474,19 @@ PIXCMAP  *cmap;
                            NULL, NULL, NULL, pminval);
         pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
                            NULL, NULL, NULL, pmaxval);
-    } else if (color = L_SELECT_RED) {
+    } else if (color == L_SELECT_RED) {
         pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
                            pminval, NULL, NULL, NULL);
         pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
                            pmaxval, NULL, NULL, NULL);
     }
-    else if (color = L_SELECT_GREEN) {
+    else if (color == L_SELECT_GREEN) {
         pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
                            NULL, pminval, NULL, NULL);
         pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
                            NULL, pmaxval, NULL, NULL);
     }
-    else if (color = L_SELECT_BLUE) {
+    else if (color == L_SELECT_BLUE) {
         pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
                            NULL, NULL, pminval, NULL);
         pixGetExtremeValue(pixs, factor, L_SELECT_MAX,

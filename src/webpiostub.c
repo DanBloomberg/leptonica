@@ -39,18 +39,18 @@ l_int32 readHeaderWebP(const char *filename, l_int32 *pwidth, l_int32 *pheight)
     return ERROR_INT("function not present", "readHeaderWebP", 1);
 }
 
-l_int32 pixWriteWebP(const char *filename, PIX *pix, l_int32 quantparam)
+l_int32 pixWriteWebP(const char *filename, PIX *pixs, l_int32 quality)
 {
     return ERROR_INT("function not present", "pixWriteWebP", 1);
 }
 
-l_int32 pixWriteStreamWebP(FILE *fp, PIX *pix, l_int32 quantparam)
+l_int32 pixWriteStreamWebP(FILE *fp, PIX *pixs, l_int32 quality)
 {
     return ERROR_INT("function not present", "pixWriteStreamWebP", 1);
 }
 
-l_int32 pixWriteWebPwithTargetPSNR(const char *filename, PIX *pix,
-                                  l_float64 target_psnr, l_int32 *qp_ptr)
+l_int32 pixWriteWebPwithTargetPSNR(const char *filename, PIX *pixs,
+                                  l_float64 target_psnr, l_int32 *pquality)
 {
     return ERROR_INT("function not present", "pixWriteWebPwithTargetPSNR", 1);
 }

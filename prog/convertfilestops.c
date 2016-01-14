@@ -18,14 +18,15 @@
  *
  *    Converts all files in the given directory with matching substring
  *    to a level 3 compressed PostScript file, at the specified resolution.
- *
  *    To convert all files in the directory, use 'allfiles' for the substring.
+ *
+ *    See below for syntax and usage.
  *
  *    To generate a ps that scales the images to fit a standard 8.5 x 11
  *    page, use res = 0.
  *
- *    Otherwise, this will convert at a specified resolution.
- *    Decreasing the resolution will cause the image to be rendered
+ *    Otherwise, this will convert based on a specified input resolution.
+ *    Decreasing the input resolution will cause the image to be rendered
  *    larger, and v.v.   For example, if the page was originally scanned
  *    at 400 ppi and you use 300 ppi for the resolution, the page will
  *    be rendered with larger pixels (i.e., be magnified) and you will
@@ -33,22 +34,28 @@
  *    at the bottom.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
 {
 char           *dirin, *substr, *fileout;
 l_int32         res;
-static char     mainName[] = "convertfilestops";
 
-    if (argc != 5)
-	exit(ERROR_INT(" Syntax:  convertfilestops dirin substr res fileout",
-                       mainName, 1));
+
+    if (argc != 5) {
+        fprintf(stderr,
+            " Syntax: convertfilestops dirin substr res fileout\n"
+            "     where\n"
+            "         dirin:  input directory for image files\n"
+            "         substr:  Use 'allfiles' to convert all files\n"
+            "                  in the directory.\n"
+            "         res:  Input resolution of each image;\n"
+            "               assumed to all be the same\n"
+            "         fileout:  Output ps file.\n");
+        return 1;
+    }
 
     dirin = argv[1];
     substr = argv[2];

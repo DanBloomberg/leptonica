@@ -19,10 +19,10 @@
  *    |=============================================================|
  *    |                         Important note                      |
  *    |=============================================================|
- *    |Some of these functions require libtiff and libjpeg.         |
- *    |If you do not have both of these libraries, you must set     |
+ *    | Some of these functions require libtiff, libjpeg and libz.  |
+ *    | If you do not have these libraries, you must set            |
  *    |     #define  USE_PSIO     0                                 |
- *    |in environ.h.  This will link psio2stub.c                     |
+ *    | in environ.h.  This will link psio2stub.c                   |
  *    |=============================================================|
  *
  *     These are lower-level functions that implement a PostScript
@@ -33,54 +33,59 @@
  *     And they can be converted to a pdf using gs (ps2pdf).
  *
  *     For uncompressed images
- *          l_int32          pixWritePSEmbed()
- *          l_int32          pixWriteStreamPS()
- *          char            *pixWriteStringPS()
- *          char            *generateUncompressedPS()
- *          void             getScaledParametersPS()
- *          l_int32          convertByteToHexAscii()
+ *          l_int32              pixWritePSEmbed()
+ *          l_int32              pixWriteStreamPS()
+ *          char                *pixWriteStringPS()
+ *          char                *generateUncompressedPS()
+ *          void                 getScaledParametersPS()
+ *          l_int32              convertByteToHexAscii()
  *
  *     For jpeg compressed images (use dct compression)
- *          l_int32          convertJpegToPSEmbed()
- *          l_int32          convertJpegToPS()
- *          l_int32          convertJpegToPSString()
- *          char            *generateJpegPS()
+ *          l_int32              convertJpegToPSEmbed()
+ *          l_int32              convertJpegToPS()
+ *          l_int32              convertJpegToPSString()
+ *          char                *generateJpegPS()
+ *          L_COMPRESSED_DATA   *pixGenerateJpegData()
+ *          L_COMPRESSED_DATA   *l_generateJpegData()
+ *          void                 compressed_dataDestroy()
  *
- *     For tiff g4 compressed images (use ccittg4 compression)
- *          l_int32          convertTiffG4ToPSEmbed()
- *          l_int32          convertTiffG4ToPS()
- *          l_int32          convertTiffG4ToPSString()
- *          char            *generateTiffG4PS()
+ *     For g4 fax compressed images (use ccitt g4 compression)
+ *          l_int32              convertG4ToPSEmbed()
+ *          l_int32              convertG4ToPS()
+ *          l_int32              convertG4ToPSString()
+ *          char                *generateG4PS()
+ *          L_COMPRESSED_DATA   *pixGenerateG4Data()
+ *          L_COMPRESSED_DATA   *l_generateG4Data()
  *
  *     For multipage tiff images
- *          l_int32          convertTiffMultipageToPS()
+ *          l_int32              convertTiffMultipageToPS()
  *
  *     For flate (gzip) compressed images (e.g., png)
- *          l_int32          convertFlateToPSEmbed()
- *          l_int32          convertFlateToPS()
- *          l_int32          convertFlateToPSString()
- *          char            *generateFlatePS()
+ *          l_int32              convertFlateToPSEmbed()
+ *          l_int32              convertFlateToPS()
+ *          l_int32              convertFlateToPSString()
+ *          char                *generateFlatePS()
+ *          L_COMPRESSED_DATA   *l_generateFlateData()
+ *          L_COMPRESSED_DATA   *pixGenerateFlateData()
  *
  *     Write to memory
- *          l_int32          pixWriteMemPS()
+ *          l_int32              pixWriteMemPS()
  *
  *     Converting resolution
- *          l_int32          getResLetterPage()
- *          l_int32          getResA4Page()
+ *          l_int32              getResLetterPage()
+ *          l_int32              getResA4Page()
  *
  *     Utility for encoding and decoding data with ascii85
- *          char            *encodeAscii85()
- *          l_int32         *convertChunkToAscii85()
- *          l_uint8         *decodeAscii85()
+ *          char                *encodeAscii85()
+ *          l_int32             *convertChunkToAscii85()
+ *          l_uint8             *decodeAscii85()
  *
  *     Setting flag for writing bounding box hint
- *          void             l_psWriteBoundingBox()
+ *          void                 l_psWriteBoundingBox()
  *
  *  See psio1.c for higher-level functions and their usage.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -94,10 +99,10 @@ static l_int32  var_PS_WRITE_BOUNDING_BOX = 1;
     /* MS VC++ can't handle array initialization with static consts ! */
 #define L_BUF_SIZE      512
 
-static const l_int32  DEFAULT_PRINTER_RES     = 300; /* default printing ppi */
-static const l_int32  MIN_RES                 = 5;
-static const l_int32  MAX_RES                 = 3000;
-static const l_int32  MAX_85_LINE_COUNT       = 64;
+static const l_int32  DEFAULT_INPUT_RES   = 300;  /* typical scan res, ppi */
+static const l_int32  MIN_RES             = 5;
+static const l_int32  MAX_RES             = 3000;
+static const l_int32  MAX_85_LINE_COUNT   = 64;  /* max line length ascii85 */
 
     /* For computing resolution that fills page to desired amount */
 static const l_int32  LETTER_WIDTH            = 612;   /* points */
@@ -111,6 +116,10 @@ static const l_uint32  power85[5] = {1,
                                      85 * 85,
                                      85 * 85 * 85,
                                      85 * 85 * 85 * 85};
+
+static l_int32  convertChunkToAscii85(l_uint8 *inarray, l_int32 insize,
+                                      l_int32 *pindex, char *outbuf,
+                                      l_int32 *pnbout);
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_JPEG       0
@@ -172,7 +181,7 @@ PIX       *pix;
     else
         scale = 11.0 * 300. / (l_float32)h;
 
-    if ((fp = fopen(fileout, "w")) == NULL)
+    if ((fp = fopenWriteStream(fileout, "wb")) == NULL)
         return ERROR_INT("file not opened for write", procName, 1);
     pixWriteStreamPS(fp, pix, NULL, 0, scale);
     fclose(fp);
@@ -520,7 +529,7 @@ l_float32  winch, hinch, xinch, yinch, fres;
     PROCNAME("getScaledParametersPS");
 
     if (res == 0)
-        res = DEFAULT_PRINTER_RES;
+        res = DEFAULT_INPUT_RES;
     fres = (l_float32)res;
 
         /* Allow the PS interpreter to scale the resolution */
@@ -535,7 +544,7 @@ l_float32  winch, hinch, xinch, yinch, fres;
     if (res < MIN_RES || res > MAX_RES) {
         L_WARNING_INT("res %d out of bounds; using default res; no scaling",
                       procName, res);
-        res = DEFAULT_PRINTER_RES;
+        res = DEFAULT_INPUT_RES;
         fres = (l_float32)res;
     }
 
@@ -627,12 +636,10 @@ l_int32
 convertJpegToPSEmbed(const char  *filein,
                      const char  *fileout)
 {
-char      *outstr;
-char      *data85;  /* ascii85 encoded file */
-l_uint8   *bindata;  /* binary encoded jpeg data (entire file) */
-l_int32    w, h, bps, spp;
-l_int32    nbinbytes, nbytes85, nbytes;
-l_float32  xpt, ypt, wpt, hpt;
+char               *outstr;
+l_int32             w, h, nbytes;
+l_float32           xpt, ypt, wpt, hpt;
+L_COMPRESSED_DATA  *cid;
 
     PROCNAME("convertJpegToPSEmbed");
 
@@ -641,19 +648,11 @@ l_float32  xpt, ypt, wpt, hpt;
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-        /* The returned jpeg data in memory is the entire jpeg file,
-         * which starts with ffd8 and ends with ffd9 */
-    if (extractJpegDataFromFile(filein, &bindata, &nbinbytes,
-                                &w, &h, &bps, &spp))
-        return ERROR_INT("bindata not extracted from file", procName, 1);
-
-        /* Convert entire jpeg file of encoded DCT data to ascii85 */
-    data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE(bindata);
-    if (!data85)
-        return ERROR_INT("data85 not made", procName, 1);
-    else
-        data85[nbytes85 - 1] = '\0';  /* remove the newline */
+        /* Generate the ascii encoded jpeg data */
+    if ((cid = l_generateJpegData(filein, 1)) == NULL)
+        return ERROR_INT("jpeg data not made", procName, 1);
+    w = cid->w;
+    h = cid->h;
 
         /* Scale for 20 pt boundary and otherwise full filling
          * in one direction on 8.5 x 11 inch device */
@@ -670,15 +669,15 @@ l_float32  xpt, ypt, wpt, hpt;
 
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
-    outstr = generateJpegPS(filein, data85, w, h, bps, spp,
-                            xpt, ypt, wpt, hpt, 1, 1);
+    outstr = generateJpegPS(filein, cid, xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
 
-    if (arrayWrite(fileout, "w", outstr, nbytes))
+    if (l_binaryWrite(fileout, "w", outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
     FREE(outstr);
+    compressed_dataDestroy(&cid);
     return 0;
 }
 
@@ -774,7 +773,7 @@ l_int32  nbytes;
                           pageno, endpage))
         return ERROR_INT("ps string not made", procName, 1);
 
-    if (arrayWrite(fileout, operation, outstr, nbytes))
+    if (l_binaryWrite(fileout, operation, outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
 
     FREE(outstr);
@@ -815,12 +814,9 @@ convertJpegToPSString(const char  *filein,
                       l_int32      pageno,
                       l_int32      endpage)
 {
-char      *outstr;
-char      *data85;  /* ascii85 encoded file */
-l_uint8   *bindata;  /* binary encoded jpeg data (entire file) */
-l_int32    w, h, bps, spp;
-l_int32    nbinbytes, nbytes85;
-l_float32  xpt, ypt, wpt, hpt;
+char               *outstr;
+l_float32           xpt, ypt, wpt, hpt;
+L_COMPRESSED_DATA  *cid;
 
     PROCNAME("convertJpegToPSString");
 
@@ -833,48 +829,52 @@ l_float32  xpt, ypt, wpt, hpt;
     if (!filein)
         return ERROR_INT("filein not defined", procName, 1);
 
-        /* The returned jpeg data in memory is the entire jpeg file,
-         * which starts with ffd8 and ends with ffd9 */
-    if (extractJpegDataFromFile(filein, &bindata, &nbinbytes,
-                                &w, &h, &bps, &spp))
-        return ERROR_INT("bindata not extracted from file", procName, 1);
+        /* Generate the ascii encoded jpeg data */
+    if ((cid = l_generateJpegData(filein, 1)) == NULL)
+        return ERROR_INT("jpeg data not made", procName, 1);
 
-        /* Convert entire jpeg file of encoded DCT data to ascii85 */
-    data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE(bindata);
-    if (!data85)
-        return ERROR_INT("data85 not made", procName, 1);
-    else
-        data85[nbytes85 - 1] = '\0';  /* remove the newline */
+        /* Get scaled location in pts.  Guess the input scan resolution
+         * based on the input parameter @res, the resolution data in
+         * the pix, and the size of the image. */
+    if (scale == 0.0)
+        scale = 1.0;
+    if (res <= 0) {
+        if (cid->res > 0)
+            res = cid->res;
+        else
+            res = DEFAULT_INPUT_RES;
+    }
 
         /* Get scaled location in pts */
     if (scale == 0.0)
         scale = 1.0;
     if (res == 0)
-        res = DEFAULT_PRINTER_RES;
+        res = DEFAULT_INPUT_RES;
     xpt = scale * x * 72. / res;
     ypt = scale * y * 72. / res;
-    wpt = scale * w * 72. / res;
-    hpt = scale * h * 72. / res;
+    wpt = scale * cid->w * 72. / res;
+    hpt = scale * cid->h * 72. / res;
 
     if (pageno == 0)
         pageno = 1;
 
 #if  DEBUG_JPEG
-    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n", w, h, bps, spp);
-    fprintf(stderr, "nbinbytes = %d, nbytes85 = %d, ratio = %5.3f\n",
-           nbinbytes, nbytes85, (l_float32)nbytes85 / (l_float32)nbinbytes);
+    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n",
+            cid->w, cid->h, cid->bps, cid->spp);
+    fprintf(stderr, "comp bytes = %d, nbytes85 = %d, ratio = %5.3f\n",
+           cid->nbytescomp, cid->nbytes85,
+           (l_float32)cid->nbytes85 / (l_float32)cid->nbytescomp);
     fprintf(stderr, "xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_JPEG */
 
         /* Generate the PS */
-    outstr = generateJpegPS(filein, data85, w, h, bps, spp,
-                            xpt, ypt, wpt, hpt, pageno, endpage);
+    outstr = generateJpegPS(filein, cid, xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
     *pnbytes = strlen(outstr);
+    compressed_dataDestroy(&cid);
     return 0;
 }
 
@@ -882,11 +882,8 @@ l_float32  xpt, ypt, wpt, hpt;
 /*!
  *  generateJpegPS()
  *
- *      Input:  filein (<optional> input tiff g4 file; can be null)
- *              data85 (ascii85 encoded ccittg4 compressed raster data)
- *              w, h  (raster image size in pixels)
- *              bps (bits/sample: usually 8)
- *              spp (samples/pixel: 1 (grayscale); 3 (rgb; typical), 4 (rgba))
+ *      Input:  filein (<optional> input jpeg filename; can be null)
+ *              cid (jpeg compressed image data)
  *              xpt, ypt (location of LL corner of image, in pts, relative
  *                        to the PostScript origin (0,0) at the LL corner
  *                        of the page)
@@ -901,27 +898,28 @@ l_float32  xpt, ypt, wpt, hpt;
  *      (1) Low-level function.
  */
 char *
-generateJpegPS(const char  *filein,
-               char        *data85,
-               l_int32      w,
-               l_int32      h,
-               l_int32      bps,
-               l_int32      spp,
-               l_float32    xpt,
-               l_float32    ypt,
-               l_float32    wpt,
-               l_float32    hpt,
-               l_int32      pageno,
-               l_int32      endpage)
+generateJpegPS(const char         *filein,
+               L_COMPRESSED_DATA  *cid,
+               l_float32           xpt,
+               l_float32           ypt,
+               l_float32           wpt,
+               l_float32           hpt,
+               l_int32             pageno,
+               l_int32             endpage)
 {
+l_int32  w, h, bps, spp;
 char    *outstr;
 char     bigbuf[L_BUF_SIZE];
 SARRAY  *sa;
 
     PROCNAME("generateJpegPS");
 
-    if (!data85)
-        return (char *)ERROR_PTR("data85 not defined", procName, NULL);
+    if (!cid)
+        return (char *)ERROR_PTR("jpeg data not defined", procName, NULL);
+    w = cid->w;
+    h = cid->h;
+    bps = cid->bps;
+    spp = cid->spp;
 
     if ((sa = sarrayCreate(50)) == NULL)
         return (char *)ERROR_PTR("sa not made", procName, NULL);
@@ -994,7 +992,8 @@ SARRAY  *sa;
     sarrayAddString(sa, (char *)"} exec", L_COPY);
 
         /* Insert the ascii85 jpeg data; this is now owned by sa */
-    sarrayAddString(sa, data85, L_INSERT);
+    sarrayAddString(sa, cid->data85, L_INSERT);
+    cid->data85 = NULL;  /* it has been transferred and destroyed */
 
         /* Generate and return the output string */
     outstr = sarrayToString(sa, 1);
@@ -1003,11 +1002,162 @@ SARRAY  *sa;
 }
 
 
+/*!
+ *  pixGenerateJpegData()
+ *
+ *      Input:  pixs (8 or 32 bpp, no colormap)
+ *              ascii85flag (0 for jpeg; 1 for ascii85-encoded jpeg)
+ *              quality (0 for default, which is 75)
+ *      Return: cid (jpeg compressed data), or null on error
+ *
+ *  Notes:
+ *      (1) Set ascii85flag:
+ *           - 0 for binary data (not permitted in PostScript)
+ *           - 1 for ascii85 (5 for 4) encoded binary data
+ */
+L_COMPRESSED_DATA *
+pixGenerateJpegData(PIX     *pixs,
+                    l_int32  ascii85flag,
+                    l_int32  quality)
+{
+l_int32             d;
+char               *tname;
+L_COMPRESSED_DATA  *cid;
+
+    PROCNAME("pixGenerateJpegData");
+
+    if (!pixs)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("pixs not defined",
+                                              procName, NULL);
+    if (pixGetColormap(pixs))
+        return (L_COMPRESSED_DATA *)ERROR_PTR("pixs has colormap",
+                                              procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 8 && d != 32)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("pixs not 8 or 32 bpp",
+                                              procName, NULL);
+
+        /* Compress to a temp jpeg file */
+    tname = genTempFilename("/tmp", "temp.jpg", 1, 1);
+    pixWriteJpeg(tname, pixs, quality, 0);
+
+    cid = l_generateJpegData(tname, ascii85flag);
+    FREE(tname);
+    return cid;
+}
+
+
+/*!
+ *  l_generateJpegData()
+ *
+ *      Input:  fname (of jpeg file)
+ *              ascii85flag (0 for jpeg; 1 for ascii85-encoded jpeg)
+ *      Return: cid (containing jpeg data), or null on error
+ *
+ *  Notes:
+ *      (1) Set ascii85flag:
+ *           - 0 for binary data (not permitted in PostScript)
+ *           - 1 for ascii85 (5 for 4) encoded binary data
+ */
+L_COMPRESSED_DATA *
+l_generateJpegData(const char  *fname,
+                   l_int32      ascii85flag)
+{
+l_uint8            *datacomp = NULL;  /* entire jpeg compressed file */
+char               *data85 = NULL;  /* ascii85 encoded jpeg compressed file */
+l_int32             w, h, xres, yres, bps, spp;
+l_int32             nbytes85;
+size_t              nbytescomp;
+FILE               *fp;
+L_COMPRESSED_DATA  *cid;
+
+    PROCNAME("l_generateJpegData");
+
+    if (!fname)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("fname not defined",
+                                              procName, NULL);
+
+        /* The returned jpeg data in memory is the entire jpeg file,
+         * which starts with ffd8 and ends with ffd9 */
+    if ((datacomp = l_binaryRead(fname, &nbytescomp)) == NULL)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("datacomp not extracted",
+                                              procName, NULL);
+
+        /* Read the metadata */
+    if ((fp = fopenReadStream(fname)) == NULL)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("stream not opened",
+                                              procName, NULL);
+    freadHeaderJpeg(fp, &w, &h, &spp, NULL, NULL);
+    bps = 8;
+    fgetJpegResolution(fp, &xres, &yres);
+    fclose(fp);
+
+        /* Optionally, encode the compressed data */
+    if (ascii85flag == 1) {
+        data85 = encodeAscii85(datacomp, nbytescomp, &nbytes85);
+        FREE(datacomp);
+        if (!data85)
+            return (L_COMPRESSED_DATA *)ERROR_PTR("data85 not made",
+                                                  procName, NULL);
+        else
+            data85[nbytes85 - 1] = '\0';  /* remove the newline */
+    }
+
+    cid = (L_COMPRESSED_DATA *)CALLOC(1, sizeof(L_COMPRESSED_DATA));
+    if (!cid)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("cid not made", procName, NULL);
+    if (ascii85flag == 0)
+        cid->datacomp = datacomp;
+    else {  /* ascii85 */
+        cid->data85 = data85;
+        cid->nbytes85 = nbytes85;
+    }
+    cid->type = L_JPEG_ENCODE;
+    cid->nbytescomp = nbytescomp;
+    cid->w = w;
+    cid->h = h;
+    cid->bps = bps;
+    cid->spp = spp;
+    cid->res = xres;
+    return cid;
+}
+
+
+/*!
+ *  compressed_dataDestroy()
+ *
+ *      Input:  &cid (<will be set to null before returning>)
+ *      Return: void
+ */
+void
+compressed_dataDestroy(L_COMPRESSED_DATA  **pcid)
+{
+L_COMPRESSED_DATA  *cid;
+
+    PROCNAME("compressed_dataDestroy");
+
+    if (pcid == NULL) {
+        L_WARNING("ptr address is null!", procName);
+        return;
+    }
+    if ((cid = *pcid) == NULL)
+        return;
+
+    if (cid->datacomp) FREE(cid->datacomp);
+    if (cid->data85) FREE(cid->data85);
+    if (cid->cmapdata85) FREE(cid->cmapdata85);
+    if (cid->cmapdatahex) FREE(cid->cmapdatahex);
+    FREE(cid);
+    *pcid = NULL;
+    return;
+}
+
+
 /*-------------------------------------------------------------*
- *                  For tiff g4 compressed images              *
+ *                  For ccitt g4 compressed images             *
  *-------------------------------------------------------------*/
 /*!
- *  convertTiffG4ToPSEmbed()
+ *  convertG4ToPSEmbed()
  *
  *      Input:  filein (input tiff file)
  *              fileout (output ps file)
@@ -1024,38 +1174,25 @@ SARRAY  *sa;
  *      (4) We paint this through a mask, over whatever is below.
  */
 l_int32
-convertTiffG4ToPSEmbed(const char  *filein,
-                       const char  *fileout)
+convertG4ToPSEmbed(const char  *filein,
+                   const char  *fileout)
 {
-char      *outstr;
-char      *data85;  /* ascii85 encoded ccitt g4 data */
-l_uint8   *bindata;  /* binary encoded ccitt g4 data */
-l_int32    minisblack;   /* TRUE or FALSE */
-l_int32    w, h;
-l_int32    nbinbytes, nbytes85, nbytes;
-l_float32  xpt, ypt, wpt, hpt;
+char               *outstr;
+l_int32             w, h, nbytes;
+l_float32           xpt, ypt, wpt, hpt;
+L_COMPRESSED_DATA  *cid;
 
-    PROCNAME("convertTiffG4ToPSEmbed");
+    PROCNAME("convertG4ToPSEmbed");
 
     if (!filein)
         return ERROR_INT("filein not defined", procName, 1);
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-        /* The returned ccitt g4 data in memory is the block of
-         * bytes in the tiff file, starting after 8 bytes and
-         * ending before the directory. */ 
-    if (extractTiffG4DataFromFile(filein, &bindata, &nbinbytes,
-                                  &w, &h, &minisblack))
-        return ERROR_INT("bindata not extracted from file", procName, 1);
-
-        /* Convert the ccittg4 encoded data to ascii85 */
-    data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE(bindata);
-    if (!data85)
-        return ERROR_INT("data85 not made", procName, 1);
-    else
-        data85[nbytes85 - 1] = '\0';  /* remove the newline */
+    if ((cid = l_generateG4Data(filein, 1)) == NULL)
+        return ERROR_INT("g4 data not made", procName, 1);
+    w = cid->w;
+    h = cid->h;
 
         /* Scale for 20 pt boundary and otherwise full filling
          * in one direction on 8.5 x 11 inch device */
@@ -1072,21 +1209,21 @@ l_float32  xpt, ypt, wpt, hpt;
 
         /* Generate the PS, painting through the image mask.
          * The bounding box information should be inserted (default). */
-    outstr = generateTiffG4PS(filein, data85, w, h, xpt, ypt, wpt, hpt,
-                              minisblack, 1, 1, 1);
+    outstr = generateG4PS(filein, cid, xpt, ypt, wpt, hpt, 1, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
 
-    if (arrayWrite(fileout, "w", outstr, nbytes))
+    if (l_binaryWrite(fileout, "w", outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
     FREE(outstr);
+    compressed_dataDestroy(&cid);
     return 0;
 }
     
 
 /*!
- *  convertTiffG4ToPS()
+ *  convertG4ToPS()
  *
  *      Input:  filein (input tiff g4 file)
  *              fileout (output ps file)
@@ -1142,21 +1279,21 @@ l_float32  xpt, ypt, wpt, hpt;
  *          a page directory, which viewers use for navigation.
  */
 l_int32
-convertTiffG4ToPS(const char  *filein,
-                  const char  *fileout,
-                  const char  *operation,
-                  l_int32      x,
-                  l_int32      y,
-                  l_int32      res,
-                  l_float32    scale,
-                  l_int32      pageno,
-                  l_int32      maskflag,
-                  l_int32      endpage)
+convertG4ToPS(const char  *filein,
+              const char  *fileout,
+              const char  *operation,
+              l_int32      x,
+              l_int32      y,
+              l_int32      res,
+              l_float32    scale,
+              l_int32      pageno,
+              l_int32      maskflag,
+              l_int32      endpage)
 {
 char    *outstr;
 l_int32  nbytes;
 
-    PROCNAME("convertTiffG4ToPS");
+    PROCNAME("convertG4ToPS");
 
     if (!filein)
         return ERROR_INT("filein not defined", procName, 1);
@@ -1165,11 +1302,11 @@ l_int32  nbytes;
     if (strcmp(operation, "w") && strcmp(operation, "a"))
         return ERROR_INT("operation must be \"w\" or \"a\"", procName, 1);
 
-    if (convertTiffG4ToPSString(filein, &outstr, &nbytes, x, y, res, scale,
-                          pageno, maskflag, endpage))
+    if (convertG4ToPSString(filein, &outstr, &nbytes, x, y, res, scale,
+                            pageno, maskflag, endpage))
         return ERROR_INT("ps string not made", procName, 1);
 
-    if (arrayWrite(fileout, operation, outstr, nbytes))
+    if (l_binaryWrite(fileout, operation, outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
 
     FREE(outstr);
@@ -1178,7 +1315,7 @@ l_int32  nbytes;
 
 
 /*!
- *  convertTiffG4ToPSString()
+ *  convertG4ToPSString()
  *
  *      Input:  filein (input tiff g4 file)
  *              &poutstr (<return> PS string)
@@ -1200,28 +1337,25 @@ l_int32  nbytes;
  *
  *  Notes:
  *      (1) Generates PS string in G4 compressed tiff format from G4 tiff file.
- *      (2) For usage, see convertTiffG4ToPS().
+ *      (2) For usage, see convertG4ToPS().
  */
 l_int32
-convertTiffG4ToPSString(const char  *filein,
-                        char       **poutstr,
-                        l_int32     *pnbytes,
-                        l_int32      x,
-                        l_int32      y,
-                        l_int32      res,
-                        l_float32    scale,
-                        l_int32      pageno,
-                        l_int32      maskflag,
-                        l_int32      endpage)
+convertG4ToPSString(const char  *filein,
+                    char       **poutstr,
+                    l_int32     *pnbytes,
+                    l_int32      x,
+                    l_int32      y,
+                    l_int32      res,
+                    l_float32    scale,
+                    l_int32      pageno,
+                    l_int32      maskflag,
+                    l_int32      endpage)
 {
-char      *outstr;
-char      *data85;  /* ascii85 encoded ccitt g4 data */
-l_uint8   *bindata;  /* binary encoded ccitt g4 data */
-l_int32    minisblack;   /* TRUE or FALSE */
-l_int32    w, h, nbinbytes, nbytes85;
-l_float32  xpt, ypt, wpt, hpt;
+char               *outstr;
+l_float32           xpt, ypt, wpt, hpt;
+L_COMPRESSED_DATA  *cid;
 
-    PROCNAME("convertTiffG4ToPSString");
+    PROCNAME("convertG4ToPSString");
 
     if (!poutstr)
         return ERROR_INT("&outstr not defined", procName, 1);
@@ -1232,68 +1366,62 @@ l_float32  xpt, ypt, wpt, hpt;
     if (!filein)
         return ERROR_INT("filein not defined", procName, 1);
 
-        /* The returned ccitt g4 data in memory is the block of
-         * bytes in the tiff file, starting after 8 bytes and
-         * ending before the directory. */ 
-    if (extractTiffG4DataFromFile(filein, &bindata, &nbinbytes,
-                                  &w, &h, &minisblack))
-        return ERROR_INT("bindata not extracted from file", procName, 1);
+    if ((cid = l_generateG4Data(filein, 1)) == NULL)
+        return ERROR_INT("g4 data not made", procName, 1);
 
-        /* Convert the ccittg4 encoded data to ascii85 */
-    data85 = encodeAscii85(bindata, nbinbytes, &nbytes85);
-    FREE(bindata);
-    if (!data85)
-        return ERROR_INT("data85 not made", procName, 1);
-    else
-        data85[nbytes85 - 1] = '\0';  /* remove the newline */
-
-        /* Get scaled location in pts */
+        /* Get scaled location in pts.  Guess the input scan resolution
+         * based on the input parameter @res, the resolution data in
+         * the pix, and the size of the image. */
     if (scale == 0.0)
         scale = 1.0;
-    if (res == 0) {
-        if (h <= 3300)
-            res = 300;
-        else
-            res = 600;
+    if (res <= 0) {
+        if (cid->res > 0)
+            res = cid->res;
+        else {
+            if (cid->h <= 3509)  /* A4 height at 300 ppi */
+                res = 300;
+            else
+                res = 600;
+        }
     }
     xpt = scale * x * 72. / res;
     ypt = scale * y * 72. / res;
-    wpt = scale * w * 72. / res;
-    hpt = scale * h * 72. / res;
+    wpt = scale * cid->w * 72. / res;
+    hpt = scale * cid->h * 72. / res;
 
     if (pageno == 0)
         pageno = 1;
 
 #if  DEBUG_G4
-/*    arrayWrite("junkarray", "w", bindata, nbinbytes); */
-    fprintf(stderr, "nbinbytes = %d, w = %d, h = %d, minisblack = %d\n",
-            nbinbytes, w, h, minisblack);
+    fprintf(stderr, "w = %d, h = %d, minisblack = %d\n",
+            cid->w, cid->h, cid->minisblack);
+    fprintf(stderr, "comp bytes = %d, nbytes85 = %d\n",
+            cid->nbytescomp, cid->nbytes85);
     fprintf(stderr, "xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_G4 */
 
         /* Generate the PS */
-    outstr = generateTiffG4PS(filein, data85, w, h, xpt, ypt, wpt, hpt,
-                              minisblack, maskflag, pageno, endpage);
+    outstr = generateG4PS(filein, cid, xpt, ypt, wpt, hpt,
+                          maskflag, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
     *pnbytes = strlen(outstr);
+    compressed_dataDestroy(&cid);
     return 0;
 }
 
 
 /*!
- *  generateTiffG4PS()
+ *  generateG4PS()
  *
  *      Input:  filein (<optional> input tiff g4 file; can be null)
- *              data85 (ascii85 encoded ccittg4 compressed raster data)
- *              w, h  (raster image size in pixels)
+ *              cid (g4 compressed image data)
  *              xpt, ypt (location of LL corner of image, in pts, relative
  *                        to the PostScript origin (0,0) at the LL corner
  *                        of the page)
  *              wpt, hpt (rendered image size in pts)
- *              minisblack (boolean: typ. FALSE for 1 bpp images)
  *              maskflag (boolean: use TRUE if just painting through fg;
  *                        FALSE if painting both fg and bg.
  *              pageno (page number; must start with 1; you can use 0
@@ -1306,27 +1434,27 @@ l_float32  xpt, ypt, wpt, hpt;
  *      (1) Low-level function.
  */
 char *
-generateTiffG4PS(const char  *filein,
-                 char        *data85,
-                 l_int32      w,
-                 l_int32      h,
-                 l_float32    xpt,
-                 l_float32    ypt,
-                 l_float32    wpt,
-                 l_float32    hpt,
-                 l_int32      minisblack,
-                 l_int32      maskflag,
-                 l_int32      pageno,
-                 l_int32      endpage)
+generateG4PS(const char         *filein,
+             L_COMPRESSED_DATA  *cid,
+             l_float32           xpt,
+             l_float32           ypt,
+             l_float32           wpt,
+             l_float32           hpt,
+             l_int32             maskflag,
+             l_int32             pageno,
+             l_int32             endpage)
 {
+l_int32  w, h;
 char    *outstr;
 char     bigbuf[L_BUF_SIZE];
 SARRAY  *sa;
 
-    PROCNAME("generateTiffG4PS");
+    PROCNAME("generateG4PS");
 
-    if (!data85)
-        return (char *)ERROR_PTR("data85 not defined", procName, NULL);
+    if (!cid)
+        return (char *)ERROR_PTR("g4 data not defined", procName, NULL);
+    w = cid->w;
+    h = cid->h;
 
     if ((sa = sarrayCreate(50)) == NULL)
         return (char *)ERROR_PTR("sa not made", procName, NULL);
@@ -1377,7 +1505,7 @@ SARRAY  *sa;
     sarrayAddString(sa, bigbuf, L_COPY);
     sarrayAddString(sa, (char *)"    /BitsPerComponent 1", L_COPY);
     sarrayAddString(sa, (char *)"    /Interpolate true", L_COPY);
-    if (minisblack)
+    if (cid->minisblack)
         sarrayAddString(sa, (char *)"    /Decode [1 0]", L_COPY);
     else  /* miniswhite; typical for 1 bpp */
         sarrayAddString(sa, (char *)"    /Decode [0 1]", L_COPY);
@@ -1401,8 +1529,8 @@ SARRAY  *sa;
     sarrayAddString(sa, (char *)"%%BeginData:", L_COPY);
     sarrayAddString(sa, (char *)"exec", L_COPY);
 
-        /* Insert the ascii85 jpeg data; this is now owned by sa */
-    sarrayAddString(sa, data85, L_INSERT);
+        /* Insert the ascii85 ccittg4 data; this is now owned by sa */
+    sarrayAddString(sa, cid->data85, L_INSERT);
 
         /* Concat the trailing data */
     sarrayAddString(sa, (char *)"%%EndData", L_COPY);
@@ -1411,9 +1539,124 @@ SARRAY  *sa;
 
     outstr = sarrayToString(sa, 1);
     sarrayDestroy(&sa);
+    cid->data85 = NULL;  /* it has been transferred and destroyed */
     return outstr;
 }
 
+
+/*!
+ *  pixGenerateG4Data()
+ *
+ *      Input:  pixs (1 bpp)
+ *              ascii85flag (0 for gzipped; 1 for ascii85-encoded gzipped)
+ *      Return: cid (g4 compressed image data), or null on error
+ *
+ *  Notes:
+ *      (1) Set ascii85flag:
+ *           - 0 for binary data (not permitted in PostScript)
+ *           - 1 for ascii85 (5 for 4) encoded binary data
+ */
+L_COMPRESSED_DATA *
+pixGenerateG4Data(PIX     *pixs,
+                  l_int32  ascii85flag)
+{
+char               *tname;
+L_COMPRESSED_DATA  *cid;
+
+    PROCNAME("pixGenerateG4Data");
+
+    if (!pixs)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("pixs not defined",
+                                              procName, NULL);
+    if (pixGetDepth(pixs) != 1)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("pixs not 1 bpp",
+                                              procName, NULL);
+
+        /* Compress to a temp tiff g4 file */
+    tname = genTempFilename("/tmp", "temp.tif", 1, 1);
+    pixWrite(tname, pixs, IFF_TIFF_G4);
+
+    cid = l_generateG4Data(tname, ascii85flag);
+    FREE(tname);
+    return cid;
+}
+
+
+/*!
+ *  l_generateG4Data()
+ *
+ *      Input:  fname (of g4 compressed file)
+ *              ascii85flag (0 for g4 compressed; 1 for ascii85-encoded g4)
+ *      Return: cid (g4 compressed image data), or null on error
+ *
+ *  Notes:
+ *      (1) Set ascii85flag:
+ *           - 0 for binary data (not permitted in PostScript)
+ *           - 1 for ascii85 (5 for 4) encoded binary data
+ */
+L_COMPRESSED_DATA *
+l_generateG4Data(const char  *fname,
+                 l_int32      ascii85flag)
+{
+l_uint8            *datacomp = NULL;  /* g4 compressed raster data */
+char               *data85 = NULL;  /* ascii85 encoded g4 compressed data */
+l_int32             w, h, xres, yres;
+l_int32             minisblack;  /* TRUE or FALSE */
+l_int32             nbytes85;
+size_t              nbytescomp;
+L_COMPRESSED_DATA  *cid;
+FILE               *fp;
+
+    PROCNAME("l_generateG4Data");
+
+    if (!fname)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("fname not defined",
+                                              procName, NULL);
+
+        /* The returned ccitt g4 data in memory is the block of
+         * bytes in the tiff file, starting after 8 bytes and
+         * ending before the directory. */
+    if (extractG4DataFromFile(fname, &datacomp, &nbytescomp,
+                              &w, &h, &minisblack)) {
+        return (L_COMPRESSED_DATA *)ERROR_PTR("datacomp not extracted",
+                                              procName, NULL);
+    }
+
+        /* Read the resolution */
+    if ((fp = fopenReadStream(fname)) == NULL)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("stream not opened",
+                                              procName, NULL);
+    getTiffResolution(fp, &xres, &yres);
+    fclose(fp);
+
+        /* Optionally, encode the compressed data */
+    if (ascii85flag == 1) {
+        data85 = encodeAscii85(datacomp, nbytescomp, &nbytes85);
+        FREE(datacomp);
+        if (!data85)
+            return (L_COMPRESSED_DATA *)ERROR_PTR("data85 not made",
+                                                  procName, NULL);
+        else
+            data85[nbytes85 - 1] = '\0';  /* remove the newline */
+    }
+
+    cid = (L_COMPRESSED_DATA *)CALLOC(1, sizeof(L_COMPRESSED_DATA));
+    if (!cid)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("cid not made", procName, NULL);
+    if (ascii85flag == 0)
+        cid->datacomp = datacomp;
+    else {  /* ascii85 */
+        cid->data85 = data85;
+        cid->nbytes85 = nbytes85;
+    }
+    cid->type = L_G4_ENCODE;
+    cid->nbytescomp = nbytescomp;
+    cid->w = w;
+    cid->h = h;
+    cid->minisblack = minisblack;
+    cid->res = xres;
+    return cid;
+}
 
 
 /*-------------------------------------------------------------*
@@ -1457,7 +1700,7 @@ FILE        *fp;
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-    if ((fp = fopen(filein, "rb")) == NULL)
+    if ((fp = fopenReadStream(filein)) == NULL)
         return ERROR_INT("file not found", procName, 1);
     istiff = fileFormatIsTiff(fp);
     if (!istiff) {
@@ -1489,11 +1732,11 @@ FILE        *fp;
         pixWrite(tempname, pixs, IFF_TIFF_G4);
         scale = L_MIN(fillfract * 2550 / w, fillfract * 3300 / h);
         if (i == 0)
-            convertTiffG4ToPS(tempname, fileout, "w", 0, 0, 300, scale,
-                              i + 1, FALSE, TRUE);
+            convertG4ToPS(tempname, fileout, "w", 0, 0, 300, scale,
+                          i + 1, FALSE, TRUE);
         else
-            convertTiffG4ToPS(tempname, fileout, "a", 0, 0, 300, scale,
-                              i + 1, FALSE, TRUE);
+            convertG4ToPS(tempname, fileout, "a", 0, 0, 300, scale,
+                          i + 1, FALSE, TRUE);
         pixDestroy(&pix);
         pixDestroy(&pixs);
     }
@@ -1524,15 +1767,10 @@ l_int32
 convertFlateToPSEmbed(const char  *filein,
                       const char  *fileout)
 {
-char      *outstr;
-char      *cmapdata85;  /* ascii85 encoded raw colormap */
-char      *data85;  /* ascii85 encoded file */
-l_uint8   *cmapdata, *compdata, *data;
-l_int32    w, h, d, bps, spp, cmapflag, ncolors;
-l_int32    nbytes, nbytes85, ncompbytes, ncmapbytes, ncmapbytes85;
-l_float32  xpt, ypt, wpt, hpt;
-PIX       *pix, *pixs;
-PIXCMAP   *cmap;
+char               *outstr;
+l_int32             w, h, nbytes;
+l_float32           xpt, ypt, wpt, hpt;
+L_COMPRESSED_DATA  *cid;
 
     PROCNAME("convertFlateToPSEmbed");
 
@@ -1541,50 +1779,10 @@ PIXCMAP   *cmap;
     if (!fileout)
         return ERROR_INT("fileout not defined", procName, 1);
 
-        /* Read in the image and convert to one of these 4 types:
-         *     1 bpp
-         *     8 bpp, no colormap
-         *     8 bpp, colormap
-         *     32 bpp rgb    */
-    if ((pix = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not read from file", procName, 1);
-    pixGetDimensions(pix, &w, &h, &d);
-    cmap = pixGetColormap(pix);
-    cmapflag = (cmap) ? 1 : 0;
-    if (d == 2 || d == 4 || d == 16) {
-        pixs = pixConvertTo8(pix, cmapflag);
-        cmap = pixGetColormap(pixs);
-        d = pixGetDepth(pixs);
-    }
-    else
-        pixs = pixClone(pix);
-    pixDestroy(&pix);
-    spp = (d == 32) ? 3 : 1;
-    bps = (d == 32) ? 8 : d;
-
-        /* Extract and encode the colormap data.  No compression.  */
-    cmapdata85 = NULL;
-    if (cmap) {
-        pixcmapSerializeToMemory(cmap, 3, &ncolors, &cmapdata, &ncmapbytes);
-        if (!cmapdata)
-            return ERROR_INT("cmapdata not made", procName, 1);
-        cmapdata85 = encodeAscii85(cmapdata, ncmapbytes, &ncmapbytes85);
-        FREE(cmapdata);
-    }
-
-        /* Extract, compress and encode the raster data */
-    pixGetRasterData(pixs, &data, &nbytes);
-    compdata = zlibCompress(data, nbytes, &ncompbytes);
-    if (!compdata)
-        return ERROR_INT("compdata not made", procName, 1);
-    FREE(data);
-    data85 = encodeAscii85(compdata, ncompbytes, &nbytes85);
-    FREE(compdata);
-    if (!data85)
-        return ERROR_INT("data85 not made", procName, 1);
-    else
-        data85[nbytes85 - 1] = '\0';  /* remove the newline */
-    pixDestroy(&pixs);
+    if ((cid = l_generateFlateData(filein, 1)) == NULL)
+        return ERROR_INT("flate data not made", procName, 1);
+    w = cid->w;
+    h = cid->h;
 
         /* Scale for 20 pt boundary and otherwise full filling
          * in one direction on 8.5 x 11 inch device */
@@ -1601,15 +1799,15 @@ PIXCMAP   *cmap;
 
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
-    outstr = generateFlatePS(filein, data85, cmapdata85, ncolors,
-                             w, h, bps, spp, xpt, ypt, wpt, hpt, 1, 1);
+    outstr = generateFlatePS(filein, cid, xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
 
-    if (arrayWrite(fileout, "w", outstr, nbytes))
+    if (l_binaryWrite(fileout, "w", outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
     FREE(outstr);
+    compressed_dataDestroy(&cid);
     return 0;
 }
 
@@ -1704,7 +1902,7 @@ l_int32  nbytes;
                                pageno, endpage))
         return ERROR_INT("ps string not made", procName, 1);
 
-    if (arrayWrite(fileout, operation, outstr, nbytes))
+    if (l_binaryWrite(fileout, operation, outstr, nbytes))
         return ERROR_INT("ps string not written to file", procName, 1);
 
     FREE(outstr);
@@ -1753,15 +1951,9 @@ convertFlateToPSString(const char  *filein,
                        l_int32      pageno,
                        l_int32      endpage)
 {
-char      *outstr;
-char      *cmapdata85;  /* ascii85 encoded raw colormap */
-char      *data85;  /* ascii85 encoded gzipped raster data */
-l_uint8   *cmapdata, *compdata, *data;
-l_int32    w, h, d, spp, bps, cmapflag, ncolors;
-l_int32    nbytes, nbytes85, ncompbytes, ncmapbytes, ncmapbytes85;
-l_float32  xpt, ypt, wpt, hpt;
-PIX       *pix, *pixs;
-PIXCMAP   *cmap;
+char               *outstr;
+l_float32           xpt, ypt, wpt, hpt;
+L_COMPRESSED_DATA  *cid;
 
     PROCNAME("convertFlateToPSString");
 
@@ -1774,79 +1966,44 @@ PIXCMAP   *cmap;
     if (!filein)
         return ERROR_INT("filein not defined", procName, 1);
 
-        /* Read in the image and convert to one of these 4 types:
-         *     1 bpp
-         *     8 bpp, no colormap
-         *     8 bpp, colormap
-         *     32 bpp rgb    */
-    if ((pix = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not read from file", procName, 1);
-    pixGetDimensions(pix, &w, &h, &d);
-    cmap = pixGetColormap(pix);
-    cmapflag = (cmap) ? 1 : 0;
-    if (d == 2 || d == 4 || d == 16) {
-        pixs = pixConvertTo8(pix, cmapflag);
-        cmap = pixGetColormap(pixs);
-        d = pixGetDepth(pixs);
-    }
-    else
-        pixs = pixClone(pix);
-    pixDestroy(&pix);
-    spp = (d == 32) ? 3 : 1;
-    bps = (d == 32) ? 8 : d;
+    if ((cid = l_generateFlateData(filein, 1)) == NULL)
+        return ERROR_INT("flate data not made", procName, 1);
 
-        /* Extract and encode the colormap data.  No compression.  */
-    cmapdata85 = NULL;
-    if (cmap) {
-        pixcmapSerializeToMemory(cmap, 3, &ncolors, &cmapdata, &ncmapbytes);
-        if (!cmapdata)
-            return ERROR_INT("cmapdata not made", procName, 1);
-        cmapdata85 = encodeAscii85(cmapdata, ncmapbytes, &ncmapbytes85);
-        FREE(cmapdata);
-    }
-
-        /* Extract, compress and encode the raster data */
-    pixGetRasterData(pixs, &data, &nbytes);
-    compdata = zlibCompress(data, nbytes, &ncompbytes);
-    if (!compdata)
-        return ERROR_INT("compdata not made", procName, 1);
-    FREE(data);
-    data85 = encodeAscii85(compdata, ncompbytes, &nbytes85);
-    FREE(compdata);
-    if (!data85)
-        return ERROR_INT("data85 not made", procName, 1);
-    else
-        data85[nbytes85 - 1] = '\0';  /* remove the newline */
-    pixDestroy(&pixs);
-
-        /* Get scaled location in pts */
+        /* Get scaled location in pts.  Guess the input scan resolution
+         * based on the input parameter @res, the resolution data in
+         * the pix, and the size of the image. */
     if (scale == 0.0)
         scale = 1.0;
-    if (res == 0)
-        res = DEFAULT_PRINTER_RES;
+    if (res <= 0) {
+        if (cid->res > 0)
+            res = cid->res;
+        else
+            res = DEFAULT_INPUT_RES;
+    }
     xpt = scale * x * 72. / res;
     ypt = scale * y * 72. / res;
-    wpt = scale * w * 72. / res;
-    hpt = scale * h * 72. / res;
+    wpt = scale * cid->w * 72. / res;
+    hpt = scale * cid->h * 72. / res;
 
     if (pageno == 0)
         pageno = 1;
 
 #if  DEBUG_FLATE
-    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n", w, h, bps, spp);
+    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n",
+            cid->w, cid->h, cid->bps, cid->spp);
     fprintf(stderr, "uncomp bytes = %d, comp bytes = %d, nbytes85 = %d\n",
-            nbytes, ncompbytes, nbytes85);
+            cid->nbytes, cid->nbytescomp, cid->nbytes85);
     fprintf(stderr, "xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
              xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_FLATE */
 
         /* Generate the PS */
-    outstr = generateFlatePS(filein, data85, cmapdata85, ncolors, w, h,
-                             bps, spp, xpt, ypt, wpt, hpt, pageno, endpage);
+    outstr = generateFlatePS(filein, cid, xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
     *pnbytes = strlen(outstr);
+    compressed_dataDestroy(&cid);
     return 0;
 }
 
@@ -1854,13 +2011,8 @@ PIXCMAP   *cmap;
 /*!
  *  generateFlatePS()
  *
- *      Input:  filein (<optional> input tiff g4 file; can be null)
- *              data85 (ascii85 encoded ccittg4 compressed raster data)
- *              cmapdata85 (ascii85 encoded uncompressed colormap; can be null)
- *              ncolors (in colormap; ignored if cmapdata85 is null)
- *              w, h  (raster image size in pixels)
- *              bps (bits/sample: usually 8)
- *              spp (samples/pixel: 1 (grayscale); 3 (rgb; typical), 4 (rgba))
+ *      Input:  filein (<optional> input filename; can be null)
+ *              cid (flate compressed image data)
  *              xpt, ypt (location of LL corner of image, in pts, relative
  *                        to the PostScript origin (0,0) at the LL corner
  *                        of the page)
@@ -1872,29 +2024,28 @@ PIXCMAP   *cmap;
  *      Return: PS string, or null on error
  */
 char *
-generateFlatePS(const char  *filein,
-                char        *data85,
-                char        *cmapdata85,
-                l_int32      ncolors,
-                l_int32      w,
-                l_int32      h,
-                l_int32      bps,
-                l_int32      spp,
-                l_float32    xpt,
-                l_float32    ypt,
-                l_float32    wpt,
-                l_float32    hpt,
-                l_int32      pageno,
-                l_int32      endpage)
+generateFlatePS(const char         *filein,
+                L_COMPRESSED_DATA  *cid,
+                l_float32           xpt,
+                l_float32           ypt,
+                l_float32           wpt,
+                l_float32           hpt,
+                l_int32             pageno,
+                l_int32             endpage)
 {
+l_int32  w, h, bps, spp;
 char    *outstr;
 char     bigbuf[L_BUF_SIZE];
 SARRAY  *sa;
 
     PROCNAME("generateFlatePS");
 
-    if (!data85)
-        return (char *)ERROR_PTR("data85 not defined", procName, NULL);
+    if (!cid)
+        return (char *)ERROR_PTR("flate data not defined", procName, NULL);
+    w = cid->w;
+    h = cid->h;
+    bps = cid->bps;
+    spp = cid->spp;
 
     if ((sa = sarrayCreate(50)) == NULL)
         return (char *)ERROR_PTR("sa not made", procName, NULL);
@@ -1929,13 +2080,13 @@ SARRAY  *sa;
     sarrayAddString(sa, bigbuf, L_COPY);
 
         /* If there is a colormap, add the data; it is now owned by sa */
-    if (cmapdata85) {
+    if (cid->cmapdata85) {
         sprintf(bigbuf,
              "[ /Indexed /DeviceRGB %d          %%set colormap type/size",
-             ncolors - 1);
+             cid->ncolors - 1);
         sarrayAddString(sa, bigbuf, L_COPY);
         sarrayAddString(sa, (char *)"  <~", L_COPY);
-        sarrayAddString(sa, cmapdata85, L_INSERT);
+        sarrayAddString(sa, cid->cmapdata85, L_INSERT);
         sarrayAddString(sa, (char *)"  ] setcolorspace", L_COPY);
     }
     else if (spp == 1)
@@ -1958,7 +2109,7 @@ SARRAY  *sa;
     sprintf(bigbuf, "     /ImageMatrix [ %d 0 0 %d 0 %d ]", w, -h, h);
     sarrayAddString(sa, bigbuf, L_COPY);
 
-    if (cmapdata85)
+    if (cid->cmapdata85)
         sarrayAddString(sa, (char *)"     /Decode [0 255]", L_COPY);
     else if (spp == 1) {
         if (bps == 1)  /* miniswhite photometry */
@@ -1978,13 +2129,167 @@ SARRAY  *sa;
     sarrayAddString(sa, (char *)"  restore", L_COPY);
     sarrayAddString(sa, (char *)"} exec", L_COPY);
 
-        /* Insert the ascii85 jpeg data; this is now owned by sa */
-    sarrayAddString(sa, data85, L_INSERT);
+        /* Insert the ascii85 gzipped data; this is now owned by sa */
+    sarrayAddString(sa, cid->data85, L_INSERT);
 
         /* Generate and return the output string */
     outstr = sarrayToString(sa, 1);
     sarrayDestroy(&sa);
+    cid->cmapdata85 = NULL;  /* it has been transferred to sa and destroyed */
+    cid->data85 = NULL;  /* it has been transferred to sa and destroyed */
     return outstr;
+}
+
+
+/*!
+ *  l_generateFlateData()
+ *
+ *      Input:  fname
+ *              ascii85flag (0 for gzipped; 1 for ascii85-encoded gzipped)
+ *      Return: cid (flate compressed image data), or null on error
+ *
+ *  Notes:
+ *      (1) The input image is converted to one of these 4 types:
+ *           - 1 bpp
+ *           - 8 bpp, no colormap
+ *           - 8 bpp, colormap
+ *           - 32 bpp rgb
+ *      (2) Set ascii85flag:
+ *           - 0 for binary data (not permitted in PostScript)
+ *           - 1 for ascii85 (5 for 4) encoded binary data
+ */
+L_COMPRESSED_DATA *
+l_generateFlateData(const char  *fname,
+                    l_int32      ascii85flag)
+{
+L_COMPRESSED_DATA  *cid;
+PIX                *pixs;
+
+    PROCNAME("l_generateFlateData");
+
+    if (!fname)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("fname not defined",
+                                              procName, NULL);
+
+    if ((pixs = pixRead(fname)) == NULL)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("pixs not made",
+                                              procName, NULL);
+    cid = pixGenerateFlateData(pixs, ascii85flag);
+    pixDestroy(&pixs);
+    return cid;
+}
+
+
+/*!
+ *  pixGenerateFlateData()
+ *
+ *      Input:  pixs
+ *              ascii85flag (0 for gzipped; 1 for ascii85-encoded gzipped)
+ *      Return: cid (flate compressed image data), or null on error
+ */
+L_COMPRESSED_DATA *
+pixGenerateFlateData(PIX     *pixs,
+                     l_int32  ascii85flag)
+{
+l_uint8       *data = NULL;  /* uncompressed raster data in required format */
+l_uint8       *datacomp = NULL;  /* gzipped raster data */
+char          *data85 = NULL;  /* ascii85 encoded gzipped raster data */
+l_uint8       *cmapdata = NULL;  /* uncompressed colormap */
+char          *cmapdata85 = NULL;  /* ascii85 encoded uncompressed colormap */
+char          *cmapdatahex = NULL;  /* hex ascii uncompressed colormap */
+l_int32        ncolors;  /* in colormap; not used if cmapdata85 is null */
+l_int32        bps;  /* bits/sample: usually 8 */
+l_int32        spp;  /* samples/pixel: 1-grayscale); 3-rgb; 4-rgba */
+l_int32        w, h, d, cmapflag;
+l_int32        ncmapbytes, ncmapbytes85, nbytes85;
+size_t         nbytes, nbytescomp;
+L_COMPRESSED_DATA  *cid;
+PIX           *pixt;
+PIXCMAP       *cmap;
+
+    PROCNAME("pixGenerateFlateData");
+
+    if (!pixs)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("pixs not defined",
+                                              procName, NULL);
+
+        /* Convert the image to one of these 4 types:
+         *     1 bpp
+         *     8 bpp, no colormap
+         *     8 bpp, colormap
+         *     32 bpp rgb    */
+    pixGetDimensions(pixs, &w, &h, &d);
+    cmap = pixGetColormap(pixs);
+    cmapflag = (cmap) ? 1 : 0;
+    if (d == 2 || d == 4 || d == 16) {
+        pixt = pixConvertTo8(pixs, cmapflag);
+        cmap = pixGetColormap(pixt);
+        d = pixGetDepth(pixt);
+    }
+    else
+        pixt = pixClone(pixs);
+    spp = (d == 32) ? 3 : 1;
+    bps = (d == 32) ? 8 : d;
+
+        /* Extract and encode the colormap data as both ascii85 and hexascii  */
+    ncolors = 0;
+    if (cmap) {
+        pixcmapSerializeToMemory(cmap, 3, &ncolors, &cmapdata, &ncmapbytes);
+        if (!cmapdata)
+            return (L_COMPRESSED_DATA *)ERROR_PTR("cmapdata not made",
+                                                  procName, NULL);
+
+        cmapdata85 = encodeAscii85(cmapdata, ncmapbytes, &ncmapbytes85);
+        cmapdatahex = pixcmapConvertToHex(cmapdata, ncmapbytes, ncolors);
+        FREE(cmapdata);
+    }
+
+        /* Extract and compress the raster data */
+    pixGetRasterData(pixt, &data, &nbytes);
+    pixDestroy(&pixt);
+    datacomp = zlibCompress(data, nbytes, &nbytescomp);
+    if (!datacomp) {
+        if (cmapdata85) FREE(cmapdata85);
+        if (cmapdatahex) FREE(cmapdatahex);
+        return (L_COMPRESSED_DATA *)ERROR_PTR("datacomp not made",
+                                              procName, NULL);
+    }
+    FREE(data);
+
+        /* Optionally, encode the compressed data */
+    if (ascii85flag == 1) {
+        data85 = encodeAscii85(datacomp, nbytescomp, &nbytes85);
+        FREE(datacomp);
+        if (!data85) {
+            FREE(cmapdata85);
+            return (L_COMPRESSED_DATA *)ERROR_PTR("data85 not made",
+                                                  procName, NULL);
+        }
+        else
+            data85[nbytes85 - 1] = '\0';  /* remove the newline */
+    }
+
+    cid = (L_COMPRESSED_DATA *)CALLOC(1, sizeof(L_COMPRESSED_DATA));
+    if (!cid)
+        return (L_COMPRESSED_DATA *)ERROR_PTR("cid not made", procName, NULL);
+    if (ascii85flag == 0)
+        cid->datacomp = datacomp;
+    else {  /* ascii85 */
+        cid->data85 = data85;
+        cid->nbytes85 = nbytes85;
+    }
+    cid->type = L_FLATE_ENCODE;
+    cid->cmapdatahex = cmapdatahex;
+    cid->cmapdata85 = cmapdata85;
+    cid->nbytescomp = nbytescomp;
+    cid->ncolors = ncolors;
+    cid->w = w;
+    cid->h = h;
+    cid->bps = bps;
+    cid->spp = spp;
+    cid->res = pixGetXRes(pixs);
+    cid->nbytes = nbytes;  /* only for debugging */
+    return cid;
 }
 
 
@@ -2114,7 +2419,7 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
     if (!inarray)
         return (char *)ERROR_PTR("inarray not defined", procName, NULL);
 
-        /* Accumulate results in chara */
+        /* Accumulate results in char array */
     maxsize = (l_int32)(80. + (insize * 5. / 4.) *
                         (1. + 2. / MAX_85_LINE_COUNT));
     if ((chara = (char *)CALLOC(maxsize, sizeof(char))) == NULL)
@@ -2166,7 +2471,7 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
  *      (1) Attempts to read 4 bytes and write 5.
  *      (2) Writes 1 byte if the value is 0.
  */
-l_int32
+static l_int32
 convertChunkToAscii85(l_uint8  *inarray,
                       l_int32   insize,
                       l_int32  *pindex,

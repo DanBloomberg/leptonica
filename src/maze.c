@@ -45,9 +45,11 @@
  *          l_int32          pixFindLargestRectangle()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <stdlib.h>
+#include <time.h>
+#endif  /* _WIN32 */
 #include "allheaders.h"
 
 static const l_int32  MIN_MAZE_WIDTH = 50;
@@ -142,6 +144,14 @@ MAZEEL    *el, *elp;
 PIX       *pixd;  /* the destination maze */
 PIX       *pixm;  /* for bookkeeping, to indicate pixels already visited */
 L_QUEUE   *lq;
+
+    /* On Windows, seeding is apparently necessary to get decent mazes.
+     * Windows rand() returns a value up to 2^15 - 1, whereas unix
+     * rand() returns a value up to 2^31 - 1.  Therefore the generated
+     * mazes will differ on the two platforms. */
+#ifdef _WIN32
+    srand(28*333);
+#endif /* _WIN32 */
 
     if (w < MIN_MAZE_WIDTH)
         w = MIN_MAZE_WIDTH;

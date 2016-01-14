@@ -41,8 +41,6 @@
  *     without expanding beyond the maximum necessary size.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -222,7 +220,7 @@ pixEmbedForRotation(PIX       *pixs,
                     l_int32    width,
                     l_int32    height)
 {
-l_int32    w, h, d, w1, h1, w2, h2, maxside, wnew, hnew, xoff, yoff;
+l_int32    w, h, d, w1, h1, w2, h2, maxside, wnew, hnew, xoff, yoff, setcolor;
 l_float64  sina, cosa, fw, fh;
 PIX       *pixd;
 
@@ -263,7 +261,8 @@ PIX       *pixd;
     yoff = (hnew - h) / 2;
 
         /* Set background to color to be rotated in */
-    pixSetBlackOrWhite(pixd, incolor);
+    setcolor = (incolor == L_BRING_IN_BLACK) ? L_SET_BLACK : L_SET_WHITE;
+    pixSetBlackOrWhite(pixd, setcolor);
 
     pixRasterop(pixd, xoff, yoff, w, h, PIX_SRC, pixs, 0, 0);
     return pixd;

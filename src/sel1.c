@@ -136,7 +136,6 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;  /* n'import quoi */
 static const l_int32  MANY_SELS = 1000;
 
 static SEL *selCreateFromSArray(SARRAY *sa, l_int32 first, l_int32 last);
-static void selaComputeCompositeParameters(const char *fileout);
 
 struct CompParameterMap
 {
@@ -148,6 +147,7 @@ struct CompParameterMap
     char     selnamev1[20];
     char     selnamev2[20];
 };
+
 static const struct CompParameterMap  comp_parameter_map[] =
     { { 2, 2, 1, "sel_2h", "", "sel_2v", "" },
       { 3, 3, 1, "sel_3h", "", "sel_3v", "" },
@@ -971,6 +971,10 @@ SEL     *sel;
 }
 
 
+/* --------- Function used to generate code in this file  ---------- */
+#if 0
+static void selaComputeCompositeParameters(const char *fileout);
+
 /*!
  *  selaComputeCompParameters()
  *
@@ -980,10 +984,11 @@ SEL     *sel;
  *  Notes:
  *      (1) This static function was used to construct the comp_parameter_map[]
  *          array at the top of this file.  It is static because it does
- *          not need to be called again.
+ *          not need to be called again.  It remains here to show how
+ *          the composite parameter map was computed.
  *      (2) The output file was pasted directly into comp_parameter_map[].
- *          It is used to quickly determine the linear decomposition
- *          parameters and sel names.
+ *          The composite parameter map is used to quickly determine
+ *          the linear decomposition parameters and sel names.
  */
 static void
 selaComputeCompositeParameters(const char  *fileout)
@@ -1020,13 +1025,15 @@ SELA    *selabasic, *selacomb;
     }
     str = sarrayToString(sa, 1);
     len = strlen(str);
-    arrayWrite(fileout, "w", str, len + 1);
+    l_binaryWrite(fileout, "w", str, len + 1);
     FREE(str);
     sarrayDestroy(&sa);
     selaDestroy(&selabasic);
     selaDestroy(&selacomb);
     return;
 }
+#endif
+/* -------------------------------------------------------------------- */
 
 
 /*!
@@ -1259,7 +1266,7 @@ SELA  *sela;
     if (!fname)
         return (SELA *)ERROR_PTR("fname not defined", procName, NULL);
 
-    if ((fp = fopen(fname, "rb")) == NULL)
+    if ((fp = fopenReadStream(fname)) == NULL)
         return (SELA *)ERROR_PTR("stream not opened", procName, NULL);
     if ((sela = selaReadStream(fp)) == NULL)
         return (SELA *)ERROR_PTR("sela not returned", procName, NULL);
@@ -1326,7 +1333,7 @@ SEL   *sel;
     if (!fname)
         return (SEL *)ERROR_PTR("fname not defined", procName, NULL);
 
-    if ((fp = fopen(fname, "rb")) == NULL)
+    if ((fp = fopenReadStream(fname)) == NULL)
         return (SEL *)ERROR_PTR("stream not opened", procName, NULL);
     if ((sel = selReadStream(fp)) == NULL)
         return (SEL *)ERROR_PTR("sela not returned", procName, NULL);
@@ -1406,7 +1413,7 @@ FILE  *fp;
     if (!sela)
         return ERROR_INT("sela not defined", procName, 1);
 
-    if ((fp = fopen(fname, "wb")) == NULL)
+    if ((fp = fopenWriteStream(fname, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     selaWriteStream(fp, sela);
     fclose(fp);
@@ -1468,7 +1475,7 @@ FILE  *fp;
     if (!sel)
         return ERROR_INT("sel not defined", procName, 1);
 
-    if ((fp = fopen(fname, "wb")) == NULL)
+    if ((fp = fopenWriteStream(fname, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     selWriteStream(fp, sel);
     fclose(fp);
@@ -1690,7 +1697,8 @@ SELA *
 selaCreateFromFile(const char  *filename)
 {
 char    *filestr, *line;
-l_int32  nbytes, i, n, first, last, nsel, insel;
+l_int32  i, n, first, last, nsel, insel;
+size_t   nbytes;
 NUMA    *nafirst, *nalast;
 SARRAY  *sa;
 SEL     *sel;
@@ -1701,7 +1709,7 @@ SELA    *sela;
     if (!filename)
         return (SELA *)ERROR_PTR("filename not defined", procName, NULL);
     
-    filestr = (char *)arrayRead(filename, &nbytes);
+    filestr = (char *)l_binaryRead(filename, &nbytes);
     sa = sarrayCreateLinesFromString(filestr, 1);
     FREE(filestr);
     n = sarrayGetCount(sa);

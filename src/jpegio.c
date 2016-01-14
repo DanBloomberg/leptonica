@@ -20,28 +20,35 @@
  *          PIX             *pixReadJpeg()  [ special top level ]
  *          PIX             *pixReadStreamJpeg()
  *
+ *    Read jpeg metadata from file
+ *          l_int32          readHeaderJpeg()
+ *          l_int32          freadHeaderJpeg()
+ *          l_int32          fgetJpegResolution()
+ *
  *    Write jpeg to file
  *          l_int32          pixWriteJpeg()  [ special top level ]
  *          l_int32          pixWriteStreamJpeg()
  *
+ *    Read/write to memory
+ *          PIX             *pixReadMemJpeg()
+ *          l_int32          readHeaderMemJpeg()
+ *          l_int32          pixWriteMemJpeg()
+ *
  *    Setting special flag(s)
  *          void             l_jpegSetNoChromaSampling()
- *
- *    Extraction of jpeg header information
- *          l_int32          extractJpegDataFromFile()
- *          l_int32          extractJpegDataFromArray()
- *          static l_int32   locateJpegImageParameters()
- *          static l_int32   getNextJpegMarker()
- *          static l_int32   getTwoByteParameter()
- *
- *    Read/write to memory   [not on windows]
- *          PIX             *pixReadMemJpeg()
- *          l_int32          pixWriteMemJpeg()
  *
  *    Static system helpers
  *          static void      jpeg_error_do_not_exit()
  *          static l_uint8   jpeg_getc()
  *          static l_int32   jpeg_comment_callback()
+ *
+ *    Extraction of jpeg header information by parsing
+ *          l_int32          extractJpegDataFromFile()
+ *          l_int32          extractJpegDataFromArray()
+ *          static l_int32   extractJpegHeaderDataFallback()
+ *          static l_int32   locateJpegImageParameters()
+ *          static l_int32   getNextJpegMarker()
+ *          static l_int32   getTwoByteParameter()
  *
  *    Documentation: libjpeg.doc can be found, along with all
  *    source code, at ftp://ftp.uu.net/graphics/jpeg
@@ -72,8 +79,6 @@
  *    This is set with l_jpegSetNoChromaSampling().
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -86,6 +91,13 @@
 /* --------------------------------------------*/
 
 #include <setjmp.h>
+
+/* jconfig.h makes the error of setting
+ *   #define HAVE_STDLIB_H
+ * which conflicts with config_auto.h (where it is set to 1) and results
+ * for some gcc compiler versions in a warning.  The conflict is harmless
+ * but we suppress it by undefining the variable. */
+#undef HAVE_STDLIB_H
 #include "jpeglib.h"
 
 static void jpeg_error_do_not_exit(j_common_ptr cinfo);
@@ -98,10 +110,14 @@ static jmp_buf jpeg_jmpbuf;
      * returning a boolean.  */
 static boolean jpeg_comment_callback(j_decompress_ptr cinfo);
 
-    /* Helpers for extraction of jpeg data */
-static l_int32  locateJpegImageParameters(l_uint8 *, l_int32, l_int32 *);
-static l_int32  getNextJpegMarker(l_uint8 *, l_int32, l_int32 *);
+    /* Static helpers for extraction of jpeg data */
+static l_int32  extractJpegHeaderDataFallback(const void *data, size_t nbytes,
+                                              l_int32 *pw, l_int32 *ph,
+                                              l_int32 *pbps, l_int32 *pspp);
+static l_int32  locateJpegImageParameters(l_uint8 *, size_t, l_int32 *);
+static l_int32  getNextJpegMarker(l_uint8 *, size_t, l_int32 *);
 static l_int32  getTwoByteParameter(l_uint8 *, l_int32);
+
 
 /* ----------------Set default for write option ----------------- */
     /* Do not subsample the chroma channels; default is 2x2 subsampling */
@@ -113,7 +129,7 @@ static l_int32   var_JPEG_NO_CHROMA_SAMPLING = 0;
 
 
 /*---------------------------------------------------------------------*
- *                              Reading Jpeg                           *
+ *                          Read jpeg from file                        *
  *---------------------------------------------------------------------*/
 /*!
  *  pixReadJpeg()
@@ -378,6 +394,156 @@ l_uint8                       *comment = NULL;
 
 
 /*---------------------------------------------------------------------*
+ *                     Read jpeg metadata from file                    *
+ *---------------------------------------------------------------------*/
+/*!
+ *  readHeaderJpeg()
+ *
+ *      Input:  filename
+ *              &w (<optional return>)
+ *              &h (<optional return>)
+ *              &spp (<optional return>, samples/pixel)
+ *              &ycck (<optional return>, 1 if ycck color space; 0 otherwise)
+ *              &cmyk (<optional return>, 1 if cmyk color space; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+readHeaderJpeg(const char  *filename,
+               l_int32     *pw,
+               l_int32     *ph,
+               l_int32     *pspp,
+               l_int32     *pycck,
+               l_int32     *pcmyk)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("readHeaderJpeg");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!pw && !ph && !pspp && !pycck && !pcmyk)
+        return ERROR_INT("no results requested", procName, 1);
+    if ((fp = fopenReadStream(filename)) == NULL)
+        return ERROR_INT("image file not found", procName, 1);
+    ret = freadHeaderJpeg(fp, pw, ph, pspp, pycck, pcmyk);
+    fclose(fp);
+    return ret;
+}
+
+
+/*!
+ *  freadHeaderJpeg()
+ *
+ *      Input:  stream
+ *              &w (<optional return>)
+ *              &h (<optional return>)
+ *              &spp (<optional return>, samples/pixel)
+ *              &ycck (<optional return>, 1 if ycck color space; 0 otherwise)
+ *              &cmyk (<optional return>, 1 if cmyk color space; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+freadHeaderJpeg(FILE     *fp,
+                l_int32  *pw,
+                l_int32  *ph,
+                l_int32  *pspp,
+                l_int32  *pycck,
+                l_int32  *pcmyk)
+{
+l_int32                        spp;
+struct jpeg_decompress_struct  cinfo;
+struct jpeg_error_mgr          jerr;
+
+    PROCNAME("freadHeaderJpeg");
+
+    if (!fp)
+        return ERROR_INT("stream not defined", procName, 1);
+    if (!pw && !ph && !pspp && !pycck && !pcmyk)
+        return ERROR_INT("no results requested", procName, 1);
+
+    if (setjmp(jpeg_jmpbuf))
+        return ERROR_INT("internal jpeg error", procName, 1);
+
+    rewind(fp);
+    cinfo.err = jpeg_std_error(&jerr);
+    jerr.error_exit = jpeg_error_do_not_exit; /* catch error; do not exit! */
+    jpeg_create_decompress(&cinfo);
+    jpeg_stdio_src(&cinfo, fp);
+    jpeg_read_header(&cinfo, TRUE);
+    jpeg_calc_output_dimensions(&cinfo);
+
+    spp = cinfo.out_color_components;
+    if (pspp) *pspp = spp;
+    if (pw) *pw = cinfo.output_width;
+    if (ph) *ph = cinfo.output_height;
+    if (pycck) *pycck =
+        (cinfo.jpeg_color_space == JCS_YCCK && spp == 4);
+    if (pcmyk) *pcmyk =
+        (cinfo.jpeg_color_space == JCS_CMYK && spp == 4);
+
+    jpeg_destroy_decompress(&cinfo);
+    rewind(fp);
+    return 0;
+}
+
+
+/*
+ *  fgetJpegResolution()
+ *
+ *      Input:  stream (opened for read)
+ *              &xres, &yres (<return> resolution in ppi)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) If neither resolution field is set, this is not an error;
+ *          the returned resolution values are 0 (designating 'unknown').
+ *      (2) Side-effect: this rewinds the stream.
+ */
+l_int32
+fgetJpegResolution(FILE     *fp,
+                   l_int32  *pxres,
+                   l_int32  *pyres)
+{
+struct jpeg_decompress_struct  cinfo;
+struct jpeg_error_mgr          jerr;
+
+    PROCNAME("fgetJpegResolution");
+
+    if (!pxres || !pyres)
+        return ERROR_INT("&xres and &yres not both defined", procName, 1);
+    *pxres = *pyres = 0;
+    if (!fp)
+        return ERROR_INT("stream not opened", procName, 1);
+
+    if (setjmp(jpeg_jmpbuf))
+        return ERROR_INT("internal jpeg error", procName, 1);
+
+    rewind(fp);
+    cinfo.err = jpeg_std_error(&jerr);
+    jerr.error_exit = jpeg_error_do_not_exit;
+    jpeg_create_decompress(&cinfo);
+    jpeg_stdio_src(&cinfo, fp);
+    jpeg_read_header(&cinfo, TRUE);
+
+        /* It is common for the input resolution to be omitted from the
+         * jpeg file.  If density_unit is not 1 or 2, simply return 0. */
+    if (cinfo.density_unit == 1) {  /* pixels/inch */
+        *pxres = cinfo.X_density;
+        *pyres = cinfo.Y_density;
+    }
+    else if (cinfo.density_unit == 2) {  /* pixels/cm */
+        *pxres = (l_int32)((l_float32)cinfo.X_density * 2.54 + 0.5);
+        *pyres = (l_int32)((l_float32)cinfo.Y_density * 2.54 + 0.5);
+    }
+
+    jpeg_destroy_decompress(&cinfo);
+    rewind(fp);
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
  *                             Writing Jpeg                            *
  *---------------------------------------------------------------------*/
 /*!
@@ -404,7 +570,7 @@ FILE  *fp;
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
 
-    if ((fp = fopen(filename, "wb+")) == NULL)
+    if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
 
     if (pixWriteStreamJpeg(fp, pix, quality, progressive)) {
@@ -624,327 +790,6 @@ const char                  *text;
 
 
 /*---------------------------------------------------------------------*
- *                     Setting special write flag                      *
- *---------------------------------------------------------------------*/
-/*!
- *  l_jpegSetNoChromaSampling()
- *
- *      Input:  flag (0 for standard 2x2 chroma subsampling)
- *                    1 for no chroma subsampling (high quality))
- *      Return: void
- */
-void
-l_jpegSetNoChromaSampling(l_int32  flag)
-{
-    var_JPEG_NO_CHROMA_SAMPLING = flag;
-}
-
-
-/*---------------------------------------------------------------------*
- *                Extraction of jpeg header information                *
- *---------------------------------------------------------------------*/
-/*!
- *  extractJpegDataFromFile()
- *
- *      Input:  filein
- *              &data (<return> binary data consisting of the entire jpeg file)
- *              &nbytes (<return> size of binary data)
- *              &w (<optional return> image width)
- *              &h (<optional return> image height)
- *              &bps (<optional return> bits/sample; should be 8)
- *              &spp (<optional return> samples/pixel; should be 1 or 3)
- *      Return: 0 if OK, 1 on error
- */
-l_int32
-extractJpegDataFromFile(const char  *filein,
-                        l_uint8    **pdata,
-                        l_int32     *pnbytes,
-                        l_int32     *pw,
-                        l_int32     *ph,
-                        l_int32     *pbps,
-                        l_int32     *pspp)
-{
-l_uint8  *data;
-l_int32   format, nbytes;
-FILE     *fpin;
-
-    PROCNAME("extractJpegDataFromFile");
-
-    if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
-    if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
-    if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
-    if (!pw && !ph && !pbps && !pspp)
-        return ERROR_INT("no output data requested", procName, 1);
-    *pdata = NULL;
-    *pnbytes = 0;
-
-    if ((fpin = fopen(filein, "rb")) == NULL)
-        return ERROR_INT("filein not defined", procName, 1);
-    findFileFormat(fpin, &format);
-    fclose(fpin);
-    if (format != IFF_JFIF_JPEG)
-        return ERROR_INT("filein not jfif jpeg", procName, 1);
-
-    if ((data = arrayRead(filein, &nbytes)) == NULL)
-        return ERROR_INT("inarray not made", procName, 1);
-    *pnbytes = nbytes;
-    *pdata = data;
-
-        /* On error, free the data */
-    if (extractJpegDataFromArray(data, nbytes, pw, ph, pbps, pspp)) {
-      FREE(data);
-      *pdata = NULL;
-      *pnbytes = 0;
-    }
-
-    return 0;
-}
-
-
-/*!
- *  extractJpegDataFromArray()
- *
- *      Input:  data (binary data consisting of the entire jpeg file)
- *              nbytes (size of binary data)
- *              &w (<optional return> image width)
- *              &h (<optional return> image height)
- *              &bps (<optional return> bits/sample; should be 8)
- *              &spp (<optional return> samples/pixel; should be 1, 3 or 4)
- *      Return: 0 if OK, 1 on error
- */
-l_int32
-extractJpegDataFromArray(const void  *data,
-                         l_int32      nbytes,
-                         l_int32     *pw,
-                         l_int32     *ph,
-                         l_int32     *pbps,
-                         l_int32     *pspp)
-{
-l_uint8  *data8;
-l_int32   imeta, msize, bps, w, h, spp;
-
-    PROCNAME("extractJpegDataFromArray");
-
-    if (!data)
-        return ERROR_INT("data not defined", procName, 1);
-    if (!pw && !ph && !pbps && !pspp)
-        return ERROR_INT("no output data requested", procName, 1);
-    data8 = (l_uint8 *)data;
-
-        /* Find where the image metadata begins in header:
-         * 0xc0 is start of metadata for baseline DCT;
-         * 0xc1 is start of metadata for extended sequential DCT;
-         * ...   */
-    imeta = 0;
-    if (locateJpegImageParameters(data8, nbytes, &imeta))
-        return ERROR_INT("metadata not found", procName, 1);
-
-        /* Save the metadata */
-    msize = getTwoByteParameter(data8, imeta);   /* metadata size */
-    bps = data8[imeta + 2];
-    h = getTwoByteParameter(data8, imeta + 3);
-    w = getTwoByteParameter(data8, imeta + 5);
-    spp = data8[imeta + 7];
-    if (pbps) *pbps = bps;
-    if (ph) *ph = h;
-    if (pw) *pw = w;
-    if (pspp) *pspp = spp;
-
-#if  DEBUG_INFO
-    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n", w, h, bps, spp);
-    fprintf(stderr, "imeta = %d, msize = %d\n", imeta, msize);
-#endif   /* DEBUG_INFO */
- 
-        /* Is the data obviously bad? */
-    if (h <= 0 || w <= 0 || bps != 8 || (spp != 1 && spp !=3 && spp != 4)) {
-        fprintf(stderr, "h = %d, w = %d, bps = %d, spp = %d\n", h, w, bps, spp);
-        return ERROR_INT("image parameters not valid", procName, 1);
-    }
-
-    return 0;
-}
-
-
-/*
- *  locateJpegImageParameters()
- *  
- *      Input:  inarray (binary jpeg)
- *              size (of the data array)
- *              &index (<return> location of image metadata)
- *      Return: 0 if OK, 1 on error.  Caller must check this!
- *  
- *  Notes:
- *      (1) The metadata in jpeg files is a mess.  There are markers
- *          for the chunks that are always preceeded by 0xff.
- *          It is possible to have 0xff in the binary data that is
- *          not a marker, and this is always 'escaped' by a following
- *          0x0 byte.  The two bytes following the marker give the
- *          chunk size, inclusive of those two bytes.  The jpeg parser
- *          runs through the file, looking for special markers such
- *          as 0xc0 and 0xc2 that indicate the beginning of a metadata
- *          frame that gives the image size, depth, etc.
- *      (2) The markers listed here appear to be the only ones that
- *          we need to worry about.  It would have been nice to have
- *          avoided the switch with all these markers, but
- *          unfortunately the parser for the jpeg header is set
- *          to accept any byte marker that's not on the approved list!
- *          So we have to look for a flag that's not on the list
- *          (and is not 0 or followed by 0xff), and then interpret
- *          the size of the data chunk and skip it.  Why do this?
- *          Such a chunk may contain a thumbnail version of the image,
- *          so if we don't skip it, we will find a pair of bytes such
- *          as 0xffc0 within the chunk, followed by the metadata
- *          (e.g., w and h dimensions) for the thumbnail.  Not what we want.
- *      (3) We recently found jpeg files with the sequence 0xffXXff,
- *          where XX is apparently a random marker not on the 'approved'
- *          list.  These clearly need to be escaped, because there are
- *          no chunks of size as great as 0xff00 that can be skipped
- *          (remember: for chunks that must be skipped, the 2 bytes
- *          after the marker give the chunk size).
- */
-static l_int32
-locateJpegImageParameters(l_uint8  *inarray,
-                          l_int32   size,
-                          l_int32  *pindex)
-{
-l_uint8  val;
-l_int32  index, skiplength;
-
-    PROCNAME("locateJpegImageParameters");
-
-    if (!inarray)
-        return ERROR_INT("inarray not defined", procName, 1);
-    if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
-
-    index = 0;  /* start at the beginning of the data */
-    while (1) {
-        if (getNextJpegMarker(inarray, size, &index))
-            break;
-        if ((val = inarray[index]) == 0)  /* ignore if "escaped" */
-            continue;
-        if (inarray[index + 1] == 0xff)  /* ignore if 'ff' immediately after */
-            continue;
-/*        fprintf(stderr, " marker %x at %o, %d\n", val, index, index); */
-        switch(val)
-        {
-            /* These are valid metadata start locations */
-        case 0xc0:  /* M_SOF0 */
-        case 0xc1:  /* M_SOF1 */
-        case 0xc2:  /* M_SOF2 */
-        case 0xc3:  /* M_SOF3 */
-        case 0xc5:  /* M_SOF5 */
-        case 0xc6:  /* M_SOF6 */
-        case 0xc7:  /* M_SOF7 */
-        case 0xc9:  /* M_SOF9 */
-        case 0xca:  /* M_SOF10 */
-        case 0xcd:  /* M_SOF13 */
-        case 0xce:  /* M_SOF14 */
-        case 0xcf:  /* M_SOF15 */
-            *pindex = index + 1;  /* found it */
-            return 0;
-
-            /* Go on -- these are on the 'approved' list and are
-             * not chunks that must be skipped */
-        case 0x01:  /* M_TEM */
-        case 0xd0:  /* M_RST0 */
-        case 0xd1:  /* M_RST1 */
-        case 0xd2:  /* M_RST2 */
-        case 0xd3:  /* M_RST3 */
-        case 0xd4:  /* M_RST4 */
-        case 0xd5:  /* M_RST5 */
-        case 0xd6:  /* M_RST6 */
-        case 0xd7:  /* M_RST7 */
-        case 0xd8:  /* M_SOI */
-        case 0xd9:  /* M_EOI */
-        case 0xe0:  /* M_APP0 */
-        case 0xee:  /* M_APP14 */
-            break;
-
-            /* Everything else is assumed to be a chunk that must be skipped */
-        default:
-            skiplength = getTwoByteParameter(inarray, index + 1);
-            index += skiplength;
-            break;
-        }
-    }
-
-    return 1;  /* not found */
-}
-
-
-/*
- *  getNextJpegMarker()
- *
- *      Input:  array (jpeg data)
- *              size (from current point to the end)
- *              &index (input current and <return> the last position searched.
- *                      If it is not at the end of the array, we return
- *                      the first byte that is not 0xff, after
- *                      having encountered at least one 0xff.)
- *      Return: 0 if a marker is found, 1 if the end of the array is reached
- *      
- *  Notes:
- *      (1) In jpeg, 0xff is used to mark the end of a data segment.
- *          There may be more than one 0xff in succession.  But not every
- *          0xff marks the end of a segment.  It is possible, though
- *          rare, that 0xff can occur within some data.  In that case,
- *          the marker is "escaped", by following it with 0x00.
- *      (2) This function parses a jpeg data stream.  It doesn't
- *          _really_ get the next marker, because it doesn't check if
- *          the 0xff is escaped.  But the caller checks for this escape
- *          condition, and ignores the marker if escaped.
- */ 
-static l_int32
-getNextJpegMarker(l_uint8  *array,
-                  l_int32   size,
-                  l_int32  *pindex)
-{
-l_uint8  val;
-l_int32  index;
-
-    PROCNAME("getNextJpegMarker");
-
-    if (!array)
-        return ERROR_INT("array not defined", procName, 1);
-    if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
-
-    index = *pindex;  /* initial location in array */
-
-    while (index < size) {  /* skip to 0xff */
-       val = array[index++];    
-       if (val == 0xff)
-           break;
-    }
-
-    while (index < size) {  /* skip repeated 0xff */
-       val = array[index++];    
-       if (val != 0xff)
-           break;
-    }
-
-    *pindex = index - 1;
-    if (index >= size)
-        return 1;
-    else
-        return 0;
-}
-
-
-static l_int32
-getTwoByteParameter(l_uint8  *array,
-                    l_int32   index)
-{
-    return (l_int32)((array[index]) << 8) + (l_int32)(array[index + 1]);
-}
-
-
-
-/*---------------------------------------------------------------------*
  *                         Read/write to memory                        *
  *---------------------------------------------------------------------*/
 #if HAVE_FMEMOPEN
@@ -996,9 +841,50 @@ PIX      *pix;
 
 
 /*!
+ *  readHeaderMemJpeg()
+ *
+ *      Input:  cdata (const; jpeg-encoded)
+ *              size (of data)
+ *              &w (<optional return>)
+ *              &h (<optional return>)
+ *              &spp (<optional return>, samples/pixel)
+ *              &ycck (<optional return>, 1 if ycck color space; 0 otherwise)
+ *              &cmyk (<optional return>, 1 if cmyk color space; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+readHeaderMemJpeg(const l_uint8  *cdata,
+                  size_t          size,
+                  l_int32        *pw,
+                  l_int32        *ph,
+                  l_int32        *pspp,
+                  l_int32        *pycck,
+                  l_int32        *pcmyk)
+{
+l_uint8  *data;
+l_int32   ret;
+FILE     *fp;
+
+    PROCNAME("readHeaderMemJpeg");
+
+    if (!cdata)
+        return ERROR_INT("cdata not defined", procName, 1);
+    if (!pw && !ph && !pspp && !pycck && !pcmyk)
+        return ERROR_INT("no results requested", procName, 1);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    if ((fp = fmemopen(data, size, "r")) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = freadHeaderJpeg(fp, pw, ph, pspp, pycck, pcmyk);
+    fclose(fp);
+    return ret;
+}
+
+
+/*!
  *  pixWriteMemJpeg()
  *
- *      Input:  &data (<return> data of tiff compressed image)
+ *      Input:  &data (<return> data of jpeg compressed image)
  *              &size (<return> size of returned data)
  *              pix
  *              quality  (1 - 100; 75 is default value; 0 is also default)
@@ -1035,8 +921,27 @@ FILE    *fp;
     return ret;
 }
 
-#else
 
+#else  /* fmemopen() and open_memstream() are not available */
+
+
+/*!
+ *  pixReadMemJpeg()
+ *
+ *      Input:  cdata (const; jpeg-encoded)
+ *              size (of data)
+ *              colormap flag (0 means return RGB image if color;
+ *                             1 means create colormap and return 8 bpp
+ *                               palette image if color)
+ *              reduction (scaling factor: 1, 2, 4 or 8)
+ *              &pnwarn (<optional return> number of warnings)
+ *              hint (bitwise OR of L_HINT_* values; use 0 for no hint)
+ *      Return: pix, or null on error
+ *
+ *  Notes:
+ *      (1) We are cheating here -- writing the data out
+ *          to file in jpeg format and then reading it back.
+ */
 PIX *
 pixReadMemJpeg(const l_uint8  *cdata,
                size_t          size,
@@ -1045,12 +950,80 @@ pixReadMemJpeg(const l_uint8  *cdata,
                l_int32        *pnwarn,
                l_int32         hint)
 {
-    return (PIX *)ERROR_PTR(
-        "jpeg read from memory not implemented on this platform",
-        "pixReadMemJpeg", NULL);
+char     *tname;
+l_uint8  *data;
+FILE     *fp;
+PIX      *pix;
+
+    PROCNAME("pixReadMemJpeg");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    tname = genTempFilename("/tmp/", "mem.jpg", 1, 1);
+    l_binaryWrite(tname, "w", data, size);
+    if ((fp = fopenReadStream(tname)) == NULL)
+        return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
+    pix = pixReadStreamJpeg(fp, cmflag, reduction, pnwarn, hint);
+    fclose(fp);
+    remove(tname);
+    FREE(tname);
+    if (!pix)
+        return (PIX *)ERROR_PTR("pix not read", procName, NULL);
+    return pix;
 }
 
 
+/*!
+ *  readHeaderMemJpeg()
+ *
+ *      Input:  cdata (const; jpeg-encoded)
+ *              size (of data)
+ *              &w (<optional return>)
+ *              &h (<optional return>)
+ *              &spp (<optional return>, samples/pixel)
+ *              &ycck (<optional return>, 1 if ycck color space; 0 otherwise)
+ *              &cmyk (<optional return>, 1 if cmyk color space; 0 otherwise)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Parse the jpeg string without without jpeg library calls.
+ */
+l_int32
+readHeaderMemJpeg(const l_uint8  *cdata,
+                  size_t          size,
+                  l_int32        *pw,
+                  l_int32        *ph,
+                  l_int32        *pspp,
+                  l_int32        *pycck,
+                  l_int32        *pcmyk)
+{
+    PROCNAME("readHeaderMemJpeg");
+
+    if (!cdata)
+        return ERROR_INT("cdata not defined", procName, 1);
+
+    if (pycck) *pycck = 0;
+    if (pcmyk) *pcmyk = 0;
+    return extractJpegDataFromArray(cdata, size, pw, ph, NULL, pspp);
+}
+
+
+/*!
+ *  pixWriteMemJpeg()
+ *
+ *      Input:  &data (<return> data of jpeg compressed image)
+ *              &size (<return> size of returned data)
+ *              pix
+ *              quality  (1 - 100; 75 is default value; 0 is also default)
+ *              progressive (0 for baseline sequential; 1 for progressive)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) We are cheating here -- writing the data out
+ *          to file in jpeg format and then reading it back.
+ */
 l_int32
 pixWriteMemJpeg(l_uint8  **pdata,
                 size_t    *psize,
@@ -1058,16 +1031,54 @@ pixWriteMemJpeg(l_uint8  **pdata,
                 l_int32    quality,
                 l_int32    progressive)
 {
-    return ERROR_INT(
-        "jpeg write to memory not implemented on this platform",
-        "pixWriteMemJpeg", 1);
+char     *tname;
+l_uint8  *data;
+size_t    nbytes;
+
+    PROCNAME("pixWriteMemJpeg");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1 );
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("&pix not defined", procName, 1 );
+
+    tname = genTempFilename("/tmp/", "mem.jpg", 1, 1);
+    pixWriteJpeg(tname, pix, quality, progressive);
+    data = l_binaryRead(tname, &nbytes);
+    remove(tname);
+    FREE(tname);
+    if (!data)
+        return ERROR_INT("data not returned", procName, 1 );
+    *pdata = data;
+    *psize = nbytes;
+    return 0;
 }
 
 #endif  /* HAVE_FMEMOPEN */
 
 
+
 /*---------------------------------------------------------------------*
- *                           Static helpers                            *
+ *                     Setting special write flag                      *
+ *---------------------------------------------------------------------*/
+/*!
+ *  l_jpegSetNoChromaSampling()
+ *
+ *      Input:  flag (0 for standard 2x2 chroma subsampling)
+ *                    1 for no chroma subsampling (high quality))
+ *      Return: void
+ */
+void
+l_jpegSetNoChromaSampling(l_int32  flag)
+{
+    var_JPEG_NO_CHROMA_SAMPLING = flag;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                        Static system helpers                        *
  *---------------------------------------------------------------------*/
     /* The default jpeg error_exit() kills the process.
      * We don't want leptonica to allow this to happen.
@@ -1130,6 +1141,372 @@ l_uint8  **comment;
 
     return 1;
 }
+
+
+/*---------------------------------------------------------------------*
+ *           Extraction of jpeg header information by parsing          *
+ *---------------------------------------------------------------------*/
+/*!
+ *  extractJpegDataFromFile()
+ *
+ *      Input:  filein
+ *              &data (<return> binary data consisting of the entire jpeg file)
+ *              &nbytes (<return> size of binary data)
+ *              &w (<optional return> image width)
+ *              &h (<optional return> image height)
+ *              &bps (<optional return> bits/sample; should be 8)
+ *              &spp (<optional return> samples/pixel; should be 1 or 3)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+extractJpegDataFromFile(const char  *filein,
+                        l_uint8    **pdata,
+                        size_t      *pnbytes,
+                        l_int32     *pw,
+                        l_int32     *ph,
+                        l_int32     *pbps,
+                        l_int32     *pspp)
+{
+l_uint8  *data;
+l_int32   format;
+size_t    nbytes;
+
+    PROCNAME("extractJpegDataFromFile");
+
+    if (!filein)
+        return ERROR_INT("filein not defined", procName, 1);
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!pnbytes)
+        return ERROR_INT("&nbytes not defined", procName, 1);
+    if (!pw && !ph && !pbps && !pspp)
+        return ERROR_INT("no output data requested", procName, 1);
+    *pdata = NULL;
+    *pnbytes = 0;
+
+    findFileFormat(filein, &format);
+    if (format != IFF_JFIF_JPEG)
+        return ERROR_INT("filein not jfif jpeg", procName, 1);
+
+    if ((data = l_binaryRead(filein, &nbytes)) == NULL)
+        return ERROR_INT("inarray not made", procName, 1);
+    *pnbytes = nbytes;
+    *pdata = data;
+
+        /* On error, free the data */
+    if (extractJpegDataFromArray(data, nbytes, pw, ph, pbps, pspp)) {
+      FREE(data);
+      *pdata = NULL;
+      *pnbytes = 0;
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  extractJpegDataFromArray()
+ *
+ *      Input:  data (binary data consisting of the entire jpeg file)
+ *              nbytes (size of binary data)
+ *              &w (<optional return> image width)
+ *              &h (<optional return> image height)
+ *              &bps (<optional return> bits/sample; should be 8)
+ *              &spp (<optional return> samples/pixel; should be 1, 3 or 4)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+extractJpegDataFromArray(const void  *data,
+                         size_t       nbytes,
+                         l_int32     *pw,
+                         l_int32     *ph,
+                         l_int32     *pbps,
+                         l_int32     *pspp)
+{
+l_uint8  *data8;
+l_int32   imeta, msize, bps, w, h, spp;
+
+    PROCNAME("extractJpegDataFromArray");
+
+    if (!pw && !ph && !pbps && !pspp)
+        return ERROR_INT("no output data requested", procName, 1);
+    if (pw) *pw = 0;
+    if (ph) *pw = 0;
+    if (pbps) *pbps = 0;
+    if (pspp) *pspp = 0;
+    if (!data)
+        return ERROR_INT("data not defined", procName, 1);
+    data8 = (l_uint8 *)data;
+
+        /* Find where the image metadata begins in header:
+         * 0xc0 is start of metadata for baseline DCT;
+         * 0xc1 is start of metadata for extended sequential DCT;
+         * ...   */
+    imeta = 0;
+    if (locateJpegImageParameters(data8, nbytes, &imeta) == 0) {
+            /* Save the metadata */
+        msize = getTwoByteParameter(data8, imeta);   /* metadata size */
+        bps = data8[imeta + 2];
+        h = getTwoByteParameter(data8, imeta + 3);
+        w = getTwoByteParameter(data8, imeta + 5);
+        spp = data8[imeta + 7];
+        if (pbps) *pbps = bps;
+        if (ph) *ph = h;
+        if (pw) *pw = w;
+        if (pspp) *pspp = spp;
+
+#if  DEBUG_INFO
+        fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n", w, h, bps, spp);
+        fprintf(stderr, "imeta = %d, msize = %d\n", imeta, msize);
+#endif   /* DEBUG_INFO */
+ 
+            /* Is the data obviously bad? */
+        if (h <= 0 || w <= 0 || bps != 8 || (spp != 1 && spp !=3 && spp != 4)) {
+            L_WARNING("invalid image parameters:", procName);
+            L_WARNING("fallback to read the entire file", procName);
+            return extractJpegHeaderDataFallback(data, nbytes,
+                                                 pw, ph, pbps, pspp);
+        }
+    }
+    else {
+        L_WARNING("parsing failure; fallback to read entire file", procName);
+        return extractJpegHeaderDataFallback(data, nbytes, pw, ph, pbps, pspp);
+    }
+
+    return 0;
+}
+
+
+/*!
+ *  extractJpegHeaderDataFallback()
+ *
+ *      Input:  data (binary data consisting of the entire jpeg file)
+ *              nbytes (size of binary data)
+ *              &w (<optional return> image width)
+ *              &h (<optional return> image height)
+ *              &bps (<optional return> bits/sample; should be 8)
+ *              &spp (<optional return> samples/pixel; should be 1 or 3)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This gets the header data by uncompressing the jpeg
+ *          data into a pix.  It can be used when header parsing fails.
+ *      (2) This cannot distinguish between 3 and 4 spp, so it returns 3.
+ */
+static l_int32
+extractJpegHeaderDataFallback(const void  *data,
+                              size_t       nbytes,
+                              l_int32     *pw,
+                              l_int32     *ph,
+                              l_int32     *pbps,
+                              l_int32     *pspp)
+{
+l_uint8  *data8;
+l_int32   w, h, d, spp;
+PIX      *pix;
+
+    PROCNAME("extractJpegHeaderDataFallback");
+
+    if (!pw && !ph && !pbps && !pspp)
+        return ERROR_INT("no output data requested", procName, 1);
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
+    if (pbps) *pbps = 8;
+    if (pspp) *pspp = 0;
+    if (!data)
+        return ERROR_INT("data not defined", procName, 1);
+    data8 = (l_uint8 *)data;
+
+    if ((pix = pixReadMemJpeg(data8, nbytes, 0, 1, NULL, 0)) == NULL)
+        return ERROR_INT("unable to read jpeg", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    spp = (d == 8) ? 1 : 3;
+    if (ph) *ph = h;
+    if (pw) *pw = w;
+    if (pspp) *pspp = spp;
+    pixDestroy(&pix);
+    return 0;
+}
+
+
+/*
+ *  locateJpegImageParameters()
+ *  
+ *      Input:  inarray (binary jpeg)
+ *              size (of the data array)
+ *              &index (<return> location of image metadata)
+ *      Return: 0 if OK, 1 on error.  Caller must check this!
+ *  
+ *  Notes:
+ *      (1) The metadata in jpeg files is a mess.  There are markers
+ *          for the chunks that are always preceeded by 0xff.
+ *          It is possible to have 0xff in the binary data that is
+ *          not a marker, and this is always 'escaped' by a following
+ *          0x0 byte.  The two bytes following the marker give the
+ *          chunk size, inclusive of those two bytes.  The jpeg parser
+ *          runs through the file, looking for special markers such
+ *          as 0xc0 and 0xc2 that indicate the beginning of a metadata
+ *          frame that gives the image size, depth, etc.
+ *      (2) The markers listed here appear to be the only ones that
+ *          we need to worry about.  It would have been nice to have
+ *          avoided the switch with all these markers, but
+ *          unfortunately the parser for the jpeg header is set
+ *          to accept any byte marker that's not on the approved list!
+ *          So we have to look for a flag that's not on the list
+ *          (and is not 0 or followed by 0xff), and then interpret
+ *          the size of the data chunk and skip it.  Why do this?
+ *          Such a chunk may contain a thumbnail version of the image,
+ *          so if we don't skip it, we will find a pair of bytes such
+ *          as 0xffc0 within the chunk, followed by the metadata
+ *          (e.g., w and h dimensions) for the thumbnail.  Not what we want.
+ *      (3) We recently found jpeg files with the sequence 0xffXXff,
+ *          where XX is apparently a random marker not on the 'approved'
+ *          list.  These clearly need to be escaped, because there are
+ *          no chunks of size as great as 0xff00 that can be skipped
+ *          (remember: for chunks that must be skipped, the 2 bytes
+ *          after the marker give the chunk size).
+ *      (4) For marker definitions, see, e.g.:
+ *               http://www.digicamsoft.com/itu/itu-t81-36.html
+ */
+static l_int32
+locateJpegImageParameters(l_uint8  *inarray,
+                          size_t    size,
+                          l_int32  *pindex)
+{
+l_uint8  val;
+l_int32  index, skiplength;
+
+    PROCNAME("locateJpegImageParameters");
+
+    if (!inarray)
+        return ERROR_INT("inarray not defined", procName, 1);
+    if (!pindex)
+        return ERROR_INT("&index not defined", procName, 1);
+
+    index = 0;  /* start at the beginning of the data */
+    while (1) {
+        if (getNextJpegMarker(inarray, size, &index))
+            break;
+        if ((val = inarray[index]) == 0)  /* ignore if "escaped" */
+            continue;
+        if (inarray[index + 1] == 0xff)  /* ignore if 'ff' immediately after */
+            continue;
+/*        fprintf(stderr, " marker %x at %o, %d\n", val, index, index); */
+        switch(val)
+        {
+            /* These are valid metadata start of frame locations */
+        case 0xc0:  /* M_SOF0 */
+        case 0xc1:  /* M_SOF1 */
+        case 0xc2:  /* M_SOF2 */
+        case 0xc3:  /* M_SOF3 */
+        case 0xc5:  /* M_SOF5 */
+        case 0xc6:  /* M_SOF6 */
+        case 0xc7:  /* M_SOF7 */
+        case 0xc9:  /* M_SOF9 */
+        case 0xca:  /* M_SOF10 */
+        case 0xcd:  /* M_SOF13 */
+        case 0xce:  /* M_SOF14 */
+        case 0xcf:  /* M_SOF15 */
+            *pindex = index + 1;  /* found it */
+            return 0;
+
+            /* Go on -- these are on the 'approved' list and are
+             * not chunks that must be skipped */
+        case 0x01:  /* M_TEM */
+        case 0xd0:  /* M_RST0 */
+        case 0xd1:  /* M_RST1 */
+        case 0xd2:  /* M_RST2 */
+        case 0xd3:  /* M_RST3 */
+        case 0xd4:  /* M_RST4 */
+        case 0xd5:  /* M_RST5 */
+        case 0xd6:  /* M_RST6 */
+        case 0xd7:  /* M_RST7 */
+        case 0xd8:  /* M_SOI */
+        case 0xd9:  /* M_EOI */
+        case 0xe0:  /* M_APP0 */
+        case 0xee:  /* M_APP14 */
+            break;
+
+            /* Everything else is assumed to be a chunk that must be skipped */
+        default:
+            skiplength = getTwoByteParameter(inarray, index + 1);
+/*            fprintf(stderr, "  skipping: %d bytes at %d\n",
+                    skiplength, index);  */
+            index += skiplength;
+            break;
+        }
+    }
+
+    return 1;  /* not found */
+}
+
+
+/*
+ *  getNextJpegMarker()
+ *
+ *      Input:  array (jpeg data)
+ *              size (from current point to the end)
+ *              &index (input current and <return> the last position searched.
+ *                      If it is not at the end of the array, we return
+ *                      the first byte that is not 0xff, after
+ *                      having encountered at least one 0xff.)
+ *      Return: 0 if a marker is found, 1 if the end of the array is reached
+ *      
+ *  Notes:
+ *      (1) In jpeg, 0xff is used to mark the end of a data segment.
+ *          There may be more than one 0xff in succession.  But not every
+ *          0xff marks the end of a segment.  It is possible, though
+ *          rare, that 0xff can occur within some data.  In that case,
+ *          the marker is "escaped", by following it with 0x00.
+ *      (2) This function parses a jpeg data stream.  It doesn't
+ *          _really_ get the next marker, because it doesn't check if
+ *          the 0xff is escaped.  But the caller checks for this escape
+ *          condition, and ignores the marker if escaped.
+ */ 
+static l_int32
+getNextJpegMarker(l_uint8  *array,
+                  size_t    size,
+                  l_int32  *pindex)
+{
+l_uint8  val;
+l_int32  index;
+
+    PROCNAME("getNextJpegMarker");
+
+    if (!array)
+        return ERROR_INT("array not defined", procName, 1);
+    if (!pindex)
+        return ERROR_INT("&index not defined", procName, 1);
+
+    index = *pindex;  /* initial location in array */
+
+    while (index < size) {  /* skip to 0xff */
+       val = array[index++];    
+       if (val == 0xff)
+           break;
+    }
+
+    while (index < size) {  /* skip repeated 0xff */
+       val = array[index++];    
+       if (val != 0xff)
+           break;
+    }
+
+    *pindex = index - 1;
+    if (index >= size)
+        return 1;
+    else
+        return 0;
+}
+
+
+static l_int32
+getTwoByteParameter(l_uint8  *array,
+                    l_int32   index)
+{
+    return (l_int32)((array[index]) << 8) + (l_int32)(array[index + 1]);
+}
+
 
 /* --------------------------------------------*/
 #endif  /* HAVE_LIBJPEG */

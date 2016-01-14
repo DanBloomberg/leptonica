@@ -22,8 +22,6 @@
  *        direction = 1 for cw; -1 for ccw
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define  NTIMES   10

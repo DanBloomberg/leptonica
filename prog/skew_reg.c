@@ -19,8 +19,6 @@
  *     Regression test for skew detection.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* deskew */
@@ -44,14 +42,14 @@ static const l_int32  BORDER = 150;
 main(int    argc,
      char **argv)
 {
-l_int32    w, h, wd, hd, display, success;
-l_float32  deg2rad, angle, conf, score;
-FILE      *fp;
-PIX       *pixs, *pixb1, *pixb2, *pixr, *pixf, *pixd, *pixc;
-PIXA      *pixa;
+l_int32       w, h, wd, hd;
+l_float32     deg2rad, angle, conf, score;
+PIX          *pixs, *pixb1, *pixb2, *pixr, *pixf, *pixd, *pixc;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     deg2rad = 3.1415926535 / 180.;
 
@@ -59,9 +57,8 @@ PIXA      *pixa;
     pixs = pixRead("feyn.tif");
     pixSetOrClearBorder(pixs, 100, 250, 100, 0, PIX_CLR);
     pixb1 = pixReduceRankBinaryCascade(pixs, 2, 2, 0, 0);
-    pixWrite("/tmp/skew.0.png", pixb1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/skew.0.png", 0, &success);
-    pixDisplayWithTitle(pixb1, 0, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb1, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixb1, 0, 100, NULL, rp->display);
 
         /* Add a border and locate and deskew a 40 degree rotation */
     pixb2 = pixAddBorder(pixb1, BORDER, 0);
@@ -69,8 +66,7 @@ PIXA      *pixa;
     pixSaveTiled(pixb2, pixa, 2, 1, 20, 8);
     pixr = pixRotateBySampling(pixb2, w / 2, h / 2,
                                     deg2rad * 40., L_BRING_IN_WHITE);
-    pixWrite("/tmp/skew.1.png", pixr, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/skew.1.png", 1, &success);
+    regTestWritePixAndCheck(rp, pixr, IFF_PNG);  /* 1 */
     pixSaveTiled(pixr, pixa, 2, 0, 20, 0);
     pixFindSkewSweepAndSearchScorePivot(pixr, &angle, &conf, NULL, 1, 1,
                                         0.0, 45.0, 2.0, 0.03,
@@ -80,8 +76,7 @@ PIXA      *pixa;
     pixf = pixRotateBySampling(pixr, w / 2, h / 2,
                                     deg2rad * angle, L_BRING_IN_WHITE);
     pixd = pixRemoveBorder(pixf, BORDER);
-    pixWrite("/tmp/skew.2.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/skew.2.png", 2, &success);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
     pixSaveTiled(pixd, pixa, 2, 0, 20, 0);
     pixDestroy(&pixr);
     pixDestroy(&pixf);
@@ -93,8 +88,7 @@ PIXA      *pixa;
     pixGetDimensions(pixb1, &w, &h, NULL);
     pixr = pixRotate(pixb1, deg2rad * 37., L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
-    pixWrite("/tmp/skew.3.png", pixr, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/skew.3.png", 3, &success);
+    regTestWritePixAndCheck(rp, pixr, IFF_PNG);  /* 3 */
     pixSaveTiled(pixr, pixa, 2, 1, 20, 0);
     startTimer();
     pixFindSkewOrthogonalRange(pixr, &angle, &conf, 2, 1,
@@ -103,13 +97,11 @@ PIXA      *pixa;
     fprintf(stderr, "Should be about -128 degrees: angle = %7.3f\n", angle);
     pixd = pixRotate(pixr, deg2rad * angle, L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
-    pixWrite("/tmp/skew.4.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/skew.4.png", 4, &success);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 4 */
     pixGetDimensions(pixd, &wd, &hd, NULL);
     pixc = pixCreate(w, h, 1);
     pixRasterop(pixc, 0, 0, w, h, PIX_SRC, pixd, (wd - w) / 2, (hd - h) / 2);
-    pixWrite("/tmp/skew.5.png", pixc, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/skew.5.png", 5, &success);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 5 */
     pixSaveTiled(pixc, pixa, 2, 0, 20, 0);
     pixDestroy(&pixr);
     pixDestroy(&pixf);
@@ -117,12 +109,15 @@ PIXA      *pixa;
     pixDestroy(&pixc);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/skew.6.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/skew.6.png", 6, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
+
+    pixDestroy(&pixs);
+    pixDestroy(&pixb1);
+    pixDestroy(&pixb2);
     pixaDestroy(&pixa);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
 

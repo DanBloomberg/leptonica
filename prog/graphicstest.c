@@ -18,10 +18,7 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
@@ -80,6 +77,7 @@ static char     mainName[] = "graphicstest";
     boxaDestroy(&boxa);
     ptaDestroy(&pta);
     pixDestroy(&pixs);
+    return 0;
 }
 
 

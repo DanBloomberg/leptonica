@@ -17,9 +17,6 @@
  *   misctest1.c
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define   SHOW    0
@@ -27,13 +24,12 @@
 main(int    argc,
      char **argv)
 {
-l_int32      w, h;
-BOXA        *boxa;
-PIX         *pixs, *pixt1, *pixt2, *pixg, *pixb, *pixd, *pixc;
-PIX         *pixm, *pixm2, *pixd2, *pixs2;
-PIXA        *pixa, *pixac;
-PIXCMAP     *cmap, *cmapg;
-static char  mainName[] = "misctest1";
+l_int32   w, h;
+BOXA     *boxa;
+PIX      *pixs, *pixt1, *pixt2, *pixg, *pixb, *pixd, *pixc;
+PIX      *pixm, *pixm2, *pixd2, *pixs2;
+PIXA     *pixa, *pixac;
+PIXCMAP  *cmap, *cmapg;
 
     pixac = pixaCreate(0);
 
@@ -116,7 +112,7 @@ static char  mainName[] = "misctest1";
 
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplayWithTitle(pixd, 100, 100, NULL, 1);
-    pixWrite("junkmisc1.png", pixd, IFF_PNG);
+    pixWrite("/tmp/misc1.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
 

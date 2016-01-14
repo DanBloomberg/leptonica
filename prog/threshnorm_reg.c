@@ -19,8 +19,6 @@
  *      Regression test for adaptive threshold normalization.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -33,16 +31,14 @@ static void AddTestSet(PIXA *pixa, PIX *pixs,
 main(int    argc,
      char **argv)
 {
-l_int32  display, success;
-FILE    *fp;
-PIX     *pixs, *pixd;
-PIXA    *pixa;
+PIX          *pixs, *pixd;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-           return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    if ((pixs = pixRead("stampede2.jpg")) == NULL)
-	exit(ERROR_INT("pixs not made", argv[0], 1));
+    pixs = pixRead("stampede2.jpg");
     pixa = pixaCreate(0);
     pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
 	    
@@ -55,13 +51,12 @@ PIXA    *pixa;
 
     pixDestroy(&pixs);
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/thresh.0.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/thresh.0.jpg", 0, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 0 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
 
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
 

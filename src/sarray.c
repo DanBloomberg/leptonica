@@ -240,8 +240,10 @@ SARRAY  *sa;
  *      Return: sarray, or null on error
  *
  *  Notes:
- *      (1) This finds the number of line substrings, creates an sarray of
- *          this size, and puts copies of each substring into the sarray.
+ *      (1) This finds the number of line substrings, each of which
+ *          ends with a newline, and puts a copy of each substring
+ *          in a new sarray.
+ *      (2) The newline characters are removed from each substring.
  */
 SARRAY *
 sarrayCreateLinesFromString(char    *string,
@@ -331,8 +333,10 @@ SARRAY  *sa;
     sarrayChangeRefcount(sa, -1);
     if (sarrayGetRefcount(sa) <= 0) {
         if (sa->array) {
-            for (i = 0; i < sa->n; i++)
-                FREE(sa->array[i]);
+            for (i = 0; i < sa->n; i++) {
+                if (sa->array[i])
+                    FREE(sa->array[i]);
+            }
             FREE(sa->array);
         }
         FREE(sa);
@@ -1505,7 +1509,7 @@ FILE  *fp;
     if (!sa)
         return ERROR_INT("sa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
 
     if (sarrayWriteStream(fp, sa))
@@ -1573,7 +1577,7 @@ FILE  *fp;
     if (!sa)
         return ERROR_INT("sa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "a")) == NULL)
+    if ((fp = fopenWriteStream(filename, "a")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
 
     if (sarrayWriteStream(fp, sa))
@@ -1784,10 +1788,10 @@ struct dirent  *pdirentry;
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    if ((safiles = sarrayCreate(0)) == NULL)
-        return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
     if ((pdir = opendir(dirname)) == NULL)
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
+    if ((safiles = sarrayCreate(0)) == NULL)
+        return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
     while ((pdirentry = readdir(pdir)))  {
 
         /* It's nice to ignore directories.  For this it is necessary to
@@ -1829,9 +1833,7 @@ WIN32_FIND_DATAA  ffd;
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    tempname = stringReplaceEachSubstr(dirname, "/", "\\", NULL);
-    if (tempname == NULL)
-        tempname = stringNew(dirname);
+    tempname = genPathname(dirname, NULL);
     pszDir = stringJoin(tempname, "\\*");
     FREE(tempname);
 

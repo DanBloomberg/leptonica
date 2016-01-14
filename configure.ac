@@ -1,5 +1,5 @@
 AC_PREREQ([2.50])
-AC_INIT([leptonica], [1.67], [dan.bloomberg@gmail.com])
+AC_INIT([leptonica], [1.68], [dan.bloomberg@gmail.com])
 AC_CONFIG_AUX_DIR([config])
 AM_CONFIG_HEADER([config_auto.h:config/config.h.in])
 AC_CONFIG_SRCDIR([src/adaptmap.c])
@@ -9,6 +9,7 @@ LT_INIT
 
 AM_INIT_AUTOMAKE
 AC_LANG(C)
+AC_CANONICAL_HOST
 
 # Checks for programs.
 AC_PROG_AWK
@@ -30,6 +31,8 @@ AC_ARG_ENABLE([programs], AS_HELP_STRING([--disable-programs], [do not build add
 AM_CONDITIONAL([ENABLE_PROGRAMS], [test "x$enable_programs" != xno])
 
 # Checks for libraries.
+LT_LIB_M
+
 AS_IF([test "x$with_zlib" != xno],
   AC_CHECK_LIB([z], [deflate],
     AC_DEFINE([HAVE_LIBZ], 1, [Define to 1 if you have zlib.]) AC_SUBST([ZLIB_LIBS], [-lz]),
@@ -65,6 +68,17 @@ AS_IF([test "x$with_libtiff" != xno],
   )
 )
 
+AS_IF([test "x$with_libwebp" != xno],
+  AC_CHECK_LIB([webp], [WebPGetInfo],
+    AC_DEFINE([HAVE_LIBWEBP], 1, [Define to 1 if you have libwebp.]) AC_SUBST([LIBWEBP_LIBS], [-lwebp]),
+    AS_IF([test "x$with_libwebp" = xyes], AC_MSG_ERROR([libwebp support requested but library not found]))
+  )
+)
+
+case "$host_os" in
+  mingw32*) AC_SUBST([GDI_LIBS], [-lgdi32]) ;;
+esac
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 AC_C_BIGENDIAN
@@ -76,6 +90,16 @@ case "$ac_cv_c_bigendian" in
   yes) AC_SUBST([ENDIANNESS], [L_BIG_ENDIAN]) ;;
   universal) AC_SUBST([APPLE_UNIVERSAL_BUILD], [1]) ;;
 esac
+
+# Add the -Wl and --as-needed flags to gcc compiler
+AC_MSG_CHECKING([whether compiler supports -Wl,--as-needed])
+OLD_LDFLAGS="${LDFLAGS}"
+LDFLAGS="-Wl,--as-needed ${LDFLAGS}"
+
+AC_LINK_IFELSE([AC_LANG_PROGRAM()],
+  AC_MSG_RESULT([yes]),
+  LDFLAGS="${OLD_LDFLAGS}"; AC_MSG_RESULT([no])
+)
 
 # Checks for library functions.
 AC_CHECK_FUNCS([fmemopen])

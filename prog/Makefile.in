@@ -42,13 +42,13 @@ bin_PROGRAMS = adaptnorm_reg$(EXEEXT) affine_reg$(EXEEXT) \
 	binmorph4_reg$(EXEEXT) binmorph5_reg$(EXEEXT) \
 	blend_reg$(EXEEXT) blend2_reg$(EXEEXT) ccthin1_reg$(EXEEXT) \
 	ccthin2_reg$(EXEEXT) cmapquant_reg$(EXEEXT) \
-	colorquant_reg$(EXEEXT) colorseg_reg$(EXEEXT) \
-	compfilter_reg$(EXEEXT) conncomp_reg$(EXEEXT) \
-	conversion_reg$(EXEEXT) convolve_reg$(EXEEXT) \
-	dewarp_reg$(EXEEXT) distance_reg$(EXEEXT) \
-	dwamorph1_reg$(EXEEXT) dwamorph2_reg$(EXEEXT) \
-	enhance_reg$(EXEEXT) equal_reg$(EXEEXT) expand_reg$(EXEEXT) \
-	extrema_reg$(EXEEXT) fhmtauto_reg$(EXEEXT) \
+	colormask_reg$(EXEEXT) colorquant_reg$(EXEEXT) \
+	colorseg_reg$(EXEEXT) compfilter_reg$(EXEEXT) \
+	conncomp_reg$(EXEEXT) conversion_reg$(EXEEXT) \
+	convolve_reg$(EXEEXT) dewarp_reg$(EXEEXT) \
+	distance_reg$(EXEEXT) dwamorph1_reg$(EXEEXT) \
+	dwamorph2_reg$(EXEEXT) enhance_reg$(EXEEXT) equal_reg$(EXEEXT) \
+	expand_reg$(EXEEXT) extrema_reg$(EXEEXT) fhmtauto_reg$(EXEEXT) \
 	findpattern_reg$(EXEEXT) flipdetect_reg$(EXEEXT) \
 	fmorphauto_reg$(EXEEXT) fpix_reg$(EXEEXT) gifio_reg$(EXEEXT) \
 	grayfill_reg$(EXEEXT) graymorph1_reg$(EXEEXT) \
@@ -58,34 +58,36 @@ bin_PROGRAMS = adaptnorm_reg$(EXEEXT) affine_reg$(EXEEXT) \
 	locminmax_reg$(EXEEXT) logicops_reg$(EXEEXT) \
 	lowaccess_reg$(EXEEXT) maze_reg$(EXEEXT) morphseq_reg$(EXEEXT) \
 	numa_reg$(EXEEXT) overlap_reg$(EXEEXT) paint_reg$(EXEEXT) \
-	paintmask_reg$(EXEEXT) pixa1_reg$(EXEEXT) pixa2_reg$(EXEEXT) \
-	pixadisp_reg$(EXEEXT) pixalloc_reg$(EXEEXT) \
+	paintmask_reg$(EXEEXT) pdfseg_reg$(EXEEXT) pixa1_reg$(EXEEXT) \
+	pixa2_reg$(EXEEXT) pixadisp_reg$(EXEEXT) pixalloc_reg$(EXEEXT) \
 	pixcomp_reg$(EXEEXT) pixmem_reg$(EXEEXT) \
-	pixserial_reg$(EXEEXT) pixtile_reg$(EXEEXT) \
+	pixserial_reg$(EXEEXT) pixtile_reg$(EXEEXT) pngio_reg$(EXEEXT) \
 	projection_reg$(EXEEXT) projective_reg$(EXEEXT) \
 	psio_reg$(EXEEXT) psioseg_reg$(EXEEXT) pta_reg$(EXEEXT) \
 	ptra1_reg$(EXEEXT) ptra2_reg$(EXEEXT) rank_reg$(EXEEXT) \
 	rankbin_reg$(EXEEXT) rankhisto_reg$(EXEEXT) \
 	rasterop_reg$(EXEEXT) rasteropip_reg$(EXEEXT) \
 	rotate1_reg$(EXEEXT) rotate2_reg$(EXEEXT) \
-	rotateorth_reg$(EXEEXT) scale_reg$(EXEEXT) selio_reg$(EXEEXT) \
-	shear_reg$(EXEEXT) shear2_reg$(EXEEXT) skew_reg$(EXEEXT) \
-	smallpix_reg$(EXEEXT) smoothedge_reg$(EXEEXT) \
-	splitcomp_reg$(EXEEXT) string_reg$(EXEEXT) \
-	subpixel_reg$(EXEEXT) threshnorm_reg$(EXEEXT) \
+	rotateorth_reg$(EXEEXT) scale_reg$(EXEEXT) \
+	seedspread_reg$(EXEEXT) selio_reg$(EXEEXT) shear_reg$(EXEEXT) \
+	shear2_reg$(EXEEXT) skew_reg$(EXEEXT) smallpix_reg$(EXEEXT) \
+	smoothedge_reg$(EXEEXT) splitcomp_reg$(EXEEXT) \
+	string_reg$(EXEEXT) subpixel_reg$(EXEEXT) \
+	threshnorm_reg$(EXEEXT) translate_reg$(EXEEXT) \
 	warper_reg$(EXEEXT) writetext_reg$(EXEEXT) \
 	xformbox_reg$(EXEEXT) adaptmaptest$(EXEEXT) arithtest$(EXEEXT) \
 	barcodetest$(EXEEXT) baselinetest$(EXEEXT) bincompare$(EXEEXT) \
 	blendcmaptest$(EXEEXT) blendtest1$(EXEEXT) buffertest$(EXEEXT) \
-	ccbordtest$(EXEEXT) cctest1$(EXEEXT) colormorphtest$(EXEEXT) \
-	colorsegtest$(EXEEXT) colorspacetest$(EXEEXT) \
-	comparepages$(EXEEXT) comparetest$(EXEEXT) \
-	contrasttest$(EXEEXT) convertfilestops$(EXEEXT) \
-	convertformat$(EXEEXT) convertsegfilestops$(EXEEXT) \
-	converttogray$(EXEEXT) converttops$(EXEEXT) \
-	convolvetest$(EXEEXT) cornertest$(EXEEXT) croptext$(EXEEXT) \
-	dewarptest$(EXEEXT) digitprep1$(EXEEXT) dithertest$(EXEEXT) \
-	dwalineargen$(EXEEXT) edgetest$(EXEEXT) \
+	byteatest$(EXEEXT) ccbordtest$(EXEEXT) cctest1$(EXEEXT) \
+	colormorphtest$(EXEEXT) colorsegtest$(EXEEXT) \
+	colorspacetest$(EXEEXT) comparepages$(EXEEXT) \
+	comparetest$(EXEEXT) contrasttest$(EXEEXT) \
+	convertfilestopdf$(EXEEXT) convertfilestops$(EXEEXT) \
+	convertformat$(EXEEXT) convertsegfilestopdf$(EXEEXT) \
+	convertsegfilestops$(EXEEXT) converttogray$(EXEEXT) \
+	converttops$(EXEEXT) convolvetest$(EXEEXT) cornertest$(EXEEXT) \
+	croptext$(EXEEXT) dewarptest$(EXEEXT) digitprep1$(EXEEXT) \
+	dithertest$(EXEEXT) dwalineargen$(EXEEXT) edgetest$(EXEEXT) \
 	falsecolortest$(EXEEXT) fcombautogen$(EXEEXT) \
 	fhmtautogen$(EXEEXT) fileinfo$(EXEEXT) findpattern1$(EXEEXT) \
 	findpattern2$(EXEEXT) findpattern3$(EXEEXT) \
@@ -100,19 +102,21 @@ bin_PROGRAMS = adaptnorm_reg$(EXEEXT) affine_reg$(EXEEXT) \
 	misctest1$(EXEEXT) modifyhuesat$(EXEEXT) morphtest1$(EXEEXT) \
 	mtifftest$(EXEEXT) numaranktest$(EXEEXT) otsutest1$(EXEEXT) \
 	otsutest2$(EXEEXT) pagesegtest1$(EXEEXT) pagesegtest2$(EXEEXT) \
-	partitiontest$(EXEEXT) pixaatest$(EXEEXT) plottest$(EXEEXT) \
-	printimage$(EXEEXT) printsplitimage$(EXEEXT) \
-	printtiff$(EXEEXT) ranktest$(EXEEXT) reducetest$(EXEEXT) \
-	removecmap$(EXEEXT) renderfonts$(EXEEXT) \
+	partitiontest$(EXEEXT) pdfiotest$(EXEEXT) pixaatest$(EXEEXT) \
+	plottest$(EXEEXT) printimage$(EXEEXT) printsplitimage$(EXEEXT) \
+	printtiff$(EXEEXT) quadtreetest$(EXEEXT) ranktest$(EXEEXT) \
+	reducetest$(EXEEXT) removecmap$(EXEEXT) renderfonts$(EXEEXT) \
 	rotatefastalt$(EXEEXT) rotateorthtest1$(EXEEXT) \
-	rotatetest1$(EXEEXT) runlengthtest$(EXEEXT) \
+	rotatetest1$(EXEEXT) rotatetest2$(EXEEXT) \
+	runlengthtest$(EXEEXT) scaleandtile$(EXEEXT) \
 	scaletest1$(EXEEXT) scaletest2$(EXEEXT) seedfilltest$(EXEEXT) \
 	sharptest$(EXEEXT) sheartest$(EXEEXT) showedges$(EXEEXT) \
 	skewtest$(EXEEXT) snapcolortest$(EXEEXT) sorttest$(EXEEXT) \
 	splitimage2pdf$(EXEEXT) sudokutest$(EXEEXT) \
 	textlinemask$(EXEEXT) trctest$(EXEEXT) viewertest$(EXEEXT) \
-	watershedtest$(EXEEXT) wordsinorder$(EXEEXT) \
-	writemtiff$(EXEEXT) xtractprotos$(EXEEXT) xvdisp$(EXEEXT)
+	warpertest$(EXEEXT) watershedtest$(EXEEXT) \
+	wordsinorder$(EXEEXT) writemtiff$(EXEEXT) \
+	xtractprotos$(EXEEXT) xvdisp$(EXEEXT) yuvtest$(EXEEXT)
 subdir = prog
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -128,769 +132,1031 @@ PROGRAMS = $(bin_PROGRAMS)
 adaptmaptest_SOURCES = adaptmaptest.c
 adaptmaptest_OBJECTS = adaptmaptest.$(OBJEXT)
 adaptmaptest_LDADD = $(LDADD)
-adaptmaptest_DEPENDENCIES = ../src/liblept.la
+am__DEPENDENCIES_1 =
+adaptmaptest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 adaptnorm_reg_SOURCES = adaptnorm_reg.c
 adaptnorm_reg_OBJECTS = adaptnorm_reg.$(OBJEXT)
 adaptnorm_reg_LDADD = $(LDADD)
-adaptnorm_reg_DEPENDENCIES = ../src/liblept.la
+adaptnorm_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 affine_reg_SOURCES = affine_reg.c
 affine_reg_OBJECTS = affine_reg.$(OBJEXT)
 affine_reg_LDADD = $(LDADD)
-affine_reg_DEPENDENCIES = ../src/liblept.la
+affine_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 alltests_reg_SOURCES = alltests_reg.c
 alltests_reg_OBJECTS = alltests_reg.$(OBJEXT)
 alltests_reg_LDADD = $(LDADD)
-alltests_reg_DEPENDENCIES = ../src/liblept.la
+alltests_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 alphaclean_reg_SOURCES = alphaclean_reg.c
 alphaclean_reg_OBJECTS = alphaclean_reg.$(OBJEXT)
 alphaclean_reg_LDADD = $(LDADD)
-alphaclean_reg_DEPENDENCIES = ../src/liblept.la
+alphaclean_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 alphaxform_reg_SOURCES = alphaxform_reg.c
 alphaxform_reg_OBJECTS = alphaxform_reg.$(OBJEXT)
 alphaxform_reg_LDADD = $(LDADD)
-alphaxform_reg_DEPENDENCIES = ../src/liblept.la
+alphaxform_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 arithtest_SOURCES = arithtest.c
 arithtest_OBJECTS = arithtest.$(OBJEXT)
 arithtest_LDADD = $(LDADD)
-arithtest_DEPENDENCIES = ../src/liblept.la
+arithtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 barcodetest_SOURCES = barcodetest.c
 barcodetest_OBJECTS = barcodetest.$(OBJEXT)
 barcodetest_LDADD = $(LDADD)
-barcodetest_DEPENDENCIES = ../src/liblept.la
+barcodetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 baselinetest_SOURCES = baselinetest.c
 baselinetest_OBJECTS = baselinetest.$(OBJEXT)
 baselinetest_LDADD = $(LDADD)
-baselinetest_DEPENDENCIES = ../src/liblept.la
+baselinetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 bilinear_reg_SOURCES = bilinear_reg.c
 bilinear_reg_OBJECTS = bilinear_reg.$(OBJEXT)
 bilinear_reg_LDADD = $(LDADD)
-bilinear_reg_DEPENDENCIES = ../src/liblept.la
+bilinear_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 binarize_reg_SOURCES = binarize_reg.c
 binarize_reg_OBJECTS = binarize_reg.$(OBJEXT)
 binarize_reg_LDADD = $(LDADD)
-binarize_reg_DEPENDENCIES = ../src/liblept.la
+binarize_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 bincompare_SOURCES = bincompare.c
 bincompare_OBJECTS = bincompare.$(OBJEXT)
 bincompare_LDADD = $(LDADD)
-bincompare_DEPENDENCIES = ../src/liblept.la
+bincompare_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 binmorph1_reg_SOURCES = binmorph1_reg.c
 binmorph1_reg_OBJECTS = binmorph1_reg.$(OBJEXT)
 binmorph1_reg_LDADD = $(LDADD)
-binmorph1_reg_DEPENDENCIES = ../src/liblept.la
+binmorph1_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 binmorph2_reg_SOURCES = binmorph2_reg.c
 binmorph2_reg_OBJECTS = binmorph2_reg.$(OBJEXT)
 binmorph2_reg_LDADD = $(LDADD)
-binmorph2_reg_DEPENDENCIES = ../src/liblept.la
+binmorph2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 binmorph3_reg_SOURCES = binmorph3_reg.c
 binmorph3_reg_OBJECTS = binmorph3_reg.$(OBJEXT)
 binmorph3_reg_LDADD = $(LDADD)
-binmorph3_reg_DEPENDENCIES = ../src/liblept.la
+binmorph3_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 binmorph4_reg_SOURCES = binmorph4_reg.c
 binmorph4_reg_OBJECTS = binmorph4_reg.$(OBJEXT)
 binmorph4_reg_LDADD = $(LDADD)
-binmorph4_reg_DEPENDENCIES = ../src/liblept.la
+binmorph4_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 binmorph5_reg_SOURCES = binmorph5_reg.c
 binmorph5_reg_OBJECTS = binmorph5_reg.$(OBJEXT)
 binmorph5_reg_LDADD = $(LDADD)
-binmorph5_reg_DEPENDENCIES = ../src/liblept.la
+binmorph5_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 blend2_reg_SOURCES = blend2_reg.c
 blend2_reg_OBJECTS = blend2_reg.$(OBJEXT)
 blend2_reg_LDADD = $(LDADD)
-blend2_reg_DEPENDENCIES = ../src/liblept.la
+blend2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 blend_reg_SOURCES = blend_reg.c
 blend_reg_OBJECTS = blend_reg.$(OBJEXT)
 blend_reg_LDADD = $(LDADD)
-blend_reg_DEPENDENCIES = ../src/liblept.la
+blend_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 blendcmaptest_SOURCES = blendcmaptest.c
 blendcmaptest_OBJECTS = blendcmaptest.$(OBJEXT)
 blendcmaptest_LDADD = $(LDADD)
-blendcmaptest_DEPENDENCIES = ../src/liblept.la
+blendcmaptest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 blendtest1_SOURCES = blendtest1.c
 blendtest1_OBJECTS = blendtest1.$(OBJEXT)
 blendtest1_LDADD = $(LDADD)
-blendtest1_DEPENDENCIES = ../src/liblept.la
+blendtest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 buffertest_SOURCES = buffertest.c
 buffertest_OBJECTS = buffertest.$(OBJEXT)
 buffertest_LDADD = $(LDADD)
-buffertest_DEPENDENCIES = ../src/liblept.la
+buffertest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+byteatest_SOURCES = byteatest.c
+byteatest_OBJECTS = byteatest.$(OBJEXT)
+byteatest_LDADD = $(LDADD)
+byteatest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 ccbordtest_SOURCES = ccbordtest.c
 ccbordtest_OBJECTS = ccbordtest.$(OBJEXT)
 ccbordtest_LDADD = $(LDADD)
-ccbordtest_DEPENDENCIES = ../src/liblept.la
+ccbordtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 cctest1_SOURCES = cctest1.c
 cctest1_OBJECTS = cctest1.$(OBJEXT)
 cctest1_LDADD = $(LDADD)
-cctest1_DEPENDENCIES = ../src/liblept.la
+cctest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 ccthin1_reg_SOURCES = ccthin1_reg.c
 ccthin1_reg_OBJECTS = ccthin1_reg.$(OBJEXT)
 ccthin1_reg_LDADD = $(LDADD)
-ccthin1_reg_DEPENDENCIES = ../src/liblept.la
+ccthin1_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 ccthin2_reg_SOURCES = ccthin2_reg.c
 ccthin2_reg_OBJECTS = ccthin2_reg.$(OBJEXT)
 ccthin2_reg_LDADD = $(LDADD)
-ccthin2_reg_DEPENDENCIES = ../src/liblept.la
+ccthin2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 cmapquant_reg_SOURCES = cmapquant_reg.c
 cmapquant_reg_OBJECTS = cmapquant_reg.$(OBJEXT)
 cmapquant_reg_LDADD = $(LDADD)
-cmapquant_reg_DEPENDENCIES = ../src/liblept.la
+cmapquant_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+colormask_reg_SOURCES = colormask_reg.c
+colormask_reg_OBJECTS = colormask_reg.$(OBJEXT)
+colormask_reg_LDADD = $(LDADD)
+colormask_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 colormorphtest_SOURCES = colormorphtest.c
 colormorphtest_OBJECTS = colormorphtest.$(OBJEXT)
 colormorphtest_LDADD = $(LDADD)
-colormorphtest_DEPENDENCIES = ../src/liblept.la
+colormorphtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 colorquant_reg_SOURCES = colorquant_reg.c
 colorquant_reg_OBJECTS = colorquant_reg.$(OBJEXT)
 colorquant_reg_LDADD = $(LDADD)
-colorquant_reg_DEPENDENCIES = ../src/liblept.la
+colorquant_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 colorseg_reg_SOURCES = colorseg_reg.c
 colorseg_reg_OBJECTS = colorseg_reg.$(OBJEXT)
 colorseg_reg_LDADD = $(LDADD)
-colorseg_reg_DEPENDENCIES = ../src/liblept.la
+colorseg_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 colorsegtest_SOURCES = colorsegtest.c
 colorsegtest_OBJECTS = colorsegtest.$(OBJEXT)
 colorsegtest_LDADD = $(LDADD)
-colorsegtest_DEPENDENCIES = ../src/liblept.la
+colorsegtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 colorspacetest_SOURCES = colorspacetest.c
 colorspacetest_OBJECTS = colorspacetest.$(OBJEXT)
 colorspacetest_LDADD = $(LDADD)
-colorspacetest_DEPENDENCIES = ../src/liblept.la
+colorspacetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 comparepages_SOURCES = comparepages.c
 comparepages_OBJECTS = comparepages.$(OBJEXT)
 comparepages_LDADD = $(LDADD)
-comparepages_DEPENDENCIES = ../src/liblept.la
+comparepages_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 comparetest_SOURCES = comparetest.c
 comparetest_OBJECTS = comparetest.$(OBJEXT)
 comparetest_LDADD = $(LDADD)
-comparetest_DEPENDENCIES = ../src/liblept.la
+comparetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 compfilter_reg_SOURCES = compfilter_reg.c
 compfilter_reg_OBJECTS = compfilter_reg.$(OBJEXT)
 compfilter_reg_LDADD = $(LDADD)
-compfilter_reg_DEPENDENCIES = ../src/liblept.la
+compfilter_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 conncomp_reg_SOURCES = conncomp_reg.c
 conncomp_reg_OBJECTS = conncomp_reg.$(OBJEXT)
 conncomp_reg_LDADD = $(LDADD)
-conncomp_reg_DEPENDENCIES = ../src/liblept.la
+conncomp_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 contrasttest_SOURCES = contrasttest.c
 contrasttest_OBJECTS = contrasttest.$(OBJEXT)
 contrasttest_LDADD = $(LDADD)
-contrasttest_DEPENDENCIES = ../src/liblept.la
+contrasttest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 conversion_reg_SOURCES = conversion_reg.c
 conversion_reg_OBJECTS = conversion_reg.$(OBJEXT)
 conversion_reg_LDADD = $(LDADD)
-conversion_reg_DEPENDENCIES = ../src/liblept.la
+conversion_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+convertfilestopdf_SOURCES = convertfilestopdf.c
+convertfilestopdf_OBJECTS = convertfilestopdf.$(OBJEXT)
+convertfilestopdf_LDADD = $(LDADD)
+convertfilestopdf_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 convertfilestops_SOURCES = convertfilestops.c
 convertfilestops_OBJECTS = convertfilestops.$(OBJEXT)
 convertfilestops_LDADD = $(LDADD)
-convertfilestops_DEPENDENCIES = ../src/liblept.la
+convertfilestops_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 convertformat_SOURCES = convertformat.c
 convertformat_OBJECTS = convertformat.$(OBJEXT)
 convertformat_LDADD = $(LDADD)
-convertformat_DEPENDENCIES = ../src/liblept.la
+convertformat_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+convertsegfilestopdf_SOURCES = convertsegfilestopdf.c
+convertsegfilestopdf_OBJECTS = convertsegfilestopdf.$(OBJEXT)
+convertsegfilestopdf_LDADD = $(LDADD)
+convertsegfilestopdf_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 convertsegfilestops_SOURCES = convertsegfilestops.c
 convertsegfilestops_OBJECTS = convertsegfilestops.$(OBJEXT)
 convertsegfilestops_LDADD = $(LDADD)
-convertsegfilestops_DEPENDENCIES = ../src/liblept.la
+convertsegfilestops_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 converttogray_SOURCES = converttogray.c
 converttogray_OBJECTS = converttogray.$(OBJEXT)
 converttogray_LDADD = $(LDADD)
-converttogray_DEPENDENCIES = ../src/liblept.la
+converttogray_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 converttops_SOURCES = converttops.c
 converttops_OBJECTS = converttops.$(OBJEXT)
 converttops_LDADD = $(LDADD)
-converttops_DEPENDENCIES = ../src/liblept.la
+converttops_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 convolve_reg_SOURCES = convolve_reg.c
 convolve_reg_OBJECTS = convolve_reg.$(OBJEXT)
 convolve_reg_LDADD = $(LDADD)
-convolve_reg_DEPENDENCIES = ../src/liblept.la
+convolve_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 convolvetest_SOURCES = convolvetest.c
 convolvetest_OBJECTS = convolvetest.$(OBJEXT)
 convolvetest_LDADD = $(LDADD)
-convolvetest_DEPENDENCIES = ../src/liblept.la
+convolvetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 cornertest_SOURCES = cornertest.c
 cornertest_OBJECTS = cornertest.$(OBJEXT)
 cornertest_LDADD = $(LDADD)
-cornertest_DEPENDENCIES = ../src/liblept.la
+cornertest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 croptext_SOURCES = croptext.c
 croptext_OBJECTS = croptext.$(OBJEXT)
 croptext_LDADD = $(LDADD)
-croptext_DEPENDENCIES = ../src/liblept.la
+croptext_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 dewarp_reg_SOURCES = dewarp_reg.c
 dewarp_reg_OBJECTS = dewarp_reg.$(OBJEXT)
 dewarp_reg_LDADD = $(LDADD)
-dewarp_reg_DEPENDENCIES = ../src/liblept.la
+dewarp_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 dewarptest_SOURCES = dewarptest.c
 dewarptest_OBJECTS = dewarptest.$(OBJEXT)
 dewarptest_LDADD = $(LDADD)
-dewarptest_DEPENDENCIES = ../src/liblept.la
+dewarptest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 digitprep1_SOURCES = digitprep1.c
 digitprep1_OBJECTS = digitprep1.$(OBJEXT)
 digitprep1_LDADD = $(LDADD)
-digitprep1_DEPENDENCIES = ../src/liblept.la
+digitprep1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 distance_reg_SOURCES = distance_reg.c
 distance_reg_OBJECTS = distance_reg.$(OBJEXT)
 distance_reg_LDADD = $(LDADD)
-distance_reg_DEPENDENCIES = ../src/liblept.la
+distance_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 dithertest_SOURCES = dithertest.c
 dithertest_OBJECTS = dithertest.$(OBJEXT)
 dithertest_LDADD = $(LDADD)
-dithertest_DEPENDENCIES = ../src/liblept.la
+dithertest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 dwalineargen_SOURCES = dwalineargen.c
 dwalineargen_OBJECTS = dwalineargen.$(OBJEXT)
 dwalineargen_LDADD = $(LDADD)
-dwalineargen_DEPENDENCIES = ../src/liblept.la
+dwalineargen_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 am_dwamorph1_reg_OBJECTS = dwamorph1_reg.$(OBJEXT) \
 	dwalinear.3.$(OBJEXT) dwalinearlow.3.$(OBJEXT)
 dwamorph1_reg_OBJECTS = $(am_dwamorph1_reg_OBJECTS)
 dwamorph1_reg_LDADD = $(LDADD)
-dwamorph1_reg_DEPENDENCIES = ../src/liblept.la
+dwamorph1_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 am_dwamorph2_reg_OBJECTS = dwamorph2_reg.$(OBJEXT) \
 	dwalinear.3.$(OBJEXT) dwalinearlow.3.$(OBJEXT)
 dwamorph2_reg_OBJECTS = $(am_dwamorph2_reg_OBJECTS)
 dwamorph2_reg_LDADD = $(LDADD)
-dwamorph2_reg_DEPENDENCIES = ../src/liblept.la
+dwamorph2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 edgetest_SOURCES = edgetest.c
 edgetest_OBJECTS = edgetest.$(OBJEXT)
 edgetest_LDADD = $(LDADD)
-edgetest_DEPENDENCIES = ../src/liblept.la
+edgetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 enhance_reg_SOURCES = enhance_reg.c
 enhance_reg_OBJECTS = enhance_reg.$(OBJEXT)
 enhance_reg_LDADD = $(LDADD)
-enhance_reg_DEPENDENCIES = ../src/liblept.la
+enhance_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 equal_reg_SOURCES = equal_reg.c
 equal_reg_OBJECTS = equal_reg.$(OBJEXT)
 equal_reg_LDADD = $(LDADD)
-equal_reg_DEPENDENCIES = ../src/liblept.la
+equal_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 expand_reg_SOURCES = expand_reg.c
 expand_reg_OBJECTS = expand_reg.$(OBJEXT)
 expand_reg_LDADD = $(LDADD)
-expand_reg_DEPENDENCIES = ../src/liblept.la
+expand_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 extrema_reg_SOURCES = extrema_reg.c
 extrema_reg_OBJECTS = extrema_reg.$(OBJEXT)
 extrema_reg_LDADD = $(LDADD)
-extrema_reg_DEPENDENCIES = ../src/liblept.la
+extrema_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 falsecolortest_SOURCES = falsecolortest.c
 falsecolortest_OBJECTS = falsecolortest.$(OBJEXT)
 falsecolortest_LDADD = $(LDADD)
-falsecolortest_DEPENDENCIES = ../src/liblept.la
+falsecolortest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 fcombautogen_SOURCES = fcombautogen.c
 fcombautogen_OBJECTS = fcombautogen.$(OBJEXT)
 fcombautogen_LDADD = $(LDADD)
-fcombautogen_DEPENDENCIES = ../src/liblept.la
+fcombautogen_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 fhmtauto_reg_SOURCES = fhmtauto_reg.c
 fhmtauto_reg_OBJECTS = fhmtauto_reg.$(OBJEXT)
 fhmtauto_reg_LDADD = $(LDADD)
-fhmtauto_reg_DEPENDENCIES = ../src/liblept.la
+fhmtauto_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 fhmtautogen_SOURCES = fhmtautogen.c
 fhmtautogen_OBJECTS = fhmtautogen.$(OBJEXT)
 fhmtautogen_LDADD = $(LDADD)
-fhmtautogen_DEPENDENCIES = ../src/liblept.la
+fhmtautogen_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 fileinfo_SOURCES = fileinfo.c
 fileinfo_OBJECTS = fileinfo.$(OBJEXT)
 fileinfo_LDADD = $(LDADD)
-fileinfo_DEPENDENCIES = ../src/liblept.la
+fileinfo_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 findpattern1_SOURCES = findpattern1.c
 findpattern1_OBJECTS = findpattern1.$(OBJEXT)
 findpattern1_LDADD = $(LDADD)
-findpattern1_DEPENDENCIES = ../src/liblept.la
+findpattern1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 findpattern2_SOURCES = findpattern2.c
 findpattern2_OBJECTS = findpattern2.$(OBJEXT)
 findpattern2_LDADD = $(LDADD)
-findpattern2_DEPENDENCIES = ../src/liblept.la
+findpattern2_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 findpattern3_SOURCES = findpattern3.c
 findpattern3_OBJECTS = findpattern3.$(OBJEXT)
 findpattern3_LDADD = $(LDADD)
-findpattern3_DEPENDENCIES = ../src/liblept.la
+findpattern3_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 findpattern_reg_SOURCES = findpattern_reg.c
 findpattern_reg_OBJECTS = findpattern_reg.$(OBJEXT)
 findpattern_reg_LDADD = $(LDADD)
-findpattern_reg_DEPENDENCIES = ../src/liblept.la
+findpattern_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 flipdetect_reg_SOURCES = flipdetect_reg.c
 flipdetect_reg_OBJECTS = flipdetect_reg.$(OBJEXT)
 flipdetect_reg_LDADD = $(LDADD)
-flipdetect_reg_DEPENDENCIES = ../src/liblept.la
+flipdetect_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 flipselgen_SOURCES = flipselgen.c
 flipselgen_OBJECTS = flipselgen.$(OBJEXT)
 flipselgen_LDADD = $(LDADD)
-flipselgen_DEPENDENCIES = ../src/liblept.la
+flipselgen_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 fmorphauto_reg_SOURCES = fmorphauto_reg.c
 fmorphauto_reg_OBJECTS = fmorphauto_reg.$(OBJEXT)
 fmorphauto_reg_LDADD = $(LDADD)
-fmorphauto_reg_DEPENDENCIES = ../src/liblept.la
+fmorphauto_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 fmorphautogen_SOURCES = fmorphautogen.c
 fmorphautogen_OBJECTS = fmorphautogen.$(OBJEXT)
 fmorphautogen_LDADD = $(LDADD)
-fmorphautogen_DEPENDENCIES = ../src/liblept.la
+fmorphautogen_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 fpix_reg_SOURCES = fpix_reg.c
 fpix_reg_OBJECTS = fpix_reg.$(OBJEXT)
 fpix_reg_LDADD = $(LDADD)
-fpix_reg_DEPENDENCIES = ../src/liblept.la
+fpix_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 gammatest_SOURCES = gammatest.c
 gammatest_OBJECTS = gammatest.$(OBJEXT)
 gammatest_LDADD = $(LDADD)
-gammatest_DEPENDENCIES = ../src/liblept.la
+gammatest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 genfonts_SOURCES = genfonts.c
 genfonts_OBJECTS = genfonts.$(OBJEXT)
 genfonts_LDADD = $(LDADD)
-genfonts_DEPENDENCIES = ../src/liblept.la
+genfonts_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 gifio_reg_SOURCES = gifio_reg.c
 gifio_reg_OBJECTS = gifio_reg.$(OBJEXT)
 gifio_reg_LDADD = $(LDADD)
-gifio_reg_DEPENDENCIES = ../src/liblept.la
+gifio_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 graphicstest_SOURCES = graphicstest.c
 graphicstest_OBJECTS = graphicstest.$(OBJEXT)
 graphicstest_LDADD = $(LDADD)
-graphicstest_DEPENDENCIES = ../src/liblept.la
+graphicstest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 grayfill_reg_SOURCES = grayfill_reg.c
 grayfill_reg_OBJECTS = grayfill_reg.$(OBJEXT)
 grayfill_reg_LDADD = $(LDADD)
-grayfill_reg_DEPENDENCIES = ../src/liblept.la
+grayfill_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 graymorph1_reg_SOURCES = graymorph1_reg.c
 graymorph1_reg_OBJECTS = graymorph1_reg.$(OBJEXT)
 graymorph1_reg_LDADD = $(LDADD)
-graymorph1_reg_DEPENDENCIES = ../src/liblept.la
+graymorph1_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 graymorph2_reg_SOURCES = graymorph2_reg.c
 graymorph2_reg_OBJECTS = graymorph2_reg.$(OBJEXT)
 graymorph2_reg_LDADD = $(LDADD)
-graymorph2_reg_DEPENDENCIES = ../src/liblept.la
+graymorph2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 graymorphtest_SOURCES = graymorphtest.c
 graymorphtest_OBJECTS = graymorphtest.$(OBJEXT)
 graymorphtest_LDADD = $(LDADD)
-graymorphtest_DEPENDENCIES = ../src/liblept.la
+graymorphtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 grayquant_reg_SOURCES = grayquant_reg.c
 grayquant_reg_OBJECTS = grayquant_reg.$(OBJEXT)
 grayquant_reg_LDADD = $(LDADD)
-grayquant_reg_DEPENDENCIES = ../src/liblept.la
+grayquant_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 hardlight_reg_SOURCES = hardlight_reg.c
 hardlight_reg_OBJECTS = hardlight_reg.$(OBJEXT)
 hardlight_reg_LDADD = $(LDADD)
-hardlight_reg_DEPENDENCIES = ../src/liblept.la
+hardlight_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 heap_reg_SOURCES = heap_reg.c
 heap_reg_OBJECTS = heap_reg.$(OBJEXT)
 heap_reg_LDADD = $(LDADD)
-heap_reg_DEPENDENCIES = ../src/liblept.la
+heap_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 histotest_SOURCES = histotest.c
 histotest_OBJECTS = histotest.$(OBJEXT)
 histotest_LDADD = $(LDADD)
-histotest_DEPENDENCIES = ../src/liblept.la
+histotest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 inserttest_SOURCES = inserttest.c
 inserttest_OBJECTS = inserttest.$(OBJEXT)
 inserttest_LDADD = $(LDADD)
-inserttest_DEPENDENCIES = ../src/liblept.la
+inserttest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 ioformats_reg_SOURCES = ioformats_reg.c
 ioformats_reg_OBJECTS = ioformats_reg.$(OBJEXT)
 ioformats_reg_LDADD = $(LDADD)
-ioformats_reg_DEPENDENCIES = ../src/liblept.la
+ioformats_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 iotest_SOURCES = iotest.c
 iotest_OBJECTS = iotest.$(OBJEXT)
 iotest_LDADD = $(LDADD)
-iotest_DEPENDENCIES = ../src/liblept.la
+iotest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 jbcorrelation_SOURCES = jbcorrelation.c
 jbcorrelation_OBJECTS = jbcorrelation.$(OBJEXT)
 jbcorrelation_LDADD = $(LDADD)
-jbcorrelation_DEPENDENCIES = ../src/liblept.la
+jbcorrelation_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 jbrankhaus_SOURCES = jbrankhaus.c
 jbrankhaus_OBJECTS = jbrankhaus.$(OBJEXT)
 jbrankhaus_LDADD = $(LDADD)
-jbrankhaus_DEPENDENCIES = ../src/liblept.la
+jbrankhaus_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 jbwords_SOURCES = jbwords.c
 jbwords_OBJECTS = jbwords.$(OBJEXT)
 jbwords_LDADD = $(LDADD)
-jbwords_DEPENDENCIES = ../src/liblept.la
+jbwords_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 kernel_reg_SOURCES = kernel_reg.c
 kernel_reg_OBJECTS = kernel_reg.$(OBJEXT)
 kernel_reg_LDADD = $(LDADD)
-kernel_reg_DEPENDENCIES = ../src/liblept.la
+kernel_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 lineremoval_SOURCES = lineremoval.c
 lineremoval_OBJECTS = lineremoval.$(OBJEXT)
 lineremoval_LDADD = $(LDADD)
-lineremoval_DEPENDENCIES = ../src/liblept.la
+lineremoval_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 listtest_SOURCES = listtest.c
 listtest_OBJECTS = listtest.$(OBJEXT)
 listtest_LDADD = $(LDADD)
-listtest_DEPENDENCIES = ../src/liblept.la
+listtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 livre_adapt_SOURCES = livre_adapt.c
 livre_adapt_OBJECTS = livre_adapt.$(OBJEXT)
 livre_adapt_LDADD = $(LDADD)
-livre_adapt_DEPENDENCIES = ../src/liblept.la
+livre_adapt_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 livre_hmt_SOURCES = livre_hmt.c
 livre_hmt_OBJECTS = livre_hmt.$(OBJEXT)
 livre_hmt_LDADD = $(LDADD)
-livre_hmt_DEPENDENCIES = ../src/liblept.la
+livre_hmt_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 livre_makefigs_SOURCES = livre_makefigs.c
 livre_makefigs_OBJECTS = livre_makefigs.$(OBJEXT)
 livre_makefigs_LDADD = $(LDADD)
-livre_makefigs_DEPENDENCIES = ../src/liblept.la
+livre_makefigs_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 livre_orient_SOURCES = livre_orient.c
 livre_orient_OBJECTS = livre_orient.$(OBJEXT)
 livre_orient_LDADD = $(LDADD)
-livre_orient_DEPENDENCIES = ../src/liblept.la
+livre_orient_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 livre_pageseg_SOURCES = livre_pageseg.c
 livre_pageseg_OBJECTS = livre_pageseg.$(OBJEXT)
 livre_pageseg_LDADD = $(LDADD)
-livre_pageseg_DEPENDENCIES = ../src/liblept.la
+livre_pageseg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 livre_seedgen_SOURCES = livre_seedgen.c
 livre_seedgen_OBJECTS = livre_seedgen.$(OBJEXT)
 livre_seedgen_LDADD = $(LDADD)
-livre_seedgen_DEPENDENCIES = ../src/liblept.la
+livre_seedgen_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 livre_tophat_SOURCES = livre_tophat.c
 livre_tophat_OBJECTS = livre_tophat.$(OBJEXT)
 livre_tophat_LDADD = $(LDADD)
-livre_tophat_DEPENDENCIES = ../src/liblept.la
+livre_tophat_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 locminmax_reg_SOURCES = locminmax_reg.c
 locminmax_reg_OBJECTS = locminmax_reg.$(OBJEXT)
 locminmax_reg_LDADD = $(LDADD)
-locminmax_reg_DEPENDENCIES = ../src/liblept.la
+locminmax_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 logicops_reg_SOURCES = logicops_reg.c
 logicops_reg_OBJECTS = logicops_reg.$(OBJEXT)
 logicops_reg_LDADD = $(LDADD)
-logicops_reg_DEPENDENCIES = ../src/liblept.la
+logicops_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 lowaccess_reg_SOURCES = lowaccess_reg.c
 lowaccess_reg_OBJECTS = lowaccess_reg.$(OBJEXT)
 lowaccess_reg_LDADD = $(LDADD)
-lowaccess_reg_DEPENDENCIES = ../src/liblept.la
+lowaccess_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 maketile_SOURCES = maketile.c
 maketile_OBJECTS = maketile.$(OBJEXT)
 maketile_LDADD = $(LDADD)
-maketile_DEPENDENCIES = ../src/liblept.la
+maketile_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 maze_reg_SOURCES = maze_reg.c
 maze_reg_OBJECTS = maze_reg.$(OBJEXT)
 maze_reg_LDADD = $(LDADD)
-maze_reg_DEPENDENCIES = ../src/liblept.la
+maze_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 misctest1_SOURCES = misctest1.c
 misctest1_OBJECTS = misctest1.$(OBJEXT)
 misctest1_LDADD = $(LDADD)
-misctest1_DEPENDENCIES = ../src/liblept.la
+misctest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 modifyhuesat_SOURCES = modifyhuesat.c
 modifyhuesat_OBJECTS = modifyhuesat.$(OBJEXT)
 modifyhuesat_LDADD = $(LDADD)
-modifyhuesat_DEPENDENCIES = ../src/liblept.la
+modifyhuesat_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 morphseq_reg_SOURCES = morphseq_reg.c
 morphseq_reg_OBJECTS = morphseq_reg.$(OBJEXT)
 morphseq_reg_LDADD = $(LDADD)
-morphseq_reg_DEPENDENCIES = ../src/liblept.la
+morphseq_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 morphtest1_SOURCES = morphtest1.c
 morphtest1_OBJECTS = morphtest1.$(OBJEXT)
 morphtest1_LDADD = $(LDADD)
-morphtest1_DEPENDENCIES = ../src/liblept.la
+morphtest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 mtifftest_SOURCES = mtifftest.c
 mtifftest_OBJECTS = mtifftest.$(OBJEXT)
 mtifftest_LDADD = $(LDADD)
-mtifftest_DEPENDENCIES = ../src/liblept.la
+mtifftest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 numa_reg_SOURCES = numa_reg.c
 numa_reg_OBJECTS = numa_reg.$(OBJEXT)
 numa_reg_LDADD = $(LDADD)
-numa_reg_DEPENDENCIES = ../src/liblept.la
+numa_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 numaranktest_SOURCES = numaranktest.c
 numaranktest_OBJECTS = numaranktest.$(OBJEXT)
 numaranktest_LDADD = $(LDADD)
-numaranktest_DEPENDENCIES = ../src/liblept.la
+numaranktest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 otsutest1_SOURCES = otsutest1.c
 otsutest1_OBJECTS = otsutest1.$(OBJEXT)
 otsutest1_LDADD = $(LDADD)
-otsutest1_DEPENDENCIES = ../src/liblept.la
+otsutest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 otsutest2_SOURCES = otsutest2.c
 otsutest2_OBJECTS = otsutest2.$(OBJEXT)
 otsutest2_LDADD = $(LDADD)
-otsutest2_DEPENDENCIES = ../src/liblept.la
+otsutest2_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 overlap_reg_SOURCES = overlap_reg.c
 overlap_reg_OBJECTS = overlap_reg.$(OBJEXT)
 overlap_reg_LDADD = $(LDADD)
-overlap_reg_DEPENDENCIES = ../src/liblept.la
+overlap_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pagesegtest1_SOURCES = pagesegtest1.c
 pagesegtest1_OBJECTS = pagesegtest1.$(OBJEXT)
 pagesegtest1_LDADD = $(LDADD)
-pagesegtest1_DEPENDENCIES = ../src/liblept.la
+pagesegtest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pagesegtest2_SOURCES = pagesegtest2.c
 pagesegtest2_OBJECTS = pagesegtest2.$(OBJEXT)
 pagesegtest2_LDADD = $(LDADD)
-pagesegtest2_DEPENDENCIES = ../src/liblept.la
+pagesegtest2_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 paint_reg_SOURCES = paint_reg.c
 paint_reg_OBJECTS = paint_reg.$(OBJEXT)
 paint_reg_LDADD = $(LDADD)
-paint_reg_DEPENDENCIES = ../src/liblept.la
+paint_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 paintmask_reg_SOURCES = paintmask_reg.c
 paintmask_reg_OBJECTS = paintmask_reg.$(OBJEXT)
 paintmask_reg_LDADD = $(LDADD)
-paintmask_reg_DEPENDENCIES = ../src/liblept.la
+paintmask_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 partitiontest_SOURCES = partitiontest.c
 partitiontest_OBJECTS = partitiontest.$(OBJEXT)
 partitiontest_LDADD = $(LDADD)
-partitiontest_DEPENDENCIES = ../src/liblept.la
+partitiontest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+pdfiotest_SOURCES = pdfiotest.c
+pdfiotest_OBJECTS = pdfiotest.$(OBJEXT)
+pdfiotest_LDADD = $(LDADD)
+pdfiotest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+pdfseg_reg_SOURCES = pdfseg_reg.c
+pdfseg_reg_OBJECTS = pdfseg_reg.$(OBJEXT)
+pdfseg_reg_LDADD = $(LDADD)
+pdfseg_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixa1_reg_SOURCES = pixa1_reg.c
 pixa1_reg_OBJECTS = pixa1_reg.$(OBJEXT)
 pixa1_reg_LDADD = $(LDADD)
-pixa1_reg_DEPENDENCIES = ../src/liblept.la
+pixa1_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixa2_reg_SOURCES = pixa2_reg.c
 pixa2_reg_OBJECTS = pixa2_reg.$(OBJEXT)
 pixa2_reg_LDADD = $(LDADD)
-pixa2_reg_DEPENDENCIES = ../src/liblept.la
+pixa2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixaatest_SOURCES = pixaatest.c
 pixaatest_OBJECTS = pixaatest.$(OBJEXT)
 pixaatest_LDADD = $(LDADD)
-pixaatest_DEPENDENCIES = ../src/liblept.la
+pixaatest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixadisp_reg_SOURCES = pixadisp_reg.c
 pixadisp_reg_OBJECTS = pixadisp_reg.$(OBJEXT)
 pixadisp_reg_LDADD = $(LDADD)
-pixadisp_reg_DEPENDENCIES = ../src/liblept.la
+pixadisp_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixalloc_reg_SOURCES = pixalloc_reg.c
 pixalloc_reg_OBJECTS = pixalloc_reg.$(OBJEXT)
 pixalloc_reg_LDADD = $(LDADD)
-pixalloc_reg_DEPENDENCIES = ../src/liblept.la
+pixalloc_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixcomp_reg_SOURCES = pixcomp_reg.c
 pixcomp_reg_OBJECTS = pixcomp_reg.$(OBJEXT)
 pixcomp_reg_LDADD = $(LDADD)
-pixcomp_reg_DEPENDENCIES = ../src/liblept.la
+pixcomp_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixmem_reg_SOURCES = pixmem_reg.c
 pixmem_reg_OBJECTS = pixmem_reg.$(OBJEXT)
 pixmem_reg_LDADD = $(LDADD)
-pixmem_reg_DEPENDENCIES = ../src/liblept.la
+pixmem_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixserial_reg_SOURCES = pixserial_reg.c
 pixserial_reg_OBJECTS = pixserial_reg.$(OBJEXT)
 pixserial_reg_LDADD = $(LDADD)
-pixserial_reg_DEPENDENCIES = ../src/liblept.la
+pixserial_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pixtile_reg_SOURCES = pixtile_reg.c
 pixtile_reg_OBJECTS = pixtile_reg.$(OBJEXT)
 pixtile_reg_LDADD = $(LDADD)
-pixtile_reg_DEPENDENCIES = ../src/liblept.la
+pixtile_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 plottest_SOURCES = plottest.c
 plottest_OBJECTS = plottest.$(OBJEXT)
 plottest_LDADD = $(LDADD)
-plottest_DEPENDENCIES = ../src/liblept.la
+plottest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+pngio_reg_SOURCES = pngio_reg.c
+pngio_reg_OBJECTS = pngio_reg.$(OBJEXT)
+pngio_reg_LDADD = $(LDADD)
+pngio_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 printimage_SOURCES = printimage.c
 printimage_OBJECTS = printimage.$(OBJEXT)
 printimage_LDADD = $(LDADD)
-printimage_DEPENDENCIES = ../src/liblept.la
+printimage_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 printsplitimage_SOURCES = printsplitimage.c
 printsplitimage_OBJECTS = printsplitimage.$(OBJEXT)
 printsplitimage_LDADD = $(LDADD)
-printsplitimage_DEPENDENCIES = ../src/liblept.la
+printsplitimage_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 printtiff_SOURCES = printtiff.c
 printtiff_OBJECTS = printtiff.$(OBJEXT)
 printtiff_LDADD = $(LDADD)
-printtiff_DEPENDENCIES = ../src/liblept.la
+printtiff_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 projection_reg_SOURCES = projection_reg.c
 projection_reg_OBJECTS = projection_reg.$(OBJEXT)
 projection_reg_LDADD = $(LDADD)
-projection_reg_DEPENDENCIES = ../src/liblept.la
+projection_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 projective_reg_SOURCES = projective_reg.c
 projective_reg_OBJECTS = projective_reg.$(OBJEXT)
 projective_reg_LDADD = $(LDADD)
-projective_reg_DEPENDENCIES = ../src/liblept.la
+projective_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 psio_reg_SOURCES = psio_reg.c
 psio_reg_OBJECTS = psio_reg.$(OBJEXT)
 psio_reg_LDADD = $(LDADD)
-psio_reg_DEPENDENCIES = ../src/liblept.la
+psio_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 psioseg_reg_SOURCES = psioseg_reg.c
 psioseg_reg_OBJECTS = psioseg_reg.$(OBJEXT)
 psioseg_reg_LDADD = $(LDADD)
-psioseg_reg_DEPENDENCIES = ../src/liblept.la
+psioseg_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 pta_reg_SOURCES = pta_reg.c
 pta_reg_OBJECTS = pta_reg.$(OBJEXT)
 pta_reg_LDADD = $(LDADD)
-pta_reg_DEPENDENCIES = ../src/liblept.la
+pta_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 ptra1_reg_SOURCES = ptra1_reg.c
 ptra1_reg_OBJECTS = ptra1_reg.$(OBJEXT)
 ptra1_reg_LDADD = $(LDADD)
-ptra1_reg_DEPENDENCIES = ../src/liblept.la
+ptra1_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 ptra2_reg_SOURCES = ptra2_reg.c
 ptra2_reg_OBJECTS = ptra2_reg.$(OBJEXT)
 ptra2_reg_LDADD = $(LDADD)
-ptra2_reg_DEPENDENCIES = ../src/liblept.la
+ptra2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+quadtreetest_SOURCES = quadtreetest.c
+quadtreetest_OBJECTS = quadtreetest.$(OBJEXT)
+quadtreetest_LDADD = $(LDADD)
+quadtreetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rank_reg_SOURCES = rank_reg.c
 rank_reg_OBJECTS = rank_reg.$(OBJEXT)
 rank_reg_LDADD = $(LDADD)
-rank_reg_DEPENDENCIES = ../src/liblept.la
+rank_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rankbin_reg_SOURCES = rankbin_reg.c
 rankbin_reg_OBJECTS = rankbin_reg.$(OBJEXT)
 rankbin_reg_LDADD = $(LDADD)
-rankbin_reg_DEPENDENCIES = ../src/liblept.la
+rankbin_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rankhisto_reg_SOURCES = rankhisto_reg.c
 rankhisto_reg_OBJECTS = rankhisto_reg.$(OBJEXT)
 rankhisto_reg_LDADD = $(LDADD)
-rankhisto_reg_DEPENDENCIES = ../src/liblept.la
+rankhisto_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 ranktest_SOURCES = ranktest.c
 ranktest_OBJECTS = ranktest.$(OBJEXT)
 ranktest_LDADD = $(LDADD)
-ranktest_DEPENDENCIES = ../src/liblept.la
+ranktest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rasterop_reg_SOURCES = rasterop_reg.c
 rasterop_reg_OBJECTS = rasterop_reg.$(OBJEXT)
 rasterop_reg_LDADD = $(LDADD)
-rasterop_reg_DEPENDENCIES = ../src/liblept.la
+rasterop_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rasteropip_reg_SOURCES = rasteropip_reg.c
 rasteropip_reg_OBJECTS = rasteropip_reg.$(OBJEXT)
 rasteropip_reg_LDADD = $(LDADD)
-rasteropip_reg_DEPENDENCIES = ../src/liblept.la
+rasteropip_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 reducetest_SOURCES = reducetest.c
 reducetest_OBJECTS = reducetest.$(OBJEXT)
 reducetest_LDADD = $(LDADD)
-reducetest_DEPENDENCIES = ../src/liblept.la
+reducetest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 removecmap_SOURCES = removecmap.c
 removecmap_OBJECTS = removecmap.$(OBJEXT)
 removecmap_LDADD = $(LDADD)
-removecmap_DEPENDENCIES = ../src/liblept.la
+removecmap_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 renderfonts_SOURCES = renderfonts.c
 renderfonts_OBJECTS = renderfonts.$(OBJEXT)
 renderfonts_LDADD = $(LDADD)
-renderfonts_DEPENDENCIES = ../src/liblept.la
+renderfonts_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rotate1_reg_SOURCES = rotate1_reg.c
 rotate1_reg_OBJECTS = rotate1_reg.$(OBJEXT)
 rotate1_reg_LDADD = $(LDADD)
-rotate1_reg_DEPENDENCIES = ../src/liblept.la
+rotate1_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rotate2_reg_SOURCES = rotate2_reg.c
 rotate2_reg_OBJECTS = rotate2_reg.$(OBJEXT)
 rotate2_reg_LDADD = $(LDADD)
-rotate2_reg_DEPENDENCIES = ../src/liblept.la
+rotate2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rotatefastalt_SOURCES = rotatefastalt.c
 rotatefastalt_OBJECTS = rotatefastalt.$(OBJEXT)
 rotatefastalt_LDADD = $(LDADD)
-rotatefastalt_DEPENDENCIES = ../src/liblept.la
+rotatefastalt_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rotateorth_reg_SOURCES = rotateorth_reg.c
 rotateorth_reg_OBJECTS = rotateorth_reg.$(OBJEXT)
 rotateorth_reg_LDADD = $(LDADD)
-rotateorth_reg_DEPENDENCIES = ../src/liblept.la
+rotateorth_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rotateorthtest1_SOURCES = rotateorthtest1.c
 rotateorthtest1_OBJECTS = rotateorthtest1.$(OBJEXT)
 rotateorthtest1_LDADD = $(LDADD)
-rotateorthtest1_DEPENDENCIES = ../src/liblept.la
+rotateorthtest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 rotatetest1_SOURCES = rotatetest1.c
 rotatetest1_OBJECTS = rotatetest1.$(OBJEXT)
 rotatetest1_LDADD = $(LDADD)
-rotatetest1_DEPENDENCIES = ../src/liblept.la
+rotatetest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+rotatetest2_SOURCES = rotatetest2.c
+rotatetest2_OBJECTS = rotatetest2.$(OBJEXT)
+rotatetest2_LDADD = $(LDADD)
+rotatetest2_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 runlengthtest_SOURCES = runlengthtest.c
 runlengthtest_OBJECTS = runlengthtest.$(OBJEXT)
 runlengthtest_LDADD = $(LDADD)
-runlengthtest_DEPENDENCIES = ../src/liblept.la
+runlengthtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 scale_reg_SOURCES = scale_reg.c
 scale_reg_OBJECTS = scale_reg.$(OBJEXT)
 scale_reg_LDADD = $(LDADD)
-scale_reg_DEPENDENCIES = ../src/liblept.la
+scale_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+scaleandtile_SOURCES = scaleandtile.c
+scaleandtile_OBJECTS = scaleandtile.$(OBJEXT)
+scaleandtile_LDADD = $(LDADD)
+scaleandtile_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 scaletest1_SOURCES = scaletest1.c
 scaletest1_OBJECTS = scaletest1.$(OBJEXT)
 scaletest1_LDADD = $(LDADD)
-scaletest1_DEPENDENCIES = ../src/liblept.la
+scaletest1_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 scaletest2_SOURCES = scaletest2.c
 scaletest2_OBJECTS = scaletest2.$(OBJEXT)
 scaletest2_LDADD = $(LDADD)
-scaletest2_DEPENDENCIES = ../src/liblept.la
+scaletest2_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 seedfilltest_SOURCES = seedfilltest.c
 seedfilltest_OBJECTS = seedfilltest.$(OBJEXT)
 seedfilltest_LDADD = $(LDADD)
-seedfilltest_DEPENDENCIES = ../src/liblept.la
+seedfilltest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+seedspread_reg_SOURCES = seedspread_reg.c
+seedspread_reg_OBJECTS = seedspread_reg.$(OBJEXT)
+seedspread_reg_LDADD = $(LDADD)
+seedspread_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 selio_reg_SOURCES = selio_reg.c
 selio_reg_OBJECTS = selio_reg.$(OBJEXT)
 selio_reg_LDADD = $(LDADD)
-selio_reg_DEPENDENCIES = ../src/liblept.la
+selio_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 sharptest_SOURCES = sharptest.c
 sharptest_OBJECTS = sharptest.$(OBJEXT)
 sharptest_LDADD = $(LDADD)
-sharptest_DEPENDENCIES = ../src/liblept.la
+sharptest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 shear2_reg_SOURCES = shear2_reg.c
 shear2_reg_OBJECTS = shear2_reg.$(OBJEXT)
 shear2_reg_LDADD = $(LDADD)
-shear2_reg_DEPENDENCIES = ../src/liblept.la
+shear2_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 shear_reg_SOURCES = shear_reg.c
 shear_reg_OBJECTS = shear_reg.$(OBJEXT)
 shear_reg_LDADD = $(LDADD)
-shear_reg_DEPENDENCIES = ../src/liblept.la
+shear_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 sheartest_SOURCES = sheartest.c
 sheartest_OBJECTS = sheartest.$(OBJEXT)
 sheartest_LDADD = $(LDADD)
-sheartest_DEPENDENCIES = ../src/liblept.la
+sheartest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 showedges_SOURCES = showedges.c
 showedges_OBJECTS = showedges.$(OBJEXT)
 showedges_LDADD = $(LDADD)
-showedges_DEPENDENCIES = ../src/liblept.la
+showedges_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 skew_reg_SOURCES = skew_reg.c
 skew_reg_OBJECTS = skew_reg.$(OBJEXT)
 skew_reg_LDADD = $(LDADD)
-skew_reg_DEPENDENCIES = ../src/liblept.la
+skew_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 skewtest_SOURCES = skewtest.c
 skewtest_OBJECTS = skewtest.$(OBJEXT)
 skewtest_LDADD = $(LDADD)
-skewtest_DEPENDENCIES = ../src/liblept.la
+skewtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 smallpix_reg_SOURCES = smallpix_reg.c
 smallpix_reg_OBJECTS = smallpix_reg.$(OBJEXT)
 smallpix_reg_LDADD = $(LDADD)
-smallpix_reg_DEPENDENCIES = ../src/liblept.la
+smallpix_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 smoothedge_reg_SOURCES = smoothedge_reg.c
 smoothedge_reg_OBJECTS = smoothedge_reg.$(OBJEXT)
 smoothedge_reg_LDADD = $(LDADD)
-smoothedge_reg_DEPENDENCIES = ../src/liblept.la
+smoothedge_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 snapcolortest_SOURCES = snapcolortest.c
 snapcolortest_OBJECTS = snapcolortest.$(OBJEXT)
 snapcolortest_LDADD = $(LDADD)
-snapcolortest_DEPENDENCIES = ../src/liblept.la
+snapcolortest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 sorttest_SOURCES = sorttest.c
 sorttest_OBJECTS = sorttest.$(OBJEXT)
 sorttest_LDADD = $(LDADD)
-sorttest_DEPENDENCIES = ../src/liblept.la
+sorttest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 splitcomp_reg_SOURCES = splitcomp_reg.c
 splitcomp_reg_OBJECTS = splitcomp_reg.$(OBJEXT)
 splitcomp_reg_LDADD = $(LDADD)
-splitcomp_reg_DEPENDENCIES = ../src/liblept.la
+splitcomp_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 splitimage2pdf_SOURCES = splitimage2pdf.c
 splitimage2pdf_OBJECTS = splitimage2pdf.$(OBJEXT)
 splitimage2pdf_LDADD = $(LDADD)
-splitimage2pdf_DEPENDENCIES = ../src/liblept.la
+splitimage2pdf_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 string_reg_SOURCES = string_reg.c
 string_reg_OBJECTS = string_reg.$(OBJEXT)
 string_reg_LDADD = $(LDADD)
-string_reg_DEPENDENCIES = ../src/liblept.la
+string_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 subpixel_reg_SOURCES = subpixel_reg.c
 subpixel_reg_OBJECTS = subpixel_reg.$(OBJEXT)
 subpixel_reg_LDADD = $(LDADD)
-subpixel_reg_DEPENDENCIES = ../src/liblept.la
+subpixel_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 sudokutest_SOURCES = sudokutest.c
 sudokutest_OBJECTS = sudokutest.$(OBJEXT)
 sudokutest_LDADD = $(LDADD)
-sudokutest_DEPENDENCIES = ../src/liblept.la
+sudokutest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 textlinemask_SOURCES = textlinemask.c
 textlinemask_OBJECTS = textlinemask.$(OBJEXT)
 textlinemask_LDADD = $(LDADD)
-textlinemask_DEPENDENCIES = ../src/liblept.la
+textlinemask_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 threshnorm_reg_SOURCES = threshnorm_reg.c
 threshnorm_reg_OBJECTS = threshnorm_reg.$(OBJEXT)
 threshnorm_reg_LDADD = $(LDADD)
-threshnorm_reg_DEPENDENCIES = ../src/liblept.la
+threshnorm_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+translate_reg_SOURCES = translate_reg.c
+translate_reg_OBJECTS = translate_reg.$(OBJEXT)
+translate_reg_LDADD = $(LDADD)
+translate_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 trctest_SOURCES = trctest.c
 trctest_OBJECTS = trctest.$(OBJEXT)
 trctest_LDADD = $(LDADD)
-trctest_DEPENDENCIES = ../src/liblept.la
+trctest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 viewertest_SOURCES = viewertest.c
 viewertest_OBJECTS = viewertest.$(OBJEXT)
 viewertest_LDADD = $(LDADD)
-viewertest_DEPENDENCIES = ../src/liblept.la
+viewertest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 warper_reg_SOURCES = warper_reg.c
 warper_reg_OBJECTS = warper_reg.$(OBJEXT)
 warper_reg_LDADD = $(LDADD)
-warper_reg_DEPENDENCIES = ../src/liblept.la
+warper_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+warpertest_SOURCES = warpertest.c
+warpertest_OBJECTS = warpertest.$(OBJEXT)
+warpertest_LDADD = $(LDADD)
+warpertest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 watershedtest_SOURCES = watershedtest.c
 watershedtest_OBJECTS = watershedtest.$(OBJEXT)
 watershedtest_LDADD = $(LDADD)
-watershedtest_DEPENDENCIES = ../src/liblept.la
+watershedtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 wordsinorder_SOURCES = wordsinorder.c
 wordsinorder_OBJECTS = wordsinorder.$(OBJEXT)
 wordsinorder_LDADD = $(LDADD)
-wordsinorder_DEPENDENCIES = ../src/liblept.la
+wordsinorder_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 writemtiff_SOURCES = writemtiff.c
 writemtiff_OBJECTS = writemtiff.$(OBJEXT)
 writemtiff_LDADD = $(LDADD)
-writemtiff_DEPENDENCIES = ../src/liblept.la
+writemtiff_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 writetext_reg_SOURCES = writetext_reg.c
 writetext_reg_OBJECTS = writetext_reg.$(OBJEXT)
 writetext_reg_LDADD = $(LDADD)
-writetext_reg_DEPENDENCIES = ../src/liblept.la
+writetext_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 xformbox_reg_SOURCES = xformbox_reg.c
 xformbox_reg_OBJECTS = xformbox_reg.$(OBJEXT)
 xformbox_reg_LDADD = $(LDADD)
-xformbox_reg_DEPENDENCIES = ../src/liblept.la
+xformbox_reg_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 xtractprotos_SOURCES = xtractprotos.c
 xtractprotos_OBJECTS = xtractprotos.$(OBJEXT)
 xtractprotos_LDADD = $(LDADD)
-xtractprotos_DEPENDENCIES = ../src/liblept.la
+xtractprotos_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 xvdisp_SOURCES = xvdisp.c
 xvdisp_OBJECTS = xvdisp.$(OBJEXT)
 xvdisp_LDADD = $(LDADD)
-xvdisp_DEPENDENCIES = ../src/liblept.la
+xvdisp_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
+yuvtest_SOURCES = yuvtest.c
+yuvtest_OBJECTS = yuvtest.$(OBJEXT)
+yuvtest_LDADD = $(LDADD)
+yuvtest_DEPENDENCIES = $(top_builddir)/src/liblept.la \
+	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -909,101 +1175,109 @@ SOURCES = adaptmaptest.c adaptnorm_reg.c affine_reg.c alltests_reg.c \
 	baselinetest.c bilinear_reg.c binarize_reg.c bincompare.c \
 	binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 	binmorph4_reg.c binmorph5_reg.c blend2_reg.c blend_reg.c \
-	blendcmaptest.c blendtest1.c buffertest.c ccbordtest.c \
-	cctest1.c ccthin1_reg.c ccthin2_reg.c cmapquant_reg.c \
-	colormorphtest.c colorquant_reg.c colorseg_reg.c \
-	colorsegtest.c colorspacetest.c comparepages.c comparetest.c \
-	compfilter_reg.c conncomp_reg.c contrasttest.c \
-	conversion_reg.c convertfilestops.c convertformat.c \
-	convertsegfilestops.c converttogray.c converttops.c \
-	convolve_reg.c convolvetest.c cornertest.c croptext.c \
-	dewarp_reg.c dewarptest.c digitprep1.c distance_reg.c \
-	dithertest.c dwalineargen.c $(dwamorph1_reg_SOURCES) \
-	$(dwamorph2_reg_SOURCES) edgetest.c enhance_reg.c equal_reg.c \
-	expand_reg.c extrema_reg.c falsecolortest.c fcombautogen.c \
-	fhmtauto_reg.c fhmtautogen.c fileinfo.c findpattern1.c \
-	findpattern2.c findpattern3.c findpattern_reg.c \
-	flipdetect_reg.c flipselgen.c fmorphauto_reg.c fmorphautogen.c \
-	fpix_reg.c gammatest.c genfonts.c gifio_reg.c graphicstest.c \
-	grayfill_reg.c graymorph1_reg.c graymorph2_reg.c \
-	graymorphtest.c grayquant_reg.c hardlight_reg.c heap_reg.c \
-	histotest.c inserttest.c ioformats_reg.c iotest.c \
-	jbcorrelation.c jbrankhaus.c jbwords.c kernel_reg.c \
-	lineremoval.c listtest.c livre_adapt.c livre_hmt.c \
-	livre_makefigs.c livre_orient.c livre_pageseg.c \
-	livre_seedgen.c livre_tophat.c locminmax_reg.c logicops_reg.c \
-	lowaccess_reg.c maketile.c maze_reg.c misctest1.c \
-	modifyhuesat.c morphseq_reg.c morphtest1.c mtifftest.c \
-	numa_reg.c numaranktest.c otsutest1.c otsutest2.c \
+	blendcmaptest.c blendtest1.c buffertest.c byteatest.c \
+	ccbordtest.c cctest1.c ccthin1_reg.c ccthin2_reg.c \
+	cmapquant_reg.c colormask_reg.c colormorphtest.c \
+	colorquant_reg.c colorseg_reg.c colorsegtest.c \
+	colorspacetest.c comparepages.c comparetest.c compfilter_reg.c \
+	conncomp_reg.c contrasttest.c conversion_reg.c \
+	convertfilestopdf.c convertfilestops.c convertformat.c \
+	convertsegfilestopdf.c convertsegfilestops.c converttogray.c \
+	converttops.c convolve_reg.c convolvetest.c cornertest.c \
+	croptext.c dewarp_reg.c dewarptest.c digitprep1.c \
+	distance_reg.c dithertest.c dwalineargen.c \
+	$(dwamorph1_reg_SOURCES) $(dwamorph2_reg_SOURCES) edgetest.c \
+	enhance_reg.c equal_reg.c expand_reg.c extrema_reg.c \
+	falsecolortest.c fcombautogen.c fhmtauto_reg.c fhmtautogen.c \
+	fileinfo.c findpattern1.c findpattern2.c findpattern3.c \
+	findpattern_reg.c flipdetect_reg.c flipselgen.c \
+	fmorphauto_reg.c fmorphautogen.c fpix_reg.c gammatest.c \
+	genfonts.c gifio_reg.c graphicstest.c grayfill_reg.c \
+	graymorph1_reg.c graymorph2_reg.c graymorphtest.c \
+	grayquant_reg.c hardlight_reg.c heap_reg.c histotest.c \
+	inserttest.c ioformats_reg.c iotest.c jbcorrelation.c \
+	jbrankhaus.c jbwords.c kernel_reg.c lineremoval.c listtest.c \
+	livre_adapt.c livre_hmt.c livre_makefigs.c livre_orient.c \
+	livre_pageseg.c livre_seedgen.c livre_tophat.c locminmax_reg.c \
+	logicops_reg.c lowaccess_reg.c maketile.c maze_reg.c \
+	misctest1.c modifyhuesat.c morphseq_reg.c morphtest1.c \
+	mtifftest.c numa_reg.c numaranktest.c otsutest1.c otsutest2.c \
 	overlap_reg.c pagesegtest1.c pagesegtest2.c paint_reg.c \
-	paintmask_reg.c partitiontest.c pixa1_reg.c pixa2_reg.c \
-	pixaatest.c pixadisp_reg.c pixalloc_reg.c pixcomp_reg.c \
-	pixmem_reg.c pixserial_reg.c pixtile_reg.c plottest.c \
-	printimage.c printsplitimage.c printtiff.c projection_reg.c \
+	paintmask_reg.c partitiontest.c pdfiotest.c pdfseg_reg.c \
+	pixa1_reg.c pixa2_reg.c pixaatest.c pixadisp_reg.c \
+	pixalloc_reg.c pixcomp_reg.c pixmem_reg.c pixserial_reg.c \
+	pixtile_reg.c plottest.c pngio_reg.c printimage.c \
+	printsplitimage.c printtiff.c projection_reg.c \
 	projective_reg.c psio_reg.c psioseg_reg.c pta_reg.c \
-	ptra1_reg.c ptra2_reg.c rank_reg.c rankbin_reg.c \
-	rankhisto_reg.c ranktest.c rasterop_reg.c rasteropip_reg.c \
-	reducetest.c removecmap.c renderfonts.c rotate1_reg.c \
-	rotate2_reg.c rotatefastalt.c rotateorth_reg.c \
-	rotateorthtest1.c rotatetest1.c runlengthtest.c scale_reg.c \
-	scaletest1.c scaletest2.c seedfilltest.c selio_reg.c \
-	sharptest.c shear2_reg.c shear_reg.c sheartest.c showedges.c \
-	skew_reg.c skewtest.c smallpix_reg.c smoothedge_reg.c \
-	snapcolortest.c sorttest.c splitcomp_reg.c splitimage2pdf.c \
-	string_reg.c subpixel_reg.c sudokutest.c textlinemask.c \
-	threshnorm_reg.c trctest.c viewertest.c warper_reg.c \
-	watershedtest.c wordsinorder.c writemtiff.c writetext_reg.c \
-	xformbox_reg.c xtractprotos.c xvdisp.c
+	ptra1_reg.c ptra2_reg.c quadtreetest.c rank_reg.c \
+	rankbin_reg.c rankhisto_reg.c ranktest.c rasterop_reg.c \
+	rasteropip_reg.c reducetest.c removecmap.c renderfonts.c \
+	rotate1_reg.c rotate2_reg.c rotatefastalt.c rotateorth_reg.c \
+	rotateorthtest1.c rotatetest1.c rotatetest2.c runlengthtest.c \
+	scale_reg.c scaleandtile.c scaletest1.c scaletest2.c \
+	seedfilltest.c seedspread_reg.c selio_reg.c sharptest.c \
+	shear2_reg.c shear_reg.c sheartest.c showedges.c skew_reg.c \
+	skewtest.c smallpix_reg.c smoothedge_reg.c snapcolortest.c \
+	sorttest.c splitcomp_reg.c splitimage2pdf.c string_reg.c \
+	subpixel_reg.c sudokutest.c textlinemask.c threshnorm_reg.c \
+	translate_reg.c trctest.c viewertest.c warper_reg.c \
+	warpertest.c watershedtest.c wordsinorder.c writemtiff.c \
+	writetext_reg.c xformbox_reg.c xtractprotos.c xvdisp.c \
+	yuvtest.c
 DIST_SOURCES = adaptmaptest.c adaptnorm_reg.c affine_reg.c \
 	alltests_reg.c alphaclean_reg.c alphaxform_reg.c arithtest.c \
 	barcodetest.c baselinetest.c bilinear_reg.c binarize_reg.c \
 	bincompare.c binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
 	binmorph4_reg.c binmorph5_reg.c blend2_reg.c blend_reg.c \
-	blendcmaptest.c blendtest1.c buffertest.c ccbordtest.c \
-	cctest1.c ccthin1_reg.c ccthin2_reg.c cmapquant_reg.c \
-	colormorphtest.c colorquant_reg.c colorseg_reg.c \
-	colorsegtest.c colorspacetest.c comparepages.c comparetest.c \
-	compfilter_reg.c conncomp_reg.c contrasttest.c \
-	conversion_reg.c convertfilestops.c convertformat.c \
-	convertsegfilestops.c converttogray.c converttops.c \
-	convolve_reg.c convolvetest.c cornertest.c croptext.c \
-	dewarp_reg.c dewarptest.c digitprep1.c distance_reg.c \
-	dithertest.c dwalineargen.c $(dwamorph1_reg_SOURCES) \
-	$(dwamorph2_reg_SOURCES) edgetest.c enhance_reg.c equal_reg.c \
-	expand_reg.c extrema_reg.c falsecolortest.c fcombautogen.c \
-	fhmtauto_reg.c fhmtautogen.c fileinfo.c findpattern1.c \
-	findpattern2.c findpattern3.c findpattern_reg.c \
-	flipdetect_reg.c flipselgen.c fmorphauto_reg.c fmorphautogen.c \
-	fpix_reg.c gammatest.c genfonts.c gifio_reg.c graphicstest.c \
-	grayfill_reg.c graymorph1_reg.c graymorph2_reg.c \
-	graymorphtest.c grayquant_reg.c hardlight_reg.c heap_reg.c \
-	histotest.c inserttest.c ioformats_reg.c iotest.c \
-	jbcorrelation.c jbrankhaus.c jbwords.c kernel_reg.c \
-	lineremoval.c listtest.c livre_adapt.c livre_hmt.c \
-	livre_makefigs.c livre_orient.c livre_pageseg.c \
-	livre_seedgen.c livre_tophat.c locminmax_reg.c logicops_reg.c \
-	lowaccess_reg.c maketile.c maze_reg.c misctest1.c \
-	modifyhuesat.c morphseq_reg.c morphtest1.c mtifftest.c \
-	numa_reg.c numaranktest.c otsutest1.c otsutest2.c \
+	blendcmaptest.c blendtest1.c buffertest.c byteatest.c \
+	ccbordtest.c cctest1.c ccthin1_reg.c ccthin2_reg.c \
+	cmapquant_reg.c colormask_reg.c colormorphtest.c \
+	colorquant_reg.c colorseg_reg.c colorsegtest.c \
+	colorspacetest.c comparepages.c comparetest.c compfilter_reg.c \
+	conncomp_reg.c contrasttest.c conversion_reg.c \
+	convertfilestopdf.c convertfilestops.c convertformat.c \
+	convertsegfilestopdf.c convertsegfilestops.c converttogray.c \
+	converttops.c convolve_reg.c convolvetest.c cornertest.c \
+	croptext.c dewarp_reg.c dewarptest.c digitprep1.c \
+	distance_reg.c dithertest.c dwalineargen.c \
+	$(dwamorph1_reg_SOURCES) $(dwamorph2_reg_SOURCES) edgetest.c \
+	enhance_reg.c equal_reg.c expand_reg.c extrema_reg.c \
+	falsecolortest.c fcombautogen.c fhmtauto_reg.c fhmtautogen.c \
+	fileinfo.c findpattern1.c findpattern2.c findpattern3.c \
+	findpattern_reg.c flipdetect_reg.c flipselgen.c \
+	fmorphauto_reg.c fmorphautogen.c fpix_reg.c gammatest.c \
+	genfonts.c gifio_reg.c graphicstest.c grayfill_reg.c \
+	graymorph1_reg.c graymorph2_reg.c graymorphtest.c \
+	grayquant_reg.c hardlight_reg.c heap_reg.c histotest.c \
+	inserttest.c ioformats_reg.c iotest.c jbcorrelation.c \
+	jbrankhaus.c jbwords.c kernel_reg.c lineremoval.c listtest.c \
+	livre_adapt.c livre_hmt.c livre_makefigs.c livre_orient.c \
+	livre_pageseg.c livre_seedgen.c livre_tophat.c locminmax_reg.c \
+	logicops_reg.c lowaccess_reg.c maketile.c maze_reg.c \
+	misctest1.c modifyhuesat.c morphseq_reg.c morphtest1.c \
+	mtifftest.c numa_reg.c numaranktest.c otsutest1.c otsutest2.c \
 	overlap_reg.c pagesegtest1.c pagesegtest2.c paint_reg.c \
-	paintmask_reg.c partitiontest.c pixa1_reg.c pixa2_reg.c \
-	pixaatest.c pixadisp_reg.c pixalloc_reg.c pixcomp_reg.c \
-	pixmem_reg.c pixserial_reg.c pixtile_reg.c plottest.c \
-	printimage.c printsplitimage.c printtiff.c projection_reg.c \
+	paintmask_reg.c partitiontest.c pdfiotest.c pdfseg_reg.c \
+	pixa1_reg.c pixa2_reg.c pixaatest.c pixadisp_reg.c \
+	pixalloc_reg.c pixcomp_reg.c pixmem_reg.c pixserial_reg.c \
+	pixtile_reg.c plottest.c pngio_reg.c printimage.c \
+	printsplitimage.c printtiff.c projection_reg.c \
 	projective_reg.c psio_reg.c psioseg_reg.c pta_reg.c \
-	ptra1_reg.c ptra2_reg.c rank_reg.c rankbin_reg.c \
-	rankhisto_reg.c ranktest.c rasterop_reg.c rasteropip_reg.c \
-	reducetest.c removecmap.c renderfonts.c rotate1_reg.c \
-	rotate2_reg.c rotatefastalt.c rotateorth_reg.c \
-	rotateorthtest1.c rotatetest1.c runlengthtest.c scale_reg.c \
-	scaletest1.c scaletest2.c seedfilltest.c selio_reg.c \
-	sharptest.c shear2_reg.c shear_reg.c sheartest.c showedges.c \
-	skew_reg.c skewtest.c smallpix_reg.c smoothedge_reg.c \
-	snapcolortest.c sorttest.c splitcomp_reg.c splitimage2pdf.c \
-	string_reg.c subpixel_reg.c sudokutest.c textlinemask.c \
-	threshnorm_reg.c trctest.c viewertest.c warper_reg.c \
-	watershedtest.c wordsinorder.c writemtiff.c writetext_reg.c \
-	xformbox_reg.c xtractprotos.c xvdisp.c
+	ptra1_reg.c ptra2_reg.c quadtreetest.c rank_reg.c \
+	rankbin_reg.c rankhisto_reg.c ranktest.c rasterop_reg.c \
+	rasteropip_reg.c reducetest.c removecmap.c renderfonts.c \
+	rotate1_reg.c rotate2_reg.c rotatefastalt.c rotateorth_reg.c \
+	rotateorthtest1.c rotatetest1.c rotatetest2.c runlengthtest.c \
+	scale_reg.c scaleandtile.c scaletest1.c scaletest2.c \
+	seedfilltest.c seedspread_reg.c selio_reg.c sharptest.c \
+	shear2_reg.c shear_reg.c sheartest.c showedges.c skew_reg.c \
+	skewtest.c smallpix_reg.c smoothedge_reg.c snapcolortest.c \
+	sorttest.c splitcomp_reg.c splitimage2pdf.c string_reg.c \
+	subpixel_reg.c sudokutest.c textlinemask.c threshnorm_reg.c \
+	translate_reg.c trctest.c viewertest.c warper_reg.c \
+	warpertest.c watershedtest.c wordsinorder.c writemtiff.c \
+	writetext_reg.c xformbox_reg.c xtractprotos.c xvdisp.c \
+	yuvtest.c
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -1032,6 +1306,7 @@ EGREP = @EGREP@
 ENDIANNESS = @ENDIANNESS@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
+GDI_LIBS = @GDI_LIBS@
 GIFLIB_LIBS = @GIFLIB_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
@@ -1042,11 +1317,13 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 JPEG_LIBS = @JPEG_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBM = @LIBM@
 LIBOBJS = @LIBOBJS@
 LIBPNG_LIBS = @LIBPNG_LIBS@
 LIBS = @LIBS@
 LIBTIFF_LIBS = @LIBTIFF_LIBS@
 LIBTOOL = @LIBTOOL@
+LIBWEBP_LIBS = @LIBWEBP_LIBS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -1126,8 +1403,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = $(DEBUG_FLAGS)
-AM_CPPFLAGS = -I../src
-LDADD = ../src/liblept.la -lm
+AM_CPPFLAGS = -I$(top_srcdir)/src
+LDADD = $(top_builddir)/src/liblept.la $(LIBM)
 dwamorph1_reg_SOURCES = dwamorph1_reg.c dwalinear.3.c dwalinearlow.3.c
 dwamorph2_reg_SOURCES = dwamorph2_reg.c dwalinear.3.c dwalinearlow.3.c
 all: all-am
@@ -1273,6 +1550,9 @@ blendtest1$(EXEEXT): $(blendtest1_OBJECTS) $(blendtest1_DEPENDENCIES)
 buffertest$(EXEEXT): $(buffertest_OBJECTS) $(buffertest_DEPENDENCIES) 
 	@rm -f buffertest$(EXEEXT)
 	$(LINK) $(buffertest_OBJECTS) $(buffertest_LDADD) $(LIBS)
+byteatest$(EXEEXT): $(byteatest_OBJECTS) $(byteatest_DEPENDENCIES) 
+	@rm -f byteatest$(EXEEXT)
+	$(LINK) $(byteatest_OBJECTS) $(byteatest_LDADD) $(LIBS)
 ccbordtest$(EXEEXT): $(ccbordtest_OBJECTS) $(ccbordtest_DEPENDENCIES) 
 	@rm -f ccbordtest$(EXEEXT)
 	$(LINK) $(ccbordtest_OBJECTS) $(ccbordtest_LDADD) $(LIBS)
@@ -1288,6 +1568,9 @@ ccthin2_reg$(EXEEXT): $(ccthin2_reg_OBJECTS) $(ccthin2_reg_DEPENDENCIES)
 cmapquant_reg$(EXEEXT): $(cmapquant_reg_OBJECTS) $(cmapquant_reg_DEPENDENCIES) 
 	@rm -f cmapquant_reg$(EXEEXT)
 	$(LINK) $(cmapquant_reg_OBJECTS) $(cmapquant_reg_LDADD) $(LIBS)
+colormask_reg$(EXEEXT): $(colormask_reg_OBJECTS) $(colormask_reg_DEPENDENCIES) 
+	@rm -f colormask_reg$(EXEEXT)
+	$(LINK) $(colormask_reg_OBJECTS) $(colormask_reg_LDADD) $(LIBS)
 colormorphtest$(EXEEXT): $(colormorphtest_OBJECTS) $(colormorphtest_DEPENDENCIES) 
 	@rm -f colormorphtest$(EXEEXT)
 	$(LINK) $(colormorphtest_OBJECTS) $(colormorphtest_LDADD) $(LIBS)
@@ -1321,12 +1604,18 @@ contrasttest$(EXEEXT): $(contrasttest_OBJECTS) $(contrasttest_DEPENDENCIES)
 conversion_reg$(EXEEXT): $(conversion_reg_OBJECTS) $(conversion_reg_DEPENDENCIES) 
 	@rm -f conversion_reg$(EXEEXT)
 	$(LINK) $(conversion_reg_OBJECTS) $(conversion_reg_LDADD) $(LIBS)
+convertfilestopdf$(EXEEXT): $(convertfilestopdf_OBJECTS) $(convertfilestopdf_DEPENDENCIES) 
+	@rm -f convertfilestopdf$(EXEEXT)
+	$(LINK) $(convertfilestopdf_OBJECTS) $(convertfilestopdf_LDADD) $(LIBS)
 convertfilestops$(EXEEXT): $(convertfilestops_OBJECTS) $(convertfilestops_DEPENDENCIES) 
 	@rm -f convertfilestops$(EXEEXT)
 	$(LINK) $(convertfilestops_OBJECTS) $(convertfilestops_LDADD) $(LIBS)
 convertformat$(EXEEXT): $(convertformat_OBJECTS) $(convertformat_DEPENDENCIES) 
 	@rm -f convertformat$(EXEEXT)
 	$(LINK) $(convertformat_OBJECTS) $(convertformat_LDADD) $(LIBS)
+convertsegfilestopdf$(EXEEXT): $(convertsegfilestopdf_OBJECTS) $(convertsegfilestopdf_DEPENDENCIES) 
+	@rm -f convertsegfilestopdf$(EXEEXT)
+	$(LINK) $(convertsegfilestopdf_OBJECTS) $(convertsegfilestopdf_LDADD) $(LIBS)
 convertsegfilestops$(EXEEXT): $(convertsegfilestops_OBJECTS) $(convertsegfilestops_DEPENDENCIES) 
 	@rm -f convertsegfilestops$(EXEEXT)
 	$(LINK) $(convertsegfilestops_OBJECTS) $(convertsegfilestops_LDADD) $(LIBS)
@@ -1573,6 +1862,12 @@ paintmask_reg$(EXEEXT): $(paintmask_reg_OBJECTS) $(paintmask_reg_DEPENDENCIES)
 partitiontest$(EXEEXT): $(partitiontest_OBJECTS) $(partitiontest_DEPENDENCIES) 
 	@rm -f partitiontest$(EXEEXT)
 	$(LINK) $(partitiontest_OBJECTS) $(partitiontest_LDADD) $(LIBS)
+pdfiotest$(EXEEXT): $(pdfiotest_OBJECTS) $(pdfiotest_DEPENDENCIES) 
+	@rm -f pdfiotest$(EXEEXT)
+	$(LINK) $(pdfiotest_OBJECTS) $(pdfiotest_LDADD) $(LIBS)
+pdfseg_reg$(EXEEXT): $(pdfseg_reg_OBJECTS) $(pdfseg_reg_DEPENDENCIES) 
+	@rm -f pdfseg_reg$(EXEEXT)
+	$(LINK) $(pdfseg_reg_OBJECTS) $(pdfseg_reg_LDADD) $(LIBS)
 pixa1_reg$(EXEEXT): $(pixa1_reg_OBJECTS) $(pixa1_reg_DEPENDENCIES) 
 	@rm -f pixa1_reg$(EXEEXT)
 	$(LINK) $(pixa1_reg_OBJECTS) $(pixa1_reg_LDADD) $(LIBS)
@@ -1603,6 +1898,9 @@ pixtile_reg$(EXEEXT): $(pixtile_reg_OBJECTS) $(pixtile_reg_DEPENDENCIES)
 plottest$(EXEEXT): $(plottest_OBJECTS) $(plottest_DEPENDENCIES) 
 	@rm -f plottest$(EXEEXT)
 	$(LINK) $(plottest_OBJECTS) $(plottest_LDADD) $(LIBS)
+pngio_reg$(EXEEXT): $(pngio_reg_OBJECTS) $(pngio_reg_DEPENDENCIES) 
+	@rm -f pngio_reg$(EXEEXT)
+	$(LINK) $(pngio_reg_OBJECTS) $(pngio_reg_LDADD) $(LIBS)
 printimage$(EXEEXT): $(printimage_OBJECTS) $(printimage_DEPENDENCIES) 
 	@rm -f printimage$(EXEEXT)
 	$(LINK) $(printimage_OBJECTS) $(printimage_LDADD) $(LIBS)
@@ -1633,6 +1931,9 @@ ptra1_reg$(EXEEXT): $(ptra1_reg_OBJECTS) $(ptra1_reg_DEPENDENCIES)
 ptra2_reg$(EXEEXT): $(ptra2_reg_OBJECTS) $(ptra2_reg_DEPENDENCIES) 
 	@rm -f ptra2_reg$(EXEEXT)
 	$(LINK) $(ptra2_reg_OBJECTS) $(ptra2_reg_LDADD) $(LIBS)
+quadtreetest$(EXEEXT): $(quadtreetest_OBJECTS) $(quadtreetest_DEPENDENCIES) 
+	@rm -f quadtreetest$(EXEEXT)
+	$(LINK) $(quadtreetest_OBJECTS) $(quadtreetest_LDADD) $(LIBS)
 rank_reg$(EXEEXT): $(rank_reg_OBJECTS) $(rank_reg_DEPENDENCIES) 
 	@rm -f rank_reg$(EXEEXT)
 	$(LINK) $(rank_reg_OBJECTS) $(rank_reg_LDADD) $(LIBS)
@@ -1678,12 +1979,18 @@ rotateorthtest1$(EXEEXT): $(rotateorthtest1_OBJECTS) $(rotateorthtest1_DEPENDENC
 rotatetest1$(EXEEXT): $(rotatetest1_OBJECTS) $(rotatetest1_DEPENDENCIES) 
 	@rm -f rotatetest1$(EXEEXT)
 	$(LINK) $(rotatetest1_OBJECTS) $(rotatetest1_LDADD) $(LIBS)
+rotatetest2$(EXEEXT): $(rotatetest2_OBJECTS) $(rotatetest2_DEPENDENCIES) 
+	@rm -f rotatetest2$(EXEEXT)
+	$(LINK) $(rotatetest2_OBJECTS) $(rotatetest2_LDADD) $(LIBS)
 runlengthtest$(EXEEXT): $(runlengthtest_OBJECTS) $(runlengthtest_DEPENDENCIES) 
 	@rm -f runlengthtest$(EXEEXT)
 	$(LINK) $(runlengthtest_OBJECTS) $(runlengthtest_LDADD) $(LIBS)
 scale_reg$(EXEEXT): $(scale_reg_OBJECTS) $(scale_reg_DEPENDENCIES) 
 	@rm -f scale_reg$(EXEEXT)
 	$(LINK) $(scale_reg_OBJECTS) $(scale_reg_LDADD) $(LIBS)
+scaleandtile$(EXEEXT): $(scaleandtile_OBJECTS) $(scaleandtile_DEPENDENCIES) 
+	@rm -f scaleandtile$(EXEEXT)
+	$(LINK) $(scaleandtile_OBJECTS) $(scaleandtile_LDADD) $(LIBS)
 scaletest1$(EXEEXT): $(scaletest1_OBJECTS) $(scaletest1_DEPENDENCIES) 
 	@rm -f scaletest1$(EXEEXT)
 	$(LINK) $(scaletest1_OBJECTS) $(scaletest1_LDADD) $(LIBS)
@@ -1693,6 +2000,9 @@ scaletest2$(EXEEXT): $(scaletest2_OBJECTS) $(scaletest2_DEPENDENCIES)
 seedfilltest$(EXEEXT): $(seedfilltest_OBJECTS) $(seedfilltest_DEPENDENCIES) 
 	@rm -f seedfilltest$(EXEEXT)
 	$(LINK) $(seedfilltest_OBJECTS) $(seedfilltest_LDADD) $(LIBS)
+seedspread_reg$(EXEEXT): $(seedspread_reg_OBJECTS) $(seedspread_reg_DEPENDENCIES) 
+	@rm -f seedspread_reg$(EXEEXT)
+	$(LINK) $(seedspread_reg_OBJECTS) $(seedspread_reg_LDADD) $(LIBS)
 selio_reg$(EXEEXT): $(selio_reg_OBJECTS) $(selio_reg_DEPENDENCIES) 
 	@rm -f selio_reg$(EXEEXT)
 	$(LINK) $(selio_reg_OBJECTS) $(selio_reg_LDADD) $(LIBS)
@@ -1750,6 +2060,9 @@ textlinemask$(EXEEXT): $(textlinemask_OBJECTS) $(textlinemask_DEPENDENCIES)
 threshnorm_reg$(EXEEXT): $(threshnorm_reg_OBJECTS) $(threshnorm_reg_DEPENDENCIES) 
 	@rm -f threshnorm_reg$(EXEEXT)
 	$(LINK) $(threshnorm_reg_OBJECTS) $(threshnorm_reg_LDADD) $(LIBS)
+translate_reg$(EXEEXT): $(translate_reg_OBJECTS) $(translate_reg_DEPENDENCIES) 
+	@rm -f translate_reg$(EXEEXT)
+	$(LINK) $(translate_reg_OBJECTS) $(translate_reg_LDADD) $(LIBS)
 trctest$(EXEEXT): $(trctest_OBJECTS) $(trctest_DEPENDENCIES) 
 	@rm -f trctest$(EXEEXT)
 	$(LINK) $(trctest_OBJECTS) $(trctest_LDADD) $(LIBS)
@@ -1759,6 +2072,9 @@ viewertest$(EXEEXT): $(viewertest_OBJECTS) $(viewertest_DEPENDENCIES)
 warper_reg$(EXEEXT): $(warper_reg_OBJECTS) $(warper_reg_DEPENDENCIES) 
 	@rm -f warper_reg$(EXEEXT)
 	$(LINK) $(warper_reg_OBJECTS) $(warper_reg_LDADD) $(LIBS)
+warpertest$(EXEEXT): $(warpertest_OBJECTS) $(warpertest_DEPENDENCIES) 
+	@rm -f warpertest$(EXEEXT)
+	$(LINK) $(warpertest_OBJECTS) $(warpertest_LDADD) $(LIBS)
 watershedtest$(EXEEXT): $(watershedtest_OBJECTS) $(watershedtest_DEPENDENCIES) 
 	@rm -f watershedtest$(EXEEXT)
 	$(LINK) $(watershedtest_OBJECTS) $(watershedtest_LDADD) $(LIBS)
@@ -1780,6 +2096,9 @@ xtractprotos$(EXEEXT): $(xtractprotos_OBJECTS) $(xtractprotos_DEPENDENCIES)
 xvdisp$(EXEEXT): $(xvdisp_OBJECTS) $(xvdisp_DEPENDENCIES) 
 	@rm -f xvdisp$(EXEEXT)
 	$(LINK) $(xvdisp_OBJECTS) $(xvdisp_LDADD) $(LIBS)
+yuvtest$(EXEEXT): $(yuvtest_OBJECTS) $(yuvtest_DEPENDENCIES) 
+	@rm -f yuvtest$(EXEEXT)
+	$(LINK) $(yuvtest_OBJECTS) $(yuvtest_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -1809,11 +2128,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/blendcmaptest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/blendtest1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffertest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/byteatest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ccbordtest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cctest1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ccthin1_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ccthin2_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmapquant_reg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/colormask_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/colormorphtest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/colorquant_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/colorseg_reg.Po@am__quote@
@@ -1825,8 +2146,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conncomp_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/contrasttest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conversion_reg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convertfilestopdf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convertfilestops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convertformat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convertsegfilestopdf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convertsegfilestops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/converttogray.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/converttops.Po@am__quote@
@@ -1911,6 +2234,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paint_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paintmask_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partitiontest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pdfiotest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pdfseg_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixa1_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixa2_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixaatest.Po@am__quote@
@@ -1921,6 +2246,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixserial_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pixtile_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plottest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pngio_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printimage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printsplitimage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printtiff.Po@am__quote@
@@ -1931,6 +2257,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pta_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptra1_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptra2_reg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quadtreetest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rank_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rankbin_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rankhisto_reg.Po@am__quote@
@@ -1946,11 +2273,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotateorth_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotateorthtest1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotatetest1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotatetest2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/runlengthtest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scale_reg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scaleandtile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scaletest1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scaletest2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/seedfilltest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/seedspread_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/selio_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sharptest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shear2_reg.Po@am__quote@
@@ -1970,9 +2300,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sudokutest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/textlinemask.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/threshnorm_reg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/translate_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trctest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/viewertest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/warper_reg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/warpertest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/watershedtest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wordsinorder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/writemtiff.Po@am__quote@
@@ -1980,6 +2312,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xformbox_reg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xtractprotos.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xvdisp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/yuvtest.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

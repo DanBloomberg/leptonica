@@ -21,10 +21,7 @@
  *      scalex, scaley are floating point input
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
@@ -36,8 +33,8 @@ PIX         *pixs, *pixd;
 static char  mainName[] = "scaletest1";
 
     if (argc != 5)
-	exit(ERROR_INT(" Syntax:  scaletest1 filein scalex scaley fileout",
-	                 mainName, 1));
+	return ERROR_INT(" Syntax:  scaletest1 filein scalex scaley fileout",
+	                 mainName, 1);
 
     filein = argv[1];
     scalex = atof(argv[2]);
@@ -45,7 +42,7 @@ static char  mainName[] = "scaletest1";
     fileout = argv[4];
 
     if ((pixs = pixRead(filein)) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
+	return ERROR_INT("pixs not made", mainName, 1);
 	    
         /* choose type of scaling operation */
 #if 1
@@ -56,14 +53,16 @@ static char  mainName[] = "scaletest1";
     pixd = pixScaleSmooth(pixs, scalex, scaley);
 #elif 0
     pixd = pixScaleAreaMap(pixs, scalex, scaley);
-#else
+#elif 0
     pixd = pixScaleBySampling(pixs, scalex, scaley);
+#else
+    pixd = pixScaleToGray(pixs, scalex);
 #endif
 
     d = pixGetDepth(pixd);
 
 #if 1
-    if (d == 1)
+    if (d <= 8)
         pixWrite(fileout, pixd, IFF_PNG);
     else
         pixWrite(fileout, pixd, IFF_JFIF_JPEG);
@@ -73,6 +72,6 @@ static char  mainName[] = "scaletest1";
 
     pixDestroy(&pixs);
     pixDestroy(&pixd);
-    exit(0);
+    return 0;  
 }
 

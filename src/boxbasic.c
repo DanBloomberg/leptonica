@@ -91,10 +91,6 @@
  *      Box print (for debug)
  *           l_int32   boxPrintStreamInfo()
  *
- *      Backward compatibility old boxaa read functions
- *           BOXAA    *boxaaReadVersion2()
- *           BOXAA    *boxaaReadStreamVersion2()
- *
  *   Most functions use only valid boxes, which are boxes that have both
  *   width and height > 0.  However, a few functions, such as
  *   boxaGetMedian() do not assume that all boxes are valid.  For any
@@ -104,8 +100,6 @@
  *       boxaGetValidBox()     :  returns NULL for invalid boxes
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -1416,7 +1410,7 @@ FILE  *fp;
     if (!baa)
         return ERROR_INT("baa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (boxaaWriteStream(fp, baa))
         return ERROR_INT("baa not written to stream", procName, 1);
@@ -1561,7 +1555,7 @@ FILE  *fp;
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (boxaWriteStream(fp, boxa))
         return ERROR_INT("boxa not written to stream", procName, 1);
@@ -1639,88 +1633,4 @@ boxPrintStreamInfo(FILE  *fp,
 
     return 0;
 }
-
-
-
-/*---------------------------------------------------------------------*
- *    Version for reading v.2 boxaa; kept for backward compatibility   *
- *---------------------------------------------------------------------*/
-/*!
- *  boxaaReadVersion2()
- *
- *      Input:  filename
- *      Return: boxaa, or null on error
- *
- *  Notes:
- *      (1) These old functions only work on version 2 boxaa.
- *          They will go to an archive directory sometime after Sept 2009.
- *      (2) The current format uses BOXAA_VERSION_NUMBER == 3)
- */
-BOXAA *
-boxaaReadVersion2(const char  *filename)
-{
-FILE   *fp;
-BOXAA  *baa;
-
-    PROCNAME("boxaaReadVersion2");
-
-    if (!filename)
-        return (BOXAA *)ERROR_PTR("filename not defined", procName, NULL);
-    if ((fp = fopenReadStream(filename)) == NULL)
-        return (BOXAA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((baa = boxaaReadStreamVersion2(fp)) == NULL) {
-        fclose(fp);
-        return (BOXAA *)ERROR_PTR("boxaa not read", procName, NULL);
-    }
-
-    fclose(fp);
-    return baa;
-}
-
-
-/*!
- *  boxaaReadStreamVersion2()
- *
- *      Input:  stream
- *      Return: boxaa, or null on error
- *
- */
-BOXAA *
-boxaaReadStreamVersion2(FILE  *fp)
-{
-l_int32  n, i, x, y, w, h, version;
-l_int32  ignore;
-BOXA    *boxa;
-BOXAA   *baa;
-
-    PROCNAME("boxaaReadStreamVersion2");
-
-    if (!fp)
-        return (BOXAA *)ERROR_PTR("stream not defined", procName, NULL);
-
-    if (fscanf(fp, "\nBoxaa Version %d\n", &version) != 1)
-        return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
-    if (version != 2) {
-        fprintf(stderr, "This is version %d\n", version);
-        return (BOXAA *)ERROR_PTR("Not old version 2", procName, NULL);
-    }
-    if (fscanf(fp, "Number of boxa = %d\n", &n) != 1)
-        return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
-
-    if ((baa = boxaaCreate(n)) == NULL)
-        return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
-
-    for (i = 0; i < n; i++) {
-        if (fscanf(fp, " Boxa[%d]: x = %d, y = %d, w = %d, h = %d\n",
-                &ignore, &x, &y, &w, &h) != 5)
-            return (BOXAA *)ERROR_PTR("boxa descr not valid", procName, NULL);
-        if ((boxa = boxaReadStream(fp)) == NULL)
-            return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
-        boxaaAddBoxa(baa, boxa, L_INSERT);
-    }
-
-    return baa;
-}
-
 

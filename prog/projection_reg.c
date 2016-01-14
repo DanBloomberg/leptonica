@@ -23,24 +23,19 @@
 #ifndef  _WIN32
 #include <unistd.h>
 #else
-    /* Need declaration of Sleep() defined in WinBase.h, but must
-     * include Windows.h to avoid errors  */
-#include <Windows.h>
+#include <windows.h>   /* for Sleep() */
 #endif  /* _WIN32 */
 #include "allheaders.h"
 
-void TestProjection(PIX *pixs, l_int32 *pcount, L_REGPARAMS *rp,
-                    l_int32 display);
+void TestProjection(L_REGPARAMS *rp, PIX *pix);
 
 main(int    argc,
      char **argv)
 {
-l_int32       count, success, display;
-FILE         *fp;
 PIX          *pixs, *pixg1, *pixg2;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
 	return 1;
 
         /* Use for input two different images */
@@ -51,12 +46,11 @@ L_REGPARAMS  *rp;
     pixg2 = pixScaleToGray4(pixs);
     pixDestroy(&pixs);
 
-    count = 0;
-    TestProjection(pixg1, &count, rp, display);
-    TestProjection(pixg2, &count, rp, display);
+    TestProjection(rp, pixg1);
+    TestProjection(rp, pixg2);
     pixDestroy(&pixg1);
     pixDestroy(&pixg2);
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 
@@ -67,10 +61,8 @@ L_REGPARAMS  *rp;
  *  so that the two results should be identical.
  */
 void
-TestProjection(PIX          *pixs,
-               l_int32      *pcount,
-               L_REGPARAMS  *rp,
-               l_int32       display)
+TestProjection(L_REGPARAMS  *rp,
+               PIX          *pixs)
 {
 l_int32  outline;
 NUMA    *na1, *na2, *na3, *na4, *na5, *na6;
@@ -98,7 +90,11 @@ PIXA    *pixa;
     gplotSimple1(na10, GPLOT_PNG, "/tmp/proj.9", "Variance");
     gplotSimple1(na11, GPLOT_PNG, "/tmp/proj.10", "Square Root Variance");
     gplotSimple1(na12, GPLOT_PNG, "/tmp/proj.11", "Square Root Variance");
+#ifndef  _WIN32
     sleep(1);
+#else
+    Sleep(1000);
+#endif  /* _WIN32 */
 
         /* Each of the 12 plot files is read into a pix and then:
          *    (1) saved into a pixa for display
@@ -107,68 +103,68 @@ PIXA    *pixa;
     pixa = pixaCreate(13);
     pixSaveTiledOutline(pixs, pixa, 1, 1, 30, outline, 32);
     pixt = pixRead("/tmp/proj.0.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);   /* 0 */
     pixSaveTiledOutline(pixt, pixa, 1, 1, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.1.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 1 */
     pixSaveTiledOutline(pixt, pixa, 1, 0, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.2.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 2 */
     pixSaveTiledOutline(pixt, pixa, 1, 1, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.3.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 3 */
     pixSaveTiledOutline(pixt, pixa, 1, 0, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.4.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 4 */
     pixSaveTiledOutline(pixt, pixa, 1, 1, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.5.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 5 */
     pixSaveTiledOutline(pixt, pixa, 1, 0, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.6.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 6 */
     pixSaveTiledOutline(pixt, pixa, 1, 1, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.7.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 7 */
     pixSaveTiledOutline(pixt, pixa, 1, 0, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.8.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 8 */
     pixSaveTiledOutline(pixt, pixa, 1, 1, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.9.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 9 */
     pixSaveTiledOutline(pixt, pixa, 1, 0, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.10.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 10 */
     pixSaveTiledOutline(pixt, pixa, 1, 1, 30, outline, 32);
     pixDestroy(&pixt);
     pixt = pixRead("/tmp/proj.11.png");
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 11 */
     pixSaveTiledOutline(pixt, pixa, 1, 0, 30, outline, 32);
     pixDestroy(&pixt);
 
         /* The pixa is composited into a pix and 'goldened'/tested */
     pixt = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixt, IFF_PNG, pcount, rp);
-    pixDisplayWithTitle(pixt, 100, 0, NULL, display);
+    regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 12 */
+    pixDisplayWithTitle(pixt, 100, 0, NULL, rp->display);
     pixDestroy(&pixt);
     pixaDestroy(&pixa);
 
         /* The 12 plot files are tested in pairs for identity */
-    regTestCompareFiles(rp->fp, rp->argv, 0, 1, &rp->success);
-    regTestCompareFiles(rp->fp, rp->argv, 2, 3, &rp->success);
-    regTestCompareFiles(rp->fp, rp->argv, 4, 5, &rp->success);
-    regTestCompareFiles(rp->fp, rp->argv, 6, 7, &rp->success);
-    regTestCompareFiles(rp->fp, rp->argv, 8, 9, &rp->success);
-    regTestCompareFiles(rp->fp, rp->argv, 10, 11, &rp->success);
+    regTestCompareFiles(rp, 0, 1);
+    regTestCompareFiles(rp, 2, 3);
+    regTestCompareFiles(rp, 4, 5);
+    regTestCompareFiles(rp, 6, 7);
+    regTestCompareFiles(rp, 8, 9);
+    regTestCompareFiles(rp, 10, 11);
 
     pixDestroy(&pixd);
     numaDestroy(&na1);

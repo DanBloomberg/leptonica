@@ -13,7 +13,7 @@
  -  or altered from any source or modified source distribution.
  *====================================================================*/
 
-/*
+/*!
  *     Low-level fast binary morphology with auto-generated sels
  *
  *      Dispatcher:
@@ -24,7 +24,6 @@
 --- *            void      ferode_*_*()
  */
 
-#include <stdio.h>
 #include "allheaders.h"
 
 ---              This file is:  morphtemplate2.txt
@@ -35,7 +34,7 @@
 /*---------------------------------------------------------------------*
  *                          Fast morph dispatcher                      *
  *---------------------------------------------------------------------*/
-/*
+/*!
 --- *  fmorphopgen_low_*()
  *
  *       a dispatcher to appropriate low-level code

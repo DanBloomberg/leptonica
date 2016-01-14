@@ -373,7 +373,8 @@ PIX       *pixs;
 
     writeerror = 0;
     if (ds == 1) {  /* binary */
-        fprintf(fp, "P4\n# Raw PBM file written by leptonlib (www.leptonica.com)\n%d %d\n", w, h);
+        fprintf(fp, "P4\n# Raw PBM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n", w, h);
 
         bpl = (w + 7) / 8;
         for (i = 0; i < h; i++) {
@@ -386,7 +387,8 @@ PIX       *pixs;
     }
     else if (ds == 2 || ds == 4 || ds == 8 || ds == 16) {  /* grayscale */
         maxval = (1 << ds) - 1;
-        fprintf(fp, "P5\n# Raw PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
+        fprintf(fp, "P5\n# Raw PGM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
         if (ds != 16) {
             for (i = 0; i < h; i++) {
@@ -413,7 +415,8 @@ PIX       *pixs;
         }
     }
     else {  /* rgb color */
-        fprintf(fp, "P6\n# Raw PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
+        fprintf(fp, "P6\n# Raw PPM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n255\n", w, h);
 
         if (d == 24) {   /* packed, 3 bytes to a pixel */
             filebpl = 3 * w;
@@ -486,7 +489,8 @@ PIX       *pixs;
     ds =  pixGetDepth(pixs);
 
     if (ds == 1) {  /* binary */
-        fprintf(fp, "P1\n# Ascii PBM file written by leptonlib (www.leptonica.com)\n%d %d\n", w, h);
+        fprintf(fp, "P1\n# Ascii PBM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n", w, h);
 
         count = 0;
         for (i = 0; i < h; i++) {
@@ -505,7 +509,8 @@ PIX       *pixs;
     }
     else if (ds == 2 || ds == 4 || ds == 8 || ds == 16) {  /* grayscale */
         maxval = (1 << ds) - 1;
-        fprintf(fp, "P2\n# Ascii PGM file written by leptonlib (www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
+        fprintf(fp, "P2\n# Ascii PGM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n%d\n", w, h, maxval);
 
         count = 0;
         for (i = 0; i < h; i++) {
@@ -539,7 +544,8 @@ PIX       *pixs;
         }
     }
     else {  /* rgb color */
-        fprintf(fp, "P3\n# Ascii PPM file written by leptonlib (www.leptonica.com)\n%d %d\n255\n", w, h);
+        fprintf(fp, "P3\n# Ascii PPM file written by leptonica "
+                    "(www.leptonica.com)\n%d %d\n255\n", w, h);
 
         count = 0;
         for (i = 0; i < h; i++) {

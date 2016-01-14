@@ -158,7 +158,7 @@ PIX     *pixtb;    /* textblock mask */
         PIXCMAP  *cmap;
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
-        tempname = genTempFilename("/tmp", "tb_outlines.ptaa", 0);
+        tempname = genTempFilename("/tmp", "tb_outlines.ptaa", 0, 0);
         ptaaWrite(tempname, ptaa, 1);
         FREE(tempname);
         pixt1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
@@ -176,13 +176,13 @@ PIX     *pixtb;    /* textblock mask */
         bahm = pixConnComp(pixhm, NULL, 4);
         batm = pixConnComp(pixtm, NULL, 4);
         batb = pixConnComp(pixtb, NULL, 4);
-        tempname = genTempFilename("/tmp", "htmask.boxa", 0);
+        tempname = genTempFilename("/tmp", "htmask.boxa", 0, 0);
         boxaWrite(tempname, bahm);
         FREE(tempname);
-        tempname = genTempFilename("/tmp", "textmask.boxa", 0);
+        tempname = genTempFilename("/tmp", "textmask.boxa", 0, 0);
         boxaWrite(tempname, batm);
         FREE(tempname);
-        tempname = genTempFilename("/tmp", "textblock.boxa", 0);
+        tempname = genTempFilename("/tmp", "textblock.boxa", 0, 0);
         boxaWrite(tempname, batb);
         FREE(tempname);
 	boxaDestroy(&bahm);

@@ -27,12 +27,11 @@
  *    and use ps2tiff.  ps2tiff uses GhostScript.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
-#define   NFONTS   9
-#define   DIRECTORY    "./fonts"
+#define   NFONTS        9
+#define   TEST_DIR      "/tmp/fonts"
+#define   INSTALL_DIR   "fonts"
 
 const char  *outputfonts[] = {"chars-4.pixa", "chars-6.pixa",
                               "chars-8.pixa", "chars-10.pixa",
@@ -48,6 +47,7 @@ const l_int32 sizes[] = { 4, 6, 8, 10, 12, 14, 16, 18, 20 };
 main(int    argc,
      char **argv)
 {
+char         buf[512];
 char        *pathname;
 l_int32      i, bl1, bl2, bl3;
 PIX         *pixd;
@@ -57,25 +57,48 @@ static char  mainName[] = "genfonts";
     if (argc != 1)
 	exit(ERROR_INT(" Syntax:  genfonts", mainName, 1));
 
-#if 1   /* Generate all the pixa char bitmap files */
+    /* ------------  Generate all the pixa char bitmap files ----------- */
+#if 1
     for (i = 0; i < 9; i++) { 
-        pixaSaveFont(DIRECTORY, DIRECTORY, sizes[i]);
+        pixaSaveFont(INSTALL_DIR, TEST_DIR, sizes[i]);
+
 #if DEBUG
-        pathname = genPathname(DIRECTORY, outputfonts[i]);
+        pathname = genPathname(INSTALL_DIR, outputfonts[i]);
 	pixa = pixaRead(pathname);
 	fprintf(stderr, "Found %d chars in font size %d\n",
 	        pixaGetCount(pixa), sizes[i]);
-	fprintf(stderr, "Baselines are at: %d, %d, %d\n", bl1, bl2, bl3);
 	pixd = pixaDisplayTiled(pixa, 1500, 0, 15);
 	pixDisplay(pixd, 100 * i, 200);
 	pixDestroy(&pixd);
 	pixaDestroy(&pixa);
-	FREE(pathname);
+	lept_free(pathname);
 #endif  /* DEBUG */
+
     }
 #endif
 
-#if 0   /* Get timing for font generation */
+
+    /* -----  Use pixaGetFont() and write the result out  -----*/
+#if 1
+    for (i = 0; i < 9; i++) { 
+        pixa = pixaGetFont(INSTALL_DIR, sizes[i], &bl1, &bl2, &bl3);
+        fprintf(stderr, "Baselines are at: %d, %d, %d\n", bl1, bl2, bl3);
+        snprintf(buf, sizeof(buf), "/tmp/junkchars.%d.pixa", sizes[i]);
+        pixaWrite(buf, pixa);
+
+#if DEBUG
+        pixd = pixaDisplayTiled(pixa, 1500, 0, 15);
+        pixDisplay(pixd, 100 * i, 700);
+        pixDestroy(&pixd);
+#endif  /* DEBUG */
+
+        pixaDestroy(&pixa);
+    }
+#endif
+
+
+    /* ------------  Get timing for font generation ----------- */
+#if 0
     startTimer();
     i = 8;
     pixa = pixaGenerateFont(DIRECTORY, sizes[i], &bl1, &bl2, &bl3);
@@ -83,17 +106,8 @@ static char  mainName[] = "genfonts";
     fprintf(stderr, "Time for font gen = %7.3f sec\n", stopTimer());
 #endif
 
-#if 1   /* Use pixaGetFont() and write the result out */
-    pixa = pixaGetFont(DIRECTORY, 10, &bl1, &bl2, &bl3);
-    pixaWrite("junkchars16", pixa);
-#if DEBUG
-    pixd = pixaDisplayTiled(pixa, 1500, 0, 15);
-    pixDisplay(pixd, 200, 200);
-    pixDestroy(&pixd);
-#endif  /* DEBUG */
-#endif
 
-    exit(0);
+    return 0;
 }
 
 

@@ -22,8 +22,6 @@
  *    all invoked on the separable block morph ops.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const l_int32  MAX_SEL_SIZE = 120;
@@ -174,25 +172,25 @@ static char  mainName[] = "binmorph2_reg";
     fprintf(stderr, str);
     selDestroy(&sel1);
     selDestroy(&sel2);
-    FREE(str);
+    lept_free(str);
     selectComposableSels(70, L_HORIZ, &sel1, &sel2);  /* 10, 7 */
     str = selPrintToString(sel2);
     selDestroy(&sel1);
     selDestroy(&sel2);
     fprintf(stderr, str);
-    FREE(str);
+    lept_free(str);
     selectComposableSels(85, L_HORIZ, &sel1, &sel2);  /* 17, 5 */
     str = selPrintToString(sel2);
     selDestroy(&sel1);
     selDestroy(&sel2);
     fprintf(stderr, str);
-    FREE(str);
+    lept_free(str);
     selectComposableSels(96, L_HORIZ, &sel1, &sel2);  /* 12, 8 */
     str = selPrintToString(sel2);
     selDestroy(&sel1);
     selDestroy(&sel2);
     fprintf(stderr, str);
-    FREE(str);
+    lept_free(str);
 
     { SELA *sela;
     sela = selaAddBasic(NULL);

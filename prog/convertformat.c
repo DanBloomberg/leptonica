@@ -38,11 +38,8 @@
  *         PNM       .pnm
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
@@ -80,7 +77,7 @@ static char  mainName[] = "convertformat";
             format = "PNM";
         else
             return ERROR_INT(error_msg, mainName, 1);
-        FREE(ext);
+        lept_free(ext);
     }
     else
         format = argv[3];

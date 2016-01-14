@@ -20,10 +20,7 @@
  *                   pageseg1.tif, pageseg1.tif, pageseg3.tif, pageseg4.tif
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 main(int    argc,
      char **argv)
@@ -34,7 +31,7 @@ char        *filein;
 static char  mainName[] = "pagesegtest1";
 
     if (argc != 2)
-	exit(ERROR_INT(" Syntax:  pagesegtest1 filein", mainName, 1));
+	return ERROR_INT(" Syntax:  pagesegtest1 filein", mainName, 1);
 
     filein = argv[1];
 
@@ -48,12 +45,11 @@ static char  mainName[] = "pagesegtest1";
     pixDestroy(&pixs);
 
         /* Display intermediate images in a single image */
-    pixa = pixaReadFiles(".", "junk_write");
+    pixa = pixaReadFiles("/tmp", "junk_write");
     pixd = pixaDisplayTiledAndScaled(pixa, 32, 400, 4, 0, 20, 3);
     pixWrite("junkpixd", pixd, IFF_PNG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
-
-    exit(0);
+    return 0;
 }
 

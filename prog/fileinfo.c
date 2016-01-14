@@ -73,9 +73,9 @@ static char  mainName[] = "fileinfo";
     if (format == IFF_TIFF || format == IFF_TIFF_G4 ||
         format == IFF_TIFF_G3 || format == IFF_TIFF_PACKBITS) {
         fprintf(stderr, "  Tiff header information:\n");
-        fp = fopen(filein, "r");
+        fp = lept_fopen(filein, "rb");
         tiffGetCount(fp, &npages);
-        fclose(fp);
+        lept_fclose(fp);
         if (npages == 1)
             fprintf(stderr, "    One page in file\n", npages);
         else

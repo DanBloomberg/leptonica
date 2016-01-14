@@ -35,15 +35,13 @@
  *   patched numerous times, and currently doesn't work with
  *   sys/sysmacros.h for 64 bit architecture.
  *
- *   This is used to extract all prototypes in leptonlib, in the
+ *   This is used to extract all prototypes in liblept, in the
  *   file leptprotos.h.  The function that does all the work is
  *   parseForProtos(), which takes as input the output from cpp.
  *   To avoid including the very large leptprotos.h in the input
  *   from each file, cpp runs here with -DNO_PROTOS.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -78,7 +76,7 @@ static char  mainName[] = "xtractprotos";
     str = sarrayToString(sa, 1);
     fprintf(stdout, "%s", str);
     sarrayDestroy(&sa);
-    FREE(str);
+    lept_free(str);
 
         /* Prepend 'prestring' if requested */
     firstfile = 1;
@@ -117,7 +115,7 @@ static char  mainName[] = "xtractprotos";
 	}
 	if (strlen(str) > 1)  /* strlen(str) == 1 is a file without protos */
             fprintf(stdout, "%s", str);
-        FREE(str);
+        lept_free(str);
     }
 
         /* Output extern C tail */
@@ -128,9 +126,9 @@ static char  mainName[] = "xtractprotos";
     str = sarrayToString(sa, 1);
     fprintf(stdout, "%s", str);
     sarrayDestroy(&sa);
-    FREE(str);
+    lept_free(str);
     if (prestring)
-        FREE(prestring);
+        lept_free(prestring);
 
     remove(tempfile);
     return 0;

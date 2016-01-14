@@ -1907,7 +1907,7 @@ PIX      *pixr, *pixg;
 PIX *
 pixRankRowTransform(PIX  *pixs)
 {
-l_int32    i, j, k, m, w, h, wpl, val; 
+l_int32    i, j, k, m, w, h, wpl, val;
 l_int32    histo[256];
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;

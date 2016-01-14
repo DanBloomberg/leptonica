@@ -32,8 +32,6 @@
  *       static l_int32    getOffsetForMatchingRP()
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -135,7 +133,8 @@ parseForProtos(const char *filein,
                const char *prestring)
 {
 char    *strdata, *str, *newstr, *parsestr, *secondword;
-l_int32  nbytes, start, next, stop, charindex, found;
+l_int32  start, next, stop, charindex, found;
+size_t   nbytes;
 SARRAY  *sa, *saout, *satest;
 
     PROCNAME("parseForProtos");
@@ -145,7 +144,7 @@ SARRAY  *sa, *saout, *satest;
 
         /* Read in the cpp output into memory, one string for each
          * line in the file, omitting blank lines.  */
-    strdata = (char *)arrayRead(filein, &nbytes);
+    strdata = (char *)l_binaryRead(filein, &nbytes);
     sa = sarrayCreateLinesFromString(strdata, 0);
 
     saout = sarrayCreate(0);

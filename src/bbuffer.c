@@ -82,9 +82,7 @@
  *    compress and decompress an array of bytes in memory.
  */
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;   /* n'importe quoi */
@@ -181,10 +179,10 @@ BBUFFER  *bb;
  */
 l_uint8 *
 bbufferDestroyAndSaveData(BBUFFER  **pbb,
-                          l_int32   *pnbytes)
+                          size_t    *pnbytes)
 {
 l_uint8  *array;
-l_int32   nbytes;
+size_t    nbytes;
 BBUFFER  *bb;
 
     PROCNAME("bbufferDestroyAndSaveData");
@@ -369,8 +367,8 @@ bbufferExtendArray(BBUFFER  *bb,
 l_int32
 bbufferWrite(BBUFFER  *bb,
              l_uint8  *dest,
-             l_int32   nbytes,
-             l_int32  *pnout)
+             size_t    nbytes,
+             size_t   *pnout)
 {
 l_int32  nleft, nout;
 
@@ -421,8 +419,8 @@ l_int32  nleft, nout;
 l_int32
 bbufferWriteStream(BBUFFER  *bb,
                    FILE     *fp,
-                   l_int32   nbytes,
-                   l_int32  *pnout)
+                   size_t    nbytes,
+                   size_t   *pnout)
 {
 l_int32  nleft, nout;
 
@@ -474,7 +472,7 @@ l_int32  nleft, nout;
  */
 l_int32
 bbufferBytesToWrite(BBUFFER  *bb,
-                    l_int32  *pnbytes)
+                    size_t   *pnbytes)
 {
     PROCNAME("bbufferBytesToWrite");
 

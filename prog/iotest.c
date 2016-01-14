@@ -20,8 +20,6 @@
  *   are separately tested in mtifftest and psiotest, respectively.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 LEPT_DLL extern const char *ImageFileFormatExtensions[];
@@ -62,15 +60,15 @@ static char  mainName[] = "iotest";
     if (pixGetColormap(pix)) {
 	    /* Write and read back the colormap */
         pixcmapWriteStream(stderr, pixGetColormap(pix));
-        fp = fopen("/tmp/junkcmap1", "w");
+        fp = lept_fopen("/tmp/junkcmap1", "wb");
         pixcmapWriteStream(fp, pixGetColormap(pix));
-        fclose(fp);
-        fp = fopen("/tmp/junkcmap1", "r");
+        lept_fclose(fp);
+        fp = lept_fopen("/tmp/junkcmap1", "rb");
         cmap = pixcmapReadStream(fp);
-        fclose(fp);
-        fp = fopen("/tmp/junkcmap2", "w");
+        lept_fclose(fp);
+        fp = lept_fopen("/tmp/junkcmap2", "wb");
         pixcmapWriteStream(fp, cmap);
-        fclose(fp);
+        lept_fclose(fp);
         pixcmapDestroy(&cmap);
 
             /* Remove and regenerate colormap */

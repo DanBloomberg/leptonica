@@ -22,27 +22,24 @@
  *     serialization, interconversion)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
-
 
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32    i, n, index, display, success;
-l_float32  a, b, c;
-L_DEWARP  *dew, *dew2;
-DPIX      *dpix1, *dpix2, *dpix3;
-FILE      *fp;
-FPIX      *fpix1, *fpix2, *fpix3;
-NUMA      *nax, *nafit;
-PIX       *pixs, *pixn, *pixg, *pixb, *pixt1, *pixt2;
-PIX       *pixs2, *pixn2, *pixg2, *pixb2;
-PTA       *pta, *ptad;
-PTAA      *ptaa1, *ptaa2;
+l_int32       i, n;
+l_float32     a, b, c;
+L_DEWARP     *dew, *dew2;
+DPIX         *dpix1, *dpix2, *dpix3;
+FPIX         *fpix1, *fpix2, *fpix3;
+NUMA         *nax, *nafit;
+PIX          *pixs, *pixn, *pixg, *pixb, *pixt1, *pixt2;
+PIX          *pixs2, *pixn2, *pixg2, *pixb2;
+PTA          *pta, *ptad;
+PTAA         *ptaa1, *ptaa2;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+    if (regTestSetup(argc, argv, &rp))
               return 1;
 
     pixs = pixRead("1555-7.jpg");
@@ -53,17 +50,15 @@ PTAA      *ptaa1, *ptaa2;
     pixb = pixThresholdToBinary(pixg, 130);
     pixDestroy(&pixn);
     pixDestroy(&pixg);
-    pixWrite("/tmp/dewarp.0.png", pixb, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.0.png", 0, &success);
-    pixDisplayWithTitle(pixb, 0, 0, "binarized input", display);
+    regTestWritePixAndCheck(rp, pixb, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixb, 0, 0, "binarized input", rp->display);
 
         /* Get the textline centers */
     ptaa1 = pixGetTextlineCenters(pixb, 0);
     pixt1 = pixCreateTemplate(pixs);
     pixt2 = pixDisplayPtaa(pixt1, ptaa1);
-    pixWrite("/tmp/dewarp.1.png", pixt2, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.1.png", 1, &success);
-    pixDisplayWithTitle(pixt2, 0, 500, "textline centers", display);
+    regTestWritePixAndCheck(rp, pixt2, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pixt2, 0, 500, "textline centers", rp->display);
     pixDestroy(&pixt1);
 
         /* Remove short lines */
@@ -82,31 +77,31 @@ PTAA      *ptaa1, *ptaa2;
         numaDestroy(&nax);
         numaDestroy(&nafit);
     }
-    pixWrite("/tmp/dewarp.2.png", pixt2, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.2.png", 2, &success);
-    pixDisplayWithTitle(pixt2, 300, 500, "fitted lines superimposed", display);
+    regTestWritePixAndCheck(rp, pixt2, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pixt2, 300, 500, "fitted lines superimposed",
+                        rp->display);
     ptaaDestroy(&ptaa1);
     ptaaDestroy(&ptaa2);
     pixDestroy(&pixt2);
 
         /* Run with only vertical disparity correction */
-    dew = dewarpCreate(pixb, 7, 30, 15, 0);
+    if ((dew = dewarpCreate(pixb, 7, 30, 15, 0)) == NULL)
+        return ERROR_INT("\n\n\n FAILURE !!! \n\n\n", rp->testname, 1);
     dewarpBuildModel(dew, 0);
     dewarpApplyDisparity(dew, pixb, 0);
-    pixWrite("/tmp/dewarp.3.png", dew->pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.3.png", 3, &success);
+    regTestWritePixAndCheck(rp, dew->pixd, IFF_PNG);  /* 3 */
     pixDisplayWithTitle(dew->pixd, 400, 0, "fixed for vert disparity",
-                        display);
+                        rp->display);
     dewarpDestroy(&dew);
 
         /* Run with both vertical and horizontal disparity correction */
-    dew = dewarpCreate(pixb, 7, 30, 15, 1);
+    if ((dew = dewarpCreate(pixb, 7, 30, 15, 1)) == NULL)
+        return ERROR_INT("\n\n\n FAILURE !!! \n\n\n", rp->testname, 1);
     dewarpBuildModel(dew, 0);
     dewarpApplyDisparity(dew, pixb, 0);
-    pixWrite("/tmp/dewarp.4.png", dew->pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.4.png", 4, &success);
+    regTestWritePixAndCheck(rp, dew->pixd, IFF_PNG);  /* 4 */
     pixDisplayWithTitle(dew->pixd, 800, 0, "fixed for both disparities",
-                        display);
+                        rp->display);
 
         /* Read another image, normalize background and binarize */
     pixs2 = pixRead("1555-3.jpg");
@@ -115,55 +110,50 @@ PTAA      *ptaa1, *ptaa2;
     pixb2 = pixThresholdToBinary(pixg2, 130);
     pixDestroy(&pixn2);
     pixDestroy(&pixg2);
-    pixWrite("/tmp/dewarp.5.png", pixb, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.5.png", 5, &success);
-    pixDisplayWithTitle(pixb, 0, 400, "binarized input (2)", display);
+    regTestWritePixAndCheck(rp, pixb, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pixb, 0, 400, "binarized input (2)", rp->display);
 
         /* Minimize and re-apply previous disparity to this image */
     dewarpMinimize(dew);
     dewarpApplyDisparity(dew, pixb2, 0);
-    pixWrite("/tmp/dewarp.6.png", dew->pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.6.png", 6, &success);
+    regTestWritePixAndCheck(rp, dew->pixd, IFF_PNG);  /* 6 */
     pixDisplayWithTitle(dew->pixd, 400, 400, "fixed (2) for both disparities",
-                        display);
+                        rp->display);
 
         /* Write and read back minimized dewarp struct */
-    dewarpWrite("/tmp/dewarp.1.dew", dew);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.1.dew", 7, &success);
-    dew2 = dewarpRead("/tmp/dewarp.1.dew");
-    dewarpWrite("/tmp/dewarp.2.dew", dew2);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.2.dew", 8, &success);
-    regTestCompareFiles(fp, argv, 7, 8, &success);
+    dewarpWrite("/tmp/dewarp.7.dew", dew);
+    regTestCheckFile(rp, "/tmp/dewarp.7.dew");  /* 7 */
+    dew2 = dewarpRead("/tmp/dewarp.7.dew");
+    dewarpWrite("/tmp/dewarp.8.dew", dew2);
+    regTestCheckFile(rp, "/tmp/dewarp.8.dew");  /* 8 */
+    regTestCompareFiles(rp, 7, 8);  /* 9 */
 
         /* Apply dew2 to pixb2 */
     dewarpApplyDisparity(dew2, pixb2, 0);
-    pixWrite("/tmp/dewarp.9.png", dew2->pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.9.png", 9, &success);
+    regTestWritePixAndCheck(rp, dew2->pixd, IFF_PNG);  /* 10 */
     pixDisplayWithTitle(dew->pixd, 800, 400, "fixed (3) for both disparities",
-                        display);
+                        rp->display);
 
         /* Minimize, repopulate disparity arrays, and apply again */
     dewarpMinimize(dew2);
     dewarpApplyDisparity(dew2, pixb2, 0);
-    pixWrite("/tmp/dewarp.10.png", dew2->pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.10.png", 10, &success);
-    regTestCompareFiles(fp, argv, 9, 10, &success);
+    regTestWritePixAndCheck(rp, dew2->pixd, IFF_PNG);  /* 11 */
+    regTestCompareFiles(rp, 10, 11);  /* 12 */
     pixDisplayWithTitle(dew->pixd, 900, 400, "fixed (4) for both disparities",
-                        display);
+                        rp->display);
 
         /* Test a few of the fpix functions */
     fpix1 = fpixClone(dew->sampvdispar);
-    fpixWrite("/tmp/sampv.1.fpix", fpix1);
-    regTestCheckFile(fp, argv, "/tmp/sampv.1.fpix", 11, &success);
-    fpix2 = fpixRead("/tmp/sampv.1.fpix");
-    fpixWrite("/tmp/sampv.2.fpix", fpix2);
-    regTestCheckFile(fp, argv, "/tmp/sampv.2.fpix", 12, &success);
-    regTestCompareFiles(fp, argv, 11, 12, &success);
+    fpixWrite("/tmp/sampv.13.fpix", fpix1);
+    regTestCheckFile(rp, "/tmp/sampv.13.fpix");  /* 13 */
+    fpix2 = fpixRead("/tmp/sampv.13.fpix");
+    fpixWrite("/tmp/sampv.14.fpix", fpix2);
+    regTestCheckFile(rp, "/tmp/sampv.14.fpix");  /* 14 */
+    regTestCompareFiles(rp, 13, 14);  /* 15 */
     fpix3 = fpixScaleByInteger(fpix2, 30);
     pixt1 = fpixRenderContours(fpix3, -2., 2.0, 0.2);
-    pixWrite("/tmp/dewarp.13.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.13.png", 13, &success);
-    pixDisplayWithTitle(pixt1, 0, 800, "v. disparity contours", display);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 16 */
+    pixDisplayWithTitle(pixt1, 0, 800, "v. disparity contours", rp->display);
     fpixDestroy(&fpix1);
     fpixDestroy(&fpix2);
     fpixDestroy(&fpix3);
@@ -171,19 +161,18 @@ PTAA      *ptaa1, *ptaa2;
 
         /* Test a few of the dpix functions */
     dpix1 = fpixConvertToDPix(dew->sampvdispar);
-    dpixWrite("/tmp/sampv.1.dpix", dpix1);
-    regTestCheckFile(fp, argv, "/tmp/sampv.1.dpix", 14, &success);
-    dpix2 = dpixRead("/tmp/sampv.1.dpix");
-    dpixWrite("/tmp/sampv.2.dpix", dpix2);
-    regTestCheckFile(fp, argv, "/tmp/sampv.2.dpix", 15, &success);
-    regTestCompareFiles(fp, argv, 14, 15, &success);
+    dpixWrite("/tmp/sampv.17.dpix", dpix1);
+    regTestCheckFile(rp, "/tmp/sampv.17.dpix");  /* 17 */
+    dpix2 = dpixRead("/tmp/sampv.17.dpix");
+    dpixWrite("/tmp/sampv.18.dpix", dpix2);
+    regTestCheckFile(rp, "/tmp/sampv.18.dpix");  /* 18 */
+    regTestCompareFiles(rp, 17, 18);  /* 19 */
     dpix3 = dpixScaleByInteger(dpix2, 30);
     fpix3 = dpixConvertToFPix(dpix3);
     pixt1 = fpixRenderContours(fpix3, -2., 2.0, 0.2);
-    pixWrite("/tmp/dewarp.16.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/dewarp.16.png", 16, &success);
-    pixDisplayWithTitle(pixt1, 400, 800, "v. disparity contours", display);
-    regTestCompareFiles(fp, argv, 13, 16, &success);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 20 */
+    pixDisplayWithTitle(pixt1, 400, 800, "v. disparity contours", rp->display);
+    regTestCompareFiles(rp, 16, 20);  /* 21 */
     dpixDestroy(&dpix1);
     dpixDestroy(&dpix2);
     dpixDestroy(&dpix3);
@@ -196,8 +185,7 @@ PTAA      *ptaa1, *ptaa2;
     pixDestroy(&pixb);
     pixDestroy(&pixs2);
     pixDestroy(&pixb2);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
-
 

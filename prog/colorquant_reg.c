@@ -19,8 +19,6 @@
  *    Regression test for various color quantizers
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const l_int32 SPACE = 30;
@@ -30,8 +28,6 @@ static const char *image[4] = {"marge.jpg",
                                "juditharismax.jpg",
                                "hardlight2_2.jpg"};
 
-static l_int32 golden_number = 0;
-
 static l_int32 TestImage(const char *filename, l_int32 i, L_REGPARAMS *rp);
 static void PixSave32(PIXA *pixa, PIX *pixc, L_REGPARAMS *rp);
 
@@ -39,11 +35,10 @@ static void PixSave32(PIXA *pixa, PIX *pixc, L_REGPARAMS *rp);
 main(int    argc,
      char **argv)
 {
-l_int32       i, success, display;
-FILE         *fp;
+l_int32       i;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
     for (i = 0; i < 4; i++) {
@@ -51,7 +46,7 @@ L_REGPARAMS  *rp;
         TestImage(image[i], i, rp);
     }
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 
@@ -70,8 +65,10 @@ char      *fileout;
 
     PROCNAME("TestImage");
 
-    if ((pix = pixRead(filename)) == NULL)
+    if ((pix = pixRead(filename)) == NULL) {
+        rp->success = FALSE;
         return ERROR_INT("pix not made", procName, 1);
+    }
     pixGetDimensions(pix, &w, &h, NULL);
     if (w > MAX_WIDTH) {
         factor = (l_float32)MAX_WIDTH / (l_float32)w;
@@ -223,19 +220,15 @@ char      *fileout;
     return 0;
 }
 
+
 static void
 PixSave32(PIXA *pixa, PIX *pixc, L_REGPARAMS *rp)
 {
-char  namebuf[256];
 PIX  *pix32;
 
     pix32 = pixConvertTo32(pixc);
     pixSaveTiled(pix32, pixa, 1, 0, SPACE, 0);
-
-    snprintf(namebuf, 240, "/tmp/colorquant.%d.jpg", golden_number);
-    pixWrite(namebuf, pix32, IFF_JFIF_JPEG);
-    regTestCheckFile(rp->fp, rp->argv, namebuf, golden_number++, &rp->success);
-
+    regTestWritePixAndCheck(rp, pix32, IFF_JFIF_JPEG);
     pixDestroy(&pixc);
     pixDestroy(&pix32);
 }

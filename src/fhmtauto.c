@@ -77,8 +77,6 @@
  *        rasterops. 
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -241,8 +239,8 @@ char    *str_doc1, *str_doc2, *str_doc3, *str_doc4;
 char    *str_def1, *str_def2, *str_proc1, *str_proc2;
 char    *str_dwa1, *str_low_dt, *str_low_ds;
 char     bigbuf[BUFFER_SIZE];
-l_int32  i, nsels, nbytes;
-l_int32  actstart, end, newstart;
+l_int32  i, nsels, nbytes, actstart, end, newstart;
+size_t   size;
 SARRAY  *sa1, *sa2, *sa3;
 
     PROCNAME("fhmtautogen1");
@@ -258,7 +256,7 @@ SARRAY  *sa1, *sa2, *sa3;
     sa1 = selaGetSelnames(sela);
 
         /* Make array of textlines from from hmttemplate1.txt */
-    if ((filestr = (char *)arrayRead(TEMPLATE1, &nbytes)) == NULL)
+    if ((filestr = (char *)l_binaryRead(TEMPLATE1, &size)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa2 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa2 not made", procName, 1);
@@ -383,7 +381,7 @@ SARRAY  *sa1, *sa2, *sa3;
         sprintf(bigbuf, "%s.%d.c", filename, fileindex);
     else
         sprintf(bigbuf, "%s.%d.c", OUTROOT, fileindex);
-    arrayWrite(bigbuf, "w", filestr, nbytes);
+    l_binaryWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);
@@ -424,6 +422,7 @@ char     staticstring[] = "static void";
 l_int32  i, k, l, nsels, nbytes, nhits, nmisses;
 l_int32  actstart, end, newstart;
 l_int32  argstart, argend, loopstart, loopend, finalstart, finalend;
+size_t   size;
 SARRAY  *sa1, *sa2, *sa3, *sa4, *sa5, *sa6;
 SEL     *sel;
 
@@ -437,7 +436,7 @@ SEL     *sel;
         return ERROR_INT("no sels in sela", procName, 1);
     
         /* Make the array of textlines from hmttemplate2.txt */
-    if ((filestr = (char *)arrayRead(TEMPLATE2, &nbytes)) == NULL)
+    if ((filestr = (char *)l_binaryRead(TEMPLATE2, &size)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
     if ((sa1 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
         return ERROR_INT("sa1 not made", procName, 1);
@@ -582,7 +581,7 @@ SEL     *sel;
         sprintf(bigbuf, "%slow.%d.c", filename, fileindex);
     else
         sprintf(bigbuf, "%slow.%d.c", OUTROOT, fileindex);
-    arrayWrite(bigbuf, "w", filestr, nbytes);
+    l_binaryWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
     sarrayDestroy(&sa3);

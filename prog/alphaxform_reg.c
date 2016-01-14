@@ -25,9 +25,6 @@
  *   before transforming and then re-applying the gamma transform.
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static void MakePtas(l_int32 i, l_int32 npts, PTA **pptas, PTA **pptad);
@@ -57,8 +54,6 @@ static const l_int32  yp4[] = {  350,    350,  400,   532,  114 };
 main(int    argc,
      char **argv)
 {
-l_int32  count, display, success;
-FILE    *fp;
 PIX   *pix1, *pix2, *pixs1, *pixs2, *pixs3, *pixb1, *pixb2, *pixb3, *pixbs;
 PIX   *pixg2, *pixg3, *pixr2, *pixr3;
 PIX         *pixc1, *pixc2, *pixc3, *pixcs1, *pixcs2, *pixcs3;
@@ -66,10 +61,9 @@ PIX         *pixd, *pixt1, *pixt2, *pixt3;
 PTA         *ptas1, *ptas2, *ptas3, *ptad1, *ptad2, *ptad3;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    count = 0;
     pixc1 = pixRead("test24.jpg");
     pixc2 = pixRead("wyom.jpg");
     pixc3 = pixRead("marge.jpg");
@@ -82,8 +76,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixs3, NULL, 100, 100);
     pixb2 = pixBlendWithGrayMask(pixb1, pixs2, NULL, 300, 130);
     pixb3 = pixBlendWithGrayMask(pixb2, pixs3, NULL, 600, 160);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 900, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixb3, 900, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixs2);
     pixDestroy(&pixs3);
@@ -98,8 +92,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixs3, NULL, 100, 100);
     pixb2 = pixBlendWithGrayMask(pixb1, pixs2, NULL, 300, 130);
     pixb3 = pixBlendWithGrayMask(pixb2, pixs3, NULL, 600, 160);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 900, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pixb3, 900, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixs3);
     pixDestroy(&pixs2);
@@ -114,8 +108,8 @@ L_REGPARAMS  *rp;
     pixr2 = pixRotateWithAlpha(pixc2, +0.3, NULL, 1.0);
     pixb3 = pixBlendWithGrayMask(pixd, pixr3, NULL, 100, 100);
     pixb2 = pixBlendWithGrayMask(pixb3, pixr2, NULL, 400, 100);
-    regTestWritePixAndCheck(pixb2, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb2, 500, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb2, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pixb2, 500, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixr3);
     pixDestroy(&pixr2);
@@ -128,8 +122,8 @@ L_REGPARAMS  *rp;
     pixr3 = pixRotateGammaXform(pixc3, 2.0, -0.3, 1.0);
     pixb3 = pixBlendWithGrayMask(pixd, pixr3, NULL, 100, 100);
     pixb2 = pixBlendWithGrayMask(pixb3, pixr2, NULL, 400, 100);
-    regTestWritePixAndCheck(pixb2, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb2, 500, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb2, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pixb2, 500, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixr2);
     pixDestroy(&pixr3);
@@ -152,8 +146,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixt1, NULL, -250, 20);
     pixb2 = pixBlendWithGrayMask(pixb1, pixt2, NULL, -150, -250);
     pixb3 = pixBlendWithGrayMask(pixb2, pixt3, NULL, -100, 220);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 4 */
+    pixDisplayWithTitle(pixb3, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixb1);
     pixDestroy(&pixb2);
@@ -179,8 +173,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixt1, NULL, -250, 20);
     pixb2 = pixBlendWithGrayMask(pixb1, pixt2, NULL, -150, -250);
     pixb3 = pixBlendWithGrayMask(pixb2, pixt3, NULL, -100, 220);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pixb3, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixb1);
     pixDestroy(&pixb2);
@@ -207,8 +201,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixt1, NULL, -150, 20);
     pixb2 = pixBlendWithGrayMask(pixb1, pixt2, NULL, -50, -250);
     pixb3 = pixBlendWithGrayMask(pixb2, pixt3, NULL, -100, 220);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 300, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pixb3, 300, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixb1);
     pixDestroy(&pixb2);
@@ -234,8 +228,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixt1, NULL, -150, 20);
     pixb2 = pixBlendWithGrayMask(pixb1, pixt2, NULL, -50, -250);
     pixb3 = pixBlendWithGrayMask(pixb2, pixt3, NULL, -100, 220);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 300, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 7 */
+    pixDisplayWithTitle(pixb3, 300, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixb1);
     pixDestroy(&pixb2);
@@ -262,8 +256,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixt1, NULL, -150, 20);
     pixb2 = pixBlendWithGrayMask(pixb1, pixt2, NULL, -50, -250);
     pixb3 = pixBlendWithGrayMask(pixb2, pixt3, NULL, -100, 220);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 500, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 8 */
+    pixDisplayWithTitle(pixb3, 500, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixb1);
     pixDestroy(&pixb2);
@@ -289,8 +283,8 @@ L_REGPARAMS  *rp;
     pixb1 = pixBlendWithGrayMask(pixd, pixt1, NULL, -150, 20);
     pixb2 = pixBlendWithGrayMask(pixb1, pixt2, NULL, -50, -250);
     pixb3 = pixBlendWithGrayMask(pixb2, pixt3, NULL, -100, 220);
-    regTestWritePixAndCheck(pixb3, IFF_PNG, &count, rp);
-    pixDisplayWithTitle(pixb3, 500, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 9 */
+    pixDisplayWithTitle(pixb3, 500, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixb1);
     pixDestroy(&pixb2);
@@ -312,7 +306,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixcs2);
     pixDestroy(&pixcs3);
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 

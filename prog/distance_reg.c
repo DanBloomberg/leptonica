@@ -24,33 +24,31 @@
  *     boundary cond :  L_BOUNDARY_BG or L_BOUNDARY_FG
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static void TestDistance(PIXA *pixa, PIX *pixs, l_int32 conn,
-                         l_int32 depth, l_int32 bc, l_int32 *pcount,
-                         L_REGPARAMS *rp);
+                         l_int32 depth, l_int32 bc, L_REGPARAMS *rp);
+
+#define  DEBUG    0
+
 
 main(int    argc,
      char **argv)
 {
 char          buf[256];
-l_int32       i, j, k, index, conn, depth, bc, success, display, count;
+l_int32       i, j, k, index, conn, depth, bc;
 BOX          *box;
-FILE         *fp;
 PIX          *pix, *pixs, *pixd;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
     pix = pixRead("feyn.tif");
     box = boxCreate(383, 338, 1480, 1050);
     pixs = pixClipRectangle(pix, box, NULL);
-    count = 0;
-    regTestWritePixAndCheck(pixs, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 0 */
 	    
     for (i = 0; i < 2; i++) {
         conn = 4 + 4 * i;
@@ -60,11 +58,15 @@ L_REGPARAMS  *rp;
                 bc = k + 1;
                 index = 4 * i + 2 * j + k;
                 fprintf(stderr, "Set %d\n", index);
+                if (DEBUG) {
+                    fprintf(stderr, "%d: conn = %d, depth = %d, bc = %d\n",
+                            rp->index + 1, conn, depth, bc);
+                }
                 pixa = pixaCreate(0);
                 pixSaveTiled(pixs, pixa, 1, 1, 20, 8);
-                TestDistance(pixa, pixs, conn, depth, bc, &count, rp);
+                TestDistance(pixa, pixs, conn, depth, bc, rp);
                 pixd = pixaDisplay(pixa, 0, 0);
-                pixDisplayWithTitle(pixd, 0, 0, NULL, display);
+                pixDisplayWithTitle(pixd, 0, 0, NULL, rp->display);
                 pixaDestroy(&pixa);
                 pixDestroy(&pixd);
             }
@@ -74,7 +76,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box);
     pixDestroy(&pix);
     pixDestroy(&pixs);
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     return 0;
 }
 
@@ -85,7 +87,6 @@ TestDistance(PIXA         *pixa,
              l_int32       conn,
              l_int32       depth,
              l_int32       bc,
-             l_int32      *pcount,
              L_REGPARAMS  *rp)
 {
 PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
@@ -93,11 +94,11 @@ PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
         /* Test the distance function and display */
     pixInvert(pixs, pixs);
     pixt1 = pixDistanceFunction(pixs, conn, depth, bc);
-    regTestWritePixAndCheck(pixt1, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* a + 1 */
     pixSaveTiled(pixt1, pixa, 1, 1, 20, 0);
     pixInvert(pixs, pixs);
     pixt2 = pixMaxDynamicRange(pixt1, L_LOG_SCALE);
-    regTestWritePixAndCheck(pixt2, IFF_JFIF_JPEG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt2, IFF_JFIF_JPEG);  /* a + 2 */
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -105,18 +106,18 @@ PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
 	/* Test the distance function and display with contour rendering */
     pixInvert(pixs, pixs);
     pixt1 = pixDistanceFunction(pixs, conn, depth, bc);
-    regTestWritePixAndCheck(pixt1, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* a + 3 */
     pixSaveTiled(pixt1, pixa, 1, 1, 20, 0);
     pixInvert(pixs, pixs);
     pixt2 = pixRenderContours(pixt1, 2, 4, 1);  /* binary output */
-    regTestWritePixAndCheck(pixt2, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt2, IFF_PNG);  /* a + 4 */
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
     pixt3 = pixRenderContours(pixt1, 2, 4, depth);
     pixt4 = pixMaxDynamicRange(pixt3, L_LINEAR_SCALE);
-    regTestWritePixAndCheck(pixt4, IFF_JFIF_JPEG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt4, IFF_JFIF_JPEG);  /* a + 5 */
     pixSaveTiled(pixt4, pixa, 1, 0, 20, 0);
     pixt5 = pixMaxDynamicRange(pixt3, L_LOG_SCALE);
-    regTestWritePixAndCheck(pixt5, IFF_JFIF_JPEG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixt5, IFF_JFIF_JPEG);  /* a + 6 */
     pixSaveTiled(pixt5, pixa, 1, 0, 20, 0);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -133,15 +134,15 @@ PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
     if (depth == 8) {
         pixt1 = pixDistanceFunction(pixs, conn, depth, bc);
         pixt4 = pixMaxDynamicRange(pixt1, L_LOG_SCALE);
-        regTestWritePixAndCheck(pixt4, IFF_JFIF_JPEG, pcount, rp);
+        regTestWritePixAndCheck(rp, pixt4, IFF_JFIF_JPEG);  /* b + 1 */
         pixSaveTiled(pixt4, pixa, 1, 1, 20, 0);
         pixt2 = pixCreateTemplate(pixt1);
         pixSetMasked(pixt2, pixs, 255);
-        regTestWritePixAndCheck(pixt2, IFF_JFIF_JPEG, pcount, rp);
+        regTestWritePixAndCheck(rp, pixt2, IFF_JFIF_JPEG);  /* b + 2 */
         pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
         pixSeedfillGray(pixt1, pixt2, 4);
         pixt3 = pixMaxDynamicRange(pixt1, L_LINEAR_SCALE);
-        regTestWritePixAndCheck(pixt3, IFF_JFIF_JPEG, pcount, rp);
+        regTestWritePixAndCheck(rp, pixt3, IFF_JFIF_JPEG);  /* b + 3 */
         pixSaveTiled(pixt3, pixa, 1, 0, 20, 0);
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);

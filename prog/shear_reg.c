@@ -19,8 +19,6 @@
  *    Regression test for shear, both IP and to new pix.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define   BINARY_IMAGE              "test1.png"
@@ -40,20 +38,19 @@ static const l_float32  ANGLE1 = 3.14159265 / 12.;
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32   index, display, success;
-FILE     *fp;
-PIX      *pixs, *pixc, *pixd;
-PIXCMAP  *cmap;
+l_int32       index;
+PIX          *pixs, *pixc, *pixd;
+PIXCMAP      *cmap;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     fprintf(stderr, "Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
     pixd = shearTest(pixs, 1);
-    pixWrite("/tmp/shear.0.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/shear.0.png", 0, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
@@ -66,45 +63,40 @@ PIXCMAP  *cmap;
     pixcmapGetIndex(cmap, 40, 44, 40, &index);
     pixcmapResetColor(cmap, index, 100, 0, 0);
     pixd = shearTest(pixs, 1);
-    pixWrite("/tmp/shear.1.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/shear.1.png", 1, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
     pixd = shearTest(pixs, 1);
-    pixWrite("/tmp/shear.2.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/shear.2.png", 2, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
     pixd = shearTest(pixs, 1);
-    pixWrite("/tmp/shear.3.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/shear.3.png", 3, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
     pixd = shearTest(pixs, 2);
-    pixWrite("/tmp/shear.4.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/shear.4.jpg", 4, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 4 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
     fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
     pixd = shearTest(pixs, 1);
-    pixWrite("/tmp/shear.5.png", pixd, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/shear.5.png", 5, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
@@ -112,9 +104,8 @@ PIXCMAP  *cmap;
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
     pixc = shearTest(pixd, 3);
-    pixWrite("/tmp/shear.6.jpg", pixc, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/shear.6.jpg", 6, &success);
-    pixDisplayWithTitle(pixc, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixc, IFF_JFIF_JPEG);  /* 6 */
+    pixDisplayWithTitle(pixc, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
@@ -122,13 +113,12 @@ PIXCMAP  *cmap;
     fprintf(stderr, "Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
     pixd = shearTest(pixs, 2);
-    pixWrite("/tmp/shear.7.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/shear.7.jpg", 7, &success);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, display);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 7 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
 

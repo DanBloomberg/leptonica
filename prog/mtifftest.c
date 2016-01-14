@@ -22,8 +22,6 @@
  *       -- writing special tiff tags to file
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const char *tempmtiff = "/tmp/junkmtiff";
@@ -89,7 +87,7 @@ static char  mainName[] = "mtifftest";
         else
 	    pixWriteTiff(tempmtiff, pix, IFF_TIFF_G4, "a");
         pixDestroy(&pix);
-        FREE(filename);
+        lept_free(filename);
     }
 
         /* write it out as a PS file */
@@ -99,14 +97,14 @@ static char  mainName[] = "mtifftest";
 
 #if 0   /* ------------------  Test multipage I/O  -------------------*/
         /* read count of tiff multipage */
-    fp = fopen(filein, "r");
+    fp = lept_fopen(filein, "rb");
     if (fileFormatIsTiff(fp)) {
 	tiffGetCount(fp, &npages);
 	fprintf(stderr, " Tiff: %d page\n", npages);
     }
     else 
 	exit(ERROR_INT(" file not tiff", mainName, 1));
-    fclose(fp);
+    lept_fclose(fp);
 
         /* split into separate page files */
     for (i = 0; i < npages + 1; i++) {   /* read one beyond to catch error */

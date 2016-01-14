@@ -65,11 +65,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 
-README  (8 Nov 2010)
+README  (10 Mar 2011)
 --------------------
 
-gunzip leptonlib-1.67.tar.gz
-tar -xvf leptonlib-1.67.tar
+gunzip leptonica-1.68.tar.gz
+tar -xvf leptonica-1.68.tar
 
 </pre>
 
@@ -99,14 +99,14 @@ Building leptonica
   for building on these platforms:
      -  Linux on x86 (i386) and AMD 64 (x64)
      -  OSX (both powerPC and x86).
-     -  cygwin and mingw on x86
+     -  Cygwin and mingw on x86
   It should compile properly with any version of gcc from 2.95.3 onward.
   There is an additional zip file for building with MS Visual Studio.
 
   Libraries, executables and prototypes are easily made, as described below.
 
   When you extract from the archive, all files are put in a
-  subdirectory 'leptonlib-1.67'.  In that directory you will
+  subdirectory 'leptonica-1.68'.  In that directory you will
   find a src directory containing the source files for the library,
   and a prog directory containing source files for various
   testing and example programs.
@@ -140,7 +140,7 @@ Building leptonica
                prog/makefile.static -->  prog/makefile
          [Note: the autoconf build will not work if you have any files
           named "makefile" in src or prog.  If you've already run
-          makefor-local and renamed the static makefiles, and you then
+          make-for-local and renamed the static makefiles, and you then
           want to build with autoconf, run make-for-auto to rename them
           back to makefile.static.]
     
@@ -153,7 +153,6 @@ Building leptonica
              goes into a tree whose root is also the parent of the src
              and prog directories.  This can be changed using the
              ROOT_DIR variable in makefile.
-         (d) Compiling in windows under cygwin [through CFLAGS in $CC]
 
        * Build the library:
          - To make an optimized version of the library (in src):
@@ -188,7 +187,7 @@ Building leptonica
              converttops, convertfilestops, convertsegfilestops,
              printimage and printsplitimage.
 
-    (2) Building using autoconf  (Thanks to James Le Curiot)
+    (2) Building using autoconf  (Thanks to James Le Cuirot)
 
        Use the standard incantation, in the root directory (the
        directory with configure):
@@ -197,6 +196,22 @@ Building leptonica
                   all the progs]
           make install  [as root; this puts liblept.a into /usr/local/lib/
                          and all the progs into /usr/local/bin/ ]
+
+       Configure also supports building in a separate directory from the
+       source.  Run "/(path-to)/leptonica-1.68/configure" and then "make"
+       from the desired build directory.
+
+       Configure has a number of useful options; run "configure --help" for
+       details.  If you're not planning to modify the library, adding the
+       "--disable-dependency-tracking" option will speed up the build.  By
+       default, both static and shared versions of the library are built.  Add
+       the "--disable-shared" or "--disable-static" option if one or the other
+       isn't needed.
+
+       By default, the library is built with debugging symbols.  If you do not
+       want these, use "CFLAGS=-O2 ./configure" to eliminate symbols for
+       subsequent compilations, or "make CFLAGS=-O2" to override for this
+       compilation only. 
 
     (3) Cross-compiling for windows
 
@@ -231,27 +246,39 @@ Building leptonica
        You can download Tom's vs2008 package either from the download
        page or from code.google.com/p/leptonica.
 
-   (b) Building with a static makefile via mingw
+   (b) Building for mingw with <a href="http://www.mingw.org/">MSYS</a>
+       (Thanks to David Bryan)
 
-       You can build a windows-compatible version of liblept from linux.
-       Use makefile.mingw and see the usage notes at the top of that file.
-       You can then build executables in prog; see the notes in
-       prog/makefile.mingw.
+       MSYS is a Unix-compatible build environment for the mingw compiler.
+       Installing the "MinGW Compiler Suite C Compiler" and the "MSYS Basic
+       System" will allow building the library with autoconf as in (2) above.
+       It will also allow building with the static makefile as in (1) above if
+       this option is added to the make command:
 
-   (c) Building with a static makefile via cygwin
+         CC="gcc -D_BSD_SOURCE -DANSI"
 
-      A default download of cygwin, with full 'install' of the
-      devel (for gnu make, gcc, etc) and graphics (for libjpeg,
-      libtiff, libpng, libz) groups provides enough libraries and
-      programs to compile liblept src and make the .exe
-      execuables in the prog directory.
+       Only the static library may be built this way; the autoconf method must
+       be used if a shared (DLL) library is desired.
 
-      Make the following changes to the src/makefile:
-        (1) use the $CC with _CYGWIN_ENVIRON 
-        (2) for program development, where you want to automatically
-            extract protos with xtractprotos, add ".exe" appropriately
-      Make the following changes to the prog/makefile:
-        (1) remove -fPIC from $CC
+       External image libraries (see below) must be downloaded separately,
+       built, and installed before building the library.  Pre-built libraries
+       are available from the <a href="http://gnuwin32.sourceforge.net/packages.html">GnuWin project</a>.
+
+   (c) Building for <a href="http://www.cygwin.com/">Cygwin</a>
+       (Thanks to David Bryan)
+
+       Cygwin is a Unix-compatible build and runtime environment.  Installing
+       the "Base", "Devel", and "Graphics" packages will allow building the
+       library with autoconf as in (2) above.  If the graphics libraries are
+       not present in the /lib, /usr/lib, or /usr/local/lib directories, you
+       must run make with the "LDFLAGS=-L/(path-to-image)/lib" option.  It
+       will also allow building with the static makefile as in (1) above if
+       this option is added to the make command:
+
+         CC="gcc -ansi -D_BSD_SOURCE -DANSI"
+
+       Only the static library may be built this way; the autoconf method must
+       be used if a shared (DLL) library is desired.
 </pre>
 
 
@@ -286,7 +313,7 @@ I/O libraries leptonica is dependent on
    The default is to link to these four libraries:
       libjpeg.a  (standard jfif jpeg library, version 6b or 7 or 8))
       libtiff.a  (standard Leffler tiff library, version 3.7.4 or later;
-      libpng.a   (standard png library, suggest version 1.2.8 or later)
+      libpng.a   (standard png library, suggest version 1.4.0 or later)
       libz.a     (standard gzip library, suggest version 1.2.3)
                   current non-beta version is 3.8.2)
 
@@ -735,7 +762,7 @@ What's in leptonica?
    Use prog/ioformats_reg for a regression test on all but GIF and WEBP.
    Use prog/gifio_reg for testing GIF.
 
-   We also provide wrappers for PS output, from all types of input images.
+   We provide wrappers for PS output, from all types of input images.
    The output can be either uncompressed or compressed with level 2
    (ccittg4 or dct) or level 3 (flate) encoding.  You have flexibility
    for scaling and placing of images, and for printing at different
@@ -748,6 +775,15 @@ What's in leptonica?
            PS file that can then be converted to pdf with ps2pdf.
      * prog/convertsegfilestops.c to generate a multipage, mixed raster,
            level 2 compressed PS file.
+
+   We provide wrappers for PDF output, again from all types of input images.
+   You can do the following for PDF:
+     * Put any number of images onto a page, with specified input
+       resolution, location and compression.
+     * Write a mixed raster PDF, given an input image and a segmentation
+       mask.  Non-image regions are written in G4 (fax) encoding.
+     * Concatenate single-page PDF wrapped images into a single PDF file.
+     * Build a PDF file of all images in a directory or array of file names.
 
    Note: any or all of these I/O library calls can be stubbed out at
          compile time, using the environment variables in environ.h.
@@ -813,9 +849,10 @@ What's in leptonica?
    pointer array is implemented in four ways: as a stack, a queue,
    a heap (used to implement a priority queue), and an array with
    insertion and deletion, from which the stack operations form a subset.
-   The byte array is implemented as a queue.  The string arrays are
-   particularly useful for both parsing and composing text.
-   Generic lists with doubly-linked cons cells are also provided.
+   Byte arrays are implemented both as a wrapper around the actual
+   array and as a queue.  The string arrays are particularly useful
+   for both parsing and composing text.  Generic lists with
+   doubly-linked cons cells are also provided.
 
 14. Examples of programs that are easily built using the library:
 

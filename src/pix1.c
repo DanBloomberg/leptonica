@@ -902,6 +902,9 @@ pixGetDimensions(PIX      *pix,
 {
     PROCNAME("pixGetDimensions");
 
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
+    if (pd) *pd = 0;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
     if (pw) *pw = pix->w;
@@ -1013,7 +1016,7 @@ pixChangeRefcount(PIX     *pix,
 }
 
 
-l_uint32
+l_int32
 pixGetXRes(PIX  *pix)
 {
     PROCNAME("pixGetXRes");
@@ -1025,8 +1028,8 @@ pixGetXRes(PIX  *pix)
 
 
 l_int32
-pixSetXRes(PIX      *pix,
-           l_uint32  res)
+pixSetXRes(PIX     *pix,
+           l_int32  res)
 {
     PROCNAME("pixSetXRes");
 
@@ -1038,7 +1041,7 @@ pixSetXRes(PIX      *pix,
 }
 
 
-l_uint32
+l_int32
 pixGetYRes(PIX  *pix)
 {
     PROCNAME("pixGetYRes");
@@ -1050,8 +1053,8 @@ pixGetYRes(PIX  *pix)
 
 
 l_int32
-pixSetYRes(PIX      *pix,
-           l_uint32  res)
+pixSetYRes(PIX     *pix,
+           l_int32  res)
 {
     PROCNAME("pixSetYRes");
 
@@ -1071,9 +1074,9 @@ pixSetYRes(PIX      *pix,
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-pixGetResolution(PIX       *pix,
-                 l_uint32  *pxres,
-                 l_uint32  *pyres)
+pixGetResolution(PIX      *pix,
+                 l_int32  *pxres,
+                 l_int32  *pyres)
 {
     PROCNAME("pixGetResolution");
 
@@ -1093,9 +1096,9 @@ pixGetResolution(PIX       *pix,
  *      Return: 0 if OK, 1 on error
  */
 l_int32
-pixSetResolution(PIX      *pix,
-                 l_uint32  xres,
-                 l_uint32  yres)
+pixSetResolution(PIX     *pix,
+                 l_int32  xres,
+                 l_int32  yres)
 {
     PROCNAME("pixSetResolution");
 

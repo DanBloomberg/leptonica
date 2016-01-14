@@ -114,11 +114,7 @@ PTAA      *ptaa1, *ptaa2;
     pixDestroy(&pixt2);
 
          /* Write out the files to be imaged */
-#ifndef _WIN32
-    ignore = system("mkdir /tmp/junkdir");
-#else
-    ignore = system("mkdir \\tmp\\junkdir");
-#endif  /* _WIN32 */
+    lept_mkdir("junkdir");
     pixWrite("/tmp/junkdir/001.jpg", pixs, IFF_JFIF_JPEG);
     pixWrite("/tmp/junkdir/002.jpg", pixn, IFF_JFIF_JPEG);
     pixWrite("/tmp/junkdir/003.jpg", pixg, IFF_JFIF_JPEG);
@@ -147,7 +143,7 @@ PTAA      *ptaa1, *ptaa2;
     pixDestroy(&pixt1);
     pixWrite("/tmp/junkdir/013.png", pixd, IFF_PNG);
     pixt1 = pixThresholdToBinary(pixd, 130);
-    pixWrite("/tmp/junkdir/014.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/junkdir/014.png", pixt1, IFF_PNG);
     pixDestroy(&pixt1);
     pixWrite("/tmp/junkdir/015.png", pixb, IFF_TIFF_G4);
 

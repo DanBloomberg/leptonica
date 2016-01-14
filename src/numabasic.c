@@ -63,10 +63,12 @@
  *
  *      Numaa accessors
  *          l_int32      numaaGetCount()
+ *          l_int32      numaaGetNumaCount()
  *          l_int32      numaaGetNumberCount()
  *          NUMA       **numaaGetPtrArray()
  *          NUMA        *numaaGetNuma()
  *          NUMA        *numaaReplaceNuma()
+ *          l_int32      numaaGetValue()
  *          l_int32      numaaAddNumber()
  *
  *      Serialize numaa for I/O
@@ -1007,7 +1009,7 @@ FILE  *fp;
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (numaWriteStream(fp, na))
         return ERROR_INT("na not written to stream", procName, 1);
@@ -1210,10 +1212,32 @@ numaaGetCount(NUMAA  *naa)
 
 
 /*!
+ *  numaaGetNumaCount()
+ *
+ *      Input:  naa
+ *              index (of numa in naa)
+ *      Return: count of numbers in the referenced numa, or 0 on error.
+ */
+l_int32
+numaaGetNumaCount(NUMAA   *naa,
+                  l_int32  index)
+{
+    PROCNAME("numaaGetNumaCount");
+
+    if (!naa)
+        return ERROR_INT("naa not defined", procName, 0);
+    if (index < 0 || index >= naa->n)
+        return ERROR_INT("invalid index into naa", procName, 0);
+    return numaGetCount(naa->numa[index]);
+}
+
+
+/*!
  *  numaaGetNumberCount()
  *
  *      Input:  naa
- *      Return: count (number of numbers), or 0 if no numbers or on error
+ *      Return: count (total number of numbers in the numaa),
+ *                     or 0 if no numbers or on error
  */
 l_int32
 numaaGetNumberCount(NUMAA  *naa)
@@ -1336,6 +1360,42 @@ l_int32  n;
 
     numaDestroy(&naa->numa[index]);
     naa->numa[index] = na;
+    return 0;
+}
+
+
+/*!
+ *  numaaGetValue()
+ *
+ *      Input:  naa
+ *              i (index of numa within numaa)
+ *              j (index into numa)
+ *              val (<return> float value)
+ *      Return: 0 if OK, 1 on error
+ */
+l_int32
+numaaGetValue(NUMAA      *naa,
+              l_int32     i,
+              l_int32     j,
+              l_float32  *pval)
+{
+l_int32  n;
+NUMA    *na;
+
+    PROCNAME("numaaGetFValue");
+
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = 0.0;
+    if (!naa)
+        return ERROR_INT("naa not defined", procName, 1);
+    n = numaaGetCount(naa);
+    if (i < 0 || i >= n)
+        return ERROR_INT("invalid index into naa", procName, 1);
+    na = naa->numa[i];
+    if (j < 0 || j >= na->n)
+        return ERROR_INT("invalid index into na", procName, 1);
+    *pval = na->array[j];
     return 0;
 }
 
@@ -1466,7 +1526,7 @@ FILE  *fp;
     if (!naa)
         return ERROR_INT("naa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (numaaWriteStream(fp, naa))
         return ERROR_INT("naa not written to stream", procName, 1);

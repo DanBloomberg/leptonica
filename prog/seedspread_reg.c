@@ -20,8 +20,6 @@
  *   for both 4 and 8 connectivity.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 #define  REDUCTION     1
@@ -29,15 +27,19 @@
 main(int    argc,
      char **argv)
 {
-l_int32      i, j, x, y, val;
-PIX         *pixsq, *pixs, *pixc, *pixd;
-PIXA        *pixa;
-static char  mainName[] = "seedspread_reg";
+l_int32       i, j, x, y, val;
+PIX          *pixsq, *pixs, *pixc, *pixd;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
+
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     pixsq = pixCreate(3, 3, 32);
     pixSetAllArbitrary(pixsq, 0x00ff0000);
     pixa = pixaCreate(6);
 
+        /* Moderately dense */
     pixs = pixCreate(300, 300, 8);
     for (i = 0; i < 100; i++) {
         x = (153 * i * i * i + 59) % 299;
@@ -45,7 +47,8 @@ static char  mainName[] = "seedspread_reg";
         val = (97 * i + 74) % 256;
         pixSetPixel(pixs, x, y, val);
     }
-    pixd = pixSeedspread(pixs, 4);
+
+    pixd = pixSeedspread(pixs, 4);  /* 4-cc */
     pixc = pixConvertTo32(pixd);
     for (i = 0; i < 100; i++) {
         x = (153 * i * i * i + 59) % 299;
@@ -53,11 +56,12 @@ static char  mainName[] = "seedspread_reg";
         pixRasterop(pixc, x - 1, y - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 1, 20, 32);
-    pixWrite("/tmp/junkpix4-1.png", pixc, IFF_PNG);
-    pixDisplay(pixc, 100, 100);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixc, 100, 100, "4-cc", rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
-    pixd = pixSeedspread(pixs, 8);
+
+    pixd = pixSeedspread(pixs, 8);  /* 8-cc */
     pixc = pixConvertTo32(pixd);
     for (i = 0; i < 100; i++) {
         x = (153 * i * i * i + 59) % 299;
@@ -65,19 +69,20 @@ static char  mainName[] = "seedspread_reg";
         pixRasterop(pixc, x - 1, y - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 0, 20, 0);
-    pixWrite("/tmp/junkpix8-1.png", pixc, IFF_PNG);
-    pixDisplay(pixc, 410, 100);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pixc, 410, 100, "8-cc", rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
     pixDestroy(&pixs);
 
+        /* Regular lattice */
     pixs = pixCreate(200, 200, 8);
     for (i = 5; i <= 195; i += 10) {
         for (j = 5; j <= 195; j += 10) {
             pixSetPixel(pixs, i, j, (7 * i + 17 * j) % 255);
         }
     }
-    pixd = pixSeedspread(pixs, 4);
+    pixd = pixSeedspread(pixs, 4);  /* 4-cc */
     pixc = pixConvertTo32(pixd);
     for (i = 5; i <= 195; i += 10) {
         for (j = 5; j <= 195; j += 10) {
@@ -85,11 +90,12 @@ static char  mainName[] = "seedspread_reg";
         }
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 1, 20, 0);
-    pixWrite("/tmp/junkpix4-2.png", pixc, IFF_PNG);
-    pixDisplay(pixc, 100, 430);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pixc, 100, 430, "4-cc", rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
-    pixd = pixSeedspread(pixs, 8);
+
+    pixd = pixSeedspread(pixs, 8);  /* 8-cc */
     pixc = pixConvertTo32(pixd);
     for (i = 5; i <= 195; i += 10) {
         for (j = 5; j <= 195; j += 10) {
@@ -97,48 +103,51 @@ static char  mainName[] = "seedspread_reg";
         }
     }
     pixSaveTiled(pixc, pixa, REDUCTION, 0, 20, 0);
-    pixWrite("/tmp/junkpix8-2.png", pixc, IFF_PNG);
-    pixDisplay(pixc, 310, 430);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pixc, 310, 430, "8-cc", rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
     pixDestroy(&pixs);
 
+        /* Very sparse points */
     pixs = pixCreate(200, 200, 8);
     pixSetPixel(pixs, 60, 20, 90);
     pixSetPixel(pixs, 160, 40, 130);
     pixSetPixel(pixs, 80, 80, 205);
     pixSetPixel(pixs, 40, 160, 115);
-    pixd = pixSeedspread(pixs, 4);
+    pixd = pixSeedspread(pixs, 4);  /* 4-cc */
     pixc = pixConvertTo32(pixd);
     pixRasterop(pixc, 60 - 1, 20 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 160 - 1, 40 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 80 - 1, 80 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 40 - 1, 160 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixSaveTiled(pixc, pixa, REDUCTION, 1, 20, 0);
-    pixWrite("/tmp/junkpix4-3.png", pixc, IFF_PNG);
-    pixDisplay(pixc, 100, 660);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 4 */
+    pixDisplayWithTitle(pixc, 100, 600, "4-cc", rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
-    pixd = pixSeedspread(pixs, 8);
+
+    pixd = pixSeedspread(pixs, 8);  /* 8-cc */
     pixc = pixConvertTo32(pixd);
     pixRasterop(pixc, 60 - 1, 20 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 160 - 1, 40 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 80 - 1, 80 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 40 - 1, 160 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixSaveTiled(pixc, pixa, REDUCTION, 0, 20, 0);
-    pixWrite("/tmp/junkpix8-3.png", pixc, IFF_PNG);
-    pixDisplay(pixc, 310, 660);
+    regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pixc, 310, 660, "8-cc", rp->display);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
     pixDestroy(&pixs);
     pixDestroy(&pixsq);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
-    pixDisplay(pixd, 720, 100);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pixc, 720, 100, "Final", rp->display);
 
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
+    regTestCleanup(rp);
     return 0;
 }
 

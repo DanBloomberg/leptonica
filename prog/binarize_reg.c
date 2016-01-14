@@ -19,53 +19,48 @@
  *     Tests Sauvola local binarization and variants
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
-PIX *PixTest1(PIX *pixs, l_int32 size, l_float32 factor,
-              l_int32 *pcount, L_REGPARAMS  *rp);
+PIX *PixTest1(PIX *pixs, l_int32 size, l_float32 factor, L_REGPARAMS  *rp);
 PIX *PixTest2(PIX *pixs, l_int32 size, l_float32 factor, l_int32 nx,
-              l_int32 ny, l_int32 *pcount, L_REGPARAMS *rp);
+              l_int32 ny, L_REGPARAMS *rp);
 void PixTest3(PIX *pixs, l_int32 size, l_float32 factor,
-              l_int32 nx, l_int32 ny, l_int32 paircount,
-              l_int32 *pcount, L_REGPARAMS *rp);
+              l_int32 nx, l_int32 ny, l_int32 paircount, L_REGPARAMS *rp);
 
 main(int    argc,
      char **argv)
 {
-l_int32       count, success, display;
-FILE         *fp;
 PIX          *pixs, *pixt1, *pixt2;
 L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
     pixs = pixRead("w91frag.jpg");
-    count = 0;
 
-    PixTest3(pixs, 3, 0.20, 2, 3, 0, &count, rp);
-    PixTest3(pixs, 6, 0.20, 100, 100, 1, &count, rp);
-    PixTest3(pixs, 10, 0.40, 10, 10, 2, &count, rp);
-    PixTest3(pixs, 10, 0.40, 20, 20, 3, &count, rp);
-    PixTest3(pixs, 20, 0.34, 30, 30, 4, &count, rp);
+    PixTest3(pixs, 3, 0.20, 2, 3, 0, rp);
+    PixTest3(pixs, 6, 0.20, 100, 100, 1, rp);
+    PixTest3(pixs, 10, 0.40, 10, 10, 2, rp);
+    PixTest3(pixs, 10, 0.40, 20, 20, 3, rp);
+    PixTest3(pixs, 20, 0.34, 30, 30, 4, rp);
 
-    pixt1 = PixTest1(pixs, 7, 0.34, &count, rp);
-    pixt2 = PixTest2(pixs, 7, 0.34, 4, 4, &count, rp);
-    regTestComparePix(fp, argv, pixt1, pixt2, 5, &success);
+    pixt1 = PixTest1(pixs, 7, 0.34, rp);
+    pixt2 = PixTest2(pixs, 7, 0.34, 4, 4, rp);
+    regTestComparePix(rp, pixt1, pixt2);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
         /* Do combination of contrast norm and sauvola */
     pixt1 = pixContrastNorm(NULL, pixs, 100, 100, 55, 1, 1);
     pixSauvolaBinarizeTiled(pixt1, 8, 0.34, 1, 1, NULL, &pixt2);
-    regTestWritePixAndCheck(pixt1, IFF_PNG, &count, rp);
-    regTestWritePixAndCheck(pixt2, IFF_PNG, &count, rp);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);
+    regTestWritePixAndCheck(rp, pixt2, IFF_PNG);
     pixDisplayWithTitle(pixt1, 100, 500, NULL, rp->display);
     pixDisplayWithTitle(pixt2, 700, 500, NULL, rp->display);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
 
-    regTestCleanup(argc, argv, fp, success, rp);
+    regTestCleanup(rp);
     pixDestroy(&pixs);
     return 0;
 }
@@ -75,7 +70,6 @@ PIX *
 PixTest1(PIX          *pixs,
          l_int32       size,
          l_float32     factor,
-         l_int32      *pcount,
          L_REGPARAMS  *rp)
 {
 l_int32  w, h;
@@ -100,10 +94,10 @@ PIXA    *pixa;
     pixSaveTiled(pixth, pixa, 1, 1, 30, 8);
     pixSaveTiled(pixd, pixa, 1, 0, 30, 8);
     pixt = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(pixt, IFF_JFIF_JPEG, pcount, rp);
-    if (*pcount < 5)
+    regTestWritePixAndCheck(rp, pixt, IFF_JFIF_JPEG);
+    if (rp->index < 5)
         pixDisplayWithTitle(pixt, 100, 100, NULL, rp->display);
-    regTestWritePixAndCheck(pixd, IFF_PNG, pcount, rp);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
 
     pixaDestroy(&pixa);
     pixDestroy(&pixm);
@@ -120,7 +114,6 @@ PixTest2(PIX          *pixs,
          l_float32     factor,
          l_int32       nx,
          l_int32       ny,
-         l_int32      *pcount,
          L_REGPARAMS  *rp)
 {
 l_int32  w, h;
@@ -139,9 +132,9 @@ PIXA    *pixa;
 
         /* Get results */
     pixSauvolaBinarizeTiled(pixs, size, factor, nx, ny, &pixth, &pixd);
-    regTestWritePixAndCheck(pixth, IFF_JFIF_JPEG, pcount, rp);
-    regTestWritePixAndCheck(pixd, IFF_PNG, pcount, rp);
-    if (*pcount < 5 && rp->display) {
+    regTestWritePixAndCheck(rp, pixth, IFF_JFIF_JPEG);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+    if (rp->index < 5 && rp->display) {
         pixa = pixaCreate(0);
         pixSaveTiled(pixth, pixa, 1, 1, 30, 8);
         pixSaveTiled(pixd, pixa, 1, 0, 30, 8);
@@ -163,14 +156,13 @@ PixTest3(PIX          *pixs,
          l_int32       nx,
          l_int32       ny,
          l_int32       paircount,
-         l_int32      *pcount,
          L_REGPARAMS  *rp)
 {
 PIX  *pixt1, *pixt2;
 
-    pixt1 = PixTest1(pixs, size, factor, pcount, rp);
-    pixt2 = PixTest2(pixs, size, factor, nx, ny, pcount, rp);
-    regTestComparePix(rp->fp, rp->argv, pixt1, pixt2, paircount, &rp->success);
+    pixt1 = PixTest1(pixs, size, factor, rp);
+    pixt2 = PixTest2(pixs, size, factor, nx, ny, rp);
+    regTestComparePix(rp, pixt1, pixt2);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
     return;

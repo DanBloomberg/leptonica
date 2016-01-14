@@ -32,8 +32,6 @@
  *    This allows them to take a (void *)lineptr.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static l_int32 compareResults(PIX *pixs, PIX *pixt1, PIX *pixt2,
@@ -136,6 +134,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w2; j++) {
             val1 = GET_DATA_DIBIT(lines1[i], j);
             count1 += val1;
+            val1 += 0xbbbbbbbc;
             SET_DATA_DIBIT(linet1[i], j, val1);
         }
     }
@@ -146,6 +145,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w2; j++) {
             val2 = l_getDataDibit(line, j);
             count2 += val2;
+            val2 += 0xbbbbbbbc;
             l_setDataDibit(line2, j, val2);
         }
     }
@@ -159,6 +159,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w4; j++) {
             val1 = GET_DATA_QBIT(lines1[i], j);
             count1 += val1;
+            val1 += 0xbbbbbbb0;
             SET_DATA_QBIT(linet1[i], j, val1);
         }
     }
@@ -169,6 +170,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w4; j++) {
             val2 = l_getDataQbit(line, j);
             count2 += val2;
+            val2 += 0xbbbbbbb0;
             l_setDataQbit(line2, j, val2);
         }
     }
@@ -182,6 +184,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w8; j++) {
             val1 = GET_DATA_BYTE(lines1[i], j);
             count1 += val1;
+            val1 += 0xbbbbbb00;
             SET_DATA_BYTE(linet1[i], j, val1);
         }
     }
@@ -192,6 +195,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w8; j++) {
             val2 = l_getDataByte(line, j);
             count2 += val2;
+            val2 += 0xbbbbbb00;
             l_setDataByte(line2, j, val2);
         }
     }
@@ -205,6 +209,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w16; j++) {
             val1 = GET_DATA_TWO_BYTES(lines1[i], j);
             count1 += val1;
+            val1 += 0xbbbb0000;
             SET_DATA_TWO_BYTES(linet1[i], j, val1);
         }
     }
@@ -215,6 +220,7 @@ static char  mainName[] = "lowaccess_reg";
         for (j = 0; j < w16; j++) {
             val2 = l_getDataTwoBytes(line, j);
             count2 += val2;
+            val2 += 0xbbbb0000;
             l_setDataTwoBytes(line2, j, val2);
         }
     }
@@ -252,9 +258,10 @@ static char  mainName[] = "lowaccess_reg";
     pixDestroy(&pixs);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
-    FREE(lines1);
-    FREE(linet1);
-    FREE(linet2);
+    lept_free(lines1);
+    lept_free(linet1);
+    lept_free(linet2);
+    return 0;
 }
 
 

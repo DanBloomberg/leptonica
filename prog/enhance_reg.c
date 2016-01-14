@@ -25,8 +25,6 @@
  *     * Linear color transform without mixing (diagonal)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 static const char *filein = "test24.jpg";
@@ -35,26 +33,25 @@ static const l_int32 WIDTH = 150;
 main(int    argc,
      char **argv)
 {
-char         textstr[256];
-l_int32      w, h, d, i, same, success, display;
-l_uint32     srcval, dstval;
-l_float32    scalefact, sat, fract;
-L_BMF       *bmf8;
-L_KERNEL    *kel;
-FILE        *fp;
-NUMA        *na;
-PIX         *pix, *pixs, *pixs1, *pixs2, *pixd;
-PIX         *pixt0, *pixt1, *pixt2, *pixt3, *pixt4;
-PIXA        *pixa, *pixaf;
-static char  mainName[] = "enhance_reg";
+char          textstr[256];
+l_int32       w, h, d, i, same;
+l_uint32      srcval, dstval;
+l_float32     scalefact, sat, fract;
+L_BMF        *bmf8;
+L_KERNEL     *kel;
+NUMA         *na;
+PIX          *pix, *pixs, *pixs1, *pixs2, *pixd;
+PIX          *pixt0, *pixt1, *pixt2, *pixt3, *pixt4;
+PIXA         *pixa, *pixaf;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     pix = pixRead(filein);
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 32)
-        return ERROR_INT("file not 32 bpp", mainName, 1);
+        return ERROR_INT("file not 32 bpp", argv[0], 1);
     scalefact = (l_float32)WIDTH / (l_float32)w;
     pixs = pixScale(pix, scalefact, scalefact);
     w = pixGetWidth(pixs);
@@ -68,9 +65,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 32);
-    pixWrite("/tmp/enhance.0.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.0.png", 0, &success);
-    pixDisplayWithTitle(pixt1, 0, 100, "TRC Gamma", display);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixt1, 0, 100, "TRC Gamma", rp->display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
 
@@ -82,9 +78,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/enhance.1.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.1.png", 1, &success);
-    pixDisplayWithTitle(pixt1, 300, 100, "TRC", display);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pixt1, 300, 100, "TRC", rp->display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
 
@@ -96,9 +91,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/enhance.2.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.2.png", 2, &success);
-    pixDisplayWithTitle(pixt1, 600, 100, "Hue", display);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pixt1, 600, 100, "Hue", rp->display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
 
@@ -114,9 +108,8 @@ static char  mainName[] = "enhance_reg";
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
     gplotSimple1(na, GPLOT_PNG, "/tmp/enhance.7", "Average Saturation");
-    pixWrite("/tmp/enhance.3.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.3.png", 3, &success);
-    pixDisplayWithTitle(pixt1, 900, 100, "Saturation", display);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pixt1, 900, 100, "Saturation", rp->display);
     numaDestroy(&na);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
@@ -129,9 +122,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/enhance.4.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.4.png", 4, &success);
-    pixDisplayWithTitle(pixt1, 0, 400, "Contrast", display);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 4 */
+    pixDisplayWithTitle(pixt1, 0, 400, "Contrast", rp->display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
 
@@ -143,9 +135,8 @@ static char  mainName[] = "enhance_reg";
     }
     pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
     pixSaveTiled(pixt1, pixaf, 1, 1, 20, 0);
-    pixWrite("/tmp/enhance.5.png", pixt1, IFF_PNG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.5.png", 5, &success);
-    pixDisplayWithTitle(pixt1, 300, 400, "Sharp", display);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pixt1, 300, 400, "Sharp", rp->display);
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
 
@@ -168,21 +159,19 @@ static char  mainName[] = "enhance_reg";
     pixDestroy(&pixt0);
 
     pixd = pixaDisplay(pixa, 0, 0);
-    pixDisplayWithTitle(pixd, 600, 400, "Constant hue", display);
-    pixWrite("/tmp/enhance.6.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.6.jpg", 6, &success);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 6 */
+    pixDisplayWithTitle(pixd, 600, 400, "Constant hue", rp->display);
     bmfDestroy(&bmf8);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 
         /* Delayed testing of saturation plot */
-    regTestCheckFile(fp, argv, "/tmp/enhance.7.png", 7, &success);
+    regTestCheckFile(rp, "/tmp/enhance.7.png");  /* 7 */
 
         /* Display results */
     pixd = pixaDisplay(pixaf, 0, 0);
-    pixDisplayWithTitle(pixd, 100, 100, "All", display);
-    pixWrite("/tmp/enhance.8.jpg", pixd, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.8.jpg", 8, &success);
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 8 */
+    pixDisplayWithTitle(pixd, 100, 100, "All", rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixaf);
 
@@ -196,7 +185,7 @@ static char  mainName[] = "enhance_reg";
     pix = pixRead("wet-day.jpg");
     pixs1 = pixOctreeColorQuant(pix, 200, 0);
     pixs2 = pixRemoveColormap(pixs1, REMOVE_CMAP_TO_FULL_COLOR);
-    regTestComparePix(fp, argv, pixs1, pixs2, 0, &success);
+    regTestComparePix(rp, pixs1, pixs2);  /* 9 */
 
         /* Make a diagonal color transform matrix */
     kel = kernelCreate(3, 3);
@@ -207,17 +196,17 @@ static char  mainName[] = "enhance_reg";
         /* Apply to both cmap and rgb images. */
     pixt1 = pixMultMatrixColor(pixs1, kel);
     pixt2 = pixMultMatrixColor(pixs2, kel);
-    regTestComparePix(fp, argv, pixt1, pixt2, 1, &success);
+    regTestComparePix(rp, pixt1, pixt2);  /* 10 */
+    kernelDestroy(&kel);
 
         /* Apply the same transform in the simpler interface */
     pixt3 = pixMultConstantColor(pixs1, 0.7, 0.4, 1.3);
     pixt4 = pixMultConstantColor(pixs2, 0.7, 0.4, 1.3);
-    regTestComparePix(fp, argv, pixt3, pixt4, 2, &success);
-    regTestComparePix(fp, argv, pixt1, pixt3, 3, &success);
-    pixWrite("/tmp/enhance.9.jpg", pixt1, IFF_JFIF_JPEG);
-    regTestCheckFile(fp, argv, "/tmp/enhance.9.jpg", 9, &success);
+    regTestComparePix(rp, pixt3, pixt4);  /* 11 */
+    regTestComparePix(rp, pixt1, pixt3);  /* 12 */
+    regTestWritePixAndCheck(rp, pixt1, IFF_JFIF_JPEG);  /* 13 */
 
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     pixDestroy(&pix);
     pixDestroy(&pixs1);
     pixDestroy(&pixs2);

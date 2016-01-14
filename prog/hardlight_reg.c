@@ -18,18 +18,45 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
-static l_int32  count = 0;
+static PIXA *TestHardlight(const char *file1, const char *file2,
+                            L_REGPARAMS *rp);
+
+main(int    argc,
+     char **argv)
+{
+char          fname[256];
+PIX          *pix;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
+
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
+
+    pixa = TestHardlight("hardlight1_1.jpg", "hardlight1_2.jpg", rp);
+    pix = pixaDisplay(pixa, 0, 0);
+    regTestWritePixAndCheck(rp, pix, IFF_PNG);
+    pixDisplayWithTitle(pix, 0, 0, NULL, rp->display);
+    pixaDestroy(&pixa);
+    pixDestroy(&pix);
+
+    pixa = TestHardlight("hardlight2_1.jpg", "hardlight2_2.jpg", rp);
+    pix = pixaDisplay(pixa, 0, 500);
+    regTestWritePixAndCheck(rp, pix, IFF_PNG);
+    pixDisplayWithTitle(pix, 0, 0, NULL, rp->display);
+    pixaDestroy(&pixa);
+    pixDestroy(&pix);
+
+    regTestCleanup(rp);
+    return 0;
+}
 
 static PIXA *
 TestHardlight(const char   *file1,
               const char   *file2,
               L_REGPARAMS  *rp)
 {
-char   fname[256];
 PIX   *pixs1, *pixs2, *pixr, *pixt1, *pixt2, *pixd;
 PIXA  *pixa;
 
@@ -49,17 +76,13 @@ PIXA  *pixa;
     pixSaveTiled(pixs1, pixa, 1, 1, 20, 32);
     pixSaveTiled(pixs2, pixa, 1, 0, 20, 0);
     pixd = pixBlendHardLight(NULL, pixs1, pixs2, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixd, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixDestroy(&pixd);
 
     pixt2 = pixConvertTo32(pixs2);
     pixd = pixBlendHardLight(NULL, pixs1, pixt2, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixd, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
     pixDestroy(&pixt2);
     pixDestroy(&pixd);
@@ -79,23 +102,17 @@ PIXA  *pixa;
     pixSaveTiled(pixt2, pixa, 1, 0, 20, 0);
 
     pixd = pixBlendHardLight(NULL, pixt1, pixs2, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixd, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixSaveTiled(pixd, pixa, 1, 1, 20, 0);
     pixDestroy(&pixd);
 
     pixd = pixBlendHardLight(NULL, pixt1, pixt2, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixd, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
     pixDestroy(&pixd);
 
     pixd = pixBlendHardLight(NULL, pixt2, pixt1, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixd, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixSaveTiled(pixd, pixa, 1, 0, 20, 0);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -103,70 +120,27 @@ PIXA  *pixa;
 
         /* ---------- Test in-place; no colormaps ----------- */
     pixBlendHardLight(pixs1, pixs1, pixs2, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixs1, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixs1, IFF_PNG);
     pixSaveTiled(pixs1, pixa, 1, 1, 20, 0);
     pixDestroy(&pixs1);
 
     pixs1 = pixRead(file1);
     pixt2 = pixConvertTo32(pixs2);
     pixBlendHardLight(pixs1, pixs1, pixt2, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixs1, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixs1, IFF_PNG);
     pixSaveTiled(pixs1, pixa, 1, 0, 20, 0);
     pixDestroy(&pixt2);
     pixDestroy(&pixs1);
 
     pixs1 = pixRead(file1);
     pixBlendHardLight(pixs2, pixs2, pixs1, 0, 0, 1.0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pixs2, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
+    regTestWritePixAndCheck(rp, pixs2, IFF_PNG);
     pixSaveTiled(pixs2, pixa, 1, 0, 20, 0);
     pixDestroy(&pixs2);
 
     pixDestroy(&pixs1);
     pixDestroy(&pixs2);
-
     return pixa;
 }
 
-
-
-main(int    argc,
-     char **argv)
-{
-char          fname[256];
-l_int32       success, display;
-FILE         *fp;
-PIX          *pix;
-PIXA         *pixa;
-L_REGPARAMS  *rp;
-
-    if (regTestSetup(argc, argv, &fp, &display, &success, &rp))
-        return 1;
-
-    pixa = TestHardlight("hardlight1_1.jpg", "hardlight1_2.jpg", rp);
-    pix = pixaDisplay(pixa, 0, 0);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pix, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
-    pixDisplayWithTitle(pix, 0, 0, NULL, display);
-    pixaDestroy(&pixa);
-    pixDestroy(&pix);
-
-    pixa = TestHardlight("hardlight2_1.jpg", "hardlight2_2.jpg", rp);
-    pix = pixaDisplay(pixa, 0, 500);
-    snprintf(fname, 240, "/tmp/hardlight.%d.png", count);
-    pixWrite(fname, pix, IFF_PNG);
-    regTestCheckFile(rp->fp, rp->argv, fname, count++, &rp->success);
-    pixDisplayWithTitle(pix, 0, 0, NULL, display);
-    pixaDestroy(&pixa);
-    pixDestroy(&pix);
-
-    regTestCleanup(argc, argv, fp, success, rp);
-    return 0;
-}
 

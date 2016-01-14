@@ -54,11 +54,8 @@
  *          standard deviation to subtract from the local average value.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "allheaders.h"
-
 
 /*------------------------------------------------------------------*
  *                 Adaptive Otsu-based thresholding                 *
@@ -607,9 +604,9 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
 
         /* All these functions strip off the border pixels. */
     if (ppixm || ppixth || ppixd)
-        pixm = pixWindowedMean(pixg, whsize, whsize, 1);
+        pixm = pixWindowedMean(pixg, whsize, whsize, 1, 1);
     if (ppixsd || ppixth || ppixd)
-        pixms = pixWindowedMeanSquare(pixg, whsize, whsize);
+        pixms = pixWindowedMeanSquare(pixg, whsize, whsize, 1);
     if (ppixth || ppixd)
         pixth = pixSauvolaGetThreshold(pixm, pixms, factor, ppixsd);
     if (ppixd)

@@ -16,7 +16,7 @@
 /*
  * sudokutest.c
  *
- *   Tests sudoku solver
+ *   Tests sudoku solver and generator.
  */
 
 #include "allheaders.h"
@@ -39,10 +39,19 @@ l_int32     *array;
 L_SUDOKU    *sud;
 static char  mainName[] = "sudokutest";
 
-    if (argc != 2)
-	return ERROR_INT(" Syntax: sudokutest filein", mainName, 1);
+    if (argc != 1 && argc != 2)
+	return ERROR_INT(" Syntax: sudokutest [filein]", mainName, 1);
 
-        /* Solve it */
+    if (argc == 1) {
+            /* Generate a new sudoku by element elimination */
+        array = sudokuReadString(startsol);
+        sud = sudokuGenerate(array, 3693, 28, 7);
+        sudokuDestroy(&sud);
+        lept_free(array);
+        return 0;
+    }
+
+        /* Solve the input sudoku */
     if ((array = sudokuReadFile(argv[1])) == NULL)
         return ERROR_INT("invalid input", mainName, 1);
     if ((sud = sudokuCreate(array)) == NULL)
@@ -60,13 +69,7 @@ static char  mainName[] = "sudokutest";
         fprintf(stderr, "Sudoku is unique\n");
     else
         fprintf(stderr, "Sudoku is NOT unique\n");
-    FREE(array);
-
-        /* Generate a new sudoku */
-    array = sudokuReadString(startsol);
-    sud = sudokuGenerate(array, 3693, 28, 7);
-    sudokuDestroy(&sud);
-    FREE(array);
+    lept_free(array);
 
     return 0;
 }

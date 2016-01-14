@@ -22,8 +22,6 @@
  *     b.c., the rasterop function must be pixCloseSafe().
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* defined in morph.c */
@@ -37,22 +35,23 @@ PIX *pixFMorphopGen_3(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
 main(int    argc,
      char **argv)
 {
-l_int32      i, nsels, same, xorcount, success, display;
-char        *selname;
-FILE        *fp;
-PIX         *pixs, *pixs1, *pixt1, *pixt2, *pixt3;
-SEL         *sel;
-SELA        *sela;
-static char  mainName[] = "dwamorph1_reg";
+l_int32       i, nsels, same, xorcount;
+char         *selname;
+PIX          *pixs, *pixs1, *pixt1, *pixt2, *pixt3;
+SEL          *sel;
+SELA         *sela;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
-    if ((pixs = pixRead("feyn-fract.tif")) == NULL)
-	exit(ERROR_INT("pixs not made", mainName, 1));
 
+    if ((pixs = pixRead("feyn-fract.tif")) == NULL) {
+        rp->success = FALSE;
+        regTestCleanup(rp);
+        return 1;
+    }
     sela = selaAddDwaLinear(NULL);
     nsels = selaGetCount(sela);
-    success = TRUE;
 
     for (i = 0; i < nsels; i++)
     {
@@ -70,11 +69,11 @@ static char  mainName[] = "dwamorph1_reg";
 	            i, selname);
 	}
 	else {
-            success = FALSE;
-	    fprintf(fp, "dilations differ for sel %d (%s)\n", i, selname);
+            rp->success = FALSE;
+	    fprintf(rp->fp, "dilations differ for sel %d (%s)\n", i, selname);
 	    pixt3 = pixXor(NULL, pixt1, pixt2);
 	    pixCountPixels(pixt3, &xorcount, NULL);
-	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+	    fprintf(rp->fp, "Number of pixels in XOR: %d\n", xorcount);
             pixDestroy(&pixt3);
 	}
 	pixDestroy(&pixt1);
@@ -94,11 +93,11 @@ static char  mainName[] = "dwamorph1_reg";
 	            i, selname);
 	}
 	else {
-            success = FALSE;
-	    fprintf(fp, "erosions differ for sel %d (%s)\n", i, selname);
+            rp->success = FALSE;
+	    fprintf(rp->fp, "erosions differ for sel %d (%s)\n", i, selname);
 	    pixt3 = pixXor(NULL, pixt1, pixt2);
 	    pixCountPixels(pixt3, &xorcount, NULL);
-	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+	    fprintf(rp->fp, "Number of pixels in XOR: %d\n", xorcount);
             pixDestroy(&pixt3);
 	}
 	pixDestroy(&pixt1);
@@ -118,11 +117,11 @@ static char  mainName[] = "dwamorph1_reg";
 	            i, selname);
 	}
 	else {
-            success = FALSE;
-	    fprintf(fp, "erosions differ for sel %d (%s)\n", i, selname);
+            rp->success = FALSE;
+	    fprintf(rp->fp, "erosions differ for sel %d (%s)\n", i, selname);
 	    pixt3 = pixXor(NULL, pixt1, pixt2);
 	    pixCountPixels(pixt3, &xorcount, NULL);
-	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+	    fprintf(rp->fp, "Number of pixels in XOR: %d\n", xorcount);
             pixDestroy(&pixt3);
 	}
 	pixDestroy(&pixt1);
@@ -142,11 +141,11 @@ static char  mainName[] = "dwamorph1_reg";
 	            i, selname);
 	}
 	else {
-            success = FALSE;
-	    fprintf(fp, "openings differ for sel %d (%s)\n", i, selname);
+            rp->success = FALSE;
+	    fprintf(rp->fp, "openings differ for sel %d (%s)\n", i, selname);
 	    pixt3 = pixXor(NULL, pixt1, pixt2);
 	    pixCountPixels(pixt3, &xorcount, NULL);
-	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+	    fprintf(rp->fp, "Number of pixels in XOR: %d\n", xorcount);
             pixDestroy(&pixt3);
 	}
 	pixDestroy(&pixt1);
@@ -166,11 +165,11 @@ static char  mainName[] = "dwamorph1_reg";
 	            i, selname);
 	}
 	else {
-            success = FALSE;
-	    fprintf(fp, "openings differ for sel %d (%s)\n", i, selname);
+            rp->success = FALSE;
+	    fprintf(rp->fp, "openings differ for sel %d (%s)\n", i, selname);
 	    pixt3 = pixXor(NULL, pixt1, pixt2);
 	    pixCountPixels(pixt3, &xorcount, NULL);
-	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+	    fprintf(rp->fp, "Number of pixels in XOR: %d\n", xorcount);
             pixDestroy(&pixt3);
 	}
 	pixDestroy(&pixt1);
@@ -190,11 +189,11 @@ static char  mainName[] = "dwamorph1_reg";
 	            i, selname);
 	}
 	else {
-            success = FALSE;
-	    fprintf(fp, "closings differ for sel %d (%s)\n", i, selname);
+            rp->success = FALSE;
+	    fprintf(rp->fp, "closings differ for sel %d (%s)\n", i, selname);
 	    pixt3 = pixXor(NULL, pixt1, pixt2);
 	    pixCountPixels(pixt3, &xorcount, NULL);
-	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+	    fprintf(rp->fp, "Number of pixels in XOR: %d\n", xorcount);
             pixDestroy(&pixt3);
 	}
 	pixDestroy(&pixt1);
@@ -214,11 +213,11 @@ static char  mainName[] = "dwamorph1_reg";
 	            i, selname);
 	}
 	else {
-            success = FALSE;
-	    fprintf(fp, "closings differ for sel %d (%s)\n", i, selname);
+            rp->success = FALSE;
+	    fprintf(rp->fp, "closings differ for sel %d (%s)\n", i, selname);
 	    pixt3 = pixXor(NULL, pixt1, pixt2);
 	    pixCountPixels(pixt3, &xorcount, NULL);
-	    fprintf(fp, "Number of pixels in XOR: %d\n", xorcount);
+	    fprintf(rp->fp, "Number of pixels in XOR: %d\n", xorcount);
             pixDestroy(&pixt3);
 	}
 	pixDestroy(&pixt1);
@@ -227,7 +226,7 @@ static char  mainName[] = "dwamorph1_reg";
 
     selaDestroy(&sela);
     pixDestroy(&pixs);
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
 

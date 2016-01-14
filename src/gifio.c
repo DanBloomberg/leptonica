@@ -23,18 +23,16 @@
  *    Write gif to file
  *          l_int32     pixWriteStreamGif()
  *
- *    Read/write from/to memory
+ *    Read/write from/to memory (see warning)
  *          PIX        *pixReadMemGif()
  *          l_int32     pixWriteMemGif()
- *
+ *     
  *    This uses the gif library, version 4.1.6.  Do not use 4.1.4.
  *
  *    This module was generously contribued by Antony Dovgal.
  *    He can be contacted at:  tony *AT* daylessday.org
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #ifndef _MSC_VER
@@ -423,6 +421,21 @@ GifByteType     *gif_line;
  *  Notes:
  *      (1) Of course, we are cheating here -- writing the data out
  *          to file and then reading it back in as a gif format.
+ *      (2) This should not be assumed to be safe from a sophisticated
+ *          attack, even though we have attempted to make the filename
+ *          difficult to guess by embedding the process number and the
+ *          current time in microseconds.  The best way to handle
+ *          temporary files is to use file descriptors (capabilities)
+ *          or file handles.  However, I know of no way to do this
+ *          for gif files because of the way that libgif handles the
+ *          file descriptors.  The canonical approach would be to do this:
+ *              char templ[] = "hiddenfilenameXXXXXX";
+ *              l_int32 fd = mkstemp(templ);
+ *              FILE *fp = fdopen(fd, "w+b");
+ *              fwrite(data, 1, size, fp);
+ *              rewind(fp);
+ *              Pix *pix = pixReadStreamGif(fp);
+ *          but this fails because fp is in a bad state after writing.
  */
 PIX *
 pixReadMemGif(const l_uint8  *cdata,
@@ -430,17 +443,18 @@ pixReadMemGif(const l_uint8  *cdata,
 {
 char     *tname;
 l_uint8  *data;
-PIX   *pix;
+PIX      *pix;
 
     PROCNAME("pixReadMemGif");
 
     if (!cdata)
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
 
-    tname = genTempFilename("/tmp/", "junk_mem_gif.blah", 1);
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
-    arrayWrite(tname, "w", data, size);
+    tname = genTempFilename("/tmp/", "mem.gif", 1, 1);
+    l_binaryWrite(tname, "w", data, size);
     pix = pixRead(tname);
+    remove(tname);
     FREE(tname);
     if (!pix)
         return (PIX *)ERROR_PTR("pix not read", procName, NULL);
@@ -451,14 +465,13 @@ PIX   *pix;
 /*!
  *  pixWriteMemGif()
  *
- *      Input:  &data (<return> data of tiff compressed image)
+ *      Input:  &data (<return> data of gif compressed image)
  *              &size (<return> size of returned data)
  *              pix
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Of course, we are cheating here -- writing the pix out
- *          as a gif file and then reading it back into memory.
+ *      (1) See comments in pixReadMemGif()
  */
 l_int32
 pixWriteMemGif(l_uint8  **pdata,
@@ -467,7 +480,7 @@ pixWriteMemGif(l_uint8  **pdata,
 {
 char     *tname;
 l_uint8  *data;
-l_int32   nbytes;
+size_t    nbytes;
 
     PROCNAME("pixWriteMemGif");
 
@@ -478,9 +491,10 @@ l_int32   nbytes;
     if (!pix)
         return ERROR_INT("&pix not defined", procName, 1 );
 
-    tname = genTempFilename("/tmp/", "junk_mem_gif.blah", 1);
+    tname = genTempFilename("/tmp/", "mem.gif", 1, 1);
     pixWrite(tname, pix, IFF_GIF);
-    data = arrayRead(tname, &nbytes);
+    data = l_binaryRead(tname, &nbytes);
+    remove(tname);
     FREE(tname);
     if (!data)
         return ERROR_INT("data not returned", procName, 1 );

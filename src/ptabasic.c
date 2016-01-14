@@ -35,6 +35,7 @@
  *           l_int32   ptaGetCount()
  *           l_int32   ptaGetPt()
  *           l_int32   ptaGetIPt()
+ *           l_int32   ptaSetPt()
  *           l_int32   ptaGetArrays()
  *
  *      Pta serialized for I/O
@@ -374,6 +375,8 @@ ptaGetPt(PTA        *pta,
     if (py) *py = 0;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
+    if (index < 0 || index >= pta->n)
+        return ERROR_INT("invalid index", procName, 1);
 
     if (px) *px = pta->x[index];
     if (py) *py = pta->y[index];
@@ -402,9 +405,38 @@ ptaGetIPt(PTA      *pta,
     if (py) *py = 0;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
+    if (index < 0 || index >= pta->n)
+        return ERROR_INT("invalid index", procName, 1);
 
     if (px) *px = (l_int32)(pta->x[index] + 0.5);
     if (py) *py = (l_int32)(pta->y[index] + 0.5);
+    return 0;
+}
+
+
+/*!
+ *  ptaSetPt()
+ *
+ *      Input:  pta
+ *              index  (into arrays)
+ *              x, y
+ *      Return: 0 if OK; 1 on error
+ */
+l_int32
+ptaSetPt(PTA       *pta,
+         l_int32    index,
+         l_float32  x,
+         l_float32  y)
+{
+    PROCNAME("ptaSetPt");
+
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+    if (index < 0 || index >= pta->n)
+        return ERROR_INT("invalid index", procName, 1);
+
+    pta->x[index] = x;
+    pta->y[index] = y;
     return 0;
 }
 
@@ -562,7 +594,7 @@ FILE  *fp;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (ptaWriteStream(fp, pta, type))
         return ERROR_INT("pta not written to stream", procName, 1);
@@ -933,7 +965,7 @@ FILE  *fp;
     if (!ptaa)
         return ERROR_INT("ptaa not defined", procName, 1);
 
-    if ((fp = fopen(filename, "w")) == NULL)
+    if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     if (ptaaWriteStream(fp, ptaa, type))
         return ERROR_INT("ptaa not written to stream", procName, 1);

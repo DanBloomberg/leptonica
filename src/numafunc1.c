@@ -29,6 +29,7 @@
  *          l_int32      numaGetSumOnInterval()
  *          l_int32      numaHasOnlyIntegers()
  *          NUMA        *numaSubsample()
+ *          NUMA        *numaMakeDelta()
  *          NUMA        *numaMakeSequence()
  *          NUMA        *numaMakeConstant()
  *          NUMA        *numaAddBorder()
@@ -568,6 +569,35 @@ NUMA      *nad;
         numaAddNumber(nad, val);
     }
 
+    return nad;
+}
+
+
+/*!
+ *  numaMakeDelta()
+ *
+ *      Input:  nas (input numa)
+ *      Return: numa (of difference values val[i+1] - val[i]),
+ *                    or null on error
+ */
+NUMA *
+numaMakeDelta(NUMA  *nas)
+{
+l_int32  i, n, prev, cur;
+NUMA    *nad;
+
+    PROCNAME("numaMakeDelta");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    n = numaGetCount(nas);
+    nad = numaCreate(n - 1);
+    prev = 0;
+    for (i = 1; i < n; i++) {
+        numaGetIValue(nas, i, &cur);
+        numaAddNumber(nad, cur - prev);
+        prev = cur;
+    }
     return nad;
 }
 
@@ -2324,6 +2354,9 @@ l_float32  val;
 NUMA      *naindex, *nad;
 
     PROCNAME("numaRandomPermutation");
+
+    if (!nas)
+        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
 
     size = numaGetCount(nas);
     naindex = numaPseudorandomSequence(size, seed);

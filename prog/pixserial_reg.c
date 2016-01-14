@@ -20,8 +20,6 @@
  *    in memory and the deserialization back to a pix.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
     /* Use this set */
@@ -42,34 +40,35 @@ static const char  *filename[] = {
 main(int    argc,
      char **argv)
 {
-char       buf[256];
-size_t     nbytes;
-l_int32    i, w, h, success, display;
-l_int32    format, bps, spp, iscmap, format2, w2, h2, bps2, spp2, iscmap2;
-l_uint8   *data;
-l_uint32  *data32, *data32r;
-BOX       *box;
-FILE      *fp;
-PIX       *pixs, *pixt, *pixt2, *pixd;
+char          buf[256];
+size_t        size;
+l_int32       i, w, h;
+l_int32       format, bps, spp, iscmap, format2, w2, h2, bps2, spp2, iscmap2;
+l_uint8      *data;
+l_uint32     *data32, *data32r;
+BOX          *box;
+PIX          *pixs, *pixt, *pixt2, *pixd;
+L_REGPARAMS  *rp;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
+    if (regTestSetup(argc, argv, &rp))
         return 1;
 
             /* Test basic serialization/deserialization */
+    data32 = NULL;
     for (i = 0; i < nfiles; i++) {
         pixs = pixRead(filename[i]);
             /* Serialize to memory */
-        pixSerializeToMemory(pixs, &data32, &nbytes);
+        pixSerializeToMemory(pixs, &data32, &size);
             /* Just for fun, write and read back from file */
-        arrayWrite("/tmp/array", "w", data32, nbytes);
-        data32r = (l_uint32 *)arrayRead("/tmp/array", (l_int32 *)(&nbytes)); 
+        l_binaryWrite("/tmp/array", "w", data32, size);
+        data32r = (l_uint32 *)l_binaryRead("/tmp/array", &size); 
             /* Deserialize */
-        pixd = pixDeserializeFromMemory(data32r, nbytes);
-        regTestComparePix(fp, argv, pixs, pixd, i, &success);
+        pixd = pixDeserializeFromMemory(data32r, size);
+        regTestComparePix(rp, pixs, pixd);  /* i */
         pixDestroy(&pixd);
         pixDestroy(&pixs);
-        FREE(data32);
-        FREE(data32r);
+        lept_free(data32);
+        lept_free(data32r);
     }
 
             /* Test read/write fileio interface */
@@ -79,11 +78,11 @@ PIX       *pixs, *pixt, *pixt2, *pixd;
         box = boxCreate(0, 0, L_MIN(150, w), L_MIN(150, h));
         pixt = pixClipRectangle(pixs, box, NULL);
         boxDestroy(&box);
-        snprintf(buf, sizeof(buf), "/tmp/pixs.%d", i);
+        snprintf(buf, sizeof(buf), "/tmp/pixs.%d.spix", rp->index + 1);
         pixWrite(buf, pixt, IFF_SPIX);
-        regTestCheckFile(fp, argv, buf, i, &success);
+        regTestCheckFile(rp, buf);  /* nfiles + 2 * i */
         pixt2 = pixRead(buf);
-        regTestComparePix(fp, argv, pixt, pixt2, nfiles + i, &success);
+        regTestComparePix(rp, pixt, pixt2);  /* nfiles + 2 * i + 1 */
         pixDestroy(&pixs);
         pixDestroy(&pixt);
         pixDestroy(&pixt2);
@@ -91,22 +90,22 @@ PIX       *pixs, *pixt, *pixt2, *pixd;
     
             /* Test read header.  Note that for rgb input, spp = 3,
              * but for 32 bpp spix, we set spp = 4. */
+    data = NULL;
     for (i = 0; i < nfiles; i++) {
         pixs = pixRead(filename[i]);
-        pixWriteMem(&data, &nbytes, pixs, IFF_SPIX);
+        pixWriteMem(&data, &size, pixs, IFF_SPIX);
         pixReadHeader(filename[i], &format, &w, &h, &bps, &spp, &iscmap);
-        pixReadHeaderMem(data, nbytes, &format2, &w2, &h2, &bps2,
+        pixReadHeaderMem(data, size, &format2, &w2, &h2, &bps2,
                          &spp2, &iscmap2);
         if (format2 != IFF_SPIX || w != w2 || h != h2 || bps != bps2 ||
             iscmap != iscmap2) {
-            if (fp)
-                fprintf(fp, "Failure comparing data");
+            if (rp->fp)
+                fprintf(rp->fp, "Failure comparing data");
             else
                 fprintf(stderr, "Failure comparing data");
-            success = FALSE;
         }
         pixDestroy(&pixs);
-        FREE(data);
+        lept_free(data);
     }
 
 #if 0
@@ -114,16 +113,16 @@ PIX       *pixs, *pixt, *pixt2, *pixd;
     for (i = 0; i < nfiles; i++) {
         pixs = pixRead(filename[i]);
         startTimer();
-        pixSerializeToMemory(pixs, &data32, &nbytes);
-        pixd = pixDeserializeFromMemory(data32, nbytes);
+        pixSerializeToMemory(pixs, &data32, &size);
+        pixd = pixDeserializeFromMemory(data32, size);
         fprintf(stderr, "Time for %s: %7.3f sec\n", filename[i], stopTimer());
-        FREE(data32);
+        lept_free(data32);
         pixDestroy(&pixs);
         pixDestroy(&pixd);
     }
 #endif
 
-    regTestCleanup(argc, argv, fp, success, NULL);
+    regTestCleanup(rp);
     return 0;
 }
 

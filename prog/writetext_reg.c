@@ -21,8 +21,6 @@
  *   Output is written to /tmp/pixd[1,2,3,4].png
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "allheaders.h"
 
 void AddTextAndSave(PIXA *pixa, PIX *pixs, L_BMF *bmf, const char *textstr,
@@ -44,20 +42,24 @@ const char  *topstr[] =
             "Text is added over the bottom of each image",
             "Text is added below each image"};
 
+const l_uint32  colors[6] = {0x4090e000, 0x40e09000, 0x9040e000, 0x90e04000,
+                             0xe0409000, 0xe0904000};
+
 
 main(int    argc,
      char **argv)
 {
-char         outname[256];
-l_int32      loc, display, success;
-L_BMF       *bmf, *bmftop;
-FILE        *fp;
-PIX         *pixs, *pixt, *pixd;
-PIX         *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
-PIXA        *pixa;
+char          outname[256], buf[512];
+l_int32       loc, i;
+L_BMF        *bmf, *bmftop;
+PIX          *pixs, *pixt, *pixd;
+PIX          *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
+SARRAY       *sa;
 
-    if (regTestSetup(argc, argv, &fp, &display, &success, NULL))
-              return 1;
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     bmf = bmfCreate("./fonts", 6);
     bmftop = bmfCreate("./fonts", 10);
@@ -73,21 +75,19 @@ PIXA        *pixa;
 
     for (loc = 1; loc < 5; loc++) {
         pixa = pixaCreate(0);
-        AddTextAndSave(pixa, pix1, bmf, textstr[0], loc, 190);
+        AddTextAndSave(pixa, pix1, bmf, textstr[0], loc, 800);
         AddTextAndSave(pixa, pix2, bmf, textstr[1], loc, 0xff000000);
         AddTextAndSave(pixa, pix3, bmf, textstr[2], loc, 0x00ff0000);
         AddTextAndSave(pixa, pix4, bmf, textstr[3], loc, 0x0000ff00);
-        AddTextAndSave(pixa, pix5, bmf, textstr[4], loc, 11);
+        AddTextAndSave(pixa, pix5, bmf, textstr[4], loc, 800);
         AddTextAndSave(pixa, pix6, bmf, textstr[5], loc, 0xff000000);
-        AddTextAndSave(pixa, pix7, bmf, textstr[6], loc, 2);
-        AddTextAndSave(pixa, pix8, bmf, textstr[7], loc, 1);
+        AddTextAndSave(pixa, pix7, bmf, textstr[6], loc, 800);
+        AddTextAndSave(pixa, pix8, bmf, textstr[7], loc, 800);
         pixt = pixaDisplay(pixa, 0, 0);
         pixd = pixAddSingleTextblock(pixt, bmftop, topstr[loc - 1],
                                      0xff00ff00, L_ADD_ABOVE, NULL);
-        snprintf(outname, 240, "/tmp/writetext.%d.png", loc - 1);
-        pixWrite(outname, pixd, IFF_PNG);
-        regTestCheckFile(fp, argv, outname, loc - 1, &success);
-        pixDisplayWithTitle(pixd, 50 * loc, 50, NULL, display);
+        regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /*  0 - 4 */
+        pixDisplayWithTitle(pixd, 50 * loc, 50, NULL, rp->display);
         pixDestroy(&pixt);
         pixDestroy(&pixd);
         pixaDestroy(&pixa);
@@ -104,7 +104,36 @@ PIXA        *pixa;
     pixDestroy(&pix8);
     bmfDestroy(&bmf);
     bmfDestroy(&bmftop);
-    regTestCleanup(argc, argv, fp, success, NULL);
+
+        /* Write multiple lines in different colors, filling up
+         * the colormap and requesting even more colors. */
+    pixs = pixRead("weasel4.11c.png");
+    pix1 = pixConvertTo8(pixs, 0);
+    pix2 = pixScale(pixs, 8.0, 8.0);
+    pix3 = pixQuantFromCmap(pix2, pixGetColormap(pixs), 4, 5,
+                            L_EUCLIDEAN_DISTANCE);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pix3, 0, 500, NULL, rp->display);
+    bmf = bmfCreate("fonts", 10);
+    sa = sarrayCreate(6);
+    for (i = 0; i < 6; i++) {
+        snprintf(buf, sizeof(buf), "This is textline %d\n", i);
+        sarrayAddString(sa, buf, L_COPY);
+    }
+    for (i = 0; i < 6; i++) {
+        pixSetTextline(pix3, bmf, sarrayGetString(sa, i, L_NOCOPY),
+                       colors[i], 50, 120 + 60 * i, NULL, NULL);
+    }
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pix3, 600, 500, NULL, rp->display);
+    pixDestroy(&pixs);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    bmfDestroy(&bmf);
+    sarrayDestroy(&sa);
+
+    regTestCleanup(rp);
     return 0;
 }
 
