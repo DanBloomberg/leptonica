@@ -1,3 +1,20 @@
+########################################
+# FUNCTION add_prog_target
+########################################
+function(add_prog_target target)
+    set                             (${target}_src "${ARGN}")
+    if (WIN32)
+        set_source_files_properties (${${target}_src} PROPERTIES LANGUAGE CXX)
+    endif()
+    add_executable                  (${target} ${${target}_src})
+    if (NOT STATIC)
+        target_compile_definitions  (${target} PRIVATE -DLIBLEPT_IMPORTS)
+    endif()
+    target_link_libraries           (${target} leptonica)
+    set_target_properties           (${target} PROPERTIES FOLDER prog)
+endfunction(add_prog_target)
+########################################
+
 add_prog_target(adaptmaptest adaptmaptest.c)
 add_prog_target(adaptmap_dark adaptmap_dark.c)
 add_prog_target(adaptnorm_reg adaptnorm_reg.c)

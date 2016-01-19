@@ -87,12 +87,20 @@ if (JPEG_FOUND)
     set(HAVE_LIBJPEG 1)
 endif()
 
+if (JP2K_FOUND)
+    set(HAVE_LIBJP2K 1)
+endif()
+
 if (PNG_FOUND)
     set(HAVE_LIBPNG 1)
 endif()
 
 if (TIFF_FOUND)
     set(HAVE_LIBTIFF 1)
+endif()
+
+if (WEBP_FOUND)
+    set(HAVE_LIBWEBP 1)
 endif()
 
 if (ZLIB_FOUND)
@@ -127,6 +135,19 @@ file(APPEND ${AUTOCONFIG_SRC} "
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #cmakedefine WORDS_BIGENDIAN 1
+
+
+#ifdef HAVE_OPENJPEG_2_0_OPENJPEG_H
+#define LIBJP2K_HEADER <openjpeg-2.0/openjpeg.h>
+#endif
+
+#ifdef HAVE_OPENJPEG_2_1_OPENJPEG_H
+#define LIBJP2K_HEADER <openjpeg-2.1/openjpeg.h>
+#endif
+
+#ifdef HAVE_OPENJPEG_2_2_OPENJPEG_H
+#define LIBJP2K_HEADER <openjpeg-2.2/openjpeg.h>
+#endif
 ")
 
 ########################################

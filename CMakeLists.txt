@@ -45,12 +45,17 @@ set(VERSION_MINOR 72)
 set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR})
 
 find_package(GIF)
-#find_package(JP2K)
 find_package(JPEG)
 find_package(PNG)
 find_package(TIFF)
-#find_package(WEBP)
 find_package(ZLIB)
+
+find_package(PkgConfig)
+
+if (PKG_CONFIG_FOUND)
+pkg_check_modules(WEBP REQUIRED libwebp)
+pkg_check_modules(JP2K REQUIRED libopenjp2)
+endif()
 
 ###############################################################################
 #
@@ -102,23 +107,6 @@ add_definitions(-DHAVE_CONFIG_H)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
-
-########################################
-# FUNCTION add_prog_target
-########################################
-function(add_prog_target target)
-    set                             (${target}_src "${ARGN}")
-    if (WIN32)
-        set_source_files_properties (${${target}_src} PROPERTIES LANGUAGE CXX)
-    endif()
-    add_executable                  (${target} ${${target}_src})
-    if (NOT STATIC)
-        target_compile_definitions  (${target} PRIVATE -DLIBLEPT_IMPORTS)
-    endif()
-    target_link_libraries           (${target} leptonica)
-    set_target_properties           (${target} PROPERTIES FOLDER prog)
-endfunction(add_prog_target)
-########################################
 
 if (BUILD_PROG)
 add_subdirectory(prog)
