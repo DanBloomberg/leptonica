@@ -13,9 +13,20 @@ branches:
   only:
     - master
 
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - libwebp-dev
+    - libpng12-dev
+    - libjpeg8-dev
+    - libtiff5-dev
+    - libgif-dev
+    
 install:
-  - wget --no-check-certificate http://www.cmake.org/files/v3.3/cmake-3.3.1-Linux-x86_64.sh
-  - sudo sh cmake-3.3.1-Linux-x86_64.sh --skip-license --prefix=/usr
+  - wget --no-check-certificate http://www.cmake.org/files/v3.4/cmake-3.4.1-Linux-x86_64.sh
+  - sudo sh cmake-3.4.1-Linux-x86_64.sh --skip-license --prefix=/usr
 
 script:
   - mkdir build
