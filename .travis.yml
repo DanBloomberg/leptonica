@@ -23,6 +23,7 @@ addons:
     - libjpeg8-dev
     - libtiff5-dev
     - libgif-dev
+    - libopenjp2-7-dev
     
 install:
   - wget --no-check-certificate http://www.cmake.org/files/v3.4/cmake-3.4.1-Linux-x86_64.sh
