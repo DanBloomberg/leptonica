@@ -31,8 +31,8 @@ before_install:
   - if [[ $TRAVIS_OS_NAME == osx     ]]; then OSX=true; fi
   
 install:
-  - sudo apt-get update
-  - sudo apt-get install -y libwebp-dev libpng12-dev libjpeg8-dev libtiff5-dev libgif-dev libopenjp2-7-dev
+  - if [[ $LINUX ]]; then sudo apt-get update; fi
+  - if [[ $LINUX ]]; then sudo apt-get install -y libwebp-dev libpng12-dev libjpeg8-dev libtiff5-dev libgif-dev libopenjp2-7-dev; fi
   - wget --no-check-certificate http://www.cmake.org/files/v3.4/cmake-3.4.1-Linux-x86_64.sh
   - sudo sh cmake-3.4.1-Linux-x86_64.sh --skip-license --prefix=/usr
 
