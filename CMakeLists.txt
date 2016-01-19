@@ -45,12 +45,17 @@ set(VERSION_MINOR 72)
 set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR})
 
 find_package(GIF)
-#find_package(JP2K)
 find_package(JPEG)
 find_package(PNG)
 find_package(TIFF)
-#find_package(WEBP)
 find_package(ZLIB)
+
+find_package(PkgConfig)
+
+if (PKG_CONFIG_FOUND)
+pkg_check_modules(WEBP REQUIRED libwebp)
+pkg_check_modules(JP2K REQUIRED libopenjp2)
+endif()
 
 ###############################################################################
 #
