@@ -53,8 +53,8 @@ find_package(ZLIB)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
-pkg_check_modules(WEBP REQUIRED libwebp)
-pkg_check_modules(JP2K REQUIRED libopenjp2)
+pkg_check_modules(WEBP libwebp)
+pkg_check_modules(JP2K libopenjp2)
 endif()
 
 ###############################################################################
