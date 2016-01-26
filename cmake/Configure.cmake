@@ -63,7 +63,7 @@ set(include_files_list
     sys/stat.h
     sys/types.h
     unistd.h
-    
+
     openjpeg-2.0/openjpeg.h
     openjpeg-2.1/openjpeg.h
     openjpeg-2.2/openjpeg.h
