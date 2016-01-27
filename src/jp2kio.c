@@ -785,6 +785,19 @@ PIX      *pix;
 #if HAVE_FMEMOPEN
     if ((fp = fmemopen((void *)data, size, "rb")) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
+#elif defined(_WIN32)
+    static const char fn_template[] = "mkstemp.XXXXXX";
+    static char filename[64];
+    char *tmpdir = getenv("TMP");
+    sprintf(filename, "%s/%s", tmpdir ? tmpdir : ".", fn_template);
+    int handle = mkstemp(filename);
+    L_WARNING("work-around: writing to a temp file\n", procName);
+    if ((fp = fdopen(handle, "r+b")) == NULL) {
+        printf("mkstemp stream not opened, %s\n", strerror(errno));
+        return (PIX *)ERROR_PTR("mkstemp stream not opened", procName, NULL);
+    }
+    fwrite(data, 1, size, fp);
+    rewind(fp);
 #else
     L_WARNING("work-around: writing to a temp file\n", procName);
     if ((fp = tmpfile()) == NULL)
