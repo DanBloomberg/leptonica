@@ -598,10 +598,6 @@ PIX       *pixs;
 /*---------------------------------------------------------------------*
  *                         Read/write to memory                        *
  *---------------------------------------------------------------------*/
-#if HAVE_FMEMOPEN
-extern FILE *open_memstream(char **data, size_t *size);
-extern FILE *fmemopen(void *data, size_t size, const char *mode);
-#endif  /* HAVE_FMEMOPEN */
 
 /*!
  *  pixReadMemPnm()
