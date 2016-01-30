@@ -66,7 +66,7 @@ set(leptonica_src
     webpio.c webpiostub.c
     writefile.c zlibmem.c zlibmemstub.c
 )
-if (WIN32)
+if (MSVC)
 set_source_files_properties(${leptonica_src} PROPERTIES LANGUAGE CXX)
 endif()
 
