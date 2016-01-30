@@ -571,13 +571,12 @@ RGBA_QUAD  *pquad;
  *---------------------------------------------------------------------*/
 #if HAVE_FMEMOPEN
 extern FILE *open_memstream(char **data, size_t *size);
-extern FILE *fmemopen(void *data, size_t size, const char *mode);
 #endif  /* HAVE_FMEMOPEN */
 
 /*!
  *  pixReadMemBmp()
  *
- *      Input:  cdata (const; bmp-encoded)
+ *      Input:  data (const; bmp-encoded)
  *              size (of data)
  *      Return: pix, or null on error
  *
@@ -585,7 +584,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
  *      (1) The @size byte of @data must be a null character.
  */
 PIX *
-pixReadMemBmp(const l_uint8  *cdata,
+pixReadMemBmp(const l_uint8  *data,
               size_t          size)
 {
 FILE  *fp;
@@ -593,19 +592,11 @@ PIX   *pix;
 
     PROCNAME("pixReadMemBmp");
 
-    if (!cdata)
-        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+    if (!data)
+        return (PIX *)ERROR_PTR("data not defined", procName, NULL);
 
-#if HAVE_FMEMOPEN
-    if ((fp = fmemopen((l_uint8 *)cdata, size, "rb")) == NULL)
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
-#else
-    L_WARNING("work-around: writing to a temp file\n", procName);
-    if ((fp = tmpfile()) == NULL)
-        return (PIX *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
-    fwrite(cdata, 1, size, fp);
-    rewind(fp);
-#endif  /* HAVE_FMEMOPEN */
     pix = pixReadStreamBmp(fp);
     fclose(fp);
     if (!pix) L_ERROR("pix not read\n", procName);
@@ -648,8 +639,13 @@ FILE    *fp;
     ret = pixWriteStreamBmp(fp, pix);
 #else
     L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
     if ((fp = tmpfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
     ret = pixWriteStreamBmp(fp, pix);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
@@ -657,6 +653,7 @@ FILE    *fp;
     fclose(fp);
     return ret;
 }
+
 
 /* --------------------------------------------*/
 #endif  /* USE_BMPIO */

@@ -1256,13 +1256,12 @@ l_pngSetReadStrip16To8(l_int32  flag)
  *---------------------------------------------------------------------*/
 #if HAVE_FMEMOPEN
 extern FILE *open_memstream(char **data, size_t *size);
-extern FILE *fmemopen(void *data, size_t size, const char *mode);
 #endif  /* HAVE_FMEMOPEN */
 
 /*!
  *  pixReadMemPng()
  *
- *      Input:  cdata (const; png-encoded)
+ *      Input:  data (const; png-encoded)
  *              size (of data)
  *      Return: pix, or null on error
  *
@@ -1270,7 +1269,7 @@ extern FILE *fmemopen(void *data, size_t size, const char *mode);
  *      (1) The @size byte of @data must be a null character.
  */
 PIX *
-pixReadMemPng(const l_uint8  *cdata,
+pixReadMemPng(const l_uint8  *data,
               size_t          size)
 {
 FILE  *fp;
@@ -1278,19 +1277,11 @@ PIX   *pix;
 
     PROCNAME("pixReadMemPng");
 
-    if (!cdata)
+    if (!data)
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
 
-#if HAVE_FMEMOPEN
-    if ((fp = fmemopen((void *)cdata, size, "rb")) == NULL)
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
-#else
-    L_WARNING("work-around: writing to a temp file\n", procName);
-    if ((fp = tmpfile()) == NULL)
-        return (PIX *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
-    fwrite(cdata, 1, size, fp);
-    rewind(fp);
-#endif  /* HAVE_FMEMOPEN */
     pix = pixReadStreamPng(fp);
     fclose(fp);
     if (!pix) L_ERROR("pix not read\n", procName);
@@ -1337,8 +1328,13 @@ FILE    *fp;
     ret = pixWriteStreamPng(fp, pix, gamma);
 #else
     L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
     if ((fp = tmpfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
     ret = pixWriteStreamPng(fp, pix, gamma);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);

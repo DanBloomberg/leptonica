@@ -745,7 +745,6 @@ opj_image_cmptparm_t  cmptparm[4];
  *---------------------------------------------------------------------*/
 #if HAVE_FMEMOPEN
 extern FILE *open_memstream(char **data, size_t *size);
-extern FILE *fmemopen(void *data, size_t size, const char *mode);
 #endif  /* HAVE_FMEMOPEN */
 
 /*!
@@ -782,16 +781,8 @@ PIX      *pix;
     if (!data)
         return (PIX *)ERROR_PTR("data not defined", procName, NULL);
 
-#if HAVE_FMEMOPEN
-    if ((fp = fmemopen((void *)data, size, "rb")) == NULL)
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
-#else
-    L_WARNING("work-around: writing to a temp file\n", procName);
-    if ((fp = tmpfile()) == NULL)
-        return (PIX *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
-    fwrite(data, 1, size, fp);
-    rewind(fp);
-#endif  /* HAVE_FMEMOPEN */
     pix = pixReadStreamJp2k(fp, reduction, box, hint, debug);
     fclose(fp);
     if (!pix) L_ERROR("pix not read\n", procName);
@@ -844,8 +835,13 @@ FILE    *fp;
     ret = pixWriteStreamJp2k(fp, pix, quality, nlevels, hint, debug);
 #else
     L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
     if ((fp = tmpfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
     ret = pixWriteStreamJp2k(fp, pix, quality, nlevels, hint, debug);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);

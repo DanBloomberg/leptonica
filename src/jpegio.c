@@ -942,7 +942,6 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
  *---------------------------------------------------------------------*/
 #if HAVE_FMEMOPEN
 extern FILE *open_memstream(char **data, size_t *size);
-extern FILE *fmemopen(void *data, size_t size, const char *mode);
 #endif  /* HAVE_FMEMOPEN */
 
 /*!
@@ -983,16 +982,8 @@ PIX      *pix;
     if (!data)
         return (PIX *)ERROR_PTR("data not defined", procName, NULL);
 
-#if HAVE_FMEMOPEN
-    if ((fp = fmemopen((l_uint8 *)data, size, "rb")) == NULL)
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
         return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
-#else
-    L_WARNING("work-around: writing to a temp file\n", procName);
-    if ((fp = tmpfile()) == NULL)
-        return (PIX *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
-    fwrite(data, 1, size, fp);
-    rewind(fp);
-#endif  /* HAVE_FMEMOPEN */
     pix = pixReadStreamJpeg(fp, cmflag, reduction, pnwarn, hint);
     if (pix) {
         ret = fgetJpegComment(fp, &comment);
@@ -1043,16 +1034,8 @@ FILE    *fp;
     if (!pw && !ph && !pspp && !pycck && !pcmyk)
         return ERROR_INT("no results requested", procName, 1);
 
-#if HAVE_FMEMOPEN
-    if ((fp = fmemopen((l_uint8 *)data, size, "rb")) == NULL)
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-#else
-    L_WARNING("work-around: writing to a temp file\n", procName);
-    if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
-    fwrite(data, 1, size, fp);
-    rewind(fp);
-#endif  /* HAVE_FMEMOPEN */
     ret = freadHeaderJpeg(fp, pw, ph, pspp, pycck, pcmyk);
     fclose(fp);
     return ret;
@@ -1100,8 +1083,13 @@ FILE    *fp;
     ret = pixWriteStreamJpeg(fp, pix, quality, progressive);
 #else
     L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
     if ((fp = tmpfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
     ret = pixWriteStreamJpeg(fp, pix, quality, progressive);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);

@@ -88,6 +88,10 @@
  *       Cross-platform functions for opening file streams
  *           FILE      *fopenReadStream()
  *           FILE      *fopenWriteStream()
+ *           FILE      *fopenReadFromMemory()
+ *
+ *       Opening a windows tmpfile for writing
+ *           FILE      *fopenWriteWinTmpfile()
  *
  *       Cross-platform functions that avoid C-runtime boundary crossing
  *       with Windows DLLs
@@ -113,7 +117,7 @@
  *           char      *appendSubdirs()
  *
  *       Special file name operations
-  *          l_int32    convertSepCharsInPath()
+ *           l_int32    convertSepCharsInPath()
  *           char      *genPathname()
  *           l_int32    makeTempDirname()
  *           l_int32    modifyTrailingSlash()
@@ -1754,6 +1758,10 @@ convertOnBigEnd32(l_uint32  wordin)
 /*--------------------------------------------------------------------*
  *                        Opening file streams                        *
  *--------------------------------------------------------------------*/
+#if HAVE_FMEMOPEN
+extern FILE *fmemopen(void *data, size_t size, const char *mode);
+#endif  /* HAVE_FMEMOPEN */
+
 /*!
  *  fopenReadStream()
  *
@@ -1763,10 +1771,8 @@ convertOnBigEnd32(l_uint32  wordin)
  *  Notes:
  *      (1) This should be used whenever you want to run fopen() to
  *          read from a stream.  Never call fopen() directory.
- *      (2) This also handles pathname conversions, if necessary:
- *           ==>   /tmp              (unix)  [default]
- *           ==>   /tmp/leptonica    (unix)  [if ADD_LEPTONICA_SUBDIR == 1]
- *           ==>   <Temp>/leptonica  (windows)
+ *      (2) This handles the temp directory pathname conversion on windows:
+ *              /tmp  ==>  <Windows Temp directory>
  */
 FILE *
 fopenReadStream(const char  *filename)
@@ -1806,10 +1812,8 @@ FILE  *fp;
  *  Notes:
  *      (1) This should be used whenever you want to run fopen() to
  *          write or append to a stream.  Never call fopen() directory.
- *      (2) This also handles pathname conversions, if necessary:
- *           ==>   /tmp              (unix)  [default]
- *           ==>   /tmp/leptonica    (unix)  [if ADD_LEPTONICA_SUBDIR == 1]
- *           ==>   <Temp>/leptonica  (windows)
+ *      (2) This handles the temp directory pathname conversion on windows:
+ *              /tmp  ==>  <Windows Temp directory>
  */
 FILE *
 fopenWriteStream(const char  *filename,
@@ -1829,6 +1833,98 @@ FILE  *fp;
     if (!fp)
         return (FILE *)ERROR_PTR("stream not opened", procName, NULL);
     return fp;
+}
+
+
+/*!
+ *  fopenReadFromMemory()
+ *
+ *      Input:  data, size
+ *      Return: file stream, or null on error
+ *
+ *  Notes:
+ *      (1) Work-around if fmemopen() not available.
+ *      (2) Windows tmpfile() writes into the root C:\ directory, which
+ *          requires admin privileges.  This also works around that.
+ */
+FILE *
+fopenReadFromMemory(const l_uint8  *data,
+                    size_t          size)
+{
+#if defined(_WIN32)
+l_int32     handle;
+char       *tmpdir;
+char        filename[64];
+const char  fn_template[] = "mkstemp.XXXXXX";
+#endif  /* _WIN32 */
+FILE       *fp;
+
+    PROCNAME("fopenReadFromMemory");
+
+    if (!data)
+        return (FILE *)ERROR_PTR("data not defined", procName, NULL);
+
+#if HAVE_FMEMOPEN
+    if ((fp = fmemopen((void *)data, size, "rb")) == NULL)
+        return (FILE *)ERROR_PTR("stream not opened", procName, NULL);
+#else  /* write to tmp file */
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    tmpdir = getenv("TMP");
+    snprintf(filename, sizeof(filename), "%s/%s", tmpdir ? tmpdir : ".",
+             fn_template);
+    handle = mkstemp(filename);
+    if ((fp = fdopen(handle, "r+b")) == NULL) {
+        L_ERROR("mkstemp stream not opened, %s\n", procName, strerror(errno));
+        return NULL;
+    }
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return (FILE *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
+  #endif  /*  _WIN32 */
+    fwrite(data, 1, size, fp);
+    rewind(fp);
+#endif  /* HAVE_FMEMOPEN */
+
+    return fp;
+}
+
+
+/*--------------------------------------------------------------------*
+ *                Opening a windows tmpfile for writing               *
+ *--------------------------------------------------------------------*/
+/*!
+ *  fopenWriteWinTmpfile()
+ *
+ *      Return: file stream, or null on error
+ *
+ *  Notes:
+ *      (1) Windows tmpfile() writes into the root C:\ directory, which
+ *          requires admin privileges.  This provides an alternative
+ *          implementation.
+ */
+FILE *
+fopenWriteWinTmpfile()
+{
+#ifdef _WIN32
+l_int32     handle;
+char       *tmpdir;
+char        filename[64];
+const char  fn_template[] = "mkstemp.XXXXXX";
+FILE       *fp;
+
+    PROCNAME("fopenWriteWinTmpfile");
+
+    tmpdir = getenv("TMP");
+    snprintf(filename, sizeof(filename), "%s/%s", tmpdir ? tmpdir : ".",
+             fn_template);
+    handle = mkstemp(filename);
+    if ((fp = fdopen(handle, "w+b")) == NULL) {
+        L_ERROR("mkstemp stream not opened, %s\n", procName, strerror(errno));
+        return NULL;
+    }
+    return fp;
+#endif  /*  _WIN32 */
 }
 
 
@@ -3459,7 +3555,7 @@ l_uint64  limit, ratio;
         return 0;
     }
 
-    limit = sqrt(n);
+    limit = (l_uint64)sqrt((l_float64)n);
     for (div = 3; div < limit; div += 2) {
        ratio = n / div;
        if (ratio * div == n) {
