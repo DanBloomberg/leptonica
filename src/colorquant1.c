@@ -1627,7 +1627,7 @@ octcubeGetCount(l_int32   level,
  *      (5) Unpopulated level 2 octcubes are represented in the colormap
  *          by their centers.  This, of course, has no effect unless
  *          dithering is used for the output image.
- *      (6) The depth of pixd is the miniumum required to suppport the
+ *      (6) The depth of pixd is the minimum required to support the
  *          number of colors found at @level; namely, 2, 4 or 8.
  *      (7) This function works particularly well on images such as maps,
  *          where there are a relatively small number of well-populated

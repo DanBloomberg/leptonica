@@ -104,7 +104,7 @@ PROTOTYPE_DIR =	.
 #       but it is turned off in the distribution (just in case...).
 #     - use g++ to apply stricter rules.  Libraries made with g++ may not
 #       link to programs compiled with gcc (depends on the glibc version).
-#     - use -Wunused to identify unused varables
+#     - use -Wunused to identify unused variables
 #     - use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING, L_ERROR and
 #        ERROR_* logging, and to remove all DEBUG information dependent
 #        on whether or not NO_CONSOLE_IO has been defined.
