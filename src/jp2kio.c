@@ -743,9 +743,6 @@ opj_image_cmptparm_t  cmptparm[4];
 /*---------------------------------------------------------------------*
  *                         Read/write to memory                        *
  *---------------------------------------------------------------------*/
-#if HAVE_FMEMOPEN
-extern FILE *open_memstream(char **data, size_t *size);
-#endif  /* HAVE_FMEMOPEN */
 
 /*!
  *  pixReadMemJp2k()
