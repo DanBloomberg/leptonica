@@ -91,7 +91,7 @@
  *           FILE      *fopenReadFromMemory()
  *
  *       Opening a windows tmpfile for writing
- *           FILE      *fopenWriteWinTmpfile()
+ *           FILE      *fopenWriteWinTempfile()
  *
  *       Cross-platform functions that avoid C-runtime boundary crossing
  *       with Windows DLLs
@@ -1894,7 +1894,7 @@ FILE       *fp;
  *                Opening a windows tmpfile for writing               *
  *--------------------------------------------------------------------*/
 /*!
- *  fopenWriteWinTmpfile()
+ *  fopenWriteWinTempfile()
  *
  *      Return: file stream, or null on error
  *
@@ -1904,7 +1904,7 @@ FILE       *fp;
  *          implementation.
  */
 FILE *
-fopenWriteWinTmpfile()
+fopenWriteWinTempfile()
 {
 #ifdef _WIN32
 l_int32     handle;
@@ -1913,7 +1913,7 @@ char        filename[64];
 const char  fn_template[] = "mkstemp.XXXXXX";
 FILE       *fp;
 
-    PROCNAME("fopenWriteWinTmpfile");
+    PROCNAME("fopenWriteWinTempfile");
 
     tmpdir = getenv("TMP");
     snprintf(filename, sizeof(filename), "%s/%s", tmpdir ? tmpdir : ".",
