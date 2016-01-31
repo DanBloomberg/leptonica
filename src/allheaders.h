@@ -2537,7 +2537,7 @@ LEPT_DLL extern l_uint32 convertOnBigEnd32 ( l_uint32 wordin );
 LEPT_DLL extern FILE * fopenReadStream ( const char *filename );
 LEPT_DLL extern FILE * fopenWriteStream ( const char *filename, const char *modestring );
 LEPT_DLL extern FILE * fopenReadFromMemory ( const l_uint8 *data, size_t size );
-LEPT_DLL extern FILE * fopenWriteWinTmpfile (  );
+LEPT_DLL extern FILE * fopenWriteWinTempfile (  );
 LEPT_DLL extern FILE * lept_fopen ( const char *filename, const char *mode );
 LEPT_DLL extern l_int32 lept_fclose ( FILE *fp );
 LEPT_DLL extern void * lept_calloc ( size_t nmemb, size_t size );
