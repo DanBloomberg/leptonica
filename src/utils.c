@@ -91,7 +91,7 @@
  *           FILE      *fopenReadFromMemory()
  *
  *       Opening a windows tmpfile for writing
- *           FILE      *fopenWriteWinTmpfile()
+ *           FILE      *fopenWriteWinTempfile()
  *
  *       Cross-platform functions that avoid C-runtime boundary crossing
  *       with Windows DLLs
@@ -194,6 +194,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <fcntl.h>     /* _O_CREAT, ... */
+#include <io.h>        /* _open */
+#include <sys/stat.h>  /* _S_IREAD, _S_IWRITE */
 #else
 #include <sys/stat.h>  /* for stat, mkdir(2) */
 #include <sys/types.h>
@@ -1758,10 +1761,6 @@ convertOnBigEnd32(l_uint32  wordin)
 /*--------------------------------------------------------------------*
  *                        Opening file streams                        *
  *--------------------------------------------------------------------*/
-#if HAVE_FMEMOPEN
-extern FILE *fmemopen(void *data, size_t size, const char *mode);
-#endif  /* HAVE_FMEMOPEN */
-
 /*!
  *  fopenReadStream()
  *
@@ -1870,14 +1869,8 @@ FILE       *fp;
 #else  /* write to tmp file */
     L_WARNING("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
-    tmpdir = getenv("TMP");
-    snprintf(filename, sizeof(filename), "%s/%s", tmpdir ? tmpdir : ".",
-             fn_template);
-    handle = mkstemp(filename);
-    if ((fp = fdopen(handle, "r+b")) == NULL) {
-        L_ERROR("mkstemp stream not opened, %s\n", procName, strerror(errno));
-        return NULL;
-    }
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return (FILE *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
   #else
     if ((fp = tmpfile()) == NULL)
         return (FILE *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
@@ -1894,7 +1887,7 @@ FILE       *fp;
  *                Opening a windows tmpfile for writing               *
  *--------------------------------------------------------------------*/
 /*!
- *  fopenWriteWinTmpfile()
+ *  fopenWriteWinTempfile()
  *
  *      Return: file stream, or null on error
  *
@@ -1904,26 +1897,36 @@ FILE       *fp;
  *          implementation.
  */
 FILE *
-fopenWriteWinTmpfile()
+fopenWriteWinTempfile()
 {
 #ifdef _WIN32
-l_int32     handle;
-char       *tmpdir;
-char        filename[64];
-const char  fn_template[] = "mkstemp.XXXXXX";
-FILE       *fp;
+int  handle;
+FILE *fp;
+char *filename;
 
-    PROCNAME("fopenWriteWinTmpfile");
+    PROCNAME("fopenWriteWinTempfile");
 
-    tmpdir = getenv("TMP");
-    snprintf(filename, sizeof(filename), "%s/%s", tmpdir ? tmpdir : ".",
-             fn_template);
-    handle = mkstemp(filename);
-    if ((fp = fdopen(handle, "w+b")) == NULL) {
-        L_ERROR("mkstemp stream not opened, %s\n", procName, strerror(errno));
+    if ((filename = genTempFilename("/tmp/", "lept", 1, 1)) == NULL) {
+        L_ERROR("genTempFilename failed, %s\n", procName, strerror(errno));
         return NULL;
     }
+
+    handle = _open(filename, _O_CREAT | _O_RDWR | _O_SHORT_LIVED |
+                   _O_TEMPORARY | _O_BINARY, _S_IREAD | _S_IWRITE);
+    lept_free(filename);
+    if (handle == -1) {
+        L_ERROR("_open failed, %s\n", procName, strerror(errno));
+        return NULL;
+    }
+
+    if ((fp = _fdopen(handle, "r+b")) == NULL) {
+        L_ERROR("_fdopen failed, %s\n", procName, strerror(errno));
+        return NULL;
+    }
+
     return fp;
+#else
+    return NULL;
 #endif  /*  _WIN32 */
 }
 
