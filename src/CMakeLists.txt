@@ -83,8 +83,13 @@ set(leptonica_hdr
 )
 
 add_library                     (leptonica ${LIBRARY_TYPE} ${leptonica_src} ${leptonica_hdr})
-set_target_properties           (leptonica PROPERTIES OUTPUT_NAME lept${VERSION_MAJOR}${VERSION_MINOR})
+set_target_properties           (leptonica PROPERTIES VERSION   ${VERSION_MAJOR}.${VERSION_MINOR})
+set_target_properties           (leptonica PROPERTIES SOVERSION ${VERSION_MAJOR}.${VERSION_MINOR})
+if (WIN32)
+set_target_properties           (leptonica PROPERTIES OUTPUT_NAME       lept${VERSION_MAJOR}${VERSION_MINOR})
 set_target_properties           (leptonica PROPERTIES DEBUG_OUTPUT_NAME lept${VERSION_MAJOR}${VERSION_MINOR}d)
+endif()
+
 if (NOT STATIC)
     target_compile_definitions  (leptonica PRIVATE -DLIBLEPT_EXPORTS)
 endif()
