@@ -32,6 +32,7 @@
  *           PIXC     *pixcompCreateFromString()
  *           PIXC     *pixcompCreateFromFile()
  *           void      pixcompDestroy()
+ *           PIXC     *pixcompCopy()
 
  *      Pixcomp accessors
  *           l_int32   pixcompGetDimensions()
@@ -70,6 +71,9 @@
  *
  *      Pixacomp conversion to Pixa
  *           PIXA     *pixaCreateFromPixacomp()
+ *
+ *      Combining pixacomp
+ *           PIXAC    *pixacompJoin()
  *
  *      Pixacomp serialized I/O
  *           PIXAC    *pixacompRead()
@@ -116,16 +120,16 @@
  *   indices {0 .... n-1}.  The functions are pixacompReplacePix()
  *   and pixacompReplacePixcomp(), and they destroy the existing pixcomp.
  *
- *   For addition to the end of the array, use pixacompCreate(), which
- *   generates an initially empty array of pixcomps.  For random
- *   insertion and replacement of pixcomp into a pixacomp,
+ *   For addition to the end of the array, initialize the pixacomp with
+ *   pixacompCreate(), which generates an empty array of pixcomps ptrs.
+ *   For random insertion and replacement of pixcomp into a pixacomp,
  *   initialize a fully populated array using pixacompCreateWithInit().
  *
  *   The offset field allows you to use an offset-based index to
  *   access the 0-based ptr array in the pixacomp.  This would typically
  *   be used to map the pixacomp array index to a page number, or v.v.
  *   By default, the offset is 0.  For example, suppose you have 50 images,
- *   corresponding to page numbers 10 - 59.  Then you would use
+ *   corresponding to page numbers 10 - 59.  Then you could use
  *      pixac = pixacompCreateWithInit(50, 10, ...);
  *   This would allocate an array of 50 pixcomps, but if you asked for
  *   the pix at index 10, using pixacompGetPix(pixac, 10), it would
@@ -343,6 +347,47 @@ PIXC  *pixc;
     LEPT_FREE(pixc);
     *ppixc = NULL;
     return;
+}
+
+
+/*!
+ *  pixcompCopy()
+ *
+ *      Input:  pixcs
+ *      Return: pixcd, or null on error
+ */
+PIXC *
+pixcompCopy(PIXC  *pixcs)
+{
+size_t    size;
+l_uint8  *datas, *datad;
+PIXC     *pixcd;
+
+    PROCNAME("pixcompCopy");
+
+    if (!pixcs)
+        return (PIXC *)ERROR_PTR("pixcs not defined", procName, NULL);
+
+    if ((pixcd = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC))) == NULL)
+        return (PIXC *)ERROR_PTR("pixcd not made", procName, NULL);
+    pixcd->w = pixcs->w;
+    pixcd->h = pixcs->h;
+    pixcd->d = pixcs->d;
+    pixcd->xres = pixcs->xres;
+    pixcd->yres = pixcs->yres;
+    pixcd->comptype = pixcs->comptype;
+    if (pixcs->text != NULL)
+        pixcd->text = stringNew(pixcs->text);
+    pixcd->cmapflag = pixcs->cmapflag;
+
+        /* Copy image data */
+    size = pixcs->size;
+    datas = pixcs->data;
+    datad = (l_uint8 *)LEPT_CALLOC(size, sizeof(l_int8));
+    memcpy((char*)datad, (char*)datas, size);
+    pixcd->data = datad;
+    pixcd->size = size;
+    return pixcd;
 }
 
 
@@ -583,7 +628,7 @@ PIXAC   *pixac;
         pixt = pixCreate(1, 1, 1);
     for (i = 0; i < n; i++) {
         pixc = pixcompCreateFromPix(pixt, comptype);
-        pixacompAddPixcomp(pixac, pixc);
+        pixacompAddPixcomp(pixac, pixc, L_INSERT);
     }
     pixDestroy(&pixt);
 
@@ -728,7 +773,7 @@ PIXAC   *pixac;
             L_ERROR("pixc not read from file: %s\n", procName, str);
             continue;
         }
-        pixacompAddPixcomp(pixac, pixc);
+        pixacompAddPixcomp(pixac, pixc, L_INSERT);
     }
     return pixac;
 }
@@ -783,8 +828,10 @@ PIXAC   *pixac;
  *
  *  Notes:
  *      (1) The array is filled up to the (n-1)-th element, and this
- *          converts the input pix to a pixcomp and adds it at
+ *          converts the input pix to a pixc and adds it at
  *          the n-th position.
+ *      (2) The pixc produced from the pix is owned by the pixac.
+ *          The input pix is not affected.
  */
 l_int32
 pixacompAddPix(PIXAC   *pixac,
@@ -808,7 +855,7 @@ PIXC    *pixc;
     pixcompDetermineFormat(comptype, pixGetDepth(pix), cmapflag, &format);
     if ((pixc = pixcompCreateFromPix(pix, format)) == NULL)
         return ERROR_INT("pixc not made", procName, 1);
-    pixacompAddPixcomp(pixac, pixc);
+    pixacompAddPixcomp(pixac, pixc, L_INSERT);
     return 0;
 }
 
@@ -818,11 +865,18 @@ PIXC    *pixc;
  *
  *      Input:  pixac
  *              pixc  (to be added by insertion)
+ *              copyflag (L_INSERT, L_COPY)
  *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) Anything added to a pixac is owned by the pixac.
+ *          So do not L_INSERT a pixc that is owned by another pixac,
+ *          or destroy a pixc that has been L_INSERTed.
  */
 l_int32
-pixacompAddPixcomp(PIXAC  *pixac,
-                   PIXC   *pixc)
+pixacompAddPixcomp(PIXAC   *pixac,
+                   PIXC    *pixc,
+                   l_int32  copyflag)
 {
 l_int32  n;
 
@@ -832,11 +886,16 @@ l_int32  n;
         return ERROR_INT("pixac not defined", procName, 1);
     if (!pixc)
         return ERROR_INT("pixc not defined", procName, 1);
+    if (copyflag != L_INSERT && copyflag != L_COPY)
+        return ERROR_INT("invalid copyflag", procName, 1);
 
     n = pixac->n;
     if (n >= pixac->nalloc)
         pixacompExtendArray(pixac);
-    pixac->pixc[n] = pixc;
+    if (copyflag == L_INSERT)
+        pixac->pixc[n] = pixc;
+    else  /* L_COPY */
+        pixac->pixc[n] = pixcompCopy(pixc);
     pixac->n++;
 
     return 0;
@@ -950,7 +1009,7 @@ PIXC    *pixct;
     if (!pixc)
         return ERROR_INT("pixc not defined", procName, 1);
 
-    pixct = pixacompGetPixcomp(pixac, index);  /* use @index */
+    pixct = pixacompGetPixcomp(pixac, index, L_NOCOPY);  /* use @index */
     pixcompDestroy(&pixct);
     pixac->pixc[aindex] = pixc;  /* replace; use array index */
 
@@ -1011,17 +1070,19 @@ pixacompGetCount(PIXAC  *pixac)
  *
  *      Input:  pixac
  *              index (caller's view of index within pixac; includes offset)
+ *              copyflag (L_NOCOPY, L_COPY)
  *      Return: pixc, or null on error
  *
  *  Notes:
  *      (1) The @index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
- *      (2) Important: this is just a ptr to the pixc owned by the pixac.
- *          Do not destroy unless you are replacing the pixc.
+ *      (2) If copyflag == L_NOCOPY, the pixc is owned by @pixac; do
+ *          not destroy.
  */
 PIXC *
 pixacompGetPixcomp(PIXAC   *pixac,
-                   l_int32  index)
+                   l_int32  index,
+                   l_int32  copyflag)
 {
 l_int32  aindex;
 
@@ -1029,11 +1090,16 @@ l_int32  aindex;
 
     if (!pixac)
         return (PIXC *)ERROR_PTR("pixac not defined", procName, NULL);
+    if (copyflag != L_NOCOPY && copyflag != L_COPY)
+        return (PIXC *)ERROR_PTR("invalid copyflag", procName, NULL);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= pixac->n)
         return (PIXC *)ERROR_PTR("array index not valid", procName, NULL);
 
-    return pixac->pixc[aindex];
+    if (copyflag == L_NOCOPY)
+        return pixac->pixc[aindex];
+    else  /* L_COPY */
+        return pixcompCopy(pixac->pixc[aindex]);
 }
 
 
@@ -1063,7 +1129,7 @@ PIXC    *pixc;
     if (aindex < 0 || aindex >= pixac->n)
         return (PIX *)ERROR_PTR("array index not valid", procName, NULL);
 
-    pixc = pixacompGetPixcomp(pixac, index);
+    pixc = pixacompGetPixcomp(pixac, index, L_NOCOPY);
     return pixCreateFromPixcomp(pixc);
 }
 
@@ -1332,6 +1398,64 @@ PIXA    *pixa;
 
 
 /*---------------------------------------------------------------------*
+ *                         Combining pixacomp
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixacompJoin()
+ *
+ *      Input:  pixacd  (dest pixac; add to this one)
+ *              pixacs  (<optional> source pixac; add from this one)
+ *              istart  (starting index in pixacs)
+ *              iend  (ending index in pixacs; use -1 to cat all)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This appends a clone of each indicated pixc in pixcas to pixcad
+ *      (2) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (3) iend < 0 means 'read to the end'
+ *      (4) If pixacs is NULL or contains no pixc, this is a no-op.
+ */
+l_int32
+pixacompJoin(PIXAC   *pixacd,
+             PIXAC   *pixacs,
+             l_int32  istart,
+             l_int32  iend)
+{
+l_int32  i, n, nb;
+BOXA    *boxas, *boxad;
+PIXC    *pixc;
+
+    PROCNAME("pixacompJoin");
+
+    if (!pixacd)
+        return ERROR_INT("pixacd not defined", procName, 1);
+    if (!pixacs || ((n = pixacompGetCount(pixacs)) == 0))
+        return 0;
+
+    if (istart < 0)
+        istart = 0;
+    if (iend < 0 || iend >= n)
+        iend = n - 1;
+    if (istart > iend)
+        return ERROR_INT("istart > iend; nothing to add", procName, 1);
+
+    for (i = istart; i <= iend; i++) {
+        pixc = pixacompGetPixcomp(pixacs, i, L_NOCOPY);
+        pixacompAddPixcomp(pixacd, pixc, L_COPY);
+    }
+
+    boxas = pixacompGetBoxa(pixacs, L_CLONE);
+    boxad = pixacompGetBoxa(pixacd, L_CLONE);
+    nb = pixacompGetBoxaCount(pixacs);
+    iend = L_MIN(iend, nb - 1);
+    boxaJoin(boxad, boxas, istart, iend);
+    boxaDestroy(&boxas);  /* just the clones */
+    boxaDestroy(&boxad);  /* ditto */
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
  *                       Pixacomp serialized I/O                       *
  *---------------------------------------------------------------------*/
 /*!
@@ -1441,7 +1565,7 @@ PIXAC    *pixac;
         pixc->cmapflag = cmapflag;
         pixc->data = data;
         pixc->size = size;
-        pixacompAddPixcomp(pixac, pixc);
+        pixacompAddPixcomp(pixac, pixc, L_INSERT);
     }
     return pixac;
 }
@@ -1508,8 +1632,8 @@ PIXC    *pixc;
     fprintf(fp, "Offset of index into array = %d", pixac->offset);
     boxaWriteStream(fp, pixac->boxa);
     for (i = 0; i < n; i++) {
-        if ((pixc =
-             pixacompGetPixcomp(pixac, pixacompGetOffset(pixac) + i)) == NULL)
+        if ((pixc = pixacompGetPixcomp(pixac, pixac->offset + i, L_NOCOPY))
+                == NULL)
             return ERROR_INT("pixc not found", procName, 1);
         fprintf(fp, "\nPixcomp[%d]: w = %d, h = %d, d = %d\n",
                 i, pixc->w, pixc->h, pixc->d);
@@ -1733,7 +1857,7 @@ PIXC    *pixc;
     else
         fprintf(fp, "Boxa is empty\n");
     for (i = 0; i < n; i++) {
-        pixc = pixacompGetPixcomp(pixac, pixac->offset + i);
+        pixc = pixacompGetPixcomp(pixac, pixac->offset + i, L_NOCOPY);
         pixcompWriteStreamInfo(fp, pixc, NULL);
     }
     return 0;

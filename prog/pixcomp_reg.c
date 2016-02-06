@@ -130,7 +130,7 @@ PIXAC      *pixac, *pixac1, *pixac2;
 
         /* --- Extract formatting info from compressed strings --- */
     for (i = 0; i < n; i++) {
-        pixc = pixacompGetPixcomp(pixac1, i);
+        pixc = pixacompGetPixcomp(pixac1, i, L_NOCOPY);
         get_format_data(i, pixc->data, pixc->size);
     }
 
