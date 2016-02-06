@@ -89,11 +89,12 @@ LIB_SHARED_DIR =	$(ROOT_DIR)/lib/shared
 # Include files are found within the same tree
 IMAGELIB_INCL =	$(ROOT_DIR)/src
 
-
-CC =		gcc -ansi -DANSI -fPIC
-#CC =		gcc -ansi -Werror -DANSI -fPIC
-#CC =            g++ -Werror -fPIC
-
+CC =            gcc -std=c99 -U__STRICT_ANSI__ -D__USE_MINGW_ANSI_STDIO
+#CC =           gcc -std=c89 -U__STRICT_ANSI__ -D__USE_MINGW_ANSI_STDIO
+#CC =		gcc -std=gnu99 -D_POSIX_C_SOURCE=200809L -DANSI -fPIC
+#CC =		gcc -std=gnu89 -DANSI -fPIC
+#CC =		gcc -std=gnu89 -Werror -DANSI -fPIC
+#CC =		g++ -Werror -fPIC
 
 ifdef  SHARED
     LIB_DIR =	$(LIB_SHARED_DIR)

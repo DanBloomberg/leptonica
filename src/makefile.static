@@ -99,23 +99,29 @@ INCLUDES =	-I./ $(EXTRAINCLUDES)
 PROTOTYPE_DIR =	.
 
 #   Which flags to use?
-#     - gcc 4.3.3 enforces checking return values of built-in C functions
-#       such as fgets().  This should compile with the -Werror flag,
-#       but it is turned off in the distribution (just in case...).
-#     - use g++ to apply stricter rules.  Libraries made with g++ may not
-#       link to programs compiled with gcc (depends on the glibc version).
+#     - std=c89 and std=c99 both define __STRICT_ANSI__, which causes
+#       the omission of declarations of a number of functions, such
+#       as mkstemp, fmemopen, open_memstream, fdopen, etc.  So if you
+#       use one of these, also use -U__STRICT_ANSI__.  e.g.,
+#          gcc -std=c89 -U__STRICT_ANSI__
+#     - std=gnu89 and std=gnu99 do not define __STRICT_ANSI__, so
+#       declaration of these other functions is included.
+#     - On mingw, it is necessary to use -D__USE_MINGW_ANSI_STDIO.
+#       This has no effect on non-mingw systems.
 #     - use -Wunused to identify unused variables
 #     - use -DNO_CONSOLE_IO to remove all L_INFO, L_WARNING, L_ERROR and
 #        ERROR_* logging, and to remove all DEBUG information dependent
 #        on whether or not NO_CONSOLE_IO has been defined.
 #     - remove -fPIC for Cygwin
-CC =		gcc -ansi -D_BSD_SOURCE -DANSI -fPIC
-#CC =		gcc -ansi -D_BSD_SOURCE -DANSI -Werror -fPIC
+CC =		gcc -std=c99 -U__STRICT_ANSI__ -D__USE_MINGW_ANSI_STDIO
+#CC =		gcc -std=c89 -U__STRICT_ANSI__ -D__USE_MINGW_ANSI_STDIO
+#CC =		gcc -std=c99 -D_POSIX_C_SOURCE=200809L -D__USE_MINGW_ANSI_STDIO -D_BSD_SOURCE -DANSI -fPIC
+#CC =		gcc -std=gnu89 -D__USE_MINGW_ANSI_STDIO
+#CC =		gcc -std=gnu89 -D_BSD_SOURCE -DANSI -Werror -fPIC
+#CC =		gcc -std=c99 -U__STRICT_ANSI__ -D__USE_MINGW_ANSI_STDIO -DNO_CONSOLE_IO
 #CC =		g++ -D_BSD_SOURCE -fPIC
 #CC =		g++ -Werror -D_BSD_SOURCE -fPIC
 #CC =		g++ -Wunused -D_BSD_SOURCE -fPIC
-#CC =		gcc -ansi -DNO_CONSOLE_IO -D_BSD_SOURCE -DANSI -fPIC
-#CC =		gcc -ansi -D_BSD_SOURCE -DANSI
 
 #   Test for processor endianness (valid with gnu make only)
 ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)

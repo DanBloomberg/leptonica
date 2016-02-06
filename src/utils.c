@@ -1850,13 +1850,7 @@ FILE *
 fopenReadFromMemory(const l_uint8  *data,
                     size_t          size)
 {
-#if defined(_WIN32)
-l_int32     handle;
-char       *tmpdir;
-char        filename[64];
-const char  fn_template[] = "mkstemp.XXXXXX";
-#endif  /* _WIN32 */
-FILE       *fp;
+FILE  *fp;
 
     PROCNAME("fopenReadFromMemory");
 
@@ -1900,9 +1894,9 @@ FILE *
 fopenWriteWinTempfile()
 {
 #ifdef _WIN32
-int  handle;
-FILE *fp;
-char *filename;
+l_int32  handle;
+FILE    *fp;
+char    *filename;
 
     PROCNAME("fopenWriteWinTempfile");
 
