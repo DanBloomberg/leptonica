@@ -173,6 +173,8 @@ PIX     *pixt, *pixd;
         boxa = pixaGetBoxa(pixa, L_CLONE);
         boxaGetExtent(boxa, &w, &h, NULL);
         boxaDestroy(&boxa);
+        if (w == 0 || h == 0)
+            return (PIX *)ERROR_PTR("no associated boxa", procName, NULL);
     }
 
         /* Use the first pix in pixa to determine the depth.  */
