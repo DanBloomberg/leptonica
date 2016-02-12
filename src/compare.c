@@ -1848,7 +1848,7 @@ PIX        *pix;
         text = pixGetText(pix);
         pixSetResolution(pix, 150, 150);
         pixGenPhotoHistos(pix, NULL, factor, textthresh, nx, ny,
-                          &naa, &w, &h, 1);
+                          &naa, &w, &h, FALSE);
         n3a[i] = naa;
         numaAddNumber(naw, w);
         numaAddNumber(nah, h);
@@ -1859,10 +1859,16 @@ PIX        *pix;
         pixDestroy(&pix);
     }
 
-        /* Do the comparisons */
+        /* Do the comparisons.  We are making a set of classes, where
+         * all similar images are placed in the same class.  There are
+         * 'n' input images.  The classes are labeled by 'index' (all
+         * similar images get the same 'index' value), and 'nai' maps
+         * the index of the image in the input array to the index
+         * of the similarity class.  */
     nai = numaMakeConstant(-1, n);  /* index */
     scores = (l_float32 *)LEPT_CALLOC(n * n, sizeof(l_float32));
     for (i = 0, index = 0; i < n; i++) {
+        scores[n * i + i] = 1.0;
         numaGetIValue(nai, i, &ival);
         if (ival != -1)  /* already set */
             continue;
@@ -1873,7 +1879,6 @@ PIX        *pix;
         }
         numaGetIValue(naw, i, &w1);
         numaGetIValue(nah, i, &h1);
-        scores[n * i + i] = 1.0;
         for (j = i + 1; j < n; j++) {
             numaGetIValue(nai, j, &ival);
             if (ival != -1)  /* already set */
@@ -1885,18 +1890,24 @@ PIX        *pix;
             compareTilesByHisto(n3a[i], n3a[j], minratio, w1, h1, w2, h2,
                                 &score, NULL);
             scores[n * i + j] = score;
-            scores[n * j + i] = score;
-            fprintf(stderr, "score = %5.3f\n", score);  /* comment this out */
+            scores[n * j + i] = score;  /* the score array is symmetric */
+/*            fprintf(stderr, "score = %5.3f\n", score); */
             if (score > simthresh) {
                 numaSetValue(nai, j, index);
-                fprintf(stderr, "Setting %d similar to %d\n", j, i);
+                fprintf(stderr, "Setting %d similar to %d, in class %d\n",
+                        j, i, index);
             }
         }
         index++;
     }
     *pnai = nai;
 
-        /* Debug: optionally save and display the score array */
+        /* Debug: optionally save and display the score array.
+         * All images that are photos are represented by a point on
+         * the diagonal. Other images in the same similarity class
+         * are on the same horizontal raster line to the right.
+         * The array has been symmetrized, so images in the same
+         * same similarity class also appear on the same column below. */
     if (pscores) {
         l_int32    wpl, fact;
         l_uint32  *line, *data;
@@ -1923,8 +1934,8 @@ PIX        *pix;
     }
 
         /* Debug: optionally display and save the image comparisons.
-         * Image classes are displayed by column, and similar images
-         * are displayed in the same column. */
+         * Image similarity classes are displayed by column; similar
+         * images are displayed in the same column. */
     if (ppixd)
         *ppixd = pixaDisplayTiledByIndex(pixa, nai, 200, 20, 2, 6, 0x0000ff00);
 

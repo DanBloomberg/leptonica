@@ -2782,7 +2782,7 @@ PIX       *pixd;
  *      Input:  pixs (8 bpp, not cmapped)
  *              xfact (x downscaling factor; integer)
  *              yfact (y downscaling factor; integer)
- *              type (L_CHOOSE_MIN, L_CHOOSE_MAX, L_CHOOSE_MAX_MIN_DIFF)
+ *              type (L_CHOOSE_MIN, L_CHOOSE_MAX, L_CHOOSE_MAXDIFF)
  *      Return: pixd (8 bpp)
  *
  *  Notes:
@@ -2792,7 +2792,7 @@ PIX       *pixd;
  *          using a brick Sel of size (xfact * yfact), followed by
  *          subsampling within each (xfact * yfact) cell.  Using
  *          L_CHOOSE_MAX is equivalent to the corresponding dilation.
- *      (3) Using L_CHOOSE_MAX_MIN_DIFF finds the difference between max
+ *      (3) Using L_CHOOSE_MAXDIFF finds the difference between max
  *          and min values in each cell.
  *      (4) For the special case of downscaling by 2x in both directions,
  *          pixScaleGrayMinMax2() is about 2x more efficient.
@@ -2815,7 +2815,7 @@ PIX       *pixd;
                                 procName, NULL);
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
-        type != L_CHOOSE_MAX_MIN_DIFF)
+        type != L_CHOOSE_MAXDIFF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
     if (xfact < 1 || yfact < 1)
         return (PIX *)ERROR_PTR("xfact and yfact must be >= 1", procName, NULL);
@@ -2843,7 +2843,7 @@ PIX       *pixd;
     for (i = 0; i < hd; i++) {
         lined = datad + i * wpld;
         for (j = 0; j < wd; j++) {
-            if (type == L_CHOOSE_MIN || type == L_CHOOSE_MAX_MIN_DIFF) {
+            if (type == L_CHOOSE_MIN || type == L_CHOOSE_MAXDIFF) {
                 minval = 255;
                 for (k = 0; k < yfact; k++) {
                     lines = datas + (yfact * i + k) * wpls;
@@ -2854,7 +2854,7 @@ PIX       *pixd;
                     }
                 }
             }
-            if (type == L_CHOOSE_MAX || type == L_CHOOSE_MAX_MIN_DIFF) {
+            if (type == L_CHOOSE_MAX || type == L_CHOOSE_MAXDIFF) {
                 maxval = 0;
                 for (k = 0; k < yfact; k++) {
                     lines = datas + (yfact * i + k) * wpls;
@@ -2869,7 +2869,7 @@ PIX       *pixd;
                 SET_DATA_BYTE(lined, j, minval);
             else if (type == L_CHOOSE_MAX)
                 SET_DATA_BYTE(lined, j, maxval);
-            else  /* type == L_CHOOSE_MAX_MIN_DIFF */
+            else  /* type == L_CHOOSE_MAXDIFF */
                 SET_DATA_BYTE(lined, j, maxval - minval);
         }
     }
@@ -2882,7 +2882,7 @@ PIX       *pixd;
  *  pixScaleGrayMinMax2()
  *
  *      Input:  pixs (8 bpp, not cmapped)
- *              type (L_CHOOSE_MIN, L_CHOOSE_MAX, L_CHOOSE_MAX_MIN_DIFF)
+ *              type (L_CHOOSE_MIN, L_CHOOSE_MAX, L_CHOOSE_MAXDIFF)
  *      Return: pixd (8 bpp downscaled by 2x)
  *
  *  Notes:
@@ -2921,7 +2921,7 @@ PIX       *pixd;
     if (ws < 2 || hs < 2)
         return (PIX *)ERROR_PTR("too small: ws < 2 or hs < 2", procName, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
-        type != L_CHOOSE_MAX_MIN_DIFF)
+        type != L_CHOOSE_MAXDIFF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
     wd = ws / 2;
@@ -2941,14 +2941,14 @@ PIX       *pixd;
             val[1] = GET_DATA_BYTE(lines, 2 * j + 1);
             val[2] = GET_DATA_BYTE(lines + wpls, 2 * j);
             val[3] = GET_DATA_BYTE(lines + wpls, 2 * j + 1);
-            if (type == L_CHOOSE_MIN || type == L_CHOOSE_MAX_MIN_DIFF) {
+            if (type == L_CHOOSE_MIN || type == L_CHOOSE_MAXDIFF) {
                 minval = 255;
                 for (k = 0; k < 4; k++) {
                     if (val[k] < minval)
                         minval = val[k];
                 }
             }
-            if (type == L_CHOOSE_MAX || type == L_CHOOSE_MAX_MIN_DIFF) {
+            if (type == L_CHOOSE_MAX || type == L_CHOOSE_MAXDIFF) {
                 maxval = 0;
                 for (k = 0; k < 4; k++) {
                     if (val[k] > maxval)
@@ -2959,7 +2959,7 @@ PIX       *pixd;
                 SET_DATA_BYTE(lined, j, minval);
             else if (type == L_CHOOSE_MAX)
                 SET_DATA_BYTE(lined, j, maxval);
-            else  /* type == L_CHOOSE_MAX_MIN_DIFF */
+            else  /* type == L_CHOOSE_MAXDIFF */
                 SET_DATA_BYTE(lined, j, maxval - minval);
         }
     }

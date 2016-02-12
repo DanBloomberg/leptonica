@@ -133,12 +133,20 @@
  *           PIX        *pixConvertGrayToSubpixelRGB()
  *           PIX        *pixConvertColorToSubpixelRGB()
  *
+ *      Setting neutral point for min/max boost conversion to gray
+ *          void         l_setNeutralBoostVal()
+ *
  *      *** indicates implicit assumption about RGB component ordering
  */
 
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
+
+/* ------- Set neutral point for min/max boost conversion to gray ------ */
+   /* Call l_setNeutralBoostVal() to change this */
+static l_int32  var_NEUTRAL_BOOST_VAL = 180;
+
 
 #ifndef  NO_CONSOLE_IO
 #define DEBUG_CONVERT_TO_COLORMAP  0
@@ -827,12 +835,18 @@ PIX       *pixd;
  *  pixConvertRGBToGrayMinMax()
  *
  *      Input:  pix (32 bpp RGB)
- *              type (L_CHOOSE_MIN, L_CHOOSE_MAX or L_CHOOSE_MAX_MIN_DIFF)
+ *              type (L_CHOOSE_MIN, L_CHOOSE_MAX, L_CHOOSE_MAXDIFF,
+ *                    L_CHOOSE_MIN_BOOST, L_CHOOSE_MAX_BOOST)
  *      Return: 8 bpp pix, or null on error
  *
  *  Notes:
- *      (1) This chooses the min, the max, or the difference between
- *          the max and the min, of the three RGB sample values.
+ *      (1) This chooses various components or combinations of them,
+ *          from the three RGB sample values.  In addition to choosing
+ *          the min, max, and maxdiff (difference between max and min),
+ *          this also allows boosting the min and max about a reference
+ *          value.
+ *      (2) The default reference value for boosting the min and max
+ *          is 200.  This can be changed with l_setNeutralBoostVal()
  */
 PIX *
 pixConvertRGBToGrayMinMax(PIX     *pixs,
@@ -849,7 +863,8 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
-        type != L_CHOOSE_MAX_MIN_DIFF)
+        type != L_CHOOSE_MAXDIFF && type != L_CHOOSE_MIN_BOOST &&
+        type != L_CHOOSE_MAX_BOOST)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -867,13 +882,17 @@ PIX       *pixd;
         lined = datad + i * wpld;
         for (j = 0; j < w; j++) {
             extractRGBValues(lines[j], &rval, &gval, &bval);
-            if (type == L_CHOOSE_MIN) {
+            if (type == L_CHOOSE_MIN || type == L_CHOOSE_MIN_BOOST) {
                 val = L_MIN(rval, gval);
                 val = L_MIN(val, bval);
-            } else if (type == L_CHOOSE_MAX) {
+                if (type == L_CHOOSE_MIN_BOOST)
+                    val = L_MIN(255, (val * val) / var_NEUTRAL_BOOST_VAL);
+            } else if (type == L_CHOOSE_MAX || type == L_CHOOSE_MAX_BOOST) {
                 val = L_MAX(rval, gval);
                 val = L_MAX(val, bval);
-            } else {  /* L_CHOOSE_MAX_MIN_DIFF */
+                if (type == L_CHOOSE_MAX_BOOST)
+                    val = L_MIN(255, (val * val) / var_NEUTRAL_BOOST_VAL);
+            } else {  /* L_CHOOSE_MAXDIFF */
                 minval = L_MIN(rval, gval);
                 minval = L_MIN(minval, bval);
                 maxval = L_MAX(rval, gval);
@@ -3613,3 +3632,30 @@ PIXCMAP   *cmap;
     pixDestroy(&pix2);
     return pixd;
 }
+
+
+/*---------------------------------------------------------------------*
+ *       Setting neutral point for min/max boost conversion to gray    *
+ *---------------------------------------------------------------------*/
+/*!
+ *  l_setNeutralBoostVal()
+ *
+ *      Input:  val (between 1 and 255; typical value is 180)
+ *      Return: void
+ *
+ *  Notes:
+ *      (1) This raises or lowers the selected min or max RGB component value,
+ *          depending on if that component is above or below this value.
+ */
+void
+l_setNeutralBoostVal(l_int32  val)
+{
+    PROCNAME("l_setNeutralBoostVal");
+
+    if (val <= 0) {
+        L_ERROR("invalid reference value for neutral boost\n", procName);
+        return;
+    }
+    var_NEUTRAL_BOOST_VAL = val;
+}
+

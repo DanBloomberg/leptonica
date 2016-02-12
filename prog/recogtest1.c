@@ -150,7 +150,8 @@ SARRAY    *sa, *satext;
     fprintf(stderr, "Split touching\n");
     pixd = pixRead("pagenums/pagenum.29.png");  /* 25 or 29 */
     recoga = recogaCreateFromRecog(recog);
-    recogaIdentifyMultiple(recoga, pixd, 3, -1, -1, &boxat, &pixat, &pixdb, 1);
+    recogaIdentifyMultiple(recoga, pixd, 3, -1, -1, 0,
+                           &boxat, &pixat, &pixdb, 1);
     pixDisplay(pixdb, 800, 800);
     boxaWriteStream(stderr, boxat);
     pixt = pixaDisplay(pixat, 0, 0);

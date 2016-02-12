@@ -136,6 +136,7 @@ static l_int32 recogaTransferRch(L_RECOGA *recoga, L_RECOG *recog,
  *                    use -1 for removing all noise components)
  *              minh (remove components with height less than this;
  *                    use -1 for removing all noise components)
+ *              skipsplit (1 to skip the splitting step)
  *              &boxa (<optional return> locations of identified components)
  *              &pixa (<optional return> images of identified components)
  *              &pixdb (<optional return> debug pix: inputs and best fits)
@@ -154,7 +155,9 @@ static l_int32 recogaTransferRch(L_RECOGA *recoga, L_RECOG *recog,
  *          Set @minw > 0 and/or @minh > 0 to retain selected noise components.
  *          All noise components are recognized as an empty string with
  *          a score of 0.0.
- *      (4) An attempt is made to order the (optionally) returned images
+ *      (4) Splitting is relatively slow, because it tries to match all
+ *          character templates to all locations.  This step can be skipped.
+ *      (5) An attempt is made to order the (optionally) returned images
  *          and boxes in 2-dimensional sorted order.  These can then
  *          be used to aggregate identified characters into numbers or words.
  *          One typically wants the pixa, which contains a boxa of the
@@ -166,6 +169,7 @@ recogaIdentifyMultiple(L_RECOGA  *recoga,
                        l_int32    nitems,
                        l_int32    minw,
                        l_int32    minh,
+                       l_int32    skipsplit,
                        BOXA     **pboxa,
                        PIXA     **ppixa,
                        PIX      **ppixdb,
@@ -199,8 +203,8 @@ L_RECOG  *recog;
         pixb = pixClone(pixs);
 
         /* Noise removal and splitting of touching characters */
-    recogSplitIntoCharacters(recog, pixb, minw, minh, &boxa, &pixa,
-                             &naid, debugsplit);
+    recogSplitIntoCharacters(recog, pixb, minw, minh, skipsplit,
+                             &boxa, &pixa, &naid, debugsplit);
     pixDestroy(&pixb);
     if (!pixa || (n = pixaGetCount(pixa)) == 0) {
         pixaDestroy(&pixa);
@@ -237,6 +241,7 @@ L_RECOG  *recog;
  *                    use -1 for default removing out of band components)
  *              minh (remove components with height less than this;
  *                    use -1 for default removing out of band components)
+ *              skipsplit (1 to skip the splitting step)
  *              &boxa (<return> character bounding boxes)
  *              &pixa (<return> character images)
  *              &naid (<return> indices of components to identify)
@@ -245,7 +250,7 @@ L_RECOG  *recog;
  *
  *  Notes:
  *      (1) This can be given an image that has an arbitrary number
- *          of text characters.  It does splitting of connected
+ *          of text characters.  It optionally splits connected
  *          components based on greedy correlation matching in
  *          recogCorrelationBestRow().  The returned pixa includes
  *          the boxes from which the (possibly split) components
@@ -272,6 +277,7 @@ recogSplitIntoCharacters(L_RECOG  *recog,
                          PIX      *pixs,
                          l_int32   minw,
                          l_int32   minh,
+                         l_int32   skipsplit,
                          BOXA    **pboxa,
                          PIXA    **ppixa,
                          NUMA    **pnaid,
@@ -343,9 +349,11 @@ PIX     *pix, *pix1, *pix2;
     for (i = 0; i < ncomp; i++) {
         box = boxaGetBox(boxa1, i, L_CLONE);
         boxGetGeometry(box, &xoff, &yoff, &bw, NULL);
-        if (bw <= maxw || scaling) {  /* assume it's just one character */
+            /* Treat as one character if it is small, if the images
+             * have been scaled, or if splitting is not to be run. */
+        if (bw <= maxw || scaling || skipsplit) {
             boxaAddBox(boxa2, box, L_INSERT);
-        } else {  /* need to try to split the component */
+        } else {
             pix = pixClipRectangle(pixs, box, NULL);
             recogCorrelationBestRow(recog, pix, &boxat1, NULL, NULL,
                                     NULL, debug);
