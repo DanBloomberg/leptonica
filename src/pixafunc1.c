@@ -2263,7 +2263,7 @@ PIXA    *pixat, *pixad;
     }
 
     pixaGetDepthInfo(pixat, &maxdepth, &same);
-    if (!same) {  /* at least one pix has depth > 1 */
+    if (!same) {  /* at least one pix has depth < maxdepth */
         pixad = pixaCreate(n);
         for (i = 0; i < n; i++) {
             pixt = pixaGetPix(pixat, i, L_CLONE);

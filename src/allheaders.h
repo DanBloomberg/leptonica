@@ -1714,6 +1714,7 @@ LEPT_DLL extern PIX * pixaDisplayOnLattice ( PIXA *pixa, l_int32 cellw, l_int32 
 LEPT_DLL extern PIX * pixaDisplayUnsplit ( PIXA *pixa, l_int32 nx, l_int32 ny, l_int32 borderwidth, l_uint32 bordercolor );
 LEPT_DLL extern PIX * pixaDisplayTiled ( PIXA *pixa, l_int32 maxwidth, l_int32 background, l_int32 spacing );
 LEPT_DLL extern PIX * pixaDisplayTiledInRows ( PIXA *pixa, l_int32 outdepth, l_int32 maxwidth, l_float32 scalefactor, l_int32 background, l_int32 spacing, l_int32 border );
+LEPT_DLL extern PIX * pixaDisplayTiledInColumns ( PIXA *pixas, l_int32 nx, l_float32 scalefactor, l_int32 spacing, l_int32 border );
 LEPT_DLL extern PIX * pixaDisplayTiledAndScaled ( PIXA *pixa, l_int32 outdepth, l_int32 tilewidth, l_int32 ncols, l_int32 background, l_int32 spacing, l_int32 border );
 LEPT_DLL extern PIX * pixaDisplayTiledWithText ( PIXA *pixa, l_int32 maxwidth, l_float32 scalefactor, l_int32 spacing, l_int32 border, l_int32 fontsize, l_uint32 textcolor );
 LEPT_DLL extern PIX * pixaDisplayTiledByIndex ( PIXA *pixa, NUMA *na, l_int32 width, l_int32 spacing, l_int32 border, l_int32 fontsize, l_uint32 textcolor );
@@ -1724,6 +1725,7 @@ LEPT_DLL extern PIXA * pixaConvertTo1 ( PIXA *pixas, l_int32 thresh );
 LEPT_DLL extern PIXA * pixaConvertTo8 ( PIXA *pixas, l_int32 cmapflag );
 LEPT_DLL extern PIXA * pixaConvertTo8Color ( PIXA *pixas, l_int32 dither );
 LEPT_DLL extern PIXA * pixaConvertTo32 ( PIXA *pixas );
+LEPT_DLL extern PIXA * pixaDisplayMultiTiled ( PIXA *pixas, l_int32 nx, l_int32 ny, l_int32 maxw, l_int32 maxh, l_float32 scalefactor, l_int32 spacing, l_int32 border );
 LEPT_DLL extern l_int32 convertToNUpFiles ( const char *dir, const char *substr, l_int32 nx, l_int32 ny, l_int32 tw, l_int32 spacing, l_int32 border, l_int32 fontsize, const char *outdir );
 LEPT_DLL extern PIXA * convertToNUpPixa ( const char *dir, const char *substr, l_int32 nx, l_int32 ny, l_int32 tw, l_int32 spacing, l_int32 border, l_int32 fontsize );
 LEPT_DLL extern l_int32 pmsCreate ( size_t minsize, size_t smallest, NUMA *numalloc, const char *logfile );

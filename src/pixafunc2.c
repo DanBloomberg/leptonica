@@ -27,7 +27,7 @@
 /*
  *   pixafunc2.c
  *
- *      Pixa Display (render into a pix)
+ *      Pixa display (render into a pix)
  *           PIX      *pixaDisplay()
  *           PIX      *pixaDisplayOnColor()
  *           PIX      *pixaDisplayRandomCmap()
@@ -36,11 +36,12 @@
  *           PIX      *pixaDisplayUnsplit()
  *           PIX      *pixaDisplayTiled()
  *           PIX      *pixaDisplayTiledInRows()
+ *           PIX      *pixaDisplayTiledInColumns()
  *           PIX      *pixaDisplayTiledAndScaled()
  *           PIX      *pixaDisplayTiledWithText()
  *           PIX      *pixaDisplayTiledByIndex()
  *
- *      Pixaa Display (render into a pix)
+ *      Pixaa display (render into a pix)
  *           PIX      *pixaaDisplay()
  *           PIX      *pixaaDisplayByPixa()
  *           PIXA     *pixaaDisplayTiledAndScaled()
@@ -51,24 +52,31 @@
  *           PIXA     *pixaConvertTo8Color()
  *           PIXA     *pixaConvertTo32()
  *
+ *      Pixa display into multiple tiles
+ *           PIXA     *pixaDisplayMultiTiled()
+ *
  *      Tile N-Up
  *           l_int32   convertToNUpFiles()
  *           PIXA     *convertToNUpPixa()
  *
- *  We give seven methods for displaying a pixa in a pix.
+ *  We give twelve methods for displaying a pixa in a pix.
  *  Some work for 1 bpp input; others for any input depth.
  *  Some give an output depth that depends on the input depth;
  *  others give a different output depth or allow you to choose it.
  *  Some use a boxes to determine where each pix goes; others tile
- *  onto a regular lattice; yet others tile onto an irregular lattice.
+ *  onto a regular lattice; others tile onto an irregular lattice;
+ *  one uses an associated index array to determine which column
+ *  each pix goes into.
  *
  *  Here is a brief description of what the pixa display functions do.
  *
  *    pixaDisplay()
- *        This uses the boxes to lay out each pix.  It is typically
- *        used to reconstruct a pix that has been broken into components.
+ *        This uses the boxes in the pixa to lay out each pix.  This
+ *        can be used to reconstruct a pix that has been broken into
+ *        components, if the boxes represents the positions of the
+ *        components in the original image.
  *    pixaDisplayOnColor()
- *        pixaDisplay() with choice of background color
+ *        pixaDisplay() with choice of background color.
  *    pixaDisplayRandomCmap()
  *        This also uses the boxes to lay out each pix.  However, it creates
  *        a colormapped dest, where each 1 bpp pix is given a randomly
@@ -100,6 +108,13 @@
  *        by the tallest pix that was put in the row.  This function
  *        is a reasonably efficient way to pack the subimages.
  *        A boxa of the locations of each input pix is stored in the output.
+ *    pixaDisplayTiledInColumns()
+ *        This puts each pix down in a series of rows, each row having
+ *        a specified number of pix.  The upper edges of each pix in a
+ *        row are aligned and there is a uniform spacing between the pix.
+ *        The height of each row is determined by the tallest pix that
+ *        was put in the row.  A boxa of the locations of each input
+ *        pix is stored in the output.
  *    pixaDisplayTiledAndScaled()
  *        This scales each pix to a given width and output depth, and then
  *        tiles them in rows with a given number placed in each row.
@@ -917,6 +932,128 @@ PIXA     *pixan;
 
 
 /*!
+ *  pixaDisplayTiledInColumns()
+ *
+ *      Input:  pixas
+ *              nx (number of columns in output image)
+ *              scalefactor (applied to every pix; use 1.0 for no scaling)
+ *              spacing  (between images, and on outside)
+ *              border (width of black border added to each image;
+ *                      use 0 for no border)
+ *      Return: pixd (of tiled images), or null on error
+ *
+ *  Notes:
+ *      (1) This renders a pixa to a single image with 3 columns of
+ *          subimages.  The background color is white, and each row
+ *          is tiled such that the top of each pix is aligned and
+ *          each pix is separated by 'spacing' from the next one.
+ *          A black border can be added to each pix.
+ *      (2) The output depth is determined by the largest depth
+ *          required by the pix in the pixa.  Colormaps are removed.
+ *      (3) A serialized boxa giving the location in pixd of each input
+ *          pix (without added border) is stored in the text string of pixd.
+ *          This allows, e.g., regeneration of a pixa from pixd, using
+ *          pixaCreateFromBoxa().  If there is no scaling and the depth of
+ *          each input pix in the pixa is the same, this tiling operation
+ *          can be inverted using the boxa (except for loss of text in
+ *          each of the input pix):
+ *            pix1 = pixaDisplayTiledInColumns(pixa1, 3, 1.0, 0, 30, 2);
+ *            char *boxatxt = pixGetText(pix1);
+ *            boxa1 = boxaReadMem((l_uint8 *)boxatxt, strlen(boxatxt));
+ *            pixa2 = pixaCreateFromBoxa(pix1, boxa1, NULL);
+ */
+PIX *
+pixaDisplayTiledInColumns(PIXA      *pixas,
+                          l_int32    nx,
+                          l_float32  scalefactor,
+                          l_int32    spacing,
+                          l_int32    border)
+{
+l_int32   i, j, index, n, x, y, nrows, wb, hb, w, h, maxd, maxh, bordval;
+size_t    size;
+l_uint8  *data;
+BOX      *box;
+BOXA     *boxa;
+PIX      *pix1, *pix2, *pix3, *pixd;
+PIXA     *pixa1, *pixa2;
+
+    PROCNAME("pixaDisplayTiledInColumns");
+
+    if (!pixas)
+        return (PIX *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (border < 0)
+        border = 0;
+    if (scalefactor <= 0.0) scalefactor = 1.0;
+
+    if ((n = pixaGetCount(pixas)) == 0)
+        return (PIX *)ERROR_PTR("no components", procName, NULL);
+
+        /* Convert to same depth, if necessary */
+    pixa1 = pixaConvertToSameDepth(pixas);
+    pixaGetDepthInfo(pixa1, &maxd, NULL);
+
+        /* Scale and optionally add border */
+    pixa2 = pixaCreate(n);
+    bordval = (maxd == 1) ? 1 : 0;
+    for (i = 0; i < n; i++) {
+        if ((pix1 = pixaGetPix(pixa1, i, L_CLONE)) == NULL)
+            continue;
+        if (scalefactor != 1.0)
+            pix2 = pixScale(pix1, scalefactor, scalefactor);
+        else
+            pix2 = pixClone(pix1);
+        if (border)
+            pix3 = pixAddBorder(pix2, border, bordval);
+        else
+            pix3 = pixClone(pix2);
+        pixaAddPix(pixa2, pix3, L_INSERT);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+    }
+    pixaDestroy(&pixa1);
+    if (pixaGetCount(pixa2) != n) {
+        n = pixaGetCount(pixa2);
+        L_WARNING("only got %d components\n", procName, n);
+        if (n == 0) {
+            pixaDestroy(&pixa2);
+            return (PIX *)ERROR_PTR("no components", procName, NULL);
+        }
+    }
+
+        /* Compute layout parameters and save as a boxa */
+    boxa = boxaCreate(n);
+    nrows = (n + nx - 1) / nx;
+    y = spacing;
+    for (i = 0, index = 0; i < nrows; i++) {
+        x = spacing;
+        maxh = 0;
+        for (j = 0; j < nx && index < n; j++) {
+            pixaGetPixDimensions(pixa2, index, &wb, &hb, NULL);
+            box = boxCreate(x, y, wb, hb);
+            boxaAddBox(boxa, box, L_INSERT);
+            maxh = L_MAX(maxh, hb + spacing);
+            x += wb + spacing;
+            index++;
+        }
+        y += maxh;
+    }
+    pixaSetBoxa(pixa2, boxa, L_INSERT);
+
+        /* Render the output pix */
+    boxaGetExtent(boxa, &w, &h, NULL);
+    pixd = pixaDisplay(pixa2, w, h);
+
+        /* Save the boxa in the text field of the output pix */
+    boxaWriteMem(&data, &size, boxa);
+    pixSetText(pixd, (char *)data);  /* data is ascii */
+    LEPT_FREE(data);
+
+    pixaDestroy(&pixa2);
+    return pixd;
+}
+
+
+/*!
  *  pixaDisplayTiledAndScaled()
  *
  *      Input:  pixa
@@ -1693,6 +1830,82 @@ PIXA    *pixad;
 
     boxa = pixaGetBoxa(pixas, L_COPY);
     pixaSetBoxa(pixad, boxa, L_INSERT);
+    return pixad;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                     Pixa display into multiple tiles                *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixaDisplayMultiTiled()
+ *
+ *      Input:  pixa
+ *              nx, ny (in [1, ... 50], tiling factors in each direction)
+ *              maxw, maxh (max sizes to keep)
+ *              scalefactor (scale each image by this)
+ *              spacing  (between images, and on outside)
+ *              border (width of additional black border on each image;
+ *                      use 0 for no border)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Each set of @nx * @ny images is optionally scaled and saved
+ *          into a new pix, and then aggregated.
+ *      (2) Set @maxw = @maxh = 0 if you want to include all pix from @pixs.
+ *      (3) This is useful for generating a pdf from the output pixa, where
+ *          each page is a tile of (nx * ny) images from the input pixa.
+ */
+PIXA *
+pixaDisplayMultiTiled(PIXA      *pixas,
+                      l_int32    nx,
+                      l_int32    ny,
+                      l_int32    maxw,
+                      l_int32    maxh,
+                      l_float32  scalefactor,
+                      l_int32    spacing,
+                      l_int32    border)
+{
+l_int32  n, i, j, ntile, nout, index;
+PIX     *pix1, *pix2;
+PIXA    *pixa1, *pixa2, *pixad;
+
+    PROCNAME("pixaDisplayMultiTiled");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (nx < 1 || ny < 1 || nx > 50 || ny > 50)
+        return (PIXA *)ERROR_PTR("invalid tiling factor(s)", procName, NULL);
+    if ((n = pixaGetCount(pixas)) == 0)
+        return (PIXA *)ERROR_PTR("pixas is empty", procName, NULL);
+
+        /* Filter out large ones if requested */
+    if (maxw == 0 && maxh == 0) {
+        pixa1 = pixaCopy(pixas, L_CLONE);
+    } else {
+        maxw = (maxw == 0) ? 1000000 : maxw;
+        maxh = (maxh == 0) ? 1000000 : maxh;
+        pixa1 = pixaSelectBySize(pixas, maxw, maxh, L_SELECT_IF_BOTH,
+                                 L_SELECT_IF_LTE, NULL);
+        n = pixaGetCount(pixa1);
+    }
+
+    ntile = nx * ny;
+    nout = L_MAX(1, (n + ntile - 1) / ntile);
+    pixad = pixaCreate(nout);
+    for (i = 0, index = 0; i < nout; i++) {  /* over tiles */
+        pixa2 = pixaCreate(ntile);
+        for (j = 0; j < ntile && index < n; j++, index++) {
+            pix1 = pixaGetPix(pixa1, index, L_COPY);
+            pixaAddPix(pixa2, pix1, L_INSERT);
+        }
+        pix2 = pixaDisplayTiledInColumns(pixa2, nx, scalefactor, spacing,
+                                         border);
+        pixaAddPix(pixad, pix2, L_INSERT);
+        pixaDestroy(&pixa2);
+    }
+    pixaDestroy(&pixa1);
+
     return pixad;
 }
 
