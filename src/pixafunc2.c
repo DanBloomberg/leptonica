@@ -52,6 +52,9 @@
  *           PIXA     *pixaConvertTo8Color()
  *           PIXA     *pixaConvertTo32()
  *
+ *      Pixa constrained selection
+ *           PIXA     *pixaConstrainedSelect()
+ *
  *      Pixa display into multiple tiles
  *           PIXA     *pixaDisplayMultiTiled()
  *
@@ -1835,26 +1838,88 @@ PIXA    *pixad;
 
 
 /*---------------------------------------------------------------------*
+ *                        Pixa constrained selection                   *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixaConstrainedSelect()
+ *
+ *      Input:  pixas
+ *              first (first index to choose; >= 0)
+ *              last (biggest possible index to reach;
+ *                    use -1 to go to the end; otherwise, last >= first)
+ *              nmax (maximum number of pix to select; > 0)
+ *              use_pairs (1 = select pairs of adjacent pix;
+ *                         0 = select individual pix)
+ *              copyflag (L_COPY, L_CLONE)
+ *      Return: pixad if OK, null on error
+ *
+ *  Note:
+ *     (1) See notes in genConstrainedNumaInRange() for how selection
+ *         is made.
+ *     (2) This returns a selection of the pix in the input pixa.
+ *     (3) Use copyflag == L_COPY if you don't want changes in the pix
+ *         in the returned pixa to affect those in the input pixa.
+ */
+PIXA *
+pixaConstrainedSelect(PIXA    *pixas,
+                      l_int32  first,
+                      l_int32  last,
+                      l_int32  nmax,
+                      l_int32  use_pairs,
+                      l_int32  copyflag)
+{
+l_int32  i, n, nselect, index;
+NUMA    *na;
+PIX     *pix1;
+PIXA    *pixad;
+
+    PROCNAME("pixaConstrainedSelect");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    n = pixaGetCount(pixas);
+    if (last == -1)
+        last = n - 1;
+    first = L_MAX(0, first);
+    if (last < first)
+        return (PIXA *)ERROR_PTR("last < first!", procName, NULL);
+    if (nmax < 1)
+        return (PIXA *)ERROR_PTR("nmax < 1!", procName, NULL);
+
+    na = genConstrainedNumaInRange(first, last, nmax, use_pairs);
+    nselect = numaGetCount(na);
+    pixad = pixaCreate(nselect);
+    for (i = 0; i < nselect; i++) {
+        numaGetIValue(na, i, &index);
+        pix1 = pixaGetPix(pixas, index, copyflag);
+        pixaAddPix(pixad, pix1, L_INSERT);
+    }
+    numaDestroy(&na);
+    return pixad;
+}
+
+
+/*---------------------------------------------------------------------*
  *                     Pixa display into multiple tiles                *
  *---------------------------------------------------------------------*/
 /*!
  *  pixaDisplayMultiTiled()
  *
- *      Input:  pixa
+ *      Input:  pixas
  *              nx, ny (in [1, ... 50], tiling factors in each direction)
  *              maxw, maxh (max sizes to keep)
  *              scalefactor (scale each image by this)
  *              spacing  (between images, and on outside)
  *              border (width of additional black border on each image;
  *                      use 0 for no border)
- *      Return: 0 if OK, 1 on error
+ *      Return: pixad if OK, null on error
  *
  *  Notes:
  *      (1) Each set of @nx * @ny images is optionally scaled and saved
  *          into a new pix, and then aggregated.
  *      (2) Set @maxw = @maxh = 0 if you want to include all pix from @pixs.
  *      (3) This is useful for generating a pdf from the output pixa, where
- *          each page is a tile of (nx * ny) images from the input pixa.
+ *          each page is a tile of (@nx * @ny) images from the input pixa.
  */
 PIXA *
 pixaDisplayMultiTiled(PIXA      *pixas,
@@ -1929,14 +1994,14 @@ PIXA    *pixa1, *pixa2, *pixad;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Each set of nx*ny images is scaled and tiled into a single
+ *      (1) Each set of @nx * @ny images is scaled and tiled into a single
  *          image, that is written out to @outdir.
- *      (2) All images in each nx*ny set are scaled to the same width.
- *          This is typically used when all images are roughly the same
- *          size.
- *      (3) Typical values for nx and ny are in [2 ... 5].
- *      (4) All images are scaled to a width @tw.  They are not rescaled
- *          when placed in the (nx,ny) mosaic.
+ *      (2) All images in each @nx * @ny set are scaled to the same
+ *          width, @tw.  This is typically used when all images are
+ *          roughly the same size.
+ *      (3) This is useful for generating a pdf from the set of input
+ *          files, where each page is a tile of (@nx * @ny) input images.
+ *          Typical values for @nx and @ny are in the range [2 ... 5].
  */
 l_int32
 convertToNUpFiles(const char  *dir,

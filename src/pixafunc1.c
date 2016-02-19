@@ -61,6 +61,7 @@
  *           PIXAA    *pixaaScaleToSize()
  *           PIXAA    *pixaaScaleToSizeVar()
  *           PIXA     *pixaScaleToSize()
+ *           PIXA     *pixaScale()
  *
  *      Miscellaneous
  *           PIXA     *pixaAddBorderGeneral()
@@ -1748,6 +1749,56 @@ PIXA    *pixad;
         pixCopyText(pix2, pix1);
         pixaAddPix(pixad, pix2, L_INSERT);
         pixDestroy(&pix1);
+    }
+    return pixad;
+}
+
+
+/*!
+ *  pixaScale()
+ *
+ *      Input:  pixas
+ *              scalex
+ *              scaley
+ *      Return: pixad, or null on error
+ *
+ *  Notes:
+ *      (1) If pixas has a full boxes, it is scaled as well.
+ */
+PIXA *
+pixaScale(PIXA      *pixas,
+          l_float32  scalex,
+          l_float32  scaley)
+{
+l_int32  i, n, nb;
+BOXA    *boxa1, *boxa2;
+PIX     *pix1, *pix2;
+PIXA    *pixad;
+
+    PROCNAME("pixaScale");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (scalex <= 0.0 || scaley <= 0.0)
+        return (PIXA *)ERROR_PTR("invalid scaling parameters", procName, NULL);
+
+    n = pixaGetCount(pixas);
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pix2 = pixScale(pix1, scalex, scaley);
+        pixCopyText(pix2, pix1);
+        pixaAddPix(pixad, pix2, L_INSERT);
+        pixDestroy(&pix1);
+    }
+
+    boxa1 = pixaGetBoxa(pixas, L_CLONE);
+    nb = boxaGetCount(boxa1);
+    if (nb == n) {
+        boxa2 = boxaTransform(boxa1, 0, 0, scalex, scaley);
+        pixaSetBoxa(pixad, boxa2, L_INSERT);
+    } else {
+        boxaDestroy(&boxa1);
     }
     return pixad;
 }
