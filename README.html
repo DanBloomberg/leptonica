@@ -75,11 +75,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README  (1.73: 25 Jan 2016)
+README  (1.73+: 8 Feb 2016)
 ---------------------------
 
-gunzip leptonica-1.73.tar.gz
-tar -xvf leptonica-1.73.tar
+gunzip leptonica-1.73+.tar.gz
+tar -xvf leptonica-1.73+.tar
 
 </pre>
 
@@ -279,10 +279,6 @@ Building leptonica
          To make progs from the build subdirectory:
             cmake .. -DBUILD_PROG=1
 
-    (4) Cross-compiling for windows
-
-        You can use src/makefile.mingw for cross-compiling in linux.
-
 
 3. Building on Windows
 
@@ -312,38 +308,42 @@ Building leptonica
        You can download Tom's vs2008 package either from the download
        page or from code.google.com/p/leptonica.
 
-   (b) Building for mingw with <a href="http://www.mingw.org/">MSYS</a>
+   (b) Building for mingw32 with <a href="http://www.mingw.org/">MSYS</a>
        (Thanks to David Bryan)
 
-       MSYS is a Unix-compatible build environment for the mingw compiler.
-       Installing the "MSYS Base System" and "MinGW Compiler Suite" will allow
+       MSYS is a Unix-compatible build environment for the Windows-native
+       mingw32 compiler.  Selecting the "mingw-developer-toolkit",
+       "mingw32-base", and "msys-base" packages during installation will allow
        building the library with autoconf as in (2) above.  It will also allow
-       building with the static makefile as in (1) above if this option
-       is added to the make command:
+       building with the static makefile as in (1) above if this option is used
+       in the make command line:
 
-         CC="gcc -D_BSD_SOURCE -DANSI"
+         CC='gcc -std=c99 -U__STRICT_ANSI__'
 
        Only the static library may be built this way; the autoconf method must
        be used if a shared (DLL) library is desired.
 
        External image libraries (see below) must be downloaded separately,
        built, and installed before building the library.  Pre-built libraries
-       are available from
-          <a href="http://sourceforge.net/projects/ezwinports/">ezwinports project</a>.
+       are available from the <a
+       href="http://sourceforge.net/projects/ezwinports/">ezwinports</a> project.
 
    (c) Building for <a href="http://www.cygwin.com/">Cygwin</a>
        (Thanks to David Bryan)
 
-       Cygwin is a Unix-compatible build and runtime environment.  Installing
-       the "Base" and "Devel" packages, plus the desired graphics libraries
-       from the "Graphics" and "Libs" packages, will allow building the
-       library with autoconf as in (2) above.  If the graphics libraries
-       are not present in the /lib, /usr/lib, or /usr/local/lib directories,
-       you must run make with the "LDFLAGS=-L/(path-to-image)/lib" option.
-       It will also allow building with the static makefile as in (1)
-       above if this option is added to the make command:
+       Cygwin is a Unix-compatible build and runtime environment.  Adding the
+       "binutils", "gcc-core", and "make" packages from the "Devel" category and
+       the "diffutils" package from the "Utils" category to the packages
+       installed by default will allow building the library with autoconf as in
+       (2) above.  Pre-built external image libraries are available in the
+       "Graphics" and "Libs" categories and may be selected for installation.
+       If the libraries are not installed into the /lib, /usr/lib, or
+       /usr/local/lib directories, you must run make with the
+       "LDFLAGS=-L/(path-to-image)/lib" option.  Building may also be performed
+       with the static makefile as in (1) above if this option is used in the
+       make command:
 
-         CC="gcc -ansi -D_BSD_SOURCE -DANSI"
+         CC='gcc -std=c99 -U__STRICT_ANSI__'
 
        Only the static library may be built this way; the autoconf method must
        be used if a shared (DLL) library is desired.
@@ -1046,23 +1046,31 @@ What's in leptonica?
 
    New versions of the Leptonica library are released several times
    a year, and version numbers are provided for each release in
-   the makefile and in allheaders.h.  All even versions from 1.42 to 1.60
-   have been archived at http://code.google.com/p/leptonica, as well as all
-   versions after 1.60.  However, code.google.com no longer supports
-   uploads of new distributions, which you can get at the leptonica.org
-   web site.
+   src/makefile.static and in allheaders.h.  All even versions from
+   1.42 to 1.60 were originally archived at http://code.google.com/p/leptonica,
+   as well as all versions after 1.60.  These have now been transferred
+   by Egor Pugin to github:
+       github.com/danbloomberg/leptonica
+   Recent releases (1.67 - 1.73) are available both at
+       leptonica.org/download.html
+   and through github; e.g.,
+       https://github.com/DanBloomberg/leptonica/releases/tag/v1.73
+   Note that in most cases if you are downloading from github, you
+   should download releases, because the the master at github should
+   always be considered to be unstable.  If you download from the master
+   you need to run the autobuild script to generate configure and
+   the Makefiles.
 
    The number of downloads of leptonica increased by nearly an order
    of magnitude with 1.69, due to bundling with tesseract and
-   incorporation in ubuntu 12-04.  Leptonica has about 2400 functions,
-   and the binary API changed slightly with the new 1.71 release.  Having
-   a proper binary release version is required for all debian packages.
-   The binary release versions are:
+   incorporation in ubuntu 12-04.  Jeff Breidenbach has built all
+   the debian releases, which require release version numbers.
+   The debian binary release versions are:
         1.69 : 3.0.0
         1.70 : 4.0.0
         1.71 : 4.2.0
         1.72 : 4.3.0
-        1.73 : 4.4.0
+        1.73 : 5.0.0
 
    A brief version chronology is maintained in version-notes.html.
    Starting with gcc 4.3.3, error warnings (-Werror) are given for
