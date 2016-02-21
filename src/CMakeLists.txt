@@ -24,7 +24,7 @@ set(leptonica_src
     compare.c conncomp.c convertfiles.c
     convolve.c correlscore.c
     dewarp1.c dewarp2.c dewarp3.c dewarp4.c
-    dnabasic.c dwacomb.2.c dwacomblow.2.c
+    dnabasic.c dnahash.c dwacomb.2.c dwacomblow.2.c
     edge.c encoding.c enhance.c
     fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c
     finditalic.c flipdetect.c fliphmtgen.c
@@ -46,7 +46,7 @@ set(leptonica_src
     pixlabel.c pixtiling.c pngio.c pngiostub.c
     pnmio.c pnmiostub.c projective.c
     psio1.c psio1stub.c psio2.c psio2stub.c
-    ptabasic.c ptafunc1.c ptra.c
+    ptabasic.c ptafunc1.c ptafunc2.c ptra.c
     quadtree.c queue.c rank.c rbtree.c
     readbarcode.c readfile.c
     recogbasic.c recogdid.c recogident.c
@@ -54,7 +54,7 @@ set(leptonica_src
     rop.c ropiplow.c roplow.c
     rotate.c rotateam.c rotateamlow.c
     rotateorth.c rotateshear.c
-    runlength.c sarray1.c
+    runlength.c sarray1.c sarray2.c
     scale.c scalelow.c
     seedfill.c seedfilllow.c
     sel1.c sel2.c selgen.c
