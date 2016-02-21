@@ -54,7 +54,7 @@ set(leptonica_src
     rop.c ropiplow.c roplow.c
     rotate.c rotateam.c rotateamlow.c
     rotateorth.c rotateshear.c
-    runlength.c sarray.c
+    runlength.c sarray1.c
     scale.c scalelow.c
     seedfill.c seedfilllow.c
     sel1.c sel2.c selgen.c
