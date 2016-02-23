@@ -529,6 +529,9 @@ l_int32  bx, by, bw, bh, xdist, ydist;
  *              &naindex (<optional return> index of sorted order into
  *                        original array)
  *      Return: boxad (sorted version of boxas), or null on error
+ *
+ *  Notes:
+ *      (1) An empty boxa returns a copy, with a warning.
  */
 BOXA *
 boxaSort(BOXA    *boxas,
@@ -545,6 +548,10 @@ NUMA      *na, *naindex;
     if (pnaindex) *pnaindex = NULL;
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if ((n = boxaGetCount(boxas)) == 0) {
+        L_WARNING("boxas is empty\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y &&
         sorttype != L_SORT_BY_RIGHT && sorttype != L_SORT_BY_BOT &&
         sorttype != L_SORT_BY_WIDTH && sorttype != L_SORT_BY_HEIGHT &&
@@ -558,7 +565,6 @@ NUMA      *na, *naindex;
         return (BOXA *)ERROR_PTR("invalid sort order", procName, NULL);
 
         /* Use O(n) binsort if possible */
-    n = boxaGetCount(boxas);
     if (n > MIN_COMPS_FOR_BIN_SORT &&
         ((sorttype == L_SORT_BY_X) || (sorttype == L_SORT_BY_Y) ||
          (sorttype == L_SORT_BY_WIDTH) || (sorttype == L_SORT_BY_HEIGHT) ||
@@ -663,6 +669,10 @@ NUMA    *na, *naindex;
     if (pnaindex) *pnaindex = NULL;
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if ((n = boxaGetCount(boxas)) == 0) {
+        L_WARNING("boxas is empty\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y &&
         sorttype != L_SORT_BY_WIDTH && sorttype != L_SORT_BY_HEIGHT &&
         sorttype != L_SORT_BY_PERIMETER)
@@ -671,7 +681,6 @@ NUMA    *na, *naindex;
         return (BOXA *)ERROR_PTR("invalid sort order", procName, NULL);
 
         /* Generate Numa of appropriate box dimensions */
-    n = boxaGetCount(boxas);
     if ((na = numaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("na not made", procName, NULL);
     for (i = 0; i < n; i++) {
@@ -733,10 +742,13 @@ BOXA    *boxad;
 
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if ((n = boxaGetCount(boxas)) == 0) {
+        L_WARNING("boxas is empty\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
     if (!naindex)
         return (BOXA *)ERROR_PTR("naindex not defined", procName, NULL);
 
-    n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     for (i = 0; i < n; i++) {
         numaGetIValue(naindex, i, &index);
@@ -807,6 +819,8 @@ NUMAA   *naa, *naa1, *naad;
     if (pnaad) *pnaad = NULL;
     if (!boxas)
         return (BOXAA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if (boxaGetCount(boxas) == 0)
+        return (BOXAA *)ERROR_PTR("boxas is empty", procName, NULL);
 
         /* Sort from left to right */
     if ((boxa = boxaSort(boxas, L_SORT_BY_X, L_SORT_INCREASING, &naindex))
@@ -987,12 +1001,13 @@ NUMA    *na;
 
     if (!boxas)
         return (BOXAA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if ((boxtot = boxaGetCount(boxas)) == 0)
+        return (BOXAA *)ERROR_PTR("boxas is empty", procName, NULL);
     if (!naa)
         return (BOXAA *)ERROR_PTR("naindex not defined", procName, NULL);
 
         /* Check counts */
     ntot = numaaGetNumberCount(naa);
-    boxtot = boxaGetCount(boxas);
     if (ntot != boxtot)
         return (BOXAA *)ERROR_PTR("element count mismatch", procName, NULL);
 

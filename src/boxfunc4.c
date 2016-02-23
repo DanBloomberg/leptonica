@@ -110,7 +110,10 @@ BOXA    *boxad;
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
         return (BOXA *)ERROR_PTR("invalid copyflag", procName, NULL);
-    n = boxaGetCount(boxas);
+    if ((n = boxaGetCount(boxas)) == 0) {
+        L_WARNING("boxas is empty\n", procName);
+        return boxaCopy(boxas, copyflag);
+    }
     first = L_MAX(0, first);
     if (last <= 0) last = n - 1;
     if (first >= n)
@@ -158,7 +161,8 @@ BOXAA   *baad;
         return (BOXAA *)ERROR_PTR("baas not defined", procName, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
         return (BOXAA *)ERROR_PTR("invalid copyflag", procName, NULL);
-    n = boxaaGetCount(baas);
+    if ((n = boxaaGetCount(baas)) == 0)
+        return (BOXAA *)ERROR_PTR("empty baas", procName, NULL);
     first = L_MAX(0, first);
     if (last <= 0) last = n - 1;
     if (first >= n)
@@ -217,6 +221,10 @@ NUMA  *na;
 
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if (boxaGetCount(boxas) == 0) {
+        L_WARNING("boxas is empty\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
         return (BOXA *)ERROR_PTR("invalid type", procName, NULL);
@@ -226,7 +234,9 @@ NUMA  *na;
     if (pchanged) *pchanged = FALSE;
 
         /* Compute the indicator array for saving components */
-    na = boxaMakeSizeIndicator(boxas, width, height, type, relation);
+    if ((na =
+         boxaMakeSizeIndicator(boxas, width, height, type, relation)) == NULL)
+        return (BOXA *)ERROR_PTR("na not made", procName, NULL);
 
         /* Filter to get output */
     boxad = boxaSelectWithIndicator(boxas, na, pchanged);
@@ -271,6 +281,8 @@ NUMA    *na;
 
     if (!boxa)
         return (NUMA *)ERROR_PTR("boxa not defined", procName, NULL);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return (NUMA *)ERROR_PTR("boxa is empty", procName, NULL);
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
         return (NUMA *)ERROR_PTR("invalid type", procName, NULL);
@@ -278,7 +290,6 @@ NUMA    *na;
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
         return (NUMA *)ERROR_PTR("invalid relation", procName, NULL);
 
-    n = boxaGetCount(boxa);
     na = numaCreate(n);
     for (i = 0; i < n; i++) {
         ival = 0;
@@ -354,6 +365,10 @@ NUMA  *na;
 
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if (boxaGetCount(boxas) == 0) {
+        L_WARNING("boxas is empty\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
         return (BOXA *)ERROR_PTR("invalid relation", procName, NULL);
@@ -397,11 +412,12 @@ NUMA    *na;
 
     if (!boxa)
         return (NUMA *)ERROR_PTR("boxa not defined", procName, NULL);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return (NUMA *)ERROR_PTR("boxa is empty", procName, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
         return (NUMA *)ERROR_PTR("invalid relation", procName, NULL);
 
-    n = boxaGetCount(boxa);
     na = numaCreate(n);
     for (i = 0; i < n; i++) {
         ival = 0;
