@@ -411,9 +411,7 @@ I/O libraries leptonica is dependent on
           add that path to the LD_LIBRARY_PATH environment variable.
 
    To read and write jpeg2000 files:
-      (1) Download libopenjp2, version 2.X, from their distribution,
-          along with cmake.  There is no debian version of openjpeg 2.X
-          as of 12/26/2014.
+      (1) Download libopenjp2, version 2.X, from their distribution.
       (2) #define HAVE_LIBJP2K   1  (in environ.h)
       (2a) If you have version 2.X, X != 1, edit LIBJP2K_HEADER  (in environ.h)
       (3) In prog/makefile, edit ALL_LIBS to include -lopenjp2
