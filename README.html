@@ -138,7 +138,7 @@ Building leptonica
             * enabling Leptonica I/O image read/write functions that
               depend on external libraries (if the libraries exist)
             * enabling functions for redirecting formatted image stream
-              I/O to memory (on linux only)
+              I/O to memory (on Linux only)
         After running ./configure: make; make install.  There's also
         a 'make check' for testing.
 
@@ -465,13 +465,13 @@ that you are using the static makefiles and customizing environ.h.
              xtractprotos -prestring=[string] <cfile>
      (3) The source for xtractprotos has been packaged up into a tar
          containing just the Leptonica files necessary for building it
-         in linux.  The tar file is available at:
+         in Linux.  The tar file is available at:
              www.leptonica.com/source/xtractlib-1.5.tar.gz
 
 2. GNU runtime functions for stream redirection to memory
 
    There are two non-standard gnu functions, fmemopen() and open_memstream(),
-   that only work on linux and conveniently allow memory I/O with a file
+   that only work on Linux and conveniently allow memory I/O with a file
    stream interface.  This is convenient for compressing and decompressing
    image data to memory rather than to file.  Stubs are provided
    for all these I/O functions.  Default is to enable them; OSX developers
