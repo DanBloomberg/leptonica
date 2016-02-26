@@ -11,6 +11,7 @@
 /autom4te.cache
 /config/compile
 /config/config.guess
+/config/config.h.in
 /config/config.h.in~
 /config/config.sub
 /config/depcomp
