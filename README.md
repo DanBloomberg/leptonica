@@ -54,7 +54,7 @@ www.leptonica.org
   * _Consistent_: data allocated on the heap with simple ownership rules; function names usually begin with primary data structure (e.g., _pix_); simple code patterns throughout
   * _Robust_: all ptr args checked; extensive use of accessors; exit not permitted
   * _Tested_: thorough regression tests provided for most basic functions; valgrind tested
-  * _Ansi C_: automatically generated prototype header file
+  * _ANSI C_: automatically generated prototype header file
   * _Portable_: endian-independent; builds in linux, osx, mingw, cygwin, windows
   * _Nearly thread-safe_: ref counting on some structs
   * _Documentation_: large number of in-line comments; web pages for further background
