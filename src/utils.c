@@ -182,6 +182,10 @@
  *         lept_fopen(), lept_fclose(), lept_calloc() and lept_free().
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <time.h>
 #ifdef _MSC_VER
