@@ -47,8 +47,8 @@
  *    (1) The DnaHash is an array of Dna.  It is useful for fast
  *        storage and lookup for sets and maps.  If the set or map
  *        is on a Dna itself, the hash is a simple function that
- *        maps a double to an int64; otherwise the function will
- *        map a string or a (x,y) point to an int64.  The result of
+ *        maps a double to a l_uint64; otherwise the function will
+ *        map a string or a (x,y) point to a l_uint64.  The result of
  *        the map is the "key", which is then used with the mod
  *        function to select which Dna array is to be used.  The
  *        number of arrays in a DnaHash should be a prime number.
@@ -57,7 +57,7 @@
  *        will be about 20 when fully populated.  The number 20 was
  *        found empirically to be in a broad maximum of efficiency.
  *    (2) Note that the word "hash" is overloaded.  There are actually
- *        two hashing steps: the first hashes the object to an int64,
+ *        two hashing steps: the first hashes the object to a l_uint64,
  *        called the "key", and the second uses the mod function to
  *        "hash" the "key" to the index of a particular Dna in the
  *        DnaHash array.
@@ -69,7 +69,7 @@
  *        maps, where insertion and lookup are O(logN) and hash functions
  *        are slower because they must be good enough (i.e, random
  *        enough with arbitrary input) to avoid collisions.
- *    (4) Hash functions that map points, strings and floats to int64
+ *    (4) Hash functions that map points, strings and floats to l_uint64
  *        are given in utils.c.
  *    (5) The use of the DnaHash (and RBTree) with strings and
  *        (x,y) points can be found in string2.c and ptafunc2.c, rsp.
@@ -85,15 +85,17 @@
  *        (It would be nice to modify the l_dnaHashAdd() function
  *        to increase the number of bins when the average occupation
  *        exceeds 40 or so.)
- *    (8) Useful rule of thumb:
- *        For a random hashing function (say, from strings to int64),
+ *    (8) Useful rule of thumb for hashing collisions:
+ *        For a random hashing function (say, from strings to l_uint64),
  *        the probability of a collision increases as N^2 for N much
  *        less than 2^32.  The quadratic behavior switches over to
- *        approaching 1.0 around 2^32.  So, for example, if you have
- *        10^7 strings, the probability of a collision using an int64
- *        key is about (10^7/10^9)^2 ~ 10^-4.  For a million strings
- *        you don't need to worry about collisons (10-6 probability),
- *        and can use the RBTree (sorting) implementation with confidence.
+ *        approaching 1.0 around 2^32, which is the square root of 2^64.
+ *        So, for example, if you have 10^7 strings, the probability
+ *        of a single collision using an l_uint64 key is on the order of
+ *            (10^7/10^9)^2 ~ 10^-4.
+ *        For a million strings you don't need to worry about collisons
+ *        (~10-6 probability), and for most applications can use the
+ *        RBTree (sorting) implementation with confidence.
  */
 
 #include "allheaders.h"
@@ -106,7 +108,7 @@
  *
  *      Input: nbuckets (the number of buckets in the hash table,
  *                       which should be prime.)
- *             initsize (initial size of each allocated numa; 0 for default)
+ *             initsize (initial size of each allocated dna; 0 for default)
  *      Return: ptr to new dnahash, or null on error
  *
  *  Notes:
@@ -221,7 +223,7 @@ L_DNA   *da;
  *      Input:  dahash
  *              key  (key to be hashed into a bucket number)
  *              copyflag (L_NOCOPY, L_COPY, L_CLONE)
- *      Return: ptr to numa
+ *      Return: ptr to dna
  */
 L_DNA *
 l_dnaHashGetDna(L_DNAHASH  *dahash,

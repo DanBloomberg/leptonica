@@ -52,9 +52,16 @@
  *      Decision text vs photo
  *          l_int32   pixDecideIfText()
  *          l_int32   pixFindThreshFgExtent()
+ *
+ *      How many text columns
+ *          l_int32   pixCountTextColumns()
+ *
+ *      Estimate the grayscale background value
+ *          l_int32   pixEstimateBackground()
  */
 
 #include "allheaders.h"
+#include "math.h"
 
     /* These functions are not intended to work on very low-res images */
 static const l_int32  MinWidth = 100;
@@ -776,7 +783,7 @@ PIX      *pix1, *pixdb;
     boxad = boxaCreate(2);
     na1 = pixCountPixelsByColumn(pix1);  /* w elements */
     pixDestroy(&pix1);
-    na2 = numaFindExtrema(na1, delta);
+    na2 = numaFindExtrema(na1, delta, NULL);
     n2 = numaGetCount(na2);
     if (n2 < 3) {  /* no split possible */
         box = boxCreate(0, 0, w, h);
@@ -1250,6 +1257,225 @@ NUMA      *na;
     }
     LEPT_FREE(array);
     numaDestroy(&na);
+    return 0;
+}
+
+
+
+/*------------------------------------------------------------------*
+ *                      How many text columns                       *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixCountTextColumns()
+ *
+ *      Input:  pixs (1 bpp)
+ *              deltafract (fraction of (max - min) to be used in the delta
+ *                         for extrema finding; typ 0.3)
+ *              peakfract (fraction of (max - min) to be used to threshold
+ *                         the peak value; typ. 0.5)
+ *              clipfract (fraction of image dimension removed on each side;
+ *                         typ. 0.1, which leaves w and h reduced by 0.8)
+ *              &ncols (<return> number of columns; -1 if not determined)
+ *              pixadb (<optional> pre-allocated, for showing intermediate
+ *                      computation; use null to skip)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) It is assumed that pixs has the correct resolution set.
+ *          If the resolution is 0, we set to 300 and issue a warning.
+ *      (2) If necessary, the image is scaled to between 37 and 75 ppi;
+ *          most of the processing is done at this resolution.
+ *      (3) If no text is found (essentially a blank page),
+ *          this returns ncols = 0.
+ *      (4) For debug output, input a pre-allocated pixa.
+ */
+l_int32
+pixCountTextColumns(PIX       *pixs,
+                    l_float32  deltafract,
+                    l_float32  peakfract,
+                    l_float32  clipfract,
+                    l_int32   *pncols,
+                    PIXA      *pixadb)
+{
+l_int32    w, h, res, i, n, npeak;
+l_float32  scalefact, redfact, minval, maxval, val4, val5, fract;
+BOX       *box;
+NUMA      *na1, *na2, *na3, *na4, *na5;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
+
+    PROCNAME("pixCountTextColumns");
+
+    lept_mkdir("lept");
+
+    if (!pncols)
+        return ERROR_INT("&ncols not defined", procName, 1);
+    *pncols = 0;  /* init */
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+    if (deltafract < 0.15 || deltafract > 0.75)
+        L_WARNING("deltafract not in [0.15 ... 0.75]\n", procName);
+    if (peakfract < 0.25 || peakfract > 0.9)
+        L_WARNING("peakfract not in [0.25 ... 0.9]\n", procName);
+    if (clipfract < 0.0 || clipfract > 0.5)
+        return ERROR_INT("clipfract not in [0.0 ... 0.5]\n", procName, 1);
+    if (pixadb) pixaAddPix(pixadb, pixs, L_COPY);
+
+        /* Scale to between 37.5 and 75 ppi */
+    if ((res = pixGetXRes(pixs)) == 0) {
+        L_WARNING("resolution undefined; set to 300\n", procName);
+        pixSetResolution(pixs, 300, 300);
+        res = 300;
+    }
+    if (res < 37) {
+        L_WARNING("resolution %d very low\n", procName, res);
+        scalefact = 37.5 / res;
+        pix1 = pixScale(pixs, scalefact, scalefact);
+    } else {
+        redfact = (l_float32)res / 37.5;
+        if (redfact < 2.0)
+            pix1 = pixClone(pixs);
+        else if (redfact < 4.0)
+            pix1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
+        else if (redfact < 8.0)
+            pix1 = pixReduceRankBinaryCascade(pixs, 1, 2, 0, 0);
+        else if (redfact < 16.0)
+            pix1 = pixReduceRankBinaryCascade(pixs, 1, 2, 2, 0);
+        else
+            pix1 = pixReduceRankBinaryCascade(pixs, 1, 2, 2, 2);
+    }
+    if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
+
+        /* Crop inner 80% of image */
+    pixGetDimensions(pix1, &w, &h, NULL);
+    box = boxCreate(clipfract * w, clipfract * h,
+                    (1.0 - 2 * clipfract) * w, (1.0 - 2 * clipfract) * h);
+    pix2 = pixClipRectangle(pix1, box, NULL);
+    pixGetDimensions(pix2, &w, &h, NULL);
+    boxDestroy(&box);
+    if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
+
+        /* Deskew */
+    pix3 = pixDeskew(pix2, 0);
+    if (pixadb) pixaAddPix(pixadb, pix3, L_COPY);
+
+        /* Close to increase column counts for text */
+    pix4 = pixCloseSafeBrick(NULL, pix3, 5, 21);
+    if (pixadb) pixaAddPix(pixadb, pix4, L_COPY);
+    pixInvert(pix4, pix4);
+    na1 = pixCountByColumn(pix4, NULL);
+
+    if (pixadb) {
+        gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/plot", NULL);
+        pix5 = pixRead("/tmp/lept/plot.png");
+        pixaAddPix(pixadb, pix5, L_INSERT);
+    }
+
+        /* Analyze the column counts.  na4 gives the locations of
+         * the extrema in normalized units (0.0 to 1.0) across the
+         * cropped image.  na5 gives the magnitude of the
+         * extrema, normalized to the dynamic range.  The peaks
+         * are values that are at least peakfract of (max - min). */
+    numaGetMax(na1, &maxval, NULL);
+    numaGetMin(na1, &minval, NULL);
+    fract = (l_float32)(maxval - minval) / h;  /* is there much at all? */
+    if (fract < 0.05) {
+        L_INFO("very little content on page; 0 text columns\n", procName);
+        *pncols = 0;
+    } else {
+        na2 = numaFindExtrema(na1, deltafract * (maxval - minval), &na3);
+        na4 = numaTransform(na2, 0, 1.0 / w);
+        na5 = numaTransform(na3, -minval, 1.0 / (maxval - minval));
+        n = numaGetCount(na4);
+        for (i = 0, npeak = 0; i < n; i++) {
+            numaGetFValue(na4, i, &val4);
+            numaGetFValue(na5, i, &val5);
+            if (val4 > 0.3 && val4 < 0.7 && val5 >= peakfract) {
+                npeak++;
+                L_INFO("Peak(loc,val) = (%5.3f,%5.3f)\n", procName, val4, val5);
+            }
+        }
+        *pncols = npeak + 1;
+        numaDestroy(&na2);
+        numaDestroy(&na3);
+        numaDestroy(&na4);
+        numaDestroy(&na5);
+    }
+
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    numaDestroy(&na1);
+    return 0;
+}
+
+
+/*------------------------------------------------------------------*
+ *               Estimate the grayscale background value            *
+ *------------------------------------------------------------------*/
+/*!
+ *  pixEstimateBackground()
+ *
+ *      Input:  pixs (8 bpp, with or without colormap)
+ *              darkthresh (pixels below this value are never considered
+ *                          part of the background; typ. 70; use 0 to skip)
+ *              edgecrop (fraction of half-width on each side, and of
+ *                        half-height at top and bottom, that are cropped)
+ *              &bg (<return> estimated background, or 0 on error)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) Caller should check that return bg value is > 0.
+ */
+l_int32
+pixEstimateBackground(PIX       *pixs,
+                      l_int32    darkthresh,
+                      l_float32  edgecrop,
+                      l_int32   *pbg)
+{
+l_int32    w, h, sampling;
+l_float32  fbg;
+BOX       *box;
+PIX       *pix1, *pix2, *pixm;
+
+    PROCNAME("pixEstimateBackground");
+
+    if (pbg) *pbg = 0;  /* init */
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+    if (darkthresh > 128)
+        L_WARNING("darkthresh unusually large\n", procName);
+    if (edgecrop < 0.0 || edgecrop >= 1.0)
+        return ERROR_INT("edgecrop not in [0.0 ... 1.0)", procName, 1);
+
+    pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+
+        /* Optionally crop inner part of image */
+    if (edgecrop > 0.0) {
+        pixGetDimensions(pix1, &w, &h, NULL);
+        box = boxCreate(0.5 * edgecrop * w, 0.5 * edgecrop * h,
+                        (1.0 - edgecrop) * w, (1.0 - edgecrop) * h);
+        pix2 = pixClipRectangle(pix1, box, NULL);
+        boxDestroy(&box);
+    } else {
+        pix2 = pixClone(pix1);
+    }
+
+        /* We will use no more than 50K samples */
+    sampling = L_MAX(1, (l_int32)sqrt((l_float64)(w * h) / 50000. + 0.5));
+
+        /* Optionally make a mask over all pixels lighter than @darkthresh */
+    pixm = NULL;
+    if (darkthresh > 0) {
+        pixm = pixThresholdToBinary(pix2, darkthresh);
+        pixInvert(pixm, pixm);
+    }
+
+    pixGetRankValueMasked(pix2, pixm, 0, 0, sampling, 0.5, &fbg, NULL);
+    *pbg = (l_int32)(fbg + 0.5);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pixm);
     return 0;
 }
 

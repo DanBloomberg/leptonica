@@ -377,8 +377,6 @@ NUMA  *nab, *nat1, *nat2, *nad;
  *
  *  Notes:
  *      (1) Each number is shifted before scaling.
- *      (2) The operation sequence is opposite to that for Box and Pta:
- *          scale first, then shift.
  */
 NUMA *
 numaTransform(NUMA      *nas,
@@ -399,7 +397,7 @@ NUMA      *nad;
     numaCopyParameters(nad, nas);
     for (i = 0; i < n; i++) {
         numaGetFValue(nas, i, &val);
-        val = scale * val + shift;
+        val = scale * (val + shift);
         numaAddNumber(nad, val);
     }
     return nad;
@@ -2356,6 +2354,7 @@ NUMA      *na, *napeak;
  *
  *      Input:  nas (input values)
  *              delta (relative amount to resolve peaks and valleys)
+ *              &nav (<optional return> values of extrema
  *      Return: nad (locations of extrema), or null on error
  *
  *  Notes:
@@ -2376,19 +2375,26 @@ NUMA      *na, *napeak;
  */
 NUMA *
 numaFindExtrema(NUMA      *nas,
-                l_float32  delta)
+                l_float32  delta,
+                NUMA     **pnav)
 {
 l_int32    i, n, found, loc, direction;
 l_float32  startval, val, maxval, minval;
-NUMA      *nad;
+NUMA      *nav, *nad;
 
     PROCNAME("numaFindExtrema");
 
+    if (pnav) *pnav = NULL;
     if (!nas)
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
 
     n = numaGetCount(nas);
     nad = numaCreate(0);
+    nav =  NULL;
+    if (pnav) {
+        nav = numaCreate(0);
+        *pnav = nav;
+    }
 
         /* We don't know if we'll find a peak or valley first,
          * but use the first element of nas as the reference point.
@@ -2428,11 +2434,13 @@ NUMA      *nad;
             loc = i;
         } else if (direction == 1 && (maxval - val >= delta)) {
             numaAddNumber(nad, loc);  /* save the current max location */
+            if (nav) numaAddNumber(nav, maxval);
             direction = -1;  /* reverse: start looking for a min */
             minval = val;
             loc = i;  /* current min location */
         } else if (direction == -1 && (val - minval >= delta)) {
             numaAddNumber(nad, loc);  /* save the current min location */
+            if (nav) numaAddNumber(nav, minval);
             direction = 1;  /* reverse: start looking for a max */
             maxval = val;
             loc = i;  /* current max location */
@@ -2479,7 +2487,7 @@ NUMA      *nat;
         return ERROR_INT("nas not defined", procName, 1);
 
     n = numaGetCount(nas);
-    nat = numaFindExtrema(nas, minreversal);
+    nat = numaFindExtrema(nas, minreversal, NULL);
     nr = numaGetCount(nat);
     if (pnr) *pnr = nr;
     if (pnrpl) {
@@ -2731,7 +2739,7 @@ NUMA      *nap, *nad;
         /* Find the extrema.  Also add last point in nay to get
          * the last transition (from the last peak to the end).
          * The number of crossings is 1 more than the number of extrema. */
-    nap = numaFindExtrema(nay, delta);
+    nap = numaFindExtrema(nay, delta, NULL);
     numaAddNumber(nap, n - 1);
     np = numaGetCount(nap);
     L_INFO("Number of crossings: %d\n", procName, np);

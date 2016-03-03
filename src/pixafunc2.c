@@ -58,6 +58,9 @@
  *      Pixa display into multiple tiles
  *           PIXA     *pixaDisplayMultiTiled()
  *
+ *      Split pixa into files
+ *           l_int32   pixaSplitIntoFiles()
+ *
  *      Tile N-Up
  *           l_int32   convertToNUpFiles()
  *           PIXA     *convertToNUpPixa()
@@ -168,7 +171,7 @@ pixaDisplay(PIXA    *pixa,
             l_int32  w,
             l_int32  h)
 {
-l_int32  i, n, d, xb, yb, wb, hb;
+l_int32  i, n, d, xb, yb, wb, hb, res;
 BOXA    *boxa;
 PIX     *pixt, *pixd;
 
@@ -195,13 +198,15 @@ PIX     *pixt, *pixd;
             return (PIX *)ERROR_PTR("no associated boxa", procName, NULL);
     }
 
-        /* Use the first pix in pixa to determine the depth.  */
+        /* Use the first pix in pixa to determine depth and resolution  */
     pixt = pixaGetPix(pixa, 0, L_CLONE);
     d = pixGetDepth(pixt);
+    res = pixGetXRes(pixt);
     pixDestroy(&pixt);
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixSetResolution(pixd, res, res);
     if (d > 1)
         pixSetAll(pixd);
     for (i = 0; i < n; i++) {
@@ -245,7 +250,7 @@ pixaDisplayOnColor(PIXA     *pixa,
                    l_int32   h,
                    l_uint32  bgcolor)
 {
-l_int32  i, n, xb, yb, wb, hb, hascmap, maxdepth, same;
+l_int32  i, n, xb, yb, wb, hb, hascmap, maxdepth, same, res;
 BOXA    *boxa;
 PIX     *pix1, *pix2, *pixd;
 PIXA    *pixat;
@@ -303,9 +308,11 @@ PIXA    *pixat;
             continue;
         }
         pix1 = pixaGetPix(pixat, i, L_CLONE);
+        if (i == 0) res = pixGetXRes(pix1);
         pixRasterop(pixd, xb, yb, wb, hb, PIX_SRC, pix1, 0, 0);
         pixDestroy(&pix1);
     }
+    pixSetResolution(pixd, res, res);
 
     pixaDestroy(&pixat);
     return pixd;
@@ -331,7 +338,7 @@ pixaDisplayRandomCmap(PIXA    *pixa,
                       l_int32  w,
                       l_int32  h)
 {
-l_int32   i, n, maxdepth, index, xb, yb, wb, hb;
+l_int32   i, n, maxdepth, index, xb, yb, wb, hb, res;
 BOXA     *boxa;
 PIX      *pixs, *pixt, *pixd;
 PIXCMAP  *cmap;
@@ -366,12 +373,14 @@ PIXCMAP  *cmap;
         index = 1 + (i % 254);
         pixaGetBoxGeometry(pixa, i, &xb, &yb, &wb, &hb);
         pixs = pixaGetPix(pixa, i, L_CLONE);
+        if (i == 0) res = pixGetXRes(pixs);
         pixt = pixConvert1To8(NULL, pixs, 0, index);
         pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pixt, 0, 0);
         pixDestroy(&pixs);
         pixDestroy(&pixt);
     }
 
+    pixSetResolution(pixd, res, res);
     return pixd;
 }
 
@@ -495,12 +504,12 @@ pixaDisplayOnLattice(PIXA     *pixa,
                      l_int32  *pncols,
                      BOXA    **pboxa)
 {
-l_int32  n, nw, nh, w, h, d, wt, ht;
+l_int32  n, nw, nh, w, h, d, wt, ht, res;
 l_int32  index, i, j, hascmap;
 BOX     *box;
 BOXA    *boxa;
-PIX     *pix, *pixt, *pixd;
-PIXA    *pixat;
+PIX     *pix1, *pix2, *pixd;
+PIXA    *pixa1;
 
     PROCNAME("pixaDisplayOnLattice");
 
@@ -514,15 +523,16 @@ PIXA    *pixat;
         return (PIX *)ERROR_PTR("no components", procName, NULL);
     pixaAnyColormaps(pixa, &hascmap);
     if (hascmap) {
-        pixat = pixaCreate(n);
+        pixa1 = pixaCreate(n);
         for (i = 0; i < n; i++) {
-            pixt = pixaGetPix(pixa, i, L_CLONE);
-            pix = pixConvertTo32(pixt);
-            pixaAddPix(pixat, pix, L_INSERT);
-            pixDestroy(&pixt);
+            pix1 = pixaGetPix(pixa, i, L_CLONE);
+            if (i == 0) res = pixGetXRes(pix1);
+            pix2 = pixConvertTo32(pix1);
+            pixaAddPix(pixa1, pix2, L_INSERT);
+            pixDestroy(&pix1);
         }
     } else {
-        pixat = pixaCopy(pixa, L_CLONE);
+        pixa1 = pixaCopy(pixa, L_CLONE);
     }
     boxa = boxaCreate(n);
 
@@ -533,32 +543,33 @@ PIXA    *pixat;
     h = cellh * nh;
 
         /* Use the first pix in pixa to determine the output depth.  */
-    pixaGetPixDimensions(pixat, 0, NULL, NULL, &d);
+    pixaGetPixDimensions(pixa1, 0, NULL, NULL, &d);
     if ((pixd = pixCreate(w, h, d)) == NULL) {
-        pixaDestroy(&pixat);
+        pixaDestroy(&pixa1);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
     pixSetBlackOrWhite(pixd, L_SET_WHITE);
+    pixSetResolution(pixd, res, res);
 
         /* Tile the output */
     index = 0;
     for (i = 0; i < nh; i++) {
         for (j = 0; j < nw && index < n; j++, index++) {
-            pixt = pixaGetPix(pixat, index, L_CLONE);
-            pixGetDimensions(pixt, &wt, &ht, NULL);
+            pix1 = pixaGetPix(pixa1, index, L_CLONE);
+            pixGetDimensions(pix1, &wt, &ht, NULL);
             if (wt > cellw || ht > cellh) {
                 L_INFO("pix(%d) omitted; size %dx%x\n", procName, index,
                        wt, ht);
                 box = boxCreate(0, 0, 0, 0);
                 boxaAddBox(boxa, box, L_INSERT);
-                pixDestroy(&pixt);
+                pixDestroy(&pix1);
                 continue;
             }
             pixRasterop(pixd, j * cellw, i * cellh, wt, ht,
-                        PIX_SRC, pixt, 0, 0);
+                        PIX_SRC, pix1, 0, 0);
             box = boxCreate(j * cellw, i * cellh, wt, ht);
             boxaAddBox(boxa, box, L_INSERT);
-            pixDestroy(&pixt);
+            pixDestroy(&pix1);
         }
     }
 
@@ -567,7 +578,7 @@ PIXA    *pixat;
         *pboxa = boxa;
     else
         boxaDestroy(&boxa);
-    pixaDestroy(&pixat);
+    pixaDestroy(&pixa1);
     return pixd;
 }
 
@@ -672,11 +683,11 @@ pixaDisplayTiled(PIXA    *pixa,
                  l_int32  background,
                  l_int32  spacing)
 {
-l_int32  w, h, wmax, hmax, wd, hd, d, hascmap;
+l_int32  w, h, wmax, hmax, wd, hd, d, hascmap, res, same;
 l_int32  i, j, n, ni, ncols, nrows;
 l_int32  ystart, xstart, wt, ht;
-PIX     *pix, *pixt, *pixd;
-PIXA    *pixat;
+PIX     *pix1, *pix2, *pixd;
+PIXA    *pixa1;
 
     PROCNAME("pixaDisplayTiled");
 
@@ -688,35 +699,24 @@ PIXA    *pixat;
         return (PIX *)ERROR_PTR("no components", procName, NULL);
     pixaAnyColormaps(pixa, &hascmap);
     if (hascmap) {
-        pixat = pixaCreate(n);
+        pixa1 = pixaCreate(n);
         for (i = 0; i < n; i++) {
-            pixt = pixaGetPix(pixa, i, L_CLONE);
-            pix = pixConvertTo32(pixt);
-            pixaAddPix(pixat, pix, L_INSERT);
-            pixDestroy(&pixt);
+            pix1 = pixaGetPix(pixa, i, L_CLONE);
+            pix2 = pixConvertTo32(pix1);
+            pixaAddPix(pixa1, pix2, L_INSERT);
+            pixDestroy(&pix1);
         }
     } else {
-        pixat = pixaCopy(pixa, L_CLONE);
+        pixa1 = pixaCopy(pixa, L_CLONE);
     }
 
-        /* Find the largest width and height of the subimages */
-    wmax = hmax = 0;
-    for (i = 0; i < n; i++) {
-        pix = pixaGetPix(pixat, i, L_CLONE);
-        pixGetDimensions(pix, &w, &h, NULL);
-        if (i == 0) {
-            d = pixGetDepth(pix);
-        } else if (d != pixGetDepth(pix)) {
-            pixDestroy(&pix);
-            pixaDestroy(&pixat);
-            return (PIX *)ERROR_PTR("depths not equal", procName, NULL);
-        }
-        if (w > wmax)
-            wmax = w;
-        if (h > hmax)
-            hmax = h;
-        pixDestroy(&pix);
+        /* Find the max dimensions and depth subimages */
+    pixaGetDepthInfo(pixa1, &d, &same);
+    if (!same) {
+        pixaDestroy(&pixa1);
+        return (PIX *)ERROR_PTR("depths not equal", procName, NULL);
     }
+    pixaSizeRange(pixa1, NULL, NULL, &wmax, &hmax);
 
         /* Get the number of rows and columns and the output image size */
     spacing = L_MAX(spacing, 0);
@@ -726,7 +726,7 @@ PIXA    *pixat;
     wd = wmax * ncols + spacing * (ncols + 1);
     hd = hmax * nrows + spacing * (nrows + 1);
     if ((pixd = pixCreate(wd, hd, d)) == NULL) {
-        pixaDestroy(&pixat);
+        pixaDestroy(&pixa1);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
 
@@ -739,15 +739,16 @@ PIXA    *pixat;
         ystart = spacing + i * (hmax + spacing);
         for (j = 0; j < ncols && ni < n; j++, ni++) {
             xstart = spacing + j * (wmax + spacing);
-            pix = pixaGetPix(pixat, ni, L_CLONE);
-            wt = pixGetWidth(pix);
-            ht = pixGetHeight(pix);
-            pixRasterop(pixd, xstart, ystart, wt, ht, PIX_SRC, pix, 0, 0);
-            pixDestroy(&pix);
+            pix1 = pixaGetPix(pixa1, ni, L_CLONE);
+            if (ni == 0) res = pixGetXRes(pix1);
+            pixGetDimensions(pix1, &wt, &ht, NULL);
+            pixRasterop(pixd, xstart, ystart, wt, ht, PIX_SRC, pix1, 0, 0);
+            pixDestroy(&pix1);
         }
     }
+    pixSetResolution(pixd, res, res);
 
-    pixaDestroy(&pixat);
+    pixaDestroy(&pixa1);
     return pixd;
 }
 
@@ -802,7 +803,7 @@ l_int32   bordval, wtry, wt, ht;
 l_int32   irow;  /* index of current pix in current row */
 l_int32   wmaxrow;  /* width of the largest row */
 l_int32   maxh;  /* max height in row */
-l_int32   i, j, index, n, x, y, nrows, ninrow;
+l_int32   i, j, index, n, x, y, nrows, ninrow, res;
 size_t    size;
 l_uint8  *data;
 BOXA     *boxa;
@@ -913,6 +914,10 @@ PIXA     *pixan;
         x = spacing;
         for (j = 0; j < ninrow; j++, index++) {   /* over pix in row */
             pix = pixaGetPix(pixan, index, L_CLONE);
+            if (index == 0) {
+                res = pixGetXRes(pix);
+                pixSetResolution(pixd, res, res);
+            }
             pixGetDimensions(pix, &wt, &ht, NULL);
             boxaAddBox(boxa, boxCreate(x + border, y + border,
                 wt - 2 * border, ht - 2 *border), L_INSERT);
@@ -972,7 +977,7 @@ pixaDisplayTiledInColumns(PIXA      *pixas,
                           l_int32    spacing,
                           l_int32    border)
 {
-l_int32   i, j, index, n, x, y, nrows, wb, hb, w, h, maxd, maxh, bordval;
+l_int32   i, j, index, n, x, y, nrows, wb, hb, w, h, maxd, maxh, bordval, res;
 size_t    size;
 l_uint8  *data;
 BOX      *box;
@@ -1009,6 +1014,7 @@ PIXA     *pixa1, *pixa2;
             pix3 = pixAddBorder(pix2, border, bordval);
         else
             pix3 = pixClone(pix2);
+        if (i == 0) res = pixGetXRes(pix3);
         pixaAddPix(pixa2, pix3, L_INSERT);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
@@ -1045,6 +1051,7 @@ PIXA     *pixa1, *pixa2;
         /* Render the output pix */
     boxaGetExtent(boxa, &w, &h, NULL);
     pixd = pixaDisplay(pixa2, w, h);
+    pixSetResolution(pixd, res, res);
 
         /* Save the boxa in the text field of the output pix */
     boxaWriteMem(&data, &size, boxa);
@@ -1087,7 +1094,7 @@ pixaDisplayTiledAndScaled(PIXA    *pixa,
                           l_int32  spacing,
                           l_int32  border)
 {
-l_int32    x, y, w, h, wd, hd, d;
+l_int32    x, y, w, h, wd, hd, d, res;
 l_int32    i, n, nrows, maxht, ninrow, irow, bordval;
 l_int32   *rowht;
 l_float32  scalefact;
@@ -1181,6 +1188,10 @@ PIXA      *pixan;
     irow = 0;
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixan, i, L_CLONE);
+        if (i == 0) {
+            res = pixGetXRes(pix);
+            pixSetResolution(pixd, res, res);
+        }
         pixGetDimensions(pix, &w, &h, NULL);
         if (i && ((i % ncols) == 0)) {  /* start new row */
             x = spacing;
@@ -1972,6 +1983,85 @@ PIXA    *pixa1, *pixa2, *pixad;
     pixaDestroy(&pixa1);
 
     return pixad;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                       Split pixa into files                         *
+ *---------------------------------------------------------------------*/
+/*!
+ *  pixaSplitIntoFiles()
+ *
+ *      Input:  pixas
+ *              nsplit (split pixas into this number of pixa; >= 2)
+ *              scale (scalefactor applied to each pix)
+ *              outwidth (the maxwidth parameter of tiled images for write_pix)
+ *              write_pixa (1 to write the split pixa as separate files)
+ *              write_pix (1 to write tiled images of the split pixa)
+ *              write_pdf (1 to write pdfs of the split pixa)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) For each requested output, @nsplit files are written into
+ *          directory /tmp/lept/split/.
+ *      (2) This is useful when a pixa is so large that the images
+ *          are not conveniently displayed as a single tiled image at
+ *          full resolution.
+ */
+l_int32
+pixaSplitIntoFiles(PIXA      *pixas,
+                   l_int32    nsplit,
+                   l_float32  scale,
+                   l_int32    outwidth,
+                   l_int32    write_pixa,
+                   l_int32    write_pix,
+                   l_int32    write_pdf)
+{
+char     buf[64];
+l_int32  i, j, index, n, nt;
+PIX     *pix1, *pix2;
+PIXA    *pixa1;
+
+    PROCNAME("pixaSplitIntoFiles");
+
+    if (!pixas)
+        return ERROR_INT("pixas not defined", procName, 1);
+    if (nsplit <= 1)
+        return ERROR_INT("nsplit must be >= 2", procName, 1);
+    if ((nt = pixaGetCount(pixas)) == 0)
+        return ERROR_INT("pixas is empty", procName, 1);
+    if (!write_pixa && !write_pix && !write_pdf)
+        return ERROR_INT("no output is requested", procName, 1);
+
+    lept_mkdir("lept/split");
+    n = (nt + nsplit - 1) / nsplit;
+    fprintf(stderr, "nt = %d, n = %d, nsplit = %d\n", nt, n, nsplit);
+    for (i = 0, index = 0; i < nsplit; i++) {
+        pixa1 = pixaCreate(n);
+        for (j = 0; j < n && index < nt; j++, index++) {
+            pix1 = pixaGetPix(pixas, index, L_CLONE);
+            pix2 = pixScale(pix1, scale, scale);
+            pixaAddPix(pixa1, pix2, L_INSERT);
+            pixDestroy(&pix1);
+        }
+        if (write_pixa) {
+            snprintf(buf, sizeof(buf), "/tmp/lept/split/split%d.pa", i + 1);
+            pixaWrite(buf, pixa1);
+        }
+        if (write_pix) {
+            snprintf(buf, sizeof(buf), "/tmp/lept/split/split%d.tif", i + 1);
+            pix1 = pixaDisplayTiledInRows(pixa1, 1, outwidth, 1.0, 0, 20, 2);
+            pixWrite(buf, pix1, IFF_TIFF_G4);
+            pixDestroy(&pix1);
+        }
+        if (write_pdf) {
+            snprintf(buf, sizeof(buf), "/tmp/lept/split/split%d.pdf", i + 1);
+            pixaConvertToPdf(pixa1, 0, 1.0, L_G4_ENCODE, 0, buf, buf);
+        }
+        pixaDestroy(&pixa1);
+    }
+
+    return 0;
 }
 
 

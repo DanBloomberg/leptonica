@@ -1257,8 +1257,12 @@ PIX     *pixd;
  *
  *  Notes:
  *      (1) This makes an arbitrary 1-component mask with a centered frame.
- *          Input fractions are in [0.0 ... 1.0]; hf1 <= hf2 and vf1 <= vf2.
- *          Horizontal and vertical frame widths are independently specified.
+ *          All input fractional distances are from the outside of the
+ *          image to the frame boundary, in units of the image half-width
+ *          for hf1 and hf2 and the image half-height for vf1 and vf2.
+ *          Input fractions are thus in [0.0 ... 1.0], with hf1 <= hf2
+ *          and vf1 <= vf2.  Horizontal and vertical frame widths are
+ *          independently specified.
  *      (2) Special case: to get a full fg mask, set all input values to 0.0.
  *          An empty fg mask has hf1 = vf1 = 1.0.
  *          A fg rectangle with no hole has hf2 == 1.0 or hv2 == 1.0.

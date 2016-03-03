@@ -1887,7 +1887,7 @@ SARRAY    *satext, *sa, *saout;
     if (spacethresh < 0) {
         if ((recog = recogaGetRecog(recoga, 0)) == NULL)
             return (SARRAY *)ERROR_PTR("recog not found", procName, NULL);
-        spacethresh = L_MAX(recog->maxwidth_u, 20);
+        spacethresh = L_MAX(recog->maxheight_u, 20);
     }
     rchaExtract(recoga->rcha, NULL, &nascore, &satext, NULL, NULL, NULL, NULL);
     if (!nascore || !satext) {

@@ -714,8 +714,7 @@ L_COMP_DATA  *cid;
  *              type (encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
  *                    L_FLATE_ENCODE, or 0 for default)
  *              quality (used for JPEG only; 0 for default (75))
- *              title (<optional> pdf title; if null, taken from the first
- *                     image filename)
+ *              title (<optional> pdf title)
  *              fileout (pdf file of all images)
  *      Return: 0 if OK, 1 on error
  *

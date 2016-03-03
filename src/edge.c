@@ -354,7 +354,7 @@ NUMA    *na, *nae;
     }
 
     if (prpl) {
-        nae = numaFindExtrema(na, minreversal);
+        nae = numaFindExtrema(na, minreversal, NULL);
         nreversal = numaGetCount(nae) - 1;
         *prpl = (l_float32)nreversal / (l_float32)(n - 1);
         numaDestroy(&nae);
