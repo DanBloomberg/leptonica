@@ -151,7 +151,7 @@ PIX       *pixv, *pixh;
     }
 
         /* Optionally, correct for horizontal disparity */
-    if (dewa->useboth && dew->hsuccess) {
+    if (dewa->useboth && dew->hsuccess && !dew->skip_horiz) {
         if (dew->hvalid == FALSE) {
             L_INFO("invalid horiz model for page %d\n", procName, pageno);
         } else {
@@ -200,7 +200,9 @@ PIX       *pixv, *pixh;
  *          no dewarping model exists.
  *      (2) The returned @dew contains the model to be used for this page
  *          image.  The @dew is owned by dewa; do not destroy.
- *      (3) See dewarpApplyDisparity() for other details on inputs.
+ *      (3) If both the 'useboth' and 'check_columns' fields are true,
+ *          this checks for multiple text columns and if found, sets
+ *          the 'skip_horiz' field in the @dew for this page.
  */
 static l_int32
 dewarpaApplyInit(L_DEWARPA   *dewa,
@@ -211,8 +213,9 @@ dewarpaApplyInit(L_DEWARPA   *dewa,
                  L_DEWARP   **pdew,
                  const char  *debugfile)
 {
-l_int32    debug;
+l_int32    ncols, debug;
 L_DEWARP  *dew1, *dew2;
+PIX       *pix1;
 
     PROCNAME("dewarpaApplyInit");
 
@@ -251,6 +254,22 @@ L_DEWARP  *dew1, *dew2;
     if (dew2->vvalid == FALSE)
         return ERROR_INT("no model; shouldn't happen", procName, 1);
     *pdew = dew2;
+
+        /* If check_columns is TRUE and useboth is TRUE, check for
+         * multiple columns.  If there is more than one column, we
+         * only apply vertical disparity. */
+    if (dewa->useboth && dewa->check_columns) {
+        pix1 = pixConvertTo1(pixs, 140);
+        pixCountTextColumns(pix1, 0.3, 0.5, 0.1, &ncols, NULL);
+        pixDestroy(&pix1);
+        if (ncols > 1) {
+            L_INFO("found %d columns; not correcting horiz disparity\n",
+                   procName, ncols);
+            dew2->skip_horiz = TRUE;
+        } else {
+            dew2->skip_horiz = FALSE;
+        }
+    }
 
         /* Generate the full res disparity arrays if they don't exist
          * (e.g., if they've been minimized or read from file), or if
@@ -558,7 +577,7 @@ PIX       *pixv, *pixh;
     }
 
         /* Optionally, correct for horizontal disparity */
-    if (dewa->useboth && dew->hsuccess) {
+    if (dewa->useboth && dew->hsuccess && !dew->skip_horiz) {
         if (dew->hvalid == FALSE) {
             L_INFO("invalid horiz model for page %d\n", procName, pageno);
         } else {
@@ -811,8 +830,9 @@ FPIX       *fpixt1, *fpixt2;
     }
 
         /* Similarly, generate the full res horizontal array if it
-         * doesn't exist.  Do this even if useboth == 0. */
-    if (!dew->fullhdispar && dew->samphdispar) {
+         * doesn't exist.  Do this even if useboth == 1, but
+         * not if required to skip running horizontal disparity. */
+    if (!dew->fullhdispar && dew->samphdispar && !dew->skip_horiz) {
         fpixt1 = fpixCopy(NULL, dew->samphdispar);
         if (redfactor == 2)
             fpixAddMultConstant(fpixt1, 0.0, (l_float32)redfactor);

@@ -625,6 +625,7 @@ LEPT_DLL extern l_int32 dewarpaInsertDewarp ( L_DEWARPA *dewa, L_DEWARP *dew );
 LEPT_DLL extern L_DEWARP * dewarpaGetDewarp ( L_DEWARPA *dewa, l_int32 index );
 LEPT_DLL extern l_int32 dewarpaSetCurvatures ( L_DEWARPA *dewa, l_int32 max_linecurv, l_int32 min_diff_linecurv, l_int32 max_diff_linecurv, l_int32 max_edgecurv, l_int32 max_diff_edgecurv, l_int32 max_edgeslope );
 LEPT_DLL extern l_int32 dewarpaUseBothArrays ( L_DEWARPA *dewa, l_int32 useboth );
+LEPT_DLL extern l_int32 dewarpaSetCheckColumns ( L_DEWARPA *dewa, l_int32 check_columns );
 LEPT_DLL extern l_int32 dewarpaSetMaxDistance ( L_DEWARPA *dewa, l_int32 maxdist );
 LEPT_DLL extern L_DEWARP * dewarpRead ( const char *filename );
 LEPT_DLL extern L_DEWARP * dewarpReadStream ( FILE *fp );
@@ -645,8 +646,8 @@ LEPT_DLL extern l_int32 dewarpaApplyDisparity ( L_DEWARPA *dewa, l_int32 pageno,
 LEPT_DLL extern l_int32 dewarpaApplyDisparityBoxa ( L_DEWARPA *dewa, l_int32 pageno, PIX *pixs, BOXA *boxas, l_int32 mapdir, l_int32 x, l_int32 y, BOXA **pboxad, const char *debugfile );
 LEPT_DLL extern l_int32 dewarpMinimize ( L_DEWARP *dew );
 LEPT_DLL extern l_int32 dewarpPopulateFullRes ( L_DEWARP *dew, PIX *pix, l_int32 x, l_int32 y );
-LEPT_DLL extern l_int32 dewarpSinglePage ( PIX *pixs, l_int32 thresh, l_int32 adaptive, l_int32 use_both, PIX **ppixd, L_DEWARPA **pdewa, l_int32 debug );
-LEPT_DLL extern l_int32 dewarpSinglePageInit ( PIX *pixs, l_int32 thresh, l_int32 adaptive, l_int32 use_both, PIX **ppixb, L_DEWARPA **pdewa );
+LEPT_DLL extern l_int32 dewarpSinglePage ( PIX *pixs, l_int32 thresh, l_int32 adaptive, l_int32 useboth, PIX **ppixd, L_DEWARPA **pdewa, l_int32 debug );
+LEPT_DLL extern l_int32 dewarpSinglePageInit ( PIX *pixs, l_int32 thresh, l_int32 adaptive, l_int32 useboth, PIX **ppixb, L_DEWARPA **pdewa );
 LEPT_DLL extern l_int32 dewarpSinglePageRun ( PIX *pixs, PIX *pixb, L_DEWARPA *dewa, PIX **ppixd, l_int32 debug );
 LEPT_DLL extern l_int32 dewarpaListPages ( L_DEWARPA *dewa );
 LEPT_DLL extern l_int32 dewarpaSetValidModels ( L_DEWARPA *dewa, l_int32 notests, l_int32 debug );

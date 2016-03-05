@@ -60,9 +60,13 @@
  *
  *     If a valid vertical disparity model (VDM) is not available,
  *     just use the input image.  Otherwise, assuming the VDM is available:
- *       (a) with useboth == 0, we use only the VDM.
- *       (b) with useboth == 1, we require using the VDM and, if a valid
+ *       (a) With useboth == 0, we use only the VDM.
+ *       (b) With useboth == 1, we require using the VDM and, if a valid
  *           horizontal disparity model (HDM) is available, we also use it.
+ *       (c) With check_columns == 1, check for multiple columns and if
+ *           true, only use the VDM.  This takes precedence over useboth
+ *           when there is more than 1 column of text.  By default,
+ *           check_columns == 1.
  *
  *     The 'maxdist' parameter is input when the dewarpa is created.
  *     The other rendering parameters have default values given in dewarp.c.
@@ -121,6 +125,8 @@ struct L_Dewarpa
                                       /* edge curvature, in micro-units      */
     l_int32            useboth;       /* use both disparity arrays if        */
                                       /* available; just vertical otherwise  */
+    l_int32            check_columns; /* if there are multiple columns, only */
+                                      /* use the vertical disparity array    */
     l_int32            modelsready;   /* invalid models have been removed    */
                                       /* and refs built against valid set    */
 };
@@ -158,6 +164,7 @@ struct L_Dewarp
     l_int32            hsuccess;     /* sets to 1 if horiz disparity builds  */
     l_int32            vvalid;       /* sets to 1 if valid vert disparity    */
     l_int32            hvalid;       /* sets to 1 if valid horiz disparity   */
+    l_int32            skip_horiz;   /* if 1, skip horiz disparity correction */
     l_int32            debug;        /* sets to 1 if debug output requested  */
 };
 typedef struct L_Dewarp L_DEWARP;

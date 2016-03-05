@@ -1309,15 +1309,15 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
 
     if (!pncols)
         return ERROR_INT("&ncols not defined", procName, 1);
-    *pncols = 0;  /* init */
+    *pncols = -1;  /* init */
     if (!pixs || pixGetDepth(pixs) != 1)
         return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
     if (deltafract < 0.15 || deltafract > 0.75)
         L_WARNING("deltafract not in [0.15 ... 0.75]\n", procName);
     if (peakfract < 0.25 || peakfract > 0.9)
         L_WARNING("peakfract not in [0.25 ... 0.9]\n", procName);
-    if (clipfract < 0.0 || clipfract > 0.5)
-        return ERROR_INT("clipfract not in [0.0 ... 0.5]\n", procName, 1);
+    if (clipfract < 0.0 || clipfract >= 0.5)
+        return ERROR_INT("clipfract not in [0.0 ... 0.5)\n", procName, 1);
     if (pixadb) pixaAddPix(pixadb, pixs, L_COPY);
 
         /* Scale to between 37.5 and 75 ppi */

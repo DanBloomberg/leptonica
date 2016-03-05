@@ -48,6 +48,7 @@
  *      Setting parameters to control rendering from the model
  *          l_int32            dewarpaSetCurvatures()
  *          l_int32            dewarpaUseBothArrays()
+ *          l_int32            dewarpaSetCheckColumns()
  *          l_int32            dewarpaSetMaxDistance()
  *
  *      Dewarp serialized I/O
@@ -397,6 +398,7 @@ static const l_int32     MIN_ARRAY_SAMPLING = 8;
 static const l_int32     DEFAULT_MIN_LINES = 15;
 static const l_int32     MIN_MIN_LINES = 4;
 static const l_int32     DEFAULT_MAX_REF_DIST = 16;
+static const l_int32     DEFAULT_CHECK_COLUMNS = TRUE;
 
     /* Parameter values used in dewarpaSetCurvatures() */
 static const l_int32     DEFAULT_MAX_LINECURV = 180;
@@ -598,6 +600,7 @@ L_DEWARPA  *dewa;
     dewa->max_edgeslope = DEFAULT_MAX_EDGESLOPE;
     dewa->max_edgecurv = DEFAULT_MAX_EDGECURV;
     dewa->max_diff_edgecurv = DEFAULT_MAX_DIFF_EDGECURV;
+    dewa->check_columns = DEFAULT_CHECK_COLUMNS;
 
     return dewa;
 }
@@ -1003,6 +1006,39 @@ dewarpaUseBothArrays(L_DEWARPA  *dewa,
 
     dewa->useboth = useboth;
     dewa->modelsready = 0;  /* force validation */
+    return 0;
+}
+
+
+/*!
+ *  dewarpaSetCheckColumns()
+ *
+ *      Input:  dewa
+ *              check_columns (0 for false, 1 for true)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This sets the 'check_columns" field.  If set, and if
+ *          'useboth' is set, this will count the number of text
+ *          columns.  If the number is larger than 1, this will
+ *          prevent the application of horizontal disparity arrays
+ *          if they exist.
+ *      (2) This field is set to 1 by default.  For horizontal disparity
+ *          correction to take place, in addition to having a
+ *          valid horizontal disparity array, 'useboth' must be 1,
+ *          and if 'check_columns' is 1, there must be only one
+ *          column of text.
+ */
+l_int32
+dewarpaSetCheckColumns(L_DEWARPA  *dewa,
+                       l_int32     check_columns)
+{
+    PROCNAME("dewarpaSetCheckColumns");
+
+    if (!dewa)
+        return ERROR_INT("dewa not defined", procName, 1);
+
+    dewa->check_columns = check_columns;
     return 0;
 }
 
