@@ -917,7 +917,7 @@ PIXA    *pixa1, *pixa2, *pixa3, *pixad;
         pix2 = pixConvertTo8(pixs, FALSE);
         pix3 = pixCleanBackgroundToWhite(pix2, NULL, NULL, 1.0, 70, 190);
         pix1 = pixThresholdToBinary(pix3, 150);
-        pixDestroy(&pix3);
+        pixDestroy(&pix2);
         pixDestroy(&pix3);
     } else {
         pix1 = pixClone(pixs);
