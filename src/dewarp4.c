@@ -76,6 +76,8 @@ static const l_int32     GRAYIN_VALUE = 200;
  *              thresh (for global thresholding to 1 bpp; ignored otherwise)
  *              adaptive (1 for adaptive thresholding; 0 for global threshold)
  *              useboth (1 for horizontal and vertical; 0 for vertical only)
+ *              check_columns (1 to skip horizontal if multiple columns;
+ *                             0 otherwise; default is to skip)
  *              &pixd (<return> dewarped result)
  *              &dewa (<optional return> dewa with single page; NULL to skip)
  *              debug (1 for debugging output, 0 otherwise)
@@ -92,6 +94,7 @@ dewarpSinglePage(PIX         *pixs,
                  l_int32      thresh,
                  l_int32      adaptive,
                  l_int32      useboth,
+                 l_int32      check_columns,
                  PIX        **ppixd,
                  L_DEWARPA  **pdewa,
                  l_int32      debug)
@@ -108,7 +111,7 @@ PIX        *pixb;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-    dewarpSinglePageInit(pixs, thresh, adaptive, useboth, &pixb, &dewa);
+    dewarpSinglePageInit(pixs, thresh, adaptive, useboth, check_columns, &pixb, &dewa);
     if (!pixb) {
         dewarpaDestroy(&dewa);
         return ERROR_INT("pixb not made", procName, 1);
@@ -132,6 +135,8 @@ PIX        *pixb;
  *              thresh (for global thresholding to 1 bpp; ignored otherwise)
  *              adaptive (1 for adaptive thresholding; 0 for global threshold)
  *              useboth (1 for horizontal and vertical; 0 for vertical only)
+ *              check_columns (1 to skip horizontal if multiple columns;
+ *                             0 otherwise; default is to skip)
  *              &pixb (<return> 1 bpp image)
  *              &dewa (<return> initialized dewa)
  *      Return: 0 if OK, 1 on error (list of page numbers), or null on error
@@ -143,7 +148,7 @@ PIX        *pixb;
  *      (2) If pixs is 1 bpp, the parameters @adaptive and @thresh are ignored.
  *      (3) To change the model parameters, call dewarpaSetCurvatures()
  *          before running dewarpSinglePageRun().  For example:
- *             dewarpSinglePageInit(pixs, 0, 1, 1, &pixb, &dewa);
+ *             dewarpSinglePageInit(pixs, 0, 1, 1, 1, &pixb, &dewa);
  *             dewarpaSetCurvatures(dewa, 250, -1, -1, 80, 70, 150);
  *             dewarpSinglePageRun(pixs, pixb, dewa, &pixd, 0);
  *             dewarpaDestroy(&dewa);
@@ -154,6 +159,7 @@ dewarpSinglePageInit(PIX         *pixs,
                      l_int32      thresh,
                      l_int32      adaptive,
                      l_int32      useboth,
+                     l_int32      check_columns,
                      PIX        **ppixb,
                      L_DEWARPA  **pdewa)
 {
@@ -170,6 +176,7 @@ PIX  *pix1;
 
     *pdewa = dewarpaCreate(1, 0, 1, 0, -1);
     dewarpaUseBothArrays(*pdewa, useboth);
+    dewarpaSetCheckColumns(*pdewa, check_columns);
 
          /* Generate a binary image, if necessary */
     if (pixGetDepth(pixs) > 1) {

@@ -47,6 +47,10 @@
  *           l_int32   ptaPtInsidePolygon()
  *           l_float32 l_angleBetweenVectors()
  *
+ *      Min/max and filtering
+ *           l_int32   ptaGetMinMax()
+ *           PTA      *ptaSelectByValue()
+ *
  *      Least Squares Fit
  *           l_int32   ptaGetLinearLSF()
  *           l_int32   ptaGetQuadraticLSF()
@@ -749,6 +753,134 @@ l_float64  ang;
     if (ang > M_PI) ang -= 2.0 * M_PI;
     if (ang < -M_PI) ang += 2.0 * M_PI;
     return ang;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                       Min/max and filtering                         *
+ *---------------------------------------------------------------------*/
+/*!
+ *  ptaGetMinMax()
+ *
+ *      Input:  pta
+ *              &xmin  (<optional return> min of x)
+ *              &ymin  (<optional return> min of y)
+ *              &xmax  (<optional return> max of x)
+ *              &ymax  (<optional return> max of y)
+ *      Return: 0 if OK, 1 on error.  If pta is empty, requested
+ *              values are returned as -1.0.
+ */
+l_int32
+ptaGetMinMax(PTA        *pta,
+             l_float32  *pxmin,
+             l_float32  *pymin,
+             l_float32  *pxmax,
+             l_float32  *pymax)
+{
+l_int32    i, n;
+l_float32  x, y, xmin, ymin, xmax, ymax;
+
+    PROCNAME("ptaGetMinMax");
+
+    if (pxmin) *pxmin = -1.0;
+    if (pymin) *pymin = -1.0;
+    if (pxmax) *pxmax = -1.0;
+    if (pymax) *pymax = -1.0;
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+    if (!pxmin && !pxmax && !pymin && !pymax)
+        return ERROR_INT("no output requested", procName, 1);
+    if ((n = ptaGetCount(pta)) == 0) {
+        L_WARNING("pta is empty\n", procName);
+        return 0;
+    }
+
+    xmin = ymin = 1.0e20;
+    xmax = ymax = -1.0e-20;
+    for (i = 0; i < n; i++) {
+        ptaGetPt(pta, i, &x, &y);
+        if (x < xmin) xmin = x;
+        if (y < ymin) ymin = y;
+        if (x > xmax) xmax = x;
+        if (y > ymax) ymax = y;
+    }
+    if (pxmin) *pxmin = xmin;
+    if (pymin) *pymin = ymin;
+    if (pxmax) *pxmax = xmax;
+    if (pymax) *pymax = ymax;
+    return 0;
+}
+
+
+/*!
+ *  ptaSelectByValue()
+ *
+ *      Input:  ptas
+ *              xth, yth (threshold values)
+ *              type (L_SELECT_XVAL, L_SELECT_YVAL,
+ *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH)
+ *              relation (L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE)
+ *      Return: ptad (filtered set), or null on error
+ */
+PTA *
+ptaSelectByValue(PTA       *ptas,
+                 l_float32  xth,
+                 l_float32  yth,
+                 l_int32    type,
+                 l_int32    relation)
+{
+l_int32    i, n;
+l_float32  x, y;
+PTA       *ptad;
+
+    PROCNAME("ptaSelectByValue");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+    if (ptaGetCount(ptas) == 0) {
+        L_WARNING("ptas is empty\n", procName);
+        return ptaCopy(ptas);
+    }
+    if (type != L_SELECT_XVAL && type != L_SELECT_YVAL &&
+        type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
+        return (PTA *)ERROR_PTR("invalid type", procName, NULL);
+    if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
+        relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
+        return (PTA *)ERROR_PTR("invalid relation", procName, NULL);
+
+    n = ptaGetCount(ptas);
+    ptad = ptaCreate(n);
+    for (i = 0; i < n; i++) {
+        ptaGetPt(ptas, i, &x, &y);
+        if (type == L_SELECT_XVAL) {
+            if ((relation == L_SELECT_IF_LT && x < xth) ||
+                (relation == L_SELECT_IF_GT && x > xth) ||
+                (relation == L_SELECT_IF_LTE && x <= xth) ||
+                (relation == L_SELECT_IF_GTE && x >= xth))
+                ptaAddPt(ptad, x, y);
+        } else if (type == L_SELECT_YVAL) {
+            if ((relation == L_SELECT_IF_LT && y < yth) ||
+                (relation == L_SELECT_IF_GT && y > yth) ||
+                (relation == L_SELECT_IF_LTE && y <= yth) ||
+                (relation == L_SELECT_IF_GTE && y >= yth))
+                ptaAddPt(ptad, x, y);
+        } else if (type == L_SELECT_IF_EITHER) {
+            if (((relation == L_SELECT_IF_LT) && (x < xth || y < yth)) ||
+                ((relation == L_SELECT_IF_GT) && (x > xth || y > yth)) ||
+                ((relation == L_SELECT_IF_LTE) && (x <= xth || y <= yth)) ||
+                ((relation == L_SELECT_IF_GTE) && (x >= xth || y >= yth)))
+                ptaAddPt(ptad, x, y);
+        } else {  /* L_SELECT_IF_BOTH */
+            if (((relation == L_SELECT_IF_LT) && (x < xth && y < yth)) ||
+                ((relation == L_SELECT_IF_GT) && (x > xth && y > yth)) ||
+                ((relation == L_SELECT_IF_LTE) && (x <= xth && y <= yth)) ||
+                ((relation == L_SELECT_IF_GTE) && (x >= xth && y >= yth)))
+                ptaAddPt(ptad, x, y);
+        }
+    }
+
+    return ptad;
 }
 
 

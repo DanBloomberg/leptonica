@@ -346,6 +346,7 @@ FPIX       *fpix;
         pixWrite("/tmp/lept/dewmod/0041.png", pix2, IFF_PNG);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
+        ptaDestroy(&pta);
         pixDestroy(&pixcirc);
         ptaaDestroy(&ptaat);
     }
@@ -532,13 +533,15 @@ dewarpFindHorizDisparity(L_DEWARP  *dew,
 {
 l_int32    i, j, h, nx, ny, sampling, ret;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
-l_float32  x, y, refl, refr;
+l_float32  x, y, ymin, ymax, refl, refr;
 l_float32  val, mederr;
 NUMA      *nald, *nard;
 PIX       *pix1;
-PTA       *ptal, *ptar;  /* left and right end points of lines */
-PTA       *ptalf, *ptarf;  /* left and right block, fitted, uniform spacing */
-PTA       *pta, *ptat, *pta1, *pta2, *ptald, *ptard;
+PTA       *ptal1, *ptar1;  /* left and right end points of lines; initial */
+PTA       *ptal2, *ptar2;  /* left and right end points of lines; after filtering */
+PTA       *ptal3, *ptar3;  /* left and right end points of lines; long lines only */
+PTA       *ptal4, *ptar4;  /* left and right block, fitted, uniform spacing */
+PTA       *pta, *ptat, *pta1, *pta2;
 PTAA      *ptaah;
 FPIX      *fpix;
 
@@ -556,22 +559,35 @@ FPIX      *fpix;
 
         /* Get the endpoints of the lines */
     h = pixGetHeight(dew->pixs);
-    ret = dewarpGetLineEndpoints(h, ptaa, &ptal, &ptar);
+    ret = dewarpGetLineEndpoints(h, ptaa, &ptal1, &ptar1);
     if (ret) {
         L_INFO("Horiz disparity not built\n", procName);
         return 1;
     }
     if (dew->debug) {
-        ptaWrite("/tmp/lept/dewdebug/endpts_left.pta", ptal, 1);
-        ptaWrite("/tmp/lept/dewdebug/endpts_right.pta", ptar, 1);
+        ptaWrite("/tmp/lept/dewdebug/endpts_left1.pta", ptal1, 1);
+        ptaWrite("/tmp/lept/dewdebug/endpts_right1.pta", ptar1, 1);
+    }
+
+        /* Filter the points by location to prevent 2-column images
+         * from getting confused about left and right endpoints. */
+    ptaGetMinMax(ptal1, NULL, &ymin, NULL, &ymax);
+    ptal2 = ptaSelectByValue(ptal1, 0, ymin + 0.2 * (ymax - ymin), L_SELECT_YVAL,
+                             L_SELECT_IF_LT);
+    ptaGetMinMax(ptar1, NULL, NULL, NULL, &ymax);
+    ptar2 = ptaSelectByValue(ptar1, 0, 0.85 * ymax, L_SELECT_YVAL, L_SELECT_IF_GT);
+    ptaDestroy(&ptal1);
+    ptaDestroy(&ptar1);
+    if (dew->debug) {
+        ptaWrite("/tmp/lept/dewdebug/endpts_left2.pta", ptal2, 1);
+        ptaWrite("/tmp/lept/dewdebug/endpts_right2.pta", ptar2, 1);
     }
 
         /* Do a quadratic fit to the left and right endpoints of the
          * longest lines.  Each line is represented by 3 coefficients:
          *     x(y) = c2 * y^2 + c1 * y + c0.
          * Using the coefficients, sample each fitted curve uniformly
-         * along the full height of the image.
-         * TODO: Set right edge disparity to 0 if not flush-right aligned */
+         * along the full height of the image. */
     sampling = dew->sampling;
     nx = dew->nx;
     ny = dew->ny;
@@ -579,12 +595,12 @@ FPIX      *fpix;
         /* Find the top and bottom set of long lines, defined by being
          * at least 0.95 of the length of the longest line in each set.
          * Quit if there are not at least 3 lines in each set. */
-    ptald = ptard = NULL;  /* end points of longest lines */
-    ret = dewarpFindLongLines(ptal, ptar, 0.95, &ptald, &ptard);
+    ptal3 = ptar3 = NULL;  /* end points of longest lines */
+    ret = dewarpFindLongLines(ptal2, ptar2, 0.95, &ptal3, &ptar3);
     if (ret) {
         L_INFO("Horiz disparity not built\n", procName);
-        ptaDestroy(&ptal);
-        ptaDestroy(&ptar);
+        ptaDestroy(&ptal2);
+        ptaDestroy(&ptar2);
         return 1;
     }
 
@@ -593,31 +609,31 @@ FPIX      *fpix;
          * function, because we've removed outlier end points by
          * selecting the long lines.  Then uniformly sample along
          * this fitted curve. */
-    dewarpQuadraticLSF(ptald, &cl2, &cl1, &cl0, &mederr);
+    dewarpQuadraticLSF(ptal3, &cl2, &cl1, &cl0, &mederr);
     dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
     dew->leftcurv = lept_roundftoi(1000000. * cl2);  /* micro-units */
     L_INFO("Left quad LSF median error = %5.2f\n", procName,  mederr);
     L_INFO("Left edge slope = %d\n", procName, dew->leftslope);
     L_INFO("Left edge curvature = %d\n", procName, dew->leftcurv);
-    ptalf = ptaCreate(ny);
+    ptal4 = ptaCreate(ny);
     for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
         y = i * sampling;
         applyQuadraticFit(cl2, cl1, cl0, y, &x);
-        ptaAddPt(ptalf, x, y);
+        ptaAddPt(ptal4, x, y);
     }
 
         /* Fit the right side in the same way. */
-    dewarpQuadraticLSF(ptard, &cr2, &cr1, &cr0, &mederr);
+    dewarpQuadraticLSF(ptar3, &cr2, &cr1, &cr0, &mederr);
     dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
     dew->rightcurv = lept_roundftoi(1000000. * cr2);  /* micro-units */
     L_INFO("Right quad LSF median error = %5.2f\n", procName,  mederr);
     L_INFO("Right edge slope = %d\n", procName, dew->rightslope);
     L_INFO("Right edge curvature = %d\n", procName, dew->rightcurv);
-    ptarf = ptaCreate(ny);
+    ptar4 = ptaCreate(ny);
     for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
         y = i * sampling;
         applyQuadraticFit(cr2, cr1, cr0, y, &x);
-        ptaAddPt(ptarf, x, y);
+        ptaAddPt(ptar4, x, y);
     }
 
     if (dew->debug) {
@@ -633,15 +649,15 @@ FPIX      *fpix;
         }
         pix1 = pixDisplayPta(NULL, dew->pixs, pta1);
         pixDisplayPta(pix1, pix1, pta2);
-        pixRenderHorizEndPoints(pix1, ptald, ptard, 0xff000000);
+        pixRenderHorizEndPoints(pix1, ptal3, ptar3, 0xff000000);
         pixDisplay(pix1, 600, 800);
         pixWrite("/tmp/lept/dewmod/0051.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
 
         pix1 = pixDisplayPta(NULL, dew->pixs, pta1);
         pixDisplayPta(pix1, pix1, pta2);
-        ptalft = ptaTranspose(ptalf);
-        ptarft = ptaTranspose(ptarf);
+        ptalft = ptaTranspose(ptal4);
+        ptarft = ptaTranspose(ptar4);
         pixRenderHorizEndPoints(pix1, ptalft, ptarft, 0x0000ff00);
         pixDisplay(pix1, 800, 800);
         pixWrite("/tmp/lept/dewmod/0052.png", pix1, IFF_PNG);
@@ -657,19 +673,19 @@ FPIX      *fpix;
     }
 
         /* Find the x value at the midpoints (in y) of the two vertical lines,
-         * ptalf and ptarf.  These are the reference values for each of the
+         * ptal4 and ptar4.  These are the reference values for each of the
          * lines.  Then use the difference between the these midpoint
          * values and the actual x coordinates of the lines to represent
          * the horizontal disparity (nald, nard) on the vertical lines
          * for the sampled y values. */
-    ptaGetPt(ptalf, ny / 2, &refl, NULL);
-    ptaGetPt(ptarf, ny / 2, &refr, NULL);
+    ptaGetPt(ptal4, ny / 2, &refl, NULL);
+    ptaGetPt(ptar4, ny / 2, &refr, NULL);
     nald = numaCreate(ny);
     nard = numaCreate(ny);
     for (i = 0; i < ny; i++) {
-        ptaGetPt(ptalf, i, &x, NULL);
+        ptaGetPt(ptal4, i, &x, NULL);
         numaAddNumber(nald, refl - x);
-        ptaGetPt(ptarf, i, &x, NULL);
+        ptaGetPt(ptar4, i, &x, NULL);
         numaAddNumber(nard, refr - x);
     }
 
@@ -707,13 +723,12 @@ FPIX      *fpix;
     dew->samphdispar = fpix;
     dew->hsuccess = 1;
 
-    ptaDestroy(&ptal);
-    ptaDestroy(&ptar);
-    ptaDestroy(&ptald);
-    ptaDestroy(&ptard);
-    ptaDestroy(&ptalf);
-    ptaDestroy(&ptarf);
-    ptaDestroy(&ptard);
+    ptaDestroy(&ptal2);
+    ptaDestroy(&ptar2);
+    ptaDestroy(&ptal3);
+    ptaDestroy(&ptar3);
+    ptaDestroy(&ptal4);
+    ptaDestroy(&ptar4);
     ptaaDestroy(&ptaah);
     return 0;
 }

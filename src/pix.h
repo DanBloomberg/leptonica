@@ -712,13 +712,17 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
- *                           Size filter flags                             *
+ *                     Size and location filter flags                      *
  *-------------------------------------------------------------------------*/
 enum {
     L_SELECT_WIDTH = 1,           /* width must satisfy constraint         */
     L_SELECT_HEIGHT = 2,          /* height must satisfy constraint        */
-    L_SELECT_IF_EITHER = 3,       /* either width or height can satisfy    */
-    L_SELECT_IF_BOTH = 4          /* both width and height must satisfy    */
+    L_SELECT_XVAL = 3,            /* x value satisfy constraint            */
+    L_SELECT_YVAL = 4,            /* y value must satisfy constraint       */
+    L_SELECT_IF_EITHER = 5,       /* either width or height (or xval       */
+                                  /* or yval) can satisfy                  */
+    L_SELECT_IF_BOTH = 6          /* both width and height (or xval        */
+                                  /* and yval must satisfy                 */
 };
 
 enum {
