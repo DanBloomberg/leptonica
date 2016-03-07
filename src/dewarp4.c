@@ -111,7 +111,8 @@ PIX        *pixb;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-    dewarpSinglePageInit(pixs, thresh, adaptive, useboth, check_columns, &pixb, &dewa);
+    dewarpSinglePageInit(pixs, thresh, adaptive, useboth,
+                         check_columns, &pixb, &dewa);
     if (!pixb) {
         dewarpaDestroy(&dewa);
         return ERROR_INT("pixb not made", procName, 1);
@@ -423,7 +424,7 @@ L_DEWARP  *dew;
  *          dewarpaRead() when it is read back.  It is also called
  *          any time the rendering parameters are changed.
  *      (9) Note: if this has been called with useboth == 1, and useboth
- *          is reset to 0, you should first call dewarpRestoreModels()
+ *          is reset to 0, you should first call dewarpaRestoreModels()
  *          to bring real models from the cache back to the primary array.
  */
 l_int32
@@ -588,7 +589,7 @@ L_DEWARP  *dew;
  *
  *  Notes:
  *      (1) This puts all real models (and only real models) in the
- *          primary dewarp array.  First remove all dewarps that are
+ *          primary dewarpa array.  First remove all dewarps that are
  *          only references to other page models.  Then move all models
  *          that had been cached back into the primary dewarp array.
  *      (2) After this is done, we still need to recompute and insert

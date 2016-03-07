@@ -108,7 +108,7 @@ static const l_float32   MIN_RATIO_LINES_TO_HEIGHT = 0.45;
  *              the vertical disparity.
  *          (c) From the ends of the lines, estimate the horizontal
  *              disparity, assuming that the text is made of lines
- *              that are left and right justified.
+ *              that are close to left and right justified.
  *          (d) One can also compute an additional contribution to the
  *              horizontal disparity, inferred from slopes of the top
  *              and bottom lines.  We do not do this.
@@ -268,9 +268,12 @@ PTAA    *ptaa1, *ptaa2;
  *      (2) Use @rotflag == 1 if you are dewarping vertical lines, as
  *          is done in dewarpBuildLineModel().  The usual case is for
  *          @rotflag == 0.
- *      (3) The model fails to build if the vertical disparity fails.
- *          This sets the vsuccess flag to 1 on success.
- *      (4) Pix debug output goes to /tmp/dewvert/ for collection into
+ *      (3) Note that this builds a vertical disparity model (VDM), but
+ *          does not check it against constraints for validity.
+ *          Constraint checking is done after building the models,
+ *          and before inserting reference models.
+ *      (4) This sets the vsuccess flag to 1 on success.
+ *      (5) Pix debug output goes to /tmp/dewvert/ for collection into
  *          a pdf.  Non-pix debug output goes to /tmp.
  */
 l_int32
@@ -522,10 +525,14 @@ FPIX       *fpix;
  *              ptaa (unsmoothed lines, not vertically ordered)
  *      Return: 0 if OK, 1 if vertical disparity array is no built or on error
  *
- *      (1) This is not required for a successful model; only the vertical
+ *      (1) This builds a vertical disparity model (VDM), but
+ *          does not check it against constraints for validity.
+ *          Constraint checking is done at rendering time.
+ *      (2) This is not required for a successful model; only the vertical
  *          disparity is required.  This will not be called if the
  *          function to build the vertical disparity fails.
- *      (2) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
+ *      (3) This sets the vsuccess flag to 1 on success.
+ *      (4) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
  */
 l_int32
 dewarpFindHorizDisparity(L_DEWARP  *dew,
@@ -572,10 +579,11 @@ FPIX      *fpix;
         /* Filter the points by location to prevent 2-column images
          * from getting confused about left and right endpoints. */
     ptaGetMinMax(ptal1, NULL, &ymin, NULL, &ymax);
-    ptal2 = ptaSelectByValue(ptal1, 0, ymin + 0.2 * (ymax - ymin), L_SELECT_YVAL,
-                             L_SELECT_IF_LT);
+    ptal2 = ptaSelectByValue(ptal1, 0, ymin + 0.2 * (ymax - ymin),
+                             L_SELECT_YVAL, L_SELECT_IF_LT);
     ptaGetMinMax(ptar1, NULL, NULL, NULL, &ymax);
-    ptar2 = ptaSelectByValue(ptar1, 0, 0.85 * ymax, L_SELECT_YVAL, L_SELECT_IF_GT);
+    ptar2 = ptaSelectByValue(ptar1, 0, 0.85 * ymax, L_SELECT_YVAL,
+                             L_SELECT_IF_GT);
     ptaDestroy(&ptal1);
     ptaDestroy(&ptar1);
     if (dew->debug) {

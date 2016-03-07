@@ -353,10 +353,9 @@
  *      vertical disparity field V(x,y).
  *  (3) Interpolate this to generate a full resolution vertical
  *      disparity field.
- *  (4) For lines that are sufficiently long, determine if the lines
- *      are left and right-justified, and if so, construct a highly
- *      subsampled horizontal disparity field H(x,y) that will bring
- *      them into alignment.
+ *  (4) For lines that are sufficiently long, assume they are approximately
+ *      left and right-justified, and construct a highly subsampled
+ *      horizontal disparity field H(x,y) that will bring them into alignment.
  *  (5) Interpolate this to generate a full resolution horizontal
  *      disparity field.
  *  (6) Apply the vertical dewarping, followed by the horizontal dewarping.
@@ -398,7 +397,7 @@ static const l_int32     MIN_ARRAY_SAMPLING = 8;
 static const l_int32     DEFAULT_MIN_LINES = 15;
 static const l_int32     MIN_MIN_LINES = 4;
 static const l_int32     DEFAULT_MAX_REF_DIST = 16;
-static const l_int32     DEFAULT_CHECK_COLUMNS = TRUE;
+static const l_int32     DEFAULT_CHECK_COLUMNS = FALSE;
 
     /* Parameter values used in dewarpaSetCurvatures() */
 static const l_int32     DEFAULT_MAX_LINECURV = 180;

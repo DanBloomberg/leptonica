@@ -58,18 +58,24 @@
  *         parity (even/odd page) that it can use.  The range in pages
  *         to search for a valid model is given by the 'maxdist' field.
  *
- *     If a valid vertical disparity model (VDM) is not available,
- *     just use the input image.  Otherwise, assuming the VDM is available:
+ *     At the rendering stage, vertical and horizontal disparities are
+ *     treated differently.  It is somewhat more robust to generate
+ *     vertical disparity models (VDM) than horizontal disparity
+ *     models (HDM). A valid VDM is required for any correction to
+ *     be made; if a valid VDM is not available, just use the input
+ *     image.  Otherwise, assuming it is available, the use of the
+ *     HDM is controlled by two fields: 'useboth' and 'check_columns'.
  *       (a) With useboth == 0, we use only the VDM.
  *       (b) With useboth == 1, we require using the VDM and, if a valid
  *           horizontal disparity model (HDM) is available, we also use it.
  *       (c) With check_columns == 1, check for multiple columns and if
- *           true, only use the VDM.  This takes precedence over useboth
+ *           true, only use the VDM, even if a valid HDM is available.
+ *           Note that 'check_columns' takes precedence over 'useboth'
  *           when there is more than 1 column of text.  By default,
- *           check_columns == 1.
+ *           check_columns == 0.
  *
  *     The 'maxdist' parameter is input when the dewarpa is created.
- *     The other rendering parameters have default values given in dewarp.c.
+ *     The other rendering parameters have default values given in dewarp1.c.
  *     All parameters used by rendering can be set (or reset) using accessors.
  *
  *     After dewarping, use of the VDM will cause all points on each

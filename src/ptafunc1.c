@@ -796,7 +796,7 @@ l_float32  x, y, xmin, ymin, xmax, ymax;
     }
 
     xmin = ymin = 1.0e20;
-    xmax = ymax = -1.0e-20;
+    xmax = ymax = -1.0e20;
     for (i = 0; i < n; i++) {
         ptaGetPt(pta, i, &x, &y);
         if (x < xmin) xmin = x;
