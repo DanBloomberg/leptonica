@@ -2169,7 +2169,7 @@ L_MEMSTREAM  *mstream;
     else
         mstream = memstreamCreateForWrite(pdata, pdatasize);
 
-    return TIFFClientOpen(filename, operation, mstream,
+    return TIFFClientOpen(filename, operation, (thandle_t)mstream,
                           tiffReadCallback, tiffWriteCallback,
                           tiffSeekCallback, tiffCloseCallback,
                           tiffSizeCallback, tiffMapCallback,
