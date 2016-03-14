@@ -462,8 +462,8 @@ LEPT_DLL extern l_int32 pixcmapCountGrayColors ( PIXCMAP *cmap, l_int32 *pngray 
 LEPT_DLL extern l_int32 pixcmapGetRankIntensity ( PIXCMAP *cmap, l_float32 rankval, l_int32 *pindex );
 LEPT_DLL extern l_int32 pixcmapGetNearestIndex ( PIXCMAP *cmap, l_int32 rval, l_int32 gval, l_int32 bval, l_int32 *pindex );
 LEPT_DLL extern l_int32 pixcmapGetNearestGrayIndex ( PIXCMAP *cmap, l_int32 val, l_int32 *pindex );
-LEPT_DLL extern l_int32 pixcmapGetComponentRange ( PIXCMAP *cmap, l_int32 color, l_int32 *pminval, l_int32 *pmaxval );
-LEPT_DLL extern l_int32 pixcmapGetExtremeValue ( PIXCMAP *cmap, l_int32 type, l_int32 *prval, l_int32 *pgval, l_int32 *pbval );
+LEPT_DLL extern l_int32 pixcmapGetDistanceToColor ( PIXCMAP *cmap, l_int32 index, l_int32 rval, l_int32 gval, l_int32 bval, l_int32 *pdist );
+LEPT_DLL extern l_int32 pixcmapGetRangeValues ( PIXCMAP *cmap, l_int32 select, l_int32 *pminval, l_int32 *pmaxval, l_int32 *pminindex, l_int32 *pmaxindex );
 LEPT_DLL extern PIXCMAP * pixcmapGrayToColor ( l_uint32 color );
 LEPT_DLL extern PIXCMAP * pixcmapColorToGray ( PIXCMAP *cmaps, l_float32 rwt, l_float32 gwt, l_float32 bwt );
 LEPT_DLL extern PIXCMAP * pixcmapRead ( const char *filename );
@@ -1552,7 +1552,7 @@ LEPT_DLL extern l_int32 pixGetAverageTiledRGB ( PIX *pixs, l_int32 sx, l_int32 s
 LEPT_DLL extern PIX * pixGetAverageTiled ( PIX *pixs, l_int32 sx, l_int32 sy, l_int32 type );
 LEPT_DLL extern l_int32 pixRowStats ( PIX *pixs, BOX *box, NUMA **pnamean, NUMA **pnamedian, NUMA **pnamode, NUMA **pnamodecount, NUMA **pnavar, NUMA **pnarootvar );
 LEPT_DLL extern l_int32 pixColumnStats ( PIX *pixs, BOX *box, NUMA **pnamean, NUMA **pnamedian, NUMA **pnamode, NUMA **pnamodecount, NUMA **pnavar, NUMA **pnarootvar );
-LEPT_DLL extern l_int32 pixGetComponentRange ( PIX *pixs, l_int32 factor, l_int32 color, l_int32 *pminval, l_int32 *pmaxval );
+LEPT_DLL extern l_int32 pixGetRangeValues ( PIX *pixs, l_int32 factor, l_int32 color, l_int32 *pminval, l_int32 *pmaxval );
 LEPT_DLL extern l_int32 pixGetExtremeValue ( PIX *pixs, l_int32 factor, l_int32 type, l_int32 *prval, l_int32 *pgval, l_int32 *pbval, l_int32 *pgrayval );
 LEPT_DLL extern l_int32 pixGetMaxValueInRect ( PIX *pixs, BOX *box, l_uint32 *pmaxval, l_int32 *pxmax, l_int32 *pymax );
 LEPT_DLL extern l_int32 pixGetBinnedComponentRange ( PIX *pixs, l_int32 nbins, l_int32 factor, l_int32 color, l_int32 *pminval, l_int32 *pmaxval, l_uint32 **pcarray, l_int32 fontsize );
@@ -1812,6 +1812,7 @@ LEPT_DLL extern PIX * pixConvertGrayToColormap ( PIX *pixs );
 LEPT_DLL extern PIX * pixConvertGrayToColormap8 ( PIX *pixs, l_int32 mindepth );
 LEPT_DLL extern PIX * pixColorizeGray ( PIX *pixs, l_uint32 color, l_int32 cmapflag );
 LEPT_DLL extern PIX * pixConvertRGBToColormap ( PIX *pixs, l_int32 ditherflag );
+LEPT_DLL extern PIX * pixConvertCmapTo1 ( PIX *pixs );
 LEPT_DLL extern l_int32 pixQuantizeIfFewColors ( PIX *pixs, l_int32 maxcolors, l_int32 mingraycolors, l_int32 octlevel, PIX **ppixd );
 LEPT_DLL extern PIX * pixConvert16To8 ( PIX *pixs, l_int32 type );
 LEPT_DLL extern PIX * pixConvertGrayToFalseColor ( PIX *pixs, l_float32 gamma );

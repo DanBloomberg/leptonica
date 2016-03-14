@@ -61,8 +61,8 @@
  *           l_int32     pixcmapGetRankIntensity()
  *           l_int32     pixcmapGetNearestIndex()
  *           l_int32     pixcmapGetNearestGrayIndex()
- *           l_int32     pixcmapGetComponentRange()
- *           l_int32     pixcmapGetExtremeValue()
+ *           l_int32     pixcmapGetDistanceToColor()
+ *           l_int32     pixcmapGetRangeValues()
  *
  *      Colormap conversion
  *           PIXCMAP    *pixcmapGrayToColor()
@@ -1228,111 +1228,146 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapGetComponentRange()
+ *  pixcmapGetDistanceToColor()
  *
  *      Input:  cmap
- *              color (L_SELECT_RED, L_SELECT_GREEN or L_SELECT_BLUE)
- *              &minval (<optional return> minimum value of component)
- *              &maxval (<optional return> minimum value of component)
+ *              index
+ *              rval, gval, bval (target color)
+ *              &dist (<return> the distance from the cmap entry to target)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Returns for selected components the extreme value
- *          (either min or max) of the color component that is
- *          found in the colormap.
+ *      (1) Returns the L2 distance (squared) between the color at index i
+ *          and the target color.
  */
 l_int32
-pixcmapGetComponentRange(PIXCMAP  *cmap,
-                         l_int32   color,
-                         l_int32  *pminval,
-                         l_int32  *pmaxval)
+pixcmapGetDistanceToColor(PIXCMAP  *cmap,
+                          l_int32   index,
+                          l_int32   rval,
+                          l_int32   gval,
+                          l_int32   bval,
+                          l_int32  *pdist)
 {
-    PROCNAME("pixcmapGetComponentRange");
+l_int32     n, delta, dist;
+RGBA_QUAD  *cta;
 
-    if (pminval) *pminval = 0;
-    if (pmaxval) *pmaxval = 0;
-    if (!pminval && !pmaxval)
-        return ERROR_INT("no result requested", procName, 1);
+    PROCNAME("pixcmapGetDistanceToColor");
 
-    if (color == L_SELECT_RED) {
-        pixcmapGetExtremeValue(cmap, L_SELECT_MIN, pminval, NULL, NULL);
-        pixcmapGetExtremeValue(cmap, L_SELECT_MAX, pmaxval, NULL, NULL);
-    } else if (color == L_SELECT_GREEN) {
-        pixcmapGetExtremeValue(cmap, L_SELECT_MIN, NULL, pminval, NULL);
-        pixcmapGetExtremeValue(cmap, L_SELECT_MAX, NULL, pmaxval, NULL);
-    } else if (color == L_SELECT_BLUE) {
-        pixcmapGetExtremeValue(cmap, L_SELECT_MIN, NULL, NULL, pminval);
-        pixcmapGetExtremeValue(cmap, L_SELECT_MAX, NULL, NULL, pmaxval);
-    } else {
-        return ERROR_INT("invalid color", procName, 1);
-    }
+    if (!pdist)
+        return ERROR_INT("&dist not defined", procName, 1);
+    *pdist = UNDEF;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+    n = pixcmapGetCount(cmap);
+    if (index >= n)
+        return ERROR_INT("invalid index", procName, 1);
+
+    if ((cta = (RGBA_QUAD *)cmap->array) == NULL)
+        return ERROR_INT("cta not defined(!)", procName, 1);
+
+    delta = cta[index].red - rval;
+    dist = delta * delta;
+    delta = cta[index].green - gval;
+    dist += delta * delta;
+    delta = cta[index].blue - bval;
+    dist += delta * delta;
+    *pdist = dist;
 
     return 0;
 }
 
 
 /*!
- *  pixcmapGetExtremeValue()
+ *  pixcmapGetRangeValues()
  *
  *      Input:  cmap
- *              type (L_SELECT_MIN or L_SELECT_MAX)
- *              &rval (<optional return> red component)
- *              &gval (<optional return> green component)
- *              &bval (<optional return> blue component)
+ *              select (L_SELECT_RED, L_SELECT_GREEN, L_SELECT_BLUE or
+ *                      L_SELECT_AVERAGE)
+ *              &minval (<optional return> minimum value of component)
+ *              &maxval (<optional return> maximum value of component)
+ *              &minindex (<optional return> index of minimum value)
+ *              &maxindex (<optional return> index of maximum value)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Returns for selected components the extreme value
- *          (either min or max) of the color component that is
- *          found in the colormap.
+ *      (1) Returns, for selected components (or the average), the
+ *          the extreme values (min and/or max) and their indices
+ *          that are found in the cmap.
  */
 l_int32
-pixcmapGetExtremeValue(PIXCMAP  *cmap,
-                       l_int32   type,
-                       l_int32  *prval,
-                       l_int32  *pgval,
-                       l_int32  *pbval)
+pixcmapGetRangeValues(PIXCMAP  *cmap,
+                      l_int32   select,
+                      l_int32  *pminval,
+                      l_int32  *pmaxval,
+                      l_int32  *pminindex,
+                      l_int32  *pmaxindex)
 {
-l_int32  i, n, rval, gval, bval, extrval, extgval, extbval;
+l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
 
-    PROCNAME("pixcmapGetExtremeValue");
+    PROCNAME("pixcmapGetRangeValues");
 
-    if (!prval && !pgval && !pbval)
-        return ERROR_INT("no result requested for return", procName, 1);
-    if (prval) *prval = 0;
-    if (pgval) *pgval = 0;
-    if (pbval) *pbval = 0;
+    if (pminval) *pminval = UNDEF;
+    if (pmaxval) *pmaxval = UNDEF;
+    if (pminindex) *pminindex = UNDEF;
+    if (pmaxindex) *pmaxindex = UNDEF;
+    if (!pminval && !pmaxval && !pminindex && !pmaxindex)
+        return ERROR_INT("no result requested", procName, 1);
     if (!cmap)
         return ERROR_INT("cmap not defined", procName, 1);
-    if (type != L_SELECT_MIN && type != L_SELECT_MAX)
-        return ERROR_INT("invalid type", procName, 1);
 
-    if (type == L_SELECT_MIN) {
-        extrval = 100000;
-        extgval = 100000;
-        extbval = 100000;
-    } else {
-        extrval = 0;
-        extgval = 0;
-        extbval = 0;
-    }
-
+    imin = UNDEF;
+    imax = UNDEF;
+    minval = 100000;
+    maxval = -1;
     n = pixcmapGetCount(cmap);
     for (i = 0; i < n; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
-        if ((type == L_SELECT_MIN && rval < extrval) ||
-            (type == L_SELECT_MAX && rval > extrval))
-            extrval = rval;
-        if ((type == L_SELECT_MIN && gval < extgval) ||
-            (type == L_SELECT_MAX && gval > extgval))
-            extgval = gval;
-        if ((type == L_SELECT_MIN && bval < extbval) ||
-            (type == L_SELECT_MAX && bval > extbval))
-            extbval = bval;
+        if (select == L_SELECT_RED) {
+            if (rval < minval) {
+                minval = rval;
+                imin = i;
+            }
+            if (rval > maxval) {
+                maxval = rval;
+                imax = i;
+            }
+        } else if (select == L_SELECT_GREEN) {
+            if (gval < minval) {
+                minval = gval;
+                imin = i;
+            }
+            if (gval > maxval) {
+                maxval = gval;
+                imax = i;
+            }
+        } else if (select == L_SELECT_BLUE) {
+            if (bval < minval) {
+                minval = bval;
+                imin = i;
+            }
+            if (bval > maxval) {
+                maxval = bval;
+                imax = i;
+            }
+        } else if (select == L_SELECT_AVERAGE) {
+            aveval = (rval + gval + bval) / 3;
+            if (aveval < minval) {
+                minval = aveval;
+                imin = i;
+            }
+            if (aveval > maxval) {
+                maxval = aveval;
+                imax = i;
+            }
+        } else {
+            return ERROR_INT("invalid selection", procName, 1);
+        }
     }
-    if (prval) *prval = extrval;
-    if (pgval) *pgval = extgval;
-    if (pbval) *pbval = extbval;
+
+    if (pminval) *pminval = minval;
+    if (pmaxval) *pmaxval = maxval;
+    if (pminindex) *pminindex = imin;
+    if (pmaxindex) *pmaxindex = imax;
     return 0;
 }
 

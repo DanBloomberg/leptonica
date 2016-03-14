@@ -48,7 +48,7 @@
  *          l_int32            dewarpaModelStatus()
  *
  *      Rendering helpers
- *          static l_int32     pixRenderFlats()
+ *          static l_int32     pixRenderMidYs()
  *          static l_int32     pixRenderHorizEndPoints
  */
 
@@ -525,28 +525,30 @@ FPIX       *fpix;
  *              ptaa (unsmoothed lines, not vertically ordered)
  *      Return: 0 if OK, 1 if vertical disparity array is no built or on error
  *
- *      (1) This builds a vertical disparity model (VDM), but
+ *      (1) This builds a horizontal disparity model (HDM), but
  *          does not check it against constraints for validity.
  *          Constraint checking is done at rendering time.
  *      (2) This is not required for a successful model; only the vertical
  *          disparity is required.  This will not be called if the
  *          function to build the vertical disparity fails.
- *      (3) This sets the vsuccess flag to 1 on success.
- *      (4) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
+ *      (3) This sets the hsuccess flag to 1 on success.
+ *      (4) Internally in ptal1, ptar1, ptal2, ptar2: x and y are reversed,
+ *          so the 'y' value is horizontal distance across the image width.
+ *      (5) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
  */
 l_int32
 dewarpFindHorizDisparity(L_DEWARP  *dew,
                          PTAA      *ptaa)
 {
-l_int32    i, j, h, nx, ny, sampling, ret;
+l_int32    i, j, w, h, nx, ny, sampling, ret;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
 l_float32  x, y, ymin, ymax, refl, refr;
 l_float32  val, mederr;
 NUMA      *nald, *nard;
 PIX       *pix1;
-PTA       *ptal1, *ptar1;  /* left and right end points of lines; initial */
-PTA       *ptal2, *ptar2;  /* left and right end points of lines; after filtering */
-PTA       *ptal3, *ptar3;  /* left and right end points of lines; long lines only */
+PTA       *ptal1, *ptar1;  /* left/right end points of lines; initial */
+PTA       *ptal2, *ptar2;  /* left/right end points; after filtering */
+PTA       *ptal3, *ptar3;  /* left/right end points; long lines only */
 PTA       *ptal4, *ptar4;  /* left and right block, fitted, uniform spacing */
 PTA       *pta, *ptat, *pta1, *pta2;
 PTAA      *ptaah;
@@ -576,10 +578,15 @@ FPIX      *fpix;
         ptaWrite("/tmp/lept/dewdebug/endpts_right1.pta", ptar1, 1);
     }
 
-        /* Filter the points by location to prevent 2-column images
-         * from getting confused about left and right endpoints. */
-    ptaGetMinMax(ptal1, NULL, &ymin, NULL, &ymax);
-    ptal2 = ptaSelectByValue(ptal1, 0, ymin + 0.2 * (ymax - ymin),
+        /* Filter the points by x-location to prevent 2-column images
+         * from getting confused about left and right endpoints. We
+         * require valid left points to not be farther than
+         *     0.15 * (remaining distance to the right edge of the image)
+         * to the right of the leftmost endpoint, and similarly for
+         * the right endpoints. (Note: x and y are reversed in the pta.) */
+    w = pixGetWidth(dew->pixs);
+    ptaGetMinMax(ptal1, NULL, &ymin, NULL, NULL);
+    ptal2 = ptaSelectByValue(ptal1, 0, ymin + 0.15 * (w - ymin),
                              L_SELECT_YVAL, L_SELECT_IF_LT);
     ptaGetMinMax(ptar1, NULL, NULL, NULL, &ymax);
     ptar2 = ptaSelectByValue(ptar1, 0, 0.85 * ymax, L_SELECT_YVAL,

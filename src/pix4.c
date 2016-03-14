@@ -53,7 +53,7 @@
  *           PIX        *pixGetAverageTiled()
  *           NUMA       *pixRowStats()
  *           NUMA       *pixColumnStats()
- *           l_int32     pixGetComponentRange()
+ *           l_int32     pixGetRangeValues()
  *           l_int32     pixGetExtremeValue()
  *           l_int32     pixGetMaxValueInRect()
  *           l_int32     pixGetBinnedComponentRange()
@@ -1773,7 +1773,7 @@ l_float32  *famedian, *famode, *famodecount;
 
 
 /*!
- *  pixGetComponentRange()
+ *  pixGetRangeValues()
  *
  *      Input:  pixs (8 bpp grayscale, 32 bpp rgb, or colormapped)
  *              factor (subsampling factor; >= 1; ignored if colormapped)
@@ -1786,16 +1786,16 @@ l_float32  *famedian, *famode, *famodecount;
  *      (1) If pixs is 8 bpp grayscale, the color selection type is ignored.
  */
 l_int32
-pixGetComponentRange(PIX      *pixs,
-                     l_int32   factor,
-                     l_int32   color,
-                     l_int32  *pminval,
-                     l_int32  *pmaxval)
+pixGetRangeValues(PIX      *pixs,
+                  l_int32   factor,
+                  l_int32   color,
+                  l_int32  *pminval,
+                  l_int32  *pmaxval)
 {
 l_int32   d;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixGetComponentRange");
+    PROCNAME("pixGetRangeValues");
 
     if (pminval) *pminval = 0;
     if (pmaxval) *pmaxval = 0;
@@ -1806,7 +1806,8 @@ PIXCMAP  *cmap;
 
     cmap = pixGetColormap(pixs);
     if (cmap)
-        return pixcmapGetComponentRange(cmap, color, pminval, pmaxval);
+        return pixcmapGetRangeValues(cmap, color, pminval, pmaxval,
+                                     NULL, NULL);
 
     if (factor < 1)
         return ERROR_INT("sampling factor must be >= 1", procName, 1);
@@ -1877,18 +1878,36 @@ PIXCMAP   *cmap;
 
     PROCNAME("pixGetExtremeValue");
 
-    if (prval) *prval = 0;
-    if (pgval) *pgval = 0;
-    if (pbval) *pbval = 0;
-    if (pgrayval) *pgrayval = 0;
+    if (prval) *prval = -1;
+    if (pgval) *pgval = -1;
+    if (pbval) *pbval = -1;
+    if (pgrayval) *pgrayval = -1;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    cmap = pixGetColormap(pixs);
-    if (cmap)
-        return pixcmapGetExtremeValue(cmap, type, prval, pgval, pbval);
-    pixGetDimensions(pixs, &w, &h, &d);
     if (type != L_SELECT_MIN && type != L_SELECT_MAX)
         return ERROR_INT("invalid type", procName, 1);
+
+    cmap = pixGetColormap(pixs);
+    if (cmap) {
+        if (type == L_SELECT_MIN) {
+            if (prval) pixcmapGetRangeValues(cmap, L_SELECT_RED, prval, NULL,
+                                             NULL, NULL);
+            if (pgval) pixcmapGetRangeValues(cmap, L_SELECT_GREEN, pgval, NULL,
+                                             NULL, NULL);
+            if (pbval) pixcmapGetRangeValues(cmap, L_SELECT_BLUE, pbval, NULL,
+                                             NULL, NULL);
+        } else {  /* type == L_SELECT_MAX */
+            if (prval) pixcmapGetRangeValues(cmap, L_SELECT_RED, NULL, prval,
+                                             NULL, NULL);
+            if (pgval) pixcmapGetRangeValues(cmap, L_SELECT_GREEN, NULL, pgval,
+                                             NULL, NULL);
+            if (pbval) pixcmapGetRangeValues(cmap, L_SELECT_BLUE, NULL, pbval,
+                                             NULL, NULL);
+        }
+        return 0;
+    }
+
+    pixGetDimensions(pixs, &w, &h, &d);
     if (factor < 1)
         return ERROR_INT("sampling factor must be >= 1", procName, 1);
     if (d != 8 && d != 32)
@@ -1904,7 +1923,7 @@ PIXCMAP   *cmap;
         if (type == L_SELECT_MIN)
             extval = 100000;
         else  /* get max */
-            extval = 0;
+            extval = -1;
 
         for (i = 0; i < h; i += factor) {
             line = data + i * wpl;
@@ -1925,9 +1944,9 @@ PIXCMAP   *cmap;
         extgval = 100000;
         extbval = 100000;
     } else {
-        extrval = 0;
-        extgval = 0;
-        extbval = 0;
+        extrval = -1;
+        extgval = -1;
+        extbval = -1;
     }
     for (i = 0; i < h; i += factor) {
         line = data + i * wpl;

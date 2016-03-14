@@ -2905,8 +2905,13 @@ l_int32  dirlen, namelen, size;
     } else {  /* in /tmp */
             /* Start with the temp dir */
 #ifdef _WIN32
+        l_int32 len;
         char tmpdir[MAX_PATH];
         GetTempPath(sizeof(tmpdir), tmpdir);  /* get the windows temp dir */
+        len = strlen(tmpdir);
+        if (len > 0 && tmpdir[len - 1] == '\\') {
+            tmpdir[len - 1] = '\0';  /* trim the trailing '\' */
+        }
 #else  /* unix */
         const char *tmpdir = getenv("TMPDIR");
         if (tmpdir == NULL) tmpdir = "/tmp";

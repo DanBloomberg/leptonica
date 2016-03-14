@@ -58,6 +58,9 @@
  *      Conversion from RGB color to colormap
  *           PIX        *pixConvertRGBToColormap()
  *
+ *      Conversion from colormap to 1 bpp
+ *           PIX        *pixConvertCmapTo1()
+ *
  *      Quantization for relatively small number of colors in source
  *           l_int32     pixQuantizeIfFewColors()
  *
@@ -381,7 +384,9 @@ PIX       *pixd;
             == NULL)
             return (PIX *)ERROR_PTR("calloc fail for graymap", procName, NULL);
         for (i = 0; i < pixcmapGetCount(cmap); i++) {
-            graymap[i] = (rmap[i] + 2 * gmap[i] + bmap[i]) / 4;
+            graymap[i] = (l_int32)(L_RED_WEIGHT * rmap[i] +
+                                   L_GREEN_WEIGHT * gmap[i] +
+                                   L_BLUE_WEIGHT * bmap[i] + 0.5);
         }
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
@@ -1296,6 +1301,100 @@ PIX     *pixd;
     pixd = pixFewColorsOctcubeQuant2(pixs, 4, na, ncolors, NULL);
     pixCopyInputFormat(pixd, pixs);
     numaDestroy(&na);
+    return pixd;
+}
+
+
+/*---------------------------------------------------------------------------*
+ *                     Conversion from colormap to 1 bpp                     *
+ *---------------------------------------------------------------------------*/
+/*!
+ *  pixConvertCmapTo1()
+ *
+ *      Input:  pixs (cmapped)
+ *      Return: pixd (1 bpp), or null on error
+ *
+ *  Notes:
+ *      (1) This is an extreme color quantizer.  It decides which
+ *          colors map to FG (black) and which to BG (white).
+ *      (2) This uses two heuristics to make the decision:
+ *          (a) colors similar to each other are likely to be in the same class
+ *          (b) there is usually much less FG than BG.
+ */
+PIX *
+pixConvertCmapTo1(PIX  *pixs)
+{
+l_int32    i, j, nc, w, h, imin, imax, factor, wpl1, wpld;
+l_int32    index, rmin, gmin, bmin, rmax, gmax, bmax, dmin, dmax;
+l_float32  minfract, ifract;
+l_int32   *lut;
+l_uint32  *line1, *lined, *data1, *datad;
+NUMA      *na1, *na2;  /* histograms */
+PIX       *pix1, *pixd;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixConvertCmapTo1");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if ((cmap = pixGetColormap(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("no colormap", procName, NULL);
+
+        /* Select target colors for the two classes.  Find the
+         * colors with smallest and largest average component values.
+         * The smallest is class 0 and the largest is class 1. */
+    pixcmapGetRangeValues(cmap, L_SELECT_AVERAGE, NULL, NULL, &imin, &imax);
+    pixcmapGetColor(cmap, imin, &rmin, &gmin, &bmin);
+    pixcmapGetColor(cmap, imax, &rmax, &gmax, &bmax);
+    nc = pixcmapGetCount(cmap);
+
+        /* Assign colors to the two classes.  The histogram is
+         * initialized to 0, so any colors not found when computing
+         * the sampled histogram will get zero weight in minfract. */
+    if ((lut = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32 *))) == NULL)
+        return (PIX *)ERROR_PTR("calloc fail for lut", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    factor = L_MAX(1, (l_int32)sqrt((l_float64)(w * h) / 50000. + 0.5));
+    na1 = pixGetCmapHistogram(pixs, factor);
+    na2 = numaNormalizeHistogram(na1, 1.0);
+    minfract = 0.0;
+    for (i = 0; i < nc; i++) {
+        numaGetFValue(na2, i, &ifract);
+        pixcmapGetDistanceToColor(cmap, i, rmin, gmin, bmin, &dmin);
+        pixcmapGetDistanceToColor(cmap, i, rmax, gmax, bmax, &dmax);
+        if (dmin < dmax) {  /* closer to dark extreme value */
+            lut[i] = 1;  /* black pixel in 1 bpp image */
+            minfract += ifract;
+        }
+    }
+    numaDestroy(&na1);
+    numaDestroy(&na2);
+
+        /* Generate the output binarized image */
+    pix1 = pixConvertTo8(pixs, 1);
+    pixd = pixCreate(w, h, 1);
+    data1 = pixGetData(pix1);
+    datad = pixGetData(pixd);
+    wpl1 = pixGetWpl(pix1);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        line1 = data1 + i * wpl1;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            index = GET_DATA_BYTE(line1, j);
+            if (lut[index] == 1) SET_DATA_BIT(lined, j);
+        }
+    }
+    pixDestroy(&pix1);
+    LEPT_FREE(lut);
+
+        /* We expect minfract (the dark colors) to be less than 0.5.
+         * If that is not the case, invert pixd. */
+    if (minfract > 0.5) {
+        L_INFO("minfract = %5.3f; inverting\n", procName, minfract);
+        pixInvert(pixd, pixd);
+    }
+
     return pixd;
 }
 
