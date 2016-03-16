@@ -57,6 +57,8 @@
  *           BOXA     *boxaModifyWithBoxa()
  *           BOXA     *boxaConstrainSize()
  *           BOXA     *boxaReconcileEvenOddHeight()
+ *    static l_int32   boxaTestEvenOddHeight()
+ *    static BOXA     *boxaMaximizeEvenOddHeight()
  *           BOXA     *boxaReconcilePairWidth()
  *           l_int32   boxaPlotSides()    [for debugging]
  *           BOXA     *boxaFillSequence()
@@ -72,8 +74,12 @@
  *           PIX      *boxaDisplayTiled()
  */
 
+#include <math.h>
 #include "allheaders.h"
 
+static l_int32 boxaTestEvenOddHeight(BOXA *boxa1, BOXA *boxa2, l_int32 start,
+                                     l_float32 *pdel1, l_float32 *pdel2);
+static BOXA *boxaMaximizeEvenOddHeight(BOXA *boxas, l_int32 start);
 static l_int32 boxaFillAll(BOXA *boxa);
 
 
@@ -1460,6 +1466,7 @@ BOXA    *boxad;
  *              delh (threshold on median height difference)
  *              op (L_ADJUST_CHOOSE_MIN, L_ADJUST_CHOOSE_MAX)
  *              factor (> 0.0, typically near 1.0)
+ *              start (0 if pairing (0,1), etc; 1 if pairing (1,2), etc)
  *      Return: boxad (adjusted), or a copy of boxas on error
  *
  *  Notes:
@@ -1487,17 +1494,23 @@ BOXA    *boxad;
  *          where even and odd boxa have been independently regulated.
  *      (5) Require at least 3 valid even boxes and 3 valid odd boxes.
  *          Median values will be used for invalid boxes.
+ *      (6) If the median height is not representative of the boxes
+ *          in @boxas, this can make things much worse.  In that case,
+ *          ignore the value of @op, and force pairwise equality of the
+ *          heights, with pairwise maximal vertical extension.
  */
 BOXA *
 boxaReconcileEvenOddHeight(BOXA      *boxas,
                            l_int32    sides,
                            l_int32    delh,
                            l_int32    op,
-                           l_float32  factor)
+                           l_float32  factor,
+                           l_int32    start)
 {
-l_int32  n, ne, no, he, ho, hmed, doeven;
-BOX     *boxe, *boxo;
-BOXA    *boxae, *boxao, *boxa1e, *boxa1o, *boxad;
+l_int32    n, ne, no, he, ho, hmed, doeven;
+l_float32  del1, del2;
+BOX       *boxe, *boxo;
+BOXA      *boxae, *boxao, *boxa1e, *boxa1o, *boxa1, *boxad;
 
     PROCNAME("boxaReconcileEvenOddHeight");
 
@@ -1556,13 +1569,144 @@ BOXA    *boxae, *boxao, *boxa1e, *boxa1o, *boxad;
             hmed = (l_int32)(factor * L_MAX(he, ho));
             hmed = L_MAX(hmed, L_MIN(he, ho));  /* don't make it smaller! */
         }
-        if (doeven) boxaAdjustHeightToTarget(boxae, boxae, sides, hmed, delh);
-        if (!doeven) boxaAdjustHeightToTarget(boxao, boxao, sides, hmed, delh);
+        if (doeven) {
+            boxa1e = boxaAdjustHeightToTarget(NULL, boxae, sides, hmed, delh);
+            boxa1o = boxaCopy(boxao, L_COPY);
+        } else {  /* !doeven */
+            boxa1e = boxaCopy(boxae, L_COPY);
+            boxa1o = boxaAdjustHeightToTarget(NULL, boxao, sides, hmed, delh);
+        }
+    } else {
+        boxa1e = boxaCopy(boxae, L_CLONE);
+        boxa1o = boxaCopy(boxao, L_CLONE);
     }
-
-    boxad = boxaMergeEvenOdd(boxae, boxao, 0);
     boxaDestroy(&boxae);
     boxaDestroy(&boxao);
+
+        /* It can happen that the median is not a good measure for an
+         * entire book.  In that case, the reconciliation above can do
+         * more harm than good.  Sanity check by comparing height and y
+         * differences of adjacent even/odd boxes, before and after
+         * reconciliation.  */
+    boxad = boxaMergeEvenOdd(boxa1e, boxa1o, 0);
+    boxaTestEvenOddHeight(boxas, boxad, start, &del1, &del2);
+    boxaDestroy(&boxa1e);
+    boxaDestroy(&boxa1o);
+    if (del2 < del1 + 10.)
+        return boxad;
+
+        /* Using the median made it worse.  Skip reconciliation:
+         * forcing all pairs of top and bottom values to have
+         * maximum extent does not improve the situation either. */
+    L_INFO("Got worse: del2 = %f > del1 = %f\n", procName, del2, del1);
+    boxaDestroy(&boxad);
+    return boxaCopy(boxas, L_COPY);
+}
+
+
+/*!
+ *  boxaTestEvenOddHeight()
+ *
+ *      Input:  boxa1, boxa2
+ *              start (0 if pairing (0,1), etc; 1 if pairing (1,2), etc)
+ *              &del1 (<return> root mean of (dely^2 + delh^2) for boxa1
+ *              &del2 (<return> root mean of (dely^2 + delh^2) for boxa2
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This compares differences in the y location and height of
+ *          adjacent boxes, in each of the input boxa.
+ */
+static l_int32
+boxaTestEvenOddHeight(BOXA       *boxa1,
+                      BOXA       *boxa2,
+                      l_int32     start,
+                      l_float32  *pdel1,
+                      l_float32  *pdel2)
+{
+l_int32    i, n, npairs, y1a, y1b, y2a, y2b, h1a, h1b, h2a, h2b;
+l_float32  del1, del2;
+
+    PROCNAME("boxaTestEvenOddHeight");
+
+    if (pdel1) *pdel1 = 0.0;
+    if (pdel2) *pdel2 = 0.0;
+    if (!pdel1 || !pdel2)
+        return ERROR_INT("&del1 and &del2 not both defined", procName, 1);
+    if (!boxa1 || !boxa2)
+        return ERROR_INT("boxa1 and boxa2 not both defined", procName, 1);
+    n = L_MIN(boxaGetCount(boxa1), boxaGetCount(boxa2));
+
+        /* For boxa1 and boxa2 separately, we expect the y and h values
+         * to be similar for adjacent boxes.  Get a measure of similarity
+         * by finding the sum of squares of differences between
+         * y values and between h values, and adding them. */
+    del1 = del2 = 0.0;
+    npairs = (n - start) / 2;
+    for (i = start; i < 2 * npairs; i += 2) {
+        boxaGetBoxGeometry(boxa1, i, NULL, &y1a, NULL, &h1a);
+        boxaGetBoxGeometry(boxa1, i + 1, NULL, &y1b, NULL, &h1b);
+        del1 += (y1a - y1b) * (y1a - y1b) + (h1a - h1b) * (h1a - h1b);
+        boxaGetBoxGeometry(boxa2, i, NULL, &y2a, NULL, &h2a);
+        boxaGetBoxGeometry(boxa2, i + 1, NULL, &y2b, NULL, &h2b);
+        del2 += (y2a - y2b) * (y2a - y2b) + (h2a - h2b) * (h2a - h2b);
+    }
+
+        /* Get the root of the average of the sum of square differences */
+    *pdel1 = (l_float32)sqrt((l_float64)del1 / (0.5 * n));
+    *pdel2 = (l_float32)sqrt((l_float64)del2 / (0.5 * n));
+    return 0;
+}
+
+
+/*!
+ *  boxaMaximizeEvenOddHeight()
+ *
+ *      Input:  boxas
+ *              start (index in which the pairs start; either 0 or 1)
+ *      Return: 0 if OK, 1 on error
+ *
+ *  Notes:
+ *      (1) This adjusts top and bottom sides of pairs of boxes to have
+ *          maximal vertical extent.  This generally involves moving
+ *          the top of one box up and the bottom of the other down.
+ */
+static BOXA *
+boxaMaximizeEvenOddHeight(BOXA    *boxas,
+                          l_int32  start)
+{
+l_int32  i, n, npairs, x1, y1, w1, h1, x2, y2, w2, h2, ymin, ymax, hmax;
+BOX     *box1, *box2;
+BOXA    *boxad;
+
+    PROCNAME("boxaMaximizeEvenOddHeight");
+
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    n = boxaGetCount(boxas);
+
+    boxad = boxaCreate(n);
+    if (start == 1) {
+        box1 = boxaGetBox(boxas, 0, L_COPY);
+        boxaAddBox(boxad, box1, L_INSERT);
+    }
+    npairs = (n - start) / 2;
+    for (i = start; i < 2 * npairs; i += 2) {
+        boxaGetBoxGeometry(boxas, i, &x1, &y1, &w1, &h1);
+        boxaGetBoxGeometry(boxas, i + 1, &x2, &y2, &w2, &h2);
+        ymin = L_MIN(y1, y2);
+        ymax = L_MAX(y1 + h1 - 1, y2 + h2 - 1);
+        hmax = ymax - ymin + 1;
+        box1 = boxCreate(x1, ymin, w1, hmax);
+        box2 = boxCreate(x2, ymin, w2, hmax);
+        boxaAddBox(boxad, box1, L_INSERT);
+        boxaAddBox(boxad, box2, L_INSERT);
+    }
+    if (i == n - 1) {
+        box1 = boxaGetBox(boxas, i, L_COPY);
+        boxaAddBox(boxad, box1, L_INSERT);
+    }
+
     return boxad;
 }
 
@@ -2247,7 +2391,6 @@ l_int32  i, n, w, h;
  *              spacing  (between images, and on outside)
  *              border (width of black border added to each image;
  *                      use 0 for no border)
- *              fontdir (<optional> can be NULL; use to number the boxes)
  *      Return: pixd (of tiled images of boxes), or null on error
  *
  *  Notes:
@@ -2266,8 +2409,7 @@ boxaDisplayTiled(BOXA        *boxas,
                  l_float32    scalefactor,
                  l_int32      background,
                  l_int32      spacing,
-                 l_int32      border,
-                 const char  *fontdir)
+                 l_int32      border)
 {
 char     buf[32];
 l_int32  i, n, npix, w, h, fontsize;
@@ -2304,13 +2446,7 @@ PIXA    *pixat;
     else if (scalefactor > 0.3)
         fontsize = 18;
     else fontsize = 20;
-    bmf = NULL;
-    if (fontdir) {
-        if ((bmf = bmfCreate(fontdir, fontsize)) == NULL) {
-            L_ERROR("can't find fonts; skipping them\n", procName);
-            fontdir = NULL;
-        }
-    }
+    bmf = bmfCreate(NULL, fontsize);
 
     pixat = pixaCreate(n);
     boxaGetExtent(boxa, &w, &h, NULL);
@@ -2322,14 +2458,10 @@ PIXA    *pixat;
         } else {
             pix1 = pixaGetPix(pixa, i, L_COPY);
         }
-        if (fontdir) {
-            pixSetBorderVal(pix1, 0, 0, 0, 2, 0x0000ff00);
-            snprintf(buf, sizeof(buf), "%d", i);
-            pix2 = pixAddSingleTextblock(pix1, bmf, buf, 0x00ff0000,
-                                         L_ADD_BELOW, NULL);
-        } else {
-            pix2 = pixClone(pix1);
-        }
+        pixSetBorderVal(pix1, 0, 0, 0, 2, 0x0000ff00);
+        snprintf(buf, sizeof(buf), "%d", i);
+        pix2 = pixAddSingleTextblock(pix1, bmf, buf, 0x00ff0000,
+                                     L_ADD_BELOW, NULL);
         pixDestroy(&pix1);
         pixRenderBoxArb(pix2, box, linewidth, 255, 0, 0);
         pixaAddPix(pixat, pix2, L_INSERT);

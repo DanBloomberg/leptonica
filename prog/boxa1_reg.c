@@ -26,6 +26,9 @@
 
 /*
  * boxa1_reg.c
+ *
+ *    This carries out various operations on boxa, including
+ *    region comparison, transforms and display.
  */
 
 #include "allheaders.h"
@@ -35,15 +38,17 @@ static PIX *DisplayBoxa(BOXA  *boxa);
 int main(int    argc,
          char **argv)
 {
-l_int32      same;
-l_float32    diffarea, diffxor;
+l_int32      same, w, h, width;
+l_float32    diffarea, diffxor, scalefact;
 BOX         *box;
-BOXA        *boxa1, *boxa2;
+BOXA        *boxa1, *boxa2, *boxa3;
 PIX         *pix1, *pixdb;
 static char  mainName[] = "boxa1_reg";
 
     if (argc != 1)
         return ERROR_INT(" Syntax: boxa1_reg", mainName, 1);
+
+    lept_mkdir("lept/boxa");
 
         /* Make a boxa and display its contents */
     boxa1 = boxaCreate(6);
@@ -74,7 +79,7 @@ static char  mainName[] = "boxa1_reg";
     boxaDestroy(&boxa2);
 
     boxa2 = boxaReconcileEvenOddHeight(boxa1, L_ADJUST_TOP_AND_BOT, 6,
-                                       L_ADJUST_CHOOSE_MIN, 1.0);
+                                       L_ADJUST_CHOOSE_MIN, 1.0, 0);
     pix1 = DisplayBoxa(boxa2);
     pixDisplay(pix1, 100, 500);
     pixDestroy(&pix1);
@@ -87,6 +92,55 @@ static char  mainName[] = "boxa1_reg";
     pixDestroy(&pixdb);
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
+
+        /* Input is a fairly clean boxa */
+    boxa1 = boxaRead("boxa1.ba");
+    boxa2 = boxaReconcileEvenOddHeight(boxa1, L_ADJUST_TOP, 80,
+                                       L_ADJUST_CHOOSE_MIN, 1.05, 1);
+    width = 100;
+    boxaGetExtent(boxa2, &w, &h, NULL);
+    scalefact = (l_float32)width / (l_float32)w;
+    boxa3 = boxaTransform(boxa2, 0, 0, scalefact, scalefact);
+    pix1 = boxaDisplayTiled(boxa3, NULL, 1500, 2, 1.0, 0, 3, 2);
+    pixDisplay(pix1, 0, 100);
+    pixWrite("/tmp/lept/boxa/pix1.png", pix1, IFF_PNG);
+    pixDestroy(&pix1);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+
+        /* Input is an unsmoothed and noisy boxa */
+    boxa1 = boxaRead("boxa2.ba");
+    boxa2 = boxaReconcileEvenOddHeight(boxa1, L_ADJUST_TOP, 80,
+                                       L_ADJUST_CHOOSE_MIN, 1.05, 1);
+    width = 100;
+    boxaGetExtent(boxa2, &w, &h, NULL);
+    scalefact = (l_float32)width / (l_float32)w;
+    boxa3 = boxaTransform(boxa2, 0, 0, scalefact, scalefact);
+    pix1 = boxaDisplayTiled(boxa3, NULL, 1500, 2, 1.0, 0, 3, 2);
+    pixDisplay(pix1, 500, 100);
+    pixWrite("/tmp/lept/boxa/pix2.png", pix1, IFF_PNG);
+    pixDestroy(&pix1);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+
+        /* Input is a boxa smoothed with a median window filter */
+    boxa1 = boxaRead("boxa3.ba");
+    boxa2 = boxaReconcileEvenOddHeight(boxa1, L_ADJUST_TOP, 80,
+                                       L_ADJUST_CHOOSE_MIN, 1.05, 1);
+    width = 100;
+    boxaGetExtent(boxa2, &w, &h, NULL);
+    scalefact = (l_float32)width / (l_float32)w;
+    boxa3 = boxaTransform(boxa2, 0, 0, scalefact, scalefact);
+    pix1 = boxaDisplayTiled(boxa3, NULL, 1500, 2, 1.0, 0, 3, 2);
+    pixDisplay(pix1, 1000, 100);
+    pixWrite("/tmp/lept/boxa/pix3.png", pix1, IFF_PNG);
+    pixDestroy(&pix1);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+
     return 0;
 }
 
