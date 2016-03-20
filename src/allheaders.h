@@ -2630,6 +2630,7 @@ LEPT_DLL extern l_int32 getImpliedFileFormat ( const char *filename );
 LEPT_DLL extern l_int32 pixGetAutoFormat ( PIX *pix, l_int32 *pformat );
 LEPT_DLL extern const char * getFormatExtension ( l_int32 format );
 LEPT_DLL extern l_int32 pixWriteMem ( l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 format );
+LEPT_DLL extern l_int32 l_fileDisplay ( const char *fname, l_int32 x, l_int32 y );
 LEPT_DLL extern l_int32 pixDisplay ( PIX *pixs, l_int32 x, l_int32 y );
 LEPT_DLL extern l_int32 pixDisplayWithTitle ( PIX *pixs, l_int32 x, l_int32 y, const char *title, l_int32 dispflag );
 LEPT_DLL extern l_int32 pixDisplayMultiple ( const char *filepattern );

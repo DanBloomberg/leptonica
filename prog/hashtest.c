@@ -62,6 +62,8 @@ NUMA       *na1, *na2, *na3, *na4, *na5, *na6, *na7, *na8, *nav, *nac;
 PTA        *pta1, *pta2, *pta3;
 SARRAY     *sa1, *sa2, *sa3, *sa4;
 
+    lept_mkdir("lept/hash");
+
 #if 1
         /* Test good string hashing with aset */
     fprintf(stderr, "Set results with string hashing:\n");
@@ -180,12 +182,14 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
     nav = l_dnaConvertToNuma(dav);
     nac = l_dnaConvertToNuma(dac);
     fprintf(stderr, "  dna number of histo points = %d\n", l_dnaGetCount(dac));
-    gplotSimpleXY1(nav, nac, GPLOT_IMPULSES, GPLOT_X11, "/tmp/histo", "Histo");
+    gplotSimpleXY1(nav, nac, GPLOT_IMPULSES, GPLOT_PNG,
+                   "/tmp/lept/hash/histo", "Histo");
     da7 = l_dnaIntersectionByHash(da2, da3);
     fprintf(stderr, "  dna number of points: da2 = %d, da3 = %d\n",
             l_dnaGetCount(da2), l_dnaGetCount(da3));
     fprintf(stderr, "  dna number of da2/da3 intersection points = %d\n",
             l_dnaGetCount(da7));
+    l_fileDisplay("/tmp/lept/hash/histo.png", 700, 100);
     l_dnaDestroy(&da1);
     l_dnaDestroy(&da2);
     l_dnaDestroy(&da3);
@@ -200,7 +204,7 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
     numaDestroy(&nac);
 #endif
 
-#if 0
+#if 1
     na1 = numaMakeSequence(0, 3, 10000);
     na2 = numaMakeSequence(0, 5, 10000);
     na3 = numaMakeSequence(0, 7, 10000);
@@ -238,7 +242,7 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
     fprintf(stderr, "  na7 set size: %d\n\n", l_asetSize(set));
     l_asetDestroy(&set);
 
-    na8 = numaRemoveDups(na1);
+    na8 = numaRemoveDupsByAset(na1);
     fprintf(stderr, "  na8 count: %d\n\n", numaGetCount(na8));
 
     numaDestroy(&na1);

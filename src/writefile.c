@@ -45,6 +45,7 @@
  *        l_int32     pixWriteMem()
  *
  *     Image display for debugging
+ *        l_int32     l_fileDisplay()
  *        l_int32     pixDisplay()
  *        l_int32     pixDisplayWithTitle()
  *        l_int32     pixDisplayMultiple()
@@ -761,6 +762,33 @@ l_int32  ret;
 /*---------------------------------------------------------------------*
  *                       Image display for debugging                   *
  *---------------------------------------------------------------------*/
+/*!
+ *  l_fileDisplay()
+ *
+ *      Input:  fname
+ *              x, y  (location of display frame on the screen)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This is a convenient wrapper for displaying image files.
+ */
+l_int32
+l_fileDisplay(const char  *fname,
+              l_int32      x,
+              l_int32      y)
+{
+PIX   *pix;
+
+    PROCNAME("l_fileDisplay");
+
+    if ((pix = pixRead(fname)) == NULL)
+        return ERROR_INT("pix not read", procName, 1);
+    pixDisplay(pix, x, y);
+    pixDestroy(&pix);
+    return 0;
+}
+
+
 /*!
  *  pixDisplay()
  *

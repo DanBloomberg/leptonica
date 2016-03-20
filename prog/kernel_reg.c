@@ -157,7 +157,7 @@ L_REGPARAMS  *rp;
     pixWrite("/tmp/lept/regout/ker5.png", pixt, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker5.png");  /* 8 */
     if (rp->display)
-        pixCompareGray(pixd, pixt, L_COMPARE_ABS_DIFF, GPLOT_X11, NULL,
+        pixCompareGray(pixd, pixt, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
                        NULL, NULL, NULL);
     pixt2 = pixBlockconvTiled(pixg, 5, 5, 3, 6);
     pixSaveTiled(pixt2, pixa, 1.0, 0, 20, 0);
@@ -216,11 +216,13 @@ L_REGPARAMS  *rp;
 
     pixCompareGray(pixt, pixt2, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
                    &avediff, &rmsdiff, NULL);
+#if 0
 #ifndef  _WIN32
     sleep(1);  /* give gnuplot time to write out the file */
 #else
     Sleep(1000);
 #endif  /* _WIN32 */
+#endif
     pixp = pixRead("/tmp/lept/comp/compare_gray0.png");
     pixSaveTiled(pixp, pixa, 1.0, 0, 20, 0);
     pixWrite("/tmp/lept/regout/conv3.png", pixp, IFF_PNG);

@@ -79,11 +79,10 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	binarizefiles binarize_set bincompare \
 	blendcmaptest buffertest \
 	byteatest ccbordtest cctest1 cleanpdf \
-	colormorphtest colorsegtest colorspacetest \
+	colormorphtest colorsegtest \
 	comparepages comparetest concatpdf \
 	contrasttest converttogray \
-	convolvetest cornertest \
-	croptest croptext \
+	cornertest croptest croptext \
 	dewarprules dewarptest1 dewarptest2 \
 	dewarptest3 dewarptest4 dewarptest5 \
 	digitprep1 displayboxa \

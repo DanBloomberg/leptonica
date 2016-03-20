@@ -854,13 +854,16 @@ PIX            *pixt;
         na = pixGetGrayHistogram(pixt, 1);
         numaGetNonzeroRange(na, TINY, &first, &last);
         nac = numaClipToInterval(na, 0, last);
-        snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_gray%d", index++);
+        snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_gray%d", index);
         gplot = gplotCreate(buf, plottype,
                             "Pixel Difference Histogram", "diff val",
                             "number of pixels");
         gplotAddPlot(gplot, NULL, nac, GPLOT_LINES, "gray");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
+        snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_gray%d.png",
+                 index++);
+        l_fileDisplay(buf, 100, 100);
         numaDestroy(&na);
         numaDestroy(&nac);
     }
@@ -977,7 +980,7 @@ PIX            *pixr, *pixg, *pixb;
         narc = numaClipToInterval(nar, 0, last);
         nagc = numaClipToInterval(nag, 0, last);
         nabc = numaClipToInterval(nab, 0, last);
-        snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_rgb%d", index++);
+        snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_rgb%d", index);
         gplot = gplotCreate(buf, plottype,
                             "Pixel Difference Histogram", "diff val",
                             "number of pixels");
@@ -986,6 +989,9 @@ PIX            *pixr, *pixg, *pixb;
         gplotAddPlot(gplot, NULL, nabc, GPLOT_LINES, "blue");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
+        snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_rgb%d.png",
+                 index++);
+        l_fileDisplay(buf, 100, 100);
         numaDestroy(&nar);
         numaDestroy(&nag);
         numaDestroy(&nab);
