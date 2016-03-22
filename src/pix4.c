@@ -2258,20 +2258,18 @@ PIXCMAP   *cmap;
     if (!debugflag) {
         numaDiscretizeRankAndIntensity(nan, nbins, &narbin, NULL, NULL, NULL);
     } else {
-        l_int32  type;
-        NUMA    *nai, *nar, *nabb;
+        NUMA  *nai, *nar, *nabb;
         numaDiscretizeRankAndIntensity(nan, nbins, &narbin, &nai, &nar, &nabb);
-        type = (debugflag == 1) ? GPLOT_X11 : GPLOT_PNG;
         lept_mkdir("lept/regout");
-        gplotSimple1(nan, type, "/tmp/lept/regout/rtnan",
+        gplotSimple1(nan, GPLOT_PNG, "/tmp/lept/regout/rtnan",
                      "Normalized Histogram");
-        gplotSimple1(nar, type, "/tmp/lept/regout/rtnar",
+        gplotSimple1(nar, GPLOT_PNG, "/tmp/lept/regout/rtnar",
                      "Cumulative Histogram");
-        gplotSimple1(nai, type, "/tmp/lept/regout/rtnai",
+        gplotSimple1(nai, GPLOT_PNG, "/tmp/lept/regout/rtnai",
                      "Intensity vs. rank bin");
-        gplotSimple1(narbin, type, "/tmp/lept/regout/rtnarbin",
+        gplotSimple1(narbin, GPLOT_PNG, "/tmp/lept/regout/rtnarbin",
                      "LUT: rank bin vs. Intensity");
-        gplotSimple1(nabb, type, "/tmp/lept/regout/rtnabb",
+        gplotSimple1(nabb, GPLOT_PNG, "/tmp/lept/regout/rtnabb",
                      "Intensity of right edge vs. rank bin");
         numaDestroy(&nai);
         numaDestroy(&nar);
@@ -2411,7 +2409,6 @@ l_float64  *rarray, *garray, *barray, *narray;
     }
 
     if (debugflag) {
-        l_int32  type;
         NUMA *nared, *nagreen, *nablue;
         nared = numaCreate(nbins);
         nagreen = numaCreate(nbins);
@@ -2421,13 +2418,12 @@ l_float64  *rarray, *garray, *barray, *narray;
             numaAddNumber(nagreen, garray[i]);
             numaAddNumber(nablue, barray[i]);
         }
-        type = (debugflag == 1) ? GPLOT_X11 : GPLOT_PNG;
         lept_mkdir("lept/regout");
-        gplotSimple1(nared, type, "/tmp/lept/regout/rtnared",
+        gplotSimple1(nared, GPLOT_PNG, "/tmp/lept/regout/rtnared",
                      "Average red val vs. rank bin");
-        gplotSimple1(nagreen, type, "/tmp/lept/regout/rtnagreen",
+        gplotSimple1(nagreen, GPLOT_PNG, "/tmp/lept/regout/rtnagreen",
                      "Average green val vs. rank bin");
-        gplotSimple1(nablue, type, "/tmp/lept/regout/rtnablue",
+        gplotSimple1(nablue, GPLOT_PNG, "/tmp/lept/regout/rtnablue",
                      "Average blue val vs. rank bin");
         numaDestroy(&nared);
         numaDestroy(&nagreen);

@@ -722,8 +722,9 @@ NUMA      *nas, *nax, *nay, *nad;
                                (l_float32)(w - 1), 4 * w + 1, &nax, &nay);
 
     if (debugflag) {
-        GPLOT *gplot = gplotCreate("junksignal", GPLOT_X11, "Pixel values",
-                                   "dist in pixels", "value");
+        lept_mkdir("lept/barcode");
+        GPLOT *gplot = gplotCreate("/tmp/lept/barcode/signal", GPLOT_PNG,
+                                   "Pixel values", "dist in pixels", "value");
         gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
@@ -858,8 +859,9 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
                                        (1.25 / binfract) * maxsize);
 
     if (debugflag) {
-        gplot = gplotCreate("junkhistw", GPLOT_X11,
-                                   "Raw width histogram", "Width", "Number");
+        lept_mkdir("lept/barcode");
+        gplot = gplotCreate("/tmp/lept/barcode/histw", GPLOT_PNG,
+                            "Raw width histogram", "Width", "Number");
         gplotAddPlot(gplot, NULL, naehist, GPLOT_LINES, "plot black");
         gplotAddPlot(gplot, NULL, naohist, GPLOT_LINES, "plot white");
         gplotMakeOutput(gplot);

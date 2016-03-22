@@ -818,8 +818,10 @@ PIX      *pix1, *pixdb;
     nsplit = numaGetCount(nasplit);
 
 #if 0
-    if (ppixdebug && nsplit > 0)
-        gplotSimple1(na1, GPLOT_X11, "/tmp/splitroot", NULL);
+    if (ppixdebug && nsplit > 0) {
+        lept_mkdir("lept/split");
+        gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/split/split", NULL);
+    }
 #endif
 
     numaDestroy(&na1);

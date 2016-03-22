@@ -30,7 +30,13 @@
 /*
  *   gplot.h
  *
- *       Data structures and parameters for generating gnuplot files
+ *   Data structures and parameters for generating gnuplot files
+ *
+ *   We used to support X11 output, but recent versions of gnuplot do not
+ *   support the X11 terminal.  To get display to your screen, use
+ *   GPLOT_PNG output; e.g.,
+ *       gplotSimple1(na, GPLOT_PNG, "/tmp/someroot", ...);
+ *       l_fileDisplay("/tmp/someroot.png", ...);
  */
 
 #define  GPLOT_VERSION_NUMBER    1
@@ -50,8 +56,7 @@ enum GPLOT_OUTPUT {
     GPLOT_PNG   = 1,
     GPLOT_PS    = 2,
     GPLOT_EPS   = 3,
-    GPLOT_X11   = 4,
-    GPLOT_LATEX = 5
+    GPLOT_LATEX = 4
 };
 
 enum GPLOT_SCALING {

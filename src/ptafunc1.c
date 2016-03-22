@@ -1665,8 +1665,7 @@ l_float32  x2;
  *
  *      Input: pixs (any depth)
  *             pta (set of points on which to plot)
- *             outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                        GPLOT_LATEX)
+ *             outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *             title (<optional> for plot; can be null)
  *      Return: 0 if OK, 1 on error
  *
@@ -1697,8 +1696,7 @@ PIX            *pixt;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_X11 &&
-        outformat != GPLOT_LATEX) {
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX) {
         L_WARNING("outformat invalid; using GPLOT_PNG\n", procName);
         outformat = GPLOT_PNG;
     }

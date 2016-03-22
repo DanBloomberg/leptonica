@@ -2139,7 +2139,7 @@ PTA       *pta;
         }
 
 #if 0  /* debugging */
-        pixPlotAlongPta(pixs, pta, GPLOT_X11, NULL);
+        pixPlotAlongPta(pixs, pta, GPLOT_PNG, NULL);
 #endif
 
         ptaDestroy(&pta);

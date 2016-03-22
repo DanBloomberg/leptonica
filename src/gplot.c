@@ -114,7 +114,6 @@ const char  *gplotfileoutputs[] = {"",
                                    "PNG",
                                    "PS",
                                    "EPS",
-                                   "X11",
                                    "LATEX"};
 
 
@@ -125,8 +124,7 @@ const char  *gplotfileoutputs[] = {"",
  *  gplotCreate()
  *
  *      Input:  rootname (root for all output files)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                         GPLOT_LATEX)
+ *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *              title  (<optional> overall title)
  *              xlabel (<optional> x axis label)
  *              ylabel (<optional> y axis label)
@@ -153,8 +151,7 @@ GPLOT  *gplot;
     if (!rootname)
         return (GPLOT *)ERROR_PTR("rootname not defined", procName, NULL);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_X11 &&
-        outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
         return (GPLOT *)ERROR_PTR("outformat invalid", procName, NULL);
 
     if ((gplot = (GPLOT *)LEPT_CALLOC(1, sizeof(GPLOT))) == NULL)
@@ -179,8 +176,6 @@ GPLOT  *gplot;
         snprintf(buf, L_BUF_SIZE, "%s.eps", newroot);
     else if (outformat == GPLOT_LATEX)
         snprintf(buf, L_BUF_SIZE, "%s.tex", newroot);
-    else  /* outformat == GPLOT_X11 */
-        buf[0] = '\0';
     gplot->outname = stringNew(buf);
     if (title) gplot->title = stringNew(title);
     if (xlabel) gplot->xlabel = stringNew(xlabel);
@@ -366,8 +361,7 @@ gplotSetScaling(GPLOT   *gplot,
  *          the appropriate plot commands to the command file.
  *      (2) This is the only function in this file that requires the
  *          gnuplot executable, to actually generate the plot.
- *      (3) The gnuplot program for windows is wgnuplot.exe.  The
- *          standard gp426win32 distribution does not have a X11 terminal.
+ *      (3) The gnuplot program for windows is wgnuplot.exe.
  */
 l_int32
 gplotMakeOutput(GPLOT  *gplot)
@@ -384,17 +378,9 @@ l_int32  ignore;
     gplotGenDataFiles(gplot);
 
 #ifndef _WIN32
-    if (gplot->outformat != GPLOT_X11)
-        snprintf(buf, L_BUF_SIZE, "gnuplot %s", gplot->cmdname);
-    else
-        snprintf(buf, L_BUF_SIZE,
-                 "gnuplot -persist -geometry +10+10 %s &", gplot->cmdname);
+    snprintf(buf, L_BUF_SIZE, "gnuplot %s", gplot->cmdname);
 #else
-   if (gplot->outformat != GPLOT_X11)
-       snprintf(buf, L_BUF_SIZE, "wgnuplot %s", gplot->cmdname);
-   else
-       snprintf(buf, L_BUF_SIZE,
-               "wgnuplot -persist %s", gplot->cmdname);
+    snprintf(buf, L_BUF_SIZE, "wgnuplot %s", gplot->cmdname);
 #endif  /* _WIN32 */
     ignore = system(buf);  /* gnuplot || wgnuplot */
     return 0;
@@ -437,25 +423,21 @@ FILE    *fp;
         sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
 
-    if (gplot->outformat == GPLOT_PNG)    /* set terminal type and output */
+        /* Set terminal type and output */
+    if (gplot->outformat == GPLOT_PNG) {
         snprintf(buf, L_BUF_SIZE, "set terminal png; set output '%s'",
                  gplot->outname);
-    else if (gplot->outformat == GPLOT_PS)
+    } else if (gplot->outformat == GPLOT_PS) {
         snprintf(buf, L_BUF_SIZE, "set terminal postscript; set output '%s'",
                  gplot->outname);
-    else if (gplot->outformat == GPLOT_EPS)
+    } else if (gplot->outformat == GPLOT_EPS) {
         snprintf(buf, L_BUF_SIZE,
-                "set terminal postscript eps; set output '%s'",
-                gplot->outname);
-    else if (gplot->outformat == GPLOT_LATEX)
+                 "set terminal postscript eps; set output '%s'",
+                 gplot->outname);
+    } else if (gplot->outformat == GPLOT_LATEX) {
         snprintf(buf, L_BUF_SIZE, "set terminal latex; set output '%s'",
                  gplot->outname);
-    else  /* gplot->outformat == GPLOT_X11 */
-#ifndef _WIN32
-        snprintf(buf, L_BUF_SIZE, "set terminal x11");
-#else
-        snprintf(buf, L_BUF_SIZE, "set terminal windows");
-#endif  /* _WIN32 */
+    }
     sarrayAddString(gplot->cmddata, buf, L_COPY);
 
     if (gplot->scaling == GPLOT_LOG_SCALE_X ||
@@ -541,8 +523,7 @@ FILE    *fp;
  *  gplotSimple1()
  *
  *      Input:  na (numa; plot Y_VS_I)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                         GPLOT_LATEX)
+ *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *              outroot (root of output files)
  *              title  (<optional>, can be NULL)
  *      Return: 0 if OK, 1 on error
@@ -569,8 +550,7 @@ gplotSimple1(NUMA        *na,
  *
  *      Input:  na1 (numa; plotted with Y_VS_I)
  *              na2 (ditto)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                         GPLOT_LATEX)
+ *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *              outroot (root of output files)
  *              title  (<optional>)
  *      Return: 0 if OK, 1 on error
@@ -598,8 +578,7 @@ gplotSimple2(NUMA        *na1,
  *  gplotSimpleN()
  *
  *      Input:  naa (numaa; we plotted with Y_VS_I for each numa)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                         GPLOT_LATEX)
+ *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *              outroot (root of output files)
  *              title (<optional>)
  *      Return: 0 if OK, 1 on error
@@ -629,8 +608,7 @@ gplotSimpleN(NUMAA       *naa,
  *              nay
  *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                         GPLOT_LATEX)
+ *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *              outroot (root of output files)
  *              title  (<optional>, can be NULL)
  *      Return: 0 if OK, 1 on error
@@ -663,8 +641,7 @@ GPLOT  *gplot;
         plotstyle != GPLOT_DOTS)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_X11 &&
-        outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
         return ERROR_INT("invalid outformat", procName, 1);
     if (!outroot)
         return ERROR_INT("outroot not specified", procName, 1);
@@ -686,8 +663,7 @@ GPLOT  *gplot;
  *              nay2
  *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                         GPLOT_LATEX)
+ *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *              outroot (root of output files)
  *              title  (<optional>)
  *      Return: 0 if OK, 1 on error
@@ -721,8 +697,7 @@ GPLOT  *gplot;
         plotstyle != GPLOT_DOTS)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_X11 &&
-        outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
         return ERROR_INT("invalid outformat", procName, 1);
     if (!outroot)
         return ERROR_INT("outroot not specified", procName, 1);
@@ -744,8 +719,7 @@ GPLOT  *gplot;
  *              naay (numaa of arrays to plot against @nax)
  *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_X11,
- *                         GPLOT_LATEX)
+ *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
  *              outroot (root of output files)
  *              title (<optional>)
  *      Return: 0 if OK, 1 on error
@@ -782,8 +756,7 @@ NUMA    *nay;
         plotstyle != GPLOT_DOTS)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_X11 &&
-        outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
         return ERROR_INT("invalid outformat", procName, 1);
     if (!outroot)
         return ERROR_INT("outroot not specified", procName, 1);

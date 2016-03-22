@@ -170,7 +170,8 @@ L_REGPARAMS  *rp;
     numaaAddNuma(naa, na1, L_INSERT);
     numaaAddNuma(naa, na2, L_INSERT);
     numaaAddNuma(naa, na3, L_INSERT);
-    gplotSimpleN(naa, GPLOT_PNG, "/tmp/lept/regout/nearline2", "Min along line");
+    gplotSimpleN(naa, GPLOT_PNG, "/tmp/lept/regout/nearline2",
+                 "Min along line");
 #ifndef  _WIN32
     sleep(1);
 #else

@@ -137,6 +137,8 @@ PTA       *pta;
         *ppta = pta;
     }
 
+    lept_mkdir("/lept/baseline");
+
         /* Close up the text characters, removing noise */
     pixt1 = pixMorphSequence(pixs, "c25.1 + e3.1", 0);
 
@@ -154,7 +156,7 @@ PTA       *pta;
     }
 
     if (debug)  /* show the difference signal */
-        gplotSimple1(nadiff, GPLOT_X11, "junkdiff", "difference");
+        gplotSimple1(nadiff, GPLOT_PNG, "/tmp/lept/baseline/diff", "Diff Sig");
 
         /* Use the zeroes of the profile to locate each baseline. */
     array = numaGetIArray(nadiff);
@@ -197,7 +199,7 @@ PTA       *pta;
     LEPT_FREE(array);
 
     if (debug) {  /* show the raster locations for the peaks */
-        gplot = gplotCreate("junkloc", GPLOT_X11, "Peak locations",
+        gplot = gplotCreate("/tmp/lept/baseline/loc", GPLOT_PNG, "Peak locs",
                             "rasterline", "height");
         gplotAddPlot(gplot, naloc, naval, GPLOT_POINTS, "locs");
         gplotMakeOutput(gplot);
@@ -241,7 +243,7 @@ PTA       *pta;
                 pixRenderLineArb(pixd, x1, y1, x2, y2, 1, 255, 0, 0);
             }
             pixDisplay(pixd, 200, 200);
-            pixWrite("junkbaselines", pixd, IFF_PNG);
+            pixWrite("/tmp/lept/baseline/baselines.png", pixd, IFF_PNG);
             pixDestroy(&pixd);
         }
     }
@@ -553,8 +555,9 @@ PTA       *pta;
 { NUMA   *nax, *nay;
   GPLOT  *gplot;
     ptaGetArrays(pta, &nax, &nay);
-    gplot = gplotCreate("junkskew", GPLOT_X11, "skew as fctn of y",
-                        "y (in raster lines from top)", "angle (in degrees)");
+    gplot = gplotCreate("/tmp/lept/baseline/kew", GPLOT_PNG,
+                        "skew as fctn of y", "y (in raster lines from top)",
+                        "angle (in degrees)");
     gplotAddPlot(gplot, NULL, naskew, GPLOT_POINTS, "linear lsf");
     gplotAddPlot(gplot, nax, nay, GPLOT_POINTS, "actual data pts");
     gplotMakeOutput(gplot);

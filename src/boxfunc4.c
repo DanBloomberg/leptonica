@@ -971,8 +971,8 @@ BOXA    *boxae, *boxao, *boxamede, *boxamedo, *boxame, *boxamo, *boxad;
 
     boxad = boxaMergeEvenOdd(boxame, boxamo, 0);
     if (debug) {
-        boxaPlotSides(boxas, NULL, NULL, NULL, NULL, NULL, GPLOT_X11);
-        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_X11);
+        boxaPlotSides(boxas, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
+        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
     }
 
     boxaDestroy(&boxae);
@@ -1138,7 +1138,7 @@ PTA       *ptal, *ptat, *ptar, *ptab;
     boxDestroy(&boxempty);
 
     if (debug)
-        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_X11);
+        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
 
     ptaDestroy(&ptal);
     ptaDestroy(&ptat);
@@ -1210,8 +1210,8 @@ NUMA    *nal, *nat, *nar, *nab, *naml, *namt, *namr, *namb;
     }
 
     if (debug) {
-        boxaPlotSides(boxaf, NULL, NULL, NULL, NULL, NULL, GPLOT_X11);
-        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_X11);
+        boxaPlotSides(boxaf, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
+        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
     }
 
     boxaDestroy(&boxaf);

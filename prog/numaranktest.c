@@ -51,6 +51,8 @@ static char  mainName[] = "numaranktest";
     filein = argv[1];
     sampling = atoi(argv[2]);
 
+    lept_mkdir("lept/numa");
+
     if ((pix = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
     pixGetDimensions(pix, &w, &h, &d);
