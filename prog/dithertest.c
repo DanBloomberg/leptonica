@@ -28,31 +28,27 @@
  * dithertest.c
  *
  *    Input is 8 bpp grayscale
- *    Output file is PostScript, 2 bpp dithered
  */
 
 #include "allheaders.h"
 
-static const l_float32  FACTOR = 0.95;
 static const l_float32  GAMMA = 1.0;
-
 
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      w, h;
-l_float32    scale;
+char        *filein;
 FILE        *fp;
 PIX         *pix, *pixs, *pixd;
 PIXCMAP     *cmap;
 static char  mainName[] = "dithertest";
 
-    if (argc != 3)
-        return ERROR_INT(" Syntax:  dithertest filein fileout", mainName, 1);
+    if (argc != 2)
+        return ERROR_INT(" Syntax:  dithertest filein", mainName, 1);
 
     filein = argv[1];
-    fileout = argv[2];
+
+    lept_mkdir("lept/dither");
 
     if ((pix = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
@@ -82,16 +78,6 @@ static char  mainName[] = "dithertest";
     pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
 
-         /* Dither to 2 bpp, without colormap; output in PostScript */
-    pixd = pixDitherTo2bpp(pixs, 0);
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
-    scale = L_MIN(FACTOR * 2550 / w, FACTOR * 3300 / h);
-    fp = lept_fopen(fileout, "wb+");
-    pixWriteStreamPS(fp, pixd, NULL, 300, scale);
-    lept_fclose(fp);
-    pixDestroy(&pixd);
-
         /* Dither 2x upscale to 1 bpp */
     startTimer();
     pixd = pixScaleGray2xLIDither(pixs);
@@ -106,8 +92,8 @@ static char  mainName[] = "dithertest";
     pixDisplayWrite(pixd, 1);
     pixDestroy(&pixd);
 
-    pixDisplayMultiple("/tmp/display/file*");
-
+    fprintf(stderr, "Writing to: /tmp/lept/dither/dither.pdf");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/dither/dither.pdf");
     pixDestroy(&pix);
     pixDestroy(&pixs);
     return 0;

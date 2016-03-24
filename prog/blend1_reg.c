@@ -158,11 +158,12 @@ PIXA  *pixa;
         /* Display results */
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/junkblend.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/display/blend1.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/display/blend1.pdf\n");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/display/blend1.pdf");
 
     pixDestroy(&pixg);
     pixDestroy(&pixt);

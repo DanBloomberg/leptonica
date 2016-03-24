@@ -93,8 +93,8 @@ L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
-    pixDisplayWrite(NULL, -1);
 
+    pixDisplayWrite(NULL, -1);
     lept_rmdir("lept/gif");
     lept_mkdir("lept/gif");
 
@@ -107,15 +107,18 @@ L_REGPARAMS  *rp;
     test_gif(FILE_8BPP_3, rp);
     test_gif(FILE_16BPP, rp);
     test_gif(FILE_32BPP, rp);
-    if (rp->success)
+    if (rp->success) {
         fprintf(stderr,
             "\n  ****** Success on lossless r/w to file *****\n\n");
-    else
+    } else {
         fprintf(stderr,
             "\n  ******* Failure on at least one r/w to file ******\n\n");
+    }
 
-    if (rp->display)
-        pixDisplayMultiple("/tmp/display/file*");
+    if (rp->display) {
+        fprintf(stderr, "Writing to: /tmp/lept/gif/giftest.pdf\n");
+        pixDisplayMultiple(150, 1.0, "/tmp/lept/gif/giftest.pdf");
+    }
 
     /* ------------ Part 2: Test lossless r/w to memory ------------ */
     success = TRUE;
@@ -129,12 +132,13 @@ L_REGPARAMS  *rp;
     if (test_mem_gif(FILE_8BPP_3, 5)) success = FALSE;
     if (test_mem_gif(FILE_16BPP, 6)) success = FALSE;
     if (test_mem_gif(FILE_32BPP, 7)) success = FALSE;
-    if (success)
+    if (success) {
         fprintf(stderr,
             "\n  ****** Success on lossless r/w to memory *****\n\n");
-    else
+    } else {
         fprintf(stderr,
             "\n  ******* Failure on at least one r/w to memory ******\n\n");
+    }
 
 #else
         fprintf(stderr,
@@ -165,6 +169,7 @@ PIX     *pixs, *pix1, *pix2;
     pix2 = pixRead(buf);
     regTestWritePixAndCheck(rp, pix2, IFF_GIF);
     pixEqual(pixs, pix2, &same);
+
     if (!same && rp->index < 6) {
         fprintf(stderr, "Error for %s\n", fname);
         rp->success = FALSE;

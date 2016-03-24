@@ -48,9 +48,9 @@
  *        l_int32     l_fileDisplay()
  *        l_int32     pixDisplay()
  *        l_int32     pixDisplayWithTitle()
- *        l_int32     pixDisplayMultiple()
  *        l_int32     pixDisplayWrite()
  *        l_int32     pixDisplayWriteFormat()
+ *        l_int32     pixDisplayMultiple()
  *        l_int32     pixSaveTiled()
  *        l_int32     pixSaveTiledOutline()
  *        l_int32     pixSaveTiledWithText()
@@ -996,54 +996,6 @@ char            fullpath[_MAX_PATH];
 
 
 /*!
- *  pixDisplayMultiple()
- *
- *      Input:  filepattern
- *      Return: 0 if OK; 1 on error
- *
- *  Notes:
- *      (1) This allows display of multiple images using gthumb on unix
- *          and i_view32 on windows.  The @filepattern is a regular
- *          expression that is expanded by the shell.
- *      (2) _fullpath automatically changes '/' to '\' if necessary.
- */
-l_int32
-pixDisplayMultiple(const char  *filepattern)
-{
-char     buffer[L_BUF_SIZE];
-l_int32  ignore;
-#ifdef _WIN32
-char    *pathname;
-char    *dir, *tail;
-char     fullpath[_MAX_PATH];
-#endif  /* _WIN32 */
-
-    PROCNAME("pixDisplayMultiple");
-
-    if (!filepattern || strlen(filepattern) == 0)
-        return ERROR_INT("filepattern not defined", procName, 1);
-
-#ifndef _WIN32
-    snprintf(buffer, L_BUF_SIZE, "gthumb %s &", filepattern);
-#else
-        /* irFanView wants absolute path for directory */
-    pathname = genPathname(filepattern, NULL);
-    splitPathAtDirectory(pathname, &dir, &tail);
-    _fullpath(fullpath, dir, sizeof(fullpath));
-
-    snprintf(buffer, L_BUF_SIZE,
-             "i_view32.exe \"%s\" /filepattern=\"%s\" /thumbs", fullpath, tail);
-    LEPT_FREE(pathname);
-    LEPT_FREE(dir);
-    LEPT_FREE(tail);
-#endif  /* _WIN32 */
-
-    ignore = system(buffer);  /* gthumb || i_view32.exe */
-    return 0;
-}
-
-
-/*!
  *  pixDisplayWrite()
  *
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
@@ -1052,16 +1004,18 @@ char     fullpath[_MAX_PATH];
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This defaults to jpeg output for pix that are 32 bpp or
+ *      (1) This is a simple interface for writing a set of files that can
+ *          be either looked at individually or saved in a pdf for viewing.
+ *      (2) This defaults to jpeg output for pix that are 32 bpp or
  *          8 bpp without a colormap.  If you want to write all images
  *          losslessly, use format == IFF_PNG in pixDisplayWriteFormat().
- *      (2) See pixDisplayWriteFormat() for usage details.
+ *      (3) See pixDisplayWriteFormat() for usage details.
  */
 l_int32
 pixDisplayWrite(PIX     *pixs,
                 l_int32  reduction)
 {
-    return pixDisplayWriteFormat(pixs, reduction, IFF_JFIF_JPEG);
+    return pixDisplayWriteFormat(pixs, reduction, IFF_DEFAULT);
 }
 
 
@@ -1071,21 +1025,22 @@ pixDisplayWrite(PIX     *pixs,
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
  *              reduction (-1 to reset/erase; 0 to disable;
  *                         otherwise this is a reduction factor)
- *              format (IFF_PNG or IFF_JFIF_JPEG)
+ *              format (IFF_DEFAULT or IFF_PNG)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This writes files if reduction > 0.  These can be displayed using
- *            pixDisplayMultiple("/tmp/lept/display/file*");
- *      (2) All previously written files can be erased by calling with
- *          reduction < 0; the value of pixs is ignored.
+ *      (1) This writes files with pathnames "/tmp/lept/display/file.*"
+ *          if reduction > 0.  These can be collected into a pdf using
+ *          pixDisplayMultiple();
+ *      (2) All previously written files in that directory can be erased
+ *          by calling with reduction < 0; the value of pixs is ignored.
  *      (3) If reduction > 1 and depth == 1, this does a scale-to-gray
  *          reduction.
  *      (4) This function uses a static internal variable to number
  *          output files written by a single process.  Behavior
  *          with a shared library may be unpredictable.
  *      (5) Output file format is as follows:
- *            format == IFF_JFIF_JPEG:
+ *            format == IFF_DEFAULT:
  *                png if d < 8 or d == 16 or if the output pix
  *                has a colormap.   Otherwise, output is jpg.
  *            format == IFF_PNG:
@@ -1104,7 +1059,7 @@ pixDisplayWriteFormat(PIX     *pixs,
 char            buf[L_BUF_SIZE];
 char           *fname;
 l_float32       scale;
-PIX            *pixt, *pix8;
+PIX            *pix1, *pix2;
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     PROCNAME("pixDisplayWriteFormat");
@@ -1116,10 +1071,12 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
         return 0;
     }
 
-    if (format != IFF_JFIF_JPEG && format != IFF_PNG)
-        return ERROR_INT("invalid format", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
+    if (format != IFF_DEFAULT && format != IFF_PNG) {
+        L_INFO("invalid format; using default\n", procName);
+        format = IFF_DEFAULT;
+    }
 
     if (index == 0) {
         lept_rmdir("lept/display");
@@ -1128,34 +1085,66 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
     index++;
 
     if (reduction == 1) {
-        pixt = pixClone(pixs);
+        pix1 = pixClone(pixs);
     } else {
         scale = 1. / (l_float32)reduction;
         if (pixGetDepth(pixs) == 1)
-            pixt = pixScaleToGray(pixs, scale);
+            pix1 = pixScaleToGray(pixs, scale);
         else
-            pixt = pixScale(pixs, scale, scale);
+            pix1 = pixScale(pixs, scale, scale);
     }
 
-    if (pixGetDepth(pixt) == 16) {
-        pix8 = pixMaxDynamicRange(pixt, L_LOG_SCALE);
+    if (pixGetDepth(pix1) == 16) {
+        pix2 = pixMaxDynamicRange(pix1, L_LOG_SCALE);
         snprintf(buf, L_BUF_SIZE, "file.%03d.png", index);
         fname = genPathname("/tmp/lept/display", buf);
-        pixWrite(fname, pix8, IFF_PNG);
-        pixDestroy(&pix8);
-    } else if (pixGetDepth(pixt) < 8 || pixGetColormap(pixt) ||
-             format == IFF_PNG) {
+        pixWrite(fname, pix2, IFF_PNG);
+        pixDestroy(&pix2);
+    } else if (pixGetDepth(pix1) < 8 || pixGetColormap(pix1) ||
+               format == IFF_PNG) {
         snprintf(buf, L_BUF_SIZE, "file.%03d.png", index);
         fname = genPathname("/tmp/lept/display", buf);
-        pixWrite(fname, pixt, IFF_PNG);
+        pixWrite(fname, pix1, IFF_PNG);
     } else {
         snprintf(buf, L_BUF_SIZE, "file.%03d.jpg", index);
         fname = genPathname("/tmp/lept/display", buf);
-        pixWrite(fname, pixt, format);
+        pixWrite(fname, pix1, format);
     }
     LEPT_FREE(fname);
-    pixDestroy(&pixt);
+    pixDestroy(&pix1);
 
+    return 0;
+}
+
+
+/*!
+ *  pixDisplayMultiple()
+ *
+ *      Input:  res (input resolution in ppi; > 0)
+ *              scalefactor (scaling factor applied to each image; > 0.0)
+ *              fileout (pdf output file)
+ *      Return: 0 if OK; 1 on error
+ *
+ *  Notes:
+ *      (1) This is a wrapper for generating a pdf of images that have
+ *          been written with pixDisplayWrite() or pixDisplayWriteFormat().
+ */
+l_int32
+pixDisplayMultiple(l_int32      res,
+                   l_float32    scalefactor,
+                   const char  *fileout)
+{
+    PROCNAME("pixDisplayMultiple");
+
+    if (res <= 0) 
+        return ERROR_INT("invalid res", procName, 1);
+    if (scalefactor <= 0.0)
+        return ERROR_INT("invalid scalefactor", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+
+    convertFilesToPdf("/tmp/lept/display", "file.", res, scalefactor, 0, 0,
+                      NULL, fileout);
     return 0;
 }
 

@@ -26,7 +26,6 @@
 
 /*
  * expand_reg.c
- *
  */
 
 #include "allheaders.h"
@@ -58,6 +57,8 @@ static char  mainName[] = "expand_reg";
         return ERROR_INT(" Syntax:  expand_reg", mainName, 1);
 
     pixDisplayWrite(NULL, -1);
+    lept_mkdir("lept/expand");
+
     for (i = 0; i < 8; i++) {
         pixs = pixRead(filename[i]);
         pixt = pixExpandReplicate(pixs, 2);
@@ -69,7 +70,7 @@ static char  mainName[] = "expand_reg";
 
         if (i == 4) {
             pixt = pixScale(pixs, 3.0, 3.0);
-            pixWrite("/tmp/junkpixt.png", pixt, IFF_PNG);
+            pixWrite("/tmp/lept/expand/scaled.png", pixt, IFF_PNG);
             pixDestroy(&pixt);
         }
         pixDestroy(&pixs);
@@ -148,7 +149,8 @@ static char  mainName[] = "expand_reg";
     pixDestroy(&pixd);
     pixDestroy(&pixs);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/expand/expand.pdf\n");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/expand/expand.pdf");
     return 0;
 }
 

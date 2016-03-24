@@ -76,6 +76,8 @@ static char  mainName[] = "adaptmaptest";
     pixSaveTiled(pixs, pixa, 1.0, 1, 20, 32);
     pixDisplayWrite(pixs, 1);
 
+    lept_mkdir("lept/adapt");
+
     if (d == 32) {
         pixc = pixClone(pixs);
         pixg = pixConvertRGBToGray(pixs, 0.33, 0.34, 0.33);
@@ -95,28 +97,28 @@ static char  mainName[] = "adaptmaptest";
     pixGetBackgroundGrayMap(pixg, pixim, SIZE_X, SIZE_Y,
                             BINTHRESH, MINCOUNT, &pixgm);
     fprintf(stderr, "time for gray adaptmap gen: %7.3f\n", stopTimer());
-    pixWrite("/tmp/pixgm1.png", pixgm, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixgm1.png", pixgm, IFF_PNG);
     pixSaveTiled(pixgm, pixa, 1.0, 1, 20, 32);
     pixDisplayWrite(pixgm, 1);
 
     startTimer();
     pixmi = pixGetInvBackgroundMap(pixgm, BGVAL, SMOOTH_X, SMOOTH_Y);
     fprintf(stderr, "time for gray inv map generation: %7.3f\n", stopTimer());
-    pixWrite("/tmp/pixmi1.png", pixmi, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixmi1.png", pixmi, IFF_PNG);
     pixSaveTiled(pixmi, pixa, 1.0, 0, 20, 32);
     pixDisplayWrite(pixmi, 1);
 
     startTimer();
     pixd = pixApplyInvBackgroundGrayMap(pixg, pixmi, SIZE_X, SIZE_Y);
     fprintf(stderr, "time to apply gray inv map: %7.3f\n", stopTimer());
-    pixWrite("/tmp/pixd1.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/pixd1.jpg", pixd, IFF_JFIF_JPEG);
     pixSaveTiled(pixd, pixa, 1.0, 0, 20, 32);
     pixDisplayWrite(pixd, 1);
 
     pixd2 = pixGammaTRCMasked(NULL, pixd, pixim, 1.0, 0, 190);
     pixInvert(pixim, pixim);
     pixGammaTRCMasked(pixd2, pixd2, pixim, 1.0, 60, 190);
-    pixWrite("/tmp/pixo1.jpg", pixd2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/pixo1.jpg", pixd2, IFF_JFIF_JPEG);
     pixSaveTiled(pixd2, pixa, 1.0, 0, 20, 32);
     pixDisplayWrite(pixd2, 1);
     pixDestroy(&pixim);
@@ -136,31 +138,31 @@ static char  mainName[] = "adaptmaptest";
                            BINTHRESH, MINCOUNT,
                            &pixmr, &pixmg, &pixmb);
     fprintf(stderr, "time for color adaptmap gen: %7.3f\n", stopTimer());
-    pixWrite("/tmp/pixmr.png", pixmr, IFF_PNG);
-    pixWrite("/tmp/pixmg.png", pixmg, IFF_PNG);
-    pixWrite("/tmp/pixmb.png", pixmb, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixmr.png", pixmr, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixmg.png", pixmg, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixmb.png", pixmb, IFF_PNG);
 
     startTimer();
     pixmri = pixGetInvBackgroundMap(pixmr, BGVAL, SMOOTH_X, SMOOTH_Y);
     pixmgi = pixGetInvBackgroundMap(pixmg, BGVAL, SMOOTH_X, SMOOTH_Y);
     pixmbi = pixGetInvBackgroundMap(pixmb, BGVAL, SMOOTH_X, SMOOTH_Y);
     fprintf(stderr, "time for color inv map generation: %7.3f\n", stopTimer());
-    pixWrite("/tmp/pixmri.png", pixmri, IFF_PNG);
-    pixWrite("/tmp/pixmgi.png", pixmgi, IFF_PNG);
-    pixWrite("/tmp/pixmbi.png", pixmbi, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixmri.png", pixmri, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixmgi.png", pixmgi, IFF_PNG);
+    pixWrite("/tmp/lept/adapt/pixmbi.png", pixmbi, IFF_PNG);
 
     startTimer();
     pixd = pixApplyInvBackgroundRGBMap(pixc, pixmri, pixmgi, pixmbi,
                                        SIZE_X, SIZE_Y);
     fprintf(stderr, "time to apply color inv maps: %7.3f\n", stopTimer());
-    pixWrite("/tmp/pixd2.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/pixd2.jpg", pixd, IFF_JFIF_JPEG);
     pixSaveTiled(pixd, pixa, 1.0, 1, 20, 32);
     pixDisplayWrite(pixd, 1);
 
     pixd2 = pixGammaTRCMasked(NULL, pixd, pixim, 1.0, 0, 190);
     pixInvert(pixim, pixim);
     pixGammaTRCMasked(pixd2, pixd2, pixim, 1.0, 60, 190);
-    pixWrite("/tmp/pixo2.jpg", pixd2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/pixo2.jpg", pixd2, IFF_JFIF_JPEG);
     pixSaveTiled(pixd2, pixa, 1.0, 0, 20, 32);
     pixDisplayWrite(pixd2, 1);
     pixDestroy(&pixmr);
@@ -185,14 +187,14 @@ static char  mainName[] = "adaptmaptest";
     pixd = pixBackgroundNorm(pixs, pixim, NULL, 5, 10, BINTHRESH, 20,
                              BGVAL, SMOOTH_X, SMOOTH_Y);
     fprintf(stderr, "time for bg normalization: %7.3f\n", stopTimer());
-    pixWrite("/tmp/pixd3.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/pixd3.jpg", pixd, IFF_JFIF_JPEG);
     pixSaveTiled(pixd, pixa, 1.0, 1, 20, 32);
     pixDisplayWrite(pixd, 1);
 
     pixd2 = pixGammaTRCMasked(NULL, pixd, pixim, 1.0, 0, 190);
     pixInvert(pixim, pixim);
     pixGammaTRCMasked(pixd2, pixd2, pixim, 1.0, 60, 190);
-    pixWrite("/tmp/pixo3.jpg", pixd2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/pixo3.jpg", pixd2, IFF_JFIF_JPEG);
     pixSaveTiled(pixd2, pixa, 1.0, 0, 20, 32);
     pixDisplayWrite(pixd2, 1);
 
@@ -204,11 +206,12 @@ static char  mainName[] = "adaptmaptest";
         /* Display results */
     pixd = pixaDisplay(pixa, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/adapt.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/adapt.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/adapt/adapt.pdf");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/adapt/adapt.pdf");
 
     pixDestroy(&pixs);
     pixDestroy(&pixg);

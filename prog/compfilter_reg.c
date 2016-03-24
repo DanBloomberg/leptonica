@@ -65,6 +65,7 @@ PIX     *pixs, *pixc, *pixt, *pixt2, *pixd, *pixcount;
 PIXA    *pixas, *pixad, *pixac;
 
     pixDisplayWrite(NULL, -1);
+    lept_mkdir("lept/filter");
 
         /* Draw 4 filled boxes of different sizes */
     pixs = pixCreate(200, 200, 1);
@@ -278,10 +279,12 @@ PIXA    *pixas, *pixad, *pixac;
     numaDestroy(&na4);
     numaDestroy(&na5);
 
-    pixDisplayMultiple("/tmp/display/file*");
+        /* Write the results */
+    fprintf(stderr, "Writing to: /tmp/lept/filter/filter.pdf\n");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/filter/filter.pdf");
     pixd = pixaDisplay(pixac, 0, 0);
     pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/comp.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/filter/filter.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixac);
     return 0;

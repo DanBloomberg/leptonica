@@ -47,6 +47,8 @@ PIXCMAP  *cmap;
     pixb = pixRead("weasel4.11c.png");
     pixDisplayWrite(NULL, -1);
 
+    lept_mkdir("lept/blend");
+
         /* Fade the blender */
     pixcmapShiftIntensity(pixGetColormap(pixb), FADE_FRACTION);
 
@@ -89,7 +91,8 @@ PIXCMAP  *cmap;
     cmap = pixGetColormap(pixt1);
     pixcmapWriteStream(stderr, cmap);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/blend/blendcmap.pdf");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/blend/blendcmap.pdf");
 
     pixDestroy(&pixs);
     pixDestroy(&pixb);

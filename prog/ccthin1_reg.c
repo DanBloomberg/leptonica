@@ -130,6 +130,8 @@ static char  mainName[] = "ccthin1_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax: ccthin1_reg", mainName, 1);
 
+    lept_mkdir("lept/thin");
+
         /* Generate and display all of the 4-cc sels */
     sela4 = selaCreate(9);
     sel = selCreateFromString(sel_4_1, 3, 3, "sel_4_1");
@@ -151,7 +153,7 @@ static char  mainName[] = "ccthin1_reg";
     sel = selCreateFromString(sel_4_9, 3, 3, "sel_4_9");
     selaAddSel(sela4, sel, NULL, 0);
     pixt = selaDisplayInPix(sela4, 35, 3, 15, 3);
-    pixWrite("/tmp/junkallsel4.png", pixt, IFF_PNG);
+    pixWrite("/tmp/lept/thin/allsel4.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     selaDestroy(&sela4);
 
@@ -176,7 +178,7 @@ static char  mainName[] = "ccthin1_reg";
     sel = selCreateFromString(sel_8_9, 3, 3, "sel_8_9");
     selaAddSel(sela8, sel, NULL, 0);
     pixt = selaDisplayInPix(sela8, 35, 3, 15, 3);
-    pixWrite("/tmp/junkallsel8.png", pixt, IFF_PNG);
+    pixWrite("/tmp/lept/thin/allsel8.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     selaDestroy(&sela8);
 
@@ -187,7 +189,7 @@ static char  mainName[] = "ccthin1_reg";
     sel = selCreateFromString(sel_48_2, 3, 3, "sel_48_2");
     selaAddSel(sela48, sel, NULL, 0);
     pixt = selaDisplayInPix(sela48, 35, 3, 15, 4);
-    pixWrite("/tmp/junkallsel48.png", pixt, IFF_PNG);
+    pixWrite("/tmp/lept/thin/allsel48.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     selaDestroy(&sela48);
 
@@ -218,7 +220,7 @@ static char  mainName[] = "ccthin1_reg";
     selaAddSel(sela4, sel2, "sel_4_3_180", 0);
     selaAddSel(sela4, sel3, "sel_4_3_270", 0);
     pixt = selaDisplayInPix(sela4, 35, 3, 15, 4);
-    pixWrite("/tmp/junksel4.png", pixt, IFF_PNG);
+    pixWrite("/tmp/lept/thin/sel4.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     selaDestroy(&sela4);
 
@@ -257,7 +259,7 @@ static char  mainName[] = "ccthin1_reg";
     selaAddSel(sela8, sel2, "sel_8_6_180", 0);
     selaAddSel(sela8, sel3, "sel_8_6_270", 0);
     pixt = selaDisplayInPix(sela8, 35, 3, 15, 4);
-    pixWrite("/tmp/junksel8.png", pixt, IFF_PNG);
+    pixWrite("/tmp/lept/thin/sel8.png", pixt, IFF_PNG);
     pixDestroy(&pixt);
     selaDestroy(&sela8);
 
@@ -283,16 +285,17 @@ static char  mainName[] = "ccthin1_reg";
     pixDestroy(&pixt);
 
         /* Display tiled */
-    pixa = pixaReadFiles("/tmp/display", "file");
+    pixa = pixaReadFiles("/tmp/lept/display", "file");
     pixd = pixaDisplayTiledAndScaled(pixa, 8, 500, 1, 0, 25, 2);
-    pixWrite("/tmp/junktiles.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/thin/ccthin.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
     pixDestroy(&pix);
     pixDestroy(&pixs);
     boxDestroy(&box);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin.pdf");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/thin/ccthin.pdf");
     return 0;
 }
 

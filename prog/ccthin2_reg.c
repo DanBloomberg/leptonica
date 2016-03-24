@@ -44,6 +44,8 @@ static char  mainName[] = "ccthin2_reg";
     if (argc != 1 && argc != 3)
         return ERROR_INT(" Syntax: ccthin2_reg [index maxiters]", mainName, 1);
 
+    lept_mkdir("lept/thin2");
+
     pixDisplayWrite(NULL, 0);
     pix = pixRead("feyn.tif");
     box = boxCreate(683, 799, 970, 479);
@@ -59,62 +61,63 @@ static char  mainName[] = "ccthin2_reg";
         else
             type = L_THIN_BG;
         pixt = pixThinExamples(pixs, type, index, maxiters,
-                               "/tmp/junksels.png");
+                               "/tmp/lept/thin2/sels.png");
         pixDisplay(pixt, 100, 100);
         pixDisplayWrite(pixt, 1);
         pixDestroy(&pixt);
-        pixDisplayMultiple("/tmp/display/file*");
+        fprintf(stderr, "Writing to: /tmp/lept/thin2/thin.pdf");
+        pixDisplayMultiple(150, 1.0, "/tmp/lept/thin2/thin.pdf");
         return 0;
     }
 
         /* Do all the examples */
-    pixt = pixThinExamples(pixs, L_THIN_FG, 1, 0, "/tmp/junksel_example1.png");
+    pixt = pixThinExamples(pixs, L_THIN_FG, 1, 0, "/tmp/lept/thin2/sel_1.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_FG, 2, 0, "/tmp/junksel_example2.png");
+    pixt = pixThinExamples(pixs, L_THIN_FG, 2, 0, "/tmp/lept/thin2/sel_2.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_FG, 3, 0, "/tmp/junksel_example3.png");
+    pixt = pixThinExamples(pixs, L_THIN_FG, 3, 0, "/tmp/lept/thin2/sel_3.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_FG, 4, 0, "/tmp/junksel_example4.png");
+    pixt = pixThinExamples(pixs, L_THIN_FG, 4, 0, "/tmp/lept/thin2/sel_4.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_FG, 5, 0, "/tmp/junksel_example5.png");
+    pixt = pixThinExamples(pixs, L_THIN_FG, 5, 0, "/tmp/lept/thin2/sel_5.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_FG, 6, 0, "/tmp/junksel_example6.png");
+    pixt = pixThinExamples(pixs, L_THIN_FG, 6, 0, "/tmp/lept/thin2/sel_6.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_FG, 7, 0, "/tmp/junksel_example7.png");
+    pixt = pixThinExamples(pixs, L_THIN_FG, 7, 0, "/tmp/lept/thin2/sel_7.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_BG, 8, 5, "/tmp/junksel_example8.png");
+    pixt = pixThinExamples(pixs, L_THIN_BG, 8, 5, "/tmp/lept/thin2/sel_8.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
-    pixt = pixThinExamples(pixs, L_THIN_BG, 9, 5, "/tmp/junksel_example9.png");
+    pixt = pixThinExamples(pixs, L_THIN_BG, 9, 5, "/tmp/lept/thin2/sel_9.png");
     pixDisplayWrite(pixt, 1);
     pixDestroy(&pixt);
 
         /* Display the thinning results */
-    pixa = pixaReadFiles("/tmp/display", "file");
+    pixa = pixaReadFiles("/tmp/lept/display", "file");
     pixd = pixaDisplayTiledAndScaled(pixa, 8, 500, 1, 0, 25, 2);
-    pixWrite("/tmp/junktiles.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/thin2/thin.jpg", pixd, IFF_JFIF_JPEG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
+    fprintf(stderr, "Writing to: /tmp/lept/thin2/thin.pdf");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/thin2/thin.pdf");
 
         /* Display the sels used in the examples */
-    pixa = pixaReadFiles("/tmp", "junksel_example");
+    pixa = pixaReadFiles("/tmp/lept/thin2", "sel");
     pixd = pixaDisplayTiledInRows(pixa, 1, 500, 1.0, 0, 50, 2);
-    pixWrite("/tmp/junksels.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/thin2/sels.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
     pixDestroy(&pix);
     pixDestroy(&pixs);
     boxDestroy(&box);
-
-    pixDisplayMultiple("/tmp/display/file*");
     return 0;
 }
 

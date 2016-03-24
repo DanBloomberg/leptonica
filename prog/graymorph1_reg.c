@@ -54,7 +54,6 @@
 
 #define     WSIZE              7
 #define     HSIZE              7
-#define     BUF_SIZE           512
 #define     HORIZ_SEP          0  /* set to 50 to display each image */
 
 
@@ -64,9 +63,9 @@ static void pixCompare(PIX *pix, PIX *pix2, const char *msg1, const char *msg2);
 int main(int    argc,
          char **argv)
 {
-char         dilateseq[BUF_SIZE], erodeseq[BUF_SIZE];
-char         openseq[BUF_SIZE], closeseq[BUF_SIZE];
-char         wtophatseq[BUF_SIZE], btophatseq[BUF_SIZE];
+char         dilateseq[512], erodeseq[512];
+char         openseq[512], closeseq[512];
+char         wtophatseq[512], btophatseq[512];
 char        *filein;
 l_int32      w, h, d;
 PIX         *pixs, *pixt, *pixt2, *pixt3, *pixt3a, *pixt4;
@@ -84,6 +83,8 @@ static char  mainName[] = "graymorph1_reg";
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8)
         return ERROR_INT("pixs not 8 bpp", mainName, 1);
+
+    lept_mkdir("lept/graymorph");
 
     /* -------- Test gray morph, including interpreter ------------ */
     pixd = pixDilateGray(pixs, WSIZE, HSIZE);
@@ -247,7 +248,6 @@ static char  mainName[] = "graymorph1_reg";
         /* Paste in the input image */
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     pixRasterop(pixd, 3, 3, w, h, PIX_SRC, pixt, 0, 0);  /* 1st one */
-/*    pixWrite("/tmp/junkgray.jpg", pixt, IFF_JFIF_JPEG); */
     pixDestroy(&pixt);
 
         /* Paste in the grayscale version */
@@ -265,7 +265,6 @@ static char  mainName[] = "graymorph1_reg";
     pixt3a = pixMaxDynamicRange(pixt2, L_LOG_SCALE);
     pixt3 = pixConvertTo32(pixt3a);
     pixRasterop(pixd, 2 * w + 9, 3, w, h, PIX_SRC, pixt3, 0, 0);  /* 3rd */
-/*    pixWrite("/tmp/junktophat.jpg", pixt2, IFF_JFIF_JPEG); */
     pixDestroy(&pixt3);
     pixDestroy(&pixt3a);
     pixDestroy(&pixt);
@@ -275,7 +274,6 @@ static char  mainName[] = "graymorph1_reg";
     pixt3 = pixThresholdToBinary(pixt3a, 70);
     pixt4 = pixConvertTo32(pixt3);
     pixRasterop(pixd, 3 * w + 12, 3, w, h, PIX_SRC, pixt4, 0, 0);  /* 4th */
-/*    pixWrite("/tmp/junkbin.png", pixt3, IFF_PNG); */
     pixDestroy(&pixt2);
     pixDestroy(&pixt3a);
     pixDestroy(&pixt4);
@@ -284,14 +282,13 @@ static char  mainName[] = "graymorph1_reg";
     pixInvert(pixt3, pixt3);
     pixt4 = pixConvertTo32(pixt3);
     pixRasterop(pixd, 4 * w + 15, 3, w, h, PIX_SRC, pixt4, 0, 0);  /* 5th */
-    pixWrite("/tmp/junkbininvert.png", pixt3, IFF_PNG);
     pixDisplayWrite(pixd, 1);
-/*    pixWrite("/tmp/junkall.jpg", pixd, IFF_JFIF_JPEG); */
     pixDestroy(&pixt3);
     pixDestroy(&pixt4);
     pixDestroy(&pixd);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/graymorph/gray.pdf\n");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/graymorph/gray.pdf");
     pixDestroy(&pixs);
     return 0;
 }

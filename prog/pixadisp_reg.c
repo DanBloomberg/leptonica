@@ -47,6 +47,9 @@ static char  mainName[] = "pixadisp_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax: pixadisp_reg", mainName, 1);
 
+    pixDisplayWrite(NULL, -1);
+    lept_mkdir("lept/pixadisp");
+
     if ((pixs = pixRead("feyn.tif")) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
     box = boxCreate(683, 799, 970, 479);
@@ -131,6 +134,8 @@ static char  mainName[] = "pixadisp_reg";
     pixDestroy(&pixc);
     pixDestroy(&pix32);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/pixadisp/disp.pdf");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/pixadisp/disp.pdf");
+
     return 0;
 }

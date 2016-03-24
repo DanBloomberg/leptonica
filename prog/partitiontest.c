@@ -83,12 +83,14 @@ static char  mainName[] = "partitiontest";
     }
     if (argc == 5) {
         maxboxes = atoi(argv[3]);
-	ovlap = atof(argv[4]);
+        ovlap = atof(argv[4]);
     } else {
         maxboxes = 100;
-	ovlap = 0.2;
+        ovlap = 0.2;
     }
 
+    pixDisplayWrite(NULL, -1);
+    lept_mkdir("lept/part");
 
     pix = pixRead(filename);
     pixs = pixConvertTo1(pix, 128);
@@ -105,7 +107,6 @@ static char  mainName[] = "partitiontest";
     fprintf(stderr, "Time: %7.3f sec\n", stopTimer());
     boxaWriteStream(stderr, boxad);
 
-    pixDisplayWrite(NULL, -1);
     pixDisplayWrite(pixs, REDUCTION);
 
         /* Display box outlines in a single color in a cmapped image */
@@ -156,7 +157,8 @@ static char  mainName[] = "partitiontest";
     pixDestroy(&pixt);
     pixDestroy(&pixd);
 
-    pixDisplayMultiple("/tmp/display/file*");
+    fprintf(stderr, "Writing to: /tmp/lept/part/partition.pdf\n");
+    pixDisplayMultiple(150, 1.0, "/tmp/lept/part/partition.pdf");
 
     pixDestroy(&pix);
     pixDestroy(&pixs);
