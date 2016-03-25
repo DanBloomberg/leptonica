@@ -1023,7 +1023,7 @@ pixDisplayWrite(PIX     *pixs,
  *  pixDisplayWriteFormat()
  *
  *      Input:  pix (1, 2, 4, 8, 16, 32 bpp)
- *              reduction (-1 to reset/erase; 0 to disable;
+ *              reduction (-1 to erase and reset; 0 to disable;
  *                         otherwise this is a reduction factor)
  *              format (IFF_DEFAULT or IFF_PNG)
  *      Return: 0 if OK; 1 on error
@@ -1032,8 +1032,9 @@ pixDisplayWrite(PIX     *pixs,
  *      (1) This writes files with pathnames "/tmp/lept/display/file.*"
  *          if reduction > 0.  These can be collected into a pdf using
  *          pixDisplayMultiple();
- *      (2) All previously written files in that directory can be erased
- *          by calling with reduction < 0; the value of pixs is ignored.
+ *      (2) Before writing a set of files, call
+ *              pixDisplayWrite(NULL, -1);
+ *          This erases any previously written files in that directory.
  *      (3) If reduction > 1 and depth == 1, this does a scale-to-gray
  *          reduction.
  *      (4) This function uses a static internal variable to number
@@ -1066,8 +1067,9 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     if (reduction == 0) return 0;
 
-    if (reduction < 0) {
-        index = 0;  /* reset; this will cause erasure at next call to write */
+    if (reduction < 0) {  /* initialize */
+        lept_rmdir("lept/display");
+        index = 0;
         return 0;
     }
 
@@ -1078,10 +1080,8 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
         format = IFF_DEFAULT;
     }
 
-    if (index == 0) {
-        lept_rmdir("lept/display");
+    if (index == 0)
         lept_mkdir("lept/display");
-    }
     index++;
 
     if (reduction == 1) {
