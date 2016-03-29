@@ -1126,13 +1126,15 @@ TIFF    *tif;
     pixa = pixaCreate(npages);
     pix = NULL;
     for (i = 0; i < npages; i++) {
-        TIFFSetDirectory(tif, i);
         if ((pix = pixReadFromTiffStream(tif)) != NULL) {
             pixaAddPix(pixa, pix, L_INSERT);
         } else {
             L_WARNING("pix not read for page %d\n", procName, i);
-            continue;
         }
+
+            /* Advance to the next directory (i.e., the next image) */
+        if (TIFFReadDirectory(tif) == 0)
+            break;
     }
 
     fclose(fp);
