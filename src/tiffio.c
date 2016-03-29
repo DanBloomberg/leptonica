@@ -1104,6 +1104,7 @@ l_int32  i, npages;
 FILE    *fp;
 PIX     *pix;
 PIXA    *pixa;
+TIFF    *tif;
 
     PROCNAME("pixaReadMultipageTiff");
 
@@ -1118,18 +1119,24 @@ PIXA    *pixa;
     } else {
         return (PIXA *)ERROR_PTR("file not tiff", procName, NULL);
     }
-    fclose(fp);
+
+    if ((tif = fopenTiff(fp, "r")) == NULL)
+        return (PIXA *)ERROR_PTR("tif not opened", procName, NULL);
 
     pixa = pixaCreate(npages);
+    pix = NULL;
     for (i = 0; i < npages; i++) {
-        pix = pixReadTiff(filename, i);
-        if (!pix) {
+        TIFFSetDirectory(tif, i);
+        if ((pix = pixReadFromTiffStream(tif)) != NULL) {
+            pixaAddPix(pixa, pix, L_INSERT);
+        } else {
             L_WARNING("pix not read for page %d\n", procName, i);
             continue;
         }
-        pixaAddPix(pixa, pix, L_INSERT);
     }
 
+    fclose(fp);
+    TIFFCleanup(tif);
     return pixa;
 }
 

@@ -36,9 +36,9 @@
 #include "allheaders.h"
 #include <string.h>
 
-static const char *weasel_rev = "/tmp/tiff/weasel_rev";
-static const char *weasel_rev_rev = "/tmp/tiff/weasel_rev_rev";
-static const char *weasel_orig = "/tmp/tiff/weasel_orig";
+static const char *weasel_rev = "/tmp/lept/tiff/weasel_rev";
+static const char *weasel_rev_rev = "/tmp/lept/tiff/weasel_rev_rev";
+static const char *weasel_orig = "/tmp/lept/tiff/weasel_orig";
 
 
 int main(int    argc,
@@ -60,15 +60,15 @@ static char  mainName[] = "mtifftest";
     if (argc != 1)
         return ERROR_INT(" Syntax:  mtifftest", mainName, 1);
 
-    lept_mkdir("tiff");
+    lept_mkdir("lept/tiff");
 
 #if 1   /* ------------------  Test multipage I/O  -------------------*/
         /* This puts every image file in the directory with a string
          * match to "weasel" into a multipage tiff file.
          * Images with 1 bpp are coded as g4; the others as zip.
          * It then reads back into a pix and displays.  */
-    writeMultipageTiff(".", "weasel8.", "/tmp/tiff/weasel8.tif");
-    pixa = pixaReadMultipageTiff("/tmp/tiff/weasel8.tif");
+    writeMultipageTiff(".", "weasel8.", "/tmp/lept/tiff/weasel8.tif");
+    pixa = pixaReadMultipageTiff("/tmp/lept/tiff/weasel8.tif");
     pixd = pixaDisplayTiledInRows(pixa, 1, 1200, 0.5, 0, 15, 4);
     pixDisplay(pixd, 100, 0);
     pixDestroy(&pixd);
@@ -96,16 +96,16 @@ static char  mainName[] = "mtifftest";
         if (!pix1) continue;
         pix2 = pixConvertTo1(pix1, 128);
         if (i == 0)
-            pixWriteTiff("/tmp/tiff/weasel4", pix2, IFF_TIFF_G4, "w+");
+            pixWriteTiff("/tmp/lept/tiff/weasel4", pix2, IFF_TIFF_G4, "w+");
         else
-            pixWriteTiff("/tmp/tiff/weasel4", pix2, IFF_TIFF_G4, "a");
+            pixWriteTiff("/tmp/lept/tiff/weasel4", pix2, IFF_TIFF_G4, "a");
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         lept_free(filename);
     }
 
         /* Write it out as a PS file */
-    convertTiffMultipageToPS("/tmp/tiff/weasel4", "/tmp/tiff/weasel4.ps",
+    convertTiffMultipageToPS("/tmp/lept/tiff/weasel4", "/tmp/tiff/weasel4.ps",
                              NULL, 0.95);
     sarrayDestroy(&sa);
 #endif
@@ -124,18 +124,16 @@ static char  mainName[] = "mtifftest";
 
         /* Split into separate page files */
     for (i = 0; i < npages + 1; i++) {   /* read one beyond to catch error */
-        if (i == npages)
-            L_INFO("Errors in next 2 lines are intentional!\n", mainName);
         pix = pixReadTiff(weasel_orig, i);
         if (!pix) continue;
-        sprintf(buffer, "/tmp/tiff/%03d.tif", i);
+        sprintf(buffer, "/tmp/lept/tiff/%03d.tif", i);
         pixWrite(buffer, pix, IFF_TIFF_ZIP);
         pixDestroy(&pix);
     }
 
         /* Read separate page files and write reversed file */
     for (i = npages - 1; i >= 0; i--) {
-        sprintf(buffer, "/tmp/tiff/%03d.tif", i);
+        sprintf(buffer, "/tmp/lept/tiff/%03d.tif", i);
         pix = pixRead(buffer);
         if (!pix) continue;
         if (i == npages - 1)
