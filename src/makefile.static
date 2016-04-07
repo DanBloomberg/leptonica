@@ -124,7 +124,7 @@ CC =		gcc -std=c99 -U__STRICT_ANSI__ -D__USE_MINGW_ANSI_STDIO
 #CC =		g++ -Wunused -D_BSD_SOURCE -fPIC
 
 #   Test for processor endianness (valid with gnu make only)
-ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
+ENDIANNESS := $(shell echo __BYTE_ORDER | $(CC) -include endian.h -E - | tail -n 1 | sed -e s/1234/L_LITTLE_ENDIAN/ -e s/4321/L_BIG_ENDIAN/)
 
 # Conditional compilation (depending on processor endianness)
 CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
