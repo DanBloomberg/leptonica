@@ -2341,7 +2341,7 @@ PIXA    *pixat, *pixad;
  *              maxdist
  *              &naindex (<optional return> index array of correspondences
  *              &same (<return> 1 if equal; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The two pixa are the "same" if they contain the same

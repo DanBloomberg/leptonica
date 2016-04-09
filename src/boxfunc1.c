@@ -179,7 +179,7 @@ BOXA    *boxad;
  *
  *      Input:  boxas
  *              box (for intersecting)
- *      Return  boxad (boxa with all boxes in boxas that intersect box),
+ *      Return: boxad (boxa with all boxes in boxas that intersect box),
  *                     or null on error
  *
  *  Notes:
@@ -221,7 +221,7 @@ BOXA    *boxad;
  *
  *      Input:  boxas
  *              box (for clipping)
- *      Return  boxad (boxa with boxes in boxas clipped to box),
+ *      Return: boxad (boxa with boxes in boxas clipped to box),
  *                     or null on error
  *
  *  Notes:
@@ -717,7 +717,7 @@ l_int32  bx, by, bw, bh;
  *
  *      Input:  boxa
  *              x, y  (point)
- *      Return  box (box with centroid closest to the given point [x,y]),
+ *      Return: box (box with centroid closest to the given point [x,y]),
  *              or NULL if no boxes in boxa)
  *
  *  Notes:
@@ -763,7 +763,7 @@ BOX       *box;
  *
  *      Input:  box
  *              &cx, &cy (<return> location of center of box)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  */
 l_int32
 boxGetCenter(BOX        *box,
@@ -1306,7 +1306,7 @@ BOX     *box;
  *      Input:  box1
  *              box2
  *              &same (<return> 1 if equal; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  */
 l_int32
 boxEqual(BOX      *box1,
@@ -1335,7 +1335,7 @@ boxEqual(BOX      *box1,
  *              maxdist
  *              &naindex (<optional return> index array of correspondences
  *              &same (<return> 1 if equal; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The two boxa are the "same" if they contain the same
@@ -1422,7 +1422,7 @@ NUMA     *na;
  *              box2
  *              leftdiff, rightdiff, topdiff, botdiff
  *              &similar (<return> 1 if similar; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The values of leftdiff (etc) are the maximum allowed deviations
@@ -1479,7 +1479,7 @@ l_int32  loc1, loc2;
  *              debug (output details of non-similar boxes)
  *              &similar (<return> 1 if similar; 0 otherwise)
  *              &nasim (<optional return> na containing 1 if similar; else 0)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) See boxSimilar() for parameter usage.

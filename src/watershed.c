@@ -237,7 +237,7 @@ L_WSHED  *wshed;
 /*!
  *  wshedDestroy()
  *
- *      Input:  &wshed (<will be set to null before returning>)
+ *      Input:  &wshed (<output> will be set to null before returning)
  *      Return: void
  */
 void
@@ -786,7 +786,7 @@ l_int32  minval;
 }
 
 
-/*
+/*!
  *  pushNewPixel()
  *
  *      Input:  lqueue
@@ -836,7 +836,7 @@ L_NEWPIXEL  *np;
 }
 
 
-/*
+/*!
  *  popNewPixel()
  *
  *      Input:  lqueue
@@ -871,7 +871,7 @@ L_NEWPIXEL  *np;
 }
 
 
-/*
+/*!
  *  pushWSPixel()
  *
  *      Input:  lh  (priority queue)
@@ -921,7 +921,7 @@ L_WSPIXEL  *wsp;
 }
 
 
-/*
+/*!
  *  popWSPixel()
  *
  *      Input:  lh  (priority queue)
