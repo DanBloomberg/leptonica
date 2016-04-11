@@ -79,7 +79,7 @@ static l_int32 l_byteaExtendArrayToSize(L_BYTEA *ba, size_t size);
  *  l_byteaCreate()
  *
  *      Input:  n (determines initial size of data array)
- *      Return: l_bytea, or null on error
+ *      Return: l_bytea, or NULL on error
  *
  *  Notes:
  *      (1) The allocated array is n + 1 bytes.  This allows room
@@ -112,7 +112,7 @@ L_BYTEA  *ba;
  *
  *      Input:  data (to be copied to the array)
  *              size (amount of data)
- *      Return: l_bytea, or null on error
+ *      Return: l_bytea, or NULL on error
  */
 L_BYTEA *
 l_byteaInitFromMem(l_uint8  *data,
@@ -139,7 +139,7 @@ L_BYTEA  *ba;
  *  l_byteaInitFromFile()
  *
  *      Input:  fname
- *      Return: l_bytea, or null on error
+ *      Return: l_bytea, or NULL on error
  */
 L_BYTEA *
 l_byteaInitFromFile(const char  *fname)
@@ -164,8 +164,8 @@ L_BYTEA  *ba;
 /*!
  *  l_byteaInitFromStream()
  *
- *      Input:  stream
- *      Return: l_bytea, or null on error
+ *      Input:  fp (file stream)
+ *      Return: l_bytea, or NULL on error
  */
 L_BYTEA *
 l_byteaInitFromStream(FILE  *fp)
@@ -195,10 +195,10 @@ L_BYTEA  *ba;
  *
  *      Input:  bas  (source lba)
  *              copyflag (L_COPY, L_CLONE)
- *      Return: clone or copy of bas, or null on error
+ *      Return: clone or copy of bas, or NULL on error
  *
  *  Notes:
- *      (1) If cloning, up the refcount and return a ptr to @bas.
+ *      (1) If cloning, up the refcount and return a ptr to %bas.
  */
 L_BYTEA *
 l_byteaCopy(L_BYTEA  *bas,
@@ -221,7 +221,7 @@ l_byteaCopy(L_BYTEA  *bas,
 /*!
  *  l_byteaDestroy()
  *
- *      Input:  &ba (<will be set to null before returning>)
+ *      Input:  &ba (<inout> will be set to null before returning)
  *      Return: void
  *
  *  Notes:
@@ -281,11 +281,11 @@ l_byteaGetSize(L_BYTEA  *ba)
  *  l_byteaGetData()
  *
  *      Input:  ba
- *              &size (<returned> size of data in lba)
+ *              &size (<return> size of data in lba)
  *      Return: ptr to existing data array, or NULL on error
  *
  *  Notes:
- *      (1) The returned ptr is owned by @ba.  Do not free it!
+ *      (1) The returned ptr is owned by %ba.  Do not free it!
  */
 l_uint8 *
 l_byteaGetData(L_BYTEA  *ba,
@@ -307,11 +307,11 @@ l_byteaGetData(L_BYTEA  *ba,
  *  l_byteaCopyData()
  *
  *      Input:  ba
- *              &size (<returned> size of data in lba)
- *      Return: copy of data in use in the data array, or null on error.
+ *              &size (<return> size of data in lba)
+ *      Return: copy of data in use in the data array, or NULL on error.
  *
  *  Notes:
- *      (1) The returned data is owned by the caller.  The input @ba
+ *      (1) The returned data is owned by the caller.  The input %ba
  *          still owns the original data array.
  */
 l_uint8 *
@@ -442,7 +442,7 @@ l_byteaExtendArrayToSize(L_BYTEA  *ba,
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) It is a no-op, not an error, for @ba2 to be null.
+ *      (1) It is a no-op, not an error, for %ba2 to be null.
  */
 l_int32
 l_byteaJoin(L_BYTEA   *ba1,
@@ -516,7 +516,7 @@ size_t    nbytes1, nbytes2;
  *      Input:  ba
  *              sequence (subarray of bytes to find in data)
  *              seqlen (length of sequence, in bytes)
- *              &da (<return> byte positions of each occurrence of @sequence)
+ *              &da (<return> byte positions of each occurrence of %sequence)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -584,7 +584,7 @@ FILE    *fp;
 /*!
  *  l_byteaWriteStream()
  *
- *      Input:  stream (opened for binary write)
+ *      Input:  fp (file stream opened for binary write)
  *              ba
  *              startloc (first byte to output)
  *              endloc (last byte to output; use 0 to write to the

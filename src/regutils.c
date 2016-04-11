@@ -72,7 +72,7 @@ static char *getRootNameFromArgv0(const char *argv0);
  *  regTestSetup()
  *
  *      Input:  argc (from invocation; can be either 1 or 2)
- *              argv (to regtest: @argv[1] is one of these:
+ *              argv (to regtest: %argv[1] is one of these:
  *                    "generate", "compare", "display")
  *              &rp (<return> all regression params)
  *      Return: 0 if OK, 1 on error
@@ -406,14 +406,14 @@ l_int32  same;
  *      (1) This function compares two pix for near equality.  On failure,
  *          this writes to stderr.
  *      (2) The pix are similar if the fraction of non-conforming pixels
- *          does not exceed @maxfract.  Pixels are non-conforming if
- *          the difference in pixel values equals or exceeds @mindiff.
- *          Typical values might be @mindiff = 15 and @maxfract = 0.01.
+ *          does not exceed %maxfract.  Pixels are non-conforming if
+ *          the difference in pixel values equals or exceeds %mindiff.
+ *          Typical values might be %mindiff = 15 and %maxfract = 0.01.
  *      (3) The input images must have the same size and depth.  The
  *          pixels for comparison are typically subsampled from the images.
- *      (4) Normally, use @printstats = 0.  In debugging mode, to see
- *          the relation between @mindiff and the minimum value of
- *          @maxfract for success, set this to 1.
+ *      (4) Normally, use %printstats = 0.  In debugging mode, to see
+ *          the relation between %mindiff and the minimum value of
+ *          %maxfract for success, set this to 1.
  */
 l_int32
 regTestCompareSimilarPix(L_REGPARAMS  *rp,
@@ -465,9 +465,9 @@ l_int32  w, h, factor, similar;
  *
  *  Notes:
  *      (1) This function does one of three things, depending on the mode:
- *           * "generate": makes a "golden" file as a copy @localname.
- *           * "compare": compares @localname contents with the golden file
- *           * "display": makes the @localname file but does no comparison
+ *           * "generate": makes a "golden" file as a copy %localname.
+ *           * "compare": compares %localname contents with the golden file
+ *           * "display": makes the %localname file but does no comparison
  *      (2) The canonical format of the golden filenames is:
  *            /tmp/lept/golden/<root of main name>_golden.<index>.
  *                                                       <ext of localname>
@@ -705,7 +705,7 @@ char   namebuf[256];
  *  getRootNameFromArgv0()
  *
  *      Input:  argv0
- *      Return: root name (without the '_reg'), or null on error
+ *      Return: root name (without the '_reg'), or NULL on error
  *
  *  Notes:
  *      (1) For example, from psioseg_reg, we want to extract

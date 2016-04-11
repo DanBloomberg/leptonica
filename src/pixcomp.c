@@ -157,10 +157,10 @@ static l_int32 pixacompExtendArray(PIXAC *pixac);
  *
  *      Input:  pix
  *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
- *      Return: pixc, or null on error
+ *      Return: pixc, or NULL on error
  *
  *  Notes:
- *      (1) Use @comptype == IFF_DEFAULT to have the compression
+ *      (1) Use %comptype == IFF_DEFAULT to have the compression
  *          type automatically determined.
  */
 PIXC *
@@ -211,7 +211,7 @@ PIXC     *pixc;
  *      Input:  data (compressed string)
  *              size (number of bytes)
  *              copyflag (L_INSERT or L_COPY)
- *      Return: pixc, or null on error
+ *      Return: pixc, or NULL on error
  *
  *  Notes:
  *      (1) This works when the compressed string is png, jpeg or tiffg4.
@@ -257,10 +257,10 @@ PIXC    *pixc;
  *
  *      Input:  filename
  *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
- *      Return: pixc, or null on error
+ *      Return: pixc, or NULL on error
  *
  *  Notes:
- *      (1) Use @comptype == IFF_DEFAULT to have the compression
+ *      (1) Use %comptype == IFF_DEFAULT to have the compression
  *          type automatically determined.
  *      (2) If the comptype is invalid for this file, the default will
  *          be substituted.
@@ -320,7 +320,7 @@ PIXC     *pixc;
 /*!
  *  pixcompDestroy()
  *
- *      Input:  &pixc <will be nulled>
+ *      Input:  &pixc (<inout> will be nulled)
  *      Return: void
  *
  *  Notes:
@@ -354,7 +354,7 @@ PIXC  *pixc;
  *  pixcompCopy()
  *
  *      Input:  pixcs
- *      Return: pixcd, or null on error
+ *      Return: pixcd, or NULL on error
  */
 PIXC *
 pixcompCopy(PIXC  *pixcs)
@@ -429,12 +429,12 @@ pixcompGetDimensions(PIXC     *pixc,
  *
  *  Notes:
  *      (1) This determines the best format for a pix, given both
- *          the request (@comptype) and the image characteristics.
- *      (2) If @comptype == IFF_DEFAULT, this does not necessarily result
+ *          the request (%comptype) and the image characteristics.
+ *      (2) If %comptype == IFF_DEFAULT, this does not necessarily result
  *          in png encoding.  Instead, it returns one of the three formats
  *          that is both valid and most likely to give best compression.
  *      (3) If the pix cannot be compressed by the input value of
- *          @comptype, this selects IFF_PNG, which can compress all pix.
+ *          %comptype, this selects IFF_PNG, which can compress all pix.
  */
 l_int32
 pixcompDetermineFormat(l_int32   comptype,
@@ -476,7 +476,7 @@ pixcompDetermineFormat(l_int32   comptype,
  *  pixCreateFromPixcomp()
  *
  *      Input:  pixc
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  */
 PIX *
 pixCreateFromPixcomp(PIXC  *pixc)
@@ -529,7 +529,7 @@ PIX     *pix;
  *  pixacompCreate()
  *
  *      Input:  n  (initial number of ptrs)
- *      Return: pixac, or null on error
+ *      Return: pixac, or NULL on error
  */
 PIXAC *
 pixacompCreate(l_int32  n)
@@ -564,14 +564,14 @@ PIXAC  *pixac;
  *              pix (<optional> initialize each ptr in pixacomp to this pix;
  *                   can be NULL)
  *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
- *      Return: pixac, or null on error
+ *      Return: pixac, or NULL on error
  *
  *  Notes:
- *      (1) Initializes a pixacomp to be fully populated with @pix,
- *          compressed using @comptype.  If @pix == NULL, @comptype
+ *      (1) Initializes a pixacomp to be fully populated with %pix,
+ *          compressed using %comptype.  If %pix == NULL, %comptype
  *          is ignored.
  *      (2) Typically, the array is initialized with a tiny pix.
- *          This is most easily done by setting @pix == NULL, causing
+ *          This is most easily done by setting %pix == NULL, causing
  *          initialization of each array element with a tiny placeholder
  *          pix (w = h = d = 1), using comptype = IFF_TIFF_G4 .
  *      (3) Example usage:
@@ -645,12 +645,12 @@ PIXAC   *pixac;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @format == IFF_DEFAULT, the conversion format for each
+ *      (1) If %format == IFF_DEFAULT, the conversion format for each
  *          image is chosen automatically.  Otherwise, we use the
  *          specified format unless it can't be done (e.g., jpeg
  *          for a 1, 2 or 4 bpp pix, or a pix with a colormap),
  *          in which case we use the default (assumed best) compression.
- *      (2) @accesstype is used to extract a boxa from @pixa.
+ *      (2) %accesstype is used to extract a boxa from %pixa.
  */
 PIXAC *
 pixacompCreateFromPixa(PIXA    *pixa,
@@ -698,15 +698,15 @@ PIXAC   *pixac;
  *      Input:  dirname
  *              substr (<optional> substring filter on filenames; can be null)
  *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
- *      Return: pixac, or null on error
+ *      Return: pixac, or NULL on error
  *
  *  Notes:
- *      (1) @dirname is the full path for the directory.
- *      (2) @substr is the part of the file name (excluding
+ *      (1) %dirname is the full path for the directory.
+ *      (2) %substr is the part of the file name (excluding
  *          the directory) that is to be matched.  All matching
  *          filenames are read into the Pixa.  If substr is NULL,
  *          all filenames are read into the Pixa.
- *      (3) Use @comptype == IFF_DEFAULT to have the compression
+ *      (3) Use %comptype == IFF_DEFAULT to have the compression
  *          type automatically determined for each file.
  *      (4) If the comptype is invalid for a file, the default will
  *          be substituted.
@@ -740,10 +740,10 @@ SARRAY   *sa;
  *
  *      Input:  sarray (full pathnames for all files)
  *              comptype (IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG)
- *      Return: pixac, or null on error
+ *      Return: pixac, or NULL on error
  *
  *  Notes:
- *      (1) Use @comptype == IFF_DEFAULT to have the compression
+ *      (1) Use %comptype == IFF_DEFAULT to have the compression
  *          type automatically determined for each file.
  *      (2) If the comptype is invalid for a file, the default will
  *          be substituted.
@@ -782,7 +782,7 @@ PIXAC   *pixac;
 /*!
  *  pixacompDestroy()
  *
- *      Input:  &pixac (<to be nulled>)
+ *      Input:  &pixac (<inout> to be nulled)
  *      Return: void
  *
  *  Notes:
@@ -942,9 +942,9 @@ pixacompExtendArray(PIXAC  *pixac)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) The @index includes the offset, which must be subtracted
+ *      (1) The %index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
- *      (2) The input @pix is converted to a pixc, which is then inserted
+ *      (2) The input %pix is converted to a pixc, which is then inserted
  *          into the pixac.
  */
 l_int32
@@ -985,9 +985,9 @@ PIXC    *pixc;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) The @index includes the offset, which must be subtracted
+ *      (1) The %index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
- *      (2) The inserted @pixc is now owned by the pixac.  The caller
+ *      (2) The inserted %pixc is now owned by the pixac.  The caller
  *          must not destroy it.
  */
 l_int32
@@ -1009,7 +1009,7 @@ PIXC    *pixct;
     if (!pixc)
         return ERROR_INT("pixc not defined", procName, 1);
 
-    pixct = pixacompGetPixcomp(pixac, index, L_NOCOPY);  /* use @index */
+    pixct = pixacompGetPixcomp(pixac, index, L_NOCOPY);  /* use %index */
     pixcompDestroy(&pixct);
     pixac->pixc[aindex] = pixc;  /* replace; use array index */
 
@@ -1071,12 +1071,12 @@ pixacompGetCount(PIXAC  *pixac)
  *      Input:  pixac
  *              index (caller's view of index within pixac; includes offset)
  *              copyflag (L_NOCOPY, L_COPY)
- *      Return: pixc, or null on error
+ *      Return: pixc, or NULL on error
  *
  *  Notes:
- *      (1) The @index includes the offset, which must be subtracted
+ *      (1) The %index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
- *      (2) If copyflag == L_NOCOPY, the pixc is owned by @pixac; do
+ *      (2) If copyflag == L_NOCOPY, the pixc is owned by %pixac; do
  *          not destroy.
  */
 PIXC *
@@ -1108,10 +1108,10 @@ l_int32  aindex;
  *
  *      Input:  pixac
  *              index (caller's view of index within pixac; includes offset)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
- *      (1) The @index includes the offset, which must be subtracted
+ *      (1) The %index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
  */
 PIX *
@@ -1143,7 +1143,7 @@ PIXC    *pixc;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The @index includes the offset, which must be subtracted
+ *      (1) The %index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
  */
 l_int32
@@ -1176,7 +1176,7 @@ PIXC    *pixc;
  *
  *      Input:  pixac
  *              accesstype  (L_COPY, L_CLONE, L_COPY_CLONE)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  */
 BOXA *
 pixacompGetBoxa(PIXAC   *pixac,
@@ -1220,10 +1220,10 @@ pixacompGetBoxaCount(PIXAC  *pixac)
  *      Input:  pixac
  *              index (caller's view of index within pixac; includes offset)
  *              accesstype  (L_COPY or L_CLONE)
- *      Return: box (if null, not automatically an error), or null on error
+ *      Return: box (if null, not automatically an error), or NULL on error
  *
  *  Notes:
- *      (1) The @index includes the offset, which must be subtracted
+ *      (1) The %index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
  *      (2) There is always a boxa with a pixac, and it is initialized so
  *          that each box ptr is NULL.
@@ -1275,7 +1275,7 @@ BOX     *box;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The @index includes the offset, which must be subtracted
+ *      (1) The %index includes the offset, which must be subtracted
  *          to get the actual index into the ptr array.
  */
 l_int32
@@ -1360,7 +1360,7 @@ pixacompSetOffset(PIXAC   *pixac,
  *
  *      Input:  pixac
  *              accesstype (L_COPY, L_CLONE, L_COPY_CLONE; for boxa)
- *      Return: pixa if OK, or null on error
+ *      Return: pixa if OK, or NULL on error
  */
 PIXA *
 pixaCreateFromPixacomp(PIXAC   *pixac,
@@ -1462,7 +1462,7 @@ PIXC    *pixc;
  *  pixacompRead()
  *
  *      Input:  filename
- *      Return: pixac, or null on error
+ *      Return: pixac, or NULL on error
  *
  *  Notes:
  *      (1) Unlike the situation with serialized Pixa, where the image
@@ -1495,8 +1495,8 @@ PIXAC  *pixac;
 /*!
  *  pixacompReadStream()
  *
- *      Input:  stream
- *      Return: pixac, or null on error
+ *      Input:  fp (file stream)
+ *      Return: pixac, or NULL on error
  */
 PIXAC *
 pixacompReadStream(FILE  *fp)
@@ -1608,7 +1608,7 @@ FILE  *fp;
 /*!
  *  pixacompWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pixac
  *      Return: 0 if OK, 1 on error
  */
@@ -1669,7 +1669,7 @@ PIXC    *pixc;
  *      (2) The images are encoded with G4 if 1 bpp; JPEG if 8 bpp without
  *          colormap and many colors, or 32 bpp; FLATE for anything else.
  *      (3) The scalefactor must be > 0.0; otherwise it is set to 1.0.
- *      (4) Specifying one of the three encoding types for @type forces
+ *      (4) Specifying one of the three encoding types for %type forces
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether
  *          or not it has a colormap.
@@ -1918,7 +1918,7 @@ pixcompWriteStreamInfo(FILE        *fp,
  *              spacing  (between images, and on outside)
  *              border (width of additional black border on each image;
  *                      use 0 for no border)
- *      Return: pix of tiled images, or null on error
+ *      Return: pix of tiled images, or NULL on error
  *
  *  Notes:
  *      (1) This is the same function as pixaDisplayTiledAndScaled(),

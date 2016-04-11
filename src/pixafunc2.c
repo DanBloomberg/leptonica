@@ -154,7 +154,7 @@
  *      Input:  pixa
  *              w, h (if set to 0, determines the size from the
  *                    b.b. of the components in pixa)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) This uses the boxes to place each pix in the rendered composite.
@@ -233,15 +233,15 @@ PIX     *pixt, *pixd;
  *              w, h (if set to 0, determines the size from the
  *                    b.b. of the components in pixa)
  *              color (background color to use)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) This uses the boxes to place each pix in the rendered composite.
  *      (2) Set w = h = 0 to use the b.b. of the components to determine
  *          the size of the returned pix.
- *      (3) If any pix in @pixa are colormapped, or if the pix have
+ *      (3) If any pix in %pixa are colormapped, or if the pix have
  *          different depths, it returns a 32 bpp pix.  Otherwise,
- *          the depth of the returned pixa equals that of the pix in @pixa.
+ *          the depth of the returned pixa equals that of the pix in %pixa.
  *      (4) If the pixa is empty, return null.
  */
 PIX *
@@ -326,7 +326,7 @@ PIXA    *pixat;
  *              w, h (if set to 0, determines the size from the
  *                    b.b. of the components in pixa)
  *      Return: pix (8 bpp, cmapped, with random colors on the components),
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) This uses the boxes to place each pix in the rendered composite.
@@ -397,7 +397,7 @@ PIXCMAP  *cmap;
  *              border (width of black border added to each image;
  *                      use 0 for no border)
  *              &boxa (<optional return> location of images in output pix
- *      Return: pix of composite images, or null on error
+ *      Return: pix of composite images, or NULL on error
  *
  *  Notes:
  *      (1) This puts each pix, sequentially, in a line, either horizontally
@@ -484,7 +484,7 @@ PIXA    *pixa1, *pixa2;
  *              cellh (lattice cell height)
  *              &ncols (<optional return> number of columns in output lattice)
  *              &boxa (<optional return> location of images in lattice)
- *      Return: pix of composite images, or null on error
+ *      Return: pix of composite images, or NULL on error
  *
  *  Notes:
  *      (1) This places each pix on sequentially on a regular lattice
@@ -591,7 +591,7 @@ PIXA    *pixa1;
  *              ny   (number of mosaic cells vertically)
  *              borderwidth  (of added border on all sides)
  *              bordercolor  (in our RGBA format: 0xrrggbbaa)
- *      Return: pix of tiled images, or null on error
+ *      Return: pix of tiled images, or NULL on error
  *
  *  Notes:
  *      (1) This is a logical inverse of pixaSplitPix().  It
@@ -662,7 +662,7 @@ PIX     *pixt, *pixd;
  *              maxwidth (of output image)
  *              background (0 for white, 1 for black)
  *              spacing
- *      Return: pix of tiled images, or null on error
+ *      Return: pix of tiled images, or NULL on error
  *
  *  Notes:
  *      (1) This renders a pixa to a single image of width not to
@@ -765,7 +765,7 @@ PIXA    *pixa1;
  *              spacing  (between images, and on outside)
  *              border (width of black border added to each image;
  *                      use 0 for no border)
- *      Return: pixd (of tiled images), or null on error
+ *      Return: pixd (of tiled images), or NULL on error
  *
  *  Notes:
  *      (1) This renders a pixa to a single image of width not to
@@ -948,7 +948,7 @@ PIXA     *pixan;
  *              spacing  (between images, and on outside)
  *              border (width of black border added to each image;
  *                      use 0 for no border)
- *      Return: pixd (of tiled images), or null on error
+ *      Return: pixd (of tiled images), or NULL on error
  *
  *  Notes:
  *      (1) This renders a pixa to a single image with 3 columns of
@@ -1075,7 +1075,7 @@ PIXA     *pixa1, *pixa2;
  *              spacing  (between images, and on outside)
  *              border (width of additional black border on each image;
  *                      use 0 for no border)
- *      Return: pix of tiled images, or null on error
+ *      Return: pix of tiled images, or NULL on error
  *
  *  Notes:
  *      (1) This can be used to tile a number of renderings of
@@ -1220,16 +1220,16 @@ PIXA      *pixan;
  *                      use 0 for no border)
  *              fontsize (4, 6, ... 20)
  *              textcolor (0xrrggbb00)
- *      Return: pixd (of tiled images), or null on error
+ *      Return: pixd (of tiled images), or NULL on error
  *
  *  Notes:
  *      (1) This is a version of pixaDisplayTiledInRows() that prints, below
  *          each pix, the text in the pix text field.  Up to 127 chars
  *          of text in the pix text field are rendered below each pix.
  *      (2) It renders a pixa to a single image of width not to
- *          exceed @maxwidth, with white background color, with each row
+ *          exceed %maxwidth, with white background color, with each row
  *          tiled such that the top of each pix is aligned and separated
- *          by @spacing from the next one.
+ *          by %spacing from the next one.
  *      (3) All pix are converted to 32 bpp.
  *      (4) This does a reasonably spacewise-efficient job of laying
  *          out the individual pix images into a tiled composite.
@@ -1316,13 +1316,13 @@ PIXA     *pixad;
  *                      use 0 for no border)
  *              fontsize (4, 6, ... 20)
  *              textcolor (0xrrggbb00)
- *      Return: pixd (of tiled images), or null on error
+ *      Return: pixd (of tiled images), or NULL on error
  *
  *  Notes:
  *      (1) This renders a pixa to a single image with white
  *          background color, where the pix are placed in columns
  *          given by the index value in the numa.  Each pix
- *          is separated by @spacing from the adjacent ones, and
+ *          is separated by %spacing from the adjacent ones, and
  *          an optional border is placed around them.
  *      (2) Up to 127 chars of text in the pix text field are rendered
  *          below each pix.  Use newlines in the text field to write
@@ -1425,7 +1425,7 @@ PIXA      *pixad;
  *      Input:  paa
  *              w, h (if set to 0, determines the size from the
  *                    b.b. of the components in paa)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) Each pix of the paa is displayed at the location given by
@@ -1512,7 +1512,7 @@ PIXA    *pixa;
  *              xspace between pix in pixa
  *              yspace between pixa
  *              max width of output pix
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Displays each pixa on a line (or set of lines),
@@ -1649,7 +1649,7 @@ PIXA     *pixa;
  *              border (width of additional black border on each image;
  *                      use 0 for no border)
  *      Return: pixa (of tiled images, one image for each pixa in
- *                    the paa), or null on error
+ *                    the paa), or NULL on error
  *
  *  Notes:
  *      (1) For each pixa, this generates from all the pix a
@@ -1702,7 +1702,7 @@ PIXA    *pixa, *pixad;
  *
  *      Input:  pixas
  *              thresh (threshold for final binarization from 8 bpp gray)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  */
 PIXA *
 pixaConvertTo1(PIXA    *pixas,
@@ -1738,7 +1738,7 @@ PIXA    *pixad;
  *
  *      Input:  pixas
  *              cmapflag (1 to give pixd a colormap; 0 otherwise)
- *      Return: pixad (each pix is 8 bpp), or null on error
+ *      Return: pixad (each pix is 8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) See notes for pixConvertTo8(), applied to each pix in pixas.
@@ -1777,7 +1777,7 @@ PIXA    *pixad;
  *
  *      Input:  pixas
  *              ditherflag (1 to dither if necessary; 0 otherwise)
- *      Return: pixad (each pix is 8 bpp), or null on error
+ *      Return: pixad (each pix is 8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) See notes for pixConvertTo8Color(), applied to each pix in pixas.
@@ -1815,7 +1815,7 @@ PIXA    *pixad;
  *  pixaConvertTo32()
  *
  *      Input:  pixas
- *      Return: pixad (32 bpp rgb), or null on error
+ *      Return: pixad (32 bpp rgb), or NULL on error
  *
  *  Notes:
  *      (1) See notes for pixConvertTo32(), applied to each pix in pixas.
@@ -1862,9 +1862,9 @@ PIXA    *pixad;
  *              use_pairs (1 = select pairs of adjacent pix;
  *                         0 = select individual pix)
  *              copyflag (L_COPY, L_CLONE)
- *      Return: pixad if OK, null on error
+ *      Return: pixad if OK, NULL on error
  *
- *  Note:
+ *  Notes:
  *     (1) See notes in genConstrainedNumaInRange() for how selection
  *         is made.
  *     (2) This returns a selection of the pix in the input pixa.
@@ -1923,14 +1923,14 @@ PIXA    *pixad;
  *              spacing  (between images, and on outside)
  *              border (width of additional black border on each image;
  *                      use 0 for no border)
- *      Return: pixad if OK, null on error
+ *      Return: pixad if OK, NULL on error
  *
  *  Notes:
- *      (1) Each set of @nx * @ny images is optionally scaled and saved
+ *      (1) Each set of %nx * %ny images is optionally scaled and saved
  *          into a new pix, and then aggregated.
- *      (2) Set @maxw = @maxh = 0 if you want to include all pix from @pixs.
+ *      (2) Set %maxw = %maxh = 0 if you want to include all pix from %pixs.
  *      (3) This is useful for generating a pdf from the output pixa, where
- *          each page is a tile of (@nx * @ny) images from the input pixa.
+ *          each page is a tile of (%nx * %ny) images from the input pixa.
  */
 PIXA *
 pixaDisplayMultiTiled(PIXA      *pixas,
@@ -2002,7 +2002,7 @@ PIXA    *pixa1, *pixa2, *pixad;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) For each requested output, @nsplit files are written into
+ *      (1) For each requested output, %nsplit files are written into
  *          directory /tmp/lept/split/.
  *      (2) This is useful when a pixa is so large that the images
  *          are not conveniently displayed as a single tiled image at
@@ -2084,14 +2084,14 @@ PIXA    *pixa1;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Each set of @nx * @ny images is scaled and tiled into a single
- *          image, that is written out to @outdir.
- *      (2) All images in each @nx * @ny set are scaled to the same
- *          width, @tw.  This is typically used when all images are
+ *      (1) Each set of %nx * %ny images is scaled and tiled into a single
+ *          image, that is written out to %outdir.
+ *      (2) All images in each %nx * %ny set are scaled to the same
+ *          width, %tw.  This is typically used when all images are
  *          roughly the same size.
  *      (3) This is useful for generating a pdf from the set of input
- *          files, where each page is a tile of (@nx * @ny) input images.
- *          Typical values for @nx and @ny are in the range [2 ... 5].
+ *          files, where each page is a tile of (%nx * %ny) input images.
+ *          Typical values for %nx and %ny are in the range [2 ... 5].
  */
 l_int32
 convertToNUpFiles(const char  *dir,
@@ -2148,7 +2148,7 @@ PIXA    *pixa;
  *                      use 0 for no border)
  *              fontsize (to print tail of filename with image.  Valid set is
  *                        {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) See notes for convertToNUpFiles()

@@ -91,13 +91,13 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
  *              &overflow (<optional return> 1 if text overflows
  *                         allocated region and is clipped; 0 otherwise)
  *      Return: pixd (new pix with rendered text), or either a copy
- *                    or null on error
+ *                    or NULL on error
  *
  *  Notes:
  *      (1) This function paints a set of lines of text over an image.
- *          If @location is L_ADD_ABOVE or L_ADD_BELOW, the pix size
+ *          If %location is L_ADD_ABOVE or L_ADD_BELOW, the pix size
  *          is expanded with a border and rendered over the border.
- *      (2) @val is the pixel value to be painted through the font mask.
+ *      (2) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
  *          If it is out of bounds, an intermediate value is chosen.
  *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
@@ -239,15 +239,15 @@ SARRAY   *salines;
  *              val (color to set the text)
  *              location (L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT)
  *      Return: pixd (new pix with rendered text), or either a copy
- *                    or null on error
+ *                    or NULL on error
  *
  *  Notes:
  *      (1) This function expands an image as required to paint one or
- *          more lines of text adjacent to the image.  If @bmf == NULL,
+ *          more lines of text adjacent to the image.  If %bmf == NULL,
  *          this returns a copy.  If above or below, the lines are
  *          centered with respect to the image; if left or right, they
  *          are left justified.
- *      (2) @val is the pixel value to be painted through the font mask.
+ *      (2) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
  *          If it is out of bounds, an intermediate value is chosen.
  *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
@@ -403,7 +403,7 @@ SARRAY   *sa;
  *
  *  Notes:
  *      (1) This function paints a set of lines of text over an image.
- *      (2) @val is the pixel value to be painted through the font mask.
+ *      (2) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
  *          If it is out of bounds, an intermediate value is chosen.
  *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
@@ -514,7 +514,7 @@ PIXCMAP  *cmap;
  *
  *  Notes:
  *      (1) This function paints a line of text over an image.
- *      (2) @val is the pixel value to be painted through the font mask.
+ *      (2) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
  *          If it is out of bounds, an intermediate value is chosen.
  *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
@@ -605,14 +605,14 @@ PIXCMAP  *cmap;
  *              numa (<optional> number array; use 1 ... n if null)
  *              val (color to set the text)
  *              location (L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT)
- *      Return: pixad (new pixa with rendered numbers), or null on error
+ *      Return: pixad (new pixa with rendered numbers), or NULL on error
  *
  *  Notes:
  *      (1) Typical usage is for labelling each pix in a pixa with a number.
  *      (2) This function paints numbers external to each pix, in a position
- *          given by @location.  In all cases, the pix is expanded on
+ *          given by %location.  In all cases, the pix is expanded on
  *          on side and the number is painted over white in the added region.
- *      (3) @val is the pixel value to be painted through the font mask.
+ *      (3) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
  *          If it is out of bounds, an intermediate value is chosen.
  *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
@@ -669,13 +669,13 @@ PIXA    *pixad;
  *              sa (<optional> sarray; use text embedded in each pix if null)
  *              val (color to set the text)
  *              location (L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT)
- *      Return: pixad (new pixa with rendered text), or null on error
+ *      Return: pixad (new pixa with rendered text), or NULL on error
  *
  *  Notes:
  *      (1) This function adds one or more lines of text externally to
- *          each pix, in a position given by @location.  In all cases,
+ *          each pix, in a position given by %location.  In all cases,
  *          the pix is expanded as necessary to accommodate the text.
- *      (2) @val is the pixel value to be painted through the font mask.
+ *      (2) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
  *          If it is out of bounds, an intermediate value is chosen.
  *          For RGB, use hex notation: 0xRRGGBB00, where RR is the
@@ -746,11 +746,11 @@ PIXA    *pixad;
  *      (1) This function generates a new pix with added text, and adds
  *          it by insertion into the pixa.
  *      (2) If the input pixs is not cmapped and not 32 bpp, it is
- *          converted to 32 bpp rgb.  @val is a standard 32 bpp pixel,
+ *          converted to 32 bpp rgb.  %val is a standard 32 bpp pixel,
  *          expressed as 0xrrggbb00.  If there is a colormap, this does
  *          the best it can to use the requested color, or something close.
- *      (3) if @bmf == NULL, generate an 8 pt font; this takes about 5 msec.
- *      (4) If @textstr == NULL, use the text field in the pix.
+ *      (3) if %bmf == NULL, generate an 8 pt font; this takes about 5 msec.
+ *      (4) If %textstr == NULL, use the text field in the pix.
  *      (5) In general, the text string can be written in multiple lines;
  *          use newlines as the separators.
  *      (6) Typical usage is for debugging, where the pixa of labelled images
@@ -829,7 +829,7 @@ PIXCMAP  *cmap;
  *              maxw (max width of a text line in pixels)
  *              firstindent (indentation of first line, in x-widths)
  *              &h (<return> height required to hold text bitmap)
- *      Return: sarray of text strings for each line, or null on error
+ *      Return: sarray of text strings for each line, or NULL on error
  *
  *  Notes:
  *      (1) Divides the input text string into an array of text strings,
@@ -906,7 +906,7 @@ SARRAY  *sa, *sawords;
  *              textstr
  *              sa (of individual words)
  *      Return: numa (of word lengths in pixels for the font represented
- *                    by the bmf), or null on error
+ *                    by the bmf), or NULL on error
  */
 NUMA *
 bmfGetWordWidths(L_BMF       *bmf,
@@ -991,7 +991,7 @@ l_int32  i, w, width, nchar;
  *      Input:  textstring
  *              splitting flag (see enum in bmf.h; valid values in {1,2,3})
  *      Return: sarray (where each string is a paragraph of the input),
- *                      or null on error.
+ *                      or NULL on error.
  */
 SARRAY *
 splitStringToParagraphs(char    *textstr,

@@ -169,7 +169,7 @@ l_int32   outsize, i, j, index, linecount;
  *      Input:  inarray (input encoded char data, with 72 chars/line))
  *              insize (number of bytes in input array)
  *              &outsize (<return> number of bytes in output byte array)
- *      Return: bytea (decoded byte data), or null on error
+ *      Return: bytea (decoded byte data), or NULL on error
  *
  *  Notes:
  *      (1) The input character data should have only 66 different characters:
@@ -567,8 +567,8 @@ l_uint32  oword;
  *      Return: outarray (ascii)
  *
  *  Notes:
- *      (1) Each line in the output array has @leadspace space characters,
- *          followed optionally by a double-quote, followed by @linechars
+ *      (1) Each line in the output array has %leadspace space characters,
+ *          followed optionally by a double-quote, followed by %linechars
  *          bytes of base64 data, followed optionally by a double-quote,
  *          followed by a newline.
  *      (2) This can be used to convert a base64 encoded string to a

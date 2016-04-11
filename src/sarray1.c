@@ -99,7 +99,7 @@
  *
  *          The user is responsible for correctly disposing of strings
  *          that have been extracted from sarrays:
- *            - When you want a string from an Sarray to inspect it, or
+ *            ~ When you want a string from an Sarray to inspect it, or
  *              plan to make a copy of it later, use sarrayGetString()
  *              with copyflag = 0.  In this case, you must neither free
  *              the string nor put it directly in another array.
@@ -109,7 +109,7 @@
  *              To extract a copy of a string, use:
  *                 str-owned = sarrayGetString(sa, index, L_COPY);
  *
- *            - When you want to insert a string that is in one
+ *            ~ When you want to insert a string that is in one
  *              array into another array (always leaving the first
  *              array intact), you have two options:
  *                 (1) use copyflag = L_COPY to make an immediate copy,
@@ -149,7 +149,7 @@ static l_int32 sarrayExtendArray(SARRAY *sa);
  *
  *      Input:  size of string ptr array to be alloc'd
  *              (use 0 for default)
- *      Return: sarray, or null on error
+ *      Return: sarray, or NULL on error
  */
 SARRAY *
 sarrayCreate(l_int32  n)
@@ -178,7 +178,7 @@ SARRAY  *sa;
  *
  *      Input:  n (size of string ptr array to be alloc'd)
  *              initstr (string to be initialized on the full array)
- *      Return: sarray, or null on error
+ *      Return: sarray, or NULL on error
  */
 SARRAY *
 sarrayCreateInitialized(l_int32  n,
@@ -205,7 +205,7 @@ SARRAY  *sa;
  *  sarrayCreateWordsFromString()
  *
  *      Input:  string
- *      Return: sarray, or null on error
+ *      Return: sarray, or NULL on error
  *
  *  Notes:
  *      (1) This finds the number of word substrings, creates an sarray
@@ -251,7 +251,7 @@ SARRAY  *sa;
  *
  *      Input:  string
  *              blankflag  (0 to exclude blank lines; 1 to include)
- *      Return: sarray, or null on error
+ *      Return: sarray, or NULL on error
  *
  *  Notes:
  *      (1) This finds the number of line substrings, each of which
@@ -321,7 +321,7 @@ SARRAY  *sa;
 /*!
  *  sarrayDestroy()
  *
- *      Input:  &sarray <to be nulled>
+ *      Input:  &sa (<inout> to be nulled)
  *      Return: void
  *
  *  Notes:
@@ -364,7 +364,7 @@ SARRAY  *sa;
  *  sarrayCopy()
  *
  *      Input:  sarray
- *      Return: copy of sarray, or null on error
+ *      Return: copy of sarray, or NULL on error
  */
 SARRAY *
 sarrayCopy(SARRAY  *sa)
@@ -391,7 +391,7 @@ SARRAY  *csa;
  *  sarrayClone()
  *
  *      Input:  sarray
- *      Return: ptr to same sarray, or null on error
+ *      Return: ptr to same sarray, or NULL on error
  */
 SARRAY *
 sarrayClone(SARRAY  *sa)
@@ -479,7 +479,7 @@ sarrayExtendArray(SARRAY  *sa)
  *
  *      Input:  sarray
  *              index (of string within sarray)
- *      Return: removed string, or null on error
+ *      Return: removed string, or NULL on error
  */
 char *
 sarrayRemoveString(SARRAY  *sa,
@@ -611,7 +611,7 @@ sarrayGetCount(SARRAY  *sa)
  *      Input:  sarray
  *              &nalloc  (<optional return> number allocated string ptrs)
  *              &n  (<optional return> number allocated strings)
- *      Return: ptr to string array, or null on error
+ *      Return: ptr to string array, or NULL on error
  *
  *  Notes:
  *      (1) Caution: the returned array is not a copy, so caller
@@ -643,7 +643,7 @@ char  **array;
  *      Input:  sarray
  *              index   (to the index-th string)
  *              copyflag  (L_NOCOPY or L_COPY)
- *      Return: string, or null on error
+ *      Return: string, or NULL on error
  *
  *  Notes:
  *      (1) Legacy usage decrees that we always use 0 to get the
@@ -725,7 +725,7 @@ sarrayChangeRefcount(SARRAY  *sa,
  *              addnlflag (flag: 0 adds nothing to each substring
  *                               1 adds '\n' to each substring
  *                               2 adds ' ' to each substring)
- *      Return: dest string, or null on error
+ *      Return: dest string, or NULL on error
  *
  *  Notes:
  *      (1) Concatenates all the strings in the sarray, preserving
@@ -760,7 +760,7 @@ sarrayToString(SARRAY  *sa,
  *             addnlflag (flag: 0 adds nothing to each substring
  *                              1 adds '\n' to each substring
  *                              2 adds ' ' to each substring)
- *      Return: dest string, or null on error
+ *      Return: dest string, or NULL on error
  *
  *  Notes:
  *      (1) Concatenates the specified strings inthe sarray, preserving
@@ -768,7 +768,7 @@ sarrayToString(SARRAY  *sa,
  *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
  *          each substring.
  *      (3) If the sarray is empty, this returns a string with just
- *          the character corresponding to @addnlflag.
+ *          the character corresponding to %addnlflag.
  */
 char *
 sarrayToStringRange(SARRAY  *sa,
@@ -933,7 +933,7 @@ l_int32  n, i;
  *
  *  Notes:
  *      (1) If two sarrays have different size, this adds enough
- *          instances of @padstring to the smaller so that they are
+ *          instances of %padstring to the smaller so that they are
  *          the same size.  It is useful when two or more sarrays
  *          are being sequenced in parallel, and it is necessary to
  *          find a valid string at each index.
@@ -972,7 +972,7 @@ l_int32  i, n1, n2;
  *
  *      Input:  sa  (sa of individual words)
  *              linesize  (max num of chars in each line)
- *      Return: saout (sa of formatted lines), or null on error
+ *      Return: saout (sa of formatted lines), or NULL on error
  *
  *  This is useful for re-typesetting text to a specific maximum
  *  line length.  The individual words in the input sarray
@@ -1106,7 +1106,7 @@ char  *cstr, *substr, *saveptr;
  *
  *      Input:  sain (input sarray)
  *              substr (<optional> substring for matching; can be NULL)
- *      Return: saout (output sarray, filtered with substring) or null on error
+ *      Return: saout (output sarray, filtered with substring) or NULL on error
  *
  *  Notes:
  *      (1) This selects all strings in sain that have substr as a substring.
@@ -1151,12 +1151,12 @@ SARRAY  *saout;
  *              first (index of first string to be selected)
  *              last (index of last string to be selected; use 0 to go to the
  *                    end of the sarray)
- *      Return: saout (output sarray), or null on error
+ *      Return: saout (output sarray), or NULL on error
  *
  *  Notes:
- *      (1) This makes @saout consisting of copies of all strings in @sain
- *          in the index set [first ... last].  Use @last == 0 to get all
- *          strings from @first to the last string in the sarray.
+ *      (1) This makes %saout consisting of copies of all strings in %sain
+ *          in the index set [first ... last].  Use %last == 0 to get all
+ *          strings from %first to the last string in the sarray.
  */
 SARRAY *
 sarraySelectByRange(SARRAY  *sain,
@@ -1175,7 +1175,7 @@ SARRAY  *saout;
     n = sarrayGetCount(sain);
     if (last <= 0) last = n - 1;
     if (last >= n) {
-        L_WARNING("@last > n - 1; setting to n - 1\n", procName);
+        L_WARNING("%last > n - 1; setting to n - 1\n", procName);
         last = n - 1;
     }
     if (first > last)
@@ -1308,7 +1308,7 @@ l_int32  n, i, offset, found;
  *  sarrayRead()
  *
  *      Input:  filename
- *      Return: sarray, or null on error
+ *      Return: sarray, or NULL on error
  */
 SARRAY *
 sarrayRead(const char  *filename)
@@ -1337,8 +1337,8 @@ SARRAY  *sa;
 /*!
  *  sarrayReadStream()
  *
- *      Input:  stream
- *      Return: sarray, or null on error
+ *      Input:  fp (file stream)
+ *      Return: sarray, or NULL on error
  *
  *  Notes:
  *      (1) We store the size of each string along with the string.
@@ -1430,8 +1430,8 @@ FILE  *fp;
 /*!
  *  sarrayWriteStream()
  *
- *      Input:  stream
- *              sarray
+ *      Input:  fp (file stream)
+ *              sa
  *      Returns 0 if OK; 1 on error
  *
  *  Notes:
@@ -1468,7 +1468,7 @@ l_int32  i, n, len;
  *  sarrayAppend()
  *
  *      Input:  filename
- *              sarray
+ *              sa
  *      Return: 0 if OK; 1 on error
  */
 l_int32
@@ -1517,22 +1517,22 @@ FILE  *fp;
  *          This makes reading numbered files very simple.  For example,
  *          the image whose filename includes number N can be retrieved using
  *               pixReadIndexed(sa, N);
- *      (2) If @substr is not NULL, only filenames that contain
- *          the substring can be included.  If @substr is NULL,
+ *      (2) If %substr is not NULL, only filenames that contain
+ *          the substring can be included.  If %substr is NULL,
  *          all matching filenames are used.
  *      (3) If no numbered files are found, it returns an empty sarray,
  *          with no initialized strings.
  *      (4) It is assumed that the page number is contained within
  *          the basename (the filename without directory or extension).
- *          @numpre is the number of characters in the basename
- *          preceding the actual page number; @numpost is the number
+ *          %numpre is the number of characters in the basename
+ *          preceding the actual page number; %numpost is the number
  *          following the page number, up to either the end of the
  *          basename or a ".", whichever comes first.
  *      (5) This is useful when all filenames contain numbers that are
  *          not necessarily consecutive.  0-padding is not required.
  *      (6) To use a O(n) matching algorithm, the largest page number
  *          is found and two internal arrays of this size are created.
- *          This maximum is constrained not to exceed @maxsum,
+ *          This maximum is constrained not to exceed %maxsum,
  *          to make sure that an unrealistically large number is not
  *          accidentally used to determine the array sizes.
  */
@@ -1572,11 +1572,11 @@ SARRAY  *sa, *saout;
  *      Return: sarray of sorted pathnames, or NULL on error
  *
  *  Notes:
- *      (1) Use @substr to filter filenames in the directory.  If
- *          @substr == NULL, this takes all files.
+ *      (1) Use %substr to filter filenames in the directory.  If
+ *          %substr == NULL, this takes all files.
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order.
- *          Use @first and @nfiles to select a contiguous set of files.
+ *          Use %first and %nfiles to select a contiguous set of files.
  *      (3) The full pathnames are returned for the requested sequence.
  *          If no files are found after filtering, returns an empty sarray.
  */
@@ -1657,7 +1657,7 @@ SARRAY  *saout;
 
         /* Find the last file in the sorted array that has a number
          * that (a) matches the count pattern and (b) does not
-         * exceed @maxnum.  @maxnum sets an upper limit on the size
+         * exceed %maxnum.  %maxnum sets an upper limit on the size
          * of the sarray.  */
     num = 0;
     for (i = nfiles - 1; i >= 0; i--) {
@@ -1707,8 +1707,8 @@ SARRAY  *saout;
  *          characters preceding the terminating null character.  Use
  *          of other fields will harm the portability of your programs."
  *      (4) As a consequence of (3), we note several things:
- *           - MINGW doesn't have a d_type member.
- *           - Older versions of gcc (e.g., 2.95.3) return DT_UNKNOWN
+ *           ~ MINGW doesn't have a d_type member.
+ *           ~ Older versions of gcc (e.g., 2.95.3) return DT_UNKNOWN
  *             for d_type from all files.
  *          On these systems, this function will return directories
  *          (except for '.' and '..', which are eliminated using

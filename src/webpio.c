@@ -59,8 +59,8 @@
 /*!
  *  pixReadStreamWebP()
  *
- *      Input:  stream corresponding to WebP image
- *      Return: pix (32 bpp), or null on error
+ *      Input:  fp (file stream corresponding to WebP image)
+ *      Return: pix (32 bpp), or NULL on error
  */
 PIX *
 pixReadStreamWebP(FILE  *fp)
@@ -90,7 +90,7 @@ PIX      *pix;
  *
  *      Input:  filedata (webp compressed data in memory)
  *              filesize (number of bytes in data)
- *      Return: pix (32 bpp), or null on error
+ *      Return: pix (32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) When the encoded data only has 3 channels (no alpha),
@@ -272,7 +272,7 @@ FILE  *fp;
 /*!
  *  pixWriteStreampWebP()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pixs  (all depths)
  *              quality (0 - 100; default ~80)
  *              lossless (use 1 for lossless; 0 for lossy)
@@ -321,7 +321,7 @@ size_t    filebytes, nbytes;
  *
  *  Notes:
  *      (1) Lossless and lossy encoding are entirely different in webp.
- *          @quality applies to lossy, and is ignored for lossless.
+ *          %quality applies to lossy, and is ignored for lossless.
  *      (2) The input image is converted to RGB if necessary.  If spp == 3,
  *          we set the alpha channel to fully opaque (255), and
  *          WebPEncodeRGBA() then removes the alpha chunk when encoding,

@@ -92,37 +92,37 @@
  *    You have three choices for how to use these:
  *
  *    (1) Add both the new Sels and the dwa code to the library:
- *        - For simplicity, add your new brick Sels to those defined
+ *        ~ For simplicity, add your new brick Sels to those defined
  *          in selaAddBasic().
- *        - Recompile the library.
- *        - Make prog/fmorphautogen.
- *        - Run prog/fmorphautogen, to generate new versions of the
+ *        ~ Recompile the library.
+ *        ~ Make prog/fmorphautogen.
+ *        ~ Run prog/fmorphautogen, to generate new versions of the
  *          dwa code in fmorphgen.1.c and fmorphgenlow.1.c.
- *        - Copy these two files to src.
- *        - Recompile the library again.
- *        - Use the new brick Sels in your program and compile it.
+ *        ~ Copy these two files to src.
+ *        ~ Recompile the library again.
+ *        ~ Use the new brick Sels in your program and compile it.
  *
  *    (2) Make both the new Sels and dwa code outside the library,
  *        and link it directly to an executable:
- *        - Write a function to generate the new Sels in a Sela, and call
+ *        ~ Write a function to generate the new Sels in a Sela, and call
  *          fmorphautogen(sela, <N>, filename) to generate the code.
- *        - Compile your program that uses the newly generated function
+ *        ~ Compile your program that uses the newly generated function
  *          pixMorphDwa_<N>(), and link to the two new C files.
  *
  *    (3) Make the new Sels in the library and use the dwa code outside it:
- *        - Add code in the library to generate your new brick Sels.
+ *        ~ Add code in the library to generate your new brick Sels.
  *          (It is suggested that you NOT add these Sels to the
  *          selaAddBasic() function; write a new function that generates
  *          a new Sela.)
- *        - Recompile the library.
- *        - Write a small program that generates the Sela and calls
+ *        ~ Recompile the library.
+ *        ~ Write a small program that generates the Sela and calls
  *          fmorphautogen(sela, <N>, filename) to generate the code.
- *        - Compile your program that uses the newly generated function
+ *        ~ Compile your program that uses the newly generated function
  *          pixMorphDwa_<N>(), and link to the two new C files.
  *       As an example of this approach, see prog/dwamorph*_reg.c:
- *        - added selaAddDwaLinear() to sel2.c
- *        - wrote dwamorph1_reg.c, to generate the dwa code.
- *        - compiled and linked the generated code with the application,
+ *        ~ added selaAddDwaLinear() to sel2.c
+ *        ~ wrote dwamorph1_reg.c, to generate the dwa code.
+ *        ~ compiled and linked the generated code with the application,
  *          dwamorph2_reg.c.  (Note: because this was a regression test,
  *          dwamorph1_reg also builds and runs the application program.)
  */
@@ -1510,9 +1510,9 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          in either width or height (and with the origin as close
  *          to the center of the Sel as possible).
  *      (2) This returns the decomposition of a linear Sel of length
- *          @size into a set of @n Sels of length 63 plus an extra
- *          Sel of length @extra.
- *      (3) For notation, let w == @size, n == @n, and e == @extra.
+ *          %size into a set of %n Sels of length 63 plus an extra
+ *          Sel of length %extra.
+ *      (3) For notation, let w == %size, n == %n, and e == %extra.
  *          We have 1 < e < 63.
  *
  *          Then if w < 64, we have n = 0 and e = w.

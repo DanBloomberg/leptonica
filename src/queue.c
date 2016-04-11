@@ -77,7 +77,7 @@ static l_int32 lqueueExtendArray(L_QUEUE *lq);
  *  lqueueCreate()
  *
  *      Input:  size of ptr array to be alloc'd (0 for default)
- *      Return: lqueue, or null on error
+ *      Return: lqueue, or NULL on error
  *
  *  Notes:
  *      (1) Allocates a ptr array of given size, and initializes counters.
@@ -105,7 +105,7 @@ L_QUEUE  *lq;
 /*!
  *  lqueueDestroy()
  *
- *      Input:  &lqueue  (<to be nulled>)
+ *      Input:  &lqueue  (<inout> to be nulled)
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
@@ -233,7 +233,7 @@ lqueueExtendArray(L_QUEUE  *lq)
  *
  *      Input:  lqueue
  *      Return: ptr to item popped from the head of the queue,
- *              or null if the queue is empty or on error
+ *              or NULL if the queue is empty or on error
  *
  *  Notes:
  *      (1) If this is the last item on the queue, so that the queue
@@ -286,7 +286,7 @@ lqueueGetCount(L_QUEUE  *lq)
 /*!
  *  lqueuePrint()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              lqueue
  *      Return: 0 if OK; 1 on error
  */

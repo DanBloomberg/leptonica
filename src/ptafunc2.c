@@ -61,7 +61,7 @@
  *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
  *              &naindex (<optional return> index of sorted order into
  *                        original array)
- *      Return: ptad (sorted version of ptas), or null on error
+ *      Return: ptad (sorted version of ptas), or NULL on error
  */
 PTA *
 ptaSort(PTA     *ptas,
@@ -154,7 +154,7 @@ NUMA      *na;
  *
  *      Input:  ptas
  *              naindex (na that maps from the new pta to the input pta)
- *      Return: ptad (sorted), or null on  error
+ *      Return: ptad (sorted), or NULL on  error
  */
 PTA *
 ptaSortByIndex(PTA   *ptas,
@@ -190,7 +190,7 @@ PTA       *ptad;
  *
  *      Input:  ptaas
  *              naindex (na that maps from the new ptaa to the input ptaa)
- *      Return: ptaad (sorted), or null on error
+ *      Return: ptaad (sorted), or NULL on error
  */
 PTAA *
 ptaaSortByIndex(PTAA  *ptaas,
@@ -227,7 +227,7 @@ PTAA    *ptaad;
  *  ptaUnionByAset()
  *
  *      Input:  pta1, pta2
- *      Return: ptad (with the union of the set of points), or null on error
+ *      Return: ptad (with the union of the set of points), or NULL on error
  *
  *  Notes:
  *      (1) See sarrayRemoveDupsByAset() for the approach.
@@ -266,7 +266,7 @@ PTA  *pta3, *ptad;
  *  ptaRemoveDupsByAset()
  *
  *      Input:  ptas (assumed to be integer values)
- *      Return: ptad (with duplicates removed), or null on error
+ *      Return: ptad (with duplicates removed), or NULL on error
  *
  *  Notes:
  *      (1) This is slower than ptaRemoveDupsByHash(), mostly because
@@ -309,7 +309,7 @@ RB_TYPE   key;
  *  ptaIntersectionByAset()
  *
  *      Input:  pta1, pta2
- *      Return: ptad (intersection of the point sets), or null on error
+ *      Return: ptad (intersection of the point sets), or NULL on error
  *
  *  Notes:
  *      (1) See sarrayIntersectionByAset() for the approach.
@@ -401,7 +401,7 @@ RB_TYPE   key;
  *  ptaUnionByHash()
  *
  *      Input:  pta1, pta2
- *      Return: ptad (with the union of the set of points), or null on error
+ *      Return: ptad (with the union of the set of points), or NULL on error
  *
  *  Notes:
  *      (1) This is faster than ptaUnionByAset(), because the
@@ -505,7 +505,7 @@ L_DNAHASH  *dahash;
  *  ptaIntersectionByHash()
  *
  *      Input:  pta1, pta2
- *      Return: ptad (intersection of the point sets), or null on error
+ *      Return: ptad (intersection of the point sets), or NULL on error
  *
  *  Notes:
  *      (1) This is faster than ptaIntersectionByAset(), because the
@@ -621,7 +621,7 @@ L_DNA    *da;
  *  l_dnaHashCreateFromPta()
  *
  *      Input:  pta
- *      Return: dahash, or null on error
+ *      Return: dahash, or NULL on error
  */
 L_DNAHASH *
 l_dnaHashCreateFromPta(PTA  *pta)
@@ -642,7 +642,7 @@ L_DNAHASH  *dahash;
 /*    fprintf(stderr, "Prime used: %d\n", nsize); */
 
         /* Add each point, using the hash as key and the index into
-         * @ptas as the value.  Storing the index enables operations
+         * %ptas as the value.  Storing the index enables operations
          * that check for duplicates. */
     dahash = l_dnaHashCreate(nsize, 8);
     for (i = 0; i < n; i++) {

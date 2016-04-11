@@ -87,9 +87,9 @@
  *      (x',y') in the src.  That computed point in the src is then used
  *      to determine the corresponding dest pixel value in one of two ways:
  *
- *       - sampling: simply take the value of the src pixel in which this
+ *       ~ sampling: simply take the value of the src pixel in which this
  *                   point falls
- *       - interpolation: take appropriate linear combinations of the
+ *       ~ interpolation: take appropriate linear combinations of the
  *                        four src pixels that this dest pixel would
  *                        overlap, with the coefficients proportional
  *                        to the amount of overlap
@@ -123,7 +123,7 @@ extern l_float32  AlphaMaskBorderVals[2];
  *              ptad  (4 pts of final coordinate space)
  *              ptas  (4 pts of initial coordinate space)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary.
@@ -172,7 +172,7 @@ PIX        *pixd;
  *      Input:  pixs (all depths)
  *              vc  (vector of 8 coefficients for projective transformation)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary.
@@ -266,7 +266,7 @@ PIXCMAP    *cmap;
  *              ptad  (4 pts of final coordinate space)
  *              ptas  (4 pts of initial coordinate space)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary
@@ -334,7 +334,7 @@ PIX      *pixt1, *pixt2, *pixd;
  *      Input:  pixs (all depths; colormap ok)
  *              vc  (vector of 8 coefficients for projective transformation)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary
@@ -394,7 +394,7 @@ PIX      *pixt1, *pixt2, *pixd;
  *              ptad  (4 pts of final coordinate space)
  *              ptas  (4 pts of initial coordinate space)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixProjectivePtaColor(PIX      *pixs,
@@ -435,7 +435,7 @@ PIX        *pixd;
  *      Input:  pixs (32 bpp)
  *              vc  (vector of 8 coefficients for projective transformation)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixProjectiveColor(PIX        *pixs,
@@ -497,7 +497,7 @@ PIX       *pix1, *pix2, *pixd;
  *              ptad  (4 pts of final coordinate space)
  *              ptas  (4 pts of initial coordinate space)
  *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixProjectivePtaGray(PIX     *pixs,
@@ -539,7 +539,7 @@ PIX        *pixd;
  *      Input:  pixs (8 bpp)
  *              vc  (vector of 8 coefficients for projective transformation)
  *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixProjectiveGray(PIX        *pixs,
@@ -596,7 +596,7 @@ PIX       *pixd;
  *              fract (between 0.0 and 1.0, with 0.0 fully transparent
  *                     and 1.0 fully opaque)
  *              border (of pixels added to capture transformed source pixels)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The alpha channel is transformed separately from pixs,
@@ -605,8 +605,8 @@ PIX       *pixd;
  *          transparent, a blending function like pixBlendWithGrayMask()
  *          will give zero weight to corresponding pixels in pixs.
  *      (2) If pixg is NULL, it is generated as an alpha layer that is
- *          partially opaque, using @fract.  Otherwise, it is cropped
- *          to pixs if required and @fract is ignored.  The alpha channel
+ *          partially opaque, using %fract.  Otherwise, it is cropped
+ *          to pixs if required and %fract is ignored.  The alpha channel
  *          in pixs is never used.
  *      (3) Colormaps are removed.
  *      (4) When pixs is transformed, it doesn't matter what color is brought
@@ -615,7 +615,7 @@ PIX       *pixd;
  *          necessary to add a border to the source pix before doing
  *          the projective transformation.  This can be any non-negative
  *          number.
- *      (6) The input @ptad and @ptas are in a coordinate space before
+ *      (6) The input %ptad and %ptas are in a coordinate space before
  *          the border is added.  Internally, we compensate for this
  *          before doing the projective transform on the image after
  *          the border is added.
@@ -648,7 +648,7 @@ PTA     *ptad2, *ptas2;
     if (d != 32 && pixGetColormap(pixs) == NULL)
         return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
     if (pixg && pixGetDepth(pixg) != 8) {
-        L_WARNING("pixg not 8 bpp; using @fract transparent alpha\n", procName);
+        L_WARNING("pixg not 8 bpp; using %fract transparent alpha\n", procName);
         pixg = NULL;
     }
     if (!pixg && (fract < 0.0 || fract > 1.0)) {

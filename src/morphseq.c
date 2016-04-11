@@ -65,7 +65,7 @@
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
  *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does rasterop morphology on binary images.
@@ -84,9 +84,9 @@
  *      (9) Thanks to Dar-Shyang Lee, who had the idea for this and
  *          built the first implementation.
  *      (10) The sequence string is formatted as follows:
- *            - An arbitrary number of operations,  each separated
+ *            ~ An arbitrary number of operations,  each separated
  *              by a '+' character.  White space is ignored.
- *            - Each operation begins with a case-independent character
+ *            ~ Each operation begins with a case-independent character
  *              specifying the operation:
  *                 d or D  (dilation)
  *                 e or E  (erosion)
@@ -95,12 +95,12 @@
  *                 r or R  (rank binary reduction)
  *                 x or X  (replicative binary expansion)
  *                 b or B  (add a border of 0 pixels of this size)
- *            - The args to the morphological operations are bricks of hits,
+ *            ~ The args to the morphological operations are bricks of hits,
  *              and are formatted as a.b, where a and b are horizontal and
  *              vertical dimensions, rsp.
- *            - The args to the reduction are a sequence of up to 4 integers,
+ *            ~ The args to the reduction are a sequence of up to 4 integers,
  *              each from 1 to 4.
- *            - The arg to the expansion is a power of two, in the set
+ *            ~ The arg to the expansion is a power of two, in the set
  *              {2, 4, 8, 16}.
  *      (11) An example valid sequence is:
  *               "b32 + o1.3 + C3.1 + r23 + e2.2 + D3.2 + X4"
@@ -119,9 +119,9 @@
  *           a sufficiently large border as the first operation in
  *           the sequence.  This will be removed automatically at the
  *           end.  There are two cautions:
- *              - When computing what is sufficient, remember that if
+ *              ~ When computing what is sufficient, remember that if
  *                reductions are carried out, the border is also reduced.
- *              - The border is removed at the end, so if a border is
+ *              ~ The border is removed at the end, so if a border is
  *                added at the beginning, the result must be at the
  *                same resolution as the input!
  */
@@ -261,7 +261,7 @@ SARRAY  *sa;
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
  *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does rasterop morphology on binary images, using composite
@@ -273,9 +273,9 @@ SARRAY  *sa;
  *          remove it at the end.
  *      (3) For other usage details, see the notes for pixMorphSequence().
  *      (4) The sequence string is formatted as follows:
- *            - An arbitrary number of operations,  each separated
+ *            ~ An arbitrary number of operations,  each separated
  *              by a '+' character.  White space is ignored.
- *            - Each operation begins with a case-independent character
+ *            ~ Each operation begins with a case-independent character
  *              specifying the operation:
  *                 d or D  (dilation)
  *                 e or E  (erosion)
@@ -284,12 +284,12 @@ SARRAY  *sa;
  *                 r or R  (rank binary reduction)
  *                 x or X  (replicative binary expansion)
  *                 b or B  (add a border of 0 pixels of this size)
- *            - The args to the morphological operations are bricks of hits,
+ *            ~ The args to the morphological operations are bricks of hits,
  *              and are formatted as a.b, where a and b are horizontal and
  *              vertical dimensions, rsp.
- *            - The args to the reduction are a sequence of up to 4 integers,
+ *            ~ The args to the reduction are a sequence of up to 4 integers,
  *              each from 1 to 4.
- *            - The arg to the expansion is a power of two, in the set
+ *            ~ The arg to the expansion is a power of two, in the set
  *              {2, 4, 8, 16}.
  */
 PIX *
@@ -428,7 +428,7 @@ SARRAY  *sa;
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
  *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does dwa morphology on binary images.
@@ -576,7 +576,7 @@ SARRAY  *sa;
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
  *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does dwa morphology on binary images, using brick Sels.
@@ -865,7 +865,7 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
  *                       < 0: pdf output; abs(dispsep) is used for naming)
  *              dispy (if dispsep > 0, this gives the y-value of the
  *                     UL corner for display; otherwise it is ignored)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This works on 8 bpp grayscale images.
@@ -880,19 +880,19 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
  *      (8) Sel sizes (width, height) must each be odd numbers.
  *      (9) Intermediate results can optionally be displayed
  *      (10) The sequence string is formatted as follows:
- *            - An arbitrary number of operations,  each separated
+ *            ~ An arbitrary number of operations,  each separated
  *              by a '+' character.  White space is ignored.
- *            - Each operation begins with a case-independent character
+ *            ~ Each operation begins with a case-independent character
  *              specifying the operation:
  *                 d or D  (dilation)
  *                 e or E  (erosion)
  *                 o or O  (opening)
  *                 c or C  (closing)
  *                 t or T  (tophat)
- *            - The args to the morphological operations are bricks of hits,
+ *            ~ The args to the morphological operations are bricks of hits,
  *              and are formatted as a.b, where a and b are horizontal and
  *              vertical dimensions, rsp. (each must be an odd number)
- *            - The args to the tophat are w or W (for white tophat)
+ *            ~ The args to the tophat are w or W (for white tophat)
  *              or b or B (for black tophat), followed by a.b as for
  *              the dilation, erosion, opening and closing.
  *           Example valid sequences are:
@@ -1074,7 +1074,7 @@ SARRAY  *sa;
  *                       < 0: pdf output; abs(dispsep) is used for naming)
  *              dispy (if dispsep > 0, this gives the y-value of the
  *                     UL corner for display; otherwise it is ignored)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This works on 32 bpp rgb images.
@@ -1088,15 +1088,15 @@ SARRAY  *sa;
  *      (8) The format of the sequence string is defined below.
  *      (9) Intermediate results can optionally be displayed.
  *      (10) The sequence string is formatted as follows:
- *            - An arbitrary number of operations,  each separated
+ *            ~ An arbitrary number of operations,  each separated
  *              by a '+' character.  White space is ignored.
- *            - Each operation begins with a case-independent character
+ *            ~ Each operation begins with a case-independent character
  *              specifying the operation:
  *                 d or D  (dilation)
  *                 e or E  (erosion)
  *                 o or O  (opening)
  *                 c or C  (closing)
- *            - The args to the morphological operations are bricks of hits,
+ *            ~ The args to the morphological operations are bricks of hits,
  *              and are formatted as a.b, where a and b are horizontal and
  *              vertical dimensions, rsp. (each must be an odd number)
  *           Example valid sequences are:

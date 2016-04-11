@@ -1515,7 +1515,8 @@ l_float32  scx, scy;
 /*!
  *  scaleAreaMapLow2()
  *
- *  Note: This function is called with either 8 bpp gray or 32 bpp RGB.
+ *  Notes:
+ *        This function is called with either 8 bpp gray or 32 bpp RGB.
  *        The result is a 2x reduced dest.
  */
 void
@@ -1797,6 +1798,7 @@ l_uint8  *tab;
  *              valtab  (made from makeValTabSG3())
  *      Return: 0 if OK; 1 on error
  *
+ *  Notes:
  *  Each set of 8 3x3 bit-blocks in the source image, which
  *  consist of 72 pixels arranged 24 pixels wide by 3 scanlines,
  *  is converted to a row of 8 8-bit pixels in the dest image.
@@ -2069,6 +2071,7 @@ l_uint8  *tab;
  *              valtab  (made from makeValTabSG6())
  *      Return: 0 if OK; 1 on error
  *
+ *  Notes:
  *  Each set of 4 6x6 bit-blocks in the source image, which
  *  consist of 144 pixels arranged 24 pixels wide by 6 scanlines,
  *  is converted to a row of 4 8-bit pixels in the dest image.

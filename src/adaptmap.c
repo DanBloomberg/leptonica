@@ -27,13 +27,15 @@
 /*
  *  adaptmap.c
  *
- *  ===================================================================
+ *  -------------------------------------------------------------------
+ *
  *  Image binarization algorithms are found in:
  *     grayquant.c:   standard, simple, general grayscale quantization
  *     adaptmap.c:    local adaptive; mostly gray-to-gray in preparation
  *                    for binarization
  *     binarize.c:    special binarization methods, locally adaptive.
- *  ===================================================================
+ *
+ *  -------------------------------------------------------------------
  *
  *      Clean background to white using background normalization
  *          PIX       *pixCleanBackgroundToWhite()
@@ -133,25 +135,25 @@
 #include "allheaders.h"
 
     /* Default input parameters for pixBackgroundNormSimple()
-     * Note:
+     * Notes:
      *    (1) mincount must never exceed the tile area (width * height)
      *    (2) bgval must be sufficiently below 255 to avoid accidental
      *        saturation; otherwise it should be large to avoid
      *        shrinking the dynamic range
      *    (3) results should otherwise not be sensitive to these values
      */
-static const l_int32  DEFAULT_TILE_WIDTH = 10;
-static const l_int32  DEFAULT_TILE_HEIGHT = 15;
-static const l_int32  DEFAULT_FG_THRESHOLD = 60;
-static const l_int32  DEFAULT_MIN_COUNT = 40;
-static const l_int32  DEFAULT_BG_VAL = 200;
-static const l_int32  DEFAULT_X_SMOOTH_SIZE = 2;
-static const l_int32  DEFAULT_Y_SMOOTH_SIZE = 1;
+static const l_int32  DEFAULT_TILE_WIDTH = 10;   /*!< pixBackgroundNormSimple() default tile width */
+static const l_int32  DEFAULT_TILE_HEIGHT = 15;  /*!< pixBackgroundNormSimple() default tile height */
+static const l_int32  DEFAULT_FG_THRESHOLD = 60; /*!< pixBackgroundNormSimple() default fg threshold */
+static const l_int32  DEFAULT_MIN_COUNT = 40;    /*!< pixBackgroundNormSimple() default minimum count */
+static const l_int32  DEFAULT_BG_VAL = 200;      /*!< pixBackgroundNormSimple() default bg value */
+static const l_int32  DEFAULT_X_SMOOTH_SIZE = 2; /*!< pixBackgroundNormSimple() default x smooth size */
+static const l_int32  DEFAULT_Y_SMOOTH_SIZE = 1; /*!< pixBackgroundNormSimple() default y smooth size */
 
 static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
 
 #ifndef  NO_CONSOLE_IO
-#define  DEBUG_GLOBAL    0
+#define  DEBUG_GLOBAL    0    /*!< set to 1 to debug pixGlobalNormNoSatRGB() */
 #endif  /* ~NO_CONSOLE_IO */
 
 
@@ -167,7 +169,7 @@ static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
  *              gamma (gamma correction; must be > 0.0; typically ~1.0)
  *              blackval (dark value to set to black (0))
  *              whiteval (light value to set to white (255))
- *      Return: pixd (8 bpp or 32 bpp rgb), or null on error
+ *      Return: pixd (8 bpp or 32 bpp rgb), or NULL on error
  *
  *  Notes:
  *    (1) This is a simplified interface for cleaning an image.
@@ -212,7 +214,7 @@ PIX     *pixd;
  *      Input:  pixs (8 bpp grayscale or 32 bpp rgb)
  *              pixim (<optional> 1 bpp 'image' mask; can be null)
  *              pixg (<optional> 8 bpp grayscale version; can be null)
- *      Return: pixd (8 bpp or 32 bpp rgb), or null on error
+ *      Return: pixd (8 bpp or 32 bpp rgb), or NULL on error
  *
  *  Notes:
  *    (1) This is a simplified interface to pixBackgroundNorm(),
@@ -245,7 +247,7 @@ pixBackgroundNormSimple(PIX  *pixs,
  *              bgval (target bg val; typ. > 128)
  *              smoothx (half-width of block convolution kernel width)
  *              smoothy (half-width of block convolution kernel height)
- *      Return: pixd (8 bpp or 32 bpp rgb), or null on error
+ *      Return: pixd (8 bpp or 32 bpp rgb), or NULL on error
  *
  *  Notes:
  *    (1) This is a top-level interface for normalizing the image intensity
@@ -390,7 +392,7 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
  *              reduction (at which morph closings are done; between 2 and 16)
  *              size (of square Sel for the closing; use an odd number)
  *              bgval (target bg val; typ. > 128)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *    (1) This is a top-level interface for normalizing the image intensity
@@ -1529,7 +1531,7 @@ PIX      *pixt;
  *      Input:  pixs (8 bpp)
  *              addw (number of extra pixels horizontally to add)
  *              addh (number of extra pixels vertically to add)
- *      Return: pixd (extended with replicated pixel values), or null on error
+ *      Return: pixd (extended with replicated pixel values), or NULL on error
  *
  *  Notes:
  *      (1) The pixel values are extended to the left and down, as required.
@@ -1668,19 +1670,19 @@ PIXA      *pixa;
  *      (5) In practice, pixd can be used to normalize the fg, and
  *          it can be done after background normalization.
  *      (6) The overall procedure is:
- *            - reduce 2x by sampling
- *            - paint all 'image' pixels white, so that they don't
- *              participate in the Min reduction
- *            - do a further (sx, sy) Min reduction -- think of
+ *            ~ reduce 2x by sampling
+ *            ~ paint all 'image' pixels white, so that they don't
+ *            ~ participate in the Min reduction
+ *            ~ do a further (sx, sy) Min reduction -- think of
  *              it as a large opening followed by subsampling by the
  *              reduction factors
- *            - threshold the result to identify fg, and set the
+ *            ~ threshold the result to identify fg, and set the
  *              bg pixels to 255 (these are 'holes')
- *            - fill holes by propagation from fg values
- *            - replicatively expand by 2x, arriving at the final
+ *            ~ fill holes by propagation from fg values
+ *            ~ replicatively expand by 2x, arriving at the final
  *              resolution of pixd
- *            - smooth with a 17x17 kernel
- *            - paint the 'image' regions black
+ *            ~ smooth with a 17x17 kernel
+ *            ~ paint the 'image' regions black
  */
 l_int32
 pixGetForegroundGrayMap(PIX     *pixs,
@@ -1785,11 +1787,11 @@ PIX     *pixd, *piximi, *pixim2, *pixims, *pixs2, *pixb, *pixt1, *pixt2, *pixt3;
  *              bgval (target bg val; typ. > 128)
  *              smoothx (half-width of block convolution kernel width)
  *              smoothy (half-width of block convolution kernel height)
- *      Return: pixd (16 bpp), or null on error
+ *      Return: pixd (16 bpp), or NULL on error
  *
- *  Note:
- *     - bgval should typically be > 120 and < 240
- *     - pixd is a normalization image; the original image is
+ *  Notes:
+ *     (1) bgval should typically be > 120 and < 240
+ *     (2) pixd is a normalization image; the original image is
  *       multiplied by pixd and the result is divided by 256.
  */
 PIX *
@@ -1853,7 +1855,7 @@ PIX       *pixsm, *pixd;
  *              pixm (16 bpp, inverse background map)
  *              sx (tile width in pixels)
  *              sy (tile height in pixels)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  */
 PIX *
 pixApplyInvBackgroundGrayMap(PIX     *pixs,
@@ -1918,7 +1920,7 @@ PIX       *pixd;
  *              pixmb (16 bpp, blue inverse background map)
  *              sx (tile width in pixels)
  *              sy (tile height in pixels)
- *      Return: pixd (32 bpp rbg), or null on error
+ *      Return: pixd (32 bpp rbg), or NULL on error
  */
 PIX *
 pixApplyInvBackgroundRGBMap(PIX     *pixs,
@@ -1997,7 +1999,7 @@ PIX       *pixd;
  *      Input:  pixs (8 bpp)
  *              pixg (8 bpp, variable map)
  *              target (typ. 128 for threshold)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) Suppose you have an image that you want to transform based
@@ -2104,7 +2106,7 @@ PIX       *pixd;
  *              rval, gval, bval (pixel values in pixs that are
  *                                linearly mapped to mapval)
  *              mapval (use 255 for mapping to white)
- *      Return: pixd (32 bpp rgb or colormapped), or null on error
+ *      Return: pixd (32 bpp rgb or colormapped), or NULL on error
  *
  *  Notes:
  *    (1) The value of pixd determines if the results are written to a
@@ -2212,7 +2214,7 @@ PIXCMAP   *cmap;
  *                                linearly mapped to mapval; but see below)
  *              factor (subsampling factor; integer >= 1)
  *              rank (between 0.0 and 1.0; typ. use a value near 1.0)
- *      Return: pixd (32 bpp rgb), or null on error
+ *      Return: pixd (32 bpp rgb), or NULL on error
  *
  *  Notes:
  *    (1) This is a version of pixGlobalNormRGB(), where the output
@@ -2419,7 +2421,7 @@ PIX  *pixe, *pixet, *pixsd, *pixg1, *pixg2, *pixth;
  *                                threshold array: use values between 1 and 3)
  *              delta (difference parameter in basin filling; use 0
  *                     to skip)
- *      Return: pixd (8 bpp, background-normalized), or null on error)
+ *      Return: pixd (8 bpp, background-normalized), or NULL on error)
  *
  *  Notes:
  *      (1) This does adaptation flexibly to a quickly varying background.
@@ -2429,10 +2431,10 @@ PIX  *pixe, *pixet, *pixsd, *pixg1, *pixg2, *pixth;
  *          are (2 * smoothx + 1) and (2 * smoothy + 1).  They
  *          should be in [1 - 2].
  *      (4) Basin filling is used to fill the large fg regions.  The
- *          parameter @delta measures the height that the black
+ *          parameter %delta measures the height that the black
  *          background is raised from the local minima.  By raising
  *          the background, it is possible to threshold the large
- *          fg regions to foreground.  If @delta is too large,
+ *          fg regions to foreground.  If %delta is too large,
  *          bg regions will be lifted, causing thickening of
  *          the fg regions.  Use 0 to skip.
  */
@@ -2506,7 +2508,7 @@ PIX       *pixt, *pixsd, *pixmin, *pixbg, *pixbgi, *pixd;
  *  Notes:
  *      (1) This function adaptively attempts to expand the contrast
  *          to the full dynamic range in each tile.  If the contrast in
- *          a tile is smaller than @mindiff, it uses the min and max
+ *          a tile is smaller than %mindiff, it uses the min and max
  *          pixel values from neighboring tiles.  It also can use
  *          convolution to smooth the min and max values from
  *          neighboring tiles.  After all that processing, it is
@@ -2668,7 +2670,7 @@ PIX     *pixmin1, *pixmax1, *pixmin2, *pixmax2;
  *
  *  Notes:
  *      (1) This compares corresponding pixels in pixs1 and pixs2.
- *          When they differ by less than @mindiff, set the pixel
+ *          When they differ by less than %mindiff, set the pixel
  *          values to 0 in each.  Each pixel typically represents a tile
  *          in a larger image, and a very small difference between
  *          the min and max in the tile indicates that the min and max

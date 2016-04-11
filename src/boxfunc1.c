@@ -139,7 +139,7 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2;
  *      Input:  boxas
  *              box (for containment)
  *      Return: boxad (boxa with all boxes in boxas that are
- *                     entirely contained in box), or null on error
+ *                     entirely contained in box), or NULL on error
  *
  *  Notes:
  *      (1) All boxes in boxa that are entirely outside box are removed.
@@ -179,8 +179,8 @@ BOXA    *boxad;
  *
  *      Input:  boxas
  *              box (for intersecting)
- *      Return  boxad (boxa with all boxes in boxas that intersect box),
- *                     or null on error
+ *      Return: boxad (boxa with all boxes in boxas that intersect box),
+ *                     or NULL on error
  *
  *  Notes:
  *      (1) All boxes in boxa that intersect with box (i.e., are completely
@@ -221,8 +221,8 @@ BOXA    *boxad;
  *
  *      Input:  boxas
  *              box (for clipping)
- *      Return  boxad (boxa with boxes in boxas clipped to box),
- *                     or null on error
+ *      Return: boxad (boxa with boxes in boxas clipped to box),
+ *                     or NULL on error
  *
  *  Notes:
  *      (1) All boxes in boxa not intersecting with box are removed, and
@@ -263,11 +263,11 @@ BOXA    *boxad;
  *      Input:  boxas
  *      Return: boxad (where each set of boxes in boxas that overlap are
  *                     combined into a single bounding box in boxad), or
- *                     null on error.
+ *                     NULL on error.
  *
  *  Notes:
  *      (1) If there are no overlapping boxes, it simply returns a copy
- *          of @boxas.
+ *          of %boxas.
  *      (2) The alternative method of painting each rectanle and finding
  *          the 4-connected components gives the wrong result, because
  *          two non-overlapping rectangles, when rendered, can still
@@ -345,7 +345,7 @@ BOXA    *boxat1, *boxat2;
  *
  *      Input:  box1, box2 (two boxes)
  *      Return: box (of overlap region between input boxes),
- *              or null if no overlap or on error
+ *              or NULL if no overlap or on error
  *
  *  Notes:
  *      (1) This is the geometric intersection of the two rectangles.
@@ -385,7 +385,7 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
  *
  *      Input:  box1, box2 (two boxes)
  *      Return: box (of bounding region containing the input boxes),
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) This is the geometric union of the two rectangles.
@@ -503,7 +503,7 @@ BOX     *box;
  *              max_ratio (maximum fraction of small/large areas for
  *                         overlap to count; 1.0 to ignore)
  *              &namap (<optional return> combining map)
- *      Return: boxad, or null on error.
+ *      Return: boxad, or NULL on error.
  *
  *  Notes:
  *      (1) For all n(n-1)/2 box pairings, if two boxes overlap, either:
@@ -514,13 +514,13 @@ BOX     *box;
  *      (2) If boxas is 2D sorted, range can be small, but if it is
  *          not spatially sorted, range should be large to allow all
  *          pairwise comparisons to be made.
- *      (3) The @min_overlap parameter allows ignoring small overlaps.
- *          If @min_overlap == 1.0, only boxes fully contained in larger
- *          boxes can be considered for removal; if @min_overlap == 0.0,
+ *      (3) The %min_overlap parameter allows ignoring small overlaps.
+ *          If %min_overlap == 1.0, only boxes fully contained in larger
+ *          boxes can be considered for removal; if %min_overlap == 0.0,
  *          this constraint is ignored.
- *      (4) The @max_ratio parameter allows ignoring overlaps between
- *          boxes that are not too different in size.  If @max_ratio == 0.0,
- *          no boxes can be removed; if @max_ratio == 1.0, this constraint
+ *      (4) The %max_ratio parameter allows ignoring overlaps between
+ *          boxes that are not too different in size.  If %max_ratio == 0.0,
+ *          no boxes can be removed; if %max_ratio == 1.0, this constraint
  *          is ignored.
  */
 BOXA *
@@ -717,8 +717,8 @@ l_int32  bx, by, bw, bh;
  *
  *      Input:  boxa
  *              x, y  (point)
- *      Return  box (box with centroid closest to the given point [x,y]),
- *              or NULL if no boxes in boxa)
+ *      Return: box (with centroid closest to the given point [x,y]),
+ *              or NULL if no boxes in boxa
  *
  *  Notes:
  *      (1) Uses euclidean distance between centroid and point.
@@ -763,7 +763,7 @@ BOX       *box;
  *
  *      Input:  box
  *              &cx, &cy (<return> location of center of box)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  */
 l_int32
 boxGetCenter(BOX        *box,
@@ -937,8 +937,8 @@ BOX  *boxd;
  *
  *      Input:  box (<optional> requested box; can be null)
  *              w, h (clipping box size; typ. the size of an image)
- *              &xstart (<return>)
- *              &ystart (<return>)
+ *              &xstart (<return> start x coordinate)
+ *              &ystart (<return> start y coordinate)
  *              &xend (<return> one pixel beyond clipping box)
  *              &yend (<return> one pixel beyond clipping box)
  *              &bw (<optional return> clipped width)
@@ -1003,7 +1003,7 @@ BOX     *boxc;
  *              boxs (starting box; to have one side relocated)
  *              loc (new location of the side that is changing)
  *              sideflag (L_FROM_LEFT, etc., indicating the side that moves)
- *      Return: boxd, or null on error or if the computed boxd has
+ *      Return: boxd, or NULL on error or if the computed boxd has
  *              width or height <= 0.
  *
  *  Notes:
@@ -1050,7 +1050,7 @@ l_int32  x, y, w, h;
  *              boxs  (starting box; to have sides adjusted)
  *              delleft, delright, deltop, delbot (changes in location of
  *                                                 each side)
- *      Return: boxd, or null on error or if the computed boxd has
+ *      Return: boxd, or NULL on error or if the computed boxd has
  *              width or height <= 0.
  *
  *  Notes:
@@ -1100,12 +1100,12 @@ l_int32  x, y, w, h, xl, xr, yt, yb, wnew, hnew;
 /*!
  *  boxaSetSide()
  *
- *      Input:  boxad (use null to get a new one; same as boxas for in-place)
+ *      Input:  boxad (use NULL to get a new one; same as boxas for in-place)
  *              boxas
  *              side (L_SET_LEFT, L_SET_RIGHT, L_SET_TOP, L_SET_BOT)
  *              val (location to set for given side, for each box)
- *              thresh (min abs difference to cause resetting to @val)
- *      Return: boxad, or null on error
+ *              thresh (min abs difference to cause resetting to %val)
+ *      Return: boxad, or NULL on error
  *
  *  Notes:
  *      (1) Sets the given side of each box.  Use boxad == NULL for a new
@@ -1169,17 +1169,17 @@ BOX     *box;
 /*!
  *  boxaAdjustWidthToTarget()
  *
- *      Input:  boxad (use null to get a new one; same as boxas for in-place)
+ *      Input:  boxad (use NULL to get a new one; same as boxas for in-place)
  *              boxas
  *              sides (L_ADJUST_LEFT, L_ADJUST_RIGHT, L_ADJUST_LEFTL_AND_RIGHT)
  *              target (target width if differs by more than thresh)
  *              thresh (min abs difference in width to cause adjustment)
- *      Return: boxad, or null on error
+ *      Return: boxad, or NULL on error
  *
  *  Notes:
  *      (1) Conditionally adjusts the width of each box, by moving
  *          the indicated edges (left and/or right) if the width differs
- *          by @thresh or more from @target.
+ *          by %thresh or more from %target.
  *      (2) Use boxad == NULL for a new boxa, and boxad == boxas for in-place.
  *          Use one of these:
  *               boxad = boxaAdjustWidthToTarget(NULL, boxas, ...);   // new
@@ -1234,17 +1234,17 @@ BOX     *box;
 /*!
  *  boxaAdjustHeightToTarget()
  *
- *      Input:  boxad (use null to get a new one)
+ *      Input:  boxad (use NULL to get a new one)
  *              boxas
  *              sides (L_ADJUST_TOP, L_ADJUST_BOT, L_ADJUST_TOP_AND_BOT)
  *              target (target height if differs by more than thresh)
  *              thresh (min abs difference in height to cause adjustment)
- *      Return: boxad, or null on error
+ *      Return: boxad, or NULL on error
  *
  *  Notes:
  *      (1) Conditionally adjusts the height of each box, by moving
  *          the indicated edges (top and/or bot) if the height differs
- *          by @thresh or more from @target.
+ *          by %thresh or more from %target.
  *      (2) Use boxad == NULL for a new boxa, and boxad == boxas for in-place.
  *          Use one of these:
  *               boxad = boxaAdjustHeightToTarget(NULL, boxas, ...);   // new
@@ -1306,7 +1306,7 @@ BOX     *box;
  *      Input:  box1
  *              box2
  *              &same (<return> 1 if equal; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  */
 l_int32
 boxEqual(BOX      *box1,
@@ -1335,20 +1335,20 @@ boxEqual(BOX      *box1,
  *              maxdist
  *              &naindex (<optional return> index array of correspondences
  *              &same (<return> 1 if equal; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The two boxa are the "same" if they contain the same
- *          boxes and each box is within @maxdist of its counterpart
+ *          boxes and each box is within %maxdist of its counterpart
  *          in their positions within the boxa.  This allows for
  *          small rearrangements.  Use 0 for maxdist if the boxa
  *          must be identical.
  *      (2) This applies only to geometry and ordering; refcounts
  *          are not considered.
- *      (3) @maxdist allows some latitude in the ordering of the boxes.
+ *      (3) %maxdist allows some latitude in the ordering of the boxes.
  *          For the boxa to be the "same", corresponding boxes must
- *          be within @maxdist of each other.  Note that for large
- *          @maxdist, we should use a hash function for efficiency.
+ *          be within %maxdist of each other.  Note that for large
+ *          %maxdist, we should use a hash function for efficiency.
  *      (4) naindex[i] gives the position of the box in boxa2 that
  *          corresponds to box i in boxa1.  It is only returned if the
  *          boxa are equal.
@@ -1422,7 +1422,7 @@ NUMA     *na;
  *              box2
  *              leftdiff, rightdiff, topdiff, botdiff
  *              &similar (<return> 1 if similar; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The values of leftdiff (etc) are the maximum allowed deviations
@@ -1479,13 +1479,13 @@ l_int32  loc1, loc2;
  *              debug (output details of non-similar boxes)
  *              &similar (<return> 1 if similar; 0 otherwise)
  *              &nasim (<optional return> na containing 1 if similar; else 0)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) See boxSimilar() for parameter usage.
  *      (2) Corresponding boxes are taken in order in the two boxa.
- *      (3) @nasim is an indicator array with a (0/1) for each box pair.
- *      (4) With @nasim or debug == 1, boxes continue to be tested
+ *      (3) %nasim is an indicator array with a (0/1) for each box pair.
+ *      (4) With %nasim or debug == 1, boxes continue to be tested
  *          after failure.
  */
 l_int32
@@ -1650,10 +1650,10 @@ BOXA    *boxa;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @fillflag == 1, boxae has copies of the even boxes
+ *      (1) If %fillflag == 1, boxae has copies of the even boxes
  *          in their original location, and nvalid boxes are placed
  *          in the odd array locations.  And v.v.
- *      (2) If @fillflag == 0, boxae has only copies of the even boxes.
+ *      (2) If %fillflag == 0, boxae has only copies of the even boxes.
  */
 l_int32
 boxaSplitEvenOdd(BOXA    *boxa,
@@ -1707,13 +1707,13 @@ BOX     *box, *boxt;
  *      Input:  boxae (boxes to go in even positions in merged boxa)
  *              boxao (boxes to go in odd positions in merged boxa)
  *              fillflag (1 if there are invalid boxes in placeholders)
- *      Return: boxad (merged), or null on error
+ *      Return: boxad (merged), or NULL on error
  *
  *  Notes:
  *      (1) This is essentially the inverse of boxaSplitEvenOdd().
  *          Typically, boxae and boxao were generated by boxaSplitEvenOdd(),
- *          and the value of @fillflag needs to be the same in both calls.
- *      (2) If @fillflag == 1, both boxae and boxao are of the same size;
+ *          and the value of %fillflag needs to be the same in both calls.
+ *      (2) If %fillflag == 1, both boxae and boxao are of the same size;
  *          otherwise boxae may have one more box than boxao.
  */
 BOXA *

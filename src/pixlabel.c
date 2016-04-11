@@ -92,19 +92,19 @@
  *      Input:   pixs (1 bpp)
  *               connect (connectivity: 4 or 8)
  *               depth (of pixd: 8 or 16 bpp; use 0 for auto determination)
- *      Return:  pixd (8, 16 or 32 bpp), or null on error
+ *      Return:  pixd (8, 16 or 32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) pixd is 8, 16 or 32 bpp, and the pixel values label the
  *          fg component, starting with 1.  Pixels in the bg are labelled 0.
- *      (2) If @depth = 0, the depth of pixd is 8 if the number of c.c.
+ *      (2) If %depth = 0, the depth of pixd is 8 if the number of c.c.
  *          is less than 254, 16 if the number of c.c is less than 0xfffe,
  *          and 32 otherwise.
- *      (3) If @depth = 8, the assigned label for the n-th component is
+ *      (3) If %depth = 8, the assigned label for the n-th component is
  *          1 + n % 254.  We use mod 254 because 0 is uniquely assigned
  *          to black: e.g., see pixcmapCreateRandom().  Likewise,
- *          if @depth = 16, the assigned label uses mod(2^16 - 2), and
- *          if @depth = 32, no mod is taken.
+ *          if %depth = 16, the assigned label uses mod(2^16 - 2), and
+ *          if %depth = 32, no mod is taken.
  */
 PIX *
 pixConnCompTransform(PIX     *pixs,
@@ -176,7 +176,7 @@ PIXA    *pixa;
  *
  *      Input:   pixs (1 bpp)
  *               connect (connectivity: 4 or 8)
- *      Return:  pixd (32 bpp, 1 spp), or null on error
+ *      Return:  pixd (32 bpp, 1 spp), or NULL on error
  *
  *  Notes:
  *      (1) The pixel values in pixd label the area of the fg component
@@ -372,8 +372,8 @@ PTA      *ptas, *ptad;
         return -1;
 
         /* Find unique neighbor pixel values in increasing order of value.
-         * If @nvals > 0, these are returned in the @neigh array, which
-         * is of size @nvals.  Note that the pixel values in each
+         * If %nvals > 0, these are returned in the %neigh array, which
+         * is of size %nvals.  Note that the pixel values in each
          * connected component are used as the index into the pta
          * array of the ptaa, giving the pixel locations. */
     pixGetSortedNeighborValues(pixs, x, y, conn, &neigh, &nvals);
@@ -455,11 +455,11 @@ PTA      *ptas, *ptad;
  *      Return:  0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The returned @neigh array is the unique set of neighboring
+ *      (1) The returned %neigh array is the unique set of neighboring
  *          pixel values, of size nvals, sorted from smallest to largest.
  *          The value 0, which represents background pixels that do
  *          not belong to any set of connected components, is discarded.
- *      (2) If there are no neighbors, this returns @neigh = NULL; otherwise,
+ *      (2) If there are no neighbors, this returns %neigh = NULL; otherwise,
  *          the caller must free the array.
  *      (3) For either 4 or 8 connectivity, the maximum number of unique
  *          neighbor values is 4.
@@ -504,7 +504,7 @@ RB_TYPE       key;
         l_asetInsert(aset, key);
     }
 
-        /* Extract the set keys and put them into the @neigh array.
+        /* Extract the set keys and put them into the %neigh array.
          * Omit the value 0, which indicates the pixel doesn't
          * belong to one of the sets of connected components. */
     node = l_asetGetFirst(aset);
@@ -535,7 +535,7 @@ RB_TYPE       key;
  *  pixLocToColorTransform()
  *
  *      Input:   pixs (1 bpp)
- *      Return:  pixd (32 bpp rgb), or null on error
+ *      Return:  pixd (32 bpp rgb), or NULL on error
  *
  *  Notes:
  *      (1) This generates an RGB image where each component value

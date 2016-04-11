@@ -339,7 +339,7 @@ lept_size_proc(thandle_t  cookie)
  *
  *      Input:  filename
  *              page number (0 based)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) This is a version of pixRead(), specialized for tiff
@@ -374,9 +374,9 @@ PIX   *pix;
 /*!
  *  pixReadStreamTiff()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              n (page number: 0 based)
- *      Return: pix, or null on error (e.g., if the page number is invalid)
+ *      Return: pix, or NULL on error (e.g., if the page number is invalid)
  *
  *  Notes:
  *      (1) No warning messages on failure, because of how multi-page
@@ -421,8 +421,8 @@ TIFF    *tif;
 /*!
  *  pixReadFromTiffStream()
  *
- *      Input:  stream
- *      Return: pix, or null on error
+ *      Input:  tif (TIFF handle)
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) We handle pixels up to 32 bits.  This includes:
@@ -723,7 +723,7 @@ TIFF    *tif;
 /*!
  *  pixWriteStreamTiff()
  *
- *      Input:  stream (opened for append or write)
+ *      Input:  fp (file stream opened for append or write)
  *              pix
  *              comptype (IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
  *                        IFF_TIFF_G3, IFF_TIFF_G4,
@@ -1095,7 +1095,7 @@ l_uint32   uval, uval2;
  *  pixaReadMultipageTiff()
  *
  *      Input:  filename (input tiff file)
- *      Return: pixa (of page images), or null on error
+ *      Return: pixa (of page images), or NULL on error
  */
 PIXA *
 pixaReadMultipageTiff(const char  *filename)
@@ -1252,7 +1252,7 @@ PIX         *pix, *pixt;
 /*
  *  fprintTiffInfo()
  *
- *      Input:  stream (for output of tag data)
+ *      Input:  fpout (stream for output of tag data)
  *              tiffile (input)
  *      Return: 0 if OK; 1 on error
  */
@@ -1285,7 +1285,7 @@ TIFF  *tif;
 /*
  *  tiffGetCount()
  *
- *      Input:  stream (opened for read)
+ *      Input:  fp (file stream opened for read)
  *              &n (<return> number of images)
  *      Return: 0 if OK; 1 on error
  */
@@ -1323,7 +1323,7 @@ TIFF    *tif;
 /*
  *  getTiffResolution()
  *
- *      Input:  stream (opened for read)
+ *      Input:  fp (file stream opened for read)
  *              &xres, &yres (<return> resolution in ppi)
  *      Return: 0 if OK; 1 on error
  *
@@ -1357,7 +1357,7 @@ TIFF  *tif;
 /*
  *  getTiffStreamResolution()
  *
- *      Input:  tiff stream (opened for read)
+ *      Input:  tif (TIFF handle opened for read)
  *              &xres, &yres (<return> resolution in ppi)
  *      Return: 0 if OK; 1 on error
  *
@@ -1411,8 +1411,8 @@ l_float32  fxres, fyres;
  *
  *      Input:  filename
  *              n (page image number: 0-based)
- *              &width (<return>)
- *              &height (<return>)
+ *              &width (<return> width)
+ *              &height (<return> height)
  *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
@@ -1422,7 +1422,7 @@ l_float32  fxres, fyres;
  *
  *  Notes:
  *      (1) If there is a colormap, cmap is returned as 1; else 0.
- *      (2) If @n is equal to or greater than the number of images, returns 1.
+ *      (2) If %n is equal to or greater than the number of images, returns 1.
  */
 l_int32
 readHeaderTiff(const char *filename,
@@ -1460,10 +1460,10 @@ FILE    *fp;
 /*!
  *  freadHeaderTiff()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              n (page image number: 0-based)
- *              &width (<return>)
- *              &height (<return>)
+ *              &width (<return> width)
+ *              &height (<return> height)
  *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
@@ -1473,7 +1473,7 @@ FILE    *fp;
  *
  *  Notes:
  *      (1) If there is a colormap, cmap is returned as 1; else 0.
- *      (2) If @n is equal to or greater than the number of images, returns 1.
+ *      (2) If %n is equal to or greater than the number of images, returns 1.
  */
 l_int32
 freadHeaderTiff(FILE     *fp,
@@ -1530,8 +1530,8 @@ TIFF    *tif;
  *      Input:  cdata (const; tiff-encoded)
  *              size (size of data)
  *              n (page image number: 0-based)
- *              &width (<return>)
- *              &height (<return>)
+ *              &width (<return> width)
+ *              &height (<return> height)
  *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
@@ -1592,8 +1592,8 @@ TIFF     *tif;
  *  tiffReadHeaderTiff()
  *
  *      Input:  tif
- *              &width (<return>)
- *              &height (<return>)
+ *              &width (<return> width)
+ *              &height (<return> height)
  *              &bps (<return> bits per sample -- 1, 2, 4 or 8)
  *              &spp (<return>; samples per pixel -- 1 or 3)
  *              &res (<optional return>; resolution in x dir; NULL to ignore)
@@ -1654,7 +1654,7 @@ l_uint32   w, h;
 /*!
  *  findTiffCompression()
  *
- *      Input:  stream (must be rewound to BOF)
+ *      Input:  fp (file stream; must be rewound to BOF)
  *              &comptype (<return> compression type)
  *      Return: 0 if OK, 1 on error
  *
@@ -1847,7 +1847,7 @@ TIFF     *tif;
 /*!
  *  fopenTiff()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              modestring ("r", "w", ...)
  *      Return: tiff (data structure, opened for a file descriptor)
  *
@@ -1929,22 +1929,22 @@ TIFF  *tif;
  *  to do this.  */
 
 /*
- *  The L_Memstram @buffer has different functions in writing and reading.
+ *  The L_Memstram %buffer has different functions in writing and reading.
  *
  *     * In reading, it is assigned to the data and read from as
  *       the tiff library uncompresses the data and generates the pix.
- *       The @offset points to the current read position in the data,
- *       and the @hw always gives the number of bytes of data.
- *       The @outdata and @outsize ptrs are not used.
+ *       The %offset points to the current read position in the data,
+ *       and the %hw always gives the number of bytes of data.
+ *       The %outdata and %outsize ptrs are not used.
  *       When finished, tiffCloseCallback() simply frees the L_Memstream.
  *
  *     * In writing, it accepts the data that the tiff library
  *       produces when a pix is compressed.  the buffer points to a
- *       malloced area of @bufsize bytes.  The current writing position
- *       in the buffer is @offset and the most ever written is @hw.
+ *       malloced area of %bufsize bytes.  The current writing position
+ *       in the buffer is %offset and the most ever written is %hw.
  *       The buffer is expanded as necessary.  When finished,
- *       tiffCloseCallback() assigns the @outdata and @outsize ptrs
- *       to the @buffer and @bufsize results, and frees the L_Memstream.
+ *       tiffCloseCallback() assigns the %outdata and %outsize ptrs
+ *       to the %buffer and %bufsize results, and frees the L_Memstream.
  */
 struct L_Memstream
 {
@@ -2192,7 +2192,7 @@ L_MEMSTREAM  *mstream;
  *      Input:  data (const; tiff-encoded)
  *              datasize (size of data)
  *              n (page image number: 0-based)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) This is a version of pixReadTiff(), where the data is read

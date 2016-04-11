@@ -104,7 +104,7 @@ static const l_int32  MAX_SEL_SCALEFACTOR = 31;  /* should be big enough */
  *              leftpix (number of extra pixels of bg added to left)
  *              rightpix (number of extra pixels of bg added to right)
  *              &pixe (<optional return> input pix expanded by extra pixels)
- *      Return: sel (hit-miss for input pattern), or null on error
+ *      Return: sel (hit-miss for input pattern), or NULL on error
  *
  *  Notes:
  *    (1) The horizontal and vertical lines along which elements are
@@ -307,7 +307,7 @@ SEL       *seld, *sel;
  *              leftpix (number of extra pixels of bg added to left)
  *              rightpix (number of extra pixels of bg added to right)
  *              &pixe (<optional return> input pix expanded by extra pixels)
- *      Return: sel (hit-miss for input pattern), or null on error
+ *      Return: sel (hit-miss for input pattern), or NULL on error
  *
  *  Notes:
  *    (1) Either of hitfract and missfract can be zero.  If both are zero,
@@ -451,7 +451,7 @@ SEL       *seld, *sel;
  *              leftflag (flag for extra pixels of bg added to left)
  *              rightflag (flag for extra pixels of bg added to right)
  *              &pixe (<optional return> input pix expanded by extra pixels)
- *      Return: sel (hit-miss for input pattern), or null on error
+ *      Return: sel (hit-miss for input pattern), or NULL on error
  *
  *  Notes:
  *    (1) All fg elements selected are exactly hitdist pixels away from
@@ -601,7 +601,7 @@ PTA     *ptah, *ptam;
  *      Input:  pixs (1 bpp)
  *              x, y (set one of these to -1; see notes)
  *              minlength (minimum length of acceptable run)
- *      Return: numa of fg runs, or null on error
+ *      Return: numa of fg runs, or NULL on error
  *
  *  Notes:
  *      (1) Action: this function computes the fg (black) and bg (white)
@@ -682,7 +682,7 @@ NUMA     *naruns, *nad;
  *
  *      Input:  pixs (1 bpp)
  *              x1, y1, x2, y2
- *      Return: numa, or null on error
+ *      Return: numa, or NULL on error
  *
  *  Notes:
  *      (1) Action: this function uses the bresenham algorithm to compute
@@ -766,7 +766,7 @@ PTA      *pta;
  *
  *      Input:  pixs (1 bpp, with only boundary pixels in fg)
  *              skip (number to skip between samples as you traverse boundary)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) If skip = 0, we take all the fg pixels.
@@ -897,7 +897,7 @@ l_uint32  val;
  *              scalefactor (an integer >= 1; use 0 for default)
  *              hitcolor (RGB0 color for center of hit pixels)
  *              misscolor (RGB0 color for center of miss pixels)
- *      Return: pixd (RGB showing both pixs and sel), or null on error
+ *      Return: pixd (RGB showing both pixs and sel), or NULL on error
  *  Notes:
  *    (1) We don't allow scalefactor to be larger than MAX_SEL_SCALEFACTOR
  *    (2) The colors are conveniently given as 4 bytes in hex format,

@@ -109,19 +109,19 @@ static l_float32 lab_reverse(l_float32 v);
  *          placed in the 3 MS bytes in the pixel.
  *      (4) Normalizing to 1 and considering the r,g,b components,
  *          a simple way to understand the HSV space is:
- *           - v = max(r,g,b)
- *           - s = (max - min) / max
- *           - h ~ (mid - min) / (max - min)  [apart from signs and constants]
+ *           ~ v = max(r,g,b)
+ *           ~ s = (max - min) / max
+ *           ~ h ~ (mid - min) / (max - min)  [apart from signs and constants]
  *      (5) Normalizing to 1, some properties of the HSV space are:
- *           - For gray values (r = g = b) along the continuum between
+ *           ~ For gray values (r = g = b) along the continuum between
  *             black and white:
  *                s = 0  (becoming undefined as you approach black)
  *                h is undefined everywhere
- *           - Where one component is saturated and the others are zero:
+ *           ~ Where one component is saturated and the others are zero:
  *                v = 1
  *                s = 1
  *                h = 0 (r = max), 1/3 (g = max), 2/3 (b = max)
- *           - Where two components are saturated and the other is zero:
+ *           ~ Where two components are saturated and the other is zero:
  *                v = 1
  *                s = 1
  *                h = 1/2 (if r = 0), 5/6 (if g = 0), 1/6 (if b = 0)
@@ -400,13 +400,13 @@ l_float32 h, f, s;
 /*!
  *  pixcmapConvertRGBToHSV()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - See convertRGBToHSV() for def'n of HSV space.
- *      - replaces: r --> h, g --> s, b --> v
+ *      ~ in-place transform
+ *      ~ See convertRGBToHSV() for def'n of HSV space.
+ *      ~ replaces: r --> h, g --> s, b --> v
  */
 l_int32
 pixcmapConvertRGBToHSV(PIXCMAP  *cmap)
@@ -431,13 +431,13 @@ l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
 /*!
  *  pixcmapConvertHSVToRGB()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - See convertRGBToHSV() for def'n of HSV space.
- *      - replaces: h --> r, s --> g, v --> b
+ *      ~ in-place transform
+ *      ~ See convertRGBToHSV() for def'n of HSV space.
+ *      ~ replaces: h --> r, s --> g, v --> b
  */
 l_int32
 pixcmapConvertHSVToRGB(PIXCMAP  *cmap)
@@ -463,7 +463,7 @@ l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
  *  pixConvertRGBToHue()
  *
  *      Input:  pixs (32 bpp RGB or 8 bpp with colormap)
- *      Return: pixd (8 bpp hue of HSV), or null on error
+ *      Return: pixd (8 bpp hue of HSV), or NULL on error
  *
  *  Notes:
  *      (1) The conversion to HSV hue is in-lined here.
@@ -538,7 +538,7 @@ PIX       *pixt, *pixd;
  *  pixConvertRGBToSaturation()
  *
  *      Input:  pixs (32 bpp RGB or 8 bpp with colormap)
- *      Return: pixd (8 bpp sat of HSV), or null on error
+ *      Return: pixd (8 bpp sat of HSV), or NULL on error
  *
  *  Notes:
  *      (1) The conversion to HSV sat is in-lined here.
@@ -601,7 +601,7 @@ PIX       *pixt, *pixd;
  *  pixConvertRGBToValue()
  *
  *      Input:  pixs (32 bpp RGB or 8 bpp with colormap)
- *      Return: pixd (8 bpp max component intensity of HSV), or null on error
+ *      Return: pixd (8 bpp max component intensity of HSV), or NULL on error
  *
  *  Notes:
  *      (1) The conversion to HSV sat is in-lined here.
@@ -664,16 +664,16 @@ PIX       *pixt, *pixd;
  *              satcenter (center value of saturation range)
  *              sathw (half-width of saturation range)
  *              regionflag (L_INCLUDE_REGION, L_EXCLUDE_REGION)
- *      Return: pixd (1 bpp mask over selected pixels), or null on error
+ *      Return: pixd (1 bpp mask over selected pixels), or NULL on error
  *
  *  Notes:
  *      (1) The pixels are selected based on the specified ranges of
  *          hue and saturation.  For selection or exclusion, the pixel
  *          HS component values must be within both ranges.  Care must
  *          be taken in finding the hue range because of wrap-around.
- *      (2) Use @regionflag == L_INCLUDE_REGION to take only those
+ *      (2) Use %regionflag == L_INCLUDE_REGION to take only those
  *          pixels within the rectangular region specified in HS space.
- *          Use @regionflag == L_EXCLUDE_REGION to take all pixels except
+ *          Use %regionflag == L_EXCLUDE_REGION to take all pixels except
  *          those within the rectangular region specified in HS space.
  */
 PIX *
@@ -761,16 +761,16 @@ PIX       *pixt, *pixd;
  *              valcenter (center value of max intensity range)
  *              valhw (half-width of max intensity range)
  *              regionflag (L_INCLUDE_REGION, L_EXCLUDE_REGION)
- *      Return: pixd (1 bpp mask over selected pixels), or null on error
+ *      Return: pixd (1 bpp mask over selected pixels), or NULL on error
  *
  *  Notes:
  *      (1) The pixels are selected based on the specified ranges of
  *          hue and max intensity values.  For selection or exclusion,
  *          the pixel HV component values must be within both ranges.
  *          Care must be taken in finding the hue range because of wrap-around.
- *      (2) Use @regionflag == L_INCLUDE_REGION to take only those
+ *      (2) Use %regionflag == L_INCLUDE_REGION to take only those
  *          pixels within the rectangular region specified in HV space.
- *          Use @regionflag == L_EXCLUDE_REGION to take all pixels except
+ *          Use %regionflag == L_EXCLUDE_REGION to take all pixels except
  *          those within the rectangular region specified in HV space.
  */
 PIX *
@@ -858,15 +858,15 @@ PIX       *pixt, *pixd;
  *              valcenter (center value of max intensity range)
  *              valhw (half-width of max intensity range)
  *              regionflag (L_INCLUDE_REGION, L_EXCLUDE_REGION)
- *      Return: pixd (1 bpp mask over selected pixels), or null on error
+ *      Return: pixd (1 bpp mask over selected pixels), or NULL on error
  *
  *  Notes:
  *      (1) The pixels are selected based on the specified ranges of
  *          saturation and max intensity (val).  For selection or
  *          exclusion, the pixel SV component values must be within both ranges.
- *      (2) Use @regionflag == L_INCLUDE_REGION to take only those
+ *      (2) Use %regionflag == L_INCLUDE_REGION to take only those
  *          pixels within the rectangular region specified in SV space.
- *          Use @regionflag == L_EXCLUDE_REGION to take all pixels except
+ *          Use %regionflag == L_EXCLUDE_REGION to take all pixels except
  *          those within the rectangular region specified in SV space.
  */
 PIX *
@@ -946,7 +946,7 @@ PIX       *pixt, *pixd;
  *              factor (subsampling factor; integer)
  *              &nahue (<optional return> hue histogram)
  *              &nasat (<optional return> saturation histogram)
- *      Return: pixd (32 bpp histogram in hue and saturation), or null on error
+ *      Return: pixd (32 bpp histogram in hue and saturation), or NULL on error
  *
  *  Notes:
  *      (1) pixs is a 32 bpp image in HSV colorspace; hue is in the "red"
@@ -1035,7 +1035,7 @@ PIX       *pixt, *pixd;
  *              factor (subsampling factor; integer)
  *              &nahue (<optional return> hue histogram)
  *              &naval (<optional return> max intensity (value) histogram)
- *      Return: pixd (32 bpp histogram in hue and value), or null on error
+ *      Return: pixd (32 bpp histogram in hue and value), or NULL on error
  *
  *  Notes:
  *      (1) pixs is a 32 bpp image in HSV colorspace; hue is in the "red"
@@ -1116,7 +1116,7 @@ PIX       *pixt, *pixd;
  *              factor (subsampling factor; integer)
  *              &nasat (<optional return> sat histogram)
  *              &naval (<optional return> max intensity (value) histogram)
- *      Return: pixd (32 bpp histogram in sat and value), or null on error
+ *      Return: pixd (32 bpp histogram in sat and value), or NULL on error
  *
  *  Notes:
  *      (1) pixs is a 32 bpp image in HSV colorspace; sat is in the "green"
@@ -1209,9 +1209,9 @@ PIX       *pixt, *pixd;
  *          should be thought of as a single sample with 32 bps (bits/sample).
  *      (2) After each peak is found, the peak is erased with a window
  *          that is centered on the peak and scaled from the sliding
- *          window by @erasefactor.  Typically, @erasefactor is chosen
+ *          window by %erasefactor.  Typically, %erasefactor is chosen
  *          to be > 1.0.
- *      (3) Data for a maximum of @npeaks is returned in @pta and @natot.
+ *      (3) Data for a maximum of %npeaks is returned in %pta and %natot.
  *      (4) For debugging, after the pixa is returned, display with:
  *          pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 30, 2);
  */
@@ -1324,15 +1324,15 @@ PTA      *pta;
 /*!
  *  displayHSVColorRange()
  *
- *      Input:  hval (hue center value; in range [0 ... 240]
- *              sval (saturation center value; in range [0 ... 255]
- *              vval (max intensity value; in range [0 ... 255]
+ *      Input:  hval (hue center value; in range [0 ... 240])
+ *              sval (saturation center value; in range [0 ... 255])
+ *              vval (max intensity value; in range [0 ... 255])
  *              huehw (half-width of hue range; > 0)
  *              sathw (half-width of saturation range; > 0)
  *              nsamp (number of samplings in each half-width in hue and sat)
  *              factor (linear size of each color square, in pixels; > 3)
  *      Return: pixd (32 bpp set of color squares over input range),
- *                     or null on error
+ *                     or NULL on error
  *
  *  Notes:
  *      (1) The total number of color samplings in each of the hue
@@ -1401,9 +1401,9 @@ PIX     *pixt, *pixd;
  *          placed in the 3 MS bytes in the pixel.
  *      (3) Normalizing to 1 and considering the r,g,b components,
  *          a simple way to understand the YUV space is:
- *           - Y = weighted sum of (r,g,b)
- *           - U = weighted difference between Y and B
- *           - V = weighted difference between Y and R
+ *           ~ Y = weighted sum of (r,g,b)
+ *           ~ U = weighted difference between Y and B
+ *           ~ V = weighted difference between Y and R
  *      (4) Following video conventions, Y, U and V are in the range:
  *             Y: [16, 235]
  *             U: [16, 240]
@@ -1620,13 +1620,13 @@ l_float32  norm, ym, um, vm;
 /*!
  *  pixcmapConvertRGBToYUV()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - See convertRGBToYUV() for def'n of YUV space.
- *      - replaces: r --> y, g --> u, b --> v
+ *      ~ in-place transform
+ *      ~ See convertRGBToYUV() for def'n of YUV space.
+ *      ~ replaces: r --> y, g --> u, b --> v
  */
 l_int32
 pixcmapConvertRGBToYUV(PIXCMAP  *cmap)
@@ -1651,13 +1651,13 @@ l_int32   i, ncolors, rval, gval, bval, yval, uval, vval;
 /*!
  *  pixcmapConvertYUVToRGB()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - in-place transform
- *      - See convertRGBToYUV() for def'n of YUV space.
- *      - replaces: y --> r, u --> g, v --> b
+ *      ~ in-place transform
+ *      ~ See convertRGBToYUV() for def'n of YUV space.
+ *      ~ replaces: y --> r, u --> g, v --> b
  */
 l_int32
 pixcmapConvertYUVToRGB(PIXCMAP  *cmap)
@@ -1906,7 +1906,7 @@ l_int32  rval, gval, bval;
 /*!
  *  fpixaConvertXYZToLAB()
  *
- *      Input:  fpixa (xyz)
+ *      Input:  fpixas (xyz)
  *      Return: fpixa (lab)
  *
  *  Notes:
@@ -1977,7 +1977,7 @@ FPIXA      *fpixad;
 /*!
  *  fpixaConvertLABToXYZ()
  *
- *      Input:  fpixa (lab)
+ *      Input:  fpixas (lab)
  *      Return: fpixa (xyz)
  *
  *  Notes:

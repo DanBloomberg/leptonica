@@ -146,7 +146,7 @@ static const l_int32  DEFAULT_BINARY_THRESHOLD = 130;
  *      Input:  pixs (any depth)
  *              redsearch (for binary search: reduction factor = 1, 2 or 4;
  *                         use 0 for default)
- *      Return: pixd (deskewed pix), or null on error
+ *      Return: pixd (deskewed pix), or NULL on error
  *
  *  Notes:
  *      (1) This binarizes if necessary and finds the skew angle.  If the
@@ -180,7 +180,7 @@ pixDeskew(PIX     *pixs,
  *                        in degrees; use NULL to skip)
  *              &conf    (<optional return> conf value is ratio
  *                        of max/min scores; use NULL to skip)
- *      Return: pixd (deskewed pix), or null on error
+ *      Return: pixd (deskewed pix), or NULL on error
  *
  *  Notes:
  *      (1) This binarizes if necessary and finds the skew angle.  If the
@@ -222,7 +222,7 @@ pixFindSkewAndDeskew(PIX        *pixs,
  *                        in degrees; use NULL to skip)
  *              &conf    (<optional return> conf value is ratio
  *                        of max/min scores; use NULL to skip)
- *      Return: pixd (deskewed pix), or null on error
+ *      Return: pixd (deskewed pix), or NULL on error
  *
  *  Notes:
  *      (1) This binarizes if necessary and finds the skew angle.  If the
@@ -491,9 +491,9 @@ cleanup:
  *      (2) Caller must check the return value for validity of the result.
  *      (3) In computing the differential line sum variance score, we sum
  *          the result over scanlines, but we always skip:
- *           - at least one scanline
- *           - not more than 10% of the image height
- *           - not more than 5% of the image width
+ *           ~ at least one scanline
+ *           ~ not more than 10% of the image height
+ *           ~ not more than 5% of the image width
  *      (4) See also notes in pixFindSkewSweepAndSearchScore()
  */
 l_int32
@@ -534,8 +534,8 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
  *          of equal angles, and then doing a binary search until convergence.
  *      (2) There are two built-in constants that determine if the
  *          returned confidence is nonzero:
- *            - MIN_VALID_MAXSCORE (minimum allowed maxscore)
- *            - MINSCORE_THRESHOLD_CONSTANT (determines minimum allowed
+ *            ~ MIN_VALID_MAXSCORE (minimum allowed maxscore)
+ *            ~ MINSCORE_THRESHOLD_CONSTANT (determines minimum allowed
  *                 minscore, by multiplying by (height * width^2)
  *          If either of these conditions is not satisfied, the returned
  *          confidence value will be zero.  The maxscore is optionally
@@ -934,7 +934,7 @@ cleanup:
  *          clockwise.  For exploring the full range of possibilities,
  *          suggest using sweeprange = 47.0 degrees, giving some overlap
  *          at 45 and 135 degrees.  From these results, and discounting
- *          the the second confidence by @confprior, it selects the
+ *          the the second confidence by %confprior, it selects the
  *          angle for maximal differential variance.  If the angle
  *          is larger than pi/4, the angle found after 90 degree rotation
  *          is selected.
@@ -955,16 +955,16 @@ cleanup:
  *            (b) If there are vertical lines in the margins, do not
  *                work below 150 ppi.  The signal from the text lines must
  *                exceed that from the margin lines.
- *      (4) Choosing the @confprior parameter depends on knowing something
+ *      (4) Choosing the %confprior parameter depends on knowing something
  *          about the source of image.  However, we're not using
  *          real probabilities here, so its use is qualitative.
  *          If landscape and portrait are equally likely, use
- *          @confprior = 0.0.  If the likelihood of portrait (non-rotated)
+ *          %confprior = 0.0.  If the likelihood of portrait (non-rotated)
  *          is 100 times higher than that of landscape, we want to reduce
  *          the chance that we rotate to landscape in a situation where
  *          the landscape signal is accidentally larger than the
  *          portrait signal.  To do this use a positive value of
- *          @confprior; say 1.5.
+ *          %confprior; say 1.5.
  */
 l_int32
 pixFindSkewOrthogonalRange(PIX        *pixs,
@@ -1033,9 +1033,9 @@ PIX       *pixr;
  *
  *  Notes:
  *      (1) At the top and bottom, we skip:
- *           - at least one scanline
- *           - not more than 10% of the image height
- *           - not more than 5% of the image width
+ *           ~ at least one scanline
+ *           ~ not more than 10% of the image height
+ *           ~ not more than 5% of the image width
  */
 l_int32
 pixFindDifferentialSquareSum(PIX        *pixs,

@@ -109,15 +109,15 @@
  *     The low-level part of the encoder provided here has the
  *     following useful features:
  *
- *         - It is accurate in the identification of templates
+ *         ~ It is accurate in the identification of templates
  *           and classes because it uses a windowed hausdorff
  *           distance metric.
- *         - It is accurate in the placement of the connected
+ *         ~ It is accurate in the placement of the connected
  *           components, doing a two step process of first aligning
  *           the the centroids of the template with those of each instance,
  *           and then making a further correction of up to +- 1 pixel
  *           in each direction to best align the templates.
- *         - It is fast because it uses a morphologically based
+ *         ~ It is fast because it uses a morphologically based
  *           matching algorithm to implement the hausdorff criterion,
  *           and it selects the patterns that are possible matches
  *           based on their size.
@@ -355,11 +355,16 @@ jbCorrelationInit(l_int32    components,
 /*!
  *  jbCorrelationInitWithoutComponents()
  *
- *      Input:  same as jbCorrelationInit
- *      Output: same as jbCorrelationInit
+ *      Input:  components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
+ *              maxwidth (of component; use 0 for default)
+ *              maxheight (of component; use 0 for default)
+ *              thresh (value for correlation score: in [0.4 - 0.98])
+ *              weightfactor (corrects thresh for thick characters [0.0 - 1.0])
+ *      Return: jbclasser if OK; NULL on error
  *
- *  Note: acts the same as jbCorrelationInit(), but the resulting
- *        object doesn't keep a list of all the components.
+ *  Notes:
+ *      Acts the same as jbCorrelationInit(), but the resulting
+ *      object doesn't keep a list of all the components.
  */
 JBCLASSER *
 jbCorrelationInitWithoutComponents(l_int32    components,
@@ -428,7 +433,7 @@ JBCLASSER  *classer;
  *              safiles (of page image file names)
  *      Return: 0 if OK; 1 on error
  *
- *  Note:
+ *  Notes:
  *      (1) jbclasser makes a copy of the array of file names.
  *      (2) The caller is still responsible for destroying the input array.
  */
@@ -822,7 +827,8 @@ SEL        *sel;
  *      Return: 0 (FALSE) if no match, 1 (TRUE) if the new
  *              pix is in the same class as the exemplar.
  *
- *  Note: we check first that the two pix are roughly
+ *  Notes:
+ *  We check first that the two pix are roughly
  *  the same size.  Only if they meet that criterion do
  *  we compare the bitmaps.  The Hausdorff is a 2-way
  *  check.  The centroid difference is used to align the two
@@ -914,7 +920,8 @@ PIX     *pixt;
  *      Return: 0 (FALSE) if no match, 1 (TRUE) if the new
  *                 pix is in the same class as the exemplar.
  *
- *  Note: we check first that the two pix are roughly
+ *  Notes:
+ *  We check first that the two pix are roughly
  *  the same size.  Only if they meet that criterion do
  *  we compare the bitmaps.  We convert the rank value to
  *  a number of pixels by multiplying the rank fraction by the number
@@ -1414,7 +1421,7 @@ PIXA      *pixa, *pixat;
  *          pixWordBoxesByDilation() for further filtering of the word boxes.
  *      (2) For 75 to 150 ppi, the optimal dilation will be between 5 and 11.
  *          For 200 to 300 ppi, it is advisable to use a larger value
- *          for @maxdil, say between 10 and 20.  Setting maxdil <= 0
+ *          for %maxdil, say between 10 and 20.  Setting maxdil <= 0
  *          results in a default dilation of 16.
  *      (3) The best size for dilating to get word masks is optionally returned.
  */
@@ -1589,7 +1596,7 @@ PIX   *pixm;
  *              &pna (<return> number of samples used to build each composite)
  *              &ptat (<return> centroids of bordered composites)
  *      Return: pixad (accumulated sum of samples in each class),
- *                     or null on error
+ *                     or NULL on error
  *
  */
 PIXA *
@@ -1679,7 +1686,7 @@ PTA       *ptat, *pta;
  *
  *      Input:  pixac (one pix of composites for each class)
  *              na (number of samples used for each class composite)
- *      Return: pixad (8 bpp templates for each class), or null on error
+ *      Return: pixad (8 bpp templates for each class), or NULL on error
  *
  */
 PIXA *
@@ -1725,7 +1732,7 @@ PIXA      *pixad;
  *
  *      Input:  method (JB_RANKHAUS, JB_CORRELATION)
  *              components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
- *      Return: jbclasser, or null on error
+ *      Return: jbclasser, or NULL on error
  */
 JBCLASSER *
 jbClasserCreate(l_int32  method,
@@ -1764,7 +1771,7 @@ JBCLASSER  *classer;
 /*
  *  jbClasserDestroy()
  *
- *      Input: &classer (<to be nulled>)
+ *      Input: &classer (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -1803,7 +1810,7 @@ JBCLASSER  *classer;
  *      Input:  jbclasser
  *              latticew, latticeh (cell size used to store each
  *                  connected component in the composite)
- *      Return: jbdata, or null on error
+ *      Return: jbdata, or NULL on error
  *
  *  Notes:
  *      (1) This routine stores the jbig2-type data required for
@@ -1853,7 +1860,7 @@ PIX     *pix;
 /*
  *  jbDataDestroy()
  *
- *      Input: &data (<to be nulled>)
+ *      Input: &data (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -2039,7 +2046,7 @@ SARRAY   *sa;
  *              debugflag (if TRUE, writes into 2 bpp pix and adds
  *                         component outlines in color)
  *      Return: pixa (reconstruction of original images, using templates) or
- *              null on error
+ *              NULL on error
  */
 PIXA *
 jbDataRender(JBDATA  *data,

@@ -153,7 +153,7 @@
 #include <math.h>
 #include "allheaders.h"
 
-static const l_int32 INITIAL_PTR_ARRAYSIZE = 50;      /* n'importe quoi */
+static const l_int32 INITIAL_PTR_ARRAYSIZE = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 l_dnaExtendArray(L_DNA *da);
@@ -166,8 +166,8 @@ static l_int32 l_dnaaExtendArray(L_DNAA *daa);
 /*!
  *  l_dnaCreate()
  *
- *      Input:  size of number array to be alloc'd (0 for default)
- *      Return: da, or null on error
+ *      Input:  n (size of number array to be alloc'd; 0 for default)
+ *      Return: da, or NULL on error
  */
 L_DNA *
 l_dnaCreate(l_int32  n)
@@ -199,7 +199,7 @@ L_DNA  *da;
  *
  *      Input:  iarray (integer)
  *              size (of the array)
- *      Return: da, or null on error
+ *      Return: da, or NULL on error
  *
  *  Notes:
  *      (1) We can't insert this int array into the l_dna, because a l_dna
@@ -232,14 +232,14 @@ L_DNA   *da;
 /*!
  *  l_dnaCreateFromDArray()
  *
- *      Input:  da (float)
+ *      Input:  darray (float)
  *              size (of the array)
  *              copyflag (L_INSERT or L_COPY)
- *      Return: da, or null on error
+ *      Return: da, or NULL on error
  *
  *  Notes:
  *      (1) With L_INSERT, ownership of the input array is transferred
- *          to the returned l_dna, and all @size elements are considered
+ *          to the returned l_dna, and all %size elements are considered
  *          to be valid.
  */
 L_DNA *
@@ -279,7 +279,7 @@ L_DNA   *da;
  *      Input:  startval
  *              increment
  *              size (of sequence)
- *      Return: l_dna of sequence of evenly spaced values, or null on error
+ *      Return: l_dna of sequence of evenly spaced values, or NULL on error
  */
 L_DNA *
 l_dnaMakeSequence(l_float64  startval,
@@ -307,7 +307,7 @@ L_DNA     *da;
 /*!
  *  l_dnaDestroy()
  *
- *      Input:  &da (<to be nulled if it exists>)
+ *      Input:  &da (<inout> to be nulled if it exists)
  *      Return: void
  *
  *  Notes:
@@ -346,7 +346,7 @@ L_DNA  *da;
  *  l_dnaCopy()
  *
  *      Input:  da
- *      Return: copy of l_dna, or null on error
+ *      Return: copy of da, or NULL on error
  *
  *  Notes:
  *      (1) This removes unused ptrs above da->n.
@@ -378,7 +378,7 @@ L_DNA   *dac;
  *  l_dnaClone()
  *
  *      Input:  da
- *      Return: ptr to same l_dna, or null on error
+ *      Return: ptr to same da, or NULL on error
  */
 L_DNA *
 l_dnaClone(L_DNA  *da)
@@ -751,7 +751,7 @@ l_dnaShiftValue(L_DNA     *da,
  *
  *      Input:  da
  *      Return: a copy of the bare internal array, integerized
- *              by rounding, or null on error
+ *              by rounding, or NULL on error
  *  Notes:
  *      (1) A copy of the array is made, because we need to
  *          generate an integer array from the bare double array.
@@ -792,7 +792,7 @@ l_int32  *array;
  *      Input:  da
  *              copyflag (L_NOCOPY or L_COPY)
  *      Return: either the bare internal array or a copy of it,
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) If copyflag == L_COPY, it makes a copy which the caller
@@ -904,7 +904,7 @@ l_dnaGetParameters(L_DNA     *da,
  *              startx (x value corresponding to da[0])
  *              delx (difference in x values for the situation where the
  *                    elements of da correspond to the evaulation of a
- *                    function at equal intervals of size @delx)
+ *                    function at equal intervals of size %delx)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -954,7 +954,7 @@ l_float64  start, binsize;
  *  l_dnaRead()
  *
  *      Input:  filename
- *      Return: da, or null on error
+ *      Return: da, or NULL on error
  */
 L_DNA *
 l_dnaRead(const char  *filename)
@@ -983,8 +983,8 @@ L_DNA  *da;
 /*!
  *  l_dnaReadStream()
  *
- *      Input:  stream
- *      Return: da, or null on error
+ *      Input:  fp (file stream)
+ *      Return: da, or NULL on error
  *
  *  Notes:
  *      (1) fscanf takes %lf to read a double; fprintf takes %f to write it.
@@ -1058,7 +1058,8 @@ FILE  *fp;
 /*!
  *  l_dnaWriteStream()
  *
- *      Input:  stream, da
+ *      Input:  fp (file stream)
+ *              da
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1098,7 +1099,7 @@ l_float64  startx, delx;
  *  l_dnaaCreate()
  *
  *      Input:  size of l_dna ptr array to be alloc'd (0 for default)
- *      Return: daa, or null on error
+ *      Return: daa, or NULL on error
  *
  */
 L_DNAA *
@@ -1128,7 +1129,7 @@ L_DNAA  *daa;
  *
  *      Input:  nptr: size of dna ptr array to be alloc'd
  *              n: size of individual dna arrays to be alloc'd (0 for default)
- *      Return: daa, or null on error
+ *      Return: daa, or NULL on error
  *
  *  Notes:
  *      (1) This allocates a dnaa and fills the array with allocated dnas.
@@ -1371,7 +1372,7 @@ l_int32  n, sum, i;
  *      Input:  daa
  *              index  (to the index-th l_dna)
  *              accessflag   (L_COPY or L_CLONE)
- *      Return: l_dna, or null on error
+ *      Return: l_dna, or NULL on error
  */
 L_DNA *
 l_dnaaGetDna(L_DNAA  *daa,
@@ -1399,7 +1400,7 @@ l_dnaaGetDna(L_DNAA  *daa,
  *
  *      Input:  daa
  *              index  (to the index-th l_dna)
- *              l_dna (insert and replace any existing one)
+ *              da (insert and replace any existing one)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1436,7 +1437,7 @@ l_int32  n;
  *      Input:  daa
  *              i (index of l_dna within l_dnaa)
  *              j (index into l_dna)
- *              val (<return> double value)
+ *              &val (<return> double value)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1507,7 +1508,7 @@ L_DNA   *da;
  *  l_dnaaRead()
  *
  *      Input:  filename
- *      Return: daa, or null on error
+ *      Return: daa, or NULL on error
  */
 L_DNAA *
 l_dnaaRead(const char  *filename)
@@ -1536,8 +1537,8 @@ L_DNAA  *daa;
 /*!
  *  l_dnaaReadStream()
  *
- *      Input:  stream
- *      Return: daa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: daa, or NULL on error
  */
 L_DNAA *
 l_dnaaReadStream(FILE  *fp)
@@ -1605,7 +1606,8 @@ FILE  *fp;
 /*!
  *  l_dnaaWriteStream()
  *
- *      Input:  stream, daa
+ *      Input:  fp (file stream)
+ *              daa
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1645,7 +1647,7 @@ L_DNA   *da;
  *
  *      Input:  das (input l_dna)
  *      Return: dad (of difference values val[i+1] - val[i]),
- *                   or null on error
+ *                   or NULL on error
  */
 L_DNA *
 l_dnaMakeDelta(L_DNA  *das)
@@ -1673,7 +1675,7 @@ L_DNA   *dad;
  *  l_dnaConvertToNuma()
  *
  *      Input:  da
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  */
 NUMA *
 l_dnaConvertToNuma(L_DNA  *da)
@@ -1701,7 +1703,7 @@ NUMA      *na;
  *  numaConvertToDna
  *
  *      Input:  na
- *      Return: da, or null on error
+ *      Return: da, or NULL on error
  */
 L_DNA *
 numaConvertToDna(NUMA  *na)

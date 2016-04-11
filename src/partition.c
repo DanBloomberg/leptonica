@@ -42,6 +42,7 @@
 
 #include "allheaders.h"
 
+/*! Partition element */
 struct PartitionElement {
     l_float32  size;  /* sorting key */
     BOX       *box;   /* region of the element */
@@ -90,7 +91,7 @@ static const l_int32  DEFAULT_MAX_POPS = 20000;  /* a big number! */
  *                     distance from the box centroid to select the pivot;
  *                     e.g., 0.2)
  *              maxpops (maximum number of pops from the heap; use 0 as default)
- *      Return: boxa (of sorted whitespace boxes), or null on error
+ *      Return: boxa (of sorted whitespace boxes), or NULL on error
  *
  *  Notes:
  *      (1) This uses the elegant Breuel algorithm, found in "Two
@@ -292,7 +293,7 @@ L_HEAP  *lh;
  *  partelCreate()
  *
  *      Input:  box (region; inserts a copy)
- *      Return: partel, or null on error
+ *      Return: partel, or NULL on error
  */
 static PARTEL *
 partelCreate(BOX  *box)
@@ -312,7 +313,7 @@ PARTEL  *partel;
 /*!
  *  partelDestroy()
  *
- *      Input:  &partel (<will be set to null before returning>)
+ *      Input:  &partel (<inout> will be set to null before returning)
  *      Return: void
  */
 static void
@@ -387,7 +388,7 @@ l_int32  w, h;
  *              fract (fraction of box diagonal that is an acceptable
  *                     distance from the box centroid to select the pivot)
  *      Return: boxa (of four or less overlapping subrectangles of the box),
- *              or null on error
+ *              or NULL on error
  */
 static BOXA *
 boxaGenerateSubboxes(BOX       *box,
@@ -443,7 +444,7 @@ BOXA    *boxa4;
  *              fract (fraction of box diagonal that is an acceptable
  *                     distance from the box centroid to select the pivot)
  *      Return: box (pivot box for subdivision into 4 rectangles), or
- *                   null on error
+ *                   NULL on error
  *
  *  Notes:
  *      (1) This is a tricky piece that wasn't discussed in the
@@ -588,7 +589,7 @@ BOX       *boxt;
  *      Input:  boxas (sorted by size in decreasing order)
  *              maxoverlap (maximum fractional overlap of a box by any
  *                          of the larger boxes)
- *      Return: boxad (pruned), or null on error
+ *      Return: boxad (pruned), or NULL on error
  *
  *  Notes:
  *      (1) This selectively removes smaller boxes when they are overlapped

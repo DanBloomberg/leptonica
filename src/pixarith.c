@@ -416,10 +416,10 @@ l_uint32  *datas, *datad, *lines, *lined;
  *      Return: pixd always
  *
  *  Notes:
- *    - operation can be in-place (pixs == pixd) or to a new pixd
- *    - if setval > threshval, sets pixels with a value >= threshval to setval
- *    - if setval < threshval, sets pixels with a value <= threshval to setval
- *    - if setval == threshval, no-op
+ *    ~ operation can be in-place (pixs == pixd) or to a new pixd
+ *    ~ if setval > threshval, sets pixels with a value >= threshval to setval
+ *    ~ if setval < threshval, sets pixels with a value <= threshval to setval
+ *    ~ if setval == threshval, no-op
  */
 PIX *
 pixThresholdToValue(PIX      *pixd,
@@ -513,7 +513,7 @@ l_uint32  *datad, *lined;
  *      Input:  w, h (of accumulate array)
  *              offset (initialize the 32 bpp to have this
  *                      value; not more than 0x40000000)
- *      Return: pixd (32 bpp), or null on error
+ *      Return: pixd (32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) The offset must be >= 0.
@@ -552,7 +552,7 @@ PIX  *pixd;
  *      Input:  pixs (32 bpp)
  *              offset (same as used for initialization)
  *              depth  (8, 16 or 32 bpp, of destination)
- *      Return: pixd (8, 16 or 32 bpp), or null on error
+ *      Return: pixd (8, 16 or 32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) The offset must be >= 0 and should not exceed 0x40000000.
@@ -629,7 +629,7 @@ PIX       *pixd;
  *      Input:  pixs (32 bpp)
  *              offset (same as used for initialization)
  *              threshold (values less than this are set in the destination)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) The offset must be >= 0 and should not exceed 0x40000000.
@@ -688,7 +688,7 @@ PIX       *pixd;
  *      (1) This adds or subtracts each pixs value from pixd.
  *      (2) This clips to the minimum of pixs and pixd, so they
  *          do not need to be the same size.
- *      (3) The alignment is to the origin (UL corner) of pixs & pixd.
+ *      (3) The alignment is to the origin [UL corner] of pixs & pixd.
  */
 l_int32
 pixAccumulate(PIX     *pixd,
@@ -828,7 +828,7 @@ l_uint32  *data, *line;
  *  pixAbsDifference()
  *
  *      Input:  pixs1, pixs2  (both either 8 or 16 bpp gray, or 32 bpp RGB)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The depth of pixs1 and pixs2 must be equal.
@@ -924,7 +924,7 @@ PIX       *pixd;
  *  pixAddRGB()
  *
  *      Input:  pixs1, pixs2  (32 bpp RGB, or colormapped)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Clips computation to the minimum size, aligning the UL corners.
@@ -1013,9 +1013,9 @@ PIX       *pixc1, *pixc2, *pixd;
  *          for a 3 component image.  For 32 bpp, ignore the LSB
  *          of each word (the alpha channel)
  *      (3) There are 3 cases:
- *          -  if pixd == null,   Min(src1, src2) --> new pixd
- *          -  if pixd == pixs1,  Min(src1, src2) --> src1  (in-place)
- *          -  if pixd != pixs1,  Min(src1, src2) --> input pixd
+ *          ~  if pixd == null,   Min(src1, src2) --> new pixd
+ *          ~  if pixd == pixs1,  Min(src1, src2) --> src1  (in-place)
+ *          ~  if pixd != pixs1,  Min(src1, src2) --> input pixd
  */
 PIX *
 pixMinOrMax(PIX     *pixd,
@@ -1107,7 +1107,7 @@ l_uint32  *datas, *datad, *lines, *lined;
  *
  *      Input:  pixs  (4, 8, 16 or 32 bpp source)
  *              type  (L_LINEAR_SCALE or L_LOG_SCALE)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) Scales pixel values to fit maximally within the dest 8 bpp pixd
@@ -1317,9 +1317,9 @@ l_float32  *tab;
 /*
  * getLogBase2()
  *
- *     Input:  val
- *             logtab (256-entry table of logs)
- *     Return: logdist, or 0 on error
+ *      Input:  val
+ *              logtab (256-entry table of logs)
+ *      Return: logdist, or 0 on error
  */
 l_float32
 getLogBase2(l_int32     val,

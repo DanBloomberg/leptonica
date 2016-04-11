@@ -288,7 +288,7 @@ LPBYTE        pBits;
  *  pixGetWindowsHBITMAP()
  *
  *      Input:  pix
- *      Return: Windows hBitmap, or null on error
+ *      Return: Windows hBitmap, or NULL on error
  *
  *  Notes:
  *      (1) It's the responsibility of the caller to destroy the

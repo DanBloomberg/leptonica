@@ -101,12 +101,12 @@
  *              type (L_PAINT_LIGHT, L_PAINT_DARK)
  *              thresh (average value below/above which pixel is unchanged)
  *              rval, gval, bval (new color to paint)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This generates a new image, where some of the pixels in each
  *          box in the boxa are colorized.  See pixColorGray() for usage
- *          with @type and @thresh.  Note that @thresh is only used for
+ *          with %type and %thresh.  Note that %thresh is only used for
  *          rgb; it is ignored for colormapped images.
  *      (2) If the input image is colormapped, the new image will be 8 bpp
  *          colormapped if possible; otherwise, it will be converted
@@ -322,15 +322,15 @@ PIXCMAP   *cmap;
  *              type (L_PAINT_LIGHT, L_PAINT_DARK)
  *              thresh (average value below/above which pixel is unchanged)
  *              rval, gval, bval (new color to paint)
- *      Return: pixd (colorized), or null on error
+ *      Return: pixd (colorized), or NULL on error
  *
  *  Notes:
  *      (1) This generates a new image, where some of the pixels under
  *          FG in the mask are colorized.
- *      (2) See pixColorGray() for usage with @type and @thresh.  Note
- *          that @thresh is only used for rgb; it is ignored for
+ *      (2) See pixColorGray() for usage with %type and %thresh.  Note
+ *          that %thresh is only used for rgb; it is ignored for
  *          colormapped images.  In most cases, the mask will be over
- *          the darker parts and @type == L_PAINT_DARK.
+ *          the darker parts and %type == L_PAINT_DARK.
  *      (3) If pixs is colormapped this calls pixColorMaskedCmap(),
  *          which adds colors to the colormap for pixd; it only adds
  *          colors corresponding to strictly gray colors in the colormap.
@@ -649,8 +649,8 @@ PIXCMAP   *cmap;
  *  Notes:
  *      (1) For each component (r, b, g) separately, this does a piecewise
  *          linear mapping of the colors in pixs to colors in pixd.
- *          If rs and rd are the red src and dest components in @srcval and
- *          @dstval, then the range [0 ... rs] in pixs is mapped to
+ *          If rs and rd are the red src and dest components in %srcval and
+ *          %dstval, then the range [0 ... rs] in pixs is mapped to
  *          [0 ... rd] in pixd.  Likewise, the range [rs ... 255] in pixs
  *          is mapped to [rd ... 255] in pixd.  And similarly for green
  *          and blue.
@@ -736,13 +736,13 @@ l_uint32  *line, *data;
  *      Input:  scolor (rgb source color: 0xrrggbb00)
  *              srcmap (source mapping color: 0xrrggbb00)
  *              dstmap (target mapping color: 0xrrggbb00)
- *              &pdcolor (<return> rgb dest color: 0xrrggbb00)
+ *              &dcolor (<return> rgb dest color: 0xrrggbb00)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This does this does a piecewise linear mapping of each
- *          component of @scolor to @dcolor, based on the relation
- *          between the components of @srcmap and @dstmap.  It is the
+ *          component of %scolor to %dcolor, based on the relation
+ *          between the components of %srcmap and %dstmap.  It is the
  *          same transformation, performed on a single color, as mapped
  *          on every pixel in a pix by pixLinearMapToTargetColor().
  *      (2) For each component, if the sval is larger than the smap,
@@ -751,8 +751,8 @@ l_uint32  *line, *data;
  *          This is because you can visualize the transformation as
  *          a linear stretching where smap moves to dmap, and everything
  *          else follows linearly with 0 and 255 fixed.
- *      (3) The mapping will in general change the hue of @scolor.
- *          However, if the @srcmap and @dstmap targets are related by
+ *      (3) The mapping will in general change the hue of %scolor.
+ *          However, if the %srcmap and %dstmap targets are related by
  *          a transformation given by pixelFractionalShift(), the hue
  *          will be invariant.
  */
@@ -812,8 +812,8 @@ l_int32    srmap, sgmap, sbmap, drmap, dgmap, dbmap;
  *  Notes:
  *      (1) For each component (r, b, g) separately, this does a linear
  *          mapping of the colors in pixs to colors in pixd.
- *          Let rs and rd be the red src and dest components in @srcval and
- *          @dstval, and rval is the red component of the src pixel.
+ *          Let rs and rd be the red src and dest components in %srcval and
+ *          %dstval, and rval is the red component of the src pixel.
  *          Then for all pixels in pixs, the mapping for the red
  *          component from pixs to pixd is:
  *             if (rd <= rs)   (shift toward black)
@@ -922,7 +922,7 @@ PIXCMAP   *cmap;
  *      Input:  rval, gval, bval
  *              srcval (source color: 0xrrggbb00)
  *              dstval (target color: 0xrrggbb00)
- *              &ppixel (<return> rgb value)
+ *              &pixel (<return> rgb value)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -978,17 +978,17 @@ l_int32  rsval, rdval, gsval, gdval, bsval, bdval, rs, gs, bs;
  *
  *      Input:  rval, gval, bval
  *              fraction (negative toward black; positive toward white)
- *              &ppixel (<return> rgb value)
+ *              &pixel (<return> rgb value)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This transformation leaves the hue invariant, while changing
  *          the saturation and intensity.  It can be used for that
  *          purpose in pixLinearMapToTargetColor().
- *      (2) @fraction is in the range [-1 .... +1].  If @fraction < 0,
+ *      (2) %fraction is in the range [-1 .... +1].  If %fraction < 0,
  *          saturation is increased and brightness is reduced.  The
- *          opposite results if @fraction > 0.  If @fraction == -1,
- *          the resulting pixel is black; @fraction == 1 results in white.
+ *          opposite results if %fraction > 0.  If %fraction == -1,
+ *          the resulting pixel is black; %fraction == 1 results in white.
  */
 l_int32
 pixelFractionalShift(l_int32    rval,

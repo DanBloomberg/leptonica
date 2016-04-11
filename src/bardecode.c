@@ -88,7 +88,7 @@ static char *barcodeDecodeEan13(char *barstr, l_int32 first, l_int32 debugflag);
  *      Input:  barstr (string of integers in set {1,2,3,4} of bar widths)
  *              format (L_BF_ANY, L_BF_CODEI2OF5, L_BF_CODE93, ...)
  *              debugflag (use 1 to generate debug output)
- *      Return: data (string of decoded barcode data), or null on error
+ *      Return: data (string of decoded barcode data), or NULL on error
  */
 char *
 barcodeDispatchDecoder(char    *barstr,
@@ -193,7 +193,7 @@ l_int32  i;
  *      (1) If valid == 1, the barcode is of the given format in the
  *          forward order; if valid == 2, it is backwards.
  *      (2) If the barcode needs to be reversed to read it, and &reverse
- *          is provided, a 1 is put into @reverse.
+ *          is provided, a 1 is put into %reverse.
  *      (3) Add to this as more formats are supported.
  */
 static l_int32
@@ -334,7 +334,7 @@ l_int32  i, start, len, stop, mid;
  *
  *      Input:  barstr (of widths, in set {1, 2})
  *              debugflag
- *      Return: data (string of digits), or null if none found or on error
+ *      Return: data (string of digits), or NULL if none found or on error
  *
  *  Notes:
  *      (1) Ref: http://en.wikipedia.org/wiki/Two-out-of-five_code (Note:
@@ -423,7 +423,7 @@ l_int32  valid, reverse, i, j, len, error, ndigits, start, found;
  *
  *      Input:  barstr (of widths, in set {1, 2})
  *              debugflag
- *      Return: data (string of digits), or null if none found or on error
+ *      Return: data (string of digits), or NULL if none found or on error
  *
  *  Notes:
  *      (1) Ref: http://en.wikipedia.org/wiki/Interleaved_2_of_5
@@ -511,7 +511,7 @@ l_int32  valid, reverse, i, j, len, error, npairs, start, found;
  *
  *      Input:  barstr (of widths, in set {1, 2, 3, 4})
  *              debugflag
- *      Return: data (string of digits), or null if none found or on error
+ *      Return: data (string of digits), or NULL if none found or on error
  *
  *  Notes:
  *      (1) Ref:  http://en.wikipedia.org/wiki/Code93
@@ -627,7 +627,7 @@ l_int32     *index;
  *
  *      Input:  barstr (of widths, in set {1, 2})
  *              debugflag
- *      Return: data (string of digits), or null if none found or on error
+ *      Return: data (string of digits), or NULL if none found or on error
  *
  *  Notes:
  *      (1) Ref:  http://en.wikipedia.org/wiki/Code39
@@ -706,7 +706,7 @@ l_int32   valid, reverse, i, j, len, error, nsymb, start, found;
  *
  *      Input:  barstr (of widths, in set {1, 2})
  *              debugflag
- *      Return: data (string of digits), or null if none found or on error
+ *      Return: data (string of digits), or NULL if none found or on error
  *
  *  Notes:
  *      (1) Ref:  http://en.wikipedia.org/wiki/Codabar
@@ -786,7 +786,7 @@ l_int32   valid, reverse, i, j, len, error, nsymb, start, found;
  *
  *      Input:  barstr (of widths, in set {1, 2, 3, 4})
  *              debugflag
- *      Return: data (string of digits), or null if none found or on error
+ *      Return: data (string of digits), or NULL if none found or on error
  *
  *  Notes:
  *      (1) Ref:  http://en.wikipedia.org/wiki/UniversalProductCode
@@ -896,7 +896,7 @@ l_int32   valid, i, j, len, error, start, found, sum, checkdigit;
  *      Input:  barstr (of widths, in set {1, 2, 3, 4})
  *              first (first digit: 0 - 9)
  *              debugflag
- *      Return: data (string of digits), or null if none found or on error
+ *      Return: data (string of digits), or NULL if none found or on error
  *
  *  Notes:
  *      (1) Ref:  http://en.wikipedia.org/wiki/UniversalProductCode
@@ -912,7 +912,7 @@ l_int32   valid, i, j, len, error, start, found, sum, checkdigit;
  *      (4) For now, we assume the first digit is input to this function.
  *          Eventually, we will read it by pattern matching.
  *
- *    TODO: fix this for multiple tables, depending on the value of @first
+ *    TODO: fix this for multiple tables, depending on the value of %first
  */
 static char *
 barcodeDecodeEan13(char    *barstr,

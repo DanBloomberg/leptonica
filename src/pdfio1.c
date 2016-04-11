@@ -216,15 +216,15 @@ static const l_int32  DEFAULT_INPUT_RES = 300;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @substr is not NULL, only image filenames that contain
- *          the substring can be used.  If @substr == NULL, all files
+ *      (1) If %substr is not NULL, only image filenames that contain
+ *          the substring can be used.  If %substr == NULL, all files
  *          in the directory are used.
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
  *          before concatenation.
  *      (3) The scalefactor is applied to each image before encoding.
  *          If you enter a value <= 0.0, it will be set to 1.0.
- *      (4) Specifying one of the three encoding types for @type forces
+ *      (4) Specifying one of the three encoding types for %type forces
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether
  *          or not it has a colormap.
@@ -489,8 +489,8 @@ PIXCMAP  *cmap;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @substr is not NULL, only image filenames that contain
- *          the substring can be used.  If @substr == NULL, all files
+ *      (1) If %substr is not NULL, only image filenames that contain
+ *          the substring can be used.  If %substr == NULL, all files
  *          in the directory are used.
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
@@ -685,7 +685,7 @@ L_COMP_DATA  *cid;
         return 1;
     }
 
-        /* If @title == NULL, use the tail of @fname. */
+        /* If %title == NULL, use the tail of %fname. */
     if (title) {
         pdftitle = title;
     } else {
@@ -722,7 +722,7 @@ L_COMP_DATA  *cid;
  *      (1) The images are encoded with G4 if 1 bpp; JPEG if 8 bpp without
  *          colormap and many colors, or 32 bpp; FLATE for anything else.
  *      (2) The scalefactor must be > 0.0; otherwise it is set to 1.0.
- *      (3) Specifying one of the three encoding types for @type forces
+ *      (3) Specifying one of the three encoding types for %type forces
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether
  *          or not it has a colormap.
@@ -888,8 +888,8 @@ L_PTRA   *pa_data;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) To wrap only one image in pdf, input @plpd = NULL, and
- *          the value of @position will be ignored:
+ *      (1) To wrap only one image in pdf, input %plpd = NULL, and
+ *          the value of %position will be ignored:
  *            convertToPdf(...  type, quality, x, y, res, NULL, 0);
  *      (2) To wrap multiple images on a single pdf page, this is called
  *          once for each successive image.  Do it this way:
@@ -898,19 +898,19 @@ L_PTRA   *pa_data;
  *            convertToPdf(...  type, quality, x, y, res, &lpd, L_NEXT_IMAGE);
  *            ...
  *            convertToPdf(...  type, quality, x, y, res, &lpd, L_LAST_IMAGE);
- *          This will write the result to the value of @fileout specified
- *          in the first call; succeeding values of @fileout are ignored.
+ *          This will write the result to the value of %fileout specified
+ *          in the first call; succeeding values of %fileout are ignored.
  *          On the last call: the pdf data bytes are computed and written
- *          to @fileout, lpd is destroyed internally, and the returned
+ *          to %fileout, lpd is destroyed internally, and the returned
  *          value of lpd is null.  So the client has nothing to clean up.
- *      (3) (a) Set @res == 0 to respect the resolution embedded in the
+ *      (3) (a) Set %res == 0 to respect the resolution embedded in the
  *              image file.  If no resolution is embedded, it will be set
  *              to the default value.
- *          (b) Set @res to some other value to override the file resolution.
- *      (4) (a) If the input @res and the resolution of the output device
+ *          (b) Set %res to some other value to override the file resolution.
+ *      (4) (a) If the input %res and the resolution of the output device
  *              are equal, the image will be "displayed" at the same size
  *              as the original.
- *          (b) If the input @res is 72, the output device will render
+ *          (b) If the input %res is 72, the output device will render
  *              the image at 1 pt/pixel.
  *          (c) Some possible choices for the default input pix resolution are:
  *                 72 ppi     Render pix on any output device at one pt/pixel
@@ -985,7 +985,7 @@ size_t    nbytes;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @res == 0 and the input resolution field is 0,
+ *      (1) If %res == 0 and the input resolution field is 0,
  *          this will use DEFAULT_INPUT_RES.
  *      (2) See comments in convertToPdf().
  */
@@ -1048,7 +1048,7 @@ PIX     *pix;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @res == 0 and the input resolution field is 0,
+ *      (1) If %res == 0 and the input resolution field is 0,
  *          this will use DEFAULT_INPUT_RES.
  *      (2) See comments in convertToPdf().
  */
@@ -1114,7 +1114,7 @@ PIX  *pix;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @res == 0 and the input resolution field is 0,
+ *      (1) If %res == 0 and the input resolution field is 0,
  *          this will use DEFAULT_INPUT_RES.
  *      (2) See comments in convertToPdf().
  */
@@ -1179,7 +1179,7 @@ PIX     *pix;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @res == 0 and the input resolution field is 0,
+ *      (1) If %res == 0 and the input resolution field is 0,
  *          this will use DEFAULT_INPUT_RES.
  *      (2) This only writes data to fileout if it is the last
  *          image to be written on the page.
@@ -1230,7 +1230,7 @@ size_t    nbytes;
 /*!
  *  pixWriteStreamPdf()
  *
- *      Input:  fp (stream opened for writing)
+ *      Input:  fp (file stream opened for writing)
  *              pix (all depths, cmap OK)
  *              res (override the resolution of the input image, in ppi;
  *                   use 0 to respect the resolution embedded in the input)
@@ -1346,8 +1346,8 @@ PIXCMAP  *cmap;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @substr is not NULL, only image filenames that contain
- *          the substring can be used.  If @substr == NULL, all files
+ *      (1) If %substr is not NULL, only image filenames that contain
+ *          the substring can be used.  If %substr == NULL, all files
  *          in the directory are used.
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
@@ -1364,8 +1364,8 @@ PIXCMAP  *cmap;
  *          type is G4, they are automatically scaled up by 2x and
  *          thresholded.  Otherwise, no scaling is performed on them.
  *      (7) Note that this function can be used to generate multipage
- *          G4 compressed pdf from any input, by using @boxaa == NULL
- *          and @type == L_G4_ENCODE.
+ *          G4 compressed pdf from any input, by using %boxaa == NULL
+ *          and %type == L_G4_ENCODE.
  */
 l_int32
 convertSegmentedFilesToPdf(const char  *dirname,
@@ -1477,7 +1477,7 @@ SARRAY   *sa;
  *              numpost (number of characters in name after number, up
  *                       to a dot before an extension)
  *                       including an extension and the dot separator)
- *      Return: boxaa of mask regions, or null on error
+ *      Return: boxaa of mask regions, or NULL on error
  *
  *  Notes:
  *      (1) This is conveniently used to generate the input boxaa
@@ -1550,19 +1550,19 @@ SARRAY  *sa;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If there are no image regions, set @boxa == NULL;
- *          @quality and @scalefactor are ignored.
- *      (2) Typically, @scalefactor is < 1.0, because the image regions
+ *      (1) If there are no image regions, set %boxa == NULL;
+ *          %quality and %scalefactor are ignored.
+ *      (2) Typically, %scalefactor is < 1.0, because the image regions
  *          can be rendered at a lower resolution (for better compression)
- *          than the text regions.  If @scalefactor == 0, we use 1.0.
+ *          than the text regions.  If %scalefactor == 0, we use 1.0.
  *          If the input image is 1 bpp and scalefactor < 1.0, we
  *          use scaleToGray() to downsample the image regions to gray
  *          before compressing them.
  *      (3) If the compression type for non-image regions is L_G4_ENCODE
  *          and bpp > 1, the image is upscaled 2x and thresholded
- *          to 1 bpp.  That is the only situation where @thresh is used.
- *      (4) The parameter @quality is only used for image regions.
- *          If @type == L_JPEG_ENCODE, default jpeg quality (75) is
+ *          to 1 bpp.  That is the only situation where %thresh is used.
+ *      (4) The parameter %quality is only used for image regions.
+ *          If %type == L_JPEG_ENCODE, default jpeg quality (75) is
  *          used for the non-image regions.
  *      (5) Processing matrix for non-image regions.
  *
@@ -1707,9 +1707,9 @@ size_t    nbytes;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If there are no image regions, set @boxa == NULL;
- *          @quality and @scalefactor are ignored.
- *      (2) Typically, @scalefactor is < 1.0.  The image regions are
+ *      (1) If there are no image regions, set %boxa == NULL;
+ *          %quality and %scalefactor are ignored.
+ *      (2) Typically, %scalefactor is < 1.0.  The image regions are
  */
 l_int32
 convertToPdfDataSegmented(const char  *filein,
@@ -1838,7 +1838,7 @@ L_PDF_DATA  *lpd;
         return 0;
     }
 
-        /* Multiple images to be encoded.  If @type == L_G4_ENCODE,
+        /* Multiple images to be encoded.  If %type == L_G4_ENCODE,
          * jpeg encode a version of pixs that is blanked in the non-image
          * regions, and paint the scaled non-image part onto it through a mask.
          * Otherwise, we must put the non-image part down first and
@@ -1931,8 +1931,8 @@ L_PDF_DATA  *lpd;
  *
  *  Notes:
  *      (1) This only works with leptonica-formatted single-page pdf files.
- *      (2) If @substr is not NULL, only filenames that contain
- *          the substring can be returned.  If @substr == NULL,
+ *      (2) If %substr is not NULL, only filenames that contain
+ *          the substring can be returned.  If %substr == NULL,
  *          none of the filenames are filtered out.
  *      (3) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
@@ -2040,8 +2040,8 @@ size_t    nbytes;
  *
  *  Notes:
  *      (1) This only works with leptonica-formatted single-page pdf files.
- *      (2) If @substr is not NULL, only filenames that contain
- *          the substring can be returned.  If @substr == NULL,
+ *      (2) If %substr is not NULL, only filenames that contain
+ *          the substring can be returned.  If %substr == NULL,
  *          none of the filenames are filtered out.
  *      (3) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order

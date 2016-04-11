@@ -65,7 +65,7 @@
  *
  *      Input:  transx  (x component of translation wrt. the origin)
  *              transy  (y component of translation wrt. the origin)
- *      Return: 3x3 transform matrix, or null on error
+ *      Return: 3x3 transform matrix, or NULL on error
  *
  *  Notes;
  *      (1) The translation is equivalent to:
@@ -105,7 +105,7 @@ l_float32  *mat;
  *
  *      Input:  scalex  (horizontal scale factor)
  *              scaley  (vertical scale factor)
- *      Return: 3x3 transform matrix, or null on error
+ *      Return: 3x3 transform matrix, or NULL on error
  *
  *  Notes;
  *      (1) The scaling is equivalent to:
@@ -144,7 +144,7 @@ l_float32  *mat;
  *
  *      Input:  xc, yc  (location of center of rotation)
  *              angle  (rotation in radians; clockwise is positive)
- *      Return: 3x3 transform matrix, or null on error
+ *      Return: 3x3 transform matrix, or NULL on error
  *
  *  Notes;
  *      (1) The rotation is equivalent to:
@@ -207,7 +207,7 @@ l_float32  *mat;
  *      Input:  ptas (for initial points)
  *              transx  (x component of translation wrt. the origin)
  *              transy  (y component of translation wrt. the origin)
- *      Return: ptad  (translated points), or null on error
+ *      Return: ptad  (translated points), or NULL on error
  *
  *  Notes;
  *      (1) See createMatrix2dTranslate() for details of transform.
@@ -338,7 +338,7 @@ PTA       *ptad;
  *      Input:  boxas
  *              transx  (x component of translation wrt. the origin)
  *              transy  (y component of translation wrt. the origin)
- *      Return: boxad  (translated boxas), or null on error
+ *      Return: boxad  (translated boxas), or NULL on error
  *
  *  Notes;
  *      (1) See createMatrix2dTranslate() for details of transform.
@@ -371,7 +371,7 @@ BOXA  *boxad;
  *      Input:  boxas
  *              scalex  (horizontal scale factor)
  *              scaley  (vertical scale factor)
- *      Return: boxad  (scaled boxas), or null on error
+ *      Return: boxad  (scaled boxas), or NULL on error
  *
  *  Notes;
  *      (1) See createMatrix2dScale() for details of transform.
@@ -404,7 +404,7 @@ BOXA  *boxad;
  *      Input:  boxas
  *              (xc, yc)  (location of center of rotation)
  *              angle  (rotation in radians; clockwise is positive)
- *      Return: boxad  (scaled boxas), or null on error
+ *      Return: boxad  (scaled boxas), or NULL on error
  *
  *  Notes;
  *      (1) See createMatrix2dRotate() for details of transform.
@@ -440,7 +440,7 @@ BOXA  *boxad;
  *
  *      Input:  ptas (for initial points)
  *              mat  (3x3 transform matrix; canonical form)
- *      Return: ptad  (transformed points), or null on error
+ *      Return: ptad  (transformed points), or NULL on error
  */
 PTA *
 ptaAffineTransform(PTA        *ptas,
@@ -476,7 +476,7 @@ PTA       *ptad;
  *
  *      Input:  boxas
  *              mat  (3x3 transform matrix; canonical form)
- *      Return: boxad  (transformed boxas), or null on error
+ *      Return: boxad  (transformed boxas), or NULL on error
  */
 BOXA *
 boxaAffineTransform(BOXA       *boxas,
@@ -507,10 +507,10 @@ BOXA  *boxad;
 /*!
  *  l_productMatVec()
  *
- *      Input:  mat  (square matrix, as a 1-dimensional @size^2 array)
- *              vecs (input column vector of length @size)
+ *      Input:  mat  (square matrix, as a 1-dimensional %size^2 array)
+ *              vecs (input column vector of length %size)
  *              vecd (result column vector)
- *              size (matrix is @size x @size; vectors are length @size)
+ *              size (matrix is %size x %size; vectors are length %size)
  *      Return: 0 if OK, 1 on error
  */
 l_int32

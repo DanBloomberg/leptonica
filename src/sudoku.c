@@ -112,20 +112,20 @@
  *     (2) http://en.wikipedia.org/wiki/Sudoku
  *
  *  How many 9x9 sudokus are there?  Here are the numbers.
- *   - From ref(1), there are about 6 x 10^27 "latin squares", where
+ *   ~ From ref(1), there are about 6 x 10^27 "latin squares", where
  *     each row and column has all 9 digits.
- *   - There are 7.2 x 10^21 actual solutions, having the added
+ *   ~ There are 7.2 x 10^21 actual solutions, having the added
  *     constraint in each of the 9 3x3 squares.  (The constraint
  *     reduced the number by the fraction 1.2 x 10^(-6).)
- *   - There are a mere 5.5 billion essentially different solutions (EDS),
+ *   ~ There are a mere 5.5 billion essentially different solutions (EDS),
  *     when symmetries (rotation, reflection, permutation and relabelling)
  *     are removed.
- *   - Thus there are 1.3 x 10^12 solutions that can be derived by
+ *   ~ Thus there are 1.3 x 10^12 solutions that can be derived by
  *     symmetry from each EDS.  Can we account for these?
- *   - Sort-of.  From an EDS, you can derive (3!)^8 = 1.7 million solutions
+ *   ~ Sort-of.  From an EDS, you can derive (3!)^8 = 1.7 million solutions
  *     by simply permuting rows and columns.  (Do you see why it is
  *     not (3!)^6 ?)
- *   - Also from an EDS, you can derive 9! solutions by relabelling,
+ *   ~ Also from an EDS, you can derive 9! solutions by relabelling,
  *     and 4 solutions by rotation, for a total of 1.45 million solutions
  *     by relabelling and rotation.  Then taking the product, by symmetry
  *     we can derive 1.7M x 1.45M = 2.45 trillion solutions from each EDS.
@@ -165,7 +165,7 @@ static const char valid_solution[] = "3 8 7 2 6 4 1 9 5 "
  *  sudokuReadFile()
  *
  *      Input:  filename (of formatted sudoku file)
- *      Return: array (of 81 numbers), or null on error
+ *      Return: array (of 81 numbers), or NULL on error
  *
  *  Notes:
  *      (1) The file format has:
@@ -244,7 +244,7 @@ SARRAY   *saline, *sa1, *sa2;
  *  sudokuReadString()
  *
  *      Input:  str (of input data)
- *      Return: array (of 81 numbers), or null on error
+ *      Return: array (of 81 numbers), or NULL on error
  *
  *  Notes:
  *      (1) The string is formatted as 81 single digits, each separated
@@ -279,7 +279,7 @@ l_int32  *array;
  *  sudokuCreate()
  *
  *      Input:  array (of 81 numbers, 9 rows of 9 numbers each)
- *      Return: l_sudoku, or null on error
+ *      Return: l_sudoku, or NULL on error
  *
  *  Notes:
  *      (1) The input array has 0 for the unknown values, and 1-9
@@ -324,7 +324,7 @@ L_SUDOKU  *sud;
 /*!
  *  sudokuDestroy()
  *
- *      Input:  &l_sudoku (<to be nulled>)
+ *      Input:  &sud (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -600,7 +600,7 @@ L_SUDOKU  *sud, *sud1, *sud2, *sud3;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The input to sud2 has been rotated by @quads relative to the
+ *      (1) The input to sud2 has been rotated by %quads relative to the
  *          input to sud1.  Therefore, we must rotate the solution to
  *          sud1 by the same amount before comparing it to the
  *          solution to sud2.
@@ -646,7 +646,7 @@ l_int32  *array;
  *
  *      Input:  array (of 81 numbers; 9 lines of 9 numbers each)
  *              quads (1-3; number of 90 degree cw rotations)
- *      Return: rarray (rotated array), or null on error
+ *      Return: rarray (rotated array), or NULL on error
  */
 static l_int32 *
 sudokuRotateArray(l_int32  *array,
@@ -700,15 +700,15 @@ l_int32  *rarray;
  *              seed (random number)
  *              minelems (min non-zero elements allowed; <= 80)
  *              maxtries (max tries to remove a number and get a valid sudoku)
- *      Return: l_sudoku, or null on error
+ *      Return: l_sudoku, or NULL on error
  *
  *  Notes:
  *      (1) This is a brute force generator.  It starts with a completed
  *          sudoku solution and, by removing elements (setting them to 0),
  *          generates a valid (unique) sudoku initial condition.
- *      (2) The process stops when either @minelems, the minimum
+ *      (2) The process stops when either %minelems, the minimum
  *          number of non-zero elements, is reached, or when the
- *          number of attempts to remove the next element exceeds @maxtries.
+ *          number of attempts to remove the next element exceeds %maxtries.
  *      (3) No sudoku is known with less than 17 nonzero elements.
  */
 L_SUDOKU *

@@ -212,7 +212,7 @@ PIX      *pixt;
  *  pixaFindPerimToAreaRatio()
  *
  *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of perimeter/arear ratio for each pix), or null on error
+ *      Return: na (of perimeter/arear ratio for each pix), or NULL on error
  *
  *  Notes:
  *      (1) This is typically used for a pixa consisting of
@@ -309,7 +309,7 @@ PIX      *pixt;
  *
  *      Input:  pixa (of 1 bpp pix)
  *      Return: na (of fg perimeter/(2*(w+h)) ratio for each pix),
- *                  or null on error
+ *                  or NULL on error
  *
  *  Notes:
  *      (1) This is typically used for a pixa consisting of
@@ -404,7 +404,7 @@ PIX      *pixt;
  *  pixaFindAreaFraction()
  *
  *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of area fractions for each pix), or null on error
+ *      Return: na (of area fractions for each pix), or NULL on error
  *
  *  Notes:
  *      (1) This is typically used for a pixa consisting of
@@ -487,7 +487,7 @@ l_int32  *tab8;
  *              pixm (mask image)
  *              debug (1 for output, 0 to suppress)
  *      Return: na (of ratio masked/total fractions for each pix),
- *                  or null on error
+ *                  or NULL on error
  *
  *  Notes:
  *      (1) This is typically used for a pixa consisting of
@@ -625,7 +625,7 @@ PIX      *pix1;
  *  pixaFindWidthHeightRatio()
  *
  *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of width/height ratios for each pix), or null on error
+ *      Return: na (of width/height ratios for each pix), or NULL on error
  *
  *  Notes:
  *      (1) This is typically used for a pixa consisting of
@@ -659,7 +659,7 @@ PIX     *pixt;
  *  pixaFindWidthHeightProduct()
  *
  *      Input:  pixa (of 1 bpp pix)
- *      Return: na (of width*height products for each pix), or null on error
+ *      Return: na (of width*height products for each pix), or NULL on error
  *
  *  Notes:
  *      (1) This is typically used for a pixa consisting of
@@ -758,15 +758,15 @@ PIX      *pixt;
  *                    foreground pixel within it)
  *              minw, minh (minimum size in each direction as a requirement
  *                          for a conforming rectangle)
- *      Return: boxa (of components that conform), or null on error
+ *      Return: boxa (of components that conform), or NULL on error
  *
  *  Notes:
  *      (1) This applies the function pixConformsToRectangle() to
  *          each 8-c.c. in pixs, and returns a boxa containing the
  *          regions of all components that are conforming.
  *      (2) Conforming components must satisfy both the size constraint
- *          given by @minsize and the slop in conforming to a rectangle
- *          determined by @dist.
+ *          given by %minsize and the slop in conforming to a rectangle
+ *          determined by %dist.
  */
 BOXA *
 pixFindRectangleComps(PIX     *pixs,
@@ -835,16 +835,16 @@ PIXA    *pixa;
  *          the integrity of the outer boundary of the c.c., with respect
  *          to the enclosing bounding box, so we use it.
  *      (2) This tests if the connected component within the box conforms
- *          to the box at all points on the periphery within @dist.
+ *          to the box at all points on the periphery within %dist.
  *          Inside, at a distance from the box boundary that is greater
- *          than @dist, we don't care about the pixels in the c.c.
+ *          than %dist, we don't care about the pixels in the c.c.
  *      (3) We can think of the conforming condition as follows:
- *          No pixel inside a distance @dist from the boundary
+ *          No pixel inside a distance %dist from the boundary
  *          can connect to the boundary through a path through the bg.
  *          To implement this, we need to do a flood fill.  We can go
  *          either from inside toward the boundary, or the other direction.
  *          It's easiest to fill from the boundary, and then verify that
- *          there are no filled pixels farther than @dist from the boundary.
+ *          there are no filled pixels farther than %dist from the boundary.
  */
 l_int32
 pixConformsToRectangle(PIX      *pixs,
@@ -883,11 +883,11 @@ PIX     *pix1, *pix2;
     pixInvert(pix1, pix1);
     pix2 = pixExtractBorderConnComps(pix1, 4);
 
-        /* Mask out all pixels within a distance @dist from the box
+        /* Mask out all pixels within a distance %dist from the box
          * boundary.  Any remaining pixels are from filling that goes
-         * more than @dist from the boundary.  If no pixels remain,
+         * more than %dist from the boundary.  If no pixels remain,
          * the component conforms to the bounding rectangle within
-         * a distance @dist. */
+         * a distance %dist. */
     pixSetOrClearBorder(pix2, dist, dist, dist, dist, PIX_CLR);
     pixZero(pix2, &empty);
     pixDestroy(&pix1);
@@ -905,7 +905,7 @@ PIX     *pix1, *pix2;
  *
  *      Input:  pixs
  *              boxa (requested clipping regions)
- *      Return: pixa (consisting of requested regions), or null on error
+ *      Return: pixa (consisting of requested regions), or NULL on error
  *
  *  Notes:
  *     (1) The returned pixa includes the actual regions clipped out from
@@ -947,7 +947,7 @@ PIXA    *pixa;
  *      Input:  pixs
  *              box  (requested clipping region; const)
  *              &boxc (<optional return> actual box of clipped region)
- *      Return: clipped pix, or null on error or if rectangle
+ *      Return: clipped pix, or NULL on error or if rectangle
  *              doesn't intersect pixs
  *
  *  Notes:
@@ -1023,16 +1023,16 @@ PIX     *pixd;
  *              pixm  (clipping mask, 1 bpp)
  *              x, y (origin of clipping mask relative to pixs)
  *              outval (val to use for pixels that are outside the mask)
- *      Return: pixd, (clipped pix) or null on error or if pixm doesn't
+ *      Return: pixd, (clipped pix) or NULL on error or if pixm doesn't
  *              intersect pixs
  *
  *  Notes:
  *      (1) If pixs has a colormap, it is preserved in pixd.
  *      (2) The depth of pixd is the same as that of pixs.
- *      (3) If the depth of pixs is 1, use @outval = 0 for white background
+ *      (3) If the depth of pixs is 1, use %outval = 0 for white background
  *          and 1 for black; otherwise, use the max value for white
  *          and 0 for black.  If pixs has a colormap, the max value for
- *          @outval is 0xffffffff; otherwise, it is 2^d - 1.
+ *          %outval is 0xffffffff; otherwise, it is 2^d - 1.
  *      (4) When using 1 bpp pixs, this is a simple clip and
  *          blend operation.  For example, if both pix1 and pix2 are
  *          black text on white background, and you want to OR the
@@ -1137,7 +1137,7 @@ l_int32  w1, h1, w2, h2, w, h;
  *
  *      Input:  pixs (any depth, colormap OK)
  *              w, h (max dimensions of cropped image)
- *      Return: pixd (cropped if necessary) or null on error.
+ *      Return: pixd (cropped if necessary) or NULL on error.
  *
  *  Notes:
  *      (1) If either w or h is smaller than the corresponding dimension
@@ -1180,7 +1180,7 @@ PIX     *pixd;
  *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp; colormap ok)
  *              pixt  (can be null; we use only the size)
  *              w, h (ignored if pixt is defined)
- *      Return: pixd (resized to match) or null on error
+ *      Return: pixd (resized to match) or NULL on error
  *
  *  Notes:
  *      (1) This resizes pixs to make pixd, without scaling, by either
@@ -1190,8 +1190,8 @@ PIX     *pixd;
  *          operations, two images that are expected to be the
  *          same size can differ slightly in each dimension.
  *      (2) You can use either an existing pixt or specify
- *          both @w and @h.  If pixt is defined, the values
- *          in @w and @h are ignored.
+ *          both %w and %h.  If pixt is defined, the values
+ *          in %w and %h are ignored.
  *      (3) If pixt is larger than pixs (or if w and/or d is larger
  *          than the dimension of pixs, replicate the outer row and
  *          column of pixels in pixs into pixd.
@@ -1253,7 +1253,7 @@ PIX     *pixd;
  *              hf2 (horizontal fraction of half-width at inner frame bdry)
  *              vf1 (vertical fraction of half-width at outer frame bdry)
  *              vf2 (vertical fraction of half-width at inner frame bdry)
- *      Return: pixd (1 bpp), or null on error.
+ *      Return: pixd (1 bpp), or NULL on error.
  *
  *  Notes:
  *      (1) This makes an arbitrary 1-component mask with a centered frame.
@@ -1337,7 +1337,7 @@ PIX     *pixd;
  *          is issued if pix1 and pix2 have different sizes.
  *      (3) This can also be used to find the fraction of fg pixels in pix1
  *          that are NOT under the fg of pix2: 1.0 - |1 & 2|/|1|
- *      (4) If pix1 or pix2 are empty, this returns @fract = 0.0.
+ *      (4) If pix1 or pix2 are empty, this returns %fract = 0.0.
  *      (5) For example, pix2 could be a frame around the outside of the
  *          image, made from pixMakeFrameMask().
  */
@@ -1490,7 +1490,7 @@ maxx_found:
  *          can be further cropped without loss of fg pixels.
  *          If it cannot, canclip is set to 0.
  *      (2) It does not test for the existence of any fg pixels.
- *          If there are no fg pixels, it will return @canclip = 1.
+ *          If there are no fg pixels, it will return %canclip = 1.
  *          Check the output of the subsequent call to pixClipToForeground().
  */
 l_int32
@@ -1625,7 +1625,7 @@ BOX     *boxt, *boxd;
  *  Notes:
  *      (1) If there are no fg pixels, the position is set to 0.
  *          Caller must check the return value!
- *      (2) Use @box == NULL to scan from edge of pixs
+ *      (2) Use %box == NULL to scan from edge of pixs
  */
 l_int32
 pixScanForForeground(PIX      *pixs,
@@ -1735,7 +1735,7 @@ BOX       *boxt;
  *          found, the search box is resized to use that location.
  *          Once an edge is found, it is held.  If no more edges
  *          are found in one iteration, the search fails.
- *      (5) See pixScanForEdge() for usage of the thresholds and @maxwidth.
+ *      (5) See pixScanForEdge() for usage of the thresholds and %maxwidth.
  *      (6) The thresholds must be at least 1, and the low threshold
  *          cannot be larger than the high threshold.
  *      (7) If the low and high thresholds are both 1, this is equivalent
@@ -1858,13 +1858,13 @@ BOX     *boxt, *boxd;
  *  Notes:
  *      (1) If there are no fg pixels, the position is set to 0.
  *          Caller must check the return value!
- *      (2) Use @box == NULL to scan from edge of pixs
+ *      (2) Use %box == NULL to scan from edge of pixs
  *      (3) As the scan progresses, the location where the sum of
- *          pixels equals or excees @lowthresh is noted (loc).  The
+ *          pixels equals or excees %lowthresh is noted (loc).  The
  *          scan is stopped when the sum of pixels equals or exceeds
- *          @highthresh.  If the scan distance between loc and that
- *          point does not exceed @maxwidth, an edge is found and
- *          its position is taken to be loc.  @maxwidth implicitly
+ *          %highthresh.  If the scan distance between loc and that
+ *          point does not exceed %maxwidth, an edge is found and
+ *          its position is taken to be loc.  %maxwidth implicitly
  *          sets a minimum on the required gradient of the edge.
  *      (4) The thresholds must be at least 1, and the low threshold
  *          cannot be larger than the high threshold.
@@ -2036,7 +2036,7 @@ BOX       *boxt;
  *              x1, y1 (one end point for line)
  *              x2, y2 (another end pt for line)
  *              factor (sampling; >= 1)
- *      Return: na (of pixel values along line), or null on error.
+ *      Return: na (of pixel values along line), or NULL on error.
  *
  *  Notes:
  *      (1) Input end points are clipped to the pix.
@@ -2156,7 +2156,7 @@ PTA       *pta;
  *              x1, y1 (starting pt for line)
  *              x2, y2 (end pt for line)
  *              factor (sampling; >= 1)
- *      Return: average of pixel values along line, or null on error.
+ *      Return: average of pixel values along line, or NULL on error.
  *
  *  Notes:
  *      (1) The line must be either horizontal or vertical, so either
@@ -2243,23 +2243,23 @@ l_float32  sum;
  *              first, last (span of rows or columns to measure)
  *              factor1 (sampling along fast scan direction; >= 1)
  *              factor2 (sampling along slow scan direction; >= 1)
- *      Return: na (of reversal profile), or null on error.
+ *      Return: na (of reversal profile), or NULL on error.
  *
  *  Notes:
  *      (1) If d != 1 bpp, colormaps are removed and the result
  *          is converted to 8 bpp.
- *      (2) If @dir == L_HORIZONTAL_LINE, the intensity is averaged
- *          along each horizontal raster line (sampled by @factor1),
+ *      (2) If %dir == L_HORIZONTAL_LINE, the intensity is averaged
+ *          along each horizontal raster line (sampled by %factor1),
  *          and the profile is the array of these averages in the
- *          vertical direction between @first and @last raster lines,
- *          and sampled by @factor2.
- *      (3) If @dir == L_VERTICAL_LINE, the intensity is averaged
- *          along each vertical line (sampled by @factor1),
+ *          vertical direction between %first and %last raster lines,
+ *          and sampled by %factor2.
+ *      (3) If %dir == L_VERTICAL_LINE, the intensity is averaged
+ *          along each vertical line (sampled by %factor1),
  *          and the profile is the array of these averages in the
- *          horizontal direction between @first and @last columns,
- *          and sampled by @factor2.
- *      (4) The averages are measured over the central @fract of the image.
- *          Use @fract == 1.0 to average across the entire width or height.
+ *          horizontal direction between %first and %last columns,
+ *          and sampled by %factor2.
+ *      (4) The averages are measured over the central %fract of the image.
+ *          Use %fract == 1.0 to average across the entire width or height.
  */
 NUMA *
 pixAverageIntensityProfile(PIX       *pixs,
@@ -2348,25 +2348,25 @@ PIX       *pixr, *pixg;
  *              minreversal (minimum change in intensity to trigger a reversal)
  *              factor1 (sampling along raster line (fast scan); >= 1)
  *              factor2 (sampling of raster lines (slow scan); >= 1)
- *      Return: na (of reversal profile), or null on error.
+ *      Return: na (of reversal profile), or NULL on error.
  *
  *  Notes:
  *      (1) If d != 1 bpp, colormaps are removed and the result
  *          is converted to 8 bpp.
- *      (2) If @dir == L_HORIZONTAL_LINE, the the reversals are counted
- *          along each horizontal raster line (sampled by @factor1),
+ *      (2) If %dir == L_HORIZONTAL_LINE, the the reversals are counted
+ *          along each horizontal raster line (sampled by %factor1),
  *          and the profile is the array of these sums in the
- *          vertical direction between @first and @last raster lines,
- *          and sampled by @factor2.
- *      (3) If @dir == L_VERTICAL_LINE, the the reversals are counted
- *          along each vertical column (sampled by @factor1),
+ *          vertical direction between %first and %last raster lines,
+ *          and sampled by %factor2.
+ *      (3) If %dir == L_VERTICAL_LINE, the the reversals are counted
+ *          along each vertical column (sampled by %factor1),
  *          and the profile is the array of these sums in the
- *          horizontal direction between @first and @last columns,
- *          and sampled by @factor2.
+ *          horizontal direction between %first and %last columns,
+ *          and sampled by %factor2.
  *      (4) For each row or column, the reversals are summed over the
- *          central @fract of the image.  Use @fract == 1.0 to sum
+ *          central %fract of the image.  Use %fract == 1.0 to sum
  *          across the entire width (of row) or height (of column).
- *      (5) @minreversal is the relative change in intensity that is
+ *      (5) %minreversal is the relative change in intensity that is
  *          required to resolve peaks and valleys.  A typical number for
  *          locating text in 8 bpp might be 50.  For 1 bpp, minreversal
  *          must be 1.
@@ -2476,7 +2476,7 @@ PIX      *pixr, *pixg;
  *      (2) Line end points are clipped to pixs.
  *      (3) The reference point for the variance calculation is the center of
  *          the window.  Therefore, the numa start parameter from
- *          pixExtractOnLine() is incremented by @size/2,
+ *          pixExtractOnLine() is incremented by %size/2,
  *          to align the variance values with the pixel coordinate.
  *      (4) The square root of the variance is the RMS deviation from the mean.
  */
@@ -2589,7 +2589,7 @@ PTA        *pta;
  *          below and/or above the local y-value.  Otherwise, the
  *          values are computed for [y1, y2] and the pixels are taken
  *          to the left and/or right of the local x value.
- *      (2) @direction specifies which side (or both sides) of the
+ *      (2) %direction specifies which side (or both sides) of the
  *          line are scanned for min and max values.
  *      (3) There are two ways to tell if the returned values of min
  *          and max averages are valid: the returned values cannot be
@@ -2713,7 +2713,7 @@ PTA       *pta;
  *      Return: pixd (with pixels sorted in each row, from
  *                    min to max value)
  *
- * Notes:
+ *  Notes:
  *     (1) The time is O(n) in the number of pixels and runs about
  *         100 Mpixels/sec on a 3 GHz machine.
  */
@@ -2764,7 +2764,7 @@ PIX       *pixd;
  *      Return: pixd (with pixels sorted in each column, from
  *                    min to max value)
  *
- * Notes:
+ *  Notes:
  *     (1) The time is O(n) in the number of pixels and runs about
  *         50 Mpixels/sec on a 3 GHz machine.
  */

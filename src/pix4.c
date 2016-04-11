@@ -87,7 +87,7 @@
  *
  *      Input:  pixs (1, 2, 4, 8, 16 bpp; can be colormapped)
  *              factor (subsampling factor; integer >= 1)
- *      Return: na (histogram), or null on error
+ *      Return: na (histogram), or NULL on error
  *
  *  Notes:
  *      (1) If pixs has a colormap, it is converted to 8 bpp gray.
@@ -188,7 +188,7 @@ PIX        *pixg;
  *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0; these values are ignored if pixm is null)
  *              factor (subsampling factor; integer >= 1)
- *      Return: na (histogram), or null on error
+ *      Return: na (histogram), or NULL on error
  *
  *  Notes:
  *      (1) If pixs is cmapped, it is converted to 8 bpp gray.
@@ -268,14 +268,14 @@ PIX        *pixg;
  *              box (<optional>) over which histogram is to be computed;
  *                   use full image if null)
  *              factor (subsampling factor; integer >= 1)
- *      Return: na (histogram), or null on error
+ *      Return: na (histogram), or NULL on error
  *
  *  Notes:
  *      (1) If pixs is cmapped, it is converted to 8 bpp gray.
  *          If you want a histogram of the colormap indices, use
  *          pixGetCmapHistogramInRect().
  *      (2) This always returns a 256-value histogram of pixel values.
- *      (3) Set the subsampling @factor > 1 to reduce the amount of computation.
+ *      (3) Set the subsampling %factor > 1 to reduce the amount of computation.
  */
 NUMA *
 pixGetGrayHistogramInRect(PIX     *pixs,
@@ -336,7 +336,7 @@ PIX        *pixg;
  *      Input:  pixs (any depth, colormap OK)
  *              factor (subsampling factor; integer >= 1)
  *              nx, ny (tiling; >= 1; typically small)
- *      Return: naa (set of histograms), or null on error
+ *      Return: naa (set of histograms), or NULL on error
  *
  *  Notes:
  *      (1) If pixs is cmapped, it is converted to 8 bpp gray.
@@ -396,7 +396,7 @@ PIXA    *pixa;
  *  Notes:
  *      (1) This generates a set of three 256 entry histograms,
  *          one for each color component (r,g,b).
- *      (2) Set the subsampling @factor > 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  */
 l_int32
 pixGetColorHistogram(PIX     *pixs,
@@ -494,7 +494,7 @@ PIXCMAP    *cmap;
  *
  *  Notes:
  *      (1) This generates a set of three 256 entry histograms,
- *      (2) Set the subsampling @factor > 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  *      (3) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (4) Input x,y are ignored unless pixm exists.
  */
@@ -604,12 +604,12 @@ PIXCMAP    *cmap;
  *
  *      Input:  pixs (colormapped: d = 2, 4 or 8)
  *              factor (subsampling factor; integer >= 1)
- *      Return: na (histogram of cmap indices), or null on error
+ *      Return: na (histogram of cmap indices), or NULL on error
  *
  *  Notes:
  *      (1) This generates a histogram of colormap pixel indices,
  *          and is of size 2^d.
- *      (2) Set the subsampling @factor > 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  */
 NUMA *
 pixGetCmapHistogram(PIX     *pixs,
@@ -666,12 +666,12 @@ NUMA       *na;
  *              x, y (UL corner of pixm relative to the UL corner of pixs;
  *                    can be < 0; these values are ignored if pixm is null)
  *              factor (subsampling factor; integer >= 1)
- *      Return: na (histogram), or null on error
+ *      Return: na (histogram), or NULL on error
  *
  *  Notes:
  *      (1) This generates a histogram of colormap pixel indices,
  *          and is of size 2^d.
- *      (2) Set the subsampling @factor > 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  *      (3) Clipping of pixm to pixs is done in the inner loop.
  */
 NUMA *
@@ -744,12 +744,12 @@ NUMA       *na;
  *              box (<optional>) over which histogram is to be computed;
  *                   use full image if null)
  *              factor (subsampling factor; integer >= 1)
- *      Return: na (histogram), or null on error
+ *      Return: na (histogram), or NULL on error
  *
  *  Notes:
  *      (1) This generates a histogram of colormap pixel indices,
  *          and is of size 2^d.
- *      (2) Set the subsampling @factor > 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  *      (3) Clipping to the box is done in the inner loop.
  */
 NUMA *
@@ -882,7 +882,7 @@ PIXCMAP   *cmap;
  *      (1) Computes the rank component values of pixels in pixs that
  *          are under the fg of the optional mask.  If the mask is null, it
  *          computes the average of the pixels in pixs.
- *      (2) Set the subsampling @factor > 1 to reduce the amount of
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of
  *          computation.
  *      (4) Input x,y are ignored unless pixm exists.
  *      (5) The rank must be in [0.0 ... 1.0], where the brightest pixel
@@ -966,7 +966,7 @@ PIX       *pixmt, *pixt;
  *      (1) Computes the rank value of pixels in pixs that are under
  *          the fg of the optional mask.  If the mask is null, it
  *          computes the average of the pixels in pixs.
- *      (2) Set the subsampling @factor > 1 to reduce the amount of
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of
  *          computation.
  *      (3) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (4) Input x,y are ignored unless pixm exists.
@@ -1184,7 +1184,7 @@ PIXCMAP  *cmap;
  *          expected value.  The variance is the square of the stdev.
  *          For the standard deviation, we use
  *              sqrt(<(<x> - x)>^2) = sqrt(<x^2> - <x>^2)
- *      (3) Set the subsampling @factor > 1 to reduce the amount of
+ *      (3) Set the subsampling %factor > 1 to reduce the amount of
  *          computation.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (5) Input x,y are ignored unless pixm exists.
@@ -1371,7 +1371,7 @@ PIXCMAP  *cmap;
  *      Input:  pixs (8 bpp, or colormapped)
  *              sx, sy (tile size; must be at least 2 x 2)
  *              type (L_MEAN_ABSVAL, L_ROOT_MEAN_SQUARE, L_STANDARD_DEVIATION)
- *      Return: pixd (average values in each tile), or null on error
+ *      Return: pixd (average values in each tile), or NULL on error
  *
  *  Notes:
  *      (1) Only computes for tiles that are entirely contained in pixs.
@@ -1470,7 +1470,7 @@ PIX       *pixt, *pixd;
  *              &namodecount (<optional return> numa of mode counts)
  *              &navar (<optional return> numa of variance)
  *              &narootvar (<optional return> numa of square root of variance)
- *      Return: na (numa of requested statistic for each row), or null on error
+ *      Return: na (numa of requested statistic for each row), or NULL on error
  *
  *  Notes:
  *      (1) This computes numas that represent column vectors of statistics,
@@ -1628,7 +1628,7 @@ l_float32  *famedian, *famode, *famodecount;
  *              &navar (<optional return> numa of variance)
  *              &narootvar (<optional return> numa of square root of variance)
  *      Return: na (numa of requested statistic for each column),
- *                  or null on error
+ *                  or NULL on error
  *
  *  Notes:
  *      (1) This computes numas that represent row vectors of statistics,
@@ -2165,10 +2165,10 @@ PIX       *pixt;
  *      (1) The color selection flag is one of: L_SELECT_RED, L_SELECT_GREEN,
  *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE.
  *      (2) Then it finds the histogram of the selected component in each
- *          RGB pixel.  For each of the @nbins sets of pixels,
+ *          RGB pixel.  For each of the %nbins sets of pixels,
  *          ordered by this component value, find the average color,
  *          and return this as a "rank color" array.  The output array
- *          has @nbins colors.
+ *          has %nbins colors.
  *      (3) Set the subsampling factor > 1 to reduce the amount of
  *          computation.  Typically you want at least 10,000 pixels
  *          for reasonable statistics.
@@ -2250,11 +2250,11 @@ PIXCMAP   *cmap;
          * (1) nar: cumulative normalized histogram (rank vs intensity value).
          *     With 256 intensity values, we have 257 rank values.
          * (2) nai: "average" intensity as function of rank bin, for
-         *     @nbins equally spaced in rank between 0.0 and 1.0.
+         *     %nbins equally spaced in rank between 0.0 and 1.0.
          * (3) narbin: bin number of discretized rank as a function of
          *     intensity.  This is the 'inverse' of nai.
          * (4) nabb: intensity value of the right bin boundary, for each
-         *     of the @nbins discretized rank bins. */
+         *     of the %nbins discretized rank bins. */
     if (!debugflag) {
         numaDiscretizeRankAndIntensity(nan, nbins, &narbin, NULL, NULL, NULL);
     } else {
@@ -2277,7 +2277,7 @@ PIXCMAP   *cmap;
     }
 
         /* Get the average color in each bin for pixels whose grayscale
-         * values fall in the bin range.  @narbin is the LUT that
+         * values fall in the bin range.  %narbin is the LUT that
          * determines the bin number from the grayscale version of
          * the image.  Because this mapping may not be unique,
          * some bins may not be represented in the LUT. In use, to get fair
@@ -2458,7 +2458,7 @@ l_float64  *rarray, *garray, *barray, *narray;
  *              ncols (number of columns in output color matrix)
  *              fontsize (to label each square with text.  Valid set is
  *                        {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.)
- *      Return: pixd (color array), or null on error
+ *      Return: pixd (color array), or NULL on error
  */
 PIX *
 pixDisplayColorArray(l_uint32  *carray,
@@ -2512,23 +2512,23 @@ PIXA    *pixa;
  *              size (of strips in scan direction)
  *              nbins (number of equal population bins; must be > 1)
  *              type (color selection flag)
- *      Return: pixd (result), or null on error
+ *      Return: pixd (result), or NULL on error
  *
  *  Notes:
  *      (1) This generates a pix where each column represents a strip of
- *          the input image.  If @direction == L_SCAN_HORIZONTAL, the
- *          input impage is tiled into vertical strips of width @size,
- *          where @size is a compromise between getting better spatial
- *          columnwise resolution (small @size) and getting better
- *          columnwise statistical information (larger @size).  Likewise
- *          with rows of the image if @direction == L_SCAN_VERTICAL.
+ *          the input image.  If %direction == L_SCAN_HORIZONTAL, the
+ *          input impage is tiled into vertical strips of width %size,
+ *          where %size is a compromise between getting better spatial
+ *          columnwise resolution (small %size) and getting better
+ *          columnwise statistical information (larger %size).  Likewise
+ *          with rows of the image if %direction == L_SCAN_VERTICAL.
  *      (2) For L_HORIZONTAL_SCAN, the output pix contains rank binned
  *          median colors in each column that correspond to a vertical
- *          strip of width @size in the input image.
+ *          strip of width %size in the input image.
  *      (3) The color selection flag is one of: L_SELECT_RED, L_SELECT_GREEN,
  *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE.
  *          It determines how the rank ordering is done.
- *      (4) Typical input values might be @size = 5, @nbins = 10.
+ *      (4) Typical input values might be %size = 5, %nbins = 10.
  */
 PIX *
 pixRankBinByStrip(PIX     *pixs,
@@ -2613,17 +2613,17 @@ PIXCMAP   *cmap;
  *              type (L_MEAN_ABSVAL, L_MEDIAN_VAL, L_MODE_VAL, L_MODE_COUNT)
  *              nbins (of histogram for median and mode; ignored for mean)
  *              thresh (on histogram for mode val; ignored for all other types)
- *      Return: pix (with pixelwise aligned stats), or null on error.
+ *      Return: pix (with pixelwise aligned stats), or NULL on error.
  *
  *  Notes:
  *      (1) Each pixel in the returned pix represents an average
  *          (or median, or mode) over the corresponding pixels in each
  *          pix in the pixa.
- *      (2) The @thresh parameter works with L_MODE_VAL only, and
+ *      (2) The %thresh parameter works with L_MODE_VAL only, and
  *          sets a minimum occupancy of the mode bin.
- *          If the occupancy of the mode bin is less than @thresh, the
+ *          If the occupancy of the mode bin is less than %thresh, the
  *          mode value is returned as 0.  To always return the actual
- *          mode value, set @thresh = 0.  See pixGetRowStats().
+ *          mode value, set %thresh = 0.  See pixGetRowStats().
  */
 PIX *
 pixaGetAlignedStats(PIXA     *pixa,
@@ -2727,17 +2727,17 @@ PIX       *pixt;
  *
  *  Notes:
  *      (1) This computes a column vector of statistics using each
- *          row of a Pix.  The result is put in @colvect.
- *      (2) The @thresh parameter works with L_MODE_VAL only, and
+ *          row of a Pix.  The result is put in %colvect.
+ *      (2) The %thresh parameter works with L_MODE_VAL only, and
  *          sets a minimum occupancy of the mode bin.
- *          If the occupancy of the mode bin is less than @thresh, the
+ *          If the occupancy of the mode bin is less than %thresh, the
  *          mode value is returned as 0.  To always return the actual
- *          mode value, set @thresh = 0.
- *      (3) What is the meaning of this @thresh parameter?
+ *          mode value, set %thresh = 0.
+ *      (3) What is the meaning of this %thresh parameter?
  *          For each row, the total count in the histogram is w, the
- *          image width.  So @thresh, relative to w, gives a measure
+ *          image width.  So %thresh, relative to w, gives a measure
  *          of the ratio of the bin width to the width of the distribution.
- *          The larger @thresh, the narrower the distribution must be
+ *          The larger %thresh, the narrower the distribution must be
  *          for the mode value to be returned (instead of returning 0).
  *      (4) If the Pix consists of a set of corresponding columns,
  *          one for each Pix in a Pixa, the width of the Pix is the
@@ -2855,17 +2855,17 @@ l_uint32  *lines, *datas;
  *
  *  Notes:
  *      (1) This computes a row vector of statistics using each
- *          column of a Pix.  The result is put in @rowvect.
- *      (2) The @thresh parameter works with L_MODE_VAL only, and
+ *          column of a Pix.  The result is put in %rowvect.
+ *      (2) The %thresh parameter works with L_MODE_VAL only, and
  *          sets a minimum occupancy of the mode bin.
- *          If the occupancy of the mode bin is less than @thresh, the
+ *          If the occupancy of the mode bin is less than %thresh, the
  *          mode value is returned as 0.  To always return the actual
- *          mode value, set @thresh = 0.
- *      (3) What is the meaning of this @thresh parameter?
+ *          mode value, set %thresh = 0.
+ *      (3) What is the meaning of this %thresh parameter?
  *          For each column, the total count in the histogram is h, the
- *          image height.  So @thresh, relative to h, gives a measure
+ *          image height.  So %thresh, relative to h, gives a measure
  *          of the ratio of the bin width to the width of the distribution.
- *          The larger @thresh, the narrower the distribution must be
+ *          The larger %thresh, the narrower the distribution must be
  *          for the mode value to be returned (instead of returning 0).
  */
 l_int32

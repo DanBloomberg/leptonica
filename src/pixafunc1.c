@@ -178,7 +178,7 @@ static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
  *              relation (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 otherwise)
- *      Return: filtered pixd, or null on error
+ *      Return: filtered pixd, or NULL on error
  *
  *  Notes:
  *      (1) The args specify constraints on the size of the
@@ -264,7 +264,7 @@ PIXA    *pixas, *pixad;
  *              relation (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 otherwise)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) The args specify constraints on the size of the
@@ -319,7 +319,7 @@ PIXA  *pixad;
  *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH)
  *              relation (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE)
- *      Return: na (indicator array), or null on error
+ *      Return: na (indicator array), or NULL on error
  *
  *  Notes:
  *      (1) The args specify constraints on the size of the
@@ -407,7 +407,7 @@ NUMA    *na;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The args specify constraints on the size of the
@@ -485,7 +485,7 @@ PIXA    *pixas, *pixad;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) Returns a pixa clone if no components are removed.
@@ -533,7 +533,7 @@ PIXA  *pixad;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The args specify constraints on the size of the
@@ -612,7 +612,7 @@ PIXA    *pixas, *pixad;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) Returns a pixa clone if no components are removed.
@@ -660,7 +660,7 @@ PIXA  *pixad;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The args specify constraints on the amount of foreground
@@ -738,7 +738,7 @@ PIXA    *pixas, *pixad;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) Returns a pixa clone if no components are removed.
@@ -790,7 +790,7 @@ PIXA  *pixad;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The args specify constraints on the width-to-height ratio
@@ -867,7 +867,7 @@ PIXA    *pixas, *pixad;
  *              type (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) Returns a pixa clone if no components are removed.
@@ -916,7 +916,7 @@ PIXA  *pixad;
  *      Input:  pixas
  *              na (indicator numa)
  *              &changed (<optional return> 1 if changed; 0 if clone returned)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) Returns a pixa clone if no components are removed.
@@ -1078,7 +1078,7 @@ PIX     *pix;
  *              str (string of indices into pixa, giving the pix to be selected)
  *              &error (<optional return> 1 if any indices are invalid;
  *                      0 if all indices are valid)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) Returns a pixa with copies of selected pix.
@@ -1146,7 +1146,7 @@ PIXA      *pixad;
  *                    be rendered in pixs, with its origin determined
  *                    by the associated box.)
  *              index (of component to be rendered)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) If pixs is null, this generates an empty pix of a size determined
@@ -1209,7 +1209,7 @@ PIX     *pix;
  *              &naindex (<optional return> index of sorted order into
  *                        original array)
  *              copyflag (L_COPY, L_CLONE)
- *      Return: pixad (sorted version of pixas), or null on error
+ *      Return: pixad (sorted version of pixas), or NULL on error
  *
  *  Notes:
  *      (1) This sorts based on the data in the boxa.  If the boxa
@@ -1327,7 +1327,7 @@ PIXA    *pixad;
  *              &naindex (<optional return> index of sorted order into
  *                        original array)
  *              copyflag (L_COPY, L_CLONE)
- *      Return: pixad (sorted version of pixas), or null on error
+ *      Return: pixad (sorted version of pixas), or NULL on error
  *
  *  Notes:
  *      (1) This sorts based on the data in the boxa.  If the boxa
@@ -1424,7 +1424,7 @@ PIXA    *pixad;
  *      Input:  pixas
  *              naindex (na that maps from the new pixa to the input pixa)
  *              copyflag (L_COPY, L_CLONE)
- *      Return: pixad (sorted), or null on error
+ *      Return: pixad (sorted), or NULL on error
  */
 PIXA *
 pixaSortByIndex(PIXA    *pixas,
@@ -1465,7 +1465,7 @@ PIXA    *pixad;
  *      Input:  pixas
  *              naa (numaa that maps from the new pixaa to the input pixas)
  *              copyflag (L_CLONE or L_COPY)
- *      Return: paa (sorted), or null on error
+ *      Return: paa (sorted), or NULL on error
  */
 PIXAA *
 pixaSort2dByIndex(PIXA    *pixas,
@@ -1523,7 +1523,7 @@ PIXAA   *paa;
  *              first (use 0 to select from the beginning)
  *              last (use 0 to select to the end)
  *              copyflag (L_COPY, L_CLONE)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) The copyflag specifies what we do with each pix from pixas.
@@ -1571,7 +1571,7 @@ PIXA    *pixad;
  *              first (use 0 to select from the beginning)
  *              last (use 0 to select to the end)
  *              copyflag (L_COPY, L_CLONE)
- *      Return: paad, or null on error
+ *      Return: paad, or NULL on error
  *
  *  Notes:
  *      (1) The copyflag specifies what we do with each pixa from paas.
@@ -1621,16 +1621,16 @@ PIXAA   *paad;
  *      Input:  paas
  *              wd  (target width; use 0 if using height as target)
  *              hd  (target height; use 0 if using width as target)
- *      Return: paad, or null on error
+ *      Return: paad, or NULL on error
  *
  *  Notes:
  *      (1) This guarantees that each output scaled image has the
  *          dimension(s) you specify.
- *           - To specify the width with isotropic scaling, set @hd = 0.
- *           - To specify the height with isotropic scaling, set @wd = 0.
- *           - If both @wd and @hd are specified, the image is scaled
+ *           ~ To specify the width with isotropic scaling, set %hd = 0.
+ *           ~ To specify the height with isotropic scaling, set %wd = 0.
+ *           ~ If both %wd and %hd are specified, the image is scaled
  *             (in general, anisotropically) to that size.
- *           - It is an error to set both @wd and @hd to 0.
+ *           ~ It is an error to set both %wd and %hd to 0.
  */
 PIXAA *
 pixaaScaleToSize(PIXAA   *paas,
@@ -1666,16 +1666,16 @@ PIXAA   *paad;
  *      Input:  paas
  *              nawd  (<optional> target widths; use NULL if using height)
  *              nahd  (<optional> target height; use NULL if using width)
- *      Return: paad, or null on error
+ *      Return: paad, or NULL on error
  *
  *  Notes:
  *      (1) This guarantees that the scaled images in each pixa have the
  *          dimension(s) you specify in the numas.
- *           - To specify the width with isotropic scaling, set @nahd = NULL.
- *           - To specify the height with isotropic scaling, set @nawd = NULL.
- *           - If both @nawd and @nahd are specified, the image is scaled
+ *           ~ To specify the width with isotropic scaling, set %nahd = NULL.
+ *           ~ To specify the height with isotropic scaling, set %nawd = NULL.
+ *           ~ If both %nawd and %nahd are specified, the image is scaled
  *             (in general, anisotropically) to that size.
- *           - It is an error to set both @nawd and @nahd to NULL.
+ *           ~ It is an error to set both %nawd and %nahd to NULL.
  *      (2) If either nawd and/or nahd is defined, it must have the same
  *          count as the number of pixa in paas.
  */
@@ -1720,7 +1720,7 @@ PIXAA   *paad;
  *      Input:  pixas
  *              wd  (target width; use 0 if using height as target)
  *              hd  (target height; use 0 if using width as target)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) See pixaaScaleToSize()
@@ -1760,7 +1760,7 @@ PIXA    *pixad;
  *      Input:  pixas
  *              scalex
  *              scaley
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) If pixas has a full boxes, it is scaled as well.
@@ -1830,7 +1830,7 @@ PIXA    *pixad;
  *             white: pixcmapGetRankIntensity(cmap, 1.0, &index);
  *             black: pixcmapGetRankIntensity(cmap, 0.0, &index);
  *      (2) For in-place replacement of each pix with a bordered version,
- *          use @pixad = @pixas.  To make a new pixa, use @pixad = NULL.
+ *          use %pixad = %pixas.  To make a new pixa, use %pixad = NULL.
  *      (3) In both cases, the boxa has sides adjusted as if it were
  *          expanded by the border.
  */
@@ -1895,7 +1895,7 @@ PIX     *pixs, *pixd;
  *      Input:  paa
  *              &naindex  (<optional return> the pixa index in the pixaa)
  *              copyflag  (L_COPY or L_CLONE)
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) This 'flattens' the pixaa to a pixa, taking the pix in
@@ -2065,7 +2065,7 @@ PIX     *pix;
  *
  *      Input:  pixas
  *              pixs
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) This is intended for use in situations where pixas
@@ -2277,7 +2277,7 @@ l_int32  maxd, same;  /* depth info */
  *  pixaConvertToSameDepth()
  *
  *      Input:  pixas
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) If any pix has a colormap, they are all converted to rgb.
@@ -2341,14 +2341,14 @@ PIXA    *pixat, *pixad;
  *              maxdist
  *              &naindex (<optional return> index array of correspondences
  *              &same (<return> 1 if equal; 0 otherwise)
- *      Return  0 if OK, 1 on error
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The two pixa are the "same" if they contain the same
  *          boxa and the same ordered set of pix.  However, if they
  *          have boxa, the pix in each pixa can differ in ordering
- *          by an amount given by the parameter @maxdist.  If they
- *          don't have a boxa, the @maxdist parameter is ignored,
+ *          by an amount given by the parameter %maxdist.  If they
+ *          don't have a boxa, the %maxdist parameter is ignored,
  *          and the ordering must be identical.
  *      (2) This applies only to boxa geometry, pixels and ordering;
  *          other fields in the pix are ignored.
@@ -2356,7 +2356,7 @@ PIXA    *pixat, *pixad;
  *          corresponds to box i in pixa1.  It is only returned if the
  *          pixa have boxa and the boxa are equal.
  *      (4) In situations where the ordering is very different, so that
- *          a large @maxdist is required for "equality", this should be
+ *          a large %maxdist is required for "equality", this should be
  *          implemented with a hash function for efficiency.
  */
 l_int32
@@ -2437,7 +2437,7 @@ PIX      *pix1, *pix2;
  *      Input:  pixas
  *              rotation (0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
  *                        all rotations are clockwise)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) Rotates each pix in the pixa.  Rotates and saves the boxes in

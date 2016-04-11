@@ -111,8 +111,8 @@ static const l_int32  MAX_PNM_HEIGHT = 100000;
 /*!
  *  pixReadStreamPnm()
  *
- *      Input:  stream opened for read
- *      Return: pix, or null on error
+ *      Input:  fp (file stream opened for read)
+ *      Return: pix, or NULL on error
  */
 PIX *
 pixReadStreamPnm(FILE  *fp)
@@ -266,7 +266,7 @@ FILE    *fp;
 /*!
  *  freadHeaderPnm()
  *
- *      Input:  stream opened for read
+ *      Input:  fp (file stream opened for read)
  *              &w (<optional return>)
  *              &h (<optional return>)
  *              &d (<optional return>)
@@ -359,7 +359,7 @@ l_int32  maxval;
 /*!
  *  pixWriteStreamPnm()
  *
- *      Input:  stream opened for write
+ *      Input:  fp (file stream opened for write)
  *              pix
  *      Return: 0 if OK; 1 on error
  *
@@ -478,7 +478,7 @@ PIX       *pixs;
 /*!
  *  pixWriteStreamAsciiPnm()
  *
- *      Input:  stream opened for write
+ *      Input:  fp (file stream opened for write)
  *              pix
  *      Return: 0 if OK; 1 on error
  *
@@ -604,10 +604,10 @@ PIX       *pixs;
  *
  *      Input:  data (const; pnm-encoded)
  *              size (of data)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
- *      (1) The @size byte of @data must be a null character.
+ *      (1) The %size byte of %data must be a null character.
  */
 PIX *
 pixReadMemPnm(const l_uint8  *data,
@@ -761,7 +761,7 @@ l_int32   c, ignore;
 /*!
  *  pnmReadNextNumber()
  *
- *      Input:  file stream
+ *      Input:  fp (file stream)
  *              &val (<return> value as an integer)
  *      Return: 0 if OK, 1 on error or EOF.
  *

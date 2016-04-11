@@ -142,7 +142,7 @@ static const char *sel_48_2 = "o x"
  *              connectivity (4 or 8)
  *              maxiters (max number of iters allowed; use 0 to iterate
  *                        until completion)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) See "Connectivity-preserving morphological image transformations,"
@@ -226,7 +226,7 @@ SELA  *sela;
  *              sela (of Sels for parallel composite HMTs)
  *              maxiters (max number of iters allowed; use 0 to iterate
  *                        until completion)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) See notes in pixThin().  That function chooses among
@@ -322,7 +322,7 @@ SEL     *sel, *selr;
  *              maxiters (max number of iters allowed; use 0 to iterate
  *                        until completion)
  *              selfile (<optional> filename for output sel display)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) See notes in pixThin().  The examples are taken from

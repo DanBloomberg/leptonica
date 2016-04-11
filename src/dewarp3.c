@@ -75,7 +75,7 @@ static BOXA *boxaApplyDisparity(L_DEWARP *dew, BOXA *boxa, l_int32 direction,
  *                      use -1 to use pixels on the boundary of pixs)
  *              x, y (origin for generation of disparity arrays)
  *              &pixd (<return> disparity corrected image)
- *              debugfile (use null to skip writing this)
+ *              debugfile (use NULL to skip writing this)
  *      Return: 0 if OK, 1 on error (no models or ref models available)
  *
  *  Notes:
@@ -90,8 +90,8 @@ static BOXA *boxaApplyDisparity(L_DEWARP *dew, BOXA *boxa, l_int32 direction,
  *      (5) The caller must handle errors that are returned because there
  *          are no valid models or ref models for the page -- typically
  *          by using the input pixs.
- *      (6) If there is no model for @pageno, this will use the model for
- *          'refpage' and put the result in the dew for @pageno.
+ *      (6) If there is no model for %pageno, this will use the model for
+ *          'refpage' and put the result in the dew for %pageno.
  *      (7) This populates the full resolution disparity arrays if
  *          necessary.  If x and/or y are positive, they are used,
  *          in conjunction with pixs, to determine the required
@@ -101,7 +101,7 @@ static BOXA *boxaApplyDisparity(L_DEWARP *dew, BOXA *boxa, l_int32 direction,
  *          are useful for dewarping when pixs is deliberately undercropped.
  *      (8) Important: when applying disparity to a number of images,
  *          after calling this function and saving the resulting pixd,
- *          you should call dewarpMinimize(dew) on the dew for @pageno.
+ *          you should call dewarpMinimize(dew) on the dew for %pageno.
  *          This will remove pixs and pixd (or their clones) stored in dew,
  *          as well as the full resolution disparity arrays.  Together,
  *          these hold approximately 16 bytes for each pixel in pixs.
@@ -192,17 +192,17 @@ PIX       *pixv, *pixh;
  *              pixs (image to be modified; can be 1, 8 or 32 bpp)
  *              x, y (origin for generation of disparity arrays)
  *              &pdew (<return> dewarp to be used for this page
- *              debugfile (use null to skip writing this)
+ *              debugfile (use NULL to skip writing this)
  *      Return: 0 if OK, 1 on error (no models or ref models available)
  *
  *  Notes:
  *      (1) This prepares pixs for being dewarped.  It returns 1 if
  *          no dewarping model exists.
- *      (2) The returned @dew contains the model to be used for this page
- *          image.  The @dew is owned by dewa; do not destroy.
+ *      (2) The returned %dew contains the model to be used for this page
+ *          image.  The %dew is owned by dewa; do not destroy.
  *      (3) If both the 'useboth' and 'check_columns' fields are true,
  *          this checks for multiple text columns and if found, sets
- *          the 'skip_horiz' field in the @dew for this page.
+ *          the 'skip_horiz' field in the %dew for this page.
  */
 static l_int32
 dewarpaApplyInit(L_DEWARPA   *dewa,
@@ -286,7 +286,7 @@ PIX       *pix1;
  *              pixs (1, 8 or 32 bpp)
  *              grayin (gray value, from 0 to 255, for pixels brought in;
  *                      use -1 to use pixels on the boundary of pixs)
- *      Return: pixd (modified to remove vertical disparity), or null on error
+ *      Return: pixd (modified to remove vertical disparity), or NULL on error
  *
  *  Notes:
  *      (1) This applies the vertical disparity array to the specified
@@ -392,7 +392,7 @@ PIX        *pixd;
  *              grayin (gray value, from 0 to 255, for pixels brought in;
  *                      use -1 to use pixels on the boundary of pixs)
  *      Return: pixd (modified to remove horizontal disparity if possible),
- *              or null on error.
+ *              or NULL on error.
  *
  *  Notes:
  *      (1) This applies the horizontal disparity array to the specified
@@ -402,7 +402,7 @@ PIX        *pixd;
  *          boundary of the source image.
  *      (3) The input pixs has already been corrected for vertical disparity.
  *          If the horizontal disparity array doesn't exist, this returns
- *          a clone of @pixs.
+ *          a clone of %pixs.
  */
 static PIX *
 pixApplyHorizDisparity(L_DEWARP  *dew,
@@ -507,7 +507,7 @@ PIX        *pixd;
  *              x, y (origin for generation of disparity arrays with
  *                    respect to the source region)
  *              &boxad (<return> disparity corrected boxa)
- *              debugfile (use null to skip writing this)
+ *              debugfile (use NULL to skip writing this)
  *      Return: 0 if OK, 1 on error (no models or ref models available)
  *
  *  Notes:
@@ -515,8 +515,8 @@ PIX        *pixd;
  *          to the specified boxa.  It can be used in the backward direction
  *          to locate a box in the original coordinates that would have
  *          been dewarped to to the specified image.
- *      (2) If there is no model for @pageno, this will use the model for
- *          'refpage' and put the result in the dew for @pageno.
+ *      (2) If there is no model for %pageno, this will use the model for
+ *          'refpage' and put the result in the dew for %pageno.
  *      (3) This works with both stripped and full resolution page models.
  *          If the full res disparity array(s) are missing, they are remade.
  *      (4) If an error occurs, a copy of the input boxa is returned.
@@ -625,7 +625,7 @@ PIX       *pixv, *pixh;
  *              direction (L_HORIZ or L_VERT)
  *              mapdir (1 if mapping forward from original to dewarped;
  *                      0 if backward)
- *      Return: boxad (modified by the disparity), or null on error
+ *      Return: boxad (modified by the disparity), or NULL on error
  */
 static BOXA *
 boxaApplyDisparity(L_DEWARP  *dew,
@@ -861,12 +861,12 @@ FPIX       *fpixt1, *fpixt2;
  *
  *      Input:  fpixs (full resolution disparity model)
  *              sampling (sampling factor)
- *      Return: fpixd (sampled disparity model), or null on error
+ *      Return: fpixd (sampled disparity model), or NULL on error
  *
  *  Notes:
  *      (1) This converts full to sampled disparity.
  *      (2) The input array is sampled at the right and top edges, and
- *          at every @sampling pixels horizontally and vertically.
+ *          at every %sampling pixels horizontally and vertically.
  *      (3) The sampled array may not extend to the right and bottom
  *          pixels in fpixs.  This will occur if fpixs was generated
  *          with slope extension because the image on that page was
@@ -920,7 +920,7 @@ FPIX      *fpixd;
  *              factor (conversion factor for vertical disparity slope;
  *                      use 0 for default)
  *              &xwid (<return> extra width to be added to dewarped pix)
- *      Return: fpixh, or null on error
+ *      Return: fpixh, or NULL on error
  *
  *  Notes:
  *      (1) This takes the difference in vertical disparity at top

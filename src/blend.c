@@ -86,7 +86,7 @@
  *  The blending functions are categorized by the depth of src2,
  *  the blender, and not that of src1, the blendee.
  *
- *   - If src2 is 1 bpp, we can do one of three things:
+ *   ~ If src2 is 1 bpp, we can do one of three things:
  *     (1) L_BLEND_WITH_INVERSE: Blend a given fraction of src1 with its
  *         inverse color for those pixels in src2 that are fg (ON),
  *         and leave the dest pixels unchanged for pixels in src2 that
@@ -101,7 +101,7 @@
  *         are bg (OFF).
  *     The blending function is pixBlendMask().
  *
- *   - If src2 is 8 bpp grayscale, we can do one of two things
+ *   ~ If src2 is 8 bpp grayscale, we can do one of two things
  *     (but see pixFadeWithGray() below):
  *     (1) L_BLEND_GRAY: If src1 is 8 bpp, mix the two values, using
  *         a fraction of src2 and (1 - fraction) of src1.
@@ -113,17 +113,17 @@
  *         further acts to scale the change in the src1 pixel.
  *     The blending function is pixBlendGray().
  *
- *   - If src2 is color, we blend a given fraction of src2 with
+ *   ~ If src2 is color, we blend a given fraction of src2 with
  *     src1.  If src1 is 8 bpp, the resulting image is 32 bpp.
  *     The blending function is pixBlendColor().
  *
- *   - For all three blending functions -- pixBlendMask(), pixBlendGray()
+ *   ~ For all three blending functions -- pixBlendMask(), pixBlendGray()
  *     and pixBlendColor() -- you can apply the blender to the blendee
  *     either in-place or generating a new pix.  For the in-place
  *     operation, this requires that the depth of the resulting pix
  *     must equal that of the input pixs1.
  *
- *   - We remove colormaps from src1 and src2 before blending.
+ *   ~ We remove colormaps from src1 and src2 before blending.
  *     Any quantization would have to be done after blending.
  *
  *  We include another function, pixFadeWithGray(), that blends
@@ -154,10 +154,10 @@ static l_int32 blendHardLightComponents(l_int32 a, l_int32 b, l_float32 fract);
  *
  *      Input:  pixs1 (blendee)
  *              pixs2 (blender; typ. smaller)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1; can be < 0)
  *              fract (blending fraction)
- *      Return: pixd (blended image), or null on error
+ *      Return: pixd (blended image), or NULL on error
  *
  *  Notes:
  *      (1) This is a simple top-level interface.  For more flexibility,
@@ -231,11 +231,11 @@ PIX       *pixc, *pixt, *pixd;
  *      Input:  pixd (<optional>; either NULL or equal to pixs1 for in-place)
  *              pixs1 (blendee, depth > 1)
  *              pixs2 (blender, 1 bpp; typ. smaller in size than pixs1)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1; can be < 0)
  *              fract (blending fraction)
  *              type (L_BLEND_WITH_INVERSE, L_BLEND_TO_WHITE, L_BLEND_TO_BLACK)
- *      Return: pixd if OK; null on error
+ *      Return: pixd if OK; NULL on error
  *
  *  Notes:
  *      (1) Clipping of pixs2 to pixs1 is done in the inner pixel loop.
@@ -245,8 +245,8 @@ PIX       *pixc, *pixt, *pixd;
  *      (4) For generating a new pixd:
  *            pixd = pixBlendMask(NULL, pixs1, pixs2, ...)
  *      (5) Only call in-place if pixs1 does not have a colormap.
- *      (6) Invalid @fract defaults to 0.5 with a warning.
- *          Invalid @type defaults to L_BLEND_WITH_INVERSE with a warning.
+ *      (6) Invalid %fract defaults to 0.5 with a warning.
+ *          Invalid %type defaults to L_BLEND_WITH_INVERSE with a warning.
  */
 PIX *
 pixBlendMask(PIX       *pixd,
@@ -441,7 +441,7 @@ PIX       *pixc, *pix1, *pix2;
  *      Input:  pixd (<optional>; either NULL or equal to pixs1 for in-place)
  *              pixs1 (blendee, depth > 1)
  *              pixs2 (blender, any depth; typ. smaller in size than pixs1)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1; can be < 0)
  *              fract (blending fraction)
  *              type (L_BLEND_GRAY, L_BLEND_GRAY_WITH_INVERSE)
@@ -462,16 +462,16 @@ PIX       *pixc, *pix1, *pix2;
  *      (6) If transparent = 1, all pixels of value transpix (typically
  *          either 0 or 0xff) in pixs2 are transparent in the blend.
  *      (7) After processing pixs1, it is either 8 bpp or 32 bpp:
- *          - if 8 bpp, the fraction of pixs2 is mixed with pixs1.
- *          - if 32 bpp, each component of pixs1 is mixed with
+ *          ~ if 8 bpp, the fraction of pixs2 is mixed with pixs1.
+ *          ~ if 32 bpp, each component of pixs1 is mixed with
  *            the same fraction of pixs2.
  *      (8) For L_BLEND_GRAY_WITH_INVERSE, the white values of the blendee
  *          (cval == 255 in the code below) result in a delta of 0.
  *          Thus, these pixels are intrinsically transparent!
  *          The "pivot" value of the src, at which no blending occurs, is
  *          128.  Compare with the adaptive pivot in pixBlendGrayAdapt().
- *      (9) Invalid @fract defaults to 0.5 with a warning.
- *          Invalid @type defaults to L_BLEND_GRAY with a warning.
+ *      (9) Invalid %fract defaults to 0.5 with a warning.
+ *          Invalid %type defaults to L_BLEND_GRAY with a warning.
  */
 PIX *
 pixBlendGray(PIX       *pixd,
@@ -647,7 +647,7 @@ PIX       *pixc, *pix1, *pix2;
  *      Input:  pixd (<optional>; either NULL or equal to pixs1 for in-place)
  *              pixs1 (blendee, depth > 1)
  *              pixs2 (blender, any depth; typ. smaller in size than pixs1)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1; can be < 0)
  *              fract (blending fraction)
  *      Return: pixd if OK; pixs1 on error
@@ -667,7 +667,7 @@ PIX       *pixc, *pix1, *pix2;
  *      (6) The basic logic is that each component transforms by:
                  d  -->  c * d + (1 - c ) * (f * (1 - d) + d * (1 - f))
  *          where c is the blender pixel from pixs2,
- *                f is @fract,
+ *                f is %fract,
  *                c and d are normalized to [0...1]
  *          This has the property that for f == 0 (no blend) or c == 1 (white):
  *               d  -->  d
@@ -783,12 +783,12 @@ PIX       *pixc, *pix1, *pix2;
  *      Input:  pixd (<optional>; either NULL or equal to pixs1 for in-place)
  *              pixs1 (blendee; depth > 1)
  *              pixs2 (blender, any depth;; typ. smaller in size than pixs1)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1)
  *              fract (blending fraction)
  *              transparent (1 to use transparency; 0 otherwise)
  *              transpix (pixel color in pixs2 that is to be transparent)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) For inplace operation (pixs1 must be 32 bpp), call it this way:
@@ -892,14 +892,14 @@ PIX       *pixc;
  *      Input:  pixd (<optional>; either NULL or equal to pixs1 for in-place)
  *              pixs1 (blendee; depth > 1)
  *              pixs2 (blender, any depth; typ. smaller in size than pixs1)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1)
  *              rfract, gfract, bfract (blending fractions by channel)
  *              transparent (1 to use transparency; 0 otherwise)
  *              transpix (pixel color in pixs2 that is to be transparent)
  *      Return: pixd if OK; pixs1 on error
  *
- * Notes:
+ *  Notes:
  *     (1) This generalizes pixBlendColor() in two ways:
  *         (a) The mixing fraction is specified per channel.
  *         (b) The mixing fraction may be < 0 or > 1, in which case,
@@ -1010,7 +1010,7 @@ blendComponents(l_int32    a,
  *      Input:  pixd (<optional>; either NULL or equal to pixs1 for in-place)
  *              pixs1 (blendee, depth > 1)
  *              pixs2 (blender, any depth; typ. smaller in size than pixs1)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1; can be < 0)
  *              fract (blending fraction)
  *              shift (>= 0 but <= 128: shift of zero blend value from
@@ -1038,8 +1038,8 @@ blendComponents(l_int32    a,
  *          the median is 128 and the blender is not visible.
  *          The default value of shift is 64.
  *      (6) After processing pixs1, it is either 8 bpp or 32 bpp:
- *          - if 8 bpp, the fraction of pixs2 is mixed with pixs1.
- *          - if 32 bpp, each component of pixs1 is mixed with
+ *          ~ if 8 bpp, the fraction of pixs2 is mixed with pixs1.
+ *          ~ if 32 bpp, each component of pixs1 is mixed with
  *            the same fraction of pixs2.
  *      (7) The darker the blender, the more it mixes with the blendee.
  *          A blender value of 0 has maximum mixing; a value of 255
@@ -1207,7 +1207,7 @@ PIX       *pixc, *pix1, *pix2;
  *              pixb (8 bpp blender)
  *              factor (multiplicative factor to apply to blender value)
  *              type (L_BLEND_TO_WHITE, L_BLEND_TO_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function combines two pix aligned to the UL corner; they
@@ -1305,7 +1305,7 @@ PIX       *pixd;
  *              pixs1 (blendee; depth > 1, may be cmapped)
  *              pixs2 (blender, 8 or 32 bpp; may be colormapped;
  *                     typ. smaller in size than pixs1)
- *              x,y  (origin (UL corner) of pixs2 relative to
+ *              x,y  (origin [UL corner] of pixs2 relative to
  *                    the origin of pixs1)
  *              fract (blending fraction, or 'opacity factor')
  *      Return: pixd if OK; pixs1 on error
@@ -1519,7 +1519,7 @@ static l_int32 blendHardLightComponents(l_int32    a,
  *              sindex (colormap index of pixels in pixs to be changed)
  *      Return: 0 if OK, 1 on error
  *
- *  Note:
+ *  Notes:
  *      (1) This function combines two colormaps, and replaces the pixels
  *          in pixs that have a specified color value with those in pixb.
  *      (2) sindex must be in the existing colormap; otherwise an
@@ -1646,7 +1646,7 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
  *              pixg (<optional> 8 bpp gray, for transparency of pixs2;
  *                    can be null)
  *              x, y (UL corner of pixs2 and pixg with respect to pixs1)
- *      Return: pixd (blended image), or null on error
+ *      Return: pixd (blended image), or NULL on error
  *
  *  Notes:
  *      (1) The result is 8 bpp grayscale if both pixs1 and pixs2 are
@@ -1822,8 +1822,8 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixg2, *pixd;
  *      (4) The alpha component for blending is derived from pixs,
  *          by converting to grayscale and enhancing with a TRC.
  *      (5) The last three arguments specify the TRC operation.
- *          Suggested values are: @gamma = 0.3, @minval = 50, @maxval = 200.
- *          To skip the TRC, use @gamma == 1, @minval = 0, @maxval = 255.
+ *          Suggested values are: %gamma = 0.3, %minval = 50, %maxval = 200.
+ *          To skip the TRC, use %gamma == 1, %minval = 0, %maxval = 255.
  *          See pixGammaTRC() for details.
  */
 PIX *
@@ -1969,14 +1969,14 @@ PIX       *pixt;
  *
  *      Input:  pixs (32 bpp rgba, with alpha)
  *              color (32 bit color in 0xrrggbb00 format)
- *      Return: pixd (32 bpp rgb: pixs blended over uniform color @color),
- *                    a clone of pixs if no alpha, and null on error
+ *      Return: pixd (32 bpp rgb: pixs blended over uniform color %color),
+ *                    a clone of pixs if no alpha, and NULL on error
  *
  *  Notes:
  *      (1) This is a convenience function that renders 32 bpp RGBA images
  *          (with an alpha channel) over a uniform background of
- *          value @color.  To render over a white background,
- *          use @color = 0xffffff00.  The result is an RGB image.
+ *          value %color.  To render over a white background,
+ *          use %color = 0xffffff00.  The result is an RGB image.
  *      (2) If pixs does not have an alpha channel, it returns a clone
  *          of pixs.
  */
@@ -2016,16 +2016,16 @@ PIX  *pixt, *pixd;
  *      Input:  pixs (any depth)
  *              fract (fade fraction in the alpha component)
  *              invert (1 to photometrically invert pixs)
- *      Return: pixd (32 bpp with alpha), or null on error
+ *      Return: pixd (32 bpp with alpha), or NULL on error
  *
  *  Notes:
  *      (1) This is a simple alpha layer generator, where typically white has
  *          maximum transparency and black has minimum.
- *      (2) If @invert == 1, generate the same alpha layer but invert
+ *      (2) If %invert == 1, generate the same alpha layer but invert
  *          the input image photometrically.  This is useful for blending
  *          over dark images, where you want dark regions in pixs, such
  *          as text, to be lighter in the blended image.
- *      (3) The fade @fract gives the minimum transparency (i.e.,
+ *      (3) The fade %fract gives the minimum transparency (i.e.,
  *          maximum opacity).  A small fraction is useful for adding
  *          a watermark to an image.
  *      (4) If pixs has a colormap, it is removed to rgb.
@@ -2076,7 +2076,7 @@ PIX  *pixd, *pix1, *pix2;
  *
  *      Input:  pixs (colormapped or 32 bpp rgb; no alpha)
  *      Return: pixd (new pix with meaningful alpha component),
- *                   or null on error
+ *                   or NULL on error
  *
  *  Notes:
  *      (1) The generated alpha component is transparent over white

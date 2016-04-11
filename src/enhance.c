@@ -73,15 +73,15 @@
  *      apply a simple mapping function to each pixel (or, for color
  *      images, to each sample (i.e., r,g,b) of the pixel).
  *
- *       - Gamma correction either lightens the image or darkens
+ *       ~ Gamma correction either lightens the image or darkens
  *         it, depending on whether the gamma factor is greater
  *         or less than 1.0, respectively.
  *
- *       - Contrast enhancement darkens the pixels that are already
+ *       ~ Contrast enhancement darkens the pixels that are already
  *         darker than the middle of the dynamic range (128)
  *         and lightens pixels that are lighter than 128.
  *
- *       - Histogram equalization remaps to have the same number
+ *       ~ Histogram equalization remaps to have the same number
  *         of image pixels at each of 256 intensity values.  This is
  *         a quick and dirty method of adjusting contrast and brightness
  *         to bring out details in both light and dark regions.
@@ -337,7 +337,7 @@ PIX   *pixalpha;
  *      Input:  gamma   (gamma factor; must be > 0.0)
  *              minval  (input value that gives 0 for output)
  *              maxval  (input value that gives 255 for output)
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  *
  *  Notes:
  *      (1) The map is returned as a numa; values are clipped to [0, 255].
@@ -522,9 +522,9 @@ NUMA    *nac;
 /*!
  *  numaContrastTRC()
  *
- *      Input:  factor (generally between 0.0 (no enhancement)
+ *      Input:  factor (generally between 0.0 [no enhancement]
  *              and 1.0, but can be larger than 1.0)
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  *
  *  Notes:
  *      (1) The mapping is monotonic increasing, where 0 is mapped
@@ -577,7 +577,7 @@ NUMA      *na;
  *              pixs (8 bpp gray, 32 bpp rgb, or colormapped)
  *              fract (fraction of equalization movement of pixel values)
  *              factor (subsampling factor; integer >= 1)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) pixd must either be null or equal to pixs.
@@ -676,7 +676,7 @@ PIXCMAP  *cmap;
  *      Input:  pix (8 bpp, no colormap)
  *              fract (fraction of equalization movement of pixel values)
  *              factor (subsampling factor; integer >= 1)
- *      Return: nad, or null on error
+ *      Return: nad, or NULL on error
  *
  *  Notes:
  *      (1) If fract == 0.0, no equalization will be performed.
@@ -738,7 +738,7 @@ NUMA      *nah, *nasum, *nad;
  *      Input:  pixs (8 grayscale or 32 bpp rgb; not colormapped)
  *              pixm (<optional> 1 bpp mask)
  *              na (mapping array)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This operation is in-place on pixs.
@@ -862,11 +862,11 @@ l_uint32  *data, *datam, *line, *linem;
  *      Input:  pixs (all depths except 1 bpp; with or without colormaps)
  *              halfwidth  ("half-width" of smoothing filter)
  *              fract  (fraction of edge added back into image)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) We use symmetric smoothing filters of odd dimension,
- *          typically use sizes of 3, 5, 7, etc.  The @halfwidth parameter
+ *          typically use sizes of 3, 5, 7, etc.  The %halfwidth parameter
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
  *      (2) The fract parameter is typically taken in the
  *          range:  0.2 < fract < 0.7
@@ -929,11 +929,11 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
  *      Input:  pixs (8 bpp; no colormap)
  *              halfwidth  ("half-width" of smoothing filter)
  *              fract  (fraction of edge added back into image)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) We use symmetric smoothing filters of odd dimension,
- *          typically use sizes of 3, 5, 7, etc.  The @halfwidth parameter
+ *          typically use sizes of 3, 5, 7, etc.  The %halfwidth parameter
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
  *      (2) The fract parameter is typically taken in the range:
  *          0.2 < fract < 0.7
@@ -1005,7 +1005,7 @@ PIXACC  *pixacc;
  *              halfwidth  ("half-width" of smoothing filter; 1 and 2 only)
  *              fract  (fraction of high frequency added to image)
  *              direction (L_HORIZ, L_VERT, L_BOTH_DIRECTIONS)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The fast version uses separable 1-D filters directly on
@@ -1013,13 +1013,13 @@ PIXACC  *pixacc;
  *          or 2 (full width = 5).
  *      (2) The fract parameter is typically taken in the
  *            range:  0.2 < fract < 0.7
- *      (3) To skip horizontal sharpening, use @fracth = 0.0; ditto for @fractv
+ *      (3) To skip horizontal sharpening, use %fracth = 0.0; ditto for %fractv
  *      (4) For one dimensional filtering (as an example):
- *          For @halfwidth = 1, the low-pass filter is
+ *          For %halfwidth = 1, the low-pass filter is
  *              L:    1/3    1/3   1/3
  *          and the high-pass filter is
  *              H = I - L:   -1/3   2/3   -1/3
- *          For @halfwidth = 2, the low-pass filter is
+ *          For %halfwidth = 2, the low-pass filter is
  *              L:    1/5    1/5   1/5    1/5    1/5
  *          and the high-pass filter is
  *              H = I - L:   -1/5  -1/5   4/5  -1/5   -1/5
@@ -1030,7 +1030,7 @@ PIXACC  *pixacc;
  *      (5) For 2D, the sharpening filter is not separable, because the
  *          vertical filter depends on the horizontal location relative
  *          to the filter origin, and v.v.   So we either do the full
- *          2D filter (for @halfwidth == 1) or do the low-pass
+ *          2D filter (for %halfwidth == 1) or do the low-pass
  *          convolution separably and then compose with the original pix.
  *      (6) Returns a clone if no sharpening is requested.
  */
@@ -1096,7 +1096,7 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
  *              halfwidth  ("half-width" of smoothing filter: 1 or 2)
  *              fract  (fraction of high frequency added to image)
  *              direction (L_HORIZ, L_VERT, L_BOTH_DIRECTIONS)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) For usage and explanation of the algorithm, see notes
@@ -1143,7 +1143,7 @@ PIX  *pixd;
  *              halfwidth  ("half-width" of smoothing filter: 1 or 2)
  *              fract  (fraction of high frequency added to image)
  *              direction (of filtering; use L_HORIZ or L_VERT)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) For usage and explanation of the algorithm, see notes
@@ -1275,7 +1275,7 @@ PIX       *pixd;
  *      Input:  pixs (8 bpp; no colormap)
  *              halfwidth  ("half-width" of smoothing filter: 1 or 2)
  *              fract  (fraction of high frequency added to image)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) For halfwidth == 1, we implement the full sharpening filter
@@ -1405,7 +1405,7 @@ FPIX       *fpix;
  *      Input:  pixd (<optional> can be null or equal to pixs)
  *              pixs (32 bpp rgb)
  *              fract (between -1.0 and 1.0)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) pixd must either be null or equal to pixs.
@@ -1477,7 +1477,7 @@ l_uint32  *data, *line;
  *      Input:  pixd (<optional> can be null, existing or equal to pixs)
  *              pixs (32 bpp rgb)
  *              fract (between -1.0 and 1.0)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) If fract > 0.0, it gives the fraction that the pixel
@@ -1543,7 +1543,7 @@ l_uint32  *data, *line;
  *      Input:  pixs (32 bpp rgb)
  *              factor (subsampling factor; integer >= 1)
  *              &sat (<return> average saturation)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 l_int32
 pixMeasureSaturation(PIX        *pixs,
@@ -1591,7 +1591,7 @@ l_uint32  *data, *line;
  *      Input:  pixd (<optional> can be null, existing or equal to pixs)
  *              pixs (32 bpp rgb)
  *              fract (between -1.0 and 1.0)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) If fract > 0.0, it gives the fraction that the v-parameter,
@@ -1661,7 +1661,7 @@ l_uint32  *data, *line;
  *              rfract (fractional shift in red component)
  *              gfract (fractional shift in green component)
  *              bfract (fractional shift in blue component)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This allows independent fractional shifts of the r,g and b
@@ -1751,12 +1751,12 @@ PIX       *pixd;
 /*-----------------------------------------------------------------------*
  *            General multiplicative constant color transform            *
  *-----------------------------------------------------------------------*/
-/*
+/*!
  *  pixMultConstantColor()
  *
  *      Input:  pixs (colormapped or rgb)
  *              rfact, gfact, bfact (multiplicative factors on each component)
- *      Return: pixd (colormapped or rgb, with colors scaled), or null on error
+ *      Return: pixd (colormapped or rgb, with colors scaled), or NULL on error
  *
  *  Notes:
  *      (1) rfact, gfact and bfact can only have non-negative values.
@@ -1834,12 +1834,12 @@ PIXCMAP   *cmap;
 }
 
 
-/*
+/*!
  *  pixMultMatrixColor()
  *
  *      Input:  pixs (colormapped or rgb)
- *              kernel (3x3 matrix of floats)
- *      Return: pixd (colormapped or rgb), or null on error
+ *              kel (kernel 3x3 matrix of floats)
+ *      Return: pixd (colormapped or rgb), or NULL on error
  *
  *  Notes:
  *      (1) The kernel is a data structure used mostly for floating point
@@ -1947,9 +1947,9 @@ PIXCMAP   *cmap;
  *
  *      Input:  pixs (8 bpp gray or 32 bpp rgb)
  *              sm1h, sm1v ("half-widths" of smoothing filter sm1)
- *              sm2h, sm2v ("half-widths" of smoothing filter sm2)
- *                      (require sm2 != sm1)
- *      Return: pixd, or null on error
+ *              sm2h, sm2v ("half-widths" of smoothing filter sm2;
+ *                      require sm2 != sm1)
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) We use symmetric smoothing filters of odd dimension,

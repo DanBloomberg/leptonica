@@ -51,7 +51,7 @@
  *      Input:  pixs
  *              tab (<optional>; if null, a table is made here
  *                   and destroyed before exit)
- *      Return: pixd (2x subsampled), or null on error
+ *      Return: pixd (2x subsampled), or NULL on error
  *
  *  Notes:
  *      (1) After folding, the data is in bytes 0 and 2 of the word,
@@ -135,7 +135,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1 bpp)
  *              level1, ... level 4 (thresholds, in the set {0, 1, 2, 3, 4})
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This performs up to four cascaded 2x rank reductions.
@@ -202,7 +202,7 @@ l_uint8  *tab;
  *              level (rank threshold: 1, 2, 3, 4)
  *              intab (<optional>; if null, a table is made here
  *                     and destroyed before exit)
- *      Return: pixd (1 bpp, 2x rank threshold reduced), or null on error
+ *      Return: pixd (1 bpp, 2x rank threshold reduced), or NULL on error
  *
  *  Notes:
  *      (1) pixd is downscaled by 2x from pixs.

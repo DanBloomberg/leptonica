@@ -72,7 +72,7 @@ static const l_float32  LIMIT_SHEAR_ANGLE = 0.35;     /* radians; ~20 deg   */
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
  *              width (original width; use 0 to avoid embedding)
  *              height (original height; use 0 to avoid embedding)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This is a high-level, simple interface for rotating images
@@ -148,7 +148,7 @@ PIXCMAP   *cmap;
 
         /* Otherwise, if there is a colormap and we're not embedding,
          * add white color if it doesn't exist. */
-    if (cmap && width == 0) {  /* no embedding; generate @incolor */
+    if (cmap && width == 0) {  /* no embedding; generate %incolor */
         if (incolor == L_BRING_IN_BLACK)
             pixcmapAddBlackOrWhite(cmap, 0, NULL);
         else  /* L_BRING_IN_WHITE */
@@ -201,7 +201,7 @@ PIXCMAP   *cmap;
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
  *              width (original width; use 0 to avoid embedding)
  *              height (original height; use 0 to avoid embedding)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) For very small rotations, just return a clone.
@@ -304,7 +304,7 @@ PIX       *pixd;
  *              ycen (y value of center of rotation)
  *              angle (radians; clockwise is positive)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) For very small rotations, just return a clone.
@@ -426,7 +426,7 @@ PIX       *pixd;
  *      Input:  pixs (1 bpp)
  *              angle (radians; clockwise is positive; about the center)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) For very small rotations, just return a clone.
@@ -481,7 +481,7 @@ PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixd;
  *              pixg (<optional> 8 bpp, can be null)
  *              fract (between 0.0 and 1.0, with 0.0 fully transparent
  *                     and 1.0 fully opaque)
- *      Return: pixd (32 bpp rgba), or null on error
+ *      Return: pixd (32 bpp rgba), or NULL on error
  *
  *  Notes:
  *      (1) The alpha channel is transformed separately from pixs,
@@ -496,8 +496,8 @@ PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixd;
  *          color is brought in because the alpha channel will
  *          be transparent (black) there.
  *      (4) If pixg is NULL, it is generated as an alpha layer that is
- *          partially opaque, using @fract.  Otherwise, it is cropped
- *          to pixs if required and @fract is ignored.  The alpha
+ *          partially opaque, using %fract.  Otherwise, it is cropped
+ *          to pixs if required and %fract is ignored.  The alpha
  *          channel in pixs is never used.
  *      (4) Colormaps are removed to 32 bpp.
  *      (5) The default setting for the border values in the alpha channel
@@ -538,7 +538,7 @@ PIX     *pixd, *pix32, *pixg2, *pixgr;
     if (d != 32 && pixGetColormap(pixs) == NULL)
         return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
     if (pixg && pixGetDepth(pixg) != 8) {
-        L_WARNING("pixg not 8 bpp; using @fract transparent alpha\n", procName);
+        L_WARNING("pixg not 8 bpp; using %fract transparent alpha\n", procName);
         pixg = NULL;
     }
     if (!pixg && (fract < 0.0 || fract > 1.0)) {

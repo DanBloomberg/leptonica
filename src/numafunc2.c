@@ -144,7 +144,7 @@ static const l_int32 NBinSizes = 24;
  *
  *      Input:  nas
  *              size (of sel; greater than 0, odd; origin implicitly in center)
- *      Return: nad (eroded), or null on error
+ *      Return: nad (eroded), or NULL on error
  *
  *  Notes:
  *      (1) The structuring element (sel) is linear, all "hits"
@@ -217,7 +217,7 @@ NUMA       *nad;
  *
  *      Input:  nas
  *              size (of sel; greater than 0, odd; origin implicitly in center)
- *      Return: nad (dilated), or null on error
+ *      Return: nad (dilated), or NULL on error
  *
  *  Notes:
  *      (1) The structuring element (sel) is linear, all "hits"
@@ -283,7 +283,7 @@ NUMA       *nad;
  *
  *      Input:  nas
  *              size (of sel; greater than 0, odd; origin implicitly in center)
- *      Return: nad (opened), or null on error
+ *      Return: nad (opened), or NULL on error
  *
  *  Notes:
  *      (1) The structuring element (sel) is linear, all "hits"
@@ -321,7 +321,7 @@ NUMA  *nat, *nad;
  *
  *      Input:  nas
  *              size (of sel; greater than 0, odd; origin implicitly in center)
- *      Return: nad (opened), or null on error
+ *      Return: nad (opened), or NULL on error
  *
  *  Notes:
  *      (1) The structuring element (sel) is linear, all "hits"
@@ -373,7 +373,7 @@ NUMA  *nab, *nat1, *nat2, *nad;
  *      Input:  nas
  *              shift (add this to each number)
  *              scale (multiply each number by this)
- *      Return: nad (with all values shifted and scaled, or null on error)
+ *      Return: nad (with all values shifted and scaled, or NULL on error)
  *
  *  Notes:
  *      (1) Each number is shifted before scaling.
@@ -480,10 +480,10 @@ l_float32  sum, sumsq, val, mean, var;
  *          any or all of these derived arrays.
  *      (2) These statistical measures over the values in the
  *          rectangular window are:
- *            - average value: <x>  (nam)
- *            - average squared value: <x*x> (nams)
- *            - variance: <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>  (nav)
- *            - square-root of variance: (narv)
+ *            ~ average value: <x>  (nam)
+ *            ~ average squared value: <x*x> (nams)
+ *            ~ variance: <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>  (nav)
+ *            ~ square-root of variance: (narv)
  *          where the brackets < .. > indicate that the average value is
  *          to be taken over the window.
  *      (3) Note that the variance is just the mean square difference from
@@ -536,11 +536,11 @@ NUMA  *nam, *nams;
  *
  *      Input:  nas
  *              wc (half width of the convolution window)
- *      Return: nad (after low-pass filtering), or null on error
+ *      Return: nad (after low-pass filtering), or NULL on error
  *
  *  Notes:
- *      (1) This is a convolution.  The window has width = 2 * @wc + 1.
- *      (2) We add a mirrored border of size @wc to each end of the array.
+ *      (1) This is a convolution.  The window has width = 2 * %wc + 1.
+ *      (2) We add a mirrored border of size %wc to each end of the array.
  */
 NUMA *
 numaWindowedMean(NUMA    *nas,
@@ -591,11 +591,11 @@ NUMA       *na1, *nad;
  *
  *      Input:  nas
  *              wc (half width of the window)
- *      Return: nad (containing windowed mean square values), or null on error
+ *      Return: nad (containing windowed mean square values), or NULL on error
  *
  *  Notes:
- *      (1) The window has width = 2 * @wc + 1.
- *      (2) We add a mirrored border of size @wc to each end of the array.
+ *      (1) The window has width = 2 * %wc + 1.
+ *      (2) We add a mirrored border of size %wc to each end of the array.
  */
 NUMA *
 numaWindowedMeanSquare(NUMA    *nas,
@@ -716,14 +716,14 @@ NUMA       *nav, *narv;  /* variance and square root of variance */
  *
  *      Input:  nas
  *              halfwin (half width of window over which the median is found)
- *      Return: nad (after windowed median filtering), or null on error
+ *      Return: nad (after windowed median filtering), or NULL on error
  *
  *  Notes:
- *      (1) The requested window has width = 2 * @halfwin + 1.
+ *      (1) The requested window has width = 2 * %halfwin + 1.
  *      (2) If the input nas has less then 3 elements, return a copy.
- *      (3) If the filter is too small (@halfwin <= 0), return a copy.
+ *      (3) If the filter is too small (%halfwin <= 0), return a copy.
  *      (4) If the filter is too large, it is reduced in size.
- *      (5) We add a mirrored border of size @halfwin to each end of
+ *      (5) We add a mirrored border of size %halfwin to each end of
  *          the array to simplify the calculation by avoiding end-effects.
  */
 NUMA *
@@ -773,7 +773,7 @@ NUMA      *na1, *na2, *nad;
  *
  *      Input:  na
  *      Return: na with all values rounded to nearest integer, or
- *              null on error
+ *              NULL on error
  */
 NUMA *
 numaConvertToInt(NUMA  *nas)
@@ -810,13 +810,13 @@ NUMA    *nad;
  *              &binstart (<optional return> start val of minimum bin;
  *                         input NULL to force start at 0)
  *      Return: na consisiting of histogram of integerized values,
- *              or null on error.
+ *              or NULL on error.
  *
- *  Note:
+ *  Notes:
  *      (1) This simple interface is designed for integer data.
  *          The bins are of integer width and start on integer boundaries,
  *          so the results on float data will not have high precision.
- *      (2) Specify the max number of input bins.   Then @binsize,
+ *      (2) Specify the max number of input bins.   Then %binsize,
  *          the size of bins necessary to accommodate the input data,
  *          is returned.  It is one of the sequence:
  *                {1, 2, 5, 10, 20, 50, ...}.
@@ -919,17 +919,17 @@ NUMA      *nai, *nahist;
  *      Input:  na (numa of floats; these may be integers)
  *              maxbins (max number of histogram bins; >= 1)
  *      Return: na consisiting of histogram of quantized float values,
- *              or null on error.
+ *              or NULL on error.
  *
  *  Notes:
  *      (1) This simple interface is designed for accurate binning
  *          of both integer and float data.
  *      (2) If the array data is integers, and the range of integers
- *          is smaller than @maxbins, they are binned as they fall,
+ *          is smaller than %maxbins, they are binned as they fall,
  *          with binsize = 1.
  *      (3) If the range of data, (maxval - minval), is larger than
- *          @maxbins, or if the data is floats, they are binned into
- *          exactly @maxbins bins.
+ *          %maxbins, or if the data is floats, they are binned into
+ *          exactly %maxbins bins.
  *      (4) Unlike numaMakeHistogram(), these bins in general have
  *          non-integer location and width, even for integer data.
  */
@@ -1003,15 +1003,15 @@ NUMA      *nah;
  *      Input:  na
  *              binsize (typically 1.0)
  *              maxsize (of histogram ordinate)
- *      Return: na (histogram of bins of size @binsize, starting with
+ *      Return: na (histogram of bins of size %binsize, starting with
  *                  the na[0] (x = 0.0) and going up to a maximum of
- *                  x = @maxsize, by increments of @binsize), or null on error
+ *                  x = %maxsize, by increments of %binsize), or NULL on error
  *
  *  Notes:
  *      (1) This simple function generates a histogram of values
  *          from na, discarding all values < 0.0 or greater than
- *          min(@maxsize, maxval), where maxval is the maximum value in na.
- *          The histogram data is put in bins of size delx = @binsize,
+ *          min(%maxsize, maxval), where maxval is the maximum value in na.
+ *          The histogram data is put in bins of size delx = %binsize,
  *          starting at x = 0.0.  We use as many bins as are
  *          needed to hold the data.
  */
@@ -1062,7 +1062,7 @@ NUMA      *nad;
  *
  *      Input:  nas (input histogram)
  *              newsize (number of old bins contained in each new bin)
- *      Return: nad (more coarsely re-binned histogram), or null on error
+ *      Return: nad (more coarsely re-binned histogram), or NULL on error
  */
 NUMA *
 numaRebinHistogram(NUMA    *nas,
@@ -1109,9 +1109,9 @@ NUMA      *nad;
  *
  *      Input:  nas (input histogram)
  *              tsum (target sum of all numbers in dest histogram;
- *                    e.g., use @tsum= 1.0 if this represents a
+ *                    e.g., use %tsum= 1.0 if this represents a
  *                    probability distribution)
- *      Return: nad (normalized histogram), or null on error
+ *      Return: nad (normalized histogram), or NULL on error
  */
 NUMA *
 numaNormalizeHistogram(NUMA      *nas,
@@ -1154,7 +1154,7 @@ NUMA      *nad;
  *                  a histogram)
  *              maxbins (the maximum number of bins to be allowed in
  *                       the histogram; use an integer larger than the
- *                       largest number in @na for consecutive integer bins)
+ *                       largest number in %na for consecutive integer bins)
  *              &min (<optional return> min value of set)
  *              &max (<optional return> max value of set)
  *              &mean (<optional return> mean value of set)
@@ -1162,7 +1162,7 @@ NUMA      *nad;
  *              &median (<optional return> median value of set)
  *              rank (in [0.0 ... 1.0]; median has a rank 0.5; ignored
  *                    if &rval == NULL)
- *              &rval (<optional return> value in na corresponding to @rank)
+ *              &rval (<optional return> value in na corresponding to %rank)
  *              &histo (<optional return> Numa histogram; use NULL to prevent)
  *      Return: 0 if OK, 1 on error
  *
@@ -1171,7 +1171,7 @@ NUMA      *nad;
  *          from a numa, where a histogram is used 'under the covers'
  *          to avoid sorting if a rank value is requested.  In that case,
  *          by using a histogram we are trading speed for accuracy, because
- *          the values in @na are quantized to the center of a set of bins.
+ *          the values in %na are quantized to the center of a set of bins.
  *      (2) If the median, other rank value, or histogram are not requested,
  *          the calculation is all performed on the input Numa.
  *      (3) The variance is the average of the square of the
@@ -1181,13 +1181,13 @@ NUMA      *nad;
  *          accuracy comparable to computing stastics directly on the input
  *          data, without binning into a histogram:
  *           (a) the data is integers and the range of data is less than
- *               @maxbins, and
+ *               %maxbins, and
  *           (b) the data is floats and the range is small compared to
- *               @maxbins, so that the binsize is much less than 1.
+ *               %maxbins, so that the binsize is much less than 1.
  *      (5) If a histogram is used and the numbers in the Numa extend
  *          over a large range, you can limit the required storage by
  *          specifying the maximum number of bins in the histogram.
- *          Use @maxbins == 0 to force the bin size to be 1.
+ *          Use %maxbins == 0 to force the bin size to be 1.
  *      (6) This optionally returns the median and one arbitrary rank value.
  *          If you need several rank values, return the histogram and use
  *               numaHistogramGetValFromRank(nah, rank, &rval)
@@ -1607,7 +1607,7 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
  *              nbins (number of bins at which the rank is divided)
  *              &pnarbin (<optional return> rank bin value vs intensity)
  *              &pnam (<optional return> median intensity in a bin vs
- *                     rank bin value, with @nbins of discretized rank values)
+ *                     rank bin value, with %nbins of discretized rank values)
  *              &pnar (<optional return> rank vs intensity; this is
  *                     a cumulative norm histogram)
  *              &pnabb (<optional return> intensity at the right bin boundary
@@ -1616,7 +1616,7 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
  *
  *  Notes:
  *      (1) We are inverting the rank(intensity) function to get
- *          the intensity(rank) function at @nbins equally spaced
+ *          the intensity(rank) function at %nbins equally spaced
  *          values of rank between 0.0 and 1.0.  We save integer values
  *          for the intensity.
  *      (2) We are using the word "intensity" to describe the type of
@@ -1760,7 +1760,7 @@ l_float32  sum, midrank, endrank, val;
  *              nbins (number of bins at which the rank is divided)
  *              &pnarbin (<optional return> rank bin value vs array value)
  *              &pnam (<optional return> median intensity in a bin vs
- *                     rank bin value, with @nbins of discretized rank values)
+ *                     rank bin value, with %nbins of discretized rank values)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1826,7 +1826,7 @@ l_float32  maxval, delx;
  *              &ave2 (<optional return> average of upper distribution)
  *              &num1 (<optional return> population of lower distribution)
  *              &num2 (<optional return> population of upper distribution)
- *              &nascore (<optional return> for debugging; otherwise use null)
+ *              &nascore (<optional return> for debugging; otherwise use NULL)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -2007,7 +2007,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
  *              &nad (<return> nad of EM distances for each histogram)
  *      Return: 0 if OK, 1 on error
  *
- * Notes:
+ *  Notes:
  *     (1) The two numaas must be the same size and have corresponding
  *         256-element histograms.  Pairs do not need to be normalized
  *         to the same sum.
@@ -2067,7 +2067,7 @@ NUMA       *na1, *na2, *nad;
  *              &dist (<return> EM distance)
  *      Return: 0 if OK, 1 on error
  *
- * Notes:
+ *  Notes:
  *     (1) The two numas must have the same size.  They do not need to be
  *         normalized to the same sum before applying the function.
  *     (2) For a 1D discrete function, the implementation of the EMD
@@ -2142,8 +2142,8 @@ NUMA       *na3;
  *              &pnarv (<optional return> rms deviations from the mean)
  *      Return: 0 if OK, 1 on error
  *
- * Notes:
- *     (1) The @naa has two or more 256-element numa histograms, which
+ *  Notes:
+ *     (1) The %naa has two or more 256-element numa histograms, which
  *         are to be compared value-wise at each of the 256 gray levels.
  *         The result are stats (mean, mean square, variance, root variance)
  *         aggregated across the set of histograms, and each is output
@@ -2151,10 +2151,10 @@ NUMA       *na3;
  *         where each histogram is one row of the array.  The stats are
  *         then aggregated column-wise, between the histograms.
  *     (2) These stats are:
-*             - average value: <v>  (nam)
- *            - average squared value: <v*v> (nams)
- *            - variance: <(v - <v>)*(v - <v>)> = <v*v> - <v>*<v>  (nav)
- *            - square-root of variance: (narv)
+ *            ~ average value: <v>  (nam)
+ *            ~ average squared value: <v*v> (nams)
+ *            ~ variance: <(v - <v>)*(v - <v>)> = <v*v> - <v>*<v>  (nav)
+ *            ~ square-root of variance: (narv)
  *         where the brackets < .. > indicate that the average value is
  *         to be taken over each column of the array.
  *     (3) The input histograms are optionally smoothed before these
@@ -2255,9 +2255,9 @@ NUMA        *na1, *na2, *na3, *na4;
  *              max number of peaks to be found
  *              fract1  (min fraction of peak value)
  *              fract2  (min slope)
- *      Return: peak na, or null on error.
+ *      Return: peak na, or NULL on error.
  *
- * Notes:
+ *  Notes:
  *     (1) The returned na consists of sets of four numbers representing
  *         the peak, in the following order:
  *            left edge; peak center; right edge; normalized peak area
@@ -2355,7 +2355,7 @@ NUMA      *na, *napeak;
  *      Input:  nas (input values)
  *              delta (relative amount to resolve peaks and valleys)
  *              &nav (<optional return> values of extrema
- *      Return: nad (locations of extrema), or null on error
+ *      Return: nad (locations of extrema), or NULL on error
  *
  *  Notes:
  *      (1) This returns a sequence of extrema (peaks and valleys).
@@ -2514,12 +2514,12 @@ NUMA      *nat;
  *              &bestthresh (<return> robust estimate of threshold to use)
  *      Return: 0 if OK, 1 on error
  *
- *  Note:
+ *  Notes:
  *     (1) When a valid threshold is used, the number of crossings is
  *         a maximum, because none are missed.  If no threshold intersects
  *         all the crossings, the crossings must be determined with
  *         numaCrossingsByPeaks().
- *     (2) @estthresh is an input estimate of the threshold that should
+ *     (2) %estthresh is an input estimate of the threshold that should
  *         be used.  We compute the crossings with 41 thresholds
  *         (20 below and 20 above).  There is a range in which the
  *         number of crossings is a maximum.  Return a threshold
@@ -2645,7 +2645,7 @@ NUMA      *nat, *nac;
  *      Input:  nax (<optional> numa of abscissa values; can be NULL)
  *              nay (numa of ordinate values, corresponding to nax)
  *              thresh (threshold value for nay)
- *      Return: nad (abscissa pts at threshold), or null on error
+ *      Return: nad (abscissa pts at threshold), or NULL on error
  *
  *  Notes:
  *      (1) If nax == NULL, we use startx and delx from nay to compute
@@ -2708,7 +2708,7 @@ NUMA      *nad;
  *      Input:  nax (<optional> numa of abscissa values)
  *              nay (numa of ordinate values, corresponding to nax)
  *              delta (parameter used to identify when a new peak can be found)
- *      Return: nad (abscissa pts at threshold), or null on error
+ *      Return: nad (abscissa pts at threshold), or NULL on error
  *
  *  Notes:
  *      (1) If nax == NULL, we use startx and delx from nay to compute
@@ -2809,7 +2809,7 @@ NUMA      *nap, *nad;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This does a linear sweep of widths, evaluating at @nshift
+ *      (1) This does a linear sweep of widths, evaluating at %nshift
  *          shifts for each width, computing the score from a convolution
  *          with a long comb, and finding the (width, shift) pair that
  *          gives the maximum score.  The best width is the "half-wavelength"
@@ -2956,12 +2956,12 @@ l_float32  score, weight, val;
  *                         0 = select individual numbers)
  *      Return: 0 if OK, 1 on error
  *
- *  Note:
+ *  Notes:
  *     (1) Selection is made uniformly in the range.  This can be used
  *         to select pages distributed as uniformly as possible
  *         through a book, where you are constrained to:
- *          - choose between [first, ... biggest],
- *          - choose no more than nmax numbers, and
+ *          ~ choose between [first, ... biggest],
+ *          ~ choose no more than nmax numbers, and
  *         and you have the option of requiring pairs of adjacent numbers.
  */
 NUMA *

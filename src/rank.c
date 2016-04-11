@@ -127,7 +127,7 @@
  *      Input:  pixs (8 or 32 bpp; no colormap)
  *              wf, hf  (width and height of filter; each is >= 1)
  *              rank (in [0.0 ... 1.0])
- *      Return: pixd (of rank values), or null on error
+ *      Return: pixd (of rank values), or NULL on error
  *
  *  Notes:
  *      (1) This defines, for each pixel in pixs, a neighborhood of
@@ -176,7 +176,7 @@ l_int32  d;
  *      Input:  pixs (32 bpp)
  *              wf, hf  (width and height of filter; each is >= 1)
  *              rank (in [0.0 ... 1.0])
- *      Return: pixd (of rank values), or null on error
+ *      Return: pixd (of rank values), or NULL on error
  *
  *  Notes:
  *      (1) This defines, for each pixel in pixs, a neighborhood of
@@ -235,7 +235,7 @@ PIX  *pixr, *pixg, *pixb, *pixrf, *pixgf, *pixbf, *pixd;
  *      Input:  pixs (8 bpp; no colormap)
  *              wf, hf  (width and height of filter; each is >= 1)
  *              rank (in [0.0 ... 1.0])
- *      Return: pixd (of rank values), or null on error
+ *      Return: pixd (of rank values), or NULL on error
  *
  *  Notes:
  *      (1) This defines, for each pixel in pixs, a neighborhood of
@@ -443,7 +443,7 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs (8 or 32 bpp; no colormap)
  *              wf, hf  (width and height of filter; each is >= 1)
- *      Return: pixd (of median values), or null on error
+ *      Return: pixd (of median values), or NULL on error
  */
 PIX  *
 pixMedianFilter(PIX     *pixs,
@@ -468,7 +468,7 @@ pixMedianFilter(PIX     *pixs,
  *              wf, hf  (width and height of filter; each is >= 1)
  *              rank (in [0.0 ... 1.0])
  *              scalefactor (scale factor; must be >= 0.2 and <= 0.7)
- *      Return: pixd (of rank values), or null on error
+ *      Return: pixd (of rank values), or NULL on error
  *
  *  Notes:
  *      (1) This is a convenience function that downscales, does

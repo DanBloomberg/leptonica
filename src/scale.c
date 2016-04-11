@@ -123,7 +123,7 @@ extern l_float32  AlphaMaskBorderVals[2];
  *
  *      Input:  pixs (1, 2, 4, 8, 16 and 32 bpp)
  *              scalex, scaley
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  This function scales 32 bpp RGB; 2, 4 or 8 bpp palette color;
  *  2, 4, 8 or 16 bpp gray; and binary images.
@@ -181,9 +181,9 @@ extern l_float32  AlphaMaskBorderVals[2];
  *  pixScale() only does linear interpolation.
  *
  *  In many situations you will get a satisfactory result by scaling
- *  without sharpening: call pixScaleGeneral() with @sharpfract = 0.0.
+ *  without sharpening: call pixScaleGeneral() with %sharpfract = 0.0.
  *  Alternatively, if you wish to sharpen but not use the default
- *  value, first call pixScaleGeneral() with @sharpfract = 0.0, and
+ *  value, first call pixScaleGeneral() with %sharpfract = 0.0, and
  *  then sharpen explicitly using pixUnsharpMasking().
  *
  *  Binary images are scaled to binary by sampling the closest pixel,
@@ -222,16 +222,16 @@ l_float32  maxscale, sharpfract;
  *      Input:  pixs (1, 2, 4, 8, 16 and 32 bpp)
  *              wd  (target width; use 0 if using height as target)
  *              hd  (target height; use 0 if using width as target)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This guarantees that the output scaled image has the
  *          dimension(s) you specify.
- *           - To specify the width with isotropic scaling, set @hd = 0.
- *           - To specify the height with isotropic scaling, set @wd = 0.
- *           - If both @wd and @hd are specified, the image is scaled
+ *           ~ To specify the width with isotropic scaling, set %hd = 0.
+ *           ~ To specify the height with isotropic scaling, set %wd = 0.
+ *           ~ If both %wd and %hd are specified, the image is scaled
  *             (in general, anisotropically) to that size.
- *           - It is an error to set both @wd and @hd to 0.
+ *           ~ It is an error to set both %wd and %hd to 0.
  */
 PIX *
 pixScaleToSize(PIX     *pixs,
@@ -271,7 +271,7 @@ l_float32  scalex, scaley;
  *              scalex, scaley (both > 0.0)
  *              sharpfract (use 0.0 to skip sharpening)
  *              sharpwidth (halfwidth of low-pass filter; typ. 1 or 2)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) See pixScale() for usage.
@@ -284,9 +284,9 @@ l_float32  scalex, scaley;
  *            maxscale >= 1.4:        no sharpening
  *      (4) To avoid sharpening for grayscale and color images with
  *          scaling factors between 0.2 and 1.4, call this function
- *          with @sharpfract == 0.0.
+ *          with %sharpfract == 0.0.
  *      (5) To use arbitrary sharpening in conjunction with scaling,
- *          call this function with @sharpfract = 0.0, and follow this
+ *          call this function with %sharpfract = 0.0, and follow this
  *          with a call to pixUnsharpMasking() with your chosen parameters.
  */
 PIX *
@@ -354,7 +354,7 @@ PIX       *pixt, *pixt2, *pixd;
  *
  *      Input:  pixs (2, 4, 8 or 32 bpp; with or without colormap)
  *              scalex, scaley (must both be >= 0.7)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function should only be used when the scale factors are
@@ -414,7 +414,7 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs  (32 bpp, representing rgb)
  *              scalex, scaley (must both be >= 0.7)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) If this is used for scale factors less than 0.7,
@@ -483,7 +483,7 @@ PIX       *pixd;
  *  pixScaleColor2xLI()
  *
  *      Input:  pixs  (32 bpp, representing rgb)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This is a special case of linear interpolated scaling,
@@ -530,7 +530,7 @@ PIX       *pixd;
  *  pixScaleColor4xLI()
  *
  *      Input:  pixs  (32 bpp, representing rgb)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This is a special case of color linear interpolated scaling,
@@ -583,7 +583,7 @@ PIX  *pixd;
  *
  *      Input:  pixs (8 bpp grayscale, no cmap)
  *              scalex, scaley (must both be >= 0.7)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  This function is appropriate for upscaling
  *  (magnification: scale factors > 1), and for a
@@ -704,7 +704,7 @@ PIX       *pixd;
  *  pixScaleGray2xLI()
  *
  *      Input:  pixs (8 bpp grayscale, not cmapped)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This is a special case of gray linear interpolated scaling,
@@ -745,7 +745,7 @@ PIX       *pixd;
  *  pixScaleGray4xLI()
  *
  *      Input:  pixs (8 bpp grayscale, not cmapped)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This is a special case of gray linear interpolated scaling,
@@ -791,13 +791,13 @@ PIX       *pixd;
  *
  *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp)
  *              scalex, scaley (both > 0.0)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function samples from the source without
  *          filtering.  As a result, aliasing will occur for
- *          subsampling (@scalex and/or @scaley < 1.0).
- *      (2) If @scalex == 1.0 and @scaley == 1.0, returns a copy.
+ *          subsampling (%scalex and/or %scaley < 1.0).
+ *      (2) If %scalex == 1.0 and %scaley == 1.0, returns a copy.
  */
 PIX *
 pixScaleBySampling(PIX       *pixs,
@@ -848,16 +848,16 @@ PIX       *pixd;
  *      Input:  pixs (1, 2, 4, 8, 16 and 32 bpp)
  *              wd  (target width; use 0 if using height as target)
  *              hd  (target height; use 0 if using width as target)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This guarantees that the output scaled image has the
  *          dimension(s) you specify.
- *           - To specify the width with isotropic scaling, set @hd = 0.
- *           - To specify the height with isotropic scaling, set @wd = 0.
- *           - If both @wd and @hd are specified, the image is scaled
+ *           ~ To specify the width with isotropic scaling, set %hd = 0.
+ *           ~ To specify the height with isotropic scaling, set %wd = 0.
+ *           ~ If both %wd and %hd are specified, the image is scaled
  *             (in general, anisotropically) to that size.
- *           - It is an error to set both @wd and @hd to 0.
+ *           ~ It is an error to set both %wd and %hd to 0.
  */
 PIX *
 pixScaleBySamplingToSize(PIX     *pixs,
@@ -895,12 +895,12 @@ l_float32  scalex, scaley;
  *
  *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp)
  *              factor (integer subsampling)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Simple interface to pixScaleBySampling(), for
  *          isotropic integer reduction.
- *      (2) If @factor == 1, returns a copy.
+ *      (2) If %factor == 1, returns a copy.
  */
 PIX *
 pixScaleByIntSampling(PIX     *pixs,
@@ -932,7 +932,7 @@ l_float32  scale;
  *      Input:  pixs (32 bpp rgb)
  *              factor (integer reduction factor >= 1)
  *              color (one of COLOR_RED, COLOR_GREEN, COLOR_BLUE)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This does simultaneous subsampling by an integer factor and
@@ -1005,7 +1005,7 @@ PIX       *pixd;
  *      Input:  pixs (32 bpp RGB)
  *              factor (integer reduction factor >= 1)
  *              thresh (binarization threshold)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This does simultaneous subsampling by an integer factor and
@@ -1070,7 +1070,7 @@ PIX       *pixd;
  *      Input:  pixs (8 bpp grayscale)
  *              factor (integer reduction factor >= 1)
  *              thresh (binarization threshold)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This does simultaneous subsampling by an integer factor and
@@ -1136,7 +1136,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap)
  *              scalex, scaley (must both be < 0.7)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function should only be used when the scale factors are less
@@ -1243,7 +1243,7 @@ PIX       *pixs, *pixd;
  *
  *      Input:  pixs (32 bpp rgb)
  *              rwt, gwt, bwt (must sum to 1.0)
- *      Return: pixd, (8 bpp, 2x reduced), or null on error
+ *      Return: pixd, (8 bpp, 2x reduced), or NULL on error
  */
 PIX *
 pixScaleRGBToGray2(PIX       *pixs,
@@ -1288,7 +1288,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap)
  *              scalex, scaley (must both be <= 0.7)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function should only be used when the scale factors are less
@@ -1409,7 +1409,7 @@ PIX       *pixs, *pixd, *pixt1, *pixt2, *pixt3;
  *  pixScaleAreaMap2()
  *
  *      Input:  pixs (2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function does an area mapping (average) for 2x
@@ -1482,7 +1482,7 @@ PIX       *pixs, *pixd;
  *
  *      Input:  pixs (1 bpp)
  *              scalex, scaley (both > 0.0)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function samples from the source without
@@ -1774,7 +1774,7 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs (1 bpp)
  *      Return: pixd (8 bpp), scaled down by 2x in each direction,
- *              or null on error.
+ *              or NULL on error.
  */
 PIX *
 pixScaleToGray2(PIX  *pixs)
@@ -1827,7 +1827,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1 bpp)
  *      Return: pixd (8 bpp), scaled down by 3x in each direction,
- *              or null on error.
+ *              or NULL on error.
  *
  *  Notes:
  *      (1) Speed is about 100 x 10^6 src-pixels/sec/GHz.
@@ -1886,7 +1886,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1 bpp)
  *      Return: pixd (8 bpp), scaled down by 4x in each direction,
- *              or null on error.
+ *              or NULL on error.
  *
  *  Notes:
  *      (1) The width of pixd is truncated is truncated to a factor of 2.
@@ -1943,7 +1943,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1 bpp)
  *      Return: pixd (8 bpp), scaled down by 6x in each direction,
- *              or null on error.
+ *              or NULL on error.
  *
  *  Notes:
  *      (1) The width of pixd is truncated is truncated to a factor of 8.
@@ -1998,7 +1998,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1 bpp)
  *      Return: pixd (8 bpp), scaled down by 8x in each direction,
- *              or null on error
+ *              or NULL on error
  */
 PIX *
 pixScaleToGray8(PIX  *pixs)
@@ -2051,7 +2051,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1 bpp)
  *      Return: pixd (8 bpp), scaled down by 16x in each direction,
- *              or null on error.
+ *              or NULL on error.
  */
 PIX *
 pixScaleToGray16(PIX  *pixs)
@@ -2268,7 +2268,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp)
  *              factor (integer scale factor for replicative expansion)
- *      Return: pixd (scaled up), or null on error.
+ *      Return: pixd (scaled up), or NULL on error.
  */
 PIX *
 pixExpandReplicate(PIX     *pixs,
@@ -2399,7 +2399,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (8 bpp, not cmapped)
  *              thresh  (between 0 and 256)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This does 2x upscale on pixs, using linear interpolation,
@@ -2469,15 +2469,15 @@ PIX       *pixd;
  *  pixScaleGray2xLIDither()
  *
  *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This does 2x upscale on pixs, using linear interpolation,
  *          followed by Floyd-Steinberg dithering to binary.
  *      (2) Buffers are used to avoid making a large grayscale image.
- *          - Two line buffers are used for the src, required for the 2x
+ *          ~ Two line buffers are used for the src, required for the 2x
  *            LI upscale.
- *          - Three line buffers are used for the intermediate image.
+ *          ~ Three line buffers are used for the intermediate image.
  *            Two are filled with each 2xLI row operation; the third is
  *            needed because the upscale and dithering ops are out of sync.
  */
@@ -2580,7 +2580,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (8 bpp)
  *              thresh  (between 0 and 256)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This does 4x upscale on pixs, using linear interpolation,
@@ -2658,15 +2658,15 @@ PIX       *pixd;
  *  pixScaleGray4xLIDither()
  *
  *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This does 4x upscale on pixs, using linear interpolation,
  *          followed by Floyd-Steinberg dithering to binary.
  *      (2) Buffers are used to avoid making a large grayscale image.
- *          - Two line buffers are used for the src, required for the
+ *          ~ Two line buffers are used for the src, required for the
  *            4xLI upscale.
- *          - Five line buffers are used for the intermediate image.
+ *          ~ Five line buffers are used for the intermediate image.
  *            Four are filled with each 4xLI row operation; the fifth
  *            is needed because the upscale and dithering ops are
  *            out of sync.
@@ -3174,7 +3174,7 @@ PIX  *pix1, *pix2;
  *              pixg (<optional> 8 bpp, can be null)
  *              fract (between 0.0 and 1.0, with 0.0 fully transparent
  *                     and 1.0 fully opaque)
- *      Return: pixd (32 bpp rgba), or null on error
+ *      Return: pixd (32 bpp rgba), or NULL on error
  *
  *  Notes:
  *      (1) The alpha channel is transformed separately from pixs,
@@ -3185,8 +3185,8 @@ PIX  *pix1, *pix2;
  *      (2) Scaling is done with area mapping or linear interpolation,
  *          depending on the scale factors.  Default sharpening is done.
  *      (3) If pixg is NULL, it is generated as an alpha layer that is
- *          partially opaque, using @fract.  Otherwise, it is cropped
- *          to pixs if required, and @fract is ignored.  The alpha
+ *          partially opaque, using %fract.  Otherwise, it is cropped
+ *          to pixs if required, and %fract is ignored.  The alpha
  *          channel in pixs is never used.
  *      (4) Colormaps are removed to 32 bpp.
  *      (5) The default setting for the border values in the alpha channel
@@ -3230,7 +3230,7 @@ PIX     *pixd, *pix32, *pixg2, *pixgs;
     if (scalex <= 0.0 || scaley <= 0.0)
         return (PIX *)ERROR_PTR("scale factor <= 0.0", procName, NULL);
     if (pixg && pixGetDepth(pixg) != 8) {
-        L_WARNING("pixg not 8 bpp; using @fract transparent alpha\n", procName);
+        L_WARNING("pixg not 8 bpp; using %fract transparent alpha\n", procName);
         pixg = NULL;
     }
     if (!pixg && (fract < 0.0 || fract > 1.0)) {

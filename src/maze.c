@@ -109,7 +109,7 @@ static l_int32 localSearchForBackground(PIX  *pix, l_int32  *px,
  *              ranis (ratio of prob that pixel in forward direction
  *                     is a wall to the probability that pixel in
  *                     side directions is a wall)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) We have two input probability factors that determine the
@@ -299,10 +299,10 @@ MAZEEL *el;
  *              xi, yi  (beginning point; use same initial point
  *                       that was used to generate the maze)
  *              xf, yf  (end point, or close to it)
- *              &ppixd (<optional return> maze with path illustrated, or
+ *              &pixd (<optional return> maze with path illustrated, or
  *                     if no path possible, the part of the maze
  *                     that was searched)
- *      Return: pta (shortest path), or null if either no path
+ *      Return: pta (shortest path), or NULL if either no path
  *              exists or on error
  *
  *  Notes:
@@ -518,7 +518,8 @@ PTA       *pta;
 /*!
  *  localSearchForBackground()
  *
- *      Input:  &x, &y (starting position for search; return found position)
+ *      Input:  pix
+ *              &x, &y (<return> starting position for search; return found position)
  *              maxrad (max distance to search from starting location)
  *      Return: 0 if bg pixel found; 1 if not found
  */
@@ -573,10 +574,10 @@ l_uint32  val;
  *              xi, yi  (beginning point; use same initial point
  *                       that was used to generate the maze)
  *              xf, yf  (end point, or close to it)
- *              &ppixd (<optional return> maze with path illustrated, or
+ *              &pixd (<optional return> maze with path illustrated, or
  *                     if no path possible, the part of the maze
  *                     that was searched)
- *      Return: pta (shortest path), or null if either no path
+ *      Return: pta (shortest path), or NULL if either no path
  *              exists or on error
  *
  *  Commentary:
@@ -672,15 +673,15 @@ l_uint32  val;
  *      see if a pixel with a lower distance has been put on the queue,
  *      and, if so, we discard the pixel we just popped.  So the
  *      "while" loop looks like this:
- *        - pop a pixel from the queue
- *        - check its distance against the distance stored in the
+ *        ~ pop a pixel from the queue
+ *        ~ check its distance against the distance stored in the
  *          distance map; if larger, discard
- *        - otherwise, for each of its neighbors:
- *            - compute its distance from the start pixel
- *            - compare this distance with that on the distance map:
- *                - if the distance map value higher, relax the distance
+ *        ~ otherwise, for each of its neighbors:
+ *            ~ compute its distance from the start pixel
+ *            ~ compare this distance with that on the distance map:
+ *                ~ if the distance map value higher, relax the distance
  *                  and push the pixel on the queue
- *                - if the distance map value is lower, discard the pixel
+ *                ~ if the distance map value is lower, discard the pixel
  *
  *      How does this loop terminate?  Before, with an ordered queue,
  *      it terminates when you pop the end pixel.  But with an unordered
@@ -912,7 +913,8 @@ PTA      *pta;
  *              polarity (0 within background, 1 within foreground)
  *              &box (<return> largest rectangle, either by area or
  *                    by perimeter)
- *              debugflag (1 to output image with rectangle drawn on it)
+ *              debugfile (filename where to write output image with
+                           rectangle drawn on it)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:

@@ -70,7 +70,7 @@ static l_int32 lstackExtendArray(L_STACK *lstack);
  *  lstackCreate()
  *
  *      Input:  nalloc (initial ptr array size; use 0 for default)
- *      Return: lstack, or null on error
+ *      Return: lstack, or NULL on error
  */
 L_STACK *
 lstackCreate(l_int32  nalloc)
@@ -98,7 +98,7 @@ L_STACK  *lstack;
 /*!
  *  lstackDestroy()
  *
- *      Input:  &lstack (<to be nulled>)
+ *      Input:  &lstack (<inout> to be nulled)
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
@@ -186,7 +186,7 @@ lstackAdd(L_STACK  *lstack,
  *
  *      Input:  lstack
  *      Return: ptr to item popped from the top of the lstack,
- *              or null if the lstack is empty or on error
+ *              or NULL if the lstack is empty or on error
  */
 void *
 lstackRemove(L_STACK  *lstack)
@@ -257,7 +257,7 @@ lstackGetCount(L_STACK  *lstack)
 /*!
  *  lstackPrint()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              lstack
  *      Return: 0 if OK; 1 on error
  */

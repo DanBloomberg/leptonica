@@ -608,7 +608,7 @@ PIX       *pixb, *pixt, *pixd;
  *      Input:  pixs (8 bpp, not cmapped)
  *              hsize  (1 or 3)
  *              vsize  (1 or 3)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
@@ -664,7 +664,7 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
  *  pixErodeGray3h()
  *
  *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for horizontal 3x1 brick Sel;
@@ -727,7 +727,7 @@ PIX       *pixd;
  *  pixErodeGray3v()
  *
  *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for vertical 1x3 brick Sel;
@@ -794,7 +794,7 @@ PIX       *pixd;
  *      Input:  pixs (8 bpp, not cmapped)
  *              hsize  (1 or 3)
  *              vsize  (1 or 3)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
@@ -845,7 +845,7 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
  *  pixDilateGray3h()
  *
  *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for horizontal 3x1 brick Sel;
@@ -908,7 +908,7 @@ PIX       *pixd;
  *  pixDilateGray3v()
  *
  *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for vertical 1x3 brick Sel;
@@ -972,7 +972,7 @@ PIX       *pixd;
  *      Input:  pixs (8 bpp, not cmapped)
  *              hsize  (1 or 3)
  *              vsize  (1 or 3)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
@@ -1038,7 +1038,7 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
  *      Input:  pixs (8 bpp, not cmapped)
  *              hsize  (1 or 3)
  *              vsize  (1 or 3)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
@@ -1102,15 +1102,15 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 /*!
  *  dilateGrayLow()
  *
- *    Input:  datad, w, h, wpld (8 bpp image)
- *            datas, wpls  (8 bpp image, of same dimensions)
- *            size  (full length of SEL; restricted to odd numbers)
- *            direction  (L_HORIZ or L_VERT)
- *            buffer  (holds full line or column of src image pixels)
- *            maxarray  (array of dimension 2*size+1)
- *    Return: void
+ *      Input:  datad, w, h, wpld (8 bpp image)
+ *              datas, wpls  (8 bpp image, of same dimensions)
+ *              size  (full length of SEL; restricted to odd numbers)
+ *              direction  (L_HORIZ or L_VERT)
+ *              buffer  (holds full line or column of src image pixels)
+ *              maxarray  (array of dimension 2*size+1)
+ *      Return: void
  *
- *    Notes:
+ *  Notes:
  *        (1) To eliminate border effects on the actual image, these images
  *            are prepared with an additional border of dimensions:
  *               leftpix = 0.5 * size
@@ -1213,15 +1213,15 @@ l_uint32  *lines, *lined;
 /*!
  *  erodeGrayLow()
  *
- *    Input:  datad, w, h, wpld (8 bpp image)
- *            datas, wpls  (8 bpp image, of same dimensions)
- *            size  (full length of SEL; restricted to odd numbers)
- *            direction  (L_HORIZ or L_VERT)
- *            buffer  (holds full line or column of src image pixels)
- *            minarray  (array of dimension 2*size+1)
- *    Return: void
+ *      Input:  datad, w, h, wpld (8 bpp image)
+ *              datas, wpls  (8 bpp image, of same dimensions)
+ *              size  (full length of SEL; restricted to odd numbers)
+ *              direction  (L_HORIZ or L_VERT)
+ *              buffer  (holds full line or column of src image pixels)
+ *              minarray  (array of dimension 2*size+1)
+ *      Return: void
  *
- *    Notes:
+ *  Notes:
  *        (1) See notes in dilateGrayLow()
  */
 static void

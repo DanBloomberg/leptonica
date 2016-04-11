@@ -38,8 +38,8 @@
  *           NUMA     *pixGetLocalSkewAngles()
  *
  *  We have two apparently different functions here:
- *    - finding baselines
- *    - finding a projective transform to remove keystone warping
+ *    ~ finding baselines
+ *    ~ finding a projective transform to remove keystone warping
  *  The function pixGetLocalSkewAngles() returns an array of angles,
  *  one for each raster line, and the baselines of the text lines
  *  should intersect the left edge of the image with that angle.
@@ -84,7 +84,7 @@ static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
  *              &pta (<optional return> pairs of pts corresponding to
  *                    approx. ends of each text line)
  *              debug (usually 0; set to 1 for debugging output)
- *      Return: na (of baseline y values), or null on error
+ *      Return: na (of baseline y values), or NULL on error
  *
  *  Notes:
  *      (1) Input binary image must have text lines already aligned
@@ -279,7 +279,7 @@ PTA       *pta;
  *                          use 0.0 for default value)
  *              minbsdelta (min binary search increment angle; in degrees;
  *                          use 0.0 for default value)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This function allows deskew of a page whose skew changes
@@ -464,7 +464,7 @@ PTA       *ptas, *ptad;
  *                          use 0.0 for default value)
  *              &a (<optional return> slope of skew as fctn of y)
  *              &b (<optional return> intercept at y=0 of skew as fctn of y)
- *      Return: naskew, or null on error
+ *      Return: naskew, or NULL on error
  *
  *  Notes:
  *      (1) The local skew is measured in a set of overlapping strips.

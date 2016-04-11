@@ -69,7 +69,7 @@
 /*------------------------------------------------------------------*
  *             Binarization by Floyd-Steinberg Dithering            *
  *------------------------------------------------------------------*/
-/*
+/*!
  *  ditherToBinaryLow()
  *
  *  See comments in pixDitherToBinary() in binarize.c
@@ -106,7 +106,7 @@ l_uint32    *lined;
 }
 
 
-/*
+/*!
  *  ditherToBinaryLineLow()
  *
  *      Input:  lined  (ptr to beginning of dest line
@@ -238,7 +238,7 @@ l_uint8   fval1, fval2, rval, bval, dval;
 /*------------------------------------------------------------------*
  *             Simple binarization with fixed threshold             *
  *------------------------------------------------------------------*/
-/*
+/*!
  *  thresholdToBinaryLow()
  *
  *  If the source pixel is less than thresh,
@@ -593,7 +593,7 @@ l_int32  *tabval, *tab38, *tab14;
 /*------------------------------------------------------------------*
  *                         Dithering to 2 bpp                       *
  *------------------------------------------------------------------*/
-/*
+/*!
  *  ditherTo2bppLow()
  *
  *  Low-level function for doing Floyd-Steinberg error diffusion
@@ -640,7 +640,7 @@ l_uint32    *lined;
 }
 
 
-/*
+/*!
  *  ditherTo2bppLineLow()
  *
  *      Input:  lined  (ptr to beginning of dest line
@@ -812,11 +812,11 @@ l_int32  *tabval, *tab38, *tab14;
 /*------------------------------------------------------------------*
  *                   Simple thresholding to 2 bpp                   *
  *------------------------------------------------------------------*/
-/*
+/*!
  *  thresholdTo2bppLow()
  *
  *  Low-level function for thresholding from 8 bpp (datas) to
- *  2 bpp (datad), using thresholds implicitly defined through @tab,
+ *  2 bpp (datad), using thresholds implicitly defined through %tab,
  *  a 256-entry lookup table that gives a 2-bit output value
  *  for each possible input.
  *
@@ -857,11 +857,11 @@ l_uint32  *lines, *lined;
 /*------------------------------------------------------------------*
  *                   Simple thresholding to 4 bpp                   *
  *------------------------------------------------------------------*/
-/*
+/*!
  *  thresholdTo4bppLow()
  *
  *  Low-level function for thresholding from 8 bpp (datas) to
- *  4 bpp (datad), using thresholds implicitly defined through @tab,
+ *  4 bpp (datad), using thresholds implicitly defined through %tab,
  *  a 256-entry lookup table that gives a 4-bit output value
  *  for each possible input.
  *

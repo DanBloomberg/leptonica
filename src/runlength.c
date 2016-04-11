@@ -71,7 +71,7 @@ static PIX *pixFindMinRunsOrthogonal(PIX *pixs, l_float32 angle, l_int32 depth);
  *               color (0 for white runs, 1 for black runs)
  *               depth (of pixd: 8 or 16 bpp)
  *               nangles (2, 4, 6 or 8)
- *      Return:  pixd (8 or 16 bpp), or null on error
+ *      Return:  pixd (8 or 16 bpp), or NULL on error
  *
  *  Notes:
  *      (1) The dest Pix is 8 or 16 bpp, with the pixel values
@@ -170,12 +170,12 @@ PIX       *pixh, *pixv, *pixt, *pixg1, *pixg2, *pixg3, *pixg4;
  *      Input:   pixs (1 bpp)
  *               angle (in radians)
  *               depth (of pixd: 8 or 16 bpp)
- *      Return:  pixd (8 or 16 bpp), or null on error
+ *      Return:  pixd (8 or 16 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This computes, for each fg pixel in pixs, the minimum of
  *          the runlengths going through that pixel in two orthogonal
- *          directions: at @angle and at (90 + @angle).
+ *          directions: at %angle and at (90 + %angle).
  *      (2) We use rotation by shear because the forward and backward
  *          rotations by the same angle are exact inverse operations.
  *          As a result, the nonzero pixels in pixd correspond exactly
@@ -237,7 +237,7 @@ BOX     *box;
  *               color (0 for white runs, 1 for black runs)
  *               direction (L_HORIZONTAL_RUNS, L_VERTICAL_RUNS)
  *               depth (8 or 16 bpp)
- *      Return:  pixd (8 or 16 bpp), or null on error
+ *      Return:  pixd (8 or 16 bpp), or NULL on error
  *
  *  Notes:
  *      (1) The dest Pix is 8 or 16 bpp, with the pixel values
@@ -499,7 +499,7 @@ l_uint32  *data, *line;
  *      Input:  pix (1 bpp)
  *              direction (L_HORIZONTAL_RUNS or L_VERTICAL_RUNS)
  *              &nastart (<optional return> start locations of longest runs)
- *      Return: na (of lengths of runs), or null on error
+ *      Return: na (of lengths of runs), or NULL on error
  *
  *  Notes:
  *      (1) This finds the longest foreground runs by row or column
@@ -756,7 +756,7 @@ l_int32  i, j, first, last, diff, max;
  *      Input:  bitval (either 0 or 1)
  *      Return: table (giving, for an input byte, the MS bit location,
  *                     starting at 0 with the MSBit in the byte),
- *                     or null on error.
+ *                     or NULL on error.
  *
  *  Notes:
  *      (1) If bitval == 1, it finds the leftmost ON pixel in a byte;

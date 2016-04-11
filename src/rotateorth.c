@@ -64,7 +64,7 @@ static l_uint8 *makeReverseByteTab4(void);
  *
  *      Input:  pixs (all depths)
  *              quads (0-3; number of 90 degree cw rotations)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixRotateOrth(PIX     *pixs,
@@ -97,7 +97,7 @@ pixRotateOrth(PIX     *pixs,
  *      Input:  pixd  (<optional>; can be null, equal to pixs,
  *                     or different from pixs)
  *              pixs (all depths)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a 180 rotation of the image about the center,
@@ -146,7 +146,7 @@ l_int32  d;
  *
  *      Input:  pixs (all depths)
  *              direction (1 = clockwise,  -1 = counter-clockwise)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a 90 degree rotation of the image about the center,
@@ -376,7 +376,7 @@ PIX       *pixd;
  *      Input:  pixd  (<optional>; can be null, equal to pixs,
  *                     or different from pixs)
  *              pixs (all depths)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a left-right flip of the image, which is
@@ -565,7 +565,7 @@ l_uint32  *line, *data, *buffer;
  *      Input:  pixd  (<optional>; can be null, equal to pixs,
  *                     or different from pixs)
  *              pixs (all depths)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a top-bottom flip of the image, which is

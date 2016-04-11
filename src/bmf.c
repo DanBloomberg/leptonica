@@ -91,7 +91,7 @@ static l_int32 bmfMakeAsciiTables(L_BMF *bmf);
  *      Return: bmf (holding the bitmap font and associated information)
  *
  *  Notes:
- *      (1) If @dir == null, this generates the font bitmaps from a
+ *      (1) If %dir == null, this generates the font bitmaps from a
  *          compiled string.
  *      (2) Otherwise, this tries to read a pre-computed pixa file with the
  *          95 ascii chars in it.  If the file is not found, it then
@@ -150,7 +150,7 @@ PIXA  *pixa;
 /*!
  *  bmfDestroy()
  *
- *      Input:  &bmf (<set to null>)
+ *      Input:  &bmf (<inout> set to null)
  *      Return: void
  */
 void
@@ -187,7 +187,7 @@ L_BMF  *bmf;
  *
  *      Input:  bmf
  *              chr (should be one of the 95 supported printable bitmaps)
- *      Return: pix (clone of pix in bmf), or null on error
+ *      Return: pix (clone of pix in bmf), or NULL on error
  */
 PIX *
 bmfGetPix(L_BMF  *bmf,
@@ -302,7 +302,7 @@ l_int32  bl, index;
  *              &bl1 (<return> baseline of row 1)
  *              &bl2 (<return> baseline of row 2)
  *              &bl3 (<return> baseline of row 3)
- *      Return: pixa of font bitmaps for 95 characters, or null on error
+ *      Return: pixa of font bitmaps for 95 characters, or NULL on error
  *
  *  Notes:
  *      (1) This reads a pre-computed pixa file with the 95 ascii chars.
@@ -350,7 +350,7 @@ PIXA     *pixa;
  *
  *  Notes:
  *      (1) This saves a font of a particular size.
- *      (2) If @dir == null, this generates the font bitmaps from a
+ *      (2) If %dir == null, this generates the font bitmaps from a
  *          compiled string.
  *      (3) prog/genfonts calls this function for each of the
  *          nine font sizes, to generate all the font pixa files.
@@ -402,7 +402,7 @@ PIXA    *pixa;
  *              &bl1 (<return> baseline of row 1)
  *              &bl2 (<return> baseline of row 2)
  *              &bl3 (<return> baseline of row 3)
- *      Return: pixa of font bitmaps for 95 characters, or null on error
+ *      Return: pixa of font bitmaps for 95 characters, or NULL on error
  *
  *  These font generation functions use 9 sets, each with bitmaps
  *  of 94 ascii characters, all in Palatino-Roman font.
@@ -462,7 +462,7 @@ PIXA    *pixa;
  *              &bl1 (<return> baseline of row 1)
  *              &bl2 (<return> baseline of row 2)
  *              &bl3 (<return> baseline of row 3)
- *      Return: pixa of font bitmaps for 95 characters, or null on error
+ *      Return: pixa of font bitmaps for 95 characters, or NULL on error
  *
  *  Notes:
  *      (1) See pixaGenerateFontFromFile() for details.
@@ -528,12 +528,12 @@ PIXA     *pixa;
  *              &bl1 (<return> baseline of row 1)
  *              &bl2 (<return> baseline of row 2)
  *              &bl3 (<return> baseline of row 3)
- *      Return: pixa of font bitmaps for 95 characters, or null on error
+ *      Return: pixa of font bitmaps for 95 characters, or NULL on error
  *
  *  Notes:
  *      (1) This does all the work.  See pixaGenerateFontFromFile()
  *          for an overview.
- *      (2) The pix is for one of the 9 fonts.  @fontsize is only
+ *      (2) The pix is for one of the 9 fonts.  %fontsize is only
  *          used here for debugging.
  */
 PIXA *
@@ -755,21 +755,21 @@ NUMA     *na;
  *
  *  Notes:
  *      (1) This makes three tables, each of size 128, as follows:
- *          - fonttab is a table containing the index of the Pix
+ *          ~ fonttab is a table containing the index of the Pix
  *            that corresponds to each input ascii character;
  *            it maps (ascii-index) --> Pixa index
- *          - baselinetab is a table containing the baseline offset
+ *          ~ baselinetab is a table containing the baseline offset
  *            for the Pix that corresponds to each input ascii character;
  *            it maps (ascii-index) --> baseline offset
- *          - widthtab is a table containing the character width in
+ *          ~ widthtab is a table containing the character width in
  *            pixels for the Pix that corresponds to that character;
  *            it maps (ascii-index) --> bitmap width
  *     (2) This also computes
- *          - lineheight (sum of maximum character extensions above and
+ *          ~ lineheight (sum of maximum character extensions above and
  *                        below the baseline)
- *          - kernwidth (spacing between characters within a word)
- *          - spacewidth (space between words)
- *          - vertlinesep (extra vertical spacing between textlines)
+ *          ~ kernwidth (spacing between characters within a word)
+ *          ~ spacewidth (space between words)
+ *          ~ vertlinesep (extra vertical spacing between textlines)
  *     (3) The baselines apply as follows:
  *          baseline1   (ascii 32 - 57), ascii 92
  *          baseline2   (ascii 58 - 91)

@@ -204,12 +204,15 @@ static void pixFree(PIX *pix);
  *  The default functions are malloc and free.  Use setPixMemoryManager()  *
  *  to specify other functions to use.                                     *
  *-------------------------------------------------------------------------*/
+
+/*! Pix memory manager function ptrs */
 struct PixMemoryManager
 {
     void     *(*allocator)(size_t);
     void      (*deallocator)(void *);
 };
 
+/*! Default Pix memory manager */
 static struct PixMemoryManager  pix_mem_manager = {
     &malloc,
     &free
@@ -244,8 +247,8 @@ pix_free(void  *ptr)
 /*!
  *  setPixMemoryManager()
  *
- *      Input: allocator (<optional>; use null to skip)
- *             deallocator (<optional>; use null to skip)
+ *      Input: allocator (<optional>; use NULL to skip)
+ *             deallocator (<optional>; use NULL to skip)
  *      Return: void
  *
  *  Notes:
@@ -282,7 +285,7 @@ setPixMemoryManager(void  *((*allocator)(size_t)),
  *
  *      Input:  width, height, depth
  *      Return: pixd (with data allocated and initialized to 0),
- *                    or null on error
+ *                    or NULL on error
  */
 PIX *
 pixCreate(l_int32  width,
@@ -305,7 +308,7 @@ PIX  *pixd;
  *
  *      Input:  width, height, depth
  *      Return: pixd (with data allocated but not initialized),
- *                    or null on error
+ *                    or NULL on error
  *
  *  Notes:
  *      (1) Must set pad bits to avoid reading unitialized data, because
@@ -338,7 +341,7 @@ l_uint32  *data;
  *  pixCreateTemplate()
  *
  *      Input:  pixs
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Makes a Pix of the same size as the input Pix, with the
@@ -366,7 +369,7 @@ PIX  *pixd;
  *  pixCreateTemplateNoInit()
  *
  *      Input:  pixs
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Makes a Pix of the same size as the input Pix, with
@@ -401,7 +404,7 @@ PIX     *pixd;
  *  pixCreateHeader()
  *
  *      Input:  width, height, depth
- *      Return: pixd (with no data allocated), or null on error
+ *      Return: pixd (with no data allocated), or NULL on error
  *
  *  Notes:
  *      (1) It is assumed that all 32 bit pix have 3 spp.  If there is
@@ -472,7 +475,7 @@ PIX      *pixd;
  *  pixClone()
  *
  *      Input:  pix
- *      Return: same pix (ptr), or null on error
+ *      Return: same pix (ptr), or NULL on error
  *
  *  Notes:
  *      (1) A "clone" is simply a handle (ptr) to an existing pix.
@@ -509,7 +512,7 @@ pixClone(PIX  *pixs)
 /*!
  *  pixDestroy()
  *
- *      Input:  &pix <will be nulled>
+ *      Input:  &pix (<inout> will be nulled)
  *      Return: void
  *
  *  Notes:
@@ -575,7 +578,7 @@ char      *text;
  *      Input:  pixd (<optional>; can be null, or equal to pixs,
  *                    or different from pixs)
  *              pixs
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) There are three cases:
@@ -1649,7 +1652,7 @@ l_uint32  *data;
  *
  *      Input:  pix
  *              &size (<optional return> array size, which is the pix height)
- *      Return: array of line ptrs, or null on error
+ *      Return: array of line ptrs, or NULL on error
  *
  *  Notes:
  *      (1) This is intended to be used for fast random pixel access.

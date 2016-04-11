@@ -51,14 +51,14 @@
  *
  *     Utility for programmatic plotting using gnuplot 7.3.2 or later
  *     Enabled:
- *         - output to png (color), ps (mono), x11 (color), latex (mono)
- *         - optional title for graph
- *         - optional x and y axis labels
- *         - multiple plots on one frame
- *         - optional title for each plot on the frame
- *         - optional log scaling on either or both axes
- *         - choice of 5 plot styles for each plot
- *         - choice of 2 plot modes, either using one input array
+ *         ~ output to png (color), ps (mono), x11 (color), latex (mono)
+ *         ~ optional title for graph
+ *         ~ optional x and y axis labels
+ *         ~ multiple plots on one frame
+ *         ~ optional title for each plot on the frame
+ *         ~ optional log scaling on either or both axes
+ *         ~ choice of 5 plot styles for each plot
+ *         ~ choice of 2 plot modes, either using one input array
  *           (Y vs index) or two input arrays (Y vs X).  This
  *           choice is made implicitly depending on the number of
  *           input arrays.
@@ -128,7 +128,7 @@ const char  *gplotfileoutputs[] = {"",
  *              title  (<optional> overall title)
  *              xlabel (<optional> x axis label)
  *              ylabel (<optional> y axis label)
- *      Return: gplot, or null on error
+ *      Return: gplot, or NULL on error
  *
  *  Notes:
  *      (1) This initializes the plot.
@@ -188,7 +188,7 @@ GPLOT  *gplot;
 /*!
  *   gplotDestroy()
  *
- *        Input: &gplot (<to be nulled>)
+ *        Input: &gplot (<inout> to be nulled)
  *        Return: void
  */
 void
@@ -533,7 +533,7 @@ FILE    *fp;
  *          is plotted vs the array index.  The plot is generated
  *          in the specified output format; the title  is optional.
  *      (2) When calling these simple plot functions more than once, use
- *          different @outroot to avoid overwriting the output files.
+ *          different %outroot to avoid overwriting the output files.
  */
 l_int32
 gplotSimple1(NUMA        *na,
@@ -560,7 +560,7 @@ gplotSimple1(NUMA        *na,
  *          are each plotted vs the array index.  The plot is generated
  *          in the specified output format; the title  is optional.
  *      (2) When calling these simple plot functions more than once, use
- *          different @outroot to avoid overwriting the output files.
+ *          different %outroot to avoid overwriting the output files.
  */
 l_int32
 gplotSimple2(NUMA        *na1,
@@ -589,7 +589,7 @@ gplotSimple2(NUMA        *na1,
  *          The plot is generated in the specified output format;
  *          the title  is optional.
  *      (2) When calling these simple plot functions more than once, use
- *          different @outroot to avoid overwriting the output files.
+ *          different %outroot to avoid overwriting the output files.
  */
 l_int32
 gplotSimpleN(NUMAA       *naa,
@@ -614,13 +614,13 @@ gplotSimpleN(NUMAA       *naa,
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This gives a plot of a @nay vs @nax, generated in
+ *      (1) This gives a plot of a %nay vs %nax, generated in
  *          the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
- *      (3) @nax is optional.  If NULL, @nay is plotted against
+ *      (3) %nax is optional.  If NULL, %nay is plotted against
  *          the array index.
  *      (4) When calling these simple plot functions more than once, use
- *          different @outroot to avoid overwriting the output files.
+ *          different %outroot to avoid overwriting the output files.
  */
 l_int32
 gplotSimpleXY1(NUMA        *nax,
@@ -669,13 +669,13 @@ GPLOT  *gplot;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This gives plots of @nay1 and @nay2 against nax, generated
+ *      (1) This gives plots of %nay1 and %nay2 against nax, generated
  *          in the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
- *      (3) @nax is optional.  If NULL, @nay1 and @nay2 are plotted
+ *      (3) %nax is optional.  If NULL, %nay1 and %nay2 are plotted
  *          against the array index.
  *      (4) When calling these simple plot functions more than once, use
- *          different @outroot to avoid overwriting the output files.
+ *          different %outroot to avoid overwriting the output files.
  */
 l_int32
 gplotSimpleXY2(NUMA        *nax,
@@ -716,7 +716,7 @@ GPLOT  *gplot;
  *  gplotSimpleXYN()
  *
  *      Input:  nax (<optional>; can be NULL)
- *              naay (numaa of arrays to plot against @nax)
+ *              naay (numaa of arrays to plot against %nax)
  *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
  *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
@@ -725,13 +725,13 @@ GPLOT  *gplot;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This gives plots of each Numa in @naa against nax,
+ *      (1) This gives plots of each Numa in %naa against nax,
  *          generated in the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
- *      (3) @nax is optional.  If NULL, each Numa array is plotted against
+ *      (3) %nax is optional.  If NULL, each Numa array is plotted against
  *          the array index.
  *      (4) When calling these simple plot functions more than once, use
- *          different @outroot to avoid overwriting the output files.
+ *          different %outroot to avoid overwriting the output files.
  */
 l_int32
 gplotSimpleXYN(NUMA        *nax,

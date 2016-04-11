@@ -243,7 +243,7 @@ static const l_int32  DIF_CAP = 100;
  *
  *      Input:  pixs  (32 bpp; rgb color)
  *              ditherflag (1 for dither; 0 for no dither)
- *      Return: pixd (8 bit with colormap), or null on error
+ *      Return: pixd (8 bit with colormap), or NULL on error
  *
  *  Notes:
  *      (1) Simple interface.  See pixMedianCutQuantGeneral() for
@@ -270,24 +270,24 @@ pixMedianCutQuant(PIX     *pixs,
  *                      1 for no subsampling)
  *              checkbw (1 to check if color content is very small,
  *                       0 to assume there is sufficient color)
- *      Return: pixd (8 bit with colormap), or null on error
+ *      Return: pixd (8 bit with colormap), or NULL on error
  *
  *  Notes:
- *      (1) @maxcolors must be in the range [2 ... 256].
- *      (2) Use @outdepth = 0 to have the output depth computed as the
+ *      (1) %maxcolors must be in the range [2 ... 256].
+ *      (2) Use %outdepth = 0 to have the output depth computed as the
  *          minimum required to hold the actual colors found, given
- *          the @maxcolors constraint.
- *      (3) Use @outdepth = 1, 2, 4 or 8 to specify the output depth.
- *          In that case, @maxcolors must not exceed 2^(outdepth).
- *      (4) If there are fewer quantized colors in the image than @maxcolors,
+ *          the %maxcolors constraint.
+ *      (3) Use %outdepth = 1, 2, 4 or 8 to specify the output depth.
+ *          In that case, %maxcolors must not exceed 2^(outdepth).
+ *      (4) If there are fewer quantized colors in the image than %maxcolors,
  *          the colormap is simply generated from those colors.
- *      (5) @maxsub is the maximum allowed subsampling to be used in the
+ *      (5) %maxsub is the maximum allowed subsampling to be used in the
  *          computation of the color histogram and region of occupied
  *          color space.  The subsampling is chosen internally for
  *          efficiency, based on the image size, but this parameter
- *          limits it.  Use @maxsub = 0 for the internal default, which is the
- *          maximum allowed subsampling.  Use @maxsub = 1 to prevent
- *          subsampling.  In general use @maxsub >= 1 to specify the
+ *          limits it.  Use %maxsub = 0 for the internal default, which is the
+ *          maximum allowed subsampling.  Use %maxsub = 1 to prevent
+ *          subsampling.  In general use %maxsub >= 1 to specify the
  *          maximum subsampling to be allowed, where the actual subsampling
  *          will be the minimum of this value and the internally
  *          determined default value.
@@ -541,7 +541,7 @@ PIXCMAP   *cmap;
  *              diffthresh (thresh for the max difference between component
  *                          values; for differences below this, the pixel
  *                          is considered to be gray; use 0 for default)
- *      Return: pixd (8 bpp cmapped), or null on error
+ *      Return: pixd (8 bpp cmapped), or NULL on error
  *
  *  Notes:
  *      (1) ncolor + ngray must not exceed 255.
@@ -709,7 +709,6 @@ PIXCMAP   *cmap;
  *              diffthresh (thresh for the max difference between component
  *                          values; for differences below this, the pixel
  *                          is considered to be gray; use 0 for default)
- *                          considered gray; use 0 for default)
  *      Return: pixd (8 bpp, median cut quantized for pixels that are
  *                    not gray; gray pixels are quantized separately
  *                    over the full gray range); null if too many colors
@@ -720,10 +719,10 @@ PIXCMAP   *cmap;
  *          It fails (returns NULL) if it finds more than maxncolors, but
  *          otherwise it gives the same result.
  *      (2) Recommended input parameters are:
- *              @maxncolors:  20
- *              @darkthresh:  20
- *              @lightthresh: 244
- *              @diffthresh:  15  (any higher can miss colors differing
+ *              %maxncolors:  20
+ *              %darkthresh:  20
+ *              %lightthresh: 244
+ *              %diffthresh:  15  (any higher can miss colors differing
  *                                 slightly from gray)
  *      (3) Both ncolor and ngray should be at least equal to maxncolors.
  *          If they're not, they are automatically increased, and a
@@ -803,7 +802,7 @@ PIX     *pixg, *pixd;
  *              sigbits (valid: 5 or 6)
  *              subsample (integer > 0)
  *      Return: histo (1-d array, giving the number of pixels in
- *                     each quantized region of color space), or null on error
+ *                     each quantized region of color space), or NULL on error
  *
  *  Notes:
  *      (1) Array is indexed by (3 * sigbits) bits.  The array size
@@ -865,7 +864,7 @@ l_uint32  *data, *line;
  *              histo
  *              histosize
  *              sigbits
- *      Return: colormap, or null on error
+ *      Return: colormap, or NULL on error
  *
  *  Notes:
  *      (1) This is used when the number of colors in the histo
@@ -917,17 +916,17 @@ PIXCMAP  *cmap;
  *
  *      Input:  pixs  (32 bpp; rgb color)
  *              ditherflag (1 for dither; 0 for no dither)
- *              outdepth
- *              cmap
- *              indexmap
- *              histosize
- *              sigbits
- *      Return: pixd (quantized to colormap), or null on error
+ *              outdepth (depth of the returned pixd)
+ *              cmap     (colormap)
+ *              indexmap (lookup table)
+ *              mapsize  (size of the lookup table)
+ *              sigbits  (significant bits in output)
+ *      Return: pixd (quantized to colormap), or NULL on error
  *
  *  Notes:
  *      (1) The indexmap is a LUT that takes the rgb indices of the
  *          pixel and returns the index into the colormap.
- *      (2) If ditherflag is 1, @outdepth is ignored and the output
+ *      (2) If ditherflag is 1, %outdepth is ignored and the output
  *          depth is set to 8.
  */
 static PIX *
@@ -1181,7 +1180,7 @@ l_int32  rval, gval, bval;
  *              sigbits (valid: 5, 6)
  *              subsample (integer > 0)
  *      Return: vbox (minimum 3D box in color space enclosing all pixels),
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) Computes the minimum 3D box in color space enclosing all
@@ -1406,7 +1405,7 @@ L_BOX3D  *vbox1, *vbox2;
  *      Input:  lh (priority queue of pointers to vboxes)
  *              histo
  *              sigbits (valid: 5 or 6)
- *      Return: cmap, or null on error
+ *      Return: cmap, or NULL on error
  *
  *  Notes:
  *      (1) Each vbox in the heap represents a color in the colormap.
@@ -1454,8 +1453,8 @@ PIXCMAP  *cmap;
  *              histo
  *              sigbits (valid: 5 or 6)
  *              index (if >= 0, assign to all colors in histo in this vbox)
- *              &rval, &gval, &bval (<returned> average color)
- *      Return: cmap, or null on error
+ *              &rval, &gval, &bval (<return> average color)
+ *      Return: cmap, or NULL on error
  *
  *  Notes:
  *      (1) The vbox represents one color in the colormap.
@@ -1583,7 +1582,12 @@ vboxGetVolume(L_BOX3D  *vbox)
             (vbox->b2 - vbox->b1 + 1));
 }
 
-
+/*!
+ *   box3dCreate()
+ *
+ *      Input:  r1, r2, g1, g2, b1, b2 (initial values)
+ *      Return: vbox
+ */
 static L_BOX3D *
 box3dCreate(l_int32  r1,
             l_int32  r2,
@@ -1605,8 +1609,14 @@ L_BOX3D  *vbox;
 }
 
 
-/*
- *  Note: don't copy the sortparam.
+/*!
+ *    box3dCopy()
+ *
+ *      Input:  vbox
+ *      Return: vboxc (copy of vbox)
+ *
+ *  Notes:
+ *      Don't copy the sortparam.
  */
 static L_BOX3D *
 box3dCopy(L_BOX3D  *vbox)

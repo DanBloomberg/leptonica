@@ -609,7 +609,7 @@ L_RDID    *did;
  *
  *      Input:  recog (with LUT's pre-computed)
  *              select (0 for Viterbi; 1 for rescored)
- *      Return: pix (debug output), or null on error)
+ *      Return: pix (debug output), or NULL on error)
  */
 static PIX *
 recogShowPath(L_RECOG  *recog,
@@ -817,7 +817,7 @@ recogDidExists(L_RECOG  *recog)
  *  recogGetDid()
  *
  *      Input:  recog
- *      Return: did (still owned by the recog), or null on error
+ *      Return: did (still owned by the recog), or NULL on error
  *
  *  Notes:
  *      (1) This also makes sure the arrays are defined.

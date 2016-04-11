@@ -93,7 +93,7 @@
  *
  *      Input:  pixs (1 bpp)
  *              type (0 for background pixels; 1 for foreground pixels)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Extracts the fg or bg boundary pixels for each component.
@@ -130,7 +130,7 @@ PIX  *pixd;
  *              sequence (string specifying sequence of operations)
  *              dispsep (horizontal separation in pixels between
  *                       successive displays; use zero to suppress display)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This applies the morph sequence to the image, but only allows
@@ -170,7 +170,7 @@ PIX  *pixd;
  *              minw  (minimum width to consider; use 0 or 1 for any width)
  *              minh  (minimum height to consider; use 0 or 1 for any height)
  *              &boxa (<optional> return boxa of c.c. in pixs)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) See pixMorphSequence() for composing operation sequences.
@@ -240,7 +240,7 @@ PIXA    *pixas, *pixad;
  *              sequence (string specifying sequence)
  *              minw  (minimum width to consider; use 0 or 1 for any width)
  *              minh  (minimum height to consider; use 0 or 1 for any height)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) See pixMorphSequence() for composing operation sequences.
@@ -311,7 +311,7 @@ PIXA    *pixad;
  *              minw  (minimum width to consider; use 0 or 1 for any width)
  *              minh  (minimum height to consider; use 0 or 1 for any height)
  *              &boxa (<optional> return boxa of c.c. in pixm)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) See pixMorphCompSequence() for composing operation sequences.
@@ -325,7 +325,7 @@ PIXA    *pixad;
  *          to make regions independent after the operation.
  *      (4) You can specify that the width and/or height of a region must
  *          equal or exceed a minimum size for the operation to take place.
- *      (5) Use NULL for @pboxa to avoid returning the boxa.
+ *      (5) Use NULL for %pboxa to avoid returning the boxa.
  */
 PIX *
 pixMorphSequenceByRegion(PIX         *pixs,
@@ -391,7 +391,7 @@ PIXA    *pixam, *pixad;
  *              sequence (string specifying sequence)
  *              minw  (minimum width to consider; use 0 or 1 for any width)
  *              minh  (minimum height to consider; use 0 or 1 for any height)
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) See pixMorphSequence() for composing operation sequences.
@@ -476,7 +476,7 @@ PIXA    *pixad;
  *              sela
  *              type (L_MORPH_DILATE, etc.)
  *      Return: pixd (union of the specified morphological operation
- *                    on pixs for each Sel in the Sela), or null on error
+ *                    on pixs for each Sel in the Sela), or NULL on error
  */
 PIX *
 pixUnionOfMorphOps(PIX     *pixs,
@@ -529,7 +529,7 @@ SEL     *sel;
  *              sela
  *              type (L_MORPH_DILATE, etc.)
  *      Return: pixd (intersection of the specified morphological operation
- *                    on pixs for each Sel in the Sela), or null on error
+ *                    on pixs for each Sel in the Sela), or NULL on error
  */
 PIX *
 pixIntersectionOfMorphOps(PIX     *pixs,
@@ -587,7 +587,7 @@ SEL     *sel;
  *              connectivity (4 or 8)
  *              minw  (minimum width to consider; use 0 or 1 for any width)
  *              minh  (minimum height to consider; use 0 or 1 for any height)
- *      Return: pix (with holes filled in selected c.c.), or null on error
+ *      Return: pix (with holes filled in selected c.c.), or NULL on error
  */
 PIX *
 pixSelectiveConnCompFill(PIX     *pixs,
@@ -747,7 +747,7 @@ SEL     *sel;
  *              color (to paint the matched patterns; 0xrrggbb00)
  *              scale (reduction factor for output pixd)
  *              nlevels (if scale < 1.0, threshold to this number of levels)
- *      Return: pixd (8 bpp, colormapped), or null on error
+ *      Return: pixd (8 bpp, colormapped), or NULL on error
  *
  *  Notes:
  *    (1) A 4 bpp colormapped image is generated.
@@ -860,15 +860,15 @@ PIXCMAP  *cmap;
  *              sel (used for dilation, erosion); uses 2x2 if null
  *              include (1 to include a copy of the input pixas in pixad;
  *                       0 to omit)
- *      Return: pixad (of derived pix, using all iterations), or null on error
+ *      Return: pixad (of derived pix, using all iterations), or NULL on error
  *
  *  Notes:
- *    (1) This dilates or erodes every pix in @pixas, iteratively,
+ *    (1) This dilates or erodes every pix in %pixas, iteratively,
  *        using the input Sel (or, if null, a 2x2 Sel by default),
- *        and puts the results in @pixad.
- *    (2) If @niters <= 0, this is a no-op; it returns a clone of pixas.
- *    (3) If @include == 1, the output @pixad contains all the pix
- *        in @pixas.  Otherwise, it doesn't, but pixaJoin() can be
+ *        and puts the results in %pixad.
+ *    (2) If %niters <= 0, this is a no-op; it returns a clone of pixas.
+ *    (3) If %include == 1, the output %pixad contains all the pix
+ *        in %pixas.  Otherwise, it doesn't, but pixaJoin() can be
  *        used later to join pixas with pixad.
  */
 PIXA *
@@ -934,7 +934,7 @@ PIXA    *pixad;
  *              pixm (mask)
  *              maxiters (use 0 to go to completion)
  *              connectivity (4 or 8)
- *      Return: pixd (after filling into the mask) or null on error
+ *      Return: pixd (after filling into the mask) or NULL on error
  *
  *  Notes:
  *    (1) This is in general a very inefficient method for filling
@@ -1092,7 +1092,7 @@ SEL       *sel_2a;
  *              vsize (ditto)
  *              type   (L_TOPHAT_WHITE: image - opening
  *                      L_TOPHAT_BLACK: closing - image)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1160,7 +1160,7 @@ PIX  *pixt, *pixd;
  *      Input:  pixs (8 bpp, filling mask)
  *              height (of seed below the filling maskhdome; must be >= 0)
  *              connectivity (4 or 8)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) It is more efficient to use a connectivity of 4 for the fill.
@@ -1236,7 +1236,7 @@ PIX  *pixsd, *pixd;
  *              ysize (height of max/min op, smoothing; any integer >= 1)
  *              type   (L_TOPHAT_WHITE: image - min
  *                      L_TOPHAT_BLACK: max - image)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Don't be fooled. This is NOT a tophat.  It is a tophat-like
@@ -1314,7 +1314,7 @@ PIX  *pix1, *pix2, *pix3, *pixd;
  *              vsize (ditto)
  *              smoothing  (half-width of convolution smoothing filter.
  *                          The width is (2 * smoothing + 1), so 0 is no-op.
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixMorphGradient(PIX     *pixs,
@@ -1361,7 +1361,7 @@ PIX  *pixg, *pixd;
  *
  *      Input:  pixa of components (1 or 8 bpp)
  *      Return: pta of centroids relative to the UL corner of
- *              each pix, or null on error
+ *              each pix, or NULL on error
  *
  *  Notes:
  *      (1) An error message is returned if any pix has something other

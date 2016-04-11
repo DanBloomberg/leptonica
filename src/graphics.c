@@ -124,7 +124,7 @@
  *
  *      Input:  x1, y1  (end point 1)
  *              x2, y2  (end point 2)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) Uses Bresenham line drawing, which results in an 8-connected line.
@@ -191,7 +191,7 @@ PTA       *pta;
  *      Input:  x1, y1  (end point 1)
  *              x2, y2  (end point 2)
  *              width
- *      Return: ptaj, or null on error
+ *      Return: ptaj, or NULL on error
  */
 PTA  *
 generatePtaWideLine(l_int32  x1,
@@ -255,7 +255,7 @@ PTA     *pta, *ptaj;
  *
  *      Input:  box
  *              width (of line)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  *
  *  Notes:
  *      (1) Because the box is constructed so that we don't have any
@@ -328,7 +328,7 @@ PTA     *ptad, *pta;
  *      Input:  boxa
  *              width
  *              removedups  (1 to remove, 0 to leave)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  *
  *  Notes:
  *      (1) If the boxa has overlapping boxes, and if blending will
@@ -382,12 +382,12 @@ PTA     *ptad, *ptat, *pta;
  *              width  (of line)
  *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
  *              outline  (0 to skip drawing box outline)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  *
  *  Notes:
  *      (1) The orientation takes on one of 4 orientations (horiz, vertical,
  *          slope +1, slope -1).
- *      (2) The full outline is also drawn if @outline = 1.
+ *      (2) The full outline is also drawn if %outline = 1.
  */
 PTA  *
 generatePtaHashBox(BOX     *box,
@@ -476,12 +476,12 @@ PTA     *ptad, *pta;
  *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
  *              outline  (0 to skip drawing box outline)
  *              removedups  (1 to remove, 0 to leave)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  *
  *  Notes:
  *      (1) The orientation takes on one of 4 orientations (horiz, vertical,
  *          slope +1, slope -1).
- *      (2) The full outline is also drawn if @outline = 1.
+ *      (2) The full outline is also drawn if %outline = 1.
  *      (3) If the boxa has overlapping boxes, and if blending will
  *          be used to give a transparent effect, transparency
  *          artifacts at line intersections can be removed using
@@ -537,7 +537,7 @@ PTA     *ptad, *ptat, *pta;
  *  generatePtaaBoxa()
  *
  *      Input:  boxa
- *      Return: ptaa, or null on error
+ *      Return: ptaa, or NULL on error
  *
  *  Notes:
  *      (1) This generates a pta of the four corners for each box in
@@ -584,12 +584,12 @@ PTAA    *ptaa;
  *              width  (hash line width)
  *              orient  (orientation of lines: L_HORIZONTAL_LINE, ...)
  *              outline  (0 to skip drawing box outline)
- *      Return: ptaa, or null on error
+ *      Return: ptaa, or NULL on error
  *
  *  Notes:
  *      (1) The orientation takes on one of 4 orientations (horiz, vertical,
  *          slope +1, slope -1).
- *      (2) The full outline is also drawn if @outline = 1.
+ *      (2) The full outline is also drawn if %outline = 1.
  *      (3) Each of these pta can be rendered onto a pix with random colors,
  *          by using pixRenderRandomCmapPtaa() with closeflag = 1.
  *
@@ -640,7 +640,7 @@ PTAA    *ptaa;
  *              width
  *              closeflag (1 to close the contour; 0 otherwise)
  *              removedups  (1 to remove, 0 to leave)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  */
 PTA *
 generatePtaPolyline(PTA     *ptas,
@@ -698,7 +698,7 @@ PTA     *ptad, *ptat, *pta;
  *      Input:  w, h (of region where grid will be displayed)
  *              nx, ny  (number of rectangles in each direction in grid)
  *              width (of rendered lines)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  */
 PTA  *
 generatePtaGrid(l_int32  w,
@@ -747,7 +747,7 @@ PTA     *pta;
  *  convertPtaLineTo4cc()
  *
  *      Input:  ptas (8-connected line of points)
- *      Return: ptad (4-connected line), or null on error
+ *      Return: ptad (4-connected line), or NULL on error
  *
  *  Notes:
  *      (1) When a polyline is generated with width = 1, the resulting
@@ -788,7 +788,7 @@ PTA     *ptad;
  *  generatePtaFilledCircle()
  *
  *      Input:  radius
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) The circle is has diameter = 2 * radius + 1.
@@ -828,7 +828,7 @@ PTA       *pta;
  *  generatePtaFilledSquare()
  *
  *      Input:  side
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) The center of the square can be chosen to be at
@@ -860,10 +860,10 @@ PTA     *pta;
  *      Input:  x, y  (point of origination)
  *              length (of line, including starting point)
  *              radang (angle in radians, CW from horizontal)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
- *      (1) The @length of the line is 1 greater than the distance
+ *      (1) The %length of the line is 1 greater than the distance
  *          used in locatePtRadially().  Example: a distance of 1
  *          gives rise to a length of 2.
  */
@@ -927,7 +927,7 @@ locatePtRadially(l_int32     xr,
  *  Notes:
  *      (1) Simplified interface for plotting row or column aligned data
  *          on a pix.
- *      (2) This replaces @pix with a 32 bpp rgb version if it is not
+ *      (2) This replaces %pix with a 32 bpp rgb version if it is not
  *          already 32 bpp.  It then draws the plot on the pix.
  *      (3) See makePlotPtaFromNumaGen() for more details.
  */
@@ -977,10 +977,10 @@ PTA     *pta;
  *              plotloc (location of plot: L_PLOT_AT_TOP, etc)
  *              linewidth (width of "line" that is drawn; between 1 and 7)
  *              max (maximum excursion in pixels from baseline)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  *
  *  Notes:
- *      (1) This generates points from @numa representing y(x) or x(y)
+ *      (1) This generates points from %numa representing y(x) or x(y)
  *          with respect to a pix.  A horizontal plot y(x) is drawn for
  *          a function of column position, and a vertical plot is drawn
  *          for a function x(y) of row position.  The baseline is located
@@ -1037,7 +1037,7 @@ l_int32  orient, refpos;
  *  Notes:
  *      (1) General interface for plotting row or column aligned data
  *          on a pix.
- *      (2) This replaces @pix with a 32 bpp rgb version if it is not
+ *      (2) This replaces %pix with a 32 bpp rgb version if it is not
  *          already 32 bpp.  It then draws the plot on the pix.
  *      (3) See makePlotPtaFromNumaGen() for other input parameters.
  */
@@ -1087,19 +1087,19 @@ PTA     *pta;
  *              refpos (reference position: y for horizontal and x for vertical)
  *              max (maximum excursion in pixels from baseline)
  *              drawref (1 to draw the reference line and the normal to it)
- *      Return: ptad, or null on error
+ *      Return: ptad, or NULL on error
  *
  *  Notes:
- *      (1) This generates points from @numa representing y(x) or x(y)
+ *      (1) This generates points from %numa representing y(x) or x(y)
  *          with respect to a pix.  For y(x), we draw a horizontal line
  *          at the reference position and a vertical line at the edge; then
- *          we draw the values of @numa, scaled so that the maximum
- *          excursion from the reference position is @max pixels.
- *      (2) The start and delx parameters of @numa are used to refer
+ *          we draw the values of %numa, scaled so that the maximum
+ *          excursion from the reference position is %max pixels.
+ *      (2) The start and delx parameters of %numa are used to refer
  *          its values to the raster lines (L_VERTICAL_LINE) or columns
  *          (L_HORIZONTAL_LINE).
  *      (3) The linewidth is chosen in the interval [1 ... 7].
- *      (4) @refpos should be chosen so the plot is entirely within the pix
+ *      (4) %refpos should be chosen so the plot is entirely within the pix
  *          that it will be painted onto.
  *      (5) This would typically be used to plot, in place, a function
  *          computed along pixel rows or columns.
@@ -1293,9 +1293,9 @@ l_int32  i, n, x, y, w, h, d, maxval;
  *          color if the cmap is full) on each pixel.
  *      (2) If pix is not colormapped, do the best job you can using
  *          the input colors:
- *          - d = 1: set the pixels
- *          - d = 2, 4, 8: average the input rgb value
- *          - d = 32: use the input rgb value
+ *          ~ d = 1: set the pixels
+ *          ~ d = 2, 4, 8: average the input rgb value
+ *          ~ d = 32: use the input rgb value
  *      (3) This function clips the rendering to the pix.
  */
 l_int32
@@ -2099,7 +2099,8 @@ PTA  *pta;
  *              closeflag (1 to close the contour; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: this renders a closed contour.
+ *  Notes:
+ *      This renders a closed contour.
  */
 l_int32
 pixRenderPolyline(PIX     *pix,
@@ -2141,7 +2142,8 @@ PTA  *pta;
  *              closeflag (1 to close the contour; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: this renders a closed contour.
+ *  Notes:
+ *      This renders a closed contour.
  */
 l_int32
 pixRenderPolylineArb(PIX     *pix,
@@ -2269,17 +2271,17 @@ PTA     *pta;
  *              width  (thickness of line; use only for polyline)
  *              closeflag (1 to close the contour; 0 otherwise;
  *                         use only for polyline mode)
- *      Return: pixd (cmapped, 8 bpp) or null on error
+ *      Return: pixd (cmapped, 8 bpp) or NULL on error
  *
  *  Notes:
  *      (1) This is a debugging routine, that displays a set of
  *          pixels, selected by the set of Ptas in a Ptaa,
  *          in a random color in a pix.
- *      (2) If @polyflag == 1, each Pta is considered to be a polyline,
- *          and is rendered using @width and @closeflag.  Each polyline
+ *      (2) If %polyflag == 1, each Pta is considered to be a polyline,
+ *          and is rendered using %width and %closeflag.  Each polyline
  *          is rendered in a random color.
- *      (3) If @polyflag == 0, all points in each Pta are rendered in a
- *          random color.  The @width and @closeflag parameters are ignored.
+ *      (3) If %polyflag == 0, all points in each Pta are rendered in a
+ *          random color.  The %width and %closeflag parameters are ignored.
  *      (4) The output pix is 8 bpp and colormapped.  Up to 254
  *          different, randomly selected colors, can be used.
  *      (5) The rendered pixels replace the input pixels.  They will
@@ -2343,7 +2345,7 @@ PIX      *pixd;
  *              width (of polygon outline)
  *              &xmin (<optional return> min x value of input pts)
  *              &ymin (<optional return> min y value of input pts)
- *      Return: pix (1 bpp, with outline generated), or null on error
+ *      Return: pix (1 bpp, with outline generated), or NULL on error
  *
  *  Notes:
  *      (1) The pix is the minimum size required to contain the origin
@@ -2395,7 +2397,7 @@ PTA       *pta1, *pta2;
  *      Input:  pixs (1 bpp, with 4-connected polygon outline)
  *              pta (vertices of the polygon)
  *              xmin, ymin (min values of vertices of polygon)
- *      Return: pixd (with outline filled), or null on error
+ *      Return: pixd (with outline filled), or NULL on error
  *
  *  Notes:
  *      (1) This fills the interior of the polygon, returning a
@@ -2475,7 +2477,7 @@ PIX      *pixi, *pixd;
  *              startval (value of lowest contour; must be in [0 ... maxval])
  *              incr  (increment to next contour; must be > 0)
  *              outdepth (either 1 or depth of pixs)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The output can be either 1 bpp, showing just the contour
@@ -2598,10 +2600,10 @@ PIX       *pixd;
  *
  *      Input:  fpix
  *              ncontours (> 1, < 500, typ. about 50)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
- *      (1) The increment is set to get approximately @ncontours.
+ *      (1) The increment is set to get approximately %ncontours.
  *      (2) The proximity to the target value for contour display
  *          is set to 0.15.
  *      (3) Negative values are rendered in red; positive values as black.
@@ -2634,7 +2636,7 @@ l_float32  minval, maxval, incr;
  *      Input:  fpixs
  *              incr  (increment between contours; must be > 0.0)
  *              proxim (required proximity to target value; default 0.15)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) Values are displayed when val/incr is within +-proxim
@@ -2707,7 +2709,7 @@ PIXCMAP    *cmap;
  *
  *      Input:  pixs (1 bpp)
  *              width (of boundary line)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) Similar to ptaGetBoundaryPixels(), except here:

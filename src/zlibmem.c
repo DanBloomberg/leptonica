@@ -71,7 +71,7 @@ static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
  *      Input:  datain (byte buffer with input data)
  *              nin    (number of bytes of input data)
  *              &nout  (<return> number of bytes of output data)
- *      Return: dataout (compressed data), or null on error
+ *      Return: dataout (compressed data), or NULL on error
  *
  *  Notes:
  *      (1) We repeatedly read in and fill up an input buffer,
@@ -174,7 +174,7 @@ z_stream    z;
  *      Input:  datain (byte buffer with compressed input data)
  *              nin    (number of bytes of input data)
  *              &nout  (<return> number of bytes of output data)
- *      Return: dataout (uncompressed data), or null on error
+ *      Return: dataout (uncompressed data), or NULL on error
  *
  *  Notes:
  *      (1) See zlibCompress().

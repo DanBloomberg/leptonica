@@ -356,8 +356,8 @@ PIX     *pixc, *pixb, *pixd;
  *          labels are embedded in the pix.
  *      (2) Note: this function decides what class each pix belongs in.
  *          When input is from a multifont pixaa, with a valid value
- *          for @classindex, the character string label in each pix
- *          is ignored, and @classindex is used as the class index
+ *          for %classindex, the character string label in each pix
+ *          is ignored, and %classindex is used as the class index
  *          for all the pix in the pixa.  Thus, for that situation we
  *          use this class index to avoid making the decision through a
  *          lookup based on the character strings embedded in the pix.
@@ -442,7 +442,7 @@ PIXAA   *paa;
  *
  *      Input:  recog
  *              pixs (1 bpp, to be scaled)
- *      Return: pixd (scaled) if OK, null on error
+ *      Return: pixd (scaled) if OK, NULL on error
  */
 PIX *
 recogScaleCharacter(L_RECOG  *recog,
@@ -829,7 +829,7 @@ PTAA      *ptaa;
  *          we supplement a target score for retention with a minimum
  *          fraction that we must keep.  With poor quality images, we
  *          may keep samples with a score less than the targetscore,
- *          in order to satisfy the @minfract requirement.
+ *          in order to satisfy the %minfract requirement.
  *      (3) We always require that at least one sample will be retained.
  *      (4) Where the training set is from the same source (e.g., the
  *          same book), use a relatively large minscore; say, ~0.8.
@@ -1170,12 +1170,12 @@ PIXA      *pixa, *pixaf;
  *          character sets that can be used to augment an input
  *          recognizer, and optional augmentation of the input
  *          training set using eroded versions of the bitmaps.
- *      (3) If all classes in @recog have at least min_nopad samples,
- *          nothing is done.  If the total number of samples in @recog
- *          is very small, @recog is replaced in its entirety by a "boot"
+ *      (3) If all classes in %recog have at least min_nopad samples,
+ *          nothing is done.  If the total number of samples in %recog
+ *          is very small, %recog is replaced in its entirety by a "boot"
  *          recog, either from the specified bootpath, or by a default
  *          boot recognizer for that character type.  Otherwise (the
- *          intermediate case), @recog is replaced by one with scaling
+ *          intermediate case), %recog is replaced by one with scaling
  *          to fixed height, where an array of recog are used to
  *          augment the input recog.
  *      (4) If padding or total replacement is done, this destroys
@@ -1426,7 +1426,7 @@ L_RECOGA    *recoga;
  *
  *      Input:  recog1
  *              recog2
- *      Return: lut (from recog1 --> recog2), or null on error
+ *      Return: lut (from recog1 --> recog2), or NULL on error
  *
  *  Notes:
  *      (1) This returns a map from each index in recog1 to the
@@ -1544,7 +1544,7 @@ PIXA    *pixa;
  *            * the recog set index in the recoga,
  *            * the index in that recog for the class,
  *            * the score for the best match
- *      (2) It also returns in @naave, for each recog in recoga, the
+ *      (2) It also returns in %naave, for each recog in recoga, the
  *          average overall correlation for all averaged templates to
  *          those in the input recog.  The recog with the largest average
  *          can supply templates in cases where the input recog has
@@ -1751,19 +1751,19 @@ PIXA      *pixa1;
  *          called again before recogPadTrainingSet() if non-default
  *          values are to be used.
  *      (2) Default values allow for some padding.  To disable padding,
- *          set @min_nopad = 0.
- *      (3) Constraint on @min_nopad and @max_afterpad guarantees that
+ *          set %min_nopad = 0.
+ *      (3) Constraint on %min_nopad and %max_afterpad guarantees that
  *          padding will be allowed if requested.
- *      (4) The file directory (@bootdir) and tail pattern (@bootpattern)
+ *      (4) The file directory (%bootdir) and tail pattern (%bootpattern)
  *          are used to identify serialized pixa, from which we can
  *          generate an array of recog.  These can be used to augment
  *          an input but incomplete BAR (book adapted recognizer).
  *      (5) The boot recog can be extended using erosions.  Set boot_iters
  *          to the number of 2x2 erosions desired.  For a typical
- *          font size, @boot_iters <= 2.
+ *          font size, %boot_iters <= 2.
  *      (6) If the BAR is very sparse, with num_samples < min_samples,
  *          we will destroy it and use the generic bootstrap recognizer
- *          given at @bootpath.
+ *          given at %bootpath.
  */
 l_int32
 recogSetPadParams(L_RECOG     *recog,
@@ -1877,7 +1877,7 @@ l_int32  ret;
 /*!
  *  recogaShowContent()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              recoga
  *              display (1 for showing template images, 0 otherwise)
  *      Return: 0 if OK, 1 on error
@@ -1917,7 +1917,7 @@ L_RECOG  *recog;
 /*!
  *  recogShowContent()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              recog
  *              display (1 for showing template images, 0 otherwise)
  *      Return: 0 if OK, 1 on error
@@ -2221,7 +2221,7 @@ PIXA      *pixa1, *pixa2;
  *              index  (index of matching template; use -1 to disable printing)
  *              score  (score of match)
  *      Return: pixd (pair of images, showing input pix and best template,
- *                    optionally with matching information), or null on error.
+ *                    optionally with matching information), or NULL on error.
  *
  *  Notes:
  *      (1) pix1 can be one of these:

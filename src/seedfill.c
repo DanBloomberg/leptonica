@@ -272,8 +272,8 @@ PIX       *pixt;
  *          th mask.
  *      (2) There are occasions where it is useful not to permit the
  *          fill to go more than a certain distance into the mask.
- *          @xmax specifies the maximum horizontal distance allowed
- *          in the fill; @ymax does likewise in the vertical direction.
+ *          %xmax specifies the maximum horizontal distance allowed
+ *          in the fill; %ymax does likewise in the vertical direction.
  *      (3) Operationally, the max "distance" allowed for the fill
  *          is a linear distance from the original seed, independent
  *          of the actual mask topology.
@@ -345,7 +345,7 @@ PIX     *pix1, *pix2;
  *
  *      Input:  pixs (1 bpp)
  *              connectivity (4 or 8)
- *      Return: pixd  (inverted image of all holes), or null on error
+ *      Return: pixd  (inverted image of all holes), or NULL on error
  *
  * Action:
  *     (1) Start with 1-pixel black border on otherwise white pixd
@@ -355,7 +355,7 @@ PIX     *pix1, *pix2;
  *         ON pixels except for the holes.
  *     (4) Invert the result to get the holes as foreground
  *
- * Notes:
+ *  Notes:
  *     (1) To get 4-c.c. holes of the 8-c.c. as foreground, use
  *         4-connected filling; to get 8-c.c. holes of the 4-c.c.
  *         as foreground, use 8-connected filling.
@@ -394,7 +394,7 @@ PIX  *pixsi, *pixd;
  *      Input:  pixs (1 bpp)
  *              filling connectivity (4 or 8)
  *      Return: pixd  (all topologically outer closed borders are filled
- *                     as connected comonents), or null on error
+ *                     as connected comonents), or NULL on error
  *
  *  Notes:
  *      (1) Start with 1-pixel black border on otherwise white pixd
@@ -442,7 +442,7 @@ PIX  *pixsi, *pixd;
  *      Input:  pixs (1 bpp)
  *              filling connectivity (4 or 8)
  *      Return: pixd  (all pixels in the src that are in connected
- *                     components touching the border), or null on error
+ *                     components touching the border), or NULL on error
  */
 PIX *
 pixExtractBorderConnComps(PIX     *pixs,
@@ -476,7 +476,7 @@ PIX  *pixd;
  *      Input:  pixs (1 bpp)
  *              filling connectivity (4 or 8)
  *      Return: pixd  (all pixels in the src that are not touching the
- *                     border) or null on error
+ *                     border) or NULL on error
  *
  *  Notes:
  *      (1) This removes all fg components touching the border.
@@ -510,7 +510,7 @@ PIX  *pixd;
  *      Input:  pixs (1 bpp)
  *              filling connectivity (4 or 8)
  *      Return: pixd (with the background c.c. touching the border
- *                    filled to foreground), or null on error
+ *                    filled to foreground), or NULL on error
  *
  *  Notes:
  *      (1) This fills all bg components touching the border to fg.
@@ -565,7 +565,7 @@ PIX  *pixd;
  *              minfgfract (min fg area as fraction of bounding rectangle)
  *      Return: pixd (pixs, with some holes possibly filled and some c.c.
  *                    possibly expanded to their bounding rects),
- *                    or null on error
+ *                    or NULL on error
  *
  *  Notes:
  *      (1) This does not fill holes that are smaller in area than 'minsize'.
@@ -575,9 +575,9 @@ PIX  *pixd;
  *          the fg area is less than 'minfgfract' times the area of the
  *          bounding rect.
  *      (4) The decisions are made as follows:
- *           - Decide if we are filling the holes; if so, when using
+ *           ~ Decide if we are filling the holes; if so, when using
  *             the fg area, include the filled holes.
- *           - Decide based on the fg area if we are filling to a bounding rect.
+ *           ~ Decide based on the fg area if we are filling to a bounding rect.
  *             If so, do it.
  *             If not, fill the holes if the condition is satisfied.
  *      (5) The choice of minsize depends on the resolution.
@@ -904,7 +904,7 @@ PIX       *pixt;
  *              pixm  (8 bpp basin-type filling mask)
  *              delta (amount of seed value above mask)
  *              connectivity  (4 or 8)
- *      Return: pixd (filled seed) if OK, null on error
+ *      Return: pixd (filled seed) if OK, NULL on error
  *
  *  Notes:
  *      (1) This fills from a seed within basins defined by a filling mask.
@@ -914,7 +914,7 @@ PIX       *pixt;
  *      (2) The seed has value 255 except where pixb has fg (1), which
  *          are the seed 'locations'.  At the seed locations, the seed
  *          value is the corresponding value of the mask pixel in pixm
- *          plus @delta.  If @delta == 0, we return a copy of pixm.
+ *          plus %delta.  If %delta == 0, we return a copy of pixm.
  *      (3) The actual filling is done using the standard grayscale filling
  *          operation on the inverse of the mask and using the inverse
  *          of the seed image.  After filling, we return the inverse of
@@ -924,7 +924,7 @@ PIX       *pixt;
  *          low values; pixb can identify the local minima in pixm (say, at
  *          the bottom of the basins); and delta is the amount that we wish
  *          to raise (lighten) the basins.  We construct the seed
- *          (a.k.a marker) image from pixb, pixm and @delta.
+ *          (a.k.a marker) image from pixb, pixm and %delta.
  */
 PIX *
 pixSeedfillGrayBasin(PIX     *pixb,
@@ -981,7 +981,7 @@ PIX  *pixbi, *pixmi, *pixsd;
  *              connectivity  (4 or 8)
  *              outdepth (8 or 16 bits for pixd)
  *              boundcond (L_BOUNDARY_BG, L_BOUNDARY_FG)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This computes the distance of each pixel from the nearest
@@ -1071,7 +1071,7 @@ PIX       *pixd;
  *
  *      Input:  pixs  (8 bpp source)
  *              connectivity  (4 or 8)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The raster/anti-raster method for implementing this filling
@@ -1173,9 +1173,9 @@ PIX       *pixm, *pixt, *pixg, *pixd;
  *      (1) This gives the actual local minima and maxima.
  *          A local minimum is a pixel whose surrounding pixels all
  *          have values at least as large, and likewise for a local
- *          maximum.  For the local minima, @maxmin is the upper
+ *          maximum.  For the local minima, %maxmin is the upper
  *          bound for the value of pixs.  Likewise, for the local maxima,
- *          @minmax is the lower bound for the value of pixs.
+ *          %minmax is the lower bound for the value of pixs.
  *      (2) The minima are found by starting with the erosion-and-equality
  *          approach of pixSelectedLocalExtrema().  This is followed
  *          by a qualification step, where each c.c. in the resulting
@@ -1251,7 +1251,7 @@ PIX  *pixmin, *pixmax, *pixt1, *pixt2;
  *          boundary pixels of the c.c. have values that are greater
  *          than the value within the c.c.
  *      (2) The maximum allowed value for each local minimum can be
- *          bounded with @maxval.  Use 0 for default, which is to have
+ *          bounded with %maxval.  Use 0 for default, which is to have
  *          no upper bound (equivalent to maxval == 254).
  */
 static l_int32
@@ -1411,7 +1411,7 @@ PIX  *pixmin, *pixmax, *pixt, *pixtmin, *pixtmax;
  *
  *      Input:  pixs1 (8 bpp)
  *              pixs2 (8 bpp)
- *      Return: pixd (1 bpp mask), or null on error
+ *      Return: pixd (1 bpp mask), or NULL on error
  *
  *  Notes:
  *      (1) The two images are aligned at the UL corner, and the returned
@@ -1581,7 +1581,7 @@ PTA       *pta;
  *              pixm  (1 bpp filling mask)
  *              connectivity  (4 or 8)
  *              bordersize (amount of border clearing)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This removes each component in pixm for which there is
@@ -1590,9 +1590,9 @@ PTA       *pta;
  *          operation on pixm.  In no situation is pixs altered,
  *          because we do the filling with a copy of pixs.
  *      (2) If bordersize > 0, it also clears all pixels within a
- *          distance @bordersize of the edge of pixd.  This is here
+ *          distance %bordersize of the edge of pixd.  This is here
  *          because pixLocalExtrema() typically finds local minima
- *          at the border.  Use @bordersize >= 2 to remove these.
+ *          at the border.  Use %bordersize >= 2 to remove these.
  */
 PIX *
 pixRemoveSeededComponents(PIX     *pixd,

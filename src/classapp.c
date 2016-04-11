@@ -72,15 +72,15 @@ static void printRowIndices(l_int32 *index1, l_int32 n1,
 /*!
  *  jbCorrelation()
  *
- *       Input:  dirin (directory of input images)
- *               thresh (typically ~0.8)
- *               weight (typically ~0.6)
- *               components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
- *               rootname (for output files)
- *               firstpage (0-based)
- *               npages (use 0 for all pages in dirin)
- *               renderflag (1 to render from templates; 0 to skip)
- *       Return: 0 if OK, 1 on error
+ *      Input:  dirin (directory of input images)
+ *              thresh (typically ~0.8)
+ *              weight (typically ~0.6)
+ *              components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
+ *              rootname (for output files)
+ *              firstpage (0-based)
+ *              npages (use 0 for all pages in dirin)
+ *              renderflag (1 to render from templates; 0 to skip)
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The images must be 1 bpp.  If they are not, you can convert
@@ -154,15 +154,15 @@ SARRAY     *safiles;
 /*!
  *  jbRankHaus()
  *
- *       Input:  dirin (directory of input images)
- *               size (of Sel used for dilation; typ. 2)
- *               rank (rank value of match; typ. 0.97)
- *               components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
- *               rootname (for output files)
- *               firstpage (0-based)
- *               npages (use 0 for all pages in dirin)
- *               renderflag (1 to render from templates; 0 to skip)
- *       Return: 0 if OK, 1 on error
+ *      Input:  dirin (directory of input images)
+ *              size (of Sel used for dilation; typ. 2)
+ *              rank (rank value of match; typ. 0.97)
+ *              components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
+ *              rootname (for output files)
+ *              firstpage (0-based)
+ *              npages (use 0 for all pages in dirin)
+ *              renderflag (1 to render from templates; 0 to skip)
+ *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) See prog/jbrankhaus for generating more output (e.g.,
@@ -343,18 +343,18 @@ SARRAY     *safiles;
  *          The word masks and word images can be computed at either
  *          150 ppi or 300 ppi.  For the former, set reduction = 2.
  *      (2) The four size constraints on saved components are all
- *          scaled by @reduction.
+ *          scaled by %reduction.
  *      (3) The result are word images (and their b.b.), extracted in
  *          textline order, at either full res or 2x reduction,
  *          and with a numa giving the textline index for each word.
  *      (4) The pixa and boxa interfaces should make this type of
  *          application simple to put together.  The steps are:
- *           - optionally reduce by 2x
- *           - generate first estimate of word masks
- *           - get b.b. of these, and remove the small and big ones
- *           - extract pixa of the word images, using the b.b.
- *           - sort actual word images in textline order (2d)
- *           - flatten them to a pixa (1d), saving the textline index
+ *           ~ optionally reduce by 2x
+ *           ~ generate first estimate of word masks
+ *           ~ get b.b. of these, and remove the small and big ones
+ *           ~ extract pixa of the word images, using the b.b.
+ *           ~ sort actual word images in textline order (2d)
+ *           ~ flatten them to a pixa (1d), saving the textline index
  *             for each pix
  *      (5) In an actual application, it may be desirable to pre-filter
  *          the input image to remove large components, to extract
@@ -527,7 +527,7 @@ PIX     *pix1;
  *      Input:  boxa (typ. of word bounding boxes, in textline order)
  *              numa (index of textline for each box in boxa)
  *      Return: naa (numaa, where each numa represents one textline),
- *                   or null on error
+ *                   or NULL on error
  *
  *  Notes:
  *      (1) The input is expected to come from pixGetWordBoxesInTextlines().
@@ -591,7 +591,7 @@ NUMAA   *naa;
  *              maxshifty (max allowed y shift between two patterns, in pixels)
  *              delx (max allowed difference in x data, after alignment)
  *              dely (max allowed difference in y data, after alignment)
- *              &same (<return> 1 if @nreq row matches are found; 0 otherwise)
+ *              &same (<return> 1 if %nreq row matches are found; 0 otherwise)
  *              debugflag (1 for debug output)
  *      Return: 0 if OK, 1 on error
  *
@@ -603,9 +603,9 @@ NUMAA   *naa;
  *          format in each of the input numaa.
  *      (2) This function does an alignment between the input
  *          descriptions of bounding boxes for two images. The
- *          input parameter @nperline specifies the number of boxes
+ *          input parameter %nperline specifies the number of boxes
  *          to consider in each line when testing for a match, and
- *          @nreq is the required number of lines that must be well-aligned
+ *          %nreq is the required number of lines that must be well-aligned
  *          to get a match.
  *      (3) Testing by alignment has 3 steps:
  *          (a) Generating the location of word bounding boxes from the
@@ -613,14 +613,14 @@ NUMAA   *naa;
  *          (b) Listing all possible pairs of aligned rows, based on
  *              tolerances in horizontal and vertical positions of
  *              the boxes.  Specifically, all pairs of rows are enumerated
- *              whose first @nperline boxes can be brought into close
+ *              whose first %nperline boxes can be brought into close
  *              alignment, based on the delx parameter for boxes in the
- *              line and within the overall the @maxshiftx and @maxshifty
+ *              line and within the overall the %maxshiftx and %maxshifty
  *              constraints.
  *          (c) Each pair, starting with the first, is used to search
- *              for a set of @nreq - 1 other pairs that can all be aligned
+ *              for a set of %nreq - 1 other pairs that can all be aligned
  *              with a difference in global translation of not more
- *              than (@delx, @dely).
+ *              than (%delx, %dely).
  */
 l_int32
 numaaCompareImagesByBoxes(NUMAA    *naa1,
@@ -787,7 +787,7 @@ l_int32  i, xl1, xr1, xl2, xr2, diffl, diffr;
  *              delx, dely (allowed difference in shifts of the match,
  *                          compared to the reference match)
  *              nreq (number of required aligned matches)
- *              &same (<return> 1 if @nreq row matches are found; 0 otherwise)
+ *              &same (<return> 1 if %nreq row matches are found; 0 otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:

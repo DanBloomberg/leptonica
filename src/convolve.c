@@ -110,7 +110,7 @@ static void blocksumLow(l_uint32 *datad, l_int32 w, l_int32 h, l_int32 wpl,
  *
  *      Input:  pix (8 or 32 bpp; or 2, 4 or 8 bpp with colormap)
  *              wc, hc   (half width/height of convolution kernel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The full width and height of the convolution kernel
@@ -189,7 +189,7 @@ PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
  *      Input:  pix (8 bpp)
  *              accum pix (32 bpp; can be null)
  *              wc, hc   (half width/height of convolution kernel)
- *      Return: pix (8 bpp), or null on error
+ *      Return: pix (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) If accum pix is null, make one and destroy it before
@@ -431,7 +431,7 @@ l_uint32  *linemina, *linemaxa, *line;
  *  pixBlockconvAccum()
  *
  *      Input:  pixs (1, 8 or 32 bpp)
- *      Return: accum pix (32 bpp), or null on error.
+ *      Return: accum pix (32 bpp), or NULL on error.
  *
  *  Notes:
  *      (1) The general recursion relation is
@@ -592,7 +592,7 @@ l_uint32  *lines, *lined, *linedp;
  *      Input:  pixs (8 bpp)
  *              wc, hc   (half width/height of convolution kernel)
  *      Return: pix (32 bpp; containing the convolution without normalizing
- *                   for the window size), or null on error
+ *                   for the window size), or NULL on error
  *
  *  Notes:
  *      (1) The full width and height of the convolution kernel
@@ -687,7 +687,7 @@ PIX       *pixsb, *pixacc, *pixd;
  *      Input:  pix (8 or 32 bpp; or 2, 4 or 8 bpp with colormap)
  *              wc, hc   (half width/height of convolution kernel)
  *              nx, ny  (subdivision into tiles)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The full width and height of the convolution kernel
@@ -820,7 +820,7 @@ PIXTILING  *pt;
  *      Input:  pixs (8 bpp gray)
  *              pixacc (32 bpp accum pix)
  *              wc, hc   (half width/height of convolution kernel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The full width and height of the convolution kernel
@@ -938,15 +938,15 @@ PIX       *pixt, *pixd;
  *  Notes:
  *      (1) This is a high-level convenience function for calculating
  *          any or all of these derived images.
- *      (2) If @hasborder = 0, a border is added and the result is
+ *      (2) If %hasborder = 0, a border is added and the result is
  *          computed over all pixels in pixs.  Otherwise, no border is
  *          added and the border pixels are removed from the output images.
  *      (3) These statistical measures over the pixels in the
  *          rectangular window are:
- *            - average value: <p>  (pixm)
- *            - average squared value: <p*p> (pixms)
- *            - variance: <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>  (pixv)
- *            - square-root of variance: (pixrv)
+ *            ~ average value: <p>  (pixm)
+ *            ~ average squared value: <p*p> (pixms)
+ *            ~ variance: <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>  (pixv)
+ *            ~ square-root of variance: (pixrv)
  *          where the brackets < .. > indicate that the average value is
  *          to be taken over the window.
  *      (4) Note that the variance is just the mean square difference from
@@ -1030,10 +1030,10 @@ PIX  *pixb, *pixm, *pixms;
  *          and of height (hc + 1) on top and bottom, must be on the
  *          pix before the accumulator is found.  The output pixd
  *          (after convolution) has this border removed.
- *          If @hasborder = 0, the required border is added.
- *      (3) Typically, @normflag == 1.  However, if you want the sum
+ *          If %hasborder = 0, the required border is added.
+ *      (3) Typically, %normflag == 1.  However, if you want the sum
  *          within the window, rather than a normalized convolution,
- *          use @normflag == 0.
+ *          use %normflag == 0.
  *      (4) This builds a block accumulator pix, uses it here, and
  *          destroys it.
  *      (5) The added border, along with the use of an accumulator array,
@@ -1134,14 +1134,14 @@ PIX       *pixb, *pixc, *pixd;
  *          and of height (hc + 1) on top and bottom, must be on the
  *          pix before the accumulator is found.  The output pixd
  *          (after convolution) has this border removed.
- *          If @hasborder = 0, the required border is added.
+ *          If %hasborder = 0, the required border is added.
  *      (2) The advantage is that we are unaffected by the boundary, and
- *          it is not necessary to treat pixels within @wc and @hc of the
+ *          it is not necessary to treat pixels within %wc and %hc of the
  *          border differently.  This is because processing for pixd
  *          only takes place for pixels in pixs for which the
  *          kernel is entirely contained in pixs.
- *      (3) Why do we have an added border of width (@wc + 1) and
- *          height (@hc + 1), when we only need @wc and @hc pixels
+ *      (3) Why do we have an added border of width (%wc + 1) and
+ *          height (%hc + 1), when we only need %wc and %hc pixels
  *          to satisfy this condition?  Answer: the accumulators
  *          are asymmetric, requiring an extra row and column of
  *          pixels at top and left to work accurately.
@@ -1237,8 +1237,8 @@ PIX        *pixb, *pixd;
  *          the pixel value from the mean:
  *                <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>
  *      (3) To visualize the results:
- *            - for both, use fpixDisplayMaxDynamicRange().
- *            - for rms deviation, simply convert the output fpix to pix,
+ *            ~ for both, use fpixDisplayMaxDynamicRange().
+ *            ~ for rms deviation, simply convert the output fpix to pix,
  */
 l_int32
 pixWindowedVariance(PIX    *pixm,
@@ -1313,7 +1313,7 @@ FPIX       *fpixv, *fpixrv;  /* variance and square root of variance */
  *  pixMeanSquareAccum()
  *
  *      Input:  pixs (8 bpp grayscale)
- *      Return: dpix (64 bit array), or null on error
+ *      Return: dpix (64 bit array), or NULL on error
  *
  *  Notes:
  *      (1) Similar to pixBlockconvAccum(), this computes the
@@ -1791,7 +1791,7 @@ PIX       *pixav, *pixd;
  *      (1) This gives a convolution with an arbitrary kernel.
  *      (2) The input pixs must have only one sample/pixel.
  *          To do a convolution on an RGB image, use pixConvolveRGB().
- *      (3) The parameter @outdepth determines the depth of the result.
+ *      (3) The parameter %outdepth determines the depth of the result.
  *          If the kernel is normalized to unit sum, the output values
  *          can never exceed 255, so an output depth of 8 bpp is sufficient.
  *          If the kernel is not normalized, it may be necessary to use
@@ -1919,12 +1919,12 @@ PIX       *pixt, *pixd;
  *          The support for the full kernel is thus a rectangular region.
  *      (2) The input pixs must have only one sample/pixel.
  *          To do a convolution on an RGB image, use pixConvolveSepRGB().
- *      (3) The parameter @outdepth determines the depth of the result.
+ *      (3) The parameter %outdepth determines the depth of the result.
  *          If the kernel is normalized to unit sum, the output values
  *          can never exceed 255, so an output depth of 8 bpp is sufficient.
  *          If the kernel is not normalized, it may be necessary to use
  *          16 or 32 bpp output to avoid overflow.
- *      (2) The @normflag parameter is used as in pixConvolve().
+ *      (2) The %normflag parameter is used as in pixConvolve().
  *      (4) The kernel values can be positive or negative, but the
  *          result for the convolution can only be stored as a positive
  *          number.  Consequently, if it goes negative, the choices are
@@ -2399,7 +2399,7 @@ l_setConvolveSampling(l_int32  xfact,
  *
  *      Input:  pixs (8 bpp gray or 32 bpp rgb; no colormap)
  *              stdev (of noise)
- *      Return: pixd (8 or 32 bpp), or null on error
+ *      Return: pixd (8 or 32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This adds noise to each pixel, taken from a normal

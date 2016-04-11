@@ -167,7 +167,7 @@ static const struct ExtensionMap extension_map[] =
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) Use @format = IFF_DEFAULT to decide the output format
+ *      (1) Use %format = IFF_DEFAULT to decide the output format
  *          individually for each pix.
  */
 l_int32
@@ -223,9 +223,9 @@ PIX     *pix;
  *      (2) If the default image format IFF_DEFAULT is requested:
  *          use the input format if known; otherwise, use a lossless format.
  *      (3) There are two modes with respect to file naming.
- *          (a) The default code writes to @filename.
+ *          (a) The default code writes to %filename.
  *          (b) If WRITE_AS_NAMED is defined to 0, it's a bit fancier.
- *              Then, if @filename does not have a file extension, one is
+ *              Then, if %filename does not have a file extension, one is
  *              automatically appended, depending on the requested format.
  *          The original intent for providing option (b) was to insure
  *          that filenames on Windows have an extension that matches
@@ -329,7 +329,7 @@ l_int32  format;
 /*!
  *  pixWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pix
  *              format
  *      Return: 0 if OK; 1 on error.
@@ -641,7 +641,7 @@ PIXCMAP  *cmap;
  *  getFormatExtension()
  *
  *      Input:  format (integer)
- *      Return: extension (string), or null if format is out of range
+ *      Return: extension (string), or NULL if format is out of range
  *
  *  Notes:
  *      (1) This string is NOT owned by the caller; it is just a pointer
@@ -1187,16 +1187,16 @@ pixSaveTiled(PIX       *pixs,
  *
  *  Notes:
  *      (1) Before calling this function for the first time, use
- *          pixaCreate() to make the @pixa that will accumulate the pix.
+ *          pixaCreate() to make the %pixa that will accumulate the pix.
  *          This is passed in each time pixSaveTiled() is called.
- *      (2) @scalefactor scales the input image.  After scaling and
+ *      (2) %scalefactor scales the input image.  After scaling and
  *          possible depth conversion, the image is saved in the input
  *          pixa, along with a box that specifies the location to
  *          place it when tiled later.  Disable saving the pix by
- *          setting @scalefactor == 0.0.
- *      (3) @newrow and @space specify the location of the new pix
+ *          setting %scalefactor == 0.0.
+ *      (3) %newrow and %space specify the location of the new pix
  *          with respect to the last one(s) that were entered.
- *      (4) @dp specifies the depth at which all pix are saved.  It can
+ *      (4) %dp specifies the depth at which all pix are saved.  It can
  *          be only 8 or 32 bpp.  Any colormap is removed.  This is only
  *          used at the first invocation.
  *      (5) This function uses two variables from call to call.
@@ -1320,16 +1320,16 @@ PIX     *pix1, *pix2, *pix3, *pix4;
  *
  *  Notes:
  *      (1) Before calling this function for the first time, use
- *          pixaCreate() to make the @pixa that will accumulate the pix.
+ *          pixaCreate() to make the %pixa that will accumulate the pix.
  *          This is passed in each time pixSaveTiled() is called.
- *      (2) @outwidth is the scaled width.  After scaling, the image is
+ *      (2) %outwidth is the scaled width.  After scaling, the image is
  *          saved in the input pixa, along with a box that specifies
  *          the location to place it when tiled later.  Disable saving
- *          the pix by setting @outwidth == 0.
- *      (3) @newrow and @space specify the location of the new pix
+ *          the pix by setting %outwidth == 0.
+ *      (3) %newrow and %space specify the location of the new pix
  *          with respect to the last one(s) that were entered.
  *      (4) All pix are saved as 32 bpp RGB.
- *      (5) If both @bmf and @textstr are defined, this generates a pix
+ *      (5) If both %bmf and %textstr are defined, this generates a pix
  *          with the additional text; otherwise, no text is written.
  *      (6) The text is written before scaling, so it is properly
  *          antialiased in the scaled pix.  However, if the pix on

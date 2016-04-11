@@ -74,7 +74,7 @@
  *              rval, gval, bval (new color to paint)
  *      Return: 0 if OK, 1 on error
  *
- *  Note:
+ *  Notes:
  *      (1) This is an in-place operation.
  *      (2) It sets all pixels in region that have the color specified
  *          by the colormap index 'sindex' to the new color.
@@ -554,7 +554,7 @@ NUMA    *na;
  *              rval, gval, bval (new color to substitute)
  *      Return: 0 if OK, 1 on error
  *
- *  Note:
+ *  Notes:
  *      (1) This is an in-place operation.
  *      (2) This paints through the fg of pixm and replaces all pixels
  *          in pixs that have a particular value (sindex) with the new color.

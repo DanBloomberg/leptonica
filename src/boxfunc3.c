@@ -78,7 +78,7 @@ static l_int32 pixSearchForRectangle(PIX *pixs, BOX *boxs, l_int32 minsum,
  *      Input:  pixs (1 bpp)
  *              connectivity (4 or 8)
  *              &boxa (<optional return> bounding boxes of c.c.)
- *      Return: pixd (1 bpp mask over the c.c.), or null on error
+ *      Return: pixd (1 bpp mask over the c.c.), or NULL on error
  *
  *  Notes:
  *      (1) This generates a mask image with ON pixels over the
@@ -115,11 +115,11 @@ PIX   *pixd;
 /*!
  *  pixMaskBoxa()
  *
- *      Input:  pixd (<optional> may be null)
+ *      Input:  pixd (<optional> may be NULL)
  *              pixs (any depth; not cmapped)
  *              boxa (of boxes, to paint)
  *              op (L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS)
- *      Return: pixd (with masking op over the boxes), or null on error
+ *      Return: pixd (with masking op over the boxes), or NULL on error
  *
  *  Notes:
  *      (1) This can be used with:
@@ -186,7 +186,7 @@ BOX     *box;
  *      Input:  pixs (any depth, can be cmapped)
  *              boxa (of boxes, to paint)
  *              val (rgba color to paint)
- *      Return: pixd (with painted boxes), or null on error
+ *      Return: pixd (with painted boxes), or NULL on error
  *
  *  Notes:
  *      (1) If pixs is 1 bpp or is colormapped, it is converted to 8 bpp
@@ -265,7 +265,7 @@ PIXCMAP  *cmap;
  *      Input:  pixs (any depth, can be cmapped)
  *              boxa (<optional> of boxes, to clear or set)
  *              op (L_SET_BLACK, L_SET_WHITE)
- *      Return: pixd (with boxes filled with white or black), or null on error
+ *      Return: pixd (with boxes filled with white or black), or NULL on error
  */
 PIX *
 pixSetBlackOrWhiteBoxa(PIX     *pixs,
@@ -338,7 +338,7 @@ PIXCMAP  *cmap;
  *
  *      Input:  pixs (any depth, can be cmapped)
  *              boxa (of boxes, to paint)
- *      Return: pixd (with painted boxes), or null on error
+ *      Return: pixd (with painted boxes), or NULL on error
  *
  *  Notes:
  *      (1) If pixs is 1 bpp, we paint the boxa using a colormap;
@@ -405,7 +405,7 @@ PIXCMAP  *cmap;
  *      Input:  pixs (any depth; can be cmapped)
  *              boxa (of boxes, to blend/paint)
  *              fract (of box color to use)
- *      Return: pixd (32 bpp, with blend/painted boxes), or null on error
+ *      Return: pixd (32 bpp, with blend/painted boxes), or NULL on error
  *
  *  Notes:
  *      (1) pixs is converted to 32 bpp.
@@ -467,7 +467,7 @@ PIXCMAP  *cmap;
  *              boxa (of boxes, to draw)
  *              width (of lines)
  *              val (rgba color to draw)
- *      Return: pixd (with outlines of boxes added), or null on error
+ *      Return: pixd (with outlines of boxes added), or NULL on error
  *
  *  Notes:
  *      (1) If pixs is 1 bpp or is colormapped, it is converted to 8 bpp
@@ -528,7 +528,7 @@ PIXCMAP  *cmap;
  *      Input:  pixs (any depth, can be cmapped)
  *              boxa (of boxes, to draw)
  *              width (thickness of line)
- *      Return: pixd (with box outlines drawn), or null on error
+ *      Return: pixd (with box outlines drawn), or NULL on error
  *
  *  Notes:
  *      (1) If pixs is 1 bpp, we draw the boxa using a colormap;
@@ -659,7 +659,7 @@ PIXCMAP  *cmap;
  *              maxbg (maximum number of allowed bg pixels in ref scan)
  *              maxcomps (use 0 for unlimited number of subdivided components)
  *              remainder (set to 1 to get b.b. of remaining stuff)
- *      Return: boxa (of rectangles covering the fg of pixs), or null on error
+ *      Return: boxa (of rectangles covering the fg of pixs), or NULL on error
  *
  *  Notes:
  *      (1) This generates a boxa of rectangles that covers
@@ -672,12 +672,12 @@ PIXCMAP  *cmap;
  *          bg pixels.
  *      (3) This should be used when there are a small number of
  *          mask components, each of which has sides that are close
- *          to horizontal and vertical.  The input parameters @delta
- *          and @maxbg determine whether or not holes in the mask are covered.
- *      (4) The parameter @maxcomps gives the maximum number of allowed
+ *          to horizontal and vertical.  The input parameters %delta
+ *          and %maxbg determine whether or not holes in the mask are covered.
+ *      (4) The parameter %maxcomps gives the maximum number of allowed
  *          rectangles extracted from any single connected component.
  *          Use 0 if no limit is to be applied.
- *      (5) The flag @remainder specifies whether we take a final bounding
+ *      (5) The flag %remainder specifies whether we take a final bounding
  *          box for anything left after the maximum number of allowed
  *          rectangle is extracted.
  */
@@ -732,7 +732,7 @@ PIXA    *pixas;
  *              maxbg (maximum number of allowed bg pixels in ref scan)
  *              maxcomps (use 0 for unlimited number of subdivided components)
  *              remainder (set to 1 to get b.b. of remaining stuff)
- *      Return: boxa (of rectangles covering the fg of pixs), or null on error
+ *      Return: boxa (of rectangles covering the fg of pixs), or NULL on error
  *
  *  Notes:
  *      (1) This generates a boxa of rectangles that covers
@@ -747,12 +747,12 @@ PIXA    *pixas;
  *          result in a proper covering of only the fg pixels of the mask.
  *      (3) The input is assumed to be a single connected component, that
  *          may have holes.  From each side, sweep inward, counting
- *          the pixels.  If the count becomes greater than @minsum,
- *          and we have moved forward a further amount @skipdist,
+ *          the pixels.  If the count becomes greater than %minsum,
+ *          and we have moved forward a further amount %skipdist,
  *          record that count ('countref'), but don't accept if the scan
- *          contains more than @maxbg bg pixels.  Continue the scan
+ *          contains more than %maxbg bg pixels.  Continue the scan
  *          until we reach a count that differs from countref by at
- *          least @delta, at which point the propagation stops.  The box
+ *          least %delta, at which point the propagation stops.  The box
  *          swept out gets a score, which is the sum of fg pixels
  *          minus a penalty.  The penalty is the number of bg pixels
  *          in the box.  This is done from all four sides, and the
@@ -764,27 +764,27 @@ PIXA    *pixas;
  *      (4) The input box is only used to specify the location of
  *          the UL corner of pixs, with respect to an origin that
  *          typically represents the UL corner of an underlying image,
- *          of which pixs is one component.  If @box is null,
+ *          of which pixs is one component.  If %box is null,
  *          the UL corner is taken to be (0, 0).
- *      (5) The parameter @maxcomps gives the maximum number of allowed
+ *      (5) The parameter %maxcomps gives the maximum number of allowed
  *          rectangles extracted from any single connected component.
  *          Use 0 if no limit is to be applied.
- *      (6) The flag @remainder specifies whether we take a final bounding
+ *      (6) The flag %remainder specifies whether we take a final bounding
  *          box for anything left after the maximum number of allowed
  *          rectangle is extracted.
- *      (7) So if @maxcomps > 0, it specifies that we want no more than
- *          the first @maxcomps rectangles that satisfy the input
+ *      (7) So if %maxcomps > 0, it specifies that we want no more than
+ *          the first %maxcomps rectangles that satisfy the input
  *          criteria.  After this, we can get a final rectangle that
- *          bounds everything left over by setting @remainder == 1.
- *          If @remainder == 0, we only get rectangles that satisfy
+ *          bounds everything left over by setting %remainder == 1.
+ *          If %remainder == 0, we only get rectangles that satisfy
  *          the input criteria.
  *      (8) It should be noted that the removal of rectangles can
  *          break the original c.c. into several c.c.
  *      (9) Summing up:
- *            * If @maxcomp == 0, the splitting proceeds as far as possible.
- *            * If @maxcomp > 0, the splitting stops when @maxcomps are
+ *            * If %maxcomp == 0, the splitting proceeds as far as possible.
+ *            * If %maxcomp > 0, the splitting stops when %maxcomps are
  *                found, or earlier if no more components can be selected.
- *            * If @remainder == 1 and components remain that cannot be
+ *            * If %remainder == 1 and components remain that cannot be
  *                selected, they are returned as a single final rectangle;
  *                otherwise, they are ignored.
  */
@@ -897,7 +897,7 @@ PIX     *pixs;
  *      (1) See pixSplitComponentIntoBoxa() for an explanation of the algorithm.
  *          This does the sweep from a single side.  For each iteration
  *          in pixSplitComponentIntoBoxa(), this will be called 4 times,
- *          for @sideflag = {0, 1, 2, 3}.
+ *          for %sideflag = {0, 1, 2, 3}.
  *      (2) If a valid rectangle is not found, add a score of 0 and
  *          input a minimum box.
  */
@@ -1137,7 +1137,7 @@ success:
  *      Input:  w, h
  *              direction (L_SCAN_HORIZONTAL or L_SCAN_VERTICAL)
  *              size (of strips in the scan direction)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  *
  *  Notes:
  *      (1) For example, this can be used to generate a pixa of
@@ -1201,9 +1201,9 @@ BOXA    *boxa;
  *
  *      Input:  boxa1, boxa2
  *              areathresh (minimum area of boxes to be considered)
- *              &pnsame  (<return> true if same number of boxes)
- *              &pdiffarea (<return> fractional difference in total area)
- *              &pdiffxor (<optional return> fractional difference
+ *              &nsame  (<return> true if same number of boxes)
+ *              &diffarea (<return> fractional difference in total area)
+ *              &diffxor (<optional return> fractional difference
  *                         in xor of regions)
  *              &pixdb (<optional return> debug pix showing two boxa)
  *      Return: 0 if OK, 1 on error
@@ -1352,15 +1352,15 @@ PIXA     *pixa;
  *              areaslop (fraction near but less than 1.0)
  *              yslop (number of pixels in y direction)
  *              connectivity (4 or 8)
- *      Return: box, or null on error
+ *      Return: box, or NULL on error
  *
  *  Notes:
  *      (1) This selects a box near the top (first) and left (second)
  *          of the image, from the set of all boxes that have
- *                area >= @areaslop * (area of biggest box),
- *          where @areaslop is some fraction; say ~ 0.9.
+ *                area >= %areaslop * (area of biggest box),
+ *          where %areaslop is some fraction; say ~ 0.9.
  *      (2) For all boxes satisfying the above condition, select
- *          the left-most box that is within @yslop (say, 20) pixels
+ *          the left-most box that is within %yslop (say, 20) pixels
  *          of the box nearest the top.
  *      (3) This can be used to reliably select a specific one of
  *          the largest regions in an image, for applications where
@@ -1397,11 +1397,10 @@ BOXA  *boxa1;
 /*!
  *  boxaSelectLargeULBox()
  *
- *      Input:  boxa (1 bpp)
+ *      Input:  boxas (1 bpp)
  *              areaslop (fraction near but less than 1.0)
  *              yslop (number of pixels in y direction)
- *              connectivity (4 or 8)
- *      Return: box, or null on error
+ *      Return: box, or NULL on error
  *
  *  Notes:
  *      (1) See usage notes in pixSelectLargeULComp().

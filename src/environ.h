@@ -160,20 +160,20 @@ typedef uintptr_t l_uintptr_t;
 /*--------------------------------------------------------------------*
  *                          Built-in types                            *
  *--------------------------------------------------------------------*/
-typedef signed char             l_int8;
-typedef unsigned char           l_uint8;
-typedef short                   l_int16;
-typedef unsigned short          l_uint16;
-typedef int                     l_int32;
-typedef unsigned int            l_uint32;
-typedef float                   l_float32;
-typedef double                  l_float64;
+typedef signed char             l_int8;     /*!< signed 8-bit value */
+typedef unsigned char           l_uint8;    /*!< unsigned 8-bit value */
+typedef short                   l_int16;    /*!< signed 16-bit value */
+typedef unsigned short          l_uint16;   /*!< unsigned 16-bit value */
+typedef int                     l_int32;    /*!< signed 32-bit value */
+typedef unsigned int            l_uint32;   /*!< unsigned 32-bit value */
+typedef float                   l_float32;  /*!< 32-bit floating point value */
+typedef double                  l_float64;  /*!< 64-bit floating point value */
 #ifdef COMPILER_MSVC
-typedef __int64                 l_int64;
-typedef unsigned __int64        l_uint64;
+typedef __int64                 l_int64;    /*!< signed 64-bit value */
+typedef unsigned __int64        l_uint64;   /*!< unsigned 64-bit value */
 #else
-typedef long long               l_int64;
-typedef unsigned long long      l_uint64;
+typedef long long               l_int64;    /*!< signed 64-bit value */
+typedef unsigned long long      l_uint64;   /*!< unsigned 64-bit value */
 #endif  /* COMPILER_MSVC */
 
 
@@ -181,34 +181,42 @@ typedef unsigned long long      l_uint64;
  *                            Standard macros                             *
  *------------------------------------------------------------------------*/
 #ifndef L_MIN
+/*! Minimum of %x and %y */
 #define L_MIN(x,y)   (((x) < (y)) ? (x) : (y))
 #endif
 
 #ifndef L_MAX
+/*! Maximum of %x and %y */
 #define L_MAX(x,y)   (((x) > (y)) ? (x) : (y))
 #endif
 
 #ifndef L_ABS
+/*! Absoulute value of %x */
 #define L_ABS(x)     (((x) < 0) ? (-1 * (x)) : (x))
 #endif
 
 #ifndef L_SIGN
+/*! Sign of %x */
 #define L_SIGN(x)    (((x) < 0) ? -1 : 1)
 #endif
 
 #ifndef UNDEF
+/*! Undefined value */
 #define UNDEF        -1
 #endif
 
 #ifndef NULL
+/*! NULL value */
 #define NULL          0
 #endif
 
 #ifndef TRUE
+/*! True value */
 #define TRUE          1
 #endif
 
 #ifndef FALSE
+/*! False value */
 #define FALSE         0
 #endif
 
@@ -230,6 +238,8 @@ typedef unsigned long long      l_uint64;
 /*------------------------------------------------------------------------*
  *                    Simple search state variables                       *
  *------------------------------------------------------------------------*/
+
+/*! Simple search state variables */
 enum {
     L_NOT_FOUND = 0,
     L_FOUND = 1
@@ -239,6 +249,8 @@ enum {
 /*------------------------------------------------------------------------*
  *                     Path separator conversion                          *
  *------------------------------------------------------------------------*/
+
+/*! Path separator conversion */
 enum {
     UNIX_PATH_SEPCHAR = 0,
     WIN_PATH_SEPCHAR = 1
@@ -249,6 +261,8 @@ enum {
  *                          Timing structs                                *
  *------------------------------------------------------------------------*/
 typedef void *L_TIMER;
+
+/*! Timing struct */
 struct L_WallTimer {
     l_int32  start_sec;
     l_int32  start_usec;
@@ -308,6 +322,8 @@ typedef struct L_WallTimer  L_WALLTIMER;
  *  printed, if desired," whereas the run-time threshold setting says,    *
  *  "Print messages that have an equal or greater severity than this."    *
  *------------------------------------------------------------------------*/
+
+/*! Control printing of error, warning and info messages */
 enum {
     L_SEVERITY_EXTERNAL = 0,   /* Get the severity from the environment   */
     L_SEVERITY_ALL      = 1,   /* Lowest severity: print all messages     */
@@ -343,24 +359,25 @@ enum {
   #undef MINIMUM_SEVERITY
   #undef DEFAULT_SEVERITY
 
-  #define MINIMUM_SEVERITY      L_SEVERITY_NONE
-  #define DEFAULT_SEVERITY      L_SEVERITY_NONE
+  #define MINIMUM_SEVERITY      L_SEVERITY_NONE    /*!< Compile-time default */
+  #define DEFAULT_SEVERITY      L_SEVERITY_NONE    /*!< Run-time default */
 
 #else
   #ifndef MINIMUM_SEVERITY
-    #define MINIMUM_SEVERITY    L_SEVERITY_INFO    /* Compile-time default */
+    #define MINIMUM_SEVERITY    L_SEVERITY_INFO    /*!< Compile-time default */
   #endif
 
   #ifndef DEFAULT_SEVERITY
-    #define DEFAULT_SEVERITY    MINIMUM_SEVERITY   /* Run-time default */
+    #define DEFAULT_SEVERITY    MINIMUM_SEVERITY   /*!< Run-time default */
   #endif
 #endif
 
 
-/*  The run-time message severity threshold is defined in utils.c.  */
+/*!  The run-time message severity threshold is defined in utils.c.  */
 LEPT_DLL extern l_int32  LeptMsgSeverity;
 
 /*
+ * <pre>
  *  Usage
  *  =====
  *  Messages are of two types.
@@ -408,6 +425,7 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
  *  The L_nnn() macros below do not return a value, but because the
  *  conditional operator requires one for the false condition, we
  *  specify a void expression.
+ * </pre>
  */
 
 #ifdef  NO_CONSOLE_IO

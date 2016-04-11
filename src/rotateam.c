@@ -62,10 +62,10 @@
  *     the area-weighted average of those 4 source pixels.
  *     We make two simplifying approximations:
  *
- *       -  For simplicity, compute the areas as if the dest
+ *       ~  For simplicity, compute the areas as if the dest
  *          pixel were translated but not rotated.
  *
- *       -  Compute area overlaps on a discrete sub-pixel grid.
+ *       ~  Compute area overlaps on a discrete sub-pixel grid.
  *          Because we are using 8 bpp images with 256 levels,
  *          it is convenient to break each pixel into a
  *          16x16 sub-pixel grid, and count the number of
@@ -109,7 +109,7 @@ static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001;  /* radians; ~0.06 deg */
  *      Input:  pixs (2, 4, 8 bpp gray or colormapped, or 32 bpp RGB)
  *              angle (radians; clockwise is positive)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Rotates about image center.
@@ -170,7 +170,7 @@ PIX      *pixt1, *pixt2, *pixd;
  *      Input:  pixs (32 bpp)
  *              angle (radians; clockwise is positive)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Rotates about image center.
@@ -222,7 +222,7 @@ PIX       *pix1, *pix2, *pixd;
  *      Input:  pixs (8 bpp)
  *              angle (radians; clockwise is positive)
  *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Rotates about image center.
@@ -270,7 +270,7 @@ PIX        *pixd;
  *      Input:  pixs (1, 2, 4, 8 bpp gray or colormapped, or 32 bpp RGB)
  *              angle (radians; clockwise is positive)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Rotates about the UL corner of the image.
@@ -329,7 +329,7 @@ PIX      *pixt1, *pixt2, *pixd;
  *      Input:  pixs
  *              angle (radians; clockwise is positive)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Rotates the image about the UL corner.
@@ -381,7 +381,7 @@ PIX       *pix1, *pix2, *pixd;
  *      Input:  pixs
  *              angle (radians; clockwise is positive)
  *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Rotates the image about the UL corner.
@@ -429,7 +429,7 @@ PIX       *pixd;
  *      Input:  pixs
  *              angle (radians; clockwise is positive)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This rotates a color image about the image center.

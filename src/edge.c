@@ -67,7 +67,7 @@
  *
  *      Input:  pixs (8 bpp; no colormap)
  *              orientflag (L_HORIZONTAL_EDGES, L_VERTICAL_EDGES, L_ALL_EDGES)
- *      Return: pixd (8 bpp, edges are brighter), or null on error
+ *      Return: pixd (8 bpp, edges are brighter), or NULL on error
  *
  *  Notes:
  *      (1) Invert pixd to see larger gradients as darker (grayscale).
@@ -168,7 +168,7 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs (8 bpp; no colormap)
  *              orientflag (L_HORIZONTAL_EDGES, L_VERTICAL_EDGES)
- *      Return: pixd (8 bpp, edges are brighter), or null on error
+ *      Return: pixd (8 bpp, edges are brighter), or NULL on error
  *
  *  Notes:
  *      (1) For detecting vertical edges, this considers the
@@ -286,12 +286,12 @@ PIX       *pixd;
  *  Notes:
  *      (1) This computes three measures of smoothness of the edge of a
  *          connected component:
- *            * jumps/length: (jpl) the number of jumps of size >= @minjump,
+ *            * jumps/length: (jpl) the number of jumps of size >= %minjump,
  *              normalized to the length of the side
  *            * jump sum/length: (jspl) the sum of all jump lengths of
- *              size >= @minjump, normalized to the length of the side
+ *              size >= %minjump, normalized to the length of the side
  *            * reversals/length: (rpl) the number of peak <--> valley
- *              reversals, using @minreverse as a minimum deviation of
+ *              reversals, using %minreverse as a minimum deviation of
  *              the peak or valley from its preceding extremum,
  *              normalized to the length of the side
  *      (2) The input pix should be a single connected component, but
@@ -372,7 +372,7 @@ NUMA    *na, *nae;
  *              side (L_FROM_LEFT, L_FROM_RIGHT, L_FROM_TOP, L_FROM_BOT)
  *              debugfile (<optional> displays constructed edge; use NULL
  *                         for no output)
- *      Return: na (of fg edge pixel locations), or null on error
+ *      Return: na (of fg edge pixel locations), or NULL on error
  */
 NUMA *
 pixGetEdgeProfile(PIX         *pixs,
@@ -491,7 +491,7 @@ PIXCMAP  *cmap;
  *              direction (L_FROM_LEFT, L_FROM_RIGHT, L_FROM_TOP, L_FROM_BOT)
  *              &loc (<return> location in scan direction coordinate
  *                    of last OFF pixel found)
- *      Return: na (of fg edge pixel locations), or null on error
+ *      Return: na (of fg edge pixel locations), or NULL on error
  *
  *  Notes:
  *      (1) Search starts from the pixel at (x, y), which is OFF.
@@ -568,7 +568,7 @@ l_uint32  val;
  *              direction (L_FROM_LEFT, L_FROM_RIGHT, L_FROM_TOP, L_FROM_BOT)
  *              &loc (<return> location in scan direction coordinate
  *                    of first ON pixel found)
- *      Return: na (of fg edge pixel locations), or null on error
+ *      Return: na (of fg edge pixel locations), or NULL on error
  *
  *  Notes:
  *      (1) Search starts from the pixel at (x, y), which is ON.

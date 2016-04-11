@@ -32,9 +32,9 @@
  *
  *   The input is a set of files with serialized data.
  *   The output is two files, that must be compiled and linked:
- *     - autogen.*.c: code for base64 unencoding the strings and
+ *     ~ autogen.*.c: code for base64 unencoding the strings and
  *                    deserializing the result.
- *     - autogen.*.h: function prototypes and base64 encoded strings
+ *     ~ autogen.*.h: function prototypes and base64 encoded strings
  *                    of the input data
  *
  *   This should work for any data structures in leptonica that have
@@ -45,16 +45,16 @@
  *
  *   Each time the generator function is invoked, three sets of strings are
  *   produced, which are written into their respective string arrays:
- *     - string of serialized, gzipped and base 64 encoded data
- *     - case string for base64 decoding, gunzipping and deserialization,
+ *     ~ string of serialized, gzipped and base 64 encoded data
+ *     ~ case string for base64 decoding, gunzipping and deserialization,
  *       to return the data struct in memory
- *     - description string for selecting which struct to return
+ *     ~ description string for selecting which struct to return
  *   To create the two output files, a finalize function is invoked.
  *
  *   There are two ways to do this, both shown in prog/autogentest1.c.
- *     - Explicitly call strcodeGenerate() for each file with the
+ *     ~ Explicitly call strcodeGenerate() for each file with the
  *       serialized data structure, followed by strcodeFinalize().
- *     - Put the filenames of the serialized data structures in a file,
+ *     ~ Put the filenames of the serialized data structures in a file,
  *       and call strcodeCreateFromFile().
  *
  *   The generated code in autogen.X.c and autogen.X.h (where X is an
@@ -89,7 +89,7 @@
 #define TEMPLATE1  "stringtemplate1.txt"  /* for assembling autogen.*.c */
 #define TEMPLATE2  "stringtemplate2.txt"  /* for assembling autogen.*.h */
 
-    /* Associations between names and functions */
+    /*! Associations between names and functions */
 struct L_GenAssoc
 {
     l_int32  index;
@@ -98,8 +98,9 @@ struct L_GenAssoc
     char     reader[16];      /* e.g., "pixaRead" */
 };
 
-    /* Serializable data types */
+    /*! Number of serializable data types */
 static const l_int32  l_ntypes = 20;
+    /*! Serializable data types */
 static const struct L_GenAssoc l_assoc[] = {
     {0,  "INVALID",     "invalid",     "invalid"       },
     {1,  "BOXA",        "Boxa",        "boxaRead"      },
@@ -139,7 +140,7 @@ static char *l_genDescrString(const char *filein, l_int32 ifunc, l_int32 itype);
  *  strcodeCreate()
  *
  *      Input:  fileno (integer that labels the two output files)
- *      Return: initialized L_StrCode, or null on error
+ *      Return: initialized L_StrCode, or NULL on error
  *
  *  Notes:
  *      (1) This struct exists to build two files containing code for
@@ -206,7 +207,7 @@ L_STRCODE  *strcode;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The @filein has one filename on each line.
+ *      (1) The %filein has one filename on each line.
  *          Comment lines begin with "#".
  *      (2) The output is 2 files:
  *             autogen.<fileno>.c
@@ -542,11 +543,11 @@ l_int32  index;
  *  l_getIndexFromType()
  *
  *      Input:  type (e.g., "PIXA")
- *              &index (<return>)
+ *              &index (<return> found index)
  *      Return: 0 if found, 1 if not.
  *
  *  Notes:
- *      (1) For valid type, @found == true and @index > 0.
+ *      (1) For valid type, %found == true and %index > 0.
  */
 static l_int32
 l_getIndexFromType(const char  *type,
@@ -578,13 +579,13 @@ l_int32  i, found;
  *  l_getIndexFromStructname()
  *
  *      Input:  structname (e.g., "Pixa")
- *              &index (<return>)
+ *              &index (<return> found index)
  *      Return: 0 if found, 1 if not.
  *
  *  Notes:
  *      (1) This is used to identify the type of serialized file;
  *          the first word in the file is the structname.
- *      (2) For valid structname, @found == true and @index > 0.
+ *      (2) For valid structname, %found == true and %index > 0.
  */
 static l_int32
 l_getIndexFromStructname(const char  *sn,
@@ -616,7 +617,7 @@ l_int32  i, found;
  *  l_getIndexFromFile()
  *
  *      Input:  filename
- *              &index (<return>)
+ *              &index (<return> found index)
  *      Return: 0 if found, 1 on error.
  */
 static l_int32
@@ -672,7 +673,7 @@ SARRAY  *sa;
  *
  *      Input:  filein (input file of serialized data)
  *              ifunc (index into set of functions in output file)
- *      Return: encoded ascii data string, or null on error reading from file
+ *      Return: encoded ascii data string, or NULL on error reading from file
  */
 static char *
 l_genDataString(const char  *filein,
@@ -721,7 +722,7 @@ SARRAY   *sa;
  *      Return: case string for this decoding function
  *
  *  Notes:
- *      (1) @ifunc and @itype have been validated, so no error can occur
+ *      (1) %ifunc and %itype have been validated, so no error can occur
  */
 static char *
 l_genCaseString(l_int32  ifunc,

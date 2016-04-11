@@ -131,7 +131,7 @@ static l_int32 ptraExtendArray(L_PTRA *pa);
  *  ptraCreate()
  *
  *      Input:  size of ptr array to be alloc'd (0 for default)
- *      Return: pa, or null on error
+ *      Return: pa, or NULL on error
  */
 L_PTRA *
 ptraCreate(l_int32  n)
@@ -159,14 +159,14 @@ L_PTRA  *pa;
 /*!
  *  ptraDestroy()
  *
- *      Input:  &ptra (<to be nulled>)
+ *      Input:  &ptra (<inout> to be nulled)
  *              freeflag (TRUE to free each remaining item in the array)
  *              warnflag (TRUE to warn if any remaining items are not destroyed)
  *      Return: void
  *
  *  Notes:
- *      (1) If @freeflag == TRUE, frees each item in the array.
- *      (2) If @freeflag == FALSE and warnflag == TRUE, and there are
+ *      (1) If %freeflag == TRUE, frees each item in the array.
+ *      (2) If %freeflag == FALSE and warnflag == TRUE, and there are
  *          items on the array, this gives a warning and destroys the array.
  *          If these items are not owned elsewhere, this will cause
  *          a memory leak of all the items that were on the array.
@@ -295,19 +295,19 @@ ptraExtendArray(L_PTRA  *pa)
  *          it is simply inserted into that location.
  *      (2) If there is an item at the insert location, items must be
  *          moved down to make room for the insert.  In the downward
- *          shift there are three options, given by @shiftflag.
- *            - If @shiftflag == L_AUTO_DOWNSHIFT, a decision is made
+ *          shift there are three options, given by %shiftflag.
+ *            ~ If %shiftflag == L_AUTO_DOWNSHIFT, a decision is made
  *              whether, in a cascade of items, to downshift a minimum
- *              amount or for all items above @index.  The decision is
+ *              amount or for all items above %index.  The decision is
  *              based on the expectation of finding holes (null ptrs)
- *              between @index and the bottom of the array.
+ *              between %index and the bottom of the array.
  *              Assuming the holes are distributed uniformly, if 2 or more
  *              holes are expected, we do a minimum shift.
- *            - If @shiftflag == L_MIN_DOWNSHIFT, the downward shifting
+ *            ~ If %shiftflag == L_MIN_DOWNSHIFT, the downward shifting
  *              cascade of items progresses a minimum amount, until
  *              the first empty slot is reached.  This mode requires
  *              some computation before the actual shifting is done.
- *            - If @shiftflag == L_FULL_DOWNSHIFT, a shifting cascade is
+ *            ~ If %shiftflag == L_FULL_DOWNSHIFT, a shifting cascade is
  *              performed where pa[i] --> pa[i + 1] for all i >= index.
  *              Then, the item is inserted at pa[index].
  *      (3) If you are not using L_AUTO_DOWNSHIFT, the rule of thumb is
@@ -409,7 +409,7 @@ l_float32  nexpected;
  *      Input:  ptra
  *              index (element to be removed)
  *              flag (L_NO_COMPACTION, L_COMPACTION)
- *      Return: item, or null on error
+ *      Return: item, or NULL on error
  *
  *  Notes:
  *      (1) If flag == L_NO_COMPACTION, this removes the item and
@@ -468,7 +468,7 @@ void    *item;
  *  ptraRemoveLast()
  *
  *      Input:  ptra
- *      Return: item, or null on error or if the array is empty
+ *      Return: item, or NULL on error or if the array is empty
  */
 void *
 ptraRemoveLast(L_PTRA  *pa)
@@ -497,7 +497,7 @@ l_int32  imax;
  *              item  (new generic ptr to a struct; can be null)
  *              freeflag (TRUE to free old item; FALSE to return it)
  *      Return: item  (old item, if it exists and is not freed),
- *                     or null on error
+ *                     or NULL on error
  */
 void *
 ptraReplace(L_PTRA  *pa,
@@ -670,17 +670,17 @@ void    *item;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) The largest index to an item in the array is @maxindex.
- *          @maxindex is one less than the number of items that would be
+ *      (1) The largest index to an item in the array is %maxindex.
+ *          %maxindex is one less than the number of items that would be
  *          in the array if there were no null pointers between 0
- *          and @maxindex - 1.  However, because the internal ptr array
- *          need not be compacted, there may be null pointers at
- *          indices below @maxindex; for example, if items have
+ *          and %maxindex - 1.  However, because the internal ptr array
+ *          need not be compacted, there may be NULL pointers at
+ *          indices below %maxindex; for example, if items have
  *          been removed.
  *      (2) When an item is added to the end of the array, it goes
  *          into pa->array[maxindex + 1], and maxindex is then
  *          incremented by 1.
- *      (3) If there are no items in the array, this returns @maxindex = -1.
+ *      (3) If there are no items in the array, this returns %maxindex = -1.
  */
 l_int32
 ptraGetMaxIndex(L_PTRA   *pa,
@@ -729,7 +729,7 @@ ptraGetActualCount(L_PTRA   *pa,
  *
  *      Input:  ptra
  *              index (of element to be retrieved)
- *      Return: a ptr to the element, or null on error
+ *      Return: a ptr to the element, or NULL on error
  *
  *  Notes:
  *      (1) This returns a ptr to the item.  You must cast it to
@@ -761,7 +761,7 @@ ptraGetPtrToItem(L_PTRA  *pa,
  *  ptraaCreate()
  *
  *      Input:  size of ptr array to be alloc'd
- *      Return: paa, or null on error
+ *      Return: paa, or NULL on error
  *
  *  Notes:
  *      (1) The ptraa is generated with a fixed size, that can not change.
@@ -790,13 +790,13 @@ L_PTRAA  *paa;
 /*!
  *  ptraaDestroy()
  *
- *      Input:  &paa (<to be nulled>)
+ *      Input:  &paa (<inout> to be nulled)
  *              freeflag (TRUE to free each remaining item in each ptra)
  *              warnflag (TRUE to warn if any remaining items are not destroyed)
  *      Return: void
  *
  *  Notes:
- *      (1) See ptraDestroy() for use of @freeflag and @warnflag.
+ *      (1) See ptraDestroy() for use of %freeflag and %warnflag.
  *      (2) To destroy the ptraa, we destroy each ptra, then the ptr array,
  *          then the ptraa, and then null the contents of the input ptr.
  */
@@ -904,8 +904,8 @@ l_int32  n;
  *              is no ptra there.
  *
  *  Notes:
- *      (1) This returns the ptra ptr.  If @accessflag == L_HANDLE_ONLY,
- *          the ptra is left on the ptraa.  If @accessflag == L_REMOVE,
+ *      (1) This returns the ptra ptr.  If %accessflag == L_HANDLE_ONLY,
+ *          the ptra is left on the ptraa.  If %accessflag == L_REMOVE,
  *          the ptr in the ptraa is set to NULL, and the caller
  *          is responsible for disposing of the ptra (either putting it
  *          back on the ptraa, or destroying it).
@@ -943,7 +943,7 @@ L_PTRA  *pa;
  *  ptraaFlattenToPtra()
  *
  *      Input:  ptraa
- *      Return: ptra, or null on error
+ *      Return: ptra, or NULL on error
  *
  *  Notes:
  *      (1) This 'flattens' the ptraa to a ptra, taking the items in
