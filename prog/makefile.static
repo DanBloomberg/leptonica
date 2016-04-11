@@ -60,16 +60,6 @@
 #          or
 #     (b)  have the *.so files (or links to them) in this directory
 #
-#   Using gnu make, this should compile properly on a bigendian
-#   machine (e.g., Mac).  Otherwise, you can explicitly set the endianness,
-#   using either of these
-#      CPPFLAGS =    $(INCLUDES) -DL_LITTLE_ENDIAN -D_STANDARD_C_
-#      CPPFLAGS =    $(INCLUDES) -DL_BIG_ENDIAN -D_STANDARD_C_
-#
-#   To use the non-POSIX-compliant GNU functions fmemopen() and open_memstream(),
-#   remove -D_STANDARD_C_ from CPPFLAGS:
-#      CPPFLAGS =    $(INCLUDES) -D$(ENDIANNESS)
-#
 #   On cygwin, remove -fPIC from CC.  I believe that these files --
 #   convertfilestops.c, jbcorrelation.c, jbrankhaus.c, maketile.c,
 #   and viewertest.c -- which use posix directory functions, will
@@ -116,15 +106,9 @@ INCLUDES =	-I$(IMAGELIB_INCL) -I/usr/X11R6/include $(EXTRAINCLUDES)
 
 CFLAGS =	$(OPTIMIZE) $(OPTIONS)
 
-# Test for processor endianness (valid with gnu make only)
-ENDIANNESS := $(shell $(CC) -o endiantest endiantest.c; ./endiantest; rm -f endiantest)
-
-# Conditional compilation (depending on processor endian-ness)
 # Use -D_STANDARD_C to stub out the non-posix GNU functions fmemopen()
 # and open_memstream()
-CPPFLAGS =      $(INCLUDES) -D$(ENDIANNESS)
-#CPPFLAGS =      $(INCLUDES) -DL_LITTLE_ENDIAN
-#CPPFLAGS =      $(INCLUDES) -DL_BIG_ENDIAN
+CPPFLAGS = $(INCLUDES)
 
 LDFLAGS +=	-L$(LIB_DIR) -L/usr/X11R6/lib -L/usr/lib $(EXTRALIBS)
 #LDFLAGS +=	-L$(LIB_DIR) -L/usr/X11R6/lib -L/usr/local/lib -L/usr/lib $(EXTRALIBS)

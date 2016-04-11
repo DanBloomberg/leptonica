@@ -33,4 +33,5 @@ xtractprotos
 /libtool
 /m4/
 /obj/
+/src/endianness.h
 /stamp-h1

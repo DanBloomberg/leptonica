@@ -77,7 +77,6 @@ noinst_PROGRAMS = xtractprotos
 LDADD = liblept.la
 
 EXTRA_DIST = arrayaccess.h.vc                                   \
- endiantest.c endianness.h.dist	                                \
  hmttemplate1.txt hmttemplate2.txt                              \
  leptonica-license.txt		                                \
  morphtemplate1.txt morphtemplate2.txt                          \
@@ -87,5 +86,3 @@ allheaders: $(liblept_la_SOURCES)
 	@test -x xtractprotos || echo "First run 'make xtractprotos'"
 	./xtractprotos -prestring=LEPT_DLL -protos=inline $(liblept_la_SOURCES)
 
-dist-hook: 
-	cp "$(distdir)"/endianness.h{.dist,}
