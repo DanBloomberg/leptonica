@@ -27,9 +27,10 @@
 #ifndef  LEPTONICA_ARRAY_ACCESS_H
 #define  LEPTONICA_ARRAY_ACCESS_H
 
-/*
- *  arrayaccess.h
+/*!
+ * \file arrayaccess.h
  *
+ * <pre>
  *  1, 2, 4, 8, 16 and 32 bit data access within an array of 32-bit words
  *
  *  This is used primarily to access 1, 2, 4, 8, 16 and 32 bit pixels
@@ -98,6 +99,7 @@
  *  SET_DATA_QBIT operations per second on a fast 64 bit system.
  *  Using the function calls instead of the macros results in about 250M
  *  SET_DATA_QBIT operations per second, a performance hit of nearly 20%.
+ * </pre>
  */
 
 #define  USE_INLINE_ACCESSORS    1
@@ -111,15 +113,19 @@
     /*--------------------------------------------------*
      *                     1 bit access                 *
      *--------------------------------------------------*/
+/*! 1 bit access - get */
 #define  GET_DATA_BIT(pdata, n) \
     ((*((l_uint32 *)(pdata) + ((n) >> 5)) >> (31 - ((n) & 31))) & 1)
 
+/*! 1 bit access - set */
 #define  SET_DATA_BIT(pdata, n) \
     *((l_uint32 *)(pdata) + ((n) >> 5)) |= (0x80000000 >> ((n) & 31))
 
+/*! 1 bit access - clear */
 #define  CLEAR_DATA_BIT(pdata, n) \
     *((l_uint32 *)(pdata) + ((n) >> 5)) &= ~(0x80000000 >> ((n) & 31))
 
+/*! 1 bit access - set value (0 or 1) */
 #define  SET_DATA_BIT_VAL(pdata, n, val) \
      *((l_uint32 *)(pdata) + ((n) >> 5)) = \
         ((*((l_uint32 *)(pdata) + ((n) >> 5)) \
@@ -129,15 +135,18 @@
     /*--------------------------------------------------*
      *                     2 bit access                 *
      *--------------------------------------------------*/
+/*! 2 bit access - get */
 #define  GET_DATA_DIBIT(pdata, n) \
     ((*((l_uint32 *)(pdata) + ((n) >> 4)) >> (2 * (15 - ((n) & 15)))) & 3)
 
+/*! 2 bit access - set value (0 ... 3) */
 #define  SET_DATA_DIBIT(pdata, n, val) \
      *((l_uint32 *)(pdata) + ((n) >> 4)) = \
         ((*((l_uint32 *)(pdata) + ((n) >> 4)) \
         & (~(0xc0000000 >> (2 * ((n) & 15))))) \
         | (((val) & 3) << (30 - 2 * ((n) & 15))))
 
+/*! 2 bit access - clear */
 #define  CLEAR_DATA_DIBIT(pdata, n) \
     *((l_uint32 *)(pdata) + ((n) >> 4)) &= ~(0xc0000000 >> (2 * ((n) & 15)))
 
@@ -145,15 +154,18 @@
     /*--------------------------------------------------*
      *                     4 bit access                 *
      *--------------------------------------------------*/
+/*! 4 bit access - get */
 #define  GET_DATA_QBIT(pdata, n) \
      ((*((l_uint32 *)(pdata) + ((n) >> 3)) >> (4 * (7 - ((n) & 7)))) & 0xf)
 
+/*! 4 bit access - set value (0 ... 15) */
 #define  SET_DATA_QBIT(pdata, n, val) \
      *((l_uint32 *)(pdata) + ((n) >> 3)) = \
         ((*((l_uint32 *)(pdata) + ((n) >> 3)) \
         & (~(0xf0000000 >> (4 * ((n) & 7))))) \
         | (((val) & 15) << (28 - 4 * ((n) & 7))))
 
+/*! 4 bit access - clear */
 #define  CLEAR_DATA_QBIT(pdata, n) \
     *((l_uint32 *)(pdata) + ((n) >> 3)) &= ~(0xf0000000 >> (4 * ((n) & 7)))
 
@@ -162,17 +174,21 @@
      *                     8 bit access                 *
      *--------------------------------------------------*/
 #ifdef  L_BIG_ENDIAN
+/*! 8 bit access - get */
 #define  GET_DATA_BYTE(pdata, n) \
              (*((l_uint8 *)(pdata) + (n)))
 #else  /* L_LITTLE_ENDIAN */
+/*! 8 bit access - get */
 #define  GET_DATA_BYTE(pdata, n) \
              (*(l_uint8 *)((l_uintptr_t)((l_uint8 *)(pdata) + (n)) ^ 3))
 #endif  /* L_BIG_ENDIAN */
 
 #ifdef  L_BIG_ENDIAN
+/*! 8 bit access - set value (0 ... 255) */
 #define  SET_DATA_BYTE(pdata, n, val) \
              *((l_uint8 *)(pdata) + (n)) = (val)
 #else  /* L_LITTLE_ENDIAN */
+/*! 8 bit access - set value (0 ... 255) */
 #define  SET_DATA_BYTE(pdata, n, val) \
              *(l_uint8 *)((l_uintptr_t)((l_uint8 *)(pdata) + (n)) ^ 3) = (val)
 #endif  /* L_BIG_ENDIAN */
@@ -182,17 +198,21 @@
      *                    16 bit access                 *
      *--------------------------------------------------*/
 #ifdef  L_BIG_ENDIAN
+/*! 16 bit access - get */
 #define  GET_DATA_TWO_BYTES(pdata, n) \
              (*((l_uint16 *)(pdata) + (n)))
 #else  /* L_LITTLE_ENDIAN */
+/*! 16 bit access - get */
 #define  GET_DATA_TWO_BYTES(pdata, n) \
              (*(l_uint16 *)((l_uintptr_t)((l_uint16 *)(pdata) + (n)) ^ 2))
 #endif  /* L_BIG_ENDIAN */
 
 #ifdef  L_BIG_ENDIAN
+/*! 16 bit access - set value (0 ... 65535) */
 #define  SET_DATA_TWO_BYTES(pdata, n, val) \
              *((l_uint16 *)(pdata) + (n)) = (val)
 #else  /* L_LITTLE_ENDIAN */
+/*! 16 bit access - set value (0 ... 65535) */
 #define  SET_DATA_TWO_BYTES(pdata, n, val) \
              *(l_uint16 *)((l_uintptr_t)((l_uint16 *)(pdata) + (n)) ^ 2) = (val)
 #endif  /* L_BIG_ENDIAN */
@@ -201,9 +221,11 @@
     /*--------------------------------------------------*
      *                    32 bit access                 *
      *--------------------------------------------------*/
+/*! 32 bit access - get */
 #define  GET_DATA_FOUR_BYTES(pdata, n) \
              (*((l_uint32 *)(pdata) + (n)))
 
+/*! 32 bit access - set (0 ... 4294967295) */
 #define  SET_DATA_FOUR_BYTES(pdata, n, val) \
              *((l_uint32 *)(pdata) + (n)) = (val)
 

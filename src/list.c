@@ -218,7 +218,7 @@
 /*!
  *  listDestroy()
  *
- *      Input:  &head   (<to be nulled> head of list)
+ *      Input:  &head   (<inout> to be nulled; head of list)
  *      Return: void
  *
  *  Notes:
@@ -257,7 +257,7 @@ DLLIST  *elem, *next, *head;
 /*!
  *  listAddToHead()
  *
- *      Input:  &head  (<optional> input head)
+ *      Input:  &head  (<inout> <optional> input head)
  *              data  (void* ptr, to be added)
  *      Return: 0 if OK; 1 on error
  *
@@ -301,8 +301,8 @@ DLLIST  *cell, *head;
 /*!
  *  listAddToTail()
  *
- *      Input:  &head  (<may be updated>, head can be null)
- *              &tail  (<updated>, tail can be null)
+ *      Input:  &head  (<inout> [may be updated], can be NULL)
+ *              &tail  (<inout> [updated], can be NULL)
  *              data  (void* ptr, to be hung on tail cons cell)
  *      Return: 0 if OK; 1 on error
  *
@@ -362,9 +362,9 @@ DLLIST  *cell, *head, *tail;
 /*!
  *  listInsertBefore()
  *
- *      Input:  &head  (<optional> input head)
+ *      Input:  &head  (<inout> <optional> input head)
  *               elem  (list element to be inserted in front of;
- *                      must be null if head is null)
+ *                      must be NULL if head is NULL)
  *               data  (void*  address, to be added)
  *      Return: 0 if OK; 1 on error
  *
@@ -423,9 +423,9 @@ DLLIST  *cell, *head;
 /*!
  *  listInsertAfter()
  *
- *      Input:  &head  (<optional> input head)
+ *      Input:  &head  (<inout> <optional> input head)
  *               elem  (list element to be inserted after;
- *                      must be null if head is null)
+ *                      must be NULL if head is NULL)
  *               data  (void*  ptr, to be added)
  *      Return: 0 if OK; 1 on error
  *
@@ -483,7 +483,7 @@ DLLIST  *cell, *head;
 /*!
  *  listRemoveElement()
  *
- *      Input:  &head (<can be changed> input head)
+ *      Input:  &head (<inout> [can be changed] input head)
  *              elem (list element to be removed)
  *      Return: data  (void* struct on cell)
  *
@@ -534,8 +534,8 @@ DLLIST  *head;
 /*!
  *  listRemoveFromHead()
  *
- *      Input:  &head (<to be updated> head of list)
- *      Return: data  (void* struct on cell), or null on error
+ *      Input:  &head (<inout> head of list [to be updated])
+ *      Return: data  (void* struct on cell), or NULL on error
  *
  *  Notes:
  *      (1) in ANSI C, it is not necessary to cast return to actual type; e.g.,
@@ -572,9 +572,9 @@ void    *data;
 /*!
  *  listRemoveFromTail()
  *
- *      Input:  &head (<may be changed>, head must NOT be null)
- *              &tail (<always updated>, tail may be null)
- *      Return: data  (void* struct on cell) or null on error
+ *      Input:  &head (<inout> [may be changed], head must NOT be NULL)
+ *              &tail (<inout> [always updated], tail may be NULL)
+ *      Return: data  (void* struct on cell) or NULL on error
  *
  *  Notes:
  *      (1) We include &head so that it can be set to NULL if
@@ -630,7 +630,7 @@ void    *data;
  *
  *      Input:  head  (list head)
  *              data  (void*  address, to be searched for)
- *      Return: cell  (the containing cell, or null if not found or on error)
+ *      Return: cell  (the containing cell, or NULL if not found or on error)
  *
  *  Notes:
  *      (1) This returns a ptr to the cell, which is still embedded in
@@ -667,7 +667,7 @@ DLLIST  *cell;
  *  listFindTail()
  *
  *      Input:  head
- *      Return: tail, or null on error
+ *      Return: tail, or NULL on error
  */
 DLLIST *
 listFindTail(DLLIST  *head)
@@ -716,7 +716,7 @@ DLLIST  *elem;
 /*!
  *  listReverse()
  *
- *      Input:  &head  (<may be changed> list head)
+ *      Input:  &head  (<inout> [may be changed] list head)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -749,8 +749,8 @@ DLLIST  *head, *rhead;
 /*!
  *  listJoin()
  *
- *      Input:  &head1  (<may be changed> head of first list)
- *              &head2  (<to be nulled> head of second list)
+ *      Input:  &head1  (<inout> [may be changed] head of first list)
+ *              &head2  (<inout> to be nulled; head of second list)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:

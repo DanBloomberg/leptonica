@@ -237,9 +237,9 @@ l_uint32  *line, *data;
  *
  *  Notes:
  *      (1) Warning: the input value is not checked for overflow with respect
- *          the the depth of @pix, and the sign bit (if any) is ignored.
- *          * For d == 1, @val > 0 sets the bit on.
- *          * For d == 2, 4, 8 and 16, @val is masked to the maximum allowable
+ *          the the depth of %pix, and the sign bit (if any) is ignored.
+ *          * For d == 1, %val > 0 sets the bit on.
+ *          * For d == 2, 4, 8 and 16, %val is masked to the maximum allowable
  *            pixel value, and any (invalid) higher order bits are discarded.
  *      (2) See pixGetPixel() for information on performance.
  */
@@ -741,11 +741,11 @@ PIXCMAP  *cmap;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) N.B.  For all images, @grayval == 0 represents black and
- *          @grayval == 255 represents white.
+ *      (1) N.B.  For all images, %grayval == 0 represents black and
+ *          %grayval == 255 represents white.
  *      (2) For depth < 8, we do our best to approximate the gray level.
- *          For 1 bpp images, any @grayval < 128 is black; >= 128 is white.
- *          For 32 bpp images, each r,g,b component is set to @grayval,
+ *          For 1 bpp images, any %grayval < 128 is black; >= 128 is white.
+ *          For 32 bpp images, each r,g,b component is set to %grayval,
  *          and the alpha component is preserved.
  *      (3) If pix is colormapped, it adds the gray value, replicated in
  *          all components, to the colormap if it's not there and there
@@ -823,7 +823,7 @@ PIXCMAP  *cmap;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) Caution!  For colormapped pix, @val is used as an index
+ *      (1) Caution!  For colormapped pix, %val is used as an index
  *          into a colormap.  Be sure that index refers to the intended color.
  *          If the color is not in the colormap, you should first add it
  *          and then call this function.
@@ -1154,7 +1154,7 @@ PIXCMAP   *cmap;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) This is an in-place function.  It blends the input color @val
+ *      (1) This is an in-place function.  It blends the input color %val
  *          with the pixels in pixs in the specified rectangle.
  *          If no rectangle is specified, it blends over the entire image.
  */
@@ -1596,7 +1596,7 @@ l_int32  i, j, w, h;
  *      Input:  pixd (all depths; colormap ok; can be NULL)
  *              pixs (same depth and size as pixd)
  *              left, right, top, bot (number of pixels to copy)
- *      Return: pixd, or null on error if pixd is not defined
+ *      Return: pixd, or NULL on error if pixd is not defined
  *
  *  Notes:
  *      (1) pixd can be null, but otherwise it must be the same size
@@ -1653,7 +1653,7 @@ l_int32  w, h;
  *      Input:  pixs (all depths; colormap ok)
  *              npix (number of pixels to be added to each side)
  *              val  (value of added border pixels)
- *      Return: pixd (with the added exterior pixels), or null on error
+ *      Return: pixd (with the added exterior pixels), or NULL on error
  *
  *  Notes:
  *      (1) See pixGetBlackOrWhiteVal() for values of black and white pixels.
@@ -1679,7 +1679,7 @@ pixAddBorder(PIX      *pixs,
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot  (number of pixels added)
  *              op (L_GET_BLACK_VAL, L_GET_WHITE_VAL)
- *      Return: pixd (with the added exterior pixels), or null on error
+ *      Return: pixd (with the added exterior pixels), or NULL on error
  *
  *  Notes:
  *      (1) See pixGetBlackOrWhiteVal() for possible side effect (adding
@@ -1724,7 +1724,7 @@ l_uint32  val;
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot  (number of pixels added)
  *              val   (value of added border pixels)
- *      Return: pixd (with the added exterior pixels), or null on error
+ *      Return: pixd (with the added exterior pixels), or NULL on error
  *
  *  Notes:
  *      (1) For binary images:
@@ -1801,7 +1801,7 @@ PIX     *pixd;
  *
  *      Input:  pixs (all depths; colormap ok)
  *              npix (number to be removed from each of the 4 sides)
- *      Return: pixd (with pixels removed around border), or null on error
+ *      Return: pixd (with pixels removed around border), or NULL on error
  */
 PIX *
 pixRemoveBorder(PIX     *pixs,
@@ -1822,7 +1822,7 @@ pixRemoveBorder(PIX     *pixs,
  *
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot  (number of pixels removed)
- *      Return: pixd (with pixels removed around border), or null on error
+ *      Return: pixd (with pixels removed around border), or NULL on error
  */
 PIX *
 pixRemoveBorderGeneral(PIX     *pixs,
@@ -1867,7 +1867,7 @@ PIX     *pixd;
  *      Input:  pixs (all depths; colormap ok)
  *              wd  (target width; use 0 if only removing from height)
  *              hd  (target height; use 0 if only removing from width)
- *      Return: pixd (with pixels removed around border), or null on error
+ *      Return: pixd (with pixels removed around border), or NULL on error
  *
  *  Notes:
  *      (1) Removes pixels as evenly as possible from the sides of the
@@ -1911,7 +1911,7 @@ l_int32  w, h, top, bot, left, right, delta;
  *
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot (number of pixels added)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This applies what is effectively mirror boundary conditions.
@@ -1970,7 +1970,7 @@ PIX     *pixd;
  *
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot (number of pixels added)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This applies a repeated border, as if the central part of
@@ -2014,7 +2014,7 @@ PIX     *pixd;
  *
  *      Input:  pixs (all depths; colormap ok)
  *              left, right, top, bot (number of pixels added)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This applies mirrored boundary conditions horizontally
@@ -2072,7 +2072,7 @@ PIX     *pixd;
  *
  *      Input:  pixs
  *              left, right, top, bot (pixels on each side to be added)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This adds pixels on each side whose values are equal to
@@ -2161,14 +2161,14 @@ PIX     *pix1, *pix2;
  *      Input:  pixs (cmap or 32 bpp rgba)
  *              val (32 bit unsigned color to use as background)
  *              maxw (max output image width; 0 for no scaling)
- *      Return: pixd (showing various image views), or null on error
+ *      Return: pixd (showing various image views), or NULL on error
  *
  *  Notes:
- *      (1) Use @val == 0xffffff00 for white background.
+ *      (1) Use %val == 0xffffff00 for white background.
  *      (2) Three views are given:
- *           - the image with a fully opaque alpha
- *           - the alpha layer
- *           - the image as it would appear with a white background.
+ *           ~ the image with a fully opaque alpha
+ *           ~ the alpha layer
+ *           ~ the image as it would appear with a white background.
  */
 PIX *
 pixDisplayLayersRGBA(PIX      *pixs,
@@ -2209,7 +2209,7 @@ PIXCMAP   *cmap;
     pixaAddPix(pixa, pix2, L_INSERT);  /* show the alpha channel */
     pixDestroy(&pix1);
     pix1 = pixAlphaBlendUniform(pixs, (val & 0xffffff00));
-    pixaAddPix(pixa, pix1, L_INSERT);  /* with @val color bg showing */
+    pixaAddPix(pixa, pix1, L_INSERT);  /* with %val color bg showing */
     pixd = pixaDisplayTiledInRows(pixa, 32, width, scalefact, 0, 25, 2);
     pixaDestroy(&pixa);
     return pixd;
@@ -2226,7 +2226,7 @@ PIXCMAP   *cmap;
  *              8 bpp green pix
  *              8 bpp blue pix
  *      Return: 32 bpp pix, interleaved with 4 samples/pixel,
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) the 4th byte, sometimes called the "alpha channel",
@@ -2284,7 +2284,7 @@ PIX     *pixd;
  *              comp (one of {COLOR_RED, COLOR_GREEN, COLOR_BLUE,
  *                    L_ALPHA_CHANNEL})
  *      Return: pixd (the selected 8 bpp component image of the
- *                    input 32 bpp image) or null on error
+ *                    input 32 bpp image) or NULL on error
  *
  *  Notes:
  *      (1) Three calls to this function generate the r, g and b 8 bpp
@@ -2406,7 +2406,7 @@ l_uint32  *datas, *datad;
  *      Input:  pixs  (colormapped)
  *              comp  (one of the set: {COLOR_RED, COLOR_GREEN, COLOR_BLUE})
  *      Return: pixd  (the selected 8 bpp component image of the
- *                     input cmapped image), or null on error
+ *                     input cmapped image), or NULL on error
  *
  *  Notes:
  *      (1) In leptonica, we do not support alpha in colormaps.
@@ -2656,7 +2656,7 @@ extractRGBAValues(l_uint32  pixel,
  *
  *      Input:  pixel (32 bpp RGB)
  *              type (L_CHOOSE_MIN or L_CHOOSE_MAX)
- *      Return: component (in range [0 ... 255], or null on error
+ *      Return: component (in range [0 ... 255], or NULL on error
  */
 l_int32
 extractMinMaxComponent(l_uint32  pixel,
@@ -2733,7 +2733,7 @@ l_int32    wpls;
  *  pixEndianByteSwapNew()
  *
  *      Input:  pixs
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This is used to convert the data in a pix to a
@@ -3141,7 +3141,7 @@ l_uint32  *data, *line;
  *      Input:  pix (8 bpp, no colormap)
  *              &w (<optional return> width)
  *              &h (<optional return> height)
- *      Return: line ptr array, or null on error
+ *      Return: line ptr array, or NULL on error
  *
  *  Notes:
  *      (1) This is a simple helper for processing 8 bpp images with

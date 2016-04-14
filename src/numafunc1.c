@@ -337,7 +337,7 @@ l_int32  i, n, val;
  *
  *  Notes:
  *      (1) Float values can differ slightly due to roundoff and
- *          accumulated errors.  Using @maxdiff > 0.0 allows similar
+ *          accumulated errors.  Using %maxdiff > 0.0 allows similar
  *          arrays to be identified.
 */
 l_int32
@@ -383,7 +383,7 @@ l_float32  val1, val2;
  *  Notes:
  *      (1) This is useful for accumulating sums, regardless of the index
  *          order in which the values are made available.
- *      (2) Before use, the numa has to be filled up to @index.  This would
+ *      (2) Before use, the numa has to be filled up to %index.  This would
  *          typically be used by creating the numa with the full sized
  *          array, initialized to 0.0, using numaMakeConstant().
  */
@@ -530,7 +530,7 @@ l_float32  val, sum;
  *  numaGetPartialSums()
  *
  *      Input:  na
- *      Return: nasum, or null on error
+ *      Return: nasum, or NULL on error
  *
  *  Notes:
  *      (1) nasum[i] is the sum for all j <= i of na[j].
@@ -612,8 +612,8 @@ l_float32  val, sum;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Set @maxsamples == 0 to check every integer in na.  Otherwise,
- *          this samples no more than @maxsamples.
+ *      (1) Set %maxsamples == 0 to check every integer in na.  Otherwise,
+ *          this samples no more than %maxsamples.
  */
 l_int32
 numaHasOnlyIntegers(NUMA     *na,
@@ -654,7 +654,7 @@ l_float32  val;
  *
  *      Input:  nas
  *              subfactor (subsample factor, >= 1)
- *      Return: nad (evenly sampled values from nas), or null on error
+ *      Return: nad (evenly sampled values from nas), or NULL on error
  */
 NUMA *
 numaSubsample(NUMA    *nas,
@@ -688,7 +688,7 @@ NUMA      *nad;
  *
  *      Input:  nas (input numa)
  *      Return: numa (of difference values val[i+1] - val[i]),
- *                    or null on error
+ *                    or NULL on error
  */
 NUMA *
 numaMakeDelta(NUMA  *nas)
@@ -718,7 +718,7 @@ NUMA    *nad;
  *      Input:  startval
  *              increment
  *              size (of sequence)
- *      Return: numa of sequence of evenly spaced values, or null on error
+ *      Return: numa of sequence of evenly spaced values, or NULL on error
  */
 NUMA *
 numaMakeSequence(l_float32  startval,
@@ -749,7 +749,7 @@ NUMA      *na;
  *      Input:  val
  *              size (of numa)
  *      Return: numa (of given size with all entries equal to 'val'),
- *              or null on error
+ *              or NULL on error
  */
 NUMA *
 numaMakeConstant(l_float32  val,
@@ -765,7 +765,7 @@ numaMakeConstant(l_float32  val,
  *      Input:  nad (can be null for new array, or the same as nas for inplace)
  *              nas (input numa)
  *      Return: nad (with all numbers being the absval of the input),
- *              or null on error
+ *              or NULL on error
  */
 NUMA *
 numaMakeAbsValue(NUMA  *nad,
@@ -799,7 +799,7 @@ l_float32  val;
  *      Input:  nas
  *              left, right (number of elements to add on each side)
  *              val (initialize border elements)
- *      Return: nad (with added elements at left and right), or null on error
+ *      Return: nad (with added elements at left and right), or NULL on error
  */
 NUMA *
 numaAddBorder(NUMA      *nas,
@@ -841,7 +841,7 @@ NUMA       *nad;
  *      Input:  nas
  *              left, right (number of elements to add on each side)
  *              type (L_CONTINUED_BORDER, L_MIRRORED_BORDER)
- *      Return: nad (with added elements at left and right), or null on error
+ *      Return: nad (with added elements at left and right), or NULL on error
  */
 NUMA *
 numaAddSpecifiedBorder(NUMA    *nas,
@@ -891,7 +891,7 @@ NUMA       *nad;
  *
  *      Input:  nas
  *              left, right (number of elements to remove from each side)
- *      Return: nad (with removed elements at left and right), or null on error
+ *      Return: nad (with removed elements at left and right), or NULL on error
  */
 NUMA *
 numaRemoveBorder(NUMA      *nas,
@@ -1024,10 +1024,12 @@ l_float32  val;
  *      Return: numa with the same values as the input, but clipped
  *              to the specified interval
  *
- *  Note: If you want the indices of the array values to be unchanged,
+ *  Notes:
+ *        If you want the indices of the array values to be unchanged,
  *        use first = 0.
- *  Usage: This is useful to clip a histogram that has a few nonzero
- *         values to its nonzero range.
+ *  Usage:
+ *        This is useful to clip a histogram that has a few nonzero
+ *        values to its nonzero range.
  */
 NUMA *
 numaClipToInterval(NUMA    *nas,
@@ -1122,10 +1124,10 @@ NUMA      *nai;
  *
  *      Input:  nas (input numa)
  *              nsamp (number of samples)
- *      Output: nad (resampled array), or null on error
+ *      Output: nad (resampled array), or NULL on error
  *
  *  Notes:
- *      (1) This resamples the values in the array, using @nsamp
+ *      (1) This resamples the values in the array, using %nsamp
  *          equal divisions.
  */
 NUMA *
@@ -1184,7 +1186,7 @@ NUMA       *nad;
  *
  *      Input:  nad (<optional> can be null or equal to nas)
  *              nas (input numa)
- *      Output: nad (reversed), or null on error
+ *      Output: nad (reversed), or NULL on error
  *
  *  Notes:
  *      (1) Usage:
@@ -1237,7 +1239,7 @@ l_float32  val1, val2;
  *      Input:  nas (input numa)
  *              thresh (threshold fraction of max; in [0.0 ... 1.0])
  *              maxn (for normalizing; set maxn = 0.0 to use the max in nas)
- *      Output: nad (interval abscissa pairs), or null on error
+ *      Output: nad (interval abscissa pairs), or NULL on error
  *
  *  Notes:
  *      (1) For each interval where the value is less than a specified
@@ -1303,11 +1305,11 @@ NUMA      *nad;
  *              thresh1 (low threshold as fraction of max; in [0.0 ... 1.0])
  *              thresh2 (high threshold as fraction of max; in [0.0 ... 1.0])
  *              maxn (for normalizing; set maxn = 0.0 to use the max in nas)
- *      Output: nad (edge interval triplets), or null on error
+ *      Output: nad (edge interval triplets), or NULL on error
  *
  *  Notes:
  *      (1) For each edge interval, where where the value is less
- *          than @thresh1 on one side, greater than @thresh2 on
+ *          than %thresh1 on one side, greater than %thresh2 on
  *          the other, and between these thresholds throughout the
  *          interval, this records a triplet of values: the
  *          'left' and 'right' edges, and either +1 or -1, depending
@@ -1956,14 +1958,15 @@ NUMA       *nasx, *nasy, *nadx, *nady;
  *                   index value)
  *      Return: 0 if OK; 1 on error
  *
- *  Note: if naloc is given, there is no requirement that the
+ *  Notes:
+ *        If %naloc is given, there is no requirement that the
  *        data points are evenly spaced.  Lagrangian interpolation
  *        handles that.  The only requirement is that the
  *        data points are ordered so that the values in naloc
  *        are either increasing or decreasing.  We test to make
  *        sure that the sizes of na and naloc are equal, and it
- *        is assumed that the correspondences na[i] as a function
- *        of naloc[i] are properly arranged for all i.
+ *        is assumed that the correspondences %na[i] as a function
+ *        of %naloc[i] are properly arranged for all i.
  *
  *  The formula for Lagrangian interpolation through 3 data pts is:
  *       y(x) = y1(x-x2)(x-x3)/((x1-x2)(x1-x3)) +
@@ -2308,7 +2311,7 @@ NUMA  *naindex;
  *
  *      Input:  nas (input numa)
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
- *      Return: naout (output sorted numa), or null on error
+ *      Return: naout (output sorted numa), or NULL on error
  *
  *  Notes:
  *      (1) This does either a shell sort or a bin sort, depending on
@@ -2342,7 +2345,7 @@ l_int32  type;
  *
  *      Input:  nas
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
- *      Return: nad (indices of nas, sorted by value in nas), or null on error
+ *      Return: nad (indices of nas, sorted by value in nas), or NULL on error
  *
  *  Notes:
  *      (1) This does either a shell sort or a bin sort, depending on
@@ -2424,7 +2427,7 @@ l_float32  minval, maxval;
  *      Input:  naout (output numa; can be NULL or equal to nain)
  *              nain (input numa)
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
- *      Return: naout (output sorted numa), or null on error
+ *      Return: naout (output sorted numa), or NULL on error
  *
  *  Notes:
  *      (1) Set naout = nain for in-place; otherwise, set naout = NULL.
@@ -2482,7 +2485,7 @@ l_float32  *array;
  *      Input:  nas (of non-negative integers with a max that is
  *                   typically less than 50,000)
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
- *      Return: na (sorted), or null on error
+ *      Return: na (sorted), or NULL on error
  *
  *  Notes:
  *      (1) Because this uses a bin sort with buckets of size 1, it
@@ -2517,7 +2520,7 @@ NUMA  *nat, *nad;
  *      Input:  na
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
  *      Return: na giving an array of indices that would sort
- *              the input array, or null on error
+ *              the input array, or NULL on error
  */
 NUMA *
 numaGetSortIndex(NUMA    *na,
@@ -2580,7 +2583,7 @@ NUMA       *naisort;
  *      Input:  na (of non-negative integers with a max that is typically
  *                  less than 1,000,000)
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
- *      Return: na (sorted), or null on error
+ *      Return: na (sorted), or NULL on error
  *
  *  Notes:
  *      (1) This creates an array (or lookup table) that contains
@@ -2662,7 +2665,7 @@ L_PTRA    *paindex;
  *
  *      Input:  nas
  *              naindex (na that maps from the new numa to the input numa)
- *      Return: nad (sorted), or null on error
+ *      Return: nad (sorted), or NULL on error
  */
 NUMA *
 numaSortByIndex(NUMA  *nas,
@@ -2791,7 +2794,7 @@ NUMA    *naindex;
  *  numaInvertMap()
  *
  *      Input:  nas
- *      Return: nad (the inverted map), or null on error or if not invertible
+ *      Return: nad (the inverted map), or NULL on error or if not invertible
  *
  *  Notes:
  *      (1) This requires that nas contain each integer from 0 to n-1.
@@ -2847,7 +2850,7 @@ NUMA     *nad;
  *
  *      Input:  size (of sequence)
  *              seed (for random number generation)
- *      Return: na (pseudorandom on {0,...,size - 1}), or null on error
+ *      Return: na (pseudorandom on {0,...,size - 1}), or NULL on error
  *
  *  Notes:
  *      (1) This uses the Durstenfeld shuffle.
@@ -2892,7 +2895,7 @@ NUMA     *na;
  *
  *      Input:  nas (input array)
  *              seed (for random number generation)
- *      Return: nas (randomly shuffled array), or null on error
+ *      Return: nas (randomly shuffled array), or NULL on error
  */
 NUMA *
 numaRandomPermutation(NUMA    *nas,
@@ -2935,13 +2938,13 @@ NUMA      *naindex, *nad;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) Computes the rank value of a number in the @na, which is
- *          the number that is a fraction @fract from the small
- *          end of the sorted version of @na.
+ *      (1) Computes the rank value of a number in the %na, which is
+ *          the number that is a fraction %fract from the small
+ *          end of the sorted version of %na.
  *      (2) If you do this multiple times for different rank values,
- *          sort the array in advance and use that for @nasort;
- *          if you're only calling this once, input @nasort == NULL.
- *      (3) If @usebins == 1, this uses a bin sorting method.
+ *          sort the array in advance and use that for %nasort;
+ *          if you're only calling this once, input %nasort == NULL.
+ *      (3) If %usebins == 1, this uses a bin sorting method.
  *          Use this only where:
  *           * the numbers are non-negative integers
  *           * there are over 100 numbers
@@ -3277,7 +3280,7 @@ NUMA    *na;
  *  numaaFlattenToNuma()
  *
  *      Input:  numaa
- *      Return: numa, or null on error
+ *      Return: numa, or NULL on error
  *
  *  Notes:
  *      (1) This 'flattens' the Numaa to a Numa, by joining successively
@@ -3318,7 +3321,7 @@ NUMA   **array;
  *  numaUnionByAset()
  *
  *      Input:  na1, na2
- *      Return: nad (with the union of the set of numbers), or null on error
+ *      Return: nad (with the union of the set of numbers), or NULL on error
  *
  *  Notes:
  *      (1) See sarrayUnion() for the approach.
@@ -3355,7 +3358,7 @@ NUMA  *na3, *nad;
  *  numaRemoveDupsByAset()
  *
  *      Input:  nas
- *      Return: nad (with duplicates removed), or null on error
+ *      Return: nad (with duplicates removed), or NULL on error
  */
 NUMA *
 numaRemoveDupsByAset(NUMA  *nas)
@@ -3392,7 +3395,7 @@ RB_TYPE    key;
  *  numaIntersectionByAset()
  *
  *      Input:  na1, na2
- *      Return: nad (with the intersection of the numa set), or null on error
+ *      Return: nad (with the intersection of the numa set), or NULL on error
  *
  *  Notes:
  *      (1) See sarrayIntersection() for the approach.

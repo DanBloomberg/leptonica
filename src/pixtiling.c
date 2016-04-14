@@ -64,22 +64,22 @@
  *     }
  *
  *   In this example, note the following:
- *    - The unspecfified in-place operation could instead generate
+ *    ~ The unspecfified in-place operation could instead generate
  *      a new pix.  If this is done, the resulting pix must be the
  *      same size as pixt, because pixTilingPaintTile() makes that
  *      assumption, removing the overlap pixels before painting
  *      into the destination.
- *    - The 'overlap' parameters have been included in your function,
+ *    ~ The 'overlap' parameters have been included in your function,
  *      to indicate which pixels are not in the exterior overlap region.
  *      You will need to change only pixels that are not in the overlap
  *      region, because those are the pixels that will be painted
  *      into the destination.
- *    - For tiles on the outside of the image, mirrored pixels are
+ *    ~ For tiles on the outside of the image, mirrored pixels are
  *      added to substitute for the overlap that is added to interior
  *      tiles.  This allows you to implement your function without
  *      reference to which tile it is; no special coding is necessary
  *      for pixels that are near the image boundary.
- *    - The tiles are labeled by (i, j) = (row, column),
+ *    ~ The tiles are labeled by (i, j) = (row, column),
  *      and in this example there is one row and nx columns.
  */
 
@@ -96,7 +96,7 @@
  *              h     (desired height of each tile)
  *              xoverlap (overlap into neighboring tiles on each side)
  *              yoverlap (overlap into neighboring tiles above and below)
- *      Return: pixtiling, or null on error
+ *      Return: pixtiling, or NULL on error
  *
  *  Notes:
  *      (1) We put a clone of pixs in the PixTiling.
@@ -167,7 +167,7 @@ PIXTILING  *pt;
 /*!
  *  pixTilingDestroy()
  *
- *      Input:  &pt (<will be set to null before returning>)
+ *      Input:  &pt (<inout> will be set to null before returning)
  *      Return: void
  */
 void
@@ -245,7 +245,7 @@ pixTilingGetSize(PIXTILING  *pt,
  *              i (tile row index)
  *              j (tile column index)
  *      Return: pixd (tile with appropriate boundary (overlap) pixels added),
- *                    or null on error
+ *                    or NULL on error
  */
 PIX *
 pixTilingGetTile(PIXTILING  *pt,

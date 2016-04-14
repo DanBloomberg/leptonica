@@ -86,9 +86,9 @@ static const char *str_ital3 = " x"
  *
  *  Notes:
  *      (1) You can input the bounding boxes for the words in one of
- *          two forms: as bounding boxes (@boxaw) or as a word mask with
- *          the word bounding boxes filled (@pixw).  For example,
- *          to compute @pixw, you can use pixWordMaskByDilation().
+ *          two forms: as bounding boxes (%boxaw) or as a word mask with
+ *          the word bounding boxes filled (%pixw).  For example,
+ *          to compute %pixw, you can use pixWordMaskByDilation().
  *      (2) Alternatively, you can set both of these inputs to NULL,
  *          in which case the word mask is generated here.  This is
  *          done by dilating and closing the input image to connect

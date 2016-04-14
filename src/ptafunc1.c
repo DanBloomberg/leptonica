@@ -96,7 +96,7 @@
  *
  *      Input:  ptas
  *              subfactor (subsample factor, >= 1)
- *      Return: ptad (evenly sampled pt values from ptas, or null on error
+ *      Return: ptad (evenly sampled pt values from ptas, or NULL on error
  */
 PTA *
 ptaSubsample(PTA     *ptas,
@@ -223,7 +223,7 @@ PTA     *pta;
  *
  *      Input:  ptas
  *              type  (0 for float values; 1 for integer values)
- *      Return: ptad (reversed pta), or null on error
+ *      Return: ptad (reversed pta), or NULL on error
  */
 PTA  *
 ptaReverse(PTA     *ptas,
@@ -259,7 +259,7 @@ PTA       *ptad;
  *  ptaTranspose()
  *
  *      Input:  ptas
- *      Return: ptad (with x and y values swapped), or null on error
+ *      Return: ptad (with x and y values swapped), or NULL on error
  */
 PTA  *
 ptaTranspose(PTA  *ptas)
@@ -291,7 +291,7 @@ PTA       *ptad;
  *      Input:  ptas
  *              xs, ys  (start point; must be in ptas)
  *      Return: ptad (cyclic permutation, starting and ending at (xs, ys),
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) Check to insure that (a) ptas is a closed path where
@@ -354,7 +354,7 @@ PTA     *ptad;
  *  ptaGetBoundingRegion()
  *
  *      Input:  pta
- *      Return: box, or null on error
+ *      Return: box, or NULL on error
  *
  *  Notes:
  *      (1) This is used when the pta represents a set of points in
@@ -451,7 +451,7 @@ l_float32  x, y, minx, maxx, miny, maxy;
  *
  *      Input:  ptas (input pts)
  *              box
- *      Return: ptad (of pts in ptas that are inside the box), or null on error
+ *      Return: ptad (of pts in ptas that are inside the box), or NULL on error
  */
 PTA *
 ptaGetInsideBox(PTA  *ptas,
@@ -485,7 +485,7 @@ l_float32  x, y;
  *  pixFindCornerPixels()
  *
  *      Input:  pixs (1 bpp)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) Finds the 4 corner-most pixels, as defined by a search
@@ -646,7 +646,7 @@ l_int32  i, j, n1, n2, x1, y1, x2, y2;
  *      Input:  pta
  *              shiftx, shifty
  *              scalex, scaley
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) Shift first, then scale.
@@ -821,7 +821,7 @@ l_float32  x, y, xmin, ymin, xmax, ymax;
  *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH)
  *              relation (L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE)
- *      Return: ptad (filtered set), or null on error
+ *      Return: ptad (filtered set), or NULL on error
  */
 PTA *
 ptaSelectByValue(PTA       *ptas,
@@ -912,7 +912,7 @@ PTA       *ptad;
  *               goes through the origin (b = 0).
  *           (b) If &b is given and &a = null, find the linear LSF with
  *               zero slope (a = 0).
- *      (4) If @nafit is defined, this returns an array of fitted values,
+ *      (4) If %nafit is defined, this returns an array of fitted values,
  *          corresponding to the two implicit Numa arrays (nax and nay) in pta.
  *          Thus, just as you can plot the data in pta as nay vs. nax,
  *          you can plot the linear least square fit as nafit vs. nax.
@@ -995,7 +995,7 @@ l_float32  *xa, *ya;
  *
  *  Notes:
  *      (1) This does a quadratic least square fit to the set of points
- *          in @pta.  That is, it finds coefficients a, b and c that minimize:
+ *          in %pta.  That is, it finds coefficients a, b and c that minimize:
  *
  *              sum (yi - a*xi*xi -b*xi -c)^2
  *               i
@@ -1007,7 +1007,7 @@ l_float32  *xa, *ya;
  *             f[0][0]a + f[0][1]b + f[0][2]c = g[0]
  *             f[1][0]a + f[1][1]b + f[1][2]c = g[1]
  *             f[2][0]a + f[2][1]b + f[2][2]c = g[2]
- *      (2) If @nafit is defined, this returns an array of fitted values,
+ *      (2) If %nafit is defined, this returns an array of fitted values,
  *          corresponding to the two implicit Numa arrays (nax and nay) in pta.
  *          Thus, just as you can plot the data in pta as nay vs. nax,
  *          you can plot the linear least square fit as nafit vs. nax.
@@ -1107,7 +1107,7 @@ NUMA       *nafit;
  *
  *  Notes:
  *      (1) This does a cubic least square fit to the set of points
- *          in @pta.  That is, it finds coefficients a, b, c and d
+ *          in %pta.  That is, it finds coefficients a, b, c and d
  *          that minimize:
  *
  *              sum (yi - a*xi*xi*xi -b*xi*xi -c*xi - d)^2
@@ -1121,7 +1121,7 @@ NUMA       *nafit;
  *             f[1][0]a + f[1][1]b + f[1][2]c + f[1][3] = g[1]
  *             f[2][0]a + f[2][1]b + f[2][2]c + f[2][3] = g[2]
  *             f[3][0]a + f[3][1]b + f[3][2]c + f[3][3] = g[3]
- *      (2) If @nafit is defined, this returns an array of fitted values,
+ *      (2) If %nafit is defined, this returns an array of fitted values,
  *          corresponding to the two implicit Numa arrays (nax and nay) in pta.
  *          Thus, just as you can plot the data in pta as nay vs. nax,
  *          you can plot the linear least square fit as nafit vs. nax.
@@ -1237,7 +1237,7 @@ NUMA       *nafit;
  *
  *  Notes:
  *      (1) This does a quartic least square fit to the set of points
- *          in @pta.  That is, it finds coefficients a, b, c, d and 3
+ *          in %pta.  That is, it finds coefficients a, b, c, d and 3
  *          that minimize:
  *
  *              sum (yi - a*xi*xi*xi*xi -b*xi*xi*xi -c*xi*xi - d*xi - e)^2
@@ -1252,7 +1252,7 @@ NUMA       *nafit;
  *             f[2][0]a + f[2][1]b + f[2][2]c + f[2][3] + f[2][4] = g[2]
  *             f[3][0]a + f[3][1]b + f[3][2]c + f[3][3] + f[3][4] = g[3]
  *             f[4][0]a + f[4][1]b + f[4][2]c + f[4][3] + f[4][4] = g[4]
- *      (2) If @nafit is defined, this returns an array of fitted values,
+ *      (2) If %nafit is defined, this returns an array of fitted values,
  *          corresponding to the two implicit Numa arrays (nax and nay) in pta.
  *          Thus, just as you can plot the data in pta as nay vs. nax,
  *          you can plot the linear least square fit as nafit vs. nax.
@@ -1387,7 +1387,7 @@ NUMA       *nafit;
  *
  *  Notes:
  *      (1) This does a linear least square fit to the set of points
- *          in @pta.  It then evaluates the errors and removes points
+ *          in %pta.  It then evaluates the errors and removes points
  *          whose error is >= factor * median_error.  It then re-runs
  *          the linear LSF on the resulting points.
  *      (2) Either or both &a and &b must be input.  They determine the
@@ -1476,7 +1476,7 @@ PTA       *ptad;
  *
  *  Notes:
  *      (1) This does a quadratic least square fit to the set of points
- *          in @pta.  It then evaluates the errors and removes points
+ *          in %pta.  It then evaluates the errors and removes points
  *          whose error is >= factor * median_error.  It then re-runs
  *          a quadratic LSF on the resulting points.
  */
@@ -1766,7 +1766,7 @@ PIX            *pixt;
  *
  *      Input:  pixs (1 bpp)
  *              box (<optional> can be null)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) Generates a pta of fg pixels in the pix, within the box.
@@ -1816,7 +1816,7 @@ PTA       *pta;
  *
  *      Input:  pta
  *              w, h (of pix)
- *      Return: pix (1 bpp), or null on error
+ *      Return: pix (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) Points are rounded to nearest ints.
@@ -1855,7 +1855,7 @@ PIX     *pix;
  *
  *      Input:  pixs (1 bpp)
  *              type (L_BOUNDARY_FG, L_BOUNDARY_BG)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) This generates a pta of either fg or bg boundary pixels.
@@ -1896,7 +1896,7 @@ PTA  *pta;
  *              connectivity (4 or 8)
  *              &boxa (<optional return> bounding boxes of the c.c.)
  *              &pixa (<optional return> pixa of the c.c.)
- *      Return: ptaa, or null on error
+ *      Return: ptaa, or NULL on error
  *
  *  Notes:
  *      (1) This generates a ptaa of either fg or bg boundary pixels,
@@ -1976,13 +1976,13 @@ PTAA    *ptaa;
  *
  *      Input:  pixs (32 bpp, of indices of c.c.)
  *              &ncc (<optional return> number of connected components)
- *      Return: ptaa, or null on error
+ *      Return: ptaa, or NULL on error
  *
  *  Notes:
- *      (1) The pixel values in @pixs are the index of the connected component
- *          to which the pixel belongs; @pixs is typically generated from
+ *      (1) The pixel values in %pixs are the index of the connected component
+ *          to which the pixel belongs; %pixs is typically generated from
  *          a 1 bpp pix by pixConnCompTransform().  Background pixels in
- *          the generating 1 bpp pix are represented in @pixs by 0.
+ *          the generating 1 bpp pix are represented in %pixs by 0.
  *          We do not check that the pixel values are correctly labelled.
  *      (2) Each pta in the returned ptaa gives the pixel locations
  *          correspnding to a connected component, with the label of each
@@ -2015,7 +2015,7 @@ PTAA      *ptaa;
     ptaaInitFull(ptaa, pta);
     ptaDestroy(&pta);
 
-        /* Sweep over @pixs, saving the pixel coordinates of each pixel
+        /* Sweep over %pixs, saving the pixel coordinates of each pixel
          * with nonzero value in the appropriate pta, indexed by that value. */
     pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
@@ -2039,11 +2039,11 @@ PTAA      *ptaa;
  *      Input:  pixs (any depth)
  *              x, y (pixel from which we search for nearest neighbors
  *              conn (4 or 8 connectivity)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  *
  *  Notes:
  *      (1) Generates a pta of all valid neighbor pixel locations,
- *          or null on error.
+ *          or NULL on error.
  */
 PTA *
 ptaGetNeighborPixLocs(PIX  *pixs,
@@ -2098,7 +2098,7 @@ PTA     *pta;
 /*!
  *  pixDisplayPta()
  *
- *      Input:  pixd (can be same as pixs or null; 32 bpp if in-place)
+ *      Input:  pixd (can be same as pixs or NULL; 32 bpp if in-place)
  *              pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              pta (of path to be plotted)
  *      Return: pixd (32 bpp RGB version of pixs, with path in green).
@@ -2221,7 +2221,7 @@ PTA      *pta;
 /*!
  *  pixDisplayPtaPattern()
  *
- *      Input:  pixd (can be same as pixs or null; 32 bpp if in-place)
+ *      Input:  pixd (can be same as pixs or NULL; 32 bpp if in-place)
  *              pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              pta (giving locations at which the pattern is displayed)
  *              pixp (1 bpp pattern to be placed such that its reference
@@ -2290,13 +2290,13 @@ PTA     *ptat;
  *              ptap (<optional> set of pts, to be replicated in output pta)
  *              cx, cy (reference point in pattern)
  *              w, h (clipping sizes for output pta)
- *      Return: ptad (with all points of replicated pattern), or null on error
+ *      Return: ptad (with all points of replicated pattern), or NULL on error
  *
  *  Notes:
- *      (1) You can use either the image @pixp or the set of pts @ptap.
+ *      (1) You can use either the image %pixp or the set of pts %ptap.
  *      (2) The pattern is placed with its reference point at each point
  *          in ptas, and all the fg pixels are colleced into ptad.
- *          For @pixp, this is equivalent to blitting pixp at each point
+ *          For %pixp, this is equivalent to blitting pixp at each point
  *          in ptas, and then converting the resulting pix to a pta.
  */
 PTA *
@@ -2349,7 +2349,7 @@ PTA     *ptat, *ptad;
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              ptaa (array of paths to be plotted)
  *      Return: pixd (32 bpp RGB version of pixs, with paths plotted
- *                    in different colors), or null on error
+ *                    in different colors), or NULL on error
  */
 PIX *
 pixDisplayPtaa(PIX   *pixs,

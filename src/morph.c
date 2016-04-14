@@ -768,7 +768,7 @@ SEL  *sel, *selh, *selv;
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -832,7 +832,7 @@ SEL  *sel, *selh, *selv;
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -896,7 +896,7 @@ SEL  *sel, *selh, *selv;
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1137,7 +1137,7 @@ l_int32  diff[256];  /* diff between product (sel size) and input size */
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1235,7 +1235,7 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1324,7 +1324,7 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1421,7 +1421,7 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1518,7 +1518,7 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  *              pixs (1 bpp)
  *              hsize (width of brick Sel)
  *              vsize (height of brick Sel)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Sel is a brick with all elements being hits
@@ -1696,8 +1696,8 @@ getMorphBorderPixelColor(l_int32  type,
  *                    or different from pixs)
  *              pixs (1 bpp)
  *              sel
- *              &pixt (<returned>)
- *      Return: pixd, or null on error.
+ *              &pixt (<return> ptr to PIX*)
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) This is used for generic erosion, dilation and HMT.

@@ -98,14 +98,14 @@
  *    --------------------------------------------------------
  *    For higher resolution and faster decoding of an RGB image, you
  *    can extract just the 8 bpp luminance channel, using pixReadJpeg(),
- *    where you use L_JPEG_READ_LUMINANCE for the @hint arg.
+ *    where you use L_JPEG_READ_LUMINANCE for the %hint arg.
  *
  *    How to fail to read if the data is corrupted
  *    ---------------------------------------------
  *    By default, if the low-level jpeg library functions do not abort,
  *    a pix will be returned, even if the data is corrupted and warnings
  *    are issued.  In order to be most likely to fail to read when there
- *    is data corruption, use L_JPEG_FAIL_ON_BAD_DATA in the @hint arg.
+ *    is data corruption, use L_JPEG_FAIL_ON_BAD_DATA in the %hint arg.
  *
  *    Compressing to memory and decompressing from memory
  *    ---------------------------------------------------
@@ -181,7 +181,7 @@ struct callback_data {
  *              &nwarn (<optional return> number of warnings about
  *                       corrupted data)
  *              hint (a bitwise OR of L_JPEG_* values; 0 for default)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) This is a special function for reading jpeg files.
@@ -198,7 +198,7 @@ struct callback_data {
  *          (b) the library will attempt to exit (caught by our error
  *              handler) and no pix will be returned.
  *          If a pix is generated with at least one warning of data
- *          corruption, and if L_JPEG_FAIL_ON_BAD_DATA is included in @hint,
+ *          corruption, and if L_JPEG_FAIL_ON_BAD_DATA is included in %hint,
  *          no pix will be returned.
  *      (5) The possible hint values are given in the enum in imageio.h:
  *            * L_JPEG_READ_LUMINANCE
@@ -247,13 +247,13 @@ PIX      *pix;
 /*!
  *  pixReadStreamJpeg()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              cmapflag (0 for no colormap in returned pix;
  *                        1 to return an 8 bpp cmapped pix if spp = 3 or 4)
  *              reduction (scaling factor: 1, 2, 4 or 8)
  *              &nwarn (<optional return> number of warnings)
  *              hint (a bitwise OR of L_JPEG_* values; 0 for default)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Usage: see pixReadJpeg()
  *  Notes:
@@ -530,7 +530,7 @@ FILE    *fp;
 /*!
  *  freadHeaderJpeg()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              &w (<optional return>)
  *              &h (<optional return>)
  *              &spp (<optional return>, samples/pixel)
@@ -596,7 +596,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
 /*
  *  fgetJpegResolution()
  *
- *      Input:  stream (opened for read)
+ *      Input:  fp (file stream opened for read)
  *              &xres, &yres (<return> resolution in ppi)
  *      Return: 0 if OK; 1 on error
  *
@@ -656,7 +656,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
 /*
  *  fgetJpegComment()
  *
- *      Input:  stream (opened for read)
+ *      Input:  fp (file stream opened for read)
  *              &comment (<return> comment)
  *      Return: 0 if OK; 1 on error
  *
@@ -748,7 +748,7 @@ FILE  *fp;
 /*!
  *  pixWriteStreamJpeg()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pixs  (any depth; cmap is OK)
  *              quality  (1 - 100; 75 is default value; 0 is also default)
  *              progressive (0 for baseline sequential; 1 for progressive)
@@ -952,10 +952,10 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
  *              reduction (scaling factor: 1, 2, 4 or 8)
  *              &nwarn (<optional return> number of warnings)
  *              hint (a bitwise OR of L_JPEG_* values; 0 for default)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
- *      (1) The @size byte of @data must be a null character.
+ *      (1) The %size byte of %data must be a null character.
  *      (2) The only hint flag so far is L_JPEG_READ_LUMINANCE,
  *          given in the enum in imageio.h.
  *      (3) See pixReadJpeg() for usage.
@@ -1110,7 +1110,7 @@ FILE    *fp;
  *      (1) The default is for 2x2 chroma subsampling because the files are
  *          considerably smaller and the appearance is typically satisfactory.
  *          To get full resolution output in the chroma channels for
- *          jpeg writing, call this with @sampling == 0.
+ *          jpeg writing, call this with %sampling == 0.
  */
 l_int32
 pixSetChromaSampling(PIX     *pix,

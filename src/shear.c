@@ -192,7 +192,7 @@ l_float32  tanangle, invangle;
  *              xloc (location of vertical line, measured from origin)
  *              angle (in radians; not too close to +-(pi / 2))
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) There are 3 cases:
@@ -309,7 +309,7 @@ l_float32  tanangle, invangle;
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) See pixHShear() for usage.
@@ -338,7 +338,7 @@ pixHShearCorner(PIX       *pixd,
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) See pixVShear() for usage.
@@ -367,7 +367,7 @@ pixVShearCorner(PIX       *pixd,
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) See pixHShear() for usage.
@@ -396,7 +396,7 @@ pixHShearCenter(PIX       *pixd,
  *              pixs
  *              angle (in radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) See pixVShear() for usage.
@@ -578,7 +578,7 @@ l_float32  tanangle, invangle;
  *              yloc (location of horizontal line, measured from origin)
  *              angle (in radians, in range (-pi/2 ... pi/2))
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd (sheared), or null on error
+ *      Return: pixd (sheared), or NULL on error
  *
  *  Notes:
  *      (1) This does horizontal shear with linear interpolation for
@@ -688,7 +688,7 @@ PIX       *pix, *pixd;
  *              xloc  (location of vertical line, measured from origin)
  *              angle (in radians, in range (-pi/2 ... pi/2))
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd (sheared), or null on error
+ *      Return: pixd (sheared), or NULL on error
  *
  *  Notes:
  *      (1) This does vertical shear with linear interpolation for

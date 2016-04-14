@@ -259,14 +259,14 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
 static const l_int32  NMAX_HOLES = 150;
 
     /*  Tables used to trace the border.
-     *   - The 8 pixel positions of neighbors Q are labelled:
+     *   ~ The 8 pixel positions of neighbors Q are labelled:
      *                  1   2   3
      *                  0   P   4
      *                  7   6   5
      *     where the labels are the index offset [0, ... 7] of Q relative to P.
-     *   - xpostab[] and ypostab[] give the actual x and y pixel offsets
+     *   ~ xpostab[] and ypostab[] give the actual x and y pixel offsets
      *     of Q relative to P, indexed by the index offset.
-     *   - qpostab[pos] gives the new index offset of Q relative to P, at
+     *   ~ qpostab[pos] gives the new index offset of Q relative to P, at
      *     the time that a new P has been chosen to be in index offset
      *     position 'pos' relative to the previous P.   The relation
      *     between P and Q is always 4-connected.  */
@@ -288,9 +288,9 @@ static l_int32 ccbaExtendArray(CCBORDA  *ccba);
 /*!
  *   ccbaCreate()
  *
- *       Input:  pixs  (binary image; can be null)
- *               n  (initial number of ptrs)
- *       Return: ccba, or null on error
+ *      Input:  pixs  (binary image; can be null)
+ *              n  (initial number of ptrs)
+ *      Return: ccba, or NULL on error
  */
 CCBORDA *
 ccbaCreate(PIX     *pixs,
@@ -323,8 +323,8 @@ CCBORDA  *ccba;
 /*!
  *  ccbaDestroy()
  *
- *     Input:  &ccba  (<to be nulled>)
- *     Return: void
+ *      Input:  &ccba  (<inout> to be nulled)
+ *      Return: void
  */
 void
 ccbaDestroy(CCBORDA  **pccba)
@@ -355,8 +355,8 @@ CCBORDA  *ccba;
 /*!
  *  ccbCreate()
  *
- *     Input:  pixs  (<optional>)
- *     Return: ccb or null on error
+ *      Input:  pixs  (<optional>)
+ *      Return: ccb or NULL on error
  */
 CCBORD *
 ccbCreate(PIX  *pixs)
@@ -395,8 +395,8 @@ PTAA    *local;
 /*!
  *  ccbDestroy()
  *
- *     Input:  &ccb (<to be nulled>)
- *     Return: void
+ *      Input:  &ccb (<inout> to be nulled)
+ *      Return: void
  */
 void
 ccbDestroy(CCBORD  **pccb)
@@ -501,8 +501,8 @@ ccbaExtendArray(CCBORDA  *ccba)
 /*!
  *  ccbaGetCount()
  *
- *     Input:  ccba
- *     Return: count, with 0 on error
+ *      Input:  ccba
+ *      Return: count, with 0 on error
  */
 l_int32
 ccbaGetCount(CCBORDA  *ccba)
@@ -520,8 +520,8 @@ ccbaGetCount(CCBORDA  *ccba)
 /*!
  *  ccbaGetCcb()
  *
- *     Input:  ccba
- *     Return: ccb, or null on error
+ *      Input:  ccba
+ *      Return: ccb, or NULL on error
  */
 CCBORD *
 ccbaGetCcb(CCBORDA  *ccba,
@@ -550,7 +550,7 @@ CCBORD  *ccb;
  *  pixGetAllCCBorders()
  *
  *      Input:  pixs (1 bpp)
- *      Return: ccborda, or null on error
+ *      Return: ccborda, or NULL on error
  */
 CCBORDA *
 pixGetAllCCBorders(PIX  *pixs)
@@ -601,7 +601,7 @@ PIXA     *pixa;
  *
  *      Input:  pixs (1 bpp, one 8-connected component)
  *              box  (xul, yul, width, height) in global coords
- *      Return: ccbord, or null on error
+ *      Return: ccbord, or NULL on error
  *
  *  Notes:
  *      (1) We are finding the exterior and interior borders
@@ -725,7 +725,7 @@ PIXA     *pixa;
  *  pixGetOuterBordersPtaa()
  *
  *      Input:  pixs (1 bpp)
- *      Return: ptaa (of outer borders, in global coords), or null on error
+ *      Return: ptaa (of outer borders, in global coords), or NULL on error
  */
 PTAA *
 pixGetOuterBordersPtaa(PIX  *pixs)
@@ -775,7 +775,7 @@ PTAA    *ptaa;
  *
  *      Input:  pixs (1 bpp, one 8-connected component)
  *              box  (<optional> of pixs, in global coordinates)
- *      Return: pta (of outer border, in global coords), or null on error
+ *      Return: pta (of outer border, in global coords), or NULL on error
  *
  *  Notes:
  *      (1) We are finding the exterior border of a single 8-connected
@@ -1619,7 +1619,7 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
  *              &len  (length of path, returned)
  *      Return: pta of pts on cut path from the hole border
  *              to the outer border, including end points on
- *              both borders; or null on error
+ *              both borders; or NULL on error
  *
  *  Notes:
  *      (1) If we don't find a path, we return a pta with no pts
@@ -1771,7 +1771,7 @@ PTA      *ptac;
  *  ccbaDisplayBorder()
  *
  *      Input:  ccba
- *      Return: pix of border pixels, or null on error
+ *      Return: pix of border pixels, or NULL on error
  *
  *  Notes:
  *      (1) Uses global ptaa, which gives each border pixel in
@@ -1822,7 +1822,7 @@ PTA     *pta;
  *  ccbaDisplaySPBorder()
  *
  *      Input:  ccba
- *      Return: pix of border pixels, or null on error
+ *      Return: pix of border pixels, or NULL on error
  *
  *  Notes:
  *      (1) Uses spglobal pta, which gives each border pixel in
@@ -1867,7 +1867,7 @@ PTA     *ptag;
  *  ccbaDisplayImage1()
  *
  *      Input:  ccborda
- *      Return: pix of image, or null on error
+ *      Return: pix of image, or NULL on error
  *
  *  Notes:
  *      (1) Uses local ptaa, which gives each border pixel in
@@ -1881,9 +1881,9 @@ PTA     *ptag;
  *  This algorithm deserves some commentary.
  *
  *  I first tried the following:
- *    - outer borders: 4-fill from outside, stopping at the
+ *    ~ outer borders: 4-fill from outside, stopping at the
  *         border, using pixFillClosedBorders()
- *    - inner borders: 4-fill from outside, stopping again
+ *    ~ inner borders: 4-fill from outside, stopping again
  *         at the border, XOR with the border, and invert
  *         to get the hole.  This did not work, because if
  *         you have a hole border that looks like:
@@ -2020,7 +2020,7 @@ PTA     *pta;
  *  ccbaDisplayImage2()
  *
  *      Input: ccborda
- *      Return: pix of image, or null on error
+ *      Return: pix of image, or NULL on error
  *
  *  Notes:
  *      (1) Uses local chain ptaa, which gives each border pixel in
@@ -2158,11 +2158,13 @@ FILE  *fp;
 /*!
  *  ccbaWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              ccba
  *      Return: 0 if OK; 1 on error
  *
- *  Format:  ccba: %7d cc\n (num. c.c.) (ascii)   (18B)
+ *  Format:
+ *  \code
+ *           ccba: %7d cc\n (num. c.c.) (ascii)   (18B)
  *           pix width (4B)
  *           pix height (4B)
  *           [for i = 1, ncc]
@@ -2177,6 +2179,7 @@ FILE  *fp;
  *                   [for k = 1, nb]
  *                        2 steps (1B)
  *                   end in z8 or 88  (1B)
+ *  \endcode
  */
 l_int32
 ccbaWriteStream(FILE     *fp,
@@ -2275,7 +2278,7 @@ PTA        *pta;
  *  ccbaRead()
  *
  *      Input:  filename
- *      Return: ccba, or null on error
+ *      Return: ccba, or NULL on error
  */
 CCBORDA *
 ccbaRead(const char  *filename)
@@ -2302,8 +2305,8 @@ CCBORDA  *ccba;
 /*!
  *  ccbaReadStream()
  *
- *      Input:   stream
- *      Return:  ccba, or null on error
+ *      Input:   fp (file stream)
+ *      Return:  ccba, or NULL on error
  *
  *  Format:  ccba: %7d cc\n (num. c.c.) (ascii)   (17B)
  *           pix width (4B)
@@ -2472,7 +2475,7 @@ char  *svgstr;
  *      Input:  filename
  *              ccba
  *      Return: string in svg-formatted, that can be written to file,
- *              or null on error.
+ *              or NULL on error.
  */
 char  *
 ccbaWriteSVGString(const char  *filename,

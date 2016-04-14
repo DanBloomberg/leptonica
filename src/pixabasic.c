@@ -139,7 +139,7 @@ static l_int32 pixaExtendArray(PIXA  *pixa);
  *  pixaCreate()
  *
  *      Input:  n  (initial number of ptrs)
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) This creates an empty boxa.
@@ -176,7 +176,7 @@ PIXA  *pixa;
  *              n   (number of components)
  *              cellw   (width of each cell)
  *              cellh   (height of each cell)
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) For bpp = 1, we truncate each retrieved pix to the ON
@@ -230,7 +230,7 @@ PIXA    *pixa;
  *              boxa
  *              &cropwarn (<optional return> TRUE if the boxa extent
  *                         is larger than pixs.
- *      Return: pixad, or null on error
+ *      Return: pixad, or NULL on error
  *
  *  Notes:
  *      (1) This simply extracts from pixs the region corresponding to each
@@ -298,7 +298,7 @@ PIXA    *pixad;
  *              ny   (number of mosaic cells vertically)
  *              borderwidth  (of added border on all sides)
  *              bordercolor  (in our RGBA format: 0xrrggbbaa)
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) This is a variant on pixaCreateFromPix(), where we
@@ -411,7 +411,7 @@ PIXA    *pixa;
  *                L_CLONE gives a new ref-counted handle to the input pixa
  *                L_COPY_CLONE makes a new pixa and inserts clones of
  *                    all pix and boxes
- *      Return: new pixa, or null on error
+ *      Return: new pixa, or NULL on error
  */
 PIXA *
 pixaCopy(PIXA    *pixa,
@@ -556,7 +556,7 @@ pixaExtendArray(PIXA  *pixa)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) If necessary, reallocs new pixa and boxa ptrs arrays to @size.
+ *      (1) If necessary, reallocs new pixa and boxa ptrs arrays to %size.
  *          The pixa and boxa ptr arrays must always be equal in size.
  */
 l_int32
@@ -626,7 +626,7 @@ pixaChangeRefcount(PIXA    *pixa,
  *      Input:  pixa
  *              index  (to the index-th pix)
  *              accesstype  (L_COPY or L_CLONE)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  */
 PIX *
 pixaGetPix(PIXA    *pixa,
@@ -695,7 +695,7 @@ PIX  *pix;
  *
  *      Input:  pixa
  *              accesstype  (L_COPY, L_CLONE, L_COPY_CLONE)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  */
 BOXA *
 pixaGetBoxa(PIXA    *pixa,
@@ -739,7 +739,7 @@ pixaGetBoxaCount(PIXA  *pixa)
  *      Input:  pixa
  *              index  (to the index-th pix)
  *              accesstype  (L_COPY or L_CLONE)
- *      Return: box (if null, not automatically an error), or null on error
+ *      Return: box (if null, not automatically an error), or NULL on error
  *
  *  Notes:
  *      (1) There is always a boxa with a pixa, and it is initialized so
@@ -858,7 +858,7 @@ pixaSetBoxa(PIXA    *pixa,
  *  pixaGetPixArray()
  *
  *      Input:  pixa
- *      Return: pix array, or null on error
+ *      Return: pix array, or NULL on error
  *
  *  Notes:
  *      (1) This returns a ptr to the actual array.  The array is
@@ -975,7 +975,7 @@ PIX     *pix;
  *      Return: 0 if OK, 1 on error.
  *
  *  Notes:
- *      (1) All pix have non-empty text strings if the returned value @ntext
+ *      (1) All pix have non-empty text strings if the returned value %ntext
  *          equals the pixa count.
  */
 l_int32
@@ -1013,7 +1013,7 @@ PIX     *pix;
  *
  *      Input:  pixa (of pix that all have the same depth)
  *              &size (<optional return> number of pix in the pixa)
- *      Return: array of array of line ptrs, or null on error
+ *      Return: array of array of line ptrs, or NULL on error
  *
  *  Notes:
  *      (1) See pixGetLinePtrs() for details.
@@ -1062,7 +1062,7 @@ PIX     *pix;
 /*!
  *  pixaWriteStreamInfo()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pixa
  *      Return: 0 if OK, 1 on error.
  *
@@ -1322,9 +1322,9 @@ PIX    **array;
  *
  *  Notes:
  *      (1) This initializes a pixa by filling up the entire pix ptr array
- *          with copies of @pix.  If @pix == NULL, we use a tiny placeholder
+ *          with copies of %pix.  If %pix == NULL, we use a tiny placeholder
  *          pix (w = h = d = 1).  Any existing pix are destroyed.
- *          It also optionally fills the boxa with copies of @box.
+ *          It also optionally fills the boxa with copies of %box.
  *          After this operation, the numbers of pix and (optionally)
  *          boxes are equal to the number of allocated ptrs.
  *      (2) Note that we use pixaReplacePix() instead of pixaInsertPix().
@@ -1515,7 +1515,7 @@ PIXA    *pixa;
  *  pixaaCreate()
  *
  *      Input:  n  (initial number of pixa ptrs)
- *      Return: paa, or null on error
+ *      Return: paa, or NULL on error
  *
  *  Notes:
  *      (1) A pixaa provides a 2-level hierarchy of images.
@@ -1563,7 +1563,7 @@ PIXAA  *paa;
  *              n (number specifying subdivision of pixa)
  *              type (L_CHOOSE_CONSECUTIVE, L_CHOOSE_SKIP_BY)
  *              copyflag (L_CLONE, L_COPY)
- *      Return: paa, or null on error
+ *      Return: paa, or NULL on error
  *
  *  Notes:
  *      (1) This subdivides a pixa into a set of smaller pixa that
@@ -1633,7 +1633,7 @@ PIXAA   *paa;
 /*!
  *  pixaaDestroy()
  *
- *      Input:  &paa <to be nulled>
+ *      Input:  &paa (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -1854,7 +1854,7 @@ PIXA    *pixa;
  *      Input:  paa
  *              index  (to the index-th pixa)
  *              accesstype  (L_COPY, L_CLONE, L_COPY_CLONE)
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) L_COPY makes a new pixa with a copy of every pix
@@ -1896,7 +1896,7 @@ PIXA  *pixa;
  *
  *      Input:  paa
  *              accesstype  (L_COPY, L_CLONE)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  *
  *  Notes:
  *      (1) L_COPY returns a copy; L_CLONE returns a new reference to the boxa.
@@ -1924,7 +1924,7 @@ pixaaGetBoxa(PIXAA   *paa,
  *              index  (index into the pixa array in the pixaa)
  *              ipix  (index into the pix array in the pixa)
  *              accessflag  (L_COPY or L_CLONE)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  */
 PIX *
 pixaaGetPix(PIXAA   *paa,
@@ -2033,7 +2033,7 @@ PIXA    *pixa;
  *
  *  Notes:
  *      (1) This initializes a pixaa by filling up the entire pixa ptr array
- *          with copies of @pixa.  Any existing pixa are destroyed.
+ *          with copies of %pixa.  Any existing pixa are destroyed.
  *      (2) Example usage.  This function is useful to prepare for a
  *          random insertion (or replacement) of pixa into a pixaa.
  *          To randomly insert pixa into a pixaa, up to some index "max":
@@ -2182,7 +2182,7 @@ PIXA    *pixa;
  *  pixaRead()
  *
  *      Input:  filename
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) The pix are stored in the file as png.
@@ -2218,8 +2218,8 @@ PIXA  *pixa;
 /*!
  *  pixaReadStream()
  *
- *      Input:  stream
- *      Return: pixa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
  *      (1) The pix are stored in the file as png.
@@ -2317,7 +2317,7 @@ FILE  *fp;
 /*!
  *  pixaWriteStream()
  *
- *      Input:  stream (opened for "wb")
+ *      Input:  fp (file stream opened for "wb")
  *              pixa
  *      Return: 0 if OK, 1 on error
  *
@@ -2368,15 +2368,15 @@ PIX     *pix;
  *      Input:  dirname (directory)
  *              substr (<optional> substring filter on filenames; can be NULL)
  *              first (0-based)
- *              nfiles (use 0 for everything from @first to the end)
- *      Return: paa, or null on error or if no pixa files are found.
+ *              nfiles (use 0 for everything from %first to the end)
+ *      Return: paa, or NULL on error or if no pixa files are found.
  *
  *  Notes:
  *      (1) The files must be serialized pixa files (e.g., *.pa)
  *          If some files cannot be read, warnings are issued.
- *      (2) Use @substr to filter filenames in the directory.  If
- *          @substr == NULL, this takes all files.
- *      (3) After filtering, use @first and @nfiles to select
+ *      (2) Use %substr to filter filenames in the directory.  If
+ *          %substr == NULL, this takes all files.
+ *      (3) After filtering, use %first and %nfiles to select
  *          a contiguous set of files, that have been lexically
  *          sorted in increasing order.
  */
@@ -2422,7 +2422,7 @@ SARRAY  *sa;
  *  pixaaRead()
  *
  *      Input:  filename
- *      Return: paa, or null on error
+ *      Return: paa, or NULL on error
  *
  *  Notes:
  *      (1) The pix are stored in the file as png.
@@ -2458,8 +2458,8 @@ PIXAA  *paa;
 /*!
  *  pixaaReadStream()
  *
- *      Input:  stream
- *      Return: paa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: paa, or NULL on error
  *
  *  Notes:
  *      (1) The pix are stored in the file as png.
@@ -2552,7 +2552,7 @@ FILE  *fp;
 /*!
  *  pixaaWriteStream()
  *
- *      Input:  stream (opened for "wb")
+ *      Input:  fp (file stream opened for "wb")
  *              paa
  *      Return: 0 if OK, 1 on error
  *

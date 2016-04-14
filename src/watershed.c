@@ -92,9 +92,9 @@
  *         (f) One parent is a filler and the other is derived from a
  *             minima: merge the minima into the filler.
  *    (6) The output of the watershed operation consists of:
- *         - a pixa of the basins
- *         - a pta of the markers
- *         - a numa of the watershed levels
+ *         ~ a pixa of the basins
+ *         ~ a pta of the markers
+ *         ~ a numa of the watershed levels
  *
  *  Typical usage:
  *      L_WShed *wshed = wshedCreate(pixs, pixseed, mindepth, 0);
@@ -118,19 +118,21 @@
 
 static const l_uint32  MAX_LABEL_VALUE = 0x7fffffff;  /* largest l_int32 */
 
+/*! New pixel coordinates */
 struct L_NewPixel
 {
-    l_int32    x;
-    l_int32    y;
+    l_int32    x;      /*!< x coordinate */
+    l_int32    y;      /*!< y coordinate */
 };
 typedef struct L_NewPixel  L_NEWPIXEL;
 
+/*! Wartshed pixel */
 struct L_WSPixel
 {
-    l_float32  val;    /* pixel value */
-    l_int32    x;
-    l_int32    y;
-    l_int32    index;  /* label for set to which pixel belongs */
+    l_float32  val;    /*!< pixel value */
+    l_int32    x;      /*!< x coordinate */
+    l_int32    y;      /*!< y coordinate */
+    l_int32    index;  /*!< label for set to which pixel belongs */
 };
 typedef struct L_WSPixel  L_WSPIXEL;
 
@@ -179,7 +181,7 @@ static void debugWshedMerge(L_WSHED *wshed, char *descr, l_int32 x,
  *              pixm  (1 bpp 'marker' seed)
  *              mindepth (minimum depth; anything less is not saved)
  *              debugflag (1 for debug output)
- *      Return: WShed, or null on error
+ *      Return: WShed, or NULL on error
  *
  *  Notes:
  *      (1) It is not necessary for the fg pixels in the seed image
@@ -237,7 +239,7 @@ L_WSHED  *wshed;
 /*!
  *  wshedDestroy()
  *
- *      Input:  &wshed (<will be set to null before returning>)
+ *      Input:  &wshed (<inout> will be set to null before returning)
  *      Return: void
  */
 void
@@ -540,7 +542,7 @@ PTA      *ptas, *ptao;
  *  Notes:
  *      (1) This identifies a single watershed.  It does not change
  *          the LUT, which must be done subsequently.
- *      (2) The fill level of a basin is taken to be @level - 1.
+ *      (2) The fill level of a basin is taken to be %level - 1.
  */
 static void
 wshedSaveBasin(L_WSHED  *wshed,
@@ -579,8 +581,8 @@ PIX  *pix;
  *  Notes:
  *      (1) This is a static function, so we assume pixlab, pixs and pixt
  *          exist and are the same size.
- *      (2) It selects all pixels that have the label @index in pixlab
- *          and that have a value in pixs that is less than @level.
+ *      (2) It selects all pixels that have the label %index in pixlab
+ *          and that have a value in pixs that is less than %level.
  *      (3) It is used whenever two seeded basins meet (typically at a saddle),
  *          or when one seeded basin meets a 'filler'.  All identified
  *          basins are saved as a watershed.
@@ -635,8 +637,8 @@ L_QUEUE  *lq;
         /* Each pixel in a spreading breadth-first search is inspected.
          * It is accepted as part of this watershed, and pushed on
          * the search queue, if:
-         *     (1) It has a label value equal to @index
-         *     (2) The pixel value is less than @level, the overflow
+         *     (1) It has a label value equal to %index
+         *     (2) The pixel value is less than %level, the overflow
          *         height at which the two basins join.
          *     (3) It has not yet been seen in this search.  */
     while (lqueueGetCount(lq) > 0) {
@@ -679,7 +681,7 @@ L_QUEUE  *lq;
  *
  *      Input:  wshed
  *              sindex (primary index being changed in the merge)
- *              dindex (index that @sindex will point to after the merge)
+ *              dindex (index that %sindex will point to after the merge)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1038,7 +1040,7 @@ wshedBasins(L_WSHED  *wshed,
  *  wshedRenderFill()
  *
  *      Input:  wshed
- *      Return: pixd (initial image with all basins filled), or null on error
+ *      Return: pixd (initial image with all basins filled), or NULL on error
  */
 PIX *
 wshedRenderFill(L_WSHED  *wshed)
@@ -1074,7 +1076,7 @@ PIXA    *pixa;
  *  wshedRenderColors()
  *
  *      Input:  wshed
- *      Return: pixd (initial image with all basins filled), or null on error
+ *      Return: pixd (initial image with all basins filled), or NULL on error
  */
 PIX *
 wshedRenderColors(L_WSHED  *wshed)

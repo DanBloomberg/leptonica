@@ -174,7 +174,7 @@ static l_int32 numaaExtendArray(NUMAA  *naa);
  *  numaCreate()
  *
  *      Input:  size of number array to be alloc'd (0 for default)
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  */
 NUMA *
 numaCreate(l_int32  n)
@@ -206,7 +206,7 @@ NUMA  *na;
  *
  *      Input:  iarray (integer)
  *              size (of the array)
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  *
  *  Notes:
  *      (1) We can't insert this int array into the numa, because a numa
@@ -242,11 +242,11 @@ NUMA    *na;
  *      Input:  farray (float)
  *              size (of the array)
  *              copyflag (L_INSERT or L_COPY)
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  *
  *  Notes:
  *      (1) With L_INSERT, ownership of the input array is transferred
- *          to the returned numa, and all @size elements are considered
+ *          to the returned numa, and all %size elements are considered
  *          to be valid.
  */
 NUMA *
@@ -284,7 +284,7 @@ NUMA    *na;
  *  numaCreateFromString()
  *
  *      Input:  string (of comma-separated numbers)
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  *
  *  Notes:
  *      (1) The numbers can be ints or floats; they will be interpreted
@@ -372,7 +372,7 @@ NUMA  *na;
  *  numaCopy()
  *
  *      Input:  na
- *      Return: copy of numa, or null on error
+ *      Return: copy of numa, or NULL on error
  */
 NUMA *
 numaCopy(NUMA  *na)
@@ -401,7 +401,7 @@ NUMA    *cna;
  *  numaClone()
  *
  *      Input:  na
- *      Return: ptr to same numa, or null on error
+ *      Return: ptr to same numa, or NULL on error
  */
 NUMA *
 numaClone(NUMA  *na)
@@ -774,7 +774,7 @@ numaShiftValue(NUMA      *na,
  *
  *      Input:  na
  *      Return: a copy of the bare internal array, integerized
- *              by rounding, or null on error
+ *              by rounding, or NULL on error
  *  Notes:
  *      (1) A copy of the array is always made, because we need to
  *          generate an integer array from the bare float array.
@@ -815,7 +815,7 @@ l_int32  *array;
  *      Input:  na
  *              copyflag (L_NOCOPY or L_COPY)
  *      Return: either the bare internal array or a copy of it,
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) If copyflag == L_COPY, it makes a copy which the caller
@@ -927,7 +927,7 @@ numaGetParameters(NUMA       *na,
  *              startx (x value corresponding to na[0])
  *              delx (difference in x values for the situation where the
  *                    elements of na correspond to the evaulation of a
- *                    function at equal intervals of size @delx)
+ *                    function at equal intervals of size %delx)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -983,7 +983,7 @@ l_float32  start, binsize;
  *              addzeros (for integer conversion: to add lead zeros)
  *              type (L_INTEGER_VALUE, L_FLOAT_VALUE)
  *      Return: a sarray of the float values converted to strings
- *              representing either integer or float values; or null on error.
+ *              representing either integer or float values; or NULL on error.
  *
  *  Notes:
  *      (1) For integer conversion, size2 is ignored.
@@ -1043,7 +1043,7 @@ SARRAY    *sa;
  *  numaRead()
  *
  *      Input:  filename
- *      Return: na, or null on error
+ *      Return: na, or NULL on error
  */
 NUMA *
 numaRead(const char  *filename)
@@ -1072,8 +1072,8 @@ NUMA  *na;
 /*!
  *  numaReadStream()
  *
- *      Input:  stream
- *      Return: numa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: numa, or NULL on error
  */
 NUMA *
 numaReadStream(FILE  *fp)
@@ -1144,7 +1144,8 @@ FILE  *fp;
 /*!
  *  numaWriteStream()
  *
- *      Input:  stream, na
+ *      Input:  fp (file stream)
+ *              na
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1185,7 +1186,7 @@ l_float32  startx, delx;
  *  numaaCreate()
  *
  *      Input:  size of numa ptr array to be alloc'd (0 for default)
- *      Return: naa, or null on error
+ *      Return: naa, or NULL on error
  *
  */
 NUMAA *
@@ -1215,7 +1216,7 @@ NUMAA  *naa;
  *
  *      Input:  nptr: size of numa ptr array to be alloc'd
  *              n: size of individual numa arrays to be alloc'd (0 for default)
- *      Return: naa, or null on error
+ *      Return: naa, or NULL on error
  *
  *  Notes:
  *      (1) This allocates numaa and fills the array with allocated numas.
@@ -1457,7 +1458,7 @@ l_int32  n, sum, i;
  *  numaaGetPtrArray()
  *
  *      Input:  naa
- *      Return: the internal array of ptrs to Numa, or null on error
+ *      Return: the internal array of ptrs to Numa, or NULL on error
  *
  *  Notes:
  *      (1) This function is convenient for doing direct manipulation on
@@ -1470,11 +1471,11 @@ l_int32  n, sum, i;
  *             ...  [manipulate Numas directly on the array]
  *            numaaDestroy(&naa);
  *      (3) Cautions:
- *           - Do not free this array; it is owned by tne Numaa.
- *           - Do not call any functions on the Numaa, other than
+ *           ~ Do not free this array; it is owned by tne Numaa.
+ *           ~ Do not call any functions on the Numaa, other than
  *             numaaDestroy() when you're finished with the array.
  *             Adding a Numa will force a resize, destroying the ptr array.
- *           - Do not address the array outside its allocated size.
+ *           ~ Do not address the array outside its allocated size.
  *             With the bare array, there are no protections.  If the
  *             allocated size is n, array[n] is an error.
  */
@@ -1497,7 +1498,7 @@ numaaGetPtrArray(NUMAA  *naa)
  *      Input:  naa
  *              index  (to the index-th numa)
  *              accessflag   (L_COPY or L_CLONE)
- *      Return: numa, or null on error
+ *      Return: numa, or NULL on error
  */
 NUMA *
 numaaGetNuma(NUMAA   *naa,
@@ -1637,7 +1638,7 @@ NUMA    *na;
  *  numaaRead()
  *
  *      Input:  filename
- *      Return: naa, or null on error
+ *      Return: naa, or NULL on error
  */
 NUMAA *
 numaaRead(const char  *filename)
@@ -1666,8 +1667,8 @@ NUMAA  *naa;
 /*!
  *  numaaReadStream()
  *
- *      Input:  stream
- *      Return: naa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: naa, or NULL on error
  */
 NUMAA *
 numaaReadStream(FILE  *fp)
@@ -1735,7 +1736,8 @@ FILE  *fp;
 /*!
  *  numaaWriteStream()
  *
- *      Input:  stream, naa
+ *      Input:  fp (file stream)
+ *              naa
  *      Return: 0 if OK, 1 on error
  */
 l_int32

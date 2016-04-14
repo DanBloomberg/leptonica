@@ -407,7 +407,7 @@ PIXCMAP  *cmap;
  *              hshift (horizontal shift; hshift > 0 is to right)
  *              vshift (vertical shift; vshift > 0 is down)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) The general pattern is:
@@ -482,10 +482,10 @@ l_int32  w, h;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      - this is a wrapper for a common 2-image raster operation
- *      - both pixs and pixd must be defined
- *      - the operation is performed with aligned UL corners of pixs and pixd
- *      - the operation clips to the smallest pix; if the width or height
+ *      ~ this is a wrapper for a common 2-image raster operation
+ *      ~ both pixs and pixd must be defined
+ *      ~ the operation is performed with aligned UL corners of pixs and pixd
+ *      ~ the operation clips to the smallest pix; if the width or height
  *        of pixd is larger than pixs, some pixels in pixd will be unchanged
  */
 l_int32

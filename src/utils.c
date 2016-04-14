@@ -330,7 +330,7 @@ returnErrorPtr(const char  *msg,
  *  stringNew()
  *
  *      Input:  src string
- *      Return: dest copy of src string, or null on error
+ *      Return: dest copy of src string, or NULL on error
  */
 char *
 stringNew(const char  *src)
@@ -364,9 +364,9 @@ char    *dest;
  *
  *  Notes:
  *      (1) Relatively safe wrapper for strncpy, that checks the input,
- *          and does not complain if @src is null or @n < 1.
- *          If @n < 1, this is a no-op.
- *      (2) @dest needs to be at least @n bytes in size.
+ *          and does not complain if %src is null or %n < 1.
+ *          If %n < 1, this is a no-op.
+ *      (2) %dest needs to be at least %n bytes in size.
  *      (3) We don't call strncpy() because valgrind complains about
  *          use of uninitialized values.
  */
@@ -437,7 +437,7 @@ l_int32  len;
 /*!
  *  stringLength()
  *
- *      Input:  src string (can be null or null-terminated string)
+ *      Input:  src string (can be null or NULL-terminated string)
  *              size (size of src buffer)
  *      Return: length of src in bytes.
  *
@@ -474,14 +474,14 @@ l_int32  i;
  *
  *      Input:  dest (null-terminated byte buffer)
  *              size (size of dest)
- *              src string (can be null or null-terminated string)
+ *              src string (can be null or NULL-terminated string)
  *      Return: number of bytes added to dest; -1 on error
  *
  *  Notes:
  *      (1) Alternative implementation of strncat, that checks the input,
  *          is easier to use (since the size of the dest buffer is specified
  *          rather than the number of bytes to copy), and does not complain
- *          if @src is null.
+ *          if %src is null.
  *      (2) Never writes past end of dest.
  *      (3) If it can't append src (an error), it does nothing.
  *      (4) N.B. The order of 2nd and 3rd args is reversed from that in
@@ -571,7 +571,7 @@ va_list      args;
  *
  *      Input:  src1 string (<optional> can be null)
  *              src2 string (<optional> can be null)
- *      Return: concatenated string, or null on error
+ *      Return: concatenated string, or NULL on error
  *
  *  Notes:
  *      (1) This is a safe version of strcat; it makes a new string.
@@ -698,8 +698,8 @@ l_int32  i, len;
  *      (5) It is here because, surprisingly, some C libraries don't
  *          include strtok_r.
  *      (6) Important usage points:
- *          - Input the string to be parsed on the first invocation.
- *          - Then input NULL after that; the value returned in saveptr
+ *          ~ Input the string to be parsed on the first invocation.
+ *          ~ Then input NULL after that; the value returned in saveptr
  *            is used in all subsequent calls.
  *      (7) This is only slightly slower than strtok_k.
  */
@@ -828,7 +828,7 @@ char  *saveptr;
  *
  *      Input:  src (input string; can be of zero length)
  *              remchars  (string of chars to be removed from src)
- *      Return: dest (string with specified chars removed), or null on error
+ *      Return: dest (string with specified chars removed), or NULL on error
  */
 char *
 stringRemoveChars(const char  *src,
@@ -868,7 +868,7 @@ l_int32  nsrc, i, k;
  *
  *  Notes:
  *      (1) This is a wrapper around strstr().
- *      (2) Both @src and @sub must be defined, and @sub must have
+ *      (2) Both %src and %sub must be defined, and %sub must have
  *          length of at least 1.
  *      (3) If the substring is not found and loc is returned, it has
  *          the value -1.
@@ -909,7 +909,7 @@ char  *ptr;
  *              sub2 (substring to put in; can be "")
  *              &found (<return optional> 1 if sub1 is found; 0 otherwise)
  *              &loc (<return optional> location of ptr after replacement)
- *      Return: dest (string with substring replaced), or null if the
+ *      Return: dest (string with substring replaced), or NULL if the
  *              substring not found or on error.
  *
  *  Notes:
@@ -979,7 +979,7 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
  *              sub2 (substring to put in; can be "")
  *              &count (<optional return > the number of times that sub1
  *                      is found in src; 0 if not found)
- *      Return: dest (string with substring replaced), or null if the
+ *      Return: dest (string with substring replaced), or NULL if the
  *              substring not found or on error.
  *
  *  Notes:
@@ -1031,14 +1031,14 @@ l_int32  loc;
  *              datalen (length of data, in bytes)
  *              sequence (subarray of bytes to find in data)
  *              seqlen (length of sequence, in bytes)
- *      Return: dna of offsets where the sequence is found, or null if
+ *      Return: dna of offsets where the sequence is found, or NULL if
  *              none are found or on error
  *
  *  Notes:
- *      (1) The byte arrays @data and @sequence are not C strings,
+ *      (1) The byte arrays %data and %sequence are not C strings,
  *          as they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
- *      (2) This finds every occurrence in @data of @sequence.
+ *      (2) This finds every occurrence in %data of %sequence.
  */
 L_DNA *
 arrayFindEachSequence(const l_uint8  *data,
@@ -1092,11 +1092,11 @@ L_DNA   *da;
  *      (1) The byte arrays 'data' and 'sequence' are not C strings,
  *          as they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
- *      (2) This searches for the first occurrence in @data of @sequence,
- *          which consists of @seqlen bytes.  The parameter @seqlen
- *          must not exceed the actual length of the @sequence byte array.
+ *      (2) This searches for the first occurrence in %data of %sequence,
+ *          which consists of %seqlen bytes.  The parameter %seqlen
+ *          must not exceed the actual length of the %sequence byte array.
  *      (3) If the sequence is not found, the offset will be 0, so you
- *          must check @found.
+ *          must check %found.
  */
 l_int32
 arrayFindSequence(const l_uint8  *data,
@@ -1147,7 +1147,7 @@ l_int32  i, j, found, lastpos;
  *      Input:  &indata (<optional>; nulls indata)
  *              oldsize (size of input data to be copied, in bytes)
  *              newsize (size of data to be reallocated in bytes)
- *      Return: ptr to new data, or null on error
+ *      Return: ptr to new data, or NULL on error
  *
  *  Action: !N.B. (3) and (4)!
  *      (1) Allocates memory, initialized to 0
@@ -1215,7 +1215,7 @@ void    *newdata;
  *
  *      Input:  filename
  *              &nbytes (<return> number of bytes read)
- *      Return: data, or null on error
+ *      Return: data, or NULL on error
  */
 l_uint8 *
 l_binaryRead(const char  *filename,
@@ -1243,9 +1243,9 @@ FILE     *fp;
 /*!
  *  l_binaryReadStream()
  *
- *      Input:  fp (stream opened to read; can be stdin)
+ *      Input:  fp (file stream opened to read; can be stdin)
  *              &nbytes (<return> number of bytes read)
- *      Return: null-terminated array, or null on error
+ *      Return: null-terminated array, or NULL on error
  *              (reading 0 bytes is not an error)
  *
  *  Notes:
@@ -1320,7 +1320,7 @@ L_BBUFFER  *bb;
  *              start (first byte to read)
  *              nbytes (number of bytes to read; use 0 to read to end of file)
  *              &nread (<return> number of bytes actually read)
- *      Return: data, or null on error
+ *      Return: data, or NULL on error
  *
  *  Notes:
  *      (1) The returned array is terminated with a null byte so that it can
@@ -1354,17 +1354,17 @@ FILE     *fp;
 /*!
  *  l_binaryReadSelectStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              start (first byte to read)
  *              nbytes (number of bytes to read; use 0 to read to end of file)
  *              &nread (<return> number of bytes actually read)
- *      Return: null-terminated array, or null on error
+ *      Return: null-terminated array, or NULL on error
  *              (reading 0 bytes is not an error)
  *
  *  Notes:
  *      (1) The returned array is terminated with a null byte so that it can
  *          be used to read ascii data from a file into a proper C string.
- *          If the file to be read is empty and @start == 0, an array
+ *          If the file to be read is empty and %start == 0, an array
  *          with a single null byte is returned.
  *      (2) Side effect: the stream pointer is re-positioned to the
  *          beginning of the file.
@@ -1487,7 +1487,7 @@ FILE   *fp;
 /*!
  *  fnbytesInFile()
  *
- *      Input:  file stream
+ *      Input:  fp (file stream)
  *      Return: nbytes in file; 0 on error
  */
 size_t
@@ -1516,7 +1516,7 @@ size_t  nbytes, pos;
  *
  *      Input:  datas
  *              size (of data array)
- *      Return: datad (on heap), or null on error
+ *      Return: datad (on heap), or NULL on error
  *
  *  Notes:
  *      (1) We add 4 bytes to the zeroed output because in some cases
@@ -1769,7 +1769,7 @@ convertOnBigEnd32(l_uint32  wordin)
  *  fopenReadStream()
  *
  *      Input:  filename
- *      Return: stream, or null on error
+ *      Return: stream, or NULL on error
  *
  *  Notes:
  *      (1) This should be used whenever you want to run fopen() to
@@ -1810,7 +1810,7 @@ FILE  *fp;
  *
  *      Input:  filename
  *              modestring
- *      Return: stream, or null on error
+ *      Return: stream, or NULL on error
  *
  *  Notes:
  *      (1) This should be used whenever you want to run fopen() to
@@ -1843,7 +1843,7 @@ FILE  *fp;
  *  fopenReadFromMemory()
  *
  *      Input:  data, size
- *      Return: file stream, or null on error
+ *      Return: file stream, or NULL on error
  *
  *  Notes:
  *      (1) Work-around if fmemopen() not available.
@@ -1887,7 +1887,7 @@ FILE  *fp;
 /*!
  *  fopenWriteWinTempfile()
  *
- *      Return: file stream, or null on error
+ *      Return: file stream, or NULL on error
  *
  *  Notes:
  *      (1) Windows tmpfile() writes into the root C:\ directory, which
@@ -1943,7 +1943,7 @@ char    *filename;
  *
  *      Input:  filename
  *              mode (same as for fopen(); e.g., "rb")
- *      Return: stream or null on error
+ *      Return: stream or NULL on error
  *
  *  Notes:
  *      (1) This must be used by any application that passes
@@ -1970,7 +1970,7 @@ lept_fopen(const char  *filename,
 /*!
  *  lept_fclose()
  *
- *      Input:  fp (stream handle)
+ *      Input:  fp (file stream)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1994,7 +1994,7 @@ lept_fclose(FILE *fp)
  *
  *      Input:  nmemb (number of members)
  *              size (of each member)
- *      Return: void ptr, or null on error
+ *      Return: void ptr, or NULL on error
  *
  *  Notes:
  *      (1) For safety with windows DLLs, this can be used in conjunction
@@ -2041,7 +2041,7 @@ lept_free(void *ptr)
  *      Return: 0 on success, non-zero on failure
  *
  *  Notes:
- *      (1) @subdir is a partial path that can consist of one or more
+ *      (1) %subdir is a partial path that can consist of one or more
  *          directories.
  *      (2) This makes any subdirectories of /tmp that are required.
  *      (3) The root temp directory is:
@@ -2102,7 +2102,7 @@ l_uint32  attributes;
  *      Return: 0 on success, non-zero on failure
  *
  *  Notes:
- *      (1) @subdir is a partial path that can consist of one or more
+ *      (1) %subdir is a partial path that can consist of one or more
  *          directories.
  *      (2) This removes all files from the specified subdirectory of
  *          the root temp directory:
@@ -2227,10 +2227,10 @@ char  *realdir;
  *
  *  Notes:
  *      (1) This removes the matched files in /tmp or a subdirectory of /tmp.
- *          Use NULL for @subdir if the files are in /tmp.
- *      (2) If @substr == NULL, this removes all files in the directory.
- *          If @substr == "" (empty), this removes no files.
- *          If both @subdir == NULL and @substr == NULL, this removes
+ *          Use NULL for %subdir if the files are in /tmp.
+ *      (2) If %substr == NULL, this removes all files in the directory.
+ *          If %substr == "" (empty), this removes no files.
+ *          If both %subdir == NULL and %substr == NULL, this removes
  *          all files in /tmp.
  *      (3) Use unix pathname separators.
  *      (4) By calling genPathname(), if the pathname begins with "/tmp"
@@ -2358,14 +2358,14 @@ l_int32  ret;
  *      Return: 0 on success, non-zero on failure
  *
  *  Notes:
- *      (1) This moves @srcfile to /tmp or to a subdirectory of /tmp.
- *      (2) @srcfile can either be a full path or relative to the
+ *      (1) This moves %srcfile to /tmp or to a subdirectory of /tmp.
+ *      (2) %srcfile can either be a full path or relative to the
  *          current directory.
- *      (3) @newdir can either specify an existing subdirectory of /tmp
+ *      (3) %newdir can either specify an existing subdirectory of /tmp
  *          or can be NULL.  In the latter case, the file will be written
  *          into /tmp.
- *      (4) @newtail can either specify a filename tail or, if NULL,
- *          the filename is taken from src-tail, the tail of @srcfile.
+ *      (4) %newtail can either specify a filename tail or, if NULL,
+ *          the filename is taken from src-tail, the tail of %srcfile.
  *      (5) For debugging, the computed newpath can be returned.  It must
  *          be freed by the caller.
  *      (6) Reminders:
@@ -2439,14 +2439,14 @@ l_int32  ret;
  *      Return: 0 on success, non-zero on failure
  *
  *  Notes:
- *      (1) This copies @srcfile to /tmp or to a subdirectory of /tmp.
- *      (2) @srcfile can either be a full path or relative to the
+ *      (1) This copies %srcfile to /tmp or to a subdirectory of /tmp.
+ *      (2) %srcfile can either be a full path or relative to the
  *          current directory.
- *      (3) @newdir can either specify an existing subdirectory of /tmp,
+ *      (3) %newdir can either specify an existing subdirectory of /tmp,
  *          or can be NULL.  In the latter case, the file will be written
  *          into /tmp.
- *      (4) @newtail can either specify a filename tail or, if NULL,
- *          the filename is taken from src-tail, the tail of @srcfile.
+ *      (4) %newtail can either specify a filename tail or, if NULL,
+ *          the filename is taken from src-tail, the tail of %srcfile.
  *      (5) For debugging, the computed newpath can be returned.  It must
  *          be freed by the caller.
  *      (6) Reminders:
@@ -2650,18 +2650,18 @@ char   empty[4] = "";
  *
  *      Input:  dir (<optional> can be null)
  *              fname (<optional> can be null)
- *      Return: specially concatenated path, or null on error
+ *      Return: specially concatenated path, or NULL on error
  *
  *  Notes:
  *      (1) Use unix-style pathname separators ('/').
- *      (2) @fname can be the entire path, or part of the path containing
- *          at least one directory, or a tail without a directory, or null.
+ *      (2) %fname can be the entire path, or part of the path containing
+ *          at least one directory, or a tail without a directory, or NULL.
  *      (3) It produces a path that strips multiple slashes to a single
- *          slash, joins @dir and @fname by a slash, and has no trailing
- *          slashes (except in the cases where @dir == "/" and
- *          @fname == NULL, or v.v.).
- *      (4) If both @dir and @fname are null, produces an empty string.
- *      (5) Neither @dir nor @fname can begin with '.'.
+ *          slash, joins %dir and %fname by a slash, and has no trailing
+ *          slashes (except in the cases where %dir == "/" and
+ *          %fname == NULL, or v.v.).
+ *      (4) If both %dir and %fname are null, produces an empty string.
+ *      (5) Neither %dir nor %fname can begin with '.'.
  *      (6) The result is not canonicalized or tested for correctness:
  *          garbage in (e.g., /&%), garbage out.
  *      (7) Examples:
@@ -2705,7 +2705,7 @@ L_BYTEA  *ba;
     sa2 = sarrayCreate(0);
     ba = l_byteaCreate(4);
 
-        /* Process @dir */
+        /* Process %dir */
     if (dir && strlen(dir) > 0) {
         if (dir[0] == '/')
             l_byteaAppendString(ba, slash);
@@ -2723,7 +2723,7 @@ L_BYTEA  *ba;
     if ((!dir || emptydir) && fname && strlen(fname) > 0 && fname[0] == '/')
         l_byteaAppendString(ba, slash);
 
-        /* Process @fname */
+        /* Process %fname */
     if (fname && strlen(fname) > 0) {
         sarraySplitString(sa2, fname, "/");
         n2 = sarrayGetCount(sa2);
@@ -2752,7 +2752,7 @@ L_BYTEA  *ba;
  *      Input:  basedir
  *              subdirs
  *      Return: concatenated full directory path without trailing slash,
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) Use unix pathname separators
@@ -2842,25 +2842,25 @@ size_t   len;
  *      Input:  dir (<optional> directory or full path name, with or without
  *                   trailing '/')
  *              fname (<optional> file name within a directory)
- *      Return: pathname (either a directory or full path), or null on error
+ *      Return: pathname (either a directory or full path), or NULL on error
  *
  *  Notes:
  *      (1) This function generates actual paths in the following ways:
  *            * from two sub-parts (e.g., a directory and a file name).
- *            * from a single path full path, placed in @dir, with
- *              @fname == NULL.
+ *            * from a single path full path, placed in %dir, with
+ *              %fname == NULL.
  *            * from the name of a file in the local directory placed in
- *              @fname, with @dir == NULL.
+ *              %fname, with %dir == NULL.
  *            * if in a "/tmp" directory and on windows, the windows
  *              temp directory is used.
- *      (2) If the root of @dir is '/tmp', this does a name translation:
+ *      (2) If the root of %dir is '/tmp', this does a name translation:
  *             "/tmp"  ==>  <Temp> (windows)
  *          where <Temp> is the windows temp directory.
  *      (3) There are four cases for the input:
- *          (a) @dir is a directory and @fname is defined: result is a full path
- *          (b) @dir is a directory and @fname is null: result is a directory
- *          (c) @dir is a full path and @fname is null: result is a full path
- *          (d) @dir is null or an empty string: start in the current dir;
+ *          (a) %dir is a directory and %fname is defined: result is a full path
+ *          (b) %dir is a directory and %fname is null: result is a directory
+ *          (c) %dir is a full path and %fname is null: result is a full path
+ *          (d) %dir is null or an empty string: start in the current dir;
  *              result is a full path
  *      (4) In all cases, the resulting pathname is not terminated with a slash
  *      (5) The caller is responsible for freeing the returned pathname.
@@ -2899,7 +2899,7 @@ l_int32  dirlen, namelen, size;
     if ((pathout = (char *)LEPT_CALLOC(size, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("pathout not made", procName, NULL);
 
-        /* First handle @dir (which may be a full pathname) */
+        /* First handle %dir (which may be a full pathname) */
     if (strncmp(cdir, "/tmp", 4) != 0) {  /* not in /tmp; OK as is */
         stringCopy(pathout, cdir, dirlen);
     } else {  /* in /tmp */
@@ -2923,7 +2923,7 @@ l_int32  dirlen, namelen, size;
             stringCat(pathout, size, cdir + 4);
     }
 
-       /* Now handle @fname */
+       /* Now handle %fname */
     if (fname && strlen(fname) > 0) {
         dirlen = strlen(pathout);
         pathout[dirlen] = '/';
@@ -2939,17 +2939,17 @@ l_int32  dirlen, namelen, size;
  *  makeTempDirname()
  *
  *      Input:  result (preallocated on stack or heap and passed in)
- *              nbytes (size of @result array, in bytes)
+ *              nbytes (size of %result array, in bytes)
  *              subdirs (<optional>; can be NULL or an empty string)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This generates the directory path for output temp files,
- *          written into @result with unix separators.
- *      (2) Caller allocates @result, large enough to hold the path,
+ *          written into %result with unix separators.
+ *      (2) Caller allocates %result, large enough to hold the path,
  *          which is:
- *            /tmp/@subdirs       (unix)
- *            <Temp>/@subdirs     (windows)
+ *            /tmp/%subdirs       (unix)
+ *            <Temp>/%subdirs     (windows)
  *          where <Temp> is a path on windows determined by GenTempPath().
  *      (3) Usage example:
  *           char  result[256];
@@ -2992,7 +2992,7 @@ size_t   pathlen;
  *  modifyTrailingSlash()
  *
  *      Input:  path (preallocated on stack or heap and passed in)
- *              nbytes (size of @path array, in bytes)
+ *              nbytes (size of %path array, in bytes)
  *              flag (L_ADD_TRAIL_SLASH or L_REMOVE_TRAIL_SLASH)
  *      Return: 0 if OK, 1 on error
  *
@@ -3030,41 +3030,41 @@ size_t  len;
  *  genTempFilename()
  *
  *      Input:  dir (directory name; use '.' for local dir;
- *                   no trailing '/' and @dir == "/" is invalid)
+ *                   no trailing '/' and %dir == "/" is invalid)
  *              tail (<optional>  tailname, including extension if any;
  *                    can be null or empty but can't contain '/')
  *              usetime (1 to include current time in microseconds in
  *                       the filename; 0 to omit.
  *              usepid (1 to include pid in filename; 0 to omit.
- *      Return: temp filename, or null on error
+ *      Return: temp filename, or NULL on error
  *
  *  Notes:
  *      (1) This makes a filename that is as unique as desired, and which
  *          can optionally include both the time and pid in the name.
  *      (2) Use unix-style pathname separators ('/').
- *      (3) Specifying the root directory (@dir == "/") is invalid.
- *      (4) Specifying a @tail containing '/' is invalid.
- *      (5) The most general form (@usetime = @usepid = 1) is:
+ *      (3) Specifying the root directory (%dir == "/") is invalid.
+ *      (4) Specifying a %tail containing '/' is invalid.
+ *      (5) The most general form (%usetime = %usepid = 1) is:
  *              <dir>/<usec>_<pid>_<tail>
- *          When @usetime = 1, @usepid = 0, the output filename is:
+ *          When %usetime = 1, %usepid = 0, the output filename is:
  *              <dir>/<usec>_<tail>
- *          When @usepid = 0, @usepid = 1, the output filename is:
+ *          When %usepid = 0, %usepid = 1, the output filename is:
  *              <dir>/<pid>_<tail>
- *          When @usetime = @usepid = 0, the output filename is:
+ *          When %usetime = %usepid = 0, the output filename is:
  *              <dir>/<tail>
- *          Note: It is not valid to have @tail = null or empty and have
- *          both @usetime = @usepid = 0.  That is, there must be
+ *          Note: It is not valid to have %tail = null or empty and have
+ *          both %usetime = %usepid = 0.  That is, there must be
  *          some non-empty tail name.
  *      (6) N.B. The caller is responsible for freeing the returned filename.
  *          For windows, to avoid C-runtime boundary crossing problems
  *          when using DLLs, you must use lept_free() to free the name.
- *      (7) When @dir is /tmp or a subdirectory of /tmp, genPathname()
+ *      (7) When %dir is /tmp or a subdirectory of /tmp, genPathname()
  *          does a name translation for '/tmp':
  *            ==> /tmp              (unix)  [default]
  *            ==> /tmp/leptonica    (unix)  [if ADD_LEPTONICA_SUBDIR == 1]
  *            ==> <Temp>/leptonica  (windows)
  *          where <Temp> is a path on windows determined by GenTempPath().
- *      (8) Set @usetime = @usepid = 1 when
+ *      (8) Set %usetime = %usepid = 1 when
  *          (a) more than one process is writing and reading temp files, or
  *          (b) multiple threads from a single process call this function, or
  *          (c) there is the possibility of an attack where the intruder
@@ -3176,11 +3176,11 @@ l_int32  len, nret, num;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) @loc and @size are expressed as a fraction of the file size.
- *      (2) This makes a copy of the data in @filein, where bytes in the
+ *      (1) %loc and %size are expressed as a fraction of the file size.
+ *      (2) This makes a copy of the data in %filein, where bytes in the
  *          specified region have deleted.
- *      (3) If (@loc + @size) >= 1.0, this deletes from the position
- *          represented by @loc to the end of the file.
+ *      (3) If (%loc + %size) >= 1.0, this deletes from the position
+ *          represented by %loc to the end of the file.
  *      (4) It is useful for testing robustness of I/O wrappers when the
  *          data is corrupted, by simulating data corruption by deletion.
  */
@@ -3238,11 +3238,11 @@ l_uint8  *datain, *dataout;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) @loc and @size are expressed as a fraction of the file size.
- *      (2) This makes a copy of the data in @filein, where bytes in the
+ *      (1) %loc and %size are expressed as a fraction of the file size.
+ *      (2) This makes a copy of the data in %filein, where bytes in the
  *          specified region have been replaced by random data.
- *      (3) If (@loc + @size) >= 1.0, this modifies data from the position
- *          represented by @loc to the end of the file.
+ *      (3) If (%loc + %size) >= 1.0, this modifies data from the position
+ *          represented by %loc to the end of the file.
  *      (4) It is useful for testing robustness of I/O wrappers when the
  *          data is corrupted, by simulating data corruption.
  */
@@ -3300,7 +3300,7 @@ l_uint8  *data;
  *
  *  Notes:
  *      (1) For example, to choose a rand integer between 0 and 99,
- *          use @range = 100.
+ *          use %range = 100.
  */
 l_int32
 genRandomIntegerInRange(l_int32   range,
@@ -3351,7 +3351,7 @@ lept_roundftoi(l_float32  fval)
  *  l_hashStringToUint64()
  *
  *      Input:  str
- *              &hash (<return>)
+ *              &hash (<return> hash vale)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -3395,7 +3395,7 @@ l_uint64  hash, mulp;
  *  l_hashPtToUint64()
  *
  *      Input:  x, y
- *              &hash (<return>)
+ *              &hash (<return> hash value)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -3431,7 +3431,7 @@ l_uint64  hash, mulp;
  *
  *      Input:  nbuckets
  *              x, y
- *              &hash (<return>)
+ *              &hash (<return> hash value)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -3462,14 +3462,14 @@ l_hashPtToUint64Fast(l_int32    nbuckets,
  *
  *      Input:  nbuckets
  *              val
- *              &hash (<return>)
+ *              &hash (<return> hash value)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) Simple, fast hash for using dnaHash with 64-bit data
  *          (e.g., sets and histograms).
  *      (2) The resulting hash is called a "key" in a lookup
- *          operation.  The bucket for @val in a dnaHash is simply
+ *          operation.  The bucket for %val in a dnaHash is simply
  *          found by taking the mod of the hash with the number of
  *          buckets (which is prime).  What gets stored in the
  *          dna in that bucket could depend on use, but for the most
@@ -3501,7 +3501,7 @@ l_hashFloat64ToUint64(l_int32    nbuckets,
  *  findNextLargerPrime()
  *
  *      Input:  start
- *              &prime (<return> first prime larger than @start)
+ *              &prime (<return> first prime larger than %start)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -3914,7 +3914,7 @@ L_WALLTIMER  *timer;
  *  l_getFormattedDate()
  *
  *      Input:  (none)
- *      Return: formatted date string, or null on error
+ *      Return: formatted date string, or NULL on error
  *
  *  Notes:
  *      (1) This is used in pdf, in the form specified in section 3.8.2 of

@@ -168,7 +168,7 @@ static l_int32  var_NEUTRAL_BOOST_VAL = 180;
  *              nlevels (number of levels to be used for colormap)
  *              cmapflag (1 if makes colormap; 0 otherwise)
  *      Return: pixd (thresholded with standard dest thresholds),
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) This uses, by default, equally spaced "target" values
@@ -247,7 +247,7 @@ PIXCMAP   *cmap;
  *                    REMOVE_CMAP_WITH_ALPHA,
  *                    REMOVE_CMAP_BASED_ON_SRC)
  *              ifnocmap (L_CLONE, L_COPY)
- *      Return: pixd (always a new pix; without colormap), or null on error
+ *      Return: pixd (always a new pix; without colormap), or NULL on error
  *
  *  Notes:
  *      (1) Convenience function that allows choice between returning
@@ -285,7 +285,7 @@ pixRemoveColormapGeneral(PIX     *pixs,
  *                    REMOVE_CMAP_TO_FULL_COLOR,
  *                    REMOVE_CMAP_WITH_ALPHA,
  *                    REMOVE_CMAP_BASED_ON_SRC)
- *      Return: pixd (without colormap), or null on error
+ *      Return: pixd (without colormap), or NULL on error
  *
  *  Notes:
  *      (1) If pixs does not have a colormap, a clone is returned.
@@ -700,7 +700,7 @@ PIXCMAP   *cmap;
  *  pixConvertRGBToLuminance()
  *
  *      Input:  pix (32 bpp RGB)
- *      Return: 8 bpp pix, or null on error
+ *      Return: 8 bpp pix, or NULL on error
  *
  *  Notes:
  *      (1) Use a standard luminance conversion.
@@ -718,7 +718,7 @@ pixConvertRGBToLuminance(PIX *pixs)
  *      Input:  pix (32 bpp RGB)
  *              rwt, gwt, bwt  (non-negative; these should add to 1.0,
  *                              or use 0.0 for default)
- *      Return: 8 bpp pix, or null on error
+ *      Return: 8 bpp pix, or NULL on error
  *
  *  Notes:
  *      (1) Use a weighted average of the RGB values.
@@ -789,7 +789,7 @@ PIX       *pixd;
  *  pixConvertRGBToGrayFast()
  *
  *      Input:  pix (32 bpp RGB)
- *      Return: 8 bpp pix, or null on error
+ *      Return: 8 bpp pix, or NULL on error
  *
  *  Notes:
  *      (1) This function should be used if speed of conversion
@@ -842,7 +842,7 @@ PIX       *pixd;
  *      Input:  pix (32 bpp RGB)
  *              type (L_CHOOSE_MIN, L_CHOOSE_MAX, L_CHOOSE_MAXDIFF,
  *                    L_CHOOSE_MIN_BOOST, L_CHOOSE_MAX_BOOST)
- *      Return: 8 bpp pix, or null on error
+ *      Return: 8 bpp pix, or NULL on error
  *
  *  Notes:
  *      (1) This chooses various components or combinations of them,
@@ -917,7 +917,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (32 bpp rgb)
  *              refval (between 1 and 255; typ. less than 128)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This returns the max component value, boosted by
@@ -1008,7 +1008,7 @@ PIX        *pixt, *pixd;
  *  pixConvertGrayToColormap()
  *
  *      Input:  pixs (2, 4 or 8 bpp grayscale)
- *      Return: pixd (2, 4 or 8 bpp with colormap), or null on error
+ *      Return: pixd (2, 4 or 8 bpp with colormap), or NULL on error
  *
  *  Notes:
  *      (1) This is a simple interface for adding a colormap to a
@@ -1062,7 +1062,7 @@ PIXCMAP   *cmap;
  *
  *      Input:  pixs (8 bpp grayscale)
  *              mindepth (of pixd; valid values are 2, 4 and 8)
- *      Return: pixd (2, 4 or 8 bpp with colormap), or null on error
+ *      Return: pixd (2, 4 or 8 bpp with colormap), or NULL on error
  *
  *  Notes:
  *      (1) Returns a copy if pixs already has a colormap.
@@ -1164,7 +1164,7 @@ PIXCMAP   *cmap;
  *      Input:  pixs (8 bpp gray; 2, 4 or 8 bpp colormapped)
  *              color (32 bit rgba pixel)
  *              cmapflag (1 for result to have colormap; 0 for RGB)
- *      Return: pixd (8 bpp colormapped or 32 bpp rgb), or null on error
+ *      Return: pixd (8 bpp colormapped or 32 bpp rgb), or NULL on error
  *
  *  Notes:
  *      (1) This applies the specific color to the grayscale image.
@@ -1235,7 +1235,7 @@ PIXCMAP   *cmap;
  *
  *      Input:  pixs (32 bpp rgb)
  *              ditherflag (1 to dither, 0 otherwise)
- *      Return: pixd (2, 4 or 8 bpp with colormap), or null on error
+ *      Return: pixd (2, 4 or 8 bpp with colormap), or NULL on error
  *
  *  Notes:
  *      (1) This function has two relatively simple modes of color
@@ -1312,7 +1312,7 @@ PIX     *pixd;
  *  pixConvertCmapTo1()
  *
  *      Input:  pixs (cmapped)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is an extreme color quantizer.  It decides which
@@ -1424,9 +1424,9 @@ PIXCMAP   *cmap;
  *          If the image is essentially grayscale, the pixels are
  *          either 4 or 8 bpp, depending on the size of the required
  *          colormap.
- *      (3) @octlevel = 4 generates a larger colormap and larger
- *          compressed image than @octlevel = 3.  If image quality is
- *          important, you should use @octlevel = 4.
+ *      (3) %octlevel = 4 generates a larger colormap and larger
+ *          compressed image than %octlevel = 3.  If image quality is
+ *          important, you should use %octlevel = 4.
  *      (4) If the image already has a colormap, it returns a clone.
  */
 l_int32
@@ -1520,7 +1520,7 @@ PIX     *pixg, *pixd;
  *
  *      Input:  pixs (16 bpp)
  *              type (L_LS_BYTE, L_MS_BYTE, L_CLIP_TO_FF)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) For each dest pixel, use either the LSB, the MSB, or the
@@ -1596,7 +1596,7 @@ PIX       *pixd;
  *      Input:  pixs (8 or 16 bpp grayscale)
  *              gamma factor (0.0 or 1.0 for default; > 1.0 for brighter;
  *                            2.0 is quite nice)
- *      Return: pixd (8 bpp with colormap), or null on error
+ *      Return: pixd (8 bpp with colormap), or NULL on error
  *
  *  Notes:
  *      (1) For 8 bpp input, this simply adds a colormap to the input image.
@@ -1690,7 +1690,7 @@ PIXCMAP   *cmap;
  *                          binary 1 --> grayscale 0xff...
  *                      1:  binary 0 --> grayscale 0xff...
  *                          binary 1 --> grayscale 0)
- *      Return: pixd (2, 4, 8, 16 or 32 bpp), or null on error
+ *      Return: pixd (2, 4, 8, 16 or 32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This function calls special cases of pixConvert1To*(),
@@ -2241,23 +2241,23 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
  *              val2 (8 bit value to be used for 10 in pixs)
  *              val3 (8 bit value to be used for 11 in pixs)
  *              cmapflag (TRUE if pixd is to have a colormap; FALSE otherwise)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
- *      - A simple unpacking might use val0 = 0,
+ *      ~ A simple unpacking might use val0 = 0,
  *        val1 = 85 (0x55), val2 = 170 (0xaa), val3 = 255.
- *      - If cmapflag is TRUE:
- *          - The 8 bpp image is made with a colormap.
- *          - If pixs has a colormap, the input values are ignored and
+ *      ~ If cmapflag is TRUE:
+ *          ~ The 8 bpp image is made with a colormap.
+ *          ~ If pixs has a colormap, the input values are ignored and
  *            the 8 bpp image is made using the colormap
- *          - If pixs does not have a colormap, the input values are
+ *          ~ If pixs does not have a colormap, the input values are
  *            used to build the colormap.
- *      - If cmapflag is FALSE:
- *          - The 8 bpp image is made without a colormap.
- *          - If pixs has a colormap, the input values are ignored,
+ *      ~ If cmapflag is FALSE:
+ *          ~ The 8 bpp image is made without a colormap.
+ *          ~ If pixs has a colormap, the input values are ignored,
  *            the colormap is removed, and the values stored in the 8 bpp
  *            image are from the colormap.
- *          - If pixs does not have a colormap, the input values are
+ *          ~ If pixs does not have a colormap, the input values are
  *            used to populate the 8 bpp image.
  */
 PIX *
@@ -2358,21 +2358,21 @@ PIXCMAP   *cmaps, *cmapd;
  *
  *      Input:  pixs (4 bpp)
  *              cmapflag (TRUE if pixd is to have a colormap; FALSE otherwise)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
- *      - If cmapflag is TRUE:
- *          - pixd is made with a colormap.
- *          - If pixs has a colormap, it is copied and the colormap
+ *      ~ If cmapflag is TRUE:
+ *          ~ pixd is made with a colormap.
+ *          ~ If pixs has a colormap, it is copied and the colormap
  *            index values are placed in pixd.
- *          - If pixs does not have a colormap, a colormap with linear
+ *          ~ If pixs does not have a colormap, a colormap with linear
  *            trc is built and the pixel values in pixs are placed in
  *            pixd as colormap index values.
- *      - If cmapflag is FALSE:
- *          - pixd is made without a colormap.
- *          - If pixs has a colormap, it is removed and the values stored
+ *      ~ If cmapflag is FALSE:
+ *          ~ pixd is made without a colormap.
+ *          ~ If pixs has a colormap, it is removed and the values stored
  *            in pixd are from the colormap (converted to gray).
- *          - If pixs does not have a colormap, the pixel values in pixs
+ *          ~ If pixs does not have a colormap, the pixel values in pixs
  *            are used, with shift replication, to populate pixd.
  */
 PIX *
@@ -2455,7 +2455,7 @@ PIXCMAP   *cmaps, *cmapd;
  *      Input:  pixs (8 bpp; colormap removed to gray)
  *              leftshift (number of bits: 0 is no shift;
  *                         8 replicates in MSB and LSB of dest)
- *      Return: pixd (16 bpp), or null on error
+ *      Return: pixd (16 bpp), or NULL on error
  *
  *  Notes:
  *      (1) For left shift of 8, the 8 bit value is replicated in both
@@ -2520,7 +2520,7 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              threshold (for final binarization, relative to 8 bpp)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is a top-level function, with simple default values
@@ -2577,7 +2577,7 @@ PIXCMAP  *cmap;
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              factor (submsampling factor; integer >= 1)
  *              threshold (for final binarization, relative to 8 bpp)
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is a quick and dirty, top-level converter.
@@ -2615,7 +2615,7 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              cmapflag (TRUE if pixd is to have a colormap; FALSE otherwise)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is a top-level function, with simple default values
@@ -2625,10 +2625,10 @@ PIX       *pixt, *pixd;
  *          if d == 8, and cmapflag matches the existence of a cmap
  *          in pixs, the operation is lossless and it returns a copy.
  *      (3) The default values used are:
- *          - 1 bpp: val0 = 255, val1 = 0
- *          - 2 bpp: 4 bpp:  even increments over dynamic range
- *          - 8 bpp: lossless if cmap matches cmapflag
- *          - 16 bpp: use most significant byte
+ *          ~ 1 bpp: val0 = 255, val1 = 0
+ *          ~ 2 bpp: 4 bpp:  even increments over dynamic range
+ *          ~ 8 bpp: lossless if cmap matches cmapflag
+ *          ~ 16 bpp: use most significant byte
  *      (4) If 32 bpp RGB, this is converted to gray.  If you want
  *          to do color quantization, you must specify the type
  *          explicitly, using the color quantization code.
@@ -2689,7 +2689,7 @@ PIXCMAP  *cmap;
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              factor (submsampling factor; integer >= 1)
  *              cmapflag (TRUE if pixd is to have a colormap; FALSE otherwise)
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is a fast, quick/dirty, top-level converter.
@@ -2724,7 +2724,7 @@ PIX       *pixt, *pixd;
  *
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              dither (1 to dither if necessary; 0 otherwise)
- *      Return: pixd (8 bpp, cmapped), or null on error
+ *      Return: pixd (8 bpp, cmapped), or NULL on error
  *
  *  Notes:
  *      (1) This is a top-level function, with simple default values
@@ -2732,8 +2732,8 @@ PIX       *pixt, *pixd;
  *      (2) The result, pixd, is always made with a colormap.
  *      (3) If d == 8, the operation is lossless and it returns a copy.
  *      (4) The default values used for increasing depth are:
- *          - 1 bpp: val0 = 255, val1 = 0
- *          - 2 bpp: 4 bpp:  even increments over dynamic range
+ *          ~ 1 bpp: val0 = 255, val1 = 0
+ *          ~ 2 bpp: 4 bpp:  even increments over dynamic range
  *      (5) For 16 bpp, use the most significant byte.
  *      (6) For 32 bpp RGB, use octcube quantization with optional dithering.
  */
@@ -2765,7 +2765,7 @@ l_int32  d;
  *  pixConvertTo16()
  *
  *      Input:  pixs (1, 8 bpp)
- *      Return: pixd (16 bpp), or null on error
+ *      Return: pixd (16 bpp), or NULL on error
  *
  *  Usage: Top-level function, with simple default values for unpacking.
  *      1 bpp:  val0 = 0xffff, val1 = 0
@@ -2800,7 +2800,7 @@ l_int32  d;
  *  pixConvertTo32()
  *
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
- *      Return: pixd (32 bpp), or null on error
+ *      Return: pixd (32 bpp), or NULL on error
  *
  *  Usage: Top-level function, with simple default values for unpacking.
  *      1 bpp:  val0 = 255, val1 = 0
@@ -2867,7 +2867,7 @@ PIX     *pixt, *pixd;
  *
  *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              factor (submsampling factor; integer >= 1)
- *      Return: pixd (32 bpp), or null on error
+ *      Return: pixd (32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is a fast, quick/dirty, top-level converter.
@@ -2900,7 +2900,7 @@ PIX       *pixt, *pixd;
  *  pixConvert8To32()
  *
  *      Input:  pix (8 bpp)
- *      Return: 32 bpp rgb pix, or null on error
+ *      Return: 32 bpp rgb pix, or NULL on error
  *
  *  Notes:
  *      (1) If there is no colormap, replicates the gray value
@@ -2965,13 +2965,13 @@ PIX       *pixd;
  *              copyflag (use 0 to return clone if pixs does not need to
  *                         be changed; 1 to return a copy in those situations)
  *              warnflag (1 to issue warning if colormap is removed; else 0)
- *      Return: pixd (8 bpp grayscale or 32 bpp rgb), or null on error
+ *      Return: pixd (8 bpp grayscale or 32 bpp rgb), or NULL on error
  *
  *  Notes:
  *      (1) If there is a colormap, the colormap is removed to 8 or 32 bpp,
  *          depending on whether the colors in the colormap are all gray.
  *      (2) If the input is either rgb or 8 bpp without a colormap,
- *          this returns either a clone or a copy, depending on @copyflag.
+ *          this returns either a clone or a copy, depending on %copyflag.
  *      (3) Otherwise, the pix is converted to 8 bpp grayscale.
  *          In all cases, pixd does not have a colormap.
  */
@@ -3019,7 +3019,7 @@ PIX     *pixd;
  *  pixConvert24To32()
  *
  *      Input:  pixs (24 bpp rgb)
- *      Return: pixd (32 bpp rgb), or null on error
+ *      Return: pixd (32 bpp rgb), or NULL on error
  *
  *  Notes:
  *      (1) 24 bpp rgb pix are not supported in leptonica, except for a small
@@ -3077,7 +3077,7 @@ PIX       *pixd;
  *  pixConvert32To24()
  *
  *      Input:  pixs (32 bpp rgb)
- *      Return: pixd (24 bpp rgb), or null on error
+ *      Return: pixd (24 bpp rgb), or NULL on error
  *
  *  Notes:
  *      (1) See pixconvert24To32().
@@ -3127,7 +3127,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (32 bpp, single component)
  *              type (L_LS_TWO_BYTES, L_MS_TWO_BYTES, L_CLIP_TO_FFFF)
- *      Return: pixd (16 bpp ), or null on error
+ *      Return: pixd (16 bpp ), or NULL on error
  *
  *  Notes:
  *      (1) The data in pixs is typically used for labelling.
@@ -3195,7 +3195,7 @@ PIX       *pixd;
  *      Input:  pixs (32 bpp, single component)
  *              type16 (L_LS_TWO_BYTES, L_MS_TWO_BYTES, L_CLIP_TO_FFFF)
  *              type8 (L_LS_BYTE, L_MS_BYTE, L_CLIP_TO_FF)
- *      Return: pixd (8 bpp ), or null on error
+ *      Return: pixd (8 bpp ), or NULL on error
  */
 PIX *
 pixConvert32To8(PIX     *pixs,
@@ -3229,7 +3229,7 @@ PIX  *pix1, *pixd;
  *
  *      Input:  pixs (any depth)
  *      Return: pixd (if 32 bpp rgba, pixs blended over a white background;
- *                    a clone of pixs otherwise), and null on error
+ *                    a clone of pixs otherwise), and NULL on error
  *
  *  Notes:
  *      (1) This is a wrapper on pixAlphaBlendUniform()
@@ -3258,7 +3258,7 @@ pixRemoveAlpha(PIX *pixs)
  *      Input:  pixd (<optional> 1 bpp, can be null or equal to pixs
  *              pixs (1 bpp)
  *      Return: pixd (1 bpp with colormap and non-opaque alpha),
- *                    or null on error
+ *                    or NULL on error
  *
  *  Notes:
  *      (1) We don't use 1 bpp colormapped images with alpha in leptonica,
@@ -3299,14 +3299,14 @@ PIXCMAP  *cmap;
  *
  *      Input:  pixs (1, 2, 4, 8 bpp, not cmapped)
  *              d (destination depth: 2, 4 or 8)
- *      Return: pixd (2, 4 or 8 bpp), or null on error
+ *      Return: pixd (2, 4 or 8 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is a lossless unpacking (depth-increasing)
  *          conversion.  If ds is the depth of pixs, then
- *           - if d < ds, returns NULL
- *           - if d == ds, returns a copy
- *           - if d > ds, does the unpacking conversion
+ *           ~ if d < ds, returns NULL
+ *           ~ if d == ds, returns a copy
+ *           ~ if d > ds, does the unpacking conversion
  *      (2) If pixs has a colormap, this is an error.
  */
 PIX *
@@ -3386,7 +3386,7 @@ PIX       *pixd;
  *  pixConvertForPSWrap()
  *
  *      Input:  pixs (1, 2, 4, 8, 16, 32 bpp)
- *      Return: pixd (1, 8, or 32 bpp), or null on error
+ *      Return: pixd (1, 8, or 32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) For wrapping in PostScript, we convert pixs to
@@ -3457,14 +3457,14 @@ PIXCMAP  *cmap;
  *                     L_SUBPIXEL_ORDER_RGB, L_SUBPIXEL_ORDER_BGR,
  *                     L_SUBPIXEL_ORDER_VRGB, L_SUBPIXEL_ORDER_VBGR)
  *
- *      Return: pixd (32 bpp), or null on error
+ *      Return: pixd (32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) If pixs has a colormap, it is removed based on its contents
  *          to either 8 bpp gray or rgb.
  *      (2) For horizontal subpixel splitting, the input image
- *          is rescaled by @scaley vertically and by 3.0 times
- *          @scalex horizontally.  Then each horizontal triplet
+ *          is rescaled by %scaley vertically and by 3.0 times
+ *          %scalex horizontally.  Then each horizontal triplet
  *          of pixels is mapped back to a single rgb pixel, with the
  *          r, g and b values being assigned based on the pixel triplet.
  *          For gray triplets, the r, g, and b values are set equal to
@@ -3524,21 +3524,21 @@ PIXCMAP   *cmap;
  *                     L_SUBPIXEL_ORDER_RGB, L_SUBPIXEL_ORDER_BGR,
  *                     L_SUBPIXEL_ORDER_VRGB, L_SUBPIXEL_ORDER_VBGR)
  *
- *      Return: pixd (32 bpp), or null on error
+ *      Return: pixd (32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) If pixs has a colormap, it is removed to 8 bpp.
  *      (2) For horizontal subpixel splitting, the input gray image
- *          is rescaled by @scaley vertically and by 3.0 times
- *          @scalex horizontally.  Then each horizontal triplet
+ *          is rescaled by %scaley vertically and by 3.0 times
+ *          %scalex horizontally.  Then each horizontal triplet
  *          of pixels is mapped back to a single rgb pixel, with the
  *          r, g and b values being assigned from the triplet of gray values.
  *          Similar operations are used for vertical subpixel splitting.
  *      (3) This is a form of subpixel rendering that tends to give the
  *          resulting text a sharper and somewhat chromatic display.
  *          For horizontal subpixel splitting, the observable difference
- *          between @order=L_SUBPIXEL_ORDER_RGB and
- *          @order=L_SUBPIXEL_ORDER_BGR is reduced by optical diffusers
+ *          between %order=L_SUBPIXEL_ORDER_RGB and
+ *          %order=L_SUBPIXEL_ORDER_BGR is reduced by optical diffusers
  *          in the display that make the pixel color appear to emerge
  *          from the entire pixel.
  */
@@ -3629,7 +3629,7 @@ PIXCMAP   *cmap;
  *                     L_SUBPIXEL_ORDER_RGB, L_SUBPIXEL_ORDER_BGR,
  *                     L_SUBPIXEL_ORDER_VRGB, L_SUBPIXEL_ORDER_VBGR)
  *
- *      Return: pixd (32 bpp), or null on error
+ *      Return: pixd (32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) If pixs has a colormap, it is removed to 32 bpp rgb.
@@ -3638,8 +3638,8 @@ PIXCMAP   *cmap;
  *          more efficiently.  The function pixConvertToSubpixelRGB()
  *          will do the best thing for all cases.
  *      (2) For horizontal subpixel splitting, the input rgb image
- *          is rescaled by @scaley vertically and by 3.0 times
- *          @scalex horizontally.  Then for each horizontal triplet
+ *          is rescaled by %scaley vertically and by 3.0 times
+ *          %scalex horizontally.  Then for each horizontal triplet
  *          of pixels, the r component of the final pixel is selected
  *          from the r component of the appropriate pixel in the triplet,
  *          and likewise for g and b.  Vertical subpixel splitting is

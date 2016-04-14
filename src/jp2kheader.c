@@ -99,7 +99,7 @@ FILE    *fp;
 /*!
  *  freadHeaderJp2k()
  *
- *      Input:  stream opened for read
+ *      Input:  fp (file stream opened for read)
  *              &w (<optional return>)
  *              &h (<optional return>)
  *              &bps (<optional return>, bits/sample)
@@ -214,7 +214,7 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
 /*
  *  fgetJp2kResolution()
  *
- *      Input:  stream (opened for read)
+ *      Input:  fp (file stream opened for read)
  *              &xres, &yres (<return> resolution in ppi)
  *      Return: 0 if found; 1 if not found or on error
  *

@@ -71,7 +71,7 @@ static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
  *              maxcolors (max number of colors allowed in first pass)
  *              selsize (linear size of sel for closing to remove noise)
  *              finalcolors (max number of final colors allowed after 4th pass)
- *      Return: pixd (8 bit with colormap), or null on error
+ *      Return: pixd (8 bit with colormap), or NULL on error
  *
  *  Color segmentation proceeds in four phases:
  *
@@ -176,7 +176,7 @@ PIX       *pixd;
  *      Input:  pixs  (32 bpp; 24-bit color)
  *              maxdist (max euclidean dist to existing cluster)
  *              maxcolors (max number of colors allowed in first pass)
- *      Return: pixd (8 bit with colormap), or null on error
+ *      Return: pixd (8 bit with colormap), or NULL on error
  *
  *  Notes:
  *      (1) This is phase 1.  See description in pixColorSegment().
@@ -252,7 +252,8 @@ PIXCMAP   *cmap;
  *              maxcolors
  *      Return: 0 if OK, 1 on error
  *
- *  Note: This function should only be called from pixColorSegCluster()
+ *  Notes:
+ *      This function should only be called from pixColorSegCluster()
  */
 static l_int32
 pixColorSegmentTryCluster(PIX       *pixd,

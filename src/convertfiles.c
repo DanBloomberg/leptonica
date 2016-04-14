@@ -50,7 +50,7 @@
  *              upscaling (1, 2 or 4; only for input color or grayscale)
  *              thresh  (global threshold for binarization; use 0 for default)
  *              firstpage
- *              npages (use 0 to do all from @firstpage to the end)
+ *              npages (use 0 to do all from %firstpage to the end)
  *              dirout
  *              outformat (IFF_PNG, IFF_TIFF_G4)
  *      Return: 0 if OK, 1 on error

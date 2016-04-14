@@ -90,7 +90,7 @@
  *  kernelCreate()
  *
  *      Input:  height, width
- *      Return: kernel, or null on error
+ *      Return: kernel, or NULL on error
  *
  *  Notes:
  *      (1) kernelCreate() initializes all values to 0.
@@ -119,7 +119,7 @@ L_KERNEL  *kel;
 /*!
  *  kernelDestroy()
  *
- *      Input:  &kel (<to be nulled>)
+ *      Input:  &kel (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -151,7 +151,7 @@ L_KERNEL  *kel;
  *  kernelCopy()
  *
  *      Input:  kels (source kernel)
- *      Return: keld (copy of kels), or null on error
+ *      Return: keld (copy of kels), or NULL on error
  */
 L_KERNEL *
 kernelCopy(L_KERNEL  *kels)
@@ -378,7 +378,7 @@ l_float32  val, minval, maxval;
  *
  *      Input:  kels (source kel, to be normalized)
  *              normsum (desired sum of elements in keld)
- *      Return: keld (normalized version of kels), or null on error
+ *      Return: keld (normalized version of kels), or NULL on error
  *                   or if sum of elements is very close to 0)
  *
  *  Notes:
@@ -424,7 +424,7 @@ L_KERNEL  *keld;
  *  kernelInvert()
  *
  *      Input:  kels (source kel, to be inverted)
- *      Return: keld (spatially inverted, about the origin), or null on error
+ *      Return: keld (spatially inverted, about the origin), or NULL on error
  *
  *  Notes:
  *      (1) For convolution, the kernel is spatially inverted before
@@ -499,7 +499,7 @@ l_float32  **array;
  *  kernelRead()
  *
  *      Input:  filename
- *      Return: kernel, or null on error
+ *      Return: kernel, or NULL on error
  */
 L_KERNEL *
 kernelRead(const char  *fname)
@@ -525,8 +525,8 @@ L_KERNEL  *kel;
 /*!
  *  kernelReadStream()
  *
- *      Input:  stream
- *      Return: kernel, or null on error
+ *      Input:  fp (file stream)
+ *      Return: kernel, or NULL on error
  */
 L_KERNEL *
 kernelReadStream(FILE  *fp)
@@ -596,7 +596,7 @@ FILE  *fp;
 /*!
  *  kernelWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              kel
  *      Return: 0 if OK, 1 on error
  */
@@ -636,7 +636,7 @@ l_int32  sx, sy, cx, cy, i, j;
  *      Input:  height, width
  *              cy, cx   (origin)
  *              kdata
- *      Return: kernel of the given size, or null on error
+ *      Return: kernel of the given size, or NULL on error
  *
  *  Notes:
  *      (1) The data is an array of chars, in row-major order, giving
@@ -704,20 +704,20 @@ NUMA      *na;
  *  kernelCreateFromFile()
  *
  *      Input:  filename
- *      Return: kernel, or null on error
+ *      Return: kernel, or NULL on error
  *
  *  Notes:
  *      (1) The file contains, in the following order:
- *           - Any number of comment lines starting with '#' are ignored
- *           - The height and width of the kernel
- *           - The y and x values of the kernel origin
- *           - The kernel data, formatted as lines of numbers (integers
+ *           ~ Any number of comment lines starting with '#' are ignored
+ *           ~ The height and width of the kernel
+ *           ~ The y and x values of the kernel origin
+ *           ~ The kernel data, formatted as lines of numbers (integers
  *             or floats) for the kernel values in row-major order,
  *             and with no other punctuation.
  *             (Note: this differs from kernelCreateFromString(),
  *             where each line must begin and end with a double-quote
  *             to tell the compiler it's part of a string.)
- *           - The kernel specification ends when a blank line,
+ *           ~ The kernel specification ends when a blank line,
  *             a comment line, or the end of file is reached.
  *      (2) All lines must be left-justified.
  *      (3) See kernelCreateFromString() for a description of the string
@@ -814,7 +814,7 @@ L_KERNEL  *kel;
  *
  *      Input:  pix
  *              cy, cx (origin of kernel)
- *      Return: kernel, or null on error
+ *      Return: kernel, or NULL on error
  *
  *  Notes:
  *      (1) The origin must be positive and within the dimensions of the pix.
@@ -862,7 +862,7 @@ L_KERNEL  *kel;
  *                    of 17 is enforced)
  *              gthick (grid thickness; either 0 or a minimum size of 2
  *                      is enforced)
- *      Return: pix (display of kernel), or null on error
+ *      Return: pix (display of kernel), or NULL on error
  *
  *  Notes:
  *      (1) This gives a visual representation of a kernel.
@@ -985,9 +985,9 @@ PIX       *pixd, *pixt0, *pixt1;
  *
  *      Input:  string (containing numbers; not changed)
  *              seps (string of characters that can be used between ints)
- *      Return: numa (of numbers found), or null on error
+ *      Return: numa (of numbers found), or NULL on error
  *
- *  Note:
+ *  Notes:
  *     (1) The numbers can be ints or floats.
  */
 NUMA *
@@ -1028,12 +1028,12 @@ NUMA      *na;
  *
  *      Input:  height, width
  *              cy, cx (origin of kernel)
- *      Return: kernel, or null on error
+ *      Return: kernel, or NULL on error
  *
  *  Notes:
  *      (1) This is the same low-pass filtering kernel that is used
  *          in the block convolution functions.
- *      (2) The kernel origin (@cy, @cx) is typically placed as near
+ *      (2) The kernel origin (%cy, %cx) is typically placed as near
  *          the center of the kernel as possible.  If height and
  *          width are odd, then using cy = height / 2 and
  *          cx = width / 2 places the origin at the exact center.
@@ -1071,7 +1071,7 @@ L_KERNEL  *kel;
  *      Input:  halfheight, halfwidth (sx = 2 * halfwidth + 1, etc)
  *              stdev (standard deviation)
  *              max (value at (cx,cy))
- *      Return: kernel, or null on error
+ *      Return: kernel, or NULL on error
  *
  *  Notes:
  *      (1) The kernel size (sx, sy) = (2 * halfwidth + 1, 2 * halfheight + 1).
@@ -1159,7 +1159,7 @@ makeGaussianKernelSep(l_int32    halfheight,
  *      Input:  halfheight, halfwidth (sx = 2 * halfwidth + 1, etc)
  *              stdev (standard deviation of narrower gaussian)
  *              ratio (of stdev for wide filter to stdev for narrow one)
- *      Return: kernel, or null on error
+ *      Return: kernel, or NULL on error
  *
  *  Notes:
  *      (1) The DoG (difference of gaussians) is a wavelet mother

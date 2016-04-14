@@ -80,7 +80,7 @@
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The returned fpixa has @nlevels of fpix, each containing
+ *      (1) The returned fpixa has %nlevels of fpix, each containing
  *          the mean values at its level.  Level 0 has a
  *          single value; level 1 has 4 values; level 2 has 16; etc.
  */
@@ -155,7 +155,7 @@ PIX       *pix_mac;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The returned fpixav and fpixarv have @nlevels of fpix,
+ *      (1) The returned fpixav and fpixarv have %nlevels of fpix,
  *          each containing at the respective levels the variance
  *          and root variance values.
  */
@@ -420,10 +420,10 @@ BOX       *boxc;
  *
  *      Input:  w, h (of pix that is being quadtree-ized)
  *              nlevels (in quadtree)
- *      Return: baa (for quadtree regions at each level), or null on error
+ *      Return: baa (for quadtree regions at each level), or NULL on error
  *
  *  Notes:
- *      (1) The returned boxaa has @nlevels of boxa, each containing
+ *      (1) The returned boxaa has %nlevels of boxa, each containing
  *          the set of rectangles at that level.  The rectangle at
  *          level 0 is the entire region; at level 1 the region is
  *          divided into 4 rectangles, and at level n there are n^4
@@ -619,7 +619,7 @@ l_int32  i, minside;
  *      Input:  fpixa (mean, variance or root variance)
  *              factor (replication factor at lowest level)
  *              fontsize (4, ... 20)
- *      Return: pixd (8 bpp, mosaic of quadtree images), or null on error
+ *      Return: pixd (8 bpp, mosaic of quadtree images), or NULL on error
  *
  *  Notes:
  *      (1) The mean and root variance fall naturally in the 8 bpp range,

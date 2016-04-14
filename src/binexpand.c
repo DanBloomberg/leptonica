@@ -58,7 +58,7 @@ static  l_uint32 expandtab16[] = {
  *
  *      Input:  pixs (1 bpp)
  *              factor (integer scale factor for replicative expansion)
- *      Return: pixd (scaled up), or null on error
+ *      Return: pixd (scaled up), or NULL on error
  */
 PIX *
 pixExpandBinaryReplicate(PIX     *pixs,
@@ -120,7 +120,7 @@ PIX       *pixd;
  *
  *      Input:  pixs (1 bpp)
  *              factor (expansion factor: 1, 2, 4, 8, 16)
- *      Return: pixd (expanded 1 bpp by replication), or null on error
+ *      Return: pixd (expanded 1 bpp by replication), or NULL on error
  */
 PIX *
 pixExpandBinaryPower2(PIX     *pixs,

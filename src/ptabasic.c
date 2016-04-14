@@ -103,7 +103,7 @@ static l_int32 ptaaExtendArray(PTAA *ptaa);
  *  ptaCreate()
  *
  *      Input:  n  (initial array sizes)
- *      Return: pta, or null on error.
+ *      Return: pta, or NULL on error.
  */
 PTA *
 ptaCreate(l_int32  n)
@@ -135,7 +135,7 @@ PTA  *pta;
  *
  *      Input:  nax (<optional> can be null)
  *              nay
- *      Return: pta, or null on error.
+ *      Return: pta, or NULL on error.
  */
 PTA *
 ptaCreateFromNuma(NUMA  *nax,
@@ -171,12 +171,12 @@ PTA       *pta;
 /*!
  *  ptaDestroy()
  *
- *      Input:  &pta (<to be nulled>)
+ *      Input:  &pta (<inout> to be nulled)
  *      Return: void
  *
- *  Note:
- *      - Decrements the ref count and, if 0, destroys the pta.
- *      - Always nulls the input ptr.
+ *  Notes:
+ *      (1) Decrements the ref count and, if 0, destroys the pta.
+ *      (2) Always nulls the input ptr.
  */
 void
 ptaDestroy(PTA  **ppta)
@@ -209,7 +209,7 @@ PTA  *pta;
  *  ptaCopy()
  *
  *      Input:  pta
- *      Return: copy of pta, or null on error
+ *      Return: copy of pta, or NULL on error
  */
 PTA *
 ptaCopy(PTA  *pta)
@@ -280,7 +280,7 @@ PTA     *ptad;
  *  ptaClone()
  *
  *      Input:  pta
- *      Return: ptr to same pta, or null on error
+ *      Return: ptr to same pta, or NULL on error
  */
 PTA *
 ptaClone(PTA  *pta)
@@ -301,7 +301,8 @@ ptaClone(PTA  *pta)
  *      Input:  pta
  *      Return: 0 if OK, 1 on error
  *
- *  Note: this only resets the "n" field, for reuse
+ *  Notes:
+ *      This only resets the Pta::n field, for reuse
  */
 l_int32
 ptaEmpty(PTA  *pta)
@@ -641,7 +642,7 @@ NUMA    *nax, *nay;
  *  ptaRead()
  *
  *      Input:  filename
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  */
 PTA *
 ptaRead(const char  *filename)
@@ -669,8 +670,8 @@ PTA   *pta;
 /*!
  *  ptaReadStream()
  *
- *      Input:  stream
- *      Return: pta, or null on error
+ *      Input:  fp (file stream)
+ *      Return: pta, or NULL on error
  */
 PTA *
 ptaReadStream(FILE  *fp)
@@ -749,7 +750,7 @@ FILE  *fp;
 /*!
  *  ptaWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pta
  *              type  (0 for float values; 1 for integer values)
  *      Return: 0 if OK; 1 on error
@@ -796,7 +797,7 @@ l_float32  x, y;
  *  ptaaCreate()
  *
  *      Input:  n  (initial number of ptrs)
- *      Return: ptaa, or null on error
+ *      Return: ptaa, or NULL on error
  */
 PTAA *
 ptaaCreate(l_int32  n)
@@ -823,7 +824,7 @@ PTAA  *ptaa;
 /*!
  *  ptaaDestroy()
  *
- *      Input:  &ptaa <to be nulled>
+ *      Input:  &ptaa (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -951,7 +952,7 @@ ptaaGetCount(PTAA  *ptaa)
  *      Input:  ptaa
  *              index  (to the i-th pta)
  *              accessflag  (L_COPY or L_CLONE)
- *      Return: pta, or null on error
+ *      Return: pta, or NULL on error
  */
 PTA *
 ptaaGetPta(PTAA    *ptaa,
@@ -1163,7 +1164,7 @@ PTA     *pta;
  *  ptaaRead()
  *
  *      Input:  filename
- *      Return: ptaa, or null on error
+ *      Return: ptaa, or NULL on error
  */
 PTAA *
 ptaaRead(const char  *filename)
@@ -1191,8 +1192,8 @@ PTAA  *ptaa;
 /*!
  *  ptaaReadStream()
  *
- *      Input:  stream
- *      Return: ptaa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: ptaa, or NULL on error
  */
 PTAA *
 ptaaReadStream(FILE  *fp)
@@ -1260,7 +1261,7 @@ FILE  *fp;
 /*!
  *  ptaaWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              ptaa
  *              type  (0 for float values; 1 for integer values)
  *      Return: 0 if OK; 1 on error

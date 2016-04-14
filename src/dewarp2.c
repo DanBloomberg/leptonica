@@ -88,7 +88,7 @@ static const l_float32   MIN_RATIO_LINES_TO_HEIGHT = 0.45;
  *  dewarpBuildPageModel()
  *
  *      Input:  dew
- *              debugfile (use null to skip writing this)
+ *              debugfile (use NULL to skip writing this)
  *      Return: 0 if OK, 1 if unable to build the model or on error
  *
  *  Notes:
@@ -265,9 +265,9 @@ PTAA    *ptaa1, *ptaa2;
  *          the sampled vertical disparity map.  This can then be
  *          interpolated to full resolution and used to remove
  *          the vertical line warping.
- *      (2) Use @rotflag == 1 if you are dewarping vertical lines, as
+ *      (2) Use %rotflag == 1 if you are dewarping vertical lines, as
  *          is done in dewarpBuildLineModel().  The usual case is for
- *          @rotflag == 0.
+ *          %rotflag == 0.
  *      (3) Note that this builds a vertical disparity model (VDM), but
  *          does not check it against constraints for validity.
  *          Constraint checking is done after building the models,
@@ -525,6 +525,7 @@ FPIX       *fpix;
  *              ptaa (unsmoothed lines, not vertically ordered)
  *      Return: 0 if OK, 1 if vertical disparity array is no built or on error
  *
+ *  Notes:
  *      (1) This builds a horizontal disparity model (HDM), but
  *          does not check it against constraints for validity.
  *          Constraint checking is done at rendering time.
@@ -914,7 +915,7 @@ PTA       *pta;
  *              fract (minimum fraction of longest line to keep)
  *              debugflag
  *      Return: ptaad (containing only lines of sufficient length),
- *                     or null on error
+ *                     or NULL on error
  */
 PTAA *
 dewarpRemoveShortLines(PIX       *pixs,
@@ -1058,9 +1059,9 @@ PTA       *pta, *ptal, *ptar;
  *      (1) We do the following:
  *         (a) Sort the lines from top to bottom, and divide equally
  *             into Top and Bottom sets.
- *         (b) For each set, select the lines that are at least @minfract
+ *         (b) For each set, select the lines that are at least %minfract
  *             of the length of the longest line in the set.
- *             Typically choose @minfract around 0.95.
+ *             Typically choose %minfract around 0.95.
  *         (c) Accumulate the left and right end points from both
  *             sets into the two returned ptas.
  */
@@ -1290,7 +1291,7 @@ NUMA      *naerr;
  *
  *      Input:  dew
  *              opensize (size of opening to remove perpendicular lines)
- *              debugfile (use null to skip writing this)
+ *              debugfile (use NULL to skip writing this)
  *      Return: 0 if OK, 1 if unable to build the model or on error
  *
  *  Notes:
@@ -1302,9 +1303,9 @@ NUMA      *naerr;
  *      (2) The dew has been initialized with the image of ruled lines.
  *          These lines must be continuous, but we do a small amount
  *          of pre-processing here to insure that.
- *      (3) @opensize is typically about 8.  It must be larger than
+ *      (3) %opensize is typically about 8.  It must be larger than
  *          the thickness of the lines to be extracted.  This is the
- *          default value, which is applied if @opensize < 3.
+ *          default value, which is applied if %opensize < 3.
  *      (4) Sets vsuccess = 1 and hsuccess = 1 if the vertical and/or
  *          horizontal disparity arrays build.
  *      (5) Similar to dewarpBuildPageModel(), except here the vertical

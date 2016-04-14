@@ -212,8 +212,8 @@ static void pixDebugFlipDetect(const char *filename, PIX *pixs,
  *  pixOrientDetect()
  *
  *      Input:  pixs (1 bpp, deskewed, English text, 150 - 300 ppi)
- *              &upconf (<optional return> ; may be null)
- *              &leftconf (<optional return> ; may be null)
+ *              &upconf (<optional return> ; may be NULL)
+ *              &leftconf (<optional return> ; may be NULL)
  *              mincount (min number of up + down; use 0 for default)
  *              debug (1 for debug output; 0 otherwise)
  *      Return: 0 if OK, 1 on error
@@ -418,12 +418,12 @@ pixUpDownDetect(PIX        *pixs,
  *
  *  Notes:
  *      (1) See pixOrientDetect() for other details.
- *      (2) @conf is the normalized difference between the number of
+ *      (2) %conf is the normalized difference between the number of
  *          detected up and down ascenders, assuming that the text
  *          is either rightside-up or upside-down and not rotated
  *          at a 90 degree angle.
- *      (3) The typical mode of operation is @npixels == 0.
- *          If @npixels > 0, this removes HMT matches at the
+ *      (3) The typical mode of operation is %npixels == 0.
+ *          If %npixels > 0, this removes HMT matches at the
  *          beginning and ending of "words."  This is useful for
  *          pages that may have mostly digits, because if npixels == 0,
  *          leading "1" and "3" digits can register as having
@@ -564,8 +564,8 @@ SEL       *sel1, *sel2, *sel3, *sel4;
  *  pixOrientDetectDwa()
  *
  *      Input:  pixs (1 bpp, deskewed, English text)
- *              &upconf (<optional return> ; may be null)
- *              &leftconf (<optional return> ; may be null)
+ *              &upconf (<optional return> ; may be NULL)
+ *              &leftconf (<optional return> ; may be NULL)
  *              mincount (min number of up + down; use 0 for default)
  *              debug (1 for debug output; 0 otherwise)
  *      Return: 0 if OK, 1 on error

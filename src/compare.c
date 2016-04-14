@@ -474,7 +474,7 @@ PIXCMAP   *cmap1, *cmap2;
  *  pixUsesCmapColor()
  *
  *      Input:  pixs
- *              &color (<return>)
+ *              &color (<return> TRUE if color found)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -589,7 +589,7 @@ PIX      *pixn;
  *
  *      Input:  pix1 (1 bpp)
  *              pix2 (1 bpp)
- *      Return: pixd (4 bpp cmapped), or null on error
+ *      Return: pixd (4 bpp cmapped), or NULL on error
  *
  *  Notes:
  *      (1) This gives a color representation of the difference between
@@ -1127,7 +1127,7 @@ PIXACC    *pixacc;
  *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
  *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
  *              factor (subsampling factor; use 0 or 1 for no subsampling)
- *      Return: narank (numa of rank difference), or null on error
+ *      Return: narank (numa of rank difference), or NULL on error
  *
  *  Notes:
  *      (1) This answers the question: if the pixel values in each
@@ -1201,18 +1201,18 @@ NUMA       *nah, *nan, *nad;
  *  Notes:
  *      (1) This takes 2 pix that are the same size and determines using
  *          3 input parameters if they are "similar".  The first parameter
- *          @mindiff establishes a criterion of pixel-to-pixel similarity:
+ *          %mindiff establishes a criterion of pixel-to-pixel similarity:
  *          two pixels are not similar if their difference in value is
- *          at least mindiff.  Then @maxfract and @maxave are thresholds
+ *          at least mindiff.  Then %maxfract and %maxave are thresholds
  *          on the number and distribution of dissimilar pixels
  *          allowed for the two pix to be similar.   If the pix are
  *          to be similar, neither threshold can be exceeded.
- *      (2) In setting the @maxfract and @maxave thresholds, you have
+ *      (2) In setting the %maxfract and %maxave thresholds, you have
  *          these options:
- *            (a) Base the comparison only on @maxfract.  Then set
- *                @maxave = 0.0 or 256.0.  (If 0, we always ignore it.)
- *            (b) Base the comparison only on @maxave.  Then set
- *                @maxfract = 1.0.
+ *            (a) Base the comparison only on %maxfract.  Then set
+ *                %maxave = 0.0 or 256.0.  (If 0, we always ignore it.)
+ *            (b) Base the comparison only on %maxave.  Then set
+ *                %maxfract = 1.0.
  *            (c) Base the comparison on both thresholds.
  *      (3) Example of values that can be expected at mindiff = 15 when
  *          comparing lossless png encoding with jpeg encoding, q=75:
@@ -1280,16 +1280,16 @@ l_float32   fractdiff, avediff;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This takes a threshold @mindiff and describes the difference
+ *      (1) This takes a threshold %mindiff and describes the difference
  *          between two images in terms of two numbers:
- *            (a) the fraction of pixels, @fractdiff, whose difference
- *                equals or exceeds the threshold @mindiff, and
- *            (b) the average value @avediff of the difference in pixel value
+ *            (a) the fraction of pixels, %fractdiff, whose difference
+ *                equals or exceeds the threshold %mindiff, and
+ *            (b) the average value %avediff of the difference in pixel value
  *                for the pixels in the set given by (a), after you subtract
- *                @mindiff.  The reason for subtracting @mindiff is that
+ *                %mindiff.  The reason for subtracting %mindiff is that
  *                you then get a useful measure for the rate of falloff
  *                of the distribution for larger differences.  For example,
- *                if @mindiff = 10 and you find that @avediff = 2.5, it
+ *                if %mindiff = 10 and you find that %avediff = 2.5, it
  *                says that of the pixels with diff > 10, the average of
  *                their diffs is just mindiff + 2.5 = 12.5.  This is a
  *                fast falloff in the histogram with increasing difference.
@@ -1386,7 +1386,7 @@ NUMA       *nah, *nan, *nac;
  *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
  *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
  *              factor (subsampling factor; use 0 or 1 for no subsampling)
- *      Return: na (Numa of histogram of differences), or null on error
+ *      Return: na (Numa of histogram of differences), or NULL on error
  *
  *  Notes:
  *      (1) The two images are aligned at the UL corner, and do not
@@ -1497,14 +1497,14 @@ PIX        *pixt1, *pixt2;
  *
  *  Notes:
  *      (1) This takes 2 pix and determines, using 2 input parameters:
- *           * @dilation specifies the amount of grayscale or color
+ *           * %dilation specifies the amount of grayscale or color
  *             dilation to apply to the images, to compensate for
  *             a small amount of misregistration.  A typical number might
  *             be 5, which uses a 5x5 Sel.  Grayscale dilation expands
  *             lighter pixels into darker pixel regions.
- *           * @mindiff determines the threshold on the difference in
+ *           * %mindiff determines the threshold on the difference in
  *             pixel values to be counted -- two pixels are not similar
- *             if their difference in value is at least @mindiff.  For
+ *             if their difference in value is at least %mindiff.  For
  *             color pixels, we use the maximum component difference.
  *      (2) The pixelwise comparison is always done with the UL corners
  *          aligned.  The sizes of pix1 and pix2 need not be the same,
@@ -1513,7 +1513,7 @@ PIX        *pixt1, *pixt2;
  *          is either gray or RGB depending on the colormap.
  *      (4) Two optional diff images can be retrieved (typ. for debugging):
  *           pixdiff1: the gray or color difference
- *           pixdiff2: thresholded to 1 bpp for pixels exceeding @mindiff
+ *           pixdiff2: thresholded to 1 bpp for pixels exceeding %mindiff
  *      (5) The returned value of fract can be compared to some threshold,
  *          which is application dependent.
  *      (6) This method is in analogy to the two-sided hausdorff transform,
@@ -1598,7 +1598,7 @@ PIX     *pix10, *pix11;
          * for RGB images, the dilations and max selection are done
          * component-wise, and the conversion to grayscale also uses the
          * maximum component.  The resulting grayscale images are
-         * thresholded using @mindiff. */
+         * thresholded using %mindiff. */
     if (d1 == 8) {
         pix5 = pixDilateGray(pix3, dilation, dilation);
         pixCompareGray(pix4, pix5, L_COMPARE_SUBTRACT, 0, NULL, NULL, NULL,
@@ -1784,14 +1784,14 @@ l_float32  mse;  /* mean squared error */
  *          the centroid in the center of the image, and the histograms
  *          are generated.  The final step of comparing each histogram
  *          with all the others is very fast.
- *      (2) An initial filter gives @score = 0 if the ratio of widths
+ *      (2) An initial filter gives %score = 0 if the ratio of widths
  *          and heights (smallest / largest) does not exceed a
- *          threshold @minratio.  If set at 1.0, both images must be
- *          exactly the same size.  A typical value for @minratio is 0.9.
+ *          threshold %minratio.  If set at 1.0, both images must be
+ *          exactly the same size.  A typical value for %minratio is 0.9.
  *      (3) The comparison score between two images is a value in [0.0 .. 1.0].
- *          If the comparison score >= @simthresh, the images are placed in
- *          the same similarity class.  Default value for @simthresh is 0.25.
- *      (4) An array @nai of similarity class indices for pix in the
+ *          If the comparison score >= %simthresh, the images are placed in
+ *          the same similarity class.  Default value for %simthresh is 0.25.
+ *      (4) An array %nai of similarity class indices for pix in the
  *          input pixa is returned.
  *      (5) There are two debugging options:
  *          * An optional 2D matrix of scores is returned as a 1D array.
@@ -1972,11 +1972,11 @@ PIX        *pix;
  *          the entire images are photo regions.  This is done with a
  *          set of (nx * ny) spatially aligned histograms, which are
  *          aligned using the centroid of the inverse image.
- *      (2) An initial filter gives @score = 0 if the ratio of widths
+ *      (2) An initial filter gives %score = 0 if the ratio of widths
  *          and heights (smallest / largest) does not exceed a
- *          threshold @minratio.  This must be between 0.5 and 1.0.
+ *          threshold %minratio.  This must be between 0.5 and 1.0.
  *          If set at 1.0, both images must be exactly the same size.
- *          A typical value for @minratio is 0.9.
+ *          A typical value for %minratio is 0.9.
  *      (3) Because this function should not be used on text or
  *          line graphics, which can give false positive results
  *          (i.e., high scores for different images), filter the images
@@ -2339,14 +2339,14 @@ PIX       *pix1;
  *          white pixels so the centroid of photo-inverted pixels is at
  *          the center of the image.
  *      (2) If the pix is not almost certainly a photoimage, the returned
- *          histograms (@naa) are null.
+ *          histograms (%naa) are null.
  *      (3) If histograms are generated, the white (255) count is set
  *          to 0.  This removes all pixels values above 230, including
  *          white padding from the centroid matching operation, from
  *          consideration.  The resulting histograms are then normalized
  *          so the maximum count is 255.
- *      (4) Default for @thresh is 1.3; this seems sufficiently conservative.
- *      (5) Use @pixadebug == NULL unless debug output is requested.
+ *      (4) Default for %thresh is 1.3; this seems sufficiently conservative.
+ *      (5) Use %pixadebug == NULL unless debug output is requested.
  */
 l_int32
 pixDecideIfPhotoImage(PIX       *pix,
@@ -2464,9 +2464,9 @@ PIXA      *pixa, *pixa2;
  *          using the same tile sizes.
  *      (2) The image dimensions must be similar.  The score is 0.0
  *          if the ratio of widths and heights (smallest / largest)
- *          exceeds a threshold @minratio, which must be between
+ *          exceeds a threshold %minratio, which must be between
  *          0.5 and 1.0.  If set at 1.0, both images must be exactly
- *          the same size.  A typical value for @minratio is 0.9.
+ *          the same size.  A typical value for %minratio is 0.9.
  *      (2) The input pixadebug is null unless debug output is requested.
  */
 l_int32
@@ -2591,23 +2591,23 @@ NUMA      *na1, *na2, *nadist, *nascore;
  *          set of (nx * ny) spatially aligned histograms.  For both
  *          cases, align the regions using the centroid of the inverse
  *          image, and crop to the smallest of the two.
- *      (2) An initial filter gives @score = 0 if the ratio of widths
+ *      (2) An initial filter gives %score = 0 if the ratio of widths
  *          and heights (smallest / largest) does not exceed a
- *          threshold @minratio.  This must be between 0.5 and 1.0.
+ *          threshold %minratio.  This must be between 0.5 and 1.0.
  *          If set at 1.0, both images must be exactly the same size.
- *          A typical value for @minratio is 0.9.
+ *          A typical value for %minratio is 0.9.
  *      (3) The lightest values in the histogram can be disregarded.
- *          Set @maxgray to the lightest value to be kept.  For example,
- *          to eliminate white (255), set @maxgray = 254.  @maxgray must
+ *          Set %maxgray to the lightest value to be kept.  For example,
+ *          to eliminate white (255), set %maxgray = 254.  %maxgray must
  *          be >= 200.
  *      (4) For an efficient representation of the histogram, normalize
  *          using a multiplicative factor so that the number in the
  *          maximum bucket is 255.  It then takes 256 bytes to store.
  *      (5) When comparing the histograms of two regions:
- *          - Use @maxgray = 254 to ignore the white pixels, the number
+ *          ~ Use %maxgray = 254 to ignore the white pixels, the number
  *            of which may be sensitive to the crop region if the pixels
  *            outside that region are white.
- *          - Use the Earth Mover distance (EMD), with the histograms
+ *          ~ Use the Earth Mover distance (EMD), with the histograms
  *            normalized so that the sum over bins is the same.
  *            Further normalize by dividing by 255, so that the result
  *            is in [0.0 ... 1.0].
@@ -3014,7 +3014,7 @@ NUMA      *na1, *na2;
  *              &w (<return> width of the image that generated the histograms)
  *              &h (<return> height of the image)
  *      Return: numaa (representing N histograms, each with 256 bins),
- *                     or null on error.
+ *                     or NULL on error.
  *
  *  Notes:
  *      (1) The first 8 bytes are read as two 32-bit ints.
@@ -3227,12 +3227,12 @@ PIXA      *pixa1, *pixa2, *pixadb;
  *  Notes:
  *      (1) This maximizes the correlation score between two 1 bpp images,
  *          by starting with an estimate of the alignment
- *          (@etransx, @etransy) and computing the correlation around this.
- *          It optionally returns the shift (@delx, @dely) that maximizes
+ *          (%etransx, %etransy) and computing the correlation around this.
+ *          It optionally returns the shift (%delx, %dely) that maximizes
  *          the correlation score when pix2 is shifted by this amount
  *          relative to pix1.
  *      (2) Get the centroids of pix1 and pix2, using pixCentroid(),
- *          to compute (@etransx, @etransy).  Get the areas using
+ *          to compute (%etransx, %etransy).  Get the areas using
  *          pixCountPixels().
  *      (3) The centroid of pix2 is shifted with respect to the centroid
  *          of pix1 by all values between -maxshiftx and maxshiftx,

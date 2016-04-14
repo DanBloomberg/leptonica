@@ -250,7 +250,7 @@ l_int32  i, nfiles, index, firstfile, ret, format;
  *          size in printer points.  Use 0.0 for xpts or ypts to get
  *          the default value, which is 612.0 or 792.0, rsp.
  *      (5) The size of the PostScript file is independent of the resolution,
- *          because the entire file is encoded.  The @xpts and @ypts
+ *          because the entire file is encoded.  The %xpts and %ypts
  *          parameter tells the PS decomposer how to render the page.
  */
 l_int32
@@ -367,9 +367,9 @@ l_int32  ret, i, w, h, nfiles, index, firstfile, format, res;
  *             * if in tiffg4  -->  use ccittg4
  *             * if in jpeg    -->  use dct
  *             * all others    -->  use flate
- *      (3) Before the first call, set @firstpage = 1.  After writing
+ *      (3) Before the first call, set %firstpage = 1.  After writing
  *          the first page, it will be set to 0.
- *      (4) @index is incremented if the page is successfully written.
+ *      (4) %index is incremented if the page is successfully written.
  */
 l_int32
 writeImageCompressedToPSFile(const char  *filein,
@@ -459,16 +459,16 @@ l_int32      format, retval;
  *          compressed as G4 (i.e., tiff g4), and rendered by painting
  *          black through the resulting text mask.
  *      (4) The scaling is typically 2x down for the DCT component
- *          (@imagescale = 0.5) and 2x up for the G4 component
- *          (@textscale = 2.0).
+ *          (%imagescale = 0.5) and 2x up for the G4 component
+ *          (%textscale = 2.0).
  *      (5) The resolution is automatically set to fit to a
  *          letter-size (8.5 x 11 inch) page.
  *      (6) Both the DCT and the G4 encoding are PostScript level 2.
  *      (7) It is assumed that the page number is contained within
  *          the basename (the filename without directory or extension).
- *          @page_numpre is the number of characters in the page basename
- *          preceding the actual page number; @mask_numpre is likewise for
- *          the mask basename; @numpost is the number of characters
+ *          %page_numpre is the number of characters in the page basename
+ *          preceding the actual page number; %mask_numpre is likewise for
+ *          the mask basename; %numpost is the number of characters
  *          following the page number.  For example, for mask name
  *          mask_006.tif, mask_numpre = 5 ("mask_).
  *      (8) To render a page as is -- that is, with no thresholding
@@ -552,7 +552,7 @@ SARRAY  *sapage, *samask;
  *
  *  Notes:
  *      (1) This generates the PS string for a mixed text/image page,
- *          and adds it to an existing file if @pageno > 1.
+ *          and adds it to an existing file if %pageno > 1.
  *          The PS output is determined by fitting the result to
  *          a letter-size (8.5 x 11 inch) page.
  *      (2) The two images (pixs and pixm) are at the same resolution
@@ -561,16 +561,16 @@ SARRAY  *sapage, *samask;
  *          PS file.
  *      (3) pixb is the text component.  In the PostScript world, we think of
  *          it as a mask through which we paint black.  It is produced by
- *          scaling pixs by @textscale, and thresholding to 1 bpp.
+ *          scaling pixs by %textscale, and thresholding to 1 bpp.
  *      (4) pixc is the image component, which is that part of pixs under
- *          the mask pixm.  It is scaled from pixs by @imagescale.
+ *          the mask pixm.  It is scaled from pixs by %imagescale.
  *      (5) Typical values are textscale = 2.0 and imagescale = 0.5.
  *      (6) If pixm == NULL, the page has only text.  If it is all black,
  *          the page is all image and has no text.
  *      (7) This can be used to write a multi-page PS file, by using
  *          sequential page numbers with the same output file.  It can
  *          also be used to write separate PS files for each page,
- *          by using different output files with @pageno = 0 or 1.
+ *          by using different output files with %pageno = 0 or 1.
  */
 l_int32
 pixWriteSegmentedPageToPS(PIX         *pixs,
@@ -700,7 +700,7 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
  *  Notes:
  *      (1) This low level function generates the PS string for a mixed
  *          text/image page, and adds it to an existing file if
- *          @pageno > 1.
+ *          %pageno > 1.
  *      (2) The two images (pixb and pixc) are typically generated at the
  *          resolution that they will be rendered in the PS file.
  *      (3) pixb is the text component.  In the PostScript world, we think of
@@ -709,10 +709,10 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
  *          white in the rest of the page.  To minimize the size of the
  *          PS file, it should be rendered at a resolution that is at
  *          least equal to its actual resolution.
- *      (5) @scale gives the ratio of resolution of pixb to pixc.
+ *      (5) %scale gives the ratio of resolution of pixb to pixc.
  *          Typical resolutions are: 600 ppi for pixb, 150 ppi for pixc;
- *          so @scale = 4.0.  If one of the images is not defined,
- *          the value of @scale is ignored.
+ *          so %scale = 4.0.  If one of the images is not defined,
+ *          the value of %scale is ignored.
  *      (6) We write pixc with DCT compression (jpeg).  This is followed
  *          by painting the text as black through the mask pixb.  If
  *          pixc doesn't exist (alltext), we write the text with the
@@ -792,9 +792,9 @@ l_int32      resb, resc, endpage, maskop, ret;
  *      (1) This is a wrapper function that generates a PS file with
  *          a bounding box, from any input image file.
  *      (2) Do the best job of compression given the specified level.
- *          @level=3 does flate compression on anything that is not
+ *          %level=3 does flate compression on anything that is not
  *          tiffg4 (1 bpp) or jpeg (8 bpp or rgb).
- *      (3) If @level=2 and the file is not tiffg4 or jpeg, it will
+ *      (3) If %level=2 and the file is not tiffg4 or jpeg, it will
  *          first be written to file as jpeg with quality = 75.
  *          This will remove the colormap and cause some degradation
  *          in the image.

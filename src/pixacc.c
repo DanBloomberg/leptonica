@@ -72,10 +72,10 @@
  *      Input:  w, h (of 32 bpp internal Pix)
  *              negflag (0 if only positive numbers are involved;
  *                       1 if there will be negative numbers)
- *      Return: pixacc, or null on error
+ *      Return: pixacc, or NULL on error
  *
  *  Notes:
- *      (1) Use @negflag = 1 for safety if any negative numbers are going
+ *      (1) Use %negflag = 1 for safety if any negative numbers are going
  *          to be used in the chain of operations.  Negative numbers
  *          arise, e.g., by subtracting a pix, or by adding a pix
  *          that has been pre-multiplied by a negative number.
@@ -114,7 +114,7 @@ PIXACC  *pixacc;
  *      Input:  pix
  *              negflag (0 if only positive numbers are involved;
  *                       1 if there will be negative numbers)
- *      Return: pixacc, or null on error
+ *      Return: pixacc, or NULL on error
  *
  *  Notes:
  *      (1) See pixaccCreate()
@@ -177,7 +177,7 @@ PIXACC  *pixacc;
  *
  *      Input:  pixacc
  *              outdepth (8, 16 or 32 bpp)
- *      Return: pixd (8 , 16 or 32 bpp), or null on error
+ *      Return: pixd (8 , 16 or 32 bpp), or NULL on error
  */
 PIX *
 pixaccFinal(PIXACC  *pixacc,
@@ -200,7 +200,7 @@ pixaccFinal(PIXACC  *pixacc,
  *  pixaccGetPix()
  *
  *      Input:  pixacc
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  */
 PIX *
 pixaccGetPix(PIXACC  *pixacc)
@@ -307,8 +307,8 @@ pixaccMultConst(PIXACC    *pixacc,
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This creates a temp pix that is @pix multiplied by the
- *          constant @factor.  It then adds that into @pixacc.
+ *      (1) This creates a temp pix that is %pix multiplied by the
+ *          constant %factor.  It then adds that into %pixacc.
  */
 l_int32
 pixaccMultConstAccumulate(PIXACC    *pixacc,

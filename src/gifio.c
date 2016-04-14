@@ -46,10 +46,10 @@
  *    (1) This uses the gif library, version 4.1.6 or later.
  *        Do not use 4.1.4.  It has serious problems handling 1 bpp images.
  *    (2) There are some issues with version 5.0:
- *        - valgrind detects uninitialized values used used for writing
+ *        ~ valgrind detects uninitialized values used used for writing
  *          and conditionally jumping in EGifPutScreenDesc().  This has
  *          not been fixed as of 1/20/2016.
- *        - DGifSlurp() crashes on some images, apparently triggered by
+ *        ~ DGifSlurp() crashes on some images, apparently triggered by
  *          by some GIF extension records.  This has been fixed as of 5.1.
  *    (3) E. Raymond has changed the high-level interface with 5.0
  *        and again with 5.1, and to keep up we have used macros
@@ -110,8 +110,8 @@ static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
 /*!
  *  pixReadStreamGif()
  *
- *      Input:  stream
- *      Return: pix, or null on error
+ *      Input:  fp (file stream)
+ *      Return: pix, or NULL on error
  */
 PIX *
 pixReadStreamGif(FILE  *fp)
@@ -286,7 +286,7 @@ PIX       *pixd;
 /*!
  *  pixWriteStreamGif()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pix (1, 2, 4, 8, 16 or 32 bpp)
  *      Return: 0 if OK, 1 on error
  *
@@ -485,7 +485,7 @@ int              giferr;
  *
  *      Input:  data (const; gif-encoded)
  *              size (of data)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) Of course, we are cheating here -- writing the data to file

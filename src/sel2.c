@@ -62,14 +62,14 @@ static const l_int32  basic_linear[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
  *  selaAddBasic()
  *
  *      Input:  sela (<optional>)
- *      Return: sela with additional sels, or null on error
+ *      Return: sela with additional sels, or NULL on error
  *
  *  Notes:
  *      (1) Adds the following sels:
- *            - all linear (horiz, vert) brick sels that are
+ *            ~ all linear (horiz, vert) brick sels that are
  *              necessary for decomposable sels up to size 63
- *            - square brick sels up to size 10
- *            - 4 diagonal sels
+ *            ~ square brick sels up to size 10
+ *            ~ 4 diagonal sels
  */
 SELA *
 selaAddBasic(SELA  *sela)
@@ -157,7 +157,7 @@ SEL     *sel;
  *  selaAddHitMiss()
  *
  *      Input:  sela  (<optional>)
- *      Return: sela with additional sels, or null on error
+ *      Return: sela with additional sels, or NULL on error
  */
 SELA *
 selaAddHitMiss(SELA  *sela)
@@ -285,7 +285,7 @@ SEL  *sel;
  *  selaAddDwaLinear()
  *
  *      Input:  sela (<optional>)
- *      Return: sela with additional sels, or null on error
+ *      Return: sela with additional sels, or NULL on error
  *
  *  Notes:
  *      (1) Adds all linear (horizontal, vertical) sels from
@@ -324,7 +324,7 @@ SEL     *sel;
  *  selaAddDwaCombs()
  *
  *      Input:  sela (<optional>)
- *      Return: sela with additional sels, or null on error
+ *      Return: sela with additional sels, or NULL on error
  *
  *  Notes:
  *      (1) Adds all comb (horizontal, vertical) Sels that are
@@ -373,20 +373,20 @@ SEL     *selh, *selv;
  *              mdist (distance of misses from the origin)
  *              norient (number of orientations; max of 8)
  *              debugflag (1 for debug output)
- *      Return: sela with additional sels, or null on error
+ *      Return: sela with additional sels, or NULL on error
  *
  *  Notes:
  *      (1) Adds hitmiss Sels for the intersection of two lines.
  *          If the lines are very thin, they must be nearly orthogonal
  *          to register.
- *      (2) The number of Sels generated is equal to @norient.
- *      (3) If @norient == 2, this generates 2 Sels of crosses, each with
+ *      (2) The number of Sels generated is equal to %norient.
+ *      (3) If %norient == 2, this generates 2 Sels of crosses, each with
  *          two perpendicular lines of hits.  One Sel has horizontal and
  *          vertical hits; the other has hits along lines at +-45 degrees.
- *          Likewise, if @norient == 3, this generates 3 Sels of crosses
+ *          Likewise, if %norient == 3, this generates 3 Sels of crosses
  *          oriented at 30 degrees with each other.
- *      (4) It is suggested that @hlsize be chosen at least 1 greater
- *          than @mdist.  Try values of (@hlsize, @mdist) such as
+ *      (4) It is suggested that %hlsize be chosen at least 1 greater
+ *          than %mdist.  Try values of (%hlsize, %mdist) such as
  *          (6,5), (7,6), (8,7), (9,7), etc.
  */
 SELA *
@@ -500,15 +500,15 @@ SEL       *sel;
  *              mdist (distance of misses from the origin)
  *              norient (number of orientations; max of 8)
  *              debugflag (1 for debug output)
- *      Return: sela with additional sels, or null on error
+ *      Return: sela with additional sels, or NULL on error
  *
  *  Notes:
  *      (1) Adds hitmiss Sels for the T-junction of two lines.
  *          If the lines are very thin, they must be nearly orthogonal
  *          to register.
- *      (2) The number of Sels generated is 4 * @norient.
- *      (3) It is suggested that @hlsize be chosen at least 1 greater
- *          than @mdist.  Try values of (@hlsize, @mdist) such as
+ *      (2) The number of Sels generated is 4 * %norient.
+ *      (3) It is suggested that %hlsize be chosen at least 1 greater
+ *          than %mdist.  Try values of (%hlsize, %mdist) such as
  *          (6,5), (7,6), (8,7), (9,7), etc.
  */
 SELA *

@@ -28,14 +28,14 @@
  *  fpix2.c
  *
  *    This file has these FPix utilities:
- *       - interconversions with pix, fpix, dpix
- *       - min and max values
- *       - integer scaling
- *       - arithmetic operations
- *       - set all
- *       - border functions
- *       - simple rasterop (source --> dest)
- *       - geometric transforms
+ *       ~ interconversions with pix, fpix, dpix
+ *       ~ min and max values
+ *       ~ integer scaling
+ *       ~ arithmetic operations
+ *       ~ set all
+ *       ~ border functions
+ *       ~ simple rasterop (source --> dest)
+ *       ~ geometric transforms
  *
  *    Interconversions between Pix, FPix and DPix
  *          FPIX          *pixConvertToFPix()
@@ -106,13 +106,13 @@
 /*!
  *  pixConvertToFPix()
  *
- *      Input:  pix (1, 2, 4, 8, 16 or 32 bpp)
+ *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              ncomps (number of components: 3 for RGB, 1 otherwise)
- *      Return: fpix, or null on error
+ *      Return: fpix, or NULL on error
  *
  *  Notes:
  *      (1) If colormapped, remove to grayscale.
- *      (2) If 32 bpp and @ncomps == 3, this is RGB; convert to luminance.
+ *      (2) If 32 bpp and %ncomps == 3, this is RGB; convert to luminance.
  *          In all other cases the src image is treated as having a single
  *          component of pixel values.
  */
@@ -195,13 +195,13 @@ FPIX       *fpixd;
 /*!
  *  pixConvertToDPix()
  *
- *      Input:  pix (1, 2, 4, 8, 16 or 32 bpp)
+ *      Input:  pixs (1, 2, 4, 8, 16 or 32 bpp)
  *              ncomps (number of components: 3 for RGB, 1 otherwise)
- *      Return: dpix, or null on error
+ *      Return: dpix, or NULL on error
  *
  *  Notes:
  *      (1) If colormapped, remove to grayscale.
- *      (2) If 32 bpp and @ncomps == 3, this is RGB; convert to luminance.
+ *      (2) If 32 bpp and %ncomps == 3, this is RGB; convert to luminance.
  *          In all other cases the src image is treated as having a single
  *          component of pixel values.
  */
@@ -288,10 +288,10 @@ DPIX       *dpixd;
  *              outdepth (0, 8, 16 or 32 bpp)
  *              negvals (L_CLIP_TO_ZERO, L_TAKE_ABSVAL)
  *              errorflag (1 to output error stats; 0 otherwise)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
- *      (1) Use @outdepth = 0 to programmatically determine the
+ *      (1) Use %outdepth = 0 to programmatically determine the
  *          output depth.  If no values are greater than 255,
  *          it will set outdepth = 8; otherwise to 16 or 32.
  *      (2) Because we are converting a float to an unsigned int
@@ -343,7 +343,7 @@ PIX        *pixd;
     }
     maxval = (1 << outdepth) - 1;
 
-        /* Gather statistics if @errorflag = TRUE */
+        /* Gather statistics if %errorflag = TRUE */
     if (errorflag) {
         l_int32  negs = 0;
         l_int32  overvals = 0;
@@ -399,7 +399,7 @@ PIX        *pixd;
  *  fpixDisplayMaxDynamicRange()
  *
  *      Input:  fpixs
- *      Return: pixd (8 bpp), or null on error
+ *      Return: pixd (8 bpp), or NULL on error
  */
 PIX *
 fpixDisplayMaxDynamicRange(FPIX  *fpixs)
@@ -456,7 +456,7 @@ PIX        *pixd;
  *  fpixConvertToDPix()
  *
  *      Input:  fpix
- *      Return: dpix, or null on error
+ *      Return: dpix, or NULL on error
  */
 DPIX *
 fpixConvertToDPix(FPIX  *fpix)
@@ -500,10 +500,10 @@ DPIX       *dpix;
  *              outdepth (0, 8, 16 or 32 bpp)
  *              negvals (L_CLIP_TO_ZERO, L_TAKE_ABSVAL)
  *              errorflag (1 to output error stats; 0 otherwise)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
- *      (1) Use @outdepth = 0 to programmatically determine the
+ *      (1) Use %outdepth = 0 to programmatically determine the
  *          output depth.  If no values are greater than 255,
  *          it will set outdepth = 8; otherwise to 16 or 32.
  *      (2) Because we are converting a float to an unsigned int
@@ -555,7 +555,7 @@ PIX        *pixd;
     }
     maxval = (1 << outdepth) - 1;
 
-        /* Gather statistics if @errorflag = TRUE */
+        /* Gather statistics if %errorflag = TRUE */
     if (errorflag) {
         l_int32  negs = 0;
         l_int32  overvals = 0;
@@ -612,7 +612,7 @@ PIX        *pixd;
  *  dpixConvertToFPix()
  *
  *      Input:  dpix
- *      Return: fpix, or null on error
+ *      Return: fpix, or NULL on error
  */
 FPIX *
 dpixConvertToFPix(DPIX  *dpix)
@@ -873,7 +873,7 @@ l_float64   maxval;
  *
  *      Input:  fpixs (low resolution, subsampled)
  *              factor (scaling factor)
- *      Return: fpixd (interpolated result), or null on error
+ *      Return: fpixd (interpolated result), or NULL on error
  *
  *  Notes:
  *      (1) The width wd of fpixd is related to ws of fpixs by:
@@ -882,7 +882,7 @@ l_float64   maxval;
  *          by constructing fpixd by inserting (factor - 1) interpolated
  *          pixels between each pixel in fpixs.  Then
  *               wd = ws + (ws - 1) * (factor - 1)    (same as above)
- *          This also has the advantage that if we subsample by @factor,
+ *          This also has the advantage that if we subsample by %factor,
  *          throwing out all the interpolated pixels, we regain the
  *          original low resolution fpix.
  */
@@ -963,7 +963,7 @@ FPIX       *fpixd;
  *
  *      Input:  dpixs (low resolution, subsampled)
  *              factor (scaling factor)
- *      Return: dpixd (interpolated result), or null on error
+ *      Return: dpixd (interpolated result), or NULL on error
  *
  *  Notes:
  *      (1) The width wd of dpixd is related to ws of dpixs by:
@@ -972,7 +972,7 @@ FPIX       *fpixd;
  *          by constructing fpixd by inserting (factor - 1) interpolated
  *          pixels between each pixel in fpixs.  Then
  *               wd = ws + (ws - 1) * (factor - 1)    (same as above)
- *          This also has the advantage that if we subsample by @factor,
+ *          This also has the advantage that if we subsample by %factor,
  *          throwing out all the interpolated pixels, we regain the
  *          original low resolution dpix.
  */
@@ -1287,7 +1287,7 @@ l_float64  *line, *data;
  *  fpixSetAllArbitrary()
  *
  *      Input:  fpix
- *              val (to set at each pixel)
+ *              inval (to set at each pixel)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1318,7 +1318,7 @@ l_float32  *data, *line;
  *  dpixSetAllArbitrary()
  *
  *      Input:  dpix
- *              val (to set at each pixel)
+ *              inval (to set at each pixel)
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1353,7 +1353,7 @@ l_float64  *data, *line;
  *
  *      Input:  fpixs
  *              left, right, top, bot (pixels on each side to be added)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) Adds border of '0' 32-bit pixels
@@ -1392,7 +1392,7 @@ FPIX    *fpixd;
  *
  *      Input:  fpixs
  *              left, right, top, bot (pixels on each side to be removed)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  */
 FPIX *
 fpixRemoveBorder(FPIX    *fpixs,
@@ -1431,7 +1431,7 @@ FPIX    *fpixd;
  *
  *      Input:  fpixs
  *              left, right, top, bot (pixels on each side to be added)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) See pixAddMirroredBorder() for situations of usage.
@@ -1475,7 +1475,7 @@ FPIX    *fpixd;
  *
  *      Input:  fpixs
  *              left, right, top, bot (pixels on each side to be added)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) This adds pixels on each side whose values are equal to
@@ -1517,7 +1517,7 @@ FPIX    *fpixd;
  *
  *      Input:  fpixs
  *              left, right, top, bot (pixels on each side to be added)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) This adds pixels on each side whose values have a normal
@@ -1709,7 +1709,7 @@ l_float32  *datas, *datad, *lines, *lined;
  *
  *      Input:  fpixs
  *              quads (0-3; number of 90 degree cw rotations)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  */
 FPIX *
 fpixRotateOrth(FPIX     *fpixs,
@@ -1739,7 +1739,7 @@ fpixRotateOrth(FPIX     *fpixs,
  *      Input:  fpixd  (<optional>; can be null, equal to fpixs,
  *                      or different from fpixs)
  *              fpixs
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a 180 rotation of the image about the center,
@@ -1779,7 +1779,7 @@ fpixRotate180(FPIX  *fpixd,
  *
  *      Input:  fpixs
  *              direction (1 = clockwise,  -1 = counter-clockwise)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a 90 degree rotation of the image about the center,
@@ -1840,7 +1840,7 @@ FPIX       *fpixd;
  *      Input:  fpixd (<optional>; can be null, equal to fpixs,
  *                     or different from fpixs)
  *              fpixs
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a left-right flip of the image, which is
@@ -1897,7 +1897,7 @@ l_float32  *line, *data, *buffer;
  *      Input:  fpixd (<optional>; can be null, equal to fpixs,
  *                     or different from fpixs)
  *              fpixs
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) This does a top-bottom flip of the image, which is
@@ -1960,17 +1960,17 @@ l_float32  *linet, *lineb, *data, *buffer;
  *              ptas  (4 pts of initial coordinate space)
  *              border (size of extension with constant normal derivative)
  *              inval (value brought in; typ. 0)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
- *      (1) If @border > 0, all four sides are extended by that distance,
+ *      (1) If %border > 0, all four sides are extended by that distance,
  *          and removed after the transformation is finished.  Pixels
  *          that would be brought in to the trimmed result from outside
- *          the extended region are assigned @inval.  The purpose of
+ *          the extended region are assigned %inval.  The purpose of
  *          extending the image is to avoid such assignments.
  *      (2) On the other hand, you may want to give all pixels that
  *          are brought in from outside fpixs a specific value.  In that
- *          case, set @border == 0.
+ *          case, set %border == 0.
  */
 FPIX *
 fpixAffinePta(FPIX      *fpixs,
@@ -2027,7 +2027,7 @@ FPIX       *fpixs2, *fpixd, *fpixd2;
  *      Input:  fpixs (8 bpp)
  *              vc  (vector of 8 coefficients for projective transformation)
  *              inval (value brought in; typ. 0)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  */
 FPIX *
 fpixAffine(FPIX       *fpixs,
@@ -2077,17 +2077,17 @@ FPIX       *fpixd;
  *              ptas  (4 pts of initial coordinate space)
  *              border (size of extension with constant normal derivative)
  *              inval (value brought in; typ. 0)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
- *      (1) If @border > 0, all four sides are extended by that distance,
+ *      (1) If %border > 0, all four sides are extended by that distance,
  *          and removed after the transformation is finished.  Pixels
  *          that would be brought in to the trimmed result from outside
- *          the extended region are assigned @inval.  The purpose of
+ *          the extended region are assigned %inval.  The purpose of
  *          extending the image is to avoid such assignments.
  *      (2) On the other hand, you may want to give all pixels that
  *          are brought in from outside fpixs a specific value.  In that
- *          case, set @border == 0.
+ *          case, set %border == 0.
  */
 FPIX *
 fpixProjectivePta(FPIX      *fpixs,
@@ -2144,7 +2144,7 @@ FPIX       *fpixs2, *fpixd, *fpixd2;
  *      Input:  fpixs (8 bpp)
  *              vc  (vector of 8 coefficients for projective transformation)
  *              inval (value brought in; typ. 0)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  */
 FPIX *
 fpixProjective(FPIX       *fpixs,
@@ -2190,7 +2190,6 @@ FPIX       *fpixd;
  *  linearInterpolatePixelFloat()
  *
  *      Input:  datas (ptr to beginning of float image data)
- *              wpls (32-bit word/line for this data array)
  *              w, h (of image)
  *              x, y (floating pt location for evaluation)
  *              inval (float value brought in from the outside when the
@@ -2259,7 +2258,7 @@ l_float32  *lines;
  *
  *      Input:  fpix
  *              thresh
- *      Return: pixd (1 bpp), or null on error
+ *      Return: pixd (1 bpp), or NULL on error
  *
  *  Notes:
  *      (1) For all values of fpix that are <= thresh, sets the pixel
@@ -2307,11 +2306,11 @@ PIX        *pixd;
  *      Input:  pix (32 bpp rgb)
  *              rnum, gnum, bnum (coefficients for numerator)
  *              rdenom, gdenom, bdenom (coefficients for denominator)
- *      Return: fpixd, or null on error
+ *      Return: fpixd, or NULL on error
  *
  *  Notes:
  *      (1) This stores a function of the component values of each
- *          input pixel in @fpixd.
+ *          input pixel in %fpixd.
  *      (2) The function is a ratio of linear combinations of component values.
  *          There are two special cases for denominator coefficients:
  *          (a) The denominator is 1.0: input 0 for all denominator coefficients

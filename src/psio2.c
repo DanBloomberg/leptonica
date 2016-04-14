@@ -180,7 +180,7 @@ PIX       *pix;
 /*!
  *  pixWriteStreamPS()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pix
  *              box  (<optional>)
  *              res  (can use 0 for default of 300 ppi)
@@ -249,7 +249,7 @@ PIX     *pixc;
  *                     interpreter at rendering time.  This is important:
  *                     it allows you to scale the image up without
  *                     increasing the file size.
- *      Return: ps string if OK, or null on error
+ *      Return: ps string if OK, or NULL on error
  *
  *  Notes:
  *      (1) OK, this seems a bit complicated, because there are various
@@ -273,9 +273,9 @@ PIX     *pixc;
  *      (5) Another complication is the proliferation of distance units:
  *           * The interface distances are in milli-inches.
  *           * Three different units are used internally:
- *              - pixels  (units of 1/res inch)
- *              - printer pts (units of 1/72 inch)
- *              - inches
+ *              ~ pixels  (units of 1/res inch)
+ *              ~ printer pts (units of 1/72 inch)
+ *              ~ inches
  *           * Here is a quiz on volume units from a reviewer:
  *             How many UK milli-cups in a US kilo-teaspoon?
  *               (Hint: 1.0 US cup = 0.75 UK cup + 0.2 US gill;
@@ -384,7 +384,7 @@ PIX       *pix;
  *                    of the page)
  *              wpt, hpt (rendered image size in pts)
  *              boxflag (1 to print out bounding box hint; 0 to skip)
- *      Return: PS string, or null on error
+ *      Return: PS string, or NULL on error
  *
  *  Notes:
  *      (1) Low-level function.
@@ -816,7 +816,7 @@ L_COMP_DATA  *cid;
         return ERROR_INT("jpeg data not made", procName, 1);
 
         /* Get scaled location in pts.  Guess the input scan resolution
-         * based on the input parameter @res, the resolution data in
+         * based on the input parameter %res, the resolution data in
          * the pix, and the size of the image. */
     if (scale == 0.0)
         scale = 1.0;
@@ -874,7 +874,7 @@ L_COMP_DATA  *cid;
  *                      if there is only one page.)
  *              endpage (boolean: use TRUE if this is the last image to be
  *                       added to the page; FALSE otherwise)
- *      Return: PS string, or null on error
+ *      Return: PS string, or NULL on error
  *
  *  Notes:
  *      (1) Low-level function.
@@ -1200,7 +1200,7 @@ L_COMP_DATA  *cid;
         return ERROR_INT("g4 data not made", procName, 1);
 
         /* Get scaled location in pts.  Guess the input scan resolution
-         * based on the input parameter @res, the resolution data in
+         * based on the input parameter %res, the resolution data in
          * the pix, and the size of the image. */
     if (scale == 0.0)
         scale = 1.0;
@@ -1258,7 +1258,7 @@ L_COMP_DATA  *cid;
  *                      if there is only one page.)
  *              endpage (boolean: use TRUE if this is the last image to be
  *                       added to the page; FALSE otherwise)
- *      Return: PS string, or null on error
+ *      Return: PS string, or NULL on error
  *
  *  Notes:
  *      (1) Low-level function.
@@ -1684,7 +1684,7 @@ L_COMP_DATA  *cid;
         return ERROR_INT("flate data not made", procName, 1);
 
         /* Get scaled location in pts.  Guess the input scan resolution
-         * based on the input parameter @res, the resolution data in
+         * based on the input parameter %res, the resolution data in
          * the pix, and the size of the image. */
     if (scale == 0.0)
         scale = 1.0;
@@ -1736,7 +1736,7 @@ L_COMP_DATA  *cid;
  *                      if there is only one page)
  *              endpage (boolean: use TRUE if this is the last image to be
  *                       added to the page; FALSE otherwise)
- *      Return: PS string, or null on error
+ *      Return: PS string, or NULL on error
  */
 char *
 generateFlatePS(const char   *filein,

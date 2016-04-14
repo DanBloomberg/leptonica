@@ -249,7 +249,7 @@ PIX     *pixtb;    /* textblock mask */
  *              &pixtext (<optional return> text part of pixs)
  *              &htfound (<optional return> 1 if the mask is not empty)
  *              debug (flag: 1 for debug output)
- *      Return: pixd (halftone mask), or null on error
+ *      Return: pixd (halftone mask), or NULL on error
  *
  *  Notes:
  *      (1) This is not intended to work on small thumbnails.  The
@@ -327,7 +327,7 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
  *              &pixvws (<return> vertical whitespace mask)
  *              &tlfound (<optional return> 1 if the mask is not empty)
  *              debug (flag: 1 for debug output)
- *      Return: pixd (textline mask), or null on error
+ *      Return: pixd (textline mask), or NULL on error
  *
  *  Notes:
  *      (1) The input pixs should be deskewed.
@@ -414,7 +414,7 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
  *      Input:  pixs (1 bpp, textline mask, assumed to be 150 to 200 ppi)
  *              pixvws (vertical white space mask)
  *              debug (flag: 1 for debug output)
- *      Return: pixd (textblock mask), or null on error
+ *      Return: pixd (textblock mask), or NULL on error
  *
  *  Notes:
  *      (1) Both the input masks (textline and vertical white space) and
@@ -498,12 +498,12 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *                      result are placed when called repeatedly; use
  *                      null if no output requested)
  *      Return: box (region including foreground, with some pixel noise
- *                   removed), or null if not found
+ *                   removed), or NULL if not found
  *
  *  Notes:
  *      (1) This doesn't simply crop to the fg.  It attempts to remove
  *          pixel noise and junk at the edge of the image before cropping.
- *          The input @threshold is used if pixs is not 1 bpp.
+ *          The input %threshold is used if pixs is not 1 bpp.
  *      (2) There are several debugging options, determined by the
  *          last 4 arguments.
  *      (3) This is not intended to work on small thumbnails.  The
@@ -747,7 +747,7 @@ PIXA   *pixa1, *pixadb;
  *              mindel (minimum required difference between profile minimum
  *                      and profile values +2 and -2 away; typ. 7)
  *              &pixdebug (<optional return> debug image of splitting)
- *      Return: boxa (of c.c. after splitting), or null on error
+ *      Return: boxa (of c.c. after splitting), or NULL on error
  *
  *  Notes:
  *      (1) This will split the most obvious cases of touching characters.
@@ -874,18 +874,18 @@ PIX      *pix1, *pixdb;
  *              minw, minh (final filtering: remove extracted 'lines'
  *                          with sizes smaller than minw or minh)
  *      Return: pixa (of textline images, including bounding boxes), or
- *                    null on error
+ *                    NULL on error
  *
  *  Notes:
  *      (1) This first removes components from pixs that are either
- *          wide (> @maxw) or tall (> @maxh).
+ *          wide (> %maxw) or tall (> %maxh).
  *      (2) This function assumes that textlines have sufficient
  *          vertical separation and small enough skew so that a
  *          horizontal dilation sufficient to join words will not join
  *          textlines.  Images with multiple columns of text may have
  *          the textlines join across the space between columns.
  *      (3) A final filtering operation removes small components, such
- *          that width < @minw or height < @minh.
+ *          that width < %minw or height < %minh.
  *      (4) For reasonable accuracy, the resolution of pixs should be
  *          at least 100 ppi.  For reasonable efficiency, the resolution
  *          should not exceed 600 ppi.
@@ -997,7 +997,7 @@ PIXA    *pixa1, *pixa2, *pixa3, *pixad;
  *              box (<optional> if null, use entire pixs)
  *              &istext (<return> 1 if text; 0 if photo; -1 if not determined)
  *              pixadb (<optional> pre-allocated, for showing intermediate
- *                      computation; use null to skip)
+ *                      computation; use NULL to skip)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -1008,8 +1008,8 @@ PIXA    *pixa1, *pixa2, *pixa3, *pixad;
  *      (3) Text is assumed to be in horizontal lines.
  *      (4) Because thin vertical lines are removed before filtering for
  *          text lines, this should identify tables as text.
- *      (5) If @box is null and pixs contains both text lines and line art,
- *          this function might return @istext == true.
+ *      (5) If %box is null and pixs contains both text lines and line art,
+ *          this function might return %istext == true.
  *      (6) If the input pixs is empty, or for some other reason the
  *          result can not be determined, return -1.
  *      (7) For debug output, input a pre-allocated pixa.
@@ -1466,7 +1466,7 @@ PIX       *pix1, *pix2, *pixm;
         /* We will use no more than 50K samples */
     sampling = L_MAX(1, (l_int32)sqrt((l_float64)(w * h) / 50000. + 0.5));
 
-        /* Optionally make a mask over all pixels lighter than @darkthresh */
+        /* Optionally make a mask over all pixels lighter than %darkthresh */
     pixm = NULL;
     if (darkthresh > 0) {
         pixm = pixThresholdToBinary(pix2, darkthresh);

@@ -461,7 +461,7 @@ count_helper(node  *n, l_int32  *pcount)
 /*
  *  l_rbtreePrint()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              t (rbtree)
  *      Return: null
  */

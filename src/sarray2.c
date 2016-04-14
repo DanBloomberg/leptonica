@@ -58,7 +58,7 @@
  *      Input:  saout (output sarray; can be NULL or equal to sain)
  *              sain (input sarray)
  *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
- *      Return: saout (output sarray, sorted by ascii value), or null on error
+ *      Return: saout (output sarray, sorted by ascii value), or NULL on error
  *
  *  Notes:
  *      (1) Set saout = sain for in-place; otherwise, set naout = NULL.
@@ -113,7 +113,7 @@ l_int32  n, i, j, gap;
  *
  *      Input:  sain
  *              naindex (na that maps from the new sarray to the input sarray)
- *      Return: saout (sorted), or null on error
+ *      Return: saout (sorted), or NULL on error
  */
 SARRAY *
 sarraySortByIndex(SARRAY  *sain,
@@ -193,7 +193,7 @@ l_int32  i, len1, len2, len;
  *  sarrayUnionByAset()
  *
  *      Input:  sa1, sa2
- *      Return: sad (with the union of the string set), or null on error
+ *      Return: sad (with the union of the string set), or NULL on error
  *
  *  Notes:
  *      (1) Duplicates are removed from the concatenation of the two arrays.
@@ -231,7 +231,7 @@ SARRAY  *sa3, *sad;
  *  sarrayRemoveDupsByAset()
  *
  *      Input:  sas
- *      Return: sad (with duplicates removed), or null on error
+ *      Return: sad (with duplicates removed), or NULL on error
  *
  *  Notes:
  *      (1) This is O(nlogn), considerably slower than
@@ -278,7 +278,7 @@ SARRAY   *sad;
  *  sarrayIntersectionByAset()
  *
  *      Input:  sa1, sa2
- *      Return: sad (with the intersection of the string set), or null on error
+ *      Return: sad (with the intersection of the string set), or NULL on error
  *
  *  Notes:
  *      (1) Algorithm: put the smaller sarray into a set, using the string
@@ -441,7 +441,7 @@ L_DNAHASH  *dahash;
  *  sarrayIntersectionByHash()
  *
  *      Input:  sa1, sa2
- *      Return: sad (intersection of the strings), or null on error
+ *      Return: sad (intersection of the strings), or NULL on error
  *
  *  Notes:
  *      (1) This is faster than sarrayIntersectionByAset(), because the
@@ -472,7 +472,7 @@ SARRAY     *sa_small, *sa_big, *sad;
     sa_big = (n1 < n2) ? sa2 : sa1;   /* do not destroy sa_big */
     dahash1 = l_dnaHashCreateFromSarray(sa_big);
 
-        /* Build up the intersection of strings.  Add to @sad
+        /* Build up the intersection of strings.  Add to %sad
          * if the string is in sa_big (using dahash1) but hasn't
          * yet been seen in the traversal of sa_small (using dahash2). */
     sad = sarrayCreate(0);
@@ -504,13 +504,13 @@ SARRAY     *sa_small, *sa_big, *sad;
  *      Input:  sa
  *              dahash (built from sa)
  *              str  (arbitrary string)
- *              &index (<return> index into @sa if @str is in @sa;
+ *              &index (<return> index into %sa if %str is in %sa;
  *              -1 otherwise)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) Fast lookup in dnaHash associated with a sarray, to see if a
- *          random string @str is already stored in the hash table.
+ *          random string %str is already stored in the hash table.
  */
 l_int32
 sarrayFindStringByHash(SARRAY      *sa,
@@ -556,7 +556,7 @@ L_DNA    *da;
  *  l_dnaHashCreateFromSarray()
  *
  *      Input:  sa
- *      Return: dahash, or null on error
+ *      Return: dahash, or NULL on error
  */
 L_DNAHASH *
 l_dnaHashCreateFromSarray(SARRAY  *sa)
@@ -574,7 +574,7 @@ L_DNAHASH  *dahash;
     findNextLargerPrime(n / 20, &nsize);  /* buckets in hash table */
 /*    fprintf(stderr, "Prime used: %d\n", nsize); */
 
-        /* Add each string, using the hash as key and the index into @sa
+        /* Add each string, using the hash as key and the index into %sa
          * as the value.  Storing the index enables operations that check
          * for duplicates.  */
     dahash = l_dnaHashCreate(nsize, 8);

@@ -94,7 +94,7 @@ static l_int32 lheapExtendArray(L_HEAP *lh);
  *
  *      Input:  size of ptr array to be alloc'd (0 for default)
  *              direction (L_SORT_INCREASING, L_SORT_DECREASING)
- *      Return: lheap, or null on error
+ *      Return: lheap, or NULL on error
  */
 L_HEAP *
 lheapCreate(l_int32  nalloc,
@@ -122,7 +122,7 @@ L_HEAP  *lh;
 /*!
  *  lheapDestroy()
  *
- *      Input:  &lheap  (<to be nulled>)
+ *      Input:  &lheap  (<inout> to be nulled)
  *              freeflag (TRUE to free each remaining struct in the array)
  *      Return: void
  *
@@ -230,7 +230,7 @@ lheapExtendArray(L_HEAP  *lh)
  *
  *      Input:  lheap
  *      Return: ptr to item popped from the root of the heap,
- *              or null if the heap is empty or on error
+ *              or NULL if the heap is empty or on error
  */
 void *
 lheapRemove(L_HEAP  *lh)
@@ -502,7 +502,7 @@ l_int32  i, index, size;
 /*!
  *  lheapPrint()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              lheap
  *      Return: 0 if OK; 1 on error
  */

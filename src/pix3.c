@@ -126,7 +126,7 @@ static BOXA *findTileRegionsForSearch(BOX *box, l_int32 w, l_int32 h,
  *  Notes:
  *      (1) In-place operation.
  *      (2) NOTE: For cmapped images, this calls pixSetMaskedCmap().
- *          @val must be the 32-bit color representation of the RGB pixel.
+ *          %val must be the 32-bit color representation of the RGB pixel.
  *          It is not the index into the colormap!
  *      (2) If pixm == NULL, a warning is given.
  *      (3) This is an implicitly aligned operation, where the UL
@@ -723,18 +723,18 @@ l_uint32  *data, *datam, *line, *linem;
  *      (3) The mask origin is placed at (x,y) on pixd, and the
  *          operation is clipped to the intersection of pixd and the
  *          fg of the mask.
- *      (4) @tsize is the the requested size for tiling.  The actual
+ *      (4) %tsize is the the requested size for tiling.  The actual
  *          actual size for each c.c. will be bounded by the minimum
  *          dimension of the c.c.
- *      (5) For @mindist, @searchdir and @ntiles, see pixFindRepCloseTile().
+ *      (5) For %mindist, %searchdir and %ntiles, see pixFindRepCloseTile().
  *          They determine the set of possible tiles that can be used
  *          to build a larger mirrored tile to paint onto pixd through
  *          the c.c. of pixm.
- *      (6) @distblend is used for alpha blending.  It is only applied
+ *      (6) %distblend is used for alpha blending.  It is only applied
  *          if there is exactly one c.c. in the mask.  Use distblend == 0
  *          to skip blending and just paint through the 1 bpp mask.
  *      (7) To apply blending to more than 1 component, call this function
- *          repeatedly with @pixm, @x and @y representing one component of
+ *          repeatedly with %pixm, %x and %y representing one component of
  *          the mask each time.  This would be done as follows, for an
  *          underlying image pixs and mask pixm of components to fill:
  *              Boxa *boxa = pixConnComp(pixm, &pixa, 8);
@@ -911,7 +911,7 @@ PIXA     *pixa;
  *
  *      Input:  pixs (2, 4 or 8 bpp; can be colormapped)
  *              tab (256-entry LUT; 1 means to write to mask)
- *      Return: pixd (1 bpp mask), or null on error
+ *      Return: pixd (1 bpp mask), or NULL on error
  *
  *  Notes:
  *      (1) This generates a 1 bpp mask image, where a 1 is written in
@@ -969,14 +969,14 @@ PIX       *pixd;
  *      Input:  pixs (32 bpp rgba)
  *              val (32 bit unsigned color to use where alpha == 0)
  *              debug (displays layers of pixs)
- *      Return: pixd (32 bpp rgba), or null on error
+ *      Return: pixd (32 bpp rgba), or NULL on error
  *
  *  Notes:
  *      (1) This sets the r, g and b components under every fully
- *          transparent alpha component to @val.  The alpha components
+ *          transparent alpha component to %val.  The alpha components
  *          are unchanged.
  *      (2) Full transparency is denoted by alpha == 0.  Setting
- *          all pixels to a constant @val where alpha is transparent
+ *          all pixels to a constant %val where alpha is transparent
  *          can improve compressibility by reducing the entropy.
  *      (3) The visual result depends on how the image is displayed.
  *          (a) For display devices that respect the use of the alpha
@@ -1005,7 +1005,7 @@ PIX       *pixd;
  *      (6) Caution.  rgb images in leptonica typically have value 0 in
  *          the alpha channel, which is fully transparent.  If spp for
  *          such an image were changed from 3 to 4, the image becomes
- *          fully transparent, and this function will set each pixel to @val.
+ *          fully transparent, and this function will set each pixel to %val.
  *          If you really want to set every pixel to the same value,
  *          use pixSetAllArbitrary().
  *      (7) This is useful for compressing an RGBA image where the part
@@ -1064,18 +1064,18 @@ PIX  *pixg, *pixm, *pixt, *pixd;
  *
  *      Input:  pixs (1 bpp)
  *              dist (blending distance; typically 10 - 30)
- *              &box (<optional return>, use null to get the full size
- *      Return: pixd (8 bpp gray), or null on error
+ *              &box (<optional return>, use NULL to get the full size
+ *      Return: pixd (8 bpp gray), or NULL on error
  *
  *  Notes:
  *      (1) This generates a 8 bpp alpha layer that is opaque (256)
  *          over the FG of pixs, and goes transparent linearly away
  *          from the FG pixels, decaying to 0 (transparent) is an
- *          8-connected distance given by @dist.  If @dist == 0,
+ *          8-connected distance given by %dist.  If %dist == 0,
  *          this does a simple conversion from 1 to 8 bpp.
  *      (2) If &box == NULL, this returns an alpha mask that is the
  *          full size of pixs.  Otherwise, the returned mask pixd covers
- *          just the FG pixels of pixs, expanded by @dist in each
+ *          just the FG pixels of pixs, expanded by %dist in each
  *          direction (if possible), and the returned box gives the
  *          location of the returned mask relative to pixs.
  *      (3) This is useful for painting through a mask and allowing
@@ -1152,7 +1152,7 @@ PIX     *pix1, *pixd;
  *
  *  Notes:
  *      (1) This finds the average color in a set of pixels that are
- *          roughly a distance @dist from the c.c. boundary and in the
+ *          roughly a distance %dist from the c.c. boundary and in the
  *          background of the mask image.
  */
 l_int32
@@ -1183,13 +1183,13 @@ PIX       *pix1, *pix2, *pix3;
     if (dist < 0)
         return ERROR_INT("dist must be >= 0", procName, 1);
 
-        /* Clip mask piece, expanded beyond @box by (@dist + 5) on each side.
+        /* Clip mask piece, expanded beyond %box by (%dist + 5) on each side.
          * box1 is the region requested; box2 is the actual region retrieved,
-         * which is clipped to @pixm */
+         * which is clipped to %pixm */
     box1 = boxAdjustSides(NULL, box, -dist - 5, dist + 5, -dist - 5, dist + 5);
     pix1 = pixClipRectangle(pixm, box1, &box2);
 
-        /* Expand FG by @dist into the BG */
+        /* Expand FG by %dist into the BG */
     if (dist == 0) {
         pix2 = pixCopy(NULL, pix1);
     } else {
@@ -1198,13 +1198,13 @@ PIX       *pix1, *pix2, *pix3;
     }
 
         /* Expand again by 5 pixels on all sides (dilate 11x11) and XOR,
-         * getting the annulus of FG pixels between @dist and @dist + 5 */
+         * getting the annulus of FG pixels between %dist and %dist + 5 */
     pix3 = pixCopy(NULL, pix2);
     pixDilateBrick(pix3, pix3, 11, 11);
     pixXor(pix3, pix3, pix2);
     pixZero(pix3, &empty);
     if (!empty) {
-            /* Scan the same region in @pixs, to get average under FG in pix3 */
+            /* Scan the same region in %pixs, to get average under FG in pix3 */
         boxGetGeometry(box2, &bx, &by, NULL, NULL);
         pixGetAverageMaskedRGB(pixs, pix3, bx, by, 1, L_MEAN_ABSVAL,
                                &rval, &gval, &bval);
@@ -1244,7 +1244,7 @@ PIX       *pix1, *pix2, *pix3;
  *      Input:  pixd  (<optional>; this can be null, equal to pixs,
  *                     or different from pixs)
  *              pixs
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) This inverts pixs, for all pixel depths.
@@ -1629,7 +1629,7 @@ l_int32  w, h, count;
  *  pixaCountPixels()
  *
  *      Input:  pixa (array of 1 bpp pix)
- *      Return: na of ON pixels in each pix, or null on error
+ *      Return: na of ON pixels in each pix, or NULL on error
  */
 NUMA *
 pixaCountPixels(PIXA  *pixa)
@@ -1741,7 +1741,7 @@ l_uint32  *data;
  *
  *      Input:  pix (1 bpp)
  *              box (<optional> clipping box for count; can be null)
- *      Return: na of number of ON pixels by row, or null on error
+ *      Return: na of number of ON pixels by row, or NULL on error
  *
  *  Notes:
  *      (1) To resample for a bin size different from 1, use
@@ -1791,7 +1791,7 @@ NUMA      *na;
  *
  *      Input:  pix (1 bpp)
  *              box (<optional> clipping box for count; can be null)
- *      Return: na of number of ON pixels by column, or null on error
+ *      Return: na of number of ON pixels by column, or NULL on error
  *
  *  Notes:
  *      (1) To resample for a bin size different from 1, use
@@ -1841,7 +1841,7 @@ NUMA      *na;
  *
  *      Input:  pix (1 bpp)
  *              tab8  (<optional> 8-bit pixel lookup table)
- *      Return: na of counts, or null on error
+ *      Return: na of counts, or NULL on error
  */
 NUMA *
 pixCountPixelsByRow(PIX      *pix,
@@ -1878,7 +1878,7 @@ NUMA     *na;
  *  pixCountPixelsByColumn()
  *
  *      Input:  pix (1 bpp)
- *      Return: na of counts in each column, or null on error
+ *      Return: na of counts in each column, or NULL on error
  */
 NUMA *
 pixCountPixelsByColumn(PIX  *pix)
@@ -1987,7 +1987,7 @@ l_uint32  *line;
  *
  *      Input:  pix (1 bpp)
  *              order (of moment, either 1 or 2)
- *      Return: na of first moment of fg pixels, by column, or null on error
+ *      Return: na of first moment of fg pixels, by column, or NULL on error
  */
 NUMA *
 pixGetMomentByColumn(PIX     *pix,
@@ -2116,7 +2116,7 @@ l_uint32  *line, *data;
  *  makePixelSumTab8()
  *
  *      Input:  void
- *      Return: table of 256 l_int32, or null on error
+ *      Return: table of 256 l_int32, or NULL on error
  *
  *  Notes:
  *      (1) This table of integers gives the number of 1 bits
@@ -2154,7 +2154,7 @@ l_int32  *tab;
  *  makePixelCentroidTab8()
  *
  *      Input:  void
- *      Return: table of 256 l_int32, or null on error
+ *      Return: table of 256 l_int32, or NULL on error
  *
  *  Notes:
  *      (1) This table of integers gives the centroid weight of the 1 bits
@@ -2214,7 +2214,7 @@ l_int32  *tab;
  *      Input:  pix (8 or 16 bpp; no colormap)
  *              box (<optional> clipping box for sum; can be null)
  *              type (L_WHITE_IS_MAX, L_BLACK_IS_MAX)
- *      Return: na of pixel averages by row, or null on error
+ *      Return: na of pixel averages by row, or NULL on error
  *
  *  Notes:
  *      (1) To resample for a bin size different from 1, use
@@ -2281,7 +2281,7 @@ NUMA      *na;
  *      Input:  pix (8 or 16 bpp; no colormap)
  *              box (<optional> clipping box for sum; can be null)
  *              type (L_WHITE_IS_MAX, L_BLACK_IS_MAX)
- *      Return: na of pixel averages by column, or null on error
+ *      Return: na of pixel averages by column, or NULL on error
  *
  *  Notes:
  *      (1) To resample for a bin size different from 1, use
@@ -2410,7 +2410,7 @@ l_float64  ave;
  *
  *      Input:  pix (8 or 16 bpp; no colormap)
  *              box (<optional> clipping box for variance; can be null)
- *      Return: na of rmsdev by row, or null on error
+ *      Return: na of rmsdev by row, or NULL on error
  *
  *  Notes:
  *      (1) To resample for a bin size different from 1, use
@@ -2473,7 +2473,7 @@ NUMA       *na;
  *
  *      Input:  pix (8 or 16 bpp; no colormap)
  *              box (<optional> clipping box for variance; can be null)
- *      Return: na of rmsdev by column, or null on error
+ *      Return: na of rmsdev by column, or NULL on error
  *
  *  Notes:
  *      (1) To resample for a bin size different from 1, use
@@ -2606,7 +2606,7 @@ l_float64  sum1, sum2, norm, ave, var;
  *
  *      Input:  pix (8 bpp; no colormap)
  *              box (<optional> clipping box for region; can be null)
- *      Return: na of abs val pixel difference averages by row, or null on error
+ *      Return: na of abs val pixel difference averages by row, or NULL on error
  *
  *  Notes:
  *      (1) This is an average over differences of adjacent pixels along
@@ -2665,7 +2665,7 @@ NUMA      *na;
  *      Input:  pix (8 bpp; no colormap)
  *              box (<optional> clipping box for region; can be null)
  *      Return: na of abs val pixel difference averages by column,
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) This is an average over differences of adjacent pixels along
@@ -2881,13 +2881,13 @@ l_uint32   val0, val1;
  *              val (pixel value to count)
  *              factor (subsampling factor; integer >= 1)
  *              &count (<return> count; estimate it if factor > 1)
- *      Return: na (histogram), or null on error
+ *      Return: na (histogram), or NULL on error
  *
  *  Notes:
- *      (1) If pixs is cmapped, @val is compared to the colormap index;
- *          otherwise, @val is compared to the grayscale value.
- *      (2) Set the subsampling @factor > 1 to reduce the amount of computation.
- *          If @factor > 1, multiply the count by @factor * @factor.
+ *      (1) If pixs is cmapped, %val is compared to the colormap index;
+ *          otherwise, %val is compared to the grayscale value.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
+ *          If %factor > 1, multiply the count by %factor * %factor.
  */
 l_int32
 pixCountArbInRect(PIX      *pixs,
@@ -2952,7 +2952,7 @@ l_uint32  *data, *line;
  *      Input:  pixs (8 or 32 bpp, small tile; to be replicated)
  *              w, h (dimensions of output pix)
  *      Return: pixd (usually larger pix, mirror-tiled with pixs),
- *              or null on error
+ *              or NULL on error
  *
  *  Notes:
  *      (1) This uses mirrored tiling, where each row alternates
@@ -3028,15 +3028,15 @@ PIX      *pixd, *pixsfx, *pixsfy, *pixsfxy, *pix;
  *  Notes:
  *      (1) This looks for one or two square tiles with conforming median
  *          intensity and low variance, that is outside but near the input box.
- *      (2) @mindist specifies the gap between the box and the
+ *      (2) %mindist specifies the gap between the box and the
  *          potential tiles.  The tiles are given an overlap of 50%.
- *          @ntiles specifies the number of tiles that are tested
- *          beyond @mindist for each row or column.
- *      (3) For example, if @mindist = 20, @tilesize = 50 and @ntiles = 3,
+ *          %ntiles specifies the number of tiles that are tested
+ *          beyond %mindist for each row or column.
+ *      (3) For example, if %mindist = 20, %tilesize = 50 and %ntiles = 3,
  *          a horizontal search to the right will have 3 tiles in each row,
  *          with left edges at 20, 45 and 70 from the right edge of the
- *          input @box.  The number of rows of tiles is determined by
- *          the height of @box and @tsize, with the 50% overlap..
+ *          input %box.  The number of rows of tiles is determined by
+ *          the height of %box and %tsize, with the 50% overlap..
  */
 l_int32
 pixFindRepCloseTile(PIX     *pixs,
@@ -3166,7 +3166,7 @@ PIXA      *pixa;
  *              mindist (min distance of selected tile edge from box; >= 0)
  *              tsize (tile size; > 1; even; typically ~50)
  *              ntiles (number of tiles tested in each row/column)
- *      Return: boxa if OK, or null on error
+ *      Return: boxa if OK, or NULL on error
  *
  *  Notes:
  *      (1) See calling function pixfindRepCloseTile().

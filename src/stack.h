@@ -27,9 +27,10 @@
 #ifndef  LEPTONICA_STACK_H
 #define  LEPTONICA_STACK_H
 
-/*
- *  stack.h
+/*!
+ * \file stack.h
  *
+ * <pre>
  *       Expandable pointer stack for arbitrary void* data.
  *
  *       The L_Stack is an array of void * ptrs, onto which arbitrary
@@ -48,16 +49,19 @@
  *       call to pstackCreate().  [Just imagine the chaos if
  *       pstackCreate() created the auxiliary stack!]   
  *       pstackDestroy() checks for the auxiliary stack and removes it.
+ * </pre>
  */
 
 
-    /* Note that array[n] is the first null ptr in the array */
+    /*! Expandable pointer stack for arbitrary void* data.
+     * Note that array[n] is the first null ptr in the array
+     */
 struct L_Stack
 {
-    l_int32          nalloc;       /* size of ptr array              */
-    l_int32          n;            /* number of stored elements      */
-    void           **array;        /* ptr array                      */
-    struct L_Stack  *auxstack;     /* auxiliary stack                */
+    l_int32          nalloc;     /*!< size of ptr array              */
+    l_int32          n;          /*!< number of stored elements      */
+    void           **array;      /*!< ptr array                      */
+    struct L_Stack  *auxstack;   /*!< auxiliary stack                */
 };
 typedef struct L_Stack  L_STACK;
 

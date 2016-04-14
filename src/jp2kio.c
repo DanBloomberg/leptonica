@@ -158,24 +158,24 @@ static void info_callback(const char *msg, void *client_data) {
  *              box  (<optional> for extracting a subregion), can be null
  *              hint (a bitwise OR of L_JP2K_* values; 0 for default)
  *              debug (output callback messages, etc)
- *      Return: pix (8 or 32 bpp), or null on error
+ *      Return: pix (8 or 32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This is a special function for reading jp2k files.
  *          The high-level pixReadStream() uses default values:
- *             @reduction = 1
- *             @box = NULL
+ *             %reduction = 1
+ *             %box = NULL
  *      (2) This decodes at either full resolution or at a reduction by
- *          a power of 2.  The default value @reduction == 1 gives a full
- *          resolution image.  Use @reduction > 1 to get a reduced image.
- *          The actual values of @reduction that can be used on an image
+ *          a power of 2.  The default value %reduction == 1 gives a full
+ *          resolution image.  Use %reduction > 1 to get a reduced image.
+ *          The actual values of %reduction that can be used on an image
  *          depend on the number of resolution levels chosen when the
  *          image was compressed.  Typical values might be 1, 2, 4, 8 and 16.
  *          Using a value representing a reduction level that was not
  *          stored when the file was written will fail with the message:
  *          "failed to read the header".
- *      (3) Use @box to decode only a part of the image.  The box is defined
- *          at full resolution.  It is reduced internally by @reduction,
+ *      (3) Use %box to decode only a part of the image.  The box is defined
+ *          at full resolution.  It is reduced internally by %reduction,
  *          and clipping to the right and bottom of the image is automatic.
  *      (4) We presently only handle images with 8 bits/sample (bps).
  *          If the image has 16 bps, the read will fail.
@@ -185,7 +185,7 @@ static void info_callback(const char *msg, void *client_data) {
  *           spp = 2  ==>  grayscale + alpha   [32 bpp rgba]
  *           spp = 3  ==>  rgb                 [32 bpp rgb]
  *           spp = 4  ==>  rgba                [32 bpp rgba]
- *      (6) The @hint parameter is reserved for future use.
+ *      (6) The %hint parameter is reserved for future use.
  */
 PIX *
 pixReadJp2k(const char  *filename,
@@ -216,12 +216,12 @@ PIX      *pix;
 /*!
  *  pixReadStreamJp2k()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              reduction (scaling factor: 1, 2, 4, 8)
  *              box  (<optional> for extracting a subregion), can be null
  *              hint (a bitwise OR of L_JP2K_* values; 0 for default)
  *              debug (output callback messages, etc)
- *      Return: pix (8 or 32 bpp), or null on error
+ *      Return: pix (8 or 32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) See pixReadJp2k() for usage.
@@ -445,18 +445,18 @@ PIX               *pix = NULL;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) The @quality parameter is the SNR.  The useful range is narrow:
+ *      (1) The %quality parameter is the SNR.  The useful range is narrow:
  *             SNR < 27  (terrible quality)
  *             SNR = 34  (default; approximately equivalent to jpeg quality 75)
  *             SNR = 40  (very high quality)
  *             SNR = 45  (nearly lossless)
  *          Use 0 for default.
- *      (2) The @nlevels parameter is the number of resolution levels
+ *      (2) The %nlevels parameter is the number of resolution levels
  *          to be written.  For example, with nlevels == 5, images with
  *          reduction factors of 1, 2, 4, 8 and 16 are encoded, and retrieval
  *          is done at the level requested when reading.  For default,
  *          use either 5 or 0.
- *      (3) The @hint parameter is not yet in use.
+ *      (3) The %hint parameter is not yet in use.
  *      (4) For now, we only support 1 "layer" for quality.
  */
 l_int32
@@ -492,7 +492,7 @@ FILE  *fp;
 /*!
  *  pixWriteStreamJp2k()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pix  (any depth, cmap is OK)
  *              quality (SNR > 0; default ~34; 0 for lossless encoding)
  *              nlevels (<= 10)
@@ -753,7 +753,7 @@ opj_image_cmptparm_t  cmptparm[4];
  *              box  (<optional> for extracting a subregion), can be null
  *              hint (a bitwise OR of L_JP2K_* values; 0 for default)
  *              debug (output callback messages, etc)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) This crashes when reading through the fmemopen cookie.

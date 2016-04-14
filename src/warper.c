@@ -91,7 +91,7 @@ static const l_float32  L_DEFAULT_BLUE_WEIGHT  = 0.3;
  *              seed (of random number generator)
  *              color (for colorizing; in 0xrrggbb00 format; use 0 for black)
  *              cmapflag (1 for colormap output; 0 for rgb)
- *      Return: pixd (8 bpp cmap or 32 bpp rgb), or null on error
+ *      Return: pixd (8 bpp cmap or 32 bpp rgb), or NULL on error
  *
  *  Notes:
  *      (1) This uses typical default values for generating captchas.
@@ -148,7 +148,7 @@ PIX       *pixg, *pixgb, *pixw, *pixd;
  *              seed (of random number generator)
  *              grayval (color brought in from the outside;
  *                       0 for black, 255 for white)
- *      Return: pixd (8 bpp; no colormap), or null on error
+ *      Return: pixd (8 bpp; no colormap), or NULL on error
  *
  *  Notes:
  *      (1) To generate the warped image p(x',y'), set up the transforms
@@ -308,7 +308,7 @@ static l_float32 getSinFromLUT(l_float32 *tab, l_int32 npts,
  *              seed (of random number generator)
  *              grayval (color brought in from the outside;
  *                       0 for black, 255 for white)
- *      Return: pixd (8 bpp; no colormap), or null on error
+ *      Return: pixd (8 bpp; no colormap), or NULL on error
  *
  *  Notes:
  *      (1) See notes and inline comments in pixRandomHarmonicWarp().
@@ -506,7 +506,7 @@ l_float32  twopi, invtwopi, findex, diff;
  *              ybendb (same as ybendt, except at the left or right edge
  *                      at the bottom)
  *              redleft (1 if the red filter is on the left; 0 otherwise)
- *      Return: pixd (32 bpp), or null on error
+ *      Return: pixd (32 bpp), or NULL on error
  *
  *  Notes:
  *      (1) This function splits out the red channel, mucks around with
@@ -515,23 +515,23 @@ l_float32  twopi, invtwopi, findex, diff;
  *          pixels horizontally and away from the vertical centerline,
  *          the image appears to bend quadratically out of the image
  *          plane, symmetrically with respect to the vertical center
- *          line.  A positive value of @zbend causes the plane to be
+ *          line.  A positive value of %zbend causes the plane to be
  *          curved away from the viewer.  We use linearly interpolated
  *          stretching to avoid the appearance of kinks in the curve.
- *      (3) The parameters @zshiftt and @zshiftb tilt the image plane
+ *      (3) The parameters %zshiftt and %zshiftb tilt the image plane
  *          about a horizontal line through the center, and at the
  *          same time move that line either in toward the viewer or away.
  *          This is implemented by a combination of horizontal shear
  *          about the center line (for the tilt) and horizontal
  *          translation (to move the entire plane in or out).
- *          A positive value of @zshiftt moves the top of the plane
- *          away from the viewer, and a positive value of @zshiftb
+ *          A positive value of %zshiftt moves the top of the plane
+ *          away from the viewer, and a positive value of %zshiftb
  *          moves the bottom of the plane away.  We use linear interpolated
  *          shear to avoid visible vertical steps in the tilted image.
  *      (4) The image can be bent in the plane and about the vertical
  *          centerline.  The centerline does not shift, and the
- *          parameter @ybend gives the relative shift at left and right
- *          edges, with a downward shift for positive values of @ybend.
+ *          parameter %ybend gives the relative shift at left and right
+ *          edges, with a downward shift for positive values of %ybend.
  *      (6) When writing out a steroscopic (red/cyan) image in jpeg,
  *          first call pixSetChromaSampling(pix, 0) to get sufficient
  *          resolution in the red channel.
@@ -700,20 +700,20 @@ PIX       *pixd;
  *              hmax (horizontal displacement at edge)
  *              operation (L_SAMPLED or L_INTERPOLATED)
  *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched/compressed), or null on error
+ *      Return: pixd (stretched/compressed), or NULL on error
  *
  *  Notes:
- *      (1) If @hmax > 0, this is an increase in the coordinate value of
+ *      (1) If %hmax > 0, this is an increase in the coordinate value of
  *          pixels in pixd, relative to the same pixel in pixs.
- *      (2) If @dir == L_WARP_TO_LEFT, the pixels on the right edge of
- *          the image are not moved. So, for example, if @hmax > 0
- *          and @dir == L_WARP_TO_LEFT, the pixels in pixd are
+ *      (2) If %dir == L_WARP_TO_LEFT, the pixels on the right edge of
+ *          the image are not moved. So, for example, if %hmax > 0
+ *          and %dir == L_WARP_TO_LEFT, the pixels in pixd are
  *          contracted toward the right edge of the image, relative
  *          to those in pixs.
- *      (3) If @type == L_LINEAR_WARP, the pixel positions are moved
+ *      (3) If %type == L_LINEAR_WARP, the pixel positions are moved
  *          to the left or right by an amount that varies linearly with
  *          the horizontal location.
- *      (4) If @operation == L_SAMPLED, the dest pixels are taken from
+ *      (4) If %operation == L_SAMPLED, the dest pixels are taken from
  *          the nearest src pixel.  Otherwise, we use linear interpolation
  *          between pairs of sampled pixels.
  */
@@ -762,7 +762,7 @@ l_int32  d;
  *              type (L_LINEAR_WARP or L_QUADRATIC_WARP)
  *              hmax (horizontal displacement at edge)
  *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched/compressed), or null on error
+ *      Return: pixd (stretched/compressed), or NULL on error
  *
  *  Notes:
  *      (1) See pixStretchHorizontal() for details.
@@ -858,7 +858,7 @@ PIX       *pixd;
  *              type (L_LINEAR_WARP or L_QUADRATIC_WARP)
  *              hmax (horizontal displacement at edge)
  *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched/compressed), or null on error
+ *      Return: pixd (stretched/compressed), or NULL on error
  *
  *  Notes:
  *      (1) See pixStretchHorizontal() for details.
@@ -979,19 +979,19 @@ PIX       *pixd;
  *              vmaxb (max vertical displacement at edge and at bottom)
  *              operation (L_SAMPLED or L_INTERPOLATED)
  *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched), or null on error
+ *      Return: pixd (stretched), or NULL on error
  *
  *  Notes:
  *      (1) This gives a quadratic bending, upward or downward, as you
  *          move to the left or right.
- *      (2) If @dir == L_WARP_TO_LEFT, the right edge is unchanged, and
+ *      (2) If %dir == L_WARP_TO_LEFT, the right edge is unchanged, and
  *          the left edge pixels are moved maximally up or down.
- *      (3) Parameters @vmaxt and @vmaxb control the maximum amount of
+ *      (3) Parameters %vmaxt and %vmaxb control the maximum amount of
  *          vertical pixel shear at the top and bottom, respectively.
- *          If @vmaxt > 0, the vertical displacement of pixels at the
- *          top is downward.  Likewise, if @vmaxb > 0, the vertical
+ *          If %vmaxt > 0, the vertical displacement of pixels at the
+ *          top is downward.  Likewise, if %vmaxb > 0, the vertical
  *          displacement of pixels at the bottom is downward.
- *      (4) If @operation == L_SAMPLED, the dest pixels are taken from
+ *      (4) If %operation == L_SAMPLED, the dest pixels are taken from
  *          the nearest src pixel.  Otherwise, we use linear interpolation
  *          between pairs of sampled pixels.
  *      (5) This is for quadratic shear.  For uniform (linear) shear,
@@ -1044,7 +1044,7 @@ l_int32    w, h, d;
  *              vmaxt (max vertical displacement at edge and at top)
  *              vmaxb (max vertical displacement at edge and at bottom)
  *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched), or null on error
+ *      Return: pixd (stretched), or NULL on error
  *
  *  Notes:
  *      (1) See pixQuadraticVShear() for details.
@@ -1148,7 +1148,7 @@ PIX       *pixd;
  *              vmaxt (max vertical displacement at edge and at top)
  *              vmaxb (max vertical displacement at edge and at bottom)
  *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched), or null on error
+ *      Return: pixd (stretched), or NULL on error
  *
  *  Notes:
  *      (1) See pixQuadraticVShear() for details.
@@ -1283,15 +1283,15 @@ PIXCMAP   *cmap;
  *              pix2 (32 bpp rgb)
  *              rwt, gwt, bwt (weighting factors used for each component in
                                pix1 to determine the output red channel)
- *      Return: pixd (stereo enhanced), or null on error
+ *      Return: pixd (stereo enhanced), or NULL on error
  *
  *  Notes:
  *      (1) pix1 and pix2 are a pair of stereo images, ideally taken
  *          concurrently in the same plane, with some lateral translation.
- *      (2) The output red channel is determined from @pix1.
+ *      (2) The output red channel is determined from %pix1.
  *          The output green and blue channels are taken from the green
- *          and blue channels, respectively, of @pix2.
- *      (3) The weights determine how much of each component in @pix1
+ *          and blue channels, respectively, of %pix2.
+ *      (3) The weights determine how much of each component in %pix1
  *          goes into the output red channel.  The sum of weights
  *          must be 1.0.  If it's not, we scale the weights to
  *          satisfy this criterion.
@@ -1301,7 +1301,7 @@ PIXCMAP   *cmap;
  *            bval = b2   (from pix2)
  *      (5) The simplest method is to use rwt = 1.0, gwt = 0.0, bwt = 0.0,
  *          but this causes unpleasant visual artifacts with red in the image.
- *          Use of green and blue from @pix1 in the red channel,
+ *          Use of green and blue from %pix1 in the red channel,
  *          instead of red, tends to fix that problem.
  */
 PIX *

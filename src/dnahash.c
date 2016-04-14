@@ -109,7 +109,7 @@
  *      Input: nbuckets (the number of buckets in the hash table,
  *                       which should be prime.)
  *             initsize (initial size of each allocated dna; 0 for default)
- *      Return: ptr to new dnahash, or null on error
+ *      Return: ptr to new dnahash, or NULL on error
  *
  *  Notes:
  *      (1) Actual dna are created only as required by l_dnaHashAdd()
@@ -141,7 +141,7 @@ L_DNAHASH  *dahash;
 /*!
  *  l_dnaHashDestroy()
  *
- *      Input:  &dahash (<to be nulled, if it exists>)
+ *      Input:  &dahash (<inout> to be nulled, if it exists)
  *      Return: void
  */
 void
@@ -294,8 +294,8 @@ L_DNA   *da;
  *      Return: dahash if OK; 1 on error
  *
  *  Notes:
- *      (1) The values stored in the @dahash are indices into @da;
- *          @dahash has no use without @da.
+ *      (1) The values stored in the %dahash are indices into %da;
+ *          %dahash has no use without %da.
  */
 L_DNAHASH *
 l_dnaHashCreateFromDna(L_DNA  *da)
@@ -396,9 +396,9 @@ L_DNAHASH  *dahash;
  *  Notes:
  *      (1) Generates and returns a dna of occurrences (histogram),
  *          an aligned dna of values, and an associated hashmap.
- *          The hashmap takes @dav and a value, and points into the
- *          histogram in @dac.
- *      (2) The dna of values, @dav, is aligned with the histogram @dac,
+ *          The hashmap takes %dav and a value, and points into the
+ *          histogram in %dac.
+ *      (2) The dna of values, %dav, is aligned with the histogram %dac,
  *          and is needed for fast lookup.  It is a hash set, because
  *          the values are unique.
  *      (3) Lookup is simple:
@@ -464,7 +464,7 @@ L_DNAHASH  *dahash;
  *  l_dnaIntersectionByHash()
  *
  *      Input:  da1, da2
- *      Return: dad (intersection of the number arrays), or null on error
+ *      Return: dad (intersection of the number arrays), or NULL on error
  *
  *  Notes:
  *      (1) This uses the same method for building the intersection set
@@ -495,7 +495,7 @@ L_DNA      *da_small, *da_big, *dad;
     da_big = (n1 < n2) ? da2 : da1;   /* do not destroy da_big */
     dahash1 = l_dnaHashCreateFromDna(da_big);
 
-        /* Build up the intersection of numbers.  Add to @dad
+        /* Build up the intersection of numbers.  Add to %dad
          * if the number is in da_big (using dahash1) but hasn't
          * yet been seen in the traversal of da_small (using dahash2). */
     dad = l_dnaCreate(0);
@@ -526,15 +526,15 @@ L_DNA      *da_small, *da_big, *dad;
  *  l_dnaFindValByHash()
  *
  *      Input:  da
- *              dahash (containing indices into @da)
- *              val  (searching for this number in @da)
+ *              dahash (containing indices into %da)
+ *              val  (searching for this number in %da)
  *              &index (<return> index into da if found; -1 otherwise)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) Algo: hash @val into a key; hash the key to get the dna
- *                in @dahash (that holds indices into @da); traverse
- *                the dna of indices looking for @val in @da.
+ *      (1) Algo: hash %val into a key; hash the key to get the dna
+ *                in %dahash (that holds indices into %da); traverse
+ *                the dna of indices looking for %val in %da.
  */
 l_int32
 l_dnaFindValByHash(L_DNA      *da,
@@ -562,7 +562,7 @@ L_DNA     *da1;
     da1 = l_dnaHashGetDna(dahash, key, L_NOCOPY);
     if (!da1) return 0;
 
-        /* Run through da1, looking for this @val */
+        /* Run through da1, looking for this %val */
     nvals = l_dnaGetCount(da1);
     for (i = 0; i < nvals; i++) {
         l_dnaGetIValue(da1, i, &indexval);

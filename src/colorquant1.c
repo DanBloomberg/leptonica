@@ -107,7 +107,8 @@
  *      Find number of occupied octcubes at the specified level
  *          l_int32           pixNumberOccupiedOctcubes()
  *
- *  Note: leptonica also provides color quantization using a modified
+ *  Notes:
+ *        Leptonica also provides color quantization using a modified
  *        form of median cut.  See colorquant2.c for details.
  */
 
@@ -260,7 +261,7 @@ static PIX *pixOctcubeQuantFromCmapLUT(PIX *pixs, PIXCMAP *cmap,
  *              colors  (in colormap; some number in range [128 ... 256];
  *                      the actual number of colors used will be smaller)
  *              ditherflag  (1 to dither, 0 otherwise)
- *      Return: pixd (8 bpp with colormap), or null on error
+ *      Return: pixd (8 bpp with colormap), or NULL on error
  *
  *  I found one description in the literature of octree color
  *  quantization, using progressive truncation of the octree,
@@ -443,14 +444,14 @@ static PIX *pixOctcubeQuantFromCmapLUT(PIX *pixs, PIXCMAP *cmap,
  *  each with 8 subcubes; etc.  Using these arrays has
  *  several advantages:
  *
- *     -  We don't need to keep track of links between cubes
+ *     ~  We don't need to keep track of links between cubes
  *        and subcubes, because we can use the canonical
  *        addressing on the cell arrays directly to determine
  *        which nodes are parent cubes and which are sub-cubes.
  *
- *     -  We can prune directly on this tree
+ *     ~  We can prune directly on this tree
  *
- *     -  We can navigate the pruned tree quickly to classify
+ *     ~  We can navigate the pruned tree quickly to classify
  *        each pixel in the image.
  *
  *  Canonical addressing guarantees that the i-th node at level k
@@ -543,10 +544,10 @@ pixOctreeColorQuant(PIX     *pixs,
  *                           for color quantization; typ. ~0.01, but smaller
  *                           for images that have color along with a
  *                           significant fraction of gray)
- *      Return: pixd (8 bit with colormap), or null on error
+ *      Return: pixd (8 bit with colormap), or NULL on error
  *
  *  Notes:
- *      (1) The parameters @validthresh and @colorthresh are used to
+ *      (1) The parameters %validthresh and %colorthresh are used to
  *          determine if color quantization should be used on an image,
  *          or whether, instead, it should be quantized in grayscale.
  *          If the image has very few non-white and non-black pixels, or
@@ -558,7 +559,7 @@ pixOctreeColorQuant(PIX     *pixs,
  *          there is only a very small fraction of color pixels, but they're
  *          important to preserve; then you want to use a smaller value for
  *          these parameters.  To disable conversion to gray and force
- *          color quantization, use @validthresh = 0.0 and @colorthresh = 0.0.
+ *          color quantization, use %validthresh = 0.0 and %colorthresh = 0.0.
  *      (2) See pixOctreeColorQuant() for algorithmic and implementation
  *          details.  This function has a more general interface.
  *      (3) See pixColorFraction() for computing the fraction of pixels
@@ -569,7 +570,7 @@ pixOctreeColorQuant(PIX     *pixs,
  *             the pixels that are neither black nor white have very
  *             little color content.  The product 'pixfract * colorfract'
  *             gives the fraction of pixels with significant color content.
- *          We test against the product @validthresh * @colorthresh
+ *          We test against the product %validthresh * %colorthresh
  *          to find color in images that have either very few
  *          intermediate gray pixels or that have many such gray pixels.
  */
@@ -682,7 +683,7 @@ PIXCMAP   *cmap;
  *              number of colors to use (between 128 and 256)
  *              number of reserved colors
  *              &cmap  (made and returned)
- *      Return: octree, colormap and number of colors used, or null
+ *      Return: octree, colormap and number of colors used, or NULL
  *              on error
  *
  *  Notes:
@@ -925,7 +926,7 @@ l_int32    nt, nr, ival;
  *      Input:  pixs (32 bpp)
  *              octree in array format
  *              ditherflag (1 for dithering, 0 for no dithering)
- *      Return: pixd or null on error
+ *      Return: pixd or NULL on error
  *
  *  Notes:
  *      (1) This routine doesn't need to use the CTEs (colormap
@@ -1250,7 +1251,7 @@ CQCELL   **cqca;   /* one array for each octree level */
 /*!
  *  cqcellTreeDestroy()
  *
- *      Input:  &cqcaa (<to be nulled>
+ *      Input:  &cqcaa (<inout> to be nulled)
  *      Return: void
  */
 static void
@@ -1417,10 +1418,11 @@ l_uint32  *rtab, *gtab, *btab;
  *
  *      Input:  rval, gval, bval
  *              rtab, gtab, btab  (generated with makeRGBToIndexTables())
- *              &index (<return>)
+ *              &index (<return> found index)
  *      Return: void
  *
- *  Note: no error checking!
+ *  Notes:
+ *      No error checking!
  */
 void
 getOctcubeIndexFromRGB(l_int32    rval,
@@ -1510,12 +1512,13 @@ l_int32  rgbindex;
 /*!
  *  getOctcubeIndices()
  *
- *     Input:  rgbindex
- *             octree level (0, 1, 2, 3, 4, 5)
- *             &octcube base index (<return> index at the octree level)
- *             &octcube sub index (<return> index at the next lower level)
- *     Return: 0 if OK, 1 on error
+ *      Input:  rgbindex
+ *              octree level (0, 1, 2, 3, 4, 5)
+ *              &octcube base index (<return> index at the octree level)
+ *              &octcube sub index (<return> index at the next lower level)
+ *      Return: 0 if OK, 1 on error
  *
+ *  Notes:
  *  for CQ_NLEVELS = 6, the full RGB index is in the form:
  *     index = (0[13] 0 r7 g7 b7 r6 g6 b6 r5 g5 b5 r4 g4 b4 r3 g3 b3 r2 g2 b2)
  *  for CQ_NLEVELS = 5, the full RGB index is in the form:
@@ -1598,21 +1601,21 @@ octcubeGetCount(l_int32   level,
  *              level (significant bits for each of RGB; valid for {3,4},
  *                     Use 0 for default (level 4; recommended)
  *              ditherflag  (1 to dither, 0 otherwise)
- *      Return: pixd (quantized to octcubes) or null on error
+ *      Return: pixd (quantized to octcubes) or NULL on error
  *
  *  Notes:
  *      (1) This color quantization method works very well without
  *          dithering, using octcubes at two different levels:
- *            (a) the input @level, which is either 3 or 4
+ *            (a) the input %level, which is either 3 or 4
  *            (b) level 2 (64 octcubes to cover the entire color space)
- *      (2) For best results, using @level = 4 is recommended.
+ *      (2) For best results, using %level = 4 is recommended.
  *          Why do we provide an option for using level 3?  Because
  *          there are 512 octcubes at level 3, and for many images
  *          not more than 256 are filled.  As a result, on some images
  *          a very accurate quantized representation is possible using
- *          @level = 3.
+ *          %level = 3.
  *      (3) This first breaks up the color space into octcubes at the
- *          input @level, and computes, for each octcube, the average
+ *          input %level, and computes, for each octcube, the average
  *          value of the pixels that are in it.
  *      (4) Then there are two possible situations:
  *            (a) If there are not more than 256 populated octcubes,
@@ -1628,7 +1631,7 @@ octcubeGetCount(l_int32   level,
  *          by their centers.  This, of course, has no effect unless
  *          dithering is used for the output image.
  *      (6) The depth of pixd is the minimum required to support the
- *          number of colors found at @level; namely, 2, 4 or 8.
+ *          number of colors found at %level; namely, 2, 4 or 8.
  *      (7) This function works particularly well on images such as maps,
  *          where there are a relatively small number of well-populated
  *          colors, but due to antialiasing and compression artifacts
@@ -1816,7 +1819,7 @@ PIXCMAP        *cmap;
 
         /* Take the rest of the occupied octcubes, assigning the pixels
          * to these new colormap indices.  iarray[] is addressed
-         * by @level octcube indices, and it now holds the
+         * by %level octcube indices, and it now holds the
          * colormap indices for all pixels in pixs.  */
     for (i = 192; i < size; i++) {
         opop = (L_OCTCUBE_POP*)lheapRemove(lh);
@@ -1921,7 +1924,7 @@ array_cleanup:
  *          in pixd.  The colormap has been calculated, along with
  *          four input LUTs that together give the inverse colormapping
  *          from RGB to colormap index.
- *      (2) For pixOctreeQuantByPopulation(), @indexmap maps from the
+ *      (2) For pixOctreeQuantByPopulation(), %indexmap maps from the
  *          standard octindex to colormap index (after subtracting 1).
  *          The basic pixel-level function, without dithering, is:
  *             extractRGBValues(lines[j], &rval, &gval, &bval);
@@ -1933,7 +1936,7 @@ array_cleanup:
  *             cmapindex = indexmap[rtab[rval] | gtab[gval] | btab[bval]] - 1
  *          For example, in pixFixedOctcubeQuant256(), we don't use
  *          standard octcube indexing, the rtab (etc) LUTs map directly
- *          to the colormap index, and @indexmap just compensates for
+ *          to the colormap index, and %indexmap just compensates for
  *          the 1-off indexing assumed to be in that table.
  */
 static l_int32
@@ -2120,7 +2123,7 @@ PIXCMAP   *cmap;
  *                         may be less than this)
  *              subsample (factor for computing color distribution;
  *                         use 0 for default)
- *      Return: pixd (4 or 8 bpp, colormapped), or null on error
+ *      Return: pixd (4 or 8 bpp, colormapped), or NULL on error
  *
  *  pixOctreeColorQuant() is very flexible in terms of the relative
  *  depth of different cubes of the octree.   By contrast, this function,
@@ -2501,7 +2504,7 @@ PIXCMAP   *cmap;
  *              depth (of output pix)
  *              graylevels (grayscale)
  *              delta (threshold for deciding if a pix is color or grayscale)
- *      Return: pixd (quantized to octcube and gray levels) or null on error
+ *      Return: pixd (quantized to octcube and gray levels) or NULL on error
  *
  *  Notes:
  *      (1) Generates a colormapped image, where the colormap table values
@@ -2674,7 +2677,7 @@ PIXCMAP   *cmap;
  *
  *      Input:  pixs  (32 bpp; 24-bit color)
  *              ditherflag  (1 for dithering; 0 for no dithering)
- *      Return: pixd (8 bit with colormap), or null on error
+ *      Return: pixd (8 bit with colormap), or NULL on error
  *
  *  This simple 1-pass color quantization works by breaking the
  *  color space into 256 pieces, with 3 bits quantized for each of
@@ -2832,7 +2835,7 @@ PIXCMAP   *cmap;
  *
  *      Input:  pixs (32 bpp rgb)
  *              level (significant bits for each of RGB; valid in [1...6])
- *      Return: pixd (quantized to octcube) or null on error
+ *      Return: pixd (quantized to octcube) or NULL on error
  *
  *  Notes:
  *      (1) Generates a colormapped image, where the colormap table values
@@ -2991,7 +2994,7 @@ array_cleanup:
  *              ncolors (number of occupied octree leaves at given level)
  *              &nerrors (<optional return> num of pixels not exactly
  *                        represented in the colormap)
- *      Return: pixd (2, 4 or 8 bpp with colormap), or null on error
+ *      Return: pixd (2, 4 or 8 bpp with colormap), or NULL on error
  *
  *  Notes:
  *      (1) Generates a colormapped image, where the colormap table values
@@ -3003,7 +3006,7 @@ array_cleanup:
  *      (4) For an image with not more than 256 colors, it is unlikely
  *          that two pixels of different color will fall in the same
  *          octcube at level = 4.   However it is possible, and this
- *          function optionally returns @nerrors, the number of pixels
+ *          function optionally returns %nerrors, the number of pixels
  *          where, because more than one color is in the same octcube,
  *          the pixel color is not exactly reproduced in the colormap.
  *          The colormap for an occupied leaf of the octree contains
@@ -3090,9 +3093,9 @@ PIXCMAP   *cmap;
 
         /* For each pixel, get the octree index for its leaf octcube.
          * Check if a pixel has already been found in this octcube.
-         *   - If not yet found, save that color in the colorarray
+         *   ~ If not yet found, save that color in the colorarray
          *     and save the cindex in the octarray.
-         *   - If already found, compare the pixel color with the
+         *   ~ If already found, compare the pixel color with the
          *     color in the colorarray, and note if it differs.
          * Then set the dest pixel value to the cindex - 1, which
          * will be the cmap index for this color.  */
@@ -3160,13 +3163,12 @@ PIXCMAP   *cmap;
  *              diffthresh (thresh for the max difference between component
  *                          values; for differences below this, the pixel
  *                          is considered to be gray; use 0 for default)
- *                          considered gray; use 0 for default)
  *              minfract (min fraction of pixels for gray histo bin;
  *                        use 0.0 for default)
  *              maxspan (max size of gray histo bin; use 0 for default)
  *      Return: pixd (8 bpp, quantized to octcube for pixels that are
  *                    not gray; gray pixels are quantized separately
- *                    over the full gray range), or null on error
+ *                    over the full gray range), or NULL on error
  *
  *  Notes:
  *      (1) First runs pixFewColorsOctcubeQuant1().  If this succeeds,
@@ -3185,12 +3187,12 @@ PIXCMAP   *cmap;
  *          method where input parameters determining the buckets are
  *          the minimum population fraction and the maximum allowed size.
  *      (6) Recommended input parameters are:
- *              @level:  3 or 4  (3 is default)
- *              @darkthresh:  20
- *              @lightthresh: 244
- *              @diffthresh: 20
- *              @minfract: 0.05
- *              @maxspan: 15
+ *              %level:  3 or 4  (3 is default)
+ *              %darkthresh:  20
+ *              %lightthresh: 244
+ *              %diffthresh: 20
+ *              %minfract: 0.05
+ *              %maxspan: 15
  *          These numbers are intended to be conservative (somewhat over-
  *          sensitive) in color detection,  It's usually better to pay
  *          extra with octcube quantization of a grayscale image than
@@ -3310,7 +3312,7 @@ PIXCMAP   *cmap, *cmapd;
  *
  *      Input:  pixs (32 bpp rgb)
  *              level (significant bits for each of r,g,b)
- *      Return: pixd (rgb; quantized to octcube centers), or null on error
+ *      Return: pixd (rgb; quantized to octcube centers), or NULL on error
  *
  *  Notes:
  *      (1) Unlike the other color quantization functions, this one
@@ -3379,14 +3381,14 @@ PIX       *pixd;
  *              mindepth (minimum depth of pixd: can be 2, 4 or 8 bpp)
  *              level (of octcube used for finding nearest color in cmap)
  *              metric (L_MANHATTAN_DISTANCE, L_EUCLIDEAN_DISTANCE)
- *      Return: pixd  (2, 4 or 8 bpp, colormapped), or null on error
+ *      Return: pixd  (2, 4 or 8 bpp, colormapped), or NULL on error
  *
  *  Notes:
  *      (1) This is a top-level wrapper for quantizing either grayscale
  *          or rgb images to a specified colormap.
- *      (2) The actual output depth is constrained by @mindepth and
- *          by the number of colors in @cmap.
- *      (3) For grayscale, @level and @metric are ignored.
+ *      (2) The actual output depth is constrained by %mindepth and
+ *          by the number of colors in %cmap.
+ *      (3) For grayscale, %level and %metric are ignored.
  *      (4) If the cmap has color and pixs is grayscale, the color is
  *          removed from the cmap before quantizing pixs.
  */
@@ -3425,7 +3427,7 @@ l_int32  d;
  *              mindepth (minimum depth of pixd: can be 2, 4 or 8 bpp)
  *              level (of octcube used for finding nearest color in cmap)
  *              metric (L_MANHATTAN_DISTANCE, L_EUCLIDEAN_DISTANCE)
- *      Return: pixd  (2, 4 or 8 bpp, colormapped), or null on error
+ *      Return: pixd  (2, 4 or 8 bpp, colormapped), or NULL on error
  *
  *  Notes:
  *      (1) In typical use, we are doing an operation, such as
@@ -3463,7 +3465,7 @@ l_int32  d;
  *          are all within a cell, then every point in the cube will
  *          lie within the cell.
  *      (4) The depth of the output pixd is equal to the maximum of
- *          (a) @mindepth and (b) the minimum (2, 4 or 8 bpp) necessary
+ *          (a) %mindepth and (b) the minimum (2, 4 or 8 bpp) necessary
  *          to hold the indices in the colormap.
  *      (5) We build a mapping table from octcube to colormap index so
  *          that this function can run in a time (otherwise) independent
@@ -3528,7 +3530,7 @@ PIX       *pixd;
  *              mindepth (minimum depth of pixd: can be 2, 4 or 8 bpp)
  *              cmaptab  (table mapping from octindex to colormap index)
  *              rtab, gtab, btab (tables mapping from RGB to octindex)
- *      Return: pixd  (2, 4 or 8 bpp, colormapped), or null on error
+ *      Return: pixd  (2, 4 or 8 bpp, colormapped), or NULL on error
  *
  *  Notes:
  *      (1) See the notes in the higher-level function
@@ -3619,7 +3621,7 @@ PIXCMAP   *cmapc;
  *      Input:  pixs (32 bpp rgb)
  *              level (significant bits for each of RGB; valid in [1...6])
  *              &ncolors (<optional return> number of occupied cubes)
- *      Return: numa (histogram of color pixels, or null on error)
+ *      Return: numa (histogram of color pixels, or NULL on error)
  *
  *  Notes:
  *      (1) Input NULL for &ncolors to prevent computation and return value.
@@ -3729,9 +3731,9 @@ NUMA       *na;
  *          Do the similar thing for black.
  *      (3) Here are the actual function calls for quantizing to a
  *          specified colormap:
- *            - first make the tables that map from rgb --> octcube index
+ *            ~ first make the tables that map from rgb --> octcube index
  *                     makeRGBToIndexTables()
- *            - then for each pixel:
+ *            ~ then for each pixel:
  *                * use the tables to get the octcube index
  *                     getOctcubeIndexFromRGB()
  *                * use this table to get the nearest color in the colormap
@@ -3963,10 +3965,10 @@ PIXCMAP    *cmap, *cmapd;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) Exactly one of (@mincount, @minfract) must be -1, so, e.g.,
- *          if @mincount == -1, then we use @minfract.
- *      (2) If all occupied octcubes are to count, set @mincount == 1.
- *          Setting @minfract == 0.0 is taken to mean the same thing.
+ *      (1) Exactly one of (%mincount, %minfract) must be -1, so, e.g.,
+ *          if %mincount == -1, then we use %minfract.
+ *      (2) If all occupied octcubes are to count, set %mincount == 1.
+ *          Setting %minfract == 0.0 is taken to mean the same thing.
  */
 l_int32
 pixNumberOccupiedOctcubes(PIX       *pix,

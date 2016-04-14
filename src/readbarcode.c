@@ -126,7 +126,7 @@ static l_int32 numaEvalSyncError(NUMA *nas, l_int32 ifirst, l_int32 ilast,
  *              method (L_USE_WIDTHS, L_USE_WINDOWS)
  *              &saw (<optional return> sarray of bar widths)
  *              debugflag (use 1 to generate debug output)
- *      Return: sarray (text of barcodes), or null if none found or on error
+ *      Return: sarray (text of barcodes), or NULL if none found or on error
  */
 SARRAY *
 pixProcessBarcodes(PIX      *pixs,
@@ -173,7 +173,7 @@ SARRAY  *sad;
  *
  *      Input:  pixs (8 bpp, no colormap)
  *              debugflag (use 1 to generate debug output)
- *      Return: pixa (deskewed and cropped barcodes), or null if
+ *      Return: pixa (deskewed and cropped barcodes), or NULL if
  *                    none found or on error
  */
 PIXA *
@@ -246,7 +246,7 @@ PIXA      *pixa;
  *              &saw (<optional return> sarray of bar widths)
  *              debugflag (use 1 to generate debug output)
  *      Return: sa (sarray of widths, one string for each barcode found),
- *                  or null on error
+ *                  or NULL on error
  */
 SARRAY *
 pixReadBarcodes(PIXA     *pixa,
@@ -327,7 +327,7 @@ SARRAY    *saw, *sad;
  *      Input:  pixs (of 8 bpp deskewed and cropped barcode)
  *              method (L_USE_WIDTHS, L_USE_WINDOWS);
  *              debugflag (use 1 to generate debug output)
- *      Return: na (numa of widths (each in set {1,2,3,4}), or null on error
+ *      Return: na (numa of widths (each in set {1,2,3,4}), or NULL on error
  */
 NUMA *
 pixReadBarcodeWidths(PIX     *pixs,
@@ -376,7 +376,7 @@ NUMA      *na;
  *              thresh (for binarization of edge filter output; typ. 20)
  *              &pixb (<optional return> binarized edge filtered input image)
  *              &pixm (<optional return> mask over barcodes)
- *      Return: boxa (location of barcodes), or null if none found or on error
+ *      Return: boxa (location of barcodes), or NULL if none found or on error
  */
 BOXA *
 pixLocateBarcodes(PIX     *pixs,
@@ -429,7 +429,7 @@ PIX   *pix8, *pixe, *pixb, *pixm;
  *              maxspace (largest space in the barcode, in pixels)
  *              nwidth (opening 'width' to remove noise)
  *              nheight (opening 'height' to remove noise)
- *      Return: pixm (mask over barcodes), or null if none found or on error
+ *      Return: pixm (mask over barcodes), or NULL if none found or on error
  *
  *  Notes:
  *      (1) For noise removal, 'width' and 'height' are referred to the
@@ -484,9 +484,9 @@ PIX  *pixt1, *pixt2, *pixd;
  *              threshold (for binarization; ~20)
  *              &angle (<optional return> in degrees, clockwise is positive)
  *              &conf (<optional return> confidence)
- *      Return: pixd (deskewed barcode), or null on error
+ *      Return: pixd (deskewed barcode), or NULL on error
  *
- *  Note:
+ *  Notes:
  *     (1) The (optional) angle returned is the angle in degrees (cw positive)
  *         necessary to rotate the image so that it is deskewed.
  */
@@ -604,9 +604,9 @@ PIX       *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6, *pixd;
  *              &naohist (<optional return> histogram of white widths; NULL ok)
  *              debugflag (use 1 to generate debug output)
  *      Return: nad (numa of barcode widths in encoded integer units),
- *                  or null on error
+ *                  or NULL on error
  *
- *  Note:
+ *  Notes:
  *     (1) The widths are alternating black/white, starting with black
  *         and ending with black.
  *     (2) This method uses the widths of the bars directly, in terms
@@ -651,7 +651,7 @@ NUMA  *nac, *nad;
  *              &nac (<optional return> number of transitions in each window)
  *              debugflag (use 1 to generate debug output)
  *      Return: nad (numa of barcode widths in encoded integer units),
- *                  or null on error
+ *                  or NULL on error
  *
  *  Notes:
  *      (1) The widths are alternating black/white, starting with black
@@ -660,7 +660,7 @@ NUMA  *nac, *nad;
  *          that is used to make a decision about whether a transition occurs.
  *          It is approximately the average width in pixels of the narrowest
  *          white and black bars (i.e., those corresponding to unit width).
- *      (3) The optional return signal @nac is a sequence of 0s, 1s,
+ *      (3) The optional return signal %nac is a sequence of 0s, 1s,
  *          and perhaps a few 2s, giving the number of crossings in each window.
  *          On the occasion where there is a '2', it is interpreted as
  *          as ending two runs: the previous one and another one that has length 1.
@@ -697,7 +697,7 @@ NUMA  *nacp, *nad;
  *              thresh (estimated pixel threshold for crossing
  *                      white <--> black; typ. ~120)
  *              debugflag (use 1 to generate debug output)
- *      Return: numa (of crossings, in pixel units), or null on error
+ *      Return: numa (of crossings, in pixel units), or NULL on error
  */
 NUMA *
 pixExtractBarcodeCrossings(PIX       *pixs,
@@ -753,7 +753,7 @@ NUMA      *nas, *nax, *nay, *nad;
  *
  *      Input:  pixs (input image; 8 bpp)
  *              nscans (number of adjacent scans, about the center vertically)
- *      Return: numa (of average pixel values across image), or null on error
+ *      Return: numa (of average pixel values across image), or NULL on error
  */
 static NUMA *
 pixAverageRasterScans(PIX     *pixs,
@@ -808,7 +808,7 @@ NUMA       *nad;
  *              &naehist (<optional return> histo of even (black) bar widths)
  *              &naohist (<optional return> histo of odd (white) bar widths)
  *              debugflag (1 to generate plots of histograms of bar widths)
- *      Return: nad (sequence of widths, in unit sizes), or null on error
+ *      Return: nad (sequence of widths, in unit sizes), or NULL on error
  *
  *  Notes:
  *      (1) This first computes the histogram of black and white bar widths,
@@ -817,8 +817,8 @@ NUMA       *nad;
  *          of barcode widths (namely, the integers from the set {1,2,3,4})
  *          is returned.
  *      (2) The optional returned histograms are binned in width units
- *          that are inversely proportional to @binfract.  For example,
- *          if @binfract = 0.25, there are 4.0 bins in the distance of
+ *          that are inversely proportional to %binfract.  For example,
+ *          if %binfract = 0.25, there are 4.0 bins in the distance of
  *          the width of the narrowest bar.
  */
 NUMA *
@@ -1052,10 +1052,10 @@ NUMA      *naedist, *naodist;
  *              minfirst (min location of center of first peak)
  *              minsep (min separation between peak range centers)
  *              maxmin (max allowed value for min histo value between peaks)
- *      Return: nad (ranges for each peak found, in pairs), or null on error
+ *      Return: nad (ranges for each peak found, in pairs), or NULL on error
  *
  *  Notes:
- *      (1) Units of @minsep are the index into nas.
+ *      (1) Units of %minsep are the index into nas.
  *          This puts useful constraints on peak-finding.
  *      (2) If maxmin == 0.0, the value of nas[i] must go to 0.0 (or less)
  *          between peaks.
@@ -1120,9 +1120,9 @@ NUMA      *nad;
  *  numaGetPeakCentroids()
  *
  *      Input:  nahist (numa of histogram of crossing widths)
- *              narange (numa of ranges of x-values for the peaks in @nahist)
+ *              narange (numa of ranges of x-values for the peaks in %nahist)
  *      Return: nad (centroids for each peak found; max of 4, corresponding
- *                   to 4 different barcode line widths), or null on error
+ *                   to 4 different barcode line widths), or NULL on error
  */
 static NUMA *
 numaGetPeakCentroids(NUMA  *nahist,
@@ -1164,7 +1164,7 @@ NUMA      *nad;
  *      Input:  narange (numa of x-val ranges for the histogram width peaks)
  *              nacent (numa of centroids of each peak -- up to 4)
  *      Return: nalut (lookup table from the width of a bar to one of the four
- *                     integerized barcode units), or null on error
+ *                     integerized barcode units), or NULL on error
  *
  *  Notes:
  *      (1) This generates the lookup table that maps from a sequence of widths
@@ -1253,12 +1253,12 @@ NUMA       *nalut;
  *              &firstloc (<optional return> center of window for first xing)
  *              &nac (<optional return> array of window crossings (0, 1, 2))
  *              debugflag (1 to generate various plots of intermediate results)
- *      Return: nad (sequence of widths, in unit sizes), or null on error
+ *      Return: nad (sequence of widths, in unit sizes), or NULL on error
  *
  *  Notes:
  *      (1) The minimum size of the window is set by the minimum
  *          distance between zero crossings.
- *      (2) The optional return signal @nac is a sequence of 0s, 1s,
+ *      (2) The optional return signal %nac is a sequence of 0s, 1s,
  *          and perhaps a few 2s, giving the number of crossings in each window.
  *          On the occasion where there is a '2', it is interpreted as
  *          ending two runs: the previous one and another one that has length 1.
@@ -1359,7 +1359,7 @@ NUMA      *nac, *nad;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This does a linear sweep of widths, evaluating at @nshift
+ *      (1) This does a linear sweep of widths, evaluating at %nshift
  *          shifts for each width, finding the (width, shift) pair that
  *          gives the minimum score.
  */
@@ -1427,10 +1427,10 @@ l_float32  bestwidth, bestshift, bestscore;
  *
  *  Notes:
  *      (1) The score is computed only on the part of the signal from the
- *          @ifirst to @ilast crossings.  Use 0 for both of these to
+ *          %ifirst to %ilast crossings.  Use 0 for both of these to
  *          use all the crossings.  The score is normalized for
  *          the number of crossings and with half-width of the window.
- *      (2) The optional return @nad is a sequence of 0s and 1s, where a '1'
+ *      (2) The optional return %nad is a sequence of 0s and 1s, where a '1'
  *          indicates a crossing in the window.
  */
 static l_int32

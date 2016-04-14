@@ -231,7 +231,7 @@ static const struct CompParameterMap  comp_parameter_map[] =
  *  selaCreate()
  *
  *      Input:  n (initial number of sel ptrs; use 0 for default)
- *      Return: sela, or null on error
+ *      Return: sela, or NULL on error
  */
 SELA *
 selaCreate(l_int32  n)
@@ -262,7 +262,7 @@ SELA  *sela;
 /*!
  *  selaDestroy()
  *
- *      Input:  &sela (<to be nulled>)
+ *      Input:  &sela (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -289,7 +289,7 @@ l_int32  i;
  *
  *      Input:  height, width
  *              name (<optional> sel name; can be null)
- *      Return: sel, or null on error
+ *      Return: sel, or NULL on error
  *
  *  Notes:
  *      (1) selCreate() initializes all values to 0.
@@ -322,7 +322,7 @@ SEL  *sel;
 /*!
  *  selDestroy()
  *
- *      Input:  &sel (<to be nulled>)
+ *      Input:  &sel (<inout> to be nulled)
  *      Return: void
  */
 void
@@ -356,7 +356,7 @@ SEL     *sel;
  *  selCopy()
  *
  *      Input:  sel
- *      Return: a copy of the sel, or null on error
+ *      Return: a copy of the sel, or NULL on error
  */
 SEL *
 selCopy(SEL  *sel)
@@ -397,7 +397,7 @@ SEL     *csel;
  *      Input:  height, width
  *              cy, cx  (origin, relative to UL corner at 0,0)
  *              type  (SEL_HIT, SEL_MISS, or SEL_DONT_CARE)
- *      Return: sel, or null on error
+ *      Return: sel, or NULL on error
  *
  *  Notes:
  *      (1) This is a rectangular sel of all hits, misses or don't cares.
@@ -436,7 +436,7 @@ SEL     *sel;
  *      Input:  factor1 (contiguous space between comb tines)
  *              factor2 (number of comb tines)
  *              direction (L_HORIZ, L_VERT)
- *      Return: sel, or null on error
+ *      Return: sel, or NULL on error
  *
  *  Notes:
  *      (1) This generates a comb Sel of hits with the origin as
@@ -624,7 +624,7 @@ selaGetCount(SELA  *sela)
  *
  *      Input:  sela
  *              index of sel to be retrieved (not copied)
- *      Return: sel, or null on error
+ *      Return: sel, or NULL on error
  *
  *  Notes:
  *      (1) This returns a ptr to the sel, not a copy, so the caller
@@ -649,7 +649,7 @@ selaGetSel(SELA    *sela,
  *  selGetName()
  *
  *      Input:  sel
- *      Return: sel name (not copied), or null if no name or on error
+ *      Return: sel name (not copied), or NULL if no name or on error
  */
 char *
 selGetName(SEL  *sel)
@@ -897,7 +897,7 @@ l_int32  sx, sy, cx, cy, i, j;
  *
  *      Input:  sela
  *              hsize, vsize (of brick sel)
- *      Return: sel name (new string), or null if no name or on error
+ *      Return: sel name (new string), or NULL if no name or on error
  */
 char *
 selaGetBrickName(SELA    *sela,
@@ -930,7 +930,7 @@ SEL     *sel;
  *      Input:  sela
  *              size (the product of sizes of the brick and comb parts)
  *              direction (L_HORIZ, L_VERT)
- *      Return: sel name (new string), or null if name not found or on error
+ *      Return: sel name (new string), or NULL if name not found or on error
  *
  *  Notes:
  *      (1) Combs are by definition 1-dimensional, either horiz or vert.
@@ -1102,7 +1102,7 @@ l_int32  index;
  *  selaGetSelnames()
  *
  *      Input:  sela
- *      Return: sa (of all sel names), or null on error
+ *      Return: sa (of all sel names), or NULL on error
  */
 SARRAY *
 selaGetSelnames(SELA  *sela)
@@ -1142,7 +1142,8 @@ SARRAY  *sa;
  *              &xp, &yp, &xn, &yn  (<return> max shifts)
  *      Return: 0 if OK; 1 on error
  *
- *  Note: these are the maximum shifts for the erosion operation.
+ *  Notes:
+          These are the maximum shifts for the erosion operation.
  *        For example, when j < cx, the shift of the image
  *        is +x to the cx.  This is a positive xp shift.
  */
@@ -1194,7 +1195,7 @@ l_int32  maxxp, maxyp, maxxn, maxyn;
  *
  *      Input:  sel
  *              quads (0 - 4; number of 90 degree cw rotations)
- *      Return: seld, or null on error
+ *      Return: seld, or NULL on error
  */
 SEL  *
 selRotateOrth(SEL     *sel,
@@ -1261,7 +1262,7 @@ SEL     *seld;
  *  selaRead()
  *
  *      Input:  filename
- *      Return: sela, or null on error
+ *      Return: sela, or NULL on error
  */
 SELA  *
 selaRead(const char  *fname)
@@ -1287,8 +1288,8 @@ SELA  *sela;
 /*!
  *  selaReadStream()
  *
- *      Input:  stream
- *      Return: sela, or null on error
+ *      Input:  fp (file stream)
+ *      Return: sela, or NULL on error
  */
 SELA  *
 selaReadStream(FILE  *fp)
@@ -1328,7 +1329,7 @@ SELA    *sela;
  *  selRead()
  *
  *      Input:  filename
- *      Return: sel, or null on error
+ *      Return: sel, or NULL on error
  */
 SEL  *
 selRead(const char  *fname)
@@ -1354,8 +1355,8 @@ SEL   *sel;
 /*!
  *  selReadStream()
  *
- *      Input:  stream
- *      Return: sel, or null on error
+ *      Input:  fp (file stream)
+ *      Return: sel, or NULL on error
  */
 SEL  *
 selReadStream(FILE  *fp)
@@ -1433,7 +1434,7 @@ FILE  *fp;
 /*!
  *  selaWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              sela
  *      Return: 0 if OK, 1 on error
  */
@@ -1495,7 +1496,7 @@ FILE  *fp;
 /*!
  *  selWriteStream()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              sel
  *      Return: 0 if OK, 1 on error
  */
@@ -1537,7 +1538,7 @@ l_int32  sx, sy, cx, cy, i, j;
  *      Input:  text
  *              height, width
  *              name (<optional> sel name; can be null)
- *      Return: sel of the given size, or null on error
+ *      Return: sel of the given size, or NULL on error
  *
  *  Notes:
  *      (1) The text is an array of chars (in row-major order) where
@@ -1676,18 +1677,18 @@ l_int32  sx, sy, cx, cy, x, y;
  *  selaCreateFromFile()
  *
  *      Input:  filename
- *      Return: sela, or null on error
+ *      Return: sela, or NULL on error
  *
  *  Notes:
  *      (1) The file contains a sequence of Sel descriptions.
  *      (2) Each Sel is formatted as follows:
- *           - Any number of comment lines starting with '#' are ignored
- *           - The next line contains the selname
- *           - The next lines contain the Sel data.  They must be
+ *           ~ Any number of comment lines starting with '#' are ignored
+ *           ~ The next line contains the selname
+ *           ~ The next lines contain the Sel data.  They must be
  *             formatted similarly to the string format in
  *             selCreateFromString(), with each line beginning and
  *             ending with a double-quote, and showing the 2D layout.
- *           - Each Sel ends when a blank line, a comment line, or
+ *           ~ Each Sel ends when a blank line, a comment line, or
  *             the end of file is reached.
  *      (3) See selCreateFromString() for a description of the string
  *          format for the Sel data.  As an example, here are the lines
@@ -1778,16 +1779,16 @@ SELA    *sela;
  *      Input:  sa
  *              first (line of sarray where Sel begins)
  *              last (line of sarray where Sel ends)
- *      Return: sela, or null on error
+ *      Return: sela, or NULL on error
  *
  *  Notes:
  *      (1) The Sel contains the following lines:
- *          - The first line is the selname
- *          - The remaining lines contain the Sel data.  They must
+ *          ~ The first line is the selname
+ *          ~ The remaining lines contain the Sel data.  They must
  *            be formatted similarly to the string format in
  *            selCreateFromString(), with each line beginning and
  *            ending with a double-quote, and showing the 2D layout.
- *          - 'last' gives the last line in the Sel data.
+ *          ~ 'last' gives the last line in the Sel data.
  *      (2) See selCreateFromString() for a description of the string
  *          format for the Sel data.  As an example, here are the lines
  *          of is a valid file for a single Sel.  In the file, all lines
@@ -1871,7 +1872,7 @@ SEL     *sel;
  *      Input:  pta
  *              cy, cx (origin of sel)
  *              name (<optional> sel name; can be null)
- *      Return: sel (of minimum required size), or null on error
+ *      Return: sel (of minimum required size), or NULL on error
  *
  *  Notes:
  *      (1) The origin and all points in the pta must be positive.
@@ -1919,7 +1920,7 @@ SEL     *sel;
  *      Input:  pix
  *              cy, cx (origin of sel)
  *              name (<optional> sel name; can be null)
- *      Return: sel, or null on error
+ *      Return: sel, or NULL on error
  *
  *  Notes:
  *      (1) The origin must be positive.
@@ -1966,7 +1967,7 @@ l_uint32  val;
  *  selReadFromColorImage()
  *
  *      Input:  pathname
- *      Return: sel if OK; null on error
+ *      Return: sel if OK; NULL on error
  *
  *  Notes:
  *      (1) Loads an image from a file and creates a (hit-miss) sel.
@@ -2003,7 +2004,7 @@ char  *basename, *selname;
  *
  *      Input:  pixs (cmapped or rgb)
  *              selname (<optional> sel name; can be null)
- *      Return: sel if OK, null on error
+ *      Return: sel if OK, NULL on error
  *
  *  Notes:
  *      (1) The sel size is given by the size of pixs.
@@ -2097,15 +2098,15 @@ l_uint32  pixval;
  *      Input:  sel
  *              size (of grid interiors; odd; minimum size of 13 is enforced)
  *              gthick (grid thickness; minimum size of 2 is enforced)
- *      Return: pix (display of sel), or null on error
+ *      Return: pix (display of sel), or NULL on error
  *
  *  Notes:
  *      (1) This gives a visual representation of a general (hit-miss) sel.
  *      (2) The empty sel is represented by a grid of intersecting lines.
  *      (3) Three different patterns are generated for the sel elements:
- *          - hit (solid black circle)
- *          - miss (black ring; inner radius is radius2)
- *          - origin (cross, XORed with whatever is there)
+ *          ~ hit (solid black circle)
+ *          ~ miss (black ring; inner radius is radius2)
+ *          ~ origin (cross, XORed with whatever is there)
  */
 PIX *
 selDisplayInPix(SEL     *sel,
@@ -2215,7 +2216,7 @@ PTA     *pta1, *pta2, *pta1t, *pta2t;
  *              gthick (grid thickness; minimum size of 2 is enforced)
  *              spacing (between sels, both horizontally and vertically)
  *              ncols (number of sels per "line")
- *      Return: pix (display of all sels in sela), or null on error
+ *      Return: pix (display of all sels in sela), or NULL on error
  *
  *  Notes:
  *      (1) This gives a visual representation of all the sels in a sela.

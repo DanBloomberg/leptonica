@@ -99,7 +99,7 @@
  *  pixcmapCreate()
  *
  *      Input:  depth (bpp, of pix)
- *      Return: cmap, or null on error
+ *      Return: cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapCreate(l_int32  depth)
@@ -132,7 +132,7 @@ PIXCMAP    *cmap;
  *      Input:  depth (bpp, of pix; 2, 4 or 8)
  *              hasblack (1 if the first color is black; 0 if no black)
  *              haswhite (1 if the last color is white; 0 if no white)
- *      Return: cmap, or null on error
+ *      Return: cmap, or NULL on error
  *
  *  Notes:
  *      (1) This sets up a colormap with random colors,
@@ -188,7 +188,7 @@ PIXCMAP  *cmap;
  *
  *      Input:  d (depth of pix for this colormap; 1, 2, 4 or 8)
  *              nlevels (valid in range [2, 2^d])
- *      Return: cmap, or null on error
+ *      Return: cmap, or NULL on error
  *
  *  Notes:
  *      (1) Colormap has equally spaced gray color values
@@ -222,7 +222,7 @@ PIXCMAP  *cmap;
  *  pixcmapCopy()
  *
  *      Input:  cmaps
- *      Return: cmapd, or null on error
+ *      Return: cmapd, or NULL on error
  */
 PIXCMAP *
 pixcmapCopy(PIXCMAP  *cmaps)
@@ -253,7 +253,7 @@ PIXCMAP  *cmapd;
 /*!
  *  pixcmapDestroy()
  *
- *      Input:  &cmap (<set to null>)
+ *      Input:  &cmap (<inout> set to null)
  *      Return: void
  */
 void
@@ -453,7 +453,7 @@ pixcmapAddNearestColor(PIXCMAP  *cmap,
  *      Input:  cmap
  *              rval, gval, bval (colormap entry to be added; each number
  *                                is in range [0, ... 255])
- *              usable (<return> 1 if usable; 0 if not)
+ *              &usable (<return> 1 if usable; 0 if not)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -660,7 +660,8 @@ l_int32  ncolors;
  *      Input:  cmap
  *      Return: 0 if OK, 1 on error
  *
- *  Note: this removes the colors by setting the count to 0.
+ *  Notes:
+ *      This removes the colors by setting the count to 0.
  */
 l_int32
 pixcmapClear(PIXCMAP  *cmap)
@@ -888,7 +889,7 @@ RGBA_QUAD  *cta;
  *      Input:  cmap
  *              rval, gval, bval (colormap colors to search for; each number
  *                                is in range [0, ... 255])
- *              &index (<return>)
+ *              &index (<return> found index)
  *      Return: 0 if found, 1 if not found (caller must check)
  */
 l_int32
@@ -1379,7 +1380,7 @@ l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
  *  pixcmapGrayToColor()
  *
  *      Input:  color
- *      Return: cmap, or null on error
+ *      Return: cmap, or NULL on error
  *
  *  Notes:
  *      (1) This creates a colormap that maps from gray to
@@ -1409,9 +1410,9 @@ PIXCMAP  *cmap;
 /*!
  *  pixcmapColorToGray()
  *
- *      Input:  cmap
+ *      Input:  cmaps
  *              rwt, gwt, bwt  (non-negative; these should add to 1.0)
- *      Return: cmap (gray), or null on error
+ *      Return: cmap (gray), or NULL on error
  *
  *  Notes:
  *      (1) This creates a gray colormap from an arbitrary colormap.
@@ -1469,7 +1470,7 @@ PIXCMAP   *cmapd;
  *  pixcmapRead()
  *
  *      Input:  filename
- *      Return: cmap, or null on error
+ *      Return: cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapRead(const char  *filename)
@@ -1497,8 +1498,8 @@ PIXCMAP  *cmap;
 /*!
  *  pixcmapReadStream()
  *
- *      Input:  stream
- *      Return: cmap, or null on error
+ *      Input:  fp (file stream)
+ *      Return: cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapReadStream(FILE  *fp)
@@ -1568,7 +1569,8 @@ FILE  *fp;
 /*!
  *  pixcmapWriteStream()
  *
- *      Input:  stream, cmap
+ *      Input:  fp (file stream)
+                cmap
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1610,7 +1612,7 @@ l_int32   i;
 /*!
  *  pixcmapToArrays()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *              &rmap, &gmap, &bmap  (<return> colormap arrays)
  *              &amap (<optional return> alpha array)
  *      Return: 0 if OK; 1 on error
@@ -1664,7 +1666,7 @@ RGBA_QUAD  *cta;
 /*!
  *  pixcmapToRGBTable()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *              &tab (<return> table of rgba values for the colormap)
  *              &ncolors (<optional return> size of table)
  *      Return: 0 if OK; 1 on error
@@ -1703,14 +1705,14 @@ l_uint32  *tab;
 /*!
  *  pixcmapSerializeToMemory()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *              cpc (components/color: 3 for rgb, 4 for rgba)
  *              &ncolors (<return> number of colors in table)
  *              &data (<return> binary string, cpc bytes per color)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) When serializing to store in a pdf, use @cpc = 3.
+ *      (1) When serializing to store in a pdf, use %cpc = 3.
  */
 l_int32
 pixcmapSerializeToMemory(PIXCMAP   *cmap,
@@ -1758,7 +1760,7 @@ l_uint8  *data;
  *      Input:  data (binary string, 3 or 4 bytes per color)
  *              cpc (components/color: 3 for rgb, 4 for rgba)
  *              ncolors
- *      Return: cmap, or null on error
+ *      Return: cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapDeserializeFromMemory(l_uint8  *data,
@@ -1809,10 +1811,10 @@ PIXCMAP  *cmap;
  *      Input:  data  (binary serialized data)
  *              ncolors (in colormap)
  *      Return: hexdata (bracketed, space-separated ascii hex string),
- *                       or null on error.
+ *                       or NULL on error.
  *
  *  Notes:
- *      (1) The number of bytes in @data is 3 * ncolors.
+ *      (1) The number of bytes in %data is 3 * ncolors.
  *      (2) Output is in form:
  *             < r0g0b0 r1g1b1 ... rngnbn >
  *          where r0, g0, b0 ... are each 2 bytes of hex ascii
@@ -1864,7 +1866,7 @@ char     buf[4];
 /*!
  *  pixcmapGammaTRC()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *              gamma (gamma correction; must be > 0.0)
  *              minval  (input value that gives 0 for output; can be < 0)
  *              maxval  (input value that gives 255 for output; can be > 255)
@@ -1918,8 +1920,8 @@ NUMA    *nag;
 /*!
  *  pixcmapContrastTRC()
  *
- *      Input:  colormap
- *              factor (generally between 0.0 (no enhancement)
+ *      Input:  cmap (colormap)
+ *              factor (generally between 0.0 [no enhancement]
  *                      and 1.0, but can be larger than 1.0)
  *      Return: 0 if OK; 1 on error
  *
@@ -1964,7 +1966,7 @@ NUMA    *nac;
 /*!
  *  pixcmapShiftIntensity()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *              fraction (between -1.0 and +1.0)
  *      Return: 0 if OK; 1 on error
  *
@@ -2013,7 +2015,7 @@ l_int32  i, ncolors, rval, gval, bval;
 /*!
  *  pixcmapShiftByComponent()
  *
- *      Input:  colormap
+ *      Input:  cmap (colormap)
  *              srcval (source color: 0xrrggbb00)
  *              dstval (target color: 0xrrggbb00)
  *      Return: 0 if OK; 1 on error

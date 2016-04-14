@@ -77,8 +77,8 @@ static const l_int64  L_MAX_ALLOWED_AREA = 400000000LL;
 /*!
  *  pixReadStreamBmp()
  *
- *      Input:  stream opened for read
- *      Return: pix, or null on error
+ *      Input:  fp (file stream opened for read)
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) Here are references on the bmp file format:
@@ -352,7 +352,7 @@ PIXCMAP   *cmap;
 /*!
  *  pixWriteStreamBmp()
  *
- *      Input:  stream opened for write
+ *      Input:  fp (file stream opened for write)
  *              pix (1, 4, 8, 32 bpp)
  *      Return: 0 if OK, 1 on error
  *
@@ -575,10 +575,10 @@ RGBA_QUAD  *pquad;
  *
  *      Input:  data (const; bmp-encoded)
  *              size (of data)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
- *      (1) The @size byte of @data must be a null character.
+ *      (1) The %size byte of %data must be a null character.
  */
 PIX *
 pixReadMemBmp(const l_uint8  *data,

@@ -162,9 +162,9 @@ static l_int32   var_WRITE_DATE_AND_VERSION = 1;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) If @res == 0 and the input resolution field is 0,
+ *      (1) If %res == 0 and the input resolution field is 0,
  *          this will use DEFAULT_INPUT_RES.
- *      (2) This only writes @data if it is the last image to be
+ *      (2) This only writes %data if it is the last image to be
  *          written on the page.
  *      (3) See comments in convertToPdf().
  */
@@ -208,7 +208,7 @@ L_PDF_DATA   *lpd = NULL;
         return ERROR_INT("cid not made", procName, 1);
 
         /* Get media box in pts.  Guess the input image resolution
-         * based on the input parameter @res, the resolution data in
+         * based on the input parameter %res, the resolution data in
          * the pix, and the size of the image. */
     pixres = cid->res;
     w = cid->w;
@@ -515,7 +515,7 @@ PIX          *pixt;
  *
  *      Input:  fname (preferably png)
  *              pix (<optional>; can be null)
- *      Return: cid (containing png data), or null on error
+ *      Return: cid (containing png data), or NULL on error
  *
  *  Notes:
  *      (1) If you hand this a png file, you are going to get
@@ -709,12 +709,12 @@ PIXCMAP      *cmap = NULL;
  *
  *      Input:  fname (of jpeg file)
  *              ascii85flag (0 for jpeg; 1 for ascii85-encoded jpeg)
- *      Return: cid (containing jpeg data), or null on error
+ *      Return: cid (containing jpeg data), or NULL on error
  *
  *  Notes:
  *      (1) Set ascii85flag:
- *           - 0 for binary data (not permitted in PostScript)
- *           - 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
  *               (not permitted in pdf)
  */
 L_COMP_DATA *
@@ -782,7 +782,7 @@ L_COMP_DATA  *cid;
  *  l_generateJp2kData()
  *
  *      Input:  fname (of jp2k file)
- *      Return: cid (containing jp2k data), or null on error
+ *      Return: cid (containing jp2k data), or NULL on error
  *
  *  Notes:
  *      (1) This is only called after the file is verified to be jp2k.
@@ -831,8 +831,8 @@ L_COMP_DATA  *cid;
  *  Notes:
  *      (1) This can be used for both PostScript and pdf.
  *      (1) Set ascii85:
- *           - 0 for binary data (not permitted in PostScript)
- *           - 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
  *      (2) This attempts to compress according to the requested type.
  *          If this can't be done, it falls back to ordinary flate encoding.
  *      (3) This differs from l_generateCIDataPdf(), which determines
@@ -929,8 +929,8 @@ PIX          *pix;
  *
  *  Notes:
  *      (1) Set ascii85:
- *           - 0 for binary data (not permitted in PostScript)
- *           - 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
  */
 l_int32
 pixGenerateCIData(PIX           *pixs,
@@ -991,17 +991,17 @@ PIXCMAP  *cmap;
  *
  *      Input:  fname
  *              ascii85flag (0 for gzipped; 1 for ascii85-encoded gzipped)
- *      Return: cid (flate compressed image data), or null on error
+ *      Return: cid (flate compressed image data), or NULL on error
  *
  *  Notes:
  *      (1) The input image is converted to one of these 4 types:
- *           - 1 bpp
- *           - 8 bpp, no colormap
- *           - 8 bpp, colormap
- *           - 32 bpp rgb
+ *           ~ 1 bpp
+ *           ~ 8 bpp, no colormap
+ *           ~ 8 bpp, colormap
+ *           ~ 32 bpp rgb
  *      (2) Set ascii85flag:
- *           - 0 for binary data (not permitted in PostScript)
- *           - 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
  */
 L_COMP_DATA *
 l_generateFlateData(const char  *fname,
@@ -1028,7 +1028,7 @@ PIX          *pixs;
  *
  *      Input:  pixs
  *              ascii85flag (0 for gzipped; 1 for ascii85-encoded gzipped)
- *      Return: cid (flate compressed image data), or null on error
+ *      Return: cid (flate compressed image data), or NULL on error
  *
  *      Notes:
  *          (1) This should not be called with an RGBA pix (spp == 4); it
@@ -1147,12 +1147,12 @@ PIXCMAP      *cmap;
  *      Input:  pixs (8 or 32 bpp, no colormap)
  *              ascii85flag (0 for jpeg; 1 for ascii85-encoded jpeg)
  *              quality (0 for default, which is 75)
- *      Return: cid (jpeg compressed data), or null on error
+ *      Return: cid (jpeg compressed data), or NULL on error
  *
  *  Notes:
  *      (1) Set ascii85flag:
- *           - 0 for binary data (not permitted in PostScript)
- *           - 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
  */
 static L_COMP_DATA *
 pixGenerateJpegData(PIX     *pixs,
@@ -1190,12 +1190,12 @@ L_COMP_DATA  *cid;
  *
  *      Input:  pixs (1 bpp)
  *              ascii85flag (0 for gzipped; 1 for ascii85-encoded gzipped)
- *      Return: cid (g4 compressed image data), or null on error
+ *      Return: cid (g4 compressed image data), or NULL on error
  *
  *  Notes:
  *      (1) Set ascii85flag:
- *           - 0 for binary data (not permitted in PostScript)
- *           - 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
  */
 static L_COMP_DATA *
 pixGenerateG4Data(PIX     *pixs,
@@ -1228,12 +1228,12 @@ L_COMP_DATA  *cid;
  *
  *      Input:  fname (of g4 compressed file)
  *              ascii85flag (0 for g4 compressed; 1 for ascii85-encoded g4)
- *      Return: cid (g4 compressed image data), or null on error
+ *      Return: cid (g4 compressed image data), or NULL on error
  *
  *  Notes:
  *      (1) Set ascii85flag:
- *           - 0 for binary data (not permitted in PostScript)
- *           - 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
  *             (not permitted in pdf)
  */
 L_COMP_DATA *
@@ -1359,7 +1359,7 @@ L_PDF_DATA  *lpd = NULL;
 /*!
  *  l_CIDataDestroy()
  *
- *      Input:  &cid (<will be set to null before returning>)
+ *      Input:  &cid (<inout> will be set to null before returning)
  *      Return: void
  */
 void

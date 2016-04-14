@@ -126,7 +126,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
+static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /*!< n'import quoi */
 
 
 /*---------------------------------------------------------------------*
@@ -136,7 +136,7 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
  *  boxCreate()
  *
  *      Input:  x, y, w, h
- *      Return: box, or null on error
+ *      Return: box, or NULL on error
  *
  *  Notes:
  *      (1) This clips the box to the +quad.  If no part of the
@@ -190,7 +190,7 @@ BOX  *box;
  *  boxCreateValid()
  *
  *      Input:  x, y, w, h
- *      Return: box, or null on error
+ *      Return: box, or NULL on error
  *
  *  Notes:
  *      (1) This returns NULL if either w = 0 or h = 0.
@@ -213,7 +213,7 @@ boxCreateValid(l_int32  x,
  *  boxCopy()
  *
  *      Input:  box
- *      Return: copy of box, or null on error
+ *      Return: copy of box, or NULL on error
  */
 BOX *
 boxCopy(BOX  *box)
@@ -235,7 +235,7 @@ BOX  *boxc;
  *  boxClone()
  *
  *      Input:  box
- *      Return: ptr to same box, or null on error
+ *      Return: ptr to same box, or NULL on error
  */
 BOX *
 boxClone(BOX  *box)
@@ -254,7 +254,7 @@ boxClone(BOX  *box)
 /*!
  *  boxDestroy()
  *
- *      Input:  &box (<will be set to null before returning>)
+ *      Input:  &box (<inout> will be set to null before returning)
  *      Return: void
  *
  *  Notes:
@@ -385,6 +385,11 @@ l_int32  x, y, w, h;
 }
 
 
+/*!
+ * Return the current reference count of %box
+ *      Input:   box (ptr to Box)
+ *      Return:  refcount
+ */
 l_int32
 boxGetRefcount(BOX  *box)
 {
@@ -396,7 +401,12 @@ boxGetRefcount(BOX  *box)
     return box->refcount;
 }
 
-
+/*!
+ * Adjust the current refernce count of %box by %delta
+ *      Input:   box (ptr to box)
+ *               delta (adjustment, usually -1 or 1)
+ *      Return: 0 if OK, 1 on error
+ */
 l_int32
 boxChangeRefcount(BOX     *box,
                   l_int32  delta)
@@ -443,7 +453,7 @@ boxIsValid(BOX      *box,
  *  boxaCreate()
  *
  *      Input:  n  (initial number of ptrs)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  */
 BOXA *
 boxaCreate(l_int32  n)
@@ -473,7 +483,7 @@ BOXA  *boxa;
  *
  *      Input:  boxa
  *              copyflag (L_COPY, L_CLONE, L_COPY_CLONE)
- *      Return: new boxa, or null on error
+ *      Return: new boxa, or NULL on error
  *
  *  Notes:
  *      (1) See pix.h for description of the copyflag.
@@ -516,12 +526,12 @@ BOXA    *boxac;
 /*!
  *  boxaDestroy()
  *
- *      Input:  &boxa (<will be set to null before returning>)
+ *      Input:  &boxa (<inout> will be set to null before returning)
  *      Return: void
  *
- *  Note:
- *      - Decrements the ref count and, if 0, destroys the boxa.
- *      - Always nulls the input ptr.
+ *  Notes:
+ *      (1) Decrements the ref count and, if 0, destroys the boxa.
+ *      (2) Always nulls the input ptr.
  */
 void
 boxaDestroy(BOXA  **pboxa)
@@ -626,7 +636,7 @@ boxaExtendArray(BOXA  *boxa)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) If necessary, reallocs new boxa ptr array to @size.
+ *      (1) If necessary, reallocs new boxa ptr array to %size.
  */
 l_int32
 boxaExtendArrayToSize(BOXA    *boxa,
@@ -700,7 +710,7 @@ l_int32  n, i, w, h, count;
  *      Input:  boxa
  *              index  (to the index-th box)
  *              accessflag  (L_COPY or L_CLONE)
- *      Return: box, or null on error
+ *      Return: box, or NULL on error
  */
 BOX *
 boxaGetBox(BOXA    *boxa,
@@ -729,7 +739,7 @@ boxaGetBox(BOXA    *boxa,
  *      Input:  boxa
  *              index  (to the index-th box)
  *              accessflag  (L_COPY or L_CLONE)
- *      Return: box, or null if box is not valid or on error
+ *      Return: box, or NULL if box is not valid or on error
  *
  *  Notes:
  *      (1) This returns NULL for an invalid box in a boxa.
@@ -1003,7 +1013,7 @@ BOX    **array;
  *
  *      Input:  boxa
  *              copyflag (L_COPY or L_CLONE)
- *      Return: boxad if OK, null on error
+ *      Return: boxad if OK, NULL on error
  *
  *  Notes:
  *      (1) This makes a copy/clone of each valid box.
@@ -1043,7 +1053,7 @@ BOXA    *boxad;
  *
  *  Notes:
  *      (1) This initializes a boxa by filling up the entire box ptr array
- *          with copies of @box.  If @box == NULL, use a placeholder box
+ *          with copies of %box.  If %box == NULL, use a placeholder box
  *          of zero size.  Any existing boxes are destroyed.
  *          After this opepration, the number of boxes is equal to
  *          the number of allocated ptrs.
@@ -1130,7 +1140,7 @@ l_int32  i, n;
  *  boxaaCreate()
  *
  *      Input:  size of boxa ptr array to be alloc'd (0 for default)
- *      Return: baa, or null on error
+ *      Return: baa, or NULL on error
  */
 BOXAA *
 boxaaCreate(l_int32  n)
@@ -1160,7 +1170,7 @@ BOXAA  *baa;
  *      Input:  baas (input boxaa to be copied)
  *              copyflag (L_COPY, L_CLONE)
  *      Return: baad (new boxaa, composed of copies or clones of the boxa
- *                    in baas), or null on error
+ *                    in baas), or NULL on error
  *
  *  Notes:
  *      (1) L_COPY makes a copy of each boxa in baas.
@@ -1195,7 +1205,7 @@ BOXAA   *baad;
 /*!
  *  boxaaDestroy()
  *
- *      Input:  &boxaa (<will be set to null before returning>)
+ *      Input:  &boxaa (<inout> will be set to null before returning)
  *      Return: void
  */
 void
@@ -1231,8 +1241,8 @@ BOXAA   *baa;
 /*!
  *  boxaaAddBoxa()
  *
- *      Input:  boxaa
- *              boxa     (to be added)
+ *      Input:  baa
+ *              ba     (to be added)
  *              copyflag  (L_INSERT, L_COPY, L_CLONE)
  *      Return: 0 if OK, 1 on error
  */
@@ -1270,7 +1280,7 @@ BOXA    *bac;
 /*!
  *  boxaaExtendArray()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1295,12 +1305,12 @@ boxaaExtendArray(BOXAA  *baa)
 /*!
  *  boxaaExtendArrayToSize()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *              size (new size of boxa array)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) If necessary, reallocs the boxa ptr array to @size.
+ *      (1) If necessary, reallocs the boxa ptr array to %size.
  */
 l_int32
 boxaaExtendArrayToSize(BOXAA   *baa,
@@ -1328,7 +1338,7 @@ boxaaExtendArrayToSize(BOXAA   *baa,
 /*!
  *  boxaaGetCount()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *      Return: count (number of boxa), or 0 if no boxa or on error
  */
 l_int32
@@ -1345,7 +1355,7 @@ boxaaGetCount(BOXAA  *baa)
 /*!
  *  boxaaGetBoxCount()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *      Return: count (number of boxes), or 0 if no boxes or on error
  */
 l_int32
@@ -1373,10 +1383,10 @@ l_int32  n, sum, i;
 /*!
  *  boxaaGetBoxa()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *              index  (to the index-th boxa)
  *              accessflag   (L_COPY or L_CLONE)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  */
 BOXA *
 boxaaGetBoxa(BOXAA   *baa,
@@ -1406,7 +1416,7 @@ l_int32  n;
  *              iboxa  (index into the boxa array in the boxaa)
  *              ibox  (index into the box array in the boxa)
  *              accessflag   (L_COPY or L_CLONE)
- *      Return: box, or null on error
+ *      Return: box, or NULL on error
  */
 BOX *
 boxaaGetBox(BOXAA   *baa,
@@ -1434,13 +1444,13 @@ BOXA  *boxa;
 /*!
  *  boxaaInitFull()
  *
- *      Input:  boxaa (typically empty)
+ *      Input:  baa (typically empty)
  *              boxa (to be replicated into the entire ptr array)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
  *      (1) This initializes a boxaa by filling up the entire boxa ptr array
- *          with copies of @boxa.  Any existing boxa are destroyed.
+ *          with copies of %boxa.  Any existing boxa are destroyed.
  *          After this operation, the number of boxa is equal to
  *          the number of allocated ptrs.
  *      (2) Note that we use boxaaReplaceBox() instead of boxaInsertBox().
@@ -1485,7 +1495,7 @@ BOXA    *boxat;
 /*!
  *  boxaaExtendWithInit()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *              maxindex
  *              boxa (to be replicated into the extended ptr array)
  *      Return: 0 if OK, 1 on error
@@ -1525,7 +1535,7 @@ l_int32  i, n;
 /*!
  *  boxaaReplaceBoxa()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *              index  (to the index-th boxa)
  *              boxa (insert and replace any existing one)
  *      Return: 0 if OK, 1 on error
@@ -1561,7 +1571,7 @@ l_int32  n;
 /*!
  *  boxaaInsertBoxa()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *              index (location in boxaa to insert new boxa)
  *              boxa (new boxa to be inserted)
  *      Return: 0 if OK, 1 on error
@@ -1607,7 +1617,7 @@ BOXA   **array;
 /*!
  *  boxaaRemoveBoxa()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *              index  (of the boxa to be removed)
  *      Return: 0 if OK, 1 on error
  *
@@ -1647,7 +1657,7 @@ BOXA   **array;
 /*!
  *  boxaaAddBox()
  *
- *      Input:  boxaa
+ *      Input:  baa
  *              index (of boxa with boxaa)
  *              box (to be added)
  *              accessflag (L_INSERT, L_COPY or L_CLONE)
@@ -1690,15 +1700,15 @@ BOXA    *boxa;
  *      Input:  dirname (directory)
  *              substr (<optional> substring filter on filenames; can be NULL)
  *              first (0-based)
- *              nfiles (use 0 for everything from @first to the end)
- *      Return: baa, or null on error or if no boxa files are found.
+ *              nfiles (use 0 for everything from %first to the end)
+ *      Return: baa, or NULL on error or if no boxa files are found.
  *
  *  Notes:
  *      (1) The files must be serialized boxa files (e.g., *.ba).
  *          If some files cannot be read, warnings are issued.
- *      (2) Use @substr to filter filenames in the directory.  If
- *          @substr == NULL, this takes all files.
- *      (3) After filtering, use @first and @nfiles to select
+ *      (2) Use %substr to filter filenames in the directory.  If
+ *          %substr == NULL, this takes all files.
+ *      (3) After filtering, use %first and %nfiles to select
  *          a contiguous set of files, that have been lexically
  *          sorted in increasing order.
  */
@@ -1744,7 +1754,7 @@ SARRAY  *sa;
  *  boxaaRead()
  *
  *      Input:  filename
- *      Return: boxaa, or null on error
+ *      Return: boxaa, or NULL on error
  */
 BOXAA *
 boxaaRead(const char  *filename)
@@ -1772,8 +1782,8 @@ BOXAA  *baa;
 /*!
  *  boxaaReadStream()
  *
- *      Input:  stream
- *      Return: boxaa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: boxaa, or NULL on error
  */
 BOXAA *
 boxaaReadStream(FILE  *fp)
@@ -1814,7 +1824,7 @@ BOXAA   *baa;
  *  boxaaWrite()
  *
  *      Input:  filename
- *              boxaa
+ *              baa
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1843,8 +1853,8 @@ FILE  *fp;
 /*!
  *  boxaaWriteStream()
  *
- *      Input: stream
- *             boxaa
+ *      Input: fp (file stream)
+ *             baa
  *      Return: 0 if OK, 1 on error
  */
 l_int32
@@ -1888,7 +1898,7 @@ BOXA    *boxa;
  *  boxaRead()
  *
  *      Input:  filename
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  */
 BOXA *
 boxaRead(const char  *filename)
@@ -1916,8 +1926,8 @@ BOXA  *boxa;
 /*!
  *  boxaReadStream()
  *
- *      Input:  stream
- *      Return: boxa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: boxa, or NULL on error
  */
 BOXA *
 boxaReadStream(FILE  *fp)
@@ -1960,7 +1970,7 @@ BOXA    *boxa;
  *
  *      Input:  data (ascii)
  *              size (of data; can use strlen to get it)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  */
 BOXA *
 boxaReadMem(const l_uint8  *data,
@@ -2022,7 +2032,7 @@ FILE  *fp;
 /*!
  *  boxaWriteStream()
  *
- *      Input: stream
+ *      Input: fp (file stream)
  *             boxa
  *      Return: 0 if OK, 1 on error
  */
@@ -2098,7 +2108,7 @@ FILE    *fp;
 /*!
  *  boxPrintStreamInfo()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              box
  *      Return: 0 if OK, 1 on error
  *

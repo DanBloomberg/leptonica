@@ -414,9 +414,9 @@ static const l_int32     DEFAULT_MAX_EDGESLOPE = 80;
 /*!
  *  dewarpCreate()
  *
- *     Input: pixs (1 bpp)
- *            pageno (page number)
- *     Return: dew (or null on error)
+ *      Input: pixs (1 bpp)
+ *             pageno (page number)
+ *      Return: dew (or NULL on error)
  *
  *  Notes:
  *      (1) The input pixs is either full resolution or 2x reduced.
@@ -450,9 +450,9 @@ L_DEWARP  *dew;
 /*!
  *  dewarpCreateRef()
  *
- *     Input:  pageno (this page number)
- *             refpage (page number of dewarp disparity arrays to be used)
- *     Return: dew (or null on error)
+ *      Input:  pageno (this page number)
+ *              refpage (page number of dewarp disparity arrays to be used)
+ *      Return: dew (or NULL on error)
  *
  *  Notes:
  *      (1) This specifies which dewarp struct should be used for
@@ -482,7 +482,7 @@ L_DEWARP  *dew;
 /*!
  *  dewarpDestroy()
  *
- *      Input:  &dew (<will be set to null before returning>)
+ *      Input:  &dew (<inout> will be set to null before returning)
  *      Return: void
  */
 void
@@ -518,12 +518,12 @@ L_DEWARP  *dew;
 /*!
  *  dewarpaCreate()
  *
- *     Input: nptrs (number of dewarp page ptrs; typically the number of pages)
- *            sampling (use 0 for default value; the minimum allowed is 8)
- *            redfactor (of input images: 1 is full resolution; 2 is 2x reduced)
- *            minlines (minimum number of lines to accept; use 0 for default)
- *            maxdist (for locating reference disparity; use -1 for default)
- *     Return: dewa (or null on error)
+ *      Input: nptrs (number of dewarp page ptrs; typically the number of pages)
+ *             sampling (use 0 for default value; the minimum allowed is 8)
+ *             redfactor (of input images: 1 is full resolution; 2 is 2x reduced)
+ *             minlines (minimum number of lines to accept; use 0 for default)
+ *             maxdist (for locating reference disparity; use -1 for default)
+ *      Return: dewa (or NULL on error)
  *
  *  Notes:
  *      (1) The sampling, minlines and maxdist parameters will be
@@ -532,15 +532,15 @@ L_DEWARP  *dew;
  *          from the input image.  For 2x reduced input, use a sampling
  *          factor that is half the sampling you want on the full resolution
  *          images.
- *      (3) Use @redfactor = 1 for full resolution; 2 for 2x reduction.
+ *      (3) Use %redfactor = 1 for full resolution; 2 for 2x reduction.
  *          All input images must be at one of these two resolutions.
- *      (4) @minlines is the minimum number of nearly full-length lines
+ *      (4) %minlines is the minimum number of nearly full-length lines
  *          required to generate a vertical disparity array.  The default
  *          number is 15.  Use a smaller number to accept a questionable
  *          array, but not smaller than 4.
- *      (5) When a model can't be built for a page, it looks up to @maxdist
+ *      (5) When a model can't be built for a page, it looks up to %maxdist
  *          in either direction for a valid model with the same page parity.
- *          Use -1 for the default value of @maxdist; use 0 to avoid using
+ *          Use -1 for the default value of %maxdist; use 0 to avoid using
  *          a ref model.
  *      (6) The ptr array is expanded as necessary to accommodate page images.
  */
@@ -608,12 +608,12 @@ L_DEWARPA  *dewa;
 /*!
  *  dewarpaCreateFromPixacomp()
  *
- *     Input: pixac (pixacomp of G4, 1 bpp images; with 1x1x1 placeholders)
- *            useboth (0 for vert disparity; 1 for both vert and horiz)
- *            sampling (use -1 or 0 for default value; otherwise minimum of 5)
- *            minlines (minimum number of lines to accept; e.g., 10)
- *            maxdist (for locating reference disparity; use -1 for default)
- *     Return: dewa (or null on error)
+ *      Input: pixac (pixacomp of G4, 1 bpp images; with 1x1x1 placeholders)
+ *             useboth (0 for vert disparity; 1 for both vert and horiz)
+ *             sampling (use -1 or 0 for default value; otherwise minimum of 5)
+ *             minlines (minimum number of lines to accept; e.g., 10)
+ *             maxdist (for locating reference disparity; use -1 for default)
+ *      Return: dewa (or NULL on error)
  *
  *  Notes:
  *      (1) The returned dewa has disparity arrays calculated and
@@ -631,7 +631,7 @@ L_DEWARPA  *dewa;
  *      (6) This can be used to make models for any desired set of pages.
  *          The direct models are only made for pages with images in
  *          the pixacomp; the ref models are made for pages of the
- *          same parity within @maxdist of the nearest direct model.
+ *          same parity within %maxdist of the nearest direct model.
  */
 L_DEWARPA *
 dewarpaCreateFromPixacomp(PIXAC   *pixac,
@@ -691,7 +691,7 @@ PIX        *pixt;
 /*!
  *  dewarpaDestroy()
  *
- *      Input:  &dewa (<will be set to null before returning>)
+ *      Input:  &dewa (<inout> will be set to null before returning)
  *      Return: void
  */
 void
@@ -836,7 +836,7 @@ L_DEWARP  *prevdew;
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
- *      (1) If necessary, reallocs main and cache dewarpa ptr arrays to @size.
+ *      (1) If necessary, reallocs main and cache dewarpa ptr arrays to %size.
  */
 static l_int32
 dewarpaExtendArraysToSize(L_DEWARPA  *dewa,
@@ -868,7 +868,7 @@ dewarpaExtendArraysToSize(L_DEWARPA  *dewa,
  *
  *      Input:  dewa (populated with dewarp structs for pages)
  *              index (into dewa: this is the pageno)
- *      Return: dew (handle; still owned by dewa), or null on error
+ *      Return: dew (handle; still owned by dewa), or NULL on error
  */
 L_DEWARP *
 dewarpaGetDewarp(L_DEWARPA  *dewa,
@@ -925,7 +925,7 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  *          Use -1 for default values.
  *      (3) An image with a line curvature less than about 0.00001
  *          has fairly straight textlines.  This is 10 micro-units.
- *      (4) For example, if @max_linecurv == 100, this would prevent dewarping
+ *      (4) For example, if %max_linecurv == 100, this would prevent dewarping
  *          if any of the lines has a curvature exceeding 100 micro-units.
  *          A model having maximum line curvature larger than about 150
  *          micro-units should probably not be used.
@@ -1074,7 +1074,7 @@ dewarpaSetMaxDistance(L_DEWARPA  *dewa,
  *  dewarpRead()
  *
  *      Input:  filename
- *      Return: dew, or null on error
+ *      Return: dew, or NULL on error
  */
 L_DEWARP *
 dewarpRead(const char  *filename)
@@ -1102,8 +1102,8 @@ L_DEWARP  *dew;
 /*!
  *  dewarpReadStream()
  *
- *      Input:  stream
- *      Return: dew, or null on error
+ *      Input:  fp (file stream)
+ *      Return: dew, or NULL on error
  *
  *  Notes:
  *      (1) The dewarp struct is stored in minimized format, with only
@@ -1245,7 +1245,7 @@ FILE  *fp;
 /*!
  *  dewarpWriteStream()
  *
- *      Input:  stream (opened for "wb")
+ *      Input:  fp (file stream opened for "wb")
  *              dew
  *      Return: 0 if OK, 1 on error
  *
@@ -1304,7 +1304,7 @@ l_int32  vdispar, hdispar;
  *  dewarpaRead()
  *
  *      Input:  filename
- *      Return: dewa, or null on error
+ *      Return: dewa, or NULL on error
  */
 L_DEWARPA *
 dewarpaRead(const char  *filename)
@@ -1332,8 +1332,8 @@ L_DEWARPA  *dewa;
 /*!
  *  dewarpaReadStream()
  *
- *      Input:  stream
- *      Return: dewa, or null on error
+ *      Input:  fp (file stream)
+ *      Return: dewa, or NULL on error
  *
  *  Notes:
  *      (1) The serialized dewarp contains a Numa that gives the
@@ -1438,7 +1438,7 @@ FILE  *fp;
 /*!
  *  dewarpaWriteStream()
  *
- *      Input:  stream (opened for "wb")
+ *      Input:  fp (file stream opened for "wb")
  *              dewa
  *      Return: 0 if OK, 1 on error
  */

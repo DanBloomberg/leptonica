@@ -27,9 +27,10 @@
 #ifndef  LEPTONICA_MORPH_H
 #define  LEPTONICA_MORPH_H
 
-/* 
- *  morph.h
+/*!
+ * \file morph.h
  *
+ * <pre>
  *  Contains the following structs:
  *      struct Sel
  *      struct Sela
@@ -49,6 +50,7 @@
  *      distance function b.c. flags
  *      image comparison flags
  *      color content flags
+ * </pre>
  */
 
 /*-------------------------------------------------------------------------*
@@ -56,22 +58,24 @@
  *-------------------------------------------------------------------------*/
 #define  SEL_VERSION_NUMBER    1
 
+/*! Selection */
 struct Sel
 {
-    l_int32       sy;          /* sel height                               */
-    l_int32       sx;          /* sel width                                */
-    l_int32       cy;          /* y location of sel origin                 */
-    l_int32       cx;          /* x location of sel origin                 */
-    l_int32     **data;        /* {0,1,2}; data[i][j] in [row][col] order  */
-    char         *name;        /* used to find sel by name                 */
+    l_int32       sy;        /*!< sel height                               */
+    l_int32       sx;        /*!< sel width                                */
+    l_int32       cy;        /*!< y location of sel origin                 */
+    l_int32       cx;        /*!< x location of sel origin                 */
+    l_int32     **data;      /*!< {0,1,2}; data[i][j] in [row][col] order  */
+    char         *name;      /*!< used to find sel by name                 */
 };
 typedef struct Sel SEL;
 
+/*! Array of Sel */
 struct Sela
 {
-    l_int32          n;         /* number of sel actually stored           */
-    l_int32          nalloc;    /* size of allocated ptr array             */
-    struct Sel     **sel;       /* sel ptr array                           */
+    l_int32          n;       /*!< number of sel actually stored           */
+    l_int32          nalloc;  /*!< size of allocated ptr array             */
+    struct Sel     **sel;     /*!< sel ptr array                           */
 };
 typedef struct Sela SELA;
 
@@ -81,24 +85,27 @@ typedef struct Sela SELA;
  *-------------------------------------------------------------------------*/
 #define  KERNEL_VERSION_NUMBER    2
 
+/*! Kernel */
 struct L_Kernel
 {
-    l_int32       sy;          /* kernel height                            */
-    l_int32       sx;          /* kernel width                             */
-    l_int32       cy;          /* y location of kernel origin              */
-    l_int32       cx;          /* x location of kernel origin              */
-    l_float32   **data;        /* data[i][j] in [row][col] order           */
+    l_int32       sy;        /*!< kernel height                            */
+    l_int32       sx;        /*!< kernel width                             */
+    l_int32       cy;        /*!< y location of kernel origin              */
+    l_int32       cx;        /*!< x location of kernel origin              */
+    l_float32   **data;      /*!< data[i][j] in [row][col] order           */
 };
 typedef struct L_Kernel  L_KERNEL;
 
 
 /*-------------------------------------------------------------------------*
  *                 Morphological boundary condition flags                  *
- *
- *  Two types of boundary condition for erosion.
- *  The global variable MORPH_BC takes on one of these two values.
- *  See notes in morph.c for usage.
+ *                                                                         *
+ *  Two types of boundary condition for erosion.                           *
+ *  The global variable MORPH_BC takes on one of these two values.         *
+ *  See notes in morph.c for usage.                                        *
  *-------------------------------------------------------------------------*/
+
+/*! Morphological boundary condition flags */
 enum {
     SYMMETRIC_MORPH_BC = 0,
     ASYMMETRIC_MORPH_BC = 1
@@ -107,6 +114,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                        Structuring element types                        *
  *-------------------------------------------------------------------------*/
+
+/*! Structuring element types */
 enum {
     SEL_DONT_CARE  = 0,
     SEL_HIT        = 1,
@@ -116,6 +125,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                  Runlength flags for granulometry                       *
  *-------------------------------------------------------------------------*/
+
+/*! Runlength flags for granulometry */
 enum {
     L_RUN_OFF = 0,
     L_RUN_ON  = 1
@@ -125,6 +136,8 @@ enum {
  *         Direction flags for grayscale morphology, granulometry,         *
  *                 composable Sels, convolution, etc.                      *
  *-------------------------------------------------------------------------*/
+
+/*! Direction flags */
 enum {
     L_HORIZ            = 1,
     L_VERT             = 2,
@@ -134,6 +147,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                   Morphological operation flags                         *
  *-------------------------------------------------------------------------*/
+
+/*! Morphological operation flags */
 enum {
     L_MORPH_DILATE    = 1,
     L_MORPH_ERODE     = 2,
@@ -145,6 +160,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                    Grayscale intensity scaling flags                    *
  *-------------------------------------------------------------------------*/
+
+/*! Grayscale intensity scaling flags */
 enum {
     L_LINEAR_SCALE  = 1,
     L_LOG_SCALE     = 2
@@ -153,6 +170,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                      Morphological tophat flags                         *
  *-------------------------------------------------------------------------*/
+
+/*! Morphological tophat flags */
 enum {
     L_TOPHAT_WHITE = 0,
     L_TOPHAT_BLACK = 1
@@ -162,6 +181,8 @@ enum {
  *                Arithmetic and logical operator flags                    *
  *                 (use on grayscale images and Numas)                     *
  *-------------------------------------------------------------------------*/
+
+/*! Arithmetic and logical operator flags */
 enum {
     L_ARITH_ADD       = 1,
     L_ARITH_SUBTRACT  = 2,
@@ -176,6 +197,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                        Min/max selection flags                          *
  *-------------------------------------------------------------------------*/
+
+/*! Min/max selection flags */
 enum {
     L_CHOOSE_MIN = 1,         /* useful in a downscaling "erosion"       */
     L_CHOOSE_MAX = 2,         /* useful in a downscaling "dilation"      */
@@ -187,6 +210,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                    Distance function b.c. flags                         *
  *-------------------------------------------------------------------------*/
+
+/*! Distance function b.c. flags */
 enum {
     L_BOUNDARY_BG = 1,  /* assume bg outside image */
     L_BOUNDARY_FG = 2   /* assume fg outside image */
@@ -195,6 +220,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Image comparison flags                          *
  *-------------------------------------------------------------------------*/
+
+/*! Image comparison flags */
 enum {
     L_COMPARE_XOR = 1,
     L_COMPARE_SUBTRACT = 2,
@@ -204,6 +231,8 @@ enum {
 /*-------------------------------------------------------------------------*
  *                          Color content flags                            *
  *-------------------------------------------------------------------------*/
+
+/*! Color content flags */
 enum {
     L_MAX_DIFF_FROM_AVERAGE_2 = 1,
     L_MAX_MIN_DIFF_FROM_2 = 2,
@@ -213,7 +242,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *    Standard size of border added around images for special processing   *
  *-------------------------------------------------------------------------*/
-static const l_int32  ADDED_BORDER = 32;   /* pixels, not bits */
+static const l_int32  ADDED_BORDER = 32;   /*!< pixels, not bits */
 
 
 #endif  /* LEPTONICA_MORPH_H */

@@ -52,9 +52,9 @@
  *  This speed and flexibility comes at the following cost,
  *  relative to area-mapped rotation:
  *
- *    -  Jaggies are created on edges of straight lines
+ *    ~  Jaggies are created on edges of straight lines
  *
- *    -  For large angles, where you must use 3 shears,
+ *    ~  For large angles, where you must use 3 shears,
  *       there is some extra clipping from the shears.
  *
  *  For small angles, typically less than 0.05 radians,
@@ -177,7 +177,7 @@ static const l_float32  LIMIT_SHEAR_ANGLE = 0.35;     /* radians; ~20 deg   */
  *              ycen (y value for which there is no vertical shear)
  *              angle (radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) This rotates an image about the given point, using
@@ -222,7 +222,7 @@ pixRotateShear(PIX       *pixs,
  *              xcen, ycen (center of rotation)
  *              angle (radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) This rotates the image about the given point, using the 2-shear
@@ -284,7 +284,7 @@ PIX  *pix1, *pix2, *pixd;
  *              xcen, ycen (center of rotation)
  *              angle (radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK);
- *      Return: pixd, or null on error.
+ *      Return: pixd, or NULL on error.
  *
  *  Notes:
  *      (1) This rotates the image about the given point, using the 3-shear
@@ -420,7 +420,7 @@ l_float32  hangle;
  *      Input:  pixs
  *              angle (radians)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixRotateShearCenter(PIX       *pixs,

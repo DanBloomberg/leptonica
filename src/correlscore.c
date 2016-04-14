@@ -70,7 +70,8 @@
  *              &score (<return> correlation score)
  *      Return: 0 if OK, 1 on error
  *
- *  Note: we check first that the two pix are roughly the same size.
+ *  Notes:
+ *  We check first that the two pix are roughly the same size.
  *  For jbclass (jbig2) applications at roughly 300 ppi, maxdiffw and
  *  maxdiffh should be at least 2.
  *
@@ -379,7 +380,8 @@ l_uint32  *row1, *row2;
  *      Return: whether the correlation score is >= score_threshold
  *
  *
- *  Note: we check first that the two pix are roughly the same size.
+ *  Notes:
+ *  We check first that the two pix are roughly the same size.
  *  Only if they meet that criterion do we compare the bitmaps.
  *  The centroid difference is used to align the two images to the
  *  nearest integer for the correlation.
@@ -718,7 +720,7 @@ l_int32    threshold;
  *      (1) This calculates exactly the same value as pixCorrelationScore().
  *          It is 2-3x slower, but much simpler to understand.
  *      (2) The returned correlation score is 0.0 if the width or height
- *          exceed @maxdiffw or @maxdiffh.
+ *          exceed %maxdiffw or %maxdiffh.
  */
 l_int32
 pixCorrelationScoreSimple(PIX        *pix1,

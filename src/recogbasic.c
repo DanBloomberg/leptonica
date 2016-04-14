@@ -172,7 +172,7 @@ static l_float32  DEFAULT_ASPERITY_FRACT = 0.25;
  *  recogaCreateFromRecog()
  *
  *      Input:  recog
- *      Return: recoga, or null on error
+ *      Return: recoga, or NULL on error
  *
  *  Notes:
  *      (1) This is a convenience function for making a recoga after
@@ -206,7 +206,7 @@ L_RECOGA  *recoga;
  *              templ_type (L_USE_AVERAGE or L_USE_ALL)
  *              threshold (for binarization; typically ~128)
  *              maxyshift (from nominal centroid alignment; typically 0 or 1)
- *      Return: recoga, or null on error
+ *      Return: recoga, or NULL on error
  *
  *  Notes:
  *      (1) This is a convenience function for training from labelled data.
@@ -259,7 +259,7 @@ PIXA      *pixa;
  *  recogaCreate()
  *
  *      Input:  n (initial number of recog ptrs)
- *      Return: recoga, or null on error
+ *      Return: recoga, or NULL on error
  */
 L_RECOGA *
 recogaCreate(l_int32  n)
@@ -286,7 +286,7 @@ L_RECOGA  *recoga;
 /*!
  *  recogaDestroy()
  *
- *      Input:  &recoga (<will be set to null before returning>)
+ *      Input:  &recoga (<inout> will be set to null before returning)
  *      Return: void
  *
  *  Notes:
@@ -331,7 +331,7 @@ L_RECOGA  *recoga;
  *
  *      Input:  recoga
  *              recog (to be added and owned by the recoga; not a copy)
- *      Return: recoga, or null on error
+ *      Return: recoga, or NULL on error
  */
 l_int32
 recogaAddRecog(L_RECOGA  *recoga,
@@ -385,7 +385,7 @@ recogaExtendArray(L_RECOGA  *recoga)
  *  recogReplaceInRecoga()
  *
  *      Input:  &recog1 (old recog, to be destroyed)
- *              recog2 (new recog, to be inserted in place of @recog1)
+ *              recog2 (new recog, to be inserted in place of %recog1)
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
@@ -438,7 +438,7 @@ L_RECOGA  *recoga;
  *
  *      Input:  recoga
  *              index (to the index-th recog)
- *      Return: recog, or null on error
+ *      Return: recog, or NULL on error
  *
  *  Notes:
  *      (1) This returns a ptr to the recog, which is still owned by
@@ -573,7 +573,7 @@ recogSetBootflag(L_RECOG  *recog)
  *              templ_type (L_USE_AVERAGE or L_USE_ALL)
  *              threshold (for binarization; typically ~128)
  *              maxyshift (from nominal centroid alignment; typically 0 or 1)
- *      Return: recd, or null on error
+ *      Return: recd, or NULL on error
  *
  *  Notes:
  *      (1) This is a convenience function that generates a recog using
@@ -612,7 +612,7 @@ PIXA     *pixa;
  *              templ_type (L_USE_AVERAGE or L_USE_ALL)
  *              threshold (for binarization; typically ~128)
  *              maxyshift (from nominal centroid alignment; typically 0 or 1)
- *      Return: recog, or null on error
+ *      Return: recog, or NULL on error
  *
  *  Notes:
  *      (1) This is a convenience function for training from labelled data.
@@ -683,7 +683,7 @@ PIX      *pix;
  *              templ_type (L_USE_AVERAGE or L_USE_ALL)
  *              threshold (for binarization; typically ~128)
  *              maxyshift (from nominal centroid alignment; typically 0 or 1)
- *      Return: recog, or null on error
+ *      Return: recog, or NULL on error
  *
  *  Notes:
  *      (1) For a set trained on one font, such as numbers in a book,
@@ -756,7 +756,7 @@ PIXAA    *paa;
 /*!
  *  recogDestroy()
  *
- *      Input:  &recog (<will be set to null before returning>)
+ *      Input:  &recog (<inout> will be set to null before returning)
  *      Return: void
  *
  *  Notes:
@@ -893,13 +893,13 @@ recogAppend(L_RECOG  *recog1,
  *
  *      Input:  recog (with LUT's pre-computed)
  *              val (integer value; can be up to 3 bytes for UTF-8)
- *              text (text from which @val was derived; used if not found)
+ *              text (text from which %val was derived; used if not found)
  *              &index (<return> index into dna_tochar)
  *      Return: 0 if found; 1 if not found and added; 2 on error.
  *
  *  Notes:
  *      (1) This is used during training.  It searches the
- *          dna character array for @val.  If not found, it increments
+ *          dna character array for %val.  If not found, it increments
  *          the setsize by 1, augmenting both the index and text arrays.
  *      (2) Returns the index in &index, except on error.
  *      (3) Caller must check the function return value.
@@ -1068,7 +1068,7 @@ l_int32  size, val;
  *  recogaRead()
  *
  *      Input:  filename
- *      Return: recoga, or null on error
+ *      Return: recoga, or NULL on error
  *
  *  Notes:
  *      (1) This allows serialization of an array of recognizers, each of which
@@ -1100,8 +1100,8 @@ L_RECOGA  *recoga;
 /*!
  *  recogaReadStream()
  *
- *      Input:  stream
- *      Return: recog, or null on error
+ *      Input:  fp (file stream)
+ *      Return: recog, or NULL on error
  */
 L_RECOGA *
 recogaReadStream(FILE  *fp)
@@ -1171,7 +1171,7 @@ FILE  *fp;
 /*!
  *  recogaWriteStream()
  *
- *      Input:  stream (opened for "wb")
+ *      Input:  fp (file stream opened for "wb")
  *              recoga
  *              filename (output serialized filename; embedded in file)
  *      Return: 0 if OK, 1 on error
@@ -1254,7 +1254,7 @@ L_RECOG  *recog;
  *  recogRead()
  *
  *      Input:  filename
- *      Return: recog, or null on error
+ *      Return: recog, or NULL on error
  *
  *  Notes:
  *      (1) Serialization can be applied to any recognizer, including
@@ -1291,8 +1291,8 @@ L_RECOG  *recog;
 /*!
  *  recogReadStream()
  *
- *      Input:  stream
- *      Return: recog, or null on error
+ *      Input:  fp (file stream)
+ *      Return: recog, or NULL on error
  */
 L_RECOG *
 recogReadStream(FILE  *fp)
@@ -1395,7 +1395,7 @@ FILE  *fp;
 /*!
  *  recogWriteStream()
  *
- *      Input:  stream (opened for "wb")
+ *      Input:  fp (file stream opened for "wb")
  *              recog
  *              filename (output serialized filename; embedded in file)
  *      Return: 0 if OK, 1 on error

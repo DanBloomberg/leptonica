@@ -103,11 +103,11 @@ static const unsigned char JP2K_IMAGE_DATA[12] = { 0x00, 0x00, 0x00, 0x0C,
  *
  *      Input:  dirname
  *              substr (<optional> substring filter on filenames; can be null)
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  *
  *  Notes:
- *      (1) @dirname is the full path for the directory.
- *      (2) @substr is the part of the file name (excluding
+ *      (1) %dirname is the full path for the directory.
+ *      (2) %substr is the part of the file name (excluding
  *          the directory) that is to be matched.  All matching
  *          filenames are read into the Pixa.  If substr is NULL,
  *          all filenames are read into the Pixa.
@@ -137,7 +137,7 @@ SARRAY  *sa;
  *  pixaReadFilesSA()
  *
  *      Input:  sarray (full pathnames for all files)
- *      Return: pixa, or null on error
+ *      Return: pixa, or NULL on error
  */
 PIXA *
 pixaReadFilesSA(SARRAY  *sa)
@@ -171,7 +171,7 @@ PIXA    *pixa;
  *  pixRead()
  *
  *      Input:  filename (with full pathname or in local directory)
- *      Return: pix if OK; null on error
+ *      Return: pix if OK; NULL on error
  *
  *  Notes:
  *      (1) See at top of file for supported formats.
@@ -206,7 +206,7 @@ PIX   *pix;
  *
  *      Input:  filename (with full pathname or in local directory)
  *              hint (bitwise OR of L_HINT_* values for jpeg; use 0 for no hint)
- *      Return: pix if OK; null on error
+ *      Return: pix if OK; NULL on error
  *
  *  Notes:
  *      (1) The hint is not binding, but may be used to optimize jpeg decoding.
@@ -244,11 +244,11 @@ PIX   *pix;
  *
  *  Notes:
  *      (1) This function is useful for selecting image files from a
- *          directory, where the integer @index is embedded into
+ *          directory, where the integer %index is embedded into
  *          the file name.
  *      (2) This is typically done by generating the sarray using
- *          getNumberedPathnamesInDirectory(), so that the @index
- *          pathname would have the number @index in it.  The size
+ *          getNumberedPathnamesInDirectory(), so that the %index
+ *          pathname would have the number %index in it.  The size
  *          of the sarray should be the largest number (plus 1) appearing
  *          in the file names, respecting the constraints in the
  *          call to getNumberedPathnamesInDirectory().
@@ -295,7 +295,7 @@ PIX     *pix;
  *
  *      Input:  fp (file stream)
  *              hint (bitwise OR of L_HINT_* values for jpeg; use 0 for no hint)
- *      Return: pix if OK; null on error
+ *      Return: pix if OK; NULL on error
  *
  *  Notes:
  *      (1) The hint only applies to jpeg.
@@ -530,7 +530,7 @@ PIX     *pix;
  *  findFileFormat()
  *
  *      Input:  filename
- *              &format (<return>)
+ *              &format (<return> found format)
  *      Return: 0 if OK, 1 on error or if format is not recognized
  */
 l_int32
@@ -560,7 +560,7 @@ FILE    *fp;
  *  findFileFormatStream()
  *
  *      Input:  fp (file stream)
- *              &format (<return>)
+ *              &format (<return> found format)
  *      Return: 0 if OK, 1 on error or if format is not recognized
  *
  *  Notes:
@@ -606,7 +606,7 @@ l_int32  format;
  *  findFileFormatBuffer()
  *
  *      Input:  byte buffer (at least 12 bytes in size; we can't check)
- *              &format (<return>)
+ *              &format (<return> found format)
  *      Return: 0 if OK, 1 on error or if format is not recognized
  *
  *  Notes:
@@ -753,7 +753,7 @@ l_int32  format;
  *
  *      Input:  data (const; encoded)
  *              datasize (size of data)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) This is a variation of pixReadStream(), where the data is read

@@ -88,7 +88,7 @@
 
 #include "allheaders.h"
 
-/*
+/*!
  *  The struct FillSeg is used by the Heckbert seedfill algorithm to
  *  hold information about image segments that are waiting to be
  *  investigated.  We use two Stacks, one to hold the FillSegs in use,
@@ -96,10 +96,10 @@
  */
 struct FillSeg
 {
-    l_int32    xleft;    /* left edge of run */
-    l_int32    xright;   /* right edge of run */
-    l_int32    y;        /* run y  */
-    l_int32    dy;       /* parent segment direction: 1 above, -1 below) */
+    l_int32    xleft;    /*!< left edge of run */
+    l_int32    xright;   /*!< right edge of run */
+    l_int32    y;        /*!< run y  */
+    l_int32    dy;       /*!< parent segment direction: 1 above, -1 below) */
 };
 typedef struct FillSeg    FILLSEG;
 
@@ -129,7 +129,7 @@ static void popFillseg(L_STACK *stack, l_int32 *pxleft, l_int32 *pxright,
  *      Input:  pixs (1 bpp)
  *              &pixa   (<optional return> pixa of each c.c.)
  *              connectivity (4 or 8)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  *
  *  Notes:
  *      (1) This is the top-level call for getting bounding boxes or
@@ -165,7 +165,7 @@ pixConnComp(PIX     *pixs,
  *      Input:  pixs (1 bpp)
  *              &pixa (<return> pixa of each c.c.)
  *              connectivity (4 or 8)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  *
  *  Notes:
  *      (1) This finds bounding boxes of 4- or 8-connected components
@@ -271,9 +271,9 @@ L_STACK  *stack, *auxstack;
  *
  *      Input:  pixs (1 bpp)
  *              connectivity (4 or 8)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  *
- * Notes:
+ *  Notes:
  *     (1) Finds bounding boxes of 4- or 8-connected components
  *         in a binary image.
  *     (2) This works on a copy of the input pix.  The c.c. are located
@@ -444,6 +444,16 @@ l_uint32  *data;
 }
 
 
+/*!
+ *  nextOnPixelInRasterLow()
+ *
+ *      Input:  data (pix data)
+ *              w, h (width and height)
+ *              wpl  (words per line)
+ *              xstart, ystart  (starting point for search)
+ *              &x, &y  (<return> coord value of next ON pixel)
+ *      Return: 1 if a pixel is found; 0 otherwise or on error
+ */
 l_int32
 nextOnPixelInRasterLow(l_uint32  *data,
                        l_int32    w,
@@ -513,7 +523,7 @@ l_uint32  *line, *pword;
  *              stack (for holding fillsegs)
  *              x,y   (location of seed pixel)
  *              connectivity  (4 or 8)
- *      Return: box or null on error
+ *      Return: box or NULL on error
  *
  *  Notes:
  *      (1) This is the high-level interface to Paul Heckbert's
@@ -557,7 +567,7 @@ BOX  *box;
  *      Input:  pixs (1 bpp)
  *              stack (for holding fillsegs)
  *              x,y   (location of seed pixel)
- *      Return: box or null on error.
+ *      Return: box or NULL on error.
  *
  *  Notes:
  *      (1) This is Paul Heckbert's stack-based 4-cc seedfill algorithm.
@@ -678,7 +688,7 @@ BOX       *box;
  *      Input:  pixs (1 bpp)
  *              stack (for holding fillsegs)
  *              x,y   (location of seed pixel)
- *      Return: box or null on error.
+ *      Return: box or NULL on error.
  *
  *  Notes:
  *      (1) This is Paul Heckbert's stack-based 8-cc seedfill algorithm.
@@ -1023,11 +1033,11 @@ l_uint32  *data, *line;
  *              xleft, xright
  *              y
  *              dy
- *              ymax,
- *              &minx (<return>)
- *              &maxx (<return>)
- *              &miny (<return>)
- *              &maxy (<return>)
+ *              ymax
+ *              &minx (<return> minimum x)
+ *              &maxx (<return> maximum x)
+ *              &miny (<return> minimum y)
+ *              &maxy (<return> maximum y)
  *      Return: void
  *
  *  Notes:
@@ -1153,10 +1163,10 @@ L_STACK  *auxstack;
  *  popFillseg()
  *
  *      Input:  stack
- *              &xleft (<return>)
- *              &xright (<return>)
- *              &y (<return>)
- *              &dy (<return>)
+ *              &xleft (<return> left x)
+ *              &xright (<return> right x)
+ *              &y (<return> y coordinate)
+ *              &dy (<return> delta y)
  *      Return: void
  *
  *  Notes:

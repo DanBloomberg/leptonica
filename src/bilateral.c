@@ -98,7 +98,7 @@ static void bilateralDestroy(L_BILATERAL **pbil);
  *              range_stdev  (of gaussian range kernel; > 5.0; typ. 50.0)
  *              ncomps (number of intermediate sums J(k,x); in [4 ... 30])
  *              reduction  (1, 2 or 4)
- *      Return: pixd (bilateral filtered image), or null on error
+ *      Return: pixd (bilateral filtered image), or NULL on error
  *
  *  Notes:
  *      (1) This performs a relatively fast, separable bilateral
@@ -204,7 +204,7 @@ PIX          *pixt, *pixr, *pixg, *pixb, *pixd;
  *              range_stdev  (of gaussian range kernel; > 5.0; typ. 50.0)
  *              ncomps (number of intermediate sums J(k,x); in [4 ... 30])
  *              reduction  (1, 2 or 4)
- *      Return: pixd (8 bpp bilateral filtered image), or null on error
+ *      Return: pixd (8 bpp bilateral filtered image), or NULL on error
  *
  *  Notes:
  *      (1) See pixBilateral() for constraints on the input parameters.
@@ -258,7 +258,7 @@ L_BILATERAL  *bil;
  *              range_stdev  (of gaussian range kernel; > 5.0; typ. 50.0)
  *              ncomps (number of intermediate sums J(k,x); in [4 ... 30])
  *              reduction  (1, 2 or 4)
- *      Return: bil, or null on error
+ *      Return: bil, or NULL on error
  *
  *  Notes:
  *      (1) This initializes a bilateral filtering operation, generating all
@@ -756,7 +756,7 @@ PIX       *pixd;
  *  makeRangeKernel()
  *
  *      Input:  range_stdev (> 0)
- *      Return: kel, or null on error
+ *      Return: kel, or NULL on error
  *
  *  Notes:
  *      (1) Creates a one-sided Gaussian kernel with the given

@@ -467,20 +467,20 @@ PIXCMAP   *cmap;
  *              threshdiff (threshold for minimum of the max difference
  *                          between components)
  *              mindist (minimum allowed distance from nearest non-color pixel)
- *      Return: pixd (1 bpp, mask over color pixels), or null on error
+ *      Return: pixd (1 bpp, mask over color pixels), or NULL on error
  *
  *  Notes:
  *      (1) The generated mask identifies each pixel as either color or
  *          non-color.  For a pixel to be color, it must satisfy two
  *          constraints:
  *            (a) The max difference between the r,g and b components must
- *                equal or exceed a threshold @threshdiff.
- *            (b) It must be at least @mindist (in an 8-connected way)
+ *                equal or exceed a threshold %threshdiff.
+ *            (b) It must be at least %mindist (in an 8-connected way)
  *                from the nearest non-color pixel.
- *      (2) The distance constraint (b) is only applied if @mindist > 1.
- *          For example, if @mindist == 2, the color pixels identified
+ *      (2) The distance constraint (b) is only applied if %mindist > 1.
+ *          For example, if %mindist == 2, the color pixels identified
  *          by (a) are eroded by a 3x3 Sel.  In general, the Sel size
- *          for erosion is 2 * (@mindist - 1) + 1.
+ *          for erosion is 2 * (%mindist - 1) + 1.
  *          Why have this constraint?  In scanned images that are
  *          essentially gray, color artifacts are typically introduced
  *          in transition regions near sharp edges that go from dark
@@ -551,7 +551,7 @@ PIXCMAP   *cmap;
  *              rmin, rmax (min and max allowed values for red component)
  *              gmin, gmax
  *              bmin, bmax
- *      Return: pixd (1 bpp, mask over color pixels), or null on error
+ *      Return: pixd (1 bpp, mask over color pixels), or NULL on error
  */
 PIX *
 pixMaskOverColorRange(PIX     *pixs,
@@ -638,10 +638,10 @@ PIXCMAP   *cmap;
  *          deviation from black.
  *      (2) Any pixel that meets these three tests is considered a
  *          colorful pixel:
- *            (a) the lightest component must equal or exceed @darkthresh
- *            (b) the darkest component must not exceed @lightthresh
+ *            (a) the lightest component must equal or exceed %darkthresh
+ *            (b) the darkest component must not exceed %lightthresh
  *            (c) the max difference between components must equal or
- *                exceed @diffthresh.
+ *                exceed %diffthresh.
  *      (3) The dark pixels are removed from consideration because
  *          they don't appear to have color.
  *      (4) The very lightest pixels are removed because if an image
@@ -741,9 +741,9 @@ l_uint32  *data, *line;
  *      (1) This function is asking the question: how many perceptually
  *          significant gray color levels is in this pix?
  *          A color level must meet 3 criteria to be significant:
- *            - it can't be too close to black
- *            - it can't be too close to white
- *            - it must have at least some minimum fractional population
+ *            ~ it can't be too close to black
+ *            ~ it can't be too close to white
+ *            ~ it must have at least some minimum fractional population
  *      (2) Use -1 for default values for darkthresh, lightthresh and minfract.
  *      (3) Choose default of darkthresh = 20, because variations in very
  *          dark pixels are not visually significant.
@@ -855,7 +855,7 @@ NUMA    *na;
  *          the low gradient regions is found.  If the image has color,
  *          the number of occupied level 4 octcubes is found.
  *      (8) The number of colors in the low-gradient regions increases
- *          monotonically with the threshold @thresh on the edge gradient.
+ *          monotonically with the threshold %thresh on the edge gradient.
  *      (9) Background: grayscale and color quantization is often useful
  *          to achieve highly compressed images with little visible
  *          distortion.  However, gray or color washes (regions of
@@ -941,13 +941,13 @@ PIXCMAP   *cmap;
         pixsc = pixScaleAreaMap(pixt, 0.25, 0.25);
 
         /* Basic edge mask generation procedure:
-         *   - work on a grayscale image
-         *   - get a 1 bpp edge mask by using an edge filter and
+         *   ~ work on a grayscale image
+         *   ~ get a 1 bpp edge mask by using an edge filter and
          *     thresholding to get fg pixels at the edges
-         *   - for gray, dilate with a 3x3 brick Sel to get mask over
+         *   ~ for gray, dilate with a 3x3 brick Sel to get mask over
          *     all pixels within a distance of 1 pixel from the nearest
          *     edge pixel
-         *   - for color, dilate with a 7x7 brick Sel to get mask over
+         *   ~ for color, dilate with a 7x7 brick Sel to get mask over
          *     all pixels within a distance of 3 pixels from the nearest
          *     edge pixel  */
     if (d == 8)
@@ -1003,11 +1003,11 @@ PIXCMAP   *cmap;
  *
  *  Notes:
  *      (1) This returns the actual number of colors found in the image,
- *          even if there is a colormap.  If @factor == 1 and the
+ *          even if there is a colormap.  If %factor == 1 and the
  *          number of colors differs from the number of entries
  *          in the colormap, a warning is issued.
- *      (2) Use @factor == 1 to find the actual number of colors.
- *          Use @factor > 1 to quickly find the approximate number of colors.
+ *      (2) Use %factor == 1 to find the actual number of colors.
+ *          Use %factor > 1 to quickly find the approximate number of colors.
  *      (3) For d = 2, 4 or 8 bpp grayscale, this returns the number
  *          of colors found in the image in 'ncolors'.
  *      (4) For d = 32 bpp (rgb), if the number of colors is
@@ -1110,8 +1110,8 @@ PIXCMAP   *cmap;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) This finds the @ncolors most populated cubes in rgb colorspace,
- *          where the cube size depends on @sigbits as
+ *      (1) This finds the %ncolors most populated cubes in rgb colorspace,
+ *          where the cube size depends on %sigbits as
  *               cube side = (256 >> sigbits)
  *      (2) The rgb color components are found at the center of the cube.
  *      (3) The output array of colors can be displayed using
@@ -1180,13 +1180,13 @@ NUMA    *nahisto, *naindex;
  *          or modified median cut.  This function shows that it is
  *          easy to make a simple quantizer based solely on the population
  *          in cells of a given size in rgb color space.
- *      (2) The @ncolors most populated cells at the @sigbits level form
+ *      (2) The %ncolors most populated cells at the %sigbits level form
  *          the colormap for quantizing, and this uses octcube indexing
  *          under the covers to assign each pixel to the nearest color.
- *      (3) @sigbits is restricted to 2, 3 and 4.  At the low end, the
+ *      (3) %sigbits is restricted to 2, 3 and 4.  At the low end, the
  *          color discrimination is very crude; at the upper end, a set of
  *          similar colors can dominate the result.  Interesting results
- *          are generally found for @sigbits = 3 and ncolors ~ 20.
+ *          are generally found for %sigbits = 3 and ncolors ~ 20.
  *      (4) See also pixColorSegment() for a method of quantizing the
  *          colors to generate regions of similar color.
  */
@@ -1226,7 +1226,7 @@ PIXCMAP  *cmap;
  *                       for each component of the input image)
  *              factor (subsampling factor; use 1 for no subsampling)
  *      Return: numa (histogram of colors, indexed by RGB
- *                    components), or null on error
+ *                    components), or NULL on error
  *
  *  Notes:
  *      (1) This uses a simple, fast method of indexing into an rgb image.
@@ -1380,8 +1380,8 @@ l_uint32  *rtab, *gtab, *btab;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The @index is expressed in bits, based on the the
- *          @sigbits of the r, g and b components, as
+ *      (1) The %index is expressed in bits, based on the the
+ *          %sigbits of the r, g and b components, as
  *             r7 r6 ... g7 g6 ... b7 b6 ...
  *      (2) The computed rgb values are in the center of the quantized cube.
  *          The extra bit that is OR'd accomplishes this.
@@ -1456,7 +1456,7 @@ getRGBFromIndex(l_uint32  index,
  *
  *  Notes:
  *      (1) Pixels are identified as red if they satisfy two conditions:
- *          (a) The components satisfy (R-B)/B > @fthresh   (red or dark fg)
+ *          (a) The components satisfy (R-B)/B > %fthresh   (red or dark fg)
  *          (b) The red component satisfied R > 128  (red or light bg)
  *          Masks are generated for (a) and (b), and the intersection
  *          gives the pixels that are red but not either light bg or

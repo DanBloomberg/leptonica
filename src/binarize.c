@@ -101,7 +101,7 @@
  *      (2) The array of threshold values, one for each tile, constitutes
  *          a highly downscaled image.  This array is optionally
  *          smoothed using a convolution.  The full width and height of the
- *          convolution kernel are (2 * @smoothx + 1) and (2 * @smoothy + 1).
+ *          convolution kernel are (2 * %smoothx + 1) and (2 * %smoothy + 1).
  *      (3) The minimum tile dimension allowed is 16.  If such small
  *          tiles are used, it is recommended to use smoothing, because
  *          without smoothing, each small tile determines the splitting
@@ -111,7 +111,7 @@
  *          tile is only influenced by one type (fg or bg) of pixels,
  *          because it will force a split of its pixels.
  *      (4) To get a single global threshold for the entire image, use
- *          input values of @sx and @sy that are larger than the image.
+ *          input values of %sx and %sy that are larger than the image.
  *          For this situation, the smoothing parameters are ignored.
  *      (5) The threshold values partition the image pixels into two classes:
  *          one whose values are less than the threshold and another
@@ -125,9 +125,9 @@
  *          splitting the distribution of pixels in each tile into a
  *          fg and bg part.  The modification consists of searching for
  *          a minimum in the histogram over a range of pixel values where
- *          the Otsu score is within a defined fraction, @scorefract,
+ *          the Otsu score is within a defined fraction, %scorefract,
  *          of the max score.  To get the original Otsu algorithm, set
- *          @scorefract == 0.
+ *          %scorefract == 0.
  *      (8) N.B. This method is NOT recommended for images with weak text
  *          and significant background noise, such as bleedthrough, because
  *          of the problem noted in (3) above for tiling.  Use Sauvola.
@@ -227,7 +227,7 @@ PIXTILING  *pt;
  *              scorefract (fraction of the max Otsu score; typ. 0.1)
  *              &thresh (<optional return> threshold value that was
  *                       used on the normalized image)
- *      Return: pixd (1 bpp thresholded image), or null on error
+ *      Return: pixd (1 bpp thresholded image), or NULL on error
  *
  *  Notes:
  *      (1) This does background normalization followed by Otsu
@@ -318,7 +318,7 @@ PIX      *pixn, *pixt, *pixd;
  *              scorefract (fraction of the max Otsu score; typ. ~ 0.1)
  *              &thresh (<optional return> threshold value that was
  *                       used on the normalized image)
- *      Return: pixd (1 bpp thresholded image), or null on error
+ *      Return: pixd (1 bpp thresholded image), or NULL on error
  *
  *  Notes:
  *      (1) This begins with a standard background normalization.
@@ -439,8 +439,8 @@ PIX      *pixn, *pixm, *pixd, *pixt1, *pixt2, *pixt3, *pixt4;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The window width and height are 2 * @whsize + 1.  The minimum
- *          value for @whsize is 2; typically it is >= 7..
+ *      (1) The window width and height are 2 * %whsize + 1.  The minimum
+ *          value for %whsize is 2; typically it is >= 7..
  *      (2) For nx == ny == 1, this defaults to pixSauvolaBinarize().
  *      (3) Why a tiled version?
  *          (a) Because the mean value accumulator is a uint32, overflow
@@ -549,7 +549,7 @@ PIXTILING  *pt;
  *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              whsize (window half-width for measuring local statistics)
  *              factor (factor for reducing threshold due to variance; >= 0)
- *              addborder (1 to add border of width (@whsize + 1) on all sides)
+ *              addborder (1 to add border of width (%whsize + 1) on all sides)
  *              &pixm (<optional return> local mean values)
  *              &pixsd (<optional return> local standard deviation values)
  *              &pixth (<optional return> threshold values)
@@ -557,20 +557,20 @@ PIXTILING  *pt;
  *      Return: 0 if OK, 1 on error
  *
  *  Notes:
- *      (1) The window width and height are 2 * @whsize + 1.  The minimum
- *          value for @whsize is 2; typically it is >= 7..
+ *      (1) The window width and height are 2 * %whsize + 1.  The minimum
+ *          value for %whsize is 2; typically it is >= 7..
  *      (2) The local statistics, measured over the window, are the
  *          average and standard deviation.
  *      (3) The measurements of the mean and standard deviation are
- *          performed inside a border of (@whsize + 1) pixels.  If pixs does
- *          not have these added border pixels, use @addborder = 1 to add
- *          it here; otherwise use @addborder = 0.
+ *          performed inside a border of (%whsize + 1) pixels.  If pixs does
+ *          not have these added border pixels, use %addborder = 1 to add
+ *          it here; otherwise use %addborder = 0.
  *      (4) The Sauvola threshold is determined from the formula:
  *            t = m * (1 - k * (1 - s / 128))
  *          where:
  *            t = local threshold
  *            m = local mean
- *            k = @factor (>= 0)   [ typ. 0.35 ]
+ *            k = %factor (>= 0)   [ typ. 0.35 ]
  *            s = local standard deviation, which is maximized at
  *                127.5 when half the samples are 0 and half are 255.
  *      (5) The basic idea of Niblack and Sauvola binarization is that
@@ -661,7 +661,7 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
  *              pixms (32 bpp)
  *              factor (factor for reducing threshold due to variance; >= 0)
  *              &pixsd (<optional return> local standard deviation)
- *      Return: pixd (8 bpp, sauvola threshold values), or null on error
+ *      Return: pixd (8 bpp, sauvola threshold values), or NULL on error
  *
  *  Notes:
  *      (1) The Sauvola threshold is determined from the formula:
@@ -669,7 +669,7 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
  *          where:
  *            t = local threshold
  *            m = local mean
- *            k = @factor (>= 0)   [ typ. 0.35 ]
+ *            k = %factor (>= 0)   [ typ. 0.35 ]
  *            s = local standard deviation, which is maximized at
  *                127.5 when half the samples are 0 and half are 255.
  *      (2) See pixSauvolaBinarize() for other details.
@@ -770,7 +770,7 @@ PIX        *pixsd, *pixd;
  *      Input:  pixs (8 bpp grayscale; not colormapped)
  *              pixth (8 bpp array of local thresholds)
  *              redfactor ( ... )
- *      Return: pixd (1 bpp, thresholded image), or null on error
+ *      Return: pixd (1 bpp, thresholded image), or NULL on error
  */
 PIX *
 pixApplyLocalThreshold(PIX     *pixs,
@@ -846,7 +846,7 @@ PIX       *pixd;
  *      (2) If the pix has color, it is converted to gray using the
  *          max component.
  *      (3) Input 0 to use default values for any of these inputs:
- *          @start, @end, @incr, @thresh48, @threshdiff.
+ *          %start, %end, %incr, %thresh48, %threshdiff.
  *      (4) This approach can be understood as follows.  When the
  *          binarization threshold is varied, the numbers of c.c. identify
  *          four regimes:

@@ -159,10 +159,10 @@
  *      that is undergoing a general affine transformation.)
  *
  *      Choose the 3 corresponding points as follows:
- *         - The 1st point is an origin
- *         - The 2nd point gives the orientation and scaling of the
+ *         ~ The 1st point is an origin
+ *         ~ The 2nd point gives the orientation and scaling of the
  *           "x" axis with respect to the origin
- *         - The 3rd point does likewise for the "y" axis.
+ *         ~ The 3rd point does likewise for the "y" axis.
  *      These "axes" must not be collinear; otherwise they are
  *      arbitrary (although some strange things will happen if
  *      the handedness sweeping through the minimum angle between
@@ -251,7 +251,7 @@ extern l_float32  AlphaMaskBorderVals[2];
  *              ptad  (3 pts of final coordinate space)
  *              ptas  (3 pts of initial coordinate space)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary.
@@ -311,7 +311,7 @@ PIX        *pixd;
  *      Input:  pixs (all depths)
  *              vc  (vector of 6 coefficients for affine transformation)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary.
@@ -405,7 +405,7 @@ PIXCMAP    *cmap;
  *              ptad  (3 pts of final coordinate space)
  *              ptas  (3 pts of initial coordinate space)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary
@@ -473,7 +473,7 @@ PIX      *pixt1, *pixt2, *pixd;
  *      Input:  pixs (all depths; colormap ok)
  *              vc  (vector of 6 coefficients for affine transformation)
  *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) Brings in either black or white pixels from the boundary
@@ -533,7 +533,7 @@ PIX      *pixt1, *pixt2, *pixd;
  *              ptad  (3 pts of final coordinate space)
  *              ptas  (3 pts of initial coordinate space)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixAffinePtaColor(PIX      *pixs,
@@ -574,7 +574,7 @@ PIX        *pixd;
  *      Input:  pixs (32 bpp)
  *              vc  (vector of 6 coefficients for affine transformation)
  *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixAffineColor(PIX        *pixs,
@@ -636,7 +636,7 @@ PIX       *pix1, *pix2, *pixd;
  *              ptad  (3 pts of final coordinate space)
  *              ptas  (3 pts of initial coordinate space)
  *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixAffinePtaGray(PIX     *pixs,
@@ -678,7 +678,7 @@ PIX        *pixd;
  *      Input:  pixs (8 bpp)
  *              vc  (vector of 6 coefficients for affine transformation)
  *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  */
 PIX *
 pixAffineGray(PIX        *pixs,
@@ -735,7 +735,7 @@ PIX       *pixd;
  *              fract (between 0.0 and 1.0, with 0.0 fully transparent
  *                     and 1.0 fully opaque)
  *              border (of pixels added to capture transformed source pixels)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The alpha channel is transformed separately from pixs,
@@ -744,8 +744,8 @@ PIX       *pixd;
  *          transparent, a blending function like pixBlendWithGrayMask()
  *          will give zero weight to corresponding pixels in pixs.
  *      (2) If pixg is NULL, it is generated as an alpha layer that is
- *          partially opaque, using @fract.  Otherwise, it is cropped
- *          to pixs if required and @fract is ignored.  The alpha channel
+ *          partially opaque, using %fract.  Otherwise, it is cropped
+ *          to pixs if required and %fract is ignored.  The alpha channel
  *          in pixs is never used.
  *      (3) Colormaps are removed.
  *      (4) When pixs is transformed, it doesn't matter what color is brought
@@ -753,7 +753,7 @@ PIX       *pixd;
  *      (5) To avoid losing source pixels in the destination, it may be
  *          necessary to add a border to the source pix before doing
  *          the affine transformation.  This can be any non-negative number.
- *      (6) The input @ptad and @ptas are in a coordinate space before
+ *      (6) The input %ptad and %ptas are in a coordinate space before
  *          the border is added.  Internally, we compensate for this
  *          before doing the affine transform on the image after the border
  *          is added.
@@ -786,7 +786,7 @@ PTA     *ptad2, *ptas2;
     if (d != 32 && pixGetColormap(pixs) == NULL)
         return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
     if (pixg && pixGetDepth(pixg) != 8) {
-        L_WARNING("pixg not 8 bpp; using @fract transparent alpha\n", procName);
+        L_WARNING("pixg not 8 bpp; using %fract transparent alpha\n", procName);
         pixg = NULL;
     }
     if (!pixg && (fract < 0.0 || fract > 1.0)) {
@@ -978,7 +978,7 @@ l_float32  *a[6];  /* 6x6 matrix A  */
  *  affineInvertXform()
  *
  *      Input:  vc (vector of 6 coefficients)
- *              *vci (<return> inverted transform)
+ *              &vci (<return> inverted transform)
  *      Return: 0 if OK; 1 on error
  *
  *  Notes:
@@ -1395,14 +1395,14 @@ l_float32  maxval, val, pivinv, temp;
  *              ptas  (3 pts of initial coordinate space)
  *              bw    (pixels of additional border width during computation)
  *              bh    (pixels of additional border height during computation)
- *      Return: pixd, or null on error
+ *      Return: pixd, or NULL on error
  *
  *  Notes:
  *      (1) The 3 pts must not be collinear.
  *      (2) The 3 pts must be given in this order:
- *           - origin
- *           - a location along the x-axis
- *           - a location along the y-axis.
+ *           ~ origin
+ *           ~ a location along the x-axis
+ *           ~ a location along the y-axis.
  *      (3) You must guess how much border must be added so that no
  *          pixels are lost in the transformations from src to
  *          dest coordinate space.  (This can be calculated but it

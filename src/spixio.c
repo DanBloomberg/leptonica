@@ -73,8 +73,8 @@ static const l_int64  L_MAX_ALLOWED_AREA = 400000000LL;
 /*!
  *  pixReadStreamSpix()
  *
- *      Input:  stream
- *      Return: pix, or null on error.
+ *      Input:  fp (file stream)
+ *      Return: pix, or NULL on error.
  *
  *  Notes:
  *      (1) If called from pixReadStream(), the stream is positioned
@@ -108,8 +108,8 @@ PIX      *pix;
  *  readHeaderSpix()
  *
  *      Input:  filename
- *              &width (<return>)
- *              &height (<return>)
+ *              &width (<return> width)
+ *              &height (<return> height)
  *              &bps (<return>, bits/sample)
  *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
@@ -146,9 +146,9 @@ FILE    *fp;
 /*!
  *  freadHeaderSpix()
  *
- *      Input:  stream
- *              &width (<return>)
- *              &height (<return>)
+ *      Input:  fp (file stream)
+ *              &width (<return> width)
+ *              &height (<return> height)
  *              &bps (<return>, bits/sample)
  *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
@@ -192,8 +192,8 @@ l_uint32  *data;
  *  sreadHeaderSpix()
  *
  *      Input:  data
- *              &width (<return>)
- *              &height (<return>)
+ *              &width (<return> width)
+ *              &height (<return> height)
  *              &bps (<return>, bits/sample)
  *              &spp (<return>, samples/pixel)
  *              &iscmap (<optional return>; input NULL to ignore)
@@ -252,7 +252,7 @@ l_int32  d, ncolors;
 /*!
  *  pixWriteStreamSpix()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pix
  *      Return: 0 if OK; 1 on error
  */
@@ -286,7 +286,7 @@ size_t    size;
  *
  *      Input:  data (const; uncompressed)
  *              size (of data)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  */
 PIX *
 pixReadMemSpix(const l_uint8  *data,

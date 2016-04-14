@@ -87,8 +87,8 @@
  *    and a function l_pngSetReadStrip16To8() for setting it.
  *    The default is TRUE, which causes pixRead() to strip each 16 bit
  *    sample down to 8 bps:
- *     - For 16 bps rgb (16 bps, 3 spp) --> 32 bpp rgb Pix
- *     - For 16 bps gray (16 bps, 1 spp) --> 8 bpp grayscale Pix
+ *     ~ For 16 bps rgb (16 bps, 3 spp) --> 32 bpp rgb Pix
+ *     ~ For 16 bps gray (16 bps, 1 spp) --> 8 bpp grayscale Pix
  *    If the variable is set to FALSE, the 16 bit gray samples
  *    are saved when read; the 16 bit rgb samples return an error.
  *    Note: results can be non-deterministic if used with
@@ -137,8 +137,8 @@ static l_int32   var_PNG_STRIP_16_TO_8 = 1;
 /*!
  *  pixReadStreamPng()
  *
- *      Input:  stream
- *      Return: pix, or null on error
+ *      Input:  fp (file stream)
+ *      Return: pix, or NULL on error
  *
  *  Notes:
  *      (1) If called from pixReadStream(), the stream is positioned
@@ -521,7 +521,7 @@ FILE    *fp;
 /*!
  *  freadHeaderPng()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              &w (<optional return>)
  *              &h (<optional return>)
  *              &bps (<optional return>, bits/sample)
@@ -664,7 +664,7 @@ l_uint32  *pword;
 /*
  *  fgetPngResolution()
  *
- *      Input:  stream (opened for read)
+ *      Input:  fp (file stream opened for read)
  *              &xres, &yres (<return> resolution in ppi)
  *      Return: 0 if OK; 1 on error
  *
@@ -759,7 +759,7 @@ FILE    *fp;
 /*
  *  fgetPngColormapInfo()
  *
- *      Input:  stream (opened for read)
+ *      Input:  fp (file stream opened for read)
  *              &cmap (optional <return>; use NULL to skip)
  *              &transparency (optional <return> 1 if colormapped with
  *                transparency, 0 otherwise; use NULL to skip)
@@ -901,7 +901,7 @@ FILE  *fp;
 /*!
  *  pixWriteStreamPng()
  *
- *      Input:  stream
+ *      Input:  fp (file stream)
  *              pix
  *              gamma (use 0.0 if gamma is not defined)
  *      Return: 0 if OK; 1 on error
@@ -1123,9 +1123,9 @@ char        *text;
     if ((d != 32) && (d != 24)) {  /* not rgb color */
             /* Generate a temporary pix with bytes swapped.
              * For writing a 1 bpp image as png:
-             *    - if no colormap, invert the data, because png writes
+             *    ~ if no colormap, invert the data, because png writes
              *      black as 0
-             *    - if colormapped, do not invert the data; the two RGBA
+             *    ~ if colormapped, do not invert the data; the two RGBA
              *      colors can have any value.  */
         if (d == 1 && !cmap) {
             pixt = pixInvert(NULL, pix);
@@ -1260,10 +1260,10 @@ l_pngSetReadStrip16To8(l_int32  flag)
  *
  *      Input:  data (const; png-encoded)
  *              size (of data)
- *      Return: pix, or null on error
+ *      Return: pix, or NULL on error
  *
  *  Notes:
- *      (1) The @size byte of @data must be a null character.
+ *      (1) The %size byte of %data must be a null character.
  */
 PIX *
 pixReadMemPng(const l_uint8  *data,

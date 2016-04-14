@@ -51,7 +51,7 @@
  *
  *    The queue can be visualized:
  *
- *
+ * \code
  *  byte 0                                           byte (nalloc - 1)
  *       |                                                |
  *       --------------------------------------------------
@@ -63,7 +63,7 @@
  *       T:    queue tail (ptr to first byte to be written to)
  *       aw:   already written from queue
  *       anr:  allocated but not yet read to
- *
+ * \endcode
  *    The purpose of bbuffer is to allow you to safely read
  *    bytes in, and to sequentially write them out as well.
  *    In the process of writing bytes out, you don't actually
@@ -80,9 +80,9 @@
  *    the bbuffer is OPPOSITE to that for a stream, where
  *    you read "from" a stream and write "into" a stream.
  *    As a mnemonic for remembering the direction:
- *        - to read bytes from a stream into the bbuffer,
+ *        ~ to read bytes from a stream into the bbuffer,
  *          you call fread on the stream
- *        - to write bytes from the bbuffer into a stream,
+ *        ~ to write bytes from the bbuffer into a stream,
  *          you call fwrite on the stream
  *
  *    See zlibmem.c for an example use of bbuffer, where we
@@ -98,7 +98,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;   /* n'importe quoi */
+static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;   /*!< n'importe quoi */
 
 /*--------------------------------------------------------------------------*
  *                         BBuffer create/destroy                           *
@@ -106,9 +106,9 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;   /* n'importe quoi */
 /*!
  *  bbufferCreate()
  *
- *      Input:  buffer address in memory (<optional>)
- *              size of byte array to be alloc'd (0 for default)
- *      Return: bbuffer, or null on error
+ *      Input:  indata address in memory (<optional>)
+ *              nalloc size of byte array to be alloc'd (0 for default)
+ *      Return: bbuffer, or NULL on error
  *
  *  Notes:
  *      (1) If a buffer address is given, you should read all the data in.
@@ -148,7 +148,7 @@ L_BBUFFER  *bb;
 /*!
  *  bbufferDestroy()
  *
- *      Input:  &bbuffer  (<to be nulled>)
+ *      Input:  &bb  (<inout> buffer to be nulled)
  *      Return: void
  *
  *  Notes:
@@ -182,7 +182,7 @@ L_BBUFFER  *bb;
 /*!
  *  bbufferDestroyAndSaveData()
  *
- *      Input:  &bbuffer (<to be nulled>)
+ *      Input:  &bb (<inout> buffer to be nulled)
  *              &nbytes  (<return> number of bytes saved in array)
  *      Return: barray (newly allocated array of data)
  *

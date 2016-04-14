@@ -146,13 +146,13 @@ static l_int32 recogaTransferRch(L_RECOGA *recoga, L_RECOG *recog,
  *              but not equal to each other.)
  *
  *  Notes:
- *      (1) This filters the input pixa, looking for @nitems if requested.
- *          Set @nitems == 0 if you don't know how many chars to expect.
+ *      (1) This filters the input pixa, looking for %nitems if requested.
+ *          Set %nitems == 0 if you don't know how many chars to expect.
  *      (2) This bundles the filtered components into a pixa and calls
- *          recogIdentifyPixa().  If @nitems > 0, use @minw = -1 and
- *          @minh = -1 to remove all noise components.
- *      (3) Set @minw = 0 and @minh = 0 to get all noise components.
- *          Set @minw > 0 and/or @minh > 0 to retain selected noise components.
+ *          recogIdentifyPixa().  If %nitems > 0, use %minw = -1 and
+ *          %minh = -1 to remove all noise components.
+ *      (3) Set %minw = 0 and %minh = 0 to get all noise components.
+ *          Set %minw > 0 and/or %minh > 0 to retain selected noise components.
  *          All noise components are recognized as an empty string with
  *          a score of 0.0.
  *      (4) Splitting is relatively slow, because it tries to match all
@@ -255,11 +255,11 @@ L_RECOG  *recog;
  *          recogCorrelationBestRow().  The returned pixa includes
  *          the boxes from which the (possibly split) components
  *          are extracted.
- *      (2) If either @minw < 0 or @minh < 0, noise components are
- *          filtered out, and the returned @naid array is all 1.
+ *      (2) If either %minw < 0 or %minh < 0, noise components are
+ *          filtered out, and the returned %naid array is all 1.
  *          Otherwise, some noise components whose dimensions (w,h)
- *          satisfy w >= @minw and h >= @minh are allowed through, but
- *          they are identified in the returned @naid, where they are
+ *          satisfy w >= %minw and h >= %minh are allowed through, but
+ *          they are identified in the returned %naid, where they are
  *          labelled by 0 to indicate that they are not to be run
  *          through identification.  Retaining the noise components
  *          provides spatial information that can help applications
@@ -316,7 +316,7 @@ PIX     *pix, *pix1, *pix2;
                                    MinFillFactor, debug);
 
         /* Optionally, save a boxa of noise components, filtered
-         * according to input parameters @minw and @minh */
+         * according to input parameters %minw and %minh */
     boxa3 = NULL;
     savenoise = (minw >= 0 && minh >= 0);
     if (savenoise) {  /* accept some noise comonents */
@@ -757,7 +757,7 @@ PIX       *pix1, *pix2;
  *          that gives the largest correlation.
  *      (2) The windowed area of fg pixels and windowed first moment
  *          in the y direction are computed from the input sum and moment
- *          column arrays, @nasum1 and @namoment1
+ *          column arrays, %nasum1 and %namoment1
  *      (3) This is a brute force operation.  We compute the correlation
  *          at every x shift for which pix2 fits entirely within pix1,
  *          and where the centroid of pix2 is aligned, within +-maxyshift,
@@ -1637,7 +1637,7 @@ L_RCHA    *rchas, *rchad;
  *      Input:  recog (with LUT's pre-computed)
  *              pixs (typ. single character, possibly d > 1 and uncropped)
  *              pad (extra pixels added to left and right sides)
- *      Return: pixd (1 bpp, clipped to foreground), or null if there
+ *      Return: pixd (1 bpp, clipped to foreground), or NULL if there
  *                    are no fg pixels or on error.
  *
  *  Notes:
@@ -1687,7 +1687,7 @@ PIX     *pix1, *pix2, *pixd;
  *              maxasp (maximum asperity ratio (width/height) to be retained)
  *              minaf (minimum area fraction (|fg|/(w*h)) to be retained)
  *              debug (1 to output indicator arrays)
- *      Return: pixd (with filtered components removed) or null on error
+ *      Return: pixd (with filtered components removed) or NULL on error
  */
 PIX *
 recogPreSplittingFilter(L_RECOG   *recog,
@@ -1833,24 +1833,24 @@ l_float32  aspratio, fract;
  *                           use -1 for default)
  *              &baa (<optional return> bounding boxes of identified numbers)
  *              &naa (<optional return> scores of identified digits)
- *      Return: sa (of identified numbers), or null on error
+ *      Return: sa (of identified numbers), or NULL on error
  *
  *  Notes:
  *      (1) This extracts digit data after recogaIdentifyMultiple() or
  *          lower-level identification has taken place.
  *      (2) Each string in the returned sa contains a sequence of ascii
  *          digits in a number.
- *      (3) The horizontal distance between boxes (limited by @spacethresh)
+ *      (3) The horizontal distance between boxes (limited by %spacethresh)
  *          is the negative of the horizontal overlap.
- *      (4) Components with a score less than @scorethresh, which may
+ *      (4) Components with a score less than %scorethresh, which may
  *          be hyphens or other small characters, will signal the
  *          end of the current sequence of digits in the number.  A typical
- *          value for @scorethresh is 0.60.
+ *          value for %scorethresh is 0.60.
  *      (5) We allow two digits to be combined if these conditions apply:
  *            (a) the first is to the left of the second
- *            (b) the second has a horizontal separation less than @spacethresh
+ *            (b) the second has a horizontal separation less than %spacethresh
  *            (c) the vertical overlap >= 0 (vertical separation < 0)
- *            (d) both have a score that exceeds @scorethresh
+ *            (d) both have a score that exceeds %scorethresh
  *      (6) Each numa in the optionally returned naa contains the digit
  *          scores of a number.  Each boxa in the optionally returned baa
  *          contains the bounding boxes of the digits in the number.

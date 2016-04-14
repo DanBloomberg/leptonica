@@ -77,7 +77,7 @@ static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
  *      Input:  boxa
  *              shiftx, shifty
  *              scalex, scaley
- *      Return: boxad, or null on error
+ *      Return: boxad, or NULL on error
  *
  *  Notes:
  *      (1) This is a very simple function that first shifts, then scales.
@@ -118,7 +118,7 @@ BOXA    *boxad;
  *      Input:  box
  *              shiftx, shifty
  *              scalex, scaley
- *      Return: boxd, or null on error
+ *      Return: boxd, or NULL on error
  *
  *  Notes:
  *      (1) This is a very simple function that first shifts, then scales.
@@ -154,7 +154,7 @@ boxTransform(BOX       *box,
  *              xcen, ycen (center of rotation)
  *              angle (in radians; clockwise is positive)
  *              order (one of 6 combinations: L_TR_SC_RO, ...)
- *      Return: boxd, or null on error
+ *      Return: boxd, or NULL on error
  *
  *  Notes:
  *      (1) This allows a sequence of linear transforms on each box.
@@ -221,7 +221,7 @@ BOXA    *boxad;
  *              xcen, ycen (center of rotation)
  *              angle (in radians; clockwise is positive)
  *              order (one of 6 combinations: L_TR_SC_RO, ...)
- *      Return: boxd, or null on error
+ *      Return: boxd, or NULL on error
  *
  *  Notes:
  *      (1) This allows a sequence of linear transforms, composed of
@@ -243,7 +243,7 @@ BOXA    *boxad;
  *          Then the box UL corner (rx, ry) is
  *            rx = bxcen - 0.5 * rw
  *            ry = bycen - 0.5 * rh
- *      (3) The center of rotation specified by args @xcen and @ycen
+ *      (3) The center of rotation specified by args %xcen and %ycen
  *          is the point BEFORE any translation or scaling.  If the
  *          rotation is not the first operation, this function finds
  *          the actual center at the time of rotation.  It does this
@@ -428,7 +428,7 @@ BOX       *boxd;
  *              w, h (of image in which the boxa is embedded)
  *              rotation (0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
  *                        all rotations are clockwise)
- *      Return: boxad, or null on error
+ *      Return: boxad, or NULL on error
  *
  *  Notes:
  *      (1) See boxRotateOrth() for details.
@@ -474,7 +474,7 @@ BOXA    *boxad;
  *              w, h (of image in which the box is embedded)
  *              rotation (0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
  *                        all rotations are clockwise)
- *      Return: boxd, or null on error
+ *      Return: boxd, or NULL on error
  *
  *  Notes:
  *      (1) Rotate the image with the embedded box by the specified amount.
@@ -528,7 +528,7 @@ l_int32  bx, by, bw, bh, xdist, ydist;
  *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
  *              &naindex (<optional return> index of sorted order into
  *                        original array)
- *      Return: boxad (sorted version of boxas), or null on error
+ *      Return: boxad (sorted version of boxas), or NULL on error
  *
  *  Notes:
  *      (1) An empty boxa returns a copy, with a warning.
@@ -645,7 +645,7 @@ NUMA      *na, *naindex;
  *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
  *              &naindex (<optional return> index of sorted order into
  *                        original array)
- *      Return: boxad (sorted version of boxas), or null on error
+ *      Return: boxad (sorted version of boxas), or NULL on error
  *
  *  Notes:
  *      (1) For a large number of boxes (say, greater than 1000), this
@@ -728,7 +728,7 @@ NUMA    *na, *naindex;
  *
  *      Input:  boxas
  *              naindex (na that maps from the new boxa to the input boxa)
- *      Return: boxad (sorted), or null on error
+ *      Return: boxad (sorted), or NULL on error
  */
 BOXA *
 boxaSortByIndex(BOXA  *boxas,
@@ -772,7 +772,7 @@ BOXA    *boxad;
  *                      onto a boxa of horizontally-aligned boxes; pass 2)
  *              minh1 (components less than this height either join an
  *                     existing boxa or are set aside for pass 2)
- *      Return: baa (2d sorted version of boxa), or null on error
+ *      Return: baa (2d sorted version of boxa), or NULL on error
  *
  *  Notes:
  *      (1) The final result is a sort where the 'fast scan' direction is
@@ -985,7 +985,7 @@ NUMAA   *naa, *naa1, *naad;
  *
  *      Input:  boxas
  *              naa (numaa that maps from the new baa to the input boxa)
- *      Return: baa (sorted boxaa), or null on error
+ *      Return: baa (sorted boxaa), or NULL on error
  */
 BOXAA *
 boxaSort2dByIndex(BOXA   *boxas,
@@ -1189,7 +1189,7 @@ l_int32  i, n, left, top, right, bot, w, h;
  *
  *      Input:  boxa
  *              fract (use 0.0 for smallest, 1.0 for largest)
- *      Return: box (with rank values for x, y, w, h), or null on error
+ *      Return: box (with rank values for x, y, w, h), or NULL on error
  *              or if the boxa is empty (has no valid boxes)
  *
  *  Notes:
@@ -1202,8 +1202,8 @@ l_int32  i, n, left, top, right, bot, w, h;
  *          to give a "rank order" for x and y by sorting them in
  *          decreasing order.  But in general, the interpretation of a rank
  *          order on x and y is highly application dependent.  In summary:
- *             - x and y are sorted in decreasing order
- *             - w and h are sorted in increasing order
+ *             ~ x and y are sorted in decreasing order
+ *             ~ w and h are sorted in increasing order
  */
 BOX *
 boxaGetRankSize(BOXA      *boxa,
@@ -1243,7 +1243,7 @@ BOX       *box;
  *  boxaGetMedian()
  *
  *      Input:  boxa
- *      Return: box (with median values for x, y, w, h), or null on error
+ *      Return: box (with median values for x, y, w, h), or NULL on error
  *              or if the boxa is empty.
  *
  *  Notes:
@@ -1389,7 +1389,7 @@ BOXA    *boxa, *boxa1;
  *      Input:  baa
  *              &naindex  (<optional return> the boxa index in the baa)
  *              copyflag  (L_COPY or L_CLONE)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  *
  *  Notes:
  *      (1) This 'flattens' the baa to a boxa, taking the boxes in
@@ -1456,14 +1456,14 @@ NUMA    *naindex;
  *              num (number extracted from each)
  *              fillerbox (<optional> that fills if necessary)
  *              copyflag  (L_COPY or L_CLONE)
- *      Return: boxa, or null on error
+ *      Return: boxa, or NULL on error
  *
  *  Notes:
- *      (1) This 'flattens' the baa to a boxa, taking the first @num
+ *      (1) This 'flattens' the baa to a boxa, taking the first %num
  *          boxes from each boxa.
- *      (2) In each boxa, if there are less than @num boxes, we preserve
+ *      (2) In each boxa, if there are less than %num boxes, we preserve
  *          the alignment between the input baa and the output boxa
- *          by inserting one or more fillerbox(es) or, if @fillerbox == NULL,
+ *          by inserting one or more fillerbox(es) or, if %fillerbox == NULL,
  *          one or more invalid placeholder boxes.
  */
 BOXA *
@@ -1490,7 +1490,7 @@ BOX     *box;
         m = boxaGetCount(boxat);
         mval = L_MIN(m, num);
         nshort = num - mval;
-        for (j = 0; j < mval; j++) {  /* take the first @num if possible */
+        for (j = 0; j < mval; j++) {  /* take the first %num if possible */
             box = boxaGetBox(boxat, j, copyflag);
             boxaAddBox(boxad, box, L_INSERT);
         }
@@ -1515,12 +1515,12 @@ BOX     *box;
  *      Input:  boxa
  *              num (number put into each boxa in the baa)
  *              copyflag  (L_COPY or L_CLONE)
- *      Return: baa, or null on error
+ *      Return: baa, or NULL on error
  *
  *  Notes:
- *      (1) This puts @num boxes from the input @boxa into each of a
+ *      (1) This puts %num boxes from the input %boxa into each of a
  *          set of boxa within an output baa.
- *      (2) This assumes that the boxes in @boxa are in sets of @num each.
+ *      (2) This assumes that the boxes in %boxa are in sets of %num each.
  */
 BOXAA *
 boxaEncapsulateAligned(BOXA    *boxa,
