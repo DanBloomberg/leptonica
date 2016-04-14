@@ -29,13 +29,13 @@
  *
  *      DnaHash creation, destruction
  *          L_DNAHASH   *l_dnaHashCreate()
- *          void        *l_dnaHashDestroy()
+ *          void         l_dnaHashDestroy()
  *
  *      DnaHash: Accessors and modifiers                      *
- *          l_int32     *l_dnaHashGetCount()
- *          l_int32     *l_dnaHashGetTotalCount()
+ *          l_int32      l_dnaHashGetCount()
+ *          l_int32      l_dnaHashGetTotalCount()
  *          L_DNA       *l_dnaHashGetDna()
- *          void        *l_dnaHashAdd()
+ *          void         l_dnaHashAdd()
  *
  *      DnaHash: Operations on Dna
  *          L_DNAHASH   *l_dnaHashCreateFromDna()

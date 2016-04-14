@@ -943,7 +943,7 @@ PIXA    *pixa1, *pixa2, *pixa3, *pixad;
         L_INFO("Resolution is not set: setting to 300 ppi\n", procName);
         res = 300;
     }
-    csize = L_MIN(120., 60.0 * res / 300);
+    csize = L_MIN(120., 60.0 * res / 300.0);
     snprintf(buf, sizeof(buf), "c%d.1 + o20.1", csize);
     pix3 = pixMorphCompSequence(pix2, buf, 0);
 
