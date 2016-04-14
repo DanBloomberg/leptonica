@@ -82,6 +82,17 @@ set(leptonica_hdr
     stringcode.h sudoku.h watershed.h
 )
 
+test_big_endian(BIG_ENDIAN)
+
+if(BIG_ENDIAN)
+  set(ENDIANNESS L_BIG_ENDIAN)
+else()
+  set(ENDIANNESS L_LITTLE_ENDIAN)
+endif()
+
+set(APPLE_UNIVERSAL_BUILD "defined (__APPLE_CC__)")
+configure_file(endianness.h.in endianness.h @ONLY)
+
 add_library                     (leptonica ${LIBRARY_TYPE} ${leptonica_src} ${leptonica_hdr})
 set_target_properties           (leptonica PROPERTIES VERSION   ${VERSION_MAJOR}.${VERSION_MINOR})
 set_target_properties           (leptonica PROPERTIES SOVERSION ${VERSION_MAJOR}.${VERSION_MINOR})
