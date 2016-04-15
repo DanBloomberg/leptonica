@@ -3059,10 +3059,8 @@ size_t  len;
  *          For windows, to avoid C-runtime boundary crossing problems
  *          when using DLLs, you must use lept_free() to free the name.
  *      (7) When %dir is /tmp or a subdirectory of /tmp, genPathname()
- *          does a name translation for '/tmp':
- *            ==> /tmp              (unix)  [default]
- *            ==> /tmp/leptonica    (unix)  [if ADD_LEPTONICA_SUBDIR == 1]
- *            ==> <Temp>/leptonica  (windows)
+ *          does a name translation for '/tmp' on windows:
+ *             /tmp ==> <Temp>
  *          where <Temp> is a path on windows determined by GenTempPath().
  *      (8) Set %usetime = %usepid = 1 when
  *          (a) more than one process is writing and reading temp files, or
