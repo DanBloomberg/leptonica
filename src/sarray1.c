@@ -1175,7 +1175,7 @@ SARRAY  *saout;
     n = sarrayGetCount(sain);
     if (last <= 0) last = n - 1;
     if (last >= n) {
-        L_WARNING("%last > n - 1; setting to n - 1\n", procName);
+        L_WARNING("last > n - 1; setting to n - 1\n", procName);
         last = n - 1;
     }
     if (first > last)
