@@ -2157,6 +2157,8 @@ char    *newpath;
         remove(fullname);
         LEPT_FREE(fullname);
     }
+
+    ret = 0;
 #ifndef _WIN32
     ret = rmdir(dir);
 #else
