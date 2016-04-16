@@ -832,7 +832,7 @@ BOX  *box;
  * \brief   boxaIsFull()
  *
  * \param[in]    boxa
- * \param[in]    &full return> 1 if boxa is full
+ * \param[out]   pfull 1 if boxa is full
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -1039,7 +1039,7 @@ BOX    **array;
 /*!
  * \brief   boxaSaveValid()
  *
- * \param[in]    boxa
+ * \param[in]    boxas
  * \param[in]    copyflag L_COPY or L_CLONE
  * \return  boxad if OK, NULL on error
  *
@@ -1173,7 +1173,7 @@ l_int32  i, n;
 /*!
  * \brief   boxaaCreate()
  *
- * \param[in]    size of boxa ptr array to be alloc'd 0 for default
+ * \param[in]    n size of boxa ptr array to be alloc'd; 0 for default
  * \return  baa, or NULL on error
  */
 BOXAA *
@@ -1241,8 +1241,7 @@ BOXAA   *baad;
 /*!
  * \brief   boxaaDestroy()
  *
- * \param[in,out]   pboxaa will be set to null before returning
- * \return  void
+ * \param[in,out]   pbaa will be set to null before returning
  */
 void
 boxaaDestroy(BOXAA  **pbaa)
