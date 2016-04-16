@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  dnahash.c
+/*!
+ * \file dnahash.c
+ * <pre>
  *
  *      DnaHash creation, destruction
  *          L_DNAHASH   *l_dnaHashCreate()
@@ -96,6 +97,7 @@
  *        For a million strings you don't need to worry about collisons
  *        (~10-6 probability), and for most applications can use the
  *        RBTree (sorting) implementation with confidence.
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -104,15 +106,17 @@
  *                     Dna hash: Creation and destruction                   *
  *--------------------------------------------------------------------------*/
 /*!
- *  l_dnaHashCreate()
+ * \brief   l_dnaHashCreate()
  *
- *      Input: nbuckets (the number of buckets in the hash table,
- *                       which should be prime.)
- *             initsize (initial size of each allocated dna; 0 for default)
- *      Return: ptr to new dnahash, or NULL on error
+ * \param[in]   nbuckets the number of buckets in the hash table,
+ *                       which should be prime.
+ * \param[in]   initsize initial size of each allocated dna; 0 for default
+ * \return  ptr to new dnahash, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Actual dna are created only as required by l_dnaHashAdd()
+ * </pre>
  */
 L_DNAHASH *
 l_dnaHashCreate(l_int32  nbuckets,
@@ -139,10 +143,10 @@ L_DNAHASH  *dahash;
 
 
 /*!
- *  l_dnaHashDestroy()
+ * \brief   l_dnaHashDestroy()
  *
- *      Input:  &dahash (<inout> to be nulled, if it exists)
- *      Return: void
+ * \param[in,out]   pdahash to be nulled, if it exists
+ * \return  void
  */
 void
 l_dnaHashDestroy(L_DNAHASH **pdahash)
@@ -172,10 +176,10 @@ l_int32    i;
  *                   Dna hash: Accessors and modifiers                      *
  *--------------------------------------------------------------------------*/
 /*!
- *  l_dnaHashGetCount()
+ * \brief   l_dnaHashGetCount()
  *
- *      Input:  dahash
- *      Return: nbuckets (allocated, or 0 on error)
+ * \param[in]    dahash
+ * \return  nbuckets allocated, or 0 on error
  */
 l_int32
 l_dnaHashGetCount(L_DNAHASH  *dahash)
@@ -191,10 +195,10 @@ l_int32  nbuckets;
 
 
 /*!
- *  l_dnaHashGetTotalCount()
+ * \brief   l_dnaHashGetTotalCount()
  *
- *      Input:  dahash
- *      Return: n (number of numbers in all dna, or 0 on error)
+ * \param[in]    dahash
+ * \return  n number of numbers in all dna, or 0 on error
  */
 l_int32
 l_dnaHashGetTotalCount(L_DNAHASH  *dahash)
@@ -218,12 +222,12 @@ L_DNA   *da;
 
 
 /*!
- *  l_dnaHashGetDna()
+ * \brief   l_dnaHashGetDna()
  *
- *      Input:  dahash
- *              key  (key to be hashed into a bucket number)
- *              copyflag (L_NOCOPY, L_COPY, L_CLONE)
- *      Return: ptr to dna
+ * \param[in]    dahash
+ * \param[in]    key  key to be hashed into a bucket number
+ * \param[in]    copyflag L_NOCOPY, L_COPY, L_CLONE
+ * \return  ptr to dna
  */
 L_DNA *
 l_dnaHashGetDna(L_DNAHASH  *dahash,
@@ -253,12 +257,12 @@ L_DNA   *da;
 
 
 /*!
- *  l_dnaHashAdd()
+ * \brief   l_dnaHashAdd()
  *
- *      Input:  dahash
- *              key  (key to be hashed into a bucket number)
- *              value  (float value to be appended to the specific dna)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    dahash
+ * \param[in]    key  key to be hashed into a bucket number
+ * \param[in]    value  float value to be appended to the specific dna
+ * \return  0 if OK; 1 on error
  */
 l_int32
 l_dnaHashAdd(L_DNAHASH  *dahash,
@@ -288,14 +292,16 @@ L_DNA   *da;
  *                      DnaHash: Operations on Dna                          *
  *--------------------------------------------------------------------------*/
 /*!
- *  l_dnaHashCreateFromDna()
+ * \brief   l_dnaHashCreateFromDna()
  *
- *      Input:  da
- *      Return: dahash if OK; 1 on error
+ * \param[in]    da
+ * \return  dahash if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The values stored in the %dahash are indices into %da;
  *          %dahash has no use without %da.
+ * </pre>
  */
 L_DNAHASH *
 l_dnaHashCreateFromDna(L_DNA  *da)
@@ -326,18 +332,20 @@ L_DNAHASH  *dahash;
 
 
 /*!
- *  l_dnaRemoveDupsByHash()
+ * \brief   l_dnaRemoveDupsByHash()
  *
- *      Input:  das
- *              &dad (<return> hash set)
- *              &dahash (<optional return> dnahash used for lookup)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    das
+ * \param[out]   pdad hash set
+ * \param[out]   pdahash [optional] dnahash used for lookup
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Generates a dna with unique values.
  *      (2) The dnahash is built up with dad to assure uniqueness.
  *          It can be used to find if an element is in the set:
- *              l_dnaFindValByHash(dad, dahash, val, &index)
+ *              l_dnaFindValByHash(dad, dahash, val, \&index)
+ * </pre>
  */
 l_int32
 l_dnaRemoveDupsByHash(L_DNA       *das,
@@ -385,15 +393,16 @@ L_DNAHASH  *dahash;
 
 
 /*!
- *  l_dnaMakeHistoByHash()
+ * \brief   l_dnaMakeHistoByHash()
  *
- *      Input:  das
- *              &dahash (<return> hash map: val --> index)
- *              &dav (<return> array of values: index --> val)
- *              &dac (<return> histo array of counts: index --> count)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    das
+ * \param[out]   pdahash hash map: val --> index
+ * \param[out]   pdav array of values: index --> val
+ * \param[out]   pdac histo array of counts: index --> count
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Generates and returns a dna of occurrences (histogram),
  *          an aligned dna of values, and an associated hashmap.
  *          The hashmap takes %dav and a value, and points into the
@@ -402,11 +411,12 @@ L_DNAHASH  *dahash;
  *          and is needed for fast lookup.  It is a hash set, because
  *          the values are unique.
  *      (3) Lookup is simple:
- *              l_dnaFindValByHash(dav, dahash, val, &index);
- *              if (index >= 0)
- *                  l_dnaGetIValue(dac, index, &icount);
+ *              l_dnaFindValByHash(dav, dahash, val, \&index);
+ *              if (index \>= 0)
+ *                  l_dnaGetIValue(dac, index, \&icount);
  *              else
  *                  icount = 0;
+ * </pre>
  */
 l_int32
 l_dnaMakeHistoByHash(L_DNA       *das,
@@ -461,14 +471,16 @@ L_DNAHASH  *dahash;
 
 
 /*!
- *  l_dnaIntersectionByHash()
+ * \brief   l_dnaIntersectionByHash()
  *
- *      Input:  da1, da2
- *      Return: dad (intersection of the number arrays), or NULL on error
+ * \param[in]    da1, da2
+ * \return  dad intersection of the number arrays, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This uses the same method for building the intersection set
  *          as ptaIntersectionByHash() and sarrayIntersectionByHash().
+ * </pre>
  */
 L_DNA *
 l_dnaIntersectionByHash(L_DNA  *da1,
@@ -523,18 +535,20 @@ L_DNA      *da_small, *da_big, *dad;
 
 
 /*!
- *  l_dnaFindValByHash()
+ * \brief   l_dnaFindValByHash()
  *
- *      Input:  da
- *              dahash (containing indices into %da)
- *              val  (searching for this number in %da)
- *              &index (<return> index into da if found; -1 otherwise)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    da
+ * \param[in]    dahash containing indices into %da
+ * \param[in]    val  searching for this number in %da
+ * \param[out]   pindex index into da if found; -1 otherwise
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Algo: hash %val into a key; hash the key to get the dna
  *                in %dahash (that holds indices into %da); traverse
  *                the dna of indices looking for %val in %da.
+ * </pre>
  */
 l_int32
 l_dnaFindValByHash(L_DNA      *da,
@@ -575,5 +589,3 @@ L_DNA     *da1;
 
     return 0;
 }
-
-

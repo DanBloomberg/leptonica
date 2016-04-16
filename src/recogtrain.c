@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  recogtrain.c
+/*!
+ * \file recogtrain.c
+ * <pre>
  *
  *      Training on labelled data
  *         l_int32             recogTrainLabelled()
@@ -68,6 +69,7 @@
  *         static char        *l_charToString()
  *         static void         addDebugImage1()
  *         static void         addDebugImage2()
+ * </pre>
  */
 
 #include <string.h>
@@ -102,18 +104,19 @@ static const l_int32    DEFAULT_MIN_SAMPLES = 10;  /* char samples in recog */
  *                                Training                                *
  *------------------------------------------------------------------------*/
 /*!
- *  recogTrainLabelled()
+ * \brief   recogTrainLabelled()
  *
- *      Input:  recog (in training mode)
- *              pixs (if depth > 1, will be thresholded to 1 bpp)
- *              box (<optional> cropping box)
- *              text (<optional> if null, use text field in pix)
- *              multflag (1 if one or more contiguous ascii characters;
- *                        0 for a single arbitrary character)
- *              debug (1 to display images of samples not captured)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog in training mode
+ * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
+ * \param[in]    box [optional] cropping box
+ * \param[in]    text [optional] if null, use text field in pix
+ * \param[in]    multflag 1 if one or more contiguous ascii characters;
+ *                        0 for a single arbitrary character
+ * \param[in]    debug 1 to display images of samples not captured
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Training is restricted to the addition of either:
  *          (a) multflag == 0: a single character in an arbitrary
  *              (e.g., UTF8) charset
@@ -125,6 +128,7 @@ static const l_int32    DEFAULT_MIN_SAMPLES = 10;  /* char samples in recog */
  *          connected components does not equal to the number of ascii
  *          characters in the textstring.  In that case, if debug == 1,
  *          the rejected samples will be displayed.
+ * </pre>
  */
 l_int32
 recogTrainLabelled(L_RECOG  *recog,
@@ -158,17 +162,18 @@ PIXA    *pixa;
 
 
 /*!
- *  recogProcessMultLabelled()
+ * \brief   recogProcessMultLabelled()
  *
- *      Input:  recog (in training mode)
- *              pixs (if depth > 1, will be thresholded to 1 bpp)
- *              box (<optional> cropping box)
- *              text (<optional> if null, use text field in pix)
- *              &pixa (<return> of split and thresholded characters)
- *              debug (1 to display images of samples not captured)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog in training mode
+ * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
+ * \param[in]    box [optional] cropping box
+ * \param[in]    text [optional] if null, use text field in pix
+ * \param[out]   ppixa of split and thresholded characters
+ * \param[in]    debug 1 to display images of samples not captured
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This crops and segments one or more labelled and contiguous
  *          ascii characters, for input in training.  It is a special case.
  *      (2) The character images are bundled into a pixa with the
@@ -176,6 +181,7 @@ PIXA    *pixa;
  *      (3) Where there is more than one character, this does some
  *          noise reduction and extracts the resulting character images
  *          from left to right.  No scaling is performed.
+ * </pre>
  */
 l_int32
 recogProcessMultLabelled(L_RECOG  *recog,
@@ -276,18 +282,20 @@ PIX       *pixc, *pixb, *pixt, *pix1, *pix2;
 
 
 /*!
- *  recogProcessSingleLabelled()
+ * \brief   recogProcessSingleLabelled()
  *
- *      Input:  recog (in training mode)
- *              pixs (if depth > 1, will be thresholded to 1 bpp)
- *              box (<optional> cropping box)
- *              text (<optional> if null, use text field in pix)
- *              &pixa (<return> one pix, 1 bpp, labelled)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog in training mode
+ * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
+ * \param[in]    box [optional] cropping box
+ * \param[in]    text [optional] if null, use text field in pix
+ * \param[out]   ppixa one pix, 1 bpp, labelled
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This crops and binarizes the input image, generating a pix
  *          of one character where the charval is inserted into the pix.
+ * </pre>
  */
 l_int32
 recogProcessSingleLabelled(L_RECOG  *recog,
@@ -343,15 +351,16 @@ PIX     *pixc, *pixb, *pixd;
 
 
 /*!
- *  recogAddSamples()
+ * \brief   recogAddSamples()
  *
- *      Input:  recog
- *              pixa (1 or more characters)
- *              classindex (use -1 if not forcing into a specified class)
- *              debug
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog
+ * \param[in]    pixa 1 or more characters
+ * \param[in]    classindex use -1 if not forcing into a specified class
+ * \param[in]    debug
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix in the pixa are all 1 bpp, and the character string
  *          labels are embedded in the pix.
  *      (2) Note: this function decides what class each pix belongs in.
@@ -368,6 +377,7 @@ PIX     *pixc, *pixb, *pixd;
  *          the boot recognizers, training is started again; if samples
  *          from a new class are added, the pixaa_u array must be
  *          extended by adding a pixa to hold them.
+ * </pre>
  */
 l_int32
 recogAddSamples(L_RECOG  *recog,
@@ -438,11 +448,11 @@ PIXAA   *paa;
 
 
 /*!
- *  recogScaleCharacter()
+ * \brief   recogScaleCharacter()
  *
- *      Input:  recog
- *              pixs (1 bpp, to be scaled)
- *      Return: pixd (scaled) if OK, NULL on error
+ * \param[in]    recog
+ * \param[in]    pixs 1 bpp, to be scaled
+ * \return  pixd scaled if OK, NULL on error
  */
 PIX *
 recogScaleCharacter(L_RECOG  *recog,
@@ -467,19 +477,21 @@ l_int32  w, h;
 
 
 /*!
- *  recogAverageSamples()
+ * \brief   recogAverageSamples()
  *
- *      Input:  recog
- *              debug
- *      Return: 0 on success, 1 on failure
+ * \param[in]    recog
+ * \param[in]    debug
+ * \return  0 on success, 1 on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is called when training is finished, and after
  *          outliers have been removed.
  *          Both unscaled and scaled inputs are averaged.
  *          Averages must be computed before any identification is done.
  *      (2) Set debug = 1 to view the resulting templates
  *          and their centroids.
+ * </pre>
  */
 l_int32
 recogAverageSamples(L_RECOG  *recog,
@@ -597,21 +609,23 @@ PTA       *ptat;
 
 
 /*!
- *  pixaAccumulateSamples()
+ * \brief   pixaAccumulateSamples()
  *
- *      Input:  pixa (of samples from the same class, 1 bpp)
- *              pta (<optional> of centroids of the samples)
- *              &ppixd (<return> accumulated samples, 8 bpp)
- *              &px (<optional return> average x coordinate of centroids)
- *              &py (<optional return> average y coordinate of centroids)
- *      Return: 0 on success, 1 on failure
+ * \param[in]    pixa of samples from the same class, 1 bpp
+ * \param[in]    pta [optional] of centroids of the samples
+ * \param[out]   pppixd accumulated samples, 8 bpp
+ * \param[out]   ppx [optional] average x coordinate of centroids
+ * \param[out]   ppy [optional] average y coordinate of centroids
+ * \return  0 on success, 1 on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This generates an aligned (by centroid) sum of the input pix.
  *      (2) We use only the first 256 samples; that's plenty.
  *      (3) If pta is not input, we generate two tables, and discard
  *          after use.  If this is called many times, it is better
  *          to precompute the pta.
+ * </pre>
  */
 l_int32
 pixaAccumulateSamples(PIXA       *pixa,
@@ -696,13 +710,14 @@ PTA       *ptac;
 
 
 /*!
- *  recogTrainingFinished()
+ * \brief   recogTrainingFinished()
  *
- *      Input:  recog
- *              debug
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog
+ * \param[in]    debug
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This must be called after all training samples have been added.
  *      (2) Set debug = 1 to view the resulting templates
  *          and their centroids.
@@ -718,6 +733,7 @@ PTA       *ptac;
  *      (4) Putting these operations here makes it simple to recompute
  *          the recog with different scaling on the bitmaps.
  *      (5) Removal of outliers must happen after this is called.
+ * </pre>
  */
 l_int32
 recogTrainingFinished(L_RECOG  *recog,
@@ -810,15 +826,16 @@ PTAA      *ptaa;
 
 
 /*!
- *  recogRemoveOutliers()
+ * \brief   recogRemoveOutliers()
  *
- *      Input:  recog (after training samples are entered)
- *              targetscore (keep everything with at least this score)
- *              minfract (minimum fraction to retain)
- *              debug (1 for debug output)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog after training samples are entered
+ * \param[in]    targetscore keep everything with at least this score
+ * \param[in]    minfract minimum fraction to retain
+ * \param[in]    debug 1 for debug output
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Removing outliers is particularly important when recognition
  *          goes against all the samples in the training set, as opposed
  *          to the averages for each class.  The reason is that we get
@@ -838,6 +855,7 @@ PTAA      *ptaa;
  *          samples will be ejected, and throw out both the
  *          scaled and unscaled samples and associated data.
  *          Recompute the average without the poor matches.
+ * </pre>
  */
 l_int32
 recogRemoveOutliers(L_RECOG    *recog,
@@ -967,11 +985,11 @@ PTA       *pta, *pta_u;
  *                        Evaluate training status                        *
  *------------------------------------------------------------------------*/
 /*!
- *  recogaTrainingDone()
+ * \brief   recogaTrainingDone()
  *
- *      Input:  recoga
- *              &done (<return> 1 if training finished on all recog; else 0)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recoga
+ * \param[out]   pdone 1 if training finished on all recog; else 0
+ * \return  0 if OK, 1 on error
  */
 l_int32
 recogaTrainingDone(L_RECOGA  *recoga,
@@ -1001,10 +1019,10 @@ L_RECOG  *recog;
 
 
 /*!
- *  recogaFinishAveraging()
+ * \brief   recogaFinishAveraging()
  *
- *      Input:  recoga
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recoga
+ * \return  0 if OK, 1 on error
  */
 l_int32
 recogaFinishAveraging(L_RECOGA  *recoga)
@@ -1031,19 +1049,20 @@ L_RECOG  *recog;
  *                       Training on unlabelled data                      *
  *------------------------------------------------------------------------*/
 /*!
- *  recogTrainUnlabelled()
+ * \brief   recogTrainUnlabelled()
  *
- *      Input:  recog (in training mode: the input characters in pixs are
- *                     inserted after labelling)
- *              recogboot (labels the input)
- *              pixs (if depth > 1, will be thresholded to 1 bpp)
- *              box (<optional> cropping box)
- *              singlechar (1 if pixs is a single character; 0 otherwise)
- *              minscore (min score for accepting the example; e.g., 0.75)
- *              debug (1 for debug output saved to recog; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog in training mode: the input characters in pixs are
+ *                     inserted after labelling
+ * \param[in]    recogboot labels the input
+ * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
+ * \param[in]    box [optional] cropping box
+ * \param[in]    singlechar 1 if pixs is a single character; 0 otherwise
+ * \param[in]    minscore min score for accepting the example; e.g., 0.75
+ * \param[in]    debug 1 for debug output saved to recog; 0 otherwise
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This trains on one or several characters of unlabelled data,
  *          using a bootstrap recognizer to apply the labels.  In this
  *          way, we can build a recognizer using a source of unlabelled data.
@@ -1061,6 +1080,7 @@ L_RECOG  *recog;
  *      (4) For debugging, if bmf is defined in the recog, the correlation
  *          scores are generated and saved (by adding to the pixadb_boot
  *          field) with the matching images.
+ * </pre>
  */
 l_int32
 recogTrainUnlabelled(L_RECOG   *recog,
@@ -1153,14 +1173,15 @@ PIXA      *pixa, *pixaf;
  *                         Padding the training set                       *
  *------------------------------------------------------------------------*/
 /*!
- *  recogPadTrainingSet()
+ * \brief   recogPadTrainingSet()
  *
- *      Input:  &recog (to be replaced if padding or more drastic measures
- *                      are necessary; otherwise, it is unchanged.)
- *              debug (1 for debug output saved to recog; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    &recog to be replaced if padding or more drastic measures
+ *                      are necessary; otherwise, it is unchanged.
+ * \param[in]    debug 1 for debug output saved to recog; 0 otherwise
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function does either padding of the recognizer, or
  *          its complete replacement.  In both cases, we use a "boot"
  *          recognizer to provide the sample images.
@@ -1181,6 +1202,7 @@ PIXA      *pixa, *pixaf;
  *      (4) If padding or total replacement is done, this destroys
  *          the input recog and replaces it by a new one.  If the recog
  *          belongs to a recoga, the replacement is also done in the recoga.
+ * </pre>
  */
 l_int32
 recogPadTrainingSet(L_RECOG  **precog,
@@ -1422,17 +1444,19 @@ L_RECOGA    *recoga;
 
 
 /*!
- *  recogMapIndexToIndex()
+ * \brief   recogMapIndexToIndex()
  *
- *      Input:  recog1
- *              recog2
- *      Return: lut (from recog1 --> recog2), or NULL on error
+ * \param[in]    recog1
+ * \param[in]    recog2
+ * \return  lut from recog1 --> recog2, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This returns a map from each index in recog1 to the
  *          corresponding index in recog2.  Caller must free.
  *      (2) If the character string doesn't exist in any of the classes
  *          in recog2, the value -1 is inserted in the lut.
+ * </pre>
  */
 static l_int32 *
 recogMapIndexToIndex(L_RECOG  *recog1,
@@ -1468,12 +1492,12 @@ l_int32  *lut;
 
 
 /*!
- *  recogAverageClassGeom()
+ * \brief   recogAverageClassGeom()
  *
- *      Input:  recog
- *              &naw (<optional return> average widths for each class)
- *              &nah (<optional return> average heights for each class)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog
+ * \param[out]   pnaw [optional] average widths for each class
+ * \param[out]   pnah [optional] average heights for each class
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 recogAverageClassGeom(L_RECOG  *recog,
@@ -1527,18 +1551,19 @@ PIXA    *pixa;
 
 
 /*!
- *  recogBestCorrelForPadding()
+ * \brief   recogBestCorrelForPadding()
  *
- *      Input:  recog (typically the recog to be padded)
- *              recoga (array of recogs for potentially providing the padding)
- *              &naset (<return> of indices into the sets to be matched)
- *              &naindex (<return> of matching indices into the best set)
- *              &nascore (<return> of best correlation scores)
- *              &naave (<return> average of correlation scores from each recog)
- *              pixadb (<optional> debug images; use NULL for no debug)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog typically the recog to be padded
+ * \param[in]    recoga array of recogs for potentially providing the padding
+ * \param[out]   pnaset of indices into the sets to be matched
+ * \param[out]   pnaindex of matching indices into the best set
+ * \param[out]   pnascore of best correlation scores
+ * \param[out]   pnaave average of correlation scores from each recog
+ * \param[in]    pixadb [optional] debug images; use NULL for no debug
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This finds, for each class in recog, the best matching template
  *          in the recoga.  For that best match, it returns:
  *            * the recog set index in the recoga,
@@ -1554,6 +1579,7 @@ PIXA    *pixa;
  *          in both naset and naindex, and 0.0 is stored in nascore.
  *      (4) Both recog and all the recog in recoga should be generated
  *          with isotropic scaling to the same character height (e.g., 30).
+ * </pre>
  */
 l_int32
 recogBestCorrelForPadding(L_RECOG   *recog,
@@ -1637,16 +1663,17 @@ L_RECOG   *rec;
 
 
 /*!
- *  recogCorrelAverages()
+ * \brief   recogCorrelAverages()
  *
- *      Input:  recog1 (typically the recog to be padded)
- *              recog2 (potentially providing the padding)
- *              &naindex (<return> of classes in 2 with respect to classes in 1)
- *              &nascore (<return> correlation scores of corresponding classes)
- *              pixadb (<optional> debug images)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog1 typically the recog to be padded
+ * \param[in]    recog2 potentially providing the padding
+ * \param[out]   pnaindex of classes in 2 with respect to classes in 1
+ * \param[out]   pnascore correlation scores of corresponding classes
+ * \param[in]    pixadb [optional] debug images
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Use this for potentially padding recog1 with instances in recog2.
  *          The recog have been generated with isotropic scaling to the
  *          same fixed height (e.g., 30).  The training has been "finished"
@@ -1661,6 +1688,7 @@ L_RECOG   *rec;
  *          the index of a class in recog1 and the corresponding one in recog2.
  *      (3) For classes in recog1 that do not exist in recog2, the index
  *          -1 is stored in naindex, and 0.0 is stored in the score.
+ * </pre>
  */
 l_int32
 recogCorrelAverages(L_RECOG  *recog1,
@@ -1729,23 +1757,24 @@ PIXA      *pixa1;
 
 
 /*!
- *  recogSetPadParams()
+ * \brief   recogSetPadParams()
  *
- *      Input:  recog (to be padded, if necessary)
- *              bootdir (<optional> directory to bootstrap labelled pixa)
- *              bootpattern (<optional> pattern for bootstrap labelled pixa)
- *              bootpath (<optional> path to single bootstrap labelled pixa)
- *              boot_iters (number of 2x2 erosions for extension of boot pixa)
- *              type (character set type; -1 for default; see enum in recog.h)
- *              size (character set size; -1 for default)
- *              min_nopad (min number in a class without padding; -1 default)
- *              max_afterpad (max number of samples in padded classes;
- *                            -1 for default)
- *              min_samples (use boot if total num samples is less than this;
- *                           -1 for default)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog to be padded, if necessary
+ * \param[in]    bootdir [optional] directory to bootstrap labelled pixa
+ * \param[in]    bootpattern [optional] pattern for bootstrap labelled pixa
+ * \param[in]    bootpath [optional] path to single bootstrap labelled pixa
+ * \param[in]    boot_iters number of 2x2 erosions for extension of boot pixa
+ * \param[in]    type character set type; -1 for default; see enum in recog.h
+ * \param[in]    size character set size; -1 for default
+ * \param[in]    min_nopad min number in a class without padding; -1 default
+ * \param[in]    max_afterpad max number of samples in padded classes;
+ *                            -1 for default
+ * \param[in]    min_samples use boot if total num samples is less than this;
+ *                           -1 for default
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is used to augment or replace a book-adapted recognizer (BAR).
  *          It is called when the recognizer is created, and must be
  *          called again before recogPadTrainingSet() if non-default
@@ -1760,10 +1789,11 @@ PIXA      *pixa1;
  *          an input but incomplete BAR (book adapted recognizer).
  *      (5) The boot recog can be extended using erosions.  Set boot_iters
  *          to the number of 2x2 erosions desired.  For a typical
- *          font size, %boot_iters <= 2.
- *      (6) If the BAR is very sparse, with num_samples < min_samples,
+ *          font size, %boot_iters \<= 2.
+ *      (6) If the BAR is very sparse, with num_samples \< min_samples,
  *          we will destroy it and use the generic bootstrap recognizer
  *          given at %bootpath.
+ * </pre>
  */
 l_int32
 recogSetPadParams(L_RECOG     *recog,
@@ -1805,10 +1835,10 @@ recogSetPadParams(L_RECOG     *recog,
 
 
 /*!
- *  recogGetCharsetSize()
+ * \brief   recogGetCharsetSize()
  *
- *      Input:  type (of charset)
- *      Return: size of charset, or 0 if unknown or on error
+ * \param[in]    type of charset
+ * \return  size of charset, or 0 if unknown or on error
  */
 static l_int32
 recogGetCharsetSize(l_int32  type)
@@ -1837,10 +1867,10 @@ recogGetCharsetSize(l_int32  type)
 
 
 /*!
- *  recogCharsetAvailable()
+ * \brief   recogCharsetAvailable()
  *
- *      Input:  type (of charset for padding)
- *      Return: 1 if available; 0 if not.
+ * \param[in]    type of charset for padding
+ * \return  1 if available; 0 if not.
  */
 static l_int32
 recogCharsetAvailable(l_int32  type)
@@ -1875,12 +1905,12 @@ l_int32  ret;
  *                               Debugging                                *
  *------------------------------------------------------------------------*/
 /*!
- *  recogaShowContent()
+ * \brief   recogaShowContent()
  *
- *      Input:  fp (file stream)
- *              recoga
- *              display (1 for showing template images, 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+ * \param[in]    recoga
+ * \param[in]    display 1 for showing template images, 0 otherwise
+ * \return  0 if OK, 1 on error
  */
 l_int32
 recogaShowContent(FILE      *fp,
@@ -1915,12 +1945,12 @@ L_RECOG  *recog;
 
 
 /*!
- *  recogShowContent()
+ * \brief   recogShowContent()
  *
- *      Input:  fp (file stream)
- *              recog
- *              display (1 for showing template images, 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+ * \param[in]    recog
+ * \param[in]    display 1 for showing template images, 0 otherwise
+ * \return  0 if OK, 1 on error
  */
 l_int32
 recogShowContent(FILE     *fp,
@@ -1981,18 +2011,20 @@ NUMA    *na;
 
 
 /*!
- *  recogDebugAverages()
+ * \brief   recogDebugAverages()
  *
- *      Input:  recog
- *              debug (0 no output; 1 for images; 2 for text; 3 for both)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog
+ * \param[in]    debug 0 no output; 1 for images; 2 for text; 3 for both
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Generates an image that pairs each of the input images used
  *          in training with the average template that it is best
  *          correlated to.  This is written into the recog.
  *      (2) It also generates pixa_tr of all the input training images,
  *          which can be used, e.g., in recogShowMatchesInRange().
+ * </pre>
  */
 l_int32
 recogDebugAverages(L_RECOG  *recog,
@@ -2051,14 +2083,16 @@ PIXAA     *paa1, *paa2;
 
 
 /*!
- *  recogShowAverageTemplates()
+ * \brief   recogShowAverageTemplates()
  *
- *      Input:  recog
- *      Return: 0 on success, 1 on failure
+ * \param[in]    recog
+ * \return  0 on success, 1 on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This debug routine generates a display of the averaged templates,
  *          both scaled and unscaled, with the centroid visible in red.
+ * </pre>
  */
 l_int32
 recogShowAverageTemplates(L_RECOG  *recog)
@@ -2125,15 +2159,16 @@ PIXA      *pixat, *pixadb;
 
 
 /*!
- *  recogShowMatchesInRange()
+ * \brief   recogShowMatchesInRange()
  *
- *      Input:  recog
- *              pixa (of 1 bpp images to match)
- *              minscore, maxscore (range to include output)
- *              display (to display the result)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog
+ * \param[in]    pixa of 1 bpp images to match
+ * \param[in]    minscore, maxscore range to include output
+ * \param[in]    display to display the result
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a visual output of the best matches for a given
  *          range of scores.  Each pair of images can optionally be
  *          labelled with the index of the best match and the correlation.
@@ -2142,6 +2177,7 @@ PIXA      *pixat, *pixadb;
  *          unlabelled) that can be given to a recognizer in a pixa.
  *          Then call this function with the pixa and parameters
  *          to filter a range of score.
+ * </pre>
  */
 l_int32
 recogShowMatchesInRange(L_RECOG     *recog,
@@ -2212,18 +2248,19 @@ PIXA      *pixa1, *pixa2;
 
 
 /*!
- *  recogShowMatch()
+ * \brief   recogShowMatch()
  *
- *      Input:  recog
- *              pix1  (input pix; several possibilities)
- *              pix2  (<optional> matching template)
- *              box  (<optional> region in pix1 for which pix2 matches)
- *              index  (index of matching template; use -1 to disable printing)
- *              score  (score of match)
- *      Return: pixd (pair of images, showing input pix and best template,
- *                    optionally with matching information), or NULL on error.
+ * \param[in]    recog
+ * \param[in]    pix1  input pix; several possibilities
+ * \param[in]    pix2  [optional] matching template
+ * \param[in]    box  [optional] region in pix1 for which pix2 matches
+ * \param[in]    index  index of matching template; use -1 to disable printing
+ * \param[in]    score  score of match
+ * \return  pixd pair of images, showing input pix and best template,
+ *                    optionally with matching information, or NULL on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) pix1 can be one of these:
  *          (a) The input pix alone, which can be either a single character
  *              (box == NULL) or several characters that need to be
@@ -2232,8 +2269,9 @@ PIXA      *pixa1, *pixa2;
  *          (b) Both the input pix and the matching template.  In this case,
  *              pix2 and box will both be null.
  *      (2) If the bmf has been made (by a call to recogMakeBmf())
- *          and the index >= 0, the text field, match score and index
+ *          and the index \>= 0, the text field, match score and index
  *          will be rendered; otherwise their values will be ignored.
+ * </pre>
  */
 PIX *
 recogShowMatch(L_RECOG   *recog,
@@ -2293,14 +2331,16 @@ PIXA   *pixa;
 
 
 /*!
- *  recogResetBmf()
+ * \brief   recogResetBmf()
  *
- *      Input:  recog
- *              size  (of font; even integer between 4 and 20; default is 6)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    recog
+ * \param[in]    size  of font; even integer between 4 and 20; default is 6
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Use this to reset the size of the font used for debug labelling.
+ * </pre>
  */
 l_int32
 recogResetBmf(L_RECOG     *recog,
@@ -2415,5 +2455,3 @@ PIX   *pix1, *pix2, *pix3, *pix4;
     pixDestroy(&pix3);
     return;
 }
-
-

@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  pixalloc.c
+/*!
+ * \file pixalloc.c
+ * <pre>
  *
  *      Custom memory storage with allocator and deallocator
  *
@@ -37,6 +38,7 @@
  *          l_int32       pmsGetLevelForAlloc()
  *          l_int32       pmsGetLevelForDealloc()
  *          void          pmsLogInfo()
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -135,16 +137,17 @@ static L_PIX_MEM_STORE  *CustomPMS = NULL;
 
 
 /*!
- *  pmsCreate()
+ * \brief   pmsCreate()
  *
- *      Input:  minsize (of data chunk that can be supplied by pms)
- *              smallest (bytes of the smallest pre-allocated data chunk.
+ * \param[in]    minsize of data chunk that can be supplied by pms
+ * \param[in]    smallest bytes of the smallest pre-allocated data chunk.
  *              numalloc (array with the number of data chunks for each
- *                        size that are in the memory store)
- *              logfile (use for debugging; null otherwise)
- *      Return: 0 if OK, 1 on error
+ *                        size that are in the memory store
+ * \param[in]    logfile use for debugging; null otherwise
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This computes the size of the block of memory required
  *          and allocates it.  Each chunk starts on a 32-bit word boundary.
  *          The chunk sizes are in powers of 2, starting at %smallest,
@@ -159,6 +162,7 @@ static L_PIX_MEM_STORE  *CustomPMS = NULL;
  *      (4) The pms struct is stored in a static global, so this function
  *          is not thread-safe.  When used, there must be only one thread
  *          per process.
+ * </pre>
  */
 l_int32
 pmsCreate(size_t       minsize,
@@ -251,14 +255,16 @@ L_PTRAA          *paa;
 
 
 /*!
- *  pmsDestroy()
+ * \brief   pmsDestroy()
  *
- *      Input:  (none)
- *      Return: void
+ * \param[in]    none
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Important: call this function at the end of the program, after
  *          the last pix has been destroyed.
+ * </pre>
  */
 void
 pmsDestroy()
@@ -290,17 +296,19 @@ L_PIX_MEM_STORE  *pms;
 
 
 /*!
- *  pmsCustomAlloc()
+ * \brief   pmsCustomAlloc()
  *
- *      Input: nbytes (min number of bytes in the chunk to be retrieved)
- *      Return: data (ptr to chunk)
+ * \param[in]   nbytes min number of bytes in the chunk to be retrieved
+ * \return  data ptr to chunk
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This attempts to find a suitable pre-allocated chunk.
  *          If not found, it dynamically allocates the chunk.
  *      (2) If logging is turned on, the allocations that are not taken
  *          from the memory store, and are at least as large as the
  *          minimum size the store can handle, are logged to file.
+ * </pre>
  */
 void *
 pmsCustomAlloc(size_t  nbytes)
@@ -341,10 +349,10 @@ L_PTRA           *pa;
 
 
 /*!
- *  pmsCustomDealloc()
+ * \brief   pmsCustomDealloc()
  *
- *      Input: data (to be freed or returned to the storage)
- *      Return: void
+ * \param[in]   data to be freed or returned to the storage
+ * \return  void
  */
 void
 pmsCustomDealloc(void  *data)
@@ -379,12 +387,13 @@ L_PTRA           *pa;
 
 
 /*!
- *  pmsGetAlloc()
+ * \brief   pmsGetAlloc()
  *
- *      Input:  nbytes
- *      Return: data
+ * \param[in]    nbytes
+ * \return  data
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is called when a request for pix data cannot be
  *          obtained from the preallocated memory store.  After use it
  *          is freed like normal memory.
@@ -394,6 +403,7 @@ L_PTRA           *pa;
  *          The C99 platform-independent format specifier for size_t is %zu,
  *          but windows hasn't conformed, so we are forced to go back to
  *          C89, use %lu, and cast to get platform-independence.  Ugh.
+ * </pre>
  */
 void *
 pmsGetAlloc(size_t  nbytes)
@@ -420,11 +430,11 @@ L_PIX_MEM_STORE  *pms;
 
 
 /*!
- *  pmsGetLevelForAlloc()
+ * \brief   pmsGetLevelForAlloc()
  *
- *      Input: nbytes (min number of bytes in the chunk to be retrieved)
- *             &level (<return>; -1 if either too small or too large)
- *      Return: 0 if OK, 1 on error
+ * \param[in]   nbytes min number of bytes in the chunk to be retrieved
+ * \param[out]  plevel  -1 if either too small or too large
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pmsGetLevelForAlloc(size_t    nbytes,
@@ -458,12 +468,12 @@ L_PIX_MEM_STORE  *pms;
 
 
 /*!
- *  pmsGetLevelForDealloc()
+ * \brief   pmsGetLevelForDealloc()
  *
- *      Input: data (ptr to memory chunk)
- *             &level (<return> level in memory store; -1 if allocated
- *                     outside the store)
- *      Return: 0 if OK, 1 on error
+ * \param[in]   data ptr to memory chunk
+ * \param[out]  plevel level in memory store; -1 if allocated
+ *                     outside the store
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pmsGetLevelForDealloc(void     *data,
@@ -498,10 +508,10 @@ L_PIX_MEM_STORE  *pms;
 
 
 /*!
- *  pmsLogInfo()
+ * \brief   pmsLogInfo()
  *
- *      Input:  (none)
- *      Return: void
+ * \param[in]    none
+ * \return  void
  */
 void
 pmsLogInfo()

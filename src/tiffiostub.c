@@ -24,10 +24,12 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  tiffiostub.c
+/*!
+ * \file tiffiostub.c
+ * <pre>
  *
  *     Stubs for tiffio.c functions
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H

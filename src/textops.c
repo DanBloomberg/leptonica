@@ -25,8 +25,9 @@
  *====================================================================*/
 
 
-/*
- *  textops.c
+/*!
+ * \file textops.c
+ * <pre>
  *
  *    Font layout
  *       PIX             *pixAddSingleTextblock()
@@ -68,6 +69,7 @@
  *                                    L_ADD_LEFT);  // blue text
  *        Pixa *pixa2 = pixaAddTextlines(pixa1, bmf, NULL, 0x00ff0000,
  *                                    L_ADD_RIGHT);  // green text
+ * </pre>
  */
 
 #include <string.h>
@@ -81,19 +83,20 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
  *                                 Font layout                         *
  *---------------------------------------------------------------------*/
 /*!
- *  pixAddSingleTextblock()
+ * \brief   pixAddSingleTextblock()
  *
- *      Input:  pixs (input pix; colormap ok)
- *              bmf (bitmap font data)
- *              textstr (<optional> text string to be added)
- *              val (color to set the text)
- *              location (L_ADD_ABOVE, L_ADD_AT_TOP, L_ADD_AT_BOT, L_ADD_BELOW)
- *              &overflow (<optional return> 1 if text overflows
- *                         allocated region and is clipped; 0 otherwise)
- *      Return: pixd (new pix with rendered text), or either a copy
+ * \param[in]    pixs input pix; colormap ok
+ * \param[in]    bmf bitmap font data
+ * \param[in]    textstr [optional] text string to be added
+ * \param[in]    val color to set the text
+ * \param[in]    location L_ADD_ABOVE, L_ADD_AT_TOP, L_ADD_AT_BOT, L_ADD_BELOW
+ * \param[out]   poverflow [optional] 1 if text overflows
+ *                         allocated region and is clipped; 0 otherwise
+ * \return  pixd new pix with rendered text, or either a copy
  *                    or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function paints a set of lines of text over an image.
  *          If %location is L_ADD_ABOVE or L_ADD_BELOW, the pix size
  *          is expanded with a border and rendered over the border.
@@ -106,6 +109,7 @@ static l_int32 stringLeadingWhitespace(char *textstr, l_int32 *pval);
  *      (4) If there is a colormap, this does the best it can to use
  *          the requested color, or something similar to it.
  *      (5) Typical usage is for labelling a pix with some text data.
+ * </pre>
  */
 PIX *
 pixAddSingleTextblock(PIX         *pixs,
@@ -231,17 +235,18 @@ SARRAY   *salines;
 
 
 /*!
- *  pixAddTextlines()
+ * \brief   pixAddTextlines()
  *
- *      Input:  pixs (input pix; colormap ok)
- *              bmf (bitmap font data)
- *              textstr (<optional> text string to be added)
- *              val (color to set the text)
- *              location (L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT)
- *      Return: pixd (new pix with rendered text), or either a copy
+ * \param[in]    pixs input pix; colormap ok
+ * \param[in]    bmf bitmap font data
+ * \param[in]    textstr [optional] text string to be added
+ * \param[in]    val color to set the text
+ * \param[in]    location L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT
+ * \return  pixd new pix with rendered text, or either a copy
  *                    or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function expands an image as required to paint one or
  *          more lines of text adjacent to the image.  If %bmf == NULL,
  *          this returns a copy.  If above or below, the lines are
@@ -258,6 +263,7 @@ SARRAY   *salines;
  *      (4) If there is a colormap, this does the best it can to use
  *          the requested color, or something similar to it.
  *      (5) Typical usage is for labelling a pix with some text data.
+ * </pre>
  */
 PIX *
 pixAddTextlines(PIX         *pixs,
@@ -387,21 +393,22 @@ SARRAY   *sa;
 
 
 /*!
- *  pixSetTextblock()
+ * \brief   pixSetTextblock()
  *
- *      Input:  pixs (input image)
- *              bmf (bitmap font data)
- *              textstr (block text string to be set)
- *              val (color to set the text)
- *              x0 (left edge for each line of text)
- *              y0 (baseline location for the first text line)
- *              wtext (max width of each line of generated text)
- *              firstindent (indentation of first line, in x-widths)
- *              &overflow (<optional return> 0 if text is contained in
- *                         input pix; 1 if it is clipped)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs input image
+ * \param[in]    bmf bitmap font data
+ * \param[in]    textstr block text string to be set
+ * \param[in]    val color to set the text
+ * \param[in]    x0 left edge for each line of text
+ * \param[in]    y0 baseline location for the first text line
+ * \param[in]    wtext max width of each line of generated text
+ * \param[in]    firstindent indentation of first line, in x-widths
+ * \param[out]   poverflow [optional] 0 if text is contained in
+ *                         input pix; 1 if it is clipped
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function paints a set of lines of text over an image.
  *      (2) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
@@ -414,6 +421,7 @@ SARRAY   *sa;
  *          for details).
  *      (3) If there is a colormap, this does the best it can to use
  *          the requested color, or something similar to it.
+ * </pre>
  */
 l_int32
 pixSetTextblock(PIX         *pixs,
@@ -499,20 +507,21 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixSetTextline()
+ * \brief   pixSetTextline()
  *
- *      Input:  pixs (input image)
- *              bmf (bitmap font data)
- *              textstr (text string to be set on the line)
- *              val (color to set the text)
- *              x0 (left edge for first char)
- *              y0 (baseline location for all text on line)
- *              &width (<optional return> width of generated text)
- *              &overflow (<optional return> 0 if text is contained in
- *                         input pix; 1 if it is clipped)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs input image
+ * \param[in]    bmf bitmap font data
+ * \param[in]    textstr text string to be set on the line
+ * \param[in]    val color to set the text
+ * \param[in]    x0 left edge for first char
+ * \param[in]    y0 baseline location for all text on line
+ * \param[out]   pwidth [optional] width of generated text
+ * \param[out]   poverflow [optional] 0 if text is contained in
+ *                         input pix; 1 if it is clipped
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function paints a line of text over an image.
  *      (2) %val is the pixel value to be painted through the font mask.
  *          It should be chosen to agree with the depth of pixs.
@@ -525,6 +534,7 @@ PIXCMAP  *cmap;
  *          for details).
  *      (3) If there is a colormap, this does the best it can to use
  *          the requested color, or something similar to it.
+ * </pre>
  */
 l_int32
 pixSetTextline(PIX         *pixs,
@@ -598,16 +608,17 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixaAddTextNumber()
+ * \brief   pixaAddTextNumber()
  *
- *      Input:  pixas (input pixa; colormap ok)
- *              bmf (bitmap font data)
- *              numa (<optional> number array; use 1 ... n if null)
- *              val (color to set the text)
- *              location (L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT)
- *      Return: pixad (new pixa with rendered numbers), or NULL on error
+ * \param[in]    pixas input pixa; colormap ok
+ * \param[in]    bmf bitmap font data
+ * \param[in]    numa [optional] number array; use 1 ... n if null
+ * \param[in]    val color to set the text
+ * \param[in]    location L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT
+ * \return  pixad new pixa with rendered numbers, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Typical usage is for labelling each pix in a pixa with a number.
  *      (2) This function paints numbers external to each pix, in a position
  *          given by %location.  In all cases, the pix is expanded on
@@ -620,6 +631,7 @@ PIXCMAP  *cmap;
  *      (4) If na == NULL, number each pix sequentially, starting with 1.
  *      (5) If there is a colormap, this does the best it can to use
  *          the requested color, or something similar to it.
+ * </pre>
  */
 PIXA *
 pixaAddTextNumber(PIXA     *pixas,
@@ -662,16 +674,17 @@ PIXA    *pixad;
 
 
 /*!
- *  pixaAddTextlines()
+ * \brief   pixaAddTextlines()
  *
- *      Input:  pixas (input pixa; colormap ok)
- *              bmf (bitmap font data)
- *              sa (<optional> sarray; use text embedded in each pix if null)
- *              val (color to set the text)
- *              location (L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT)
- *      Return: pixad (new pixa with rendered text), or NULL on error
+ * \param[in]    pixas input pixa; colormap ok
+ * \param[in]    bmf bitmap font data
+ * \param[in]    sa [optional] sarray; use text embedded in each pix if null
+ * \param[in]    val color to set the text
+ * \param[in]    location L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT
+ * \return  pixad new pixa with rendered text, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function adds one or more lines of text externally to
  *          each pix, in a position given by %location.  In all cases,
  *          the pix is expanded as necessary to accommodate the text.
@@ -687,6 +700,7 @@ PIXA    *pixad;
  *          and do not use any embedded text.
  *      (5) If there is a colormap, this does the best it can to use
  *          the requested color, or something similar to it.
+ * </pre>
  */
 PIXA *
 pixaAddTextlines(PIXA     *pixas,
@@ -731,18 +745,19 @@ PIXA    *pixad;
 
 
 /*!
- *  pixaAddPixWithText()
+ * \brief   pixaAddPixWithText()
  *
- *      Input:  pixa
- *              pixs (any depth, colormap ok)
- *              reduction (integer subsampling factor)
- *              bmf (<optional> bitmap font data)
- *              textstr (<optional> text string to be added)
- *              val (color to set the text)
- *              location (L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT)
- *      Return: 0 if OK, 1 on error.
+ * \param[in]    pixa
+ * \param[in]    pixs any depth, colormap ok
+ * \param[in]    reduction integer subsampling factor
+ * \param[in]    bmf [optional] bitmap font data
+ * \param[in]    textstr [optional] text string to be added
+ * \param[in]    val color to set the text
+ * \param[in]    location L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT
+ * \return  0 if OK, 1 on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function generates a new pix with added text, and adds
  *          it by insertion into the pixa.
  *      (2) If the input pixs is not cmapped and not 32 bpp, it is
@@ -755,6 +770,7 @@ PIXA    *pixad;
  *          use newlines as the separators.
  *      (6) Typical usage is for debugging, where the pixa of labelled images
  *          is used to generate a pdf.  Suggest using 1.0 for scalefactor.
+ * </pre>
  */
 l_int32
 pixaAddPixWithText(PIXA        *pixa,
@@ -822,18 +838,20 @@ PIXCMAP  *cmap;
  *                   Text size estimation and partitioning             *
  *---------------------------------------------------------------------*/
 /*!
- *  bmfGetLineStrings()
+ * \brief   bmfGetLineStrings()
  *
- *      Input:  bmf
- *              textstr
- *              maxw (max width of a text line in pixels)
- *              firstindent (indentation of first line, in x-widths)
- *              &h (<return> height required to hold text bitmap)
- *      Return: sarray of text strings for each line, or NULL on error
+ * \param[in]    bmf
+ * \param[in]    textstr
+ * \param[in]    maxw max width of a text line in pixels
+ * \param[in]    firstindent indentation of first line, in x-widths
+ * \param[out]   ph height required to hold text bitmap
+ * \return  sarray of text strings for each line, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Divides the input text string into an array of text strings,
  *          each of which will fit within maxw bits of width.
+ * </pre>
  */
 SARRAY *
 bmfGetLineStrings(L_BMF       *bmf,
@@ -900,13 +918,13 @@ SARRAY  *sa, *sawords;
 
 
 /*!
- *  bmfGetWordWidths()
+ * \brief   bmfGetWordWidths()
  *
- *      Input:  bmf
- *              textstr
- *              sa (of individual words)
- *      Return: numa (of word lengths in pixels for the font represented
- *                    by the bmf), or NULL on error
+ * \param[in]    bmf
+ * \param[in]    textstr
+ * \param[in]    sa of individual words
+ * \return  numa of word lengths in pixels for the font represented
+ *                    by the bmf, or NULL on error
  */
 NUMA *
 bmfGetWordWidths(L_BMF       *bmf,
@@ -941,13 +959,13 @@ NUMA    *na;
 
 
 /*!
- *  bmfGetStringWidth()
+ * \brief   bmfGetStringWidth()
  *
- *      Input:  bmf
- *              textstr
- *              &w (<return> width of text string, in pixels for the
- *                 font represented by the bmf)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    bmf
+ * \param[in]    textstr
+ * \param[out]   pw width of text string, in pixels for the
+ *                 font represented by the bmf
+ * \return  0 if OK, 1 on error
  */
 l_int32
 bmfGetStringWidth(L_BMF       *bmf,
@@ -986,11 +1004,11 @@ l_int32  i, w, width, nchar;
  *                             Text splitting                          *
  *---------------------------------------------------------------------*/
 /*!
- *  splitStringToParagraphs()
+ * \brief   splitStringToParagraphs()
  *
- *      Input:  textstring
- *              splitting flag (see enum in bmf.h; valid values in {1,2,3})
- *      Return: sarray (where each string is a paragraph of the input),
+ * \param[in]    textstring
+ * \param[in]    splitting flag see enum in bmf.h; valid values in {1,2,3}
+ * \return  sarray where each string is a paragraph of the input,
  *                      or NULL on error.
  */
 SARRAY *
@@ -1037,11 +1055,11 @@ SARRAY  *salines, *satemp, *saout;
 
 
 /*!
- *  stringAllWhitespace()
+ * \brief   stringAllWhitespace()
  *
- *      Input:  textstring
- *              &val (<return> 1 if all whitespace; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    textstring
+ * \param[out]   pval 1 if all whitespace; 0 otherwise
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 stringAllWhitespace(char     *textstr,
@@ -1069,11 +1087,11 @@ l_int32  len, i;
 
 
 /*!
- *  stringLeadingWhitespace()
+ * \brief   stringLeadingWhitespace()
  *
- *      Input:  textstring
- *              &val (<return> 1 if leading char is ' ' or '\t'; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    textstring
+ * \param[out]   pval 1 if leading char is ' ' or '\t'; 0 otherwise
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 stringLeadingWhitespace(char     *textstr,

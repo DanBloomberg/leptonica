@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  dewarp2.c
+/*!
+ * \file dewarp2.c
+ * <pre>
  *
  *    Build the page disparity model
  *
@@ -50,6 +51,7 @@
  *      Rendering helpers
  *          static l_int32     pixRenderMidYs()
  *          static l_int32     pixRenderHorizEndPoints
+ * </pre>
  */
 
 #include <math.h>
@@ -85,13 +87,14 @@ static const l_float32   MIN_RATIO_LINES_TO_HEIGHT = 0.45;
  *                      Build page disparity model                      *
  *----------------------------------------------------------------------*/
 /*!
- *  dewarpBuildPageModel()
+ * \brief   dewarpBuildPageModel()
  *
- *      Input:  dew
- *              debugfile (use NULL to skip writing this)
- *      Return: 0 if OK, 1 if unable to build the model or on error
+ * \param[in]    dew
+ * \param[in]    debugfile use NULL to skip writing this
+ * \return  0 if OK, 1 if unable to build the model or on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is the basic function that builds the horizontal and
  *          vertical disparity arrays, which allow determination of the
  *          src pixel in the input image corresponding to each
@@ -131,6 +134,7 @@ static const l_float32   MIN_RATIO_LINES_TO_HEIGHT = 0.45;
  *          all textlines horizontal.  Likewise, the horizontal
  *          disparity array is used to left- and right-align the
  *          longest textlines.
+ * </pre>
  */
 l_int32
 dewarpBuildPageModel(L_DEWARP    *dew,
@@ -251,14 +255,15 @@ PTAA    *ptaa1, *ptaa2;
 
 
 /*!
- *  dewarpFindVertDisparity()
+ * \brief   dewarpFindVertDisparity()
  *
- *      Input:  dew
- *              ptaa (unsmoothed lines, not vertically ordered)
- *              rotflag (0 if using dew->pixs; 1 if rotated by 90 degrees cw)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dew
+ * \param[in]    ptaa unsmoothed lines, not vertically ordered
+ * \param[in]    rotflag 0 if using dew->pixs; 1 if rotated by 90 degrees cw
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This starts with points along the centers of textlines.
  *          It does quadratic fitting (and smoothing), first along the
  *          lines and then in the vertical direction, to generate
@@ -275,6 +280,7 @@ PTAA    *ptaa1, *ptaa2;
  *      (4) This sets the vsuccess flag to 1 on success.
  *      (5) Pix debug output goes to /tmp/dewvert/ for collection into
  *          a pdf.  Non-pix debug output goes to /tmp.
+ * </pre>
  */
 l_int32
 dewarpFindVertDisparity(L_DEWARP  *dew,
@@ -519,13 +525,14 @@ FPIX       *fpix;
 
 
 /*!
- *  dewarpFindHorizDisparity()
+ * \brief   dewarpFindHorizDisparity()
  *
- *      Input:  dew
- *              ptaa (unsmoothed lines, not vertically ordered)
- *      Return: 0 if OK, 1 if vertical disparity array is no built or on error
+ * \param[in]    dew
+ * \param[in]    ptaa unsmoothed lines, not vertically ordered
+ * \return  0 if OK, 1 if vertical disparity array is no built or on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This builds a horizontal disparity model (HDM), but
  *          does not check it against constraints for validity.
  *          Constraint checking is done at rendering time.
@@ -536,6 +543,7 @@ FPIX       *fpix;
  *      (4) Internally in ptal1, ptar1, ptal2, ptar2: x and y are reversed,
  *          so the 'y' value is horizontal distance across the image width.
  *      (5) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
+ * </pre>
  */
 l_int32
 dewarpFindHorizDisparity(L_DEWARP  *dew,
@@ -751,17 +759,19 @@ FPIX      *fpix;
 
 
 /*!
- *  dewarpGetTextlineCenters()
+ * \brief   dewarpGetTextlineCenters()
  *
- *      Input:  pixs (1 bpp)
- *              debugflag (1 for debug output)
- *      Return: ptaa (of center values of textlines)
+ * \param[in]    pixs 1 bpp
+ * \param[in]    debugflag 1 for debug output
+ * \return  ptaa of center values of textlines
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This in general does not have a point for each value
  *          of x, because there will be gaps between words.
  *          It doesn't matter because we will fit a quadratic to the
  *          points that we do have.
+ * </pre>
  */
 PTAA *
 dewarpGetTextlineCenters(PIX     *pixs,
@@ -864,12 +874,12 @@ PTAA     *ptaa;
 
 
 /*!
- *  dewarpGetMeanVerticals()
+ * \brief   dewarpGetMeanVerticals()
  *
- *      Input:  pixs (1 bpp, single c.c.)
- *              x,y (location of UL corner of pixs with respect to page image
- *      Return: pta (mean y-values in component for each x-value,
- *                   both translated by (x,y)
+ * \param[in]    pixs 1 bpp, single c.c.
+ * \param[in]    x,y location of UL corner of pixs with respect to page image
+ * \return  pta (mean y-values in component for each x-value,
+ *                   both translated by (x,y
  */
 static PTA *
 dewarpGetMeanVerticals(PIX     *pixs,
@@ -908,13 +918,13 @@ PTA       *pta;
 
 
 /*!
- *  dewarpRemoveShortLines()
+ * \brief   dewarpRemoveShortLines()
  *
- *      Input:  pixs (1 bpp)
- *              ptaas (input lines)
- *              fract (minimum fraction of longest line to keep)
- *              debugflag
- *      Return: ptaad (containing only lines of sufficient length),
+ * \param[in]    pixs 1 bpp
+ * \param[in]    ptaas input lines
+ * \param[in]    fract minimum fraction of longest line to keep
+ * \param[in]    debugflag
+ * \return  ptaad containing only lines of sufficient length,
  *                     or NULL on error
  */
 PTAA *
@@ -981,15 +991,16 @@ PTAA      *ptaad;
 
 
 /*!
- *  dewarpGetLineEndpoints()
+ * \brief   dewarpGetLineEndpoints()
  *
- *      Input:  h (height of pixs)
- *              ptaa (lines)
- *              &ptal (<return> left end points of each line)
- *              &ptar (<return> right end points of each line)
- *      Return: 0 if OK, 1 on error.
+ * \param[in]    h height of pixs
+ * \param[in]    ptaa lines
+ * \param[out]   pptal left end points of each line
+ * \param[out]   pptar right end points of each line
+ * \return  0 if OK, 1 on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We require that the set of end points extends over 45% of the
  *          height of the input image, to insure good coverage and
  *          avoid extrapolating the curvature too far beyond the
@@ -997,6 +1008,7 @@ PTAA      *ptaad;
  *          dangerous if used as a reference model.
  *      (2) For fitting the endpoints, x = f(y), we transpose x and y.
  *          Thus all these ptas have x and y swapped!
+ * </pre>
  */
 static l_int32
 dewarpGetLineEndpoints(l_int32  h,
@@ -1046,16 +1058,17 @@ PTA       *pta, *ptal, *ptar;
 
 
 /*!
- *  dewarpFindLongLines()
+ * \brief   dewarpFindLongLines()
  *
- *      Input:  ptal (left end points of lines)
- *              ptar (right end points of lines)
- *              minfract (minimum allowed fraction of longest line)
- *              &ptald (<return> left end points of longest lines)
- *              &ptard (<return> right end points of longest lines)
- *      Return: 0 if OK, 1 on error or if there aren't enough long lines
+ * \param[in]    ptal left end points of lines
+ * \param[in]    ptar right end points of lines
+ * \param[in]    minfract minimum allowed fraction of longest line
+ * \param[out]   pptald left end points of longest lines
+ * \param[out]   pptard right end points of longest lines
+ * \return  0 if OK, 1 on error or if there aren't enough long lines
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We do the following:
  *         (a) Sort the lines from top to bottom, and divide equally
  *             into Top and Bottom sets.
@@ -1064,6 +1077,7 @@ PTA       *pta, *ptal, *ptar;
  *             Typically choose %minfract around 0.95.
  *         (c) Accumulate the left and right end points from both
  *             sets into the two returned ptas.
+ * </pre>
  */
 static l_int32
 dewarpFindLongLines(PTA       *ptal,
@@ -1173,19 +1187,21 @@ PTA       *ptals, *ptars, *ptald, *ptard;
 
 
 /*!
- *  dewarpIsLineCoverageValid()
+ * \brief   dewarpIsLineCoverageValid()
  *
- *      Input:  ptaa (of validated lines)
- *              h (height of pix)
- *              &topline (<return> location of top line)
- *              &botline (<return> location of bottom line)
- *      Return: 1 if coverage is valid, 0 if not or on error.
+ * \param[in]    ptaa of validated lines
+ * \param[in]    h height of pix
+ * \param[out]   ptopline location of top line
+ * \param[out]   pbotline location of bottom line
+ * \return  1 if coverage is valid, 0 if not or on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The criterion for valid coverage is:
  *          (a) there must be lines in both halves (top and bottom)
  *              of the image.
  *          (b) the coverage must be at least 40% of the image height
+ * </pre>
  */
 static l_int32
 dewarpIsLineCoverageValid(PTAA     *ptaa,
@@ -1225,21 +1241,23 @@ l_float32  top, bot, y, fraction;
 
 
 /*!
- *  dewarpQuadraticLSF()
+ * \brief   dewarpQuadraticLSF()
  *
- *      Input:  ptad (left or right end points of longest lines)
- *              &a  (<return> coeff a of LSF: y = ax^2 + bx + c)
- *              &b  (<return> coeff b of LSF: y = ax^2 + bx + c)
- *              &c  (<return> coeff c of LSF: y = ax^2 + bx + c)
- *              &mederr (<optional return> median error)
- *      Return: 0 if OK, 1 on error.
+ * \param[in]    ptad left or right end points of longest lines
+ * \param[out]   pa  coeff a of LSF: y = ax^2 + bx + c
+ * \param[out]   pb  coeff b of LSF: y = ax^2 + bx + c
+ * \param[out]   pc  coeff c of LSF: y = ax^2 + bx + c
+ * \param[out]   pmederr [optional] median error
+ * \return  0 if OK, 1 on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is used for finding the left or right sides of
  *          the text block, computed as a quadratic curve.
  *          Only the longest lines are input, so there are
  *          no outliers.
  *      (2) The ptas for the end points all have x and y swapped.
+ * </pre>
  */
 static l_int32
 dewarpQuadraticLSF(PTA        *ptad,
@@ -1287,14 +1305,15 @@ NUMA      *naerr;
  *                      Build line disparity model                     *
  *----------------------------------------------------------------------*/
 /*!
- *  dewarpBuildLineModel()
+ * \brief   dewarpBuildLineModel()
  *
- *      Input:  dew
- *              opensize (size of opening to remove perpendicular lines)
- *              debugfile (use NULL to skip writing this)
- *      Return: 0 if OK, 1 if unable to build the model or on error
+ * \param[in]    dew
+ * \param[in]    opensize size of opening to remove perpendicular lines
+ * \param[in]    debugfile use NULL to skip writing this
+ * \return  0 if OK, 1 if unable to build the model or on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This builds the horizontal and vertical disparity arrays
  *          for an input of ruled lines, typically for calibration.
  *          In book scanning, you could lay the ruled paper over a page.
@@ -1305,12 +1324,13 @@ NUMA      *naerr;
  *          of pre-processing here to insure that.
  *      (3) %opensize is typically about 8.  It must be larger than
  *          the thickness of the lines to be extracted.  This is the
- *          default value, which is applied if %opensize < 3.
+ *          default value, which is applied if %opensize \< 3.
  *      (4) Sets vsuccess = 1 and hsuccess = 1 if the vertical and/or
  *          horizontal disparity arrays build.
  *      (5) Similar to dewarpBuildPageModel(), except here the vertical
  *          and horizontal disparity arrays are both built from ruled lines.
  *          See notes there.
+ * </pre>
  */
 l_int32
 dewarpBuildLineModel(L_DEWARP    *dew,
@@ -1483,16 +1503,18 @@ PTAA    *ptaa1, *ptaa2;
  *                         Query model status                           *
  *----------------------------------------------------------------------*/
 /*!
- *  dewarpaModelStatus()
+ * \brief   dewarpaModelStatus()
  *
- *      Input:  dewa
- *              pageno
- *              &vsuccess (<optional return> 1 on success)
- *              &hsuccess (<optional return> 1 on success)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa
+ * \param[in]    pageno
+ * \param[out]   pvsuccess [optional] 1 on success
+ * \param[out]   phsuccess [optional] 1 on success
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This tests if a model has been built, not if it is valid.
+ * </pre>
  */
 l_int32
 dewarpaModelStatus(L_DEWARPA  *dewa,
@@ -1521,12 +1543,12 @@ L_DEWARP  *dew;
  *                          Rendering helpers                           *
  *----------------------------------------------------------------------*/
 /*!
- *  pixRenderMidYs()
+ * \brief   pixRenderMidYs()
  *
- *      Input:  pixs (32 bpp)
- *              namidys (y location of reference lines for vertical disparity)
- *              linew (width of rendered line; typ 2)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 32 bpp
+ * \param[in]    namidys y location of reference lines for vertical disparity
+ * \param[in]    linew width of rendered line; typ 2
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 pixRenderMidYs(PIX     *pixs,
@@ -1557,13 +1579,13 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixRenderHorizEndPoints()
+ * \brief   pixRenderHorizEndPoints()
  *
- *      Input:  pixs (32 bpp)
- *              ptal (left side line end points)
- *              ptar (right side line end points)
- *              color (0xrrggbb00)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 32 bpp
+ * \param[in]    ptal left side line end points
+ * \param[in]    ptar right side line end points
+ * \param[in]    color 0xrrggbb00
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 pixRenderHorizEndPoints(PIX      *pixs,
@@ -1594,4 +1616,3 @@ PTA      *ptalt, *ptart, *ptacirc;
     pixDestroy(&pixcirc);
     return 0;
 }
-

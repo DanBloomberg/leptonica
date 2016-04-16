@@ -24,12 +24,14 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  ccthin.c
+/*!
+ * \file ccthin.c
+ * <pre>
  *
  *     PIX    *pixThin()
  *     PIX    *pixThinGeneral()
  *     PIX    *pixThinExamples()
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -135,16 +137,17 @@ static const char *sel_48_2 = "o x"
  *                      CC-preserving thinning                    *
  *----------------------------------------------------------------*/
 /*!
- *  pixThin()
+ * \brief   pixThin()
  *
- *      Input:  pixs (1 bpp)
- *              type (L_THIN_FG, L_THIN_BG)
- *              connectivity (4 or 8)
- *              maxiters (max number of iters allowed; use 0 to iterate
- *                        until completion)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    type L_THIN_FG, L_THIN_BG
+ * \param[in]    connectivity 4 or 8
+ * \param[in]    maxiters max number of iters allowed; use 0 to iterate
+ *                        until completion
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See "Connectivity-preserving morphological image transformations,"
  *          Dan S. Bloomberg, in SPIE Visual Communications and Image
  *          Processing, Conference 1606, pp. 320-334, November 1991,
@@ -169,6 +172,7 @@ static const char *sel_48_2 = "o x"
  *          opposite connectivity gets preserved.  For example, to thicken
  *          the fg using 4-connectivity, we thin the bg using Sels that
  *          preserve 8-connectivity.
+ * </pre>
  */
 PIX *
 pixThin(PIX     *pixs,
@@ -219,22 +223,24 @@ SELA  *sela;
 
 
 /*!
- *  pixThinGeneral()
+ * \brief   pixThinGeneral()
  *
- *      Input:  pixs (1 bpp)
- *              type (L_THIN_FG, L_THIN_BG)
- *              sela (of Sels for parallel composite HMTs)
- *              maxiters (max number of iters allowed; use 0 to iterate
- *                        until completion)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    type L_THIN_FG, L_THIN_BG
+ * \param[in]    sela of Sels for parallel composite HMTs
+ * \param[in]    maxiters max number of iters allowed; use 0 to iterate
+ *                        until completion
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See notes in pixThin().  That function chooses among
  *          the best of the Sels for thinning.
  *      (2) This is a general function that takes a Sela of HMTs
  *          that are used in parallel for thinning from each
  *          of four directions.  One iteration consists of four
  *          such parallel thins.
+ * </pre>
  */
 PIX *
 pixThinGeneral(PIX     *pixs,
@@ -314,17 +320,18 @@ SEL     *sel, *selr;
 
 
 /*!
- *  pixThinExamples()
+ * \brief   pixThinExamples()
  *
- *      Input:  pixs (1 bpp)
- *              type (L_THIN_FG, L_THIN_BG)
- *              index (into specific examples; valid 1-9; see notes)
- *              maxiters (max number of iters allowed; use 0 to iterate
- *                        until completion)
- *              selfile (<optional> filename for output sel display)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    type L_THIN_FG, L_THIN_BG
+ * \param[in]    index into specific examples; valid 1-9; see notes
+ * \param[in]    maxiters max number of iters allowed; use 0 to iterate
+ *                        until completion
+ * \param[in]    selfile [optional] filename for output sel display
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See notes in pixThin().  The examples are taken from
  *          the paper referenced there.
  *      (2) Here we allow specific sets of HMTs to be used in
@@ -342,6 +349,7 @@ SEL     *sel, *selr;
  *          Thickening:
  *              index = 8     sel_4_2, sel_4_3 (e.g,, do just a few iterations)
  *              index = 9     sel_8_4 (e.g., do just a few iterations)
+ * </pre>
  */
 PIX *
 pixThinExamples(PIX         *pixs,

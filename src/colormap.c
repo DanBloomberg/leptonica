@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  colormap.c
+/*!
+ * \file colormap.c
+ * <pre>
  *
  *      Colormap creation, copy, destruction, addition
  *           PIXCMAP    *pixcmapCreate()
@@ -86,6 +87,7 @@
  *           l_int32     pixcmapContrastTRC()
  *           l_int32     pixcmapShiftIntensity()
  *           l_int32     pixcmapShiftByComponent()
+ * </pre>
  */
 
 #include <string.h>
@@ -96,10 +98,10 @@
  *                Colormap creation and addition               *
  *-------------------------------------------------------------*/
 /*!
- *  pixcmapCreate()
+ * \brief   pixcmapCreate()
  *
- *      Input:  depth (bpp, of pix)
- *      Return: cmap, or NULL on error
+ * \param[in]    depth bpp, of pix
+ * \return  cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapCreate(l_int32  depth)
@@ -127,14 +129,15 @@ PIXCMAP    *cmap;
 
 
 /*!
- *  pixcmapCreateRandom()
+ * \brief   pixcmapCreateRandom()
  *
- *      Input:  depth (bpp, of pix; 2, 4 or 8)
- *              hasblack (1 if the first color is black; 0 if no black)
- *              haswhite (1 if the last color is white; 0 if no white)
- *      Return: cmap, or NULL on error
+ * \param[in]    depth bpp, of pix; 2, 4 or 8
+ * \param[in]    hasblack 1 if the first color is black; 0 if no black
+ * \param[in]    haswhite 1 if the last color is white; 0 if no white
+ * \return  cmap, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This sets up a colormap with random colors,
  *          where the first color is optionally black, the last color
  *          is optionally white, and the remaining colors are
@@ -149,6 +152,7 @@ PIXCMAP    *cmap;
  *      (5) Modern rand()s have equal randomness in low and high order
  *          bits, but older ones don't.  Here, we're just using rand()
  *          to choose colors for output.
+ * </pre>
  */
 PIXCMAP *
 pixcmapCreateRandom(l_int32  depth,
@@ -184,15 +188,17 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixcmapCreateLinear()
+ * \brief   pixcmapCreateLinear()
  *
- *      Input:  d (depth of pix for this colormap; 1, 2, 4 or 8)
- *              nlevels (valid in range [2, 2^d])
- *      Return: cmap, or NULL on error
+ * \param[in]    d depth of pix for this colormap; 1, 2, 4 or 8
+ * \param[in]    nlevels valid in range [2, 2^d]
+ * \return  cmap, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Colormap has equally spaced gray color values
  *          from black (0, 0, 0) to white (255, 255, 255).
+ * </pre>
  */
 PIXCMAP *
 pixcmapCreateLinear(l_int32  d,
@@ -219,10 +225,10 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixcmapCopy()
+ * \brief   pixcmapCopy()
  *
- *      Input:  cmaps
- *      Return: cmapd, or NULL on error
+ * \param[in]    cmaps
+ * \return  cmapd, or NULL on error
  */
 PIXCMAP *
 pixcmapCopy(PIXCMAP  *cmaps)
@@ -251,10 +257,10 @@ PIXCMAP  *cmapd;
 
 
 /*!
- *  pixcmapDestroy()
+ * \brief   pixcmapDestroy()
  *
- *      Input:  &cmap (<inout> set to null)
- *      Return: void
+ * \param[in,out]   pcmap set to null
+ * \return  void
  */
 void
 pixcmapDestroy(PIXCMAP  **pcmap)
@@ -279,16 +285,18 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixcmapAddColor()
+ * \brief   pixcmapAddColor()
  *
- *      Input:  cmap
- *              rval, gval, bval (colormap entry to be added; each number
- *                                is in range [0, ... 255])
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    rval, gval, bval colormap entry to be added; each number
+ *                                is in range [0, ... 255]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This always adds the color if there is room.
  *      (2) The alpha component is 255 (opaque)
+ * </pre>
  */
 l_int32
 pixcmapAddColor(PIXCMAP  *cmap,
@@ -316,15 +324,17 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapAddRGBA()
+ * \brief   pixcmapAddRGBA()
  *
- *      Input:  cmap
- *              rval, gval, bval, aval (colormap entry to be added;
- *                                      each number is in range [0, ... 255])
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    rval, gval, bval, aval colormap entry to be added;
+ *                                      each number is in range [0, ... 255]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This always adds the color if there is room.
+ * </pre>
  */
 l_int32
 pixcmapAddRGBA(PIXCMAP  *cmap,
@@ -353,20 +363,22 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapAddNewColor()
+ * \brief   pixcmapAddNewColor()
  *
- *      Input:  cmap
- *              rval, gval, bval (colormap entry to be added; each number
- *                                is in range [0, ... 255])
- *              &index (<return> index of color)
- *      Return: 0 if OK, 1 on error; 2 if unable to add color
+ * \param[in]    cmap
+ * \param[in]    rval, gval, bval colormap entry to be added; each number
+ *                                is in range [0, ... 255]
+ * \param[out]   pindex index of color
+ * \return  0 if OK, 1 on error; 2 if unable to add color
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This only adds color if not already there.
  *      (2) The alpha component is 255 (opaque)
  *      (3) This returns the index of the new (or existing) color.
  *      (4) Returns 2 with a warning if unable to add this color;
  *          the caller should check the return value.
+ * </pre>
  */
 l_int32
 pixcmapAddNewColor(PIXCMAP  *cmap,
@@ -401,19 +413,21 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
 
 
 /*!
- *  pixcmapAddNearestColor()
+ * \brief   pixcmapAddNearestColor()
  *
- *      Input:  cmap
- *              rval, gval, bval (colormap entry to be added; each number
- *                                is in range [0, ... 255])
- *              &index (<return> index of color)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    rval, gval, bval colormap entry to be added; each number
+ *                                is in range [0, ... 255]
+ * \param[out]   pindex index of color
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This only adds color if not already there.
  *      (2) The alpha component is 255 (opaque)
  *      (3) If it's not in the colormap and there is no room to add
  *          another color, this returns the index of the nearest color.
+ * </pre>
  */
 l_int32
 pixcmapAddNearestColor(PIXCMAP  *cmap,
@@ -448,17 +462,19 @@ pixcmapAddNearestColor(PIXCMAP  *cmap,
 
 
 /*!
- *  pixcmapUsableColor()
+ * \brief   pixcmapUsableColor()
  *
- *      Input:  cmap
- *              rval, gval, bval (colormap entry to be added; each number
- *                                is in range [0, ... 255])
- *              &usable (<return> 1 if usable; 0 if not)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    rval, gval, bval colormap entry to be added; each number
+ *                                is in range [0, ... 255]
+ * \param[out]   pusable 1 if usable; 0 if not
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This checks if the color already exists or if there is
  *          room to add it.  It makes no change in the colormap.
+ * </pre>
  */
 l_int32
 pixcmapUsableColor(PIXCMAP  *cmap,
@@ -491,19 +507,21 @@ l_int32  index;
 
 
 /*!
- *  pixcmapAddBlackOrWhite()
+ * \brief   pixcmapAddBlackOrWhite()
  *
- *      Input:  cmap
- *              color (0 for black, 1 for white)
- *              &index (<optional return> index of color; can be null)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    color 0 for black, 1 for white
+ * \param[out]   pindex [optional] index of color; can be null
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This only adds color if not already there.
  *      (2) The alpha component is 255 (opaque)
  *      (3) This sets index to the requested color.
  *      (4) If there is no room in the colormap, returns the index
  *          of the closest color.
+ * </pre>
  */
 l_int32
 pixcmapAddBlackOrWhite(PIXCMAP  *cmap,
@@ -537,12 +555,12 @@ l_int32  index;
 
 
 /*!
- *  pixcmapSetBlackAndWhite()
+ * \brief   pixcmapSetBlackAndWhite()
  *
- *      Input:  cmap
- *              setblack (0 for no operation; 1 to set darkest color to black)
- *              setwhite (0 for no operation; 1 to set lightest color to white)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    setblack 0 for no operation; 1 to set darkest color to black
+ * \param[in]    setwhite 0 for no operation; 1 to set lightest color to white
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixcmapSetBlackAndWhite(PIXCMAP  *cmap,
@@ -569,10 +587,10 @@ l_int32  index;
 
 
 /*!
- *  pixcmapGetCount()
+ * \brief   pixcmapGetCount()
  *
- *      Input:  cmap
- *      Return: count, or 0 on error
+ * \param[in]    cmap
+ * \return  count, or 0 on error
  */
 l_int32
 pixcmapGetCount(PIXCMAP  *cmap)
@@ -586,10 +604,10 @@ pixcmapGetCount(PIXCMAP  *cmap)
 
 
 /*!
- *  pixcmapGetFreeCount()
+ * \brief   pixcmapGetFreeCount()
  *
- *      Input:  cmap
- *      Return: free entries, or 0 on error
+ * \param[in]    cmap
+ * \return  free entries, or 0 on error
  */
 l_int32
 pixcmapGetFreeCount(PIXCMAP  *cmap)
@@ -603,10 +621,10 @@ pixcmapGetFreeCount(PIXCMAP  *cmap)
 
 
 /*!
- *  pixcmapGetDepth()
+ * \brief   pixcmapGetDepth()
  *
- *      Input:  cmap
- *      Return: depth, or 0 on error
+ * \param[in]    cmap
+ * \return  depth, or 0 on error
  */
 l_int32
 pixcmapGetDepth(PIXCMAP  *cmap)
@@ -620,14 +638,16 @@ pixcmapGetDepth(PIXCMAP  *cmap)
 
 
 /*!
- *  pixcmapGetMinDepth()
+ * \brief   pixcmapGetMinDepth()
  *
- *      Input:  cmap
- *              &mindepth (<return> minimum depth to support the colormap)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[out]   pmindepth minimum depth to support the colormap
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) On error, &mindepth is returned as 0.
+ * <pre>
+ * Notes:
+ *      (1) On error, \&mindepth is returned as 0.
+ * </pre>
  */
 l_int32
 pixcmapGetMinDepth(PIXCMAP  *cmap,
@@ -655,13 +675,15 @@ l_int32  ncolors;
 
 
 /*!
- *  pixcmapClear()
+ * \brief   pixcmapClear()
  *
- *      Input:  cmap
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      This removes the colors by setting the count to 0.
+ * </pre>
  */
 l_int32
 pixcmapClear(PIXCMAP  *cmap)
@@ -679,12 +701,12 @@ pixcmapClear(PIXCMAP  *cmap)
  *                      Colormap random access                 *
  *-------------------------------------------------------------*/
 /*!
- *  pixcmapGetColor()
+ * \brief   pixcmapGetColor()
  *
- *      Input:  cmap
- *              index
- *              &rval, &gval, &bval (<return> each color value)
- *      Return: 0 if OK, 1 if not accessible (caller should check)
+ * \param[in]    cmap
+ * \param[in]    index
+ * \param[out]   prval, pgval, pbval each color value
+ * \return  0 if OK, 1 if not accessible caller should check
  */
 l_int32
 pixcmapGetColor(PIXCMAP  *cmap,
@@ -714,15 +736,17 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapGetColor32()
+ * \brief   pixcmapGetColor32()
  *
- *      Input:  cmap
- *              index
- *              &val32 (<return> 32-bit rgb color value)
- *      Return: 0 if OK, 1 if not accessible (caller should check)
+ * \param[in]    cmap
+ * \param[in]    index
+ * \param[out]   pval32 32-bit rgb color value
+ * \return  0 if OK, 1 if not accessible caller should check
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The returned alpha channel value is 255.
+ * </pre>
  */
 l_int32
 pixcmapGetColor32(PIXCMAP   *cmap,
@@ -745,12 +769,12 @@ l_int32  rval, gval, bval;
 
 
 /*!
- *  pixcmapGetRGBA()
+ * \brief   pixcmapGetRGBA()
  *
- *      Input:  cmap
- *              index
- *              &rval, &gval, &bval, &aval (<return> each color value)
- *      Return: 0 if OK, 1 if not accessible (caller should check)
+ * \param[in]    cmap
+ * \param[in]    index
+ * \param[out]   prval, pgval, pbval, paval each color value
+ * \return  0 if OK, 1 if not accessible caller should check
  */
 l_int32
 pixcmapGetRGBA(PIXCMAP  *cmap,
@@ -783,12 +807,12 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapGetRGBA32()
+ * \brief   pixcmapGetRGBA32()
  *
- *      Input:  cmap
- *              index
- *              &val32 (<return> 32-bit rgba color value)
- *      Return: 0 if OK, 1 if not accessible (caller should check)
+ * \param[in]    cmap
+ * \param[in]    index
+ * \param[out]   pval32 32-bit rgba color value
+ * \return  0 if OK, 1 if not accessible caller should check
  */
 l_int32
 pixcmapGetRGBA32(PIXCMAP   *cmap,
@@ -811,18 +835,20 @@ l_int32  rval, gval, bval, aval;
 
 
 /*!
- *  pixcmapResetColor()
+ * \brief   pixcmapResetColor()
  *
- *      Input:  cmap
- *              index
- *              rval, gval, bval (colormap entry to be reset; each number
- *                                is in range [0, ... 255])
- *      Return: 0 if OK, 1 if not accessible (caller should check)
+ * \param[in]    cmap
+ * \param[in]    index
+ * \param[in]    rval, gval, bval colormap entry to be reset; each number
+ *                                is in range [0, ... 255]
+ * \return  0 if OK, 1 if not accessible caller should check
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This resets sets the color of an entry that has already
  *          been set and included in the count of colors.
  *      (2) The alpha component is 255 (opaque)
+ * </pre>
  */
 l_int32
 pixcmapResetColor(PIXCMAP  *cmap,
@@ -850,18 +876,20 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapSetAlpha()
+ * \brief   pixcmapSetAlpha()
  *
- *      Input:  cmap
- *              index
- *              aval (in range [0, ... 255])
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    index
+ * \param[in]    aval in range [0, ... 255]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This modifies the transparency of one entry in a colormap.
  *          The alpha component by default is 255 (opaque).
  *          This is used when extracting the colormap from a PNG file
  *          without decoding the image.
+ * </pre>
  */
 l_int32
 pixcmapSetAlpha(PIXCMAP  *cmap,
@@ -884,13 +912,13 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapGetIndex()
+ * \brief   pixcmapGetIndex()
  *
- *      Input:  cmap
- *              rval, gval, bval (colormap colors to search for; each number
- *                                is in range [0, ... 255])
- *              &index (<return> found index)
- *      Return: 0 if found, 1 if not found (caller must check)
+ * \param[in]    cmap
+ * \param[in]    rval, gval, bval colormap colors to search for; each number
+ *                                is in range [0, ... 255]
+ * \param[out]   pindex found index
+ * \return  0 if found, 1 if not found caller must check
  */
 l_int32
 pixcmapGetIndex(PIXCMAP  *cmap,
@@ -925,11 +953,11 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapHasColor()
+ * \brief   pixcmapHasColor()
  *
- *      Input:  cmap
- *              &color (<return> TRUE if cmap has color; FALSE otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[out]   pcolor TRUE if cmap has color; FALSE otherwise
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixcmapHasColor(PIXCMAP  *cmap,
@@ -964,11 +992,11 @@ l_int32  *rmap, *gmap, *bmap;
 
 
 /*!
- *  pixcmapIsOpaque()
+ * \brief   pixcmapIsOpaque()
  *
- *      Input:  cmap
- *              &opaque (<return> TRUE if fully opaque: all entries are 255)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[out]   popaque TRUE if fully opaque: all entries are 255
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixcmapIsOpaque(PIXCMAP  *cmap,
@@ -998,12 +1026,12 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapIsBlackAndWhite()
+ * \brief   pixcmapIsBlackAndWhite()
  *
- *      Input:  cmap
- *              &blackwhite (<return> TRUE if the cmap has only two colors:
- *                           black (0,0,0) and white (255,255,255))
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[out]   pblackwhite TRUE if the cmap has only two colors:
+ *                           black (0,0,0) and white (255,255,255)
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixcmapIsBlackAndWhite(PIXCMAP  *cmap,
@@ -1035,14 +1063,16 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapCountGrayColors()
+ * \brief   pixcmapCountGrayColors()
  *
- *      Input:  cmap
- *              &ngray (<return> number of gray colors)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[out]   pngray number of gray colors
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This counts the unique gray colors, including black and white.
+ * </pre>
  */
 l_int32
 pixcmapCountGrayColors(PIXCMAP  *cmap,
@@ -1077,13 +1107,13 @@ l_int32  *array;
 
 
 /*!
- *  pixcmapGetRankIntensity()
+ * \brief   pixcmapGetRankIntensity()
  *
- *      Input:  cmap
- *              rankval (0.0 for darkest, 1.0 for lightest color)
- *              &index (<return> the index into the colormap that
- *                      corresponds to the rank intensity color)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    rankval 0.0 for darkest, 1.0 for lightest color
+ * \param[out]   pindex the index into the colormap that
+ *                      corresponds to the rank intensity color
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixcmapGetRankIntensity(PIXCMAP    *cmap,
@@ -1120,19 +1150,21 @@ NUMA    *na, *nasort;
 
 
 /*!
- *  pixcmapGetNearestIndex()
+ * \brief   pixcmapGetNearestIndex()
  *
- *      Input:  cmap
- *              rval, gval, bval (colormap colors to search for; each number
- *                                is in range [0, ... 255])
- *              &index (<return> the index of the nearest color)
- *      Return: 0 if OK, 1 on error (caller must check)
+ * \param[in]    cmap
+ * \param[in]    rval, gval, bval colormap colors to search for; each number
+ *                                is in range [0, ... 255]
+ * \param[out]   pindex the index of the nearest color
+ * \return  0 if OK, 1 on error caller must check
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Returns the index of the exact color if possible, otherwise the
  *          index of the color closest to the target color.
  *      (2) Nearest color is that which is the least sum-of-squares distance
  *          from the target color.
+ * </pre>
  */
 l_int32
 pixcmapGetNearestIndex(PIXCMAP  *cmap,
@@ -1177,18 +1209,20 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapGetNearestGrayIndex()
+ * \brief   pixcmapGetNearestGrayIndex()
  *
- *      Input:  cmap
- *              val (gray value to search for; in range [0, ... 255])
- *              &index (<return> the index of the nearest color)
- *      Return: 0 if OK, 1 on error (caller must check)
+ * \param[in]    cmap
+ * \param[in]    val gray value to search for; in range [0, ... 255]
+ * \param[out]   pindex the index of the nearest color
+ * \return  0 if OK, 1 on error caller must check
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This should be used on gray colormaps.  It uses only the
  *          green value of the colormap.
  *      (2) Returns the index of the exact color if possible, otherwise the
  *          index of the color closest to the target color.
+ * </pre>
  */
 l_int32
 pixcmapGetNearestGrayIndex(PIXCMAP  *cmap,
@@ -1229,17 +1263,19 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapGetDistanceToColor()
+ * \brief   pixcmapGetDistanceToColor()
  *
- *      Input:  cmap
- *              index
- *              rval, gval, bval (target color)
- *              &dist (<return> the distance from the cmap entry to target)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    index
+ * \param[in]    rval, gval, bval target color
+ * \param[out]   pdist the distance from the cmap entry to target
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Returns the L2 distance (squared) between the color at index i
  *          and the target color.
+ * </pre>
  */
 l_int32
 pixcmapGetDistanceToColor(PIXCMAP  *cmap,
@@ -1279,21 +1315,23 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapGetRangeValues()
+ * \brief   pixcmapGetRangeValues()
  *
- *      Input:  cmap
- *              select (L_SELECT_RED, L_SELECT_GREEN, L_SELECT_BLUE or
- *                      L_SELECT_AVERAGE)
- *              &minval (<optional return> minimum value of component)
- *              &maxval (<optional return> maximum value of component)
- *              &minindex (<optional return> index of minimum value)
- *              &maxindex (<optional return> index of maximum value)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    cmap
+ * \param[in]    select L_SELECT_RED, L_SELECT_GREEN, L_SELECT_BLUE or
+ *                      L_SELECT_AVERAGE
+ * \param[out]   pminval [optional] minimum value of component
+ * \param[out]   pmaxval [optional] maximum value of component
+ * \param[out]   pminindex [optional] index of minimum value
+ * \param[out]   pmaxindex [optional] index of maximum value
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Returns, for selected components (or the average), the
  *          the extreme values (min and/or max) and their indices
  *          that are found in the cmap.
+ * </pre>
  */
 l_int32
 pixcmapGetRangeValues(PIXCMAP  *cmap,
@@ -1377,17 +1415,19 @@ l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
  *                       Colormap conversion                   *
  *-------------------------------------------------------------*/
 /*!
- *  pixcmapGrayToColor()
+ * \brief   pixcmapGrayToColor()
  *
- *      Input:  color
- *      Return: cmap, or NULL on error
+ * \param[in]    color
+ * \return  cmap, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This creates a colormap that maps from gray to
  *          a specific color.  In the mapping, each component
  *          is faded to white, depending on the gray value.
  *      (2) In use, this is simply attached to a grayscale pix
  *          to give it the input color.
+ * </pre>
  */
 PIXCMAP *
 pixcmapGrayToColor(l_uint32  color)
@@ -1408,16 +1448,18 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixcmapColorToGray()
+ * \brief   pixcmapColorToGray()
  *
- *      Input:  cmaps
- *              rwt, gwt, bwt  (non-negative; these should add to 1.0)
- *      Return: cmap (gray), or NULL on error
+ * \param[in]    cmaps
+ * \param[in]    rwt, gwt, bwt  non-negative; these should add to 1.0
+ * \return  cmap gray, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This creates a gray colormap from an arbitrary colormap.
  *      (2) In use, attach the output gray colormap to the pix
  *          (or a copy of it) that provided the input colormap.
+ * </pre>
  */
 PIXCMAP *
 pixcmapColorToGray(PIXCMAP   *cmaps,
@@ -1467,10 +1509,10 @@ PIXCMAP   *cmapd;
  *                         Colormap I/O                        *
  *-------------------------------------------------------------*/
 /*!
- *  pixcmapRead()
+ * \brief   pixcmapRead()
  *
- *      Input:  filename
- *      Return: cmap, or NULL on error
+ * \param[in]    filename
+ * \return  cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapRead(const char  *filename)
@@ -1496,10 +1538,10 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixcmapReadStream()
+ * \brief   pixcmapReadStream()
  *
- *      Input:  fp (file stream)
- *      Return: cmap, or NULL on error
+ * \param[in]    fp file stream
+ * \return  cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapReadStream(FILE  *fp)
@@ -1536,11 +1578,11 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixcmapWrite()
+ * \brief   pixcmapWrite()
  *
- *      Input:  filename
- *              cmap
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename
+ * \param[in]    cmap
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixcmapWrite(const char  *filename,
@@ -1567,11 +1609,11 @@ FILE  *fp;
 
 
 /*!
- *  pixcmapWriteStream()
+ * \brief   pixcmapWriteStream()
  *
- *      Input:  fp (file stream)
-                cmap
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+   \param[in]    cmap
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixcmapWriteStream(FILE     *fp,
@@ -1610,12 +1652,12 @@ l_int32   i;
  *               Extract colormap arrays and serialization              *
  *----------------------------------------------------------------------*/
 /*!
- *  pixcmapToArrays()
+ * \brief   pixcmapToArrays()
  *
- *      Input:  cmap (colormap)
- *              &rmap, &gmap, &bmap  (<return> colormap arrays)
- *              &amap (<optional return> alpha array)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    cmap colormap
+ * \param[out]   prmap, pgmap, pbmap  colormap arrays
+ * \param[out]   pamap [optional] alpha array
+ * \return  0 if OK; 1 on error
  */
 l_int32
 pixcmapToArrays(PIXCMAP   *cmap,
@@ -1664,12 +1706,12 @@ RGBA_QUAD  *cta;
 
 
 /*!
- *  pixcmapToRGBTable()
+ * \brief   pixcmapToRGBTable()
  *
- *      Input:  cmap (colormap)
- *              &tab (<return> table of rgba values for the colormap)
- *              &ncolors (<optional return> size of table)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    cmap colormap
+ * \param[out]   ptab table of rgba values for the colormap
+ * \param[out]   pncolors [optional] size of table
+ * \return  0 if OK; 1 on error
  */
 l_int32
 pixcmapToRGBTable(PIXCMAP    *cmap,
@@ -1703,16 +1745,18 @@ l_uint32  *tab;
 
 
 /*!
- *  pixcmapSerializeToMemory()
+ * \brief   pixcmapSerializeToMemory()
  *
- *      Input:  cmap (colormap)
- *              cpc (components/color: 3 for rgb, 4 for rgba)
- *              &ncolors (<return> number of colors in table)
- *              &data (<return> binary string, cpc bytes per color)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    cmap colormap
+ * \param[in]    cpc components/color: 3 for rgb, 4 for rgba
+ * \param[out]   pncolors number of colors in table
+ * \param[out]   pdata binary string, cpc bytes per color
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) When serializing to store in a pdf, use %cpc = 3.
+ * </pre>
  */
 l_int32
 pixcmapSerializeToMemory(PIXCMAP   *cmap,
@@ -1755,12 +1799,12 @@ l_uint8  *data;
 
 
 /*!
- *  pixcmapDeserializeFromMemory()
+ * \brief   pixcmapDeserializeFromMemory()
  *
- *      Input:  data (binary string, 3 or 4 bytes per color)
- *              cpc (components/color: 3 for rgb, 4 for rgba)
- *              ncolors
- *      Return: cmap, or NULL on error
+ * \param[in]    data binary string, 3 or 4 bytes per color
+ * \param[in]    cpc components/color: 3 for rgb, 4 for rgba
+ * \param[in]    ncolors
+ * \return  cmap, or NULL on error
  */
 PIXCMAP *
 pixcmapDeserializeFromMemory(l_uint8  *data,
@@ -1806,20 +1850,22 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixcmapConvertToHex()
+ * \brief   pixcmapConvertToHex()
  *
- *      Input:  data  (binary serialized data)
- *              ncolors (in colormap)
- *      Return: hexdata (bracketed, space-separated ascii hex string),
+ * \param[in]    data  binary serialized data
+ * \param[in]    ncolors in colormap
+ * \return  hexdata bracketed, space-separated ascii hex string,
  *                       or NULL on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The number of bytes in %data is 3 * ncolors.
  *      (2) Output is in form:
- *             < r0g0b0 r1g1b1 ... rngnbn >
+ *             \< r0g0b0 r1g1b1 ... rngnbn \>
  *          where r0, g0, b0 ... are each 2 bytes of hex ascii
  *      (3) This is used in pdf files to express the colormap as an
  *          array in ascii (human-readable) format.
+ * </pre>
  */
 char *
 pixcmapConvertToHex(l_uint8 *data,
@@ -1864,18 +1910,20 @@ char     buf[4];
  *                     Colormap transforms                     *
  *-------------------------------------------------------------*/
 /*!
- *  pixcmapGammaTRC()
+ * \brief   pixcmapGammaTRC()
  *
- *      Input:  cmap (colormap)
- *              gamma (gamma correction; must be > 0.0)
- *              minval  (input value that gives 0 for output; can be < 0)
- *              maxval  (input value that gives 255 for output; can be > 255)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    cmap colormap
+ * \param[in]    gamma gamma correction; must be > 0.0
+ * \param[in]    minval  input value that gives 0 for output; can be < 0
+ * \param[in]    maxval  input value that gives 255 for output; can be > 255
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is an in-place transform
  *      (2) See pixGammaTRC() and numaGammaTRC() in enhance.c
  *          for description and use of transform
+ * </pre>
  */
 l_int32
 pixcmapGammaTRC(PIXCMAP   *cmap,
@@ -1918,17 +1966,19 @@ NUMA    *nag;
 
 
 /*!
- *  pixcmapContrastTRC()
+ * \brief   pixcmapContrastTRC()
  *
- *      Input:  cmap (colormap)
- *              factor (generally between 0.0 [no enhancement]
- *                      and 1.0, but can be larger than 1.0)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    cmap colormap
+ * \param[in]    factor generally between 0.0 [no enhancement]
+ *                      and 1.0, but can be larger than 1.0
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is an in-place transform
  *      (2) See pixContrastTRC() and numaContrastTRC() in enhance.c
  *          for description and use of transform
+ * </pre>
  */
 l_int32
 pixcmapContrastTRC(PIXCMAP   *cmap,
@@ -1964,21 +2014,23 @@ NUMA    *nac;
 
 
 /*!
- *  pixcmapShiftIntensity()
+ * \brief   pixcmapShiftIntensity()
  *
- *      Input:  cmap (colormap)
- *              fraction (between -1.0 and +1.0)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    cmap colormap
+ * \param[in]    fraction between -1.0 and +1.0
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is an in-place transform
  *      (2) It does a proportional shift of the intensity for each color.
- *      (3) If fraction < 0.0, it moves all colors towards (0,0,0).
+ *      (3) If fraction \< 0.0, it moves all colors towards (0,0,0).
  *          This darkens the image.
- *          If fraction > 0.0, it moves all colors towards (255,255,255)
+ *          If fraction \> 0.0, it moves all colors towards (255,255,255)
  *          This fades the image.
  *      (4) The equivalent transform can be accomplished with pixcmapGammaTRC(),
  *          but it is considerably more difficult (see numaGammaTRC()).
+ * </pre>
  */
 l_int32
 pixcmapShiftIntensity(PIXCMAP   *cmap,
@@ -2013,20 +2065,22 @@ l_int32  i, ncolors, rval, gval, bval;
 
 
 /*!
- *  pixcmapShiftByComponent()
+ * \brief   pixcmapShiftByComponent()
  *
- *      Input:  cmap (colormap)
- *              srcval (source color: 0xrrggbb00)
- *              dstval (target color: 0xrrggbb00)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    cmap colormap
+ * \param[in]    srcval source color: 0xrrggbb00
+ * \param[in]    dstval target color: 0xrrggbb00
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is an in-place transform
  *      (2) It implements pixelShiftByComponent() for each color.
  *          The mapping is specified by srcval and dstval.
  *      (3) If a component decreases, the component in the colormap
  *          decreases by the same ratio.  Likewise for increasing, except
  *          all ratios are taken with respect to the distance from 255.
+ * </pre>
  */
 l_int32
 pixcmapShiftByComponent(PIXCMAP  *cmap,

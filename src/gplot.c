@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  gplot.c
+/*!
+ * \file gplot.c
+ * <pre>
  *
  *     Basic plotting functions
  *          GPLOT      *gplotCreate()
@@ -76,23 +77,24 @@
  *         gplotAddPlot(gplot, natheta, nascore2, GPLOT_POINTS, "plot 2");
  *         gplotSetScaling(gplot, GPLOT_LOG_SCALE_Y);
  *         gplotMakeOutput(gplot);
- *         gplotDestroy(&gplot);
+ *         gplotDestroy(\&gplot);
  *
  *     Note for output to GPLOT_LATEX:
- *         This creates latex output of the plot, named <rootname>.tex.
- *         It needs to be placed in a latex file <latexname>.tex
+ *         This creates latex output of the plot, named \<rootname\>.tex.
+ *         It needs to be placed in a latex file \<latexname\>.tex
  *         that precedes the plot output with, at a minimum:
  *           \documentclass{article}
  *           \begin{document}
  *         and ends with
  *           \end{document}
- *         You can then generate a dvi file <latexname>.dvi using
- *           latex <latexname>.tex
- *         and a PostScript file <psname>.ps from that using
- *           dvips -o <psname>.ps <latexname>.dvi
+ *         You can then generate a dvi file \<latexname\>.dvi using
+ *           latex \<latexname\>.tex
+ *         and a PostScript file \<psname\>.ps from that using
+ *           dvips -o \<psname\>.ps \<latexname\>.dvi
  *
  *     N.B. To generate plots, it is necessary to have gnuplot installed on
  *          your Unix system, or wgnuplot on Windows.
+ * </pre>
  */
 
 #include <string.h>
@@ -121,19 +123,21 @@ const char  *gplotfileoutputs[] = {"",
  *                       Basic Plotting Functions                  *
  *-----------------------------------------------------------------*/
 /*!
- *  gplotCreate()
+ * \brief   gplotCreate()
  *
- *      Input:  rootname (root for all output files)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
- *              title  (<optional> overall title)
- *              xlabel (<optional> x axis label)
- *              ylabel (<optional> y axis label)
- *      Return: gplot, or NULL on error
+ * \param[in]    rootname root for all output files
+ * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    title  [optional] overall title
+ * \param[in]    xlabel [optional] x axis label
+ * \param[in]    ylabel [optional] y axis label
+ * \return  gplot, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This initializes the plot.
  *      (2) The 'title', 'xlabel' and 'ylabel' strings can have spaces,
  *          double quotes and backquotes, but not single quotes.
+ * </pre>
  */
 GPLOT  *
 gplotCreate(const char  *rootname,
@@ -186,7 +190,7 @@ GPLOT  *gplot;
 
 
 /*!
- *   gplotDestroy()
+ * \brief    gplotDestroy()
  *
  *        Input: &gplot (<inout> to be nulled)
  *        Return: void
@@ -228,18 +232,19 @@ GPLOT  *gplot;
 
 
 /*!
- *  gplotAddPlot()
+ * \brief   gplotAddPlot()
  *
- *      Input:  gplot
- *              nax (<optional> numa: set to null for Y_VS_I;
- *                   required for Y_VS_X)
- *              nay (numa: required for both Y_VS_I and Y_VS_X)
- *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
- *              plottitle  (<optional> title for individual plot)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    gplot
+ * \param[in]    nax [optional] numa: set to null for Y_VS_I;
+ *                   required for Y_VS_X
+ * \param[in]    nay numa: required for both Y_VS_I and Y_VS_X
+ * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                         GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    plottitle  [optional] title for individual plot
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) There are 2 options for (x,y) values:
  *            o  To plot an array vs a linear function of the
  *               index, set nax = NULL.
@@ -253,6 +258,7 @@ GPLOT  *gplot;
  *      (3) If nax is defined, it must be the same size as nay.
  *      (4) The 'plottitle' string can have spaces, double
  *          quotes and backquotes, but not single quotes.
+ * </pre>
  */
 l_int32
 gplotAddPlot(GPLOT       *gplot,
@@ -320,16 +326,18 @@ SARRAY    *sa;
 
 
 /*!
- *  gplotSetScaling()
+ * \brief   gplotSetScaling()
  *
- *      Input:  gplot
- *              scaling (GPLOT_LINEAR_SCALE, GPLOT_LOG_SCALE_X,
- *                       GPLOT_LOG_SCALE_Y, GPLOT_LOG_SCALE_X_Y)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    gplot
+ * \param[in]    scaling GPLOT_LINEAR_SCALE, GPLOT_LOG_SCALE_X,
+ *                       GPLOT_LOG_SCALE_Y, GPLOT_LOG_SCALE_X_Y
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) By default, the x and y axis scaling is linear.
  *      (2) Call this function to set semi-log or log-log scaling.
+ * </pre>
  */
 l_int32
 gplotSetScaling(GPLOT   *gplot,
@@ -350,18 +358,20 @@ gplotSetScaling(GPLOT   *gplot,
 
 
 /*!
- *  gplotMakeOutput()
+ * \brief   gplotMakeOutput()
  *
- *      Input:  gplot
- *      Return: 0 if OK; 1 on error
+ * \param[in]    gplot
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This uses gplot and the new arrays to add a plot
  *          to the output, by writing a new data file and appending
  *          the appropriate plot commands to the command file.
  *      (2) This is the only function in this file that requires the
  *          gnuplot executable, to actually generate the plot.
  *      (3) The gnuplot program for windows is wgnuplot.exe.
+ * </pre>
  */
 l_int32
 gplotMakeOutput(GPLOT  *gplot)
@@ -388,10 +398,10 @@ l_int32  ignore;
 
 
 /*!
- *  gplotGenCommandFile()
+ * \brief   gplotGenCommandFile()
  *
- *      Input:  gplot
- *      Return: 0 if OK, 1 on error
+ * \param[in]    gplot
+ * \return  0 if OK, 1 on error
  */
 l_int32
 gplotGenCommandFile(GPLOT  *gplot)
@@ -485,10 +495,10 @@ FILE    *fp;
 
 
 /*!
- *  gplotGenDataFiles()
+ * \brief   gplotGenDataFiles()
  *
- *      Input:  gplot
- *      Return: 0 if OK, 1 on error
+ * \param[in]    gplot
+ * \return  0 if OK, 1 on error
  */
 l_int32
 gplotGenDataFiles(GPLOT  *gplot)
@@ -520,20 +530,22 @@ FILE    *fp;
  *                       Quick and Dirty Plots                     *
  *-----------------------------------------------------------------*/
 /*!
- *  gplotSimple1()
+ * \brief   gplotSimple1()
  *
- *      Input:  na (numa; plot Y_VS_I)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
- *              outroot (root of output files)
- *              title  (<optional>, can be NULL)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    na numa; plot Y_VS_I
+ * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot root of output files
+ * \param[in]    title  [optional], can be NULL
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a line plot of a numa, where the array value
  *          is plotted vs the array index.  The plot is generated
  *          in the specified output format; the title  is optional.
  *      (2) When calling these simple plot functions more than once, use
  *          different %outroot to avoid overwriting the output files.
+ * </pre>
  */
 l_int32
 gplotSimple1(NUMA        *na,
@@ -546,21 +558,23 @@ gplotSimple1(NUMA        *na,
 
 
 /*!
- *  gplotSimple2()
+ * \brief   gplotSimple2()
  *
- *      Input:  na1 (numa; plotted with Y_VS_I)
- *              na2 (ditto)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
- *              outroot (root of output files)
- *              title  (<optional>)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    na1 numa; plotted with Y_VS_I
+ * \param[in]    na2 ditto
+ * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot root of output files
+ * \param[in]    title  [optional]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a line plot of two numa, where the array values
  *          are each plotted vs the array index.  The plot is generated
  *          in the specified output format; the title  is optional.
  *      (2) When calling these simple plot functions more than once, use
  *          different %outroot to avoid overwriting the output files.
+ * </pre>
  */
 l_int32
 gplotSimple2(NUMA        *na1,
@@ -575,21 +589,23 @@ gplotSimple2(NUMA        *na1,
 
 
 /*!
- *  gplotSimpleN()
+ * \brief   gplotSimpleN()
  *
- *      Input:  naa (numaa; we plotted with Y_VS_I for each numa)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
- *              outroot (root of output files)
- *              title (<optional>)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    naa numaa; we plotted with Y_VS_I for each numa
+ * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot root of output files
+ * \param[in]    title [optional]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a line plot of all numas in a numaa (array of numa),
  *          where the array values are each plotted vs the array index.
  *          The plot is generated in the specified output format;
  *          the title  is optional.
  *      (2) When calling these simple plot functions more than once, use
  *          different %outroot to avoid overwriting the output files.
+ * </pre>
  */
 l_int32
 gplotSimpleN(NUMAA       *naa,
@@ -602,18 +618,19 @@ gplotSimpleN(NUMAA       *naa,
 
 
 /*!
- *  gplotSimpleXY1()
+ * \brief   gplotSimpleXY1()
  *
- *      Input:  nax (<optional>)
- *              nay
- *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
- *              outroot (root of output files)
- *              title  (<optional>, can be NULL)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    nax [optional]
+ * \param[in]    nay
+ * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                         GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot root of output files
+ * \param[in]    title  [optional], can be NULL
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a plot of a %nay vs %nax, generated in
  *          the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
@@ -621,6 +638,7 @@ gplotSimpleN(NUMAA       *naa,
  *          the array index.
  *      (4) When calling these simple plot functions more than once, use
  *          different %outroot to avoid overwriting the output files.
+ * </pre>
  */
 l_int32
 gplotSimpleXY1(NUMA        *nax,
@@ -656,19 +674,20 @@ GPLOT  *gplot;
 
 
 /*!
- *  gplotSimpleXY2()
+ * \brief   gplotSimpleXY2()
  *
- *      Input:  nax (<optional; can be NULL)
- *              nay1
- *              nay2
- *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
- *              outroot (root of output files)
- *              title  (<optional>)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    nax <optional; can be NULL
+ * \param[in]    nay1
+ * \param[in]    nay2
+ * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                         GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot root of output files
+ * \param[in]    title  [optional]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives plots of %nay1 and %nay2 against nax, generated
  *          in the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
@@ -676,6 +695,7 @@ GPLOT  *gplot;
  *          against the array index.
  *      (4) When calling these simple plot functions more than once, use
  *          different %outroot to avoid overwriting the output files.
+ * </pre>
  */
 l_int32
 gplotSimpleXY2(NUMA        *nax,
@@ -713,18 +733,19 @@ GPLOT  *gplot;
 
 
 /*!
- *  gplotSimpleXYN()
+ * \brief   gplotSimpleXYN()
  *
- *      Input:  nax (<optional>; can be NULL)
- *              naay (numaa of arrays to plot against %nax)
- *              plotstyle (GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS)
- *              outformat (GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX)
- *              outroot (root of output files)
- *              title (<optional>)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    nax [optional]; can be NULL
+ * \param[in]    naay numaa of arrays to plot against %nax
+ * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                         GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot root of output files
+ * \param[in]    title [optional]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives plots of each Numa in %naa against nax,
  *          generated in the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
@@ -732,6 +753,7 @@ GPLOT  *gplot;
  *          the array index.
  *      (4) When calling these simple plot functions more than once, use
  *          different %outroot to avoid overwriting the output files.
+ * </pre>
  */
 l_int32
 gplotSimpleXYN(NUMA        *nax,
@@ -778,10 +800,10 @@ NUMA    *nay;
  *                           Serialize for I/O                     *
  *-----------------------------------------------------------------*/
 /*!
- *  gplotRead()
+ * \brief   gplotRead()
  *
- *      Input:  filename
- *      Return: gplot, or NULL on error
+ * \param[in]    filename
+ * \return  gplot, or NULL on error
  */
 GPLOT *
 gplotRead(const char  *filename)
@@ -861,11 +883,11 @@ GPLOT   *gplot;
 
 
 /*!
- *  gplotWrite()
+ * \brief   gplotWrite()
  *
- *      Input:  filename
- *              gplot
- *      Return: 0 if OK; 1 on error
+ * \param[in]    filename
+ * \param[in]    gplot
+ * \return  0 if OK; 1 on error
  */
 l_int32
 gplotWrite(const char  *filename,

@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  utils.c
+/*!
+ * \file utils.c
+ * <pre>
  *
  *       Control of error, warning and info messages
  *           l_int32    setMsgSeverity()
@@ -167,7 +168,7 @@
   *     and genPathname(), all input pathnames must have unix separators.
  *  (2) On Windows, when you specify a read or write to "/tmp/...",
  *      the filename is rewritten to use the Windows temp directory:
- *         /tmp  ==>    <Temp>...    (windows)
+ *         /tmp  ==\>    \<Temp\>...    (windows)
  *  (3) This filename rewrite, along with the conversion from unix
  *      to windows pathnames, happens in genPathname().
  *  (4) Use fopenReadStream() and fopenWriteStream() to open files,
@@ -180,6 +181,7 @@
  *      Windows, where the same DLL must perform complementary operations
  *      on file streams (open/close) and heap memory (malloc/free):
  *         lept_fopen(), lept_fclose(), lept_calloc() and lept_free().
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -218,12 +220,13 @@ LEPT_DLL l_int32  LeptMsgSeverity = DEFAULT_SEVERITY;
  *                Control of error, warning and info messages           *
  *----------------------------------------------------------------------*/
 /*!
- *  setMsgSeverity()
+ * \brief   setMsgSeverity()
  *
- *      Input:  newsev
- *      Return: oldsev
+ * \param[in]    newsev
+ * \return  oldsev
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) setMsgSeverity() allows the user to specify the desired
  *          message severity threshold.  Messages of equal or greater
  *          severity will be output.  The previous message severity is
@@ -231,6 +234,7 @@ LEPT_DLL l_int32  LeptMsgSeverity = DEFAULT_SEVERITY;
  *      (2) If L_SEVERITY_EXTERNAL is passed, then the severity will be
  *          obtained from the LEPT_MSG_SEVERITY environment variable.
  *          If the environmental variable is not set, a warning is issued.
+ * </pre>
  */
 l_int32
 setMsgSeverity(l_int32  newsev)
@@ -270,12 +274,12 @@ char    *envsev;
  *        by using -DNO_CONSOLE_IO or by setting LeptMsgSeverity.       *
  *----------------------------------------------------------------------*/
 /*!
- *  returnErrorInt()
+ * \brief   returnErrorInt()
  *
- *      Input:  msg (error message)
- *              procname
- *              ival (return val)
- *      Return: ival (typically 1 for an error return)
+ * \param[in]    msg error message
+ * \param[in]    procname
+ * \param[in]    ival return val
+ * \return  ival typically 1 for an error return
  */
 l_int32
 returnErrorInt(const char  *msg,
@@ -288,12 +292,12 @@ returnErrorInt(const char  *msg,
 
 
 /*!
- *  returnErrorFloat()
+ * \brief   returnErrorFloat()
  *
- *      Input:  msg (error message)
- *              procname
- *              fval (return val)
- *      Return: fval
+ * \param[in]    msg error message
+ * \param[in]    procname
+ * \param[in]    fval return val
+ * \return  fval
  */
 l_float32
 returnErrorFloat(const char  *msg,
@@ -306,12 +310,12 @@ returnErrorFloat(const char  *msg,
 
 
 /*!
- *  returnErrorPtr()
+ * \brief   returnErrorPtr()
  *
- *      Input:  msg (error message)
- *              procname
- *              pval  (return val)
- *      Return: pval (typically null)
+ * \param[in]    msg error message
+ * \param[in]    procname
+ * \param[in]    pval  return val
+ * \return  pval typically null
  */
 void *
 returnErrorPtr(const char  *msg,
@@ -327,10 +331,10 @@ returnErrorPtr(const char  *msg,
  *                       Safe string operations                       *
  *--------------------------------------------------------------------*/
 /*!
- *  stringNew()
+ * \brief   stringNew()
  *
- *      Input:  src string
- *      Return: dest copy of src string, or NULL on error
+ * \param[in]    src string
+ * \return  dest copy of src string, or NULL on error
  */
 char *
 stringNew(const char  *src)
@@ -355,20 +359,22 @@ char    *dest;
 
 
 /*!
- *  stringCopy()
+ * \brief   stringCopy()
  *
- *      Input:  dest (existing byte buffer)
- *              src string (<optional> can be null)
- *              n (max number of characters to copy)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dest existing byte buffer
+ * \param[in]    src string [optional] can be null
+ * \param[in]    n max number of characters to copy
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Relatively safe wrapper for strncpy, that checks the input,
- *          and does not complain if %src is null or %n < 1.
- *          If %n < 1, this is a no-op.
+ *          and does not complain if %src is null or %n \< 1.
+ *          If %n \< 1, this is a no-op.
  *      (2) %dest needs to be at least %n bytes in size.
  *      (3) We don't call strncpy() because valgrind complains about
  *          use of uninitialized values.
+ * </pre>
  */
 l_int32
 stringCopy(char        *dest,
@@ -394,16 +400,18 @@ l_int32  i;
 
 
 /*!
- *  stringReplace()
+ * \brief   stringReplace()
  *
- *      Input:  &dest string (<return> copy)
- *              src string (<optional> can be null)
- *      Return: 0 if OK; 1 on error
+ * \param[out]   pdest string copy
+ * \param[in]    src string [optional] can be null
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Frees any existing dest string
  *      (2) Puts a copy of src string in the dest
  *      (3) If either or both strings are null, does something reasonable.
+ * </pre>
  */
 l_int32
 stringReplace(char       **pdest,
@@ -435,18 +443,20 @@ l_int32  len;
 
 
 /*!
- *  stringLength()
+ * \brief   stringLength()
  *
- *      Input:  src string (can be null or NULL-terminated string)
- *              size (size of src buffer)
- *      Return: length of src in bytes.
+ * \param[in]    src string can be null or NULL-terminated string
+ * \param[in]    size size of src buffer
+ * \return  length of src in bytes.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Safe implementation of strlen that only checks size bytes
  *          for trailing NUL.
  *      (2) Valid returned string lengths are between 0 and size - 1.
  *          If size bytes are checked without finding a NUL byte, then
  *          an error is indicated by returning size.
+ * </pre>
  */
 l_int32
 stringLength(const char  *src,
@@ -470,14 +480,15 @@ l_int32  i;
 
 
 /*!
- *  stringCat()
+ * \brief   stringCat()
  *
- *      Input:  dest (null-terminated byte buffer)
- *              size (size of dest)
- *              src string (can be null or NULL-terminated string)
- *      Return: number of bytes added to dest; -1 on error
+ * \param[in]    dest null-terminated byte buffer
+ * \param[in]    size size of dest
+ * \param[in]    src string can be null or NULL-terminated string
+ * \return  number of bytes added to dest; -1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Alternative implementation of strncat, that checks the input,
  *          is easier to use (since the size of the dest buffer is specified
  *          rather than the number of bytes to copy), and does not complain
@@ -486,6 +497,7 @@ l_int32  i;
  *      (3) If it can't append src (an error), it does nothing.
  *      (4) N.B. The order of 2nd and 3rd args is reversed from that in
  *          strncat, as in the Windows function strcat_s().
+ * </pre>
  */
 l_int32
 stringCat(char        *dest,
@@ -522,16 +534,18 @@ l_int32  lendest, lensrc;
 
 
 /*!
- *  stringConcatNew()
+ * \brief   stringConcatNew()
  *
- *      Input:  first (first string in list)
- *              varargs  (NULL-terminated list of strings)
- *      Return: result (new string concatenating the input strings), or
+ * \param[in]    first first string in list
+ * \param[in]    varargs  NULL-terminated list of strings
+ * \return  result new string concatenating the input strings, or
  *                      NULL if first == NULL
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The last arg in the list of strings must be NULL.
  *      (2) Caller must free the returned string.
+ * </pre>
  */
 char *
 stringConcatNew(const char  *first, ...)
@@ -567,16 +581,18 @@ va_list      args;
 
 
 /*!
- *  stringJoin()
+ * \brief   stringJoin()
  *
- *      Input:  src1 string (<optional> can be null)
- *              src2 string (<optional> can be null)
- *      Return: concatenated string, or NULL on error
+ * \param[in]    src1 string [optional] can be null
+ * \param[in]    src2 string [optional] can be null
+ * \return  concatenated string, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a safe version of strcat; it makes a new string.
  *      (2) It is not an error if either or both of the strings
  *          are empty, or if either or both of the pointers are null.
+ * </pre>
  */
 char *
 stringJoin(const char  *src1,
@@ -603,13 +619,14 @@ l_int32  srclen1, srclen2, destlen;
 
 
 /*!
- *  stringJoinIP()
+ * \brief   stringJoinIP()
  *
- *      Input:  &src1 string (address of src1; cannot be on the stack)
- *              src2 string (<optional> can be null)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    &src1 string address of src1; cannot be on the stack
+ * \param[in]    src2 string [optional] can be null
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a safe in-place version of strcat.  The contents of
  *          src1 is replaced by the concatenation of src1 and src2.
  *      (2) It is not an error if either or both of the strings
@@ -620,7 +637,7 @@ l_int32  srclen1, srclen2, destlen;
  *              char *src1 = NULL;
  *              char *src1 = stringNew("");
  *          Then call with:
- *              stringJoinIP(&src1, src2);
+ *              stringJoinIP(\&src1, src2);
  *      (4) This can also be implemented as a macro:
  *              #define stringJoinIP(src1, src2) \
  *                  {tmpstr = stringJoin((src1),(src2)); \
@@ -628,6 +645,7 @@ l_int32  srclen1, srclen2, destlen;
  *                  (src1) = tmpstr;}
  *      (5) Another function to consider for joining many strings is
  *          stringConcatNew().
+ * </pre>
  */
 l_int32
 stringJoinIP(char       **psrc1,
@@ -648,10 +666,10 @@ char  *tmpstr;
 
 
 /*!
- *  stringReverse()
+ * \brief   stringReverse()
  *
- *      Input:  src (string)
- *      Return: dest (newly-allocated reversed string)
+ * \param[in]    src string
+ * \return  dest newly-allocated reversed string
  */
 char *
 stringReverse(const char  *src)
@@ -674,18 +692,19 @@ l_int32  i, len;
 
 
 /*!
- *  strtokSafe()
+ * \brief   strtokSafe()
  *
- *      Input:  cstr (input string to be sequentially parsed;
- *                    use NULL after the first call)
- *              seps (a string of character separators)
- *              &saveptr (<return> ptr to the next char after
- *                        the last encountered separator)
- *      Return: substr (a new string that is copied from the previous
+ * \param[in]    cstr input string to be sequentially parsed;
+ *                    use NULL after the first call
+ * \param[in]    seps a string of character separators
+ * \param[out]   psaveptr ptr to the next char after
+ *                        the last encountered separator
+ * \return  substr a new string that is copied from the previous
  *                      saveptr up to but not including the next
- *                      separator character), or NULL if end of cstr.
+ *                      separator character, or NULL if end of cstr.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a thread-safe implementation of strtok.
  *      (2) It has the same interface as strtok_r.
  *      (3) It differs from strtok_r in usage in two respects:
@@ -702,6 +721,7 @@ l_int32  i, len;
  *          ~ Then input NULL after that; the value returned in saveptr
  *            is used in all subsequent calls.
  *      (7) This is only slightly slower than strtok_k.
+ * </pre>
  */
 char *
 strtokSafe(char        *cstr,
@@ -771,18 +791,19 @@ l_int32  istart, i, j, nchars;
 
 
 /*!
- *  stringSplitOnToken()
+ * \brief   stringSplitOnToken()
  *
- *      Input:  cstr (input string to be split; not altered)
- *              seps (a string of character separators)
- *              &head (<return> ptr to copy of the input string, up to
- *                     the first separator token encountered)
- *              &tail (<return> ptr to copy of the part of the input string
+ * \param[in]    cstr input string to be split; not altered
+ * \param[in]    seps a string of character separators
+ * \param[out]   phead ptr to copy of the input string, up to
+ *                     the first separator token encountered
+ * \param[out]   ptail ptr to copy of the part of the input string
  *                     starting with the first non-separator character
- *                     that occurs after the first separator is found)
- *      Return: 0 if OK, 1 on error
+ *                     that occurs after the first separator is found
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The input string is not altered; all split parts are new strings.
  *      (2) The split occurs around the first consecutive sequence of
  *          tokens encountered.
@@ -792,6 +813,7 @@ l_int32  istart, i, j, nchars;
  *          with the first char in that part that is NOT a token.
  *      (5) If no separator token is found, 'head' contains a copy
  *          of the input string and 'tail' is null.
+ * </pre>
  */
 l_int32
 stringSplitOnToken(char        *cstr,
@@ -824,11 +846,11 @@ char  *saveptr;
  *                       Find and replace procs                       *
  *--------------------------------------------------------------------*/
 /*!
- *  stringRemoveChars()
+ * \brief   stringRemoveChars()
  *
- *      Input:  src (input string; can be of zero length)
- *              remchars  (string of chars to be removed from src)
- *      Return: dest (string with specified chars removed), or NULL on error
+ * \param[in]    src input string; can be of zero length
+ * \param[in]    remchars  string of chars to be removed from src
+ * \return  dest string with specified chars removed, or NULL on error
  */
 char *
 stringRemoveChars(const char  *src,
@@ -859,19 +881,21 @@ l_int32  nsrc, i, k;
 
 
 /*!
- *  stringFindSubstr()
+ * \brief   stringFindSubstr()
  *
- *      Input:  src (input string; can be of zero length)
- *              sub (substring to be searched for)
- *              &loc (<return optional> location of substring in src)
- *      Return: 1 if found; 0 if not found or on error
+ * \param[in]    src input string; can be of zero length
+ * \param[in]    sub substring to be searched for
+ * \param[out]   ploc [optional] location of substring in src
+ * \return  1 if found; 0 if not found or on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a wrapper around strstr().
  *      (2) Both %src and %sub must be defined, and %sub must have
  *          length of at least 1.
  *      (3) If the substring is not found and loc is returned, it has
  *          the value -1.
+ * </pre>
  */
 l_int32
 stringFindSubstr(const char  *src,
@@ -902,17 +926,18 @@ char  *ptr;
 
 
 /*!
- *  stringReplaceSubstr()
+ * \brief   stringReplaceSubstr()
  *
- *      Input:  src (input string; can be of zero length)
- *              sub1 (substring to be replaced)
- *              sub2 (substring to put in; can be "")
- *              &found (<return optional> 1 if sub1 is found; 0 otherwise)
- *              &loc (<return optional> location of ptr after replacement)
- *      Return: dest (string with substring replaced), or NULL if the
+ * \param[in]    src input string; can be of zero length
+ * \param[in]    sub1 substring to be replaced
+ * \param[in]    sub2 substring to put in; can be ""
+ * \param[out]   pfound [optional] 1 if sub1 is found; 0 otherwise
+ * \param[out]   ploc [optional] location of ptr after replacement
+ * \return  dest string with substring replaced, or NULL if the
  *              substring not found or on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Replaces the first instance.
  *      (2) To only remove sub1, use "" for sub2
  *      (3) Returns a new string if sub1 and sub2 are the same.
@@ -922,6 +947,7 @@ char  *ptr;
  *          the substituted string.
  *      (5) N.B. If ploc is not null, loc must always be initialized.
  *          To search the string from the beginning, set loc = 0.
+ * </pre>
  */
 char *
 stringReplaceSubstr(const char  *src,
@@ -972,20 +998,22 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
 
 
 /*!
- *  stringReplaceEachSubstr()
+ * \brief   stringReplaceEachSubstr()
  *
- *      Input:  src (input string; can be of zero length)
- *              sub1 (substring to be replaced)
- *              sub2 (substring to put in; can be "")
- *              &count (<optional return > the number of times that sub1
- *                      is found in src; 0 if not found)
- *      Return: dest (string with substring replaced), or NULL if the
+ * \param[in]    src input string; can be of zero length
+ * \param[in]    sub1 substring to be replaced
+ * \param[in]    sub2 substring to put in; can be ""
+ * \param[in]    &count <optional return > the number of times that sub1
+ *                      is found in src; 0 if not found
+ * \return  dest string with substring replaced, or NULL if the
  *              substring not found or on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Replaces every instance.
  *      (2) To only remove each instance of sub1, use "" for sub2
  *      (3) Returns NULL if sub1 and sub2 are the same.
+ * </pre>
  */
 char *
 stringReplaceEachSubstr(const char  *src,
@@ -1025,20 +1053,22 @@ l_int32  loc;
 
 
 /*!
- *  arrayFindEachSequence()
+ * \brief   arrayFindEachSequence()
  *
- *      Input:  data (byte array)
- *              datalen (length of data, in bytes)
- *              sequence (subarray of bytes to find in data)
- *              seqlen (length of sequence, in bytes)
- *      Return: dna of offsets where the sequence is found, or NULL if
+ * \param[in]    data byte array
+ * \param[in]    datalen length of data, in bytes
+ * \param[in]    sequence subarray of bytes to find in data
+ * \param[in]    seqlen length of sequence, in bytes
+ * \return  dna of offsets where the sequence is found, or NULL if
  *              none are found or on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The byte arrays %data and %sequence are not C strings,
  *          as they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
  *      (2) This finds every occurrence in %data of %sequence.
+ * </pre>
  */
 L_DNA *
 arrayFindEachSequence(const l_uint8  *data,
@@ -1077,18 +1107,19 @@ L_DNA   *da;
 
 
 /*!
- *  arrayFindSequence()
+ * \brief   arrayFindSequence()
  *
- *      Input:  data (byte array)
- *              datalen (length of data, in bytes)
- *              sequence (subarray of bytes to find in data)
- *              seqlen (length of sequence, in bytes)
- *              &offset (return> offset from beginning of
- *                       data where the sequence begins)
- *              &found (<return> 1 if sequence is found; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    data byte array
+ * \param[in]    datalen length of data, in bytes
+ * \param[in]    sequence subarray of bytes to find in data
+ * \param[in]    seqlen length of sequence, in bytes
+ * \param[in]    &offset return> offset from beginning of
+ *                       data where the sequence begins
+ * \param[out]   pfound 1 if sequence is found; 0 otherwise
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The byte arrays 'data' and 'sequence' are not C strings,
  *          as they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
@@ -1097,6 +1128,7 @@ L_DNA   *da;
  *          must not exceed the actual length of the %sequence byte array.
  *      (3) If the sequence is not found, the offset will be 0, so you
  *          must check %found.
+ * </pre>
  */
 l_int32
 arrayFindSequence(const l_uint8  *data,
@@ -1142,28 +1174,30 @@ l_int32  i, j, found, lastpos;
  *                             Safe realloc                           *
  *--------------------------------------------------------------------*/
 /*!
- *  reallocNew()
+ * \brief   reallocNew()
  *
- *      Input:  &indata (<optional>; nulls indata)
- *              oldsize (size of input data to be copied, in bytes)
- *              newsize (size of data to be reallocated in bytes)
- *      Return: ptr to new data, or NULL on error
+ * \param[in]    &indata [optional]; nulls indata
+ * \param[in]    oldsize size of input data to be copied, in bytes
+ * \param[in]    newsize size of data to be reallocated in bytes
+ * \return  ptr to new data, or NULL on error
  *
- *  Action: !N.B. (3) and (4)!
- *      (1) Allocates memory, initialized to 0
- *      (2) Copies as much of the input data as possible
+ *  Action: !N.B. 3) and (4!
+ *      1 Allocates memory, initialized to 0
+ *      2 Copies as much of the input data as possible
  *          to the new block, truncating the copy if necessary
- *      (3) Frees the input data
- *      (4) Zeroes the input data ptr
+ *      3 Frees the input data
+ *      4 Zeroes the input data ptr
  *
- *  Notes:
- *      (1) If newsize <=0, just frees input data and nulls ptr
+ * <pre>
+ * Notes:
+ *      (1) If newsize \<=0, just frees input data and nulls ptr
  *      (2) If input ptr is null, just callocs new memory
  *      (3) This differs from realloc in that it always allocates
- *          new memory (if newsize > 0) and initializes it to 0,
+ *          new memory (if newsize \> 0) and initializes it to 0,
  *          it requires the amount of old data to be copied,
  *          and it takes the address of the input ptr and
  *          nulls the handle.
+ * </pre>
  */
 void *
 reallocNew(void   **pindata,
@@ -1211,11 +1245,11 @@ void    *newdata;
  *                 Read and write between file and memory             *
  *--------------------------------------------------------------------*/
 /*!
- *  l_binaryRead()
+ * \brief   l_binaryRead()
  *
- *      Input:  filename
- *              &nbytes (<return> number of bytes read)
- *      Return: data, or NULL on error
+ * \param[in]    filename
+ * \param[out]   pnbytes number of bytes read
+ * \return  data, or NULL on error
  */
 l_uint8 *
 l_binaryRead(const char  *filename,
@@ -1241,25 +1275,27 @@ FILE     *fp;
 
 
 /*!
- *  l_binaryReadStream()
+ * \brief   l_binaryReadStream()
  *
- *      Input:  fp (file stream opened to read; can be stdin)
- *              &nbytes (<return> number of bytes read)
- *      Return: null-terminated array, or NULL on error
- *              (reading 0 bytes is not an error)
+ * \param[in]    fp file stream opened to read; can be stdin
+ * \param[out]   pnbytes number of bytes read
+ * \return  null-terminated array, or NULL on error
+ *              reading 0 bytes is not an error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The returned array is terminated with a null byte so that it can
  *          be used to read ascii data from a file into a proper C string.
  *      (2) This can be used to capture data that is piped in via stdin,
  *          because it does not require seeking within the file.
  *      (3) For example, you can read an image from stdin into memory
  *          using shell redirection, with one of these shell commands:
- *             cat <imagefile> | readprog
- *             readprog < <imagefile>
+ *             cat \<imagefile\> | readprog
+ *             readprog \< \<imagefile\>
  *          where readprog is:
- *             l_uint8 *data = l_binaryReadStream(stdin, &nbytes);
+ *             l_uint8 *data = l_binaryReadStream(stdin, \&nbytes);
  *             Pix *pix = pixReadMem(data, nbytes);
+ * </pre>
  */
 l_uint8 *
 l_binaryReadStream(FILE    *fp,
@@ -1314,17 +1350,19 @@ L_BBUFFER  *bb;
 
 
 /*!
- *  l_binaryReadSelect()
+ * \brief   l_binaryReadSelect()
  *
- *      Input:  filename
- *              start (first byte to read)
- *              nbytes (number of bytes to read; use 0 to read to end of file)
- *              &nread (<return> number of bytes actually read)
- *      Return: data, or NULL on error
+ * \param[in]    filename
+ * \param[in]    start first byte to read
+ * \param[in]    nbytes number of bytes to read; use 0 to read to end of file
+ * \param[out]   pnread number of bytes actually read
+ * \return  data, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The returned array is terminated with a null byte so that it can
  *          be used to read ascii data from a file into a proper C string.
+ * </pre>
  */
 l_uint8 *
 l_binaryReadSelect(const char  *filename,
@@ -1352,22 +1390,24 @@ FILE     *fp;
 
 
 /*!
- *  l_binaryReadSelectStream()
+ * \brief   l_binaryReadSelectStream()
  *
- *      Input:  fp (file stream)
- *              start (first byte to read)
- *              nbytes (number of bytes to read; use 0 to read to end of file)
- *              &nread (<return> number of bytes actually read)
- *      Return: null-terminated array, or NULL on error
- *              (reading 0 bytes is not an error)
+ * \param[in]    fp file stream
+ * \param[in]    start first byte to read
+ * \param[in]    nbytes number of bytes to read; use 0 to read to end of file
+ * \param[out]   pnread number of bytes actually read
+ * \return  null-terminated array, or NULL on error
+ *              reading 0 bytes is not an error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The returned array is terminated with a null byte so that it can
  *          be used to read ascii data from a file into a proper C string.
  *          If the file to be read is empty and %start == 0, an array
  *          with a single null byte is returned.
  *      (2) Side effect: the stream pointer is re-positioned to the
  *          beginning of the file.
+ * </pre>
  */
 l_uint8 *
 l_binaryReadSelectStream(FILE    *fp,
@@ -1416,13 +1456,13 @@ size_t    bytesleft, bytestoread, nread, filebytes;
 
 
 /*!
- *  l_binaryWrite()
+ * \brief   l_binaryWrite()
  *
- *      Input:  filename (output)
- *              operation  ("w" for write; "a" for append)
- *              data  (binary data to be written)
- *              nbytes  (size of data array)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    filename output
+ * \param[in]    operation  "w" for write; "a" for append
+ * \param[in]    data  binary data to be written
+ * \param[in]    nbytes  size of data array
+ * \return  0 if OK; 1 on error
  */
 l_int32
 l_binaryWrite(const char  *filename,
@@ -1461,10 +1501,10 @@ FILE  *fp;
 
 
 /*!
- *  nbytesInFile()
+ * \brief   nbytesInFile()
  *
- *      Input:  filename
- *      Return: nbytes in file; 0 on error
+ * \param[in]    filename
+ * \return  nbytes in file; 0 on error
  */
 size_t
 nbytesInFile(const char  *filename)
@@ -1485,10 +1525,10 @@ FILE   *fp;
 
 
 /*!
- *  fnbytesInFile()
+ * \brief   fnbytesInFile()
  *
- *      Input:  fp (file stream)
- *      Return: nbytes in file; 0 on error
+ * \param[in]    fp file stream
+ * \return  nbytes in file; 0 on error
  */
 size_t
 fnbytesInFile(FILE  *fp)
@@ -1512,17 +1552,19 @@ size_t  nbytes, pos;
  *                            Copy in memory                          *
  *--------------------------------------------------------------------*/
 /*!
- *  l_binaryCopy()
+ * \brief   l_binaryCopy()
  *
- *      Input:  datas
- *              size (of data array)
- *      Return: datad (on heap), or NULL on error
+ * \param[in]    datas
+ * \param[in]    size of data array
+ * \return  datad on heap, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We add 4 bytes to the zeroed output because in some cases
  *          (e.g., string handling) it is important to have the data
  *          be null terminated.  This guarantees that after the memcpy,
  *          the result is automatically null terminated.
+ * </pre>
  */
 l_uint8 *
 l_binaryCopy(l_uint8  *datas,
@@ -1546,11 +1588,11 @@ l_uint8  *datad;
  *                         File copy operations                       *
  *--------------------------------------------------------------------*/
 /*!
- *  fileCopy()
+ * \brief   fileCopy()
  *
- *      Input:  srcfile (copy this file)
- *              newfile (to this file)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    srcfile copy this file
+ * \param[in]    newfile to this file
+ * \return  0 if OK, 1 on error
  */
 l_int32
 fileCopy(const char  *srcfile,
@@ -1576,11 +1618,11 @@ l_uint8  *data;
 
 
 /*!
- *  fileConcatenate()
+ * \brief   fileConcatenate()
  *
- *      Input:  srcfile (file to append)
- *              destfile (file to add to)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    srcfile file to append
+ * \param[in]    destfile file to add to
+ * \return  0 if OK, 1 on error
  */
 l_int32
 fileConcatenate(const char  *srcfile,
@@ -1604,11 +1646,11 @@ l_uint8  *data;
 
 
 /*!
- *  fileAppendString()
+ * \brief   fileAppendString()
  *
- *      Input:  filename
- *              str (string to append to file)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename
+ * \param[in]    str string to append to file
+ * \return  0 if OK, 1 on error
  */
 l_int32
 fileAppendString(const char  *filename,
@@ -1635,12 +1677,12 @@ FILE  *fp;
  *                      Test files for equivalence                    *
  *--------------------------------------------------------------------*/
 /*!
- *  filesAreIdentical()
+ * \brief   filesAreIdentical()
  *
- *      Input:  fname1
- *              fname2
- *              &same (<return> 1 if identical; 0 if different)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fname1
+ * \param[in]    fname2
+ * \param[out]   psame 1 if identical; 0 if different
+ * \return  0 if OK, 1 on error
  */
 l_int32
 filesAreIdentical(const char  *fname1,
@@ -1766,16 +1808,18 @@ convertOnBigEnd32(l_uint32  wordin)
  *                        Opening file streams                        *
  *--------------------------------------------------------------------*/
 /*!
- *  fopenReadStream()
+ * \brief   fopenReadStream()
  *
- *      Input:  filename
- *      Return: stream, or NULL on error
+ * \param[in]    filename
+ * \return  stream, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This should be used whenever you want to run fopen() to
  *          read from a stream.  Never call fopen() directory.
  *      (2) This handles the temp directory pathname conversion on windows:
- *              /tmp  ==>  <Windows Temp directory>
+ *              /tmp  ==\>  \<Windows Temp directory\>
+ * </pre>
  */
 FILE *
 fopenReadStream(const char  *filename)
@@ -1806,17 +1850,19 @@ FILE  *fp;
 
 
 /*!
- *  fopenWriteStream()
+ * \brief   fopenWriteStream()
  *
- *      Input:  filename
- *              modestring
- *      Return: stream, or NULL on error
+ * \param[in]    filename
+ * \param[in]    modestring
+ * \return  stream, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This should be used whenever you want to run fopen() to
  *          write or append to a stream.  Never call fopen() directory.
  *      (2) This handles the temp directory pathname conversion on windows:
- *              /tmp  ==>  <Windows Temp directory>
+ *              /tmp  ==\>  \<Windows Temp directory\>
+ * </pre>
  */
 FILE *
 fopenWriteStream(const char  *filename,
@@ -1840,15 +1886,17 @@ FILE  *fp;
 
 
 /*!
- *  fopenReadFromMemory()
+ * \brief   fopenReadFromMemory()
  *
- *      Input:  data, size
- *      Return: file stream, or NULL on error
+ * \param[in]    data, size
+ * \return  file stream, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Work-around if fmemopen() not available.
  *      (2) Windows tmpfile() writes into the root C:\ directory, which
  *          requires admin privileges.  This also works around that.
+ * </pre>
  */
 FILE *
 fopenReadFromMemory(const l_uint8  *data,
@@ -1885,7 +1933,7 @@ FILE  *fp;
  *                Opening a windows tmpfile for writing               *
  *--------------------------------------------------------------------*/
 /*!
- *  fopenWriteWinTempfile()
+ * \brief   fopenWriteWinTempfile()
  *
  *      Return: file stream, or NULL on error
  *
@@ -1939,15 +1987,17 @@ char    *filename;
  *  several C library calls.
  */
 /*!
- *  lept_fopen()
+ * \brief   lept_fopen()
  *
- *      Input:  filename
- *              mode (same as for fopen(); e.g., "rb")
- *      Return: stream or NULL on error
+ * \param[in]    filename
+ * \param[in]    mode same as for fopen(); e.g., "rb"
+ * \return  stream or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This must be used by any application that passes
  *          a file handle to a leptonica Windows DLL.
+ * </pre>
  */
 FILE *
 lept_fopen(const char  *filename,
@@ -1968,14 +2018,16 @@ lept_fopen(const char  *filename,
 
 
 /*!
- *  lept_fclose()
+ * \brief   lept_fclose()
  *
- *      Input:  fp (file stream)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This should be used by any application that accepts
  *          a file handle generated by a leptonica Windows DLL.
+ * </pre>
  */
 l_int32
 lept_fclose(FILE *fp)
@@ -1990,16 +2042,18 @@ lept_fclose(FILE *fp)
 
 
 /*!
- *  lept_calloc()
+ * \brief   lept_calloc()
  *
- *      Input:  nmemb (number of members)
- *              size (of each member)
- *      Return: void ptr, or NULL on error
+ * \param[in]    nmemb number of members
+ * \param[in]    size of each member
+ * \return  void ptr, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For safety with windows DLLs, this can be used in conjunction
  *          with lept_free() to avoid C-runtime boundary problems.
  *          Just use these two functions throughout your application.
+ * </pre>
  */
 void *
 lept_calloc(size_t  nmemb,
@@ -2012,14 +2066,16 @@ lept_calloc(size_t  nmemb,
 
 
 /*!
- *  lept_free()
+ * \brief   lept_free()
  *
- *      Input:  void ptr
- *      Return: 0 if OK, 1 on error
+ * \param[in]    void ptr
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This should be used by any application that accepts
  *          heap data allocated by a leptonica Windows DLL.
+ * </pre>
  */
 void
 lept_free(void *ptr)
@@ -2035,18 +2091,20 @@ lept_free(void *ptr)
  *         [ These only write to /tmp or its subdirectories ]         *
  *--------------------------------------------------------------------*/
 /*!
- *  lept_mkdir()
+ * \brief   lept_mkdir()
  *
- *      Input:  subdir (of /tmp or its equivalent on Windows)
- *      Return: 0 on success, non-zero on failure
+ * \param[in]    subdir of /tmp or its equivalent on Windows
+ * \return  0 on success, non-zero on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) %subdir is a partial path that can consist of one or more
  *          directories.
  *      (2) This makes any subdirectories of /tmp that are required.
  *      (3) The root temp directory is:
  *            /tmp    (unix)  [default]
- *            <Temp>  (windows)
+ *            \<Temp\>  (windows)
+ * </pre>
  */
 l_int32
 lept_mkdir(const char  *subdir)
@@ -2096,23 +2154,25 @@ l_uint32  attributes;
 
 
 /*!
- *  lept_rmdir()
+ * \brief   lept_rmdir()
  *
- *      Input:  subdir (of /tmp or its equivalent on Windows)
- *      Return: 0 on success, non-zero on failure
+ * \param[in]    subdir of /tmp or its equivalent on Windows
+ * \return  0 on success, non-zero on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) %subdir is a partial path that can consist of one or more
  *          directories.
  *      (2) This removes all files from the specified subdirectory of
  *          the root temp directory:
  *            /tmp    (unix)
- *            <Temp>  (windows)
+ *            \<Temp\>  (windows)
  *          and then removes the subdirectory.
  *      (3) The combination
  *            lept_rmdir(subdir);
  *            lept_mkdir(subdir);
  *          is guaranteed to give you an empty subdirectory.
+ * </pre>
  */
 l_int32
 lept_rmdir(const char  *subdir)
@@ -2174,18 +2234,20 @@ char    *newpath;
 
 
 /*!
- *  lept_direxists()
+ * \brief   lept_direxists()
  *
- *      Input:  dir
- *              &exists (<return> 1 if it exists; 0 otherwise)
- *      Return: void
+ * \param[in]    dir
+ * \param[out]   pexists 1 if it exists; 0 otherwise
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Always use unix pathname separators.
  *      (2) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
- *          to a path in the windows <Temp> directory:
- *             "/tmp"  ==>  <Temp> (windows)
+ *          to a path in the windows \<Temp\> directory:
+ *             "/tmp"  ==\>  \<Temp\> (windows)
+ * </pre>
  */
 void
 lept_direxists(const char  *dir,
@@ -2221,13 +2283,14 @@ char  *realdir;
 
 
 /*!
- *  lept_rm_match()
+ * \brief   lept_rm_match()
  *
- *      Input:  subdir (<optional>  If NULL, the removed files are in /tmp)
- *              substr (<optional> pattern to match in filename)
- *      Return: 0 on success, non-zero on failure
+ * \param[in]    subdir [optional]  If NULL, the removed files are in /tmp
+ * \param[in]    substr [optional] pattern to match in filename
+ * \return  0 on success, non-zero on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This removes the matched files in /tmp or a subdirectory of /tmp.
  *          Use NULL for %subdir if the files are in /tmp.
  *      (2) If %substr == NULL, this removes all files in the directory.
@@ -2237,11 +2300,12 @@ char  *realdir;
  *      (3) Use unix pathname separators.
  *      (4) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
- *          to a path in the windows <Temp> directory:
- *             "/tmp"  ==>  <Temp> (windows)
+ *          to a path in the windows \<Temp\> directory:
+ *             "/tmp"  ==\>  \<Temp\> (windows)
  *      (5) Error conditions:
  *            * returns -1 if the directory is not found
- *            * returns the number of files (> 0) that it was unable to remove.
+ *            * returns the number of files (\> 0) that it was unable to remove.
+ * </pre>
  */
 l_int32
 lept_rm_match(const char  *subdir,
@@ -2280,16 +2344,18 @@ SARRAY  *sa;
 
 
 /*!
- *  lept_rm()
+ * \brief   lept_rm()
  *
- *      Input:  subdir (<optional> of '/tmp'; can be NULL)
- *              tail (filename without the directory)
- *      Return: 0 on success, non-zero on failure
+ * \param[in]    subdir [optional] of '/tmp'; can be NULL
+ * \param[in]    tail filename without the directory
+ * \return  0 on success, non-zero on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) By calling genPathname(), this does an automatic directory
- *          translation on windows to a path in the windows <Temp> directory:
- *             "/tmp/..."  ==>  <Temp>/... (windows)
+ *          translation on windows to a path in the windows \<Temp\> directory:
+ *             "/tmp/..."  ==\>  \<Temp\>/... (windows)
+ * </pre>
  */
 l_int32
 lept_rm(const char  *subdir,
@@ -2314,19 +2380,21 @@ l_int32  ret;
 
 
 /*!
- *  TODO: Remove this function ?
+ * \brief   TODO: Remove this function ?
  *
  *  lept_rmfile()
  *
- *      Input:  filepath (full path to file including the directory)
- *      Return: 0 on success, non-zero on failure
+ * \param[in]    filepath full path to file including the directory
+ * \return  0 on success, non-zero on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This removes the named file.
  *      (2) Use unix pathname separators.
  *      (3) Unlike the other lept_* functions in this section, this can remove
  *          any file -- it is not restricted to files that are in /tmp or a
  *          subdirectory of it.
+ * </pre>
  */
 l_int32
 lept_rmfile(const char  *filepath)
@@ -2351,15 +2419,16 @@ l_int32  ret;
 
 
 /*!
- *  lept_mv()
+ * \brief   lept_mv()
  *
- *      Input:  srcfile
- *              newdir (<optional>; can be NULL)
- *              newtail (<optional>; can be NULL)
- *              &newpath (<optional return> of actual path; can be NULL)
- *      Return: 0 on success, non-zero on failure
+ * \param[in]    srcfile
+ * \param[in]    newdir [optional]; can be NULL
+ * \param[in]    newtail [optional]; can be NULL
+ * \param[out]   pnewpath [optional] of actual path; can be NULL
+ * \return  0 on success, non-zero on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This moves %srcfile to /tmp or to a subdirectory of /tmp.
  *      (2) %srcfile can either be a full path or relative to the
  *          current directory.
@@ -2373,13 +2442,14 @@ l_int32  ret;
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
  *          (b) for windows, translates
- *                 /tmp  ==>  <Temp>
- *              where <Temp> is the windows temp directory
+ *                 /tmp  ==\>  \<Temp\>
+ *              where \<Temp\> is the windows temp directory
  *      (7) Examples:
- *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
- *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
- *          * newdir = def/ghi, newtail = NULL    ==> /tmp/def/ghi/src-tail
- *          * newdir = def/ghi, newtail = abc     ==> /tmp/def/ghi/abc
+ *          * newdir = NULL,    newtail = NULL    ==\> /tmp/src-tail
+ *          * newdir = NULL,    newtail = abc     ==\> /tmp/abc
+ *          * newdir = def/ghi, newtail = NULL    ==\> /tmp/def/ghi/src-tail
+ *          * newdir = def/ghi, newtail = abc     ==\> /tmp/def/ghi/abc
+ * </pre>
  */
 l_int32
 lept_mv(const char  *srcfile,
@@ -2432,15 +2502,16 @@ l_int32  ret;
 
 
 /*!
- *  lept_cp()
+ * \brief   lept_cp()
  *
- *      Input:  srcfile
- *              newdir (<optional>; can be NULL)
- *              newtail (<optional>; can be NULL)
- *              &newpath (<optional return> of actual path; can be NULL)
- *      Return: 0 on success, non-zero on failure
+ * \param[in]    srcfile
+ * \param[in]    newdir [optional]; can be NULL
+ * \param[in]    newtail [optional]; can be NULL
+ * \param[out]   pnewpath [optional] of actual path; can be NULL
+ * \return  0 on success, non-zero on failure
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This copies %srcfile to /tmp or to a subdirectory of /tmp.
  *      (2) %srcfile can either be a full path or relative to the
  *          current directory.
@@ -2454,14 +2525,15 @@ l_int32  ret;
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
  *          (b) for windows, translates
- *                 /tmp  ==>  <Temp>
- *              where <Temp> is the windows temp directory
+ *                 /tmp  ==\>  \<Temp\>
+ *              where \<Temp\> is the windows temp directory
  *      (7) Examples:
- *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
- *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
- *          * newdir = def/ghi, newtail = NULL    ==> /tmp/def/ghi/src-tail
- *          * newdir = def/ghi, newtail = abc     ==> /tmp/def/ghi/abc
+ *          * newdir = NULL,    newtail = NULL    ==\> /tmp/src-tail
+ *          * newdir = NULL,    newtail = abc     ==\> /tmp/abc
+ *          * newdir = def/ghi, newtail = NULL    ==\> /tmp/def/ghi/src-tail
+ *          * newdir = def/ghi, newtail = abc     ==\> /tmp/def/ghi/abc
  *
+ * </pre>
  */
 l_int32
 lept_cp(const char  *srcfile,
@@ -2514,32 +2586,34 @@ l_int32  ret;
  *                     General file name operations                   *
  *--------------------------------------------------------------------*/
 /*!
- *  splitPathAtDirectory()
+ * \brief   splitPathAtDirectory()
  *
- *      Input:  pathname  (full path; can be a directory)
- *              &dir  (<optional return> root directory name of
- *                     input path, including trailing '/')
- *              &tail (<optional return> path tail, which is either
+ * \param[in]    pathname  full path; can be a directory
+ * \param[out]   pdir  [optional] root directory name of
+ *                     input path, including trailing '/'
+ * \param[out]   ptail [optional] path tail, which is either
  *                     the file name within the root directory or
- *                     the last sub-directory in the path)
- *      Return: 0 if OK, 1 on error
+ *                     the last sub-directory in the path
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If you only want the tail, input null for the root directory ptr.
  *      (2) If you only want the root directory name, input null for the
  *          tail ptr.
  *      (3) This function makes decisions based only on the lexical
  *          structure of the input.  Examples:
- *            /usr/tmp/abc  -->  dir: /usr/tmp/       tail: abc
- *            /usr/tmp/     -->  dir: /usr/tmp/       tail: [empty string]
- *            /usr/tmp      -->  dir: /usr/           tail: tmp
- *            abc           -->  dir: [empty string]  tail: abc
+ *            /usr/tmp/abc  --\>  dir: /usr/tmp/       tail: abc
+ *            /usr/tmp/     --\>  dir: /usr/tmp/       tail: [empty string]
+ *            /usr/tmp      --\>  dir: /usr/           tail: tmp
+ *            abc           --\>  dir: [empty string]  tail: abc
  *      (4) The input can have either forward (unix) or backward (win)
  *          slash separators.  The output has unix separators.
  *          Note that Win32 pathname functions generally accept both
  *          slash forms, but the windows command line interpreter
  *          only accepts backward slashes, because forward slashes are
  *          used to demarcate switches (vs. dashes in unix).
+ * </pre>
  */
 l_int32
 splitPathAtDirectory(const char  *pathname,
@@ -2583,28 +2657,30 @@ char  *cpathname, *lastslash;
 
 
 /*!
- *  splitPathAtExtension()
+ * \brief   splitPathAtExtension()
  *
- *      Input:  pathname (full path; can be a directory)
- *              &basename (<optional return> pathname not including the
- *                        last dot and characters after that)
- *              &extension (<optional return> path extension, which is
+ * \param[in]    pathname full path; can be a directory
+ * \param[out]   pbasename [optional] pathname not including the
+ *                        last dot and characters after that
+ * \param[out]   pextension [optional] path extension, which is
  *                        the last dot and the characters after it.  If
- *                        there is no extension, it returns the empty string)
- *      Return: 0 if OK, 1 on error
+ *                        there is no extension, it returns the empty string
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If you only want the extension, input null for the basename ptr.
  *      (2) If you only want the basename without extension, input null
  *          for the extension ptr.
  *      (3) This function makes decisions based only on the lexical
  *          structure of the input.  Examples:
- *            /usr/tmp/abc.jpg  -->  basename: /usr/tmp/abc    ext: .jpg
- *            /usr/tmp/.jpg     -->  basename: /usr/tmp/       ext: .jpg
- *            /usr/tmp.jpg/     -->  basename: /usr/tmp.jpg/   ext: [empty str]
- *            ./.jpg            -->  basename: ./              ext: .jpg
+ *            /usr/tmp/abc.jpg  --\>  basename: /usr/tmp/abc    ext: .jpg
+ *            /usr/tmp/.jpg     --\>  basename: /usr/tmp/       ext: .jpg
+ *            /usr/tmp.jpg/     --\>  basename: /usr/tmp.jpg/   ext: [empty str]
+ *            ./.jpg            --\>  basename: ./              ext: .jpg
  *      (4) The input can have either forward (unix) or backward (win)
  *          slash separators.  The output has unix separators.
+ * </pre>
  */
 l_int32
 splitPathAtExtension(const char  *pathname,
@@ -2648,13 +2724,14 @@ char   empty[4] = "";
 
 
 /*!
- *  pathJoin()
+ * \brief   pathJoin()
  *
- *      Input:  dir (<optional> can be null)
- *              fname (<optional> can be null)
- *      Return: specially concatenated path, or NULL on error
+ * \param[in]    dir [optional] can be null
+ * \param[in]    fname [optional] can be null
+ * \return  specially concatenated path, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Use unix-style pathname separators ('/').
  *      (2) %fname can be the entire path, or part of the path containing
  *          at least one directory, or a tail without a directory, or NULL.
@@ -2665,23 +2742,24 @@ char   empty[4] = "";
  *      (4) If both %dir and %fname are null, produces an empty string.
  *      (5) Neither %dir nor %fname can begin with '.'.
  *      (6) The result is not canonicalized or tested for correctness:
- *          garbage in (e.g., /&%), garbage out.
+ *          garbage in (e.g., /\&%), garbage out.
  *      (7) Examples:
- *             //tmp// + //abc/  -->  /tmp/abc
- *             tmp/ + /abc/      -->  tmp/abc
- *             tmp/ + abc/       -->  tmp/abc
- *             /tmp/ + ///       -->  /tmp
- *             /tmp/ + NULL      -->  /tmp
- *             // + /abc//       -->  /abc
- *             // + NULL         -->  /
- *             NULL + /abc/def/  -->  /abc/def
- *             NULL + abc//      -->  abc
- *             NULL + //         -->  /
- *             NULL + NULL       -->  (empty string)
- *             "" + ""           -->  (empty string)
- *             "" + /            -->  /
- *             ".." + /etc/foo   -->  NULL
- *             /tmp + ".."       -->  NULL
+ *             //tmp// + //abc/  --\>  /tmp/abc
+ *             tmp/ + /abc/      --\>  tmp/abc
+ *             tmp/ + abc/       --\>  tmp/abc
+ *             /tmp/ + ///       --\>  /tmp
+ *             /tmp/ + NULL      --\>  /tmp
+ *             // + /abc//       --\>  /abc
+ *             // + NULL         --\>  /
+ *             NULL + /abc/def/  --\>  /abc/def
+ *             NULL + abc//      --\>  abc
+ *             NULL + //         --\>  /
+ *             NULL + NULL       --\>  (empty string)
+ *             "" + ""           --\>  (empty string)
+ *             "" + /            --\>  /
+ *             ".." + /etc/foo   --\>  NULL
+ *             /tmp + ".."       --\>  NULL
+ * </pre>
  */
 char *
 pathJoin(const char  *dir,
@@ -2749,16 +2827,18 @@ L_BYTEA  *ba;
 
 
 /*!
- *  appendSubdirs()
+ * \brief   appendSubdirs()
  *
- *      Input:  basedir
- *              subdirs
- *      Return: concatenated full directory path without trailing slash,
+ * \param[in]    basedir
+ * \param[in]    subdirs
+ * \return  concatenated full directory path without trailing slash,
  *              or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Use unix pathname separators
- *      (2) Allocates a new string:  <basedir>/<subdirs>
+ *      (2) Allocates a new string:  \<basedir\>/\<subdirs\>
+ * </pre>
  */
 char *
 appendSubdirs(const char  *basedir,
@@ -2796,18 +2876,20 @@ size_t  len1, len2, len3, len4;
  *                     Special file name operations                   *
  *--------------------------------------------------------------------*/
 /*!
- *  convertSepCharsInPath()
+ * \brief   convertSepCharsInPath()
  *
- *      Input:  path
- *              type (UNIX_PATH_SEPCHAR, WIN_PATH_SEPCHAR)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    path
+ * \param[in]    type UNIX_PATH_SEPCHAR, WIN_PATH_SEPCHAR
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) In-place conversion.
  *      (2) Type is the resulting type:
- *            * UNIX_PATH_SEPCHAR:  '\\' ==> '/'
- *            * WIN_PATH_SEPCHAR:   '/' ==> '\\'
+ *            * UNIX_PATH_SEPCHAR:  '\\' ==\> '/'
+ *            * WIN_PATH_SEPCHAR:   '/' ==\> '\\'
  *      (3) Virtually all path operations in leptonica use unix separators.
+ * </pre>
  */
 l_int32
 convertSepCharsInPath(char    *path,
@@ -2839,14 +2921,15 @@ size_t   len;
 
 
 /*!
- *  genPathname()
+ * \brief   genPathname()
  *
- *      Input:  dir (<optional> directory or full path name, with or without
- *                   trailing '/')
- *              fname (<optional> file name within a directory)
- *      Return: pathname (either a directory or full path), or NULL on error
+ * \param[in]    dir [optional] directory or full path name, with or without
+ *                   trailing '/'
+ * \param[in]    fname [optional] file name within a directory
+ * \return  pathname either a directory or full path, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function generates actual paths in the following ways:
  *            * from two sub-parts (e.g., a directory and a file name).
  *            * from a single path full path, placed in %dir, with
@@ -2856,8 +2939,8 @@ size_t   len;
  *            * if in a "/tmp" directory and on windows, the windows
  *              temp directory is used.
  *      (2) If the root of %dir is '/tmp', this does a name translation:
- *             "/tmp"  ==>  <Temp> (windows)
- *          where <Temp> is the windows temp directory.
+ *             "/tmp"  ==\>  \<Temp\> (windows)
+ *          where \<Temp\> is the windows temp directory.
  *      (3) There are four cases for the input:
  *          (a) %dir is a directory and %fname is defined: result is a full path
  *          (b) %dir is a directory and %fname is null: result is a directory
@@ -2866,6 +2949,7 @@ size_t   len;
  *              result is a full path
  *      (4) In all cases, the resulting pathname is not terminated with a slash
  *      (5) The caller is responsible for freeing the returned pathname.
+ * </pre>
  */
 char *
 genPathname(const char  *dir,
@@ -2938,24 +3022,26 @@ l_int32  dirlen, namelen, size;
 
 
 /*!
- *  makeTempDirname()
+ * \brief   makeTempDirname()
  *
- *      Input:  result (preallocated on stack or heap and passed in)
- *              nbytes (size of %result array, in bytes)
- *              subdirs (<optional>; can be NULL or an empty string)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    result preallocated on stack or heap and passed in
+ * \param[in]    nbytes size of %result array, in bytes
+ * \param[in]    subdirs [optional]; can be NULL or an empty string
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This generates the directory path for output temp files,
  *          written into %result with unix separators.
  *      (2) Caller allocates %result, large enough to hold the path,
  *          which is:
  *            /tmp/%subdirs       (unix)
- *            <Temp>/%subdirs     (windows)
- *          where <Temp> is a path on windows determined by GenTempPath().
+ *            \<Temp\>/%subdirs     (windows)
+ *          where \<Temp\> is a path on windows determined by GenTempPath().
  *      (3) Usage example:
  *           char  result[256];
  *           makeTempDirname(result, 256, "lept/golden");
+ * </pre>
  */
 l_int32
 makeTempDirname(char        *result,
@@ -2991,15 +3077,17 @@ size_t   pathlen;
 
 
 /*!
- *  modifyTrailingSlash()
+ * \brief   modifyTrailingSlash()
  *
- *      Input:  path (preallocated on stack or heap and passed in)
- *              nbytes (size of %path array, in bytes)
- *              flag (L_ADD_TRAIL_SLASH or L_REMOVE_TRAIL_SLASH)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    path preallocated on stack or heap and passed in
+ * \param[in]    nbytes size of %path array, in bytes
+ * \param[in]    flag L_ADD_TRAIL_SLASH or L_REMOVE_TRAIL_SLASH
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This carries out the requested action if necessary.
+ * </pre>
  */
 l_int32
 modifyTrailingSlash(char    *path,
@@ -3029,31 +3117,32 @@ size_t  len;
 
 
 /*!
- *  genTempFilename()
+ * \brief   genTempFilename()
  *
- *      Input:  dir (directory name; use '.' for local dir;
- *                   no trailing '/' and %dir == "/" is invalid)
- *              tail (<optional>  tailname, including extension if any;
- *                    can be null or empty but can't contain '/')
- *              usetime (1 to include current time in microseconds in
+ * \param[in]    dir directory name; use '.' for local dir;
+ *                   no trailing '/' and %dir == "/" is invalid
+ * \param[in]    tail [optional]  tailname, including extension if any;
+ *                    can be null or empty but can't contain '/'
+ * \param[in]    usetime 1 to include current time in microseconds in
  *                       the filename; 0 to omit.
  *              usepid (1 to include pid in filename; 0 to omit.
- *      Return: temp filename, or NULL on error
+ * \return  temp filename, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This makes a filename that is as unique as desired, and which
  *          can optionally include both the time and pid in the name.
  *      (2) Use unix-style pathname separators ('/').
  *      (3) Specifying the root directory (%dir == "/") is invalid.
  *      (4) Specifying a %tail containing '/' is invalid.
  *      (5) The most general form (%usetime = %usepid = 1) is:
- *              <dir>/<usec>_<pid>_<tail>
+ *              \<dir\>/\<usec\>_\<pid\>_\<tail\>
  *          When %usetime = 1, %usepid = 0, the output filename is:
- *              <dir>/<usec>_<tail>
+ *              \<dir\>/\<usec\>_\<tail\>
  *          When %usepid = 0, %usepid = 1, the output filename is:
- *              <dir>/<pid>_<tail>
+ *              \<dir\>/\<pid\>_\<tail\>
  *          When %usetime = %usepid = 0, the output filename is:
- *              <dir>/<tail>
+ *              \<dir\>/\<tail\>
  *          Note: It is not valid to have %tail = null or empty and have
  *          both %usetime = %usepid = 0.  That is, there must be
  *          some non-empty tail name.
@@ -3062,13 +3151,14 @@ size_t  len;
  *          when using DLLs, you must use lept_free() to free the name.
  *      (7) When %dir is /tmp or a subdirectory of /tmp, genPathname()
  *          does a name translation for '/tmp' on windows:
- *             /tmp ==> <Temp>
- *          where <Temp> is a path on windows determined by GenTempPath().
+ *             /tmp ==\> \<Temp\>
+ *          where \<Temp\> is a path on windows determined by GenTempPath().
  *      (8) Set %usetime = %usepid = 1 when
  *          (a) more than one process is writing and reading temp files, or
  *          (b) multiple threads from a single process call this function, or
  *          (c) there is the possibility of an attack where the intruder
  *              is logged onto the server and might try to guess filenames.
+ * </pre>
  */
 char *
 genTempFilename(const char  *dir,
@@ -3114,20 +3204,22 @@ l_int32  i, buflen, usec, pid, emptytail;
 
 
 /*!
- *  extractNumberFromFilename()
+ * \brief   extractNumberFromFilename()
  *
- *      Input:  fname
- *              numpre (number of characters before the digits to be found)
- *              numpost (number of characters after the digits to be found)
- *      Return: num (number embedded in the filename); -1 on error or if
+ * \param[in]    fname
+ * \param[in]    numpre number of characters before the digits to be found
+ * \param[in]    numpost number of characters after the digits to be found
+ * \return  num number embedded in the filename; -1 on error or if
  *                   not found
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The number is to be found in the basename, which is the
  *          filename without either the directory or the last extension.
  *      (2) When a number is found, it is non-negative.  If no number
  *          is found, this returns -1, without an error message.  The
  *          caller needs to check.
+ * </pre>
  */
 l_int32
 extractNumberFromFilename(const char  *fname,
@@ -3167,22 +3259,24 @@ l_int32  len, nret, num;
  *                       File corruption operations                    *
  *---------------------------------------------------------------------*/
 /*!
- *  fileCorruptByDeletion()
+ * \brief   fileCorruptByDeletion()
  *
- *      Input:  filein
- *              loc (fractional location of start of deletion)
- *              size (fractional size of deletion)
- *              fileout (corrupted file)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filein
+ * \param[in]    loc fractional location of start of deletion
+ * \param[in]    size fractional size of deletion
+ * \param[in]    fileout corrupted file
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) %loc and %size are expressed as a fraction of the file size.
  *      (2) This makes a copy of the data in %filein, where bytes in the
  *          specified region have deleted.
- *      (3) If (%loc + %size) >= 1.0, this deletes from the position
+ *      (3) If (%loc + %size) \>= 1.0, this deletes from the position
  *          represented by %loc to the end of the file.
  *      (4) It is useful for testing robustness of I/O wrappers when the
  *          data is corrupted, by simulating data corruption by deletion.
+ * </pre>
  */
 l_int32
 fileCorruptByDeletion(const char  *filein,
@@ -3229,22 +3323,24 @@ l_uint8  *datain, *dataout;
 
 
 /*!
- *  fileCorruptByMutation()
+ * \brief   fileCorruptByMutation()
  *
- *      Input:  filein
- *              loc (fractional location of start of randomization)
- *              size (fractional size of randomization)
- *              fileout (corrupted file)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filein
+ * \param[in]    loc fractional location of start of randomization
+ * \param[in]    size fractional size of randomization
+ * \param[in]    fileout corrupted file
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) %loc and %size are expressed as a fraction of the file size.
  *      (2) This makes a copy of the data in %filein, where bytes in the
  *          specified region have been replaced by random data.
- *      (3) If (%loc + %size) >= 1.0, this modifies data from the position
+ *      (3) If (%loc + %size) \>= 1.0, this modifies data from the position
  *          represented by %loc to the end of the file.
  *      (4) It is useful for testing robustness of I/O wrappers when the
  *          data is corrupted, by simulating data corruption.
+ * </pre>
  */
 l_int32
 fileCorruptByMutation(const char  *filein,
@@ -3291,16 +3387,18 @@ l_uint8  *data;
  *                Generate random integer in given range               *
  *---------------------------------------------------------------------*/
 /*!
- *  genRandomIntegerInRange()
+ * \brief   genRandomIntegerInRange()
  *
- *      Input:  range (size of range; must be >= 2)
- *              seed (use 0 to skip; otherwise call srand)
- *              val (<return> random integer in range {0 ... range-1}
- *      Return: 0 if OK, 1 on error
+ * \param[in]    range size of range; must be >= 2
+ * \param[in]    seed use 0 to skip; otherwise call srand
+ * \param[out]   val random integer in range {0 ... range-1}
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For example, to choose a rand integer between 0 and 99,
  *          use %range = 100.
+ * </pre>
  */
 l_int32
 genRandomIntegerInRange(l_int32   range,
@@ -3326,16 +3424,18 @@ genRandomIntegerInRange(l_int32   range,
  *                         Simple math function                        *
  *---------------------------------------------------------------------*/
 /*!
- *  lept_roundftoi()
+ * \brief   lept_roundftoi()
  *
- *      Input:  fval
- *      Return: value rounded to int
+ * \param[in]    fval
+ * \return  value rounded to int
  *
- *  Notes:
- *      (1) For fval >= 0, fval --> round(fval) == floor(fval + 0.5)
- *          For fval < 0, fval --> -round(-fval))
+ * <pre>
+ * Notes:
+ *      (1) For fval \>= 0, fval --\> round(fval) == floor(fval + 0.5)
+ *          For fval \< 0, fval --\> -round(-fval))
  *          This is symmetric around 0.
- *          e.g., for fval in (-0.5 ... 0.5), fval --> 0
+ *          e.g., for fval in (-0.5 ... 0.5), fval --\> 0
+ * </pre>
  */
 l_int32
 lept_roundftoi(l_float32  fval)
@@ -3348,13 +3448,14 @@ lept_roundftoi(l_float32  fval)
  *                        64-bit hash functions                        *
  *---------------------------------------------------------------------*/
 /*!
- *  l_hashStringToUint64()
+ * \brief   l_hashStringToUint64()
  *
- *      Input:  str
- *              &hash (<return> hash vale)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    str
+ * \param[out]   phash hash vale
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The intent of the hash is to avoid collisions by mapping
  *          the string as randomly as possible into 64 bits.
  *      (2) To the extent that the hashes are random, the probability of
@@ -3366,6 +3467,7 @@ lept_roundftoi(l_float32  fval)
  *          for all 5-character text strings composed of 26 letters,
  *          of which there are 26^5 = 12356630.  There are no hash
  *          collisions for this set.
+ * </pre>
  */
 l_int32
 l_hashStringToUint64(const char  *str,
@@ -3392,16 +3494,18 @@ l_uint64  hash, mulp;
 
 
 /*!
- *  l_hashPtToUint64()
+ * \brief   l_hashPtToUint64()
  *
- *      Input:  x, y
- *              &hash (<return> hash value)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    x, y
+ * \param[out]   phash hash value
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) I just made up a hash function and fiddled with it to get
  *          decent coverage over the 2^64 values.  There are no collisions
  *          for any of 100 million points with x and y up to 10000.
+ * </pre>
  */
 l_int32
 l_hashPtToUint64(l_int32    x,
@@ -3427,20 +3531,22 @@ l_uint64  hash, mulp;
 
 
 /*!
- *  l_hashPtToUint64Fast()
+ * \brief   l_hashPtToUint64Fast()
  *
- *      Input:  nbuckets
- *              x, y
- *              &hash (<return> hash value)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    nbuckets
+ * \param[in]    x, y
+ * \param[out]   phash hash value
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a simple, fast hash that is used with the dna hash map,
  *          which takes the mod with a prime number of buckets.  The
  *          number of buckets is selected so that collisions occur, aiming
  *          for about 20 results in each bucket.  The design goal is
  *          that the hash is fast (mult/add) and approximately the same
  *          number of points are hashed to each bucket.
+ * </pre>
  */
 l_int32
 l_hashPtToUint64Fast(l_int32    nbuckets,
@@ -3458,14 +3564,15 @@ l_hashPtToUint64Fast(l_int32    nbuckets,
 
 
 /*!
- *  l_hashFloat64ToUint64()
+ * \brief   l_hashFloat64ToUint64()
  *
- *      Input:  nbuckets
- *              val
- *              &hash (<return> hash value)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    nbuckets
+ * \param[in]    val
+ * \param[out]   phash hash value
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Simple, fast hash for using dnaHash with 64-bit data
  *          (e.g., sets and histograms).
  *      (2) The resulting hash is called a "key" in a lookup
@@ -3479,6 +3586,7 @@ l_hashPtToUint64Fast(l_int32    nbuckets,
  *      (3) For example, to generate a histogram, the histogram dna,
  *          a histogram of unique values aligned with the histogram dna,
  *          and a dnahash hashmap are built.  See l_dnaHashHistoFromDna().
+ * </pre>
  */
 l_int32
 l_hashFloat64ToUint64(l_int32    nbuckets,
@@ -3498,11 +3606,11 @@ l_hashFloat64ToUint64(l_int32    nbuckets,
  *                           Prime finders                             *
  *---------------------------------------------------------------------*/
 /*!
- *  findNextLargerPrime()
+ * \brief   findNextLargerPrime()
  *
- *      Input:  start
- *              &prime (<return> first prime larger than %start)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    start
+ * \param[out]   pprime first prime larger than %start
+ * \return  0 if OK, 1 on error
  */
 l_int32
 findNextLargerPrime(l_int32    start,
@@ -3531,13 +3639,13 @@ l_int32  i, is_prime;
 
 
 /*!
- *  lept_isPrime()
+ * \brief   lept_isPrime()
  *
- *      Input:  n (64-bit unsigned)
- *              &is_prime (<return> 1 if prime, 0 otherwise)
- *              &factor (<optional return> smallest divisor,
- *                       or 0 on error or if prime)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    n 64-bit unsigned
+ * \param[out]   pis_prime 1 if prime, 0 otherwise
+ * \param[out]   pfactor [optional] smallest divisor,
+ *                       or 0 on error or if prime
+ * \return  0 if OK, 1 on error
  */
 l_int32
 lept_isPrime(l_uint64   n,
@@ -3579,14 +3687,16 @@ l_uint64  limit, ratio;
  *                         Gray code conversion                        *
  *---------------------------------------------------------------------*/
 /*!
- *  convertBinaryToGrayCode()
+ * \brief   convertBinaryToGrayCode()
  *
- *      Input:  val
- *      Return: gray code value
+ * \param[in]    val
+ * \return  gray code value
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Gray code values corresponding to integers differ by
  *          only one bit transition between successive integers.
+ * </pre>
  */
 l_uint32
 convertBinaryToGrayCode(l_uint32 val)
@@ -3596,10 +3706,10 @@ convertBinaryToGrayCode(l_uint32 val)
 
 
 /*!
- *  convertGrayCodeToBinary()
+ * \brief   convertGrayCodeToBinary()
  *
- *      Input:  gray code value
- *      Return: binary value
+ * \param[in]    gray code value
+ * \return  binary value
  */
 l_uint32
 convertGrayCodeToBinary(l_uint32 val)
@@ -3616,7 +3726,7 @@ l_uint32  shift;
  *                       Leptonica version number                      *
  *---------------------------------------------------------------------*/
 /*!
- *  getLeptonicaVersion()
+ * \brief   getLeptonicaVersion()
  *
  *      Return: string of version number (e.g., 'leptonica-1.68')
  *
@@ -3672,7 +3782,7 @@ static struct rusage rusage_before;
 static struct rusage rusage_after;
 
 /*!
- *  startTimer(), stopTimer()
+ * \brief   startTimer(), stopTimer()
  *
  *  Notes:
  *      (1) These measure the cpu time elapsed between the two calls:
@@ -3700,7 +3810,7 @@ l_int32  tsec, tusec;
 
 
 /*!
- *  startTimerNested(), stopTimerNested()
+ * \brief   startTimerNested(), stopTimerNested()
  *
  *  Example of usage:
  *
@@ -3740,11 +3850,11 @@ struct rusage  rusage_stop;
 
 
 /*!
- *  l_getCurrentTime()
+ * \brief   l_getCurrentTime()
  *
- *      Input:  &sec (<optional return> in seconds since birth of Unix)
- *              &usec (<optional return> in microseconds since birth of Unix)
- *      Return: void
+ * \param[out]   psec [optional] in seconds since birth of Unix
+ * \param[out]   pusec [optional] in microseconds since birth of Unix
+ * \return  void
  */
 void
 l_getCurrentTime(l_int32  *sec,
@@ -3862,20 +3972,22 @@ LONGLONG        usecs;
 
 
 /*!
- *  startWallTimer()
- *      Input:  void
- *      Return: walltimer-ptr
+ * \brief   startWallTimer()
+ * \param[in]    void
+ * \return  walltimer-ptr
  *
- *  stopWallTimer()
+ *  stopWallTimer
  *      Input:  &walltimer-ptr
- *      Return: time (wall time elapsed in seconds)
+ *      Return: time wall time elapsed in seconds
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) These measure the wall clock time  elapsed between the two calls:
  *            L_WALLTIMER *timer = startWallTimer();
  *            ....
- *            fprintf(stderr, "Elapsed time = %f sec\n", stopWallTimer(&timer);
+ *            fprintf(stderr, "Elapsed time = %f sec\n", stopWallTimer(\&timer);
  *      (2) Note that the timer object is destroyed by stopWallTimer().
+ * </pre>
  */
 L_WALLTIMER *
 startWallTimer(void)
@@ -3911,15 +4023,17 @@ L_WALLTIMER  *timer;
 
 
 /*!
- *  l_getFormattedDate()
+ * \brief   l_getFormattedDate()
  *
- *      Input:  (none)
- *      Return: formatted date string, or NULL on error
+ * \param[in]    none
+ * \return  formatted date string, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is used in pdf, in the form specified in section 3.8.2 of
  *          http://partners.adobe.com/public/developer/en/pdf/PDFReference.pdf
  *      (2) Contributed by Dave Bryan.  Works on all platforms.
+ * </pre>
  */
 char *
 l_getFormattedDate()
@@ -3961,4 +4075,3 @@ struct tm  *tptr;
     sprintf(buf + 14, "%c%02d'%02d'", sep, relh, relm);
     return stringNew(buf);
 }
-

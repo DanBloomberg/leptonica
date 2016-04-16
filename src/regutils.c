@@ -25,8 +25,9 @@
  *====================================================================*/
 
 
-/*
- *  regutils.c
+/*!
+ * \file regutils.c
+ * <pre>
  *
  *       Regression test utilities
  *           l_int32    regTestSetup()
@@ -48,13 +49,14 @@
  *  ...
  *  L_REGPARAMS  *rp;
  *
- *      if (regTestSetup(argc, argv, &rp))
+ *      if (regTestSetup(argc, argv, \&rp))
  *          return 1;
  *      ...
  *      regTestWritePixAndCheck(rp, pix, IFF_PNG);  // 0
  *      ...
  *      return regTestCleanup(rp);
  *  }
+ * </pre>
  */
 
 #include <string.h>
@@ -69,15 +71,16 @@ static char *getRootNameFromArgv0(const char *argv0);
  *                      Regression test utilities                     *
  *--------------------------------------------------------------------*/
 /*!
- *  regTestSetup()
+ * \brief   regTestSetup()
  *
- *      Input:  argc (from invocation; can be either 1 or 2)
- *              argv (to regtest: %argv[1] is one of these:
- *                    "generate", "compare", "display")
- *              &rp (<return> all regression params)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    argc from invocation; can be either 1 or 2
+ * \param[in]    argv to regtest: %argv[1] is one of these:
+ *                    "generate", "compare", "display"
+ * \param[out]   prp all regression params
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Call this function with the args to the reg test.  The first arg
  *          is the name of the reg test.  There are three cases:
  *          Case 1:
@@ -103,6 +106,7 @@ static char *getRootNameFromArgv0(const char *argv0);
  *              The display field in rp is TRUE, and this is used by
  *              pixDisplayWithTitle().
  *      (2) See regutils.h for examples of usage.
+ * </pre>
  */
 l_int32
 regTestSetup(l_int32        argc,
@@ -176,14 +180,16 @@ L_REGPARAMS  *rp;
 
 
 /*!
- *  regTestCleanup()
+ * \brief   regTestCleanup()
  *
- *      Input:  rp (regression test parameters)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    rp regression test parameters
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This copies anything written to the temporary file to the
  *          output file /tmp/lept/reg_results.txt.
+ * </pre>
  */
 l_int32
 regTestCleanup(L_REGPARAMS  *rp)
@@ -241,13 +247,13 @@ size_t   nbytes;
 
 
 /*!
- *  regTestCompareValues()
+ * \brief   regTestCompareValues()
  *
- *      Input:  rp (regtest parameters)
- *              val1 (typ. the golden value)
- *              val2 (typ. the value computed)
- *              delta (allowed max absolute difference)
- *      Return: 0 if OK, 1 on error (a failure in comparison is not an error)
+ * \param[in]    rp regtest parameters
+ * \param[in]    val1 typ. the golden value
+ * \param[in]    val2 typ. the value computed
+ * \param[in]    delta allowed max absolute difference
+ * \return  0 if OK, 1 on error a failure in comparison is not an error
  */
 l_int32
 regTestCompareValues(L_REGPARAMS  *rp,
@@ -284,14 +290,14 @@ l_float32  diff;
 
 
 /*!
- *  regTestCompareStrings()
+ * \brief   regTestCompareStrings()
  *
- *      Input:  rp (regtest parameters)
- *              string1 (typ. the expected string)
- *              bytes1 (size of string1)
- *              string2 (typ. the computed string)
- *              bytes2 (size of string2)
- *      Return: 0 if OK, 1 on error (a failure in comparison is not an error)
+ * \param[in]    rp regtest parameters
+ * \param[in]    string1 typ. the expected string
+ * \param[in]    bytes1 size of string1
+ * \param[in]    string2 typ. the computed string
+ * \param[in]    bytes2 size of string2
+ * \return  0 if OK, 1 on error a failure in comparison is not an error
  */
 l_int32
 regTestCompareStrings(L_REGPARAMS  *rp,
@@ -347,15 +353,17 @@ char     buf[256];
 
 
 /*!
- *  regTestComparePix()
+ * \brief   regTestComparePix()
  *
- *      Input:  rp (regtest parameters)
- *              pix1, pix2 (to be tested for equality)
- *      Return: 0 if OK, 1 on error (a failure in comparison is not an error)
+ * \param[in]    rp regtest parameters
+ * \param[in]    pix1, pix2 to be tested for equality
+ * \return  0 if OK, 1 on error a failure in comparison is not an error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function compares two pix for equality.  On failure,
  *          this writes to stderr.
+ * </pre>
  */
 l_int32
 regTestComparePix(L_REGPARAMS  *rp,
@@ -391,18 +399,19 @@ l_int32  same;
 
 
 /*!
- *  regTestCompareSimilarPix()
+ * \brief   regTestCompareSimilarPix()
  *
- *      Input:  rp (regtest parameters)
- *              pix1, pix2 (to be tested for near equality)
- *              mindiff (minimum pixel difference to be counted; > 0)
- *              maxfract (maximum fraction of pixels allowed to have
- *                        diff greater than or equal to mindiff)
- *              printstats (use 1 to print normalized histogram to stderr)
- *      Return: 0 if OK, 1 on error (a failure in similarity comparison
- *              is not an error)
+ * \param[in]    rp regtest parameters
+ * \param[in]    pix1, pix2 to be tested for near equality
+ * \param[in]    mindiff minimum pixel difference to be counted; > 0
+ * \param[in]    maxfract maximum fraction of pixels allowed to have
+ *                        diff greater than or equal to mindiff
+ * \param[in]    printstats use 1 to print normalized histogram to stderr
+ * \return  0 if OK, 1 on error a failure in similarity comparison
+ *              is not an error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function compares two pix for near equality.  On failure,
  *          this writes to stderr.
  *      (2) The pix are similar if the fraction of non-conforming pixels
@@ -414,6 +423,7 @@ l_int32  same;
  *      (4) Normally, use %printstats = 0.  In debugging mode, to see
  *          the relation between %mindiff and the minimum value of
  *          %maxfract for success, set this to 1.
+ * </pre>
  */
 l_int32
 regTestCompareSimilarPix(L_REGPARAMS  *rp,
@@ -457,24 +467,26 @@ l_int32  w, h, factor, similar;
 
 
 /*!
- *  regTestCheckFile()
+ * \brief   regTestCheckFile()
  *
- *      Input:  rp (regtest parameters)
- *              localname (name of output file from reg test)
- *      Return: 0 if OK, 1 on error (a failure in comparison is not an error)
+ * \param[in]    rp regtest parameters
+ * \param[in]    localname name of output file from reg test
+ * \return  0 if OK, 1 on error a failure in comparison is not an error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function does one of three things, depending on the mode:
  *           * "generate": makes a "golden" file as a copy %localname.
  *           * "compare": compares %localname contents with the golden file
  *           * "display": makes the %localname file but does no comparison
  *      (2) The canonical format of the golden filenames is:
- *            /tmp/lept/golden/<root of main name>_golden.<index>.
- *                                                       <ext of localname>
+ *            /tmp/lept/golden/\<root of main name\>_golden.\<index\>.
+ *                                                       \<ext of localname\>
  *          e.g.,
  *             /tmp/lept/golden/maze_golden.0.png
  *          It is important to add an extension to the local name, because
  *          the extension is added to the name of the golden file.
+ * </pre>
  */
 l_int32
 regTestCheckFile(L_REGPARAMS  *rp,
@@ -562,20 +574,22 @@ PIX     *pix1, *pix2;
 
 
 /*!
- *  regTestCompareFiles()
+ * \brief   regTestCompareFiles()
  *
- *      Input:  rp (regtest parameters)
- *              index1 (of one output file from reg test)
- *              index2 (of another output file from reg test)
- *      Return: 0 if OK, 1 on error (a failure in comparison is not an error)
+ * \param[in]    rp regtest parameters
+ * \param[in]    index1 of one output file from reg test
+ * \param[in]    index2 of another output file from reg test
+ * \return  0 if OK, 1 on error a failure in comparison is not an error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This only does something in "compare" mode.
  *      (2) The canonical format of the golden filenames is:
- *            /tmp/lept/golden/<root of main name>_golden.<index>.
- *                                                      <ext of localname>
+ *            /tmp/lept/golden/\<root of main name\>_golden.\<index\>.
+ *                                                      \<ext of localname\>
  *          e.g.,
  *            /tmp/lept/golden/maze_golden.0.png
+ * </pre>
  */
 l_int32
 regTestCompareFiles(L_REGPARAMS  *rp,
@@ -646,23 +660,25 @@ SARRAY  *sa;
 
 
 /*!
- *  regTestWritePixAndCheck()
+ * \brief   regTestWritePixAndCheck()
  *
- *      Input:  rp (regtest parameters)
- *              pix (to be written)
- *              format (of output pix)
- *      Return: 0 if OK, 1 on error (a failure in comparison is not an error)
+ * \param[in]    rp regtest parameters
+ * \param[in]    pix to be written
+ * \param[in]    format of output pix
+ * \return  0 if OK, 1 on error a failure in comparison is not an error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function makes it easy to write the pix in a numbered
  *          sequence of files, and either to:
  *             (a) write the golden file ("generate" arg to regression test)
  *             (b) make a local file and "compare" with the golden file
  *             (c) make a local file and "display" the results
  *      (3) The canonical format of the local filename is:
- *            /tmp/lept/regout/<root of main name>.<count>.<format extension>
+ *            /tmp/lept/regout/\<root of main name\>.\<count\>.\<format extension\>
  *          e.g., for scale_reg,
  *            /tmp/lept/regout/scale.0.png
+ * </pre>
  */
 l_int32
 regTestWritePixAndCheck(L_REGPARAMS  *rp,
@@ -702,18 +718,20 @@ char   namebuf[256];
 
 
 /*!
- *  getRootNameFromArgv0()
+ * \brief   getRootNameFromArgv0()
  *
- *      Input:  argv0
- *      Return: root name (without the '_reg'), or NULL on error
+ * \param[in]    argv0
+ * \return  root name without the '_reg', or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For example, from psioseg_reg, we want to extract
  *          just 'psioseg' as the root.
  *      (2) In unix with autotools, the executable is not X,
  *          but ./.libs/lt-X.   So in addition to stripping out the
  *          last 4 characters of the tail, we have to check for
  *          the '-' and strip out the "lt-" prefix if we find it.
+ * </pre>
  */
 static char *
 getRootNameFromArgv0(const char  *argv0)
@@ -748,4 +766,3 @@ char    *root;
     root[len - 4] = '\0';  /* remove the suffix */
     return root;
 }
-

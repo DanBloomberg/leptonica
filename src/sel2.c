@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  sel2.c
+/*!
+ * \file sel2.c
+ * <pre>
  *
  *      Contains definitions of simple structuring elements
  *
@@ -44,6 +45,7 @@
  *          SELA    *selaAddDwaCombs()
  *          SELA    *selaAddCrossJunctions()
  *          SELA    *selaAddTJunctions()
+ * </pre>
  */
 
 #include <math.h>
@@ -59,17 +61,19 @@ static const l_int32  basic_linear[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 
 
 /*!
- *  selaAddBasic()
+ * \brief   selaAddBasic()
  *
- *      Input:  sela (<optional>)
- *      Return: sela with additional sels, or NULL on error
+ * \param[in]    sela [optional]
+ * \return  sela with additional sels, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Adds the following sels:
  *            ~ all linear (horiz, vert) brick sels that are
  *              necessary for decomposable sels up to size 63
  *            ~ square brick sels up to size 10
  *            ~ 4 diagonal sels
+ * </pre>
  */
 SELA *
 selaAddBasic(SELA  *sela)
@@ -154,10 +158,10 @@ SEL     *sel;
 
 
 /*!
- *  selaAddHitMiss()
+ * \brief   selaAddHitMiss()
  *
- *      Input:  sela  (<optional>)
- *      Return: sela with additional sels, or NULL on error
+ * \param[in]    sela  [optional]
+ * \return  sela with additional sels, or NULL on error
  */
 SELA *
 selaAddHitMiss(SELA  *sela)
@@ -282,15 +286,17 @@ SEL  *sel;
 
 
 /*!
- *  selaAddDwaLinear()
+ * \brief   selaAddDwaLinear()
  *
- *      Input:  sela (<optional>)
- *      Return: sela with additional sels, or NULL on error
+ * \param[in]    sela [optional]
+ * \return  sela with additional sels, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Adds all linear (horizontal, vertical) sels from
  *          2 to 63 pixels in length, which are the sizes over
  *          which dwa code can be generated.
+ * </pre>
  */
 SELA *
 selaAddDwaLinear(SELA  *sela)
@@ -321,16 +327,18 @@ SEL     *sel;
 
 
 /*!
- *  selaAddDwaCombs()
+ * \brief   selaAddDwaCombs()
  *
- *      Input:  sela (<optional>)
- *      Return: sela with additional sels, or NULL on error
+ * \param[in]    sela [optional]
+ * \return  sela with additional sels, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Adds all comb (horizontal, vertical) Sels that are
  *          used in composite linear morphological operations
  *          up to 63 pixels in length, which are the sizes over
  *          which dwa code can be generated.
+ * </pre>
  */
 SELA *
 selaAddDwaCombs(SELA  *sela)
@@ -366,16 +374,17 @@ SEL     *selh, *selv;
 
 
 /*!
- *  selaAddCrossJunctions()
+ * \brief   selaAddCrossJunctions()
  *
- *      Input:  sela (<optional>)
- *              hlsize (length of each line of hits from origin)
- *              mdist (distance of misses from the origin)
- *              norient (number of orientations; max of 8)
- *              debugflag (1 for debug output)
- *      Return: sela with additional sels, or NULL on error
+ * \param[in]    sela [optional]
+ * \param[in]    hlsize length of each line of hits from origin
+ * \param[in]    mdist distance of misses from the origin
+ * \param[in]    norient number of orientations; max of 8
+ * \param[in]    debugflag 1 for debug output
+ * \return  sela with additional sels, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Adds hitmiss Sels for the intersection of two lines.
  *          If the lines are very thin, they must be nearly orthogonal
  *          to register.
@@ -388,6 +397,7 @@ SEL     *selh, *selv;
  *      (4) It is suggested that %hlsize be chosen at least 1 greater
  *          than %mdist.  Try values of (%hlsize, %mdist) such as
  *          (6,5), (7,6), (8,7), (9,7), etc.
+ * </pre>
  */
 SELA *
 selaAddCrossJunctions(SELA      *sela,
@@ -493,16 +503,17 @@ SEL       *sel;
 
 
 /*!
- *  selaAddTJunctions()
+ * \brief   selaAddTJunctions()
  *
- *      Input:  sela (<optional>)
- *              hlsize (length of each line of hits from origin)
- *              mdist (distance of misses from the origin)
- *              norient (number of orientations; max of 8)
- *              debugflag (1 for debug output)
- *      Return: sela with additional sels, or NULL on error
+ * \param[in]    sela [optional]
+ * \param[in]    hlsize length of each line of hits from origin
+ * \param[in]    mdist distance of misses from the origin
+ * \param[in]    norient number of orientations; max of 8
+ * \param[in]    debugflag 1 for debug output
+ * \return  sela with additional sels, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Adds hitmiss Sels for the T-junction of two lines.
  *          If the lines are very thin, they must be nearly orthogonal
  *          to register.
@@ -510,6 +521,7 @@ SEL       *sel;
  *      (3) It is suggested that %hlsize be chosen at least 1 greater
  *          than %mdist.  Try values of (%hlsize, %mdist) such as
  *          (6,5), (7,6), (8,7), (9,7), etc.
+ * </pre>
  */
 SELA *
 selaAddTJunctions(SELA      *sela,

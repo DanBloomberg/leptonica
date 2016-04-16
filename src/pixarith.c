@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  pixarith.c
+/*!
+ * \file pixarith.c
+ * <pre>
  *
  *      One-image grayscale arithmetic operations (8, 16, 32 bpp)
  *           l_int32     pixAddConstantGray()
@@ -78,6 +79,7 @@
  *
  *      A simpler interface to the arithmetic operations is
  *      provided in pixacc.c.
+ * </pre>
  */
 
 #include <string.h>
@@ -89,18 +91,20 @@
  *          One-image grayscale arithmetic operations          *
  *-------------------------------------------------------------*/
 /*!
- *  pixAddConstantGray()
+ * \brief   pixAddConstantGray()
  *
- *      Input:  pixs (8, 16 or 32 bpp)
- *              val  (amount to add to each pixel)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 8, 16 or 32 bpp
+ * \param[in]    val  amount to add to each pixel
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) In-place operation.
  *      (2) No clipping for 32 bpp.
- *      (3) For 8 and 16 bpp, if val > 0 the result is clipped
+ *      (3) For 8 and 16 bpp, if val \> 0 the result is clipped
  *          to 0xff and 0xffff, rsp.
- *      (4) For 8 and 16 bpp, if val < 0 the result is clipped to 0.
+ *      (4) For 8 and 16 bpp, if val \< 0 the result is clipped to 0.
+ * </pre>
  */
 l_int32
 pixAddConstantGray(PIX      *pixs,
@@ -160,16 +164,18 @@ l_uint32  *data, *line;
 
 
 /*!
- *  pixMultConstantGray()
+ * \brief   pixMultConstantGray()
  *
- *      Input:  pixs (8, 16 or 32 bpp)
- *              val  (>= 0.0; amount to multiply by each pixel)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 8, 16 or 32 bpp
+ * \param[in]    val  >= 0.0; amount to multiply by each pixel
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) In-place operation; val must be >= 0.
+ * <pre>
+ * Notes:
+ *      (1) In-place operation; val must be \>= 0.
  *      (2) No clipping for 32 bpp.
  *      (3) For 8 and 16 bpp, the result is clipped to 0xff and 0xffff, rsp.
+ * </pre>
  */
 l_int32
 pixMultConstantGray(PIX       *pixs,
@@ -224,25 +230,27 @@ l_uint32  *data, *line;
  *             Two-image grayscale arithmetic ops              *
  *-------------------------------------------------------------*/
 /*!
- *  pixAddGray()
+ * \brief   pixAddGray()
  *
- *      Input:  pixd (<optional>; this can be null, equal to pixs1, or
- *                    different from pixs1)
- *              pixs1 (can be == to pixd)
- *              pixs2
- *      Return: pixd always
+ * \param[in]    pixd [optional]; this can be null, equal to pixs1, or
+ *                    different from pixs1
+ * \param[in]    pixs1 can be == to pixd
+ * \param[in]    pixs2
+ * \return  pixd always
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Arithmetic addition of two 8, 16 or 32 bpp images.
  *      (2) For 8 and 16 bpp, we do explicit clipping to 0xff and 0xffff,
  *          respectively.
  *      (3) Alignment is to UL corner.
  *      (4) There are 3 cases.  The result can go to a new dest,
  *          in-place to pixs1, or to an existing input dest:
- *          * pixd == null:   (src1 + src2) --> new pixd
- *          * pixd == pixs1:  (src1 + src2) --> src1  (in-place)
- *          * pixd != pixs1:  (src1 + src2) --> input pixd
+ *          * pixd == null:   (src1 + src2) --\> new pixd
+ *          * pixd == pixs1:  (src1 + src2) --\> src1  (in-place)
+ *          * pixd != pixs1:  (src1 + src2) --\> input pixd
  *      (5) pixs2 must be different from both pixd and pixs1.
+ * </pre>
  */
 PIX *
 pixAddGray(PIX  *pixd,
@@ -314,25 +322,27 @@ l_uint32  *datas, *datad, *lines, *lined;
 
 
 /*!
- *  pixSubtractGray()
+ * \brief   pixSubtractGray()
  *
- *      Input:  pixd (<optional>; this can be null, equal to pixs1, or
- *                    different from pixs1)
- *              pixs1 (can be == to pixd)
- *              pixs2
- *      Return: pixd always
+ * \param[in]    pixd [optional]; this can be null, equal to pixs1, or
+ *                    different from pixs1
+ * \param[in]    pixs1 can be == to pixd
+ * \param[in]    pixs2
+ * \return  pixd always
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Arithmetic subtraction of two 8, 16 or 32 bpp images.
  *      (2) Source pixs2 is always subtracted from source pixs1.
  *      (3) Do explicit clipping to 0.
  *      (4) Alignment is to UL corner.
  *      (5) There are 3 cases.  The result can go to a new dest,
  *          in-place to pixs1, or to an existing input dest:
- *          (a) pixd == null   (src1 - src2) --> new pixd
- *          (b) pixd == pixs1  (src1 - src2) --> src1  (in-place)
- *          (d) pixd != pixs1  (src1 - src2) --> input pixd
+ *          (a) pixd == null   (src1 - src2) --\> new pixd
+ *          (b) pixd == pixs1  (src1 - src2) --\> src1  (in-place)
+ *          (d) pixd != pixs1  (src1 - src2) --\> input pixd
  *      (6) pixs2 must be different from both pixd and pixs1.
+ * </pre>
  */
 PIX *
 pixSubtractGray(PIX  *pixd,
@@ -407,19 +417,21 @@ l_uint32  *datas, *datad, *lines, *lined;
  *                Grayscale threshold operation                *
  *-------------------------------------------------------------*/
 /*!
- *  pixThresholdToValue()
+ * \brief   pixThresholdToValue()
  *
- *      Input:  pixd (<optional>; if not null, must be equal to pixs)
- *              pixs (8, 16, 32 bpp)
- *              threshval
- *              setval
- *      Return: pixd always
+ * \param[in]    pixd [optional]; if not null, must be equal to pixs
+ * \param[in]    pixs 8, 16, 32 bpp
+ * \param[in]    threshval
+ * \param[in]    setval
+ * \return  pixd always
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *    ~ operation can be in-place (pixs == pixd) or to a new pixd
- *    ~ if setval > threshval, sets pixels with a value >= threshval to setval
- *    ~ if setval < threshval, sets pixels with a value <= threshval to setval
+ *    ~ if setval \> threshval, sets pixels with a value \>= threshval to setval
+ *    ~ if setval \< threshval, sets pixels with a value \<= threshval to setval
  *    ~ if setval == threshval, no-op
+ * </pre>
  */
 PIX *
 pixThresholdToValue(PIX      *pixd,
@@ -508,15 +520,16 @@ l_uint32  *datad, *lined;
  *            Image accumulator arithmetic operations          *
  *-------------------------------------------------------------*/
 /*!
- *  pixInitAccumulate()
+ * \brief   pixInitAccumulate()
  *
- *      Input:  w, h (of accumulate array)
- *              offset (initialize the 32 bpp to have this
- *                      value; not more than 0x40000000)
- *      Return: pixd (32 bpp), or NULL on error
+ * \param[in]    w, h of accumulate array
+ * \param[in]    offset initialize the 32 bpp to have this
+ *                      value; not more than 0x40000000
+ * \return  pixd 32 bpp, or NULL on error
  *
- *  Notes:
- *      (1) The offset must be >= 0.
+ * <pre>
+ * Notes:
+ *      (1) The offset must be \>= 0.
  *      (2) The offset is used so that we can do arithmetic
  *          with negative number results on l_uint32 data; it
  *          prevents the l_uint32 data from going negative.
@@ -527,6 +540,7 @@ l_uint32  *datad, *lined;
  *      (4) The same offset should be used for initialization,
  *          multiplication by a constant, and final extraction!
  *      (5) If you're only adding positive values, offset can be 0.
+ * </pre>
  */
 PIX *
 pixInitAccumulate(l_int32   w,
@@ -547,18 +561,20 @@ PIX  *pixd;
 
 
 /*!
- *  pixFinalAccumulate()
+ * \brief   pixFinalAccumulate()
  *
- *      Input:  pixs (32 bpp)
- *              offset (same as used for initialization)
- *              depth  (8, 16 or 32 bpp, of destination)
- *      Return: pixd (8, 16 or 32 bpp), or NULL on error
+ * \param[in]    pixs 32 bpp
+ * \param[in]    offset same as used for initialization
+ * \param[in]    depth  8, 16 or 32 bpp, of destination
+ * \return  pixd 8, 16 or 32 bpp, or NULL on error
  *
- *  Notes:
- *      (1) The offset must be >= 0 and should not exceed 0x40000000.
+ * <pre>
+ * Notes:
+ *      (1) The offset must be \>= 0 and should not exceed 0x40000000.
  *      (2) The offset is subtracted from the src 32 bpp image
  *      (3) For 8 bpp dest, the result is clipped to [0, 0xff]
  *      (4) For 16 bpp dest, the result is clipped to [0, 0xffff]
+ * </pre>
  */
 PIX *
 pixFinalAccumulate(PIX      *pixs,
@@ -624,16 +640,18 @@ PIX       *pixd;
 
 
 /*!
- *  pixFinalAccumulateThreshold()
+ * \brief   pixFinalAccumulateThreshold()
  *
- *      Input:  pixs (32 bpp)
- *              offset (same as used for initialization)
- *              threshold (values less than this are set in the destination)
- *      Return: pixd (1 bpp), or NULL on error
+ * \param[in]    pixs 32 bpp
+ * \param[in]    offset same as used for initialization
+ * \param[in]    threshold values less than this are set in the destination
+ * \return  pixd 1 bpp, or NULL on error
  *
- *  Notes:
- *      (1) The offset must be >= 0 and should not exceed 0x40000000.
+ * <pre>
+ * Notes:
+ *      (1) The offset must be \>= 0 and should not exceed 0x40000000.
  *      (2) The offset is subtracted from the src 32 bpp image
+ * </pre>
  */
 PIX *
 pixFinalAccumulateThreshold(PIX      *pixs,
@@ -677,18 +695,20 @@ PIX       *pixd;
 
 
 /*!
- *  pixAccumulate()
+ * \brief   pixAccumulate()
  *
- *      Input:  pixd (32 bpp)
- *              pixs (1, 8, 16 or 32 bpp)
- *              op  (L_ARITH_ADD or L_ARITH_SUBTRACT)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pixd 32 bpp
+ * \param[in]    pixs 1, 8, 16 or 32 bpp
+ * \param[in]    op  L_ARITH_ADD or L_ARITH_SUBTRACT
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This adds or subtracts each pixs value from pixd.
  *      (2) This clips to the minimum of pixs and pixd, so they
  *          do not need to be the same size.
- *      (3) The alignment is to the origin [UL corner] of pixs & pixd.
+ *      (3) The alignment is to the origin [UL corner] of pixs \& pixd.
+ * </pre>
  */
 l_int32
 pixAccumulate(PIX     *pixd,
@@ -775,17 +795,19 @@ l_uint32  *datas, *datad, *lines, *lined;
 
 
 /*!
- *  pixMultConstAccumulate()
+ * \brief   pixMultConstAccumulate()
  *
- *      Input:  pixs (32 bpp)
- *              factor
- *              offset (same as used for initialization)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pixs 32 bpp
+ * \param[in]    factor
+ * \param[in]    offset same as used for initialization
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
- *      (1) The offset must be >= 0 and should not exceed 0x40000000.
+ * <pre>
+ * Notes:
+ *      (1) The offset must be \>= 0 and should not exceed 0x40000000.
  *      (2) This multiplies each pixel, relative to offset, by the input factor
  *      (3) The result is returned with the offset back in place.
+ * </pre>
  */
 l_int32
 pixMultConstAccumulate(PIX       *pixs,
@@ -825,12 +847,13 @@ l_uint32  *data, *line;
  *                      Absolute value of difference                     *
  *-----------------------------------------------------------------------*/
 /*!
- *  pixAbsDifference()
+ * \brief   pixAbsDifference()
  *
- *      Input:  pixs1, pixs2  (both either 8 or 16 bpp gray, or 32 bpp RGB)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs1, pixs2  both either 8 or 16 bpp gray, or 32 bpp RGB
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The depth of pixs1 and pixs2 must be equal.
  *      (2) Clips computation to the min size, aligning the UL corners
  *      (3) For 8 and 16 bpp, assumes one gray component.
@@ -838,6 +861,7 @@ l_uint32  *data, *line;
  *          LSB of each word (the alpha channel)
  *      (5) Computes the absolute value of the difference between
  *          each component value.
+ * </pre>
  */
 PIX *
 pixAbsDifference(PIX  *pixs1,
@@ -921,18 +945,20 @@ PIX       *pixd;
  *                           Sum of color images                         *
  *-----------------------------------------------------------------------*/
 /*!
- *  pixAddRGB()
+ * \brief   pixAddRGB()
  *
- *      Input:  pixs1, pixs2  (32 bpp RGB, or colormapped)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs1, pixs2  32 bpp RGB, or colormapped
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Clips computation to the minimum size, aligning the UL corners.
  *      (2) Removes any colormap to RGB, and ignores the LSB of each
  *          pixel word (the alpha channel).
  *      (3) Adds each component value, pixelwise, clipping to 255.
  *      (4) This is useful to combine two images where most of the
  *          pixels are essentially black, such as in pixPerceptualDiff().
+ * </pre>
  */
 PIX *
 pixAddRGB(PIX  *pixs1,
@@ -998,24 +1024,26 @@ PIX       *pixc1, *pixc2, *pixd;
  *             Two-image min and max operations (8 and 16 bpp)           *
  *-----------------------------------------------------------------------*/
 /*!
- *  pixMinOrMax()
+ * \brief   pixMinOrMax()
  *
- *      Input:  pixd  (<optional> destination: this can be null,
- *                     equal to pixs1, or different from pixs1)
- *              pixs1 (can be == to pixd)
- *              pixs2
- *              type (L_CHOOSE_MIN, L_CHOOSE_MAX)
- *      Return: pixd always
+ * \param[in]    pixd  [optional] destination: this can be null,
+ *                     equal to pixs1, or different from pixs1
+ * \param[in]    pixs1 can be == to pixd
+ * \param[in]    pixs2
+ * \param[in]    type L_CHOOSE_MIN, L_CHOOSE_MAX
+ * \return  pixd always
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives the min or max of two images, component-wise.
  *      (2) The depth can be 8 or 16 bpp for 1 component, and 32 bpp
  *          for a 3 component image.  For 32 bpp, ignore the LSB
  *          of each word (the alpha channel)
  *      (3) There are 3 cases:
- *          ~  if pixd == null,   Min(src1, src2) --> new pixd
- *          ~  if pixd == pixs1,  Min(src1, src2) --> src1  (in-place)
- *          ~  if pixd != pixs1,  Min(src1, src2) --> input pixd
+ *          ~  if pixd == null,   Min(src1, src2) --\> new pixd
+ *          ~  if pixd == pixs1,  Min(src1, src2) --\> src1  (in-place)
+ *          ~  if pixd != pixs1,  Min(src1, src2) --\> input pixd
+ * </pre>
  */
 PIX *
 pixMinOrMax(PIX     *pixd,
@@ -1103,15 +1131,17 @@ l_uint32  *datas, *datad, *lines, *lined;
  *            Scale for maximum dynamic range in 8 bpp image             *
  *-----------------------------------------------------------------------*/
 /*!
- *  pixMaxDynamicRange()
+ * \brief   pixMaxDynamicRange()
  *
- *      Input:  pixs  (4, 8, 16 or 32 bpp source)
- *              type  (L_LINEAR_SCALE or L_LOG_SCALE)
- *      Return: pixd (8 bpp), or NULL on error
+ * \param[in]    pixs  4, 8, 16 or 32 bpp source
+ * \param[in]    type  L_LINEAR_SCALE or L_LOG_SCALE
+ * \return  pixd 8 bpp, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Scales pixel values to fit maximally within the dest 8 bpp pixd
  *      (2) Uses a LUT for log scaling
+ * </pre>
  */
 PIX *
 pixMaxDynamicRange(PIX     *pixs,

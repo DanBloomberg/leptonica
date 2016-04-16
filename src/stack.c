@@ -25,14 +25,15 @@
  *====================================================================*/
 
 
-/*
- *  stack.c
+/*!
+ * \file stack.c
+ * <pre>
  *
  *      Generic stack
  *
  *      The lstack is an array of void * ptrs, onto which
  *      objects can be stored.  At any time, the number of
- *      stored objects is lstack->n.  The object at the bottom
+ *      stored objects is lstack-\>n.  The object at the bottom
  *      of the lstack is at array[0]; the object at the top of
  *      the lstack is at array[n-1].  New objects are added
  *      to the top of the lstack; i.e., the first available
@@ -53,6 +54,7 @@
  *
  *      Text description
  *           l_int32         lstackPrint()
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -67,10 +69,10 @@ static l_int32 lstackExtendArray(L_STACK *lstack);
  *                          Create/Destroy                             *
  *---------------------------------------------------------------------*/
 /*!
- *  lstackCreate()
+ * \brief   lstackCreate()
  *
- *      Input:  nalloc (initial ptr array size; use 0 for default)
- *      Return: lstack, or NULL on error
+ * \param[in]    nalloc initial ptr array size; use 0 for default
+ * \return  lstack, or NULL on error
  */
 L_STACK *
 lstackCreate(l_int32  nalloc)
@@ -96,13 +98,14 @@ L_STACK  *lstack;
 
 
 /*!
- *  lstackDestroy()
+ * \brief   lstackDestroy()
  *
- *      Input:  &lstack (<inout> to be nulled)
- *              freeflag (TRUE to free each remaining struct in the array)
- *      Return: void
+ * \param[in,out]   plstack to be nulled
+ * \param[in]    freeflag TRUE to free each remaining struct in the array
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If freeflag is TRUE, frees each struct in the array.
  *      (2) If freeflag is FALSE but there are elements on the array,
  *          gives a warning and destroys the array.  This will
@@ -111,6 +114,7 @@ L_STACK  *lstack;
  *          must be destroyed before the lstack.
  *      (3) To destroy the lstack, we destroy the ptr array, then
  *          the lstack, and then null the contents of the input ptr.
+ * </pre>
  */
 void
 lstackDestroy(L_STACK  **plstack,
@@ -152,11 +156,11 @@ L_STACK  *lstack;
  *                               Accessors                             *
  *---------------------------------------------------------------------*/
 /*!
- *  lstackAdd()
+ * \brief   lstackAdd()
  *
- *      Input:  lstack
- *              item to be added to the lstack
- *      Return: 0 if OK; 1 on error.
+ * \param[in]    lstack
+ * \param[in]    item to be added to the lstack
+ * \return  0 if OK; 1 on error.
  */
 l_int32
 lstackAdd(L_STACK  *lstack,
@@ -182,10 +186,10 @@ lstackAdd(L_STACK  *lstack,
 
 
 /*!
- *  lstackRemove()
+ * \brief   lstackRemove()
  *
- *      Input:  lstack
- *      Return: ptr to item popped from the top of the lstack,
+ * \param[in]    lstack
+ * \return  ptr to item popped from the top of the lstack,
  *              or NULL if the lstack is empty or on error
  */
 void *
@@ -209,10 +213,10 @@ void  *item;
 
 
 /*!
- *  lstackExtendArray()
+ * \brief   lstackExtendArray()
  *
- *      Input:  lstack
- *      Return: 0 if OK; 1 on error
+ * \param[in]    lstack
+ * \return  0 if OK; 1 on error
  */
 static l_int32
 lstackExtendArray(L_STACK  *lstack)
@@ -233,10 +237,10 @@ lstackExtendArray(L_STACK  *lstack)
 
 
 /*!
- *  lstackGetCount()
+ * \brief   lstackGetCount()
  *
- *      Input:  lstack
- *      Return: count, or 0 on error
+ * \param[in]    lstack
+ * \return  count, or 0 on error
  */
 l_int32
 lstackGetCount(L_STACK  *lstack)
@@ -255,11 +259,11 @@ lstackGetCount(L_STACK  *lstack)
  *                            Debug output                             *
  *---------------------------------------------------------------------*/
 /*!
- *  lstackPrint()
+ * \brief   lstackPrint()
  *
- *      Input:  fp (file stream)
- *              lstack
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fp file stream
+ * \param[in]    lstack
+ * \return  0 if OK; 1 on error
  */
 l_int32
 lstackPrint(FILE     *fp,

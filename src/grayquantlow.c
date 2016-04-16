@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  grayquantlow.c
+/*!
+ * \file grayquantlow.c
+ * <pre>
  *
  *      Thresholding from 8 bpp to 1 bpp
  *
@@ -56,6 +57,7 @@
  *
  *          Simple thresholding to 4 bpp
  *              void       thresholdTo4bppLow()
+ * </pre>
  */
 
 #include <string.h>
@@ -70,7 +72,7 @@
  *             Binarization by Floyd-Steinberg Dithering            *
  *------------------------------------------------------------------*/
 /*!
- *  ditherToBinaryLow()
+ * \brief   ditherToBinaryLow()
  *
  *  See comments in pixDitherToBinary() in binarize.c
  */
@@ -107,16 +109,16 @@ l_uint32    *lined;
 
 
 /*!
- *  ditherToBinaryLineLow()
+ * \brief   ditherToBinaryLineLow()
  *
- *      Input:  lined  (ptr to beginning of dest line
- *              w   (width of image in pixels)
- *              bufs1 (buffer of current source line)
- *              bufs2 (buffer of next source line)
- *              lowerclip (lower clip distance to black)
- *              upperclip (upper clip distance to white)
- *              lastlineflag  (0 if not last dest line, 1 if last dest line)
- *      Return: void
+ * \param[in]    lined  ptr to beginning of dest line
+ *              w   (width of image in pixels
+ * \param[in]    bufs1 buffer of current source line
+ * \param[in]    bufs2 buffer of next source line
+ * \param[in]    lowerclip lower clip distance to black
+ * \param[in]    upperclip upper clip distance to white
+ * \param[in]    lastlineflag  0 if not last dest line, 1 if last dest line
+ * \return  void
  *
  *  Dispatches FS error diffusion dithering for
  *  a single line of the image.  If lastlineflag == 0,
@@ -239,7 +241,7 @@ l_uint8   fval1, fval2, rval, bval, dval;
  *             Simple binarization with fixed threshold             *
  *------------------------------------------------------------------*/
 /*!
- *  thresholdToBinaryLow()
+ * \brief   thresholdToBinaryLow()
  *
  *  If the source pixel is less than thresh,
  *  the dest will be 1; otherwise, it will be 0
@@ -391,7 +393,7 @@ l_uint32 sword, dword;
  *    This is analogous to the method used in dithering to 2 bpp.      *
  *---------------------------------------------------------------------*/
 /*!
- *  ditherToBinaryLUTLow()
+ * \brief   ditherToBinaryLUTLow()
  *
  *  Low-level function for doing Floyd-Steinberg error diffusion
  *  dithering from 8 bpp (datas) to 1 bpp (datad).  Two source
@@ -438,17 +440,17 @@ l_uint32    *lined;
 
 
 /*!
- *  ditherToBinaryLineLUTLow()
+ * \brief   ditherToBinaryLineLUTLow()
  *
- *      Input:  lined  (ptr to beginning of dest line
- *              w   (width of image in pixels)
- *              bufs1 (buffer of current source line)
- *              bufs2 (buffer of next source line)
- *              tabval (value to assign for current pixel)
- *              tab38 (excess value to give to neighboring 3/8 pixels)
- *              tab14 (excess value to give to neighboring 1/4 pixel)
- *              lastlineflag  (0 if not last dest line, 1 if last dest line)
- *      Return: void
+ * \param[in]    lined  ptr to beginning of dest line
+ *              w   (width of image in pixels
+ * \param[in]    bufs1 buffer of current source line
+ * \param[in]    bufs2 buffer of next source line
+ * \param[in]    tabval value to assign for current pixel
+ * \param[in]    tab38 excess value to give to neighboring 3/8 pixels
+ * \param[in]    tab14 excess value to give to neighboring 1/4 pixel
+ * \param[in]    lastlineflag  0 if not last dest line, 1 if last dest line
+ * \return  void
  */
 void
 ditherToBinaryLineLUTLow(l_uint32  *lined,
@@ -530,15 +532,15 @@ l_uint8  rval, bval, dval;
 
 
 /*!
- *  make8To1DitherTables()
+ * \brief   make8To1DitherTables()
  *
- *      Input: &tabval (value assigned to output pixel; 0 or 1)
- *             &tab38  (amount propagated to pixels left and below)
- *             &tab14  (amount propagated to pixel to left and down)
- *             lowerclip (values near 0 where the excess is not propagated)
- *             upperclip (values near 255 where the deficit is not propagated)
+ * \param[in]   &tabval value assigned to output pixel; 0 or 1
+ * \param[in]   &tab38  amount propagated to pixels left and below
+ * \param[in]   &tab14  amount propagated to pixel to left and down
+ * \param[in]   lowerclip values near 0 where the excess is not propagated
+ * \param[in]   upperclip values near 255 where the deficit is not propagated
  *
- *      Return: 0 if OK, 1 on error
+ * \return  0 if OK, 1 on error
  */
 l_int32
 make8To1DitherTables(l_int32 **ptabval,
@@ -594,7 +596,7 @@ l_int32  *tabval, *tab38, *tab14;
  *                         Dithering to 2 bpp                       *
  *------------------------------------------------------------------*/
 /*!
- *  ditherTo2bppLow()
+ * \brief   ditherTo2bppLow()
  *
  *  Low-level function for doing Floyd-Steinberg error diffusion
  *  dithering from 8 bpp (datas) to 2 bpp (datad).  Two source
@@ -641,17 +643,17 @@ l_uint32    *lined;
 
 
 /*!
- *  ditherTo2bppLineLow()
+ * \brief   ditherTo2bppLineLow()
  *
- *      Input:  lined  (ptr to beginning of dest line
- *              w   (width of image in pixels)
- *              bufs1 (buffer of current source line)
- *              bufs2 (buffer of next source line)
- *              tabval (value to assign for current pixel)
- *              tab38 (excess value to give to neighboring 3/8 pixels)
- *              tab14 (excess value to give to neighboring 1/4 pixel)
- *              lastlineflag  (0 if not last dest line, 1 if last dest line)
- *      Return: void
+ * \param[in]    lined  ptr to beginning of dest line
+ *              w   (width of image in pixels
+ * \param[in]    bufs1 buffer of current source line
+ * \param[in]    bufs2 buffer of next source line
+ * \param[in]    tabval value to assign for current pixel
+ * \param[in]    tab38 excess value to give to neighboring 3/8 pixels
+ * \param[in]    tab14 excess value to give to neighboring 1/4 pixel
+ * \param[in]    lastlineflag  0 if not last dest line, 1 if last dest line
+ * \return  void
  *
  *  Dispatches error diffusion dithering for
  *  a single line of the image.  If lastlineflag == 0,
@@ -736,15 +738,15 @@ l_uint8  rval, bval, dval;
 
 
 /*!
- *  make8To2DitherTables()
+ * \brief   make8To2DitherTables()
  *
- *      Input: &tabval (value assigned to output pixel; 0, 1, 2 or 3)
- *             &tab38  (amount propagated to pixels left and below)
- *             &tab14  (amount propagated to pixel to left and down)
- *             cliptoblack (values near 0 where the excess is not propagated)
- *             cliptowhite (values near 255 where the deficit is not propagated)
+ * \param[in]   &tabval value assigned to output pixel; 0, 1, 2 or 3
+ * \param[in]   &tab38  amount propagated to pixels left and below
+ * \param[in]   &tab14  amount propagated to pixel to left and down
+ * \param[in]   cliptoblack values near 0 where the excess is not propagated
+ * \param[in]   cliptowhite values near 255 where the deficit is not propagated
  *
- *      Return: 0 if OK, 1 on error
+ * \return  0 if OK, 1 on error
  */
 l_int32
 make8To2DitherTables(l_int32 **ptabval,
@@ -813,7 +815,7 @@ l_int32  *tabval, *tab38, *tab14;
  *                   Simple thresholding to 2 bpp                   *
  *------------------------------------------------------------------*/
 /*!
- *  thresholdTo2bppLow()
+ * \brief   thresholdTo2bppLow()
  *
  *  Low-level function for thresholding from 8 bpp (datas) to
  *  2 bpp (datad), using thresholds implicitly defined through %tab,
@@ -858,7 +860,7 @@ l_uint32  *lines, *lined;
  *                   Simple thresholding to 4 bpp                   *
  *------------------------------------------------------------------*/
 /*!
- *  thresholdTo4bppLow()
+ * \brief   thresholdTo4bppLow()
  *
  *  Low-level function for thresholding from 8 bpp (datas) to
  *  4 bpp (datad), using thresholds implicitly defined through %tab,

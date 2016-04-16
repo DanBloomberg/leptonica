@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  psio1.c
+/*!
+ * \file psio1.c
+ * <pre>
  *
  *    |=============================================================|
  *    |                         Important note                      |
@@ -96,6 +97,7 @@
  *  functions such as convertFilesToPS(), convertFilesFittedToPS()
  *  and convertSegmentedPagesToPS().  The function l_psWriteBoundingBox()
  *  sets a flag to give low-level control over this.
+ * </pre>
  */
 
 #include <string.h>

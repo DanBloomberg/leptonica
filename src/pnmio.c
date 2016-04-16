@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  pnmio.c
+/*!
+ * \file pnmio.c
+ * <pre>
  *
  *      Stream interface
  *          PIX             *pixReadStreamPnm()
@@ -82,6 +83,7 @@
  *      we write data to a temp file and read it back for operations
  *      between pix and compressed-data, such as pixReadMemPnm() and
  *      pixWriteMemPnm().
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -109,10 +111,10 @@ static const l_int32  MAX_PNM_HEIGHT = 100000;
  *                          Stream interface                          *
  *--------------------------------------------------------------------*/
 /*!
- *  pixReadStreamPnm()
+ * \brief   pixReadStreamPnm()
  *
- *      Input:  fp (file stream opened for read)
- *      Return: pix, or NULL on error
+ * \param[in]    fp file stream opened for read
+ * \return  pix, or NULL on error
  */
 PIX *
 pixReadStreamPnm(FILE  *fp)
@@ -221,16 +223,16 @@ PIX       *pix;
 
 
 /*!
- *  readHeaderPnm()
+ * \brief   readHeaderPnm()
  *
- *      Input:  filename
- *              &w (<optional return>)
- *              &h (<optional return>)
- *              &d (<optional return>)
- *              &type (<optional return> pnm type)
- *              &bps (<optional return>, bits/sample)
- *              &spp (<optional return>, samples/pixel)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename
+ * \param[out]   pw [optional]
+ *           [out]   ph ([optional]
+ *           [out]   pd ([optional]
+ *           [out]   ptype ([optional] pnm type
+ * \param[out]   pbps [optional]  bits/sample
+ * \param[out]   pspp [optional]  samples/pixel
+ * \return  0 if OK, 1 on error
  */
 l_int32
 readHeaderPnm(const char *filename,
@@ -264,16 +266,16 @@ FILE    *fp;
 
 
 /*!
- *  freadHeaderPnm()
+ * \brief   freadHeaderPnm()
  *
- *      Input:  fp (file stream opened for read)
- *              &w (<optional return>)
- *              &h (<optional return>)
- *              &d (<optional return>)
- *              &type (<optional return> pnm type)
- *              &bps (<optional return>, bits/sample)
- *              &spp (<optional return>, samples/pixel)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream opened for read
+ * \param[out]   pw [optional]
+ *           [out]   ph ([optional]
+ *           [out]   pd ([optional]
+ *           [out]   ptype ([optional] pnm type
+ * \param[out]   pbps [optional]  bits/sample
+ * \param[out]   pspp [optional]  samples/pixel
+ * \return  0 if OK, 1 on error
  */
 l_int32
 freadHeaderPnm(FILE     *fp,
@@ -357,19 +359,21 @@ l_int32  maxval;
 
 
 /*!
- *  pixWriteStreamPnm()
+ * \brief   pixWriteStreamPnm()
  *
- *      Input:  fp (file stream opened for write)
- *              pix
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fp file stream opened for write
+ * \param[in]    pix
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This writes "raw" packed format only:
- *          1 bpp --> pbm (P4)
- *          2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm (P5)
- *          2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm (P6)
+ *          1 bpp --\> pbm (P4)
+ *          2, 4, 8, 16 bpp, no colormap or grayscale colormap --\> pgm (P5)
+ *          2, 4, 8 bpp with color-valued colormap, or rgb --\> rgb ppm (P6)
  *      (2) 24 bpp rgb are not supported in leptonica, but this will
  *          write them out as a packed array of bytes (3 to a pixel).
+ * </pre>
  */
 l_int32
 pixWriteStreamPnm(FILE  *fp,
@@ -476,16 +480,16 @@ PIX       *pixs;
 
 
 /*!
- *  pixWriteStreamAsciiPnm()
+ * \brief   pixWriteStreamAsciiPnm()
  *
- *      Input:  fp (file stream opened for write)
- *              pix
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fp file stream opened for write
+ * \param[in]    pix
+ * \return  0 if OK; 1 on error
  *
  *  Writes "ascii" format only:
- *      1 bpp --> pbm (P1)
- *      2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm (P2)
- *      2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm (P3)
+ *      1 bpp --> pbm P1
+ *      2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm P2
+ *      2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm P3
  */
 l_int32
 pixWriteStreamAsciiPnm(FILE  *fp,
@@ -600,14 +604,16 @@ PIX       *pixs;
  *---------------------------------------------------------------------*/
 
 /*!
- *  pixReadMemPnm()
+ * \brief   pixReadMemPnm()
  *
- *      Input:  data (const; pnm-encoded)
- *              size (of data)
- *      Return: pix, or NULL on error
+ * \param[in]    data const; pnm-encoded
+ * \param[in]    size of data
+ * \return  pix, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The %size byte of %data must be a null character.
+ * </pre>
  */
 PIX *
 pixReadMemPnm(const l_uint8  *data,
@@ -630,17 +636,17 @@ PIX   *pix;
 
 
 /*!
- *  readHeaderMemPnm()
+ * \brief   readHeaderMemPnm()
  *
- *      Input:  data (const; pnm-encoded)
- *              size (of data)
- *              &w (<optional return>)
- *              &h (<optional return>)
- *              &d (<optional return>)
- *              &type (<optional return> pnm type)
- *              &bps (<optional return>, bits/sample)
- *              &spp (<optional return>, samples/pixel)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    data const; pnm-encoded
+ * \param[in]    size of data
+ * \param[out]   pw [optional]
+ *           [out]   ph ([optional]
+ *           [out]   pd ([optional]
+ *           [out]   ptype ([optional] pnm type
+ * \param[out]   pbps [optional]  bits/sample
+ * \param[out]   pspp [optional]  samples/pixel
+ * \return  0 if OK, 1 on error
  */
 l_int32
 readHeaderMemPnm(const l_uint8  *data,
@@ -671,16 +677,18 @@ FILE    *fp;
 
 
 /*!
- *  pixWriteMemPnm()
+ * \brief   pixWriteMemPnm()
  *
- *      Input:  &data (<return> data of tiff compressed image)
- *              &size (<return> size of returned data)
- *              pix
- *      Return: 0 if OK, 1 on error
+ * \param[out]   pdata data of tiff compressed image
+ * \param[out]   psize size of returned data
+ * \param[in]    pix
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixWriteStreamPnm() for usage.  This version writes to
  *          memory instead of to a file stream.
+ * </pre>
  */
 l_int32
 pixWriteMemPnm(l_uint8  **pdata,
@@ -727,7 +735,7 @@ FILE    *fp;
  *                          Static helpers                            *
  *--------------------------------------------------------------------*/
 /*!
- *  pnmReadNextAsciiValue()
+ * \brief   pnmReadNextAsciiValue()
  *
  *      Return: 0 if OK, 1 on error or EOF.
  *
@@ -759,17 +767,19 @@ l_int32   c, ignore;
 
 
 /*!
- *  pnmReadNextNumber()
+ * \brief   pnmReadNextNumber()
  *
- *      Input:  fp (file stream)
- *              &val (<return> value as an integer)
- *      Return: 0 if OK, 1 on error or EOF.
+ * \param[in]    fp file stream
+ * \param[out]   pval value as an integer
+ * \return  0 if OK, 1 on error or EOF.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This reads the next set of numeric chars, returning
  *          the value and swallowing the trailing whitespace character.
  *          This is needed to read the maxval in the header, which
  *          precedes the binary data.
+ * </pre>
  */
 static l_int32
 pnmReadNextNumber(FILE     *fp,
@@ -812,7 +822,7 @@ l_int32   i, c, foundws, ignore;
 
 
 /*!
- *  pnmSkipCommentLines()
+ * \brief   pnmSkipCommentLines()
  *
  *      Return: 0 if OK, 1 on error or EOF
  *

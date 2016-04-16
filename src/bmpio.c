@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  bmpio.c
+/*!
+ * \file bmpio.c
+ * <pre>
  *
  *      Read bmp from file
  *           PIX          *pixReadStreamBmp()
@@ -41,6 +42,7 @@
  *    we write data to a temp file and read it back for operations
  *    between pix and compressed-data, such as pixReadMemPng() and
  *    pixWriteMemPng().
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -75,15 +77,17 @@ static const l_int64  L_MAX_ALLOWED_AREA = 400000000LL;
 
 
 /*!
- *  pixReadStreamBmp()
+ * \brief   pixReadStreamBmp()
  *
- *      Input:  fp (file stream opened for read)
- *      Return: pix, or NULL on error
+ * \param[in]    fp file stream opened for read
+ * \return  pix, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Here are references on the bmp file format:
  *          http://en.wikipedia.org/wiki/BMP_file_format
  *          http://www.fortunecity.com/skyscraper/windows/364/bmpffrmt.html
+ * </pre>
  */
 PIX *
 pixReadStreamBmp(FILE  *fp)
@@ -350,17 +354,19 @@ PIXCMAP   *cmap;
 
 
 /*!
- *  pixWriteStreamBmp()
+ * \brief   pixWriteStreamBmp()
  *
- *      Input:  fp (file stream opened for write)
- *              pix (1, 4, 8, 32 bpp)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream opened for write
+ * \param[in]    pix 1, 4, 8, 32 bpp
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We position fp at the beginning of the stream, so it
  *          truncates any existing data
  *      (2) 2 bpp Bmp files are apparently not valid!.  We can
  *          write and read them, but nobody else can read ours.
+ * </pre>
  */
 l_int32
 pixWriteStreamBmp(FILE  *fp,
@@ -571,14 +577,16 @@ RGBA_QUAD  *pquad;
  *---------------------------------------------------------------------*/
 
 /*!
- *  pixReadMemBmp()
+ * \brief   pixReadMemBmp()
  *
- *      Input:  data (const; bmp-encoded)
- *              size (of data)
- *      Return: pix, or NULL on error
+ * \param[in]    data const; bmp-encoded
+ * \param[in]    size of data
+ * \return  pix, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The %size byte of %data must be a null character.
+ * </pre>
  */
 PIX *
 pixReadMemBmp(const l_uint8  *data,
@@ -602,16 +610,18 @@ PIX   *pix;
 
 
 /*!
- *  pixWriteMemBmp()
+ * \brief   pixWriteMemBmp()
  *
- *      Input:  &data (<return> data of tiff compressed image)
- *              &size (<return> size of returned data)
- *              pix
- *      Return: 0 if OK, 1 on error
+ * \param[out]   pdata data of tiff compressed image
+ * \param[out]   psize size of returned data
+ * \param[in]    pix
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixWriteStreamBmp() for usage.  This version writes to
  *          memory instead of to a file stream.
+ * </pre>
  */
 l_int32
 pixWriteMemBmp(l_uint8  **pdata,
@@ -654,4 +664,3 @@ FILE    *fp;
 
 /* --------------------------------------------*/
 #endif  /* USE_BMPIO */
-/* --------------------------------------------*/

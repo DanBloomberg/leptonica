@@ -31,8 +31,9 @@
  * CC0 1.0 waiver (http://creativecommons.org/publicdomain/zero/1.0/).
  */
 
-/*
- *  rbtree.c
+/*!
+ * \file rbtree.c
+ * <pre>
  *
  *  Basic functions for using red-black trees.  These are "nearly" balanced
  *  sorted trees with ordering by key that allows insertion, lookup and
@@ -67,6 +68,7 @@
  *
  *  General comparison function
  *           l_int32         l_compareKeys()
+ * </pre>
  */
 
 #include "allheaders.h"

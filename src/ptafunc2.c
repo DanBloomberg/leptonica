@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   ptafunc2.c
+/*!
+ * \file  ptafunc2.c
+ * <pre>
  *
  *      Sorting
  *           PTA        *ptaSort()
@@ -45,6 +46,7 @@
  *           PTA        *ptaIntersectionByHash();
  *           l_int32     ptaFindPtByHash()
  *           L_DNAHASH  *l_dnaHashCreateFromPta()
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -54,14 +56,14 @@
  *                               Sorting                               *
  *---------------------------------------------------------------------*/
 /*!
- *  ptaSort()
+ * \brief   ptaSort()
  *
- *      Input:  ptas
- *              sorttype (L_SORT_BY_X, L_SORT_BY_Y)
- *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
- *              &naindex (<optional return> index of sorted order into
- *                        original array)
- *      Return: ptad (sorted version of ptas), or NULL on error
+ * \param[in]    ptas
+ * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y
+ * \param[in]    sortorder  L_SORT_INCREASING, L_SORT_DECREASING
+ * \param[out]   pnaindex [optional] index of sorted order into
+ *                        original array
+ * \return  ptad sorted version of ptas, or NULL on error
  */
 PTA *
 ptaSort(PTA     *ptas,
@@ -97,14 +99,14 @@ NUMA  *naindex;
 
 
 /*!
- *  ptaGetSortIndex()
+ * \brief   ptaGetSortIndex()
  *
- *      Input:  ptas
- *              sorttype (L_SORT_BY_X, L_SORT_BY_Y)
- *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
- *              &naindex (<return> index of sorted order into
- *                        original array)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    ptas
+ * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y
+ * \param[in]    sortorder  L_SORT_INCREASING, L_SORT_DECREASING
+ * \param[out]   pnaindex index of sorted order into
+ *                        original array
+ * \return  0 if OK, 1 on error
  */
 l_int32
 ptaGetSortIndex(PTA     *ptas,
@@ -150,11 +152,11 @@ NUMA      *na;
 
 
 /*!
- *  ptaSortByIndex()
+ * \brief   ptaSortByIndex()
  *
- *      Input:  ptas
- *              naindex (na that maps from the new pta to the input pta)
- *      Return: ptad (sorted), or NULL on  error
+ * \param[in]    ptas
+ * \param[in]    naindex na that maps from the new pta to the input pta
+ * \return  ptad sorted, or NULL on  error
  */
 PTA *
 ptaSortByIndex(PTA   *ptas,
@@ -186,11 +188,11 @@ PTA       *ptad;
 
 
 /*!
- *  ptaaSortByIndex()
+ * \brief   ptaaSortByIndex()
  *
- *      Input:  ptaas
- *              naindex (na that maps from the new ptaa to the input ptaa)
- *      Return: ptaad (sorted), or NULL on error
+ * \param[in]    ptaas
+ * \param[in]    naindex na that maps from the new ptaa to the input ptaa
+ * \return  ptaad sorted, or NULL on error
  */
 PTAA *
 ptaaSortByIndex(PTAA  *ptaas,
@@ -224,19 +226,21 @@ PTAA    *ptaad;
  *                 Union and intersection by aset (rbtree)             *
  *---------------------------------------------------------------------*/
 /*!
- *  ptaUnionByAset()
+ * \brief   ptaUnionByAset()
  *
- *      Input:  pta1, pta2
- *      Return: ptad (with the union of the set of points), or NULL on error
+ * \param[in]    pta1, pta2
+ * \return  ptad with the union of the set of points, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See sarrayRemoveDupsByAset() for the approach.
  *      (2) The key is a 64-bit hash from the (x,y) pair.
  *      (3) This is slower than ptaUnionByHash(), mostly because of the
  *          nlogn sort to build up the rbtree.  Do not use for large
- *          numbers of points (say, > 1M).
+ *          numbers of points (say, \> 1M).
  *      (4) The *Aset() functions use the sorted l_Aset, which is just
  *          an rbtree in disguise.
+ * </pre>
  */
 PTA *
 ptaUnionByAset(PTA  *pta1,
@@ -263,15 +267,17 @@ PTA  *pta3, *ptad;
 
 
 /*!
- *  ptaRemoveDupsByAset()
+ * \brief   ptaRemoveDupsByAset()
  *
- *      Input:  ptas (assumed to be integer values)
- *      Return: ptad (with duplicates removed), or NULL on error
+ * \param[in]    ptas assumed to be integer values
+ * \return  ptad with duplicates removed, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is slower than ptaRemoveDupsByHash(), mostly because
  *          of the nlogn sort to build up the rbtree.  Do not use for
- *          large numbers of points (say, > 1M).
+ *          large numbers of points (say, \> 1M).
+ * </pre>
  */
 PTA *
 ptaRemoveDupsByAset(PTA  *ptas)
@@ -306,17 +312,19 @@ RB_TYPE   key;
 
 
 /*!
- *  ptaIntersectionByAset()
+ * \brief   ptaIntersectionByAset()
  *
- *      Input:  pta1, pta2
- *      Return: ptad (intersection of the point sets), or NULL on error
+ * \param[in]    pta1, pta2
+ * \return  ptad intersection of the point sets, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See sarrayIntersectionByAset() for the approach.
  *      (2) The key is a 64-bit hash from the (x,y) pair.
  *      (3) This is slower than ptaIntersectionByHash(), mostly because
  *          of the nlogn sort to build up the rbtree.  Do not use for
- *          large numbers of points (say, > 1M).
+ *          large numbers of points (say, \> 1M).
+ * </pre>
  */
 PTA *
 ptaIntersectionByAset(PTA  *pta1,
@@ -363,10 +371,10 @@ PTA      *pta_small, *pta_big, *ptad;
 
 
 /*!
- *  l_asetCreateFromPta()
+ * \brief   l_asetCreateFromPta()
  *
- *      Input:  pta
- *      Return: set (using a 64-bit hash of (x,y) as the key)
+ * \param[in]    pta
+ * \return  set using a 64-bit hash of (x,y) as the key
  */
 L_ASET *
 l_asetCreateFromPta(PTA  *pta)
@@ -398,15 +406,17 @@ RB_TYPE   key;
  *                    Union and intersection by hash                   *
  *---------------------------------------------------------------------*/
 /*!
- *  ptaUnionByHash()
+ * \brief   ptaUnionByHash()
  *
- *      Input:  pta1, pta2
- *      Return: ptad (with the union of the set of points), or NULL on error
+ * \param[in]    pta1, pta2
+ * \return  ptad with the union of the set of points, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is faster than ptaUnionByAset(), because the
  *          bucket lookup is O(n).  It should be used if the pts are
  *          integers (e.g., representing pixel positions).
+ * </pre>
  */
 PTA *
 ptaUnionByHash(PTA  *pta1,
@@ -433,28 +443,30 @@ PTA  *pta3, *ptad;
 
 
 /*!
- *  ptaRemoveDupsByHash()
+ * \brief   ptaRemoveDupsByHash()
  *
- *      Input:  ptas (assumed to be integer values)
- *              &ptad (<return> unique set of pts; duplicates removed)
- *              &dahash (<optional return> dnahash used for lookup)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    ptas assumed to be integer values
+ * \param[out]   pptad unique set of pts; duplicates removed
+ * \param[out]   pdahash [optional] dnahash used for lookup
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Generates a pta with unique values.
  *      (2) The dnahash is built up with ptad to assure uniqueness.
  *          It can be used to find if a point is in the set:
- *              ptaFindPtByHash(ptad, dahash, x, y, &index)
+ *              ptaFindPtByHash(ptad, dahash, x, y, \&index)
  *      (3) The hash of the (x,y) location is simple and fast.  It scales
  *          up with the number of buckets to insure a fairly random
  *          bucket selection for adjacent points.
  *      (4) A Dna is used rather than a Numa because we need accurate
  *          representation of 32-bit integers that are indices into ptas.
- *          Integer --> float --> integer conversion makes errors for
+ *          Integer --\> float --\> integer conversion makes errors for
  *          integers larger than 10M.
  *      (5) This is faster than ptaRemoveDupsByAset(), because the
  *          bucket lookup is O(n), although there is a double-loop
  *          lookup within the dna in each bucket.
+ * </pre>
  */
 l_int32
 ptaRemoveDupsByHash(PTA         *ptas,
@@ -502,15 +514,17 @@ L_DNAHASH  *dahash;
 
 
 /*!
- *  ptaIntersectionByHash()
+ * \brief   ptaIntersectionByHash()
  *
- *      Input:  pta1, pta2
- *      Return: ptad (intersection of the point sets), or NULL on error
+ * \param[in]    pta1, pta2
+ * \return  ptad intersection of the point sets, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is faster than ptaIntersectionByAset(), because the
  *          bucket lookup is O(n).  It should be used if the pts are
  *          integers (e.g., representing pixel positions).
+ * </pre>
  */
 PTA *
 ptaIntersectionByHash(PTA  *pta1,
@@ -563,18 +577,20 @@ PTA        *pta_small, *pta_big, *ptad;
 
 
 /*!
- *  ptaFindPtByHash()
+ * \brief   ptaFindPtByHash()
  *
- *      Input:  pta
- *              dahash (built from pta)
- *              x, y  (arbitrary points)
- *              &index (<return> index into pta if (x,y) is in pta;
- *                      -1 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pta
+ * \param[in]    dahash built from pta
+ * \param[in]    x, y  arbitrary points
+ * \param[out]   pindex index into pta if (x,y is in pta;
+ * \param[in]            -1 otherwise)
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Fast lookup in dnaHash associated with a pta, to see if a
  *          random point (x,y) is already stored in the hash table.
+ * </pre>
  */
 l_int32
 ptaFindPtByHash(PTA        *pta,
@@ -618,10 +634,10 @@ L_DNA    *da;
 
 
 /*!
- *  l_dnaHashCreateFromPta()
+ * \brief   l_dnaHashCreateFromPta()
  *
- *      Input:  pta
- *      Return: dahash, or NULL on error
+ * \param[in]    pta
+ * \return  dahash, or NULL on error
  */
 L_DNAHASH *
 l_dnaHashCreateFromPta(PTA  *pta)
@@ -653,4 +669,3 @@ L_DNAHASH  *dahash;
 
     return dahash;
 }
-

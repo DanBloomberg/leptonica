@@ -25,8 +25,9 @@
  *====================================================================*/
 
 
-/*
- *  graymorph.c
+/*!
+ * \file graymorph.c
+ * <pre>
  *
  *      Top-level grayscale morphological operations (van Herk / Gil-Werman)
  *            PIX           *pixErodeGray()
@@ -115,6 +116,7 @@
  *      pixel corresponding to the SE center.  A picture is worth
  *      at least this many words, so if this isn't clear, see the
  *      leptonica documentation on grayscale morphology.
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -139,16 +141,18 @@ static void erodeGrayLow(l_uint32 *datad, l_int32 w, l_int32 h,
  *           Top-level grayscale morphological operations          *
  *-----------------------------------------------------------------*/
 /*!
- *  pixErodeGray()
+ * \brief   pixErodeGray()
  *
- *      Input:  pixs
- *              hsize  (of Sel; must be odd; origin implicitly in center)
- *              vsize  (ditto)
- *      Return: pixd
+ * \param[in]    pixs
+ * \param[in]    hsize  of Sel; must be odd; origin implicitly in center
+ * \param[in]    vsize  ditto
+ * \return  pixd
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) If hsize = vsize = 1, just returns a copy.
+ * </pre>
  */
 PIX *
 pixErodeGray(PIX     *pixs,
@@ -247,16 +251,18 @@ PIX       *pixb, *pixt, *pixd;
 
 
 /*!
- *  pixDilateGray()
+ * \brief   pixDilateGray()
  *
- *      Input:  pixs
- *              hsize  (of Sel; must be odd; origin implicitly in center)
- *              vsize  (ditto)
- *      Return: pixd
+ * \param[in]    pixs
+ * \param[in]    hsize  of Sel; must be odd; origin implicitly in center
+ * \param[in]    vsize  ditto
+ * \return  pixd
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) If hsize = vsize = 1, just returns a copy.
+ * </pre>
  */
 PIX *
 pixDilateGray(PIX     *pixs,
@@ -355,16 +361,18 @@ PIX       *pixb, *pixt, *pixd;
 
 
 /*!
- *  pixOpenGray()
+ * \brief   pixOpenGray()
  *
- *      Input:  pixs
- *              hsize  (of Sel; must be odd; origin implicitly in center)
- *              vsize  (ditto)
- *      Return: pixd
+ * \param[in]    pixs
+ * \param[in]    hsize  of Sel; must be odd; origin implicitly in center
+ * \param[in]    vsize  ditto
+ * \return  pixd
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) If hsize = vsize = 1, just returns a copy.
+ * </pre>
  */
 PIX *
 pixOpenGray(PIX     *pixs,
@@ -478,16 +486,18 @@ PIX       *pixb, *pixt, *pixd;
 
 
 /*!
- *  pixCloseGray()
+ * \brief   pixCloseGray()
  *
- *      Input:  pixs
- *              hsize  (of Sel; must be odd; origin implicitly in center)
- *              vsize  (ditto)
- *      Return: pixd
+ * \param[in]    pixs
+ * \param[in]    hsize  of Sel; must be odd; origin implicitly in center
+ * \param[in]    vsize  ditto
+ * \return  pixd
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) If hsize = vsize = 1, just returns a copy.
+ * </pre>
  */
 PIX *
 pixCloseGray(PIX     *pixs,
@@ -603,14 +613,15 @@ PIX       *pixb, *pixt, *pixd;
  *           Special operations for 1x3, 3x1 and 3x3 Sels          *
  *-----------------------------------------------------------------*/
 /*!
- *  pixErodeGray3()
+ * \brief   pixErodeGray3()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *              hsize  (1 or 3)
- *              vsize  (1 or 3)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    hsize  1 or 3
+ * \param[in]    vsize  1 or 3
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
  *      (2) If hsize = vsize = 1, just returns a copy.
  *      (3) It would be nice not to add a border, but it is required
@@ -618,6 +629,7 @@ PIX       *pixb, *pixt, *pixd;
  *          We add 4 bytes on the left to speed up the copying, and
  *          8 bytes at the right and bottom to allow unrolling of
  *          the computation of 8 pixels.
+ * </pre>
  */
 PIX *
 pixErodeGray3(PIX     *pixs,
@@ -661,14 +673,16 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 
 
 /*!
- *  pixErodeGray3h()
+ * \brief   pixErodeGray3h()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for horizontal 3x1 brick Sel;
  *          also used as the first step for the 3x3 brick Sel.
+ * </pre>
  */
 static PIX *
 pixErodeGray3h(PIX  *pixs)
@@ -724,17 +738,19 @@ PIX       *pixd;
 
 
 /*!
- *  pixErodeGray3v()
+ * \brief   pixErodeGray3v()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for vertical 1x3 brick Sel;
  *          also used as the second step for the 3x3 brick Sel.
  *      (2) Surprisingly, this is faster than setting up the
  *          lineptrs array and accessing into it; e.g.,
  *              val4 = GET_DATA_BYTE(lines8[i + 3], j);
+ * </pre>
  */
 static PIX *
 pixErodeGray3v(PIX  *pixs)
@@ -789,16 +805,18 @@ PIX       *pixd;
 
 
 /*!
- *  pixDilateGray3()
+ * \brief   pixDilateGray3()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *              hsize  (1 or 3)
- *              vsize  (1 or 3)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    hsize  1 or 3
+ * \param[in]    vsize  1 or 3
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
  *      (2) If hsize = vsize = 1, just returns a copy.
+ * </pre>
  */
 PIX *
 pixDilateGray3(PIX     *pixs,
@@ -842,14 +860,16 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 
 
 /*!
- *  pixDilateGray3h()
+ * \brief   pixDilateGray3h()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for horizontal 3x1 brick Sel;
  *          also used as the first step for the 3x3 brick Sel.
+ * </pre>
  */
 static PIX *
 pixDilateGray3h(PIX  *pixs)
@@ -905,14 +925,16 @@ PIX       *pixd;
 
 
 /*!
- *  pixDilateGray3v()
+ * \brief   pixDilateGray3v()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for vertical 1x3 brick Sel;
  *          also used as the second step for the 3x3 brick Sel.
+ * </pre>
  */
 static PIX *
 pixDilateGray3v(PIX  *pixs)
@@ -967,18 +989,20 @@ PIX       *pixd;
 
 
 /*!
- *  pixOpenGray3()
+ * \brief   pixOpenGray3()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *              hsize  (1 or 3)
- *              vsize  (1 or 3)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    hsize  1 or 3
+ * \param[in]    vsize  1 or 3
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
  *      (2) If hsize = vsize = 1, just returns a copy.
  *      (3) It would be nice not to add a border, but it is required
  *          to get the same results as for the general case.
+ * </pre>
  */
 PIX *
 pixOpenGray3(PIX     *pixs,
@@ -1033,16 +1057,18 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 
 
 /*!
- *  pixCloseGray3()
+ * \brief   pixCloseGray3()
  *
- *      Input:  pixs (8 bpp, not cmapped)
- *              hsize  (1 or 3)
- *              vsize  (1 or 3)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    hsize  1 or 3
+ * \param[in]    vsize  1 or 3
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special case for 1x3, 3x1 or 3x3 brick sel (all hits)
  *      (2) If hsize = vsize = 1, just returns a copy.
+ * </pre>
  */
 PIX *
 pixCloseGray3(PIX     *pixs,
@@ -1100,17 +1126,18 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
  *              Low-level gray morphological operations            *
  *-----------------------------------------------------------------*/
 /*!
- *  dilateGrayLow()
+ * \brief   dilateGrayLow()
  *
- *      Input:  datad, w, h, wpld (8 bpp image)
- *              datas, wpls  (8 bpp image, of same dimensions)
- *              size  (full length of SEL; restricted to odd numbers)
- *              direction  (L_HORIZ or L_VERT)
- *              buffer  (holds full line or column of src image pixels)
- *              maxarray  (array of dimension 2*size+1)
- *      Return: void
+ * \param[in]    datad, w, h, wpld 8 bpp image
+ * \param[in]    datas, wpls  8 bpp image, of same dimensions
+ * \param[in]    size  full length of SEL; restricted to odd numbers
+ * \param[in]    direction  L_HORIZ or L_VERT
+ * \param[in]    buffer  holds full line or column of src image pixels
+ * \param[in]    maxarray  array of dimension 2*size+1
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *        (1) To eliminate border effects on the actual image, these images
  *            are prepared with an additional border of dimensions:
  *               leftpix = 0.5 * size
@@ -1121,6 +1148,7 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
  *            This allows full processing over the actual image; at
  *            the end the border is removed.
  *        (2) Uses algorithm of van Herk, Gil and Werman
+ * </pre>
  */
 static void
 dilateGrayLow(l_uint32  *datad,
@@ -1211,18 +1239,20 @@ l_uint32  *lines, *lined;
 
 
 /*!
- *  erodeGrayLow()
+ * \brief   erodeGrayLow()
  *
- *      Input:  datad, w, h, wpld (8 bpp image)
- *              datas, wpls  (8 bpp image, of same dimensions)
- *              size  (full length of SEL; restricted to odd numbers)
- *              direction  (L_HORIZ or L_VERT)
- *              buffer  (holds full line or column of src image pixels)
- *              minarray  (array of dimension 2*size+1)
- *      Return: void
+ * \param[in]    datad, w, h, wpld 8 bpp image
+ * \param[in]    datas, wpls  8 bpp image, of same dimensions
+ * \param[in]    size  full length of SEL; restricted to odd numbers
+ * \param[in]    direction  L_HORIZ or L_VERT
+ * \param[in]    buffer  holds full line or column of src image pixels
+ * \param[in]    minarray  array of dimension 2*size+1
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *        (1) See notes in dilateGrayLow()
+ * </pre>
  */
 static void
 erodeGrayLow(l_uint32  *datad,

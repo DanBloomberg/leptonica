@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  convolve.c
+/*!
+ * \file convolve.c
+ * <pre>
  *
  *      Top level grayscale or color block convolution
  *          PIX          *pixBlockconv()
@@ -80,6 +81,7 @@
  *      Additive gaussian noise
  *          PIX          *pixAddGaussNoise()
  *          l_float32     gaussDistribSampling()
+ * </pre>
  */
 
 #include <math.h>
@@ -106,18 +108,20 @@ static void blocksumLow(l_uint32 *datad, l_int32 w, l_int32 h, l_int32 wpl,
  *             Top-level grayscale or color block convolution           *
  *----------------------------------------------------------------------*/
 /*!
- *  pixBlockconv()
+ * \brief   pixBlockconv()
  *
- *      Input:  pix (8 or 32 bpp; or 2, 4 or 8 bpp with colormap)
- *              wc, hc   (half width/height of convolution kernel)
- *      Return: pixd, or NULL on error
+ * \param[in]    pix 8 or 32 bpp; or 2, 4 or 8 bpp with colormap
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) Returns a copy if both wc and hc are 0
- *      (3) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *      (3) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
+ * </pre>
  */
 PIX  *
 pixBlockconv(PIX     *pix,
@@ -184,21 +188,23 @@ PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
  *                     Grayscale block convolution                      *
  *----------------------------------------------------------------------*/
 /*!
- *  pixBlockconvGray()
+ * \brief   pixBlockconvGray()
  *
- *      Input:  pix (8 bpp)
- *              accum pix (32 bpp; can be null)
- *              wc, hc   (half width/height of convolution kernel)
- *      Return: pix (8 bpp), or NULL on error
+ * \param[in]    pix 8 bpp
+ * \param[in]    accum pix 32 bpp; can be null
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \return  pix 8 bpp, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If accum pix is null, make one and destroy it before
  *          returning; otherwise, just use the input accum pix.
  *      (2) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
  *      (3) Returns a copy if both wc and hc are 0.
- *      (4) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *      (4) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
+ * </pre>
  */
 PIX *
 pixBlockconvGray(PIX     *pixs,
@@ -258,17 +264,18 @@ PIX       *pixd, *pixt;
 
 
 /*!
- *  blockconvLow()
+ * \brief   blockconvLow()
  *
- *      Input:  data   (data of input image, to be convolved)
- *              w, h, wpl
- *              dataa    (data of 32 bpp accumulator)
- *              wpla     (accumulator)
- *              wc      (convolution "half-width")
- *              hc      (convolution "half-height")
- *      Return: void
+ * \param[in]    data   data of input image, to be convolved
+ * \param[in]    w, h, wpl
+ * \param[in]    dataa    data of 32 bpp accumulator
+ * \param[in]    wpla     accumulator
+ * \param[in]    wc      convolution "half-width"
+ * \param[in]    hc      convolution "half-height"
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
  *      (2) The lack of symmetry between the handling of the
@@ -285,7 +292,7 @@ PIX       *pixd, *pixt;
  *          hc + 1 lines; then for the last hc lines; and finally
  *          for the first wc + 1 and last wc columns in the intermediate
  *          lines.
- *      (5) The caller should verify that wc < w and hc < h.
+ *      (5) The caller should verify that wc \< w and hc \< h.
  *          Under those conditions, illegal reads and writes can occur.
  *      (6) Implementation note: to get the same results in the interior
  *          between this function and pixConvolve(), it is necessary to
@@ -301,6 +308,7 @@ PIX       *pixd, *pixt;
  *          0.5 for roundoff in the main loop, and for pixels within a
  *          half filter width of the boundary, use a L_MIN of the
  *          computed value and 255 to avoid overflow during normalization.
+ * </pre>
  */
 static void
 blockconvLow(l_uint32  *data,
@@ -428,18 +436,20 @@ l_uint32  *linemina, *linemaxa, *line;
  *              Accumulator for 1, 8 and 32 bpp convolution             *
  *----------------------------------------------------------------------*/
 /*!
- *  pixBlockconvAccum()
+ * \brief   pixBlockconvAccum()
  *
- *      Input:  pixs (1, 8 or 32 bpp)
- *      Return: accum pix (32 bpp), or NULL on error.
+ * \param[in]    pixs 1, 8 or 32 bpp
+ * \return  accum pix 32 bpp, or NULL on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The general recursion relation is
  *            a(i,j) = v(i,j) + a(i-1, j) + a(i, j-1) - a(i-1, j-1)
  *          For the first line, this reduces to the special case
  *            a(i,j) = v(i,j) + a(i, j-1)
  *          For the first column, the special case is
  *            a(i,j) = v(i,j) + a(i-1, j)
+ * </pre>
  */
 PIX *
 pixBlockconvAccum(PIX  *pixs)
@@ -587,17 +597,18 @@ l_uint32  *lines, *lined, *linedp;
  *               Un-normalized grayscale block convolution              *
  *----------------------------------------------------------------------*/
 /*!
- *  pixBlockconvGrayUnnormalized()
+ * \brief   pixBlockconvGrayUnnormalized()
  *
- *      Input:  pixs (8 bpp)
- *              wc, hc   (half width/height of convolution kernel)
- *      Return: pix (32 bpp; containing the convolution without normalizing
- *                   for the window size), or NULL on error
+ * \param[in]    pixs 8 bpp
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \return  pix 32 bpp; containing the convolution without normalizing
+ *                   for the window size, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
- *      (2) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *      (2) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  *      (3) Returns a copy if both wc and hc are 0.
  *      (3) Adds mirrored border to avoid treating the boundary pixels
@@ -619,6 +630,7 @@ l_uint32  *lines, *lined, *linedp;
  *          efficiently handling the boundary.  Here, the use of
  *          mirrored borders and destination indexing makes the
  *          implementation very simple.
+ * </pre>
  */
 PIX *
 pixBlockconvGrayUnnormalized(PIX     *pixs,
@@ -682,18 +694,19 @@ PIX       *pixsb, *pixacc, *pixd;
  *               Tiled grayscale or color block convolution             *
  *----------------------------------------------------------------------*/
 /*!
- *  pixBlockconvTiled()
+ * \brief   pixBlockconvTiled()
  *
- *      Input:  pix (8 or 32 bpp; or 2, 4 or 8 bpp with colormap)
- *              wc, hc   (half width/height of convolution kernel)
- *              nx, ny  (subdivision into tiles)
- *      Return: pixd, or NULL on error
+ * \param[in]    pix 8 or 32 bpp; or 2, 4 or 8 bpp with colormap
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \param[in]    nx, ny  subdivision into tiles
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) Returns a copy if both wc and hc are 0
- *      (3) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *      (3) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  *      (4) For nx == ny == 1, this defaults to pixBlockconv(), which
  *          is typically about twice as fast, and gives nearly
@@ -708,6 +721,7 @@ PIX       *pixsb, *pixacc, *pixd;
  *              tiles reduces the size of this array.
  *          (c) Each tile can be processed independently, in parallel,
  *              on a multicore processor.
+ * </pre>
  */
 PIX *
 pixBlockconvTiled(PIX     *pix,
@@ -815,14 +829,15 @@ PIXTILING  *pt;
 
 
 /*!
- *  pixBlockconvGrayTile()
+ * \brief   pixBlockconvGrayTile()
  *
- *      Input:  pixs (8 bpp gray)
- *              pixacc (32 bpp accum pix)
- *              wc, hc   (half width/height of convolution kernel)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp gray
+ * \param[in]    pixacc 32 bpp accum pix
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) Assumes that the input pixs is padded with (wc + 1) pixels on
@@ -830,8 +845,9 @@ PIXTILING  *pt;
  *          The returned pix has these stripped off; they are only used
  *          for computation.
  *      (3) Returns a copy if both wc and hc are 0
- *      (4) Require that w > 2 * wc + 1 and h > 2 * hc + 1,
+ *      (4) Require that w \> 2 * wc + 1 and h \> 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
+ * </pre>
  */
 PIX *
 pixBlockconvGrayTile(PIX     *pixs,
@@ -922,20 +938,21 @@ PIX       *pixt, *pixd;
  *     Convolution for mean, mean square, variance and rms deviation    *
  *----------------------------------------------------------------------*/
 /*!
- *  pixWindowedStats()
+ * \brief   pixWindowedStats()
  *
- *      Input:  pixs (8 bpp grayscale)
- *              wc, hc   (half width/height of convolution kernel)
- *              hasborder (use 1 if it already has (wc + 1) border pixels
- *                         on left and right, and (hc + 1) on top and bottom;
- *                         use 0 to add kernel-dependent border)
- *              &pixm (<optional return> 8 bpp mean value in window)
- *              &pixms (<optional return> 32 bpp mean square value in window)
- *              &fpixv (<optional return> float variance in window)
- *              &fpixrv (<optional return> float rms deviation from the mean)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 8 bpp grayscale
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \param[in]    hasborder use 1 if it already has (wc + 1 border pixels
+ * \param[in]               on left and right, and hc + 1 on top and bottom;
+ * \param[in]               use 0 to add kernel-dependent border)
+ * \param[out]   ppixm [optional] 8 bpp mean value in window
+ * \param[out]   ppixms [optional] 32 bpp mean square value in window
+ * \param[out]   pfpixv [optional] float variance in window
+ * \param[out]   pfpixrv [optional] float rms deviation from the mean
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a high-level convenience function for calculating
  *          any or all of these derived images.
  *      (2) If %hasborder = 0, a border is added and the result is
@@ -943,11 +960,11 @@ PIX       *pixt, *pixd;
  *          added and the border pixels are removed from the output images.
  *      (3) These statistical measures over the pixels in the
  *          rectangular window are:
- *            ~ average value: <p>  (pixm)
- *            ~ average squared value: <p*p> (pixms)
- *            ~ variance: <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>  (pixv)
+ *            ~ average value: \<p\>  (pixm)
+ *            ~ average squared value: \<p*p\> (pixms)
+ *            ~ variance: \<(p - \<p\>)*(p - \<p\>)\> = \<p*p\> - \<p\>*\<p\>  (pixv)
  *            ~ square-root of variance: (pixrv)
- *          where the brackets < .. > indicate that the average value is
+ *          where the brackets \< .. \> indicate that the average value is
  *          to be taken over the window.
  *      (4) Note that the variance is just the mean square difference from
  *          the mean value; and the square root of the variance is the
@@ -957,6 +974,7 @@ PIX       *pixt, *pixd;
  *          allows computation without special treatment of pixels near
  *          the image boundary, and runs in a time that is independent
  *          of the size of the convolution kernel.
+ * </pre>
  */
 l_int32
 pixWindowedStats(PIX     *pixs,
@@ -1013,18 +1031,19 @@ PIX  *pixb, *pixm, *pixms;
 
 
 /*!
- *  pixWindowedMean()
+ * \brief   pixWindowedMean()
  *
- *      Input:  pixs (8 or 32 bpp grayscale)
- *              wc, hc   (half width/height of convolution kernel)
- *              hasborder (use 1 if it already has (wc + 1) border pixels
- *                         on left and right, and (hc + 1) on top and bottom;
- *                         use 0 to add kernel-dependent border)
- *              normflag (1 for normalization to get average in window;
- *                        0 for the sum in the window (un-normalized))
- *      Return: pixd (8 or 32 bpp, average over kernel window)
+ * \param[in]    pixs 8 or 32 bpp grayscale
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \param[in]    hasborder use 1 if it already has (wc + 1 border pixels
+ * \param[in]               on left and right, and hc + 1 on top and bottom;
+ * \param[in]               use 0 to add kernel-dependent border)
+ * \param[in]    normflag 1 for normalization to get average in window;
+ *                        0 for the sum in the window (un-normalized)
+ * \return  pixd 8 or 32 bpp, average over kernel window
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The input and output depths are the same.
  *      (2) A set of border pixels of width (wc + 1) on left and right,
  *          and of height (hc + 1) on top and bottom, must be on the
@@ -1040,6 +1059,7 @@ PIX  *pixb, *pixm, *pixms;
  *          allows computation without special treatment of pixels near
  *          the image boundary, and runs in a time that is independent
  *          of the size of the convolution kernel.
+ * </pre>
  */
 PIX *
 pixWindowedMean(PIX     *pixs,
@@ -1119,17 +1139,18 @@ PIX       *pixb, *pixc, *pixd;
 
 
 /*!
- *  pixWindowedMeanSquare()
+ * \brief   pixWindowedMeanSquare()
  *
- *      Input:  pixs (8 bpp grayscale)
- *              wc, hc   (half width/height of convolution kernel)
- *              hasborder (use 1 if it already has (wc + 1) border pixels
- *                         on left and right, and (hc + 1) on top and bottom;
- *                         use 0 to add kernel-dependent border)
- *      Return: pixd (32 bpp, average over rectangular window of
- *                    width = 2 * wc + 1 and height = 2 * hc + 1)
+ * \param[in]    pixs 8 bpp grayscale
+ * \param[in]    wc, hc   half width/height of convolution kernel
+ * \param[in]    hasborder use 1 if it already has (wc + 1 border pixels
+ * \param[in]               on left and right, and hc + 1 on top and bottom;
+ * \param[in]               use 0 to add kernel-dependent border)
+ * \return  pixd 32 bpp, average over rectangular window of
+ *                    width = 2 * wc + 1 and height = 2 * hc + 1
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) A set of border pixels of width (wc + 1) on left and right,
  *          and of height (hc + 1) on top and bottom, must be on the
  *          pix before the accumulator is found.  The output pixd
@@ -1149,6 +1170,7 @@ PIX       *pixb, *pixc, *pixd;
  *          allows computation without special treatment of pixels near
  *          the image boundary, and runs in a time that is independent
  *          of the size of the convolution kernel.
+ * </pre>
  */
 PIX *
 pixWindowedMeanSquare(PIX     *pixs,
@@ -1219,26 +1241,28 @@ PIX        *pixb, *pixd;
 
 
 /*!
- *  pixWindowedVariance()
+ * \brief   pixWindowedVariance()
  *
- *      Input:  pixm (mean over window; 8 or 32 bpp grayscale)
- *              pixms (mean square over window; 32 bpp)
- *              &fpixv (<optional return> float variance -- the ms deviation
- *                      from the mean)
- *              &fpixrv (<optional return> float rms deviation from the mean)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixm mean over window; 8 or 32 bpp grayscale
+ * \param[in]    pixms mean square over window; 32 bpp
+ * \param[out]   pfpixv [optional] float variance -- the ms deviation
+ *                      from the mean
+ * \param[out]   pfpixrv [optional] float rms deviation from the mean
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The mean and mean square values are precomputed, using
  *          pixWindowedMean() and pixWindowedMeanSquare().
  *      (2) Either or both of the variance and square-root of variance
  *          are returned as an fpix, where the variance is the
  *          average over the window of the mean square difference of
  *          the pixel value from the mean:
- *                <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>
+ *                \<(p - \<p\>)*(p - \<p\>)\> = \<p*p\> - \<p\>*\<p\>
  *      (3) To visualize the results:
  *            ~ for both, use fpixDisplayMaxDynamicRange().
  *            ~ for rms deviation, simply convert the output fpix to pix,
+ * </pre>
  */
 l_int32
 pixWindowedVariance(PIX    *pixm,
@@ -1310,12 +1334,13 @@ FPIX       *fpixv, *fpixrv;  /* variance and square root of variance */
 
 
 /*!
- *  pixMeanSquareAccum()
+ * \brief   pixMeanSquareAccum()
  *
- *      Input:  pixs (8 bpp grayscale)
- *      Return: dpix (64 bit array), or NULL on error
+ * \param[in]    pixs 8 bpp grayscale
+ * \return  dpix 64 bit array, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Similar to pixBlockconvAccum(), this computes the
  *          sum of the squares of the pixel values in such a way
  *          that the value at (i,j) is the sum of all squares in
@@ -1326,6 +1351,7 @@ FPIX       *fpixv, *fpixrv;  /* variance and square root of variance */
  *            a(i,j) = v(i,j) + a(i, j-1)
  *          For the first column, the special case is
  *            a(i,j) = v(i,j) + a(i-1, j)
+ * </pre>
  */
 DPIX *
 pixMeanSquareAccum(PIX  *pixs)
@@ -1381,15 +1407,16 @@ DPIX       *dpix;
  *                        Binary block sum/rank                         *
  *----------------------------------------------------------------------*/
 /*!
- *  pixBlockrank()
+ * \brief   pixBlockrank()
  *
- *      Input:  pixs (1 bpp)
- *              accum pix (<optional> 32 bpp)
- *              wc, hc   (half width/height of block sum/rank kernel)
- *              rank   (between 0.0 and 1.0; 0.5 is median filter)
- *      Return: pixd (1 bpp)
+ * \param[in]    pixs 1 bpp
+ * \param[in]    accum pix [optional] 32 bpp
+ * \param[in]    wc, hc   half width/height of block sum/rank kernel
+ * \param[in]    rank   between 0.0 and 1.0; 0.5 is median filter
+ * \return  pixd 1 bpp
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) This returns a pixd where each pixel is a 1 if the
@@ -1402,8 +1429,9 @@ DPIX       *dpix;
  *          before returning; otherwise, just use the input accum pix
  *      (4) If both wc and hc are 0, returns a copy unless rank == 0.0,
  *          in which case this returns an all-ones image.
- *      (5) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *      (5) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
+ * </pre>
  */
 PIX *
 pixBlockrank(PIX       *pixs,
@@ -1457,14 +1485,15 @@ PIX     *pixt, *pixd;
 
 
 /*!
- *  pixBlocksum()
+ * \brief   pixBlocksum()
  *
- *      Input:  pixs (1 bpp)
- *              accum pix (<optional> 32 bpp)
- *              wc, hc   (half width/height of block sum/rank kernel)
- *      Return: pixd (8 bpp)
+ * \param[in]    pixs 1 bpp
+ * \param[in]    accum pix [optional] 32 bpp
+ * \param[in]    wc, hc   half width/height of block sum/rank kernel
+ * \return  pixd 8 bpp
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If accum pix is null, make one and destroy it before
  *          returning; otherwise, just use the input accum pix
  *      (2) The full width and height of the convolution kernel
@@ -1472,7 +1501,7 @@ PIX     *pixt, *pixd;
  *      (3) Use of wc = hc = 1, followed by pixInvert() on the
  *          8 bpp result, gives a nice anti-aliased, and somewhat
  *          darkened, result on text.
- *      (4) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
+ *      (4) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  *      (5) Returns in each dest pixel the sum of all src pixels
  *          that are within a block of size of the kernel, centered
@@ -1484,6 +1513,7 @@ PIX     *pixt, *pixd;
  *          factor that is greater than one, so that all results
  *          are normalized by the number of participating pixels
  *          within the block.
+ * </pre>
  */
 PIX *
 pixBlocksum(PIX     *pixs,
@@ -1541,16 +1571,17 @@ PIX       *pixt, *pixd;
 
 
 /*!
- *  blocksumLow()
+ * \brief   blocksumLow()
  *
- *      Input:  datad  (of 8 bpp dest)
- *              w, h, wpl  (of 8 bpp dest)
- *              dataa (of 32 bpp accum)
- *              wpla  (of 32 bpp accum)
- *              wc, hc  (convolution "half-width" and "half-height")
- *      Return: void
+ * \param[in]    datad  of 8 bpp dest
+ * \param[in]    w, h, wpl  of 8 bpp dest
+ * \param[in]    dataa of 32 bpp accum
+ * \param[in]    wpla  of 32 bpp accum
+ * \param[in]    wc, hc  convolution "half-width" and "half-height"
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
  *      (2) The lack of symmetry between the handling of the
@@ -1568,7 +1599,8 @@ PIX       *pixt, *pixd;
  *          hc + 1 lines; then for the last hc lines; and finally
  *          for the first wc + 1 and last wc columns in the intermediate
  *          lines.
- *      (5) Required constraints are: wc < w and hc < h.
+ *      (5) Required constraints are: wc \< w and hc \< h.
+ * </pre>
  */
 static void
 blocksumLow(l_uint32  *datad,
@@ -1696,14 +1728,15 @@ l_uint32  *linemina, *linemaxa, *lined;
  *                          Census transform                            *
  *----------------------------------------------------------------------*/
 /*!
- *  pixCensusTransform()
+ * \brief   pixCensusTransform()
  *
- *      Input:  pixs (8 bpp)
- *              halfsize (of square over which neighbors are averaged)
- *              accum pix (<optional> 32 bpp)
- *      Return: pixd (1 bpp)
+ * \param[in]    pixs 8 bpp
+ * \param[in]    halfsize of square over which neighbors are averaged
+ * \param[in]    accum pix [optional] 32 bpp
+ * \return  pixd 1 bpp
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The Census transform was invented by Ramin Zabih and John Woodfill
  *          ("Non-parametric local transforms for computing visual
  *          correspondence", Third European Conference on Computer Vision,
@@ -1717,9 +1750,10 @@ l_uint32  *linemina, *linemaxa, *lined;
  *          fairly robust against slow illumination changes, with
  *          applications in image comparison and mosaicing.
  *      (3) The size of the convolution kernel is (2 * halfsize + 1)
- *          on a side.  The halfsize parameter must be >= 1.
+ *          on a side.  The halfsize parameter must be \>= 1.
  *      (4) If accum pix is null, make one, use it, and destroy it
  *          before returning; otherwise, just use the input accum pix
+ * </pre>
  */
 PIX *
 pixCensusTransform(PIX     *pixs,
@@ -1779,15 +1813,16 @@ PIX       *pixav, *pixd;
  *                         Generic convolution                          *
  *----------------------------------------------------------------------*/
 /*!
- *  pixConvolve()
+ * \brief   pixConvolve()
  *
- *      Input:  pixs (8, 16, 32 bpp; no colormap)
- *              kernel
- *              outdepth (of pixd: 8, 16 or 32)
- *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
- *      Return: pixd (8, 16 or 32 bpp)
+ * \param[in]    pixs 8, 16, 32 bpp; no colormap
+ * \param[in]    kernel
+ * \param[in]    outdepth of pixd: 8, 16 or 32
+ * \param[in]    normflag 1 to normalize kernel to unit sum; 0 otherwise
+ * \return  pixd 8, 16 or 32 bpp
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a convolution with an arbitrary kernel.
  *      (2) The input pixs must have only one sample/pixel.
  *          To do a convolution on an RGB image, use pixConvolveRGB().
@@ -1818,6 +1853,7 @@ PIX       *pixav, *pixd;
  *          each pixel-op in the convolution.  For example, with a 3 GHz
  *          cpu, a 1 Mpixel grayscale image, and a kernel with
  *          (sx * sy) = 25 elements, the convolution takes about 100 msec.
+ * </pre>
  */
 PIX *
 pixConvolve(PIX       *pixs,
@@ -1902,16 +1938,17 @@ PIX       *pixt, *pixd;
 
 
 /*!
- *  pixConvolveSep()
+ * \brief   pixConvolveSep()
  *
- *      Input:  pixs (8, 16, 32 bpp; no colormap)
- *              kelx (x-dependent kernel)
- *              kely (y-dependent kernel)
- *              outdepth (of pixd: 8, 16 or 32)
- *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
- *      Return: pixd (8, 16 or 32 bpp)
+ * \param[in]    pixs 8, 16, 32 bpp; no colormap
+ * \param[in]    kelx x-dependent kernel
+ * \param[in]    kely y-dependent kernel
+ * \param[in]    outdepth of pixd: 8, 16 or 32
+ * \param[in]    normflag 1 to normalize kernel to unit sum; 0 otherwise
+ * \return  pixd 8, 16 or 32 bpp
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does a convolution with a separable kernel that is
  *          is a sequence of convolutions in x and y.  The two
  *          one-dimensional kernel components must be input separately;
@@ -1941,6 +1978,7 @@ PIX       *pixt, *pixd;
  *          convolution.
  *      (6) This uses mirrored borders to avoid special casing on
  *          the boundaries.
+ * </pre>
  */
 PIX *
 pixConvolveSep(PIX       *pixs,
@@ -1991,13 +2029,14 @@ PIX       *pixt, *pixd;
 
 
 /*!
- *  pixConvolveRGB()
+ * \brief   pixConvolveRGB()
  *
- *      Input:  pixs (32 bpp rgb)
- *              kernel
- *      Return: pixd (32 bpp rgb)
+ * \param[in]    pixs 32 bpp rgb
+ * \param[in]    kernel
+ * \return  pixd 32 bpp rgb
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a convolution on an RGB image using an
  *          arbitrary kernel (which we normalize to keep each
  *          component within the range [0 ... 255].
@@ -2011,6 +2050,7 @@ PIX       *pixt, *pixd;
  *          product of the sampling factors.
  *      (5) This uses a mirrored border to avoid special casing on
  *          the boundaries.
+ * </pre>
  */
 PIX *
 pixConvolveRGB(PIX       *pixs,
@@ -2046,14 +2086,15 @@ PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
 
 
 /*!
- *  pixConvolveRGBSep()
+ * \brief   pixConvolveRGBSep()
  *
- *      Input:  pixs (32 bpp rgb)
- *              kelx (x-dependent kernel)
- *              kely (y-dependent kernel)
- *      Return: pixd (32 bpp rgb)
+ * \param[in]    pixs 32 bpp rgb
+ * \param[in]    kelx x-dependent kernel
+ * \param[in]    kely y-dependent kernel
+ * \return  pixd 32 bpp rgb
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does a convolution on an RGB image using a separable
  *          kernel that is a sequence of convolutions in x and y.  The two
  *          one-dimensional kernel components must be input separately;
@@ -2068,6 +2109,7 @@ PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
  *          product of the sampling factors.
  *      (4) This uses a mirrored border to avoid special casing on
  *          the boundaries.
+ * </pre>
  */
 PIX *
 pixConvolveRGBSep(PIX       *pixs,
@@ -2107,14 +2149,15 @@ PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
  *                  Generic convolution with float array                *
  *----------------------------------------------------------------------*/
 /*!
- *  fpixConvolve()
+ * \brief   fpixConvolve()
  *
- *      Input:  fpixs (32 bit float array)
- *              kernel
- *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
- *      Return: fpixd (32 bit float array)
+ * \param[in]    fpixs 32 bit float array
+ * \param[in]    kernel
+ * \param[in]    normflag 1 to normalize kernel to unit sum; 0 otherwise
+ * \return  fpixd 32 bit float array
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a float convolution with an arbitrary kernel.
  *      (2) If normflag == 1, the result is normalized by scaling all
  *          kernel values for a unit sum.  If the sum of kernel values
@@ -2128,6 +2171,7 @@ PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
  *          product of the sampling factors.
  *      (5) This uses a mirrored border to avoid special casing on
  *          the boundaries.
+ * </pre>
  */
 FPIX *
 fpixConvolve(FPIX      *fpixs,
@@ -2190,15 +2234,16 @@ FPIX       *fpixt, *fpixd;
 
 
 /*!
- *  fpixConvolveSep()
+ * \brief   fpixConvolveSep()
  *
- *      Input:  fpixs (32 bit float array)
- *              kelx (x-dependent kernel)
- *              kely (y-dependent kernel)
- *              normflag (1 to normalize kernel to unit sum; 0 otherwise)
- *      Return: fpixd (32 bit float array)
+ * \param[in]    fpixs 32 bit float array
+ * \param[in]    kelx x-dependent kernel
+ * \param[in]    kely y-dependent kernel
+ * \param[in]    normflag 1 to normalize kernel to unit sum; 0 otherwise
+ * \return  fpixd 32 bit float array
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does a convolution with a separable kernel that is
  *          is a sequence of convolutions in x and y.  The two
  *          one-dimensional kernel components must be input separately;
@@ -2215,6 +2260,7 @@ FPIX       *fpixt, *fpixd;
  *          convolution.
  *      (4) This uses mirrored borders to avoid special casing on
  *          the boundaries.
+ * </pre>
  */
 FPIX *
 fpixConvolveSep(FPIX      *fpixs,
@@ -2264,17 +2310,18 @@ FPIX      *fpixt, *fpixd;
  *              Convolution with bias (for non-negative output)           *
  *------------------------------------------------------------------------*/
 /*!
- *  pixConvolveWithBias()
+ * \brief   pixConvolveWithBias()
  *
- *      Input:  pixs (8 bpp; no colormap)
- *              kel1
- *              kel2  (can be null; use if separable)
- *              force8 (if 1, force output to 8 bpp; otherwise, determine
- *                      output depth by the dynamic range of pixel values)
- *              &bias (<return> applied bias)
- *      Return: pixd (8 or 16 bpp)
+ * \param[in]    pixs 8 bpp; no colormap
+ * \param[in]    kel1
+ * \param[in]    kel2  can be null; use if separable
+ * \param[in]    force8 if 1, force output to 8 bpp; otherwise, determine
+ *                      output depth by the dynamic range of pixel values
+ * \param[out]   pbias applied bias
+ * \return  pixd 8 or 16 bpp
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does a convolution with either a single kernel or
  *          a pair of separable kernels, and automatically applies whatever
  *          bias (shift) is required so that the resulting pixel values
@@ -2288,9 +2335,10 @@ FPIX      *fpixt, *fpixd;
  *          converted to an fpix, the convolution is done on the fpix, and
  *          a bias (shift) may need to be applied.
  *      (4) If force8 == TRUE and the range of values after the convolution
- *          is > 255, the output values will be scaled to fit in [0 ... 255].
+ *          is \> 255, the output values will be scaled to fit in [0 ... 255].
  *          If force8 == FALSE, the output will be either 8 or 16 bpp,
  *          to accommodate the dynamic range of output values without scaling.
+ * </pre>
  */
 PIX *
 pixConvolveWithBias(PIX       *pixs,
@@ -2370,15 +2418,17 @@ PIX       *pixd;
  *                Set parameter for convolution subsampling               *
  *------------------------------------------------------------------------*/
 /*!
- *  l_setConvolveSampling()
+ * \brief   l_setConvolveSampling()
 
  *
- *      Input:  xfact, yfact (integer >= 1)
- *      Return: void
+ * \param[in]    xfact, yfact integer >= 1
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This sets the x and y output subsampling factors for generic pix
  *          and fpix convolution.  The default values are 1 (no subsampling).
+ * </pre>
  */
 void
 l_setConvolveSampling(l_int32  xfact,
@@ -2395,15 +2445,17 @@ l_setConvolveSampling(l_int32  xfact,
  *                          Additive gaussian noise                       *
  *------------------------------------------------------------------------*/
 /*!
- *  pixAddGaussianNoise()
+ * \brief   pixAddGaussianNoise()
  *
- *      Input:  pixs (8 bpp gray or 32 bpp rgb; no colormap)
- *              stdev (of noise)
- *      Return: pixd (8 or 32 bpp), or NULL on error
+ * \param[in]    pixs 8 bpp gray or 32 bpp rgb; no colormap
+ * \param[in]    stdev of noise
+ * \return  pixd 8 or 32 bpp, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This adds noise to each pixel, taken from a normal
  *          distribution with zero mean and specified standard deviation.
+ * </pre>
  */
 PIX *
 pixAddGaussianNoise(PIX       *pixs,
@@ -2456,7 +2508,7 @@ PIX       *pixd;
 
 
 /*!
- *  gaussDistribSampling()
+ * \brief   gaussDistribSampling()
  *
  *      Return: gaussian distributed variable with zero mean and unit stdev
  *

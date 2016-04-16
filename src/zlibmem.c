@@ -25,8 +25,9 @@
  *====================================================================*/
 
 
-/*
- *   zlibmem.c
+/*!
+ * \file  zlibmem.c
+ * <pre>
  *
  *      zlib operations in memory, using bbuffer
  *          l_uint8   *zlibCompress()
@@ -43,6 +44,7 @@
  *    With memory mapping, one should be able to compress between
  *    memory buffers by using the file system to buffer everything in
  *    the background, but the bbuffer implementation is more portable.
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -66,14 +68,15 @@ static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
 
 
 /*!
- *  zlibCompress()
+ * \brief   zlibCompress()
  *
- *      Input:  datain (byte buffer with input data)
- *              nin    (number of bytes of input data)
- *              &nout  (<return> number of bytes of output data)
- *      Return: dataout (compressed data), or NULL on error
+ * \param[in]    datain byte buffer with input data
+ * \param[in]    nin    number of bytes of input data
+ * \param[out]   pnout  number of bytes of output data
+ * \return  dataout compressed data, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We repeatedly read in and fill up an input buffer,
  *          compress the data, and read it back out.  zlib
  *          uses two byte buffers internally in the z_stream
@@ -83,6 +86,7 @@ static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
  *          be used if the data were being read from one file
  *          and written to another.  This is done iteratively,
  *          compressing L_BUF_SIZE bytes of input data at a time.
+ * </pre>
  */
 l_uint8 *
 zlibCompress(l_uint8  *datain,
@@ -169,15 +173,17 @@ z_stream    z;
 
 
 /*!
- *  zlibUncompress()
+ * \brief   zlibUncompress()
  *
- *      Input:  datain (byte buffer with compressed input data)
- *              nin    (number of bytes of input data)
- *              &nout  (<return> number of bytes of output data)
- *      Return: dataout (uncompressed data), or NULL on error
+ * \param[in]    datain byte buffer with compressed input data
+ * \param[in]    nin    number of bytes of input data
+ * \param[out]   pnout  number of bytes of output data
+ * \return  dataout uncompressed data, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See zlibCompress().
+ * </pre>
  */
 l_uint8 *
 zlibUncompress(l_uint8  *datain,

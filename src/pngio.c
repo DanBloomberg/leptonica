@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  pngio.c
+/*!
+ * \file pngio.c
+ * <pre>
  *
  *    Read png from file
  *          PIX        *pixReadStreamPng()
@@ -87,8 +88,8 @@
  *    and a function l_pngSetReadStrip16To8() for setting it.
  *    The default is TRUE, which causes pixRead() to strip each 16 bit
  *    sample down to 8 bps:
- *     ~ For 16 bps rgb (16 bps, 3 spp) --> 32 bpp rgb Pix
- *     ~ For 16 bps gray (16 bps, 1 spp) --> 8 bpp grayscale Pix
+ *     ~ For 16 bps rgb (16 bps, 3 spp) --\> 32 bpp rgb Pix
+ *     ~ For 16 bps gray (16 bps, 1 spp) --\> 8 bpp grayscale Pix
  *    If the variable is set to FALSE, the 16 bit gray samples
  *    are saved when read; the 16 bit rgb samples return an error.
  *    Note: results can be non-deterministic if used with
@@ -98,6 +99,7 @@
  *    we write data to a temp file and read it back for operations
  *    between pix and compressed-data, such as pixReadMemPng() and
  *    pixWriteMemPng().
+ * </pre>
  */
 
 #ifdef  HAVE_CONFIG_H
@@ -135,12 +137,13 @@ static l_int32   var_PNG_STRIP_16_TO_8 = 1;
  *                              Reading png                            *
  *---------------------------------------------------------------------*/
 /*!
- *  pixReadStreamPng()
+ * \brief   pixReadStreamPng()
  *
- *      Input:  fp (file stream)
- *      Return: pix, or NULL on error
+ * \param[in]    fp file stream
+ * \return  pix, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If called from pixReadStream(), the stream is positioned
  *          at the beginning of the file.
  *      (2) To do sequential reads of png format images from a stream,
@@ -162,6 +165,7 @@ static l_int32   var_PNG_STRIP_16_TO_8 = 1;
  *          allocated before reading the image, works for single images,
  *          but I could not get it to work properly for the successive
  *          png reads that are required by pixaReadStream().
+ * </pre>
  */
 PIX *
 pixReadStreamPng(FILE  *fp)
@@ -474,21 +478,23 @@ PIXCMAP     *cmap;
 
 
 /*!
- *  readHeaderPng()
+ * \brief   readHeaderPng()
  *
- *      Input:  filename
- *              &w (<optional return>)
- *              &h (<optional return>)
- *              &bps (<optional return>, bits/sample)
- *              &spp (<optional return>, samples/pixel)
- *              &iscmap (<optional return>)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename
+ * \param[out]   pw [optional]
+ *           [out]   ph ([optional]
+ *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   pspp [optional]  samples/pixel
+ * \param[out]   piscmap [optional]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If there is a colormap, iscmap is returned as 1; else 0.
  *      (2) For gray+alpha, although the png records bps = 16, we
  *          consider this as two 8 bpp samples (gray and alpha).
  *          When a gray+alpha is read, it is converted to 32 bpp RGBA.
+ * </pre>
  */
 l_int32
 readHeaderPng(const char *filename,
@@ -519,18 +525,20 @@ FILE    *fp;
 
 
 /*!
- *  freadHeaderPng()
+ * \brief   freadHeaderPng()
  *
- *      Input:  fp (file stream)
- *              &w (<optional return>)
- *              &h (<optional return>)
- *              &bps (<optional return>, bits/sample)
- *              &spp (<optional return>, samples/pixel)
- *              &iscmap (<optional return>)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+ * \param[out]   pw [optional]
+ *           [out]   ph ([optional]
+ *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   pspp [optional]  samples/pixel
+ * \param[out]   piscmap [optional]
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See readHeaderPng().  We only need the first 40 bytes in the file.
+ * </pre>
  */
 l_int32
 freadHeaderPng(FILE     *fp,
@@ -567,18 +575,19 @@ l_uint8  *data;
 
 
 /*!
- *  readHeaderMemPng()
+ * \brief   readHeaderMemPng()
  *
- *      Input:  data
- *              size (40 bytes is sufficient)
- *              &w (<optional return>)
- *              &h (<optional return>)
- *              &bps (<optional return>, bits/sample)
- *              &spp (<optional return>, samples/pixel)
- *              &iscmap (<optional return>; input NULL to ignore)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    data
+ * \param[in]    size 40 bytes is sufficient
+ * \param[out]   pw [optional]
+ *           [out]   ph ([optional]
+ *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   pspp [optional]  samples/pixel
+ * \param[out]   piscmap [optional]  input NULL to ignore
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See readHeaderPng().
  *      (2) png colortypes (see png.h: PNG_COLOR_TYPE_*):
  *          0:  gray; fully transparent (with tRNS) (1 spp)
@@ -589,6 +598,7 @@ l_uint8  *data;
  *          Note:
  *            0 and 3 have the alpha information in a tRNS chunk
  *            4 and 6 have separate alpha samples with each pixel.
+ * </pre>
  */
 l_int32
 readHeaderMemPng(const l_uint8  *data,
@@ -724,11 +734,11 @@ png_infop    info_ptr;
 
 
 /*!
- *  isPngInterlaced()
+ * \brief   isPngInterlaced()
  *
- *      Input:  filename
- *              &interlaced (<return> 1 if interlaced png; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename
+ * \param[out]   pinterlaced 1 if interlaced png; 0 otherwise
+ * \return  0 if OK, 1 on error
  */
 l_int32
 isPngInterlaced(const char *filename,
@@ -860,16 +870,18 @@ png_infop    info_ptr;
  *                              Writing png                            *
  *---------------------------------------------------------------------*/
 /*!
- *  pixWritePng()
+ * \brief   pixWritePng()
  *
- *      Input:  filename
- *              pix
- *              gamma
- *      Return: 0 if OK; 1 on error
+ * \param[in]    filename
+ * \param[in]    pix
+ * \param[in]    gamma
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Special version for writing png with a specified gamma.
  *          When using pixWrite(), no field is given for gamma.
+ * </pre>
  */
 l_int32
 pixWritePng(const char  *filename,
@@ -899,21 +911,22 @@ FILE  *fp;
 
 
 /*!
- *  pixWriteStreamPng()
+ * \brief   pixWriteStreamPng()
  *
- *      Input:  fp (file stream)
- *              pix
- *              gamma (use 0.0 if gamma is not defined)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fp file stream
+ * \param[in]    pix
+ * \param[in]    gamma use 0.0 if gamma is not defined
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If called from pixWriteStream(), the stream is positioned
  *          at the beginning of the file.
  *      (2) To do sequential writes of png format images to a stream,
  *          use pixWriteStreamPng() directly.
  *      (3) gamma is an optional png chunk.  If no gamma value is to be
  *          placed into the file, use gamma = 0.0.  Otherwise, if
- *          gamma > 0.0, its value is written into the header.
+ *          gamma \> 0.0, its value is written into the header.
  *      (4) The use of gamma in png is highly problematic.  For an illuminating
  *          discussion, see:  http://hsivonen.iki.fi/png-gamma/
  *      (5) What is the effect/meaning of gamma in the png file?  This
@@ -944,8 +957,8 @@ FILE  *fp;
  *          the program acts as if gamma were 0.4545, multiplies this by 2.2,
  *          and does a linear rendering.  Taking this as a baseline
  *          brightness, if the stored gamma is:
- *              > 0.4545, the image is rendered lighter than baseline
- *              < 0.4545, the image is rendered darker than baseline
+ *              \> 0.4545, the image is rendered lighter than baseline
+ *              \< 0.4545, the image is rendered darker than baseline
  *          In contrast, gqview seems to ignore the gamma chunk in png.
  *      (7) The only valid pixel depths in leptonica are 1, 2, 4, 8, 16
  *          and 32.  However, it is possible, and in some cases desirable,
@@ -968,6 +981,7 @@ FILE  *fp;
  *          file in a tRNS segment.  On readback, the tRNS segment is
  *          identified, and the colormapped image with alpha is converted
  *          to a 4 spp rgba image.
+ * </pre>
  */
 l_int32
 pixWriteStreamPng(FILE      *fp,
@@ -1199,13 +1213,14 @@ char        *text;
 
 
 /*!
- *  pixSetZlibCompression()
+ * \brief   pixSetZlibCompression()
  *
- *      Input:  pix
- *              compval (zlib compression value)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix
+ * \param[in]    compval zlib compression value
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Valid zlib compression values are in the interval [0 ... 9],
  *          where, as defined in zlib.h:
  *            0         Z_NO_COMPRESSION
@@ -1216,6 +1231,7 @@ char        *text;
  *           -1         (resolves to Z_DEFAULT_COMPRESSION)
  *      (2) If you use the defined constants in zlib.h instead of the
  *          compression integers given above, you must include zlib.h.
+ * </pre>
  */
 l_int32
 pixSetZlibCompression(PIX     *pix,
@@ -1238,11 +1254,11 @@ pixSetZlibCompression(PIX     *pix,
  *             Setting flag for stripping 16 bits on reading           *
  *---------------------------------------------------------------------*/
 /*!
- *  l_pngSetReadStrip16To8()
+ * \brief   l_pngSetReadStrip16To8()
  *
- *      Input:  flag (1 for stripping 16 bpp to 8 bpp on reading;
- *                    0 for leaving 16 bpp)
- *      Return: void
+ * \param[in]    flag 1 for stripping 16 bpp to 8 bpp on reading;
+ *                    0 for leaving 16 bpp
+ * \return  void
  */
 void
 l_pngSetReadStrip16To8(l_int32  flag)
@@ -1256,14 +1272,16 @@ l_pngSetReadStrip16To8(l_int32  flag)
  *---------------------------------------------------------------------*/
 
 /*!
- *  pixReadMemPng()
+ * \brief   pixReadMemPng()
  *
- *      Input:  data (const; png-encoded)
- *              size (of data)
- *      Return: pix, or NULL on error
+ * \param[in]    data const; png-encoded
+ * \param[in]    size of data
+ * \return  pix, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The %size byte of %data must be a null character.
+ * </pre>
  */
 PIX *
 pixReadMemPng(const l_uint8  *data,
@@ -1287,17 +1305,19 @@ PIX   *pix;
 
 
 /*!
- *  pixWriteMemPng()
+ * \brief   pixWriteMemPng()
  *
- *      Input:  &data (<return> data of tiff compressed image)
- *              &size (<return> size of returned data)
- *              pix
- *              gamma (use 0.0 if gamma is not defined)
- *      Return: 0 if OK, 1 on error
+ * \param[out]   pdata data of tiff compressed image
+ * \param[out]   psize size of returned data
+ * \param[in]    pix
+ * \param[in]    gamma use 0.0 if gamma is not defined
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixWriteStreamPng() for usage.  This version writes to
  *          memory instead of to a file stream.
+ * </pre>
  */
 l_int32
 pixWriteMemPng(l_uint8  **pdata,
