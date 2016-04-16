@@ -1870,14 +1870,13 @@ BOXA    *boxae, *boxao, *boxad;
 /*!
  * \brief   boxaPlotSides()
  *
- * \param[in]    boxas source boxa
+ * \param[in]    boxa source boxa
  * \param[in]    plotname [optional], can be NULL
  * \param[out]   pnal [optional] na of left sides
  * \param[out]   pnat [optional] na of top sides
  * \param[out]   pnar [optional] na of right sides
  * \param[out]   pnab [optional] na of bottom sides
- * \param[in]    outformat GPLOT_NONE for no output; GPLOT_PNG for png, etc
- * \param[in]     ut
+ * \param[in]    outformat GPLOT_NONE for no output; GPLOT_PNG for png, etc.
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2441,7 +2440,7 @@ l_int32  i, n, w, h;
 /*!
  * \brief   boxaDisplayTiled()
  *
- * \param[in]    boxa
+ * \param[in]    boxas
  * \param[in]    pixa [optional] background for each box
  * \param[in]    maxwidth of output image
  * \param[in]    linewidth width of box outlines, before scaling

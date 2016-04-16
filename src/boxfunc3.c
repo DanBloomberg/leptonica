@@ -742,15 +742,15 @@ PIXA    *pixas;
 /*!
  * \brief   pixSplitComponentIntoBoxa()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    box [optional] location of pixs w/rt an origin
+ * \param[in]    pix 1 bpp
+ * \param[in]    box [optional] location of pix w/rt an origin
  * \param[in]    minsum  minimum pixels to trigger propagation
  * \param[in]    skipdist distance before computing sum for propagation
  * \param[in]    delta difference required to stop propagation
  * \param[in]    maxbg maximum number of allowed bg pixels in ref scan
  * \param[in]    maxcomps use 0 for unlimited number of subdivided components
  * \param[in]    remainder set to 1 to get b.b. of remaining stuff
- * \return  boxa of rectangles covering the fg of pixs, or NULL on error
+ * \return  boxa of rectangles covering the fg of pix, or NULL on error
  *
  * <pre>
  * Notes:
@@ -781,9 +781,9 @@ PIXA    *pixas;
  *          direction.  For the latter case, we simply accept the
  *          last rectangle.
  *      (4) The input box is only used to specify the location of
- *          the UL corner of pixs, with respect to an origin that
+ *          the UL corner of pix, with respect to an origin that
  *          typically represents the UL corner of an underlying image,
- *          of which pixs is one component.  If %box is null,
+ *          of which pix is one component.  If %box is null,
  *          the UL corner is taken to be (0, 0).
  *      (5) The parameter %maxcomps gives the maximum number of allowed
  *          rectangles extracted from any single connected component.
