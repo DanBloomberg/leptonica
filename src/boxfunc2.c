@@ -76,7 +76,7 @@ static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
 /*!
  * \brief   boxaTransform()
  *
- * \param[in]    boxa
+ * \param[in]    boxas
  * \param[in]    shiftx, shifty
  * \param[in]    scalex, scaley
  * \return  boxad, or NULL on error
@@ -154,7 +154,7 @@ boxTransform(BOX       *box,
 /*!
  * \brief   boxaTransformOrdered()
  *
- * \param[in]    boxa
+ * \param[in]    boxas
  * \param[in]    shiftx, shifty
  * \param[in]    scalex, scaley
  * \param[in]    xcen, ycen center of rotation
@@ -434,7 +434,7 @@ BOX       *boxd;
 /*!
  * \brief   boxaRotateOrth()
  *
- * \param[in]    boxa
+ * \param[in]    boxas
  * \param[in]    w, h of image in which the boxa is embedded
  * \param[in]    rotation 0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
  *                        all rotations are clockwise
@@ -532,7 +532,7 @@ l_int32  bx, by, bw, bh, xdist, ydist;
 /*!
  * \brief   boxaSort()
  *
- * \param[in]    boxa
+ * \param[in]    boxas
  * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y,
  *                        L_SORT_BY_RIGHT, L_SORT_BY_BOT,
  *                        L_SORT_BY_WIDTH, L_SORT_BY_HEIGHT,
@@ -655,7 +655,7 @@ NUMA      *na, *naindex;
 /*!
  * \brief   boxaBinSort()
  *
- * \param[in]    boxa
+ * \param[in]    boxas
  * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
  *                        L_SORT_BY_HEIGHT, L_SORT_BY_PERIMETER
  * \param[in]    sortorder  L_SORT_INCREASING, L_SORT_DECREASING
@@ -782,7 +782,7 @@ BOXA    *boxad;
  * \brief   boxaSort2d()
  *
  * \param[in]    boxas
- * \param[out]   pnaa [optional] numaa with sorted indices
+ * \param[out]   pnaad [optional] numaa with sorted indices
  *                    whose values are the indices of the input array
  * \param[in]    delta1 min overlap that permits aggregation of a box
  *                      onto a boxa of horizontally-aligned boxes; pass 1
@@ -1600,7 +1600,7 @@ BOXAA   *baa;
  * \param[in]    box to be aligned with the bext boxa in the baa, if possible
  * \param[in]    delta amount by which consecutive components can miss
  *                     in overlap and still be included in the array
- * \param[in]    &index of boxa with best overlap, or if none match,
+ * \param[out]   pindex index of boxa with best overlap, or if none match,
  *                      this is the index of the next boxa to be generated
  * \return  0 if OK, 1 on error
  *
