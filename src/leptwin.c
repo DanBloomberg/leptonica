@@ -365,4 +365,4 @@ PIXCMAP   *cmap;
     return hBitmap;
 }
 
-}
+#endif   /* _WIN32 */
