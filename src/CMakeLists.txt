@@ -14,8 +14,6 @@ if (MSVC)
     set_source_files_properties(${src} PROPERTIES LANGUAGE CXX)
 endif()
 
-test_big_endian(BIG_ENDIAN)
-
 if(BIG_ENDIAN)
   set(ENDIANNESS L_BIG_ENDIAN)
 else()
