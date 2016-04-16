@@ -51,7 +51,7 @@
  * \brief   pixReduceBinary2()
  *
  * \param[in]    pixs
- * \param[in]    tab [optional]; if null, a table is made here
+ * \param[in]    intab [optional]; if null, a table is made here
  *                   and destroyed before exit
  * \return  pixd 2x subsampled, or NULL on error
  *
@@ -138,7 +138,10 @@ PIX       *pixd;
  * \brief   pixReduceRankBinaryCascade()
  *
  * \param[in]    pixs 1 bpp
- * \param[in]    level1, ... level 4 thresholds, in the set {0, 1, 2, 3, 4}
+ * \param[in]    level1 threshold, in the set {0, 1, 2, 3, 4}
+ * \param[in]    level2 threshold, in the set {0, 1, 2, 3, 4}
+ * \param[in]    level3 threshold, in the set {0, 1, 2, 3, 4}
+ * \param[in]    level4 threshold, in the set {0, 1, 2, 3, 4}
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -375,12 +378,16 @@ PIX       *pixd;
 
 
 /*!
- * \brief   makeSubsampleTab2x()
+ * \brief  Permutation table for 2x rank binary reduction
  *
+ * \return tab table of 256 permutations, or NULL on error
+ *
+ * <pre>
  *  This table permutes the bits in a byte, from
  *      0 4 1 5 2 6 3 7
  *  to
  *      0 1 2 3 4 5 6 7
+ * </pre>
  */
 l_uint8 *
 makeSubsampleTab2x(void)
