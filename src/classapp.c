@@ -52,9 +52,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUF_SIZE = 512;
-static const l_int32  JB_WORDS_MIN_WIDTH = 5;  /* pixels */
-static const l_int32  JB_WORDS_MIN_HEIGHT = 3;  /* pixels */
+static const l_int32  L_BUF_SIZE = 512;         /*!< size of filename buffer    */
+static const l_int32  JB_WORDS_MIN_WIDTH = 5;   /*!< min. word width in pixels  */
+static const l_int32  JB_WORDS_MIN_HEIGHT = 3;  /*!< min. word height in pixels */
 
     /* Static comparison functions */
 static l_int32 testLineAlignmentX(NUMA *na1, NUMA *na2, l_int32 shiftx,
@@ -250,7 +250,7 @@ SARRAY     *safiles;
  * \param[in]    maxheight of word mask components, to be kept
  * \param[in]    thresh on correlation; 0.80 is reasonable
  * \param[in]    weight for handling thick text; 0.6 is reasonable
- * \param[out]   natl numa with textline index for each component
+ * \param[out]   pnatl numa with textline index for each component
  * \param[in]    firstpage 0-based
  * \param[in]    npages use 0 for all pages in dirin
  * \return  classer for the set of pages
@@ -343,7 +343,7 @@ SARRAY     *safiles;
  * \param[in]    maxwidth, maxheight of saved components; larger are discarded
  * \param[out]   pboxad word boxes sorted in textline line order
  * \param[out]   ppixad word images sorted in textline line order
- * \param[out]   pnaindex index of textline for each word
+ * \param[out]   pnai index of textline for each word
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -460,7 +460,7 @@ PIXAA   *paa;
  * \param[in]    minwidth, minheight of saved components; smaller are discarded
  * \param[in]    maxwidth, maxheight of saved components; larger are discarded
  * \param[out]   pboxad word boxes sorted in textline line order
- * \param[out]   pnaindex [optional] index of textline for each word
+ * \param[out]   pnai [optional] index of textline for each word
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -537,8 +537,8 @@ PIX     *pix1;
  * \brief   boxaExtractSortedPattern()
  *
  * \param[in]    boxa typ. of word bounding boxes, in textline order
- * \param[in]    numa index of textline for each box in boxa
- * \return  naa numaa, where each numa represents one textline,
+ * \param[in]    na   index of textline for each box in boxa
+ * \return  naa NUMAA, where each numa represents one textline,
  *                   or NULL on error
  *
  * <pre>
