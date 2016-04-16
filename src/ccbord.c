@@ -1021,10 +1021,10 @@ PTA       *pta;
 /*!
  * \brief   findNextBorderPixel()
  *
- * \param[in]    w, h, data, wpl
- * \param[in]    px, py,     current P
- * \param[out]   pqpos input current Q; new Q
- * \param[out]   pnpx, pnpy    new P
+ * \param[in]       w, h, data, wpl
+ * \param[in]       px, py      current P
+ * \param[in,out]   pqpos       input current Q; new Q
+ * \param[out]      pnpx, pnpy  new P
  * \return  0 if next pixel found; 1 otherwise
  *
  * <pre>
@@ -1073,7 +1073,7 @@ l_uint32  *line;
  *
  * \param[in]   fpx, fpy    location of first pixel
  * \param[in]   spx, spy    location of second pixel
- * \param[in]   &xs, &xy    seed pixel to be returned
+ * \param[out]  pxs, pxy    seed pixel to be returned
  *
  * <pre>
  * Notes:
@@ -1637,8 +1637,8 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
  * \param[in]    pix  of c.c.
  * \param[in]    pta  of outer border
  * \param[in]    boxinner b.b. of hole path
- * \param[in]    &dir  direction (0-3), returned; only needed for debug
- * \param[in]    &len  length of path, returned
+ * \param[out]   pdir  direction (0-3), returned; only needed for debug
+ * \param[out]   plen  length of path, returned
  * \return  pta of pts on cut path from the hole border
  *              to the outer border, including end points on
  *              both borders; or NULL on error
@@ -1894,7 +1894,7 @@ PTA     *ptag;
 /*!
  * \brief   ccbaDisplayImage1()
  *
- * \param[in]    ccborda
+ * \param[in]    ccba
  * \return  pix of image, or NULL on error
  *
  * <pre>
@@ -2049,7 +2049,7 @@ PTA     *pta;
 /*!
  * \brief   ccbaDisplayImage2()
  *
- * \param[in]   ccborda
+ * \param[in]   ccba
  * \return  pix of image, or NULL on error
  *
  * <pre>
