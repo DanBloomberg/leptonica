@@ -1107,11 +1107,11 @@ l_uint32   uval, uval2;
 /*--------------------------------------------------------------*
  *               Reading and writing multipage tiff             *
  *--------------------------------------------------------------*/
-/*
- *  pixaReadMultipageTiff()
+/*!
+ * \brief   pixaReadMultipageTiff()
  *
- *      Input:  filename (input tiff file)
- *      Return: pixa (of page images), or NULL on error
+ * \param[in]    filename input tiff file
+ * \return  pixa of page images, or NULL on error
  */
 PIXA *
 pixaReadMultipageTiff(const char  *filename)
@@ -1159,15 +1159,16 @@ TIFF    *tif;
 }
 
 
-/*
- *  writeMultipageTiff()
+/*!
+ * \brief   writeMultipageTiff()
  *
- *      Input:  dirin (input directory)
- *              substr (<optional> substring filter on filenames; can be NULL)
- *              fileout (output ps file)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dirin input directory
+ * \param[in]    substr [optional] substring filter on filenames; can be NULL
+ * \param[in]    fileout output ps file
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This writes a set of image files in a directory out
  *          as a multipage tiff file.  The images can be in any
  *          initial file format.
@@ -1177,6 +1178,7 @@ TIFF    *tif;
  *          encoded 'g4'.  The rest are encoded as 'zip' (flate encoding).
  *          Because it is lossless, this is an expensive method for
  *          saving most rgb images.
+ * </pre>
  */
 l_int32
 writeMultipageTiff(const char  *dirin,
@@ -1202,15 +1204,17 @@ SARRAY  *sa;
 }
 
 
-/*
- *  writeMultipageTiffSA()
+/*!
+ * \brief   writeMultipageTiffSA()
  *
- *      Input:  sarray (of full path names)
- *              fileout (output ps file)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sarray of full path names
+ * \param[in]    fileout output ps file
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See writeMultipageTiff()
+ * </pre>
  */
 l_int32
 writeMultipageTiffSA(SARRAY      *sa,
@@ -1265,12 +1269,12 @@ PIX         *pix, *pixt;
 /*--------------------------------------------------------------*
  *                    Print info to stream                      *
  *--------------------------------------------------------------*/
-/*
- *  fprintTiffInfo()
+/*!
+ * \brief   fprintTiffInfo()
  *
- *      Input:  fpout (stream for output of tag data)
- *              tiffile (input)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fpout stream for output of tag data
+ * \param[in]    tiffile input
+ * \return  0 if OK; 1 on error
  */
 l_int32
 fprintTiffInfo(FILE        *fpout,
@@ -1298,12 +1302,12 @@ TIFF  *tif;
 /*--------------------------------------------------------------*
  *                        Get page count                        *
  *--------------------------------------------------------------*/
-/*
- *  tiffGetCount()
+/*!
+ * \brief   tiffGetCount()
  *
- *      Input:  fp (file stream opened for read)
- *              &n (<return> number of images)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fp file stream opened for read
+ * \param[out]   pn number of images
+ * \return  0 if OK; 1 on error
  */
 l_int32
 tiffGetCount(FILE     *fp,
@@ -1336,16 +1340,18 @@ TIFF    *tif;
 /*--------------------------------------------------------------*
  *                   Get resolution from tif                    *
  *--------------------------------------------------------------*/
-/*
- *  getTiffResolution()
+/*!
+ * \brief   getTiffResolution()
  *
- *      Input:  fp (file stream opened for read)
- *              &xres, &yres (<return> resolution in ppi)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fp file stream opened for read
+ * \param[out]   pxres, pyres resolution in ppi
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If neither resolution field is set, this is not an error;
  *          the returned resolution values are 0 (designating 'unknown').
+ * </pre>
  */
 l_int32
 getTiffResolution(FILE     *fp,
@@ -1370,16 +1376,18 @@ TIFF  *tif;
 }
 
 
-/*
- *  getTiffStreamResolution()
+/*!
+ * \brief   getTiffStreamResolution()
  *
- *      Input:  tif (TIFF handle opened for read)
- *              &xres, &yres (<return> resolution in ppi)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    tif TIFF handle opened for read
+ * \param[out]   pxres, pyres resolution in ppi
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If neither resolution field is set, this is not an error;
  *          the returned resolution values are 0 (designating 'unknown').
+ * </pre>
  */
 static l_int32
 getTiffStreamResolution(TIFF     *tif,
@@ -1958,7 +1966,9 @@ TIFF  *tif;
  *  man page for callback signatures.  Adam Langley provided the code
  *  to do this.  */
 
-/*
+/*!
+ * \brief   Memory stream buffer used with TIFFClientOpen()
+ *
  *  The L_Memstram %buffer has different functions in writing and reading.
  *
  *     * In reading, it is assigned to the data and read from as
