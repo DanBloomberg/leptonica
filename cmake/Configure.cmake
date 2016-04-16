@@ -75,7 +75,19 @@ set(functions_list
 )
 check_functions(functions_list)
 
-test_big_endian(WORDS_BIGENDIAN)
+test_big_endian(BIG_ENDIAN)
+
+if(BIG_ENDIAN)
+  set(ENDIANNESS L_BIG_ENDIAN)
+else()
+  set(ENDIANNESS L_LITTLE_ENDIAN)
+endif()
+
+set(APPLE_UNIVERSAL_BUILD "defined (__APPLE_CC__)")
+configure_file(
+    ${PROJECT_SOURCE_DIR}/src/endianness.h.in
+    ${PROJECT_BINARY_DIR}/src/endianness.h
+    @ONLY)
 
 set(STDC_HEADERS 1)
 
@@ -131,11 +143,6 @@ file(APPEND ${AUTOCONFIG_SRC} "
 
 /* Define to 1 if you have zlib. */
 #cmakedefine HAVE_LIBZ 1
-
-/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
-   significant byte first (like Motorola and SPARC, unlike Intel). */
-#cmakedefine WORDS_BIGENDIAN 1
-
 
 #ifdef HAVE_OPENJPEG_2_0_OPENJPEG_H
 #define LIBJP2K_HEADER <openjpeg-2.0/openjpeg.h>
