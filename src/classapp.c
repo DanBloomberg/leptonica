@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  classapp.c
+/*!
+ * \file classapp.c
+ * <pre>
  *
  *      Top-level jb2 correlation and rank-hausdorff
  *
@@ -45,6 +46,7 @@
  *         static l_int32  testLineAlignmentX()
  *         static l_int32  countAlignedMatches()
  *         static void     printRowIndices()
+ * </pre>
  */
 
 #include <string.h>
@@ -70,23 +72,25 @@ static void printRowIndices(l_int32 *index1, l_int32 n1,
  *          Top-level jb2 correlation and rank-hausdorff            *
  *------------------------------------------------------------------*/
 /*!
- *  jbCorrelation()
+ * \brief   jbCorrelation()
  *
- *      Input:  dirin (directory of input images)
- *              thresh (typically ~0.8)
- *              weight (typically ~0.6)
- *              components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
- *              rootname (for output files)
- *              firstpage (0-based)
- *              npages (use 0 for all pages in dirin)
- *              renderflag (1 to render from templates; 0 to skip)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dirin directory of input images
+ * \param[in]    thresh typically ~0.8
+ * \param[in]    weight typically ~0.6
+ * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]    rootname for output files
+ * \param[in]    firstpage 0-based
+ * \param[in]    npages use 0 for all pages in dirin
+ * \param[in]    renderflag 1 to render from templates; 0 to skip
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The images must be 1 bpp.  If they are not, you can convert
  *          them using convertFilesTo1bpp().
  *      (2) See prog/jbcorrelation for generating more output (e.g.,
  *          for debugging)
+ * </pre>
  */
 l_int32
 jbCorrelation(const char  *dirin,
@@ -152,21 +156,23 @@ SARRAY     *safiles;
 
 
 /*!
- *  jbRankHaus()
+ * \brief   jbRankHaus()
  *
- *      Input:  dirin (directory of input images)
- *              size (of Sel used for dilation; typ. 2)
- *              rank (rank value of match; typ. 0.97)
- *              components (JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS)
- *              rootname (for output files)
- *              firstpage (0-based)
- *              npages (use 0 for all pages in dirin)
- *              renderflag (1 to render from templates; 0 to skip)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dirin directory of input images
+ * \param[in]    size of Sel used for dilation; typ. 2
+ * \param[in]    rank rank value of match; typ. 0.97
+ * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]    rootname for output files
+ * \param[in]    firstpage 0-based
+ * \param[in]    npages use 0 for all pages in dirin
+ * \param[in]    renderflag 1 to render from templates; 0 to skip
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See prog/jbrankhaus for generating more output (e.g.,
  *          for debugging)
+ * </pre>
  */
 l_int32
 jbRankHaus(const char  *dirin,
@@ -236,20 +242,21 @@ SARRAY     *safiles;
  *           Extract and classify words in textline order           *
  *------------------------------------------------------------------*/
 /*!
- *  jbWordsInTextlines()
+ * \brief   jbWordsInTextlines()
  *
- *      Input:  dirin (directory of input pages)
- *              reduction (1 for full res; 2 for half-res)
- *              maxwidth (of word mask components, to be kept)
- *              maxheight (of word mask components, to be kept)
- *              thresh (on correlation; 0.80 is reasonable)
- *              weight (for handling thick text; 0.6 is reasonable)
- *              natl (<return> numa with textline index for each component)
- *              firstpage (0-based)
- *              npages (use 0 for all pages in dirin)
- *      Return: classer (for the set of pages)
+ * \param[in]    dirin directory of input pages
+ * \param[in]    reduction 1 for full res; 2 for half-res
+ * \param[in]    maxwidth of word mask components, to be kept
+ * \param[in]    maxheight of word mask components, to be kept
+ * \param[in]    thresh on correlation; 0.80 is reasonable
+ * \param[in]    weight for handling thick text; 0.6 is reasonable
+ * \param[out]   natl numa with textline index for each component
+ * \param[in]    firstpage 0-based
+ * \param[in]    npages use 0 for all pages in dirin
+ * \return  classer for the set of pages
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a high-level function.  See prog/jbwords for example
  *          of usage.
  *      (2) Typically, words can be found reasonably well at a resolution
@@ -257,6 +264,7 @@ SARRAY     *safiles;
  *          Assuming that the input images are 300 ppi, use reduction = 1
  *          for finding words at full res, and reduction = 2 for finding
  *          them at 150 ppi.
+ * </pre>
  */
 JBCLASSER *
 jbWordsInTextlines(const char  *dirin,
@@ -327,18 +335,19 @@ SARRAY     *safiles;
 
 
 /*!
- *  pixGetWordsInTextlines()
+ * \brief   pixGetWordsInTextlines()
  *
- *      Input:  pixs (1 bpp, typ. 300 ppi)
- *              reduction (1 for input res; 2 for 2x reduction of input res)
- *              minwidth, minheight (of saved components; smaller are discarded)
- *              maxwidth, maxheight (of saved components; larger are discarded)
- *              &boxad (<return> word boxes sorted in textline line order)
- *              &pixad (<return> word images sorted in textline line order)
- *              &naindex (<return> index of textline for each word)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp, typ. 300 ppi
+ * \param[in]    reduction 1 for input res; 2 for 2x reduction of input res
+ * \param[in]    minwidth, minheight of saved components; smaller are discarded
+ * \param[in]    maxwidth, maxheight of saved components; larger are discarded
+ * \param[out]   pboxad word boxes sorted in textline line order
+ * \param[out]   ppixad word images sorted in textline line order
+ * \param[out]   pnaindex index of textline for each word
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The input should be at a resolution of about 300 ppi.
  *          The word masks and word images can be computed at either
  *          150 ppi or 300 ppi.  For the former, set reduction = 2.
@@ -371,6 +380,7 @@ SARRAY     *safiles;
  *          significantly increase their height.  But if there are many
  *          small connected components in a dense texture, this is likely
  *          to generate tall components that will be eliminated in pixf.
+ * </pre>
  */
 l_int32
 pixGetWordsInTextlines(PIX     *pixs,
@@ -443,17 +453,18 @@ PIXAA   *paa;
 
 
 /*!
- *  pixGetWordBoxesInTextlines()
+ * \brief   pixGetWordBoxesInTextlines()
  *
- *      Input:  pixs (1 bpp, typ. 300 ppi)
- *              reduction (1 for input res; 2 for 2x reduction of input res)
- *              minwidth, minheight (of saved components; smaller are discarded)
- *              maxwidth, maxheight (of saved components; larger are discarded)
- *              &boxad (<return> word boxes sorted in textline line order)
- *              &naindex (<optional return> index of textline for each word)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp, typ. 300 ppi
+ * \param[in]    reduction 1 for input res; 2 for 2x reduction of input res
+ * \param[in]    minwidth, minheight of saved components; smaller are discarded
+ * \param[in]    maxwidth, maxheight of saved components; larger are discarded
+ * \param[out]   pboxad word boxes sorted in textline line order
+ * \param[out]   pnaindex [optional] index of textline for each word
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The input should be at a resolution of about 300 ppi.
  *          The word masks can be computed at either 150 ppi or 300 ppi.
  *          For the former, set reduction = 2.
@@ -461,6 +472,7 @@ PIXAA   *paa;
  *          just finds the word boxes in line order, with a numa
  *          giving the textline index for each word.
  *          See pixGetWordsInTextlines() for more details.
+ * </pre>
  */
 l_int32
 pixGetWordBoxesInTextlines(PIX     *pixs,
@@ -522,19 +534,21 @@ PIX     *pix1;
  *           Use word bounding boxes to compare page images         *
  *------------------------------------------------------------------*/
 /*!
- *  boxaExtractSortedPattern()
+ * \brief   boxaExtractSortedPattern()
  *
- *      Input:  boxa (typ. of word bounding boxes, in textline order)
- *              numa (index of textline for each box in boxa)
- *      Return: naa (numaa, where each numa represents one textline),
+ * \param[in]    boxa typ. of word bounding boxes, in textline order
+ * \param[in]    numa index of textline for each box in boxa
+ * \return  naa numaa, where each numa represents one textline,
  *                   or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The input is expected to come from pixGetWordBoxesInTextlines().
  *      (2) Each numa in the output consists of an average y coordinate
  *          of the first box in the textline, followed by pairs of
  *          x coordinates representing the left and right edges of each
  *          of the boxes in the textline.
+ * </pre>
  */
 NUMAA *
 boxaExtractSortedPattern(BOXA  *boxa,
@@ -581,21 +595,22 @@ NUMAA   *naa;
 
 
 /*!
- *  numaaCompareImagesByBoxes()
+ * \brief   numaaCompareImagesByBoxes()
  *
- *      Input:  naa1 (for image 1, formatted by boxaExtractSortedPattern())
- *              naa2 (ditto; for image 2)
- *              nperline (number of box regions to be used in each textline)
- *              nreq (number of complete row matches required)
- *              maxshiftx (max allowed x shift between two patterns, in pixels)
- *              maxshifty (max allowed y shift between two patterns, in pixels)
- *              delx (max allowed difference in x data, after alignment)
- *              dely (max allowed difference in y data, after alignment)
- *              &same (<return> 1 if %nreq row matches are found; 0 otherwise)
- *              debugflag (1 for debug output)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    naa1 for image 1, formatted by boxaExtractSortedPattern()
+ * \param[in]    naa2 ditto; for image 2
+ * \param[in]    nperline number of box regions to be used in each textline
+ * \param[in]    nreq number of complete row matches required
+ * \param[in]    maxshiftx max allowed x shift between two patterns, in pixels
+ * \param[in]    maxshifty max allowed y shift between two patterns, in pixels
+ * \param[in]    delx max allowed difference in x data, after alignment
+ * \param[in]    dely max allowed difference in y data, after alignment
+ * \param[out]   psame 1 if %nreq row matches are found; 0 otherwise
+ * \param[in]    debugflag 1 for debug output
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Each input numaa describes a set of sorted bounding boxes
  *          (sorted by textline and, within each textline, from
  *          left to right) in the images from which they are derived.
@@ -621,6 +636,7 @@ NUMAA   *naa;
  *              for a set of %nreq - 1 other pairs that can all be aligned
  *              with a difference in global translation of not more
  *              than (%delx, %dely).
+ * </pre>
  */
 l_int32
 numaaCompareImagesByBoxes(NUMAA    *naa1,

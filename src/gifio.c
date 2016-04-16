@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  gifio.c
+/*!
+ * \file gifio.c
+ * <pre>
  *
  *    Read gif from file
  *          PIX        *pixReadStreamGif()
@@ -62,6 +63,7 @@
  *        DGifSlurp() gets an internal error from an uninitialized array
  *        and returns failure.  E. Raymond fixed the problem for 5.1.3,
  *        and we disable leptonica with 5.1.2.
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -108,10 +110,10 @@ static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
  *                       Reading gif from file                         *
  *---------------------------------------------------------------------*/
 /*!
- *  pixReadStreamGif()
+ * \brief   pixReadStreamGif()
  *
- *      Input:  fp (file stream)
- *      Return: pix, or NULL on error
+ * \param[in]    fp file stream
+ * \return  pix, or NULL on error
  */
 PIX *
 pixReadStreamGif(FILE  *fp)
@@ -284,19 +286,21 @@ PIX       *pixd;
  *                         Writing gif to file                         *
  *---------------------------------------------------------------------*/
 /*!
- *  pixWriteStreamGif()
+ * \brief   pixWriteStreamGif()
  *
- *      Input:  fp (file stream)
- *              pix (1, 2, 4, 8, 16 or 32 bpp)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+ * \param[in]    pix 1, 2, 4, 8, 16 or 32 bpp
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) All output gif have colormaps.  If the pix is 32 bpp rgb,
  *          this quantizes the colors and writes out 8 bpp.
  *          If the pix is 16 bpp grayscale, it converts to 8 bpp first.
  *      (2) We can't write to memory using open_memstream() because
  *          the gif functions write through a file descriptor, not a
  *          file stream.
+ * </pre>
  */
 l_int32
 pixWriteStreamGif(FILE  *fp,
@@ -481,13 +485,14 @@ int              giferr;
  *                      Read/write from/to memory                      *
  *---------------------------------------------------------------------*/
 /*!
- *  pixReadMemGif()
+ * \brief   pixReadMemGif()
  *
- *      Input:  data (const; gif-encoded)
- *              size (of data)
- *      Return: pix, or NULL on error
+ * \param[in]    data const; gif-encoded
+ * \param[in]    size of data
+ * \return  pix, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Of course, we are cheating here -- writing the data to file
  *          in gif format and reading it back in.  We can't use the
  *          GNU runtime extension fmemopen() to avoid writing to a file
@@ -507,6 +512,7 @@ int              giferr;
  *              rewind(fp);
  *              Pix *pix = pixReadStreamGif(fp);
  *          but this fails because fp is in a bad state after writing.
+ * </pre>
  */
 PIX *
 pixReadMemGif(const l_uint8  *cdata,
@@ -535,15 +541,17 @@ PIX   *pix;
 
 
 /*!
- *  pixWriteMemGif()
+ * \brief   pixWriteMemGif()
  *
- *      Input:  &data (<return> data of gif compressed image)
- *              &size (<return> size of returned data)
- *              pix
- *      Return: 0 if OK, 1 on error
+ * \param[out]   pdata data of gif compressed image
+ * \param[out]   psize size of returned data
+ * \param[in]    pix
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See comments in pixReadMemGif()
+ * </pre>
  */
 l_int32
 pixWriteMemGif(l_uint8  **pdata,
@@ -578,4 +586,3 @@ char  *fname;
 
 /* -----------------------------------------------------------------*/
 #endif    /* HAVE_LIBGIF || HAVE_LIBUNGIF  */
-/* -----------------------------------------------------------------*/

@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   pageseg.c
+/*!
+ * \file  pageseg.c
+ * <pre>
  *
  *      Top level page segmentation
  *          l_int32   pixGetRegionsBinary()
@@ -58,6 +59,7 @@
  *
  *      Estimate the grayscale background value
  *          l_int32   pixEstimateBackground()
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -75,20 +77,22 @@ static const l_int32  MinHeight = 100;
  *                     Top level page segmentation                  *
  *------------------------------------------------------------------*/
 /*!
- *  pixGetRegionsBinary()
+ * \brief   pixGetRegionsBinary()
  *
- *      Input:  pixs (1 bpp, assumed to be 300 to 400 ppi)
- *              &pixhm (<optional return> halftone mask)
- *              &pixtm (<optional return> textline mask)
- *              &pixtb (<optional return> textblock mask)
- *              debug (flag: set to 1 for debug output)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp, assumed to be 300 to 400 ppi
+ * \param[out]   ppixhm [optional] halftone mask
+ * \param[out]   ppixtm [optional] textline mask
+ * \param[out]   ppixtb [optional] textblock mask
+ * \param[in]    debug flag: set to 1 for debug output
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) It is best to deskew the image before segmenting.
  *      (2) The debug flag enables a number of outputs.  These
  *          are included to show how to generate and save/display
  *          these results.
+ * </pre>
  */
 l_int32
 pixGetRegionsBinary(PIX     *pixs,
@@ -243,17 +247,19 @@ PIX     *pixtb;    /* textblock mask */
  *                    Halftone region extraction                    *
  *------------------------------------------------------------------*/
 /*!
- *  pixGenHalftoneMask()
+ * \brief   pixGenHalftoneMask()
  *
- *      Input:  pixs (1 bpp, assumed to be 150 to 200 ppi)
- *              &pixtext (<optional return> text part of pixs)
- *              &htfound (<optional return> 1 if the mask is not empty)
- *              debug (flag: 1 for debug output)
- *      Return: pixd (halftone mask), or NULL on error
+ * \param[in]    pixs 1 bpp, assumed to be 150 to 200 ppi
+ * \param[out]   ppixtext [optional] text part of pixs
+ * \param[out]   phtfound [optional] 1 if the mask is not empty
+ * \param[in]    debug flag: 1 for debug output
+ * \return  pixd halftone mask, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is not intended to work on small thumbnails.  The
  *          dimensions of pixs must be at least MinWidth x MinHeight.
+ * </pre>
  */
 PIX *
 pixGenHalftoneMask(PIX      *pixs,
@@ -321,21 +327,23 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
  *                         Textline extraction                      *
  *------------------------------------------------------------------*/
 /*!
- *  pixGenTextlineMask()
+ * \brief   pixGenTextlineMask()
  *
- *      Input:  pixs (1 bpp, assumed to be 150 to 200 ppi)
- *              &pixvws (<return> vertical whitespace mask)
- *              &tlfound (<optional return> 1 if the mask is not empty)
- *              debug (flag: 1 for debug output)
- *      Return: pixd (textline mask), or NULL on error
+ * \param[in]    pixs 1 bpp, assumed to be 150 to 200 ppi
+ * \param[out]   ppixvws vertical whitespace mask
+ * \param[out]   ptlfound [optional] 1 if the mask is not empty
+ * \param[in]    debug flag: 1 for debug output
+ * \return  pixd textline mask, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The input pixs should be deskewed.
  *      (2) pixs should have no halftone pixels.
  *      (3) This is not intended to work on small thumbnails.  The
  *          dimensions of pixs must be at least MinWidth x MinHeight.
  *      (4) Both the input image and the returned textline mask
  *          are at the same resolution.
+ * </pre>
  */
 PIX *
 pixGenTextlineMask(PIX      *pixs,
@@ -409,14 +417,15 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
  *                       Textblock extraction                       *
  *------------------------------------------------------------------*/
 /*!
- *  pixGenTextblockMask()
+ * \brief   pixGenTextblockMask()
  *
- *      Input:  pixs (1 bpp, textline mask, assumed to be 150 to 200 ppi)
- *              pixvws (vertical white space mask)
- *              debug (flag: 1 for debug output)
- *      Return: pixd (textblock mask), or NULL on error
+ * \param[in]    pixs 1 bpp, textline mask, assumed to be 150 to 200 ppi
+ * \param[in]    pixvws vertical white space mask
+ * \param[in]    debug flag: 1 for debug output
+ * \return  pixd textblock mask, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Both the input masks (textline and vertical white space) and
  *          the returned textblock mask are at the same resolution.
  *      (2) This is not intended to work on small thumbnails.  The
@@ -426,6 +435,7 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
  *          using, e.g.,
  *             pixSelectBySize(pix, 60, 60, 4, L_SELECT_IF_EITHER,
  *                             L_SELECT_IF_GTE, NULL);
+ * </pre>
  */
 PIX *
 pixGenTextblockMask(PIX     *pixs,
@@ -477,30 +487,31 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *                    Location of page foreground                   *
  *------------------------------------------------------------------*/
 /*!
- *  pixFindPageForeground()
+ * \brief   pixFindPageForeground()
  *
- *      Input:  pixs (full resolution (any type or depth)
- *              threshold (for binarization; typically about 128)
- *              mindist (min distance of text from border to allow
+ * \param[in]    pixs full resolution (any type or depth
+ * \param[in]    threshold for binarization; typically about 128
+ * \param[in]    mindist min distance of text from border to allow
  *                       cleaning near border; at 2x reduction, this
- *                       should be larger than 50; typically about 70)
- *              erasedist (when conditions are satisfied, erase anything
+ *                       should be larger than 50; typically about 70
+ * \param[in]    erasedist when conditions are satisfied, erase anything
  *                         within this distance of the edge;
- *                         typically 30 at 2x reduction)
- *              pagenum (use for debugging when called repeatedly; labels
- *                       debug images that are assembled into pdfdir)
- *              showmorph (set to a negative integer to show steps in
+ *                         typically 30 at 2x reduction
+ * \param[in]    pagenum use for debugging when called repeatedly; labels
+ *                       debug images that are assembled into pdfdir
+ * \param[in]    showmorph set to a negative integer to show steps in
  *                         generating masks; this is typically used
- *                         for debugging region extraction)
- *              display (set to 1  to display mask and selected region
- *                       for debugging a single page)
- *              pdfdir (subdirectory of /tmp where images showing the
+ *                         for debugging region extraction
+ * \param[in]    display set to 1  to display mask and selected region
+ *                       for debugging a single page
+ * \param[in]    pdfdir subdirectory of /tmp where images showing the
  *                      result are placed when called repeatedly; use
- *                      null if no output requested)
- *      Return: box (region including foreground, with some pixel noise
- *                   removed), or NULL if not found
+ *                      null if no output requested
+ * \return  box region including foreground, with some pixel noise
+ *                   removed, or NULL if not found
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This doesn't simply crop to the fg.  It attempts to remove
  *          pixel noise and junk at the edge of the image before cropping.
  *          The input %threshold is used if pixs is not 1 bpp.
@@ -510,11 +521,12 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *          dimensions of pixs must be at least MinWidth x MinHeight.
  *      (4) If you want pdf output of results when called repeatedly,
  *          the pagenum arg labels the images written, which go into
- *          /tmp/lept/<pdfdir>/<pagenum>.png.  In that case,
+ *          /tmp/lept/\<pdfdir\>/\<pagenum\>.png.  In that case,
  *          you would clean out the /tmp directory before calling this
  *          function on each page:
- *              lept_rmdir("/lept/<pdfdir>");
- *              lept_mkdir("/lept/<pdfdir>");
+ *              lept_rmdir("/lept/\<pdfdir\>");
+ *              lept_mkdir("/lept/\<pdfdir\>");
+ * </pre>
  */
 BOX *
 pixFindPageForeground(PIX         *pixs,
@@ -637,24 +649,26 @@ BOXA    *ba1, *ba2;
  *         Extraction of characters from image with only text       *
  *------------------------------------------------------------------*/
 /*!
- *  pixSplitIntoCharacters()
+ * \brief   pixSplitIntoCharacters()
  *
- *      Input:  pixs (1 bpp, contains only deskewed text)
- *              minw (minimum component width for initial filtering; typ. 4)
- *              minh (minimum component height for initial filtering; typ. 4)
- *              &boxa (<optional return> character bounding boxes)
- *              &pixa (<optional return> character images)
- *              &pixdebug (<optional return> showing splittings)
+ * \param[in]    pixs 1 bpp, contains only deskewed text
+ * \param[in]    minw minimum component width for initial filtering; typ. 4
+ * \param[in]    minh minimum component height for initial filtering; typ. 4
+ * \param[out]   pboxa [optional] character bounding boxes
+ * \param[out]   ppixa [optional] character images
+ * \param[out]   ppixdebug [optional] showing splittings
  *
- *      Return: 0 if OK, 1 on error
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a simple function that attempts to find split points
  *          based on vertical pixel profiles.
  *      (2) It should be given an image that has an arbitrary number
  *          of text characters.
  *      (3) The returned pixa includes the boxes from which the
  *          (possibly split) components are extracted.
+ * </pre>
  */
 l_int32
 pixSplitIntoCharacters(PIX     *pixs,
@@ -740,20 +754,22 @@ PIXA   *pixa1, *pixadb;
 
 
 /*!
- *  pixSplitComponentWithProfile()
+ * \brief   pixSplitComponentWithProfile()
  *
- *      Input:  pixs (1 bpp, exactly one connected component)
- *              delta (distance used in extrema finding in a numa; typ. 10)
- *              mindel (minimum required difference between profile minimum
- *                      and profile values +2 and -2 away; typ. 7)
- *              &pixdebug (<optional return> debug image of splitting)
- *      Return: boxa (of c.c. after splitting), or NULL on error
+ * \param[in]    pixs 1 bpp, exactly one connected component
+ * \param[in]    delta distance used in extrema finding in a numa; typ. 10
+ * \param[in]    mindel minimum required difference between profile minimum
+ *                      and profile values +2 and -2 away; typ. 7
+ * \param[out]   ppixdebug [optional] debug image of splitting
+ * \return  boxa of c.c. after splitting, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This will split the most obvious cases of touching characters.
  *          The split points it is searching for are narrow and deep
  *          minimima in the vertical pixel projection profile, after a
  *          large vertical closing has been applied to the component.
+ * </pre>
  */
 BOXA *
 pixSplitComponentWithProfile(PIX     *pixs,
@@ -866,26 +882,27 @@ PIX      *pix1, *pixdb;
  *                    Extraction of lines of text                   *
  *------------------------------------------------------------------*/
 /*!
- *  pixExtractTextlines()
+ * \brief   pixExtractTextlines()
  *
- *      Input:  pixs (any depth, assumed to have nearly horizontal text)
- *              maxw, maxh (initial filtering: remove any components in pixs
- *                          with components larger than maxw or maxh)
- *              minw, minh (final filtering: remove extracted 'lines'
- *                          with sizes smaller than minw or minh)
- *      Return: pixa (of textline images, including bounding boxes), or
+ * \param[in]    pixs any depth, assumed to have nearly horizontal text
+ * \param[in]    maxw, maxh initial filtering: remove any components in pixs
+ *                          with components larger than maxw or maxh
+ * \param[in]    minw, minh final filtering: remove extracted 'lines'
+ *                          with sizes smaller than minw or minh
+ * \return  pixa of textline images, including bounding boxes, or
  *                    NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This first removes components from pixs that are either
- *          wide (> %maxw) or tall (> %maxh).
+ *          wide (\> %maxw) or tall (\> %maxh).
  *      (2) This function assumes that textlines have sufficient
  *          vertical separation and small enough skew so that a
  *          horizontal dilation sufficient to join words will not join
  *          textlines.  Images with multiple columns of text may have
  *          the textlines join across the space between columns.
  *      (3) A final filtering operation removes small components, such
- *          that width < %minw or height < %minh.
+ *          that width \< %minw or height \< %minh.
  *      (4) For reasonable accuracy, the resolution of pixs should be
  *          at least 100 ppi.  For reasonable efficiency, the resolution
  *          should not exceed 600 ppi.
@@ -894,6 +911,7 @@ PIX      *pix1, *pixdb;
  *      (6) As an example, for a pix with resolution 300 ppi, a reasonable
  *          set of parameters is:
  *             pixExtractTextlines(pix, 150, 150, 10, 5);
+ * </pre>
  */
 PIXA *
 pixExtractTextlines(PIX     *pixs,
@@ -991,16 +1009,17 @@ PIXA    *pixa1, *pixa2, *pixa3, *pixad;
  *                      Decision text vs photo                      *
  *------------------------------------------------------------------*/
 /*!
- *  pixDecideIfText()
+ * \brief   pixDecideIfText()
  *
- *      Input:  pixs (any depth)
- *              box (<optional> if null, use entire pixs)
- *              &istext (<return> 1 if text; 0 if photo; -1 if not determined)
- *              pixadb (<optional> pre-allocated, for showing intermediate
- *                      computation; use NULL to skip)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs any depth
+ * \param[in]    box [optional] if null, use entire pixs
+ * \param[out]   pistext 1 if text; 0 if photo; -1 if not determined
+ * \param[in]    pixadb [optional] pre-allocated, for showing intermediate
+ *                      computation; use NULL to skip
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) It is assumed that pixs has the correct resolution set.
  *          If the resolution is 0, we set to 300 and issue a warning.
  *      (2) If necessary, the image is scaled to 300 ppi; most of the
@@ -1013,6 +1032,7 @@ PIXA    *pixa1, *pixa2, *pixa3, *pixad;
  *      (6) If the input pixs is empty, or for some other reason the
  *          result can not be determined, return -1.
  *      (7) For debug output, input a pre-allocated pixa.
+ * </pre>
  */
 l_int32
 pixDecideIfText(PIX      *pixs,
@@ -1210,13 +1230,13 @@ SEL       *sel1;
 
 
 /*!
- *  pixFindThreshFgExtent()
+ * \brief   pixFindThreshFgExtent()
  *
- *      Input:  pixs (1 bpp)
- *              thresh (threshold number of pixels in row)
- *              &top (<optional return> location of top of region)
- *              &bot (<optional return> location of bottom of region)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    thresh threshold number of pixels in row
+ * \param[out]   ptop [optional] location of top of region
+ * \param[out]   pbot [optional] location of bottom of region
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixFindThreshFgExtent(PIX      *pixs,
@@ -1268,21 +1288,22 @@ NUMA      *na;
  *                      How many text columns                       *
  *------------------------------------------------------------------*/
 /*!
- *  pixCountTextColumns()
+ * \brief   pixCountTextColumns()
  *
- *      Input:  pixs (1 bpp)
- *              deltafract (fraction of (max - min) to be used in the delta
- *                         for extrema finding; typ 0.3)
- *              peakfract (fraction of (max - min) to be used to threshold
- *                         the peak value; typ. 0.5)
- *              clipfract (fraction of image dimension removed on each side;
- *                         typ. 0.1, which leaves w and h reduced by 0.8)
- *              &ncols (<return> number of columns; -1 if not determined)
- *              pixadb (<optional> pre-allocated, for showing intermediate
- *                      computation; use null to skip)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    deltafract fraction of (max - min to be used in the delta
+ * \param[in]               for extrema finding; typ 0.3)
+ * \param[in]    peakfract fraction of (max - min to be used to threshold
+ * \param[in]               the peak value; typ. 0.5)
+ * \param[in]    clipfract fraction of image dimension removed on each side;
+ *                         typ. 0.1, which leaves w and h reduced by 0.8
+ * \param[out]   pncols number of columns; -1 if not determined
+ * \param[in]    pixadb [optional] pre-allocated, for showing intermediate
+ *                      computation; use null to skip
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) It is assumed that pixs has the correct resolution set.
  *          If the resolution is 0, we set to 300 and issue a warning.
  *      (2) If necessary, the image is scaled to between 37 and 75 ppi;
@@ -1290,6 +1311,7 @@ NUMA      *na;
  *      (3) If no text is found (essentially a blank page),
  *          this returns ncols = 0.
  *      (4) For debug output, input a pre-allocated pixa.
+ * </pre>
  */
 l_int32
 pixCountTextColumns(PIX       *pixs,
@@ -1416,18 +1438,20 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
  *               Estimate the grayscale background value            *
  *------------------------------------------------------------------*/
 /*!
- *  pixEstimateBackground()
+ * \brief   pixEstimateBackground()
  *
- *      Input:  pixs (8 bpp, with or without colormap)
- *              darkthresh (pixels below this value are never considered
- *                          part of the background; typ. 70; use 0 to skip)
- *              edgecrop (fraction of half-width on each side, and of
- *                        half-height at top and bottom, that are cropped)
- *              &bg (<return> estimated background, or 0 on error)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 8 bpp, with or without colormap
+ * \param[in]    darkthresh pixels below this value are never considered
+ *                          part of the background; typ. 70; use 0 to skip
+ * \param[in]    edgecrop fraction of half-width on each side, and of
+ *                        half-height at top and bottom, that are cropped
+ * \param[out]   pbg estimated background, or 0 on error
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) Caller should check that return bg value is > 0.
+ * <pre>
+ * Notes:
+ *      (1) Caller should check that return bg value is \> 0.
+ * </pre>
  */
 l_int32
 pixEstimateBackground(PIX       *pixs,
@@ -1480,4 +1504,3 @@ PIX       *pix1, *pix2, *pixm;
     pixDestroy(&pixm);
     return 0;
 }
-

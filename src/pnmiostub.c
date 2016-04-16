@@ -24,10 +24,12 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  pnmiostub.c
+/*!
+ * \file pnmiostub.c
+ * <pre>
  *
  *     Stubs for pnmio.c functions
+ * </pre>
  */
 
 #include "allheaders.h"

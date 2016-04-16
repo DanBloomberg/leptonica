@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  readfile.c:  reads image on file into memory
+/*!
+ * \file readfile.c:  reads image on file into memory
+ * <pre>
  *
  *      Top-level functions for reading images from file
  *           PIXA      *pixaReadFiles()
@@ -64,6 +65,7 @@
  *          webp
  *          jp2 (jpeg 2000)
  *  (3) Other file types will get an "unknown format" error.
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -99,18 +101,20 @@ static const unsigned char JP2K_IMAGE_DATA[12] = { 0x00, 0x00, 0x00, 0x0C,
  *          Top-level functions for reading images from file           *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaReadFiles()
+ * \brief   pixaReadFiles()
  *
- *      Input:  dirname
- *              substr (<optional> substring filter on filenames; can be null)
- *      Return: pixa, or NULL on error
+ * \param[in]    dirname
+ * \param[in]    substr [optional] substring filter on filenames; can be null
+ * \return  pixa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) %dirname is the full path for the directory.
  *      (2) %substr is the part of the file name (excluding
  *          the directory) that is to be matched.  All matching
  *          filenames are read into the Pixa.  If substr is NULL,
  *          all filenames are read into the Pixa.
+ * </pre>
  */
 PIXA *
 pixaReadFiles(const char  *dirname,
@@ -134,10 +138,10 @@ SARRAY  *sa;
 
 
 /*!
- *  pixaReadFilesSA()
+ * \brief   pixaReadFilesSA()
  *
- *      Input:  sarray (full pathnames for all files)
- *      Return: pixa, or NULL on error
+ * \param[in]    sarray full pathnames for all files
+ * \return  pixa, or NULL on error
  */
 PIXA *
 pixaReadFilesSA(SARRAY  *sa)
@@ -168,13 +172,15 @@ PIXA    *pixa;
 
 
 /*!
- *  pixRead()
+ * \brief   pixRead()
  *
- *      Input:  filename (with full pathname or in local directory)
- *      Return: pix if OK; NULL on error
+ * \param[in]    filename with full pathname or in local directory
+ * \return  pix if OK; NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See at top of file for supported formats.
+ * </pre>
  */
 PIX *
 pixRead(const char  *filename)
@@ -202,15 +208,17 @@ PIX   *pix;
 
 
 /*!
- *  pixReadWithHint()
+ * \brief   pixReadWithHint()
  *
- *      Input:  filename (with full pathname or in local directory)
- *              hint (bitwise OR of L_HINT_* values for jpeg; use 0 for no hint)
- *      Return: pix if OK; NULL on error
+ * \param[in]    filename with full pathname or in local directory
+ * \param[in]    hint bitwise OR of L_HINT_* values for jpeg; use 0 for no hint
+ * \return  pix if OK; NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The hint is not binding, but may be used to optimize jpeg decoding.
  *          Use 0 for no hinting.
+ * </pre>
  */
 PIX *
 pixReadWithHint(const char  *filename,
@@ -236,13 +244,14 @@ PIX   *pix;
 
 
 /*!
- *  pixReadIndexed()
+ * \brief   pixReadIndexed()
  *
- *      Input:  sarray (of full pathnames)
- *              index (into pathname array)
- *      Return: pix if OK; null if not found
+ * \param[in]    sarray of full pathnames
+ * \param[in]    index into pathname array
+ * \return  pix if OK; null if not found
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function is useful for selecting image files from a
  *          directory, where the integer %index is embedded into
  *          the file name.
@@ -260,6 +269,7 @@ PIX   *pix;
  *          Therefore, the caller must verify that a pix is returned.
  *      (4) See convertSegmentedPagesToPS() in src/psio1.c for an
  *          example of usage.
+ * </pre>
  */
 PIX *
 pixReadIndexed(SARRAY  *sa,
@@ -291,14 +301,16 @@ PIX     *pix;
 
 
 /*!
- *  pixReadStream()
+ * \brief   pixReadStream()
  *
- *      Input:  fp (file stream)
- *              hint (bitwise OR of L_HINT_* values for jpeg; use 0 for no hint)
- *      Return: pix if OK; NULL on error
+ * \param[in]    fp file stream
+ * \param[in]    hint bitwise OR of L_HINT_* values for jpeg; use 0 for no hint
+ * \return  pix if OK; NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The hint only applies to jpeg.
+ * </pre>
  */
 PIX *
 pixReadStream(FILE    *fp,
@@ -389,20 +401,22 @@ PIX      *pix;
  *                     Read header information from file               *
  *---------------------------------------------------------------------*/
 /*!
- *  pixReadHeader()
+ * \brief   pixReadHeader()
  *
- *      Input:  filename (with full pathname or in local directory)
- *              &format (<optional return> file format)
- *              &w, &h (<optional returns> width and height)
- *              &bps <optional return> bits/sample
- *              &spp <optional return> samples/pixel (1, 3 or 4)
- *              &iscmap (<optional return> 1 if cmap exists; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename with full pathname or in local directory
+ * \param[out]   pformat [optional] file format
+ * \param[out]   pw, ph [optional] width and height
+ * \param[out]   pbps [optional] bits/sample
+ * \param[out]   pspp [optional] samples/pixel 1, 3 or 4
+ * \param[out]   piscmap [optional] 1 if cmap exists; 0 otherwise
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This reads the actual headers for jpeg, png, tiff and pnm.
  *          For bmp and gif, we cheat and read the entire file into a pix,
  *          from which we extract the "header" information.
+ * </pre>
  */
 l_int32
 pixReadHeader(const char  *filename,
@@ -527,11 +541,11 @@ PIX     *pix;
  *                            Format finders                           *
  *---------------------------------------------------------------------*/
 /*!
- *  findFileFormat()
+ * \brief   findFileFormat()
  *
- *      Input:  filename
- *              &format (<return> found format)
- *      Return: 0 if OK, 1 on error or if format is not recognized
+ * \param[in]    filename
+ * \param[out]   pformat found format
+ * \return  0 if OK, 1 on error or if format is not recognized
  */
 l_int32
 findFileFormat(const char  *filename,
@@ -557,14 +571,16 @@ FILE    *fp;
 
 
 /*!
- *  findFileFormatStream()
+ * \brief   findFileFormatStream()
  *
- *      Input:  fp (file stream)
- *              &format (<return> found format)
- *      Return: 0 if OK, 1 on error or if format is not recognized
+ * \param[in]    fp file stream
+ * \param[out]   pformat found format
+ * \return  0 if OK, 1 on error or if format is not recognized
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Important: Side effect -- this resets fp to BOF.
+ * </pre>
  */
 l_int32
 findFileFormatStream(FILE     *fp,
@@ -603,17 +619,19 @@ l_int32  format;
 
 
 /*!
- *  findFileFormatBuffer()
+ * \brief   findFileFormatBuffer()
  *
- *      Input:  byte buffer (at least 12 bytes in size; we can't check)
- *              &format (<return> found format)
- *      Return: 0 if OK, 1 on error or if format is not recognized
+ * \param[in]    byte buffer at least 12 bytes in size; we can't check
+ * \param[out]   pformat found format
+ * \return  0 if OK, 1 on error or if format is not recognized
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This determines the file format from the first 12 bytes in
  *          the compressed data stream, which are stored in memory.
  *      (2) For tiff files, this returns IFF_TIFF.  The specific tiff
  *          compression is then determined using findTiffCompression().
+ * </pre>
  */
 l_int32
 findFileFormatBuffer(const l_uint8  *buf,
@@ -719,10 +737,10 @@ l_uint16  twobytepw;
 
 
 /*!
- *  fileFormatIsTiff()
+ * \brief   fileFormatIsTiff()
  *
- *      Input:  fp (file stream)
- *      Return: 1 if file is tiff; 0 otherwise or on error
+ * \param[in]    fp file stream
+ * \return  1 if file is tiff; 0 otherwise or on error
  */
 l_int32
 fileFormatIsTiff(FILE  *fp)
@@ -749,13 +767,14 @@ l_int32  format;
  *                            Read from memory                         *
  *---------------------------------------------------------------------*/
 /*!
- *  pixReadMem()
+ * \brief   pixReadMem()
  *
- *      Input:  data (const; encoded)
- *              datasize (size of data)
- *      Return: pix, or NULL on error
+ * \param[in]    data const; encoded
+ * \param[in]    datasize size of data
+ * \return  pix, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a variation of pixReadStream(), where the data is read
  *          from a memory buffer rather than a file.
  *      (2) On windows, this only reads tiff formatted files directly from
@@ -765,6 +784,7 @@ l_int32  format;
  *          the format.  That determines the constraint here.  But in
  *          fact the data must contain the entire compressed string for
  *          the image.
+ * </pre>
  */
 PIX *
 pixReadMem(const l_uint8  *data,
@@ -855,18 +875,19 @@ PIX     *pix;
 
 
 /*!
- *  pixReadHeaderMem()
+ * \brief   pixReadHeaderMem()
  *
- *      Input:  data (const; encoded)
- *              datasize (size of data)
- *              &format (<optional returns> image format)
- *              &w, &h (<optional returns> width and height)
- *              &bps <optional return> bits/sample
- *              &spp <optional return> samples/pixel (1, 3 or 4)
- *              &iscmap (<optional return> 1 if cmap exists; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    data const; encoded
+ * \param[in]    datasize size of data
+ * \param[out]   pformat [optional] image format
+ * \param[out]   pw, ph [optional] width and height
+ * \param[out]   pbps [optional] bits/sample
+ * \param[out]   pspp [optional] samples/pixel 1, 3 or 4
+ * \param[out]   piscmap [optional] 1 if cmap exists; 0 otherwise
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This reads the actual headers for jpeg, png, tiff, jp2k and pnm.
  *          For bmp and gif, we cheat and read all the data into a pix,
  *          from which we extract the "header" information.
@@ -876,6 +897,7 @@ PIX     *pix;
  *          is typically the entire compressed file in memory.
  *      (3) findFileFormatBuffer() requires up to 8 bytes to decide on
  *          the format, which we require.
+ * </pre>
  */
 l_int32
 pixReadHeaderMem(const l_uint8  *data,
@@ -996,12 +1018,13 @@ PIX     *pix;
  *             Test function for I/O with different formats            *
  *---------------------------------------------------------------------*/
 /*!
- *  ioFormatTest()
+ * \brief   ioFormatTest()
  *
- *      Input:  filename (input file)
- *      Return: 0 if OK; 1 on error or if the test fails
+ * \param[in]    filename input file
+ * \return  0 if OK; 1 on error or if the test fails
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This writes and reads a set of output files losslessly
  *          in different formats to /tmp/format/, and tests that the
  *          result before and after is unchanged.
@@ -1014,6 +1037,7 @@ PIX     *pix;
  *          16 bpp png, although this can be turned on in pngio.c.
  *      (4) This silently skips png or tiff testing if HAVE_LIBPNG
  *          or HAVE_LIBTIFF are 0, respectively.
+ * </pre>
  */
 l_int32
 ioFormatTest(const char  *filename)
@@ -1328,4 +1352,3 @@ PIXCMAP   *cmap;
     pixDestroy(&pixs);
     return problems;
 }
-

@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   bootnumgen2.c
+/*!
+ * \file  bootnumgen2.c
+ * <pre>
  *
  *   Function for generating prog/recog/digits/bootnum2.pa from an
  *   encoded, gzipped and serialized string.
@@ -38,13 +39,14 @@
  *       L_STRCODE  *strc;
  *       strc = strcodeCreate(102);   // arbitrary integer
  *       strcodeGenerate(strc, "recog/digits/bootnum2.pa", "PIXA");
- *       strcodeFinalize(&strc, ".");
+ *       strcodeFinalize(\&strc, ".");
  *
  *   The two output files, autogen.102.c and autogen.102.h, were
  *   then slightly edited and merged into this file.
  *
  *   Call this way:
  *       Pixa  *pixa = (PIXA *)l_bootnum_gen2();
+ * </pre>
  */
 
 #include <string.h>
@@ -256,7 +258,7 @@ static const char *l_bootnum2 =
 /*                      Auto-generated deserializer                    */
 /*---------------------------------------------------------------------*/
 /*!
- *  l_bootnum_gen2()
+ * \brief   l_bootnum_gen2()
  *
  *      Return: the bootnum2 pixa
  *
@@ -283,5 +285,3 @@ void     *result;
     lept_free(data2);
     return result;
 }
-
-

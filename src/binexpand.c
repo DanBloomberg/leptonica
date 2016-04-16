@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  binexpand.c
+/*!
+ * \file binexpand.c
+ * <pre>
  *
  *      Replicated expansion (integer scaling)
  *         PIX     *pixExpandBinaryReplicate()
@@ -37,6 +38,7 @@
  *         static l_uint16    *makeExpandTab2x()
  *         static l_uint32    *makeExpandTab4x()
  *         static l_uint32    *makeExpandTab8x()
+ * </pre>
  */
 
 #include <string.h>
@@ -54,11 +56,11 @@ static  l_uint32 expandtab16[] = {
  *              Replicated expansion (integer scaling)              *
  *------------------------------------------------------------------*/
 /*!
- *  pixExpandBinaryReplicate()
+ * \brief   pixExpandBinaryReplicate()
  *
- *      Input:  pixs (1 bpp)
- *              factor (integer scale factor for replicative expansion)
- *      Return: pixd (scaled up), or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    factor integer scale factor for replicative expansion
+ * \return  pixd scaled up, or NULL on error
  */
 PIX *
 pixExpandBinaryReplicate(PIX     *pixs,
@@ -116,11 +118,11 @@ PIX       *pixd;
  *                      Power of 2 expansion                        *
  *------------------------------------------------------------------*/
 /*!
- *  pixExpandBinaryPower2()
+ * \brief   pixExpandBinaryPower2()
  *
- *      Input:  pixs (1 bpp)
- *              factor (expansion factor: 1, 2, 4, 8, 16)
- *      Return: pixd (expanded 1 bpp by replication), or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    factor expansion factor: 1, 2, 4, 8, 16
+ * \return  pixd expanded 1 bpp by replication, or NULL on error
  */
 PIX *
 pixExpandBinaryPower2(PIX     *pixs,

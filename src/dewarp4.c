@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  dewarp4.c
+/*!
+ * \file dewarp4.c
+ * <pre>
  *
  *    Single page dewarper
  *
@@ -50,6 +51,7 @@
  *          l_int32            dewarpaShowArrays()
  *          l_int32            dewarpDebug()
  *          l_int32            dewarpShowResults()
+ * </pre>
  */
 
 #include <math.h>
@@ -70,24 +72,26 @@ static const l_int32     GRAYIN_VALUE = 200;
  *                   Top-level single page dewarper                     *
  *----------------------------------------------------------------------*/
 /*!
- *  dewarpSinglePage()
+ * \brief   dewarpSinglePage()
  *
- *      Input:  pixs (with text, any depth)
- *              thresh (for global thresholding to 1 bpp; ignored otherwise)
- *              adaptive (1 for adaptive thresholding; 0 for global threshold)
- *              useboth (1 for horizontal and vertical; 0 for vertical only)
- *              check_columns (1 to skip horizontal if multiple columns;
- *                             0 otherwise; default is to skip)
- *              &pixd (<return> dewarped result)
- *              &dewa (<optional return> dewa with single page; NULL to skip)
- *              debug (1 for debugging output, 0 otherwise)
- *      Return: 0 if OK, 1 on error (list of page numbers), or NULL on error
+ * \param[in]    pixs with text, any depth
+ * \param[in]    thresh for global thresholding to 1 bpp; ignored otherwise
+ * \param[in]    adaptive 1 for adaptive thresholding; 0 for global threshold
+ * \param[in]    useboth 1 for horizontal and vertical; 0 for vertical only
+ * \param[in]    check_columns 1 to skip horizontal if multiple columns;
+ *                             0 otherwise; default is to skip
+ * \param[out]   ppixd dewarped result
+ * \param[out]   pdewa [optional] dewa with single page; NULL to skip
+ * \param[in]    debug 1 for debugging output, 0 otherwise
+ * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
- *  Notes:
- *      (1) Dewarps pixs and returns the result in &pixd.
+ * <pre>
+ * Notes:
+ *      (1) Dewarps pixs and returns the result in \&pixd.
  *      (2) This uses default values for all model parameters.
  *      (3) If pixs is 1 bpp, the parameters %adaptive and %thresh are ignored.
- *      (4) If it can't build a model, returns a copy of pixs in &pixd.
+ *      (4) If it can't build a model, returns a copy of pixs in \&pixd.
+ * </pre>
  */
 l_int32
 dewarpSinglePage(PIX         *pixs,
@@ -130,30 +134,32 @@ PIX        *pixb;
 
 
 /*!
- *  dewarpSinglePageInit()
+ * \brief   dewarpSinglePageInit()
  *
- *      Input:  pixs (with text, any depth)
- *              thresh (for global thresholding to 1 bpp; ignored otherwise)
- *              adaptive (1 for adaptive thresholding; 0 for global threshold)
- *              useboth (1 for horizontal and vertical; 0 for vertical only)
- *              check_columns (1 to skip horizontal if multiple columns;
- *                             0 otherwise; default is to skip)
- *              &pixb (<return> 1 bpp image)
- *              &dewa (<return> initialized dewa)
- *      Return: 0 if OK, 1 on error (list of page numbers), or NULL on error
+ * \param[in]    pixs with text, any depth
+ * \param[in]    thresh for global thresholding to 1 bpp; ignored otherwise
+ * \param[in]    adaptive 1 for adaptive thresholding; 0 for global threshold
+ * \param[in]    useboth 1 for horizontal and vertical; 0 for vertical only
+ * \param[in]    check_columns 1 to skip horizontal if multiple columns;
+ *                             0 otherwise; default is to skip
+ * \param[out]   ppixb 1 bpp image
+ * \param[out]   pdewa initialized dewa
+ * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This binarizes the input pixs if necessary, returning the
  *          binarized image.  It also initializes the dewa to default values
  *          for the model parameters.
  *      (2) If pixs is 1 bpp, the parameters %adaptive and %thresh are ignored.
  *      (3) To change the model parameters, call dewarpaSetCurvatures()
  *          before running dewarpSinglePageRun().  For example:
- *             dewarpSinglePageInit(pixs, 0, 1, 1, 1, &pixb, &dewa);
+ *             dewarpSinglePageInit(pixs, 0, 1, 1, 1, \&pixb, \&dewa);
  *             dewarpaSetCurvatures(dewa, 250, -1, -1, 80, 70, 150);
- *             dewarpSinglePageRun(pixs, pixb, dewa, &pixd, 0);
- *             dewarpaDestroy(&dewa);
- *             pixDestroy(&pixb);
+ *             dewarpSinglePageRun(pixs, pixb, dewa, \&pixd, 0);
+ *             dewarpaDestroy(\&dewa);
+ *             pixDestroy(\&pixb);
+ * </pre>
  */
 l_int32
 dewarpSinglePageInit(PIX         *pixs,
@@ -195,21 +201,23 @@ PIX  *pix1;
 
 
 /*!
- *  dewarpSinglePageRun()
+ * \brief   dewarpSinglePageRun()
  *
- *      Input:  pixs (any depth)
- *              pixb (1 bpp)
- *              dewa (initialized)
- *              &pixd (<return> dewarped result)
- *              debug (1 for debugging output, 0 otherwise)
- *      Return: 0 if OK, 1 on error (list of page numbers), or NULL on error
+ * \param[in]    pixs any depth
+ * \param[in]    pixb 1 bpp
+ * \param[in]    dewa initialized
+ * \param[out]   ppixd dewarped result
+ * \param[in]    debug 1 for debugging output, 0 otherwise
+ * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
- *  Notes:
- *      (1) Dewarps pixs and returns the result in &pixd.
+ * <pre>
+ * Notes:
+ *      (1) Dewarps pixs and returns the result in \&pixd.
  *      (2) The 1 bpp version %pixb and %dewa are conveniently generated by
  *          dewarpSinglePageInit().
  *      (3) Non-default model parameters must be set before calling this.
- *      (4) If a model cannot be built, this returns a copy of pixs in &pixd.
+ *      (4) If a model cannot be built, this returns a copy of pixs in \&pixd.
+ * </pre>
  */
 l_int32
 dewarpSinglePageRun(PIX        *pixs,
@@ -260,18 +268,20 @@ L_DEWARP    *dew;
  *                        Operations on dewarpa                         *
  *----------------------------------------------------------------------*/
 /*!
- *  dewarpaListPages()
+ * \brief   dewarpaListPages()
  *
- *      Input:  dewa (populated with dewarp structs for pages)
- *      Return: 0 if OK, 1 on error (list of page numbers), or NULL on error
+ * \param[in]    dewa populated with dewarp structs for pages
+ * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This generates two numas, stored in the dewarpa, that give:
  *          (a) the page number for each dew that has a page model.
  *          (b) the page number for each dew that has either a page
  *              model or a reference model.
  *          It can be called at any time.
  *      (2) It is called by the dewarpa serializer before writing.
+ * </pre>
  */
 l_int32
 dewarpaListPages(L_DEWARPA  *dewa)
@@ -303,14 +313,15 @@ NUMA      *namodels, *napages;
 
 
 /*!
- *  dewarpaSetValidModels()
+ * \brief   dewarpaSetValidModels()
  *
- *      Input:  dewa
- *              notests
- *              debug (1 to output information on invalid page models)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa
+ * \param[in]    notests
+ * \param[in]    debug 1 to output information on invalid page models
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) A valid model must meet the rendering requirements, which
  *          include whether or not a vertical disparity model exists
  *          and conditions on curvatures for vertical and horizontal
@@ -322,6 +333,7 @@ NUMA      *namodels, *napages;
  *          will destroy all invalid dewarps.  Consequently, to inspect
  *          an invalid dewarp model, it must be done before calling
  *          dewarpaInsertRefModels().
+ * </pre>
  */
 l_int32
 dewarpaSetValidModels(L_DEWARPA  *dewa,
@@ -391,14 +403,15 @@ L_DEWARP  *dew;
 
 
 /*!
- *  dewarpaInsertRefModels()
+ * \brief   dewarpaInsertRefModels()
  *
- *      Input:  dewa
- *              notests (if 1, ignore curvature constraints on model)
- *              debug (1 to output information on invalid page models)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa
+ * \param[in]    notests if 1, ignore curvature constraints on model
+ * \param[in]    debug 1 to output information on invalid page models
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This destroys all dewarp models that are invalid, and then
  *          inserts reference models where possible.
  *      (2) If %notests == 1, this ignores the curvature constraints
@@ -416,7 +429,7 @@ L_DEWARP  *dew;
  *          hvalid == 0 model or reference with an hvalid == 1 reference.
  *      (6) The distance constraint is that any reference model must
  *          be within maxdist.  Note that with the parity constraint,
- *          no reference models will be used if maxdist < 2.
+ *          no reference models will be used if maxdist \< 2.
  *      (7) This function must be called, even if reference models will
  *          not be used.  It should be called after building models on all
  *          available pages, and after setting the rendering parameters.
@@ -426,6 +439,7 @@ L_DEWARP  *dew;
  *      (9) Note: if this has been called with useboth == 1, and useboth
  *          is reset to 0, you should first call dewarpaRestoreModels()
  *          to bring real models from the cache back to the primary array.
+ * </pre>
  */
 l_int32
 dewarpaInsertRefModels(L_DEWARPA  *dewa,
@@ -545,16 +559,18 @@ NUMA      *na, *nah;
 
 
 /*!
- *  dewarpaStripRefModels()
+ * \brief   dewarpaStripRefModels()
  *
- *      Input:  dewa (populated with dewarp structs for pages)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa populated with dewarp structs for pages
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This examines each dew in a dewarpa, and removes
  *          all that don't have their own page model (i.e., all
  *          that have "references" to nearby pages with valid models).
  *          These references were generated by dewarpaInsertRefModels(dewa).
+ * </pre>
  */
 l_int32
 dewarpaStripRefModels(L_DEWARPA  *dewa)
@@ -582,18 +598,20 @@ L_DEWARP  *dew;
 
 
 /*!
- *  dewarpaRestoreModels()
+ * \brief   dewarpaRestoreModels()
  *
- *      Input:  dewa (populated with dewarp structs for pages)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa populated with dewarp structs for pages
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This puts all real models (and only real models) in the
  *          primary dewarpa array.  First remove all dewarps that are
  *          only references to other page models.  Then move all models
  *          that had been cached back into the primary dewarp array.
  *      (2) After this is done, we still need to recompute and insert
- *          the reference models before dewa->modelsready is true.
+ *          the reference models before dewa-\>modelsready is true.
+ * </pre>
  */
 l_int32
 dewarpaRestoreModels(L_DEWARPA  *dewa)
@@ -634,11 +652,11 @@ L_DEWARP  *dew;
  *                      Dewarp debugging output                         *
  *----------------------------------------------------------------------*/
 /*!
- *  dewarpaInfo()
+ * \brief   dewarpaInfo()
  *
- *      Input:  fp
- *              dewa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp
+ * \param[in]    dewa
+ * \return  0 if OK, 1 on error
  */
 l_int32
 dewarpaInfo(FILE       *fp,
@@ -698,18 +716,19 @@ L_DEWARP  *dew;
 
 
 /*!
- *  dewarpaModelStats()
+ * \brief   dewarpaModelStats()
  *
- *      Input:  dewa
- *              &nnone (<optional return> number without any model)
- *              &nvsuccess (<optional return> number with a vert model)
- *              &nvvalid (<optional return> number with a valid vert model)
- *              &nhsuccess (<optional return> number with both models)
- *              &nhvalid (<optional return> number with both models valid)
- *              &nref (<optional return> number with a reference model)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa
+ * \param[out]   pnnone [optional] number without any model
+ * \param[out]   pnvsuccess [optional] number with a vert model
+ * \param[out]   pnvvalid [optional] number with a valid vert model
+ * \param[out]   pnhsuccess [optional] number with both models
+ * \param[out]   pnhvalid [optional] number with both models valid
+ * \param[out]   pnref [optional] number with a reference model
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) A page without a model has no dew.  It most likely failed to
  *          generate a vertical model, and has not been assigned a ref
  *          model from a neighboring page with a valid vertical model.
@@ -729,6 +748,7 @@ L_DEWARP  *dew;
  *          page (within maxdist) by dewarpaInsertRefModel().
  *      (7) This calls dewarpaTestForValidModel(); it ignores the vvalid
  *          and hvalid fields.
+ * </pre>
  */
 l_int32
 dewarpaModelStats(L_DEWARPA  *dewa,
@@ -781,20 +801,22 @@ L_DEWARP  *dew;
 
 
 /*!
- *  dewarpaTestForValidModel()
+ * \brief   dewarpaTestForValidModel()
  *
- *      Input:  dewa
- *              dew
- *              notests
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa
+ * \param[in]    dew
+ * \param[in]    notests
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Computes validity of vertical (vvalid) model and both
  *          vertical and horizontal (hvalid) models.
  *      (2) If %notests == 1, this ignores the curvature constraints
  *          and assumes that all successfully built models are valid.
  *      (3) This is just about the models, not the rendering process,
  *          so the value of useboth is not considered here.
+ * </pre>
  */
 static l_int32
 dewarpaTestForValidModel(L_DEWARPA  *dewa,
@@ -870,17 +892,19 @@ l_int32  maxcurv, diffcurv, diffedge;
 
 
 /*!
- *  dewarpaShowArrays()
+ * \brief   dewarpaShowArrays()
  *
- *      Input:  dewa
- *              scalefact (on contour images; typ. 0.5)
- *              first (first page model to render)
- *              last (last page model to render; use 0 to go to end)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa
+ * \param[in]    scalefact on contour images; typ. 0.5
+ * \param[in]    first first page model to render
+ * \param[in]    last last page model to render; use 0 to go to end
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Generates a pdf of contour plots of the disparity arrays.
  *      (2) This only shows actual models; not ref models
+ * </pre>
  */
 l_int32
 dewarpaShowArrays(L_DEWARPA   *dewa,
@@ -967,17 +991,19 @@ PIXA      *pixa;
 
 
 /*!
- *  dewarpDebug()
+ * \brief   dewarpDebug()
  *
- *      Input:  dew
- *              subdirs (one or more subdirectories of /tmp; e.g., "dew1")
- *              index (to help label output images; e.g., the page number)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dew
+ * \param[in]    subdirs one or more subdirectories of /tmp; e.g., "dew1"
+ * \param[in]    index to help label output images; e.g., the page number
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Prints dewarp fields and generates disparity array contour images.
  *          The contour images are written to file:
  *                /tmp/[subdirs]/pixv_[index].png
+ * </pre>
  */
 l_int32
 dewarpDebug(L_DEWARP    *dew,
@@ -1050,22 +1076,24 @@ PIX     *pixv, *pixh;
 
 
 /*!
- *  dewarpShowResults()
+ * \brief   dewarpShowResults()
  *
- *      Input:  dewa
- *              sa (of indexed input images)
- *              boxa (crop boxes for input images; can be null)
- *              firstpage, lastpage
- *              pdfout (filename)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dewa
+ * \param[in]    sa of indexed input images
+ * \param[in]    boxa crop boxes for input images; can be null
+ * \param[in]    firstpage, lastpage
+ * \param[in]    pdfout filename
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This generates a pdf of image pairs (before, after) for
  *          the designated set of input pages.
  *      (2) If the boxa exists, its elements are aligned with numbers
  *          in the filenames in %sa.  It is used to crop the input images.
  *          It is assumed that the dewa was generated from the cropped
  *          images.  No undercropping is applied before rendering.
+ * </pre>
  */
 l_int32
 dewarpShowResults(L_DEWARPA   *dewa,
@@ -1149,4 +1177,3 @@ PIXA      *pixa;
     bmfDestroy(&bmf);
     return 0;
 }
-

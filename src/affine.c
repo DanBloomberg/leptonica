@@ -25,8 +25,9 @@
  *====================================================================*/
 
 
-/*
- *  affine.c
+/*!
+ * \file affine.c
+ * <pre>
  *
  *      Affine (3 pt) image transformation using a sampled
  *      (to nearest integer) transform on each dest point
@@ -227,6 +228,7 @@
  *               interpolated   1.8
  *      Additionally, the computation time/pixel is nearly the same
  *      for 8 bpp and 32 bpp, for both sampled and interpolated.
+ * </pre>
  */
 
 
@@ -245,15 +247,16 @@ extern l_float32  AlphaMaskBorderVals[2];
  *               Sampled affine image transformation           *
  *-------------------------------------------------------------*/
 /*!
- *  pixAffineSampledPta()
+ * \brief   pixAffineSampledPta()
  *
- *      Input:  pixs (all depths)
- *              ptad  (3 pts of final coordinate space)
- *              ptas  (3 pts of initial coordinate space)
- *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs all depths
+ * \param[in]    ptad  3 pts of final coordinate space
+ * \param[in]    ptas  3 pts of initial coordinate space
+ * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Brings in either black or white pixels from the boundary.
  *      (2) Retains colormap, which you can do for a sampled transform..
  *      (3) The 3 points must not be collinear.
@@ -271,6 +274,7 @@ extern l_float32  AlphaMaskBorderVals[2];
  *          for relative timings between sampled and interpolated.
  *      (7) To repeat, use of the sequential transform,
  *          pixAffineSequential(), for any images, is discouraged.
+ * </pre>
  */
 PIX *
 pixAffineSampledPta(PIX     *pixs,
@@ -306,19 +310,21 @@ PIX        *pixd;
 
 
 /*!
- *  pixAffineSampled()
+ * \brief   pixAffineSampled()
  *
- *      Input:  pixs (all depths)
- *              vc  (vector of 6 coefficients for affine transformation)
- *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs all depths
+ * \param[in]    vc  vector of 6 coefficients for affine transformation
+ * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Brings in either black or white pixels from the boundary.
  *      (2) Retains colormap, which you can do for a sampled transform..
  *      (3) For 8 or 32 bpp, much better quality is obtained by the
  *          somewhat slower pixAffine().  See that function
  *          for relative timings between sampled and interpolated.
+ * </pre>
  */
 PIX *
 pixAffineSampled(PIX        *pixs,
@@ -399,17 +405,19 @@ PIXCMAP    *cmap;
  *               Interpolated affine image transformation              *
  *---------------------------------------------------------------------*/
 /*!
- *  pixAffinePta()
+ * \brief   pixAffinePta()
  *
- *      Input:  pixs (all depths; colormap ok)
- *              ptad  (3 pts of final coordinate space)
- *              ptas  (3 pts of initial coordinate space)
- *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs all depths; colormap ok
+ * \param[in]    ptad  3 pts of final coordinate space
+ * \param[in]    ptas  3 pts of initial coordinate space
+ * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Brings in either black or white pixels from the boundary
  *      (2) Removes any existing colormap, if necessary, before transforming
+ * </pre>
  */
 PIX *
 pixAffinePta(PIX     *pixs,
@@ -468,16 +476,18 @@ PIX      *pixt1, *pixt2, *pixd;
 
 
 /*!
- *  pixAffine()
+ * \brief   pixAffine()
  *
- *      Input:  pixs (all depths; colormap ok)
- *              vc  (vector of 6 coefficients for affine transformation)
- *              incolor (L_BRING_IN_WHITE, L_BRING_IN_BLACK)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs all depths; colormap ok
+ * \param[in]    vc  vector of 6 coefficients for affine transformation
+ * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Brings in either black or white pixels from the boundary
  *      (2) Removes any existing colormap, if necessary, before transforming
+ * </pre>
  */
 PIX *
 pixAffine(PIX        *pixs,
@@ -527,13 +537,13 @@ PIX      *pixt1, *pixt2, *pixd;
 
 
 /*!
- *  pixAffinePtaColor()
+ * \brief   pixAffinePtaColor()
  *
- *      Input:  pixs (32 bpp)
- *              ptad  (3 pts of final coordinate space)
- *              ptas  (3 pts of initial coordinate space)
- *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 32 bpp
+ * \param[in]    ptad  3 pts of final coordinate space
+ * \param[in]    ptas  3 pts of initial coordinate space
+ * \param[in]    colorval e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
+ * \return  pixd, or NULL on error
  */
 PIX *
 pixAffinePtaColor(PIX      *pixs,
@@ -569,12 +579,12 @@ PIX        *pixd;
 
 
 /*!
- *  pixAffineColor()
+ * \brief   pixAffineColor()
  *
- *      Input:  pixs (32 bpp)
- *              vc  (vector of 6 coefficients for affine transformation)
- *              colorval (e.g., 0 to bring in BLACK, 0xffffff00 for WHITE)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 32 bpp
+ * \param[in]    vc  vector of 6 coefficients for affine transformation
+ * \param[in]    colorval e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
+ * \return  pixd, or NULL on error
  */
 PIX *
 pixAffineColor(PIX        *pixs,
@@ -630,13 +640,13 @@ PIX       *pix1, *pix2, *pixd;
 
 
 /*!
- *  pixAffinePtaGray()
+ * \brief   pixAffinePtaGray()
  *
- *      Input:  pixs (8 bpp)
- *              ptad  (3 pts of final coordinate space)
- *              ptas  (3 pts of initial coordinate space)
- *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp
+ * \param[in]    ptad  3 pts of final coordinate space
+ * \param[in]    ptas  3 pts of initial coordinate space
+ * \param[in]    grayval 0 to bring in BLACK, 255 for WHITE
+ * \return  pixd, or NULL on error
  */
 PIX *
 pixAffinePtaGray(PIX     *pixs,
@@ -673,12 +683,12 @@ PIX        *pixd;
 
 
 /*!
- *  pixAffineGray()
+ * \brief   pixAffineGray()
  *
- *      Input:  pixs (8 bpp)
- *              vc  (vector of 6 coefficients for affine transformation)
- *              grayval (0 to bring in BLACK, 255 for WHITE)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 8 bpp
+ * \param[in]    vc  vector of 6 coefficients for affine transformation
+ * \param[in]    grayval 0 to bring in BLACK, 255 for WHITE
+ * \return  pixd, or NULL on error
  */
 PIX *
 pixAffineGray(PIX        *pixs,
@@ -726,18 +736,19 @@ PIX       *pixd;
  *            Affine transform including alpha (blend) component             *
  *---------------------------------------------------------------------------*/
 /*!
- *  pixAffinePtaWithAlpha()
+ * \brief   pixAffinePtaWithAlpha()
  *
- *      Input:  pixs (32 bpp rgb)
- *              ptad  (3 pts of final coordinate space)
- *              ptas  (3 pts of initial coordinate space)
- *              pixg (<optional> 8 bpp, can be null)
- *              fract (between 0.0 and 1.0, with 0.0 fully transparent
- *                     and 1.0 fully opaque)
- *              border (of pixels added to capture transformed source pixels)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs 32 bpp rgb
+ * \param[in]    ptad  3 pts of final coordinate space
+ * \param[in]    ptas  3 pts of initial coordinate space
+ * \param[in]    pixg [optional] 8 bpp, can be null
+ * \param[in]    fract between 0.0 and 1.0, with 0.0 fully transparent
+ *                     and 1.0 fully opaque
+ * \param[in]    border of pixels added to capture transformed source pixels
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The alpha channel is transformed separately from pixs,
  *          and aligns with it, being fully transparent outside the
  *          boundary of the transformed pixs.  For pixels that are fully
@@ -765,6 +776,7 @@ PIX       *pixd;
  *              with an image below, and
  *          (b) softens the edges by weakening the aliasing there.
  *          Use l_setAlphaMaskBorder() to change these values.
+ * </pre>
  */
 PIX *
 pixAffinePtaWithAlpha(PIX       *pixs,
@@ -845,16 +857,16 @@ PTA     *ptad2, *ptas2;
  *                 Affine coordinate transformation            *
  *-------------------------------------------------------------*/
 /*!
- *  getAffineXformCoeffs()
+ * \brief   getAffineXformCoeffs()
  *
- *      Input:  ptas  (source 3 points; unprimed)
- *              ptad  (transformed 3 points; primed)
- *              &vc   (<return> vector of coefficients of transform)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    ptas  source 3 points; unprimed
+ * \param[in]    ptad  transformed 3 points; primed
+ * \param[out]   pvc   vector of coefficients of transform
+ * \return  0 if OK; 1 on error
  *
  *  We have a set of six equations, describing the affine
- *  transformation that takes 3 points (ptas) into 3 other
- *  points (ptad).  These equations are:
+ *  transformation that takes 3 points ptas into 3 other
+ *  points ptad.  These equations are:
  *
  *          x1' = c[0]*x1 + c[1]*y1 + c[2]
  *          y1' = c[3]*x1 + c[4]*y1 + c[5]
@@ -884,13 +896,13 @@ PTA     *ptad2, *ptas2;
  *  These six equations are solved here for the coefficients C.
  *
  *  These six coefficients can then be used to find the dest
- *  point (x',y') corresponding to any src point (x,y), according
+ *  point x',y') corresponding to any src point (x,y, according
  *  to the equations
  *
  *           x' = c[0]x + c[1]y + c[2]
  *           y' = c[3]x + c[4]y + c[5]
  *
- *  that are implemented in affineXformPt().
+ *  that are implemented in affineXformPt.
  *
  *  !!!!!!!!!!!!!!!!!!   Very important   !!!!!!!!!!!!!!!!!!!!!!
  *
@@ -907,9 +919,9 @@ PTA     *ptad2, *ptas2;
  *  For example, if you transform a boxa with a 3x3 affine matrix
  *  'mat', the analogous image transformation must use 'matinv':
  *
- *     boxad = boxaAffineTransform(boxas, mat);
- *     affineInvertXform(mat, &matinv);
- *     pixd = pixAffine(pixs, matinv, L_BRING_IN_WHITE);
+ *     boxad = boxaAffineTransformboxas, mat;
+ *     affineInvertXformmat, &matinv;
+ *     pixd = pixAffinepixs, matinv, L_BRING_IN_WHITE;
  *
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
@@ -976,13 +988,14 @@ l_float32  *a[6];  /* 6x6 matrix A  */
 
 
 /*!
- *  affineInvertXform()
+ * \brief   affineInvertXform()
  *
- *      Input:  vc (vector of 6 coefficients)
- *              &vci (<return> inverted transform)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    vc vector of 6 coefficients
+ * \param[out]   pvci inverted transform
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The 6 affine transform coefficients are the first
  *          two rows of a 3x3 matrix where the last row has
  *          only a 1 in the third column.  We invert this
@@ -1003,6 +1016,7 @@ l_float32  *a[6];  /* 6x6 matrix A  */
  *          and puts the solution for F, which is A'R,
  *          into the input R vector.
  *
+ * </pre>
  */
 l_int32
 affineInvertXform(l_float32   *vc,
@@ -1066,16 +1080,18 @@ l_float32   b[3] = {1.0, 1.0, 1.0};   /* anything; results ignored */
 
 
 /*!
- *  affineXformSampledPt()
+ * \brief   affineXformSampledPt()
  *
- *      Input:  vc (vector of 6 coefficients)
- *              (x, y)  (initial point)
- *              (&xp, &yp)   (<return> transformed point)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    vc vector of 6 coefficients
+ * \param[in]    x, y  initial point
+ * \param[out]   pxp, pyp   transformed point
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This finds the nearest pixel coordinates of the transformed point.
  *      (2) It does not check ptrs for returned data!
+ * </pre>
  */
 l_int32
 affineXformSampledPt(l_float32  *vc,
@@ -1096,16 +1112,18 @@ affineXformSampledPt(l_float32  *vc,
 
 
 /*!
- *  affineXformPt()
+ * \brief   affineXformPt()
  *
- *      Input:  vc (vector of 6 coefficients)
- *              (x, y)  (initial point)
- *              (&xp, &yp)   (<return> transformed point)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    vc vector of 6 coefficients
+ * \param[in]    x, y  initial point
+ * \param[out]   pxp, pyp   transformed point
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This computes the floating point location of the transformed point.
  *      (2) It does not check ptrs for returned data!
+ * </pre>
  */
 l_int32
 affineXformPt(l_float32  *vc,
@@ -1129,22 +1147,24 @@ affineXformPt(l_float32  *vc,
  *                 Interpolation helper functions              *
  *-------------------------------------------------------------*/
 /*!
- *  linearInterpolatePixelColor()
+ * \brief   linearInterpolatePixelColor()
  *
- *      Input:  datas (ptr to beginning of image data)
- *              wpls (32-bit word/line for this data array)
- *              w, h (of image)
- *              x, y (floating pt location for evaluation)
- *              colorval (color brought in from the outside when the
+ * \param[in]    datas ptr to beginning of image data
+ * \param[in]    wpls 32-bit word/line for this data array
+ * \param[in]    w, h of image
+ * \param[in]    x, y floating pt location for evaluation
+ * \param[in]    colorval color brought in from the outside when the
  *                        input x,y location is outside the image;
- *                        in 0xrrggbb00 format))
- *              &val (<return> interpolated color value)
- *      Return: 0 if OK, 1 on error
+ *                        in 0xrrggbb00 format)
+ * \param[out]   pval interpolated color value
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a standard linear interpolation function.  It is
  *          equivalent to area weighting on each component, and
  *          avoids "jaggies" when rendering sharp edges.
+ * </pre>
  */
 l_int32
 linearInterpolatePixelColor(l_uint32  *datas,
@@ -1212,21 +1232,23 @@ l_uint32  *lines;
 
 
 /*!
- *  linearInterpolatePixelGray()
+ * \brief   linearInterpolatePixelGray()
  *
- *      Input:  datas (ptr to beginning of image data)
- *              wpls (32-bit word/line for this data array)
- *              w, h (of image)
- *              x, y (floating pt location for evaluation)
- *              grayval (color brought in from the outside when the
- *                       input x,y location is outside the image)
- *              &val (<return> interpolated gray value)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    datas ptr to beginning of image data
+ * \param[in]    wpls 32-bit word/line for this data array
+ * \param[in]    w, h of image
+ * \param[in]    x, y floating pt location for evaluation
+ * \param[in]    grayval color brought in from the outside when the
+ *                       input x,y location is outside the image
+ * \param[out]   pval interpolated gray value
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a standard linear interpolation function.  It is
  *          equivalent to area weighting on each component, and
  *          avoids "jaggies" when rendering sharp edges.
+ * </pre>
  */
 l_int32
 linearInterpolatePixelGray(l_uint32  *datas,
@@ -1285,14 +1307,15 @@ l_uint32  *lines;
 #define  SWAP(a,b)   {temp = (a); (a) = (b); (b) = temp;}
 
 /*!
- *  gaussjordan()
+ * \brief   gaussjordan()
  *
- *      Input:  a  (n x n matrix)
- *              b  (n x 1 right-hand side column vector)
- *              n  (dimension)
- *      Return: 0 if ok, 1 on error
+ * \param[in]    a  n x n matrix
+ * \param[in]    b  n x 1 right-hand side column vector
+ * \param[in]    n  dimension
+ * \return  0 if ok, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) There are two side-effects:
  *          * The matrix a is transformed to its inverse A
  *          * The rhs vector b is transformed to the solution x
@@ -1301,6 +1324,7 @@ l_uint32  *lines;
  *          different rhs vectors c by multiplication: x = Ac
  *      (3) Adapted from "Numerical Recipes in C, Second Edition", 1992,
  *          pp. 36-41 (gauss-jordan elimination)
+ * </pre>
  */
 l_int32
 gaussjordan(l_float32  **a,
@@ -1389,16 +1413,17 @@ l_float32  maxval, val, pivinv, temp;
  *              Sequential affine image transformation         *
  *-------------------------------------------------------------*/
 /*!
- *  pixAffineSequential()
+ * \brief   pixAffineSequential()
  *
- *      Input:  pixs
- *              ptad  (3 pts of final coordinate space)
- *              ptas  (3 pts of initial coordinate space)
- *              bw    (pixels of additional border width during computation)
- *              bh    (pixels of additional border height during computation)
- *      Return: pixd, or NULL on error
+ * \param[in]    pixs
+ * \param[in]    ptad  3 pts of final coordinate space
+ * \param[in]    ptas  3 pts of initial coordinate space
+ * \param[in]    bw    pixels of additional border width during computation
+ * \param[in]    bh    pixels of additional border height during computation
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The 3 pts must not be collinear.
  *      (2) The 3 pts must be given in this order:
  *           ~ origin
@@ -1413,6 +1438,7 @@ l_float32  maxval, val, pivinv, temp;
  *      (4) This is here for pedagogical reasons.  It is about 3x faster
  *          on 1 bpp images than pixAffineSampled(), but the results
  *          on text are much inferior.
+ * </pre>
  */
 PIX *
 pixAffineSequential(PIX     *pixs,

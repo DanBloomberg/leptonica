@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   dnabasic.c
+/*!
+ * \file  dnabasic.c
+ * <pre>
  *
  *      Dna creation, destruction, copy, clone, etc.
  *          L_DNA       *l_dnaCreate()
@@ -121,13 +122,13 @@
  *           (a) return a l_float64 and cast it to an l_int32
  *           (b) cast the return directly to (l_float64 *) to
  *               satisfy the function prototype, as in
- *                 l_dnaGetDValue(da, index, (l_float64 *)&ival);   [ugly!]
+ *                 l_dnaGetDValue(da, index, (l_float64 *)\&ival);   [ugly!]
  *
- *    (4) int <--> double conversions:
+ *    (4) int \<--\> double conversions:
  *
- *        Conversions go automatically from l_int32 --> l_float64,
+ *        Conversions go automatically from l_int32 --\> l_float64,
  *        without loss of precision.  You must cast (l_int32)
- *        to go from l_float64 --> l_int32 because you're truncating
+ *        to go from l_float64 --\> l_int32 because you're truncating
  *        to the integer value.
  *
  *    (5) As with other arrays in leptonica, the l_dna has both an allocated
@@ -147,6 +148,7 @@
  *        startx and delx are initialized to 0.0 and 1.0, rsp.
  *        For arbitrary spacings, we use a second l_dna, and the two
  *        l_dnas are typically denoted dnay and dnax.
+ * </pre>
  */
 
 #include <string.h>
@@ -164,10 +166,10 @@ static l_int32 l_dnaaExtendArray(L_DNAA *daa);
  *                 Dna creation, destruction, copy, clone, etc.             *
  *--------------------------------------------------------------------------*/
 /*!
- *  l_dnaCreate()
+ * \brief   l_dnaCreate()
  *
- *      Input:  n (size of number array to be alloc'd; 0 for default)
- *      Return: da, or NULL on error
+ * \param[in]    n size of number array to be alloc'd; 0 for default
+ * \return  da, or NULL on error
  */
 L_DNA *
 l_dnaCreate(l_int32  n)
@@ -195,17 +197,19 @@ L_DNA  *da;
 
 
 /*!
- *  l_dnaCreateFromIArray()
+ * \brief   l_dnaCreateFromIArray()
  *
- *      Input:  iarray (integer)
- *              size (of the array)
- *      Return: da, or NULL on error
+ * \param[in]    iarray integer
+ * \param[in]    size of the array
+ * \return  da, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We can't insert this int array into the l_dna, because a l_dna
  *          takes a double array.  So this just copies the data from the
  *          input array into the l_dna.  The input array continues to be
  *          owned by the caller.
+ * </pre>
  */
 L_DNA *
 l_dnaCreateFromIArray(l_int32  *iarray,
@@ -230,17 +234,19 @@ L_DNA   *da;
 
 
 /*!
- *  l_dnaCreateFromDArray()
+ * \brief   l_dnaCreateFromDArray()
  *
- *      Input:  darray (float)
- *              size (of the array)
- *              copyflag (L_INSERT or L_COPY)
- *      Return: da, or NULL on error
+ * \param[in]    darray float
+ * \param[in]    size of the array
+ * \param[in]    copyflag L_INSERT or L_COPY
+ * \return  da, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) With L_INSERT, ownership of the input array is transferred
  *          to the returned l_dna, and all %size elements are considered
  *          to be valid.
+ * </pre>
  */
 L_DNA *
 l_dnaCreateFromDArray(l_float64  *darray,
@@ -274,12 +280,12 @@ L_DNA   *da;
 
 
 /*!
- *  l_dnaMakeSequence()
+ * \brief   l_dnaMakeSequence()
  *
- *      Input:  startval
- *              increment
- *              size (of sequence)
- *      Return: l_dna of sequence of evenly spaced values, or NULL on error
+ * \param[in]    startval
+ * \param[in]    increment
+ * \param[in]    size of sequence
+ * \return  l_dna of sequence of evenly spaced values, or NULL on error
  */
 L_DNA *
 l_dnaMakeSequence(l_float64  startval,
@@ -305,14 +311,16 @@ L_DNA     *da;
 
 
 /*!
- *  l_dnaDestroy()
+ * \brief   l_dnaDestroy()
  *
- *      Input:  &da (<inout> to be nulled if it exists)
- *      Return: void
+ * \param[in,out]   pda to be nulled if it exists
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Decrements the ref count and, if 0, destroys the l_dna.
  *      (2) Always nulls the input ptr.
+ * </pre>
  */
 void
 l_dnaDestroy(L_DNA  **pda)
@@ -343,13 +351,15 @@ L_DNA  *da;
 
 
 /*!
- *  l_dnaCopy()
+ * \brief   l_dnaCopy()
  *
- *      Input:  da
- *      Return: copy of da, or NULL on error
+ * \param[in]    da
+ * \return  copy of da, or NULL on error
  *
- *  Notes:
- *      (1) This removes unused ptrs above da->n.
+ * <pre>
+ * Notes:
+ *      (1) This removes unused ptrs above da-\>n.
+ * </pre>
  */
 L_DNA *
 l_dnaCopy(L_DNA  *da)
@@ -375,10 +385,10 @@ L_DNA   *dac;
 
 
 /*!
- *  l_dnaClone()
+ * \brief   l_dnaClone()
  *
- *      Input:  da
- *      Return: ptr to same da, or NULL on error
+ * \param[in]    da
+ * \return  ptr to same da, or NULL on error
  */
 L_DNA *
 l_dnaClone(L_DNA  *da)
@@ -394,15 +404,17 @@ l_dnaClone(L_DNA  *da)
 
 
 /*!
- *  l_dnaEmpty()
+ * \brief   l_dnaEmpty()
  *
- *      Input:  da
- *      Return: 0 if OK; 1 on error
+ * \param[in]    da
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does not change the allocation of the array.
  *          It just clears the number of stored numbers, so that
  *          the array appears to be empty.
+ * </pre>
  */
 l_int32
 l_dnaEmpty(L_DNA  *da)
@@ -422,11 +434,11 @@ l_dnaEmpty(L_DNA  *da)
  *                  Dna: add/remove number and extend array                 *
  *--------------------------------------------------------------------------*/
 /*!
- *  l_dnaAddNumber()
+ * \brief   l_dnaAddNumber()
  *
- *      Input:  da
- *              val  (float or int to be added; stored as a float)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \param[in]    val  float or int to be added; stored as a float
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaAddNumber(L_DNA     *da,
@@ -449,10 +461,10 @@ l_int32  n;
 
 
 /*!
- *  l_dnaExtendArray()
+ * \brief   l_dnaExtendArray()
  *
- *      Input:  da
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 l_dnaExtendArray(L_DNA  *da)
@@ -473,19 +485,21 @@ l_dnaExtendArray(L_DNA  *da)
 
 
 /*!
- *  l_dnaInsertNumber()
+ * \brief   l_dnaInsertNumber()
  *
- *      Input:  da
- *              index (location in da to insert new value)
- *              val  (float64 or integer to be added)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \param[in]    index location in da to insert new value
+ * \param[in]    val  float64 or integer to be added
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) This shifts da[i] --> da[i + 1] for all i >= index,
+ * <pre>
+ * Notes:
+ *      (1) This shifts da[i] --\> da[i + 1] for all i \>= index,
  *          and then inserts val as da[index].
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
  *
+ * </pre>
  */
 l_int32
 l_dnaInsertNumber(L_DNA      *da,
@@ -513,16 +527,18 @@ l_int32  i, n;
 
 
 /*!
- *  l_dnaRemoveNumber()
+ * \brief   l_dnaRemoveNumber()
  *
- *      Input:  da
- *              index (element to be removed)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \param[in]    index element to be removed
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) This shifts da[i] --> da[i - 1] for all i > index.
+ * <pre>
+ * Notes:
+ *      (1) This shifts da[i] --\> da[i - 1] for all i \> index.
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
+ * </pre>
  */
 l_int32
 l_dnaRemoveNumber(L_DNA   *da,
@@ -546,12 +562,12 @@ l_int32  i, n;
 
 
 /*!
- *  l_dnaReplaceNumber()
+ * \brief   l_dnaReplaceNumber()
  *
- *      Input:  da
- *              index (element to be replaced)
- *              val (new value to replace old one)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \param[in]    index element to be replaced
+ * \param[in]    val new value to replace old one
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaReplaceNumber(L_DNA     *da,
@@ -577,10 +593,10 @@ l_int32  n;
  *                             Dna accessors                            *
  *----------------------------------------------------------------------*/
 /*!
- *  l_dnaGetCount()
+ * \brief   l_dnaGetCount()
  *
- *      Input:  da
- *      Return: count, or 0 if no numbers or on error
+ * \param[in]    da
+ * \return  count, or 0 if no numbers or on error
  */
 l_int32
 l_dnaGetCount(L_DNA  *da)
@@ -594,18 +610,20 @@ l_dnaGetCount(L_DNA  *da)
 
 
 /*!
- *  l_dnaSetCount()
+ * \brief   l_dnaSetCount()
  *
- *      Input:  da
- *              newcount
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \param[in]    newcount
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) If newcount <= da->nalloc, this resets da->n.
+ * <pre>
+ * Notes:
+ *      (1) If newcount \<= da-\>nalloc, this resets da-\>n.
  *          Using newcount = 0 is equivalent to l_dnaEmpty().
- *      (2) If newcount > da->nalloc, this causes a realloc
- *          to a size da->nalloc = newcount.
+ *      (2) If newcount \> da-\>nalloc, this causes a realloc
+ *          to a size da-\>nalloc = newcount.
  *      (3) All the previously unused values in da are set to 0.0.
+ * </pre>
  */
 l_int32
 l_dnaSetCount(L_DNA   *da,
@@ -628,16 +646,18 @@ l_dnaSetCount(L_DNA   *da,
 
 
 /*!
- *  l_dnaGetDValue()
+ * \brief   l_dnaGetDValue()
  *
- *      Input:  da
- *              index (into l_dna)
- *              &val  (<return> double value; 0.0 on error)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    da
+ * \param[in]    index into l_dna
+ * \param[out]   pval  double value; 0.0 on error
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Caller may need to check the function return value to
  *          decide if a 0.0 in the returned ival is valid.
+ * </pre>
  */
 l_int32
 l_dnaGetDValue(L_DNA      *da,
@@ -661,16 +681,18 @@ l_dnaGetDValue(L_DNA      *da,
 
 
 /*!
- *  l_dnaGetIValue()
+ * \brief   l_dnaGetIValue()
  *
- *      Input:  da
- *              index (into l_dna)
- *              &ival  (<return> integer value; 0 on error)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    da
+ * \param[in]    index into l_dna
+ * \param[out]   pival  integer value; 0 on error
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Caller may need to check the function return value to
  *          decide if a 0 in the returned ival is valid.
+ * </pre>
  */
 l_int32
 l_dnaGetIValue(L_DNA    *da,
@@ -697,12 +719,12 @@ l_float64  val;
 
 
 /*!
- *  l_dnaSetValue()
+ * \brief   l_dnaSetValue()
  *
- *      Input:  da
- *              index  (to element to be set)
- *              val  (to set element)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    da
+ * \param[in]    index  to element to be set
+ * \param[in]    val  to set element
+ * \return  0 if OK; 1 on error
  */
 l_int32
 l_dnaSetValue(L_DNA     *da,
@@ -722,12 +744,12 @@ l_dnaSetValue(L_DNA     *da,
 
 
 /*!
- *  l_dnaShiftValue()
+ * \brief   l_dnaShiftValue()
  *
- *      Input:  da
- *              index (to element to change relative to the current value)
- *              diff  (increment if diff > 0 or decrement if diff < 0)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    da
+ * \param[in]    index to element to change relative to the current value
+ * \param[in]    diff  increment if diff > 0 or decrement if diff < 0
+ * \return  0 if OK; 1 on error
  */
 l_int32
 l_dnaShiftValue(L_DNA     *da,
@@ -747,12 +769,13 @@ l_dnaShiftValue(L_DNA     *da,
 
 
 /*!
- *  l_dnaGetIArray()
+ * \brief   l_dnaGetIArray()
  *
- *      Input:  da
- *      Return: a copy of the bare internal array, integerized
+ * \param[in]    da
+ * \return  a copy of the bare internal array, integerized
  *              by rounding, or NULL on error
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) A copy of the array is made, because we need to
  *          generate an integer array from the bare double array.
  *          The caller is responsible for freeing the array.
@@ -762,6 +785,7 @@ l_dnaShiftValue(L_DNA     *da,
  *          using the bare internal array, rather than continually
  *          calling accessors on the l_dna.  It is typically used
  *          on an array of size 256.
+ * </pre>
  */
 l_int32 *
 l_dnaGetIArray(L_DNA  *da)
@@ -787,14 +811,15 @@ l_int32  *array;
 
 
 /*!
- *  l_dnaGetDArray()
+ * \brief   l_dnaGetDArray()
  *
- *      Input:  da
- *              copyflag (L_NOCOPY or L_COPY)
- *      Return: either the bare internal array or a copy of it,
+ * \param[in]    da
+ * \param[in]    copyflag L_NOCOPY or L_COPY
+ * \return  either the bare internal array or a copy of it,
  *              or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If copyflag == L_COPY, it makes a copy which the caller
  *          is responsible for freeing.  Otherwise, it operates
  *          directly on the bare array of the l_dna.
@@ -805,6 +830,7 @@ l_int32  *array;
  *          field to a larger number (such as the alloc size)
  *          BEFORE calling this function.  Creating with l_dnaMakeConstant()
  *          is another way to insure full initialization.
+ * </pre>
  */
 l_float64 *
 l_dnaGetDArray(L_DNA   *da,
@@ -833,10 +859,10 @@ l_float64  *array;
 
 
 /*!
- *  l_dnaGetRefCount()
+ * \brief   l_dnaGetRefCount()
  *
- *      Input:  da
- *      Return: refcount, or UNDEF on error
+ * \param[in]    da
+ * \return  refcount, or UNDEF on error
  */
 l_int32
 l_dnaGetRefcount(L_DNA  *da)
@@ -850,11 +876,11 @@ l_dnaGetRefcount(L_DNA  *da)
 
 
 /*!
- *  l_dnaChangeRefCount()
+ * \brief   l_dnaChangeRefCount()
  *
- *      Input:  da
- *              delta (change to be applied)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \param[in]    delta change to be applied
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaChangeRefcount(L_DNA   *da,
@@ -870,12 +896,12 @@ l_dnaChangeRefcount(L_DNA   *da,
 
 
 /*!
- *  l_dnaGetParameters()
+ * \brief   l_dnaGetParameters()
  *
- *      Input:  da
- *              &startx (<optional return> startx)
- *              &delx (<optional return> delx)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    da
+ * \param[out]   pstartx [optional] startx
+ * \param[out]   pdelx [optional] delx
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaGetParameters(L_DNA     *da,
@@ -898,14 +924,14 @@ l_dnaGetParameters(L_DNA     *da,
 
 
 /*!
- *  l_dnaSetParameters()
+ * \brief   l_dnaSetParameters()
  *
- *      Input:  da
- *              startx (x value corresponding to da[0])
- *              delx (difference in x values for the situation where the
+ * \param[in]    da
+ * \param[in]    startx x value corresponding to da[0]
+ * \param[in]    delx difference in x values for the situation where the
  *                    elements of da correspond to the evaulation of a
- *                    function at equal intervals of size %delx)
- *      Return: 0 if OK, 1 on error
+ *                    function at equal intervals of size %delx
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaSetParameters(L_DNA     *da,
@@ -924,11 +950,11 @@ l_dnaSetParameters(L_DNA     *da,
 
 
 /*!
- *  l_dnaCopyParameters()
+ * \brief   l_dnaCopyParameters()
  *
- *      Input:  dad (destination DNuma)
- *              das (source DNuma)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dad destination DNuma
+ * \param[in]    das source DNuma
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaCopyParameters(L_DNA  *dad,
@@ -951,10 +977,10 @@ l_float64  start, binsize;
  *                        Serialize Dna for I/O                         *
  *----------------------------------------------------------------------*/
 /*!
- *  l_dnaRead()
+ * \brief   l_dnaRead()
  *
- *      Input:  filename
- *      Return: da, or NULL on error
+ * \param[in]    filename
+ * \return  da, or NULL on error
  */
 L_DNA *
 l_dnaRead(const char  *filename)
@@ -981,13 +1007,15 @@ L_DNA  *da;
 
 
 /*!
- *  l_dnaReadStream()
+ * \brief   l_dnaReadStream()
  *
- *      Input:  fp (file stream)
- *      Return: da, or NULL on error
+ * \param[in]    fp file stream
+ * \return  da, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) fscanf takes %lf to read a double; fprintf takes %f to write it.
+ * </pre>
  */
 L_DNA *
 l_dnaReadStream(FILE  *fp)
@@ -1027,10 +1055,10 @@ L_DNA     *da;
 
 
 /*!
- *  l_dnaWrite()
+ * \brief   l_dnaWrite()
  *
- *      Input:  filename, da
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename, da
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaWrite(const char  *filename,
@@ -1056,11 +1084,11 @@ FILE  *fp;
 
 
 /*!
- *  l_dnaWriteStream()
+ * \brief   l_dnaWriteStream()
  *
- *      Input:  fp (file stream)
- *              da
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+ * \param[in]    da
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaWriteStream(FILE   *fp,
@@ -1096,10 +1124,10 @@ l_float64  startx, delx;
  *                       Dnaa creation, destruction                         *
  *--------------------------------------------------------------------------*/
 /*!
- *  l_dnaaCreate()
+ * \brief   l_dnaaCreate()
  *
- *      Input:  size of l_dna ptr array to be alloc'd (0 for default)
- *      Return: daa, or NULL on error
+ * \param[in]    size of l_dna ptr array to be alloc'd 0 for default
+ * \return  daa, or NULL on error
  *
  */
 L_DNAA *
@@ -1125,17 +1153,19 @@ L_DNAA  *daa;
 
 
 /*!
- *  l_dnaaCreateFull()
+ * \brief   l_dnaaCreateFull()
  *
- *      Input:  nptr: size of dna ptr array to be alloc'd
- *              n: size of individual dna arrays to be alloc'd (0 for default)
- *      Return: daa, or NULL on error
+ * \param[in]    nptr: size of dna ptr array to be alloc'd
+ * \param[in]    n: size of individual dna arrays to be alloc'd 0 for default
+ * \return  daa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This allocates a dnaa and fills the array with allocated dnas.
  *          In use, after calling this function, use
  *              l_dnaaAddNumber(dnaa, index, val);
  *          to add val to the index-th dna in dnaa.
+ * </pre>
  */
 L_DNAA *
 l_dnaaCreateFull(l_int32  nptr,
@@ -1156,15 +1186,17 @@ L_DNA   *da;
 
 
 /*!
- *  l_dnaaTruncate()
+ * \brief   l_dnaaTruncate()
  *
- *      Input:  daa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    daa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This identifies the largest index containing a dna that
  *          has any numbers within it, destroys all dna beyond that
  *          index, and resets the count.
+ * </pre>
  */
 l_int32
 l_dnaaTruncate(L_DNAA  *daa)
@@ -1195,10 +1227,10 @@ L_DNA   *da;
 
 
 /*!
- *  l_dnaaDestroy()
+ * \brief   l_dnaaDestroy()
  *
- *      Input: &dnaa <to be nulled if it exists>
- *      Return: void
+ * \param[in]   &dnaa <to be nulled if it exists>
+ * \return  void
  */
 void
 l_dnaaDestroy(L_DNAA  **pdaa)
@@ -1230,12 +1262,12 @@ L_DNAA  *daa;
  *                             Add Dna to Dnaa                              *
  *--------------------------------------------------------------------------*/
 /*!
- *  l_dnaaAddDna()
+ * \brief   l_dnaaAddDna()
  *
- *      Input:  daa
- *              da   (to be added)
- *              copyflag  (L_INSERT, L_COPY, L_CLONE)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    daa
+ * \param[in]    da   to be added
+ * \param[in]    copyflag  L_INSERT, L_COPY, L_CLONE
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaaAddDna(L_DNAA  *daa,
@@ -1273,10 +1305,10 @@ L_DNA   *dac;
 
 
 /*!
- *  l_dnaaExtendArray()
+ * \brief   l_dnaaExtendArray()
  *
- *      Input:  daa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    daa
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 l_dnaaExtendArray(L_DNAA  *daa)
@@ -1300,10 +1332,10 @@ l_dnaaExtendArray(L_DNAA  *daa)
  *                           DNumaa accessors                           *
  *----------------------------------------------------------------------*/
 /*!
- *  l_dnaaGetCount()
+ * \brief   l_dnaaGetCount()
  *
- *      Input:  daa
- *      Return: count (number of l_dna), or 0 if no l_dna or on error
+ * \param[in]    daa
+ * \return  count number of l_dna, or 0 if no l_dna or on error
  */
 l_int32
 l_dnaaGetCount(L_DNAA  *daa)
@@ -1317,11 +1349,11 @@ l_dnaaGetCount(L_DNAA  *daa)
 
 
 /*!
- *  l_dnaaGetDnaCount()
+ * \brief   l_dnaaGetDnaCount()
  *
- *      Input:  daa
- *              index (of l_dna in daa)
- *      Return: count of numbers in the referenced l_dna, or 0 on error.
+ * \param[in]    daa
+ * \param[in]    index of l_dna in daa
+ * \return  count of numbers in the referenced l_dna, or 0 on error.
  */
 l_int32
 l_dnaaGetDnaCount(L_DNAA   *daa,
@@ -1338,10 +1370,10 @@ l_dnaaGetDnaCount(L_DNAA   *daa,
 
 
 /*!
- *  l_dnaaGetNumberCount()
+ * \brief   l_dnaaGetNumberCount()
  *
- *      Input:  daa
- *      Return: count (total number of numbers in the l_dnaa),
+ * \param[in]    daa
+ * \return  count total number of numbers in the l_dnaa,
  *                     or 0 if no numbers or on error
  */
 l_int32
@@ -1367,12 +1399,12 @@ l_int32  n, sum, i;
 
 
 /*!
- *  l_dnaaGetDna()
+ * \brief   l_dnaaGetDna()
  *
- *      Input:  daa
- *              index  (to the index-th l_dna)
- *              accessflag   (L_COPY or L_CLONE)
- *      Return: l_dna, or NULL on error
+ * \param[in]    daa
+ * \param[in]    index  to the index-th l_dna
+ * \param[in]    accessflag   L_COPY or L_CLONE
+ * \return  l_dna, or NULL on error
  */
 L_DNA *
 l_dnaaGetDna(L_DNAA  *daa,
@@ -1396,17 +1428,19 @@ l_dnaaGetDna(L_DNAA  *daa,
 
 
 /*!
- *  l_dnaaReplaceDna()
+ * \brief   l_dnaaReplaceDna()
  *
- *      Input:  daa
- *              index  (to the index-th l_dna)
- *              da (insert and replace any existing one)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    daa
+ * \param[in]    index  to the index-th l_dna
+ * \param[in]    da insert and replace any existing one
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Any existing l_dna is destroyed, and the input one
  *          is inserted in its place.
  *      (2) If the index is invalid, return 1 (error)
+ * </pre>
  */
 l_int32
 l_dnaaReplaceDna(L_DNAA  *daa,
@@ -1432,13 +1466,13 @@ l_int32  n;
 
 
 /*!
- *  l_dnaaGetValue()
+ * \brief   l_dnaaGetValue()
  *
- *      Input:  daa
- *              i (index of l_dna within l_dnaa)
- *              j (index into l_dna)
- *              &val (<return> double value)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    daa
+ * \param[in]    i index of l_dna within l_dnaa
+ * \param[in]    j index into l_dna
+ * \param[out]   pval double value
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaaGetValue(L_DNAA     *daa,
@@ -1468,15 +1502,17 @@ L_DNA   *da;
 
 
 /*!
- *  l_dnaaAddNumber()
+ * \brief   l_dnaaAddNumber()
  *
- *      Input:  daa
- *              index (of l_dna within l_dnaa)
- *              val  (number to be added; stored as a double)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    daa
+ * \param[in]    index of l_dna within l_dnaa
+ * \param[in]    val  number to be added; stored as a double
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Adds to an existing l_dna only.
+ * </pre>
  */
 l_int32
 l_dnaaAddNumber(L_DNAA    *daa,
@@ -1505,10 +1541,10 @@ L_DNA   *da;
  *                        Serialize Dna for I/O                         *
  *----------------------------------------------------------------------*/
 /*!
- *  l_dnaaRead()
+ * \brief   l_dnaaRead()
  *
- *      Input:  filename
- *      Return: daa, or NULL on error
+ * \param[in]    filename
+ * \return  daa, or NULL on error
  */
 L_DNAA *
 l_dnaaRead(const char  *filename)
@@ -1535,10 +1571,10 @@ L_DNAA  *daa;
 
 
 /*!
- *  l_dnaaReadStream()
+ * \brief   l_dnaaReadStream()
  *
- *      Input:  fp (file stream)
- *      Return: daa, or NULL on error
+ * \param[in]    fp file stream
+ * \return  daa, or NULL on error
  */
 L_DNAA *
 l_dnaaReadStream(FILE  *fp)
@@ -1575,10 +1611,10 @@ L_DNAA    *daa;
 
 
 /*!
- *  l_dnaaWrite()
+ * \brief   l_dnaaWrite()
  *
- *      Input:  filename, daa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename, daa
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaaWrite(const char  *filename,
@@ -1604,11 +1640,11 @@ FILE  *fp;
 
 
 /*!
- *  l_dnaaWriteStream()
+ * \brief   l_dnaaWriteStream()
  *
- *      Input:  fp (file stream)
- *              daa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream
+ * \param[in]    daa
+ * \return  0 if OK, 1 on error
  */
 l_int32
 l_dnaaWriteStream(FILE    *fp,
@@ -1643,10 +1679,10 @@ L_DNA   *da;
  *                         Other Dna functions                          *
  *----------------------------------------------------------------------*/
 /*!
- *  l_dnaMakeDelta()
+ * \brief   l_dnaMakeDelta()
  *
- *      Input:  das (input l_dna)
- *      Return: dad (of difference values val[i+1] - val[i]),
+ * \param[in]    das input l_dna
+ * \return  dad of difference values val[i+1] - val[i],
  *                   or NULL on error
  */
 L_DNA *
@@ -1672,10 +1708,10 @@ L_DNA   *dad;
 
 
 /*!
- *  l_dnaConvertToNuma()
+ * \brief   l_dnaConvertToNuma()
  *
- *      Input:  da
- *      Return: na, or NULL on error
+ * \param[in]    da
+ * \return  na, or NULL on error
  */
 NUMA *
 l_dnaConvertToNuma(L_DNA  *da)
@@ -1700,10 +1736,10 @@ NUMA      *na;
 
 
 /*!
- *  numaConvertToDna
+ * \brief   numaConvertToDna
  *
- *      Input:  na
- *      Return: da, or NULL on error
+ * \param[in]    na
+ * \return  da, or NULL on error
  */
 L_DNA *
 numaConvertToDna(NUMA  *na)
@@ -1728,18 +1764,20 @@ L_DNA     *da;
 
 
 /*!
- *  l_dnaJoin()
+ * \brief   l_dnaJoin()
  *
- *      Input:  dad  (dest dna; add to this one)
- *              das  (<optional> source dna; add from this one)
- *              istart  (starting index in das)
- *              iend  (ending index in das; use -1 to cat all)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    dad  dest dna; add to this one
+ * \param[in]    das  [optional] source dna; add from this one
+ * \param[in]    istart  starting index in das
+ * \param[in]    iend  ending index in das; use -1 to cat all
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) istart < 0 is taken to mean 'read from the start' (istart = 0)
- *      (2) iend < 0 means 'read to the end'
+ * <pre>
+ * Notes:
+ *      (1) istart \< 0 is taken to mean 'read from the start' (istart = 0)
+ *      (2) iend \< 0 means 'read to the end'
  *      (3) if das == NULL, this is a no-op
+ * </pre>
  */
 l_int32
 l_dnaJoin(L_DNA   *dad,
@@ -1772,5 +1810,3 @@ l_float64  val;
 
     return 0;
 }
-
-

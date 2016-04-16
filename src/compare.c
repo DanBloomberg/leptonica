@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  compare.c
+/*!
+ * \file compare.c
+ * <pre>
  *
  *      Test for pix equality
  *           l_int32     pixEqual()
@@ -96,6 +97,7 @@
  *       and calls pixCompareTilesByHisto() to generate the histograms
  *       and do the comparison.
  *
+ * </pre>
  */
 
 #include <string.h>
@@ -114,14 +116,15 @@ static l_int32 pixCompareTilesByHisto(PIX *pix1, PIX *pix2, l_int32 maxgray,
  *                        Test for pix equality                     *
  *------------------------------------------------------------------*/
 /*!
- *  pixEqual()
+ * \brief   pixEqual()
  *
- *      Input:  pix1
- *              pix2
- *              &same  (<return> 1 if same; 0 if different)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1
+ * \param[in]    pix2
+ * \param[out]   psame  1 if same; 0 if different
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Equality is defined as having the same pixel values for
  *          each respective image pixel.
  *      (2) This works on two pix of any depth.  If one or both pix
@@ -140,6 +143,7 @@ static l_int32 pixCompareTilesByHisto(PIX *pix1, PIX *pix2, l_int32 maxgray,
  *          different depths.
  *      (6) For images without colormaps that are not 32 bpp, all bits
  *          in the image part of the data array must be identical.
+ * </pre>
  */
 l_int32
 pixEqual(PIX      *pix1,
@@ -151,19 +155,21 @@ pixEqual(PIX      *pix1,
 
 
 /*!
- *  pixEqualWithAlpha()
+ * \brief   pixEqualWithAlpha()
  *
- *      Input:  pix1
- *              pix2
- *              use_alpha (1 to compare alpha in RGBA; 0 to ignore)
- *              &same  (<return> 1 if same; 0 if different)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1
+ * \param[in]    pix2
+ * \param[in]    use_alpha 1 to compare alpha in RGBA; 0 to ignore
+ * \param[out]   psame  1 if same; 0 if different
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See notes in pixEqual().
  *      (2) This is more general than pixEqual(), in that for 32 bpp
  *          RGBA images, where spp = 4, you can optionally include
  *          the alpha component in the comparison.
+ * </pre>
  */
 l_int32
 pixEqualWithAlpha(PIX      *pix1,
@@ -350,14 +356,15 @@ PIXCMAP   *cmap1, *cmap2;
 
 
 /*!
- *  pixEqualWithCmap()
+ * \brief   pixEqualWithCmap()
  *
- *      Input:  pix1
- *              pix2
- *              &same
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1
+ * \param[in]    pix2
+ * \param[in]    &same
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This returns same = TRUE if the images have identical content.
  *      (2) Both pix must have a colormap, and be of equal size and depth.
  *          If these conditions are not satisfied, it is not an error;
@@ -366,6 +373,7 @@ PIXCMAP   *cmap1, *cmap2;
  *          the comparison proceeds 32 bits at a time.
  *      (4) If the colormaps are different, the comparison is done by
  *          slow brute force.
+ * </pre>
  */
 l_int32
 pixEqualWithCmap(PIX      *pix1,
@@ -471,13 +479,14 @@ PIXCMAP   *cmap1, *cmap2;
 
 
 /*!
- *  pixUsesCmapColor()
+ * \brief   pixUsesCmapColor()
  *
- *      Input:  pixs
- *              &color (<return> TRUE if color found)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs
+ * \param[out]   pcolor TRUE if color found
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This returns color = TRUE if three things are obtained:
  *          (a) the pix has a colormap
  *          (b) the colormap has at least one color entry
@@ -485,6 +494,7 @@ PIXCMAP   *cmap1, *cmap2;
  *      (2) It is used in pixEqual() for comparing two images, in a
  *          situation where it is required to know if the colormap
  *          has color entries that are actually used in the image.
+ * </pre>
  */
 l_int32
 pixUsesCmapColor(PIX      *pixs,
@@ -530,14 +540,15 @@ PIXCMAP  *cmap;
  *                          Binary correlation                      *
  *------------------------------------------------------------------*/
 /*!
- *  pixCorrelationBinary()
+ * \brief   pixCorrelationBinary()
  *
- *      Input:  pix1 (1 bpp)
- *              pix2 (1 bpp)
- *              &val (<return> correlation)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1 1 bpp
+ * \param[in]    pix2 1 bpp
+ * \param[out]   pval correlation
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The correlation is a number between 0.0 and 1.0,
  *          based on foreground similarity:
  *                           (|1 AND 2|)**2
@@ -549,6 +560,7 @@ PIXCMAP  *cmap;
  *          If one or both images have no fg pixels, the correlation is 0.0.
  *      (2) Typically the two images are of equal size, but this
  *          is not enforced.  Instead, the UL corners are aligned.
+ * </pre>
  */
 l_int32
 pixCorrelationBinary(PIX        *pix1,
@@ -585,13 +597,14 @@ PIX      *pixn;
  *                   Difference of two images                       *
  *------------------------------------------------------------------*/
 /*!
- *  pixDisplayDiffBinary()
+ * \brief   pixDisplayDiffBinary()
  *
- *      Input:  pix1 (1 bpp)
- *              pix2 (1 bpp)
- *      Return: pixd (4 bpp cmapped), or NULL on error
+ * \param[in]    pix1 1 bpp
+ * \param[in]    pix2 1 bpp
+ * \return  pixd 4 bpp cmapped, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a color representation of the difference between
  *          pix1 and pix2.  The color difference depends on the order.
  *          The pixels in pixd have 4 colors:
@@ -600,6 +613,7 @@ PIX      *pixn;
  *           * on in pix2, off in pix1: green
  *      (2) This aligns the UL corners of pix1 and pix2, and crops
  *          to the overlapping pixels.
+ * </pre>
  */
 PIX *
 pixDisplayDiffBinary(PIX  *pix1,
@@ -640,20 +654,22 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixCompareBinary()
+ * \brief   pixCompareBinary()
  *
- *      Input:  pix1 (1 bpp)
- *              pix2 (1 bpp)
- *              comptype (L_COMPARE_XOR, L_COMPARE_SUBTRACT)
- *              &fract (<return> fraction of pixels that are different)
- *              &pixdiff (<optional return> pix of difference)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1 1 bpp
+ * \param[in]    pix2 1 bpp
+ * \param[in]    comptype L_COMPARE_XOR, L_COMPARE_SUBTRACT
+ * \param[out]   pfract fraction of pixels that are different
+ * \param[out]   ppixdiff [optional] pix of difference
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The two images are aligned at the UL corner, and do not
  *          need to be the same size.
  *      (2) If using L_COMPARE_SUBTRACT, pix2 is subtracted from pix1.
  *      (3) The total number of pixels is determined by pix1.
+ * </pre>
  */
 l_int32
 pixCompareBinary(PIX        *pix1,
@@ -695,19 +711,20 @@ PIX      *pixt;
 
 
 /*!
- *  pixCompareGrayOrRGB()
+ * \brief   pixCompareGrayOrRGB()
  *
- *      Input:  pix1 (8 or 16 bpp gray, 32 bpp rgb, or colormapped)
- *              pix2 (8 or 16 bpp gray, 32 bpp rgb, or colormapped)
- *              comptype (L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF)
- *              plottype (gplot plot output type, or 0 for no plot)
- *              &same (<optional return> 1 if pixel values are identical)
- *              &diff (<optional return> average difference)
- *              &rmsdiff (<optional return> rms of difference)
- *              &pixdiff (<optional return> pix of difference)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1 8 or 16 bpp gray, 32 bpp rgb, or colormapped
+ * \param[in]    pix2 8 or 16 bpp gray, 32 bpp rgb, or colormapped
+ * \param[in]    comptype L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
+ * \param[in]    plottype gplot plot output type, or 0 for no plot
+ * \param[out]   psame [optional] 1 if pixel values are identical
+ * \param[out]   pdiff [optional] average difference
+ * \param[out]   prmsdiff [optional] rms of difference
+ * \param[out]   ppixdiff [optional] pix of difference
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The two images are aligned at the UL corner, and do not
  *          need to be the same size.  If they are not the same size,
  *          the comparison will be made over overlapping pixels.
@@ -728,6 +745,7 @@ PIX      *pixt;
  *      (9) The RMS difference is optionally returned in the
  *          parameter 'rmsdiff'.  For RGB, we return the average of
  *          the RMS differences for each of the components.
+ * </pre>
  */
 l_int32
 pixCompareGrayOrRGB(PIX        *pix1,
@@ -780,21 +798,23 @@ PIX     *pixt1, *pixt2;
 
 
 /*!
- *  pixCompareGray()
+ * \brief   pixCompareGray()
  *
- *      Input:  pix1 (8 or 16 bpp, not cmapped)
- *              pix2 (8 or 16 bpp, not cmapped)
- *              comptype (L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF)
- *              plottype (gplot plot output type, or 0 for no plot)
- *              &same (<optional return> 1 if pixel values are identical)
- *              &diff (<optional return> average difference)
- *              &rmsdiff (<optional return> rms of difference)
- *              &pixdiff (<optional return> pix of difference)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1 8 or 16 bpp, not cmapped
+ * \param[in]    pix2 8 or 16 bpp, not cmapped
+ * \param[in]    comptype L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
+ * \param[in]    plottype gplot plot output type, or 0 for no plot
+ * \param[out]   psame [optional] 1 if pixel values are identical
+ * \param[out]   pdiff [optional] average difference
+ * \param[out]   prmsdiff [optional] rms of difference
+ * \param[out]   ppixdiff [optional] pix of difference
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixCompareGrayOrRGB() for details.
  *      (2) Use pixCompareGrayOrRGB() if the input pix are colormapped.
+ * </pre>
  */
 l_int32
 pixCompareGray(PIX        *pix1,
@@ -885,20 +905,22 @@ PIX            *pixt;
 
 
 /*!
- *  pixCompareRGB()
+ * \brief   pixCompareRGB()
  *
- *      Input:  pix1 (32 bpp rgb)
- *              pix2 (32 bpp rgb)
- *              comptype (L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF)
- *              plottype (gplot plot output type, or 0 for no plot)
- *              &same (<optional return> 1 if pixel values are identical)
- *              &diff (<optional return> average difference)
- *              &rmsdiff (<optional return> rms of difference)
- *              &pixdiff (<optional return> pix of difference)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1 32 bpp rgb
+ * \param[in]    pix2 32 bpp rgb
+ * \param[in]    comptype L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
+ * \param[in]    plottype gplot plot output type, or 0 for no plot
+ * \param[out]   psame [optional] 1 if pixel values are identical
+ * \param[out]   pdiff [optional] average difference
+ * \param[out]   prmsdiff [optional] rms of difference
+ * \param[out]   ppixdiff [optional] pix of difference
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixCompareGrayOrRGB() for details.
+ * </pre>
  */
 l_int32
 pixCompareRGB(PIX        *pix1,
@@ -1032,16 +1054,17 @@ PIX            *pixr, *pixg, *pixb;
 
 
 /*!
- *  pixCompareTiled()
+ * \brief   pixCompareTiled()
  *
- *      Input:  pix1 (8 bpp or 32 bpp rgb)
- *              pix2 (8 bpp 32 bpp rgb)
- *              sx, sy (tile size; must be > 1)
- *              type (L_MEAN_ABSVAL or L_ROOT_MEAN_SQUARE)
- *              &pixdiff (<return> pix of difference)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pix1 8 bpp or 32 bpp rgb
+ * \param[in]    pix2 8 bpp 32 bpp rgb
+ * \param[in]    sx, sy tile size; must be > 1
+ * \param[in]    type L_MEAN_ABSVAL or L_ROOT_MEAN_SQUARE
+ * \param[out]   ppixdiff pix of difference
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) With L_MEAN_ABSVAL, we compute for each tile the
  *          average abs value of the pixel component difference between
  *          the two (aligned) images.  With L_ROOT_MEAN_SQUARE, we
@@ -1052,6 +1075,7 @@ PIX            *pixr, *pixg, *pixb;
  *          is found by averaging the measured difference over all three
  *          components of each pixel in the tile.
  *      (4) The result, pixdiff, contains one pixel for each source tile.
+ * </pre>
  */
 l_int32
 pixCompareTiled(PIX     *pix1,
@@ -1122,14 +1146,15 @@ PIXACC    *pixacc;
  *            Other measures of the difference of two images        *
  *------------------------------------------------------------------*/
 /*!
- *  pixCompareRankDifference()
+ * \brief   pixCompareRankDifference()
  *
- *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              factor (subsampling factor; use 0 or 1 for no subsampling)
- *      Return: narank (numa of rank difference), or NULL on error
+ * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
+ * \return  narank numa of rank difference, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This answers the question: if the pixel values in each
  *          component are compared by absolute difference, for
  *          any value of difference, what is the fraction of
@@ -1144,6 +1169,7 @@ PIXACC    *pixacc;
  *          is either gray or RGB depending on the colormap.
  *      (4) If RGB, pixel differences for each component are aggregated
  *          into a single histogram.
+ * </pre>
  */
 NUMA *
 pixCompareRankDifference(PIX     *pix1,
@@ -1183,22 +1209,23 @@ NUMA       *nah, *nan, *nad;
 
 
 /*!
- *  pixTestForSimilarity()
+ * \brief   pixTestForSimilarity()
  *
- *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              factor (subsampling factor; use 0 or 1 for no subsampling)
- *              mindiff (minimum pixel difference to be counted; > 0)
- *              maxfract (maximum fraction of pixels allowed to have
- *                        diff greater than or equal to mindiff)
- *              maxave (maximum average difference of pixels allowed for
+ * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
+ * \param[in]    mindiff minimum pixel difference to be counted; > 0
+ * \param[in]    maxfract maximum fraction of pixels allowed to have
+ *                        diff greater than or equal to mindiff
+ * \param[in]    maxave maximum average difference of pixels allowed for
  *                      pixels with diff greater than or equal to mindiff,
- *                      after subtracting mindiff)
- *              &similar (<return> 1 if similar, 0 otherwise)
- *              printstats (use 1 to print normalized histogram to stderr)
- *      Return: 0 if OK, 1 on error
+ *                      after subtracting mindiff
+ * \param[out]   psimilar 1 if similar, 0 otherwise
+ * \param[in]    printstats use 1 to print normalized histogram to stderr
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This takes 2 pix that are the same size and determines using
  *          3 input parameters if they are "similar".  The first parameter
  *          %mindiff establishes a criterion of pixel-to-pixel similarity:
@@ -1227,6 +1254,7 @@ NUMA       *nah, *nan, *nad;
  *          is either gray or RGB depending on the colormap.
  *      (6) If RGB, the maximum difference between pixel components is
  *          saved in the histogram.
+ * </pre>
  */
 l_int32
 pixTestForSimilarity(PIX       *pix1,
@@ -1266,20 +1294,21 @@ l_float32   fractdiff, avediff;
 
 
 /*!
- *  pixGetDifferenceStats()
+ * \brief   pixGetDifferenceStats()
  *
- *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              factor (subsampling factor; use 0 or 1 for no subsampling)
- *              mindiff (minimum pixel difference to be counted; > 0)
- *              &fractdiff (<return> fraction of pixels with diff greater
- *                          than or equal to mindiff)
- *              &avediff (<return> average difference of pixels with diff
- *                        greater than or equal to mindiff, less mindiff)
- *              printstats (use 1 to print normalized histogram to stderr)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
+ * \param[in]    mindiff minimum pixel difference to be counted; > 0
+ * \param[out]   pfractdiff fraction of pixels with diff greater
+ *                          than or equal to mindiff
+ * \param[out]   pavediff average difference of pixels with diff
+ *                        greater than or equal to mindiff, less mindiff
+ * \param[in]    printstats use 1 to print normalized histogram to stderr
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This takes a threshold %mindiff and describes the difference
  *          between two images in terms of two numbers:
  *            (a) the fraction of pixels, %fractdiff, whose difference
@@ -1290,7 +1319,7 @@ l_float32   fractdiff, avediff;
  *                you then get a useful measure for the rate of falloff
  *                of the distribution for larger differences.  For example,
  *                if %mindiff = 10 and you find that %avediff = 2.5, it
- *                says that of the pixels with diff > 10, the average of
+ *                says that of the pixels with diff \> 10, the average of
  *                their diffs is just mindiff + 2.5 = 12.5.  This is a
  *                fast falloff in the histogram with increasing difference.
  *      (2) The two images are aligned at the UL corner, and do not
@@ -1300,6 +1329,7 @@ l_float32   fractdiff, avediff;
  *          is either gray or RGB depending on the colormap.
  *      (4) If RGB, the maximum difference between pixel components is
  *          saved in the histogram.
+ * </pre>
  */
 l_int32
 pixGetDifferenceStats(PIX        *pix1,
@@ -1381,14 +1411,15 @@ NUMA       *nah, *nan, *nac;
 
 
 /*!
- *  pixGetDifferenceHistogram()
+ * \brief   pixGetDifferenceHistogram()
  *
- *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              factor (subsampling factor; use 0 or 1 for no subsampling)
- *      Return: na (Numa of histogram of differences), or NULL on error
+ * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
+ * \return  na Numa of histogram of differences, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The two images are aligned at the UL corner, and do not
  *          need to be the same size.  If they are not the same size,
  *          the comparison will be made over overlapping pixels.
@@ -1396,6 +1427,7 @@ NUMA       *nah, *nan, *nac;
  *          is either gray or RGB depending on the colormap.
  *      (3) If RGB, the maximum difference between pixel components is
  *          saved in the histogram.
+ * </pre>
  */
 NUMA *
 pixGetDifferenceHistogram(PIX     *pix1,
@@ -1482,20 +1514,21 @@ PIX        *pixt1, *pixt2;
 
 
 /*!
- *  pixGetPerceptualDiff()
+ * \brief   pixGetPerceptualDiff()
  *
- *      Input:  pix1 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              pix2 (8 bpp gray or 32 bpp rgb, or colormapped)
- *              sampling (subsampling factor; use 0 or 1 for no subsampling)
- *              dilation (size of grayscale or color Sel; odd)
- *              mindiff (minimum pixel difference to be counted; > 0)
- *              &fract (<return> fraction of pixels with diff greater than
- *                      mindiff)
- *              &pixdiff1 (<optional return> showing difference (gray or color))
- *              &pixdiff2 (<optional return> showing pixels of sufficient diff)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    sampling subsampling factor; use 0 or 1 for no subsampling
+ * \param[in]    dilation size of grayscale or color Sel; odd
+ * \param[in]    mindiff minimum pixel difference to be counted; > 0
+ * \param[out]   pfract fraction of pixels with diff greater than
+ *                      mindiff
+ * \param[out]   ppixdiff1 [optional] showing difference (gray or color)
+ * \param[out]   ppixdiff2 [optional] showing pixels of sufficient diff
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This takes 2 pix and determines, using 2 input parameters:
  *           * %dilation specifies the amount of grayscale or color
  *             dilation to apply to the images, to compensate for
@@ -1517,7 +1550,7 @@ PIX        *pixt1, *pixt2;
  *      (5) The returned value of fract can be compared to some threshold,
  *          which is application dependent.
  *      (6) This method is in analogy to the two-sided hausdorff transform,
- *          except here it is for d > 1.  For d == 1 (see pixRankHaustest()),
+ *          except here it is for d \> 1.  For d == 1 (see pixRankHaustest()),
  *          we verify that when one pix1 is dilated, it covers at least a
  *          given fraction of the pixels in pix2, and v.v.; in that
  *          case, the two pix are sufficiently similar.  Here, we
@@ -1526,6 +1559,7 @@ PIX        *pixt1, *pixt2;
  *          other way.  Take the component-wise max of the two results,
  *          and threshold to get the fraction of pixels with a difference
  *          below the threshold.
+ * </pre>
  */
 l_int32
 pixGetPerceptualDiff(PIX        *pixs1,
@@ -1660,14 +1694,15 @@ PIX     *pix10, *pix11;
 
 
 /*!
- *  pixGetPSNR()
+ * \brief   pixGetPSNR()
  *
- *      Input:  pix1, pix2 (8 or 32 bpp; no colormap)
- *              factor (sampling factor; >= 1)
- *              &psnr (<return> power signal/noise ratio difference)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1, pix2 8 or 32 bpp; no colormap
+ * \param[in]    factor sampling factor; >= 1
+ * \param[out]   ppsnr power signal/noise ratio difference
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This computes the power S/N ratio, in dB, for the difference
  *          between two images.  By convention, the power S/N
  *          for a grayscale image is ('log' == log base 10,
@@ -1687,6 +1722,7 @@ PIX     *pix10, *pix11;
  *          and the PSNR is infinity.  For that case, this returns
  *          PSNR = 1000, which corresponds to the very small MSE of
  *          about 10^(-48).
+ * </pre>
  */
 l_int32
 pixGetPSNR(PIX        *pix1,
@@ -1762,21 +1798,22 @@ l_float32  mse;  /* mean squared error */
  *             Comparison of photo regions by histogram             *
  *------------------------------------------------------------------*/
 /*!
- *  pixaComparePhotoRegionsByHisto()
+ * \brief   pixaComparePhotoRegionsByHisto()
  *
- *      Input:  pixa (any depth; colormap OK)
- *              minratio (requiring sizes be compatible; < 1.0)
- *              factor (subsampling; >= 1)
- *              textthresh (threshold for text/photo; use 0 for default)
- *              nx, ny (number of subregions to use for histograms; e.g. 3x3)
- *              simthresh (threshold for similarity; use 0 for default)
- *              &nai (<return> array giving similarity class indices)
- *              &scores (<optional return> score matrix as 1-D array of
- *                       size N^2)
- *              &pixd (<optional return> pix of similarity classes)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa any depth; colormap OK
+ * \param[in]    minratio requiring sizes be compatible; < 1.0
+ * \param[in]    factor subsampling; >= 1
+ * \param[in]    textthresh threshold for text/photo; use 0 for default
+ * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
+ * \param[in]    simthresh threshold for similarity; use 0 for default
+ * \param[out]   pnai array giving similarity class indices
+ * \param[out]   pscores [optional] score matrix as 1-D array of
+ *                       size N^2
+ * \param[out]   ppixd [optional] pix of similarity classes
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function takes a pixa of cropped photo images and
  *          compares each one to the others for similarity.
  *          Each image is first tested to see if it is a photo that can
@@ -1789,7 +1826,7 @@ l_float32  mse;  /* mean squared error */
  *          threshold %minratio.  If set at 1.0, both images must be
  *          exactly the same size.  A typical value for %minratio is 0.9.
  *      (3) The comparison score between two images is a value in [0.0 .. 1.0].
- *          If the comparison score >= %simthresh, the images are placed in
+ *          If the comparison score \>= %simthresh, the images are placed in
  *          the same similarity class.  Default value for %simthresh is 0.25.
  *      (4) An array %nai of similarity class indices for pix in the
  *          input pixa is returned.
@@ -1800,6 +1837,7 @@ l_float32  mse;  /* mean squared error */
  *            returned.  Text in each input pix is reproduced.
  *      (6) See the notes in pixComparePhotoRegionsByHisto() for details
  *          on the implementation.
+ * </pre>
  */
 l_int32
 pixaComparePhotoRegionsByHisto(PIXA        *pixa,
@@ -1955,18 +1993,19 @@ PIX        *pix;
 
 
 /*!
- *  pixComparePhotoRegionsByHisto()
+ * \brief   pixComparePhotoRegionsByHisto()
  *
- *      Input:  pix1, pix2 (any depth; colormap OK)
- *              box1, box2 (<optional> photo regions from each; can be null)
- *              minratio (requiring sizes be compatible; < 1.0)
- *              factor (subsampling; >= 1)
- *              nx, ny (number of subregions to use for histograms; e.g. 3x3)
- *              &score (<return> similarity score of histograms)
- *              debugflag (1 for debug output; 0 for no debugging)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1, pix2 any depth; colormap OK
+ * \param[in]    box1, box2 [optional] photo regions from each; can be null
+ * \param[in]    minratio requiring sizes be compatible; < 1.0
+ * \param[in]    factor subsampling; >= 1
+ * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
+ * \param[out]   pscore similarity score of histograms
+ * \param[in]    debugflag 1 for debug output; 0 for no debugging
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function compares two grayscale photo regions.  If a
  *          box is given, the region is clipped; otherwise assume
  *          the entire images are photo regions.  This is done with a
@@ -2002,6 +2041,7 @@ PIX        *pix;
  *          A small number of aligned tiles works well.
  *      (8) With debug on, you get a pdf that shows, for each tile,
  *          the images, histograms and score.
+ * </pre>
  */
 l_int32
 pixComparePhotoRegionsByHisto(PIX        *pix1,
@@ -2085,20 +2125,21 @@ PIXA      *pixa;
 
 
 /*!
- *  pixGenPhotoHistos()
+ * \brief   pixGenPhotoHistos()
  *
- *      Input:  pix (depth > 1 bpp; colormap OK)
- *              box (<optional> region to be selected; can be null)
- *              factor (subsampling; >= 1)
- *              thresh (threshold for photo/text; use 0 for default)
- *              nx, ny (number of subregions to use for histograms; e.g. 3x3)
- *              &naa (<return> nx * ny 256-entry gray histograms)
- *              &w (<return> width of image used to make histograms)
- *              &h (<return> height of image used to make histograms)
- *              debugflag (1 for debug output; 0 for no debugging)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix depth > 1 bpp; colormap OK
+ * \param[in]    box [optional] region to be selected; can be null
+ * \param[in]    factor subsampling; >= 1
+ * \param[in]    thresh threshold for photo/text; use 0 for default
+ * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
+ * \param[out]   pnaa nx * ny 256-entry gray histograms
+ * \param[out]   pw width of image used to make histograms
+ * \param[out]   ph height of image used to make histograms
+ * \param[in]    debugflag 1 for debug output; 0 for no debugging
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This crops and converts to 8 bpp if necessary.  It adds a
  *          minimal white boundary such that the centroid of the
  *          photo-inverted image is in the center. This allows
@@ -2111,6 +2152,7 @@ PIXA      *pixa;
  *          maximum bucket is 255.  It then takes 256 bytes to store.
  *      (5) With debug on, you get a pdf that shows, for each tile,
  *          the images and histograms.
+ * </pre>
  */
 l_int32
 pixGenPhotoHistos(PIX        *pixs,
@@ -2208,17 +2250,19 @@ PIXA   *pixa;
 
 
 /*!
- *  pixPadToCenterCentroid()
+ * \brief   pixPadToCenterCentroid()
  *
- *      Input:  pixs (any depth, colormap OK)
- *              factor (subsampling for centroid; >= 1)
- *      Return: pixd (padded with white pixels), or NULL on error.
+ * \param[in]    pixs any depth, colormap OK
+ * \param[in]    factor subsampling for centroid; >= 1
+ * \return  pixd padded with white pixels, or NULL on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This add minimum white padding to an 8 bpp pix, such that
  *          the centroid of the photometric inverse is in the center of
  *          the resulting image.  Thus in computing the centroid,
  *          black pixels have weight 255, and white pixels have weight 0.
+ * </pre>
  */
 PIX *
 pixPadToCenterCentroid(PIX     *pixs,
@@ -2257,20 +2301,22 @@ PIX       *pix1, *pixd;
 
 
 /*!
- *  pixCentroid8()
+ * \brief   pixCentroid8()
  *
- *      Input:  pixs (8 bpp)
- *              factor (subsampling; >= 1)
- *              &cx (<return> x value of centroid)
- *              &cy (<return> y value of centroid)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 8 bpp
+ * \param[in]    factor subsampling; >= 1
+ * \param[out]   pcx x value of centroid
+ * \param[out]   pcy y value of centroid
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This first does a photometric inversion (black = 255, white = 0).
  *          It then finds the centroid of the result.  The inversion is
  *          done because white is usually background, so the centroid
  *          is computed based on the "foreground" gray pixels, and the
  *          darker the pixel, the more weight it is given.
+ * </pre>
  */
 l_int32
 pixCentroid8(PIX        *pixs,
@@ -2324,17 +2370,18 @@ PIX       *pix1;
 
 
 /*!
- *  pixDecideIfPhotoImage()
+ * \brief   pixDecideIfPhotoImage()
  *
- *      Input:  pix (8 bpp, centroid in center)
- *              factor (subsampling for histograms; >= 1)
- *              nx, ny (number of subregions to use for histograms)
- *              thresh (threshold for photo/text; use 0 for default)
- *              &naa (<return> array of normalized histograms)
- *              pixadebug (<optional> use only for debug output)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix 8 bpp, centroid in center
+ * \param[in]    factor subsampling for histograms; >= 1
+ * \param[in]    nx, ny number of subregions to use for histograms
+ * \param[in]    thresh threshold for photo/text; use 0 for default
+ * \param[out]   pnaa array of normalized histograms
+ * \param[in]    pixadebug [optional] use only for debug output
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The input image must be 8 bpp (no colormap), and padded with
  *          white pixels so the centroid of photo-inverted pixels is at
  *          the center of the image.
@@ -2347,6 +2394,7 @@ PIX       *pix1;
  *          so the maximum count is 255.
  *      (4) Default for %thresh is 1.3; this seems sufficiently conservative.
  *      (5) Use %pixadebug == NULL unless debug output is requested.
+ * </pre>
  */
 l_int32
 pixDecideIfPhotoImage(PIX       *pix,
@@ -2450,16 +2498,17 @@ PIXA      *pixa, *pixa2;
 
 
 /*!
- *  compareTilesByHisto()
+ * \brief   compareTilesByHisto()
  *
- *      Input:  naa1, naa2 (each is a set of 256 entry histograms)
- *              minratio (requiring image sizes be compatible; < 1.0)
- *              w1, h1, w2, h2 (image sizes from which histograms were made)
- *              &score (<return> similarity score of histograms)
- *              pixadebug (<optional> use only for debug output)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    naa1, naa2 each is a set of 256 entry histograms
+ * \param[in]    minratio requiring image sizes be compatible; < 1.0
+ * \param[in]    w1, h1, w2, h2 image sizes from which histograms were made
+ * \param[out]   pscore similarity score of histograms
+ * \param[in]    pixadebug [optional] use only for debug output
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) naa1 and naa2 must be generated using pixGenPhotoHistos(),
  *          using the same tile sizes.
  *      (2) The image dimensions must be similar.  The score is 0.0
@@ -2468,6 +2517,7 @@ PIXA      *pixa, *pixa2;
  *          0.5 and 1.0.  If set at 1.0, both images must be exactly
  *          the same size.  A typical value for %minratio is 0.9.
  *      (2) The input pixadebug is null unless debug output is requested.
+ * </pre>
  */
 l_int32
 compareTilesByHisto(NUMAA      *naa1,
@@ -2573,19 +2623,20 @@ NUMA      *na1, *na2, *nadist, *nascore;
 
 
 /*!
- *  pixCompareGrayByHisto()
+ * \brief   pixCompareGrayByHisto()
  *
- *      Input:  pix1, pix2 (any depth; colormap OK)
- *              box1, box2 (<optional> region selected from each; can be null)
- *              minratio (requiring sizes be compatible; < 1.0)
- *              maxgray (max value to keep in histo; >= 200, 255 to keep all)
- *              factor (subsampling; >= 1)
- *              nx, ny (number of subregions to use for histograms; e.g. 3x3)
- *              &score (<return> similarity score of histograms)
- *              debugflag (1 for debug output; 0 for no debugging)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1, pix2 any depth; colormap OK
+ * \param[in]    box1, box2 [optional] region selected from each; can be null
+ * \param[in]    minratio requiring sizes be compatible; < 1.0
+ * \param[in]    maxgray max value to keep in histo; >= 200, 255 to keep all
+ * \param[in]    factor subsampling; >= 1
+ * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
+ * \param[out]   pscore similarity score of histograms
+ * \param[in]    debugflag 1 for debug output; 0 for no debugging
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function compares two grayscale photo regions.  It can
  *          do it with a single histogram from each region, or with a
  *          set of (nx * ny) spatially aligned histograms.  For both
@@ -2599,7 +2650,7 @@ NUMA      *na1, *na2, *nadist, *nascore;
  *      (3) The lightest values in the histogram can be disregarded.
  *          Set %maxgray to the lightest value to be kept.  For example,
  *          to eliminate white (255), set %maxgray = 254.  %maxgray must
- *          be >= 200.
+ *          be \>= 200.
  *      (4) For an efficient representation of the histogram, normalize
  *          using a multiplicative factor so that the number in the
  *          maximum bucket is 255.  It then takes 256 bytes to store.
@@ -2632,6 +2683,7 @@ NUMA      *na1, *na2, *nadist, *nascore;
  *                 pixGetGrayHistogramTiled()
  *                 grayInterHistogramStats()
  *              to determine whether it is photo or line graphics.
+ * </pre>
  */
 l_int32
 pixCompareGrayByHisto(PIX        *pix1,
@@ -2743,22 +2795,24 @@ PIXA      *pixa;
 
 
 /*!
- *  pixCompareTilesByHisto()
+ * \brief   pixCompareTilesByHisto()
  *
- *      Input:  pix1, pix2 (8 bpp)
- *              maxgray (max value to keep in histo; 255 to keep all)
- *              factor (subsampling; >= 1)
- *              nx, ny (number of subregions to use for histograms)
- *              &score (<return> similarity score of histograms)
- *              pixadebug (<optional> use only for debug output)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1, pix2 8 bpp
+ * \param[in]    maxgray max value to keep in histo; 255 to keep all
+ * \param[in]    factor subsampling; >= 1
+ * \param[in]    nx, ny number of subregions to use for histograms
+ * \param[out]   pscore similarity score of histograms
+ * \param[in]    pixadebug [optional] use only for debug output
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This static function is only called from pixCompareGrayByHisto().
  *          The input images have been converted to 8 bpp if necessary,
  *          aligned and cropped.
  *      (2) The input pixadebug is null unless debug output is requested.
  *      (3) See pixCompareGrayByHisto() for details.
+ * </pre>
  */
 static l_int32
 pixCompareTilesByHisto(PIX        *pix1,
@@ -2872,18 +2926,20 @@ PIXA      *pixa1, *pixa2;
 
 
 /*!
- *  pixCropAlignedToCentroid()
+ * \brief   pixCropAlignedToCentroid()
  *
- *      Input:  pix1, pix2 (any depth; colormap OK)
- *              factor (subsampling; >= 1)
- *              &box1 (<return> crop box for pix1)
- *              &box2 (<return> crop box for pix2)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1, pix2 any depth; colormap OK
+ * \param[in]    factor subsampling; >= 1
+ * \param[out]   pbox1 crop box for pix1
+ * \param[out]   pbox2 crop box for pix2
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This finds the maximum crop boxes for two 8 bpp images when
  *          their centroids of their photometric inverses are aligned.
  *          Black pixels have weight 255; white pixels have weight 0.
+ * </pre>
  */
 l_int32
 pixCropAlignedToCentroid(PIX     *pix1,
@@ -2940,14 +2996,15 @@ PIX       *pix3, *pix4;
 
 
 /*!
- *  l_compressGrayHistograms()
+ * \brief   l_compressGrayHistograms()
  *
- *      Input:  numaa (set of 256-entry histograms)
- *              w, h (size of image)
- *              &size (<return> size of byte array)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    numaa set of 256-entry histograms
+ * \param[in]    w, h size of image
+ * \param[out]   psize size of byte array
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This first writes w and h to the byte array as 4 byte ints.
  *      (2) Then it normalizes each histogram to a max value of 255,
  *          and saves each value as a byte.  If there are
@@ -2957,6 +3014,7 @@ PIX       *pix3, *pix4;
  *          were important, a lossy transform using a 1-dimensional DCT
  *          would be effective, because we don't care about the fine
  *          details of these histograms.
+ * </pre>
  */
 l_uint8 *
 l_compressGrayHistograms(NUMAA   *naa,
@@ -3007,22 +3065,24 @@ NUMA      *na1, *na2;
 
 
 /*!
- *  l_uncompressGrayHistograms()
+ * \brief   l_uncompressGrayHistograms()
  *
- *      Input:  bytea (byte array of size 8 + 256 * N, N an integer)
- *              size (size of byte array)
- *              &w (<return> width of the image that generated the histograms)
- *              &h (<return> height of the image)
- *      Return: numaa (representing N histograms, each with 256 bins),
+ * \param[in]    bytea byte array of size 8 + 256 * N, N an integer
+ * \param[in]    size size of byte array
+ * \param[out]   pw width of the image that generated the histograms
+ * \param[out]   ph height of the image
+ * \return  numaa representing N histograms, each with 256 bins,
  *                     or NULL on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The first 8 bytes are read as two 32-bit ints.
  *      (2) Then this constructs a numaa representing some number of
  *          gray histograms that are normalized such that the max value
  *          in each histogram is 255.  The data is stored as a byte
  *          array, with 256 bytes holding the data for each histogram.
  *          Each gray histogram was computed from a tile of a grayscale image.
+ * </pre>
  */
 NUMAA *
 l_uncompressGrayHistograms(l_uint8  *bytea,
@@ -3064,17 +3124,18 @@ NUMAA   *naa;
  *             Translated images at the same resolution             *
  *------------------------------------------------------------------*/
 /*!
- *  pixCompareWithTranslation()
+ * \brief   pixCompareWithTranslation()
  *
- *      Input:  pix1, pix2 (any depth; colormap OK)
- *              thresh (threshold for converting to 1 bpp)
- *              &delx (<return> x translation on pix2 to align with pix1)
- *              &dely (<return> y translation on pix2 to align with pix1)
- *              &score (<return> correlation score at best alignment)
- *              debugflag (1 for debug output; 0 for no debugging)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1, pix2 any depth; colormap OK
+ * \param[in]    thresh threshold for converting to 1 bpp
+ * \param[out]   pdelx x translation on pix2 to align with pix1
+ * \param[out]   pdely y translation on pix2 to align with pix1
+ * \param[out]   pscore correlation score at best alignment
+ * \param[in]    debugflag 1 for debug output; 0 for no debugging
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does a coarse-to-fine search for best translational
  *          alignment of two images, measured by a scoring function
  *          that is the correlation between the fg pixels.
@@ -3090,6 +3151,7 @@ NUMAA   *naa;
  *          other doesn't.  The black pixels are where both images
  *          have fg pixels, and white pixels are where neither image
  *          has fg pixels.
+ * </pre>
  */
 l_int32
 pixCompareWithTranslation(PIX        *pix1,
@@ -3206,25 +3268,26 @@ PIXA      *pixa1, *pixa2, *pixadb;
 
 
 /*!
- *  pixBestCorrelation()
+ * \brief   pixBestCorrelation()
  *
- *      Input:  pix1   (1 bpp)
- *              pix2   (1 bpp)
- *              area1  (number of on pixels in pix1)
- *              area2  (number of on pixels in pix2)
- *              etransx (estimated x translation of pix2 to align with pix1)
- *              etransy (estimated y translation of pix2 to align with pix1)
- *              maxshift  (max x and y shift of pix2, around the estimated
- *                          alignment location, relative to pix1)
- *              tab8 (<optional> sum tab for ON pixels in byte; can be NULL)
- *              &delx (<optional return> best x shift of pix2 relative to pix1
- *              &dely (<optional return> best y shift of pix2 relative to pix1
- *              &score (<optional return> maximum score found; can be NULL)
- *              debugflag (<= 0 to skip; positive to generate output.
- *                         The integer is used to label the debug image.)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pix1   1 bpp
+ * \param[in]    pix2   1 bpp
+ * \param[in]    area1  number of on pixels in pix1
+ * \param[in]    area2  number of on pixels in pix2
+ * \param[in]    etransx estimated x translation of pix2 to align with pix1
+ * \param[in]    etransy estimated y translation of pix2 to align with pix1
+ * \param[in]    maxshift  max x and y shift of pix2, around the estimated
+ *                          alignment location, relative to pix1
+ * \param[in]    tab8 [optional] sum tab for ON pixels in byte; can be NULL
+ * \param[out]   pdelx [optional] best x shift of pix2 relative to pix1
+ *           [out]   pdely ([optional] best y shift of pix2 relative to pix1
+ *           [out]   pscore ([optional] maximum score found; can be NULL
+ * \param[in]    debugflag <= 0 to skip; positive to generate output.
+ *                         The integer is used to label the debug image.
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This maximizes the correlation score between two 1 bpp images,
  *          by starting with an estimate of the alignment
  *          (%etransx, %etransy) and computing the correlation around this.
@@ -3242,6 +3305,7 @@ PIXA      *pixa1, *pixa2, *pixadb;
  *          Consequently, if pix1 and pix2 are large, you should do this
  *          in a coarse-to-fine sequence.  See the use of this function
  *          in pixCompareWithTranslation().
+ * </pre>
  */
 l_int32
 pixBestCorrelation(PIX        *pix1,

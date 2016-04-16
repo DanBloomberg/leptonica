@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   boxfunc2.c
+/*!
+ * \file  boxfunc2.c
+ * <pre>
  *
  *      Boxa/Box transform (shift, scale) and orthogonal rotation
  *           BOXA            *boxaTransform()
@@ -57,6 +58,7 @@
  *           BOXA            *boxaaFlattenAligned()
  *           BOXAA           *boxaEncapsulateAligned()
  *           l_int32          boxaaAlignBox()
+ * </pre>
  */
 
 #include <math.h>
@@ -72,15 +74,17 @@ static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
  *      Boxa/Box transform (shift, scale) and orthogonal rotation      *
  *---------------------------------------------------------------------*/
 /*!
- *  boxaTransform()
+ * \brief   boxaTransform()
  *
- *      Input:  boxa
- *              shiftx, shifty
- *              scalex, scaley
- *      Return: boxad, or NULL on error
+ * \param[in]    boxa
+ * \param[in]    shiftx, shifty
+ * \param[in]    scalex, scaley
+ * \return  boxad, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a very simple function that first shifts, then scales.
+ * </pre>
  */
 BOXA *
 boxaTransform(BOXA      *boxas,
@@ -113,16 +117,18 @@ BOXA    *boxad;
 
 
 /*!
- *  boxTransform()
+ * \brief   boxTransform()
  *
- *      Input:  box
- *              shiftx, shifty
- *              scalex, scaley
- *      Return: boxd, or NULL on error
+ * \param[in]    box
+ * \param[in]    shiftx, shifty
+ * \param[in]    scalex, scaley
+ * \return  boxd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a very simple function that first shifts, then scales.
  *      (2) If the box is invalid, a new invalid box is returned.
+ * </pre>
  */
 BOX *
 boxTransform(BOX       *box,
@@ -146,17 +152,18 @@ boxTransform(BOX       *box,
 
 
 /*!
- *  boxaTransformOrdered()
+ * \brief   boxaTransformOrdered()
  *
- *      Input:  boxa
- *              shiftx, shifty
- *              scalex, scaley
- *              xcen, ycen (center of rotation)
- *              angle (in radians; clockwise is positive)
- *              order (one of 6 combinations: L_TR_SC_RO, ...)
- *      Return: boxd, or NULL on error
+ * \param[in]    boxa
+ * \param[in]    shiftx, shifty
+ * \param[in]    scalex, scaley
+ * \param[in]    xcen, ycen center of rotation
+ * \param[in]    angle in radians; clockwise is positive
+ * \param[in]    order one of 6 combinations: L_TR_SC_RO, ...
+ * \return  boxd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This allows a sequence of linear transforms on each box.
  *          the transforms are from the affine set, composed of
  *          shift, scaling and rotation, and the order of the
@@ -176,6 +183,7 @@ boxTransform(BOX       *box,
  *          center can be computed from the actual clipping due to
  *          translation of the image origin.
  *      (3) See boxTransformOrdered() for usage and implementation details.
+ * </pre>
  */
 BOXA *
 boxaTransformOrdered(BOXA      *boxas,
@@ -213,17 +221,18 @@ BOXA    *boxad;
 
 
 /*!
- *  boxTransformOrdered()
+ * \brief   boxTransformOrdered()
  *
- *      Input:  boxs
- *              shiftx, shifty
- *              scalex, scaley
- *              xcen, ycen (center of rotation)
- *              angle (in radians; clockwise is positive)
- *              order (one of 6 combinations: L_TR_SC_RO, ...)
- *      Return: boxd, or NULL on error
+ * \param[in]    boxs
+ * \param[in]    shiftx, shifty
+ * \param[in]    scalex, scaley
+ * \param[in]    xcen, ycen center of rotation
+ * \param[in]    angle in radians; clockwise is positive
+ * \param[in]    order one of 6 combinations: L_TR_SC_RO, ...
+ * \return  boxd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This allows a sequence of linear transforms, composed of
  *          shift, scaling and rotation, where the order of the
  *          transforms is specified.
@@ -260,6 +269,7 @@ BOXA    *boxad;
  *          in affinecompose.c, where the rotation center can be
  *          computed from the actual clipping due to translation
  *          of the image origin.
+ * </pre>
  */
 BOX *
 boxTransformOrdered(BOX       *boxs,
@@ -422,16 +432,18 @@ BOX       *boxd;
 
 
 /*!
- *  boxaRotateOrth()
+ * \brief   boxaRotateOrth()
  *
- *      Input:  boxa
- *              w, h (of image in which the boxa is embedded)
- *              rotation (0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
- *                        all rotations are clockwise)
- *      Return: boxad, or NULL on error
+ * \param[in]    boxa
+ * \param[in]    w, h of image in which the boxa is embedded
+ * \param[in]    rotation 0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
+ *                        all rotations are clockwise
+ * \return  boxad, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See boxRotateOrth() for details.
+ * </pre>
  */
 BOXA *
 boxaRotateOrth(BOXA    *boxas,
@@ -468,18 +480,20 @@ BOXA    *boxad;
 
 
 /*!
- *  boxRotateOrth()
+ * \brief   boxRotateOrth()
  *
- *      Input:  box
- *              w, h (of image in which the box is embedded)
- *              rotation (0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
- *                        all rotations are clockwise)
- *      Return: boxd, or NULL on error
+ * \param[in]    box
+ * \param[in]    w, h of image in which the box is embedded
+ * \param[in]    rotation 0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
+ *                        all rotations are clockwise
+ * \return  boxd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Rotate the image with the embedded box by the specified amount.
  *      (2) After rotation, the rotated box is always measured with
  *          respect to the UL corner of the image.
+ * </pre>
  */
 BOX *
 boxRotateOrth(BOX     *box,
@@ -516,22 +530,24 @@ l_int32  bx, by, bw, bh, xdist, ydist;
  *                              Boxa sort                              *
  *---------------------------------------------------------------------*/
 /*!
- *  boxaSort()
+ * \brief   boxaSort()
  *
- *      Input:  boxa
- *              sorttype (L_SORT_BY_X, L_SORT_BY_Y,
+ * \param[in]    boxa
+ * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y,
  *                        L_SORT_BY_RIGHT, L_SORT_BY_BOT,
  *                        L_SORT_BY_WIDTH, L_SORT_BY_HEIGHT,
  *                        L_SORT_BY_MIN_DIMENSION, L_SORT_BY_MAX_DIMENSION,
  *                        L_SORT_BY_PERIMETER, L_SORT_BY_AREA,
- *                        L_SORT_BY_ASPECT_RATIO)
- *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
- *              &naindex (<optional return> index of sorted order into
- *                        original array)
- *      Return: boxad (sorted version of boxas), or NULL on error
+ *                        L_SORT_BY_ASPECT_RATIO
+ * \param[in]    sortorder  L_SORT_INCREASING, L_SORT_DECREASING
+ * \param[out]   pnaindex [optional] index of sorted order into
+ *                        original array
+ * \return  boxad sorted version of boxas, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) An empty boxa returns a copy, with a warning.
+ * </pre>
  */
 BOXA *
 boxaSort(BOXA    *boxas,
@@ -637,22 +653,24 @@ NUMA      *na, *naindex;
 
 
 /*!
- *  boxaBinSort()
+ * \brief   boxaBinSort()
  *
- *      Input:  boxa
- *              sorttype (L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
- *                        L_SORT_BY_HEIGHT, L_SORT_BY_PERIMETER)
- *              sortorder  (L_SORT_INCREASING, L_SORT_DECREASING)
- *              &naindex (<optional return> index of sorted order into
- *                        original array)
- *      Return: boxad (sorted version of boxas), or NULL on error
+ * \param[in]    boxa
+ * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
+ *                        L_SORT_BY_HEIGHT, L_SORT_BY_PERIMETER
+ * \param[in]    sortorder  L_SORT_INCREASING, L_SORT_DECREASING
+ * \param[out]   pnaindex [optional] index of sorted order into
+ *                        original array
+ * \return  boxad sorted version of boxas, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For a large number of boxes (say, greater than 1000), this
  *          O(n) binsort is much faster than the O(nlogn) shellsort.
  *          For 5000 components, this is over 20x faster than boxaSort().
  *      (2) Consequently, boxaSort() calls this function if it will
  *          likely go much faster.
+ * </pre>
  */
 BOXA *
 boxaBinSort(BOXA    *boxas,
@@ -724,11 +742,11 @@ NUMA    *na, *naindex;
 
 
 /*!
- *  boxaSortByIndex()
+ * \brief   boxaSortByIndex()
  *
- *      Input:  boxas
- *              naindex (na that maps from the new boxa to the input boxa)
- *      Return: boxad (sorted), or NULL on error
+ * \param[in]    boxas
+ * \param[in]    naindex na that maps from the new boxa to the input boxa
+ * \return  boxad sorted, or NULL on error
  */
 BOXA *
 boxaSortByIndex(BOXA  *boxas,
@@ -761,20 +779,21 @@ BOXA    *boxad;
 
 
 /*!
- *  boxaSort2d()
+ * \brief   boxaSort2d()
  *
- *      Input:  boxas
- *              &naa (<optional return> numaa with sorted indices
- *                    whose values are the indices of the input array)
- *              delta1 (min overlap that permits aggregation of a box
- *                      onto a boxa of horizontally-aligned boxes; pass 1)
- *              delta2 (min overlap that permits aggregation of a box
- *                      onto a boxa of horizontally-aligned boxes; pass 2)
- *              minh1 (components less than this height either join an
- *                     existing boxa or are set aside for pass 2)
- *      Return: baa (2d sorted version of boxa), or NULL on error
+ * \param[in]    boxas
+ * \param[out]   pnaa [optional] numaa with sorted indices
+ *                    whose values are the indices of the input array
+ * \param[in]    delta1 min overlap that permits aggregation of a box
+ *                      onto a boxa of horizontally-aligned boxes; pass 1
+ * \param[in]    delta2 min overlap that permits aggregation of a box
+ *                      onto a boxa of horizontally-aligned boxes; pass 2
+ * \param[in]    minh1 components less than this height either join an
+ *                     existing boxa or are set aside for pass 2
+ * \return  baa 2d sorted version of boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The final result is a sort where the 'fast scan' direction is
  *          left to right, and the 'slow scan' direction is from top
  *          to bottom.  Each boxa in the baa represents a sorted set
@@ -788,7 +807,7 @@ BOXA    *boxad;
  *          is overlapping are joined.  After that, the boxes in each
  *          boxa are sorted horizontally, and finally the boxa are
  *          sorted vertically.
- *      (3) If delta1 < 0, the first pass allows aggregation when
+ *      (3) If delta1 \< 0, the first pass allows aggregation when
  *          boxes in the same boxa do not overlap vertically.
  *          The distance by which they can miss and still be aggregated
  *          is the absolute value |delta1|.   Similar for delta2 on
@@ -799,6 +818,7 @@ BOXA    *boxad;
  *          with an existing boxa can start a new one.
  *      (6) This can be used to identify lines of text from
  *          character or word bounding boxes.
+ * </pre>
  */
 BOXAA *
 boxaSort2d(BOXA    *boxas,
@@ -981,11 +1001,11 @@ NUMAA   *naa, *naa1, *naad;
 
 
 /*!
- *  boxaSort2dByIndex()
+ * \brief   boxaSort2dByIndex()
  *
- *      Input:  boxas
- *              naa (numaa that maps from the new baa to the input boxa)
- *      Return: baa (sorted boxaa), or NULL on error
+ * \param[in]    boxas
+ * \param[in]    naa numaa that maps from the new baa to the input boxa
+ * \return  baa sorted boxaa, or NULL on error
  */
 BOXAA *
 boxaSort2dByIndex(BOXA   *boxas,
@@ -1034,25 +1054,27 @@ NUMA    *na;
  *                        Boxa array extraction                        *
  *---------------------------------------------------------------------*/
 /*!
- *  boxaExtractAsNuma()
+ * \brief   boxaExtractAsNuma()
  *
- *      Input:  boxa
- *              &nal (<optional return> array of left locations)
- *              &nat (<optional return> array of top locations)
- *              &nar (<optional return> array of right locations)
- *              &nab (<optional return> array of bottom locations)
- *              &naw (<optional return> array of widths)
- *              &nah (<optional return> array of heights)
- *              keepinvalid (1 to keep invalid boxes; 0 to remove them)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    boxa
+ * \param[out]   pnal [optional] array of left locations
+ * \param[out]   pnat [optional] array of top locations
+ * \param[out]   pnar [optional] array of right locations
+ * \param[out]   pnab [optional] array of bottom locations
+ * \param[out]   pnaw [optional] array of widths
+ * \param[out]   pnah [optional] array of heights
+ * \param[in]    keepinvalid 1 to keep invalid boxes; 0 to remove them
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If you are counting or sorting values, such as determining
  *          rank order, you must remove invalid boxes.
  *      (2) If you are parametrizing the values, or doing an evaluation
  *          where the position in the boxa sequence is important, you
  *          must replace the invalid boxes with valid ones before
  *          doing the extraction. This is easily done with boxaFillSequence().
+ * </pre>
  */
 l_int32
 boxaExtractAsNuma(BOXA    *boxa,
@@ -1107,19 +1129,20 @@ l_int32  i, n, left, top, right, bot, w, h;
 
 
 /*!
- *  boxaExtractAsPta()
+ * \brief   boxaExtractAsPta()
  *
- *      Input:  boxa
- *              &ptal (<optional return> array of left locations vs. index)
- *              &ptat (<optional return> array of top locations vs. index)
- *              &ptar (<optional return> array of right locations vs. index)
- *              &ptab (<optional return> array of bottom locations vs. index)
- *              &ptaw (<optional return> array of widths vs. index)
- *              &ptah (<optional return> array of heights vs. index)
- *              keepinvalid (1 to keep invalid boxes; 0 to remove them)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    boxa
+ * \param[out]   pptal [optional] array of left locations vs. index
+ * \param[out]   pptat [optional] array of top locations vs. index
+ * \param[out]   pptar [optional] array of right locations vs. index
+ * \param[out]   pptab [optional] array of bottom locations vs. index
+ * \param[out]   pptaw [optional] array of widths vs. index
+ * \param[out]   pptah [optional] array of heights vs. index
+ * \param[in]    keepinvalid 1 to keep invalid boxes; 0 to remove them
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For most applications, such as counting, sorting, fitting
  *          to some parametrized form, plotting or filtering in general,
  *          you should remove the invalid boxes.  Each pta saves the
@@ -1128,6 +1151,7 @@ l_int32  i, n, left, top, right, bot, w, h;
  *          boxaExtractAsNuma(), is not necessary.
  *      (2) If invalid boxes are retained, each one will result in
  *          entries (typically 0) in all selected output pta.
+ * </pre>
  */
 l_int32
 boxaExtractAsPta(BOXA    *boxa,
@@ -1185,14 +1209,15 @@ l_int32  i, n, left, top, right, bot, w, h;
  *                            Boxa statistics                          *
  *---------------------------------------------------------------------*/
 /*!
- *  boxaGetRankSize()
+ * \brief   boxaGetRankSize()
  *
- *      Input:  boxa
- *              fract (use 0.0 for smallest, 1.0 for largest)
- *      Return: box (with rank values for x, y, w, h), or NULL on error
- *              or if the boxa is empty (has no valid boxes)
+ * \param[in]    boxa
+ * \param[in]    fract use 0.0 for smallest, 1.0 for largest
+ * \return  box with rank values for x, y, w, h, or NULL on error
+ *              or if the boxa is empty has no valid boxes
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function does not assume that all boxes in the boxa are valid
  *      (2) The four box parameters are sorted independently.
  *          For rank order, the width and height are sorted in increasing
@@ -1204,6 +1229,7 @@ l_int32  i, n, left, top, right, bot, w, h;
  *          order on x and y is highly application dependent.  In summary:
  *             ~ x and y are sorted in decreasing order
  *             ~ w and h are sorted in increasing order
+ * </pre>
  */
 BOX *
 boxaGetRankSize(BOXA      *boxa,
@@ -1240,14 +1266,16 @@ BOX       *box;
 
 
 /*!
- *  boxaGetMedian()
+ * \brief   boxaGetMedian()
  *
- *      Input:  boxa
- *      Return: box (with median values for x, y, w, h), or NULL on error
+ * \param[in]    boxa
+ * \return  box with median values for x, y, w, h, or NULL on error
  *              or if the boxa is empty.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See boxaGetRankSize()
+ * </pre>
  */
 BOX *
 boxaGetMedian(BOXA  *boxa)
@@ -1264,12 +1292,12 @@ boxaGetMedian(BOXA  *boxa)
 
 
 /*!
- *  boxaGetAverageSize()
+ * \brief   boxaGetAverageSize()
  *
- *      Input:  boxa
- *              &w  (<optional return> average width)
- *              &h  (<optional return> average height)
- *      Return: 0 if OK, 1 on error or if the boxa is empty
+ * \param[in]    boxa
+ * \param[out]   pw  [optional] average width
+ * \param[out]   ph  [optional] average height
+ * \return  0 if OK, 1 on error or if the boxa is empty
  */
 l_int32
 boxaGetAverageSize(BOXA       *boxa,
@@ -1305,24 +1333,26 @@ l_float32  sumw, sumh;
  *                        Other Boxaa functions                        *
  *---------------------------------------------------------------------*/
 /*!
- *  boxaaGetExtent()
+ * \brief   boxaaGetExtent()
  *
- *      Input:  baa
- *              &w  (<optional return> width)
- *              &h  (<optional return> height)
- *              &box (<optional return>, minimum box containing all boxa
- *                    in boxaa)
- *              &boxa (<optional return>, boxa containing all boxes in each
- *                     boxa in the boxaa)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    baa
+ * \param[out]   pw  [optional] width
+ * \param[out]   ph  [optional] height
+ * \param[out]   pbox [optional]  minimum box containing all boxa
+ *                    in boxaa
+ * \param[out]   pboxa [optional]  boxa containing all boxes in each
+ *                     boxa in the boxaa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The returned w and h are the minimum size image
  *          that would contain all boxes untranslated.
  *      (2) Each box in the returned boxa is the minimum box required to
  *          hold all the boxes in the respective boxa of baa.
  *      (3) If there are no valid boxes in a boxa, the box corresponding
  *          to its extent has all fields set to 0 (an invalid box).
+ * </pre>
  */
 l_int32
 boxaaGetExtent(BOXAA    *baa,
@@ -1384,14 +1414,15 @@ BOXA    *boxa, *boxa1;
 
 
 /*!
- *  boxaaFlattenToBoxa()
+ * \brief   boxaaFlattenToBoxa()
  *
- *      Input:  baa
- *              &naindex  (<optional return> the boxa index in the baa)
- *              copyflag  (L_COPY or L_CLONE)
- *      Return: boxa, or NULL on error
+ * \param[in]    baa
+ * \param[out]   pnaindex  [optional] the boxa index in the baa
+ * \param[in]    copyflag  L_COPY or L_CLONE
+ * \return  boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This 'flattens' the baa to a boxa, taking the boxes in
  *          order in the first boxa, then the second, etc.
  *      (2) If a boxa is empty, we generate an invalid, placeholder box
@@ -1399,8 +1430,9 @@ BOXA    *boxa, *boxa1;
  *          where each boxa has either 0 or 1 boxes, and it is necessary
  *          to maintain a 1:1 correspondence between the initial
  *          boxa array and the resulting box array.
- *      (3) If &naindex is defined, we generate a Numa that gives, for
+ *      (3) If \&naindex is defined, we generate a Numa that gives, for
  *          each box in the baa, the index of the boxa to which it belongs.
+ * </pre>
  */
 BOXA *
 boxaaFlattenToBoxa(BOXAA   *baa,
@@ -1450,21 +1482,23 @@ NUMA    *naindex;
 
 
 /*!
- *  boxaaFlattenAligned()
+ * \brief   boxaaFlattenAligned()
  *
- *      Input:  baa
- *              num (number extracted from each)
- *              fillerbox (<optional> that fills if necessary)
- *              copyflag  (L_COPY or L_CLONE)
- *      Return: boxa, or NULL on error
+ * \param[in]    baa
+ * \param[in]    num number extracted from each
+ * \param[in]    fillerbox [optional] that fills if necessary
+ * \param[in]    copyflag  L_COPY or L_CLONE
+ * \return  boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This 'flattens' the baa to a boxa, taking the first %num
  *          boxes from each boxa.
  *      (2) In each boxa, if there are less than %num boxes, we preserve
  *          the alignment between the input baa and the output boxa
  *          by inserting one or more fillerbox(es) or, if %fillerbox == NULL,
  *          one or more invalid placeholder boxes.
+ * </pre>
  */
 BOXA *
 boxaaFlattenAligned(BOXAA   *baa,
@@ -1510,17 +1544,19 @@ BOX     *box;
 
 
 /*!
- *  boxaEncapsulateAligned()
+ * \brief   boxaEncapsulateAligned()
  *
- *      Input:  boxa
- *              num (number put into each boxa in the baa)
- *              copyflag  (L_COPY or L_CLONE)
- *      Return: baa, or NULL on error
+ * \param[in]    boxa
+ * \param[in]    num number put into each boxa in the baa
+ * \param[in]    copyflag  L_COPY or L_CLONE
+ * \return  baa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This puts %num boxes from the input %boxa into each of a
  *          set of boxa within an output baa.
  *      (2) This assumes that the boxes in %boxa are in sets of %num each.
+ * </pre>
  */
 BOXAA *
 boxaEncapsulateAligned(BOXA    *boxa,
@@ -1558,19 +1594,21 @@ BOXAA   *baa;
 
 
 /*!
- *  boxaaAlignBox()
+ * \brief   boxaaAlignBox()
  *
- *      Input:  baa
- *              box (to be aligned with the bext boxa in the baa, if possible)
- *              delta (amount by which consecutive components can miss
- *                     in overlap and still be included in the array)
- *              &index (of boxa with best overlap, or if none match,
- *                      this is the index of the next boxa to be generated)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    baa
+ * \param[in]    box to be aligned with the bext boxa in the baa, if possible
+ * \param[in]    delta amount by which consecutive components can miss
+ *                     in overlap and still be included in the array
+ * \param[in]    &index of boxa with best overlap, or if none match,
+ *                      this is the index of the next boxa to be generated
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is not greedy.  It finds the boxa whose vertical
  *          extent has the closest overlap with the input box.
+ * </pre>
  */
 l_int32
 boxaaAlignBox(BOXAA    *baa,

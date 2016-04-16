@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   pixabasic.c
+/*!
+ * \file  pixabasic.c
+ * <pre>
  *
  *      Pixa creation, destruction, copying
  *           PIXA     *pixaCreate()
@@ -117,6 +118,7 @@
  *     of copy.  The basic rule is that however a Pixa is obtained
  *     (e.g., from pixaCreate*(), pixaCopy(), or a Pixaa accessor),
  *     it is necessary to call pixaDestroy() on it.
+ * </pre>
  */
 
 #ifdef HAVE_CONFIG_H
@@ -136,13 +138,15 @@ static l_int32 pixaExtendArray(PIXA  *pixa);
  *                    Pixa creation, destruction, copy                 *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaCreate()
+ * \brief   pixaCreate()
  *
- *      Input:  n  (initial number of ptrs)
- *      Return: pixa, or NULL on error
+ * \param[in]    n  initial number of ptrs
+ * \return  pixa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This creates an empty boxa.
+ * </pre>
  */
 PIXA *
 pixaCreate(l_int32  n)
@@ -170,17 +174,19 @@ PIXA  *pixa;
 
 
 /*!
- *  pixaCreateFromPix()
+ * \brief   pixaCreateFromPix()
  *
- *      Input:  pixs  (with individual components on a lattice)
- *              n   (number of components)
- *              cellw   (width of each cell)
- *              cellh   (height of each cell)
- *      Return: pixa, or NULL on error
+ * \param[in]    pixs  with individual components on a lattice
+ * \param[in]    n   number of components
+ * \param[in]    cellw   width of each cell
+ * \param[in]    cellh   height of each cell
+ * \return  pixa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For bpp = 1, we truncate each retrieved pix to the ON
  *          pixels, which we assume for now start at (0,0)
+ * </pre>
  */
 PIXA *
 pixaCreateFromPix(PIX     *pixs,
@@ -224,15 +230,16 @@ PIXA    *pixa;
 
 
 /*!
- *  pixaCreateFromBoxa()
+ * \brief   pixaCreateFromBoxa()
  *
- *      Input:  pixs
- *              boxa
- *              &cropwarn (<optional return> TRUE if the boxa extent
+ * \param[in]    pixs
+ * \param[in]    boxa
+ * \param[out]   pcropwarn [optional] TRUE if the boxa extent
  *                         is larger than pixs.
- *      Return: pixad, or NULL on error
+ * \return  pixad, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This simply extracts from pixs the region corresponding to each
  *          box in the boxa.
  *      (2) The 3rd arg is optional.  If the extent of the boxa exceeds the
@@ -240,6 +247,7 @@ PIXA    *pixa;
  *          or entirely outside the pix, a warning is returned as TRUE.
  *      (3) pixad will have only the properly clipped elements, and
  *          the internal boxa will be correct.
+ * </pre>
  */
 PIXA *
 pixaCreateFromBoxa(PIX      *pixs,
@@ -291,16 +299,17 @@ PIXA    *pixad;
 
 
 /*!
- *  pixaSplitPix()
+ * \brief   pixaSplitPix()
  *
- *      Input:  pixs  (with individual components on a lattice)
- *              nx   (number of mosaic cells horizontally)
- *              ny   (number of mosaic cells vertically)
- *              borderwidth  (of added border on all sides)
- *              bordercolor  (in our RGBA format: 0xrrggbbaa)
- *      Return: pixa, or NULL on error
+ * \param[in]    pixs  with individual components on a lattice
+ * \param[in]    nx   number of mosaic cells horizontally
+ * \param[in]    ny   number of mosaic cells vertically
+ * \param[in]    borderwidth  of added border on all sides
+ * \param[in]    bordercolor  in our RGBA format: 0xrrggbbaa
+ * \return  pixa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is a variant on pixaCreateFromPix(), where we
  *          simply divide the image up into (approximately) equal
  *          subunits.  If you want the subimages to have essentially
@@ -311,6 +320,7 @@ PIXA    *pixad;
  *          so that if the src is clipped, the unblitted part will
  *          be this color.  This avoids 1 pixel wide black stripes at the
  *          left and lower edges.
+ * </pre>
  */
 PIXA *
 pixaSplitPix(PIX      *pixs,
@@ -362,14 +372,16 @@ PIXA    *pixa;
 
 
 /*!
- *  pixaDestroy()
+ * \brief   pixaDestroy()
  *
- *      Input:  &pixa (<can be nulled>)
- *      Return: void
+ * \param[in]    &pixa <can be nulled>
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Decrements the ref count and, if 0, destroys the pixa.
  *      (2) Always nulls the input ptr.
+ * </pre>
  */
 void
 pixaDestroy(PIXA  **ppixa)
@@ -403,15 +415,15 @@ PIXA    *pixa;
 
 
 /*!
- *  pixaCopy()
+ * \brief   pixaCopy()
  *
- *      Input:  pixas
- *              copyflag (see pix.h for details):
- *                L_COPY makes a new pixa and copies each pix and each box
- *                L_CLONE gives a new ref-counted handle to the input pixa
- *                L_COPY_CLONE makes a new pixa and inserts clones of
- *                    all pix and boxes
- *      Return: new pixa, or NULL on error
+ * \param[in]    pixas
+ * \param[in]    copyflag see pix.h for details:
+ * \param[in]      L_COPY makes a new pixa and copies each pix and each box
+ * \param[in]      L_CLONE gives a new ref-counted handle to the input pixa
+ * \param[in]      L_COPY_CLONE makes a new pixa and inserts clones of
+ * \param[in]          all pix and boxes
+ * \return  new pixa, or NULL on error
  */
 PIXA *
 pixaCopy(PIXA    *pixa,
@@ -458,12 +470,12 @@ PIXA    *pixac;
  *                              Pixa addition                          *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaAddPix()
+ * \brief   pixaAddPix()
  *
- *      Input:  pixa
- *              pix  (to be added)
- *              copyflag (L_INSERT, L_COPY, L_CLONE)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pixa
+ * \param[in]    pix  to be added
+ * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \return  0 if OK; 1 on error
  */
 l_int32
 pixaAddPix(PIXA    *pixa,
@@ -502,12 +514,12 @@ PIX     *pixc;
 
 
 /*!
- *  pixaAddBox()
+ * \brief   pixaAddBox()
  *
- *      Input:  pixa
- *              box
- *              copyflag (L_INSERT, L_COPY, L_CLONE)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    box
+ * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixaAddBox(PIXA    *pixa,
@@ -529,13 +541,15 @@ pixaAddBox(PIXA    *pixa,
 
 
 /*!
- *  pixaExtendArray()
+ * \brief   pixaExtendArray()
  *
- *      Input:  pixa
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pixa
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Doubles the size of the pixa and boxa ptr arrays.
+ * </pre>
  */
 static l_int32
 pixaExtendArray(PIXA  *pixa)
@@ -550,14 +564,16 @@ pixaExtendArray(PIXA  *pixa)
 
 
 /*!
- *  pixaExtendArrayToSize()
+ * \brief   pixaExtendArrayToSize()
  *
- *      Input:  pixa
- *      Return: 0 if OK; 1 on error
+ * \param[in]    pixa
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If necessary, reallocs new pixa and boxa ptrs arrays to %size.
  *          The pixa and boxa ptr arrays must always be equal in size.
+ * </pre>
  */
 l_int32
 pixaExtendArrayToSize(PIXA    *pixa,
@@ -583,10 +599,10 @@ pixaExtendArrayToSize(PIXA    *pixa,
  *                             Pixa accessors                          *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaGetCount()
+ * \brief   pixaGetCount()
  *
- *      Input:  pixa
- *      Return: count, or 0 if no pixa
+ * \param[in]    pixa
+ * \return  count, or 0 if no pixa
  */
 l_int32
 pixaGetCount(PIXA  *pixa)
@@ -601,10 +617,10 @@ pixaGetCount(PIXA  *pixa)
 
 
 /*!
- *  pixaChangeRefcount()
+ * \brief   pixaChangeRefcount()
  *
- *      Input:  pixa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixaChangeRefcount(PIXA    *pixa,
@@ -621,12 +637,12 @@ pixaChangeRefcount(PIXA    *pixa,
 
 
 /*!
- *  pixaGetPix()
+ * \brief   pixaGetPix()
  *
- *      Input:  pixa
- *              index  (to the index-th pix)
- *              accesstype  (L_COPY or L_CLONE)
- *      Return: pix, or NULL on error
+ * \param[in]    pixa
+ * \param[in]    index  to the index-th pix
+ * \param[in]    accesstype  L_COPY or L_CLONE
+ * \return  pix, or NULL on error
  */
 PIX *
 pixaGetPix(PIXA    *pixa,
@@ -656,12 +672,12 @@ PIX  *pix;
 
 
 /*!
- *  pixaGetPixDimensions()
+ * \brief   pixaGetPixDimensions()
  *
- *      Input:  pixa
- *              index  (to the index-th box)
- *              &w, &h, &d (<optional return>; each can be null)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    index  to the index-th box
+ * \param[out]   pw, ph, pd [optional]  each can be null
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixaGetPixDimensions(PIXA     *pixa,
@@ -691,11 +707,11 @@ PIX  *pix;
 
 
 /*!
- *  pixaGetBoxa()
+ * \brief   pixaGetBoxa()
  *
- *      Input:  pixa
- *              accesstype  (L_COPY, L_CLONE, L_COPY_CLONE)
- *      Return: boxa, or NULL on error
+ * \param[in]    pixa
+ * \param[in]    accesstype  L_COPY, L_CLONE, L_COPY_CLONE
+ * \return  boxa, or NULL on error
  */
 BOXA *
 pixaGetBoxa(PIXA    *pixa,
@@ -716,10 +732,10 @@ pixaGetBoxa(PIXA    *pixa,
 
 
 /*!
- *  pixaGetBoxaCount()
+ * \brief   pixaGetBoxaCount()
  *
- *      Input:  pixa
- *      Return: count, or 0 on error
+ * \param[in]    pixa
+ * \return  count, or 0 on error
  */
 l_int32
 pixaGetBoxaCount(PIXA  *pixa)
@@ -734,14 +750,15 @@ pixaGetBoxaCount(PIXA  *pixa)
 
 
 /*!
- *  pixaGetBox()
+ * \brief   pixaGetBox()
  *
- *      Input:  pixa
- *              index  (to the index-th pix)
- *              accesstype  (L_COPY or L_CLONE)
- *      Return: box (if null, not automatically an error), or NULL on error
+ * \param[in]    pixa
+ * \param[in]    index  to the index-th pix
+ * \param[in]    accesstype  L_COPY or L_CLONE
+ * \return  box if null, not automatically an error, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) There is always a boxa with a pixa, and it is initialized so
  *          that each box ptr is NULL.
  *      (2) In general, we expect that there is either a box associated
@@ -750,6 +767,7 @@ pixaGetBoxaCount(PIXA  *pixa)
  *          is an actual error is determined by the calling program.
  *          If the caller expects to get a box, it is an error; see, e.g.,
  *          pixaGetBoxGeometry().
+ * </pre>
  */
 BOX *
 pixaGetBox(PIXA    *pixa,
@@ -782,12 +800,12 @@ BOX  *box;
 
 
 /*!
- *  pixaGetBoxGeometry()
+ * \brief   pixaGetBoxGeometry()
  *
- *      Input:  pixa
- *              index  (to the index-th box)
- *              &x, &y, &w, &h (<optional return>; each can be null)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    index  to the index-th box
+ * \param[out]   px, py, pw, ph [optional]  each can be null
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixaGetBoxGeometry(PIXA     *pixa,
@@ -819,15 +837,17 @@ BOX  *box;
 
 
 /*!
- *  pixaSetBoxa()
+ * \brief   pixaSetBoxa()
  *
- *      Input:  pixa
- *              boxa
- *              accesstype  (L_INSERT, L_COPY, L_CLONE)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    boxa
+ * \param[in]    accesstype  L_INSERT, L_COPY, L_CLONE
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This destroys the existing boxa in the pixa.
+ * </pre>
  */
 l_int32
 pixaSetBoxa(PIXA    *pixa,
@@ -855,16 +875,18 @@ pixaSetBoxa(PIXA    *pixa,
 
 
 /*!
- *  pixaGetPixArray()
+ * \brief   pixaGetPixArray()
  *
- *      Input:  pixa
- *      Return: pix array, or NULL on error
+ * \param[in]    pixa
+ * \return  pix array, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This returns a ptr to the actual array.  The array is
  *          owned by the pixa, so it must not be destroyed.
  *      (2) The caller should always check if the return value is NULL
  *          before accessing any of the pix ptrs in this array!
+ * </pre>
  */
 PIX **
 pixaGetPixArray(PIXA  *pixa)
@@ -879,14 +901,16 @@ pixaGetPixArray(PIXA  *pixa)
 
 
 /*!
- *  pixaVerifyDepth()
+ * \brief   pixaVerifyDepth()
  *
- *      Input:  pixa
- *              &maxdepth (<optional return> max depth of all pix)
- *      Return: depth (return 0 if they're not all the same, or on error)
+ * \param[in]    pixa
+ * \param[out]   pmaxdepth [optional] max depth of all pix
+ * \return  depth return 0 if they're not all the same, or on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) It is considered to be an error if there are no pix.
+ * </pre>
  */
 l_int32
 pixaVerifyDepth(PIXA     *pixa,
@@ -919,16 +943,18 @@ l_int32  i, n, d, depth, maxdepth, same;
 
 
 /*!
- *  pixaIsFull()
+ * \brief   pixaIsFull()
  *
- *      Input:  pixa
- *              &fullpa (<optional return> 1 if pixa is full)
- *              &fullba (<optional return> 1 if boxa is full)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[out]   pfullpa [optional] 1 if pixa is full
+ * \param[out]   pfullba [optional] 1 if boxa is full
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) A pixa is "full" if the array of pix is fully
- *          occupied from index 0 to index (pixa->n - 1).
+ *          occupied from index 0 to index (pixa-\>n - 1).
+ * </pre>
  */
 l_int32
 pixaIsFull(PIXA     *pixa,
@@ -968,15 +994,17 @@ PIX     *pix;
 
 
 /*!
- *  pixaCountText()
+ * \brief   pixaCountText()
  *
- *      Input:  pixa
- *              &ntext (<return> number of pix with non-empty text strings)
- *      Return: 0 if OK, 1 on error.
+ * \param[in]    pixa
+ * \param[out]   pntext number of pix with non-empty text strings
+ * \return  0 if OK, 1 on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) All pix have non-empty text strings if the returned value %ntext
  *          equals the pixa count.
+ * </pre>
  */
 l_int32
 pixaCountText(PIXA     *pixa,
@@ -1009,21 +1037,23 @@ PIX     *pix;
 
 
 /*!
- *  pixaGetLinePtrs()
+ * \brief   pixaGetLinePtrs()
  *
- *      Input:  pixa (of pix that all have the same depth)
- *              &size (<optional return> number of pix in the pixa)
- *      Return: array of array of line ptrs, or NULL on error
+ * \param[in]    pixa of pix that all have the same depth
+ * \param[out]   psize [optional] number of pix in the pixa
+ * \return  array of array of line ptrs, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixGetLinePtrs() for details.
  *      (2) It is best if all pix in the pixa are the same size.
  *          The size of each line ptr array is equal to the height
  *          of the pix that it refers to.
  *      (3) This is an array of arrays.  To destroy it:
- *            for (i = 0; i < size; i++)
+ *            for (i = 0; i \< size; i++)
  *                LEPT_FREE(lineset[i]);
  *            LEPT_FREE(lineset);
+ * </pre>
  */
 void ***
 pixaGetLinePtrs(PIXA     *pixa,
@@ -1060,15 +1090,17 @@ PIX     *pix;
  *                         Pixa output info                            *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaWriteStreamInfo()
+ * \brief   pixaWriteStreamInfo()
  *
- *      Input:  fp (file stream)
- *              pixa
- *      Return: 0 if OK, 1 on error.
+ * \param[in]    fp file stream
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For each pix in the pixa, write out the pix dimensions, spp,
  *          text string (if it exists), and cmap info.
+ * </pre>
  */
 l_int32
 pixaWriteStreamInfo(FILE  *fp,
@@ -1114,17 +1146,19 @@ PIXCMAP  *cmap;
  *                       Pixa array modifiers                          *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaReplacePix()
+ * \brief   pixaReplacePix()
  *
- *      Input:  pixa
- *              index  (to the index-th pix)
- *              pix (insert to replace existing one)
- *              box (<optional> insert to replace existing)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    index  to the index-th pix
+ * \param[in]    pix insert to replace existing one
+ * \param[in]    box [optional] insert to replace existing
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) In-place replacement of one pix.
  *      (2) The previous pix at that location is destroyed.
+ * </pre>
  */
 l_int32
 pixaReplacePix(PIXA    *pixa,
@@ -1158,21 +1192,23 @@ BOXA  *boxa;
 
 
 /*!
- *  pixaInsertPix()
+ * \brief   pixaInsertPix()
  *
- *      Input:  pixa
- *              index (at which pix is to be inserted)
- *              pixs (new pix to be inserted)
- *              box (<optional> new box to be inserted)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    index at which pix is to be inserted
+ * \param[in]    pixs new pix to be inserted
+ * \param[in]    box [optional] new box to be inserted
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) This shifts pixa[i] --> pixa[i + 1] for all i >= index,
+ * <pre>
+ * Notes:
+ *      (1) This shifts pixa[i] --\> pixa[i + 1] for all i \>= index,
  *          and then inserts at pixa[index].
  *      (2) To insert at the beginning of the array, set index = 0.
  *      (3) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
  *      (4) To append a pix to a pixa, it's easier to use pixaAddPix().
+ * </pre>
  */
 l_int32
 pixaInsertPix(PIXA    *pixa,
@@ -1210,17 +1246,19 @@ l_int32  i, n;
 
 
 /*!
- *  pixaRemovePix()
+ * \brief   pixaRemovePix()
  *
- *      Input:  pixa
- *              index (of pix to be removed)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    index of pix to be removed
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) This shifts pixa[i] --> pixa[i - 1] for all i > index.
+ * <pre>
+ * Notes:
+ *      (1) This shifts pixa[i] --\> pixa[i - 1] for all i \> index.
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
  *      (3) The corresponding box is removed as well, if it exists.
+ * </pre>
  */
 l_int32
 pixaRemovePix(PIXA    *pixa,
@@ -1257,20 +1295,22 @@ PIX    **array;
 
 
 /*!
- *  pixaRemovePixAndSave()
+ * \brief   pixaRemovePixAndSave()
  *
- *      Input:  pixa
- *              index (of pix to be removed)
- *              &pix (<optional return> removed pix)
- *              &box (<optional return> removed box)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \param[in]    index of pix to be removed
+ * \param[out]   ppix [optional] removed pix
+ * \param[out]   pbox [optional] removed box
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
- *      (1) This shifts pixa[i] --> pixa[i - 1] for all i > index.
+ * <pre>
+ * Notes:
+ *      (1) This shifts pixa[i] --\> pixa[i - 1] for all i \> index.
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
  *      (3) The corresponding box is removed as well, if it exists.
  *      (4) The removed pix and box can either be retained or destroyed.
+ * </pre>
  */
 l_int32
 pixaRemovePixAndSave(PIXA    *pixa,
@@ -1313,14 +1353,15 @@ PIX    **array;
 
 
 /*!
- *  pixaInitFull()
+ * \brief   pixaInitFull()
  *
- *      Input:  pixa (typically empty)
- *              pix (<optional> to be replicated into the entire pixa ptr array)
- *              box (<optional> to be replicated into the entire boxa ptr array)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa typically empty
+ * \param[in]    pix [optional] to be replicated into the entire pixa ptr array
+ * \param[in]    box [optional] to be replicated into the entire boxa ptr array
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This initializes a pixa by filling up the entire pix ptr array
  *          with copies of %pix.  If %pix == NULL, we use a tiny placeholder
  *          pix (w = h = d = 1).  Any existing pix are destroyed.
@@ -1344,6 +1385,7 @@ PIX    **array;
  *             pixaInitFull(pixa, NULL, NULL);
  *          The initialization allows the pixa to always be properly
  *          filled, even if all pix (and boxes) are not later replaced.
+ * </pre>
  */
 l_int32
 pixaInitFull(PIXA  *pixa,
@@ -1375,15 +1417,17 @@ PIX     *pixt;
 
 
 /*!
- *  pixaClear()
+ * \brief   pixaClear()
  *
- *      Input:  pixa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This destroys all pix in the pixa, as well as
  *          all boxes in the boxa.  The ptrs in the pix ptr array
  *          are all null'd.  The number of allocated pix, n, is set to 0.
+ * </pre>
  */
 l_int32
 pixaClear(PIXA  *pixa)
@@ -1407,19 +1451,21 @@ l_int32  i, n;
  *                      Pixa and Pixaa combination                     *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaJoin()
+ * \brief   pixaJoin()
  *
- *      Input:  pixad  (dest pixa; add to this one)
- *              pixas  (<optional> source pixa; add from this one)
- *              istart  (starting index in pixas)
- *              iend  (ending index in pixas; use -1 to cat all)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixad  dest pixa; add to this one
+ * \param[in]    pixas  [optional] source pixa; add from this one
+ * \param[in]    istart  starting index in pixas
+ * \param[in]    iend  ending index in pixas; use -1 to cat all
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This appends a clone of each indicated pix in pixas to pixad
- *      (2) istart < 0 is taken to mean 'read from the start' (istart = 0)
- *      (3) iend < 0 means 'read to the end'
+ *      (2) istart \< 0 is taken to mean 'read from the start' (istart = 0)
+ *      (3) iend \< 0 means 'read to the end'
  *      (4) If pixas is NULL or contains no pix, this is a no-op.
+ * </pre>
  */
 l_int32
 pixaJoin(PIXA    *pixad,
@@ -1462,18 +1508,20 @@ PIX     *pix;
 
 
 /*!
- *  pixaaJoin()
+ * \brief   pixaaJoin()
  *
- *      Input:  paad  (dest pixaa; add to this one)
- *              paas  (<optional> source pixaa; add from this one)
- *              istart  (starting index in pixaas)
- *              iend  (ending index in pixaas; use -1 to cat all)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    paad  dest pixaa; add to this one
+ * \param[in]    paas  [optional] source pixaa; add from this one
+ * \param[in]    istart  starting index in pixaas
+ * \param[in]    iend  ending index in pixaas; use -1 to cat all
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This appends a clone of each indicated pixa in paas to pixaad
- *      (2) istart < 0 is taken to mean 'read from the start' (istart = 0)
- *      (3) iend < 0 means 'read to the end'
+ *      (2) istart \< 0 is taken to mean 'read from the start' (istart = 0)
+ *      (3) iend \< 0 means 'read to the end'
+ * </pre>
  */
 l_int32
 pixaaJoin(PIXAA   *paad,
@@ -1512,12 +1560,13 @@ PIXA    *pixa;
  *                    Pixaa creation and destruction                   *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaaCreate()
+ * \brief   pixaaCreate()
  *
- *      Input:  n  (initial number of pixa ptrs)
- *      Return: paa, or NULL on error
+ * \param[in]    n  initial number of pixa ptrs
+ * \return  paa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) A pixaa provides a 2-level hierarchy of images.
  *          A common use is for segmentation masks, which are
  *          inexpensive to store in png format.
@@ -1530,6 +1579,7 @@ PIXA    *pixa;
  *          for the columns, and the (x,y) components of each box can
  *          be used to get the absolute position of the textlines on
  *          the page.
+ * </pre>
  */
 PIXAA *
 pixaaCreate(l_int32  n)
@@ -1557,15 +1607,16 @@ PIXAA  *paa;
 
 
 /*!
- *  pixaaCreateFromPixa()
+ * \brief   pixaaCreateFromPixa()
  *
- *      Input:  pixa
- *              n (number specifying subdivision of pixa)
- *              type (L_CHOOSE_CONSECUTIVE, L_CHOOSE_SKIP_BY)
- *              copyflag (L_CLONE, L_COPY)
- *      Return: paa, or NULL on error
+ * \param[in]    pixa
+ * \param[in]    n number specifying subdivision of pixa
+ * \param[in]    type L_CHOOSE_CONSECUTIVE, L_CHOOSE_SKIP_BY
+ * \param[in]    copyflag L_CLONE, L_COPY
+ * \return  paa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This subdivides a pixa into a set of smaller pixa that
  *          are accumulated into a pixaa.
  *      (2) If type == L_CHOOSE_CONSECUTIVE, the first 'n' pix are
@@ -1573,6 +1624,7 @@ PIXAA  *paa;
  *          If type == L_CHOOSE_SKIP_BY, the first pixa is made by
  *          aggregating pix[0], pix[n], pix[2*n], etc.
  *      (3) The copyflag specifies if each new pix is a copy or a clone.
+ * </pre>
  */
 PIXAA *
 pixaaCreateFromPixa(PIXA    *pixa,
@@ -1631,10 +1683,10 @@ PIXAA   *paa;
 
 
 /*!
- *  pixaaDestroy()
+ * \brief   pixaaDestroy()
  *
- *      Input:  &paa (<inout> to be nulled)
- *      Return: void
+ * \param[in,out]   ppaa to be nulled
+ * \return  void
  */
 void
 pixaaDestroy(PIXAA  **ppaa)
@@ -1668,17 +1720,17 @@ PIXAA   *paa;
  *                             Pixaa addition                          *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaaAddPixa()
+ * \brief   pixaaAddPixa()
  *
- *      Input:  paa
- *              pixa  (to be added)
- *              copyflag:
- *                L_INSERT inserts the pixa directly
- *                L_COPY makes a new pixa and copies each pix and each box
- *                L_CLONE gives a new handle to the input pixa
- *                L_COPY_CLONE makes a new pixa and inserts clones of
- *                    all pix and boxes
- *      Return: 0 if OK; 1 on error
+ * \param[in]    paa
+ * \param[in]    pixa  to be added
+ * \param[in]    copyflag:
+ * \param[in]      L_INSERT inserts the pixa directly
+ * \param[in]      L_COPY makes a new pixa and copies each pix and each box
+ * \param[in]      L_CLONE gives a new handle to the input pixa
+ * \param[in]      L_COPY_CLONE makes a new pixa and inserts clones of
+ * \param[in]          all pix and boxes
+ * \return  0 if OK; 1 on error
  */
 l_int32
 pixaaAddPixa(PIXAA   *paa,
@@ -1716,10 +1768,10 @@ PIXA    *pixac;
 
 
 /*!
- *  pixaaExtendArray()
+ * \brief   pixaaExtendArray()
  *
- *      Input:  paa
- *      Return: 0 if OK; 1 on error
+ * \param[in]    paa
+ * \return  0 if OK; 1 on error
  */
 l_int32
 pixaaExtendArray(PIXAA  *paa)
@@ -1740,14 +1792,14 @@ pixaaExtendArray(PIXAA  *paa)
 
 
 /*!
- *  pixaaAddPix()
+ * \brief   pixaaAddPix()
  *
- *      Input:  paa  (input paa)
- *              index (index of pixa in paa)
- *              pix (to be added)
- *              box (<optional> to be added)
- *              copyflag (L_INSERT, L_COPY, L_CLONE)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    paa  input paa
+ * \param[in]    index index of pixa in paa
+ * \param[in]    pix to be added
+ * \param[in]    box [optional] to be added
+ * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \return  0 if OK; 1 on error
  */
 l_int32
 pixaaAddPix(PIXAA   *paa,
@@ -1775,16 +1827,18 @@ PIXA  *pixa;
 
 
 /*!
- *  pixaaAddBox()
+ * \brief   pixaaAddBox()
  *
- *      Input:  paa
- *              box
- *              copyflag (L_INSERT, L_COPY, L_CLONE)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    paa
+ * \param[in]    box
+ * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The box can be used, for example, to hold the support region
  *          of a pixa that is being added to the pixaa.
+ * </pre>
  */
 l_int32
 pixaaAddBox(PIXAA   *paa,
@@ -1810,14 +1864,16 @@ pixaaAddBox(PIXAA   *paa,
  *                            Pixaa accessors                          *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaaGetCount()
+ * \brief   pixaaGetCount()
  *
- *      Input:  paa
- *              &na (<optional return> number of pix in each pixa)
- *      Return: count, or 0 if no pixaa
+ * \param[in]    paa
+ * \param[out]   pna [optional] number of pix in each pixa
+ * \return  count, or 0 if no pixaa
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If paa is empty, a returned na will also be empty.
+ * </pre>
  */
 l_int32
 pixaaGetCount(PIXAA  *paa,
@@ -1849,14 +1905,15 @@ PIXA    *pixa;
 
 
 /*!
- *  pixaaGetPixa()
+ * \brief   pixaaGetPixa()
  *
- *      Input:  paa
- *              index  (to the index-th pixa)
- *              accesstype  (L_COPY, L_CLONE, L_COPY_CLONE)
- *      Return: pixa, or NULL on error
+ * \param[in]    paa
+ * \param[in]    index  to the index-th pixa
+ * \param[in]    accesstype  L_COPY, L_CLONE, L_COPY_CLONE
+ * \return  pixa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) L_COPY makes a new pixa with a copy of every pix
  *      (2) L_CLONE just makes a new reference to the pixa,
  *          and bumps the counter.  You would use this, for example,
@@ -1865,6 +1922,7 @@ PIXA    *pixa;
  *      (3) L_COPY_CLONE makes a new pixa with a clone of every pix
  *          and box
  *      (4) In all cases, you must invoke pixaDestroy() on the returned pixa
+ * </pre>
  */
 PIXA *
 pixaaGetPixa(PIXAA   *paa,
@@ -1892,15 +1950,17 @@ PIXA  *pixa;
 
 
 /*!
- *  pixaaGetBoxa()
+ * \brief   pixaaGetBoxa()
  *
- *      Input:  paa
- *              accesstype  (L_COPY, L_CLONE)
- *      Return: boxa, or NULL on error
+ * \param[in]    paa
+ * \param[in]    accesstype  L_COPY, L_CLONE
+ * \return  boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) L_COPY returns a copy; L_CLONE returns a new reference to the boxa.
  *      (2) In both cases, invoke boxaDestroy() on the returned boxa.
+ * </pre>
  */
 BOXA *
 pixaaGetBoxa(PIXAA   *paa,
@@ -1918,13 +1978,13 @@ pixaaGetBoxa(PIXAA   *paa,
 
 
 /*!
- *  pixaaGetPix()
+ * \brief   pixaaGetPix()
  *
- *      Input:  paa
- *              index  (index into the pixa array in the pixaa)
- *              ipix  (index into the pix array in the pixa)
- *              accessflag  (L_COPY or L_CLONE)
- *      Return: pix, or NULL on error
+ * \param[in]    paa
+ * \param[in]    index  index into the pixa array in the pixaa
+ * \param[in]    ipix  index into the pix array in the pixa
+ * \param[in]    accessflag  L_COPY or L_CLONE
+ * \return  pix, or NULL on error
  */
 PIX *
 pixaaGetPix(PIXAA   *paa,
@@ -1947,11 +2007,11 @@ PIXA  *pixa;
 
 
 /*!
- *  pixaaVerifyDepth()
+ * \brief   pixaaVerifyDepth()
  *
- *      Input:  paa
- *              &maxdepth (<optional return> max depth of all pix in pixaa)
- *      Return: depth (return 0 if they're not all the same, or on error)
+ * \param[in]    paa
+ * \param[out]   pmaxdepth [optional] max depth of all pix in pixaa
+ * \return  depth return 0 if they're not all the same, or on error
  */
 l_int32
 pixaaVerifyDepth(PIXAA    *paa,
@@ -1984,14 +2044,16 @@ PIXA    *pixa;
 
 
 /*!
- *  pixaaIsFull()
+ * \brief   pixaaIsFull()
  *
- *      Input:  paa
- *              &full (<return> 1 if all pixa in the paa have full pix arrays)
- *      Return: return 0 if OK, 1 on error
+ * \param[in]    paa
+ * \param[out]   pfull 1 if all pixa in the paa have full pix arrays
+ * \return  return 0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Does not require boxa associated with each pixa to be full.
+ * </pre>
  */
 l_int32
 pixaaIsFull(PIXAA    *paa,
@@ -2025,13 +2087,14 @@ PIXA    *pixa;
  *                         Pixaa array modifiers                       *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaaInitFull()
+ * \brief   pixaaInitFull()
  *
- *      Input:  paa (typically empty)
- *              pixa (to be replicated into the entire pixa ptr array)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    paa typically empty
+ * \param[in]    pixa to be replicated into the entire pixa ptr array
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This initializes a pixaa by filling up the entire pixa ptr array
  *          with copies of %pixa.  Any existing pixa are destroyed.
  *      (2) Example usage.  This function is useful to prepare for a
@@ -2040,8 +2103,9 @@ PIXA    *pixa;
  *             Pixaa *paa = pixaaCreate(max);
  *             Pixa *pixa = pixaCreate(1);  // if you want little memory
  *             pixaaInitFull(paa, pixa);  // copy it to entire array
- *             pixaDestroy(&pixa);  // no longer needed
+ *             pixaDestroy(\&pixa);  // no longer needed
  *          The initialization allows the pixaa to always be properly filled.
+ * </pre>
  */
 l_int32
 pixaaInitFull(PIXAA  *paa,
@@ -2069,19 +2133,21 @@ PIXA    *pixat;
 
 
 /*!
- *  pixaaReplacePixa()
+ * \brief   pixaaReplacePixa()
  *
- *      Input:  paa
- *              index  (to the index-th pixa)
- *              pixa (insert to replace existing one)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    paa
+ * \param[in]    index  to the index-th pixa
+ * \param[in]    pixa insert to replace existing one
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This allows random insertion of a pixa into a pixaa, with
  *          destruction of any existing pixa at that location.
  *          The input pixa is now owned by the pixaa.
  *      (2) No other pixa in the array are affected.
  *      (3) The index must be within the allowed set.
+ * </pre>
  */
 l_int32
 pixaaReplacePixa(PIXAA   *paa,
@@ -2105,14 +2171,16 @@ pixaaReplacePixa(PIXAA   *paa,
 
 
 /*!
- *  pixaaClear()
+ * \brief   pixaaClear()
  *
- *      Input:  paa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    paa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This destroys all pixa in the pixaa, and nulls the ptrs
  *          in the pixa ptr array.
+ * </pre>
  */
 l_int32
 pixaaClear(PIXAA  *paa)
@@ -2133,15 +2201,17 @@ l_int32  i, n;
 
 
 /*!
- *  pixaaTruncate()
+ * \brief   pixaaTruncate()
  *
- *      Input:  paa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    paa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This identifies the largest index containing a pixa that
  *          has any pix within it, destroys all pixa above that index,
  *          and resets the count.
+ * </pre>
  */
 l_int32
 pixaaTruncate(PIXAA  *paa)
@@ -2179,14 +2249,16 @@ PIXA    *pixa;
  *                          Pixa serialized I/O                        *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaRead()
+ * \brief   pixaRead()
  *
- *      Input:  filename
- *      Return: pixa, or NULL on error
+ * \param[in]    filename
+ * \return  pixa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 PIXA *
 pixaRead(const char  *filename)
@@ -2216,14 +2288,16 @@ PIXA  *pixa;
 
 
 /*!
- *  pixaReadStream()
+ * \brief   pixaReadStream()
  *
- *      Input:  fp (file stream)
- *      Return: pixa, or NULL on error
+ * \param[in]    fp file stream
+ * \return  pixa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 PIXA *
 pixaReadStream(FILE  *fp)
@@ -2278,15 +2352,17 @@ PIXA    *pixa;
 
 
 /*!
- *  pixaWrite()
+ * \brief   pixaWrite()
  *
- *      Input:  filename
- *              pixa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 l_int32
 pixaWrite(const char  *filename,
@@ -2315,15 +2391,17 @@ FILE  *fp;
 
 
 /*!
- *  pixaWriteStream()
+ * \brief   pixaWriteStream()
  *
- *      Input:  fp (file stream opened for "wb")
- *              pixa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream opened for "wb"
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 l_int32
 pixaWriteStream(FILE  *fp,
@@ -2363,15 +2441,16 @@ PIX     *pix;
  *                         Pixaa serialized I/O                        *
  *---------------------------------------------------------------------*/
 /*!
- *  pixaaReadFromFiles()
+ * \brief   pixaaReadFromFiles()
  *
- *      Input:  dirname (directory)
- *              substr (<optional> substring filter on filenames; can be NULL)
- *              first (0-based)
- *              nfiles (use 0 for everything from %first to the end)
- *      Return: paa, or NULL on error or if no pixa files are found.
+ * \param[in]    dirname directory
+ * \param[in]    substr [optional] substring filter on filenames; can be NULL
+ * \param[in]    first 0-based
+ * \param[in]    nfiles use 0 for everything from %first to the end
+ * \return  paa, or NULL on error or if no pixa files are found.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The files must be serialized pixa files (e.g., *.pa)
  *          If some files cannot be read, warnings are issued.
  *      (2) Use %substr to filter filenames in the directory.  If
@@ -2379,6 +2458,7 @@ PIX     *pix;
  *      (3) After filtering, use %first and %nfiles to select
  *          a contiguous set of files, that have been lexically
  *          sorted in increasing order.
+ * </pre>
  */
 PIXAA *
 pixaaReadFromFiles(const char  *dirname,
@@ -2419,14 +2499,16 @@ SARRAY  *sa;
 
 
 /*!
- *  pixaaRead()
+ * \brief   pixaaRead()
  *
- *      Input:  filename
- *      Return: paa, or NULL on error
+ * \param[in]    filename
+ * \return  paa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 PIXAA *
 pixaaRead(const char  *filename)
@@ -2456,14 +2538,16 @@ PIXAA  *paa;
 
 
 /*!
- *  pixaaReadStream()
+ * \brief   pixaaReadStream()
  *
- *      Input:  fp (file stream)
- *      Return: paa, or NULL on error
+ * \param[in]    fp file stream
+ * \return  paa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 PIXAA *
 pixaaReadStream(FILE  *fp)
@@ -2512,15 +2596,17 @@ PIXAA   *paa;
 
 
 /*!
- *  pixaaWrite()
+ * \brief   pixaaWrite()
  *
- *      Input:  filename
- *              paa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filename
+ * \param[in]    paa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 l_int32
 pixaaWrite(const char  *filename,
@@ -2550,15 +2636,17 @@ FILE  *fp;
 
 
 /*!
- *  pixaaWriteStream()
+ * \brief   pixaaWriteStream()
  *
- *      Input:  fp (file stream opened for "wb")
- *              paa
- *      Return: 0 if OK, 1 on error
+ * \param[in]    fp file stream opened for "wb"
+ * \param[in]    paa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ * </pre>
  */
 l_int32
 pixaaWriteStream(FILE   *fp,

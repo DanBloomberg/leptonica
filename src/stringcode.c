@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  stringcode.c
+/*!
+ * \file stringcode.c
+ * <pre>
  *
  *   Generation of code for storing and extracting serializable
  *   leptonica objects (such as pixa, recog, ...).
@@ -80,6 +81,7 @@
  *       static char     *l_genDataString()
  *       static char     *l_genCaseString()
  *       static char     *l_genDescrString()
+ * </pre>
  */
 
 #include <string.h>
@@ -137,16 +139,18 @@ static char *l_genDescrString(const char *filein, l_int32 ifunc, l_int32 itype);
 /*                         Stringcode functions                        */
 /*---------------------------------------------------------------------*/
 /*!
- *  strcodeCreate()
+ * \brief   strcodeCreate()
  *
- *      Input:  fileno (integer that labels the two output files)
- *      Return: initialized L_StrCode, or NULL on error
+ * \param[in]    fileno integer that labels the two output files
+ * \return  initialized L_StrCode, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This struct exists to build two files containing code for
  *          any number of data objects.  The two files are named
- *             autogen.<fileno>.c
- *             autogen.<fileno>.h
+ *             autogen.\<fileno\>.c
+ *             autogen.\<fileno\>.h
+ * </pre>
  */
 L_STRCODE *
 strcodeCreate(l_int32  fileno)
@@ -169,10 +173,10 @@ L_STRCODE  *strcode;
 
 
 /*!
- *  strcodeDestroy()
+ * \brief   strcodeDestroy()
  *
- *      Input:  &strcode (strcode is set to null after destroying the sarrays)
- *      Return: void
+ * \param[in]    &strcode strcode is set to null after destroying the sarrays
+ * \return  void
  */
 static void
 strcodeDestroy(L_STRCODE  **pstrcode)
@@ -199,19 +203,21 @@ L_STRCODE  *strcode;
 
 
 /*!
- *  strcodeCreateFromFile()
+ * \brief   strcodeCreateFromFile()
  *
- *      Input:  filein (containing filenames of serialized data)
- *              fileno (integer that labels the two output files)
- *              outdir (<optional> if null, files are made in /tmp/lept/auto)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    filein containing filenames of serialized data
+ * \param[in]    fileno integer that labels the two output files
+ * \param[in]    outdir [optional] if null, files are made in /tmp/lept/auto
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The %filein has one filename on each line.
  *          Comment lines begin with "#".
  *      (2) The output is 2 files:
- *             autogen.<fileno>.c
- *             autogen.<fileno>.h
+ *             autogen.\<fileno\>.c
+ *             autogen.\<fileno\>.h
+ * </pre>
  */
 l_int32
 strcodeCreateFromFile(const char  *filein,
@@ -261,20 +267,22 @@ L_STRCODE   *strcode;
 
 
 /*!
- *  strcodeGenerate()
+ * \brief   strcodeGenerate()
  *
- *      Input:  strcode (for accumulating data)
- *              filein (input file with serialized data)
- *              type (of data; use the typedef string)
- *      Return: 0 if OK, 1 on error.
+ * \param[in]    strcode for accumulating data
+ * \param[in]    filein input file with serialized data
+ * \param[in]    type of data; use the typedef string
+ * \return  0 if OK, 1 on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The generated function name is
- *            l_autodecode_<fileno>()
- *          where <fileno> is the index label for the pair of output files.
+ *            l_autodecode_\<fileno\>()
+ *          where \<fileno\> is the index label for the pair of output files.
  *      (2) To deserialize this data, the function is called with the
  *          argument 'ifunc', which increments each time strcodeGenerate()
  *          is called.
+ * </pre>
  */
 l_int32
 strcodeGenerate(L_STRCODE   *strcode,
@@ -317,11 +325,11 @@ l_int32  itype;
 
 
 /*!
- *  strcodeFinalize()
+ * \brief   strcodeFinalize()
  *
- *      Input: &strcode (destroys after .c and .h files have been generated)
- *              outdir (<optional> if null, files are made in /tmp/lept/auto)
- *      Return: void
+ * \param[in]   &strcode destroys after .c and .h files have been generated
+ * \param[in]    outdir [optional] if null, files are made in /tmp/lept/auto
+ * \return  void
  */
 l_int32
 strcodeFinalize(L_STRCODE  **pstrcode,
@@ -508,11 +516,11 @@ SARRAY     *sa1, *sa2, *sa3;
 
 
 /*!
- *  l_getStructnameFromFile()
+ * \brief   l_getStructnameFromFile()
  *
- *      Input:  filename
- *              &sn (<return> structname; e.g., "Pixa")
- *      Return: 0 if found, 1 on error.
+ * \param[in]    filename
+ * \param[out]   psn structname; e.g., "Pixa"
+ * \return  0 if found, 1 on error.
  */
 l_int32
 l_getStructnameFromFile(const char  *filename,
@@ -540,14 +548,16 @@ l_int32  index;
 /*                           Static helpers                            */
 /*---------------------------------------------------------------------*/
 /*!
- *  l_getIndexFromType()
+ * \brief   l_getIndexFromType()
  *
- *      Input:  type (e.g., "PIXA")
- *              &index (<return> found index)
- *      Return: 0 if found, 1 if not.
+ * \param[in]    type e.g., "PIXA"
+ * \param[out]   pindex found index
+ * \return  0 if found, 1 if not.
  *
- *  Notes:
- *      (1) For valid type, %found == true and %index > 0.
+ * <pre>
+ * Notes:
+ *      (1) For valid type, %found == true and %index \> 0.
+ * </pre>
  */
 static l_int32
 l_getIndexFromType(const char  *type,
@@ -576,16 +586,18 @@ l_int32  i, found;
 
 
 /*!
- *  l_getIndexFromStructname()
+ * \brief   l_getIndexFromStructname()
  *
- *      Input:  structname (e.g., "Pixa")
- *              &index (<return> found index)
- *      Return: 0 if found, 1 if not.
+ * \param[in]    structname e.g., "Pixa"
+ * \param[out]   pindex found index
+ * \return  0 if found, 1 if not.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is used to identify the type of serialized file;
  *          the first word in the file is the structname.
- *      (2) For valid structname, %found == true and %index > 0.
+ *      (2) For valid structname, %found == true and %index \> 0.
+ * </pre>
  */
 static l_int32
 l_getIndexFromStructname(const char  *sn,
@@ -614,11 +626,11 @@ l_int32  i, found;
 
 
 /*!
- *  l_getIndexFromFile()
+ * \brief   l_getIndexFromFile()
  *
- *      Input:  filename
- *              &index (<return> found index)
- *      Return: 0 if found, 1 on error.
+ * \param[in]    filename
+ * \param[out]   pindex found index
+ * \return  0 if found, 1 on error.
  */
 static l_int32
 l_getIndexFromFile(const char  *filename,
@@ -669,11 +681,11 @@ SARRAY  *sa;
 
 
 /*!
- *  l_genDataString()
+ * \brief   l_genDataString()
  *
- *      Input:  filein (input file of serialized data)
- *              ifunc (index into set of functions in output file)
- *      Return: encoded ascii data string, or NULL on error reading from file
+ * \param[in]    filein input file of serialized data
+ * \param[in]    ifunc index into set of functions in output file
+ * \return  encoded ascii data string, or NULL on error reading from file
  */
 static char *
 l_genDataString(const char  *filein,
@@ -715,14 +727,16 @@ SARRAY   *sa;
 
 
 /*!
- *  l_genCaseString()
+ * \brief   l_genCaseString()
  *
- *      Input:  ifunc (index into set of functions in generated file)
- *              itype (index into type of function to be used)
- *      Return: case string for this decoding function
+ * \param[in]    ifunc index into set of functions in generated file
+ * \param[in]    itype index into type of function to be used
+ * \return  case string for this decoding function
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) %ifunc and %itype have been validated, so no error can occur
+ * </pre>
  */
 static char *
 l_genCaseString(l_int32  ifunc,
@@ -754,12 +768,12 @@ char  *code = NULL;
 
 
 /*!
- *  l_genDescrString()
+ * \brief   l_genDescrString()
  *
- *      Input:  filein (input file of serialized data)
- *              ifunc (index into set of functions in generated file)
- *              itype (index into type of function to be used)
- *      Return: description string for this decoding function
+ * \param[in]    filein input file of serialized data
+ * \param[in]    ifunc index into set of functions in generated file
+ * \param[in]    itype index into type of function to be used
+ * \return  description string for this decoding function
  */
 static char *
 l_genDescrString(const char  *filein,
@@ -781,4 +795,3 @@ char  *tail;
     LEPT_FREE(tail);
     return stringNew(buf);
 }
-

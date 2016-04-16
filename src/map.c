@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  map.c
+/*!
+ * \file map.c
+ * <pre>
  *
  *  This is an interface for map and set functions, based on using
  *  red-black binary search trees.  Because these trees are sorted,
@@ -49,7 +50,7 @@
  *      [add elements to the map ...]
  *      L_AMAP_NODE  *n = l_amapGetFirst(m);
  *      while (n) {
- *          l_int32 val = n->value.itype;
+ *          l_int32 val = n-\>value.itype;
  *          // do something ...
  *          n = l_amapGetNext(n);
  *      }
@@ -62,10 +63,10 @@
  *      L_AMAP_NODE  *nn;
  *      while (n) {
  *          nn = l_amapGetNext(n);
- *          l_int32 val = n->value.itype;
- *          l_uint32 key = n->key.utype;
+ *          l_int32 val = n-\>value.itype;
+ *          l_uint32 key = n-\>key.utype;
  *          // do something ...
- *          l_amapDelete(m, n->key);
+ *          l_amapDelete(m, n-\>key);
  *          n = nn;
  *      }
  *
@@ -94,6 +95,7 @@
  *           L_ASET_NODE   *l_asetGetLast()
  *           L_ASET_NODE   *l_asetGetPrev()
  *           l_int32        l_asetSize()
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -256,4 +258,3 @@ l_asetSize(L_ASET  *s)
 {
     return l_rbtreeGetCount(s);
 }
-

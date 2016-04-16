@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  conncomp.c
+/*!
+ * \file conncomp.c
+ * <pre>
  *
  *    Connected component counting and extraction, using Heckbert's
  *    stack-based filling algorithm.
@@ -84,12 +85,13 @@
  *  If you just want the number of connected components, pixCountConnComp()
  *  is a bit faster than pixConnCompBB(), because it doesn't have to
  *  keep track of the bounding rectangles for each c.c.
+ * </pre>
  */
 
 #include "allheaders.h"
 
 /*!
- *  The struct FillSeg is used by the Heckbert seedfill algorithm to
+ * \brief   The struct FillSeg is used by the Heckbert seedfill algorithm to
  *  hold information about image segments that are waiting to be
  *  investigated.  We use two Stacks, one to hold the FillSegs in use,
  *  and an auxiliary Stack as a reservoir to hold FillSegs for re-use.
@@ -124,17 +126,19 @@ static void popFillseg(L_STACK *stack, l_int32 *pxleft, l_int32 *pxright,
  *                Bounding boxes of 4 Connected Components               *
  *-----------------------------------------------------------------------*/
 /*!
- *  pixConnComp()
+ * \brief   pixConnComp()
  *
- *      Input:  pixs (1 bpp)
- *              &pixa   (<optional return> pixa of each c.c.)
- *              connectivity (4 or 8)
- *      Return: boxa, or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[out]   ppixa   [optional] pixa of each c.c.
+ * \param[in]    connectivity 4 or 8
+ * \return  boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is the top-level call for getting bounding boxes or
  *          a pixa of the components, and it can be used instead
  *          of either pixConnCompBB() or pixConnCompPixa(), rsp.
+ * </pre>
  */
 BOXA *
 pixConnComp(PIX     *pixs,
@@ -160,14 +164,15 @@ pixConnComp(PIX     *pixs,
 
 
 /*!
- *  pixConnCompPixa()
+ * \brief   pixConnCompPixa()
  *
- *      Input:  pixs (1 bpp)
- *              &pixa (<return> pixa of each c.c.)
- *              connectivity (4 or 8)
- *      Return: boxa, or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[out]   ppixa pixa of each c.c.
+ * \param[in]    connectivity 4 or 8
+ * \return  boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This finds bounding boxes of 4- or 8-connected components
  *          in a binary image, and saves images of each c.c
  *          in a pixa array.
@@ -179,6 +184,7 @@ pixConnComp(PIX     *pixs,
  *          are clones) is inserted into the pixa.
  *      (4) If the input is valid, this always returns a boxa and a pixa.
  *          If pixs is empty, the boxa and pixa will be empty.
+ * </pre>
  */
 BOXA *
 pixConnCompPixa(PIX     *pixs,
@@ -267,18 +273,20 @@ L_STACK  *stack, *auxstack;
 
 
 /*!
- *  pixConnCompBB()
+ * \brief   pixConnCompBB()
  *
- *      Input:  pixs (1 bpp)
- *              connectivity (4 or 8)
- *      Return: boxa, or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    connectivity 4 or 8
+ * \return  boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *     (1) Finds bounding boxes of 4- or 8-connected components
  *         in a binary image.
  *     (2) This works on a copy of the input pix.  The c.c. are located
  *         in raster order and erased one at a time.  In the process,
  *         the b.b. is computed and saved.
+ * </pre>
  */
 BOXA *
 pixConnCompBB(PIX     *pixs,
@@ -344,17 +352,17 @@ L_STACK  *stack, *auxstack;
 
 
 /*!
- *  pixCountConnComp()
+ * \brief   pixCountConnComp()
  *
- *      Input:  pixs (1 bpp)
- *              connectivity (4 or 8)
- *              &count (<return>
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    connectivity 4 or 8
+ * \param[out]   pcount
+ * \return  0 if OK, 1 on error
  *
  * Notes:
- *     (1) This is the top-level call for getting the number of
+ *     (1 This is the top-level call for getting the number of
  *         4- or 8-connected components in a 1 bpp image.
- *     (2) It works on a copy of the input pix.  The c.c. are located
+ *     2 It works on a copy of the input pix.  The c.c. are located
  *         in raster order and erased one at a time.
  */
 l_int32
@@ -413,12 +421,12 @@ L_STACK  *stack, *auxstack;
 
 
 /*!
- *  nextOnPixelInRaster()
+ * \brief   nextOnPixelInRaster()
  *
- *      Input:  pixs (1 bpp)
- *              xstart, ystart  (starting point for search)
- *              &x, &y  (<return> coord value of next ON pixel)
- *      Return: 1 if a pixel is found; 0 otherwise or on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    xstart, ystart  starting point for search
+ * \param[out]   px, py  coord value of next ON pixel
+ * \return  1 if a pixel is found; 0 otherwise or on error
  */
 l_int32
 nextOnPixelInRaster(PIX      *pixs,
@@ -445,14 +453,14 @@ l_uint32  *data;
 
 
 /*!
- *  nextOnPixelInRasterLow()
+ * \brief   nextOnPixelInRasterLow()
  *
- *      Input:  data (pix data)
- *              w, h (width and height)
- *              wpl  (words per line)
- *              xstart, ystart  (starting point for search)
- *              &x, &y  (<return> coord value of next ON pixel)
- *      Return: 1 if a pixel is found; 0 otherwise or on error
+ * \param[in]    data pix data
+ * \param[in]    w, h width and height
+ * \param[in]    wpl  words per line
+ * \param[in]    xstart, ystart  starting point for search
+ * \param[out]   px, py  coord value of next ON pixel
+ * \return  1 if a pixel is found; 0 otherwise or on error
  */
 l_int32
 nextOnPixelInRasterLow(l_uint32  *data,
@@ -517,17 +525,19 @@ l_uint32  *line, *pword;
 
 
 /*!
- *  pixSeedfillBB()
+ * \brief   pixSeedfillBB()
  *
- *      Input:  pixs (1 bpp)
- *              stack (for holding fillsegs)
- *              x,y   (location of seed pixel)
- *              connectivity  (4 or 8)
- *      Return: box or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    stack for holding fillsegs
+ * \param[in]    x,y   location of seed pixel
+ * \param[in]    connectivity  4 or 8
+ * \return  box or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is the high-level interface to Paul Heckbert's
  *          stack-based seedfill algorithm.
+ * </pre>
  */
 BOX *
 pixSeedfillBB(PIX      *pixs,
@@ -562,14 +572,15 @@ BOX  *box;
 
 
 /*!
- *  pixSeedfill4BB()
+ * \brief   pixSeedfill4BB()
  *
- *      Input:  pixs (1 bpp)
- *              stack (for holding fillsegs)
- *              x,y   (location of seed pixel)
- *      Return: box or NULL on error.
+ * \param[in]    pixs 1 bpp
+ * \param[in]    stack for holding fillsegs
+ * \param[in]    x,y   location of seed pixel
+ * \return  box or NULL on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is Paul Heckbert's stack-based 4-cc seedfill algorithm.
  *      (2) This operates on the input 1 bpp pix to remove the fg seed
  *          pixel, at (x,y), and all pixels that are 4-connected to it.
@@ -589,6 +600,7 @@ BOX  *box;
  *          structures that are not in use are stored in another
  *          stack for reuse.  It should be noted that the
  *          overhead in the function calls (vs. macros) is negligible.
+ * </pre>
  */
 BOX *
 pixSeedfill4BB(PIX      *pixs,
@@ -683,14 +695,15 @@ BOX       *box;
 
 
 /*!
- *  pixSeedfill8BB()
+ * \brief   pixSeedfill8BB()
  *
- *      Input:  pixs (1 bpp)
- *              stack (for holding fillsegs)
- *              x,y   (location of seed pixel)
- *      Return: box or NULL on error.
+ * \param[in]    pixs 1 bpp
+ * \param[in]    stack for holding fillsegs
+ * \param[in]    x,y   location of seed pixel
+ * \return  box or NULL on error.
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is Paul Heckbert's stack-based 8-cc seedfill algorithm.
  *      (2) This operates on the input 1 bpp pix to remove the fg seed
  *          pixel, at (x,y), and all pixels that are 8-connected to it.
@@ -703,6 +716,7 @@ BOX       *box;
  *          The code here follows Heckbert's closely, except
  *          the leak checks are changed for 8 connectivity.
  *          See comments on pixSeedfill4BB() for more details.
+ * </pre>
  */
 BOX *
 pixSeedfill8BB(PIX      *pixs,
@@ -797,17 +811,19 @@ BOX       *box;
 
 
 /*!
- *  pixSeedfill()
+ * \brief   pixSeedfill()
  *
- *      Input:  pixs (1 bpp)
- *              stack (for holding fillsegs)
- *              x,y   (location of seed pixel)
- *              connectivity  (4 or 8)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    stack for holding fillsegs
+ * \param[in]    x,y   location of seed pixel
+ * \param[in]    connectivity  4 or 8
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This removes the component from pixs with a fg pixel at (x,y).
  *      (2) See pixSeedfill4() and pixSeedfill8() for details.
+ * </pre>
  */
 l_int32
 pixSeedfill(PIX      *pixs,
@@ -837,19 +853,21 @@ l_int32  retval;
 
 
 /*!
- *  pixSeedfill4()
+ * \brief   pixSeedfill4()
  *
- *      Input:  pixs (1 bpp)
- *              stack (for holding fillsegs)
- *              x,y   (location of seed pixel)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    stack for holding fillsegs
+ * \param[in]    x,y   location of seed pixel
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is Paul Heckbert's stack-based 4-cc seedfill algorithm.
  *      (2) This operates on the input 1 bpp pix to remove the fg seed
  *          pixel, at (x,y), and all pixels that are 4-connected to it.
  *          The seed pixel at (x,y) must initially be ON.
  *      (3) Reference: see pixSeedFill4BB()
+ * </pre>
  */
 l_int32
 pixSeedfill4(PIX      *pixs,
@@ -930,19 +948,21 @@ l_uint32  *data, *line;
 
 
 /*!
- *  pixSeedfill8()
+ * \brief   pixSeedfill8()
  *
- *      Input:  pixs (1 bpp)
- *              stack (for holding fillsegs)
- *              x,y   (location of seed pixel)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    stack for holding fillsegs
+ * \param[in]    x,y   location of seed pixel
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is Paul Heckbert's stack-based 8-cc seedfill algorithm.
  *      (2) This operates on the input 1 bpp pix to remove the fg seed
  *          pixel, at (x,y), and all pixels that are 8-connected to it.
  *          The seed pixel at (x,y) must initially be ON.
  *      (3) Reference: see pixSeedFill8BB()
+ * </pre>
  */
 l_int32
 pixSeedfill8(PIX      *pixs,
@@ -1027,24 +1047,26 @@ l_uint32  *data, *line;
  *          Static stack helper functions: push and pop fillsegs         *
  *-----------------------------------------------------------------------*/
 /*!
- *  pushFillsegBB()
+ * \brief   pushFillsegBB()
  *
- *      Input:  stack
- *              xleft, xright
- *              y
- *              dy
- *              ymax
- *              &minx (<return> minimum x)
- *              &maxx (<return> maximum x)
- *              &miny (<return> minimum y)
- *              &maxy (<return> maximum y)
- *      Return: void
+ * \param[in]    stack
+ * \param[in]    xleft, xright
+ * \param[in]    y
+ * \param[in]    dy
+ * \param[in]    ymax
+ * \param[out]   pminx minimum x
+ * \param[out]   pmaxx maximum x
+ * \param[out]   pminy minimum y
+ * \param[out]   pmaxy maximum y
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This adds a line segment to the stack, and returns its size.
  *      (2) The auxiliary stack is used as a storage area to recycle
  *          fillsegs that are no longer in use.  We only calloc new
  *          fillsegs if the auxiliary stack is empty.
+ * </pre>
  */
 static void
 pushFillsegBB(L_STACK  *stack,
@@ -1100,20 +1122,22 @@ L_STACK  *auxstack;
 
 
 /*!
- *  pushFillseg()
+ * \brief   pushFillseg()
  *
- *      Input:  stack
- *              xleft, xright
- *              y
- *              dy
- *              ymax
- *      Return: void
+ * \param[in]    stack
+ * \param[in]    xleft, xright
+ * \param[in]    y
+ * \param[in]    dy
+ * \param[in]    ymax
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This adds a line segment to the stack.
  *      (2) The auxiliary stack is used as a storage area to recycle
  *          fillsegs that are no longer in use.  We only calloc new
  *          fillsegs if the auxiliary stack is empty.
+ * </pre>
  */
 static void
 pushFillseg(L_STACK  *stack,
@@ -1160,19 +1184,21 @@ L_STACK  *auxstack;
 
 
 /*!
- *  popFillseg()
+ * \brief   popFillseg()
  *
- *      Input:  stack
- *              &xleft (<return> left x)
- *              &xright (<return> right x)
- *              &y (<return> y coordinate)
- *              &dy (<return> delta y)
- *      Return: void
+ * \param[in]    stack
+ * \param[out]   pxleft left x
+ * \param[out]   pxright right x
+ * \param[out]   py y coordinate
+ * \param[out]   pdy delta y
+ * \return  void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This removes a line segment from the stack, and returns its size.
  *      (2) The surplussed fillseg is placed on the auxiliary stack
  *          for future use.
+ * </pre>
  */
 static void
 popFillseg(L_STACK  *stack,

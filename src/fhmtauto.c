@@ -25,8 +25,9 @@
  *====================================================================*/
 
 
-/*
- *  fhmtauto.c
+/*!
+ * \file fhmtauto.c
+ * <pre>
  *
  *    Main function calls:
  *       l_int32             fhmtautogen()
@@ -86,6 +87,7 @@
  *        verifies the correctness of the implementation by
  *        comparing the dwa result with that of full-image
  *        rasterops.
+ * </pre>
  */
 
 #include <string.h>
@@ -187,17 +189,19 @@ static char wplstrm[][10] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
 
 
 /*!
- *  fhmtautogen()
+ * \brief   fhmtautogen()
  *
- *      Input:  sela
- *              fileindex
- *              filename (<optional>; can be null)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    sela
+ * \param[in]    fileindex
+ * \param[in]    filename [optional]; can be null
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function generates all the code for implementing
  *          dwa morphological operations using all the sels in the sela.
  *      (2) See fhmtautogen1() and fhmtautogen2() for details.
+ * </pre>
  */
 l_int32
 fhmtautogen(SELA        *sela,
@@ -219,25 +223,27 @@ l_int32  ret1, ret2;
 
 
 /*!
- *  fhmtautogen1()
+ * \brief   fhmtautogen1()
  *
- *      Input:  sel array
- *              fileindex
- *              filename (<optional>; can be null)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    sel array
+ * \param[in]    fileindex
+ * \param[in]    filename [optional]; can be null
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function uses hmttemplate1.txt to create a
  *          top-level file that contains two functions that carry
  *          out the hit-miss transform for any of the sels in
  *          the input sela.
  *      (2) The fileindex parameter is inserted into the output
  *          filename, as described below.
- *      (3) If filename == NULL, the output file is fhmtgen.<n>.c,
- *          where <n> is equal to the 'fileindex' parameter.
- *      (4) If filename != NULL, the output file is <filename>.<n>.c.
+ *      (3) If filename == NULL, the output file is fhmtgen.\<n\>.c,
+ *          where \<n\> is equal to the 'fileindex' parameter.
+ *      (4) If filename != NULL, the output file is \<filename\>.\<n\>.c.
  *      (5) Each sel must have at least one hit.  A sel with only misses
  *          generates code that will abort the operation if it is called.
+ * </pre>
  */
 l_int32
 fhmtautogen1(SELA        *sela,
@@ -402,23 +408,25 @@ SARRAY  *sa1, *sa2, *sa3;
 
 
 /*!
- *  fhmtautogen2()
+ * \brief   fhmtautogen2()
  *
- *      Input:  sel array
- *              fileindex
- *              filename (<optional>; can be null)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    sel array
+ * \param[in]    fileindex
+ * \param[in]    filename [optional]; can be null
+ * \return  0 if OK; 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function uses hmttemplate2.txt to create a
  *          low-level file that contains the low-level functions for
  *          implementing the hit-miss transform for every sel
  *          in the input sela.
  *      (2) The fileindex parameter is inserted into the output
  *          filename, as described below.
- *      (3) If filename == NULL, the output file is fhmtgenlow.<n>.c,
- *          where <n> is equal to the 'fileindex' parameter.
- *      (4) If filename != NULL, the output file is <filename>low.<n>.c.
+ *      (3) If filename == NULL, the output file is fhmtgenlow.\<n\>.c,
+ *          where \<n\> is equal to the 'fileindex' parameter.
+ *      (4) If filename != NULL, the output file is \<filename\>low.\<n\>.c.
+ * </pre>
  */
 l_int32
 fhmtautogen2(SELA        *sela,
@@ -608,7 +616,7 @@ SEL     *sel;
  *                            Helper code for sel                           *
  *--------------------------------------------------------------------------*/
 /*!
- *  sarrayMakeWplsCode()
+ * \brief   sarrayMakeWplsCode()
  */
 static SARRAY *
 sarrayMakeWplsCode(SEL  *sel)
@@ -668,7 +676,7 @@ SARRAY  *sa;
 
 
 /*!
- *  sarrayMakeInnerLoopDWACode()
+ * \brief   sarrayMakeInnerLoopDWACode()
  */
 static SARRAY *
 sarrayMakeInnerLoopDWACode(SEL     *sel,
@@ -722,7 +730,7 @@ SARRAY  *sa;
 
 
 /*!
- *  makeBarrelshiftString()
+ * \brief   makeBarrelshiftString()
  */
 static char *
 makeBarrelshiftString(l_int32  delx,    /* j - cx */

@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   boxfunc3.c
+/*!
+ * \file  boxfunc3.c
+ * <pre>
  *
  *      Boxa/Boxaa painting into pix
  *           PIX             *pixMaskConnComp()
@@ -55,6 +56,7 @@
  *
  *  See summary in pixPaintBoxa() of various ways to paint and draw
  *  boxes on images.
+ * </pre>
  */
 
 #include "allheaders.h"
@@ -73,17 +75,19 @@ static l_int32 pixSearchForRectangle(PIX *pixs, BOX *boxs, l_int32 minsum,
  *                     Boxa/Boxaa painting into Pix                    *
  *---------------------------------------------------------------------*/
 /*!
- *  pixMaskConnComp()
+ * \brief   pixMaskConnComp()
  *
- *      Input:  pixs (1 bpp)
- *              connectivity (4 or 8)
- *              &boxa (<optional return> bounding boxes of c.c.)
- *      Return: pixd (1 bpp mask over the c.c.), or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    connectivity 4 or 8
+ * \param[out]   pboxa [optional] bounding boxes of c.c.
+ * \return  pixd 1 bpp mask over the c.c., or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This generates a mask image with ON pixels over the
  *          b.b. of the c.c. in pixs.  If there are no ON pixels in pixs,
  *          pixd will also have no ON pixels.
+ * </pre>
  */
 PIX *
 pixMaskConnComp(PIX     *pixs,
@@ -113,15 +117,16 @@ PIX   *pixd;
 
 
 /*!
- *  pixMaskBoxa()
+ * \brief   pixMaskBoxa()
  *
- *      Input:  pixd (<optional> may be NULL)
- *              pixs (any depth; not cmapped)
- *              boxa (of boxes, to paint)
- *              op (L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS)
- *      Return: pixd (with masking op over the boxes), or NULL on error
+ * \param[in]    pixd [optional] may be NULL
+ * \param[in]    pixs any depth; not cmapped
+ * \param[in]    boxa of boxes, to paint
+ * \param[in]    op L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS
+ * \return  pixd with masking op over the boxes, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This can be used with:
  *              pixd = NULL  (makes a new pixd)
  *              pixd = pixs  (in-place)
@@ -135,6 +140,7 @@ PIX   *pixd;
  *          in a Boxa, in a pix of size (w,h):
  *              pix = pixCreate(w, h, 1);
  *              pixMaskBoxa(pix, pix, boxa, L_SET_PIXELS);
+ * </pre>
  */
 PIX *
 pixMaskBoxa(PIX     *pixd,
@@ -181,14 +187,15 @@ BOX     *box;
 
 
 /*!
- *  pixPaintBoxa()
+ * \brief   pixPaintBoxa()
  *
- *      Input:  pixs (any depth, can be cmapped)
- *              boxa (of boxes, to paint)
- *              val (rgba color to paint)
- *      Return: pixd (with painted boxes), or NULL on error
+ * \param[in]    pixs any depth, can be cmapped
+ * \param[in]    boxa of boxes, to paint
+ * \param[in]    val rgba color to paint
+ * \return  pixd with painted boxes, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If pixs is 1 bpp or is colormapped, it is converted to 8 bpp
  *          and the boxa is painted using a colormap; otherwise,
  *          it is converted to 32 bpp rgb.
@@ -202,6 +209,7 @@ BOX     *box;
  *          if the src is either 1 bpp or has a cmap that is not full.
  *          To force RGB output, use pixConvertTo8(pixs, FALSE)
  *          before calling any of these paint and draw functions.
+ * </pre>
  */
 PIX *
 pixPaintBoxa(PIX      *pixs,
@@ -260,12 +268,12 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixSetBlackOrWhiteBoxa()
+ * \brief   pixSetBlackOrWhiteBoxa()
  *
- *      Input:  pixs (any depth, can be cmapped)
- *              boxa (<optional> of boxes, to clear or set)
- *              op (L_SET_BLACK, L_SET_WHITE)
- *      Return: pixd (with boxes filled with white or black), or NULL on error
+ * \param[in]    pixs any depth, can be cmapped
+ * \param[in]    boxa [optional] of boxes, to clear or set
+ * \param[in]    op L_SET_BLACK, L_SET_WHITE
+ * \return  pixd with boxes filled with white or black, or NULL on error
  */
 PIX *
 pixSetBlackOrWhiteBoxa(PIX     *pixs,
@@ -334,17 +342,19 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixPaintBoxaRandom()
+ * \brief   pixPaintBoxaRandom()
  *
- *      Input:  pixs (any depth, can be cmapped)
- *              boxa (of boxes, to paint)
- *      Return: pixd (with painted boxes), or NULL on error
+ * \param[in]    pixs any depth, can be cmapped
+ * \param[in]    boxa of boxes, to paint
+ * \return  pixd with painted boxes, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If pixs is 1 bpp, we paint the boxa using a colormap;
  *          otherwise, we convert to 32 bpp.
  *      (2) We use up to 254 different colors for painting the regions.
  *      (3) If boxes overlap, the later ones paint over earlier ones.
+ * </pre>
  */
 PIX *
 pixPaintBoxaRandom(PIX   *pixs,
@@ -400,20 +410,22 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixBlendBoxaRandom()
+ * \brief   pixBlendBoxaRandom()
  *
- *      Input:  pixs (any depth; can be cmapped)
- *              boxa (of boxes, to blend/paint)
- *              fract (of box color to use)
- *      Return: pixd (32 bpp, with blend/painted boxes), or NULL on error
+ * \param[in]    pixs any depth; can be cmapped
+ * \param[in]    boxa of boxes, to blend/paint
+ * \param[in]    fract of box color to use
+ * \return  pixd 32 bpp, with blend/painted boxes, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) pixs is converted to 32 bpp.
  *      (2) This differs from pixPaintBoxaRandom(), in that the
  *          colors here are blended with the color of pixs.
  *      (3) We use up to 254 different colors for painting the regions.
  *      (4) If boxes overlap, the final color depends only on the last
  *          rect that is used.
+ * </pre>
  */
 PIX *
 pixBlendBoxaRandom(PIX       *pixs,
@@ -461,18 +473,20 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixDrawBoxa()
+ * \brief   pixDrawBoxa()
  *
- *      Input:  pixs (any depth; can be cmapped)
- *              boxa (of boxes, to draw)
- *              width (of lines)
- *              val (rgba color to draw)
- *      Return: pixd (with outlines of boxes added), or NULL on error
+ * \param[in]    pixs any depth; can be cmapped
+ * \param[in]    boxa of boxes, to draw
+ * \param[in]    width of lines
+ * \param[in]    val rgba color to draw
+ * \return  pixd with outlines of boxes added, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If pixs is 1 bpp or is colormapped, it is converted to 8 bpp
  *          and the boxa is drawn using a colormap; otherwise,
  *          it is converted to 32 bpp rgb.
+ * </pre>
  */
 PIX *
 pixDrawBoxa(PIX      *pixs,
@@ -523,18 +537,20 @@ PIXCMAP  *cmap;
 
 
 /*!
- *  pixDrawBoxaRandom()
+ * \brief   pixDrawBoxaRandom()
  *
- *      Input:  pixs (any depth, can be cmapped)
- *              boxa (of boxes, to draw)
- *              width (thickness of line)
- *      Return: pixd (with box outlines drawn), or NULL on error
+ * \param[in]    pixs any depth, can be cmapped
+ * \param[in]    boxa of boxes, to draw
+ * \param[in]    width thickness of line
+ * \return  pixd with box outlines drawn, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If pixs is 1 bpp, we draw the boxa using a colormap;
  *          otherwise, we convert to 32 bpp.
  *      (2) We use up to 254 different colors for drawing the boxes.
  *      (3) If boxes overlap, the later ones draw over earlier ones.
+ * </pre>
  */
 PIX *
 pixDrawBoxaRandom(PIX     *pixs,
@@ -585,16 +601,16 @@ PTAA     *ptaa;
 
 
 /*!
- *  boxaaDisplay()
+ * \brief   boxaaDisplay()
  *
- *      Input:  baa
- *              linewba (line width to display boxa)
- *              linewb (line width to display box)
- *              colorba (color to display boxa)
- *              colorb (color to display box)
- *              w (of pix; use 0 if determined by baa)
- *              h (of pix; use 0 if determined by baa)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    baa
+ * \param[in]    linewba line width to display boxa
+ * \param[in]    linewb line width to display box
+ * \param[in]    colorba color to display boxa
+ * \param[in]    colorb color to display box
+ * \param[in]    w of pix; use 0 if determined by baa
+ * \param[in]    h of pix; use 0 if determined by baa
+ * \return  0 if OK, 1 on error
  */
 PIX *
 boxaaDisplay(BOXAA    *baa,
@@ -650,18 +666,19 @@ PIXCMAP  *cmap;
  *                   Split mask components into Boxa                   *
  *---------------------------------------------------------------------*/
 /*!
- *  pixSplitIntoBoxa()
+ * \brief   pixSplitIntoBoxa()
  *
- *      Input:  pixs (1 bpp)
- *              minsum  (minimum pixels to trigger propagation)
- *              skipdist (distance before computing sum for propagation)
- *              delta (difference required to stop propagation)
- *              maxbg (maximum number of allowed bg pixels in ref scan)
- *              maxcomps (use 0 for unlimited number of subdivided components)
- *              remainder (set to 1 to get b.b. of remaining stuff)
- *      Return: boxa (of rectangles covering the fg of pixs), or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    minsum  minimum pixels to trigger propagation
+ * \param[in]    skipdist distance before computing sum for propagation
+ * \param[in]    delta difference required to stop propagation
+ * \param[in]    maxbg maximum number of allowed bg pixels in ref scan
+ * \param[in]    maxcomps use 0 for unlimited number of subdivided components
+ * \param[in]    remainder set to 1 to get b.b. of remaining stuff
+ * \return  boxa of rectangles covering the fg of pixs, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This generates a boxa of rectangles that covers
  *          the fg of a mask.  For each 8-connected component in pixs,
  *          it does a greedy partitioning, choosing the largest
@@ -680,6 +697,7 @@ PIXCMAP  *cmap;
  *      (5) The flag %remainder specifies whether we take a final bounding
  *          box for anything left after the maximum number of allowed
  *          rectangle is extracted.
+ * </pre>
  */
 BOXA *
 pixSplitIntoBoxa(PIX     *pixs,
@@ -722,19 +740,20 @@ PIXA    *pixas;
 
 
 /*!
- *  pixSplitComponentIntoBoxa()
+ * \brief   pixSplitComponentIntoBoxa()
  *
- *      Input:  pixs (1 bpp)
- *              box (<optional> location of pixs w/rt an origin)
- *              minsum  (minimum pixels to trigger propagation)
- *              skipdist (distance before computing sum for propagation)
- *              delta (difference required to stop propagation)
- *              maxbg (maximum number of allowed bg pixels in ref scan)
- *              maxcomps (use 0 for unlimited number of subdivided components)
- *              remainder (set to 1 to get b.b. of remaining stuff)
- *      Return: boxa (of rectangles covering the fg of pixs), or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    box [optional] location of pixs w/rt an origin
+ * \param[in]    minsum  minimum pixels to trigger propagation
+ * \param[in]    skipdist distance before computing sum for propagation
+ * \param[in]    delta difference required to stop propagation
+ * \param[in]    maxbg maximum number of allowed bg pixels in ref scan
+ * \param[in]    maxcomps use 0 for unlimited number of subdivided components
+ * \param[in]    remainder set to 1 to get b.b. of remaining stuff
+ * \return  boxa of rectangles covering the fg of pixs, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This generates a boxa of rectangles that covers
  *          the fg of a mask.  It does so by a greedy partitioning of
  *          the mask, choosing the largest rectangle found from
@@ -772,7 +791,7 @@ PIXA    *pixas;
  *      (6) The flag %remainder specifies whether we take a final bounding
  *          box for anything left after the maximum number of allowed
  *          rectangle is extracted.
- *      (7) So if %maxcomps > 0, it specifies that we want no more than
+ *      (7) So if %maxcomps \> 0, it specifies that we want no more than
  *          the first %maxcomps rectangles that satisfy the input
  *          criteria.  After this, we can get a final rectangle that
  *          bounds everything left over by setting %remainder == 1.
@@ -782,11 +801,12 @@ PIXA    *pixas;
  *          break the original c.c. into several c.c.
  *      (9) Summing up:
  *            * If %maxcomp == 0, the splitting proceeds as far as possible.
- *            * If %maxcomp > 0, the splitting stops when %maxcomps are
+ *            * If %maxcomp \> 0, the splitting stops when %maxcomps are
  *                found, or earlier if no more components can be selected.
  *            * If %remainder == 1 and components remain that cannot be
  *                selected, they are returned as a single final rectangle;
  *                otherwise, they are ignored.
+ * </pre>
  */
 BOXA *
 pixSplitComponentIntoBoxa(PIX     *pix,
@@ -880,26 +900,28 @@ PIX     *pixs;
 
 
 /*!
- *  pixSearchForRectangle()
+ * \brief   pixSearchForRectangle()
  *
- *      Input:  pixs (1 bpp)
- *              boxs (current region to investigate)
- *              minsum  (minimum pixels to trigger propagation)
- *              skipdist (distance before computing sum for propagation)
- *              delta (difference required to stop propagation)
- *              maxbg (maximum number of allowed bg pixels in ref scan)
- *              sideflag (side to search from)
- *              boxat (add result of rectangular region found here)
- *              nascore (add score for this rectangle here)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    boxs current region to investigate
+ * \param[in]    minsum  minimum pixels to trigger propagation
+ * \param[in]    skipdist distance before computing sum for propagation
+ * \param[in]    delta difference required to stop propagation
+ * \param[in]    maxbg maximum number of allowed bg pixels in ref scan
+ * \param[in]    sideflag side to search from
+ * \param[in]    boxat add result of rectangular region found here
+ * \param[in]    nascore add score for this rectangle here
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixSplitComponentIntoBoxa() for an explanation of the algorithm.
  *          This does the sweep from a single side.  For each iteration
  *          in pixSplitComponentIntoBoxa(), this will be called 4 times,
  *          for %sideflag = {0, 1, 2, 3}.
  *      (2) If a valid rectangle is not found, add a score of 0 and
  *          input a minimum box.
+ * </pre>
  */
 static l_int32
 pixSearchForRectangle(PIX     *pixs,
@@ -1132,21 +1154,23 @@ success:
  *             Represent horizontal or vertical mosaic strips          *
  *---------------------------------------------------------------------*/
 /*!
- *  makeMosaicStrips()
+ * \brief   makeMosaicStrips()
  *
- *      Input:  w, h
- *              direction (L_SCAN_HORIZONTAL or L_SCAN_VERTICAL)
- *              size (of strips in the scan direction)
- *      Return: boxa, or NULL on error
+ * \param[in]    w, h
+ * \param[in]    direction L_SCAN_HORIZONTAL or L_SCAN_VERTICAL
+ * \param[in]    size of strips in the scan direction
+ * \return  boxa, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) For example, this can be used to generate a pixa of
  *          vertical strips of width 10 from an image, using:
- *             pixGetDimensions(pix, &w, &h, NULL);
+ *             pixGetDimensions(pix, \&w, \&h, NULL);
  *             boxa = makeMosaicStrips(w, h, L_SCAN_HORIZONTAL, 10);
  *             pixa = pixClipRectangles(pix, boxa);
  *          All strips except the last will be the same width.  The
  *          last strip will have width w % 10.
+ * </pre>
  */
 BOXA *
 makeMosaicStrips(l_int32  w,
@@ -1197,18 +1221,19 @@ BOXA    *boxa;
  *                        Comparison between boxa                      *
  *---------------------------------------------------------------------*/
 /*!
- *  boxaCompareRegions()
+ * \brief   boxaCompareRegions()
  *
- *      Input:  boxa1, boxa2
- *              areathresh (minimum area of boxes to be considered)
- *              &nsame  (<return> true if same number of boxes)
- *              &diffarea (<return> fractional difference in total area)
- *              &diffxor (<optional return> fractional difference
- *                         in xor of regions)
- *              &pixdb (<optional return> debug pix showing two boxa)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    boxa1, boxa2
+ * \param[in]    areathresh minimum area of boxes to be considered
+ * \param[out]   pnsame  true if same number of boxes
+ * \param[out]   pdiffarea fractional difference in total area
+ * \param[out]   pdiffxor [optional] fractional difference
+ *                         in xor of regions
+ * \param[out]   ppixdb [optional] debug pix showing two boxa
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This takes 2 boxa, removes all boxes smaller than a given area,
  *          and compares the remaining boxes between the boxa.
  *      (2) The area threshold is introduced to help remove noise from
@@ -1225,6 +1250,7 @@ BOXA    *boxa;
  *          we return 0.0; if one is empty we return 1.0.
  *      (5) An example input might be the rectangular regions of a
  *          segmentation mask for text or images from two pages.
+ * </pre>
  */
 l_int32
 boxaCompareRegions(BOXA       *boxa1,
@@ -1346,18 +1372,19 @@ PIXA     *pixa;
  *                Reliable selection of a single large box             *
  *---------------------------------------------------------------------*/
 /*!
- *  pixSelectLargeULComp()
+ * \brief   pixSelectLargeULComp()
  *
- *      Input:  pixs (1 bpp)
- *              areaslop (fraction near but less than 1.0)
- *              yslop (number of pixels in y direction)
- *              connectivity (4 or 8)
- *      Return: box, or NULL on error
+ * \param[in]    pixs 1 bpp
+ * \param[in]    areaslop fraction near but less than 1.0
+ * \param[in]    yslop number of pixels in y direction
+ * \param[in]    connectivity 4 or 8
+ * \return  box, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This selects a box near the top (first) and left (second)
  *          of the image, from the set of all boxes that have
- *                area >= %areaslop * (area of biggest box),
+ *                area \>= %areaslop * (area of biggest box),
  *          where %areaslop is some fraction; say ~ 0.9.
  *      (2) For all boxes satisfying the above condition, select
  *          the left-most box that is within %yslop (say, 20) pixels
@@ -1367,6 +1394,7 @@ PIXA     *pixa;
  *          there are expected to be small variations in region size
  *          and location.
  *      (4) See boxSelectLargeULBox() for implementation details.
+ * </pre>
  */
 BOX *
 pixSelectLargeULComp(PIX       *pixs,
@@ -1395,15 +1423,17 @@ BOXA  *boxa1;
 
 
 /*!
- *  boxaSelectLargeULBox()
+ * \brief   boxaSelectLargeULBox()
  *
- *      Input:  boxas (1 bpp)
- *              areaslop (fraction near but less than 1.0)
- *              yslop (number of pixels in y direction)
- *      Return: box, or NULL on error
+ * \param[in]    boxas 1 bpp
+ * \param[in]    areaslop fraction near but less than 1.0
+ * \param[in]    yslop number of pixels in y direction
+ * \return  box, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See usage notes in pixSelectLargeULComp().
+ * </pre>
  */
 BOX *
 boxaSelectLargeULBox(BOXA      *boxas,
@@ -1461,5 +1491,3 @@ BOXA      *boxa1, *boxa2, *boxa3;
     boxaDestroy(&boxa3);
     return box;
 }
-
-

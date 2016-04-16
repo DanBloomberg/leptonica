@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  warper.c
+/*!
+ * \file warper.c
+ * <pre>
  *
  *      High-level captcha interface
  *          PIX               *pixSimpleCaptcha()
@@ -58,6 +59,7 @@
  *
  *      Stereo from a pair of images
  *          PIX               *pixStereoFromPair()
+ * </pre>
  */
 
 #include <math.h>
@@ -83,21 +85,23 @@ static const l_float32  L_DEFAULT_BLUE_WEIGHT  = 0.3;
  *                High-level example captcha interface                  *
  *----------------------------------------------------------------------*/
 /*!
- *  pixSimpleCaptcha()
+ * \brief   pixSimpleCaptcha()
  *
- *      Input:  pixs (8 bpp; no colormap)
- *              border (added white pixels on each side)
- *              nterms (number of x and y harmonic terms)
- *              seed (of random number generator)
- *              color (for colorizing; in 0xrrggbb00 format; use 0 for black)
- *              cmapflag (1 for colormap output; 0 for rgb)
- *      Return: pixd (8 bpp cmap or 32 bpp rgb), or NULL on error
+ * \param[in]    pixs 8 bpp; no colormap
+ * \param[in]    border added white pixels on each side
+ * \param[in]    nterms number of x and y harmonic terms
+ * \param[in]    seed of random number generator
+ * \param[in]    color for colorizing; in 0xrrggbb00 format; use 0 for black
+ * \param[in]    cmapflag 1 for colormap output; 0 for rgb
+ * \return  pixd 8 bpp cmap or 32 bpp rgb, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This uses typical default values for generating captchas.
  *          The magnitudes of the harmonic warp are typically to be
  *          smaller when more terms are used, even though the phases
  *          are random.  See, for example, prog/warptest.c.
+ * </pre>
  */
 PIX *
 pixSimpleCaptcha(PIX      *pixs,
@@ -139,18 +143,19 @@ PIX       *pixg, *pixgb, *pixw, *pixd;
  *                     Random sinusoidal warping                        *
  *----------------------------------------------------------------------*/
 /*!
- *  pixRandomHarmonicWarp()
+ * \brief   pixRandomHarmonicWarp()
  *
- *      Input:  pixs (8 bpp; no colormap)
- *              xmag, ymag (maximum magnitude of x and y distortion)
- *              xfreq, yfreq (maximum magnitude of x and y frequency)
- *              nx, ny (number of x and y harmonic terms)
- *              seed (of random number generator)
- *              grayval (color brought in from the outside;
- *                       0 for black, 255 for white)
- *      Return: pixd (8 bpp; no colormap), or NULL on error
+ * \param[in]    pixs 8 bpp; no colormap
+ * \param[in]    xmag, ymag maximum magnitude of x and y distortion
+ * \param[in]    xfreq, yfreq maximum magnitude of x and y frequency
+ * \param[in]    nx, ny number of x and y harmonic terms
+ * \param[in]    seed of random number generator
+ * \param[in]    grayval color brought in from the outside;
+ *                       0 for black, 255 for white
+ * \return  pixd 8 bpp; no colormap, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) To generate the warped image p(x',y'), set up the transforms
  *          that are in getWarpTransform().  For each (x',y') in the
  *          dest, the warp function computes the originating location
@@ -170,6 +175,7 @@ PIX       *pixg, *pixgb, *pixw, *pixd;
  *                    xfreq = 0.10   yfreq = 0.13
  *                    nx = 3         ny = 3
  *          Other examples can be found in prog/warptest.c.
+ * </pre>
  */
 PIX *
 pixRandomHarmonicWarp(PIX       *pixs,
@@ -246,7 +252,7 @@ l_float64  *randa;
 
 
 /*!
- *  applyWarpTransform()
+ * \brief   applyWarpTransform()
  *
  *  Notes:
  *      (1) Uses the internal sin function.
@@ -299,22 +305,24 @@ static l_float32 getSinFromLUT(l_float32 *tab, l_int32 npts,
                                l_float32 radang);
 
 /*!
- *  pixRandomHarmonicWarpLUT()
+ * \brief   pixRandomHarmonicWarpLUT()
  *
- *      Input:  pixs (8 bpp; no colormap)
- *              xmag, ymag (maximum magnitude of x and y distortion)
- *              xfreq, yfreq (maximum magnitude of x and y frequency)
- *              nx, ny (number of x and y harmonic terms)
- *              seed (of random number generator)
- *              grayval (color brought in from the outside;
- *                       0 for black, 255 for white)
- *      Return: pixd (8 bpp; no colormap), or NULL on error
+ * \param[in]    pixs 8 bpp; no colormap
+ * \param[in]    xmag, ymag maximum magnitude of x and y distortion
+ * \param[in]    xfreq, yfreq maximum magnitude of x and y frequency
+ * \param[in]    nx, ny number of x and y harmonic terms
+ * \param[in]    seed of random number generator
+ * \param[in]    grayval color brought in from the outside;
+ *                       0 for black, 255 for white
+ * \return  pixd 8 bpp; no colormap, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See notes and inline comments in pixRandomHarmonicWarp().
  *          This version uses a LUT for the sin function.  It is not
  *          appreciably faster than using the built-in sin function,
  *          and is here for comparison only.
+ * </pre>
  */
 PIX *
 pixRandomHarmonicWarpLUT(PIX       *pixs,
@@ -376,7 +384,7 @@ PIX        *pixd;
 
 
 /*!
- *  applyWarpTransformLUT()
+ * \brief   applyWarpTransformLUT()
  *
  *  Notes:
  *      (1) Uses an LUT for computing sin(theta).  There is little speed
@@ -486,29 +494,30 @@ l_float32  twopi, invtwopi, findex, diff;
  *                          Stereoscopic warping                             *
  *---------------------------------------------------------------------------*/
 /*!
- *  pixWarpStereoscopic()
+ * \brief   pixWarpStereoscopic()
  *
- *      Input:  pixs (any depth, colormap ok)
- *              zbend (horizontal separation in pixels of red and cyan
+ * \param[in]    pixs any depth, colormap ok
+ * \param[in]    zbend horizontal separation in pixels of red and cyan
  *                    at the left and right sides, that gives rise to
- *                    quadratic curvature out of the image plane)
- *              zshiftt (uniform pixel translation difference between
+ *                    quadratic curvature out of the image plane
+ * \param[in]    zshiftt uniform pixel translation difference between
  *                      red and cyan, that pushes the top of the image
- *                      plane away from the viewer (zshiftt > 0) or
- *                      towards the viewer (zshiftt < 0))
- *              zshiftb (uniform pixel translation difference between
+ *                      plane away from the viewer (zshiftt > 0 or
+ * \param[in]            towards the viewer zshiftt < 0)
+ * \param[in]    zshiftb uniform pixel translation difference between
  *                      red and cyan, that pushes the bottom of the image
- *                      plane away from the viewer (zshiftb > 0) or
- *                      towards the viewer (zshiftb < 0))
- *              ybendt (multiplicative parameter for in-plane vertical
+ *                      plane away from the viewer (zshiftb > 0 or
+ * \param[in]            towards the viewer zshiftb < 0)
+ * \param[in]    ybendt multiplicative parameter for in-plane vertical
  *                      displacement at the left or right edge at the top:
- *                        y = ybendt * (2x/w - 1)^2 )
- *              ybendb (same as ybendt, except at the left or right edge
- *                      at the bottom)
- *              redleft (1 if the red filter is on the left; 0 otherwise)
- *      Return: pixd (32 bpp), or NULL on error
+ *                        y = ybendt * (2x/w - 1)^2
+ * \param[in]    ybendb same as ybendt, except at the left or right edge
+ *                      at the bottom
+ * \param[in]    redleft 1 if the red filter is on the left; 0 otherwise
+ * \return  pixd 32 bpp, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function splits out the red channel, mucks around with
  *          it, then recombines with the unmolested cyan channel.
  *      (2) By using a quadratically increasing shift of the red
@@ -571,6 +580,7 @@ l_float32  twopi, invtwopi, findex, diff;
  *            Pix *pixg = pixCreate(w, h, 8);
  *            pixSetAllArbitrary(pixg, 128);
  *            pixd = pixBlendWithGrayMask(pixrs, pixc, pixg, 0, 0);
+ * </pre>
  */
 PIX *
 pixWarpStereoscopic(PIX     *pixs,
@@ -692,21 +702,22 @@ PIX       *pixd;
  *              Linear and quadratic horizontal stretching              *
  *----------------------------------------------------------------------*/
 /*!
- *  pixStretchHorizontal()
+ * \brief   pixStretchHorizontal()
  *
- *      Input:  pixs (1, 8 or 32 bpp)
- *              dir (L_WARP_TO_LEFT or L_WARP_TO_RIGHT)
- *              type (L_LINEAR_WARP or L_QUADRATIC_WARP)
- *              hmax (horizontal displacement at edge)
- *              operation (L_SAMPLED or L_INTERPOLATED)
- *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched/compressed), or NULL on error
+ * \param[in]    pixs 1, 8 or 32 bpp
+ * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    type L_LINEAR_WARP or L_QUADRATIC_WARP
+ * \param[in]    hmax horizontal displacement at edge
+ * \param[in]    operation L_SAMPLED or L_INTERPOLATED
+ * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd stretched/compressed, or NULL on error
  *
- *  Notes:
- *      (1) If %hmax > 0, this is an increase in the coordinate value of
+ * <pre>
+ * Notes:
+ *      (1) If %hmax \> 0, this is an increase in the coordinate value of
  *          pixels in pixd, relative to the same pixel in pixs.
  *      (2) If %dir == L_WARP_TO_LEFT, the pixels on the right edge of
- *          the image are not moved. So, for example, if %hmax > 0
+ *          the image are not moved. So, for example, if %hmax \> 0
  *          and %dir == L_WARP_TO_LEFT, the pixels in pixd are
  *          contracted toward the right edge of the image, relative
  *          to those in pixs.
@@ -716,6 +727,7 @@ PIX       *pixd;
  *      (4) If %operation == L_SAMPLED, the dest pixels are taken from
  *          the nearest src pixel.  Otherwise, we use linear interpolation
  *          between pairs of sampled pixels.
+ * </pre>
  */
 PIX *
 pixStretchHorizontal(PIX     *pixs,
@@ -755,17 +767,19 @@ l_int32  d;
 
 
 /*!
- *  pixStretchHorizontalSampled()
+ * \brief   pixStretchHorizontalSampled()
  *
- *      Input:  pixs (1, 8 or 32 bpp)
- *              dir (L_WARP_TO_LEFT or L_WARP_TO_RIGHT)
- *              type (L_LINEAR_WARP or L_QUADRATIC_WARP)
- *              hmax (horizontal displacement at edge)
- *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched/compressed), or NULL on error
+ * \param[in]    pixs 1, 8 or 32 bpp
+ * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    type L_LINEAR_WARP or L_QUADRATIC_WARP
+ * \param[in]    hmax horizontal displacement at edge
+ * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd stretched/compressed, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixStretchHorizontal() for details.
+ * </pre>
  */
 PIX *
 pixStretchHorizontalSampled(PIX     *pixs,
@@ -851,17 +865,19 @@ PIX       *pixd;
 
 
 /*!
- *  pixStretchHorizontalLI()
+ * \brief   pixStretchHorizontalLI()
  *
- *      Input:  pixs (1, 8 or 32 bpp)
- *              dir (L_WARP_TO_LEFT or L_WARP_TO_RIGHT)
- *              type (L_LINEAR_WARP or L_QUADRATIC_WARP)
- *              hmax (horizontal displacement at edge)
- *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched/compressed), or NULL on error
+ * \param[in]    pixs 1, 8 or 32 bpp
+ * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    type L_LINEAR_WARP or L_QUADRATIC_WARP
+ * \param[in]    hmax horizontal displacement at edge
+ * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd stretched/compressed, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixStretchHorizontal() for details.
+ * </pre>
  */
 PIX *
 pixStretchHorizontalLI(PIX     *pixs,
@@ -971,31 +987,33 @@ PIX       *pixd;
  *                       Quadratic vertical shear                       *
  *----------------------------------------------------------------------*/
 /*!
- *  pixQuadraticVShear()
+ * \brief   pixQuadraticVShear()
  *
- *      Input:  pixs (1, 8 or 32 bpp)
- *              dir (L_WARP_TO_LEFT or L_WARP_TO_RIGHT)
- *              vmaxt (max vertical displacement at edge and at top)
- *              vmaxb (max vertical displacement at edge and at bottom)
- *              operation (L_SAMPLED or L_INTERPOLATED)
- *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched), or NULL on error
+ * \param[in]    pixs 1, 8 or 32 bpp
+ * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    vmaxt max vertical displacement at edge and at top
+ * \param[in]    vmaxb max vertical displacement at edge and at bottom
+ * \param[in]    operation L_SAMPLED or L_INTERPOLATED
+ * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd stretched, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This gives a quadratic bending, upward or downward, as you
  *          move to the left or right.
  *      (2) If %dir == L_WARP_TO_LEFT, the right edge is unchanged, and
  *          the left edge pixels are moved maximally up or down.
  *      (3) Parameters %vmaxt and %vmaxb control the maximum amount of
  *          vertical pixel shear at the top and bottom, respectively.
- *          If %vmaxt > 0, the vertical displacement of pixels at the
- *          top is downward.  Likewise, if %vmaxb > 0, the vertical
+ *          If %vmaxt \> 0, the vertical displacement of pixels at the
+ *          top is downward.  Likewise, if %vmaxb \> 0, the vertical
  *          displacement of pixels at the bottom is downward.
  *      (4) If %operation == L_SAMPLED, the dest pixels are taken from
  *          the nearest src pixel.  Otherwise, we use linear interpolation
  *          between pairs of sampled pixels.
  *      (5) This is for quadratic shear.  For uniform (linear) shear,
  *          use the standard shear operators.
+ * </pre>
  */
 PIX *
 pixQuadraticVShear(PIX     *pixs,
@@ -1037,17 +1055,19 @@ l_int32    w, h, d;
 
 
 /*!
- *  pixQuadraticVShearSampled()
+ * \brief   pixQuadraticVShearSampled()
  *
- *      Input:  pixs (1, 8 or 32 bpp)
- *              dir (L_WARP_TO_LEFT or L_WARP_TO_RIGHT)
- *              vmaxt (max vertical displacement at edge and at top)
- *              vmaxb (max vertical displacement at edge and at bottom)
- *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched), or NULL on error
+ * \param[in]    pixs 1, 8 or 32 bpp
+ * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    vmaxt max vertical displacement at edge and at top
+ * \param[in]    vmaxb max vertical displacement at edge and at bottom
+ * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd stretched, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixQuadraticVShear() for details.
+ * </pre>
  */
 PIX *
 pixQuadraticVShearSampled(PIX     *pixs,
@@ -1141,17 +1161,19 @@ PIX       *pixd;
 
 
 /*!
- *  pixQuadraticVShearLI()
+ * \brief   pixQuadraticVShearLI()
  *
- *      Input:  pixs (8 or 32 bpp, or colormapped)
- *              dir (L_WARP_TO_LEFT or L_WARP_TO_RIGHT)
- *              vmaxt (max vertical displacement at edge and at top)
- *              vmaxb (max vertical displacement at edge and at bottom)
- *              incolor (L_BRING_IN_WHITE or L_BRING_IN_BLACK)
- *      Return: pixd (stretched), or NULL on error
+ * \param[in]    pixs 8 or 32 bpp, or colormapped
+ * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    vmaxt max vertical displacement at edge and at top
+ * \param[in]    vmaxb max vertical displacement at edge and at bottom
+ * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd stretched, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) See pixQuadraticVShear() for details.
+ * </pre>
  */
 PIX *
 pixQuadraticVShearLI(PIX     *pixs,
@@ -1277,15 +1299,16 @@ PIXCMAP   *cmap;
  *                     Stereo from a pair of images                     *
  *----------------------------------------------------------------------*/
 /*!
- *  pixStereoFromPair()
+ * \brief   pixStereoFromPair()
  *
- *      Input:  pix1 (32 bpp rgb)
- *              pix2 (32 bpp rgb)
- *              rwt, gwt, bwt (weighting factors used for each component in
-                               pix1 to determine the output red channel)
- *      Return: pixd (stereo enhanced), or NULL on error
+ * \param[in]    pix1 32 bpp rgb
+ * \param[in]    pix2 32 bpp rgb
+ * \param[in]    rwt, gwt, bwt weighting factors used for each component in
+                               pix1 to determine the output red channel
+ * \return  pixd stereo enhanced, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) pix1 and pix2 are a pair of stereo images, ideally taken
  *          concurrently in the same plane, with some lateral translation.
  *      (2) The output red channel is determined from %pix1.
@@ -1303,6 +1326,7 @@ PIXCMAP   *cmap;
  *          but this causes unpleasant visual artifacts with red in the image.
  *          Use of green and blue from %pix1 in the red channel,
  *          instead of red, tends to fix that problem.
+ * </pre>
  */
 PIX *
 pixStereoFromPair(PIX       *pix1,

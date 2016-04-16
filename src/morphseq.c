@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *  morphseq.c
+/*!
+ * \file morphseq.c
+ * <pre>
  *
  *      Run a sequence of binary rasterop morphological operations
  *            PIX     *pixMorphSequence()
@@ -47,6 +48,7 @@
  *
  *      Run a sequence of color morphological operations
  *            PIX     *pixColorMorphSequence()
+ * </pre>
  */
 
 #include <string.h>
@@ -56,18 +58,19 @@
  *         Run a sequence of binary rasterop morphological operations      *
  *-------------------------------------------------------------------------*/
 /*!
- *  pixMorphSequence()
+ * \brief   pixMorphSequence()
  *
- *      Input:  pixs
- *              sequence (string specifying sequence)
- *              dispsep (controls debug display of each result in the sequence:
+ * \param[in]    pixs
+ * \param[in]    sequence string specifying sequence
+ * \param[in]    dispsep controls debug display of each result in the sequence:
  *                       0: no output
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or NULL on error
+ *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does rasterop morphology on binary images.
  *      (2) This runs a pipeline of operations; no branching is allowed.
  *      (3) This only uses brick Sels, which are created on the fly.
@@ -124,6 +127,7 @@
  *              ~ The border is removed at the end, so if a border is
  *                added at the beginning, the result must be at the
  *                same resolution as the input!
+ * </pre>
  */
 PIX *
 pixMorphSequence(PIX         *pixs,
@@ -252,18 +256,19 @@ SARRAY  *sa;
  *   Run a sequence of binary composite rasterop morphological operations  *
  *-------------------------------------------------------------------------*/
 /*!
- *  pixMorphCompSequence()
+ * \brief   pixMorphCompSequence()
  *
- *      Input:  pixs
- *              sequence (string specifying sequence)
- *              dispsep (controls debug display of each result in the sequence:
+ * \param[in]    pixs
+ * \param[in]    sequence string specifying sequence
+ * \param[in]    dispsep controls debug display of each result in the sequence:
  *                       0: no output
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or NULL on error
+ *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does rasterop morphology on binary images, using composite
  *          operations for extra speed on large Sels.
  *      (2) Safe closing is used atomically.  However, if you implement a
@@ -291,6 +296,7 @@ SARRAY  *sa;
  *              each from 1 to 4.
  *            ~ The arg to the expansion is a power of two, in the set
  *              {2, 4, 8, 16}.
+ * </pre>
  */
 PIX *
 pixMorphCompSequence(PIX         *pixs,
@@ -419,18 +425,19 @@ SARRAY  *sa;
  *           Run a sequence of binary dwa morphological operations         *
  *-------------------------------------------------------------------------*/
 /*!
- *  pixMorphSequenceDwa()
+ * \brief   pixMorphSequenceDwa()
  *
- *      Input:  pixs
- *              sequence (string specifying sequence)
- *              dispsep (controls debug display of each result in the sequence:
+ * \param[in]    pixs
+ * \param[in]    sequence string specifying sequence
+ * \param[in]    dispsep controls debug display of each result in the sequence:
  *                       0: no output
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or NULL on error
+ *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does dwa morphology on binary images.
  *      (2) This runs a pipeline of operations; no branching is allowed.
  *      (3) This only uses brick Sels that have been pre-compiled with
@@ -439,6 +446,7 @@ SARRAY  *sa;
  *      (5) This contains an interpreter, allowing sequences to be
  *          generated and run.
  *      (6) See pixMorphSequence() for further information about usage.
+ * </pre>
  */
 PIX *
 pixMorphSequenceDwa(PIX         *pixs,
@@ -567,18 +575,19 @@ SARRAY  *sa;
  *      Run a sequence of binary composite dwa morphological operations    *
  *-------------------------------------------------------------------------*/
 /*!
- *  pixMorphCompSequenceDwa()
+ * \brief   pixMorphCompSequenceDwa()
  *
- *      Input:  pixs
- *              sequence (string specifying sequence)
- *              dispsep (controls debug display of each result in the sequence:
+ * \param[in]    pixs
+ * \param[in]    sequence string specifying sequence
+ * \param[in]    dispsep controls debug display of each result in the sequence:
  *                       0: no output
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming)
- *      Return: pixd, or NULL on error
+ *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does dwa morphology on binary images, using brick Sels.
  *      (2) This runs a pipeline of operations; no branching is allowed.
  *      (3) It implements all brick Sels that have dimensions up to 63
@@ -587,6 +596,7 @@ SARRAY  *sa;
  *      (5) This contains an interpreter, allowing sequences to be
  *          generated and run.
  *      (6) See pixMorphSequence() for further information about usage.
+ * </pre>
  */
 PIX *
 pixMorphCompSequenceDwa(PIX         *pixs,
@@ -715,16 +725,18 @@ SARRAY  *sa;
  *            Parser verifier for binary morphological operations          *
  *-------------------------------------------------------------------------*/
 /*!
- *  morphSequenceVerify()
+ * \brief   morphSequenceVerify()
  *
- *      Input:  sarray (of operation sequence)
- *      Return: TRUE if valid; FALSE otherwise or on error
+ * \param[in]    sarray of operation sequence
+ * \return  TRUE if valid; FALSE otherwise or on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This does verification of valid binary morphological
  *          operation sequences.
  *      (2) See pixMorphSequence() for notes on valid operations
  *          in the sequence.
+ * </pre>
  */
 l_int32
 morphSequenceVerify(SARRAY  *sa)
@@ -854,20 +866,21 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
  *       Run a sequence of grayscale morphological operations      *
  *-----------------------------------------------------------------*/
 /*!
- *  pixGrayMorphSequence()
+ * \brief   pixGrayMorphSequence()
  *
- *      Input:  pixs
- *              sequence (string specifying sequence)
- *              dispsep (controls debug display of each result in the sequence:
+ * \param[in]    pixs
+ * \param[in]    sequence string specifying sequence
+ * \param[in]    dispsep controls debug display of each result in the sequence:
  *                       0: no output
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming)
- *              dispy (if dispsep > 0, this gives the y-value of the
- *                     UL corner for display; otherwise it is ignored)
- *      Return: pixd, or NULL on error
+ *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    dispy if dispsep > 0, this gives the y-value of the
+ *                     UL corner for display; otherwise it is ignored
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This works on 8 bpp grayscale images.
  *      (2) This runs a pipeline of operations; no branching is allowed.
  *      (3) This only uses brick SELs.
@@ -898,6 +911,7 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
  *           Example valid sequences are:
  *             "c5.3 + o7.5"
  *             "c9.9 + tw9.9"
+ * </pre>
  */
 PIX *
 pixGrayMorphSequence(PIX         *pixs,
@@ -1063,20 +1077,21 @@ SARRAY  *sa;
  *         Run a sequence of color morphological operations        *
  *-----------------------------------------------------------------*/
 /*!
- *  pixColorMorphSequence()
+ * \brief   pixColorMorphSequence()
  *
- *      Input:  pixs
- *              sequence (string specifying sequence)
- *              dispsep (controls debug display of each result in the sequence:
+ * \param[in]    pixs
+ * \param[in]    sequence string specifying sequence
+ * \param[in]    dispsep controls debug display of each result in the sequence:
  *                       0: no output
  *                       > 0: gives horizontal separation in pixels between
  *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming)
- *              dispy (if dispsep > 0, this gives the y-value of the
- *                     UL corner for display; otherwise it is ignored)
- *      Return: pixd, or NULL on error
+ *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    dispy if dispsep > 0, this gives the y-value of the
+ *                     UL corner for display; otherwise it is ignored
+ * \return  pixd, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This works on 32 bpp rgb images.
  *      (2) Each component is processed separately.
  *      (3) This runs a pipeline of operations; no branching is allowed.
@@ -1102,6 +1117,7 @@ SARRAY  *sa;
  *           Example valid sequences are:
  *             "c5.3 + o7.5"
  *             "D9.1"
+ * </pre>
  */
 PIX *
 pixColorMorphSequence(PIX         *pixs,

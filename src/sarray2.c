@@ -24,8 +24,9 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*
- *   sarray2.c
+/*!
+ * \file  sarray2.c
+ * <pre>
  *
  *      Sort
  *          SARRAY    *sarraySort()
@@ -44,6 +45,7 @@
  *          l_int32     sarrayFindStringByHash()
  *          L_DNAHASH  *l_dnaHashCreateFromSarray()
  *
+ * </pre>
  */
 
 #include <string.h>
@@ -53,17 +55,19 @@
  *                                   Sort                               *
  *----------------------------------------------------------------------*/
 /*!
- *  sarraySort()
+ * \brief   sarraySort()
  *
- *      Input:  saout (output sarray; can be NULL or equal to sain)
- *              sain (input sarray)
- *              sortorder (L_SORT_INCREASING or L_SORT_DECREASING)
- *      Return: saout (output sarray, sorted by ascii value), or NULL on error
+ * \param[in]    saout output sarray; can be NULL or equal to sain
+ * \param[in]    sain input sarray
+ * \param[in]    sortorder L_SORT_INCREASING or L_SORT_DECREASING
+ * \return  saout output sarray, sorted by ascii value, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Set saout = sain for in-place; otherwise, set naout = NULL.
- *      (2) Shell sort, modified from K&R, 2nd edition, p.62.
+ *      (2) Shell sort, modified from K\&R, 2nd edition, p.62.
  *          Slow but simple O(n logn) sort.
+ * </pre>
  */
 SARRAY *
 sarraySort(SARRAY  *saout,
@@ -109,11 +113,11 @@ l_int32  n, i, j, gap;
 
 
 /*!
- *  sarraySortByIndex()
+ * \brief   sarraySortByIndex()
  *
- *      Input:  sain
- *              naindex (na that maps from the new sarray to the input sarray)
- *      Return: saout (sorted), or NULL on error
+ * \param[in]    sain
+ * \param[in]    naindex na that maps from the new sarray to the input sarray
+ * \return  saout sorted, or NULL on error
  */
 SARRAY *
 sarraySortByIndex(SARRAY  *sain,
@@ -143,15 +147,17 @@ SARRAY  *saout;
 
 
 /*!
- *  stringCompareLexical()
+ * \brief   stringCompareLexical()
  *
- *      Input:  str1
- *              str2
- *      Return: 1 if str1 > str2 (lexically); 0 otherwise
+ * \param[in]    str1
+ * \param[in]    str2
+ * \return  1 if str1 > str2 lexically; 0 otherwise
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If the lexical values are identical, return a 0, to
  *          indicate that no swapping is required to sort the strings.
+ * </pre>
  */
 l_int32
 stringCompareLexical(const char *str1,
@@ -190,18 +196,20 @@ l_int32  i, len1, len2, len;
  *                       Operations by aset (rbtree)                    *
  *----------------------------------------------------------------------*/
 /*!
- *  sarrayUnionByAset()
+ * \brief   sarrayUnionByAset()
  *
- *      Input:  sa1, sa2
- *      Return: sad (with the union of the string set), or NULL on error
+ * \param[in]    sa1, sa2
+ * \return  sad with the union of the string set, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Duplicates are removed from the concatenation of the two arrays.
  *      (2) The key for each string is a 64-bit hash.
  *      (2) Algorithm: Concatenate the two sarrays.  Then build a set,
  *          using hashed strings as keys.  As the set is built, first do
  *          a find; if not found, add the key to the set and add the string
  *          to the output sarray.  This is O(nlogn).
+ * </pre>
  */
 SARRAY *
 sarrayUnionByAset(SARRAY  *sa1,
@@ -228,18 +236,20 @@ SARRAY  *sa3, *sad;
 
 
 /*!
- *  sarrayRemoveDupsByAset()
+ * \brief   sarrayRemoveDupsByAset()
  *
- *      Input:  sas
- *      Return: sad (with duplicates removed), or NULL on error
+ * \param[in]    sas
+ * \return  sad with duplicates removed, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is O(nlogn), considerably slower than
  *          sarrayRemoveDupsByHash() for large string arrays.
  *      (2) The key for each string is a 64-bit hash.
  *      (3) Build a set, using hashed strings as keys.  As the set is
  *          built, first do a find; if not found, add the key to the
  *          set and add the string to the output sarray.
+ * </pre>
  */
 SARRAY *
 sarrayRemoveDupsByAset(SARRAY  *sas)
@@ -275,12 +285,13 @@ SARRAY   *sad;
 
 
 /*!
- *  sarrayIntersectionByAset()
+ * \brief   sarrayIntersectionByAset()
  *
- *      Input:  sa1, sa2
- *      Return: sad (with the intersection of the string set), or NULL on error
+ * \param[in]    sa1, sa2
+ * \return  sad with the intersection of the string set, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Algorithm: put the smaller sarray into a set, using the string
  *          hashes as the key values.  Then run through the larger sarray,
  *          building an output sarray and a second set from the strings
@@ -289,6 +300,7 @@ SARRAY   *sad;
  *          it into the second set.  The second set is required to make
  *          sure only one instance of each string is put into the output sarray.
  *          This is O(mlogn), {m,n} = sizes of {smaller,larger} input arrays.
+ * </pre>
  */
 SARRAY *
 sarrayIntersectionByAset(SARRAY  *sa1,
@@ -336,10 +348,10 @@ SARRAY   *sa_small, *sa_big, *sad;
 
 
 /*!
- *  l_asetCreateFromSarray()
+ * \brief   l_asetCreateFromSarray()
  *
- *      Input:  sa
- *      Return: set (using a string hash into a uint32 as the key)
+ * \param[in]    sa
+ * \return  set using a string hash into a uint32 as the key
  */
 L_ASET *
 l_asetCreateFromSarray(SARRAY  *sa)
@@ -372,24 +384,26 @@ RB_TYPE   key;
  *                    Operations by hashmap (dnahash)                   *
  *----------------------------------------------------------------------*/
 /*!
- *  sarrayRemoveDupsByHash()
+ * \brief   sarrayRemoveDupsByHash()
  *
- *      Input:  sas
- *              &sad (<return> unique set of strings; duplicates removed)
- *              &dahash (<optional return> dnahash used for lookup)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sas
+ * \param[out]   psad unique set of strings; duplicates removed
+ * \param[out]   pdahash [optional] dnahash used for lookup
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Generates a sarray with unique values.
  *      (2) The dnahash is built up with sad to assure uniqueness.
  *          It can be used to find if a string is in the set:
- *              sarrayFindValByHash(sad, dahash, str, &index)
+ *              sarrayFindValByHash(sad, dahash, str, \&index)
  *      (3) The hash of the string location is simple and fast.  It scales
  *          up with the number of buckets to insure a fairly random
  *          bucket selection input strings.
  *      (4) This is faster than sarrayRemoveDupsByAset(), because the
  *          bucket lookup is O(n), although there is a double-loop
  *          lookup within the dna in each bucket.
+ * </pre>
  */
 l_int32
 sarrayRemoveDupsByHash(SARRAY      *sas,
@@ -438,14 +452,16 @@ L_DNAHASH  *dahash;
 
 
 /*!
- *  sarrayIntersectionByHash()
+ * \brief   sarrayIntersectionByHash()
  *
- *      Input:  sa1, sa2
- *      Return: sad (intersection of the strings), or NULL on error
+ * \param[in]    sa1, sa2
+ * \return  sad intersection of the strings, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is faster than sarrayIntersectionByAset(), because the
  *          bucket lookup is O(n).
+ * </pre>
  */
 SARRAY *
 sarrayIntersectionByHash(SARRAY  *sa1,
@@ -499,18 +515,20 @@ SARRAY     *sa_small, *sa_big, *sad;
 
 
 /*!
- *  sarrayFindStringByHash()
+ * \brief   sarrayFindStringByHash()
  *
- *      Input:  sa
- *              dahash (built from sa)
- *              str  (arbitrary string)
- *              &index (<return> index into %sa if %str is in %sa;
- *              -1 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sa
+ * \param[in]    dahash built from sa
+ * \param[in]    str  arbitrary string
+ * \param[out]   pindex index into %sa if %str is in %sa;
+ *              -1 otherwise
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Fast lookup in dnaHash associated with a sarray, to see if a
  *          random string %str is already stored in the hash table.
+ * </pre>
  */
 l_int32
 sarrayFindStringByHash(SARRAY      *sa,
@@ -553,10 +571,10 @@ L_DNA    *da;
 
 
 /*!
- *  l_dnaHashCreateFromSarray()
+ * \brief   l_dnaHashCreateFromSarray()
  *
- *      Input:  sa
- *      Return: dahash, or NULL on error
+ * \param[in]    sa
+ * \return  dahash, or NULL on error
  */
 L_DNAHASH *
 l_dnaHashCreateFromSarray(SARRAY  *sa)
@@ -586,4 +604,3 @@ L_DNAHASH  *dahash;
 
     return dahash;
 }
-
