@@ -189,7 +189,7 @@ L_BBUFFER  *bb;
  * \brief   bbufferDestroyAndSaveData()
  *
  * \param[in,out]   pbb buffer to be nulled
- * \param[out]   pnbytes  number of bytes saved in array
+ * \param[out]      pnbytes  number of bytes saved in array
  * \return  barray newly allocated array of data
  *
  * <pre>
@@ -240,7 +240,7 @@ L_BBUFFER  *bb;
 /*!
  * \brief   bbufferRead()
  *
- * \param[in]    bbuffer
+ * \param[in]    bb       bbuffer
  * \param[in]    src      source memory buffer from which bytes are read
  * \param[in]    nbytes   bytes to be read
  * \return  0 if OK, 1 on error
@@ -298,8 +298,8 @@ l_int32  navail, nadd, nwritten;
 /*!
  * \brief   bbufferReadStream()
  *
- * \param[in]    bbuffer
- * \param[in]    fp      source stream from which bytes are read
+ * \param[in]    bb       bbuffer
+ * \param[in]    fp       source stream from which bytes are read
  * \param[in]    nbytes   bytes to be read
  * \return  0 if OK, 1 on error
  */
@@ -345,7 +345,7 @@ l_int32  navail, nadd, nread, nwritten;
 /*!
  * \brief   bbufferExtendArray()
  *
- * \param[in]    bbuffer
+ * \param[in]    bb      bbuffer
  * \param[in]    nbytes  number of bytes to extend array size
  * \return  0 if OK, 1 on error
  *
@@ -380,7 +380,7 @@ bbufferExtendArray(L_BBUFFER  *bb,
 /*!
  * \brief   bbufferWrite()
  *
- * \param[in]    bbuffer
+ * \param[in]    bb       bbuffer
  * \param[in]    dest     dest memory buffer to which bytes are written
  * \param[in]    nbytes   bytes requested to be written
  * \param[out]   pnout    bytes actually written
@@ -432,7 +432,7 @@ l_int32  nleft, nout;
 /*!
  * \brief   bbufferWriteStream()
  *
- * \param[in]    bbuffer
+ * \param[in]    bb       bbuffer
  * \param[in]    fp       dest stream to which bytes are written
  * \param[in]    nbytes   bytes requested to be written
  * \param[out]   pnout    bytes actually written
