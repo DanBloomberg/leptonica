@@ -80,7 +80,7 @@ static l_int32 l_byteaExtendArrayToSize(L_BYTEA *ba, size_t size);
 /*!
  * \brief   l_byteaCreate()
  *
- * \param[in]    n determines initial size of data array
+ * \param[in]    nbytes determines initial size of data array
  * \return  l_bytea, or NULL on error
  *
  * <pre>
@@ -353,7 +353,7 @@ l_uint8  *data;
  *
  * \param[in]    ba
  * \param[in]    newdata byte array to be appended
- * \param[in]    size size of data array
+ * \param[in]    newbytes size of data array
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -448,9 +448,9 @@ l_byteaExtendArrayToSize(L_BYTEA  *ba,
 /*!
  * \brief   l_byteaJoin()
  *
- * \param[in]    ba1
- * \param[in]    &ba2 data array is added to the one in ba1, and
- *                     then ba2 is destroyed
+ * \param[in]       ba1
+ * \param[in,out]   pba2 data array is added to the one in ba1, and
+ *                       then ba2 is destroyed
  * \return  0 if OK, 1 on error
  *
  * <pre>
