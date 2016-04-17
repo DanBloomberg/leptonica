@@ -1073,7 +1073,7 @@ l_uint32  *line;
  *
  * \param[in]   fpx, fpy    location of first pixel
  * \param[in]   spx, spy    location of second pixel
- * \param[out]  pxs, pxy    seed pixel to be returned
+ * \param[out]  pxs, pys    seed pixel to be returned
  *
  * <pre>
  * Notes:
