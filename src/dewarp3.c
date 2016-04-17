@@ -195,8 +195,8 @@ PIX       *pixv, *pixh;
  * \param[in]    pageno of page model to be used; may be a ref model
  * \param[in]    pixs image to be modified; can be 1, 8 or 32 bpp
  * \param[in]    x, y origin for generation of disparity arrays
- * \param[out]   ppdew dewarp to be used for this page
- *              debugfile (use NULL to skip writing this
+ * \param[out]   pdew dewarp to be used for this page
+ * \param[in]    debugfile use NULL to skip writing this
  * \return  0 if OK, 1 on error no models or ref models available
  *
  * <pre>
