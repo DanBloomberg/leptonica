@@ -205,7 +205,7 @@ static const l_int32  DEFAULT_INPUT_RES = 300;
 /*!
  * \brief   convertFilesToPdf()
  *
- * \param[in]    directory name containing images
+ * \param[in]    dirname directory name containing images
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[in]    res input resolution of all images
  * \param[in]    scalefactor scaling factor applied to each image; > 0.0
@@ -265,7 +265,7 @@ SARRAY  *sa;
 /*!
  * \brief   saConvertFilesToPdf()
  *
- * \param[in]    sarray of pathnames for images
+ * \param[in]    sa string array of pathnames for images
  * \param[in]    res input resolution of all images
  * \param[in]    scalefactor scaling factor applied to each image; > 0.0
  * \param[in]    type encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
@@ -491,7 +491,7 @@ PIXCMAP  *cmap;
 /*!
  * \brief   convertUnscaledFilesToPdf()
  *
- * \param[in]    directory name containing images
+ * \param[in]    dirname directory name containing images
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[in]    title [optional] pdf title; if null, taken from the first
  *                     image filename
@@ -538,7 +538,7 @@ SARRAY  *sa;
 /*!
  * \brief   saConvertUnscaledFilesToPdf()
  *
- * \param[in]    sarray of pathnames for images
+ * \param[in]    sa string array of pathnames for images
  * \param[in]    title [optional] pdf title; if null, taken from the first
  *                     image filename
  * \param[in]    fileout pdf file of all images
@@ -580,10 +580,10 @@ size_t    nbytes;
 /*!
  * \brief   saConvertUnscaledFilesToPdfData()
  *
- * \param[in]    sarray of pathnames for images
+ * \param[in]    sa string array of pathnames for images
  * \param[in]    title [optional] pdf title; if null, taken from the first
  *                     image filename
- * \param[out]   pdata output pdf data (of all images
+ * \param[out]   pdata output pdf data (of all images)
  * \param[out]   pnbytes size of output pdf data
  * \return  0 if OK, 1 on error
  */
@@ -888,21 +888,21 @@ L_PTRA   *pa_data;
 /*!
  * \brief   convertToPdf()
  *
- * \param[in]    filein input image file -- any format
- * \param[in]    type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality used for JPEG only; 0 for default (75)
- * \param[in]    fileout output pdf file; only required on last image on page
- * \param[in]    x, y location of lower-left corner of image, in pixels,
- *                    relative to the PostScript origin (0,0 at
- * \param[in]          the lower-left corner of the page)
- * \param[in]    res override the resolution of the input image, in ppi;
- *                   use 0 to respect the resolution embedded in the input
- * \param[in]    title [optional] pdf title; if null, taken from filein
- * \param[in]    &lpd ptr to lpd, which is created on the first invocation
- *                    and returned until last image is processed, at which
- *                    time it is destroyed
- * \param[in]    position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
- *                       L_LAST_IMAGE
+ * \param[in]      filein input image file -- any format
+ * \param[in]      type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \param[in]      quality used for JPEG only; 0 for default (75)
+ * \param[in]      fileout output pdf file; only required on last image on page
+ * \param[in]      x, y location of lower-left corner of image, in pixels,
+ *                      relative to the PostScript origin (0,0) at
+ *                      the lower-left corner of the page
+ * \param[in]      res override the resolution of the input image, in ppi;
+ *                     use 0 to respect the resolution embedded in the input
+ * \param[in]      title [optional] pdf title; if null, taken from filein
+ * \param[in,out]  plpd ptr to lpd, which is created on the first invocation
+ *                      and returned until last image is processed, at which
+ *                      time it is destroyed
+ * \param[in]      position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
+ *                          L_LAST_IMAGE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -986,22 +986,22 @@ size_t    nbytes;
 /*!
  * \brief   convertImageDataToPdf()
  *
- * \param[in]    imdata array of formatted image data; e.g., png, jpeg
- * \param[in]    size size of image data
- * \param[in]    type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality used for JPEG only; 0 for default (75)
- * \param[in]    fileout output pdf file; only required on last image on page
- * \param[in]    x, y location of lower-left corner of image, in pixels,
- *                    relative to the PostScript origin (0,0 at
- * \param[in]          the lower-left corner of the page)
- * \param[in]    res override the resolution of the input image, in ppi;
- *                   use 0 to respect the resolution embedded in the input
- * \param[in]    title [optional] pdf title
- * \param[in]    &lpd ptr to lpd, which is created on the first invocation
- *                    and returned until last image is processed, at which
- *                    time it is destroyed
- * \param[in]    position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
- *                       L_LAST_IMAGE
+ * \param[in]      imdata array of formatted image data; e.g., png, jpeg
+ * \param[in]      size size of image data
+ * \param[in]      type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \param[in]      quality used for JPEG only; 0 for default (75)
+ * \param[in]      fileout output pdf file; only required on last image on page
+ * \param[in]      x, y location of lower-left corner of image, in pixels,
+ *                      relative to the PostScript origin (0,0) at
+ *                      the lower-left corner of the page
+ * \param[in]      res override the resolution of the input image, in ppi;
+ *                     use 0 to respect the resolution embedded in the input
+ * \param[in]      title [optional] pdf title
+ * \param[in,out]  plpd ptr to lpd, which is created on the first invocation
+ *                      and returned until last image is processed, at which
+ *                      time it is destroyed
+ * \param[in]      position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
+ *                          L_LAST_IMAGE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1051,22 +1051,22 @@ PIX     *pix;
 /*!
  * \brief   convertToPdfData()
  *
- * \param[in]    filein input image file -- any format
- * \param[in]    type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality used for JPEG only; 0 for default (75)
- * \param[out]   pdata pdf data in memory
- * \param[out]   pnbytes number of bytes in pdf data
- * \param[in]    x, y location of lower-left corner of image, in pixels,
- *                    relative to the PostScript origin (0,0 at
- * \param[in]          the lower-left corner of the page)
- * \param[in]    res override the resolution of the input image, in ppi;
- *                   use 0 to respect the resolution embedded in the input
- * \param[in]    title [optional] pdf title; if null, use filein
- * \param[in]    &lpd ptr to lpd, which is created on the first invocation
- *                    and returned until last image is processed, at which
- *                    time it is destroyed
- * \param[in]    position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
- *                       L_LAST_IMAGE
+ * \param[in]      filein input image file -- any format
+ * \param[in]      type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \param[in]      quality used for JPEG only; 0 for default (75)
+ * \param[out]     pdata pdf data in memory
+ * \param[out]     pnbytes number of bytes in pdf data
+ * \param[in]      x, y location of lower-left corner of image, in pixels,
+ *                      relative to the PostScript origin (0,0) at
+ *                      the lower-left corner of the page
+ * \param[in]      res override the resolution of the input image, in ppi;
+ *                     use 0 to respect the resolution embedded in the input
+ * \param[in]      title [optional] pdf title; if null, use filein
+ * \param[in,out]  plpd ptr to lpd, which is created on the first invocation
+ *                      and returned until last image is processed, at which
+ *                      time it is destroyed
+ * \param[in]      position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
+ *                          L_LAST_IMAGE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1125,12 +1125,12 @@ PIX  *pix;
  * \param[out]   pdata pdf data in memory
  * \param[out]   pnbytes number of bytes in pdf data
  * \param[in]    x, y location of lower-left corner of image, in pixels,
- *                    relative to the PostScript origin (0,0 at
- * \param[in]          the lower-left corner of the page)
+ *                    relative to the PostScript origin (0,0) at
+ *                     the lower-left corner of the page
  * \param[in]    res override the resolution of the input image, in ppi;
  *                   use 0 to respect the resolution embedded in the input
  * \param[in]    title [optional] pdf title
- * \param[in]    &lpd ptr to lpd, which is created on the first invocation
+ * \param[out]   plpd ptr to lpd, which is created on the first invocation
  *                    and returned until last image is processed, at which
  *                    time it is destroyed
  * \param[in]    position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
@@ -1188,20 +1188,20 @@ PIX     *pix;
 /*!
  * \brief   pixConvertToPdf()
  *
- * \param[in]    pix
- * \param[in]    type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality used for JPEG only; 0 for default (75)
- * \param[in]    fileout output pdf file; only required on last image on page
- * \param[in]    x, y location of lower-left corner of image, in pixels,
- *                    relative to the PostScript origin (0,0 at
- * \param[in]          the lower-left corner of the page)
- * \param[in]    res override the resolution of the input image, in ppi;
- *                   use 0 to respect the resolution embedded in the input
- * \param[in]    title [optional] pdf title
- * \param[in]    &lpd ptr to lpd, which is created on the first invocation
- *                    and returned until last image is processed
- * \param[in]    position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
- *                       L_LAST_IMAGE
+ * \param[in]      pix
+ * \param[in]      type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \param[in]      quality used for JPEG only; 0 for default (75)
+ * \param[in]      fileout output pdf file; only required on last image on page
+ * \param[in]      x, y location of lower-left corner of image, in pixels,
+ *                      relative to the PostScript origin (0,0 at
+ *                      the lower-left corner of the page)
+ * \param[in]      res override the resolution of the input image, in ppi;
+ *                     use 0 to respect the resolution embedded in the input
+ * \param[in]      title [optional] pdf title
+ * \param[in,out]  plpd ptr to lpd, which is created on the first invocation
+ *                      and returned until last image is processed
+ * \param[in]      position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
+ *                          L_LAST_IMAGE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1363,13 +1363,13 @@ PIXCMAP  *cmap;
 /*!
  * \brief   convertSegmentedFilesToPdf()
  *
- * \param[in]    directory name containing images
+ * \param[in]    dirname directory name containing images
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[in]    res input resolution of all images
  * \param[in]    type compression type for non-image regions; the
  *                    image regions are always compressed with L_JPEG_ENCODE
  * \param[in]    thresh used for converting gray --> 1 bpp with L_G4_ENCODE
- * \param[in]    boxaa [optional] of image regions
+ * \param[in]    baa [optional] boxaa of image regions
  * \param[in]    quality used for JPEG only; 0 for default (75)
  * \param[in]    scalefactor scaling factor applied to each image region
  * \param[in]    title [optional] pdf title; if null, taken from the first
@@ -1505,12 +1505,12 @@ SARRAY   *sa;
 /*!
  * \brief   convertNumberedMasksToBoxaa()
  *
- * \param[in]    directory name containing mask images
+ * \param[in]    dirname directory name containing mask images
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[in]    numpre number of characters in name before number
  * \param[in]    numpost number of characters in name after number, up
  *                       to a dot before an extension
- * \param[in]             including an extension and the dot separator)
+ *                       including an extension and the dot separator
  * \return  boxaa of mask regions, or NULL on error
  *
  * <pre>
@@ -1968,7 +1968,7 @@ L_PDF_DATA  *lpd;
 /*!
  * \brief   concatenatePdf()
  *
- * \param[in]    directory name containing single-page pdf files
+ * \param[in]    dirname directory name containing single-page pdf files
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[in]    fileout concatenated pdf file
  * \return  0 if OK, 1 on error
@@ -2010,7 +2010,7 @@ SARRAY  *sa;
 /*!
  * \brief   saConcatenatePdf()
  *
- * \param[in]    sarray of pathnames for single-page pdf files
+ * \param[in]    sa string array of pathnames for single-page pdf files
  * \param[in]    fileout concatenated pdf file
  * \return  0 if OK, 1 on error
  *
@@ -2046,7 +2046,7 @@ size_t    nbytes;
 /*!
  * \brief   ptraConcatenatePdf()
  *
- * \param[in]    ptra array of pdf strings, each for a single-page pdf file
+ * \param[in]    pa array of pdf strings, each for a single-page pdf file
  * \param[in]    fileout concatenated pdf file
  * \return  0 if OK, 1 on error
  *
@@ -2082,7 +2082,7 @@ size_t    nbytes;
 /*!
  * \brief   concatenatePdfToData()
  *
- * \param[in]    directory name containing single-page pdf files
+ * \param[in]    dirname directory name containing single-page pdf files
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[out]   pdata concatenated pdf data in memory
  * \param[out]   pnbytes number of bytes in pdf data
@@ -2130,7 +2130,7 @@ SARRAY  *sa;
 /*!
  * \brief   saConcatenatePdfToData()
  *
- * \param[in]    sarray of pathnames for single-page pdf files
+ * \param[in]    sa string array of pathnames for single-page pdf files
  * \param[out]   pdata concatenated pdf data in memory
  * \param[out]   pnbytes number of bytes in pdf data
  * \return  0 if OK, 1 on error

@@ -146,21 +146,21 @@ static l_int32   var_WRITE_DATE_AND_VERSION = 1;
 /*!
  * \brief   pixConvertToPdfData()
  *
- * \param[in]    pix all depths; cmap OK
- * \param[in]    type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality used for JPEG only; 0 for default (75)
- * \param[out]   pdata pdf array
- * \param[out]   pnbytes number of bytes in pdf array
- * \param[in]    x, y location of lower-left corner of image, in pixels,
- *                    relative to the PostScript origin (0,0 at
- * \param[in]          the lower-left corner of the page)
- * \param[in]    res override the resolution of the input image, in ppi;
- *                   use 0 to respect the resolution embedded in the input
- * \param[in]    title [optional] pdf title
- * \param[in]    &lpd ptr to lpd, which is created on the first invocation
- *                    and returned until last image is processed
- * \param[in]    position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
- *                       L_LAST_IMAGE
+ * \param[in]      pix all depths; cmap OK
+ * \param[in]      type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \param[in]      quality used for JPEG only; 0 for default (75)
+ * \param[out]     pdata pdf array
+ * \param[out]     pnbytes number of bytes in pdf array
+ * \param[in]      x, y location of lower-left corner of image, in pixels,
+ *                      relative to the PostScript origin (0,0) at
+ *                      the lower-left corner of the page)
+ * \param[in]      res override the resolution of the input image, in ppi;
+ *                     use 0 to respect the resolution embedded in the input
+ * \param[in]      title [optional] pdf title
+ * \param[in,out]  plpd ptr to lpd, which is created on the first invocation
+ *                      and returned until last image is processed
+ * \param[in]      position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
+ *                          L_LAST_IMAGE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -266,8 +266,8 @@ L_PDF_DATA   *lpd = NULL;
 /*!
  * \brief   ptraConcatenatePdfToData()
  *
- * \param[in]    ptra array of pdf strings, each for a single-page pdf file
- * \param[in]    sarray [optional] of pathnames for input pdf files
+ * \param[in]    pa_data ptra array of pdf strings, each for a single-page pdf file
+ * \param[in]    sa string array [optional] of pathnames for input pdf files
  * \param[out]   pdata concatenated pdf data in memory
  * \param[out]   pnbytes number of bytes in pdf data
  * \return  0 if OK, 1 on error
@@ -522,7 +522,7 @@ PIX          *pixt;
  * \brief   l_generateFlateDataPdf()
  *
  * \param[in]    fname preferably png
- * \param[in]    pix [optional]; can be null
+ * \param[in]    pixs [optional]; can be null
  * \return  cid containing png data, or NULL on error
  *
  * <pre>
@@ -1978,9 +1978,9 @@ L_COMP_DATA  *cid;
 /*!
  * \brief   parseTrailerPdf()
  *
- *  Input:  bas (lba of a pdf file)
- *          da (<return> byte locations of the beginning of each object)
- *  Return: 0 if OK, 1 on error
+ * \param[in]    bas lba of a pdf file
+ * \param[out]   pda byte locations of the beginning of each object
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 parseTrailerPdf(L_BYTEA  *bas,
