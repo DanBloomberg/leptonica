@@ -224,7 +224,7 @@ PIX       *pixt, *pixd;
  * \brief   pixThresholdToBinary()
  *
  * \param[in]    pixs 4 or 8 bpp
- * \param[in]    threshold value
+ * \param[in]    thresh threshold value
  * \return  pixd 1 bpp, or NULL on error
  *
  * <pre>
@@ -600,9 +600,9 @@ PIX       *pixg, *pixd;
  *
  * \param[in]    pixs 2, 4 or 8 bpp, or colormapped
  * \param[in]    lower, upper two pixel values from which a range, either
- *                            between (inband) or outside of (!inband,
- * \param[in]                  determines which pixels in pixs cause us to
- * \param[in]                  set a 1 in the dest mask)
+ *                            between (inband) or outside of (!inband),
+ *                            determines which pixels in pixs cause us to
+ *                            set a 1 in the dest mask
  * \param[in]    inband 1 for finding pixels in [lower, upper];
  *                      0 for finding pixels in [0, lower) union (upper, 255]
  * \param[in]    usecmap 1 to retain cmap values; 0 to convert to gray
