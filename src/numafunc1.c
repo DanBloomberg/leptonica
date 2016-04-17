@@ -385,7 +385,7 @@ l_float32  val1, val2;
 /*!
  * \brief   numaAddToNumber()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[in]    index element to be changed
  * \param[in]    val new value to be added
  * \return  0 if OK, 1 on error
@@ -425,7 +425,7 @@ l_int32  n;
 /*!
  * \brief   numaGetMin()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[out]   pminval [optional] min value
  * \param[out]   piminloc [optional] index of min location
  * \return  0 if OK; 1 on error
@@ -467,7 +467,7 @@ l_float32  val, minval;
 /*!
  * \brief   numaGetMax()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[out]   pmaxval [optional] max value
  * \param[out]   pimaxloc [optional] index of max location
  * \return  0 if OK; 1 on error
@@ -509,7 +509,7 @@ l_float32  val, maxval;
 /*!
  * \brief   numaGetSum()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[out]   psum sum of values
  * \return  0 if OK, 1 on error
  */
@@ -541,7 +541,7 @@ l_float32  val, sum;
 /*!
  * \brief   numaGetPartialSums()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \return  nasum, or NULL on error
  *
  * <pre>
@@ -579,7 +579,7 @@ NUMA      *nasum;
 /*!
  * \brief   numaGetSumOnInterval()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[in]    first beginning index
  * \param[in]    last final index
  * \param[out]   psum sum of values in the index interval range
@@ -620,7 +620,7 @@ l_float32  val, sum;
 /*!
  * \brief   numaHasOnlyIntegers()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[in]    maxsamples maximum number of samples to check
  * \param[out]   pallints 1 if all sampled values are ints; else 0
  * \return  0 if OK, 1 on error
@@ -946,7 +946,7 @@ NUMA       *nad;
 /*!
  * \brief   numaGetNonzeroRange()
  *
- * \param[in]    numa
+ * \param[in]    na source numa
  * \param[in]    eps largest value considered to be zero
  * \param[out]   pfirst, plast interval of array indices
  *                             where values are nonzero
@@ -996,7 +996,7 @@ l_float32  val;
 /*!
  * \brief   numaGetCountRelativeToZero()
  *
- * \param[in]    numa
+ * \param[in]    na source numa
  * \param[in]    type L_LESS_THAN_ZERO, L_EQUAL_TO_ZERO, L_GREATER_THAN_ZERO
  * \param[out]   pcount count of values of given type
  * \return  0 if OK, 1 on error
@@ -1035,7 +1035,7 @@ l_float32  val;
 /*!
  * \brief   numaClipToInterval()
  *
- * \param[in]    numa
+ * \param[in]    nas
  * \param[in]    first, last clipping interval
  * \return  numa with the same values as the input, but clipped
  *              to the specified interval
@@ -2267,10 +2267,10 @@ NUMA       *naiy;
  * \brief   numaSortGeneral()
  *
  * \param[in]    na source numa
- * \param[in]    nasort [optional] sorted numa
- * \param[in]    naindex [optional] index of elements in na associated
+ * \param[out]   pnasort [optional] sorted numa
+ * \param[out]   pnaindex [optional] index of elements in na associated
  *                       with each element of nasort
- * \param[in]    nainvert [optional] index of elements in nasort associated
+ * \param[out]   ninainvert [optional] index of elements in nasort associated
  *                        with each element of na
  * \param[in]    sortorder L_SORT_INCREASING or L_SORT_DECREASING
  * \param[in]    sorttype L_SHELL_SORT or L_BIN_SORT
@@ -2425,7 +2425,7 @@ l_int32  type;
 /*!
  * \brief   numaChooseSortType()
  *
- * \param[in]    na to be sorted
+ * \param[in]    nas to be sorted
  * \return  sorttype L_SHELL_SORT or L_BIN_SORT, or UNDEF on error.
  *
  * <pre>
@@ -2571,7 +2571,7 @@ NUMA  *nat, *nad;
 /*!
  * \brief   numaGetSortIndex()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[in]    sortorder L_SORT_INCREASING or L_SORT_DECREASING
  * \return  na giving an array of indices that would sort
  *              the input array, or NULL on error
@@ -2634,8 +2634,8 @@ NUMA       *naisort;
 /*!
  * \brief   numaGetBinSortIndex()
  *
- * \param[in]    na of non-negative integers with a max that is typically
- *                  less than 1,000,000
+ * \param[in]    nas of non-negative integers with a max that is typically
+ *                   less than 1,000,000
  * \param[in]    sortorder L_SORT_INCREASING or L_SORT_DECREASING
  * \return  na sorted, or NULL on error
  *
@@ -2803,7 +2803,7 @@ l_float32  prevval, val;
  * \param[in]    nax, nay input arrays
  * \param[in]    sortorder L_SORT_INCREASING or L_SORT_DECREASING
  * \param[out]   pnasx sorted
- * \param[out]   pnaxy sorted exactly in order of nasx
+ * \param[out]   pnasy sorted exactly in order of nasx
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2994,7 +2994,7 @@ NUMA      *naindex, *nad;
 /*!
  * \brief   numaGetRankValue()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[in]    fract use 0.0 for smallest, 1.0 for largest
  * \param[in]    nasort [optional] increasing sorted version of na
  * \param[in]    usebins 0 for general sort; 1 for bin sort
@@ -3062,7 +3062,7 @@ NUMA    *nas;
 /*!
  * \brief   numaGetMedian()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[out]   pval  median value
  * \return  0 if OK; 1 on error
  *
@@ -3091,7 +3091,7 @@ numaGetMedian(NUMA       *na,
 /*!
  * \brief   numaGetBinnedMedian()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[out]   pval  integer median value
  * \return  0 if OK; 1 on error
  *
@@ -3127,7 +3127,7 @@ l_float32  fval;
 /*!
  * \brief   numaGetMode()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[out]   pval  mode val
  * \param[out]   pcount  [optional] mode count
  * \return  0 if OK; 1 on error
@@ -3204,7 +3204,7 @@ NUMA       *nasort;
 /*!
  * \brief   numaGetMedianVariation()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \param[out]   pmedval  [optional] median value
  * \param[out]   pmedvar  median variation from median val
  * \return  0 if OK; 1 on error
@@ -3357,7 +3357,7 @@ NUMA    *na;
 /*!
  * \brief   numaaFlattenToNuma()
  *
- * \param[in]    numaa
+ * \param[in]    naa
  * \return  numa, or NULL on error
  *
  * <pre>
@@ -3534,7 +3534,7 @@ NUMA      *na_small, *na_big, *nad;
 /*!
  * \brief   l_asetCreateFromNuma()
  *
- * \param[in]    na
+ * \param[in]    na source numa
  * \return  set using the floats in the numa as keys
  */
 L_ASET *
