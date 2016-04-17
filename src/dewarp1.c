@@ -72,6 +72,7 @@
  *  operations, starting from a set of 1 bpp images.
  *
  *  Basic functioning to dewarp a specific single page:
+ * \code
  *     // Make the Dewarpa for the pages
  *     L_Dewarpa *dewa = dewarpaCreate(1, 30, 1, 15, 50);
  *     dewarpaSetCurvatures(dewa, -1, 5, -1, -1, -1, -1);
@@ -89,10 +90,12 @@
  *     // Optionally set rendering parameters
  *     // Apply model to the input pixs
  *     Pix *pixd;
- *     dewarpaApplyDisparity(dewa, 214, pixs, 255, 0, 0, \&pixd, NULL);
+ *     dewarpaApplyDisparity(dewa, 214, pixs, 255, 0, 0, &pixd, NULL);
  *     pixDestroy(\&pixb);
+ * \endcode
  *
  *  Basic functioning to dewarp many pages:
+ * \code
  *     // Make the Dewarpa for the set of pages; use fullres 1 bpp
  *     L_Dewarpa *dewa = dewarpaCreate(10, 30, 1, 15, 50);
  *     // Optionally set rendering parameters
@@ -109,7 +112,7 @@
  *     // Do the work
  *     dewarpBuildPageModel(dew, NULL);  // no debugging
  *     dewarpMinimze(dew);  // remove most heap storage
- *     pixDestroy(\&pixb);
+ *     pixDestroy(&pixb);
  *
  *     // Do the other pages the same way
  *     ...
@@ -125,14 +128,16 @@
  *         if (dew) {  // disparity model exists
  *             Pix *pixd;
  *             dewarpaApplyDisparity(dewa, pageno, pixs, 255,
- *                                   0, 0, \&pixd, NULL);
+ *                                   0, 0, &pixd, NULL);
  *             dewarpMinimize(dew);  // clean out the pix and fpix arrays
  *             // Squirrel pixd away somewhere ...)
  *         }
  *     }
+ * \endcode
  *
  *  Basic functioning to dewarp a small set of pages, potentially
  *  using models from nearby pages:
+ * \code
  *     // (1) Generate a set of binarized images in the vicinity of the
  *     // pages to be dewarped.  We will attempt to compute models
  *     // for pages from 'firstpage' to 'lastpage'.
@@ -141,10 +146,10 @@
  *     // and where the offset is the first page.
  *     PixaComp *pixac = pixacompCreateInitialized(n, firstpage, NULL,
  *                                                 IFF_TIFF_G4);
- *     for (i = firstpage; i \<= lastpage; i++) {
+ *     for (i = firstpage; i <= lastpage; i++) {
  *         Pix *pixb = "binarize"(pixs);
  *         pixacompReplacePix(pixac, i, pixb, IFF_TIFF_G4);
- *         pixDestroy(\&pixb);
+ *         pixDestroy(&pixb);
  *     }
  *
  *     // (2) Make the Dewarpa for the pages.
@@ -157,9 +162,10 @@
  *     L_Dewarp *dew = dewarpaGetDewarp(dewa, firstpage);
  *     if (dew) {  // disparity model exists
  *         Pix *pixd;
- *         dewarpaApplyDisparity(dewa, firstpage, pixs, 255, 0, 0, \&pixd, NULL);
+ *         dewarpaApplyDisparity(dewa, firstpage, pixs, 255, 0, 0, &pixd, NULL);
  *         dewarpMinimize(dew);
  *     }
+ * \endcode
  *
  *  Because in general some pages will not have enough text to build a
  *  model, we fill in for those pages with a reference to the page
@@ -174,22 +180,25 @@
  *  not use the data that is stripped.
  *
  *  You can apply any model (in a dew), stripped or not, to another image:
+ * \code
  *     // For all pages with invalid models, assign the nearest valid
  *     // page model with same parity.
  *     dewarpaInsertRefModels(dewa, 0, 0);
  *     // You can then apply to 'newpix' the page model that was assigned
  *     // to 'pageno', giving the result in pixd:
  *     Pix *pixd;
- *     dewarpaApplyDisparity(dewa, pageno, newpix, 255, 0, 0, \&pixd, NULL);
+ *     dewarpaApplyDisparity(dewa, pageno, newpix, 255, 0, 0, &pixd, NULL);
+ * \endcode
  *
  *  You can apply the disparity arrays to a deliberately undercropped
  *  image.  Suppose that you undercrop by (left, right, top, bot), so
  *  that the disparity arrays are aligned with their origin at (left, top).
  *  Dewarp the undercropped image with:
+ * \code
  *     Pix *pixd;
  *     dewarpaApplyDisparity(dewa, pageno, undercropped_pix, 255,
- *                           left, top, \&pixd, NULL);
- *
+ *                           left, top, &pixd, NULL);
+ * \endcode
  *
  *  Description of the approach to analyzing page image distortion
  *  ==============================================================
@@ -771,8 +780,8 @@ L_DEWARP   *dew;
 /*!
  * \brief   dewarpaInsertDewarp()
  *
- * \param[in]    dewarpa
- * \param[in]    dewarp  to be added
+ * \param[in]    dewa
+ * \param[in]    dew  to be added
  * \return  0 if OK, 1 on error
  *
  * <pre>
