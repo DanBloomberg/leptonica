@@ -192,8 +192,7 @@ GPLOT  *gplot;
 /*!
  * \brief    gplotDestroy()
  *
- *        Input: &gplot (<inout> to be nulled)
- *        Return: void
+ * \param[in,out] pgplot to be nulled
  */
 void
 gplotDestroy(GPLOT  **pgplot)
