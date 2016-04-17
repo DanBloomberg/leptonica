@@ -727,7 +727,7 @@ SARRAY  *sa;
 /*!
  * \brief   morphSequenceVerify()
  *
- * \param[in]    sarray of operation sequence
+ * \param[in]    sa string array of operation sequence
  * \return  TRUE if valid; FALSE otherwise or on error
  *
  * <pre>
