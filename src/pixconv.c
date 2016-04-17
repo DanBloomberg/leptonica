@@ -165,7 +165,7 @@ static l_int32  var_NEUTRAL_BOOST_VAL = 180;
 /*!
  * \brief   pixThreshold8()
  *
- * \param[in]    pix 8 bpp grayscale
+ * \param[in]    pixs 8 bpp grayscale
  * \param[in]    d destination depth: 1, 2, 4 or 8
  * \param[in]    nlevels number of levels to be used for colormap
  * \param[in]    cmapflag 1 if makes colormap; 0 otherwise
@@ -711,7 +711,7 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixConvertRGBToLuminance()
  *
- * \param[in]    pix 32 bpp RGB
+ * \param[in]    pixs 32 bpp RGB
  * \return  8 bpp pix, or NULL on error
  *
  * <pre>
@@ -729,7 +729,7 @@ pixConvertRGBToLuminance(PIX *pixs)
 /*!
  * \brief   pixConvertRGBToGray()
  *
- * \param[in]    pix 32 bpp RGB
+ * \param[in]    pixs 32 bpp RGB
  * \param[in]    rwt, gwt, bwt  non-negative; these should add to 1.0,
  *                              or use 0.0 for default
  * \return  8 bpp pix, or NULL on error
@@ -804,7 +804,7 @@ PIX       *pixd;
 /*!
  * \brief   pixConvertRGBToGrayFast()
  *
- * \param[in]    pix 32 bpp RGB
+ * \param[in]    pixs 32 bpp RGB
  * \return  8 bpp pix, or NULL on error
  *
  * <pre>
@@ -857,7 +857,7 @@ PIX       *pixd;
 /*!
  * \brief   pixConvertRGBToGrayMinMax()
  *
- * \param[in]    pix 32 bpp RGB
+ * \param[in]    pixs 32 bpp RGB
  * \param[in]    type L_CHOOSE_MIN, L_CHOOSE_MAX, L_CHOOSE_MAXDIFF,
  *                    L_CHOOSE_MIN_BOOST, L_CHOOSE_MAX_BOOST
  * \return  8 bpp pix, or NULL on error
@@ -2975,7 +2975,7 @@ PIX       *pixt, *pixd;
 /*!
  * \brief   pixConvert8To32()
  *
- * \param[in]    pix 8 bpp
+ * \param[in]    pixs 8 bpp
  * \return  32 bpp rgb pix, or NULL on error
  *
  * <pre>

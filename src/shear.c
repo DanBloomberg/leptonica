@@ -77,7 +77,7 @@ static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindif);
  *                    or different from pixs
  * \param[in]    pixs no restrictions on depth
  * \param[in]    yloc location of horizontal line, measured from origin
- * \param[in]    angle in radians
+ * \param[in]    radang  angle in radians
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, always
  *
@@ -194,7 +194,7 @@ l_float32  tanangle, invangle;
  *                    or different from pixs
  * \param[in]    pixs no restrictions on depth
  * \param[in]    xloc location of vertical line, measured from origin
- * \param[in]    angle in radians; not too close to +-(pi / 2)
+ * \param[in]    radang  angle in radians; not too close to +-(pi / 2)
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error
  *
@@ -313,7 +313,7 @@ l_float32  tanangle, invangle;
  *
  * \param[in]    pixd [optional], if not null, must be equal to pixs
  * \param[in]    pixs
- * \param[in]    angle in radians
+ * \param[in]    radang  angle in radians
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error.
  *
@@ -344,7 +344,7 @@ pixHShearCorner(PIX       *pixd,
  *
  * \param[in]    pixd [optional], if not null, must be equal to pixs
  * \param[in]    pixs
- * \param[in]    angle in radians
+ * \param[in]    radang  angle in radians
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error.
  *
@@ -375,7 +375,7 @@ pixVShearCorner(PIX       *pixd,
  *
  * \param[in]    pixd [optional], if not null, must be equal to pixs
  * \param[in]    pixs
- * \param[in]    angle in radians
+ * \param[in]    radang  angle in radians
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error.
  *
@@ -406,7 +406,7 @@ pixHShearCenter(PIX       *pixd,
  *
  * \param[in]    pixd [optional], if not null, must be equal to pixs
  * \param[in]    pixs
- * \param[in]    angle in radians
+ * \param[in]    radang  angle in radians
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error.
  *
@@ -441,7 +441,7 @@ pixVShearCenter(PIX       *pixd,
  *
  * \param[in]    pixs
  * \param[in]    yloc location of horizontal line, measured from origin
- * \param[in]    angle in radians
+ * \param[in]    radang  angle in radians
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  0 if OK; 1 on error
  *
@@ -516,7 +516,7 @@ l_float32  tanangle, invangle;
  *
  * \param[in]    pixs all depths; not colormapped
  * \param[in]    xloc  location of vertical line, measured from origin
- * \param[in]    angle in radians
+ * \param[in]    radang  angle in radians
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  0 if OK; 1 on error
  *
@@ -594,7 +594,7 @@ l_float32  tanangle, invangle;
  *
  * \param[in]    pixs 8 bpp or 32 bpp, or colormapped
  * \param[in]    yloc location of horizontal line, measured from origin
- * \param[in]    angle in radians, in range (-pi/2 ... pi/2)
+ * \param[in]    radang  angle in radians, in range (-pi/2 ... pi/2)
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd sheared, or NULL on error
  *
@@ -706,7 +706,7 @@ PIX       *pix, *pixd;
  *
  * \param[in]    pixs 8 bpp or 32 bpp, or colormapped
  * \param[in]    xloc  location of vertical line, measured from origin
- * \param[in]    angle in radians, in range (-pi/2 ... pi/2)
+ * \param[in]    radang  angle in radians, in range (-pi/2 ... pi/2)
  * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd sheared, or NULL on error
  *

@@ -236,7 +236,7 @@ PIX     *pixt, *pixd;
  * \param[in]    pixa
  * \param[in]    w, h if set to 0, determines the size from the
  *                    b.b. of the components in pixa
- * \param[in]    color background color to use
+ * \param[in]    bgcolor background color to use
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -396,7 +396,7 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixaDisplayLinearly()
  *
- * \param[in]    pixa
+ * \param[in]    pixas
  * \param[in]    direction L_HORIZ or L_VERT
  * \param[in]    scalefactor applied to every pix; use 1.0 for no scaling
  * \param[in]    background 0 for white, 1 for black; this is the color
@@ -1333,7 +1333,7 @@ PIXA     *pixad;
  * \brief   pixaDisplayTiledByIndex()
  *
  * \param[in]    pixa
- * \param[in]    numa with indices corresponding to the pix in pixa
+ * \param[in]    na numa with indices corresponding to the pix in pixa
  * \param[in]    width each pix is scaled to this width
  * \param[in]    spacing  between images, and on outside
  * \param[in]    border width of black border added to each image;
@@ -1539,7 +1539,7 @@ PIXA    *pixa;
  * \param[in]    paa with pix that may have different depths
  * \param[in]    xspace between pix in pixa
  * \param[in]    yspace between pixa
- * \param[in]    max width of output pix
+ * \param[in]    maxw max width of output pix
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1810,7 +1810,7 @@ PIXA    *pixad;
  * \brief   pixaConvertTo8Color()
  *
  * \param[in]    pixas
- * \param[in]    ditherflag 1 to dither if necessary; 0 otherwise
+ * \param[in]    dither 1 to dither if necessary; 0 otherwise
  * \return  pixad each pix is 8 bpp, or NULL on error
  *
  * <pre>
@@ -2115,7 +2115,7 @@ PIXA    *pixa1;
 /*!
  * \brief   convertToNUpFiles()
  *
- * \param[in]    indir full path to directory of images
+ * \param[in]    dir full path to directory of images
  * \param[in]    substr [optional] can be null
  * \param[in]    nx, ny in [1, ... 50], tiling factors in each direction
  * \param[in]    tw target width, in pixels; must be >= 20

@@ -96,7 +96,7 @@ static const l_int32  MAX_SEL_SCALEFACTOR = 31;  /* should be big enough */
 /*!
  * \brief   pixGenerateSelWithRuns()
  *
- * \param[in]    pix 1 bpp, typically small, to be used as a pattern
+ * \param[in]    pixs 1 bpp, typically small, to be used as a pattern
  * \param[in]    nhlines number of hor lines along which elements are found
  * \param[in]    nvlines number of vert lines along which elements are found
  * \param[in]    distance min distance from boundary pixel; use 0 for default
@@ -302,7 +302,7 @@ SEL       *seld, *sel;
 /*!
  * \brief   pixGenerateSelRandom()
  *
- * \param[in]    pix 1 bpp, typically small, to be used as a pattern
+ * \param[in]    pixs 1 bpp, typically small, to be used as a pattern
  * \param[in]    hitfract fraction of allowable fg pixels that are hits
  * \param[in]    missfract fraction of allowable bg pixels that are misses
  * \param[in]    distance min distance from boundary pixel; use 0 for default
@@ -447,7 +447,7 @@ SEL       *seld, *sel;
 /*!
  * \brief   pixGenerateSelBoundary()
  *
- * \param[in]    pix 1 bpp, typically small, to be used as a pattern
+ * \param[in]    pixs 1 bpp, typically small, to be used as a pattern
  * \param[in]    hitdist min distance from fg boundary pixel
  * \param[in]    missdist min distance from bg boundary pixel
  * \param[in]    hitskip number of boundary pixels skipped between hits
@@ -854,7 +854,7 @@ PTA     *pta;
  *
  * \param[in]    pixs 1 bpp
  * \param[in]    x, y current pixel
- * \param[in]    xa, ya adjacent ON pixel, found by simple CCW search
+ * \param[out]   pxa, pya adjacent ON pixel, found by simple CCW search
  * \return  1 if a pixel is found; 0 otherwise or on error
  *
  * <pre>

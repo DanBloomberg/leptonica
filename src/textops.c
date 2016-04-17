@@ -612,7 +612,7 @@ PIXCMAP  *cmap;
  *
  * \param[in]    pixas input pixa; colormap ok
  * \param[in]    bmf bitmap font data
- * \param[in]    numa [optional] number array; use 1 ... n if null
+ * \param[in]    na [optional] number array; use 1 ... n if null
  * \param[in]    val color to set the text
  * \param[in]    location L_ADD_ABOVE, L_ADD_BELOW, L_ADD_LEFT, L_ADD_RIGHT
  * \return  pixad new pixa with rendered numbers, or NULL on error
@@ -1006,8 +1006,8 @@ l_int32  i, w, width, nchar;
 /*!
  * \brief   splitStringToParagraphs()
  *
- * \param[in]    textstring
- * \param[in]    splitting flag see enum in bmf.h; valid values in {1,2,3}
+ * \param[in]    textstr text string
+ * \param[in]    splitflag see enum in bmf.h; valid values in {1,2,3}
  * \return  sarray where each string is a paragraph of the input,
  *                      or NULL on error.
  */
@@ -1057,7 +1057,7 @@ SARRAY  *salines, *satemp, *saout;
 /*!
  * \brief   stringAllWhitespace()
  *
- * \param[in]    textstring
+ * \param[in]    textstr text string
  * \param[out]   pval 1 if all whitespace; 0 otherwise
  * \return  0 if OK, 1 on error
  */
@@ -1089,8 +1089,8 @@ l_int32  len, i;
 /*!
  * \brief   stringLeadingWhitespace()
  *
- * \param[in]    textstring
- * \param[out]   pval 1 if leading char is ' ' or '\t'; 0 otherwise
+ * \param[in]    textstr text string
+ * \param[out]   pval 1 if leading char is [space] or [tab]; 0 otherwise
  * \return  0 if OK, 1 on error
  */
 static l_int32

@@ -400,7 +400,7 @@ PIX  *pixsi, *pixd;
  * \brief   pixFillClosedBorders()
  *
  * \param[in]    pixs 1 bpp
- * \param[in]    filling connectivity 4 or 8
+ * \param[in]    connectivity filling connectivity 4 or 8
  * \return  pixd  all topologically outer closed borders are filled
  *                     as connected comonents, or NULL on error
  *
@@ -450,9 +450,9 @@ PIX  *pixsi, *pixd;
  * \brief   pixExtractBorderConnComps()
  *
  * \param[in]    pixs 1 bpp
- * \param[in]    filling connectivity 4 or 8
+ * \param[in]    connectivity filling connectivity 4 or 8
  * \return  pixd  all pixels in the src that are in connected
- *                     components touching the border, or NULL on error
+ *                components touching the border, or NULL on error
  */
 PIX *
 pixExtractBorderConnComps(PIX     *pixs,
@@ -484,9 +484,9 @@ PIX  *pixd;
  * \brief   pixRemoveBorderConnComps()
  *
  * \param[in]    pixs 1 bpp
- * \param[in]    filling connectivity 4 or 8
+ * \param[in]    connectivity filling connectivity 4 or 8
  * \return  pixd  all pixels in the src that are not touching the
- *                     border or NULL on error
+ *                border or NULL on error
  *
  * <pre>
  * Notes:
@@ -520,9 +520,9 @@ PIX  *pixd;
  * \brief   pixFillBgFromBorder()
  *
  * \param[in]    pixs 1 bpp
- * \param[in]    filling connectivity 4 or 8
+ * \param[in]    connectivity filling connectivity 4 or 8
  * \return  pixd with the background c.c. touching the border
- *                    filled to foreground, or NULL on error
+ *               filled to foreground, or NULL on error
  *
  * <pre>
  * Notes:
@@ -532,14 +532,15 @@ PIX  *pixd;
  *          This can be done multiple times, extracting holes within
  *          holes after each pair of fillings.  Specifically, this code
  *          peels away n successive embeddings of components:
- *              pix1 = \<initial image\>
- *              for (i = 0; i \< 2 * n; i++) {
+ * \code
+ *              pix1 = <initial image>
+ *              for (i = 0; i < 2 * n; i++) {
  *                   pix2 = pixFillBgFromBorder(pix1, 8);
  *                   pixInvert(pix2, pix2);
- *                   pixDestroy(\&pix1);
+ *                   pixDestroy(&pix1);
  *                   pix1 = pix2;
  *              }
-
+ * \endcode
  * </pre>
  */
 PIX *
@@ -1195,8 +1196,8 @@ PIX       *pixm, *pixt, *pixg, *pixd;
  *                      use 0 for default which is to have no upper bound
  * \param[in]    minmax min allowed for the max in a 3x3 neighborhood;
  *                      use 0 for default which is to have no lower bound
- * \param[out]   pppixmin [optional] mask of local minima
- * \param[out]   pppixmax [optional] mask of local maxima
+ * \param[out]   ppixmin [optional] mask of local minima
+ * \param[out]   ppixmax [optional] mask of local maxima
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1369,8 +1370,8 @@ PIXA      *pixa;
  *
  * \param[in]    pixs  8 bpp
  * \param[in]    mindist -1 for keeping all pixels; >= 0 specifies distance
- * \param[out]   pppixmin mask of local minima
- * \param[out]   pppixmax mask of local maxima
+ * \param[out]   ppixmin mask of local minima
+ * \param[out]   ppixmax mask of local maxima
  * \return  0 if OK, 1 on error
  *
  * <pre>

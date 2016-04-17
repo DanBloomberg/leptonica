@@ -657,7 +657,7 @@ l_int32  i, j, n1, n2, x1, y1, x2, y2;
 /*!
  * \brief   ptaTransform()
  *
- * \param[in]    pta
+ * \param[in]    ptas
  * \param[in]    shiftx, shifty
  * \param[in]    scalex, scaley
  * \return  pta, or NULL on error

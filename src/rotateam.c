@@ -338,7 +338,7 @@ PIX      *pixt1, *pixt2, *pixd;
  *
  * \param[in]    pixs
  * \param[in]    angle radians; clockwise is positive
- * \param[in]    colorval e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
+ * \param[in]    fillval e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
  * \return  pixd, or NULL on error
  *
  * <pre>

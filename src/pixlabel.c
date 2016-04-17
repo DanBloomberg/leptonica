@@ -317,7 +317,7 @@ PTAA    *ptaa;
  *
  * \param[in]     pixs 32 bpp, with pixels labelled by c.c.
  * \param[in]     ptaa with each pta of pixel locations indexed by c.c.
- * \param[in]     &ncc number of c.c
+ * \param[out]    pncc number of c.c
  * \param[in]     x,y location of added pixel
  * \param[in]     debug 0 for no output; otherwise output whenever
  *                      debug <= nvals, up to debug == 3

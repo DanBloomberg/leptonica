@@ -2266,14 +2266,14 @@ NUMA       *naiy;
 /*!
  * \brief   numaSortGeneral()
  *
- * \param[in]    na source numa
- * \param[out]   pnasort [optional] sorted numa
- * \param[out]   pnaindex [optional] index of elements in na associated
- *                       with each element of nasort
- * \param[out]   ninainvert [optional] index of elements in nasort associated
- *                        with each element of na
+ * \param[in]    na        source numa
+ * \param[out]   pnasort   [optional] sorted numa
+ * \param[out]   pnaindex  [optional] index of elements in na associated
+ *                         with each element of nasort
+ * \param[out]   pnainvert [optional] index of elements in nasort associated
+ *                         with each element of na
  * \param[in]    sortorder L_SORT_INCREASING or L_SORT_DECREASING
- * \param[in]    sorttype L_SHELL_SORT or L_BIN_SORT
+ * \param[in]    sorttype  L_SHELL_SORT or L_BIN_SORT
  * \return  0 if OK, 1 on error
  *
  * <pre>

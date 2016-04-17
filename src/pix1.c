@@ -207,11 +207,17 @@ static void pixFree(PIX *pix);
  *  to specify other functions to use.                                     *
  *-------------------------------------------------------------------------*/
 
+/*! Allocator function type */
+typedef void *(*alloc_fn)(size_t);
+
+/*! Deallocator function type */
+typedef void (*dealloc_fn)(void *);
+
 /*! Pix memory manager function ptrs */
 struct PixMemoryManager
 {
-    void     *(*allocator)(size_t);
-    void      (*deallocator)(void *);
+    alloc_fn   allocator;
+    dealloc_fn deallocator;
 };
 
 /*! Default Pix memory manager */
@@ -272,8 +278,8 @@ pix_free(void  *ptr)
  * </pre>
  */
 void
-setPixMemoryManager(void  *((*allocator)(size_t)),
-                    void   ((*deallocator)(void *)))
+setPixMemoryManager(alloc_fn   allocator,
+                    dealloc_fn deallocator)
 {
     if (allocator) pix_mem_manager.allocator = allocator;
     if (deallocator) pix_mem_manager.deallocator = deallocator;

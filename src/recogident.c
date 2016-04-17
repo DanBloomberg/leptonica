@@ -439,7 +439,7 @@ PIX     *pix, *pix1, *pix2;
  * \param[in]    recog with LUT's pre-computed
  * \param[in]    pixs typically of multiple touching characters, 1 bpp
  * \param[out]   pboxa bounding boxs of best fit character
- * \param[out]   pnascores [optional] correlation scores
+ * \param[out]   pnascore [optional] correlation scores
  * \param[out]   pnaindex [optional] indices of classes
  * \param[out]   psachar [optional] array of character strings
  * \param[in]    debug 1 for results written to pixadb_split
@@ -1293,8 +1293,7 @@ L_RCHA  *rcha;
 /*!
  * \brief   rchaDestroy()
  *
- * \param[in]    &rcha
- * \return  void
+ * \param[in,out]  prcha to be nulled
  */
 void
 rchaDestroy(L_RCHA  **prcha)
@@ -1368,8 +1367,7 @@ L_RCH  *rch;
 /*!
  * \brief   rchDestroy()
  *
- * \param[in]    &rch
- * \return  void
+ * \param[in,out] prch to be nulled
  */
 void
 rchDestroy(L_RCH  **prch)
@@ -2074,7 +2072,7 @@ recogSetScaling(L_RECOG  *recog,
 /*!
  * \brief   l_showIndicatorSplitValues()
  *
- * \param[in]    6 indicator array
+ * \param[in]  na1, na2, na3, na4, na5, na6  6 indicator array
  *
  * <pre>
  * Notes:

@@ -175,7 +175,7 @@ L_STRCODE  *strcode;
 /*!
  * \brief   strcodeDestroy()
  *
- * \param[in]    &strcode strcode is set to null after destroying the sarrays
+ * \param[out]  pstrcode &strcode is set to null after destroying the sarrays
  * \return  void
  */
 static void
@@ -327,8 +327,8 @@ l_int32  itype;
 /*!
  * \brief   strcodeFinalize()
  *
- * \param[in]   &strcode destroys after .c and .h files have been generated
- * \param[in]    outdir [optional] if null, files are made in /tmp/lept/auto
+ * \param[in,out]  pstrcode destroys after .c and .h files have been generated
+ * \param[in]      outdir [optional] if NULL, files are made in /tmp/lept/auto
  * \return  void
  */
 l_int32
@@ -588,7 +588,7 @@ l_int32  i, found;
 /*!
  * \brief   l_getIndexFromStructname()
  *
- * \param[in]    structname e.g., "Pixa"
+ * \param[in]    sn structname e.g., "Pixa"
  * \param[out]   pindex found index
  * \return  0 if found, 1 if not.
  *

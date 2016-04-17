@@ -467,9 +467,9 @@ PIXA    *pixa;
  * \brief   pixaGenerateFontFromString()
  *
  * \param[in]    fontsize 4, 6, 8, ... , 20, in pts at 300 ppi
- * \param[out]   pbl1 baseline of row 1
- * \param[out]   pbl2 baseline of row 2
- * \param[out]   pbl3 baseline of row 3
+ * \param[out]   pbl0 baseline of row 1
+ * \param[out]   pbl1 baseline of row 2
+ * \param[out]   pbl2 baseline of row 3
  * \return  pixa of font bitmaps for 95 characters, or NULL on error
  *
  * <pre>

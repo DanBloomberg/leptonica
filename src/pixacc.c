@@ -147,8 +147,7 @@ PIXACC  *pixacc;
 /*!
  * \brief   pixaccDestroy()
  *
- * \param[in]    &pixacc <can be null>
- * \return  void
+ * \param[in,out] ppixacc to be nulled
  *
  * <pre>
  * Notes:

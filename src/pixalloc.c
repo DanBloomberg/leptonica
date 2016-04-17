@@ -257,9 +257,6 @@ L_PTRAA          *paa;
 /*!
  * \brief   pmsDestroy()
  *
- * \param[in]    none
- * \return  void
- *
  * <pre>
  * Notes:
  *      (1) Important: call this function at the end of the program, after
@@ -509,9 +506,6 @@ L_PIX_MEM_STORE  *pms;
 
 /*!
  * \brief   pmsLogInfo()
- *
- * \param[in]    none
- * \return  void
  */
 void
 pmsLogInfo()

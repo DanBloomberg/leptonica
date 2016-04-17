@@ -246,7 +246,7 @@ DPIX      *dpix_msac;  /* msa clone */
 /*!
  * \brief   pixMeanInRectangle()
  *
- * \param[in]    pix 8 bpp
+ * \param[in]    pixs 8 bpp
  * \param[in]    box region to compute mean value
  * \param[in]    pixma mean accumulator
  * \param[out]   pval mean value
@@ -319,7 +319,7 @@ BOX       *boxc;
 /*!
  * \brief   pixVarianceInRectangle()
  *
- * \param[in]    pix 8 bpp
+ * \param[in]    pixs 8 bpp
  * \param[in]    box region to compute variance and/or root variance
  * \param[in]    pix_ma mean accumulator
  * \param[in]    dpix_msa mean square accumulator
@@ -555,7 +555,7 @@ l_int32  n;
  *
  * \param[in]    fpixa mean, variance or root variance
  * \param[in]    level, x, y of current pixel
- * \param[out]   pval00, val01, val10, val11  child pixel values
+ * \param[out]   pval00, pval01, pval10, pval11  child pixel values
  * \return  0 if OK, 1 on error
  *
  * <pre>

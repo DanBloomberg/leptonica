@@ -392,8 +392,8 @@ recogaExtendArray(L_RECOGA  *recoga)
 /*!
  * \brief   recogReplaceInRecoga()
  *
- * \param[in]    &recog1 old recog, to be destroyed
- * \param[in]    recog2 new recog, to be inserted in place of %recog1
+ * \param[in,out]  precog1 old recog, to be destroyed
+ * \param[in]      recog2 new recog, to be inserted in place of %recog1
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -512,7 +512,7 @@ recogGetCount(L_RECOG  *recog)
  * \brief   recogGetIndex()
  *
  * \param[in]    recog
- * \param[in]   &index into the parent recoga; -1 if no parent
+ * \param[out]   pindex into the parent recoga; -1 if no parent
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -1506,7 +1506,6 @@ PIXA  *pixa;
 /*!
  * \brief   recogAddCharstrLabels()
  *
- * \param[in]    filename
  * \param[in]    recog
  * \return  0 if OK, 1 on error
  */

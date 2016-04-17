@@ -340,7 +340,7 @@ lept_size_proc(thandle_t  cookie)
  * \brief   pixReadTiff()
  *
  * \param[in]    filename
- * \param[in]    page number 0 based
+ * \param[in]    n page number 0 based
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -657,8 +657,8 @@ pixWriteTiff(const char  *filename,
  * \param[in]    filename to write to
  * \param[in]    pix
  * \param[in]    comptype IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
- *                        IFF_TIFF_G3, IFF_TIFF_G4
- * \param[in]              IFF_TIFF_LZW, IFF_TIFF_ZIP)
+ *                        IFF_TIFF_G3, IFF_TIFF_G4,
+ *                        IFF_TIFF_LZW, IFF_TIFF_ZIP
  * \param[in]    modestring "a" or "w"
  * \param[in]    natags [optional] NUMA of custom tiff tags
  * \param[in]    savals [optional] SARRAY of values
@@ -1207,7 +1207,7 @@ SARRAY  *sa;
 /*!
  * \brief   writeMultipageTiffSA()
  *
- * \param[in]    sarray of full path names
+ * \param[in]    sa string array of full path names
  * \param[in]    fileout output ps file
  * \return  0 if OK, 1 on error
  *
@@ -2231,8 +2231,8 @@ L_MEMSTREAM  *mstream;
 /*!
  * \brief   pixReadMemTiff()
  *
- * \param[in]    data const; tiff-encoded
- * \param[in]    datasize size of data
+ * \param[in]    cdata const; tiff-encoded
+ * \param[in]    size size of cdata
  * \param[in]    n page image number: 0-based
  * \return  pix, or NULL on error
  *

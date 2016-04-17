@@ -398,9 +398,9 @@ SEL     *csel;
 /*!
  * \brief   selCreateBrick()
  *
- * \param[in]    height, width
+ * \param[in]    h, w    height, width
  * \param[in]    cy, cx  origin, relative to UL corner at 0,0
- * \param[in]    type  SEL_HIT, SEL_MISS, or SEL_DONT_CARE
+ * \param[in]    type    SEL_HIT, SEL_MISS, or SEL_DONT_CARE
  * \return  sel, or NULL on error
  *
  * <pre>
@@ -635,7 +635,7 @@ selaGetCount(SELA  *sela)
  * \brief   selaGetSel()
  *
  * \param[in]    sela
- * \param[in]    index of sel to be retrieved not copied
+ * \param[in]    i index of sel to be retrieved not copied
  * \return  sel, or NULL on error
  *
  * <pre>
@@ -707,9 +707,9 @@ selSetName(SEL         *sel,
  * \brief   selaFindSelByName()
  *
  * \param[in]    sela
- * \param[in]    sel name
- * \param[in]    &index <optional, return>
- * \param[in]    &sel  <optional, return> sel (not a copy)
+ * \param[in]    name sel name
+ * \param[out]   pindex [optional]
+ * \param[in]    psel   [optional] sel (not a copy)
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -1287,7 +1287,7 @@ SEL     *seld;
 /*!
  * \brief   selaRead()
  *
- * \param[in]    filename
+ * \param[in]    fname filename
  * \return  sela, or NULL on error
  */
 SELA  *
@@ -1354,7 +1354,7 @@ SELA    *sela;
 /*!
  * \brief   selRead()
  *
- * \param[in]    filename
+ * \param[in]    fname filename
  * \return  sel, or NULL on error
  */
 SEL  *
@@ -1431,7 +1431,7 @@ SEL     *sel;
 /*!
  * \brief   selaWrite()
  *
- * \param[in]    filename
+ * \param[in]    fname filename
  * \param[in]    sela
  * \return  0 if OK, 1 on error
  */
@@ -1493,7 +1493,7 @@ SEL     *sel;
 /*!
  * \brief   selWrite()
  *
- * \param[in]    filename
+ * \param[in]    fname filename
  * \param[in]    sel
  * \return  0 if OK, 1 on error
  */
@@ -1562,8 +1562,8 @@ l_int32  sx, sy, cx, cy, i, j;
  * \brief   selCreateFromString()
  *
  * \param[in]    text
- * \param[in]    height, width
- * \param[in]    name [optional] sel name; can be null
+ * \param[in]    h, w  height, width
+ * \param[in]    name  [optional] sel name; can be null
  * \return  sel of the given size, or NULL on error
  *
  * <pre>
@@ -1577,10 +1577,12 @@ l_int32  sx, sy, cx, cy, i, j;
  *          When the origin falls on a don't-care, use 'C' as the uppecase
  *          for ' '.
  *      (3) The text can be input in a format that shows the 2D layout; e.g.,
+ * \code
  *              static const char *seltext = "x    "
  *                                           "x Oo "
  *                                           "x    "
  *                                           "xxxxx";
+ * \endcode
  * </pre>
  */
 SEL *

@@ -502,12 +502,12 @@ l_float32  twopi, invtwopi, findex, diff;
  *                    quadratic curvature out of the image plane
  * \param[in]    zshiftt uniform pixel translation difference between
  *                      red and cyan, that pushes the top of the image
- *                      plane away from the viewer (zshiftt > 0 or
- * \param[in]            towards the viewer zshiftt < 0)
+ *                      plane away from the viewer (zshiftt > 0) or
+ *                      towards the viewer (zshiftt < 0)
  * \param[in]    zshiftb uniform pixel translation difference between
  *                      red and cyan, that pushes the bottom of the image
- *                      plane away from the viewer (zshiftb > 0 or
- * \param[in]            towards the viewer zshiftb < 0)
+ *                      plane away from the viewer (zshiftb > 0) or
+ *                      towards the viewer (zshiftb < 0)
  * \param[in]    ybendt multiplicative parameter for in-plane vertical
  *                      displacement at the left or right edge at the top:
  *                        y = ybendt * (2x/w - 1)^2

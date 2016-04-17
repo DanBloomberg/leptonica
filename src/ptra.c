@@ -132,7 +132,7 @@ static l_int32 ptraExtendArray(L_PTRA *pa);
 /*!
  * \brief   ptraCreate()
  *
- * \param[in]    size of ptr array to be alloc'd 0 for default
+ * \param[in]    n size of ptr array to be alloc'd 0 for default
  * \return  pa, or NULL on error
  */
 L_PTRA *
@@ -161,21 +161,21 @@ L_PTRA  *pa;
 /*!
  * \brief   ptraDestroy()
  *
- * \param[in,out]   pptra to be nulled
- * \param[in]    freeflag TRUE to free each remaining item in the array
- * \param[in]    warnflag TRUE to warn if any remaining items are not destroyed
+ * \param[in,out]   ppa ptra to be nulled
+ * \param[in]       freeflag TRUE to free each remaining item in the array
+ * \param[in]       warnflag TRUE to warn if any remaining items are not destroyed
  * \return  void
  *
  * <pre>
  * Notes:
  *      (1) If %freeflag == TRUE, frees each item in the array.
- *      (2) If %freeflag == FALSE and warnflag == TRUE, and there are
+ *      (2) If %freeflag == FALSE and %warnflag == TRUE, and there are
  *          items on the array, this gives a warning and destroys the array.
  *          If these items are not owned elsewhere, this will cause
  *          a memory leak of all the items that were on the array.
  *          So if the items are not owned elsewhere and require their
  *          own destroy function, they must be destroyed before the ptra.
- *      (3) If warnflag == FALSE, no warnings will be issued.  This is
+ *      (3) If %warnflag == FALSE, no warnings will be issued.  This is
  *          useful if the items are owned elsewhere, such as a
  *          PixMemoryStore().
  *      (4) To destroy the ptra, we destroy the ptr array, then
@@ -226,7 +226,7 @@ L_PTRA  *pa;
 /*!
  * \brief   ptraAdd()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[in]    item  generic ptr to a struct
  * \return  0 if OK, 1 on error
  *
@@ -265,7 +265,7 @@ l_int32  imax;
 /*!
  * \brief   ptraExtendArray()
  *
- * \param[in]    ptra
+ * \param[in]    pa
  * \return  0 if OK, 1 on error
  */
 static l_int32
@@ -289,7 +289,7 @@ ptraExtendArray(L_PTRA  *pa)
 /*!
  * \brief   ptraInsert()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[in]    index location in ptra to insert new value
  * \param[in]    item  generic ptr to a struct; can be null
  * \param[in]    shiftflag L_AUTO_DOWNSHIFT, L_MIN_DOWNSHIFT, L_FULL_DOWNSHIFT
@@ -414,7 +414,7 @@ l_float32  nexpected;
 /*!
  * \brief   ptraRemove()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[in]    index element to be removed
  * \param[in]    flag L_NO_COMPACTION, L_COMPACTION
  * \return  item, or NULL on error
@@ -477,7 +477,7 @@ void    *item;
 /*!
  * \brief   ptraRemoveLast()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \return  item, or NULL on error or if the array is empty
  */
 void *
@@ -502,7 +502,7 @@ l_int32  imax;
 /*!
  * \brief   ptraReplace()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[in]    index element to be replaced
  * \param[in]    item  new generic ptr to a struct; can be null
  * \param[in]    freeflag TRUE to free old item; FALSE to return it
@@ -545,7 +545,7 @@ void    *olditem;
 /*!
  * \brief   ptraSwap()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[in]    index1
  * \param[in]    index2
  * \return  0 if OK, 1 on error
@@ -578,7 +578,7 @@ void    *item;
 /*!
  * \brief   ptraCompactArray()
  *
- * \param[in]    ptra
+ * \param[in]    pa
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -619,7 +619,7 @@ l_int32  i, imax, nactual, index;
 /*!
  * \brief   ptraReverse()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -642,8 +642,8 @@ l_int32  i, imax;
 /*!
  * \brief   ptraJoin()
  *
- * \param[in]    ptra1 add to this one
- * \param[in]    ptra2 appended to ptra1, and emptied of items; can be null
+ * \param[in]    pa1 add to this one
+ * \param[in]    pa2 appended to pa1, and emptied of items; can be null
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -677,7 +677,7 @@ void    *item;
 /*!
  * \brief   ptraGetMaxIndex()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[out]   pmaxindex index of last item in the array;
  * \return  0 if OK; 1 on error
  *
@@ -714,7 +714,7 @@ ptraGetMaxIndex(L_PTRA   *pa,
 /*!
  * \brief   ptraGetActualCount()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[out]   pcount actual number of items on the ptr array
  * \return  0 if OK; 1 on error
  *
@@ -743,7 +743,7 @@ ptraGetActualCount(L_PTRA   *pa,
 /*!
  * \brief   ptraGetPtrToItem()
  *
- * \param[in]    ptra
+ * \param[in]    pa ptra
  * \param[in]    index of element to be retrieved
  * \return  a ptr to the element, or NULL on error
  *
@@ -778,7 +778,7 @@ ptraGetPtrToItem(L_PTRA  *pa,
 /*!
  * \brief   ptraaCreate()
  *
- * \param[in]    size of ptr array to be alloc'd
+ * \param[in]    n size of ptr array to be alloc'd
  * \return  paa, or NULL on error
  *
  * <pre>
@@ -859,7 +859,7 @@ L_PTRAA  *paa;
 /*!
  * \brief   ptraaGetSize()
  *
- * \param[in]    ptraa
+ * \param[in]    paa
  * \param[out]   psize size of ptr array
  * \return  0 if OK; 1 on error
  */
@@ -882,9 +882,9 @@ ptraaGetSize(L_PTRAA  *paa,
 /*!
  * \brief   ptraaInsertPtra()
  *
- * \param[in]    ptraa
+ * \param[in]    paa ptraa
  * \param[in]    index location in array for insertion
- * \param[in]    ptra to be inserted
+ * \param[in]    pa to be inserted
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -921,7 +921,7 @@ l_int32  n;
 /*!
  * \brief   ptraaGetPtra()
  *
- * \param[in]    ptraa
+ * \param[in]    paa ptraa
  * \param[in]    index location in array
  * \param[in]    accessflag L_HANDLE_ONLY, L_REMOVE
  * \return  ptra at index location, or NULL on error or if there
@@ -968,7 +968,7 @@ L_PTRA  *pa;
 /*!
  * \brief   ptraaFlattenToPtra()
  *
- * \param[in]    ptraa
+ * \param[in]    paa ptraa
  * \return  ptra, or NULL on error
  *
  * <pre>
