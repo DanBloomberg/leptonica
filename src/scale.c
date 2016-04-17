@@ -1164,7 +1164,7 @@ PIX       *pixd;
 /*!
  * \brief   pixScaleSmooth()
  *
- * \param[in]    pixs 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
+ * \param[in]    pix 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
  * \param[in]    scalex, scaley must both be < 0.7
  * \return  pixd, or NULL on error
  *
@@ -1318,7 +1318,7 @@ PIX       *pixd;
 /*!
  * \brief   pixScaleAreaMap()
  *
- * \param[in]    pixs 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
+ * \param[in]    pix 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
  * \param[in]    scalex, scaley must both be <= 0.7
  * \return  pixd, or NULL on error
  *
@@ -1442,7 +1442,7 @@ PIX       *pixs, *pixd, *pixt1, *pixt2, *pixt3;
 /*!
  * \brief   pixScaleAreaMap2()
  *
- * \param[in]    pixs 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
+ * \param[in]    pix 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
  * \return  pixd, or NULL on error
  *
  * <pre>

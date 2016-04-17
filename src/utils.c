@@ -537,7 +537,7 @@ l_int32  lendest, lensrc;
  * \brief   stringConcatNew()
  *
  * \param[in]    first first string in list
- * \param[in]    varargs  NULL-terminated list of strings
+ * \param[in]    ...  NULL-terminated list of strings
  * \return  result new string concatenating the input strings, or
  *                      NULL if first == NULL
  *
@@ -621,8 +621,8 @@ l_int32  srclen1, srclen2, destlen;
 /*!
  * \brief   stringJoinIP()
  *
- * \param[in]    &src1 string address of src1; cannot be on the stack
- * \param[in]    src2 string [optional] can be null
+ * \param[in,out]  psrc1 string address of src1; cannot be on the stack
+ * \param[in]      src2 string [optional] can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -639,10 +639,12 @@ l_int32  srclen1, srclen2, destlen;
  *          Then call with:
  *              stringJoinIP(\&src1, src2);
  *      (4) This can also be implemented as a macro:
+ * \code
  *              #define stringJoinIP(src1, src2) \
  *                  {tmpstr = stringJoin((src1),(src2)); \
  *                  LEPT_FREE(src1); \
  *                  (src1) = tmpstr;}
+ * \endcode
  *      (5) Another function to consider for joining many strings is
  *          stringConcatNew().
  * </pre>
@@ -1003,7 +1005,7 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
  * \param[in]    src input string; can be of zero length
  * \param[in]    sub1 substring to be replaced
  * \param[in]    sub2 substring to put in; can be ""
- * \param[in]    &count <optional return > the number of times that sub1
+ * \param[out]   pcount [optional] the number of times that sub1
  *                      is found in src; 0 if not found
  * \return  dest string with substring replaced, or NULL if the
  *              substring not found or on error.
@@ -1113,7 +1115,7 @@ L_DNA   *da;
  * \param[in]    datalen length of data, in bytes
  * \param[in]    sequence subarray of bytes to find in data
  * \param[in]    seqlen length of sequence, in bytes
- * \param[in]    &offset return> offset from beginning of
+ * \param[out]   poffset offset from beginning of
  *                       data where the sequence begins
  * \param[out]   pfound 1 if sequence is found; 0 otherwise
  * \return  0 if OK, 1 on error
@@ -1176,9 +1178,9 @@ l_int32  i, j, found, lastpos;
 /*!
  * \brief   reallocNew()
  *
- * \param[in]    &indata [optional]; nulls indata
- * \param[in]    oldsize size of input data to be copied, in bytes
- * \param[in]    newsize size of data to be reallocated in bytes
+ * \param[in,out]  pindata [optional]; nulls indata
+ * \param[in]      oldsize size of input data to be copied, in bytes
+ * \param[in]      newsize size of data to be reallocated in bytes
  * \return  ptr to new data, or NULL on error
  *
  *  Action: !N.B. 3) and (4!
@@ -2068,8 +2070,7 @@ lept_calloc(size_t  nmemb,
 /*!
  * \brief   lept_free()
  *
- * \param[in]    void ptr
- * \return  0 if OK, 1 on error
+ * \param[in]    ptr
  *
  * <pre>
  * Notes:
@@ -3026,7 +3027,7 @@ l_int32  dirlen, namelen, size;
  *
  * \param[in]    result preallocated on stack or heap and passed in
  * \param[in]    nbytes size of %result array, in bytes
- * \param[in]    subdirs [optional]; can be NULL or an empty string
+ * \param[in]    subdir [optional]; can be NULL or an empty string
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3035,12 +3036,14 @@ l_int32  dirlen, namelen, size;
  *          written into %result with unix separators.
  *      (2) Caller allocates %result, large enough to hold the path,
  *          which is:
- *            /tmp/%subdirs       (unix)
- *            \<Temp\>/%subdirs     (windows)
+ *            /tmp/%subdir       (unix)
+ *            \<Temp\>/%subdir     (windows)
  *          where \<Temp\> is a path on windows determined by GenTempPath().
  *      (3) Usage example:
+ * \code
  *           char  result[256];
  *           makeTempDirname(result, 256, "lept/golden");
+ * \endcode
  * </pre>
  */
 l_int32
@@ -3391,7 +3394,7 @@ l_uint8  *data;
  *
  * \param[in]    range size of range; must be >= 2
  * \param[in]    seed use 0 to skip; otherwise call srand
- * \param[out]   val random integer in range {0 ... range-1}
+ * \param[out]   pval random integer in range {0 ... range-1}
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3708,7 +3711,7 @@ convertBinaryToGrayCode(l_uint32 val)
 /*!
  * \brief   convertGrayCodeToBinary()
  *
- * \param[in]    gray code value
+ * \param[in]    val gray code value
  * \return  binary value
  */
 l_uint32
@@ -3852,8 +3855,8 @@ struct rusage  rusage_stop;
 /*!
  * \brief   l_getCurrentTime()
  *
- * \param[out]   psec [optional] in seconds since birth of Unix
- * \param[out]   pusec [optional] in microseconds since birth of Unix
+ * \param[out]   sec [optional] in seconds since birth of Unix
+ * \param[out]   usec [optional] in microseconds since birth of Unix
  * \return  void
  */
 void
@@ -3973,12 +3976,8 @@ LONGLONG        usecs;
 
 /*!
  * \brief   startWallTimer()
- * \param[in]    void
- * \return  walltimer-ptr
  *
- *  stopWallTimer
- *      Input:  &walltimer-ptr
- *      Return: time wall time elapsed in seconds
+ * \return  walltimer-ptr
  *
  * <pre>
  * Notes:
@@ -3999,6 +3998,12 @@ L_WALLTIMER  *timer;
     return timer;
 }
 
+/*!
+ * \brief   stopWallTimer()
+ *
+ * \param[in,out]  ptimer walltimer-ptr
+ * \return  time wall time elapsed in seconds
+ */
 l_float32
 stopWallTimer(L_WALLTIMER  **ptimer)
 {
@@ -4025,7 +4030,6 @@ L_WALLTIMER  *timer;
 /*!
  * \brief   l_getFormattedDate()
  *
- * \param[in]    none
  * \return  formatted date string, or NULL on error
  *
  * <pre>

@@ -582,8 +582,8 @@ PTA        *pta_small, *pta_big, *ptad;
  * \param[in]    pta
  * \param[in]    dahash built from pta
  * \param[in]    x, y  arbitrary points
- * \param[out]   pindex index into pta if (x,y is in pta;
- * \param[in]            -1 otherwise)
+ * \param[out]   pindex index into pta if (x,y) is in pta;
+ *                       -1 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>

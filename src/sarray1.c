@@ -149,8 +149,8 @@ static l_int32 sarrayExtendArray(SARRAY *sa);
 /*!
  * \brief   sarrayCreate()
  *
- * \param[in]    size of string ptr array to be alloc'd
- * \param[in]    use 0 for default
+ * \param[in]    n size of string ptr array to be alloc'd;
+ *               use 0 for default
  * \return  sarray, or NULL on error
  */
 SARRAY *
@@ -371,7 +371,7 @@ SARRAY  *sa;
 /*!
  * \brief   sarrayCopy()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \return  copy of sarray, or NULL on error
  */
 SARRAY *
@@ -398,7 +398,7 @@ SARRAY  *csa;
 /*!
  * \brief   sarrayClone()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \return  ptr to same sarray, or NULL on error
  */
 SARRAY *
@@ -416,7 +416,7 @@ sarrayClone(SARRAY  *sa)
 /*!
  * \brief   sarrayAddString()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \param[in]    string  string to be added
  * \param[in]    copyflag L_INSERT, L_COPY
  * \return  0 if OK, 1 on error
@@ -463,7 +463,7 @@ l_int32  n;
 /*!
  * \brief   sarrayExtendArray()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \return  0 if OK, 1 on error
  */
 static l_int32
@@ -487,7 +487,7 @@ sarrayExtendArray(SARRAY  *sa)
 /*!
  * \brief   sarrayRemoveString()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \param[in]    index of string within sarray
  * \return  removed string, or NULL on error
  */
@@ -527,7 +527,7 @@ l_int32  i, n, nalloc;
 /*!
  * \brief   sarrayReplaceString()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \param[in]    index of string within sarray to be replaced
  * \param[in]    newstr string to replace existing one
  * \param[in]    copyflag L_INSERT, L_COPY
@@ -576,7 +576,7 @@ l_int32  n;
 /*!
  * \brief   sarrayClear()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -603,7 +603,7 @@ l_int32  i;
 /*!
  * \brief   sarrayGetCount()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \return  count, or 0 if no strings or on error
  */
 l_int32
@@ -620,7 +620,7 @@ sarrayGetCount(SARRAY  *sa)
 /*!
  * \brief   sarrayGetArray()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \param[out]   pnalloc  [optional] number allocated string ptrs
  * \param[out]   pn  [optional] number allocated strings
  * \return  ptr to string array, or NULL on error
@@ -654,7 +654,7 @@ char  **array;
 /*!
  * \brief   sarrayGetString()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \param[in]    index   to the index-th string
  * \param[in]    copyflag  L_NOCOPY or L_COPY
  * \return  string, or NULL on error
@@ -697,7 +697,7 @@ sarrayGetString(SARRAY  *sa,
 /*!
  * \brief   sarrayGetRefCount()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \return  refcount, or UNDEF on error
  */
 l_int32
@@ -714,7 +714,7 @@ sarrayGetRefcount(SARRAY  *sa)
 /*!
  * \brief   sarrayChangeRefCount()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \param[in]    delta change to be applied
  * \return  0 if OK, 1 on error
  */
@@ -737,7 +737,7 @@ sarrayChangeRefcount(SARRAY  *sa,
 /*!
  * \brief   sarrayToString()
  *
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \param[in]    addnlflag flag: 0 adds nothing to each substring
  *                               1 adds '\n' to each substring
  *                               2 adds ' ' to each substring
@@ -771,7 +771,7 @@ sarrayToString(SARRAY  *sa,
 /*!
  * \brief   sarrayToStringRange()
  *
- * \param[in]   sarray
+ * \param[in]   sa string array
  * \param[in]   first  index of first string to use; starts with 0
  * \param[in]   nstrings number of strings to append into the result; use
  *                       0 to append to the end of the sarray
@@ -1434,7 +1434,7 @@ SARRAY  *sa;
  * \brief   sarrayWrite()
  *
  * \param[in]    filename
- * \param[in]    sarray
+ * \param[in]    sa string array
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -1465,8 +1465,8 @@ FILE  *fp;
  * \brief   sarrayWriteStream()
  *
  * \param[in]    fp file stream
- * \param[in]    sa
- * \param[in]  s 0 if OK; 1 on error
+ * \param[in]    sa string array
+ * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
@@ -1537,7 +1537,7 @@ FILE  *fp;
 /*!
  * \brief   getNumberedPathnamesInDirectory()
  *
- * \param[in]    directory name
+ * \param[in]    dirname directory name
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[in]    numpre number of characters in name before number
  * \param[in]    numpost number of characters in name after the number,
@@ -1603,7 +1603,7 @@ SARRAY  *sa, *saout;
 /*!
  * \brief   getSortedPathnamesInDirectory()
  *
- * \param[in]    directory name
+ * \param[in]    dirname directory name
  * \param[in]    substr [optional] substring filter on filenames; can be NULL
  * \param[in]    first 0-based
  * \param[in]    nfiles use 0 for all to the end
@@ -1667,7 +1667,7 @@ SARRAY  *sa, *safiles, *saout;
 /*!
  * \brief   convertSortedToNumberedPathnames()
  *
- * \param[in]    sorted pathnames including zero-padded integers
+ * \param[in]    sa sorted pathnames including zero-padded integers
  * \param[in]    numpre number of characters in name before number
  * \param[in]    numpost number of characters in name after the number,
  *                       up to a dot before an extension
@@ -1734,7 +1734,7 @@ SARRAY  *saout;
 /*!
  * \brief   getFilenamesInDirectory()
  *
- * \param[in]    directory name
+ * \param[in]    dirname directory name
  * \return  sarray of file names, or NULL on error
  *
  * <pre>

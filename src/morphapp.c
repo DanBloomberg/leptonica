@@ -320,7 +320,7 @@ PIXA    *pixad;
  * \param[in]    connectivity 4 or 8, used on mask
  * \param[in]    minw  minimum width to consider; use 0 or 1 for any width
  * \param[in]    minh  minimum height to consider; use 0 or 1 for any height
- * \param[in]    &boxa [optional] return boxa of c.c. in pixm
+ * \param[out]   pboxa [optional] return boxa of c.c. in pixm
  * \return  pixd, or NULL on error
  *
  * <pre>

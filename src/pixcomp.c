@@ -434,7 +434,7 @@ pixcompGetDimensions(PIXC     *pixc,
  * \param[in]    comptype IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG
  * \param[in]    d pix depth
  * \param[in]    cmapflag 1 if pix to be compressed as a colormap; 0 otherwise
- * \param[in]    &format return IFF_TIFF, IFF_PNG or IFF_JFIF_JPEG
+ * \param[out]   pformat return IFF_TIFF, IFF_PNG or IFF_JFIF_JPEG
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -756,7 +756,7 @@ SARRAY   *sa;
 /*!
  * \brief   pixacompCreateFromSA()
  *
- * \param[in]    sarray full pathnames for all files
+ * \param[in]    sa full pathnames for all files
  * \param[in]    comptype IFF_DEFAULT, IFF_TIFF_G4, IFF_PNG, IFF_JFIF_JPEG
  * \return  pixac, or NULL on error
  *
@@ -1173,7 +1173,7 @@ PIXC    *pixc;
 /*!
  * \brief   pixacompGetPixDimensions()
  *
- * \param[in]    pixa
+ * \param[in]    pixac
  * \param[in]    index caller's view of index within pixac; includes offset
  * \param[out]   pw, ph, pd [optional]  each can be null
  * \return  0 if OK, 1 on error

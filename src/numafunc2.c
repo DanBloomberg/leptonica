@@ -1349,8 +1349,8 @@ numaGetHistogramStats(NUMA       *nahisto,
  * \param[out]   pxmean [optional] mean value of histogram
  * \param[out]   pxmedian [optional] median value of histogram
  * \param[out]   pxmode [optional] mode value of histogram:
- *                     xmode = x(imode), where y(xmode) >= y(x(i) for
- * \param[in]           all i != imode)
+ *                      xmode = x(imode), where y(xmode) >= y(x(i)) for
+ *                      all i != imode
  * \param[out]   pxvariance [optional] variance of x
  * \return  0 if OK, 1 on error
  *

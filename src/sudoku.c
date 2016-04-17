@@ -365,7 +365,7 @@ L_SUDOKU  *sud;
 /*!
  * \brief   sudokuSolve()
  *
- * \param[in]    l_sudoku starting in initial state
+ * \param[in]    sud l_sudoku starting in initial state
  * \return  1 on success, 0 on failure to solve note reversal of
  *              typical unix returns
  */
@@ -432,7 +432,7 @@ l_int32  i;
 /*!
  * \brief   sudokuNewGuess()
  *
- * \param[in]    l_sudoku
+ * \param[in]    sud l_sudoku
  * \return  0 if OK; 1 if no solution is possible
  *
  * <pre>
@@ -548,7 +548,7 @@ l_int32  blockrow, blockcol, blockstart, rowindex, locindex;
  * \brief   sudokuTestUniqueness()
  *
  * \param[in]    array of 81 numbers, 9 lines of 9 numbers each
- * \param[out]   ppunique 1 if unique, 0 if not
+ * \param[out]   punique 1 if unique, 0 if not
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -842,7 +842,7 @@ L_SUDOKU  *sud, *testsud;
 /*!
  * \brief   sudokuOutput()
  *
- * \param[in]    l_sudoku at any stage
+ * \param[in]    sud l_sudoku at any stage
  * \param[in]    arraytype L_SUDOKU_INIT, L_SUDOKU_STATE
  * \return  void
  *

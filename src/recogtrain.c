@@ -613,9 +613,9 @@ PTA       *ptat;
  *
  * \param[in]    pixa of samples from the same class, 1 bpp
  * \param[in]    pta [optional] of centroids of the samples
- * \param[out]   pppixd accumulated samples, 8 bpp
- * \param[out]   ppx [optional] average x coordinate of centroids
- * \param[out]   ppy [optional] average y coordinate of centroids
+ * \param[out]   ppixd accumulated samples, 8 bpp
+ * \param[out]   px [optional] average x coordinate of centroids
+ * \param[out]   py [optional] average y coordinate of centroids
  * \return  0 on success, 1 on failure
  *
  * <pre>
@@ -1175,9 +1175,9 @@ PIXA      *pixa, *pixaf;
 /*!
  * \brief   recogPadTrainingSet()
  *
- * \param[in]    &recog to be replaced if padding or more drastic measures
- *                      are necessary; otherwise, it is unchanged.
- * \param[in]    debug 1 for debug output saved to recog; 0 otherwise
+ * \param[in,out]  precog to be replaced if padding or more drastic measures
+ *                        are necessary; otherwise, it is unchanged.
+ * \param[in]      debug 1 for debug output saved to recog; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1558,7 +1558,7 @@ PIXA    *pixa;
  * \param[out]   pnaset of indices into the sets to be matched
  * \param[out]   pnaindex of matching indices into the best set
  * \param[out]   pnascore of best correlation scores
- * \param[out]   pnaave average of correlation scores from each recog
+ * \param[out]   pnasum average of correlation scores from each recog
  * \param[in]    pixadb [optional] debug images; use NULL for no debug
  * \return  0 if OK, 1 on error
  *
@@ -1765,7 +1765,6 @@ PIXA      *pixa1;
  * \param[in]    bootpath [optional] path to single bootstrap labelled pixa
  * \param[in]    boot_iters number of 2x2 erosions for extension of boot pixa
  * \param[in]    type character set type; -1 for default; see enum in recog.h
- * \param[in]    size character set size; -1 for default
  * \param[in]    min_nopad min number in a class without padding; -1 default
  * \param[in]    max_afterpad max number of samples in padded classes;
  *                            -1 for default

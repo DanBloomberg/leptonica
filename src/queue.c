@@ -78,7 +78,7 @@ static l_int32 lqueueExtendArray(L_QUEUE *lq);
 /*!
  * \brief   lqueueCreate()
  *
- * \param[in]    size of ptr array to be alloc'd 0 for default
+ * \param[in]    nalloc size of ptr array to be alloc'd 0 for default
  * \return  lqueue, or NULL on error
  *
  * <pre>
@@ -109,7 +109,7 @@ L_QUEUE  *lq;
 /*!
  * \brief   lqueueDestroy()
  *
- * \param[in,out]   plqueue  to be nulled
+ * \param[in,out]   plq to be nulled
  * \param[in]    freeflag TRUE to free each remaining struct in the array
  * \return  void
  *
@@ -168,7 +168,7 @@ L_QUEUE  *lq;
 /*!
  * \brief   lqueueAdd()
  *
- * \param[in]    lqueue
+ * \param[in]    lq lqueue
  * \param[in]    item to be added to the tail of the queue
  * \return  0 if OK, 1 on error
  *
@@ -215,7 +215,7 @@ lqueueAdd(L_QUEUE  *lq,
 /*!
  * \brief   lqueueExtendArray()
  *
- * \param[in]    lqueue
+ * \param[in]    lq lqueue
  * \return  0 if OK, 1 on error
  */
 static l_int32
@@ -239,7 +239,7 @@ lqueueExtendArray(L_QUEUE  *lq)
 /*!
  * \brief   lqueueRemove()
  *
- * \param[in]    lqueue
+ * \param[in]    lq lqueue
  * \return  ptr to item popped from the head of the queue,
  *              or NULL if the queue is empty or on error
  *
@@ -275,7 +275,7 @@ void  *item;
 /*!
  * \brief   lqueueGetCount()
  *
- * \param[in]    lqueue
+ * \param[in]    lq lqueue
  * \return  count, or 0 on error
  */
 l_int32
@@ -297,7 +297,7 @@ lqueueGetCount(L_QUEUE  *lq)
  * \brief   lqueuePrint()
  *
  * \param[in]    fp file stream
- * \param[in]    lqueue
+ * \param[in]    lq lqueue
  * \return  0 if OK; 1 on error
  */
 l_int32

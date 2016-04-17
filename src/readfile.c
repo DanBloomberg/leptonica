@@ -140,7 +140,7 @@ SARRAY  *sa;
 /*!
  * \brief   pixaReadFilesSA()
  *
- * \param[in]    sarray full pathnames for all files
+ * \param[in]    sa full pathnames for all files
  * \return  pixa, or NULL on error
  */
 PIXA *
@@ -246,7 +246,7 @@ PIX   *pix;
 /*!
  * \brief   pixReadIndexed()
  *
- * \param[in]    sarray of full pathnames
+ * \param[in]    sa string array of full pathnames
  * \param[in]    index into pathname array
  * \return  pix if OK; null if not found
  *
@@ -621,7 +621,7 @@ l_int32  format;
 /*!
  * \brief   findFileFormatBuffer()
  *
- * \param[in]    byte buffer at least 12 bytes in size; we can't check
+ * \param[in]    buf byte buffer at least 12 bytes in size; we can't check
  * \param[out]   pformat found format
  * \return  0 if OK, 1 on error or if format is not recognized
  *
@@ -770,7 +770,7 @@ l_int32  format;
  * \brief   pixReadMem()
  *
  * \param[in]    data const; encoded
- * \param[in]    datasize size of data
+ * \param[in]    size size of data
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -878,7 +878,7 @@ PIX     *pix;
  * \brief   pixReadHeaderMem()
  *
  * \param[in]    data const; encoded
- * \param[in]    datasize size of data
+ * \param[in]    size size of data
  * \param[out]   pformat [optional] image format
  * \param[out]   pw, ph [optional] width and height
  * \param[out]   pbps [optional] bits/sample

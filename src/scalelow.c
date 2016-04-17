@@ -1665,7 +1665,11 @@ l_float32  wratio, hratio;
 /*!
  * \brief   scaleToGray2Low()
  *
- * \param[in]    usual image variables
+ * \param[in]    datad   dest data
+ * \param[in]    wd, hd  dest width, height
+ * \param[in]    wpld    dest words/line
+ * \param[in]    datas   src data
+ * \param[in]    wpls    src words/line
  * \param[in]    sumtab  made from makeSumTabSG2()
  * \param[in]    valtab  made from makeValTabSG2()
  * \return  0 if OK; 1 on error.
@@ -1795,7 +1799,11 @@ l_uint8  *tab;
 /*!
  * \brief   scaleToGray3Low()
  *
- * \param[in]    usual image variables
+ * \param[in]    datad   dest data
+ * \param[in]    wd, hd  dest width, height
+ * \param[in]    wpld    dest words/line
+ * \param[in]    datas   src data
+ * \param[in]    wpls    src words/line
  * \param[in]    sumtab  made from makeSumTabSG3()
  * \param[in]    valtab  made from makeValTabSG3()
  * \return  0 if OK; 1 on error
@@ -1952,7 +1960,11 @@ l_uint8  *tab;
 /*!
  * \brief   scaleToGray4Low()
  *
- * \param[in]    usual image variables
+ * \param[in]    datad   dest data
+ * \param[in]    wd, hd  dest width, height
+ * \param[in]    wpld    dest words/line
+ * \param[in]    datas   src data
+ * \param[in]    wpls    src words/line
  * \param[in]    sumtab  made from makeSumTabSG4()
  * \param[in]    valtab  made from makeValTabSG4()
  * \return  0 if OK; 1 on error.
@@ -2070,7 +2082,11 @@ l_uint8  *tab;
 /*!
  * \brief   scaleToGray6Low()
  *
- * \param[in]    usual image variables
+ * \param[in]    datad   dest data
+ * \param[in]    wd, hd  dest width, height
+ * \param[in]    wpld    dest words/line
+ * \param[in]    datas   src data
+ * \param[in]    wpls    src words/line
  * \param[in]    tab8  made from makePixelSumTab8()
  * \param[in]    valtab  made from makeValTabSG6()
  * \return  0 if OK; 1 on error
@@ -2217,7 +2233,11 @@ l_uint8  *tab;
 /*!
  * \brief   scaleToGray8Low()
  *
- * \param[in]    usual image variables
+ * \param[in]    datad   dest data
+ * \param[in]    wd, hd  dest width, height
+ * \param[in]    wpld    dest words/line
+ * \param[in]    datas   src data
+ * \param[in]    wpls    src words/line
  * \param[in]    tab8  made from makePixelSumTab8()
  * \param[in]    valtab  made from makeValTabSG8()
  * \return  0 if OK; 1 on error.
@@ -2304,8 +2324,12 @@ l_uint8  *tab;
 /*!
  * \brief   scaleToGray16Low()
  *
- * \param[in]    usual image variables
- * \param[in]    tab8  made from makePixelSumTab8()
+ * \param[in]    datad   dest data
+ * \param[in]    wd, hd  dest width, height
+ * \param[in]    wpld    dest words/line
+ * \param[in]    datas   src data
+ * \param[in]    wpls    src words/line
+ * \param[in]    tab8    made from makePixelSumTab8()
  * \return  0 if OK; 1 on error.
  *
  *  The output is processed one dest byte at a time, corresponding

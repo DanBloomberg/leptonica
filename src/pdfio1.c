@@ -317,7 +317,7 @@ size_t    nbytes;
 /*!
  * \brief   saConvertFilesToPdfData()
  *
- * \param[in]    sarray of pathnames for images
+ * \param[in]    sa string array of pathnames for images
  * \param[in]    res input resolution of all images
  * \param[in]    scalefactor scaling factor applied to each image; > 0.0
  * \param[in]    type encoding type (L_JPEG_ENCODE, L_G4_ENCODE,

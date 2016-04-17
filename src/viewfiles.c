@@ -53,14 +53,14 @@ static const l_int32  MIN_VIEW_WIDTH = 300;
 /*!
  * \brief   pixHtmlViewer()
  *
- * \param[in]    dirin:  directory of input image files
- * \param[in]    dirout: directory for output files
- * \param[in]    rootname: root name for output files
- * \param[in]    thumbwidth:  width of thumb images
- * \param[in]                 in pixels; use 0 for default
- * \param[in]    viewwidth:  maximum width of view images no up-scaling
- * \param[in]                 in pixels; use 0 for default
- * \param[in]    copyorig:  1 to copy originals to dirout; 0 otherwise
+ * \param[in]    dirin      directory of input image files
+ * \param[in]    dirout     directory for output files
+ * \param[in]    rootname   root name for output files
+ * \param[in]    thumbwidth width of thumb images
+ *                          in pixels; use 0 for default
+ * \param[in]    viewwidth  maximum width of view images no up-scaling
+ *                          in pixels; use 0 for default
+ * \param[in]    copyorig   1 to copy originals to dirout; 0 otherwise
  * \return  0 if OK; 1 on error
  *
  * <pre>

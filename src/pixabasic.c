@@ -374,8 +374,7 @@ PIXA    *pixa;
 /*!
  * \brief   pixaDestroy()
  *
- * \param[in]    &pixa <can be nulled>
- * \return  void
+ * \param[in,out]  ppixa can be nulled
  *
  * <pre>
  * Notes:
@@ -417,12 +416,12 @@ PIXA    *pixa;
 /*!
  * \brief   pixaCopy()
  *
- * \param[in]    pixas
+ * \param[in]    pixa
  * \param[in]    copyflag see pix.h for details:
- * \param[in]      L_COPY makes a new pixa and copies each pix and each box
- * \param[in]      L_CLONE gives a new ref-counted handle to the input pixa
- * \param[in]      L_COPY_CLONE makes a new pixa and inserts clones of
- * \param[in]          all pix and boxes
+ *                 L_COPY makes a new pixa and copies each pix and each box;
+ *                 L_CLONE gives a new ref-counted handle to the input pixa;
+ *                 L_COPY_CLONE makes a new pixa and inserts clones of
+ *                     all pix and boxes
  * \return  new pixa, or NULL on error
  */
 PIXA *
@@ -1725,11 +1724,11 @@ PIXAA   *paa;
  * \param[in]    paa
  * \param[in]    pixa  to be added
  * \param[in]    copyflag:
- * \param[in]      L_INSERT inserts the pixa directly
- * \param[in]      L_COPY makes a new pixa and copies each pix and each box
- * \param[in]      L_CLONE gives a new handle to the input pixa
- * \param[in]      L_COPY_CLONE makes a new pixa and inserts clones of
- * \param[in]          all pix and boxes
+ *                 L_INSERT inserts the pixa directly;
+ *                 L_COPY makes a new pixa and copies each pix and each box;
+ *                 L_CLONE gives a new handle to the input pixa;
+ *                 L_COPY_CLONE makes a new pixa and inserts clones of
+ *                     all pix and boxes
  * \return  0 if OK; 1 on error
  */
 l_int32
