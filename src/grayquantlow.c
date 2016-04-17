@@ -534,9 +534,9 @@ l_uint8  rval, bval, dval;
 /*!
  * \brief   make8To1DitherTables()
  *
- * \param[in]   &tabval value assigned to output pixel; 0 or 1
- * \param[in]   &tab38  amount propagated to pixels left and below
- * \param[in]   &tab14  amount propagated to pixel to left and down
+ * \param[out]  ptabval value assigned to output pixel; 0 or 1
+ * \param[out]  ptab38  amount propagated to pixels left and below
+ * \param[out]  ptab14  amount propagated to pixel to left and down
  * \param[in]   lowerclip values near 0 where the excess is not propagated
  * \param[in]   upperclip values near 255 where the deficit is not propagated
  *
@@ -740,9 +740,9 @@ l_uint8  rval, bval, dval;
 /*!
  * \brief   make8To2DitherTables()
  *
- * \param[in]   &tabval value assigned to output pixel; 0, 1, 2 or 3
- * \param[in]   &tab38  amount propagated to pixels left and below
- * \param[in]   &tab14  amount propagated to pixel to left and down
+ * \param[out]  ptabval value assigned to output pixel; 0, 1, 2 or 3
+ * \param[out]  ptab38  amount propagated to pixels left and below
+ * \param[out]  ptab14  amount propagated to pixel to left and down
  * \param[in]   cliptoblack values near 0 where the excess is not propagated
  * \param[in]   cliptowhite values near 255 where the deficit is not propagated
  *
