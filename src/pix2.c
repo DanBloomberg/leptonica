@@ -1383,7 +1383,7 @@ l_uint32  *data, *pword;
  *
  * \param[in]    pixs all depths
  * \param[in]    left, right, top, bot amount to set or clear
- * \param[in]    operation PIX_SET or PIX_CLR
+ * \param[in]    op operation PIX_SET or PIX_CLR
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -2286,9 +2286,9 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixCreateRGBImage()
  *
- * \param[in]    8 bpp red pix
- * \param[in]    8 bpp green pix
- * \param[in]    8 bpp blue pix
+ * \param[in]    pixr 8 bpp red pix
+ * \param[in]    pixg 8 bpp green pix
+ * \param[in]    pixb 8 bpp blue pix
  * \return  32 bpp pix, interleaved with 4 samples/pixel,
  *              or NULL on error
  *

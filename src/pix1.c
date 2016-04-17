@@ -486,7 +486,7 @@ PIX      *pixd;
 /*!
  * \brief   pixClone()
  *
- * \param[in]    pix
+ * \param[in]    pixs
  * \return  same pix ptr, or NULL on error
  *
  * <pre>
@@ -715,7 +715,7 @@ l_uint32  *data;
 /*!
  * \brief   pixCopyColormap()
  *
- * \param[in]    src and dest Pix
+ * \param[in]    pixd, pixs dest and src Pix
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -754,7 +754,7 @@ PIXCMAP  *cmaps, *cmapd;
 /*!
  * \brief   pixSizesEqual()
  *
- * \param[in]    two pix
+ * \param[in]    pix1, pix2  two pix
  * \return  1 if the two pix have same {h, w, d}; 0 otherwise.
  */
 l_int32
@@ -781,10 +781,10 @@ pixSizesEqual(PIX  *pix1,
 /*!
  * \brief   pixTransferAllData()
  *
- * \param[in]    pixd must be different from pixs
- * \param[in]    &pixs will be nulled if refcount goes to 0
- * \param[in]    copytext 1 to copy the text field; 0 to skip
- * \param[in]    copyformat 1 to copy the informat field; 0 to skip
+ * \param[in]      pixd must be different from pixs
+ * \param[in,out]  ppixs will be nulled if refcount goes to 0
+ * \param[in]      copytext 1 to copy the text field; 0 to skip
+ * \param[in]      copyformat 1 to copy the informat field; 0 to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -804,23 +804,27 @@ pixSizesEqual(PIX  *pix1,
  *          in place of the input Pix.  There are two ways you can do this:
  *          (a) The straightforward way is to change the function
  *              signature to take the address of the Pix ptr:
+ * \code
  *                  void function-inplace(PIX **ppix, ...) {
  *                      PIX *pixt = function-makenew(*ppix);
  *                      pixDestroy(ppix);
  *                      *ppix = pixt;
  *                      return;
  *                  }
+ * \endcode
  *              Here, the input and returned pix are different, as viewed
  *              by the calling function, and the inplace function is
  *              expected to destroy the input pix to avoid a memory leak.
  *          (b) Keep the signature the same and use pixTransferAllData()
  *              to return the new Pix in the input Pix struct:
+ * \code
  *                  void function-inplace(PIX *pix, ...) {
  *                      PIX *pixt = function-makenew(pix);
- *                      pixTransferAllData(pix, \&pixt, 0, 0);
+ *                      pixTransferAllData(pix, &pixt, 0, 0);
  *                               // pixDestroy() is called on pixt
  *                      return;
  *                  }
+ * \endcode
  *              Here, the input and returned pix are the same, as viewed
  *              by the calling function, and the inplace function must
  *              never destroy the input pix, because the calling function
@@ -882,9 +886,9 @@ PIX     *pixs;
 /*!
  * \brief   pixSwapAndDestroy()
  *
- * \param[out]   ppixd [optional] input pixd can be null,
- *                     and it must be different from pixs
- * \param[in]    &pixs will be nulled after the swap
+ * \param[out]     ppixd [optional] input pixd can be null,
+ *                       and it must be different from pixs
+ * \param[in,out]  ppixs will be nulled after the swap
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -897,20 +901,24 @@ PIX     *pixs;
  *          If pixs is cloned, the other handles still point to
  *          the original image, with the ref count reduced by 1.
  *      (3) Usage example:
+ * \code
  *            Pix *pix1 = pixRead("...");
  *            Pix *pix2 = function(pix1, ...);
- *            pixSwapAndDestroy(\&pix1, \&pix2);
- *            pixDestroy(\&pix1);  // holds what was in pix2
+ *            pixSwapAndDestroy(&pix1, &pix2);
+ *            pixDestroy(&pix1);  // holds what was in pix2
+ * \endcode
  *          Example with clones ([] shows ref count of image generated
  *                               by the function):
+ * \code
  *            Pix *pixs = pixRead("...");
  *            Pix *pix1 = pixClone(pixs);
  *            Pix *pix2 = function(pix1, ...);   [1]
- *            Pix *pix3 = pixClone(pix2);   [1] --\> [2]
- *            pixSwapAndDestroy(\&pix1, \&pix2);
- *            pixDestroy(\&pixs);  // still holds read image
- *            pixDestroy(\&pix1);  // holds what was in pix2  [2] --\> [1]
- *            pixDestroy(\&pix3);  // holds what was in pix2  [1] --\> [0]
+ *            Pix *pix3 = pixClone(pix2);   [1] --> [2]
+ *            pixSwapAndDestroy(&pix1, &pix2);
+ *            pixDestroy(&pixs);  // still holds read image
+ *            pixDestroy(&pix1);  // holds what was in pix2  [2] --> [1]
+ *            pixDestroy(&pix3);  // holds what was in pix2  [1] --> [0]
+ * \endcode
  * </pre>
  */
 l_int32

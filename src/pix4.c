@@ -272,7 +272,7 @@ PIX        *pixg;
  *
  * \param[in]    pixs 8 bpp, or colormapped
  * \param[in]    box [optional] over which histogram is to be computed;
- * \param[in]         use full image if null)
+ *                    use full image if NULL
  * \param[in]    factor subsampling factor; integer >= 1
  * \return  na histogram, or NULL on error
  *
@@ -760,7 +760,7 @@ NUMA       *na;
  *
  * \param[in]    pixs colormapped: d = 2, 4 or 8
  * \param[in]    box [optional] over which histogram is to be computed;
- * \param[in]         use full image if null)
+ *                    use full image if NULL
  * \param[in]    factor subsampling factor; integer >= 1
  * \return  na histogram, or NULL on error
  *
