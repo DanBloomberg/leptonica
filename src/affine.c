@@ -864,6 +864,7 @@ PTA     *ptad2, *ptas2;
  * \param[out]   pvc   vector of coefficients of transform
  * \return  0 if OK; 1 on error
  *
+ * <pre>
  *  We have a set of six equations, describing the affine
  *  transformation that takes 3 points ptas into 3 other
  *  points ptad.  These equations are:
@@ -918,12 +919,13 @@ PTA     *ptad2, *ptas2;
  *
  *  For example, if you transform a boxa with a 3x3 affine matrix
  *  'mat', the analogous image transformation must use 'matinv':
- *
- *     boxad = boxaAffineTransformboxas, mat;
- *     affineInvertXformmat, &matinv;
- *     pixd = pixAffinepixs, matinv, L_BRING_IN_WHITE;
- *
+ * \code
+ *     boxad = boxaAffineTransform(boxas, mat);
+ *     affineInvertXform(mat, &matinv);
+ *     pixd = pixAffine(pixs, matinv, L_BRING_IN_WHITE);
+ * \endcode
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * </pre>
  */
 l_int32
 getAffineXformCoeffs(PTA         *ptas,
