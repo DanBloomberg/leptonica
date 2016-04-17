@@ -1166,7 +1166,7 @@ PIX     *pix1, *pixd;
  * \param[in]    pixm 1 bpp mask, full image
  * \param[in]    box region of mask; typically b.b. of a component
  * \param[in]    dist distance into BG from mask boundary to use
- * \param[out]   ppval average pixel value
+ * \param[out]   pval average pixel value
  * \param[in]    debug 1 to output mask images
  * \return  0 if OK, 1 on error.
  *
@@ -2070,9 +2070,9 @@ NUMA       *na;
  * \brief   pixThresholdPixelSum()
  *
  * \param[in]    pix 1 bpp
- * \param[in]    threshold
+ * \param[in]    thresh threshold
  * \param[out]   pabove 1 if above threshold;
- *                               0 if equal to or less than threshold
+ *                      0 if equal to or less than threshold
  * \param[in]    tab8  [optional] 8-bit pixel lookup table
  * \return  0 if OK; 1 on error
  *
@@ -2155,7 +2155,6 @@ l_uint32  *line, *data;
 /*!
  * \brief   makePixelSumTab8()
  *
- * \param[in]    void
  * \return  table of 256 l_int32, or NULL on error
  *
  * <pre>
@@ -2195,7 +2194,6 @@ l_int32  *tab;
 /*!
  * \brief   makePixelCentroidTab8()
  *
- * \param[in]    void
  * \return  table of 256 l_int32, or NULL on error
  *
  * <pre>
@@ -2937,7 +2935,7 @@ l_uint32   val0, val1;
  *
  * \param[in]    pixs 8 bpp, or colormapped
  * \param[in]    box [optional] over which count is made;
- * \param[in]         use entire image null)
+ *                    use entire image if NULL
  * \param[in]    val pixel value to count
  * \param[in]    factor subsampling factor; integer >= 1
  * \param[out]   pcount count; estimate it if factor > 1

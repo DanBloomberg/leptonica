@@ -847,8 +847,8 @@ PIXA    *pixa;
  * \param[in]    box [optional] if null, use the entire pixs
  * \param[in]    dist max distance allowed between bounding box and nearest
  *                    foreground pixel within it
- * \param[out]   pconforms 0 (false if not conforming;
- * \param[in]              1 true) if conforming
+ * \param[out]   pconforms 0 (false) if not conforming;
+ *                         1 (true) if conforming
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1671,7 +1671,7 @@ BOX     *boxt, *boxd;
  * \param[in]    pixs 1 bpp
  * \param[in]    box  [optional] within which the search is conducted
  * \param[in]    scanflag direction of scan; e.g., L_FROM_LEFT
- * \param[in]    &loc location in scan direction of first black pixel
+ * \param[out]   ploc location in scan direction of first black pixel
  * \return  0 if OK; 1 on error or if no fg pixels are found
  *
  * <pre>
