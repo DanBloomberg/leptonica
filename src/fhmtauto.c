@@ -225,7 +225,7 @@ l_int32  ret1, ret2;
 /*!
  * \brief   fhmtautogen1()
  *
- * \param[in]    sel array
+ * \param[in]    sela array
  * \param[in]    fileindex
  * \param[in]    filename [optional]; can be null
  * \return  0 if OK; 1 on error
@@ -410,7 +410,7 @@ SARRAY  *sa1, *sa2, *sa3;
 /*!
  * \brief   fhmtautogen2()
  *
- * \param[in]    sel array
+ * \param[in]    sela array
  * \param[in]    fileindex
  * \param[in]    filename [optional]; can be null
  * \return  0 if OK; 1 on error
