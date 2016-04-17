@@ -684,9 +684,9 @@ PIXCMAP   *cmap;
  * \brief   octreeGenerateAndPrune()
  *
  * \param[in]    pixs
- * \param[in]    number of colors to use between 128 and 256
- * \param[in]    number of reserved colors
- * \param[in]    &cmap  made and returned
+ * \param[in]    colors number of colors to use between 128 and 256
+ * \param[in]    reservedcolors number of reserved colors
+ * \param[out]   pcmap  made and returned
  * \return  octree, colormap and number of colors used, or NULL
  *              on error
  *
@@ -930,7 +930,7 @@ l_int32    nt, nr, ival;
  * \brief   pixOctreeQuantizePixels()
  *
  * \param[in]    pixs 32 bpp
- * \param[in]    octree in array format
+ * \param[in]    cqcaa octree in array format
  * \param[in]    ditherflag 1 for dithering, 0 for no dithering
  * \return  pixd or NULL on error
  *
@@ -1227,7 +1227,6 @@ CQCELL  *cqc, *cqcsub;
 /*!
  * \brief   cqcellTreeCreate()
  *
- * \param[in]    none
  * \return  cqcell array tree
  */
 static CQCELL ***
@@ -1262,7 +1261,6 @@ CQCELL   **cqca;   /* one array for each octree level */
  * \brief   cqcellTreeDestroy()
  *
  * \param[in,out]   pcqcaa to be nulled
- * \return  void
  */
 static void
 cqcellTreeDestroy(CQCELL  ****pcqcaa)
@@ -1453,7 +1451,7 @@ getOctcubeIndexFromRGB(l_int32    rval,
 /*!
  * \brief   getRGBFromOctcube()
  *
- * \param[in]    octcube index
+ * \param[in]    cubeindex octcube index
  * \param[in]    level at which index is expressed
  * \param[out]   prval  r val of this cube
  * \param[out]   pgval  g val of this cube
@@ -1527,9 +1525,9 @@ l_int32  rgbindex;
  * \brief   getOctcubeIndices()
  *
  * \param[in]    rgbindex
- * \param[in]    octree level 0, 1, 2, 3, 4, 5
- * \param[out]   poctcube base index index at the octree level
- * \param[out]   poctcube sub index index at the next lower level
+ * \param[in]    level octree level 0, 1, 2, 3, 4, 5
+ * \param[out]   pbindex base index index at the octree level
+ * \param[out]   psindex sub index index at the next lower level
  * \return  0 if OK, 1 on error
  *
  * <pre>
