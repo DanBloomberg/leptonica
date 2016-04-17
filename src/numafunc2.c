@@ -483,8 +483,8 @@ l_float32  sum, sumsq, val, mean, var;
  * \param[in]    wc half width of the window
  * \param[out]   pnam [optional] mean value in window
  * \param[out]   pnams [optional] mean square value in window
- * \param[out]   ppnav [optional] variance in window
- * \param[out]   ppnarv [optional] rms deviation from the mean
+ * \param[out]   pnav [optional] variance in window
+ * \param[out]   pnarv [optional] rms deviation from the mean
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -664,9 +664,9 @@ NUMA       *na1, *nad;
  *
  * \param[in]    nam windowed mean values
  * \param[in]    nams windowed mean square values
- * \param[out]   ppnav [optional] numa of variance -- the ms deviation
+ * \param[out]   pnav [optional] numa of variance -- the ms deviation
  *                     from the mean
- * \param[out]   ppnarv [optional] numa of rms deviation from the mean
+ * \param[out]   pnarv [optional] numa of rms deviation from the mean
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -793,7 +793,7 @@ NUMA      *na1, *na2, *nad;
 /*!
  * \brief   numaConvertToInt()
  *
- * \param[in]    na
+ * \param[in]    nas source numa
  * \return  na with all values rounded to nearest integer, or
  *              NULL on error
  */
@@ -1300,8 +1300,8 @@ NUMA      *nah;
  * \param[out]   pxmean [optional] mean value of histogram
  * \param[out]   pxmedian [optional] median value of histogram
  * \param[out]   pxmode [optional] mode value of histogram:
- *                     xmode = x(imode), where y(xmode) >= y(x(i) for
- * \param[in]           all i != imode)
+ *                      xmode = x(imode), where y(xmode) >= y(x(i)) for
+ *                      all i != imode
  * \param[out]   pxvariance [optional] variance of x
  * \return  0 if OK, 1 on error
  *
@@ -1643,12 +1643,12 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
  *
  * \param[in]    na normalized histogram of probability density vs intensity
  * \param[in]    nbins number of bins at which the rank is divided
- * \param[out]   ppnarbin [optional] rank bin value vs intensity
- * \param[out]   ppnam [optional] median intensity in a bin vs
+ * \param[out]   pnarbin [optional] rank bin value vs intensity
+ * \param[out]   pnam [optional] median intensity in a bin vs
  *                     rank bin value, with %nbins of discretized rank values
- * \param[out]   ppnar [optional] rank vs intensity; this is
+ * \param[out]   pnar [optional] rank vs intensity; this is
  *                     a cumulative norm histogram
- * \param[out]   ppnabb [optional] intensity at the right bin boundary
+ * \param[out]   pnabb [optional] intensity at the right bin boundary
  *                      vs rank bin
  * \return  0 if OK, 1 on error
  *
@@ -1798,8 +1798,8 @@ l_float32  sum, midrank, endrank, val;
  *
  * \param[in]    na just an array of values
  * \param[in]    nbins number of bins at which the rank is divided
- * \param[out]   ppnarbin [optional] rank bin value vs array value
- * \param[out]   ppnam [optional] median intensity in a bin vs
+ * \param[out]   pnarbin [optional] rank bin value vs array value
+ * \param[out]   pnam [optional] median intensity in a bin vs
  *                     rank bin value, with %nbins of discretized rank values
  * \return  0 if OK, 1 on error
  *
@@ -2186,8 +2186,8 @@ NUMA       *na3;
  * \param[in]    wc half-width of the smoothing window
  * \param[out]   pnam [optional] mean values
  * \param[out]   pnams [optional] mean square values
- * \param[out]   ppnav [optional] variances
- * \param[out]   ppnarv [optional] rms deviations from the mean
+ * \param[out]   pnav [optional] variances
+ * \param[out]   pnarv [optional] rms deviations from the mean
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2301,8 +2301,8 @@ NUMA        *na1, *na2, *na3, *na4;
 /*!
  * \brief   numaFindPeaks()
  *
- * \param[in]    source na
- * \param[in]    max number of peaks to be found
+ * \param[in]    nas     source numa
+ * \param[in]    nmax    max number of peaks to be found
  * \param[in]    fract1  min fraction of peak value
  * \param[in]    fract2  min slope
  * \return  peak na, or NULL on error.
@@ -2856,10 +2856,10 @@ NUMA      *nap, *nad;
  * \brief   numaEvalBestHaarParameters()
  *
  * \param[in]    nas numa of non-negative signal values
- * \param[in]    relweight relative weight of (-1 comb) / (+1 comb
- * \param[in]               contributions to the 'convolution'.  In effect,
- * \param[in]               the convolution kernel is a comb consisting of
- * \param[in]               alternating +1 and -weight.)
+ * \param[in]    relweight relative weight of (-1 comb) / (+1 comb)
+ *                          contributions to the 'convolution'.  In effect,
+ *                          the convolution kernel is a comb consisting of
+ *                          alternating +1 and -weight.
  * \param[in]    nwidth number of widths to consider
  * \param[in]    nshift number of shifts to consider for each width
  * \param[in]    minwidth smallest width to consider
@@ -2949,10 +2949,10 @@ l_float32  bestwidth, bestshift, bestscore;
  * \param[in]    nas numa of non-negative signal values
  * \param[in]    width distance between +1 and -1 in convolution comb
  * \param[in]    shift phase of the comb: location of first +1
- * \param[in]    relweight relative weight of (-1 comb) / (+1 comb
- * \param[in]               contributions to the 'convolution'.  In effect,
- * \param[in]               the convolution kernel is a comb consisting of
- * \param[in]               alternating +1 and -weight.)
+ * \param[in]    relweight relative weight of (-1 comb) / (+1 comb)
+ *                          contributions to the 'convolution'.  In effect,
+ *                          the convolution kernel is a comb consisting of
+ *                          alternating +1 and -weight.
  * \param[out]   pscore convolution with "Haar"-like comb
  * \return  0 if OK, 1 on error
  *
