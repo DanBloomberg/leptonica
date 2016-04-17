@@ -175,7 +175,7 @@ static l_int32 numaaExtendArray(NUMAA  *naa);
 /*!
  * \brief   numaCreate()
  *
- * \param[in]    size of number array to be alloc'd 0 for default
+ * \param[in]    n size of number array to be alloc'd 0 for default
  * \return  na, or NULL on error
  */
 NUMA *
@@ -289,7 +289,7 @@ NUMA    *na;
 /*!
  * \brief   numaCreateFromString()
  *
- * \param[in]    string of comma-separated numbers
+ * \param[in]    str string of comma-separated numbers
  * \return  na, or NULL on error
  *
  * <pre>
@@ -341,7 +341,7 @@ SARRAY    *sa;
 /*!
  * \brief   numaDestroy()
  *
- * \param[in]    &na <to be nulled if it exists>
+ * \param[in,out] pna to be nulled if it exists
  * \return  void
  *
  * <pre>
@@ -1213,7 +1213,7 @@ l_float32  startx, delx;
 /*!
  * \brief   numaaCreate()
  *
- * \param[in]    size of numa ptr array to be alloc'd 0 for default
+ * \param[in]    n size of numa ptr array to be alloc'd 0 for default
  * \return  naa, or NULL on error
  *
  */
@@ -1316,7 +1316,7 @@ NUMA    *na;
 /*!
  * \brief   numaaDestroy()
  *
- * \param[in]   &numaa <to be nulled if it exists>
+ * \param[in,out]  pnaa to be nulled if it exists
  * \return  void
  */
 void
@@ -1560,7 +1560,7 @@ numaaGetNuma(NUMAA   *naa,
  *
  * \param[in]    naa
  * \param[in]    index  to the index-th numa
- * \param[in]    numa insert and replace any existing one
+ * \param[in]    na insert and replace any existing one
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1599,8 +1599,8 @@ l_int32  n;
  * \param[in]    naa
  * \param[in]    i index of numa within numaa
  * \param[in]    j index into numa
- * \param[out]   fval [optional] float value
- * \param[out]   ival [optional] int value
+ * \param[out]   pfval [optional] float value
+ * \param[out]   pival [optional] int value
  * \return  0 if OK, 1 on error
  */
 l_int32
