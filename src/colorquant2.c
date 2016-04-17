@@ -1260,7 +1260,7 @@ l_uint32  *data, *line;
  * \param[in]    histo  array; in rgb colorspace
  * \param[in]    sigbits
  * \param[in]    vbox input 3D box
- * \param[out]   pvbox1, vbox2 vbox split in two parts
+ * \param[out]   pvbox1, pvbox2 vbox split in two parts
  * \return  0 if OK, 1 on error
  */
 static l_int32
