@@ -515,8 +515,7 @@ PIXA        *pixac;
 /*!
  * \brief   bilateralDestroy()
  *
- * \param[in]    &bil
- * \return  void
+ * \param[in,out]   pbil will be nulled
  */
 static void
 bilateralDestroy(L_BILATERAL  **pbil)
