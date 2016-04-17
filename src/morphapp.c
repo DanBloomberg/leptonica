@@ -175,7 +175,7 @@ PIX  *pixd;
  * \param[in]    connectivity 4 or 8
  * \param[in]    minw  minimum width to consider; use 0 or 1 for any width
  * \param[in]    minh  minimum height to consider; use 0 or 1 for any height
- * \param[in]    &boxa [optional] return boxa of c.c. in pixs
+ * \param[out]   pboxa [optional] return boxa of c.c. in pixs
  * \return  pixd, or NULL on error
  *
  * <pre>
