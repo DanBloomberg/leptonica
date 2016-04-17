@@ -1126,7 +1126,7 @@ l_float64  startx, delx;
 /*!
  * \brief   l_dnaaCreate()
  *
- * \param[in]    size of l_dna ptr array to be alloc'd 0 for default
+ * \param[in]    n size of l_dna ptr array to be alloc'd 0 for default
  * \return  daa, or NULL on error
  *
  */
@@ -1229,7 +1229,7 @@ L_DNA   *da;
 /*!
  * \brief   l_dnaaDestroy()
  *
- * \param[in]   &dnaa <to be nulled if it exists>
+ * \param[in,out] pdaa to be nulled if it exists
  * \return  void
  */
 void
