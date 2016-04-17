@@ -190,7 +190,7 @@ L_KERNEL  *keld;
  * \param[in]    kel
  * \param[in]    row
  * \param[in]    col
- * \param[in]    &val
+ * \param[out]   pval
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -219,7 +219,7 @@ kernelGetElement(L_KERNEL   *kel,
 /*!
  * \brief   kernelSetElement()
  *
- * \param[in]    kernel
+ * \param[in]    kel kernel
  * \param[in]    row
  * \param[in]    col
  * \param[in]    val
@@ -248,7 +248,7 @@ kernelSetElement(L_KERNEL  *kel,
 /*!
  * \brief   kernelGetParameters()
  *
- * \param[in]    kernel
+ * \param[in]    kel  kernel
  * \param[out]   psy, psx, pcy, pcx [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
@@ -278,7 +278,7 @@ kernelGetParameters(L_KERNEL  *kel,
 /*!
  * \brief   kernelSetOrigin()
  *
- * \param[in]    kernel
+ * \param[in]    kel  kernel
  * \param[in]    cy, cx
  * \return  0 if OK; 1 on error
  */
@@ -300,7 +300,7 @@ kernelSetOrigin(L_KERNEL  *kel,
 /*!
  * \brief   kernelGetSum()
  *
- * \param[in]    kernel
+ * \param[in]    kel  kernel
  * \param[out]   psum sum of all kernel values
  * \return  0 if OK, 1 on error
  */
@@ -331,7 +331,7 @@ l_int32    sx, sy, i, j;
 /*!
  * \brief   kernelGetMinMax()
  *
- * \param[in]    kernel
+ * \param[in]    kel  kernel
  * \param[out]   pmin [optional] minimum value
  * \param[out]   pmax [optional] maximum value
  * \return  0 if OK, 1 on error
@@ -508,7 +508,7 @@ l_float32  **array;
 /*!
  * \brief   kernelRead()
  *
- * \param[in]    filename
+ * \param[in]    fname filename
  * \return  kernel, or NULL on error
  */
 L_KERNEL *
@@ -578,7 +578,7 @@ L_KERNEL  *kel;
  * \brief   kernelWrite()
  *
  * \param[in]    fname output file
- * \param[in]    kernel
+ * \param[in]    kel kernel
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -643,7 +643,7 @@ l_int32  sx, sy, cx, cy, i, j;
 /*!
  * \brief   kernelCreateFromString()
  *
- * \param[in]    height, width
+ * \param[in]    h, w     height, width
  * \param[in]    cy, cx   origin
  * \param[in]    kdata
  * \return  kernel of the given size, or NULL on error
@@ -737,12 +737,14 @@ NUMA      *na;
  *          format for the kernel data.  As an example, here are the lines
  *          of a valid kernel description file  In the file, all lines
  *          are left-justified:
+ * \code
  *                    # small 3x3 kernel
  *                    3 3
  *                    1 1
  *                    25.5   51    24.3
  *                    70.2  146.3  73.4
  *                    20     50.9  18.4
+ * \endcode
  * </pre>
  */
 L_KERNEL *
@@ -873,7 +875,7 @@ L_KERNEL  *kel;
 /*!
  * \brief   kernelDisplayInPix()
  *
- * \param[in]    kernel
+ * \param[in]    kel kernel
  * \param[in]    size of grid interiors; odd; either 1 or a minimum size
  *                    of 17 is enforced
  * \param[in]    gthick grid thickness; either 0 or a minimum size of 2
@@ -1001,7 +1003,7 @@ PIX       *pixd, *pixt0, *pixt1;
 /*!
  * \brief   parseStringForNumbers()
  *
- * \param[in]    string containing numbers; not changed
+ * \param[in]    str string containing numbers; not changed
  * \param[in]    seps string of characters that can be used between ints
  * \return  numa of numbers found, or NULL on error
  *
