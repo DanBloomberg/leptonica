@@ -1519,8 +1519,8 @@ PIX     *pixt1, *pixt2, *pixt3;
  * \brief   getExtendedCompositeParameters()
  *
  * \param[in]    size of linear Sel
- * \param[out]   ppn number of 63 wide convolutions
- * \param[out]   ppextra size of extra Sel
+ * \param[out]   pn number of 63 wide convolutions
+ * \param[out]   pextra size of extra Sel
  * \param[out]   pactualsize [optional] actual size used in operation
  * \return  0 if OK, 1 on error
  *
