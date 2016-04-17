@@ -954,9 +954,9 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
  *
  * \param[in]    data const; jpeg-encoded
  * \param[in]    size of data
- * \param[in]    colormap flag 0 means return RGB image if color;
- *                             1 means create a colormap and return
- *                             an 8 bpp colormapped image if color
+ * \param[in]    cmflag colormap flag 0 means return RGB image if color;
+ *                      1 means create a colormap and return
+ *                      an 8 bpp colormapped image if color
  * \param[in]    reduction scaling factor: 1, 2, 4 or 8
  * \param[out]   pnwarn [optional] number of warnings
  * \param[in]    hint a bitwise OR of L_JPEG_* values; 0 for default
