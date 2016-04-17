@@ -1378,7 +1378,7 @@ LEPT_DLL extern l_int32 cidConvertToPdfData ( L_COMP_DATA *cid, const char *titl
 LEPT_DLL extern void l_CIDataDestroy ( L_COMP_DATA **pcid );
 LEPT_DLL extern void l_pdfSetG4ImageMask ( l_int32 flag );
 LEPT_DLL extern void l_pdfSetDateAndVersion ( l_int32 flag );
-LEPT_DLL extern void setPixMemoryManager ( void * (  ( *allocator ) ( size_t ) ), void  (  ( *deallocator ) ( void * ) ) );
+LEPT_DLL extern void setPixMemoryManager ( alloc_fn allocator, dealloc_fn deallocator );
 LEPT_DLL extern PIX * pixCreate ( l_int32 width, l_int32 height, l_int32 depth );
 LEPT_DLL extern PIX * pixCreateNoInit ( l_int32 width, l_int32 height, l_int32 depth );
 LEPT_DLL extern PIX * pixCreateTemplate ( PIX *pixs );

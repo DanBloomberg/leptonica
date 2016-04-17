@@ -89,82 +89,82 @@
 #define  RECOG_VERSION_NUMBER      1
 
 struct L_Recoga {
-    l_int32              n;      /*!< number of recogs                     */
-    l_int32              nalloc; /*!< number of recog ptrs allocated       */
-    struct L_Recog     **recog;  /*!< recog ptr array                      */
-    struct L_Rcha       *rcha;   /*!< stores the array of best chars       */
+    l_int32              n;      /*!< number of recogs                       */
+    l_int32              nalloc; /*!< number of recog ptrs allocated         */
+    struct L_Recog     **recog;  /*!< recog ptr array                        */
+    struct L_Rcha       *rcha;   /*!< stores the array of best chars         */
 };
 typedef struct L_Recoga L_RECOGA;
 
 
 struct L_Recog {
-    l_int32        scalew;       /*!< scale all examples to this width;        */
-                                 /*!< use 0 prevent horizontal scaling         */
-    l_int32        scaleh;       /*!< scale all examples to this height;       */
-                                 /*!< use 0 prevent vertical scaling           */
-    l_int32        templ_type;   /*!< template type: either an average of      */
-                                 /*!< examples (L_USE_AVERAGE) or the set      */
-                                 /*!< of all examples (L_USE_ALL)              */
-    l_int32        maxarraysize; /*!< initialize container arrays to this      */
-    l_int32        setsize;      /*!< size of character set                    */
-    l_int32        threshold;    /*!< for binarizing if depth > 1              */
-    l_int32        maxyshift;    /*!< vertical jiggle on nominal centroid      */
-                                 /*!< alignment; typically 0 or 1              */
-    l_float32      asperity_fr;  /*!< +- allowed fractional asperity ratio     */
-    l_int32        charset_type; /*!< one of L_ARABIC_NUMERALS, etc.           */
-    l_int32        charset_size; /*!< expected number of classes in charset    */
-    char          *bootdir;      /*!< dir with bootstrap pixa charsets         */
-    char          *bootpattern;  /*!< file pattern for bootstrap pixa charsets */
-    char          *bootpath;     /*!< path for single bootstrap pixa charset   */
-    l_int32        boot_iters;   /*!< number of 2x2 erosion iters on boot pixa */
-    l_int32        min_nopad;    /*!< min number of samples without padding    */
-    l_int32        max_afterpad; /*!< max number of samples after padding      */
-    l_int32        min_samples;  /*!< min num of total samples; else use boot  */
-    l_int32        num_samples;  /*!< keep track of number of training samples */
-    l_int32        minwidth_u;   /*!< min width of averaged unscaled templates */
-    l_int32        maxwidth_u;   /*!< max width of averaged unscaled templates */
-    l_int32        minheight_u;  /*!< min height of averaged unscaled templates */
-    l_int32        maxheight_u;  /*!< max height of averaged unscaled templates */
-    l_int32        minwidth;     /*!< min width of averaged scaled templates   */
-    l_int32        maxwidth;     /*!< max width of averaged scaled templates   */
-    l_int32        ave_done;     /*!< set to 1 when averaged bitmaps are made  */
-    l_int32        train_done;   /*!< set to 1 when training is complete or    */
-                                 /*!< identification has started               */
-    l_int32        min_splitw;   /*!< min component width kept in splitting    */
-    l_int32        min_splith;   /*!< min component height kept in splitting   */
-    l_int32        max_splith;   /*!< max component height kept in splitting   */
-    struct Sarray *sa_text;      /*!< text array for arbitrary char set        */
-    struct L_Dna  *dna_tochar;   /*!< index-to-char lut for arbitrary char set */
-    l_int32       *centtab;      /*!< table for finding centroids              */
-    l_int32       *sumtab;       /*!< table for finding pixel sums             */
-    char          *fname;        /*!< serialized filename (if read)            */
-    struct Pixaa  *pixaa_u;      /*!< all unscaled bitmaps for each class      */
-    struct Pixa   *pixa_u;       /*!< averaged unscaled bitmaps for each class */
-    struct Ptaa   *ptaa_u;       /*!< centroids of all unscaled bitmaps        */
-    struct Pta    *pta_u;        /*!< centroids of unscaled averaged bitmaps   */
-    struct Numaa  *naasum_u;     /*!< area of all unscaled bitmap examples     */
-    struct Numa   *nasum_u;      /*!< area of unscaled averaged bitmaps        */
-    struct Pixaa  *pixaa;        /*!< all bitmap examples for each class       */
-    struct Pixa   *pixa;         /*!< averaged bitmaps for each class          */
-    struct Ptaa   *ptaa;         /*!< centroids of all bitmap examples         */
-    struct Pta    *pta;          /*!< centroids of averaged bitmaps            */
-    struct Numaa  *naasum;       /*!< area of all bitmap examples              */
-    struct Numa   *nasum;        /*!< area of averaged bitmaps                 */
-    struct Pixa   *pixa_tr;      /*!< input training images                    */
-    struct Pixa   *pixadb_ave;   /*!< unscaled and scaled averaged bitmaps     */
-    struct Pixa   *pixa_id;      /*!< input images for identifying             */
-    struct Pix    *pixdb_ave;    /*!< debug: best match of input against ave.  */
-    struct Pix    *pixdb_range;  /*!< debug: best matches within range         */
-    struct Pixa   *pixadb_boot;  /*!< debug: bootstrap training results        */
-    struct Pixa   *pixadb_split; /*!< debug: splitting results                 */
-    struct L_Bmf  *bmf;          /*!< bmf fonts                                */
-    l_int32        bmf_size;     /*!< font size of bmf; default is 6 pt        */
-    struct L_Rdid *did;          /*!< temp data used for image decoding        */
-    struct L_Rch  *rch;          /*!< temp data used for holding best char     */
-    struct L_Rcha *rcha;         /*!< temp data used for array of best chars   */
-    l_int32        bootrecog;    /*!< 1 if using bootstrap samples; else 0     */
-    l_int32        index;        /*!< recog index in recoga; -1 if no parent   */
-    struct L_Recoga  *parent;    /*!< ptr to parent array; can be null         */
+    l_int32        scalew;       /*!< scale all examples to this width;      */
+                                 /*!< use 0 prevent horizontal scaling       */
+    l_int32        scaleh;       /*!< scale all examples to this height;     */
+                                 /*!< use 0 prevent vertical scaling         */
+    l_int32        templ_type;   /*!< template type: either an average of    */
+                                 /*!< examples (L_USE_AVERAGE) or the set    */
+                                 /*!< of all examples (L_USE_ALL)            */
+    l_int32        maxarraysize; /*!< initialize container arrays to this    */
+    l_int32        setsize;      /*!< size of character set                  */
+    l_int32        threshold;    /*!< for binarizing if depth > 1            */
+    l_int32        maxyshift;    /*!< vertical jiggle on nominal centroid    */
+                                 /*!< alignment; typically 0 or 1            */
+    l_float32      asperity_fr;  /*!< +- allowed fractional asperity ratio   */
+    l_int32        charset_type; /*!< one of L_ARABIC_NUMERALS, etc.         */
+    l_int32        charset_size; /*!< expected number of classes in charse   */
+    char          *bootdir;      /*!< dir with bootstrap pixa charsets       */
+    char          *bootpattern;  /*!< file pattern: bootstrap pixa charsets  */
+    char          *bootpath;     /*!< path for single bootstrap pixa charset */
+    l_int32        boot_iters;   /*!< num of 2x2 erosion iters on boot pixa  */
+    l_int32        min_nopad;    /*!< min number of samples without padding  */
+    l_int32        max_afterpad; /*!< max number of samples after padding    */
+    l_int32        min_samples;  /*!< min num of total samples; else use boot */
+    l_int32        num_samples;  /*!< number of training samples             */
+    l_int32        minwidth_u;   /*!< min width averaged unscaled templates  */
+    l_int32        maxwidth_u;   /*!< max width averaged unscaled templates  */
+    l_int32        minheight_u;  /*!< min height averaged unscaled templates */
+    l_int32        maxheight_u;  /*!< max height averaged unscaled templates */
+    l_int32        minwidth;     /*!< min width averaged scaled templates    */
+    l_int32        maxwidth;     /*!< max width averaged scaled templates    */
+    l_int32        ave_done;     /*!< set to 1 when averaged bitmaps are made */
+    l_int32        train_done;   /*!< set to 1 when training is complete or  */
+                                 /*!< identification has started             */
+    l_int32        min_splitw;   /*!< min component width kept in splitting  */
+    l_int32        min_splith;   /*!< min component height kept in splitting */
+    l_int32        max_splith;   /*!< max component height kept in splitting */
+    struct Sarray *sa_text;      /*!< text array for arbitrary char set      */
+    struct L_Dna  *dna_tochar;   /*!< index-to-char lut for arbitrary charset */
+    l_int32       *centtab;      /*!< table for finding centroids            */
+    l_int32       *sumtab;       /*!< table for finding pixel sums           */
+    char          *fname;        /*!< serialized filename (if read)          */
+    struct Pixaa  *pixaa_u;      /*!< all unscaled bitmaps for each class    */
+    struct Pixa   *pixa_u;       /*!< averaged unscaled bitmaps per class    */
+    struct Ptaa   *ptaa_u;       /*!< centroids of all unscaled bitmaps      */
+    struct Pta    *pta_u;        /*!< centroids of unscaled averaged bitmaps */
+    struct Numaa  *naasum_u;     /*!< area of all unscaled bitmap examples   */
+    struct Numa   *nasum_u;      /*!< area of unscaled averaged bitmaps      */
+    struct Pixaa  *pixaa;        /*!< all bitmap examples for each class     */
+    struct Pixa   *pixa;         /*!< averaged bitmaps for each class        */
+    struct Ptaa   *ptaa;         /*!< centroids of all bitmap examples       */
+    struct Pta    *pta;          /*!< centroids of averaged bitmaps          */
+    struct Numaa  *naasum;       /*!< area of all bitmap examples            */
+    struct Numa   *nasum;        /*!< area of averaged bitmaps               */
+    struct Pixa   *pixa_tr;      /*!< input training images                  */
+    struct Pixa   *pixadb_ave;   /*!< unscaled and scaled averaged bitmaps   */
+    struct Pixa   *pixa_id;      /*!< input images for identifying           */
+    struct Pix    *pixdb_ave;    /*!< debug: best match of input against ave. */
+    struct Pix    *pixdb_range;  /*!< debug: best matches within range       */
+    struct Pixa   *pixadb_boot;  /*!< debug: bootstrap training results      */
+    struct Pixa   *pixadb_split; /*!< debug: splitting results               */
+    struct L_Bmf  *bmf;          /*!< bmf fonts                              */
+    l_int32        bmf_size;     /*!< font size of bmf; default is 6 pt      */
+    struct L_Rdid *did;          /*!< temp data used for image decoding      */
+    struct L_Rch  *rch;          /*!< temp data used for holding best char   */
+    struct L_Rcha *rcha;         /*!< temp data used for array of best chars */
+    l_int32        bootrecog;    /*!< 1 if using bootstrap samples; else 0   */
+    l_int32        index;        /*!< recog index in recoga; -1 if no parent */
+    struct L_Recoga  *parent;    /*!< ptr to parent array; can be null       */
 
 };
 typedef struct L_Recog L_RECOG;
@@ -202,29 +202,29 @@ typedef struct L_Rcha L_RCHA;
  *  Data used for decoding a line of characters.
  */
 struct L_Rdid {
-    struct Pix    *pixs;         /*!< clone of pix to be decoded               */
-    l_int32      **counta;       /*!< count array for each averaged template   */
-    l_int32      **delya;        /*!< best y-shift array per averaged template */
-    l_int32        narray;       /*!< number of averaged templates             */
-    l_int32        size;         /*!< size of count array (width of pixs)      */
-    l_int32       *setwidth;     /*!< setwidths for each template              */
-    struct Numa   *nasum;        /*!< pixel count in pixs by column            */
-    struct Numa   *namoment;     /*!< first moment of pixels in pixs by column */
-    l_int32        fullarrays;   /*!< 1 if full arrays are made; 0 otherwise   */
-    l_float32     *beta;         /*!< channel coeffs for template fg term      */
-    l_float32     *gamma;        /*!< channel coeffs for bit-and term          */
-    l_float32     *trellisscore; /*!< score on trellis                         */
-    l_int32       *trellistempl; /*!< template on trellis (for backtrack)      */
-    struct Numa   *natempl;      /*!< indices of best path templates           */
-    struct Numa   *naxloc;       /*!< x locations of best path templates       */
-    struct Numa   *nadely;       /*!< y locations of best path templates       */
-    struct Numa   *nawidth;      /*!< widths of best path templates            */
-    struct Numa   *nascore;      /*!< correlation scores: best path templates  */
-    struct Numa   *natempl_r;    /*!< indices of best rescored templates       */
-    struct Numa   *naxloc_r;     /*!< x locations of best rescoredtemplates    */
-    struct Numa   *nadely_r;     /*!< y locations of best rescoredtemplates    */
-    struct Numa   *nawidth_r;    /*!< widths of best rescoredtemplates         */
-    struct Numa   *nascore_r;    /*!< correlation scores: rescored templates   */
+    struct Pix    *pixs;         /*!< clone of pix to be decoded             */
+    l_int32      **counta;       /*!< count array for each averaged template */
+    l_int32      **delya;        /*!< best y-shift array per average template */
+    l_int32        narray;       /*!< number of averaged templates           */
+    l_int32        size;         /*!< size of count array (width of pixs)    */
+    l_int32       *setwidth;     /*!< setwidths for each template            */
+    struct Numa   *nasum;        /*!< pixel count in pixs by column          */
+    struct Numa   *namoment;     /*!< first moment of pixels in pixs by cols */
+    l_int32        fullarrays;   /*!< 1 if full arrays are made; 0 otherwise */
+    l_float32     *beta;         /*!< channel coeffs for template fg term    */
+    l_float32     *gamma;        /*!< channel coeffs for bit-and term        */
+    l_float32     *trellisscore; /*!< score on trellis                       */
+    l_int32       *trellistempl; /*!< template on trellis (for backtrack)    */
+    struct Numa   *natempl;      /*!< indices of best path templates         */
+    struct Numa   *naxloc;       /*!< x locations of best path templates     */
+    struct Numa   *nadely;       /*!< y locations of best path templates     */
+    struct Numa   *nawidth;      /*!< widths of best path templates          */
+    struct Numa   *nascore;      /*!< correlation scores: best path templates */
+    struct Numa   *natempl_r;    /*!< indices of best rescored templates     */
+    struct Numa   *naxloc_r;     /*!< x locations of best rescoredtemplates  */
+    struct Numa   *nadely_r;     /*!< y locations of best rescoredtemplates  */
+    struct Numa   *nawidth_r;    /*!< widths of best rescoredtemplates       */
+    struct Numa   *nascore_r;    /*!< correlation scores: rescored templates */
 };
 typedef struct L_Rdid L_RDID;
 

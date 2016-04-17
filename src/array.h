@@ -144,9 +144,9 @@ enum {
 
     /*! Flags for added borders in Numa and Fpix */
 enum {
-    L_CONTINUED_BORDER = 1,     /*!< extended with same value                  */
-    L_SLOPE_BORDER = 2,         /*!< extended with constant normal derivative  */
-    L_MIRRORED_BORDER = 3       /*!< mirrored                                  */
+    L_CONTINUED_BORDER = 1,    /*!< extended with same value                  */
+    L_SLOPE_BORDER = 2,        /*!< extended with constant normal derivative  */
+    L_MIRRORED_BORDER = 3      /*!< mirrored                                  */
 };
 
     /*! Flags for data type converted from Numa */

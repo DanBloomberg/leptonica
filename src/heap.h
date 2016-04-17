@@ -76,10 +76,10 @@
 /*! Heap of arbitrary void* data */
 struct L_Heap
 {
-    l_int32      nalloc;      /*!< size of allocated ptr array                 */
-    l_int32      n;           /*!< number of elements stored in the heap       */
-    void       **array;       /*!< ptr array                                   */
-    l_int32      direction;   /*!< L_SORT_INCREASING or L_SORT_DECREASING      */
+    l_int32      nalloc;      /*!< size of allocated ptr array               */
+    l_int32      n;           /*!< number of elements stored in the heap     */
+    void       **array;       /*!< ptr array                                 */
+    l_int32      direction;   /*!< L_SORT_INCREASING or L_SORT_DECREASING    */
 };
 typedef struct L_Heap  L_HEAP;
 

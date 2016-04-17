@@ -207,17 +207,18 @@ static void pixFree(PIX *pix);
  *  to specify other functions to use.                                     *
  *-------------------------------------------------------------------------*/
 
-/*! Allocator function type */
-typedef void *(*alloc_fn)(size_t);
-
-/*! Deallocator function type */
-typedef void (*dealloc_fn)(void *);
-
-/*! Pix memory manager function ptrs */
+/*! Pix memory manager */
+    /*
+     * <pre>
+     * Notes:
+     *      (1) The allocator and deallocator function types,
+     *          alloc_fn and dealloc_fn, are defined in pix.h.
+     * </pre>
+     */
 struct PixMemoryManager
 {
-    alloc_fn   allocator;
-    dealloc_fn deallocator;
+    alloc_fn    allocator;
+    dealloc_fn  deallocator;
 };
 
 /*! Default Pix memory manager */

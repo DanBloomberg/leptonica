@@ -47,70 +47,76 @@
  *              cmapped images.
  *          (2) PixComp can hold any Pix with IFF_PNG encoding.
  *
- *   This file defines most of the image-related structs used in leptonica:
- *       struct Pix
- *       struct PixColormap
- *       struct RGBA_Quad
- *       struct Pixa
- *       struct Pixaa
- *       struct Box
- *       struct Boxa
- *       struct Boxaa
- *       struct Pta
- *       struct Ptaa
- *       struct Pixacc
- *       struct PixTiling
- *       struct FPix
- *       struct FPixa
- *       struct DPix
- *       struct PixComp
- *       struct PixaComp
+ *   Contents:
  *
- *   This file has definitions for:
- *       Colors for RGB
- *       Perceptual color weights
- *       Colormap conversion flags
- *       Rasterop bit flags
- *       Structure access flags (for insert, copy, clone, copy-clone)
- *       Sorting flags (by type and direction)
- *       Blending flags
- *       Graphics pixel setting flags
- *       Size filtering flags
- *       Color component selection flags
- *       16-bit conversion flags
- *       Rotation and shear flags
- *       Affine transform order flags
- *       Grayscale filling flags
- *       Flags for setting to white or black
- *       Flags for getting white or black pixel value
- *       Flags for 8 and 16 bit pixel sums
- *       Dithering flags
- *       Distance flags
- *       Statistical measures
- *       Set selection flags
- *       Text orientation flags
- *       Edge orientation flags
- *       Line orientation flags
- *       Scan direction flags
- *       Box size adjustment flags
- *       Flags for selecting box boundaries from two choices
- *       Handling overlapping bounding boxes in boxa
- *       Flags for replacing invalid boxes
- *       Horizontal warp
- *       Pixel selection for resampling
- *       Thinning flags
- *       Runlength flags
- *       Edge filter flags
- *       Subpixel color component ordering in LCD display
- *       HSV histogram flags
- *       Region flags (inclusion, exclusion)
- *       Flags for adding text to a pix
- *       Flags for plotting on a pix
- *       Flags for selecting display program
- *       Flags in the 'special' pix field for non-default operations
- *       Handling negative values in conversion to unsigned int
- *       Relative to zero flags
- *       Flags for adding or removing traling slash from string
+ *   (1) This file defines most of the image-related structs used in leptonica:
+ *         struct Pix
+ *         struct PixColormap
+ *         struct RGBA_Quad
+ *         struct Pixa
+ *         struct Pixaa
+ *         struct Box
+ *         struct Boxa
+ *         struct Boxaa
+ *         struct Pta
+ *         struct Ptaa
+ *         struct Pixacc
+ *         struct PixTiling
+ *         struct FPix
+ *         struct FPixa
+ *         struct DPix
+ *         struct PixComp
+ *         struct PixaComp
+ *
+ *   (2) This file has definitions for:
+ *         Colors for RGB
+ *         Perceptual color weights
+ *         Colormap conversion flags
+ *         Rasterop bit flags
+ *         Structure access flags (for insert, copy, clone, copy-clone)
+ *         Sorting flags (by type and direction)
+ *         Blending flags
+ *         Graphics pixel setting flags
+ *         Size filtering flags
+ *         Color component selection flags
+ *         16-bit conversion flags
+ *         Rotation and shear flags
+ *         Affine transform order flags
+ *         Grayscale filling flags
+ *         Flags for setting to white or black
+ *         Flags for getting white or black pixel value
+ *         Flags for 8 and 16 bit pixel sums
+ *         Dithering flags
+ *         Distance flags
+ *         Statistical measures
+ *         Set selection flags
+ *         Text orientation flags
+ *         Edge orientation flags
+ *         Line orientation flags
+ *         Scan direction flags
+ *         Box size adjustment flags
+ *         Flags for selecting box boundaries from two choices
+ *         Handling overlapping bounding boxes in boxa
+ *         Flags for replacing invalid boxes
+ *         Horizontal warp
+ *         Pixel selection for resampling
+ *         Thinning flags
+ *         Runlength flags
+ *         Edge filter flags
+ *         Subpixel color component ordering in LCD display
+ *         HSV histogram flags
+ *         Region flags (inclusion, exclusion)
+ *         Flags for adding text to a pix
+ *         Flags for plotting on a pix
+ *         Flags for selecting display program
+ *         Flags in the 'special' pix field for non-default operations
+ *         Handling negative values in conversion to unsigned int
+ *         Relative to zero flags
+ *         Flags for adding or removing traling slash from string
+ *
+ *   (3) This file has typedefs for the pix allocator and deallocator functions
+ *         alloc_fn()
+ *         dealloc_fn().
  * </pre>
  */
 
@@ -210,16 +216,16 @@ static const l_int32  L_ALPHA_SHIFT =
  *-------------------------------------------------------------------------*/
 /* <pre>
  *  Notes:
- *      (1) These numbers are ad-hoc, but they do add up to 1.
- *          Unlike, for example, the weighting factor for conversion
- *          of RGB to luminance, or more specifically to Y in the
+ *      (1) These perceptual weighting factors are ad-hoc, but they do
+ *          add up to 1.  Unlike, for example, the weighting factors for
+ *          converting RGB to luminance, or more specifically to Y in the
  *          YUV colorspace.  Those numbers come from the
  *          International Telecommunications Union, via ITU-R.
  * </pre>
  */
-static const l_float32  L_RED_WEIGHT =   0.3;  /*!< Perceptual color weight for red   */
-static const l_float32  L_GREEN_WEIGHT = 0.5;  /*!< Perceptual color weight for green */
-static const l_float32  L_BLUE_WEIGHT =  0.2;  /*!< Perceptual color weight for blue  */
+static const l_float32  L_RED_WEIGHT =   0.3;  /*!< Percept. weight for red   */
+static const l_float32  L_GREEN_WEIGHT = 0.5;  /*!< Percept. weight for green */
+static const l_float32  L_BLUE_WEIGHT =  0.2;  /*!< Percept. weight for blue  */
 
 
 /*-------------------------------------------------------------------------*
@@ -302,16 +308,16 @@ enum {
  * </pre>
  *-------------------------------------------------------------------------*/
 
-#define   PIX_SRC      (0xc)                        /*!< use source pixels      */
-#define   PIX_DST      (0xa)                        /*!< use destination pixels */
-#define   PIX_NOT(op)  ((op) ^ 0x0f)                /*!< invert operation %op   */
-#define   PIX_CLR      (0x0)                        /*!< clear pixels           */
-#define   PIX_SET      (0xf)                        /*!< set pixels             */
+#define   PIX_SRC      (0xc)                      /*!< use source pixels      */
+#define   PIX_DST      (0xa)                      /*!< use destination pixels */
+#define   PIX_NOT(op)  ((op) ^ 0x0f)              /*!< invert operation %op   */
+#define   PIX_CLR      (0x0)                      /*!< clear pixels           */
+#define   PIX_SET      (0xf)                      /*!< set pixels             */
 
-#define   PIX_PAINT    (PIX_SRC | PIX_DST)          /*!< paint = src | dst      */
-#define   PIX_MASK     (PIX_SRC & PIX_DST)          /*!< mask = src & dst       */
+#define   PIX_PAINT    (PIX_SRC | PIX_DST)        /*!< paint = src | dst      */
+#define   PIX_MASK     (PIX_SRC & PIX_DST)        /*!< mask = src & dst       */
 #define   PIX_SUBTRACT (PIX_DST & PIX_NOT(PIX_SRC)) /*!< subtract = src & !dst  */
-#define   PIX_XOR      (PIX_SRC ^ PIX_DST)          /*!< xor = src ^ dst        */
+#define   PIX_XOR      (PIX_SRC ^ PIX_DST)        /*!< xor = src ^ dst        */
 
 
 /*-------------------------------------------------------------------------*
@@ -569,7 +575,6 @@ struct FPix
 };
 typedef struct FPix FPIX;
 
-
 /*! Array of FPix */
 struct FPixa
 {
@@ -697,14 +702,14 @@ static const l_int32  L_NOCOPY = 0;  /*!< copyflag value in sarrayGetString() */
 
 /*! Sort mode flags */
 enum {
-    L_SHELL_SORT = 1,            /*!< use shell sort                          */
-    L_BIN_SORT = 2               /*!< use bin sort                            */
+    L_SHELL_SORT = 1,            /*!< use shell sort                        */
+    L_BIN_SORT = 2               /*!< use bin sort                          */
 };
 
 /*! Sort order flags */
 enum {
-    L_SORT_INCREASING = 1,       /*!< sort in increasing order                */
-    L_SORT_DECREASING = 2        /*!< sort in decreasing order                */
+    L_SORT_INCREASING = 1,       /*!< sort in increasing order              */
+    L_SORT_DECREASING = 2        /*!< sort in decreasing order              */
 };
 
 /*! Sort type flags */
@@ -1250,6 +1255,16 @@ enum {
     L_ADD_TRAIL_SLASH = 1,     /*!< Add trailing slash to string           */
     L_REMOVE_TRAIL_SLASH = 2   /*!< Remove trailing slash from string      */
 };
+
+
+/*-------------------------------------------------------------------------*
+ *               Pix allocator and deallocator function types              *
+ *-------------------------------------------------------------------------*/
+/*! Allocator function type */
+typedef void *(*alloc_fn)(size_t);
+
+/*! Deallocator function type */
+typedef void (*dealloc_fn)(void *);
 
 
 #endif  /* LEPTONICA_PIX_H */
