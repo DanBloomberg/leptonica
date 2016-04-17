@@ -652,7 +652,7 @@ PTAA    *ptaa;
 /*!
  * \brief   generatePtaPolyline()
  *
- * \param[in]    pta vertices of polyline
+ * \param[in]    ptas vertices of polyline
  * \param[in]    width
  * \param[in]    closeflag 1 to close the contour; 0 otherwise
  * \param[in]    removedups  1 to remove, 0 to leave
@@ -940,12 +940,12 @@ locatePtRadially(l_int32     xr,
 /*!
  * \brief   pixRenderPlotFromNuma()
  *
- * \param[in]    &pix any type; replaced if not 32 bpp rgb
- * \param[in]    numa to be plotted
- * \param[in]    plotloc location of plot: L_PLOT_AT_TOP, etc
- * \param[in]    linewidth width of "line" that is drawn; between 1 and 7
- * \param[in]    max maximum excursion in pixels from baseline
- * \param[in]    color plot color: 0xrrggbb00
+ * \param[in,out]  ppix any type; replaced if not 32 bpp rgb
+ * \param[in]      na to be plotted
+ * \param[in]      plotloc location of plot: L_PLOT_AT_TOP, etc
+ * \param[in]      linewidth width of "line" that is drawn; between 1 and 7
+ * \param[in]      max maximum excursion in pixels from baseline
+ * \param[in]      color plot color: 0xrrggbb00
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -998,7 +998,7 @@ PTA     *pta;
 /*!
  * \brief   makePlotPtaFromNuma()
  *
- * \param[in]    numa
+ * \param[in]    na
  * \param[in]    size pix height for horizontal plot; width for vertical plot
  * \param[in]    plotloc location of plot: L_PLOT_AT_TOP, etc
  * \param[in]    linewidth width of "line" that is drawn; between 1 and 7
@@ -1052,14 +1052,14 @@ l_int32  orient, refpos;
 /*!
  * \brief   pixRenderPlotFromNumaGen()
  *
- * \param[in]    &pix any type; replaced if not 32 bpp rgb
- * \param[in]    numa to be plotted
- * \param[in]    orient L_HORIZONTAL_LINE, L_VERTICAL_LINE
- * \param[in]    linewidth width of "line" that is drawn; between 1 and 7
- * \param[in]    refpos reference position: y for horizontal and x for vertical
- * \param[in]    max maximum excursion in pixels from baseline
- * \param[in]    drawref 1 to draw the reference line and the normal to it
- * \param[in]    color plot color: 0xrrggbb00
+ * \param[in,out]  ppix any type; replaced if not 32 bpp rgb
+ * \param[in]      na to be plotted
+ * \param[in]      orient L_HORIZONTAL_LINE, L_VERTICAL_LINE
+ * \param[in]      linewidth width of "line" that is drawn; between 1 and 7
+ * \param[in]      refpos reference position: y for horizontal and x for vertical
+ * \param[in]      max maximum excursion in pixels from baseline
+ * \param[in]      drawref 1 to draw the reference line and the normal to it
+ * \param[in]      color plot color: 0xrrggbb00
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1111,7 +1111,7 @@ PTA     *pta;
 /*!
  * \brief   makePlotPtaFromNumaGen()
  *
- * \param[in]    numa
+ * \param[in]    na
  * \param[in]    orient L_HORIZONTAL_LINE, L_VERTICAL_LINE
  * \param[in]    linewidth width of "line" that is drawn; between 1 and 7
  * \param[in]    refpos reference position: y for horizontal and x for vertical
@@ -1669,7 +1669,7 @@ PTA  *pta;
  * \param[in]    width  thickness of box lines
  * \param[in]    rval, gval, bval
  * \param[in]    fract in [0.0 - 1.0]; complete transparency (no effect
- * \param[in]           if 0.0; no transparency if 1.0)
+ *                      if 0.0; no transparency if 1.0)
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -1786,7 +1786,7 @@ PTA  *pta;
  * \param[in]    width  thickness of line
  * \param[in]    rval, gval, bval
  * \param[in]    fract in [0.0 - 1.0]; complete transparency (no effect
- * \param[in]           if 0.0; no transparency if 1.0)
+ *                      if 0.0; no transparency if 1.0)
  * \param[in]    removedups  1 to remove; 0 otherwise
  * \return  0 if OK, 1 on error
  */
@@ -1932,7 +1932,7 @@ PTA  *pta;
  * \param[in]    outline  0 to skip drawing box outline
  * \param[in]    rval, gval, bval
  * \param[in]    fract in [0.0 - 1.0]; complete transparency (no effect
- * \param[in]           if 0.0; no transparency if 1.0)
+ *                      if 0.0; no transparency if 1.0)
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -2085,7 +2085,7 @@ PTA  *pta;
  * \param[in]    outline  0 to skip drawing box outline
  * \param[in]    rval, gval, bval
  * \param[in]    fract in [0.0 - 1.0]; complete transparency (no effect
- * \param[in]           if 0.0; no transparency if 1.0)
+ *                      if 0.0; no transparency if 1.0)
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -2225,7 +2225,7 @@ PTA  *pta;
  * \param[in]    width  thickness of line
  * \param[in]    rval, gval, bval
  * \param[in]    fract in [0.0 - 1.0]; complete transparency (no effect
- * \param[in]           if 0.0; no transparency if 1.0)
+ *                      if 0.0; no transparency if 1.0)
  * \param[in]    closeflag 1 to close the contour; 0 otherwise
  * \param[in]    removedups  1 to remove; 0 otherwise
  * \return  0 if OK, 1 on error
