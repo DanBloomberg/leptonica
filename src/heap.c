@@ -94,7 +94,7 @@ static l_int32 lheapExtendArray(L_HEAP *lh);
 /*!
  * \brief   lheapCreate()
  *
- * \param[in]    size of ptr array to be alloc'd 0 for default
+ * \param[in]    nalloc size of ptr array to be alloc'd 0 for default
  * \param[in]    direction L_SORT_INCREASING, L_SORT_DECREASING
  * \return  lheap, or NULL on error
  */
@@ -124,7 +124,7 @@ L_HEAP  *lh;
 /*!
  * \brief   lheapDestroy()
  *
- * \param[in,out]   plheap  to be nulled
+ * \param[in,out]   plh  to be nulled
  * \param[in]    freeflag TRUE to free each remaining struct in the array
  * \return  void
  *
@@ -176,7 +176,7 @@ L_HEAP  *lh;
 /*!
  * \brief   lheapAdd()
  *
- * \param[in]    lheap
+ * \param[in]    lh heap
  * \param[in]    item to be added to the tail of the heap
  * \return  0 if OK, 1 on error
  */
@@ -208,7 +208,7 @@ lheapAdd(L_HEAP  *lh,
 /*!
  * \brief   lheapExtendArray()
  *
- * \param[in]    lheap
+ * \param[in]    lh heap
  * \return  0 if OK, 1 on error
  */
 static l_int32
@@ -232,7 +232,7 @@ lheapExtendArray(L_HEAP  *lh)
 /*!
  * \brief   lheapRemove()
  *
- * \param[in]    lheap
+ * \param[in]    lh heap
  * \return  ptr to item popped from the root of the heap,
  *              or NULL if the heap is empty or on error
  */
@@ -262,7 +262,7 @@ void   *item;
 /*!
  * \brief   lheapGetCount()
  *
- * \param[in]    lheap
+ * \param[in]    lh heap
  * \return  count, or 0 on error
  */
 l_int32
@@ -515,7 +515,7 @@ l_int32  i, index, size;
  * \brief   lheapPrint()
  *
  * \param[in]    fp file stream
- * \param[in]    lheap
+ * \param[in]    lh heap
  * \return  0 if OK; 1 on error
  */
 l_int32
