@@ -360,7 +360,7 @@ PIXCMAP   *cmap1, *cmap2;
  *
  * \param[in]    pix1
  * \param[in]    pix2
- * \param[in]    &same
+ * \param[out]   psame
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1516,8 +1516,8 @@ PIX        *pixt1, *pixt2;
 /*!
  * \brief   pixGetPerceptualDiff()
  *
- * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pixs1 8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pixs2 8 bpp gray or 32 bpp rgb, or colormapped
  * \param[in]    sampling subsampling factor; use 0 or 1 for no subsampling
  * \param[in]    dilation size of grayscale or color Sel; odd
  * \param[in]    mindiff minimum pixel difference to be counted; > 0
@@ -2127,7 +2127,7 @@ PIXA      *pixa;
 /*!
  * \brief   pixGenPhotoHistos()
  *
- * \param[in]    pix depth > 1 bpp; colormap OK
+ * \param[in]    pixs depth > 1 bpp; colormap OK
  * \param[in]    box [optional] region to be selected; can be null
  * \param[in]    factor subsampling; >= 1
  * \param[in]    thresh threshold for photo/text; use 0 for default
@@ -2998,7 +2998,7 @@ PIX       *pix3, *pix4;
 /*!
  * \brief   l_compressGrayHistograms()
  *
- * \param[in]    numaa set of 256-entry histograms
+ * \param[in]    naa set of 256-entry histograms
  * \param[in]    w, h size of image
  * \param[out]   psize size of byte array
  * \return  0 if OK, 1 on error
