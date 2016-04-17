@@ -1291,10 +1291,10 @@ NUMA      *na;
  * \brief   pixCountTextColumns()
  *
  * \param[in]    pixs 1 bpp
- * \param[in]    deltafract fraction of (max - min to be used in the delta
- * \param[in]               for extrema finding; typ 0.3)
- * \param[in]    peakfract fraction of (max - min to be used to threshold
- * \param[in]               the peak value; typ. 0.5)
+ * \param[in]    deltafract fraction of (max - min) to be used in the delta
+ *                          for extrema finding; typ 0.3
+ * \param[in]    peakfract fraction of (max - min) to be used to threshold
+ *                          the peak value; typ. 0.5
  * \param[in]    clipfract fraction of image dimension removed on each side;
  *                         typ. 0.1, which leaves w and h reduced by 0.8
  * \param[out]   pncols number of columns; -1 if not determined
