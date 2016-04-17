@@ -190,8 +190,8 @@ PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
 /*!
  * \brief   pixBlockconvGray()
  *
- * \param[in]    pix 8 bpp
- * \param[in]    accum pix 32 bpp; can be null
+ * \param[in]    pixs     8 bpp
+ * \param[in]    pixacc   pix 32 bpp; can be null
  * \param[in]    wc, hc   half width/height of convolution kernel
  * \return  pix 8 bpp, or NULL on error
  *
@@ -943,8 +943,8 @@ PIX       *pixt, *pixd;
  * \param[in]    pixs 8 bpp grayscale
  * \param[in]    wc, hc   half width/height of convolution kernel
  * \param[in]    hasborder use 1 if it already has (wc + 1 border pixels
- * \param[in]               on left and right, and hc + 1 on top and bottom;
- * \param[in]               use 0 to add kernel-dependent border)
+ *                          on left and right, and hc + 1 on top and bottom;
+ *                          use 0 to add kernel-dependent border)
  * \param[out]   ppixm [optional] 8 bpp mean value in window
  * \param[out]   ppixms [optional] 32 bpp mean square value in window
  * \param[out]   pfpixv [optional] float variance in window
@@ -1033,13 +1033,13 @@ PIX  *pixb, *pixm, *pixms;
 /*!
  * \brief   pixWindowedMean()
  *
- * \param[in]    pixs 8 or 32 bpp grayscale
- * \param[in]    wc, hc   half width/height of convolution kernel
+ * \param[in]    pixs      8 or 32 bpp grayscale
+ * \param[in]    wc, hc    half width/height of convolution kernel
  * \param[in]    hasborder use 1 if it already has (wc + 1 border pixels
- * \param[in]               on left and right, and hc + 1 on top and bottom;
- * \param[in]               use 0 to add kernel-dependent border)
- * \param[in]    normflag 1 for normalization to get average in window;
- *                        0 for the sum in the window (un-normalized)
+ *                          on left and right, and hc + 1 on top and bottom;
+ *                          use 0 to add kernel-dependent border)
+ * \param[in]    normflag  1 for normalization to get average in window;
+ *                         0 for the sum in the window (un-normalized)
  * \return  pixd 8 or 32 bpp, average over kernel window
  *
  * <pre>
@@ -1141,11 +1141,11 @@ PIX       *pixb, *pixc, *pixd;
 /*!
  * \brief   pixWindowedMeanSquare()
  *
- * \param[in]    pixs 8 bpp grayscale
- * \param[in]    wc, hc   half width/height of convolution kernel
+ * \param[in]    pixs      8 bpp grayscale
+ * \param[in]    wc, hc    half width/height of convolution kernel
  * \param[in]    hasborder use 1 if it already has (wc + 1 border pixels
- * \param[in]               on left and right, and hc + 1 on top and bottom;
- * \param[in]               use 0 to add kernel-dependent border)
+ *                          on left and right, and hc + 1 on top and bottom;
+ *                          use 0 to add kernel-dependent border)
  * \return  pixd 32 bpp, average over rectangular window of
  *                    width = 2 * wc + 1 and height = 2 * hc + 1
  *
@@ -1409,10 +1409,10 @@ DPIX       *dpix;
 /*!
  * \brief   pixBlockrank()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    accum pix [optional] 32 bpp
- * \param[in]    wc, hc   half width/height of block sum/rank kernel
- * \param[in]    rank   between 0.0 and 1.0; 0.5 is median filter
+ * \param[in]    pixs    1 bpp
+ * \param[in]    pixacc  pix [optional] 32 bpp
+ * \param[in]    wc, hc  half width/height of block sum/rank kernel
+ * \param[in]    rank    between 0.0 and 1.0; 0.5 is median filter
  * \return  pixd 1 bpp
  *
  * <pre>
@@ -1487,8 +1487,8 @@ PIX     *pixt, *pixd;
 /*!
  * \brief   pixBlocksum()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    accum pix [optional] 32 bpp
+ * \param[in]    pixs     1 bpp
+ * \param[in]    pixacc   pix [optional] 32 bpp
  * \param[in]    wc, hc   half width/height of block sum/rank kernel
  * \return  pixd 8 bpp
  *
@@ -1730,9 +1730,9 @@ l_uint32  *linemina, *linemaxa, *lined;
 /*!
  * \brief   pixCensusTransform()
  *
- * \param[in]    pixs 8 bpp
+ * \param[in]    pixs     8 bpp
  * \param[in]    halfsize of square over which neighbors are averaged
- * \param[in]    accum pix [optional] 32 bpp
+ * \param[in]    pixacc   pix [optional] 32 bpp
  * \return  pixd 1 bpp
  *
  * <pre>
@@ -1815,10 +1815,10 @@ PIX       *pixav, *pixd;
 /*!
  * \brief   pixConvolve()
  *
- * \param[in]    pixs 8, 16, 32 bpp; no colormap
- * \param[in]    kernel
- * \param[in]    outdepth of pixd: 8, 16 or 32
- * \param[in]    normflag 1 to normalize kernel to unit sum; 0 otherwise
+ * \param[in]    pixs      8, 16, 32 bpp; no colormap
+ * \param[in]    kel       kernel
+ * \param[in]    outdepth  of pixd: 8, 16 or 32
+ * \param[in]    normflag  1 to normalize kernel to unit sum; 0 otherwise
  * \return  pixd 8, 16 or 32 bpp
  *
  * <pre>
@@ -2032,7 +2032,7 @@ PIX       *pixt, *pixd;
  * \brief   pixConvolveRGB()
  *
  * \param[in]    pixs 32 bpp rgb
- * \param[in]    kernel
+ * \param[in]    kel  kernel
  * \return  pixd 32 bpp rgb
  *
  * <pre>
@@ -2151,8 +2151,8 @@ PIX  *pixt, *pixr, *pixg, *pixb, *pixd;
 /*!
  * \brief   fpixConvolve()
  *
- * \param[in]    fpixs 32 bit float array
- * \param[in]    kernel
+ * \param[in]    fpixs    32 bit float array
+ * \param[in]    kel      kernel
  * \param[in]    normflag 1 to normalize kernel to unit sum; 0 otherwise
  * \return  fpixd 32 bit float array
  *
