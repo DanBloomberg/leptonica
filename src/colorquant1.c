@@ -118,38 +118,42 @@
 #include "allheaders.h"
 
 
-/*  This data structure is used for pixOctreeColorQuant(),
- *  a color octree that adjusts to the color distribution
- *  in the image that is being quantized.  The best settings
- *  are with CQ_NLEVELS = 6 and DITHERING set on.
+/*
+ * <pre>
+ *   This data structure is used for pixOctreeColorQuant(),
+ *   a color octree that adjusts to the color distribution
+ *   in the image that is being quantized.  The best settings
+ *   are with CQ_NLEVELS = 6 and DITHERING set on.
  *
- *  Notes:  (1) the CTE (color table entry) index is sequentially
- *              assigned as the tree is pruned back
- *          (2) if 'bleaf' == 1, all pixels in that cube have been
- *              assigned to one or more CTEs.  But note that if
- *              all 8 subcubes have 'bleaf' == 1, it will have no
- *              pixels left for assignment and will not be a CTE.
- *          (3) 'nleaves', the number of leaves contained at the next
- *              lower level is some number between 0 and 8, inclusive.
- *              If it is zero, it means that all colors within this cube
- *              are part of a single growing cluster that has not yet
- *              been set aside as a leaf.  If 'nleaves' > 0, 'bleaf'
- *              will be set to 1 and all pixels not assigned to leaves
- *              at lower levels will be assigned to a CTE here.
- *              (However, as described above, if all pixels are already
- *              assigned, we set 'bleaf' = 1 but do not create a CTE
- *              at this level.)
- *          (4) To keep the maximum color error to a minimum, we
- *              prune the tree back to level 2, and require that
- *              all 64 level 2 cells are CTEs.
- *          (5) We reserve an extra set of colors to prevent running out
- *              of colors during the assignment of the final 64 level 2 cells.
- *              This is more likely to happen with small images.
- *          (6) When we run out of colors, the dithered image can be very
- *              poor, so we additionally prevent dithering if the image
- *              is small.
- *          (7) The color content of the image is measured, and if there
- *              is very little color, it is quantized in grayscale.
+ * Notes:
+ *      (1) the CTE (color table entry) index is sequentially
+ *          assigned as the tree is pruned back
+ *      (2) if 'bleaf' == 1, all pixels in that cube have been
+ *          assigned to one or more CTEs.  But note that if
+ *          all 8 subcubes have 'bleaf' == 1, it will have no
+ *          pixels left for assignment and will not be a CTE.
+ *      (3) 'nleaves', the number of leaves contained at the next
+ *          lower level is some number between 0 and 8, inclusive.
+ *          If it is zero, it means that all colors within this cube
+ *          are part of a single growing cluster that has not yet
+ *          been set aside as a leaf.  If 'nleaves' > 0, 'bleaf'
+ *          will be set to 1 and all pixels not assigned to leaves
+ *          at lower levels will be assigned to a CTE here.
+ *          (However, as described above, if all pixels are already
+ *          assigned, we set 'bleaf' = 1 but do not create a CTE
+ *          at this level.)
+ *      (4) To keep the maximum color error to a minimum, we
+ *          prune the tree back to level 2, and require that
+ *          all 64 level 2 cells are CTEs.
+ *      (5) We reserve an extra set of colors to prevent running out
+ *          of colors during the assignment of the final 64 level 2 cells.
+ *          This is more likely to happen with small images.
+ *      (6) When we run out of colors, the dithered image can be very
+ *          poor, so we additionally prevent dithering if the image
+ *          is small.
+ *      (7) The color content of the image is measured, and if there
+ *          is very little color, it is quantized in grayscale.
+ * </pre>
  */
 struct ColorQuantCell
 {
@@ -170,15 +174,19 @@ static const l_int32  TREE_GEN_WIDTH = 350;  /* big enough for good stats */
 static const l_int32  MIN_DITHER_SIZE = 250;  /* don't dither if smaller */
 
 
-/*  This data structure is used for pixOctreeQuantNumColors(),
- *  a color octree that adjusts in a simple way to the to the color
- *  distribution in the image that is being quantized.  It outputs
- *  colormapped images, either 4 bpp or 8 bpp, depending on the
- *  max number of colors and the compression desired.
+/*
+ * <pre>
+ *   This data structure is used for pixOctreeQuantNumColors(),
+ *   a color octree that adjusts in a simple way to the to the color
+ *   distribution in the image that is being quantized.  It outputs
+ *   colormapped images, either 4 bpp or 8 bpp, depending on the
+ *   max number of colors and the compression desired.
  *
- *  The number of samples is saved as a float in the first location,
- *  because this is required to use it as the key that orders the
- *  cells in the priority queue.  */
+ *   The number of samples is saved as a float in the first location,
+ *   because this is required to use it as the key that orders the
+ *   cells in the priority queue.
+ * </pre>
+ * */
 struct OctcubeQuantCell
 {
     l_float32  n;                  /* number of samples in this cell       */
@@ -189,8 +197,12 @@ struct OctcubeQuantCell
 typedef struct OctcubeQuantCell    OQCELL;
 
 
-    /* This data structure is using for heap sorting octcubes
-     * by population.  Sort order is decreasing.  */
+/*
+ * <pre>
+ *   This data structure is using for heap sorting octcubes
+ *   by population.  Sort order is decreasing.
+ * </pre>
+ */
 struct L_OctcubePop
 {
     l_float32        npix;    /* parameter on which to sort  */
@@ -201,12 +213,17 @@ struct L_OctcubePop
 };
 typedef struct L_OctcubePop  L_OCTCUBE_POP;
 
-    /* In pixDitherOctindexWithCmap(), we use these default values.
-     * To get the max value of 'dif' in the dithering color transfer,
-     * divide these "DIF_CAP" values by 8.  However, a value of
-     * 0 means that there is no cap (infinite cap).  A very small
-     * value is used for POP_DIF_CAP because dithering on the population
-     * generated colormap can be unstable without a tight cap.   */
+/*
+ * <pre>
+ *   In pixDitherOctindexWithCmap(), we use these default values.
+     To get the max value of 'dif' in the dithering color transfer,
+     divide these "DIF_CAP" values by 8.  However, a value of
+     0 means that there is no cap (infinite cap).  A very small
+     value is used for POP_DIF_CAP because dithering on the population
+     generated colormap can be unstable without a tight cap.
+ * </pre>
+ */
+
 static const l_int32  FIXED_DIF_CAP = 0;
 static const l_int32  POP_DIF_CAP = 40;
 
@@ -265,6 +282,7 @@ static PIX *pixOctcubeQuantFromCmapLUT(PIX *pixs, PIXCMAP *cmap,
  * \param[in]    ditherflag  1 to dither, 0 otherwise
  * \return  pixd 8 bpp with colormap, or NULL on error
  *
+ * <pre>
  *  I found one description in the literature of octree color
  *  quantization, using progressive truncation of the octree,
  *  by M. Gervautz and W. Purgathofer in Graphics Gems, pp.
@@ -511,6 +529,7 @@ static PIX *pixOctcubeQuantFromCmapLUT(PIX *pixs, PIXCMAP *cmap,
  *      image can be very poor.  As this would only happen with very
  *      small images, and dithering is not particularly noticeable with
  *      such images, turn it off.
+ * </pre>
  */
 PIX *
 pixOctreeColorQuant(PIX     *pixs,
@@ -1304,6 +1323,7 @@ CQCELL   **cqca;
  * \param[in]    cqlevels can be 1, 2, 3, 4, 5 or 6
  * \return  0 if OK; 1 on error
  *
+ * <pre>
  *  Set up tables.  e.g., for cqlevels = 5, we need an integer 0 < i < 2^15:
  *      rtab = 0  i7  0   0  i6  0   0  i5  0   0   i4  0   0   i3  0   0
  *      gtab = 0  0   i7  0   0  i6  0   0  i5  0   0   i4  0   0   i3  0
@@ -1323,6 +1343,7 @@ CQCELL   **cqca;
  *  8 cubes.  At level 2, each of these 8 octcubes is further divided into
  *  8 cubes, each labeled by the second most significant bits r6 g6 b6
  *  of the rgb color.
+ * </pre>
  */
 l_int32
 makeRGBToIndexTables(l_uint32  **prtab,
@@ -1586,8 +1607,10 @@ getOctcubeIndices(l_int32   rgbindex,
  * \param[out]   psize 2^(3 * level) cubes in the entire rgb cube
  * \return   0 if OK, 1 on error.  Caller must check!
  *
- *         level:   1        2        3        4        5        6
- *         size:    8       64       512     4098     32784   262272
+ * <pre>
+ *     level:   1        2        3        4        5        6
+ *     size:    8       64       512     4098     32784   262272
+ * </pre>
  */
 static l_int32
 octcubeGetCount(l_int32   level,
@@ -2143,6 +2166,7 @@ PIXCMAP   *cmap;
  *                         use 0 for default
  * \return  pixd 4 or 8 bpp, colormapped, or NULL on error
  *
+ * <pre>
  *  pixOctreeColorQuant is very flexible in terms of the relative
  *  depth of different cubes of the octree.   By contrast, this function,
  *  pixOctreeQuantNumColors is also adaptive, but it supports octcube
@@ -2219,6 +2243,7 @@ PIXCMAP   *cmap;
  *  example, in use one often finds that the pixels in an image
  *  occupy less than 192 octcubes at level 3, so they can be represented
  *  by a colormap for octcubes at level 3 only.
+ * </pre>
  */
 PIX *
 pixOctreeQuantNumColors(PIX     *pixs,
@@ -2699,6 +2724,8 @@ PIXCMAP   *cmap;
  * \param[in]    ditherflag  1 for dithering; 0 for no dithering
  * \return  pixd 8 bit with colormap, or NULL on error
  *
+ * <pre>
+ * Notes:
  *  This simple 1-pass color quantization works by breaking the
  *  color space into 256 pieces, with 3 bits quantized for each of
  *  red and green, and 2 bits quantized for blue.  We shortchange
@@ -2751,6 +2778,7 @@ PIXCMAP   *cmap;
  *  However, without dithering, the loss of color accuracy is
  *  evident in regions that are very light or that have subtle
  *  blending of colors.
+ * </pre>
  */
 PIX *
 pixFixedOctcubeQuant256(PIX     *pixs,

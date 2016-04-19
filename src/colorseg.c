@@ -75,9 +75,10 @@ static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
  * \param[in]    finalcolors max number of final colors allowed after 4th pass
  * \return  pixd 8 bit with colormap, or NULL on error
  *
+ * <pre>
  *  Color segmentation proceeds in four phases:
  *
- *  Phase 1:  pixColorSegmentCluster
+ *  Phase 1:  pixColorSegmentCluster()
  *  The image is traversed in raster order.  Each pixel either
  *  becomes the representative for a new cluster or is assigned to an
  *  existing cluster.  Assignment is greedy.  The data is stored in
@@ -85,21 +86,20 @@ static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
  *  the colors of the representative pixels, for fast lookup.
  *  The average color in each cluster is computed.
  *
- *  Phase 2.  pixAssignToNearestColor
+ *  Phase 2.  pixAssignToNearestColor()
  *  A second non-greedy clustering pass is performed, where each pixel
  *  is assigned to the nearest cluster average.  We also keep track
  *  of how many pixels are assigned to each cluster.
  *
- *  Phase 3.  pixColorSegmentClean
+ *  Phase 3.  pixColorSegmentClean()
  *  For each cluster, starting with the largest, do a morphological
  *  closing to eliminate small components within larger ones.
  *
- *  Phase 4.  pixColorSegmentRemoveColors
+ *  Phase 4.  pixColorSegmentRemoveColors()
  *  Eliminate all colors except the most populated 'finalcolors'.
  *  Then remove unused colors from the colormap, and reassign those
  *  pixels to the nearest remaining cluster, using the original pixel values.
  *
- * <pre>
  * Notes:
  *      (1) The goal is to generate a small number of colors.
  *          Typically this would be specified by 'finalcolors',

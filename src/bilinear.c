@@ -726,9 +726,10 @@ PTA     *ptad2, *ptas2;
  * \param[out]   pvc   vector of coefficients of transform
  * \return  0 if OK; 1 on error
  *
- *  We have a set of 8 equations, describing the bilinear
- *  transformation that takes 4 points ptas into 4 other
- *  points ptad.  These equations are:
+ * <pre>
+ * We have a set of 8 equations, describing the bilinear
+ * transformation that takes 4 points ptas into 4 other
+ * points ptad.  These equations are:
  *
  *          x1' = c[0]*x1 + c[1]*y1 + c[2]*x1*y1 + c[3]
  *          y1' = c[4]*x1 + c[5]*y1 + c[6]*x1*y1 + c[7]
@@ -739,16 +740,16 @@ PTA     *ptad2, *ptas2;
  *          x4' = c[0]*x4 + c[1]*y4 + c[2]*x4*y4 + c[3]
  *          y4' = c[4]*x4 + c[5]*y4 + c[6]*x4*y4 + c[7]
  *
- *  This can be represented as
+ * This can be represented as
  *
  *           AC = B
  *
- *  where B and C are column vectors
+ * where B and C are column vectors
  *
  *         B = [ x1' y1' x2' y2' x3' y3' x4' y4' ]
  *         C = [ c[0] c[1] c[2] c[3] c[4] c[5] c[6] c[7] ]
  *
- *  and A is the 8x8 matrix
+ * and A is the 8x8 matrix
  *
  *             x1   y1   x1*y1   1   0    0      0     0
  *              0    0     0     0   x1   y1   x1*y1   1
@@ -759,16 +760,17 @@ PTA     *ptad2, *ptas2;
  *             x4   y4   x4*y4   1   0    0      0     0
  *              0    0     0     0   x4   y4   x4*y4   1
  *
- *  These eight equations are solved here for the coefficients C.
+ * These eight equations are solved here for the coefficients C.
  *
- *  These eight coefficients can then be used to find the mapping
- *  x,y) --> (x',y':
+ * These eight coefficients can then be used to find the mapping
+ * x,y) --> (x',y':
  *
  *           x' = c[0]x + c[1]y + c[2]xy + c[3]
  *           y' = c[4]x + c[5]y + c[6]xy + c[7]
  *
- *  that are implemented in bilinearXformSampledPt and
- *  bilinearXFormPt.
+ * that are implemented in bilinearXformSampledPt and
+ * bilinearXFormPt.
+ * </pre>
  */
 l_int32
 getBilinearXformCoeffs(PTA         *ptas,

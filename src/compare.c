@@ -3280,8 +3280,8 @@ PIXA      *pixa1, *pixa2, *pixadb;
  *                          alignment location, relative to pix1
  * \param[in]    tab8 [optional] sum tab for ON pixels in byte; can be NULL
  * \param[out]   pdelx [optional] best x shift of pix2 relative to pix1
- *           [out]   pdely ([optional] best y shift of pix2 relative to pix1
- *           [out]   pscore ([optional] maximum score found; can be NULL
+ * \param[out]   pdely ([optional] best y shift of pix2 relative to pix1
+ * \param[out]   pscore ([optional] maximum score found; can be NULL
  * \param[in]    debugflag <= 0 to skip; positive to generate output.
  *                         The integer is used to label the debug image.
  * \return  0 if OK, 1 on error

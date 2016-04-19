@@ -1528,7 +1528,8 @@ PIX       *pixt1, *pixt2, *pixd;
          * src points from the axes to the actual dest position.
          * These values are also needed to scale the image. */
     th3p = atan2((l_float64)(x1p - x3p), (l_float64)(y1p - y3p));
-    x2sp = (l_float32)(x2p - ((l_float32)(y1p - y2p) * (x3p - x1p)) / (y1p - y3p));
+    x2sp = (l_float32)(x2p -
+                       ((l_float32)(y1p - y2p) * (x3p - x1p)) / (y1p - y3p));
     if (x2sp == (l_float32)x1p)
         return (PIX *)ERROR_PTR("x2sp == x1p!", procName, NULL);
     ph2p = atan2((l_float64)(y1p - y2p), (l_float64)(x2sp - x1p));

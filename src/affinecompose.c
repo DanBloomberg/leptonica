@@ -69,8 +69,9 @@
  * \param[in]    transy  y component of translation wrt. the origin
  * \return  3x3 transform matrix, or NULL on error
  *
- *  Notes;
- *      1 The translation is equivalent to:
+ * <pre>
+ * Notes:
+ *      (1) The translation is equivalent to:
  *             v' = Av
  *          where v and v' are 1x3 column vectors in the form
  *             v = [x, y, 1]^    ^ denotes transpose
@@ -79,10 +80,11 @@
  *                   0   1   ty
  *                   0   0    1  ]
  *
- *      2 We consider translation as with respect to a fixed origin.
+ *      (2) We consider translation as with respect to a fixed origin.
  *          In a clipping operation, the origin moves and the points
- *          are fixed, and you use -tx, -ty) where (tx, ty is the
+ *          are fixed, and you use (-tx, -ty) where (tx, ty) is the
  *          translation vector of the origin.
+ * </pre>
  */
 l_float32 *
 createMatrix2dTranslate(l_float32  transx,
@@ -109,19 +111,21 @@ l_float32  *mat;
  * \param[in]    scaley  vertical scale factor
  * \return  3x3 transform matrix, or NULL on error
  *
- *  Notes;
- *      1 The scaling is equivalent to:
+ * <pre>
+ * Notes:
+ *      (1) The scaling is equivalent to:
  *             v' = Av
- *          where v and v' are 1x3 column vectors in the form
- *             v = [x, y, 1]^    ^ denotes transpose
- *          and the affine scaling matrix is
+ *         where v and v' are 1x3 column vectors in the form
+ *              v = [x, y, 1]^    ^ denotes transpose
+ *         and the affine scaling matrix is
  *             A = [ sx  0    0
  *                   0   sy   0
  *                   0   0    1  ]
  *
- *      2 We consider scaling as with respect to a fixed origin.
+ *      (2) We consider scaling as with respect to a fixed origin.
  *          In other words, the origin is the only point that doesn't
  *          move in the scaling transform.
+ * </pre>
  */
 l_float32 *
 createMatrix2dScale(l_float32  scalex,
@@ -148,8 +152,9 @@ l_float32  *mat;
  * \param[in]    angle  rotation in radians; clockwise is positive
  * \return  3x3 transform matrix, or NULL on error
  *
- *  Notes;
- *      1 The rotation is equivalent to:
+ * <pre>
+ * Notes:
+ *      (1) The rotation is equivalent to:
  *             v' = Av
  *          where v and v' are 1x3 column vectors in the form
  *             v = [x, y, 1]^    ^ denotes transpose
@@ -166,13 +171,14 @@ l_float32  *mat;
  *
  *          These relations follow from the following equations, which
  *          you can convince yourself are correct as follows.  Draw a
- *          circle centered on xc,yc) and passing through (x,y, with
- *          x',y') on the arc at an angle 'a' clockwise from (x,y.
- *          [ Hint: cosa + b = cosa * cosb - sina * sinb
- *                  sina + b = sina * cosb + cosa * sinb ]
+ *          circle centered on xc,yc) and passing through (x,y), with
+ *          (x',y') on the arc at an angle 'a' clockwise from (x,y).
+ *           [ Hint: cosa + b = cosa * cosb - sina * sinb
+ *                   sina + b = sina * cosb + cosa * sinb ]
  *
  *            x' - xc =  x - xc) * cosa - (y - yc * sina
  *            y' - yc =  x - xc) * sina + (y - yc * cosa
+ * </pre>
  */
 l_float32 *
 createMatrix2dRotate(l_float32  xc,
@@ -211,8 +217,10 @@ l_float32  *mat;
  * \param[in]    transy  y component of translation wrt. the origin
  * \return  ptad  translated points, or NULL on error
  *
- *  Notes;
- *      1) See createMatrix2dTranslate( for details of transform.
+ * <pre>
+ * Notes:
+ *      (1) See createMatrix2dTranslate() for details of transform.
+ * </pre>
  */
 PTA *
 ptaTranslate(PTA       *ptas,
@@ -248,8 +256,10 @@ PTA       *ptad;
  * \param[in]    scaley  vertical scale factor
  * \return  0 if OK; 1 on error
  *
- *  Notes;
- *      1) See createMatrix2dScale( for details of transform.
+ * <pre>
+ * Notes:
+ *      (1) See createMatrix2dScale() for details of transform.
+ * </pre>
  */
 PTA *
 ptaScale(PTA       *ptas,
@@ -285,20 +295,22 @@ PTA       *ptad;
  * \param[in]    angle  rotation in radians; clockwise is positive
  * \return  0 if OK; 1 on error
  *
- *  Notes;
- *      1) See createMatrix2dScale( for details of transform.
- *      2 This transform can be thought of as composed of the
+ * <pre>
+ * Notes;
+ *      (1) See createMatrix2dScale() for details of transform.
+ *      (2) This transform can be thought of as composed of the
  *          sum of two parts:
- *          a) an (x,y-dependent rotation about the origin:
+ *           a) an (x,y)-dependent rotation about the origin:
  *              xr = x * cosa - y * sina
  *              yr = x * sina + y * cosa
- *          b) an (x,y-independent translation that depends on the
+ *           b) an (x,y)-independent translation that depends on the
  *              rotation center and the angle:
  *              xt = xc - xc * cosa + yc * sina
  *              yt = yc - xc * sina - yc * cosa
- *          The translation part xt,yt is equal to the difference
- *          between the center xc,yc and the location of the
+ *          The translation part (xt,yt) is equal to the difference
+ *          between the center (xc,yc) and the location of the
  *          center after it is rotated about the origin.
+ * </pre>
  */
 PTA *
 ptaRotate(PTA       *ptas,
@@ -342,8 +354,8 @@ PTA       *ptad;
  * \param[in]    transy  y component of translation wrt. the origin
  * \return  boxad  translated boxas, or NULL on error
  *
- *  Notes;
- *      1) See createMatrix2dTranslate( for details of transform.
+ * Notes:
+ *      (1) See createMatrix2dTranslate() for details of transform.
  */
 BOXA *
 boxaTranslate(BOXA       *boxas,
@@ -375,8 +387,8 @@ BOXA  *boxad;
  * \param[in]    scaley  vertical scale factor
  * \return  boxad  scaled boxas, or NULL on error
  *
- *  Notes;
- *      1) See createMatrix2dScale( for details of transform.
+ * Notes:
+ *      (1) See createMatrix2dScale() for details of transform.
  */
 BOXA *
 boxaScale(BOXA      *boxas,
@@ -408,8 +420,8 @@ BOXA  *boxad;
  * \param[in]    angle  rotation in radians; clockwise is positive
  * \return  boxad  scaled boxas, or NULL on error
  *
- *  Notes;
- *      1) See createMatrix2dRotate( for details of transform.
+ * Notes:
+ *      (1) See createMatrix2dRotate() for details of transform.
  */
 BOXA *
 boxaRotate(BOXA      *boxas,

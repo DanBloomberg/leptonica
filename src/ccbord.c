@@ -2268,8 +2268,8 @@ PTA        *pta;
         pta = ccb->start;
         for (j = 0; j < nb; j++) {
             ptaGetIPt(pta, j, &startx, &starty);
-            bbufferRead(bbuf, (l_uint8 *)&startx, 4);  /* starting x in border */
-            bbufferRead(bbuf, (l_uint8 *)&starty, 4);  /* starting y in border */
+            bbufferRead(bbuf, (l_uint8 *)&startx, 4); /* starting x in border */
+            bbufferRead(bbuf, (l_uint8 *)&starty, 4); /* starting y in border */
             na = numaaGetNuma(naa, j, L_CLONE);
             n = numaGetCount(na);
             for (k = 0; k < n; k++) {
@@ -2279,7 +2279,7 @@ PTA        *pta;
                 else
                     bval |= (l_uint8)val;
                 if (k % 2 == 1)
-                    bbufferRead(bbuf, (l_uint8 *)&bval, 1);  /* 2 border steps */
+                    bbufferRead(bbuf, (l_uint8 *)&bval, 1); /* 2 border steps */
             }
             if (n % 2 == 1) {
                 bval |= 0x8;
@@ -2340,6 +2340,7 @@ CCBORDA  *ccba;
  * \param[in]     fp file stream
  * \return   ccba, or NULL on error
  *
+ * \code
  *  Format:  ccba: %7d cc\n num. c.c.) (ascii)   (17B
  *           pix width 4B
  *           pix height 4B
@@ -2355,6 +2356,7 @@ CCBORDA  *ccba;
  *                   [for k = 1, nb]
  *                        2 steps 1B
  *                   end in z8 or 88  1B
+ * \endcode
  */
 CCBORDA *
 ccbaReadStream(FILE  *fp)

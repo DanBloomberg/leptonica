@@ -52,9 +52,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUF_SIZE = 512;         /*!< size of filename buffer    */
-static const l_int32  JB_WORDS_MIN_WIDTH = 5;   /*!< min. word width in pixels  */
-static const l_int32  JB_WORDS_MIN_HEIGHT = 3;  /*!< min. word height in pixels */
+static const l_int32 L_BUF_SIZE = 512;        /*!< size of filename buffer    */
+static const l_int32 JB_WORDS_MIN_WIDTH = 5;  /*!< min. word width in pixels  */
+static const l_int32 JB_WORDS_MIN_HEIGHT = 3; /*!< min. word height in pixels */
 
     /* Static comparison functions */
 static l_int32 testLineAlignmentX(NUMA *na1, NUMA *na2, l_int32 shiftx,

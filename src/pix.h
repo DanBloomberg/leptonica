@@ -316,7 +316,8 @@ enum {
 
 #define   PIX_PAINT    (PIX_SRC | PIX_DST)        /*!< paint = src | dst      */
 #define   PIX_MASK     (PIX_SRC & PIX_DST)        /*!< mask = src & dst       */
-#define   PIX_SUBTRACT (PIX_DST & PIX_NOT(PIX_SRC)) /*!< subtract = src & !dst  */
+#define   PIX_SUBTRACT (PIX_DST & PIX_NOT(PIX_SRC)) /*!< subtract =           */
+                                                    /*!<    src & !dst        */
 #define   PIX_XOR      (PIX_SRC ^ PIX_DST)        /*!< xor = src ^ dst        */
 
 
