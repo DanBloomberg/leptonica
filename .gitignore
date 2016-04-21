@@ -22,7 +22,6 @@
 makefile
 Makefile
 Makefile.in
-xtractprotos
 /aclocal.m4
 /autom4te.cache
 /config/

@@ -73,7 +73,6 @@ pkginclude_HEADERS = allheaders.h alltypes.h                    \
  readbarcode.h recog.h regutils.h stack.h                       \
  stringcode.h sudoku.h watershed.h
 
-noinst_PROGRAMS = xtractprotos
 LDADD = liblept.la
 
 EXTRA_DIST = arrayaccess.h.vc                                   \
@@ -82,7 +81,8 @@ EXTRA_DIST = arrayaccess.h.vc                                   \
  morphtemplate1.txt morphtemplate2.txt                          \
  stringtemplate1.txt stringtemplate2.txt
 
-allheaders: $(liblept_la_SOURCES)
-	@test -x xtractprotos || echo "First run 'make xtractprotos'"
-	./xtractprotos -prestring=LEPT_DLL -protos=inline $(liblept_la_SOURCES)
+$(top_builddir)/prog/xtractprotos$(EXEEXT): liblept.la
+	$(MAKE) -C $(top_builddir)/prog xtractprotos$(EXEEXT)
 
+allheaders: $(top_builddir)/prog/xtractprotos$(EXEEXT) $(liblept_la_SOURCES)
+	cd $(srcdir) && $(abs_top_builddir)/prog/xtractprotos$(EXEEXT) -prestring=LEPT_DLL -protos=inline $(liblept_la_SOURCES)
