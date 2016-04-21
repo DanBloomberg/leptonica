@@ -89,7 +89,7 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	displaypix displaypixa \
 	dithertest dwalineargen \
 	edgetest falsecolortest \
-	fcombautogen fhmtautogen \
+	fcombautogen fhmtautogen findbinding \
 	findpattern1 findpattern2 findpattern3 \
 	flipselgen fmorphautogen \
 	fpixcontours gammatest \
