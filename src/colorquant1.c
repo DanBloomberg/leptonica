@@ -515,17 +515,17 @@ static PIX *pixOctcubeQuantFromCmapLUT(PIX *pixs, PIXCMAP *cmap,
  *
  *  For robustness, efficiency and high quality output, we do the following:
  *
- *  1 Measure the color content of the image.  If there is very little
+ *  (1) Measure the color content of the image.  If there is very little
  *      color, quantize in grayscale.
- *  2 For efficiency, build the octree with a subsampled image if the
+ *  (2) For efficiency, build the octree with a subsampled image if the
  *      image is larger than some threshold size.
- *  3 Reserve an extra set of colors to prevent running out of colors
+ *  (3) Reserve an extra set of colors to prevent running out of colors
  *      when pruning the octree; specifically, during the assignment
  *      of those level 2 cells out of the 64 that have unassigned
  *      pixels.  The problem of running out is more likely to happen
  *      with small images, because the estimation we use for the
  *      number of pixels available is not accurate.
- *  4 In the unlikely event that we run out of colors, the dithered
+ *  (4) In the unlikely event that we run out of colors, the dithered
  *      image can be very poor.  As this would only happen with very
  *      small images, and dithering is not particularly noticeable with
  *      such images, turn it off.
