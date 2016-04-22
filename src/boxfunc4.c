@@ -1886,8 +1886,8 @@ BOXA    *boxae, *boxao, *boxad;
  *      (2) If there are invalid boxes (e.g., if only even or odd
  *          indices have valid boxes), this will fill them with the
  *          nearest valid box before plotting.
- *      (3) The plotfiles are put in /tmp/plotsides, and are named either
- *          with %plotname or, if NULL, a default name.
+ *      (3) The plotfiles are put in /tmp/lept/plotsides, and are named
+ *          either with %plotname or, if NULL, a default name.
  * </pre>
  */
 l_int32
@@ -1899,7 +1899,7 @@ boxaPlotSides(BOXA        *boxa,
               NUMA       **pnab,
               l_int32      outformat)
 {
-char            buf[128];
+char            buf[128], titlebuf[128];
 static l_int32  plotid = 0;
 l_int32         n, i, w, h, left, top, right, bot;
 BOX            *box;
@@ -1946,13 +1946,18 @@ NUMA           *nal, *nat, *nar, *nab;
     }
 
     if (outformat > 0) {
-        lept_mkdir("plotsides");
-        if (plotname)
-            snprintf(buf, sizeof(buf), "/tmp/plotsides/%s", plotname);
-        else
-            snprintf(buf, sizeof(buf), "/tmp/plotsides/sides.%d", plotid++);
-        gplot = gplotCreate(buf, outformat, "Box sides vs. box index",
-                            "box index", "box location");
+        lept_mkdir("lept/plotsides");
+        if (plotname) {
+            snprintf(buf, sizeof(buf), "/tmp/lept/plotsides/%s", plotname);
+            snprintf(titlebuf, sizeof(titlebuf), "%s: Box sides vs. box index",
+                     plotname);
+        } else {
+            snprintf(buf, sizeof(buf), "/tmp/lept/plotsides/sides.%d",
+                     plotid++);
+            snprintf(titlebuf, sizeof(titlebuf), "Box sides vs. box index");
+        }
+        gplot = gplotCreate(buf, outformat, titlebuf,
+                            "box index", "side location");
         gplotAddPlot(gplot, NULL, nal, GPLOT_LINES, "left side");
         gplotAddPlot(gplot, NULL, nat, GPLOT_LINES, "top side");
         gplotAddPlot(gplot, NULL, nar, GPLOT_LINES, "right side");
