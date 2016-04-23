@@ -99,7 +99,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001;  /* radians; ~0.06 deg */
+static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001f;  /* radians; ~0.06 deg */
 
 
 /*------------------------------------------------------------------*

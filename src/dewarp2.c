@@ -80,7 +80,7 @@ static l_int32 pixRenderHorizEndPoints(PIX *pixs, PTA *ptal, PTA *ptar,
 #endif  /* !NO_CONSOLE_IO */
 
     /* Special parameter values */
-static const l_float32   MIN_RATIO_LINES_TO_HEIGHT = 0.45;
+static const l_float32   MIN_RATIO_LINES_TO_HEIGHT = 0.45f;
 
 
 /*----------------------------------------------------------------------*

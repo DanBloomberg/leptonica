@@ -194,12 +194,12 @@ static const char *textsel4 = "xxxxxx"
 
     /* Parameters for determining orientation */
 static const l_int32  DEFAULT_MIN_UP_DOWN_COUNT = 70;
-static const l_float32  DEFAULT_MIN_UP_DOWN_CONF = 7.0;
-static const l_float32  DEFAULT_MIN_UP_DOWN_RATIO = 2.5;
+static const l_float32  DEFAULT_MIN_UP_DOWN_CONF = 7.0f;
+static const l_float32  DEFAULT_MIN_UP_DOWN_RATIO = 2.5f;
 
     /* Parameters for determining mirror flip */
 static const l_int32  DEFAULT_MIN_MIRROR_FLIP_COUNT = 100;
-static const l_float32  DEFAULT_MIN_MIRROR_FLIP_CONF = 5.0;
+static const l_float32  DEFAULT_MIN_MIRROR_FLIP_CONF = 5.0f;
 
     /* Static debug function */
 static void pixDebugFlipDetect(const char *filename, PIX *pixs,

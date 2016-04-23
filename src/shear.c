@@ -57,7 +57,7 @@
 #include "allheaders.h"
 
     /* Shear angle must not get too close to -pi/2 or pi/2 */
-static const l_float32   MIN_DIFF_FROM_HALF_PI = 0.04;
+static const l_float32   MIN_DIFF_FROM_HALF_PI = 0.04f;
 
 static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindif);
 

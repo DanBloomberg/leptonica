@@ -101,7 +101,7 @@ static const l_int32  MAX_DISPLAY_HEIGHT = 800;
 static const l_int32  MAX_SIZE_FOR_PNG = 200;
 
     /* PostScript output for printing */
-static const l_float32  DEFAULT_SCALING = 1.0;
+static const l_float32  DEFAULT_SCALING = 1.0f;
 
     /* Global array of image file format extension names.                */
     /* This is in 1-1 corrspondence with format enum in imageio.h.       */

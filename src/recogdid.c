@@ -166,7 +166,7 @@ static l_int32 recogGetWindowedArea(L_RECOG *recog, l_int32 index,
 static l_int32 recogTransferRchToDid(L_RECOG *recog, l_int32 x, l_int32 y);
 
     /* Parameters for modeling the decoding */
-static const l_float32  SetwidthFraction = 0.95;
+static const l_float32  SetwidthFraction = 0.95f;
 static const l_int32    MaxYShift = 1;
 
     /* Channel parameters.  alpha[0] is the probability that a bg pixel
@@ -175,8 +175,8 @@ static const l_int32    MaxYShift = 1;
      * than 0.5 and smaller than 1.0.  For more accuracy in template
      * matching, use a 4-level template, where levels 2 and 3 are
      * boundary pixels in the fg and bg, respectively. */
-static const l_float32  DefaultAlpha2[] = {0.95, 0.9};
-static const l_float32  DefaultAlpha4[] = {0.95, 0.9, 0.75, 0.25};
+static const l_float32  DefaultAlpha2[] = {0.95f, 0.9f};
+static const l_float32  DefaultAlpha4[] = {0.95f, 0.9f, 0.75f, 0.25f};
 
 
 /*------------------------------------------------------------------------*

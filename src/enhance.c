@@ -116,7 +116,7 @@
 
     /* Scales contrast enhancement factor to have a useful range
      * between 0.0 and 1.0 */
-static const l_float32  ENHANCE_SCALE_FACTOR = 5.;
+static const l_float32  ENHANCE_SCALE_FACTOR = 5.f;
 
     /* Default number of pixels sampled to determine histogram */
 static const l_int32  DEFAULT_HISTO_SAMPLES = 100000;

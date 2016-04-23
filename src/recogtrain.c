@@ -88,8 +88,8 @@ static void debugAddImage2(PIXA *pixadb, PIXA *pixa1, L_BMF *bmf,
                            l_int32 index);
 
     /* Defaults in pixRemoveOutliers() */
-static const l_float32  DEFAULT_TARGET_SCORE = 0.75; /* keep everything above */
-static const l_float32  DEFAULT_MIN_FRACTION = 0.5;  /* to be kept */
+static const l_float32  DEFAULT_TARGET_SCORE = 0.75f; /* keep everything above */
+static const l_float32  DEFAULT_MIN_FRACTION = 0.5f;  /* to be kept */
 
     /* Padding parameters for recognizer */
 static const char *     DEFAULT_BOOT_DIR = "recog/digits";

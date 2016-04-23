@@ -105,7 +105,7 @@
 #include "allheaders.h"
 
     /* Small enough to consider equal to 0.0, for plot output */
-static const l_float32  TINY = 0.00001;
+static const l_float32  TINY = 0.00001f;
 
 static l_int32 pixCompareTilesByHisto(PIX *pix1, PIX *pix2, l_int32 maxgray,
                                       l_int32 factor, l_int32 nx, l_int32 ny,
