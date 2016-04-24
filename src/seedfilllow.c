@@ -739,7 +739,7 @@ L_QUEUE  *lq_pixel;
  *          This low-level filling operation consists of two scans,
  *          raster and anti-raster, covering the entire seed image.
  *          During the anti-raster scan, every pixel p such that its
- *          current value could still be propogated during the next
+ *          current value could still be propagated during the next
  *          raster scanning is put into the FIFO-queue.
  *          Next step is the propagation step where where we update
  *          and propagate the values using FIFO structure created in
