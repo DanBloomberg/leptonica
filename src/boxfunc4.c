@@ -61,7 +61,8 @@
  *    static l_int32   boxaTestEvenOddHeight()
  *    static BOXA     *boxaMaximizeEvenOddHeight()
  *           BOXA     *boxaReconcilePairWidth()
- *           l_int32   boxaPlotSides()    [for debugging]
+ *           l_int32   boxaPlotSides()   [for debugging]
+ *           l_int32   boxaPlotSizes()   [for debugging]
  *           BOXA     *boxaFillSequence()
  *    static l_int32   boxaFillAll()
  *
@@ -1003,8 +1004,10 @@ BOXA    *boxae, *boxao, *boxamede, *boxamedo, *boxame, *boxamo, *boxad;
 
     boxad = boxaMergeEvenOdd(boxame, boxamo, 0);
     if (debug) {
-        boxaPlotSides(boxas, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
-        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
+        boxaPlotSides(boxas, NULL, NULL, NULL, NULL, NULL, NULL);
+        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, NULL);
+        boxaPlotSizes(boxas, NULL, NULL, NULL, NULL);
+        boxaPlotSizes(boxad, NULL, NULL, NULL, NULL);
     }
 
     boxaDestroy(&boxae);
@@ -1172,7 +1175,8 @@ PTA       *ptal, *ptat, *ptar, *ptab;
     boxDestroy(&boxempty);
 
     if (debug)
-        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
+        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, NULL);
+        boxaPlotSizes(boxad, NULL, NULL, NULL, NULL);
 
     ptaDestroy(&ptal);
     ptaDestroy(&ptat);
@@ -1246,8 +1250,10 @@ NUMA    *nal, *nat, *nar, *nab, *naml, *namt, *namr, *namb;
     }
 
     if (debug) {
-        boxaPlotSides(boxaf, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
-        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, GPLOT_PNG);
+        boxaPlotSides(boxaf, NULL, NULL, NULL, NULL, NULL, NULL);
+        boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, NULL);
+        boxaPlotSizes(boxaf, NULL, NULL, NULL, NULL);
+        boxaPlotSizes(boxad, NULL, NULL, NULL, NULL);
     }
 
     boxaDestroy(&boxaf);
@@ -1876,17 +1882,17 @@ BOXA    *boxae, *boxao, *boxad;
  * \param[out]   pnat [optional] na of top sides
  * \param[out]   pnar [optional] na of right sides
  * \param[out]   pnab [optional] na of bottom sides
- * \param[in]    outformat GPLOT_NONE for no output; GPLOT_PNG for png, etc.
+ * \param[out]   ppixd [optional] pix of the output plot
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This is a debugging function to show the progression of
- *          the four sides in the boxes.  There must be at least 2 boxes.
+ *      (1) This debugging function shows the progression of the four
+ *          sides in the boxa.  There must be at least 2 boxes.
  *      (2) If there are invalid boxes (e.g., if only even or odd
  *          indices have valid boxes), this will fill them with the
  *          nearest valid box before plotting.
- *      (3) The plotfiles are put in /tmp/lept/plotsides, and are named
+ *      (3) The plotfiles are put in /tmp/lept/plots/, and are named
  *          either with %plotname or, if NULL, a default name.
  * </pre>
  */
@@ -1897,12 +1903,11 @@ boxaPlotSides(BOXA        *boxa,
               NUMA       **pnat,
               NUMA       **pnar,
               NUMA       **pnab,
-              l_int32      outformat)
+              PIX        **ppixd)
 {
 char            buf[128], titlebuf[128];
 static l_int32  plotid = 0;
 l_int32         n, i, w, h, left, top, right, bot;
-BOX            *box;
 BOXA           *boxat;
 GPLOT          *gplot;
 NUMA           *nal, *nat, *nar, *nab;
@@ -1913,6 +1918,7 @@ NUMA           *nal, *nat, *nar, *nab;
     if (pnat) *pnat = NULL;
     if (pnar) *pnar = NULL;
     if (pnab) *pnab = NULL;
+    if (ppixd) *ppixd = NULL;
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
     if ((n = boxaGetCount(boxa)) < 2)
@@ -1927,43 +1933,37 @@ NUMA           *nal, *nat, *nar, *nab;
     nab = numaCreate(n);
 
     for (i = 0; i < n; i++) {
-        box = boxaGetBox(boxat, i, L_CLONE);
-        boxGetGeometry(box, &left, &top, &w, &h);
+        boxaGetBoxGeometry(boxat, i, &left, &top, &w, &h);
         right = left + w - 1;
         bot = top + h - 1;
         numaAddNumber(nal, left);
         numaAddNumber(nat, top);
         numaAddNumber(nar, right);
         numaAddNumber(nab, bot);
-        boxDestroy(&box);
     }
     boxaDestroy(&boxat);
 
-        /* Plot them */
-    if (outformat < 0 || outformat > GPLOT_LATEX) {
-        L_ERROR("invalid gplot format\n", procName);
-        outformat = 0;
+    lept_mkdir("lept/plots");
+    if (plotname) {
+        snprintf(buf, sizeof(buf), "/tmp/lept/plots/sides.%s", plotname);
+        snprintf(titlebuf, sizeof(titlebuf), "%s: Box sides vs. box index",
+                 plotname);
+    } else {
+        snprintf(buf, sizeof(buf), "/tmp/lept/plots/sides.%d", plotid++);
+        snprintf(titlebuf, sizeof(titlebuf), "Box sides vs. box index");
     }
+    gplot = gplotCreate(buf, GPLOT_PNG, titlebuf,
+                        "box index", "side location");
+    gplotAddPlot(gplot, NULL, nal, GPLOT_LINES, "left side");
+    gplotAddPlot(gplot, NULL, nat, GPLOT_LINES, "top side");
+    gplotAddPlot(gplot, NULL, nar, GPLOT_LINES, "right side");
+    gplotAddPlot(gplot, NULL, nab, GPLOT_LINES, "bottom side");
+    gplotMakeOutput(gplot);
+    gplotDestroy(&gplot);
 
-    if (outformat > 0) {
-        lept_mkdir("lept/plotsides");
-        if (plotname) {
-            snprintf(buf, sizeof(buf), "/tmp/lept/plotsides/%s", plotname);
-            snprintf(titlebuf, sizeof(titlebuf), "%s: Box sides vs. box index",
-                     plotname);
-        } else {
-            snprintf(buf, sizeof(buf), "/tmp/lept/plotsides/sides.%d",
-                     plotid++);
-            snprintf(titlebuf, sizeof(titlebuf), "Box sides vs. box index");
-        }
-        gplot = gplotCreate(buf, outformat, titlebuf,
-                            "box index", "side location");
-        gplotAddPlot(gplot, NULL, nal, GPLOT_LINES, "left side");
-        gplotAddPlot(gplot, NULL, nat, GPLOT_LINES, "top side");
-        gplotAddPlot(gplot, NULL, nar, GPLOT_LINES, "right side");
-        gplotAddPlot(gplot, NULL, nab, GPLOT_LINES, "bottom side");
-        gplotMakeOutput(gplot);
-        gplotDestroy(&gplot);
+    if (ppixd) {
+        stringCat(buf, sizeof(buf), ".png");
+        *ppixd = pixRead(buf);
     }
 
     if (pnal)
@@ -1982,6 +1982,97 @@ NUMA           *nal, *nat, *nar, *nab;
         *pnab = nab;
     else
         numaDestroy(&nab);
+    return 0;
+}
+
+
+/*!
+ * \brief   boxaPlotSizes()
+ *
+ * \param[in]    boxa source boxa
+ * \param[in]    plotname [optional], can be NULL
+ * \param[out]   pnaw [optional] na of left sides
+ * \param[out]   pnah [optional] na of top sides
+ * \param[out]   ppixd [optional] pix of the output plot
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This debugging function shows the progression of box width
+ *          and height in the boxa.  There must be at least 2 boxes.
+ *      (2) If there are invalid boxes (e.g., if only even or odd
+ *          indices have valid boxes), this will fill them with the
+ *          nearest valid box before plotting.
+ *      (3) The plotfiles are put in /tmp/lept/plots/, and are named
+ *          either with %plotname or, if NULL, a default name.
+ * </pre>
+ */
+l_int32
+boxaPlotSizes(BOXA        *boxa,
+              const char  *plotname,
+              NUMA       **pnaw,
+              NUMA       **pnah,
+              PIX        **ppixd)
+{
+char            buf[128], titlebuf[128];
+static l_int32  plotid = 0;
+l_int32         n, i, w, h;
+BOXA           *boxat;
+GPLOT          *gplot;
+NUMA           *naw, *nah;
+
+    PROCNAME("boxaPlotSizes");
+
+    if (pnaw) *pnaw = NULL;
+    if (pnah) *pnah = NULL;
+    if (ppixd) *ppixd = NULL;
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    if ((n = boxaGetCount(boxa)) < 2)
+        return ERROR_INT("less than 2 boxes", procName, 1);
+
+    boxat = boxaFillSequence(boxa, L_USE_ALL_BOXES, 0);
+
+        /* Build the numas for the width and height */
+    naw = numaCreate(n);
+    nah = numaCreate(n);
+
+    for (i = 0; i < n; i++) {
+        boxaGetBoxGeometry(boxat, i, NULL, NULL, &w, &h);
+        numaAddNumber(naw, w);
+        numaAddNumber(nah, h);
+    }
+    boxaDestroy(&boxat);
+
+    lept_mkdir("lept/plots");
+    if (plotname) {
+        snprintf(buf, sizeof(buf), "/tmp/lept/plots/size.%s", plotname);
+        snprintf(titlebuf, sizeof(titlebuf), "%s: Box size vs. box index",
+                 plotname);
+    } else {
+        snprintf(buf, sizeof(buf), "/tmp/lept/plots/size.%d", plotid++);
+        snprintf(titlebuf, sizeof(titlebuf), "Box size vs. box index");
+    }
+    gplot = gplotCreate(buf, GPLOT_PNG, titlebuf,
+                        "box index", "box dimension");
+    gplotAddPlot(gplot, NULL, naw, GPLOT_LINES, "width");
+    gplotAddPlot(gplot, NULL, nah, GPLOT_LINES, "height");
+    gplotMakeOutput(gplot);
+    gplotDestroy(&gplot);
+
+    if (ppixd) {
+        stringCat(buf, sizeof(buf), ".png");
+        *ppixd = pixRead(buf);
+    }
+
+    if (pnaw)
+        *pnaw = naw;
+    else
+        numaDestroy(&naw);
+    if (pnah)
+        *pnah = nah;
+    else
+        numaDestroy(&nah);
     return 0;
 }
 

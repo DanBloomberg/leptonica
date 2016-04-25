@@ -341,7 +341,8 @@ LEPT_DLL extern BOXA * boxaModifyWithBoxa ( BOXA *boxas, BOXA *boxam, l_int32 su
 LEPT_DLL extern BOXA * boxaConstrainSize ( BOXA *boxas, l_int32 width, l_int32 widthflag, l_int32 height, l_int32 heightflag );
 LEPT_DLL extern BOXA * boxaReconcileEvenOddHeight ( BOXA *boxas, l_int32 sides, l_int32 delh, l_int32 op, l_float32 factor, l_int32 start );
 LEPT_DLL extern BOXA * boxaReconcilePairWidth ( BOXA *boxas, l_int32 delw, l_int32 op, l_float32 factor, NUMA *na );
-LEPT_DLL extern l_int32 boxaPlotSides ( BOXA *boxa, const char *plotname, NUMA **pnal, NUMA **pnat, NUMA **pnar, NUMA **pnab, l_int32 outformat );
+LEPT_DLL extern l_int32 boxaPlotSides ( BOXA *boxa, const char *plotname, NUMA **pnal, NUMA **pnat, NUMA **pnar, NUMA **pnab, PIX **ppixd );
+LEPT_DLL extern l_int32 boxaPlotSizes ( BOXA *boxa, const char *plotname, NUMA **pnaw, NUMA **pnah, PIX **ppixd );
 LEPT_DLL extern BOXA * boxaFillSequence ( BOXA *boxas, l_int32 useflag, l_int32 debug );
 LEPT_DLL extern l_int32 boxaGetExtent ( BOXA *boxa, l_int32 *pw, l_int32 *ph, BOX **pbox );
 LEPT_DLL extern l_int32 boxaGetCoverage ( BOXA *boxa, l_int32 wc, l_int32 hc, l_int32 exactflag, l_float32 *pfract );
