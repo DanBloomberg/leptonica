@@ -50,12 +50,12 @@ static void str_insert(const char* base, char* src, size_t n)
  * The current function block comment format is sufficiently similar
  * enough for a number of automatic conversions to be done on the fly.
  *
- * The first occurence of a line starting with " *   " followed by
+ * The first occurrence of a line starting with " *   " followed by
  * the basename of the filename (i.e. path stripped) makes this function
  * emit a doxygen style comment introducer "/ * !" followed by the original
  * line with the basename and "\\file" inserted before it.
  *
- * Following occurences of doxygen style comment introducers are used
+ * Following occurrences of doxygen style comment introducers are used
  * to commence a simple state engine which detects:
  *   + "Input:" as the beginning of the function's parameters
  *   + "Return:" as the function's return value

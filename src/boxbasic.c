@@ -412,7 +412,7 @@ boxGetRefcount(BOX  *box)
 }
 
 /*!
- * \brief  Adjust the current refernce count of %box by %delta
+ * \brief  Adjust the current references count of %box by %delta
  * \param[in]     box ptr to box
  * \param[in]     delta adjustment, usually -1 or 1
  * \return  0 if OK, 1 on error
