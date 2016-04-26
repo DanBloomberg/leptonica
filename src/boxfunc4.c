@@ -59,7 +59,6 @@
  *           BOXA     *boxaConstrainSize()
  *           BOXA     *boxaReconcileEvenOddHeight()
  *    static l_int32   boxaTestEvenOddHeight()
- *    static BOXA     *boxaMaximizeEvenOddHeight()
  *           BOXA     *boxaReconcilePairWidth()
  *           l_int32   boxaPlotSides()   [for debugging]
  *           l_int32   boxaPlotSizes()   [for debugging]
@@ -83,7 +82,6 @@
 
 static l_int32 boxaTestEvenOddHeight(BOXA *boxa1, BOXA *boxa2, l_int32 start,
                                      l_float32 *pdel1, l_float32 *pdel2);
-static BOXA *boxaMaximizeEvenOddHeight(BOXA *boxas, l_int32 start);
 static l_int32 boxaFillAll(BOXA *boxa);
 
 
@@ -1707,60 +1705,6 @@ l_float32  del1, del2;
     *pdel1 = (l_float32)sqrt((l_float64)del1 / (0.5 * n));
     *pdel2 = (l_float32)sqrt((l_float64)del2 / (0.5 * n));
     return 0;
-}
-
-
-/*!
- * \brief   boxaMaximizeEvenOddHeight()
- *
- * \param[in]    boxas
- * \param[in]    start index in which the pairs start; either 0 or 1
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This adjusts top and bottom sides of pairs of boxes to have
- *          maximal vertical extent.  This generally involves moving
- *          the top of one box up and the bottom of the other down.
- * </pre>
- */
-static BOXA *
-boxaMaximizeEvenOddHeight(BOXA    *boxas,
-                          l_int32  start)
-{
-l_int32  i, n, npairs, x1, y1, w1, h1, x2, y2, w2, h2, ymin, ymax, hmax;
-BOX     *box1, *box2;
-BOXA    *boxad;
-
-    PROCNAME("boxaMaximizeEvenOddHeight");
-
-    if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
-    n = boxaGetCount(boxas);
-
-    boxad = boxaCreate(n);
-    if (start == 1) {
-        box1 = boxaGetBox(boxas, 0, L_COPY);
-        boxaAddBox(boxad, box1, L_INSERT);
-    }
-    npairs = (n - start) / 2;
-    for (i = start; i < 2 * npairs; i += 2) {
-        boxaGetBoxGeometry(boxas, i, &x1, &y1, &w1, &h1);
-        boxaGetBoxGeometry(boxas, i + 1, &x2, &y2, &w2, &h2);
-        ymin = L_MIN(y1, y2);
-        ymax = L_MAX(y1 + h1 - 1, y2 + h2 - 1);
-        hmax = ymax - ymin + 1;
-        box1 = boxCreate(x1, ymin, w1, hmax);
-        box2 = boxCreate(x2, ymin, w2, hmax);
-        boxaAddBox(boxad, box1, L_INSERT);
-        boxaAddBox(boxad, box2, L_INSERT);
-    }
-    if (i == n - 1) {
-        box1 = boxaGetBox(boxas, i, L_COPY);
-        boxaAddBox(boxad, box1, L_INSERT);
-    }
-
-    return boxad;
 }
 
 
