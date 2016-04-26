@@ -152,6 +152,19 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixt1);
     pixaDestroy(&pixa);
 
+        /* Vary power (power-law tansform) */
+    pixa = pixaCreate(20);
+    for (i = 0; i < 20; i++) {
+        pixt0 = pixPowerLawTransform(pixs, 1.0, 1.0 / (0.3 + i * 0.15));
+        pixaAddPix(pixa, pixt0, L_INSERT);
+    }
+    pixt1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pixSaveTiled(pixt1, pixaf, 1.0, 1, 20, 32);
+    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixt1, 0, 100, "Power-law transform", rp->display);
+    pixDestroy(&pixt1);
+    pixaDestroy(&pixa);
+
         /* Hue constant mapping to lighter background */
     pixa = pixaCreate(11);
     bmf8 = bmfCreate("fonts", 8);

@@ -70,6 +70,9 @@
  *      Edge by bandpass
  *           PIX     *pixHalfEdgeByBandpass()
  *
+ *      Power-law transformation
+ *           PIX     *pixPowerLawTransform()
+ *
  *      Gamma correction, contrast enhancement and histogram equalization
  *      apply a simple mapping function to each pixel (or, for color
  *      images, to each sample (i.e., r,g,b) of the pixel).
@@ -2059,4 +2062,110 @@ PIX     *pixg, *pixacc, *pixc1, *pixc2;
     pixDestroy(&pixg);
     pixDestroy(&pixc2);
     return pixc1;
+}
+
+/*-------------------------------------------------------------*
+ *                    Power-law transform                      *
+ *-------------------------------------------------------------*/
+/*!
+ * \brief   pixPowerLawTransform()
+ *
+ * \param[in]     pixs 8 bpp gray or 32 bpp rgb
+ * \param[in]     coef coefficient (typ. 1.0)
+ * \param[in]     power power (typ. 1.0/2.2)
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Applies a power-law transformation to the input image
+ *          by using the given function parameters.
+ *      (2) The deafault parameters (coef=1.0, power=1.0/2.2) will
+ *          have as effect a standard gamma correction, the inverse
+ *          of which is applied by default in most CRT monitors.
+ *      (3) If power<1.0, low intesity values are enhanced and
+ *          high-intensity values compressed (i.e. brightening)
+ *      (4) If power>1.0, the reverse occurs (i.e. darkening)
+ * </pre>
+ */
+PIX *
+pixPowerLawTransform(PIX       *pixs,
+                     l_float32  coef,
+                     l_float32  power)
+{
+l_int32     i, x, y, w, h, d, wpl;
+l_int32     r, g, b;
+l_float32  *transfunc, max;
+l_uint32   *src, *dst;
+PIXCMAP    *cmap, *cmapd;
+PIX        *pixd;
+
+    PROCNAME("pixPowerLawTransform");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (coef < 0.0 || power < 0.0)
+        return (PIX *)ERROR_PTR("coef or power less than 0.0", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 32)
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+    wpl = pixGetWpl(pixs);
+    pixd = pixCreate(w, h, d);
+    if (!pixd)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+
+    transfunc = (l_float32 *) LEPT_CALLOC(256, sizeof(l_float32));
+    if (!transfunc)
+        return (PIX *)ERROR_PTR("transfunc not made", procName, NULL);
+
+    /* Compute the transfer function */
+    for (i = 0; i < 256; i++)
+        transfunc[i] = coef * exp(power * log((l_float32) i));
+
+    /* Re-scale linearly to the interval [0, 255] */
+    max = transfunc[255];
+    for (i = 0; i < 256; i++)
+        transfunc[i] = (transfunc[i] / max * 255.0) + 0.5;
+    /* Note: we added 0.5 because in this way the coming truncation
+     * towards the nearest integer will be more accurate. */
+
+    /* Perform the power law transformation */
+    if (d == 8) {
+        cmap = pixGetColormap(pixs);
+        if (cmap) {
+            pixd = pixCopy(pixd, pixs);
+            cmapd = pixcmapCreate(pixcmapGetDepth(cmap));
+            for (i = 0; i < pixcmapGetCount(cmap); i++) {
+                pixcmapGetColor(cmap, i, &r, &g, &b);
+                pixcmapAddColor(cmapd, transfunc[r],
+                                       transfunc[g],
+                                       transfunc[b]);
+            }
+            pixSetColormap(pixd, cmapd);
+        } else {
+            for (y = 0; y < h; y++) {
+                src = pixGetData(pixs) + y * wpl;
+                dst = pixGetData(pixd) + y * wpl;
+                for (x = 0; x < w; x++) {
+                    g = GET_DATA_BYTE(src, x);
+                    SET_DATA_BYTE(dst, x, transfunc[g]);
+                }
+            }
+        }
+    } else {
+        for (y = 0; y < h; y++) {
+            src = pixGetData(pixs) + y * wpl;
+            dst = pixGetData(pixd) + y * wpl;
+            for (x = 0; x < w; x++, src++, dst++) {
+                r = GET_DATA_BYTE(src, COLOR_RED);
+                g = GET_DATA_BYTE(src, COLOR_GREEN);
+                b = GET_DATA_BYTE(src, COLOR_BLUE);
+                SET_DATA_BYTE(dst, COLOR_RED,   transfunc[r]);
+                SET_DATA_BYTE(dst, COLOR_GREEN, transfunc[g]);
+                SET_DATA_BYTE(dst, COLOR_BLUE,  transfunc[b]);
+            }
+        }
+    }
+    LEPT_FREE(transfunc);
+
+    return pixd;
 }
