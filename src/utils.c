@@ -138,7 +138,7 @@
  *       64-bit hash functions
  *           l_int32    l_hashStringToUint64()
  *           l_int32    l_hashPtToUint64()
- *           l_int32    l_hashPtToUint64Fast()
+ *           l_int32    l_hashFloat64ToUint64()
  *
  *       Prime finders
  *           l_int32    findNextLargerPrime()
@@ -3505,9 +3505,17 @@ l_uint64  hash, mulp;
  *
  * <pre>
  * Notes:
- *      (1) I just made up a hash function and fiddled with it to get
- *          decent coverage over the 2^64 values.  There are no collisions
- *          for any of 100 million points with x and y up to 10000.
+ *      (1) I found that a simple hash function has no collisions for
+ *          any of 400 million points with x and y up to 20000.
+ *      (2) Previously used a much more complicated and slower function:
+ *            mulp = 26544357894361;
+ *            hash = 104395301;
+ *            hash += (x * mulp) ^ (hash >> 5);
+ *            hash ^= (hash << 7);
+ *            hash += (y * mulp) ^ (hash >> 7);
+ *            hash = hash ^ (hash << 11);
+ *          Such logical gymnastics to get coverage over the 2^64
+ *          values are not required.
  * </pre>
  */
 l_int32
@@ -3521,47 +3529,8 @@ l_uint64  hash, mulp;
 
     if (!phash)
         return ERROR_INT("&hash not defined", procName, 1);
-    *phash = 0;
 
-    mulp = 26544357894361;
-    hash = 104395301;
-    hash += (x * mulp) ^ (hash >> 5);
-    hash ^= (hash << 7);
-    hash += (y * mulp) ^ (hash >> 7);
-    *phash = hash ^ (hash << 11);
-    return 0;
-}
-
-
-/*!
- * \brief   l_hashPtToUint64Fast()
- *
- * \param[in]    nbuckets
- * \param[in]    x, y
- * \param[out]   phash hash value
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This is a simple, fast hash that is used with the dna hash map,
- *          which takes the mod with a prime number of buckets.  The
- *          number of buckets is selected so that collisions occur, aiming
- *          for about 20 results in each bucket.  The design goal is
- *          that the hash is fast (mult/add) and approximately the same
- *          number of points are hashed to each bucket.
- * </pre>
- */
-l_int32
-l_hashPtToUint64Fast(l_int32    nbuckets,
-                     l_int32    x,
-                     l_int32    y,
-                     l_uint64  *phash)
-{
-    PROCNAME("l_hashPtToUint64Fast");
-
-    if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
-    *phash = (l_uint64)((21.732491 * nbuckets) * x + y);
+    *phash = (l_uint64)(2173249142.3849 * x + 3763193258.6227 * y);
     return 0;
 }
 

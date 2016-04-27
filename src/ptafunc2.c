@@ -498,7 +498,7 @@ L_DNAHASH  *dahash;
         ptaGetIPt(ptas, i, &x, &y);
         ptaFindPtByHash(ptad, dahash, x, y, &index);
         if (index < 0) {  /* not found */
-            l_hashPtToUint64Fast(nsize, x, y, &key);
+            l_hashPtToUint64(x, y, &key);
             l_dnaHashAdd(dahash, key, (l_float64)items);
             ptaAddPt(ptad, x, y);
             items++;
@@ -564,7 +564,7 @@ PTA        *pta_small, *pta_big, *ptad;
             ptaFindPtByHash(pta_small, dahash2, x, y, &index2);
             if (index2 == -1) {  /* not found */
                 ptaAddPt(ptad, x, y);
-                l_hashPtToUint64Fast(nsize2, x, y, &key);
+                l_hashPtToUint64(x, y, &key);
                 l_dnaHashAdd(dahash2, key, (l_float64)i);
             }
         }
@@ -614,7 +614,7 @@ L_DNA    *da;
         return ERROR_INT("dahash not defined", procName, 1);
 
     nbuckets = l_dnaHashGetCount(dahash);
-    l_hashPtToUint64Fast(nbuckets, x, y, &key);
+    l_hashPtToUint64(x, y, &key);
     da = l_dnaHashGetDna(dahash, key, L_NOCOPY);
     if (!da) return 0;
 
@@ -663,7 +663,7 @@ L_DNAHASH  *dahash;
     dahash = l_dnaHashCreate(nsize, 8);
     for (i = 0; i < n; i++) {
         ptaGetIPt(pta, i, &x, &y);
-        l_hashPtToUint64Fast(nsize, x, y, &key);
+        l_hashPtToUint64(x, y, &key);
         l_dnaHashAdd(dahash, key, (l_float64)i);
     }
 

@@ -37,10 +37,18 @@
  *  The probability of a collision goes as n^2, so with 10M entities,
  *  the collision probabililty is about 10^-5.
  *
- *  For hash maps, the 64-bit hash only needs to randomize the lower
- *  order bits corresponding to the prime number used for assigning
- *  to buckets.  To the extent that those bits are not randomized, the
- *  calculation will run slower but the result will be exact.
+ *  For the dna hashing, a faster but weaker hash function is used.
+ *  The hash should do a reasonable job of randomizing the lower order
+ *  bits corresponding to the prime number used with the mod function
+ *  for assigning to buckets. (To the extent that those bits are not
+ *  randomized, the calculation will run slower because bucket
+ *  occupancy will not be random, but the result will still be exact.)
+ *  Hash collisions in the key are allowed because the dna in
+ *  the selected bucket stores integers into arrays (of pts or strings,
+ *  for example), and not keys.  The input point or string is hashed to
+ *  a bucket (a dna), which is then traversed, and each stored value
+ *  (an index) is used check if the point or string is in the associated
+ *  array at that location.
  *
  *  Also tests similar functions directly (without hashing the number)
  *  for numa.  (To be replaced by doing it with dna.)
@@ -65,7 +73,7 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
     lept_mkdir("lept/hash");
 
 #if 1
-        /* Test good string hashing with aset */
+        /* Test string hashing with aset */
     fprintf(stderr, "Set results with string hashing:\n");
     sa1 = BuildShortStrings(3, 0);
     sa2 = BuildShortStrings(3, 1);
@@ -87,10 +95,9 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
 
-        /* Test sarray set operations with hash map (dnaHash).
-         * We use a weak hash; collisions are OK if they're not too
-         * spatially localized. */
-    fprintf(stderr, "\nHash map results for sarray:\n");
+        /* Test sarray set operations with dna hash.
+         * We use the same hash function as is used with aset. */
+    fprintf(stderr, "\nDna hash results for sarray:\n");
     fprintf(stderr, "  size with unique strings: %d\n", sarrayGetCount(sa1));
     fprintf(stderr, "  size with dups: %d\n", sarrayGetCount(sa2));
     startTimer();
@@ -114,12 +121,13 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
 #endif
 
 #if 1
-        /* Test good pt hashing with aset.
-         * Enter all points up to (1999, 1999), and include
-         * 800,000 duplicates in pta1.  Note: there are no hash
-         * collisions up to 100M points (up to 10000 x 10000). */
-    pta1 = BuildPointSet(1000, 1000, 0);
-    pta2 = BuildPointSet(1000, 1000, 1);
+        /* Test point hashing with aset.
+         * Enter all points within a 1500 x 1500 image in pta1, and include
+         * 450,000 duplicates in pta2.  With this pt hashing function,
+         * there are no hash collisions among any of the 400 million pixel
+         * locations in a 20000 x 20000 image. */
+    pta1 = BuildPointSet(1500, 1500, 0);
+    pta2 = BuildPointSet(1500, 1500, 1);
     fprintf(stderr, "\nSet results for pta:\n");
     fprintf(stderr, "  pta1 size with unique points: %d\n", ptaGetCount(pta1));
     fprintf(stderr, "  pta2 size with dups: %d\n", ptaGetCount(pta2));
@@ -139,11 +147,12 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
 #endif
 
 #if 1
-        /* Test pta set operations with hash map (dnaHash).
-         * Collisions are OK if they're not too spatially localized */
-    pta1 = BuildPointSet(1000, 1000, 0);
-    pta2 = BuildPointSet(1000, 1000, 1);
-    fprintf(stderr, "\nHash map results for pta:\n");
+        /* Test pta set operations with dna hash, using the same pt hashing
+         * function.  Although there are no collisions in 20K x 20K images,
+         * the dna hash implementation works properly even if there are some. */
+    pta1 = BuildPointSet(1500, 1500, 0);
+    pta2 = BuildPointSet(1500, 1500, 1);
+    fprintf(stderr, "\nDna hash results for pta:\n");
     fprintf(stderr, "  pta1 size with unique points: %d\n", ptaGetCount(pta1));
     fprintf(stderr, "  pta2 size with dups: %d\n", ptaGetCount(pta2));
     startTimer();
@@ -159,12 +168,11 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
     ptaDestroy(&pta1);
     ptaDestroy(&pta2);
     ptaDestroy(&pta3);
-
 #endif
 
-        /* Test dna set and histo operations with hash map (dnaHash) */
+        /* Test dna set and histo operations using dna hash */
 #if 1
-    fprintf(stderr, "\nHash map results for dna:\n");
+    fprintf(stderr, "\nDna hash results for dna:\n");
     da1 = l_dnaMakeSequence(0.0, 0.125, 8000);
     da2 = l_dnaMakeSequence(300.0, 0.125, 8000);
     da3 = l_dnaMakeSequence(600.0, 0.125, 8000);
