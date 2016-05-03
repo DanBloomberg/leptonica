@@ -72,6 +72,7 @@
  *           l_int32   boxaaSizeRange()
  *           l_int32   boxaSizeRange()
  *           l_int32   boxaLocationRange()
+ *           NUMA     *boxaGetSizes()
  *           l_int32   boxaGetArea()
  *           PIX      *boxaDisplayTiled()
  * </pre>
@@ -934,8 +935,8 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
  *          median filtering.  The filtering is done to each of the
  *          box sides independently, and it is computed separately for
  *          sequences of even and odd boxes.  The output %boxad is
- *          constructed from the input box and the filtered boxa,
- *          box, depending on %subflag.  See boxaModifyWithBoxa() for
+ *          constructed from the input boxa and the filtered boxa,
+ *          depending on %subflag.  See boxaModifyWithBoxa() for
  *          details on the use of %subflag and %maxdiff.
  *      (3) This is useful for removing noise separately in the even
  *          and odd sets, where the box edge locations can have
@@ -1991,8 +1992,8 @@ NUMA           *nal, *nat, *nar, *nab;
  *
  * \param[in]    boxa source boxa
  * \param[in]    plotname [optional], can be NULL
- * \param[out]   pnaw [optional] na of left sides
- * \param[out]   pnah [optional] na of top sides
+ * \param[out]   pnaw [optional] na of widths
+ * \param[out]   pnah [optional] na of heights
  * \param[out]   ppixd [optional] pix of the output plot
  * \return  0 if OK, 1 on error
  *
@@ -2004,7 +2005,8 @@ NUMA           *nal, *nat, *nar, *nab;
  *          indices have valid boxes), this will fill them with the
  *          nearest valid box before plotting.
  *      (3) The plotfiles are put in /tmp/lept/plots/, and are named
- *          either with %plotname or, if NULL, a default name.
+ *          either with %plotname or, if NULL, a default name.  Make sure
+ *          that %plotname is a string with no whitespace characters.
  * </pre>
  */
 l_int32
@@ -2493,6 +2495,47 @@ l_int32  minx, miny, maxx, maxy, i, n, x, y;
     if (pminy) *pminy = miny;
     if (pmaxx) *pmaxx = maxx;
     if (pmaxy) *pmaxy = maxy;
+
+    return 0;
+}
+
+
+/*!
+ * \brief   boxaGetSizes()
+ *
+ * \param[in]    boxa
+ * \param[out]   pnaw, pnah [optional] widths and heights of valid boxes
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+boxaGetSizes(BOXA   *boxa,
+             NUMA  **pnaw,
+             NUMA  **pnah)
+{
+l_int32  i, n, w, h;
+BOX     *box;
+
+    PROCNAME("boxaGetSizes");
+
+    if (pnaw) *pnaw = NULL;
+    if (pnah) *pnah = NULL;
+    if (!pnaw && !pnah)
+        return ERROR_INT("no output requested", procName, 1);
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    n = boxaGetValidCount(boxa);
+    if (pnaw) *pnaw = numaCreate(n);
+    if (pnah) *pnah = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        box = boxaGetValidBox(boxa, i, L_COPY);
+        if (box) {
+            boxGetGeometry(box, NULL, NULL, &w, &h);
+            if (pnaw) numaAddNumber(*pnaw, w);
+            if (pnah) numaAddNumber(*pnah, h);
+            boxDestroy(&box);
+        }
+    }
 
     return 0;
 }

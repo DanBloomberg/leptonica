@@ -349,6 +349,7 @@ LEPT_DLL extern l_int32 boxaGetCoverage ( BOXA *boxa, l_int32 wc, l_int32 hc, l_
 LEPT_DLL extern l_int32 boxaaSizeRange ( BOXAA *baa, l_int32 *pminw, l_int32 *pminh, l_int32 *pmaxw, l_int32 *pmaxh );
 LEPT_DLL extern l_int32 boxaSizeRange ( BOXA *boxa, l_int32 *pminw, l_int32 *pminh, l_int32 *pmaxw, l_int32 *pmaxh );
 LEPT_DLL extern l_int32 boxaLocationRange ( BOXA *boxa, l_int32 *pminx, l_int32 *pminy, l_int32 *pmaxx, l_int32 *pmaxy );
+LEPT_DLL extern l_int32 boxaGetSizes ( BOXA *boxa, NUMA **pnaw, NUMA **pnah );
 LEPT_DLL extern l_int32 boxaGetArea ( BOXA *boxa, l_int32 *parea );
 LEPT_DLL extern PIX * boxaDisplayTiled ( BOXA *boxas, PIXA *pixa, l_int32 maxwidth, l_int32 linewidth, l_float32 scalefactor, l_int32 background, l_int32 spacing, l_int32 border );
 LEPT_DLL extern L_BYTEA * l_byteaCreate ( size_t nbytes );
