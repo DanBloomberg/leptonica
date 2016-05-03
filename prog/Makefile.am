@@ -105,7 +105,7 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	numaranktest otsutest1 otsutest2 \
 	pagesegtest1 pagesegtest2 \
 	partitiontest pdfiotest percolatetest \
-	pixaatest plottest \
+	pixaatest pixafileinfo plottest \
 	quadtreetest ranktest rbtreetest \
 	recog_bootnum recogsort recogtest1 \
 	reducetest removecmap \

@@ -225,8 +225,8 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		modifyhuesat.c morphtest1.c mtifftest.c \
 		numaranktest.c otsutest1.c otsutest2.c \
 		pagesegtest1.c pagesegtest2.c \
-		partitiontest.c pdfiotest.c \
-		percolatetest.c pixaatest.c plottest.c \
+		partitiontest.c pdfiotest.c percolatetest.c \
+		pixaatest.c pixafileinfo.c plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
 		quadtreetest.c ranktest.c rbtreetest.c \
 		recog_bootnum.c recogsort.c recogtest1.c \
@@ -945,6 +945,9 @@ percolatetest:	percolatetest.o $(LEPTLIB)
 
 pixaatest:	pixaatest.o $(LEPTLIB)
 	$(CC) -o pixaatest pixaatest.o $(ALL_LIBS) $(EXTRALIBS)
+
+pixafileinfo:	pixafileinfo.o $(LEPTLIB)
+	$(CC) -o pixafileinfo pixafileinfo.o $(ALL_LIBS) $(EXTRALIBS)
 
 plottest:	plottest.o $(LEPTLIB)
 	$(CC) -o plottest plottest.o $(ALL_LIBS) $(EXTRALIBS)
