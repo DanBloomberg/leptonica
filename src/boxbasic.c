@@ -61,6 +61,7 @@
  *           l_int32   boxaGetValidCount()
  *           BOX      *boxaGetBox()
  *           BOX      *boxaGetValidBox()
+ *           NUMA     *boxaFindInvalidBoxes()
  *           l_int32   boxaGetBoxGeometry()
  *           l_int32   boxaIsFull()
  *
@@ -788,6 +789,37 @@ BOX     *box;
     if (w <= 0 || h <= 0)  /* not valid, but not necessarily an error */
         boxDestroy(&box);
     return box;
+}
+
+
+/*!
+ * \brief   boxaFindInvalidBoxes()
+ *
+ * \param[in]    boxa
+ * \return  na   numa of invalid boxes; NULL if there are none or on error
+ */
+NUMA *
+boxaFindInvalidBoxes(BOXA  *boxa)
+{
+l_int32  i, n, w, h;
+NUMA    *na;
+
+    PROCNAME("boxaFindInvalidBoxes");
+
+    if (!boxa)
+        return (NUMA *)ERROR_PTR("boxa not defined", procName, NULL);
+
+    n = boxaGetCount(boxa);
+    if (boxaGetValidCount(boxa) == n)
+        return NULL;
+
+    na = numaMakeConstant(0, n);
+    for (i = 0; i < n; i++) {
+        boxaGetBoxGeometry(boxa, i, NULL, NULL, &w, &h);
+        if (w == 0 || h == 0)
+            numaSetValue(na, i, 1);
+    }
+    return na;
 }
 
 

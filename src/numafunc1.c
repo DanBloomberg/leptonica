@@ -1087,7 +1087,7 @@ NUMA      *nad;
  * \param[in]    thresh threshold value
  * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
  *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[in]  : nad indicator array: values are 0 and 1
+ * \param[out]  : nad indicator array: values are 0 and 1
  *
  * <pre>
  * Notes:

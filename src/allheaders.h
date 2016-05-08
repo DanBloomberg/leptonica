@@ -215,6 +215,7 @@ LEPT_DLL extern l_int32 boxaGetCount ( BOXA *boxa );
 LEPT_DLL extern l_int32 boxaGetValidCount ( BOXA *boxa );
 LEPT_DLL extern BOX * boxaGetBox ( BOXA *boxa, l_int32 index, l_int32 accessflag );
 LEPT_DLL extern BOX * boxaGetValidBox ( BOXA *boxa, l_int32 index, l_int32 accessflag );
+LEPT_DLL extern NUMA * boxaFindInvalidBoxes ( BOXA *boxa );
 LEPT_DLL extern l_int32 boxaGetBoxGeometry ( BOXA *boxa, l_int32 index, l_int32 *px, l_int32 *py, l_int32 *pw, l_int32 *ph );
 LEPT_DLL extern l_int32 boxaIsFull ( BOXA *boxa, l_int32 *pfull );
 LEPT_DLL extern l_int32 boxaReplaceBox ( BOXA *boxa, l_int32 index, BOX *box );
