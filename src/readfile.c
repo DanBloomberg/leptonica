@@ -663,7 +663,7 @@ l_uint16  twobytepw;
 
         /* Check for the p*m 2-byte header ids */
     if ((buf[0] == 'P' && buf[1] == '4') || /* newer packed */
-        (buf[0] == 'P' && buf[1] == '1')) {  /* old format */
+        (buf[0] == 'P' && buf[1] == '1')) {  /* old ASCII format */
         *pformat = IFF_PNM;
         return 0;
     }
@@ -676,6 +676,11 @@ l_uint16  twobytepw;
 
     if ((buf[0] == 'P' && buf[1] == '6') || /* newer */
         (buf[0] == 'P' && buf[1] == '3')) {  /* old */
+        *pformat = IFF_PNM;
+        return 0;
+    }
+
+    if (buf[0] == 'P' && buf[1] == '7') {  /* new arbitrary (PAM) */
         *pformat = IFF_PNM;
         return 0;
     }
