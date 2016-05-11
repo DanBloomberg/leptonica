@@ -112,10 +112,10 @@ pixSimpleCaptcha(PIX      *pixs,
                  l_int32   cmapflag)
 {
 l_int32    k;
-l_float32  xmag[] = {7.0, 5.0, 4.0, 3.0};
-l_float32  ymag[] = {10.0, 8.0, 6.0, 5.0};
-l_float32  xfreq[] = {0.12, 0.10, 0.10, 0.11};
-l_float32  yfreq[] = {0.15, 0.13, 0.13, 0.11};
+l_float32  xmag[] = {7.0f, 5.0f, 4.0f, 3.0f};
+l_float32  ymag[] = {10.0f, 8.0f, 6.0f, 5.0f};
+l_float32  xfreq[] = {0.12f, 0.10f, 0.10f, 0.11f};
+l_float32  yfreq[] = {0.15f, 0.13f, 0.13f, 0.11f};
 PIX       *pixg, *pixgb, *pixw, *pixd;
 
     PROCNAME("pixSimpleCaptcha");

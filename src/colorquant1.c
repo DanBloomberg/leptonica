@@ -729,7 +729,7 @@ l_int32    npix;  /* number of remaining pixels to be assigned */
 l_int32    ncolor; /* number of remaining color cells to be used */
 l_int32    ppc;  /* ave number of pixels left for each color cell */
 l_int32    rv, gv, bv;
-l_float32  thresholdFactor[] = {0.01, 0.01, 1.0, 1.0, 1.0, 1.0};
+l_float32  thresholdFactor[] = {0.01f, 0.01f, 1.0f, 1.0f, 1.0f, 1.0f};
 l_float32  thresh;  /* factor of ppc for this level */
 l_uint32  *datas, *lines;
 l_uint32  *rtab, *gtab, *btab;

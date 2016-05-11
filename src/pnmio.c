@@ -105,8 +105,7 @@
  *      with 32-bpp and alpha channel (spp == 4).
  *
  *      Writing P7 format is currently selected for 32-bpp with alpha
- *      channel, i.e. for Pix which have spp == 4, using the new
- *      function pixWriteStreamPam().
+ *      channel, i.e. for Pix which have spp == 4, using pixWriteStreamPam().
  * </pre>
  */
 
@@ -142,7 +141,7 @@ static const l_int32  MAX_PNM_HEIGHT = 100000;
  * \return  pix, or NULL on error
  */
 PIX *
-pixReadStreamPnm(FILE *fp)
+pixReadStreamPnm(FILE  *fp)
 {
 l_uint8    val8, rval8, gval8, bval8, aval8, mask8;
 l_uint16   val16, rval16, gval16, bval16, aval16, mask16;
@@ -183,11 +182,11 @@ PIX       *pix;
         for (i = 0; i < h; i++) {
             for (j = 0; j < w; j++) {
                 if (pnmReadNextAsciiValue(fp, &rval))
-                    return (PIX *)ERROR_PTR( "read abend", procName, pix);
+                    return (PIX *)ERROR_PTR("read abend", procName, pix);
                 if (pnmReadNextAsciiValue(fp, &gval))
-                    return (PIX *)ERROR_PTR( "read abend", procName, pix);
+                    return (PIX *)ERROR_PTR("read abend", procName, pix);
                 if (pnmReadNextAsciiValue(fp, &bval))
-                    return (PIX *)ERROR_PTR( "read abend", procName, pix);
+                    return (PIX *)ERROR_PTR("read abend", procName, pix);
                 composeRGBPixel(rval, gval, bval, &rgbval);
                 pixSetPixel(pix, j, i, rgbval);
             }
@@ -201,7 +200,7 @@ PIX       *pix;
             line = data + i * wpl;
             for (j = 0; j < bpl; j++) {
                 if (fread(&val8, 1, 1, fp) != 1)
-                    return (PIX *)ERROR_PTR( "read error in 4", procName, pix);
+                    return (PIX *)ERROR_PTR("read error in 4", procName, pix);
                 SET_DATA_BYTE(line, j, val8);
             }
         }
@@ -215,7 +214,7 @@ PIX       *pix;
             if (d != 16) {
                 for (j = 0; j < w; j++) {
                     if (fread(&val8, 1, 1, fp) != 1)
-                        return (PIX *)ERROR_PTR( "error in 5", procName, pix);
+                        return (PIX *)ERROR_PTR("error in 5", procName, pix);
                     if (d == 2)
                         SET_DATA_DIBIT(line, j, val8);
                     else if (d == 4)
@@ -226,7 +225,7 @@ PIX       *pix;
             } else {  /* d == 16 */
                 for (j = 0; j < w; j++) {
                     if (fread(&val16, 2, 1, fp) != 1)
-                        return (PIX *)ERROR_PTR( "16 bpp error", procName, pix);
+                        return (PIX *)ERROR_PTR("16 bpp error", procName, pix);
                     SET_DATA_TWO_BYTES(line, j, val16);
                 }
             }
@@ -239,11 +238,14 @@ PIX       *pix;
             line = data + i * wpl;
             for (j = 0; j < wpl; j++) {
                 if (fread(&rval8, 1, 1, fp) != 1)
-                    return (PIX *)ERROR_PTR( "read error type 6", procName, pix);
+                    return (PIX *)ERROR_PTR("read error type 6",
+                                            procName, pix);
                 if (fread(&gval8, 1, 1, fp) != 1)
-                    return (PIX *)ERROR_PTR( "read error type 6", procName, pix);
+                    return (PIX *)ERROR_PTR("read error type 6",
+                                            procName, pix);
                 if (fread(&bval8, 1, 1, fp) != 1)
-                    return (PIX *)ERROR_PTR( "read error type 6", procName, pix);
+                    return (PIX *)ERROR_PTR("read error type 6",
+                                            procName, pix);
                 composeRGBPixel(rval8, gval8, bval8, &rgbval);
                 line[j] = rgbval;
             }
@@ -260,7 +262,8 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
                         if (fread(&val8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         val8 = val8 & mask8;
                         pixSetPixel(pix, j, i, val8);
                     }
@@ -271,9 +274,11 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
                         if (fread(&val8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&aval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         val8 = val8 & mask8;
                         aval8 = aval8 & mask8;
                         composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
@@ -288,11 +293,14 @@ PIX       *pix;
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
                         if (fread(&rval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&gval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&bval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         rval8 = rval8 & mask8;
                         gval8 = gval8 & mask8;
                         bval8 = bval8 & mask8;
@@ -307,13 +315,17 @@ PIX       *pix;
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
                         if (fread(&rval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&gval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&bval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&aval8, 1, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         rval8 = rval8 & mask8;
                         gval8 = gval8 & mask8;
                         bval8 = bval8 & mask8;
@@ -332,7 +344,8 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
                         if (fread(&val16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         val8 = (val16 & mask16) >> 8;
                         pixSetPixel(pix, j, i, val8);
                     }
@@ -343,9 +356,11 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
                         if (fread(&val16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&aval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         val8 = (val16 & mask16) >> 8;
                         aval8 = (aval16 & mask16) >> 8;
                         composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
@@ -360,11 +375,14 @@ PIX       *pix;
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
                         if (fread(&rval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&gval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&bval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         rval8 = (rval16 & mask16) >> 8;
                         gval8 = (gval16 & mask16) >> 8;
                         bval8 = (bval16 & mask16) >> 8;
@@ -379,13 +397,17 @@ PIX       *pix;
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
                         if (fread(&rval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&gval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&bval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         if (fread(&aval16, 2, 1, fp) != 1)
-                            return (PIX *)ERROR_PTR( "read error type 7", procName, pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    procName, pix);
                         rval8 = (rval16 & mask16) >> 8;
                         gval8 = (gval16 & mask16) >> 8;
                         bval8 = (bval16 & mask16) >> 8;
@@ -905,7 +927,7 @@ PIX       *pixs;
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
     else
         pixs = pixClone(pix);
-    ds =  pixGetDepth(pixs);
+    ds = pixGetDepth(pixs);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     spps = pixGetSpp(pixs);
@@ -1331,7 +1353,9 @@ l_int32   i, c, foundws;
  * </pre>
  */
 static l_int32
-pnmReadNextString(FILE *fp, char *buff, l_int32 size)
+pnmReadNextString(FILE    *fp,
+                  char    *buff,
+                  l_int32  size)
 {
 l_int32   i, c;
 
@@ -1361,7 +1385,7 @@ l_int32   i, c;
     }
     buff[i] = '\0';
 
-    /* Back up one byte */
+        /* Back up one byte */
     fseek(fp, -1L, SEEK_CUR);
     if (i >= size - 1)
         return ERROR_INT("buff size too small", procName, 1);
@@ -1374,10 +1398,11 @@ l_int32   i, c;
             break;
     }
 
-    /* Back up one byte */
+        /* Back up one byte */
     fseek(fp, -1L, SEEK_CUR);
     return 0;
 }
+
 
 /*!
  * \brief   pnmSkipCommentLines()

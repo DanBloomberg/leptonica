@@ -78,7 +78,7 @@ l_int32 pixWriteStreamAsciiPnm(FILE *fp, PIX *pix)
 
 l_int32 pixWriteStreamPam(FILE *fp, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteStreamPnm", 1);
+    return ERROR_INT("function not present", "pixWriteStreamPam", 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -107,7 +107,7 @@ l_int32 pixWriteMemPnm(l_uint8 **pdata, size_t *psize, PIX *pix)
 
 l_int32 pixWriteMemPam(l_uint8 **pdata, size_t *psize, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteMemPnm", 1);
+    return ERROR_INT("function not present", "pixWriteMemPam", 1);
 }
 
 
