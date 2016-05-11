@@ -1884,9 +1884,11 @@ LEPT_DLL extern l_int32 readHeaderPnm ( const char *filename, l_int32 *pw, l_int
 LEPT_DLL extern l_int32 freadHeaderPnm ( FILE *fp, l_int32 *pw, l_int32 *ph, l_int32 *pd, l_int32 *ptype, l_int32 *pbps, l_int32 *pspp );
 LEPT_DLL extern l_int32 pixWriteStreamPnm ( FILE *fp, PIX *pix );
 LEPT_DLL extern l_int32 pixWriteStreamAsciiPnm ( FILE *fp, PIX *pix );
+LEPT_DLL extern l_int32 pixWriteStreamPam ( FILE *fp, PIX *pix );
 LEPT_DLL extern PIX * pixReadMemPnm ( const l_uint8 *data, size_t size );
 LEPT_DLL extern l_int32 readHeaderMemPnm ( const l_uint8 *data, size_t size, l_int32 *pw, l_int32 *ph, l_int32 *pd, l_int32 *ptype, l_int32 *pbps, l_int32 *pspp );
 LEPT_DLL extern l_int32 pixWriteMemPnm ( l_uint8 **pdata, size_t *psize, PIX *pix );
+LEPT_DLL extern l_int32 pixWriteMemPam ( l_uint8 **pdata, size_t *psize, PIX *pix );
 LEPT_DLL extern PIX * pixProjectiveSampledPta ( PIX *pixs, PTA *ptad, PTA *ptas, l_int32 incolor );
 LEPT_DLL extern PIX * pixProjectiveSampled ( PIX *pixs, l_float32 *vc, l_int32 incolor );
 LEPT_DLL extern PIX * pixProjectivePta ( PIX *pixs, PTA *ptad, PTA *ptas, l_int32 incolor );
