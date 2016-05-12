@@ -97,7 +97,7 @@
  *                            ; its meaning is equivalent to spp
  *        MAXVAL <int>        ; mandatory, one of 1, 3, 15, 255 or 65535
  *        TUPLTYPE <string>   ; optional; BLACKANDWHITE, GRAYSCALE, RGB
- *                            ; and optional appendix _ALPHA, e.g. RGB_ALPHA
+ *                            ; and optional suffix _ALPHA, e.g. RGB_ALPHA
  *        ENDHDR              ; mandatory, last header line
  *
  *      Reading BLACKANDWHITE_ALPHA and GRAYSCALE_ALPHA, which have a DEPTH
@@ -158,6 +158,10 @@ PIX       *pix;
 
     if (freadHeaderPnm(fp, &w, &h, &d, &type, &bps, &spp))
         return (PIX *)ERROR_PTR( "header read failed", procName, NULL);
+    if (bps < 1 || bps > 16)
+        return (PIX *)ERROR_PTR( "invalid bps", procName, NULL);
+    if (spp < 1 || spp > 4)
+        return (PIX *)ERROR_PTR( "invalid spp", procName, NULL);
     if ((pix = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR( "pix not made", procName, NULL);
     pixSetInputFormat(pix, IFF_PNM);
@@ -208,7 +212,6 @@ PIX       *pix;
 
     case 5:
         /* "raw" format for grayscale */
-        bpl = (d * w + 7) / 8;
         for (i = 0; i < h; i++) {
             line = data + i * wpl;
             if (d != 16) {
@@ -265,6 +268,7 @@ PIX       *pix;
                             return (PIX *)ERROR_PTR("read error type 7",
                                                     procName, pix);
                         val8 = val8 & mask8;
+                        if (bps == 1) val8 ^= 1;  /* white-is-1 photometry */
                         pixSetPixel(pix, j, i, val8);
                     }
                 }
@@ -337,8 +341,8 @@ PIX       *pix;
                 pixSetSpp(pix, 4);
                 break;
             }
-        } else {
-            mask16 = (1 << bps) - 1;
+        } else {  /* bps == 16 */
+            mask16 = (1 << 16) - 1;
             switch (spp) {
             case 1: /* 16 bpp grayscale */
                 for (i = 0; i < h; i++) {
@@ -491,7 +495,7 @@ freadHeaderPnm(FILE     *fp,
                l_int32  *pspp)
 {
 char     tag[16], tupltype[32];
-l_int32  w, h, d, bps, spp, type;
+l_int32  i, w, h, d, bps, spp, type;
 l_int32  maxval;
 l_int32  ch;
 
@@ -516,7 +520,7 @@ l_int32  ch;
 
     if (type == 7) {
         w = h = d = bps = spp = maxval = 0;
-        for (;;) {
+        for (i = 0; i < 10; i++) {   /* limit to 10 lines of this header */
             if (pnmReadNextString(fp, tag, sizeof(tag)))
                 return ERROR_INT("found no next tag", procName, 1);
             if (!strcmp(tag, "WIDTH")) {
@@ -959,6 +963,7 @@ PIX       *pixs;
             lines = datas + i * wpls;
             for (j = 0; j < w; j++) {
                 val8 = GET_DATA_BIT(lines, j);
+                val8 ^= 1;  /* pam apparently uses white-is-1 photometry */
                 if (fwrite(&val8, 1, 1, fp) != 1)
                     writeerror = 1;
             }
@@ -1255,7 +1260,7 @@ FILE    *fp;
  *      Return: 0 if OK, 1 on error or EOF.
  *
  *  Notes:
- *      (1) This reads the next sample value in ASCII from the the file.
+ *      (1) This reads the next sample value in ASCII from the file.
  */
 static l_int32
 pnmReadNextAsciiValue(FILE     *fp,
@@ -1375,7 +1380,7 @@ l_int32   i, c;
     } while (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 
         /* The next string ends when there is
-         * an whitespace character following. */
+         * a whitespace character following. */
     for (i = 0; i < size - 1; i++) {
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
             break;

@@ -309,7 +309,7 @@ regTestCompareStrings(L_REGPARAMS  *rp,
 l_int32  i, fail;
 char     buf[256];
 
-    PROCNAME("regTestCompareValues");
+    PROCNAME("regTestCompareStrings");
 
     if (!rp)
         return ERROR_INT("rp not defined", procName, 1);

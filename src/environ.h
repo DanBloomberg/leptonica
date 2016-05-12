@@ -96,7 +96,7 @@ typedef uintptr_t l_uintptr_t;
  *  I/O libraries, plus zlib.  Setting any of these to 0 here causes
  *  non-functioning stubs to be linked.
  */
-#if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD)
+#if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD) && !defined(OS_IOS)
 #define  HAVE_LIBJPEG     1
 #define  HAVE_LIBTIFF     1
 #define  HAVE_LIBPNG      1
@@ -122,7 +122,8 @@ typedef uintptr_t l_uintptr_t;
  * To use these functions in linux, you must define HAVE_FMEMOPEN to 1.
  * To use them on MacOS, which does not support these functions, set it to 0.
  */
-#if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD) && !defined(_WIN32)
+#if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD) && !defined(OS_IOS) && \
+    !defined(_WIN32)
 #define  HAVE_FMEMOPEN    1
 #endif  /* ! HAVE_CONFIG_H etc. */
 
