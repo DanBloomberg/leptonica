@@ -1379,6 +1379,19 @@ l_int32   i, c;
             return ERROR_INT("end of file reached", procName, 1);
     } while (c == ' ' || c == '\t' || c == '\n' || c == '\r');
 
+        /* Comment lines are allowed to appear
+         * anywhere in the header lines */
+    if (c == '#') {
+        do {  /* each line starting with '#' */
+            do {  /* this entire line */
+                if ((c = fgetc(fp)) == EOF)
+                    return ERROR_INT("end of file reached", procName, 1);
+            } while (c != '\n');
+            if ((c = fgetc(fp)) == EOF)
+                return ERROR_INT("end of file reached", procName, 1);
+        } while (c == '#');
+    }
+
         /* The next string ends when there is
          * a whitespace character following. */
     for (i = 0; i < size - 1; i++) {
