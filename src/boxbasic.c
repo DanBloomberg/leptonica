@@ -41,7 +41,8 @@
  *      Box accessors
  *           l_int32   boxGetGeometry()
  *           l_int32   boxSetGeometry()
- *           l_int32   boxGetSideLocation()
+ *           l_int32   boxGetSideLocations()
+ *           l_int32   boxSetSideLocations()
  *           l_int32   boxGetRefcount()
  *           l_int32   boxChangeRefcount()
  *           l_int32   boxIsValid()
@@ -329,7 +330,7 @@ boxGetGeometry(BOX      *box,
  * \brief   boxSetGeometry()
  *
  * \param[in]    box
- * \param[in]    x, y, w, h use -1 to leave unchanged
+ * \param[in]    x, y, w, h  [optional]  use -1 to leave unchanged
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -352,46 +353,69 @@ boxSetGeometry(BOX     *box,
 
 
 /*!
- * \brief   boxGetSideLocation()
+ * \brief   boxGetSideLocations()
  *
  * \param[in]    box
- * \param[in]    side L_GET_LEFT, L_GET_RIGHT, L_GET_TOP, L_GET_BOT
- * \param[out]   ploc location
+ * \param[out]   pl, pt, pr, pb [optional]  each can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) All returned values are within the box.  In particular:
- *            right = left + width - 1
- *            bottom = top + height - 1
+ *      (1) All returned values are within the box.
  * </pre>
  */
 l_int32
-boxGetSideLocation(BOX      *box,
-                   l_int32   side,
-                   l_int32  *ploc)
+boxGetSideLocations(BOX      *box,
+                    l_int32  *pl,
+                    l_int32  *pr,
+                    l_int32  *pt,
+                    l_int32  *pb)
 {
 l_int32  x, y, w, h;
 
-    PROCNAME("boxGetSideLocation");
+    PROCNAME("boxGetSideLocations");
 
-    if (!ploc)
-        return ERROR_INT("&loc not defined", procName, 1);
-    *ploc = 0;
+    if (pl) *pl = 0;
+    if (pr) *pr = 0;
+    if (pt) *pt = 0;
+    if (pb) *pb = 0;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
 
     boxGetGeometry(box, &x, &y, &w, &h);
-    if (side == L_GET_LEFT)
-        *ploc = x;
-    else if (side == L_GET_RIGHT)
-        *ploc = x + w - 1;
-    else if (side == L_GET_TOP)
-        *ploc = y;
-    else if (side == L_GET_BOT)
-        *ploc = y + h - 1;
-    else
-        return ERROR_INT("invalid side", procName, 1);
+    if (pl) *pl = x;
+    if (pr) *pr = x + w - 1;
+    if (pt) *pt = y;
+    if (pb) *pb = y + h - 1;
+    return 0;
+}
+
+
+/*!
+ * \brief   boxSetSideLocations()
+ *
+ * \param[in]    box
+ * \param[in]    l, r, t, b  [optional] use -1 to leave unchanged
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+boxSetSideLocations(BOX     *box,
+                    l_int32  l,
+                    l_int32  r,
+                    l_int32  t,
+                    l_int32  b)
+{
+l_int32  x, y, w, h;
+
+    PROCNAME("boxSetSideLocations");
+
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    x = (l != -1) ? l : box->x;
+    w = (r != -1) ? r - x + 1 : box->x + box->w - x;
+    y = (t != -1) ? t : box->y;
+    h = (b != -1) ? b - y + 1 : box->y + box->h - y;
+    boxSetGeometry(box, x, y, w, h);
     return 0;
 }
 

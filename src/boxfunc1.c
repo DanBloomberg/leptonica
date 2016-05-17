@@ -1480,7 +1480,7 @@ boxSimilar(BOX      *box1,
            l_int32   botdiff,
            l_int32  *psimilar)
 {
-l_int32  loc1, loc2;
+l_int32  l1, l2, r1, r2, t1, t2, b1, b2;
 
     PROCNAME("boxSimilar");
 
@@ -1490,21 +1490,15 @@ l_int32  loc1, loc2;
     if (!box1 || !box2)
         return ERROR_INT("box1 and box2 not both defined", procName, 1);
 
-    boxGetSideLocation(box1, L_GET_LEFT, &loc1);
-    boxGetSideLocation(box2, L_GET_LEFT, &loc2);
-    if (L_ABS(loc1 - loc2) > leftdiff)
+    boxGetSideLocations(box1, &l1, &r1, &t1, &b1);
+    boxGetSideLocations(box2, &l2, &r2, &t2, &b2);
+    if (L_ABS(l1 - l2) > leftdiff)
         return 0;
-    boxGetSideLocation(box1, L_GET_RIGHT, &loc1);
-    boxGetSideLocation(box2, L_GET_RIGHT, &loc2);
-    if (L_ABS(loc1 - loc2) > rightdiff)
+    if (L_ABS(r1 - r2) > rightdiff)
         return 0;
-    boxGetSideLocation(box1, L_GET_TOP, &loc1);
-    boxGetSideLocation(box2, L_GET_TOP, &loc2);
-    if (L_ABS(loc1 - loc2) > topdiff)
+    if (L_ABS(t1 - t2) > topdiff)
         return 0;
-    boxGetSideLocation(box1, L_GET_BOT, &loc1);
-    boxGetSideLocation(box2, L_GET_BOT, &loc2);
-    if (L_ABS(loc1 - loc2) > botdiff)
+    if (L_ABS(b1 - b2) > botdiff)
         return 0;
 
     *psimilar = 1;

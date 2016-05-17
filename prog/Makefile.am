@@ -54,7 +54,7 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg affine_reg \
 	bilateral1_reg bilinear_reg \
 	binmorph1_reg binmorph2_reg binmorph3_reg \
 	binmorph4_reg binmorph5_reg \
-	blend1_reg blend2_reg boxa1_reg \
+	blend1_reg blend2_reg boxa1_reg boxa2_reg \
 	ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorize_reg colorseg_reg compfilter_reg \
 	conncomp_reg conversion_reg distance_reg \
