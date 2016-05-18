@@ -2098,6 +2098,7 @@ LEPT_DLL extern l_int32 findFileFormatBuffer ( const l_uint8 *buf, l_int32 *pfor
 LEPT_DLL extern l_int32 fileFormatIsTiff ( FILE *fp );
 LEPT_DLL extern PIX * pixReadMem ( const l_uint8 *data, size_t size );
 LEPT_DLL extern l_int32 pixReadHeaderMem ( const l_uint8 *data, size_t size, l_int32 *pformat, l_int32 *pw, l_int32 *ph, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap );
+LEPT_DLL extern l_int32 lept_fileinfo ( const char *filename, l_int32 headeronly );
 LEPT_DLL extern l_int32 ioFormatTest ( const char *filename );
 LEPT_DLL extern L_RECOGA * recogaCreateFromRecog ( L_RECOG *recog );
 LEPT_DLL extern L_RECOGA * recogaCreateFromPixaa ( PIXAA *paa, l_int32 scalew, l_int32 scaleh, l_int32 templ_type, l_int32 threshold, l_int32 maxyshift );

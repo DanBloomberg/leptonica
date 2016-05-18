@@ -49,6 +49,9 @@
  *           PIX       *pixReadMem()
  *           l_int32    pixReadHeaderMem()
  *
+ *      Output image file information
+ *           void       lept_fileinfo()
+ *
  *      Test function for I/O with different formats
  *           l_int32    ioFormatTest()
  *
@@ -1015,6 +1018,153 @@ PIX     *pix;
     if (pspp) *pspp = spp;
     if (piscmap) *piscmap = iscmap;
     if (pformat) *pformat = format;
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                    Output image file information                    *
+ *---------------------------------------------------------------------*/
+extern const char *ImageFileFormatExtensions[];
+
+/*!
+ * \brief   lept_fileinfo()
+ *
+ * \param[in]    filename  input file
+ * \param[in]    headeronly  1 to read only the header; 0 to read both
+ *                           the header and the input file
+ * \return  0 if OK; 1 on error
+ */
+l_int32
+lept_fileinfo(const char  *filename,
+              l_int32      headeronly)
+{
+char     *text;
+l_int32   w, h, d, wpl, count, npages, color;
+l_int32   format, bps, spp, iscmap, xres, yres, transparency;
+FILE     *fp;
+PIX      *pix, *pixt;
+PIXCMAP  *cmap;
+
+    PROCNAME("lept_fileinfo");
+
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+
+    l_pngSetReadStrip16To8(1);  /* to preserve 16 bpp if format is png */
+
+        /* Read the header */
+    if (pixReadHeader(filename, &format, &w, &h, &bps, &spp, &iscmap)) {
+        L_ERROR("failure to read header of %s\n", procName, filename);
+        return 1;
+    }
+    fprintf(stderr, "===============================================\n"
+                    "Reading the header:\n");
+    fprintf(stderr, "  input image format type: %s\n",
+            ImageFileFormatExtensions[format]);
+    fprintf(stderr,
+            "  w = %d, h = %d, bps = %d, spp = %d, iscmap = %d\n",
+            w, h, bps, spp, iscmap);
+
+    findFileFormat(filename, &format);
+    if (format == IFF_JP2) {
+        fp = lept_fopen(filename, "rb");
+        fgetJp2kResolution(fp, &xres, &yres);
+        fclose(fp);
+        fprintf(stderr, "  xres = %d, yres = %d\n", xres, yres);
+    } else if (format == IFF_PNG) {
+        fp = lept_fopen(filename, "rb");
+        fgetPngResolution(fp, &xres, &yres);
+        fclose(fp);
+        fprintf(stderr, "  xres = %d, yres = %d\n", xres, yres);
+        if (iscmap) {
+            fp = lept_fopen(filename, "rb");
+            fgetPngColormapInfo(fp, &cmap, &transparency);
+            fclose(fp);
+            if (transparency)
+                fprintf(stderr, "  colormap has transparency\n");
+            else
+                fprintf(stderr, "  colormap does not have transparency\n");
+            pixcmapWriteStream(stderr, cmap);
+            pixcmapDestroy(&cmap);
+        }
+    } else if (format == IFF_JFIF_JPEG) {
+        fp = lept_fopen(filename, "rb");
+        fgetJpegResolution(fp, &xres, &yres);
+        fclose(fp);
+        fprintf(stderr, "  xres = %d, yres = %d\n", xres, yres);
+    }
+
+    if (headeronly)
+        return 0;
+
+        /* Read the full image.  Note that when we read an image that
+         * has transparency in a colormap, we convert it to RGBA. */
+    fprintf(stderr, "===============================================\n"
+                    "Reading the full image:\n");
+    if ((pix = pixRead(filename)) == NULL) {
+        L_ERROR("failure to read full image of %s\n", procName, filename);
+        return 1;
+    }
+
+    format = pixGetInputFormat(pix);
+    pixGetDimensions(pix, &w, &h, &d);
+    wpl = pixGetWpl(pix);
+    spp = pixGetSpp(pix);
+    fprintf(stderr, "  input image format type: %s\n",
+            ImageFileFormatExtensions[format]);
+    fprintf(stderr, "  w = %d, h = %d, d = %d, spp = %d, wpl = %d\n",
+            w, h, d, spp, wpl);
+    fprintf(stderr, "  xres = %d, yres = %d\n",
+            pixGetXRes(pix), pixGetYRes(pix));
+
+    text = pixGetText(pix);
+    if (text)  /*  not null */
+        fprintf(stderr, "  text: %s\n", text);
+
+    cmap = pixGetColormap(pix);
+    if (cmap) {
+        pixcmapHasColor(cmap, &color);
+        if (color)
+            fprintf(stderr, "  colormap exists and has color values:");
+        else
+            fprintf(stderr, "  colormap exists and has only gray values:");
+        pixcmapWriteStream(stderr, pixGetColormap(pix));
+    }
+    else
+        fprintf(stderr, "  colormap does not exist\n");
+
+    if (format == IFF_TIFF || format == IFF_TIFF_G4 ||
+        format == IFF_TIFF_G3 || format == IFF_TIFF_PACKBITS) {
+        fprintf(stderr, "  Tiff header information:\n");
+        fp = lept_fopen(filename, "rb");
+        tiffGetCount(fp, &npages);
+        lept_fclose(fp);
+        if (npages == 1)
+            fprintf(stderr, "    One page in file\n");
+        else
+            fprintf(stderr, "    %d pages in file\n", npages);
+        fprintTiffInfo(stderr, filename);
+    }
+
+    if (d == 1) {
+        pixCountPixels(pix, &count, NULL);
+        fprintf(stderr, "  1 bpp: pixel ratio ON/OFF = %6.3f\n",
+          (l_float32)count / (l_float32)(pixGetWidth(pix) * pixGetHeight(pix)));
+    }
+    fprintf(stderr, "===============================================\n");
+
+        /* If there is an alpha component, visualize it.  Note that when
+         * alpha == 0, the rgb layer is transparent.  We visualize the
+         * result when a white background is visible through the
+         * transparency layer. */
+    if (pixGetSpp(pix) == 4) {
+        pixt = pixDisplayLayersRGBA(pix, 0xffffff00, 600.0);
+        pixDisplay(pixt, 100, 100);
+        pixDestroy(&pixt);
+    }
+
+    pixDestroy(&pix);
     return 0;
 }
 
