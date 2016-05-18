@@ -50,7 +50,7 @@
  *           l_int32    pixReadHeaderMem()
  *
  *      Output image file information
- *           void       lept_fileinfo()
+ *           void       writeImageFileInfo()
  *
  *      Test function for I/O with different formats
  *           l_int32    ioFormatTest()
@@ -1028,28 +1028,39 @@ PIX     *pix;
 extern const char *ImageFileFormatExtensions[];
 
 /*!
- * \brief   lept_fileinfo()
+ * \brief   writeImageFileInfo()
  *
- * \param[in]    filename  input file
+ * \param[in]    filename    input file
+ * \param[in]    fp          output file stream
  * \param[in]    headeronly  1 to read only the header; 0 to read both
  *                           the header and the input file
  * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) If headeronly == 0 and the image has spp == 4,this will
+ *          also call pixDisplayLayersRGBA() to display the image
+ *          in three views.
+ * </pre>
  */
 l_int32
-lept_fileinfo(const char  *filename,
-              l_int32      headeronly)
+writeImageFileInfo(const char  *filename,
+                   FILE        *fpout,
+                   l_int32      headeronly)
 {
 char     *text;
 l_int32   w, h, d, wpl, count, npages, color;
 l_int32   format, bps, spp, iscmap, xres, yres, transparency;
-FILE     *fp;
+FILE     *fpin;
 PIX      *pix, *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("lept_fileinfo");
+    PROCNAME("writeImageFileInfo");
 
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
+    if (!fpout)
+        return ERROR_INT("stream not defined", procName, 1);
 
     l_pngSetReadStrip16To8(1);  /* to preserve 16 bpp if format is png */
 
@@ -1058,41 +1069,40 @@ PIXCMAP  *cmap;
         L_ERROR("failure to read header of %s\n", procName, filename);
         return 1;
     }
-    fprintf(stderr, "===============================================\n"
+    fprintf(fpout, "===============================================\n"
                     "Reading the header:\n");
-    fprintf(stderr, "  input image format type: %s\n",
+    fprintf(fpout, "  input image format type: %s\n",
             ImageFileFormatExtensions[format]);
-    fprintf(stderr,
-            "  w = %d, h = %d, bps = %d, spp = %d, iscmap = %d\n",
+    fprintf(fpout, "  w = %d, h = %d, bps = %d, spp = %d, iscmap = %d\n",
             w, h, bps, spp, iscmap);
 
     findFileFormat(filename, &format);
     if (format == IFF_JP2) {
-        fp = lept_fopen(filename, "rb");
-        fgetJp2kResolution(fp, &xres, &yres);
-        fclose(fp);
-        fprintf(stderr, "  xres = %d, yres = %d\n", xres, yres);
+        fpin = lept_fopen(filename, "rb");
+        fgetJp2kResolution(fpin, &xres, &yres);
+        fclose(fpin);
+        fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
     } else if (format == IFF_PNG) {
-        fp = lept_fopen(filename, "rb");
-        fgetPngResolution(fp, &xres, &yres);
-        fclose(fp);
-        fprintf(stderr, "  xres = %d, yres = %d\n", xres, yres);
+        fpin = lept_fopen(filename, "rb");
+        fgetPngResolution(fpin, &xres, &yres);
+        fclose(fpin);
+        fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
         if (iscmap) {
-            fp = lept_fopen(filename, "rb");
-            fgetPngColormapInfo(fp, &cmap, &transparency);
-            fclose(fp);
+            fpin = lept_fopen(filename, "rb");
+            fgetPngColormapInfo(fpin, &cmap, &transparency);
+            fclose(fpin);
             if (transparency)
-                fprintf(stderr, "  colormap has transparency\n");
+                fprintf(fpout, "  colormap has transparency\n");
             else
-                fprintf(stderr, "  colormap does not have transparency\n");
-            pixcmapWriteStream(stderr, cmap);
+                fprintf(fpout, "  colormap does not have transparency\n");
+            pixcmapWriteStream(fpout, cmap);
             pixcmapDestroy(&cmap);
         }
     } else if (format == IFF_JFIF_JPEG) {
-        fp = lept_fopen(filename, "rb");
-        fgetJpegResolution(fp, &xres, &yres);
-        fclose(fp);
-        fprintf(stderr, "  xres = %d, yres = %d\n", xres, yres);
+        fpin = lept_fopen(filename, "rb");
+        fgetJpegResolution(fpin, &xres, &yres);
+        fclose(fpin);
+        fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
     }
 
     if (headeronly)
@@ -1100,7 +1110,7 @@ PIXCMAP  *cmap;
 
         /* Read the full image.  Note that when we read an image that
          * has transparency in a colormap, we convert it to RGBA. */
-    fprintf(stderr, "===============================================\n"
+    fprintf(fpout, "===============================================\n"
                     "Reading the full image:\n");
     if ((pix = pixRead(filename)) == NULL) {
         L_ERROR("failure to read full image of %s\n", procName, filename);
@@ -1111,48 +1121,48 @@ PIXCMAP  *cmap;
     pixGetDimensions(pix, &w, &h, &d);
     wpl = pixGetWpl(pix);
     spp = pixGetSpp(pix);
-    fprintf(stderr, "  input image format type: %s\n",
+    fprintf(fpout, "  input image format type: %s\n",
             ImageFileFormatExtensions[format]);
-    fprintf(stderr, "  w = %d, h = %d, d = %d, spp = %d, wpl = %d\n",
+    fprintf(fpout, "  w = %d, h = %d, d = %d, spp = %d, wpl = %d\n",
             w, h, d, spp, wpl);
-    fprintf(stderr, "  xres = %d, yres = %d\n",
+    fprintf(fpout, "  xres = %d, yres = %d\n",
             pixGetXRes(pix), pixGetYRes(pix));
 
     text = pixGetText(pix);
     if (text)  /*  not null */
-        fprintf(stderr, "  text: %s\n", text);
+        fprintf(fpout, "  text: %s\n", text);
 
     cmap = pixGetColormap(pix);
     if (cmap) {
         pixcmapHasColor(cmap, &color);
         if (color)
-            fprintf(stderr, "  colormap exists and has color values:");
+            fprintf(fpout, "  colormap exists and has color values:");
         else
-            fprintf(stderr, "  colormap exists and has only gray values:");
-        pixcmapWriteStream(stderr, pixGetColormap(pix));
+            fprintf(fpout, "  colormap exists and has only gray values:");
+        pixcmapWriteStream(fpout, pixGetColormap(pix));
     }
     else
-        fprintf(stderr, "  colormap does not exist\n");
+        fprintf(fpout, "  colormap does not exist\n");
 
     if (format == IFF_TIFF || format == IFF_TIFF_G4 ||
         format == IFF_TIFF_G3 || format == IFF_TIFF_PACKBITS) {
-        fprintf(stderr, "  Tiff header information:\n");
-        fp = lept_fopen(filename, "rb");
-        tiffGetCount(fp, &npages);
-        lept_fclose(fp);
+        fprintf(fpout, "  Tiff header information:\n");
+        fpin = lept_fopen(filename, "rb");
+        tiffGetCount(fpin, &npages);
+        lept_fclose(fpin);
         if (npages == 1)
-            fprintf(stderr, "    One page in file\n");
+            fprintf(fpout, "    One page in file\n");
         else
-            fprintf(stderr, "    %d pages in file\n", npages);
-        fprintTiffInfo(stderr, filename);
+            fprintf(fpout, "    %d pages in file\n", npages);
+        fprintTiffInfo(fpout, filename);
     }
 
     if (d == 1) {
         pixCountPixels(pix, &count, NULL);
-        fprintf(stderr, "  1 bpp: pixel ratio ON/OFF = %6.3f\n",
+        fprintf(fpout, "  1 bpp: pixel ratio ON/OFF = %6.3f\n",
           (l_float32)count / (l_float32)(pixGetWidth(pix) * pixGetHeight(pix)));
     }
-    fprintf(stderr, "===============================================\n");
+    fprintf(fpout, "===============================================\n");
 
         /* If there is an alpha component, visualize it.  Note that when
          * alpha == 0, the rgb layer is transparent.  We visualize the
