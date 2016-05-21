@@ -1159,8 +1159,9 @@ PIXCMAP  *cmap;
 
     if (d == 1) {
         pixCountPixels(pix, &count, NULL);
-        fprintf(fpout, "  1 bpp: pixel ratio ON/OFF = %6.3f\n",
-          (l_float32)count / (l_float32)(pixGetWidth(pix) * pixGetHeight(pix)));
+        pixGetDimensions(pix, &w, &h, NULL);
+        fprintf(fpout, "  1 bpp: foreground pixel fraction ON/Total = %g\n",
+                (l_float32)count / (l_float32)(w * h));
     }
     fprintf(fpout, "===============================================\n");
 

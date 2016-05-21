@@ -484,8 +484,10 @@ FILE    *fp;
 
         /* Write command data to file */
     cmdstr = sarrayToString(gplot->cmddata, 1);
-    if ((fp = fopenWriteStream(gplot->cmdname, "w")) == NULL)
+    if ((fp = fopenWriteStream(gplot->cmdname, "w")) == NULL) {
+        LEPT_FREE(cmdstr);
         return ERROR_INT("cmd stream not opened", procName, 1);
+    }
     fwrite(cmdstr, 1, strlen(cmdstr), fp);
     fclose(fp);
     LEPT_FREE(cmdstr);
