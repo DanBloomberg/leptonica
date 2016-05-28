@@ -3523,8 +3523,6 @@ l_hashPtToUint64(l_int32    x,
                  l_int32    y,
                  l_uint64  *phash)
 {
-l_uint64  hash, mulp;
-
     PROCNAME("l_hashPtToUint64");
 
     if (!phash)
@@ -4014,7 +4012,6 @@ l_getFormattedDate()
 char        buf[sizeof "199812231952SS-08'00'"] = "", sep = 'Z';
 l_int32     gmt_offset, relh, relm;
 time_t      ut, lt;
-int         dst;
 struct tm  *tptr;
 
     ut = time(NULL);

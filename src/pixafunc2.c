@@ -65,6 +65,7 @@
  *      Tile N-Up
  *           l_int32   convertToNUpFiles()
  *           PIXA     *convertToNUpPixa()
+ *           PIXA     *pixaConvertToNUpPixa()
  *
  *  We give twelve methods for displaying a pixa in a pix.
  *  Some work for 1 bpp input; others for any input depth.
@@ -699,7 +700,7 @@ pixaDisplayTiled(PIXA    *pixa,
                  l_int32  background,
                  l_int32  spacing)
 {
-l_int32  w, h, wmax, hmax, wd, hd, d, hascmap, res, same;
+l_int32  wmax, hmax, wd, hd, d, hascmap, res, same;
 l_int32  i, j, n, ni, ncols, nrows;
 l_int32  ystart, xstart, wt, ht;
 PIX     *pix1, *pix2, *pixd;
@@ -2137,6 +2138,8 @@ PIXA    *pixa1;
  *      (3) This is useful for generating a pdf from the set of input
  *          files, where each page is a tile of (%nx * %ny) input images.
  *          Typical values for %nx and %ny are in the range [2 ... 5].
+ *      (4) If %fontsize != 0, each image has the tail of its filename
+ *          rendered below it.
  * </pre>
  */
 l_int32
@@ -2211,12 +2214,10 @@ convertToNUpPixa(const char  *dir,
                  l_int32      border,
                  l_int32      fontsize)
 {
-l_int32    i, j, k, nt, n2, nout, d;
-char      *fname, *tail;
-L_BMF     *bmf;
-PIX       *pix1, *pix2, *pix3, *pix4;
-PIXA      *pixat, *pixad;
-SARRAY    *sa;
+l_int32  i, n;
+char    *fname, *tail;
+PIXA    *pixa1, *pixa2;
+SARRAY  *sa1, *sa2;
 
     PROCNAME("convertToNUpPixa");
 
@@ -2229,43 +2230,113 @@ SARRAY    *sa;
     if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
         return (PIXA *)ERROR_PTR("invalid fontsize", procName, NULL);
 
-    sa = getSortedPathnamesInDirectory(dir, substr, 0, 0);
-    nt = sarrayGetCount(sa);
+    sa1 = getSortedPathnamesInDirectory(dir, substr, 0, 0);
+    pixa1 = pixaReadFilesSA(sa1);
+    n = sarrayGetCount(sa1);
+    sa2 = sarrayCreate(n);
+    for (i = 0; i < n; i++) {
+        fname = sarrayGetString(sa1, i, L_NOCOPY);
+        splitPathAtDirectory(fname, NULL, &tail);
+        sarrayAddString(sa2, tail, L_INSERT);
+    }
+    sarrayDestroy(&sa1);
+    pixa2 = pixaConvertToNUpPixa(pixa1, sa2, nx, ny, tw, spacing,
+                                 border, fontsize);
+    pixaDestroy(&pixa1);
+    sarrayDestroy(&sa2);
+    return pixa2;
+}
+
+
+/*!
+ * \brief   pixaConvertToNUpPixa()
+ *
+ * \param[in]    pixas
+ * \param[in]    sa  [optional] array of strings associated with each pix
+ * \param[in]    nx, ny in [1, ... 50], tiling factors in each direction
+ * \param[in]    tw target width, in pixels; must be >= 20
+ * \param[in]    spacing  between images, and on outside
+ * \param[in]    border width of additional black border on each image;
+ *                      use 0 for no border
+ * \param[in]    fontsize to print string with each image.  Valid set is
+ *                        {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This takes an input pixa and an optional array of strings, and
+ *          generates a pixa of NUp tiles from the input, labeled with
+ *          the strings if they exist and %fontsize != 0.
+ *      (2) See notes for convertToNUpFiles()
+ * </pre>
+ */
+PIXA *
+pixaConvertToNUpPixa(PIXA    *pixas,
+                     SARRAY  *sa,
+                     l_int32  nx,
+                     l_int32  ny,
+                     l_int32  tw,
+                     l_int32  spacing,
+                     l_int32  border,
+                     l_int32  fontsize)
+{
+l_int32    i, j, k, nt, n2, nout, d;
+char      *str;
+L_BMF     *bmf;
+PIX       *pix1, *pix2, *pix3, *pix4;
+PIXA      *pixa1, *pixad;
+
+    PROCNAME("pixaConvertToNUpPixa");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (nx < 1 || ny < 1 || nx > 50 || ny > 50)
+        return (PIXA *)ERROR_PTR("invalid tiling N-factor", procName, NULL);
+    if (tw < 20)
+        return (PIXA *)ERROR_PTR("tw must be >= 20", procName, NULL);
+    if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
+        return (PIXA *)ERROR_PTR("invalid fontsize", procName, NULL);
+
+    nt = pixaGetCount(pixas);
+    if (sa && (sarrayGetCount(sa) != nt)) {
+        L_WARNING("pixa size %d not equal to sarray size %d\n", procName,
+                  nt, sarrayGetCount(sa));
+    }
+
     n2 = nx * ny;
     nout = (nt + n2 - 1) / n2;
     pixad = pixaCreate(nout);
     bmf = (fontsize == 0) ? NULL : bmfCreate(NULL, fontsize);
     for (i = 0, j = 0; i < nout; i++) {
-        pixat = pixaCreate(n2);
+        pixa1 = pixaCreate(n2);
         for (k = 0; k < n2 && j < nt; j++, k++) {
-            fname = sarrayGetString(sa, j, L_NOCOPY);
-            if ((pix1 = pixRead(fname)) == NULL) {
-                L_ERROR("image not read from %s\n", procName, fname);
-                continue;
-            }
+            pix1 = pixaGetPix(pixas, j, L_CLONE);
             pix2 = pixScaleToSize(pix1, tw, 0);  /* all images have width tw */
-            if (bmf) {
-                splitPathAtDirectory(fname, NULL, &tail);
-                pix3 = pixAddTextlines(pix2, bmf, tail, 0xff000000,
+            if (bmf && sa) {
+                str = sarrayGetString(sa, j, L_NOCOPY);
+                pix3 = pixAddTextlines(pix2, bmf, str, 0xff000000,
                                        L_ADD_BELOW);
-                LEPT_FREE(tail);
             } else {
                 pix3 = pixClone(pix2);
             }
-            pixaAddPix(pixat, pix3, L_INSERT);
+            pixaAddPix(pixa1, pix3, L_INSERT);
             pixDestroy(&pix1);
             pixDestroy(&pix2);
         }
-        if (pixaGetCount(pixat) == 0) continue;
-        pixaGetRenderingDepth(pixat, &d);
-            /* add 2 * border to image width to prevent scaling */
-        pix4 = pixaDisplayTiledAndScaled(pixat, d, tw + 2 * border, nx, 0,
+        if (pixaGetCount(pixa1) == 0) {  /* probably won't happen */
+            pixaDestroy(&pixa1);
+            continue;
+        }
+
+            /* Add 2 * border to image width to prevent scaling */
+        pixaGetRenderingDepth(pixa1, &d);
+        pix4 = pixaDisplayTiledAndScaled(pixa1, d, tw + 2 * border, nx, 0,
                                          spacing, border);
         pixaAddPix(pixad, pix4, L_INSERT);
-        pixaDestroy(&pixat);
+        pixaDestroy(&pixa1);
     }
 
-    sarrayDestroy(&sa);
     bmfDestroy(&bmf);
     return pixad;
 }
+

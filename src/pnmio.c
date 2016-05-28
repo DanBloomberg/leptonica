@@ -910,8 +910,8 @@ pixWriteStreamPam(FILE  *fp,
 l_uint8    val8;
 l_uint8    pel[8];
 l_uint16   val16;
-l_int32    h, w, d, ds, i, j, k;
-l_int32    wpls, spps, bpl, filebpl, writeerror, maxval;
+l_int32    h, w, d, ds, i, j;
+l_int32    wpls, spps, filebpl, writeerror, maxval;
 l_uint32  *pword, *datas, *lines;
 PIX       *pixs;
 

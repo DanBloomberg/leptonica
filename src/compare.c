@@ -2057,9 +2057,8 @@ pixComparePhotoRegionsByHisto(PIX        *pix1,
 {
 l_int32    w1, h1, w2, h2, w1c, h1c, w2c, h2c;
 l_float32  wratio, hratio;
-BOX       *box3, *box4;
 NUMAA     *naa1, *naa2;
-PIX       *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
+PIX       *pix3, *pix4;
 PIXA      *pixa;
 
     PROCNAME("pixComparePhotoRegionsByHisto");

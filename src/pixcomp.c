@@ -74,7 +74,8 @@
  *           PIXA     *pixaCreateFromPixacomp()
  *
  *      Combining pixacomp
- *           PIXAC    *pixacompJoin()
+ *           l_int32   pixacompJoin()
+ *           PIXAC    *pixacompInterleave()
  *
  *      Pixacomp serialized I/O
  *           PIXAC    *pixacompRead()
@@ -1500,6 +1501,65 @@ PIXC    *pixc;
     boxaDestroy(&boxas);  /* just the clones */
     boxaDestroy(&boxad);  /* ditto */
     return 0;
+}
+
+
+/*!
+ * \brief   pixacompInterleave()
+ *
+ * \param[in]    pixac1  first src pixac
+ * \param[in]    pixac2  second src pixac
+ * \return  pixacd  interleaved from sources, or NULL on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) If the two pixac have different sizes, a warning is issued,
+ *          and the number of pairs returned is the minimum size.
+ * </pre>
+ */
+PIXAC *
+pixacompInterleave(PIXAC   *pixac1,
+                   PIXAC   *pixac2)
+{
+l_int32  i, n1, n2, n, nb1, nb2;
+BOX     *box;
+PIXC    *pixc1, *pixc2;
+PIXAC   *pixacd;
+
+    PROCNAME("pixacompInterleave");
+
+    if (!pixac1)
+        return (PIXAC *)ERROR_PTR("pixac1 not defined", procName, NULL);
+    if (!pixac2)
+        return (PIXAC *)ERROR_PTR("pixac2 not defined", procName, NULL);
+    n1 = pixacompGetCount(pixac1);
+    n2 = pixacompGetCount(pixac2);
+    n = L_MIN(n1, n2);
+    if (n == 0)
+        return (PIXAC *)ERROR_PTR("at least one input pixac is empty",
+                                   procName, NULL);
+    if (n1 != n2)
+        L_WARNING("counts differ: %d != %d\n", procName, n1, n2);
+
+    pixacd = pixacompCreate(2 * n);
+    nb1 = pixacompGetBoxaCount(pixac1);
+    nb2 = pixacompGetBoxaCount(pixac2);
+    for (i = 0; i < n; i++) {
+        pixc1 = pixacompGetPixcomp(pixac1, i, L_COPY);
+        pixacompAddPixcomp(pixacd, pixc1, L_INSERT);
+        if (i < nb1) {
+            box = pixacompGetBox(pixac1, i, L_COPY);
+            pixacompAddBox(pixacd, box, L_INSERT);
+        }
+        pixc2 = pixacompGetPixcomp(pixac2, i, L_COPY);
+        pixacompAddPixcomp(pixacd, pixc2, L_INSERT);
+        if (i < nb2) {
+            box = pixacompGetBox(pixac2, i, L_COPY);
+            pixacompAddBox(pixacd, box, L_INSERT);
+        }
+    }
+
+    return pixacd;
 }
 
 

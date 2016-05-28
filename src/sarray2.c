@@ -414,7 +414,6 @@ char       *str;
 l_int32     i, n, index, items;
 l_uint32    nsize;
 l_uint64    key;
-l_float64   val;
 SARRAY     *sad;
 L_DNAHASH  *dahash;
 

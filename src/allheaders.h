@@ -1738,6 +1738,7 @@ LEPT_DLL extern PIXA * pixaDisplayMultiTiled ( PIXA *pixas, l_int32 nx, l_int32 
 LEPT_DLL extern l_int32 pixaSplitIntoFiles ( PIXA *pixas, l_int32 nsplit, l_float32 scale, l_int32 outwidth, l_int32 write_pixa, l_int32 write_pix, l_int32 write_pdf );
 LEPT_DLL extern l_int32 convertToNUpFiles ( const char *dir, const char *substr, l_int32 nx, l_int32 ny, l_int32 tw, l_int32 spacing, l_int32 border, l_int32 fontsize, const char *outdir );
 LEPT_DLL extern PIXA * convertToNUpPixa ( const char *dir, const char *substr, l_int32 nx, l_int32 ny, l_int32 tw, l_int32 spacing, l_int32 border, l_int32 fontsize );
+LEPT_DLL extern PIXA * pixaConvertToNUpPixa ( PIXA *pixas, SARRAY *sa, l_int32 nx, l_int32 ny, l_int32 tw, l_int32 spacing, l_int32 border, l_int32 fontsize );
 LEPT_DLL extern l_int32 pmsCreate ( size_t minsize, size_t smallest, NUMA *numalloc, const char *logfile );
 LEPT_DLL extern void pmsDestroy (  );
 LEPT_DLL extern void * pmsCustomAlloc ( size_t nbytes );
@@ -1793,6 +1794,7 @@ LEPT_DLL extern l_int32 pixacompGetOffset ( PIXAC *pixac );
 LEPT_DLL extern l_int32 pixacompSetOffset ( PIXAC *pixac, l_int32 offset );
 LEPT_DLL extern PIXA * pixaCreateFromPixacomp ( PIXAC *pixac, l_int32 accesstype );
 LEPT_DLL extern l_int32 pixacompJoin ( PIXAC *pixacd, PIXAC *pixacs, l_int32 istart, l_int32 iend );
+LEPT_DLL extern PIXAC * pixacompInterleave ( PIXAC *pixac1, PIXAC *pixac2 );
 LEPT_DLL extern PIXAC * pixacompRead ( const char *filename );
 LEPT_DLL extern PIXAC * pixacompReadStream ( FILE *fp );
 LEPT_DLL extern l_int32 pixacompWrite ( const char *filename, PIXAC *pixac );

@@ -476,7 +476,6 @@ ptaRemoveDupsByHash(PTA         *ptas,
 l_int32     i, n, index, items, x, y;
 l_uint32    nsize;
 l_uint64    key;
-l_float64   val;
 PTA        *ptad;
 L_DNAHASH  *dahash;
 
@@ -599,7 +598,7 @@ ptaFindPtByHash(PTA        *pta,
                 l_int32     y,
                 l_int32    *pindex)
 {
-l_int32   i, nbuckets, nvals, index, xi, yi;
+l_int32   i, nvals, index, xi, yi;
 l_uint64  key;
 L_DNA    *da;
 
@@ -613,7 +612,6 @@ L_DNA    *da;
     if (!dahash)
         return ERROR_INT("dahash not defined", procName, 1);
 
-    nbuckets = l_dnaHashGetCount(dahash);
     l_hashPtToUint64(x, y, &key);
     da = l_dnaHashGetDna(dahash, key, L_NOCOPY);
     if (!da) return 0;
@@ -648,6 +646,9 @@ l_uint64    key;
 L_DNAHASH  *dahash;
 
     PROCNAME("l_dnaHashCreateFromPta");
+
+    if (!pta)
+        return (L_DNAHASH *)ERROR_PTR("pta not defined", procName, NULL);
 
         /* Build up dnaHash of indices, hashed by a key that is
          * a large linear combination of x and y values designed to

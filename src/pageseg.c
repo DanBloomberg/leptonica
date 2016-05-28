@@ -1040,7 +1040,7 @@ pixDecideIfText(PIX      *pixs,
                 l_int32  *pistext,
                 PIXA     *pixadb)
 {
-l_int32    i, empty, maxw, maxh, w, h, n1, n2, n3, minlines;
+l_int32    i, empty, maxw, w, h, n1, n2, n3, minlines;
 l_int32    res, big_comp;
 l_float32  ratio1, ratio2, factor;
 L_BMF     *bmf;
@@ -1048,7 +1048,7 @@ BOX       *box1;
 BOXA      *boxa1, *boxa2, *boxa3, *boxa4, *boxa5;
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix5a;
 PIX       *pix6, *pix7, *pix8, *pix9, *pix10;
-PIXA      *pixa1, *pixa2;
+PIXA      *pixa1;
 SEL       *sel1;
 
     PROCNAME("pixDecideIfText");
@@ -1244,10 +1244,9 @@ pixFindThreshFgExtent(PIX      *pixs,
                       l_int32  *ptop,
                       l_int32  *pbot)
 {
-l_int32    i, n, res;
-l_int32   *array;
-l_float32  factor;
-NUMA      *na;
+l_int32   i, n;
+l_int32  *array;
+NUMA     *na;
 
     PROCNAME("pixFindThreshFgExtent");
 

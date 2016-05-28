@@ -184,7 +184,6 @@ l_int32    i;
 l_int32
 l_dnaHashGetCount(L_DNAHASH  *dahash)
 {
-l_int32  nbuckets;
 
     PROCNAME("l_dnaHashGetCount");
 
@@ -203,7 +202,7 @@ l_int32  nbuckets;
 l_int32
 l_dnaHashGetTotalCount(L_DNAHASH  *dahash)
 {
-l_int32  nbuckets, i, n;
+l_int32  i, n;
 L_DNA   *da;
 
     PROCNAME("l_dnaHashGetTotalCount");
