@@ -43,17 +43,18 @@
 #include <string.h>
 #include "allheaders.h"
 
+PIXA *ReadPixaOrPixac(const char *fname);
+
 int main(int    argc,
          char **argv)
 {
 char         buf[32];
-char        *filein, *fileout, *sn, *fontdir, *textstr;
+char        *fileout, *fontdir, *textstr;
 l_int32      n, i, maxdepth, ntext, border, lossless, display, showtext;
 l_float32    scalefact;
 L_BMF       *bmf;
 PIX         *pix1, *pix2, *pix3, *pix4, *pixd;
 PIXA        *pixa, *pixad;
-PIXAC       *pac;
 static char  mainName[] = "displaypixa";
 
     if (argc != 3 && argc != 4 && argc != 7 && argc != 8) {
@@ -65,19 +66,7 @@ static char  mainName[] = "displaypixa";
     }
 
         /* Input file can be either pixa or pixacomp */
-    filein = argv[1];
-    l_getStructnameFromFile(filein, &sn);
-    if (strcmp(sn, "Pixa") == 0) {
-        if ((pixa = pixaRead(filein)) == NULL)
-            return ERROR_INT("pixa not made", mainName, 1);
-    } else if (strcmp(sn, "Pixacomp") == 0) {
-        if ((pac = pixacompRead(filein)) == NULL)
-            return ERROR_INT("pac not made", mainName, 1);
-        pixa = pixaCreateFromPixacomp(pac, L_COPY);
-        pixacompDestroy(&pac);
-    } else {
-        return ERROR_INT("invalid file type", mainName, 1);
-    }
+    pixa = pixaReadBoth(argv[1]);
     pixaCountText(pixa, &ntext);
 
     if (argc == 3 || argc == 4)
@@ -103,7 +92,7 @@ static char  mainName[] = "displaypixa";
         /* Simple specification with output text */
     if (argc == 4) {  /* showtext == 1 && ntext > 0 */
         n = pixaGetCount(pixa);
-        bmf = bmfCreate(NULL, 6);
+        bmf = bmfCreate(NULL, 10);
         pixad = pixaCreate(n);
         for (i = 0; i < n; i++) {
             pix1 = pixaGetPix(pixa, i, L_CLONE);
@@ -145,7 +134,7 @@ static char  mainName[] = "displaypixa";
     showtext = (argc == 8) ? atoi(argv[7]) : 0;
     if (showtext  && ntext == 0)
         L_INFO("No text found in any of the pix\n", mainName);
-    bmf = (showtext && ntext > 0) ?  bmfCreate(NULL, 6) : NULL;
+    bmf = (showtext && ntext > 0) ?  bmfCreate(NULL, 10) : NULL;
     n = pixaGetCount(pixa);
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
@@ -181,3 +170,4 @@ static char  mainName[] = "displaypixa";
     pixaDestroy(&pixad);
     return 0;
 }
+

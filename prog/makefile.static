@@ -196,7 +196,8 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		blendcmaptest.c buffertest.c \
 		byteatest.c ccbordtest.c cctest1.c \
 		cleanpdf.c colormorphtest.c \
-		colorsegtest.c comparepages.c comparetest.c \
+		colorsegtest.c comparepages.c \
+		comparepixa.c comparetest.c \
 		concatpdf.c contrasttest.c \
 		convertfilestopdf.c convertfilestops.c \
 		convertformat.c \
@@ -729,6 +730,9 @@ colorsegtest:	colorsegtest.o $(LEPTLIB)
 
 comparepages:	comparepages.o $(LEPTLIB)
 	$(CC) -o comparepages comparepages.o $(ALL_LIBS) $(EXTRALIBS)
+
+comparepixa:	comparepixa.o $(LEPTLIB)
+	$(CC) -o comparepixa comparepixa.o $(ALL_LIBS) $(EXTRALIBS)
 
 comparetest:	comparetest.o $(LEPTLIB)
 	$(CC) -o comparetest comparetest.o $(ALL_LIBS) $(EXTRALIBS)

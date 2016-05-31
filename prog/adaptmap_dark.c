@@ -47,6 +47,10 @@
  *    background pixels that should be white.  These regions can be
  *    protected by masks from operations, such as pixGammaTRC(),
  *    where the white value is less than 255.
+ *
+ *    This also tests some code useful for rendering:
+ *     * NUp display from pixa to pixa
+ *     * Interleaving of both pixa and pixacomp
  */
 
 #include "string.h"
@@ -59,9 +63,8 @@ l_int32 main(int    argc,
 {
 l_int32  index;
 L_BMF   *bmf;
-PIXA    *pixa1, *pixa2, *pixa3;
+PIXA    *pixa1, *pixa2, *pixa3, *pixa4;
 PIXAC   *pixac1, *pixac2, *pixac3;
-
 
     PROCNAME("adaptmap_dark");
 
@@ -88,7 +91,7 @@ PIXAC   *pixac1, *pixac2, *pixac3;
                      "/tmp/lept/adapt/cleaning.pdf");
     pixaDestroy(&pixa1);
 
-        /* Now, test out the interleaving.  Make two copies,
+        /* Test the pixac interleaving.  Make two copies,
          * and interleave them:
          *   (1) convert NUp 2 x 1
          *   (2) convert twice to pixac
@@ -98,21 +101,43 @@ PIXAC   *pixac1, *pixac2, *pixac3;
          *   (6) output as pdf   */
     pixa1 = convertToNUpPixa("/tmp/lept/adapt", "adapt_", 2, 1, 500,
                              6, 2, 0);
+    startTimer();
     pixac1 = pixacompCreateFromPixa(pixa1, IFF_DEFAULT, L_CLONE);
     pixac2 = pixacompCreateFromPixa(pixa1, IFF_DEFAULT, L_CLONE);
     pixac3 = pixacompInterleave(pixac1, pixac2);
     pixa2 = pixaCreateFromPixacomp(pixac3, L_CLONE);
     pixa3 = pixaConvertToNUpPixa(pixa2, NULL, 1, 2, 1000, 6, 2, 0);
+    fprintf(stderr, "Time with pixac interleaving = %7.3f sec\n", stopTimer());
     L_INFO("Writing to /tmp/lept/adapt/cleaning2.pdf\n", procName);
     pixaConvertToPdf(pixa3, 100, 1.0, L_JPEG_ENCODE,
                      75, "Adaptive cleaning", "/tmp/lept/adapt/cleaning2.pdf");
-
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);
     pixaDestroy(&pixa3);
     pixacompDestroy(&pixac1);
     pixacompDestroy(&pixac2);
     pixacompDestroy(&pixac3);
+
+        /* Test the pixa interleaving.  Make two copies,
+         * and interleave them:
+         *   (1) convert NUp 2 x 1
+         *   (2) copy and interleave
+         *   (3) convert NUp 1 x 2   (result now is 2 x 2)
+         *   (4) output as pdf   */
+    pixa1 = convertToNUpPixa("/tmp/lept/adapt", "adapt_", 2, 1, 500,
+                             6, 2, 0);
+    startTimer();
+    pixa2 = pixaCopy(pixa1, L_COPY_CLONE);
+    pixa3 = pixaInterleave(pixa1, pixa2, L_CLONE);
+    pixa4 = pixaConvertToNUpPixa(pixa3, NULL, 1, 2, 1000, 6, 2, 0);
+    fprintf(stderr, "Time with pixa interleaving = %7.3f sec\n", stopTimer());
+    L_INFO("Writing to /tmp/lept/adapt/cleaning3.pdf\n", procName);
+    pixaConvertToPdf(pixa4, 100, 1.0, L_JPEG_ENCODE,
+                     75, "Adaptive cleaning", "/tmp/lept/adapt/cleaning3.pdf");
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
+    pixaDestroy(&pixa3);
+    pixaDestroy(&pixa4);
     bmfDestroy(&bmf);
     return 0;
 }

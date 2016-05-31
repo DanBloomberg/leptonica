@@ -71,6 +71,7 @@
  *
  *      Pixa and Pixaa combination
  *           l_int32   pixaJoin()
+ *           PIXA     *pixaInterleave()
  *           l_int32   pixaaJoin()
  *
  *      Pixaa creation, destruction
@@ -103,6 +104,7 @@
  *           PIXA     *pixaReadStream()
  *           l_int32   pixaWrite()
  *           l_int32   pixaWriteStream()
+ *           PIXA     *pixaReadBoth()
  *
  *      Pixaa serialized I/O  (requires png support)
  *           PIXAA    *pixaaReadFromFiles()
@@ -428,7 +430,7 @@ PIXA *
 pixaCopy(PIXA    *pixa,
          l_int32  copyflag)
 {
-l_int32  i;
+l_int32  i, nb;
 BOX     *boxc;
 PIX     *pixc;
 PIXA    *pixac;
@@ -448,16 +450,17 @@ PIXA    *pixac;
 
     if ((pixac = pixaCreate(pixa->n)) == NULL)
         return (PIXA *)ERROR_PTR("pixac not made", procName, NULL);
+    nb = pixaGetBoxaCount(pixa);
     for (i = 0; i < pixa->n; i++) {
         if (copyflag == L_COPY) {
             pixc = pixaGetPix(pixa, i, L_COPY);
-            boxc = pixaGetBox(pixa, i, L_COPY);
+            if (i < nb) boxc = pixaGetBox(pixa, i, L_COPY);
         } else {  /* copy-clone */
             pixc = pixaGetPix(pixa, i, L_CLONE);
-            boxc = pixaGetBox(pixa, i, L_CLONE);
+            if (i < nb) boxc = pixaGetBox(pixa, i, L_CLONE);
         }
         pixaAddPix(pixac, pixc, L_INSERT);
-        pixaAddBox(pixac, boxc, L_INSERT);
+        if (i < nb) pixaAddBox(pixac, boxc, L_INSERT);
     }
 
     return pixac;
@@ -1507,6 +1510,71 @@ PIX     *pix;
 
 
 /*!
+ * \brief   pixaInterleave()
+ *
+ * \param[in]    pixa1  first src pixa
+ * \param[in]    pixa2  second src pixa
+ * \param[in]    copyflag L_CLONE, L_COPY
+ * \return  pixa  interleaved from sources, or NULL on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) %copyflag determines if the pix are copied or cloned.
+ *          The boxes, if they exist, are copied.
+ *      (2) If the two pixa have different sizes, a warning is issued,
+ *          and the number of pairs returned is the minimum size.
+ * </pre>
+ */
+PIXA *
+pixaInterleave(PIXA    *pixa1,
+               PIXA    *pixa2,
+               l_int32  copyflag)
+{
+l_int32  i, n1, n2, n, nb1, nb2;
+BOX     *box;
+PIX     *pix;
+PIXA    *pixad;
+
+    PROCNAME("pixaInterleave");
+
+    if (!pixa1)
+        return (PIXA *)ERROR_PTR("pixa1 not defined", procName, NULL);
+    if (!pixa2)
+        return (PIXA *)ERROR_PTR("pixa2 not defined", procName, NULL);
+    if (copyflag != L_COPY && copyflag != L_CLONE)
+        return (PIXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+    n1 = pixaGetCount(pixa1);
+    n2 = pixaGetCount(pixa2);
+    n = L_MIN(n1, n2);
+    if (n == 0)
+        return (PIXA *)ERROR_PTR("at least one input pixa is empty",
+                                 procName, NULL);
+    if (n1 != n2)
+        L_WARNING("counts differ: %d != %d\n", procName, n1, n2);
+
+    pixad = pixaCreate(2 * n);
+    nb1 = pixaGetBoxaCount(pixa1);
+    nb2 = pixaGetBoxaCount(pixa2);
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixa1, i, copyflag);
+        pixaAddPix(pixad, pix, L_INSERT);
+        if (i < nb1) {
+            box = pixaGetBox(pixa1, i, L_COPY);
+            pixaAddBox(pixad, box, L_INSERT);
+        }
+        pix = pixaGetPix(pixa2, i, copyflag);
+        pixaAddPix(pixad, pix, L_INSERT);
+        if (i < nb2) {
+            box = pixaGetBox(pixa2, i, L_COPY);
+            pixaAddBox(pixad, box, L_INSERT);
+        }
+    }
+
+    return pixad;
+}
+
+
+/*!
  * \brief   pixaaJoin()
  *
  * \param[in]    paad  dest pixaa; add to this one
@@ -2433,6 +2501,46 @@ PIX     *pix;
         pixDestroy(&pix);
     }
     return 0;
+}
+
+
+/*!
+ * \brief   pixaReadBoth()
+ *
+ * \param[in]    filename
+ * \return  pixa, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This reads serialized files of either a pixa or a pixacomp,
+ *          and returns a pixa in memory.  It requires png and jpeg libraries.
+ * </pre>
+ */
+PIXA *
+pixaReadBoth(const char  *filename)
+{
+char   *sname;
+PIXA   *pixa;
+PIXAC  *pac;
+
+    PROCNAME("pixaReadBoth");
+
+    if (!filename)
+        return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
+
+    l_getStructnameFromFile(filename, &sname);
+    if (strcmp(sname, "Pixacomp") == 0) {
+        if ((pac = pixacompRead(filename)) == NULL)
+            return (PIXA *)ERROR_PTR("pac not made", procName, NULL);
+        pixa = pixaCreateFromPixacomp(pac, L_COPY);
+        pixacompDestroy(&pac);
+    } else if (strcmp(sname, "Pixa") == 0) {
+        if ((pixa = pixaRead(filename)) == NULL)
+            return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
+    } else {
+        return (PIXA *)ERROR_PTR("invalid file type", procName, NULL);
+    }
+    return pixa;
 }
 
 

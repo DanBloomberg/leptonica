@@ -1639,6 +1639,7 @@ LEPT_DLL extern l_int32 pixaRemovePixAndSave ( PIXA *pixa, l_int32 index, PIX **
 LEPT_DLL extern l_int32 pixaInitFull ( PIXA *pixa, PIX *pix, BOX *box );
 LEPT_DLL extern l_int32 pixaClear ( PIXA *pixa );
 LEPT_DLL extern l_int32 pixaJoin ( PIXA *pixad, PIXA *pixas, l_int32 istart, l_int32 iend );
+LEPT_DLL extern PIXA * pixaInterleave ( PIXA *pixa1, PIXA *pixa2, l_int32 copyflag );
 LEPT_DLL extern l_int32 pixaaJoin ( PIXAA *paad, PIXAA *paas, l_int32 istart, l_int32 iend );
 LEPT_DLL extern PIXAA * pixaaCreate ( l_int32 n );
 LEPT_DLL extern PIXAA * pixaaCreateFromPixa ( PIXA *pixa, l_int32 n, l_int32 type, l_int32 copyflag );
@@ -1661,6 +1662,7 @@ LEPT_DLL extern PIXA * pixaRead ( const char *filename );
 LEPT_DLL extern PIXA * pixaReadStream ( FILE *fp );
 LEPT_DLL extern l_int32 pixaWrite ( const char *filename, PIXA *pixa );
 LEPT_DLL extern l_int32 pixaWriteStream ( FILE *fp, PIXA *pixa );
+LEPT_DLL extern PIXA * pixaReadBoth ( const char *filename );
 LEPT_DLL extern PIXAA * pixaaReadFromFiles ( const char *dirname, const char *substr, l_int32 first, l_int32 nfiles );
 LEPT_DLL extern PIXAA * pixaaRead ( const char *filename );
 LEPT_DLL extern PIXAA * pixaaReadStream ( FILE *fp );

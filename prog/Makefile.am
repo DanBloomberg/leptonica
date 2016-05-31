@@ -80,7 +80,8 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	blendcmaptest buffertest \
 	byteatest ccbordtest cctest1 cleanpdf \
 	colormorphtest colorsegtest \
-	comparepages comparetest concatpdf \
+	comparepages comparepixa \
+	comparetest concatpdf \
 	contrasttest converttogray \
 	cornertest croptest croptext \
 	dewarprules dewarptest1 dewarptest2 \

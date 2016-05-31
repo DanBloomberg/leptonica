@@ -1408,12 +1408,19 @@ pixacompSetOffset(PIXAC   *pixac,
  * \param[in]    pixac
  * \param[in]    accesstype L_COPY, L_CLONE, L_COPY_CLONE; for boxa
  * \return  pixa if OK, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Because the pixa has no notion of offset, the offset must
+ *          be set to 0 before the conversion, so that pixacompGetPix()
+ *          fetches all the pixcomps.  It is reset at the end.
+ * </pre>
  */
 PIXA *
 pixaCreateFromPixacomp(PIXAC   *pixac,
                        l_int32  accesstype)
 {
-l_int32  i, n;
+l_int32  i, n, offset;
 PIX     *pix;
 PIXA    *pixa;
 
@@ -1426,6 +1433,8 @@ PIXA    *pixa;
         return (PIXA *)ERROR_PTR("invalid accesstype", procName, NULL);
 
     n = pixacompGetCount(pixac);
+    offset = pixacompGetOffset(pixac);
+    pixacompSetOffset(pixac, 0);
     if ((pixa = pixaCreate(n)) == NULL)
         return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
     for (i = 0; i < n; i++) {
@@ -1439,6 +1448,7 @@ PIXA    *pixa;
         boxaDestroy(&pixa->boxa);
         pixa->boxa = pixacompGetBoxa(pixac, accesstype);
     }
+    pixacompSetOffset(pixac, offset);
 
     return pixa;
 }
@@ -2041,12 +2051,7 @@ pixcompWriteStreamInfo(FILE        *fp,
  *      (1) This is the same function as pixaDisplayTiledAndScaled(),
  *          except it works on a Pixacomp instead of a Pix.  It is particularly
  *          useful for showing the images in a Pixacomp at reduced resolution.
- *      (2) This can be used to tile a number of renderings of
- *          an image that are at different scales and depths.
- *      (3) Each image, after scaling and optionally adding the
- *          black border, has width 'tilewidth'.  Thus, the border does
- *          not affect the spacing between the image tiles.  The
- *          maximum allowed border width is tilewidth / 5.
+ *      (2) See pixaDisplayTiledAndScaled() for details.
  * </pre>
  */
 PIX *
@@ -2058,115 +2063,20 @@ pixacompDisplayTiledAndScaled(PIXAC   *pixac,
                               l_int32  spacing,
                               l_int32  border)
 {
-l_int32    x, y, w, h, wd, hd, d;
-l_int32    i, n, nrows, maxht, ninrow, irow, bordval;
-l_int32   *rowht;
-l_float32  scalefact;
-PIX       *pix, *pixn, *pixt, *pixb, *pixd;
-PIXA      *pixan;
+PIX   *pixd;
+PIXA  *pixa;
 
     PROCNAME("pixacompDisplayTiledAndScaled");
 
     if (!pixac)
         return (PIX *)ERROR_PTR("pixac not defined", procName, NULL);
-    if (outdepth != 1 && outdepth != 8 && outdepth != 32)
-        return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
-    if (border < 0 || border > tilewidth / 5)
-        border = 0;
 
-    if ((n = pixacompGetCount(pixac)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+    if ((pixa = pixaCreateFromPixacomp(pixac, L_COPY)) == NULL)
+        return (PIX *)ERROR_PTR("pixa not made", procName, NULL);
 
-        /* Normalize scale and depth for each pix; optionally add border */
-    pixan = pixaCreate(n);
-    bordval = (outdepth == 1) ? 1 : 0;
-    for (i = 0; i < n; i++) {
-        if ((pix =
-             pixacompGetPix(pixac, pixacompGetOffset(pixac) + i)) == NULL) {
-            L_WARNING("pix %d not made\n", procName, i);
-            continue;
-        }
-
-        pixGetDimensions(pix, &w, &h, &d);
-        scalefact = (l_float32)(tilewidth - 2 * border) / (l_float32)w;
-        if (d == 1 && outdepth > 1 && scalefact < 1.0)
-            pixt = pixScaleToGray(pix, scalefact);
-        else
-            pixt = pixScale(pix, scalefact, scalefact);
-
-        if (outdepth == 1)
-            pixn = pixConvertTo1(pixt, 128);
-        else if (outdepth == 8)
-            pixn = pixConvertTo8(pixt, FALSE);
-        else  /* outdepth == 32 */
-            pixn = pixConvertTo32(pixt);
-        pixDestroy(&pixt);
-
-        if (border)
-            pixb = pixAddBorder(pixn, border, bordval);
-        else
-            pixb = pixClone(pixn);
-
-        pixaAddPix(pixan, pixb, L_INSERT);
-        pixDestroy(&pix);
-        pixDestroy(&pixn);
-    }
-    if ((n = pixaGetCount(pixan)) == 0) { /* should not have changed! */
-        pixaDestroy(&pixan);
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
-    }
-
-        /* Determine the size of each row and of pixd */
-    wd = tilewidth * ncols + spacing * (ncols + 1);
-    nrows = (n + ncols - 1) / ncols;
-    if ((rowht = (l_int32 *)LEPT_CALLOC(nrows, sizeof(l_int32))) == NULL)
-        return (PIX *)ERROR_PTR("rowht array not made", procName, NULL);
-    maxht = 0;
-    ninrow = 0;
-    irow = 0;
-    for (i = 0; i < n; i++) {
-        pix = pixaGetPix(pixan, i, L_CLONE);
-        ninrow++;
-        pixGetDimensions(pix, &w, &h, NULL);
-        maxht = L_MAX(h, maxht);
-        if (ninrow == ncols) {
-            rowht[irow] = maxht;
-            maxht = ninrow = 0;  /* reset */
-            irow++;
-        }
-        pixDestroy(&pix);
-    }
-    if (ninrow > 0) {   /* last fencepost */
-        rowht[irow] = maxht;
-        irow++;  /* total number of rows */
-    }
-    nrows = irow;
-    hd = spacing * (nrows + 1);
-    for (i = 0; i < nrows; i++)
-        hd += rowht[i];
-
-    pixd = pixCreate(wd, hd, outdepth);
-    if ((background == 1 && outdepth == 1) ||
-        (background == 0 && outdepth != 1))
-        pixSetAll(pixd);
-
-        /* Now blit images to pixd */
-    x = y = spacing;
-    irow = 0;
-    for (i = 0; i < n; i++) {
-        pix = pixaGetPix(pixan, i, L_CLONE);
-        pixGetDimensions(pix, &w, &h, NULL);
-        if (i && ((i % ncols) == 0)) {  /* start new row */
-            x = spacing;
-            y += spacing + rowht[irow];
-            irow++;
-        }
-        pixRasterop(pixd, x, y, w, h, PIX_SRC, pix, 0, 0);
-        x += tilewidth + spacing;
-        pixDestroy(&pix);
-    }
-
-    pixaDestroy(&pixan);
-    LEPT_FREE(rowht);
+    pixd = pixaDisplayTiledAndScaled(pixa, outdepth, tilewidth, ncols,
+                                     background, spacing, border);
+    pixaDestroy(&pixa);
     return pixd;
 }
+
