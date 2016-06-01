@@ -57,19 +57,15 @@
  *      %fontsize = 10
  */
 
-#include <string.h>
 #include "allheaders.h"
-
-    /* Static helper */
-SARRAY *SarrayGenerateIntegers(l_int32  n);
 
 
 int main(int    argc,
          char **argv)
 {
-l_int32      nx, ny, tw, spacing, border, fontsize, npairs;
-PIXA        *pixa1, *pixa2, *pixa3, *pixa4, *pixa5;
-SARRAY      *sa;
+char        *fileout;
+l_int32      nx, ny, tw, spacing, border, fontsize;
+PIXA        *pixa1, *pixa2;
 static char  mainName[] = "comparepixa";
 
     if (argc != 10) {
@@ -84,48 +80,18 @@ static char  mainName[] = "comparepixa";
         return ERROR_INT("pixa1 not read", mainName, 1);
     if ((pixa2 = pixaReadBoth(argv[2])) == NULL)
         return ERROR_INT("pixa2 not read", mainName, 1);
-    if ((pixa3 = pixaInterleave(pixa1, pixa2, L_CLONE)) == NULL)
-        return ERROR_INT("pixa3 not made", mainName, 1);
-    pixaDestroy(&pixa1);
-    pixaDestroy(&pixa2);
-
-        /* Pair the images up side/by/side */
     nx = atoi(argv[3]);
     ny = atoi(argv[4]);
     tw = atoi(argv[5]);
     spacing = atoi(argv[6]);
     border = atoi(argv[7]);
     fontsize = atoi(argv[8]);
-    pixa4 = pixaConvertToNUpPixa(pixa3, NULL, 2, 1, tw, spacing, border, 0);
-    pixaDestroy(&pixa3);
+    fileout = argv[9];
 
-        /* Mosaic the pairs */
-    npairs = pixaGetCount(pixa4);
-    sa = (fontsize > 0) ? SarrayGenerateIntegers(npairs) : NULL;
-    pixa5 = pixaConvertToNUpPixa(pixa4, sa, nx, ny, 2 * tw,
-                                 spacing, border, fontsize);
-    pixaDestroy(&pixa4);
-    sarrayDestroy(&sa);
-
-        /* Output as pdf */
-    pixaConvertToPdf(pixa5, 0, 1.0, 0, 0, NULL, argv[9]);
-    pixaDestroy(&pixa5);
+    pixaCompareInPdf(pixa1, pixa2, nx, ny, tw, spacing, border,
+                     fontsize, fileout);
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
     return 0;
-}
-
-
-SARRAY *
-SarrayGenerateIntegers(l_int32  n)
-{
-char     buf[32];
-l_int32  i;
-SARRAY  *sa;
-
-    sa = sarrayCreate(n);
-    for (i = 0; i < n; i++) {
-        snprintf(buf, sizeof(buf), "%d", i);
-        sarrayAddString(sa, buf, L_COPY);
-    }
-    return sa;
 }
 

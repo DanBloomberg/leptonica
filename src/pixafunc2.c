@@ -67,7 +67,10 @@
  *           PIXA     *convertToNUpPixa()
  *           PIXA     *pixaConvertToNUpPixa()
  *
- *  We give twelve methods for displaying a pixa in a pix.
+ *      Render two pixa s/b/s for comparison                   *
+ *           l_int32   pixaCompareInPdf()
+ *
+ *  We give twelve pixaDisplay*() methods for tiling a pixa in a pix.
  *  Some work for 1 bpp input; others for any input depth.
  *  Some give an output depth that depends on the input depth;
  *  others give a different output depth or allow you to choose it.
@@ -2339,4 +2342,106 @@ PIXA      *pixa1, *pixad;
     bmfDestroy(&bmf);
     return pixad;
 }
+
+
+/*---------------------------------------------------------------------*
+ *              Render two pixa s/b/s for comparison                   *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixaCompareInPdf()
+ *
+ * \param[in]    pixa1
+ * \param[in]    pixa2
+ * \param[in]    nx, ny in [1, ... 20], tiling factors in each direction
+ * \param[in]    tw target width, in pixels; must be >= 20
+ * \param[in]    spacing  between images, and on outside
+ * \param[in]    border width of additional black border on each image
+ *                      and on each pair; use 0 for no border
+ * \param[in]    fontsize to print index of each pair of images.  Valid set
+ *                        is {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]    fileout  output pdf file
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This takes two pixa and renders them interleaved, side-by-side
+ *          in a pdf.  A warning is issued if the input pixa arrays
+ *          have different lengths.
+ *      (2) %nx and %ny specify how many side-by-side pairs are displayed
+ *          on each pdf page.  For example, if %nx = 1 and %ny = 2, then
+ *          two pairs are shown, one above the other, on each page.
+ *      (3) The input pix are scaled to a target width of %tw, and
+ *          then paired with optional %spacing between and optional
+ *          black border of width %border.
+ *      (4) After a pixa is generated of these tiled images, it is
+ *          written to %fileout as a pdf.
+ *      (5) Typical numbers for the input parameters are:
+ *            %nx = small integer (1 - 4)
+ *            %ny = 2 * %nx
+ *            %tw = 200 - 500 pixels
+ *            %spacing = 10
+ *            %border = 2
+ *            %fontsize = 10
+ *      (6) If %fontsize != 0, the index of the pix pair in their pixa
+ *          is printed out below each pair.
+ * </pre>
+ */
+l_int32
+pixaCompareInPdf(PIXA        *pixa1,
+                 PIXA        *pixa2,
+                 l_int32      nx,
+                 l_int32      ny,
+                 l_int32      tw,
+                 l_int32      spacing,
+                 l_int32      border,
+                 l_int32      fontsize,
+                 const char  *fileout)
+{
+l_int32  n1, n2, npairs;
+PIXA    *pixa3, *pixa4, *pixa5;
+SARRAY  *sa;
+
+    PROCNAME("pixaCompareInPdf");
+
+    if (!pixa1 || !pixa2)
+        return ERROR_INT("pixa1 and pixa2 not both defined", procName, 1);
+    if (nx < 1 || ny < 1 || nx > 20 || ny > 20)
+        return ERROR_INT("invalid tiling factors", procName, 1);
+    if (tw < 20)
+        return ERROR_INT("invalid tw; tw must be >= 20", procName, 1);
+    if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
+        return ERROR_INT("invalid fontsize", procName, 1);
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+    n1 = pixaGetCount(pixa1);
+    n2 = pixaGetCount(pixa2);
+    if (n1 == 0 || n2 == 0)
+        return ERROR_INT("at least one pixa is empty", procName, 1);
+    if (n1 != n2)
+        L_WARNING("sizes (%d, %d) differ; using the minimum in interleave\n",
+                  procName, n1, n2);
+
+        /* Interleave the input pixa */
+    if ((pixa3 = pixaInterleave(pixa1, pixa2, L_CLONE)) == NULL)
+        return ERROR_INT("pixa3 not made", procName, 1);
+
+        /* Scale the images if necessary and pair them up side/by/side */
+    pixa4 = pixaConvertToNUpPixa(pixa3, NULL, 2, 1, tw, spacing, border, 0);
+    pixaDestroy(&pixa3);
+
+        /* Label the pairs and mosaic into pages without further scaling */
+    npairs = pixaGetCount(pixa4);
+    sa = (fontsize > 0) ? sarrayGenerateIntegers(npairs) : NULL;
+    pixa5 = pixaConvertToNUpPixa(pixa4, sa, nx, ny,
+                                 2 * tw + 4 * border + spacing,
+                                 spacing, border, fontsize);
+    pixaDestroy(&pixa4);
+    sarrayDestroy(&sa);
+
+        /* Output as pdf without scaling */
+    pixaConvertToPdf(pixa5, 0, 1.0, 0, 0, NULL, fileout);
+    pixaDestroy(&pixa5);
+    return 0;
+}
+
 

@@ -45,6 +45,9 @@
  *          l_int32     sarrayFindStringByHash()
  *          L_DNAHASH  *l_dnaHashCreateFromSarray()
  *
+ *      Miscellaneous operations
+ *          SARRAY     *sarrayGenerateIntegers()
+ *
  * </pre>
  */
 
@@ -603,3 +606,26 @@ L_DNAHASH  *dahash;
 
     return dahash;
 }
+
+
+/*----------------------------------------------------------------------*
+ *                      Miscellaneous operations                        *
+ *----------------------------------------------------------------------*/
+SARRAY *
+sarrayGenerateIntegers(l_int32  n)
+{
+char     buf[32];
+l_int32  i;
+SARRAY  *sa;
+
+    PROCNAME("sarrayGenerateIntegers");
+
+    if ((sa = sarrayCreate(n)) == NULL)
+        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        snprintf(buf, sizeof(buf), "%d", i);
+        sarrayAddString(sa, buf, L_COPY);
+    }
+    return sa;
+}
+

@@ -2529,6 +2529,9 @@ PIXAC  *pac;
         return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
 
     l_getStructnameFromFile(filename, &sname);
+    if (!sname)
+        return (PIXA *)ERROR_PTR("struct name not found", procName, NULL);
+
     if (strcmp(sname, "Pixacomp") == 0) {
         if ((pac = pixacompRead(filename)) == NULL)
             return (PIXA *)ERROR_PTR("pac not made", procName, NULL);
