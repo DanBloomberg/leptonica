@@ -46,7 +46,9 @@ static void get_format_data(l_int32 i, l_uint8 *data, size_t size);
 int main(int    argc,
          char **argv)
 {
+l_uint8      *data1, *data2;
 l_int32       i, n;
+size_t        size1, size2;
 BOX          *box;
 PIX          *pix, *pix1, *pix2, *pix3;
 PIXA         *pixa, *pixa1;
@@ -171,6 +173,21 @@ SARRAY       *sa;
     pixacompDestroy(&pixac2);
     pixaDestroy(&pixa1);
     pixDestroy(&pix1);
+
+        /* Test serialized pixacomp I/O to and from memory */
+    pixacompWriteMem(&data1, &size1, pixac);
+    pixac1 = pixacompReadMem(data1, size1);
+    pixacompWriteMem(&data2, &size2, pixac1);
+    pixac2 = pixacompReadMem(data2, size2);
+    pixacompWrite("/tmp/lept/comp/file3.pac", pixac1);
+    regTestCheckFile(rp, "/tmp/lept/comp/file3.pac");  /* 11 */
+    pixacompWrite("/tmp/lept/comp/file4.pac", pixac2);
+    regTestCheckFile(rp, "/tmp/lept/comp/file4.pac");  /* 12 */
+    regTestCompareFiles(rp, 11, 12);  /* 13 */
+    pixacompDestroy(&pixac1);
+    pixacompDestroy(&pixac2);
+    lept_free(data1);
+    lept_free(data2);
 
     pixaDestroy(&pixa);
     pixacompDestroy(&pixac);

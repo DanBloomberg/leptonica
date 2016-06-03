@@ -2075,8 +2075,8 @@ BOXA    *boxa;
 /*!
  * \brief   boxaReadMem()
  *
- * \param[in]    data ascii
- * \param[in]    size of data; can use strlen to get it
+ * \param[in]    data  serialization in ascii
+ * \param[in]    size  of data; can use strlen to get it
  * \return  boxa, or NULL on error
  */
 BOXA *
@@ -2090,15 +2090,9 @@ BOXA  *boxa;
 
     if (!data)
         return (BOXA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (BOXA *)ERROR_PTR("stream not opened", procName, NULL);
 
-        /* De-serialize: write serialized data to file and read back as boxa.
-         * We are writing to file first, instead of reading from the memory
-         * buffer, because the gnu extension fmemopen() is not available
-         * with other runtimes. */
-    if ((fp = tmpfile()) == NULL)
-        return (BOXA *)ERROR_PTR("tmpfile stream not opened", procName, NULL);
-    fwrite(data, 1, size, fp);
-    rewind(fp);
     boxa = boxaReadStream(fp);
     fclose(fp);
     if (!boxa) L_ERROR("boxa not read\n", procName);
@@ -2178,6 +2172,11 @@ BOX     *box;
  * \param[out]   psize size of returned data
  * \param[in]    boxa
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a boxa in memory and puts the result in a buffer.
+ * </pre>
  */
 l_int32
 boxaWriteMem(l_uint8  **pdata,
@@ -2189,21 +2188,32 @@ FILE    *fp;
 
     PROCNAME("boxaWriteMem");
 
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
     if (!pdata)
         return ERROR_INT("&data not defined", procName, 1);
-    *pdata = NULL;
     if (!psize)
         return ERROR_INT("&size not defined", procName, 1);
-    *psize = 0;
     if (!boxa)
         return ERROR_INT("&boxa not defined", procName, 1);
 
-        /* Serialize: write to file and read serialized data back into memory */
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = boxaWriteStream(fp, boxa);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
     if ((fp = tmpfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
     ret = boxaWriteStream(fp, boxa);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
     return ret;
 }

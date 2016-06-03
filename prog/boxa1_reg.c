@@ -38,7 +38,9 @@ static PIX *DisplayBoxa(BOXA  *boxa);
 int main(int    argc,
          char **argv)
 {
+l_uint8     *data1, *data2;
 l_int32      same, w, h, width;
+size_t       size1, size2;
 l_float32    diffarea, diffxor, scalefact;
 BOX         *box;
 BOXA        *boxa1, *boxa2, *boxa3;
@@ -140,6 +142,24 @@ static char  mainName[] = "boxa1_reg";
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
     boxaDestroy(&boxa3);
+
+        /* Test serialized boxa I/O to and from memory */
+    data1 = l_binaryRead("boxa2.ba", &size1);
+    boxa1 = boxaReadMem(data1, size1);
+    boxaWriteMem(&data2, &size2, boxa1);
+    boxa2 = boxaReadMem(data2, size2);
+    boxaWrite("/tmp/lept/boxa/boxa1.ba", boxa1);
+    boxaWrite("/tmp/lept/boxa/boxa2.ba", boxa2);
+    filesAreIdentical("/tmp/lept/boxa/boxa1.ba", "/tmp/lept/boxa/boxa2.ba",
+                      &same); 
+    if (same)
+        fprintf(stderr, "Good: boxes files are identical\n");
+    else
+        fprintf(stderr, "Bad: boxes files differ\n");
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    lept_free(data1);
+    lept_free(data2);
 
     return 0;
 }

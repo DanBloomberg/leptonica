@@ -67,7 +67,7 @@
  *           PIXA     *convertToNUpPixa()
  *           PIXA     *pixaConvertToNUpPixa()
  *
- *      Render two pixa s/b/s for comparison                   *
+ *      Render two pixa side-by-side for comparison                   *
  *           l_int32   pixaCompareInPdf()
  *
  *  We give twelve pixaDisplay*() methods for tiling a pixa in a pix.
@@ -2345,7 +2345,7 @@ PIXA      *pixa1, *pixad;
 
 
 /*---------------------------------------------------------------------*
- *              Render two pixa s/b/s for comparison                   *
+ *            Render two pixa side-by-side for comparison              *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   pixaCompareInPdf()

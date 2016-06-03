@@ -106,6 +106,7 @@
  *
  *      Writing P7 format is currently selected for 32-bpp with alpha
  *      channel, i.e. for Pix which have spp == 4, using pixWriteStreamPam().
+ *      Jürgen Buchmüller provided the implementation for the P7 (pam) format.
  * </pre>
  */
 

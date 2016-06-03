@@ -1802,6 +1802,8 @@ LEPT_DLL extern PIXAC * pixacompRead ( const char *filename );
 LEPT_DLL extern PIXAC * pixacompReadStream ( FILE *fp );
 LEPT_DLL extern l_int32 pixacompWrite ( const char *filename, PIXAC *pixac );
 LEPT_DLL extern l_int32 pixacompWriteStream ( FILE *fp, PIXAC *pixac );
+LEPT_DLL extern PIXAC * pixacompReadMem ( const l_uint8 *data, size_t size );
+LEPT_DLL extern l_int32 pixacompWriteMem ( l_uint8 **pdata, size_t *psize, PIXAC *pixac );
 LEPT_DLL extern l_int32 pixacompConvertToPdf ( PIXAC *pixac, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, const char *fileout );
 LEPT_DLL extern l_int32 pixacompConvertToPdfData ( PIXAC *pixac, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, l_uint8 **pdata, size_t *pnbytes );
 LEPT_DLL extern l_int32 pixacompWriteStreamInfo ( FILE *fp, PIXAC *pixac, const char *text );
