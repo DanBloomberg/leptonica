@@ -1640,7 +1640,7 @@ PIXAC    *pixac;
         return (PIXAC *)ERROR_PTR("not a pixacomp file", procName, NULL);
     if (version != PIXACOMP_VERSION_NUMBER)
         return (PIXAC *)ERROR_PTR("invalid pixacomp version", procName, NULL);
-    if (fscanf(fp, "Number of pixcomp = %d", &n) != 1)
+    if (fscanf(fp, "Number of pixcomp = %d\n", &n) != 1)
         return (PIXAC *)ERROR_PTR("not a pixacomp file", procName, NULL);
     if (fscanf(fp, "Offset of index into array = %d", &offset) != 1)
         return (PIXAC *)ERROR_PTR("offset not read", procName, NULL);
@@ -1752,7 +1752,7 @@ PIXC    *pixc;
 
     n = pixacompGetCount(pixac);
     fprintf(fp, "\nPixacomp Version %d\n", PIXACOMP_VERSION_NUMBER);
-    fprintf(fp, "Number of pixcomp = %d", n);
+    fprintf(fp, "Number of pixcomp = %d\n", n);
     fprintf(fp, "Offset of index into array = %d", pixac->offset);
     boxaWriteStream(fp, pixac->boxa);
     for (i = 0; i < n; i++) {
