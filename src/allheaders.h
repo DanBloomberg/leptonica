@@ -298,8 +298,8 @@ LEPT_DLL extern BOXAA * boxaSort2d ( BOXA *boxas, NUMAA **pnaad, l_int32 delta1,
 LEPT_DLL extern BOXAA * boxaSort2dByIndex ( BOXA *boxas, NUMAA *naa );
 LEPT_DLL extern l_int32 boxaExtractAsNuma ( BOXA *boxa, NUMA **pnal, NUMA **pnat, NUMA **pnar, NUMA **pnab, NUMA **pnaw, NUMA **pnah, l_int32 keepinvalid );
 LEPT_DLL extern l_int32 boxaExtractAsPta ( BOXA *boxa, PTA **pptal, PTA **pptat, PTA **pptar, PTA **pptab, PTA **pptaw, PTA **pptah, l_int32 keepinvalid );
-LEPT_DLL extern BOX * boxaGetRankSize ( BOXA *boxa, l_float32 fract );
-LEPT_DLL extern BOX * boxaGetMedian ( BOXA *boxa );
+LEPT_DLL extern l_int32 boxaGetRankVals ( BOXA *boxa, l_float32 fract, l_int32 *px, l_int32 *py, l_int32 *pw, l_int32 *ph );
+LEPT_DLL extern l_int32 boxaGetMedianVals ( BOXA *boxa, l_int32 *px, l_int32 *py, l_int32 *pw, l_int32 *ph );
 LEPT_DLL extern l_int32 boxaGetAverageSize ( BOXA *boxa, l_float32 *pw, l_float32 *ph );
 LEPT_DLL extern l_int32 boxaaGetExtent ( BOXAA *baa, l_int32 *pw, l_int32 *ph, BOX **pbox, BOXA **pboxa );
 LEPT_DLL extern BOXA * boxaaFlattenToBoxa ( BOXAA *baa, NUMA **pnaindex, l_int32 copyflag );

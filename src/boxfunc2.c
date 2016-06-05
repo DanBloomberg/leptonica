@@ -44,8 +44,8 @@
  *           BOXAA           *boxaSort2dByIndex()
  *
  *      Boxa statistics
- *           BOX             *boxaGetRankSize()
- *           BOX             *boxaGetMedian()
+ *           l_int32          boxaGetRankVals()
+ *           l_int32          boxaGetMedianVals()
  *           l_int32          boxaGetAverageSize()
  *
  *      Boxa array extraction
@@ -1209,12 +1209,15 @@ l_int32  i, n, left, top, right, bot, w, h;
  *                            Boxa statistics                          *
  *---------------------------------------------------------------------*/
 /*!
- * \brief   boxaGetRankSize()
+ * \brief   boxaGetRankVals()
  *
  * \param[in]    boxa
- * \param[in]    fract use 0.0 for smallest, 1.0 for largest
- * \return  box with rank values for x, y, w, h, or NULL on error
- *              or if the boxa is empty has no valid boxes
+ * \param[in]    fract use 0.0 for smallest, 1.0 for largest width and height
+ * \param[out]   px  [optional] rank value of x
+ * \param[out]   py  [optional] rank value of y
+ * \param[out]   pw  [optional] rank value of width
+ * \param[out]   ph  [optional] rank value of height
+ * \return  0 if OK, 1 on error or if the boxa is empty or has no valid boxes
  *
  * <pre>
  * Notes:
@@ -1231,63 +1234,87 @@ l_int32  i, n, left, top, right, bot, w, h;
  *             ~ w and h are sorted in increasing order
  * </pre>
  */
-BOX *
-boxaGetRankSize(BOXA      *boxa,
-                l_float32  fract)
+l_int32
+boxaGetRankVals(BOXA      *boxa,
+                l_float32  fract,
+                l_int32   *px,
+                l_int32   *py,
+                l_int32   *pw,
+                l_int32   *ph)
 {
 l_float32  xval, yval, wval, hval;
 NUMA      *nax, *nay, *naw, *nah;
-BOX       *box;
 
-    PROCNAME("boxaGetRankSize");
+    PROCNAME("boxaGetRankVals");
 
+    if (px) *px = 0;
+    if (py) *py = 0;
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
     if (!boxa)
-        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return ERROR_INT("boxa not defined", procName, 1);
     if (fract < 0.0 || fract > 1.0)
-        return (BOX *)ERROR_PTR("fract not in [0.0 ... 1.0]", procName, NULL);
+        return ERROR_INT("fract not in [0.0 ... 1.0]", procName, 1);
     if (boxaGetValidCount(boxa) == 0)
-        return (BOX *)ERROR_PTR("no valid boxes in boxa", procName, NULL);
+        return ERROR_INT("no valid boxes in boxa", procName, 1);
 
         /* Use only the valid boxes */
     boxaExtractAsNuma(boxa, &nax, &nay, NULL, NULL, &naw, &nah, 0);
 
-    numaGetRankValue(nax, 1.0 - fract, NULL, 1, &xval);
-    numaGetRankValue(nay, 1.0 - fract, NULL, 1, &yval);
-    numaGetRankValue(naw, fract, NULL, 1, &wval);
-    numaGetRankValue(nah, fract, NULL, 1, &hval);
-    box = boxCreate((l_int32)xval, (l_int32)yval, (l_int32)wval, (l_int32)hval);
-
+    if (px) {
+        numaGetRankValue(nax, 1.0 - fract, NULL, 1, &xval);
+        *px = (l_int32)xval;
+    }
+    if (py) {
+        numaGetRankValue(nay, 1.0 - fract, NULL, 1, &yval);
+        *py = (l_int32)yval;
+    }
+    if (pw) {
+        numaGetRankValue(naw, fract, NULL, 1, &wval);
+        *pw = (l_int32)wval;
+    }
+    if (ph) {
+        numaGetRankValue(nah, fract, NULL, 1, &hval);
+        *ph = (l_int32)hval;
+    }
     numaDestroy(&nax);
     numaDestroy(&nay);
     numaDestroy(&naw);
     numaDestroy(&nah);
-    return box;
+    return 0;
 }
 
 
 /*!
- * \brief   boxaGetMedian()
+ * \brief   boxaGetMedianVals()
  *
  * \param[in]    boxa
- * \return  box with median values for x, y, w, h, or NULL on error
- *              or if the boxa is empty.
+ * \param[out]   px  [optional] median value of x
+ * \param[out]   py  [optional] median value of y
+ * \param[out]   pw  [optional] median value of width
+ * \param[out]   ph  [optional] median value of height
+ * \return  0 if OK, 1 on error or if the boxa is empty or has no valid boxes
  *
  * <pre>
  * Notes:
- *      (1) See boxaGetRankSize()
+ *      (1) See boxaGetRankVals()
  * </pre>
  */
-BOX *
-boxaGetMedian(BOXA  *boxa)
+l_int32
+boxaGetMedianVals(BOXA     *boxa,
+                  l_int32  *px,
+                  l_int32  *py,
+                  l_int32  *pw,
+                  l_int32  *ph)
 {
-    PROCNAME("boxaGetMedian");
+    PROCNAME("boxaGetMedianVals");
 
     if (!boxa)
-        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
-    if (boxaGetCount(boxa) == 0)
-        return (BOX *)ERROR_PTR("boxa is empty", procName, NULL);
+        return ERROR_INT("boxa not defined", procName, 1);
+    if (boxaGetValidCount(boxa) == 0)
+        return ERROR_INT("no valid boxes in boxa", procName, 1);
 
-    return boxaGetRankSize(boxa, 0.5);
+    return boxaGetRankVals(boxa, 0.5, px, py, pw, ph);
 }
 
 

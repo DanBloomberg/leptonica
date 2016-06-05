@@ -1430,12 +1430,14 @@ BOXA    *boxad;
  * Notes:
  *      (1) Forces either width or height (or both) of every box in
  *          the boxa to a specified size, by moving the indicated sides.
- *      (2) All input boxes should be valid.  Median values will be
+ *      (2) Not all input boxes need to be valid.  Median values will be
  *          used with invalid boxes.
  *      (3) Typical input might be the output of boxaLinearFit(),
  *          where each side has been fit.
  *      (4) Unlike boxaAdjustWidthToTarget() and boxaAdjustHeightToTarget(),
  *          this is not dependent on a difference threshold to change the size.
+ *      (5) On error, a message is issued and a copy of the input boxa
+ *          is returned.
  * </pre>
  */
 BOXA *
@@ -1445,7 +1447,8 @@ boxaConstrainSize(BOXA    *boxas,
                   l_int32  height,
                   l_int32  heightflag)
 {
-l_int32  n, i, w, h, delw, delh, del_left, del_right, del_top, del_bot;
+l_int32  n, i, x, y, w, h, invalid;
+l_int32  delw, delh, del_left, del_right, del_top, del_bot;
 BOX     *medbox, *boxs, *boxd;
 BOXA    *boxad;
 
@@ -1454,24 +1457,24 @@ BOXA    *boxad;
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
 
-        /* Use median value if requested */
-    medbox = boxaGetMedian(boxas);
-    if (width == 0 || height == 0) {
-        boxGetGeometry(medbox, NULL, NULL, &w, &h);
-        if (width == 0)
-            width = w;
-        if (height == 0)
-            height = h;
+        /* Need median values if requested or if there are invalid boxes */
+    invalid = boxaGetCount(boxas) - boxaGetValidCount(boxas);
+    medbox = NULL;
+    if (width == 0 || height == 0 || invalid > 0) {
+        if (boxaGetMedianVals(boxas, &x, &y, &w, &h)) {
+            L_ERROR("median vals not returned", procName);
+            return boxaCopy(boxas, L_COPY);
+        }
+        medbox = boxCreate(x, y, w, h);
+        if (width == 0) width = w;
+        if (height == 0) height = h;
     }
 
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     for (i = 0; i < n; i++) {
-        boxs = boxaGetValidBox(boxas, i, L_CLONE);
-        if (!boxs) {
-            L_ERROR("invalid box %d; using median\n", procName, i);
+        if ((boxs = boxaGetValidBox(boxas, i, L_COPY)) == NULL)
             boxs = boxCopy(medbox);
-        }
         boxGetGeometry(boxs, NULL, NULL, &w, &h);
         delw = width - w;
         delh = height - h;
@@ -1556,7 +1559,6 @@ boxaReconcileEvenOddHeight(BOXA      *boxas,
 {
 l_int32    n, ne, no, he, ho, hmed, doeven;
 l_float32  del1, del2;
-BOX       *boxe, *boxo;
 BOXA      *boxae, *boxao, *boxa1e, *boxa1o, *boxa1, *boxad;
 
     PROCNAME("boxaReconcileEvenOddHeight");
@@ -1588,16 +1590,8 @@ BOXA      *boxae, *boxao, *boxa1e, *boxa1o, *boxa1, *boxad;
     no = boxaGetCount(boxao);
 
         /* Get the median heights for each set */
-    boxa1e = boxaSort(boxae, L_SORT_BY_HEIGHT, L_SORT_INCREASING, NULL);
-    boxa1o = boxaSort(boxao, L_SORT_BY_HEIGHT, L_SORT_INCREASING, NULL);
-    boxe = boxaGetBox(boxa1e, ne / 2, L_COPY);  /* median ht even boxes */
-    boxo = boxaGetBox(boxa1o, no / 2, L_COPY);  /* median ht odd boxes */
-    boxGetGeometry(boxe, NULL, NULL, NULL, &he);
-    boxGetGeometry(boxo, NULL, NULL, NULL, &ho);
-    boxaDestroy(&boxa1e);
-    boxaDestroy(&boxa1o);
-    boxDestroy(&boxe);
-    boxDestroy(&boxo);
+    boxaGetMedianVals(boxae, NULL, NULL, NULL, &he);
+    boxaGetMedianVals(boxao, NULL, NULL, NULL, &ho);
     L_INFO("median he = %d, median ho = %d\n", procName, he, ho);
 
         /* If the difference in median height reaches the threshold %delh,
