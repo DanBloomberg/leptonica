@@ -230,7 +230,11 @@ PIX       *pixt, *pixd;
  * <pre>
  * Notes:
  *      (1) If the source pixel is less than the threshold value,
- *          the dest will be 1; otherwise, it will be 0
+ *          the dest will be 1; otherwise, it will be 0.
+ *      (2) For example, for 8 bpp src pix, if %thresh == 256, the dest
+ *          1 bpp pix is all ones (fg), and if %thresh == 0, the dest
+ *          pix is all zeros (bg).
+ *
  * </pre>
  */
 PIX *

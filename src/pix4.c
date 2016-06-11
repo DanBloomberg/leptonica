@@ -3122,7 +3122,7 @@ PIX       *pixg, *pixm;
  * \param[out]   pthresh [optional] best threshold for separating
  * \param[out]   pfgval [optional] average foreground value
  * \param[out]   pbgval [optional] average background value
- * \param[in]    debugflag 1 for plotting of distribution and split point
+ * \param[out]   ppixdb [optional] plot of distribution and split point
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3138,7 +3138,7 @@ pixSplitDistributionFgBg(PIX       *pixs,
                          l_int32   *pthresh,
                          l_int32   *pfgval,
                          l_int32   *pbgval,
-                         l_int32    debugflag)
+                         PIX      **ppixdb)
 {
 char       buf[256];
 l_int32    thresh;
@@ -3152,6 +3152,7 @@ PIX       *pixg;
     if (pthresh) *pthresh = 0;
     if (pfgval) *pfgval = 0;
     if (pbgval) *pbgval = 0;
+    if (ppixdb) *ppixdb = NULL;
     if (!pthresh && !pfgval && !pbgval)
         return ERROR_INT("no data requested", procName, 1);
     if (!pixs)
@@ -3162,7 +3163,7 @@ PIX       *pixg;
 
         /* Make the fg/bg estimates */
     na = pixGetGrayHistogram(pixg, 1);
-    if (debugflag) {
+    if (ppixdb) {
         numaSplitDistribution(na, scorefract, &thresh, &avefg, &avebg,
                               NULL, NULL, &nascore);
         numaDestroy(&nascore);
@@ -3175,9 +3176,9 @@ PIX       *pixg;
     if (pfgval) *pfgval = (l_int32)(avefg + 0.5);
     if (pbgval) *pbgval = (l_int32)(avebg + 0.5);
 
-    if (debugflag) {
-        lept_mkdir("redout");
-        gplot = gplotCreate("/tmp/redout/histplot", GPLOT_PNG, "Histogram",
+    if (ppixdb) {
+        lept_mkdir("lept/redout");
+        gplot = gplotCreate("/tmp/lept/redout/histplot", GPLOT_PNG, "Histogram",
                             "Grayscale value", "Number of pixels");
         gplotAddPlot(gplot, NULL, na, GPLOT_LINES, NULL);
         nax = numaMakeConstant(thresh, 2);
@@ -3190,6 +3191,7 @@ PIX       *pixg;
         gplotDestroy(&gplot);
         numaDestroy(&nax);
         numaDestroy(&nay);
+        *ppixdb = pixRead("/tmp/lept/redout/histplot.png");
     }
 
     pixDestroy(&pixg);

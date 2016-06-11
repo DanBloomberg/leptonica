@@ -1570,7 +1570,7 @@ LEPT_DLL extern l_int32 pixGetRowStats ( PIX *pixs, l_int32 type, l_int32 nbins,
 LEPT_DLL extern l_int32 pixGetColumnStats ( PIX *pixs, l_int32 type, l_int32 nbins, l_int32 thresh, l_float32 *rowvect );
 LEPT_DLL extern l_int32 pixSetPixelColumn ( PIX *pix, l_int32 col, l_float32 *colvect );
 LEPT_DLL extern l_int32 pixThresholdForFgBg ( PIX *pixs, l_int32 factor, l_int32 thresh, l_int32 *pfgval, l_int32 *pbgval );
-LEPT_DLL extern l_int32 pixSplitDistributionFgBg ( PIX *pixs, l_float32 scorefract, l_int32 factor, l_int32 *pthresh, l_int32 *pfgval, l_int32 *pbgval, l_int32 debugflag );
+LEPT_DLL extern l_int32 pixSplitDistributionFgBg ( PIX *pixs, l_float32 scorefract, l_int32 factor, l_int32 *pthresh, l_int32 *pfgval, l_int32 *pbgval, PIX **ppixdb );
 LEPT_DLL extern l_int32 pixaFindDimensions ( PIXA *pixa, NUMA **pnaw, NUMA **pnah );
 LEPT_DLL extern l_int32 pixFindAreaPerimRatio ( PIX *pixs, l_int32 *tab, l_float32 *pfract );
 LEPT_DLL extern NUMA * pixaFindPerimToAreaRatio ( PIXA *pixa );

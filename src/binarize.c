@@ -174,7 +174,7 @@ PIXTILING  *pt;
         for (j = 0; j < nx; j++) {
             pixt = pixTilingGetTile(pt, i, j);
             pixSplitDistributionFgBg(pixt, scorefract, 1, &thresh,
-                                     NULL, NULL, 0);
+                                     NULL, NULL, NULL);
             pixSetPixel(pixthresh, j, i, thresh);  /* see note (4) */
             pixDestroy(&pixt);
         }
@@ -362,9 +362,9 @@ pixMaskedThreshOnBackgroundNorm(PIX       *pixs,
                                 l_float32  scorefract,
                                 l_int32   *pthresh)
 {
-l_int32   w, h;
+l_int32   w, h, highthresh;
 l_uint32  val;
-PIX      *pixn, *pixm, *pixd, *pixt1, *pixt2, *pixt3, *pixt4;
+PIX      *pixn, *pixm, *pixd, *pix1, *pix2, *pix3, *pix4;
 
     PROCNAME("pixMaskedThreshOnBackgroundNorm");
 
@@ -392,22 +392,22 @@ PIX      *pixn, *pixm, *pixd, *pixt1, *pixt2, *pixt3, *pixt4;
          * form a mask over regions that are typically text.  The
          * dilation size is chosen to cover the text completely,
          * except for very thick fonts. */
-    pixt1 = pixBackgroundNormFlex(pixs, 7, 7, 1, 1, 20);
-    pixt2 = pixThresholdToBinary(pixt1, 240);
-    pixInvert(pixt2, pixt2);
-    pixm = pixMorphSequence(pixt2, "d21.21", 0);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pix1 = pixBackgroundNormFlex(pixs, 7, 7, 1, 1, 20);
+    pix2 = pixThresholdToBinary(pix1, 240);
+    pixInvert(pix2, pix2);
+    pixm = pixMorphSequence(pix2, "d21.21", 0);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
         /* Use Otsu to get a global threshold estimate for the image,
-         * which is stored as a single pixel in pixt3. */
+         * which is stored as a single pixel in pix3. */
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixOtsuAdaptiveThreshold(pixs, w, h, 0, 0, scorefract, &pixt3, NULL);
-    if (pixt3 && pthresh) {
-        pixGetPixel(pixt3, 0, 0, &val);
+    pixOtsuAdaptiveThreshold(pixs, w, h, 0, 0, scorefract, &pix3, NULL);
+    if (pix3 && pthresh) {
+        pixGetPixel(pix3, 0, 0, &val);
         *pthresh = val;
     }
-    pixDestroy(&pixt3);
+    pixDestroy(&pix3);
 
         /* Threshold the background normalized images differentially,
          * using a high value correlated with the background normalization
@@ -418,10 +418,11 @@ PIX      *pixn, *pixm, *pixd, *pixt1, *pixt2, *pixt3, *pixt4;
          * while allowing the background and light foreground to be
          * reasonably well cleaned using a threshold adapted to the
          * input image. */
-    pixd = pixThresholdToBinary(pixn, val + 30);  /* for bg and light fg */
-    pixt4 = pixThresholdToBinary(pixn, 190);  /* for heavier fg */
-    pixCombineMasked(pixd, pixt4, pixm);
-    pixDestroy(&pixt4);
+    highthresh = L_MIN(256, val + 30);
+    pixd = pixThresholdToBinary(pixn, highthresh);  /* for bg and light fg */
+    pix4 = pixThresholdToBinary(pixn, 190);  /* for heavier fg */
+    pixCombineMasked(pixd, pix4, pixm);
+    pixDestroy(&pix4);
     pixDestroy(&pixm);
     pixDestroy(&pixn);
 
