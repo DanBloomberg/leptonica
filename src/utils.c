@@ -417,9 +417,6 @@ l_int32
 stringReplace(char       **pdest,
               const char  *src)
 {
-char    *scopy;
-l_int32  len;
-
     PROCNAME("stringReplace");
 
     if (!pdest)
@@ -428,16 +425,10 @@ l_int32  len;
     if (*pdest)
         LEPT_FREE(*pdest);
 
-    if (src) {
-        len = strlen(src);
-        if ((scopy = (char *)LEPT_CALLOC(len + 1, sizeof(char))) == NULL)
-            return ERROR_INT("scopy not made", procName, 1);
-        stringCopy(scopy, src, len);
-        *pdest = scopy;
-    } else {
+    if (src)
+        *pdest = stringNew(src);
+    else
         *pdest = NULL;
-    }
-
     return 0;
 }
 
