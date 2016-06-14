@@ -68,7 +68,7 @@
  *         L_RECOG            *recogReadStream()
  *         l_int32             recogWrite()
  *         l_int32             recogWriteStream()
- *         l_int32             recogWritePixa()
+ *         PIXA               *recogExtractPixa()
  *         static l_int32      recogAddCharstrLabels()
  *         static l_int32      recogAddAllSamples()
  *
@@ -1467,11 +1467,10 @@ recogWriteStream(FILE        *fp,
 
 
 /*!
- * \brief   recogWritePixa()
+ * \brief   recogExtractPixa()
  *
- * \param[in]    filename
- * \param[in]    recog
- * \return  0 if OK, 1 on error
+ * \param[in]   recog
+ * \return  pixa if OK, NULL on error
  *
  * <pre>
  * Notes:
@@ -1482,24 +1481,16 @@ recogWriteStream(FILE        *fp,
  *          into each pix in recog.
  * </pre>
  */
-l_int32
-recogWritePixa(const char  *filename,
-               L_RECOG     *recog)
+PIXA *
+recogExtractPixa(L_RECOG  *recog)
 {
-PIXA  *pixa;
+    PROCNAME("recogExtractPixa");
 
-    PROCNAME("recogWritePixa");
-
-    if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return (PIXA *)ERROR_PTR("recog not defined", procName, NULL);
 
     recogAddCharstrLabels(recog);
-    pixa = pixaaFlattenToPixa(recog->pixaa_u, NULL, L_CLONE);
-    pixaWrite(filename, pixa);
-    pixaDestroy(&pixa);
-    return 0;
+    return pixaaFlattenToPixa(recog->pixaa_u, NULL, L_CLONE);
 }
 
 

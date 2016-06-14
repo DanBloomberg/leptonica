@@ -1213,12 +1213,12 @@ PTA       *pta;
 
     if (ppixdb) {
         if (recog->templ_type == L_USE_AVERAGE) {
-            L_INFO("Best match: str %s; class %d; shifts (%d, %d)\n",
-                   procName, text, bestindex, bestdelx, bestdely);
+            L_INFO("Best match: str %s; class %d; sh (%d, %d); score %5.3f\n",
+                   procName, text, bestindex, bestdelx, bestdely, maxscore);
             pix2 = pixaGetPix(recog->pixa, bestindex, L_CLONE);
         } else {  /* L_USE_ALL */
-            L_INFO("Best match: str %s; sample %d in class %d\n",
-                   procName, text, bestsample, bestindex);
+            L_INFO("Best match: str %s; sample %d in class %d; score %5.3f\n",
+                   procName, text, bestsample, bestindex, maxscore);
             if (maxyshift > 0) {
                 L_INFO("  Best shift: (%d, %d)\n",
                        procName, bestdelx, bestdely);

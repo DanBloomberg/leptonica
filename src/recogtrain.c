@@ -44,6 +44,7 @@
  *         l_int32             recogaFinishAveraging()
  *
  *      Training on unlabelled data
+ *         L_RECOG             recogTrainFromBoot()
  *         l_int32             recogTrainUnlabelled()
  *
  *      Padding the training set
@@ -1049,37 +1050,128 @@ L_RECOG  *recog;
  *                       Training on unlabelled data                      *
  *------------------------------------------------------------------------*/
 /*!
+ * \brief   recogTrainFromBoot()
+ *
+ * \param[in]    pixa  set of unlabelled input characters
+ * \param[in]    recogboot  labelled boot recognizer; use for training
+ * \param[in]    minscore min score for accepting the example; e.g., 0.75
+ * \param[in]    threshold  for binarization, if needed
+ * \param[in]    scalew  scale all widths to this; use 0 for no scaling
+ * \param[in]    scaleh  scale all heights to this; use 0 for no scaling
+ * \param[in]    templ_type  L_USE_AVERAGE or L_USE_ALL
+ * \param[in]    debug 1 for debug output saved to recog; 0 otherwise
+ * \return  recog  trained on the boot recog, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This takes a pixa of single characters and a boot recognizer
+ *          that is used to identify the characters in %pixa, and generates
+ *          a recognizer based on the identified characters.
+ *      (2) Training occurs in scaled mode (width = 20, height = 32),
+ *          using all the templates individually (not the average).
+ *          However, once the text labels have been assigned to all
+ *          pix with a high enough score, the pixa of those labeled
+ *          images is extracted and used to set up a new recog that
+ *          is based on these three input values:
+ *               %scalew, %scaleh
+ *               %templ_type
+ * </pre>
+ */
+L_RECOG  *
+recogTrainFromBoot(PIXA      *pixa,
+                   L_RECOG   *recogboot,
+                   l_float32  minscore,
+                   l_int32    threshold,
+                   l_int32    scalew,
+                   l_int32    scaleh,
+                   l_int32    templ_type,
+                   l_int32    debug)
+{
+l_int32   i, n, maxdepth;
+PIX      *pix1, *pix2;
+PIXA     *pixa1, *pixa2;
+L_RECOG  *recog1, *recog2;
+
+    PROCNAME("recogTrainFromBoot");
+
+    if (!pixa)
+        return (L_RECOG *)ERROR_PTR("pixa not defined", procName, NULL);
+    if (!recogboot)
+        return (L_RECOG *)ERROR_PTR("recogboot not defined", procName, NULL);
+
+        /* Make sure all input pix are 1 bpp */
+    if ((n = pixaGetCount(pixa)) == 0)
+        return (L_RECOG *)ERROR_PTR("no pix in pixa", procName, NULL);
+    pixaVerifyDepth(pixa, &maxdepth);
+    if (maxdepth == 1) {
+        pixa1 = pixaCopy(pixa, L_COPY);
+    } else {
+        pixa1 = pixaCreate(n);
+        for (i = 0; i < n; i++) {
+            pix1 = pixaGetPix(pixa, i, L_CLONE);
+            pix2 = pixConvertTo1(pix1, threshold);
+            pixaAddPix(pixa1, pix2, L_INSERT);
+            pixDestroy(&pix1);
+        }
+    }
+
+        /* Train a recog on this set of data */
+    recog1 = recogCreate(20, 32, L_USE_AVERAGE, threshold, 1);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixa1, i, L_COPY);
+        pixSetText(pix1, NULL);  /* remove any existing text or labelling */
+        recogTrainUnlabelled(recog1, recogboot, pix1, NULL, minscore, debug);
+        pixDestroy(&pix1);
+    }
+    recogTrainingFinished(recog1, 0);
+    pixaDestroy(&pixa1);
+
+        /* Now remake the recog based on the input parameters */
+    pixa2 = recogExtractPixa(recog1);
+    recog2 = recogCreateFromPixa(pixa2, scalew, scaleh, templ_type,
+                                 threshold, 1);
+    pixaDestroy(&pixa2);
+
+        /* Show what we have, with outliers removed */
+    if (debug) {
+        lept_mkdir("lept/recog");
+        recogDebugAverages(recog2, 1);
+        recogShowContent(stderr, recog2, 1);
+        recogShowMatchesInRange(recog1, recog2->pixa_tr, minscore, 1.0, 1);
+        pixWrite("/tmp/lept/recog/range.png", recog1->pixdb_range, IFF_PNG);
+    }
+    recogDestroy(&recog1);
+
+    return recog2;
+}
+
+
+/*!
  * \brief   recogTrainUnlabelled()
  *
  * \param[in]    recog in training mode: the input characters in pixs are
  *                     inserted after labelling
  * \param[in]    recogboot labels the input
  * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
- * \param[in]    box [optional] cropping box
- * \param[in]    singlechar 1 if pixs is a single character; 0 otherwise
+ * \param[in]    box [optional] cropping box for a single character
  * \param[in]    minscore min score for accepting the example; e.g., 0.75
  * \param[in]    debug 1 for debug output saved to recog; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This trains on one or several characters of unlabelled data,
- *          using a bootstrap recognizer to apply the labels.  In this
- *          way, we can build a recognizer using a source of unlabelled data.
- *      (2) The input pix can have several (non-touching) characters.
- *          If box != NULL, we treat the region in the box as a single char
- *          If box == NULL, use all of pixs:
- *             if singlechar == 0, we identify each c.c. as a single character
- *             if singlechar == 1, we treat pixs as a single character
- *          Multiple chars are identified separately by recogboot and
- *          inserted into recog.
- *      (3) recogboot is a trained recognizer.  It would typically be
- *          constructed from a variety of sources, and use the individual
- *          templates (not the averages) for scoring.  It must be used
- *          in scaled mode; typically with width = 20 and height = 32.
- *      (4) For debugging, if bmf is defined in the recog, the correlation
- *          scores are generated and saved (by adding to the pixadb_boot
- *          field) with the matching images.
+ *      (1) This trains on a character of unlabelled data, using a
+ *          bootstrap recognizer to apply the labels.  In this way, we
+ *          can build a recognizer using a source of unlabelled data.
+ *      (2) If %box != NULL, it should identify a single char in %pixs.
+ *          If %box == NULL, %pixs should be a single char.
+ *      (3) recogboot is a trained recognizer.  It is constructed from a
+ *          variety of sources, and uses the individual templates (not
+ *          the averages) for scoring.  It must be used in scaled mode,
+ *          typically with width = 20 and height = 32.
+ *      (4) For debugging, the correlation scores are generated
+ *          and saved, by adding to the pixadb_boot field, with the
+ *          matching images.
  * </pre>
  */
 l_int32
@@ -1087,13 +1179,11 @@ recogTrainUnlabelled(L_RECOG   *recog,
                      L_RECOG   *recogboot,
                      PIX       *pixs,
                      BOX       *box,
-                     l_int32    singlechar,
                      l_float32  minscore,
                      l_int32    debug)
 {
 char      *text;
 l_float32  score;
-NUMA      *nascore, *na;
 PIX       *pixc, *pixb, *pixdb;
 PIXA      *pixa, *pixaf;
 
@@ -1116,32 +1206,31 @@ PIXA      *pixa, *pixaf;
     if (pixGetDepth(pixc) > 1)
         pixb = pixConvertTo1(pixc, recog->threshold);
     else
-        pixb = pixClone(pixc);
+        pixb = pixCopy(NULL, pixc);  /* copy; text can be added */
     pixDestroy(&pixc);
 
-        /* Identify the components using recogboot */
-    if (singlechar == 1) {
-        if (!debug) {
-            recogIdentifyPix(recogboot, pixb, NULL);
-        } else {
-            recogIdentifyPix(recogboot, pixb, &pixdb);
-            pixaAddPix(recog->pixadb_boot, pixdb, L_INSERT);
-        }
-        rchExtract(recogboot->rch, NULL, &score, &text, NULL, NULL, NULL, NULL);
+        /* Identify the component using recogboot */
+    if (!debug) {
+        recogIdentifyPix(recogboot, pixb, NULL);
+    } else {
+        recogIdentifyPix(recogboot, pixb, &pixdb);
+        pixaAddPix(recog->pixadb_boot, pixdb, L_INSERT);
+    }
+    rchExtract(recogboot->rch, NULL, &score, &text, NULL, NULL, NULL, NULL);
 
-            /* Threshold based on the score, and insert in a pixa */
-        pixaf = pixaCreate(1);
-        if (score >= minscore) {
-            pixSetText(pixb, text);
-            pixaAddPix(pixaf, pixb, L_CLONE);
-            LEPT_FREE(text);
-                /* In use pixs is "unlabelled", so we only find a text
-                 * string in the input pixs when testing with labelled data. */
-            if (debug && ((text = pixGetText(pixs)) != NULL))
-                L_INFO("Testing: input pix has character label: %s\n",
-                       procName, text);
-        }
-    } else {  /* possibly multiple characters */
+        /* Threshold based on the score, and insert in a pixa */
+    pixaf = pixaCreate(1);
+    if (score >= minscore) {
+        pixSetText(pixb, text);
+        pixaAddPix(pixaf, pixb, L_CLONE);
+            /* In use pixs is "unlabelled", so we only find a text
+             * string in the input pixs when testing with labelled data. */
+        if (debug && (pixGetText(pixs) != NULL))
+            L_INFO("Testing: input pix has character label: %s\n",
+                   procName, pixGetText(pixs));
+    }
+#if 0
+    else {  /* possibly multiple characters */
             /* Split into characters */
         pixSplitIntoCharacters(pixb, 5, 5, NULL, &pixa, NULL);
 
@@ -1160,9 +1249,11 @@ PIXA      *pixa, *pixaf;
         numaDestroy(&nascore);
         numaDestroy(&na);
     }
+#endif
+    LEPT_FREE(text);
     pixDestroy(&pixb);
 
-        /* Insert the labelled components */
+        /* Insert the labelled component */
     recogAddSamples(recog, pixaf, -1, debug);
     pixaDestroy(&pixaf);
     return 0;
@@ -2175,7 +2266,7 @@ PIXA      *pixat, *pixadb;
  *      (2) To use this, save a set of 1 bpp images (labelled or
  *          unlabelled) that can be given to a recognizer in a pixa.
  *          Then call this function with the pixa and parameters
- *          to filter a range of score.
+ *          to filter a range of scores.
  * </pre>
  */
 l_int32

@@ -257,8 +257,8 @@ SARRAY   *sa;
     sarrayDestroy(&sa);
 
         /* Phase 2: generate pixa consisting of 1 bpp, single character pix */
-    recogWritePixa("/tmp/lept/recog/digits/bootnum2.pa", recog);
-    pixa = pixaRead("/tmp/lept/recog/digits/bootnum2.pa");
+    pixa = recogExtractPixa(recog);
+    pixaWrite("/tmp/lept/recog/digits/bootnum2.pa", pixa);
     recogDestroy(&recog);
     return pixa;
 }
