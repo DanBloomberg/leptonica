@@ -1329,7 +1329,7 @@ PIX        *pixd;
 /*!
  * \brief   linearScaleRGBVal()
  *
- * \param[in]    sval   32-bit pixel value
+ * \param[in]    sval   32-bit rgb pixel value
  * \param[in]    factor multiplication factor on each component
  * \return  dval  linearly scaled version of %sval
  *
@@ -1339,6 +1339,7 @@ PIX        *pixd;
  *          where maxcomp is the maximum value of the pixel components.
  *          Otherwise, the product will overflow a uint8.  In use, factor
  *          is the same for all pixels in a pix.
+ *      (2) No scaling is performed on the transparency ("A") component.
  */
 l_uint32
 linearScaleRGBVal(l_uint32   sval,
@@ -1346,9 +1347,9 @@ linearScaleRGBVal(l_uint32   sval,
 {
 l_uint32  dval;
 
-    dval = (l_uint8)(factor * (sval >> 24) + 0.5) << 24 |
-           (l_uint8)(factor * ((sval >> 16) & 0xff) + 0.5) << 16 |
-           (l_uint8)(factor * ((sval >> 8) & 0xff) + 0.5) << 8 |
+    dval = ((l_uint8)(factor * (sval >> 24) + 0.5) << 24) |
+           ((l_uint8)(factor * ((sval >> 16) & 0xff) + 0.5) << 16) |
+           ((l_uint8)(factor * ((sval >> 8) & 0xff) + 0.5) << 8) |
            (sval & 0xff);
     return dval;
 }
@@ -1357,7 +1358,7 @@ l_uint32  dval;
 /*!
  * \brief   logScaleRGBVal()
  *
- * \param[in]    sval   32-bit pixel value
+ * \param[in]    sval   32-bit rgb pixel value
  * \param[in]    tab  256 entry log-base-2 table
  * \param[in]    factor multiplication factor on each component
  * \return  dval  log scaled version of %sval
@@ -1370,6 +1371,7 @@ l_uint32  dval;
  *          value of the pixel components.  Otherwise, the product
  *          will overflow a uint8.  In use, factor is the same for
  *          all pixels in a pix.
+ *      (3) No scaling is performed on the transparency ("A") component.
  * </pre>
  */
 l_uint32
@@ -1379,11 +1381,11 @@ logScaleRGBVal(l_uint32    sval,
 {
 l_uint32  dval;
 
-    dval = (l_uint8)(factor * getLogBase2(sval >> 24, tab) + 0.5) << 24 +
-           (l_uint8)(factor * getLogBase2(((sval >> 16) & 0xff), tab) + 0.5)
-                     << 16 +
-           (l_uint8)(factor * getLogBase2(((sval >> 8) & 0xff), tab) + 0.5)
-                     << 8 +
+    dval = ((l_uint8)(factor * getLogBase2(sval >> 24, tab) + 0.5) << 24) |
+           ((l_uint8)(factor * getLogBase2(((sval >> 16) & 0xff), tab) + 0.5)
+                     << 16) |
+           ((l_uint8)(factor * getLogBase2(((sval >> 8) & 0xff), tab) + 0.5)
+                     << 8) |
            (sval & 0xff);
     return dval;
 }
