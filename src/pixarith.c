@@ -58,6 +58,10 @@
  *      Scale pix for maximum dynamic range in 8 bpp image:
  *           PIX        *pixMaxDynamicRange()
  *
+ *      RGB pixel value scaling
+ *           l_uint32    linearScaleRGBVal()
+ *           l_uint32    logScaleRGBVal()
+ *
  *      Log base2 lookup
  *           l_float32  *makeLogBase2Tab()
  *           l_float32   getLogBase2()
@@ -1128,7 +1132,7 @@ l_uint32  *datas, *datad, *lines, *lined;
 
 
 /*-----------------------------------------------------------------------*
- *            Scale for maximum dynamic range in 8 bpp image             *
+ *                    Scale for maximum dynamic range                    *
  *-----------------------------------------------------------------------*/
 /*!
  * \brief   pixMaxDynamicRange()
@@ -1139,8 +1143,9 @@ l_uint32  *datas, *datad, *lines, *lined;
  *
  * <pre>
  * Notes:
- *      (1) Scales pixel values to fit maximally within the dest 8 bpp pixd
- *      (2) Uses a LUT for log scaling
+ *      (1) Scales pixel values to fit maximally within either a
+ *          8 bpp or 32 bpp dest pixd.
+ *      (2) Uses a LUT for log scaling.
  * </pre>
  */
 PIX *
@@ -1148,7 +1153,8 @@ pixMaxDynamicRange(PIX     *pixs,
                    l_int32  type)
 {
 l_uint8     dval;
-l_int32     i, j, w, h, d, wpls, wpld, max, sval;
+l_int32     i, j, w, h, d, outdepth, wpls, wpld, max, sval;
+l_uint32    sval32, dval32;
 l_uint32   *datas, *datad;
 l_uint32    word;
 l_uint32   *lines, *lined;
@@ -1160,14 +1166,14 @@ PIX        *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {4,8,16,32} bpp", procName, NULL);
     if (type != L_LINEAR_SCALE && type != L_LOG_SCALE)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
-    pixGetDimensions(pixs, &w, &h, NULL);
-    if ((pixd = pixCreate(w, h, 8)) == NULL)
+    outdepth = (d < 32) ? 8 : 32;
+    if ((pixd = pixCreate(w, h, outdepth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     datas = pixGetData(pixs);
@@ -1198,13 +1204,15 @@ PIX        *pixd;
             } else if (d == 16) {
                 max = L_MAX(max, word >> 16);
                 max = L_MAX(max, word & 0xffff);
-            } else {  /* d == 32 */
-                max = L_MAX(max, word);
+            } else {  /* d == 32 (rgb) */
+                max = L_MAX(max, word >> 24);
+                max = L_MAX(max, (word >> 16) & 0xff);
+                max = L_MAX(max, (word >> 8) & 0xff);
             }
         }
     }
 
-        /* Map to the full dynamic range of 8 bpp output */
+        /* Map to the full dynamic range */
     if (d == 4) {
         if (type == L_LINEAR_SCALE) {
             factor = 255. / (l_float32)max;
@@ -1290,9 +1298,9 @@ PIX        *pixd;
                 lines = datas + i * wpls;
                 lined = datad + i * wpld;
                 for (j = 0; j < w; j++) {
-                    sval = lines[j];
-                    dval = (l_uint8)(factor * (l_float32)sval + 0.5);
-                    SET_DATA_BYTE(lined, j, dval);
+                    sval32 = lines[j];
+                    dval32 = linearScaleRGBVal(sval32, factor);
+                    lined[j] = dval32;
                 }
             }
         } else {  /* type == L_LOG_SCALE) */
@@ -1302,9 +1310,9 @@ PIX        *pixd;
                 lines = datas + i * wpls;
                 lined = datad + i * wpld;
                 for (j = 0; j < w; j++) {
-                    sval = lines[j];
-                    dval = (l_uint8)(factor * getLogBase2(sval, tab) + 0.5);
-                    SET_DATA_BYTE(lined, j, dval);
+                    sval32 = lines[j];
+                    dval32 = logScaleRGBVal(sval32, tab, factor);
+                    lined[j] = dval32;
                 }
             }
             LEPT_FREE(tab);
@@ -1316,13 +1324,78 @@ PIX        *pixd;
 
 
 /*-----------------------------------------------------------------------*
+ *                         RGB pixel value scaling                       *
+ *-----------------------------------------------------------------------*/
+/*!
+ * \brief   linearScaleRGBVal()
+ *
+ * \param[in]    sval   32-bit pixel value
+ * \param[in]    factor multiplication factor on each component
+ * \return  dval  linearly scaled version of %sval
+ *
+ * <pre>
+ * Notes:
+ *      (1) %factor must be chosen to be not greater than (255 / maxcomp),
+ *          where maxcomp is the maximum value of the pixel components.
+ *          Otherwise, the product will overflow a uint8.  In use, factor
+ *          is the same for all pixels in a pix.
+ */
+l_uint32
+linearScaleRGBVal(l_uint32   sval,
+                  l_float32  factor)
+{
+l_uint32  dval;
+
+    dval = (l_uint8)(factor * (sval >> 24) + 0.5) << 24 |
+           (l_uint8)(factor * ((sval >> 16) & 0xff) + 0.5) << 16 |
+           (l_uint8)(factor * ((sval >> 8) & 0xff) + 0.5) << 8 |
+           (sval & 0xff);
+    return dval;
+}
+
+
+/*!
+ * \brief   logScaleRGBVal()
+ *
+ * \param[in]    sval   32-bit pixel value
+ * \param[in]    tab  256 entry log-base-2 table
+ * \param[in]    factor multiplication factor on each component
+ * \return  dval  log scaled version of %sval
+ *
+ * <pre>
+ * Notes:
+ *      (1) %tab is made with makeLogBase2Tab().
+ *      (2) %factor must be chosen to be not greater than
+ *          255.0 / log[base2](maxcomp), where maxcomp is the maximum
+ *          value of the pixel components.  Otherwise, the product
+ *          will overflow a uint8.  In use, factor is the same for
+ *          all pixels in a pix.
+ * </pre>
+ */
+l_uint32
+logScaleRGBVal(l_uint32    sval,
+               l_float32  *tab,
+               l_float32   factor)
+{
+l_uint32  dval;
+
+    dval = (l_uint8)(factor * getLogBase2(sval >> 24, tab) + 0.5) << 24 +
+           (l_uint8)(factor * getLogBase2(((sval >> 16) & 0xff), tab) + 0.5)
+                     << 16 +
+           (l_uint8)(factor * getLogBase2(((sval >> 8) & 0xff), tab) + 0.5)
+                     << 8 +
+           (sval & 0xff);
+    return dval;
+}
+
+
+/*-----------------------------------------------------------------------*
  *                            Log base2 lookup                           *
  *-----------------------------------------------------------------------*/
 /*
- *  makeLogBase2Tab()
+ * \brief   makeLogBase2Tab()
  *
- *      Input: void
- *      Return: table (giving the log[base 2] of val)
+ * \return  tab   table giving the log[base2] of values from 1 to 255
  */
 l_float32 *
 makeLogBase2Tab(void)
@@ -1345,11 +1418,11 @@ l_float32  *tab;
 
 
 /*
- * getLogBase2()
+ * \brief   getLogBase2()
  *
- *      Input:  val
- *              logtab (256-entry table of logs)
- *      Return: logdist, or 0 on error
+ * \param[in]    val   in range [0 ... 255]
+ * \param[in]    logtab  256-entry table of logs
+ * \return       logval  log[base2] of %val, or 0 on error
  */
 l_float32
 getLogBase2(l_int32     val,
