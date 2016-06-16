@@ -489,7 +489,7 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
 /*------------------------------------------------------------------------*
  *                        snprintf() renamed in MSVC                      *
  *------------------------------------------------------------------------*/
-#ifdef _MSC_VER
+#if defined _MSC_VER && _MSC_VER < 1900
 #define snprintf(buf, size, ...)  _snprintf_s(buf, size, _TRUNCATE, __VA_ARGS__)
 #endif
 
