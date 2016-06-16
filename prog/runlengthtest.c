@@ -27,7 +27,8 @@
 /*
  * runlengthtest.c
  *
- *    This tests the runlength and dynamic range transforms.
+ *    Set 1 tests the runlength and 1-component dynamic range transform.
+ *    Set 2 tests the 3-component (rgb) dynamic range transform.
  */
 
 #include "allheaders.h"
@@ -82,13 +83,14 @@ static char  mainName[] = "runlengthtest";
     pixCompareGrayOrRGB(pix1, pix2, L_COMPARE_ABS_DIFF, GPLOT_PNG,
                         NULL, &avediff, &rmsdiff, &pix3);
     fprintf(stderr, "Ave diff = %6.3f, RMS diff = %6.3f\n", avediff, rmsdiff);
-    pix4 = pixMaxDynamicRange(pix3, L_LINEAR_SCALE);
-    pix5 = pixMaxDynamicRange(pix3, L_LOG_SCALE);
+    pix4 = pixMaxDynamicRangeRGB(pix3, L_LINEAR_SCALE);
+    pix5 = pixMaxDynamicRangeRGB(pix3, L_LOG_SCALE);
     fprintf(stderr, "Time for set 2: %7.3f sec\n", stopTimer());
     pixDisplay(pix4, 0, 800);
     pixDisplay(pix5, 1000, 800);
     pixWrite("/tmp/lept/run/linear.png", pix4, IFF_PNG);
     pixWrite("/tmp/lept/run/log.png", pix5, IFF_PNG);
+
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);

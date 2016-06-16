@@ -1264,7 +1264,7 @@ l_int32   i, xmax, ymax, ewidth, eheight;
 l_uint32  maxval;
 BOX      *box;
 NUMA     *natot;
-PIX      *pixh, *pixw, *pixt1, *pixt2, *pixt3;
+PIX      *pixh, *pixw, *pix1, *pix2, *pix3;
 PTA      *pta;
 
     PROCNAME("pixFindHistoPeaksHSV");
@@ -1316,18 +1316,18 @@ PTA      *pta;
                         2 * eheight + 1);
 
         if (ppixa) {
-            pixt1 = pixMaxDynamicRange(pixw, L_LINEAR_SCALE);
-            pixaAddPix(*ppixa, pixt1, L_INSERT);
-            pixt2 = pixConvertGrayToFalseColor(pixt1, 1.0);
-            pixaAddPix(*ppixa, pixt2, L_INSERT);
-            pixt1 = pixMaxDynamicRange(pixw, L_LOG_SCALE);
-            pixt2 = pixConvertGrayToFalseColor(pixt1, 1.0);
-            pixaAddPix(*ppixa, pixt2, L_INSERT);
-            pixt3 = pixConvertTo32(pixt1);
-            pixRenderHashBoxArb(pixt3, box, 6, 2, L_NEG_SLOPE_LINE,
+            pix1 = pixMaxDynamicRange(pixw, L_LINEAR_SCALE);
+            pixaAddPix(*ppixa, pix1, L_INSERT);
+            pix2 = pixConvertGrayToFalseColor(pix1, 1.0);
+            pixaAddPix(*ppixa, pix2, L_INSERT);
+            pix1 = pixMaxDynamicRange(pixw, L_LOG_SCALE);
+            pix2 = pixConvertGrayToFalseColor(pix1, 1.0);
+            pixaAddPix(*ppixa, pix2, L_INSERT);
+            pix3 = pixConvertTo32(pix1);
+            pixRenderHashBoxArb(pix3, box, 6, 2, L_NEG_SLOPE_LINE,
                                 1, 255, 100, 100);
-            pixaAddPix(*ppixa, pixt3, L_INSERT);
-            pixDestroy(&pixt1);
+            pixaAddPix(*ppixa, pix3, L_INSERT);
+            pixDestroy(&pix1);
         }
 
         pixClearInRect(pixw, box);

@@ -63,7 +63,7 @@ static const char *tests[] = {
                               "compare_reg",
                               "convolve_reg",
                               "dewarp_reg",
-                         /*   "distance_reg", */
+                              "distance_reg",
                               "dna_reg",
                               "dwamorph1_reg",
                               "enhance_reg",
