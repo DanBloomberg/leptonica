@@ -80,9 +80,9 @@
  *      Pixacomp serialized I/O
  *           PIXAC    *pixacompRead()
  *           PIXAC    *pixacompReadStream()
+ *           PIXAC    *pixacompReadMem()
  *           l_int32   pixacompWrite()
  *           l_int32   pixacompWriteStream()
- *           PIXAC    *pixacompReadMem()
  *           l_int32   pixacompWriteMem()
  *
  *      Conversion to pdf
@@ -1694,6 +1694,39 @@ PIXAC    *pixac;
 
 
 /*!
+ * \brief   pixacompReadMem()
+ *
+ * \param[in]    data const; pixacomp format
+ * \param[in]    size of data
+ * \return  pixac, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Deseralizes a buffer of pixacomp data into a pixac in memory.
+ * </pre>
+ */
+PIXAC *
+pixacompReadMem(const l_uint8  *data,
+                size_t          size)
+{
+FILE   *fp;
+PIXAC  *pixac;
+
+    PROCNAME("pixacompReadMem");
+
+    if (!data)
+        return (PIXAC *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (PIXAC *)ERROR_PTR("stream not opened", procName, NULL);
+
+    pixac = pixacompReadStream(fp);
+    fclose(fp);
+    if (!pixac) L_ERROR("pixac not read\n", procName);
+    return pixac;
+}
+
+
+/*!
  * \brief   pixacompWrite()
  *
  * \param[in]    filename
@@ -1768,39 +1801,6 @@ PIXC    *pixc;
         fprintf(fp, "\n");
     }
     return 0;
-}
-
-
-/*!
- * \brief   pixacompReadMem()
- *
- * \param[in]    data const; pixacomp format
- * \param[in]    size of data
- * \return  pixac, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) Deseralizes a buffer of pixacomp data into a pixac in memory.
- * </pre>
- */
-PIXAC *
-pixacompReadMem(const l_uint8  *data,
-                size_t          size)
-{
-FILE   *fp;
-PIXAC  *pixac;
-
-    PROCNAME("pixacompReadMem");
-
-    if (!data)
-        return (PIXAC *)ERROR_PTR("data not defined", procName, NULL);
-    if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (PIXAC *)ERROR_PTR("stream not opened", procName, NULL);
-
-    pixac = pixacompReadStream(fp);
-    fclose(fp);
-    if (!pixac) L_ERROR("pixac not read\n", procName);
-    return pixac;
 }
 
 

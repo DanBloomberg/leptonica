@@ -66,8 +66,10 @@
  *      Serialize numa for I/O
  *          NUMA        *numaRead()
  *          NUMA        *numaReadStream()
+ *          NUMA        *numaReadMem()
  *          l_int32      numaWrite()
  *          l_int32      numaWriteStream()
+ *          l_int32      numaWriteMem()
  *
  *      Numaa creation, destruction, truncation
  *          NUMAA       *numaaCreate()
@@ -92,8 +94,10 @@
  *      Serialize numaa for I/O
  *          NUMAA       *numaaRead()
  *          NUMAA       *numaaReadStream()
+ *          NUMAA       *numaaReadMem()
  *          l_int32      numaaWrite()
  *          l_int32      numaaWriteStream()
+ *          l_int32      numaaWriteMem()
  *
  *    (1) The Numa is a struct holding an array of floats.  It can also
  *        be used to store l_int32 values, with some loss of precision
@@ -1141,6 +1145,34 @@ NUMA      *na;
 
 
 /*!
+ * \brief   numaReadMem()
+ *
+ * \param[in]    data  numa serialization; in ascii
+ * \param[in]    size  of data; can use strlen to get it
+ * \return  na, or NULL on error
+ */
+NUMA *
+numaReadMem(const l_uint8  *data,
+            size_t          size)
+{
+FILE  *fp;
+NUMA  *na;
+
+    PROCNAME("numaReadMem");
+
+    if (!data)
+        return (NUMA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (NUMA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    na = numaReadStream(fp);
+    fclose(fp);
+    if (!na) L_ERROR("numa not read\n", procName);
+    return na;
+}
+
+
+/*!
  * \brief   numaWrite()
  *
  * \param[in]    filename, na
@@ -1205,6 +1237,59 @@ l_float32  startx, delx;
     return 0;
 }
 
+
+/*!
+ * \brief   numaWriteMem()
+ *
+ * \param[out]   pdata data of serialized numa; ascii
+ * \param[out]   psize size of returned data
+ * \param[in]    na
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a numa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+numaWriteMem(l_uint8  **pdata,
+             size_t    *psize,
+             NUMA      *na)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("numaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = numaWriteStream(fp, na);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = numaWriteStream(fp, na);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
+}
 
 
 /*--------------------------------------------------------------------------*
@@ -1743,6 +1828,34 @@ NUMAA     *naa;
 
 
 /*!
+ * \brief   numaaReadMem()
+ *
+ * \param[in]    data  numaa serialization; in ascii
+ * \param[in]    size  of data; can use strlen to get it
+ * \return  naa, or NULL on error
+ */
+NUMAA *
+numaaReadMem(const l_uint8  *data,
+             size_t          size)
+{
+FILE   *fp;
+NUMAA  *naa;
+
+    PROCNAME("numaaReadMem");
+
+    if (!data)
+        return (NUMAA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (NUMAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    naa = numaaReadStream(fp);
+    fclose(fp);
+    if (!naa) L_ERROR("naa not read\n", procName);
+    return naa;
+}
+
+
+/*!
  * \brief   numaaWrite()
  *
  * \param[in]    filename, naa
@@ -1805,3 +1918,58 @@ NUMA    *na;
 
     return 0;
 }
+
+
+/*!
+ * \brief   numaaWriteMem()
+ *
+ * \param[out]   pdata  data of serialized numaa; ascii
+ * \param[out]   psize  size of returned data
+ * \param[in]    naa
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a numaa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+numaaWriteMem(l_uint8  **pdata,
+              size_t    *psize,
+              NUMAA     *naa)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("numaaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!naa)
+        return ERROR_INT("naa not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = numaaWriteStream(fp, naa);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = numaaWriteStream(fp, naa);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
+}
+

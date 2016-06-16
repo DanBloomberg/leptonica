@@ -58,8 +58,10 @@
  *      Pta serialized for I/O
  *           PTA            *ptaRead()
  *           PTA            *ptaReadStream()
+ *           PTA            *ptaReadMem()
  *           l_int32         ptaWrite()
  *           l_int32         ptaWriteStream()
+ *           l_int32         ptaWriteMem()
  *
  *      Ptaa creation, destruction
  *           PTAA           *ptaaCreate()
@@ -83,8 +85,10 @@
  *      Ptaa serialized for I/O
  *           PTAA           *ptaaRead()
  *           PTAA           *ptaaReadStream()
+ *           PTAA           *ptaaReadMem()
  *           l_int32         ptaaWrite()
  *           l_int32         ptaaWriteStream()
+ *           l_int32         ptaaWriteMem()
  * </pre>
  */
 
@@ -726,6 +730,34 @@ PTA       *pta;
 
 
 /*!
+ * \brief   ptaReadMem()
+ *
+ * \param[in]    data  serialization in ascii
+ * \param[in]    size  of data in bytes; can use strlen to get it
+ * \return  pta, or NULL on error
+ */
+PTA *
+ptaReadMem(const l_uint8  *data,
+           size_t          size)
+{
+FILE  *fp;
+PTA   *pta;
+
+    PROCNAME("ptaReadMem");
+
+    if (!data)
+        return (PTA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (PTA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    pta = ptaReadStream(fp);
+    fclose(fp);
+    if (!pta) L_ERROR("pta not read\n", procName);
+    return pta;
+}
+
+
+/*!
  * \brief   ptaWrite()
  *
  * \param[in]    filename
@@ -797,6 +829,62 @@ l_float32  x, y;
     }
 
     return 0;
+}
+
+
+/*!
+ * \brief   ptaWriteMem()
+ *
+ * \param[out]   pdata data of serialized pta; ascii
+ * \param[out]   psize size of returned data
+ * \param[in]    pta
+ * \param[in]    type  0 for float values; 1 for integer values
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a pta in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+ptaWriteMem(l_uint8  **pdata,
+            size_t    *psize,
+            PTA       *pta,
+            l_int32    type)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("ptaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = ptaWriteStream(fp, pta, type);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = ptaWriteStream(fp, pta, type);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
 }
 
 
@@ -1241,6 +1329,34 @@ PTAA    *ptaa;
 
 
 /*!
+ * \brief   ptaaReadMem()
+ *
+ * \param[in]    data  serialization in ascii
+ * \param[in]    size  of data in bytes; can use strlen to get it
+ * \return  ptaa, or NULL on error
+ */
+PTAA *
+ptaaReadMem(const l_uint8  *data,
+            size_t          size)
+{
+FILE  *fp;
+PTAA  *ptaa;
+
+    PROCNAME("ptaaReadMem");
+
+    if (!data)
+        return (PTAA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (PTAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    ptaa = ptaaReadStream(fp);
+    fclose(fp);
+    if (!ptaa) L_ERROR("ptaa not read\n", procName);
+    return ptaa;
+}
+
+
+/*!
  * \brief   ptaaWrite()
  *
  * \param[in]    filename
@@ -1306,3 +1422,60 @@ PTA     *pta;
 
     return 0;
 }
+
+
+/*!
+ * \brief   ptaaWriteMem()
+ *
+ * \param[out]   pdata data of serialized ptaa; ascii
+ * \param[out]   psize size of returned data
+ * \param[in]    ptaa
+ * \param[in]    type  0 for float values; 1 for integer values
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a ptaa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+ptaaWriteMem(l_uint8  **pdata,
+             size_t    *psize,
+             PTAA      *ptaa,
+             l_int32    type)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("ptaaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!ptaa)
+        return ERROR_INT("ptaa not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = ptaaWriteStream(fp, ptaa, type);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = ptaaWriteStream(fp, ptaa, type);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
+}
+

@@ -102,16 +102,20 @@
  *      Pixa serialized I/O  (requires png support)
  *           PIXA     *pixaRead()
  *           PIXA     *pixaReadStream()
+ *           PIXA     *pixaReadMem()
  *           l_int32   pixaWrite()
  *           l_int32   pixaWriteStream()
+ *           l_int32   pixaWriteMem()
  *           PIXA     *pixaReadBoth()
  *
  *      Pixaa serialized I/O  (requires png support)
  *           PIXAA    *pixaaReadFromFiles()
  *           PIXAA    *pixaaRead()
  *           PIXAA    *pixaaReadStream()
+ *           PIXAA    *pixaaReadMem()
  *           l_int32   pixaaWrite()
  *           l_int32   pixaaWriteStream()
+ *           l_int32   pixaaWriteMem()
  *
  *
  *   Important note on reference counting:
@@ -2419,6 +2423,34 @@ PIXA    *pixa;
 
 
 /*!
+ * \brief   pixaReadMem()
+ *
+ * \param[in]    data  of serialized pixa
+ * \param[in]    size  of data in bytes
+ * \return  pixa, or NULL on error
+ */
+PIXA *
+pixaReadMem(const l_uint8  *data,
+            size_t          size)
+{
+FILE  *fp;
+PIXA  *pixa;
+
+    PROCNAME("pixaReadMem");
+
+    if (!data)
+        return (PIXA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (PIXA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    pixa = pixaReadStream(fp);
+    fclose(fp);
+    if (!pixa) L_ERROR("pixa not read\n", procName);
+    return pixa;
+}
+
+
+/*!
  * \brief   pixaWrite()
  *
  * \param[in]    filename
@@ -2501,6 +2533,60 @@ PIX     *pix;
         pixDestroy(&pix);
     }
     return 0;
+}
+
+
+/*!
+ * \brief   pixaWriteMem()
+ *
+ * \param[out]   pdata data of serialized pixa
+ * \param[out]   psize size of returned data
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a pixa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+pixaWriteMem(l_uint8  **pdata,
+             size_t    *psize,
+             PIXA      *pixa)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("pixaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = pixaWriteStream(fp, pixa);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = pixaWriteStream(fp, pixa);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
 }
 
 
@@ -2706,6 +2792,34 @@ PIXAA   *paa;
 
 
 /*!
+ * \brief   pixaaReadMem()
+ *
+ * \param[in]    data  of serialized pixaa
+ * \param[in]    size  of data in bytes
+ * \return  paa, or NULL on error
+ */
+PIXAA *
+pixaaReadMem(const l_uint8  *data,
+             size_t          size)
+{
+FILE   *fp;
+PIXAA  *paa;
+
+    PROCNAME("paaReadMem");
+
+    if (!data)
+        return (PIXAA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (PIXAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    paa = pixaaReadStream(fp);
+    fclose(fp);
+    if (!paa) L_ERROR("paa not read\n", procName);
+    return paa;
+}
+
+
+/*!
  * \brief   pixaaWrite()
  *
  * \param[in]    filename
@@ -2789,3 +2903,58 @@ PIXA    *pixa;
     }
     return 0;
 }
+
+
+/*!
+ * \brief   pixaaWriteMem()
+ *
+ * \param[out]   pdata data of serialized pixaa
+ * \param[out]   psize size of returned data
+ * \param[in]    paa
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a pixaa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+pixaaWriteMem(l_uint8  **pdata,
+              size_t    *psize,
+              PIXAA     *paa)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("pixaaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!paa)
+        return ERROR_INT("paa not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = pixaaWriteStream(fp, paa);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = pixaaWriteStream(fp, paa);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
+}
+
