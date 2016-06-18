@@ -57,6 +57,9 @@
  *         static l_int32      recogGetCharsetSize()
  *         static l_int32      recogCharsetAvailable()
  *
+ *      Making a boot digit recognizer
+ *         L_RECOG            *recogMakeBootDigitRecog()
+ *
  *      Debugging
  *         l_int32             recogaShowContent()
  *         l_int32             recogShowContent()
@@ -1988,6 +1991,67 @@ l_int32  ret;
     }
 
     return ret;
+}
+
+
+/*------------------------------------------------------------------------*
+ *                      Making a boot digit recognizer                    *
+ *------------------------------------------------------------------------*/
+/*!
+ * \brief   recogMakeBootDigitRecog()
+ *
+ * \param[in]    templ_type L_USE_AVERAGE or L_USE_ALL
+ * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
+ * \param[in]    display  1 for showing templates; 0 otherwise
+ * \return  recog, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *     (1) This takes a set of pre-computed, labeled pixa of single
+ *         digits, expands the set by morphological erosion, and
+ *         generates a recognizer.
+ *     (2) For a boot recognizer, the templates must all be scaled.
+ *         We scale to w=20, h=32 by default.
+ * </pre>
+ */
+L_RECOG  *
+recogMakeBootDigitRecog(l_int32  templ_type,
+                        l_int32  maxyshift,
+                        l_int32  display)
+
+{
+PIX      *pix1, *pix2, *pix3;
+PIXA     *pixa1, *pixa2, *pixa3, *pixa4, *pixa5, *pixa6;
+L_RECOG  *recog;
+
+    PROCNAME("recogMakeBootDigitRecog");
+
+    pixa1 = l_bootnum_gen1();
+    pixa2 = pixaExtendIterative(pixa1, L_MORPH_ERODE, 2, NULL, 1);
+    pixa3 = l_bootnum_gen2();
+    pixa4 = pixaExtendIterative(pixa3, L_MORPH_ERODE, 1, NULL, 1);
+    pixa5 = l_bootnum_gen3();
+    pixa6 = pixaExtendIterative(pixa5, L_MORPH_ERODE, 2, NULL, 1);
+    if (display) {
+        pix1 = pixaDisplayTiledWithText(pixa2, 1500, 1.0, 10, 2, 6, 0xff000000);
+        pix2 = pixaDisplayTiledWithText(pixa4, 1500, 1.0, 10, 2, 6, 0xff000000);
+        pix3 = pixaDisplayTiledWithText(pixa6, 1500, 1.0, 10, 2, 6, 0xff000000);
+        pixDisplay(pix1, 0, 0);
+        pixDisplay(pix2, 600, 0);
+        pixDisplay(pix3, 1200, 0);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        pixDestroy(&pix3);
+    }
+    pixaJoin(pixa2, pixa4, 0, -1);
+    pixaJoin(pixa2, pixa6, 0, -1);
+    recog = recogCreateFromPixa(pixa2, 20, 32, templ_type, 128, maxyshift);
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa3);
+    pixaDestroy(&pixa4);
+    pixaDestroy(&pixa5);
+    pixaDestroy(&pixa6);
+    return recog;
 }
 
 

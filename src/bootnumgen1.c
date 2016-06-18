@@ -247,25 +247,24 @@ static const char *l_bootnum1 =
  *      Return: the bootnum1 pixa
  *
  *  Call this way:
- *      PIXA  *pixa = (PIXA *)l_bootnum_gen1();   (C)
- *      Pixa  *pixa = (Pixa *)l_bootnum_gen1();   (C++)
+ *      PIXA  *pixa = l_bootnum_gen1();   (C)
+ *      Pixa  *pixa = l_bootnum_gen1();   (C++)
  */
-void *
+PIXA *
 l_bootnum_gen1(void)
 {
 l_uint8  *data1, *data2;
 l_int32   size1;
 size_t    size2;
-void     *result;
+PIXA     *pixa;
 
     lept_mkdir("lept/auto");
 
         /* Unencode selected string, write to file, and read it */
     data1 = decodeBase64(l_bootnum1, strlen(l_bootnum1), &size1);
     data2 = zlibUncompress(data1, size1, &size2);
-    l_binaryWrite("/tmp/lept/auto/data.bin","w", data2, size2);
-    result = (void *)pixaRead("/tmp/lept/auto/data.bin");
+    pixa = pixaReadMem(data2, size2);
     lept_free(data1);
     lept_free(data2);
-    return result;
+    return pixa;
 }
