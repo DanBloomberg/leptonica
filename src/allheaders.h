@@ -1641,6 +1641,7 @@ LEPT_DLL extern PIX ** pixaGetPixArray ( PIXA *pixa );
 LEPT_DLL extern l_int32 pixaVerifyDepth ( PIXA *pixa, l_int32 *pmaxdepth );
 LEPT_DLL extern l_int32 pixaIsFull ( PIXA *pixa, l_int32 *pfullpa, l_int32 *pfullba );
 LEPT_DLL extern l_int32 pixaCountText ( PIXA *pixa, l_int32 *pntext );
+LEPT_DLL extern l_int32 pixaClearText ( PIXA *pixa );
 LEPT_DLL extern void *** pixaGetLinePtrs ( PIXA *pixa, l_int32 *psize );
 LEPT_DLL extern l_int32 pixaWriteStreamInfo ( FILE *fp, PIXA *pixa );
 LEPT_DLL extern l_int32 pixaReplacePix ( PIXA *pixa, l_int32 index, PIX *pix, BOX *box );

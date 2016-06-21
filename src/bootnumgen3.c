@@ -337,11 +337,13 @@ static const char *l_strdata_0 =
 /*!
  *  \brief   l_bootnum_gen3()
  *
- *      Return: data struct (e.g., pixa) in memory
+ * \return   pixa  of labelled digits
  *
- *  Call this way:
- *      PIXA  *pixa = (PIXA *)l_bootnum_gen3();   (C)
- *      Pixa  *pixa = (Pixa *)l_bootnum_gen3();   (C++)
+ * <pre>
+ * Call this way:
+ *      PIXA  *pixa = l_bootnum_gen3();   (C)
+ *      Pixa  *pixa = l_bootnum_gen3();   (C++)
+ * </pre>
  */
 PIXA *
 l_bootnum_gen3(void)

@@ -1056,7 +1056,8 @@ L_RECOG  *recog;
  * \brief   recogTrainFromBoot()
  *
  * \param[in]    pixa  set of unlabelled input characters
- * \param[in]    recogboot  labelled boot recognizer; use for training
+ * \param[in]    recogboot  [optional] labelled boot recognizer;
+ *                          use for training
  * \param[in]    minscore min score for accepting the example; e.g., 0.75
  * \param[in]    threshold  for binarization, if needed
  * \param[in]    scalew  scale all widths to this; use 0 for no scaling
@@ -1067,9 +1068,11 @@ L_RECOG  *recog;
  *
  * <pre>
  * Notes:
- *      (1) This takes a pixa of single characters and a boot recognizer
- *          that is used to identify the characters in %pixa, and generates
- *          a recognizer based on the identified characters.
+ *      (1) This takes a pixa of single characters and an optional boot
+ *          recognizer that is used to identify the characters in %pixa,
+ *          and generates a recognizer based on the identified characters.
+ *          If %recogboot == NULL, this constructs a default boot
+ *          recognizer for digits.
  *      (2) Training occurs in scaled mode (width = 20, height = 32),
  *          using all the templates individually (not the average).
  *          However, once the text labels have been assigned to all
@@ -1090,7 +1093,7 @@ recogTrainFromBoot(PIXA      *pixa,
                    l_int32    templ_type,
                    l_int32    debug)
 {
-l_int32   i, n, maxdepth;
+l_int32   i, n, maxdepth, localboot;
 PIX      *pix1, *pix2;
 PIXA     *pixa1, *pixa2;
 L_RECOG  *recog1, *recog2;
@@ -1099,8 +1102,6 @@ L_RECOG  *recog1, *recog2;
 
     if (!pixa)
         return (L_RECOG *)ERROR_PTR("pixa not defined", procName, NULL);
-    if (!recogboot)
-        return (L_RECOG *)ERROR_PTR("recogboot not defined", procName, NULL);
 
         /* Make sure all input pix are 1 bpp */
     if ((n = pixaGetCount(pixa)) == 0)
@@ -1118,7 +1119,12 @@ L_RECOG  *recog1, *recog2;
         }
     }
 
-        /* Train a recog on this set of data */
+        /* Generate the default boot recog if necessary */
+    localboot = (recogboot) ? FALSE : TRUE;
+    if (!recogboot)
+        recogboot = recogMakeBootDigitRecog(templ_type, 1, debug);
+
+        /* Train an adapted recog, using the boot recog on this set of data */
     recog1 = recogCreate(20, 32, L_USE_AVERAGE, threshold, 1);
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixa1, i, L_COPY);
@@ -1143,8 +1149,10 @@ L_RECOG  *recog1, *recog2;
         recogShowMatchesInRange(recog1, recog2->pixa_tr, minscore, 1.0, 1);
         pixWrite("/tmp/lept/recog/range.png", recog1->pixdb_range, IFF_PNG);
     }
-    recogDestroy(&recog1);
 
+    recogDestroy(&recog1);
+    if (localboot)
+        recogDestroy(&recogboot);
     return recog2;
 }
 
@@ -2047,6 +2055,7 @@ L_RECOG  *recog;
     pixaJoin(pixa2, pixa6, 0, -1);
     recog = recogCreateFromPixa(pixa2, 20, 32, templ_type, 128, maxyshift);
     pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
     pixaDestroy(&pixa3);
     pixaDestroy(&pixa4);
     pixaDestroy(&pixa5);

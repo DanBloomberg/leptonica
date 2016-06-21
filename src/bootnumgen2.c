@@ -260,11 +260,13 @@ static const char *l_bootnum2 =
 /*!
  * \brief   l_bootnum_gen2()
  *
- *      Return: the bootnum2 pixa
+ * \return   pixa  of labelled digits
  *
- *  Call this way:
+ * <pre>
+ * Call this way:
  *      PIXA  *pixa = l_bootnum_gen2();   (C)
  *      Pixa  *pixa = l_bootnum_gen2();   (C++)
+ * </pre>
  */
 PIXA *
 l_bootnum_gen2(void)

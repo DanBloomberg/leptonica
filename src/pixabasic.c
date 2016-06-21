@@ -56,6 +56,7 @@
  *           l_int32   pixaVerifyDepth()
  *           l_int32   pixaIsFull()
  *           l_int32   pixaCountText()
+ *           l_int32   pixaClearText()
  *           void   ***pixaGetLinePtrs()
  *
  *      Pixa output info
@@ -1035,6 +1036,36 @@ PIX     *pix;
         text = pixGetText(pix);
         if (text && strlen(text) > 0)
             (*pntext)++;
+        pixDestroy(&pix);
+    }
+
+    return 0;
+}
+
+
+/*!
+ * \brief   pixaClearText()
+ *
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error.
+ */
+l_int32
+pixaClearText(PIXA  *pixa)
+{
+char    *text;
+l_int32  i, n;
+PIX     *pix;
+
+    PROCNAME("pixaClearText");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+
+    n = pixaGetCount(pixa);
+    for (i = 0; i < n; i++) {
+        if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
+            continue;
+        pixSetText(pix, NULL);
         pixDestroy(&pix);
     }
 
