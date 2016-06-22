@@ -61,13 +61,17 @@
  *      Serialization
  *         L_RECOGA           *recogaRead()
  *         L_RECOGA           *recogaReadStream()
+ *         L_RECOGA           *recogaReadMem()
  *         l_int32             recogaWrite()
  *         l_int32             recogaWriteStream()
  *         l_int32             recogaWritePixaa()
+ *         l_int32             recogaWriteMem()
  *         L_RECOG            *recogRead()
  *         L_RECOG            *recogReadStream()
+ *         L_RECOG            *recogReadMem()
  *         l_int32             recogWrite()
  *         l_int32             recogWriteStream()
+ *         l_int32             recogWriteMem()
  *         PIXA               *recogExtractPixa()
  *         static l_int32      recogAddCharstrLabels()
  *         static l_int32      recogAddAllSamples()
@@ -808,7 +812,6 @@ L_RECOG  *recog;
     LEPT_FREE(recog->bootpath);
     LEPT_FREE(recog->centtab);
     LEPT_FREE(recog->sumtab);
-    LEPT_FREE(recog->fname);
     sarrayDestroy(&recog->sa_text);
     l_dnaDestroy(&recog->dna_tochar);
     pixaaDestroy(&recog->pixaa_u);
@@ -1170,6 +1173,34 @@ L_RECOGA  *recoga;
 
 
 /*!
+ * \brief   recogaReadMem()
+ *
+ * \param[in]    data  serialization of recoga (not ascii)
+ * \param[in]    size  of data in bytes
+ * \return  recoga, or NULL on error
+ */
+L_RECOGA *
+recogaReadMem(const l_uint8  *data,
+              size_t          size)
+{
+FILE      *fp;
+L_RECOGA  *recoga;
+
+    PROCNAME("recogaReadMem");
+
+    if (!data)
+        return (L_RECOGA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_RECOGA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    recoga = recogaReadStream(fp);
+    fclose(fp);
+    if (!recoga) L_ERROR("recoga not read\n", procName);
+    return recoga;
+}
+
+
+/*!
  * \brief   recogaWrite()
  *
  * \param[in]    filename
@@ -1191,7 +1222,7 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (recogaWriteStream(fp, recoga, filename))
+    if (recogaWriteStream(fp, recoga))
         return ERROR_INT("recoga not written to stream", procName, 1);
     fclose(fp);
     return 0;
@@ -1203,13 +1234,11 @@ FILE  *fp;
  *
  * \param[in]    fp file stream opened for "wb"
  * \param[in]    recoga
- * \param[in]    filename output serialized filename; embedded in file
  * \return  0 if OK, 1 on error
  */
 l_int32
-recogaWriteStream(FILE        *fp,
-                  L_RECOGA    *recoga,
-                  const char  *filename)
+recogaWriteStream(FILE      *fp,
+                  L_RECOGA  *recoga)
 {
 l_int32   i;
 L_RECOG  *recog;
@@ -1228,11 +1257,65 @@ L_RECOG  *recog;
         fprintf(fp, "==============================\n");
         fprintf(fp, "Recognizer %d\n", i);
         recog = recogaGetRecog(recoga, i);
-        recogWriteStream(fp, recog, filename);
+        recogWriteStream(fp, recog);
         fprintf(fp, "\n");
     }
 
     return 0;
+}
+
+
+/*!
+ * \brief   recogaWriteMem()
+ *
+ * \param[out]   pdata data of serialized recoga (not ascii)
+ * \param[out]   psize size of returned data
+ * \param[in]    recoga
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a recoga in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+recogaWriteMem(l_uint8  **pdata,
+               size_t    *psize,
+               L_RECOGA  *recoga)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("recogaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!recoga)
+        return ERROR_INT("recoga not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = recogaWriteStream(fp, recoga);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = recogaWriteStream(fp, recoga);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
 }
 
 
@@ -1331,7 +1414,6 @@ L_RECOG  *recog;
 L_RECOG *
 recogReadStream(FILE  *fp)
 {
-char      fname[256];
 l_int32   version, setsize, templ_type, threshold, scalew, scaleh;
 l_int32   maxyshift, nc;
 L_DNA    *dna_tochar;
@@ -1364,9 +1446,6 @@ SARRAY   *sa_text;
                              maxyshift)) == NULL)
         return (L_RECOG *)ERROR_PTR("recog not made", procName, NULL);
 
-    if (fscanf(fp, "Serialized filename: %s\n", fname) != 1)
-        return (L_RECOG *)ERROR_PTR("filename not read", procName, NULL);
-
     if (fscanf(fp, "\nLabels for character set:\n") != 0)
         return (L_RECOG *)ERROR_PTR("label intro not read", procName, NULL);
     l_dnaDestroy(&recog->dna_tochar);
@@ -1382,7 +1461,6 @@ SARRAY   *sa_text;
         return (L_RECOG *)ERROR_PTR("pixaa intro not read", procName, NULL);
     if ((paa = pixaaReadStream(fp)) == NULL)
         return (L_RECOG *)ERROR_PTR("pixaa not read", procName, NULL);
-    recog->fname = stringNew(fname);
     recog->setsize = setsize;
     nc = pixaaGetCount(paa, NULL);
     if (nc != setsize) {
@@ -1393,6 +1471,34 @@ SARRAY   *sa_text;
 
     recogAddAllSamples(recog, paa, 0);  /* this finishes */
     pixaaDestroy(&paa);
+    return recog;
+}
+
+
+/*!
+ * \brief   recogReadMem()
+ *
+ * \param[in]    data  serialization of recog (not ascii)
+ * \param[in]    size  of data in bytes
+ * \return  recog, or NULL on error
+ */
+L_RECOG *
+recogReadMem(const l_uint8  *data,
+             size_t          size)
+{
+FILE     *fp;
+L_RECOG  *recog;
+
+    PROCNAME("recogReadMem");
+
+    if (!data)
+        return (L_RECOG *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_RECOG *)ERROR_PTR("stream not opened", procName, NULL);
+
+    recog = recogReadStream(fp);
+    fclose(fp);
+    if (!recog) L_ERROR("recog not read\n", procName);
     return recog;
 }
 
@@ -1419,7 +1525,7 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (recogWriteStream(fp, recog, filename))
+    if (recogWriteStream(fp, recog))
         return ERROR_INT("recog not written to stream", procName, 1);
     fclose(fp);
     return 0;
@@ -1431,13 +1537,11 @@ FILE  *fp;
  *
  * \param[in]    fp file stream opened for "wb"
  * \param[in]    recog
- * \param[in]    filename output serialized filename; embedded in file
  * \return  0 if OK, 1 on error
  */
 l_int32
-recogWriteStream(FILE        *fp,
-                 L_RECOG     *recog,
-                 const char  *filename)
+recogWriteStream(FILE     *fp,
+                 L_RECOG  *recog)
 {
     PROCNAME("recogWriteStream");
 
@@ -1445,8 +1549,6 @@ recogWriteStream(FILE        *fp,
         return ERROR_INT("stream not defined", procName, 1);
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
-    if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
 
     fprintf(fp, "\nRecog Version %d\n", RECOG_VERSION_NUMBER);
     fprintf(fp, "Size of character set = %d\n", recog->setsize);
@@ -1455,7 +1557,6 @@ recogWriteStream(FILE        *fp,
     fprintf(fp, "Maxyshift = %d\n", recog->maxyshift);
     fprintf(fp, "Scale to width = %d\n", recog->scalew);
     fprintf(fp, "Scale to height = %d\n", recog->scaleh);
-    fprintf(fp, "Serialized filename: %s\n", filename);
     fprintf(fp, "\nLabels for character set:\n");
     l_dnaWriteStream(fp, recog->dna_tochar);
     sarrayWriteStream(fp, recog->sa_text);
@@ -1463,6 +1564,60 @@ recogWriteStream(FILE        *fp,
     pixaaWriteStream(fp, recog->pixaa);
 
     return 0;
+}
+
+
+/*!
+ * \brief   recogWriteMem()
+ *
+ * \param[out]   pdata data of serialized recog (not ascii)
+ * \param[out]   psize size of returned data
+ * \param[in]    recog
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a recog in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+recogWriteMem(l_uint8  **pdata,
+              size_t    *psize,
+              L_RECOG   *recog)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("recogWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!recog)
+        return ERROR_INT("recog not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = recogWriteStream(fp, recog);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = recogWriteStream(fp, recog);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
 }
 
 

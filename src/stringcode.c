@@ -72,7 +72,7 @@
  *       void             strcodeCreateFromFile()
  *       l_int32          strcodeGenerate()
  *       void             strcodeFinalize()
- *       l_int32          l_getStructnameFromFile()   (useful externally)
+ *       l_int32          l_getStructStrFromFile()   (useful externally)
  *
  *   Static helpers
  *       static l_int32   l_getIndexFromType()
@@ -98,33 +98,34 @@ struct L_GenAssoc
     char     type[16];        /* e.g., "PIXA" */
     char     structname[16];  /* e.g., "Pixa" */
     char     reader[16];      /* e.g., "pixaRead" */
+    char     memreader[20];   /* e.g., "pixaReadMem" */
 };
 
     /*! Number of serializable data types */
 static const l_int32  l_ntypes = 20;
     /*! Serializable data types */
 static const struct L_GenAssoc l_assoc[] = {
-    {0,  "INVALID",     "invalid",     "invalid"       },
-    {1,  "BOXA",        "Boxa",        "boxaRead"      },
-    {2,  "BOXAA",       "Boxaa",       "boxaaRead"     },
-    {3,  "L_DEWARP",    "Dewarp",      "dewarpRead"    },
-    {4,  "L_DEWARPA",   "Dewarpa",     "dewarpaRead"   },
-    {5,  "L_DNA",       "L_Dna",       "l_dnaRead"     },
-    {6,  "L_DNAA",      "L_Dnaa",      "l_dnaaRead"    },
-    {7,  "DPIX",        "DPix",        "dpixRead"      },
-    {8,  "FPIX",        "FPix",        "fpixRead"      },
-    {9,  "NUMA",        "Numa",        "numaRead"      },
-    {10, "NUMAA",       "Numaa",       "numaaRead"     },
-    {11, "PIX",         "Pix",         "pixRead"       },
-    {12, "PIXA",        "Pixa",        "pixaRead"      },
-    {13, "PIXAA",       "Pixaa",       "pixaaRead"     },
-    {14, "PIXACOMP",    "Pixacomp",    "pixacompRead"  },
-    {15, "PIXCMAP",     "Pixcmap",     "pixcmapRead"   },
-    {16, "PTA",         "Pta",         "ptaRead"       },
-    {17, "PTAA",        "Ptaa",        "ptaaRead"      },
-    {18, "RECOG",       "Recog",       "recogRead"     },
-    {19, "RECOGA",      "Recoga",      "recogaRead"    },
-    {20, "SARRAY",      "Sarray",      "sarrayRead"    }
+    {0,  "INVALID",     "invalid",     "invalid",        "invalid"         },
+    {1,  "BOXA",        "Boxa",        "boxaRead",       "boxaReadMem"     },
+    {2,  "BOXAA",       "Boxaa",       "boxaaRead",      "boxaaReadMem"    },
+    {3,  "L_DEWARP",    "Dewarp",      "dewarpRead",     "dewarpReadMem"   },
+    {4,  "L_DEWARPA",   "Dewarpa",     "dewarpaRead",    "dewarpaReadMem"  },
+    {5,  "L_DNA",       "L_Dna",       "l_dnaRead",      "l_dnaReadMem"    },
+    {6,  "L_DNAA",      "L_Dnaa",      "l_dnaaRead",     "l_dnaaReadMem"   },
+    {7,  "DPIX",        "DPix",        "dpixRead",       "dpixReadMem"     },
+    {8,  "FPIX",        "FPix",        "fpixRead",       "fpixReadMem"     },
+    {9,  "NUMA",        "Numa",        "numaRead",       "numaReadMem"     },
+    {10, "NUMAA",       "Numaa",       "numaaRead",      "numaaReadMem"    },
+    {11, "PIX",         "Pix",         "pixRead",        "pixReadMem"      },
+    {12, "PIXA",        "Pixa",        "pixaRead",       "pixaReadMem"     },
+    {13, "PIXAA",       "Pixaa",       "pixaaRead",      "pixaaReadMem"    },
+    {14, "PIXACOMP",    "Pixacomp",    "pixacompRead",   "pixacompReadMem" },
+    {15, "PIXCMAP",     "Pixcmap",     "pixcmapRead",    "pixcmapReadMem"  },
+    {16, "PTA",         "Pta",         "ptaRead",        "ptaReadMem"      },
+    {17, "PTAA",        "Ptaa",        "ptaaRead",       "ptaaReadMem"     },
+    {18, "RECOG",       "Recog",       "recogRead",      "recogReadMem"    },
+    {19, "RECOGA",      "Recoga",      "recogaRead",     "recogaReadMem"   },
+    {20, "SARRAY",      "Sarray",      "sarrayRead",     "sarrayReadMem"   }
 };
 
 static l_int32 l_getIndexFromType(const char *type, l_int32 *pindex);
@@ -516,30 +517,47 @@ SARRAY     *sa1, *sa2, *sa3;
 
 
 /*!
- * \brief   l_getStructnameFromFile()
+ * \brief   l_getStructStrFromFile()
  *
  * \param[in]    filename
- * \param[out]   psn structname; e.g., "Pixa"
+ * \param[in]    field  (L_STR_TYPE, L_STR_NAME, L_STR_READER, L_STR_MEMREADER)
+ * \param[out]   pstr  struct string for this file
  * \return  0 if found, 1 on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) For example, if %field == L_STR_NAME, and the file is a serialized
+ *          pixa, this will return "Pixa", the name of the struct.
+ *      (2) Caller must free the returned string.
  */
 l_int32
-l_getStructnameFromFile(const char  *filename,
-                        char       **psn)
+l_getStructStrFromFile(const char  *filename,
+                       l_int32      field,
+                       char       **pstr)
 {
 l_int32  index;
 
+    PROCNAME("l_getStructStrFromFile");
 
-    PROCNAME("l_getStructnameFromFile");
-
-    if (!psn)
-        return ERROR_INT("&sn not defined", procName, 1);
-    *psn = NULL;
+    if (!pstr)
+        return ERROR_INT("&str not defined", procName, 1);
+    *pstr = NULL;
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
+    if (field != L_STR_TYPE && field != L_STR_NAME &&
+        field != L_STR_READER && field != L_STR_MEMREADER)
+        return ERROR_INT("invalid field", procName, 1);
 
     if (l_getIndexFromFile(filename, &index))
         return ERROR_INT("index not retrieved", procName, 1);
-    *psn = stringNew(l_assoc[index].structname);
+    if (field == L_STR_TYPE)
+        *pstr = stringNew(l_assoc[index].type);
+    else if (field == L_STR_NAME)
+        *pstr = stringNew(l_assoc[index].structname);
+    else if (field == L_STR_READER)
+        *pstr = stringNew(l_assoc[index].reader);
+    else   /* field == L_STR_MEMREADER */
+        *pstr = stringNew(l_assoc[index].memreader);
     return 0;
 }
 
@@ -556,12 +574,12 @@ l_int32  index;
  *
  * <pre>
  * Notes:
- *      (1) For valid type, %found == true and %index \> 0.
+ *      (1) For valid type, %found == true and %index > 0.
  * </pre>
  */
 static l_int32
 l_getIndexFromType(const char  *type,
-                    l_int32     *pindex)
+                   l_int32     *pindex)
 {
 l_int32  i, found;
 
@@ -753,12 +771,12 @@ char  *code = NULL;
     stringJoinIP(&code, buf);
     stringJoinIP(&code,
                  "        data2 = zlibUncompress(data1, size1, &size2);\n");
-    stringJoinIP(&code,
-        "        l_binaryWrite(\"/tmp/lept/auto/data.bin\","
-        "\"w\", data2, size2);\n");
+//    stringJoinIP(&code,
+//        "        l_binaryWrite(\"/tmp/lept/auto/data.bin\","
+//        "\"w\", data2, size2);\n");
     snprintf(buf, sizeof(buf),
-             "        result = (void *)%s(\"/tmp/lept/auto/data.bin\");\n",
-             l_assoc[itype].reader);
+             "        result = (void *)%s(data2, size2);\n",
+             l_assoc[itype].memreader);
     stringJoinIP(&code, buf);
     stringJoinIP(&code, "        lept_free(data1);\n");
     stringJoinIP(&code, "        lept_free(data2);\n");

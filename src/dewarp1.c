@@ -55,14 +55,18 @@
  *      Dewarp serialized I/O
  *          L_DEWARP          *dewarpRead()
  *          L_DEWARP          *dewarpReadStream()
+ *          L_DEWARP          *dewarpReadMem()
  *          l_int32            dewarpWrite()
  *          l_int32            dewarpWriteStream()
+ *          l_int32            dewarpWriteMem()
  *
  *      Dewarpa serialized I/O
  *          L_DEWARPA         *dewarpaRead()
  *          L_DEWARPA         *dewarpaReadStream()
+ *          L_DEWARPA         *dewarpaReadMem()
  *          l_int32            dewarpaWrite()
  *          l_int32            dewarpaWriteStream()
+ *          l_int32            dewarpaWriteMem()
  *
  *
  *  Examples of usage
@@ -1246,6 +1250,34 @@ FPIX      *fpixv, *fpixh;
 
 
 /*!
+ * \brief   dewarpReadMem()
+ *
+ * \param[in]    data  serialization of dewarp
+ * \param[in]    size  of data in bytes
+ * \return  dew  dewarp, or NULL on error
+ */
+L_DEWARP  *
+dewarpReadMem(const l_uint8  *data,
+              size_t          size)
+{
+FILE      *fp;
+L_DEWARP  *dew;
+
+    PROCNAME("dewarpReadMem");
+
+    if (!data)
+        return (L_DEWARP *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_DEWARP *)ERROR_PTR("stream not opened", procName, NULL);
+
+    dew = dewarpReadStream(fp);
+    fclose(fp);
+    if (!dew) L_ERROR("dew not read\n", procName);
+    return dew;
+}
+
+
+/*!
  * \brief   dewarpWrite()
  *
  * \param[in]    filename
@@ -1329,6 +1361,60 @@ l_int32  vdispar, hdispar;
     if (!vdispar)
         L_WARNING("no disparity arrays!\n", procName);
     return 0;
+}
+
+
+/*!
+ * \brief   dewarpWriteMem()
+ *
+ * \param[out]   pdata data of serialized dewarp (not ascii)
+ * \param[out]   psize size of returned data
+ * \param[in]    dew
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a dewarp in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+dewarpWriteMem(l_uint8  **pdata,
+               size_t    *psize,
+               L_DEWARP  *dew)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("dewarpWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!dew)
+        return ERROR_INT("dew not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = dewarpWriteStream(fp, dew);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = dewarpWriteStream(fp, dew);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
 }
 
 
@@ -1444,6 +1530,34 @@ NUMA       *namodels;
 
 
 /*!
+ * \brief   dewarpaReadMem()
+ *
+ * \param[in]    data  serialization of dewarpa
+ * \param[in]    size  of data in bytes
+ * \return  dewa  dewarpa, or NULL on error
+ */
+L_DEWARPA  *
+dewarpaReadMem(const l_uint8  *data,
+               size_t          size)
+{
+FILE       *fp;
+L_DEWARPA  *dewa;
+
+    PROCNAME("dewarpaReadMem");
+
+    if (!data)
+        return (L_DEWARPA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_DEWARPA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    dewa = dewarpaReadStream(fp);
+    fclose(fp);
+    if (!dewa) L_ERROR("dewa not read\n", procName);
+    return dewa;
+}
+
+
+/*!
  * \brief   dewarpaWrite()
  *
  * \param[in]    filename
@@ -1519,4 +1633,58 @@ l_int32  ndewarp, i, pageno;
     }
 
     return 0;
+}
+
+
+/*!
+ * \brief   dewarpaWriteMem()
+ *
+ * \param[out]   pdata data of serialized dewarpa (not ascii)
+ * \param[out]   psize size of returned data
+ * \param[in]    dewa
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a dewarpa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_int32
+dewarpaWriteMem(l_uint8   **pdata,
+                size_t     *psize,
+                L_DEWARPA  *dewa)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("dewarpaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!dewa)
+        return ERROR_INT("dewa not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = dewarpaWriteStream(fp, dewa);
+#else
+    L_WARNING("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = dewarpaWriteStream(fp, dewa);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
 }

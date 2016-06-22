@@ -51,7 +51,7 @@ static char  mainName[] = "pixafileinfo";
 
         /* Input file can be either pixa or pixacomp */
     filein = argv[1];
-    l_getStructnameFromFile(filein, &sn);
+    l_getStructStrFromFile(filein, L_STR_NAME, &sn);
     if (strcmp(sn, "Pixa") == 0) {
         if ((pixa = pixaRead(filein)) == NULL)
             return ERROR_INT("pixa not made", mainName, 1);

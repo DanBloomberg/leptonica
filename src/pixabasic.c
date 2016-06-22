@@ -2645,7 +2645,7 @@ PIXAC  *pac;
     if (!filename)
         return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
 
-    l_getStructnameFromFile(filename, &sname);
+    l_getStructStrFromFile(filename, L_STR_NAME, &sname);
     if (!sname)
         return (PIXA *)ERROR_PTR("struct name not found", procName, NULL);
 

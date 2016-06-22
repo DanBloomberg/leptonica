@@ -137,7 +137,6 @@ struct L_Recog {
     struct L_Dna  *dna_tochar;   /*!< index-to-char lut for arbitrary charset */
     l_int32       *centtab;      /*!< table for finding centroids            */
     l_int32       *sumtab;       /*!< table for finding pixel sums           */
-    char          *fname;        /*!< serialized filename (if read)          */
     struct Pixaa  *pixaa_u;      /*!< all unscaled bitmaps for each class    */
     struct Pixa   *pixa_u;       /*!< averaged unscaled bitmaps per class    */
     struct Ptaa   *ptaa_u;       /*!< centroids of all unscaled bitmaps      */
