@@ -771,9 +771,6 @@ char  *code = NULL;
     stringJoinIP(&code, buf);
     stringJoinIP(&code,
                  "        data2 = zlibUncompress(data1, size1, &size2);\n");
-//    stringJoinIP(&code,
-//        "        l_binaryWrite(\"/tmp/lept/auto/data.bin\","
-//        "\"w\", data2, size2);\n");
     snprintf(buf, sizeof(buf),
              "        result = (void *)%s(data2, size2);\n",
              l_assoc[itype].memreader);
