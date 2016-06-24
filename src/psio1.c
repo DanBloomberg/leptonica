@@ -621,7 +621,7 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
         pixb = pixClone(pixs);
         pixc = NULL;
     } else {
-        pixt = pixConvertTo8Or32(pixs, 0, 0);  /* this can be a clone of pixs */
+        pixt = pixConvertTo8Or32(pixs, L_CLONE, 0);  /* clone if possible */
 
             /* Get the binary text mask.  Note that pixg cannot be a
              * clone of pixs, because it may be altered by pixSetMasked(). */

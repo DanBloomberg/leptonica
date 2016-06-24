@@ -102,27 +102,24 @@
  *
  *          The user is responsible for correctly disposing of strings
  *          that have been extracted from sarrays:
- *            ~ When you want a string from an Sarray to inspect it, or
- *              plan to make a copy of it later, use sarrayGetString()
- *              with copyflag = 0.  In this case, you must neither free
- *              the string nor put it directly in another array.
- *              We provide the copyflag constant L_NOCOPY, which is 0,
- *              for this purpose:
+ *            - To extract a string from an Sarray in order to inspect it
+ *              or to make a copy of it later, get a handle to it:
+ *                  copyflag = L_NOCOPY.
+ *              In this case, you must neither free the string nor put it
+ *              directly in another array:
  *                 str-not-owned = sarrayGetString(sa, index, L_NOCOPY);
- *              To extract a copy of a string, use:
+ *            - To extract a copy of a string from an Sarray, use:
  *                 str-owned = sarrayGetString(sa, index, L_COPY);
- *
- *            ~ When you want to insert a string that is in one
- *              array into another array (always leaving the first
- *              array intact), you have two options:
+ *            ~ To insert a string that is in one array into another
+ *              array (always leaving the first array intact), there are
+ *              two options:
  *                 (1) use copyflag = L_COPY to make an immediate copy,
- *                     which you must then add to the second array
- *                     by insertion; namely,
+ *                     which you then add to the second array by insertion:
  *                       str-owned = sarrayGetString(sa, index, L_COPY);
  *                       sarrayAddString(sa, str-owned, L_INSERT);
  *                 (2) use copyflag = L_NOCOPY to get another handle to
- *                     the string, in which case you must add
- *                     a copy of it to the second string array:
+ *                     the string; you then add a copy of it to the
+ *                     second string array:
  *                       str-not-owned = sarrayGetString(sa, index, L_NOCOPY);
  *                       sarrayAddString(sa, str-not-owned, L_COPY).
  *
@@ -420,16 +417,12 @@ sarrayClone(SARRAY  *sa)
  *
  * \param[in]    sa string array
  * \param[in]    string  string to be added
- * \param[in]    copyflag L_INSERT, L_COPY
+ * \param[in]    copyflag  L_INSERT or L_COPY
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) Legacy usage decrees that we always use 0 to insert a string
- *          directly and 1 to insert a copy of the string.  The
- *          enums for L_INSERT and L_COPY agree with this convention,
- *          and will not change in the future.
- *      (2) See usage comments at the top of this file.
+ *      (1) See usage comments at the top of this file.
  * </pre>
  */
 l_int32
@@ -532,7 +525,7 @@ l_int32  i, n, nalloc;
  * \param[in]    sa string array
  * \param[in]    index of string within sarray to be replaced
  * \param[in]    newstr string to replace existing one
- * \param[in]    copyflag L_INSERT, L_COPY
+ * \param[in]    copyflag  L_INSERT, L_COPY
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -663,16 +656,9 @@ char  **array;
  *
  * <pre>
  * Notes:
- *      (1) Legacy usage decrees that we always use 0 to get the
- *          pointer to the string itself, and 1 to get a copy of
- *          the string.
- *      (2) See usage comments at the top of this file.
- *      (3) To get a pointer to the string itself, use for copyflag:
- *             L_NOCOPY or 0 or FALSE
- *          To get a copy of the string, use for copyflag:
- *             L_COPY or 1 or TRUE
- *          The const values of L_NOCOPY and L_COPY are guaranteed not
- *          to change.
+ *      (1) See usage comments at the top of this file.
+ *      (2) To get a pointer to the string itself, use L_NOCOPY.
+ *          To get a copy of the string, use L_COPY.
  * </pre>
  */
 char *

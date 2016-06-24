@@ -675,26 +675,22 @@ typedef struct PixaComp PIXAC;
  *  you are allowed to get a handle without a copy or clone (i.e., that
  *  you don't own!).  You must not free or insert such a string!
  *  Specifically, for an Sarray, the copyflag for retrieval is either:
- *         TRUE (or 1 or L_COPY)
- *  or
- *         FALSE (or 0 or L_NOCOPY)
- *  For insertion, the copyflag is either:
- *         TRUE (or 1 or L_COPY)
- *  or
- *         FALSE (or 0 or L_INSERT)
- *  Note that L_COPY is always 1, and L_INSERT and L_NOCOPY are always 0.
+ *         L_COPY or L_NOCOPY
+ *  and for insertion, the copyflag is either:
+ *         L_COPY or one of {L_INSERT , L_NOCOPY} (the latter are equivalent
+ *                                                 for insertion))
  * </pre>
  */
 
 /*! Access and storage flags */
 enum {
-    L_INSERT = 0,     /*!< stuff it in; no copy, clone or copy-clone    */
-    L_COPY = 1,       /*!< make/use a copy of the object                */
-    L_CLONE = 2,      /*!< make/use clone (ref count) of the object     */
-    L_COPY_CLONE = 3  /*!< make a new object and fill with with clones  */
-                      /*!< of each object in the array(s)               */
+    L_NOCOPY = 0,     /*!< do not copy the object; do not delete the ptr  */
+    L_COPY = 1,       /*!< make/use a copy of the object                  */
+    L_CLONE = 2,      /*!< make/use clone (ref count) of the object       */
+    L_COPY_CLONE = 3  /*!< make a new object and fill each object in the  */
+                      /*!< array(s) with clones                           */
 };
-static const l_int32  L_NOCOPY = 0;  /*!< copyflag value in sarrayGetString() */
+static const l_int32  L_INSERT = 0;  /*!< stuff it in; no copy or clone   */
 
 
 /*----------------------------------------------------------------------------*

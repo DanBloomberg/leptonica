@@ -139,7 +139,7 @@
  *                                                 128, 1);
  *
  *  This is useful as a "bootstrap" recognizer for training a new
- *  recognizer (rec) on an unlabelled data set that has a different
+ *  adapted recognizer (rec) on an unlabelled data set that has a different
  *  origin from recboot.  To do this, the new recognizer must be
  *  initialized to use the same (w,h) scaling as the bootstrap recognizer.
  *  If the new recognizer is to be used without scaling (e.g., on images
@@ -152,7 +152,11 @@
  *             recogTrainUnlabelled(rec, recboot, pix, NULL, 1, 0.75, 0);
  *         }
  *         recogTrainingFinished(rec, 0);
- *         recogSetScaling(rec, 0, 0);  // use with no scaling
+ *         recogSetScaling(rec, 0, 0, L_USE_ALL);  // use with no scaling
+ *
+ *  The adapted recognizer seems to work better if you use all the
+ *  templates.
+ *
  * </pre>
  */
 

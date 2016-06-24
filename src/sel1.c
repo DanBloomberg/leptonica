@@ -537,7 +537,7 @@ l_int32  **array;
  * \param[in]    sel to be added
  * \param[in]    selname ignored if already defined in sel;
  *                       req'd in sel when added to a sela
- * \param[in]    copyflag for sel: 0 inserts, 1 copies
+ * \param[in]    copyflag  L_INSERT or L_COPY
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -565,11 +565,13 @@ SEL     *csel;
         return ERROR_INT("sel not defined", procName, 1);
     if (!sel->name && !selname)
         return ERROR_INT("added sel must have name", procName, 1);
+    if (copyflag != L_INSERT && copyflag != L_COPY)
+        return ERROR_INT("invalid copyflag", procName, 1);
 
-    if (copyflag == TRUE) {
+    if (copyflag == L_COPY) {
         if ((csel = selCopy(sel)) == NULL)
             return ERROR_INT("csel not made", procName, 1);
-    } else {  /* copyflag is false; insert directly */
+    } else {  /* copyflag == L_INSERT */
         csel = sel;
     }
     if (!csel->name)

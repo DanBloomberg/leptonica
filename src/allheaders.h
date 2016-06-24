@@ -2196,7 +2196,7 @@ LEPT_DLL extern PIX * recogPreSplittingFilter ( L_RECOG *recog, PIX *pixs, l_flo
 LEPT_DLL extern l_int32 recogSplittingFilter ( L_RECOG *recog, PIX *pixs, l_float32 maxasp, l_float32 minaf, l_int32 *premove, l_int32 debug );
 LEPT_DLL extern SARRAY * recogaExtractNumbers ( L_RECOGA *recoga, BOXA *boxas, l_float32 scorethresh, l_int32 spacethresh, BOXAA **pbaa, NUMAA **pnaa );
 LEPT_DLL extern l_int32 recogSetTemplateType ( L_RECOG *recog, l_int32 templ_type );
-LEPT_DLL extern l_int32 recogSetScaling ( L_RECOG *recog, l_int32 scalew, l_int32 scaleh );
+LEPT_DLL extern l_int32 recogSetScaling ( L_RECOG *recog, l_int32 scalew, l_int32 scaleh, l_int32 templ_type );
 LEPT_DLL extern l_int32 recogTrainLabelled ( L_RECOG *recog, PIX *pixs, BOX *box, char *text, l_int32 multflag, l_int32 debug );
 LEPT_DLL extern l_int32 recogProcessMultLabelled ( L_RECOG *recog, PIX *pixs, BOX *box, char *text, PIXA **ppixa, l_int32 debug );
 LEPT_DLL extern l_int32 recogProcessSingleLabelled ( L_RECOG *recog, PIX *pixs, BOX *box, char *text, PIXA **ppixa );

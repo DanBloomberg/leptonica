@@ -2038,12 +2038,27 @@ recogSetTemplateType(L_RECOG  *recog,
  * \param[in]    recog
  * \param[in]    scalew  scale all widths to this; use 0 for no scaling
  * \param[in]    scaleh  scale all heights to this; use 0 for no scaling
+ * \param[in]    templ_type L_USE_AVERAGE or L_USE_ALL
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is entirely equivalent to extracting the unscaled
+ *          pixa from the recog, and creating a new recog using it:
+ *            pixa = recogExtractPixa(recog1);
+ *            recog2 = recogCreateFromPixa(pixa, 0, 0, L_USE_ALL, 128, 1);
+ *          This is useful when making a book adapted recognizer (BAR)
+ *          from the training results with a boot recognizer (BR).
+ *          The BR is used to train the BAR on unlabelled images that
+ *          are scaled to a fixed dimension.  Once trained, the BAR
+ *          works best if converted to identify unscaled images.
+ * </pre>
  */
 l_int32
 recogSetScaling(L_RECOG  *recog,
                 l_int32   scalew,
-                l_int32   scaleh)
+                l_int32   scaleh,
+                l_int32   templ_type)
 {
     PROCNAME("recogSetScaling");
 
@@ -2055,9 +2070,12 @@ recogSetScaling(L_RECOG  *recog,
         L_INFO("scaling factors not changed\n", procName);
         return 0;
     }
+    if (templ_type != L_USE_AVERAGE && templ_type != L_USE_ALL)
+        return ERROR_INT("invalid templ_type", procName, 1);
 
     recog->scalew = scalew;
     recog->scaleh = scaleh;
+    recog->templ_type = templ_type;
     recog->train_done = FALSE;
 
         /* Restock the scaled character images and recompute all averages */
