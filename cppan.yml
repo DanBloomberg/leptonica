@@ -1,7 +1,44 @@
+files:
+    - src/.*\.h
+    - src/.*\.c
+
+include_directories:
+    public: src
+
+check_function_exists: fmemopen
+
+pre_sources:
+    if(WORDS_BIGENDIAN)
+      set(ENDIANNESS L_BIG_ENDIAN)
+    else()
+      set(ENDIANNESS L_LITTLE_ENDIAN)
+    endif()
+    
+    set(APPLE_UNIVERSAL_BUILD "defined (__APPLE_CC__)")
+    configure_file(
+      ${PROJECT_SOURCE_DIR}/src/endianness.h.in
+      ${PROJECT_BINARY_DIR}/src/endianness.h
+      @ONLY)
+
+post_sources:
+    if (MSVC)
+        file(GLOB_RECURSE csrc "*.c")
+        set_source_files_properties(${csrc} PROPERTIES LANGUAGE CXX)
+    endif()
+
+options:
+    any:
+        definitions:
+            public: HAVE_LIBGIF
+            public: HAVE_LIBJPEG
+            public: HAVE_LIBPNG
+            public: HAVE_LIBTIFF
+            public: HAVE_LIBWEBP
+            public: HAVE_LIBZ
+
 dependencies:
-  pvt.cppan.demo.gif: 5
+  pvt.cppan.demo.gif: 5 # any 5.x.x version
   pvt.cppan.demo.jpeg: master
-  pvt.cppan.demo.png: 1.6.21
+  pvt.cppan.demo.png: 1.6.21 
   pvt.cppan.demo.tiff: master
-  pvt.cppan.demo.webp: "*"
-  pvt.cppan.demo.zlib: 1
+  pvt.cppan.demo.webp: "*" # any non branch version
