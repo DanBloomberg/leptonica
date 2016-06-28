@@ -1,4 +1,3 @@
-host: https://cppan.org/
 dependencies:
   pvt.cppan.demo.gif: 5
   pvt.cppan.demo.jpeg: master
