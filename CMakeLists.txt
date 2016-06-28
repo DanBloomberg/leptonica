@@ -75,6 +75,18 @@ if (WIN32)
     endif()
 endif()
 
+if(EXISTS ${PROJECT_SOURCE_DIR}/cppan)
+    add_subdirectory(cppan)
+    add_definitions(
+        -DHAVE_LIBGIF=1
+        -DHAVE_LIBJPEG=1
+        -DHAVE_LIBPNG=1
+        -DHAVE_LIBTIFF=1
+        -DHAVE_LIBWEBP=1
+        -DHAVE_LIBZ=1
+    )
+endif()
+
 ###############################################################################
 #
 # configure
