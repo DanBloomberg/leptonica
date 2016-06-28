@@ -89,8 +89,6 @@ configure_file(
     ${PROJECT_BINARY_DIR}/src/endianness.h
     @ONLY)
 
-set(STDC_HEADERS 1)
-
 if (GIF_FOUND)
     set(HAVE_LIBGIF 1)
 endif()
@@ -120,9 +118,6 @@ if (ZLIB_FOUND)
 endif()
 
 file(APPEND ${AUTOCONFIG_SRC} "
-/* Define to 1 if you have the ANSI C header files. */
-#cmakedefine STDC_HEADERS 1
-
 /* Define to 1 if you have giflib. */
 #cmakedefine HAVE_LIBGIF 1
 
