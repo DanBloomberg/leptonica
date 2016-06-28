@@ -1,0 +1,8 @@
+host: https://cppan.org/
+dependencies:
+  pvt.cppan.demo.gif: 5
+  pvt.cppan.demo.jpeg: master
+  pvt.cppan.demo.png: 1.6.21
+  pvt.cppan.demo.tiff: master
+  pvt.cppan.demo.webp: "*"
+  pvt.cppan.demo.zlib: 1
