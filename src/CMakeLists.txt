@@ -25,6 +25,7 @@ endif()
 if (NOT STATIC)
     target_compile_definitions  (leptonica PRIVATE -DLIBLEPT_EXPORTS)
 endif()
+
 if (GIF_LIBRARY)
     target_link_libraries       (leptonica ${GIF_LIBRARY})
 endif()
@@ -46,10 +47,18 @@ endif()
 if (ZLIB_LIBRARY)
     target_link_libraries       (leptonica ${ZLIB_LIBRARY})
 endif()
+
 if (UNIX)
     target_link_libraries       (leptonica m)
 endif()
-export(TARGETS leptonica FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
+
+if (NOT USES_CPPAN)
+    export(TARGETS leptonica FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
+else()
+    target_link_libraries       (leptonica cppan)
+    file(WRITE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake "include(${CMAKE_BINARY_DIR}/cppan.cmake)\n")
+    export(TARGETS leptonica APPEND FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
+endif()
 
 ################################################################################
 
