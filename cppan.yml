@@ -7,7 +7,7 @@ include_directories:
 
 check_function_exists: fmemopen
 
-pre_sources:
+pre_sources: |
     if(WORDS_BIGENDIAN)
       set(ENDIANNESS L_BIG_ENDIAN)
     else()
@@ -20,7 +20,7 @@ pre_sources:
       ${PROJECT_BINARY_DIR}/src/endianness.h
       @ONLY)
 
-post_sources:
+post_sources: |
     if (MSVC)
         file(GLOB_RECURSE csrc "*.c")
         set_source_files_properties(${csrc} PROPERTIES LANGUAGE CXX)
