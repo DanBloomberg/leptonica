@@ -35,6 +35,11 @@ pre_sources: |
         ${CMAKE_CURRENT_BINARY_DIR}/endianness.h
         @ONLY)
 
+    # dummy config file
+    if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config_auto.h)
+        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/config_auto.h)
+    endif()
+
 post_sources: |
     if (MSVC)
         file(GLOB_RECURSE csrc "*.c")
