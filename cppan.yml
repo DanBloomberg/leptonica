@@ -34,6 +34,9 @@ pre_sources: |
         ${CMAKE_CURRENT_SOURCE_DIR}/src/endianness.h.in
         ${CMAKE_CURRENT_BINARY_DIR}/endianness.h
         @ONLY)
+        
+    # dummy config file
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/config_auto.h)
 
     # dummy config file
     if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config_auto.h)
