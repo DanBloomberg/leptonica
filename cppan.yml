@@ -7,6 +7,20 @@ include_directories:
     public: src
 
 check_function_exists: fmemopen
+check_include_exists:
+  - dlfcn.h
+  - inttypes.h
+  - memory.h
+  - stdint.h
+  - stdlib.h
+  - strings.h
+  - string.h
+  - sys/stat.h
+  - sys/types.h
+  - unistd.h
+  - openjpeg-2.0/openjpeg.h
+  - openjpeg-2.1/openjpeg.h
+  - openjpeg-2.2/openjpeg.h
 
 pre_sources: |
     if(WORDS_BIGENDIAN)
