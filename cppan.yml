@@ -36,6 +36,8 @@ options:
             public: HAVE_LIBTIFF
             public: HAVE_LIBWEBP
             public: HAVE_LIBZ
+        global_definitions:
+            - TIF_PLATFORM_CONSOLE
 
 dependencies:
   pvt.cppan.demo.gif: 5 # any 5.x.x version
