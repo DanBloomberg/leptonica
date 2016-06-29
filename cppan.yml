@@ -17,9 +17,9 @@ pre_sources: |
 
     set(APPLE_UNIVERSAL_BUILD "defined (__APPLE_CC__)")
     configure_file(
-      ${PROJECT_SOURCE_DIR}/src/endianness.h.in
-      ${PROJECT_BINARY_DIR}/src/endianness.h
-      @ONLY)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/endianness.h.in
+        ${CMAKE_CURRENT_BINARY_DIR}/endianness.h
+        @ONLY)
 
 post_sources: |
     if (MSVC)
