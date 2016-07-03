@@ -55,7 +55,7 @@ options:
             public: HAVE_LIBTIFF
             public: HAVE_LIBWEBP
             public: HAVE_LIBZ
-            private: HAVE_CONFIG_H
+            public: HAVE_CONFIG_H
         global_definitions:
             - TIF_PLATFORM_CONSOLE
 
