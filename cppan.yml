@@ -36,9 +36,6 @@ pre_sources: |
         @ONLY)
 
     # dummy config file
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/config_auto.h)
-
-    # dummy config file
     if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config_auto.h)
         file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/config_auto.h)
     endif()
