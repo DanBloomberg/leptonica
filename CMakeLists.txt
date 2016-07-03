@@ -78,9 +78,9 @@ endif()
 if(EXISTS ${PROJECT_SOURCE_DIR}/cppan)
     # cppan settings
     add_definitions(-DTIF_PLATFORM_CONSOLE=1)
-    
+
     add_subdirectory(cppan)
-    
+
     # leptonica settings
     add_definitions(
         -DHAVE_LIBGIF=1

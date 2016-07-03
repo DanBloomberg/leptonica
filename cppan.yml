@@ -58,6 +58,9 @@ options:
             public: HAVE_CONFIG_H
         global_definitions:
             - TIF_PLATFORM_CONSOLE
+    shared:
+        definitions:
+            private: LIBLEPT_EXPORTS
 
 dependencies:
   pvt.cppan.demo.gif: 5 # any 5.x.x version
