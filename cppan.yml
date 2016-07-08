@@ -7,6 +7,7 @@ include_directories:
     public: src
 
 check_function_exists: fmemopen
+
 check_include_exists:
   - dlfcn.h
   - inttypes.h
@@ -49,13 +50,14 @@ post_sources: |
 options:
     any:
         definitions:
-            public: HAVE_LIBGIF
-            public: HAVE_LIBJPEG
-            public: HAVE_LIBPNG
-            public: HAVE_LIBTIFF
-            public: HAVE_LIBWEBP
-            public: HAVE_LIBZ
-            public: HAVE_CONFIG_H
+            public:
+              - HAVE_LIBGIF
+              - HAVE_LIBJPEG
+              - HAVE_LIBPNG
+              - HAVE_LIBTIFF
+              - HAVE_LIBWEBP
+              - HAVE_LIBZ
+              - HAVE_CONFIG_H
         global_definitions:
             - TIF_PLATFORM_CONSOLE
     shared:
