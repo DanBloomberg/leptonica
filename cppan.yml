@@ -68,5 +68,5 @@ dependencies:
   pvt.cppan.demo.gif: 5 # any 5.x.x version
   pvt.cppan.demo.jpeg: master
   pvt.cppan.demo.png: 1.6.21
-  pvt.cppan.demo.tiff: master
+  pvt.cppan.demo.tiff: 4
   pvt.cppan.demo.webp: "*" # any non branch version
