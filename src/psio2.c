@@ -1439,7 +1439,7 @@ convertTiffMultipageToPS(const char  *filein,
                          const char  *tempfile,
                          l_float32    fillfract)
 {
-const char   tempdefault[] = "/tmp/junk_temp_g4.tif";
+char        *tempdefault;
 const char  *tempname;
 l_int32      i, npages, w, h, istiff;
 l_float32    scale;
@@ -1463,20 +1463,19 @@ FILE        *fp;
     tiffGetCount(fp, &npages);
     fclose(fp);
 
-    if (tempfile)
-        tempname = tempfile;
-    else
-        tempname = tempdefault;
+    tempdefault = (tempfile) ? NULL : genTempFilename("/tmp", "tfile", 1, 1);
+    tempname = (tempfile) ? tempfile : tempdefault;
 
     if (fillfract == 0.0)
         fillfract = DEFAULT_FILL_FRACTION;
 
     for (i = 0; i < npages; i++) {
-        if ((pix = pixReadTiff(filein, i)) == NULL)
-             return ERROR_INT("pix not made", procName, 1);
+        if ((pix = pixReadTiff(filein, i)) == NULL) {
+            LEPT_FREE(tempdefault);
+            return ERROR_INT("pix not made", procName, 1);
+        }
 
-        w = pixGetWidth(pix);
-        h = pixGetHeight(pix);
+        pixGetDimensions(pix, &w, &h, NULL);
         if (w == 1728 && h < w)   /* it's a std res fax */
             pixs = pixScale(pix, 1.0, 2.0);
         else
@@ -1494,6 +1493,10 @@ FILE        *fp;
         pixDestroy(&pixs);
     }
 
+    if (tempdefault) {
+        lept_rmfile(tempdefault);
+        LEPT_FREE(tempdefault);
+    }
     return 0;
 }
 

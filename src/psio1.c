@@ -730,8 +730,7 @@ pixWriteMixedToPS(PIX         *pixb,
                   l_int32      pageno,
                   const char  *fileout)
 {
-const char   tnameb[] = "/tmp/lept/psio/mixed.tif";
-const char   tnamec[] = "/tmp/lept/psio/mixed.jpg";
+char        *tname;
 const char  *op;
 l_int32      resb, resc, endpage, maskop, ret;
 
@@ -754,11 +753,14 @@ l_int32      resb, resc, endpage, maskop, ret;
         /* Write the jpeg image first */
     lept_mkdir("lept/psio");
     if (pixc) {
-        pixWrite(tnamec, pixc, IFF_JFIF_JPEG);
+        tname = genTempFilename("/tmp", "mixed.jpg", 1, 1);
+        pixWrite(tname, pixc, IFF_JFIF_JPEG);
         endpage = (pixb) ? FALSE : TRUE;
         op = (pageno <= 1) ? "w" : "a";
-        ret = convertJpegToPS(tnamec, fileout, op, 0, 0, resc, 1.0,
+        ret = convertJpegToPS(tname, fileout, op, 0, 0, resc, 1.0,
                               pageno, endpage);
+        lept_rmfile(tname);
+        LEPT_FREE(tname);
         if (ret)
             return ERROR_INT("jpeg data not written", procName, 1);
     }
@@ -766,11 +768,14 @@ l_int32      resb, resc, endpage, maskop, ret;
         /* Write the binary data, either directly or, if there is
          * a jpeg image on the page, through the mask. */
     if (pixb) {
-        pixWrite(tnameb, pixb, IFF_TIFF_G4);
+        tname = genTempFilename("/tmp", "mixed.tif", 1, 1);
+        pixWrite(tname, pixb, IFF_TIFF_G4);
         op = (pageno <= 1 && !pixc) ? "w" : "a";
         maskop = (pixc) ? 1 : 0;
-        ret = convertG4ToPS(tnameb, fileout, op, 0, 0, resb, 1.0,
+        ret = convertG4ToPS(tname, fileout, op, 0, 0, resb, 1.0,
                             pageno, maskop, 1);
+        lept_rmfile(tname);
+        LEPT_FREE(tname);
         if (ret)
             return ERROR_INT("tiff data not written", procName, 1);
     }
@@ -809,10 +814,9 @@ convertToPSEmbed(const char  *filein,
                  const char  *fileout,
                  l_int32      level)
 {
-const char  nametif[] = "/tmp/junk_convert_ps_embed.tif";
-const char  namejpg[] = "/tmp/junk_convert_ps_embed.jpg";
-l_int32     d, format;
-PIX        *pix, *pixs;
+char    *tname;
+l_int32  d, format;
+PIX     *pix, *pixs;
 
     PROCNAME("convertToPSEmbed");
 
@@ -861,14 +865,17 @@ PIX        *pix, *pixs;
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
 
     d = pixGetDepth(pix);
+    tname = genTempFilename("/tmp", "embed", 1, 1);
     if (d == 1) {
-        pixWrite(nametif, pix, IFF_TIFF_G4);
-        convertG4ToPSEmbed(nametif, fileout);
+        pixWrite(tname, pix, IFF_TIFF_G4);
+        convertG4ToPSEmbed(tname, fileout);
     } else {
-        pixWrite(namejpg, pix, IFF_JFIF_JPEG);
-        convertJpegToPSEmbed(namejpg, fileout);
+        pixWrite(tname, pix, IFF_JFIF_JPEG);
+        convertJpegToPSEmbed(tname, fileout);
     }
 
+    lept_rmfile(tname);
+    LEPT_FREE(tname);
     pixDestroy(&pix);
     pixDestroy(&pixs);
     return 0;
@@ -907,7 +914,7 @@ pixaWriteCompressedToPS(PIXA        *pixa,
                         l_int32      res,
                         l_int32      level)
 {
-char     *tname, *g4_name, *jpeg_name, *png_name;
+char     *tname;
 l_int32   i, n, firstfile, index, writeout, d;
 PIX      *pix, *pixt;
 PIXCMAP  *cmap;
@@ -926,45 +933,35 @@ PIXCMAP  *cmap;
     n = pixaGetCount(pixa);
     firstfile = TRUE;
     index = 0;
-    lept_mkdir("lept/comp");
-    g4_name = genTempFilename("/tmp/lept/comp", "temp.tif", 0, 0);
-    jpeg_name = genTempFilename("/tmp/lept/comp", "temp.jpg", 0, 0);
-    png_name = genTempFilename("/tmp/lept/comp", "temp.png", 0, 0);
+    tname = genTempFilename("/tmp", "temp", 0, 0);
     for (i = 0; i < n; i++) {
         writeout = TRUE;
         pix = pixaGetPix(pixa, i, L_CLONE);
         d = pixGetDepth(pix);
         cmap = pixGetColormap(pix);
         if (d == 1) {
-            tname = g4_name;
             pixWrite(tname, pix, IFF_TIFF_G4);
         } else if (cmap) {
             if (level == 2) {
                 pixt = pixConvertForPSWrap(pix);
-                tname = jpeg_name;
                 pixWrite(tname, pixt, IFF_JFIF_JPEG);
                 pixDestroy(&pixt);
             } else {  /* level == 3 */
-                tname = png_name;
                 pixWrite(tname, pix, IFF_PNG);
             }
         } else if (d == 16) {
             if (level == 2)
                 L_WARNING("d = 16; must write out flate\n", procName);
-            tname = png_name;
             pixWrite(tname, pix, IFF_PNG);
         } else if (d == 2 || d == 4) {
             if (level == 2) {
                 pixt = pixConvertTo8(pix, 0);
-                tname = jpeg_name;
                 pixWrite(tname, pixt, IFF_JFIF_JPEG);
                 pixDestroy(&pixt);
             } else {  /* level == 3 */
-                tname = png_name;
                 pixWrite(tname, pix, IFF_PNG);
             }
         } else if (d == 8 || d == 32) {
-            tname = jpeg_name;
             pixWrite(tname, pix, IFF_JFIF_JPEG);
         } else {  /* shouldn't happen */
             L_ERROR("invalid depth: %d\n", procName, d);
@@ -977,9 +974,8 @@ PIXCMAP  *cmap;
                                          &firstfile, &index);
     }
 
-    LEPT_FREE(g4_name);
-    LEPT_FREE(jpeg_name);
-    LEPT_FREE(png_name);
+    lept_rmfile(tname);
+    LEPT_FREE(tname);
     return 0;
 }
 
