@@ -751,7 +751,6 @@ l_int32      resb, resc, endpage, maskop, ret;
     }
 
         /* Write the jpeg image first */
-    lept_mkdir("lept/psio");
     if (pixc) {
         tname = genTempFilename("/tmp", "mixed.jpg", 1, 1);
         pixWrite(tname, pixc, IFF_JFIF_JPEG);
