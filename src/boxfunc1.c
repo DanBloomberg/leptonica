@@ -591,14 +591,14 @@ NUMA      *namap;
                 if (area2 == 0) {
                     /* do nothing */
                 } else if (area1 >= area2) {
-                    overlap_ratio = (l_float32)overlap_area / area2;
+                    overlap_ratio = (l_float32)overlap_area / (l_float32)area2;
                     area_ratio = (l_float32)area2 / (l_float32)area1;
                     if (overlap_ratio >= min_overlap &&
                         area_ratio <= max_ratio) {
                         numaSetValue(namap, j, i);
                     }
                 } else {
-                    overlap_ratio = (l_float32)overlap_area / area1;
+                    overlap_ratio = (l_float32)overlap_area / (l_float32)area1;
                     area_ratio = (l_float32)area1 / (l_float32)area2;
                     if (overlap_ratio >= min_overlap &&
                         area_ratio <= max_ratio) {
