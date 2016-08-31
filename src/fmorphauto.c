@@ -534,7 +534,7 @@ SEL     *sel;
     if ((sa3 = sarrayCreate(2 * nsels)) == NULL)
         return ERROR_INT("sa3 not made", procName, 1);
     for (i = 0; i < 2 * nsels; i++) {
-        fname = sarrayGetString(sa2, i, 0);
+        fname = sarrayGetString(sa2, i, L_NOCOPY);
         sprintf(bigbuf, "static void  %s%s", fname, PROTOARGS);
         sarrayAddString(sa3, bigbuf, L_COPY);
     }

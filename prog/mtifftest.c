@@ -40,6 +40,9 @@ static const char *weasel_rev = "/tmp/lept/tiff/weasel_rev";
 static const char *weasel_rev_rev = "/tmp/lept/tiff/weasel_rev_rev";
 static const char *weasel_orig = "/tmp/lept/tiff/weasel_orig";
 
+static l_int32 ConvertTiffMultipageToPdf(const char *filein,
+                                         const char *fileout);
+
 
 int main(int    argc,
          char **argv)
@@ -90,7 +93,7 @@ static char  mainName[] = "mtifftest";
     sarrayWriteStream(stderr, sa);
     npages = sarrayGetCount(sa);
     for (i = 0; i < npages; i++) {
-        fname = sarrayGetString(sa, i, 0);
+        fname = sarrayGetString(sa, i, L_NOCOPY);
         filename = genPathname(".", fname);
         pix1 = pixRead(filename);
         if (!pix1) continue;
@@ -105,8 +108,14 @@ static char  mainName[] = "mtifftest";
     }
 
         /* Write it out as a PS file */
-    convertTiffMultipageToPS("/tmp/lept/tiff/weasel4", "/tmp/tiff/weasel4.ps",
-                             NULL, 0.95);
+    fprintf(stderr, "Writing to: /tmp/lept/tiff/weasel4.ps\n");
+    convertTiffMultipageToPS("/tmp/lept/tiff/weasel4",
+                             "/tmp/lept/tiff/weasel4.ps", NULL, 0.95);
+
+        /* Write it out as a pdf file */
+    fprintf(stderr, "Writing to: /tmp/lept/tiff/weasel4.pdf\n");
+    ConvertTiffMultipageToPdf("/tmp/lept/tiff/weasel4",
+                              "/tmp/lept/tiff/weasel4.pdf");
     sarrayDestroy(&sa);
 #endif
 
@@ -209,6 +218,39 @@ static char  mainName[] = "mtifftest";
     pixDestroy(&pix);
 #endif
 
+    return 0;
+}
+
+
+static l_int32
+ConvertTiffMultipageToPdf(const char  *filein,
+                         const char  *fileout)
+{
+l_int32  i, npages, istiff;
+PIX     *pix;
+PIXA    *pixa;
+FILE    *fp;
+
+    PROCNAME("ConvertTiffMultipageToPdf");  /* should put in pdfio2.c */
+
+    if ((fp = fopenReadStream(filein)) == NULL)
+        return ERROR_INT("file not found", procName, 1);
+    istiff = fileFormatIsTiff(fp);
+    if (!istiff) {
+        fclose(fp);
+        return ERROR_INT("file not tiff format", procName, 1);
+    }
+    tiffGetCount(fp, &npages);
+    fclose(fp);
+
+    pixa = pixaCreate(npages);
+    for (i = 0; i < npages; i++) {
+        if ((pix = pixReadTiff(filein, i)) == NULL)
+            return ERROR_INT("pix not made", procName, 1);
+        pixaAddPix(pixa, pix, L_INSERT);
+    }
+    pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "weasel2", fileout);
+    pixaDestroy(&pixa);
     return 0;
 }
 

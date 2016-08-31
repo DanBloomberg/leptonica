@@ -3,6 +3,7 @@
 
 # build directories
 /build*
+/cppan*
 /win*
 
 # files in prog without a .

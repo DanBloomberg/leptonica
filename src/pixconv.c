@@ -3040,8 +3040,7 @@ PIX       *pixd;
  * \brief   pixConvertTo8Or32()
  *
  * \param[in]    pixs 1, 2, 4, 8, 16, with or without colormap; or 32 bpp rgb
- * \param[in]    copyflag use 0 to return clone if pixs does not need to
- *                         be changed; 1 to return a copy in those situations
+ * \param[in]    copyflag  L_CLONE or L_COPY
  * \param[in]    warnflag 1 to issue warning if colormap is removed; else 0
  * \return  pixd 8 bpp grayscale or 32 bpp rgb, or NULL on error
  *
@@ -3067,15 +3066,17 @@ PIX     *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (copyflag != L_CLONE && copyflag != L_COPY)
+        return (PIX *)ERROR_PTR("invalid copyflag", procName, NULL);
 
     d = pixGetDepth(pixs);
     if (pixGetColormap(pixs)) {
         if (warnflag) L_WARNING("pix has colormap; removing\n", procName);
         pixd = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     } else if (d == 8 || d == 32) {
-        if (copyflag == 0)
+        if (copyflag == L_CLONE)
             pixd = pixClone(pixs);
-        else
+        else  /* copyflag == L_COPY) */
             pixd = pixCopy(NULL, pixs);
     } else {
         pixd = pixConvertTo8(pixs, 0);
