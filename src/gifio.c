@@ -114,7 +114,7 @@ typedef struct GifReadBuffer {
     size_t          pos;
     const l_uint8   *cdata;
 } GifReadBuffer;
-static int  gifReadFunc(GifFileType *git, GifByteType *byteType, int bytesToRead);
+static int  gifReadFunc(GifFileType *git, GifByteType *dest, int bytesToRead);
 #endif
 
 
@@ -561,6 +561,7 @@ PIX   *pix;
 
     return gifToPIX(gif);
 #else
+    L_WARNING("writing to a temp file, not directly to memory\n", procName); 
         /* Write to a temp file */
     fname = genTempFilename("/tmp/", "mem.gif", 1, 1);
     l_binaryWrite(fname, "w", (l_uint8 *)cdata, size);
@@ -576,7 +577,7 @@ PIX   *pix;
 
 #if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
 static int
-gifReadFunc(GifFileType *gif, GifByteType *byteType, int bytesToRead) 
+gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead) 
 {
 GifReadBuffer *buffer;
 int bytesRead;
@@ -590,7 +591,7 @@ int bytesRead;
        return -1;
 
     bytesRead = buffer->pos < buffer->size - bytesToRead  ? bytesToRead : buffer->size - buffer->pos;
-    memcpy(byteType, buffer->cdata+buffer->pos, bytesRead);
+    memcpy(dest, buffer->cdata+buffer->pos, bytesRead);
     buffer->pos += bytesRead;
     return bytesRead;
 }
