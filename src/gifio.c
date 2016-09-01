@@ -114,7 +114,7 @@ typedef struct GifReadBuffer {
     size_t          pos;
     const l_uint8   *cdata;
 } GifReadBuffer;
-static int  gifReadFunc(GifFileType *git, GifByteType *dest, int bytesToRead);
+static int  gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead);
 #endif
 
 
