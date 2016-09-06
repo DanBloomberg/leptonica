@@ -59,6 +59,13 @@ l_int32 ptraConcatenatePdfToData(L_PTRA *pa_data, SARRAY *sa,
 
 /* ----------------------------------------------------------------------*/
 
+l_int32 convertTiffMultipageToPdf(const char *filein, const char *fileout)
+{
+    return ERROR_INT("function not present", "convertTiffMultipageToPdf", 1);
+}
+
+/* ----------------------------------------------------------------------*/
+
 l_int32 l_generateCIDataForPdf(const char *fname, PIX *pix, l_int32 quality,
                                L_COMP_DATA **pcid)
 {

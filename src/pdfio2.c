@@ -36,6 +36,9 @@
  *     Intermediate function for generating multipage pdf output
  *          l_int32              ptraConcatenatePdfToData()
  *
+ *     Convert tiff multipage to pdf file
+ *          l_int32              convertTiffMultipageToPdf()
+ *
  *     Low-level CID-based operations
  *
  *       Without transcoding
@@ -441,6 +444,55 @@ NUMAA    *naa_objs;  /* object mapping numbers to new values */
     l_dnaaDestroy(&daa_locs);
     LEPT_FREE(str_pages);
     LEPT_FREE(str_trailer);
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                  Convert tiff multipage to pdf file                 *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   convertTiffMultipageToPdf()
+ *
+ * \param[in]    filein   (tiff)
+ * \param[in]    fileout   (pdf)
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) A multipage tiff file can also be converted to PS, using
+ *          convertTiffMultipageToPS()
+ * </pre>
+ */
+l_int32
+convertTiffMultipageToPdf(const char  *filein,
+                          const char  *fileout)
+{
+l_int32  i, npages, istiff;
+PIX     *pix;
+PIXA    *pixa;
+FILE    *fp;
+
+    PROCNAME("convertTiffMultipageToPdf");
+
+    if ((fp = fopenReadStream(filein)) == NULL)
+        return ERROR_INT("file not found", procName, 1);
+    istiff = fileFormatIsTiff(fp);
+    if (!istiff) {
+        fclose(fp);
+        return ERROR_INT("file not tiff format", procName, 1);
+    }
+    tiffGetCount(fp, &npages);
+    fclose(fp);
+
+    pixa = pixaCreate(npages);
+    for (i = 0; i < npages; i++) {
+        if ((pix = pixReadTiff(filein, i)) == NULL)
+            return ERROR_INT("pix not made", procName, 1);
+        pixaAddPix(pixa, pix, L_INSERT);
+    }
+    pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "weasel2", fileout);
+    pixaDestroy(&pixa);
     return 0;
 }
 

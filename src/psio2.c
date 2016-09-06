@@ -1418,8 +1418,6 @@ SARRAY  *sa;
  *
  * \param[in]    filein input tiff multipage file
  * \param[in]    fileout output ps file
- * \param[in]    tempfile [optional] for temporary g4 tiffs;
- *                        use NULL for default
  * \param[in]    fillfract factor for filling 8.5 x 11 inch page;
  *                      use 0.0 for DEFAULT_FILL_FRACTION
  * \return  0 if OK, 1 on error
@@ -1436,15 +1434,13 @@ SARRAY  *sa;
 l_int32
 convertTiffMultipageToPS(const char  *filein,
                          const char  *fileout,
-                         const char  *tempfile,
                          l_float32    fillfract)
 {
-char        *tempdefault;
-const char  *tempname;
-l_int32      i, npages, w, h, istiff;
-l_float32    scale;
-PIX         *pix, *pixs;
-FILE        *fp;
+char      *tempfile;
+l_int32    i, npages, w, h, istiff;
+l_float32  scale;
+PIX       *pix, *pixs;
+FILE      *fp;
 
     PROCNAME("convertTiffMultipageToPS");
 
@@ -1463,15 +1459,13 @@ FILE        *fp;
     tiffGetCount(fp, &npages);
     fclose(fp);
 
-    tempdefault = (tempfile) ? NULL : genTempFilename("/tmp", "tfile", 1, 1);
-    tempname = (tempfile) ? tempfile : tempdefault;
-
+    tempfile = genTempFilename("/tmp", "tfile", 1, 1);
     if (fillfract == 0.0)
         fillfract = DEFAULT_FILL_FRACTION;
 
     for (i = 0; i < npages; i++) {
         if ((pix = pixReadTiff(filein, i)) == NULL) {
-            LEPT_FREE(tempdefault);
+            LEPT_FREE(tempfile);
             return ERROR_INT("pix not made", procName, 1);
         }
 
@@ -1481,22 +1475,20 @@ FILE        *fp;
         else
             pixs = pixClone(pix);
 
-        pixWrite(tempname, pixs, IFF_TIFF_G4);
+        pixWrite(tempfile, pixs, IFF_TIFF_G4);
         scale = L_MIN(fillfract * 2550 / w, fillfract * 3300 / h);
         if (i == 0)
-            convertG4ToPS(tempname, fileout, "w", 0, 0, 300, scale,
+            convertG4ToPS(tempfile, fileout, "w", 0, 0, 300, scale,
                           i + 1, FALSE, TRUE);
         else
-            convertG4ToPS(tempname, fileout, "a", 0, 0, 300, scale,
+            convertG4ToPS(tempfile, fileout, "a", 0, 0, 300, scale,
                           i + 1, FALSE, TRUE);
         pixDestroy(&pix);
         pixDestroy(&pixs);
     }
 
-    if (tempdefault) {
-        lept_rmfile(tempdefault);
-        LEPT_FREE(tempdefault);
-    }
+    lept_rmfile(tempfile);
+    LEPT_FREE(tempfile);
     return 0;
 }
 
