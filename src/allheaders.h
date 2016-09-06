@@ -1388,6 +1388,7 @@ LEPT_DLL extern l_int32 concatenatePdfToData ( const char *dirname, const char *
 LEPT_DLL extern l_int32 saConcatenatePdfToData ( SARRAY *sa, l_uint8 **pdata, size_t *pnbytes );
 LEPT_DLL extern l_int32 pixConvertToPdfData ( PIX *pix, l_int32 type, l_int32 quality, l_uint8 **pdata, size_t *pnbytes, l_int32 x, l_int32 y, l_int32 res, const char *title, L_PDF_DATA **plpd, l_int32 position );
 LEPT_DLL extern l_int32 ptraConcatenatePdfToData ( L_PTRA *pa_data, SARRAY *sa, l_uint8 **pdata, size_t *pnbytes );
+LEPT_DLL extern l_int32 convertTiffMultipageToPdf ( const char *filein, const char *fileout );
 LEPT_DLL extern l_int32 l_generateCIDataForPdf ( const char *fname, PIX *pix, l_int32 quality, L_COMP_DATA **pcid );
 LEPT_DLL extern L_COMP_DATA * l_generateFlateDataPdf ( const char *fname, PIX *pixs );
 LEPT_DLL extern L_COMP_DATA * l_generateJpegData ( const char *fname, l_int32 ascii85flag );
@@ -1958,7 +1959,7 @@ LEPT_DLL extern l_int32 convertG4ToPSEmbed ( const char *filein, const char *fil
 LEPT_DLL extern l_int32 convertG4ToPS ( const char *filein, const char *fileout, const char *operation, l_int32 x, l_int32 y, l_int32 res, l_float32 scale, l_int32 pageno, l_int32 maskflag, l_int32 endpage );
 LEPT_DLL extern l_int32 convertG4ToPSString ( const char *filein, char **poutstr, l_int32 *pnbytes, l_int32 x, l_int32 y, l_int32 res, l_float32 scale, l_int32 pageno, l_int32 maskflag, l_int32 endpage );
 LEPT_DLL extern char * generateG4PS ( const char *filein, L_COMP_DATA *cid, l_float32 xpt, l_float32 ypt, l_float32 wpt, l_float32 hpt, l_int32 maskflag, l_int32 pageno, l_int32 endpage );
-LEPT_DLL extern l_int32 convertTiffMultipageToPS ( const char *filein, const char *fileout, const char *tempfile, l_float32 fillfract );
+LEPT_DLL extern l_int32 convertTiffMultipageToPS ( const char *filein, const char *fileout, l_float32 fillfract );
 LEPT_DLL extern l_int32 convertFlateToPSEmbed ( const char *filein, const char *fileout );
 LEPT_DLL extern l_int32 convertFlateToPS ( const char *filein, const char *fileout, const char *operation, l_int32 x, l_int32 y, l_int32 res, l_float32 scale, l_int32 pageno, l_int32 endpage );
 LEPT_DLL extern l_int32 convertFlateToPSString ( const char *filein, char **poutstr, l_int32 *pnbytes, l_int32 x, l_int32 y, l_int32 res, l_float32 scale, l_int32 pageno, l_int32 endpage );
