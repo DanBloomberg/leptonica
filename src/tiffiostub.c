@@ -80,13 +80,6 @@ l_int32 pixWriteStreamTiff(FILE *fp, PIX *pix, l_int32 comptype)
 
 /* ----------------------------------------------------------------------*/
 
-size_t inittoTiffOffset(const char *fname)
-{
-    return (size_t)ERROR_INT("function not present", initToTiffOffset, 0);
-}
-
-/* ----------------------------------------------------------------------*/
-
 PIX * pixReadFromMultipageTiff(const char *filename, size_t *poffset)
 {
     return (PIX *)ERROR_PTR("function not present",
