@@ -43,11 +43,12 @@ static const char *weasel_orig = "/tmp/lept/tiff/weasel_orig";
 int main(int    argc,
          char **argv)
 {
+l_uint8     *data;
 char        *fname, *filename;
 const char  *str;
 char         buffer[512];
-l_int32      i, npages;
-size_t       length;
+l_int32      i, n, npages;
+size_t       length, offset, size;
 FILE        *fp;
 NUMA        *naflags, *nasizes;
 PIX         *pix, *pix1, *pix2, *pixd;
@@ -78,6 +79,71 @@ static char  mainName[] = "mtifftest";
     pixDisplay(pixd, 100, 400);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
+
+        /* This uses the offset method for linearizing overhead of
+         * reading from a multi-image tiff file. */
+    offset = 0;
+    n = 0;
+    pixa = pixaCreate(8);
+    do {
+        pix1 = pixReadFromMultipageTiff("/tmp/lept/tiff/weasel8.tif", &offset);
+        if (!pix1) continue;
+        pixaAddPix(pixa, pix1, L_INSERT);
+        fprintf(stderr, "offset = %ld\n", offset);
+        n++;
+    } while (offset != 0);
+    fprintf(stderr, "Num images = %d\n", n);
+    pixd = pixaDisplayTiledInRows(pixa, 32, 1200, 1.2, 0, 15, 4);
+    pixDisplay(pixd, 100, 550);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+
+        /* This uses the offset method for linearizing overhead of
+         * reading from a multi-image tiff file in memory. */
+    offset = 0;
+    n = 0;
+    pixa = pixaCreate(8);
+    data = l_binaryRead("/tmp/lept/tiff/weasel8.tif", &size);
+    do {
+        pix1 = pixReadMemFromMultipageTiff(data, size, &offset);
+        if (!pix1) continue;
+        pixaAddPix(pixa, pix1, L_INSERT);
+        fprintf(stderr, "offset = %ld\n", offset);
+        n++;
+    } while (offset != 0);
+    fprintf(stderr, "Num images = %d\n", n);
+    pixd = pixaDisplayTiledInRows(pixa, 32, 1200, 1.2, 0, 15, 4);
+    pixDisplay(pixd, 100, 700);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+    lept_free(data);
+
+        /* This makes a 1001 image tiff file and gives timing
+         * for writing and reading.  Reading uses the offset method
+         * and the time is linear in the number of images, but the
+         * writing time is quadratic and the actual wall clock time is
+         * significantly more than the printed value. */
+    pix1 = pixRead("char.tif");
+    startTimer();
+    pixWriteTiff("/tmp/lept/tiff/junkm.tif", pix1, IFF_TIFF_G4, "w");
+    for (i = 0; i < 1000; i++) {
+        pixWriteTiff("/tmp/lept/tiff/junkm.tif", pix1, IFF_TIFF_G4, "a");
+    }
+    pixDestroy(&pix1);
+    fprintf(stderr, "Time to write: %7.3f\n", stopTimer());
+    startTimer();
+    offset = 0;
+    n = 0;
+    do {
+        pix1 = pixReadFromMultipageTiff("/tmp/lept/tiff/junkm.tif", &offset);
+        if (!pix1) continue;
+        if (n % 100 == 0)
+            fprintf(stderr, "offset = %ld\n", offset);
+        pixDestroy(&pix1);
+        n++;
+    } while (offset != 0);
+    fprintf(stderr, "Time to read: %7.3f\n", stopTimer());
+    fprintf(stderr, "Num images = %d\n", n);
 #endif
 
 #if 1   /* ------------ Test single-to-multipage I/O  -------------------*/

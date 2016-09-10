@@ -44,14 +44,14 @@
 
 PIX * pixReadTiff(const char *filename, l_int32 n)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadTiff", NULL);
+    return (PIX *)ERROR_PTR("function not present", "pixReadTiff", NULL);
 }
 
 /* ----------------------------------------------------------------------*/
 
 PIX * pixReadStreamTiff(FILE *fp, l_int32 n)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadStreamTiff", NULL);
+    return (PIX *)ERROR_PTR("function not present", "pixReadStreamTiff", NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -80,10 +80,25 @@ l_int32 pixWriteStreamTiff(FILE *fp, PIX *pix, l_int32 comptype)
 
 /* ----------------------------------------------------------------------*/
 
+size_t inittoTiffOffset(const char *fname)
+{
+    return (size_t)ERROR_INT("function not present", initToTiffOffset, 0);
+}
+
+/* ----------------------------------------------------------------------*/
+
+PIX * pixReadFromMultipageTiff(const char *filename, size_t *poffset)
+{
+    return (PIX *)ERROR_PTR("function not present",
+                            "pixReadFromMultipageTiff", NULL);
+}
+
+/* ----------------------------------------------------------------------*/
+
 PIXA * pixaReadMultipageTiff(const char *filename)
 {
-    return (PIXA * )ERROR_PTR("function not present",
-                              "pixaReadMultipageTiff", NULL);
+    return (PIXA *)ERROR_PTR("function not present",
+                             "pixaReadMultipageTiff", NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -171,6 +186,15 @@ l_int32 extractG4DataFromFile(const char *filein, l_uint8 **pdata,
 PIX * pixReadMemTiff(const l_uint8 *cdata, size_t size, l_int32 n)
 {
     return (PIX *)ERROR_PTR("function not present", "pixReadMemTiff", NULL);
+}
+
+/* ----------------------------------------------------------------------*/
+
+PIX * pixReadMemFromMultipageTiff(const l_uint8 *cdata, size_t size,
+                                  size_t *poffset)
+{
+    return (PIX *)ERROR_PTR("function not present",
+                            "pixReadMemFromMultipageTiff", NULL);
 }
 
 /* ----------------------------------------------------------------------*/

@@ -2549,6 +2549,7 @@ LEPT_DLL extern PIX * pixReadStreamTiff ( FILE *fp, l_int32 n );
 LEPT_DLL extern l_int32 pixWriteTiff ( const char *filename, PIX *pix, l_int32 comptype, const char *modestring );
 LEPT_DLL extern l_int32 pixWriteTiffCustom ( const char *filename, PIX *pix, l_int32 comptype, const char *modestring, NUMA *natags, SARRAY *savals, SARRAY *satypes, NUMA *nasizes );
 LEPT_DLL extern l_int32 pixWriteStreamTiff ( FILE *fp, PIX *pix, l_int32 comptype );
+LEPT_DLL extern PIX * pixReadFromMultipageTiff ( const char *fname, size_t *poffset );
 LEPT_DLL extern PIXA * pixaReadMultipageTiff ( const char *filename );
 LEPT_DLL extern l_int32 writeMultipageTiff ( const char *dirin, const char *substr, const char *fileout );
 LEPT_DLL extern l_int32 writeMultipageTiffSA ( SARRAY *sa, const char *fileout );
@@ -2561,6 +2562,7 @@ LEPT_DLL extern l_int32 readHeaderMemTiff ( const l_uint8 *cdata, size_t size, l
 LEPT_DLL extern l_int32 findTiffCompression ( FILE *fp, l_int32 *pcomptype );
 LEPT_DLL extern l_int32 extractG4DataFromFile ( const char *filein, l_uint8 **pdata, size_t *pnbytes, l_int32 *pw, l_int32 *ph, l_int32 *pminisblack );
 LEPT_DLL extern PIX * pixReadMemTiff ( const l_uint8 *cdata, size_t size, l_int32 n );
+LEPT_DLL extern PIX * pixReadMemFromMultipageTiff ( const l_uint8 *cdata, size_t size, size_t *poffset );
 LEPT_DLL extern l_int32 pixWriteMemTiff ( l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 comptype );
 LEPT_DLL extern l_int32 pixWriteMemTiffCustom ( l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 comptype, NUMA *natags, SARRAY *savals, SARRAY *satypes, NUMA *nasizes );
 LEPT_DLL extern l_int32 setMsgSeverity ( l_int32 newsev );

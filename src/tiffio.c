@@ -48,7 +48,8 @@
  *      static l_int32    writeCustomTiffTags()
  *
  *     Reading and writing multipage tiff
- *             PIXA       pixaReadMultipageTiff()
+ *             PIX       *pixReadFromMultipageTiff()
+ *             PIXA      *pixaReadMultipageTiff()
  *             l_int32    writeMultipageTiff()  [ special top level ]
  *             l_int32    writeMultipageTiffSA()
  *
@@ -73,9 +74,10 @@
  *     Wrapper for TIFFOpen:
  *      static TIFF      *openTiff()
  *
- *     Memory I/O: reading memory --\> pix and writing pix --\> memory
+ *     Memory I/O: reading memory --> pix and writing pix --> memory
  *             [10 static helper functions]
- *             l_int32    pixReadMemTiff();
+ *             PIX       *pixReadMemTiff();
+ *             PIX       *pixReadMemFromMultipageTiff();
  *             l_int32    pixWriteMemTiff();
  *             l_int32    pixWriteMemTiffCustom();
  *
@@ -380,7 +382,7 @@ PIX   *pix;
  *
  * \param[in]    fp file stream
  * \param[in]    n page number: 0 based
- * \return  pix, or NULL on error e.g., if the page number is invalid
+ * \return  pix, or NULL on error or if there are no more images in the file
  *
  * <pre>
  * Notes:
@@ -405,20 +407,14 @@ TIFF    *tif;
     if ((tif = fopenTiff(fp, "r")) == NULL)
         return (PIX *)ERROR_PTR("tif not opened", procName, NULL);
 
-    pix = NULL;
-    for (i = 0; i < MAX_PAGES_IN_TIFF_FILE; i++) {
-        TIFFSetDirectory(tif, i);
-        if (i == n) {
-            if ((pix = pixReadFromTiffStream(tif)) == NULL) {
-                TIFFCleanup(tif);
-                return NULL;
-            }
-            break;
-        }
-        if (TIFFReadDirectory(tif) == 0)
-            break;
+    if (TIFFSetDirectory(tif, n) == 0) {
+        TIFFCleanup(tif);
+        return NULL;
     }
-
+    if ((pix = pixReadFromTiffStream(tif)) == NULL) {
+        TIFFCleanup(tif);
+        return NULL;
+    }
     TIFFCleanup(tif);
     return pix;
 }
@@ -620,6 +616,7 @@ PIXCMAP   *cmap;
 }
 
 
+
 /*--------------------------------------------------------------*
  *                       Writing to file                        *
  *--------------------------------------------------------------*/
@@ -636,8 +633,12 @@ PIXCMAP   *cmap;
  *
  * <pre>
  * Notes:
- *      (1) For multi-page tiff, write the first pix with mode "w" and
+ *      (1) For multipage tiff, write the first pix with mode "w" and
  *          all subsequent pix with mode "a".
+ *      (2) For multipage tiff, there is considerable overhead in the
+ *          machinery to append an image and add the directory entry,
+ *          and the time required for each image increases linearly
+ *          with the number of images in the file.
  * </pre>
  */
 l_int32
@@ -669,7 +670,7 @@ pixWriteTiff(const char  *filename,
  *  Usage:
  *      1 This writes a page image to a tiff file, with optional
  *          extra tags defined in tiff.h
- *      2 For multi-page tiff, write the first pix with mode "w" and
+ *      2 For multipage tiff, write the first pix with mode "w" and
  *          all subsequent pix with mode "a".
  *      3 For the custom tiff tags:
  *          a The three arrays {natags, savals, satypes} must all be
@@ -1107,6 +1108,80 @@ l_uint32   uval, uval2;
 /*--------------------------------------------------------------*
  *               Reading and writing multipage tiff             *
  *--------------------------------------------------------------*/
+/*!
+ * \brief   pixReadFromMultipageTiff()
+ *
+ * \param[in]      fname     filename
+ * \param[in,out]  &offset   set offset to 0 for first image
+ * \return  pix, or NULL on error or if previous call returned the last image
+ *
+ * <pre>
+ * Notes:
+ *      (1) This allows overhead for traversal of a multipage tiff file
+ *          to be linear in the number of images.  This will also work
+ *          with a singlepage tiff file.
+ *      (2) No TIFF internal data structures are exposed to the caller
+ *          (thanks to Jeff Breidenbach).
+ *      (3) offset is the byte offset of a particular image in a multipage
+ *          tiff file. To get the first image in the file, input the
+ *          special offset value of 0.
+ *      (4) The offset is updated to point to the next image, for a
+ *          subsequent call.
+ *      (5) On the last image, the offset returned is 0.  Exit the loop
+ *          when the returned offset is 0.
+ *      (6) For reading a multipage tiff from a memory buffer, see
+ *            pixReadMemFromMultipageTiff()
+ *      (7) Example usage for reading all the images in the tif file:
+ *            size_t offset = 0;
+ *            do {
+ *                Pix *pix = pixReadFromMultipageTiff(filename, &offset);
+ *                // do something with pix
+ *            } while (offset != 0);
+ * </pre>
+ */
+PIX *
+pixReadFromMultipageTiff(const char  *fname,
+                         size_t      *poffset)
+{
+l_int32  retval;
+size_t   offset;
+PIX     *pix;
+TIFF    *tif;
+
+    PROCNAME("pixReadFromMultipageTiff");
+
+    if (!fname)
+        return (PIX *)ERROR_PTR("fname not defined", procName, NULL);
+    if (!poffset)
+        return (PIX *)ERROR_PTR("&offset not defined", procName, NULL);
+
+    if ((tif = TIFFOpen(fname, "r")) == NULL) {
+        L_ERROR("tif open failed for %s\n", procName, fname);
+        return NULL;
+    }
+
+        /* Set ptrs in the TIFF to the beginning of the image */
+    offset = *poffset;
+    retval = (offset == 0) ? TIFFSetDirectory(tif, 0)
+                            : TIFFSetSubDirectory(tif, offset);
+    if (retval == 0) {
+        TIFFCleanup(tif);
+        return NULL;
+    }
+
+    if ((pix = pixReadFromTiffStream(tif)) == NULL) {
+        TIFFCleanup(tif);
+        return NULL;
+    }
+
+        /* Advance to the next image and return the new offset */
+    TIFFReadDirectory(tif);
+    *poffset = TIFFCurrentDirOffset(tif);
+    TIFFClose(tif);
+    return pix;
+}
+
+
 /*!
  * \brief   pixaReadMultipageTiff()
  *
@@ -2188,8 +2263,8 @@ tiffUnmapCallback(thandle_t  handle,
  * <pre>
  * Notes:
  *      (1) This wraps up a number of callbacks for either:
- *            * reading from tiff in memory buffer --\> pix
- *            * writing from pix --\> tiff in memory buffer
+ *            * reading from tiff in memory buffer --> pix
+ *            * writing from pix --> tiff in memory buffer
  *      (2) After use, the memstream is automatically destroyed when
  *          TIFFClose() is called.  TIFFCleanup() doesn't free the memstream.
  * </pre>
@@ -2244,6 +2319,8 @@ L_MEMSTREAM  *mstream;
  *      (3) No warning messages on failure, because of how multi-page
  *          TIFF reading works. You are supposed to keep trying until
  *          it stops working.
+ *      (4) Tiff directory overhead is linear in the input page number.
+ *          If reading many images, use pixReadMemFromMultipageTiff().
  * </pre>
  */
 PIX *
@@ -2279,6 +2356,73 @@ TIFF     *tif;
             break;
     }
 
+    TIFFClose(tif);
+    return pix;
+}
+
+
+/*!
+ * \brief   pixReadMemFromMultipageTiff()
+ *
+ * \param[in]    cdata const; tiff-encoded
+ * \param[in]    size size of cdata
+ * \param[in,out]  &offset    set offset to 0 for first image
+ * \return  pix, or NULL on error or if previous call returned the last image
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a read-from-memory version of pixReadFromMultipageTiff().
+ *          See that function for usage.
+ *      (2) If reading sequentially from the tiff data, this is more
+ *          efficient than pixReadMemTiff(), which has an overhead
+ *          proportional to the image index n.
+ *      (3) Example usage for reading all the images:
+ *            size_t offset = 0;
+ *            do {
+ *                Pix *pix = pixReadMemFromMultipageTiff(data, size, &offset);
+ *                // do something with pix
+ *            } while (offset != 0);
+ * </pre>
+ */
+PIX *
+pixReadMemFromMultipageTiff(const l_uint8  *cdata,
+                            size_t          size,
+                            size_t         *poffset)
+{
+l_uint8  *data;
+l_int32   retval;
+size_t    offset;
+PIX      *pix;
+TIFF     *tif;
+
+    PROCNAME("pixReadMemFromMultipageTiff");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+    if (!poffset)
+        return (PIX *)ERROR_PTR("&offset not defined", procName, NULL);
+
+    data = (l_uint8 *)cdata;  /* we're really not going to change this */
+    if ((tif = fopenTiffMemstream("tifferror", "r", &data, &size)) == NULL)
+        return (PIX *)ERROR_PTR("tiff stream not opened", procName, NULL);
+
+        /* Set ptrs in the TIFF to the beginning of the image */
+    offset = *poffset;
+    retval = (offset == 0) ? TIFFSetDirectory(tif, 0)
+                           : TIFFSetSubDirectory(tif, offset);
+    if (retval == 0) {
+        TIFFClose(tif);
+        return NULL;
+    }
+
+    if ((pix = pixReadFromTiffStream(tif)) == NULL) {
+        TIFFClose(tif);
+        return NULL;
+    }
+
+        /* Advance to the next image and return the new offset */
+    TIFFReadDirectory(tif);
+    *poffset = TIFFCurrentDirOffset(tif);
     TIFFClose(tif);
     return pix;
 }
