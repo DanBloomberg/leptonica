@@ -1948,7 +1948,7 @@ char    *filename;
 
     PROCNAME("fopenWriteWinTempfile");
 
-    if ((filename = makeTempFilename()) == NULL) {
+    if ((filename = makeTempFilename(NULL)) == NULL) {
         L_ERROR("makeTempFilename failed, %s\n", procName, strerror(errno));
         return NULL;
     }
