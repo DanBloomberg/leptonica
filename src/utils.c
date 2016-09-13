@@ -122,7 +122,8 @@
  *           char      *genPathname()
  *           l_int32    makeTempDirname()
  *           l_int32    modifyTrailingSlash()
- *           char      *genTempFilename()
+ *           char      *genTempFilename()    DEPRECATED
+ *           char      *makeTempFilename()
  *           l_int32    extractNumberFromFilename()
  *
  *       File corruption operation
@@ -168,7 +169,7 @@
   *     and genPathname(), all input pathnames must have unix separators.
  *  (2) On Windows, when you specify a read or write to "/tmp/...",
  *      the filename is rewritten to use the Windows temp directory:
- *         /tmp  ==\>    \<Temp\>...    (windows)
+ *         /tmp  ==>   \<Temp\>...    (windows)
  *  (3) This filename rewrite, along with the conversion from unix
  *      to windows pathnames, happens in genPathname().
  *  (4) Use fopenReadStream() and fopenWriteStream() to open files,
@@ -1854,7 +1855,7 @@ FILE  *fp;
  *      (1) This should be used whenever you want to run fopen() to
  *          write or append to a stream.  Never call fopen() directory.
  *      (2) This handles the temp directory pathname conversion on windows:
- *              /tmp  ==\>  \<Windows Temp directory\>
+ *              /tmp  ==>  \<Windows Temp directory\>
  * </pre>
  */
 FILE *
@@ -1928,12 +1929,14 @@ FILE  *fp;
 /*!
  * \brief   fopenWriteWinTempfile()
  *
- *      Return: file stream, or NULL on error
+ * \return  file stream, or NULL on error
  *
- *  Notes:
- *      (1) Windows tmpfile() writes into the root C:\ directory, which
- *          requires admin privileges.  This provides an alternative
- *          implementation.
+ * <pre>
+ * Notes:
+ *      (1) The Windows version of tmpfile() writes into the root
+ *          C:\ directory, which requires admin privileges.  This
+ *          function provides an alternative implementation.
+ * </pre>
  */
 FILE *
 fopenWriteWinTempfile()
@@ -1945,8 +1948,8 @@ char    *filename;
 
     PROCNAME("fopenWriteWinTempfile");
 
-    if ((filename = genTempFilename("/tmp/", "lept", 1, 1)) == NULL) {
-        L_ERROR("genTempFilename failed, %s\n", procName, strerror(errno));
+    if ((filename = makeTempFilename()) == NULL) {
+        L_ERROR("makeTempFilename failed, %s\n", procName, strerror(errno));
         return NULL;
     }
 
@@ -2238,7 +2241,7 @@ char    *newpath;
  *      (2) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
  *          to a path in the windows \<Temp\> directory:
- *             "/tmp"  ==\>  \<Temp\> (windows)
+ *             "/tmp"  ==>  \<Temp\> (windows)
  * </pre>
  */
 void
@@ -2293,7 +2296,7 @@ char  *realdir;
  *      (4) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
  *          to a path in the windows \<Temp\> directory:
- *             "/tmp"  ==\>  \<Temp\> (windows)
+ *             "/tmp"  ==>  \<Temp\> (windows)
  *      (5) Error conditions:
  *            * returns -1 if the directory is not found
  *            * returns the number of files (\> 0) that it was unable to remove.
@@ -3029,7 +3032,10 @@ l_int32  dirlen, namelen, size;
  *          which is:
  *            /tmp/%subdir       (unix)
  *            \<Temp\>/%subdir     (windows)
- *          where \<Temp\> is a path on windows determined by GenTempPath().
+ *          where \<Temp\> is a path on windows determined by GenTempPath()
+ *          and %subdir is in general a set of nested subdirectories:
+ *            dir1/dir2/.../dirN
+ *          which in use would not typically exceed 2 levels.
  *      (3) Usage example:
  * \code
  *           char  result[256];
@@ -3111,7 +3117,7 @@ size_t  len;
 
 
 /*!
- * \brief   genTempFilename()
+ * \brief   genTempFilename()    !!!!! DEPRECATED !!!!!
  *
  * \param[in]    dir directory name; use '.' for local dir;
  *                   no trailing '/' and %dir == "/" is invalid
@@ -3145,7 +3151,7 @@ size_t  len;
  *          when using DLLs, you must use lept_free() to free the name.
  *      (7) When %dir is /tmp or a subdirectory of /tmp, genPathname()
  *          does a name translation for '/tmp' on windows:
- *             /tmp ==\> \<Temp\>
+ *             /tmp ==> \<Temp\>
  *          where \<Temp\> is a path on windows determined by GenTempPath().
  *      (8) Set %usetime = %usepid = 1 when
  *          (a) more than one process is writing and reading temp files, or
@@ -3194,6 +3200,76 @@ l_int32  i, buflen, usec, pid, emptytail;
     LEPT_FREE(newpath);
 
     return stringJoin(buf, tail);
+}
+
+
+/*!
+ * \brief   makeTempFilename()
+ *
+ * \param[in]    subdir (of the temp directory); can be NULL
+ * \return  fname : heap allocated filename; returns NULL on failure.
+ *
+ * <pre>
+ * Notes:
+ *      (1) On unix, this makes a filename of the form
+ *               "/tmp/<%subdir>/lept.XXXXXX",
+ *          where each X is a random character.
+ *      (2) On windows, this makes a filename of the form
+ *               "/<Temp>/<%subdir>/lptXXXXXX".
+ *      (3) %subdir can be a set of nested directories under the <Temp>
+ *          directory, such as lept/images.
+ *      (4) Calling this function makes the directory in which the file
+ *          will reside, because the existence of the directory is
+ *          required to test if the file can be made.  Therefore, if the
+ *          file will be deleted shortly after it is made, you can avoid
+ *          making a subdirectory by using %subdir = NULL.
+ *      (5) On all systems, this fails if the file is not writable.
+ *      (6) The returned filename must be freed by the caller, using lept_free.
+ *      (7) The tail of the filename has a '.', so that cygwin interprets
+ *          the file as having an extension.  Otherwise, cygwin assumes it
+ *          is an executable and appends ".exe" to the filename.
+ *      (8) On unix, whenever possible use tmpfile() instead.  tmpfile()
+ *          hides the file name, returns a stream opened for write,
+ *          and deletes the temp file when the stream is closed.
+ */
+char *
+makeTempFilename(const char  *subdir)
+{
+char  dirname[240];
+
+    PROCNAME("makeTempFilename");
+
+    if (makeTempDirname(dirname, sizeof(dirname), subdir) == 1)
+        return (char *)ERROR_PTR("failed to make dirname", procName, NULL);
+    if (subdir)
+        lept_mkdir(subdir);
+
+#ifndef _WIN32 
+{
+    char    *pattern;
+    l_int32  fd;
+    pattern = stringConcatNew(dirname, "/lept.XXXXXX", NULL);
+    fd = mkstemp(pattern);
+    if (fd == -1) {
+        LEPT_FREE(pattern);
+        return (char *)ERROR_PTR("mkstemp failed", procName, NULL);
+    }
+    close(fd);
+    lept_rmfile(pattern);
+    return pattern;
+}
+#else
+{
+    char  fname[MAX_PATH];
+    FILE *fp;
+    if (GetTempFileName(dirname, "lp.", 0, fname) == 0)
+        return (char *)ERROR_PTR("GetTempFileName failed", procName, NULL);
+    if ((fp = fopen(fname, "wb")) == NULL)
+        return (char *)ERROR_PTR("file cannot be written to", procName, NULL);
+    fclose(fp);
+    return stringNew(fname);
+}
+#endif  /*  ~ _WIN32 */
 }
 
 
@@ -3425,8 +3501,8 @@ genRandomIntegerInRange(l_int32   range,
  *
  * <pre>
  * Notes:
- *      (1) For fval \>= 0, fval --\> round(fval) == floor(fval + 0.5)
- *          For fval \< 0, fval --\> -round(-fval))
+ *      (1) For fval >= 0, fval --> round(fval) == floor(fval + 0.5)
+ *          For fval < 0, fval --> -round(-fval))
  *          This is symmetric around 0.
  *          e.g., for fval in (-0.5 ... 0.5), fval --\> 0
  * </pre>

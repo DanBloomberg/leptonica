@@ -2628,6 +2628,7 @@ LEPT_DLL extern char * genPathname ( const char *dir, const char *fname );
 LEPT_DLL extern l_int32 makeTempDirname ( char *result, size_t nbytes, const char *subdir );
 LEPT_DLL extern l_int32 modifyTrailingSlash ( char *path, size_t nbytes, l_int32 flag );
 LEPT_DLL extern char * genTempFilename ( const char *dir, const char *tail, l_int32 usetime, l_int32 usepid );
+LEPT_DLL extern char * makeTempFilename ( const char *subdir );
 LEPT_DLL extern l_int32 extractNumberFromFilename ( const char *fname, l_int32 numpre, l_int32 numpost );
 LEPT_DLL extern l_int32 fileCorruptByDeletion ( const char *filein, l_float32 loc, l_float32 size, const char *fileout );
 LEPT_DLL extern l_int32 fileCorruptByMutation ( const char *filein, l_float32 loc, l_float32 size, const char *fileout );
