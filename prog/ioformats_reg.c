@@ -485,7 +485,7 @@ part6:
     if (get_header_data(FILE_32BPP_ALPHA, IFF_PNG)) success = FALSE;
 
     pix = pixRead(FILE_8BPP_1);
-    tempname = makeTempFilename(NULL);
+    tempname = l_makeTempFilename(NULL);
     pixWrite(tempname, pix, IFF_PNM);
     if (get_header_data(tempname, IFF_PNM)) success = FALSE;
     pixDestroy(&pix);

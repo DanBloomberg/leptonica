@@ -528,7 +528,7 @@ PIX   *pix;
     L_WARNING("writing to a temp file, not directly to memory\n", procName);
 
         /* Write to a temp file */
-    fname = makeTempFilename(NULL);
+    fname = l_makeTempFilename(NULL);
     l_binaryWrite(fname, "w", (l_uint8 *)cdata, size);
 
         /* Read back from the file */
@@ -573,7 +573,7 @@ char  *fname;
     L_WARNING("writing to a temp file, not directly to memory\n", procName);
 
         /* Write to a temp file */
-    fname = makeTempFilename(NULL);
+    fname = l_makeTempFilename(NULL);
     pixWrite(fname, pix, IFF_GIF);
 
         /* Read back into memory */

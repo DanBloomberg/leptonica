@@ -123,7 +123,7 @@
  *           l_int32    makeTempDirname()
  *           l_int32    modifyTrailingSlash()
  *           char      *genTempFilename()    DEPRECATED
- *           char      *makeTempFilename()
+ *           char      *l_makeTempFilename()
  *           l_int32    extractNumberFromFilename()
  *
  *       File corruption operation
@@ -1948,8 +1948,8 @@ char    *filename;
 
     PROCNAME("fopenWriteWinTempfile");
 
-    if ((filename = makeTempFilename(NULL)) == NULL) {
-        L_ERROR("makeTempFilename failed, %s\n", procName, strerror(errno));
+    if ((filename = l_makeTempFilename(NULL)) == NULL) {
+        L_ERROR("l_makeTempFilename failed, %s\n", procName, strerror(errno));
         return NULL;
     }
 
@@ -3204,7 +3204,7 @@ l_int32  i, buflen, usec, pid, emptytail;
 
 
 /*!
- * \brief   makeTempFilename()
+ * \brief   l_makeTempFilename()
  *
  * \param[in]    subdir (of the temp directory); can be NULL
  * \return  fname : heap allocated filename; returns NULL on failure.
@@ -3236,11 +3236,11 @@ l_int32  i, buflen, usec, pid, emptytail;
  *          and deletes the temp file when the stream is closed.
  */
 char *
-makeTempFilename(const char  *subdir)
+l_makeTempFilename(const char  *subdir)
 {
 char  dirname[240];
 
-    PROCNAME("makeTempFilename");
+    PROCNAME("l_makeTempFilename");
 
     if (makeTempDirname(dirname, sizeof(dirname), subdir) == 1)
         return (char *)ERROR_PTR("failed to make dirname", procName, NULL);
