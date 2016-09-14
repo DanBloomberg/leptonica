@@ -3215,7 +3215,7 @@ l_int32  i, buflen, usec, pid, emptytail;
  *               "/tmp/<%subdir>/lept.XXXXXX",
  *          where each X is a random character.
  *      (2) On windows, this makes a filename of the form
- *               "/<Temp>/<%subdir>/lptXXXXXX".
+ *               "/<Temp>/<%subdir>/lp.XXXXXX".
  *      (3) %subdir can be a set of nested directories under the <Temp>
  *          directory, such as lept/images.
  *      (4) Calling this function makes the directory in which the file
@@ -3224,11 +3224,14 @@ l_int32  i, buflen, usec, pid, emptytail;
  *          file will be deleted shortly after it is made, you can avoid
  *          making a subdirectory by using %subdir = NULL.
  *      (5) On all systems, this fails if the file is not writable.
- *      (6) The returned filename must be freed by the caller, using lept_free.
- *      (7) The tail of the filename has a '.', so that cygwin interprets
+ *      (6) Safest usage is either to write the file in the /tmp
+ *          directory (%subdir == NULL), or to write to a subdirectory
+ *          only in debug sections of the code.
+ *      (7) The returned filename must be freed by the caller, using lept_free.
+ *      (8) The tail of the filename has a '.', so that cygwin interprets
  *          the file as having an extension.  Otherwise, cygwin assumes it
  *          is an executable and appends ".exe" to the filename.
- *      (8) On unix, whenever possible use tmpfile() instead.  tmpfile()
+ *      (9) On unix, whenever possible use tmpfile() instead.  tmpfile()
  *          hides the file name, returns a stream opened for write,
  *          and deletes the temp file when the stream is closed.
  */
@@ -3244,7 +3247,7 @@ char  dirname[240];
     if (subdir)
         lept_mkdir(subdir);
 
-#ifndef _WIN32 
+#ifndef _WIN32
 {
     char    *pattern;
     l_int32  fd;
@@ -3255,7 +3258,6 @@ char  dirname[240];
         return (char *)ERROR_PTR("mkstemp failed", procName, NULL);
     }
     close(fd);
-    lept_rmfile(pattern);
     return pattern;
 }
 #else

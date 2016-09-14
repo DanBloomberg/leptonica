@@ -528,13 +528,13 @@ PIX   *pix;
     L_WARNING("writing to a temp file, not directly to memory\n", procName);
 
         /* Write to a temp file */
-    fname = genTempFilename("/tmp/", "mem.gif", 1, 1);
+    fname = makeTempFilename(NULL);
     l_binaryWrite(fname, "w", (l_uint8 *)cdata, size);
 
         /* Read back from the file */
     pix = pixRead(fname);
     lept_rmfile(fname);
-    lept_free(fname);
+    LEPT_FREE(fname);
     if (!pix) L_ERROR("pix not read\n", procName);
     return pix;
 }
@@ -573,13 +573,13 @@ char  *fname;
     L_WARNING("writing to a temp file, not directly to memory\n", procName);
 
         /* Write to a temp file */
-    fname = genTempFilename("/tmp/", "mem.gif", 1, 1);
+    fname = makeTempFilename(NULL);
     pixWrite(fname, pix, IFF_GIF);
 
         /* Read back into memory */
     *pdata = l_binaryRead(fname, psize);
     lept_rmfile(fname);
-    lept_free(fname);
+    LEPT_FREE(fname);
     return 0;
 }
 

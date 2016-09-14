@@ -33,7 +33,6 @@
  *        l_int32     pixWriteAutoFormat()
  *        l_int32     pixWriteStream()
  *        l_int32     pixWriteImpliedFormat()
- *        l_int32     pixWriteTempfile()
  *
  *     Selection of output format if default is requested
  *        l_int32     pixChooseOutputFormat()
@@ -475,57 +474,6 @@ l_int32  format;
     }
 
     return 0;
-}
-
-
-/*!
- * \brief   pixWriteTempfile()
- *
- * \param[in]    dir directory name; use '.' for local dir; no trailing '/'
- * \param[in]    tail [optional] tailname, including extension if any
- * \param[in]    pix
- * \param[in]    format
- * \param[in]    &filename [optional] return actual filename used; use
- *                         null to skip
- * \return  0 if OK; 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This generates a temp filename, writes the pix to it,
- *          and optionally returns the temp filename.
- *      (2) If the filename is returned to a windows program from a DLL,
- *          use lept_free() to free it.
- *      (3) See genTempFilename() for details.  We omit the time and pid
- *          here.
- * </pre>
- */
-l_int32
-pixWriteTempfile(const char  *dir,
-                 const char  *tail,
-                 PIX         *pix,
-                 l_int32      format,
-                 char       **pfilename)
-{
-char    *filename;
-l_int32  ret;
-
-    PROCNAME("pixWriteTempfile");
-
-    if (!dir)
-        return ERROR_INT("filename not defined", procName, 1);
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
-
-    if ((filename = genTempFilename(dir, tail, 0, 0)) == NULL)
-        return ERROR_INT("temp filename not made", procName, 1);
-
-    ret = pixWrite(filename, pix, format);
-    if (pfilename)
-        *pfilename = filename;
-    else
-        LEPT_FREE(filename);
-
-    return ret;
 }
 
 

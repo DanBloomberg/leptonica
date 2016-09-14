@@ -1249,12 +1249,12 @@ L_COMP_DATA  *cid;
 
         /* Compress to a temp jpeg file */
     lept_mkdir("lept");
-    fname = genTempFilename("/tmp/lept", "temp.jpg", 1, 1);
+    fname = makeTempFilename(NULL);
     pixWriteJpeg(fname, pixs, quality, 0);
 
     cid = l_generateJpegData(fname, ascii85flag);
     lept_rmfile(fname);
-    lept_free(fname);
+    LEPT_FREE(fname);
     return cid;
 }
 
@@ -1289,12 +1289,12 @@ L_COMP_DATA  *cid;
 
         /* Compress to a temp tiff g4 file */
     lept_mkdir("lept");
-    tname = genTempFilename("/tmp/lept", "temp.tif", 1, 1);
+    tname = makeTempFilename(NULL);
     pixWrite(tname, pixs, IFF_TIFF_G4);
 
     cid = l_generateG4Data(tname, ascii85flag);
     lept_rmfile(tname);
-    lept_free(tname);
+    LEPT_FREE(tname);
     return cid;
 }
 

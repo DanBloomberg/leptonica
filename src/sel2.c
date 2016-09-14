@@ -485,13 +485,14 @@ SEL       *sel;
 
     if (debugflag) {
         l_int32  w;
+        lept_mkdir("lept/sel");
         pixaGetPixDimensions(pixa, 0, &w, NULL, NULL);
         pixt = pixaDisplayTiledAndScaled(pixa, 32, w, 1, 0, 10, 2);
-        pixWriteTempfile("/tmp", "xsel1.png", pixt, IFF_PNG, 0);
+        pixWrite("/tmp/lept/sel/xsel1.png", pixt, IFF_PNG);
         pixDisplay(pixt, 0, 100);
         pixDestroy(&pixt);
         pixt = selaDisplayInPix(sela, 15, 2, 20, 1);
-        pixWriteTempfile("/tmp", "xsel2.png", pixt, IFF_PNG, 0);
+        pixWrite("/tmp/lept/sel/xsel2.png", pixt, IFF_PNG);
         pixDisplay(pixt, 500, 100);
         pixDestroy(&pixt);
         selaWriteStream(stderr, sela);
@@ -616,13 +617,14 @@ SEL       *sel;
 
     if (debugflag) {
         l_int32  w;
+        lept_mkdir("lept/sel");
         pixaGetPixDimensions(pixa, 0, &w, NULL, NULL);
         pixt = pixaDisplayTiledAndScaled(pixa, 32, w, 4, 0, 10, 2);
-        pixWriteTempfile("/tmp", "tsel1.png", pixt, IFF_PNG, 0);
+        pixWrite("/tmp/lept/sel/tsel1.png", pixt, IFF_PNG);
         pixDisplay(pixt, 0, 100);
         pixDestroy(&pixt);
         pixt = selaDisplayInPix(sela, 15, 2, 20, 4);
-        pixWriteTempfile("/tmp", "tsel2.png", pixt, IFF_PNG, 0);
+        pixWrite("/tmp/lept/sel/tsel2.png", pixt, IFF_PNG);
         pixDisplay(pixt, 500, 100);
         pixDestroy(&pixt);
         selaWriteStream(stderr, sela);
