@@ -122,7 +122,6 @@
  *           char      *genPathname()
  *           l_int32    makeTempDirname()
  *           l_int32    modifyTrailingSlash()
- *           char      *genTempFilename()    DEPRECATED
  *           char      *l_makeTempFilename()
  *           l_int32    extractNumberFromFilename()
  *
@@ -3113,93 +3112,6 @@ size_t  len;
         path[len - 1] = '\0';
     }
     return 0;
-}
-
-
-/*!
- * \brief   genTempFilename()    !!!!! DEPRECATED !!!!!
- *
- * \param[in]    dir directory name; use '.' for local dir;
- *                   no trailing '/' and %dir == "/" is invalid
- * \param[in]    tail [optional]  tailname, including extension if any;
- *                    can be null or empty but can't contain '/'
- * \param[in]    usetime 1 to include current time in microseconds in
- *                       the filename; 0 to omit.
- *              usepid (1 to include pid in filename; 0 to omit.
- * \return  temp filename, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) This makes a filename that is as unique as desired, and which
- *          can optionally include both the time and pid in the name.
- *      (2) Use unix-style pathname separators ('/').
- *      (3) Specifying the root directory (%dir == "/") is invalid.
- *      (4) Specifying a %tail containing '/' is invalid.
- *      (5) The most general form (%usetime = %usepid = 1) is:
- *              \<dir\>/\<usec\>_\<pid\>_\<tail\>
- *          When %usetime = 1, %usepid = 0, the output filename is:
- *              \<dir\>/\<usec\>_\<tail\>
- *          When %usepid = 0, %usepid = 1, the output filename is:
- *              \<dir\>/\<pid\>_\<tail\>
- *          When %usetime = %usepid = 0, the output filename is:
- *              \<dir\>/\<tail\>
- *          Note: It is not valid to have %tail = null or empty and have
- *          both %usetime = %usepid = 0.  That is, there must be
- *          some non-empty tail name.
- *      (6) N.B. The caller is responsible for freeing the returned filename.
- *          For windows, to avoid C-runtime boundary crossing problems
- *          when using DLLs, you must use lept_free() to free the name.
- *      (7) When %dir is /tmp or a subdirectory of /tmp, genPathname()
- *          does a name translation for '/tmp' on windows:
- *             /tmp ==> \<Temp\>
- *          where \<Temp\> is a path on windows determined by GenTempPath().
- *      (8) Set %usetime = %usepid = 1 when
- *          (a) more than one process is writing and reading temp files, or
- *          (b) multiple threads from a single process call this function, or
- *          (c) there is the possibility of an attack where the intruder
- *              is logged onto the server and might try to guess filenames.
- * </pre>
- */
-char *
-genTempFilename(const char  *dir,
-                const char  *tail,
-                l_int32      usetime,
-                l_int32      usepid)
-{
-char     buf[256];
-char    *newpath;
-l_int32  i, buflen, usec, pid, emptytail;
-
-    PROCNAME("genTempFilename");
-
-    if (!dir)
-        return (char *)ERROR_PTR("dir not defined", procName, NULL);
-    if (dir && strlen(dir) == 1 && dir[0] == '/')
-        return (char *)ERROR_PTR("dir == '/' not permitted", procName, NULL);
-    if (tail && strlen(tail) > 0 && stringFindSubstr(tail, "/", NULL))
-        return (char *)ERROR_PTR("tail can't contain '/'", procName, NULL);
-    emptytail = tail && (strlen(tail) == 0);
-    if (!usetime && !usepid && (!tail || emptytail))
-        return (char *)ERROR_PTR("name can't be a directory", procName, NULL);
-
-    if (usepid) pid = getpid();
-    buflen = sizeof(buf);
-    for (i = 0; i < buflen; i++)
-        buf[i] = 0;
-    l_getCurrentTime(NULL, &usec);
-
-    newpath = genPathname(dir, NULL);
-    if (usetime && usepid)
-        snprintf(buf, buflen, "%s/%d_%d_", newpath, usec, pid);
-    else if (usetime)
-        snprintf(buf, buflen, "%s/%d_", newpath, usec);
-    else if (usepid)
-        snprintf(buf, buflen, "%s/%d_", newpath, pid);
-    else
-        snprintf(buf, buflen, "%s/", newpath);
-    LEPT_FREE(newpath);
-
-    return stringJoin(buf, tail);
 }
 
 
