@@ -814,6 +814,8 @@ PIX     *pixt1, *pixt2;
  * Notes:
  *      (1) See pixCompareGrayOrRGB() for details.
  *      (2) Use pixCompareGrayOrRGB() if the input pix are colormapped.
+ *      (3) Note: setting %plottype > 0 can result in writing named
+ *                output files.
  * </pre>
  */
 l_int32
@@ -871,6 +873,7 @@ PIX            *pixt;
 
         /* Don't bother to plot if the images are the same */
     if (plottype && !same) {
+        L_INFO("Images differ: output plots will be generated\n", procName);
         na = pixGetGrayHistogram(pixt, 1);
         numaGetNonzeroRange(na, TINY, &first, &last);
         nac = numaClipToInterval(na, 0, last);
@@ -920,6 +923,8 @@ PIX            *pixt;
  * <pre>
  * Notes:
  *      (1) See pixCompareGrayOrRGB() for details.
+ *      (2) Note: setting %plottype > 0 can result in writing named
+ *                output files.
  * </pre>
  */
 l_int32
@@ -991,6 +996,7 @@ PIX            *pixr, *pixg, *pixb;
 
         /* Don't bother to plot if the images are the same */
     if (plottype && !same) {
+        L_INFO("Images differ: output plots will be generated\n", procName);
         nar = pixGetGrayHistogram(pixr, 1);
         nag = pixGetGrayHistogram(pixg, 1);
         nab = pixGetGrayHistogram(pixb, 1);
