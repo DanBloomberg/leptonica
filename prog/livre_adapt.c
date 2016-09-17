@@ -48,13 +48,13 @@ static char  mainName[] = "livre_adapt";
     pixDisplayWrite(NULL, -1);
     if ((pixs = pixRead("brothers.150.jpg")) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
-    pixDisplayWriteFormat(pixs, 2, IFF_JFIF_JPEG);
+    pixDisplayWriteFormat(pixs, 2, IFF_DEFAULT);
 
         /* Normalize for uneven illumination on RGB image */
     pixBackgroundNormRGBArraysMorph(pixs, NULL, 4, 5, 200,
                                     &pixr, &pixg, &pixb);
     pixd = pixApplyInvBackgroundRGBMap(pixs, pixr, pixg, pixb, 4, 4);
-    pixDisplayWriteFormat(pixd, 2, IFF_JFIF_JPEG);
+    pixDisplayWriteFormat(pixd, 2, IFF_DEFAULT);
     pixDestroy(&pixr);
     pixDestroy(&pixg);
     pixDestroy(&pixb);
@@ -62,26 +62,26 @@ static char  mainName[] = "livre_adapt";
 
         /* Convert the RGB image to grayscale. */
     pixsg = pixConvertRGBToLuminance(pixs);
-    pixDisplayWriteFormat(pixsg, 2, IFF_JFIF_JPEG);
+    pixDisplayWriteFormat(pixsg, 2, IFF_DEFAULT);
 
         /* Remove the text in the fg. */
     pixc = pixCloseGray(pixsg, 25, 25);
-    pixDisplayWriteFormat(pixc, 2, IFF_JFIF_JPEG);
+    pixDisplayWriteFormat(pixc, 2, IFF_DEFAULT);
 
         /* Smooth the bg with a convolution. */
     pixsm = pixBlockconv(pixc, 15, 15);
-    pixDisplayWriteFormat(pixsm, 2, IFF_JFIF_JPEG);
+    pixDisplayWriteFormat(pixsm, 2, IFF_DEFAULT);
     pixDestroy(&pixc);
 
         /* Normalize for uneven illumination on gray image. */
     pixBackgroundNormGrayArrayMorph(pixsg, NULL, 4, 5, 200, &pixg);
     pixc = pixApplyInvBackgroundGrayMap(pixsg, pixg, 4, 4);
-    pixDisplayWriteFormat(pixc, 2, IFF_JFIF_JPEG);
+    pixDisplayWriteFormat(pixc, 2, IFF_DEFAULT);
     pixDestroy(&pixg);
 
         /* Increase the dynamic range. */
     pixd = pixGammaTRC(NULL, pixc, 1.0, 30, 180);
-    pixDisplayWriteFormat(pixd, 2, IFF_JFIF_JPEG);
+    pixDisplayWriteFormat(pixd, 2, IFF_DEFAULT);
     pixDestroy(&pixc);
 
         /* Threshold to 1 bpp. */
@@ -91,9 +91,9 @@ static char  mainName[] = "livre_adapt";
     pixDestroy(&pixb);
 
             /* Generate the output image */
-    pixa = pixaReadFiles("/tmp/display", "file");
+    pixa = pixaReadFiles("/tmp/lept/display", "file");
     pixd = pixaDisplayTiledAndScaled(pixa, 8, 350, 4, 0, 25, 2);
-    pixWrite("/tmp/adapt.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/adapt.jpg", pixd, IFF_DEFAULT);
     pixDisplayWithTitle(pixd, 100, 100, NULL, 1);
     pixDestroy(&pixd);
 

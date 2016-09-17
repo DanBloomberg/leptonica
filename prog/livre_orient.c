@@ -77,7 +77,7 @@ SELA        *sela;
     selaAddSel(sela, sel4, "textsel4", L_INSERT);
 
     pixd = selaDisplayInPix(sela, 28, 3, 30, 4);
-    pixWrite("/tmp/orient.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/orient.png", pixd, IFF_PNG);
     pixDisplay(pixd, 100, 100);
 
     pixDestroy(&pixd);

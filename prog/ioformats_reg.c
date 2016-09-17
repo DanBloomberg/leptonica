@@ -485,15 +485,11 @@ part6:
     if (get_header_data(FILE_32BPP_ALPHA, IFF_PNG)) success = FALSE;
 
     pix = pixRead(FILE_8BPP_1);
-    tempname = genTempFilename((const char *)"/tmp/lept/regout",
-                               (const char *)".pnm", 1, 1);
+    tempname = l_makeTempFilename(NULL);
     pixWrite(tempname, pix, IFF_PNM);
     if (get_header_data(tempname, IFF_PNM)) success = FALSE;
     pixDestroy(&pix);
-    lept_free(tempname);
     pix = pixRead(FILE_1BPP);
-    tempname = genTempFilename((const char *)"/tmp/lept/regout",
-                               (const char *)".tif", 1, 1);
     pixWrite(tempname, pix, IFF_TIFF_G3);
     if (get_header_data(tempname, IFF_TIFF_G3)) success = FALSE;
     pixWrite(tempname, pix, IFF_TIFF_G4);
@@ -509,6 +505,7 @@ part6:
     pixWrite(tempname, pix, IFF_TIFF);
     if (get_header_data(tempname, IFF_TIFF)) success = FALSE;
     pixDestroy(&pix);
+    lept_rmfile(tempname);
     lept_free(tempname);
 
     if (success)

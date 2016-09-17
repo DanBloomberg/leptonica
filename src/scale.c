@@ -2346,7 +2346,7 @@ PIX       *pixd;
         return pixCopy(NULL, pixs);
 
     if (d == 1)
-        return pixExpandBinaryReplicate(pixs, factor);
+        return pixExpandBinaryReplicate(pixs, factor, factor);
 
     wd = factor * w;
     hd = factor * h;

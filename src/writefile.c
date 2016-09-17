@@ -1,5 +1,5 @@
 /*====================================================================*
- -  Copyright (C) 2001 Leptonica.  All rights reserved.
+ -  Copyright (C) 2001-2016 Leptonica.  All rights reserved.
  -
  -  Redistribution and use in source and binary forms, with or without
  -  modification, are permitted provided that the following conditions
@@ -33,7 +33,6 @@
  *        l_int32     pixWriteAutoFormat()
  *        l_int32     pixWriteStream()
  *        l_int32     pixWriteImpliedFormat()
- *        l_int32     pixWriteTempfile()
  *
  *     Selection of output format if default is requested
  *        l_int32     pixChooseOutputFormat()
@@ -478,57 +477,6 @@ l_int32  format;
 }
 
 
-/*!
- * \brief   pixWriteTempfile()
- *
- * \param[in]    dir directory name; use '.' for local dir; no trailing '/'
- * \param[in]    tail [optional] tailname, including extension if any
- * \param[in]    pix
- * \param[in]    format
- * \param[in]    &filename [optional] return actual filename used; use
- *                         null to skip
- * \return  0 if OK; 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This generates a temp filename, writes the pix to it,
- *          and optionally returns the temp filename.
- *      (2) If the filename is returned to a windows program from a DLL,
- *          use lept_free() to free it.
- *      (3) See genTempFilename() for details.  We omit the time and pid
- *          here.
- * </pre>
- */
-l_int32
-pixWriteTempfile(const char  *dir,
-                 const char  *tail,
-                 PIX         *pix,
-                 l_int32      format,
-                 char       **pfilename)
-{
-char    *filename;
-l_int32  ret;
-
-    PROCNAME("pixWriteTempfile");
-
-    if (!dir)
-        return ERROR_INT("filename not defined", procName, 1);
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
-
-    if ((filename = genTempFilename(dir, tail, 0, 0)) == NULL)
-        return ERROR_INT("temp filename not made", procName, 1);
-
-    ret = pixWrite(filename, pix, format);
-    if (pfilename)
-        *pfilename = filename;
-    else
-        LEPT_FREE(filename);
-
-    return ret;
-}
-
-
 /*---------------------------------------------------------------------*
  *          Selection of output format if default is requested         *
  *---------------------------------------------------------------------*/
@@ -818,12 +766,17 @@ PIX   *pix;
  *
  * <pre>
  * Notes:
- *      (1) This displays the image using xzgv, xli or xv on Unix,
- *          or i_view on Windows.  The display program must be on
- *          your $PATH variable.  It is chosen by setting the global
- *          var_DISPLAY_PROG, using l_chooseDisplayProg().
- *          Default on Unix is xzgv.
- *      (2) Images with dimensions larger than MAX_DISPLAY_WIDTH or
+ *      (1) This is debugging code that displays an image on the screen.
+ *          It uses a static internal variable to number the output files
+ *          written by a single process.  Behavior with a shared library
+ *          may be unpredictable.
+ *      (2) It uses these programs to display the image:
+ *             On Unix: xzgv, xli or xv
+ *             On Windows: i_view
+ *          The display program must be on your $PATH variable.  It is
+ *          chosen by setting the global var_DISPLAY_PROG, using
+ *          l_chooseDisplayProg().  Default on Unix is xzgv.
+ *      (3) Images with dimensions larger than MAX_DISPLAY_WIDTH or
  *          MAX_DISPLAY_HEIGHT are downscaled to fit those constraints.
  *          This is particularly important for displaying 1 bpp images
  *          with xv, because xv automatically downscales large images
@@ -831,13 +784,15 @@ PIX   *pix;
  *          scale-to-gray to get decent-looking anti-aliased images.
  *          In all cases, we write a temporary file to /tmp/lept/disp,
  *          that is read by the display program.
- *      (3) For spp == 4, we call pixDisplayLayersRGBA() to show 3
+ *      (4) The temporary file is written as png if, after initial
+ *          processing for special cases, any of these obtain:
+ *            * pix dimensions are smaller than some thresholds
+ *            * pix depth is less than 8 bpp
+ *            * pix is colormapped
+ *      (5) For spp == 4, we call pixDisplayLayersRGBA() to show 3
  *          versions of the image: the image with a fully opaque
  *          alpha, the alpha, and the image as it would appear with
  *          a white background.
- *      (4) Note: this function uses a static internal variable to number
- *          output files written by a single process.  Behavior with a
- *          shared library may be unpredictable.
  * </pre>
  */
 l_int32
@@ -861,7 +816,7 @@ pixDisplay(PIX     *pixs,
  * <pre>
  * Notes:
  *      (1) See notes for pixDisplay().
- *      (2) This displays the image if dispflag == 1.
+ *      (2) This displays the image if dispflag == 1; otherwise it punts.
  * </pre>
  */
 l_int32
@@ -945,13 +900,13 @@ char            fullpath[_MAX_PATH];
     else
         pix2 = pixClone(pix1);
 
-    if (index == 0) {
+    if (index == 0) {  /* erase any existing images */
         lept_rmdir("lept/disp");
         lept_mkdir("lept/disp");
     }
 
     index++;
-    if (pixGetDepth(pix2) < 8 ||
+    if (pixGetDepth(pix2) < 8 || pixGetColormap(pix2) ||
         (w < MAX_SIZE_FOR_PNG && h < MAX_SIZE_FOR_PNG)) {
         snprintf(buffer, L_BUF_SIZE, "/tmp/lept/disp/write.%03d.png", index);
         pixWrite(buffer, pix2, IFF_PNG);

@@ -40,18 +40,15 @@ static const char *weasel_rev = "/tmp/lept/tiff/weasel_rev";
 static const char *weasel_rev_rev = "/tmp/lept/tiff/weasel_rev_rev";
 static const char *weasel_orig = "/tmp/lept/tiff/weasel_orig";
 
-static l_int32 ConvertTiffMultipageToPdf(const char *filein,
-                                         const char *fileout);
-
-
 int main(int    argc,
          char **argv)
 {
+l_uint8     *data;
 char        *fname, *filename;
 const char  *str;
 char         buffer[512];
-l_int32      i, npages;
-size_t       length;
+l_int32      i, n, npages;
+size_t       length, offset, size;
 FILE        *fp;
 NUMA        *naflags, *nasizes;
 PIX         *pix, *pix1, *pix2, *pixd;
@@ -67,7 +64,7 @@ static char  mainName[] = "mtifftest";
 
 #if 1   /* ------------------  Test multipage I/O  -------------------*/
         /* This puts every image file in the directory with a string
-         * match to "weasel" into a multipage tiff file.
+         * match to "weasel8" into a multipage tiff file.
          * Images with 1 bpp are coded as g4; the others as zip.
          * It then reads back into a pix and displays.  */
     writeMultipageTiff(".", "weasel8.", "/tmp/lept/tiff/weasel8.tif");
@@ -82,6 +79,71 @@ static char  mainName[] = "mtifftest";
     pixDisplay(pixd, 100, 400);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
+
+        /* This uses the offset method for linearizing overhead of
+         * reading from a multi-image tiff file. */
+    offset = 0;
+    n = 0;
+    pixa = pixaCreate(8);
+    do {
+        pix1 = pixReadFromMultipageTiff("/tmp/lept/tiff/weasel8.tif", &offset);
+        if (!pix1) continue;
+        pixaAddPix(pixa, pix1, L_INSERT);
+        fprintf(stderr, "offset = %ld\n", offset);
+        n++;
+    } while (offset != 0);
+    fprintf(stderr, "Num images = %d\n", n);
+    pixd = pixaDisplayTiledInRows(pixa, 32, 1200, 1.2, 0, 15, 4);
+    pixDisplay(pixd, 100, 550);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+
+        /* This uses the offset method for linearizing overhead of
+         * reading from a multi-image tiff file in memory. */
+    offset = 0;
+    n = 0;
+    pixa = pixaCreate(8);
+    data = l_binaryRead("/tmp/lept/tiff/weasel8.tif", &size);
+    do {
+        pix1 = pixReadMemFromMultipageTiff(data, size, &offset);
+        if (!pix1) continue;
+        pixaAddPix(pixa, pix1, L_INSERT);
+        fprintf(stderr, "offset = %ld\n", offset);
+        n++;
+    } while (offset != 0);
+    fprintf(stderr, "Num images = %d\n", n);
+    pixd = pixaDisplayTiledInRows(pixa, 32, 1200, 1.2, 0, 15, 4);
+    pixDisplay(pixd, 100, 700);
+    pixDestroy(&pixd);
+    pixaDestroy(&pixa);
+    lept_free(data);
+
+        /* This makes a 1001 image tiff file and gives timing
+         * for writing and reading.  Reading uses the offset method
+         * and the time is linear in the number of images, but the
+         * writing time is quadratic and the actual wall clock time is
+         * significantly more than the printed value. */
+    pix1 = pixRead("char.tif");
+    startTimer();
+    pixWriteTiff("/tmp/lept/tiff/junkm.tif", pix1, IFF_TIFF_G4, "w");
+    for (i = 0; i < 1000; i++) {
+        pixWriteTiff("/tmp/lept/tiff/junkm.tif", pix1, IFF_TIFF_G4, "a");
+    }
+    pixDestroy(&pix1);
+    fprintf(stderr, "Time to write: %7.3f\n", stopTimer());
+    startTimer();
+    offset = 0;
+    n = 0;
+    do {
+        pix1 = pixReadFromMultipageTiff("/tmp/lept/tiff/junkm.tif", &offset);
+        if (!pix1) continue;
+        if (n % 100 == 0)
+            fprintf(stderr, "offset = %ld\n", offset);
+        pixDestroy(&pix1);
+        n++;
+    } while (offset != 0);
+    fprintf(stderr, "Time to read: %7.3f\n", stopTimer());
+    fprintf(stderr, "Num images = %d\n", n);
 #endif
 
 #if 1   /* ------------ Test single-to-multipage I/O  -------------------*/
@@ -110,11 +172,11 @@ static char  mainName[] = "mtifftest";
         /* Write it out as a PS file */
     fprintf(stderr, "Writing to: /tmp/lept/tiff/weasel4.ps\n");
     convertTiffMultipageToPS("/tmp/lept/tiff/weasel4",
-                             "/tmp/lept/tiff/weasel4.ps", NULL, 0.95);
+                             "/tmp/lept/tiff/weasel4.ps", 0.95);
 
         /* Write it out as a pdf file */
     fprintf(stderr, "Writing to: /tmp/lept/tiff/weasel4.pdf\n");
-    ConvertTiffMultipageToPdf("/tmp/lept/tiff/weasel4",
+    convertTiffMultipageToPdf("/tmp/lept/tiff/weasel4",
                               "/tmp/lept/tiff/weasel4.pdf");
     sarrayDestroy(&sa);
 #endif
@@ -220,37 +282,3 @@ static char  mainName[] = "mtifftest";
 
     return 0;
 }
-
-
-static l_int32
-ConvertTiffMultipageToPdf(const char  *filein,
-                         const char  *fileout)
-{
-l_int32  i, npages, istiff;
-PIX     *pix;
-PIXA    *pixa;
-FILE    *fp;
-
-    PROCNAME("ConvertTiffMultipageToPdf");  /* should put in pdfio2.c */
-
-    if ((fp = fopenReadStream(filein)) == NULL)
-        return ERROR_INT("file not found", procName, 1);
-    istiff = fileFormatIsTiff(fp);
-    if (!istiff) {
-        fclose(fp);
-        return ERROR_INT("file not tiff format", procName, 1);
-    }
-    tiffGetCount(fp, &npages);
-    fclose(fp);
-
-    pixa = pixaCreate(npages);
-    for (i = 0; i < npages; i++) {
-        if ((pix = pixReadTiff(filein, i)) == NULL)
-            return ERROR_INT("pix not made", procName, 1);
-        pixaAddPix(pixa, pix, L_INSERT);
-    }
-    pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "weasel2", fileout);
-    pixaDestroy(&pixa);
-    return 0;
-}
-

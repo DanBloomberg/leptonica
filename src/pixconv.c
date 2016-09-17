@@ -3076,7 +3076,7 @@ PIX     *pixd;
     } else if (d == 8 || d == 32) {
         if (copyflag == L_CLONE)
             pixd = pixClone(pixs);
-        else  /* copyflag == L_COPY) */
+        else  /* copyflag == L_COPY */
             pixd = pixCopy(NULL, pixs);
     } else {
         pixd = pixConvertTo8(pixs, 0);

@@ -305,8 +305,6 @@ FPIX       *fpix;
     if (!ptaa)
         return ERROR_INT("ptaa not defined", procName, 1);
 
-    lept_mkdir("lept/dewdebug");
-    lept_mkdir("lept/dewarp");
     if (dew->debug) L_INFO("finding vertical disparity\n", procName);
 
         /* Do quadratic fit to smooth each line.  A single quadratic
@@ -337,6 +335,9 @@ FPIX       *fpix;
         ptaDestroy(&pta);
     }
     if (dew->debug) {
+        lept_mkdir("lept/dewarp");
+        lept_mkdir("lept/dewdebug");
+        lept_mkdir("lept/dewmod");
         ptaat = ptaaCreate(nlines);
         for (i = 0; i < nlines; i++) {
             pta = ptaaGetPta(ptaa, i, L_CLONE);
@@ -791,7 +792,6 @@ PTAA     *ptaa;
         return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
 
-    lept_mkdir("lept/dewmod");
     if (debugflag) L_INFO("finding text line centers\n", procName);
 
         /* Filter to solidify the text lines within the x-height region,
@@ -816,6 +816,7 @@ PTAA     *ptaa;
     pixXor(pix2, pix2, pix1);  /* remove tall */
 
     if (debugflag) {
+        lept_mkdir("lept/dewmod");
         pixWrite("/tmp/lept/dewmod/0011.tif", pix1, IFF_TIFF_G4);
         pixDisplayWithTitle(pix1, 0, 600, "pix1", 1);
         pixWrite("/tmp/lept/dewmod/0012.tif", pix2, IFF_TIFF_G4);
@@ -946,8 +947,6 @@ PTAA      *ptaad;
         return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
     if (!ptaas)
         return (PTAA *)ERROR_PTR("ptaas undefined", procName, NULL);
-
-    lept_mkdir("lept/dewmod");
 
     pixGetDimensions(pixs, &w, NULL, NULL);
     n = ptaaGetCount(ptaas);

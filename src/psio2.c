@@ -673,7 +673,7 @@ L_COMP_DATA  *cid;
 
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
-    outstr = generateJpegPS(filein, cid, xpt, ypt, wpt, hpt, 1, 1);
+    outstr = generateJpegPS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -877,7 +877,7 @@ L_COMP_DATA  *cid;
 #endif   /* DEBUG_JPEG */
 
         /* Generate the PS */
-    outstr = generateJpegPS(filein, cid, xpt, ypt, wpt, hpt, pageno, endpage);
+    outstr = generateJpegPS(NULL, cid, xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -936,10 +936,11 @@ SARRAY  *sa;
 
     sarrayAddString(sa, (char *)"%!PS-Adobe-3.0", L_COPY);
     sarrayAddString(sa, (char *)"%%Creator: leptonica", L_COPY);
-    if (filein) {
+    if (filein)
         sprintf(bigbuf, "%%%%Title: %s", filein);
-        sarrayAddString(sa, bigbuf, L_COPY);
-    }
+    else
+        sprintf(bigbuf, "%%%%Title: Jpeg compressed PS");
+    sarrayAddString(sa, bigbuf, L_COPY);
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
     if (var_PS_WRITE_BOUNDING_BOX == 1) {
@@ -1069,7 +1070,7 @@ L_COMP_DATA  *cid;
 
         /* Generate the PS, painting through the image mask.
          * The bounding box information should be inserted (default). */
-    outstr = generateG4PS(filein, cid, xpt, ypt, wpt, hpt, 1, 1, 1);
+    outstr = generateG4PS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -1266,7 +1267,7 @@ L_COMP_DATA  *cid;
 #endif   /* DEBUG_G4 */
 
         /* Generate the PS */
-    outstr = generateG4PS(filein, cid, xpt, ypt, wpt, hpt,
+    outstr = generateG4PS(NULL, cid, xpt, ypt, wpt, hpt,
                           maskflag, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
@@ -1327,10 +1328,11 @@ SARRAY  *sa;
 
     sarrayAddString(sa, (char *)"%!PS-Adobe-3.0", L_COPY);
     sarrayAddString(sa, (char *)"%%Creator: leptonica", L_COPY);
-    if (filein) {
+    if (filein)
         sprintf(bigbuf, "%%%%Title: %s", filein);
-        sarrayAddString(sa, bigbuf, L_COPY);
-    }
+    else
+        sprintf(bigbuf, "%%%%Title: G4 compressed PS");
+    sarrayAddString(sa, bigbuf, L_COPY);
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
     if (var_PS_WRITE_BOUNDING_BOX == 1) {
@@ -1418,8 +1420,6 @@ SARRAY  *sa;
  *
  * \param[in]    filein input tiff multipage file
  * \param[in]    fileout output ps file
- * \param[in]    tempfile [optional] for temporary g4 tiffs;
- *                        use NULL for default
  * \param[in]    fillfract factor for filling 8.5 x 11 inch page;
  *                      use 0.0 for DEFAULT_FILL_FRACTION
  * \return  0 if OK, 1 on error
@@ -1436,15 +1436,13 @@ SARRAY  *sa;
 l_int32
 convertTiffMultipageToPS(const char  *filein,
                          const char  *fileout,
-                         const char  *tempfile,
                          l_float32    fillfract)
 {
-char        *tempdefault;
-const char  *tempname;
-l_int32      i, npages, w, h, istiff;
-l_float32    scale;
-PIX         *pix, *pixs;
-FILE        *fp;
+char      *tempfile;
+l_int32    i, npages, w, h, istiff;
+l_float32  scale;
+PIX       *pix, *pixs;
+FILE      *fp;
 
     PROCNAME("convertTiffMultipageToPS");
 
@@ -1463,15 +1461,12 @@ FILE        *fp;
     tiffGetCount(fp, &npages);
     fclose(fp);
 
-    tempdefault = (tempfile) ? NULL : genTempFilename("/tmp", "tfile", 1, 1);
-    tempname = (tempfile) ? tempfile : tempdefault;
-
     if (fillfract == 0.0)
         fillfract = DEFAULT_FILL_FRACTION;
 
     for (i = 0; i < npages; i++) {
         if ((pix = pixReadTiff(filein, i)) == NULL) {
-            LEPT_FREE(tempdefault);
+            LEPT_FREE(tempfile);
             return ERROR_INT("pix not made", procName, 1);
         }
 
@@ -1481,22 +1476,21 @@ FILE        *fp;
         else
             pixs = pixClone(pix);
 
-        pixWrite(tempname, pixs, IFF_TIFF_G4);
+        tempfile = l_makeTempFilename(NULL);
+        pixWrite(tempfile, pixs, IFF_TIFF_G4);
         scale = L_MIN(fillfract * 2550 / w, fillfract * 3300 / h);
         if (i == 0)
-            convertG4ToPS(tempname, fileout, "w", 0, 0, 300, scale,
+            convertG4ToPS(tempfile, fileout, "w", 0, 0, 300, scale,
                           i + 1, FALSE, TRUE);
         else
-            convertG4ToPS(tempname, fileout, "a", 0, 0, 300, scale,
+            convertG4ToPS(tempfile, fileout, "a", 0, 0, 300, scale,
                           i + 1, FALSE, TRUE);
+        lept_rmfile(tempfile);
+        LEPT_FREE(tempfile);
         pixDestroy(&pix);
         pixDestroy(&pixs);
     }
 
-    if (tempdefault) {
-        lept_rmfile(tempdefault);
-        LEPT_FREE(tempdefault);
-    }
     return 0;
 }
 
@@ -1556,7 +1550,7 @@ L_COMP_DATA  *cid;
 
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
-    outstr = generateFlatePS(filein, cid, xpt, ypt, wpt, hpt, 1, 1);
+    outstr = generateFlatePS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     nbytes = strlen(outstr);
@@ -1760,7 +1754,7 @@ L_COMP_DATA  *cid;
 #endif   /* DEBUG_FLATE */
 
         /* Generate the PS */
-    outstr = generateFlatePS(filein, cid, xpt, ypt, wpt, hpt, pageno, endpage);
+    outstr = generateFlatePS(NULL, cid, xpt, ypt, wpt, hpt, pageno, endpage);
     if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
     *poutstr = outstr;
@@ -1814,10 +1808,11 @@ SARRAY  *sa;
 
     sarrayAddString(sa, (char *)"%!PS-Adobe-3.0 EPSF-3.0", L_COPY);
     sarrayAddString(sa, (char *)"%%Creator: leptonica", L_COPY);
-    if (filein) {
+    if (filein)
         sprintf(bigbuf, "%%%%Title: %s", filein);
-        sarrayAddString(sa, bigbuf, L_COPY);
-    }
+    else
+        sprintf(bigbuf, "%%%%Title: Flate compressed PS");
+    sarrayAddString(sa, bigbuf, L_COPY);
     sarrayAddString(sa, (char *)"%%DocumentData: Clean7Bit", L_COPY);
 
     if (var_PS_WRITE_BOUNDING_BOX == 1) {
