@@ -156,7 +156,7 @@ LEPT_DLL extern l_int32 pixSauvolaBinarize ( PIX *pixs, l_int32 whsize, l_float3
 LEPT_DLL extern PIX * pixSauvolaGetThreshold ( PIX *pixm, PIX *pixms, l_float32 factor, PIX **ppixsd );
 LEPT_DLL extern PIX * pixApplyLocalThreshold ( PIX *pixs, PIX *pixth, l_int32 redfactor );
 LEPT_DLL extern l_int32 pixThresholdByConnComp ( PIX *pixs, PIX *pixm, l_int32 start, l_int32 end, l_int32 incr, l_float32 thresh48, l_float32 threshdiff, l_int32 *pglobthresh, PIX **ppixd, l_int32 debugflag );
-LEPT_DLL extern PIX * pixExpandBinaryReplicate ( PIX *pixs, l_int32 factor );
+LEPT_DLL extern PIX * pixExpandBinaryReplicate ( PIX *pixs, l_int32 xfact, l_int32 yfact );
 LEPT_DLL extern PIX * pixExpandBinaryPower2 ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern PIX * pixReduceBinary2 ( PIX *pixs, l_uint8 *intab );
 LEPT_DLL extern PIX * pixReduceRankBinaryCascade ( PIX *pixs, l_int32 level1, l_int32 level2, l_int32 level3, l_int32 level4 );

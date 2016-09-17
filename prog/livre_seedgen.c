@@ -54,13 +54,13 @@ PIXA        *pixa;
     pixt2 = pixReduceRankBinaryCascade(pixt1, 4, 3, 0, 0);
     pixDisplayWriteFormat(pixt2, 1, IFF_PNG);
     pixOpenBrick(pixt2, pixt2, 5, 5);
-    pixt3 = pixExpandBinaryReplicate(pixt2, 2);
+    pixt3 = pixExpandBinaryReplicate(pixt2, 2, 2);
     pixDisplayWriteFormat(pixt3, 1, IFF_PNG);
 
         /* Generate the output image */
-    pixa = pixaReadFiles("/tmp/display", "file");
+    pixa = pixaReadFiles("/tmp/lept/display", "file");
     pixd = pixaDisplayTiledAndScaled(pixa, 8, 250, 4, 0, 25, 2);
-    pixWrite("/tmp/seedgen.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/seedgen.png", pixd, IFF_PNG);
 
     pixDestroy(&pixs);
     pixDestroy(&pixt1);

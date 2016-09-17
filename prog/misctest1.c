@@ -68,7 +68,7 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pixs2);
 
         /* Combine two binary images using a mask */
-    pixm2 = pixExpandBinaryReplicate(pixm, 2);
+    pixm2 = pixExpandBinaryReplicate(pixm, 2, 2);
     pix1 = pixCopy(NULL, pixd);
     pixCombineMaskedGeneral(pixd, pixs, pixm2, 200, 200);
     pixSaveTiled(pixd, pixac, 0.25, 0, 40, 0);

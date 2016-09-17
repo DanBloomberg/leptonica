@@ -61,9 +61,9 @@ static char  mainName[] = "livre_tophat";
     pixDestroy(&pixd);
 
         /* Generate the output image */
-    pixa = pixaReadFiles("/tmp/display", "file");
+    pixa = pixaReadFiles("/tmp/lept/display", "file");
     pixd = pixaDisplayTiledAndScaled(pixa, 8, 350, 3, 0, 25, 2);
-    pixWrite("/tmp/tophat.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/tophat.jpg", pixd, IFF_JFIF_JPEG);
     pixDisplay(pixd, 0, 0);
     pixDestroy(&pixd);
 
