@@ -99,6 +99,7 @@ PIX   *pixd;
 
     PROCNAME("pixMaskConnComp");
 
+    if (pboxa) *pboxa = NULL;
     if (!pixs || pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
     if (connectivity != 4 && connectivity != 8)
@@ -1271,16 +1272,16 @@ PIXA     *pixa;
 
     PROCNAME("boxaCompareRegions");
 
-    if (!pnsame)
-        return ERROR_INT("&nsame not defined", procName, 1);
-    *pnsame = FALSE;
-    if (!pdiffarea)
-        return ERROR_INT("&diffarea not defined", procName, 1);
-    *pdiffarea = 1.0;
-    if (!boxa1 || !boxa2)
-        return ERROR_INT("boxa1 and boxa2 not both defined", procName, 1);
     if (pdiffxor) *pdiffxor = 1.0;
     if (ppixdb) *ppixdb = NULL;
+    if (pnsame) *pnsame = FALSE;
+    if (pdiffarea) *pdiffarea = 1.0;
+    if (!boxa1 || !boxa2)
+        return ERROR_INT("boxa1 and boxa2 not both defined", procName, 1);
+    if (!pnsame)
+        return ERROR_INT("&nsame not defined", procName, 1);
+    if (!pdiffarea)
+        return ERROR_INT("&diffarea not defined", procName, 1);
 
     boxa3 = boxaSelectByArea(boxa1, areathresh, L_SELECT_IF_GTE, NULL);
     boxa4 = boxaSelectByArea(boxa2, areathresh, L_SELECT_IF_GTE, NULL);

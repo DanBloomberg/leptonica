@@ -233,6 +233,7 @@ NUMA  *na;
 
     PROCNAME("boxaSelectBySize");
 
+    if (pchanged) *pchanged = FALSE;
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (boxaGetCount(boxas) == 0) {
@@ -245,7 +246,6 @@ NUMA  *na;
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
         return (BOXA *)ERROR_PTR("invalid relation", procName, NULL);
-    if (pchanged) *pchanged = FALSE;
 
         /* Compute the indicator array for saving components */
     if ((na =
@@ -381,6 +381,7 @@ NUMA  *na;
 
     PROCNAME("boxaSelectByArea");
 
+    if (pchanged) *pchanged = FALSE;
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (boxaGetCount(boxas) == 0) {
@@ -390,7 +391,6 @@ NUMA  *na;
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
         return (BOXA *)ERROR_PTR("invalid relation", procName, NULL);
-    if (pchanged) *pchanged = FALSE;
 
         /* Compute the indicator array for saving components */
     na = boxaMakeAreaIndicator(boxas, area, relation);
@@ -481,6 +481,7 @@ BOXA    *boxad;
 
     PROCNAME("boxaSelectWithIndicator");
 
+    if (pchanged) *pchanged = FALSE;
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
     if (!na)
@@ -2189,9 +2190,9 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
 
     if (!pw && !ph && !pbox)
         return ERROR_INT("no ptrs defined", procName, 1);
-    if (pbox) *pbox = NULL;
     if (pw) *pw = 0;
     if (ph) *ph = 0;
+    if (pbox) *pbox = NULL;
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 
@@ -2314,10 +2315,14 @@ BOXA    *boxa;
 
     PROCNAME("boxaaSizeRange");
 
-    if (!baa)
-        return ERROR_INT("baa not defined", procName, 1);
     if (!pminw && !pmaxw && !pminh && !pmaxh)
         return ERROR_INT("no data can be returned", procName, 1);
+    if (pminw) *pminw = 0;
+    if (pminh) *pminh = 0;
+    if (pmaxw) *pmaxw = 0;
+    if (pmaxh) *pmaxh = 0;
+    if (!baa)
+        return ERROR_INT("baa not defined", procName, 1);
 
     minw = minh = 100000000;
     maxw = maxh = 0;
@@ -2362,10 +2367,14 @@ l_int32  minw, minh, maxw, maxh, i, n, w, h;
 
     PROCNAME("boxaSizeRange");
 
-    if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
     if (!pminw && !pmaxw && !pminh && !pmaxh)
         return ERROR_INT("no data can be returned", procName, 1);
+    if (pminw) *pminw = 0;
+    if (pminh) *pminh = 0;
+    if (pmaxw) *pmaxw = 0;
+    if (pmaxh) *pmaxh = 0;
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
 
     minw = minh = 100000000;
     maxw = maxh = 0;
@@ -2409,10 +2418,14 @@ l_int32  minx, miny, maxx, maxy, i, n, x, y;
 
     PROCNAME("boxaLocationRange");
 
-    if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
     if (!pminx && !pminy && !pmaxx && !pmaxy)
         return ERROR_INT("no data can be returned", procName, 1);
+    if (pminx) *pminx = 0;
+    if (pminy) *pminy = 0;
+    if (pmaxx) *pmaxx = 0;
+    if (pmaxy) *pmaxy = 0;
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
 
     minx = miny = 100000000;
     maxx = maxy = 0;

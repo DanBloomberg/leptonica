@@ -1649,6 +1649,7 @@ BOXA    *boxa;
 
     PROCNAME("boxaaAlignBox");
 
+    if (pindex) *pindex = 0;
     if (!baa)
         return ERROR_INT("baa not defined", procName, 1);
     if (!box)
