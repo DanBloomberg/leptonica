@@ -90,6 +90,7 @@
 static PIX * pixUninterlaceGIF(PIX  *pixs);
 static const l_int32 InterlacedOffset[] = {0, 4, 2, 1};
 static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
+static PIX * gifToPIX(GifFileType *gif);
 
     /* Basic interface changed in 5.0 (!).  We have to do this for
      * backward compatibililty with 4.1.6. */
@@ -106,6 +107,17 @@ static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
 #define EGifCloseFile(a,b)       EGifCloseFile(a)
 #endif
 
+    /* For in memory decoding of gif */
+#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
+typedef struct GifReadBuffer {
+    size_t          size;
+    size_t          pos;
+    const l_uint8   *cdata;
+} GifReadBuffer;
+static int  gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead);
+#endif
+
+
 /*---------------------------------------------------------------------*
  *                       Reading gif from file                         *
  *---------------------------------------------------------------------*/
@@ -118,17 +130,8 @@ static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
 PIX *
 pixReadStreamGif(FILE  *fp)
 {
-l_int32          fd, wpl, i, j, w, h, d, cindex, ncolors;
-l_int32          rval, gval, bval;
-l_uint32        *data, *line;
+l_int32          fd;
 GifFileType     *gif;
-PIX             *pixd, *pixdi;
-PIXCMAP         *cmap;
-ColorMapObject  *gif_cmap;
-SavedImage       si;
-#if GIFLIB_MAJOR == 5 && GIFLIB_MINOR > 0
-int              giferr;
-#endif
 
     PROCNAME("pixReadStreamGif");
 
@@ -152,6 +155,25 @@ int              giferr;
     if ((gif = DGifOpenFileHandle(fd, NULL)) == NULL)
         return (PIX *)ERROR_PTR("invalid file or file not found",
                                 procName, NULL);
+
+    return gifToPIX(gif);
+}
+
+static PIX *
+gifToPIX(GifFileType *gif)
+{
+l_int32          wpl, i, j, w, h, d, cindex, ncolors;
+l_int32          rval, gval, bval;
+l_uint32        *data, *line;
+PIX             *pixd, *pixdi;
+PIXCMAP         *cmap;
+ColorMapObject  *gif_cmap;
+SavedImage       si;
+#if GIFLIB_MAJOR == 5 && GIFLIB_MINOR > 0
+int              giferr;
+#endif
+
+    PROCNAME("gifToPIX");
 
         /* Read all the data, but use only the first image found */
     if (DGifSlurp(gif) != GIF_OK) {
@@ -492,7 +514,7 @@ int              giferr;
  * \return  pix, or NULL on error
  *
  * <pre>
- * Notes:
+ * Notes for Giflib version < 5.1:
  *      (1) Of course, we are cheating here -- writing the data to file
  *          in gif format and reading it back in.  We can't use the
  *          GNU runtime extension fmemopen() to avoid writing to a file
@@ -518,15 +540,28 @@ PIX *
 pixReadMemGif(const l_uint8  *cdata,
               size_t          size)
 {
+#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
+GifFileType     *gif;
+#else
 char  *fname;
 PIX   *pix;
-
+#endif
     PROCNAME("pixReadMemGif");
 
     if (!cdata)
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
-    L_WARNING("writing to a temp file, not directly to memory\n", procName);
+#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
+    GifReadBuffer buffer;
+    buffer.cdata = cdata;
+    buffer.size = size;
+    buffer.pos = 0;
+    if ((gif = DGifOpen((void*)&buffer, gifReadFunc, NULL)) == NULL)
+        return (PIX *)ERROR_PTR("could not open gif from memory",
+                                procName, NULL);
 
+    return gifToPIX(gif);
+#else
+    L_WARNING("writing to a temp file, not directly to memory\n", procName); 
         /* Write to a temp file */
     fname = l_makeTempFilename(NULL);
     l_binaryWrite(fname, "w", (l_uint8 *)cdata, size);
@@ -537,8 +572,30 @@ PIX   *pix;
     LEPT_FREE(fname);
     if (!pix) L_ERROR("pix not read\n", procName);
     return pix;
+#endif
 }
 
+#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
+static int
+gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead) 
+{
+GifReadBuffer *buffer;
+int bytesRead;
+
+    PROCNAME("gifReadFunc");
+
+    if ((buffer = (GifReadBuffer*)gif->UserData) == NULL)
+        return ERROR_INT("UserData not set",procName,-1);
+
+    if(buffer->pos >= buffer->size)
+       return -1;
+
+    bytesRead = buffer->pos < buffer->size - bytesToRead  ? bytesToRead : buffer->size - buffer->pos;
+    memcpy(dest, buffer->cdata+buffer->pos, bytesRead);
+    buffer->pos += bytesRead;
+    return bytesRead;
+}
+#endif
 
 /*!
  * \brief   pixWriteMemGif()
