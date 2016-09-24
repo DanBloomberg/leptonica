@@ -14,6 +14,7 @@ before_build:
   - if %platform%==Win64 set vcplatform=x64
   - curl -fsS -o cppan.zip https://cppan.org/client/cppan-master-win32-client.zip
   - 7z x cppan.zip
+  - set PATH=%PATH%;%cd%
 
 build_script:
   - cppan
