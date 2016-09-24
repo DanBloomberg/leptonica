@@ -52,7 +52,7 @@ if (UNIX)
     target_link_libraries       (leptonica m)
 endif()
 
-if (NOT USES_CPPAN)
+if (NOT CPPAN_BUILD)
     export(TARGETS leptonica FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
 else()
     target_link_libraries       (leptonica cppan)
