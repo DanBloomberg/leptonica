@@ -104,12 +104,6 @@
  *          l_int32      numaaJoin()
  *          NUMA        *numaaFlattenToNuma()
  *
- *      Union and intersection
- *          NUMA        *numaUnionByAset()
- *          NUMA        *numaRemoveDupsByAset()
- *          NUMA        *numaIntersectionByAset()
- *          L_ASET      *l_asetCreateFromNuma()
- *
  *    Things to remember when using the Numa:
  *
  *    (1) The numa is a struct, not an array.  Always use accessors
@@ -230,8 +224,8 @@ l_float32  val1, val2;
  *          Input data is extracted as integers (0 == false, anything
  *          else == true); output results are 0 and 1.
  *      (4) L_SUBTRACTION is subtraction of val2 from val1.  For bit logical
- *          arithmetic this is (val1 \& ~val2), but because these values
- *          are integers, we use (val1 \&\& !val2).
+ *          arithmetic this is (val1 & ~val2), but because these values
+ *          are integers, we use (val1 && !val2).
  * </pre>
  */
 NUMA *
@@ -301,8 +295,8 @@ l_int32  i, n, val1, val2, val;
  *      (1) This is intended for use with indicator arrays (0s and 1s).
  *          It gives a boolean-type output, taking the input as
  *          an integer and inverting it:
- *              0              --\>  1
- *              anything else  --\>   0
+ *              0              -->  1
+ *              anything else  -->   0
  * </pre>
  */
 NUMA *
@@ -346,7 +340,7 @@ l_int32  i, n, val;
  * <pre>
  * Notes:
  *      (1) Float values can differ slightly due to roundoff and
- *          accumulated errors.  Using %maxdiff \> 0.0 allows similar
+ *          accumulated errors.  Using %maxdiff > 0.0 allows similar
  *          arrays to be identified.
  * </pre>
 */
@@ -546,7 +540,7 @@ l_float32  val, sum;
  *
  * <pre>
  * Notes:
- *      (1) nasum[i] is the sum for all j \<= i of na[j].
+ *      (1) nasum[i] is the sum for all j <= i of na[j].
  *          So nasum[0] = na[0].
  *      (2) If you want to generate a rank function, where rank[0] - 0.0,
  *          insert a 0.0 at the beginning of the nasum array.
@@ -3267,8 +3261,8 @@ NUMA      *navar;
  *
  * <pre>
  * Notes:
- *      (1) istart \< 0 is taken to mean 'read from the start' (istart = 0)
- *      (2) iend \< 0 means 'read to the end'
+ *      (1) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (2) iend < 0 means 'read to the end'
  *      (3) if nas == NULL, this is a no-op
  * </pre>
  */
@@ -3316,8 +3310,8 @@ l_float32  val;
  *
  * <pre>
  * Notes:
- *      (1) istart \< 0 is taken to mean 'read from the start' (istart = 0)
- *      (2) iend \< 0 means 'read to the end'
+ *      (1) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (2) iend < 0 means 'read to the end'
  *      (3) if naas == NULL, this is a no-op
  * </pre>
  */
@@ -3393,169 +3387,3 @@ NUMA   **array;
     return nad;
 }
 
-
-/*----------------------------------------------------------------------*
- *                        Union and intersection                        *
- *----------------------------------------------------------------------*/
-/*!
- * \brief   numaUnionByAset()
- *
- * \param[in]    na1, na2
- * \return  nad with the union of the set of numbers, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) See sarrayUnion() for the approach.
- *      (2) Here, the key in building the sorted tree is the number itself.
- *      (3) A bucket sort approach can be used if the numbers are
- *          integers and if they are small enough, because that is O(n)
- *          instead of O(nlogn).
- * </pre>
- */
-NUMA *
-numaUnionByAset(NUMA  *na1,
-                NUMA  *na2)
-{
-NUMA  *na3, *nad;
-
-    PROCNAME("numaUnionByAset");
-
-    if (!na1)
-        return (NUMA *)ERROR_PTR("na1 not defined", procName, NULL);
-    if (!na2)
-        return (NUMA *)ERROR_PTR("na2 not defined", procName, NULL);
-
-        /* Join */
-    na3 = numaCopy(na1);
-    numaJoin(na3, na2, 0, -1);
-
-        /* Eliminate duplicates */
-    nad = numaRemoveDupsByAset(na3);
-    numaDestroy(&na3);
-    return nad;
-}
-
-
-/*!
- * \brief   numaRemoveDupsByAset()
- *
- * \param[in]    nas
- * \return  nad with duplicates removed, or NULL on error
- */
-NUMA *
-numaRemoveDupsByAset(NUMA  *nas)
-{
-l_int32    i, n;
-l_float32  val;
-NUMA      *nad;
-L_ASET    *set;
-RB_TYPE    key;
-
-    PROCNAME("numaRemoveDupsByAset");
-
-    if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
-
-    set = l_asetCreate(L_FLOAT_TYPE);
-    nad = numaCreate(0);
-    n = numaGetCount(nas);
-    for (i = 0; i < n; i++) {
-        numaGetFValue(nas, i, &val);
-        key.ftype = val;
-        if (!l_asetFind(set, key)) {
-            numaAddNumber(nad, val);
-            l_asetInsert(set, key);
-        }
-    }
-
-    l_asetDestroy(&set);
-    return nad;
-}
-
-
-/*!
- * \brief   numaIntersectionByAset()
- *
- * \param[in]    na1, na2
- * \return  nad with the intersection of the numa set, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) See sarrayIntersection() for the approach.
- *      (2) Here, the key in building the sorted tree is the number itself.
- *      (3) A bucket sort approach can be used if the numbers are
- *          integers and if they are small enough, because that is O(n)
- *          instead of O(nlogn).
- * </pre>
- */
-NUMA *
-numaIntersectionByAset(NUMA  *na1,
-                       NUMA  *na2)
-{
-l_int32    n1, n2, i, n;
-l_float32  val;
-L_ASET    *set1, *set2;
-RB_TYPE    key;
-NUMA      *na_small, *na_big, *nad;
-
-    PROCNAME("numaIntersectionByAset");
-
-    if (!na1)
-        return (NUMA *)ERROR_PTR("na1 not defined", procName, NULL);
-    if (!na2)
-        return (NUMA *)ERROR_PTR("na2 not defined", procName, NULL);
-
-        /* Put the elements of the largest array into a set */
-    n1 = numaGetCount(na1);
-    n2 = numaGetCount(na2);
-    na_small = (n1 < n2) ? na1 : na2;   /* do not destroy na_small */
-    na_big = (n1 < n2) ? na2 : na1;   /* do not destroy na_big */
-    set1 = l_asetCreateFromNuma(na_big);
-
-        /* Build up the intersection of floats */
-    nad = numaCreate(0);
-    n = numaGetCount(na_small);
-    set2 = l_asetCreate(L_FLOAT_TYPE);
-    for (i = 0; i < n; i++) {
-        numaGetFValue(na_small, i, &val);
-        key.ftype = val;
-        if (l_asetFind(set1, key) && !l_asetFind(set2, key)) {
-            numaAddNumber(nad, val);
-            l_asetInsert(set2, key);
-        }
-    }
-
-    l_asetDestroy(&set1);
-    l_asetDestroy(&set2);
-    return nad;
-}
-
-
-/*!
- * \brief   l_asetCreateFromNuma()
- *
- * \param[in]    na source numa
- * \return  set using the floats in the numa as keys
- */
-L_ASET *
-l_asetCreateFromNuma(NUMA  *na)
-{
-l_int32  i, n, val;
-L_ASET  *set;
-RB_TYPE  key;
-
-    PROCNAME("l_asetCreateFromNuma");
-
-    if (!na)
-        return (L_ASET *)ERROR_PTR("na not defined", procName, NULL);
-
-    set = l_asetCreate(L_FLOAT_TYPE);
-    n = numaGetCount(na);
-    for (i = 0; i < n; i++) {
-        numaGetIValue(na, i, &val);
-        key.ftype = val;
-        l_asetInsert(set, key);
-    }
-
-    return set;
-}

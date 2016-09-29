@@ -34,18 +34,37 @@
  *           PTA        *ptaSortByIndex()
  *           PTAA       *ptaaSortByIndex()
  *
- *      Union and intersection by aset (rbtree)
+ *      Set operations using aset (rbtree)
  *           PTA        *ptaUnionByAset()
  *           PTA        *ptaRemoveDupsByAset()
  *           PTA        *ptaIntersectionByAset()
  *           L_ASET     *l_asetCreateFromPta()
  *
- *      Union and intersection by hash
+ *      Set operations using hashing (dnahash)
  *           PTA        *ptaUnionByHash()
  *           l_int32     ptaRemoveDupsByHash()
  *           PTA        *ptaIntersectionByHash();
  *           l_int32     ptaFindPtByHash()
  *           L_DNAHASH  *l_dnaHashCreateFromPta()
+ *
+ *
+ * We have two implementations of set operations on an array of points:
+ *
+ *   (1) Using an underlying tree (rbtree)
+ *       This uses a good 64 bit hashing function for the key,
+ *       that is not expected to have hash collisions (and we do
+ *       not test for them).  The tree is built up of the hash
+ *       values, and if the hash is found in the tree, it is
+ *       assumed that the point has already been found.
+ *
+ *   (2) Using an underlying hashing of the keys (dnahash)
+ *       This uses a fast 64 bit hashing function for the key,
+ *       which is then hashed into a bucket (a dna in a dnaHash).
+ *       Because hash collisions can occur, the index into the
+ *       pta for the point that gave rise to that key is stored,
+ *       and the dna (bucket) is traversed, using the stored indices
+ *       to determine if that point had already been seen.
+ *       
  * </pre>
  */
 
@@ -222,8 +241,9 @@ PTAA    *ptaad;
     return ptaad;
 }
 
+
 /*---------------------------------------------------------------------*
- *                 Union and intersection by aset (rbtree)             *
+ *                   Set operations using aset (rbtree)                *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   ptaUnionByAset()
@@ -403,7 +423,7 @@ RB_TYPE   key;
 
 
 /*---------------------------------------------------------------------*
- *                    Union and intersection by hash                   *
+ *                 Set operations using hashing (rbtree)               *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   ptaUnionByHash()

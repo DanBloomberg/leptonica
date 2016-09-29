@@ -22,7 +22,7 @@ www.leptonica.org
 
 ## Ancillary utilities ##
 
-  * I/O for standard image formats (_jpg_, _png_, _tiff_, _bmp_, _pnm_, _gif_, _ps_, _pdf_,  _webp_)
+  * I/O for standard image formats (_jpg_, _png_, _tiff_, _webp_, _jp2_, _bmp_, _pnm_, _gif_, _ps_, _pdf_)
   * Utilities to handle arrays of image-related data types (e.g., _pixa_, _boxa_, _pta_)
   * Utilities for stacks, generic arrays, queues, heaps, lists; number and string arrays; etc.
 

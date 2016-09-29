@@ -21,7 +21,8 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  compare.c conncomp.c convertfiles.c                            \
  convolve.c correlscore.c                                       \
  dewarp1.c dewarp2.c dewarp3.c dewarp4.c                        \
- dnabasic.c dnahash.c dwacomb.2.c dwacomblow.2.c                \
+ dnabasic.c dnafunc1.c dnahash.c                                \
+ dwacomb.2.c dwacomblow.2.c                                     \
  edge.c encoding.c enhance.c                                    \
  fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c			        \
  finditalic.c flipdetect.c fliphmtgen.c                         \
