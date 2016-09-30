@@ -2287,7 +2287,7 @@ L_MEMSTREAM  *mstream;
         return (TIFF *)ERROR_PTR("&data not defined", procName, NULL);
     if (!pdatasize)
         return (TIFF *)ERROR_PTR("&datasize not defined", procName, NULL);
-    if (!strcmp(operation, "r") && !strcmp(operation, "w"))
+    if (strcmp(operation, "r") && strcmp(operation, "w"))
         return (TIFF *)ERROR_PTR("operation not 'r' or 'w'}", procName, NULL);
 
     if (!strcmp(operation, "r"))

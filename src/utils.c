@@ -1477,7 +1477,7 @@ FILE  *fp;
     if (nbytes <= 0)
         return ERROR_INT("nbytes must be > 0", procName, 1);
 
-    if (!strcmp(operation, "w") && !strcmp(operation, "a"))
+    if (strcmp(operation, "w") && strcmp(operation, "a"))
         return ERROR_INT("operation not one of {'w','a'}", procName, 1);
 
         /* The 'b' flag to fopen() is ignored for all POSIX
