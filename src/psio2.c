@@ -1466,7 +1466,6 @@ FILE      *fp;
 
     for (i = 0; i < npages; i++) {
         if ((pix = pixReadTiff(filein, i)) == NULL) {
-            LEPT_FREE(tempfile);
             return ERROR_INT("pix not made", procName, 1);
         }
 
