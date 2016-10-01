@@ -1274,10 +1274,11 @@ PIX       *pixm, *pixt1, *pixt2, *pixt3, *pixims;
 
         /* Finally, for each connected region corresponding to the
          * fg mask, reset all pixels to their average value. */
-    if (pixim && fgpixels) {
+    if (pixim && fgpixels)
         pixSmoothConnectedRegions(pixm, pixims, 2);
+
+    if (pixim)
         pixDestroy(&pixims);
-    }
 
     *ppixm = pixm;
     pixCopyResolution(*ppixm, pixs);
@@ -2202,15 +2203,26 @@ PIXCMAP   *cmap;
     nar = numaGammaTRC(1.0, 0, L_MAX(1, 255 * rval / mapval));
     nag = numaGammaTRC(1.0, 0, L_MAX(1, 255 * gval / mapval));
     nab = numaGammaTRC(1.0, 0, L_MAX(1, 255 * bval / mapval));
-    if (!nar || !nag || !nab)
+    if (!nar || !nag || !nab) {
+        numaDestroy(&nar);
+        numaDestroy(&nag);
+        numaDestroy(&nab);
         return (PIX *)ERROR_PTR("trc maps not all made", procName, pixd);
+    }
 
         /* Extract copies of the internal arrays */
     rarray = numaGetIArray(nar);
     garray = numaGetIArray(nag);
     barray = numaGetIArray(nab);
-    if (!rarray || !garray || !barray)
+    if (!rarray || !garray || !barray) {
+        numaDestroy(&nar);
+        numaDestroy(&nag);
+        numaDestroy(&nab);
+        LEPT_FREE(rarray);
+        LEPT_FREE(garray);
+        LEPT_FREE(barray);
         return (PIX *)ERROR_PTR("*arrays not all made", procName, pixd);
+    }
 
     if (cmap) {
         ncolors = pixcmapGetCount(cmap);
