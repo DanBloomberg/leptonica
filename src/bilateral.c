@@ -659,8 +659,10 @@ PIX       *pixt, *pixd;
 
     keli = kernelInvert(spatial_kel);
     kernelGetParameters(keli, &sy, &sx, &cy, &cx);
-    if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL)
+    if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL) {
+        kernelDestroy(&keli);
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    }
 
     pixd = pixCreate(w, h, 8);
     datat = pixGetData(pixt);
