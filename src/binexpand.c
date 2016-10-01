@@ -161,8 +161,10 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
     if (factor == 2) {
-        if ((tab2 = makeExpandTab2x()) == NULL)
+        if ((tab2 = makeExpandTab2x()) == NULL) {
+            pixDestroy(&pixd);
             return (PIX *)ERROR_PTR("tab2 not made", procName, NULL);
+        }
         sbytes = (w + 7) / 8;
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
