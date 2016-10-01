@@ -257,7 +257,7 @@ PTAA    *ptaad;
  *      (2) The key is a 64-bit hash from the (x,y) pair.
  *      (3) This is slower than ptaUnionByHash(), mostly because of the
  *          nlogn sort to build up the rbtree.  Do not use for large
- *          numbers of points (say, \> 1M).
+ *          numbers of points (say, > 1M).
  *      (4) The *Aset() functions use the sorted l_Aset, which is just
  *          an rbtree in disguise.
  * </pre>
@@ -296,7 +296,7 @@ PTA  *pta3, *ptad;
  * Notes:
  *      (1) This is slower than ptaRemoveDupsByHash(), mostly because
  *          of the nlogn sort to build up the rbtree.  Do not use for
- *          large numbers of points (say, \> 1M).
+ *          large numbers of points (say, > 1M).
  * </pre>
  */
 PTA *
@@ -343,7 +343,7 @@ RB_TYPE   key;
  *      (2) The key is a 64-bit hash from the (x,y) pair.
  *      (3) This is slower than ptaIntersectionByHash(), mostly because
  *          of the nlogn sort to build up the rbtree.  Do not use for
- *          large numbers of points (say, \> 1M).
+ *          large numbers of points (say, > 1M).
  * </pre>
  */
 PTA *
@@ -475,13 +475,13 @@ PTA  *pta3, *ptad;
  *      (1) Generates a pta with unique values.
  *      (2) The dnahash is built up with ptad to assure uniqueness.
  *          It can be used to find if a point is in the set:
- *              ptaFindPtByHash(ptad, dahash, x, y, \&index)
+ *              ptaFindPtByHash(ptad, dahash, x, y, &index)
  *      (3) The hash of the (x,y) location is simple and fast.  It scales
  *          up with the number of buckets to insure a fairly random
  *          bucket selection for adjacent points.
  *      (4) A Dna is used rather than a Numa because we need accurate
  *          representation of 32-bit integers that are indices into ptas.
- *          Integer --\> float --\> integer conversion makes errors for
+ *          Integer --> float --> integer conversion makes errors for
  *          integers larger than 10M.
  *      (5) This is faster than ptaRemoveDupsByAset(), because the
  *          bucket lookup is O(n), although there is a double-loop
@@ -609,6 +609,14 @@ PTA        *pta_small, *pta_big, *ptad;
  * Notes:
  *      (1) Fast lookup in dnaHash associated with a pta, to see if a
  *          random point (x,y) is already stored in the hash table.
+ *      (2) We use a strong hash function to minimize the chance that
+ *          two different points hash to the same key value.
+ *      (3) We select the number of buckets to be about 5% of the size
+ *          of the input %pta, so that when fully populated, each
+ *          bucket (dna) will have about 20 entries, each being an index
+ *          into %pta.  In lookup, after hashing to the key, and then
+ *          again to the bucket, we traverse the bucket (dna), using the
+ *          index into %pta to check if the point (x,y) has been found before.
  * </pre>
  */
 l_int32

@@ -29,18 +29,18 @@
  * <pre>
  *
  *      Sort
- *          SARRAY    *sarraySort()
- *          SARRAY    *sarraySortByIndex()
- *          l_int32    stringCompareLexical()
+ *          SARRAY     *sarraySort()
+ *          SARRAY     *sarraySortByIndex()
+ *          l_int32     stringCompareLexical()
  *
  *      Set operations using aset (rbtree)
- *          SARRAY    *sarrayUnionByAset()
- *          SARRAY    *sarrayRemoveDupsByAset()
- *          SARRAY    *sarrayIntersectionByAset()
- *          L_ASET    *l_asetCreateFromSarray()
+ *          SARRAY     *sarrayUnionByAset()
+ *          SARRAY     *sarrayRemoveDupsByAset()
+ *          SARRAY     *sarrayIntersectionByAset()
+ *          L_ASET     *l_asetCreateFromSarray()
  *
  *      Set operations using hashing (dnahash)
- *          l_int32    sarrayRemoveDupsByHash()
+ *          l_int32     sarrayRemoveDupsByHash()
  *          SARRAY     *sarrayIntersectionByHash()
  *          l_int32     sarrayFindStringByHash()
  *          L_DNAHASH  *l_dnaHashCreateFromSarray()
@@ -548,6 +548,14 @@ SARRAY     *sa_small, *sa_big, *sad;
  * Notes:
  *      (1) Fast lookup in dnaHash associated with a sarray, to see if a
  *          random string %str is already stored in the hash table.
+ *      (2) We use a strong hash function to minimize the chance that
+ *          two different strings hash to the same key value.
+ *      (3) We select the number of buckets to be about 5% of the size
+ *          of the input sarray, so that when fully populated, each
+ *          bucket (dna) will have about 20 entries, each being an index
+ *          into sa.  In lookup, after hashing to the key, and then
+ *          again to the bucket, we traverse the bucket (dna), using the
+ *          index into sa to check if %str has been found before.
  * </pre>
  */
 l_int32

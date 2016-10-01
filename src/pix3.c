@@ -87,7 +87,7 @@
  *           l_int32     pixAbsDiffInRect()
  *           l_int32     pixAbsDiffOnLine()
  *
- *    Count of pixels with specific value            *
+ *    Count of pixels with specific value
  *           l_int32     pixCountArbInRect()
  *
  *    Mirrored tiling
@@ -358,7 +358,7 @@ PIX       *pixmu, *pixc;
  *          would be faster to generate an 8 bpp version of pixm,
  *          using pixConvert1To8(pixm, 0, 255), and then use a
  *          general combine operation
- *               d = (d \& ~m) | (s \& m)
+ *               d = (d & ~m) | (s & m)
  *          on a word-by-word basis.  Not always.  The word-by-word
  *          combine takes a time that is independent of the mask data.
  *          If the mask is relatively sparse, the byte-check method
@@ -476,12 +476,12 @@ PIX       *pixt;
  *
  *             Pix *pixm8 = pixConvert1To8(NULL, pixm, 0, 255);
  *             Pix *pixt = pixAnd(NULL, pixs, pixm8);
- *             pixRasterop(pixd, x, y, wmin, hmin, PIX_DST \& PIX_NOT(PIX_SRC),
+ *             pixRasterop(pixd, x, y, wmin, hmin, PIX_DST & PIX_NOT(PIX_SRC),
  *                         pixm8, 0, 0);
  *             pixRasterop(pixd, x, y, wmin, hmin, PIX_SRC | PIX_DST,
  *                         pixt, 0, 0);
- *             pixDestroy(\&pixt);
- *             pixDestroy(\&pixm8);
+ *             pixDestroy(&pixt);
+ *             pixDestroy(&pixm8);
  * </pre>
  */
 l_int32
@@ -589,11 +589,11 @@ PIX       *pixt;
  *      (6) Implementation detail 1:
  *          For painting with val == 0 or val == maxval, you can use rasterop.
  *          If val == 0, invert the mask so that it's 0 over the region
- *          into which you want to write, and use PIX_SRC \& PIX_DST to
+ *          into which you want to write, and use PIX_SRC & PIX_DST to
  *          clear those pixels.  To write with val = maxval (all 1's),
  *          use PIX_SRC | PIX_DST to set all bits under the mask.
  *      (7) Implementation detail 2:
- *          The rasterop trick can be used for depth \> 1 as well.
+ *          The rasterop trick can be used for depth > 1 as well.
  *          For val == 0, generate the mask for depth d from the binary
  *          mask using
  *              pixmd = pixUnpackBinary(pixm, d, 1);
@@ -752,17 +752,17 @@ l_uint32  *data, *datam, *line, *linem;
  *          underlying image pixs and mask pixm of components to fill:
  *              Boxa *boxa = pixConnComp(pixm, \&pixa, 8);
  *              n = boxaGetCount(boxa);
- *              for (i = 0; i \< n; i++) {
+ *              for (i = 0; i < n; i++) {
  *                  Pix *pix = pixaGetPix(pixa, i, L_CLONE);
  *                  Box *box = pixaGetBox(pixa, i, L_CLONE);
- *                  boxGetGeometry(box, \&bx, \&by, \&bw, \&bh);
+ *                  boxGetGeometry(box, &bx, &by, &bw, &bh);
  *                  pixPaintSelfThroughMask(pixs, pix, bx, by, searchdir,
  *                                     mindist, tilesize, ntiles, distblend);
- *                  pixDestroy(\&pix);
- *                  boxDestroy(\&box);
+ *                  pixDestroy(&pix);
+ *                  boxDestroy(&box);
  *              }
- *              pixaDestroy(\&pixa);
- *              boxaDestroy(\&boxa);
+ *              pixaDestroy(&pixa);
+ *              boxaDestroy(&boxa);
  *      (8) If no tiles can be found, this falls back to estimating the
  *          color near the boundary of the region to be textured.
  *      (9) This can be used to replace the pixels in some regions of
@@ -1007,10 +1007,10 @@ PIX       *pixd;
  *      (5) Here are some examples:
  *          * To convert all fully transparent pixels in a 4 component
  *            (rgba) png file to white:
- *              pixs = pixRead(\<infile\>);
+ *              pixs = pixRead(<infile>);
  *              pixd = pixSetUnderTransparency(pixs, 0xffffff00, 0);
  *          * To write pixd with the alpha component:
- *              pixWrite(\<outfile\>, pixd, IFF_PNG);
+ *              pixWrite(<outfile>, pixd, IFF_PNG);
  *          * To write and rgba image without the alpha component, first do:
  *              pixSetSpp(pixd, 3);
  *            If you later want to use the alpha, spp must be reset to 4.
@@ -1092,7 +1092,7 @@ PIX  *pixg, *pixm, *pixt, *pixd;
  *          from the FG pixels, decaying to 0 (transparent) is an
  *          8-connected distance given by %dist.  If %dist == 0,
  *          this does a simple conversion from 1 to 8 bpp.
- *      (2) If \&box == NULL, this returns an alpha mask that is the
+ *      (2) If &box == NULL, this returns an alpha mask that is the
  *          full size of pixs.  Otherwise, the returned mask pixd covers
  *          just the FG pixels of pixs, expanded by %dist in each
  *          direction (if possible), and the returned box gives the
@@ -1101,10 +1101,10 @@ PIX  *pixg, *pixm, *pixt, *pixd;
  *          blending of the painted image with an underlying image
  *          in the mask background for pixels near foreground mask pixels.
  *          For example, with an underlying rgb image pix1, an overlaying
- *          image rgb pix2, binary mask pixm, and dist \> 0, this
+ *          image rgb pix2, binary mask pixm, and dist > 0, this
  *          blending is achieved with:
- *              pix3 = pixMakeAlphaFromMask(pixm, dist, \&box);
- *              boxGetGeometry(box, \&x, \&y, NULL, NULL);
+ *              pix3 = pixMakeAlphaFromMask(pixm, dist, &box);
+ *              boxGetGeometry(box, &x, &y, NULL, NULL);
  *              pix4 = pixBlendWithGrayMask(pix1, pix2, pix3, x, y);
  * </pre>
  */
@@ -1272,9 +1272,9 @@ PIX       *pix1, *pix2, *pix3;
  * Notes:
  *      (1) This inverts pixs, for all pixel depths.
  *      (2) There are 3 cases:
- *           (a) pixd == null,   ~src --\> new pixd
- *           (b) pixd == pixs,   ~src --\> src  (in-place)
- *           (c) pixd != pixs,   ~src --\> input pixd
+ *           (a) pixd == null,   ~src --> new pixd
+ *           (b) pixd == pixs,   ~src --> src  (in-place)
+ *           (c) pixd != pixs,   ~src --> input pixd
  *      (3) For clarity, if the case is known, use these patterns:
  *           (a) pixd = pixInvert(NULL, pixs);
  *           (b) pixInvert(pixs, pixs);
@@ -1316,9 +1316,9 @@ pixInvert(PIX  *pixd,
  *          aligning them to the the UL corner.  pixs1 and pixs2
  *          need not have the same width and height.
  *      (2) There are 3 cases:
- *            (a) pixd == null,   (src1 | src2) --\> new pixd
- *            (b) pixd == pixs1,  (src1 | src2) --\> src1  (in-place)
- *            (c) pixd != pixs1,  (src1 | src2) --\> input pixd
+ *            (a) pixd == null,   (src1 | src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 | src2) --> src1  (in-place)
+ *            (c) pixd != pixs1,  (src1 | src2) --> input pixd
  *      (3) For clarity, if the case is known, use these patterns:
  *            (a) pixd = pixOr(NULL, pixs1, pixs2);
  *            (b) pixOr(pixs1, pixs1, pixs2);
@@ -1380,9 +1380,9 @@ pixOr(PIX  *pixd,
  *          aligning them to the the UL corner.  pixs1 and pixs2
  *          need not have the same width and height.
  *      (2) There are 3 cases:
- *            (a) pixd == null,   (src1 \& src2) --\> new pixd
- *            (b) pixd == pixs1,  (src1 \& src2) --\> src1  (in-place)
- *            (c) pixd != pixs1,  (src1 \& src2) --\> input pixd
+ *            (a) pixd == null,   (src1 & src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 & src2) --> src1  (in-place)
+ *            (c) pixd != pixs1,  (src1 & src2) --> input pixd
  *      (3) For clarity, if the case is known, use these patterns:
  *            (a) pixd = pixAnd(NULL, pixs1, pixs2);
  *            (b) pixAnd(pixs1, pixs1, pixs2);
@@ -1444,9 +1444,9 @@ pixAnd(PIX  *pixd,
  *          aligning them to the the UL corner.  pixs1 and pixs2
  *          need not have the same width and height.
  *      (2) There are 3 cases:
- *            (a) pixd == null,   (src1 ^ src2) --\> new pixd
- *            (b) pixd == pixs1,  (src1 ^ src2) --\> src1  (in-place)
- *            (c) pixd != pixs1,  (src1 ^ src2) --\> input pixd
+ *            (a) pixd == null,   (src1 ^ src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 ^ src2) --> src1  (in-place)
+ *            (c) pixd != pixs1,  (src1 ^ src2) --> input pixd
  *      (3) For clarity, if the case is known, use these patterns:
  *            (a) pixd = pixXor(NULL, pixs1, pixs2);
  *            (b) pixXor(pixs1, pixs1, pixs2);
@@ -1509,13 +1509,13 @@ pixXor(PIX  *pixd,
  *          need not have the same width and height.
  *      (2) Source pixs2 is always subtracted from source pixs1.
  *          The result is
- *                  pixs1 \ pixs2 = pixs1 \& (~pixs2)
+ *                  pixs1 \ pixs2 = pixs1 & (~pixs2)
  *      (3) There are 4 cases:
- *            (a) pixd == null,   (src1 - src2) --\> new pixd
- *            (b) pixd == pixs1,  (src1 - src2) --\> src1  (in-place)
- *            (c) pixd == pixs2,  (src1 - src2) --\> src2  (in-place)
- *            (d) pixd != pixs1 \&\& pixd != pixs2),
- *                                 (src1 - src2) --\> input pixd
+ *            (a) pixd == null,   (src1 - src2) --> new pixd
+ *            (b) pixd == pixs1,  (src1 - src2) --> src1  (in-place)
+ *            (c) pixd == pixs2,  (src1 - src2) --> src2  (in-place)
+ *            (d) pixd != pixs1 && pixd != pixs2),
+ *                                 (src1 - src2) --> input pixd
  *      (4) For clarity, if the case is known, use these patterns:
  *            (a) pixd = pixSubtract(NULL, pixs1, pixs2);
  *            (b) pixSubtract(pixs1, pixs1, pixs2);
@@ -2201,7 +2201,7 @@ l_int32  *tab;
  *      (1) This table of integers gives the centroid weight of the 1 bits
  *          in the 8 bit index.  In other words, if sumtab is obtained by
  *          makePixelSumTab8, and centroidtab is obtained by
- *          makePixelCentroidTab8, then, for 1 \<= i \<= 255,
+ *          makePixelCentroidTab8, then, for 1 <= i <= 255,
  *          centroidtab[i] / (float)sumtab[i]
  *          is the centroid of the 1 bits in the 8-bit index i, where the
  *          MSB is considered to have position 0 and the LSB is considered
@@ -2864,7 +2864,7 @@ l_float64  norm, sum;
  *      (1) This gives the average over the abs val of differences of
  *          adjacent pixels values, along a line that is either horizontal
  *          or vertical.
- *      (2) If horizontal, require x1 \< x2; if vertical, require y1 \< y2.
+ *      (2) If horizontal, require x1 < x2; if vertical, require y1 < y2.
  * </pre>
  */
 l_int32
@@ -2945,8 +2945,8 @@ l_uint32   val0, val1;
  * Notes:
  *      (1) If pixs is cmapped, %val is compared to the colormap index;
  *          otherwise, %val is compared to the grayscale value.
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of computation.
- *          If %factor \> 1, multiply the count by %factor * %factor.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
+ *          If %factor > 1, multiply the count by %factor * %factor.
  * </pre>
  */
 l_int32

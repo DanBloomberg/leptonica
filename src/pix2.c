@@ -243,7 +243,7 @@ l_uint32  *line, *data;
  * Notes:
  *      (1) Warning: the input value is not checked for overflow with respect
  *          the the depth of %pix, and the sign bit (if any) is ignored.
- *          * For d == 1, %val \> 0 sets the bit on.
+ *          * For d == 1, %val > 0 sets the bit on.
  *          * For d == 2, 4, 8 and 16, %val is masked to the maximum allowable
  *            pixel value, and any (invalid) higher order bits are discarded.
  *      (2) See pixGetPixel() for information on performance.
@@ -760,8 +760,8 @@ PIXCMAP  *cmap;
  * Notes:
  *      (1) N.B.  For all images, %grayval == 0 represents black and
  *          %grayval == 255 represents white.
- *      (2) For depth \< 8, we do our best to approximate the gray level.
- *          For 1 bpp images, any %grayval \< 128 is black; \>= 128 is white.
+ *      (2) For depth < 8, we do our best to approximate the gray level.
+ *          For 1 bpp images, any %grayval < 128 is black; >= 128 is white.
  *          For 32 bpp images, each r,g,b component is set to %grayval,
  *          and the alpha component is preserved.
  *      (3) If pix is colormapped, it adds the gray value, replicated in
@@ -1737,7 +1737,7 @@ pixAddBorder(PIX      *pixs,
  *          There are two ways to add the black or white border:
  *          (a) As done here (simplest, most efficient)
  *          (b) l_int32 ws, hs, d;
- *              pixGetDimensions(pixs, \&ws, \&hs, \&d);
+ *              pixGetDimensions(pixs, &ws, &hs, &d);
  *              Pix *pixd = pixCreate(ws + left + right, hs + top + bot, d);
  *              PixColormap *cmap = pixGetColormap(pixs);
  *              if (cmap != NULL)
@@ -1795,8 +1795,8 @@ l_uint32  val;
  *          which, if pixs is cmapped, may add an entry to the colormap.
  *          Alternatively, if pixs has a colormap, you can find the index
  *          of the pixel whose intensity is closest to white or black:
- *             white: pixcmapGetRankIntensity(cmap, 1.0, \&index);
- *             black: pixcmapGetRankIntensity(cmap, 0.0, \&index);
+ *             white: pixcmapGetRankIntensity(cmap, 1.0, &index);
+ *             black: pixcmapGetRankIntensity(cmap, 0.0, &index);
  *          and use that for val.
  * </pre>
  */
@@ -2688,9 +2688,9 @@ composeRGBAPixel(l_int32    rval,
  * <pre>
  * Notes:
  *      (1) A slower implementation uses macros:
- *             *prval = GET_DATA_BYTE(\&pixel, COLOR_RED);
- *             *pgval = GET_DATA_BYTE(\&pixel, COLOR_GREEN);
- *             *pbval = GET_DATA_BYTE(\&pixel, COLOR_BLUE);
+ *             *prval = GET_DATA_BYTE(&pixel, COLOR_RED);
+ *             *pgval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
+ *             *pbval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
  * </pre>
  */
 void
@@ -3186,7 +3186,7 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
  *                       values are 255 (opaque); 0 otherwise
  * \return  0 if OK, 1 on error
  *      Notes:
- *          1) On error, opaque is returned as 0 (FALSE.
+ *          1) On error, opaque is returned as 0 (FALSE).
  */
 l_int32
 pixAlphaIsOpaque(PIX      *pix,
@@ -3242,10 +3242,10 @@ l_uint32  *data, *line;
  *      (2) After processing, you must call pixCleanupByteProcessing(),
  *          which frees the lineptr array and restores byte order.
  *      (3) Usage:
- *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, \&w, \&h);
- *              for (i = 0; i \< h; i++) {
+ *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, &w, &h);
+ *              for (i = 0; i < h; i++) {
  *                  l_uint8 *line = lineptrs[i];
- *                  for (j = 0; j \< w; j++) {
+ *                  for (j = 0; j < w; j++) {
  *                      val = line[j];
  *                      ...
  *                  }

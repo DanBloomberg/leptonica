@@ -156,7 +156,7 @@
  *      new data field in pixd, and copy the data from pixs, leaving
  *      pixs unchanged.
  *
- *  (2) Use pixTransferAllData(pixd, \&pixs, ...) to transfer the
+ *  (2) Use pixTransferAllData(pixd, &pixs, ...) to transfer the
  *      data from pixs to pixd without making a copy of it.  If
  *      pixs is not cloned, this will do the transfer and destroy pixs.
  *      But if the refcount of pixs is greater than 1, it just copies
@@ -611,7 +611,7 @@ char      *text;
  *            (a) pixd == null  (makes a new pix; refcount = 1)
  *            (b) pixd == pixs  (no-op)
  *            (c) pixd != pixs  (data copy; no change in refcount)
- *          If the refcount of pixd \> 1, case (c) will side-effect
+ *          If the refcount of pixd > 1, case (c) will side-effect
  *          these handles.
  *      (2) The general pattern of use is:
  *             pixd = pixCopy(pixd, pixs);
@@ -1711,7 +1711,7 @@ l_uint32  *data;
  *          For example, for an 8 bpp image,
  *              val = GET_DATA_BYTE(lines8[i], j);
  *          is equivalent to, but much faster than,
- *              pixGetPixel(pix, j, i, \&val);
+ *              pixGetPixel(pix, j, i, &val);
  *      (2) How much faster?  For 1 bpp, it's from 6 to 10x faster.
  *          For 8 bpp, it's an amazing 30x faster.  So if you are
  *          doing random access over a substantial part of the image,
@@ -1746,10 +1746,10 @@ l_uint32  *data;
  *          Here's a typical usage pattern:
  *              pixEndianByteSwap(pix);   // always safe; no-op on big-endians
  *              l_uint8 **lineptrs = (l_uint8 **)pixGetLinePtrs(pix, NULL);
- *              pixGetDimensions(pix, \&w, \&h, NULL);
- *              for (i = 0; i \< h; i++) {
+ *              pixGetDimensions(pix, &w, &h, NULL);
+ *              for (i = 0; i < h; i++) {
  *                  l_uint8 *line = lineptrs[i];
- *                  for (j = 0; j \< w; j++) {
+ *                  for (j = 0; j < w; j++) {
  *                      val = line[j];
  *                      ...
  *                  }
@@ -1757,10 +1757,10 @@ l_uint32  *data;
  *              pixEndianByteSwap(pix);  // restore big-endian order
  *              LEPT_FREE(lineptrs);
  *          This can be done even more simply as follows:
- *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, \&w, \&h);
- *              for (i = 0; i \< h; i++) {
+ *              l_uint8 **lineptrs = pixSetupByteProcessing(pix, &w, &h);
+ *              for (i = 0; i < h; i++) {
  *                  l_uint8 *line = lineptrs[i];
- *                  for (j = 0; j \< w; j++) {
+ *                  for (j = 0; j < w; j++) {
  *                      val = line[j];
  *                      ...
  *                  }
