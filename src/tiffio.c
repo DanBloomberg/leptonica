@@ -743,10 +743,10 @@ TIFF    *tif;
  *
  * <pre>
  * Notes:
- *      (1) For images with bpp \> 1, this resets the comptype, if
+ *      (1) For images with bpp > 1, this resets the comptype, if
  *          necessary, to write uncompressed data.
  *      (2) G3 and G4 are only defined for 1 bpp.
- *      (3) We only allow PACKBITS for bpp = 1, because for bpp \> 1
+ *      (3) We only allow PACKBITS for bpp = 1, because for bpp > 1
  *          it typically expands images that are not synthetically generated.
  *      (4) G4 compression is typically about twice as good as G3.
  *          G4 is excellent for binary compression of text/line-art,
@@ -810,7 +810,7 @@ TIFF  *tif;
  *          level functions in this file; namely, pixWriteTiffCustom(),
  *          pixWriteTiff(), pixWriteStreamTiff(), pixWriteMemTiff()
  *          and pixWriteMemTiffCustom().
- *      (2) We only allow PACKBITS for bpp = 1, because for bpp \> 1
+ *      (2) We only allow PACKBITS for bpp = 1, because for bpp > 1
  *          it typically expands images that are not synthetically generated.
  *      (3) See pixWriteTiffCustom() for details on how to use
  *          the last four parameters for customized tiff tags.
