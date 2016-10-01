@@ -1465,9 +1465,8 @@ FILE      *fp;
         fillfract = DEFAULT_FILL_FRACTION;
 
     for (i = 0; i < npages; i++) {
-        if ((pix = pixReadTiff(filein, i)) == NULL) {
+        if ((pix = pixReadTiff(filein, i)) == NULL)
             return ERROR_INT("pix not made", procName, 1);
-        }
 
         pixGetDimensions(pix, &w, &h, NULL);
         if (w == 1728 && h < w)   /* it's a std res fax */
