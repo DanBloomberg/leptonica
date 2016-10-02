@@ -101,8 +101,11 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
 
-    if ((pixd = pixCreate(ws / 2, hs / 2, 1)) == NULL)
+    if ((pixd = pixCreate(ws / 2, hs / 2, 1)) == NULL) {
+        if (!intab)
+            LEPT_FREE(tab);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.5, 0.5);
     wpld = pixGetWpl(pixd);
@@ -258,8 +261,11 @@ PIX       *pixd;
 
     ws = pixGetWidth(pixs);
     hs = pixGetHeight(pixs);
-    if (hs <= 1)
+    if (hs <= 1) {
+        if (!intab)
+            LEPT_FREE(tab);
         return (PIX *)ERROR_PTR("hs must be at least 2", procName, NULL);
+    }
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
 
