@@ -208,6 +208,7 @@ PIX       *pixc, *pixt, *pixd;
     boxDestroy(&box);
     if (!pixc) {
         L_WARNING("box doesn't overlap pix\n", procName);
+        pixDestroy(&pixt);
         return NULL;
     }
     x = L_MAX(0, x);
@@ -1586,8 +1587,10 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
     cmapsc = pixcmapCopy(cmaps);
 
     pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 2 && d != 4 && d != 8)
+    if (d != 2 && d != 4 && d != 8) {
+        pixcmapDestroy(&cmapsc);
         return ERROR_INT("depth not in {2,4,8}", procName, 1);
+    }
 
         /* Add new colors if necessary; get mapping array between
          * cmaps and cmapb. */
@@ -1759,6 +1762,7 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixg2, *pixd;
     d2 = pixGetDepth(pix2);
     if (d1 != d2) {
         pixDestroy(&pix1);
+        pixDestroy(&pixg2);
         pixDestroy(&pix2);
         return (PIX *)ERROR_PTR("depths not regularized! bad!", procName, NULL);
     }
@@ -1809,6 +1813,9 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixg2, *pixd;
                 *(lined + j + x) = dval32;
                 break;
             default:
+                pixDestroy(&pixd);
+                pixDestroy(&pixg2);
+                pixDestroy(&pix2);
                 return (PIX *)ERROR_PTR("impossible error", procName, NULL);
             }
         }
