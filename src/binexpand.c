@@ -161,8 +161,7 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
     if (factor == 2) {
-        if ((tab2 = makeExpandTab2x()) == NULL)
-            return (PIX *)ERROR_PTR("tab2 not made", procName, NULL);
+        tab2 = makeExpandTab2x();
         sbytes = (w + 7) / 8;
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
@@ -175,8 +174,7 @@ PIX       *pixd;
         }
         LEPT_FREE(tab2);
     } else if (factor == 4) {
-        if ((tab4 = makeExpandTab4x()) == NULL)
-            return (PIX *)ERROR_PTR("tab4 not made", procName, NULL);
+        tab4 = makeExpandTab4x();
         sbytes = (w + 7) / 8;
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;
@@ -190,8 +188,7 @@ PIX       *pixd;
         }
         LEPT_FREE(tab4);
     } else if (factor == 8) {
-        if ((tab8 = makeExpandTab8x()) == NULL)
-            return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
+        tab8 = makeExpandTab8x();
         sqbits = (w + 3) / 4;
         for (i = 0; i < h; i++) {
             lines = datas + i * wpls;

@@ -583,8 +583,11 @@ NUMA       *na1, *nad;
     fad = numaGetFArray(nad, L_NOCOPY);
 
         /* Make sum array; note the indexing */
-    if ((suma = (l_float32 *)LEPT_CALLOC(n1 + 1, sizeof(l_float32))) == NULL)
+    if ((suma = (l_float32 *)LEPT_CALLOC(n1 + 1, sizeof(l_float32))) == NULL) {
+        numaDestroy(&na1);
+        numaDestroy(&nad);
         return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+    }
     sum = 0.0;
     suma[0] = 0.0;
     for (i = 0; i < n1; i++) {
@@ -640,8 +643,11 @@ NUMA       *na1, *nad;
     fad = numaGetFArray(nad, L_NOCOPY);
 
         /* Make sum array; note the indexing */
-    if ((suma = (l_float32 *)LEPT_CALLOC(n1 + 1, sizeof(l_float32))) == NULL)
+    if ((suma = (l_float32 *)LEPT_CALLOC(n1 + 1, sizeof(l_float32))) == NULL) {
+        numaDestroy(&na1);
+        numaDestroy(&nad);
         return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+    }
     sum = 0.0;
     suma[0] = 0.0;
     for (i = 0; i < n1; i++) {
@@ -919,8 +925,10 @@ NUMA      *nai, *nahist;
 
         /* Make histogram, converting value in input array
          * into a bin number for this histogram array. */
-    if ((nahist = numaCreate(nbins)) == NULL)
+    if ((nahist = numaCreate(nbins)) == NULL) {
+        numaDestroy(&nai);
         return (NUMA *)ERROR_PTR("nahist not made", procName, NULL);
+    }
     numaSetCount(nahist, nbins);
     numaSetParameters(nahist, iminval, binsize);
     for (i = 0; i < n; i++) {
@@ -1423,6 +1431,7 @@ l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
     }
 
     if (pxmode) {
+        imax = -1;
         ymax = -1.0e10;
         for (i = ifirst; i <= ilast; i++) {
             numaGetFValue(nahisto, i, &y);
@@ -1701,7 +1710,8 @@ l_float32  sum, midrank, endrank, val;
          * as input, we have 256 bins and 257 points in the
          * cumulative (rank) histogram. */
     npts = numaGetCount(na);
-    nar = numaCreate(npts + 1);
+    if ((nar = numaCreate(npts + 1)) == NULL)
+        return ERROR_INT("nar not made", procName, 1);
     sum = 0.0;
     numaAddNumber(nar, sum);  /* left side of first bin */
     for (i = 0; i < npts; i++) {
@@ -1710,12 +1720,16 @@ l_float32  sum, midrank, endrank, val;
         numaAddNumber(nar, sum);
     }
 
-    if ((nam = numaCreate(nbins)) == NULL)
-        return ERROR_INT("nam not made", procName, 1);
-    if ((narbin = numaCreate(npts)) == NULL)
-        return ERROR_INT("narbin not made", procName, 1);
-    if ((nabb = numaCreate(nbins)) == NULL)
-        return ERROR_INT("nabb not made", procName, 1);
+    nam = numaCreate(nbins);
+    narbin = numaCreate(npts);
+    nabb = numaCreate(nbins);
+    if (!nam || !narbin || !nabb) {
+        numaDestroy(&nar);
+        numaDestroy(&nam);
+        numaDestroy(&narbin);
+        numaDestroy(&nabb);
+        return ERROR_INT("numa not made", procName, 1);
+    }
 
         /* We find the intensity value at the right edge of each of
          * the rank bins.  We also find the median intensity in the bin,
@@ -1950,7 +1964,8 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
         /* Split the histogram with [0 ... i] in the lower part
          * and [i+1 ... n-1] in upper part.  First, compute an otsu
          * score for each possible splitting.  */
-    nascore = numaCreate(n);
+    if ((nascore = numaCreate(n)) == NULL)
+        return ERROR_INT("nascore not made", procName, 1);
     if (pave2) naave1 = numaCreate(n);
     if (pave2) naave2 = numaCreate(n);
     if (pnum1) nanum1 = numaCreate(n);
@@ -2335,8 +2350,10 @@ NUMA      *na, *napeak;
         /* We munge this copy */
     if ((na = numaCopy(nas)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
-    if ((napeak = numaCreate(4 * nmax)) == NULL)
+    if ((napeak = numaCreate(4 * nmax)) == NULL) {
+        numaDestroy(&na);
         return (NUMA *)ERROR_PTR("napeak not made", procName, NULL);
+    }
 
     for (k = 0; k < nmax; k++) {
         numaGetSum(na, &newtotal);
@@ -2789,13 +2806,11 @@ NUMA      *nap, *nad;
 
     PROCNAME("numaCrossingsByPeaks");
 
-    if (!nax)
-        return (NUMA *)ERROR_PTR("nax not defined", procName, NULL);
     if (!nay)
         return (NUMA *)ERROR_PTR("nay not defined", procName, NULL);
 
-    n = numaGetCount(nax);
-    if (numaGetCount(nay) != n)
+    n = numaGetCount(nay);
+    if (nax && (numaGetCount(nax) != n))
         return (NUMA *)ERROR_PTR("nax and nay sizes differ", procName, NULL);
 
         /* Find the extrema.  Also add last point in nay to get
@@ -2806,8 +2821,8 @@ NUMA      *nap, *nad;
     np = numaGetCount(nap);
     L_INFO("Number of crossings: %d\n", procName, np);
 
-        /* Do all computation in index units of nax */
-    nad = numaCreate(np);  /* output crossings, in nax units */
+        /* Do all computation in index units of nax or the delx of nay */
+    nad = numaCreate(np);  /* output crossing locations, in nax units */
     previndex = 0;  /* prime the search with 1st point */
     numaGetFValue(nay, 0, &prevval);  /* prime the search with 1st point */
     numaGetParameters(nay, &startx, &delx);
@@ -2915,7 +2930,7 @@ l_float32  bestwidth, bestshift, bestscore;
     if (!nas)
         return ERROR_INT("nas not defined", procName, 1);
 
-    bestscore = 0.0;
+    bestscore = bestwidth = bestshift = 0.0;
     delwidth = (maxwidth - minwidth) / (nwidth - 1.0);
     for (i = 0; i < nwidth; i++) {
         width = minwidth + delwidth * i;
