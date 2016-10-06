@@ -51,14 +51,13 @@ static const l_int32  FinalColors[] = {4, 8, 16};
 int main(int    argc,
          char **argv)
 {
-char         namebuf[256];
-l_int32      i, j, k, maxdist, maxcolors, selsize, finalcolors;
-PIX         *pixs, *pixt, *pixd;
-PIXA        *pixa;
-static char  mainName[] = "colorseg_reg";
+l_int32       i, j, k, maxdist, maxcolors, selsize, finalcolors;
+PIX          *pixs, *pixt, *pixd;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT("Syntax: colorseg_reg", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     pixs = pixRead("tetons.jpg");
     for (k = 0; k < 3; k++) {
@@ -71,22 +70,20 @@ static char  mainName[] = "colorseg_reg";
             for (j = 0; j <= 6; j++) {
                 selsize = j;
                 pixt = pixColorSegment(pixs, maxdist, maxcolors, selsize,
-                                       finalcolors);
+                                       finalcolors, 0);
                 pixSaveTiled(pixt, pixa, 1.0, j == 0 ? 1 : 0, 15, 32);
                 pixDestroy(&pixt);
             }
         }
 
         pixd = pixaDisplay(pixa, 0, 0);
-        pixDisplay(pixd, 100, 100);
-        sprintf(namebuf, "/tmp/junkcolorseg%d.jpg", k);
-        pixWrite(namebuf, pixd, IFF_JFIF_JPEG);
+        regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 0, 1, 2 */
+        pixDisplayWithTitle(pixd, 100, k * 300, "colorseg", rp->display);
         pixDestroy(&pixd);
         pixaDestroy(&pixa);
     }
 
     pixDestroy(&pixs);
-    return 0;
+    return regTestCleanup(rp);
 }
-
 

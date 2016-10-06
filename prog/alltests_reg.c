@@ -59,6 +59,7 @@ static const char *tests[] = {
                               "colorize_reg",
                               "colormask_reg",
                               "colorquant_reg",
+                              "colorseg_reg",
                               "colorspace_reg",
                               "compare_reg",
                               "convolve_reg",
