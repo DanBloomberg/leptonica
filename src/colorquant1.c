@@ -2306,7 +2306,6 @@ PIXCMAP   *cmap;
         nbase = 64;
         nextra = maxcolors - nbase;
     } else {
-        pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("maxcolors not in {8...256}", procName, NULL);
     }
 
