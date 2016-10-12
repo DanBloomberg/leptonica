@@ -206,7 +206,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		cornertest.c croptest.c croptext.c \
 		dewarprules.c dewarptest1.c dewarptest2.c \
 		dewarptest3.c dewarptest4.c dewarptest5.c \
-		digitprep1.c displayboxa.c \
+		digitprep1.c displayboxa.c displayboxes_on_pixa.c \
 		displaypix.c displaypixa.c \
 		dithertest.c dwalineargen.c \
 		edgetest.c falsecolortest.c \
@@ -799,6 +799,9 @@ digitprep1:	digitprep1.o $(LEPTLIB)
 
 displayboxa:	displayboxa.o $(LEPTLIB)
 	$(CC) -o displayboxa displayboxa.o $(ALL_LIBS) $(EXTRALIBS)
+
+displayboxes_on_pixa:	displayboxes_on_pixa.o $(LEPTLIB)
+	$(CC) -o displayboxes_on_pixa displayboxes_on_pixa.o $(ALL_LIBS) $(EXTRALIBS)
 
 displaypix:	displaypix.o $(LEPTLIB)
 	$(CC) -o displaypix displaypix.o $(ALL_LIBS) $(EXTRALIBS)

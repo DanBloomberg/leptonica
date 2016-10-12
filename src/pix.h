@@ -70,6 +70,7 @@
  *
  *   (2) This file has definitions for:
  *         Colors for RGB
+ *         Colors for drawing boxes
  *         Perceptual color weights
  *         Colormap conversion flags
  *         Rasterop bit flags
@@ -212,6 +213,20 @@ static const l_int32  L_ALPHA_SHIFT =
 
 
 /*-------------------------------------------------------------------------*
+ *                       Colors for drawing boxes                          *
+ *-------------------------------------------------------------------------*/
+/*! Colors for drawing boxes */
+enum {
+    L_DRAW_RED = 0,         /*!< draw in red                   */
+    L_DRAW_GREEN = 1,       /*!< draw in green                 */
+    L_DRAW_BLUE = 2,        /*!< draw in blue                  */
+    L_DRAW_SPECIFIED = 3,   /*!< draw specified color          */
+    L_DRAW_RGB = 4,         /*!< draw as sequence of r,g,b     */
+    L_DRAW_RANDOM = 5       /*!< draw randomly chosen colors   */
+};
+
+
+/*-------------------------------------------------------------------------*
  *                       Perceptual color weights                          *
  *-------------------------------------------------------------------------*/
 /* <pre>
@@ -231,7 +246,6 @@ static const l_float32  L_BLUE_WEIGHT =  0.2;  /*!< Percept. weight for blue  */
 /*-------------------------------------------------------------------------*
  *                        Flags for colormap conversion                    *
  *-------------------------------------------------------------------------*/
-
 /*! Flags for colormap conversion */
 enum {
     REMOVE_CMAP_TO_BINARY = 0,     /*!< remove colormap for conv to 1 bpp  */

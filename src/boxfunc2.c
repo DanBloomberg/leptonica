@@ -57,6 +57,7 @@
  *           BOXA            *boxaaFlattenToBoxa()
  *           BOXA            *boxaaFlattenAligned()
  *           BOXAA           *boxaEncapsulateAligned()
+ *           BOXAA           *boxaaTranspose()
  *           l_int32          boxaaAlignBox()
  * </pre>
  */
@@ -1617,6 +1618,67 @@ BOXAA   *baa;
     }
 
     return baa;
+}
+
+
+/*!
+ * \brief   boxaaTranspose()
+ *
+ * \param[in]    baas
+ * \return  baad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) If you think of a boxaa as a 2D array of boxes that is accessed
+ *          row major, then each row is represented by one of the boxa.
+ *          This function creates a new boxaa related to the input boxaa
+ *          as a column major traversal of the input boxaa.
+ *      (2) For example, if %baas has 2 boxa, each with 10 boxes, then
+ *          %baad will have 10 boxa, each with 2 boxes.
+ *      (3) Require for this transpose operation that each boxa in
+ *          %baas has the same number of boxes.  This operation is useful
+ *          when the i-th boxes in each boxa are meaningfully related.
+ * </pre>
+ */
+BOXAA *
+boxaaTranspose(BOXAA  *baas)
+{
+l_int32   i, j, ny, nb, nbox;
+BOX      *box;
+BOXA     *boxa;
+BOXAA    *baad;
+
+    PROCNAME("boxaaTranspose");
+
+    if (!baas)
+        return (BOXAA *)ERROR_PTR("baas not defined", procName, NULL);
+    if ((ny = boxaaGetCount(baas)) == 0)
+        return (BOXAA *)ERROR_PTR("baas empty", procName, NULL);
+
+        /* Make sure that each boxa in baas has the same number of boxes */
+    for (i = 0; i < ny; i++) {
+        if ((boxa = boxaaGetBoxa(baas, i, L_CLONE)) == NULL)
+            return (BOXAA *)ERROR_PTR("baas is missing a boxa", procName, NULL);
+        nb = boxaGetCount(boxa);
+        boxaDestroy(&boxa);
+        if (i == 0)
+            nbox = nb;
+        else if (nb != nbox)
+            return (BOXAA *)ERROR_PTR("boxa are not all the same size",
+                                      procName, NULL);
+    }
+
+        /* baad[i][j] = baas[j][i] */
+    baad = boxaaCreate(nbox);
+    for (i = 0; i < nbox; i++) {
+        boxa = boxaCreate(ny);
+        for (j = 0; j < ny; j++) {
+            box = boxaaGetBox(baas, j, i, L_COPY);
+            boxaAddBox(boxa, box, L_INSERT);
+        }
+        boxaaAddBoxa(baad, boxa, L_INSERT);
+    }
+    return baad;
 }
 
 

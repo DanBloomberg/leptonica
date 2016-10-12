@@ -2636,6 +2636,7 @@ FILE    *fp;
 PIXA *
 pixaReadBoth(const char  *filename)
 {
+char    buf[32];
 char   *sname;
 PIXA   *pixa;
 PIXAC  *pac;
@@ -2648,13 +2649,15 @@ PIXAC  *pac;
     l_getStructStrFromFile(filename, L_STR_NAME, &sname);
     if (!sname)
         return (PIXA *)ERROR_PTR("struct name not found", procName, NULL);
+    snprintf(buf, sizeof(buf), "%s", sname);
+    LEPT_FREE(sname);
 
-    if (strcmp(sname, "Pixacomp") == 0) {
+    if (strcmp(buf, "Pixacomp") == 0) {
         if ((pac = pixacompRead(filename)) == NULL)
             return (PIXA *)ERROR_PTR("pac not made", procName, NULL);
         pixa = pixaCreateFromPixacomp(pac, L_COPY);
         pixacompDestroy(&pac);
-    } else if (strcmp(sname, "Pixa") == 0) {
+    } else if (strcmp(buf, "Pixa") == 0) {
         if ((pixa = pixaRead(filename)) == NULL)
             return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
     } else {

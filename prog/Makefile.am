@@ -85,7 +85,7 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	cornertest croptest croptext \
 	dewarprules dewarptest1 dewarptest2 \
 	dewarptest3 dewarptest4 dewarptest5 \
-	digitprep1 displayboxa \
+	digitprep1 displayboxa displayboxes_on_pixa \
 	displaypix displaypixa \
 	dithertest dwalineargen \
 	edgetest falsecolortest \

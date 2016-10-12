@@ -39,12 +39,14 @@ int main(int    argc,
          char **argv)
 {
 l_uint8     *data1, *data2;
-l_int32      same, w, h, width;
+l_int32      i, same, w, h, width, success, nba;
 size_t       size1, size2;
 l_float32    diffarea, diffxor, scalefact;
 BOX         *box;
 BOXA        *boxa1, *boxa2, *boxa3;
+BOXAA       *baa1, *baa2, *baa3;
 PIX         *pix1, *pixdb;
+PIXA        *pixa1, *pixa2;
 static char  mainName[] = "boxa1_reg";
 
     if (argc != 1)
@@ -160,6 +162,37 @@ static char  mainName[] = "boxa1_reg";
     boxaDestroy(&boxa2);
     lept_free(data1);
     lept_free(data2);
+
+        /* Test pixaDisplayBoxaa() */
+    pixa1 = pixaReadBoth("showboxes.pac");
+    baa1 = boxaaRead("showboxes1.baa");
+    baa2 = boxaaTranspose(baa1);
+    baa3 = boxaaTranspose(baa2);
+    nba = boxaaGetCount(baa1);
+    success = TRUE;
+    for (i = 0; i < nba; i++) {
+        boxa1 = boxaaGetBoxa(baa1, i, L_CLONE);
+        boxa2 = boxaaGetBoxa(baa3, i, L_CLONE);
+        boxaEqual(boxa1, boxa2, 0, NULL, &same);
+        boxaDestroy(&boxa1);
+        boxaDestroy(&boxa2);
+        if (!same) success = FALSE;
+    }
+    if (success)
+        fprintf(stderr, "Good: transpose is reversible\n");
+    else
+        fprintf(stderr, "Bad: transpose failed\n");
+    pixa2 = pixaDisplayBoxaa(pixa1, baa2, L_DRAW_RGB, 2);
+    pix1 = pixaDisplayTiledInRows(pixa2, 32, 1400, 1.0, 0, 10, 0);
+    pixDisplay(pix1, 0, 600);
+    fprintf(stderr, "Writing to: /tmp/lept/boxa/show.pdf\n");
+    pixaConvertToPdf(pixa2, 75, 1.0, 0, 0, NULL, "/tmp/lept/boxa/show.pdf");
+    pixDestroy(&pix1);
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
+    boxaaDestroy(&baa1);
+    boxaaDestroy(&baa2);
+    boxaaDestroy(&baa3);
 
     return 0;
 }

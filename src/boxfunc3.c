@@ -38,6 +38,7 @@
  *           PIX             *pixDrawBoxa()
  *           PIX             *pixDrawBoxaRandom()
  *           PIX             *boxaaDisplay()
+ *           PIXA            *pixaDisplayBoxaa()
  *
  *      Split mask components into Boxa
  *           BOXA            *pixSplitIntoBoxa()
@@ -660,6 +661,110 @@ PIXCMAP  *cmap;
     }
 
     return pix;
+}
+
+
+/*!
+ * \brief   pixaDisplayBoxaa()
+ *
+ * \param[in]    pixas any depth, can be cmapped
+ * \param[in]    baa  boxes to draw on input pixa
+ * \param[in]    colorflag  (L_DRAW_RED, L_DRAW_GREEN, etc)
+ * \param[in]    width thickness of lines
+ * \return  pixa with box outlines drawn on each pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) All pix in %pixas that are not rgb are converted to rgb.
+ *      (2) Each boxa in @baa contains boxes that will be drawn on
+ *          the corresponding pix in %pixas.
+ *      (3) The color of the boxes drawn on each pix are selected with
+ *          %colorflag:
+ *            * For red, green or blue: use L_DRAW_RED, etc.
+ *            * For sequential r, g, b: use L_DRAW_RGB
+ *            * For random colors: use L_DRAW_RANDOM
+ * </pre>
+ */
+PIXA *
+pixaDisplayBoxaa(PIXA    *pixas,
+                 BOXAA   *baa,
+                 l_int32  colorflag,
+                 l_int32  width)
+{
+l_int32    i, j, nba, n, nbox, rval, gval, bval;
+l_uint32   color;
+l_uint32   colors[255];
+l_float64  dval;
+BOXA      *boxa;
+BOX       *box;
+PIX       *pix;
+PIXA      *pixad;
+
+    PROCNAME("pixaDisplayBoxaa");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (!baa)
+        return (PIXA *)ERROR_PTR("baa not defined", procName, NULL);
+    if (width < 1)
+        return (PIXA *)ERROR_PTR("width must be >= 1", procName, NULL);
+    if ((nba = boxaaGetCount(baa)) < 1)
+        return (PIXA *)ERROR_PTR("no boxa in baa", procName, NULL);
+    if ((n = pixaGetCount(pixas)) == 0)
+        return (PIXA *)ERROR_PTR("no pix in pixas", procName, NULL);
+    if (n != nba)
+        return (PIXA *)ERROR_PTR("num pix != num boxa", procName, NULL);
+    if (colorflag == L_DRAW_RED)
+        color = 0xff000000;
+    else if (colorflag == L_DRAW_GREEN)
+        color = 0x00ff0000;
+    else if (colorflag == L_DRAW_BLUE)
+        color = 0x0000ff00;
+    else if (colorflag == L_DRAW_RGB)
+        color = 0x000000ff;
+    else if (colorflag == L_DRAW_RANDOM)
+        color = 0x00000000;
+    else
+        return (PIXA *)ERROR_PTR("invalid colorflag", procName, NULL);
+
+    if (colorflag == L_DRAW_RED || colorflag == L_DRAW_GREEN ||
+        colorflag == L_DRAW_BLUE) {
+        for (i = 0; i < 255; i++)
+            colors[i] = color;
+    } else if (colorflag == L_DRAW_RGB) {
+        for (i = 0; i < 255; i++)
+            if (i % 3 == L_DRAW_RED)
+                colors[i] = 0xff000000;
+            else if (i % 3 == L_DRAW_GREEN)
+                colors[i] = 0x00ff0000;
+            else {  /* i % 3 == L_DRAW_BLUE) */
+                colors[i] = 0x0000ff00;
+        }
+    } else if (colorflag == L_DRAW_RANDOM) {
+        for (i = 0; i < 255; i++) {
+            rval = (l_uint32)rand() & 0xff;
+            gval = (l_uint32)rand() & 0xff;
+            bval = (l_uint32)rand() & 0xff;
+            composeRGBPixel(rval, gval, bval, &colors[i]);
+        }
+    }
+
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixas, i, L_COPY);
+        boxa = boxaaGetBoxa(baa, i, L_CLONE);
+        nbox = boxaGetCount(boxa);
+        for (j = 0; j < nbox; j++) {
+            box = boxaGetBox(boxa, j, L_CLONE);
+            extractRGBValues(colors[j % 255], &rval, &gval, &bval);
+            pixRenderBoxArb(pix, box, width, rval, gval, bval);
+            boxDestroy(&box);
+        }
+        boxaDestroy(&boxa);
+        pixaAddPix(pixad, pix, L_INSERT);
+    }
+
+    return pixad;
 }
 
 
