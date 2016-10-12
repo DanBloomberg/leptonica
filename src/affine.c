@@ -1333,7 +1333,7 @@ gaussjordan(l_float32  **a,
             l_float32   *b,
             l_int32      n)
 {
-l_int32    i, icol, irow, j, k, col, row;
+l_int32    i, icol, irow, j, k, col, row, success;
 l_int32   *indexc, *indexr, *ipiv;
 l_float32  maxval, val, pivinv, temp;
 
@@ -1344,13 +1344,17 @@ l_float32  maxval, val, pivinv, temp;
     if (!b)
         return ERROR_INT("b not defined", procName, 1);
 
-    if ((indexc = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
-        return ERROR_INT("indexc not made", procName, 1);
-    if ((indexr = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
-        return ERROR_INT("indexr not made", procName, 1);
-    if ((ipiv = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
-        return ERROR_INT("ipiv not made", procName, 1);
+    success = TRUE;
+    indexc = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32));
+    indexr = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32));
+    ipiv = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32));
+    if (!indexc || !indexr || !ipiv) {
+        L_ERROR("array not made\n", procName);
+        success = FALSE;
+        goto cleanup_arrays;
+    }
 
+    icol = irow = 0;  /* silence static checker */
     for (i = 0; i < n; i++) {
         maxval = 0.0;
         for (j = 0; j < n; j++) {
@@ -1363,7 +1367,9 @@ l_float32  maxval, val, pivinv, temp;
                             icol = k;
                         }
                     } else if (ipiv[k] > 1) {
-                        return ERROR_INT("singular matrix", procName, 1);
+                        L_ERROR("singular matrix\n", procName);
+                        success = FALSE;
+                        goto cleanup_arrays;
                     }
                 }
             }
@@ -1378,8 +1384,11 @@ l_float32  maxval, val, pivinv, temp;
 
         indexr[i] = irow;
         indexc[i] = icol;
-        if (a[icol][icol] == 0.0)
-            return ERROR_INT("singular matrix", procName, 1);
+        if (a[icol][icol] == 0.0) {
+            L_ERROR("singular matrix\n", procName);
+            success = FALSE;
+            goto cleanup_arrays;
+        }
         pivinv = 1.0 / a[icol][icol];
         a[icol][icol] = 1.0;
         for (col = 0; col < n; col++)
@@ -1404,10 +1413,11 @@ l_float32  maxval, val, pivinv, temp;
         }
     }
 
+cleanup_arrays:
     LEPT_FREE(indexr);
     LEPT_FREE(indexc);
     LEPT_FREE(ipiv);
-    return 0;
+    return (success) ? 0 : 1;
 }
 
 
@@ -1455,7 +1465,7 @@ l_int32    x1sc, y1sc;  /* scaled origin */
 l_float32  x2s, x2sp, scalex, scaley;
 l_float32  th3, th3p, ph2, ph2p;
 l_float32  rad2deg;
-PIX       *pixt1, *pixt2, *pixd;
+PIX       *pix1, *pix2, *pixd;
 
     PROCNAME("pixAffineSequential");
 
@@ -1478,6 +1488,7 @@ PIX       *pixt1, *pixt2, *pixd;
     ptaGetIPt(ptad, 2, &x3p, &y3p);
 
     rad2deg = 180. / 3.1415926535;
+    pix1 = pix2 = pixd = NULL;
 
     if (y1 == y3)
         return (PIX *)ERROR_PTR("y1 == y3!", procName, NULL);
@@ -1499,10 +1510,10 @@ PIX       *pixt1, *pixt2, *pixd;
         x3p = x3p + bw;
         y3p = y3p + bh;
 
-        if ((pixt1 = pixAddBorderGeneral(pixs, bw, bw, bh, bh, 0)) == NULL)
-            return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
+        if ((pix1 = pixAddBorderGeneral(pixs, bw, bw, bh, bh, 0)) == NULL)
+            return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
     } else {
-        pixt1 = pixCopy(NULL, pixs);
+        pix1 = pixCopy(NULL, pixs);
     }
 
     /*-------------------------------------------------------------*
@@ -1519,8 +1530,10 @@ PIX       *pixt1, *pixt2, *pixd;
         /* Shear angles required to put src points on x and y axes */
     th3 = atan2((l_float64)(x1 - x3), (l_float64)(y1 - y3));
     x2s = (l_float32)(x2 - ((l_float32)(y1 - y2) * (x3 - x1)) / (y1 - y3));
-    if (x2s == (l_float32)x1)
-        return (PIX *)ERROR_PTR("x2s == x1!", procName, NULL);
+    if (x2s == (l_float32)x1) {
+        L_ERROR("x2s == x1!\n", procName);
+        goto cleanup_pix;
+    }
     ph2 = atan2((l_float64)(y1 - y2), (l_float64)(x2s - x1));
 
         /* Shear angles required to put dest points on x and y axes.
@@ -1530,14 +1543,16 @@ PIX       *pixt1, *pixt2, *pixd;
     th3p = atan2((l_float64)(x1p - x3p), (l_float64)(y1p - y3p));
     x2sp = (l_float32)(x2p -
                        ((l_float32)(y1p - y2p) * (x3p - x1p)) / (y1p - y3p));
-    if (x2sp == (l_float32)x1p)
-        return (PIX *)ERROR_PTR("x2sp == x1p!", procName, NULL);
+    if (x2sp == (l_float32)x1p) {
+        L_ERROR("x2sp == x1p!\n", procName);
+        goto cleanup_pix;
+    }
     ph2p = atan2((l_float64)(y1p - y2p), (l_float64)(x2sp - x1p));
 
         /* Shear image to first put src point 3 on the y axis,
          * and then to put src point 2 on the x axis */
-    pixHShearIP(pixt1, y1, th3, L_BRING_IN_WHITE);
-    pixVShearIP(pixt1, x1, ph2, L_BRING_IN_WHITE);
+    pixHShearIP(pix1, y1, th3, L_BRING_IN_WHITE);
+    pixVShearIP(pix1, x1, ph2, L_BRING_IN_WHITE);
 
         /* Scale image to match dest scale.  The dest scale
          * is calculated above from the angles th3p and ph2p
@@ -1545,8 +1560,10 @@ PIX       *pixt1, *pixt2, *pixd;
          * the x and y axes. */
     scalex = (l_float32)(x2sp - x1p) / (x2s - x1);
     scaley = (l_float32)(y3p - y1p) / (y3 - y1);
-    if ((pixt2 = pixScale(pixt1, scalex, scaley)) == NULL)
-        return (PIX *)ERROR_PTR("pixt2 not made", procName, NULL);
+    if ((pix2 = pixScale(pix1, scalex, scaley)) == NULL) {
+        L_ERROR("pix2 not made\n", procName);
+        goto cleanup_pix;
+    }
 
 #if  DEBUG
     fprintf(stderr, "th3 = %5.1f deg, ph2 = %5.1f deg\n",
@@ -1569,21 +1586,22 @@ PIX       *pixt1, *pixt2, *pixd;
         /* Shift image to match dest origin. */
     x1sc = (l_int32)(scalex * x1 + 0.5);   /* x comp of origin after scaling */
     y1sc = (l_int32)(scaley * y1 + 0.5);   /* y comp of origin after scaling */
-    pixRasteropIP(pixt2, x1p - x1sc, y1p - y1sc, L_BRING_IN_WHITE);
+    pixRasteropIP(pix2, x1p - x1sc, y1p - y1sc, L_BRING_IN_WHITE);
 
         /* Shear image to take points 2 and 3 off the axis and
          * put them in the original dest position */
-    pixVShearIP(pixt2, x1p, -ph2p, L_BRING_IN_WHITE);
-    pixHShearIP(pixt2, y1p, -th3p, L_BRING_IN_WHITE);
+    pixVShearIP(pix2, x1p, -ph2p, L_BRING_IN_WHITE);
+    pixHShearIP(pix2, y1p, -th3p, L_BRING_IN_WHITE);
 
     if (bw != 0 || bh != 0) {
-        if ((pixd = pixRemoveBorderGeneral(pixt2, bw, bw, bh, bh)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixRemoveBorderGeneral(pix2, bw, bw, bh, bh)) == NULL)
+            L_ERROR("pixd not made\n", procName);
     } else {
-        pixd = pixClone(pixt2);
+        pixd = pixClone(pix2);
     }
 
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+cleanup_pix:
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     return pixd;
 }

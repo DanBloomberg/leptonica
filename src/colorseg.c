@@ -57,11 +57,6 @@ static const l_int32  LEVEL_IN_OCTCUBE = 4;
 static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
                                          l_int32 maxdist, l_int32 maxcolors);
 
-#ifndef  NO_CONSOLE_IO
-#define   DEBUG    0
-#endif  /* ~NO_CONSOLE_IO */
-
-
 /*------------------------------------------------------------------*
  *                 Unsupervised color segmentation                  *
  *------------------------------------------------------------------*/
@@ -73,6 +68,7 @@ static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
  * \param[in]    maxcolors max number of colors allowed in first pass
  * \param[in]    selsize linear size of sel for closing to remove noise
  * \param[in]    finalcolors max number of final colors allowed after 4th pass
+ * \param[in]    debugflag  1 for debug output; 0 otherwise
  * \return  pixd 8 bit with colormap, or NULL on error
  *
  * <pre>
@@ -133,7 +129,8 @@ pixColorSegment(PIX     *pixs,
                 l_int32  maxdist,
                 l_int32  maxcolors,
                 l_int32  selsize,
-                l_int32  finalcolors)
+                l_int32  finalcolors,
+                l_int32  debugflag)
 {
 l_int32   *countarray;
 PIX       *pixd;
@@ -145,27 +142,28 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("must be rgb color", procName, NULL);
 
+    lept_mkdir("lept/segment");
+
         /* Phase 1; original segmentation */
     if ((pixd = pixColorSegmentCluster(pixs, maxdist, maxcolors)) == NULL)
-        return (PIX *)ERROR_PTR("pixt1 not made", procName, NULL);
-#if DEBUG
-    pixWrite("/tmp/colorseg1.png", pixd, IFF_PNG);
-#endif  /* DEBUG */
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if (debugflag)
+        pixWrite("/tmp/lept/segment/colorseg1.png", pixd, IFF_PNG);
 
         /* Phase 2; refinement in pixel assignment */
-    if ((countarray = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
+    if ((countarray = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL) {
+        pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("countarray not made", procName, NULL);
+    }
     pixAssignToNearestColor(pixd, pixs, NULL, LEVEL_IN_OCTCUBE, countarray);
-#if DEBUG
-    pixWrite("/tmp/colorseg2.png", pixd, IFF_PNG);
-#endif  /* DEBUG */
+    if (debugflag)
+        pixWrite("/tmp/lept/segment/colorseg2.png", pixd, IFF_PNG);
 
         /* Phase 3: noise removal by separately closing each color */
     pixColorSegmentClean(pixd, selsize, countarray);
     LEPT_FREE(countarray);
-#if DEBUG
-    pixWrite("/tmp/colorseg3.png", pixd, IFF_PNG);
-#endif  /* DEBUG */
+    if (debugflag)
+        pixWrite("/tmp/lept/segment/colorseg3.png", pixd, IFF_PNG);
 
         /* Phase 4: removal of colors with small population and
          * reassignment of pixels to remaining colors */
@@ -200,9 +198,9 @@ pixColorSegmentCluster(PIX       *pixs,
                        l_int32    maxdist,
                        l_int32    maxcolors)
 {
-l_int32    w, h, newmaxdist, ret, niters, ncolors, success;
-PIX       *pixd;
-PIXCMAP   *cmap;
+l_int32   w, h, newmaxdist, ret, niters, ncolors, success;
+PIX      *pixd;
+PIXCMAP  *cmap;
 
     PROCNAME("pixColorSegmentCluster");
 
@@ -211,8 +209,7 @@ PIXCMAP   *cmap;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("must be rgb color", procName, NULL);
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     cmap = pixcmapCreate(8);
@@ -299,6 +296,7 @@ PIXCMAP   *cmap;
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
+    ncolors = 0;
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
@@ -407,7 +405,7 @@ pixAssignToNearestColor(PIX      *pixd,
                         l_int32   level,
                         l_int32  *countarray)
 {
-l_int32    w, h, wpls, wpld, wplm, i, j;
+l_int32    w, h, wpls, wpld, wplm, i, j, success;
 l_int32    rval, gval, bval, index;
 l_int32   *cmaptab;
 l_uint32   octindex;
@@ -426,16 +424,20 @@ PIXCMAP   *cmap;
         return ERROR_INT("pixs not defined", procName, 1);
     if (pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not 32 bpp", procName, 1);
+    if (level < 1 || level > 6)
+        return ERROR_INT("level not in [1 ... 6]", procName, 1);
 
         /* Set up the tables to map rgb to the nearest colormap index */
-    if (makeRGBToIndexTables(&rtab, &gtab, &btab, level))
-        return ERROR_INT("index tables not made", procName, 1);
-    if ((cmaptab = pixcmapToOctcubeLUT(cmap, level, L_MANHATTAN_DISTANCE))
-            == NULL)
-        return ERROR_INT("cmaptab not made", procName, 1);
+    success = TRUE;
+    makeRGBToIndexTables(&rtab, &gtab, &btab, level);
+    cmaptab = pixcmapToOctcubeLUT(cmap, level, L_MANHATTAN_DISTANCE);
+    if (!rtab || !gtab || !btab || !cmaptab) {
+        L_ERROR("failure to make a table\n", procName);
+        success = FALSE;
+        goto cleanup_arrays;
+    }
 
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);
@@ -469,11 +471,12 @@ PIXCMAP   *cmap;
         }
     }
 
+cleanup_arrays:
     LEPT_FREE(cmaptab);
     LEPT_FREE(rtab);
     LEPT_FREE(gtab);
     LEPT_FREE(btab);
-    return 0;
+    return (success) ? 0 : 1;
 }
 
 
@@ -524,7 +527,9 @@ PIXCMAP   *cmap;
     na = numaCreate(ncolors);
     for (i = 0; i < ncolors; i++)
         numaAddNumber(na, countarray[i]);
-    if ((nasi = numaGetSortIndex(na, L_SORT_DECREASING)) == NULL)
+    nasi = numaGetSortIndex(na, L_SORT_DECREASING);
+    numaDestroy(&na);
+    if (!nasi)
         return ERROR_INT("nasi not made", procName, 1);
 
         /* For each color, in order of decreasing population,
@@ -541,7 +546,6 @@ PIXCMAP   *cmap;
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
-    numaDestroy(&na);
     numaDestroy(&nasi);
     return 0;
 }

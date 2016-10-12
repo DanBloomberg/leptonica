@@ -117,7 +117,7 @@ static l_int32 localSearchForBackground(PIX  *pix, l_int32  *px,
  * Notes:
  *      (1) We have two input probability factors that determine the
  *          density of walls and average length of straight passages.
- *          When ranis \< 1.0, you are more likely to generate a wall
+ *          When ranis < 1.0, you are more likely to generate a wall
  *          to the side than going forward.  Enter 0.0 for either if
  *          you want to use the default values.
  *      (2) This is a type of percolation problem, and exhibits
@@ -761,13 +761,13 @@ PTA      *pta;
     pixd = NULL;
     pta = NULL;
 
+        /* Allocate stuff */
     pixr = pixCreate(w, h, 32);
     pixSetAll(pixr);  /* initialize to max value */
     pixp = pixCreate(w, h, 8);  /* direction to parent stored as enum val */
     lines8 = pixGetLinePtrs(pixs, NULL);
     linep8 = pixGetLinePtrs(pixp, NULL);
     liner32 = pixGetLinePtrs(pixr, NULL);
-
     lh = lheapCreate(0, L_SORT_INCREASING);  /* always remove closest pixels */
 
         /* Prime the heap with the first pixel */
@@ -785,8 +785,10 @@ PTA      *pta;
            the destination point (xf, yf) off the queue. */
     while (lheapGetCount(lh) > 0) {
         elp = (MAZEEL *)lheapRemove(lh);
-        if (!elp)
-            return (PTA *)ERROR_PTR("heap broken!!", procName, NULL);
+        if (!elp) {
+            L_ERROR("heap broken!!\n", procName);
+            goto cleanup_stuff;
+        }
         x = elp->x;
         y = elp->y;
         if (x == xf && y == yf) {  /* exit condition */
@@ -900,6 +902,8 @@ PTA      *pta;
         pixSetPixel(pixd, xf, yf, bpixel);
     }
 
+cleanup_stuff:
+    lheapDestroy(&lh, TRUE);
     pixDestroy(&pixp);
     pixDestroy(&pixr);
     LEPT_FREE(lines8);

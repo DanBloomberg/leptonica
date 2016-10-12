@@ -208,6 +208,7 @@ PIX       *pixc, *pixt, *pixd;
     boxDestroy(&box);
     if (!pixc) {
         L_WARNING("box doesn't overlap pix\n", procName);
+        pixDestroy(&pixt);
         return NULL;
     }
     x = L_MAX(0, x);
@@ -463,7 +464,7 @@ PIX       *pixc, *pix1, *pix2;
  *            pixd = pixBlendGray(NULL, pixs1, pixs2, ...)
  *      (3) Clipping of pixs2 to pixs1 is done in the inner pixel loop.
  *      (4) If pixs1 has a colormap, it is removed; otherwise, if pixs1
- *          has depth \< 8, it is unpacked to generate a 8 bpp pix.
+ *          has depth < 8, it is unpacked to generate a 8 bpp pix.
  *      (5) If transparent = 0, the blending fraction (fract) is
  *          applied equally to all pixels.
  *      (6) If transparent = 1, all pixels of value transpix (typically
@@ -668,20 +669,20 @@ PIX       *pixc, *pix1, *pix2;
  *            pixd = pixBlendGrayInverse(NULL, pixs1, pixs2, ...)
  *      (3) Clipping of pixs2 to pixs1 is done in the inner pixel loop.
  *      (4) If pixs1 has a colormap, it is removed; otherwise if pixs1
- *          has depth \< 8, it is unpacked to generate a 8 bpp pix.
+ *          has depth < 8, it is unpacked to generate a 8 bpp pix.
  *      (5) This is a no-nonsense blender.  It changes the src1 pixel except
  *          when the src1 pixel is midlevel gray.  Use fract == 1 for the most
  *          aggressive blending, where, if the gray pixel in pixs2 is 0,
  *          we get a complete inversion of the color of the src pixel in pixs1.
  *      (6) The basic logic is that each component transforms by:
-                 d  --\>  c * d + (1 - c ) * (f * (1 - d) + d * (1 - f))
+                 d  -->  c * d + (1 - c ) * (f * (1 - d) + d * (1 - f))
  *          where c is the blender pixel from pixs2,
  *                f is %fract,
  *                c and d are normalized to [0...1]
  *          This has the property that for f == 0 (no blend) or c == 1 (white):
- *               d  --\>  d
+ *               d  -->  d
  *          For c == 0 (black) we get maximum inversion:
- *               d  --\>  f * (1 - d) + d * (1 - f)   [inversion by fraction f]
+ *               d  -->  f * (1 - d) + d * (1 - f)   [inversion by fraction f]
  * </pre>
  */
 PIX *
@@ -809,7 +810,7 @@ PIX       *pixc, *pix1, *pix2;
  *      (3) If pixs2 is not 32 bpp rgb, it is converted.
  *      (4) Clipping of pixs2 to pixs1 is done in the inner pixel loop.
  *      (5) If pixs1 has a colormap, it is removed to generate a 32 bpp pix.
- *      (6) If pixs1 has depth \< 32, it is unpacked to generate a 32 bpp pix.
+ *      (6) If pixs1 has depth < 32, it is unpacked to generate a 32 bpp pix.
  *      (7) If transparent = 0, the blending fraction (fract) is
  *          applied equally to all pixels.
  *      (8) If transparent = 1, all pixels of value transpix (typically
@@ -1037,14 +1038,14 @@ blendComponents(l_int32    a,
  *            pixd = pixBlendGrayAdapt(NULL, pixs1, pixs2, ...)
  *      (2) Clipping of pixs2 to pixs1 is done in the inner pixel loop.
  *      (3) If pixs1 has a colormap, it is removed.
- *      (4) If pixs1 has depth \< 8, it is unpacked to generate a 8 bpp pix.
+ *      (4) If pixs1 has depth < 8, it is unpacked to generate a 8 bpp pix.
  *      (5) This does a blend with inverse.  Whereas in pixGlendGray(), the
  *          zero blend point is where the blendee pixel is 128, here
  *          the zero blend point is found adaptively, with respect to the
- *          median of the blendee region.  If the median is \< 128,
+ *          median of the blendee region.  If the median is < 128,
  *          the zero blend point is found from
  *              median + shift.
- *          Otherwise, if the median \>= 128, the zero blend point is
+ *          Otherwise, if the median >= 128, the zero blend point is
  *              median - shift.
  *          The purpose of shifting the zero blend point away from the
  *          median is to prevent a situation in pixBlendGray() where
@@ -1580,14 +1581,14 @@ PIXCMAP   *cmaps, *cmapb, *cmapsc;
         return ERROR_INT("no colormap in pixb", procName, 1);
     ncb = pixcmapGetCount(cmapb);
 
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 2 && d != 4 && d != 8)
+        return ERROR_INT("depth not in {2,4,8}", procName, 1);
+
         /* Make a copy of cmaps; we'll add to this if necessary
          * and substitute at the end if we found there was enough room
          * to hold all the new colors. */
     cmapsc = pixcmapCopy(cmaps);
-
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 2 && d != 4 && d != 8)
-        return ERROR_INT("depth not in {2,4,8}", procName, 1);
 
         /* Add new colors if necessary; get mapping array between
          * cmaps and cmapb. */
@@ -1754,12 +1755,13 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixg2, *pixd;
     pixDestroy(&pixr1);
     pixDestroy(&pixr2);
 
-        /* Sanity check */
+        /* Sanity check: both either 8 or 32 bpp */
     d1 = pixGetDepth(pix1);
     d2 = pixGetDepth(pix2);
-    if (d1 != d2) {
+    if (d1 != d2 || (d1 != 8 && d1 != 32)) {
         pixDestroy(&pix1);
         pixDestroy(&pix2);
+        pixDestroy(&pixg2);
         return (PIX *)ERROR_PTR("depths not regularized! bad!", procName, NULL);
     }
 
@@ -1790,14 +1792,12 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixg2, *pixd;
             val = GET_DATA_BYTE(lineg, j);
             if (val == 0) continue;  /* pix2 is transparent */
             fract = (l_float32)val / 255.;
-            switch (d1) {
-            case 8:
+            if (d1 == 8) {
                 dval = GET_DATA_BYTE(lined, j + x);
                 sval = GET_DATA_BYTE(lines, j);
                 dval = (l_int32)((1.0 - fract) * dval + fract * sval);
                 SET_DATA_BYTE(lined, j + x, dval);
-                break;
-            case 32:
+            } else {  /* 32 */
                 dval32 = *(lined + j + x);
                 sval32 = *(lines + j);
                 extractRGBValues(dval32, &drval, &dgval, &dbval);
@@ -1807,9 +1807,6 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixg2, *pixd;
                 dbval = (l_int32)((1.0 - fract) * dbval + fract * sbval);
                 composeRGBPixel(drval, dgval, dbval, &dval32);
                 *(lined + j + x) = dval32;
-                break;
-            default:
-                return (PIX *)ERROR_PTR("impossible error", procName, NULL);
             }
         }
     }

@@ -34,18 +34,37 @@
  *           PTA        *ptaSortByIndex()
  *           PTAA       *ptaaSortByIndex()
  *
- *      Union and intersection by aset (rbtree)
+ *      Set operations using aset (rbtree)
  *           PTA        *ptaUnionByAset()
  *           PTA        *ptaRemoveDupsByAset()
  *           PTA        *ptaIntersectionByAset()
  *           L_ASET     *l_asetCreateFromPta()
  *
- *      Union and intersection by hash
+ *      Set operations using hashing (dnahash)
  *           PTA        *ptaUnionByHash()
  *           l_int32     ptaRemoveDupsByHash()
  *           PTA        *ptaIntersectionByHash();
  *           l_int32     ptaFindPtByHash()
  *           L_DNAHASH  *l_dnaHashCreateFromPta()
+ *
+ *
+ * We have two implementations of set operations on an array of points:
+ *
+ *   (1) Using an underlying tree (rbtree)
+ *       This uses a good 64 bit hashing function for the key,
+ *       that is not expected to have hash collisions (and we do
+ *       not test for them).  The tree is built up of the hash
+ *       values, and if the hash is found in the tree, it is
+ *       assumed that the point has already been found.
+ *
+ *   (2) Using an underlying hashing of the keys (dnahash)
+ *       This uses a fast 64 bit hashing function for the key,
+ *       which is then hashed into a bucket (a dna in a dnaHash).
+ *       Because hash collisions can occur, the index into the
+ *       pta for the point that gave rise to that key is stored,
+ *       and the dna (bucket) is traversed, using the stored indices
+ *       to determine if that point had already been seen.
+ *       
  * </pre>
  */
 
@@ -222,8 +241,9 @@ PTAA    *ptaad;
     return ptaad;
 }
 
+
 /*---------------------------------------------------------------------*
- *                 Union and intersection by aset (rbtree)             *
+ *                   Set operations using aset (rbtree)                *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   ptaUnionByAset()
@@ -237,7 +257,7 @@ PTAA    *ptaad;
  *      (2) The key is a 64-bit hash from the (x,y) pair.
  *      (3) This is slower than ptaUnionByHash(), mostly because of the
  *          nlogn sort to build up the rbtree.  Do not use for large
- *          numbers of points (say, \> 1M).
+ *          numbers of points (say, > 1M).
  *      (4) The *Aset() functions use the sorted l_Aset, which is just
  *          an rbtree in disguise.
  * </pre>
@@ -276,7 +296,7 @@ PTA  *pta3, *ptad;
  * Notes:
  *      (1) This is slower than ptaRemoveDupsByHash(), mostly because
  *          of the nlogn sort to build up the rbtree.  Do not use for
- *          large numbers of points (say, \> 1M).
+ *          large numbers of points (say, > 1M).
  * </pre>
  */
 PTA *
@@ -323,7 +343,7 @@ RB_TYPE   key;
  *      (2) The key is a 64-bit hash from the (x,y) pair.
  *      (3) This is slower than ptaIntersectionByHash(), mostly because
  *          of the nlogn sort to build up the rbtree.  Do not use for
- *          large numbers of points (say, \> 1M).
+ *          large numbers of points (say, > 1M).
  * </pre>
  */
 PTA *
@@ -403,7 +423,7 @@ RB_TYPE   key;
 
 
 /*---------------------------------------------------------------------*
- *                    Union and intersection by hash                   *
+ *                 Set operations using hashing (rbtree)               *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   ptaUnionByHash()
@@ -455,13 +475,13 @@ PTA  *pta3, *ptad;
  *      (1) Generates a pta with unique values.
  *      (2) The dnahash is built up with ptad to assure uniqueness.
  *          It can be used to find if a point is in the set:
- *              ptaFindPtByHash(ptad, dahash, x, y, \&index)
+ *              ptaFindPtByHash(ptad, dahash, x, y, &index)
  *      (3) The hash of the (x,y) location is simple and fast.  It scales
  *          up with the number of buckets to insure a fairly random
  *          bucket selection for adjacent points.
  *      (4) A Dna is used rather than a Numa because we need accurate
  *          representation of 32-bit integers that are indices into ptas.
- *          Integer --\> float --\> integer conversion makes errors for
+ *          Integer --> float --> integer conversion makes errors for
  *          integers larger than 10M.
  *      (5) This is faster than ptaRemoveDupsByAset(), because the
  *          bucket lookup is O(n), although there is a double-loop
@@ -589,6 +609,14 @@ PTA        *pta_small, *pta_big, *ptad;
  * Notes:
  *      (1) Fast lookup in dnaHash associated with a pta, to see if a
  *          random point (x,y) is already stored in the hash table.
+ *      (2) We use a strong hash function to minimize the chance that
+ *          two different points hash to the same key value.
+ *      (3) We select the number of buckets to be about 5% of the size
+ *          of the input %pta, so that when fully populated, each
+ *          bucket (dna) will have about 20 entries, each being an index
+ *          into %pta.  In lookup, after hashing to the key, and then
+ *          again to the bucket, we traverse the bucket (dna), using the
+ *          index into %pta to check if the point (x,y) has been found before.
  * </pre>
  */
 l_int32

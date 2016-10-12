@@ -29,18 +29,18 @@
  * <pre>
  *
  *      Sort
- *          SARRAY    *sarraySort()
- *          SARRAY    *sarraySortByIndex()
- *          l_int32    stringCompareLexical()
+ *          SARRAY     *sarraySort()
+ *          SARRAY     *sarraySortByIndex()
+ *          l_int32     stringCompareLexical()
  *
- *      Operations by aset (rbtree)
- *          SARRAY    *sarrayUnionByAset()
- *          SARRAY    *sarrayRemoveDupsByAset()
- *          SARRAY    *sarrayIntersectionByAset()
- *          L_ASET    *l_asetCreateFromSarray()
+ *      Set operations using aset (rbtree)
+ *          SARRAY     *sarrayUnionByAset()
+ *          SARRAY     *sarrayRemoveDupsByAset()
+ *          SARRAY     *sarrayIntersectionByAset()
+ *          L_ASET     *l_asetCreateFromSarray()
  *
- *      Operations by hashmap (dnahash)
- *          l_int32    sarrayRemoveDupsByHash()
+ *      Set operations using hashing (dnahash)
+ *          l_int32     sarrayRemoveDupsByHash()
  *          SARRAY     *sarrayIntersectionByHash()
  *          l_int32     sarrayFindStringByHash()
  *          L_DNAHASH  *l_dnaHashCreateFromSarray()
@@ -48,6 +48,24 @@
  *      Miscellaneous operations
  *          SARRAY     *sarrayGenerateIntegers()
  *
+ *
+ * We have two implementations of set operations on an array of strings:
+ *
+ *   (1) Using an underlying tree (rbtree)
+ *       This uses a good 64 bit hashing function for the key,
+ *       that is not expected to have hash collisions (and we do
+ *       not test for them).  The tree is built up of the hash
+ *       values, and if the hash is found in the tree, it is
+ *       assumed that the string has already been found.
+ *
+ *   (2) Using an underlying hashing of the keys (dnahash)
+ *       This uses a fast 64 bit hashing function for the key,
+ *       which is then hashed into a bucket (a dna in a dnaHash).
+ *       Because hash collisions can occur, the index into the
+ *       sarray for the string that gave rise to that key is stored,
+ *       and the dna (bucket) is traversed, using the stored indices
+ *       to determine if that string had already been seen.
+ *       
  * </pre>
  */
 
@@ -196,7 +214,7 @@ l_int32  i, len1, len2, len;
 
 
 /*----------------------------------------------------------------------*
- *                       Operations by aset (rbtree)                    *
+ *                   Set operations using aset (rbtree)                 *
  *----------------------------------------------------------------------*/
 /*!
  * \brief   sarrayUnionByAset()
@@ -354,7 +372,7 @@ SARRAY   *sa_small, *sa_big, *sad;
  * \brief   l_asetCreateFromSarray()
  *
  * \param[in]    sa
- * \return  set using a string hash into a uint32 as the key
+ * \return  set using a string hash into a uint64 as the key
  */
 L_ASET *
 l_asetCreateFromSarray(SARRAY  *sa)
@@ -384,7 +402,7 @@ RB_TYPE   key;
 
 
 /*----------------------------------------------------------------------*
- *                    Operations by hashmap (dnahash)                   *
+ *               Set operations using hashing (dnahash)                 *
  *----------------------------------------------------------------------*/
 /*!
  * \brief   sarrayRemoveDupsByHash()
@@ -530,6 +548,14 @@ SARRAY     *sa_small, *sa_big, *sad;
  * Notes:
  *      (1) Fast lookup in dnaHash associated with a sarray, to see if a
  *          random string %str is already stored in the hash table.
+ *      (2) We use a strong hash function to minimize the chance that
+ *          two different strings hash to the same key value.
+ *      (3) We select the number of buckets to be about 5% of the size
+ *          of the input sarray, so that when fully populated, each
+ *          bucket (dna) will have about 20 entries, each being an index
+ *          into sa.  In lookup, after hashing to the key, and then
+ *          again to the bucket, we traverse the bucket (dna), using the
+ *          index into sa to check if %str has been found before.
  * </pre>
  */
 l_int32

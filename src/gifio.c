@@ -30,6 +30,7 @@
  *
  *    Read gif from file
  *          PIX        *pixReadStreamGif()
+ *          static PIX *gifToPix()
  *          static PIX *pixUninterlaceGIF()
  *
  *    Write gif to file
@@ -90,7 +91,9 @@
 static PIX * pixUninterlaceGIF(PIX  *pixs);
 static const l_int32 InterlacedOffset[] = {0, 4, 2, 1};
 static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
-static PIX * gifToPIX(GifFileType *gif);
+
+    /* Interface that enables low-level GIF support for reading from memory */
+static PIX * gifToPix(GifFileType *gif);
 
     /* Basic interface changed in 5.0 (!).  We have to do this for
      * backward compatibililty with 4.1.6. */
@@ -99,23 +102,26 @@ static PIX * gifToPIX(GifFileType *gif);
 #define GifFreeMapObject         FreeMapObject
 #define DGifOpenFileHandle(a,b)  DGifOpenFileHandle(a)
 #define EGifOpenFileHandle(a,b)  EGifOpenFileHandle(a)
-#endif  /* GIFLIB_MAJOR */
+#endif  /* before 5.0 */
 
     /* Basic interface changed again in 5.1 (!) */
 #if GIFLIB_MAJOR < 5 || (GIFLIB_MAJOR == 5 && GIFLIB_MINOR == 0)
 #define DGifCloseFile(a,b)       DGifCloseFile(a)
 #define EGifCloseFile(a,b)       EGifCloseFile(a)
-#endif
+#endif  /* 4.1.6 or 5.0 */
 
-    /* For in memory decoding of gif */
-#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
-typedef struct GifReadBuffer {
-    size_t          size;
-    size_t          pos;
-    const l_uint8   *cdata;
+    /*! For in-memory decoding of GIF; 5.1+ */
+#if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
+typedef struct GifReadBuffer
+{
+    size_t            size;    /*!< size of buffer                           */
+    size_t            pos;     /*!< position relative to beginning of buffer */
+    const l_uint8    *cdata;   /*!< data in the buffer                       */
 } GifReadBuffer;
+
+    /*! Low-level callback for in-memory decoding */
 static int  gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead);
-#endif
+#endif  /* 5.1 and beyond */
 
 
 /*---------------------------------------------------------------------*
@@ -156,11 +162,25 @@ GifFileType     *gif;
         return (PIX *)ERROR_PTR("invalid file or file not found",
                                 procName, NULL);
 
-    return gifToPIX(gif);
+    return gifToPix(gif);
 }
 
+
+/*!
+ * \brief   gifToPix()
+ *
+ * \param[in]    gif  opened gif stream
+ * \return  pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This decodes the pix from the compressed gif stream and
+ *          closes the stream.
+ *      (2) It is static so that the stream is not exposed to clients.
+ * </pre>
+ */
 static PIX *
-gifToPIX(GifFileType *gif)
+gifToPix(GifFileType  *gif)
 {
 l_int32          wpl, i, j, w, h, d, cindex, ncolors;
 l_int32          rval, gval, bval;
@@ -169,11 +189,11 @@ PIX             *pixd, *pixdi;
 PIXCMAP         *cmap;
 ColorMapObject  *gif_cmap;
 SavedImage       si;
-#if GIFLIB_MAJOR == 5 && GIFLIB_MINOR > 0
+#if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
 int              giferr;
-#endif
+#endif  /* 5.1 and beyond */
 
-    PROCNAME("gifToPIX");
+    PROCNAME("gifToPix");
 
         /* Read all the data, but use only the first image found */
     if (DGifSlurp(gif) != GIF_OK) {
@@ -337,9 +357,9 @@ PIXCMAP         *cmap;
 GifFileType     *gif;
 ColorMapObject  *gif_cmap;
 GifByteType     *gif_line;
-#if GIFLIB_MAJOR == 5 && GIFLIB_MINOR > 0
+#if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
 int              giferr;
-#endif
+#endif  /* 5.1 and beyond */
 
     PROCNAME("pixWriteStreamGif");
 
@@ -514,54 +534,55 @@ int              giferr;
  * \return  pix, or NULL on error
  *
  * <pre>
- * Notes for Giflib version < 5.1:
- *      (1) Of course, we are cheating here -- writing the data to file
- *          in gif format and reading it back in.  We can't use the
- *          GNU runtime extension fmemopen() to avoid writing to a file
- *          because libgif doesn't have a file stream interface!
- *      (2) This should not be assumed to be safe from a sophisticated
- *          attack, even though we have attempted to make the filename
- *          difficult to guess by embedding the process number and the
- *          current time in microseconds.  The best way to handle
- *          temporary files is to use file descriptors (capabilities)
- *          or file handles.  However, I know of no way to do this
- *          for gif files because of the way that libgif handles the
- *          file descriptors.  The canonical approach would be to do this:
- *              char templ[] = "hiddenfilenameXXXXXX";
- *              l_int32 fd = mkstemp(templ);
+ * Notes:
+ *   For Giflib version >= 5.1:
+ *      (1) Use the DGifOpen() buffer interface.  No temp files required.
+ *   For Giflib version < 5.1:
+ *      (1) Write the gif compressed data to file and read it back.
+ *          Note: we can't use the GNU runtime extension fmemopen()
+ *          because libgif doesn't have a file stream interface.
+ *      (2) This should be relatively safe from a sophisticated attack,
+ *          because we use mkstemp (or its Windows equivalent) to generate
+ *          a filename and link the file.  It would be nice to go further
+ *          and do this:
+ *              l_int32 fd = mkstemp(template);
  *              FILE *fp = fdopen(fd, "w+b");
  *              fwrite(data, 1, size, fp);
  *              rewind(fp);
  *              Pix *pix = pixReadStreamGif(fp);
- *          but this fails because fp is in a bad state after writing.
+ *          but this can't be done with gif files becuase of the way
+ *          that libgif handles the file descriptors: fp is in a
+ *          bad state after writing.
  * </pre>
  */
 PIX *
 pixReadMemGif(const l_uint8  *cdata,
               size_t          size)
 {
-#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
-GifFileType     *gif;
+#if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
+GifFileType   *gif;
+GifReadBuffer  buffer;
 #else
-char  *fname;
-PIX   *pix;
-#endif
+char          *fname;
+PIX           *pix;
+#endif  /* 5.1 and beyond */
+
     PROCNAME("pixReadMemGif");
 
     if (!cdata)
         return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
-#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
-    GifReadBuffer buffer;
+
+#if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
     buffer.cdata = cdata;
     buffer.size = size;
     buffer.pos = 0;
     if ((gif = DGifOpen((void*)&buffer, gifReadFunc, NULL)) == NULL)
-        return (PIX *)ERROR_PTR("could not open gif from memory",
+        return (PIX *)ERROR_PTR("could not open gif stream from memory",
                                 procName, NULL);
 
-    return gifToPIX(gif);
+    return gifToPix(gif);
 #else
-    L_WARNING("writing to a temp file, not directly to memory\n", procName); 
+    L_WARNING("using a temp file; not reading from memory\n", procName); 
         /* Write to a temp file */
     fname = l_makeTempFilename(NULL);
     l_binaryWrite(fname, "w", (l_uint8 *)cdata, size);
@@ -572,30 +593,32 @@ PIX   *pix;
     LEPT_FREE(fname);
     if (!pix) L_ERROR("pix not read\n", procName);
     return pix;
-#endif
+#endif  /* 5.1 and beyond */
 }
 
-#if GIFLIB_MAJOR >= 5 && GIFLIB_MINOR >= 1
+#if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
 static int
 gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead) 
 {
-GifReadBuffer *buffer;
-int bytesRead;
+GifReadBuffer  *buffer;
+l_int32         bytesRead;
 
     PROCNAME("gifReadFunc");
 
     if ((buffer = (GifReadBuffer*)gif->UserData) == NULL)
-        return ERROR_INT("UserData not set",procName,-1);
+        return ERROR_INT("UserData not set", procName, -1);
 
     if(buffer->pos >= buffer->size)
-       return -1;
+        return -1;
 
-    bytesRead = buffer->pos < buffer->size - bytesToRead  ? bytesToRead : buffer->size - buffer->pos;
-    memcpy(dest, buffer->cdata+buffer->pos, bytesRead);
+    bytesRead = (buffer->pos < buffer->size - bytesToRead)
+              ? bytesToRead : buffer->size - buffer->pos;
+    memcpy(dest, buffer->cdata + buffer->pos, bytesRead);
     buffer->pos += bytesRead;
     return bytesRead;
 }
-#endif
+#endif  /* 5.1 and beyond */
+
 
 /*!
  * \brief   pixWriteMemGif()

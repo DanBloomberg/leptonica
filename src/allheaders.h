@@ -29,7 +29,7 @@
 
 
 #define LIBLEPT_MAJOR_VERSION   1
-#define LIBLEPT_MINOR_VERSION   73
+#define LIBLEPT_MINOR_VERSION   74
 
 #include "alltypes.h"
 
@@ -512,7 +512,7 @@ LEPT_DLL extern PIX * pixMedianCutQuantGeneral ( PIX *pixs, l_int32 ditherflag, 
 LEPT_DLL extern PIX * pixMedianCutQuantMixed ( PIX *pixs, l_int32 ncolor, l_int32 ngray, l_int32 darkthresh, l_int32 lightthresh, l_int32 diffthresh );
 LEPT_DLL extern PIX * pixFewColorsMedianCutQuantMixed ( PIX *pixs, l_int32 ncolor, l_int32 ngray, l_int32 maxncolors, l_int32 darkthresh, l_int32 lightthresh, l_int32 diffthresh );
 LEPT_DLL extern l_int32 * pixMedianCutHisto ( PIX *pixs, l_int32 sigbits, l_int32 subsample );
-LEPT_DLL extern PIX * pixColorSegment ( PIX *pixs, l_int32 maxdist, l_int32 maxcolors, l_int32 selsize, l_int32 finalcolors );
+LEPT_DLL extern PIX * pixColorSegment ( PIX *pixs, l_int32 maxdist, l_int32 maxcolors, l_int32 selsize, l_int32 finalcolors, l_int32 debugflag );
 LEPT_DLL extern PIX * pixColorSegmentCluster ( PIX *pixs, l_int32 maxdist, l_int32 maxcolors );
 LEPT_DLL extern l_int32 pixAssignToNearestColor ( PIX *pixd, PIX *pixs, PIX *pixm, l_int32 level, l_int32 *countarray );
 LEPT_DLL extern l_int32 pixColorSegmentClean ( PIX *pixs, l_int32 selsize, l_int32 *countarray );
@@ -717,10 +717,15 @@ LEPT_DLL extern L_DNAA * l_dnaaRead ( const char *filename );
 LEPT_DLL extern L_DNAA * l_dnaaReadStream ( FILE *fp );
 LEPT_DLL extern l_int32 l_dnaaWrite ( const char *filename, L_DNAA *daa );
 LEPT_DLL extern l_int32 l_dnaaWriteStream ( FILE *fp, L_DNAA *daa );
-LEPT_DLL extern L_DNA * l_dnaMakeDelta ( L_DNA *das );
+LEPT_DLL extern l_int32 l_dnaJoin ( L_DNA *dad, L_DNA *das, l_int32 istart, l_int32 iend );
+LEPT_DLL extern L_DNA * l_dnaaFlattenToDna ( L_DNAA *daa );
 LEPT_DLL extern NUMA * l_dnaConvertToNuma ( L_DNA *da );
 LEPT_DLL extern L_DNA * numaConvertToDna ( NUMA *na );
-LEPT_DLL extern l_int32 l_dnaJoin ( L_DNA *dad, L_DNA *das, l_int32 istart, l_int32 iend );
+LEPT_DLL extern L_DNA * l_dnaUnionByAset ( L_DNA *da1, L_DNA *da2 );
+LEPT_DLL extern L_DNA * l_dnaRemoveDupsByAset ( L_DNA *das );
+LEPT_DLL extern L_DNA * l_dnaIntersectionByAset ( L_DNA *da1, L_DNA *da2 );
+LEPT_DLL extern L_ASET * l_asetCreateFromDna ( L_DNA *da );
+LEPT_DLL extern L_DNA * l_dnaDiffAdjValues ( L_DNA *das );
 LEPT_DLL extern L_DNAHASH * l_dnaHashCreate ( l_int32 nbuckets, l_int32 initsize );
 LEPT_DLL extern void l_dnaHashDestroy ( L_DNAHASH **pdahash );
 LEPT_DLL extern l_int32 l_dnaHashGetCount ( L_DNAHASH *dahash );
@@ -1294,10 +1299,6 @@ LEPT_DLL extern l_int32 numaGetMedianVariation ( NUMA *na, l_float32 *pmedval, l
 LEPT_DLL extern l_int32 numaJoin ( NUMA *nad, NUMA *nas, l_int32 istart, l_int32 iend );
 LEPT_DLL extern l_int32 numaaJoin ( NUMAA *naad, NUMAA *naas, l_int32 istart, l_int32 iend );
 LEPT_DLL extern NUMA * numaaFlattenToNuma ( NUMAA *naa );
-LEPT_DLL extern NUMA * numaUnionByAset ( NUMA *na1, NUMA *na2 );
-LEPT_DLL extern NUMA * numaRemoveDupsByAset ( NUMA *nas );
-LEPT_DLL extern NUMA * numaIntersectionByAset ( NUMA *na1, NUMA *na2 );
-LEPT_DLL extern L_ASET * l_asetCreateFromNuma ( NUMA *na );
 LEPT_DLL extern NUMA * numaErode ( NUMA *nas, l_int32 size );
 LEPT_DLL extern NUMA * numaDilate ( NUMA *nas, l_int32 size );
 LEPT_DLL extern NUMA * numaOpen ( NUMA *nas, l_int32 size );

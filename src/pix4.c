@@ -99,7 +99,7 @@
  *      (2) If pixs does not have a colormap, the output histogram is
  *          of size 2^d, where d is the depth of pixs.
  *      (3) This always returns a 256-value histogram of pixel values.
- *      (4) Set the subsampling factor \> 1 to reduce the amount of computation.
+ *      (4) Set the subsampling factor > 1 to reduce the amount of computation.
  * </pre>
  */
 NUMA *
@@ -200,7 +200,7 @@ PIX        *pixg;
  *          If you want a histogram of the colormap indices, use
  *          pixGetCmapHistogramMasked().
  *      (2) This always returns a 256-value histogram of pixel values.
- *      (3) Set the subsampling factor \> 1 to reduce the amount of computation.
+ *      (3) Set the subsampling factor > 1 to reduce the amount of computation.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (5) Input x,y are ignored unless pixm exists.
  * </pre>
@@ -282,7 +282,7 @@ PIX        *pixg;
  *          If you want a histogram of the colormap indices, use
  *          pixGetCmapHistogramInRect().
  *      (2) This always returns a 256-value histogram of pixel values.
- *      (3) Set the subsampling %factor \> 1 to reduce the amount of computation.
+ *      (3) Set the subsampling %factor > 1 to reduce the amount of computation.
  * </pre>
  */
 NUMA *
@@ -350,7 +350,7 @@ PIX        *pixg;
  * Notes:
  *      (1) If pixs is cmapped, it is converted to 8 bpp gray.
  *      (2) This returns a set of 256-value histograms of pixel values.
- *      (3) Set the subsampling factor \> 1 to reduce the amount of computation.
+ *      (3) Set the subsampling factor > 1 to reduce the amount of computation.
  * </pre>
  */
 NUMAA *
@@ -407,7 +407,7 @@ PIXA    *pixa;
  * Notes:
  *      (1) This generates a set of three 256 entry histograms,
  *          one for each color component (r,g,b).
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  * </pre>
  */
 l_int32
@@ -507,7 +507,7 @@ PIXCMAP    *cmap;
  * <pre>
  * Notes:
  *      (1) This generates a set of three 256 entry histograms,
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  *      (3) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (4) Input x,y are ignored unless pixm exists.
  * </pre>
@@ -624,7 +624,7 @@ PIXCMAP    *cmap;
  * Notes:
  *      (1) This generates a histogram of colormap pixel indices,
  *          and is of size 2^d.
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  * </pre>
  */
 NUMA *
@@ -688,7 +688,7 @@ NUMA       *na;
  * Notes:
  *      (1) This generates a histogram of colormap pixel indices,
  *          and is of size 2^d.
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  *      (3) Clipping of pixm to pixs is done in the inner loop.
  * </pre>
  */
@@ -768,7 +768,7 @@ NUMA       *na;
  * Notes:
  *      (1) This generates a histogram of colormap pixel indices,
  *          and is of size 2^d.
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of computation.
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  *      (3) Clipping to the box is done in the inner loop.
  * </pre>
  */
@@ -905,7 +905,7 @@ PIXCMAP   *cmap;
  *      (1) Computes the rank component values of pixels in pixs that
  *          are under the fg of the optional mask.  If the mask is null, it
  *          computes the average of the pixels in pixs.
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of
  *          computation.
  *      (4) Input x,y are ignored unless pixm exists.
  *      (5) The rank must be in [0.0 ... 1.0], where the brightest pixel
@@ -991,7 +991,7 @@ PIX       *pixmt, *pixt;
  *      (1) Computes the rank value of pixels in pixs that are under
  *          the fg of the optional mask.  If the mask is null, it
  *          computes the average of the pixels in pixs.
- *      (2) Set the subsampling %factor \> 1 to reduce the amount of
+ *      (2) Set the subsampling %factor > 1 to reduce the amount of
  *          computation.
  *      (3) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (4) Input x,y are ignored unless pixm exists.
@@ -1214,8 +1214,8 @@ PIXCMAP  *cmap;
  *          L_VARIANCE to get the average squared difference from the
  *          expected value.  The variance is the square of the stdev.
  *          For the standard deviation, we use
- *              sqrt(\<(\<x\> - x)\>^2) = sqrt(\<x^2\> - \<x\>^2)
- *      (3) Set the subsampling %factor \> 1 to reduce the amount of
+ *              sqrt(<(<x> - x)>^2) = sqrt(<x^2> - <x>^2)
+ *      (3) Set the subsampling %factor > 1 to reduce the amount of
  *          computation.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (5) Input x,y are ignored unless pixm exists.
@@ -1899,7 +1899,7 @@ PIXCMAP  *cmap;
  *
  * <pre>
  * Notes:
- *      (1) If pixs is grayscale, the result is returned in \&grayval.
+ *      (1) If pixs is grayscale, the result is returned in &grayval.
  *          Otherwise, if there is a colormap or d == 32,
  *          each requested color component is returned.  At least
  *          one color component (address) must be input.
@@ -2218,12 +2218,12 @@ PIX       *pixt;
  *          ordered by this component value, find the average color,
  *          and return this as a "rank color" array.  The output array
  *          has %nbins colors.
- *      (3) Set the subsampling factor \> 1 to reduce the amount of
+ *      (3) Set the subsampling factor > 1 to reduce the amount of
  *          computation.  Typically you want at least 10,000 pixels
  *          for reasonable statistics.
  *      (4) The rank color as a function of rank can then be found from
  *             rankint = (l_int32)(rank * (nbins - 1) + 0.5);
- *             extractRGBValues(array[rankint], \&rval, \&gval, \&bval);
+ *             extractRGBValues(array[rankint], &rval, &gval, &bval);
  *          where the rank is in [0.0 ... 1.0].
  *          This function is meant to be simple and approximate.
  *      (5) Compare this with pixGetBinnedColor(), which generates equal

@@ -41,7 +41,7 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
 project(leptonica C CXX)
 
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 73)
+set(VERSION_MINOR 74)
 set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR})
 
 find_package(GIF)
@@ -55,6 +55,22 @@ find_package(PkgConfig)
 if (PKG_CONFIG_FOUND)
 pkg_check_modules(WEBP libwebp)
 pkg_check_modules(JP2K libopenjp2)
+endif()
+
+if(EXISTS ${PROJECT_SOURCE_DIR}/cppan)
+    add_subdirectory(cppan)
+
+    add_definitions(
+        -DHAVE_LIBGIF=1
+        -DHAVE_LIBJPEG=1
+        -DHAVE_LIBPNG=1
+        -DHAVE_LIBTIFF=1
+        -DHAVE_LIBWEBP=1
+        -DHAVE_LIBZ=1
+
+        -DHAVE_LIBJP2K=1
+        -DLIBJP2K_HEADER="openjpeg.h"
+    )
 endif()
 
 ###############################################################################
@@ -75,23 +91,6 @@ if (WIN32)
     endif()
 endif()
 
-if(EXISTS ${PROJECT_SOURCE_DIR}/cppan)
-    # cppan settings
-    add_definitions(-DTIF_PLATFORM_CONSOLE=1)
-
-    add_subdirectory(cppan)
-
-    # leptonica settings
-    add_definitions(
-        -DHAVE_LIBGIF=1
-        -DHAVE_LIBJPEG=1
-        -DHAVE_LIBPNG=1
-        -DHAVE_LIBTIFF=1
-        -DHAVE_LIBWEBP=1
-        -DHAVE_LIBZ=1
-    )
-endif()
-
 ###############################################################################
 #
 # configure
@@ -105,7 +104,7 @@ include(Configure)
 
 configure_file(${AUTOCONFIG_SRC} ${AUTOCONFIG} @ONLY)
 
-set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src)
+set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src" "${CMAKE_CURRENT_BINARY_DIR}/src")
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in

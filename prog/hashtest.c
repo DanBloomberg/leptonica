@@ -50,8 +50,9 @@
  *  (an index) is used check if the point or string is in the associated
  *  array at that location.
  *
- *  Also tests similar functions directly (without hashing the number)
- *  for numa.  (To be replaced by doing it with dna.)
+ *  Also tests similar functions directly (without hashing the number) for dna.
+ *  This will allow handling of both float64 and large integers that are
+ *  accurately represented by float64.
  */
 
 #include "allheaders.h"
@@ -64,9 +65,9 @@ l_int32 main(int    argc,
              char **argv)
 {
 L_ASET     *set;
-L_DNA      *da1, *da2, *da3, *da4, *da5, *da6, *dav, *dac, *da7;
+L_DNA      *da1, *da2, *da3, *da4, *da5, *da6, *da7, *da8, *dav, *dac;
 L_DNAHASH  *dahash;
-NUMA       *na1, *na2, *na3, *na4, *na5, *na6, *na7, *na8, *nav, *nac;
+NUMA       *nav, *nac;
 PTA        *pta1, *pta2, *pta3;
 SARRAY     *sa1, *sa2, *sa3, *sa4;
 
@@ -213,54 +214,54 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
 #endif
 
 #if 1
-    na1 = numaMakeSequence(0, 3, 10000);
-    na2 = numaMakeSequence(0, 5, 10000);
-    na3 = numaMakeSequence(0, 7, 10000);
-    numaJoin(na1, na2, 0, -1);
-    numaJoin(na1, na3, 0, -1);
+    da1 = l_dnaMakeSequence(0, 3, 10000);
+    da2 = l_dnaMakeSequence(0, 5, 10000);
+    da3 = l_dnaMakeSequence(0, 7, 10000);
+    l_dnaJoin(da1, da2, 0, -1);
+    l_dnaJoin(da1, da3, 0, -1);
 
-    fprintf(stderr, "\nNuma results using set:\n");
-    fprintf(stderr, "  na1 count: %d\n", numaGetCount(na1));
-    set = l_asetCreateFromNuma(na1);
-    fprintf(stderr, "  na1 set size: %d\n\n", l_asetSize(set));
+    fprintf(stderr, "\nDna results using set:\n");
+    fprintf(stderr, "  da1 count: %d\n", l_dnaGetCount(da1));
+    set = l_asetCreateFromDna(da1);
+    fprintf(stderr, "  da1 set size: %d\n\n", l_asetSize(set));
     l_asetDestroy(&set);
 
-    na4 = numaUnionByAset(na2, na3);
-    fprintf(stderr, "  na4 count: %d\n", numaGetCount(na4));
-    set = l_asetCreateFromNuma(na4);
-    fprintf(stderr, "  na4 set size: %d\n\n", l_asetSize(set));
+    da4 = l_dnaUnionByAset(da2, da3);
+    fprintf(stderr, "  da4 count: %d\n", l_dnaGetCount(da4));
+    set = l_asetCreateFromDna(da4);
+    fprintf(stderr, "  da4 set size: %d\n\n", l_asetSize(set));
     l_asetDestroy(&set);
 
-    na5 = numaIntersectionByAset(na1, na2);
-    fprintf(stderr, "  na5 count: %d\n", numaGetCount(na5));
-    set = l_asetCreateFromNuma(na5);
-    fprintf(stderr, "  na5 set size: %d\n\n", l_asetSize(set));
+    da5 = l_dnaIntersectionByAset(da1, da2);
+    fprintf(stderr, "  da5 count: %d\n", l_dnaGetCount(da5));
+    set = l_asetCreateFromDna(da5);
+    fprintf(stderr, "  da5 set size: %d\n\n", l_asetSize(set));
     l_asetDestroy(&set);
 
-    na6 = numaMakeSequence(100000, 11, 5000);
-    numaJoin(na6, na1, 0, -1);
-    fprintf(stderr, "  na6 count: %d\n", numaGetCount(na6));
-    set = l_asetCreateFromNuma(na6);
-    fprintf(stderr, "  na6 set size: %d\n\n", l_asetSize(set));
+    da6 = l_dnaMakeSequence(100000, 11, 5000);
+    l_dnaJoin(da6, da1, 0, -1);
+    fprintf(stderr, "  da6 count: %d\n", l_dnaGetCount(da6));
+    set = l_asetCreateFromDna(da6);
+    fprintf(stderr, "  da6 set size: %d\n\n", l_asetSize(set));
     l_asetDestroy(&set);
 
-    na7 = numaIntersectionByAset(na6, na3);
-    fprintf(stderr, "  na7 count: %d\n", numaGetCount(na7));
-    set = l_asetCreateFromNuma(na7);
-    fprintf(stderr, "  na7 set size: %d\n\n", l_asetSize(set));
+    da7 = l_dnaIntersectionByAset(da6, da3);
+    fprintf(stderr, "  da7 count: %d\n", l_dnaGetCount(da7));
+    set = l_asetCreateFromDna(da7);
+    fprintf(stderr, "  da7 set size: %d\n\n", l_asetSize(set));
     l_asetDestroy(&set);
 
-    na8 = numaRemoveDupsByAset(na1);
-    fprintf(stderr, "  na8 count: %d\n\n", numaGetCount(na8));
+    da8 = l_dnaRemoveDupsByAset(da1);
+    fprintf(stderr, "  da8 count: %d\n\n", l_dnaGetCount(da8));
 
-    numaDestroy(&na1);
-    numaDestroy(&na2);
-    numaDestroy(&na3);
-    numaDestroy(&na4);
-    numaDestroy(&na5);
-    numaDestroy(&na6);
-    numaDestroy(&na7);
-    numaDestroy(&na8);
+    l_dnaDestroy(&da1);
+    l_dnaDestroy(&da2);
+    l_dnaDestroy(&da3);
+    l_dnaDestroy(&da4);
+    l_dnaDestroy(&da5);
+    l_dnaDestroy(&da6);
+    l_dnaDestroy(&da7);
+    l_dnaDestroy(&da8);
 #endif
 
     return 0;

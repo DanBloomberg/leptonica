@@ -390,7 +390,7 @@ NUMAA    *naa_objs;  /* object mapping numbers to new values */
         da_locs = l_dnaaGetDna(daa_locs, i, L_CLONE);  /* locs on this page */
         na_objs = numaaGetNuma(naa_objs, i, L_CLONE);  /* obj # on this page */
         nobj = l_dnaGetCount(da_locs) - 1;
-        da_sizes = l_dnaMakeDelta(da_locs);  /* object sizes on this page */
+        da_sizes = l_dnaDiffAdjValues(da_locs);  /* object sizes on this page */
         sizes = l_dnaGetIArray(da_sizes);
         locs = l_dnaGetIArray(da_locs);
         if (i == 0) {

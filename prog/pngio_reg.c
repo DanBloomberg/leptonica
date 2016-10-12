@@ -451,7 +451,7 @@ PIX      *pix1, *pix2, *pix3;
 PIXCMAP  *cmap;
 
     pix1 = pixRead("wyom.jpg");
-    pix2 = pixColorSegment(pix1, 75, 10, 8, 7);
+    pix2 = pixColorSegment(pix1, 75, 10, 8, 7, 0);
     cmap = pixGetColormap(pix2);
     pixcmapSetAlpha(cmap, 0, 0);  /* set blueish sky color to transparent */
     pixWrite("/tmp/lept/regout/8bpp-trans.png", pix2, IFF_PNG);

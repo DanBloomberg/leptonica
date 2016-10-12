@@ -84,19 +84,20 @@ boxContains(BOX     *box1,
             BOX     *box2,
             l_int32 *presult)
 {
+l_int32  x1, y1, w1, h1, x2, y2, w2, h2;
+
     PROCNAME("boxContains");
 
+    if (!presult)
+        return ERROR_INT("&result not defined", procName, 1);
+    *presult = 0;
     if (!box1 || !box2)
         return ERROR_INT("box1 and box2 not both defined", procName, 1);
-
-l_int32  x1, y1, w1, h1, x2, y2, w2, h2;
 
     boxGetGeometry(box1, &x1, &y1, &w1, &h1);
     boxGetGeometry(box2, &x2, &y2, &w2, &h2);
     if (x1 <= x2 && y1 <= y2 && (x1 + w1 >= x2 + w2) && (y1 + h1 >= y2 + h2))
         *presult = 1;
-    else
-        *presult = 0;
     return 0;
 }
 
@@ -118,6 +119,9 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2;
 
     PROCNAME("boxIntersects");
 
+    if (!presult)
+        return ERROR_INT("&result not defined", procName, 1);
+    *presult = 0;
     if (!box1 || !box2)
         return ERROR_INT("box1 and box2 not both defined", procName, 1);
 
@@ -796,9 +800,10 @@ l_int32  x, y, w, h;
 
     PROCNAME("boxGetCenter");
 
+    if (pcx) *pcx = 0;
+    if (pcy) *pcy = 0;
     if (!pcx || !pcy)
         return ERROR_INT("&cx, &cy not both defined", procName, 1);
-    *pcx = *pcy = 0;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
     boxGetGeometry(box, &x, &y, &w, &h);
@@ -844,12 +849,15 @@ PTA       *pta;
 
     PROCNAME("boxIntersectByLine");
 
+    if (px1) *px1 = 0;
+    if (px2) *px2 = 0;
+    if (py1) *py1 = 0;
+    if (py2) *py2 = 0;
+    if (pn) *pn = 0;
     if (!px1 || !py1 || !px2 || !py2)
         return ERROR_INT("&x1, &y1, &x2, &y2 not all defined", procName, 1);
-    *px1 = *py1 = *px2 = *py2 = 0;
     if (!pn)
         return ERROR_INT("&n not defined", procName, 1);
-    *pn = 0;
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
     boxGetGeometry(box, &bx, &by, &bw, &bh);
@@ -999,13 +1007,14 @@ BOX     *boxc;
 
     PROCNAME("boxClipToRectangleParams");
 
-    if (!pxstart || !pystart || !pxend || !pyend)
-        return ERROR_INT("invalid ptr input", procName, 1);
-    *pxstart = *pystart = 0;
-    *pxend = w;
-    *pyend = h;
+    if (pxstart) *pxstart = 0;
+    if (pystart) *pystart = 0;
+    if (pxend) *pxend = w;
+    if (pyend) *pyend = h;
     if (pbw) *pbw = w;
     if (pbh) *pbh = h;
+    if (!pxstart || !pystart || !pxend || !pyend)
+        return ERROR_INT("invalid ptr input", procName, 1);
     if (!box) return 0;
 
     if ((boxc = boxClipToRectangle(box, w, h)) == NULL)
@@ -1372,7 +1381,7 @@ boxEqual(BOX      *box1,
  * \param[in]    boxa2
  * \param[in]    maxdist
  * \param[out]   pnaindex [optional] index array of correspondences
- *           [out]   psame (1 if equal; 0 otherwise
+ * \param[out]   psame (1 if equal; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1710,9 +1719,10 @@ BOX     *box, *boxt;
 
     PROCNAME("boxaSplitEvenOdd");
 
+    if (pboxae) *pboxae = NULL;
+    if (pboxao) *pboxao = NULL;
     if (!pboxae || !pboxao)
-        return ERROR_INT("&boxae and &boxao not defined", procName, 1);
-    *pboxae = *pboxao = NULL;
+        return ERROR_INT("&boxae and &boxao not both defined", procName, 1);
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 

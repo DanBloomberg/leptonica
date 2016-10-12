@@ -12,11 +12,11 @@ INSTALL_PROGS = convertfilestopdf convertfilestops \
 
 AUTO_REG_PROGS = alphaops_reg alphaxform_reg \
 	bilateral2_reg binarize_reg blackwhite_reg \
-	blend3_reg blend4_reg \
+	blend3_reg blend4_reg cmapquant_reg \
 	colorcontent_reg coloring_reg colorize_reg \
 	colormask_reg colorquant_reg \
-	colorspace_reg compare_reg \
-	convolve_reg dewarp_reg \
+	colorseg_reg colorspace_reg compare_reg \
+	convolve_reg dewarp_reg distance_reg \
 	dna_reg dwamorph1_reg enhance_reg \
 	findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
@@ -55,14 +55,13 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg affine_reg \
 	binmorph1_reg binmorph2_reg binmorph3_reg \
 	binmorph4_reg binmorph5_reg \
 	blend1_reg blend2_reg boxa1_reg boxa2_reg \
-	ccthin1_reg ccthin2_reg cmapquant_reg \
-	colorize_reg colorseg_reg compfilter_reg \
-	conncomp_reg conversion_reg distance_reg \
+	ccthin1_reg ccthin2_reg \
+	colorize_reg compfilter_reg \
+	conncomp_reg conversion_reg \
 	dwamorph2_reg equal_reg expand_reg extrema_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
 	grayfill_reg graymorph1_reg \
-	grayquant_reg heap_reg \
-	locminmax_reg \
+	grayquant_reg heap_reg locminmax_reg \
 	logicops_reg lowaccess_reg morphseq_reg \
 	numa1_reg numa2_reg pixa1_reg \
 	pixadisp_reg pixalloc_reg pixcomp_reg \

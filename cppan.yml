@@ -1,3 +1,6 @@
+local_settings:
+    cppan_dir: cppan
+
 files:
     - src/.*\.h
     - src/.*\.c
@@ -19,9 +22,6 @@ check_include_exists:
   - sys/stat.h
   - sys/types.h
   - unistd.h
-  - openjpeg-2.0/openjpeg.h
-  - openjpeg-2.1/openjpeg.h
-  - openjpeg-2.2/openjpeg.h
 
 pre_sources: |
     if(WORDS_BIGENDIAN)
@@ -51,22 +51,25 @@ options:
     any:
         definitions:
             public:
+              - HAVE_CONFIG_H
+            private:
               - HAVE_LIBGIF
               - HAVE_LIBJPEG
               - HAVE_LIBPNG
               - HAVE_LIBTIFF
               - HAVE_LIBWEBP
               - HAVE_LIBZ
-              - HAVE_CONFIG_H
-        global_definitions:
-            - TIF_PLATFORM_CONSOLE
+              - HAVE_LIBJP2K
+              - LIBJP2K_HEADER="openjpeg.h"
     shared:
         definitions:
             private: LIBLEPT_EXPORTS
 
 dependencies:
-  pvt.cppan.demo.gif: 5 # any 5.x.x version
-  pvt.cppan.demo.jpeg: "*" # any non branch version
-  pvt.cppan.demo.png: 1
-  pvt.cppan.demo.tiff: 4
-  pvt.cppan.demo.webp: "*" # any non branch version
+    private:
+        pvt.cppan.demo.gif: 5
+        pvt.cppan.demo.jpeg: 9
+        pvt.cppan.demo.png: 1
+        pvt.cppan.demo.tiff: 4
+        pvt.cppan.demo.webp: 0
+        pvt.cppan.demo.openjpeg.openjp2: 2

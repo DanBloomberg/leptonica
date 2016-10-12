@@ -269,7 +269,7 @@ PIX       *pixt;
  *          fg pixels for the area, and the ratio is taken in the opposite
  *          order.
  *      (3) This is typically used for a single connected component.
- *          This always has a value \<= 1.0, and if the average distance
+ *          This always has a value <= 1.0, and if the average distance
  *          of a fg pixel from the nearest bg pixel is d, this has
  *          a value ~1/d.
  * </pre>
@@ -1303,8 +1303,8 @@ PIX     *pixd;
  *          All input fractional distances are from the outside of the
  *          image to the frame boundary, in units of the image half-width
  *          for hf1 and hf2 and the image half-height for vf1 and vf2.
- *          Input fractions are thus in [0.0 ... 1.0], with hf1 \<= hf2
- *          and vf1 \<= vf2.  Horizontal and vertical frame widths are
+ *          Input fractions are thus in [0.0 ... 1.0], with hf1 <= hf2
+ *          and vf1 <= vf2.  Horizontal and vertical frame widths are
  *          independently specified.
  *      (2) Special case: to get a full fg mask, set all input values to 0.0.
  *          An empty fg mask has hf1 = vf1 = 1.0.
@@ -1375,13 +1375,13 @@ PIX     *pixd;
  * Notes:
  *      (1) This gives the fraction of fg pixels in pix1 that are in
  *          the intersection (i.e., under the fg) of pix2:
- *          |1 \& 2|/|1|, where |...| means the number of fg pixels.
+ *          |1 & 2|/|1|, where |...| means the number of fg pixels.
  *          Note that this is different from the situation where
  *          pix1 and pix2 are reversed.
  *      (2) Both pix1 and pix2 are registered to the UL corners.  A warning
  *          is issued if pix1 and pix2 have different sizes.
  *      (3) This can also be used to find the fraction of fg pixels in pix1
- *          that are NOT under the fg of pix2: 1.0 - |1 \& 2|/|1|
+ *          that are NOT under the fg of pix2: 1.0 - |1 & 2|/|1|
  *      (4) If pix1 or pix2 are empty, this returns %fract = 0.0.
  *      (5) For example, pix2 could be a frame around the outside of the
  *          image, made from pixMakeFrameMask().
@@ -1439,7 +1439,7 @@ PIX     *pix3;
  *
  * <pre>
  * Notes:
- *      (1) At least one of {\&pixd, \&box} must be specified.
+ *      (1) At least one of {&pixd, &box} must be specified.
  *      (2) If there are no fg pixels, the returned ptrs are null.
  * </pre>
  */
@@ -1609,9 +1609,9 @@ l_uint32  *data, *line;
  *
  * <pre>
  * Notes:
- *      (1) At least one of {\&pixd, \&boxd} must be specified.
+ *      (1) At least one of {&pixd, &boxd} must be specified.
  *      (2) If there are no fg pixels, the returned ptrs are null.
- *      (3) Do not use \&pixs for the 3rd arg or \&boxs for the 4th arg;
+ *      (3) Do not use &pixs for the 3rd arg or &boxs for the 4th arg;
  *          this will leak memory.
  * </pre>
  */
@@ -1780,7 +1780,7 @@ BOX       *boxt;
  *
  * <pre>
  * Notes:
- *      (1) At least one of {\&pixd, \&boxd} must be specified.
+ *      (1) At least one of {&pixd, &boxd} must be specified.
  *      (2) If there are no fg pixels, the returned ptrs are null.
  *      (3) This function attempts to locate rectangular "image" regions
  *          of high-density fg pixels, that have well-defined edges
@@ -2222,8 +2222,8 @@ PTA       *pta;
  * Notes:
  *      (1) The line must be either horizontal or vertical, so either
  *          y1 == y2 (horizontal) or x1 == x2 (vertical).
- *      (2) If horizontal, x1 must be \<= x2.
- *          If vertical, y1 must be \<= y2.
+ *      (2) If horizontal, x1 must be <= x2.
+ *          If vertical, y1 must be <= y2.
  *          characterize the intensity smoothness along a line.
  *      (3) Input end points are clipped to the pix.
  * </pre>

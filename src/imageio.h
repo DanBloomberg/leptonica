@@ -79,8 +79,7 @@
  *  was not read from file, the input format field will be
  *  IFF_UNKNOWN and the output file format will be chosen to
  *  be compressed and lossless; namely, IFF_TIFF_G4 for d = 1
- *  and IFF_PNG for everything else.   IFF_JP2 is for jpeg2000, which
- *  is not supported in leptonica.
+ *  and IFF_PNG for everything else.
  *
  *  In the future, new format types that have defined extensions
  *  will be added before IFF_DEFAULT, and will be kept in sync with

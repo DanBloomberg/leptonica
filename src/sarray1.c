@@ -738,7 +738,7 @@ sarrayChangeRefcount(SARRAY  *sa,
  *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
  *          each substring.
  *      (3) This function was NOT implemented as:
- *            for (i = 0; i \< n; i++)
+ *            for (i = 0; i < n; i++)
  *                     strcat(dest, sarrayGetString(sa, i, L_NOCOPY));
  *          Do you see why?
  * </pre>
@@ -1240,7 +1240,7 @@ SARRAY  *saout;
  *          where the invalid lines begin with two dashes, copy each
  *          line in the file to a string in an sarray, and do:
  *             start = 0;
- *             while (!sarrayParseRange(sa, start, \&actstart, \&end, \&start,
+ *             while (!sarrayParseRange(sa, start, &actstart, &end, &start,
  *                    "--", 0))
  *                 fprintf(stderr, "start = %d, end = %d\n", actstart, end);
  * </pre>

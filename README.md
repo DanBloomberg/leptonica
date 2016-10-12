@@ -22,7 +22,7 @@ www.leptonica.org
 
 ## Ancillary utilities ##
 
-  * I/O for standard image formats (_jpg_, _png_, _tiff_, _bmp_, _pnm_, _gif_, _ps_, _pdf_,  _webp_)
+  * I/O for standard image formats (_jpg_, _png_, _tiff_, _webp_, _jp2_, _bmp_, _pnm_, _gif_, _ps_, _pdf_)
   * Utilities to handle arrays of image-related data types (e.g., _pixa_, _boxa_, _pta_)
   * Utilities for stacks, generic arrays, queues, heaps, lists; number and string arrays; etc.
 
@@ -65,3 +65,11 @@ www.leptonica.org
   * [php](http://en.wikipedia.org/wiki/PHP)  (scripting language for dynamic web pages)
   * [tesseract](https://github.com/tesseract-ocr/tesseract/) (optical character recognition)
   * [jbig2enc](http://www.imperialviolet.org/jbig2.html) (encodes multipage binary image documents with jbig2 compression)
+
+## Major contributors to Leptonica ##
+  * Tom Powers: Tom has supported leptonica on Windows for many years.  He has made many contributions to code quality and documentation, including the beautiful "unofficial documentation" on the web site. Without his effort, leptonica would not run today on Windows.
+  * David Bryan: David has worked for years to support leptonica on multiple platforms. He designed many nice features in leptonica, such as the severity-based error messaging system, and has identified and fixed countless bugs. And he has built and tested each distribution many times on cross-compilers.
+  * James Le Cuirot: James has written and supported the autotools scripts on leptonica distributions for many years, and has helped test every distribution since 1.67.
+  * Jeff Breidenbach: Jeff has built every debian distribution for leptonica. He has also made many improvements to formatted image I/O, including tiff, png and pdf. He is a continuous advocate for simplification.
+  * Egor Pugin: Egor is co-maintainer of leptonica on github. He ported everything, including all the old distributions, from Google Code when it shut down. He set leptonica up for appveyor and travis testing, and has implemented the cppan project, which simplifies building executables on Windows.
+  * Jürgen Buchmüller: Jürgen wrote text converters to modify leptonica source code so that it generates documentation using doxygen. He also wrote tiff wrappers for memory I/O.

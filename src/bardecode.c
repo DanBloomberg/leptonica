@@ -384,9 +384,11 @@ l_int32  valid, reverse, i, j, len, error, ndigits, start, found;
 
         /* Verify size */
     len = strlen(vbarstr);
-    if ((len - 11) % 10 != 0)
+    if ((len - 11) % 10 != 0) {
+        LEPT_FREE(vbarstr);
         return (char *)ERROR_PTR("size not divisible by 10: invalid 2of5 code",
                                  procName, NULL);
+    }
 
     error = FALSE;
     ndigits = (len - 11) / 10;
@@ -462,9 +464,11 @@ l_int32  valid, reverse, i, j, len, error, npairs, start, found;
 
         /* Verify size */
     len = strlen(vbarstr);
-    if ((len - 7) % 10 != 0)
+    if ((len - 7) % 10 != 0) {
+        LEPT_FREE(vbarstr);
         return (char *)ERROR_PTR("size not divisible by 10: invalid I2of5 code",
                                  procName, NULL);
+    }
 
     error = FALSE;
     npairs = (len - 7) / 10;
@@ -559,9 +563,11 @@ l_int32     *index;
 
         /* Verify size; skip the first 6 and last 7 bars. */
     len = strlen(vbarstr);
-    if ((len - 13) % 6 != 0)
+    if ((len - 13) % 6 != 0) {
+        LEPT_FREE(vbarstr);
         return (char *)ERROR_PTR("size not divisible by 6: invalid code 93",
                                  procName, NULL);
+    }
 
         /* Decode the symbols */
     nsymb = (len - 13) / 6;
@@ -672,9 +678,11 @@ l_int32   valid, reverse, i, j, len, error, nsymb, start, found;
 
         /* Verify size */
     len = strlen(vbarstr);
-    if ((len + 1) % 10 != 0)
+    if ((len + 1) % 10 != 0) {
+        LEPT_FREE(vbarstr);
         return (char *)ERROR_PTR("size+1 not divisible by 10: invalid code 39",
                                  procName, NULL);
+    }
 
         /* Decode the symbols */
     nsymb = (len - 19) / 10;
@@ -754,9 +762,11 @@ l_int32   valid, reverse, i, j, len, error, nsymb, start, found;
 
         /* Verify size */
     len = strlen(vbarstr);
-    if ((len + 1) % 8 != 0)
+    if ((len + 1) % 8 != 0) {
+        LEPT_FREE(vbarstr);
         return (char *)ERROR_PTR("size+1 not divisible by 8: invalid codabar",
                                  procName, NULL);
+    }
 
         /* Decode the symbols */
     nsymb = (len - 15) / 8;
