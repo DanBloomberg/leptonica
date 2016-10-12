@@ -732,12 +732,12 @@ PIXA      *pixad;
         for (i = 0; i < 255; i++)
             colors[i] = color;
     } else if (colorflag == L_DRAW_RGB) {
-        for (i = 0; i < 255; i++)
+        for (i = 0; i < 255; i++) {
             if (i % 3 == L_DRAW_RED)
                 colors[i] = 0xff000000;
             else if (i % 3 == L_DRAW_GREEN)
                 colors[i] = 0x00ff0000;
-            else {  /* i % 3 == L_DRAW_BLUE) */
+            else  /* i % 3 == L_DRAW_BLUE) */
                 colors[i] = 0x0000ff00;
         }
     } else if (colorflag == L_DRAW_RANDOM) {

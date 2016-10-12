@@ -27,7 +27,7 @@
 /*
  * displayboxes_on_pixa.c
  *
- *        displaybaa_on_pixa pixain boxaain type width pixaout display
+ *        displayboxes_on_pixa pixain boxaain type width pixaout display
  *
  *   where 'type' follows the enum in pix.h:
  *          0:  draw red  
@@ -48,7 +48,7 @@
  *   pix in the input pixa.  The number of boxes in each boxa is arbitrary.
  *
  *   For example, you can call this with:
- *     displaybaa_on_pixa showboxes.pac showboxes2.baa 4 2 /tmp/result.pa 1
+ *     displayboxes_on_pixa showboxes.pac showboxes2.baa 4 2 /tmp/result.pa 1
  */
 
 #include "allheaders.h"
