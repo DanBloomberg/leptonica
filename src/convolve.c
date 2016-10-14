@@ -119,7 +119,7 @@ static void blocksumLow(l_uint32 *datad, l_int32 w, l_int32 h, l_int32 wpl,
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) Returns a copy if both wc and hc are 0
- *      (3) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
+ *      (3) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  * </pre>
  */
@@ -202,7 +202,7 @@ PIX     *pixs, *pixd, *pixr, *pixrc, *pixg, *pixgc, *pixb, *pixbc;
  *      (2) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
  *      (3) Returns a copy if both wc and hc are 0.
- *      (4) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
+ *      (4) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  * </pre>
  */
@@ -292,7 +292,7 @@ PIX       *pixd, *pixt;
  *          hc + 1 lines; then for the last hc lines; and finally
  *          for the first wc + 1 and last wc columns in the intermediate
  *          lines.
- *      (5) The caller should verify that wc \< w and hc \< h.
+ *      (5) The caller should verify that wc < w and hc < h.
  *          Under those conditions, illegal reads and writes can occur.
  *      (6) Implementation note: to get the same results in the interior
  *          between this function and pixConvolve(), it is necessary to
@@ -608,7 +608,7 @@ l_uint32  *lines, *lined, *linedp;
  * Notes:
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1).
- *      (2) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
+ *      (2) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  *      (3) Returns a copy if both wc and hc are 0.
  *      (3) Adds mirrored border to avoid treating the boundary pixels
@@ -706,7 +706,7 @@ PIX       *pixsb, *pixacc, *pixd;
  *      (1) The full width and height of the convolution kernel
  *          are (2 * wc + 1) and (2 * hc + 1)
  *      (2) Returns a copy if both wc and hc are 0
- *      (3) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
+ *      (3) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  *      (4) For nx == ny == 1, this defaults to pixBlockconv(), which
  *          is typically about twice as fast, and gives nearly
@@ -845,7 +845,7 @@ PIXTILING  *pt;
  *          The returned pix has these stripped off; they are only used
  *          for computation.
  *      (3) Returns a copy if both wc and hc are 0
- *      (4) Require that w \> 2 * wc + 1 and h \> 2 * hc + 1,
+ *      (4) Require that w > 2 * wc + 1 and h > 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  * </pre>
  */
@@ -960,11 +960,11 @@ PIX       *pixt, *pixd;
  *          added and the border pixels are removed from the output images.
  *      (3) These statistical measures over the pixels in the
  *          rectangular window are:
- *            ~ average value: \<p\>  (pixm)
- *            ~ average squared value: \<p*p\> (pixms)
- *            ~ variance: \<(p - \<p\>)*(p - \<p\>)\> = \<p*p\> - \<p\>*\<p\>  (pixv)
+ *            ~ average value: <p>  (pixm)
+ *            ~ average squared value: <p*p> (pixms)
+ *            ~ variance: <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>  (pixv)
  *            ~ square-root of variance: (pixrv)
- *          where the brackets \< .. \> indicate that the average value is
+ *          where the brackets < .. > indicate that the average value is
  *          to be taken over the window.
  *      (4) Note that the variance is just the mean square difference from
  *          the mean value; and the square root of the variance is the
@@ -1084,32 +1084,37 @@ PIX       *pixb, *pixc, *pixd;
     if (wc < 2 || hc < 2)
         return (PIX *)ERROR_PTR("wc and hc not >= 2", procName, NULL);
 
+    pixb = pixc = pixd = NULL;
+
         /* Add border if requested */
     if (!hasborder)
         pixb = pixAddBorderGeneral(pixs, wc + 1, wc + 1, hc + 1, hc + 1, 0);
     else
         pixb = pixClone(pixs);
 
+        /* Make the accumulator pix from pixb */
+    if ((pixc = pixBlockconvAccum(pixb)) == NULL) {
+        L_ERROR("pixc not made\n", procName);
+        goto cleanup;
+    }
+    wplc = pixGetWpl(pixc);
+    datac = pixGetData(pixc);
+
         /* The output has wc + 1 border pixels stripped from each side
          * of pixb, and hc + 1 border pixels stripped from top and bottom. */
     pixGetDimensions(pixb, &w, &h, NULL);
     wd = w - 2 * (wc + 1);
     hd = h - 2 * (hc + 1);
-    if (wd < 2 || hd < 2)
-        return (PIX *)ERROR_PTR("w or h too small for kernel", procName, NULL);
-    if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-
-        /* Make the accumulator pix from pixb */
-    if ((pixc = pixBlockconvAccum(pixb)) == NULL) {
-        pixDestroy(&pixb);
-        pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
+    if (wd < 2 || hd < 2) {
+        L_ERROR("w or h is too small for the kernel\n", procName);
+        goto cleanup;
     }
-    wplc = pixGetWpl(pixc);
+    if ((pixd = pixCreate(wd, hd, d)) == NULL) {
+        L_ERROR("pixd not made\n", procName);
+        goto cleanup;
+    }
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
-    datac = pixGetData(pixc);
 
     wincr = 2 * wc + 1;
     hincr = 2 * hc + 1;
@@ -1132,8 +1137,9 @@ PIX       *pixb, *pixc, *pixd;
         }
     }
 
-    pixDestroy(&pixc);
+cleanup:
     pixDestroy(&pixb);
+    pixDestroy(&pixc);
     return pixd;
 }
 
@@ -1194,14 +1200,18 @@ PIX        *pixb, *pixd;
     if (wc < 2 || hc < 2)
         return (PIX *)ERROR_PTR("wc and hc not >= 2", procName, NULL);
 
+    pixd = NULL;
+
         /* Add border if requested */
     if (!hasborder)
         pixb = pixAddBorderGeneral(pixs, wc + 1, wc + 1, hc + 1, hc + 1, 0);
     else
         pixb = pixClone(pixs);
 
-    if ((dpix = pixMeanSquareAccum(pixb)) == NULL)
-        return (PIX *)ERROR_PTR("dpix not made", procName, NULL);
+    if ((dpix = pixMeanSquareAccum(pixb)) == NULL) {
+        L_ERROR("dpix not made\n", procName);
+        goto cleanup;
+    }
     wpl = dpixGetWpl(dpix);
     data = dpixGetData(dpix);
 
@@ -1210,12 +1220,13 @@ PIX        *pixb, *pixd;
     pixGetDimensions(pixb, &w, &h, NULL);
     wd = w - 2 * (wc + 1);
     hd = h - 2 * (hc + 1);
-    if (wd < 2 || hd < 2)
-        return (PIX *)ERROR_PTR("w or h too small for kernel", procName, NULL);
+    if (wd < 2 || hd < 2) {
+        L_ERROR("w or h too small for kernel\n", procName);
+        goto cleanup;
+    }
     if ((pixd = pixCreate(wd, hd, 32)) == NULL) {
-        dpixDestroy(&dpix);
-        pixDestroy(&pixb);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        L_ERROR("pixd not made\n", procName);
+        goto cleanup;
     }
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
@@ -1234,6 +1245,7 @@ PIX        *pixb, *pixd;
         }
     }
 
+cleanup:
     dpixDestroy(&dpix);
     pixDestroy(&pixb);
     return pixd;
@@ -1258,7 +1270,7 @@ PIX        *pixb, *pixd;
  *          are returned as an fpix, where the variance is the
  *          average over the window of the mean square difference of
  *          the pixel value from the mean:
- *                \<(p - \<p\>)*(p - \<p\>)\> = \<p*p\> - \<p\>*\<p\>
+ *                <(p - <p>)*(p - <p>)> = <p*p> - <p>*<p>
  *      (3) To visualize the results:
  *            ~ for both, use fpixDisplayMaxDynamicRange().
  *            ~ for rms deviation, simply convert the output fpix to pix,
@@ -1429,7 +1441,7 @@ DPIX       *dpix;
  *          before returning; otherwise, just use the input accum pix
  *      (4) If both wc and hc are 0, returns a copy unless rank == 0.0,
  *          in which case this returns an all-ones image.
- *      (5) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
+ *      (5) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  * </pre>
  */
@@ -1501,7 +1513,7 @@ PIX     *pixt, *pixd;
  *      (3) Use of wc = hc = 1, followed by pixInvert() on the
  *          8 bpp result, gives a nice anti-aliased, and somewhat
  *          darkened, result on text.
- *      (4) Require that w \>= 2 * wc + 1 and h \>= 2 * hc + 1,
+ *      (4) Require that w >= 2 * wc + 1 and h >= 2 * hc + 1,
  *          where (w,h) are the dimensions of pixs.
  *      (5) Returns in each dest pixel the sum of all src pixels
  *          that are within a block of size of the kernel, centered
@@ -1599,7 +1611,7 @@ PIX       *pixt, *pixd;
  *          hc + 1 lines; then for the last hc lines; and finally
  *          for the first wc + 1 and last wc columns in the intermediate
  *          lines.
- *      (5) Required constraints are: wc \< w and hc \< h.
+ *      (5) Required constraints are: wc < w and hc < h.
  * </pre>
  */
 static void
@@ -1750,7 +1762,7 @@ l_uint32  *linemina, *linemaxa, *lined;
  *          fairly robust against slow illumination changes, with
  *          applications in image comparison and mosaicing.
  *      (3) The size of the convolution kernel is (2 * halfsize + 1)
- *          on a side.  The halfsize parameter must be \>= 1.
+ *          on a side.  The halfsize parameter must be >= 1.
  *      (4) If accum pix is null, make one, use it, and destroy it
  *          before returning; otherwise, just use the input accum pix
  * </pre>
@@ -1880,6 +1892,8 @@ PIX       *pixt, *pixd;
     if (!kel)
         return (PIX *)ERROR_PTR("kel not defined", procName, NULL);
 
+    pixd = NULL;
+
     keli = kernelInvert(kel);
     kernelGetParameters(keli, &sy, &sx, &cy, &cx);
     if (normflag)
@@ -1887,8 +1901,10 @@ PIX       *pixt, *pixd;
     else
         keln = kernelCopy(keli);
 
-    if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL) {
+        L_ERROR("pixt not made\n", procName);
+        goto cleanup;
+    }
 
     wd = (w + ConvolveSamplingFactX - 1) / ConvolveSamplingFactX;
     hd = (h + ConvolveSamplingFactY - 1) / ConvolveSamplingFactY;
@@ -1930,6 +1946,7 @@ PIX       *pixt, *pixd;
         }
     }
 
+cleanup:
     kernelDestroy(&keli);
     kernelDestroy(&keln);
     pixDestroy(&pixt);
@@ -2192,6 +2209,8 @@ FPIX       *fpixt, *fpixd;
     if (!kel)
         return (FPIX *)ERROR_PTR("kel not defined", procName, NULL);
 
+    fpixd = NULL;
+
     keli = kernelInvert(kel);
     kernelGetParameters(keli, &sy, &sx, &cy, &cx);
     if (normflag)
@@ -2201,8 +2220,10 @@ FPIX       *fpixt, *fpixd;
 
     fpixGetDimensions(fpixs, &w, &h);
     fpixt = fpixAddMirroredBorder(fpixs, cx, sx - cx, cy, sy - cy);
-    if (!fpixt)
-        return (FPIX *)ERROR_PTR("fpixt not made", procName, NULL);
+    if (!fpixt) {
+        L_ERROR("fpixt not made\n", procName);
+        goto cleanup;
+    }
 
     wd = (w + ConvolveSamplingFactX - 1) / ConvolveSamplingFactX;
     hd = (h + ConvolveSamplingFactY - 1) / ConvolveSamplingFactY;
@@ -2226,6 +2247,7 @@ FPIX       *fpixt, *fpixd;
         }
     }
 
+cleanup:
     kernelDestroy(&keli);
     kernelDestroy(&keln);
     fpixDestroy(&fpixt);
@@ -2335,7 +2357,7 @@ FPIX      *fpixt, *fpixd;
  *          converted to an fpix, the convolution is done on the fpix, and
  *          a bias (shift) may need to be applied.
  *      (4) If force8 == TRUE and the range of values after the convolution
- *          is \> 255, the output values will be scaled to fit in [0 ... 255].
+ *          is > 255, the output values will be scaled to fit in [0 ... 255].
  *          If force8 == FALSE, the output will be either 8 or 16 bpp,
  *          to accommodate the dynamic range of output values without scaling.
  * </pre>

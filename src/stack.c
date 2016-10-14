@@ -33,7 +33,7 @@
  *
  *      The lstack is an array of void * ptrs, onto which
  *      objects can be stored.  At any time, the number of
- *      stored objects is lstack-\>n.  The object at the bottom
+ *      stored objects is lstack->n.  The object at the bottom
  *      of the lstack is at array[0]; the object at the top of
  *      the lstack is at array[n-1].  New objects are added
  *      to the top of the lstack; i.e., the first available
@@ -84,11 +84,12 @@ L_STACK  *lstack;
     if (nalloc <= 0)
         nalloc = INITIAL_PTR_ARRAYSIZE;
 
-    if ((lstack = (L_STACK *)LEPT_CALLOC(1, sizeof(L_STACK))) == NULL)
-        return (L_STACK *)ERROR_PTR("lstack not made", procName, NULL);
-
-    if ((lstack->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL)
+    lstack = (L_STACK *)LEPT_CALLOC(1, sizeof(L_STACK));
+    lstack->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *));
+    if (!lstack->array) {
+        lstackDestroy(&lstack, FALSE);
         return (L_STACK *)ERROR_PTR("lstack array not made", procName, NULL);
+    }
 
     lstack->nalloc = nalloc;
     lstack->n = 0;

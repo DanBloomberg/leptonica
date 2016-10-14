@@ -182,6 +182,9 @@ PIX       *pixb, *pixt, *pixd;
         vsize++;
     }
 
+    pixb = pixt = pixd = NULL;
+    buffer = minarray = NULL;
+
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);
 
@@ -202,11 +205,12 @@ PIX       *pixb, *pixt, *pixd;
         bottompix = (3 * vsize + 1) / 2;
     }
 
-    if ((pixb = pixAddBorderGeneral(pixs,
-                leftpix, rightpix, toppix, bottompix, 255)) == NULL)
-        return (PIX *)ERROR_PTR("pixb not made", procName, NULL);
-    if ((pixt = pixCreateTemplate(pixb)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 255);
+    pixt = pixCreateTemplate(pixb);
+    if (!pixb || !pixt) {
+        L_ERROR("pixb and pixt not made\n", procName);
+        goto cleanup;
+    }
 
     pixGetDimensions(pixt, &w, &h, NULL);
     datab = pixGetData(pixb);
@@ -214,12 +218,13 @@ PIX       *pixb, *pixt, *pixd;
     wplb = pixGetWpl(pixb);
     wplt = pixGetWpl(pixt);
 
-    if ((buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
+    buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8));
     maxsize = L_MAX(hsize, vsize);
-    if ((minarray = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8)))
-        == NULL)
-        return (PIX *)ERROR_PTR("minarray not made", procName, NULL);
+    minarray = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
+    if (!buffer || !minarray) {
+        L_ERROR("buffer and minarray not made\n", procName);
+        goto cleanup;
+    }
 
     if (vsize == 1) {
         erodeGrayLow(datat, w, h, wplt, datab, wplb, hsize, L_HORIZ,
@@ -238,10 +243,11 @@ PIX       *pixb, *pixt, *pixd;
         pixt = pixClone(pixb);
     }
 
-    if ((pixd = pixRemoveBorderGeneral(pixt,
-                leftpix, rightpix, toppix, bottompix)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixd = pixRemoveBorderGeneral(pixt, leftpix, rightpix, toppix, bottompix);
+    if (!pixd)
+        L_ERROR("pixd not made\n", procName);
 
+cleanup:
     LEPT_FREE(buffer);
     LEPT_FREE(minarray);
     pixDestroy(&pixb);
@@ -292,6 +298,9 @@ PIX       *pixb, *pixt, *pixd;
         vsize++;
     }
 
+    pixb = pixt = pixd = NULL;
+    buffer = maxarray = NULL;
+
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);
 
@@ -312,11 +321,12 @@ PIX       *pixb, *pixt, *pixd;
         bottompix = (3 * vsize + 1) / 2;
     }
 
-    if ((pixb = pixAddBorderGeneral(pixs,
-                leftpix, rightpix, toppix, bottompix, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pixb not made", procName, NULL);
-    if ((pixt = pixCreateTemplate(pixb)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 0);
+    pixt = pixCreateTemplate(pixb);
+    if (!pixb || !pixt) {
+        L_ERROR("pixb and pixt not made\n", procName);
+        goto cleanup;
+    }
 
     pixGetDimensions(pixt, &w, &h, NULL);
     datab = pixGetData(pixb);
@@ -324,12 +334,13 @@ PIX       *pixb, *pixt, *pixd;
     wplb = pixGetWpl(pixb);
     wplt = pixGetWpl(pixt);
 
-    if ((buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
+    buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8));
     maxsize = L_MAX(hsize, vsize);
-    if ((maxarray = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8)))
-        == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
+    maxarray = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
+    if (!buffer || !maxarray) {
+        L_ERROR("buffer and maxarray not made\n", procName);
+        goto cleanup;
+    }
 
     if (vsize == 1) {
         dilateGrayLow(datat, w, h, wplt, datab, wplb, hsize, L_HORIZ,
@@ -348,10 +359,11 @@ PIX       *pixb, *pixt, *pixd;
         pixt = pixClone(pixb);
     }
 
-    if ((pixd = pixRemoveBorderGeneral(pixt,
-                leftpix, rightpix, toppix, bottompix)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixd = pixRemoveBorderGeneral(pixt, leftpix, rightpix, toppix, bottompix);
+    if (!pixd)
+        L_ERROR("pixd not made\n", procName);
 
+cleanup:
     LEPT_FREE(buffer);
     LEPT_FREE(maxarray);
     pixDestroy(&pixb);
@@ -403,6 +415,9 @@ PIX       *pixb, *pixt, *pixd;
         vsize++;
     }
 
+    pixb = pixt = pixd = NULL;
+    buffer = array = NULL;
+
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);
 
@@ -423,11 +438,12 @@ PIX       *pixb, *pixt, *pixd;
         bottompix = (3 * vsize + 1) / 2;
     }
 
-    if ((pixb = pixAddBorderGeneral(pixs,
-                leftpix, rightpix, toppix, bottompix, 255)) == NULL)
-        return (PIX *)ERROR_PTR("pixb not made", procName, NULL);
-    if ((pixt = pixCreateTemplate(pixb)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 255);
+    pixt = pixCreateTemplate(pixb);
+    if (!pixb || !pixt) {
+        L_ERROR("pixb and pixt not made\n", procName);
+        goto cleanup;
+    }
 
     pixGetDimensions(pixt, &w, &h, NULL);
     datab = pixGetData(pixb);
@@ -435,11 +451,13 @@ PIX       *pixb, *pixt, *pixd;
     wplb = pixGetWpl(pixb);
     wplt = pixGetWpl(pixt);
 
-    if ((buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
+    buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8));
     maxsize = L_MAX(hsize, vsize);
-    if ((array = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8))) == NULL)
-        return (PIX *)ERROR_PTR("array not made", procName, NULL);
+    array = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
+    if (!buffer || !array) {
+        L_ERROR("buffer and array not made\n", procName);
+        goto cleanup;
+    }
 
     if (vsize == 1) {
         erodeGrayLow(datat, w, h, wplt, datab, wplb, hsize, L_HORIZ,
@@ -473,10 +491,11 @@ PIX       *pixb, *pixt, *pixd;
                       buffer, array);
     }
 
-    if ((pixd = pixRemoveBorderGeneral(pixb,
-                leftpix, rightpix, toppix, bottompix)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixd = pixRemoveBorderGeneral(pixb, leftpix, rightpix, toppix, bottompix);
+    if (!pixd)
+        L_ERROR("pixd not made\n", procName);
 
+cleanup:
     LEPT_FREE(buffer);
     LEPT_FREE(array);
     pixDestroy(&pixb);
@@ -528,6 +547,9 @@ PIX       *pixb, *pixt, *pixd;
         vsize++;
     }
 
+    pixb = pixt = pixd = NULL;
+    buffer = array = NULL;
+
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);
 
@@ -548,11 +570,12 @@ PIX       *pixb, *pixt, *pixd;
         bottompix = (3 * vsize + 1) / 2;
     }
 
-    if ((pixb = pixAddBorderGeneral(pixs,
-                leftpix, rightpix, toppix, bottompix, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pixb not made", procName, NULL);
-    if ((pixt = pixCreateTemplate(pixb)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 0);
+    pixt = pixCreateTemplate(pixb);
+    if (!pixb || !pixt) {
+        L_ERROR("pixb and pixt not made\n", procName);
+        goto cleanup;
+    }
 
     pixGetDimensions(pixt, &w, &h, NULL);
     datab = pixGetData(pixb);
@@ -560,11 +583,13 @@ PIX       *pixb, *pixt, *pixd;
     wplb = pixGetWpl(pixb);
     wplt = pixGetWpl(pixt);
 
-    if ((buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
+    buffer = (l_uint8 *)LEPT_CALLOC(L_MAX(w, h), sizeof(l_uint8));
     maxsize = L_MAX(hsize, vsize);
-    if ((array = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8))) == NULL)
-        return (PIX *)ERROR_PTR("array not made", procName, NULL);
+    array = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
+    if (!buffer || !array) {
+        L_ERROR("buffer and array not made\n", procName);
+        goto cleanup;
+    }
 
     if (vsize == 1) {
         dilateGrayLow(datat, w, h, wplt, datab, wplb, hsize, L_HORIZ,
@@ -597,10 +622,11 @@ PIX       *pixb, *pixt, *pixd;
                      buffer, array);
     }
 
-    if ((pixd = pixRemoveBorderGeneral(pixb,
-                leftpix, rightpix, toppix, bottompix)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixd = pixRemoveBorderGeneral(pixb, leftpix, rightpix, toppix, bottompix);
+    if (!pixd)
+        L_ERROR("pixd not made\n", procName);
 
+cleanup:
     LEPT_FREE(buffer);
     LEPT_FREE(array);
     pixDestroy(&pixb);

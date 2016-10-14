@@ -126,6 +126,7 @@ static char  mainName[] = "graymorph1_reg";
     sprintf(btophatseq, "Tb%d.%d", WSIZE, HSIZE);
     pixg = pixGrayMorphSequence(pixs, btophatseq, HORIZ_SEP, 500);
     pixCompare(pixd, pixg, "results are the same", "results are different" );
+    pixDestroy(&pixd);
     pixDestroy(&pixg);
 
     /* ------------- Test erode/dilate duality -------------- */
@@ -200,6 +201,7 @@ static char  mainName[] = "graymorph1_reg";
     pixd = pixHDome(pixs, 100, 4);
     pixd2 = pixMaxDynamicRange(pixd, L_LINEAR_SCALE);
     pixDisplayWrite(pixd2, 1);
+    pixDestroy(&pixd);
     pixDestroy(&pixd2);
 
     /* ----- Contrast enhancement with morph parameters 9, 9 -------*/

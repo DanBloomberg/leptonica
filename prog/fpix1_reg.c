@@ -33,11 +33,6 @@
  */
 
 #include <math.h>
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>   /* for Sleep() */
-#endif  /* _WIN32 */
 #include "allheaders.h"
 
 static void MakePtasAffine(l_int32 i, PTA **pptas, PTA **pptad);
@@ -184,11 +179,6 @@ L_REGPARAMS  *rp;
     fpixDestroy(&fpixs);
 
         /* Save the comparison graph; gnuplot should have made it by now! */
-#ifndef _WIN32
-    sleep(2);
-#else
-    Sleep(2000);
-#endif  /* _WIN32 */
     pixt5 = pixRead("/tmp/lept/comp/compare_gray0.png");
     regTestWritePixAndCheck(rp, pixt5, IFF_PNG);  /* 10 */
     pixSaveTiled(pixt5, pixa, 1.0, 1, 20, 8);

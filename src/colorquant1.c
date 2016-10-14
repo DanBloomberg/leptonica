@@ -41,7 +41,7 @@
  *      of output colors
  *  (4) Octcube with colormap representation of mixed color/gray
  *  (5) 256 fixed octcubes covering color space
- *  (6) Octcubes at fixed level for ncolors \<= 256
+ *  (6) Octcubes at fixed level for ncolors <= 256
  *  (7) Octcubes at fixed level with RGB output
  *  (8) Quantizing an rgb image using a specified colormap
  *  -----------------------------------------------------------------
@@ -657,8 +657,10 @@ PIXCMAP   *cmap;
 
         /* Make the pruned octree */
     cqcaa = octreeGenerateAndPrune(pixsub, colors, CQ_RESERVED_COLORS, &cmap);
-    if (!cqcaa)
+    if (!cqcaa) {
+        pixDestroy(&pixsub);
         return (PIX *)ERROR_PTR("tree not made", procName, NULL);
+    }
 #if DEBUG_COLORQUANT
     L_INFO(" Colors requested = %d\n", procName, colors);
     L_INFO(" Actual colors = %d\n", procName, cmap->n);
@@ -673,8 +675,11 @@ PIXCMAP   *cmap;
         /* Traverse tree from root, looking for lowest cube
          * that is a leaf, and set dest pix value to its
          * colortable index */
-    if ((pixd = pixOctreeQuantizePixels(pixs, cqcaa, ditherflag)) == NULL)
+    if ((pixd = pixOctreeQuantizePixels(pixs, cqcaa, ditherflag)) == NULL) {
+        pixDestroy(&pixsub);
+        cqcellTreeDestroy(&cqcaa);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
 
         /* Attach colormap and copy res */
     pixSetColormap(pixd, cmap);
@@ -990,10 +995,6 @@ PIX       *pixd;
     if (!cqcaa)
         return (PIX *)ERROR_PTR("cqcaa not defined", procName, NULL);
 
-        /* Make the canonical index tables */
-    rtab = gtab = btab = NULL;
-    makeRGBToIndexTables(&rtab, &gtab, &btab, CQ_NLEVELS);
-
         /* Make output 8 bpp palette image */
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
@@ -1004,6 +1005,10 @@ PIX       *pixd;
     pixCopyInputFormat(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
+
+        /* Make the canonical index tables */
+    rtab = gtab = btab = NULL;
+    makeRGBToIndexTables(&rtab, &gtab, &btab, CQ_NLEVELS);
 
         /* Traverse tree from root, looking for lowest cube
          * that is a leaf, and set dest pix to its
@@ -1968,7 +1973,7 @@ array_cleanup:
  *      (2) For pixOctreeQuantByPopulation(), %indexmap maps from the
  *          standard octindex to colormap index (after subtracting 1).
  *          The basic pixel-level function, without dithering, is:
- *             extractRGBValues(lines[j], \&rval, \&gval, \&bval);
+ *             extractRGBValues(lines[j], &rval, &gval, &bval);
  *             octindex = rtab[rval] | gtab[gval] | btab[bval];
  *             SET_DATA_BYTE(lined, j, indexmap[octindex] - 1);
  *      (3) This can be used in any situation where the general
@@ -2631,8 +2636,10 @@ PIXCMAP   *cmap;
 
         /* Make colormapped output pixd */
     pixGetDimensions(pixs, &w, &h, NULL);
-    if ((pixd = pixCreate(w, h, depth)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if ((pixd = pixCreate(w, h, depth)) == NULL) {
+        L_ERROR("pixd not made\n", procName);
+        goto array_cleanup;
+    }
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     cmap = pixcmapCreate(depth);
@@ -3551,7 +3558,7 @@ l_int32  d;
  *          pixel in the image.
  *      (6) This is similar to the function pixAssignToNearestColor()
  *          used for color segmentation.
- *      (7) Except for very small images or when using level \> 4,
+ *      (7) Except for very small images or when using level > 4,
  *          it takes very little time to generate the tables,
  *          compared to the generation of the colormapped dest pix,
  *          so one would not typically use the low-level version.
@@ -3704,7 +3711,7 @@ PIXCMAP   *cmapc;
  *
  * <pre>
  * Notes:
- *      (1) Input NULL for \&ncolors to prevent computation and return value.
+ *      (1) Input NULL for &ncolors to prevent computation and return value.
  * </pre>
  */
 NUMA *
@@ -3816,7 +3823,7 @@ cleanup_arrays:
  *          Do the similar thing for black.
  *      (3) Here are the actual function calls for quantizing to a
  *          specified colormap:
- *            ~ first make the tables that map from rgb --\> octcube index
+ *            ~ first make the tables that map from rgb --> octcube index
  *                     makeRGBToIndexTables()
  *            ~ then for each pixel:
  *                * use the tables to get the octcube index

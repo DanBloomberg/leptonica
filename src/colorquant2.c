@@ -117,7 +117,7 @@
  *   in color, and the oscillations are highly visible.  To prevent
  *   this, we can take either or both of these actions:
  *
- *     (1) Subdivide a fraction (\< 1.0) based on population, and
+ *     (1) Subdivide a fraction (< 1.0) based on population, and
  *         do the rest of the subdivision based on the product of
  *         the vbox volume and its population.  By using the product,
  *         we avoid further subdivision of nearly empty vboxes, and
@@ -292,7 +292,7 @@ pixMedianCutQuant(PIX     *pixs,
  *          efficiency, based on the image size, but this parameter
  *          limits it.  Use %maxsub = 0 for the internal default, which is the
  *          maximum allowed subsampling.  Use %maxsub = 1 to prevent
- *          subsampling.  In general use %maxsub \>= 1 to specify the
+ *          subsampling.  In general use %maxsub >= 1 to specify the
  *          maximum subsampling to be allowed, where the actual subsampling
  *          will be the minimum of this value and the internally
  *          determined default value.
@@ -955,7 +955,7 @@ pixQuantizeWithColormap(PIX      *pixs,
                         l_int32   sigbits)
 {
 l_uint8   *bufu8r, *bufu8g, *bufu8b;
-l_int32    i, j, w, h, wpls, wpld, rshift, index, cmapindex;
+l_int32    i, j, w, h, wpls, wpld, rshift, index, cmapindex, success;
 l_int32    rval, gval, bval, rc, gc, bc;
 l_int32    dif, val1, val2, val3;
 l_int32   *buf1r, *buf1g, *buf1b, *buf2r, *buf2g, *buf2b;
@@ -1022,6 +1022,9 @@ PIX       *pixd;
             }
         }
     } else {  /* ditherflag == 1 */
+        success = TRUE;
+        bufu8r = bufu8g = bufu8b = NULL;
+        buf1r = buf1g = buf1b = buf2r = buf2g = buf2b = NULL;
         bufu8r = (l_uint8 *)LEPT_CALLOC(w, sizeof(l_uint8));
         bufu8g = (l_uint8 *)LEPT_CALLOC(w, sizeof(l_uint8));
         bufu8b = (l_uint8 *)LEPT_CALLOC(w, sizeof(l_uint8));
@@ -1031,10 +1034,12 @@ PIX       *pixd;
         buf2r = (l_int32 *)LEPT_CALLOC(w, sizeof(l_int32));
         buf2g = (l_int32 *)LEPT_CALLOC(w, sizeof(l_int32));
         buf2b = (l_int32 *)LEPT_CALLOC(w, sizeof(l_int32));
-        if (!bufu8r || !bufu8g || !bufu8b)
-            return (PIX *)ERROR_PTR("uint8 line buf not made", procName, NULL);
-        if (!buf1r || !buf1g || !buf1b || !buf2r || !buf2g || !buf2b)
-            return (PIX *)ERROR_PTR("mono line buf not made", procName, NULL);
+        if (!bufu8r || !bufu8g || !bufu8b || !buf1r || !buf1g ||
+            !buf1b || !buf2r || !buf2g || !buf2b) {
+            L_ERROR("buffer not made\n", procName);
+            success = FALSE;
+            goto buffer_cleanup;
+        }
 
             /* Start by priming buf2; line 1 is above line 2 */
         pixGetRGBLine(pixs, 0, bufu8r, bufu8g, bufu8b);
@@ -1143,6 +1148,7 @@ PIX       *pixd;
             SET_DATA_BYTE(lined, j, indexmap[index]);
         }
 
+buffer_cleanup:
         LEPT_FREE(bufu8r);
         LEPT_FREE(bufu8g);
         LEPT_FREE(bufu8b);
@@ -1152,6 +1158,7 @@ PIX       *pixd;
         LEPT_FREE(buf2r);
         LEPT_FREE(buf2g);
         LEPT_FREE(buf2b);
+        if (!success) pixDestroy(&pixd);
     }
 
     return pixd;
@@ -1277,6 +1284,8 @@ L_BOX3D  *vbox1, *vbox2;
 
     PROCNAME("medianCutApply");
 
+    if (pvbox1) *pvbox1 = NULL;
+    if (pvbox2) *pvbox2 = NULL;
     if (!histo)
         return ERROR_INT("histo not defined", procName, 1);
     if (!vbox)
@@ -1284,7 +1293,6 @@ L_BOX3D  *vbox1, *vbox2;
     if (!pvbox1 || !pvbox2)
         return ERROR_INT("&vbox1 and &vbox2 not both defined", procName, 1);
 
-    *pvbox1 = *pvbox2 = NULL;
     if (vboxGetCount(vbox, histo, sigbits) == 0)
         return ERROR_INT("no pixels in vbox", procName, 1);
 
@@ -1362,6 +1370,7 @@ L_BOX3D  *vbox1, *vbox2;
          * from "median cut," but in the process a significant number
          * of low-count vboxes are produced, allowing much better
          * reproduction of low-count spot colors. */
+    vbox1 = vbox2 = NULL;
     if (maxw == rw) {
         for (i = vbox->r1; i <= vbox->r2; i++) {
             if (partialsum[i] > total / 2) {
@@ -1408,12 +1417,16 @@ L_BOX3D  *vbox1, *vbox2;
             }
         }
     }
+    *pvbox1 = vbox1;
+    *pvbox2 = vbox2;
+    if (!vbox1)
+        return ERROR_INT("vbox1 not made; shouldn't happen", procName, 1);
+    if (!vbox2)
+        return ERROR_INT("vbox2 not made; shouldn't happen", procName, 1);
     vbox1->npix = vboxGetCount(vbox1, histo, sigbits);
     vbox2->npix = vboxGetCount(vbox2, histo, sigbits);
     vbox1->vol = vboxGetVolume(vbox1);
     vbox2->vol = vboxGetVolume(vbox2);
-    *pvbox1 = vbox1;
-    *pvbox2 = vbox2;
 
     return 0;
 }
@@ -1481,7 +1494,7 @@ PIXCMAP  *cmap;
  * <pre>
  * Notes:
  *      (1) The vbox represents one color in the colormap.
- *      (2) If index \>= 0, as a side-effect, all array elements in
+ *      (2) If index >= 0, as a side-effect, all array elements in
  *          the histo corresponding to the vbox are labeled with this
  *          cmap index for that vbox.  Otherwise, the histo array
  *          is not changed.
