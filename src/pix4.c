@@ -146,35 +146,26 @@ PIX        *pixg;
     data = pixGetData(pixg);
     for (i = 0; i < h; i += factor) {
         line = data + i * wpl;
-        switch (d)
-        {
-        case 2:
+        if (d == 2) {
             for (j = 0; j < w; j += factor) {
                 val = GET_DATA_DIBIT(line, j);
                 array[val] += 1.0;
             }
-            break;
-        case 4:
+        } else if (d == 4) {
             for (j = 0; j < w; j += factor) {
                 val = GET_DATA_QBIT(line, j);
                 array[val] += 1.0;
             }
-            break;
-        case 8:
+        } else if (d == 8) {
             for (j = 0; j < w; j += factor) {
                 val = GET_DATA_BYTE(line, j);
                 array[val] += 1.0;
             }
-            break;
-        case 16:
+        } else {  /* d == 16 */
             for (j = 0; j < w; j += factor) {
                 val = GET_DATA_TWO_BYTES(line, j);
                 array[val] += 1.0;
             }
-            break;
-        default:
-            numaDestroy(&na);
-            return (NUMA *)ERROR_PTR("illegal depth", procName, NULL);
         }
     }
 
@@ -1000,7 +991,7 @@ PIX       *pixmt, *pixt;
  *      (6) The histogram can optionally be returned, so that other rank
  *          values can be extracted without recomputing the histogram.
  *          In that case, just use
- *              numaHistogramGetValFromRank(na, rank, \&val);
+ *              numaHistogramGetValFromRank(na, rank, &val);
  *          on the returned Numa for additional rank values.
  * </pre>
  */
@@ -2396,7 +2387,7 @@ pixGetBinnedColor(PIX        *pixs,
                   l_uint32  **pcarray,
                   l_int32     debugflag)
 {
-l_int32     i, j, w, h, wpls, wplg, grayval, bin, rval, gval, bval;
+l_int32     i, j, w, h, wpls, wplg, grayval, bin, rval, gval, bval, success;
 l_int32     npts, avepts, maxpts;
 l_uint32   *datas, *datag, *lines, *lineg, *carray;
 l_float64   norm;
@@ -2483,8 +2474,12 @@ l_float64  *rarray, *garray, *barray, *narray;
     }
 
         /* Save colors for all bins  in a single array */
-    if ((carray = (l_uint32 *)LEPT_CALLOC(nbins, sizeof(l_uint32))) == NULL)
-        return ERROR_INT("rankcolor not made", procName, 1);
+    success = TRUE;
+    if ((carray = (l_uint32 *)LEPT_CALLOC(nbins, sizeof(l_uint32))) == NULL) {
+        success = FALSE;
+        L_ERROR("carray not made\n", procName);
+        goto cleanup_arrays;
+    }
     *pcarray = carray;
     for (i = 0; i < nbins; i++) {
         rval = (l_int32)(rarray[i] + 0.5);
@@ -2493,11 +2488,12 @@ l_float64  *rarray, *garray, *barray, *narray;
         composeRGBPixel(rval, gval, bval, carray + i);
     }
 
+cleanup_arrays:
     LEPT_FREE(rarray);
     LEPT_FREE(garray);
     LEPT_FREE(barray);
     LEPT_FREE(narray);
-    return 0;
+    return (success) ? 0 : 1;
 }
 
 
@@ -2883,12 +2879,9 @@ l_uint32  *lines, *datas;
                 colvect[i] = bin2gray[modeval];
         } else {  /* type == L_MODE_COUNT */
             max = 0;
-            modeval = 0;
             for (k = 0; k < nbins; k++) {
-                if (histo[k] > max) {
+                if (histo[k] > max)
                     max = histo[k];
-                    modeval = k;
-                }
             }
             colvect[i] = max;
         }
@@ -3004,12 +2997,9 @@ l_uint32  *datas;
                 rowvect[j] = bin2gray[modeval];
         } else {  /* type == L_MODE_COUNT */
             max = 0;
-            modeval = 0;
             for (k = 0; k < nbins; k++) {
-                if (histo[k] > max) {
+                if (histo[k] > max)
                     max = histo[k];
-                    modeval = k;
-                }
             }
             rowvect[j] = max;
         }

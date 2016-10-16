@@ -35,7 +35,7 @@
  *       ~ arithmetic operations
  *       ~ set all
  *       ~ border functions
- *       ~ simple rasterop (source --\> dest)
+ *       ~ simple rasterop (source --> dest)
  *       ~ geometric transforms
  *
  *    Interconversions between Pix, FPix and DPix
@@ -149,8 +149,10 @@ FPIX       *fpixd;
         return (FPIX *)ERROR_PTR("invalid depth", procName, NULL);
     }
 
-    if ((fpixd = fpixCreate(w, h)) == NULL)
+    if ((fpixd = fpixCreate(w, h)) == NULL) {
+        pixDestroy(&pixt);
         return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
+    }
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
     datad = fpixGetData(fpixd);
@@ -240,8 +242,10 @@ DPIX       *dpixd;
         return (DPIX *)ERROR_PTR("invalid depth", procName, NULL);
     }
 
-    if ((dpixd = dpixCreate(w, h)) == NULL)
+    if ((dpixd = dpixCreate(w, h)) == NULL) {
+        pixDestroy(&pixt);
         return (DPIX *)ERROR_PTR("dpixd not made", procName, NULL);
+    }
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
     datad = dpixGetData(dpixd);
@@ -349,7 +353,11 @@ PIX        *pixd;
             }
         }
     }
-    maxval = (1 << outdepth) - 1;
+    maxval = 0xff;
+    if (outdepth == 16)
+        maxval = 0xffff;
+    else  /* outdepth == 32 */
+        maxval = 0xffffffff;
 
         /* Gather statistics if %errorflag = TRUE */
     if (errorflag) {
@@ -563,7 +571,11 @@ PIX        *pixd;
             }
         }
     }
-    maxval = (1 << outdepth) - 1;
+    maxval = 0xff;
+    if (outdepth == 16)
+        maxval = 0xffff;
+    else  /* outdepth == 32 */
+        maxval = 0xffffffff;
 
         /* Gather statistics if %errorflag = TRUE */
     if (errorflag) {
@@ -1081,9 +1093,9 @@ DPIX       *dpixd;
  *      (2) Alignment is to UL corner.
  *      (3) There are 3 cases.  The result can go to a new dest,
  *          in-place to fpixs1, or to an existing input dest:
- *          * fpixd == null:   (src1 + src2) --\> new fpixd
- *          * fpixd == fpixs1:  (src1 + src2) --\> src1  (in-place)
- *          * fpixd != fpixs1: (src1 + src2) --\> input fpixd
+ *          * fpixd == null:   (src1 + src2) --> new fpixd
+ *          * fpixd == fpixs1:  (src1 + src2) --> src1  (in-place)
+ *          * fpixd != fpixs1: (src1 + src2) --> input fpixd
  *      (4) fpixs2 must be different from both fpixd and fpixs1.
  * </pre>
  */
@@ -1200,9 +1212,9 @@ l_float32  *line, *data;
  *      (2) Alignment is to UL corner.
  *      (3) There are 3 cases.  The result can go to a new dest,
  *          in-place to dpixs1, or to an existing input dest:
- *          * dpixd == null:   (src1 + src2) --\> new dpixd
- *          * dpixd == dpixs1:  (src1 + src2) --\> src1  (in-place)
- *          * dpixd != dpixs1: (src1 + src2) --\> input dpixd
+ *          * dpixd == null:   (src1 + src2) --> new dpixd
+ *          * dpixd == dpixs1:  (src1 + src2) --> src1  (in-place)
+ *          * dpixd != dpixs1: (src1 + src2) --> input dpixd
  *      (4) dpixs2 must be different from both dpixd and dpixs1.
  * </pre>
  */
@@ -1916,8 +1928,10 @@ l_float32  *line, *data, *buffer;
     data = fpixGetData(fpixd);
     wpl = fpixGetWpl(fpixd);  /* 4-byte words */
     bpl = 4 * wpl;
-    if ((buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32))) == NULL)
+    if ((buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32))) == NULL) {
+        fpixDestroy(&fpixd);
         return (FPIX *)ERROR_PTR("buffer not made", procName, NULL);
+    }
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
         memcpy(buffer, line, bpl);
@@ -1973,8 +1987,10 @@ l_float32  *linet, *lineb, *data, *buffer;
     data = fpixGetData(fpixd);
     wpl = fpixGetWpl(fpixd);
     fpixGetDimensions(fpixd, NULL, &h);
-    if ((buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32))) == NULL)
+    if ((buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32))) == NULL) {
+        fpixDestroy(&fpixd);
         return (FPIX *)ERROR_PTR("buffer not made", procName, NULL);
+    }
     h2 = h / 2;
     bpl = 4 * wpl;
     for (i = 0, k = h - 1; i < h2; i++, k--) {
@@ -2004,7 +2020,7 @@ l_float32  *linet, *lineb, *data, *buffer;
  *
  * <pre>
  * Notes:
- *      (1) If %border \> 0, all four sides are extended by that distance,
+ *      (1) If %border > 0, all four sides are extended by that distance,
  *          and removed after the transformation is finished.  Pixels
  *          that would be brought in to the trimmed result from outside
  *          the extended region are assigned %inval.  The purpose of
@@ -2123,7 +2139,7 @@ FPIX       *fpixd;
  *
  * <pre>
  * Notes:
- *      (1) If %border \> 0, all four sides are extended by that distance,
+ *      (1) If %border > 0, all four sides are extended by that distance,
  *          and removed after the transformation is finished.  Pixels
  *          that would be brought in to the trimmed result from outside
  *          the extended region are assigned %inval.  The purpose of

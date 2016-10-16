@@ -1035,8 +1035,10 @@ PIX     *pixd;
     boxGetGeometry(boxc, &bx, &by, &bw, &bh);
 
         /* Extract the block */
-    if ((pixd = pixCreate(bw, bh, d)) == NULL)
+    if ((pixd = pixCreate(bw, bh, d)) == NULL) {
+        boxDestroy(&boxc);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
     pixRasterop(pixd, 0, 0, bw, bh, PIX_SRC, pixs, bx, by);

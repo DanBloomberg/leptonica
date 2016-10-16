@@ -1848,6 +1848,7 @@ LEPT_DLL extern PIX * pixConvertRGBToGray ( PIX *pixs, l_float32 rwt, l_float32 
 LEPT_DLL extern PIX * pixConvertRGBToGrayFast ( PIX *pixs );
 LEPT_DLL extern PIX * pixConvertRGBToGrayMinMax ( PIX *pixs, l_int32 type );
 LEPT_DLL extern PIX * pixConvertRGBToGraySatBoost ( PIX *pixs, l_int32 refval );
+LEPT_DLL extern PIX * pixConvertRGBToGrayArb ( PIX *pixs, l_float32 rc, l_float32 gc, l_float32 bc );
 LEPT_DLL extern PIX * pixConvertGrayToColormap ( PIX *pixs );
 LEPT_DLL extern PIX * pixConvertGrayToColormap8 ( PIX *pixs, l_int32 mindepth );
 LEPT_DLL extern PIX * pixColorizeGray ( PIX *pixs, l_uint32 color, l_int32 cmapflag );

@@ -174,8 +174,10 @@ FPIX       *fpixd;
     fpixd->refcount = 1;
 
     data = (l_float32 *)LEPT_CALLOC(width * height, sizeof(l_float32));
-    if (!data)
+    if (!data) {
+        fpixDestroy(&fpixd);
         return (FPIX *)ERROR_PTR("LEPT_CALLOC fail for data", procName, NULL);
+    }
     fpixSetData(fpixd, data);
 
     return fpixd;
@@ -251,7 +253,7 @@ fpixClone(FPIX  *fpix)
  *            (a) fpixd == null  (makes a new fpix; refcount = 1)
  *            (b) fpixd == fpixs  (no-op)
  *            (c) fpixd != fpixs  (data copy; no change in refcount)
- *          If the refcount of fpixd \> 1, case (c) will side-effect
+ *          If the refcount of fpixd > 1, case (c) will side-effect
  *          these handles.
  *      (2) The general pattern of use is:
  *             fpixd = fpixCopy(fpixd, fpixs);
@@ -712,13 +714,15 @@ FPIXA  *fpixa;
         n = INITIAL_PTR_ARRAYSIZE;
 
     if ((fpixa = (FPIXA *)LEPT_CALLOC(1, sizeof(FPIXA))) == NULL)
-        return (FPIXA *)ERROR_PTR("pixa not made", procName, NULL);
+        return (FPIXA *)ERROR_PTR("fpixa not made", procName, NULL);
     fpixa->n = 0;
     fpixa->nalloc = n;
     fpixa->refcount = 1;
 
-    if ((fpixa->fpix = (FPIX **)LEPT_CALLOC(n, sizeof(FPIX *))) == NULL)
-        return (FPIXA *)ERROR_PTR("fpix ptrs not made", procName, NULL);
+    if ((fpixa->fpix = (FPIX **)LEPT_CALLOC(n, sizeof(FPIX *))) == NULL) {
+        fpixaDestroy(&fpixa);
+        return (FPIXA *)ERROR_PTR("fpixa ptrs not made", procName, NULL);
+    }
 
     return fpixa;
 }
@@ -1170,8 +1174,10 @@ DPIX       *dpix;
     dpix->refcount = 1;
 
     data = (l_float64 *)LEPT_CALLOC(width * height, sizeof(l_float64));
-    if (!data)
+    if (!data) {
+        dpixDestroy(&dpix);
         return (DPIX *)ERROR_PTR("LEPT_CALLOC fail for data", procName, NULL);
+    }
     dpixSetData(dpix, data);
 
     return dpix;
@@ -1812,10 +1818,11 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (fpixWriteStream(fp, fpix))
+    if (fpixWriteStream(fp, fpix)) {
+        fclose(fp);
         return ERROR_INT("fpix not written to stream", procName, 1);
+    }
     fclose(fp);
-
     return 0;
 }
 
@@ -2048,8 +2055,10 @@ DPIX       *dpix;
         return (DPIX *)ERROR_PTR("dpix not made", procName, NULL);
     dpixSetResolution(dpix, xres, yres);
     data = dpixGetData(dpix);
-    if (fread(data, 1, nbytes, fp) != nbytes)
+    if (fread(data, 1, nbytes, fp) != nbytes) {
+        dpixDestroy(&dpix);
         return (DPIX *)ERROR_PTR("read error for nbytes", procName, NULL);
+    }
     fgetc(fp);  /* ending nl */
 
         /* Convert to little-endian if necessary */
@@ -2108,10 +2117,11 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (dpixWriteStream(fp, dpix))
+    if (dpixWriteStream(fp, dpix)) {
+        fclose(fp);
         return ERROR_INT("dpix not written to stream", procName, 1);
+    }
     fclose(fp);
-
     return 0;
 }
 

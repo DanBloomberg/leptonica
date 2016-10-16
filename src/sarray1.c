@@ -162,10 +162,11 @@ SARRAY  *sa;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((sa = (SARRAY *)LEPT_CALLOC(1, sizeof(SARRAY))) == NULL)
-        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
-    if ((sa->array = (char **)LEPT_CALLOC(n, sizeof(char *))) == NULL)
+    sa = (SARRAY *)LEPT_CALLOC(1, sizeof(SARRAY));
+    if ((sa->array = (char **)LEPT_CALLOC(n, sizeof(char *))) == NULL) {
+        sarrayDestroy(&sa);
         return (SARRAY *)ERROR_PTR("ptr array not made", procName, NULL);
+    }
 
     sa->nalloc = n;
     sa->n = 0;
@@ -277,7 +278,7 @@ SARRAY  *sa;
     if (!string)
         return (SARRAY *)ERROR_PTR("textstr not defined", procName, NULL);
 
-        /* find the number of lines */
+        /* Find the number of lines */
     size = strlen(string);
     nsub = 0;
     for (i = 0; i < size; i++) {
@@ -290,8 +291,10 @@ SARRAY  *sa;
 
     if (blankflag) {  /* keep blank lines as null strings */
             /* Make a copy for munging */
-        if ((cstring = stringNew(string)) == NULL)
+        if ((cstring = stringNew(string)) == NULL) {
+            sarrayDestroy(&sa);
             return (SARRAY *)ERROR_PTR("cstring not made", procName, NULL);
+        }
             /* We'll insert nulls like strtok */
         startptr = 0;
         for (i = 0; i < size; i++) {
@@ -299,18 +302,22 @@ SARRAY  *sa;
                 cstring[i] = '\0';
                 if (i > 0 && cstring[i - 1] == '\r')
                     cstring[i - 1] = '\0';  /* also remove Windows CR */
-                if ((substring = stringNew(cstring + startptr)) == NULL)
+                if ((substring = stringNew(cstring + startptr)) == NULL) {
+                    sarrayDestroy(&sa);
                     return (SARRAY *)ERROR_PTR("substring not made",
                                                 procName, NULL);
+                }
                 sarrayAddString(sa, substring, L_INSERT);
 /*                fprintf(stderr, "substring = %s\n", substring); */
                 startptr = i + 1;
             }
         }
         if (startptr < size) {  /* no newline at end of last line */
-            if ((substring = stringNew(cstring + startptr)) == NULL)
+            if ((substring = stringNew(cstring + startptr)) == NULL) {
+                sarrayDestroy(&sa);
                 return (SARRAY *)ERROR_PTR("substring not made",
-                                            procName, NULL);
+                                           procName, NULL);
+            }
             sarrayAddString(sa, substring, L_INSERT);
 /*            fprintf(stderr, "substring = %s\n", substring); */
         }
@@ -1023,17 +1030,13 @@ SARRAY  *sal, *saout;
     if (!sa)
         return (SARRAY *)ERROR_PTR("sa not defined", procName, NULL);
 
-    if ((saout = sarrayCreate(0)) == NULL)
-        return (SARRAY *)ERROR_PTR("saout not defined", procName, NULL);
-
+    saout = sarrayCreate(0);
     n = sarrayGetCount(sa);
     totlen = 0;
     sal = NULL;
     for (i = 0; i < n; i++) {
-        if (!sal) {
-            if ((sal = sarrayCreate(0)) == NULL)
-                return (SARRAY *)ERROR_PTR("sal not made", procName, NULL);
-        }
+        if (!sal)
+            sal = sarrayCreate(0);
         wd = sarrayGetString(sa, i, L_NOCOPY);
         len = strlen(wd);
         if (len == 0) {  /* end of paragraph: end line & insert blank line */
@@ -1050,8 +1053,7 @@ SARRAY  *sal, *saout;
             strl = sarrayToString(sal, 2);
             sarrayAddString(saout, strl, L_INSERT);
             sarrayDestroy(&sal);
-            if ((sal = sarrayCreate(0)) == NULL)
-                return (SARRAY *)ERROR_PTR("sal not made", procName, NULL);
+            sal = sarrayCreate(0);
             sarrayAddString(sal, wd, L_COPY);
             totlen = len + 1;
         } else {  /* add to current line */
@@ -1066,7 +1068,6 @@ SARRAY  *sal, *saout;
     }
 
     return saout;
-
 }
 
 
@@ -1363,6 +1364,8 @@ SARRAY  *sa;
  * <pre>
  * Notes:
  *      (1) We store the size of each string along with the string.
+ *          The limit on the number of strings is 2^24.
+ *          The limit on the size of any string is 2^30 bytes.
  *      (2) This allows a string to have embedded newlines.  By reading
  *          the entire string, as determined by its size, we are
  *          not affected by any number of embedded newlines.
@@ -1372,7 +1375,7 @@ SARRAY *
 sarrayReadStream(FILE  *fp)
 {
 char    *stringbuf;
-l_int32  i, n, size, index, bufsize, version, ignore;
+l_int32  i, n, size, index, bufsize, version, ignore, success;
 SARRAY  *sa;
 
     PROCNAME("sarrayReadStream");
@@ -1386,17 +1389,22 @@ SARRAY  *sa;
         return (SARRAY *)ERROR_PTR("invalid sarray version", procName, NULL);
     if (fscanf(fp, "Number of strings = %d\n", &n) != 1)
         return (SARRAY *)ERROR_PTR("error on # strings", procName, NULL);
+    if (n > (1 << 24))
+        return (SARRAY *)ERROR_PTR("more than 2^24 strings!", procName, NULL);
 
+    success = TRUE;
     if ((sa = sarrayCreate(n)) == NULL)
         return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
     bufsize = L_BUF_SIZE + 1;
-    if ((stringbuf = (char *)LEPT_CALLOC(bufsize, sizeof(char))) == NULL)
-        return (SARRAY *)ERROR_PTR("stringbuf not made", procName, NULL);
+    stringbuf = (char *)LEPT_CALLOC(bufsize, sizeof(char));
 
     for (i = 0; i < n; i++) {
             /* Get the size of the stored string */
-        if (fscanf(fp, "%d[%d]:", &index, &size) != 2)
-            return (SARRAY *)ERROR_PTR("error on string size", procName, NULL);
+        if ((fscanf(fp, "%d[%d]:", &index, &size) != 2) || (size > (1 << 30))) {
+            success = FALSE;
+            L_ERROR("error on string size\n", procName);
+            goto cleanup;
+        }
             /* Expand the string buffer if necessary */
         if (size > bufsize - 5) {
             LEPT_FREE(stringbuf);
@@ -1404,8 +1412,11 @@ SARRAY  *sa;
             stringbuf = (char *)LEPT_CALLOC(bufsize, sizeof(char));
         }
             /* Read the stored string, plus leading spaces and trailing \n */
-        if (fread(stringbuf, 1, size + 3, fp) != size + 3)
-            return (SARRAY *)ERROR_PTR("error reading string", procName, NULL);
+        if (fread(stringbuf, 1, size + 3, fp) != size + 3) {
+            success = FALSE;
+            L_ERROR("error reading string\n", procName);
+            goto cleanup;
+        }
             /* Remove the \n that was added by sarrayWriteStream() */
         stringbuf[size + 2] = '\0';
             /* Copy it in, skipping the 2 leading spaces */
@@ -1413,7 +1424,9 @@ SARRAY  *sa;
     }
     ignore = fscanf(fp, "\n");
 
+cleanup:
     LEPT_FREE(stringbuf);
+    if (!success) sarrayDestroy(&sa);
     return sa;
 }
 
@@ -1468,9 +1481,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-
-    if (sarrayWriteStream(fp, sa))
+    if (sarrayWriteStream(fp, sa)) {
+        fclose(fp);
         return ERROR_INT("sa not written to stream", procName, 1);
+    }
 
     fclose(fp);
     return 0;
@@ -1592,9 +1606,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "a")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-
-    if (sarrayWriteStream(fp, sa))
+    if (sarrayWriteStream(fp, sa)) {
+        fclose(fp);
         return ERROR_INT("sa not appended to stream", procName, 1);
+    }
 
     fclose(fp);
     return 0;
@@ -1661,8 +1676,10 @@ SARRAY  *sa, *saout;
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
         return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
-    if ((nfiles = sarrayGetCount(sa)) == 0)
+    if ((nfiles = sarrayGetCount(sa)) == 0) {
+        sarrayDestroy(&sa);
         return sarrayCreate(1);
+    }
 
     saout = convertSortedToNumberedPathnames(sa, numpre, numpost, maxnum);
     sarrayDestroy(&sa);
@@ -1850,8 +1867,7 @@ struct dirent  *pdirentry;
     LEPT_FREE(realdir);
     if (!pdir)
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
-    if ((safiles = sarrayCreate(0)) == NULL)
-        return (SARRAY *)ERROR_PTR("safiles not made", procName, NULL);
+    safiles = sarrayCreate(0);
     while ((pdirentry = readdir(pdir))) {
 
         /* It's nice to ignore directories.  For this it is necessary to

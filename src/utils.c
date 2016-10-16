@@ -168,7 +168,7 @@
   *     and genPathname(), all input pathnames must have unix separators.
  *  (2) On Windows, when you specify a read or write to "/tmp/...",
  *      the filename is rewritten to use the Windows temp directory:
- *         /tmp  ==>   \<Temp\>...    (windows)
+ *         /tmp  ==>   <Temp>...    (windows)
  *  (3) This filename rewrite, along with the conversion from unix
  *      to windows pathnames, happens in genPathname().
  *  (4) Use fopenReadStream() and fopenWriteStream() to open files,
@@ -369,8 +369,8 @@ char    *dest;
  * <pre>
  * Notes:
  *      (1) Relatively safe wrapper for strncpy, that checks the input,
- *          and does not complain if %src is null or %n \< 1.
- *          If %n \< 1, this is a no-op.
+ *          and does not complain if %src is null or %n < 1.
+ *          If %n < 1, this is a no-op.
  *      (2) %dest needs to be at least %n bytes in size.
  *      (3) We don't call strncpy() because valgrind complains about
  *          use of uninitialized values.
@@ -628,7 +628,7 @@ l_int32  srclen1, srclen2, destlen;
  *              char *src1 = NULL;
  *              char *src1 = stringNew("");
  *          Then call with:
- *              stringJoinIP(\&src1, src2);
+ *              stringJoinIP(&src1, src2);
  *      (4) This can also be implemented as a macro:
  * \code
  *              #define stringJoinIP(src1, src2) \
@@ -732,10 +732,12 @@ l_int32  istart, i, j, nchars;
     if (!psaveptr)
         return (char *)ERROR_PTR("&saveptr not defined", procName, NULL);
 
-    if (!cstr)
+    if (!cstr) {
         start = *psaveptr;
-    else
+    } else {
         start = cstr;
+        *psaveptr = NULL;
+    }
     if (!start)  /* nothing to do */
         return NULL;
 
@@ -1183,10 +1185,10 @@ l_int32  i, j, found, lastpos;
  *
  * <pre>
  * Notes:
- *      (1) If newsize \<=0, just frees input data and nulls ptr
+ *      (1) If newsize <=0, just frees input data and nulls ptr
  *      (2) If input ptr is null, just callocs new memory
  *      (3) This differs from realloc in that it always allocates
- *          new memory (if newsize \> 0) and initializes it to 0,
+ *          new memory (if newsize > 0) and initializes it to 0,
  *          it requires the amount of old data to be copied,
  *          and it takes the address of the input ptr and
  *          nulls the handle.
@@ -1283,10 +1285,10 @@ FILE     *fp;
  *          because it does not require seeking within the file.
  *      (3) For example, you can read an image from stdin into memory
  *          using shell redirection, with one of these shell commands:
- *             cat \<imagefile\> | readprog
- *             readprog \< \<imagefile\>
+ *             cat <imagefile> | readprog
+ *             readprog < <imagefile>
  *          where readprog is:
- *             l_uint8 *data = l_binaryReadStream(stdin, \&nbytes);
+ *             l_uint8 *data = l_binaryReadStream(stdin, &nbytes);
  *             Pix *pix = pixReadMem(data, nbytes);
  * </pre>
  */
@@ -1811,7 +1813,7 @@ convertOnBigEnd32(l_uint32  wordin)
  *      (1) This should be used whenever you want to run fopen() to
  *          read from a stream.  Never call fopen() directory.
  *      (2) This handles the temp directory pathname conversion on windows:
- *              /tmp  ==\>  \<Windows Temp directory\>
+ *              /tmp  ==>  <Windows Temp directory>
  * </pre>
  */
 FILE *
@@ -1854,7 +1856,7 @@ FILE  *fp;
  *      (1) This should be used whenever you want to run fopen() to
  *          write or append to a stream.  Never call fopen() directory.
  *      (2) This handles the temp directory pathname conversion on windows:
- *              /tmp  ==>  \<Windows Temp directory\>
+ *              /tmp  ==>  <Windows Temp directory>
  * </pre>
  */
 FILE *
@@ -2097,7 +2099,7 @@ lept_free(void *ptr)
  *      (2) This makes any subdirectories of /tmp that are required.
  *      (3) The root temp directory is:
  *            /tmp    (unix)  [default]
- *            \<Temp\>  (windows)
+ *            <Temp>  (windows)
  * </pre>
  */
 l_int32
@@ -2160,7 +2162,7 @@ l_uint32  attributes;
  *      (2) This removes all files from the specified subdirectory of
  *          the root temp directory:
  *            /tmp    (unix)
- *            \<Temp\>  (windows)
+ *            <Temp>  (windows)
  *          and then removes the subdirectory.
  *      (3) The combination
  *            lept_rmdir(subdir);
@@ -2239,8 +2241,8 @@ char    *newpath;
  *      (1) Always use unix pathname separators.
  *      (2) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
- *          to a path in the windows \<Temp\> directory:
- *             "/tmp"  ==>  \<Temp\> (windows)
+ *          to a path in the windows <Temp> directory:
+ *             "/tmp"  ==>  <Temp> (windows)
  * </pre>
  */
 void
@@ -2294,11 +2296,11 @@ char  *realdir;
  *      (3) Use unix pathname separators.
  *      (4) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
- *          to a path in the windows \<Temp\> directory:
- *             "/tmp"  ==>  \<Temp\> (windows)
+ *          to a path in the windows <Temp> directory:
+ *             "/tmp"  ==>  <Temp> (windows)
  *      (5) Error conditions:
  *            * returns -1 if the directory is not found
- *            * returns the number of files (\> 0) that it was unable to remove.
+ *            * returns the number of files (> 0) that it was unable to remove.
  * </pre>
  */
 l_int32
@@ -2347,8 +2349,8 @@ SARRAY  *sa;
  * <pre>
  * Notes:
  *      (1) By calling genPathname(), this does an automatic directory
- *          translation on windows to a path in the windows \<Temp\> directory:
- *             "/tmp/..."  ==\>  \<Temp\>/... (windows)
+ *          translation on windows to a path in the windows <Temp> directory:
+ *             "/tmp/..."  ==>  <Temp>/... (windows)
  * </pre>
  */
 l_int32
@@ -2436,13 +2438,13 @@ l_int32  ret;
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
  *          (b) for windows, translates
- *                 /tmp  ==\>  \<Temp\>
- *              where \<Temp\> is the windows temp directory
+ *                 /tmp  ==>  <Temp>
+ *              where <Temp> is the windows temp directory
  *      (7) Examples:
- *          * newdir = NULL,    newtail = NULL    ==\> /tmp/src-tail
- *          * newdir = NULL,    newtail = abc     ==\> /tmp/abc
- *          * newdir = def/ghi, newtail = NULL    ==\> /tmp/def/ghi/src-tail
- *          * newdir = def/ghi, newtail = abc     ==\> /tmp/def/ghi/abc
+ *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
+ *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
+ *          * newdir = def/ghi, newtail = NULL    ==> /tmp/def/ghi/src-tail
+ *          * newdir = def/ghi, newtail = abc     ==> /tmp/def/ghi/abc
  * </pre>
  */
 l_int32
@@ -2519,13 +2521,13 @@ l_int32  ret;
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
  *          (b) for windows, translates
- *                 /tmp  ==\>  \<Temp\>
- *              where \<Temp\> is the windows temp directory
+ *                 /tmp  ==>  <Temp>
+ *              where <Temp> is the windows temp directory
  *      (7) Examples:
- *          * newdir = NULL,    newtail = NULL    ==\> /tmp/src-tail
- *          * newdir = NULL,    newtail = abc     ==\> /tmp/abc
- *          * newdir = def/ghi, newtail = NULL    ==\> /tmp/def/ghi/src-tail
- *          * newdir = def/ghi, newtail = abc     ==\> /tmp/def/ghi/abc
+ *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
+ *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
+ *          * newdir = def/ghi, newtail = NULL    ==> /tmp/def/ghi/src-tail
+ *          * newdir = def/ghi, newtail = abc     ==> /tmp/def/ghi/abc
  *
  * </pre>
  */
@@ -2597,10 +2599,10 @@ l_int32  ret;
  *          tail ptr.
  *      (3) This function makes decisions based only on the lexical
  *          structure of the input.  Examples:
- *            /usr/tmp/abc  --\>  dir: /usr/tmp/       tail: abc
- *            /usr/tmp/     --\>  dir: /usr/tmp/       tail: [empty string]
- *            /usr/tmp      --\>  dir: /usr/           tail: tmp
- *            abc           --\>  dir: [empty string]  tail: abc
+ *            /usr/tmp/abc  -->  dir: /usr/tmp/       tail: abc
+ *            /usr/tmp/     -->  dir: /usr/tmp/       tail: [empty string]
+ *            /usr/tmp      -->  dir: /usr/           tail: tmp
+ *            abc           -->  dir: [empty string]  tail: abc
  *      (4) The input can have either forward (unix) or backward (win)
  *          slash separators.  The output has unix separators.
  *          Note that Win32 pathname functions generally accept both
@@ -2668,10 +2670,10 @@ char  *cpathname, *lastslash;
  *          for the extension ptr.
  *      (3) This function makes decisions based only on the lexical
  *          structure of the input.  Examples:
- *            /usr/tmp/abc.jpg  --\>  basename: /usr/tmp/abc    ext: .jpg
- *            /usr/tmp/.jpg     --\>  basename: /usr/tmp/       ext: .jpg
- *            /usr/tmp.jpg/     --\>  basename: /usr/tmp.jpg/   ext: [empty str]
- *            ./.jpg            --\>  basename: ./              ext: .jpg
+ *            /usr/tmp/abc.jpg  -->  basename: /usr/tmp/abc    ext: .jpg
+ *            /usr/tmp/.jpg     -->  basename: /usr/tmp/       ext: .jpg
+ *            /usr/tmp.jpg/     -->  basename: /usr/tmp.jpg/   ext: [empty str]
+ *            ./.jpg            -->  basename: ./              ext: .jpg
  *      (4) The input can have either forward (unix) or backward (win)
  *          slash separators.  The output has unix separators.
  * </pre>
@@ -2736,23 +2738,23 @@ char   empty[4] = "";
  *      (4) If both %dir and %fname are null, produces an empty string.
  *      (5) Neither %dir nor %fname can begin with '.'.
  *      (6) The result is not canonicalized or tested for correctness:
- *          garbage in (e.g., /\&%), garbage out.
+ *          garbage in (e.g., /&%), garbage out.
  *      (7) Examples:
- *             //tmp// + //abc/  --\>  /tmp/abc
- *             tmp/ + /abc/      --\>  tmp/abc
- *             tmp/ + abc/       --\>  tmp/abc
- *             /tmp/ + ///       --\>  /tmp
- *             /tmp/ + NULL      --\>  /tmp
- *             // + /abc//       --\>  /abc
- *             // + NULL         --\>  /
- *             NULL + /abc/def/  --\>  /abc/def
- *             NULL + abc//      --\>  abc
- *             NULL + //         --\>  /
- *             NULL + NULL       --\>  (empty string)
- *             "" + ""           --\>  (empty string)
- *             "" + /            --\>  /
- *             ".." + /etc/foo   --\>  NULL
- *             /tmp + ".."       --\>  NULL
+ *             //tmp// + //abc/  -->  /tmp/abc
+ *             tmp/ + /abc/      -->  tmp/abc
+ *             tmp/ + abc/       -->  tmp/abc
+ *             /tmp/ + ///       -->  /tmp
+ *             /tmp/ + NULL      -->  /tmp
+ *             // + /abc//       -->  /abc
+ *             // + NULL         -->  /
+ *             NULL + /abc/def/  -->  /abc/def
+ *             NULL + abc//      -->  abc
+ *             NULL + //         -->  /
+ *             NULL + NULL       -->  (empty string)
+ *             "" + ""           -->  (empty string)
+ *             "" + /            -->  /
+ *             ".." + /etc/foo   -->  NULL
+ *             /tmp + ".."       -->  NULL
  * </pre>
  */
 char *
@@ -2831,7 +2833,7 @@ L_BYTEA  *ba;
  * <pre>
  * Notes:
  *      (1) Use unix pathname separators
- *      (2) Allocates a new string:  \<basedir\>/\<subdirs\>
+ *      (2) Allocates a new string:  <basedir>/<subdirs>
  * </pre>
  */
 char *
@@ -2880,8 +2882,8 @@ size_t  len1, len2, len3, len4;
  * Notes:
  *      (1) In-place conversion.
  *      (2) Type is the resulting type:
- *            * UNIX_PATH_SEPCHAR:  '\\' ==\> '/'
- *            * WIN_PATH_SEPCHAR:   '/' ==\> '\\'
+ *            * UNIX_PATH_SEPCHAR:  '\\' ==> '/'
+ *            * WIN_PATH_SEPCHAR:   '/' ==> '\\'
  *      (3) Virtually all path operations in leptonica use unix separators.
  * </pre>
  */
@@ -2933,8 +2935,8 @@ size_t   len;
  *            * if in a "/tmp" directory and on windows, the windows
  *              temp directory is used.
  *      (2) If the root of %dir is '/tmp', this does a name translation:
- *             "/tmp"  ==\>  \<Temp\> (windows)
- *          where \<Temp\> is the windows temp directory.
+ *             "/tmp"  ==>  <Temp> (windows)
+ *          where <Temp> is the windows temp directory.
  *      (3) There are four cases for the input:
  *          (a) %dir is a directory and %fname is defined: result is a full path
  *          (b) %dir is a directory and %fname is null: result is a directory
@@ -3030,8 +3032,8 @@ l_int32  dirlen, namelen, size;
  *      (2) Caller allocates %result, large enough to hold the path,
  *          which is:
  *            /tmp/%subdir       (unix)
- *            \<Temp\>/%subdir     (windows)
- *          where \<Temp\> is a path on windows determined by GenTempPath()
+ *            <Temp>/%subdir     (windows)
+ *          where <Temp> is a path on windows determined by GenTempPath()
  *          and %subdir is in general a set of nested subdirectories:
  *            dir1/dir2/.../dirN
  *          which in use would not typically exceed 2 levels.
@@ -3256,7 +3258,7 @@ l_int32  len, nret, num;
  *      (1) %loc and %size are expressed as a fraction of the file size.
  *      (2) This makes a copy of the data in %filein, where bytes in the
  *          specified region have deleted.
- *      (3) If (%loc + %size) \>= 1.0, this deletes from the position
+ *      (3) If (%loc + %size) >= 1.0, this deletes from the position
  *          represented by %loc to the end of the file.
  *      (4) It is useful for testing robustness of I/O wrappers when the
  *          data is corrupted, by simulating data corruption by deletion.
@@ -3320,7 +3322,7 @@ l_uint8  *datain, *dataout;
  *      (1) %loc and %size are expressed as a fraction of the file size.
  *      (2) This makes a copy of the data in %filein, where bytes in the
  *          specified region have been replaced by random data.
- *      (3) If (%loc + %size) \>= 1.0, this modifies data from the position
+ *      (3) If (%loc + %size) >= 1.0, this modifies data from the position
  *          represented by %loc to the end of the file.
  *      (4) It is useful for testing robustness of I/O wrappers when the
  *          data is corrupted, by simulating data corruption.
@@ -3418,7 +3420,7 @@ genRandomIntegerInRange(l_int32   range,
  *      (1) For fval >= 0, fval --> round(fval) == floor(fval + 0.5)
  *          For fval < 0, fval --> -round(-fval))
  *          This is symmetric around 0.
- *          e.g., for fval in (-0.5 ... 0.5), fval --\> 0
+ *          e.g., for fval in (-0.5 ... 0.5), fval --> 0
  * </pre>
  */
 l_int32
@@ -3932,7 +3934,7 @@ LONGLONG        usecs;
  *      (1) These measure the wall clock time  elapsed between the two calls:
  *            L_WALLTIMER *timer = startWallTimer();
  *            ....
- *            fprintf(stderr, "Elapsed time = %f sec\n", stopWallTimer(\&timer);
+ *            fprintf(stderr, "Elapsed time = %f sec\n", stopWallTimer(&timer);
  *      (2) Note that the timer object is destroyed by stopWallTimer().
  * </pre>
  */

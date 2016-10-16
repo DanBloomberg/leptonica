@@ -48,6 +48,7 @@
  *           PIX        *pixConvertRGBToGrayFast()
  *           PIX        *pixConvertRGBToGrayMinMax()
  *           PIX        *pixConvertRGBToGraySatBoost()
+ *           PIX        *pixConvertRGBToGrayArb()
  *
  *      Conversion from grayscale to colormap
  *           PIX        *pixConvertGrayToColormap()  -- 2, 4, 8 bpp
@@ -372,8 +373,10 @@ PIX       *pixd;
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if (type == REMOVE_CMAP_TO_BINARY) {
-        if ((pixd = pixCopy(NULL, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixCopy(NULL, pixs)) == NULL) {
+            L_ERROR("pixd not made\n", procName);
+            goto cleanup_arrays;
+        }
         pixcmapGetColor(cmap, 0, &rval, &gval, &bval);
         val0 = rval + gval + bval;
         pixcmapGetColor(cmap, 1, &rval, &gval, &bval);
@@ -382,15 +385,15 @@ PIX       *pixd;
             pixInvert(pixd, pixd);
         pixDestroyColormap(pixd);
     } else if (type == REMOVE_CMAP_TO_GRAYSCALE) {
-        if ((pixd = pixCreate(w, h, 8)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixCreate(w, h, 8)) == NULL) {
+            L_ERROR("pixd not made\n", procName);
+            goto cleanup_arrays;
+        }
         pixCopyResolution(pixd, pixs);
         pixCopyInputFormat(pixd, pixs);
         datad = pixGetData(pixd);
         wpld = pixGetWpl(pixd);
-        if ((graymap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32)))
-            == NULL)
-            return (PIX *)ERROR_PTR("calloc fail for graymap", procName, NULL);
+        graymap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32));
         for (i = 0; i < pixcmapGetCount(cmap); i++) {
             graymap[i] = (l_int32)(L_RED_WEIGHT * rmap[i] +
                                    L_GREEN_WEIGHT * gmap[i] +
@@ -537,16 +540,17 @@ PIX       *pixd;
         if (graymap)
             LEPT_FREE(graymap);
     } else {  /* type == REMOVE_CMAP_TO_FULL_COLOR or REMOVE_CMAP_WITH_ALPHA */
-        if ((pixd = pixCreate(w, h, 32)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        if ((pixd = pixCreate(w, h, 32)) == NULL) {
+            L_ERROR("pixd not made\n", procName);
+            goto cleanup_arrays;
+        }
         pixCopyInputFormat(pixd, pixs);
         pixCopyResolution(pixd, pixs);
         if (type == REMOVE_CMAP_WITH_ALPHA)
             pixSetSpp(pixd, 4);
         datad = pixGetData(pixd);
         wpld = pixGetWpl(pixd);
-        if ((lut = (l_uint32 *)LEPT_CALLOC(ncolors, sizeof(l_uint32))) == NULL)
-            return (PIX *)ERROR_PTR("calloc fail for lut", procName, NULL);
+        lut = (l_uint32 *)LEPT_CALLOC(ncolors, sizeof(l_uint32));
         for (i = 0; i < ncolors; i++) {
             if (type == REMOVE_CMAP_TO_FULL_COLOR)
                 composeRGBPixel(rmap[i], gmap[i], bmap[i], lut + i);
@@ -564,10 +568,8 @@ PIX       *pixd;
                     sval = GET_DATA_QBIT(lines, j);
                 else if (d == 2)
                     sval = GET_DATA_DIBIT(lines, j);
-                else if (d == 1)
+                else  /* (d == 1) */
                     sval = GET_DATA_BIT(lines, j);
-                else
-                    return NULL;
                 if (sval >= ncolors)
                     L_WARNING("pixel value out of bounds\n", procName);
                 else
@@ -577,6 +579,7 @@ PIX       *pixd;
         LEPT_FREE(lut);
     }
 
+cleanup_arrays:
     LEPT_FREE(rmap);
     LEPT_FREE(gmap);
     LEPT_FREE(bmap);
@@ -1023,6 +1026,65 @@ PIX        *pixt, *pixd;
 }
 
 
+/*!
+ * \brief   pixConvertRGBToGrayArb()
+ *
+ * \param[in]    pixs 32 bpp RGB
+ * \param[in]    rc, gc, bc  arithmetic factors; can be negative
+ * \return  8 bpp pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This converts to gray using an arbitrary linear combination
+ *          of the rgb color components.  It differs from pixConvertToGray(),
+ *          which uses only positive coefficients that sum to 1.
+ *      (2) The gray output values are clipped to 0 and 255.
+ * </pre>
+ */
+PIX *
+pixConvertRGBToGrayArb(PIX       *pixs,
+                       l_float32  rc,
+                       l_float32  gc,
+                       l_float32  bc)
+{
+l_int32    i, j, w, h, wpls, wpld, rval, gval, bval, val;
+l_uint32  *datas, *lines, *datad, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixConvertRGBToGrayArb");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (rc <= 0 && gc <= 0 && bc <= 0)
+        return (PIX *)ERROR_PTR("all coefficients <= 0", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    if ((pixd = pixCreate(w, h, 8)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            val = (l_int32)(rc * rval + gc * gval + bc * bval);
+            val = L_MIN(255, L_MAX(0, val));
+            SET_DATA_BYTE(lined, j, val);
+        }
+    }
+
+    return pixd;
+}
+
+
 /*---------------------------------------------------------------------------*
  *                  Conversion from grayscale to colormap                    *
  *---------------------------------------------------------------------------*/
@@ -1097,10 +1159,10 @@ PIXCMAP   *cmap;
  *      (3) 'mindepth' is the minimum depth of pixd.  If mindepth == 8,
  *          pixd will always be 8 bpp.  Let the number of different
  *          gray values in pixs be ngray.  If mindepth == 4, we attempt
- *          to save pixd as a 4 bpp image, but if ngray \> 16,
+ *          to save pixd as a 4 bpp image, but if ngray > 16,
  *          pixd must be 8 bpp.  Likewise, if mindepth == 2,
- *          the depth of pixd will be 2 if ngray \<= 4 and 4 if ngray \> 4
- *          but \<= 16.
+ *          the depth of pixd will be 2 if ngray <= 4 and 4 if ngray > 4
+ *          but <= 16.
  * </pre>
  */
 PIX *
@@ -1149,6 +1211,7 @@ PIXCMAP   *cmap;
 
     index = 0;
     for (i = 0; i < 256; i++) {
+        array[i] = 0;  /* only to quiet the static checker */
         numaGetIValue(na, i, &num);
         if (num > 0) {
             pixcmapAddColor(cmap, i, i, i);
@@ -1383,7 +1446,7 @@ PIXCMAP   *cmap;
         /* Assign colors to the two classes.  The histogram is
          * initialized to 0, so any colors not found when computing
          * the sampled histogram will get zero weight in minfract. */
-    if ((lut = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32 *))) == NULL)
+    if ((lut = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32))) == NULL)
         return (PIX *)ERROR_PTR("calloc fail for lut", procName, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     factor = L_MAX(1, (l_int32)sqrt((l_float64)(w * h) / 50000. + 0.5));
@@ -1670,15 +1733,13 @@ PIXCMAP   *cmap;
     }
     if (!pixd)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    if ((cmap = pixcmapCreate(8)) == NULL)
-        return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
+    cmap = pixcmapCreate(8);
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
 
         /* Generate curve for transition part of color map */
-    if ((curve = (l_int32 *)LEPT_CALLOC(64, sizeof(l_int32)))== NULL)
-        return (PIX *)ERROR_PTR("curve not made", procName, NULL);
+    curve = (l_int32 *)LEPT_CALLOC(64, sizeof(l_int32));
     if (gamma == 0.0) gamma = 1.0;
     invgamma = 1. / gamma;
     for (i = 0; i < 64; i++) {
@@ -1833,8 +1894,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     pixCopyInputFormat(pixd, pixs);
 
         /* Use a table to convert 2 src bits at a time */
-    if ((tab = (l_uint32 *)LEPT_CALLOC(4, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint32 *)LEPT_CALLOC(4, sizeof(l_uint32));
     val[0] = val0;
     val[1] = val1;
     for (index = 0; index < 4; index++) {
@@ -2015,8 +2075,7 @@ l_uint32  *datas, *datad, *lines, *lined;
     pixCopyInputFormat(pixd, pixs);
 
         /* Use a table to convert 8 src bits to 16 dest bits */
-    if ((tab = (l_uint16 *)LEPT_CALLOC(256, sizeof(l_uint16))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint16 *)LEPT_CALLOC(256, sizeof(l_uint16));
     val[0] = val0;
     val[1] = val1;
     for (index = 0; index < 256; index++) {
@@ -2137,8 +2196,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     pixCopyInputFormat(pixd, pixs);
 
         /* Use a table to convert 8 src bits to 32 bit dest word */
-    if ((tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     val[0] = val0;
     val[1] = val1;
     for (index = 0; index < 256; index++) {
@@ -2259,8 +2317,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     pixCopyInputFormat(pixd, pixs);
 
         /* Use a table to convert 4 src bits at a time */
-    if ((tab = (l_uint32 *)LEPT_CALLOC(16, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint32 *)LEPT_CALLOC(16, sizeof(l_uint32));
     val[0] = val0;
     val[1] = val1;
     for (index = 0; index < 16; index++) {
@@ -2384,8 +2441,7 @@ PIXCMAP   *cmaps, *cmapd;
         /* Last case: no colormap in either pixs or pixd.
          * Use input values and build a table to convert 1 src byte
          * (4 src pixels) at a time */
-    if ((tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     val[0] = val0;
     val[1] = val1;
     val[2] = val2;
@@ -3003,12 +3059,6 @@ PIX       *pixd;
     if (pixGetColormap(pixs))
         return pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
 
-        /* Replication table */
-    if ((tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
-    for (i = 0; i < 256; i++)
-      tab[i] = (i << 24) | (i << 16) | (i << 8);
-
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
@@ -3019,6 +3069,12 @@ PIX       *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
+        /* Replication table gray --> rgb */
+    tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
+    for (i = 0; i < 256; i++)
+      tab[i] = (i << 24) | (i << 16) | (i << 8);
+
+        /* Replicate 1 --> 4 bytes (alpha byte not set) */
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         lined = datad + i * wpld;
@@ -3396,9 +3452,9 @@ PIXCMAP  *cmap;
  * Notes:
  *      (1) This is a lossless unpacking (depth-increasing)
  *          conversion.  If ds is the depth of pixs, then
- *           ~ if d \< ds, returns NULL
+ *           ~ if d < ds, returns NULL
  *           ~ if d == ds, returns a copy
- *           ~ if d \> ds, does the unpacking conversion
+ *           ~ if d > ds, does the unpacking conversion
  *      (2) If pixs has a colormap, this is an error.
  * </pre>
  */
@@ -3459,6 +3515,7 @@ PIX       *pixd;
                 else  /* d == 4 */
                     SET_DATA_QBIT(lined, j, val);
             }
+            break;
         case 4:
             for (j = 0; j < w; j++) {
                 val = GET_DATA_DIBIT(lines, j);

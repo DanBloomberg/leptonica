@@ -112,8 +112,10 @@ L_HEAP  *lh;
         /* Allocate ptr array and initialize counters. */
     if ((lh = (L_HEAP *)LEPT_CALLOC(1, sizeof(L_HEAP))) == NULL)
         return (L_HEAP *)ERROR_PTR("lh not made", procName, NULL);
-    if ((lh->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL)
+    if ((lh->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL) {
+        lheapDestroy(&lh, FALSE);
         return (L_HEAP *)ERROR_PTR("ptr array not made", procName, NULL);
+    }
     lh->nalloc = nalloc;
     lh->n = 0;
     lh->direction = direction;
