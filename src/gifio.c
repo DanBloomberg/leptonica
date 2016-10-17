@@ -28,21 +28,27 @@
  * \file gifio.c
  * <pre>
  *
- *    Read gif from file
- *          PIX        *pixReadStreamGif()
- *          static PIX *gifToPix()
- *          static PIX *pixUninterlaceGIF()
+ *    Read gif file
+ *          PIX            *pixReadStreamGif()
+ *          static PIX     *gifToPix()
+ *          static PIX     *pixUninterlaceGIF()
  *
- *    Write gif to file
- *          l_int32        pixWriteStreamGif()
- *          static l_int32 pixToGif()
+ *    Write gif file
+ *          l_int32         pixWriteStreamGif()
+ *          static l_int32  pixToGif()
  *
- *    Read/write from/to memory (see warning)
- *          PIX        *pixReadMemGif()
- *          l_int32     pixWriteMemGif()
+ *    Read/write gif from/to memory
+ *          PIX            *pixReadMemGif()
+ *          static l_int32  gifReadFunc()
+ *          l_int32         pixWriteMemGif()
+ *          static l_int32  gifWriteFunc()
  *
  *    The initial version of this module was generously contribued by
  *    Antony Dovgal.  He can be contacted at:  tony *AT* daylessday.org
+ *
+ *    The functions that read and write from pix to gif-compressed memory,
+ *    using gif internal functions DGifOpen() and EGifOpen() that are
+ *    available in 5.1 and later, were contributed by Tobias Peirick.
  *
  *    Important version information:
  *
@@ -65,6 +71,8 @@
  *        DGifSlurp() gets an internal error from an uninitialized array
  *        and returns failure.  E. Raymond fixed the problem for 5.1.3,
  *        and we disable leptonica with 5.1.2.
+ *    (5) For Version 5.1 and later, the gif read-from-mem and write-to-mem
+ *        now work without writing temporary files.
  * </pre>
  */
 
@@ -123,9 +131,11 @@ typedef struct GifReadBuffer
 } GifReadBuffer;
 
     /*! Low-level callback for in-memory decoding */
-static int  gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead);
+static l_int32  gifReadFunc(GifFileType *gif, GifByteType *dest,
+                            l_int32 bytesToRead);
     /*! Low-level callback for in-memory encoding */
-static int  gifWriteFunc(GifFileType *gif, const GifByteType *src, int bytesToWrite);
+static l_int32  gifWriteFunc(GifFileType *gif, const GifByteType *src,
+                             l_int32 bytesToWrite);
 #endif  /* 5.1 and beyond */
 
 
@@ -567,24 +577,24 @@ int              giferr;
  *
  * <pre>
  * Notes:
- *   For Giflib version >= 5.1:
- *      (1) Use the DGifOpen() buffer interface.  No temp files required.
- *   For Giflib version < 5.1:
- *      (1) Write the gif compressed data to file and read it back.
- *          Note: we can't use the GNU runtime extension fmemopen()
- *          because libgif doesn't have a file stream interface.
- *      (2) This should be relatively safe from a sophisticated attack,
- *          because we use mkstemp (or its Windows equivalent) to generate
- *          a filename and link the file.  It would be nice to go further
- *          and do this:
- *              l_int32 fd = mkstemp(template);
- *              FILE *fp = fdopen(fd, "w+b");
- *              fwrite(data, 1, size, fp);
- *              rewind(fp);
- *              Pix *pix = pixReadStreamGif(fp);
- *          but this can't be done with gif files becuase of the way
- *          that libgif handles the file descriptors: fp is in a
- *          bad state after writing.
+ *   * For Giflib version >= 5.1, this uses the DGifOpen() buffer
+ *     interface.  No temp files are required.
+ *   * For Giflib version < 5.1:
+ *       (1) Write the gif compressed data to file and read it back.
+ *           Note: we can't use the GNU runtime extension fmemopen()
+ *           because libgif doesn't have a file stream interface.
+ *       (2) This should be relatively safe from a sophisticated attack,
+ *           because we use mkstemp (or its Windows equivalent) to generate
+ *           a filename and link the file.  It would be nice to go further
+ *           and do this:
+ *               l_int32 fd = mkstemp(template);
+ *               FILE *fp = fdopen(fd, "w+b");
+ *               fwrite(data, 1, size, fp);
+ *               rewind(fp);
+ *               Pix *pix = pixReadStreamGif(fp);
+ *           but this can't be done with gif files becuase of the way
+ *           that libgif handles the file descriptors: fp is in a
+ *           bad state after writing.
  * </pre>
  */
 PIX *
@@ -628,9 +638,10 @@ PIX           *pix;
 #endif  /* 5.1 and beyond */
 }
 
+
 #if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
-static int
-gifReadFunc(GifFileType *gif, GifByteType *dest, int bytesToRead) 
+static l_int32
+gifReadFunc(GifFileType *gif, GifByteType *dest, l_int32 bytesToRead) 
 {
 GifReadBuffer  *buffer;
 l_int32         bytesRead;
@@ -663,6 +674,8 @@ l_int32         bytesRead;
  * <pre>
  * Notes:
  *      (1) See comments in pixReadMemGif()
+ *      (2) For Giflib version >= 5.1, this uses the EGifOpen() buffer
+ *          interface.  No temp files are required.
  * </pre>
  */
 l_int32
@@ -710,7 +723,6 @@ char          *fname;
     }
     return result;
 #else
-
     L_WARNING("writing to a temp file, not directly to memory\n", procName);
 
         /* Write to a temp file */
@@ -725,9 +737,10 @@ char          *fname;
 #endif
 }
 
+
 #if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
-static int
-gifWriteFunc(GifFileType *gif, const GifByteType *src, int bytesToWrite) 
+static l_int32
+gifWriteFunc(GifFileType *gif, const GifByteType *src, l_int32 bytesToWrite) 
 {
 L_BBUFFER  *buffer;
 
