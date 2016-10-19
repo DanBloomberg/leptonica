@@ -327,7 +327,7 @@ PIXA     *pixa;
     PROCNAME("pixaGetFont");
 
     fileno = (fontsize / 2) - 2;
-    if (fileno < 0 || fileno > NUM_FONTS)
+    if (fileno < 0 || fileno >= NUM_FONTS)
         return (PIXA *)ERROR_PTR("font size invalid", procName, NULL);
     if (!pbl0 || !pbl1 || !pbl2)
         return (PIXA *)ERROR_PTR("&bl not all defined", procName, NULL);
@@ -448,7 +448,7 @@ PIXA    *pixa;
     if (!dir)
         return (PIXA *)ERROR_PTR("dir not defined", procName, NULL);
     fileno = (fontsize / 2) - 2;
-    if (fileno < 0 || fileno > NUM_FONTS)
+    if (fileno < 0 || fileno >= NUM_FONTS)
         return (PIXA *)ERROR_PTR("font size invalid", procName, NULL);
 
     pathname = genPathname(dir, inputfonts[fileno]);
@@ -494,7 +494,7 @@ PIXA     *pixa;
         return (PIXA *)ERROR_PTR("&bl not all defined", procName, NULL);
     *pbl0 = *pbl1 = *pbl2 = 0;
     redsize = (fontsize / 2) - 2;
-    if (redsize < 0 || redsize > NUM_FONTS)
+    if (redsize < 0 || redsize >= NUM_FONTS)
         return (PIXA *)ERROR_PTR("invalid font size", procName, NULL);
 
     if (fontsize == 4) {
