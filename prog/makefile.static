@@ -208,8 +208,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		dewarptest3.c dewarptest4.c dewarptest5.c \
 		digitprep1.c displayboxa.c displayboxes_on_pixa.c \
 		displaypix.c displaypixa.c \
-		dithertest.c dwalineargen.c \
-		edgetest.c falsecolortest.c \
+		dwalineargen.c edgetest.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c \
 		fileinfo.c findbinding.c \
 		findpattern1.c findpattern2.c findpattern3.c \
@@ -409,6 +408,9 @@ dewarp_reg:	dewarp_reg.o $(LEPTLIB)
 
 distance_reg:	distance_reg.o $(LEPTLIB)
 	$(CC) -o distance_reg distance_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+dither_reg:	dither_reg.o $(LEPTLIB)
+	$(CC) -o dither_reg dither_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 dna_reg:	dna_reg.o $(LEPTLIB)
 	$(CC) -o dna_reg dna_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -808,9 +810,6 @@ displaypix:	displaypix.o $(LEPTLIB)
 
 displaypixa:	displaypixa.o $(LEPTLIB)
 	$(CC) -o displaypixa displaypixa.o $(ALL_LIBS) $(EXTRALIBS)
-
-dithertest:	dithertest.o $(LEPTLIB)
-	$(CC) -o dithertest dithertest.o $(ALL_LIBS) $(EXTRALIBS)
 
 dwalineargen:	dwalineargen.o $(LEPTLIB)
 	$(CC) -o dwalineargen dwalineargen.o $(ALL_LIBS) $(EXTRALIBS)

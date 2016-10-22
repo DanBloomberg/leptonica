@@ -363,11 +363,11 @@ l_int32
 pixWriteStreamGif(FILE  *fp,
                   PIX   *pix)
 {
-l_int32         result;
-l_int32         fd;
-GifFileType     *gif;
+l_int32      result;
+l_int32      fd;
+GifFileType  *gif;
 #if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
-int              giferr;
+int           giferr;
 #endif  /* 5.1 and beyond */
 
     PROCNAME("pixWriteStreamGif");
@@ -414,7 +414,7 @@ int              giferr;
  *      (2) It is static to make this function private.
  * </pre>
  */
-static l_int32 
+static l_int32
 pixToGif(PIX *pix, GifFileType *gif)
 {
 char            *text;
@@ -684,12 +684,12 @@ pixWriteMemGif(l_uint8  **pdata,
                PIX       *pix)
 {
 #if (GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5
-int            giferr;
-l_int32        result;
-GifFileType   *gif;
+int           giferr;
+l_int32       result;
+GifFileType  *gif;
 L_BBUFFER     *buffer;
 #else
-char          *fname;
+char         *fname;
 #endif  /* 5.1 and beyond */
 
     PROCNAME("pixWriteMemGif");

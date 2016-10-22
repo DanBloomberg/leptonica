@@ -84,6 +84,7 @@ L_REGPARAMS  *rp;
     regTestCheckFile(rp, "/tmp/lept/pdfseg/1.jpg");   /* 1 */
     boxa2 = boxaTransform(boxa1, 0, 0, 0.5, 0.5);  /* back to w = WIDTH */
     boxaaAddBoxa(baa, boxa2, L_INSERT);
+    boxaDestroy(&boxa1);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);

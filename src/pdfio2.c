@@ -487,8 +487,10 @@ FILE    *fp;
 
     pixa = pixaCreate(npages);
     for (i = 0; i < npages; i++) {
-        if ((pix = pixReadTiff(filein, i)) == NULL)
+        if ((pix = pixReadTiff(filein, i)) == NULL) {
+            pixaDestroy(&pixa);
             return ERROR_INT("pix not made", procName, 1);
+        }
         pixaAddPix(pixa, pix, L_INSERT);
     }
     pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "weasel2", fileout);
@@ -667,9 +669,11 @@ PIXCMAP      *cmap = NULL;
          * the png file, so after extraction we expect datacomp to
          * be nearly full (i.e., nbytescomp will be only slightly less
          * than nbytespng).  Also extract the colormap if present. */
-    if ((datacomp = (l_uint8 *)LEPT_CALLOC(1, nbytespng)) == NULL)
+    if ((datacomp = (l_uint8 *)LEPT_CALLOC(1, nbytespng)) == NULL) {
+        LEPT_FREE(pngcomp);
         return (L_COMP_DATA *)ERROR_PTR("unable to allocate memory",
                                         procName, NULL);
+    }
 
         /* Parse the png file.  Each chunk consists of:
          *    length: 4 bytes
@@ -798,12 +802,6 @@ L_COMP_DATA  *cid;
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
 
-        /* The returned jpeg data in memory is the entire jpeg file,
-         * which starts with ffd8 and ends with ffd9 */
-    if ((datacomp = l_binaryRead(fname, &nbytescomp)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("datacomp not extracted",
-                                        procName, NULL);
-
         /* Read the metadata */
     if ((fp = fopenReadStream(fname)) == NULL)
         return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
@@ -811,6 +809,12 @@ L_COMP_DATA  *cid;
     bps = 8;
     fgetJpegResolution(fp, &xres, &yres);
     fclose(fp);
+
+        /* The returned jpeg data in memory is the entire jpeg file,
+         * which starts with ffd8 and ends with ffd9 */
+    if ((datacomp = l_binaryRead(fname, &nbytescomp)) == NULL)
+        return (L_COMP_DATA *)ERROR_PTR("datacomp not extracted",
+                                        procName, NULL);
 
         /* Optionally, encode the compressed data */
     if (ascii85flag == 1) {
@@ -823,8 +827,11 @@ L_COMP_DATA  *cid;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (!cid)
+    if (!cid) {
+        LEPT_FREE(datacomp);
+        LEPT_FREE(data85);
         return (L_COMP_DATA *)ERROR_PTR("cid not made", procName, NULL);
+    }
     if (ascii85flag == 0) {
         cid->datacomp = datacomp;
     } else {  /* ascii85 */
@@ -869,8 +876,10 @@ L_COMP_DATA  *cid;
         return (L_COMP_DATA *)ERROR_PTR("cid not made", procName, NULL);
 
         /* The returned jp2k data in memory is the entire jp2k file */
-    if ((cid->datacomp = l_binaryRead(fname, &nbytes)) == NULL)
+    if ((cid->datacomp = l_binaryRead(fname, &nbytes)) == NULL) {
+        l_CIDataDestroy(&cid);
         return (L_COMP_DATA *)ERROR_PTR("data not extracted", procName, NULL);
+    }
 
     readHeaderJp2k(fname, &w, &h, &bps, &spp);
     cid->type = L_JP2K_ENCODE;
@@ -1157,9 +1166,11 @@ PIXCMAP      *cmap;
     ncolors = 0;
     if (cmap) {
         pixcmapSerializeToMemory(cmap, 3, &ncolors, &cmapdata);
-        if (!cmapdata)
+        if (!cmapdata) {
+            pixDestroy(&pixt);
             return (L_COMP_DATA *)ERROR_PTR("cmapdata not made",
                                             procName, NULL);
+        }
 
         cmapdata85 = encodeAscii85(cmapdata, 3 * ncolors, &ncmapbytes85);
         cmapdatahex = pixcmapConvertToHex(cmapdata, ncolors);
@@ -1170,12 +1181,12 @@ PIXCMAP      *cmap;
     pixGetRasterData(pixt, &data, &nbytes);
     pixDestroy(&pixt);
     datacomp = zlibCompress(data, nbytes, &nbytescomp);
+    LEPT_FREE(data);
     if (!datacomp) {
-        if (cmapdata85) LEPT_FREE(cmapdata85);
-        if (cmapdatahex) LEPT_FREE(cmapdatahex);
+        LEPT_FREE(cmapdata85);
+        LEPT_FREE(cmapdatahex);
         return (L_COMP_DATA *)ERROR_PTR("datacomp not made", procName, NULL);
     }
-    LEPT_FREE(data);
 
         /* Optionally, encode the compressed data */
     if (ascii85flag == 1) {
@@ -1183,6 +1194,7 @@ PIXCMAP      *cmap;
         LEPT_FREE(datacomp);
         if (!data85) {
             LEPT_FREE(cmapdata85);
+            LEPT_FREE(cmapdatahex);
             return (L_COMP_DATA *)ERROR_PTR("data85 not made", procName, NULL);
         } else {
             data85[nbytes85 - 1] = '\0';  /* remove the newline */
@@ -1190,8 +1202,6 @@ PIXCMAP      *cmap;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (!cid)
-        return (L_COMP_DATA *)ERROR_PTR("cid not made", procName, NULL);
     if (ascii85flag == 0) {
         cid->datacomp = datacomp;
     } else {  /* ascii85 */
@@ -1332,6 +1342,12 @@ FILE         *fp;
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
 
+        /* Read the resolution */
+    if ((fp = fopenReadStream(fname)) == NULL)
+        return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
+    getTiffResolution(fp, &xres, &yres);
+    fclose(fp);
+
         /* The returned ccitt g4 data in memory is the block of
          * bytes in the tiff file, starting after 8 bytes and
          * ending before the directory. */
@@ -1340,12 +1356,6 @@ FILE         *fp;
         return (L_COMP_DATA *)ERROR_PTR("datacomp not extracted",
                                         procName, NULL);
     }
-
-        /* Read the resolution */
-    if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
-    getTiffResolution(fp, &xres, &yres);
-    fclose(fp);
 
         /* Optionally, encode the compressed data */
     if (ascii85flag == 1) {
@@ -1358,8 +1368,6 @@ FILE         *fp;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (!cid)
-        return (L_COMP_DATA *)ERROR_PTR("cid not made", procName, NULL);
     if (ascii85flag == 0) {
         cid->datacomp = datacomp;
     } else {  /* ascii85 */
@@ -1634,9 +1642,12 @@ SARRAY  *sa;
         snprintf(buf, bufsize, "/Im%d %d 0 R   ", i + 1, 6 + i);
         sarrayAddString(sa, buf, L_COPY);
     }
-    if ((xstr = sarrayToString(sa, 0)) == NULL)
-        return ERROR_INT("xstr not found", procName, 1);
+    xstr = sarrayToString(sa, 0);
     sarrayDestroy(&sa);
+    if (!xstr) {
+        LEPT_FREE(buf);
+        return ERROR_INT("xstr not made", procName, 1);
+    }
 
     snprintf(buf, bufsize, "4 0 obj\n"
                            "<<\n"
@@ -1686,9 +1697,12 @@ SARRAY    *sa;
                  wpt, 0.0, 0.0, hpt, xpt, ypt, i + 1);
         sarrayAddString(sa, buf, L_COPY);
     }
-    if ((cstr = sarrayToString(sa, 0)) == NULL)
-        return ERROR_INT("cstr not found", procName, 1);
+    cstr = sarrayToString(sa, 0);
     sarrayDestroy(&sa);
+    if (!cstr) {
+        LEPT_FREE(buf);
+        return ERROR_INT("cstr not made", procName, 1);
+    }
 
     snprintf(buf, bufsize, "5 0 obj\n"
                            "<< /Length %d >>\n"
@@ -1999,8 +2013,11 @@ L_COMP_DATA  *cid;
          * data stream, and the fixed poststream. */
     nimages = lpd->n;
     for (i = 0; i < nimages; i++) {
-        if ((cid = pdfdataGetCid(lpd, i)) == NULL)  /* this should not happen */
+        if ((cid = pdfdataGetCid(lpd, i)) == NULL) {  /* should not happen */
+            LEPT_FREE(sizes);
+            LEPT_FREE(locs);
             return ERROR_INT("cid not found", procName, 1);
+        }
         str = sarrayGetString(lpd->saprex, i, L_NOCOPY);
         len = strlen(str);
         memcpy((char *)(data + locs[6 + i]), str, len);
@@ -2071,8 +2088,10 @@ SARRAY   *sa;
         return ERROR_INT("invalid xrefloc!", procName, 1);
     sa = sarrayCreateLinesFromString((char *)(data + xrefloc), 0);
     str = sarrayGetString(sa, 1, L_NOCOPY);
-    if ((sscanf(str, "0 %d", &nobj)) != 1)
+    if ((sscanf(str, "0 %d", &nobj)) != 1) {
+        sarrayDestroy(&sa);
         return ERROR_INT("nobj not found", procName, 1);
+    }
 
         /* Get starting locations.  The numa index is the
          * object number.  loc[0] is the ID; loc[nobj + 1] is xrefloc.  */

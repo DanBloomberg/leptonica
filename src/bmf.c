@@ -772,13 +772,13 @@ NUMA     *na;
  *      (1) This makes three tables, each of size 128, as follows:
  *          ~ fonttab is a table containing the index of the Pix
  *            that corresponds to each input ascii character;
- *            it maps (ascii-index) --\> Pixa index
+ *            it maps (ascii-index) --> Pixa index
  *          ~ baselinetab is a table containing the baseline offset
  *            for the Pix that corresponds to each input ascii character;
- *            it maps (ascii-index) --\> baseline offset
+ *            it maps (ascii-index) --> baseline offset
  *          ~ widthtab is a table containing the character width in
  *            pixels for the Pix that corresponds to that character;
- *            it maps (ascii-index) --\> bitmap width
+ *            it maps (ascii-index) --> bitmap width
  *     (2) This also computes
  *          ~ lineheight (sum of maximum character extensions above and
  *                        below the baseline)

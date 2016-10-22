@@ -25,77 +25,59 @@
  *====================================================================*/
 
 /*
- * dithertest.c
+ * dither_reg.c
  *
- *    Input is 8 bpp grayscale
+ *    Test dithering from 8 bpp to 1 bpp and 2 bpp.
  */
 
 #include "allheaders.h"
 
-static const l_float32  GAMMA = 1.0;
 
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-FILE        *fp;
-PIX         *pix, *pixs, *pixd;
-PIXCMAP     *cmap;
-static char  mainName[] = "dithertest";
+PIX          *pix, *pixs, *pix1, *pix2;
+L_REGPARAMS  *rp;
 
-    if (argc != 2)
-        return ERROR_INT(" Syntax:  dithertest filein", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    filein = argv[1];
+    pix = pixRead("test8.jpg");
+    pixs = pixGammaTRC(NULL, pix, 1.3, 0, 255);  /* gamma of 1.3, for fun */
 
-    lept_mkdir("lept/dither");
-
-    if ((pix = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
-    if (pixGetDepth(pix) != 8)
-        return ERROR_INT("pix not 8 bpp", mainName, 1);
-    pixs = pixGammaTRC(NULL, pix, GAMMA, 0, 255);
-
-    startTimer();
-    pixd = pixDitherToBinary(pixs);
-    fprintf(stderr, " time for binarized dither = %7.3f sec\n", stopTimer());
-    pixDisplayWrite(pixd, 1);
-    pixDestroy(&pixd);
+        /* Dither to 1 bpp */
+    pix1 = pixDitherToBinary(pixs);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
+    pixDestroy(&pix1);
 
          /* Dither to 2 bpp, with colormap */
-    startTimer();
-    pixd = pixDitherTo2bpp(pixs, 1);
-    fprintf(stderr, " time for dither = %7.3f sec\n", stopTimer());
-    pixDisplayWrite(pixd, 1);
-    cmap = pixGetColormap(pixd);
-    pixcmapWriteStream(stderr, cmap);
-    pixDestroy(&pixd);
+    pix1 = pixDitherTo2bpp(pixs, 1);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pix1, 400, 0, NULL, rp->display);
 
          /* Dither to 2 bpp, without colormap */
-    startTimer();
-    pixd = pixDitherTo2bpp(pixs, 0);
-    fprintf(stderr, " time for dither = %7.3f sec\n", stopTimer());
-    pixDisplayWrite(pixd, 1);
-    pixDestroy(&pixd);
+    pix2 = pixDitherTo2bpp(pixs, 0);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pix2, 800, 0, NULL, rp->display);
+    regTestComparePix(rp, pix1, pix2);   /* 3 */
+    pixDestroy(&pix1);
+    pixDestroy(&pix1);
 
         /* Dither 2x upscale to 1 bpp */
-    startTimer();
-    pixd = pixScaleGray2xLIDither(pixs);
-    fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
-    pixDisplayWrite(pixd, 1);
-    pixDestroy(&pixd);
+    pix1 = pixScaleGray2xLIDither(pixs);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
+    pixDisplayWithTitle(pix1, 0, 400, NULL, rp->display);
+    pixDestroy(&pix1);
 
         /* Dither 4x upscale to 1 bpp */
-    startTimer();
-    pixd = pixScaleGray4xLIDither(pixs);
-    fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
-    pixDisplayWrite(pixd, 1);
-    pixDestroy(&pixd);
+    pix1 = pixScaleGray4xLIDither(pixs);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pix1, 700, 400, NULL, rp->display);
+    pixDestroy(&pix1);
 
-    fprintf(stderr, "Writing to: /tmp/lept/dither/dither.pdf");
-    pixDisplayMultiple(150, 1.0, "/tmp/lept/dither/dither.pdf");
     pixDestroy(&pix);
     pixDestroy(&pixs);
-    return 0;
+    return regTestCleanup(rp);
 }
 

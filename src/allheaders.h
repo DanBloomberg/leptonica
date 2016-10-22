@@ -515,7 +515,7 @@ LEPT_DLL extern PIX * pixMedianCutQuantMixed ( PIX *pixs, l_int32 ncolor, l_int3
 LEPT_DLL extern PIX * pixFewColorsMedianCutQuantMixed ( PIX *pixs, l_int32 ncolor, l_int32 ngray, l_int32 maxncolors, l_int32 darkthresh, l_int32 lightthresh, l_int32 diffthresh );
 LEPT_DLL extern l_int32 * pixMedianCutHisto ( PIX *pixs, l_int32 sigbits, l_int32 subsample );
 LEPT_DLL extern PIX * pixColorSegment ( PIX *pixs, l_int32 maxdist, l_int32 maxcolors, l_int32 selsize, l_int32 finalcolors, l_int32 debugflag );
-LEPT_DLL extern PIX * pixColorSegmentCluster ( PIX *pixs, l_int32 maxdist, l_int32 maxcolors );
+LEPT_DLL extern PIX * pixColorSegmentCluster ( PIX *pixs, l_int32 maxdist, l_int32 maxcolors, l_int32 debugflag );
 LEPT_DLL extern l_int32 pixAssignToNearestColor ( PIX *pixd, PIX *pixs, PIX *pixm, l_int32 level, l_int32 *countarray );
 LEPT_DLL extern l_int32 pixColorSegmentClean ( PIX *pixs, l_int32 selsize, l_int32 *countarray );
 LEPT_DLL extern l_int32 pixColorSegmentRemoveColors ( PIX *pixd, PIX *pixs, l_int32 finalcolors );
@@ -982,7 +982,6 @@ LEPT_DLL extern PIX * pixThresholdToBinary ( PIX *pixs, l_int32 thresh );
 LEPT_DLL extern PIX * pixVarThresholdToBinary ( PIX *pixs, PIX *pixg );
 LEPT_DLL extern PIX * pixAdaptThresholdToBinary ( PIX *pixs, PIX *pixm, l_float32 gamma );
 LEPT_DLL extern PIX * pixAdaptThresholdToBinaryGen ( PIX *pixs, PIX *pixm, l_float32 gamma, l_int32 blackval, l_int32 whiteval, l_int32 thresh );
-LEPT_DLL extern PIX * pixDitherToBinaryLUT ( PIX *pixs, l_int32 lowerclip, l_int32 upperclip );
 LEPT_DLL extern PIX * pixGenerateMaskByValue ( PIX *pixs, l_int32 val, l_int32 usecmap );
 LEPT_DLL extern PIX * pixGenerateMaskByBand ( PIX *pixs, l_int32 lower, l_int32 upper, l_int32 inband, l_int32 usecmap );
 LEPT_DLL extern PIX * pixDitherTo2bpp ( PIX *pixs, l_int32 cmapflag );
@@ -1003,9 +1002,6 @@ LEPT_DLL extern void ditherToBinaryLow ( l_uint32 *datad, l_int32 w, l_int32 h, 
 LEPT_DLL extern void ditherToBinaryLineLow ( l_uint32 *lined, l_int32 w, l_uint32 *bufs1, l_uint32 *bufs2, l_int32 lowerclip, l_int32 upperclip, l_int32 lastlineflag );
 LEPT_DLL extern void thresholdToBinaryLow ( l_uint32 *datad, l_int32 w, l_int32 h, l_int32 wpld, l_uint32 *datas, l_int32 d, l_int32 wpls, l_int32 thresh );
 LEPT_DLL extern void thresholdToBinaryLineLow ( l_uint32 *lined, l_int32 w, l_uint32 *lines, l_int32 d, l_int32 thresh );
-LEPT_DLL extern void ditherToBinaryLUTLow ( l_uint32 *datad, l_int32 w, l_int32 h, l_int32 wpld, l_uint32 *datas, l_int32 wpls, l_uint32 *bufs1, l_uint32 *bufs2, l_int32 *tabval, l_int32 *tab38, l_int32 *tab14 );
-LEPT_DLL extern void ditherToBinaryLineLUTLow ( l_uint32 *lined, l_int32 w, l_uint32 *bufs1, l_uint32 *bufs2, l_int32 *tabval, l_int32 *tab38, l_int32 *tab14, l_int32 lastlineflag );
-LEPT_DLL extern l_int32 make8To1DitherTables ( l_int32 **ptabval, l_int32 **ptab38, l_int32 **ptab14, l_int32 lowerclip, l_int32 upperclip );
 LEPT_DLL extern void ditherTo2bppLow ( l_uint32 *datad, l_int32 w, l_int32 h, l_int32 wpld, l_uint32 *datas, l_int32 wpls, l_uint32 *bufs1, l_uint32 *bufs2, l_int32 *tabval, l_int32 *tab38, l_int32 *tab14 );
 LEPT_DLL extern void ditherTo2bppLineLow ( l_uint32 *lined, l_int32 w, l_uint32 *bufs1, l_uint32 *bufs2, l_int32 *tabval, l_int32 *tab38, l_int32 *tab14, l_int32 lastlineflag );
 LEPT_DLL extern l_int32 make8To2DitherTables ( l_int32 **ptabval, l_int32 **ptab38, l_int32 **ptab14, l_int32 cliptoblack, l_int32 cliptowhite );

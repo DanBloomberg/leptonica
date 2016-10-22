@@ -65,6 +65,7 @@ static const char *tests[] = {
                               "convolve_reg",
                               "dewarp_reg",
                               "distance_reg",
+                              "dither_reg",
                               "dna_reg",
                               "dwamorph1_reg",
                               "enhance_reg",
@@ -78,6 +79,7 @@ static const char *tests[] = {
                               "gifio_reg",
 #endif  /* HAVE_LIBGIF */
                               "graymorph2_reg",
+                              "grayquant_reg",
                               "hardlight_reg",
                               "insert_reg",
                               "ioformats_reg",

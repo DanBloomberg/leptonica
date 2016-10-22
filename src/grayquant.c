@@ -44,9 +44,6 @@
  *              PIX    *pixAdaptThresholdToBinary()
  *              PIX    *pixAdaptThresholdToBinaryGen()
  *
- *          Slower implementation of Floyd-Steinberg dithering, using LUTs
- *              PIX    *pixDitherToBinaryLUT()
- *
  *          Generate a binary mask from pixels of particular values
  *              PIX    *pixGenerateMaskByValue()
  *              PIX    *pixGenerateMaskByBand()
@@ -131,8 +128,8 @@ static l_int32 numaFillCmapFromHisto(NUMA *na, PIXCMAP *cmap,
  *  however, it also prevents the attempt to reproduce gray for those values.
  *
  *  The implementation is straightforward.  It uses a pair of
- *  line buffers to avoid changing pixs.  It is about 2x faster
- *  than the implementation using LUTs.
+ *  line buffers to avoid changing pixs.  It is about the same speed
+ *  as pixDitherToBinaryLUT(), which uses three LUTs.
  */
 PIX *
 pixDitherToBinary(PIX  *pixs)
@@ -196,15 +193,23 @@ PIX       *pixt, *pixd;
     wpld = pixGetWpl(pixd);
 
         /* Remove colormap if it exists */
-    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    if ((pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE)) == NULL) {
+        pixDestroy(&pixd);
+        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    }
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
         /* Two line buffers, 1 for current line and 2 for next line */
-    if ((bufs1 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
-    if ((bufs2 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
+    bufs1 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32));
+    bufs2 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32));
+    if (!bufs1 || !bufs2) {
+        LEPT_FREE(bufs1);
+        LEPT_FREE(bufs2);
+        pixDestroy(&pixd);
+        pixDestroy(&pixt);
+        return (PIX *)ERROR_PTR("bufs1, bufs2 not both made", procName, NULL);
+    }
 
     ditherToBinaryLow(datad, w, h, wpld, datat, wplt, bufs1, bufs2,
                       lowerclip, upperclip);
@@ -212,7 +217,6 @@ PIX       *pixt, *pixd;
     LEPT_FREE(bufs1);
     LEPT_FREE(bufs2);
     pixDestroy(&pixt);
-
     return pixd;
 }
 
@@ -432,83 +436,6 @@ PIX  *pix1, *pixd;
     pixGammaTRC(pix1, pix1, gamma, blackval, whiteval);
     pixd = pixThresholdToBinary(pix1, thresh);
     pixDestroy(&pix1);
-    return pixd;
-}
-
-
-/*--------------------------------------------------------------------*
- *    Slower implementation of binarization by dithering using LUTs   *
- *--------------------------------------------------------------------*/
-/*!
- * \brief   pixDitherToBinaryLUT()
- *
- * \param[in]    pixs
- * \param[in]    lowerclip lower clip distance to black; use -1 for default
- * \param[in]    upperclip upper clip distance to white; use -1 for default
- * \return  pixd dithered binary, or NULL on error
- *
- *  This implementation is deprecated.  You should use pixDitherToBinary.
- *
- *  See comments in pixDitherToBinary
- *
- *  This implementation additionally uses three lookup tables to
- *  generate the output pixel value and the excess or deficit
- *  carried over to the neighboring pixels.
- */
-PIX *
-pixDitherToBinaryLUT(PIX     *pixs,
-                     l_int32  lowerclip,
-                     l_int32  upperclip)
-{
-l_int32    w, h, d, wplt, wpld;
-l_int32   *tabval, *tab38, *tab14;
-l_uint32  *datat, *datad;
-l_uint32  *bufs1, *bufs2;
-PIX       *pixt, *pixd;
-
-    PROCNAME("pixDitherToBinaryLUT");
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixGetDimensions(pixs, &w, &h, &d);
-    if (d != 8)
-        return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
-    if (lowerclip < 0)
-        lowerclip = DEFAULT_CLIP_LOWER_1;
-    if (upperclip < 0)
-        upperclip = DEFAULT_CLIP_UPPER_1;
-
-    if ((pixd = pixCreate(w, h, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixCopyResolution(pixd, pixs);
-    pixCopyInputFormat(pixd, pixs);
-    datad = pixGetData(pixd);
-    wpld = pixGetWpl(pixd);
-
-        /* Remove colormap if it exists */
-    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-    datat = pixGetData(pixt);
-    wplt = pixGetWpl(pixt);
-
-        /* Two line buffers, 1 for current line and 2 for next line */
-    if ((bufs1 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
-    if ((bufs2 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
-
-        /* 3 lookup tables: 1-bit value, (3/8)excess, and (1/4)excess */
-    make8To1DitherTables(&tabval, &tab38, &tab14, lowerclip, upperclip);
-
-    ditherToBinaryLUTLow(datad, w, h, wpld, datat, wplt, bufs1, bufs2,
-                         tabval, tab38, tab14);
-
-    LEPT_FREE(bufs1);
-    LEPT_FREE(bufs2);
-    LEPT_FREE(tabval);
-    LEPT_FREE(tab38);
-    LEPT_FREE(tab14);
-    pixDestroy(&pixt);
-
     return pixd;
 }
 
@@ -810,10 +737,15 @@ PIXCMAP   *cmap;
     wplt = pixGetWpl(pixt);
 
         /* Two line buffers, 1 for current line and 2 for next line */
-    if ((bufs1 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs1 not made", procName, NULL);
-    if ((bufs2 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs2 not made", procName, NULL);
+    bufs1 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32));
+    bufs2 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32));
+    if (!bufs1 || !bufs2) {
+        LEPT_FREE(bufs1);
+        LEPT_FREE(bufs2);
+        pixDestroy(&pixd);
+        pixDestroy(&pixt);
+        return (PIX *)ERROR_PTR("bufs1, bufs2 not both made", procName, NULL);
+    }
 
         /* 3 lookup tables: 2-bit value, (3/8)excess, and (1/4)excess */
     make8To2DitherTables(&tabval, &tab38, &tab14, lowerclip, upperclip);
@@ -832,7 +764,6 @@ PIXCMAP   *cmap;
     LEPT_FREE(tab38);
     LEPT_FREE(tab14);
     pixDestroy(&pixt);
-
     return pixd;
 }
 
@@ -905,12 +836,6 @@ PIXCMAP   *cmap;
     if (nlevels < 2 || nlevels > 4)
         return (PIX *)ERROR_PTR("nlevels not in {2, 3, 4}", procName, NULL);
 
-        /* Make the appropriate table */
-    if (cmapflag)
-        qtab = makeGrayQuantIndexTable(nlevels);
-    else
-        qtab = makeGrayQuantTargetTable(4, 2);
-
     if ((pixd = pixCreate(w, h, 2)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -928,9 +853,15 @@ PIXCMAP   *cmap;
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
+        /* Make the appropriate table */
+    if (cmapflag)
+        qtab = makeGrayQuantIndexTable(nlevels);
+    else
+        qtab = makeGrayQuantTargetTable(4, 2);
+
     thresholdTo2bppLow(datad, h, wpld, datat, wplt, qtab);
 
-    if (qtab) LEPT_FREE(qtab);
+    LEPT_FREE(qtab);
     pixDestroy(&pixt);
     return pixd;
 }
@@ -1006,12 +937,6 @@ PIXCMAP   *cmap;
     if (nlevels < 2 || nlevels > 16)
         return (PIX *)ERROR_PTR("nlevels not in [2,...,16]", procName, NULL);
 
-        /* Make the appropriate table */
-    if (cmapflag)
-        qtab = makeGrayQuantIndexTable(nlevels);
-    else
-        qtab = makeGrayQuantTargetTable(16, 4);
-
     if ((pixd = pixCreate(w, h, 4)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
@@ -1029,9 +954,15 @@ PIXCMAP   *cmap;
     datat = pixGetData(pixt);
     wplt = pixGetWpl(pixt);
 
+        /* Make the appropriate table */
+    if (cmapflag)
+        qtab = makeGrayQuantIndexTable(nlevels);
+    else
+        qtab = makeGrayQuantTargetTable(16, 4);
+
     thresholdTo4bppLow(datad, h, wpld, datat, wplt, qtab);
 
-    if (qtab) LEPT_FREE(qtab);
+    LEPT_FREE(qtab);
     pixDestroy(&pixt);
     return pixd;
 }
@@ -1080,11 +1011,6 @@ PIXCMAP   *cmap;
     if (nlevels < 2 || nlevels > 256)
         return (PIX *)ERROR_PTR("nlevels not in [2,...,256]", procName, NULL);
 
-    if (cmapflag)
-        qtab = makeGrayQuantIndexTable(nlevels);
-    else
-        qtab = makeGrayQuantTargetTable(nlevels, 8);
-
         /* Get a new pixd; if there is a colormap in the src, remove it */
     if (pixGetColormap(pixs))
         pixd = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
@@ -1095,6 +1021,11 @@ PIXCMAP   *cmap;
         cmap = pixcmapCreateLinear(8, nlevels);
         pixSetColormap(pixd, cmap);
     }
+
+    if (cmapflag)
+        qtab = makeGrayQuantIndexTable(nlevels);
+    else
+        qtab = makeGrayQuantTargetTable(nlevels, 8);
 
     pixGetDimensions(pixd, &w, &h, NULL);
     pixCopyResolution(pixd, pixs);
@@ -1110,7 +1041,7 @@ PIXCMAP   *cmap;
         }
     }
 
-    if (qtab) LEPT_FREE(qtab);
+    LEPT_FREE(qtab);
     return pixd;
 }
 
@@ -1140,9 +1071,9 @@ PIXCMAP   *cmap;
  *      (2) The output image (pixd) depth is specified by %outdepth.  The
  *          number of bins is the number of edgevals + 1.  The
  *          relation between outdepth and the number of bins is:
- *               outdepth = 2       nbins \<= 4
- *               outdepth = 4       nbins \<= 16
- *               outdepth = 8       nbins \<= 256
+ *               outdepth = 2       nbins <= 4
+ *               outdepth = 4       nbins <= 16
+ *               outdepth = 8       nbins <= 256
  *          With %outdepth == 0, the minimum required depth for the
  *          given number of bins is used.
  *          The output pixd has a colormap.
@@ -1191,8 +1122,10 @@ PIXCMAP   *cmap;
         /* Parse and sort (if required) the bin edge values */
     na = parseStringForNumbers(edgevals, " \t\n,");
     n = numaGetCount(na);
-    if (n > 255)
+    if (n > 255) {
+        numaDestroy(&na);
         return (PIX *)ERROR_PTR("more than 256 levels", procName, NULL);
+    }
     if (outdepth == 0) {
         if (n <= 3)
             outdepth = 2;
@@ -1215,8 +1148,11 @@ PIXCMAP   *cmap;
     pixcmapSetBlackAndWhite(cmap, setblack, setwhite);
     numaDestroy(&na);
 
-    if ((pixd = pixCreate(w, h, outdepth)) == NULL)
+    if ((pixd = pixCreate(w, h, outdepth)) == NULL) {
+        LEPT_FREE(qtab);
+        pixcmapDestroy(&cmap);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     pixSetColormap(pixd, cmap);
@@ -1312,9 +1248,9 @@ l_int32    i, j, thresh;
  *          For example, for depth = 8 and 'nlevels' = 3, the two
  *          threshold values are 3f and bf, and the three target pixel
  *          values are 0, 7f and ff.
- *      (4) For depth \< 8, we ignore nlevels, and always use the maximum
+ *      (4) For depth < 8, we ignore nlevels, and always use the maximum
  *          number of levels, which is 2^(depth).
- *          If you want nlevels \< the maximum number, you should always
+ *          If you want nlevels < the maximum number, you should always
  *          use a colormap.
  * </pre>
  */
@@ -1398,10 +1334,9 @@ PIXCMAP  *cmap;
     if (n + 1 > (1 << outdepth))
         return ERROR_INT("more bins than cmap levels", procName, 1);
 
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return ERROR_INT("calloc fail for tab", procName, 1);
     if ((cmap = pixcmapCreate(outdepth)) == NULL)
         return ERROR_INT("cmap not made", procName, 1);
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     *ptab = tab;
     *pcmap = cmap;
 
@@ -1919,8 +1854,7 @@ l_float32  total;
     numaGetSum(na, &total);
     mincount = (l_int32)(minfract * total);
     iahisto = numaGetIArray(na);
-    if ((lut = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return ERROR_INT("lut not made", procName, 1);
+    lut = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     *plut = lut;
     index = pixcmapGetCount(cmap);  /* start with number of colors
                                      * already reserved */
@@ -2025,8 +1959,7 @@ PIX       *pixd;
     }
 
         /* Make LUT into colormap */
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     for (i = 0; i < 256; i++) {
         pixcmapGetNearestGrayIndex(cmapd, i, &index);
         tab[i] = index;
@@ -2060,3 +1993,85 @@ PIX       *pixd;
     LEPT_FREE(tab);
     return pixd;
 }
+
+
+#if 0   /* Documentation */
+/*--------------------------------------------------------------------*
+ *        Implementation of binarization by dithering using LUTs      *
+ *   It is archived here.  The low-level functions are also archived  *
+ *--------------------------------------------------------------------*/
+/*!
+ * \brief   pixDitherToBinaryLUT()
+ *
+ * \param[in]    pixs
+ * \param[in]    lowerclip lower clip distance to black; use -1 for default
+ * \param[in]    upperclip upper clip distance to white; use -1 for default
+ * \return  pixd dithered binary, or NULL on error
+ *
+ *  We don't need two implementations of Floyd-Steinberg dithering,
+ *  and this one with LUTs is a little more complicated than
+ *  pixDitherToBinary().  It uses three lookup tables to generate the
+ *  output pixel value and the excess or deficit carried over to the
+ *  neighboring pixels.  It's here for pedagogical reasons only.
+ */
+PIX *
+pixDitherToBinaryLUT(PIX     *pixs,
+                     l_int32  lowerclip,
+                     l_int32  upperclip)
+{
+l_int32    w, h, d, wplt, wpld;
+l_int32   *tabval, *tab38, *tab14;
+l_uint32  *datat, *datad;
+l_uint32  *bufs1, *bufs2;
+PIX       *pixt, *pixd;
+
+    PROCNAME("pixDitherToBinaryLUT");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("must be 8 bpp for dithering", procName, NULL);
+    if (lowerclip < 0)
+        lowerclip = DEFAULT_CLIP_LOWER_1;
+    if (upperclip < 0)
+        upperclip = DEFAULT_CLIP_UPPER_1;
+
+    if ((pixd = pixCreate(w, h, 1)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+        /* Remove colormap if it exists */
+    pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    datat = pixGetData(pixt);
+    wplt = pixGetWpl(pixt);
+
+        /* Two line buffers, 1 for current line and 2 for next line */
+    bufs1 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32));
+    bufs2 = (l_uint32 *)LEPT_CALLOC(wplt, sizeof(l_uint32));
+    if (!bufs1 || !bufs2) {
+        LEPT_FREE(bufs1);
+        LEPT_FREE(bufs2);
+        pixDestroy(&pixd);
+        pixDestroy(&pixt);
+        return (PIX *)ERROR_PTR("bufs1, bufs2 not both made", procName, NULL);
+    }
+
+        /* 3 lookup tables: 1-bit value, (3/8)excess, and (1/4)excess */
+    make8To1DitherTables(&tabval, &tab38, &tab14, lowerclip, upperclip);
+
+    ditherToBinaryLUTLow(datad, w, h, wpld, datat, wplt, bufs1, bufs2,
+                         tabval, tab38, tab14);
+
+    LEPT_FREE(bufs1);
+    LEPT_FREE(bufs2);
+    LEPT_FREE(tabval);
+    LEPT_FREE(tab38);
+    LEPT_FREE(tab14);
+    pixDestroy(&pixt);
+    return pixd;
+}
+#endif   /* Documentation */

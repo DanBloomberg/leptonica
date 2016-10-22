@@ -17,10 +17,10 @@ AUTO_REG_PROGS = alphaops_reg alphaxform_reg \
 	colormask_reg colorquant_reg \
 	colorseg_reg colorspace_reg compare_reg \
 	convolve_reg dewarp_reg distance_reg \
-	dna_reg dwamorph1_reg enhance_reg \
+	dither_reg dna_reg dwamorph1_reg enhance_reg \
 	findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
-	graymorph2_reg hardlight_reg \
+	graymorph2_reg grayquant_reg hardlight_reg \
 	insert_reg ioformats_reg \
 	jpegio_reg kernel_reg label_reg \
 	maze_reg multitype_reg \
@@ -61,7 +61,7 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg affine_reg \
 	dwamorph2_reg equal_reg expand_reg extrema_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
 	grayfill_reg graymorph1_reg \
-	grayquant_reg heap_reg locminmax_reg \
+	heap_reg locminmax_reg \
 	logicops_reg lowaccess_reg morphseq_reg \
 	numa1_reg numa2_reg pixa1_reg \
 	pixadisp_reg pixalloc_reg pixcomp_reg \
@@ -87,8 +87,7 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	dewarptest3 dewarptest4 dewarptest5 \
 	digitprep1 displayboxa displayboxes_on_pixa \
 	displaypix displaypixa \
-	dithertest dwalineargen \
-	edgetest falsecolortest \
+	dwalineargen edgetest falsecolortest \
 	fcombautogen fhmtautogen findbinding \
 	findpattern1 findpattern2 findpattern3 \
 	flipselgen fmorphautogen \

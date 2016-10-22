@@ -134,22 +134,22 @@
  *     The top-level multi-image functions can be visualized as follows:
  *          Output pdf data to file:
  *             convertToPdf()  and  convertImageDataToPdf()
- *                     --\> pixConvertToPdf()
- *                           --\> pixConvertToPdfData()
+ *                     --> pixConvertToPdf()
+ *                           --> pixConvertToPdfData()
  *
  *          Output pdf data to array in memory:
  *             convertToPdfData()  and  convertImageDataToPdfData()
- *                     --\> pixConvertToPdfData()
+ *                     --> pixConvertToPdfData()
  *
  *     The top-level segmented image functions can be visualized as follows:
  *          Output pdf data to file:
  *             convertToPdfSegmented()
- *                     --\> pixConvertToPdfSegmented()
- *                           --\> pixConvertToPdfDataSegmented()
+ *                     --> pixConvertToPdfSegmented()
+ *                           --> pixConvertToPdfDataSegmented()
  *
  *          Output pdf data to array in memory:
  *             convertToPdfDataSegmented()
- *                     --\> pixConvertToPdfDataSegmented()
+ *                     --> pixConvertToPdfDataSegmented()
  *
  *     For multi-page concatenation, there are three different types of input
  *        (1) directory and optional filename filter
@@ -226,7 +226,7 @@ static const l_int32  DEFAULT_INPUT_RES = 300;
  *          the substring, are lexically sorted in increasing order
  *          before concatenation.
  *      (3) The scalefactor is applied to each image before encoding.
- *          If you enter a value \<= 0.0, it will be set to 1.0.
+ *          If you enter a value <= 0.0, it will be set to 1.0.
  *      (4) Specifying one of the three encoding types for %type forces
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether
@@ -387,10 +387,12 @@ L_PTRA      *pa_data;
             pix = pixScale(pixs, scalefactor, scalefactor);
         else
             pix = pixClone(pixs);
+        pixDestroy(&pixs);
         scaledres = (l_int32)(res * scalefactor);
         if (type != 0) {
             pagetype = type;
         } else if (selectDefaultPdfEncoding(pix, &pagetype) != 0) {
+            pixDestroy(&pix);
             L_ERROR("encoding type selection failed for file %s\n",
                     procName, fname);
             continue;
@@ -398,13 +400,13 @@ L_PTRA      *pa_data;
         ret = pixConvertToPdfData(pix, pagetype, quality, &imdata, &imbytes,
                                   0, 0, scaledres, pdftitle, NULL, 0);
         pixDestroy(&pix);
-        pixDestroy(&pixs);
         if (ret) {
+            LEPT_FREE(imdata);
             L_ERROR("pdf encoding failed for %s\n", procName, fname);
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
-        if (imdata) LEPT_FREE(imdata);
+        LEPT_FREE(imdata);
         ptraAdd(pa_data, ba);
     }
     ptraGetActualCount(pa_data, &npages);
@@ -736,7 +738,7 @@ L_COMP_DATA  *cid;
  * Notes:
  *      (1) The images are encoded with G4 if 1 bpp; JPEG if 8 bpp without
  *          colormap and many colors, or 32 bpp; FLATE for anything else.
- *      (2) The scalefactor must be \> 0.0; otherwise it is set to 1.0.
+ *      (2) The scalefactor must be > 0.0; otherwise it is set to 1.0.
  *      (3) Specifying one of the three encoding types for %type forces
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether
@@ -855,11 +857,12 @@ L_PTRA   *pa_data;
                                   0, 0, scaledres, title, NULL, 0);
         pixDestroy(&pix);
         if (ret) {
+            LEPT_FREE(imdata);
             L_ERROR("pdf encoding failed for pix[%d]\n", procName, i);
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
-        if (imdata) LEPT_FREE(imdata);
+        LEPT_FREE(imdata);
         ptraAdd(pa_data, ba);
     }
     ptraGetActualCount(pa_data, &n);
@@ -913,10 +916,10 @@ L_PTRA   *pa_data;
  *      (2) To wrap multiple images on a single pdf page, this is called
  *          once for each successive image.  Do it this way:
  *            L_PDF_DATA   *lpd;
- *            convertToPdf(...  type, quality, x, y, res, \&lpd, L_FIRST_IMAGE);
- *            convertToPdf(...  type, quality, x, y, res, \&lpd, L_NEXT_IMAGE);
+ *            convertToPdf(...  type, quality, x, y, res, &lpd, L_FIRST_IMAGE);
+ *            convertToPdf(...  type, quality, x, y, res, &lpd, L_NEXT_IMAGE);
  *            ...
- *            convertToPdf(...  type, quality, x, y, res, \&lpd, L_LAST_IMAGE);
+ *            convertToPdf(...  type, quality, x, y, res, &lpd, L_LAST_IMAGE);
  *          This will write the result to the value of %fileout specified
  *          in the first call; succeeding values of %fileout are ignored.
  *          On the last call: the pdf data bytes are computed and written
@@ -1242,8 +1245,10 @@ size_t    nbytes;
     }
 
     if (pixConvertToPdfData(pix, type, quality, &data, &nbytes,
-                            x, y, res, title, plpd, position))
+                            x, y, res, title, plpd, position)) {
+        LEPT_FREE(data);
         return ERROR_INT("pdf data not made", procName, 1);
+    }
 
     if (!plpd || (position == L_LAST_IMAGE)) {
         ret = l_binaryWrite(fileout, "w", data, nbytes);
@@ -1290,8 +1295,10 @@ size_t    nbytes, nbytes_written;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    if (pixWriteMemPdf(&data, &nbytes, pix, res, title) != 0)
+    if (pixWriteMemPdf(&data, &nbytes, pix, res, title) != 0) {
+        LEPT_FREE(data);
         return ERROR_INT("pdf data not made", procName, 1);
+    }
 
     nbytes_written = fwrite(data, 1, nbytes, fp);
     LEPT_FREE(data);
@@ -1391,9 +1398,9 @@ PIXCMAP  *cmap;
  *          for each image file.  The boxa must be aligned with the
  *          sorted set of images.
  *      (5) The scalefactor is applied to each image region.  It is
- *          typically \< 1.0, to save bytes in the final pdf, because
+ *          typically < 1.0, to save bytes in the final pdf, because
  *          the resolution is often not critical in non-text regions.
- *      (6) If the non-image regions have pixel depth \> 1 and the encoding
+ *      (6) If the non-image regions have pixel depth > 1 and the encoding
  *          type is G4, they are automatically scaled up by 2x and
  *          thresholded.  Otherwise, no scaling is performed on them.
  *      (7) Note that this function can be used to generate multipage
@@ -1589,14 +1596,14 @@ SARRAY  *sa;
  * Notes:
  *      (1) If there are no image regions, set %boxa == NULL;
  *          %quality and %scalefactor are ignored.
- *      (2) Typically, %scalefactor is \< 1.0, because the image regions
+ *      (2) Typically, %scalefactor is < 1.0, because the image regions
  *          can be rendered at a lower resolution (for better compression)
  *          than the text regions.  If %scalefactor == 0, we use 1.0.
- *          If the input image is 1 bpp and scalefactor \< 1.0, we
+ *          If the input image is 1 bpp and scalefactor < 1.0, we
  *          use scaleToGray() to downsample the image regions to gray
  *          before compressing them.
  *      (3) If the compression type for non-image regions is L_G4_ENCODE
- *          and bpp \> 1, the image is upscaled 2x and thresholded
+ *          and bpp > 1, the image is upscaled 2x and thresholded
  *          to 1 bpp.  That is the only situation where %thresh is used.
  *      (4) The parameter %quality is only used for image regions.
  *          If %type == L_JPEG_ENCODE, default jpeg quality (75) is
@@ -1623,11 +1630,11 @@ SARRAY  *sa;
  *          (c) if FLATE is requested, use flate with no transformation
  *              of the raster data.
  *      (6) Calling options/sequence for these functions:
- *              file  --\>  file      (convertToPdfSegmented)
- *                  pix  --\>  file      (pixConvertToPdfSegmented)
- *                      pix  --\>  data      (pixConvertToPdfDataSegmented)
- *              file  --\>  data      (convertToPdfDataSegmented)
- *                      pix  --\>  data      (pixConvertToPdfDataSegmented)
+ *              file  -->  file      (convertToPdfSegmented)
+ *                  pix  -->  file      (pixConvertToPdfSegmented)
+ *                      pix  -->  data      (pixConvertToPdfDataSegmented)
+ *              file  -->  data      (convertToPdfDataSegmented)
+ *                      pix  -->  data      (pixConvertToPdfDataSegmented)
  * </pre>
  */
 l_int32
@@ -1750,7 +1757,7 @@ size_t    nbytes;
  * Notes:
  *      (1) If there are no image regions, set %boxa == NULL;
  *          %quality and %scalefactor are ignored.
- *      (2) Typically, %scalefactor is \< 1.0.  The image regions are
+ *      (2) Typically, %scalefactor is < 1.0.  The image regions are
  * </pre>
  */
 l_int32

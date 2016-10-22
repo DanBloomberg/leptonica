@@ -55,7 +55,8 @@ static const l_int32  LEVEL_IN_OCTCUBE = 4;
 
 
 static l_int32 pixColorSegmentTryCluster(PIX *pixd, PIX *pixs,
-                                         l_int32 maxdist, l_int32 maxcolors);
+                                         l_int32 maxdist, l_int32 maxcolors,
+                                         l_int32 debugflag);
 
 /*------------------------------------------------------------------*
  *                 Unsupervised color segmentation                  *
@@ -145,7 +146,8 @@ PIX       *pixd;
     lept_mkdir("lept/segment");
 
         /* Phase 1; original segmentation */
-    if ((pixd = pixColorSegmentCluster(pixs, maxdist, maxcolors)) == NULL)
+    pixd = pixColorSegmentCluster(pixs, maxdist, maxcolors, debugflag);
+    if (!pixd)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     if (debugflag)
         pixWrite("/tmp/lept/segment/colorseg1.png", pixd, IFF_PNG);
@@ -178,6 +180,7 @@ PIX       *pixd;
  * \param[in]    pixs  32 bpp; 24-bit color
  * \param[in]    maxdist max euclidean dist to existing cluster
  * \param[in]    maxcolors max number of colors allowed in first pass
+ * \param[in]    debugflag  1 for debug output; 0 otherwise
  * \return  pixd 8 bit with colormap, or NULL on error
  *
  * <pre>
@@ -194,9 +197,10 @@ PIX       *pixd;
  * </pre>
  */
 PIX *
-pixColorSegmentCluster(PIX       *pixs,
-                       l_int32    maxdist,
-                       l_int32    maxcolors)
+pixColorSegmentCluster(PIX     *pixs,
+                       l_int32  maxdist,
+                       l_int32  maxcolors,
+                       l_int32  debugflag)
 {
 l_int32   w, h, newmaxdist, ret, niters, ncolors, success;
 PIX      *pixd;
@@ -220,12 +224,14 @@ PIXCMAP  *cmap;
     niters = 0;
     success = TRUE;
     while (1) {
-        ret = pixColorSegmentTryCluster(pixd, pixs, newmaxdist, maxcolors);
+        ret = pixColorSegmentTryCluster(pixd, pixs, newmaxdist,
+                                        maxcolors, debugflag);
         niters++;
         if (!ret) {
             ncolors = pixcmapGetCount(cmap);
-            L_INFO("Success with %d colors after %d iters\n", procName,
-                   ncolors, niters);
+            if (debugflag)
+                L_INFO("Success with %d colors after %d iters\n", procName,
+                       ncolors, niters);
             break;
         }
         if (niters == MAX_ALLOWED_ITERATIONS) {
@@ -253,6 +259,7 @@ PIXCMAP  *cmap;
  * \param[in]    pixs
  * \param[in]    maxdist
  * \param[in]    maxcolors
+ * \param[in]    debugflag  1 for debug output; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -261,10 +268,11 @@ PIXCMAP  *cmap;
  * </pre>
  */
 static l_int32
-pixColorSegmentTryCluster(PIX       *pixd,
-                          PIX       *pixs,
-                          l_int32    maxdist,
-                          l_int32    maxcolors)
+pixColorSegmentTryCluster(PIX     *pixd,
+                          PIX     *pixs,
+                          l_int32  maxdist,
+                          l_int32  maxcolors,
+                          l_int32  debugflag)
 {
 l_int32    rmap[256], gmap[256], bmap[256];
 l_int32    w, h, wpls, wpld, i, j, k, found, ret, index, ncolors;
@@ -336,8 +344,10 @@ PIXCMAP   *cmap;
                     gsum[index] = gval;
                     bsum[index] = bval;
                 } else {
-                    L_INFO("maxcolors exceeded for maxdist = %d\n",
-                           procName, maxdist);
+                    if (debugflag) {
+                        L_INFO("maxcolors exceeded for maxdist = %d\n",
+                               procName, maxdist);
+                    }
                     return 1;
                 }
             }
