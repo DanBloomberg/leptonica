@@ -293,10 +293,14 @@ PIXA    *pixad;
     for (i = 0; i < n; i++) {
         pixaGetPixDimensions(pixas, i, &w, &h, NULL);
         if (w >= minw && h >= minh) {
-            if ((pix1 = pixaGetPix(pixas, i, L_CLONE)) == NULL)
+            if ((pix1 = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
+                pixaDestroy(&pixad);
                 return (PIXA *)ERROR_PTR("pix1 not found", procName, NULL);
-            if ((pix2 = pixMorphCompSequence(pix1, sequence, 0)) == NULL)
+            }
+            if ((pix2 = pixMorphCompSequence(pix1, sequence, 0)) == NULL) {
+                pixaDestroy(&pixad);
                 return (PIXA *)ERROR_PTR("pix2 not made", procName, NULL);
+            }
             pixaAddPix(pixad, pix2, L_INSERT);
             box = pixaGetBox(pixas, i, L_COPY);
             pixaAddBox(pixad, box, L_INSERT);
@@ -355,6 +359,7 @@ PIXA    *pixam, *pixad;
 
     PROCNAME("pixMorphSequenceByRegion");
 
+    if (pboxa) *pboxa = NULL;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!pixm)
@@ -1059,8 +1064,10 @@ SEL       *sel_2a;
         return (NUMA *)ERROR_PTR("sel_2a not made", procName, NULL);
 
     if (runtype == L_RUN_OFF) {
-        if ((pix1 = pixCopy(NULL, pixs)) == NULL)
+        if ((pix1 = pixCopy(NULL, pixs)) == NULL) {
+            selDestroy(&sel_2a);
             return (NUMA *)ERROR_PTR("pix1 not made", procName, NULL);
+        }
         pixInvert(pix1, pix1);
     } else {  /* runtype == L_RUN_ON */
         pix1 = pixClone(pixs);
@@ -1098,7 +1105,6 @@ SEL       *sel_2a;
     pixDestroy(&pix3);
     selDestroy(&sel_2a);
     numaDestroy(&na);
-
     return nah;
 }
 

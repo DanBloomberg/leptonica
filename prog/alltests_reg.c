@@ -51,6 +51,7 @@ static const char *tests[] = {
                               "bilateral2_reg",
                               "binarize_reg",
                               "blackwhite_reg",
+                              "blend1_reg",
                               "blend3_reg",
                               "blend4_reg",
                               "cmapquant_reg",
@@ -78,6 +79,7 @@ static const char *tests[] = {
 #if HAVE_LIBGIF
                               "gifio_reg",
 #endif  /* HAVE_LIBGIF */
+                              "graymorph1_reg",
                               "graymorph2_reg",
                               "grayquant_reg",
                               "hardlight_reg",

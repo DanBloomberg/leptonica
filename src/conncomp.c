@@ -213,8 +213,6 @@ L_STACK  *stack, *auxstack;
     pix1 = pix2 = pix3 = pix4 = NULL;
     stack = NULL;
 
-    pixa = pixaCreate(0);
-    *ppixa = pixa;
     pixZero(pixs, &iszero);
     if (iszero)
         return boxaCreate(1);  /* return empty boxa */
@@ -233,6 +231,7 @@ L_STACK  *stack, *auxstack;
     }
     auxstack = lstackCreate(0);
     stack->auxstack = auxstack;
+    pixa = pixaCreate(0);
     boxa = boxaCreate(0);
 
     xstart = 0;
@@ -243,6 +242,7 @@ L_STACK  *stack, *auxstack;
 
         if ((box = pixSeedfillBB(pix1, stack, x, y, connectivity)) == NULL) {
             L_ERROR("box not made\n", procName);
+            pixaDestroy(&pixa);
             boxaDestroy(&boxa);
             goto cleanup;
         }
@@ -270,6 +270,7 @@ L_STACK  *stack, *auxstack;
         /* Remove old boxa of pixa and replace with a clone copy */
     boxaDestroy(&pixa->boxa);
     pixa->boxa = boxaCopy(boxa, L_CLONE);
+    *ppixa = pixa;
 
         /* Cleanup, freeing the fillsegs on each stack */
 cleanup:

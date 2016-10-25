@@ -150,7 +150,8 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		colorseg_reg.c colorspace_reg.c \
 		compare_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c convolve_reg.c \
-		dewarp_reg.c distance_reg.c dna_reg.c \
+		dewarp_reg.c distance_reg.c \
+		dither_reg.c dna_reg.c \
 		dwamorph1_reg.c dwamorph2_reg.c \
 		enhance_reg.c equal_reg.c \
 		expand_reg.c extrema_reg.c \
