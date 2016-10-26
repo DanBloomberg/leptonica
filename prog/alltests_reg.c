@@ -52,8 +52,11 @@ static const char *tests[] = {
                               "binarize_reg",
                               "blackwhite_reg",
                               "blend1_reg",
+                              "blend2_reg",
                               "blend3_reg",
                               "blend4_reg",
+                              "ccthin1_reg",
+                              "ccthin2_reg",
                               "cmapquant_reg",
                               "colorcontent_reg",
                               "coloring_reg",
@@ -152,7 +155,7 @@ static char  mainName[] = "alltests_reg";
     l_getCurrentTime(&start, NULL);
     ntests = sizeof(tests) / sizeof(char *);
     fprintf(stderr, "Running alltests_reg:\n"
-            "This currently tests %d of the 120 Regression Test\n"
+            "This currently tests %d of the 127 regression test\n"
             "programs in the /prog directory.\n", ntests);
 
         /* Clear the output file if we're doing the set of reg tests */

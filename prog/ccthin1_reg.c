@@ -120,17 +120,17 @@ static const char *sel_48_2 = "o x"
 int main(int    argc,
          char **argv)
 {
-BOX         *box;
-PIX         *pix, *pixs, *pixd, *pixt;
-PIXA        *pixa;
-SEL         *sel, *sel1, *sel2, *sel3;
-SELA        *sela4, *sela8, *sela48;
-static char  mainName[] = "ccthin1_reg";
+BOX          *box;
+PIX          *pix, *pixs, *pix1, *pix2;
+PIXA         *pixa;
+SEL          *sel, *sel1, *sel2, *sel3;
+SELA         *sela4, *sela8, *sela48;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT(" Syntax: ccthin1_reg", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    lept_mkdir("lept/thin");
+    pixa = pixaCreate(0);
 
         /* Generate and display all of the 4-cc sels */
     sela4 = selaCreate(9);
@@ -152,9 +152,10 @@ static char  mainName[] = "ccthin1_reg";
     selaAddSel(sela4, sel, NULL, 0);
     sel = selCreateFromString(sel_4_9, 3, 3, "sel_4_9");
     selaAddSel(sela4, sel, NULL, 0);
-    pixt = selaDisplayInPix(sela4, 35, 3, 15, 3);
-    pixWrite("/tmp/lept/thin/allsel4.png", pixt, IFF_PNG);
-    pixDestroy(&pixt);
+    pix1 = selaDisplayInPix(sela4, 35, 3, 15, 3);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pix1, 400, 0, NULL, rp->display);
+    pixaAddPix(pixa, pix1, L_INSERT);
     selaDestroy(&sela4);
 
         /* Generate and display all of the 8-cc sels */
@@ -177,9 +178,10 @@ static char  mainName[] = "ccthin1_reg";
     selaAddSel(sela8, sel, NULL, 0);
     sel = selCreateFromString(sel_8_9, 3, 3, "sel_8_9");
     selaAddSel(sela8, sel, NULL, 0);
-    pixt = selaDisplayInPix(sela8, 35, 3, 15, 3);
-    pixWrite("/tmp/lept/thin/allsel8.png", pixt, IFF_PNG);
-    pixDestroy(&pixt);
+    pix1 = selaDisplayInPix(sela8, 35, 3, 15, 3);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pix1, 850, 0, NULL, rp->display);
+    pixaAddPix(pixa, pix1, L_INSERT);
     selaDestroy(&sela8);
 
         /* Generate and display all of the 4 and 8-cc preserving sels */
@@ -188,9 +190,10 @@ static char  mainName[] = "ccthin1_reg";
     selaAddSel(sela48, sel, NULL, 0);
     sel = selCreateFromString(sel_48_2, 3, 3, "sel_48_2");
     selaAddSel(sela48, sel, NULL, 0);
-    pixt = selaDisplayInPix(sela48, 35, 3, 15, 4);
-    pixWrite("/tmp/lept/thin/allsel48.png", pixt, IFF_PNG);
-    pixDestroy(&pixt);
+    pix1 = selaDisplayInPix(sela48, 35, 3, 15, 4);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pix1, 1300, 0, NULL, rp->display);
+    pixaAddPix(pixa, pix1, L_INSERT);
     selaDestroy(&sela48);
 
         /* Generate and display three of the 4-cc sels and their rotations */
@@ -219,9 +222,10 @@ static char  mainName[] = "ccthin1_reg";
     selaAddSel(sela4, sel1, "sel_4_3_90", 0);
     selaAddSel(sela4, sel2, "sel_4_3_180", 0);
     selaAddSel(sela4, sel3, "sel_4_3_270", 0);
-    pixt = selaDisplayInPix(sela4, 35, 3, 15, 4);
-    pixWrite("/tmp/lept/thin/sel4.png", pixt, IFF_PNG);
-    pixDestroy(&pixt);
+    pix1 = selaDisplayInPix(sela4, 35, 3, 15, 4);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pix1, 400, 500, NULL, rp->display);
+    pixaAddPix(pixa, pix1, L_INSERT);
     selaDestroy(&sela4);
 
         /* Generate and display four of the 8-cc sels and their rotations */
@@ -258,45 +262,59 @@ static char  mainName[] = "ccthin1_reg";
     selaAddSel(sela8, sel1, "sel_8_6_90", 0);
     selaAddSel(sela8, sel2, "sel_8_6_180", 0);
     selaAddSel(sela8, sel3, "sel_8_6_270", 0);
-    pixt = selaDisplayInPix(sela8, 35, 3, 15, 4);
-    pixWrite("/tmp/lept/thin/sel8.png", pixt, IFF_PNG);
-    pixDestroy(&pixt);
+    pix1 = selaDisplayInPix(sela8, 35, 3, 15, 4);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
+    pixDisplayWithTitle(pix1, 1000, 500, NULL, rp->display);
+    pixaAddPix(pixa, pix1, L_INSERT);
     selaDestroy(&sela8);
 
+        /* Optional display */
+    if (rp->display) {
+        lept_mkdir("/lept/thin");
+        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin1-1.pdf");
+        pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "Thin 1 Sels",
+                         "/tmp/lept/thin/ccthin1-1.pdf");
+    }
+    pixaDestroy(&pixa);
+
+    pixa = pixaCreate(0);
+
         /* Test the best 4 and 8 cc thinning */
-    pixDisplayWrite(NULL, 0);
-    pix = pixRead("feyn.tif");
+    pix2 = pixRead("feyn.tif");
     box = boxCreate(683, 799, 970, 479);
-    pixs = pixClipRectangle(pix, box, NULL);
-    pixDisplayWrite(pixs, 1);
+    pix1 = pixClipRectangle(pix2, box, NULL);
+    boxDestroy(&box);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 5 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixDestroy(&pix2);
 
-    pixt = pixThin(pixs, L_THIN_FG, 4, 0);
-    pixDisplayWrite(pixt, 1);
-    pixDestroy(&pixt);
-    pixt = pixThin(pixs, L_THIN_BG, 4, 0);
-    pixDisplayWrite(pixt, 1);
-    pixDestroy(&pixt);
+    pix2 = pixThin(pix1, L_THIN_FG, 4, 0);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 6 */
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pix2 = pixThin(pix1, L_THIN_BG, 4, 0);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 7 */
+    pixaAddPix(pixa, pix2, L_INSERT);
 
-    pixt = pixThin(pixs, L_THIN_FG, 8, 0);
-    pixDisplayWrite(pixt, 1);
-    pixDestroy(&pixt);
-    pixt = pixThin(pixs, L_THIN_BG, 8, 0);
-    pixDisplayWrite(pixt, 1);
-    pixDestroy(&pixt);
+    pix2 = pixThin(pix1, L_THIN_FG, 8, 0);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 8 */
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pix2 = pixThin(pix1, L_THIN_BG, 8, 0);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 9 */
+    pixaAddPix(pixa, pix2, L_INSERT);
 
         /* Display tiled */
-    pixa = pixaReadFiles("/tmp/lept/display", "file");
-    pixd = pixaDisplayTiledAndScaled(pixa, 8, 500, 1, 0, 25, 2);
-    pixWrite("/tmp/lept/thin/ccthin.jpg", pixd, IFF_JFIF_JPEG);
-    pixDestroy(&pixd);
+    pix1 = pixaDisplayTiledAndScaled(pixa, 8, 500, 1, 0, 25, 2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 10 */
+    pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
+    pixDestroy(&pix1);
+    if (rp->display) {
+        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin1-2.pdf");
+        pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "Thin 1 Results",
+                         "/tmp/lept/thin/ccthin1-2.pdf");
+    }
     pixaDestroy(&pixa);
-    pixDestroy(&pix);
-    pixDestroy(&pixs);
-    boxDestroy(&box);
 
-    fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin.pdf");
-    pixDisplayMultiple(150, 1.0, "/tmp/lept/thin/ccthin.pdf");
-    return 0;
+    return regTestCleanup(rp);
 }
 
 

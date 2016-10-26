@@ -49,7 +49,7 @@
  *  ...
  *  L_REGPARAMS  *rp;
  *
- *      if (regTestSetup(argc, argv, \&rp))
+ *      if (regTestSetup(argc, argv, &rp))
  *          return 1;
  *      ...
  *      regTestWritePixAndCheck(rp, pix, IFF_PNG);  // 0
@@ -480,8 +480,8 @@ l_int32  w, h, factor, similar;
  *           * "compare": compares %localname contents with the golden file
  *           * "display": makes the %localname file but does no comparison
  *      (2) The canonical format of the golden filenames is:
- *            /tmp/lept/golden/\<root of main name\>_golden.\<index\>.
- *                                                       \<ext of localname\>
+ *            /tmp/lept/golden/<root of main name>_golden.<index>.
+ *                                                       <ext of localname>
  *          e.g.,
  *             /tmp/lept/golden/maze_golden.0.png
  *          It is important to add an extension to the local name, because
@@ -585,8 +585,8 @@ PIX     *pix1, *pix2;
  * Notes:
  *      (1) This only does something in "compare" mode.
  *      (2) The canonical format of the golden filenames is:
- *            /tmp/lept/golden/\<root of main name\>_golden.\<index\>.
- *                                                      \<ext of localname\>
+ *            /tmp/lept/golden/<root of main name>_golden.<index>.
+ *                                                      <ext of localname>
  *          e.g.,
  *            /tmp/lept/golden/maze_golden.0.png
  * </pre>
@@ -674,10 +674,13 @@ SARRAY  *sa;
  *             (a) write the golden file ("generate" arg to regression test)
  *             (b) make a local file and "compare" with the golden file
  *             (c) make a local file and "display" the results
- *      (3) The canonical format of the local filename is:
- *            /tmp/lept/regout/\<root of main name\>.\<count\>.\<format extension\>
+ *      (2) The canonical format of the local filename is:
+ *            /tmp/lept/regout/<root of main name>.<count>.<format extension>
  *          e.g., for scale_reg,
  *            /tmp/lept/regout/scale.0.png
+ *      (3) The check is done between the written files, which requires
+ *          the files to be identical. The exception is for GIF, which
+ *          only requires that all pixels in the decoded pix are identical.
  * </pre>
  */
 l_int32

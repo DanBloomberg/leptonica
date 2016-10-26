@@ -176,6 +176,7 @@ SARRAY   *salines;
         extra = htext + 2 * spacer;
         pixd = pixCreate(w, h + extra, d);
         pixCopyColormap(pixd, pixs);
+        pixCopyResolution(pixd, pixs);
         pixSetBlackOrWhite(pixd, L_BRING_IN_WHITE);
         if (location == L_ADD_ABOVE)
             pixRasterop(pixd, 0, extra, w, h, PIX_SRC, pixs, 0, 0);
@@ -337,6 +338,7 @@ SARRAY   *sa;
         hadd = htext + 2 * spacer;
         pixd = pixCreate(w, h + hadd, d);
         pixCopyColormap(pixd, pixs);
+        pixCopyResolution(pixd, pixs);
         pixSetBlackOrWhite(pixd, L_BRING_IN_WHITE);
         if (location == L_ADD_ABOVE)
             pixRasterop(pixd, 0, hadd, w, h, PIX_SRC, pixs, 0, 0);
@@ -346,6 +348,7 @@ SARRAY   *sa;
         wadd = wtext + 2 * spacer;
         pixd = pixCreate(w + wadd, h, d);
         pixCopyColormap(pixd, pixs);
+        pixCopyResolution(pixd, pixs);
         pixSetBlackOrWhite(pixd, L_BRING_IN_WHITE);
         if (location == L_ADD_LEFT)
             pixRasterop(pixd, wadd, 0, w, h, PIX_SRC, pixs, 0, 0);
