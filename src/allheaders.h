@@ -410,7 +410,6 @@ LEPT_DLL extern PIXA * pixaThinConnected ( PIXA *pixas, l_int32 type, l_int32 co
 LEPT_DLL extern PIX * pixThinConnected ( PIX *pixs, l_int32 type, l_int32 connectivity, l_int32 maxiters );
 LEPT_DLL extern PIX * pixThinConnectedBySet ( PIX *pixs, l_int32 type, SELA *sela, l_int32 maxiters );
 LEPT_DLL extern SELA * selaMakeThinSets ( l_int32 index, l_int32 debug );
-LEPT_DLL extern PIX * pixThin ( PIX *pixs, l_int32 type, l_int32 connectivity, l_int32 maxiters );
 LEPT_DLL extern l_int32 jbCorrelation ( const char *dirin, l_float32 thresh, l_float32 weight, l_int32 components, const char *rootname, l_int32 firstpage, l_int32 npages, l_int32 renderflag );
 LEPT_DLL extern l_int32 jbRankHaus ( const char *dirin, l_int32 size, l_float32 rank, l_int32 components, const char *rootname, l_int32 firstpage, l_int32 npages, l_int32 renderflag );
 LEPT_DLL extern JBCLASSER * jbWordsInTextlines ( const char *dirin, l_int32 reduction, l_int32 maxwidth, l_int32 maxheight, l_float32 thresh, l_float32 weight, NUMA **pnatl, l_int32 firstpage, l_int32 npages );
