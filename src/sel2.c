@@ -30,21 +30,31 @@
  *
  *      Contains definitions of simple structuring elements
  *
+ *      Basic brick structuring elements
  *          SELA    *selaAddBasic()
  *               Linear horizontal and vertical
  *               Square
  *               Diagonals
  *
+ *      Simple hit-miss structuring elements
  *          SELA    *selaAddHitMiss()
  *               Isolated foreground pixel
  *               Horizontal and vertical edges
  *               Slanted edge
  *               Corners
  *
+ *      Structuring elements for comparing with DWA operations
  *          SELA    *selaAddDwaLinear()
  *          SELA    *selaAddDwaCombs()
+ *
+ *      Structuring elements for the intersection of lines
  *          SELA    *selaAddCrossJunctions()
  *          SELA    *selaAddTJunctions()
+ *
+ *      Structuring elements for connectivity-preserving thinning operations
+ *          SELA    *sela4ccThin()
+ *          SELA    *sela8ccThin()
+ *          SELA    *sela4and8ccThin()
  * </pre>
  */
 
@@ -60,6 +70,9 @@ static const l_int32  basic_linear[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
        12, 13, 14, 15, 20, 21, 25, 30, 31, 35, 40, 41, 45, 50, 51};
 
 
+/* ------------------------------------------------------------------- *
+ *                    Basic brick structuring elements                 *
+ * ------------------------------------------------------------------- */
 /*!
  * \brief   selaAddBasic()
  *
@@ -157,6 +170,9 @@ SEL     *sel;
 }
 
 
+/* ------------------------------------------------------------------- *
+ *                 Simple hit-miss structuring elements                *
+ * ------------------------------------------------------------------- */
 /*!
  * \brief   selaAddHitMiss()
  *
@@ -285,6 +301,9 @@ SEL  *sel;
 }
 
 
+/* ------------------------------------------------------------------- *
+ *        Structuring elements for comparing with DWA operations       *
+ * ------------------------------------------------------------------- */
 /*!
  * \brief   selaAddDwaLinear()
  *
@@ -373,6 +392,9 @@ SEL     *selh, *selv;
 }
 
 
+/* ------------------------------------------------------------------- *
+ *          Structuring elements for the intersection of lines         *
+ * ------------------------------------------------------------------- */
 /*!
  * \brief   selaAddCrossJunctions()
  *
@@ -633,3 +655,192 @@ SEL       *sel;
 
     return sela;
 }
+
+
+/* -------------------------------------------------------------------------- *
+ *    Structuring elements for connectivity-preserving thinning operations    *
+ * -------------------------------------------------------------------------- */
+
+    /* ------------------------------------------------------------
+     * These sels (and their rotated counterparts) are the useful
+     * 3x3 Sels for thinning.   The notation is based on
+     * "Connectivity-preserving morphological image transformations,"
+     * a version of which can be found at
+     *           http://www.leptonica.com/papers/conn.pdf
+     * ------------------------------------------------------------ */
+
+    /* Sels for 4-connected thinning */
+static const char *sel_4_1 = "  x"
+                             "oCx"
+                             "  x";
+static const char *sel_4_2 = "  x"
+                             "oCx"
+                             " o ";
+static const char *sel_4_3 = " o "
+                             "oCx"
+                             "  x";
+static const char *sel_4_4 = " o "
+                             "oCx"
+                             " o ";
+static const char *sel_4_5 = " ox"
+                             "oCx"
+                             " o ";
+static const char *sel_4_6 = " o "
+                             "oCx"
+                             " ox";
+static const char *sel_4_7 = " xx"
+                             "oCx"
+                             " o ";
+static const char *sel_4_8 = "  x"
+                             "oCx"
+                             "o x";
+static const char *sel_4_9 = "o x"
+                             "oCx"
+                             "  x";
+
+    /* Sels for 8-connected thinning */
+static const char *sel_8_1 = " x "
+                             "oCx"
+                             " x ";
+static const char *sel_8_2 = " x "
+                             "oCx"
+                             "o  ";
+static const char *sel_8_3 = "o  "
+                             "oCx"
+                             " x ";
+static const char *sel_8_4 = "o  "
+                             "oCx"
+                             "o  ";
+static const char *sel_8_5 = "o x"
+                             "oCx"
+                             "o  ";
+static const char *sel_8_6 = "o  "
+                             "oCx"
+                             "o x";
+static const char *sel_8_7 = " x "
+                             "oCx"
+                             "oo ";
+static const char *sel_8_8 = " x "
+                             "oCx"
+                             "ox ";
+static const char *sel_8_9 = "ox "
+                             "oCx"
+                             " x ";
+
+    /* Sels for both 4 and 8-connected thinning */
+static const char *sel_48_1 = " xx"
+                              "oCx"
+                              "oo ";
+static const char *sel_48_2 = "o x"
+                              "oCx"
+                              "o x";
+
+
+/*!
+ * \brief   sela4ccThin()
+ *
+ * \param[in]    sela [optional]
+ * \return  sela with additional sels, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Adds the 9 basic sels for 4-cc thinning.
+ * </pre>
+ */
+SELA *
+sela4ccThin(SELA  *sela)
+{
+SEL  *sel;
+
+    if (!sela) sela = selaCreate(9);
+
+    sel = selCreateFromString(sel_4_1, 3, 3, "sel_4_1");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_2, 3, 3, "sel_4_2");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_3, 3, 3, "sel_4_3");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_4, 3, 3, "sel_4_4");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_5, 3, 3, "sel_4_5");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_6, 3, 3, "sel_4_6");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_7, 3, 3, "sel_4_7");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_8, 3, 3, "sel_4_8");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_4_9, 3, 3, "sel_4_9");
+    selaAddSel(sela, sel, NULL, 0);
+
+    return sela;
+}
+
+
+/*!
+ * \brief   sela8ccThin()
+ *
+ * \param[in]    sela [optional]
+ * \return  sela with additional sels, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Adds the 9 basic sels for 8-cc thinning.
+ * </pre>
+ */
+SELA *
+sela8ccThin(SELA  *sela)
+{
+SEL  *sel;
+
+    if (!sela) sela = selaCreate(9);
+
+    sel = selCreateFromString(sel_8_1, 3, 3, "sel_8_1");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_2, 3, 3, "sel_8_2");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_3, 3, 3, "sel_8_3");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_4, 3, 3, "sel_8_4");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_5, 3, 3, "sel_8_5");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_6, 3, 3, "sel_8_6");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_7, 3, 3, "sel_8_7");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_8, 3, 3, "sel_8_8");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_8_9, 3, 3, "sel_8_9");
+    selaAddSel(sela, sel, NULL, 0);
+
+    return sela;
+}
+
+
+/*!
+ * \brief   sela4and8ccThin()
+ *
+ * \param[in]    sela [optional]
+ * \return  sela with additional sels, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Adds the 2 basic sels for either 4-cc or 8-cc thinning.
+ * </pre>
+ */
+SELA *
+sela4and8ccThin(SELA  *sela)
+{
+SEL  *sel;
+
+    if (!sela) sela = selaCreate(2);
+
+    sel = selCreateFromString(sel_48_1, 3, 3, "sel_48_1");
+    selaAddSel(sela, sel, NULL, 0);
+    sel = selCreateFromString(sel_48_2, 3, 3, "sel_48_2");
+    selaAddSel(sela, sel, NULL, 0);
+
+    return sela;
+}
+

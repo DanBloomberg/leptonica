@@ -27,7 +27,7 @@
 /*
  * ccthin2_reg.c
  *
- *   Tests the examples in pixThinExamples()
+ *   Tests the examples in pixThinConnectedBySet()
  */
 
 #include "allheaders.h"
@@ -36,52 +36,96 @@ int main(int    argc,
          char **argv)
 {
 BOX          *box;
-PIX          *pixs, *pix1;
+PIX          *pixs, *pix1, *pix2;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
+SELA         *sela;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
+        /* Clip to foreground to see if there are any boundary
+         * artifacts from thinning and thickening.  (There are not.) */
     pix1 = pixRead("feyn.tif");
     box = boxCreate(683, 799, 970, 479);
-    pixs = pixClipRectangle(pix1, box, NULL);
+    pix2 = pixClipRectangle(pix1, box, NULL);
+    pixClipToForeground(pix2, &pixs, NULL);
+
     pixDestroy(&pix1);
+    pixDestroy(&pix2);
     boxDestroy(&box);
 
     pixa = pixaCreate(0);
 
-    pix1 = pixThinExamples(pixs, L_THIN_FG, 1, 0, NULL);
+    sela = selaMakeThinSets(1, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_FG, 2, 0, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(2, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_FG, 3, 0, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(3, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_FG, 4, 0, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(4, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 3 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_FG, 5, 0, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(5, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_FG, 6, 0, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(6, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 5 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_FG, 7, 0, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(7, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 6 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_BG, 8, 5, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(8, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 7 */
     pixaAddPix(pixa, pix1, L_INSERT);
-    pix1 = pixThinExamples(pixs, L_THIN_BG, 9, 5, NULL);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(9, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_FG, sela, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 8 */
     pixaAddPix(pixa, pix1, L_INSERT);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(10, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_BG, sela, 5);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 9 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    selaDestroy(&sela);
+
+    sela = selaMakeThinSets(11, 0);
+    pix1 = pixThinConnectedBySet(pixs, L_THIN_BG, sela, 5);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 10 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    selaDestroy(&sela);
 
         /* Display the thinning results */
     pix1 = pixaDisplayTiledAndScaled(pixa, 8, 500, 1, 0, 25, 2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 9 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 11 */
     if (rp->display) {
         lept_mkdir("lept/thin");
         pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);

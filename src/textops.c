@@ -142,7 +142,7 @@ SARRAY   *salines;
     if (!textstr)
         textstr = pixGetText(pixs);
     if (!textstr) {
-        L_ERROR("no textstring defined; returning a copy\n", procName);
+        L_WARNING("no textstring defined; returning a copy\n", procName);
         return pixCopy(NULL, pixs);
     }
 
@@ -292,11 +292,12 @@ SARRAY   *sa;
         L_ERROR("no bitmap fonts; returning a copy\n", procName);
         return pixCopy(NULL, pixs);
     }
-    if (!textstr)
-        textstr = pixGetText(pixs);
     if (!textstr) {
-        L_ERROR("no textstring defined; returning a copy\n", procName);
-        return pixCopy(NULL, pixs);
+        textstr = pixGetText(pixs);
+        if (!textstr) {
+            L_WARNING("no textstring defined; returning a copy\n", procName);
+            return pixCopy(NULL, pixs);
+        }
     }
 
         /* Make sure the "color" value for the text will work
@@ -795,17 +796,18 @@ PIXCMAP  *cmap;
         return ERROR_INT("pixa not defined", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (!textstr) {
-        textstr = pixGetText(pixs);
-        if (!textstr) {
-            L_ERROR("no textstring defined; inserting copy", procName);
-            pixaAddPix(pixa, pixs, L_COPY);
-            return 1;
-        }
-    }
     if (location != L_ADD_ABOVE && location != L_ADD_BELOW &&
         location != L_ADD_LEFT && location != L_ADD_RIGHT)
         return ERROR_INT("invalid location", procName, 1);
+
+    if (!textstr) {
+        textstr = pixGetText(pixs);
+        if (!textstr) {
+            L_WARNING("no textstring defined; inserting copy", procName);
+            pixaAddPix(pixa, pixs, L_COPY);
+            return 0;
+        }
+    }
 
         /* Default font size is 8. */
     bmf8 = (bmf) ? bmf : bmfCreate(NULL, 8);
@@ -828,11 +830,11 @@ PIXCMAP  *cmap;
     pix3 = pixAddTextlines(pix2, bmf, textstr, val, location);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
+    if (!bmf) bmfDestroy(&bmf8);
     if (!pix3)
         return ERROR_INT("pix3 not made", procName, 1);
 
     pixaAddPix(pixa, pix3, L_INSERT);
-    if (!bmf) bmfDestroy(&bmf8);
     return 0;
 }
 
@@ -878,16 +880,19 @@ SARRAY  *sa, *sawords;
     if ((sawords = sarrayCreateWordsFromString(textstr)) == NULL)
         return (SARRAY *)ERROR_PTR("sawords not made", procName, NULL);
 
-    if ((na = bmfGetWordWidths(bmf, textstr, sawords)) == NULL)
+    if ((na = bmfGetWordWidths(bmf, textstr, sawords)) == NULL) {
+        sarrayDestroy(&sawords);
         return (SARRAY *)ERROR_PTR("na not made", procName, NULL);
+    }
     nwords = numaGetCount(na);
-    if (nwords == 0)
+    if (nwords == 0) {
+        sarrayDestroy(&sawords);
+        numaDestroy(&na);
         return (SARRAY *)ERROR_PTR("no words in textstr", procName, NULL);
+    }
     bmfGetWidth(bmf, 'x', &xwidth);
 
-    if ((sa = sarrayCreate(0)) == NULL)
-        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
-
+    sa = sarrayCreate(0);
     ifirst = 0;
     numaGetIValue(na, 0, &w);
     sumw = firstindent * xwidth + w;

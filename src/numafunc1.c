@@ -957,10 +957,12 @@ l_float32  val;
 
     PROCNAME("numaGetNonzeroRange");
 
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+    if (pfirst) *pfirst = 0;
+    if (plast) *plast = 0;
     if (!pfirst || !plast)
         return ERROR_INT("pfirst and plast not both defined", procName, 1);
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
     n = numaGetCount(na);
     found = FALSE;
     for (i = 0; i < n; i++) {
@@ -2286,17 +2288,17 @@ NUMA       *naiy;
  *          Note that naindex is a LUT into na for the sorted array values,
  *          and nainvert directly gives the sorted index values for the
  *          input array.  It is useful to view naindex is as a map:
- *                 0  --\>  2
- *                 1  --\>  3
- *                 2  --\>  1
- *                 3  --\>  0
- *                 4  --\>  4
+ *                 0  -->  2
+ *                 1  -->  3
+ *                 2  -->  1
+ *                 3  -->  0
+ *                 4  -->  4
  *          and nainvert, the inverse of this map:
- *                 0  --\>  3
- *                 1  --\>  2
- *                 2  --\>  0
- *                 3  --\>  1
- *                 4  --\>  4
+ *                 0  -->  3
+ *                 1  -->  2
+ *                 2  -->  0
+ *                 3  -->  1
+ *                 4  -->  4
  *
  *          We can write these relations symbolically as:
  *              nasort[i] = na[naindex[i]]

@@ -57,7 +57,8 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  seedfill.c seedfilllow.c                                       \
  sel1.c sel2.c selgen.c                                         \
  shear.c skew.c	spixio.c                                        \
- stack.c stringcode.c sudoku.c textops.c                        \
+ stack.c stringcode.c                                           \
+ strokes.c sudoku.c textops.c                                   \
  tiffio.c tiffiostub.c 		                                \
  utils.c viewfiles.c                                            \
  warper.c watershed.c                                           \

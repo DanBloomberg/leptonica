@@ -98,8 +98,7 @@
  *          pixGetCmapHistogram().
  *      (2) If pixs does not have a colormap, the output histogram is
  *          of size 2^d, where d is the depth of pixs.
- *      (3) This always returns a 256-value histogram of pixel values.
- *      (4) Set the subsampling factor > 1 to reduce the amount of computation.
+ *      (3) Set the subsampling factor > 1 to reduce the amount of computation.
  * </pre>
  */
 NUMA *

@@ -56,7 +56,7 @@
  *           l_int32   pixaVerifyDepth()
  *           l_int32   pixaIsFull()
  *           l_int32   pixaCountText()
- *           l_int32   pixaClearText()
+ *           l_int32   pixaSetText()
  *           void   ***pixaGetLinePtrs()
  *
  *      Pixa output info
@@ -1044,28 +1044,50 @@ PIX     *pix;
 
 
 /*!
- * \brief   pixaClearText()
+ * \brief   pixaSetText()
  *
  * \param[in]    pixa
+ * \param[in]    sa  [optional] array of text strings, to insert in each pix
  * \return  0 if OK, 1 on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) To clear all the text fields, use sa == NULL;
+ *      (2) If sa is defined, it must be the same size as %pixa.
+ * </pre>
  */
 l_int32
-pixaClearText(PIXA  *pixa)
+pixaSetText(PIXA    *pixa,
+            SARRAY  *sa)
 {
-char    *text;
+char    *str;
 l_int32  i, n;
 PIX     *pix;
 
-    PROCNAME("pixaClearText");
+    PROCNAME("pixaSetText");
 
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
 
     n = pixaGetCount(pixa);
+    if (!sa) {
+        for (i = 0; i < n; i++) {
+            if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
+                continue;
+            pixSetText(pix, NULL);
+            pixDestroy(&pix);
+        }
+        return 0;
+    }
+
+    if (sarrayGetCount(sa) != n)
+        return ERROR_INT("pixa and sa sizes differ", procName, 1);
+
     for (i = 0; i < n; i++) {
         if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
             continue;
-        pixSetText(pix, NULL);
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        pixSetText(pix, str);
         pixDestroy(&pix);
     }
 
