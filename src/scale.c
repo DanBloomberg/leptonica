@@ -30,6 +30,7 @@
  *
  *         Top-level scaling
  *               PIX      *pixScale()     ***
+ *               PIX      *pixScaleToSizeRel()     ***
  *               PIX      *pixScaleToSize()     ***
  *               PIX      *pixScaleGeneral()     ***
  *
@@ -63,11 +64,11 @@
  *         Binary scaling by closest pixel sampling
  *               PIX      *pixScaleBinary()
  *
- *         Scale-to-gray (1 bpp --\> 8 bpp; arbitrary downscaling)
+ *         Scale-to-gray (1 bpp --> 8 bpp; arbitrary downscaling)
  *               PIX      *pixScaleToGray()
  *               PIX      *pixScaleToGrayFast()
  *
- *         Scale-to-gray (1 bpp --\> 8 bpp; integer downscaling)
+ *         Scale-to-gray (1 bpp --> 8 bpp; integer downscaling)
  *               PIX      *pixScaleToGray2()
  *               PIX      *pixScaleToGray3()
  *               PIX      *pixScaleToGray4()
@@ -75,7 +76,7 @@
  *               PIX      *pixScaleToGray8()
  *               PIX      *pixScaleToGray16()
  *
- *         Scale-to-gray by mipmap(1 bpp --\> 8 bpp, arbitrary reduction)
+ *         Scale-to-gray by mipmap(1 bpp --> 8 bpp, arbitrary reduction)
  *               PIX      *pixScaleToGrayMipmap()
  *
  *         Grayscale scaling using mipmap
@@ -219,6 +220,39 @@ l_float32  maxscale, sharpfract;
 
 
 /*!
+ * \brief   pixScaleToSizeRel()
+ *
+ * \param[in]    pixs
+ * \param[in]    delw  change in width, in pixels; 0 means no change
+ * \param[in]    delh  change in height, in pixels; 0 means no change
+ * \return  pixd, or NULL on error
+ */
+PIX *
+pixScaleToSizeRel(PIX     *pixs,
+                  l_int32  delw,
+                  l_int32  delh)
+{
+l_int32  w, h, wd, hd;
+
+    PROCNAME("pixScaleToSizeRel");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    if (delw == 0 && delh == 0)
+        return pixCopy(NULL, pixs);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    wd = w + delw;
+    hd = h + delh;
+    if (wd <= 0 || hd <= 0)
+        return (PIX *)ERROR_PTR("pix dimension reduced to 0", procName, NULL);
+
+    return pixScaleToSize(pixs, wd, hd);
+}
+
+
+/*!
  * \brief   pixScaleToSize()
  *
  * \param[in]    pixs 1, 2, 4, 8, 16 and 32 bpp
@@ -284,9 +318,9 @@ l_float32  scalex, scaley;
  *          cases are added.
  *      (3) The actual sharpening factors used depend on the maximum
  *          of the two scale factors (maxscale):
- *            maxscale \<= 0.2:        no sharpening
- *            0.2 \< maxscale \< 1.4:   uses the input parameters
- *            maxscale \>= 1.4:        no sharpening
+ *            maxscale <= 0.2:        no sharpening
+ *            0.2 < maxscale < 1.4:   uses the input parameters
+ *            maxscale >= 1.4:        no sharpening
  *      (4) To avoid sharpening for grayscale and color images with
  *          scaling factors between 0.2 and 1.4, call this function
  *          with %sharpfract == 0.0.
@@ -347,6 +381,7 @@ PIX       *pixt, *pixt2, *pixd;
 
     pixDestroy(&pixt);
     pixDestroy(&pixt2);
+    pixCopyText(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     return pixd;
 }
@@ -815,7 +850,7 @@ PIX       *pixd;
  * Notes:
  *      (1) This function samples from the source without
  *          filtering.  As a result, aliasing will occur for
- *          subsampling (%scalex and/or %scaley \< 1.0).
+ *          subsampling (%scalex and/or %scaley < 1.0).
  *      (2) If %scalex == 1.0 and %scaley == 1.0, returns a copy.
  * </pre>
  */
@@ -1524,7 +1559,7 @@ PIX       *pixs, *pixd;
  * Notes:
  *      (1) This function samples from the source without
  *          filtering.  As a result, aliasing will occur for
- *          subsampling (scalex and scaley \< 1.0).
+ *          subsampling (scalex and scaley < 1.0).
  * </pre>
  */
 PIX *
@@ -1603,7 +1638,7 @@ PIX       *pixd;
  *  unnecessarily expensive.
  *
  *  The choices made are as follows:
- *      (1) Do binary upscaling before scaleToGrayN() for scalefactors \> 1/8
+ *      (1) Do binary upscaling before scaleToGrayN() for scalefactors > 1/8
  *      (2) Do binary downscaling before scaleToGray8() for scalefactors
  *          between 1/16 and 1/8.
  *      (3) Use scaleToGray16() before grayscale downscaling for
@@ -1740,10 +1775,10 @@ PIX       *pixt, *pixd;
  *          for scalefactor in the range (0.0625 ... 0.5), and the
  *          quality is nearly as good.
  *      (3) Unlike pixScaleToGray(), which does binary upscaling before
- *          downscaling for scale factors \>= 0.0625, pixScaleToGrayFast()
- *          first downscales in binary for all scale factors \< 0.5, and
+ *          downscaling for scale factors >= 0.0625, pixScaleToGrayFast()
+ *          first downscales in binary for all scale factors < 0.5, and
  *          then does a 2x scale-to-gray as the final step.  For
- *          scale factors \< 0.0625, both do a 16x scale-to-gray, followed
+ *          scale factors < 0.0625, both do a 16x scale-to-gray, followed
  *          by further grayscale reduction.
  * </pre>
  */
@@ -3275,7 +3310,7 @@ PIX  *pix1, *pix2;
  *              pixt = pixGammaTRCWithAlpha(NULL, pixs, 1.0 / gamma, 0, 255);
  *              pixd = pixScaleWithAlpha(pixt, scalex, scaley, NULL, fract);
  *              pixGammaTRCWithAlpha(pixd, pixd, gamma, 0, 255);
- *              pixDestroy(\&pixt);
+ *              pixDestroy(&pixt);
  *          This has the side-effect of producing artifacts in the very
  *          dark regions.
  *

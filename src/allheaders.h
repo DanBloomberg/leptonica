@@ -1726,6 +1726,7 @@ LEPT_DLL extern PIXAA * pixaaSelectRange ( PIXAA *paas, l_int32 first, l_int32 l
 LEPT_DLL extern PIXAA * pixaaScaleToSize ( PIXAA *paas, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIXAA * pixaaScaleToSizeVar ( PIXAA *paas, NUMA *nawd, NUMA *nahd );
 LEPT_DLL extern PIXA * pixaScaleToSize ( PIXA *pixas, l_int32 wd, l_int32 hd );
+LEPT_DLL extern PIXA * pixaScaleToSizeRel ( PIXA *pixas, l_int32 delw, l_int32 delh );
 LEPT_DLL extern PIXA * pixaScale ( PIXA *pixas, l_float32 scalex, l_float32 scaley );
 LEPT_DLL extern PIXA * pixaAddBorderGeneral ( PIXA *pixad, PIXA *pixas, l_int32 left, l_int32 right, l_int32 top, l_int32 bot, l_uint32 val );
 LEPT_DLL extern PIXA * pixaaFlattenToPixa ( PIXAA *paa, NUMA **pnaindex, l_int32 copyflag );
@@ -2331,6 +2332,7 @@ LEPT_DLL extern l_int32 sarrayFindStringByHash ( SARRAY *sa, L_DNAHASH *dahash, 
 LEPT_DLL extern L_DNAHASH * l_dnaHashCreateFromSarray ( SARRAY *sa );
 LEPT_DLL extern SARRAY * sarrayGenerateIntegers ( l_int32 n );
 LEPT_DLL extern PIX * pixScale ( PIX *pixs, l_float32 scalex, l_float32 scaley );
+LEPT_DLL extern PIX * pixScaleToSizeRel ( PIX *pixs, l_int32 delw, l_int32 delh );
 LEPT_DLL extern PIX * pixScaleToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIX * pixScaleGeneral ( PIX *pixs, l_float32 scalex, l_float32 scaley, l_float32 sharpfract, l_int32 sharpwidth );
 LEPT_DLL extern PIX * pixScaleLI ( PIX *pixs, l_float32 scalex, l_float32 scaley );

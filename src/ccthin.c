@@ -276,7 +276,7 @@ SEL     *sel, *selr;
         pixEqual(pixd, pix1, &same);
         pixDestroy(&pix1);
         if (same) {
-            L_INFO("%d iterations to completion\n", procName, i);
+/*            L_INFO("%d iterations to completion\n", procName, i); */
             break;
         }
     }

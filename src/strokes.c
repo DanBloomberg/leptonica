@@ -325,7 +325,7 @@ l_int32  diff, size;
  * \brief   pixaSetStrokeWidth()
  *
  * \param[in]   pixas  of 1 bpp pix
- * \param[in]   width  set stroke width to this value
+ * \param[in]   width  set stroke width to this value, in [1 ... 100].
  * \param[in]   thinfirst  1 to thin all pix to a skeleton first; 0 to skip
  * \param[in]   connectivity  4 or 8, to be used if %thinfirst == 1
  * \return  pixa  with all stroke widths being %width, or NULL on error
@@ -335,8 +335,8 @@ l_int32  diff, size;
  *      (1) If %thinfirst == 1, thin to a skeleton using the specified
  *          %connectivity.  Use %thinfirst == 0 if all pix in pixas
  *          have already been thinned as far as possible.
- *      (2) The image is dilated to the required %width.  Because this
- *          dilation is not connectivity preserving, this is typically
+ *      (2) The image is dilated to the required %width.  This dilation
+ *          is not connectivity preserving, so this is typically
  *          used in a situation where merging of c.c. in the individual
  *          pix is not a problem; e.g., where each pix is a single c.c.
  * </pre>
@@ -347,41 +347,31 @@ pixaSetStrokeWidth(PIXA    *pixas,
                    l_int32  thinfirst,
                    l_int32  connectivity)
 {
-char     buf[16];
-l_int32  d, i, n;
-PIX     *pix1, *pixd;
-PIXA    *pixa1, *pixad;
+l_int32  i, n, d;
+PIX     *pix1, *pix2;
+PIXA    *pixad;
 
     PROCNAME("pixaSetStrokeWidth");
 
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
-    if (width < 1)
-        return (PIXA *)ERROR_PTR("width < 1", procName, NULL);
+    if (width < 1 || width > 100)
+        return (PIXA *)ERROR_PTR("width not in [1 ... 100]", procName, NULL);
     if (connectivity != 4 && connectivity != 8)
         return (PIXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
     pixaVerifyDepth(pixas, &d);
     if (d != 1)
         return (PIXA *)ERROR_PTR("pix are not all 1 bpp", procName, NULL);
 
-    if (thinfirst)  /* thin to skeleton */
-        pixa1 = pixaThinConnected(pixas, L_THIN_FG, connectivity, 0);
-    else
-        pixa1 = pixaCopy(pixas, L_CLONE);
-
-    if (width == 1) return pixa1;
-
-    snprintf(buf, sizeof(buf), "d%d.%d", width, width);
-    n = pixaGetCount(pixa1);
+    n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixas, i, L_CLONE);
-        pixd = pixMorphSequence(pix1, buf, 0);
-        pixaAddPix(pixad, pixd, L_INSERT);
+        pix2 = pixSetStrokeWidth(pix1, width, thinfirst, connectivity);
+        pixaAddPix(pixad, pix2, L_INSERT);
         pixDestroy(&pix1);
     }
 
-    pixaDestroy(&pixa1);
     return pixad;
 }
 
@@ -390,10 +380,18 @@ PIXA    *pixa1, *pixad;
  * \brief   pixSetStrokeWidth()
  *
  * \param[in]   pixs  1 bpp pix
- * \param[in]   width  set stroke width to this value
+ * \param[in]   width  set stroke width to this value, in [1 ... 100].
  * \param[in]   thinfirst  1 to thin all pix to a skeleton first; 0 to skip
  * \param[in]   connectivity  4 or 8, to be used if %thinfirst == 1
  * \return  pixd  with stroke width set to %width, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See notes in pixaSetStrokeWidth().
+ *      (2) A white border of sufficient width to avoid boundary
+ *          artifacts in the thickening step is added before thinning.
+ *      (3) %connectivity == 8 usually gives a slightly smoother result.
+ * </pre>
  */
 PIX *
 pixSetStrokeWidth(PIX     *pixs,
@@ -402,28 +400,36 @@ pixSetStrokeWidth(PIX     *pixs,
                   l_int32  connectivity)
 {
 char     buf[16];
-l_int32  d, i, n;
-PIX     *pix1, *pixd;
+l_int32  d, i, n, border;
+PIX     *pix1, *pix2, *pixd;
 
     PROCNAME("pixSetStrokeWidth");
 
     if (!pixs || (pixGetDepth(pixs) != 1))
         return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
-    if (width < 1)
-        return (PIX *)ERROR_PTR("width < 1", procName, NULL);
+    if (width < 1 || width > 100)
+        return (PIX *)ERROR_PTR("width not in [1 ... 100]", procName, NULL);
     if (connectivity != 4 && connectivity != 8)
         return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
 
-    if (thinfirst)  /* thin to skeleton */
-        pix1 = pixThinConnected(pixs, L_THIN_FG, connectivity, 0);
+    if (!thinfirst && width == 1)  /* nothing to do */
+        return pixCopy(NULL, pixs);
+
+        /* Add a white border */
+    border = width / 2;
+    pix1 = pixAddBorder(pixs, border, 0);
+
+        /* Thin to a skeleton */
+    if (thinfirst)
+        pix2 = pixThinConnected(pix1, L_THIN_FG, connectivity, 0);
     else
-        pix1 = pixCopy(NULL, pixs);
-
-    if (width == 1) return pix1;
-
-    snprintf(buf, sizeof(buf), "d%d.%d", width, width);
-    pixd = pixMorphSequence(pix1, buf, 0);
+        pix2 = pixClone(pix1);
     pixDestroy(&pix1);
+
+        /* Dilate */
+    snprintf(buf, sizeof(buf), "D%d.%d", width, width);
+    pixd = pixMorphSequence(pix2, buf, 0);
+    pixDestroy(&pix2);
     return pixd;
 }
 

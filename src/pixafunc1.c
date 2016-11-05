@@ -62,6 +62,7 @@
  *           PIXAA    *pixaaScaleToSize()
  *           PIXAA    *pixaaScaleToSizeVar()
  *           PIXA     *pixaScaleToSize()
+ *           PIXA     *pixaScaleToSizeRel()
  *           PIXA     *pixaScale()
  *
  *      Miscellaneous
@@ -1803,6 +1804,52 @@ PIXA    *pixad;
 
 
 /*!
+ * \brief   pixaScaleToSizeRel()
+ *
+ * \param[in]    pixas
+ * \param[in]    delw  change in width, in pixels; 0 means no change
+ * \param[in]    delh  change in height, in pixels; 0 means no change
+ * return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) If a requested change in a pix is not possible because
+ *          either the requested width or height is <= 0, issue a
+ *          warning and return a copy.
+ * </pre>
+ */
+PIXA *
+pixaScaleToSizeRel(PIXA    *pixas,
+                   l_int32  delw,
+                   l_int32  delh)
+{
+l_int32  n, i;
+PIX     *pix1, *pix2;
+PIXA    *pixad;
+
+    PROCNAME("pixaScaleToSizeRel");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+
+    n = pixaGetCount(pixas);
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pix2 = pixScaleToSizeRel(pix1, delw, delh);
+        if (pix2) {
+            pixaAddPix(pixad, pix2, L_INSERT);
+        } else {
+            L_WARNING("relative scale to size failed; use a copy\n", procName); 
+            pixaAddPix(pixad, pix1, L_COPY);
+        }
+        pixDestroy(&pix1);
+    }
+    return pixad;
+}
+
+
+/*!
  * \brief   pixaScale()
  *
  * \param[in]    pixas
@@ -1878,8 +1925,8 @@ PIXA    *pixad;
  *             white:  val = 0xffffff00
  *             black:  val = 0
  *          For colormapped images, use 'index' found this way:
- *             white: pixcmapGetRankIntensity(cmap, 1.0, \&index);
- *             black: pixcmapGetRankIntensity(cmap, 0.0, \&index);
+ *             white: pixcmapGetRankIntensity(cmap, 1.0, &index);
+ *             black: pixcmapGetRankIntensity(cmap, 0.0, &index);
  *      (2) For in-place replacement of each pix with a bordered version,
  *          use %pixad = %pixas.  To make a new pixa, use %pixad = NULL.
  *      (3) In both cases, the boxa has sides adjusted as if it were
