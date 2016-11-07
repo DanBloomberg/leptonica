@@ -30,13 +30,6 @@
  *   Regression test for
  *       jbCorrelation
  *       jbRankhaus
- *
- *         dirin:  directory of input pages
- *         thresh: 0.80 - 0.85 is a reasonable compromise between accuracy
- *                 and number of classes, for characters
- *         weight: 0.6 seems to work reasonably with thresh = 0.8.
- *         rootname: used for naming the two output files (templates
- *                   and c.c. data)
  */
 
 #include "allheaders.h"
@@ -45,17 +38,6 @@
 #define  COMPONENTS  JB_CONN_COMPS
 /* #define  COMPONENTS  JB_CHARACTERS */
 /* #define  COMPONENTS  JB_WORDS */
-
-    /* select additional debug output */
-#define   DEBUG_TEST_DATA_IO        0
-#define   RENDER_DEBUG              1
-#define   DISPLAY_DIFFERENCE        0
-#define   DISPLAY_ALL_INSTANCES     0
-
-    /* for display output of all instances, sorted by class */
-#define   X_SPACING                10
-#define   Y_SPACING                15
-#define   MAX_OUTPUT_WIDTH        400
 
 
 int main(int    argc,
@@ -134,14 +116,7 @@ L_REGPARAMS  *rp;
 
         /* Run the rank hausdorff-based classifier */
     classer = jbRankHausInit(COMPONENTS, 0, 0, 2, 0.97);
-#if 0
-    pix1 = pixRead("/tmp/lept/class/pix1.tif");
-    jbAddPage(classer, pix1);
-    pix2 = pixRead("/tmp/lept/class/pix2.tif");
-    jbAddPage(classer, pix2);
-#else
     jbAddPages(classer, sa);
-#endif
 
         /* Save and write out the result */
     data = jbDataSave(classer);
@@ -181,5 +156,3 @@ L_REGPARAMS  *rp;
     sarrayDestroy(&sa);
     return regTestCleanup(rp);
 }
-
-
