@@ -164,7 +164,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		graymorph2_reg.c  grayquant_reg.c \
 		hardlight_reg.c heap_reg.c \
 		insert_reg.c ioformats_reg.c \
-		jp2kio_reg.c jpegio_reg.c kernel_reg.c \
+		jbclass_reg.c jp2kio_reg.c jpegio_reg.c kernel_reg.c \
 		label_reg.c locminmax_reg.c \
 		logicops_reg.c lowaccess_reg.c \
 		maze_reg.c morphseq_reg.c multitype_reg.c \
@@ -487,6 +487,9 @@ insert_reg:	insert_reg.o $(LEPTLIB)
 
 ioformats_reg:	ioformats_reg.o $(LEPTLIB)
 	$(CC) -o ioformats_reg ioformats_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+jbclass_reg:	jbclass_reg.o $(LEPTLIB)
+	$(CC) -o jbclass_reg jbclass_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 jp2kio_reg:	jp2kio_reg.o $(LEPTLIB)
 	$(CC) -o jp2kio_reg jp2kio_reg.o $(ALL_LIBS) $(EXTRALIBS)

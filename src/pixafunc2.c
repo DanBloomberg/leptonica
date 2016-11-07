@@ -537,12 +537,14 @@ PIXA    *pixa1;
         /* If any pix have colormaps, generate rgb */
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
+    pix1 = pixaGetPix(pixa, 0, L_CLONE);
+    res = pixGetXRes(pix1);
+    pixDestroy(&pix1);
     pixaAnyColormaps(pixa, &hascmap);
     if (hascmap) {
         pixa1 = pixaCreate(n);
         for (i = 0; i < n; i++) {
             pix1 = pixaGetPix(pixa, i, L_CLONE);
-            if (i == 0) res = pixGetXRes(pix1);
             pix2 = pixConvertTo32(pix1);
             pixaAddPix(pixa1, pix2, L_INSERT);
             pixDestroy(&pix1);

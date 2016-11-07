@@ -1072,7 +1072,10 @@ l_uint8     byte;
 
         /* Generate the bordered pixa, which contains all the the
          * input components.  This will not be saved.   */
-    n = pixaGetCount(pixas);
+    if ((n = pixaGetCount(pixas)) == 0) {
+        L_WARNING("pixas is empty\n", procName);
+        return 0;
+    }
     pixa1 = pixaCreate(n);
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixas, i, L_CLONE);
@@ -1093,8 +1096,6 @@ l_uint8     byte;
     pixcts = (l_int32 *)LEPT_CALLOC(n, sizeof(*pixcts));
     pixrowcts = (l_int32 **)LEPT_CALLOC(n, sizeof(*pixrowcts));
     centtab = makePixelCentroidTab8();
-    if (!pixcts || !pixrowcts || !centtab)
-        return ERROR_INT("calloc fail in pix*cts or centtab", procName, 1);
 
         /* Count the "1" pixels in each row of the pix in pixa1; this
          * allows pixCorrelationScoreThresholded to abort early if a match
@@ -1135,8 +1136,13 @@ l_uint8     byte;
             ysum += rowcount * y;
         }
         pixcts[i] = downcount;
-        ptaAddPt(pta,
+        if (downcount > 0) {
+            ptaAddPt(pta,
                  xsum / (l_float32)downcount, ysum / (l_float32)downcount);
+        } else {  /* no pixels; shouldn't happen */
+            L_ERROR("downcount == 0 !\n", procName);
+            ptaAddPt(pta, pixGetWidth(pix) / 2, pixGetHeight(pix) / 2);
+        }
         pixDestroy(&pix);
     }
 
@@ -1758,14 +1764,14 @@ JBCLASSER  *classer;
 
     PROCNAME("jbClasserCreate");
 
-    if ((classer = (JBCLASSER *)LEPT_CALLOC(1, sizeof(JBCLASSER))) == NULL)
-        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
     if (method != JB_RANKHAUS && method != JB_CORRELATION)
         return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
         return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
 
+    if ((classer = (JBCLASSER *)LEPT_CALLOC(1, sizeof(JBCLASSER))) == NULL)
+        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
     classer->method = method;
     classer->components = components;
     classer->nacomps = numaCreate(0);
@@ -1980,7 +1986,7 @@ char      fname[L_BUF_SIZE];
 char     *linestr;
 l_uint8  *data;
 l_int32   nsa, i, w, h, cellw, cellh, x, y, iclass, ipage;
-l_int32   npages, nclass, ncomp;
+l_int32   npages, nclass, ncomp, ninit;
 size_t    size;
 JBDATA   *jbdata;
 NUMA     *naclass, *napage;
@@ -1998,15 +2004,24 @@ SARRAY   *sa;
         return (JBDATA *)ERROR_PTR("pix not read", procName, NULL);
 
     snprintf(fname, L_BUF_SIZE, "%s%s", rootname, JB_DATA_EXT);
-    if ((data = l_binaryRead(fname, &size)) == NULL)
+    if ((data = l_binaryRead(fname, &size)) == NULL) {
+        pixDestroy(&pixs);
         return (JBDATA *)ERROR_PTR("data not read", procName, NULL);
+    }
 
-    if ((sa = sarrayCreateLinesFromString((char *)data, 0)) == NULL)
+    if ((sa = sarrayCreateLinesFromString((char *)data, 0)) == NULL) {
+        pixDestroy(&pixs);
+        LEPT_FREE(data);
         return (JBDATA *)ERROR_PTR("sa not made", procName, NULL);
+    }
     nsa = sarrayGetCount(sa);   /* number of cc + 6 */
     linestr = sarrayGetString(sa, 0, L_NOCOPY);
-    if (strcmp(linestr, "jb data file"))
+    if (strcmp(linestr, "jb data file")) {
+        pixDestroy(&pixs);
+        LEPT_FREE(data);
+        sarrayDestroy(&sa);
         return (JBDATA *)ERROR_PTR("invalid jb data file", procName, NULL);
+    }
     linestr = sarrayGetString(sa, 1, L_NOCOPY);
     sscanf(linestr, "num pages = %d", &npages);
     linestr = sarrayGetString(sa, 2, L_NOCOPY);
@@ -2026,12 +2041,14 @@ SARRAY   *sa;
     fprintf(stderr, "template lattice size: w = %d, h = %d\n", cellw, cellh);
 #endif
 
-    if ((naclass = numaCreate(ncomp)) == NULL)
-        return (JBDATA *)ERROR_PTR("naclass not made", procName, NULL);
-    if ((napage = numaCreate(ncomp)) == NULL)
-        return (JBDATA *)ERROR_PTR("napage not made", procName, NULL);
-    if ((ptaul = ptaCreate(ncomp)) == NULL)
-        return (JBDATA *)ERROR_PTR("pta not made", procName, NULL);
+    ninit = ncomp;
+    if (ncomp > 1000000) {  /* fuzz protection */
+        L_WARNING("ncomp > 1M\n", procName);
+        ninit = 1000000;
+    }
+    naclass = numaCreate(ninit);
+    napage = numaCreate(ninit);
+    ptaul = ptaCreate(ninit);
     for (i = 6; i < nsa; i++) {
         linestr = sarrayGetString(sa, i, L_NOCOPY);
         sscanf(linestr, "%d %d %d %d\n", &ipage, &iclass, &x, &y);
@@ -2040,8 +2057,7 @@ SARRAY   *sa;
         ptaAddPt(ptaul, x, y);
     }
 
-    if ((jbdata = (JBDATA *)LEPT_CALLOC(1, sizeof(JBDATA))) == NULL)
-        return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
+    jbdata = (JBDATA *)LEPT_CALLOC(1, sizeof(JBDATA));
     jbdata->pix = pixs;
     jbdata->npages = npages;
     jbdata->w = w;
@@ -2119,8 +2135,10 @@ PTA      *ptaul;
     }
 
         /* Put the class templates into a pixa. */
-    if ((pixat = pixaCreateFromPix(pixt, nclass, cellw, cellh)) == NULL)
+    if ((pixat = pixaCreateFromPix(pixt, nclass, cellw, cellh)) == NULL) {
+        pixaDestroy(&pixad);
         return (PIXA *)ERROR_PTR("pixat not made", procName, NULL);
+    }
 
         /* Place each component in the right location on its page. */
     for (i = 0; i < ncomp; i++) {
@@ -2219,8 +2237,10 @@ PTA       *ptac, *ptact, *ptaul;
             idely = (l_int32)(dely + 0.5);
         else
             idely = (l_int32)(dely - 0.5);
-        if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
+        if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL) {
+            LEPT_FREE(sumtab);
             return ERROR_INT("box not found", procName, 1);
+        }
         boxGetGeometry(box, &x, &y, NULL, NULL);
 
             /* Get final increments dx and dy for best alignment */

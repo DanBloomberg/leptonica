@@ -1,0 +1,185 @@
+/*====================================================================*
+ -  Copyright (C) 2001 Leptonica.  All rights reserved.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *====================================================================*/
+
+/*
+ * jbclass_reg.c
+ *
+ *   Regression test for
+ *       jbCorrelation
+ *       jbRankhaus
+ *
+ *         dirin:  directory of input pages
+ *         thresh: 0.80 - 0.85 is a reasonable compromise between accuracy
+ *                 and number of classes, for characters
+ *         weight: 0.6 seems to work reasonably with thresh = 0.8.
+ *         rootname: used for naming the two output files (templates
+ *                   and c.c. data)
+ */
+
+#include "allheaders.h"
+
+    /* Choose one of these */
+#define  COMPONENTS  JB_CONN_COMPS
+/* #define  COMPONENTS  JB_CHARACTERS */
+/* #define  COMPONENTS  JB_WORDS */
+
+    /* select additional debug output */
+#define   DEBUG_TEST_DATA_IO        0
+#define   RENDER_DEBUG              1
+#define   DISPLAY_DIFFERENCE        0
+#define   DISPLAY_ALL_INSTANCES     0
+
+    /* for display output of all instances, sorted by class */
+#define   X_SPACING                10
+#define   Y_SPACING                15
+#define   MAX_OUTPUT_WIDTH        400
+
+
+int main(int    argc,
+         char **argv)
+{
+l_int32      i, w, h;
+BOX         *box;
+JBDATA      *data;
+JBCLASSER   *classer;
+SARRAY      *sa;
+PIX         *pix1, *pix2;
+PIXA        *pixa;
+L_REGPARAMS  *rp;
+
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
+
+    lept_mkdir("lept/class");
+
+        /* Set up the input data */
+    pix1 = pixRead("pageseg1.tif");
+    pixGetDimensions(pix1, &w, &h, NULL);
+    box = boxCreate(0, 0, w, h / 2);
+    pix2 = pixClipRectangle(pix1, box, NULL);
+    pixWrite("/tmp/lept/class/pix1.tif", pix2, IFF_TIFF_G4);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pix1 = pixRead("pageseg4.tif");
+    pix2 = pixClipRectangle(pix1, box, NULL);
+    pixWrite("/tmp/lept/class/pix2.tif", pix2, IFF_TIFF_G4);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    boxDestroy(&box);
+    sa = sarrayCreate(2);
+    sarrayAddString(sa, (char *)"/tmp/lept/class/pix1.tif", L_COPY);
+    sarrayAddString(sa, (char *)"/tmp/lept/class/pix2.tif", L_COPY);
+
+    /*--------------------------------------------------------------*/
+
+        /* Run the correlation-based classifier */
+    classer = jbCorrelationInit(COMPONENTS, 0, 0, 0.8, 0.6);
+    jbAddPages(classer, sa);
+
+        /* Save and write out the result */
+    data = jbDataSave(classer);
+    jbDataWrite("/tmp/lept/class/corr", data);
+    fprintf(stderr, "Number of classes: %d\n", classer->nclass);
+
+    pix1 = pixRead("/tmp/lept/class/corr.templates.png");
+    regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 0 */
+    pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
+    pixDestroy(&pix1);
+
+        /* Render the pages from the classifier data.
+         * Use debugflag == FALSE to omit outlines of each component. */
+    pixa = jbDataRender(data, FALSE);
+    for (i = 0; i < 2; i++) {
+        pix1 = pixaGetPix(pixa, i, L_CLONE);
+        regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 1, 2 */
+        pixDestroy(&pix1);
+    }
+    pixaDestroy(&pixa);
+
+        /* Display all instances, organized by template */
+    pixa = pixaaFlattenToPixa(classer->pixaa, NULL, L_CLONE);
+    pix1 = pixaDisplayTiledInColumns(pixa, 40, 1.0, 10, 0);
+    regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 3 */
+    pixDestroy(&pix1);
+    pixaDestroy(&pixa);
+    jbClasserDestroy(&classer);
+    jbDataDestroy(&data);
+
+    /*--------------------------------------------------------------*/
+
+    lept_mkdir("lept/class2");
+
+        /* Run the rank hausdorff-based classifier */
+    classer = jbRankHausInit(COMPONENTS, 0, 0, 2, 0.97);
+#if 0
+    pix1 = pixRead("/tmp/lept/class/pix1.tif");
+    jbAddPage(classer, pix1);
+    pix2 = pixRead("/tmp/lept/class/pix2.tif");
+    jbAddPage(classer, pix2);
+#else
+    jbAddPages(classer, sa);
+#endif
+
+        /* Save and write out the result */
+    data = jbDataSave(classer);
+    jbDataWrite("/tmp/lept/class2/haus", data);
+    fprintf(stderr, "Number of classes: %d\n", classer->nclass);
+
+    pix1 = pixRead("/tmp/lept/class2/haus.templates.png");
+    regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 4 */
+    pixDisplayWithTitle(pix1, 200, 0, NULL, rp->display);
+    pixDestroy(&pix1);
+
+        /* Render the pages from the classifier data.
+         * Use debugflag == FALSE to omit outlines of each component. */
+    pixa = jbDataRender(data, FALSE);
+    for (i = 0; i < 2; i++) {
+        pix1 = pixaGetPix(pixa, i, L_CLONE);
+        regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 5, 6 */
+        pixDestroy(&pix1);
+    }
+    pixaDestroy(&pixa);
+
+#if 0  /* result doesn't look correct */
+        /* Display all instances, organized by template */
+    pixa = pixaaFlattenToPixa(classer->pixaa, NULL, L_CLONE);
+    pix1 = pixaDisplayTiledInColumns(pixa, 40, 1.0, 10, 0);
+    regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 7 */
+    pixDestroy(&pix1);
+    pixaDestroy(&pixa);
+#endif
+
+    jbClasserDestroy(&classer);
+    jbDataDestroy(&data);
+
+
+    /*--------------------------------------------------------------*/
+
+    sarrayDestroy(&sa);
+    return regTestCleanup(rp);
+}
+
+

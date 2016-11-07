@@ -24,7 +24,7 @@ AUTO_REG_PROGS = alphaops_reg alphaxform_reg \
 	graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg \
 	insert_reg ioformats_reg \
-	jpegio_reg kernel_reg label_reg \
+	jbclass_reg jpegio_reg kernel_reg label_reg \
 	maze_reg multitype_reg \
 	nearline_reg newspaper_reg \
 	overlap_reg paint_reg paintmask_reg \
