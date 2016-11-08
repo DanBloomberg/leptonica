@@ -62,7 +62,7 @@ L_REGPARAMS  *rp;
     pixDisplayWithTitle(pix2, 800, 0, NULL, rp->display);
     regTestComparePix(rp, pix1, pix2);   /* 3 */
     pixDestroy(&pix1);
-    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
         /* Dither 2x upscale to 1 bpp */
     pix1 = pixScaleGray2xLIDither(pixs);

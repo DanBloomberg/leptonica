@@ -319,6 +319,7 @@ JBCLASSER  *classer;
     classer->sizehaus = size;
     classer->rankhaus = rank;
     classer->dahash = l_dnaHashCreate(5507, 4);  /* 5507 is prime */
+    classer->keep_pixaa = 1;  /* keep all components in pixaa */
     return classer;
 }
 
@@ -575,7 +576,6 @@ l_int32  n;
     classer->baseindex += n;
     numaAddNumber(classer->nacomps, n);
     classer->npages++;
-
     return 0;
 }
 
@@ -597,7 +597,6 @@ jbClassifyRankHaus(JBCLASSER  *classer,
                    PIXA       *pixas)
 {
 l_int32     n, nt, i, wt, ht, iclass, size, found, testval;
-l_int32    *sumtab;
 l_int32     npages, area1, area3;
 l_int32    *tab8;
 l_float32   rank, x1, y1, x2, y2;
@@ -651,7 +650,6 @@ SEL        *sel;
         /* Use these to save the class and page of each component. */
     naclass = classer->naclass;
     napage = classer->napage;
-    sumtab = makePixelSumTab8();
 
         /* Store the unbordered pix in a pixaa, in a hierarchical
          * set of arrays.  There is one pixa for each class,
@@ -812,7 +810,6 @@ SEL        *sel;
     }
     classer->nclass = pixaGetCount(pixat);
 
-    LEPT_FREE(sumtab);
     ptaDestroy(&pta);
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);
@@ -1765,13 +1762,12 @@ JBCLASSER  *classer;
     PROCNAME("jbClasserCreate");
 
     if (method != JB_RANKHAUS && method != JB_CORRELATION)
-        return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid method", procName, NULL);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-        return (JBCLASSER *)ERROR_PTR("invalid type", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid component", procName, NULL);
 
-    if ((classer = (JBCLASSER *)LEPT_CALLOC(1, sizeof(JBCLASSER))) == NULL)
-        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
+    classer = (JBCLASSER *)LEPT_CALLOC(1, sizeof(JBCLASSER));
     classer->method = method;
     classer->components = components;
     classer->nacomps = numaCreate(0);
@@ -1785,7 +1781,6 @@ JBCLASSER  *classer;
     classer->naclass = numaCreate(0);
     classer->napage = numaCreate(0);
     classer->ptaul = ptaCreate(0);
-
     return classer;
 }
 
@@ -1864,8 +1859,7 @@ PIX     *pix;
     if (!pix)
         return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
 
-    if ((data = (JBDATA *)LEPT_CALLOC(1, sizeof(JBDATA))) == NULL)
-        return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
+    data = (JBDATA *)LEPT_CALLOC(1, sizeof(JBDATA));
     data->pix = pix;
     data->npages = classer->npages;
     data->w = classer->w;
@@ -1876,7 +1870,6 @@ PIX     *pix;
     data->naclass = numaClone(classer->naclass);
     data->napage = numaClone(classer->napage);
     data->ptaul = ptaClone(classer->ptaul);
-
     return data;
 }
 
@@ -2378,7 +2371,6 @@ JBFINDCTX  *state;
     state->w = pixGetWidth(pixs) - 2 * JB_ADDED_PIXELS;
     state->h = pixGetHeight(pixs) - 2 * JB_ADDED_PIXELS;
     state->classer = classer;
-
     return state;
 }
 
@@ -2516,8 +2508,7 @@ BOX     *box;
     *pdx = *pdy = 0;
 
         /* Use JB_ADDED_PIXELS pixels padding on each side */
-    w = pixGetWidth(pixt);
-    h = pixGetHeight(pixt);
+    pixGetDimensions(pixt, &w, &h, NULL);
     box = boxCreate(x - idelx - JB_ADDED_PIXELS,
                     y - idely - JB_ADDED_PIXELS, w, h);
     pixi = pixClipRectangle(pixs, box, NULL);

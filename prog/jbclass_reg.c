@@ -39,6 +39,8 @@
 /* #define  COMPONENTS  JB_CHARACTERS */
 /* #define  COMPONENTS  JB_WORDS */
 
+static PIXA *PixaOutlineTemplates(PIXA *pixas, NUMA *na);
+
 
 int main(int    argc,
          char **argv)
@@ -47,9 +49,10 @@ l_int32      i, w, h;
 BOX         *box;
 JBDATA      *data;
 JBCLASSER   *classer;
+NUMA        *na;
 SARRAY      *sa;
 PIX         *pix1, *pix2;
-PIXA        *pixa;
+PIXA        *pixa1, *pixa2;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
@@ -93,20 +96,23 @@ L_REGPARAMS  *rp;
 
         /* Render the pages from the classifier data.
          * Use debugflag == FALSE to omit outlines of each component. */
-    pixa = jbDataRender(data, FALSE);
+    pixa1 = jbDataRender(data, FALSE);
     for (i = 0; i < 2; i++) {
-        pix1 = pixaGetPix(pixa, i, L_CLONE);
+        pix1 = pixaGetPix(pixa1, i, L_CLONE);
         regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 1, 2 */
         pixDestroy(&pix1);
     }
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
         /* Display all instances, organized by template */
-    pixa = pixaaFlattenToPixa(classer->pixaa, NULL, L_CLONE);
-    pix1 = pixaDisplayTiledInColumns(pixa, 40, 1.0, 10, 0);
+    pixa1 = pixaaFlattenToPixa(classer->pixaa, &na, L_CLONE);
+    pixa2 = PixaOutlineTemplates(pixa1, na);
+    pix1 = pixaDisplayTiledInColumns(pixa2, 40, 1.0, 10, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 3 */
     pixDestroy(&pix1);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
+    numaDestroy(&na);
     jbClasserDestroy(&classer);
     jbDataDestroy(&data);
 
@@ -130,29 +136,72 @@ L_REGPARAMS  *rp;
 
         /* Render the pages from the classifier data.
          * Use debugflag == FALSE to omit outlines of each component. */
-    pixa = jbDataRender(data, FALSE);
+    pixa1 = jbDataRender(data, FALSE);
     for (i = 0; i < 2; i++) {
-        pix1 = pixaGetPix(pixa, i, L_CLONE);
+        pix1 = pixaGetPix(pixa1, i, L_CLONE);
         regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 5, 6 */
         pixDestroy(&pix1);
     }
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
-#if 0  /* result doesn't look correct */
         /* Display all instances, organized by template */
-    pixa = pixaaFlattenToPixa(classer->pixaa, NULL, L_CLONE);
-    pix1 = pixaDisplayTiledInColumns(pixa, 40, 1.0, 10, 0);
+    pixa1 = pixaaFlattenToPixa(classer->pixaa, &na, L_CLONE);
+    pixa2 = PixaOutlineTemplates(pixa1, na);
+    pix1 = pixaDisplayTiledInColumns(pixa2, 40, 1.0, 10, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 7 */
     pixDestroy(&pix1);
-    pixaDestroy(&pixa);
-#endif
-
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
+    numaDestroy(&na);
     jbClasserDestroy(&classer);
     jbDataDestroy(&data);
-
 
     /*--------------------------------------------------------------*/
 
     sarrayDestroy(&sa);
     return regTestCleanup(rp);
+}
+
+
+static PIXA *
+PixaOutlineTemplates(PIXA  *pixas,
+                     NUMA  *na)
+{
+l_int32  i, n, val, prev, curr;
+NUMA    *nai;
+PIX     *pix1, *pix2, *pix3;
+PIXA    *pixad;
+
+        /* Make an indicator array with a 1 for each template image */
+    n = numaGetCount(na);
+    nai = numaCreate(n);
+    prev = -1;
+    for (i = 0; i < n; i++) {
+        numaGetIValue(na, i, &curr);
+        if (curr != prev) {  /* index change */
+            prev = curr;
+            numaAddNumber(nai, 1);
+        } else {
+            numaAddNumber(nai, 0);
+        }
+    }
+
+        /* Add a boundary of 3 white and 1 black pixels to templates */
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        numaGetIValue(nai, i, &val);
+        if (val == 0) {
+            pixaAddPix(pixad, pix1, L_INSERT);
+        } else {
+            pix2 = pixAddBorder(pix1, 3, 0);
+            pix3 = pixAddBorder(pix2, 1, 1);
+            pixaAddPix(pixad, pix3, L_INSERT);
+            pixDestroy(&pix1);
+            pixDestroy(&pix2);
+        }
+    }
+
+    numaDestroy(&nai);
+    return pixad;
 }
