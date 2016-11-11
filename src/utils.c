@@ -2986,23 +2986,24 @@ l_int32  dirlen, namelen, size;
         stringCopy(pathout, cdir, dirlen);
     } else {  /* in /tmp */
             /* Start with the temp dir */
+        l_int32 tmpdirlen;
 #ifdef _WIN32
-        l_int32 len;
         char tmpdir[MAX_PATH];
         GetTempPath(sizeof(tmpdir), tmpdir);  /* get the windows temp dir */
-        len = strlen(tmpdir);
-        if (len > 0 && tmpdir[len - 1] == '\\') {
-            tmpdir[len - 1] = '\0';  /* trim the trailing '\' */
+        tmpdirlen = strlen(tmpdir);
+        if (tmpdirlen > 0 && tmpdir[tmpdirlen - 1] == '\\') {
+            tmpdir[tmpdirlen - 1] = '\0';  /* trim the trailing '\' */
         }
 #else  /* unix */
         const char *tmpdir = getenv("TMPDIR");
         if (tmpdir == NULL) tmpdir = "/tmp";
+        tmpdirlen = strlen(tmpdir);
 #endif  /* _WIN32 */
-        stringCopy(pathout, tmpdir, strlen(tmpdir));
+        stringCopy(pathout, tmpdir, tmpdirlen);
 
-            /* Add the rest of cdir */
-        if (dirlen > 4)
-            stringCat(pathout, size, cdir + 4);
+       /* Add the rest of cdir */
+        if (dirlen > tmpdirlen)
+            stringCat(pathout, size, cdir + tmpdirlen);
     }
 
        /* Now handle %fname */
