@@ -3001,12 +3001,12 @@ l_int32  dirlen, namelen, size;
 #endif  /* _WIN32 */
         stringCopy(pathout, tmpdir, tmpdirlen);
 
-       /* Add the rest of cdir */
+            /* Add the rest of cdir */
         if (dirlen > tmpdirlen)
             stringCat(pathout, size, cdir + tmpdirlen);
     }
 
-       /* Now handle %fname */
+        /* Now handle %fname */
     if (fname && strlen(fname) > 0) {
         dirlen = strlen(pathout);
         pathout[dirlen] = '/';

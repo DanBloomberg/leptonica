@@ -93,7 +93,8 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	flipselgen fmorphautogen \
 	fpixcontours gammatest \
 	gifio_leaktest graphicstest graymorphtest \
-	hashtest histotest iotest italictest \
+	hashtest histotest htmlviewer \
+	iotest italictest \
 	jbcorrelation jbrankhaus jbwords \
 	lineremoval listtest \
 	livre_adapt livre_hmt \
@@ -116,8 +117,7 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	sheartest showedges \
 	skewtest snapcolortest \
 	sorttest sudokutest trctest \
-	viewertest warpertest \
-	watershedtest wordsinorder \
+	warpertest watershedtest wordsinorder \
 	writemtiff yuvtest
 
 if ENABLE_PROGRAMS

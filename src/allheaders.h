@@ -2662,7 +2662,6 @@ LEPT_DLL extern void l_getCurrentTime ( l_int32 *sec, l_int32 *usec );
 LEPT_DLL extern L_WALLTIMER * startWallTimer ( void );
 LEPT_DLL extern l_float32 stopWallTimer ( L_WALLTIMER **ptimer );
 LEPT_DLL extern char * l_getFormattedDate (  );
-LEPT_DLL extern l_int32 pixHtmlViewer ( const char *dirin, const char *dirout, const char *rootname, l_int32 thumbwidth, l_int32 viewwidth, l_int32 copyorig );
 LEPT_DLL extern PIX * pixSimpleCaptcha ( PIX *pixs, l_int32 border, l_int32 nterms, l_uint32 seed, l_uint32 color, l_int32 cmapflag );
 LEPT_DLL extern PIX * pixRandomHarmonicWarp ( PIX *pixs, l_float32 xmag, l_float32 ymag, l_float32 xfreq, l_float32 yfreq, l_int32 nx, l_int32 ny, l_uint32 seed, l_int32 grayval );
 LEPT_DLL extern PIX * pixWarpStereoscopic ( PIX *pixs, l_int32 zbend, l_int32 zshiftt, l_int32 zshiftb, l_int32 ybendt, l_int32 ybendb, l_int32 redleft );

@@ -45,7 +45,8 @@
  *   then slightly edited and merged into this file.
  *
  *   Call this way:
- *       Pixa  *pixa = (PIXA *)l_bootnum_gen1();
+ *       PIXA  *pixa = l_bootnum_gen1();   (C)
+ *       Pixa  *pixa = l_bootnum_gen1();   (C++)
  * </pre>
  */
 

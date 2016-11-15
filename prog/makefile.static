@@ -241,8 +241,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		skewtest.c snapcolortest.c \
 		sorttest.c splitimage2pdf.c \
 		sudokutest.c trctest.c \
-		viewertest.c warpertest.c \
-		watershedtest.c wordsinorder.c \
+		warpertest.c watershedtest.c wordsinorder.c \
 		writemtiff.c xtractprotos.c yuvtest.c
 
 #  Remove the .o files from these on clean
@@ -872,6 +871,9 @@ hashtest:	hashtest.o $(LEPTLIB)
 histotest:	histotest.o $(LEPTLIB)
 	$(CC) -o histotest histotest.o $(ALL_LIBS) $(EXTRALIBS)
 
+htmlviewer:	htmlviewer.o $(LEPTLIB)
+	$(CC) -o htmlviewer htmlviewer.o $(ALL_LIBS) $(EXTRALIBS)
+
 iotest:		iotest.o $(LEPTLIB)
 	$(CC) -o iotest iotest.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -1057,9 +1059,6 @@ trctest:	trctest.o $(LEPTLIB)
 
 warpertest:	warpertest.o $(LEPTLIB)
 	$(CC) -o warpertest warpertest.o $(ALL_LIBS) $(EXTRALIBS)
-
-viewertest:	viewertest.o $(LEPTLIB)
-	$(CC) -o viewertest viewertest.o $(ALL_LIBS) $(EXTRALIBS)
 
 watershedtest:	watershedtest.o $(LEPTLIB)
 	$(CC) -o watershedtest watershedtest.o $(ALL_LIBS) $(EXTRALIBS)

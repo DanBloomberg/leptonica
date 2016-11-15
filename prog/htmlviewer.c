@@ -24,13 +24,17 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-/*!
- * \file  viewfiles.c
- * <pre>
+/*
+ * htmlviewer.c
  *
- *     Generate smaller images for viewing and write html
- *        l_int32    pixHtmlViewer()
- * </pre>
+ *    This takes a directory of image files, optionally scales them,
+ *    and generates html files to view the scaled images (and thumbnails).
+ *
+ *    Input:  dirin:  directory of input image files
+ *            dirout: directory for output files
+ *            rootname: root name for output files
+ *            thumbwidth: width of thumb images, in pixels; use 0 for default
+ *            viewwidth: max width of view images, in pixels; use 0 for default
  */
 
 #include <string.h>
@@ -40,11 +44,37 @@
 #include <windows.h>   /* for CreateDirectory() */
 #endif
 
-static const l_int32  L_BUF_SIZE = 512;
 static const l_int32  DEFAULT_THUMB_WIDTH = 120;
 static const l_int32  DEFAULT_VIEW_WIDTH = 800;
 static const l_int32  MIN_THUMB_WIDTH = 50;
 static const l_int32  MIN_VIEW_WIDTH = 300;
+
+static l_int32 pixHtmlViewer(const char *dirin, const char *dirout,
+                             const char  *rootname, l_int32 thumbwidth,
+                             l_int32 viewwidth);
+static void WriteFormattedPix(char *fname, PIX *pix);
+
+
+int main(int    argc,
+         char **argv)
+{
+char        *dirin, *dirout, *rootname;
+l_int32      thumbwidth, viewwidth;
+static char  mainName[] = "htmlviewer";
+
+    if (argc != 6)
+        return ERROR_INT(
+            " Syntax:  htmlviewer dirin dirout rootname thumbwidth viewwidth",
+             mainName, 1);
+
+    dirin = argv[1];
+    dirout = argv[2];
+    rootname = argv[3];
+    thumbwidth = atoi(argv[4]);
+    viewwidth = atoi(argv[5]);
+    pixHtmlViewer(dirin, dirout, rootname, thumbwidth, viewwidth);
+    return 0;
+}
 
 
 /*---------------------------------------------------------------------*
@@ -60,7 +90,6 @@ static const l_int32  MIN_VIEW_WIDTH = 300;
  *                          in pixels; use 0 for default
  * \param[in]    viewwidth  maximum width of view images no up-scaling
  *                          in pixels; use 0 for default
- * \param[in]    copyorig   1 to copy originals to dirout; 0 otherwise
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -76,22 +105,21 @@ static const l_int32  MIN_VIEW_WIDTH = 300;
  *          and placed in the same output directory.
  * </pre>
  */
-l_int32
+static l_int32
 pixHtmlViewer(const char  *dirin,
               const char  *dirout,
               const char  *rootname,
               l_int32      thumbwidth,
-              l_int32      viewwidth,
-              l_int32      copyorig)
+              l_int32      viewwidth)
 {
 char      *fname, *fullname, *outname;
 char      *mainname, *linkname, *linknameshort;
 char      *viewfile, *thumbfile;
 char      *shtml, *slink;
-char       charbuf[L_BUF_SIZE];
+char       charbuf[512];
 char       htmlstring[] = "<html>";
 char       framestring[] = "</frameset></html>";
-l_int32    i, nfiles, index, w, nimages, ret;
+l_int32    i, nfiles, index, w, d, nimages, ret;
 l_float32  factor;
 PIX       *pix, *pixthumb, *pixview;
 SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
@@ -155,29 +183,24 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         fprintf(stderr, "name: %s\n", fullname);
         if ((pix = pixRead(fullname)) == NULL) {
             fprintf(stderr, "file %s not a readable image\n", fullname);
-            LEPT_FREE(fullname);
+            lept_free(fullname);
             continue;
         }
-        LEPT_FREE(fullname);
-        if (copyorig) {
-            outname = genPathname(dirout, fname);
-            pixWrite(outname, pix, IFF_JFIF_JPEG);
-            LEPT_FREE(outname);
-        }
+        lept_free(fullname);
 
-            /* Make and store the thumb */
-        w = pixGetWidth(pix);
+            /* Make and store the thumbnail images */
+        pixGetDimensions(pix, &w, NULL, &d);
         factor = (l_float32)thumbwidth / (l_float32)w;
         if ((pixthumb = pixScale(pix, factor, factor)) == NULL)
             return ERROR_INT("pixthumb not made", procName, 1);
-        sprintf(charbuf, "%s_thumb_%03d.jpg", rootname, index);
+        sprintf(charbuf, "%s_thumb_%03d", rootname, index);
         sarrayAddString(sathumbs, charbuf, L_COPY);
         outname = genPathname(dirout, charbuf);
-        pixWrite(outname, pixthumb, IFF_JFIF_JPEG);
-        LEPT_FREE(outname);
+        WriteFormattedPix(outname, pixthumb);
+        lept_free(outname);
         pixDestroy(&pixthumb);
 
-            /* Make and store the view */
+            /* Make and store the view images */
         factor = (l_float32)viewwidth / (l_float32)w;
         if (factor >= 1.0) {
             pixview = pixClone(pix);   /* no upscaling */
@@ -185,13 +208,12 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
             if ((pixview = pixScale(pix, factor, factor)) == NULL)
                 return ERROR_INT("pixview not made", procName, 1);
         }
-        sprintf(charbuf, "%s_view_%03d.jpg", rootname, index);
+        sprintf(charbuf, "%s_view_%03d", rootname, index);
         sarrayAddString(saviews, charbuf, L_COPY);
         outname = genPathname(dirout, charbuf);
-        pixWrite(outname, pixview, IFF_JFIF_JPEG);
-        LEPT_FREE(outname);
+        WriteFormattedPix(outname, pixview);
+        lept_free(outname);
         pixDestroy(&pixview);
-
         pixDestroy(&pix);
         index++;
     }
@@ -210,8 +232,8 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     sarrayAddString(sahtml, framestring, L_COPY);
     shtml = sarrayToString(sahtml, 1);
     l_binaryWrite(mainname, "w", shtml, strlen(shtml));
-    LEPT_FREE(shtml);
-    LEPT_FREE(mainname);
+    lept_free(shtml);
+    lept_free(mainname);
 
         /* Generate the link html file */
     nimages = sarrayGetCount(saviews);
@@ -227,15 +249,28 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     }
     slink = sarrayToString(salink, 1);
     l_binaryWrite(linkname, "w", slink, strlen(slink));
-    LEPT_FREE(slink);
-    LEPT_FREE(linkname);
-    LEPT_FREE(linknameshort);
-
+    lept_free(slink);
+    lept_free(linkname);
+    lept_free(linknameshort);
     sarrayDestroy(&safiles);
     sarrayDestroy(&sathumbs);
     sarrayDestroy(&saviews);
     sarrayDestroy(&sahtml);
     sarrayDestroy(&salink);
-
     return 0;
 }
+
+static void
+WriteFormattedPix(char  *fname,
+                  PIX   *pix)
+{
+l_int32  d;
+
+    d = pixGetDepth(pix);
+    if (d == 1 || pixGetColormap(pix))
+        pixWrite(fname, pix, IFF_PNG);
+    else
+        pixWrite(fname, pix, IFF_JFIF_JPEG);
+    return;
+}
+
