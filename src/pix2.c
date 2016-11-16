@@ -842,10 +842,24 @@ PIXCMAP  *cmap;
  *
  * <pre>
  * Notes:
- *      (1) Caution!  For colormapped pix, %val is used as an index
+ *      (1) Caution 1!  For colormapped pix, %val is used as an index
  *          into a colormap.  Be sure that index refers to the intended color.
  *          If the color is not in the colormap, you should first add it
  *          and then call this function.
+ *      (2) Caution 2!  For 32 bpp pix, the interpretation of the LSB
+ *          of %val depends on whether spp == 3 (RGB) or spp == 4 (RGBA).
+ *          For RGB, the LSB is ignored in image transformations.
+ *          For RGBA, the LSB is interpreted as the alpha (transparency)
+ *          component; full transparency has alpha == 0x0, whereas
+ *          full opacity has alpha = 0xff.  An RGBA image with full
+ *          opacity behaves like an RGB image. 
+ *      (3) As an example of (2), suppose you want to initialize a 32 bpp
+ *          pix with partial opacity, say 0xee337788.  If the pix is 3 spp,
+ *          the 0x88 alpha component will be ignored and may be changed
+ *          in subsequent processing.  However, if the pix is 4 spp, the
+ *          alpha component will be retained and used. The function
+ *          pixCreate(w, h, 32) makes an RGB image by default, and
+ *          pixSetSpp(pix, 4) can be used to promote an RGB image to RGBA.
  * </pre>
  */
 l_int32
@@ -875,10 +889,13 @@ PIXCMAP   *cmap;
         /* Make sure val isn't too large for the pixel depth.
          * If it is too large, set the pixel color to white.  */
     pixGetDimensions(pix, &w, &h, &d);
-    maxval = (d == 32) ? 0xffffff00 : (1 << d) - 1;
-    if (val > maxval) {
-        L_WARNING("val too large for depth; using maxval\n", procName);
-        val = maxval;
+    if (d < 32) {
+        maxval = (1 << d) - 1;
+        if (val > maxval) {
+            L_WARNING("val = %d too large for depth; using maxval = %d\n",
+                      procName, val, maxval);
+            val = maxval;
+        }
     }
 
         /* Set up word to tile with */
