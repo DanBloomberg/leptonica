@@ -76,14 +76,14 @@
  *
  *  We get these transformations:
  *      RHV
- *      000  -\> 0
- *      001  -\> 1
- *      010  -\> 2
- *      011  -\> 3
- *      100  -\> 4
- *      101  -\> 5
- *      110  -\> 6
- *      111  -\> 7
+ *      000  -> 0
+ *      001  -> 1
+ *      010  -> 2
+ *      011  -> 3
+ *      100  -> 4
+ *      101  -> 5
+ *      110  -> 6
+ *      111  -> 7
  *
  *  Note that in four of these, the sum of H and V is 1 (odd).
  *  For these four, we have a change in parity (handedness) of
@@ -108,8 +108,8 @@
  *
  *  The ascender/descender signal is useful for determining text
  *  orientation in Roman alphabets because the incidence of letters
- *  with straight-line ascenders (b, d, h, k, l, \<t\>) outnumber
- *  those with descenders (\<g\>, p, q).  The letters \<t\> and \<g\>
+ *  with straight-line ascenders (b, d, h, k, l, <t>) outnumber
+ *  those with descenders (<g>, p, q).  The letters <t> and <g>
  *  will respond variably to the filter, depending on the type face.
  *
  *  What about the mirror image situations?  These aren't common
@@ -224,11 +224,11 @@ static void pixDebugFlipDetect(const char *filename, PIX *pixs,
  * Notes:
  *      (1) See "Measuring document image skew and orientation"
  *          Dan S. Bloomberg, Gary E. Kopec and Lakshmi Dasari
- *          IS\&T/SPIE EI'95, Conference 2422: Document Recognition II
+ *          IS&T/SPIE EI'95, Conference 2422: Document Recognition II
  *          pp 302-316, Feb 6-7, 1995, San Jose, CA
  *      (2) upconf is the normalized difference between up ascenders
  *          and down ascenders.  The image is analyzed without rotation
- *          for being rightside-up or upside-down.  Set \&upconf to null
+ *          for being rightside-up or upside-down.  Set &upconf to null
  *          to skip this operation.
  *      (3) leftconf is the normalized difference between up ascenders
  *          and down ascenders in the image after it has been
@@ -236,7 +236,7 @@ static void pixDebugFlipDetect(const char *filename, PIX *pixs,
  *          projecting to the left in the source image will project up
  *          in the rotated image.  We compute this by rotating 90 degrees
  *          clockwise and testing for up and down ascenders.  Set
- *          \&leftconf to null to skip this operation.
+ *          &leftconf to null to skip this operation.
  *      (4) Note that upconf and leftconf are not linear measures of
  *          confidence, e.g., in a range between 0 and 100.  They
  *          measure how far you are out on the tail of a (presumably)
@@ -250,7 +250,7 @@ static void pixDebugFlipDetect(const char *filename, PIX *pixs,
  *          but even at 90 degrees, the difference can look significant.
  *          For example, suppose the ascenders are oriented horizontally,
  *          but the test is done vertically.  Then upconf can
- *          be \< -MIN_CONF_FOR_UP_DOWN, suggesting the text may be
+ *          be < -MIN_CONF_FOR_UP_DOWN, suggesting the text may be
  *          upside-down.  However, if instead the test were done
  *          horizontally, leftconf will be very much larger
  *          (in absolute value), giving the correct orientation.
@@ -258,10 +258,10 @@ static void pixDebugFlipDetect(const char *filename, PIX *pixs,
  *          sufficient signal, the following table determines the
  *          cw angle necessary to rotate pixs so that the text is
  *          rightside-up:
- *             0 deg :           upconf \>\> 1,    abs(upconf) \>\> abs(leftconf)
- *             90 deg :          leftconf \>\> 1,  abs(leftconf) \>\> abs(upconf)
- *             180 deg :         upconf \<\< -1,   abs(upconf) \>\> abs(leftconf)
- *             270 deg :         leftconf \<\< -1, abs(leftconf) \>\> abs(upconf)
+ *             0 deg :           upconf >> 1,    abs(upconf) >> abs(leftconf)
+ *             90 deg :          leftconf >> 1,  abs(leftconf) >> abs(upconf)
+ *             180 deg :         upconf << -1,   abs(upconf) >> abs(leftconf)
+ *             270 deg :         leftconf << -1, abs(leftconf) >> abs(upconf)
  *      (6) One should probably not interpret the direction unless
  *          there are a sufficient number of counts for both orientations,
  *          in which case neither upconf nor leftconf will be 0.0.
@@ -432,7 +432,7 @@ pixUpDownDetect(PIX        *pixs,
  *          is either rightside-up or upside-down and not rotated
  *          at a 90 degree angle.
  *      (3) The typical mode of operation is %npixels == 0.
- *          If %npixels \> 0, this removes HMT matches at the
+ *          If %npixels > 0, this removes HMT matches at the
  *          beginning and ending of "words."  This is useful for
  *          pages that may have mostly digits, because if npixels == 0,
  *          leading "1" and "3" digits can register as having
@@ -858,7 +858,6 @@ SEL       *sel1, *sel2;
     pixAnd(pixt0, pixt0, pixt3);
     pixOr(pixt0, pixt0, pixs);
     pixDestroy(&pixt3);
-/*    pixDisplayWrite(pixt0, 1); */
 
         /* Filter the right-facing characters. */
     pixt1 = pixHMT(NULL, pixt0, sel1);

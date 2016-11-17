@@ -83,7 +83,7 @@ static const l_int32  MinHeight = 100;
  * \param[out]   ppixhm [optional] halftone mask
  * \param[out]   ppixtm [optional] textline mask
  * \param[out]   ppixtb [optional] textblock mask
- * \param[in]    debug flag: set to 1 for debug output
+ * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -95,11 +95,11 @@ static const l_int32  MinHeight = 100;
  * </pre>
  */
 l_int32
-pixGetRegionsBinary(PIX     *pixs,
-                    PIX    **ppixhm,
-                    PIX    **ppixtm,
-                    PIX    **ppixtb,
-                    l_int32  debug)
+pixGetRegionsBinary(PIX   *pixs,
+                    PIX  **ppixhm,
+                    PIX  **ppixtm,
+                    PIX  **ppixtb,
+                    PIXA  *pixadb)
 {
 l_int32  w, h, htfound, tlfound;
 PIX     *pixr, *pix1, *pix2;
@@ -128,16 +128,16 @@ PIX     *pixtb;    /* textblock mask */
 
         /* 2x reduce, to 150 -200 ppi */
     pixr = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
-    pixDisplayWrite(pixr, debug);
+    if (pixadb) pixaAddPix(pixadb, pixr, L_COPY);
 
         /* Get the halftone mask */
-    pixhm2 = pixGenHalftoneMask(pixr, &pixtext, &htfound, debug);
+    pixhm2 = pixGenHalftoneMask(pixr, &pixtext, &htfound, pixadb);
 
         /* Get the textline mask from the text pixels */
-    pixtm2 = pixGenTextlineMask(pixtext, &pixvws, &tlfound, debug);
+    pixtm2 = pixGenTextlineMask(pixtext, &pixvws, &tlfound, pixadb);
 
         /* Get the textblock mask from the textline mask */
-    pixtb2 = pixGenTextblockMask(pixtm2, pixvws, debug);
+    pixtb2 = pixGenTextblockMask(pixtm2, pixvws, pixadb);
     pixDestroy(&pixr);
     pixDestroy(&pixtext);
     pixDestroy(&pixvws);
@@ -147,7 +147,7 @@ PIX     *pixtb;    /* textblock mask */
     pixtbf2 = pixSelectBySize(pixtb2, 60, 60, 4, L_SELECT_IF_EITHER,
                               L_SELECT_IF_GTE, NULL);
     pixDestroy(&pixtb2);
-    pixDisplayWriteFormat(pixtbf2, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixtbf2, L_COPY);
 
         /* Expand all masks to full resolution, and do filling or
          * small dilations for better coverage. */
@@ -155,33 +155,32 @@ PIX     *pixtb;    /* textblock mask */
     pix1 = pixSeedfillBinary(NULL, pixhm, pixs, 8);
     pixOr(pixhm, pixhm, pix1);
     pixDestroy(&pix1);
-    pixDisplayWriteFormat(pixhm, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixhm, L_COPY);
 
     pix1 = pixExpandReplicate(pixtm2, 2);
     pixtm = pixDilateBrick(NULL, pix1, 3, 3);
     pixDestroy(&pix1);
-    pixDisplayWriteFormat(pixtm, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixtm, L_COPY);
 
     pix1 = pixExpandReplicate(pixtbf2, 2);
     pixtb = pixDilateBrick(NULL, pix1, 3, 3);
     pixDestroy(&pix1);
-    pixDisplayWriteFormat(pixtb, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixtb, L_COPY);
 
     pixDestroy(&pixhm2);
     pixDestroy(&pixtm2);
     pixDestroy(&pixtbf2);
 
         /* Debug: identify objects that are neither text nor halftone image */
-    if (debug) {
+    if (pixadb) {
         pix1 = pixSubtract(NULL, pixs, pixtm);  /* remove text pixels */
         pix2 = pixSubtract(NULL, pix1, pixhm);  /* remove halftone pixels */
-        pixDisplayWriteFormat(pix2, 1, IFF_PNG);
+        pixaAddPix(pixadb, pix2, L_INSERT);
         pixDestroy(&pix1);
-        pixDestroy(&pix2);
     }
 
         /* Debug: display textline components with random colors */
-    if (debug) {
+    if (pixadb) {
         l_int32  w, h;
         BOXA    *boxa;
         PIXA    *pixa;
@@ -190,40 +189,43 @@ PIX     *pixtb;    /* textblock mask */
         pix1 = pixaDisplayRandomCmap(pixa, w, h);
         pixcmapResetColor(pixGetColormap(pix1), 0, 255, 255, 255);
         pixDisplay(pix1, 100, 100);
-        pixDisplayWriteFormat(pix1, 1, IFF_PNG);
+        pixaAddPix(pixadb, pix1, L_INSERT);
         pixaDestroy(&pixa);
         boxaDestroy(&boxa);
-        pixDestroy(&pix1);
     }
 
         /* Debug: identify the outlines of each textblock */
-    if (debug) {
+    if (pixadb) {
         PIXCMAP  *cmap;
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
-        lept_mkdir("pageseg");
-        ptaaWrite("/tmp/pageseg/tb_outlines.ptaa", ptaa, 1);
+        lept_mkdir("lept/pageseg");
+        ptaaWrite("/tmp/lept/pageseg/tb_outlines.ptaa", ptaa, 1);
         pix1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
         cmap = pixGetColormap(pix1);
         pixcmapResetColor(cmap, 0, 130, 130, 130);
         pixDisplay(pix1, 500, 100);
-        pixDisplayWriteFormat(pix1, 1, IFF_PNG);
-        pixDestroy(&pix1);
+        pixaAddPix(pixadb, pix1, L_INSERT);
         ptaaDestroy(&ptaa);
     }
 
         /* Debug: get b.b. for all mask components */
-    if (debug) {
+    if (pixadb) {
         BOXA  *bahm, *batm, *batb;
         bahm = pixConnComp(pixhm, NULL, 4);
         batm = pixConnComp(pixtm, NULL, 4);
         batb = pixConnComp(pixtb, NULL, 4);
-        boxaWrite("/tmp/pageseg/htmask.boxa", bahm);
-        boxaWrite("/tmp/pageseg/textmask.boxa", batm);
-        boxaWrite("/tmp/pageseg/textblock.boxa", batb);
+        boxaWrite("/tmp/lept/pageseg/htmask.boxa", bahm);
+        boxaWrite("/tmp/lept/pageseg/textmask.boxa", batm);
+        boxaWrite("/tmp/lept/pageseg/textblock.boxa", batb);
         boxaDestroy(&bahm);
         boxaDestroy(&batm);
         boxaDestroy(&batb);
+    }
+    if (pixadb) {
+        pixaConvertToPdf(pixadb, 0, 1.0, 0, 0, "Debug page segmentation",
+                         "/tmp/lept/pageseg/debug.pdf");
+        L_INFO("Writing debug pdf to /tmp/lept/pageseg/debug.pdf", procName);
     }
 
     if (ppixhm)
@@ -252,7 +254,7 @@ PIX     *pixtb;    /* textblock mask */
  * \param[in]    pixs 1 bpp, assumed to be 150 to 200 ppi
  * \param[out]   ppixtext [optional] text part of pixs
  * \param[out]   phtfound [optional] 1 if the mask is not empty
- * \param[in]    debug flag: 1 for debug output
+ * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
  * \return  pixd halftone mask, or NULL on error
  *
  * <pre>
@@ -265,7 +267,7 @@ PIX *
 pixGenHalftoneMask(PIX      *pixs,
                    PIX     **ppixtext,
                    l_int32  *phtfound,
-                   l_int32   debug)
+                   PIXA     *pixadb)
 {
 l_int32  w, h, empty;
 PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
@@ -288,11 +290,11 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
     pixhs = pixExpandReplicate(pix2, 8);  /* back to 2x reduction */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDisplayWriteFormat(pixhs, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixhs, L_COPY);
 
         /* Compute mask for connected regions */
     pixhm = pixCloseSafeBrick(NULL, pixs, 4, 4);
-    pixDisplayWriteFormat(pixhm, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixhm, L_COPY);
 
         /* Fill seed into mask to get halftone mask */
     pixd = pixSeedfillBinary(NULL, pixhs, pixhm, 4);
@@ -300,7 +302,6 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
 #if 0
         /* Moderate opening to remove thin lines, etc. */
     pixOpenBrick(pixd, pixd, 10, 10);
-    pixDisplayWrite(pixd, debug);
 #endif
 
         /* Check if mask is empty */
@@ -314,7 +315,7 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
             *ppixtext = pixCopy(NULL, pixs);
         else
             *ppixtext = pixSubtract(NULL, pixs, pixd);
-        pixDisplayWriteFormat(*ppixtext, debug, IFF_PNG);
+        if (pixadb) pixaAddPix(pixadb, *ppixtext, L_COPY);
     }
 
     pixDestroy(&pixhs);
@@ -332,7 +333,7 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
  * \param[in]    pixs 1 bpp, assumed to be 150 to 200 ppi
  * \param[out]   ppixvws vertical whitespace mask
  * \param[out]   ptlfound [optional] 1 if the mask is not empty
- * \param[in]    debug flag: 1 for debug output
+ * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
  * \return  pixd textline mask, or NULL on error
  *
  * <pre>
@@ -349,7 +350,7 @@ PIX *
 pixGenTextlineMask(PIX      *pixs,
                    PIX     **ppixvws,
                    l_int32  *ptlfound,
-                   l_int32   debug)
+                   PIXA     *pixadb)
 {
 l_int32  w, h, empty;
 PIX     *pix1, *pix2, *pixvws, *pixd;
@@ -380,7 +381,7 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
          * textlines), and subtracting this from the bg. */
     pix2 = pixMorphCompSequence(pix1, "o80.60", 0);
     pixSubtract(pix1, pix1, pix2);
-    pixDisplayWriteFormat(pix1, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
     pixDestroy(&pix2);
 
         /* Identify vertical whitespace by opening the remaining bg.
@@ -388,7 +389,7 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
          * long vertical bg lines. */
     pixvws = pixMorphCompSequence(pix1, "o5.1 + o1.200", 0);
     *ppixvws = pixvws;
-    pixDisplayWriteFormat(pixvws, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixvws, L_COPY);
     pixDestroy(&pix1);
 
         /* Three steps to getting text line mask:
@@ -396,10 +397,10 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
          *   (2) open the vertical whitespace corridors back up
          *   (3) small opening to remove noise    */
     pix1 = pixCloseSafeBrick(NULL, pixs, 30, 1);
-    pixDisplayWrite(pix1, debug);
+    if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
     pixd = pixSubtract(NULL, pix1, pixvws);
     pixOpenBrick(pixd, pixd, 3, 3);
-    pixDisplayWriteFormat(pixd, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixd, L_COPY);
     pixDestroy(&pix1);
 
         /* Check if text line mask is empty */
@@ -421,7 +422,7 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
  *
  * \param[in]    pixs 1 bpp, textline mask, assumed to be 150 to 200 ppi
  * \param[in]    pixvws vertical white space mask
- * \param[in]    debug flag: 1 for debug output
+ * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
  * \return  pixd textblock mask, or NULL on error
  *
  * <pre>
@@ -438,9 +439,9 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
  * </pre>
  */
 PIX *
-pixGenTextblockMask(PIX     *pixs,
-                    PIX     *pixvws,
-                    l_int32  debug)
+pixGenTextblockMask(PIX   *pixs,
+                    PIX   *pixvws,
+                    PIXA  *pixadb)
 {
 l_int32  w, h;
 PIX     *pix1, *pix2, *pix3, *pixd;
@@ -459,7 +460,7 @@ PIX     *pix1, *pix2, *pix3, *pixd;
 
         /* Join pixels vertically to make a textblock mask */
     pix1 = pixMorphSequence(pixs, "c1.10 + o4.1", 0);
-    pixDisplayWriteFormat(pix1, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
 
         /* Solidify the textblock mask and remove noise:
          *   (1) For each cc, close the blocks and dilate slightly
@@ -469,12 +470,12 @@ PIX     *pix1, *pix2, *pix3, *pixd;
          *   (4) Remove small components. */
     pix2 = pixMorphSequenceByComponent(pix1, "c30.30 + d3.3", 8, 0, 0, NULL);
     pixCloseSafeBrick(pix2, pix2, 10, 1);
-    pixDisplayWriteFormat(pix2, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
     pix3 = pixSubtract(NULL, pix2, pixvws);
-    pixDisplayWriteFormat(pix3, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pix3, L_COPY);
     pixd = pixSelectBySize(pix3, 25, 5, 8, L_SELECT_IF_BOTH,
                             L_SELECT_IF_GTE, NULL);
-    pixDisplayWriteFormat(pixd, debug, IFF_PNG);
+    if (pixadb) pixaAddPix(pixadb, pixd, L_COPY);
 
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -521,11 +522,11 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *          dimensions of pixs must be at least MinWidth x MinHeight.
  *      (4) If you want pdf output of results when called repeatedly,
  *          the pagenum arg labels the images written, which go into
- *          /tmp/lept/\<pdfdir\>/\<pagenum\>.png.  In that case,
+ *          /tmp/lept/<pdfdir>/<pagenum>.png.  In that case,
  *          you would clean out the /tmp directory before calling this
  *          function on each page:
- *              lept_rmdir("/lept/\<pdfdir\>");
- *              lept_mkdir("/lept/\<pdfdir\>");
+ *              lept_rmdir("/lept/<pdfdir>");
+ *              lept_mkdir("/lept/<pdfdir>");
  * </pre>
  */
 BOX *
@@ -895,14 +896,14 @@ PIX      *pix1, *pixdb;
  * <pre>
  * Notes:
  *      (1) This first removes components from pixs that are either
- *          wide (\> %maxw) or tall (\> %maxh).
+ *          wide (> %maxw) or tall (> %maxh).
  *      (2) This function assumes that textlines have sufficient
  *          vertical separation and small enough skew so that a
  *          horizontal dilation sufficient to join words will not join
  *          textlines.  Images with multiple columns of text may have
  *          the textlines join across the space between columns.
  *      (3) A final filtering operation removes small components, such
- *          that width \< %minw or height \< %minh.
+ *          that width < %minw or height < %minh.
  *      (4) For reasonable accuracy, the resolution of pixs should be
  *          at least 100 ppi.  For reasonable efficiency, the resolution
  *          should not exceed 600 ppi.
@@ -1449,7 +1450,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
  *
  * <pre>
  * Notes:
- *      (1) Caller should check that return bg value is \> 0.
+ *      (1) Caller should check that return bg value is > 0.
  * </pre>
  */
 l_int32

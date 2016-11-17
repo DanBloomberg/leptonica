@@ -1336,10 +1336,10 @@ LEPT_DLL extern NUMA * numaCrossingsByPeaks ( NUMA *nax, NUMA *nay, l_float32 de
 LEPT_DLL extern l_int32 numaEvalBestHaarParameters ( NUMA *nas, l_float32 relweight, l_int32 nwidth, l_int32 nshift, l_float32 minwidth, l_float32 maxwidth, l_float32 *pbestwidth, l_float32 *pbestshift, l_float32 *pbestscore );
 LEPT_DLL extern l_int32 numaEvalHaarSum ( NUMA *nas, l_float32 width, l_float32 shift, l_float32 relweight, l_float32 *pscore );
 LEPT_DLL extern NUMA * genConstrainedNumaInRange ( l_int32 first, l_int32 last, l_int32 nmax, l_int32 use_pairs );
-LEPT_DLL extern l_int32 pixGetRegionsBinary ( PIX *pixs, PIX **ppixhm, PIX **ppixtm, PIX **ppixtb, l_int32 debug );
-LEPT_DLL extern PIX * pixGenHalftoneMask ( PIX *pixs, PIX **ppixtext, l_int32 *phtfound, l_int32 debug );
-LEPT_DLL extern PIX * pixGenTextlineMask ( PIX *pixs, PIX **ppixvws, l_int32 *ptlfound, l_int32 debug );
-LEPT_DLL extern PIX * pixGenTextblockMask ( PIX *pixs, PIX *pixvws, l_int32 debug );
+LEPT_DLL extern l_int32 pixGetRegionsBinary ( PIX *pixs, PIX **ppixhm, PIX **ppixtm, PIX **ppixtb, PIXA *pixadb );
+LEPT_DLL extern PIX * pixGenHalftoneMask ( PIX *pixs, PIX **ppixtext, l_int32 *phtfound, PIXA *pixadb );
+LEPT_DLL extern PIX * pixGenTextlineMask ( PIX *pixs, PIX **ppixvws, l_int32 *ptlfound, PIXA *pixadb );
+LEPT_DLL extern PIX * pixGenTextblockMask ( PIX *pixs, PIX *pixvws, PIXA *pixadb );
 LEPT_DLL extern BOX * pixFindPageForeground ( PIX *pixs, l_int32 threshold, l_int32 mindist, l_int32 erasedist, l_int32 pagenum, l_int32 showmorph, l_int32 display, const char *pdfdir );
 LEPT_DLL extern l_int32 pixSplitIntoCharacters ( PIX *pixs, l_int32 minw, l_int32 minh, BOXA **pboxa, PIXA **ppixa, PIX **ppixdebug );
 LEPT_DLL extern BOXA * pixSplitComponentWithProfile ( PIX *pixs, l_int32 delta, l_int32 mindel, PIX **ppixdebug );

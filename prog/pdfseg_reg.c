@@ -75,7 +75,7 @@ L_REGPARAMS  *rp;
     pix2 = pixScaleToSize(pix1, WIDTH, 0);
     pix3 = pixConvertTo1(pix2, 100);
     pix4 = pixExpandBinaryPower2(pix3, 2);  /* w = 2 * WIDTH */
-    pix5 = pixGenHalftoneMask(pix4, NULL, NULL, 1);
+    pix5 = pixGenHalftoneMask(pix4, NULL, NULL, NULL);
     pix6 = pixMorphSequence(pix5, "c20.1 + c1.20", 0);
     pix7 = pixMaskConnComp(pix6, 8, &boxa1);
     pix8 = pixReduceBinary2(pix7, NULL);  /* back to w = WIDTH */
@@ -115,7 +115,7 @@ L_REGPARAMS  *rp;
     pix2 = pixScaleToGray(pix1, scalefactor);
     pixWrite("/tmp/lept/pdfseg/3.jpg", pix2, IFF_JFIF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/pdfseg/3.jpg");   /* 3 */
-    pix3 = pixGenHalftoneMask(pix1, NULL, NULL, 0);
+    pix3 = pixGenHalftoneMask(pix1, NULL, NULL, NULL);
     pix4 = pixMorphSequence(pix3, "c20.1 + c1.20", 0);
     boxa1 = pixConnComp(pix4, NULL, 8);
     boxa2 = boxaTransform(boxa1, 0, 0, scalefactor, scalefactor);

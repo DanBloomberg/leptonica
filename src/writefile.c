@@ -1012,19 +1012,19 @@ pixDisplayWrite(PIX     *pixs,
  * <pre>
  * Notes:
  *      (1) This writes files with pathnames "/tmp/lept/display/file.*"
- *          if reduction \> 0.  These can be collected into a pdf using
+ *          if reduction > 0.  These can be collected into a pdf using
  *          pixDisplayMultiple();
  *      (2) Before writing a set of files, call
  *              pixDisplayWrite(NULL, -1);
  *          This erases any previously written files in that directory.
- *      (3) If reduction \> 1 and depth == 1, this does a scale-to-gray
+ *      (3) If reduction > 1 and depth == 1, this does a scale-to-gray
  *          reduction.
  *      (4) This function uses a static internal variable to number
  *          output files written by a single process.  Behavior
  *          with a shared library may be unpredictable.
  *      (5) Output file format is as follows:
  *            format == IFF_DEFAULT:
- *                png if d \< 8 or d == 16 or if the output pix
+ *                png if d < 8 or d == 16 or if the output pix
  *                has a colormap.   Otherwise, output is jpg.
  *            format == IFF_PNG:
  *                png (lossless) on all images.
