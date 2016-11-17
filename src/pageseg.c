@@ -89,9 +89,7 @@ static const l_int32  MinHeight = 100;
  * <pre>
  * Notes:
  *      (1) It is best to deskew the image before segmenting.
- *      (2) The debug flag enables a number of outputs.  These
- *          are included to show how to generate and save/display
- *          these results.
+ *      (2) Passing in %pixadb enables debug output.
  * </pre>
  */
 l_int32

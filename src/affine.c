@@ -1191,8 +1191,11 @@ l_uint32  *lines;
     if (!datas)
         return ERROR_INT("datas not defined", procName, 1);
 
-        /* Skip if off the edge */
-    if (x < 0.0 || y < 0.0 || x >= w || y >= h)
+        /* Skip if x or y are invalid. (x,y) must be in the source image.
+         * The checks (x != x) and (y != y) are for nan, which always
+         * give true for nan.  Without this check an invalid x or y
+         * input will cause a memory addressing crash. */
+    if (x < 0.0 || y < 0.0 || x >= w || y >= h || x != x || y != y)
         return 0;
 
     xpm = (l_int32)(16.0 * x);
@@ -1273,8 +1276,11 @@ l_uint32  *lines;
     if (!datas)
         return ERROR_INT("datas not defined", procName, 1);
 
-        /* Skip if really off the edge */
-    if (x < 0.0 || y < 0.0 || x >= w || y >= h)
+        /* Skip if x or y are invalid. (x,y) must be in the source image.
+         * The checks (x != x) and (y != y) are for nan, which always
+         * give true for nan.  Without this check an invalid x or y
+         * input will cause a memory addressing crash. */
+    if (x < 0.0 || y < 0.0 || x >= w || y >= h || x != x || y != y)
         return 0;
 
     xpm = (l_int32)(16.0 * x);
