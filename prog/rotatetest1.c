@@ -167,7 +167,7 @@ static char  mainName[] = "rotatetest1";
     gplotAddPlot(gplot, naseq, nag, GPLOT_POINTS, "green");
     gplotAddPlot(gplot, naseq, nab, GPLOT_POINTS, "blue");
     gplotMakeOutput(gplot);
-    l_fileDisplay("/tmp/lept/rotate/absdiff.png", 100, 100);
+    l_fileDisplay("/tmp/lept/rotate/absdiff.png", 100, 100, 1.0);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pixd);

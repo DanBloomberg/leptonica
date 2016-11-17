@@ -62,7 +62,7 @@ static char  mainName[] = "contrasttest";
 
     na = numaContrastTRC(factor);
     gplotSimple1(na, GPLOT_PNG, "/tmp/lept/contrast/trc1", "contrast trc");
-    l_fileDisplay("/tmp/lept/contrast/trc1.png", 0, 100);
+    l_fileDisplay("/tmp/lept/contrast/trc1.png", 0, 100, 1.0);
     numaDestroy(&na);
 
          /* Plot contrast TRC maps */
@@ -78,7 +78,7 @@ static char  mainName[] = "contrasttest";
     }
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
-    l_fileDisplay("/tmp/lept/contrast/trc2.png", 600, 100);
+    l_fileDisplay("/tmp/lept/contrast/trc2.png", 600, 100, 1.0);
     numaDestroy(&nax);
 
         /* Apply the input contrast enhancement */

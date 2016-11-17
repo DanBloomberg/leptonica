@@ -886,7 +886,7 @@ PIX            *pixt;
         gplotDestroy(&gplot);
         snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_gray%d.png",
                  index++);
-        l_fileDisplay(buf, 100, 100);
+        l_fileDisplay(buf, 100, 100, 1.0);
         numaDestroy(&na);
         numaDestroy(&nac);
     }
@@ -1019,7 +1019,7 @@ PIX            *pixr, *pixg, *pixb;
         gplotDestroy(&gplot);
         snprintf(buf, sizeof(buf), "/tmp/lept/comp/compare_rgb%d.png",
                  index++);
-        l_fileDisplay(buf, 100, 100);
+        l_fileDisplay(buf, 100, 100, 1.0);
         numaDestroy(&nar);
         numaDestroy(&nag);
         numaDestroy(&nab);

@@ -70,7 +70,7 @@ static char  mainName[] = "gammatest";
 
     na = numaGammaTRC(gam, MINVAL, MAXVAL);
     gplotSimple1(na, GPLOT_PNG, "/tmp/lept/gamma/trc", "gamma trc");
-    l_fileDisplay("/tmp/lept/gamma/trc.png", 100, 100);
+    l_fileDisplay("/tmp/lept/gamma/trc.png", 100, 100, 1.0);
     numaDestroy(&na);
 
         /* Plot gamma TRC maps */
@@ -86,7 +86,7 @@ static char  mainName[] = "gammatest";
     }
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
-    l_fileDisplay("/tmp/lept/gamma/corr.png", 100, 100);
+    l_fileDisplay("/tmp/lept/gamma/corr.png", 100, 100, 1.0);
     numaDestroy(&nax);
     return 0;
 }

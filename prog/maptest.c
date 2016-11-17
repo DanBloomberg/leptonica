@@ -201,7 +201,7 @@ RB_TYPE  *pval;
     }
     gplotSimple1(na, GPLOT_PNG, rootname, NULL);
     snprintf(buf, sizeof(buf), "%s.png", rootname);
-    l_fileDisplay(buf, 700, 0);
+    l_fileDisplay(buf, 700, 0, 1.0);
     numaDestroy(&na);
     return;
 }

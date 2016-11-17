@@ -143,7 +143,7 @@ static char  mainName[] = "comparetest";
                 gplotAddPlot(gplot, NULL, na2, GPLOT_LINES, "rank");
                 gplotMakeOutput(gplot);
                 gplotDestroy(&gplot);
-                l_fileDisplay("/tmp/lept/comp/rank.png", 100, 100);
+                l_fileDisplay("/tmp/lept/comp/rank.png", 100, 100, 1.0);
                 numaDestroy(&na1);
                 numaDestroy(&na2);
             }

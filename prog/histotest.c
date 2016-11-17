@@ -75,7 +75,7 @@ static char  mainName[] = "histotest";
         gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
-        l_fileDisplay("/tmp/lept/histo/color.png", 100, 100);
+        l_fileDisplay("/tmp/lept/histo/color.png", 100, 100, 1.0);
     }
     else {
         if ((na = pixGetGrayHistogram(pixs, 1)) == NULL)
@@ -88,7 +88,7 @@ static char  mainName[] = "histotest";
         gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
-        l_fileDisplay("/tmp/lept/histo/gray.png", 100, 100);
+        l_fileDisplay("/tmp/lept/histo/gray.png", 100, 100, 1.0);
     }
 
     pixDestroy(&pixs);

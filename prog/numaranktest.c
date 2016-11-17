@@ -74,7 +74,7 @@ static char  mainName[] = "numaranktest";
         numaAddNumber(nar, rank);
     }
     gplotSimple1(nar, GPLOT_PNG, "/tmp/lept/numa/rank", "rank vs val");
-    l_fileDisplay("/tmp/lept/numa/rank.png", 0, 0);
+    l_fileDisplay("/tmp/lept/numa/rank.png", 0, 0, 1.0);
 
     nav = numaCreate(0);
     for (rank = 0.0; rank <= 1.0; rank += 0.01) {
@@ -82,7 +82,7 @@ static char  mainName[] = "numaranktest";
         numaAddNumber(nav, rval);
     }
     gplotSimple1(nav, GPLOT_PNG, "/tmp/lept/numa/val", "val vs rank");
-    l_fileDisplay("/tmp/lept/numa/val.png", 750, 0);
+    l_fileDisplay("/tmp/lept/numa/val.png", 750, 0, 1.0);
 
     pixDestroy(&pix);
     numaDestroy(&na);

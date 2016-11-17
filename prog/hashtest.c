@@ -198,7 +198,7 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
             l_dnaGetCount(da2), l_dnaGetCount(da3));
     fprintf(stderr, "  dna number of da2/da3 intersection points = %d\n",
             l_dnaGetCount(da7));
-    l_fileDisplay("/tmp/lept/hash/histo.png", 700, 100);
+    l_fileDisplay("/tmp/lept/hash/histo.png", 700, 100, 1.0);
     l_dnaDestroy(&da1);
     l_dnaDestroy(&da2);
     l_dnaDestroy(&da3);

@@ -96,7 +96,7 @@ static char  mainName[] = "plottest";
     pngname = genPathname("/tmp/lept/plot", "set1.png");
     stringReplace(&gplot1->outname, pngname);
     gplotMakeOutput(gplot1);
-    l_fileDisplay("/tmp/lept/plot/set1.png", 100, 100);
+    l_fileDisplay("/tmp/lept/plot/set1.png", 100, 100, 1.0);
     lept_free(pngname);
 
         /* Test gplot serialization */
@@ -137,7 +137,7 @@ static char  mainName[] = "plottest";
     if ((gplot5 = gplotRead("/tmp/lept/plot/plot4.gp")) == NULL)
         return ERROR_INT("gplotRead failure!", mainName, 1);
     gplotMakeOutput(gplot5);
-    l_fileDisplay("/tmp/lept/plot/set2.png", 750, 100);
+    l_fileDisplay("/tmp/lept/plot/set2.png", 750, 100, 1.0);
 
     gplotDestroy(&gplot1);
     gplotDestroy(&gplot2);
