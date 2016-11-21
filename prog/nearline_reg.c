@@ -31,13 +31,7 @@
  *   near a specified line.
  */
 
-#ifndef  _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>   /* for Sleep() */
-#endif  /* _WIN32 */
 #include "allheaders.h"
-
 
 l_int32 main(int    argc,
              char **argv)
@@ -119,11 +113,13 @@ L_REGPARAMS  *rp;
     numaaAddNuma(naa, na5, L_INSERT);  /* landscape, single-sided */
     gplotSimpleN(naa, GPLOT_PNG, "/tmp/lept/regout/nearline",
                  "Average minimums along lines");
+#if 0
 #ifndef  _WIN32
     sleep(1);
 #else
     Sleep(1000);
 #endif  /* _WIN32 */
+#endif
     pix3 = pixRead("/tmp/lept/regout/nearline.png");
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 7 */
     pixDisplayWithTitle(pix3, 100, 100, NULL, rp->display);
@@ -172,11 +168,6 @@ L_REGPARAMS  *rp;
     numaaAddNuma(naa, na3, L_INSERT);
     gplotSimpleN(naa, GPLOT_PNG, "/tmp/lept/regout/nearline2",
                  "Min along line");
-#ifndef  _WIN32
-    sleep(1);
-#else
-    Sleep(1000);
-#endif  /* _WIN32 */
     pix4 = pixRead("/tmp/lept/regout/nearline2.png");
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 9 */
     pixDisplayWithTitle(pix4, 800, 100, NULL, rp->display);

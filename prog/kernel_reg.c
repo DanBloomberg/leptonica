@@ -29,11 +29,6 @@
  */
 
 #include <string.h>
-#ifndef  _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>   /* for Sleep() */
-#endif  /* _WIN32 */
 #include "allheaders.h"
 
 static const char  *kdatastr = " 20.3    50   80  50   20 "
@@ -216,13 +211,6 @@ L_REGPARAMS  *rp;
 
     pixCompareGray(pixt, pixt2, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
                    &avediff, &rmsdiff, NULL);
-#if 0
-#ifndef  _WIN32
-    sleep(1);  /* give gnuplot time to write out the file */
-#else
-    Sleep(1000);
-#endif  /* _WIN32 */
-#endif
     pixp = pixRead("/tmp/lept/comp/compare_gray0.png");
     pixSaveTiled(pixp, pixa, 1.0, 0, 20, 0);
     pixWrite("/tmp/lept/regout/conv3.png", pixp, IFF_PNG);

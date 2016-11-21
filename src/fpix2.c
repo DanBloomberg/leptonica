@@ -320,8 +320,8 @@ fpixConvertToPix(FPIX    *fpixs,
                  l_int32  negvals,
                  l_int32  errorflag)
 {
-l_int32     w, h, i, j, wpls, wpld, maxval;
-l_uint32    vald;
+l_int32     w, h, i, j, wpls, wpld;
+l_uint32    vald, maxval;
 l_float32   val;
 l_float32  *datas, *lines;
 l_uint32   *datad, *lined;
@@ -353,8 +353,9 @@ PIX        *pixd;
             }
         }
     }
-    maxval = 0xff;
-    if (outdepth == 16)
+    if (outdepth == 8)
+        maxval = 0xff;
+    else if (outdepth == 16)
         maxval = 0xffff;
     else  /* outdepth == 32 */
         maxval = 0xffffffff;

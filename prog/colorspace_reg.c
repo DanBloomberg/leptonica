@@ -32,12 +32,6 @@
  *       - global linear color mapping and extraction of color magnitude
  */
 
-#ifndef  _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>   /* for Sleep() */
-#endif  /* _WIN32 */
-
 #include "allheaders.h"
 
 int main(int    argc,
@@ -186,13 +180,6 @@ L_REGPARAMS  *rp;
     numaDestroy(&naseq);
     numaaDestroy(&naa1);
     numaaDestroy(&naa2);
-
-        /* Give gnuplot time to write out the files */
-#ifndef  _WIN32
-    sleep(1);
-#else
-    Sleep(1000);
-#endif  /* _WIN32 */
 
         /* Save as golden files, or check against them */
     regTestCheckFile(rp, "/tmp/lept/regout/colorspace.10.png");  /* 10 */

@@ -1178,7 +1178,7 @@ linearInterpolatePixelColor(l_uint32  *datas,
                             l_uint32   colorval,
                             l_uint32  *pval)
 {
-l_int32    xpm, ypm, xp, xp2, yp, xf, yf;
+l_int32    valid, xpm, ypm, xp, xp2, yp, xf, yf;
 l_int32    rval, gval, bval;
 l_uint32   word00, word01, word10, word11;
 l_uint32  *lines;
@@ -1192,11 +1192,11 @@ l_uint32  *lines;
         return ERROR_INT("datas not defined", procName, 1);
 
         /* Skip if x or y are invalid. (x,y) must be in the source image.
-         * The checks (x != x) and (y != y) are for nan, which always
-         * give true for nan.  Without this check an invalid x or y
-         * input will cause a memory addressing crash. */
-    if (x < 0.0 || y < 0.0 || x >= w || y >= h || x != x || y != y)
-        return 0;
+         * Failure to detect an invalid point will cause a mem address fault.
+         * Occasionally, x or y will be a nan, and relational checks always
+         * fail for nans.  Therefore we check if the point is inside the pix */
+    valid = (x >= 0.0 && y >= 0.0 && x < w && y < h);
+    if (!valid) return 0;
 
     xpm = (l_int32)(16.0 * x);
     ypm = (l_int32)(16.0 * y);
@@ -1265,7 +1265,7 @@ linearInterpolatePixelGray(l_uint32  *datas,
                            l_int32    grayval,
                            l_int32   *pval)
 {
-l_int32    xpm, ypm, xp, xp2, yp, xf, yf, v00, v10, v01, v11;
+l_int32    valid, xpm, ypm, xp, xp2, yp, xf, yf, v00, v10, v01, v11;
 l_uint32  *lines;
 
     PROCNAME("linearInterpolatePixelGray");
@@ -1276,12 +1276,12 @@ l_uint32  *lines;
     if (!datas)
         return ERROR_INT("datas not defined", procName, 1);
 
-        /* Skip if x or y are invalid. (x,y) must be in the source image.
-         * The checks (x != x) and (y != y) are for nan, which always
-         * give true for nan.  Without this check an invalid x or y
-         * input will cause a memory addressing crash. */
-    if (x < 0.0 || y < 0.0 || x >= w || y >= h || x != x || y != y)
-        return 0;
+        /* Skip if x or y is invalid. (x,y) must be in the source image.
+         * Failure to detect an invalid point will cause a mem address fault.
+         * Occasionally, x or y will be a nan, and relational checks always
+         * fail for nans.  Therefore we check if the point is inside the pix */
+    valid = (x >= 0.0 && y >= 0.0 && x < w && y < h);
+    if (!valid) return 0;
 
     xpm = (l_int32)(16.0 * x);
     ypm = (l_int32)(16.0 * y);
