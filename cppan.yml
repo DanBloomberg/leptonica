@@ -43,7 +43,7 @@ pre_sources: |
 
 post_sources: |
     if (MSVC)
-        file(GLOB_RECURSE csrc "*.c")
+        file(GLOB_RECURSE csrc "${SDIR}/*.c")
         set_source_files_properties(${csrc} PROPERTIES LANGUAGE CXX)
     endif()
 
