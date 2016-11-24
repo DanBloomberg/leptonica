@@ -10,8 +10,8 @@ INSTALL_PROGS = convertfilestopdf convertfilestops \
 	printimage printsplitimage printtiff \
 	splitimage2pdf xtractprotos
 
-AUTO_REG_PROGS = alphaops_reg alphaxform_reg \
-	bilateral2_reg binarize_reg blackwhite_reg \
+AUTO_REG_PROGS = affine_reg alphaops_reg alphaxform_reg \
+	bilateral2_reg bilinear_reg binarize_reg blackwhite_reg \
 	blend1_reg blend2_reg blend3_reg blend4_reg \
 	ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorcontent_reg coloring_reg \
@@ -24,13 +24,15 @@ AUTO_REG_PROGS = alphaops_reg alphaxform_reg \
 	graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg \
 	insert_reg ioformats_reg \
-	jbclass_reg jpegio_reg kernel_reg label_reg \
+	jbclass_reg jpegio_reg \
+	kernel_reg label_reg \
 	maze_reg multitype_reg \
 	nearline_reg newspaper_reg \
 	overlap_reg paint_reg paintmask_reg \
 	pdfseg_reg pixa2_reg \
 	pixserial_reg pngio_reg pnmio_reg \
-	projection_reg psio_reg psioseg_reg \
+	projection_reg projective_reg \
+	psio_reg psioseg_reg \
 	pta_reg rankbin_reg rankhisto_reg \
 	rasteropip_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
@@ -52,8 +54,7 @@ if HAVE_LIBJP2K
 AUTO_REG_PROGS += jp2kio_reg
 endif
 
-MANUAL_REG_PROGS = alltests_reg adaptnorm_reg affine_reg \
-	bilateral1_reg bilinear_reg \
+MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
 	binmorph1_reg binmorph2_reg binmorph3_reg \
 	binmorph4_reg binmorph5_reg \
 	boxa1_reg boxa2_reg \
@@ -65,7 +66,7 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg affine_reg \
 	logicops_reg lowaccess_reg morphseq_reg \
 	numa1_reg numa2_reg pixa1_reg \
 	pixadisp_reg pixalloc_reg pixcomp_reg \
-	pixmem_reg pixtile_reg projective_reg \
+	pixmem_reg pixtile_reg \
 	ptra1_reg ptra2_reg \
 	rank_reg rasterop_reg smallpix_reg \
 	smoothedge_reg string_reg \

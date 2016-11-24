@@ -1037,6 +1037,7 @@ l_float32   b[3] = {1.0, 1.0, 1.0};   /* anything; results ignored */
     if (!vc)
         return ERROR_INT("vc not defined", procName, 1);
 
+#if 1
     for (i = 0; i < 3; i++)
         a[i] = (l_float32 *)LEPT_CALLOC(3, sizeof(l_float32));
     a[0][0] = vc[0];
@@ -1046,7 +1047,7 @@ l_float32   b[3] = {1.0, 1.0, 1.0};   /* anything; results ignored */
     a[1][1] = vc[4];
     a[1][2] = vc[5];
     a[2][2] = 1.0;
-    gaussjordan(a, b, 3);  /* now matrix a contains the inverse */
+    gaussjordan(a, b, 3);  /* this inverts matrix a */
     vci = (l_float32 *)LEPT_CALLOC(6, sizeof(l_float32));
     *pvci = vci;
     vci[0] = a[0][0];
@@ -1055,26 +1056,33 @@ l_float32   b[3] = {1.0, 1.0, 1.0};   /* anything; results ignored */
     vci[3] = a[1][0];
     vci[4] = a[1][1];
     vci[5] = a[1][2];
+    for (i = 0; i < 3; i++)
+        LEPT_FREE(a[i]);
 
-#if 0
+#else
+
         /* Alternative version, inverting a 2x2 matrix */
+    { l_float32 *a2[2];
     for (i = 0; i < 2; i++)
-        a[i] = (l_float32 *)LEPT_CALLOC(2, sizeof(l_float32));
-    a[0][0] = vc[0];
-    a[0][1] = vc[1];
-    a[1][0] = vc[3];
-    a[1][1] = vc[4];
+        a2[i] = (l_float32 *)LEPT_CALLOC(2, sizeof(l_float32));
+    a2[0][0] = vc[0];
+    a2[0][1] = vc[1];
+    a2[1][0] = vc[3];
+    a2[1][1] = vc[4];
     b[0] = vc[2];
     b[1] = vc[5];
-    gaussjordan(a, b, 2);  /* now matrix a contains the inverse */
+    gaussjordan(a2, b, 2);  /* this inverts matrix a2 */
     vci = (l_float32 *)LEPT_CALLOC(6, sizeof(l_float32));
     *pvci = vci;
-    vci[0] = a[0][0];
-    vci[1] = a[0][1];
+    vci[0] = a2[0][0];
+    vci[1] = a2[0][1];
     vci[2] = -b[0];   /* note sign */
-    vci[3] = a[1][0];
-    vci[4] = a[1][1];
+    vci[3] = a2[1][0];
+    vci[4] = a2[1][1];
     vci[5] = -b[1];   /* note sign */
+    for (i = 0; i < 2; i++)
+        LEPT_FREE(a2[i]);
+    }
 #endif
 
     return 0;
