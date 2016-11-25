@@ -32,8 +32,8 @@ pre_sources: |
 
     set(APPLE_UNIVERSAL_BUILD "defined (__APPLE_CC__)")
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/endianness.h.in
-        ${CMAKE_CURRENT_BINARY_DIR}/endianness.h
+        ${SDIR}/src/endianness.h.in
+        ${BDIR}/endianness.h
         @ONLY)
 
     # dummy config file
@@ -43,7 +43,7 @@ pre_sources: |
 
 post_sources: |
     if (MSVC)
-        file(GLOB_RECURSE csrc "*.c")
+        file(GLOB_RECURSE csrc "${SDIR}/*.c")
         set_source_files_properties(${csrc} PROPERTIES LANGUAGE CXX)
     endif()
 
