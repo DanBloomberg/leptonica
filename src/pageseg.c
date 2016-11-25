@@ -32,7 +32,8 @@
  *          l_int32   pixGetRegionsBinary()
  *
  *      Halftone region extraction
- *          PIX      *pixGenHalftoneMask()
+ *          PIX      *pixGenHalftoneMask()    **Deprecated wrapper**
+ *          PIX      *pixGenerateHalftoneMask()
  *
  *      Textline extraction
  *          PIX      *pixGenTextlineMask()
@@ -129,7 +130,7 @@ PIX     *pixtb;    /* textblock mask */
     if (pixadb) pixaAddPix(pixadb, pixr, L_COPY);
 
         /* Get the halftone mask */
-    pixhm2 = pixGenHalftoneMask(pixr, &pixtext, &htfound, pixadb);
+    pixhm2 = pixGenerateHalftoneMask(pixr, &pixtext, &htfound, pixadb);
 
         /* Get the textline mask from the text pixels */
     pixtm2 = pixGenTextlineMask(pixtext, &pixvws, &tlfound, pixadb);
@@ -249,6 +250,26 @@ PIX     *pixtb;    /* textblock mask */
 /*!
  * \brief   pixGenHalftoneMask()
  *
+ * <pre>
+ * Deprecated:
+ *   This wrapper avoids an ABI change with tesseract 3.0.4.
+ *   It should be removed when we no longer need to support 3.0.4.
+ *   The debug parameter is ignored (assumed 0).
+ * </pre>
+ */
+PIX *
+pixGenHalftoneMask(PIX      *pixs,
+                   PIX     **ppixtext,
+                   l_int32  *phtfound,
+                   l_int32   debug)
+{
+    return pixGenerateHalftoneMask(pixs, ppixtext, phtfound, NULL);
+}
+
+
+/*!
+ * \brief   pixGenerateHalftoneMask()
+ *
  * \param[in]    pixs 1 bpp, assumed to be 150 to 200 ppi
  * \param[out]   ppixtext [optional] text part of pixs
  * \param[out]   phtfound [optional] 1 if the mask is not empty
@@ -262,15 +283,15 @@ PIX     *pixtb;    /* textblock mask */
  * </pre>
  */
 PIX *
-pixGenHalftoneMask(PIX      *pixs,
-                   PIX     **ppixtext,
-                   l_int32  *phtfound,
-                   PIXA     *pixadb)
+pixGenerateHalftoneMask(PIX      *pixs,
+                        PIX     **ppixtext,
+                        l_int32  *phtfound,
+                        PIXA     *pixadb)
 {
 l_int32  w, h, empty;
 PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
 
-    PROCNAME("pixGenHalftoneMask");
+    PROCNAME("pixGenerateHalftoneMask");
 
     if (ppixtext) *ppixtext = NULL;
     if (phtfound) *phtfound = 0;

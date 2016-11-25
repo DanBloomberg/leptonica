@@ -62,7 +62,7 @@
 #
 #   On cygwin, remove -fPIC from CC.  I believe that these files --
 #   convertfilestops.c, jbcorrelation.c, jbrankhaus.c, maketile.c,
-#   and viewertest.c -- which use posix directory functions, will
+#   and htmlviewer.c -- which use posix directory functions, will
 #   now work properly.
 #
 #   See below for enabling gif read/write.
@@ -216,7 +216,8 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		flipselgen.c fmorphautogen.c \
 		fpixcontours.c gammatest.c \
 		gifio_leaktest.c graphicstest.c graymorphtest.c \
-		hashtest.c histotest.c iotest.c italictest.c \
+		hashtest.c histotest.c htmlviewer.c \
+		iotest.c italictest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		lineremoval.c listtest.c \
 		livre_adapt.c livre_hmt.c \
