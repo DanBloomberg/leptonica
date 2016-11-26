@@ -89,6 +89,54 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.74   30 Nov 16
+       Leptonica development was moved to github.  The master is at:
+          github.com/danbloomberg/leptonica
+       Egor Pugin is the maintainer of the site.
+       A very large number of changes have been made.  Some of them follow;
+       details can be found in the git commit messages.
+       Static makefiles modified to work with gnu*9 and c*9.
+       Modify SET macros to work on windows.
+       New modes for RGB --> gray conversion.
+       New functions added for displaying a pix from a pixa.
+       Split out sort/hash/set/map functions for dna, sarray and pta.
+       More robust horizontal deskew on multi-column page images.
+       Improve webpio_reg test.
+       Remove X11 display for gplot; it is no longer supported.
+       Remove most sleep calls, which were put in for gplot; no longer needed.
+       Removed use of gthumb in library.
+       Removed use of pixDisplayWrite() in the library; still in some progs.
+       Improved test for endianness in makefile.static; no longer requires
+       any local files or building and running a program.
+       Modified all files for doxygen output (spearheaded by Jurgen Buchmuller)
+       Improved plotting of the boxes in a boxa.
+       Replaced the slow point hash function with a simple fast one.
+       Added pam (4 component) format writing to pnmio.c (Jurgen Buchmuller)
+       Improved rendering of pixa in side/by/sides.
+       Better utilities for pixa and pixacomp.
+       Add read/write serialization functions from/to memory for all
+       the major data structures that do not already have them.
+       More serialized boot recognizers stored as self-generating code.
+       Cleaned up generating an adapted recognizer from the boot recognizer.
+       Simplified temp file naming; removed most instances of named
+       temp files from non-debug code; use tmpfile() and a wrapper
+       l_makeTempFilename().
+       Simplify and streamline multipage tiff reading (Jeff Breidenbach).
+       Improvement of Otsu thresholding.
+       Recognize outstanding contributors to leptonica over the years.
+       New gif mem read/write interface that avoids writing a temp file,
+       contributed by Tobias Peirick.
+       Use double arrays (dna) instead of float (numa) for set ops.
+       Enrolled in coverity scan to find potential bugs (Stefan Weil
+       managed it). Fixed about 200 of hem, mostly potential memory
+       leaks from early function exit.
+       Cleanup of gray quantization functions and tests.
+       Refactored connectivity-conserving operations, to make them more useful.
+       Provided methods for measuring and regularizing the width of strokes.
+       Removed viewfiles.c from library; code is now in prog htmlviewer.c.
+       Better debugging in page segmentation (pageseg.c)
+       Deprecated the pixDisplayWrite*() debugging methods.
+           
 1.73   25 Jan 16
        All lept_* functions have been rewritten to avoid path rewrites for
        output to temp files, which were introduced in 1.72.

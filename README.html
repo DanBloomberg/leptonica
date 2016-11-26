@@ -75,11 +75,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README  (1.73+: 8 Feb 2016)
+README  (1.74: 30 Nov 2016)
 ---------------------------
 
-gunzip leptonica-1.73+.tar.gz
-tar -xvf leptonica-1.73+.tar
+gunzip leptonica-1.74.tar.gz
+tar -xvf leptonica-1.74.tar
 
 </pre>
 
@@ -115,7 +115,7 @@ Building leptonica
   Libraries, executables and prototypes are easily made, as described below.
 
   When you extract from the archive, all files are put in a
-  subdirectory 'leptonica-1.73'.  In that directory you will
+  subdirectory 'leptonica-1.74'.  In that directory you will
   find a src directory containing the source files for the library,
   and a prog directory containing source files for various
   testing and example programs.
@@ -237,7 +237,7 @@ Building leptonica
                              If the test fails, just run with 'make check']
 
        Configure also supports building in a separate directory from the
-       source.  Run "/(path-to)/leptonica-1.73/configure" and then "make"
+       source.  Run "/(path-to)/leptonica-1.74/configure" and then "make"
        from the desired build directory.
 
        Configure has a number of useful options; run "configure --help" for
@@ -1049,15 +1049,14 @@ What's in leptonica?
    as well as all versions after 1.60.  These have now been transferred
    by Egor Pugin to github:
        github.com/danbloomberg/leptonica
-   Recent releases (1.67 - 1.73) are available both at
+   Recent releases (1.67 - 1.74) are available both at
        leptonica.org/download.html
    and through github; e.g.,
-       https://github.com/DanBloomberg/leptonica/releases/tag/v1.73
-   Note that in most cases if you are downloading from github, you
-   should download releases, because the the master at github should
-   always be considered to be unstable.  If you download from the master
-   you need to run the autobuild script to generate configure and
-   the Makefiles.
+       https://github.com/DanBloomberg/leptonica/releases/tag/v1.74.0
+   Note that if you are downloading from github, the releases are more
+   likely to be stable than the master.  Also, if you download from
+   the master you need to run the autobuild script to generate the
+   configure program and the Makefiles.
 
    The number of downloads of leptonica increased by nearly an order
    of magnitude with 1.69, due to bundling with tesseract and
@@ -1069,6 +1068,7 @@ What's in leptonica?
         1.71 : 4.2.0
         1.72 : 4.3.0
         1.73 : 5.0.0
+        1.74 : 6.0.0
 
    A brief version chronology is maintained in version-notes.html.
    Starting with gcc 4.3.3, error warnings (-Werror) are given for
