@@ -75,7 +75,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README  (1.74: 30 Nov 2016)
+README  (1.74: 3 Dec 2016)
 ---------------------------
 
 gunzip leptonica-1.74.tar.gz
@@ -235,6 +235,20 @@ Building leptonica
                              place from the distribution. The -j parameter
                              should not exceed half the number of cores.
                              If the test fails, just run with 'make check']
+
+       Configure supports installing in a local directory (e.g., one that
+       doesn't require root access).  For example, to install in $HOME/local,
+           ./configure --prefix=$HOME/local/
+           make install
+       For different ways to build and link leptonica with tesseract, see
+           https://github.com/tesseract-ocr/tesseract/wiki/Compiling
+       In brief, using autotools to build tesseract and then install it
+       in $HOME/local (after installing leptonica there), do the
+       following from your tesseract root source directory:
+            ./autogen.sh
+            LIBLEPT_HEADERSDIR=$HOME/local/include ./configure \
+               --prefix=$HOME/local/ --with-extra-libraries=$HOME/local/lib
+            make install
 
        Configure also supports building in a separate directory from the
        source.  Run "/(path-to)/leptonica-1.74/configure" and then "make"
@@ -1068,7 +1082,7 @@ What's in leptonica?
         1.71 : 4.2.0
         1.72 : 4.3.0
         1.73 : 5.0.0
-        1.74 : 6.0.0
+        1.74 : 5.1.0
 
    A brief version chronology is maintained in version-notes.html.
    Starting with gcc 4.3.3, error warnings (-Werror) are given for

@@ -2981,8 +2981,15 @@ l_int32  dirlen, namelen, size;
     if ((pathout = (char *)LEPT_CALLOC(size, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("pathout not made", procName, NULL);
 
-        /* First handle %dir (which may be a full pathname) */
-    if (strncmp(cdir, "/tmp", 4) != 0) {  /* not in /tmp; OK as is */
+        /* First handle %dir (which may be a full pathname).
+         * Note that we're also making sure that a root directory such
+         * as "/tmpfiles" does not get re-written as <Temp>files,
+         * where <Temp> is the temp directory on the system. */
+    if (dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0) {
+          /* not in /tmp */
+        stringCopy(pathout, cdir, dirlen);
+    } else if (dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0) {
+            /* not in /tmp/ */
         stringCopy(pathout, cdir, dirlen);
     } else {  /* in /tmp */
             /* Start with the temp dir */
@@ -2997,13 +3004,13 @@ l_int32  dirlen, namelen, size;
 #else  /* unix */
         const char *tmpdir = getenv("TMPDIR");
         if (tmpdir == NULL) tmpdir = "/tmp";
-        tmpdirlen = strlen(tmpdir);
 #endif  /* _WIN32 */
+        tmpdirlen = strlen(tmpdir);
         stringCopy(pathout, tmpdir, tmpdirlen);
 
             /* Add the rest of cdir */
-        if (dirlen > tmpdirlen)
-            stringCat(pathout, size, cdir + tmpdirlen);
+        if (dirlen > 4)
+            stringCat(pathout, size, cdir + 4);
     }
 
         /* Now handle %fname */

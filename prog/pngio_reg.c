@@ -322,7 +322,7 @@ PIXCMAP  *cmap;
     pixDestroy(&pix2);
     fp = fopenReadStream("/tmp/lept/regout/1bpp-trans.png");
     fgetPngColormapInfo(fp, &cmap, &transp);
-    fclose(fp);
+    if (fp) fclose(fp);
     if (transp)
         fprintf(stderr, "1bpp_trans: correct -- transparency found\n");
     else
@@ -357,7 +357,7 @@ PIXCMAP  *cmap;
     pixDestroy(&pix2);
     fp = fopenReadStream("/tmp/lept/regout/1bpp-color.png");
     fgetPngColormapInfo(fp, &cmap, &transp);
-    fclose(fp);
+    if (fp) fclose(fp);
     if (transp)
         fprintf(stderr, "1bpp_color: error -- transparency found!\n");
     else
@@ -467,7 +467,7 @@ PIXCMAP  *cmap;
     pixDestroy(&pix3);
     fp = fopenReadStream("/tmp/lept/regout/8bpp-trans.png");
     fgetPngColormapInfo(fp, &cmap, &transp);
-    fclose(fp);
+    if (fp) fclose(fp);
     if (transp)
         fprintf(stderr, "8bpp_trans: correct -- transparency found\n");
     else

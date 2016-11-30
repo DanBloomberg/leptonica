@@ -558,6 +558,7 @@ LEPT_DLL extern l_int32 convertLABToRGB ( l_float32 flval, l_float32 faval, l_fl
 LEPT_DLL extern l_int32 pixEqual ( PIX *pix1, PIX *pix2, l_int32 *psame );
 LEPT_DLL extern l_int32 pixEqualWithAlpha ( PIX *pix1, PIX *pix2, l_int32 use_alpha, l_int32 *psame );
 LEPT_DLL extern l_int32 pixEqualWithCmap ( PIX *pix1, PIX *pix2, l_int32 *psame );
+LEPT_DLL extern l_int32 cmapEqual ( PIXCMAP *cmap1, PIXCMAP *cmap2, l_int32 ncomps, l_int32 *psame );
 LEPT_DLL extern l_int32 pixUsesCmapColor ( PIX *pixs, l_int32 *pcolor );
 LEPT_DLL extern l_int32 pixCorrelationBinary ( PIX *pix1, PIX *pix2, l_float32 *pval );
 LEPT_DLL extern PIX * pixDisplayDiffBinary ( PIX *pix1, PIX *pix2 );

@@ -32,6 +32,7 @@
  *           l_int32     pixEqual()
  *           l_int32     pixEqualWithAlpha()
  *           l_int32     pixEqualWithCmap()
+ *           l_int32     cmapEqual()
  *           l_int32     pixUsesCmapColor()
  *
  *      Binary correlation
@@ -381,8 +382,7 @@ pixEqualWithCmap(PIX      *pix1,
                  l_int32  *psame)
 {
 l_int32    d, w, h, wpl1, wpl2, i, j, linebits, fullwords, endbits;
-l_int32    nc1, nc2, samecmaps;
-l_int32    rval1, rval2, gval1, gval2, bval1, bval2;
+l_int32    rval1, rval2, gval1, gval2, bval1, bval2, samecmaps;
 l_uint32   endmask, val1, val2;
 l_uint32  *data1, *data2, *line1, *line2;
 PIXCMAP   *cmap1, *cmap2;
@@ -399,41 +399,19 @@ PIXCMAP   *cmap1, *cmap2;
 
     if (pixSizesEqual(pix1, pix2) == 0)
         return 0;
-
     cmap1 = pixGetColormap(pix1);
     cmap2 = pixGetColormap(pix2);
     if (!cmap1 || !cmap2) {
         L_INFO("both images don't have colormap\n", procName);
         return 0;
     }
-    d = pixGetDepth(pix1);
+    pixGetDimensions(pix1, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8) {
         L_INFO("pix depth not in {1, 2, 4, 8}\n", procName);
         return 0;
     }
 
-    nc1 = pixcmapGetCount(cmap1);
-    nc2 = pixcmapGetCount(cmap2);
-    samecmaps = TRUE;
-    if (nc1 != nc2) {
-        L_INFO("colormap sizes are different\n", procName);
-        samecmaps = FALSE;
-    }
-
-        /* Check if colormaps are identical */
-    if (samecmaps == TRUE) {
-        for (i = 0; i < nc1; i++) {
-            pixcmapGetColor(cmap1, i, &rval1, &gval1, &bval1);
-            pixcmapGetColor(cmap2, i, &rval2, &gval2, &bval2);
-            if (rval1 != rval2 || gval1 != gval2 || bval1 != bval2) {
-                samecmaps = FALSE;
-                break;
-            }
-        }
-    }
-
-    h = pixGetHeight(pix1);
-    w = pixGetWidth(pix1);
+    cmapEqual(cmap1, cmap2, 3, &samecmaps);
     if (samecmaps == TRUE) {  /* colormaps are identical; compare by words */
         linebits = d * w;
         wpl1 = pixGetWpl(pix1);
@@ -474,6 +452,62 @@ PIXCMAP   *cmap1, *cmap2;
     }
 
     *psame = 1;
+    return 0;
+}
+
+
+/*!
+ * \brief   cmapEqual()
+ *
+ * \param[in]    cmap1
+ * \param[in]    cmap2
+ * \param[in]    ncomps  3 for RGB, 4 for RGBA
+ * \param[out]   psame
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This returns %same = TRUE if the colormaps have identical entries.
+ *      (2) If %ncomps == 4, the alpha components of the colormaps are also
+ *          compared.
+ * </pre>
+ */
+l_int32
+cmapEqual(PIXCMAP  *cmap1,
+          PIXCMAP  *cmap2,
+          l_int32   ncomps,
+          l_int32  *psame)
+{
+l_int32  n1, n2, i, rval1, rval2, gval1, gval2, bval1, bval2, aval1, aval2;
+
+    PROCNAME("cmapEqual");
+
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = FALSE;
+    if (!cmap1)
+        return ERROR_INT("cmap1 not defined", procName, 1);
+    if (!cmap2)
+        return ERROR_INT("cmap2 not defined", procName, 1);
+    if (ncomps != 3 && ncomps != 4)
+        return ERROR_INT("ncomps not 3 or 4", procName, 1);
+
+    n1 = pixcmapGetCount(cmap1);
+    n2 = pixcmapGetCount(cmap2);
+    if (n1 != n2) {
+        L_INFO("colormap sizes are different\n", procName);
+        return 0;
+    }
+
+    for (i = 0; i < n1; i++) {
+        pixcmapGetRGBA(cmap1, i, &rval1, &gval1, &bval1, &aval1);
+        pixcmapGetRGBA(cmap2, i, &rval2, &gval2, &bval2, &aval2);
+        if (rval1 != rval2 || gval1 != gval2 || bval1 != bval2)
+            return 0;
+        if (ncomps == 4 && aval1 != aval2)
+            return 0;
+    }
+    *psame = TRUE;
     return 0;
 }
 

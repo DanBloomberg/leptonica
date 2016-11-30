@@ -763,7 +763,11 @@ L_KERNEL  *kel;
     if (!filename)
         return (L_KERNEL *)ERROR_PTR("filename not defined", procName, NULL);
 
-    filestr = (char *)l_binaryRead(filename, &size);
+    if ((filestr = (char *)l_binaryRead(filename, &size)) == NULL)
+        return (L_KERNEL *)ERROR_PTR("file not found", procName, NULL);
+    if (size == 0)
+        return (L_KERNEL *)ERROR_PTR("file is empty", procName, NULL);
+
     sa = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);
     nlines = sarrayGetCount(sa);

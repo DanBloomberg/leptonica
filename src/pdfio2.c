@@ -1762,8 +1762,10 @@ SARRAY       *sa;
                 cstr = stringNew("/ColorSpace /DeviceGray");
             else if (cid->spp == 3)
                 cstr = stringNew("/ColorSpace /DeviceRGB");
+            else if (cid->spp == 4)   /* pdf supports cmyk */
+                cstr = stringNew("/ColorSpace /DeviceCMYK");
             else
-                L_ERROR("in jpeg: spp != 1 && spp != 3\n", procName);
+                L_ERROR("in jpeg: spp != 1, 3 or 4\n", procName);
             bstr = stringNew("/BitsPerComponent 8");
             fstr = stringNew("/Filter /DCTDecode");
         } else if (cid->type == L_JP2K_ENCODE) {
