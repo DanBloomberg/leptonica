@@ -2991,11 +2991,9 @@ l_int32  dirlen, namelen, size;
          * Note that we're also making sure that a root directory such
          * as "/tmpfiles" does not get re-written as <Temp>files,
          * where <Temp> is the temp directory on the system. */
-    if (dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0) {
-          /* not in /tmp */
-        stringCopy(pathout, cdir, dirlen);
-    } else if (dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0) {
-            /* not in /tmp/ */
+    if (dirlen < 4 ||
+        dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0 ||  /* not in "/tmp" */
+        dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0) {  /* not in "/tmp/" */
         stringCopy(pathout, cdir, dirlen);
     } else {  /* in /tmp */
             /* Start with the temp dir */
