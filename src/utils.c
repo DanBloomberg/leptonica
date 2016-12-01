@@ -2934,17 +2934,23 @@ size_t   len;
  *              %fname, with %dir == NULL.
  *            * if in a "/tmp" directory and on windows, the windows
  *              temp directory is used.
- *      (2) If the root of %dir is '/tmp', this does a name translation:
+ *      (2) On windows, if the root of %dir is '/tmp', this does a name
+ *          translation:
  *             "/tmp"  ==>  <Temp> (windows)
  *          where <Temp> is the windows temp directory.
- *      (3) There are four cases for the input:
+ *      (3) On unix, if the TMPDIR is a subdirectory of "/tmp", such
+ *          as "/tmp/username", enter %dir as if it were "/tmp" (without
+ *          the subdirectory).  The directory will automatically be
+ *          rewritten using TMPDIR; e.g.
+ *             "/tmp/lept/regout"  ==>  "/tmp/username/lept/regout"
+ *      (4) There are four cases for the input:
  *          (a) %dir is a directory and %fname is defined: result is a full path
  *          (b) %dir is a directory and %fname is null: result is a directory
  *          (c) %dir is a full path and %fname is null: result is a full path
  *          (d) %dir is null or an empty string: start in the current dir;
  *              result is a full path
- *      (4) In all cases, the resulting pathname is not terminated with a slash
- *      (5) The caller is responsible for freeing the returned pathname.
+ *      (5) In all cases, the resulting pathname is not terminated with a slash
+ *      (6) The caller is responsible for freeing the returned pathname.
  * </pre>
  */
 char *
