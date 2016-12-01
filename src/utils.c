@@ -2992,8 +2992,8 @@ l_int32  dirlen, namelen, size;
          * as "/tmpfiles" does not get re-written as <Temp>files,
          * where <Temp> is the temp directory on the system. */
     if (dirlen < 4 ||
-        dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0 ||  /* not in "/tmp" */
-        dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0) {  /* not in "/tmp/" */
+        (dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0) ||  /* not in "/tmp" */
+        (dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0)) {  /* not in "/tmp/" */
         stringCopy(pathout, cdir, dirlen);
     } else {  /* in /tmp */
             /* Start with the temp dir */
