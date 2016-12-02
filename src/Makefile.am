@@ -60,7 +60,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  stack.c stringcode.c                                           \
  strokes.c sudoku.c textops.c                                   \
  tiffio.c tiffiostub.c 		                                \
- utils.c warper.c watershed.c                                   \
+ utils1.c utils2.c warper.c watershed.c                         \
  webpio.c webpiostub.c		                                \
  writefile.c zlibmem.c zlibmemstub.c
 
