@@ -89,6 +89,10 @@
 #include "config_auto.h"
 #endif  /* HAVE_CONFIG_H */
 
+#ifdef _WIN32
+#include <windows.h>
+#endif  /* _WIN32 */
+
 //#include <string.h>
 #include <time.h>
 #include "allheaders.h"
