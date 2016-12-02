@@ -95,7 +95,7 @@
  *     // Apply model to the input pixs
  *     Pix *pixd;
  *     dewarpaApplyDisparity(dewa, 214, pixs, 255, 0, 0, &pixd, NULL);
- *     pixDestroy(\&pixb);
+ *     pixDestroy(&pixb);
  * \endcode
  *
  *  Basic functioning to dewarp many pages:
@@ -1401,7 +1401,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = dewarpWriteStream(fp, dew);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -1673,7 +1673,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = dewarpaWriteStream(fp, dewa);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

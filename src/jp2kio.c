@@ -170,7 +170,7 @@ static void info_callback(const char *msg, void *client_data) {
  *             %box = NULL
  *      (2) This decodes at either full resolution or at a reduction by
  *          a power of 2.  The default value %reduction == 1 gives a full
- *          resolution image.  Use %reduction \> 1 to get a reduced image.
+ *          resolution image.  Use %reduction > 1 to get a reduced image.
  *          The actual values of %reduction that can be used on an image
  *          depend on the number of resolution levels chosen when the
  *          image was compressed.  Typical values might be 1, 2, 4, 8 and 16.
@@ -184,10 +184,10 @@ static void info_callback(const char *msg, void *client_data) {
  *          If the image has 16 bps, the read will fail.
  *      (5) There are 4 possible values of samples/pixel (spp).
  *          The values in brackets give the pixel values in the Pix:
- *           spp = 1  ==\>  grayscale           [8 bpp grayscale]
- *           spp = 2  ==\>  grayscale + alpha   [32 bpp rgba]
- *           spp = 3  ==\>  rgb                 [32 bpp rgb]
- *           spp = 4  ==\>  rgba                [32 bpp rgba]
+ *           spp = 1  ==>  grayscale           [8 bpp grayscale]
+ *           spp = 2  ==>  grayscale + alpha   [32 bpp rgba]
+ *           spp = 3  ==>  rgb                 [32 bpp rgb]
+ *           spp = 4  ==>  rgba                [32 bpp rgba]
  *      (6) The %hint parameter is reserved for future use.
  * </pre>
  */
@@ -453,7 +453,7 @@ PIX               *pix = NULL;
  * <pre>
  * Notes:
  *      (1) The %quality parameter is the SNR.  The useful range is narrow:
- *             SNR \< 27  (terrible quality)
+ *             SNR < 27  (terrible quality)
  *             SNR = 34  (default; approximately equivalent to jpeg quality 75)
  *             SNR = 40  (very high quality)
  *             SNR = 45  (nearly lossless)
@@ -847,7 +847,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = pixWriteStreamJp2k(fp, pix, quality, nlevels, hint, debug);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

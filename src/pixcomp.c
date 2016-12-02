@@ -596,11 +596,11 @@ PIXAC  *pixac;
  *            PixaComp *pixac = pixacompCreateWithInit(20, 30, NULL,
  *                                                     IFF_TIFF_G4);
  *            // Now insert png-compressed images into the initialized array
- *            for (pageno = 30; pageno \< 50; pageno++) {
+ *            for (pageno = 30; pageno < 50; pageno++) {
  *                Pix *pixt = ...   // derived from image[pageno]
  *                if (pixt)
  *                    pixacompReplacePix(pixac, pageno, pixt, IFF_PNG);
- *                pixDestroy(\&pixt);
+ *                pixDestroy(&pixt);
  *            }
  *          The result is a pixac with 20 compressed strings, and with
  *          selected pixt replacing the placeholders.
@@ -1471,8 +1471,8 @@ PIXA    *pixa;
  * <pre>
  * Notes:
  *      (1) This appends a clone of each indicated pixc in pixcas to pixcad
- *      (2) istart \< 0 is taken to mean 'read from the start' (istart = 0)
- *      (3) iend \< 0 means 'read to the end'
+ *      (2) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (3) iend < 0 means 'read to the end'
  *      (4) If pixacs is NULL or contains no pixc, this is a no-op.
  * </pre>
  */
@@ -1841,7 +1841,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = pixacompWriteStream(fp, pixac);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -1880,7 +1880,7 @@ FILE    *fp;
  *      (1) This follows closely the function pixaConvertToPdf() in pdfio.c.
  *      (2) The images are encoded with G4 if 1 bpp; JPEG if 8 bpp without
  *          colormap and many colors, or 32 bpp; FLATE for anything else.
- *      (3) The scalefactor must be \> 0.0; otherwise it is set to 1.0.
+ *      (3) The scalefactor must be > 0.0; otherwise it is set to 1.0.
  *      (4) Specifying one of the three encoding types for %type forces
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether

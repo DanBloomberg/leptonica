@@ -1179,7 +1179,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = pixWriteStreamPnm(fp, pix);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -1234,7 +1234,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = pixWriteStreamPam(fp, pix);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

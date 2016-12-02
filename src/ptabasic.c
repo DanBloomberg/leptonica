@@ -436,7 +436,7 @@ l_int32  i, n;
  *
  * <pre>
  * Notes:
- *      (1) This shifts pta[i] --\> pta[i - 1] for all i \> index.
+ *      (1) This shifts pta[i] --> pta[i - 1] for all i > index.
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
  * </pre>
@@ -871,7 +871,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = ptaWriteStream(fp, pta, type);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -1463,7 +1463,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = ptaaWriteStream(fp, ptaa, type);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

@@ -88,8 +88,8 @@
  *    and a function l_pngSetReadStrip16To8() for setting it.
  *    The default is TRUE, which causes pixRead() to strip each 16 bit
  *    sample down to 8 bps:
- *     ~ For 16 bps rgb (16 bps, 3 spp) --\> 32 bpp rgb Pix
- *     ~ For 16 bps gray (16 bps, 1 spp) --\> 8 bpp grayscale Pix
+ *     ~ For 16 bps rgb (16 bps, 3 spp) --> 32 bpp rgb Pix
+ *     ~ For 16 bps gray (16 bps, 1 spp) --> 8 bpp grayscale Pix
  *    If the variable is set to FALSE, the 16 bit gray samples
  *    are saved when read; the 16 bit rgb samples return an error.
  *    Note: results can be non-deterministic if used with
@@ -926,7 +926,7 @@ FILE  *fp;
  *          use pixWriteStreamPng() directly.
  *      (3) gamma is an optional png chunk.  If no gamma value is to be
  *          placed into the file, use gamma = 0.0.  Otherwise, if
- *          gamma \> 0.0, its value is written into the header.
+ *          gamma > 0.0, its value is written into the header.
  *      (4) The use of gamma in png is highly problematic.  For an illuminating
  *          discussion, see:  http://hsivonen.iki.fi/png-gamma/
  *      (5) What is the effect/meaning of gamma in the png file?  This
@@ -957,8 +957,8 @@ FILE  *fp;
  *          the program acts as if gamma were 0.4545, multiplies this by 2.2,
  *          and does a linear rendering.  Taking this as a baseline
  *          brightness, if the stored gamma is:
- *              \> 0.4545, the image is rendered lighter than baseline
- *              \< 0.4545, the image is rendered darker than baseline
+ *              > 0.4545, the image is rendered lighter than baseline
+ *              < 0.4545, the image is rendered darker than baseline
  *          In contrast, gqview seems to ignore the gamma chunk in png.
  *      (7) The only valid pixel depths in leptonica are 1, 2, 4, 8, 16
  *          and 32.  However, it is possible, and in some cases desirable,
@@ -1344,7 +1344,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = pixWriteStreamPng(fp, pix, gamma);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

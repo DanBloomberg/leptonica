@@ -765,8 +765,10 @@ L_KERNEL  *kel;
 
     if ((filestr = (char *)l_binaryRead(filename, &size)) == NULL)
         return (L_KERNEL *)ERROR_PTR("file not found", procName, NULL);
-    if (size == 0)
+    if (size == 0) {
+        LEPT_FREE(filestr);
         return (L_KERNEL *)ERROR_PTR("file is empty", procName, NULL);
+    }
 
     sa = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);

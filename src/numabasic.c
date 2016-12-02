@@ -124,14 +124,14 @@
  *           (a) return a l_float32 and cast it to an l_int32
  *           (b) cast the return directly to (l_float32 *) to
  *               satisfy the function prototype, as in
- *                 numaGetFValue(na, index, (l_float32 *)\&ival);   [ugly!]
+ *                 numaGetFValue(na, index, (l_float32 *)&ival);   [ugly!]
  *
- *    (4) int \<--\> float conversions:
+ *    (4) int <--> float conversions:
  *
  *        Tradition dictates that type conversions go automatically from
- *        l_int32 --\> l_float32, even though it is possible to lose
+ *        l_int32 --> l_float32, even though it is possible to lose
  *        precision for large integers, whereas you must cast (l_int32)
- *        to go from l_float32 --\> l_int32 because you're truncating
+ *        to go from l_float32 --> l_int32 because you're truncating
  *        to the integer value.
  *
  *    (5) As with other arrays in leptonica, the numa has both an allocated
@@ -522,7 +522,7 @@ numaExtendArray(NUMA  *na)
  *
  * <pre>
  * Notes:
- *      (1) This shifts na[i] --\> na[i + 1] for all i \>= index,
+ *      (1) This shifts na[i] --> na[i + 1] for all i >= index,
  *          and then inserts val as na[index].
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
@@ -563,7 +563,7 @@ l_int32  i, n;
  *
  * <pre>
  * Notes:
- *      (1) This shifts na[i] --\> na[i - 1] for all i \> index.
+ *      (1) This shifts na[i] --> na[i - 1] for all i > index.
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
  * </pre>
@@ -646,10 +646,10 @@ numaGetCount(NUMA  *na)
  *
  * <pre>
  * Notes:
- *      (1) If newcount \<= na-\>nalloc, this resets na-\>n.
+ *      (1) If newcount <= na->nalloc, this resets na->n.
  *          Using newcount = 0 is equivalent to numaEmpty().
- *      (2) If newcount \> na-\>nalloc, this causes a realloc
- *          to a size na-\>nalloc = newcount.
+ *      (2) If newcount > na->nalloc, this causes a realloc
+ *          to a size na->nalloc = newcount.
  *      (3) All the previously unused values in na are set to 0.0.
  * </pre>
  */
@@ -1276,7 +1276,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = numaWriteStream(fp, na);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -1589,7 +1589,7 @@ l_int32  n, sum, i;
  *            Numaa *naa = numaaCreate(n);
  *            Numa **array = numaaGetPtrArray(naa);
  *             ...  [manipulate Numas directly on the array]
- *            numaaDestroy(\&naa);
+ *            numaaDestroy(&naa);
  *      (3) Cautions:
  *           ~ Do not free this array; it is owned by tne Numaa.
  *           ~ Do not call any functions on the Numaa, other than
@@ -1962,7 +1962,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = numaaWriteStream(fp, naa);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

@@ -120,7 +120,7 @@
  *           l_int32   boxPrintStreamInfo()
  *
  *   Most functions use only valid boxes, which are boxes that have both
- *   width and height \> 0.  However, a few functions, such as
+ *   width and height > 0.  However, a few functions, such as
  *   boxaGetMedian() do not assume that all boxes are valid.  For any
  *   function that can use a boxa with invalid boxes, it is convenient
  *   to use these accessors:
@@ -969,7 +969,7 @@ boxaReplaceBox(BOXA    *boxa,
  *
  * <pre>
  * Notes:
- *      (1) This shifts box[i] --\> box[i + 1] for all i \>= index,
+ *      (1) This shifts box[i] --> box[i + 1] for all i >= index,
  *          and then inserts box as box[index].
  *      (2) To insert at the beginning of the array, set index = 0.
  *      (3) To append to the array, it's easier to use boxaAddBox().
@@ -1017,7 +1017,7 @@ BOX    **array;
  * <pre>
  * Notes:
  *      (1) This removes box[index] and then shifts
- *          box[i] --\> box[i - 1] for all i \> index.
+ *          box[i] --> box[i - 1] for all i > index.
  *      (2) It should not be used repeatedly to remove boxes from
  *          large arrays, because the function is O(n).
  * </pre>
@@ -1059,7 +1059,7 @@ BOX    **array;
  * <pre>
  * Notes:
  *      (1) This removes box[index] and then shifts
- *          box[i] --\> box[i - 1] for all i \> index.
+ *          box[i] --> box[i - 1] for all i > index.
  *      (2) It should not be used repeatedly to remove boxes from
  *          large arrays, because the function is O(n).
  * </pre>
@@ -1679,7 +1679,7 @@ l_int32  n;
  *
  * <pre>
  * Notes:
- *      (1) This shifts boxa[i] --\> boxa[i + 1] for all i \>= index,
+ *      (1) This shifts boxa[i] --> boxa[i + 1] for all i >= index,
  *          and then inserts boxa as boxa[index].
  *      (2) To insert at the beginning of the array, set index = 0.
  *      (3) To append to the array, it's easier to use boxaaAddBoxa().
@@ -1727,7 +1727,7 @@ BOXA   **array;
  * <pre>
  * Notes:
  *      (1) This removes boxa[index] and then shifts
- *          boxa[i] --\> boxa[i - 1] for all i \> index.
+ *          boxa[i] --> boxa[i - 1] for all i > index.
  *      (2) The removed boxaa is destroyed.
  *      (2) This should not be used repeatedly on large arrays,
  *          because the function is O(n).
@@ -2066,7 +2066,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = boxaaWriteStream(fp, baa);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -2287,7 +2287,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = boxaWriteStream(fp, boxa);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

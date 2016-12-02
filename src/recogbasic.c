@@ -102,7 +102,7 @@
  *  each training input to (w, h) and will use the averaged
  *  templates for identifying unknown characters is:
  *         L_Recog  *rec = recogCreate(w, h, L_USE_AVERAGE, 128, 1);
- *         for (i = 0; i \< n; i++) {  // read in n training digits
+ *         for (i = 0; i < n; i++) {  // read in n training digits
  *             Pix *pix = ...
  *             recogTrainLabelled(rec, pix, NULL, text[i], 0, 0);
  *         }
@@ -117,14 +117,14 @@
  *                 recogIdentifyPix()
  *  is called before an explicit call to finish training.  Note that
  *  to do further training on a "finished" recognizer, just set
- *         recog-\>train_done = FALSE;
+ *         recog->train_done = FALSE;
  *  add the new training samples, and again call
  *         recogTrainingFinished(rec, 0);  // required
  *
  *  If using all examples for identification, all scaled to (w, h),
  *  and with outliers removed, do something like this:
  *         L_Recog  *rec = recogCreate(w, h, L_USE_ALL, 128, 1);
- *         for (i = 0; i \< n; i++) {  // read in n training characters
+ *         for (i = 0; i < n; i++) {  // read in n training characters
  *             Pix *pix = ...
  *             recogTrainLabelled(rec, pix, NULL, text[i], 0, 0);
  *         }
@@ -147,7 +147,7 @@
  *  regenerate all the scaled samples and averages:
  *
  *         L_Recog  *rec = recogCreate(w, h, L_USE_ALL, 128, 1);
- *         for (i = 0; i \< n; i++) {  // read in n training characters
+ *         for (i = 0; i < n; i++) {  // read in n training characters
  *             Pix *pix = ...
  *             recogTrainUnlabelled(rec, recboot, pix, NULL, 1, 0.75, 0);
  *         }
@@ -933,7 +933,7 @@ recogAppend(L_RECOG  *recog1,
  *      (1) This is used during training.  It searches the
  *          dna character array for %val.  If not found, it increments
  *          the setsize by 1, augmenting both the index and text arrays.
- *      (2) Returns the index in \&index, except on error.
+ *      (2) Returns the index in &index, except on error.
  *      (3) Caller must check the function return value.
  * </pre>
  */
@@ -1306,7 +1306,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = recogaWriteStream(fp, recoga);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -1608,7 +1608,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = recogWriteStream(fp, recog);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);

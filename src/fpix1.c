@@ -1253,7 +1253,7 @@ dpixClone(DPIX  *dpix)
  *            (a) dpixd == null  (makes a new dpix; refcount = 1)
  *            (b) dpixd == dpixs  (no-op)
  *            (c) dpixd != dpixs  (data copy; no change in refcount)
- *          If the refcount of dpixd \> 1, case (c) will side-effect
+ *          If the refcount of dpixd > 1, case (c) will side-effect
  *          these handles.
  *      (2) The general pattern of use is:
  *             dpixd = dpixCopy(dpixd, dpixs);
@@ -1904,7 +1904,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = fpixWriteStream(fp, fpix);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
@@ -2203,7 +2203,7 @@ FILE    *fp;
         return ERROR_INT("stream not opened", procName, 1);
     ret = dpixWriteStream(fp, dpix);
 #else
-    L_WARNING("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", procName, 1);
