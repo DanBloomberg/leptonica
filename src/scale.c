@@ -443,7 +443,7 @@ PIX       *pixt, *pixd;
     d = pixGetDepth(pixt);
     if (d == 8)
         pixd = pixScaleGrayLI(pixt, scalex, scaley);
-    else if (d == 32)
+    else  /* d == 32 */
         pixd = pixScaleColorLI(pixt, scalex, scaley);
 
     pixDestroy(&pixt);
@@ -614,12 +614,15 @@ PIX  *pixd;
     pixbs = pixScaleGray4xLI(pixb);
     pixDestroy(&pixb);
 
-    if ((pixd = pixCreateRGBImage(pixrs, pixgs, pixbs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if ((pixd = pixCreateRGBImage(pixrs, pixgs, pixbs)) == NULL) {
+        L_ERROR("pixd not made\n", procName);
+        goto cleanup;
+    }
     if (pixGetSpp(pixs) == 4)
         pixScaleAndTransferAlpha(pixd, pixs, 4.0, 4.0);
     pixCopyInputFormat(pixd, pixs);
 
+cleanup:
     pixDestroy(&pixrs);
     pixDestroy(&pixgs);
     pixDestroy(&pixbs);
@@ -1886,13 +1889,9 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-    if ((sumtab = makeSumTabSG2()) == NULL)
-        return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
-    if ((valtab = makeValTabSG2()) == NULL)
-        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
-
+    sumtab = makeSumTabSG2();
+    valtab = makeValTabSG2();
     scaleToGray2Low(datad, wd, hd, wpld, datas, wpls, sumtab, valtab);
-
     LEPT_FREE(sumtab);
     LEPT_FREE(valtab);
     return pixd;
@@ -1947,13 +1946,9 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-    if ((sumtab = makeSumTabSG3()) == NULL)
-        return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
-    if ((valtab = makeValTabSG3()) == NULL)
-        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
-
+    sumtab = makeSumTabSG3();
+    valtab = makeValTabSG3();
     scaleToGray3Low(datad, wd, hd, wpld, datas, wpls, sumtab, valtab);
-
     LEPT_FREE(sumtab);
     LEPT_FREE(valtab);
     return pixd;
@@ -2005,13 +2000,9 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-    if ((sumtab = makeSumTabSG4()) == NULL)
-        return (PIX *)ERROR_PTR("sumtab not made", procName, NULL);
-    if ((valtab = makeValTabSG4()) == NULL)
-        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
-
+    sumtab = makeSumTabSG4();
+    valtab = makeValTabSG4();
     scaleToGray4Low(datad, wd, hd, wpld, datas, wpls, sumtab, valtab);
-
     LEPT_FREE(sumtab);
     LEPT_FREE(valtab);
     return pixd;
@@ -2063,13 +2054,9 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-    if ((tab8 = makePixelSumTab8()) == NULL)
-        return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
-    if ((valtab = makeValTabSG6()) == NULL)
-        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
-
+    tab8 = makePixelSumTab8();
+    valtab = makeValTabSG6();
     scaleToGray6Low(datad, wd, hd, wpld, datas, wpls, tab8, valtab);
-
     LEPT_FREE(tab8);
     LEPT_FREE(valtab);
     return pixd;
@@ -2116,13 +2103,9 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-    if ((tab8 = makePixelSumTab8()) == NULL)
-        return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
-    if ((valtab = makeValTabSG8()) == NULL)
-        return (PIX *)ERROR_PTR("valtab not made", procName, NULL);
-
+    tab8 = makePixelSumTab8();
+    valtab = makeValTabSG8();
     scaleToGray8Low(datad, wd, hd, wpld, datas, wpls, tab8, valtab);
-
     LEPT_FREE(tab8);
     LEPT_FREE(valtab);
     return pixd;
@@ -2168,11 +2151,8 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     wpld = pixGetWpl(pixd);
 
-    if ((tab8 = makePixelSumTab8()) == NULL)
-        return (PIX *)ERROR_PTR("tab8 not made", procName, NULL);
-
+    tab8 = makePixelSumTab8();
     scaleToGray16Low(datad, wd, hd, wpld, datas, wpls, tab8);
-
     LEPT_FREE(tab8);
     return pixd;
 }
@@ -2525,8 +2505,10 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
 
         /* Make dest binary image */
-    if ((pixd = pixCreate(wd, hd, 1)) == NULL)
+    if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
+        LEPT_FREE(lineb);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 2.0, 2.0);
@@ -2578,10 +2560,10 @@ pixScaleGray2xLIDither(PIX  *pixs)
 l_int32    i, ws, hs, hsm, wd, hd, wpls, wplb, wpld;
 l_uint32  *datas, *datad;
 l_uint32  *lined;
-l_uint32  *lineb;   /* 2 intermediate buffer lines */
-l_uint32  *linebp;  /* 1 intermediate buffer line */
-l_uint32  *bufs;    /* 2 source buffer lines */
-PIX       *pixd;
+l_uint32  *lineb = NULL;   /* 2 intermediate buffer lines */
+l_uint32  *linebp = NULL;  /* 1 intermediate buffer line */
+l_uint32  *bufs = NULL;    /* 2 source buffer lines */
+PIX       *pixd = NULL;
 
     PROCNAME("pixScaleGray2xLIDither");
 
@@ -2602,16 +2584,22 @@ PIX       *pixd;
 
         /* Make line buffer for 2 lines of virtual intermediate image */
     wplb = (wd + 3) / 4;
-    if ((lineb = (l_uint32 *)LEPT_CALLOC(2 * wplb, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
+    if ((lineb = (l_uint32 *)LEPT_CALLOC(2 * wplb, sizeof(l_uint32))) == NULL) {
+        L_ERROR("lineb not made\n", procName);
+        goto cleanup;
+    }
 
         /* Make line buffer for 1 line of virtual intermediate image */
-    if ((linebp = (l_uint32 *)LEPT_CALLOC(wplb, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("linebp not made", procName, NULL);
+    if ((linebp = (l_uint32 *)LEPT_CALLOC(wplb, sizeof(l_uint32))) == NULL) {
+        L_ERROR("linebp not made\n", procName);
+        goto cleanup;
+    }
 
         /* Make dest binary image */
-    if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
+        L_ERROR("pixd not made\n", procName);
+        goto cleanup;
+    }
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 2.0, 2.0);
@@ -2656,6 +2644,7 @@ PIX       *pixd;
                           DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 1);
                                                    /* last dest line */
 
+cleanup:
     LEPT_FREE(bufs);
     LEPT_FREE(lineb);
     LEPT_FREE(linebp);
@@ -2714,8 +2703,10 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
 
         /* Make dest binary image */
-    if ((pixd = pixCreate(wd, hd, 1)) == NULL)
+    if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
+        LEPT_FREE(lineb);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 4.0, 4.0);
@@ -2776,10 +2767,10 @@ pixScaleGray4xLIDither(PIX  *pixs)
 l_int32    i, j, ws, hs, hsm, wd, hd, wpls, wplb, wpld;
 l_uint32  *datas, *datad;
 l_uint32  *lined;
-l_uint32  *lineb;   /* 4 intermediate buffer lines */
-l_uint32  *linebp;  /* 1 intermediate buffer line */
-l_uint32  *bufs;    /* 2 source buffer lines */
-PIX       *pixd;
+l_uint32  *lineb = NULL;   /* 4 intermediate buffer lines */
+l_uint32  *linebp = NULL;  /* 1 intermediate buffer line */
+l_uint32  *bufs = NULL;    /* 2 source buffer lines */
+PIX       *pixd = NULL;
 
     PROCNAME("pixScaleGray4xLIDither");
 
@@ -2800,16 +2791,22 @@ PIX       *pixd;
 
         /* Make line buffer for 4 lines of virtual intermediate image */
     wplb = (wd + 3) / 4;
-    if ((lineb = (l_uint32 *)LEPT_CALLOC(4 * wplb, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
+    if ((lineb = (l_uint32 *)LEPT_CALLOC(4 * wplb, sizeof(l_uint32))) == NULL) {
+        L_ERROR("lineb not made\n", procName);
+        goto cleanup;
+    }
 
         /* Make line buffer for 1 line of virtual intermediate image */
-    if ((linebp = (l_uint32 *)LEPT_CALLOC(wplb, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("linebp not made", procName, NULL);
+    if ((linebp = (l_uint32 *)LEPT_CALLOC(wplb, sizeof(l_uint32))) == NULL) {
+        L_ERROR("linebp not made\n", procName);
+        goto cleanup;
+    }
 
         /* Make dest binary image */
-    if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
+        L_ERROR("pixd not made\n", procName);
+        goto cleanup;
+    }
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 4.0, 4.0);
@@ -2861,6 +2858,7 @@ PIX       *pixd;
     ditherToBinaryLineLow(lined + 3 * wpld, wd, lineb + 3 * wplb, NULL,
                               DEFAULT_CLIP_LOWER_1, DEFAULT_CLIP_UPPER_1, 1);
 
+cleanup:
     LEPT_FREE(bufs);
     LEPT_FREE(lineb);
     LEPT_FREE(linebp);

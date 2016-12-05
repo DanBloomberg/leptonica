@@ -128,8 +128,10 @@ L_REGPARAMS  *rp;
     if ((testname = getRootNameFromArgv0(argv[0])) == NULL)
         return ERROR_INT("invalid root", procName, 1);
 
-    if ((rp = (L_REGPARAMS *)LEPT_CALLOC(1, sizeof(L_REGPARAMS))) == NULL)
+    if ((rp = (L_REGPARAMS *)LEPT_CALLOC(1, sizeof(L_REGPARAMS))) == NULL) {
+        LEPT_FREE(testname);
         return ERROR_INT("rp not made", procName, 1);
+    }
     *prp = rp;
     rp->testname = testname;
     rp->index = -1;  /* increment before each test */

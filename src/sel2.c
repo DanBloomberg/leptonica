@@ -146,8 +146,7 @@ SEL     *sel;
 
         /*  Diagonal, slope +, size 5 */
     sel = selCreate(5, 5, "sel_5dp");
-    sel->cy = 2;
-    sel->cx = 2;
+    selSetOrigin(sel, 2, 2);
     selSetElement(sel, 0, 4, 1);
     selSetElement(sel, 1, 3, 1);
     selSetElement(sel, 2, 2, 1);
@@ -157,8 +156,7 @@ SEL     *sel;
 
         /*  Diagonal, slope -, size 5 */
     sel = selCreate(5, 5, "sel_5dm");
-    sel->cy = 2;
-    sel->cx = 2;
+    selSetOrigin(sel, 2, 2);
     selSetElement(sel, 0, 0, 1);
     selSetElement(sel, 1, 1, 1);
     selSetElement(sel, 2, 2, 1);

@@ -35,6 +35,15 @@
  *            rootname: root name for output files
  *            thumbwidth: width of thumb images, in pixels; use 0 for default
  *            viewwidth: max width of view images, in pixels; use 0 for default
+ *
+ *    Example:
+ *         mkdir /tmp/lept/lion-in
+ *         mkdir /tmp/lept/lion-out
+ *         cp lion-page* /tmp/lept/lion-in
+ *         htmlviewer /tmp/lept/lion-in /tmp/lept/lion-out lion 200 600
+ *        ==> output:
+ *            /tmp/lept/lion-out/lion.html         (main html file)
+ *            /tmp/lept/lion-out/lion-links.html   (html file of links)
  */
 
 #include <string.h>
@@ -147,7 +156,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
 
         /* Make the output directory if it doesn't already exist */
 #ifndef _WIN32
-    sprintf(charbuf, "mkdir -p %s", dirout);
+    snprintf(charbuf, sizeof(charbuf), "mkdir -p %s", dirout);
     ret = system(charbuf);
 #else
     ret = CreateDirectory(dirout, NULL) ? 0 : 1;
@@ -168,12 +177,9 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     linkname = stringNew(charbuf);
     linknameshort = stringJoin(rootname, "-links.html");
 
-    if ((sathumbs = sarrayCreate(0)) == NULL)
-        return ERROR_INT("sathumbs not made", procName, 1);
-    if ((saviews = sarrayCreate(0)) == NULL)
-        return ERROR_INT("saviews not made", procName, 1);
-
         /* Generate the thumbs and views */
+    sathumbs = sarrayCreate(0);
+    saviews = sarrayCreate(0);
     nfiles = sarrayGetCount(safiles);
     index = 0;
     for (i = 0; i < nfiles; i++) {
@@ -190,8 +196,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
             /* Make and store the thumbnail images */
         pixGetDimensions(pix, &w, NULL, &d);
         factor = (l_float32)thumbwidth / (l_float32)w;
-        if ((pixthumb = pixScale(pix, factor, factor)) == NULL)
-            return ERROR_INT("pixthumb not made", procName, 1);
+        pixthumb = pixScale(pix, factor, factor);
         sprintf(charbuf, "%s_thumb_%03d", rootname, index);
         sarrayAddString(sathumbs, charbuf, L_COPY);
         outname = genPathname(dirout, charbuf);
@@ -201,13 +206,11 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
 
             /* Make and store the view images */
         factor = (l_float32)viewwidth / (l_float32)w;
-        if (factor >= 1.0) {
+        if (factor >= 1.0)
             pixview = pixClone(pix);   /* no upscaling */
-        } else {
-            if ((pixview = pixScale(pix, factor, factor)) == NULL)
-                return ERROR_INT("pixview not made", procName, 1);
-        }
-        sprintf(charbuf, "%s_view_%03d", rootname, index);
+        else
+            pixview = pixScale(pix, factor, factor);
+        snprintf(charbuf, sizeof(charbuf), "%s_view_%03d", rootname, index);
         sarrayAddString(saviews, charbuf, L_COPY);
         outname = genPathname(dirout, charbuf);
         WriteFormattedPix(outname, pixview);
@@ -218,8 +221,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     }
 
         /* Generate the main html file */
-    if ((sahtml = sarrayCreate(0)) == NULL)
-        return ERROR_INT("sahtml not made", procName, 1);
+    sahtml = sarrayCreate(0);
     sarrayAddString(sahtml, htmlstring, L_COPY);
     sprintf(charbuf, "<frameset cols=\"%d, *\">", thumbwidth + 30);
     sarrayAddString(sahtml, charbuf, L_COPY);
@@ -231,14 +233,16 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     sarrayAddString(sahtml, framestring, L_COPY);
     shtml = sarrayToString(sahtml, 1);
     l_binaryWrite(mainname, "w", shtml, strlen(shtml));
+    fprintf(stderr, "******************************************\n"
+                    "Writing html file: %s\n"
+                    "******************************************\n", mainname);
     lept_free(shtml);
     lept_free(mainname);
 
         /* Generate the link html file */
     nimages = sarrayGetCount(saviews);
     fprintf(stderr, "num. images = %d\n", nimages);
-    if ((salink = sarrayCreate(0)) == NULL)
-        return ERROR_INT("salink not made", procName, 1);
+    salink = sarrayCreate(0);
     for (i = 0; i < nimages; i++) {
         viewfile = sarrayGetString(saviews, i, L_NOCOPY);
         thumbfile = sarrayGetString(sathumbs, i, L_NOCOPY);

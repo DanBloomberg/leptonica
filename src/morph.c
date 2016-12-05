@@ -148,7 +148,7 @@
  *  which adds a border before the operation and removes it afterwards.
  *
  *  The hit-miss transform (HMT) is the bit-and of 2 erosions:
- *     (erosion of the src by the hits)  \&  (erosion of the bit-inverted
+ *     (erosion of the src by the hits)  &  (erosion of the bit-inverted
  *                                           src by the misses)
  *
  *  The 'generalized opening' is an HMT followed by a dilation that uses
@@ -668,7 +668,7 @@ PIX  *pixt;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do separably if both hsize and vsize are > 1.
  *      (4) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -732,7 +732,7 @@ SEL  *sel, *selh, *selv;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do separably if both hsize and vsize are > 1.
  *      (4) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -796,7 +796,7 @@ SEL  *sel, *selh, *selv;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do separably if both hsize and vsize are > 1.
  *      (4) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -862,7 +862,7 @@ SEL  *sel, *selh, *selv;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do separably if both hsize and vsize are > 1.
  *      (4) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -928,7 +928,7 @@ SEL  *sel, *selh, *selv;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do separably if both hsize and vsize are > 1.
  *      (4) Safe closing adds a border of 0 pixels, of sufficient size so
  *          that all pixels in input image are processed within
  *          32-bit words in the expanded image.  As a result, there is
@@ -1084,8 +1084,8 @@ l_int32  factor1, factor2;
  *      (3) We choose an overall cost function where the penalty for
  *          the size difference between input and actual is 4 times
  *          the penalty for additional rasterops.
- *      (4) Returned values: factor1 \>= factor2
- *          If size \> 1, then factor1 \> 1.
+ *      (4) Returned values: factor1 >= factor2
+ *          If size > 1, then factor1 > 1.
  * </pre>
  */
 l_int32
@@ -1173,8 +1173,8 @@ l_int32  diff[256];  /* diff between product (sel size) and input size */
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do compositely for each dimension \> 1.
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -1273,8 +1273,8 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do compositely for each dimension \> 1.
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -1364,8 +1364,8 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do compositely for each dimension \> 1.
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -1463,8 +1463,8 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do compositely for each dimension \> 1.
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) There are three cases:
  *          (a) pixd == null   (result into new pixd)
  *          (b) pixd == pixs   (in-place; writes result back to pixs)
@@ -1562,8 +1562,8 @@ SEL  *selh1, *selh2, *selv1, *selv2;
  * Notes:
  *      (1) Sel is a brick with all elements being hits
  *      (2) The origin is at (x, y) = (hsize/2, vsize/2)
- *      (3) Do compositely for each dimension \> 1.
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (3) Do compositely for each dimension > 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) Safe closing adds a border of 0 pixels, of sufficient size so
  *          that all pixels in input image are processed within
  *          32-bit words in the expanded image.  As a result, there is

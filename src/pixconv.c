@@ -1126,7 +1126,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pixs not 2, 4 or 8 bpp", procName, NULL);
 
     if (pixGetColormap(pixs)) {
-        L_WARNING("pixs already has a colormap\n", procName);
+        L_INFO("pixs already has a colormap\n", procName);
         return pixCopy(NULL, pixs);
     }
 
@@ -1189,7 +1189,7 @@ PIXCMAP   *cmap;
     }
 
     if (pixGetColormap(pixs)) {
-        L_WARNING("pixs already has a colormap\n", procName);
+        L_INFO("pixs already has a colormap\n", procName);
         return pixCopy(NULL, pixs);
     }
 

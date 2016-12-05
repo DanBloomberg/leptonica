@@ -254,9 +254,10 @@ SELA  *sela;
     sela->n = 0;
 
         /* make array of se ptrs */
-    if ((sela->sel = (SEL **)LEPT_CALLOC(n, sizeof(SEL *))) == NULL)
+    if ((sela->sel = (SEL **)LEPT_CALLOC(n, sizeof(SEL *))) == NULL) {
+        LEPT_FREE(sela);
         return (SELA *)ERROR_PTR("sel ptrs not made", procName, NULL);
-
+    }
     return sela;
 }
 
@@ -316,8 +317,11 @@ SEL  *sel;
         sel->name = stringNew(name);
     sel->sy = height;
     sel->sx = width;
-    if ((sel->data = create2dIntArray(height, width)) == NULL)
+    if ((sel->data = create2dIntArray(height, width)) == NULL) {
+        LEPT_FREE(sel->name);
+        LEPT_FREE(sel);
         return (SEL *)ERROR_PTR("data not allocated", procName, NULL);
+    }
 
     return sel;
 }
@@ -381,8 +385,10 @@ SEL     *csel;
     csel->cy = cy;
     csel->cx = cx;
 
-    if ((csel->data = create2dIntArray(sy, sx)) == NULL)
+    if ((csel->data = create2dIntArray(sy, sx)) == NULL) {
+        LEPT_FREE(csel);
         return (SEL *)ERROR_PTR("sel data not made", procName, NULL);
+    }
 
     for (i = 0; i < sy; i++)
         for (j = 0; j < sx; j++)
@@ -448,6 +454,8 @@ SEL     *sel;
  * Notes:
  *      (1) This generates a comb Sel of hits with the origin as
  *          near the center as possible.
+ *      (2) In use, this is complemented by a brick sel of size %factor1,
+ *          Both brick and comb sels are made by selectComposableSels().
  * </pre>
  */
 SEL *
@@ -474,11 +482,9 @@ SEL     *sel;
         selSetOrigin(sel, size / 2, 0);
     }
 
+        /* Lay down the elements of the comb */
     for (i = 0; i < factor2; i++) {
-        if (factor2 & 1)  /* odd */
-            z = factor1 / 2 + i * factor1;
-        else
-            z = factor1 / 2 + i * factor1;
+        z = factor1 / 2 + i * factor1;
 /*        fprintf(stderr, "i = %d, factor1 = %d, factor2 = %d, z = %d\n",
                         i, factor1, factor2, z); */
         if (direction == L_HORIZ)
@@ -509,7 +515,7 @@ l_int32 **
 create2dIntArray(l_int32  sy,
                  l_int32  sx)
 {
-l_int32    i;
+l_int32    i, j, success;
 l_int32  **array;
 
     PROCNAME("create2dIntArray");
@@ -517,12 +523,20 @@ l_int32  **array;
     if ((array = (l_int32 **)LEPT_CALLOC(sy, sizeof(l_int32 *))) == NULL)
         return (l_int32 **)ERROR_PTR("ptr array not made", procName, NULL);
 
+    success = TRUE;
     for (i = 0; i < sy; i++) {
-        if ((array[i] = (l_int32 *)LEPT_CALLOC(sx, sizeof(l_int32))) == NULL)
-            return (l_int32 **)ERROR_PTR("array not made", procName, NULL);
+        if ((array[i] = (l_int32 *)LEPT_CALLOC(sx, sizeof(l_int32))) == NULL) {
+            success = FALSE;
+            break;
+        }
     }
+    if (success) return array;
 
-    return array;
+        /* Cleanup after error */
+    for (j = 0; j < i; j++)   // FIX_THIS
+        LEPT_FREE(array[j]);
+    LEPT_FREE(array);
+    return (l_int32 **)ERROR_PTR("array not made", procName, NULL);
 }
 
 
@@ -1305,8 +1319,10 @@ SELA  *sela;
 
     if ((fp = fopenReadStream(fname)) == NULL)
         return (SELA *)ERROR_PTR("stream not opened", procName, NULL);
-    if ((sela = selaReadStream(fp)) == NULL)
+    if ((sela = selaReadStream(fp)) == NULL) {
+        fclose(fp);
         return (SELA *)ERROR_PTR("sela not returned", procName, NULL);
+    }
     fclose(fp);
 
     return sela;
@@ -1342,10 +1358,11 @@ SELA    *sela;
         return (SELA *)ERROR_PTR("sela not made", procName, NULL);
     sela->nalloc = n;
 
-    for (i = 0; i < n; i++)
-    {
-        if ((sel = selReadStream(fp)) == NULL)
-            return (SELA *)ERROR_PTR("sel not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        if ((sel = selReadStream(fp)) == NULL) {
+            selaDestroy(&sela);
+            return (SELA *)ERROR_PTR("sel not read", procName, NULL);
+        }
         selaAddSel(sela, sel, NULL, 0);
     }
 
@@ -1372,8 +1389,10 @@ SEL   *sel;
 
     if ((fp = fopenReadStream(fname)) == NULL)
         return (SEL *)ERROR_PTR("stream not opened", procName, NULL);
-    if ((sel = selReadStream(fp)) == NULL)
+    if ((sel = selReadStream(fp)) == NULL) {
+        fclose(fp);
         return (SEL *)ERROR_PTR("sela not returned", procName, NULL);
+    }
     fclose(fp);
 
     return sel;
@@ -1410,11 +1429,15 @@ SEL     *sel;
     sscanf(linebuf, "  ------  %s  ------", selname);
 
     if (fscanf(fp, "  sy = %d, sx = %d, cy = %d, cx = %d\n",
-            &sy, &sx, &cy, &cx) != 4)
+            &sy, &sx, &cy, &cx) != 4) {
+        LEPT_FREE(selname);
         return (SEL *)ERROR_PTR("dimensions not read", procName, NULL);
+    }
 
-    if ((sel = selCreate(sy, sx, selname)) == NULL)
+    if ((sel = selCreate(sy, sx, selname)) == NULL) {
+        LEPT_FREE(selname);
         return (SEL *)ERROR_PTR("sel not made", procName, NULL);
+    }
     selSetOrigin(sel, cy, cx);
 
     for (i = 0; i < sy; i++) {
@@ -1874,22 +1897,23 @@ SEL     *sel;
             switch (ch)
             {
                 case 'X':
-                    selSetOrigin(sel, y, x);
+                    selSetOrigin(sel, y, x);  /* set origin and hit */
                 case 'x':
                     selSetElement(sel, y, x, SEL_HIT);
                     break;
 
                 case 'O':
-                    selSetOrigin(sel, y, x);
+                    selSetOrigin(sel, y, x);  /* set origin and miss */
                 case 'o':
                     selSetElement(sel, y, x, SEL_MISS);
                     break;
 
                 case 'C':
-                    selSetOrigin(sel, y, x);
+                    selSetOrigin(sel, y, x);  /* set origin and don't-care */
                 case ' ':
                     selSetElement(sel, y, x, SEL_DONT_CARE);
                     break;
+
                 default:
                     selDestroy(&sel);
                     return (SEL *)ERROR_PTR("unknown char", procName, NULL);
@@ -2031,13 +2055,15 @@ char  *basename, *selname;
     splitPathAtDirectory (basename, NULL, &selname);
     LEPT_FREE(basename);
 
-    if ((pix = pixRead(pathname)) == NULL)
+    if ((pix = pixRead(pathname)) == NULL) {
+        LEPT_FREE(selname);
         return (SEL *)ERROR_PTR("pix not returned", procName, NULL);
+    }
     if ((sel = selCreateFromColorPix(pix, selname)) == NULL)
-        return (SEL *)ERROR_PTR("sel not made", procName, NULL);
+        L_ERROR("sel not made\n", procName);
+
     LEPT_FREE(selname);
     pixDestroy(&pix);
-
     return sel;
 }
 
@@ -2196,8 +2222,8 @@ PTA     *pta1, *pta2, *pta1t, *pta2t;
                       gthick, L_SET_PIXELS);
 
         /* Generate hit and miss patterns */
-    radius1 = (l_int32)(0.85 * ((size - 1) / 2) + 0.5);  /* of hit */
-    radius2 = (l_int32)(0.65 * ((size - 1) / 2) + 0.5);  /* inner miss radius */
+    radius1 = (l_int32)(0.85 * ((size - 1) / 2.0) + 0.5);  /* of hit */
+    radius2 = (l_int32)(0.65 * ((size - 1) / 2.0) + 0.5);  /* of inner miss */
     pta1 = generatePtaFilledCircle(radius1);
     pta2 = generatePtaFilledCircle(radius2);
     shift1 = (size - 1) / 2 - radius1;  /* center circle in square */
