@@ -65,15 +65,15 @@ static const l_int32  ZERO_THRESHOLD_RATIO = 100;
 static const l_int32  DEFAULT_SLICES = 10;
 static const l_int32  DEFAULT_SWEEP_REDUCTION = 2;
 static const l_int32  DEFAULT_BS_REDUCTION = 1;
-static const l_float32  DEFAULT_SWEEP_RANGE = 5.;   /* degrees */
-static const l_float32  DEFAULT_SWEEP_DELTA = 1.;   /* degrees */
-static const l_float32  DEFAULT_MINBS_DELTA = 0.01;   /* degrees */
+static const l_float32  DEFAULT_SWEEP_RANGE = 5.f;   /* degrees */
+static const l_float32  DEFAULT_SWEEP_DELTA = 1.f;   /* degrees */
+static const l_float32  DEFAULT_MINBS_DELTA = 0.01f;   /* degrees */
 
     /* Overlap slice fraction added to top and bottom of each slice */
-static const l_float32  OVERLAP_FRACTION = 0.5;
+static const l_float32  OVERLAP_FRACTION = 0.5f;
 
     /* Minimum allowed confidence (ratio) for accepting a value */
-static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
+static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0f;
 
 
 /*---------------------------------------------------------------------*

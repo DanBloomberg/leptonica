@@ -101,8 +101,8 @@
 static const l_int32    LeftRightPadding = 32;
 
     /* Parameters for filtering and sorting connected components in splitter */
-static const l_float32  MaxAspectRatio = 6.0;
-static const l_float32  MinFillFactor = 0.10;
+static const l_float32  MaxAspectRatio = 6.0f;
+static const l_float32  MinFillFactor = 0.10f;
 static const l_int32  MinOverlap1 = 6;  /* in pass 1 of boxaSort2d() */
 static const l_int32  MinOverlap2 = 6;  /* in pass 2 of boxaSort2d() */
 static const l_int32  MinHeightPass1 = 5;  /* min height to start pass 1 */

@@ -98,24 +98,24 @@
 #include "allheaders.h"
 
     /* Default sweep angle parameters for pixFindSkew() */
-static const l_float32  DEFAULT_SWEEP_RANGE = 7.;    /* degrees */
-static const l_float32  DEFAULT_SWEEP_DELTA = 1.;    /* degrees */
+static const l_float32  DEFAULT_SWEEP_RANGE = 7.f;    /* degrees */
+static const l_float32  DEFAULT_SWEEP_DELTA = 1.f;    /* degrees */
 
     /* Default final angle difference parameter for binary
      * search in pixFindSkew().  The expected accuracy is
      * not better than the inverse image width in pixels,
      * say, 1/2000 radians, or about 0.03 degrees. */
-static const l_float32  DEFAULT_MINBS_DELTA = 0.01;  /* degrees */
+static const l_float32  DEFAULT_MINBS_DELTA = 0.01f;  /* degrees */
 
     /* Default scale factors for pixFindSkew() */
 static const l_int32  DEFAULT_SWEEP_REDUCTION = 4;  /* sweep part; 4 is good */
 static const l_int32  DEFAULT_BS_REDUCTION = 2;  /* binary search part */
 
     /* Minimum angle for deskewing in pixDeskew() */
-static const l_float32  MIN_DESKEW_ANGLE = 0.1;  /* degree */
+static const l_float32  MIN_DESKEW_ANGLE = 0.1f;  /* degree */
 
     /* Minimum allowed confidence (ratio) for deskewing in pixDeskew() */
-static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
+static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0f;
 
     /* Minimum allowed maxscore to give nonzero confidence */
 static const l_int32  MIN_VALID_MAXSCORE = 10000;
@@ -123,7 +123,7 @@ static const l_int32  MIN_VALID_MAXSCORE = 10000;
     /* Constant setting threshold for minimum allowed minscore
      * to give nonzero confidence; multiply this constant by
      *  (height * width^2) */
-static const l_float32  MINSCORE_THRESHOLD_CONSTANT = 0.000002;
+static const l_float32  MINSCORE_THRESHOLD_CONSTANT = 0.000002f;
 
     /* Default binarization threshold value */
 static const l_int32  DEFAULT_BINARY_THRESHOLD = 130;

@@ -68,8 +68,8 @@
 static const l_int32  MIN_MAZE_WIDTH = 50;
 static const l_int32  MIN_MAZE_HEIGHT = 50;
 
-static const l_float32  DEFAULT_WALL_PROBABILITY = 0.65;
-static const l_float32  DEFAULT_ANISOTROPY_RATIO = 0.25;
+static const l_float32  DEFAULT_WALL_PROBABILITY = 0.65f;
+static const l_float32  DEFAULT_ANISOTROPY_RATIO = 0.25f;
 
 enum {  /* direction from parent to newly created element */
     START_LOC = 0,

@@ -164,9 +164,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001;  /* radians; ~0.06 deg */
-static const l_float32  MAX_2_SHEAR_ANGLE = 0.06;     /* radians; ~3 deg    */
-static const l_float32  LIMIT_SHEAR_ANGLE = 0.35;     /* radians; ~20 deg   */
+static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001f;  /* radians; ~0.06 deg */
+static const l_float32  MAX_2_SHEAR_ANGLE = 0.06f;     /* radians; ~3 deg    */
+static const l_float32  LIMIT_SHEAR_ANGLE = 0.35f;     /* radians; ~20 deg   */
 
 /*------------------------------------------------------------------*
  *                Rotations about an arbitrary point                *

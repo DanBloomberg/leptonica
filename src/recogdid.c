@@ -166,7 +166,7 @@ static l_int32 recogGetWindowedArea(L_RECOG *recog, l_int32 index,
 static l_int32 recogTransferRchToDid(L_RECOG *recog, l_int32 x, l_int32 y);
 
     /* Parameters for modeling the decoding */
-static const l_float32  SetwidthFraction = 0.95;
+static const l_float32  SetwidthFraction = 0.95f;
 static const l_int32    MaxYShift = 1;
 
     /* Channel parameters.  alpha[0] is the probability that a bg pixel
