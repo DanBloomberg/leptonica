@@ -616,13 +616,12 @@ PIX  *pixd;
 
     if ((pixd = pixCreateRGBImage(pixrs, pixgs, pixbs)) == NULL) {
         L_ERROR("pixd not made\n", procName);
-        goto cleanup;
+    } else {
+        if (pixGetSpp(pixs) == 4)
+            pixScaleAndTransferAlpha(pixd, pixs, 4.0, 4.0);
+        pixCopyInputFormat(pixd, pixs);
     }
-    if (pixGetSpp(pixs) == 4)
-        pixScaleAndTransferAlpha(pixd, pixs, 4.0, 4.0);
-    pixCopyInputFormat(pixd, pixs);
 
-cleanup:
     pixDestroy(&pixrs);
     pixDestroy(&pixgs);
     pixDestroy(&pixbs);
