@@ -16,7 +16,7 @@ endif()
 
 add_library                     (leptonica ${LIBRARY_TYPE} ${src} ${hdr})
 set_target_properties           (leptonica PROPERTIES VERSION   ${VERSION_PLAIN})
-set_target_properties           (leptonica PROPERTIES SOVERSION ${VERSION_PLAIN})
+set_target_properties           (leptonica PROPERTIES SOVERSION 5.0.1)
 if (WIN32)
 set_target_properties           (leptonica PROPERTIES OUTPUT_NAME       leptonica-${VERSION_PLAIN})
 set_target_properties           (leptonica PROPERTIES DEBUG_OUTPUT_NAME leptonica-${VERSION_PLAIN}d)
