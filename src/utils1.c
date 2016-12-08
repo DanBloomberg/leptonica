@@ -135,14 +135,14 @@ char    *envsev;
         envsev = getenv("LEPT_MSG_SEVERITY");
         if (envsev) {
             LeptMsgSeverity = atoi(envsev);
-            L_INFO("message severity set to external\n", procName);
+/*            L_INFO("message severity set to external\n", procName);  */
         } else {
-            L_WARNING("environment var LEPT_MSG_SEVERITY not defined\n",
-                      procName);
+/*            L_WARNING("environment var LEPT_MSG_SEVERITY not defined\n",
+                      procName);  */
         }
     } else {
         LeptMsgSeverity = newsev;
-        L_INFO("message severity set to %d\n", procName, newsev);
+/*        L_INFO("message severity set to %d\n", procName, newsev);  */
     }
 
     return oldsev;
