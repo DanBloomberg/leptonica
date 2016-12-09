@@ -350,10 +350,22 @@ enum {
  *  message threshold checking, because code for messages whose severity
  *  is lower than MINIMUM_SEVERITY won't be generated.
  *
- *  A production library might typically permit WARNING and higher
- *  messages to be generated, and a development library might permit
- *  DEBUG and higher.  The actual messages printed (as opposed to
- *  generated) would depend on the current run-time severity threshold.
+ *  A production library might typically permit ERROR messages to be
+ *  generated, and a development library might permit DEBUG and higher.
+ *  The actual messages printed (as opposed to generated) would depend
+ *  on the current run-time severity threshold.
+ *
+ *  This is a complex mechanism and a few examples may help.
+ *  (1) No output permitted under any circumstances.
+ *      Use:  -DNO_CONSOLE_IO  or  -DMINIMUM_SEVERITY=6
+ *  (2) Suppose you want to only allow error messages, and you don't
+ *      want to permit info or warning messages at runtime.
+ *      Use:  -DMINIMUM_SEVERITY=5
+ *  (3) Suppose you want to only allow error messages by default,
+ *      but you will permit this to be over-ridden at runtime.
+ *      Use:  -DDEFAULT_SEVERITY=5
+ *            and to allow info and warning override:
+ *                 setMsgSeverity(L_SEVERITY_INFO);
  */
 
 #ifdef  NO_CONSOLE_IO
