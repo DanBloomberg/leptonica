@@ -101,6 +101,7 @@
     /* Global for controlling message output at runtime */
 LEPT_DLL l_int32  LeptMsgSeverity = DEFAULT_SEVERITY;
 
+#define  DEBUG_SEV     0
 
 /*----------------------------------------------------------------------*
  *                Control of error, warning and info messages           *
@@ -119,7 +120,6 @@ LEPT_DLL l_int32  LeptMsgSeverity = DEFAULT_SEVERITY;
  *          returned when the new severity is set.
  *      (2) If L_SEVERITY_EXTERNAL is passed, then the severity will be
  *          obtained from the LEPT_MSG_SEVERITY environment variable.
- *          If the environmental variable is not set, a warning is issued.
  * </pre>
  */
 l_int32
@@ -135,14 +135,20 @@ char    *envsev;
         envsev = getenv("LEPT_MSG_SEVERITY");
         if (envsev) {
             LeptMsgSeverity = atoi(envsev);
-/*            L_INFO("message severity set to external\n", procName);  */
+#if DEBUG_SEV
+            L_INFO("message severity set to external\n", procName);
+#endif  /* DEBUG_SEV */
         } else {
+#if DEBUG_SEV
             L_WARNING("environment var LEPT_MSG_SEVERITY not defined\n",
                       procName);
+#endif  /* DEBUG_SEV */
         }
     } else {
         LeptMsgSeverity = newsev;
-/*        L_INFO("message severity set to %d\n", procName, newsev);  */
+#if DEBUG_SEV
+        L_INFO("message severity set to %d\n", procName, newsev);
+#endif  /* DEBUG_SEV */
     }
 
     return oldsev;

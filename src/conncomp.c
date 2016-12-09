@@ -209,29 +209,31 @@ L_STACK  *stack, *auxstack;
     if (connectivity != 4 && connectivity != 8)
         return (BOXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
 
-    boxa = NULL;
     pix1 = pix2 = pix3 = pix4 = NULL;
     stack = NULL;
-
+    pixa = pixaCreate(0);
+    boxa = NULL;
+    *ppixa = pixa;
     pixZero(pixs, &iszero);
     if (iszero)
-        return boxaCreate(1);  /* return empty boxa */
+        return boxaCreate(1);  /* return empty boxa and empty pixa */
 
     pix1 = pixCopy(NULL, pixs);
     pix2 = pixCopy(NULL, pixs);
     if (!pix1 || !pix2) {
         L_ERROR("pix1 or pix2 not made\n", procName);
+        pixaDestroy(ppixa);
         goto cleanup;
     }
 
     h = pixGetHeight(pixs);
     if ((stack = lstackCreate(h)) == NULL) {
         L_ERROR("stack not made\n", procName);
+        pixaDestroy(ppixa);
         goto cleanup;
     }
     auxstack = lstackCreate(0);
     stack->auxstack = auxstack;
-    pixa = pixaCreate(0);
     boxa = boxaCreate(0);
 
     xstart = 0;
@@ -241,9 +243,9 @@ L_STACK  *stack, *auxstack;
             break;
 
         if ((box = pixSeedfillBB(pix1, stack, x, y, connectivity)) == NULL) {
-            L_ERROR("box not made\n", procName);
-            pixaDestroy(&pixa);
             boxaDestroy(&boxa);
+            pixaDestroy(ppixa);
+            L_ERROR("box not made\n", procName);
             goto cleanup;
         }
         boxaAddBox(boxa, box, L_INSERT);
@@ -267,9 +269,9 @@ L_STACK  *stack, *auxstack;
     pixWrite("junkremain", pix1, IFF_PNG);
 #endif  /* DEBUG */
 
-        /* Remove old boxa of pixa and replace with a clone copy */
+        /* Remove old boxa of pixa and replace with a copy */
     boxaDestroy(&pixa->boxa);
-    pixa->boxa = boxaCopy(boxa, L_CLONE);
+    pixa->boxa = boxaCopy(boxa, L_COPY);
     *ppixa = pixa;
 
         /* Cleanup, freeing the fillsegs on each stack */
@@ -303,7 +305,7 @@ pixConnCompBB(PIX     *pixs,
 {
 l_int32   h, iszero;
 l_int32   x, y, xstart, ystart;
-PIX      *pixt;
+PIX      *pix1;
 BOX      *box;
 BOXA     *boxa;
 L_STACK  *stack, *auxstack;
@@ -316,15 +318,14 @@ L_STACK  *stack, *auxstack;
         return (BOXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
 
     boxa = NULL;
-    pixt = NULL;
+    pix1 = NULL;
     stack = NULL;
-
     pixZero(pixs, &iszero);
     if (iszero)
         return boxaCreate(1);  /* return empty boxa */
 
-    if ((pixt = pixCopy(NULL, pixs)) == NULL)
-        return (BOXA *)ERROR_PTR("pixt not made", procName, NULL);
+    if ((pix1 = pixCopy(NULL, pixs)) == NULL)
+        return (BOXA *)ERROR_PTR("pix1 not made", procName, NULL);
 
     h = pixGetHeight(pixs);
     if ((stack = lstackCreate(h)) == NULL) {
@@ -338,10 +339,10 @@ L_STACK  *stack, *auxstack;
     xstart = 0;
     ystart = 0;
     while (1) {
-        if (!nextOnPixelInRaster(pixt, xstart, ystart, &x, &y))
+        if (!nextOnPixelInRaster(pix1, xstart, ystart, &x, &y))
             break;
 
-        if ((box = pixSeedfillBB(pixt, stack, x, y, connectivity)) == NULL) {
+        if ((box = pixSeedfillBB(pix1, stack, x, y, connectivity)) == NULL) {
             L_ERROR("box not made\n", procName);
             boxaDestroy(&boxa);
             goto cleanup;
@@ -353,15 +354,15 @@ L_STACK  *stack, *auxstack;
     }
 
 #if  DEBUG
-    pixCountPixels(pixt, &iszero, NULL);
+    pixCountPixels(pix1, &iszero, NULL);
     fprintf(stderr, "Number of remaining pixels = %d\n", iszero);
-    pixWrite("junkremain", pixt1, IFF_PNG);
+    pixWrite("junkremain", pix1, IFF_PNG);
 #endif  /* DEBUG */
 
         /* Cleanup, freeing the fillsegs on each stack */
 cleanup:
     lstackDestroy(&stack, TRUE);
-    pixDestroy(&pixt);
+    pixDestroy(&pix1);
     return boxa;
 }
 
@@ -387,7 +388,7 @@ pixCountConnComp(PIX      *pixs,
 {
 l_int32   h, iszero;
 l_int32   x, y, xstart, ystart;
-PIX      *pixt;
+PIX      *pix1;
 L_STACK  *stack, *auxstack;
 
     PROCNAME("pixCountConnComp");
@@ -400,20 +401,17 @@ L_STACK  *stack, *auxstack;
     if (connectivity != 4 && connectivity != 8)
         return ERROR_INT("connectivity not 4 or 8", procName, 1);
 
-    pixt = NULL;
     stack = NULL;
-
     pixZero(pixs, &iszero);
     if (iszero)
         return 0;
 
-    if ((pixt = pixCopy(NULL, pixs)) == NULL)
-        return ERROR_INT("pixt not made", procName, 1);
-
+    if ((pix1 = pixCopy(NULL, pixs)) == NULL)
+        return ERROR_INT("pix1 not made", procName, 1);
     h = pixGetHeight(pixs);
     if ((stack = lstackCreate(h)) == NULL) {
-        L_ERROR("stack not made\n", procName);
-        goto cleanup;
+        pixDestroy(&pix1);
+        return ERROR_INT("stack not made\n", procName, 1);
     }
     auxstack = lstackCreate(0);
     stack->auxstack = auxstack;
@@ -421,20 +419,18 @@ L_STACK  *stack, *auxstack;
     xstart = 0;
     ystart = 0;
     while (1) {
-        if (!nextOnPixelInRaster(pixt, xstart, ystart, &x, &y))
+        if (!nextOnPixelInRaster(pix1, xstart, ystart, &x, &y))
             break;
 
-        pixSeedfill(pixt, stack, x, y, connectivity);
+        pixSeedfill(pix1, stack, x, y, connectivity);
         (*pcount)++;
         xstart = x;
         ystart = y;
     }
 
         /* Cleanup, freeing the fillsegs on each stack */
-cleanup:
     lstackDestroy(&stack, TRUE);
-    pixDestroy(&pixt);
-
+    pixDestroy(&pix1);
     return 0;
 }
 
