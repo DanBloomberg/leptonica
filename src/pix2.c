@@ -174,6 +174,8 @@ LEPT_DLL l_float32  AlphaMaskBorderVals[2] = {0.0, 0.5};
  *            * GET_DATA/SET_DATA: ~350 MPix/sec
  *          If speed is important and you're doing random access into
  *          the pix, use pixGetLinePtrs() and the array access macros.
+ *      (3) If the point is outside the image, this returns an error (1),
+ *          with 0 in %pval.  To avoid spamming output, it fails silently.
  * </pre>
  */
 l_int32
@@ -194,10 +196,8 @@ l_uint32  *line, *data;
         return ERROR_INT("pix not defined", procName, 1);
 
     pixGetDimensions(pix, &w, &h, &d);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 1;
 
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);

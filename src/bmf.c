@@ -39,9 +39,9 @@
  *
  *       PIXA            *pixaGetFont()
  *       l_int32          pixaSaveFont()
- *       PIXA            *pixaGenerateFontFromFile()
- *       PIXA            *pixaGenerateFontFromString()
- *       PIXA            *pixaGenerateFont()
+ *       static PIXA     *pixaGenerateFontFromFile()
+ *       static PIXA     *pixaGenerateFontFromString()
+ *       static PIXA     *pixaGenerateFont()
  *       static l_int32   pixGetTextBaseline()
  *       static l_int32   bmfMakeAsciiTables()
  *
@@ -78,6 +78,13 @@ static const l_float32  VERT_FRACT_SEP = 0.3;
 #define  DEBUG_FONT_GEN     0
 #endif  /* ~NO_CONSOLE_IO */
 
+static PIXA *pixaGenerateFontFromFile(const char *dir, l_int32 fontsize,
+                                      l_int32 *pbl0, l_int32 *pbl1,
+                                      l_int32 *pbl2);
+static PIXA *pixaGenerateFontFromString(l_int32 fontsize, l_int32 *pbl0,
+                                        l_int32 *pbl1, l_int32 *pbl2);
+static PIXA *pixaGenerateFont(PIX *pixs, l_int32 fontsize, l_int32 *pbl0,
+                              l_int32 *pbl1, l_int32 *pbl2);
 static l_int32 pixGetTextBaseline(PIX *pixs, l_int32 *tab8, l_int32 *py);
 static l_int32 bmfMakeAsciiTables(L_BMF *bmf);
 
@@ -377,13 +384,10 @@ PIXA    *pixa;
     if (fontsize < 4 || fontsize > 20 || (fontsize % 2))
         return ERROR_INT("fontsize must be in {4, 6, ..., 20}", procName, 1);
 
-    if (!indir) {  /* Generate from a string */
-        L_INFO("Generating pixa of bitmap fonts from string\n", procName);
+    if (!indir)  /* Generate from a string */
         pixa = pixaGenerateFontFromString(fontsize, &bl1, &bl2, &bl3);
-    } else {  /* Generate from an image file */
-        L_INFO("Generating pixa of bitmap fonts from a file\n", procName);
+    else  /* Generate from an image file */
         pixa = pixaGenerateFontFromFile(indir, fontsize, &bl1, &bl2, &bl3);
-    }
     if (!pixa)
         return ERROR_INT("pixa not made", procName, 1);
 
@@ -428,7 +432,7 @@ PIXA    *pixa;
  *  in a serialized pixa that were produced in prog/genfonts.c using
  *  this function.
  */
-PIXA *
+static PIXA *
 pixaGenerateFontFromFile(const char  *dir,
                          l_int32      fontsize,
                          l_int32     *pbl0,
@@ -454,8 +458,10 @@ PIXA    *pixa;
     pathname = genPathname(dir, inputfonts[fileno]);
     pix = pixRead(pathname);
     LEPT_FREE(pathname);
-    if (!pix)
-        return (PIXA *)ERROR_PTR("pix not all defined", procName, NULL);
+    if (!pix) {
+        L_ERROR("pix not found for font size %d\n", procName, fontsize);
+        return NULL;
+    }
 
     pixa = pixaGenerateFont(pix, fontsize, pbl0, pbl1, pbl2);
     pixDestroy(&pix);
@@ -477,7 +483,7 @@ PIXA    *pixa;
  *      (1) See pixaGenerateFontFromFile() for details.
  * </pre>
  */
-PIXA *
+static PIXA *
 pixaGenerateFontFromString(l_int32   fontsize,
                            l_int32  *pbl0,
                            l_int32  *pbl1,
@@ -548,7 +554,7 @@ PIXA     *pixa;
  *          used here for debugging.
  * </pre>
  */
-PIXA *
+static PIXA *
 pixaGenerateFont(PIX      *pixs,
                  l_int32   fontsize,
                  l_int32  *pbl0,

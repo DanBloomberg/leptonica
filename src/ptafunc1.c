@@ -51,6 +51,7 @@
  *      Min/max and filtering
  *           l_int32   ptaGetMinMax()
  *           PTA      *ptaSelectByValue()
+ *           PTA      *ptaCropToMask()
  *
  *      Least Squares Fit
  *           l_int32   ptaGetLinearLSF()
@@ -138,8 +139,8 @@ PTA       *ptad;
  *
  * <pre>
  * Notes:
- *      (1) istart \< 0 is taken to mean 'read from the start' (istart = 0)
- *      (2) iend \< 0 means 'read to the end'
+ *      (1) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (2) iend < 0 means 'read to the end'
  *      (3) if ptas == NULL, this is a no-op
  * </pre>
  */
@@ -186,8 +187,8 @@ l_int32  n, i, x, y;
  *
  * <pre>
  * Notes:
- *      (1) istart \< 0 is taken to mean 'read from the start' (istart = 0)
- *      (2) iend \< 0 means 'read to the end'
+ *      (1) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (2) iend < 0 means 'read to the end'
  *      (3) if ptas == NULL, this is a no-op
  * </pre>
  */
@@ -755,7 +756,7 @@ l_float32  sum, x1, y1, x2, y2, xp1, yp1, xp2, yp2;
  * Notes:
  *      (1) This gives the angle between two vectors, going between
  *          vector1 (x1,y1) and vector2 (x2,y2).  The angle is swept
- *          out from 1 --\> 2.  If this is clockwise, the angle is
+ *          out from 1 --> 2.  If this is clockwise, the angle is
  *          positive, but the result is folded into the interval [-pi, pi].
  * </pre>
  */
@@ -902,6 +903,44 @@ PTA       *ptad;
 }
 
 
+/*!
+ * \brief   ptaCropToMask()
+ *
+ * \param[in]    ptas  input pta
+ * \param[in]    pixm  1 bpp mask
+ * \return  ptad  with only pts under the mask fg, or NULL on error
+ */
+PTA *
+ptaCropToMask(PTA  *ptas,
+              PIX  *pixm)
+{
+l_int32   i, n, x, y;
+l_uint32  val;
+PTA      *ptad;
+
+    PROCNAME("ptaCropToMask");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+    if (!pixm || pixGetDepth(pixm) != 1)
+        return (PTA *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+    if (ptaGetCount(ptas) == 0) {
+        L_INFO("ptas is empty\n", procName);
+        return ptaCopy(ptas);
+    }
+
+    n = ptaGetCount(ptas);
+    ptad = ptaCreate(n);
+    for (i = 0; i < n; i++) {
+        ptaGetIPt(ptas, i, &x, &y);
+        pixGetPixel(pixm, x, y, &val);
+        if (val == 1)
+            ptaAddPt(ptad, x, y);
+    }
+    return ptad;
+}
+
+
 /*---------------------------------------------------------------------*
  *                            Least Squares Fit                        *
  *---------------------------------------------------------------------*/
@@ -916,9 +955,9 @@ PTA       *ptad;
  *
  * <pre>
  * Notes:
- *      (1) Either or both \&a and \&b must be input.  They determine the
+ *      (1) Either or both &a and &b must be input.  They determine the
  *          type of line that is fit.
- *      (2) If both \&a and \&b are defined, this returns a and b that minimize:
+ *      (2) If both &a and &b are defined, this returns a and b that minimize:
  *
  *              sum (yi - axi -b)^2
  *               i
@@ -927,9 +966,9 @@ PTA       *ptad;
  *          and solve the resulting two equations for a and b in terms of
  *          various sums over the input data (xi, yi).
  *      (3) We also allow two special cases, where either a = 0 or b = 0:
- *           (a) If \&a is given and \&b = null, find the linear LSF that
+ *           (a) If &a is given and &b = null, find the linear LSF that
  *               goes through the origin (b = 0).
- *           (b) If \&b is given and \&a = null, find the linear LSF with
+ *           (b) If &b is given and &a = null, find the linear LSF with
  *               zero slope (a = 0).
  *      (4) If %nafit is defined, this returns an array of fitted values,
  *          corresponding to the two implicit Numa arrays (nax and nay) in pta.
@@ -1415,9 +1454,9 @@ NUMA       *nafit;
  * Notes:
  *      (1) This does a linear least square fit to the set of points
  *          in %pta.  It then evaluates the errors and removes points
- *          whose error is \>= factor * median_error.  It then re-runs
+ *          whose error is >= factor * median_error.  It then re-runs
  *          the linear LSF on the resulting points.
- *      (2) Either or both \&a and \&b must be input.  They determine the
+ *      (2) Either or both &a and &b must be input.  They determine the
  *          type of line that is fit.
  *      (3) The median error can give an indication of how good the fit
  *          is likely to be.
@@ -1506,7 +1545,7 @@ PTA       *ptad;
  * Notes:
  *      (1) This does a quadratic least square fit to the set of points
  *          in %pta.  It then evaluates the errors and removes points
- *          whose error is \>= factor * median_error.  It then re-runs
+ *          whose error is >= factor * median_error.  It then re-runs
  *          a quadratic LSF on the resulting points.
  * </pre>
  */

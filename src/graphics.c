@@ -72,6 +72,7 @@
  *          l_int32     pixRenderHashBox()
  *          l_int32     pixRenderHashBoxArb()
  *          l_int32     pixRenderHashBoxBlend()
+ *          l_int32     pixRenderHashMaskArb()
  *
  *          l_int32     pixRenderHashBoxa()
  *          l_int32     pixRenderHashBoxaArb()
@@ -771,7 +772,7 @@ PTA     *pta;
  *          line is not 4-connected in general.  This function adds
  *          points as necessary to convert the line to 4-cconnected.
  *          It is useful when rendering 1 bpp on a pix.
- *      (2) Do not use this for lines generated with width \> 1.
+ *      (2) Do not use this for lines generated with width > 1.
  * </pre>
  */
 PTA *
@@ -1231,17 +1232,17 @@ PTA       *pta1, *pta2, *ptad;
 /*!
  * \brief   pixRenderPta()
  *
- * \param[in]    pix
- * \param[in]    pta arbitrary set of points
+ * \param[in]    pix  any depth, not cmapped
+ * \param[in]    pta  arbitrary set of points
  * \param[in]    op   one of L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) L_SET_PIXELS puts all image bits in each pixel to 1
- *          (black for 1 bpp; white for depth \> 1)
+ *          (black for 1 bpp; white for depth > 1)
  *      (2) L_CLEAR_PIXELS puts all image bits in each pixel to 0
- *          (white for 1 bpp; black for depth \> 1)
+ *          (white for 1 bpp; black for depth > 1)
  *      (3) L_FLIP_PIXELS reverses all image bits in each pixel
  *      (4) This function clips the rendering to the pix.  It performs
  *          clipping for functions such as pixRenderLine(),
@@ -1259,6 +1260,8 @@ l_int32  i, n, x, y, w, h, d, maxval;
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
+    if (pixGetColormap(pix))
+        return ERROR_INT("pix is colormapped", procName, 1);
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
@@ -1398,7 +1401,7 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixRenderPtaBlend()
  *
- * \param[in]    pix 32 bpp rgb
+ * \param[in]    pix  32 bpp rgb
  * \param[in]    pta  arbitrary set of points
  * \param[in]    rval, gval, bval
  * \return  0 if OK, 1 on error
@@ -1466,7 +1469,7 @@ l_float32  frval, fgval, fbval;
 /*!
  * \brief   pixRenderLine()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth, not cmapped
  * \param[in]    x1, y1
  * \param[in]    x2, y2
  * \param[in]    width  thickness of line
@@ -1506,7 +1509,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderLineArb()
  *
- * \param[in]    pix
+ * \param[in]    pix   any depth, cmapped ok
  * \param[in]    x1, y1
  * \param[in]    x2, y2
  * \param[in]    width  thickness of line
@@ -1546,7 +1549,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderLineBlend()
  *
- * \param[in]    pix
+ * \param[in]    pix  32 bpp rgb
  * \param[in]    x1, y1
  * \param[in]    x2, y2
  * \param[in]    width  thickness of line
@@ -1588,7 +1591,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderBox()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth, not cmapped
  * \param[in]    box
  * \param[in]    width  thickness of box lines
  * \param[in]    op  one of L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS
@@ -1664,7 +1667,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderBoxBlend()
  *
- * \param[in]    pix
+ * \param[in]    pix  32 bpp rgb
  * \param[in]    box
  * \param[in]    width  thickness of box lines
  * \param[in]    rval, gval, bval
@@ -1705,7 +1708,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderBoxa()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth, not cmapped
  * \param[in]    boxa
  * \param[in]    width  thickness of line
  * \param[in]    op  one of L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS
@@ -1743,7 +1746,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderBoxaArb()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth; colormapped is ok
  * \param[in]    boxa
  * \param[in]    width  thickness of line
  * \param[in]    rval, gval, bval
@@ -1781,7 +1784,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderBoxaBlend()
  *
- * \param[in]    pix
+ * \param[in]    pix  32 bpp rgb
  * \param[in]    boxa
  * \param[in]    width  thickness of line
  * \param[in]    rval, gval, bval
@@ -1824,7 +1827,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderHashBox()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth, not cmapped
  * \param[in]    box
  * \param[in]    spacing spacing between lines; must be > 1
  * \param[in]    width  thickness of box and hash lines
@@ -1874,7 +1877,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderHashBoxArb()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth; cmapped ok
  * \param[in]    box
  * \param[in]    spacing spacing between lines; must be > 1
  * \param[in]    width  thickness of box and hash lines
@@ -1924,7 +1927,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderHashBoxBlend()
  *
- * \param[in]    pix
+ * \param[in]    pix   32 bpp
  * \param[in]    box
  * \param[in]    spacing spacing between lines; must be > 1
  * \param[in]    width  thickness of box and hash lines
@@ -1975,9 +1978,84 @@ PTA  *pta;
 
 
 /*!
+ * \brief   pixRenderHashMaskArb()
+ *
+ * \param[in]    pix  any depth; cmapped ok
+ * \param[in]    pixm   1 bpp clipping mask for hash marks
+ * \param[in]    x,y   UL corner of %pixm with respect to %pixs
+ * \param[in]    spacing spacing between lines; must be > 1
+ * \param[in]    width  thickness of box and hash lines
+ * \param[in]    orient  orientation of lines: L_HORIZONTAL_LINE, ...
+ * \param[in]    outline  0 to skip drawing box outline
+ * \param[in]    rval, gval, bval
+ * \return  0 if OK, 1 on error
+ * <pre>
+ * Notes:
+ *      (1) This is an in-place operation that renders hash lines
+ *          through a mask %pixm onto %pix.  The mask origin is
+ *          translated by (%x,%y) relative to the origin of %pix.
+ * </pre>
+ */
+l_int32
+pixRenderHashMaskArb(PIX     *pix,
+                     PIX     *pixm,
+                     l_int32  x,
+                     l_int32  y,
+                     l_int32  spacing,
+                     l_int32  width,
+                     l_int32  orient,
+                     l_int32  outline,
+                     l_int32  rval,
+                     l_int32  gval,
+                     l_int32  bval)
+{
+l_int32  w, h;
+BOX     *box1, *box2;
+PIX     *pix1;
+PTA     *pta1, *pta2;
+
+    PROCNAME("pixRenderHashMaskArb");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (!pixm || pixGetDepth(pixm) != 1)
+        return ERROR_INT("pixm not defined", procName, 1);
+    if (spacing <= 1)
+        return ERROR_INT("spacing not > 1", procName, 1);
+    if (width < 1) {
+        L_WARNING("width < 1; setting to 1\n", procName);
+        width = 1;
+    }
+    if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
+        orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
+        return ERROR_INT("invalid line orientation", procName, 1);
+
+        /* Get the points for masked hash lines */
+    pixGetDimensions(pixm, &w, &h, NULL);
+    box1 = boxCreate(0, 0, w, h);
+    pta1 = generatePtaHashBox(box1, spacing, width, orient, outline);
+    pta2 = ptaCropToMask(pta1, pixm);
+    boxDestroy(&box1);
+    ptaDestroy(&pta1);
+
+        /* Clip out the region and apply the hash lines */
+    box2 = boxCreate(x, y, w, h);
+    pix1 = pixClipRectangle(pix, box2, NULL);
+    pixRenderPtaArb(pix1, pta2, rval, gval, bval);
+    ptaDestroy(&pta2);
+    boxDestroy(&box2);
+
+        /* Rasterop the altered rectangle back in place */
+    pixRasterop(pix, x, y, w, h, PIX_SRC, pix1, 0, 0);
+    pixDestroy(&pix1);
+    return 0;
+}
+
+
+/*!
  * \brief   pixRenderHashBoxa()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth, not cmapped
  * \param[in]    boxa
  * \param[in]    spacing spacing between lines; must be > 1
  * \param[in]    width  thickness of box and hash lines
@@ -2027,7 +2105,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderHashBoxaArb()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth; cmapped ok
  * \param[in]    boxa
  * \param[in]    spacing spacing between lines; must be > 1
  * \param[in]    width  thickness of box and hash lines
@@ -2077,7 +2155,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderHashBoxaBlend()
  *
- * \param[in]    pix
+ * \param[in]    pix  32 bpp rgb
  * \param[in]    boxa
  * \param[in]    spacing spacing between lines; must be > 1
  * \param[in]    width  thickness of box and hash lines
@@ -2130,7 +2208,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderPolyline()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth, not cmapped
  * \param[in]    ptas
  * \param[in]    width  thickness of line
  * \param[in]    op  one of L_SET_PIXELS, L_CLEAR_PIXELS, L_FLIP_PIXELS
@@ -2175,7 +2253,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderPolylineArb()
  *
- * \param[in]    pix
+ * \param[in]    pix  any depth; cmapped ok
  * \param[in]    ptas
  * \param[in]    width  thickness of line
  * \param[in]    rval, gval, bval
@@ -2220,7 +2298,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderPolylineBlend()
  *
- * \param[in]    pix
+ * \param[in]    pix  32 bpp rgb
  * \param[in]    ptas
  * \param[in]    width  thickness of line
  * \param[in]    rval, gval, bval
@@ -2265,7 +2343,7 @@ PTA  *pta;
 /*!
  * \brief   pixRenderGridArb()
  *
- * \param[in]    pix any depth, cmapped ok
+ * \param[in]    pix    any depth, cmapped ok
  * \param[in]    nx, ny number of rectangles in each direction
  * \param[in]    width  thickness of grid lines
  * \param[in]    rval, gval, bval
@@ -2450,9 +2528,9 @@ PTA       *pta1, *pta2;
  *      (1) This fills the interior of the polygon, returning a
  *          new pix.  It works for both convex and non-convex polygons.
  *      (2) To generate a filled polygon from a pta:
- *            PIX *pixt = pixRenderPolygon(pta, 1, \&xmin, \&ymin);
+ *            PIX *pixt = pixRenderPolygon(pta, 1, &xmin, &ymin);
  *            PIX *pixd = pixFillPolygon(pixt, pta, xmin, ymin);
- *            pixDestroy(\&pixt);
+ *            pixDestroy(&pixt);
  * </pre>
  */
 PIX *

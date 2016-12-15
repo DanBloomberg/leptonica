@@ -44,6 +44,7 @@
  *           l_int32     pixCombineMaskedGeneral()
  *           l_int32     pixPaintThroughMask()
  *           PIX        *pixPaintSelfThroughMask()
+ *           PIX        *pixMakeMaskFromVal()
  *           PIX        *pixMakeMaskFromLUT()
  *           PIX        *pixSetUnderTransparency()
  *           PIX        *pixMakeAlphaFromMask()
@@ -750,7 +751,7 @@ l_uint32  *data, *datam, *line, *linem;
  *          repeatedly with %pixm, %x and %y representing one component of
  *          the mask each time.  This would be done as follows, for an
  *          underlying image pixs and mask pixm of components to fill:
- *              Boxa *boxa = pixConnComp(pixm, \&pixa, 8);
+ *              Boxa *boxa = pixConnComp(pixm, &pixa, 8);
  *              n = boxaGetCount(boxa);
  *              for (i = 0; i < n; i++) {
  *                  Pix *pix = pixaGetPix(pixa, i, L_CLONE);
@@ -917,6 +918,62 @@ PIXA     *pixa;
     pixaDestroy(&pixa);
     pixDestroy(&pixf);
     return retval;
+}
+
+
+/*!
+ * \brief   pixMakeMaskFromVal()
+ *
+ * \param[in]    pixs 2, 4 or 8 bpp; can be colormapped
+ * \param[in]    val  pixel value
+ * \return  pixd 1 bpp mask, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This generates a 1 bpp mask image, where a 1 is written in
+ *          the mask for each pixel in pixs that has a value %val.
+ *      (2) If no pixels have the value, an empty mask is generated.
+ * </pre>
+ */
+PIX *
+pixMakeMaskFromVal(PIX     *pixs,
+                   l_int32  val)
+{
+l_int32    w, h, d, i, j, sval, wpls, wpld;
+l_uint32  *datas, *datad, *lines, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixMakeMaskFromVal");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 2 && d != 4 && d != 8)
+        return (PIX *)ERROR_PTR("pix not 2, 4 or 8 bpp", procName, NULL);
+
+    pixd = pixCreate(w, h, 1);
+    pixCopyResolution(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
+    datas = pixGetData(pixs);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            if (d == 2)
+                sval = GET_DATA_DIBIT(lines, j);
+            else if (d == 4)
+                sval = GET_DATA_QBIT(lines, j);
+            else  /* d == 8 */
+                sval = GET_DATA_BYTE(lines, j);
+            if (sval == val)
+                SET_DATA_BIT(lined, j);
+        }
+    }
+
+    return pixd;
 }
 
 

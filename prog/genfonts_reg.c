@@ -159,14 +159,6 @@ L_REGPARAMS  *rp;
         lept_free(formstr);
     }
 
-    /* ------------  Get timing for font generation ----------- */
-    startTimer();
-    for (i = 0; i < 100; i++) {
-        pixa = pixaGenerateFontFromString(sizes[5], &bl1, &bl2, &bl3);
-        pixaDestroy(&pixa);
-    }
-    fprintf(stderr, "Time for font gen = %7.4f sec\n", stopTimer() / 100.0);
-
     return regTestCleanup(rp);
 }
 
