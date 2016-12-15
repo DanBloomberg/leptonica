@@ -87,7 +87,6 @@ endif()
 
 if (WIN32)
     if (MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
     endif()
 endif()
