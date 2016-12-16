@@ -25,9 +25,9 @@
  *====================================================================*/
 
 /*
- * lineremoval.c
+ * lineremoval_reg.c
  *
- *     Use with dave-orig.png
+ *     A fun little application, saved as a regression test.
  */
 
 #include "allheaders.h"
@@ -35,77 +35,86 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_float32    angle, conf, deg2rad;
-PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
-PIX         *pix6, *pix7, *pix8, *pix9;
-static char  mainName[] = "lineremoval";
+l_float32     angle, conf, deg2rad;
+PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX          *pix6, *pix7, *pix8, *pix9;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
 
-    if (argc != 2)
-        return ERROR_INT(" Syntax:  lineremoval filein", mainName, 1);
-
-    filein = argv[1];
-    lept_mkdir("lept/lines");
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     deg2rad = 3.14159 / 180.;
-    if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+    pixs = pixRead("dave-orig.png");
+    pixa = pixaCreate(0);
 
-        /* threshold to binary, extracting much of the lines */
+        /* Threshold to binary, extracting much of the lines */
     pix1 = pixThresholdToBinary(pixs, 170);
-    pixWrite("/tmp/lept/lines/dave-proc1.png", pix1, IFF_PNG);
-    pixDisplayWrite(pix1, 1);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
+    pixaAddPix(pixa, pix1, L_INSERT);
 
-        /* find the skew angle and deskew using an interpolated
+        /* Find the skew angle and deskew using an interpolated
          * rotator for anti-aliasing (to avoid jaggies) */
     pixFindSkew(pix1, &angle, &conf);
     pix2 = pixRotateAMGray(pixs, deg2rad * angle, 255);
-    pixWrite("/tmp/lept/lines/dave-proc2.png", pix2, IFF_PNG);
-    pixDisplayWrite(pix2, 1);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 1 */
+    pixaAddPix(pixa, pix2, L_INSERT);
 
-        /* extract the lines to be removed */
+        /* Extract the lines to be removed */
     pix3 = pixCloseGray(pix2, 51, 1);
-    pixWrite("/tmp/lept/lines/dave-proc3.png", pix3, IFF_PNG);
-    pixDisplayWrite(pix3, 1);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 2 */
+    pixaAddPix(pixa, pix3, L_INSERT);
 
-        /* solidify the lines to be removed */
+        /* Solidify the lines to be removed */
     pix4 = pixErodeGray(pix3, 1, 5);
-    pixWrite("/tmp/lept/lines/dave-proc4.png", pix4, IFF_PNG);
-    pixDisplayWrite(pix4, 1);
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 3 */
+    pixaAddPix(pixa, pix4, L_INSERT);
 
-        /* clean the background of those lines */
+        /* Clean the background of those lines */
     pix5 = pixThresholdToValue(NULL, pix4, 210, 255);
-    pixWrite("/tmp/lept/lines/dave-proc5.png", pix5, IFF_PNG);
-    pixDisplayWrite(pix5, 1);
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 4 */
+    pixaAddPix(pixa, pix5, L_INSERT);
 
     pix6 = pixThresholdToValue(NULL, pix5, 200, 0);
-    pixWrite("/tmp/lept/lines/dave-proc6.png", pix6, IFF_PNG);
-    pixDisplayWrite(pix6, 1);
+    regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 5 */
+    pixaAddPix(pixa, pix6, L_COPY);
 
-        /* get paint-through mask for changed pixels */
+        /* Get paint-through mask for changed pixels */
     pix7 = pixThresholdToBinary(pix6, 210);
-    pixWrite("/tmp/lept/lines/dave-proc7.png", pix7, IFF_PNG);
-    pixDisplayWrite(pix7, 1);
+    regTestWritePixAndCheck(rp, pix7, IFF_PNG);  /* 6 */
+    pixaAddPix(pixa, pix7, L_INSERT);
 
-        /* add the inverted, cleaned lines to orig.  Because
+        /* Add the inverted, cleaned lines to orig.  Because
          * the background was cleaned, the inversion is 0,
          * so when you add, it doesn't lighten those pixels.
          * It only lightens (to white) the pixels in the lines! */
     pixInvert(pix6, pix6);
     pix8 = pixAddGray(NULL, pix2, pix6);
-    pixWrite("/tmp/lept/lines/dave-proc8.png", pix8, IFF_PNG);
-    pixDisplayWrite(pix8, 1);
+    regTestWritePixAndCheck(rp, pix8, IFF_PNG);  /* 7 */
+    pixaAddPix(pixa, pix8, L_COPY);
 
     pix9 = pixOpenGray(pix8, 1, 9);
-    pixWrite("/tmp/lept/lines/dave-proc9.png", pix9, IFF_PNG);
-    pixDisplayWrite(pix9, 1);
-
+    regTestWritePixAndCheck(rp, pix9, IFF_PNG);  /* 8 */
+    pixaAddPix(pixa, pix9, L_INSERT);
     pixCombineMasked(pix8, pix9, pix7);
-    pixWrite("/tmp/lept/lines/dave-result.png", pix8, IFF_PNG);
-    pixDisplayWrite(pix8, 1);
+    regTestWritePixAndCheck(rp, pix8, IFF_PNG);  /* 9 */
+    pixaAddPix(pixa, pix8, L_INSERT);
 
-    fprintf(stderr, "Writing to: /tmp/lept/lines/lineremoval.pdf");
-    pixDisplayMultiple(150, 1.0, "/tmp/lept/lines/lineremoval.pdf");
-    return 0;
+    if (rp->display) {
+        lept_rmdir("lept/lines");
+        lept_mkdir("lept/lines");
+        fprintf(stderr, "Writing to: /tmp/lept/lines/lineremoval.pdf\n");
+        pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, "lineremoval example",
+                         "/tmp/lept/lines/lineremoval.pdf");
+        pix1 = pixaDisplayTiledInColumns(pixa, 5, 0.5, 30, 2);
+        pixWrite("/tmp/lept/lines/lineremoval.jpg", pix1, IFF_JFIF_JPEG);
+        pixDisplay(pix1, 100, 100);
+        pixDestroy(&pix1);
+    }
+
+    pixaDestroy(&pixa);
+    pixDestroy(&pixs);
+    pixDestroy(&pix6);
+    return regTestCleanup(rp);
 }
 

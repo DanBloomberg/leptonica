@@ -10,12 +10,13 @@ INSTALL_PROGS = convertfilestopdf convertfilestops \
 	printimage printsplitimage printtiff \
 	splitimage2pdf xtractprotos
 
-AUTO_REG_PROGS = affine_reg alphaops_reg alphaxform_reg \
+AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg alphaxform_reg \
 	bilateral2_reg bilinear_reg binarize_reg blackwhite_reg \
 	blend1_reg blend2_reg blend3_reg blend4_reg \
 	ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorcontent_reg coloring_reg \
-	colorize_reg colormask_reg colorquant_reg \
+	colorize_reg colormask_reg \
+	colormorph_reg colorquant_reg \
 	colorseg_reg colorspace_reg compare_reg \
 	conncomp_reg convolve_reg dewarp_reg distance_reg \
 	dither_reg dna_reg dwamorph1_reg enhance_reg \
@@ -25,11 +26,11 @@ AUTO_REG_PROGS = affine_reg alphaops_reg alphaxform_reg \
 	grayquant_reg hardlight_reg \
 	insert_reg ioformats_reg \
 	jbclass_reg jpegio_reg \
-	kernel_reg label_reg \
+	kernel_reg label_reg lineremoval_reg \
 	maze_reg multitype_reg \
 	nearline_reg newspaper_reg \
 	overlap_reg paint_reg paintmask_reg \
-	pdfseg_reg pixa2_reg \
+	pdfseg_reg pixa2_reg pixadisp_reg \
 	pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \
 	psio_reg psioseg_reg \
@@ -64,22 +65,21 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
 	grayfill_reg heap_reg locminmax_reg \
 	logicops_reg lowaccess_reg morphseq_reg \
 	numa1_reg numa2_reg pixa1_reg \
-	pixadisp_reg pixalloc_reg pixcomp_reg \
+	pixalloc_reg pixcomp_reg \
 	pixmem_reg pixtile_reg \
 	ptra1_reg ptra2_reg \
 	rank_reg rasterop_reg smallpix_reg \
 	smoothedge_reg string_reg \
 	wordboxes_reg
 
-OTHER_PROGS = adaptmaptest adaptmap_dark \
+OTHER_PROGS = adaptmap_dark \
 	arabic_lines arithtest \
 	autogentest1 autogentest2 \
 	barcodetest baselinetest \
 	binarizefiles binarize_set bincompare \
 	blendcmaptest buffertest \
 	byteatest ccbordtest cctest1 cleanpdf \
-	colormorphtest colorsegtest \
-	comparepages comparepixa \
+	colorsegtest comparepages comparepixa \
 	comparetest concatpdf \
 	contrasttest converttogray \
 	cornertest croptest croptext \
@@ -96,8 +96,7 @@ OTHER_PROGS = adaptmaptest adaptmap_dark \
 	hashtest histotest htmlviewer \
 	iotest italictest \
 	jbcorrelation jbrankhaus jbwords \
-	lineremoval listtest \
-	livre_adapt livre_hmt \
+	listtest livre_adapt livre_hmt \
 	livre_makefigs livre_orient \
 	livre_pageseg livre_seedgen livre_tophat \
 	maketile maptest misctest1 \

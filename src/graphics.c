@@ -1329,12 +1329,13 @@ l_int32  i, n, x, y, w, h, d, maxval;
  * Notes:
  *      (1) If pix is colormapped, render this color (or the nearest
  *          color if the cmap is full) on each pixel.
- *      (2) If pix is not colormapped, do the best job you can using
+ *      (2) The rgb components have the standard dynamic range [0 ... 255]
+ *      (3) If pix is not colormapped, do the best job you can using
  *          the input colors:
  *          ~ d = 1: set the pixels
  *          ~ d = 2, 4, 8: average the input rgb value
  *          ~ d = 32: use the input rgb value
- *      (3) This function clips the rendering to the pix.
+ *      (4) This function clips the rendering to the pix.
  * </pre>
  */
 l_int32
@@ -1981,8 +1982,8 @@ PTA  *pta;
  * \brief   pixRenderHashMaskArb()
  *
  * \param[in]    pix  any depth; cmapped ok
- * \param[in]    pixm   1 bpp clipping mask for hash marks
- * \param[in]    x,y   UL corner of %pixm with respect to %pixs
+ * \param[in]    pixm  1 bpp clipping mask for hash marks
+ * \param[in]    x,y   UL corner of %pixm with respect to %pix
  * \param[in]    spacing spacing between lines; must be > 1
  * \param[in]    width  thickness of box and hash lines
  * \param[in]    orient  orientation of lines: L_HORIZONTAL_LINE, ...
@@ -2019,7 +2020,7 @@ PTA     *pta1, *pta2;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not defined", procName, 1);
+        return ERROR_INT("pixm not defined or not 1 bpp", procName, 1);
     if (spacing <= 1)
         return ERROR_INT("spacing not > 1", procName, 1);
     if (width < 1) {

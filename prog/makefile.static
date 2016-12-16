@@ -134,7 +134,7 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 
 #########################################################################
 
-SRC =		adaptnorm_reg.c affine_reg.c \
+SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		alltests_reg.c alphaops_reg.c alphaxform_reg.c \
 		bilateral1_reg.c bilateral2_reg.c \
 		bilinear_reg.c binarize_reg.c \
@@ -146,7 +146,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorcontent_reg.c \
 		coloring_reg.c colorize_reg.c \
-		colormask_reg.c colorquant_reg.c \
+		colormask_reg.c colormorph_reg.c colorquant_reg.c \
 		colorseg_reg.c colorspace_reg.c \
 		compare_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c convolve_reg.c \
@@ -165,7 +165,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		hardlight_reg.c heap_reg.c \
 		insert_reg.c ioformats_reg.c \
 		jbclass_reg.c jp2kio_reg.c jpegio_reg.c kernel_reg.c \
-		label_reg.c locminmax_reg.c \
+		label_reg.c lineremoval_reg.c locminmax_reg.c \
 		logicops_reg.c lowaccess_reg.c \
 		maze_reg.c morphseq_reg.c multitype_reg.c \
 		nearline_reg.c newspaper_reg.c \
@@ -189,15 +189,13 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		texturefill_reg.c threshnorm_reg.c \
 		translate_reg.c warper_reg.c webpio_reg.c \
 		wordboxes_reg.c writetext_reg.c xformbox_reg.c \
-		adaptmaptest.c adaptmap_dark.c \
-		arabic_lines.c arithtest.c \
+		adaptmap_dark.c arabic_lines.c arithtest.c \
 		autogentest1.c autogentest2.c \
 		barcodetest.c baselinetest.c \
 		binarizefiles.c binarize_set.c bincompare.c \
 		blendcmaptest.c buffertest.c \
 		byteatest.c ccbordtest.c cctest1.c \
-		cleanpdf.c colormorphtest.c \
-		colorsegtest.c comparepages.c \
+		cleanpdf.c colorsegtest.c comparepages.c \
 		comparepixa.c comparetest.c \
 		concatpdf.c contrasttest.c \
 		convertfilestopdf.c convertfilestops.c \
@@ -219,8 +217,7 @@ SRC =		adaptnorm_reg.c affine_reg.c \
 		hashtest.c histotest.c htmlviewer.c \
 		iotest.c italictest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
-		lineremoval.c listtest.c \
-		livre_adapt.c livre_hmt.c \
+		listtest.c livre_adapt.c livre_hmt.c \
 		livre_makefigs.c livre_orient.c \
 		livre_pageseg.c livre_seedgen.c livre_tophat.c \
 		maketile.c maptest.c misctest1.c \
@@ -295,6 +292,9 @@ all:	$(SRC:%.c=%)
 #	watershedtest xtractprotos
 
 ######################################################################
+
+adaptmap_reg:	adaptmap_reg.o $(LEPTLIB)
+	$(CC) -o adaptmap_reg adaptmap_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 adaptnorm_reg:	adaptnorm_reg.o $(LEPTLIB)
 	$(CC) -o adaptnorm_reg adaptnorm_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -379,6 +379,9 @@ colorize_reg:	colorize_reg.o $(LEPTLIB)
 
 colormask_reg:	colormask_reg.o $(LEPTLIB)
 	$(CC) -o colormask_reg colormask_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+colormorph_reg:	colormorph_reg.o $(LEPTLIB)
+	$(CC) -o colormorph_reg colormorph_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 colorquant_reg:	colorquant_reg.o $(LEPTLIB)
 	$(CC) -o colorquant_reg colorquant_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -502,6 +505,9 @@ kernel_reg:	kernel_reg.o $(LEPTLIB)
 
 label_reg:	label_reg.o $(LEPTLIB)
 	$(CC) -o label_reg label_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+lineremoval_reg:	lineremoval_reg.o $(LEPTLIB)
+	$(CC) -o lineremoval_reg lineremoval_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 locminmax_reg:	locminmax_reg.o $(LEPTLIB)
 	$(CC) -o locminmax_reg locminmax_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -677,9 +683,6 @@ writetext_reg:	writetext_reg.o $(LEPTLIB)
 xformbox_reg:	xformbox_reg.o $(LEPTLIB)
 	$(CC) -o xformbox_reg xformbox_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
-adaptmaptest:	adaptmaptest.o $(LEPTLIB)
-	$(CC) -o adaptmaptest adaptmaptest.o $(ALL_LIBS) $(EXTRALIBS)
-
 adaptmap_dark:	adaptmap_dark.o $(LEPTLIB)
 	$(CC) -o adaptmap_dark adaptmap_dark.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -727,9 +730,6 @@ cctest1:	cctest1.o $(LEPTLIB)
 
 cleanpdf:	cleanpdf.o $(LEPTLIB)
 	$(CC) -o cleanpdf cleanpdf.o $(ALL_LIBS) $(EXTRALIBS)
-
-colormorphtest:	colormorphtest.o $(LEPTLIB)
-	$(CC) -o colormorphtest colormorphtest.o $(ALL_LIBS) $(EXTRALIBS)
 
 colorsegtest:	colorsegtest.o $(LEPTLIB)
 	$(CC) -o colorsegtest colorsegtest.o $(ALL_LIBS) $(EXTRALIBS)
@@ -889,9 +889,6 @@ jbrankhaus:	jbrankhaus.o $(LEPTLIB)
 
 jbwords:	jbwords.o $(LEPTLIB)
 	$(CC) -o jbwords jbwords.o $(ALL_LIBS) $(EXTRALIBS)
-
-lineremoval:	lineremoval.o $(LEPTLIB)
-	$(CC) -o lineremoval lineremoval.o $(ALL_LIBS) $(EXTRALIBS)
 
 listtest:	listtest.o $(LEPTLIB)
 	$(CC) -o listtest listtest.o $(ALL_LIBS) $(EXTRALIBS)
