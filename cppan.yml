@@ -66,9 +66,10 @@ options:
             private: LIBLEPT_EXPORTS
 
 dependencies:
-    pvt.cppan.demo.gif: 5
-    pvt.cppan.demo.jpeg: 9
-    pvt.cppan.demo.png: 1
-    pvt.cppan.demo.tiff: 4
-    pvt.cppan.demo.webp: 0
-    pvt.cppan.demo.openjpeg.openjp2: 2
+    private:
+        pvt.cppan.demo.gif: 5
+        pvt.cppan.demo.jpeg: 9
+        pvt.cppan.demo.png: 1
+        pvt.cppan.demo.tiff: 4
+        pvt.cppan.demo.webp: 0
+        pvt.cppan.demo.openjpeg.openjp2: 2
