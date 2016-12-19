@@ -334,7 +334,6 @@ L_REGPARAMS  *rp;
 
     /* ---------------- Part 4: Test non-tiff r/w to memory ---------------- */
 
-    pixDisplayWrite(NULL, -1);
     success = (n < 6) ? FALSE : TRUE;
     for (i = 0; i < n; i++) {
         if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL) {
@@ -661,7 +660,6 @@ PIX       *pixd = NULL;
             fprintf(stderr, "Mem write/read fail for format %d, diff = %5.2f\n",
                     format, diff);
         }
-        pixDisplayWrite(pixd, 1);
     } else {
         pixEqual(pixs, pixd, &same);
         if (!same)

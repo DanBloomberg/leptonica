@@ -104,7 +104,7 @@ static char   mainName[] = "rank_reg";
 
     /* ------------- Timing and filter size experiments --------- */
     fprintf(stderr, "\n----------------------------------------\n");
-    fprintf(stderr, "The next part takes about 10 seconds\n");
+    fprintf(stderr, "The next part takes several seconds\n");
     fprintf(stderr, "----------------------------------------\n\n");
 
     nax = numaMakeSequence(1, 1, SIZE);

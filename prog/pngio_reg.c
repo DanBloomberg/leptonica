@@ -128,7 +128,6 @@ L_REGPARAMS  *rp;
     if (!success) failure = TRUE;
 
     /* ------------ Part 2: Test lossless r/w to memory ------------ */
-    pixDisplayWrite(NULL, -1);
     success = TRUE;
     if (test_mem_png(FILE_1BPP)) success = FALSE;
     if (test_mem_png(FILE_2BPP)) success = FALSE;
