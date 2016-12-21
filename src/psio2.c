@@ -1474,7 +1474,7 @@ FILE      *fp;
         else
             pixs = pixClone(pix);
 
-        tempfile = l_makeTempFilename(NULL);
+        tempfile = l_makeTempFilename();
         pixWrite(tempfile, pixs, IFF_TIFF_G4);
         scale = L_MIN(fillfract * 2550 / w, fillfract * 3300 / h);
         if (i == 0)

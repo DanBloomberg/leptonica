@@ -77,20 +77,20 @@
  *         gplotAddPlot(gplot, natheta, nascore2, GPLOT_POINTS, "plot 2");
  *         gplotSetScaling(gplot, GPLOT_LOG_SCALE_Y);
  *         gplotMakeOutput(gplot);
- *         gplotDestroy(\&gplot);
+ *         gplotDestroy(&gplot);
  *
  *     Note for output to GPLOT_LATEX:
- *         This creates latex output of the plot, named \<rootname\>.tex.
- *         It needs to be placed in a latex file \<latexname\>.tex
+ *         This creates latex output of the plot, named <rootname>.tex.
+ *         It needs to be placed in a latex file <latexname>.tex
  *         that precedes the plot output with, at a minimum:
  *           \documentclass{article}
  *           \begin{document}
  *         and ends with
  *           \end{document}
- *         You can then generate a dvi file \<latexname\>.dvi using
- *           latex \<latexname\>.tex
- *         and a PostScript file \<psname\>.ps from that using
- *           dvips -o \<psname\>.ps \<latexname\>.dvi
+ *         You can then generate a dvi file <latexname>.dvi using
+ *           latex <latexname>.tex
+ *         and a PostScript file <psname>.ps from that using
+ *           dvips -o <psname>.ps <latexname>.dvi
  *
  *     N.B. To generate plots, it is necessary to have gnuplot installed on
  *          your Unix system, or wgnuplot on Windows.
@@ -170,7 +170,7 @@ GPLOT  *gplot;
     newroot = genPathname(rootname, NULL);
     gplot->rootname = newroot;
     gplot->outformat = outformat;
-    snprintf(buf, L_BUF_SIZE, "%s.cmd", newroot);
+    snprintf(buf, L_BUF_SIZE, "%s.cmd", rootname);
     gplot->cmdname = stringNew(buf);
     if (outformat == GPLOT_PNG)
         snprintf(buf, L_BUF_SIZE, "%s.png", newroot);
@@ -369,13 +369,16 @@ gplotSetScaling(GPLOT   *gplot,
  *          the appropriate plot commands to the command file.
  *      (2) This is the only function in this file that requires the
  *          gnuplot executable, to actually generate the plot.
- *      (3) The gnuplot program for windows is wgnuplot.exe.
+ *      (3) The command file name for unix is canonical (i.e., directory /tmp)
+ *          but the temp filename paths in the command file must be correct.
+ *      (4) The gnuplot program for windows is wgnuplot.exe.
  * </pre>
  */
 l_int32
 gplotMakeOutput(GPLOT  *gplot)
 {
 char     buf[L_BUF_SIZE];
+char    *cmdname;
 l_int32  ignore;
 
     PROCNAME("gplotMakeOutput");
@@ -385,13 +388,16 @@ l_int32  ignore;
 
     gplotGenCommandFile(gplot);
     gplotGenDataFiles(gplot);
+    cmdname = genPathname(gplot->cmdname, NULL);
 
 #ifndef _WIN32
-    snprintf(buf, L_BUF_SIZE, "gnuplot %s", gplot->cmdname);
+    snprintf(buf, L_BUF_SIZE, "gnuplot %s", cmdname);
 #else
-    snprintf(buf, L_BUF_SIZE, "wgnuplot %s", gplot->cmdname);
+    snprintf(buf, L_BUF_SIZE, "wgnuplot %s", cmdname);
 #endif  /* _WIN32 */
+
     ignore = system(buf);  /* gnuplot || wgnuplot */
+    LEPT_FREE(cmdname);
     return 0;
 }
 
@@ -500,6 +506,13 @@ FILE    *fp;
  *
  * \param[in]    gplot
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The pathnames in the gplot command file are actual pathnames,
+ *          which can be in temp directories.  Consequently, they must not be
+ *          rewritten by calling fopenWriteStream(), and we use fopen().
+ * </pre>
  */
 l_int32
 gplotGenDataFiles(GPLOT  *gplot)
@@ -517,7 +530,7 @@ FILE    *fp;
     for (i = 0; i < nplots; i++) {
         plotdata = sarrayGetString(gplot->plotdata, i, L_NOCOPY);
         dataname = sarrayGetString(gplot->datanames, i, L_NOCOPY);
-        if ((fp = fopenWriteStream(dataname, "w")) == NULL)
+        if ((fp = fopen(dataname, "w")) == NULL)
             return ERROR_INT("datafile stream not opened", procName, 1);
         fwrite(plotdata, 1, strlen(plotdata), fp);
         fclose(fp);

@@ -146,7 +146,7 @@ L_REGPARAMS  *rp;
         /* Only open a stream to a temp file for the 'compare' case */
     if (argc == 1 || !strcmp(argv[1], "compare")) {
         rp->mode = L_REG_COMPARE;
-        rp->tempfile = genPathname("/tmp/lept/regout", "regtest_output.txt");
+        rp->tempfile = stringNew("/tmp/lept/regout/regtest_output.txt");
         rp->fp = fopenWriteStream(rp->tempfile, "wb");
         if (rp->fp == NULL) {
             rp->success = FALSE;
@@ -236,7 +236,7 @@ size_t   nbytes;
         snprintf(result, sizeof(result), "FAILURE: %s_reg\n", rp->testname);
     message = stringJoin(text, result);
     LEPT_FREE(text);
-    results_file = genPathname("/tmp/lept", "reg_results.txt");
+    results_file = stringNew("/tmp/lept/reg_results.txt");
     fileAppendString(results_file, message);
     retval = (rp->success) ? 0 : 1;
     LEPT_FREE(results_file);

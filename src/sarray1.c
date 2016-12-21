@@ -1742,7 +1742,7 @@ SARRAY  *sa, *safiles, *saout;
     saout = sarrayCreate(last - first + 1);
     for (i = first; i <= last; i++) {
         fname = sarrayGetString(safiles, i, L_NOCOPY);
-        fullname = genPathname(dirname, fname);
+        fullname = pathJoin(dirname, fname);
         sarrayAddString(saout, fullname, L_INSERT);
     }
 

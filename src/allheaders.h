@@ -2662,7 +2662,7 @@ LEPT_DLL extern l_int32 convertSepCharsInPath ( char *path, l_int32 type );
 LEPT_DLL extern char * genPathname ( const char *dir, const char *fname );
 LEPT_DLL extern l_int32 makeTempDirname ( char *result, size_t nbytes, const char *subdir );
 LEPT_DLL extern l_int32 modifyTrailingSlash ( char *path, size_t nbytes, l_int32 flag );
-LEPT_DLL extern char * l_makeTempFilename ( const char *subdir );
+LEPT_DLL extern char * l_makeTempFilename (  );
 LEPT_DLL extern l_int32 extractNumberFromFilename ( const char *fname, l_int32 numpre, l_int32 numpost );
 LEPT_DLL extern PIX * pixSimpleCaptcha ( PIX *pixs, l_int32 border, l_int32 nterms, l_uint32 seed, l_uint32 color, l_int32 cmapflag );
 LEPT_DLL extern PIX * pixRandomHarmonicWarp ( PIX *pixs, l_float32 xmag, l_float32 ymag, l_float32 xfreq, l_float32 yfreq, l_int32 nx, l_int32 ny, l_uint32 seed, l_int32 grayval );
@@ -2688,7 +2688,7 @@ LEPT_DLL extern l_int32 pixWriteWebP ( const char *filename, PIX *pixs, l_int32 
 LEPT_DLL extern l_int32 pixWriteStreamWebP ( FILE *fp, PIX *pixs, l_int32 quality, l_int32 lossless );
 LEPT_DLL extern l_int32 pixWriteMemWebP ( l_uint8 **pencdata, size_t *pencsize, PIX *pixs, l_int32 quality, l_int32 lossless );
 LEPT_DLL extern l_int32 pixaWriteFiles ( const char *rootname, PIXA *pixa, l_int32 format );
-LEPT_DLL extern l_int32 pixWrite ( const char *filename, PIX *pix, l_int32 format );
+LEPT_DLL extern l_int32 pixWrite ( const char *fname, PIX *pix, l_int32 format );
 LEPT_DLL extern l_int32 pixWriteAutoFormat ( const char *filename, PIX *pix );
 LEPT_DLL extern l_int32 pixWriteStream ( FILE *fp, PIX *pix, l_int32 format );
 LEPT_DLL extern l_int32 pixWriteImpliedFormat ( const char *filename, PIX *pix, l_int32 quality, l_int32 progressive );

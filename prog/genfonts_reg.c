@@ -72,7 +72,7 @@ L_REGPARAMS  *rp;
     lept_mkdir("lept/filefonts");
     for (i = 0; i < 9; i++) {
         pixaSaveFont("fonts", "/tmp/lept/filefonts", sizes[i]);
-        pathname = genPathname("/tmp/lept/filefonts", outputfonts[i]);
+        pathname = pathJoin("/tmp/lept/filefonts", outputfonts[i]);
         pixa = pixaRead(pathname);
         if (rp->display) {
             fprintf(stderr, "Found %d chars in font size %d\n",
@@ -92,7 +92,7 @@ L_REGPARAMS  *rp;
     lept_mkdir("lept/strfonts");
     for (i = 0; i < 9; i++) {
         pixaSaveFont(NULL, "/tmp/lept/strfonts", sizes[i]);
-        pathname = genPathname("/tmp/lept/strfonts", outputfonts[i]);
+        pathname = pathJoin("/tmp/lept/strfonts", outputfonts[i]);
         pixa = pixaRead(pathname);
         if (rp->display) {
             fprintf(stderr, "Found %d chars in font size %d\n",
@@ -128,7 +128,7 @@ L_REGPARAMS  *rp;
     lept_mkdir("lept/encfonts");
     for (i = 0; i < 9; i++) {
         fontsize = 2 * i + 4;
-        pathname = genPathname("fonts", inputfonts[i]);
+        pathname = pathJoin("fonts", inputfonts[i]);
         data1 = l_binaryRead(pathname, &nbytes);
         datastr = encodeBase64(data1, nbytes, &sbytes);
         if (rp->display)

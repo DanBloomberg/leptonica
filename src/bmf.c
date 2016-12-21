@@ -342,7 +342,7 @@ PIXA     *pixa;
     *pbl1 = baselines[fileno][1];
     *pbl2 = baselines[fileno][2];
 
-    pathname = genPathname(dir, outputfonts[fileno]);
+    pathname = pathJoin(dir, outputfonts[fileno]);
     pixa = pixaRead(pathname);
     LEPT_FREE(pathname);
 
@@ -391,7 +391,7 @@ PIXA    *pixa;
     if (!pixa)
         return ERROR_INT("pixa not made", procName, 1);
 
-    pathname = genPathname(outdir, outputfonts[(fontsize - 4) / 2]);
+    pathname = pathJoin(outdir, outputfonts[(fontsize - 4) / 2]);
     pixaWrite(pathname, pixa);
 
 #if  DEBUG_FONT_GEN
@@ -455,7 +455,7 @@ PIXA    *pixa;
     if (fileno < 0 || fileno >= NUM_FONTS)
         return (PIXA *)ERROR_PTR("font size invalid", procName, NULL);
 
-    pathname = genPathname(dir, inputfonts[fileno]);
+    pathname = pathJoin(dir, inputfonts[fileno]);
     pix = pixRead(pathname);
     LEPT_FREE(pathname);
     if (!pix) {

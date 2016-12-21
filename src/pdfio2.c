@@ -1259,7 +1259,7 @@ L_COMP_DATA  *cid;
 
         /* Compress to a temp jpeg file */
     lept_mkdir("lept");
-    fname = l_makeTempFilename(NULL);
+    fname = l_makeTempFilename();
     pixWriteJpeg(fname, pixs, quality, 0);
 
     cid = l_generateJpegData(fname, ascii85flag);
@@ -1299,7 +1299,7 @@ L_COMP_DATA  *cid;
 
         /* Compress to a temp tiff g4 file */
     lept_mkdir("lept");
-    tname = l_makeTempFilename(NULL);
+    tname = l_makeTempFilename();
     pixWrite(tname, pixs, IFF_TIFF_G4);
 
     cid = l_generateG4Data(tname, ascii85flag);

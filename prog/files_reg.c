@@ -101,7 +101,7 @@ L_REGPARAMS  *rp;
 
     fprintf(stderr, "\n ===================================================\n");
     fprintf(stderr, " ======= Test lept_mv(), lept_cp(), lept_rm() ======\n");
-    fprintf(stderr, " ===================================================");
+    fprintf(stderr, " ===================================================\n");
     TestLeptCpRm(rp, "weasel2.png", NULL, NULL);  /* 19 - 22 */
     TestLeptCpRm(rp, "weasel2.png", "junkfiles", NULL);  /* 23 - 26 */
     TestLeptCpRm(rp, "weasel2.png", NULL, "new_weasel2.png");  /* 27 - 30 */
@@ -115,12 +115,14 @@ L_REGPARAMS  *rp;
     TestGenPathname(rp, NULL, "abc/def", "abc/def");  /* 37 */
     TestGenPathname(rp, "", "abc/def", "abc/def");  /* 38 */
 #ifndef _WIN32   /* unix only */
-    TestGenPathname(rp, "/tmp", NULL, "/tmp");  /* 39 */
-    TestGenPathname(rp, "/tmp/", NULL, "/tmp");  /* 40 */
-    TestGenPathname(rp, "/tmp/junk", NULL, "/tmp/junk");  /* 41 */
-    TestGenPathname(rp, "/tmp/junk/abc", NULL, "/tmp/junk/abc");  /* 42 */
-    TestGenPathname(rp, "/tmp/junk/", NULL, "/tmp/junk");  /* 43 */
-    TestGenPathname(rp, "/tmp/junk", "abc", "/tmp/junk/abc");  /* 44 */
+    if (getenv("TMPDIR") == NULL) {
+        TestGenPathname(rp, "/tmp", NULL, "/tmp");  /* 39 */
+        TestGenPathname(rp, "/tmp/", NULL, "/tmp");  /* 40 */
+        TestGenPathname(rp, "/tmp/junk", NULL, "/tmp/junk");  /* 41 */
+        TestGenPathname(rp, "/tmp/junk/abc", NULL, "/tmp/junk/abc");  /* 42 */
+        TestGenPathname(rp, "/tmp/junk/", NULL, "/tmp/junk");  /* 43 */
+        TestGenPathname(rp, "/tmp/junk", "abc", "/tmp/junk/abc");  /* 44 */
+    }
 #endif  /* !_WIN32 */
 
     return regTestCleanup(rp);

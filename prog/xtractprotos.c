@@ -181,7 +181,7 @@ static char  mainName[] = "xtractprotos";
         /* Then the prototypes */
     firstfile = 1 + nflags;
     protos_added = FALSE;
-    if ((tempfile = l_makeTempFilename(NULL)) == NULL) {
+    if ((tempfile = l_makeTempFilename()) == NULL) {
         fprintf(stderr, "failure to make a writeable temp file\n");
         return 1;
     }

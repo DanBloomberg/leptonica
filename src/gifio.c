@@ -626,7 +626,7 @@ PIX           *pix;
 #else
     L_INFO("using a temp file; not reading from memory\n", procName); 
         /* Write to a temp file */
-    fname = l_makeTempFilename(NULL);
+    fname = l_makeTempFilename();
     l_binaryWrite(fname, "w", (l_uint8 *)cdata, size);
 
         /* Read back from the file */
@@ -726,7 +726,7 @@ char         *fname;
     L_INFO("writing to a temp file, not directly to memory\n", procName);
 
         /* Write to a temp file */
-    fname = l_makeTempFilename(NULL);
+    fname = l_makeTempFilename();
     pixWrite(fname, pix, IFF_GIF);
 
         /* Read back into memory */

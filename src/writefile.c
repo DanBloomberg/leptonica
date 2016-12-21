@@ -212,7 +212,7 @@ PIX     *pix;
 /*!
  * \brief   pixWrite()
  *
- * \param[in]    filename
+ * \param[in]    fname
  * \param[in]    pix
  * \param[in]    format  defined in imageio.h
  * \return  0 if OK; 1 on error
@@ -227,9 +227,9 @@ PIX     *pix;
  *      (2) If the default image format IFF_DEFAULT is requested:
  *          use the input format if known; otherwise, use a lossless format.
  *      (3) There are two modes with respect to file naming.
- *          (a) The default code writes to %filename.
+ *          (a) The default code writes to %fname.
  *          (b) If WRITE_AS_NAMED is defined to 0, it's a bit fancier.
- *              Then, if %filename does not have a file extension, one is
+ *              Then, if %fname does not have a file extension, one is
  *              automatically appended, depending on the requested format.
  *          The original intent for providing option (b) was to insure
  *          that filenames on Windows have an extension that matches
@@ -237,28 +237,23 @@ PIX     *pix;
  * </pre>
  */
 l_int32
-pixWrite(const char  *filename,
+pixWrite(const char  *fname,
          PIX         *pix,
          l_int32      format)
 {
-char  *fname;
 FILE  *fp;
 
     PROCNAME("pixWrite");
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
-
-    fname = genPathname(filename, NULL);
+    if (!fname)
+        return ERROR_INT("fname not defined", procName, 1);
 
 #if  WRITE_AS_NAMED  /* Default */
 
-    if ((fp = fopenWriteStream(fname, "wb+")) == NULL) {
-        LEPT_FREE(fname);
+    if ((fp = fopenWriteStream(fname, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    }
 
 #else  /* Add an extension to the output name if none exists */
 
@@ -272,10 +267,8 @@ FILE  *fp;
                 format = pixChooseOutputFormat(pix);
 
             filebuf = (char *)LEPT_CALLOC(strlen(fname) + 10, sizeof(char));
-            if (!filebuf) {
+            if (!filebuf)
                 return ERROR_INT("filebuf not made", procName, 1);
-                LEPT_FREE(fname);
-            }
             strncpy(filebuf, fname, strlen(fname));
             strcat(filebuf, ".");
             strcat(filebuf, ImageFileFormatExtensions[format]);
@@ -286,21 +279,17 @@ FILE  *fp;
         fp = fopenWriteStream(filebuf, "wb+");
         if (filebuf != fname)
             LEPT_FREE(filebuf);
-        if (fp == NULL) {
-            LEPT_FREE(fname);
+        if (fp == NULL)
             return ERROR_INT("stream not opened", procName, 1);
-        }
     }
 
 #endif  /* WRITE_AS_NAMED */
 
-    LEPT_FREE(fname);
     if (pixWriteStream(fp, pix, format)) {
         fclose(fp);
         return ERROR_INT("pix not written to stream", procName, 1);
     }
     fclose(fp);
-
     return 0;
 }
 
@@ -1356,17 +1345,17 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
     if (pixGetDepth(pix1) == 16) {
         pix2 = pixMaxDynamicRange(pix1, L_LOG_SCALE);
         snprintf(buf, L_BUF_SIZE, "file.%03d.png", index);
-        fname = genPathname("/tmp/lept/display", buf);
+        fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix2, IFF_PNG);
         pixDestroy(&pix2);
     } else if (pixGetDepth(pix1) < 8 || pixGetColormap(pix1) ||
                format == IFF_PNG) {
         snprintf(buf, L_BUF_SIZE, "file.%03d.png", index);
-        fname = genPathname("/tmp/lept/display", buf);
+        fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix1, IFF_PNG);
     } else {
         snprintf(buf, L_BUF_SIZE, "file.%03d.jpg", index);
-        fname = genPathname("/tmp/lept/display", buf);
+        fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix1, format);
     }
     LEPT_FREE(fname);

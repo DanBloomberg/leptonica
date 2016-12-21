@@ -76,8 +76,7 @@ pkginclude_HEADERS = allheaders.h alltypes.h                    \
 
 LDADD = liblept.la
 
-EXTRA_DIST = arrayaccess.h.vc                                   \
- hmttemplate1.txt hmttemplate2.txt                              \
+EXTRA_DIST = hmttemplate1.txt hmttemplate2.txt                  \
  leptonica-license.txt		                                \
  morphtemplate1.txt morphtemplate2.txt                          \
  stringtemplate1.txt stringtemplate2.txt

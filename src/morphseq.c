@@ -134,8 +134,8 @@ pixMorphSequence(PIX         *pixs,
                  const char  *sequence,
                  l_int32      dispsep)
 {
-char    *rawop, *op, *fname;
-char     buf[256];
+char    *rawop, *op;
+char     fname[256];
 l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
@@ -240,11 +240,9 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(buf, sizeof(buf), "/tmp/lept/seq_output_%d.pdf",
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
                  L_ABS(dispsep));
-        fname = genPathname(buf, NULL);
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
-        LEPT_FREE(fname);
         pixaDestroy(&pixa);
     }
 
@@ -304,8 +302,8 @@ pixMorphCompSequence(PIX         *pixs,
                      const char  *sequence,
                      l_int32      dispsep)
 {
-char    *rawop, *op, *fname;
-char     buf[256];
+char    *rawop, *op;
+char     fname[256];
 l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
@@ -410,11 +408,9 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(buf, sizeof(buf), "/tmp/lept/seq_output_%d.pdf",
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
                  L_ABS(dispsep));
-        fname = genPathname(buf, NULL);
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
-        LEPT_FREE(fname);
         pixaDestroy(&pixa);
     }
 
@@ -455,8 +451,8 @@ pixMorphSequenceDwa(PIX         *pixs,
                     const char  *sequence,
                     l_int32      dispsep)
 {
-char    *rawop, *op, *fname;
-char     buf[256];
+char    *rawop, *op;
+char     fname[256];
 l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
@@ -561,11 +557,9 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(buf, sizeof(buf), "/tmp/lept/seq_output_%d.pdf",
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
                  L_ABS(dispsep));
-        fname = genPathname(buf, NULL);
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
-        LEPT_FREE(fname);
         pixaDestroy(&pixa);
     }
 
@@ -606,8 +600,8 @@ pixMorphCompSequenceDwa(PIX         *pixs,
                         const char  *sequence,
                         l_int32      dispsep)
 {
-char    *rawop, *op, *fname;
-char     buf[256];
+char    *rawop, *op;
+char     fname[256];
 l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
@@ -712,11 +706,9 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(buf, sizeof(buf), "/tmp/lept/seq_output_%d.pdf",
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
                  L_ABS(dispsep));
-        fname = genPathname(buf, NULL);
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
-        LEPT_FREE(fname);
         pixaDestroy(&pixa);
     }
 
@@ -923,8 +915,8 @@ pixGrayMorphSequence(PIX         *pixs,
                      l_int32      dispsep,
                      l_int32      dispy)
 {
-char    *rawop, *op, *fname;
-char     buf[256];
+char    *rawop, *op;
+char     fname[256];
 l_int32  nops, i, valid, w, h, x, pdfout;
 PIX     *pix1, *pix2;
 PIXA    *pixa;
@@ -1065,11 +1057,9 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(buf, sizeof(buf), "/tmp/lept/seq_output_%d.pdf",
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
                  L_ABS(dispsep));
-        fname = genPathname(buf, NULL);
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
-        LEPT_FREE(fname);
         pixaDestroy(&pixa);
     }
 
@@ -1130,8 +1120,8 @@ pixColorMorphSequence(PIX         *pixs,
                       l_int32      dispsep,
                       l_int32      dispy)
 {
-char    *rawop, *op, *fname;
-char     buf[256];
+char    *rawop, *op;
+char     fname[256];
 l_int32  nops, i, valid, w, h, x, pdfout;
 PIX     *pix1, *pix2;
 PIXA    *pixa;
@@ -1244,11 +1234,9 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(buf, sizeof(buf), "/tmp/lept/seq_output_%d.pdf",
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
                  L_ABS(dispsep));
-        fname = genPathname(buf, NULL);
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
-        LEPT_FREE(fname);
         pixaDestroy(&pixa);
     }
 

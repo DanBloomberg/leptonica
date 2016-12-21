@@ -752,7 +752,7 @@ l_int32      resb, resc, endpage, maskop, ret;
 
         /* Write the jpeg image first */
     if (pixc) {
-        tname = l_makeTempFilename(NULL);
+        tname = l_makeTempFilename();
         pixWrite(tname, pixc, IFF_JFIF_JPEG);
         endpage = (pixb) ? FALSE : TRUE;
         op = (pageno <= 1) ? "w" : "a";
@@ -767,7 +767,7 @@ l_int32      resb, resc, endpage, maskop, ret;
         /* Write the binary data, either directly or, if there is
          * a jpeg image on the page, through the mask. */
     if (pixb) {
-        tname = l_makeTempFilename(NULL);
+        tname = l_makeTempFilename();
         pixWrite(tname, pixb, IFF_TIFF_G4);
         op = (pageno <= 1 && !pixc) ? "w" : "a";
         maskop = (pixc) ? 1 : 0;
@@ -864,7 +864,7 @@ PIX     *pix, *pixs;
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
 
     d = pixGetDepth(pix);
-    tname = l_makeTempFilename(NULL);
+    tname = l_makeTempFilename();
     if (d == 1) {
         pixWrite(tname, pix, IFF_TIFF_G4);
         convertG4ToPSEmbed(tname, fileout);
@@ -932,7 +932,7 @@ PIXCMAP  *cmap;
     n = pixaGetCount(pixa);
     firstfile = TRUE;
     index = 0;
-    tname = l_makeTempFilename(NULL);
+    tname = l_makeTempFilename();
     for (i = 0; i < n; i++) {
         writeout = TRUE;
         pix = pixaGetPix(pixa, i, L_CLONE);

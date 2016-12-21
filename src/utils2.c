@@ -1676,7 +1676,7 @@ char    *filename;
 
     PROCNAME("fopenWriteWinTempfile");
 
-    if ((filename = l_makeTempFilename(NULL)) == NULL) {
+    if ((filename = l_makeTempFilename()) == NULL) {
         L_ERROR("l_makeTempFilename failed, %s\n", procName, strerror(errno));
         return NULL;
     }
@@ -1903,7 +1903,7 @@ l_uint32  attributes;
 l_int32
 lept_rmdir(const char  *subdir)
 {
-char    *rootdir, *dir, *fname, *fullname;
+char    *dir, *realdir, *fname, *fullname;
 l_int32  exists, ret, i, nfiles;
 SARRAY  *sa;
 #ifdef _WIN32
@@ -1918,9 +1918,7 @@ char    *newpath;
         return ERROR_INT("subdir not an actual subdirectory", procName, 1);
 
         /* Find the temp subdirectory */
-    rootdir = genPathname("/tmp", NULL);
-    dir = appendSubdirs(rootdir, subdir);
-    LEPT_FREE(rootdir);
+    dir = pathJoin("/tmp", subdir);
     if (!dir)
         return ERROR_INT("directory name not made", procName, 1);
     lept_direxists(dir, &exists);
@@ -1929,7 +1927,7 @@ char    *newpath;
         return 0;
     }
 
-        /* List all the files */
+        /* List all the files in that directory */
     if ((sa = getFilenamesInDirectory(dir)) == NULL) {
         L_ERROR("directory %s does not exist!\n", procName, dir);
         LEPT_FREE(dir);
@@ -1946,7 +1944,9 @@ char    *newpath;
 
     ret = 0;
 #ifndef _WIN32
-    ret = rmdir(dir);
+    realdir = genPathname("/tmp", subdir);
+    ret = rmdir(realdir);
+    LEPT_FREE(realdir);
 #else
     newpath = genPathname(dir, NULL);
     remove(newpath);
@@ -2106,7 +2106,7 @@ l_int32  ret;
 
 
 /*!
- * \brief   TODO: Remove this function ?
+ * \brief
  *
  *  lept_rmfile()
  *
@@ -2117,7 +2117,8 @@ l_int32  ret;
  * Notes:
  *      (1) This removes the named file.
  *      (2) Use unix pathname separators.
- *      (3) Unlike the other lept_* functions in this section, this can remove
+ *      (3) There is no name translation.
+ *      (4) Unlike the other lept_* functions in this section, this can remove
  *          any file -- it is not restricted to files that are in /tmp or a
  *          subdirectory of it.
  * </pre>
@@ -2183,7 +2184,7 @@ lept_mv(const char  *srcfile,
         const char  *newtail,
         char       **pnewpath)
 {
-char    *srcpath, *newpath, *dir, *srctail;
+char    *srcpath, *newpath, *realpath, *dir, *srctail;
 char     newtemp[256];
 l_int32  ret;
 
@@ -2198,6 +2199,26 @@ l_int32  ret;
 
         /* Get canonical src pathname */
     splitPathAtDirectory(srcfile, &dir, &srctail);
+
+#ifndef _WIN32
+    srcpath = pathJoin(dir, srctail);
+    LEPT_FREE(dir);
+
+        /* Generate output pathname */
+    if (!newtail || newtail[0] == '\0')
+        newpath = pathJoin(newtemp, srctail);
+    else
+        newpath = pathJoin(newtemp, newtail);
+    LEPT_FREE(srctail);
+
+        /* Overwrite any existing file at 'newpath' */
+    ret = fileCopy(srcpath, newpath);
+    if (!ret) {
+        realpath = genPathname(srcpath, NULL);
+        remove(realpath);
+        LEPT_FREE(realpath);
+    }
+#else
     srcpath = genPathname(dir, srctail);
     LEPT_FREE(dir);
 
@@ -2209,14 +2230,9 @@ l_int32  ret;
     LEPT_FREE(srctail);
 
         /* Overwrite any existing file at 'newpath' */
-#ifndef _WIN32
-    ret = fileCopy(srcpath, newpath);
-    if (!ret)
-        remove(srcpath);
-#else
     ret = MoveFileEx(srcpath, newpath,
                      MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING) ? 0 : 1;
-#endif
+#endif  /* ! _WIN32 */
 
     LEPT_FREE(srcpath);
     if (pnewpath)
@@ -2282,6 +2298,21 @@ l_int32  ret;
 
        /* Get canonical src pathname */
     splitPathAtDirectory(srcfile, &dir, &srctail);
+
+#ifndef _WIN32
+    srcpath = pathJoin(dir, srctail);
+    LEPT_FREE(dir);
+
+        /* Generate output pathname */
+    if (!newtail || newtail[0] == '\0')
+        newpath = pathJoin(newtemp, srctail);
+    else
+        newpath = pathJoin(newtemp, newtail);
+    LEPT_FREE(srctail);
+
+        /* Overwrite any existing file at 'newpath' */
+    ret = fileCopy(srcpath, newpath);
+#else
     srcpath = genPathname(dir, srctail);
     LEPT_FREE(dir);
 
@@ -2293,11 +2324,8 @@ l_int32  ret;
     LEPT_FREE(srctail);
 
         /* Overwrite any existing file at 'newpath' */
-#ifndef _WIN32
-    ret = fileCopy(srcpath, newpath);
-#else
     ret = CopyFile(srcpath, newpath, FALSE) ? 0 : 1;
-#endif
+#endif   /* !_WIN32 */
 
     LEPT_FREE(srcpath);
     if (pnewpath)
@@ -2466,7 +2494,7 @@ char   empty[4] = "";
  *          slashes (except in the cases where %dir == "/" and
  *          %fname == NULL, or v.v.).
  *      (4) If both %dir and %fname are null, produces an empty string.
- *      (5) Neither %dir nor %fname can begin with '.'.
+ *      (5) Neither %dir nor %fname can begin with '..'.
  *      (6) The result is not canonicalized or tested for correctness:
  *          garbage in (e.g., /&%), garbage out.
  *      (7) Examples:
@@ -2502,10 +2530,10 @@ L_BYTEA  *ba;
 
     if (!dir && !fname)
         return stringNew("");
-    if (dir && dir[0] == '.')
-        return (char *)ERROR_PTR("dir starts with '.'", procName, NULL);
-    if (fname && fname[0] == '.')
-        return (char *)ERROR_PTR("fname starts with '.'", procName, NULL);
+    if (dir && strlen(dir) >= 2 && dir[0] == '.' && dir[1] == '.')
+        return (char *)ERROR_PTR("dir starts with '..'", procName, NULL);
+    if (fname && strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '.')
+        return (char *)ERROR_PTR("fname starts with '..'", procName, NULL);
 
     sa1 = sarrayCreate(0);
     sa2 = sarrayCreate(0);
@@ -2804,7 +2832,11 @@ size_t   pathlen;
 
     memset(result, 0, nbytes);
     dir = pathJoin("/tmp", subdir);
+#ifndef _WIN32
+    path = stringNew(dir);
+#else
     path = genPathname(dir, NULL);
+#endif  /*  ~ _WIN32 */
     pathlen = strlen(path);
     if (pathlen < nbytes - 1) {
         strncpy(result, path, pathlen);
@@ -2862,46 +2894,34 @@ size_t  len;
 /*!
  * \brief   l_makeTempFilename()
  *
- * \param[in]    subdir (of the temp directory); can be NULL
  * \return  fname : heap allocated filename; returns NULL on failure.
  *
  * <pre>
  * Notes:
  *      (1) On unix, this makes a filename of the form
- *               "/tmp/<%subdir>/lept.XXXXXX",
+ *               "/tmp/lept.XXXXXX",
  *          where each X is a random character.
  *      (2) On windows, this makes a filename of the form
- *               "/<Temp>/<%subdir>/lp.XXXXXX".
- *      (3) %subdir can be a set of nested directories under the <Temp>
- *          directory, such as lept/images.
- *      (4) Calling this function makes the directory in which the file
- *          will reside, because the existence of the directory is
- *          required to test if the file can be made.  Therefore, if the
- *          file will be deleted shortly after it is made, you can avoid
- *          making a subdirectory by using %subdir = NULL.
- *      (5) On all systems, this fails if the file is not writable.
- *      (6) Safest usage is either to write the file in the /tmp
- *          directory (%subdir == NULL), or to write to a subdirectory
- *          only in debug sections of the code.
- *      (7) The returned filename must be freed by the caller, using lept_free.
- *      (8) The tail of the filename has a '.', so that cygwin interprets
+ *               "/<Temp>/lp.XXXXXX".
+ *      (3) On all systems, this fails if the file is not writable.
+ *      (4) Safest usage is to write to a subdirectory in debug code.
+ *      (5) The returned filename must be freed by the caller, using lept_free.
+ *      (6) The tail of the filename has a '.', so that cygwin interprets
  *          the file as having an extension.  Otherwise, cygwin assumes it
  *          is an executable and appends ".exe" to the filename.
- *      (9) On unix, whenever possible use tmpfile() instead.  tmpfile()
+ *      (7) On unix, whenever possible use tmpfile() instead.  tmpfile()
  *          hides the file name, returns a stream opened for write,
  *          and deletes the temp file when the stream is closed.
  */
 char *
-l_makeTempFilename(const char  *subdir)
+l_makeTempFilename()
 {
 char  dirname[240];
 
     PROCNAME("l_makeTempFilename");
 
-    if (makeTempDirname(dirname, sizeof(dirname), subdir) == 1)
+    if (makeTempDirname(dirname, sizeof(dirname), NULL) == 1)
         return (char *)ERROR_PTR("failed to make dirname", procName, NULL);
-    if (subdir)
-        lept_mkdir(subdir);
 
 #ifndef _WIN32
 {
