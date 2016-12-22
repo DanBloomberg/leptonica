@@ -141,8 +141,6 @@ PTA       *pta;
         *ppta = pta;
     }
 
-    lept_mkdir("/lept/baseline");
-
         /* Close up the text characters, removing noise */
     pixt1 = pixMorphSequence(pixs, "c25.1 + e3.1", 0);
 
@@ -159,8 +157,10 @@ PTA       *pta;
         numaAddNumber(nadiff, val1 - val2);
     }
 
-    if (debug)  /* show the difference signal */
+    if (debug) {  /* show the difference signal */
+        lept_mkdir("/lept/baseline");
         gplotSimple1(nadiff, GPLOT_PNG, "/tmp/lept/baseline/diff", "Diff Sig");
+    }
 
         /* Use the zeroes of the profile to locate each baseline. */
     array = numaGetIArray(nadiff);

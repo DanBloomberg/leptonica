@@ -572,8 +572,6 @@ FPIX      *fpix;
     if (!ptaa)
         return ERROR_INT("ptaa not defined", procName, 1);
 
-    lept_mkdir("lept/dewdebug");
-    lept_mkdir("lept/dewarp");
     if (dew->debug) L_INFO("finding horizontal disparity\n", procName);
 
         /* Get the endpoints of the lines */
@@ -584,6 +582,8 @@ FPIX      *fpix;
         return 1;
     }
     if (dew->debug) {
+        lept_mkdir("lept/dewdebug");
+        lept_mkdir("lept/dewarp");
         ptaWrite("/tmp/lept/dewdebug/endpts_left1.pta", ptal1, 1);
         ptaWrite("/tmp/lept/dewdebug/endpts_right1.pta", ptar1, 1);
     }

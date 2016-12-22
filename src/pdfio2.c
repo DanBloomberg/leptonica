@@ -1258,7 +1258,6 @@ L_COMP_DATA  *cid;
         return (L_COMP_DATA *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
 
         /* Compress to a temp jpeg file */
-    lept_mkdir("lept");
     fname = l_makeTempFilename();
     pixWriteJpeg(fname, pixs, quality, 0);
 
@@ -1298,7 +1297,6 @@ L_COMP_DATA  *cid;
         return (L_COMP_DATA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
         /* Compress to a temp tiff g4 file */
-    lept_mkdir("lept");
     tname = l_makeTempFilename();
     pixWrite(tname, pixs, IFF_TIFF_G4);
 

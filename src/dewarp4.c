@@ -242,8 +242,10 @@ L_DEWARP    *dew;
     if (!dewa)
         return ERROR_INT("dewa not defined", procName, 1);
 
+    if (debug)
+        lept_mkdir("lept/dewarp");
+
         /* Generate the page model */
-    lept_mkdir("lept/dewarp");
     dew = dewarpCreate(pixb, 0);
     dewarpaInsertDewarp(dewa, dew);
     debugfile = (debug) ? "/tmp/lept/dewarp/singlepage_model.pdf" : NULL;

@@ -353,8 +353,6 @@ l_int32   size1;
 size_t    size2;
 PIXA     *pixa;
 
-    lept_mkdir("lept/auto");
-
         /* Unencode selected string, uncompress it, and read it */
     data1 = decodeBase64(l_strdata_0, strlen(l_strdata_0), &size1);
     data2 = zlibUncompress(data1, size1, &size2);

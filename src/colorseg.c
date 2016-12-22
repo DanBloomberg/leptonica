@@ -143,14 +143,14 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("must be rgb color", procName, NULL);
 
-    lept_mkdir("lept/segment");
-
         /* Phase 1; original segmentation */
     pixd = pixColorSegmentCluster(pixs, maxdist, maxcolors, debugflag);
     if (!pixd)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    if (debugflag)
+    if (debugflag) {
+        lept_mkdir("lept/segment");
         pixWrite("/tmp/lept/segment/colorseg1.png", pixd, IFF_PNG);
+    }
 
         /* Phase 2; refinement in pixel assignment */
     if ((countarray = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL) {

@@ -198,6 +198,7 @@ PIX     *pixtb;    /* textblock mask */
         PIXCMAP  *cmap;
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
+        lept_mkdir("lept");
         lept_mkdir("lept/pageseg");
         ptaaWrite("/tmp/lept/pageseg/tb_outlines.ptaa", ptaa, 1);
         pix1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
@@ -1347,8 +1348,6 @@ NUMA      *na1, *na2, *na3, *na4, *na5;
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
 
     PROCNAME("pixCountTextColumns");
-
-    lept_mkdir("lept");
 
     if (!pncols)
         return ERROR_INT("&ncols not defined", procName, 1);

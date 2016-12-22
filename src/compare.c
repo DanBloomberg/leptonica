@@ -1902,8 +1902,6 @@ PIX        *pix;
 
     PROCNAME("pixaComparePhotoRegionsByHisto");
 
-    lept_mkdir("lept/comp");
-
     if (pscores) *pscores = NULL;
     if (ppixd) *ppixd = NULL;
     if (!pnai)
@@ -2009,6 +2007,7 @@ PIX        *pix;
         fact = L_MAX(2, 1000 / n);
         pix3 = pixExpandReplicate(pix2, fact);
         fprintf(stderr, "Writing to /tmp/lept/comp/scorearray.png\n");
+        lept_mkdir("lept/comp");
         pixWrite("/tmp/lept/comp/scorearray.png", pix3, IFF_PNG);
         pixDestroy(&pix2);
         pixDestroy(&pix3);
@@ -2588,8 +2587,10 @@ NUMA      *na1, *na2, *nadist, *nascore;
     if (n != numaaGetCount(naa2))
         return ERROR_INT("naa1 and naa2 are different size", procName, 1);
 
-    lept_rmdir("lept/comptile");
-    lept_mkdir("lept/comptile");
+    if (pixadebug) {
+        lept_rmdir("lept/comptile");
+        lept_mkdir("lept/comptile");
+    }
 
     wratio = (w1 < w2) ? (l_float32)w1 / (l_float32)w2 :
              (l_float32)w2 / (l_float32)w1;
