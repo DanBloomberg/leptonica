@@ -27,101 +27,90 @@
 /*
  * rank_reg.c
  *
- *   Tests grayscale rank functions:
+ *   Tests grayscale and color rank functions:
  *      (1) pixRankFilterGray()
+ *      (1) pixRankFilterRGB()
  *      (2) pixScaleGrayMinMax()
+ *      (3) pixScaleGrayRank2()
  *      (3) pixScaleGrayRankCascade()
  */
 
 #include "allheaders.h"
 
-static const l_int32   SIZE = 20;
-
-
 int main(int    argc,
          char **argv)
 {
-l_int32       i, j, w, h, same;
-l_float32     t, t1, t2;
+l_int32       i, j, w, h;
+l_float32     t1, t2;
+BOX          *box;
 GPLOT        *gplot;
 NUMA         *nax, *nay1, *nay2;
-PIX          *pixs, *pixd, *pix1, *pix2, *pix3, *pix4;
+PIX          *pixs, *pix0, *pix1, *pix2, *pix3, *pix4;
 PIXA         *pixa;
-static char   mainName[] = "rank_reg";
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT(" Syntax: rank_reg", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     lept_mkdir("lept/rank");
 
-    if ((pixs = pixRead("lucasta.150.jpg")) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+    pixs = pixRead("lucasta.150.jpg");
     pixGetDimensions(pixs, &w, &h, NULL);
 
     startTimer();
-    pixd = pixRankFilterGray(pixs, 15, 15, 0.4);
-    t = stopTimer();
-    fprintf(stderr, "Time =  %7.3f sec\n", t);
-    fprintf(stderr, "MPix/sec: %7.3f\n", 0.000001 * w * h / t);
-    pixDisplay(pixs, 0, 200);
-    pixDisplay(pixd, 600, 200);
-    pixWrite("/tmp/lept/rank/filter.png", pixd, IFF_PNG);
-    pixDestroy(&pixd);
-
+    pix1 = pixRankFilterGray(pixs, 15, 15, 0.4);
+    t1 = stopTimer();
+    fprintf(stderr, "pixRankFilterGray: %7.3f MPix/sec\n",
+            0.000001 * w * h / t1);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pixs, 0, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix1, 600, 0, NULL, rp->display);
+    pixDestroy(&pix1);
 
     /* ---------- Compare grayscale morph with rank operator ---------- */
         /* Get results for dilation */
     startTimer();
     pix1 = pixDilateGray(pixs, 15, 15);
-    t = stopTimer();
-    fprintf(stderr, "Dilation time =  %7.3f sec\n", t);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
+    t2 = stopTimer();
+    fprintf(stderr, "Rank filter time = %7.3f, Dilation time =  %7.3f sec\n",
+            t1, t2);
 
         /* Get results for erosion */
     pix2 = pixErodeGray(pixs, 15, 15);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 2 */
 
         /* Get results using the rank filter for rank = 0.0 and 1.0.
          * Don't use 0.0 or 1.0, because those are dispatched
          * automatically to erosion and dilation! */
     pix3 = pixRankFilterGray(pixs, 15, 15, 0.0001);
     pix4 = pixRankFilterGray(pixs, 15, 15, 0.9999);
-
-        /* Compare */
-    pixEqual(pix1, pix4, &same);
-    if (same)
-        fprintf(stderr, "Correct: dilation results same as rank 1.0\n");
-    else
-        fprintf(stderr, "Error: dilation results differ from rank 1.0\n");
-    pixEqual(pix2, pix3, &same);
-    if (same)
-        fprintf(stderr, "Correct: erosion results same as rank 0.0\n");
-    else
-        fprintf(stderr, "Error: erosion results differ from rank 0.0\n");
+    regTestComparePix(rp, pix1, pix4);  /* 3 */
+    regTestComparePix(rp, pix2, pix3);  /* 4 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
     pixDestroy(&pix4);
 
-
     /* ------------- Timing and filter size experiments --------- */
-    fprintf(stderr, "\n----------------------------------------\n");
-    fprintf(stderr, "The next part takes several seconds\n");
-    fprintf(stderr, "----------------------------------------\n\n");
-
-    nax = numaMakeSequence(1, 1, SIZE);
-    nay1 = numaCreate(SIZE);
-    nay2 = numaCreate(SIZE);
+    box = boxCreate(20, 200, 500, 125);
+    pix0 = pixClipRectangle(pixs, box, NULL);
+    boxDestroy(&box);
+    nax = numaMakeSequence(1, 1, 20);
+    nay1 = numaCreate(20);
+    nay2 = numaCreate(20);
     gplot = gplotCreate("/tmp/lept/rank/plots", GPLOT_PNG,
                         "sec/MPix vs filter size", "size", "time");
     pixa = pixaCreate(20);
-    for (i = 1; i <= SIZE; i++) {
+    for (i = 1; i <= 20; i++) {
         t1 = t2 = 0.0;
         for (j = 0; j < 5; j++) {
             startTimer();
-            pix1 = pixRankFilterGray(pixs, i, SIZE + 1, 0.5);
+            pix1 = pixRankFilterGray(pix0, i, 20 + 1, 0.5);
             t1 += stopTimer();
             pixDestroy(&pix1);
             startTimer();
-            pix1 = pixRankFilterGray(pixs, SIZE + 1, i, 0.5);
+            pix1 = pixRankFilterGray(pix0, 20 + 1, i, 0.5);
             t2 += stopTimer();
             if (j == 0)
                 pixaAddPix(pixa, pix1, L_CLONE);
@@ -135,14 +124,17 @@ static char   mainName[] = "rank_reg";
     gplotMakeOutput(gplot);
     gplotDestroy(&gplot);
     pix1 = pixRead("/tmp/lept/rank/plots.png");
-    pixDisplay(pix1, 100, 100);
+    pixDisplayWithTitle(pix1, 100, 100, NULL, rp->display);
     pixDestroy(&pix1);
-
+    pixDestroy(&pix0);
+    numaDestroy(&nax);
+    numaDestroy(&nay1);
+    numaDestroy(&nay2);
+ 
         /* Display tiled */
-    pixd = pixaDisplayTiledAndScaled(pixa, 8, 250, 5, 0, 25, 2);
-    pixDisplay(pixd, 100, 600);
-    pixWrite("/tmp/lept/rank/tiles.jpg", pixd, IFF_JFIF_JPEG);
-    pixDestroy(&pixd);
+    pix1 = pixaDisplayTiledAndScaled(pixa, 8, 250, 5, 0, 25, 2);
+    pixDisplayWithTitle(pix1, 100, 600, NULL, rp->display);
+    pixDestroy(&pix1);
     pixaDestroy(&pixa);
     pixDestroy(&pixs);
 
@@ -153,11 +145,11 @@ static char   mainName[] = "rank_reg";
         pix1 = pixScaleGrayRank2(pixs, i);
         pixaAddPix(pixa, pix1, L_INSERT);
     }
-    pixd = pixaDisplayTiledInRows(pixa, 8, 1500, 1.0, 0, 20, 2);
-    pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/lept/rank/grayrank2.jpg", pixd, IFF_JFIF_JPEG);
+    pix1 = pixaDisplayTiledInRows(pixa, 8, 1500, 1.0, 0, 20, 2);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 5 */
+    pixDisplayWithTitle(pix1, 100, 100, NULL, rp->display);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
+    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
     pixs = pixRead("test24.jpg");
@@ -170,15 +162,57 @@ static char   mainName[] = "rank_reg";
             pixaAddPix(pixa, pix3, L_INSERT);
         }
     }
-    pixd = pixaDisplayTiledInRows(pixa, 8, 1500, 0.7, 0, 20, 2);
-    pixDisplay(pixd, 100, 700);
-    pixWrite("/tmp/lept/rank/graycascade.jpg", pixd, IFF_JFIF_JPEG);
+    pix4 = pixaDisplayTiledInRows(pixa, 8, 1500, 0.7, 0, 20, 2);
+    regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 6 */
+    pixDisplayWithTitle(pix4, 100, 700, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pixd);
+    pixDestroy(&pix4);
     pixaDestroy(&pixa);
-    return 0;
+
+    /* ---------- Compare color morph with rank operator ---------- */
+    pixs = pixRead("wyom.jpg");
+    box = boxCreate(400, 220, 300, 250);
+    pix0 = pixClipRectangle(pixs, box, NULL);
+    boxDestroy(&box);
+    pix1 = pixColorMorph(pix0, L_MORPH_DILATE, 11, 11);
+    pix2 = pixColorMorph(pix0, L_MORPH_ERODE, 11, 11);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 7 */
+    regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 8 */
+
+        /* Get results using the rank filter for rank = 0.0 and 1.0.
+         * Don't use 0.0 or 1.0, because those are dispatched
+         * automatically to erosion and dilation! */
+    pix3 = pixRankFilter(pix0, 11, 11, 0.0001);
+    pix4 = pixRankFilter(pix0, 11, 11, 0.9999);
+    regTestComparePix(rp, pix1, pix4);  /* 9 */
+    regTestComparePix(rp, pix2, pix3);  /* 10 */
+    pixDestroy(&pixs);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+
+    /* Show color results for different rank values */
+    if (rp->display) {
+        pixa = pixaCreate(10);
+        pix1 = pixColorMorph(pix0, L_MORPH_ERODE, 13, 13);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        for (i = 0; i <= 10; i++) {
+            pix1 = pixRankFilter(pix0, 13, 13, 0.1 * i);
+            pixaAddPix(pixa, pix1, L_INSERT);
+        }
+        pix1 = pixColorMorph(pix0, L_MORPH_DILATE, 13, 13);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix1 = pixaDisplayTiledAndScaled(pixa, 32, 400, 3, 0, 25, 2);
+        pixDisplayWithTitle(pix1, 500, 0, NULL, 1);
+        pixaDestroy(&pixa);
+        pixDestroy(&pix1);
+    }
+    pixDestroy(&pix0);
+  
+    return regTestCleanup(rp);
 }
 
 

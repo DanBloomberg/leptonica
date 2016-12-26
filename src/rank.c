@@ -260,7 +260,7 @@ PIX  *pixr, *pixg, *pixb, *pixrf, *pixgf, *pixbf, *pixd;
  *          filter dimensions are odd and the rank is 0.0 or 1.0, rsp.
  *      (5) Returns a copy if both wf and hf are 1.
  *      (6) Uses row-major or column-major incremental updates to the
- *          histograms depending on whether hf \> wf or hv \<= wf, rsp.
+ *          histograms depending on whether hf > wf or hv <= wf, rsp.
  * </pre>
  */
 PIX  *

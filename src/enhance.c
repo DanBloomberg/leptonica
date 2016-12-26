@@ -145,17 +145,17 @@ static const l_int32  DEFAULT_HISTO_SAMPLES = 100000;
  *      (2) If pixs is colormapped, the colormap is transformed,
  *          either in-place or in a copy of pixs.
  *      (3) We use a gamma mapping between minval and maxval.
- *      (4) If gamma \< 1.0, the image will appear darker;
- *          if gamma \> 1.0, the image will appear lighter;
+ *      (4) If gamma < 1.0, the image will appear darker;
+ *          if gamma > 1.0, the image will appear lighter;
  *      (5) If gamma = 1.0 and minval = 0 and maxval = 255, no
  *          enhancement is performed; return a copy unless in-place,
  *          in which case this is a no-op.
  *      (6) For color images that are not colormapped, the mapping
  *          is applied to each component.
  *      (7) minval and maxval are not restricted to the interval [0, 255].
- *          If minval \< 0, an input value of 0 is mapped to a
+ *          If minval < 0, an input value of 0 is mapped to a
  *          nonzero output.  This will turn black to gray.
- *          If maxval \> 255, an input value of 255 is mapped to
+ *          If maxval > 255, an input value of 255 is mapped to
  *          an output value less than 255.  This will turn
  *          white (e.g., in the background) to gray.
  *      (8) Increasing minval darkens the image.
@@ -608,7 +608,7 @@ NUMA      *na;
  *      (3) If fract == 0.0, no equalization is performed; return a copy
  *          unless in-place, in which case this is a no-op.
  *          If fract == 1.0, equalization is complete.
- *      (4) Set the subsampling factor \> 1 to reduce the amount of computation.
+ *      (4) Set the subsampling factor > 1 to reduce the amount of computation.
  *      (5) If pixs is colormapped, the colormap is removed and
  *          converted to rgb or grayscale.
  *      (6) If pixs has color, equalization is done in each channel
@@ -700,7 +700,7 @@ PIXCMAP  *cmap;
  * Notes:
  *      (1) If fract == 0.0, no equalization will be performed.
  *          If fract == 1.0, equalization is complete.
- *      (2) Set the subsampling factor \> 1 to reduce the amount of computation.
+ *      (2) Set the subsampling factor > 1 to reduce the amount of computation.
  *      (3) The map is returned as a numa with 256 values, specifying
  *          the equalized value (array value) for every input value
  *          (the array index).
@@ -892,7 +892,7 @@ l_uint32  *data, *datam, *line, *linem;
  *          typically use sizes of 3, 5, 7, etc.  The %halfwidth parameter
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
  *      (2) The fract parameter is typically taken in the
- *          range:  0.2 \< fract \< 0.7
+ *          range:  0.2 < fract < 0.7
  *      (3) Returns a clone if no sharpening is requested.
  * </pre>
  */
@@ -961,7 +961,7 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
  *          typically use sizes of 3, 5, 7, etc.  The %halfwidth parameter
  *          for these is (size - 1)/2; i.e., 1, 2, 3, etc.
  *      (2) The fract parameter is typically taken in the range:
- *          0.2 \< fract \< 0.7
+ *          0.2 < fract < 0.7
  *      (3) Returns a clone if no sharpening is requested.
  * </pre>
  */
@@ -1039,7 +1039,7 @@ PIXACC  *pixacc;
  *          the input image.  The halfwidth is either 1 (full width = 3)
  *          or 2 (full width = 5).
  *      (2) The fract parameter is typically taken in the
- *            range:  0.2 \< fract \< 0.7
+ *            range:  0.2 < fract < 0.7
  *      (3) To skip horizontal sharpening, use %fracth = 0.0; ditto for %fractv
  *      (4) For one dimensional filtering (as an example):
  *          For %halfwidth = 1, the low-pass filter is
@@ -1448,7 +1448,7 @@ FPIX       *fpix;
  *             pixEqualizeTRC(pixs, pixs, ...);
  *          To get a new image, set pixd == null:
  *             pixd = pixEqualizeTRC(NULL, pixs, ...);
- *      (1) Use fract \> 0.0 to increase hue value; \< 0.0 to decrease it.
+ *      (1) Use fract > 0.0 to increase hue value; < 0.0 to decrease it.
  *          1.0 (or -1.0) represents a 360 degree rotation; i.e., no change.
  *      (2) If no modification is requested (fract = -1.0 or 0 or 1.0),
  *          return a copy unless in-place, in which case this is a no-op.
@@ -1517,9 +1517,9 @@ l_uint32  *data, *line;
  *
  * <pre>
  * Notes:
- *      (1) If fract \> 0.0, it gives the fraction that the pixel
+ *      (1) If fract > 0.0, it gives the fraction that the pixel
  *          saturation is moved from its initial value toward 255.
- *          If fract \< 0.0, it gives the fraction that the pixel
+ *          If fract < 0.0, it gives the fraction that the pixel
  *          saturation is moved from its initial value toward 0.
  *          The limiting values for fract = -1.0 (1.0) thus set the
  *          saturation to 0 (255).
@@ -1633,9 +1633,9 @@ l_uint32  *data, *line;
  *
  * <pre>
  * Notes:
- *      (1) If fract \> 0.0, it gives the fraction that the v-parameter,
+ *      (1) If fract > 0.0, it gives the fraction that the v-parameter,
  *          which is max(r,g,b), is moved from its initial value toward 255.
- *          If fract \< 0.0, it gives the fraction that the v-parameter
+ *          If fract < 0.0, it gives the fraction that the v-parameter
  *          is moved from its initial value toward 0.
  *          The limiting values for fract = -1.0 (1.0) thus set the
  *          v-parameter to 0 (255).
@@ -1712,11 +1712,11 @@ l_uint32  *data, *line;
  *          (for our purposes) of these 6 colors, separated by 60 degrees:
  *             red, magenta, blue, cyan, green, yellow
  *      (3) So, for example, a negative shift of the blue component
- *          (bfract \< 0) could be accompanied by positive shifts
+ *          (bfract < 0) could be accompanied by positive shifts
  *          of red and green to make an image more yellow.
  *      (4) Examples of limiting cases:
- *            rfract = 1 ==\> r = 255
- *            rfract = -1 ==\> r = 0
+ *            rfract = 1 ==> r = 255
+ *            rfract = -1 ==> r = 0
  * </pre>
  */
 PIX *
@@ -2008,14 +2008,14 @@ PIXCMAP   *cmap;
  *          this is actually a bandpass filter.
  *      (3) We allow both filters to be anisotropic.
  *      (4) Consider either the h or v component of the 2 filters.
- *          Depending on whether sm1 \> sm2 or sm2 \> sm1, we get
+ *          Depending on whether sm1 > sm2 or sm2 > sm1, we get
  *          different halves of the smoothed gradients (or "edges").
  *          This difference of smoothed signals looks more like
  *          a second derivative of a transition, which we rectify
- *          by not allowing the signal to go below zero.  If sm1 \< sm2,
+ *          by not allowing the signal to go below zero.  If sm1 < sm2,
  *          the sm2 transition is broader, so the difference between
  *          sm1 and sm2 signals is positive on the upper half of
- *          the transition.  Likewise, if sm1 \> sm2, the sm1 - sm2
+ *          the transition.  Likewise, if sm1 > sm2, the sm1 - sm2
  *          signal difference is positive on the lower half of
  *          the transition.
  * </pre>

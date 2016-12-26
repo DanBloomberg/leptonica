@@ -227,7 +227,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		partitiontest.c pdfiotest.c percolatetest.c \
 		pixaatest.c pixafileinfo.c plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
-		quadtreetest.c ranktest.c rbtreetest.c \
+		quadtreetest.c rbtreetest.c \
 		recog_bootnum.c recogsort.c recogtest1.c \
 		reducetest.c removecmap.c \
 		renderfonts.c rotatefastalt.c \
@@ -976,9 +976,6 @@ printtiff:	printtiff.o $(LEPTLIB)
 
 quadtreetest:	quadtreetest.o $(LEPTLIB)
 	$(CC) -o quadtreetest quadtreetest.o $(ALL_LIBS) $(EXTRALIBS)
-
-ranktest:	ranktest.o $(LEPTLIB)
-	$(CC) -o ranktest ranktest.o $(ALL_LIBS) $(EXTRALIBS)
 
 rbtreetest:	rbtreetest.o $(LEPTLIB)
 	$(CC) -o rbtreetest rbtreetest.o $(ALL_LIBS) $(EXTRALIBS)
