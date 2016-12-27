@@ -457,7 +457,7 @@ SARRAY  *sa1, *sa2, *sa3;
         return ERROR_INT("filestr from sa3 not made", procName, 1);
     nbytes = strlen(filestr);
     if (filename)
-        sprintf(bigbuf, "%s.%d.c", filename, fileindex);
+        snprintf(bigbuf, L_BUF_SIZE, "%s.%d.c", filename, fileindex);
     else
         sprintf(bigbuf, "%s.%d.c", OUTROOT, fileindex);
     l_binaryWrite(bigbuf, "w", filestr, nbytes);
@@ -644,7 +644,7 @@ SEL     *sel;
         return ERROR_INT("filestr from sa4 not made", procName, 1);
     nbytes = strlen(filestr);
     if (filename)
-        sprintf(bigbuf, "%slow.%d.c", filename, fileindex);
+        snprintf(bigbuf, L_BUF_SIZE, "%slow.%d.c", filename, fileindex);
     else
         sprintf(bigbuf, "%slow.%d.c", OUTROOT, fileindex);
     l_binaryWrite(bigbuf, "w", filestr, nbytes);
