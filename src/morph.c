@@ -103,7 +103,7 @@
  *      code can be auto-gen'd for them; see the instructions in morphdwa.c.
  *
  *  (4) Same as (1), but you run it through pixMorphSequence(), with
- *      the sequence string either compiled in or generated using sprintf.
+ *      the sequence string either compiled in or generated using snprintf.
  *      All intermediate images and Sels are created, used and destroyed.
  *      You always get the result as a new Pix.  For example, you can
  *      specify a separable 11 x 17 brick opening as "o11.17",
@@ -111,12 +111,12 @@
  *      explicitly as "o11.1 + o1.11".  See morphseq.c for details.
  *
  *  (5) Same as (2), but you run it through pixMorphCompSequence(), with
- *      the sequence string either compiled in or generated using sprintf.
+ *      the sequence string either compiled in or generated using snprintf.
  *      All intermediate images and Sels are created, used and destroyed.
  *      You always get the result as a new Pix.  See morphseq.c for details.
  *
  *  (6) Same as (3), but you run it through pixMorphSequenceDwa(), with
- *      the sequence string either compiled in or generated using sprintf.
+ *      the sequence string either compiled in or generated using snprintf.
  *      All intermediate images and Sels are created, used and destroyed.
  *      You always get the result as a new Pix.  See morphseq.c for details.
  *

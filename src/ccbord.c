@@ -2245,7 +2245,7 @@ PTA        *pta;
         return ERROR_INT("bbuf not made", procName, 1);
 
     ncc = ccbaGetCount(ccba);
-    sprintf(strbuf, "ccba: %7d cc\n", ncc);
+    snprintf(strbuf, sizeof(strbuf), "ccba: %7d cc\n", ncc);
     bbufferRead(bbuf, (l_uint8 *)strbuf, 18);
     w = pixGetWidth(ccba->pix);
     h = pixGetHeight(ccba->pix);
@@ -2552,7 +2552,7 @@ SARRAY  *sa;
         npt = ptaGetCount(pta);
         for (j = 0; j < npt; j++) {
             ptaGetIPt(pta, j, &x, &y);
-            sprintf(smallbuf, "%0d,%0d", x, y);
+            snprintf(smallbuf, sizeof(smallbuf), "%0d,%0d", x, y);
             sarrayAddString(sa, smallbuf, L_COPY);
         }
         sarrayAddString(sa, line4, L_COPY);

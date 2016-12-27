@@ -492,7 +492,7 @@ SEL       *sel;
 
             /* Generate the sel */
         sel = selCreateFromColorPix(pixc, NULL);
-        sprintf(name, "sel_cross_%d", i);
+        snprintf(name, sizeof(name), "sel_cross_%d", i);
         selaAddSel(sela, sel, name, 0);
 
         if (debugflag) {
@@ -623,7 +623,7 @@ SEL       *sel;
 
                 /* Generate the sel */
             sel = selCreateFromColorPix(pixc, NULL);
-            sprintf(name, "sel_cross_%d", 4 * i + j);
+            snprintf(name, sizeof(name), "sel_cross_%d", 4 * i + j);
             selaAddSel(sela, sel, name, 0);
 
             if (debugflag) {

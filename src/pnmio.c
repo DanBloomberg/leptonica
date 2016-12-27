@@ -840,19 +840,19 @@ PIX       *pixs;
             for (j = 0; j < w; j++) {
                 pixGetPixel(pixs, j, i, &val);
                 if (ds == 2) {
-                    sprintf(buffer, "%1d ", val);
+                    snprintf(buffer, sizeof(buffer), "%1d ", val);
                     fwrite(buffer, 1, 2, fp);
                     count += 2;
                 } else if (ds == 4) {
-                    sprintf(buffer, "%2d ", val);
+                    snprintf(buffer, sizeof(buffer), "%2d ", val);
                     fwrite(buffer, 1, 3, fp);
                     count += 3;
                 } else if (ds == 8) {
-                    sprintf(buffer, "%3d ", val);
+                    snprintf(buffer, sizeof(buffer), "%3d ", val);
                     fwrite(buffer, 1, 4, fp);
                     count += 4;
                 } else {  /* ds == 16 */
-                    sprintf(buffer, "%5d ", val);
+                    snprintf(buffer, sizeof(buffer), "%5d ", val);
                     fwrite(buffer, 1, 6, fp);
                     count += 6;
                 }
@@ -873,7 +873,7 @@ PIX       *pixs;
                 cval[1] = GET_DATA_BYTE(&val, COLOR_GREEN);
                 cval[2] = GET_DATA_BYTE(&val, COLOR_BLUE);
                 for (k = 0; k < 3; k++) {
-                    sprintf(buffer, "%3d ", cval[k]);
+                    snprintf(buffer, sizeof(buffer), "%3d ", cval[k]);
                     fwrite(buffer, 1, 4, fp);
                     count += 4;
                     if (count >= 60) {

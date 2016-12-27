@@ -1740,9 +1740,8 @@ l_float32  x2;
  *
  * <pre>
  * Notes:
- *      (1) We remove any existing colormap and clip the pta to the input pixs.
- *      (2) This is a debugging function, and does not remove temporary
- *          plotting files that it generates.
+ *      (1) This is a debugging function.
+ *      (2) Removes existing colormaps and clips the pta to the input %pixs.
  *      (3) If the image is RGB, three separate plots are generated.
  * </pre>
  */
@@ -1761,6 +1760,8 @@ NUMA           *na, *nar, *nag, *nab;
 PIX            *pixt;
 
     PROCNAME("pixPlotAlongPta");
+
+    lept_mkdir("lept/plot");
 
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
@@ -1796,13 +1797,13 @@ PIX            *pixt;
             numaAddNumber(nab, bval);
         }
 
-        sprintf(buffer, "/tmp/junkplot.%d", count++);
+        snprintf(buffer, sizeof(buffer), "/tmp/lept/plot/%03d", count++);
         rtitle = stringJoin("Red: ", title);
         gplotSimple1(nar, outformat, buffer, rtitle);
-        sprintf(buffer, "/tmp/junkplot.%d", count++);
+        snprintf(buffer, sizeof(buffer), "/tmp/lept/plot/%03d", count++);
         gtitle = stringJoin("Green: ", title);
         gplotSimple1(nag, outformat, buffer, gtitle);
-        sprintf(buffer, "/tmp/junkplot.%d", count++);
+        snprintf(buffer, sizeof(buffer), "/tmp/lept/plot/%03d", count++);
         btitle = stringJoin("Blue: ", title);
         gplotSimple1(nab, outformat, buffer, btitle);
         numaDestroy(&nar);
@@ -1823,7 +1824,7 @@ PIX            *pixt;
             numaAddNumber(na, (l_float32)val);
         }
 
-        sprintf(buffer, "/tmp/junkplot.%d", count++);
+        snprintf(buffer, sizeof(buffer), "/tmp/lept/plot/%03d", count++);
         gplotSimple1(na, outformat, buffer, title);
         numaDestroy(&na);
     }
