@@ -78,6 +78,7 @@ static const char *tests[] = {
                               "dna_reg",
                               "dwamorph1_reg",
                               "enhance_reg",
+                              "expand_reg",
                          /*   "files_reg",  */
                               "findcorners_reg",
                               "findpattern_reg",
@@ -101,6 +102,7 @@ static const char *tests[] = {
                               "kernel_reg",
                               "label_reg",
                               "lineremoval_reg",
+                              "logicops_reg",
                               "maze_reg",
                               "multitype_reg",
                               "nearline_reg",

@@ -20,14 +20,14 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg alphaxform_reg \
 	colorseg_reg colorspace_reg compare_reg \
 	conncomp_reg convolve_reg dewarp_reg distance_reg \
 	dither_reg dna_reg dwamorph1_reg enhance_reg \
-	findcorners_reg findpattern_reg \
+	expand_reg findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
 	graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg \
 	insert_reg ioformats_reg \
 	jbclass_reg jpegio_reg \
 	kernel_reg label_reg lineremoval_reg \
-	maze_reg multitype_reg \
+	logicops_reg maze_reg multitype_reg \
 	nearline_reg newspaper_reg \
 	overlap_reg paint_reg paintmask_reg \
 	pdfseg_reg pixa2_reg pixadisp_reg \
@@ -60,10 +60,10 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
 	binmorph4_reg binmorph5_reg \
 	boxa1_reg boxa2_reg \
 	colorize_reg compfilter_reg conversion_reg \
-	dwamorph2_reg equal_reg expand_reg extrema_reg \
+	dwamorph2_reg equal_reg extrema_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
 	grayfill_reg heap_reg locminmax_reg \
-	logicops_reg lowaccess_reg morphseq_reg \
+	lowaccess_reg morphseq_reg \
 	numa1_reg numa2_reg pixa1_reg \
 	pixalloc_reg pixcomp_reg \
 	pixmem_reg pixtile_reg \
