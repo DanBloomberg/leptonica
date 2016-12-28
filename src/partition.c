@@ -62,7 +62,7 @@ static BOX * boxaSelectPivotBox(BOX *box, BOXA *boxa, l_int32 maxperim,
 static l_int32 boxCheckIfOverlapIsBig(BOX *box, BOXA *boxa,
                                       l_float32 maxoverlap);
 
-static const l_int32  DEFAULT_MAX_POPS = 20000;  /* a big number! */
+static const l_int32  DEFAULT_MAX_POPS = 20000;
 
 
 #ifndef  NO_CONSOLE_IO
@@ -146,9 +146,15 @@ static const l_int32  DEFAULT_MAX_POPS = 20000;  /* a big number! */
  *          as a pivot, as the partitioning continues, at no time will
  *          any of the whitespace inside this component be part of a
  *          rectangle with zero overlapping boxes.  Thus, the interiors
-*           of all boxes are necessarily excluded from the union of
-*           the returned whitespace boxes.
- *     (10) USAGE: One way to accommodate to this weakness is to remove such
+ *          of all boxes are necessarily excluded from the union of
+ *          the returned whitespace boxes.
+ *     (10) It should be noted that the algorithm puts a large number
+ *          of partels on the queue.  Setting a limit of X partels to
+ *          remove from the queue, one typically finds that there will be
+ *          several times that number (say, 2X - 3X) left on the queue.
+ *          For an efficient algorithm to find the largest white
+ *          or black rectangle, see pixFindLargestRectangle().
+ *     (11) USAGE: One way to accommodate to this weakness is to remove such
  *          large b.b. before starting the computation.  For example,
  *          if 'box' is an input image region containing 'boxa' b.b. of c.c.:
  *
@@ -224,16 +230,18 @@ L_HEAP  *lh;
     partelSetSize(partel, sortflag);
     lheapAdd(lh, partel);
 
+    npush = 1;
+    npop = 0;
     boxad = boxaCreate(0);
-
-    npush = npop = 0;
     while (1) {
         if ((partel = (PARTEL *)lheapRemove(lh)) == NULL)  /* we're done */
             break;
 
         npop++;  /* How many boxes have we retrieved from the queue? */
-        if (npop > maxpops)
+        if (npop > maxpops) {
+            partelDestroy(&partel);
             break;
+        }
 
             /* Extract the contents */
         boxa = boxaCopy(partel->boxa, L_CLONE);
@@ -279,8 +287,9 @@ L_HEAP  *lh;
     fprintf(stderr, "Heap statistics:\n");
     fprintf(stderr, "  Number of boxes pushed: %d\n", npush);
     fprintf(stderr, "  Number of boxes popped: %d\n", npop);
+    fprintf(stderr, "  Number of boxes on heap: %d\n", lheapGetCount(lh));
 #endif  /* OUTPUT_HEAP_STATS */
-
+  
         /* Clean up the heap */
     while ((partel = (PARTEL *)lheapRemove(lh)) != NULL)
         partelDestroy(&partel);
@@ -317,7 +326,7 @@ PARTEL  *partel;
 /*!
  * \brief   partelDestroy()
  *
- * \param[in,out]   ppartel will be set to null before returning
+ * \param[in,out]   ppartel  contents will be set to null before returning
  * \return  void
  */
 static void

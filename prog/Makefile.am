@@ -17,7 +17,7 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg alphaxform_reg \
 	colorcontent_reg coloring_reg \
 	colorize_reg colormask_reg \
 	colormorph_reg colorquant_reg \
-	colorseg_reg colorspace_reg compare_reg \
+	colorseg_reg colorspace_reg compare_reg compfilter_reg \
 	conncomp_reg convolve_reg dewarp_reg distance_reg \
 	dither_reg dna_reg dwamorph1_reg enhance_reg \
 	expand_reg findcorners_reg findpattern_reg \
@@ -59,7 +59,7 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
 	binmorph1_reg binmorph2_reg binmorph3_reg \
 	binmorph4_reg binmorph5_reg \
 	boxa1_reg boxa2_reg \
-	colorize_reg compfilter_reg conversion_reg \
+	colorize_reg conversion_reg \
 	dwamorph2_reg equal_reg extrema_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
 	grayfill_reg heap_reg locminmax_reg \

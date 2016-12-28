@@ -70,6 +70,7 @@ static const char *tests[] = {
                               "colorseg_reg",
                               "colorspace_reg",
                               "compare_reg",
+                              "compfilter_reg",
                               "conncomp_reg",
                               "convolve_reg",
                               "dewarp_reg",

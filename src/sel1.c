@@ -533,7 +533,7 @@ l_int32  **array;
     if (success) return array;
 
         /* Cleanup after error */
-    for (j = 0; j < i; j++)   // FIX_THIS
+    for (j = 0; j < i; j++)
         LEPT_FREE(array[j]);
     LEPT_FREE(array);
     return (l_int32 **)ERROR_PTR("array not made", procName, NULL);
