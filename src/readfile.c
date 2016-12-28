@@ -786,8 +786,8 @@ l_int32  format;
  *      (1) This is a variation of pixReadStream(), where the data is read
  *          from a memory buffer rather than a file.
  *      (2) On windows, this only reads tiff formatted files directly from
- *          memory.  For other formats, it write to a temp file and
- *          decompress from file.
+ *          memory.  For other formats, it writes to a temp file and
+ *          decompresses from file.
  *      (3) findFileFormatBuffer() requires up to 12 bytes to decide on
  *          the format.  That determines the constraint here.  But in
  *          fact the data must contain the entire compressed string for

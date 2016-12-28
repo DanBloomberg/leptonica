@@ -81,7 +81,7 @@
  *           l_float32  stopWallTimer()
  *           void       l_getFormattedDate()
  *
- *  For all issues with cross-platform developement, see utils2.c.
+ *  For all issues with cross-platform development, see utils2.c.
  * </pre>
  */
 

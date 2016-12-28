@@ -592,7 +592,7 @@ int              giferr;
  *               fwrite(data, 1, size, fp);
  *               rewind(fp);
  *               Pix *pix = pixReadStreamGif(fp);
- *           but this can't be done with gif files becuase of the way
+ *           but this can't be done with gif files because of the way
  *           that libgif handles the file descriptors: fp is in a
  *           bad state after writing.
  * </pre>
