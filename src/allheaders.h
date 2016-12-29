@@ -1125,7 +1125,6 @@ LEPT_DLL extern l_int32 l_asetSize ( L_ASET *s );
 LEPT_DLL extern PIX * generateBinaryMaze ( l_int32 w, l_int32 h, l_int32 xi, l_int32 yi, l_float32 wallps, l_float32 ranis );
 LEPT_DLL extern PTA * pixSearchBinaryMaze ( PIX *pixs, l_int32 xi, l_int32 yi, l_int32 xf, l_int32 yf, PIX **ppixd );
 LEPT_DLL extern PTA * pixSearchGrayMaze ( PIX *pixs, l_int32 xi, l_int32 yi, l_int32 xf, l_int32 yf, PIX **ppixd );
-LEPT_DLL extern l_int32 pixFindLargestRectangle ( PIX *pixs, l_int32 polarity, BOX **pbox, const char *debugfile );
 LEPT_DLL extern PIX * pixDilate ( PIX *pixd, PIX *pixs, SEL *sel );
 LEPT_DLL extern PIX * pixErode ( PIX *pixd, PIX *pixs, SEL *sel );
 LEPT_DLL extern PIX * pixHMT ( PIX *pixd, PIX *pixs, SEL *sel );
@@ -1348,6 +1347,8 @@ LEPT_DLL extern l_int32 pixDecideIfText ( PIX *pixs, BOX *box, l_int32 *pistext,
 LEPT_DLL extern l_int32 pixFindThreshFgExtent ( PIX *pixs, l_int32 thresh, l_int32 *ptop, l_int32 *pbot );
 LEPT_DLL extern l_int32 pixCountTextColumns ( PIX *pixs, l_float32 deltafract, l_float32 peakfract, l_float32 clipfract, l_int32 *pncols, PIXA *pixadb );
 LEPT_DLL extern l_int32 pixEstimateBackground ( PIX *pixs, l_int32 darkthresh, l_float32 edgecrop, l_int32 *pbg );
+LEPT_DLL extern l_int32 pixFindLargeRectangles ( PIX *pixs, l_int32 polarity, l_int32 nrect, BOXA **pboxa, PIX **ppixdb );
+LEPT_DLL extern l_int32 pixFindLargestRectangle ( PIX *pixs, l_int32 polarity, BOX **pbox, PIX **ppixdb );
 LEPT_DLL extern l_int32 pixSetSelectCmap ( PIX *pixs, BOX *box, l_int32 sindex, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_int32 pixColorGrayRegionsCmap ( PIX *pixs, BOXA *boxa, l_int32 type, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_int32 pixColorGrayCmap ( PIX *pixs, BOX *box, l_int32 type, l_int32 rval, l_int32 gval, l_int32 bval );

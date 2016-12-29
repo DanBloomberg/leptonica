@@ -128,7 +128,7 @@ static const l_int32  DEFAULT_MAX_POPS = 20000;
  *          as having a reasonable proximity to the rectangle centroid.
  *      (6) Use fract in the range [0.0 ... 1.0].  Set fract = 0.0
  *          to choose the small box nearest the centroid as the pivot.
- *          If you choose fract \> 0.0, it is suggested that you call
+ *          If you choose fract > 0.0, it is suggested that you call
  *          boxaPermuteRandom() first, to permute the boxes (see usage below).
  *          This should reduce the search time for each of the pivot boxes.
  *      (7) Choose maxpops to be the maximum number of rectangles that
@@ -152,8 +152,9 @@ static const l_int32  DEFAULT_MAX_POPS = 20000;
  *          of partels on the queue.  Setting a limit of X partels to
  *          remove from the queue, one typically finds that there will be
  *          several times that number (say, 2X - 3X) left on the queue.
- *          For an efficient algorithm to find the largest white
- *          or black rectangle, see pixFindLargestRectangle().
+ *          For an efficient algorithm to find the largest white or
+ *          or black rectangles, without permitting them to overlap,
+ *          see pixFindLargeRectangles().
  *     (11) USAGE: One way to accommodate to this weakness is to remove such
  *          large b.b. before starting the computation.  For example,
  *          if 'box' is an input image region containing 'boxa' b.b. of c.c.:

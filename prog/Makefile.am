@@ -29,7 +29,7 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg alphaxform_reg \
 	kernel_reg label_reg lineremoval_reg \
 	logicops_reg maze_reg multitype_reg \
 	nearline_reg newspaper_reg \
-	overlap_reg paint_reg paintmask_reg \
+	overlap_reg pageseg_reg paint_reg paintmask_reg \
 	pdfseg_reg pixa2_reg pixadisp_reg \
 	pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \

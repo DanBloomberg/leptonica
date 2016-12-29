@@ -109,6 +109,7 @@ static const char *tests[] = {
                               "nearline_reg",
                               "newspaper_reg",
                               "overlap_reg",
+                              "pageseg_reg",
                               "paint_reg",
                               "paintmask_reg",
                               "pdfseg_reg",

@@ -60,6 +60,10 @@
  *
  *      Estimate the grayscale background value
  *          l_int32   pixEstimateBackground()
+ *
+ *      Largest white or black rectangles in an image
+ *          l_int32   pixFindLargeRectangles()
+ *          l_int32   pixFindLargestRectangle()
  * </pre>
  */
 
@@ -187,7 +191,6 @@ PIX     *pixtb;    /* textblock mask */
         pixGetDimensions(pixtm, &w, &h, NULL);
         pix1 = pixaDisplayRandomCmap(pixa, w, h);
         pixcmapResetColor(pixGetColormap(pix1), 0, 255, 255, 255);
-        pixDisplay(pix1, 100, 100);
         pixaAddPix(pixadb, pix1, L_INSERT);
         pixaDestroy(&pixa);
         boxaDestroy(&boxa);
@@ -204,7 +207,6 @@ PIX     *pixtb;    /* textblock mask */
         pix1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
         cmap = pixGetColormap(pix1);
         pixcmapResetColor(cmap, 0, 130, 130, 130);
-        pixDisplay(pix1, 500, 100);
         pixaAddPix(pixadb, pix1, L_INSERT);
         ptaaDestroy(&ptaa);
     }
@@ -225,7 +227,7 @@ PIX     *pixtb;    /* textblock mask */
     if (pixadb) {
         pixaConvertToPdf(pixadb, 0, 1.0, 0, 0, "Debug page segmentation",
                          "/tmp/lept/pageseg/debug.pdf");
-        L_INFO("Writing debug pdf to /tmp/lept/pageseg/debug.pdf", procName);
+        L_INFO("Writing debug pdf to /tmp/lept/pageseg/debug.pdf\n", procName);
     }
 
     if (ppixhm)
@@ -1520,5 +1522,254 @@ PIX       *pix1, *pix2, *pixm;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pixm);
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *             Largest white or black rectangles in an image           *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixFindLargeRectangles()
+ *
+ * \param[in]    pixs       1 bpp
+ * \param[in]    polarity   0 within background, 1 within foreground
+ * \param[in]    nrect      number of rectangles to be found
+ * \param[out]   pboxa      largest rectangles, sorted by decreasing area
+ * \param[in,out]  ppixdb   optional return output with rectangles drawn on it
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This does a greedy search to find the largest rectangles,
+ *          either black or white and without overlaps, in %pix.
+ *      (2) See pixFindLargestRectangle(), which is called multiple
+ *          times, for details.  On each call, the largest rectangle
+ *          found is painted, so that none of its pixels can be
+ *          used later, before calling it again.
+ *      (3) This function is surprisingly fast.  Although
+ *          pixFindLargestRectangle() runs at about 50 MPix/sec, when it
+ *          is run multiple times by pixFindLargeRectangles(), it processes
+ *          at 150 - 250 MPix/sec, and the time is approximately linear
+ *          in %nrect.  For example, for a 1 MPix image, searching for
+ *          the largest 50 boxes takes about 0.2 seconds.
+ * </pre>
+ */
+l_int32
+pixFindLargeRectangles(PIX          *pixs,
+                       l_int32       polarity,
+                       l_int32       nrect,
+                       BOXA        **pboxa,
+                       PIX         **ppixdb)
+{
+l_int32  i, op, bx, by, bw, bh;
+BOX     *box;
+BOXA    *boxa;
+PIX     *pix;
+
+    PROCNAME("pixFindLargeRectangles");
+
+    if (ppixdb) *ppixdb = NULL;
+    if (!pboxa)
+        return ERROR_INT("&boxa not defined", procName, 1);
+    *pboxa = NULL;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+    if (polarity != 0 && polarity != 1)
+        return ERROR_INT("invalid polarity", procName, 1);
+    if (nrect > 1000) {
+        L_WARNING("large num rectangles = %d requested; using 1000\n",
+                  procName, nrect);
+        nrect = 1000;
+    }
+
+    pix = pixCopy(NULL, pixs);
+    boxa = boxaCreate(nrect);
+    *pboxa = boxa;
+
+    for (i = 0; i < nrect; i++) {
+        if (pixFindLargestRectangle(pix, polarity, &box, NULL) == 1) {
+            boxDestroy(&box);
+            L_ERROR("failure in pixFindLargestRectangle\n", procName);
+            break;
+        }
+        boxaAddBox(boxa, box, L_INSERT);
+        op = (polarity == 0) ? PIX_SET : PIX_CLR;
+        boxGetGeometry(box, &bx, &by, &bw, &bh);
+        pixRasterop(pix, bx, by, bw, bh, op, NULL, 0, 0);
+    }
+        
+    if (ppixdb)
+        *ppixdb = pixDrawBoxaRandom(pixs, boxa, 3);
+
+    pixDestroy(&pix);
+    return 0;
+}
+
+
+/*!
+ * \brief   pixFindLargestRectangle()
+ *
+ * \param[in]    pixs       1 bpp
+ * \param[in]    polarity   0 within background, 1 within foreground
+ * \param[out]   pbox       largest area rectangle
+ * \param[in,out]  ppixdb   optional return output with rectangle drawn on it
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a simple and elegant solution to a problem in
+ *          computational geometry that at first appears to be quite
+ *          difficult: what is the largest rectangle that can be
+ *          placed in the image, covering only pixels of one polarity
+ *          (bg or fg)?  The solution is O(n), where n is the number
+ *          of pixels in the image, and it requires nothing more than
+ *          using a simple recursion relation in a single sweep of the image.
+ *      (2) In a sweep from UL to LR with left-to-right being the fast
+ *          direction, calculate the largest white rectangle at (x, y),
+ *          using previously calculated values at pixels #1 and #2:
+ *             #1:    (x, y - 1)
+ *             #2:    (x - 1, y)
+ *          We also need the most recent "black" pixels that were seen
+ *          in the current row and column.
+ *          Consider the largest area.  There are only two possibilities:
+ *             (a)  Min(w(1), horizdist) * (h(1) + 1)
+ *             (b)  Min(h(2), vertdist) * (w(2) + 1)
+ *          where
+ *             horizdist: the distance from the rightmost "black" pixel seen
+ *                        in the current row across to the current pixel
+ *             vertdist: the distance from the lowest "black" pixel seen
+ *                       in the current column down to the current pixel
+ *          and we choose the Max of (a) and (b).
+ *      (3) To convince yourself that these recursion relations are correct,
+ *          it helps to draw the maximum rectangles at #1 and #2.
+ *          Then for #1, you try to extend the rectangle down one line,
+ *          so that the height is h(1) + 1.  Do you get the full
+ *          width of #1, w(1)?  It depends on where the black pixels are
+ *          in the current row.  You know the final width is bounded by w(1)
+ *          and w(2) + 1, but the actual value depends on the distribution
+ *          of black pixels in the current row that are at a distance
+ *          from the current pixel that is between these limits.
+ *          We call that value "horizdist", and the area is then given
+ *          by the expression (a) above.  Using similar reasoning for #2,
+ *          where you attempt to extend the rectangle to the right
+ *          by 1 pixel, you arrive at (b).  The largest rectangle is
+ *          then found by taking the Max.
+ * </pre>
+ */
+l_int32
+pixFindLargestRectangle(PIX         *pixs,
+                        l_int32      polarity,
+                        BOX        **pbox,
+                        PIX        **ppixdb)
+{
+l_int32    i, j, w, h, d, wpls, val;
+l_int32    wp, hp, w1, w2, h1, h2, wmin, hmin, area1, area2;
+l_int32    xmax, ymax;  /* LR corner of the largest rectangle */
+l_int32    maxarea, wmax, hmax, vertdist, horizdist, prevfg;
+l_int32   *lowestfg;
+l_uint32  *datas, *lines;
+l_uint32 **linew, **lineh;
+BOX       *box;
+PIX       *pixw, *pixh;  /* keeps the width and height for the largest */
+                         /* rectangles whose LR corner is located there. */
+
+    PROCNAME("pixFindLargestRectangle");
+
+    if (ppixdb) *ppixdb = NULL;
+    if (!pbox)
+        return ERROR_INT("&box not defined", procName, 1);
+    *pbox = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1)
+        return ERROR_INT("pixs not 1 bpp", procName, 1);
+    if (polarity != 0 && polarity != 1)
+        return ERROR_INT("invalid polarity", procName, 1);
+
+        /* Initialize lowest "fg" seen so far for each column */
+    lowestfg = (l_int32 *)LEPT_CALLOC(w, sizeof(l_int32));
+    for (i = 0; i < w; i++)
+        lowestfg[i] = -1;
+
+        /* The combination (val ^ polarity) is the color for which we
+         * are searching for the maximum rectangle.  For polarity == 0,
+         * we search in the bg (white). */
+    pixw = pixCreate(w, h, 32);  /* stores width */
+    pixh = pixCreate(w, h, 32);  /* stores height */
+    linew = (l_uint32 **)pixGetLinePtrs(pixw, NULL);
+    lineh = (l_uint32 **)pixGetLinePtrs(pixh, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    maxarea = xmax = ymax = wmax = hmax = 0;
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        prevfg = -1;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BIT(lines, j);
+            if ((val ^ polarity) == 0) {  /* bg (0) if polarity == 0, etc. */
+                if (i == 0 && j == 0) {
+                    wp = hp = 1;
+                } else if (i == 0) {
+                    wp = linew[i][j - 1] + 1;
+                    hp = 1;
+                } else if (j == 0) {
+                    wp = 1;
+                    hp = lineh[i - 1][j] + 1;
+                } else {
+                        /* Expand #1 prev rectangle down */
+                    w1 = linew[i - 1][j];
+                    h1 = lineh[i - 1][j];
+                    horizdist = j - prevfg;
+                    wmin = L_MIN(w1, horizdist);  /* width of new rectangle */
+                    area1 = wmin * (h1 + 1);
+
+                        /* Expand #2 prev rectangle to right */
+                    w2 = linew[i][j - 1];
+                    h2 = lineh[i][j - 1];
+                    vertdist = i - lowestfg[j];
+                    hmin = L_MIN(h2, vertdist);  /* height of new rectangle */
+                    area2 = hmin * (w2 + 1);
+
+                    if (area1 > area2) {
+                         wp = wmin;
+                         hp = h1 + 1;
+                    } else {
+                         wp = w2 + 1;
+                         hp = hmin;
+                    }
+                }
+            } else {  /* fg (1) if polarity == 0; bg (0) if polarity == 1 */
+                prevfg = j;
+                lowestfg[j] = i;
+                wp = hp = 0;
+            }
+            linew[i][j] = wp;
+            lineh[i][j] = hp;
+            if (wp * hp > maxarea) {
+                maxarea = wp * hp;
+                xmax = j;
+                ymax = i;
+                wmax = wp;
+                hmax = hp;
+            }
+        }
+    }
+
+        /* Translate from LR corner to Box coords (UL corner, w, h) */
+    box = boxCreate(xmax - wmax + 1, ymax - hmax + 1, wmax, hmax);
+    *pbox = box;
+
+    if (ppixdb) {
+        *ppixdb = pixConvertTo8(pixs, TRUE);
+        pixRenderHashBoxArb(*ppixdb, box, 6, 2, L_NEG_SLOPE_LINE, 1, 255, 0, 0);
+    }
+
+    LEPT_FREE(linew);
+    LEPT_FREE(lineh);
+    LEPT_FREE(lowestfg);
+    pixDestroy(&pixw);
+    pixDestroy(&pixh);
     return 0;
 }
