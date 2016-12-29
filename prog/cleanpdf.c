@@ -65,11 +65,11 @@
  */
 
 #ifdef _WIN32
-  #ifdef _MSC_VER
-  #include <direct.h>
-  #else
-  #include <io.h>
-  #endif  /* _MSC_VER */
+# if defined(_MSC_VER) || defined(__MINGW32__)
+#  include <direct.h>
+# else
+#  include <io.h>
+# endif  /* _MSC_VER || __MINGW32__ */
 #endif  /* _WIN32 */
 
 #include "string.h"
