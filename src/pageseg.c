@@ -1598,7 +1598,7 @@ PIX     *pix;
         boxGetGeometry(box, &bx, &by, &bw, &bh);
         pixRasterop(pix, bx, by, bw, bh, op, NULL, 0, 0);
     }
-        
+
     if (ppixdb)
         *ppixdb = pixDrawBoxaRandom(pixs, boxa, 3);
 

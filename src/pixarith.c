@@ -106,9 +106,9 @@
  * Notes:
  *      (1) In-place operation.
  *      (2) No clipping for 32 bpp.
- *      (3) For 8 and 16 bpp, if val \> 0 the result is clipped
+ *      (3) For 8 and 16 bpp, if val > 0 the result is clipped
  *          to 0xff and 0xffff, rsp.
- *      (4) For 8 and 16 bpp, if val \< 0 the result is clipped to 0.
+ *      (4) For 8 and 16 bpp, if val < 0 the result is clipped to 0.
  * </pre>
  */
 l_int32
@@ -177,7 +177,7 @@ l_uint32  *data, *line;
  *
  * <pre>
  * Notes:
- *      (1) In-place operation; val must be \>= 0.
+ *      (1) In-place operation; val must be >= 0.
  *      (2) No clipping for 32 bpp.
  *      (3) For 8 and 16 bpp, the result is clipped to 0xff and 0xffff, rsp.
  * </pre>
@@ -251,9 +251,9 @@ l_uint32  *data, *line;
  *      (3) Alignment is to UL corner.
  *      (4) There are 3 cases.  The result can go to a new dest,
  *          in-place to pixs1, or to an existing input dest:
- *          * pixd == null:   (src1 + src2) --\> new pixd
- *          * pixd == pixs1:  (src1 + src2) --\> src1  (in-place)
- *          * pixd != pixs1:  (src1 + src2) --\> input pixd
+ *          * pixd == null:   (src1 + src2) --> new pixd
+ *          * pixd == pixs1:  (src1 + src2) --> src1  (in-place)
+ *          * pixd != pixs1:  (src1 + src2) --> input pixd
  *      (5) pixs2 must be different from both pixd and pixs1.
  * </pre>
  */
@@ -343,9 +343,9 @@ l_uint32  *datas, *datad, *lines, *lined;
  *      (4) Alignment is to UL corner.
  *      (5) There are 3 cases.  The result can go to a new dest,
  *          in-place to pixs1, or to an existing input dest:
- *          (a) pixd == null   (src1 - src2) --\> new pixd
- *          (b) pixd == pixs1  (src1 - src2) --\> src1  (in-place)
- *          (d) pixd != pixs1  (src1 - src2) --\> input pixd
+ *          (a) pixd == null   (src1 - src2) --> new pixd
+ *          (b) pixd == pixs1  (src1 - src2) --> src1  (in-place)
+ *          (d) pixd != pixs1  (src1 - src2) --> input pixd
  *      (6) pixs2 must be different from both pixd and pixs1.
  * </pre>
  */
@@ -433,8 +433,8 @@ l_uint32  *datas, *datad, *lines, *lined;
  * <pre>
  * Notes:
  *    ~ operation can be in-place (pixs == pixd) or to a new pixd
- *    ~ if setval \> threshval, sets pixels with a value \>= threshval to setval
- *    ~ if setval \< threshval, sets pixels with a value \<= threshval to setval
+ *    ~ if setval > threshval, sets pixels with a value >= threshval to setval
+ *    ~ if setval < threshval, sets pixels with a value <= threshval to setval
  *    ~ if setval == threshval, no-op
  * </pre>
  */
@@ -534,7 +534,7 @@ l_uint32  *datad, *lined;
  *
  * <pre>
  * Notes:
- *      (1) The offset must be \>= 0.
+ *      (1) The offset must be >= 0.
  *      (2) The offset is used so that we can do arithmetic
  *          with negative number results on l_uint32 data; it
  *          prevents the l_uint32 data from going negative.
@@ -575,7 +575,7 @@ PIX  *pixd;
  *
  * <pre>
  * Notes:
- *      (1) The offset must be \>= 0 and should not exceed 0x40000000.
+ *      (1) The offset must be >= 0 and should not exceed 0x40000000.
  *      (2) The offset is subtracted from the src 32 bpp image
  *      (3) For 8 bpp dest, the result is clipped to [0, 0xff]
  *      (4) For 16 bpp dest, the result is clipped to [0, 0xffff]
@@ -654,7 +654,7 @@ PIX       *pixd;
  *
  * <pre>
  * Notes:
- *      (1) The offset must be \>= 0 and should not exceed 0x40000000.
+ *      (1) The offset must be >= 0 and should not exceed 0x40000000.
  *      (2) The offset is subtracted from the src 32 bpp image
  * </pre>
  */
@@ -712,7 +712,7 @@ PIX       *pixd;
  *      (1) This adds or subtracts each pixs value from pixd.
  *      (2) This clips to the minimum of pixs and pixd, so they
  *          do not need to be the same size.
- *      (3) The alignment is to the origin [UL corner] of pixs \& pixd.
+ *      (3) The alignment is to the origin [UL corner] of pixs & pixd.
  * </pre>
  */
 l_int32
@@ -809,7 +809,7 @@ l_uint32  *datas, *datad, *lines, *lined;
  *
  * <pre>
  * Notes:
- *      (1) The offset must be \>= 0 and should not exceed 0x40000000.
+ *      (1) The offset must be >= 0 and should not exceed 0x40000000.
  *      (2) This multiplies each pixel, relative to offset, by the input factor
  *      (3) The result is returned with the offset back in place.
  * </pre>
@@ -1045,9 +1045,9 @@ PIX       *pixc1, *pixc2, *pixd;
  *          for a 3 component image.  For 32 bpp, ignore the LSB
  *          of each word (the alpha channel)
  *      (3) There are 3 cases:
- *          ~  if pixd == null,   Min(src1, src2) --\> new pixd
- *          ~  if pixd == pixs1,  Min(src1, src2) --\> src1  (in-place)
- *          ~  if pixd != pixs1,  Min(src1, src2) --\> input pixd
+ *          ~  if pixd == null,   Min(src1, src2) --> new pixd
+ *          ~  if pixd == pixs1,  Min(src1, src2) --> src1  (in-place)
+ *          ~  if pixd != pixs1,  Min(src1, src2) --> input pixd
  * </pre>
  */
 PIX *

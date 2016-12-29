@@ -78,6 +78,7 @@ static const char *tests[] = {
                               "dither_reg",
                               "dna_reg",
                               "dwamorph1_reg",
+                              "edge_reg",
                               "enhance_reg",
                               "expand_reg",
                          /*   "files_reg",  */

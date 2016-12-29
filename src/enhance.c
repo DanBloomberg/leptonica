@@ -917,7 +917,7 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
         return pixUnsharpMaskingFast(pixs, halfwidth, fract, L_BOTH_DIRECTIONS);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
-    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 1)) == NULL)
+    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
         /* Sharpen */
@@ -1086,7 +1086,7 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
         return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
-    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 1)) == NULL)
+    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
         /* Sharpen */

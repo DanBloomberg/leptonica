@@ -356,7 +356,7 @@ PIX       *pixt, *pixt2, *pixd;
         return pixScaleBinary(pixs, scalex, scaley);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
-    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 1)) == NULL)
+    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
         /* Scale (up or down) */
@@ -437,7 +437,7 @@ PIX       *pixt, *pixd;
         return (PIX *)ERROR_PTR("pixs not {2,4,8,16,32} bpp", procName, NULL);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
-    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 1)) == NULL)
+    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
         return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
 
     d = pixGetDepth(pixt);

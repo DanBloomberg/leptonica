@@ -153,7 +153,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		dewarp_reg.c distance_reg.c \
 		dither_reg.c dna_reg.c \
 		dwamorph1_reg.c dwamorph2_reg.c \
-		enhance_reg.c equal_reg.c \
+		edge_reg.c enhance_reg.c equal_reg.c \
 		expand_reg.c extrema_reg.c \
 		fhmtauto_reg.c files_reg.c \
 		findcorners_reg.c findpattern_reg.c \
@@ -207,7 +207,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		dewarptest3.c dewarptest4.c dewarptest5.c \
 		digitprep1.c displayboxa.c displayboxes_on_pixa.c \
 		displaypix.c displaypixa.c \
-		dwalineargen.c edgetest.c falsecolortest.c \
+		dwalineargen.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c \
 		fileinfo.c findbinding.c \
 		findpattern1.c findpattern2.c findpattern3.c \
@@ -424,6 +424,9 @@ dwamorph1_reg:  dwamorph1_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
 
 dwamorph2_reg:  dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
 	$(CC) -o dwamorph2_reg dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(ALL_LIBS) $(EXTRALIBS)
+
+edge_reg:	edge_reg.o $(LEPTLIB)
+	$(CC) -o edge_reg edge_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 enhance_reg:	enhance_reg.o $(LEPTLIB)
 	$(CC) -o enhance_reg enhance_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -820,9 +823,6 @@ displaypixa:	displaypixa.o $(LEPTLIB)
 
 dwalineargen:	dwalineargen.o $(LEPTLIB)
 	$(CC) -o dwalineargen dwalineargen.o $(ALL_LIBS) $(EXTRALIBS)
-
-edgetest:	edgetest.o $(LEPTLIB)
-	$(CC) -o edgetest edgetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 falsecolortest:	falsecolortest.o $(LEPTLIB)
 	$(CC) -o falsecolortest falsecolortest.o $(ALL_LIBS) $(EXTRALIBS)
