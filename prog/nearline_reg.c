@@ -113,13 +113,6 @@ L_REGPARAMS  *rp;
     numaaAddNuma(naa, na5, L_INSERT);  /* landscape, single-sided */
     gplotSimpleN(naa, GPLOT_PNG, "/tmp/lept/regout/nearline",
                  "Average minimums along lines");
-#if 0
-#ifndef  _WIN32
-    sleep(1);
-#else
-    Sleep(1000);
-#endif  /* _WIN32 */
-#endif
     pix3 = pixRead("/tmp/lept/regout/nearline.png");
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 7 */
     pixDisplayWithTitle(pix3, 100, 100, NULL, rp->display);
