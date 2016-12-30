@@ -659,8 +659,6 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
         pixDestroy(&pixth);
     if (ppixd)
         *ppixd = pixd;
-    else
-        pixDestroy(&pixd);
     pixDestroy(&pixg);
     pixDestroy(&pixsc);
     return 0;
