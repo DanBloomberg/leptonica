@@ -75,11 +75,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README  (1.74: 10 Dec 2016)
+README  (1.74.1: 3 Jan 2017)
 ---------------------------
 
-gunzip leptonica-1.74.tar.gz
-tar -xvf leptonica-1.74.tar
+gunzip leptonica-1.74.1.tar.gz
+tar -xvf leptonica-1.74.1.tar
 
 </pre>
 
@@ -145,16 +145,15 @@ Building leptonica
     (3) Using cmake (supported by Egor Pugin).
         The build must always be in a different directory from the root
         of the source (here).  It is common to build in a subdirectory
-        of the root.  From here:
-          mkdir build
-          cd build
-          cmake ..
-          make
-        Alternatively, from here:
-          mkdir build
-          cmake -H . -Bbuild   (-H means the source directory,
-                                -B means the directory for the build
-          make
+        of the root.  From the root directory, do this:
+            mkdir build
+            cd build
+          Then to make only the library:
+            cmake ..
+            make
+          To make both the library and the programs:
+            cmake .. -DBUILD_PROG=1
+            make
         To clean out the current build, just remove everything in
         the build subdirectory.
 
@@ -251,7 +250,7 @@ Building leptonica
             make install
 
        Configure also supports building in a separate directory from the
-       source.  Run "/(path-to)/leptonica-1.74/configure" and then "make"
+       source.  Run "/(path-to)/leptonica-1.74.1/configure" and then "make"
        from the desired build directory.
 
        Configure has a number of useful options; run "configure --help" for
@@ -282,17 +281,36 @@ Building leptonica
 
     (3) Using cmake
 
-       There are a couple of flags you can use on the cmake line to
-       determine what is built here.
+       The usual method is to build in a directory that is a subdirectory
+       of the root.  First do this from the root directory:
+            mkdir build
+            cd build
+
+       Then, there are two useful flags you can use on the cmake line to
+       determine what is built.
 
        * By default, cmake builds a shared library.  To make a static
          library: 
             cmake .. -DSTATIC=1
 
        * By default, cmake only builds the library, not the programs.
-         To make progs from the build subdirectory:
+         To make both the library and the programs:
             cmake .. -DBUILD_PROG=1
+         The programs are put in build/bin/
+         To run these (e.g., for testing), move them to the prog
+         directory and run them from there:
+            cd bin
+            mv * ../../prog/
+            cd ../../prog
+            alltests_reg generate
+            alltests_reg compare
 
+       To build the library directly from the root directory instead of
+       the build subdirectory:
+            mkdir build
+            cmake -H . -Bbuild   (-H means the source directory,
+                                  -B means the directory for the build
+            make
 
 3. Building on Windows
 
@@ -1063,10 +1081,10 @@ What's in leptonica?
    as well as all versions after 1.60.  These have now been transferred
    by Egor Pugin to github:
        github.com/danbloomberg/leptonica
-   Recent releases (1.67 - 1.74) are available both at
+   Recent releases (1.67 - 1.74.1) are available both at
        leptonica.org/download.html
    and through github; e.g.,
-       https://github.com/DanBloomberg/leptonica/releases/tag/v1.74.0
+       https://github.com/DanBloomberg/leptonica/releases/tag/v1.74.1
    Note that if you are downloading from github, the releases are more
    likely to be stable than the master.  Also, if you download from
    the master you need to run the autobuild script to generate the

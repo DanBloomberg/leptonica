@@ -789,7 +789,7 @@ l_uint32  shift;
 /*!
  * \brief   getLeptonicaVersion()
  *
- *      Return: string of version number (e.g., 'leptonica-1.68')
+ *      Return: string of version number (e.g., 'leptonica-1.74.1')
  *
  *  Notes:
  *      (1) The caller has responsibility to free the memory.
@@ -797,7 +797,9 @@ l_uint32  shift;
 char *
 getLeptonicaVersion()
 {
-    char *version = (char *)LEPT_CALLOC(100, sizeof(char));
+size_t  bufsize = 100;
+
+    char *version = (char *)LEPT_CALLOC(bufsize, sizeof(char));
 
 #ifdef _MSC_VER
   #ifdef _USRDLL
@@ -817,14 +819,14 @@ getLeptonicaVersion()
   #else
     char bitStr[] = "";
   #endif
-    snprintf(version, 100, "leptonica-%d.%d (%s, %s) [MSC v.%d %s %s%s]",
-             LIBLEPT_MAJOR_VERSION, LIBLEPT_MINOR_VERSION,
-             __DATE__, __TIME__, _MSC_VER, dllStr, debugStr, bitStr);
+    snprintf(version, bufsize, "leptonica-%d.%d.%d (%s, %s) [MSC v.%d %s %s%s]",
+           LIBLEPT_MAJOR_VERSION, LIBLEPT_MINOR_VERSION, LIBLEPT_PATCH_VERSION,
+           __DATE__, __TIME__, _MSC_VER, dllStr, debugStr, bitStr);
 
 #else
 
-    snprintf(version, 100, "leptonica-%d.%d", LIBLEPT_MAJOR_VERSION,
-             LIBLEPT_MINOR_VERSION);
+    snprintf(version, bufsize, "leptonica-%d.%d.%d", LIBLEPT_MAJOR_VERSION,
+             LIBLEPT_MINOR_VERSION, LIBLEPT_PATCH_VERSION);
 
 #endif   /* _MSC_VER */
     return version;

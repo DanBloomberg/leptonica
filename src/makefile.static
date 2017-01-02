@@ -149,6 +149,7 @@ LIBRARIAN_SHARED =	gcc -shared
 #  <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
 MINOR_REV = 74
+PATCH_REV = 1
 
 #########################################################
 
@@ -304,9 +305,9 @@ $(LIB_DEBUG)/%.a:
 $(LIB_SHARED)/%.so:
 		$(RM) $@
 		$(LIBRARIAN_SHARED) $(SONAME_OPTION)$(notdir $@).$(MAJOR_REV) -o $@ $<
-	mv $@ $@.$(MAJOR_REV).$(MINOR_REV)
+	mv $@ $@.$(MAJOR_REV).$(MINOR_REV).$(PATCH_REV)
 	cd $(LIB_SHARED); rm $(notdir $@).$(MAJOR_REV); \
-	  ln -s $(notdir $@).$(MAJOR_REV).$(MINOR_REV) $(notdir $@).$(MAJOR_REV)
+	  ln -s $(notdir $@).$(MAJOR_REV).$(MINOR_REV).$(PATCH_REV) $(notdir $@).$(MAJOR_REV)
 	cd $(LIB_SHARED); rm $(notdir $@); \
 	  ln -s $(notdir $@).$(MAJOR_REV) $(notdir $@)
 
@@ -334,9 +335,9 @@ leptlibs:	$(LIB_SHARED)/$(LEPTLIB_SHARED)
 $(LIB_SHARED)/$(LEPTLIB_SHARED):	$(LEPTLIB_C:%.c=$(OBJ_SHARED)/%.o)
 		$(RM) $@
 		$(LIBRARIAN_SHARED) $(SONAME_OPTION)$(notdir $@).$(MAJOR_REV) -o $@ $(LEPTLIB_C:%.c=$(OBJ_SHARED)/%.o)
-	mv $@ $@.$(MAJOR_REV).$(MINOR_REV)
+	mv $@ $@.$(MAJOR_REV).$(MINOR_REV).$(PATCH_REV)
 	cd $(LIB_SHARED); rm $(notdir $@).$(MAJOR_REV); \
-	  ln -s $(notdir $@).$(MAJOR_REV).$(MINOR_REV) $(notdir $@).$(MAJOR_REV)
+	  ln -s $(notdir $@).$(MAJOR_REV).$(MINOR_REV).$(PATCH_REV) $(notdir $@).$(MAJOR_REV)
 	cd $(LIB_SHARED); rm $(notdir $@); \
 	  ln -s $(notdir $@).$(MAJOR_REV) $(notdir $@)
 
