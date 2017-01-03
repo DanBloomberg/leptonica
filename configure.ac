@@ -35,27 +35,39 @@ AM_CONDITIONAL([ENABLE_PROGRAMS], [test "x$enable_programs" != xno])
 # Checks for libraries.
 LT_LIB_M
 
-AS_IF([test "x$with_zlib" != xno],
-  AC_CHECK_LIB([z], [deflate],
-    AC_DEFINE([HAVE_LIBZ], 1, [Define to 1 if you have zlib.]) AC_SUBST([ZLIB_LIBS], [-lz]),
-    AS_IF([test "x$with_zlib" = xyes], AC_MSG_ERROR([zlib support requested but library not found]))
-  )
-)
+AS_IF([test "x$with_zlib" != xno], [
+  PKG_CHECK_MODULES([ZLIB], [zlib], [
+    AC_DEFINE([HAVE_LIBZ], 1, [Define to 1 if you have zlib.])
+  ], [
+    AC_CHECK_LIB([z], [deflate],
+      AC_DEFINE([HAVE_LIBZ], 1, [Define to 1 if you have zlib.]) AC_SUBST([ZLIB_LIBS], [-lz]),
+      AS_IF([test "x$with_zlib" = xyes], AC_MSG_ERROR([zlib support requested but library not found]))
+    )
+  ])
+])
 
-AS_IF([test "x$with_libpng" != xno],
-  AC_CHECK_LIB([png], [png_read_png],
-    AC_DEFINE([HAVE_LIBPNG], 1, [Define to 1 if you have libpng.]) AC_SUBST([LIBPNG_LIBS], [-lpng]),
-    AS_IF([test "x$with_libpng" = xyes], AC_MSG_ERROR([libpng support requested but library not found])),
-    ${LIBM} ${ZLIB_LIBS}
-  )
-)
+AS_IF([test "x$with_libpng" != xno], [
+  PKG_CHECK_MODULES([LIBPNG], [libpng], [
+    AC_DEFINE([HAVE_LIBPNG], 1, [Define to 1 if you have libpng.])
+  ], [
+    AC_CHECK_LIB([png], [png_read_png],
+      AC_DEFINE([HAVE_LIBPNG], 1, [Define to 1 if you have libpng.]) AC_SUBST([LIBPNG_LIBS], [-lpng]),
+      AS_IF([test "x$with_libpng" = xyes], AC_MSG_ERROR([libpng support requested but library not found])),
+      ${LIBM} ${ZLIB_LIBS}
+    )
+  ])
+])
 
-AS_IF([test "x$with_jpeg" != xno],
-  AC_CHECK_LIB([jpeg], [jpeg_read_scanlines],
-    AC_DEFINE([HAVE_LIBJPEG], 1, [Define to 1 if you have jpeg.]) AC_SUBST([JPEG_LIBS], [-ljpeg]),
-    AS_IF([test "x$with_jpeg" = xyes], AC_MSG_ERROR([jpeg support requested but library not found]))
-  )
-)
+AS_IF([test "x$with_jpeg" != xno], [
+  PKG_CHECK_MODULES([JPEG], [libjpeg], [
+    AC_DEFINE([HAVE_LIBJPEG], 1, [Define to 1 if you have jpeg.])
+  ], [
+    AC_CHECK_LIB([jpeg], [jpeg_read_scanlines],
+      AC_DEFINE([HAVE_LIBJPEG], 1, [Define to 1 if you have jpeg.]) AC_SUBST([JPEG_LIBS], [-ljpeg]),
+      AS_IF([test "x$with_jpeg" = xyes], AC_MSG_ERROR([jpeg support requested but library not found]))
+    )
+  ])
+])
 
 AS_IF([test "x$with_giflib" != xno],
   AC_CHECK_LIB([gif], [DGifOpenFileHandle],
@@ -66,34 +78,46 @@ AS_IF([test "x$with_giflib" != xno],
 
 AM_CONDITIONAL([HAVE_LIBGIF], [test "x$ac_cv_lib_gif_DGifOpenFileHandle" = xyes])
 
-AS_IF([test "x$with_libtiff" != xno],
-  AC_CHECK_LIB([tiff], [TIFFOpen],
-    AC_DEFINE([HAVE_LIBTIFF], 1, [Define to 1 if you have libtiff.]) AC_SUBST([LIBTIFF_LIBS], [-ltiff]),
-    AS_IF([test "x$with_libtiff" = xyes], AC_MSG_ERROR([libtiff support requested but library not found])),
-    ${LIBM} ${ZLIB_LIBS} ${JPEG_LIBS}
-  )
-)
+AS_IF([test "x$with_libtiff" != xno], [
+  PKG_CHECK_MODULES([LIBTIFF], [libtiff-4], [
+    AC_DEFINE([HAVE_LIBTIFF], 1, [Define to 1 if you have libtiff.])
+  ], [
+    AC_CHECK_LIB([tiff], [TIFFOpen],
+      AC_DEFINE([HAVE_LIBTIFF], 1, [Define to 1 if you have libtiff.]) AC_SUBST([LIBTIFF_LIBS], [-ltiff]),
+      AS_IF([test "x$with_libtiff" = xyes], AC_MSG_ERROR([libtiff support requested but library not found])),
+      ${LIBM} ${ZLIB_LIBS} ${JPEG_LIBS}
+    )
+  ])
+])
 
-AS_IF([test "x$with_libwebp" != xno],
-  AC_CHECK_LIB([webp], [WebPGetInfo],
-    AC_DEFINE([HAVE_LIBWEBP], 1, [Define to 1 if you have libwebp.]) AC_SUBST([LIBWEBP_LIBS], [-lwebp]),
-    AS_IF([test "x$with_libwebp" = xyes], AC_MSG_ERROR([libwebp support requested but library not found])),
-    ${LIBM}
-  )
-)
+AS_IF([test "x$with_libwebp" != xno], [
+  PKG_CHECK_MODULES([LIBWEBP], [libwebp], [
+    AC_DEFINE([HAVE_LIBWEBP], 1, [Define to 1 if you have libwebp.])
+  ], [
+    AC_CHECK_LIB([webp], [WebPGetInfo],
+      AC_DEFINE([HAVE_LIBWEBP], 1, [Define to 1 if you have libwebp.]) AC_SUBST([LIBWEBP_LIBS], [-lwebp]),
+      AS_IF([test "x$with_libwebp" = xyes], AC_MSG_ERROR([libwebp support requested but library not found])),
+      ${LIBM}
+    )
+  ])
+])
 
 AM_CONDITIONAL([HAVE_LIBWEBP], [test "x$ac_cv_lib_webp_WebPGetInfo" = xyes])
 
-AS_IF([test "x$with_libopenjpeg" != xno],
-  AC_CHECK_LIB([openjp2], [opj_create_decompress],
-    [
-      AC_DEFINE([HAVE_LIBJP2K], 1, [Define to 1 if you have libopenjp2.]) AC_SUBST([LIBJP2K_LIBS], [-lopenjp2])
-      [AC_CHECK_HEADERS([openjpeg-2.2/openjpeg.h openjpeg-2.1/openjpeg.h openjpeg-2.0/openjpeg.h],
-       AC_DEFINE_UNQUOTED([LIBJP2K_HEADER], [<$ac_header>], [Path to <openjpeg.h> header file.]) break)]
-    ],
-    AS_IF([test "x$with_libopenjpeg" = xyes], AC_MSG_ERROR([libopenjp2 support requested but library not found]))
-  )
-)
+AS_IF([test "x$with_libopenjpeg" != xno], [
+  PKG_CHECK_MODULES([LIBJP2K], [libopenjp2 >= 2.0.0], [
+    AC_DEFINE([HAVE_LIBJP2K], 1, [Define to 1 if you have libopenjp2.])
+  ], [
+    AC_CHECK_LIB([openjp2], [opj_create_decompress], [
+        AC_DEFINE([HAVE_LIBJP2K], 1, [Define to 1 if you have libopenjp2.])
+        AC_SUBST([LIBJP2K_LIBS], [-lopenjp2])
+        AC_CHECK_HEADERS([openjpeg-2.2/openjpeg.h openjpeg-2.1/openjpeg.h openjpeg-2.0/openjpeg.h],
+         AC_DEFINE_UNQUOTED([LIBJP2K_HEADER], [<$ac_header>], [Path to <openjpeg.h> header file.]) break)
+    ], [
+      AS_IF([test "x$with_libopenjpeg" = xyes], AC_MSG_ERROR([libopenjp2 support requested but library not found]))
+    ])
+  ])
+])
 
 AM_CONDITIONAL([HAVE_LIBJP2K], [test "x$ac_cv_lib_openjp2_opj_create_decompress" = xyes])
 

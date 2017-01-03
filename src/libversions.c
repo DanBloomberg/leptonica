@@ -71,7 +71,11 @@
 #endif
 
 #if HAVE_LIBJP2K
+#ifdef LIBJP2K_HEADER
 #include LIBJP2K_HEADER
+#else
+#include <openjpeg.h>
+#endif
 #endif
 
 
