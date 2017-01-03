@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/DanBloomberg/leptonica.svg?branch=master)](https://travis-ci.org/DanBloomberg/leptonica)
 [![Build status](https://ci.appveyor.com/api/projects/status/vsk607rr6n4j2tmk?svg=true)](https://ci.appveyor.com/project/DanBloomberg/leptonica)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/leptonica/badge.svg)](https://scan.coverity.com/projects/leptonica)
 
 www.leptonica.org
 
@@ -55,7 +56,7 @@ www.leptonica.org
   * _Robust_: all ptr args checked; extensive use of accessors; exit not permitted
   * _Tested_: thorough regression tests provided for most basic functions; valgrind tested
   * _ANSI C_: automatically generated prototype header file
-  * _Portable_: endian-independent; builds in linux, osx, mingw, cygwin, windows
+  * _Portable_: endian-independent; builds in Linux, macOS, MinGW, Cygwin, Windows
   * _Nearly thread-safe_: ref counting on some structs
   * _Documentation_: large number of in-line comments; web pages for further background
   * _Examples_: many programs provided to test and show usage of approx. 2200 functions in the library
@@ -67,9 +68,9 @@ www.leptonica.org
   * [jbig2enc](http://www.imperialviolet.org/jbig2.html) (encodes multipage binary image documents with jbig2 compression)
 
 ## Major contributors to Leptonica ##
-  * Tom Powers: Tom has supported leptonica on Windows for many years.  He has made many contributions to code quality and documentation, including the beautiful "unofficial documentation" on the web site. Without his effort, leptonica would not run today on Windows.
-  * David Bryan: David has worked for years to support leptonica on multiple platforms. He designed many nice features in leptonica, such as the severity-based error messaging system, and has identified and fixed countless bugs. And he has built and tested each distribution many times on cross-compilers.
-  * James Le Cuirot: James has written and supported the autotools scripts on leptonica distributions for many years, and has helped test every distribution since 1.67.
-  * Jeff Breidenbach: Jeff has built every debian distribution for leptonica. He has also made many improvements to formatted image I/O, including tiff, png and pdf. He is a continuous advocate for simplification.
-  * Egor Pugin: Egor is co-maintainer of leptonica on github. He ported everything, including all the old distributions, from Google Code when it shut down. He set leptonica up for appveyor and travis testing, and has implemented the cppan project, which simplifies building executables on Windows.
-  * Jürgen Buchmüller: Jürgen wrote text converters to modify leptonica source code so that it generates documentation using doxygen. He also wrote tiff wrappers for memory I/O.
+  * Tom Powers: Tom has supported Leptonica on Windows for many years.  He has made many contributions to code quality and documentation, including the beautiful "unofficial documentation" on the web site. Without his effort, Leptonica would not run today on Windows.
+  * David Bryan: David has worked for years to support Leptonica on multiple platforms. He designed many nice features in Leptonica, such as the severity-based error messaging system, and has identified and fixed countless bugs. And he has built and tested each distribution many times on cross-compilers.
+  * James Le Cuirot: James has written and supported the autotools scripts on Leptonica distributions for many years, and has helped test every distribution since 1.67.
+  * Jeff Breidenbach: Jeff has built every Debian distribution for Leptonica. He has also made many improvements to formatted image I/O, including tiff, png and pdf. He is a continuous advocate for simplification.
+  * Egor Pugin: Egor is co-maintainer of Leptonica on GitHub. He ported everything, including all the old distributions, from Google Code when it shut down. He set Leptonica up for appveyor and travis testing, and has implemented the cppan project, which simplifies building executables on Windows.
+  * Jürgen Buchmüller: Jürgen wrote text converters to modify Leptonica source code so that it generates documentation using doxygen. He also wrote tiff wrappers for memory I/O.
