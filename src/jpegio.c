@@ -798,7 +798,7 @@ JSAMPROW                     rowbuffer;
 PIX                         *pix;
 struct jpeg_compress_struct  cinfo;
 struct jpeg_error_mgr        jerr;
-const char                  *text;
+char                        *text;
 jmp_buf                      jmpbuf;  /* must be local to the function */
 
     PROCNAME("pixWriteStreamJpeg");
@@ -901,8 +901,15 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
 
     jpeg_start_compress(&cinfo, TRUE);
 
-    if ((text = pixGetText(pix)))
+        /* Cap the text at length limit for JPEG_COM payload */
+    if ((text = pixGetText(pix)) != NULL) {
+        if (strlen(text) > 65533) {
+            L_WARNING("text is %ld bytes; capping to 65533\n",
+                   procName, strlen(text));
+            text[65533] = '\0';
+        }
         jpeg_write_marker(&cinfo, JPEG_COM, (const JOCTET *)text, strlen(text));
+    }
 
         /* Allocate row buffer */
     spp = cinfo.input_components;
