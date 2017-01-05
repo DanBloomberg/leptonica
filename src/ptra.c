@@ -86,9 +86,9 @@
  *        distance to the next null ptr in the array.
  *    (7) Null ptrs are valid input args for both insertion and
  *        replacement; this allows arbitrary swapping.
- *    (8) The item in the array with the largest index is at pa-\>imax.
+ *    (8) The item in the array with the largest index is at pa->imax.
  *        This can be any value from -1 (initialized; all array ptrs
- *        are null) up to pa-\>nalloc - 1 (the last ptr in the array).
+ *        are null) up to pa->nalloc - 1 (the last ptr in the array).
  *    (9) In referring to the array: the first ptr is the "top" or
  *        "beginning"; the last pointer is the "bottom" or "end";
  *        items are shifted "up" towards the top when compaction occurs;
@@ -315,7 +315,7 @@ ptraExtendArray(L_PTRA  *pa)
  *              the first empty slot is reached.  This mode requires
  *              some computation before the actual shifting is done.
  *            ~ If %shiftflag == L_FULL_DOWNSHIFT, a shifting cascade is
- *              performed where pa[i] --\> pa[i + 1] for all i \>= index.
+ *              performed where pa[i] --> pa[i + 1] for all i >= index.
  *              Then, the item is inserted at pa[index].
  *      (3) If you are not using L_AUTO_DOWNSHIFT, the rule of thumb is
  *          to use L_FULL_DOWNSHIFT if the array is compacted (each
@@ -423,9 +423,9 @@ l_float32  nexpected;
  * Notes:
  *      (1) If flag == L_NO_COMPACTION, this removes the item and
  *          nulls the ptr on the array.  If it takes the last item
- *          in the array, pa-\>n is reduced to the next item.
+ *          in the array, pa->n is reduced to the next item.
  *      (2) If flag == L_COMPACTION, this compacts the array for
- *          for all i \>= index.  It should not be used repeatedly on
+ *          for all i >= index.  It should not be used repeatedly on
  *          large arrays, because compaction is O(n).
  *      (3) The ability to remove without automatic compaction allows
  *          removal with cost O(1).
@@ -691,7 +691,7 @@ void    *item;
  *          indices below %maxindex; for example, if items have
  *          been removed.
  *      (2) When an item is added to the end of the array, it goes
- *          into pa-\>array[maxindex + 1], and maxindex is then
+ *          into pa->array[maxindex + 1], and maxindex is then
  *          incremented by 1.
  *      (3) If there are no items in the array, this returns %maxindex = -1.
  * </pre>
@@ -720,8 +720,8 @@ ptraGetMaxIndex(L_PTRA   *pa,
  *
  * <pre>
  * Notes:
- *      (1) The actual number of items on the ptr array, pa-\>nactual,
- *          will be smaller than pa-\>n if the array is not compacted.
+ *      (1) The actual number of items on the ptr array, pa->nactual,
+ *          will be smaller than pa->n if the array is not compacted.
  * </pre>
  */
 l_int32

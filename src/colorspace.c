@@ -417,7 +417,7 @@ l_float32 h, f, s;
  * Notes:
  *      ~ in-place transform
  *      ~ See convertRGBToHSV() for def'n of HSV space.
- *      ~ replaces: r --\> h, g --\> s, b --\> v
+ *      ~ replaces: r --> h, g --> s, b --> v
  * </pre>
  */
 l_int32
@@ -450,7 +450,7 @@ l_int32   i, ncolors, rval, gval, bval, hval, sval, vval;
  * Notes:
  *      ~ in-place transform
  *      ~ See convertRGBToHSV() for def'n of HSV space.
- *      ~ replaces: h --\> r, s --\> g, v --\> b
+ *      ~ replaces: h --> r, s --> g, v --> b
  * </pre>
  */
 l_int32
@@ -1243,7 +1243,7 @@ PIX       *pixt, *pixd;
  *      (2) After each peak is found, the peak is erased with a window
  *          that is centered on the peak and scaled from the sliding
  *          window by %erasefactor.  Typically, %erasefactor is chosen
- *          to be \> 1.0.
+ *          to be > 1.0.
  *      (3) Data for a maximum of %npeaks is returned in %pta and %natot.
  *      (4) For debugging, after the pixa is returned, display with:
  *          pixd = pixaDisplayTiledInRows(pixa, 32, 1000, 1.0, 0, 30, 2);
@@ -1620,7 +1620,7 @@ l_float32  norm;
  *            Y [16 ... 235]
  *            U [16 ... 240]
  *            V [16 ... 240]
- *      (2) Conversion of RGB --\> YUV --\> RGB leaves the image unchanged.
+ *      (2) Conversion of RGB --> YUV --> RGB leaves the image unchanged.
  *      (3) The YUV gamut is larger than the RBG gamut; many YUV values
  *          will result in an invalid RGB value.  We clip individual
  *          r,g,b components to the range [0, 255], and do not test input.
@@ -1671,7 +1671,7 @@ l_float32  norm, ym, um, vm;
  * Notes:
  *      ~ in-place transform
  *      ~ See convertRGBToYUV() for def'n of YUV space.
- *      ~ replaces: r --\> y, g --\> u, b --\> v
+ *      ~ replaces: r --> y, g --> u, b --> v
  * </pre>
  */
 l_int32
@@ -1704,7 +1704,7 @@ l_int32   i, ncolors, rval, gval, bval, yval, uval, vval;
  * Notes:
  *      ~ in-place transform
  *      ~ See convertRGBToYUV() for def'n of YUV space.
- *      ~ replaces: y --\> r, u --\> g, v --\> b
+ *      ~ replaces: y --> r, u --> g, v --> b
  * </pre>
  */
 l_int32

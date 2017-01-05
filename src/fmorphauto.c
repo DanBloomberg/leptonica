@@ -274,9 +274,9 @@ l_int32  ret1, ret2;
  *          opening or closing for any of the sels in the input sela.
  *      (2) The fileindex parameter is inserted into the output
  *          filename, as described below.
- *      (3) If filename == NULL, the output file is fmorphgen.\<n\>.c,
- *          where \<n\> is equal to the 'fileindex' parameter.
- *      (4) If filename != NULL, the output file is \<filename\>.\<n\>.c.
+ *      (3) If filename == NULL, the output file is fmorphgen.<n>.c,
+ *          where <n> is equal to the 'fileindex' parameter.
+ *      (4) If filename != NULL, the output file is <filename>.<n>.c.
  * </pre>
  */
 l_int32

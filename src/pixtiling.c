@@ -56,12 +56,12 @@
  *
  *     PIX *pixd = pixCreateTemplateNoInit(pixs);  // output
  *     PIXTILING  *pt = pixTilingCreate(pixs, 0, 1, 256, 30, 0);
- *     pixTilingGetCount(pt, \&nx, NULL);
- *     for (j = 0; j \< nx; j++) {
+ *     pixTilingGetCount(pt, &nx, NULL);
+ *     for (j = 0; j < nx; j++) {
  *         PIX *pixt = pixTilingGetTile(pt, 0, j);
  *         SomeInPlaceOperation(pixt, 30, 0, ...);
  *         pixTilingPaintTile(pixd, 0, j, pixt, pt);
- *         pixDestroy(\&pixt);
+ *         pixDestroy(&pixt);
  *     }
  *
  *   In this example, note the following:

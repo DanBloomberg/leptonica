@@ -714,10 +714,10 @@ PIX       *pixd;
  *
  * <pre>
  * Notes:
- *      (1) If %hmax \> 0, this is an increase in the coordinate value of
+ *      (1) If %hmax > 0, this is an increase in the coordinate value of
  *          pixels in pixd, relative to the same pixel in pixs.
  *      (2) If %dir == L_WARP_TO_LEFT, the pixels on the right edge of
- *          the image are not moved. So, for example, if %hmax \> 0
+ *          the image are not moved. So, for example, if %hmax > 0
  *          and %dir == L_WARP_TO_LEFT, the pixels in pixd are
  *          contracted toward the right edge of the image, relative
  *          to those in pixs.
@@ -1005,8 +1005,8 @@ PIX       *pixd;
  *          the left edge pixels are moved maximally up or down.
  *      (3) Parameters %vmaxt and %vmaxb control the maximum amount of
  *          vertical pixel shear at the top and bottom, respectively.
- *          If %vmaxt \> 0, the vertical displacement of pixels at the
- *          top is downward.  Likewise, if %vmaxb \> 0, the vertical
+ *          If %vmaxt > 0, the vertical displacement of pixels at the
+ *          top is downward.  Likewise, if %vmaxb > 0, the vertical
  *          displacement of pixels at the bottom is downward.
  *      (4) If %operation == L_SAMPLED, the dest pixels are taken from
  *          the nearest src pixel.  Otherwise, we use linear interpolation

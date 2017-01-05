@@ -238,9 +238,9 @@ l_int32  ret1, ret2;
  *          the input sela.
  *      (2) The fileindex parameter is inserted into the output
  *          filename, as described below.
- *      (3) If filename == NULL, the output file is fhmtgen.\<n\>.c,
- *          where \<n\> is equal to the 'fileindex' parameter.
- *      (4) If filename != NULL, the output file is \<filename\>.\<n\>.c.
+ *      (3) If filename == NULL, the output file is fhmtgen.<n>.c,
+ *          where <n> is equal to the 'fileindex' parameter.
+ *      (4) If filename != NULL, the output file is <filename>.<n>.c.
  *      (5) Each sel must have at least one hit.  A sel with only misses
  *          generates code that will abort the operation if it is called.
  * </pre>
@@ -423,9 +423,9 @@ SARRAY  *sa1, *sa2, *sa3;
  *          in the input sela.
  *      (2) The fileindex parameter is inserted into the output
  *          filename, as described below.
- *      (3) If filename == NULL, the output file is fhmtgenlow.\<n\>.c,
- *          where \<n\> is equal to the 'fileindex' parameter.
- *      (4) If filename != NULL, the output file is \<filename\>low.\<n\>.c.
+ *      (3) If filename == NULL, the output file is fhmtgenlow.<n>.c,
+ *          where <n> is equal to the 'fileindex' parameter.
+ *      (4) If filename != NULL, the output file is <filename>low.<n>.c.
  * </pre>
  */
 l_int32

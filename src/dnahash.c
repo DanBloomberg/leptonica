@@ -410,9 +410,9 @@ L_DNAHASH  *dahash;
  *          and is needed for fast lookup.  It is a hash set, because
  *          the values are unique.
  *      (3) Lookup is simple:
- *              l_dnaFindValByHash(dav, dahash, val, \&index);
- *              if (index \>= 0)
- *                  l_dnaGetIValue(dac, index, \&icount);
+ *              l_dnaFindValByHash(dav, dahash, val, &index);
+ *              if (index >= 0)
+ *                  l_dnaGetIValue(dac, index, &icount);
  *              else
  *                  icount = 0;
  * </pre>
