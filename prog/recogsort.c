@@ -35,16 +35,15 @@
 l_int32 main(int    argc,
              char **argv)
 {
-char      *boxatxt;
-l_int32    i;
-BOXA      *boxa1, *boxa2, *boxa3;
-BOXAA     *baa, *baa1;
-NUMAA     *naa1;
-PIX       *pixdb, *pix1, *pix2, *pix3, *pix4;
-PIXA      *pixa1, *pixa2, *pixa3, *pixat;
-L_RECOG   *recog;
-L_RECOGA  *recoga;
-SARRAY    *sa1;
+char     *boxatxt;
+l_int32   i;
+BOXA     *boxa1, *boxa2, *boxa3;
+BOXAA    *baa, *baa1;
+NUMAA    *naa1;
+PIX      *pixdb, *pix1, *pix2, *pix3, *pix4;
+PIXA     *pixa1, *pixa2, *pixa3, *pixat;
+L_RECOG  *recog;
+SARRAY   *sa1;
 
     /* ----- Example identifying samples using training data ----- */
 #if 1
@@ -53,8 +52,7 @@ SARRAY    *sa1;
 
         /* Read the training data */
     pixat = pixaRead("recog/sets/train06.pa");
-    recog = recogCreateFromPixa(pixat, 0, 0, L_USE_ALL, 128, 1);
-    recoga = recogaCreateFromRecog(recog);
+    recog = recogCreateFromPixa(pixat, 0, 0, L_TYPE_IMAGE, 128, 1);
     pix1 = pixaDisplayTiledWithText(pixat, 1500, 1.0, 10, 1, 8, 0xff000000);
     pixDisplay(pix1, 0, 0);
     pixDestroy(&pix1);
@@ -85,9 +83,9 @@ SARRAY    *sa1;
         boxaDestroy(&boxa2);
 
             /* Get the numbers in the sample */
-        recogaIdentifyMultiple(recoga, pix1, 0, 5, 3, 0,
+        recogIdentifyMultiple(recog, pix1, 0, 5, 3, 0,
                                &boxa3, NULL, &pixdb, 0);
-        sa1 = recogaExtractNumbers(recoga, boxa3, 0.7, -1, &baa1, &naa1);
+        sa1 = recogExtractNumbers(recog, boxa3, 0.7, -1, &baa1, &naa1);
         sarrayWriteStream(stderr, sa1);
         boxaaWriteStream(stderr, baa1);
         numaaWriteStream(stderr, naa1);
@@ -113,7 +111,6 @@ SARRAY    *sa1;
     pixDestroy(&pix4);
     pixaDestroy(&pixa1);
     boxaDestroy(&boxa1);
-    recogaDestroy(&recoga);
 
 #endif
 

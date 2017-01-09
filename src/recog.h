@@ -31,88 +31,91 @@
  * \file recog.h
  *
  * <pre>
- *     A simple utility for training and recognizing individual
- *     machine-printed text characters.  In an application, one can
- *     envision using a number of these, one for each trained set.
+ *     This is a simple utility for training and recognizing individual
+ *     machine-printed text characters.  It is designed to be adapted
+ *     to a particular set of character images; e.g., from a book.
  *
- *     In training mode, a set of labelled bitmaps is presented, either
- *     one at a time, or in a directory, or in a pixa.  If in a directory,
- *     or a pixa, the labelling text string must be embedded in the
- *     text field of the image file.
+ *     There are two methods of training the recognizer.  In the most
+ *     simple, a set of bitmaps has been labeled by some means, such
+ *     a generic OCR program.  This is input to a recog creator either
+ *     one at a time or in a pixa.  If in a pixa, the labeling text
+ *     string must be embedded in the text field of each pix.
  *
- *     Any number of recognizers (L_Recog) can be trained and then used
- *     together in an array (L_Recoga).  All these trained structures
- *     can be serialized to file and read back.  The serialized version
- *     holds all the bitmaps used for training, plus, for arbitrary
+ *     If labeled data is not available, we start with a bootstrap
+ *     recognizer (BSR) that has labeled data from a variety of sources.
+ *     These images are scaled, typically to a fixed height, and then
+ *     fed similarly scaled unlabeled images from the source (e.g., book),
+ *     and the BSR attempts to identify them.  All images that have a high
+ *     enough correlation score with one of the templates in the BSR
+ *     are emitted.  The resulting pixa has the unscaled and labeled
+ *     templates from the source; this is the generator for a book adapted
+ *     recognizer (BAR).
+ *
+ *     The pixa should always be thought of as the primary structure.
+ *     It is the generator for the recog, because a recog is built
+ *     from a pixa of unscaled images or unscaled normalized outlines.
+ *
+ *     New image templates can be added to a recog as long as it is
+ *     in training mode.  Once training is finished, to add templates
+ *     it is necessary to extract the generating pixa, add templates
+ *     to that pixa, and make a new recog.
+ *
+ *     We do not join two recog.  Instead, we simply join their
+ *     generating pixa, and make a recog from that.
+ *
+ *     To remove outliers from a pixa of labeled pix, make a recog,
+ *     determine the outliers, and generate a new pixa with the
+ *     outliers removed.  The outliers are determined by building
+ *     special templates for each character set that are scaled averages
+ *     of the individual templates.  Then a correlation score is found
+ *     between each template and the averaged templates.  If a template
+ *     is better correlated with a set different from its own label,
+ *     it is deemed an "outlier" and removed from the generating pixa.
+ *     Scaled averaging is only performed for determining outliers,
+ *     not for identifying unlabeled characters.
+ *
+ *     Once a BAR has been made, unlabeled input images are identified
+ *     by finding the individual template in the BAR with highest
+ *     correlation.  The input images and images in the BAR can be
+ *     represented in two ways:
+ *      (1) as scanned, binarized to 1 bpp
+ *      (2) as a width-normalized outline formed by thinning to a
+ *          skeleton and then dilating by a fixed amount.
+ *
+ *     The recog can be serialized to file and read back.  The serialized
+ *     version holds all the bitmaps used for training, plus, for arbitrary
  *     character sets, the UTF8 representation and the lookup table
  *     mapping from the character representation to index.
  *
- *     There are three levels of "sets" here:
- *
- *       (1) Example set: the examples representing a character that
- *           were printed in the same way, so that they can be combined
- *           without scaling to form an "average" template for the character.
- *           In the recognition phase, we use either this aligned average,
- *           or the individual bitmaps.  All examples in the set are given
- *           the same character label.   Example: the letter 'a' in the
- *           predominant font in a book.
- *
- *       (2) Character set (represented by L_Recog, a single recognizer):
- *           The set of different characters, each of which is described
- *           by (1).  Each element of the set has a different character
- *           label.  Example: the digits '0' through '9' that are used for
- *           page numbering in a book.
- *
- *       (3) Recognizer set (represented by L_Recoga, an array of recogs):
- *           A set of recognizers, each of which is described by (2).
- *           In general, we do not want to combine the character sets
- *           with the same labels within different recognizer sets,
- *           because the bitmaps can differ in font type, style or size.
- *           Example 1: the letter 'a' can be printed in two very different
- *           ways (either with a large loop or with a smaller loop in
- *           the lower half); both share the same label but need to be
- *           distinguished so that they are not mixed when averaging.
- *           Example 2: a recognizer trained for a book may be missing
- *           some characters, so we need to supplement it with another
- *           "generic" or "bootstrap" recognizer that has the additional
- *           characters from a variety of sources.  Bootstrap recognizers
- *           must be run in a mode where all characters are scaled.
- *
- *     In the recognition process, for each component in an input image,
- *     each recognizer (L_Recog) records the best match (highest
- *     correlation score).  If there is more than one recognizer, these
- *     results are aggregated to find the best match for each character
- *     for all the recognizers, and this is stored in L_Recoga.
+ *     Why do we not use averaging for recognition?  Letterforms can
+ *     take on significantly different shapes (eg., the letters 'a' and 'g'),
+ *     and it makes no sense to average these.  The previous version of
+ *     this utility allowed multiple recognizers to exist, but this
+ *     is an unnecessary complication if recognition is done on all
+ *     samples (instead of averages).
  * </pre>
  */
 
-#define  RECOG_VERSION_NUMBER      1
-
-struct L_Recoga {
-    l_int32              n;      /*!< number of recogs                       */
-    l_int32              nalloc; /*!< number of recog ptrs allocated         */
-    struct L_Recog     **recog;  /*!< recog ptr array                        */
-    struct L_Rcha       *rcha;   /*!< stores the array of best chars         */
-};
-typedef struct L_Recoga L_RECOGA;
-
+#define  RECOG_VERSION_NUMBER      2
 
 struct L_Recog {
     l_int32        scalew;       /*!< scale all examples to this width;      */
                                  /*!< use 0 prevent horizontal scaling       */
     l_int32        scaleh;       /*!< scale all examples to this height;     */
                                  /*!< use 0 prevent vertical scaling         */
-    l_int32        templ_type;   /*!< template type: either an average of    */
-                                 /*!< examples (L_USE_AVERAGE) or the set    */
-                                 /*!< of all examples (L_USE_ALL)            */
+    l_int32        templ_type;   /*!< template type: either the image or a   */
+                                 /*!< normalized outline (L_TYPE_IMAGE or    */
+                                 /*!< L_TYPE_OUTLINE)                        */
+    l_int32        templ_use;    /*!< template use: use either the average   */
+                                 /*!< or all temmplates (L_USE_AVERAGE or    */
+                                 /*!< L_USE_ALL)                             */
     l_int32        maxarraysize; /*!< initialize container arrays to this    */
     l_int32        setsize;      /*!< size of character set                  */
     l_int32        threshold;    /*!< for binarizing if depth > 1            */
     l_int32        maxyshift;    /*!< vertical jiggle on nominal centroid    */
                                  /*!< alignment; typically 0 or 1            */
-    l_float32      asperity_fr;  /*!< +- allowed fractional asperity ratio   */
     l_int32        charset_type; /*!< one of L_ARABIC_NUMERALS, etc.         */
-    l_int32        charset_size; /*!< expected number of classes in charse   */
+    l_int32        charset_size; /*!< expected number of classes in charset  */
     char          *bootdir;      /*!< dir with bootstrap pixa charsets       */
     char          *bootpattern;  /*!< file pattern: bootstrap pixa charsets  */
     char          *bootpath;     /*!< path for single bootstrap pixa charset */
@@ -149,7 +152,7 @@ struct L_Recog {
     struct Pta    *pta;          /*!< centroids of averaged bitmaps          */
     struct Numaa  *naasum;       /*!< area of all bitmap examples            */
     struct Numa   *nasum;        /*!< area of averaged bitmaps               */
-    struct Pixa   *pixa_tr;      /*!< input training images                  */
+    struct Pixa   *pixa_tr;      /*!< all input training images              */
     struct Pixa   *pixadb_ave;   /*!< unscaled and scaled averaged bitmaps   */
     struct Pixa   *pixa_id;      /*!< input images for identifying           */
     struct Pix    *pixdb_ave;    /*!< debug: best match of input against ave. */
@@ -161,10 +164,6 @@ struct L_Recog {
     struct L_Rdid *did;          /*!< temp data used for image decoding      */
     struct L_Rch  *rch;          /*!< temp data used for holding best char   */
     struct L_Rcha *rcha;         /*!< temp data used for array of best chars */
-    l_int32        bootrecog;    /*!< 1 if using bootstrap samples; else 0   */
-    l_int32        index;        /*!< recog index in recoga; -1 if no parent */
-    struct L_Recoga  *parent;    /*!< ptr to parent array; can be null       */
-
 };
 typedef struct L_Recog L_RECOG;
 
@@ -229,10 +228,9 @@ typedef struct L_Rdid L_RDID;
 
 
 /*-------------------------------------------------------------------------*
- *                    Flags for selecting processing                       *
+ *                     Flags for template scaling                          *
  *-------------------------------------------------------------------------*/
-
-/*! Flags for selecting processing */
+/*! Flags for template scaling */
 enum {
     L_SELECT_UNSCALED = 0,     /*!< select the unscaled bitmaps            */
     L_SELECT_SCALED = 1,       /*!< select the scaled bitmaps              */
@@ -240,19 +238,26 @@ enum {
 };
 
 /*-------------------------------------------------------------------------*
- *                Flags for determining what to test against               *
+ *          Flags for selecting between image and outline templates        *
  *-------------------------------------------------------------------------*/
-
-/*! Flags for determining what to test against */
+/*! Flags for selecting image or outline templates: recog->templ_type */
 enum {
-    L_USE_AVERAGE = 0,       /*!< form template from class average         */
-    L_USE_ALL = 1            /*!< match against all elements of each class */
+    L_TYPE_IMAGE = 0,         /*!< match scanned images                    */
+    L_TYPE_OUTLINE = 1        /*!< match thickened outlines                */
+};
+
+/*-------------------------------------------------------------------------*
+ *      Flags for selecting between using average and all templates        *
+ *-------------------------------------------------------------------------*/
+/*! Flags for selecting average or all templates: recog->templ_use */
+enum {
+    L_USE_ALL = 0,            /*!< use all templates; default              */
+    L_USE_AVERAGE = 1         /*!< use average templates; outliers only    */
 };
 
 /*-------------------------------------------------------------------------*
  *             Flags for describing limited character sets                 *
  *-------------------------------------------------------------------------*/
-
 /*! Flags for describing limited character sets */
 enum {
     L_UNKNOWN = 0,           /*!< character set type is not specified      */

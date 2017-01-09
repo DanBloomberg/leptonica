@@ -71,7 +71,7 @@
  *           PIX      *pixGenerateFromPta()
  *           PTA      *ptaGetBoundaryPixels()
  *           PTAA     *ptaaGetBoundaryPixels()
- *           PTAA     *ptaaIndexLabelledPixels()
+ *           PTAA     *ptaaIndexLabeledPixels()
  *           PTA      *ptaGetNeighborPixLocs()
  *
  *      Display Pta and Ptaa
@@ -2052,7 +2052,7 @@ PTAA    *ptaa;
 
 
 /*!
- * \brief   ptaaIndexLabelledPixels()
+ * \brief   ptaaIndexLabeledPixels()
  *
  * \param[in]    pixs 32 bpp, of indices of c.c.
  * \param[out]   pncc [optional] number of connected components
@@ -2073,8 +2073,8 @@ PTAA    *ptaa;
  * </pre>
  */
 PTAA *
-ptaaIndexLabelledPixels(PIX      *pixs,
-                        l_int32  *pncc)
+ptaaIndexLabeledPixels(PIX      *pixs,
+                       l_int32  *pncc)
 {
 l_int32    wpl, index, i, j, w, h;
 l_uint32   maxval;
@@ -2082,7 +2082,7 @@ l_uint32  *data, *line;
 PTA       *pta;
 PTAA      *ptaa;
 
-    PROCNAME("ptaaIndexLabelledPixels");
+    PROCNAME("ptaaIndexLabeledPixels");
 
     if (pncc) *pncc = 0;
     if (!pixs || (pixGetDepth(pixs) != 32))

@@ -272,7 +272,7 @@ SARRAY   *sa;
             /* Convert to a set of 1 bpp, single character, labelled */
         pixGetDimensions(pix, &w, &h, NULL);
         box = boxCreate(0, 0, w, h);
-        recogTrainLabelled(recog, pix, box, NULL, 1, 0);
+        recogTrainLabeled(recog, pix, box, NULL, 1, 0);
         pixDestroy(&pix);
         boxDestroy(&box);
     }

@@ -304,7 +304,7 @@ PTAA    *ptaa;
         return ERROR_INT("pixd not made", procName, 1);
     pixSetSpecial(pixd, conn);
     *ppixd = pixd;
-    if ((ptaa = ptaaIndexLabelledPixels(pixd, &ncc)) == NULL)
+    if ((ptaa = ptaaIndexLabeledPixels(pixd, &ncc)) == NULL)
         return ERROR_INT("ptaa not made", procName, 1);
     *pptaa = ptaa;
     *pncc = ncc;

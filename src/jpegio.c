@@ -901,12 +901,13 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
 
     jpeg_start_compress(&cinfo, TRUE);
 
-        /* Cap the text at length limit for JPEG_COM payload */
+        /* Cap the text the length limit, 65533, for JPEG_COM payload.
+         * Just to be safe, subtract 100 to cover the Adobe name space.  */
     if ((text = pixGetText(pix)) != NULL) {
-        if (strlen(text) > 65533) {
-            L_WARNING("text is %lu bytes; clipping to 65533\n",
+        if (strlen(text) > 65433) {
+            L_WARNING("text is %lu bytes; clipping to 65433\n",
                    procName, (unsigned long)strlen(text));
-            text[65533] = '\0';
+            text[65433] = '\0';
         }
         jpeg_write_marker(&cinfo, JPEG_COM, (const JOCTET *)text, strlen(text));
     }

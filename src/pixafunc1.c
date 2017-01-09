@@ -1787,8 +1787,9 @@ PIXA    *pixad;
 
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
-    if (wd <= 0 && hd <= 0)
-        return (PIXA *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+
+    if (wd <= 0 && hd <= 0)  /* no scaling requested */
+        return pixaCopy(pixas, L_CLONE);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);

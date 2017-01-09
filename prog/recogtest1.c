@@ -35,12 +35,12 @@
 #include "allheaders.h"
 
 
-    /* Set match method */
-/* static const l_int32 match_method = L_USE_AVERAGE; */
-static const l_int32 match_method = L_USE_ALL;
+    /* Set templ type */
+static const l_int32 templ_type = L_TYPE_IMAGE;
+/* static const l_int32 templ_type = L_TYPE_OUTLINE; */
 
-static const l_int32 scaledw = 20;
-static const l_int32 scaledh = 32;
+static const l_int32 scaledw = 0;
+static const l_int32 scaledh = 40;
 
 l_int32 main(int    argc,
              char **argv)
@@ -55,7 +55,6 @@ NUMA      *naindex, *nascore, *naindext, *nascoret;
 PIX       *pixs, *pixd, *pixt, *pixdb;
 PIXA      *pixa, *pixat;
 L_RECOG   *recog, *recog2;
-L_RECOGA  *recoga;
 SARRAY    *sa, *satext;
 
     if (argc != 1) {
@@ -70,7 +69,7 @@ SARRAY    *sa, *satext;
 
 #if 0  /* Generate a simple bootstrap pixa (bootnum1.pa) for
           number images in directory 'recog/bootnums' */
-    recog = recogCreate(scaledw, scaledh, match_method, 100, 1);
+    recog = recogCreate(scaledw, scaledh, templ_type, 100, 1);
     sa = getSortedPathnamesInDirectory("recog/bootnums", "png", 0, 0);
     n = sarrayGetCount(sa);
     for (i = 0; i < n; i++) {
@@ -81,7 +80,7 @@ SARRAY    *sa, *satext;
         }
         pixGetDimensions(pixs, &w, &h, NULL);
         box = boxCreate(0, 0, w, h);
-        recogTrainLabelled(recog, pixs, box, NULL, 1, 1);
+        recogTrainLabeled(recog, pixs, box, NULL, 1, 1);
         pixDestroy(&pixs);
         boxDestroy(&box);
     }
@@ -96,7 +95,7 @@ SARRAY    *sa, *satext;
     pixaDestroy(&pixa);
 #elif 0
     pixa = pixaRead("recog/digits/bootnum1.pa");
-    recog = recogCreateFromPixa(pixa, scaledw, scaledh, match_method, 120, 1);
+    recog = recogCreateFromPixa(pixa, scaledw, scaledh, templ_type, 120, 1);
     snprintf(buf, sizeof(buf),
         "displaypixa recog/digits/bootnum1.pa 1.0 2 1 0 "
         "/tmp/lept/digits/bootnum1.png fonts");
@@ -104,7 +103,7 @@ SARRAY    *sa, *satext;
     pixaDestroy(&pixa);
 #else
     pixa = pixaRead("recog/digits/bootnum2.pa");
-    recog = recogCreateFromPixa(pixa, scaledw, scaledh, match_method, 120, 1);
+    recog = recogCreateFromPixa(pixa, scaledw, scaledh, templ_type, 120, 1);
     snprintf(buf, sizeof(buf),
         "displaypixa recog/digits/bootnum2.pa 1.0 2 1 0 "
         "/tmp/lept/digits/bootnum2.png fonts");
@@ -113,7 +112,7 @@ SARRAY    *sa, *satext;
 #endif
 
 #if 0  /* roman, one per image */
-    recog = recogCreate(20, 32, match_method, 100, 1);
+    recog = recogCreate(0, 40, templ_type, 100, 1);
     sa = getSortedPathnamesInDirectory("charset", "png", 0, 0);
     n = sarrayGetCount(sa);
     for (i = 0; i < n; i++) {
@@ -124,7 +123,7 @@ SARRAY    *sa, *satext;
         }
         pixGetDimensions(pixs, &w, &h, NULL);
         box = boxCreate(0, 0, w, h);
-        recogTrainLabelled(recog, pixs, box, NULL, 0, 1);
+        recogTrainLabeled(recog, pixs, box, NULL, 0, 1);
         pixDestroy(&pixs);
         boxDestroy(&box);
     }
@@ -152,9 +151,8 @@ SARRAY    *sa, *satext;
         /* Split touching characters */
     fprintf(stderr, "Split touching\n");
     pixd = pixRead("recog/bootnums/pagenum.29.png");  /* 25 or 29 */
-    recoga = recogaCreateFromRecog(recog);
-    recogaIdentifyMultiple(recoga, pixd, 3, -1, -1, 0,
-                           &boxat, &pixat, &pixdb, 1);
+    recogIdentifyMultiple(recog, pixd, 3, -1, -1, 0,
+                          &boxat, &pixat, &pixdb, 1);
     pixDisplay(pixdb, 800, 800);
     boxaWriteStream(stderr, boxat);
     pixt = pixaDisplay(pixat, 0, 0);
@@ -194,7 +192,7 @@ SARRAY    *sa, *satext;
     numaDestroy(&nascore);
 #endif
 
-#if 1
+#if 0
         /* We can do about 5M correlations/sec */
     fprintf(stderr, "Remove outliers\n");
     recogRemoveOutliers(recog, 0.7, 0.5, 1);
@@ -221,6 +219,5 @@ SARRAY    *sa, *satext;
     recogDestroy(&recog2);
 #endif
 
-    recogaDestroy(&recoga);
     return 0;
 }
