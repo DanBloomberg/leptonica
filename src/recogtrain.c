@@ -58,7 +58,6 @@
  *         L_RECOG            *recogMakeBootDigitRecog()
  *
  *      Debugging
- *         l_int32             recogaShowContent()
  *         l_int32             recogShowContent()
  *         l_int32             recogDebugAverages()
  *         l_int32             recogShowAverageTemplates()
@@ -2053,48 +2052,6 @@ L_RECOG  *recog;
 /*------------------------------------------------------------------------*
  *                               Debugging                                *
  *------------------------------------------------------------------------*/
-#if 0
-/*!
- * \brief   recogaShowContent()
- *
- * \param[in]    fp file stream
- * \param[in]    recoga
- * \param[in]    display 1 for showing template images, 0 otherwise
- * \return  0 if OK, 1 on error
- */
-l_int32
-recogaShowContent(FILE      *fp,
-                  L_RECOGA  *recoga,
-                  l_int32    display)
-{
-l_int32   i, n;
-L_RECOG  *recog;
-
-    PROCNAME("recogaShowContent");
-
-    if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
-    if (!recoga)
-        return ERROR_INT("recog not defined", procName, 1);
-    if ((n = recogaGetCount(recoga)) == 0)
-        return ERROR_INT("no recog found", procName, 1);
-
-    fprintf(fp, "\nDebug print of recoga contents:\n");
-    for (i = 0; i < n; i++) {
-        if ((recog = recogaGetRecog(recoga, i)) == NULL) {
-            L_ERROR("recog %d not found!\n", procName, i);
-            continue;
-        }
-        fprintf(fp, "\nRecog %d:\n", i);
-        if (recog->train_done == FALSE)
-            L_WARNING("training for recog %d is not finished\n", procName, i);
-        recogShowContent(fp, recog, display);
-    }
-    return 0;
-}
-#endif
-
-
 /*!
  * \brief   recogShowContent()
  *

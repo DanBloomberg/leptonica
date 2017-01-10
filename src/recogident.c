@@ -118,9 +118,6 @@ static L_RCHA *rchaCreate();
 static l_int32 transferRchToRcha(L_RCH *rch, L_RCHA *rcha);
 static void l_showIndicatorSplitValues(NUMA *na1, NUMA *na2, NUMA *na3,
                                        NUMA *na4, NUMA *na5, NUMA *na6);
-#if 0
- static l_int32 recogaSaveBestRcha(L_RECOGA *recoga, PIXA *pixa);
-#endif
 
 /*------------------------------------------------------------------------*
  *                             Identification
