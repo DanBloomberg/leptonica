@@ -46,13 +46,13 @@ L_RECOG  *recog;
 SARRAY   *sa1;
 
     /* ----- Example identifying samples using training data ----- */
-#if 1
 
-    lept_mkdir("lept");
+    lept_mkdir("lept/recog");
 
         /* Read the training data */
     pixat = pixaRead("recog/sets/train06.pa");
-    recog = recogCreateFromPixa(pixat, 0, 0, L_TYPE_IMAGE, 128, 1);
+    recog = recogCreateFromPixa(pixat, 0, 0, 0, 128, 1);
+    recogAverageSamples(recog, 0);  /* required for splitting characters */
     pix1 = pixaDisplayTiledWithText(pixat, 1500, 1.0, 10, 1, 8, 0xff000000);
     pixDisplay(pix1, 0, 0);
     pixDestroy(&pix1);
@@ -61,6 +61,7 @@ SARRAY   *sa1;
         /* Read the data from all samples */
     pix1 = pixRead("recog/sets/samples06.png");
     boxatxt = pixGetText(pix1);
+    fprintf(stderr, "%s\n", boxatxt);
     boxa1 = boxaReadMem((l_uint8 *)boxatxt, strlen(boxatxt));
     pixa1 = pixaCreateFromBoxa(pix1, boxa1, NULL);
     pixDestroy(&pix1);  /* destroys boxa1 */
@@ -100,10 +101,10 @@ SARRAY   *sa1;
     }
 
     pix3 = pixaDisplayLinearly(pixa2, L_VERT, 1.0, 0, 20, 1, NULL);
-    pixWrite("/tmp/lept/pix3.png", pix3, IFF_PNG);
+    pixWrite("/tmp/lept/recog/pix3.png", pix3, IFF_PNG);
     pix4 = pixaDisplayTiledInRows(pixa3, 32, 1500, 1.0, 0, 20, 2);
     pixDisplay(pix4, 500, 0);
-    pixWrite("/tmp/lept/pix4.png", pix4, IFF_PNG);
+    pixWrite("/tmp/lept/recog/pix4.png", pix4, IFF_PNG);
     pixaDestroy(&pixa2);
     pixaDestroy(&pixa3);
     pixDestroy(&pix1);
@@ -111,8 +112,7 @@ SARRAY   *sa1;
     pixDestroy(&pix4);
     pixaDestroy(&pixa1);
     boxaDestroy(&boxa1);
-
-#endif
+    recogDestroy(&recog);
 
     return 0;
 }

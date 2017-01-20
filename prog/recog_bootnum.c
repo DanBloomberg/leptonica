@@ -88,7 +88,7 @@ L_STRCODE    *strc;
     pixDestroy(&pix1);
 
         /* Extend the bootnum1 pixa by erosion */
-    pixa3 = pixaExtendIterative(pixa1, L_MORPH_ERODE, 2, NULL, 1);
+    pixa3 = pixaExtendByMorph(pixa1, L_MORPH_ERODE, 2, NULL, 1);
     pix1 = pixaDisplayTiledWithText(pixa3, 1500, 1.0, 10, 2, 6, 0xff000000);
     pixDisplay(pix1, 100, 0);
     pixDestroy(&pix1);
@@ -141,7 +141,7 @@ L_STRCODE    *strc;
     pixDestroy(&pix1);
 
         /* Extend the bootnum3 pixa twice by erosion */
-    pixa3 = pixaExtendIterative(pixa1, L_MORPH_ERODE, 2, NULL, 1);
+    pixa3 = pixaExtendByMorph(pixa1, L_MORPH_ERODE, 2, NULL, 1);
     pix1 = pixaDisplayTiledWithText(pixa3, 1500, 1.0, 10, 2, 6, 0xff000000);
     pixDisplay(pix1, 1000, 0);
     pixDestroy(&pix1);
@@ -258,7 +258,7 @@ L_RECOG  *recog;
 SARRAY   *sa;
 
         /* Phase 1: generate recog from the digit data */
-    recog = recogCreate(20, 32, L_USE_ALL, 120, 1);
+    recog = recogCreate(0, 40, 0, 128, 1);
     sa = getSortedPathnamesInDirectory("recog/bootnums", "png", 0, 0);
     n = sarrayGetCount(sa);
     for (i = 0; i < n; i++) {

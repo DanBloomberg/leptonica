@@ -32,12 +32,12 @@
  *         l_int32           recogDecode()
  *
  *      Generate decoding arrays
- *         l_int32           recogMakeDecodingArrays()
+ *         static l_int32    recogMakeDecodingArrays()
  *         static l_int32    recogMakeDecodingArray()
  *
  *      Dynamic programming for best path
- *         l_int32           recogRunViterbi()
- *         l_int32           recogRescoreDidResult()
+ *         static l_int32    recogRunViterbi()
+ *         static l_int32    recogRescoreDidResult()
  *         static PIX       *recogShowPath()
  *
  *      Create/destroy temporary DID data
@@ -63,7 +63,7 @@
  *  an image from a message, and the MAP message is derived from the
  *  observed image using Bayes' theorem.  This approach can also be used
  *  to build the model, using the iterative expectation/maximization
- *  method from labelled but errorful data.
+ *  method from labeled but errorful data.
  *
  *  In a little more detail: The model comprises three things: the ideal
  *  printed character templates, the independent bit-flip noise model, and
@@ -157,8 +157,11 @@
 #include <math.h>
 #include "allheaders.h"
 
+static l_int32 recogMakeDecodingArrays(L_RECOG *recog, PIX *pixs,
+                                       l_int32 debug);
 static l_int32 recogMakeDecodingArray(L_RECOG *recog, l_int32 index,
                                       l_int32 debug);
+static l_int32 recogRunViterbi(L_RECOG *recog, PIX **ppixdb);
 static l_int32 recogRescoreDidResult(L_RECOG *recog, PIX **ppixdb);
 static PIX *recogShowPath(L_RECOG *recog, l_int32 select);
 static l_int32 recogGetWindowedArea(L_RECOG *recog, l_int32 index,
@@ -257,7 +260,7 @@ PIXA    *pixa;
  *          as it is positioned on pixs) in the generated trellis.
  * </pre>
  */
-l_int32
+static l_int32
 recogMakeDecodingArrays(L_RECOG  *recog,
                         PIX      *pixs,
                         l_int32   debug)
@@ -431,7 +434,7 @@ L_RDID   *did;
  *              its LHS there.
  * </pre>
  */
-l_int32
+static l_int32
 recogRunViterbi(L_RECOG  *recog,
                 PIX     **ppixdb)
 {

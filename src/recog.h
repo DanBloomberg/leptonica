@@ -37,44 +37,46 @@
  *
  *     There are two methods of training the recognizer.  In the most
  *     simple, a set of bitmaps has been labeled by some means, such
- *     a generic OCR program.  This is input to a recog creator either
- *     one at a time or in a pixa.  If in a pixa, the labeling text
- *     string must be embedded in the text field of each pix.
+ *     a generic OCR program.  This is input either one template at a time
+ *     or as a pixa of templates, to a function that creates a recog.
+ *     If in a pixa, the labeling text string must be embedded in the
+ *     text field of each pix.
  *
  *     If labeled data is not available, we start with a bootstrap
  *     recognizer (BSR) that has labeled data from a variety of sources.
  *     These images are scaled, typically to a fixed height, and then
  *     fed similarly scaled unlabeled images from the source (e.g., book),
- *     and the BSR attempts to identify them.  All images that have a high
- *     enough correlation score with one of the templates in the BSR
- *     are emitted.  The resulting pixa has the unscaled and labeled
- *     templates from the source; this is the generator for a book adapted
+ *     and the BSR attempts to identify them.  All images that have
+ *     a high enough correlation score with one of the templates in the
+ *     BSR are emitted in a pixa, which now holds unscaled and labeled
+ *     templates from the source.  This is the generator for a book adapted
  *     recognizer (BAR).
  *
  *     The pixa should always be thought of as the primary structure.
  *     It is the generator for the recog, because a recog is built
- *     from a pixa of unscaled images or unscaled normalized outlines.
+ *     from a pixa of unscaled images.
  *
  *     New image templates can be added to a recog as long as it is
  *     in training mode.  Once training is finished, to add templates
  *     it is necessary to extract the generating pixa, add templates
- *     to that pixa, and make a new recog.
- *
- *     We do not join two recog.  Instead, we simply join their
- *     generating pixa, and make a recog from that.
+ *     to that pixa, and make a new recog.  Similarly, we do not
+ *     join two recog; instead, we simply join their generating pixa,
+ *     and make a recog from that.
  *
  *     To remove outliers from a pixa of labeled pix, make a recog,
  *     determine the outliers, and generate a new pixa with the
  *     outliers removed.  The outliers are determined by building
  *     special templates for each character set that are scaled averages
  *     of the individual templates.  Then a correlation score is found
- *     between each template and the averaged templates.  If a template
- *     is better correlated with a set different from its own label,
- *     it is deemed an "outlier" and removed from the generating pixa.
- *     Scaled averaging is only performed for determining outliers,
- *     not for identifying unlabeled characters.
+ *     between each template and the averaged templates.  As presently
+ *     implemented, a template with a correlation score with its
+ *     class average that is below a threshold is deemed an "outlier"
+ *     and removed from the generating pixa.  Scaled averaging is only
+ *     performed for determining outliers and for greedy splitting of
+ *     characters; it is never used in a trained recognizer for
+ *     identifying unlabeled samples.
  *
- *     Once a BAR has been made, unlabeled input images are identified
+ *     Once a BAR has been made, unlabeled sample images are identified
  *     by finding the individual template in the BAR with highest
  *     correlation.  The input images and images in the BAR can be
  *     represented in two ways:
@@ -83,9 +85,11 @@
  *          skeleton and then dilating by a fixed amount.
  *
  *     The recog can be serialized to file and read back.  The serialized
- *     version holds all the bitmaps used for training, plus, for arbitrary
- *     character sets, the UTF8 representation and the lookup table
- *     mapping from the character representation to index.
+ *     version holds the templates used for correlation (which may be
+ *     modified by scaling and turning into lines from the unscaled
+ *     templates), plus, for arbitrary character sets, the UTF8
+ *     representation and the lookup table mapping from the character
+ *     representation to index.
  *
  *     Why do we not use averaging for recognition?  Letterforms can
  *     take on significantly different shapes (eg., the letters 'a' and 'g'),
@@ -103,9 +107,8 @@ struct L_Recog {
                                  /*!< use 0 prevent horizontal scaling       */
     l_int32        scaleh;       /*!< scale all examples to this height;     */
                                  /*!< use 0 prevent vertical scaling         */
-    l_int32        templ_type;   /*!< template type: either the image or a   */
-                                 /*!< normalized outline (L_TYPE_IMAGE or    */
-                                 /*!< L_TYPE_OUTLINE)                        */
+    l_int32        linew;        /*!< use a value > 0 to convert the bitmap  */
+                                 /*!< to lines of fixed width; 0 to skip     */
     l_int32        templ_use;    /*!< template use: use either the average   */
                                  /*!< or all temmplates (L_USE_AVERAGE or    */
                                  /*!< L_USE_ALL)                             */
@@ -116,13 +119,7 @@ struct L_Recog {
                                  /*!< alignment; typically 0 or 1            */
     l_int32        charset_type; /*!< one of L_ARABIC_NUMERALS, etc.         */
     l_int32        charset_size; /*!< expected number of classes in charset  */
-    char          *bootdir;      /*!< dir with bootstrap pixa charsets       */
-    char          *bootpattern;  /*!< file pattern: bootstrap pixa charsets  */
-    char          *bootpath;     /*!< path for single bootstrap pixa charset */
-    l_int32        boot_iters;   /*!< num of 2x2 erosion iters on boot pixa  */
     l_int32        min_nopad;    /*!< min number of samples without padding  */
-    l_int32        max_afterpad; /*!< max number of samples after padding    */
-    l_int32        min_samples;  /*!< min num of total samples; else use boot */
     l_int32        num_samples;  /*!< number of training samples             */
     l_int32        minwidth_u;   /*!< min width averaged unscaled templates  */
     l_int32        maxwidth_u;   /*!< max width averaged unscaled templates  */
@@ -140,18 +137,18 @@ struct L_Recog {
     struct L_Dna  *dna_tochar;   /*!< index-to-char lut for arbitrary charset */
     l_int32       *centtab;      /*!< table for finding centroids            */
     l_int32       *sumtab;       /*!< table for finding pixel sums           */
-    struct Pixaa  *pixaa_u;      /*!< all unscaled bitmaps for each class    */
-    struct Pixa   *pixa_u;       /*!< averaged unscaled bitmaps per class    */
-    struct Ptaa   *ptaa_u;       /*!< centroids of all unscaled bitmaps      */
-    struct Pta    *pta_u;        /*!< centroids of unscaled averaged bitmaps */
-    struct Numaa  *naasum_u;     /*!< area of all unscaled bitmap examples   */
-    struct Numa   *nasum_u;      /*!< area of unscaled averaged bitmaps      */
-    struct Pixaa  *pixaa;        /*!< all bitmap examples for each class     */
-    struct Pixa   *pixa;         /*!< averaged bitmaps for each class        */
-    struct Ptaa   *ptaa;         /*!< centroids of all bitmap examples       */
-    struct Pta    *pta;          /*!< centroids of averaged bitmaps          */
-    struct Numaa  *naasum;       /*!< area of all bitmap examples            */
-    struct Numa   *nasum;        /*!< area of averaged bitmaps               */
+    struct Pixaa  *pixaa_u;      /*!< all unscaled templates for each class  */
+    struct Ptaa   *ptaa_u;       /*!< centroids of all unscaled templates    */
+    struct Numaa  *naasum_u;     /*!< area of all unscaled templates         */
+    struct Pixaa  *pixaa;        /*!< all (scaled) templates for each class  */
+    struct Ptaa   *ptaa;         /*!< centroids of all (scaledl) templates   */
+    struct Numaa  *naasum;       /*!< area of all (scaled) templates         */
+    struct Pixa   *pixa_u;       /*!< averaged unscaled templates per class  */
+    struct Pta    *pta_u;        /*!< centroids of unscaled ave. templates   */
+    struct Numa   *nasum_u;      /*!< area of unscaled averaged templates    */
+    struct Pixa   *pixa;         /*!< averaged (scaled) templates per class  */
+    struct Pta    *pta;          /*!< centroids of (scaled) ave. templates   */
+    struct Numa   *nasum;        /*!< area of (scaled) averaged templates    */
     struct Pixa   *pixa_tr;      /*!< all input training images              */
     struct Pixa   *pixadb_ave;   /*!< unscaled and scaled averaged bitmaps   */
     struct Pixa   *pixa_id;      /*!< input images for identifying           */
@@ -228,34 +225,6 @@ typedef struct L_Rdid L_RDID;
 
 
 /*-------------------------------------------------------------------------*
- *                     Flags for template scaling                          *
- *-------------------------------------------------------------------------*/
-/*! Flags for template scaling */
-enum {
-    L_SELECT_UNSCALED = 0,     /*!< select the unscaled bitmaps            */
-    L_SELECT_SCALED = 1,       /*!< select the scaled bitmaps              */
-    L_SELECT_BOTH = 2          /*!< select both unscaled and scaled        */
-};
-
-/*-------------------------------------------------------------------------*
- *          Flags for selecting between image and outline templates        *
- *-------------------------------------------------------------------------*/
-/*! Flags for selecting image or outline templates: recog->templ_type */
-enum {
-    L_TYPE_IMAGE = 0,         /*!< match scanned images                    */
-    L_TYPE_OUTLINE = 1        /*!< match thickened outlines                */
-};
-
-/*-------------------------------------------------------------------------*
- *      Flags for selecting between using average and all templates        *
- *-------------------------------------------------------------------------*/
-/*! Flags for selecting average or all templates: recog->templ_use */
-enum {
-    L_USE_ALL = 0,            /*!< use all templates; default              */
-    L_USE_AVERAGE = 1         /*!< use average templates; outliers only    */
-};
-
-/*-------------------------------------------------------------------------*
  *             Flags for describing limited character sets                 *
  *-------------------------------------------------------------------------*/
 /*! Flags for describing limited character sets */
@@ -266,6 +235,15 @@ enum {
     L_UC_ROMAN_NUMERALS = 3, /*!< 7 upper-case letters (I,V,X,L,C,D,M)     */
     L_LC_ALPHA = 4,          /*!< 26 lower-case letters                    */
     L_UC_ALPHA = 5           /*!< 26 upper-case letters                    */
+};
+
+/*-------------------------------------------------------------------------*
+ *      Flags for selecting between using average and all templates        *
+ *-------------------------------------------------------------------------*/
+/*! Flags for selecting average or all templates: recog->templ_use */
+enum {
+    L_USE_ALL_TEMPL = 0,       /*!< use all templates; default              */
+    L_USE_AVERAGE_TEMPL = 1    /*!< use average templates; outliers only    */
 };
 
 #endif  /* LEPTONICA_RECOG_H */

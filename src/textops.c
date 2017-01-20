@@ -772,7 +772,7 @@ PIXA    *pixad;
  *      (4) If %textstr == NULL, use the text field in the pix.
  *      (5) In general, the text string can be written in multiple lines;
  *          use newlines as the separators.
- *      (6) Typical usage is for debugging, where the pixa of labelled images
+ *      (6) Typical usage is for debugging, where the pixa of labeled images
  *          is used to generate a pdf.  Suggest using 1.0 for scalefactor.
  * </pre>
  */

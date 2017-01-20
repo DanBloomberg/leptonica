@@ -61,8 +61,9 @@
  *      Display of matched patterns
  *            PIX       *pixDisplayMatchedPattern()
  *
- *      Extension of pixa by iterative erosion or dilation
- *            PIXA      *pixaExtendIterative()
+ *      Extension of pixa by iterative erosion or dilation (and by scaling)
+ *            PIXA      *pixaExtendByMorph()
+ *            PIXA      *pixaExtendByScaling()
  *
  *      Iterative morphological seed filling (don't use for real work)
  *            PIX       *pixSeedfillMorph()
@@ -773,7 +774,7 @@ SEL     *sel;
  * <pre>
  * Notes:
  *    (1) A 4 bpp colormapped image is generated.
- *    (2) If scale \<= 1.0, do scale to gray for the output, and threshold
+ *    (2) If scale <= 1.0, do scale to gray for the output, and threshold
  *        to nlevels of gray.
  *    (3) You can use various functions in selgen to create a Sel
  *        that will generate pixe from pixs.
@@ -871,11 +872,11 @@ PIXCMAP  *cmap;
 }
 
 
-/*-----------------------------------------------------------------*
- *       Extension of pixa by iterative erosion or dilation        *
- *-----------------------------------------------------------------*/
+/*------------------------------------------------------------------------*
+ *   Extension of pixa by iterative erosion or dilation (and by scaling)  *
+ *------------------------------------------------------------------------*/
 /*!
- * \brief   pixaExtendIterative()
+ * \brief   pixaExtendByMorph()
  *
  * \param[in]    pixas
  * \param[in]    type L_MORPH_DILATE, L_MORPH_ERODE
@@ -883,32 +884,32 @@ PIXCMAP  *cmap;
  * \param[in]    sel used for dilation, erosion; uses 2x2 if null
  * \param[in]    include 1 to include a copy of the input pixas in pixad;
  *                       0 to omit
- * \return  pixad of derived pix, using all iterations, or NULL on error
+ * \return  pixad   with derived pix, using all iterations, or NULL on error
  *
  * <pre>
  * Notes:
  *    (1) This dilates or erodes every pix in %pixas, iteratively,
  *        using the input Sel (or, if null, a 2x2 Sel by default),
  *        and puts the results in %pixad.
- *    (2) If %niters \<= 0, this is a no-op; it returns a clone of pixas.
+ *    (2) If %niters <= 0, this is a no-op; it returns a clone of pixas.
  *    (3) If %include == 1, the output %pixad contains all the pix
  *        in %pixas.  Otherwise, it doesn't, but pixaJoin() can be
  *        used later to join pixas with pixad.
  * </pre>
  */
 PIXA *
-pixaExtendIterative(PIXA    *pixas,
-                    l_int32  type,
-                    l_int32  niters,
-                    SEL     *sel,
-                    l_int32  include)
+pixaExtendByMorph(PIXA    *pixas,
+                  l_int32  type,
+                  l_int32  niters,
+                  SEL     *sel,
+                  l_int32  include)
 {
 l_int32  maxdepth, i, j, n;
 PIX     *pix0, *pix1, *pix2;
 SEL     *selt;
 PIXA    *pixad;
 
-    PROCNAME("pixaExtendIterative");
+    PROCNAME("pixaExtendByMorph");
 
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas undefined", procName, NULL);
@@ -945,6 +946,72 @@ PIXA    *pixad;
     }
 
     selDestroy(&selt);
+    return pixad;
+}
+
+
+/*!
+ * \brief   pixaExtendByScaling()
+ *
+ * \param[in]    pixas
+ * \param[in]    nasc   numa of scaling factors
+ * \param[in]    type    L_HORIZ, L_VERT, L_BOTH_DIRECTIONS
+ * \param[in]    include 1 to include a copy of the input pixas in pixad;
+ *                       0 to omit
+ * \return  pixad   with derived pix, using all scalings, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *    (1) This scales every pix in %pixas by each factor in %nasc.
+ *        and puts the results in %pixad.
+ *    (2) If %include == 1, the output %pixad contains all the pix
+ *        in %pixas.  Otherwise, it doesn't, but pixaJoin() can be
+ *        used later to join pixas with pixad.
+ * </pre>
+ */
+PIXA *
+pixaExtendByScaling(PIXA    *pixas,
+                    NUMA    *nasc,
+                    l_int32  type,
+                    l_int32  include)
+{
+l_int32    i, j, n, nsc, w, h, scalew, scaleh;
+l_float32  scalefact;
+PIX       *pix1, *pix2;
+PIXA      *pixad;
+
+    PROCNAME("pixaExtendByScaling");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas undefined", procName, NULL);
+    if (!nasc || numaGetCount(nasc) == 0)
+        return (PIXA *)ERROR_PTR("nasc undefined or empty", procName, NULL);
+    if (type != L_HORIZ && type != L_VERT && type != L_BOTH_DIRECTIONS)
+        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+
+    n = pixaGetCount(pixas);
+    nsc = numaGetCount(nasc);
+    if ((pixad = pixaCreate(n * (nsc + 1))) == NULL) {
+        L_ERROR("pixad not made: n = %d, nsc = %d\n", procName, n, nsc);
+        return NULL;
+    }
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        if (include) pixaAddPix(pixad, pix1, L_COPY);
+        pixGetDimensions(pix1, &w, &h, NULL);
+        for (j = 0; j < nsc; j++) {
+            numaGetFValue(nasc, j, &scalefact);
+            scalew = w;
+            scaleh = h;
+            if (type == L_HORIZ || type == L_BOTH_DIRECTIONS)
+                scalew = w * scalefact;
+            if (type == L_VERT || type == L_BOTH_DIRECTIONS)
+                scaleh = h * scalefact;
+            pix2 = pixScaleToSize(pix1, scalew, scaleh);
+            pixaAddPix(pixad, pix2, L_INSERT);
+        }
+        pixDestroy(&pix1); 
+    }
     return pixad;
 }
 
@@ -1221,9 +1288,9 @@ PIX  *pixt, *pixd;
  *            (b) Fill in pixd starting with this seed, clipping by pixs,
  *                in the way described in seedfillGrayLow().  The filling
  *                stops before the peaks in pixs are filled.
- *                For peaks that have a height \> p, pixd is filled to
+ *                For peaks that have a height > p, pixd is filled to
  *                the level equal to the (top-of-the-peak - p).
- *                For peaks of height \< p, the peak is left unfilled
+ *                For peaks of height < p, the peak is left unfilled
  *                from its highest saddle point (the leak to the outside).
  *            (c) Subtract the filled seed (pixd) from the filling mask (pixs).
  *          Note that in this procedure, everything is done starting

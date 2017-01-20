@@ -50,19 +50,14 @@
  *         l_int32             rchaExtract()
  *         l_int32             rchExtract()
  *         static l_int32      transferRchToRcha()
- *    //         static l_int32      recogSaveBestRcha()
  *
  *      Preprocessing and filtering
  *         l_int32             recogProcessToIdentify()
- *         PIX                *recogPreSplittingFilter()
- *         PIX                *recogSplittingFilter()
+ *         static PIX         *recogPreSplittingFilter()
+ *         static PIX         *recogSplittingFilter()
  *
  *      Postprocessing
  *         SARRAY             *recogExtractNumbers()
- *
- *      Modifying recog behavior
- *         l_int32             recogSetTemplateType()
- *         l_int32             recogSetTemplateUse()
  *
  *      Static debug helper
  *         static void         l_showIndicatorSplitValues()
@@ -116,6 +111,11 @@ static L_RCH *rchCreate(l_int32 index, l_float32 score, char *text,
                         l_int32 width);
 static L_RCHA *rchaCreate();
 static l_int32 transferRchToRcha(L_RCH *rch, L_RCHA *rcha);
+static PIX *recogPreSplittingFilter(L_RECOG *recog, PIX *pixs, l_float32 maxasp,
+                                    l_float32 minaf, l_int32 debug);
+static l_int32 recogSplittingFilter(L_RECOG *recog, PIX *pixs,
+                                    l_float32 maxasp, l_float32 minaf,
+                                    l_int32 *premove, l_int32 debug);
 static void l_showIndicatorSplitValues(NUMA *na1, NUMA *na2, NUMA *na3,
                                        NUMA *na4, NUMA *na5, NUMA *na6);
 
@@ -256,7 +256,7 @@ NUMA    *naid;
  *          Otherwise, some noise components whose dimensions (w,h)
  *          satisfy w >= %minw and h >= %minh are allowed through, but
  *          they are identified in the returned %naid, where they are
- *          labelled by 0 to indicate that they are not to be run
+ *          labeled by 0 to indicate that they are not to be run
  *          through identification.  Retaining the noise components
  *          provides spatial information that can help applications
  *          interpret the results.
@@ -321,7 +321,7 @@ PIX     *pix, *pix1, *pix2;
         pixZero(pix1, &empty);
         if (!empty) {
             boxat1 = pixConnComp(pix1, NULL, 8);
-            boxa3 = boxaSelectBySize(boxat1, minw, minh, L_SELECT_BOTH,
+            boxa3 = boxaSelectBySize(boxat1, minw, minh, L_SELECT_IF_BOTH,
                                      L_SELECT_IF_GTE, NULL);
             boxaDestroy(&boxat1);
         }
@@ -1012,12 +1012,14 @@ L_RCH     *rch;
  * <pre>
  * Notes:
  *      (1) Basic recognition function for a single character.
- *      (2) If L_USE_ALL, matching is attempted to every bitmap in the recog,
- *          and the identify of the best match is returned.  However,
- *          if L_USE_AVERAGE, the matching is only to the averaged bitmaps,
- *          and the index of the bestsample is meaningless (0 is returned
+ *      (2) If templ_use == L_USE_ALL_TEMPL, which is the default situation,
+ *          matching is attempted to every bitmap in the recog, and the
+ *          identify of the best match is returned.
+ *      (3) For finding outliers, templ_use == L_USE_AVERAGE_TEMPL, and
+ *          matching is only attemplted to the averaged bitmaps.  For this
+ *          case, the index of the bestsample is meaningless (0 is returned
  *          if requested).
- *      (3) The score is related to the confidence (probability of correct
+ *      (4) The score is related to the confidence (probability of correct
  *          identification), in that a higher score is correlated with
  *          a higher probability.  However, the actual relation between
  *          the correlation (score) and the probability is not known;
@@ -1047,9 +1049,8 @@ PTA       *pta;
     if (!pixs || pixGetDepth(pixs) != 1)
         return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
 
-        /* Do the averaging if not yet done.  This will also
-         * call recogFinishTraining(), if necessary. */
-    if (!recog->ave_done)
+        /* Do the averaging if required and not yet done. */
+    if (recog->templ_use == L_USE_AVERAGE_TEMPL && !recog->ave_done)
         recogAverageSamples(recog, 0);
 
         /* Binarize and crop to foreground if necessary */
@@ -1058,13 +1059,13 @@ PTA       *pta;
 
         /* Do correlation at all positions within +-maxyshift of
          * the nominal centroid alignment. */
-    pix1 = recogScaleCharacter(recog, pix0);
+    pix1 = recogModifyTemplate(recog, pix0);
     pixCountPixels(pix1, &area1, recog->sumtab);
     pixCentroid(pix1, recog->centtab, recog->sumtab, &x1, &y1);
     bestindex = bestsample = bestdelx = bestdely = bestwidth = 0;
     maxscore = 0.0;
     maxyshift = recog->maxyshift;
-    if (recog->templ_use == L_USE_AVERAGE) {
+    if (recog->templ_use == L_USE_AVERAGE_TEMPL) {
         for (i = 0; i < recog->setsize; i++) {
             numaGetIValue(recog->nasum, i, &area2);
             if (area2 == 0) continue;  /* no template available */
@@ -1133,14 +1134,14 @@ PTA       *pta;
                            bestdelx, bestdely, bestwidth);
 
     if (ppixdb) {
-        if (recog->templ_use == L_USE_AVERAGE) {
+        if (recog->templ_use == L_USE_AVERAGE_TEMPL) {
             L_INFO("Best match: str %s; class %d; sh (%d, %d); score %5.3f\n",
                    procName, text, bestindex, bestdelx, bestdely, maxscore);
             pix2 = pixaGetPix(recog->pixa, bestindex, L_CLONE);
-        } else {  /* L_USE_ALL */
+        } else {  /* L_USE_ALL_TEMPL */
             L_INFO("Best match: str %s; sample %d in class %d; score %5.3f\n",
                    procName, text, bestsample, bestindex, maxscore);
-            if (maxyshift > 0) {
+            if (maxyshift > 0 && (L_ABS(bestdelx) > 0 || L_ABS(bestdely > 0))) {
                 L_INFO("  Best shift: (%d, %d)\n",
                        procName, bestdelx, bestdely);
             }
@@ -1444,54 +1445,6 @@ transferRchToRcha(L_RCH   *rch,
 }
 
 
-#if 0
-/*!
- * \brief   recogSaveBestRcha()
- *
- * \param[in]    recog
- * \param[in]    pixa with all components having been identified
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This writes the best text id for each pix into its text field.
- * </pre>
- */
-static l_int32
-recogSaveBestRcha(L_RECOG  *recog,
-                  PIXA     *pixa)
-{
-char    *text;
-l_int32  i, n;
-PIX     *pix;
-L_RCHA  *rcha;
-SARRAY  *satext;
-
-    PROCNAME("recogSaveBestRcha");
-
-    if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
-    if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
-
-    n = pixaGetCount(pixa);
-
-        /* Write the best text string for each pix into the pixa */
-    rcha = recog->rcha;
-    rchaExtract(rcha, NULL, NULL, &satext, NULL, NULL, NULL, NULL);
-    for (i = 0; i < n; i++) {
-        pix = pixaGetPix(pixa, i, L_CLONE);
-        text = sarrayGetString(satext, i, L_NOCOPY);
-        pixSetText(pix, text);
-        pixDestroy(&pix);
-    }
-    sarrayDestroy(&satext);  /* it's a clone */
-
-    return 0;
-}
-#endif
-
-
 /*------------------------------------------------------------------------*
  *                        Preprocessing and filtering                     *
  *------------------------------------------------------------------------*/
@@ -1555,7 +1508,7 @@ PIX     *pix1, *pix2, *pixd;
  * \param[in]    debug 1 to output indicator arrays
  * \return  pixd with filtered components removed or NULL on error
  */
-PIX *
+static PIX *
 recogPreSplittingFilter(L_RECOG   *recog,
                         PIX       *pixs,
                         l_float32  maxasp,
@@ -1632,7 +1585,7 @@ PIXA    *pixas;
  * \param[in]    debug 1 to output indicator arrays
  * \return  0 if OK, 1 on error
  */
-l_int32
+static l_int32
 recogSplittingFilter(L_RECOG   *recog,
                      PIX       *pixs,
                      l_float32  maxasp,
@@ -1835,55 +1788,6 @@ SARRAY    *satext, *sa, *saout;
     else
         numaaDestroy(&naa);
     return saout;
-}
-
-
-/*------------------------------------------------------------------------*
- *                         Modifying recog behavior                       *
- *------------------------------------------------------------------------*/
-/*!
- * \brief   recogSetTemplateType()
- *
- * \param[in]    recog
- * \param[in]    templ_type  L_TYPE_IMAGE or L_TYPE_OUTLINE
- * \return  0 if OK, 1 on error
- */
-l_int32
-recogSetTemplateType(L_RECOG  *recog,
-                     l_int32   templ_type)
-{
-    PROCNAME("recogSetTemplateType");
-
-    if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
-    if (templ_type != L_TYPE_IMAGE && templ_type != L_TYPE_OUTLINE)
-        return ERROR_INT("invalid templ_type", procName, 1);
-
-    recog->templ_type = templ_type;
-    return 0;
-}
-
-
-/*!
- * \brief   recogSetTemplateUse()
- *
- * \param[in]    recog
- * \param[in]    templ_use   L_USE_AVERAGE or L_USE_ALL
- * \return  0 if OK, 1 on error
- */
-l_int32
-recogSetTemplateUse(L_RECOG  *recog,
-                    l_int32   templ_use)
-{
-    PROCNAME("recogSetTemplateUse");
-
-    if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
-    if (templ_use != L_USE_AVERAGE && templ_use != L_USE_ALL)
-        return ERROR_INT("invalid templ_use", procName, 1);
-
-    recog->templ_use = templ_use;
-    return 0;
 }
 
 

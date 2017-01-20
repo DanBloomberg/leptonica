@@ -245,7 +245,7 @@ static const char *l_bootnum1 =
 /*!
  * \brief   l_bootnum_gen1()
  *
- * \return   pixa  of labelled digits
+ * \return   pixa  of labeled digits
  *
  * <pre>
  * Call this way:

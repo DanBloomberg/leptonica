@@ -1124,7 +1124,7 @@ l_float32  wratio, hratio, norm;
            of size^2 corresponding src pixels.
            We store the UL corner location of the square of
            src pixels that correspond to dest pixel (j,i).
-           The are labelled by the arrays srow[i] and scol[j]. */
+           The are labeled by the arrays srow[i] and scol[j]. */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
         return ERROR_INT("srow not made", procName, 1);
     if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL)
@@ -2441,7 +2441,7 @@ l_float32  ratio, w1, w2;
            between the two src images at the corresponding location.
            We store the UL corner locations of the square of
            src pixels in thelower-resolution image that correspond
-           to dest pixel (j,i).  The are labelled by the arrays
+           to dest pixel (j,i).  The are labeled by the arrays
            srow[i], scol[j].  The UL corner locations of the higher
            resolution src pixels are obtained from these arrays
            by multiplying by 2. */

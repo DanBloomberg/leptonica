@@ -29,15 +29,12 @@
  *
  *     Tests the recog utility using the bootstrap number set,
  *     for both training and identification
+ *
+ *     An example of greedy splitting of touching characters is given.
  */
 
 #include "string.h"
 #include "allheaders.h"
-
-
-    /* Set templ type */
-static const l_int32 templ_type = L_TYPE_IMAGE;
-/* static const l_int32 templ_type = L_TYPE_OUTLINE; */
 
 static const l_int32 scaledw = 0;
 static const l_int32 scaledh = 40;
@@ -45,16 +42,16 @@ static const l_int32 scaledh = 40;
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32    i, j, n, index, w, h, ignore;
+l_int32    i, j, n, index, w, h, linew, same;
 l_float32  score;
 char      *fname, *strchar;
 char       buf[256];
 BOX       *box;
 BOXA      *boxat;
-NUMA      *naindex, *nascore, *naindext, *nascoret;
-PIX       *pixs, *pixd, *pixt, *pixdb;
-PIXA      *pixa, *pixat;
-L_RECOG   *recog, *recog2;
+NUMA      *na1;
+PIX       *pixs, *pixd, *pix1, *pix2, *pixdb;
+PIXA      *pixa1, *pixa2, *pixa3, *pixa4;
+L_RECOG   *recog1, *recog2;
 SARRAY    *sa, *satext;
 
     if (argc != 1) {
@@ -62,162 +59,123 @@ SARRAY    *sa, *satext;
         return 1;
     }
 
-    recog = NULL;
+    recog1 = NULL;
     recog2 = NULL;
 
     lept_mkdir("lept/digits");
 
-#if 0  /* Generate a simple bootstrap pixa (bootnum1.pa) for
-          number images in directory 'recog/bootnums' */
-    recog = recogCreate(scaledw, scaledh, templ_type, 100, 1);
-    sa = getSortedPathnamesInDirectory("recog/bootnums", "png", 0, 0);
-    n = sarrayGetCount(sa);
-    for (i = 0; i < n; i++) {
-        fname = sarrayGetString(sa, i, L_NOCOPY);
-        if ((pixs = pixRead(fname)) == NULL) {
-            fprintf(stderr, "Can't read %s\n", fname);
-            continue;
-        }
-        pixGetDimensions(pixs, &w, &h, NULL);
-        box = boxCreate(0, 0, w, h);
-        recogTrainLabeled(recog, pixs, box, NULL, 1, 1);
-        pixDestroy(&pixs);
-        boxDestroy(&box);
-    }
-    recogTrainingFinished(recog, 1);
-    pixa = recogExtractPixa(recog);
-    pixaWrite("/tmp/lept/digits/bootnum1.pa", pixa);
-    snprintf(buf, sizeof(buf),
-             "displaypixa /tmp/lept/digits/bootnum1.pa 1.0 2 1 0 "
-             "/tmp/lept/digits/bootnum1.png fonts");
-    ignore = system(buf);
-    sarrayDestroy(&sa);
-    pixaDestroy(&pixa);
-#elif 0
-    pixa = pixaRead("recog/digits/bootnum1.pa");
-    recog = recogCreateFromPixa(pixa, scaledw, scaledh, templ_type, 120, 1);
-    snprintf(buf, sizeof(buf),
-        "displaypixa recog/digits/bootnum1.pa 1.0 2 1 0 "
-        "/tmp/lept/digits/bootnum1.png fonts");
-    ignore = system(buf);
-    pixaDestroy(&pixa);
+#if 0
+    linew = 5;  /* for lines */
 #else
-    pixa = pixaRead("recog/digits/bootnum2.pa");
-    recog = recogCreateFromPixa(pixa, scaledw, scaledh, templ_type, 120, 1);
-    snprintf(buf, sizeof(buf),
-        "displaypixa recog/digits/bootnum2.pa 1.0 2 1 0 "
-        "/tmp/lept/digits/bootnum2.png fonts");
-    ignore = system(buf);
-    pixaDestroy(&pixa);
-#endif
-
-#if 0  /* roman, one per image */
-    recog = recogCreate(0, 40, templ_type, 100, 1);
-    sa = getSortedPathnamesInDirectory("charset", "png", 0, 0);
-    n = sarrayGetCount(sa);
-    for (i = 0; i < n; i++) {
-        fname = sarrayGetString(sa, i, L_NOCOPY);
-        if ((pixs = pixRead(fname)) == NULL) {
-            fprintf(stderr, "Can't read %s\n", fname);
-            continue;
-        }
-        pixGetDimensions(pixs, &w, &h, NULL);
-        box = boxCreate(0, 0, w, h);
-        recogTrainLabeled(recog, pixs, box, NULL, 0, 1);
-        pixDestroy(&pixs);
-        boxDestroy(&box);
-    }
-    recogTrainingFinished(recog, 1);
-    sarrayDestroy(&sa);
+    linew = 0;  /* scanned image */
 #endif
 
 #if 1
-    fprintf(stderr, "Print Stats\n");
-    recogShowContent(stderr, recog, 1);
+    pixa1 = pixaRead("recog/digits/bootnum1.pa");
+    recog1 = recogCreateFromPixa(pixa1, scaledw, scaledh, linew, 120, 1);
+    pix1 = pixaDisplayTiledWithText(pixa1, 1400, 1.0, 10, 2, 6, 0xff000000);
+    pixWrite("/tmp/lept/digits/bootnum1.png", pix1, IFF_PNG);
+    pixDisplay(pix1, 800, 800);
+    pixDestroy(&pix1);
+    pixaDestroy(&pixa1);
+#endif
+
+#if 1
+    fprintf(stderr, "Print Stats 1\n");
+    recogShowContent(stderr, recog1, 1, 1);
 #endif
 
 #if 1
     fprintf(stderr, "AverageSamples\n");
-    recogAverageSamples(recog, 1);
-    pixt = pixaGetPix(recog->pixadb_ave, 0, L_CLONE);
-    pixWrite("/tmp/lept/digits/unscaled_ave.png", pixt, IFF_PNG);
-    pixDestroy(&pixt);
-    pixt = pixaGetPix(recog->pixadb_ave, 1, L_CLONE);
-    pixWrite("/tmp/lept/digits/scaled_ave.png", pixt, IFF_PNG);
-    pixDestroy(&pixt);
+    recogAverageSamples(recog1, 1);
+    recogShowAverageTemplates(recog1);
+    pix1 = pixaGetPix(recog1->pixadb_ave, 0, L_CLONE);
+    pixWrite("/tmp/lept/digits/unscaled_ave.png", pix1, IFF_PNG);
+    pixDestroy(&pix1);
+    pix1 = pixaGetPix(recog1->pixadb_ave, 1, L_CLONE);
+    pixWrite("/tmp/lept/digits/scaled_ave.png", pix1, IFF_PNG);
+    pixDestroy(&pix1);
+#endif
+
+#if 1
+    recogDebugAverages(recog1, 0);
+    recogShowMatchesInRange(recog1, recog1->pixa_tr, 0.65, 1.0, 0);
+    pixWrite("/tmp/lept/digits/match_ave1.png", recog1->pixdb_range, IFF_PNG);
+    recogShowMatchesInRange(recog1, recog1->pixa_tr, 0.0, 1.0, 0);
+    pixWrite("/tmp/lept/digits/match_ave2.png", recog1->pixdb_range, IFF_PNG);
+#endif
+
+#if 1
+    fprintf(stderr, "Print stats 2\n");
+    recogShowContent(stderr, recog1, 2, 1);
+    recogWrite("/tmp/lept/digits/rec1.rec", recog1);
+    recog2 = recogRead("/tmp/lept/digits/rec1.rec");
+    recogShowContent(stderr, recog2, 3, 1);
+    recogWrite("/tmp/lept/digits/rec2.rec", recog2);
+    filesAreIdentical("/tmp/lept/digits/rec1.rec",
+                      "/tmp/lept/digits/rec2.rec", &same);
+    if (!same)
+        fprintf(stderr, "Error in serialization!\n");
+    recogDestroy(&recog2);
+#endif
+
+#if 1
+        /* Three sets of parameters:
+         *  0.6, 0.3 : removes a few poor matches
+         *  0.8, 0.2 : remove many based on matching; remove some based on
+         *             requiring retention of 20% of templates in each class
+         *  0.9, 0.01 : remove most based on matching; saved 1 in each class */
+    fprintf(stderr, "Remove outliers\n");
+    static const l_float32  MinScore[] = {0.6, 0.7, 0.9};
+    static const l_float32  MinFract[] = {0.3, 0.2, 0.01};
+    pixa2 = recogExtractPixa(recog1);
+    for (i = 0; i < 3; i++) {
+        pixa3 = recogRemoveOutliers(pixa2, MinScore[i], MinFract[i],
+                                    &pixa4, &na1);
+        pix1 = pixaDisplayTiledWithText(pixa3, 1400, 1.0, 10, 2, 6, 0xff000000);
+        pixDisplay(pix1, 900, 250 * i);
+        pix2 = recogDisplayOutliers(pixa4, na1);
+        pixDisplay(pix2, 1300, 250 * i);
+        pixaDestroy(&pixa3);
+        pixaDestroy(&pixa4);
+        numaDestroy(&na1);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+    }
+    pixaDestroy(&pixa2);
 #endif
 
 #if 1
         /* Split touching characters */
     fprintf(stderr, "Split touching\n");
-    pixd = pixRead("recog/bootnums/pagenum.29.png");  /* 25 or 29 */
-    recogIdentifyMultiple(recog, pixd, 3, -1, -1, 0,
-                          &boxat, &pixat, &pixdb, 1);
+    pixd = pixRead("recog/bootnums/pagenum.25.png");  /* 25 or 29 */
+    recogIdentifyMultiple(recog1, pixd, 3, -1, -1, 0,
+                          &boxat, &pixa2, &pixdb, 1);
     pixDisplay(pixdb, 800, 800);
     boxaWriteStream(stderr, boxat);
-    pixt = pixaDisplay(pixat, 0, 0);
-    pixDisplay(pixt, 1200, 800);
+    pix1 = pixaDisplay(pixa2, 0, 0);
+    pixDisplay(pix1, 1200, 800);
     pixDestroy(&pixdb);
-    pixDestroy(&pixt);
+    pixDestroy(&pix1);
     pixDestroy(&pixd);
-    pixaDestroy(&pixat);
+    pixaDestroy(&pixa2);
     boxaDestroy(&boxat);
 #endif
 
 #if 1
-    recogDebugAverages(recog, 0);
-    recogShowMatchesInRange(recog, recog->pixa_tr, 0.65, 1.0, 0);
-    pixWrite("/tmp/lept/digits/match_ave1.png", recog->pixdb_range, IFF_PNG);
-    recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 0);
-    pixWrite("/tmp/lept/digits/match_ave2.png", recog->pixdb_range, IFF_PNG);
-#endif
-
-#if 0
-        /* Show that the pixa interface works for the entire set */
-    recogIdentifyPixa(recog, recog->pixa_tr, NULL, &pixd);
-    pixWrite("/tmp/pixd2", pixd, IFF_PNG);
-    n = numaGetCount(naindex);
-    for (i = 0; i < n; i++) {
-        numaGetIValue(naindex, i, &index);
-        numaGetFValue(nascore, i, &score);
-        strchar = sarrayGetString(satext, i, L_NOCOPY);
-        fprintf(stderr, "%d: index = %d, text = %s, score = %5.3f\n",
-                i, index, strchar, score);
-    }
-    pixDisplay(pixd, 0, 100);
-    pixDestroy(&pixd);
-    pixaDestroy(&pixa);
-    numaDestroy(&naindex);
-    sarrayDestroy(&satext);
-    numaDestroy(&nascore);
-#endif
-
-#if 0
-        /* We can do about 5M correlations/sec */
-    fprintf(stderr, "Remove outliers\n");
-    recogRemoveOutliers(recog, 0.7, 0.5, 1);
-#endif
-
-#if 1
-    fprintf(stderr, "Debug averages\n");
-    recogDebugAverages(recog, 0);
-    pixWrite("/tmp/lept/digits/averages.png", recog->pixdb_ave, IFF_PNG);
-#endif
-
-#if 1
-    fprintf(stderr, "Print stats 2\n");
-    recogShowContent(stderr, recog, 1);
-    recogWrite("/tmp/lept/digits/rec1.rec", recog);
-    recog2 = recogRead("/tmp/lept/digits/rec1.rec");
-    recogResetBmf(recog2, 0);
-    recogWrite("/tmp/lept/digits/rec2.rec", recog2);
-
-    fprintf(stderr, "Debug averages 2\n");
-    recogDebugAverages(recog2, 1);
-    recogShowMatchesInRange(recog2, recog->pixa_tr, 0.0, 1.0, 1);
-    pixWrite("/tmp/lept/digits/match_ave3.png", recog2->pixdb_range, IFF_PNG);
+    fprintf(stderr, "Reading new training set and computing averages\n");
+    fprintf(stderr, "Print stats 3\n");
+    pixa1 = pixaRead("recog/sets/train03.pa");
+    recog2 = recogCreateFromPixa(pixa1, 0, 40, 0, 128, 1);
+    recogShowContent(stderr, recog2, 3, 1);
+    recogDebugAverages(recog2, 3);
+    pixWrite("/tmp/lept/digits/averages.png", recog2->pixdb_ave, IFF_PNG);
+    recogShowAverageTemplates(recog2);
+    pixaDestroy(&pixa1);
     recogDestroy(&recog2);
 #endif
 
+    recogDestroy(&recog1);
+    recogDestroy(&recog2);
     return 0;
 }

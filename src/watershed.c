@@ -67,15 +67,15 @@
  *        is shrunk to a single pixel, if necessary, before the
  *        operation starts.
  *    (2) Feed the priority queue with neighbors of pixels that are
- *        popped off the queue.  Each of these queue pixels is labelled
+ *        popped off the queue.  Each of these queue pixels is labeled
  *        with the index value of its parent.
- *    (3) Each pixel is also labelled, in a 32-bit image, with the marker
+ *    (3) Each pixel is also labeled, in a 32-bit image, with the marker
  *        or local minimum index, from which it was originally derived.
  *    (4) There are actually 3 classes of labels: seeds, minima, and
  *        fillers.  The fillers are labels of regions that have already
  *        been identified as watersheds and are continuing to fill, for
  *        the purpose of finding higher watersheds.
- *    (5) When a pixel is popped that has already been labelled in the
+ *    (5) When a pixel is popped that has already been labeled in the
  *        32-bit image and that label differs from the label of its
  *        parent (stored in the queue pixel), a boundary has been crossed.
  *        There are several cases:
@@ -101,14 +101,14 @@
  *      L_WShed *wshed = wshedCreate(pixs, pixseed, mindepth, 0);
  *      wshedApply(wshed);
 *
- *      wshedBasins(wshed, \&pixa, \&nalevels);
+ *      wshedBasins(wshed, &pixa, &nalevels);
  *        ... do something with pixa, nalevels ...
- *      pixaDestroy(\&pixa);
- *      numaDestroy(\&nalevels);
+ *      pixaDestroy(&pixa);
+ *      numaDestroy(&nalevels);
  *
  *      Pix *pixd = wshedRenderFill(wshed);
  *
- *      wshedDestroy(\&wshed);
+ *      wshedDestroy(&wshed);
  * </pre>
  */
 

@@ -261,7 +261,7 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
 static const l_int32  NMAX_HOLES = 150;
 
     /*  Tables used to trace the border.
-     *   ~ The 8 pixel positions of neighbors Q are labelled:
+     *   ~ The 8 pixel positions of neighbors Q are labeled:
      *                  1   2   3
      *                  0   P   4
      *                  7   6   5

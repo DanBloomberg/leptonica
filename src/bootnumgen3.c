@@ -337,7 +337,7 @@ static const char *l_strdata_0 =
 /*!
  *  \brief   l_bootnum_gen3()
  *
- * \return   pixa  of labelled digits
+ * \return   pixa  of labeled digits
  *
  * <pre>
  * Call this way:

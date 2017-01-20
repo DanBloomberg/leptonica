@@ -102,7 +102,7 @@ struct L_GenAssoc
 };
 
     /*! Number of serializable data types */
-static const l_int32  l_ntypes = 20;
+static const l_int32  l_ntypes = 19;
     /*! Serializable data types */
 static const struct L_GenAssoc l_assoc[] = {
     {0,  "INVALID",     "invalid",     "invalid",        "invalid"         },
@@ -124,8 +124,7 @@ static const struct L_GenAssoc l_assoc[] = {
     {16, "PTA",         "Pta",         "ptaRead",        "ptaReadMem"      },
     {17, "PTAA",        "Ptaa",        "ptaaRead",       "ptaaReadMem"     },
     {18, "RECOG",       "Recog",       "recogRead",      "recogReadMem"    },
-    {19, "RECOGA",      "Recoga",      "recogaRead",     "recogaReadMem"   },
-    {20, "SARRAY",      "Sarray",      "sarrayRead",     "sarrayReadMem"   }
+    {19, "SARRAY",      "Sarray",      "sarrayRead",     "sarrayReadMem"   }
 };
 
 static l_int32 l_getIndexFromType(const char *type, l_int32 *pindex);

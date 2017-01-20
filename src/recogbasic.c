@@ -34,6 +34,8 @@
  *         L_RECOG            *recogCreate()
  *         void                recogDestroy()
  *         l_int32             recogGetCount()
+ *         l_int32             recogSetParams()
+ *         static l_int32      recogGetCharsetSize()
  *
  *      Character/index lookup
  *         l_int32             recogGetClassIndex()
@@ -54,97 +56,108 @@
  *
  *  The recognizer functionality is split into four files:
  *    recogbasic.c: create, destroy, access, serialize
- *    recogtrain.c: training on labelled and unlabelled data
+ *    recogtrain.c: training on labeled and unlabeled data
  *    recogident.c: running the recognizer(s) on input
  *    recogdid.c:   running the recognizer(s) on input using a
  *                  document image decoding (DID) hidden markov model
  *
  *  This is a content-adapted (or book-adapted) recognizer (BAR) application.
- *  The recognizers here are typically bootstrapped from data that has
- *  been labelled by a generic recognition system, such as Tesseract.
- *  The general procedure to create a recognizer (recog) from labelled data is
- *  to add the labelled character bitmaps, and call recogTrainingFinished()
- *  when done. It is also suggested that the set of templates is tested
- *  for outliers, by comparing each template against the average templates
- *  of each class.
- *
- *  A special bootstrap recognizer (BSR) can be used to make a BAR from
- *  unlabelled book data.  This is done by comparing character images
- *  from the book with labeled templates in the BSR, where all images
- *  are (1) scaled to h = 40 and (2) normalized in stroke width.
- *
- *  Two BARs of labelled character data, that have been made by
- *  different recognizers, can be joined by extracting a pixa of the
- *  labelled templates from each, joining the two pixa, and then
- *  and regenerating a BAR from the joined set of templates.
+ *  The recognizers here are typically assembled from data that has
+ *  been labeled by a generic recognition system, such as Tesseract.
+ *  The general procedure to create a recognizer (recog) from labeled data is
+ *  to add the labeled character bitmaps, either one at a time or
+ *  all together from a pixa with labeled pix.
  *
  *  The suggested use for a BAR that consists of labeled templates drawn
- *  from a book is to identify unlabeled samples by using unscaled
- *  character templates in the BAR, picking the template closest to the
- *  unlabeled sample.
+ *  from a single source (e.g., a book) is to identify unlabeled samples
+ *  by using unscaled character templates in the BAR, picking the
+ *  template closest to the unlabeled sample.
  *
- *  If a BAR does not have enough templates for the characters to be
- *  identified, the templates from the BSR can be added.  In that case,
- *  it is necessary to do all character matches using templates that
- *  (1) have been scaled to a fixed height (e.g., 40), and (2) have
- *  been normalized to a fixed stroke width.  The samples to be labeled
- *  must be scaled and stroke-normalized in the same way.
+ *  Outliers can be removed from a pixa of labeled pix.  This is one of
+ *  two methods that use averaged templates (the other is greedy splitting
+ *  of characters).  See recogtrain.c for a discussion and the implementation.
+ *
+ *  A special bootstrap recognizer (BSR) can be used to make a BAR from
+ *  unlabeled book data.  This is done by comparing character images
+ *  from the book with labeled templates in the BSR, where all images
+ *  are scaled to h = 40.  The templates can be either the scanned images
+ *  or images consisting of width-normalized strokes derived from
+ *  the skeleton of the character bitmaps.
+ *
+ *  Two BARs of labeled character data, that have been made by
+ *  different recognizers, can be joined by extracting a pixa of the
+ *  labeled templates from each, joining the two pixa, and then
+ *  and regenerating a BAR from the joined set of templates.
+ *  If all the labeled character data is from a single source (e.g, a book),
+ *  identification can proceed using unscaled templates (either the input
+ *  image or width-normalized lines).  But if the labeled data comes from
+ *  more than one source, (a "hybrid" recognizer), the templates should
+ *  be scaled, and we recommend scaling to a fixed height.
+ *
+ *  Suppose it is not possible to generate a BAR with a sufficient number
+ *  of templates of each class taken from a single source.  In that case,
+ *  templates from the BSR itself can be added.  This is the condition
+ *  described above, where the labeled templates come from multiple
+ *  sources, and it is necessary to do all character matches using
+ *  templates that have been scaled to a fixed height (e.g., 40).
+ *  Likewise, the samples to be identified using this hybrid recognizer
+ *  must be modified in the same way.  See prog/recogtest3.c for an
+ *  example of the steps that can be taken in the construction of a BAR
+ *  using a BSR.
  *
  *  For training numeric input, an example set of calls that scales
- *  each training input to fixed h and will use the outline
- *  templates for identifying unknown characters is:
- *         L_Recog  *rec = recogCreate(0, h, L_USE_OUTLINE, 128, 1);
+ *  each training input to fixed h and will use the line templates of
+ *  width linew for identifying unknown characters is:
+ *         L_Recog  *rec = recogCreate(0, h, linew, 128, 1);
  *         for (i = 0; i < n; i++) {  // read in n training digits
  *             Pix *pix = ...
  *             recogTrainLabeled(rec, pix, NULL, text[i], 0, 0);
  *         }
- *         recogTrainingFinished(rec, 0);  // required
+ *         recogTrainingFinished(rec, 1);  // required
  *
  *  It is an error if any function that computes averages, removes
- *  outliers or requests identification of an unlabelled character,
+ *  outliers or requests identification of an unlabeled character,
  *  such as:
- *         (1) computing the sample averages: recogAverageSamples()
- *         (2) removing outliers: recogRemoveOutliers()
- *         (3) requesting identification of an unlabeled character:
- *                 recogIdentifyPix()
+ *     (1) computing the sample averages: recogAverageSamples()
+ *     (2) removing outliers: recogRemoveOutliers()
+ *     (3) requesting identification of an unlabeled character:
+ *         recogIdentifyPix()
  *  is called before an explicit call to finish training.  Note that
  *  to do further training on a "finished" recognizer, just set
  *         recog->train_done = FALSE;
  *  add the new training samples, and again call
- *         recogTrainingFinished(rec, 0);  // required
+ *         recogTrainingFinished(rec, 1);  // required
  *
  *  If not scaling, using the images directly for identification, and
  *  removing outliers, do something like this:
- *         L_Recog  *rec = recogCreate(0, 0, L_USE_IMAGE, 128, 1);
- *         for (i = 0; i < n; i++) {  // read in n training characters
- *             Pix *pix = ...
- *             recogTrainLabeled(rec, pix, NULL, text[i], 0, 0);
- *         }
- *         recogTrainingFinished(rec, 0);
- *         // remove outliers
- *         recogRemoveOutliers(rec, 0.7, 0.5, 0);
+ *      L_Recog  *rec = recogCreate(0, 0, 0, 128, 1);
+ *      for (i = 0; i < n; i++) {  // read in n training characters
+ *          Pix *pix = ...
+ *          recogTrainLabeled(rec, pix, NULL, text[i], 0, 0);
+ *      }
+ *      recogTrainingFinished(rec, 1);
+ *      // remove outliers
+ *      recogRemoveOutliers(rec, 0.7, 0.5, 0);
  *
  *  You can generate a recognizer from a pixa where the text field in
  *  each pix is the character string label for the pix.  For example,
- *  the following recognizer will store unscaled outline images:
- *
- *         L_Recog  *rec = recogCreateFromPixa(pixa, 0, 0, L_USE_OUTLINE,
- *                                             128, 1);
- *
- *  and in use, it is fed unscaled outline images to identify.
+ *  the following recognizer will store unscaled line images:
+ *      L_Recog  *rec = recogCreateFromPixa(pixa, 0, 0, linew, 128, 1);
+ *  and in use, it is fed unscaled line images to identify.
  *
  *  A special case is a "bootstrap" recognizer (BSR), containing images
- *  scaled to a fixed height:
- *
- *         L_Recog  *recboot = recogCreateFromPixa(pixa, 0, 40,
- *                                                 L_USE_OUTLINE, 128, 1);
+ *  that are scaled to a fixed height (we use 40 in these examples),
+ *  and use either the scanned bitmap:
+ *      L_Recog  *recboot = recogCreateFromPixa(pixa, 0, 40, 0, 128, 1);
+ *  or width-normalized lines (use width of 5 here):
+ *      L_Recog  *recboot = recogCreateFromPixa(pixa, 0, 40, 5, 128, 1);
  *  
  *  This can be used to train a new book adapted recognizer (BAC), on
  *  unlabeled data from, e.g., a book.  To do this, the following is required:
  *   (1) the input images from the book must be scaled in the same
  *       way as those in the BSR
  *   (2) both the BSR and the input images must be set up to be either
- *       images or thickened outlines.
+ *       input scanned images or width-normalized lines.
  *
  * </pre>
  */
@@ -155,7 +168,12 @@
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;  /* n'import quoi */
 static const l_int32  MAX_EXAMPLES_IN_CLASS = 256;
 
+    /* Default recog parameters that can be changed */
+static const l_int32    DEFAULT_CHARSET_TYPE = L_ARABIC_NUMERALS;
+static const l_int32    DEFAULT_MIN_NOPAD = 3;
+
     /* Static functions */
+static l_int32 recogGetCharsetSize(l_int32 type);
 static l_int32 recogAddCharstrLabels(L_RECOG *recog);
 static l_int32 recogAddAllSamples(L_RECOG *recog, PIXAA *paa, l_int32 debug);
 
@@ -169,7 +187,7 @@ static l_int32 recogAddAllSamples(L_RECOG *recog, PIXAA *paa, l_int32 debug);
  * \param[in]    recs source recog with arbitrary input parameters
  * \param[in]    scalew  scale all widths to this; use 0 otherwise
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
- * \param[in]    templ_type L_TYPE_IMAGE or L_TYPE_OUTLINE
+ * \param[in]    linew   width of normalized strokes; use 0 to skip
  * \param[in]    threshold for binarization; typically ~128
  * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
  * \return  recd, or NULL on error
@@ -178,14 +196,14 @@ static l_int32 recogAddAllSamples(L_RECOG *recog, PIXAA *paa, l_int32 debug);
  * Notes:
  *      (1) This is a convenience function that generates a recog using
  *          the unscaled training data in an existing recog.
- *      (2) See recogCreate() for use of %scalew and %scaleh.
+ *      (2) See recogCreate() for use of %scalew, %scaleh and %linew.
  * </pre>
  */
 L_RECOG *
 recogCreateFromRecog(L_RECOG     *recs,
                      l_int32      scalew,
                      l_int32      scaleh,
-                     l_int32      templ_type,
+                     l_int32      linew,
                      l_int32      threshold,
                      l_int32      maxyshift)
 {
@@ -198,7 +216,7 @@ PIXA     *pixa;
         return (L_RECOG *)ERROR_PTR("recs not defined", procName, NULL);
 
     pixa = recogExtractPixa(recs);
-    recd = recogCreateFromPixa(pixa, scalew, scaleh, templ_type, threshold,
+    recd = recogCreateFromPixa(pixa, scalew, scaleh, linew, threshold,
                                maxyshift);
     pixaDestroy(&pixa);
     return recd;
@@ -208,31 +226,30 @@ PIXA     *pixa;
 /*!
  * \brief   recogCreateFromPixa()
  *
- * \param[in]    pixa of labelled, 1 bpp images
+ * \param[in]    pixa of labeled, 1 bpp images
  * \param[in]    scalew  scale all widths to this; use 0 otherwise
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
- * \param[in]    templ_type L_TYPE_IMAGE or L_TYPE_OUTLINE
+ * \param[in]    linew   width of normalized strokes; use 0 to skip
  * \param[in]    threshold for binarization; typically ~128
  * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
  * \return  recog, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) This is a convenience function for training from labelled data.
+ *      (1) This is a convenience function for training from labeled data.
  *          The pixa can be read from file.
  *      (2) The pixa should contain the unscaled bitmaps used for training.
- *      (3) See recogCreate() for use of %scalew and %scaleh.
- *      (4) The characters here should work as a single "font", because
- *          each image example is put into a class defined by its
- *          character label.  All examples in the same class should be
- *          similar.
+ *      (3) See recogCreate() for use of %scalew, %scaleh and %linew.
+ *      (4) All examples in the same class (i.e., with the same character
+ *          label) should be similar.  They can be made similar by invoking
+ *          recogRemoveOutliers() on %pixa before calling this function.
  * </pre>
  */
 L_RECOG *
 recogCreateFromPixa(PIXA        *pixa,
                     l_int32      scalew,
                     l_int32      scaleh,
-                    l_int32      templ_type,
+                    l_int32      linew,
                     l_int32      threshold,
                     l_int32      maxyshift)
 {
@@ -259,8 +276,7 @@ PIX      *pix;
     if (ntext < n)
         L_ERROR("%d text strings < %d pix\n", procName, ntext, n);
 
-    recog = recogCreate(scalew, scaleh, templ_type, threshold,
-                        maxyshift);
+    recog = recogCreate(scalew, scaleh, linew, threshold, maxyshift);
     if (!recog)
         return (L_RECOG *)ERROR_PTR("recog not made", procName, NULL);
     for (i = 0; i < n; i++) {
@@ -275,7 +291,7 @@ PIX      *pix;
         pixDestroy(&pix);
     }
 
-    recogTrainingFinished(recog, 0);
+    recogTrainingFinished(recog, 1);
     return recog;
 }
 
@@ -285,7 +301,7 @@ PIX      *pix;
  *
  * \param[in]    scalew  scale all widths to this; use 0 otherwise
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
- * \param[in]    templ_type L_TYPE_IMAGE or L_TYPE_OUTLINE
+ * \param[in]    linew   width of normalized strokes; use 0 to skip
  * \param[in]    threshold for binarization; typically ~128
  * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
  * \return  recog, or NULL on error
@@ -295,43 +311,43 @@ PIX      *pix;
  *      (1) If %scalew == 0 and %scaleh == 0, no scaling is done.
  *          If one of these is 0 and the other is > 0, scaling is isotropic
  *          to the requested size.  We typically do not set both > 0.
- *      (2) Scaling is used for finding outliers and for training a
+ *      (2) Use linew > 0 to convert the templates to images with fixed
+ *          width strokes.  linew == 0 skips the conversion.
+ *      (3) Scaling is used for finding outliers and for training a
  *          book-adapted recognizer (BAR) from a bootstrap recognizer (BSR).
  *          Scaling the height to a fixed value and scaling the width
  *          accordingly (e.g., %scaleh = 40, %scalew = 0) is recommended.
- *      (3) The storage for most of the arrays is allocated when training
+ *      (4) The storage for most of the arrays is allocated when training
  *          is finished.
  * </pre>
  */
 L_RECOG *
 recogCreate(l_int32      scalew,
             l_int32      scaleh,
-            l_int32      templ_type,
+            l_int32      linew,
             l_int32      threshold,
             l_int32      maxyshift)
 {
 L_RECOG  *recog;
-PIXA     *pixa;
-PIXAA    *paa;
 
     PROCNAME("recogCreate");
 
     if (scalew < 0 || scaleh < 0)
         return (L_RECOG *)ERROR_PTR("invalid scalew or scaleh", procName, NULL);
-    if (templ_type != L_TYPE_IMAGE && templ_type != L_TYPE_OUTLINE)
-        return (L_RECOG *)ERROR_PTR("invalid templ_type flag", procName, NULL);
+    if (linew > 10)
+        return (L_RECOG *)ERROR_PTR("invalid linew > 10", procName, NULL);
     if (threshold < 1 || threshold > 255)
         return (L_RECOG *)ERROR_PTR("invalid threshold", procName, NULL);
 
     if ((recog = (L_RECOG *)LEPT_CALLOC(1, sizeof(L_RECOG))) == NULL)
         return (L_RECOG *)ERROR_PTR("rec not made", procName, NULL);
-    recog->templ_type = templ_type;
-    recog->templ_use = L_USE_ALL;  /* default for everything except outliers */
+    recog->templ_use = L_USE_ALL_TEMPL;  /* default for all but outliers */
     recog->threshold = threshold;
     recog->scalew = scalew;
     recog->scaleh = scaleh;
+    recog->linew = linew;
     recog->maxyshift = maxyshift;
-    recogSetPadParams(recog, NULL, NULL, NULL, 0, -1, -1, -1, -1);
+    recogSetParams(recog, 1, -1);
     recog->bmf = bmfCreate(NULL, 6);
     recog->bmf_size = 6;
     recog->maxarraysize = MAX_EXAMPLES_IN_CLASS;
@@ -348,12 +364,8 @@ PIXAA    *paa;
     recog->min_splith = 6;
     recog->max_splith = 60;
 
-        /* Generate the storage for the unscaled training bitmaps */
-    paa = pixaaCreate(recog->maxarraysize);
-    pixa = pixaCreate(1);
-    pixaaInitFull(paa, pixa);
-    pixaDestroy(&pixa);
-    recog->pixaa_u = paa;
+        /* Allocate the paa for the unscaled training bitmaps */
+    recog->pixaa_u = pixaaCreate(recog->maxarraysize);
 
         /* Generate the storage for debugging */
     recog->pixadb_boot = pixaCreate(2);
@@ -382,9 +394,6 @@ L_RECOG  *recog;
 
     if ((recog = *precog) == NULL) return;
 
-    LEPT_FREE(recog->bootdir);
-    LEPT_FREE(recog->bootpattern);
-    LEPT_FREE(recog->bootpath);
     LEPT_FREE(recog->centtab);
     LEPT_FREE(recog->sumtab);
     sarrayDestroy(&recog->sa_text);
@@ -435,6 +444,71 @@ recogGetCount(L_RECOG  *recog)
 }
 
 
+/*!
+ * \brief   recogSetParams()
+ *
+ * \param[in]    recog        to be padded, if necessary
+ * \param[in]    type     type of char set; -1 for default; see enum in recog.h
+ * \param[in]    min_nopad    min number in a class without padding; -1 default
+ * \return       0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is called when a recog is created.
+ *      (2) Default values allow for some padding.  To disable padding,
+ *          set %min_nopad = 0.
+ * </pre>
+ */
+l_int32
+recogSetParams(L_RECOG     *recog,
+               l_int32      type,
+               l_int32      min_nopad)
+{
+
+    PROCNAME("recogSetParams");
+
+    if (!recog)
+        return ERROR_INT("recog not defined", procName, 1);
+
+    recog->charset_type = (type >= 0) ? type : DEFAULT_CHARSET_TYPE;
+    recog->charset_size = recogGetCharsetSize(recog->charset_type);
+    recog->min_nopad = (min_nopad >= 0) ? min_nopad : DEFAULT_MIN_NOPAD;
+    return 0;
+}
+
+
+/*!
+ * \brief   recogGetCharsetSize()
+ *
+ * \param[in]    type of charset
+ * \return  size of charset, or 0 if unknown or on error
+ */
+static l_int32
+recogGetCharsetSize(l_int32  type)
+{
+    PROCNAME("recogGetCharsetSize");
+
+    switch (type) {
+    case L_UNKNOWN:
+        return 0;
+    case L_ARABIC_NUMERALS:
+        return 10;
+    case L_LC_ROMAN_NUMERALS:
+        return 7;
+    case L_UC_ROMAN_NUMERALS:
+        return 7;
+    case L_LC_ALPHA:
+        return 26;
+    case L_UC_ALPHA:
+        return 26;
+    default:
+        L_ERROR("invalid charset_type %d\n", procName, type);
+        return 0;
+    }
+    return 0;  /* shouldn't happen */
+}
+
+
 /*------------------------------------------------------------------------*
  *                         Character/index lookup                         *
  *------------------------------------------------------------------------*/
@@ -449,11 +523,17 @@ recogGetCount(L_RECOG  *recog)
  *
  * <pre>
  * Notes:
- *      (1) This is used during training.  It searches the
- *          dna character array for %val.  If not found, it increments
- *          the setsize by 1, augmenting both the index and text arrays.
- *      (2) Returns the index in &index, except on error.
- *      (3) Caller must check the function return value.
+ *      (1) This is used during training.  There is one entry in
+ *          recog->dna_tochar (integer value, e.g., ascii) and
+ *          one in recog->sa_text (e.g, ascii letter in a string)
+ *          for each character class.
+ *      (2) This searches the dna character array for %val.  If it is
+ *          not found, the template represents a character class not
+ *          already seen: it increments setsize (the number of character
+ *          classes) by 1, and augments both the index (dna_tochar)
+ *          and text (sa_text) arrays.
+ *      (3) Returns the index in &index, except on error.
+ *      (4) Caller must check the function return value.
  * </pre>
  */
 l_int32
@@ -468,7 +548,7 @@ l_int32  i, n, ival;
 
     if (!pindex)
         return ERROR_INT("&index not defined", procName, 2);
-    *pindex = 0;
+    *pindex = -1;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 2);
     if (!text)
@@ -626,13 +706,21 @@ l_int32  size, val;
  *
  * <pre>
  * Notes:
- *      (1) Serialization can be applied to any recognizer, including
- *          one with more than one "font".  That is, it can have
- *          multiple character classes with the same character set
- *          description, where each of those classes contains characters
- *          that are very similar in size and shape.  Each pixa in
- *          the serialized pixaa contains images for a single character
- *          class.
+ *      (1) When a recog is serialized, a pixaa of the templates that are
+ *          actually used for correlation is saved in the pixaa_u array
+ *          of the recog.  These can be different from the templates that
+ *          were used to generate the recog, because those original templates
+ *          can be scaled and turned into normalized lines.  When recog1
+ *          is deserialized to recog2, these templates are put in both the
+ *          unscaled array (pixaa_u) and the modified array (pixaa) in recog2.
+ *          Why not put it in only the unscaled array and let
+ *          recogTrainingFinalized() regenerate the modified templates?
+ *          The reason is that with normalized lines, the operation of
+ *          thinning to a skeleton and dilating back to a fixed width
+ *          is not idempotent.  Thinning to a skeleton saves pixels at
+ *          the end of a line segment, and thickening the skeleton puts
+ *          additional pixels at the end of the lines.  This tends to
+ *          close gaps.
  * </pre>
  */
 L_RECOG *
@@ -667,7 +755,7 @@ L_RECOG  *recog;
 L_RECOG *
 recogReadStream(FILE  *fp)
 {
-l_int32   version, setsize, templ_type, threshold, scalew, scaleh;
+l_int32   version, setsize, threshold, scalew, scaleh, linew;
 l_int32   maxyshift, nc;
 L_DNA    *dna_tochar;
 PIXAA    *paa;
@@ -685,8 +773,6 @@ SARRAY   *sa_text;
         return (L_RECOG *)ERROR_PTR("invalid recog version", procName, NULL);
     if (fscanf(fp, "Size of character set = %d\n", &setsize) != 1)
         return (L_RECOG *)ERROR_PTR("setsize not read", procName, NULL);
-    if (fscanf(fp, "Template type = %d\n", &templ_type) != 1)
-        return (L_RECOG *)ERROR_PTR("template type not read", procName, NULL);
     if (fscanf(fp, "Binarization threshold = %d\n", &threshold) != 1)
         return (L_RECOG *)ERROR_PTR("binary thresh not read", procName, NULL);
     if (fscanf(fp, "Maxyshift = %d\n", &maxyshift) != 1)
@@ -695,7 +781,9 @@ SARRAY   *sa_text;
         return (L_RECOG *)ERROR_PTR("width not read", procName, NULL);
     if (fscanf(fp, "Scale to height = %d\n", &scaleh) != 1)
         return (L_RECOG *)ERROR_PTR("height not read", procName, NULL);
-    if ((recog = recogCreate(scalew, scaleh, templ_type, threshold,
+    if (fscanf(fp, "Normalized line width = %d\n", &linew) != 1)
+        return (L_RECOG *)ERROR_PTR("line width not read", procName, NULL);
+    if ((recog = recogCreate(scalew, scaleh, linew, threshold,
                              maxyshift)) == NULL)
         return (L_RECOG *)ERROR_PTR("recog not made", procName, NULL);
 
@@ -762,6 +850,15 @@ L_RECOG  *recog;
  * \param[in]    filename
  * \param[in]    recog
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The pixaa of templates that is written is the modified one
+ *          in the pixaa field. It is the pixaa that is actually used
+ *          for correlation. This is not the unscaled array of labeled
+ *          bitmaps, in pixaa_u, that was used to generate the recog in the
+ *          first place.  See the notes in recogRead() for the rationale.
+ * </pre>
  */
 l_int32
 recogWrite(const char  *filename,
@@ -805,11 +902,11 @@ recogWriteStream(FILE     *fp,
 
     fprintf(fp, "\nRecog Version %d\n", RECOG_VERSION_NUMBER);
     fprintf(fp, "Size of character set = %d\n", recog->setsize);
-    fprintf(fp, "Template type = %d\n", recog->templ_type);
     fprintf(fp, "Binarization threshold = %d\n", recog->threshold);
     fprintf(fp, "Maxyshift = %d\n", recog->maxyshift);
     fprintf(fp, "Scale to width = %d\n", recog->scalew);
     fprintf(fp, "Scale to height = %d\n", recog->scaleh);
+    fprintf(fp, "Normalized line width = %d\n", recog->linew);
     fprintf(fp, "\nLabels for character set:\n");
     l_dnaWriteStream(fp, recog->dna_tochar);
     sarrayWriteStream(fp, recog->sa_text);
@@ -943,7 +1040,7 @@ PIXAA   *paa;
  * \brief   recogAddAllSamples()
  *
  * \param[in]    recog
- * \param[in]    paa pixaa from previously trained recog
+ * \param[in]    paa    pixaa from previously trained recog
  * \param[in]    debug
  * \return  0 if OK, 1 on error
  *
@@ -951,12 +1048,10 @@ PIXAA   *paa;
  * Notes:
  *      (1) This is used with the serialization routine recogRead(),
  *          where each pixa in the pixaa represents a set of characters
- *          in a different class.  Two different pixa may represent
- *          characters with the same label.  Before calling this
- *          function, we verify that the number of character classes,
- *          given by the setsize field in recog, equals the number of
- *          pixa in the paa.  The character labels for each set are
- *          in the sa_text field.
+ *          in a different class.  Before calling this function, we have
+ *          verified that the number of character classes, given by the
+ *          setsize field in %recog, equals the number of pixa in the paa.
+ *          The character labels for each set are in the sa_text field.
  * </pre>
  */
 static l_int32
@@ -967,7 +1062,7 @@ recogAddAllSamples(L_RECOG  *recog,
 char    *text;
 l_int32  i, j, nc, ns;
 PIX     *pix;
-PIXA    *pixa;
+PIXA    *pixa, *pixa1;
 
     PROCNAME("recogAddAllSamples");
 
@@ -981,16 +1076,16 @@ PIXA    *pixa;
         pixa = pixaaGetPixa(paa, i, L_CLONE);
         ns = pixaGetCount(pixa);
         text = sarrayGetString(recog->sa_text, i, L_NOCOPY);
+        pixa1 = pixaCreate(ns);
+        pixaaAddPixa(recog->pixaa_u, pixa1, L_INSERT);
         for (j = 0; j < ns; j++) {
             pix = pixaGetPix(pixa, j, L_CLONE);
-            if (debug) {
-                fprintf(stderr, "pix[%d,%d]: text = %s\n", i, j, text);
-            }
+            if (debug) fprintf(stderr, "pix[%d,%d]: text = %s\n", i, j, text);
             pixaaAddPix(recog->pixaa_u, i, pix, NULL, L_INSERT);
         }
         pixaDestroy(&pixa);
     }
 
-    recogTrainingFinished(recog, debug);
+    recogTrainingFinished(recog, 0);  /* 0: see comment in recogRead() */
     return 0;
 }

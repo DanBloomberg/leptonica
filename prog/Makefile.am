@@ -107,6 +107,7 @@ OTHER_PROGS = adaptmap_dark \
 	pixaatest pixafileinfo plottest \
 	quadtreetest rbtreetest \
 	recog_bootnum recogsort recogtest1 \
+	recogtest2 recogtest3 recogtest4 recogtest5 \
 	reducetest removecmap \
 	renderfonts rotatefastalt \
 	rotateorthtest1 rotatetest1 \

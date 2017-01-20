@@ -258,7 +258,7 @@ PIXA     *pixa;
  *          an application that maintains information about connected
  *          components incrementally as pixels are added.
  *      (3) pixs can be empty or have some foreground pixels.
- *      (4) The connectivity is stored in pixd-\>special.
+ *      (4) The connectivity is stored in pixd->special.
  *      (5) Always initialize with the first pta in ptaa being empty
  *          and representing the background value (index 0) in the pix.
  * </pre>
@@ -299,7 +299,7 @@ PTAA    *ptaa;
         return 0;
     }
 
-        /* Set up the initial labelled image and indexed pixel arrays */
+        /* Set up the initial labeled image and indexed pixel arrays */
     if ((pixd = pixConnCompTransform(pixs, conn, 32)) == NULL)
         return ERROR_INT("pixd not made", procName, 1);
     pixSetSpecial(pixd, conn);
@@ -315,7 +315,7 @@ PTAA    *ptaa;
 /*!
  * \brief   pixConnCompIncrAdd()
  *
- * \param[in]     pixs 32 bpp, with pixels labelled by c.c.
+ * \param[in]     pixs 32 bpp, with pixels labeled by c.c.
  * \param[in]     ptaa with each pta of pixel locations indexed by c.c.
  * \param[out]    pncc number of c.c
  * \param[in]     x,y location of added pixel
@@ -325,7 +325,7 @@ PTAA    *ptaa;
  *
  * <pre>
  * Notes:
- *      (1) This adds a pixel and updates the labelled connected components.
+ *      (1) This adds a pixel and updates the labeled connected components.
  *          Before calling this function, initialize the process using
  *          pixConnCompIncrInit().
  *      (2) As a result of adding a pixel, one of the following can happen,
@@ -338,7 +338,7 @@ PTAA    *ptaa;
  *              two or more c.c., reducing the number of c.c.  A maximum
  *              of 4 c.c. can be joined.
  *      (3) When two c.c. are joined, the pixels in the larger index are
- *          relabelled to those of the smaller in pixs, and their locations
+ *          relabeled to those of the smaller in pixs, and their locations
  *          are transferred to the pta with the smaller index in the ptaa.
  *          The pta corresponding to the larger index is then deleted.
  *      (4) This is an efficient implementation of a "union-find" operation,
@@ -442,7 +442,7 @@ PTA      *ptas, *ptad;
             ptaGetPt(ptas, j, &x, &y);
             pixSetPixel(pixs, x, y, firstindex);
         }
-        ptaJoin(ptad, ptas, 0, -1);  /* add relabelled pixel locations */
+        ptaJoin(ptad, ptas, 0, -1);  /* add relabeled pixel locations */
         *pncc -= 1;
         ptaDestroy(&ptaa->pta[neigh[i]]);
         ptaDestroy(&ptas);  /* the clone */
@@ -456,7 +456,7 @@ PTA      *ptas, *ptad;
 /*!
  * \brief   pixGetSortedNeighborValues()
  *
- * \param[in]     pixs 8, 16 or 32 bpp, with pixels labelled by c.c.
+ * \param[in]     pixs 8, 16 or 32 bpp, with pixels labeled by c.c.
  * \param[in]     x, y location of pixel
  * \param[in]     conn 4 or 8 connected neighbors
  * \param[out]    pneigh array of integers, to be filled with
