@@ -1141,7 +1141,7 @@ PTA       *pta;
         } else {  /* L_USE_ALL_TEMPL */
             L_INFO("Best match: str %s; sample %d in class %d; score %5.3f\n",
                    procName, text, bestsample, bestindex, maxscore);
-            if (maxyshift > 0 && (L_ABS(bestdelx) > 0 || L_ABS(bestdely > 0))) {
+            if (maxyshift > 0 && (L_ABS(bestdelx) > 0 || L_ABS(bestdely) > 0)) {
                 L_INFO("  Best shift: (%d, %d)\n",
                        procName, bestdelx, bestdely);
             }
