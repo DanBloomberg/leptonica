@@ -37,7 +37,8 @@
  *         l_int32             recogAverageSamples()
  *         l_int32             pixaAccumulateSamples()
  *         l_int32             recogTrainingFinished()
- *         PIXA               *recogRemoveOutliers()
+ *         PIXA               *recogRemoveOutliers1()
+ *         PIXA               *recogRemoveOutliers2()
  *
  *      Training on unlabeled data
  *         L_RECOG             recogTrainFromBoot()
@@ -58,6 +59,7 @@
  *         l_int32             recogDebugAverages()
  *         l_int32             recogShowAverageTemplates()
  *         PIX                *recogDisplayOutliers()
+ *         PIX                *pixDisplayOutlier()
  *         PIX                *recogShowMatchesInRange()
  *         PIX                *recogShowMatch()
  *
@@ -92,7 +94,7 @@
  *  and 4 in the unlabeled data.
  *  It appears that better results for a BAR are usually obtained using
  *  SI than WNL, but more experimentation is needed.
- *  
+ *
  *  This utility is designed to build recognizers that are specifically
  *  adapted from a large amount of material, such as a book.  These
  *  use labeled templates taken from the material, and not scaled.
@@ -161,9 +163,11 @@ static l_int32 *recogMapIndexToIndex(L_RECOG *recog1, L_RECOG *recog2);
 static l_int32 recogAverageClassGeom(L_RECOG *recog, NUMA **pnaw, NUMA **pnah);
 static SARRAY *recogAddMissingClassStrings(L_RECOG  *recog);
 static l_int32 recogCharsetAvailable(l_int32 type);
+static PIX *pixDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
+                              l_int32 maxclass, l_float32 maxscore);
 static char *l_charToString(char byte);
 
-    /* Defaults in pixRemoveOutliers() */
+    /* Defaults in pixRemoveOutliers1() */
 static const l_float32  DEFAULT_MIN_SCORE = 0.75; /* keep everything above */
 static const l_float32  DEFAULT_MIN_FRACTION = 0.5;  /* to be kept */
 
@@ -581,7 +585,7 @@ recogAverageSamples(L_RECOG  *recog,
 l_int32    i, nsamp, size, area;
 l_float32  x, y;
 PIXA      *pixat, *pixa_sel;
-PIX       *pix1, *pix2;
+PIX       *pix1, *pix2, *pix3;
 PTA       *ptat;
 
     PROCNAME("recogAverageSamples");
@@ -627,11 +631,13 @@ PTA       *ptat;
             nsamp = (nsamp == 1) ? 2 : nsamp;  /* special case thresh */
             pix2 = pixThresholdToBinary(pix1, nsamp / 2);
             pixInvert(pix2, pix2);
-            pixaAddPix(recog->pixa_u, pix2, L_INSERT);
+            pixClipToForeground(pix2, &pix3, NULL);
+            pixaAddPix(recog->pixa_u, pix3, L_INSERT);
             ptaAddPt(recog->pta_u, x, y);
-            pixCountPixels(pix2, &area, recog->sumtab);
+            pixCountPixels(pix3, &area, recog->sumtab);
             numaAddNumber(recog->nasum_u, area);  /* foreground */
             pixDestroy(&pix1);
+            pixDestroy(&pix2);
         }
         pixaDestroy(&pixat);
         ptaDestroy(&ptat);
@@ -662,11 +668,13 @@ PTA       *ptat;
             nsamp = (nsamp == 1) ? 2 : nsamp;  /* special case thresh */
             pix2 = pixThresholdToBinary(pix1, nsamp / 2);
             pixInvert(pix2, pix2);
-            pixaAddPix(recog->pixa, pix2, L_INSERT);
+            pixClipToForeground(pix2, &pix3, NULL);
+            pixaAddPix(recog->pixa, pix3, L_INSERT);
             ptaAddPt(recog->pta, x, y);
-            pixCountPixels(pix2, &area, recog->sumtab);
+            pixCountPixels(pix3, &area, recog->sumtab);
             numaAddNumber(recog->nasum, area);  /* foreground */
             pixDestroy(&pix1);
+            pixDestroy(&pix2);
         }
         pixaDestroy(&pixat);
         ptaDestroy(&ptat);
@@ -801,7 +809,7 @@ PTA       *ptac;
  * Notes:
  *      (1) This must be called after all training samples have been added.
  *      (2) Usually, %modifyflag == 1, because we want to apply
- *          recogModifyTemplate() to generate the actual templates 
+ *          recogModifyTemplate() to generate the actual templates
  *          that will be used.  The one exception is when reading a
  *          serialized recog: there we want to put the same set of
  *          templates in both the unscaled and modified pixaa.
@@ -910,13 +918,13 @@ PTAA      *ptaa;
 
 
 /*!
- * \brief   recogRemoveOutliers()
+ * \brief   recogRemoveOutliers1()
  *
  * \param[in]   pixas        unscaled labeled templates
  * \param[in]   minscore     keep everything with at least this score
  * \param[in]   minfract     minimum fraction to retain
- * \param[out]  pixarem      [optional debug] removed templates
- * \param[out]  narem        [optional debug] scores of removed templates
+ * \param[out]  ppixarem     [optional debug] removed templates
+ * \param[out]  pnarem       [optional debug] scores of removed templates
  * \return  pixa   of unscaled templates to be kept, or NULL on error
  *
  * <pre>
@@ -942,11 +950,11 @@ PTAA      *ptaa;
  * </pre>
  */
 PIXA *
-recogRemoveOutliers(PIXA      *pixas,
-                    l_float32  minscore,
-                    l_float32  minfract,
-                    PIXA     **ppixarem,
-                    NUMA     **pnarem)
+recogRemoveOutliers1(PIXA      *pixas,
+                     l_float32  minscore,
+                     l_float32  minfract,
+                     PIXA     **ppixarem,
+                     NUMA     **pnarem)
 {
 l_int32    i, j, debug, n, area1, area2;
 l_float32  x1, y1, x2, y2, maxval, score, rankscore, threshscore;
@@ -956,7 +964,7 @@ PIXA      *pixa, *pixarem, *pixad;
 PTA       *pta;
 L_RECOG   *recog;
 
-    PROCNAME("recogRemoveOutliers");
+    PROCNAME("recogRemoveOutliers1");
 
     if (ppixarem) *ppixarem = NULL;
     if (pnarem) *pnarem = NULL;
@@ -991,7 +999,7 @@ L_RECOG   *recog;
         ptaGetPt(recog->pta, i, &x1, &y1);
         numaGetIValue(recog->nasum, i, &area1);
 
-            /* Get the sorted scores for each sample in the class */
+            /* Get the scores for each sample in the class */
         pixa = pixaaGetPixa(recog->pixaa, i, L_CLONE);
         pta = ptaaGetPta(recog->ptaa, i, L_CLONE);  /* centroids */
         nasum = numaaGetNuma(recog->naasum, i, L_CLONE);  /* fg areas */
@@ -1023,11 +1031,14 @@ L_RECOG   *recog;
                    procName, minscore, rankscore, threshscore);
         }
 
-            /* Save the templates that are at or above threshold */
+            /* Save the templates that are at or above threshold.
+             * If there are less than 3 templates in the class, keep
+             * them all, because with only 2 templates we have no
+             * ability to identify an 'outlier'. */
         for (j = 0; j < n; j++) {
             numaGetFValue(nascore, j, &score);
             pix1 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
-            if (score >= threshscore) {
+            if (score >= threshscore || n < 3) {
                 pixaAddPix(pixad, pix1, L_INSERT);
             } else if (debug) {
                 pixaAddPix(pixarem, pix1, L_INSERT);
@@ -1036,13 +1047,112 @@ L_RECOG   *recog;
                 pixDestroy(&pix1);
             }
         }
-            
+
         pixaDestroy(&pixa);
         ptaDestroy(&pta);
         numaDestroy(&nasum);
         numaDestroy(&nascore);
     }
 
+    recogDestroy(&recog);
+    return pixad;
+}
+
+
+/*!
+ * \brief   recogRemoveOutliers2()
+ *
+ * \param[in]   pixas       unscaled labeled templates
+ * \param[out]  ppixarem    [optional debug] removed templates
+ * \param[out]  ppixadb     [optional debug] info on removed templates
+ * \return  pixa   of unscaled templates to be kept, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Removing outliers is particularly important when recognition
+ *          goes against all the samples in the training set, as opposed
+ *          to the averages for each class.  The reason is that we get
+ *          an identification error if a mislabeled template is a best
+ *          match for an input sample.
+ *      (2) This method compares each template against the average templates
+ *          of each class, and discards any template that has a higher
+ *          correlation to a class different from its own.  Unlike
+ *          recogRemoveOutliers1(), this has no thresholds or minimum
+ *          requirements for saving templates.
+ *      (3) This is meant to be used on a BAR, Where the templates all
+ *          come from the same book.
+ * </pre>
+ */
+PIXA *
+recogRemoveOutliers2(PIXA   *pixas,
+                     PIXA  **ppixarem,
+                     PIXA  **ppixadb)
+{
+l_int32    i, j, k, n, area1, area2, maxk;
+l_float32  x1, y1, x2, y2, score, maxscore;
+NUMA      *nan, *nascore;
+PIX       *pix1, *pix2, *pix3;
+PIXA      *pixad;
+L_RECOG   *recog;
+
+    PROCNAME("recogRemoveOutliers2");
+
+    if (ppixarem) *ppixarem = NULL;
+    if (ppixadb) *ppixadb = NULL;
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+
+    if (ppixarem)
+        *ppixarem = pixaCreate(0);
+    if (ppixadb)
+        *ppixadb = pixaCreate(0);
+
+        /* Make a special height-scaled recognizer with average templates */
+    recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
+    recogAverageSamples(recog, 0);
+    pixad = pixaCreate(0);
+
+    pixaaGetCount(recog->pixaa, &nan);  /* number of templates in each class */
+    for (i = 0; i < recog->setsize; i++) {
+            /* Get the scores for each sample in the class, when comparing
+             * with averages from all the classes. */
+        numaGetIValue(nan, i, &n);
+        for (j = 0; j < n; j++) {
+            pix1 = pixaaGetPix(recog->pixaa, i, j, L_CLONE);
+            ptaaGetPt(recog->ptaa, i, j, &x1, &y1);  /* centroid */
+            numaaGetValue(recog->naasum, i, j, NULL, &area1);  /* fg sum */
+            nascore = numaCreate(n);
+            for (k = 0; k < recog->setsize; k++) {  /* average templates */
+                pix2 = pixaGetPix(recog->pixa, k, L_CLONE);
+                ptaGetPt(recog->pta, k, &x2, &y2);  /* average centroid */
+                numaGetIValue(recog->nasum, k, &area2);  /* average fg sum */
+                pixCorrelationScoreSimple(pix1, pix2, area1, area2,
+                                          x1 - x2, y1 - y2, 5, 5,
+                                          recog->sumtab, &score);
+                numaAddNumber(nascore, score);
+                pixDestroy(&pix2);
+            }
+
+            numaGetMax(nascore, &maxscore, &maxk);
+            if (maxk == i || n < 3) {  /* in correct class; save it */
+                pix3 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
+                pixaAddPix(pixad, pix3, L_INSERT);
+                pixDestroy(&pix1);
+            } else {  /* outlier */
+                if (ppixarem)
+                    pixaAddPix(*ppixarem, pix1, L_COPY);
+                else
+                    pixDestroy(&pix1);
+                if (ppixadb) {
+                    pix3 = pixDisplayOutlier(recog, i, j, maxk, maxscore);
+                    pixaAddPix(*ppixadb, pix3, L_INSERT);
+                }
+            }
+            numaDestroy(&nascore);
+        }
+    }
+
+    numaDestroy(&nan);
     recogDestroy(&recog);
     return pixad;
 }
@@ -1127,7 +1237,7 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
         pixDestroy(&pix1);
     }
     pixaDestroy(&pixa1);
- 
+
         /* Optionally convert to width-normalized line */
     if (linew > 0)
         pixa3 = pixaSetStrokeWidth(pixa2, linew, 4, 8);
@@ -1136,7 +1246,7 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
     pixaDestroy(&pixa2);
 
         /* Identify using recogboot */
-    n = pixaGetCount(pixa3); 
+    n = pixaGetCount(pixa3);
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixa3, i, L_COPY);
@@ -1151,44 +1261,13 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
         if (score >= minscore) {
             pix2 = pixaGetPix(pixas, i, L_COPY);
             pixSetText(pix2, text);
-            pixaAddPix(pixad, pix2, L_INSERT); 
+            pixaAddPix(pixad, pix2, L_INSERT);
             pixaAddPix(recogboot->pixadb_boot, pixdb, L_COPY);
         }
         LEPT_FREE(text);
         pixDestroy(&pix1);
     }
     pixaDestroy(&pixa3);
-
-#if 0
-    /* Skip for now; this will be cleaned up/removed in phase 2 */
-
-       /* Generate labeled images for a BAR, using the BSR */
-    recog1 = recogCreate(20, 32, L_USE_AVERAGE, threshold, 1);
-    for (i = 0; i < n; i++) {
-        pix1 = pixaGetPix(pixa1, i, L_COPY);
-        pixSetText(pix1, NULL);  /* remove any existing text or labelling */
-        recogTrainUnlabeled(recog1, recogboot, pix1, NULL, minscore, debug);
-        pixDestroy(&pix1);
-    }
-    recogTrainingFinished(recog1, 1);
-    pixaDestroy(&pixa1);
-
-        /* Now remake the recog based on the input parameters */
-    pixa2 = recogExtractPixa(recog1);
-    recog2 = recogCreateFromPixa(pixa2, scalew, scaleh, templ_type,
-                                 threshold, 1);
-    pixaDestroy(&pixa2);
-
-        /* Show what we have, with outliers removed */
-    if (debug) {
-        lept_mkdir("lept/recog");
-        recogDebugAverages(recog2, 1);
-        recogShowContent(stderr, recog2, 1, 1);
-        recogShowMatchesInRange(recog1, recog2->pixa_tr, minscore, 1.0, 1);
-        pixWrite("/tmp/lept/recog/range.png", recog1->pixdb_range, IFF_PNG);
-    }
-
-#endif
 
     return pixad;
 }
@@ -1201,7 +1280,7 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
  * \brief   recogPadDigitTrainingSet()
  *
  * \param[in/out]   precog   trained; if padding is needed, it is replaced
- *                          by a a new padded recog 
+ *                          by a a new padded recog
  * \param[in]       scaleh
  * \param[in]       linew
  * \return       0 if OK, 1 on error
@@ -1271,7 +1350,7 @@ recogIsPaddingNeeded(L_RECOG  *recog,
 char      *str;
 l_int32    i, nt, min_nopad, nclass, allclasses;
 l_float32  minval;
-NUMA      *naclass; 
+NUMA      *naclass;
 PIXAA     *paa;
 SARRAY    *sa;
 
@@ -1295,7 +1374,7 @@ SARRAY    *sa;
         numaDestroy(&naclass);
         return 0;
     }
-    
+
         /* Are any classes not represented? */
     sa = recogAddMissingClassStrings(recog);
     *psa = sa;
@@ -1352,7 +1431,7 @@ SARRAY  *sa;
     for (i = 0; i < recog->charset_size; i++)
          numaAddNumber(na, 1);
     for (i = 0; i < nclass; i++) {
-        text = sarrayGetString(recog->sa_text, i, L_NOCOPY); 
+        text = sarrayGetString(recog->sa_text, i, L_NOCOPY);
         index = text[0] - '0';
         numaSetValue(na, index, 0);
     }
@@ -1370,7 +1449,7 @@ SARRAY  *sa;
     return sa;
 }
 
-        
+
 /*!
  * \brief   recogAddDigitPadTemplates()
  *
@@ -1419,7 +1498,7 @@ PIXA    *pixa1, *pixa2;
         for (j = 0; j < nt; j++) {
             str = sarrayGetString(sa, j, L_NOCOPY);
             if (!strcmp(text, str)) {
-                pixaAddPix(pixa2, pix, L_COPY); 
+                pixaAddPix(pixa2, pix, L_COPY);
                 break;
             }
         }
@@ -1522,7 +1601,7 @@ L_RECOG  *recog;
 
 /*!
  * \brief   recogMakeBootDigitTemplates()
- *  
+ *
  * \param[in]    debug  1 for display of templates
  * \return  pixa   of templates; or NULL on error
  *
@@ -1634,14 +1713,14 @@ NUMA    *na;
         lept_mkdir("lept/recog");
         pix = pixaaDisplayByPixa(recog->pixaa_u, 20, 20, 1000);
         snprintf(buf, sizeof(buf), "/tmp/lept/recog/templates_u.%d.png", index);
-        pixWrite(buf, pix, IFF_PNG); 
+        pixWrite(buf, pix, IFF_PNG);
         pixDisplay(pix, 0, 200 * index);
         pixDestroy(&pix);
         if (recog->train_done) {
             pix = pixaaDisplayByPixa(recog->pixaa, 20, 20, 1000);
             snprintf(buf, sizeof(buf),
                      "/tmp/lept/recog/templates.%d.png", index);
-            pixWrite(buf, pix, IFF_PNG); 
+            pixWrite(buf, pix, IFF_PNG);
             pixDisplay(pix, 800, 200 * index);
             pixDestroy(&pix);
         }
@@ -1849,6 +1928,50 @@ PIXA      *pixa1;
     pix1 = pixaDisplayTiledWithText(pixa1, 1500, 1.0, 20, 2, 6, 0xff000000);
     pixaDestroy(&pixa1);
     return pix1;
+}
+
+
+/*!
+ * \brief   pixDisplayOutlier()
+ *
+ * \param[in]    recog
+ * \param[in]    iclass     sample is in this class
+ * \param[in]    jsamp      index of sample is class i
+ * \param[in]    maxclass   index of class with closest average to sample
+ * \param[in]    maxscore   score of sample with average of class %maxclass
+ * \return  pix  sample and template images, with score, or NULL on error
+ */
+static PIX  *
+pixDisplayOutlier(L_RECOG   *recog,
+                  l_int32    iclass,
+                  l_int32    jsamp,
+                  l_int32    maxclass,
+                  l_float32  maxscore)
+{
+char   buf[64];
+PIX   *pix1, *pix2, *pix3, *pix4, *pix5;
+PIXA  *pixa;
+
+    PROCNAME("pixDisplayOutlier");
+
+    if (!recog)
+        return (PIX *)ERROR_PTR("recog not defined", procName, NULL);
+
+    pix1 = pixaaGetPix(recog->pixaa, iclass, jsamp, L_CLONE);
+    pix2 = pixaGetPix(recog->pixa, iclass, L_CLONE);
+    pix3 = pixaGetPix(recog->pixa, maxclass, L_CLONE);
+    pixa = pixaCreate(3);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pix4 = pixaDisplayTiledInRows(pixa, 32, 400, 2.0, 0, 6, 2);
+    snprintf(buf, sizeof(buf), "C=%d, BAC=%d, S=%4.2f", iclass, maxclass,
+             maxscore);
+    pix5 = pixAddSingleTextblock(pix4, recog->bmf, buf, 0xff000000,
+                                 L_ADD_BELOW, NULL);
+    pixDestroy(&pix4);
+    pixaDestroy(&pixa);
+    return pix5;
 }
 
 

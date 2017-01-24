@@ -29,6 +29,10 @@
  *
  *   Demonstrates some segmentation techniques and display options.
  *   To see the results in one image: /tmp/lept/lineseg/result.png.
+ *
+ *   This demonstration shows many different operations.  However,
+ *   better results may be obtained from a much pixExtractLines(),
+ *   which is a much simpler function.  See testmisc1.c for examples.
  */
 
 #include "allheaders.h"
@@ -59,7 +63,7 @@ int main(int    argc,
 l_int32      w, h, d, w2, h2, i, ncols, same;
 l_float32    angle, conf;
 BOX         *box;
-BOXA        *boxa, *boxa2;
+BOXA        *boxa1, *boxa2;
 PIX         *pix, *pixs, *pixb, *pixb2;
 PIX         *pix1, *pix2, *pix3, *pix4;
 PIXA        *pixam;  /* mask with a single component over each column */
@@ -90,15 +94,15 @@ static char  mainName[] = "arabic_lines";
            This only works for very simple layouts where each column
            of text extends the full height of the input image.  */
     pixb2 = pixReduceRankBinary2(pixb, 2, NULL);
-    pix1 = pixMorphCompSequence(pixb2, "c5.500", 0);
-    boxa = pixConnComp(pix1, &pixam, 8);
-    ncols = boxaGetCount(boxa);
+    pix1 = pixMorphCompSequence(pixb2, "c5.500 + o20.20", 0);
+    boxa1 = pixConnComp(pix1, &pixam, 8);
+    ncols = boxaGetCount(boxa1);
     fprintf(stderr, "Num columns: %d\n", ncols);
     pixaAddPix(pixa, pix1, L_INSERT);
-    boxaDestroy(&boxa);
+    boxaDestroy(&boxa1);
 
         /* Use selective region-based morphology to get the textline mask. */
-    pixa2 = pixaMorphSequenceByRegion(pixb2, pixam, "c100.3", 0, 0);
+    pixa2 = pixaMorphSequenceByRegion(pixb2, pixam, "c100.3 + o30.1", 0, 0);
     pixGetDimensions(pixb2, &w2, &h2, NULL);
     pix2 = pixaDisplay(pixa2, w2, h2);
     pixaAddPix(pixa, pix2, L_INSERT);

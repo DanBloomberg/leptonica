@@ -914,7 +914,7 @@ PIX        *pixt, *pixt1, *pixt2;
  *
  * <pre>
  * Notes:
- *      (1) This should be called by recogIdentifyMuliple(), which 
+ *      (1) This should be called by recogIdentifyMuliple(), which
  *          binarizes and splits characters before sending %pixa here.
  *      (2) This calls recogIdentifyPix(), which does the same operation
  *          on each pix in %pixa, and optionally returns the arrays
@@ -1012,10 +1012,10 @@ L_RCH     *rch;
  * <pre>
  * Notes:
  *      (1) Basic recognition function for a single character.
- *      (2) If templ_use == L_USE_ALL_TEMPL, which is the default situation,
- *          matching is attempted to every bitmap in the recog, and the
- *          identify of the best match is returned.
- *      (3) For finding outliers, templ_use == L_USE_AVERAGE_TEMPL, and
+ *      (2) If templ_use == L_USE_ALL_TEMPLATES, which is the default
+ *          situation, matching is attempted to every bitmap in the recog,
+ *          and the identify of the best match is returned.
+ *      (3) For finding outliers, templ_use == L_USE_AVERAGE_TEMPLATES, and
  *          matching is only attemplted to the averaged bitmaps.  For this
  *          case, the index of the bestsample is meaningless (0 is returned
  *          if requested).
@@ -1050,7 +1050,7 @@ PTA       *pta;
         return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
 
         /* Do the averaging if required and not yet done. */
-    if (recog->templ_use == L_USE_AVERAGE_TEMPL && !recog->ave_done)
+    if (recog->templ_use == L_USE_AVERAGE_TEMPLATES && !recog->ave_done)
         recogAverageSamples(recog, 0);
 
         /* Binarize and crop to foreground if necessary */
@@ -1065,7 +1065,7 @@ PTA       *pta;
     bestindex = bestsample = bestdelx = bestdely = bestwidth = 0;
     maxscore = 0.0;
     maxyshift = recog->maxyshift;
-    if (recog->templ_use == L_USE_AVERAGE_TEMPL) {
+    if (recog->templ_use == L_USE_AVERAGE_TEMPLATES) {
         for (i = 0; i < recog->setsize; i++) {
             numaGetIValue(recog->nasum, i, &area2);
             if (area2 == 0) continue;  /* no template available */
@@ -1134,11 +1134,11 @@ PTA       *pta;
                            bestdelx, bestdely, bestwidth);
 
     if (ppixdb) {
-        if (recog->templ_use == L_USE_AVERAGE_TEMPL) {
+        if (recog->templ_use == L_USE_AVERAGE_TEMPLATES) {
             L_INFO("Best match: str %s; class %d; sh (%d, %d); score %5.3f\n",
                    procName, text, bestindex, bestdelx, bestdely, maxscore);
             pix2 = pixaGetPix(recog->pixa, bestindex, L_CLONE);
-        } else {  /* L_USE_ALL_TEMPL */
+        } else {  /* L_USE_ALL_TEMPLATES */
             L_INFO("Best match: str %s; sample %d in class %d; score %5.3f\n",
                    procName, text, bestsample, bestindex, maxscore);
             if (maxyshift > 0 && (L_ABS(bestdelx) > 0 || L_ABS(bestdely) > 0)) {

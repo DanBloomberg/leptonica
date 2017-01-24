@@ -332,16 +332,18 @@ PIXA    *pixat;
 /*!
  * \brief   pixaDisplayRandomCmap()
  *
- * \param[in]    pixa of 1 bpp components, with boxa
- * \param[in]    w, h if set to 0, determines the size from the
- *                    b.b. of the components in pixa
- * \return  pix 8 bpp, cmapped, with random colors on the components,
- *              or NULL on error
+ * \param[in]    pixa   1 bpp regions, with boxa delineating those regions.
+ * \param[in]    w, h   if set to 0, determines the size from the
+ *                      b.b. of the components in pixa
+ * \return  pix   8 bpp, cmapped, with random colors assigned to each region,
+ *                or NULL on error.
  *
  * <pre>
  * Notes:
  *      (1) This uses the boxes to place each pix in the rendered composite.
- *      (2) By default, the background color is: black, cmap index 0.
+ *          The fg of each pix in %pixa, such as a single connected
+ *          component or a line of text, is given a random color.
+ *      (2) By default, the background color is black (cmap index 0).
  *          This can be changed by pixcmapResetColor()
  * </pre>
  */

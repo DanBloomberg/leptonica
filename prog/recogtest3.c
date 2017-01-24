@@ -67,7 +67,7 @@ char      *text;
 l_int32    histo[10];
 l_int32    i, n, ival, same;
 PIX       *pix1, *pix2;
-PIXA      *pixa1, *pixa2, *pixa3, *pixa4;
+PIXA      *pixa1, *pixa2, *pixa3, *pixa4, *pixa5;
 L_RECOG   *recog1, *recog2, *recog3;
 
     if (argc != 1) {
@@ -125,7 +125,6 @@ L_RECOG   *recog1, *recog2, *recog3;
     recog2 = recogCreateFromPixa(pixa1, 0, 0, 5, 128, 1);
     recogShowContent(stderr, recog2, 2, 1);
 
-
         /* Test recog serialization */
     recogWrite("/tmp/lept/recog/recog2.rec", recog2);
     recog3 = recogRead("/tmp/lept/recog/recog2.rec");
@@ -136,17 +135,36 @@ L_RECOG   *recog1, *recog2, *recog3;
         fprintf(stderr, "Error in serialization!\n");
     recogDestroy(&recog3);
 
-        /* Remove outliers */
-    pixa4 = recogRemoveOutliers(pixa1, 0.8, 0.2, NULL, NULL);
+        /* Remove outliers: method 1 */
+    pixa4 = recogRemoveOutliers1(pixa1, 0.8, 0.2, NULL, NULL);
     recog3 = recogCreateFromPixa(pixa4, 0, 0, 0, 128, 1);
     recogShowContent(stderr, recog3, 3, 1);
+    pixaDestroy(&pixa4);
+    recogDestroy(&recog3);
+
+        /* Relabel a few templates to put them in the wrong classes */
+    pix1 = pixaGetPix(pixa1, 7, L_CLONE);
+    pixSetText(pix1, "4");
+    pix1 = pixaGetPix(pixa1, 38, L_CLONE);
+    pixSetText(pix1, "9");
+    pix1 = pixaGetPix(pixa1, 61, L_CLONE);
+    pixSetText(pix1, "2");
+
+        /* Remove outliers: method 2 */
+    pixa4 = recogRemoveOutliers2(pixa1, NULL, &pixa5);
+    recog3 = recogCreateFromPixa(pixa4, 0, 0, 0, 128, 1);
+    recogShowContent(stderr, recog3, 3, 1);
+    pix1 = pixaDisplayTiledInRows(pixa5, 32, 1500, 1.0, 0, 20, 2);
+    pixDisplay(pix1, 900, 0);
+    pixDestroy(&pix1);
+    pixaDestroy(&pixa4);
+    pixaDestroy(&pixa5);
+    recogDestroy(&recog3);
 
     recogDestroy(&recog1);
     recogDestroy(&recog2);
-    recogDestroy(&recog3);
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);
     pixaDestroy(&pixa3);
-    pixaDestroy(&pixa4);
     return 0;
 }

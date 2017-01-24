@@ -71,6 +71,7 @@
  *           l_int32   pixaaSizeRange()
  *           l_int32   pixaSizeRange()
  *           PIXA     *pixaClipToPix()
+ *           PIXA     *pixaClipToForeground()
  *           l_int32   pixaGetRenderingDepth()
  *           l_int32   pixaHasColor()
  *           l_int32   pixaAnyColormaps()
@@ -1841,7 +1842,7 @@ PIXA    *pixad;
         if (pix2) {
             pixaAddPix(pixad, pix2, L_INSERT);
         } else {
-            L_WARNING("relative scale to size failed; use a copy\n", procName); 
+            L_WARNING("relative scale to size failed; use a copy\n", procName);
             pixaAddPix(pixad, pix1, L_COPY);
         }
         pixDestroy(&pix1);
@@ -2215,6 +2216,60 @@ PIXA    *pixad;
     }
 
     return pixad;
+}
+
+
+/*!
+ * \brief   pixaClipToForeground()
+ *
+ * \param[in]    pixas
+ * \param[out]   ppixad   [optional] pixa of clipped pix returned
+ * \param[out]   pboxa    [optional] clipping boxes returned
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) At least one of [&pixd, &boxa] must be specified.
+ *      (2) Any pix with no fg pixels is skipped.
+ *      (3) See pixClipToForeground().
+ * </pre>
+ */
+l_int32
+pixaClipToForeground(PIXA   *pixas,
+                     PIXA  **ppixad,
+                     BOXA  **pboxa)
+{
+l_int32  i, n;
+BOX     *box1;
+PIX     *pix1, *pix2;
+
+    PROCNAME("pixaClipToForeground");
+
+    if (ppixad) *ppixad = NULL;
+    if (pboxa) *pboxa = NULL;
+    if (!pixas)
+        return ERROR_INT("pixas not defined", procName, 1);
+    if (!ppixad && !pboxa)
+        return ERROR_INT("no output requested", procName, 1);
+
+    n = pixaGetCount(pixas);
+    if (ppixad) *ppixad = pixaCreate(n);
+    if (pboxa) *pboxa = boxaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pixClipToForeground(pix1, &pix2, &box1);
+        pixDestroy(&pix1);
+        if (ppixad)
+            pixaAddPix(*ppixad, pix2, L_INSERT);
+        else
+            pixDestroy(&pix2);
+        if (pboxa)
+            boxaAddBox(*pboxa, box1, L_INSERT);
+        else
+            boxDestroy(&box1);
+    }
+
+    return 0;
 }
 
 

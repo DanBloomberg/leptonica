@@ -911,7 +911,8 @@ PIX      *pix1, *pixdb;
  * \param[in]    maxw, maxh initial filtering: remove any components in pixs
  *                          with components larger than maxw or maxh
  * \param[in]    minw, minh final filtering: remove extracted 'lines'
- *                          with sizes smaller than minw or minh
+ *                          with sizes smaller than minw or minh; use
+ *                          0 for default.
  * \return  pixa of textline images, including bounding boxes, or
  *                    NULL on error
  *
@@ -933,7 +934,12 @@ PIX      *pix1, *pixdb;
  *          image is horizontal text.
  *      (6) As an example, for a pix with resolution 300 ppi, a reasonable
  *          set of parameters is:
- *             pixExtractTextlines(pix, 150, 150, 10, 5);
+ *             pixExtractTextlines(pix, 150, 150, 30, 15);
+ *          The default minw and minh for 300 ppi are 30 and 15, so the
+ *          same result is obtained with:
+ *             pixExtractTextlines(pix, 150, 150, 0, 0);
+ *      (7) The output pixa is composed of subimages, one for each textline,
+ *          and the boxa in the pixa tells where in %pixs each textline goes.
  * </pre>
  */
 PIXA *
@@ -985,21 +991,26 @@ PIXA    *pixa1, *pixa2, *pixa3, *pixad;
         res = 300;
     }
     csize = L_MIN(120., 60.0 * res / 300.0);
-    snprintf(buf, sizeof(buf), "c%d.1 + o20.1", csize);
+    snprintf(buf, sizeof(buf), "c%d.1 + o%d.1", csize, csize / 3);
     pix3 = pixMorphCompSequence(pix2, buf, 0);
 
         /* Extract the connected components.  These should be dilated lines */
     boxa1 = pixConnComp(pix3, &pixa1, 4);
     pixDestroy(&pix3);
 
+        /* Set minw, minh if default is requested */
+    minw = (minw != 0) ? minw : (l_int32)(0.12 * res);
+    minh = (minh != 0) ? minh : (l_int32)(0.07 * res);
+
         /* Remove line components that are too small */
     pixa2 = pixaSelectBySize(pixa1, minw, minh, L_SELECT_IF_BOTH,
                            L_SELECT_IF_GTE, NULL);
 
 #if DEBUG_LINES
+    lept_mkdir("lept/textlines");
     pix1 = pixaDisplayRandomCmap(pixa2, 0, 0);
     pixcmapResetColor(pixGetColormap(pix1), 0, 255, 255, 255);
-    pixWrite("/tmp/lept/junklines.png", pix1, IFF_PNG);
+    pixWrite("/tmp/lept/textlines/lines.png", pix1, IFF_PNG);
     pixDestroy(&pix1);
 #endif
 

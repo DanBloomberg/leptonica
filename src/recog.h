@@ -69,7 +69,7 @@
  *     special templates for each character set that are scaled averages
  *     of the individual templates.  Then a correlation score is found
  *     between each template and the averaged templates.  As presently
- *     implemented, a template with a correlation score with its
+ *     implemented, a template having a correlation score with its
  *     class average that is below a threshold is deemed an "outlier"
  *     and removed from the generating pixa.  Scaled averaging is only
  *     performed for determining outliers and for greedy splitting of
@@ -242,8 +242,8 @@ enum {
  *-------------------------------------------------------------------------*/
 /*! Flags for selecting average or all templates: recog->templ_use */
 enum {
-    L_USE_ALL_TEMPL = 0,       /*!< use all templates; default              */
-    L_USE_AVERAGE_TEMPL = 1    /*!< use average templates; outliers only    */
+    L_USE_ALL_TEMPLATES = 0,     /*!< use all templates; default            */
+    L_USE_AVERAGE_TEMPLATES = 1  /*!< use average templates; special cases  */
 };
 
 #endif  /* LEPTONICA_RECOG_H */

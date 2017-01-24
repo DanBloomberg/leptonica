@@ -144,7 +144,7 @@ SARRAY   *sa;
         /* Now use minscore = 0.75 to remove the outliers in the BAR,
          * and show what is left. */
     fprintf(stderr, "initial size: %d\n", recog->num_samples);
-    recogRemoveOutliers(recog, 0.75, 0.5, 1);
+    recogRemoveOutliers1(recog, 0.75, 0.5, 1);
     fprintf(stderr, "final size: %d\n", recog->num_samples);
     recogDebugAverages(recog, 1);
     recogShowContent(stderr, recog, 1);

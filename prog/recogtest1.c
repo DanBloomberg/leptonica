@@ -130,8 +130,8 @@ SARRAY    *sa, *satext;
     static const l_float32  MinFract[] = {0.3, 0.2, 0.01};
     pixa2 = recogExtractPixa(recog1);
     for (i = 0; i < 3; i++) {
-        pixa3 = recogRemoveOutliers(pixa2, MinScore[i], MinFract[i],
-                                    &pixa4, &na1);
+        pixa3 = recogRemoveOutliers1(pixa2, MinScore[i], MinFract[i],
+                                     &pixa4, &na1);
         pix1 = pixaDisplayTiledWithText(pixa3, 1400, 1.0, 10, 2, 6, 0xff000000);
         pixDisplay(pix1, 900, 250 * i);
         pix2 = recogDisplayOutliers(pixa4, na1);

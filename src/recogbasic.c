@@ -119,7 +119,7 @@
  *  outliers or requests identification of an unlabeled character,
  *  such as:
  *     (1) computing the sample averages: recogAverageSamples()
- *     (2) removing outliers: recogRemoveOutliers()
+ *     (2) removing outliers: recogRemoveOutliers1() or recogRemoveOutliers2()
  *     (3) requesting identification of an unlabeled character:
  *         recogIdentifyPix()
  *  is called before an explicit call to finish training.  Note that
@@ -137,7 +137,7 @@
  *      }
  *      recogTrainingFinished(rec, 1);
  *      // remove outliers
- *      recogRemoveOutliers(rec, 0.7, 0.5, 0);
+ *      recogRemoveOutliers1(rec, 0.7, 0.5, 0);
  *
  *  You can generate a recognizer from a pixa where the text field in
  *  each pix is the character string label for the pix.  For example,
@@ -151,7 +151,7 @@
  *      L_Recog  *recboot = recogCreateFromPixa(pixa, 0, 40, 0, 128, 1);
  *  or width-normalized lines (use width of 5 here):
  *      L_Recog  *recboot = recogCreateFromPixa(pixa, 0, 40, 5, 128, 1);
- *  
+ *
  *  This can be used to train a new book adapted recognizer (BAC), on
  *  unlabeled data from, e.g., a book.  To do this, the following is required:
  *   (1) the input images from the book must be scaled in the same
@@ -242,7 +242,7 @@ PIXA     *pixa;
  *      (3) See recogCreate() for use of %scalew, %scaleh and %linew.
  *      (4) All examples in the same class (i.e., with the same character
  *          label) should be similar.  They can be made similar by invoking
- *          recogRemoveOutliers() on %pixa before calling this function.
+ *          recogRemoveOutliers[1,2]() on %pixa before calling this function.
  * </pre>
  */
 L_RECOG *
@@ -341,7 +341,7 @@ L_RECOG  *recog;
 
     if ((recog = (L_RECOG *)LEPT_CALLOC(1, sizeof(L_RECOG))) == NULL)
         return (L_RECOG *)ERROR_PTR("rec not made", procName, NULL);
-    recog->templ_use = L_USE_ALL_TEMPL;  /* default for all but outliers */
+    recog->templ_use = L_USE_ALL_TEMPLATES;  /* default */
     recog->threshold = threshold;
     recog->scalew = scalew;
     recog->scaleh = scaleh;

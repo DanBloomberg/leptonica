@@ -100,7 +100,7 @@
  *  Typical usage:
  *      L_WShed *wshed = wshedCreate(pixs, pixseed, mindepth, 0);
  *      wshedApply(wshed);
-*
+ *
  *      wshedBasins(wshed, &pixa, &nalevels);
  *        ... do something with pixa, nalevels ...
  *      pixaDestroy(&pixa);

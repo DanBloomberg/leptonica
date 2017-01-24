@@ -137,14 +137,24 @@ PIXCMAP  *cmap, *cmapg;
 
         /* Extract text lines */
     pix1 = pixRead("feyn.tif");
-    pixa = pixExtractTextlines(pix1, 150, 150, 10, 5);
+    pixa = pixExtractTextlines(pix1, 150, 150, 0, 0);
     boxa = pixaGetBoxa(pixa, L_CLONE);
-    boxaWrite("/tmp/lept/misc/lines.ba", boxa);
+    boxaWrite("/tmp/lept/misc/lines1.ba", boxa);
     pix2 = pixaDisplayRandomCmap(pixa, 0, 0);
     pixcmapResetColor(pixGetColormap(pix2), 0, 255, 255, 255);
     pixDisplay(pix2, 400, 0);
-    pixWrite("/tmp/lept/misc/lines.png", pix2, IFF_PNG);
+    pixWrite("/tmp/lept/misc/lines1.png", pix2, IFF_PNG);
     boxaDestroy(&boxa);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa);
+
+    pix1 = pixRead("arabic.png");
+    pixa = pixExtractTextlines(pix1, 150, 150, 0, 0);
+    pix2 = pixaDisplayRandomCmap(pixa, 0, 0);
+    pixcmapResetColor(pixGetColormap(pix2), 0, 255, 255, 255);
+    pixDisplay(pix2, 400, 400);
+    pixWrite("/tmp/lept/misc/lines2.png", pix2, IFF_PNG);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixa);

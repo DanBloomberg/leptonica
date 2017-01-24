@@ -261,14 +261,15 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
 static const l_int32  NMAX_HOLES = 150;
 
     /*  Tables used to trace the border.
-     *   ~ The 8 pixel positions of neighbors Q are labeled:
+     *   - The 8 pixel positions of neighbors Q are labeled clockwise
+     *     starting from the west:
      *                  1   2   3
      *                  0   P   4
      *                  7   6   5
      *     where the labels are the index offset [0, ... 7] of Q relative to P.
-     *   ~ xpostab[] and ypostab[] give the actual x and y pixel offsets
+     *   - xpostab[] and ypostab[] give the actual x and y pixel offsets
      *     of Q relative to P, indexed by the index offset.
-     *   ~ qpostab[pos] gives the new index offset of Q relative to P, at
+     *   - qpostab[pos] gives the new index offset of Q relative to P, at
      *     the time that a new P has been chosen to be in index offset
      *     position 'pos' relative to the previous P.   The relation
      *     between P and Q is always 4-connected.  */
@@ -1078,7 +1079,7 @@ l_uint32  *line;
  * <pre>
  * Notes:
  *      (1) the first and second pixels must be 8-adjacent,
- *          so |dx| \<= 1 and |dy| \<= 1 and both dx and dy
+ *          so |dx| <= 1 and |dy| <= 1 and both dx and dy
  *          cannot be 0.  There are 8 possible cases.
  *      (2) the seed pixel is OUTSIDE the foreground of the c.c.
  *      (3) these rules are for the situation where the INSIDE

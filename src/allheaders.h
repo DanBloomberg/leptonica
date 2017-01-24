@@ -1737,6 +1737,7 @@ LEPT_DLL extern PIXA * pixaaFlattenToPixa ( PIXAA *paa, NUMA **pnaindex, l_int32
 LEPT_DLL extern l_int32 pixaaSizeRange ( PIXAA *paa, l_int32 *pminw, l_int32 *pminh, l_int32 *pmaxw, l_int32 *pmaxh );
 LEPT_DLL extern l_int32 pixaSizeRange ( PIXA *pixa, l_int32 *pminw, l_int32 *pminh, l_int32 *pmaxw, l_int32 *pmaxh );
 LEPT_DLL extern PIXA * pixaClipToPix ( PIXA *pixas, PIX *pixs );
+LEPT_DLL extern l_int32 pixaClipToForeground ( PIXA *pixas, PIXA **ppixad, BOXA **pboxa );
 LEPT_DLL extern l_int32 pixaGetRenderingDepth ( PIXA *pixa, l_int32 *pdepth );
 LEPT_DLL extern l_int32 pixaHasColor ( PIXA *pixa, l_int32 *phascolor );
 LEPT_DLL extern l_int32 pixaAnyColormaps ( PIXA *pixa, l_int32 *phascmap );
@@ -2188,7 +2189,8 @@ LEPT_DLL extern PIX * recogModifyTemplate ( L_RECOG *recog, PIX *pixs );
 LEPT_DLL extern l_int32 recogAverageSamples ( L_RECOG *recog, l_int32 debug );
 LEPT_DLL extern l_int32 pixaAccumulateSamples ( PIXA *pixa, PTA *pta, PIX **ppixd, l_float32 *px, l_float32 *py );
 LEPT_DLL extern l_int32 recogTrainingFinished ( L_RECOG *recog, l_int32 modifyflag );
-LEPT_DLL extern PIXA * recogRemoveOutliers ( PIXA *pixas, l_float32 minscore, l_float32 minfract, PIXA **ppixarem, NUMA **pnarem );
+LEPT_DLL extern PIXA * recogRemoveOutliers1 ( PIXA *pixas, l_float32 minscore, l_float32 minfract, PIXA **ppixarem, NUMA **pnarem );
+LEPT_DLL extern PIXA * recogRemoveOutliers2 ( PIXA *pixas, PIXA **ppixarem, PIXA **ppixadb );
 LEPT_DLL extern PIXA * recogTrainFromBoot ( L_RECOG *recogboot, PIXA *pixas, l_float32 minscore, l_int32 threshold, l_int32 debug );
 LEPT_DLL extern l_int32 recogPadDigitTrainingSet ( L_RECOG **precog, l_int32 scaleh, l_int32 linew );
 LEPT_DLL extern l_int32 recogIsPaddingNeeded ( L_RECOG *recog, SARRAY **psa );

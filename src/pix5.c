@@ -1041,6 +1041,7 @@ PIX     *pixd;
     }
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
+    pixCopyText(pixd, pixs);
     pixRasterop(pixd, 0, 0, bw, bh, PIX_SRC, pixs, bx, by);
 
     if (pboxc)
