@@ -130,6 +130,7 @@ struct L_Recog {
     l_int32        ave_done;     /*!< set to 1 when averaged bitmaps are made */
     l_int32        train_done;   /*!< set to 1 when training is complete or  */
                                  /*!< identification has started             */
+    l_int32        max_wh_ratio; /*!< max width/height ratio to split        */
     l_int32        min_splitw;   /*!< min component width kept in splitting  */
     l_int32        min_splith;   /*!< min component height kept in splitting */
     l_int32        max_splith;   /*!< max component height kept in splitting */

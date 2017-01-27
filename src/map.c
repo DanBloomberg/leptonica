@@ -30,7 +30,7 @@
  *
  *  This is an interface for map and set functions, based on using
  *  red-black binary search trees.  Because these trees are sorted,
- *  the are O(nlogn) to build.  They allow logn insertion, find
+ *  they are O(nlogn) to build.  They allow logn insertion, find
  *  and deletion of elements.
  *
  *  Both the map and set are ordered by key value, with unique keys.

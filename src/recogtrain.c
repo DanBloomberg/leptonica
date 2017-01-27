@@ -582,8 +582,9 @@ l_int32
 recogAverageSamples(L_RECOG  *recog,
                     l_int32   debug)
 {
-l_int32    i, nsamp, size, area;
+l_int32    i, nsamp, size, area, bx, by;
 l_float32  x, y;
+BOX       *box;
 PIXA      *pixat, *pixa_sel;
 PIX       *pix1, *pix2, *pix3;
 PTA       *ptat;
@@ -615,7 +616,14 @@ PTA       *ptat;
     recog->pta = ptaCreate(size);
     recog->nasum = numaCreate(size);
 
-        /* Unscaled bitmaps: compute averaged bitmap, centroid, and fg area */
+        /* Unscaled bitmaps: compute averaged bitmap, centroid, and fg area.
+         * Note that when we threshold to 1 bpp the 8 bpp averaged template
+         * that is returned from the accumulator, it will not be cropped
+         * to the foreground.  We must crop it, because the correlator
+         * makes that assumption and will return a zero value if the
+         * width or height of the two images differs by several pixels.
+         * But cropping to fg can cause the value of the centroid to
+         * change, if bx or by > 0. */
     for (i = 0; i < size; i++) {
         pixat = pixaaGetPixa(recog->pixaa_u, i, L_CLONE);
         ptat = ptaaGetPta(recog->ptaa_u, i, L_CLONE);
@@ -631,13 +639,15 @@ PTA       *ptat;
             nsamp = (nsamp == 1) ? 2 : nsamp;  /* special case thresh */
             pix2 = pixThresholdToBinary(pix1, nsamp / 2);
             pixInvert(pix2, pix2);
-            pixClipToForeground(pix2, &pix3, NULL);
+            pixClipToForeground(pix2, &pix3, &box);
+            boxGetGeometry(box, &bx, &by, NULL, NULL);
             pixaAddPix(recog->pixa_u, pix3, L_INSERT);
-            ptaAddPt(recog->pta_u, x, y);
+            ptaAddPt(recog->pta_u, x - bx, y - by);  /* correct centroid */
             pixCountPixels(pix3, &area, recog->sumtab);
             numaAddNumber(recog->nasum_u, area);  /* foreground */
             pixDestroy(&pix1);
             pixDestroy(&pix2);
+            boxDestroy(&box);
         }
         pixaDestroy(&pixat);
         ptaDestroy(&ptat);
@@ -668,9 +678,10 @@ PTA       *ptat;
             nsamp = (nsamp == 1) ? 2 : nsamp;  /* special case thresh */
             pix2 = pixThresholdToBinary(pix1, nsamp / 2);
             pixInvert(pix2, pix2);
-            pixClipToForeground(pix2, &pix3, NULL);
+            pixClipToForeground(pix2, &pix3, &box);
+            boxGetGeometry(box, &bx, &by, NULL, NULL);
             pixaAddPix(recog->pixa, pix3, L_INSERT);
-            ptaAddPt(recog->pta, x, y);
+            ptaAddPt(recog->pta, x - bx, y - bx);  /* correct centroid */
             pixCountPixels(pix3, &area, recog->sumtab);
             numaAddNumber(recog->nasum, area);  /* foreground */
             pixDestroy(&pix1);
@@ -725,7 +736,7 @@ pixaAccumulateSamples(PIXA       *pixa,
 {
 l_int32    i, n, maxw, maxh, xdiff, ydiff;
 l_int32   *centtab, *sumtab;
-l_float32  x, y, xave, yave;
+l_float32  xc, yc, xave, yave;
 PIX       *pix1, *pix2, *pixsum;
 PTA       *ptac;
 
@@ -746,6 +757,7 @@ PTA       *ptac;
     if (n == 0)
         return ERROR_INT("pixa array empty", procName, 1);
 
+        /* Find the centroids */
     if (pta) {
         ptac = ptaClone(pta);
     } else {  /* generate them here */
@@ -754,8 +766,8 @@ PTA       *ptac;
         sumtab = makePixelSumTab8();
         for (i = 0; i < n; i++) {
             pix1 = pixaGetPix(pixa, i, L_CLONE);
-            pixCentroid(pix1, centtab, sumtab, &xave, &yave);
-            ptaAddPt(ptac, xave, yave);
+            pixCentroid(pix1, centtab, sumtab, &xc, &yc);
+            ptaAddPt(ptac, xc, yc);
         }
         LEPT_FREE(centtab);
         LEPT_FREE(sumtab);
@@ -764,25 +776,25 @@ PTA       *ptac;
         /* Find the average value of the centroids */
     xave = yave = 0;
     for (i = 0; i < n; i++) {
-        ptaGetPt(pta, i, &x, &y);
-        xave += x;
-        yave += y;
+        ptaGetPt(pta, i, &xc, &yc);
+        xave += xc;
+        yave += yc;
     }
     xave = xave / (l_float32)n;
     yave = yave / (l_float32)n;
     if (px) *px = xave;
     if (py) *py = yave;
 
-        /* Place all centroids at their average value and sum the results */
+        /* Place all pix with their centroids located at the average
+         * centroid value, and sum the results */
     pixaSizeRange(pixa, NULL, NULL, &maxw, &maxh);
     pixsum = pixInitAccumulate(maxw, maxh, 0);
     pix1 = pixCreate(maxw, maxh, 1);
-
     for (i = 0; i < n; i++) {
         pix2 = pixaGetPix(pixa, i, L_CLONE);
-        ptaGetPt(ptac, i, &x, &y);
-        xdiff = (l_int32)(x - xave);
-        ydiff = (l_int32)(y - yave);
+        ptaGetPt(ptac, i, &xc, &yc);
+        xdiff = (l_int32)(xc - xave);
+        ydiff = (l_int32)(yc - yave);
         pixClearAll(pix1);
         pixRasterop(pix1, xdiff, ydiff, maxw, maxh, PIX_SRC,
                     pix2, 0, 0);

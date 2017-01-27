@@ -40,7 +40,7 @@
  *  deletion of key/value pairs in log(n) time.
  *
  *  We use red-black trees to implement our version of:
- *    * a map: a function that maps keys to values (int32).
+ *    * a map: a function that maps keys to values (e.g., int64 --> int64).
  *    * a set: a collection that is sorted by unique keys (without
  *      associated values)
  *
@@ -79,7 +79,7 @@ enum {
     L_BLACK_NODE = 2
 };
 
-    /* The makes it simpler to read the code */
+    /* This makes it simpler to read the code */
 typedef L_RBTREE_NODE node;
 
     /* Lots of static helper functions */

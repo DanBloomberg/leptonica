@@ -330,6 +330,8 @@ LEPT_DLL extern BOXA * boxaSelectBySize ( BOXA *boxas, l_int32 width, l_int32 he
 LEPT_DLL extern NUMA * boxaMakeSizeIndicator ( BOXA *boxa, l_int32 width, l_int32 height, l_int32 type, l_int32 relation );
 LEPT_DLL extern BOXA * boxaSelectByArea ( BOXA *boxas, l_int32 area, l_int32 relation, l_int32 *pchanged );
 LEPT_DLL extern NUMA * boxaMakeAreaIndicator ( BOXA *boxa, l_int32 area, l_int32 relation );
+LEPT_DLL extern BOXA * boxaSelectByWHRatio ( BOXA *boxas, l_float32 ratio, l_int32 relation, l_int32 *pchanged );
+LEPT_DLL extern NUMA * boxaMakeWHRatioIndicator ( BOXA *boxa, l_float32 ratio, l_int32 relation );
 LEPT_DLL extern BOXA * boxaSelectWithIndicator ( BOXA *boxas, NUMA *na, l_int32 *pchanged );
 LEPT_DLL extern BOXA * boxaPermutePseudorandom ( BOXA *boxas );
 LEPT_DLL extern BOXA * boxaPermuteRandom ( BOXA *boxad, BOXA *boxas );
@@ -1568,6 +1570,9 @@ LEPT_DLL extern l_int32 pixGetColorHistogramMasked ( PIX *pixs, PIX *pixm, l_int
 LEPT_DLL extern NUMA * pixGetCmapHistogram ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern NUMA * pixGetCmapHistogramMasked ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y, l_int32 factor );
 LEPT_DLL extern NUMA * pixGetCmapHistogramInRect ( PIX *pixs, BOX *box, l_int32 factor );
+LEPT_DLL extern l_int32 pixCountRGBColors ( PIX *pixs );
+LEPT_DLL extern L_AMAP * pixGetColorAmapHistogram ( PIX *pixs, l_int32 factor );
+LEPT_DLL extern l_int32 amapGetCountForColor ( L_AMAP *amap, l_uint32 val );
 LEPT_DLL extern l_int32 pixGetRankValue ( PIX *pixs, l_int32 factor, l_float32 rank, l_uint32 *pvalue );
 LEPT_DLL extern l_int32 pixGetRankValueMaskedRGB ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y, l_int32 factor, l_float32 rank, l_float32 *prval, l_float32 *pgval, l_float32 *pbval );
 LEPT_DLL extern l_int32 pixGetRankValueMasked ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y, l_int32 factor, l_float32 rank, l_float32 *pval, NUMA **pna );
@@ -2150,7 +2155,7 @@ LEPT_DLL extern L_RECOG * recogCreateFromPixa ( PIXA *pixa, l_int32 scalew, l_in
 LEPT_DLL extern L_RECOG * recogCreate ( l_int32 scalew, l_int32 scaleh, l_int32 linew, l_int32 threshold, l_int32 maxyshift );
 LEPT_DLL extern void recogDestroy ( L_RECOG **precog );
 LEPT_DLL extern l_int32 recogGetCount ( L_RECOG *recog );
-LEPT_DLL extern l_int32 recogSetParams ( L_RECOG *recog, l_int32 type, l_int32 min_nopad );
+LEPT_DLL extern l_int32 recogSetParams ( L_RECOG *recog, l_int32 type, l_int32 min_nopad, l_float32 max_wh_ratio );
 LEPT_DLL extern l_int32 recogGetClassIndex ( L_RECOG *recog, l_int32 val, char *text, l_int32 *pindex );
 LEPT_DLL extern l_int32 recogStringToIndex ( L_RECOG *recog, char *text, l_int32 *pindex );
 LEPT_DLL extern l_int32 recogGetClassString ( L_RECOG *recog, l_int32 index, char **pcharstr );

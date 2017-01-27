@@ -171,6 +171,7 @@ static const l_int32  MAX_EXAMPLES_IN_CLASS = 256;
     /* Default recog parameters that can be changed */
 static const l_int32    DEFAULT_CHARSET_TYPE = L_ARABIC_NUMERALS;
 static const l_int32    DEFAULT_MIN_NOPAD = 3;
+static const l_float32  DEFAULT_MAX_WH_RATIO = 3.0;
 
     /* Static functions */
 static l_int32 recogGetCharsetSize(l_int32 type);
@@ -347,7 +348,7 @@ L_RECOG  *recog;
     recog->scaleh = scaleh;
     recog->linew = linew;
     recog->maxyshift = maxyshift;
-    recogSetParams(recog, 1, -1);
+    recogSetParams(recog, 1, -1, -1);
     recog->bmf = bmfCreate(NULL, 6);
     recog->bmf_size = 6;
     recog->maxarraysize = MAX_EXAMPLES_IN_CLASS;
@@ -447,22 +448,29 @@ recogGetCount(L_RECOG  *recog)
 /*!
  * \brief   recogSetParams()
  *
- * \param[in]    recog        to be padded, if necessary
- * \param[in]    type     type of char set; -1 for default; see enum in recog.h
- * \param[in]    min_nopad    min number in a class without padding; -1 default
+ * \param[in]    recog         to be padded, if necessary
+ * \param[in]    type          type of char set; -1 for default;
+ *                               see enum in recog.h
+ * \param[in]    min_nopad     min number in a class without padding;
+ *                               use -1 for default
+ * \param[in]    max_wh_ratio  max width/height ratio allowed for splitting;
+ *                               use -1 for default
  * \return       0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) This is called when a recog is created.
- *      (2) Default values allow for some padding.  To disable padding,
- *          set %min_nopad = 0.
+ *      (2) Default %min_nopad value allows for some padding.
+ *          To disable padding, set %min_nopad = 0.
+ *      (3) The %max_wh_ratio limits the width/height ratio for components
+ *          that we attempt to split.  Splitting long components is expensive.
  * </pre>
  */
 l_int32
-recogSetParams(L_RECOG     *recog,
-               l_int32      type,
-               l_int32      min_nopad)
+recogSetParams(L_RECOG   *recog,
+               l_int32    type,
+               l_int32    min_nopad,
+               l_float32  max_wh_ratio)
 {
 
     PROCNAME("recogSetParams");
@@ -473,6 +481,8 @@ recogSetParams(L_RECOG     *recog,
     recog->charset_type = (type >= 0) ? type : DEFAULT_CHARSET_TYPE;
     recog->charset_size = recogGetCharsetSize(recog->charset_type);
     recog->min_nopad = (min_nopad >= 0) ? min_nopad : DEFAULT_MIN_NOPAD;
+    recog->max_wh_ratio = (max_wh_ratio > 0) ? max_wh_ratio :
+                          DEFAULT_MAX_WH_RATIO;
     return 0;
 }
 

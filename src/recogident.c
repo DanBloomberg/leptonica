@@ -93,7 +93,6 @@
 static const l_int32    LeftRightPadding = 32;
 
     /* Parameters for filtering and sorting connected components in splitter */
-static const l_float32  MaxAspectRatio = 6.0;
 static const l_float32  MinFillFactor = 0.10;
 static const l_int32  MinOverlap1 = 6;  /* in pass 1 of boxaSort2d() */
 static const l_int32  MinOverlap2 = 6;  /* in pass 2 of boxaSort2d() */
@@ -111,10 +110,9 @@ static L_RCH *rchCreate(l_int32 index, l_float32 score, char *text,
                         l_int32 width);
 static L_RCHA *rchaCreate();
 static l_int32 transferRchToRcha(L_RCH *rch, L_RCHA *rcha);
-static PIX *recogPreSplittingFilter(L_RECOG *recog, PIX *pixs, l_float32 maxasp,
+static PIX *recogPreSplittingFilter(L_RECOG *recog, PIX *pixs,
                                     l_float32 minaf, l_int32 debug);
-static l_int32 recogSplittingFilter(L_RECOG *recog, PIX *pixs,
-                                    l_float32 maxasp, l_float32 minaf,
+static l_int32 recogSplittingFilter(L_RECOG *recog, PIX *pixs, l_float32 minaf,
                                     l_int32 *premove, l_int32 debug);
 static void l_showIndicatorSplitValues(NUMA *na1, NUMA *na2, NUMA *na3,
                                        NUMA *na4, NUMA *na5, NUMA *na6);
@@ -309,8 +307,7 @@ PIX     *pix, *pix1, *pix2;
     pix1 = pixMorphSequence(pixs, "c1.3", 0);
 
         /* Carefully filter out noise */
-    pix2 = recogPreSplittingFilter(recog, pix1, MaxAspectRatio,
-                                   MinFillFactor, debug);
+    pix2 = recogPreSplittingFilter(recog, pix1, MinFillFactor, debug);
 
         /* Optionally, save a boxa of noise components, filtered
          * according to input parameters %minw and %minh */
@@ -517,8 +514,7 @@ l_int32    iter;
         boxGetGeometry(boxc, &bxc, NULL, &bwc, NULL);
 
             /* This is a single component; if noise, remove it */
-        recogSplittingFilter(recog, pixc, MaxAspectRatio, MinFillFactor,
-                             &remove, debug);
+        recogSplittingFilter(recog, pixc, MinFillFactor, &remove, debug);
         if (debug)
             fprintf(stderr, "iter = %d, removed = %d\n", iter, remove);
         if (remove) {
@@ -1503,7 +1499,6 @@ PIX     *pix1, *pix2, *pixd;
  *
  * \param[in]    recog
  * \param[in]    pixs 1 bpp, single connected component
- * \param[in]    maxasp maximum asperity ratio (width/height) to be retained
  * \param[in]    minaf minimum area fraction (|fg|/(w*h)) to be retained
  * \param[in]    debug 1 to output indicator arrays
  * \return  pixd with filtered components removed or NULL on error
@@ -1511,11 +1506,10 @@ PIX     *pix1, *pix2, *pixd;
 static PIX *
 recogPreSplittingFilter(L_RECOG   *recog,
                         PIX       *pixs,
-                        l_float32  maxasp,
                         l_float32  minaf,
                         l_int32    debug)
 {
-l_int32  scaling, minsplitw, minsplith, maxsplith;
+l_int32  scaling, minsplitw, minsplith, maxsplith, maxasp;
 BOXA    *boxas;
 NUMA    *naw, *nah, *na1, *na1c, *na2, *na3, *na4, *na5, *na6, *na7;
 PIX     *pixd;
@@ -1534,6 +1528,7 @@ PIXA    *pixas;
     minsplitw = (scaling) ? 1 : recog->min_splitw - 3;
     minsplith = (scaling) ? 1 : recog->min_splith - 3;
     maxsplith = (scaling) ? 200 : recog->max_splith;
+    maxasp = recog->max_wh_ratio;
 
         /* Generate an indicator array of connected components to remove:
          *    small stuff
@@ -1579,7 +1574,6 @@ PIXA    *pixas;
  *
  * \param[in]    recog
  * \param[in]    pixs 1 bpp, single connected component
- * \param[in]    maxasp maximum asperity ratio (width/height) to be retained
  * \param[in]    minaf minimum area fraction (|fg|/(w*h)) to be retained
  * \param[out]   premove 0 to save, 1 to remove
  * \param[in]    debug 1 to output indicator arrays
@@ -1588,7 +1582,6 @@ PIXA    *pixas;
 static l_int32
 recogSplittingFilter(L_RECOG   *recog,
                      PIX       *pixs,
-                     l_float32  maxasp,
                      l_float32  minaf,
                      l_int32   *premove,
                      l_int32    debug)
@@ -1622,7 +1615,7 @@ l_float32  aspratio, fract;
         return 0;
     }
     aspratio = (l_float32)w / (l_float32)h;
-    if (aspratio > maxasp) {
+    if (aspratio > recog->max_wh_ratio) {
         if (debug) L_INFO("w/h = %5.3f too large\n", procName, aspratio);
         *premove = 1;
         return 0;

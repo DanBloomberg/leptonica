@@ -44,6 +44,9 @@
  *           NUMA       *pixGetCmapHistogram()
  *           NUMA       *pixGetCmapHistogramMasked()
  *           NUMA       *pixGetCmapHistogramInRect()
+ *           l_int32     pixCountRGBColors()
+ *           L_AMAP     *pixGetColorAmapHistogram()
+ *           l_int32     amapGetCountForColor()
  *           l_int32     pixGetRankValue()
  *           l_int32     pixGetRankValueMaskedRGB()
  *           l_int32     pixGetRankValueMasked()
@@ -812,6 +815,109 @@ NUMA       *na;
     }
 
     return na;
+}
+
+
+/*!
+ * \brief   pixCountRGBColors()
+ *
+ * \param[in]    pixs    rgb or rgba
+ * \return  ncolors, or -1 on error
+ */
+l_int32
+pixCountRGBColors(PIX  *pixs)
+{
+l_int32  ncolors;
+L_AMAP  *amap;
+
+    PROCNAME("pixCountRGBColors");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return ERROR_INT("pixs not defined or not 32 bpp", procName, -1);
+    amap = pixGetColorAmapHistogram(pixs, 1);
+    ncolors = l_amapSize(amap);
+    l_amapDestroy(&amap);
+    return ncolors;
+}
+
+
+/*!
+ * \brief   pixGetColorAmapHistogram()
+ *
+ * \param[in]    pixs    rgb or rgba
+ * \param[in]    factor  subsampling factor; integer >= 1
+ * \return  amap, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This generates an ordered map from pixel value to histogram count.
+ *      (2) Use pixGetColorAmapCount() to look up the count value.
+ * </pre>
+ */
+L_AMAP  *
+pixGetColorAmapHistogram(PIX     *pixs,
+                         l_int32  factor)
+{
+l_int32    i, j, w, h, wpl;
+l_uint32  *data, *line;
+L_AMAP    *amap;
+RB_TYPE    key, value;
+RB_TYPE   *pval;
+
+    PROCNAME("pixGetColorAmapHistogram");
+
+    if (!pixs)
+        return (L_AMAP *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetDepth(pixs) != 32)
+        return (L_AMAP *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    amap = l_amapCreate(L_UINT_TYPE);
+    for (i = 0; i < h; i += factor) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j += factor) {
+            key.utype = line[j];
+            pval = l_amapFind(amap, key);
+            if (!pval)
+                value.itype = 1;
+            else
+                value.itype = 1 + pval->itype;
+            l_amapInsert(amap, key, value);
+        }
+    }
+
+    return amap;
+}
+
+
+/*!
+ * \brief   amapGetCountForColor()
+ *
+ * \param[in]    amap    map from pixel value to count
+ * \param[in]    val     rgb or rgba pixel value
+ * \return  count, or -1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The ordered map is made by pixGetColorAmapHistogram().
+ * </pre>
+ */
+l_int32
+amapGetCountForColor(L_AMAP   *amap,
+                     l_uint32  val)
+{
+RB_TYPE   key;
+RB_TYPE  *pval;
+
+    PROCNAME("amapGetCountForColor");
+
+    if (!amap)
+        return ERROR_INT("amap not defined", procName, -1);
+ 
+    key.utype = val;
+    pval = l_amapFind(amap, key);
+    return (pval) ? pval->itype : 0;
 }
 
 
