@@ -230,7 +230,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		quadtreetest.c rbtreetest.c \
 		recog_bootnum.c recogsort.c recogtest1.c \
 		recogtest2.c recogtest3.c \
-		recogtest4.c recogtest5.c \
+		recogtest4.c recogtest5.c recogtest6.c \
 		reducetest.c removecmap.c \
 		renderfonts.c rotatefastalt.c \
 		rotateorthtest1.c rotatetest1.c \
@@ -1005,6 +1005,9 @@ recogtest4:	recogtest4.o $(LEPTLIB)
 
 recogtest5:	recogtest5.o $(LEPTLIB)
 	$(CC) -o recogtest5 recogtest5.o $(ALL_LIBS) $(EXTRALIBS)
+
+recogtest6:	recogtest6.o $(LEPTLIB)
+	$(CC) -o recogtest6 recogtest6.o $(ALL_LIBS) $(EXTRALIBS)
 
 reducetest:	reducetest.o $(LEPTLIB)
 	$(CC) -o reducetest reducetest.o $(ALL_LIBS) $(EXTRALIBS)

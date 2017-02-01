@@ -2167,7 +2167,7 @@ LEPT_DLL extern l_int32 recogWrite ( const char *filename, L_RECOG *recog );
 LEPT_DLL extern l_int32 recogWriteStream ( FILE *fp, L_RECOG *recog );
 LEPT_DLL extern l_int32 recogWriteMem ( l_uint8 **pdata, size_t *psize, L_RECOG *recog );
 LEPT_DLL extern PIXA * recogExtractPixa ( L_RECOG *recog );
-LEPT_DLL extern l_int32 recogDecode ( L_RECOG *recog, PIX *pixs, l_int32 nlevels, PIX **ppixdb );
+LEPT_DLL extern BOXA * recogDecode ( L_RECOG *recog, PIX *pixs, l_int32 nlevels, PIX **ppixdb );
 LEPT_DLL extern l_int32 recogCreateDid ( L_RECOG *recog, PIX *pixs );
 LEPT_DLL extern l_int32 recogDestroyDid ( L_RECOG *recog );
 LEPT_DLL extern l_int32 recogDidExists ( L_RECOG *recog );

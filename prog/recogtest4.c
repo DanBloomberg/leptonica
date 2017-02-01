@@ -27,139 +27,95 @@
 /*
  *  recogtest4.c
  *
- *     Test splitting characters
+ *     Test document image decoding (DID) approach to splitting characters
+ *     This tests the low-level recogDecode() function.
+ *     Splitting succeeds for both with and without character height scaling.
+ *
+ *     But cf. recogtest5.c.  Note that recogIdentifyMultiple(), which
+ *     does prefiltering and splitting before character identification,
+ *     does not accept input that has been scaled.  That is because
+ *     the only reason for scaling the templates is that the recognizer
+ *     is a hybrid BAR/BSR, where we've used a mixture of templates from
+ *     a single source and bootstrap templates from many sources.
  */
 
 #include "string.h"
 #include "allheaders.h"
 
+static PIX *GetBigComponent(PIX *pixs);
+
+
 l_int32 main(int    argc,
              char **argv)
 {
-char      *charstr;
-l_int32    i, j, n, index, w, h, debug;
-l_float32  score;
-BOX       *box;
-BOXA      *boxa;
-NUMA      *naindex, *nascore;
-PIX       *pixs, *pix1, *pixdb;
-PIXA      *pixas, *pixap, *pixa;
-L_RECOG   *recog;
-SARRAY    *sachar;
+char      buf[256];
+l_int32   i, n, item;
+l_int32   example[6] = {17, 20, 21, 22, 23, 24};  /* for decoding */
+BOXA     *boxa;
+PIX      *pix1, *pix2, *pix3, *pixdb;
+PIXA     *pixa1, *pixa2, *pixa3;
+L_RECOG  *recog;
 
     if (argc != 1) {
         fprintf(stderr, " Syntax: recogtest4\n");
         return 1;
     }
 
-#if 1
-    pixas = pixaRead("recogsets/train08.pa");
-    pixap = pixaRead("recogsets/problem08.pa");
-#elif 0
-    pixas = pixaRead("recogsets/train_modern2.pa");
-    pixap = pixaRead("recogsets/problem_modern2.pa");
-#elif 1
-    pixas = pixaRead("recogsets/lord.train.pa");
-    pixap = pixaRead("recogsets/lord.problem.pa");
+    lept_mkdir("lept/recog");
+
+        /* Generate the recognizer */
+    pixa1 = pixaRead("recog/sets/train01.pa");
+#if 1   /* scale to fixed height */
+    recog = recogCreateFromPixa(pixa1, 0, 40, 0, 128, 1);
+#else   /* no scaling */
+    recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);
 #endif
+    recogAverageSamples(recog, 1);
+    recogWrite("/tmp/lept/recog/rec1.rec", recog);
 
-        /* Set up recog with averaged templates */
-    recog = recogCreateFromPixa(pixas, 0, 0, 0, 128, 1);
-    recogAverageSamples(recog, 1);  /* required for splitting */
+        /* Show the templates */
+    recogDebugAverages(recog, 1);
+    recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 1);
 
-#if 1
-        /* Do one character */
-    fprintf(stderr, "One character\n");
-    pixs = pixaGetPix(pixap, 1, L_CLONE);
-    recogCorrelationBestChar(recog, pixs, &box, &score, &index, &charstr,
-                             &pix1);
-    pixDisplay(pix1, 100, 800);
-    boxDestroy(&box);
-    lept_free(charstr);
-    pixDestroy(&pixs);
-    pixDestroy(&pix1);
-#endif
+        /* Get a set of problem images to decode */
+    pixa2 = pixaRead("recog/sets/test01.pa");
 
-#if 1
-        /* Do one set of characters */
-    fprintf(stderr, "One set of characters\n");
-    n = pixaGetCount(pixap);
-    pixs = pixaGetPix(pixap, 0, L_CLONE);
-    pixDisplay(pixs, 100, 100);
-    recogCorrelationBestRow(recog, pixs, &boxa, &nascore, &naindex, &sachar, 1);
-    boxaWriteStream(stderr, boxa);
-    numaWriteStream(stderr, nascore);
-    pixDestroy(&pixs);
-    boxaDestroy(&boxa);
-    numaDestroy(&nascore);
-    numaDestroy(&naindex);
-    sarrayDestroy(&sachar);
-#endif
-
-#if 1
-        /* Do each set of characters */
-    fprintf(stderr, "Each set of characters\n");
-    n = pixaGetCount(pixap);
-    for (i = 0; i < n; i++) {
-        if (i > 0) continue;
-        pixs = pixaGetPix(pixap, i, L_CLONE);
-        recogCorrelationBestRow(recog, pixs, &boxa, &nascore,
-                                &naindex, &sachar, 1);
-        boxaWriteStream(stderr, boxa);
-        numaWriteStream(stderr, nascore);
-        pixDestroy(&pixs);
+        /* Decode a subset of them.  It takes about 1 ms to decode a
+         * 4 digit number, with both Viterbi and rescoring (debug off). */
+    for (i = 0; i < 6; i++) {
+/*        if (i != 3) continue; */  /* remove this comment to do all 6 */
+        item = example[i];
+        pix1 = pixaGetPix(pixa2, item, L_CLONE);
+        pixDisplay(pix1, 100, 100);
+        pix2 = GetBigComponent(pix1);
+        boxa = recogDecode(recog, pix2, 2, &pixdb);
+        pixDisplay(pixdb, 300, 100);
+        snprintf(buf, sizeof(buf), "/tmp/lept/recog/did-%d.png", item);
+        pixWrite(buf, pixdb, IFF_PNG);
+        pixDestroy(&pixdb);
         boxaDestroy(&boxa);
-        numaDestroy(&nascore);
-        numaDestroy(&naindex);
-        sarrayDestroy(&sachar);
-    }
-#endif
-
-#if 1
-        /* Use the top-level call for each set of characters */
-        /* Test 19: images 1 and 6 are interesting */
-        /* Test modern1: image 2 */
-        /* Test modern1: image 6 (just the Zw part especially) */
-        /* Test modern1: modern-frag2.png has one component to be matched */
-    debug = 1;
-    n = pixaGetCount(pixap);
-    fprintf(stderr, "n = %d\n", n);
-    for (i = 0; i < n; i++) {
-#if 0
-        pixs = pixRead("modern-frag2.png");
-#else
-        pixs = pixaGetPix(pixap, i, L_CLONE);
-#endif
-        pixDisplay(pixs, 100, 800);
-        if (debug) {
-            recogIdentifyMultiple(recog, pixs, 0, -1, -1, 0,
-                                  &boxa, NULL, &pixdb, 1);
-            pixDisplay(pixdb, 300, 500);
-            boxaWriteStream(stderr, boxa);
-            rchaExtract(recog->rcha, NULL, &nascore, NULL, NULL, NULL,
-                        NULL, NULL);
-            numaWriteStream(stderr, nascore);
-            numaDestroy(&nascore);
-            pixDestroy(&pixdb);
-        } else {
-            recogIdentifyMultiple(recog, pixs, 0, -1, -1, 0,
-                                  &boxa, NULL, NULL, 0);
-        }
-        pixDestroy(&pixs);
-        boxaDestroy(&boxa);
-    }
-    if (debug) {
-        pix1 = pixaDisplayTiledInRows(recog->pixadb_split, 1, 200,
-                                      1.0, 0, 20, 3);
-        pixDisplay(pix1, 0, 0);
         pixDestroy(&pix1);
+        pixDestroy(&pix2);
     }
-#endif
 
-    recogShowContent(stderr, recog, 1, 1);
-
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
     recogDestroy(&recog);
-    pixaDestroy(&pixap);
-    pixaDestroy(&pixas);
     return 0;
 }
+
+static PIX *
+GetBigComponent(PIX  *pixs)
+{
+BOX  *box;
+PIX  *pix1, *pixd;
+
+    pix1 = pixMorphSequence(pixs, "c40.7 + o20.15 + d25.1", 0);
+    pixClipToForeground(pix1, NULL, &box);
+    pixd = pixClipRectangle(pixs, box, NULL);
+    pixDestroy(&pix1);
+    boxDestroy(&box);
+    return pixd;
+}
+
+

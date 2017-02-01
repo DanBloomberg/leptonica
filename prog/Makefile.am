@@ -108,7 +108,7 @@ OTHER_PROGS = adaptmap_dark \
 	quadtreetest rbtreetest \
 	recog_bootnum recogsort recogtest1 \
 	recogtest2 recogtest3 recogtest4 recogtest5 \
-	reducetest removecmap \
+	recogtest6 reducetest removecmap \
 	renderfonts rotatefastalt \
 	rotateorthtest1 rotatetest1 \
 	runlengthtest scaleandtile \

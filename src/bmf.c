@@ -126,11 +126,9 @@ PIXA  *pixa;
         return (L_BMF *)ERROR_PTR("bmf not made", procName, NULL);
 
     if (!dir) {  /* Generate from a string */
-        L_INFO("Generating pixa of bitmap fonts from string\n", procName);
         pixa = pixaGenerateFontFromString(fontsize, &bmf->baseline1,
                                           &bmf->baseline2, &bmf->baseline3);
     } else {  /* Look for the pixa in a directory */
-        L_INFO("Locating pixa of bitmap fonts in a file\n", procName);
         pixa = pixaGetFont(dir, fontsize, &bmf->baseline1, &bmf->baseline2,
                            &bmf->baseline3);
         if (!pixa) {  /* Not found; make it from a file */

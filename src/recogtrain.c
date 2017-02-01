@@ -681,9 +681,10 @@ PTA       *ptat;
             pixClipToForeground(pix2, &pix3, &box);
             boxGetGeometry(box, &bx, &by, NULL, NULL);
             pixaAddPix(recog->pixa, pix3, L_INSERT);
-            ptaAddPt(recog->pta, x - bx, y - bx);  /* correct centroid */
+            ptaAddPt(recog->pta, x - bx, y - by);  /* correct centroid */
             pixCountPixels(pix3, &area, recog->sumtab);
             numaAddNumber(recog->nasum, area);  /* foreground */
+            boxDestroy(&box);
             pixDestroy(&pix1);
             pixDestroy(&pix2);
         }

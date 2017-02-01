@@ -39,7 +39,7 @@
  *     simple, a set of bitmaps has been labeled by some means, such
  *     a generic OCR program.  This is input either one template at a time
  *     or as a pixa of templates, to a function that creates a recog.
- *     If in a pixa, the labeling text string must be embedded in the
+ *     If in a pixa, the text string label must be embedded in the
  *     text field of each pix.
  *
  *     If labeled data is not available, we start with a bootstrap
@@ -68,13 +68,24 @@
  *     outliers removed.  The outliers are determined by building
  *     special templates for each character set that are scaled averages
  *     of the individual templates.  Then a correlation score is found
- *     between each template and the averaged templates.  As presently
- *     implemented, a template having a correlation score with its
- *     class average that is below a threshold is deemed an "outlier"
- *     and removed from the generating pixa.  Scaled averaging is only
- *     performed for determining outliers and for greedy splitting of
- *     characters; it is never used in a trained recognizer for
- *     identifying unlabeled samples.
+ *     between each template and the averaged templates.  There are
+ *     two implementations; outliers are determined as either:
+ *      (1) a template having a correlation score with its class average
+ *          that is below a threshold, or
+ *      (2) a template having a correlation score with its class average
+ *          that is smaller than the correlation score with the average
+ *          of another class.
+ *     Outliers are removed from the generating pixa.  Scaled averaging
+ *     is only performed for determining outliers and for splitting
+ *     characters; it is never used in a trained recognizer for identifying
+ *     unlabeled samples.
+ *
+ *     Two methods using averaged templates are provided for splitting
+ *     touching characters:
+ *      (1) greedy matching
+ *      (2) document image decoding (DID)
+ *     The DID method is the default.  It is about 5x faster and
+ *     possibly more accurate.
  *
  *     Once a BAR has been made, unlabeled sample images are identified
  *     by finding the individual template in the BAR with highest
@@ -85,18 +96,18 @@
  *          skeleton and then dilating by a fixed amount.
  *
  *     The recog can be serialized to file and read back.  The serialized
- *     version holds the templates used for correlation (which may be
- *     modified by scaling and turning into lines from the unscaled
+ *     version holds the templates used for correlation (which may have
+ *     been modified by scaling and turning into lines from the unscaled
  *     templates), plus, for arbitrary character sets, the UTF8
  *     representation and the lookup table mapping from the character
  *     representation to index.
  *
- *     Why do we not use averaging for recognition?  Letterforms can
- *     take on significantly different shapes (eg., the letters 'a' and 'g'),
- *     and it makes no sense to average these.  The previous version of
- *     this utility allowed multiple recognizers to exist, but this
- *     is an unnecessary complication if recognition is done on all
- *     samples (instead of averages).
+ *     Why do we not use averaged templates for recognition?
+ *     Letterforms can take on significantly different shapes (eg.,
+ *     the letters 'a' and 'g'), and it makes no sense to average these.
+ *     The previous version of this utility allowed multiple recognizers
+ *     to exist, but this is an unnecessary complication if recognition
+ *     is done on all samples instead of on averages.
  * </pre>
  */
 
@@ -215,8 +226,10 @@ struct L_Rdid {
     struct Numa   *naxloc;       /*!< x locations of best path templates     */
     struct Numa   *nadely;       /*!< y locations of best path templates     */
     struct Numa   *nawidth;      /*!< widths of best path templates          */
+    struct Boxa   *boxa;         /*!< Viterbi result for splitting input pixs */
     struct Numa   *nascore;      /*!< correlation scores: best path templates */
     struct Numa   *natempl_r;    /*!< indices of best rescored templates     */
+    struct Numa   *nasample_r;   /*!< samples of best scored templates       */
     struct Numa   *naxloc_r;     /*!< x locations of best rescoredtemplates  */
     struct Numa   *nadely_r;     /*!< y locations of best rescoredtemplates  */
     struct Numa   *nawidth_r;    /*!< widths of best rescoredtemplates       */

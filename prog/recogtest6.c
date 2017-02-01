@@ -25,13 +25,16 @@
  *====================================================================*/
 
 /*
- *  recogtest5.c
+ *  recogtest6.c
  *
- *     Test document image decoding (DID) approach to splitting characters
+ *     Another test of character splitting.  This will test both DID
+ *     and greedy splitting.  To test greedy splitting, in recogident.c,
+ *       #define  SPLIT_WITH_DID   0
  *
- *     This uses recogIdentifyMultiple() to first split the touching
- *     characters and then do the identification on the resulting
- *     single characters.  Compare with recogtest4.c.
+ *     The timing info is used to measure the time to split touching
+ *     characters and identify them.  One set of 4 digits takes about 1 ms
+ *     with DID and 7 ms with greedy splitting.  Because DID is about
+ *     5x faster than greedy splitting, DID is the default that is used.
  */
 
 #include "string.h"
@@ -43,16 +46,16 @@ static PIX *GetBigComponent(PIX *pixs);
 l_int32 main(int    argc,
              char **argv)
 {
-char      buf[256];
-l_int32   i, n, item;
+l_int32   item, debug, i;
 l_int32   example[6] = {17, 20, 21, 22, 23, 24};  /* for decoding */
 BOXA     *boxa;
+NUMA     *nascore;
 PIX      *pix1, *pix2, *pix3, *pixdb;
-PIXA     *pixa1, *pixa2, *pixa3;
+PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest5\n");
+        fprintf(stderr, " Syntax: recogtest6\n");
         return 1;
     }
 
@@ -60,9 +63,8 @@ L_RECOG  *recog;
 
         /* Generate the recognizer */
     pixa1 = pixaRead("recog/sets/train01.pa");
-    recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);  /* no scaling */
-    recogAverageSamples(recog, 1);
-    recogWrite("/tmp/lept/recog/rec1.rec", recog);
+    recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);
+    recogAverageSamples(recog, 0);
 
         /* Show the templates */
     recogDebugAverages(recog, 1);
@@ -71,22 +73,39 @@ L_RECOG  *recog;
         /* Get a set of problem images to decode */
     pixa2 = pixaRead("recog/sets/test01.pa");
 
-        /* Decode a subset of them.  It takes about 2 ms to decode a
-         * 4 digit number (Viterbi for splitting; identification against
-         * all templates; debug off. */
+        /* Decode a subset of them */
+    debug = 0;
     for (i = 0; i < 6; i++) {
-/*        if (i != 3) continue;  */ /* remove this comment to do all 6 */
+        if (i != 3) continue;
         item = example[i];
         pix1 = pixaGetPix(pixa2, item, L_CLONE);
         pixDisplay(pix1, 100, 100);
         pix2 = GetBigComponent(pix1);
-        recogIdentifyMultiple(recog, pix2, 0, -1, -1, 0, NULL, &pixa3, NULL, 1);
-        pix3 = pixaDisplayTiledInColumns(pixa3, 1, 1.0, 20, 2);
-        pixDisplay(pix3, 800, 100);
+        if (debug) {
+            recogIdentifyMultiple(recog, pix2, 0, -1, -1, 0,
+                                  &boxa, NULL, &pixdb, 1);
+            rchaExtract(recog->rcha, NULL, &nascore, NULL, NULL,
+                        NULL, NULL, NULL);
+            pixDisplay(pixdb, 300, 500);
+            boxaWriteStream(stderr, boxa);
+            numaWriteStream(stderr, nascore);
+            numaDestroy(&nascore);
+            pixDestroy(&pixdb);
+        } else {
+            startTimer();
+            recogIdentifyMultiple(recog, pix2, 0, -1, -1, 0,
+                                  &boxa, NULL, NULL, 0);
+            fprintf(stderr, "Time: %5.3f\n", stopTimer());
+        }
         pixDestroy(&pix1);
         pixDestroy(&pix2);
+        boxaDestroy(&boxa);
+    }
+    if (debug) {
+        pix3 = pixaDisplayTiledInRows(recog->pixadb_split, 1, 200,
+                                      1.0, 0, 20, 3);
+        pixDisplay(pix3, 0, 0);
         pixDestroy(&pix3);
-        pixaDestroy(&pixa3);
     }
 
     pixaDestroy(&pixa1);
@@ -94,6 +113,7 @@ L_RECOG  *recog;
     recogDestroy(&recog);
     return 0;
 }
+
 
 static PIX *
 GetBigComponent(PIX  *pixs)
@@ -108,5 +128,4 @@ PIX  *pix1, *pixd;
     boxDestroy(&box);
     return pixd;
 }
-
 

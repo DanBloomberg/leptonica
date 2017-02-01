@@ -851,7 +851,7 @@ L_AMAP  *amap;
  * <pre>
  * Notes:
  *      (1) This generates an ordered map from pixel value to histogram count.
- *      (2) Use pixGetColorAmapCount() to look up the count value.
+ *      (2) Use amapGetCountForColor() to use the map to look up a count.
  * </pre>
  */
 L_AMAP  *

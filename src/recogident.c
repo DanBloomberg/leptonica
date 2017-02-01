@@ -33,6 +33,8 @@
  *
  *      Segmentation and noise removal
  *         l_int32             recogSplitIntoCharacters()
+ *
+ *      Greedy character splitting
  *         l_int32             recogCorrelationBestRow()
  *         l_int32             recogCorrelationBestChar()
  *         static l_int32      pixCorrelationBestShift()
@@ -88,6 +90,10 @@
 
 #include <string.h>
 #include "allheaders.h"
+
+    /* There are two methods for splitting characters: DID and greedy.
+     * The default method is DID.  */
+#define  SPLIT_WITH_DID   1
 
     /* Padding on pix1: added before correlations and removed from result */
 static const l_int32    LeftRightPadding = 32;
@@ -225,6 +231,9 @@ NUMA    *naid;
 }
 
 
+/*------------------------------------------------------------------------*
+ *                     Segmentation and noise removal                     *
+ *------------------------------------------------------------------------*/
 /*!
  * \brief   recogSplitIntoCharacters()
  *
@@ -245,10 +254,9 @@ NUMA    *naid;
  * Notes:
  *      (1) This can be given an image that has an arbitrary number
  *          of text characters.  It optionally splits connected
- *          components based on greedy correlation matching in
- *          recogCorrelationBestRow().  The returned pixa includes
- *          the boxes from which the (possibly split) components
- *          are extracted.
+ *          components based on document image decoding in recogDecode().
+ *          The returned pixa includes the boxes from which the
+ *          (possibly split) components are extracted.
  *      (2) If either %minw < 0 or %minh < 0, noise components are
  *          filtered out, and the returned %naid array is all 1.
  *          Otherwise, some noise components whose dimensions (w,h)
@@ -278,15 +286,20 @@ recogSplitIntoCharacters(L_RECOG  *recog,
                          NUMA    **pnaid,
                          l_int32   debug)
 {
+static l_int32  ind = 0;
+char     buf[32];
 l_int32  empty, maxw, bw, ncomp, same, savenoise, scaling;
 l_int32  i, j, n, n3, xoff, yoff;
 BOX     *box, *box3;
-BOXA    *boxa1, *boxa2, *boxa3, *boxa4, *boxat1, *boxat2, *boxad;
+BOXA    *boxa1, *boxa2, *boxa3, *boxa4, *boxa5, *boxad;
 BOXAA   *baa;
 NUMA    *naid;
-PIX     *pix, *pix1, *pix2;
+PIX     *pix, *pix1, *pix2, *pix3;
+PIXA    *pixa;
 
     PROCNAME("recogSplitIntoCharacters");
+
+    lept_mkdir("lept/recog");
 
     if (pboxa) *pboxa = NULL;
     if (ppixa) *ppixa = NULL;
@@ -317,10 +330,10 @@ PIX     *pix, *pix1, *pix2;
         pixXor(pix1, pix1, pix2);  /* leave noise components only in pix1 */
         pixZero(pix1, &empty);
         if (!empty) {
-            boxat1 = pixConnComp(pix1, NULL, 8);
-            boxa3 = boxaSelectBySize(boxat1, minw, minh, L_SELECT_IF_BOTH,
+            boxa4 = pixConnComp(pix1, NULL, 8);
+            boxa3 = boxaSelectBySize(boxa4, minw, minh, L_SELECT_IF_BOTH,
                                      L_SELECT_IF_GTE, NULL);
-            boxaDestroy(&boxat1);
+            boxaDestroy(&boxa4);
         }
     }
     pixDestroy(&pix1);
@@ -340,6 +353,7 @@ PIX     *pix, *pix1, *pix2;
     boxa2 = boxaCreate(ncomp);
     maxw = recog->maxwidth_u + 5;
     scaling = (recog->scalew > 0 || recog->scaleh > 0) ? TRUE : FALSE;
+    pixa = (debug) ? pixaCreate(ncomp) : NULL;
     for (i = 0; i < ncomp; i++) {
         box = boxaGetBox(boxa1, i, L_CLONE);
         boxGetGeometry(box, &xoff, &yoff, &bw, NULL);
@@ -349,21 +363,42 @@ PIX     *pix, *pix1, *pix2;
             boxaAddBox(boxa2, box, L_INSERT);
         } else {
             pix = pixClipRectangle(pixs, box, NULL);
-            recogCorrelationBestRow(recog, pix, &boxat1, NULL, NULL,
+#if SPLIT_WITH_DID
+            if (!debug) {
+                boxa4 = recogDecode(recog, pix, 2, NULL);
+            } else {
+                boxa4 = recogDecode(recog, pix, 2, &pix2);
+                pixaAddPix(pixa, pix2, L_INSERT);
+            }
+#else  /* use greedy splitting */
+            recogCorrelationBestRow(recog, pix, &boxa4, NULL, NULL,
                                     NULL, debug);
+            if (debug) {
+                pix2 = pixConvertTo32(pix);
+                pixRenderBoxaArb(pix2, boxa4, 2, 255, 0, 0);
+                pixaAddPix(pixa, pix2, L_INSERT);
+            }
+#endif  /* SPLIT_WITH_DID */
             pixDestroy(&pix);
             boxDestroy(&box);
-            if (!boxat1) {
-              L_ERROR("boxat1 not found for component %d\n", procName, i);
+            if (!boxa4) {
+              L_ERROR("boxa4 not found for component %d\n", procName, i);
             } else {
-              boxat2 = boxaTransform(boxat1, xoff, yoff, 1.0, 1.0);
-              boxaJoin(boxa2, boxat2, 0, -1);
-              boxaDestroy(&boxat1);
-              boxaDestroy(&boxat2);
+              boxa5 = boxaTransform(boxa4, xoff, yoff, 1.0, 1.0);
+              boxaJoin(boxa2, boxa5, 0, -1);
+              boxaDestroy(&boxa4);
+              boxaDestroy(&boxa5);
             }
         }
     }
     boxaDestroy(&boxa1);
+    if (pixa) {  /* debug */
+        pix3 = pixaDisplayTiledInColumns(pixa, 1, 1.0, 20, 2);
+        snprintf(buf, sizeof(buf), "/tmp/lept/recog/decode-%d.png", ind++);
+        pixWrite(buf, pix3, IFF_PNG);
+        pixaDestroy(&pixa);
+        pixDestroy(&pix3);
+    }
 
         /* If the noise boxa was retained, add it back in, so we have
          * a mixture of non-noise and noise components. */
@@ -421,6 +456,9 @@ PIX     *pix, *pix1, *pix2;
 }
 
 
+/*------------------------------------------------------------------------*
+ *                       Greedy character splitting                       *
+ *------------------------------------------------------------------------*/
 /*!
  * \brief   recogCorrelationBestRow()
  *
@@ -1498,7 +1536,7 @@ PIX     *pix1, *pix2, *pixd;
  * \brief   recogPreSplittingFilter()
  *
  * \param[in]    recog
- * \param[in]    pixs 1 bpp, single connected component
+ * \param[in]    pixs 1 bpp, many connected components
  * \param[in]    minaf minimum area fraction (|fg|/(w*h)) to be retained
  * \param[in]    debug 1 to output indicator arrays
  * \return  pixd with filtered components removed or NULL on error

@@ -26,12 +26,14 @@
 
                         style-guide.txt
 
-                         24 Jan 2016
+                         27 Jan 2017
 
-   [This is not complete.  You need to look at existing code to verify
-    your code meets the style guidelines.  And if you find any aberrant
-    code, please let me know!]
-
+This is not a complete guide to the coding style in leptonica.
+It covers most of the typographic issues and the most frequent
+coding patterns, such as how to check input args to functions.
+In general, you need to look at existing code to verify that your
+code meets the style guidelines.  And if you find any aberrant code,
+please let me know!
 
 The C code in leptonica follows these conventions:
 
@@ -53,15 +55,26 @@ The C code in leptonica follows these conventions:
 
    (a) White space:  4 space indentation.  No tabs, ever.  No trailing spaces.
 
-   (b) Function header is in this format:
+   (b) The code is set up to work with doxygen.  Function headers are in
+       this format:
 
       /*!
-       *  boxContains()
+       * \brief   pixSelectByAreaFraction()
        *
-       *      Input:  box1, box2
-       *              &result (<return> 1 if box2 is entirely contained within
-       *                       box1, and 0 otherwise)
-       *      Return: 0 if OK, 1 on error
+       * \param[in]    pixs 1 bpp
+       * \param[in]    thresh threshold ratio of fg pixels to (w * h)
+       * \param[in]    connectivity 4 or 8
+       * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
+       *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
+       * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+       * \return  pixd, or NULL on error
+       *
+       * <pre>
+       * Notes:
+       *      (1) The args specify constraints on the amount of foreground
+       *          coverage of the components that are kept.
+       *   ....
+       * </pre>
        */
 
    (c) Function definition has return value on separate line and starting
