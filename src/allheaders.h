@@ -2191,7 +2191,7 @@ LEPT_DLL extern l_int32 recogProcessSingleLabeled ( L_RECOG *recog, PIX *pixs, B
 LEPT_DLL extern l_int32 recogProcessMultLabeled ( L_RECOG *recog, PIX *pixs, BOX *box, char *text, PIXA **ppixa, l_int32 debug );
 LEPT_DLL extern l_int32 recogAddSamples ( L_RECOG *recog, PIXA *pixa, l_int32 classindex, l_int32 debug );
 LEPT_DLL extern PIX * recogModifyTemplate ( L_RECOG *recog, PIX *pixs );
-LEPT_DLL extern l_int32 recogAverageSamples ( L_RECOG *recog, l_int32 debug );
+LEPT_DLL extern l_int32 recogAverageSamples ( L_RECOG **precog, l_int32 debug );
 LEPT_DLL extern l_int32 pixaAccumulateSamples ( PIXA *pixa, PTA *pta, PIX **ppixd, l_float32 *px, l_float32 *py );
 LEPT_DLL extern l_int32 recogTrainingFinished ( L_RECOG *recog, l_int32 modifyflag );
 LEPT_DLL extern PIXA * recogRemoveOutliers1 ( PIXA *pixas, l_float32 minscore, l_float32 minfract, PIXA **ppixarem, NUMA **pnarem );
@@ -2203,7 +2203,7 @@ LEPT_DLL extern PIXA * recogAddDigitPadTemplates ( L_RECOG *recog, SARRAY *sa );
 LEPT_DLL extern L_RECOG * recogMakeBootDigitRecog ( l_int32 scaleh, l_int32 linew, l_int32 maxyshift, l_int32 debug );
 LEPT_DLL extern PIXA * recogMakeBootDigitTemplates ( l_int32 debug );
 LEPT_DLL extern l_int32 recogShowContent ( FILE *fp, L_RECOG *recog, l_int32 index, l_int32 display );
-LEPT_DLL extern l_int32 recogDebugAverages ( L_RECOG *recog, l_int32 debug );
+LEPT_DLL extern l_int32 recogDebugAverages ( L_RECOG **precog, l_int32 debug );
 LEPT_DLL extern l_int32 recogShowAverageTemplates ( L_RECOG *recog );
 LEPT_DLL extern PIX * recogDisplayOutliers ( PIXA *pixas, NUMA *nas );
 LEPT_DLL extern l_int32 recogShowMatchesInRange ( L_RECOG *recog, PIXA *pixa, l_float32 minscore, l_float32 maxscore, l_int32 display );

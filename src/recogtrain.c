@@ -564,33 +564,41 @@ PIX     *pix1, *pix2;
 /*!
  * \brief   recogAverageSamples()
  *
- * \param[in]    recog
- * \param[in]    debug
+ * \param[in]   precog   addr of existing recog; may be destroyed
+ * \param[in]   debug
  * \return  0 on success, 1 on failure
  *
  * <pre>
  * Notes:
- *      (1) This is only called:
- *          (a) when splitting characters using the greedy splitter
- *              recogCorrelationBestRow(), and
- *          (b) by a special recognizer that is used to remove outliers.
+ *      (1) This is only called in two situations:
+ *          (a) When splitting characters using either the DID method
+ *              recogDecode() or the the greedy splitter
+ *              recogCorrelationBestRow()
+ *          (b) By a special recognizer that is used to remove outliers.
  *          Both unscaled and scaled inputs are averaged.
- *      (2) Set debug = 1 to view the resulting templates and their centroids.
+ *      (2) If the data in any class is nonexistent (no samples) or
+ *          very bad (no fg pixels in the average), this destroys the recog.
+ *          The caller must check the return value or recog.
+ *      (3) Set debug = 1 to view the resulting templates and their centroids.
  * </pre>
  */
 l_int32
-recogAverageSamples(L_RECOG  *recog,
-                    l_int32   debug)
+recogAverageSamples(L_RECOG  **precog,
+                    l_int32    debug)
 {
-l_int32    i, nsamp, size, area, bx, by;
+l_int32    i, nsamp, size, area, bx, by, badclass;
 l_float32  x, y;
 BOX       *box;
-PIXA      *pixat, *pixa_sel;
+PIXA      *pixa1;
 PIX       *pix1, *pix2, *pix3;
-PTA       *ptat;
+PTA       *pta1;
+L_RECOG   *recog;
 
     PROCNAME("recogAverageSamples");
 
+    if (!precog)
+        return ERROR_INT("&recog not defined", procName, 1);
+    recog = *precog;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
 
@@ -623,78 +631,96 @@ PTA       *ptat;
          * makes that assumption and will return a zero value if the
          * width or height of the two images differs by several pixels.
          * But cropping to fg can cause the value of the centroid to
-         * change, if bx or by > 0. */
+         * change, if bx > 0 or by > 0. */
+    badclass = FALSE;
     for (i = 0; i < size; i++) {
-        pixat = pixaaGetPixa(recog->pixaa_u, i, L_CLONE);
-        ptat = ptaaGetPta(recog->ptaa_u, i, L_CLONE);
-        nsamp = pixaGetCount(pixat);
+        pixa1 = pixaaGetPixa(recog->pixaa_u, i, L_CLONE);
+        pta1 = ptaaGetPta(recog->ptaa_u, i, L_CLONE);
+        nsamp = pixaGetCount(pixa1);
         nsamp = L_MIN(nsamp, 256);  /* we only use the first 256 */
         if (nsamp == 0) {  /* no information for this class */
-            pix1 = pixCreate(1, 1, 1);
-            pixaAddPix(recog->pixa_u, pix1, L_INSERT);
-            ptaAddPt(recog->pta_u, 0, 0);
-            numaAddNumber(recog->nasum_u, 0);
+            L_ERROR("no samples in class %d\n", procName, i);
+            badclass = TRUE;
+            pixaDestroy(&pixa1);
+            ptaDestroy(&pta1);
+            break;
         } else {
-            pixaAccumulateSamples(pixat, ptat, &pix1, &x, &y);
-            nsamp = (nsamp == 1) ? 2 : nsamp;  /* special case thresh */
-            pix2 = pixThresholdToBinary(pix1, nsamp / 2);
+            pixaAccumulateSamples(pixa1, pta1, &pix1, &x, &y);
+            pix2 = pixThresholdToBinary(pix1, L_MAX(1, nsamp / 2));
             pixInvert(pix2, pix2);
             pixClipToForeground(pix2, &pix3, &box);
-            boxGetGeometry(box, &bx, &by, NULL, NULL);
-            pixaAddPix(recog->pixa_u, pix3, L_INSERT);
-            ptaAddPt(recog->pta_u, x - bx, y - by);  /* correct centroid */
-            pixCountPixels(pix3, &area, recog->sumtab);
-            numaAddNumber(recog->nasum_u, area);  /* foreground */
+            if (!box) {
+                L_ERROR("no fg pixels in average for class %d\n", procName, i);
+                badclass = TRUE;
+                pixDestroy(&pix1);
+                pixDestroy(&pix2);
+                pixaDestroy(&pixa1);
+                ptaDestroy(&pta1);
+                break;
+            } else {
+                boxGetGeometry(box, &bx, &by, NULL, NULL);
+                pixaAddPix(recog->pixa_u, pix3, L_INSERT);
+                ptaAddPt(recog->pta_u, x - bx, y - by);  /* correct centroid */
+                pixCountPixels(pix3, &area, recog->sumtab);
+                numaAddNumber(recog->nasum_u, area);  /* foreground */
+                boxDestroy(&box);
+            }
             pixDestroy(&pix1);
             pixDestroy(&pix2);
-            boxDestroy(&box);
         }
-        pixaDestroy(&pixat);
-        ptaDestroy(&ptat);
+        pixaDestroy(&pixa1);
+        ptaDestroy(&pta1);
     }
 
-        /* Any classes for which there are no samples will have a 1x1
-         * pix as a placeholder.  This must not be included when
-         * finding the size range of the averaged templates. */
-    pixa_sel = pixaSelectBySize(recog->pixa_u, 5, 5, L_SELECT_IF_BOTH,
-                                L_SELECT_IF_GTE, NULL);
-    pixaSizeRange(pixa_sel, &recog->minwidth_u, &recog->minheight_u,
+        /* Are any classes bad?  If so, destroy the recog and return an error */
+    if (badclass) {
+        recogDestroy(precog);
+        return ERROR_INT("at least 1 bad class; destroying recog", procName, 1);
+    }
+
+        /* Get the range of sizes of the unscaled average templates */
+    pixaSizeRange(recog->pixa_u, &recog->minwidth_u, &recog->minheight_u,
                   &recog->maxwidth_u, &recog->maxheight_u);
-    pixaDestroy(&pixa_sel);
 
         /* Scaled bitmaps: compute averaged bitmap, centroid, and fg area */
     for (i = 0; i < size; i++) {
-        pixat = pixaaGetPixa(recog->pixaa, i, L_CLONE);
-        ptat = ptaaGetPta(recog->ptaa, i, L_CLONE);
-        nsamp = pixaGetCount(pixat);
+        pixa1 = pixaaGetPixa(recog->pixaa, i, L_CLONE);
+        pta1 = ptaaGetPta(recog->ptaa, i, L_CLONE);
+        nsamp = pixaGetCount(pixa1);
         nsamp = L_MIN(nsamp, 256);  /* we only use the first 256 */
-        if (nsamp == 0) {  /* no information for this class */
-            pix1 = pixCreate(1, 1, 1);
-            pixaAddPix(recog->pixa, pix1, L_INSERT);
-            ptaAddPt(recog->pta, 0, 0);
-            numaAddNumber(recog->nasum, 0);
+        pixaAccumulateSamples(pixa1, pta1, &pix1, &x, &y);
+        pix2 = pixThresholdToBinary(pix1, L_MAX(1, nsamp / 2));
+        pixInvert(pix2, pix2);
+        pixClipToForeground(pix2, &pix3, &box);
+        if (!box) {
+            L_ERROR("no fg pixels in average for class %d\n", procName, i);
+            badclass = TRUE;
+            pixDestroy(&pix1);
+            pixDestroy(&pix2);
+            pixaDestroy(&pixa1);
+            ptaDestroy(&pta1);
+            break;
         } else {
-            pixaAccumulateSamples(pixat, ptat, &pix1, &x, &y);
-            nsamp = (nsamp == 1) ? 2 : nsamp;  /* special case thresh */
-            pix2 = pixThresholdToBinary(pix1, nsamp / 2);
-            pixInvert(pix2, pix2);
-            pixClipToForeground(pix2, &pix3, &box);
             boxGetGeometry(box, &bx, &by, NULL, NULL);
             pixaAddPix(recog->pixa, pix3, L_INSERT);
             ptaAddPt(recog->pta, x - bx, y - by);  /* correct centroid */
             pixCountPixels(pix3, &area, recog->sumtab);
             numaAddNumber(recog->nasum, area);  /* foreground */
             boxDestroy(&box);
-            pixDestroy(&pix1);
-            pixDestroy(&pix2);
         }
-        pixaDestroy(&pixat);
-        ptaDestroy(&ptat);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        pixaDestroy(&pixa1);
+        ptaDestroy(&pta1);
     }
-    pixa_sel = pixaSelectBySize(recog->pixa, 5, 5, L_SELECT_IF_BOTH,
-                                L_SELECT_IF_GTE, NULL);
-    pixaSizeRange(pixa_sel, &recog->minwidth, NULL, &recog->maxwidth, NULL);
-    pixaDestroy(&pixa_sel);
+
+    if (badclass) {
+        recogDestroy(precog);
+        return ERROR_INT("at least 1 bad class; destroying recog", procName, 1);
+    }
+
+        /* Get the range of widths of the scaled average templates */
+    pixaSizeRange(recog->pixa, &recog->minwidth, NULL, &recog->maxwidth, NULL);
 
        /* Get min and max splitting dimensions */
     recog->min_splitw = L_MAX(5, recog->minwidth_u - 5);
@@ -992,7 +1018,13 @@ L_RECOG   *recog;
     if (minfract <= 0.0)
         minfract = DEFAULT_MIN_FRACTION;
 
+        /* Make a special height-scaled recognizer with average templates */
     debug = (ppixarem) ? 1 : 0;
+    recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
+    recogAverageSamples(&recog, debug);
+    if (!recog)
+        return (PIXA *)ERROR_PTR("bad pixas; averaging failed", procName, NULL);
+
     if (debug) {
         pixarem = pixaCreate(0);
         *ppixarem = pixarem;
@@ -1000,11 +1032,7 @@ L_RECOG   *recog;
         *pnarem = narem;
     }
 
-        /* Make a special height-scaled recognizer with average templates */
-    recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
-    recogAverageSamples(recog, debug);
     pixad = pixaCreate(0);
-
     for (i = 0; i < recog->setsize; i++) {
             /* Access the average template and values for scaled
              * images in this class */
@@ -1115,16 +1143,18 @@ L_RECOG   *recog;
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
 
+        /* Make a special height-scaled recognizer with average templates */
+    recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
+    recogAverageSamples(&recog, 0);
+    if (!recog)
+        return (PIXA *)ERROR_PTR("bad pixas; averaging failed", procName, NULL);
+
     if (ppixarem)
         *ppixarem = pixaCreate(0);
     if (ppixadb)
         *ppixadb = pixaCreate(0);
 
-        /* Make a special height-scaled recognizer with average templates */
-    recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
-    recogAverageSamples(recog, 0);
     pixad = pixaCreate(0);
-
     pixaaGetCount(recog->pixaa, &nan);  /* number of templates in each class */
     for (i = 0; i < recog->setsize; i++) {
             /* Get the scores for each sample in the class, when comparing
@@ -1745,8 +1775,8 @@ NUMA    *na;
 /*!
  * \brief   recogDebugAverages()
  *
- * \param[in]    recog
- * \param[in]    debug 0 no output; 1 for images; 2 for text; 3 for both
+ * \param[in]    precog   addr of recog
+ * \param[in]    debug    0 no output; 1 for images; 2 for text; 3 for both
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1756,29 +1786,35 @@ NUMA    *na;
  *          correlated to.  This is written into the recog.
  *      (2) It also generates pixa_tr of all the input training images,
  *          which can be used, e.g., in recogShowMatchesInRange().
+ *      (3) Destroys the recog if the averaging function finds any bad classes.
  * </pre>
  */
 l_int32
-recogDebugAverages(L_RECOG  *recog,
-                   l_int32   debug)
+recogDebugAverages(L_RECOG  **precog,
+                   l_int32    debug)
 {
 l_int32    i, j, n, np, index;
 l_float32  score;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa, *pixat;
 PIXAA     *paa1, *paa2;
+L_RECOG   *recog;
 
     PROCNAME("recogDebugAverages");
 
+    if (!precog)
+        return ERROR_INT("&recog not defined", procName, 1);
+    recog = *precog;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
 
         /* Mark the training as finished if necessary, and make sure
          * that the average templates have been built. */
-    recogAverageSamples(recog, 0);
-    paa1 = recog->pixaa;
+    if (recogAverageSamples(precog, 0))
+        return ERROR_INT("averaging failed; recog destroyed", procName, 1);
 
         /* Save a pixa of all the training examples */
+    paa1 = recog->pixaa;
     if (!recog->pixa_tr)
         recog->pixa_tr = pixaaFlattenToPixa(paa1, NULL, L_CLONE);
 
@@ -1843,9 +1879,10 @@ PIXA      *pixat, *pixadb;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
 
-    fprintf(stderr, "minwidth_u = %d, minheight_u = %d, maxheight_u = %d\n",
-            recog->minwidth_u, recog->minheight_u, recog->maxheight_u);
-    fprintf(stderr, "minw = %d, minh = %d, maxh = %d\n",
+    fprintf(stderr, "min/max width_u = (%d,%d); min/max height_u = (%d,%d)\n",
+            recog->minwidth_u, recog->maxwidth_u,
+            recog->minheight_u, recog->maxheight_u);
+    fprintf(stderr, "min splitw = %d, min/max splith = (%d,%d)\n",
             recog->min_splitw, recog->min_splith, recog->max_splith);
 
     pixaDestroy(&recog->pixadb_ave);

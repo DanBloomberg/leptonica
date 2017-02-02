@@ -646,8 +646,6 @@ L_RDID    *did;
         LEPT_FREE(text);
     }
 
-/*    numaWriteStream(stderr, recog->did->nadely_r);  */
-
     if (ppixdb)
         *ppixdb = recogShowPath(recog, 1);
 
@@ -742,8 +740,8 @@ l_int32
 recogCreateDid(L_RECOG  *recog,
                PIX      *pixs)
 {
-l_int32      i;
-PIX         *pix1;
+l_int32  i;
+PIX     *pix1;
 L_RDID  *did;
 
     PROCNAME("recogCreateDid");

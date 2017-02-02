@@ -70,15 +70,20 @@ L_RECOG  *recog;
 #else   /* no scaling */
     recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);
 #endif
-    recogAverageSamples(recog, 1);
+    recogAverageSamples(&recog, 1);
     recogWrite("/tmp/lept/recog/rec1.rec", recog);
 
         /* Show the templates */
-    recogDebugAverages(recog, 1);
+    recogDebugAverages(&recog, 1);
+    if (!recog) {
+        fprintf(stderr, "Averaging failed!!\n");
+        return 1;
+    }
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 1);
 
         /* Get a set of problem images to decode */
     pixa2 = pixaRead("recog/sets/test01.pa");
+
 
         /* Decode a subset of them.  It takes about 1 ms to decode a
          * 4 digit number, with both Viterbi and rescoring (debug off). */

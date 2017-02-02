@@ -1084,8 +1084,11 @@ PTA       *pta;
         return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
 
         /* Do the averaging if required and not yet done. */
-    if (recog->templ_use == L_USE_AVERAGE_TEMPLATES && !recog->ave_done)
-        recogAverageSamples(recog, 0);
+    if (recog->templ_use == L_USE_AVERAGE_TEMPLATES && !recog->ave_done) {
+        recogAverageSamples(&recog, 0);
+        if (!recog)
+            return ERROR_INT("averaging failed", procName, 1);
+    }
 
         /* Binarize and crop to foreground if necessary */
     if ((pix0 = recogProcessToIdentify(recog, pixs, 0)) == NULL)

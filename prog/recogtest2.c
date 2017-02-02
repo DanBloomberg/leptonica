@@ -146,7 +146,7 @@ SARRAY   *sa;
     fprintf(stderr, "initial size: %d\n", recog->num_samples);
     recogRemoveOutliers1(recog, 0.75, 0.5, 1);
     fprintf(stderr, "final size: %d\n", recog->num_samples);
-    recogDebugAverages(recog, 1);
+    recogDebugAverages(&recog, 1);
     recogShowContent(stderr, recog, 1);
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.75, 1.0, 1);
     pixWrite("/tmp/lept/recog/range.png", recog->pixdb_range, IFF_PNG);
