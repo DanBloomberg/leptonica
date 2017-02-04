@@ -54,6 +54,7 @@ l_int32 main(int    argc,
 {
 char     *fname;
 l_int32   i;
+PIX      *pix1, *pix2;
 PIXA     *pixa1, *pixa2, *pixa3;
 L_RECOG  *recogboot, *recog1;
 SARRAY   *sa;
@@ -144,7 +145,11 @@ SARRAY   *sa;
         /* Now use minscore = 0.75 to remove the outliers in the BAR,
          * and show what is left. */
     fprintf(stderr, "initial size: %d\n", recog->num_samples);
-    recogRemoveOutliers1(recog, 0.75, 0.5, 1);
+    recogRemoveOutliers1(recog, 0.75, 5, &pix1, &pix2);
+    pixDisplay(pix1, 500, 0);
+    pixDisplay(pix2, 500, 500);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     fprintf(stderr, "final size: %d\n", recog->num_samples);
     recogDebugAverages(&recog, 1);
     recogShowContent(stderr, recog, 1);

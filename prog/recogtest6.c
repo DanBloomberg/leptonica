@@ -74,9 +74,9 @@ L_RECOG  *recog;
     pixa2 = pixaRead("recog/sets/test01.pa");
 
         /* Decode a subset of them */
-    debug = 0;
+    debug = 1;
     for (i = 0; i < 6; i++) {
-        if (i != 3) continue;
+/*        if (i != 3) continue; */
         item = example[i];
         pix1 = pixaGetPix(pixa2, item, L_CLONE);
         pixDisplay(pix1, 100, 100);
@@ -91,7 +91,7 @@ L_RECOG  *recog;
             numaWriteStream(stderr, nascore);
             numaDestroy(&nascore);
             pixDestroy(&pixdb);
-        } else {
+        } else {  /* just get the timing */
             startTimer();
             recogIdentifyMultiple(recog, pix2, 0, -1, -1, 0,
                                   &boxa, NULL, NULL, 0);

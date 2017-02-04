@@ -67,7 +67,7 @@ char      *text;
 l_int32    histo[10];
 l_int32    i, n, ival, same;
 PIX       *pix1, *pix2;
-PIXA      *pixa1, *pixa2, *pixa3, *pixa4, *pixa5;
+PIXA      *pixa1, *pixa2, *pixa3, *pixa4;
 L_RECOG   *recog1, *recog2, *recog3;
 
     if (argc != 1) {
@@ -136,7 +136,11 @@ L_RECOG   *recog1, *recog2, *recog3;
     recogDestroy(&recog3);
 
         /* Remove outliers: method 1 */
-    pixa4 = recogRemoveOutliers1(pixa1, 0.8, 0.2, NULL, NULL);
+    pixa4 = recogRemoveOutliers1(pixa1, 0.8, 5, &pix1, &pix2);
+    pixDisplay(pix1, 500, 0);
+    pixDisplay(pix2, 500, 500);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     recog3 = recogCreateFromPixa(pixa4, 0, 0, 0, 128, 1);
     recogShowContent(stderr, recog3, 3, 1);
     pixaDestroy(&pixa4);
@@ -145,20 +149,23 @@ L_RECOG   *recog1, *recog2, *recog3;
         /* Relabel a few templates to put them in the wrong classes */
     pix1 = pixaGetPix(pixa1, 7, L_CLONE);
     pixSetText(pix1, "4");
+    pixDestroy(&pix1);
     pix1 = pixaGetPix(pixa1, 38, L_CLONE);
     pixSetText(pix1, "9");
+    pixDestroy(&pix1);
     pix1 = pixaGetPix(pixa1, 61, L_CLONE);
     pixSetText(pix1, "2");
+    pixDestroy(&pix1);
 
         /* Remove outliers: method 2 */
-    pixa4 = recogRemoveOutliers2(pixa1, NULL, &pixa5);
+    pixa4 = recogRemoveOutliers2(pixa1, 0.65, &pix1, &pix2);
+    pixDisplay(pix1, 900, 0);
+    pixDisplay(pix2, 900, 500);
     recog3 = recogCreateFromPixa(pixa4, 0, 0, 0, 128, 1);
     recogShowContent(stderr, recog3, 3, 1);
-    pix1 = pixaDisplayTiledInRows(pixa5, 32, 1500, 1.0, 0, 20, 2);
-    pixDisplay(pix1, 900, 0);
     pixDestroy(&pix1);
+    pixDestroy(&pix2);
     pixaDestroy(&pixa4);
-    pixaDestroy(&pixa5);
     recogDestroy(&recog3);
 
     recogDestroy(&recog1);

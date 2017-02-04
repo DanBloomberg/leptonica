@@ -127,20 +127,16 @@ SARRAY    *sa, *satext;
          *  0.9, 0.01 : remove most based on matching; saved 1 in each class */
     fprintf(stderr, "Remove outliers\n");
     static const l_float32  MinScore[] = {0.6, 0.7, 0.9};
-    static const l_float32  MinFract[] = {0.3, 0.2, 0.01};
+    static const l_int32  MinTarget[] = {4, 5, 4};
     pixa2 = recogExtractPixa(recog1);
     for (i = 0; i < 3; i++) {
-        pixa3 = recogRemoveOutliers1(pixa2, MinScore[i], MinFract[i],
-                                     &pixa4, &na1);
-        pix1 = pixaDisplayTiledWithText(pixa3, 1400, 1.0, 10, 2, 6, 0xff000000);
+        pixa3 = recogRemoveOutliers1(pixa2, MinScore[i], MinTarget[i],
+                                     &pix1, &pix2);
         pixDisplay(pix1, 900, 250 * i);
-        pix2 = recogDisplayOutliers(pixa4, na1);
         pixDisplay(pix2, 1300, 250 * i);
-        pixaDestroy(&pixa3);
-        pixaDestroy(&pixa4);
-        numaDestroy(&na1);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
+        pixaDestroy(&pixa3);
     }
     pixaDestroy(&pixa2);
 #endif

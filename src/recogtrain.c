@@ -58,8 +58,8 @@
  *         l_int32             recogShowContent()
  *         l_int32             recogDebugAverages()
  *         l_int32             recogShowAverageTemplates()
- *         PIX                *recogDisplayOutliers()
- *         PIX                *pixDisplayOutlier()
+ *         PIX                *pixDisplayOutliers()
+ *         PIX                *recogDisplayOutlier()
  *         PIX                *recogShowMatchesInRange()
  *         PIX                *recogShowMatch()
  *
@@ -163,13 +163,18 @@ static l_int32 *recogMapIndexToIndex(L_RECOG *recog1, L_RECOG *recog2);
 static l_int32 recogAverageClassGeom(L_RECOG *recog, NUMA **pnaw, NUMA **pnah);
 static SARRAY *recogAddMissingClassStrings(L_RECOG  *recog);
 static l_int32 recogCharsetAvailable(l_int32 type);
-static PIX *pixDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
-                              l_int32 maxclass, l_float32 maxscore);
+static PIX *pixDisplayOutliers(PIXA *pixas, NUMA *nas);
+static PIX *recogDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
+                                l_int32 maxclass, l_float32 maxscore);
 static char *l_charToString(char byte);
 
     /* Defaults in pixRemoveOutliers1() */
 static const l_float32  DEFAULT_MIN_SCORE = 0.75; /* keep everything above */
-static const l_float32  DEFAULT_MIN_FRACTION = 0.5;  /* to be kept */
+static const l_int32    DEFAULT_MIN_TARGET = 5;  /* to be kept */
+static const l_float32  LOWER_SCORE_THRESHOLD = 0.5;  /* templates can be
+                 * kept down to this score to if needed to keep the
+                 * desired minimum number of templates */
+
 
 /*------------------------------------------------------------------------*
  *                                Training                                *
@@ -564,7 +569,7 @@ PIX     *pix1, *pix2;
 /*!
  * \brief   recogAverageSamples()
  *
- * \param[in]   precog   addr of existing recog; may be destroyed
+ * \param[in]   precog      addr of existing recog; may be destroyed
  * \param[in]   debug
  * \return  0 on success, 1 on failure
  *
@@ -576,9 +581,11 @@ PIX     *pix1, *pix2;
  *              recogCorrelationBestRow()
  *          (b) By a special recognizer that is used to remove outliers.
  *          Both unscaled and scaled inputs are averaged.
- *      (2) If the data in any class is nonexistent (no samples) or
- *          very bad (no fg pixels in the average), this destroys the recog.
- *          The caller must check the return value or recog.
+ *      (2) If the data in any class is nonexistent (no samples), or
+ *          very bad (no fg pixels in the average), or if the ratio
+ *          of max/min average unscaled class template heights is
+ *          greater than max_ht_ratio, this destroys the recog.
+ *          The caller must check the return value of the recog.
  *      (3) Set debug = 1 to view the resulting templates and their centroids.
  * </pre>
  */
@@ -587,7 +594,7 @@ recogAverageSamples(L_RECOG  **precog,
                     l_int32    debug)
 {
 l_int32    i, nsamp, size, area, bx, by, badclass;
-l_float32  x, y;
+l_float32  x, y, hratio;
 BOX       *box;
 PIXA      *pixa1;
 PIX       *pix1, *pix2, *pix3;
@@ -650,7 +657,7 @@ L_RECOG   *recog;
             pixInvert(pix2, pix2);
             pixClipToForeground(pix2, &pix3, &box);
             if (!box) {
-                L_ERROR("no fg pixels in average for class %d\n", procName, i);
+                L_ERROR("no fg pixels in average for uclass %d\n", procName, i);
                 badclass = TRUE;
                 pixDestroy(&pix1);
                 pixDestroy(&pix2);
@@ -678,9 +685,17 @@ L_RECOG   *recog;
         return ERROR_INT("at least 1 bad class; destroying recog", procName, 1);
     }
 
-        /* Get the range of sizes of the unscaled average templates */
+        /* Get the range of sizes of the unscaled average templates.
+         * Reject if the height ratio is too large.  */
     pixaSizeRange(recog->pixa_u, &recog->minwidth_u, &recog->minheight_u,
                   &recog->maxwidth_u, &recog->maxheight_u);
+    hratio = (l_float32)recog->maxheight_u / (l_float32)recog->minheight_u;
+    if (hratio > recog->max_ht_ratio) {
+        L_ERROR("ratio of max/min height of average templates = %4.1f;"
+                " destroying recog\n", procName, hratio);
+        recogDestroy(precog);
+        return 1;
+    }
 
         /* Scaled bitmaps: compute averaged bitmap, centroid, and fg area */
     for (i = 0; i < size; i++) {
@@ -693,7 +708,7 @@ L_RECOG   *recog;
         pixInvert(pix2, pix2);
         pixClipToForeground(pix2, &pix3, &box);
         if (!box) {
-            L_ERROR("no fg pixels in average for class %d\n", procName, i);
+            L_ERROR("no fg pixels in average for sclass %d\n", procName, i);
             badclass = TRUE;
             pixDestroy(&pix1);
             pixDestroy(&pix2);
@@ -961,9 +976,9 @@ PTAA      *ptaa;
  *
  * \param[in]   pixas        unscaled labeled templates
  * \param[in]   minscore     keep everything with at least this score
- * \param[in]   minfract     minimum fraction to retain
- * \param[out]  ppixarem     [optional debug] removed templates
- * \param[out]  pnarem       [optional debug] scores of removed templates
+ * \param[in]   mintarget    minimum desired number to retain if possible
+ * \param[out]  ppixsave     [optional debug] saved templates, with scores
+ * \param[out]  ppixrem      [optional debug] removed templates, with scores
  * \return  pixa   of unscaled templates to be kept, or NULL on error
  *
  * <pre>
@@ -975,12 +990,14 @@ PTAA      *ptaa;
  *          match for an input sample.
  *      (2) Because the score values depend strongly on the quality
  *          of the character images, to avoid losing too many samples
- *          we supplement a minimum score for retention with a minimum
- *          fraction that we must keep.  Consequently, with poor quality
- *          images, we may keep samples with a score less than the
- *          %minscore, in order to satisfy the %minfract requirement.
- *          In addition, require that at least one sample will be retained.
- *      (3) This is meant to be used on a BAR, Where the templates all
+ *          we supplement a minimum score for retention with a score
+ *          necessary to acquire the minimum target number of templates.
+ *          To do this we are willing to use a lower threshold,
+ *          LOWER_SCORE_THRESHOLD, on the score.  Consequently, with
+ *          poor quality templates, we may keep samples with a score
+ *          less than %minscore, but never less than LOWER_SCORE_THRESHOLD.
+ *          And if the number of samples is less than 3, we do not use any.
+ *      (3) This is meant to be used on a BAR, where the templates all
  *          come from the same book; use minscore ~0.75.
  *      (4) Method: make a scaled recog from the input %pixas.  Then,
  *          for each class: generate the averages, match each
@@ -991,13 +1008,13 @@ PTAA      *ptaa;
 PIXA *
 recogRemoveOutliers1(PIXA      *pixas,
                      l_float32  minscore,
-                     l_float32  minfract,
-                     PIXA     **ppixarem,
-                     NUMA     **pnarem)
+                     l_int32    mintarget,
+                     PIX      **ppixsave,
+                     PIX      **ppixrem)
 {
 l_int32    i, j, debug, n, area1, area2;
-l_float32  x1, y1, x2, y2, maxval, score, rankscore, threshscore;
-NUMA      *nasum, *narem, *nascore;
+l_float32  x1, y1, x2, y2, minfract, score, rankscore, threshscore;
+NUMA      *nasum, *narem, *nasave, *nascore;
 PIX       *pix1, *pix2;
 PIXA      *pixa, *pixarem, *pixad;
 PTA       *pta;
@@ -1005,32 +1022,27 @@ L_RECOG   *recog;
 
     PROCNAME("recogRemoveOutliers1");
 
-    if (ppixarem) *ppixarem = NULL;
-    if (pnarem) *pnarem = NULL;
-    if ((ppixarem && !pnarem) || (!ppixarem && pnarem))
-        return (PIXA *)ERROR_PTR("debug output requires both", procName, NULL);
+    if (ppixsave) *ppixsave = NULL;
+    if (ppixrem) *ppixrem = NULL;
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
     minscore = L_MIN(minscore, 1.0);
     if (minscore <= 0.0)
         minscore = DEFAULT_MIN_SCORE;
-    minfract = L_MIN(minfract, 1.0);
-    if (minfract <= 0.0)
-        minfract = DEFAULT_MIN_FRACTION;
+    mintarget = L_MIN(mintarget, 3.0);
+    if (mintarget <= 0.0)
+        mintarget = DEFAULT_MIN_TARGET;
 
         /* Make a special height-scaled recognizer with average templates */
-    debug = (ppixarem) ? 1 : 0;
+    debug = (ppixsave || ppixrem) ? 1 : 0;
     recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
-    recogAverageSamples(&recog, debug);
     if (!recog)
         return (PIXA *)ERROR_PTR("bad pixas; averaging failed", procName, NULL);
+    recogAverageSamples(&recog, debug);
 
-    if (debug) {
-        pixarem = pixaCreate(0);
-        *ppixarem = pixarem;
-        narem = numaCreate(0);
-        *pnarem = narem;
-    }
+    nasave = (ppixsave) ? numaCreate(0) : NULL;
+    pixarem = (ppixrem) ? pixaCreate(0) : NULL;
+    narem = (ppixrem) ? numaCreate(0) : NULL;
 
     pixad = pixaCreate(0);
     for (i = 0; i < recog->setsize; i++) {
@@ -1061,26 +1073,27 @@ L_RECOG   *recog;
         pixDestroy(&pix1);
 
             /* Find the rankscore, corresonding to the 1.0 - minfract.
-             * To maintain the minfract of templates, use as a cutoff
-             * the minimum of minscore and the rank score.  Require
+             * To attempt to maintain the minfract of templates, use as a
+             * cutoff the minimum of minscore and the rank score.  However,
+             * no template is saved with an actual score less than
              * that at least one template is kept. */
+        minfract = (l_float32)mintarget / (l_float32)n;
         numaGetRankValue(nascore, 1.0 - minfract, NULL, 0, &rankscore);
-        numaGetMax(nascore, &maxval, NULL);
-        threshscore = L_MIN(maxval, L_MIN(minscore, rankscore));
+        threshscore = L_MAX(LOWER_SCORE_THRESHOLD, L_MIN(minscore, rankscore));
         if (debug) {
             L_INFO("minscore = %4.2f, rankscore = %4.2f, threshscore = %4.2f\n",
                    procName, minscore, rankscore, threshscore);
         }
 
             /* Save the templates that are at or above threshold.
-             * If there are less than 3 templates in the class, keep
-             * them all, because with only 2 templates we have no
-             * ability to identify an 'outlier'. */
+             * If there are less than 3 templates in the class, we
+             * have no ability to identify an 'outlier', so toss them. */
         for (j = 0; j < n; j++) {
             numaGetFValue(nascore, j, &score);
             pix1 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
-            if (score >= threshscore || n < 3) {
+            if (score >= threshscore && n > 2) {
                 pixaAddPix(pixad, pix1, L_INSERT);
+                if (nasave) numaAddNumber(nasave, score);
             } else if (debug) {
                 pixaAddPix(pixarem, pix1, L_INSERT);
                 numaAddNumber(narem, score);
@@ -1095,6 +1108,15 @@ L_RECOG   *recog;
         numaDestroy(&nascore);
     }
 
+    if (ppixsave) {
+        *ppixsave = pixDisplayOutliers(pixad, nasave);
+        numaDestroy(&nasave);
+    }
+    if (ppixrem) {
+        *ppixrem = pixDisplayOutliers(pixarem, narem);
+        pixaDestroy(&pixarem);
+        numaDestroy(&narem);
+    }
     recogDestroy(&recog);
     return pixad;
 }
@@ -1104,8 +1126,9 @@ L_RECOG   *recog;
  * \brief   recogRemoveOutliers2()
  *
  * \param[in]   pixas       unscaled labeled templates
- * \param[out]  ppixarem    [optional debug] removed templates
- * \param[out]  ppixadb     [optional debug] info on removed templates
+ * \param[in]   minscore    keep everything with at least this score
+ * \param[out]  ppixsave    [optional debug] saved templates, with scores
+ * \param[out]  ppixrem     [optional debug] removed templates, with scores
  * \return  pixa   of unscaled templates to be kept, or NULL on error
  *
  * <pre>
@@ -1117,42 +1140,44 @@ L_RECOG   *recog;
  *          match for an input sample.
  *      (2) This method compares each template against the average templates
  *          of each class, and discards any template that has a higher
- *          correlation to a class different from its own.  Unlike
- *          recogRemoveOutliers1(), this has no thresholds or minimum
- *          requirements for saving templates.
- *      (3) This is meant to be used on a BAR, Where the templates all
- *          come from the same book.
+ *          correlation to a class different from its own.  It also
+ *          sets a lower bound on correlation scores with its class average.
+ *      (3) This is meant to be used on a BAR, where the templates all
+ *          come from the same book; use minscore ~0.75.
  * </pre>
  */
 PIXA *
-recogRemoveOutliers2(PIXA   *pixas,
-                     PIXA  **ppixarem,
-                     PIXA  **ppixadb)
+recogRemoveOutliers2(PIXA      *pixas,
+                     l_float32  minscore,
+                     PIX      **ppixsave,
+                     PIX      **ppixrem)
 {
-l_int32    i, j, k, n, area1, area2, maxk;
+l_int32    i, j, k, n, area1, area2, maxk, debug;
 l_float32  x1, y1, x2, y2, score, maxscore;
-NUMA      *nan, *nascore;
+NUMA      *nan, *nascore, *nasave;
 PIX       *pix1, *pix2, *pix3;
-PIXA      *pixad;
+PIXA      *pixarem, *pixad;
 L_RECOG   *recog;
 
     PROCNAME("recogRemoveOutliers2");
 
-    if (ppixarem) *ppixarem = NULL;
-    if (ppixadb) *ppixadb = NULL;
+    if (ppixsave) *ppixsave = NULL;
+    if (ppixrem) *ppixrem = NULL;
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    minscore = L_MIN(minscore, 1.0);
+    if (minscore <= 0.0)
+        minscore = DEFAULT_MIN_SCORE;
 
         /* Make a special height-scaled recognizer with average templates */
+    debug = (ppixsave || ppixrem) ? 1 : 0;
     recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
-    recogAverageSamples(&recog, 0);
     if (!recog)
         return (PIXA *)ERROR_PTR("bad pixas; averaging failed", procName, NULL);
+    recogAverageSamples(&recog, debug);
 
-    if (ppixarem)
-        *ppixarem = pixaCreate(0);
-    if (ppixadb)
-        *ppixadb = pixaCreate(0);
+    nasave = (ppixsave) ? numaCreate(0) : NULL;
+    pixarem = (ppixrem) ? pixaCreate(0) : NULL;
 
     pixad = pixaCreate(0);
     pixaaGetCount(recog->pixaa, &nan);  /* number of templates in each class */
@@ -1176,23 +1201,30 @@ L_RECOG   *recog;
                 pixDestroy(&pix2);
             }
 
+                /* Is it in the correct class, with high enough score? */
             numaGetMax(nascore, &maxscore, &maxk);
-            if (maxk == i || n < 3) {  /* in correct class; save it */
+            if (maxk == i && maxscore >= minscore && n > 2) {  /* save it */
                 pix3 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
                 pixaAddPix(pixad, pix3, L_INSERT);
-                pixDestroy(&pix1);
-            } else {  /* outlier */
-                if (ppixarem)
-                    pixaAddPix(*ppixarem, pix1, L_COPY);
-                else
-                    pixDestroy(&pix1);
-                if (ppixadb) {
-                    pix3 = pixDisplayOutlier(recog, i, j, maxk, maxscore);
-                    pixaAddPix(*ppixadb, pix3, L_INSERT);
-                }
+                if (nasave) numaAddNumber(nasave, maxscore);
+            } else if (ppixrem) {  /* outlier */
+                pix3 = recogDisplayOutlier(recog, i, j, maxk, maxscore);
+                pixaAddPix(pixarem, pix3, L_INSERT);
+            } else {
+                pixDestroy(&pix3);
             }
             numaDestroy(&nascore);
+            pixDestroy(&pix1);
         }
+    }
+
+    if (ppixsave) {
+        *ppixsave = pixDisplayOutliers(pixad, nasave);
+        numaDestroy(&nasave);
+    }
+    if (ppixrem) {
+        *ppixrem = pixaDisplayTiledInRows(pixarem, 32, 1500, 1.0, 0, 20, 2);
+        pixaDestroy(&pixarem);
     }
 
     numaDestroy(&nan);
@@ -1775,8 +1807,8 @@ NUMA    *na;
 /*!
  * \brief   recogDebugAverages()
  *
- * \param[in]    precog   addr of recog
- * \param[in]    debug    0 no output; 1 for images; 2 for text; 3 for both
+ * \param[in]    precog    addr of recog
+ * \param[in]    debug     0 no output; 1 for images; 2 for text; 3 for both
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1932,20 +1964,21 @@ PIXA      *pixat, *pixadb;
 
 
 /*!
- * \brief   recogDisplayOutliers()
+ * \brief   pixDisplayOutliers()
  *
  * \param[in]    pixas    unscaled labeled templates
  * \param[in]    nas      scores of templates (against class averages)
  * \return  pix    tiled pixa with text and scores, or NULL on failure
+ *
  * <pre>
  * Notes:
- *      (1) This debug routine is called after recogRemoveOutliers(),
- *          and takes the removed templates and their scores as input.
+ *      (1) This debug routine is called from recogRemoveOutliers2(),
+ *          and takes the saved templates and their scores as input.
  * </pre>
  */
-PIX  *
-recogDisplayOutliers(PIXA  *pixas,
-                     NUMA  *nas)
+static PIX  *
+pixDisplayOutliers(PIXA  *pixas,
+                   NUMA  *nas)
 {
 char      *text;
 char       buf[16];
@@ -1954,7 +1987,7 @@ l_float32  fval;
 PIX       *pix1, *pix2;
 PIXA      *pixa1;
 
-    PROCNAME("recogDisplayOutliers");
+    PROCNAME("pixDisplayOutliers");
 
     if (!pixas)
         return (PIX *)ERROR_PTR("pixas not defined", procName, NULL);
@@ -1982,7 +2015,7 @@ PIXA      *pixa1;
 
 
 /*!
- * \brief   pixDisplayOutlier()
+ * \brief   recogDisplayOutlier()
  *
  * \param[in]    recog
  * \param[in]    iclass     sample is in this class
@@ -1990,19 +2023,27 @@ PIXA      *pixa1;
  * \param[in]    maxclass   index of class with closest average to sample
  * \param[in]    maxscore   score of sample with average of class %maxclass
  * \return  pix  sample and template images, with score, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This shows three templates, side-by-side:
+ *          - The outlier sample
+ *          - The average template from the same class
+ *          - The average class template that best matched the outlier sample
+ * </pre>
  */
 static PIX  *
-pixDisplayOutlier(L_RECOG   *recog,
-                  l_int32    iclass,
-                  l_int32    jsamp,
-                  l_int32    maxclass,
-                  l_float32  maxscore)
+recogDisplayOutlier(L_RECOG   *recog,
+                    l_int32    iclass,
+                    l_int32    jsamp,
+                    l_int32    maxclass,
+                    l_float32  maxscore)
 {
 char   buf[64];
 PIX   *pix1, *pix2, *pix3, *pix4, *pix5;
 PIXA  *pixa;
 
-    PROCNAME("pixDisplayOutlier");
+    PROCNAME("recogDisplayOutlier");
 
     if (!recog)
         return (PIX *)ERROR_PTR("recog not defined", procName, NULL);
@@ -2014,7 +2055,7 @@ PIXA  *pixa;
     pixaAddPix(pixa, pix1, L_INSERT);
     pixaAddPix(pixa, pix2, L_INSERT);
     pixaAddPix(pixa, pix3, L_INSERT);
-    pix4 = pixaDisplayTiledInRows(pixa, 32, 400, 2.0, 0, 6, 2);
+    pix4 = pixaDisplayTiledInRows(pixa, 32, 400, 2.0, 0, 12, 2);
     snprintf(buf, sizeof(buf), "C=%d, BAC=%d, S=%4.2f", iclass, maxclass,
              maxscore);
     pix5 = pixAddSingleTextblock(pix4, recog->bmf, buf, 0xff000000,
