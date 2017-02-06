@@ -50,10 +50,6 @@
 #include <math.h>
 #include "allheaders.h"
 
-#ifndef  NO_CONSOLE_IO
-#define  DEBUG_PLOT          0
-#endif  /* NO_CONSOLE_IO */
-
     /* Min to travel after finding max before abandoning peak */
 static const l_int32  MIN_DIST_IN_PEAK = 35;
 
@@ -94,7 +90,7 @@ static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
  *          horizontally.  This can be done by either rotating the
  *          image with pixDeskew(), or, if a projective transform
  *          is required, by doing pixDeskewLocal() first.
- *      (2) Input null for \&pta if you don't want this returned.
+ *      (2) Input null for &pta if you don't want this returned.
  *          The pta will come in pairs of points (left and right end
  *          of each baseline).
  *      (3) Caution: this will not work properly on text with multiple
@@ -111,8 +107,6 @@ static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
  *          combine this data to normalize the peak heights, by weighting
  *          the differential signal in the region of each baseline
  *          by the inverse of the width of the text line found there.
- *      (6) There are various debug sections that can be turned on
- *          with the debug flag.
  * </pre>
  */
 NUMA *
@@ -128,7 +122,7 @@ l_float32  maxval;
 BOXA      *boxa1, *boxa2, *boxa3;
 GPLOT     *gplot;
 NUMA      *nasum, *nadiff, *naloc, *naval;
-PIX       *pixt1, *pixt2;
+PIX       *pix1, *pix2;
 PTA       *pta;
 
     PROCNAME("pixFindBaselines");
@@ -142,12 +136,14 @@ PTA       *pta;
     }
 
         /* Close up the text characters, removing noise */
-    pixt1 = pixMorphSequence(pixs, "c25.1 + e3.1", 0);
+    pix1 = pixMorphSequence(pixs, "c25.1 + e3.1", 0);
 
         /* Save the difference of adjacent row sums.
          * The high positive-going peaks are the baselines */
-    if ((nasum = pixCountPixelsByRow(pixt1, NULL)) == NULL)
+    if ((nasum = pixCountPixelsByRow(pix1, NULL)) == NULL) {
+        pixDestroy(&pix1);
         return (NUMA *)ERROR_PTR("nasum not made", procName, NULL);
+    }
     h = pixGetHeight(pixs);
     nadiff = numaCreate(h);
     numaGetIValue(nasum, 0, &val2);
@@ -158,7 +154,7 @@ PTA       *pta;
     }
 
     if (debug) {  /* show the difference signal */
-        lept_mkdir("/lept/baseline");
+        lept_mkdir("lept/baseline");
         gplotSimple1(nadiff, GPLOT_PNG, "/tmp/lept/baseline/diff", "Diff Sig");
     }
 
@@ -213,8 +209,8 @@ PTA       *pta;
         /* Generate an approximate profile of text line width.
          * First, filter the boxes of text, where there may be
          * more than one box for a given textline. */
-    pixt2 = pixMorphSequence(pixt1, "r11 + c25.1 + o7.1 +c1.3", 0);
-    boxa1 = pixConnComp(pixt2, NULL, 4);
+    pix2 = pixMorphSequence(pix1, "r11 + c25.1 + o7.1 +c1.3", 0);
+    boxa1 = pixConnComp(pix2, NULL, 4);
     boxa2 = boxaTransform(boxa1, 0, 0, 4., 4.);
     boxa3 = boxaSort(boxa2, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
 
@@ -246,7 +242,6 @@ PTA       *pta;
                 ptaGetIPt(pta, i + 1, &x2, &y2);
                 pixRenderLineArb(pixd, x1, y1, x2, y2, 1, 255, 0, 0);
             }
-            pixDisplay(pixd, 200, 200);
             pixWrite("/tmp/lept/baseline/baselines.png", pixd, IFF_PNG);
             pixDestroy(&pixd);
         }
@@ -255,8 +250,8 @@ PTA       *pta;
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
     boxaDestroy(&boxa3);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     numaDestroy(&nasum);
     numaDestroy(&nadiff);
     numaDestroy(&naval);
@@ -411,7 +406,7 @@ PTA       *ptas, *ptad;
 
     naskew = pixGetLocalSkewAngles(pixs, nslices, redsweep, redsearch,
                                    sweeprange, sweepdelta, minbsdelta,
-                                   NULL, NULL);
+                                   NULL, NULL, 0);
     if (!naskew)
         return ERROR_INT("naskew not made", procName, 1);
 
@@ -458,20 +453,21 @@ PTA       *ptas, *ptad;
  * \brief   pixGetLocalSkewAngles()
  *
  * \param[in]    pixs
- * \param[in]    nslices  the number of horizontal overlapping slices; must
- *                  be larger than 1 and not exceed 20; use 0 for default
- * \param[in]    redsweep sweep reduction factor: 1, 2, 4 or 8;
- *                        use 0 for default value
- * \param[in]    redsearch search reduction factor: 1, 2, 4 or 8, and
- *                         not larger than redsweep; use 0 for default value
- * \param[in]    sweeprange half the full range, assumed about 0; in degrees;
- *                          use 0.0 for default value
- * \param[in]    sweepdelta angle increment of sweep; in degrees;
- *                          use 0.0 for default value
- * \param[in]    minbsdelta min binary search increment angle; in degrees;
- *                          use 0.0 for default value
+ * \param[in]    nslices      the number of horizontal overlapping slices; must
+ *                            be larger than 1 and not exceed 20; 0 for default
+ * \param[in]    redsweep     sweep reduction factor: 1, 2, 4 or 8;
+ *                            use 0 for default value
+ * \param[in]    redsearch    search reduction factor: 1, 2, 4 or 8, and not
+ *                            larger than redsweep; use 0 for default value
+ * \param[in]    sweeprange   half the full range, assumed about 0; in degrees;
+ *                            use 0.0 for default value
+ * \param[in]    sweepdelta   angle increment of sweep; in degrees;
+ *                            use 0.0 for default value
+ * \param[in]    minbsdelta   min binary search increment angle; in degrees;
+ *                            use 0.0 for default value
  * \param[out]   pa [optional] slope of skew as fctn of y
  * \param[out]   pb [optional] intercept at y=0 of skew as fctn of y
+ * \param[in]    debug   1 for generating plot of skew angle vs. y; 0 otherwise
  * \return  naskew, or NULL on error
  *
  * <pre>
@@ -499,12 +495,14 @@ pixGetLocalSkewAngles(PIX        *pixs,
                       l_float32   sweepdelta,
                       l_float32   minbsdelta,
                       l_float32  *pa,
-                      l_float32  *pb)
+                      l_float32  *pb,
+                      l_int32     debug)
 {
 l_int32    w, h, hs, i, ystart, yend, ovlap, npts;
 l_float32  angle, conf, ycenter, a, b;
 BOX       *box;
-NUMA      *naskew;
+GPLOT     *gplot;
+NUMA      *naskew, *nax, *nay;
 PIX       *pix;
 PTA       *pta;
 
@@ -525,8 +523,7 @@ PTA       *pta;
     if (minbsdelta == 0.0)
         minbsdelta = DEFAULT_MINBS_DELTA;
 
-    h = pixGetHeight(pixs);
-    w = pixGetWidth(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     hs = h / nslices;
     ovlap = (l_int32)(OVERLAP_FRACTION * hs);
     pta = ptaCreate(nslices);
@@ -543,7 +540,6 @@ PTA       *pta;
         pixDestroy(&pix);
         boxDestroy(&box);
     }
-/*    ptaWriteStream(stderr, pta, 0); */
 
         /* Do linear least squares fit */
     if ((npts = ptaGetCount(pta)) < 2) {
@@ -561,21 +557,19 @@ PTA       *pta;
         numaAddNumber(naskew, angle);
     }
 
-#if  DEBUG_PLOT
-{ NUMA   *nax, *nay;
-  GPLOT  *gplot;
-    ptaGetArrays(pta, &nax, &nay);
-    gplot = gplotCreate("/tmp/lept/baseline/kew", GPLOT_PNG,
-                        "skew as fctn of y", "y (in raster lines from top)",
-                        "angle (in degrees)");
-    gplotAddPlot(gplot, NULL, naskew, GPLOT_POINTS, "linear lsf");
-    gplotAddPlot(gplot, nax, nay, GPLOT_POINTS, "actual data pts");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
-    numaDestroy(&nax);
-    numaDestroy(&nay);
-}
-#endif  /* DEBUG_PLOT */
+    if (debug) {
+        lept_mkdir("lept/baseline");
+        ptaGetArrays(pta, &nax, &nay);
+        gplot = gplotCreate("/tmp/lept/baseline/skew", GPLOT_PNG,
+                            "skew as fctn of y", "y (in raster lines from top)",
+                            "angle (in degrees)");
+        gplotAddPlot(gplot, NULL, naskew, GPLOT_POINTS, "linear lsf");
+        gplotAddPlot(gplot, nax, nay, GPLOT_POINTS, "actual data pts");
+        gplotMakeOutput(gplot);
+        gplotDestroy(&gplot);
+        numaDestroy(&nax);
+        numaDestroy(&nay);
+    }
 
     ptaDestroy(&pta);
     return naskew;

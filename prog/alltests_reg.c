@@ -50,6 +50,7 @@ static const char *tests[] = {
                               "affine_reg",
                               "alphaops_reg",
                               "alphaxform_reg",
+                              "baseline_reg",
                               "bilateral2_reg",
                               "bilinear_reg",
                               "binarize_reg",

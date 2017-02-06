@@ -190,8 +190,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		translate_reg.c warper_reg.c webpio_reg.c \
 		wordboxes_reg.c writetext_reg.c xformbox_reg.c \
 		adaptmap_dark.c arabic_lines.c arithtest.c \
-		autogentest1.c autogentest2.c \
-		barcodetest.c baselinetest.c \
+		autogentest1.c autogentest2.c barcodetest.c \
 		binarizefiles.c binarize_set.c bincompare.c \
 		blendcmaptest.c buffertest.c \
 		byteatest.c ccbordtest.c cctest1.c \
@@ -312,6 +311,9 @@ alphaops_reg:	alphaops_reg.o $(LEPTLIB)
 
 alphaxform_reg:	alphaxform_reg.o $(LEPTLIB)
 	$(CC) -o alphaxform_reg alphaxform_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+baseline_reg:	baseline_reg.o $(LEPTLIB)
+	$(CC) -o baseline_reg baseline_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 bilateral1_reg:	bilateral1_reg.o $(LEPTLIB)
 	$(CC) -o bilateral1_reg bilateral1_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -708,9 +710,6 @@ autogentest2:	autogentest2.o autogen.137.o $(LEPTLIB)
 
 barcodetest:	barcodetest.o $(LEPTLIB)
 	$(CC) -o barcodetest barcodetest.o $(ALL_LIBS) $(EXTRALIBS)
-
-baselinetest:	baselinetest.o $(LEPTLIB)
-	$(CC) -o baselinetest baselinetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 binarizefiles:	binarizefiles.o $(LEPTLIB)
 	$(CC) -o binarizefiles binarizefiles.o $(ALL_LIBS) $(EXTRALIBS)

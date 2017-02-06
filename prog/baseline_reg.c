@@ -27,9 +27,10 @@
 /*
  * baselinetest.c
  *
- *   - e.g., use keystone.png as the input image
- *   - to get plots of baseline locations and other derived
- *     parameters, set DEBUG_PLOT to 1 in baseline.c
+ *   This tests two things:
+ *   (1) The ability to find a projective transform that will deskew
+ *       textlines in an image with keystoning.
+ *   (2) The ability to find baselines in a text image.
  */
 
 #include "allheaders.h"
@@ -37,41 +38,48 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-NUMA        *na;
-PIX         *pixs, *pixd;
-PTA         *pta;
-static char  mainName[] = "baselinetest";
+NUMA         *na;
+PIX          *pixs, *pixd;
+PTA          *pta;
+L_REGPARAMS  *rp;
 
-    if (argc != 3)
-	return ERROR_INT(" Syntax:  baselinetest filein fileout", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    filein = argv[1];
-    fileout = argv[2];
-    pixs = pixRead(filein);
+    pixs = pixRead("keystone.png");
 
-#if 1
         /* Test function for deskewing using projective transform
 	 * on linear approximation for local skew angle */
     pixd = pixDeskewLocal(pixs, 10, 0, 0, 0.0, 0.0, 0.0);
-    pixWrite(fileout, pixd, IFF_TIFF_G4);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
 
-        /* test baseline finder */
+        /* Test baseline finder */
     na = pixFindBaselines(pixd, &pta, 1);
-/*    ptaWriteStream(stderr, pta, 1); */
+    regTestCheckFile(rp, "/tmp/lept/baseline/diff.png");  /* 1 */
+    regTestCheckFile(rp, "/tmp/lept/baseline/loc.png");  /* 2 */
+    regTestCheckFile(rp, "/tmp/lept/baseline/baselines.png");  /* 3 */
+    if (rp->display) {
+        l_fileDisplay("/tmp/lept/baseline/diff.png", 0, 0, 1.0);
+        l_fileDisplay("/tmp/lept/baseline/loc.png", 700, 0, 1.0);
+        l_fileDisplay("/tmp/lept/baseline/baselines.png", 1350, 0, 1.0);
+    }
     pixDestroy(&pixd);
     numaDestroy(&na);
     ptaDestroy(&pta);
-#endif
 
-#if 0
         /* Test function for finding local skew angles */
-    na = pixGetLocalSkewAngles(pixs, 10, 0, 0, 0.0, 0.0, 0.0, NULL, NULL);
+    na = pixGetLocalSkewAngles(pixs, 10, 0, 0, 0.0, 0.0, 0.0, NULL, NULL, 1);
+    gplotSimple1(na, GPLOT_PNG, "/tmp/lept/baseline/ang", "Angles in degrees");
+    regTestCheckFile(rp, "/tmp/lept/baseline/ang.png");  /* 4 */
+    regTestCheckFile(rp, "/tmp/lept/baseline/skew.png");  /* 5 */
+    if (rp->display) {
+        l_fileDisplay("/tmp/lept/baseline/ang.png", 0, 550, 1.0);
+        l_fileDisplay("/tmp/lept/baseline/skew.png", 700, 550, 1.0);
+    }
     numaDestroy(&na);
-#endif
-
     pixDestroy(&pixs);
-    return 0;
+
+    return regTestCleanup(rp);
 }
 
 

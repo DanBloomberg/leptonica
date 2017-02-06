@@ -122,7 +122,7 @@ LEPT_DLL extern l_int32 barcodeFormatIsSupported ( l_int32 format );
 LEPT_DLL extern NUMA * pixFindBaselines ( PIX *pixs, PTA **ppta, l_int32 debug );
 LEPT_DLL extern PIX * pixDeskewLocal ( PIX *pixs, l_int32 nslices, l_int32 redsweep, l_int32 redsearch, l_float32 sweeprange, l_float32 sweepdelta, l_float32 minbsdelta );
 LEPT_DLL extern l_int32 pixGetLocalSkewTransform ( PIX *pixs, l_int32 nslices, l_int32 redsweep, l_int32 redsearch, l_float32 sweeprange, l_float32 sweepdelta, l_float32 minbsdelta, PTA **pptas, PTA **pptad );
-LEPT_DLL extern NUMA * pixGetLocalSkewAngles ( PIX *pixs, l_int32 nslices, l_int32 redsweep, l_int32 redsearch, l_float32 sweeprange, l_float32 sweepdelta, l_float32 minbsdelta, l_float32 *pa, l_float32 *pb );
+LEPT_DLL extern NUMA * pixGetLocalSkewAngles ( PIX *pixs, l_int32 nslices, l_int32 redsweep, l_int32 redsearch, l_float32 sweeprange, l_float32 sweepdelta, l_float32 minbsdelta, l_float32 *pa, l_float32 *pb, l_int32 debug );
 LEPT_DLL extern L_BBUFFER * bbufferCreate ( l_uint8 *indata, l_int32 nalloc );
 LEPT_DLL extern void bbufferDestroy ( L_BBUFFER **pbb );
 LEPT_DLL extern l_uint8 * bbufferDestroyAndSaveData ( L_BBUFFER **pbb, size_t *pnbytes );

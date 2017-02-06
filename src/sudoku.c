@@ -270,8 +270,10 @@ l_int32  *array;
         /* Read in the initial solution */
     array = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32));
     for (i = 0; i < 81; i++) {
-        if (sscanf(str + 2 * i, "%d ", &array[i]) != 1)
+        if (sscanf(str + 2 * i, "%d ", &array[i]) != 1) {
+            LEPT_FREE(array);
             return (l_int32 *)ERROR_PTR("invalid format", procName, NULL);
+        }
     }
 
     return array;
@@ -307,14 +309,10 @@ L_SUDOKU  *sud;
         return (L_SUDOKU *)ERROR_PTR("array not defined", procName, NULL);
 
     locs_index = 0;  /* into locs array */
-    if ((sud = (L_SUDOKU *)LEPT_CALLOC(1, sizeof(L_SUDOKU))) == NULL)
-        return (L_SUDOKU *)ERROR_PTR("sud not made", procName, NULL);
-    if ((sud->locs = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32))) == NULL)
-        return (L_SUDOKU *)ERROR_PTR("su state array not made", procName, NULL);
-    if ((sud->init = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32))) == NULL)
-        return (L_SUDOKU *)ERROR_PTR("su init array not made", procName, NULL);
-    if ((sud->state = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32))) == NULL)
-        return (L_SUDOKU *)ERROR_PTR("su state array not made", procName, NULL);
+    sud = (L_SUDOKU *)LEPT_CALLOC(1, sizeof(L_SUDOKU));
+    sud->locs = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32));
+    sud->init = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32));
+    sud->state = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32));
     for (i = 0; i < 81; i++) {
         val = array[i];
         sud->init[i] = val;

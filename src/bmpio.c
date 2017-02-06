@@ -432,11 +432,8 @@ RGBA_QUAD  *pquad;
         } else {   /* d != 32; output grayscale version */
             ncolors = 1 << depth;
             cmaplen = ncolors * sizeof(RGBA_QUAD);
-
             heapcm = 1;
-            if ((cta = (l_uint8 *)LEPT_CALLOC(cmaplen, 1)) == NULL)
-                return ERROR_INT("colormap alloc fail", procName, 1);
-
+            cta = (l_uint8 *)LEPT_CALLOC(cmaplen, 1);
             stepsize = 255 / (ncolors - 1);
             for (i = 0, val = 0, pquad = (RGBA_QUAD *)cta;
                  i < ncolors;
@@ -505,15 +502,13 @@ RGBA_QUAD  *pquad;
     fwrite(&biClrUsed, 1, 4, fp);
     fwrite(&biClrImportant, 1, 4, fp);
 
-        /* Write the colormap data */
+        /* Write the colormap data and free the cta if necessary */
     if (ncolors > 0) {
         if (fwrite(cta, 1, cmaplen, fp) != cmaplen) {
-            if (heapcm)
-                LEPT_FREE(cta);
+            if (heapcm) LEPT_FREE(cta);
             return ERROR_INT("colormap write fail", procName, 1);
         }
-        if (heapcm)
-            LEPT_FREE(cta);
+        if (heapcm) LEPT_FREE(cta);
     }
 
         /* When you write a binary image with a colormap

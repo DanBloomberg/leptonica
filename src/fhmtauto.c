@@ -269,15 +269,16 @@ SARRAY  *sa1, *sa2, *sa3;
     if ((nsels = selaGetCount(sela)) == 0)
         return ERROR_INT("no sels in sela", procName, 1);
 
-        /* Make array of sel names */
-    sa1 = selaGetSelnames(sela);
-
         /* Make array of textlines from from hmttemplate1.txt */
     if ((filestr = (char *)l_binaryRead(TEMPLATE1, &size)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
-    if ((sa2 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
-        return ERROR_INT("sa2 not made", procName, 1);
+    sa2 = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);
+    if (!sa2)
+        return ERROR_INT("sa2 not made", procName, 1);
+
+        /* Make array of sel names */
+    sa1 = selaGetSelnames(sela);
 
         /* Make strings containing function call names */
     sprintf(bigbuf, "PIX *pixHMTDwa_%d(PIX *pixd, PIX *pixs, "
@@ -320,8 +321,7 @@ SARRAY  *sa1, *sa2, *sa3;
     str_low_ds = stringNew(bigbuf);
 
         /* Make the output sa */
-    if ((sa3 = sarrayCreate(0)) == NULL)
-        return ERROR_INT("sa3 not made", procName, 1);
+    sa3 = sarrayCreate(0);
 
         /* Copyright notice and info header */
     sarrayParseRange(sa2, 0, &actstart, &end, &newstart, "--", 0);
@@ -391,8 +391,7 @@ SARRAY  *sa1, *sa2, *sa3;
     sarrayParseRange(sa2, newstart, &actstart, &end, &newstart, "--", 0);
     sarrayAppendRange(sa3, sa2, actstart, end);
 
-    if ((filestr = sarrayToString(sa3, 1)) == NULL)
-        return ERROR_INT("filestr from sa3 not made", procName, 1);
+    filestr = sarrayToString(sa3, 1);
     nbytes = strlen(filestr);
     if (filename)
         snprintf(bigbuf, L_BUF_SIZE, "%s.%d.c", filename, fileindex);
@@ -457,21 +456,23 @@ SEL     *sel;
         /* Make the array of textlines from hmttemplate2.txt */
     if ((filestr = (char *)l_binaryRead(TEMPLATE2, &size)) == NULL)
         return ERROR_INT("filestr not made", procName, 1);
-    if ((sa1 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
-        return ERROR_INT("sa1 not made", procName, 1);
+    sa1 = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);
+    if (!sa1)
+        return ERROR_INT("sa1 not made", procName, 1);
 
         /* Make the array of static function names */
-    if ((sa2 = sarrayCreate(nsels)) == NULL)
+    if ((sa2 = sarrayCreate(nsels)) == NULL) {
+        sarrayDestroy(&sa1);
         return ERROR_INT("sa2 not made", procName, 1);
+    }
     for (i = 0; i < nsels; i++) {
         sprintf(bigbuf, "fhmt_%d_%d", fileindex, i);
         sarrayAddString(sa2, bigbuf, L_COPY);
     }
 
         /* Make the static prototype strings */
-    if ((sa3 = sarrayCreate(2 * nsels)) == NULL)
-        return ERROR_INT("sa3 not made", procName, 1);
+    sa3 = sarrayCreate(2 * nsels);  /* should be ok */
     for (i = 0; i < nsels; i++) {
         fname = sarrayGetString(sa2, i, L_NOCOPY);
         sprintf(bigbuf, "static void  %s%s", fname, PROTOARGS);
@@ -484,14 +485,9 @@ SEL     *sel;
     str_doc1 = stringNew(bigbuf);
     sprintf(bigbuf, " *             void       fhmt_%d_*()", fileindex);
     str_doc2 = stringNew(bigbuf);
-    sprintf(bigbuf, " *  fhmtgen_low_%d()", fileindex);
-    str_doc3 = stringNew(bigbuf);
-    sprintf(bigbuf, "fhmtgen_low_%d(l_uint32  *datad,", fileindex);
-    str_def1 = stringNew(bigbuf);
 
         /* Output to this sa */
-    if ((sa4 = sarrayCreate(0)) == NULL)
-        return ERROR_INT("sa4 not made", procName, 1);
+    sa4 = sarrayCreate(0);
 
         /* Copyright notice and info header */
     sarrayParseRange(sa1, 0, &actstart, &end, &newstart, "--", 0);
@@ -507,10 +503,21 @@ SEL     *sel;
 
         /* Insert static protos */
     for (i = 0; i < nsels; i++) {
-        if ((linestr = sarrayGetString(sa3, i, L_COPY)) == NULL)
+        if ((linestr = sarrayGetString(sa3, i, L_COPY)) == NULL) {
+            sarrayDestroy(&sa1);
+            sarrayDestroy(&sa2);
+            sarrayDestroy(&sa3);
+            sarrayDestroy(&sa4);
             return ERROR_INT("linestr not retrieved", procName, 1);
+        }
         sarrayAddString(sa4, linestr, L_INSERT);
     }
+
+        /* Make more strings containing function names */
+    sprintf(bigbuf, " *  fhmtgen_low_%d()", fileindex);
+    str_doc3 = stringNew(bigbuf);
+    sprintf(bigbuf, "fhmtgen_low_%d(l_uint32  *datad,", fileindex);
+    str_def1 = stringNew(bigbuf);
 
         /* Insert function header */
     sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);
@@ -555,10 +562,14 @@ SEL     *sel;
         sarrayAppendRange(sa4, sa1, argstart, argend);
 
             /* Declare and define wplsN args, as necessary */
-        if ((sel = selaGetSel(sela, i)) == NULL)
+        if ((sel = selaGetSel(sela, i)) == NULL) {
+            sarrayDestroy(&sa1);
+            sarrayDestroy(&sa2);
+            sarrayDestroy(&sa3);
+            sarrayDestroy(&sa4);
             return ERROR_INT("sel not returned", procName, 1);
-        if ((sa5 = sarrayMakeWplsCode(sel)) == NULL)
-            return ERROR_INT("sa5 not made", procName, 1);
+        }
+        sa5 = sarrayMakeWplsCode(sel);
         sarrayJoin(sa4, sa5);
         sarrayDestroy(&sa5);
 
@@ -583,8 +594,13 @@ SEL     *sel;
         sarrayAppendRange(sa4, sa1, loopstart, loopend);
 
             /* Insert barrel-op code for *dptr */
-        if ((sa6 = sarrayMakeInnerLoopDWACode(sel, nhits, nmisses)) == NULL)
+        if ((sa6 = sarrayMakeInnerLoopDWACode(sel, nhits, nmisses)) == NULL) {
+            sarrayDestroy(&sa1);
+            sarrayDestroy(&sa2);
+            sarrayDestroy(&sa3);
+            sarrayDestroy(&sa4);
             return ERROR_INT("sa6 not made", procName, 1);
+        }
         sarrayJoin(sa4, sa6);
         sarrayDestroy(&sa6);
 
@@ -593,8 +609,7 @@ SEL     *sel;
     }
 
         /* Output to file */
-    if ((filestr = sarrayToString(sa4, 1)) == NULL)
-        return ERROR_INT("filestr from sa4 not made", procName, 1);
+    filestr = sarrayToString(sa4, 1);
     nbytes = strlen(filestr);
     if (filename)
         snprintf(bigbuf, L_BUF_SIZE, "%slow.%d.c", filename, fileindex);
@@ -606,7 +621,6 @@ SEL     *sel;
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
     LEPT_FREE(filestr);
-
     return 0;
 }
 
@@ -644,8 +658,7 @@ SARRAY  *sa;
         ymax = 31;
     }
 
-    if ((sa = sarrayCreate(0)) == NULL)
-        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+    sa = sarrayCreate(0);
 
         /* Declarations */
     if (ymax > 4)
@@ -694,9 +707,7 @@ SARRAY  *sa;
     if (!sel)
         return (SARRAY *)ERROR_PTR("sel not defined", procName, NULL);
 
-    if ((sa = sarrayCreate(0)) == NULL)
-        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
-
+    sa = sarrayCreate(0);
     ntot = nhits + nmisses;
     nfound = 0;
     for (i = 0; i < sel->sy; i++) {

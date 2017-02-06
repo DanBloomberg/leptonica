@@ -2468,8 +2468,10 @@ PTA       *pta;
     pixGetDimensions(pixd, &w, &h, NULL);
 
         /* Make a colormap for the paths */
-    if ((pixela = (l_uint32 *)LEPT_CALLOC(npta, sizeof(l_uint32))) == NULL)
+    if ((pixela = (l_uint32 *)LEPT_CALLOC(npta, sizeof(l_uint32))) == NULL) {
+        pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("calloc fail for pixela", procName, NULL);
+    }
     na1 = numaPseudorandomSequence(256, 14657);
     na2 = numaPseudorandomSequence(256, 34631);
     na3 = numaPseudorandomSequence(256, 54617);

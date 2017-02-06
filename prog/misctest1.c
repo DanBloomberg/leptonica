@@ -159,6 +159,16 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pix2);
     pixaDestroy(&pixa);
 
+    pix1 = pixRead("arabic2.png");
+    pixa = pixExtractTextlines(pix1, 150, 150, 0, 0);
+    pix2 = pixaDisplayRandomCmap(pixa, 0, 0);
+    pixcmapResetColor(pixGetColormap(pix2), 0, 255, 255, 255);
+    pixDisplay(pix2, 400, 800);
+    pixWrite("/tmp/lept/misc/lines2.png", pix2, IFF_PNG);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa);
+
         /* Plot box side locations and dimensions of a boxa */
     pixa = pixaCreate(0);
     boxa = boxaRead("boxa2.ba");

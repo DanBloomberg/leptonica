@@ -550,9 +550,9 @@ l_int32
 dewarpFindHorizDisparity(L_DEWARP  *dew,
                          PTAA      *ptaa)
 {
-l_int32    i, j, w, h, nx, ny, sampling, ret;
+l_int32    i, j, n, w, h, nx, ny, sampling, ret;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
-l_float32  x, y, ymin, ymax, refl, refr;
+l_float32  x, y, ymin, ymax, refl, refr, xvall, xvalr, yvall, yvalr;
 l_float32  val, mederr;
 NUMA      *nald, *nard;
 PIX       *pix1;
@@ -596,11 +596,19 @@ FPIX      *fpix;
          * the right endpoints. (Note: x and y are reversed in the pta.) */
     w = pixGetWidth(dew->pixs);
     ptaGetMinMax(ptal1, NULL, &ymin, NULL, NULL);
-    ptal2 = ptaSelectByValue(ptal1, 0, ymin + 0.15 * (w - ymin),
-                             L_SELECT_YVAL, L_SELECT_IF_LT);
     ptaGetMinMax(ptar1, NULL, NULL, NULL, &ymax);
-    ptar2 = ptaSelectByValue(ptar1, 0, 0.85 * ymax, L_SELECT_YVAL,
-                             L_SELECT_IF_GT);
+    n = ptaGetCount(ptal1);  /* ptar1 is the same size */
+    ptal2 = ptaCreate(n);
+    ptar2 = ptaCreate(n);
+    for (i = 0; i < n; i++) {
+        ptaGetPt(ptal1, i, &xvall, &yvall);
+        ptaGetPt(ptar1, i, &xvalr, &yvalr);
+        if (yvall < ymin + 0.15 * (w - ymin) &&
+            yvalr > 0.85 * ymax) {
+            ptaAddPt(ptal2, xvall, yvall);
+            ptaAddPt(ptar2, xvalr, yvalr);
+        }
+    }
     ptaDestroy(&ptal1);
     ptaDestroy(&ptar1);
     if (dew->debug) {

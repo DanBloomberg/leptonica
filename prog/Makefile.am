@@ -10,8 +10,9 @@ INSTALL_PROGS = convertfilestopdf convertfilestops \
 	printimage printsplitimage printtiff \
 	splitimage2pdf xtractprotos
 
-AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg alphaxform_reg \
-	bilateral2_reg bilinear_reg binarize_reg blackwhite_reg \
+AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
+	alphaxform_reg baseline_reg bilateral2_reg \
+	bilinear_reg binarize_reg blackwhite_reg \
 	blend1_reg blend2_reg blend3_reg blend4_reg \
 	ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorcontent_reg coloring_reg \
@@ -74,8 +75,7 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
 
 OTHER_PROGS = adaptmap_dark \
 	arabic_lines arithtest \
-	autogentest1 autogentest2 \
-	barcodetest baselinetest \
+	autogentest1 autogentest2 barcodetest \
 	binarizefiles binarize_set bincompare \
 	blendcmaptest buffertest \
 	byteatest ccbordtest cctest1 cleanpdf \
