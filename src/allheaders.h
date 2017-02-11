@@ -2025,6 +2025,7 @@ LEPT_DLL extern l_int32 ptaaJoin ( PTAA *ptaad, PTAA *ptaas, l_int32 istart, l_i
 LEPT_DLL extern PTA * ptaReverse ( PTA *ptas, l_int32 type );
 LEPT_DLL extern PTA * ptaTranspose ( PTA *ptas );
 LEPT_DLL extern PTA * ptaCyclicPerm ( PTA *ptas, l_int32 xs, l_int32 ys );
+LEPT_DLL extern PTA * ptaSelectRange ( PTA *ptas, l_int32 first, l_int32 last );
 LEPT_DLL extern BOX * ptaGetBoundingRegion ( PTA *pta );
 LEPT_DLL extern l_int32 ptaGetRange ( PTA *pta, l_float32 *pminx, l_float32 *pmaxx, l_float32 *pminy, l_float32 *pmaxy );
 LEPT_DLL extern PTA * ptaGetInsideBox ( PTA *ptas, BOX *box );
@@ -2063,6 +2064,7 @@ LEPT_DLL extern PTA * ptaSort ( PTA *ptas, l_int32 sorttype, l_int32 sortorder, 
 LEPT_DLL extern l_int32 ptaGetSortIndex ( PTA *ptas, l_int32 sorttype, l_int32 sortorder, NUMA **pnaindex );
 LEPT_DLL extern PTA * ptaSortByIndex ( PTA *ptas, NUMA *naindex );
 LEPT_DLL extern PTAA * ptaaSortByIndex ( PTAA *ptaas, NUMA *naindex );
+LEPT_DLL extern l_int32 ptaGetRankValue ( PTA *pta, l_float32 fract, PTA *ptasort, l_int32 sorttype, l_float32 *pval );
 LEPT_DLL extern PTA * ptaUnionByAset ( PTA *pta1, PTA *pta2 );
 LEPT_DLL extern PTA * ptaRemoveDupsByAset ( PTA *ptas );
 LEPT_DLL extern PTA * ptaIntersectionByAset ( PTA *pta1, PTA *pta2 );

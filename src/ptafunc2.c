@@ -33,6 +33,7 @@
  *           l_int32     ptaGetSortIndex()
  *           PTA        *ptaSortByIndex()
  *           PTAA       *ptaaSortByIndex()
+ *           l_int32     ptaGetRankValue()
  *
  *      Set operations using aset (rbtree)
  *           PTA        *ptaUnionByAset()
@@ -64,7 +65,7 @@
  *       pta for the point that gave rise to that key is stored,
  *       and the dna (bucket) is traversed, using the stored indices
  *       to determine if that point had already been seen.
- *       
+ *
  * </pre>
  */
 
@@ -239,6 +240,56 @@ PTAA    *ptaad;
     }
 
     return ptaad;
+}
+
+
+/*!
+ * \brief   ptaGetRankValue()
+ *
+ * \param[in]    pta
+ * \param[in]    fract    use 0.0 for smallest, 1.0 for largest
+ * \param[in]    ptasort  [optional] version of %pta sorted by %sorttype
+ * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y
+ * \param[out]   pval     &rankval: the x or y value at %fract
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+ptaGetRankValue(PTA        *pta,
+                l_float32   fract,
+                PTA        *ptasort,
+                l_int32     sorttype,
+                l_float32  *pval)
+{
+l_int32  index, n;
+PTA     *ptas;
+
+    PROCNAME("ptaGetRankValue");
+
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = 0.0;
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+    if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y)
+        return ERROR_INT("invalid sort type", procName, 1);
+    if (fract < 0.0 || fract > 1.0)
+        return ERROR_INT("fract not in [0.0 ... 1.0]", procName, 1);
+    if ((n = ptaGetCount(pta)) == 0)
+        return ERROR_INT("pta empty", procName, 1);
+
+    if (ptasort)
+        ptas = ptasort;
+    else
+        ptas = ptaSort(pta, sorttype, L_SORT_INCREASING, NULL);
+
+    index = (l_int32)(fract * (l_float32)(n - 1) + 0.5);
+    if (sorttype == L_SORT_BY_X)
+        ptaGetPt(ptas, index, pval, NULL);
+    else  /* sort by y */
+        ptaGetPt(ptas, index, NULL, pval);
+
+    if (!ptasort) ptaDestroy(&ptas);
+    return 0;
 }
 
 

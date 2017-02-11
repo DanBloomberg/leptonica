@@ -36,6 +36,7 @@
  *           PTA      *ptaReverse()
  *           PTA      *ptaTranspose()
  *           PTA      *ptaCyclicPerm()
+ *           PTA      *ptaSelectRange()
  *
  *      Geometric
  *           BOX      *ptaGetBoundingRegion()
@@ -352,6 +353,48 @@ PTA     *ptad;
     }
     ptaAddPt(ptad, xs, ys);
 
+    return ptad;
+}
+
+
+/*!
+ * \brief   ptaSelectRange()
+ *
+ * \param[in]    ptas
+ * \param[in]    first    use 0 to select from the beginning
+ * \param[in]    last     use 0 to select to the end
+ * \return  ptad, or NULL on error
+ */
+PTA *
+ptaSelectRange(PTA     *ptas,
+               l_int32  first,
+               l_int32  last)
+{
+l_int32    n, npt, i;
+l_float32  x, y;
+PTA       *ptad;
+
+    PROCNAME("ptaSelectRange");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+    if ((n = ptaGetCount(ptas)) == 0) {
+        L_WARNING("ptas is empty\n", procName);
+        return ptaCopy(ptas);
+    }
+    first = L_MAX(0, first);
+    if (last <= 0) last = n - 1;
+    if (first >= n)
+        return (PTA *)ERROR_PTR("invalid first", procName, NULL);
+    if (first > last)
+        return (PTA *)ERROR_PTR("first > last", procName, NULL);
+
+    npt = last - first + 1;
+    ptad = ptaCreate(npt);
+    for (i = first; i <= last; i++) {
+        ptaGetPt(ptas, i, &x, &y);
+        ptaAddPt(ptad, x, y);
+    }
     return ptad;
 }
 

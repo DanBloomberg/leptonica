@@ -176,7 +176,7 @@ PIX       *pixv, *pixh;
     if (debugfile) {
         dew1 = dewarpaGetDewarp(dewa, pageno);
         dewarpDebug(dew1, "lept/dewapply", 0);
-        convertFilesToPdf("/tmp/lept/dewapply", NULL, 135, 1.0, 0, 0,
+        convertFilesToPdf("/tmp/lept/dewapply", NULL, 250, 1.0, 0, 0,
                          "Dewarp Apply Disparity", debugfile);
         fprintf(stderr, "pdf file: %s\n", debugfile);
     }

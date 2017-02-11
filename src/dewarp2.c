@@ -37,8 +37,9 @@
  *          PTAA              *dewarpGetTextlineCenters()
  *          static PTA        *dewarpGetMeanVerticals()
  *          PTAA              *dewarpRemoveShortLines()
- *          static l_int32     dewarpGetLineEndpoints()
- *          static l_int32     dewarpFindLongLines()
+ *          static l_int32     dewarpGetLineEndPoints()
+ *          static l_int32     dewarpFilterLineEndPoints()
+ *          static PTA        *dewarpRemoveBadEndPoints()
  *          static l_int32     dewarpIsLineCoverageValid()
  *          static l_int32     dewarpQuadraticLSF()
  *
@@ -58,10 +59,11 @@
 #include "allheaders.h"
 
 static PTA *dewarpGetMeanVerticals(PIX *pixs, l_int32 x, l_int32 y);
-static l_int32 dewarpGetLineEndpoints(l_int32 h, PTAA *ptaa, PTA **pptal,
+static l_int32 dewarpGetLineEndPoints(l_int32 h, PTAA *ptaa, PTA **pptal,
                                       PTA **pptar);
-static l_int32 dewarpFindLongLines(PTA *ptal, PTA *ptar, l_float32 minfract,
-                                   PTA **pptald, PTA **pptard);
+static l_int32 dewarpFilterLineEndPoints(L_DEWARP  *dew, PTA *ptal1, PTA *ptar1,
+                                         PTA **pptal2, PTA **pptar2);
+static PTA *dewarpRemoveBadEndPoints(l_int32 w, PTA *ptas);
 static l_int32 dewarpIsLineCoverageValid(PTAA *ptaa2, l_int32 h,
                                          l_int32 *ptopline, l_int32 *pbotline);
 static l_int32 dewarpQuadraticLSF(PTA *ptad, l_float32 *pa, l_float32 *pb,
@@ -79,8 +81,11 @@ static l_int32 pixRenderHorizEndPoints(PIX *pixs, PTA *ptal, PTA *ptar,
 #define  DEBUG_SHORT_LINES         0   /* ditto */
 #endif  /* !NO_CONSOLE_IO */
 
-    /* Special parameter values */
-static const l_float32   MIN_RATIO_LINES_TO_HEIGHT = 0.45;
+    /* Special parameter values for reducing horizontal disparity */
+static const l_float32   L_MIN_RATIO_LINES_TO_HEIGHT = 0.45;
+static const l_int32     L_MIN_LINES_FOR_HORIZ_1 = 10; /* initially */
+static const l_int32     L_MIN_LINES_FOR_HORIZ_2 = 3;  /* after, in each half */
+static const l_float32   L_ALLOWED_W_FRACT = 0.05;  /* no bigger */
 
 
 /*----------------------------------------------------------------------*
@@ -530,16 +535,16 @@ FPIX       *fpix;
  *
  * \param[in]    dew
  * \param[in]    ptaa unsmoothed lines, not vertically ordered
- * \return  0 if OK, 1 if vertical disparity array is no built or on error
+ * \return  0 if OK, 1 if horizontal disparity array is not built, or on error
  *
  * <pre>
  * Notes:
  *      (1) This builds a horizontal disparity model (HDM), but
  *          does not check it against constraints for validity.
  *          Constraint checking is done at rendering time.
- *      (2) This is not required for a successful model; only the vertical
- *          disparity is required.  This will not be called if the
- *          function to build the vertical disparity fails.
+ *      (2) Horizontal disparity is not required for a successful model;
+ *          only the vertical disparity is required.  This will not be
+ *          called if the function to build the vertical disparity fails.
  *      (3) This sets the hsuccess flag to 1 on success.
  *      (4) Internally in ptal1, ptar1, ptal2, ptar2: x and y are reversed,
  *          so the 'y' value is horizontal distance across the image width.
@@ -552,14 +557,13 @@ dewarpFindHorizDisparity(L_DEWARP  *dew,
 {
 l_int32    i, j, n, w, h, nx, ny, sampling, ret;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
-l_float32  x, y, ymin, ymax, refl, refr, xvall, xvalr, yvall, yvalr;
+l_float32  x, y, refl, refr;
 l_float32  val, mederr;
 NUMA      *nald, *nard;
 PIX       *pix1;
 PTA       *ptal1, *ptar1;  /* left/right end points of lines; initial */
 PTA       *ptal2, *ptar2;  /* left/right end points; after filtering */
-PTA       *ptal3, *ptar3;  /* left/right end points; long lines only */
-PTA       *ptal4, *ptar4;  /* left and right block, fitted, uniform spacing */
+PTA       *ptal3, *ptar3;  /* left and right block, fitted, uniform spacing */
 PTA       *pta, *ptat, *pta1, *pta2;
 PTAA      *ptaah;
 FPIX      *fpix;
@@ -574,9 +578,9 @@ FPIX      *fpix;
 
     if (dew->debug) L_INFO("finding horizontal disparity\n", procName);
 
-        /* Get the endpoints of the lines */
+        /* Get the endpoints of the lines, and sort from top to bottom */
     h = pixGetHeight(dew->pixs);
-    ret = dewarpGetLineEndpoints(h, ptaa, &ptal1, &ptar1);
+    ret = dewarpGetLineEndPoints(h, ptaa, &ptal1, &ptar1);
     if (ret) {
         L_INFO("Horiz disparity not built\n", procName);
         return 1;
@@ -591,30 +595,14 @@ FPIX      *fpix;
         /* Filter the points by x-location to prevent 2-column images
          * from getting confused about left and right endpoints. We
          * require valid left points to not be farther than
-         *     0.15 * (remaining distance to the right edge of the image)
+         *     0.20 * (remaining distance to the right edge of the image)
          * to the right of the leftmost endpoint, and similarly for
-         * the right endpoints. (Note: x and y are reversed in the pta.) */
-    w = pixGetWidth(dew->pixs);
-    ptaGetMinMax(ptal1, NULL, &ymin, NULL, NULL);
-    ptaGetMinMax(ptar1, NULL, NULL, NULL, &ymax);
-    n = ptaGetCount(ptal1);  /* ptar1 is the same size */
-    ptal2 = ptaCreate(n);
-    ptar2 = ptaCreate(n);
-    for (i = 0; i < n; i++) {
-        ptaGetPt(ptal1, i, &xvall, &yvall);
-        ptaGetPt(ptar1, i, &xvalr, &yvalr);
-        if (yvall < ymin + 0.15 * (w - ymin) &&
-            yvalr > 0.85 * ymax) {
-            ptaAddPt(ptal2, xvall, yvall);
-            ptaAddPt(ptar2, xvalr, yvalr);
-        }
-    }
+         * the right endpoints. (Note: x and y are reversed in the pta.)
+         * Also require end points to be near the medians in the
+         * upper and lower halves. */
+    ret = dewarpFilterLineEndPoints(dew, ptal1, ptar1, &ptal2, &ptar2);
     ptaDestroy(&ptal1);
     ptaDestroy(&ptar1);
-    if (dew->debug) {
-        ptaWrite("/tmp/lept/dewdebug/endpts_left2.pta", ptal2, 1);
-        ptaWrite("/tmp/lept/dewdebug/endpts_right2.pta", ptar2, 1);
-    }
 
         /* Do a quadratic fit to the left and right endpoints of the
          * longest lines.  Each line is represented by 3 coefficients:
@@ -625,48 +613,36 @@ FPIX      *fpix;
     nx = dew->nx;
     ny = dew->ny;
 
-        /* Find the top and bottom set of long lines, defined by being
-         * at least 0.95 of the length of the longest line in each set.
-         * Quit if there are not at least 3 lines in each set. */
-    ptal3 = ptar3 = NULL;  /* end points of longest lines */
-    ret = dewarpFindLongLines(ptal2, ptar2, 0.95, &ptal3, &ptar3);
-    if (ret) {
-        L_INFO("Horiz disparity not built\n", procName);
-        ptaDestroy(&ptal2);
-        ptaDestroy(&ptar2);
-        return 1;
-    }
-
         /* Fit the left side, using quadratic LSF on the set of long
          * lines.  It is not necessary to use the noisy LSF fit
          * function, because we've removed outlier end points by
          * selecting the long lines.  Then uniformly sample along
          * this fitted curve. */
-    dewarpQuadraticLSF(ptal3, &cl2, &cl1, &cl0, &mederr);
+    dewarpQuadraticLSF(ptal2, &cl2, &cl1, &cl0, &mederr);
     dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
     dew->leftcurv = lept_roundftoi(1000000. * cl2);  /* micro-units */
     L_INFO("Left quad LSF median error = %5.2f\n", procName,  mederr);
     L_INFO("Left edge slope = %d\n", procName, dew->leftslope);
     L_INFO("Left edge curvature = %d\n", procName, dew->leftcurv);
-    ptal4 = ptaCreate(ny);
+    ptal3 = ptaCreate(ny);
     for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
         y = i * sampling;
         applyQuadraticFit(cl2, cl1, cl0, y, &x);
-        ptaAddPt(ptal4, x, y);
+        ptaAddPt(ptal3, x, y);
     }
 
         /* Fit the right side in the same way. */
-    dewarpQuadraticLSF(ptar3, &cr2, &cr1, &cr0, &mederr);
+    dewarpQuadraticLSF(ptar2, &cr2, &cr1, &cr0, &mederr);
     dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
     dew->rightcurv = lept_roundftoi(1000000. * cr2);  /* micro-units */
     L_INFO("Right quad LSF median error = %5.2f\n", procName,  mederr);
     L_INFO("Right edge slope = %d\n", procName, dew->rightslope);
     L_INFO("Right edge curvature = %d\n", procName, dew->rightcurv);
-    ptar4 = ptaCreate(ny);
+    ptar3 = ptaCreate(ny);
     for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
         y = i * sampling;
         applyQuadraticFit(cr2, cr1, cr0, y, &x);
-        ptaAddPt(ptar4, x, y);
+        ptaAddPt(ptar3, x, y);
     }
 
     if (dew->debug) {
@@ -682,15 +658,15 @@ FPIX      *fpix;
         }
         pix1 = pixDisplayPta(NULL, dew->pixs, pta1);
         pixDisplayPta(pix1, pix1, pta2);
-        pixRenderHorizEndPoints(pix1, ptal3, ptar3, 0xff000000);
+        pixRenderHorizEndPoints(pix1, ptal2, ptar2, 0xff000000);
         pixDisplay(pix1, 600, 800);
         pixWrite("/tmp/lept/dewmod/0051.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
 
         pix1 = pixDisplayPta(NULL, dew->pixs, pta1);
         pixDisplayPta(pix1, pix1, pta2);
-        ptalft = ptaTranspose(ptal4);
-        ptarft = ptaTranspose(ptar4);
+        ptalft = ptaTranspose(ptal3);
+        ptarft = ptaTranspose(ptar3);
         pixRenderHorizEndPoints(pix1, ptalft, ptarft, 0x0000ff00);
         pixDisplay(pix1, 800, 800);
         pixWrite("/tmp/lept/dewmod/0052.png", pix1, IFF_PNG);
@@ -706,19 +682,19 @@ FPIX      *fpix;
     }
 
         /* Find the x value at the midpoints (in y) of the two vertical lines,
-         * ptal4 and ptar4.  These are the reference values for each of the
+         * ptal3 and ptar3.  These are the reference values for each of the
          * lines.  Then use the difference between the these midpoint
          * values and the actual x coordinates of the lines to represent
          * the horizontal disparity (nald, nard) on the vertical lines
          * for the sampled y values. */
-    ptaGetPt(ptal4, ny / 2, &refl, NULL);
-    ptaGetPt(ptar4, ny / 2, &refr, NULL);
+    ptaGetPt(ptal3, ny / 2, &refl, NULL);
+    ptaGetPt(ptar3, ny / 2, &refr, NULL);
     nald = numaCreate(ny);
     nard = numaCreate(ny);
     for (i = 0; i < ny; i++) {
-        ptaGetPt(ptal4, i, &x, NULL);
+        ptaGetPt(ptal3, i, &x, NULL);
         numaAddNumber(nald, refl - x);
-        ptaGetPt(ptar4, i, &x, NULL);
+        ptaGetPt(ptar3, i, &x, NULL);
         numaAddNumber(nard, refr - x);
     }
 
@@ -755,13 +731,10 @@ FPIX      *fpix;
     }
     dew->samphdispar = fpix;
     dew->hsuccess = 1;
-
     ptaDestroy(&ptal2);
     ptaDestroy(&ptar2);
     ptaDestroy(&ptal3);
     ptaDestroy(&ptar3);
-    ptaDestroy(&ptal4);
-    ptaDestroy(&ptar4);
     ptaaDestroy(&ptaah);
     return 0;
 }
@@ -998,12 +971,12 @@ PTAA      *ptaad;
 
 
 /*!
- * \brief   dewarpGetLineEndpoints()
+ * \brief   dewarpGetLineEndPoints()
  *
- * \param[in]    h height of pixs
- * \param[in]    ptaa lines
- * \param[out]   pptal left end points of each line
- * \param[out]   pptar right end points of each line
+ * \param[in]    h        height of pixs
+ * \param[in]    ptaa     lines
+ * \param[out]   pptal    left end points of each line
+ * \param[out]   pptar    right end points of each line
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -1012,22 +985,24 @@ PTAA      *ptaad;
  *          height of the input image, to insure good coverage and
  *          avoid extrapolating the curvature too far beyond the
  *          actual textlines.  Large extrapolations are particularly
- *          dangerous if used as a reference model.
- *      (2) For fitting the endpoints, x = f(y), we transpose x and y.
+ *          dangerous if used as a reference model.  We also require
+ *          at least 10 lines of text.
+ *      (2) We sort the lines from top to bottom (sort by x in the ptas).
+ *      (3) For fitting the endpoints, x = f(y), we transpose x and y.
  *          Thus all these ptas have x and y swapped!
  * </pre>
  */
 static l_int32
-dewarpGetLineEndpoints(l_int32  h,
+dewarpGetLineEndPoints(l_int32  h,
                        PTAA    *ptaa,
                        PTA    **pptal,
                        PTA    **pptar)
 {
 l_int32    i, n, npt, x, y;
 l_float32  miny, maxy, ratio;
-PTA       *pta, *ptal, *ptar;
+PTA       *pta, *ptal1, *ptar1;
 
-    PROCNAME("dewarpGetLineEndpoints");
+    PROCNAME("dewarpGetLineEndPoints");
 
     if (!pptal || !pptar)
         return ERROR_INT("&ptal and &ptar not both defined", procName, 1);
@@ -1035,161 +1010,208 @@ PTA       *pta, *ptal, *ptar;
     if (!ptaa)
         return ERROR_INT("ptaa undefined", procName, 1);
 
+        /* Are there at least 10 lines? */
     n = ptaaGetCount(ptaa);
-    ptal = ptaCreate(n);
-    ptar = ptaCreate(n);
+    if (n < L_MIN_LINES_FOR_HORIZ_1) {
+        L_INFO("only %d lines; too few\n", procName, n);
+        return 1;
+    }
+
+        /* Extract the line end points, and transpose x and y values */
+    ptal1 = ptaCreate(n);
+    ptar1 = ptaCreate(n);
     for (i = 0; i < n; i++) {
         pta = ptaaGetPta(ptaa, i, L_CLONE);
         ptaGetIPt(pta, 0, &x, &y);
-        ptaAddPt(ptal, y, x);
+        ptaAddPt(ptal1, y, x);  /* transpose */
         npt = ptaGetCount(pta);
         ptaGetIPt(pta, npt - 1, &x, &y);
-        ptaAddPt(ptar, y, x);
+        ptaAddPt(ptar1, y, x);  /* transpose */
         ptaDestroy(&pta);
     }
 
         /* Use the min and max of the y value on the left side. */
-    ptaGetRange(ptal, &miny, &maxy, NULL, NULL);
+    ptaGetRange(ptal1, &miny, &maxy, NULL, NULL);
     ratio = (maxy - miny) / (l_float32)h;
-    if (ratio < MIN_RATIO_LINES_TO_HEIGHT) {
+    if (ratio < L_MIN_RATIO_LINES_TO_HEIGHT) {
         L_INFO("ratio lines to height, %f, too small\n", procName, ratio);
-        ptaDestroy(&ptal);
-        ptaDestroy(&ptar);
+        ptaDestroy(&ptal1);
+        ptaDestroy(&ptar1);
         return 1;
     }
 
-    *pptal = ptal;
-    *pptar = ptar;
+        /* Sort from top to bottom */
+    *pptal = ptaSort(ptal1, L_SORT_BY_X, L_SORT_INCREASING, NULL);
+    *pptar = ptaSort(ptar1, L_SORT_BY_X, L_SORT_INCREASING, NULL);
+    ptaDestroy(&ptal1);
+    ptaDestroy(&ptar1);
     return 0;
 }
 
 
 /*!
- * \brief   dewarpFindLongLines()
+ * \brief   dewarpFilterLineEndPoints()
  *
- * \param[in]    ptal left end points of lines
- * \param[in]    ptar right end points of lines
- * \param[in]    minfract minimum allowed fraction of longest line
- * \param[out]   pptald left end points of longest lines
- * \param[out]   pptard right end points of longest lines
- * \return  0 if OK, 1 on error or if there aren't enough long lines
+ * \param[in]    dew
+ * \param[in]    ptal     input left end points of each line
+ * \param[in]    ptar     input right end points of each line
+ * \param[out]   pptalf   filtered left end points
+ * \param[out]   pptarf   filtered right end points
+ * \return  0 if OK, 1 on error.
  *
  * <pre>
  * Notes:
- *      (1) We do the following:
- *         (a) Sort the lines from top to bottom, and divide equally
- *             into Top and Bottom sets.
- *         (b) For each set, select the lines that are at least %minfract
- *             of the length of the longest line in the set.
- *             Typically choose %minfract around 0.95.
- *         (c) Accumulate the left and right end points from both
- *             sets into the two returned ptas.
+ *      (1) Avoid confusion with multiple columns by requiring that line
+ *          end points be close enough to leftmost and rightmost end points.
+ *          Must have at least 8 points on left and right after this step.
+ *      (2) Apply second filtering step, find the median positions in
+ *          top and bottom halves, and removing end points that are
+ *          displaced too much from these in the x direction.
+ *          Must have at least 6 points on left and right after this step.
+ *      (3) Reminder: x and y in the pta are transposed; think x = f(y).
  * </pre>
  */
 static l_int32
-dewarpFindLongLines(PTA       *ptal,
-                    PTA       *ptar,
-                    l_float32  minfract,
-                    PTA      **pptald,
-                    PTA      **pptard)
+dewarpFilterLineEndPoints(L_DEWARP  *dew,
+                          PTA       *ptal,
+                          PTA       *ptar,
+                          PTA      **pptalf,
+                          PTA      **pptarf)
 {
-l_int32    i, n, ntop, nt, nb;
-l_float32  xl, xr, yl, yr, len, maxtoplen, maxbotlen, tbratio;
-NUMA      *nalen, *naindex;
-PTA       *ptals, *ptars, *ptald, *ptard;
+l_int32    w, i, n;
+l_float32  ymin, ymax, xvall, xvalr, yvall, yvalr;
+PTA       *ptal1, *ptar1, *ptal2, *ptar2;
 
-    PROCNAME("dewarpFindLongLines");
-
-    if (!pptald || !pptard)
-        return ERROR_INT("&ptald and &ptard are not both defined", procName, 1);
-    *pptald = *pptard = NULL;
+    PROCNAME("dewarpFilterLineEndPoints");
     if (!ptal || !ptar)
-        return ERROR_INT("ptal and ptar are not both defined", procName, 1);
-    if (minfract < 0.8 || minfract > 1.0)
-        return ERROR_INT("typ minfract is in [0.90 - 0.95]", procName, 1);
+        return ERROR_INT("ptal or ptar not defined", procName, 1);
+    *pptalf = *pptarf = NULL;
 
-        /* Sort from top to bottom, remembering that x <--> y in the pta */
-    n = ptaGetCount(ptal);
-    ptaGetSortIndex(ptal, L_SORT_BY_X, L_SORT_INCREASING, &naindex);
-    ptals = ptaSortByIndex(ptal, naindex);
-    ptars = ptaSortByIndex(ptar, naindex);
-    numaDestroy(&naindex);
-
-    ptald = ptaCreate(n);  /* output of long lines */
-    ptard = ptaCreate(n);  /* ditto */
-
-        /* Find all lines in the top half that are within typically
-         * about 5 percent of the length of the longest line in that set. */
-    ntop = n / 2;
-    nalen = numaCreate(n / 2);  /* lengths of top lines */
-    for (i = 0; i < ntop; i++) {
-        ptaGetPt(ptals, i, NULL, &xl);
-        ptaGetPt(ptars, i, NULL, &xr);
-        numaAddNumber(nalen, xr - xl);
-    }
-    numaGetMax(nalen, &maxtoplen, NULL);
-    L_INFO("Top: maxtoplen = %8.3f\n", procName, maxtoplen);
-    for (i = 0; i < ntop; i++) {
-        numaGetFValue(nalen, i, &len);
-        if (len >= minfract * maxtoplen) {
-            ptaGetPt(ptals, i, &yl, &xl);
-            ptaAddPt(ptald, yl, xl);
-            ptaGetPt(ptars, i, &yr, &xr);
-            ptaAddPt(ptard, yr, xr);
+        /* First filter for lines near left and right margins */
+    w = pixGetWidth(dew->pixs);
+    ptaGetMinMax(ptal, NULL, &ymin, NULL, NULL);
+    ptaGetMinMax(ptar, NULL, NULL, NULL, &ymax);
+    n = ptaGetCount(ptal);  /* ptar is the same size; at least 10 */
+    ptal1 = ptaCreate(n);
+    ptar1 = ptaCreate(n);
+    for (i = 0; i < n; i++) {
+        ptaGetPt(ptal, i, &xvall, &yvall);
+        ptaGetPt(ptar, i, &xvalr, &yvalr);
+        if (yvall < ymin + 0.20 * (w - ymin) &&
+            yvalr > 0.80 * ymax) {
+            ptaAddPt(ptal1, xvall, yvall);
+            ptaAddPt(ptar1, xvalr, yvalr);
         }
     }
-    numaDestroy(&nalen);
+    if (dew->debug) {
+        ptaWrite("/tmp/lept/dewdebug/endpts_left2.pta", ptal1, 1);
+        ptaWrite("/tmp/lept/dewdebug/endpts_right2.pta", ptar1, 1);
+    }
 
-    nt = ptaGetCount(ptald);
-    if (nt < 3) {
-        L_INFO("too few long lines at top: %d\n", procName, nt);
-        ptaDestroy(&ptals);
-        ptaDestroy(&ptars);
-        ptaDestroy(&ptald);
-        ptaDestroy(&ptard);
+    n = L_MIN(ptaGetCount(ptal1), ptaGetCount(ptar1));
+    if (n < L_MIN_LINES_FOR_HORIZ_1 - 2) {
+        ptaDestroy(&ptal1);
+        ptaDestroy(&ptar1);
+        L_INFO("First filter: only %d endpoints; needed 8\n", procName, n);
         return 1;
     }
 
-        /* Find all lines in the bottom half that are within 8 percent
-         * of the length of the longest line in that set. */
-    nalen = numaCreate(0);  /* lengths of bottom lines */
-    for (i = ntop; i < n; i++) {
-        ptaGetPt(ptals, i, NULL, &xl);
-        ptaGetPt(ptars, i, NULL, &xr);
-        numaAddNumber(nalen, xr - xl);
-    }
-    numaGetMax(nalen, &maxbotlen, NULL);
-    L_INFO("Bottom: maxbotlen = %8.3f\n", procName, maxbotlen);
-    for (i = 0; i < n - ntop; i++) {
-        numaGetFValue(nalen, i, &len);
-        if (len >= minfract * maxbotlen) {
-            ptaGetPt(ptals, ntop + i, &yl, &xl);
-            ptaAddPt(ptald, yl, xl);
-            ptaGetPt(ptars, ntop + i, &yr, &xr);
-            ptaAddPt(ptard, yr, xr);
-        }
-    }
-    numaDestroy(&nalen);
-    ptaDestroy(&ptals);
-    ptaDestroy(&ptars);
-
-        /* Impose another condition: the top and bottom max lengths must
-         * be within 15% of each other. */
-    tbratio = (maxtoplen >= maxbotlen) ?  maxbotlen / maxtoplen :
-        maxtoplen / maxbotlen;
-    nb = ptaGetCount(ptald) - nt;
-    if (nb < 3 || tbratio < 0.85) {
-        if (nb < 3) L_INFO("too few long lines at bottom: %d\n", procName, nb);
-        if (tbratio < 0.85) L_INFO("big length diff: ratio = %4.2f\n",
-                                   procName, tbratio);
-        ptaDestroy(&ptald);
-        ptaDestroy(&ptard);
+        /* Remove outlier points */
+    ptal2 = dewarpRemoveBadEndPoints(w, ptal1);
+    ptar2 = dewarpRemoveBadEndPoints(w, ptar1);
+    ptaDestroy(&ptal1);
+    ptaDestroy(&ptar1);
+    if (!ptal2 || !ptar2) {
+        ptaDestroy(&ptal2);
+        ptaDestroy(&ptar2);
+        L_INFO("Second filter: too few endpoints left after outliers removed\n",
+                procName);
         return 1;
-    } else {
-        *pptald = ptald;
-        *pptard = ptard;
     }
+    if (dew->debug) {
+        ptaWrite("/tmp/lept/dewdebug/endpts_left3.pta", ptal2, 1);
+        ptaWrite("/tmp/lept/dewdebug/endpts_right3.pta", ptar2, 1);
+    }
+
+    *pptalf = ptal2;
+    *pptarf = ptar2;
     return 0;
+}
+
+
+/*!
+ * \brief   dewarpRemoveBadEndPoints()
+ *
+ * \param[in]   w       width of input image
+ * \param[in]   ptas    left or right line end points
+ * \return  ptad   filtered left or right end points, or NULL on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) The input set is sorted by line position (x value).
+ *          Break into two (upper and lower); for each find the median
+ *          horizontal (y value), and remove all points farther than
+ *          a fraction of the image width from this.  Make sure each
+ *          part still has at least 3 points, and join the two sections
+ *          before returning.
+ *      (2) Reminder: x and y in the pta are transposed; think x = f(y).
+ * </pre>
+ */
+static PTA  *
+dewarpRemoveBadEndPoints(l_int32  w,
+                         PTA     *ptas)
+{
+l_int32    i, n, nu, nd;
+l_float32  rval, xval, yval, delta;
+PTA       *ptau1, *ptau2, *ptad1, *ptad2;
+
+    PROCNAME("dewarpRemoveBadEndPoints");
+
+    if (!ptas)
+        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+
+    delta = w * L_ALLOWED_W_FRACT;
+    n = ptaGetCount(ptas);  /* will be at least 8 */
+
+        /* Check the upper half */
+    ptau1 = ptaSelectRange(ptas, 0, n / 2);
+    ptaGetRankValue(ptau1, 0.5, NULL, L_SORT_BY_Y, &rval);
+    nu = ptaGetCount(ptau1);
+    ptau2 = ptaCreate(nu);
+    for (i = 0; i < nu; i++) {
+        ptaGetPt(ptau1, i, &xval, &yval);  /* transposed */
+        if (L_ABS(rval - yval) <= delta)
+            ptaAddPt(ptau2, xval, yval);
+    }
+    ptaDestroy(&ptau1);
+    if (ptaGetCount(ptau2) < L_MIN_LINES_FOR_HORIZ_2) {
+        ptaDestroy(&ptau2);
+        L_INFO("Second filter: upper set is too small after outliers removed\n",
+               procName);
+        return NULL;
+    }
+
+        /* Check the lower half */
+    ptad1 = ptaSelectRange(ptas, n / 2 + 1, 0);
+    ptaGetRankValue(ptad1, 0.5, NULL, L_SORT_BY_Y, &rval);
+    nd = ptaGetCount(ptad1);
+    ptad2 = ptaCreate(nd);
+    for (i = 0; i < nd; i++) {
+        ptaGetPt(ptad1, i, &xval, &yval);  /* transposed */
+        if (L_ABS(rval - yval) <= delta)
+            ptaAddPt(ptad2, xval, yval);
+    }
+    ptaDestroy(&ptad1);
+    if (ptaGetCount(ptad2) < L_MIN_LINES_FOR_HORIZ_2) {
+        ptaDestroy(&ptad2);
+        L_INFO("Second filter: lower set is too small after outliers removed\n",
+               procName);
+        return NULL;
+    }
+
+    ptaJoin(ptau2, ptad2, 0, -1);
+    ptaDestroy(&ptad2);
+    return ptau2;
 }
 
 
