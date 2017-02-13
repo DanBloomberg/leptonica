@@ -1355,9 +1355,9 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
  * \brief   recogPadDigitTrainingSet()
  *
  * \param[in/out]   precog   trained; if padding is needed, it is replaced
- *                          by a a new padded recog
- * \param[in]       scaleh
- * \param[in]       linew
+ *                           by a a new padded recog
+ * \param[in]       scaleh   must be > 0; suggest ~40.
+ * \param[in]       linew    use 0 for original scanned images
  * \return       0 if OK, 1 on error
  *
  * <pre>
@@ -1393,6 +1393,15 @@ SARRAY   *sa;
     if (!pixa)
         return ERROR_INT("pixa not made", procName, 1);
 
+        /* Need to use templates that are scaled to a fixed height. */
+    if (scaleh <= 0) {
+        L_WARNING("templates must be scaled to fixed height; using %d\n",
+                  procName, 40);
+        scaleh = 40;
+    }
+
+        /* Create a hybrid recog, composed of templates from both
+         * the original and bootstrap sources. */
     recog2 = recogCreateFromPixa(pixa, 0, scaleh, linew, recog1->threshold,
                                  recog1->maxyshift);
     pixaDestroy(&pixa);
