@@ -1210,8 +1210,6 @@ L_RECOG   *recog;
             } else if (ppixrem) {  /* outlier */
                 pix3 = recogDisplayOutlier(recog, i, j, maxk, maxscore);
                 pixaAddPix(pixarem, pix3, L_INSERT);
-            } else {
-                pixDestroy(&pix3);
             }
             numaDestroy(&nascore);
             pixDestroy(&pix1);

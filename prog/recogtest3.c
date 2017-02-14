@@ -161,10 +161,10 @@ L_RECOG   *recog1, *recog2, *recog3;
     pixa4 = recogRemoveOutliers2(pixa1, 0.65, &pix1, &pix2);
     pixDisplay(pix1, 900, 0);
     pixDisplay(pix2, 900, 500);
-    recog3 = recogCreateFromPixa(pixa4, 0, 0, 0, 128, 1);
-    recogShowContent(stderr, recog3, 3, 1);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
+    recog3 = recogCreateFromPixa(pixa4, 0, 0, 0, 128, 1);
+    recogShowContent(stderr, recog3, 3, 1);
     pixaDestroy(&pixa4);
     recogDestroy(&recog3);
 
