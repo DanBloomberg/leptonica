@@ -2195,9 +2195,11 @@ LEPT_DLL extern l_int32 recogAddSamples ( L_RECOG *recog, PIXA *pixa, l_int32 cl
 LEPT_DLL extern PIX * recogModifyTemplate ( L_RECOG *recog, PIX *pixs );
 LEPT_DLL extern l_int32 recogAverageSamples ( L_RECOG **precog, l_int32 debug );
 LEPT_DLL extern l_int32 pixaAccumulateSamples ( PIXA *pixa, PTA *pta, PIX **ppixd, l_float32 *px, l_float32 *py );
-LEPT_DLL extern l_int32 recogTrainingFinished ( L_RECOG *recog, l_int32 modifyflag );
-LEPT_DLL extern PIXA * recogRemoveOutliers1 ( PIXA *pixas, l_float32 minscore, l_int32 mintarget, PIX **ppixsave, PIX **ppixrem );
-LEPT_DLL extern PIXA * recogRemoveOutliers2 ( PIXA *pixas, l_float32 minscore, PIX **ppixsave, PIX **ppixrem );
+LEPT_DLL extern l_int32 recogTrainingFinished ( L_RECOG **precog, l_int32 modifyflag );
+LEPT_DLL extern l_int32 recogRemoveOutliers1 ( L_RECOG **precog, l_float32 minscore, l_int32 mintarget, PIX **ppixsave, PIX **ppixrem );
+LEPT_DLL extern PIXA * pixaRemoveOutliers1 ( PIXA *pixas, l_float32 minscore, l_int32 mintarget, PIX **ppixsave, PIX **ppixrem );
+LEPT_DLL extern l_int32 recogRemoveOutliers2 ( L_RECOG **precog, l_float32 minscore, PIX **ppixsave, PIX **ppixrem );
+LEPT_DLL extern PIXA * pixaRemoveOutliers2 ( PIXA *pixas, l_float32 minscore, PIX **ppixsave, PIX **ppixrem );
 LEPT_DLL extern PIXA * recogTrainFromBoot ( L_RECOG *recogboot, PIXA *pixas, l_float32 minscore, l_int32 threshold, l_int32 debug );
 LEPT_DLL extern l_int32 recogPadDigitTrainingSet ( L_RECOG **precog, l_int32 scaleh, l_int32 linew );
 LEPT_DLL extern l_int32 recogIsPaddingNeeded ( L_RECOG *recog, SARRAY **psa );

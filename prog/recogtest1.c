@@ -130,7 +130,7 @@ SARRAY    *sa, *satext;
     static const l_int32  MinTarget[] = {4, 5, 4};
     pixa2 = recogExtractPixa(recog1);
     for (i = 0; i < 3; i++) {
-        pixa3 = recogRemoveOutliers1(pixa2, MinScore[i], MinTarget[i],
+        pixa3 = pixaRemoveOutliers1(pixa2, MinScore[i], MinTarget[i],
                                      &pix1, &pix2);
         pixDisplay(pix1, 900, 250 * i);
         pixDisplay(pix2, 1300, 250 * i);

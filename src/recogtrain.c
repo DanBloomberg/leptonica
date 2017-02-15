@@ -37,8 +37,11 @@
  *         l_int32             recogAverageSamples()
  *         l_int32             pixaAccumulateSamples()
  *         l_int32             recogTrainingFinished()
- *         PIXA               *recogRemoveOutliers1()
- *         PIXA               *recogRemoveOutliers2()
+ *         static l_int32      recogTemplatesAreOK()
+ *         l_int32             recogRemoveOutliers1()
+ *         PIXA               *pixaRemoveOutliers1()
+ *         l_int32             recogRemoveOutliers2()
+ *         PIXA               *pixaRemoveOutliers2()
  *
  *      Training on unlabeled data
  *         L_RECOG             recogTrainFromBoot()
@@ -58,7 +61,7 @@
  *         l_int32             recogShowContent()
  *         l_int32             recogDebugAverages()
  *         l_int32             recogShowAverageTemplates()
- *         PIX                *pixDisplayOutliers()
+ *         static PIX         *pixDisplayOutliers()
  *         PIX                *recogDisplayOutlier()
  *         PIX                *recogShowMatchesInRange()
  *         PIX                *recogShowMatch()
@@ -135,23 +138,25 @@
  *     (4) Add the unscaled, labeled images to the saved set.
  *     (5) Optionally, remove outliers.
  *     If there are sufficient samples in the classes, we're done. Otherwise,
- *  C. For classes without a sufficient number of templates, we must again
- *     supplement the BAR with templates from a BSR (a hybrid RAR/BSR);
- *     do recognition scaled to a fixed height.
+ *  C. For classes without a sufficient number of templates, we can
+ *     supplement the BAR with templates from a BSR (a hybrid RAR/BSR),
+ *     and do recognition scaled to a fixed height.
  *
  *  Here are several methods that can be used for identifying outliers:
  *  (1) Compute average templates for each class and remove a candidate
  *      that is poorly correlated with the average.  This is the most
- *      simple method.
+ *      simple method.  recogRemoveOutliers1() uses this, supplemented with
+ *      a second threshold and a target number of templates to be saved.
  *  (2) Compute average templates for each class and remove a candidate
  *      that is more highly correlated with the average of some other class.
  *      This does not require setting a threshold for the correlation.
+ *      recogRemoveOutliers2() uses this method, supplemented with a minimum
+ *      correlation score.
  *  (3) For each candidate, find the average correlation with other
  *      members of its class, and remove those that have a relatively
  *      low average correlation.  This is similar to (1), gives comparable
- *      results and requires a bit more computation, but it does not
- *      require computing the average templates.
- *  We are presently using method (1).
+ *      results and becauses it does not use average templates, it requires
+ *      a bit more computation.
  * </pre>
  */
 
@@ -159,14 +164,19 @@
 #include "allheaders.h"
 
     /* Static functions */
-static l_int32 *recogMapIndexToIndex(L_RECOG *recog1, L_RECOG *recog2);
-static l_int32 recogAverageClassGeom(L_RECOG *recog, NUMA **pnaw, NUMA **pnah);
+static l_int32 recogTemplatesAreOK(L_RECOG *recog, l_int32 *pok);
 static SARRAY *recogAddMissingClassStrings(L_RECOG  *recog);
 static l_int32 recogCharsetAvailable(l_int32 type);
 static PIX *pixDisplayOutliers(PIXA *pixas, NUMA *nas);
 static PIX *recogDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
                                 l_int32 maxclass, l_float32 maxscore);
 static char *l_charToString(char byte);
+
+    /* Parameters for using template set size to decide if the set
+     * of templates (before outliers are removed) is valid. */
+static const l_int32    MIN_SAMPLE_SET_SIZE = 2;  /* for valid class */
+static const l_float32  MIN_FRACT_VALID_TEMPLATES = 0.5;  /* required fraction
+                             of valid sets in the charset */
 
     /* Defaults in pixRemoveOutliers1() */
 static const l_float32  DEFAULT_MIN_SCORE = 0.75; /* keep everything above */
@@ -605,8 +615,7 @@ L_RECOG   *recog;
 
     if (!precog)
         return ERROR_INT("&recog not defined", procName, 1);
-    recog = *precog;
-    if (!recog)
+    if ((recog = *precog) == NULL)
         return ERROR_INT("recog not defined", procName, 1);
 
     if (recog->ave_done) {
@@ -855,20 +864,21 @@ PTA       *ptac;
 /*!
  * \brief   recogTrainingFinished()
  *
- * \param[in]    recog
- * \param[in]    modifyflag
- * \return  0 if OK, 1 on error
+ * \param[in]    precog       addr of recog
+ * \param[in]    modifyflag   1 to use recogModifyTemplate(); 0 otherwise
+ * \return  0 if OK, 1 on error (input recog will be destroyed)
  *
  * <pre>
  * Notes:
  *      (1) This must be called after all training samples have been added.
- *      (2) Usually, %modifyflag == 1, because we want to apply
+ *      (2) If the templates are not good enough, the recog input is destroyed.
+ *      (3) Usually, %modifyflag == 1, because we want to apply
  *          recogModifyTemplate() to generate the actual templates
  *          that will be used.  The one exception is when reading a
  *          serialized recog: there we want to put the same set of
  *          templates in both the unscaled and modified pixaa.
  *          See recogReadStream() to see why we do this.
- *      (3) The following things are done here:
+ *      (4) The following things are done here:
  *          (a) Allocate (or reallocate) storage for (possibly) modified
  *              bitmaps, centroids, and fg areas.
  *          (b) Generate the (possibly) modified bitmaps.
@@ -876,29 +886,39 @@ PTA       *ptac;
  *              modified bitmaps.
  *          (d) Truncate the pixaa, ptaa and numaa arrays down from
  *              256 to the actual size.
- *      (4) Putting these operations here makes it simple to recompute
+ *      (5) Putting these operations here makes it simple to recompute
  *          the recog with different modifications on the bitmaps.
- *      (5) Call recogShowContent() to display the templates, both
+ *      (6) Call recogShowContent() to display the templates, both
  *          unscaled and modified.
  * </pre>
  */
 l_int32
-recogTrainingFinished(L_RECOG  *recog,
-                      l_int32   modifyflag)
+recogTrainingFinished(L_RECOG  **precog,
+                      l_int32    modifyflag)
 {
-l_int32    i, j, size, nc, ns, area;
+l_int32    ok, i, j, size, nc, ns, area;
 l_float32  xave, yave;
 PIX       *pix, *pixd;
 PIXA      *pixa;
 PIXAA     *paa;
 PTA       *pta;
 PTAA      *ptaa;
+L_RECOG   *recog;
 
     PROCNAME("recogTrainingFinished");
 
-    if (!recog)
+    if (!precog)
+        return ERROR_INT("&recog not defined", procName, 1);
+    if ((recog = *precog) == NULL)
         return ERROR_INT("recog not defined", procName, 1);
     if (recog->train_done) return 0;
+
+        /* Test the input templates */
+    recogTemplatesAreOK(recog, &ok);
+    if (!ok) {
+        recogDestroy(precog);
+        return ERROR_INT("bad templates", procName, 1);
+    }
 
         /* Generate the storage for the possibly-scaled training bitmaps */
     size = recog->maxarraysize;
@@ -972,7 +992,105 @@ PTAA      *ptaa;
 
 
 /*!
+ * \brief   recogTemplatesAreOK()
+ *
+ * \param[in]    recog
+ * \param[out]   pok    &set to 1 if template set is good enough; 0 otherwise
+ * \return  1 on error; 0 otherwise.  A bad set of templates is not an error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is called by recogTrainingFinished().  A return value of 0
+ *          will cause recogTrainingFinished() to destroy the recog.
+ * </pre>
+ */
+static l_int32
+recogTemplatesAreOK(L_RECOG  *recog,
+                    l_int32  *pok)
+{
+l_int32    i, n, validsets, nt;
+l_float32  ratio;
+NUMA      *na;
+
+    PROCNAME("recogTemplatesAreOK");
+
+    if (!pok)
+        return ERROR_INT("&ok not defined", procName, 1);
+    *pok = 0;
+    if (!recog)
+        return ERROR_INT("recog not defined", procName, 1);
+
+    n = pixaaGetCount(recog->pixaa_u, &na);
+    validsets = 0;
+    for (i = 0, validsets = 0; i < n; i++) {
+        numaGetIValue(na, i, &nt);
+        if (nt >= MIN_SAMPLE_SET_SIZE)
+            validsets++;
+    }
+    numaDestroy(&na);
+    ratio = (l_float32)(validsets / (l_float32)recog->charset_size);
+    *pok = (ratio >= MIN_FRACT_VALID_TEMPLATES) ? 1 : 0;
+    return 0;
+}
+
+
+/*!
  * \brief   recogRemoveOutliers1()
+ *
+ * \param[in]   precog       addr of recog with unscaled labeled templates
+ * \param[in]   minscore     keep everything with at least this score
+ * \param[in]   mintarget    minimum desired number to retain if possible
+ * \param[out]  ppixsave     [optional debug] saved templates, with scores
+ * \param[out]  ppixrem      [optional debug] removed templates, with scores
+ * \return  0 if OK, 1 on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a convenience wrapper when using default parameters
+ *          for the recog.  See pixaRemoveOutliers1() for details.
+ *      (2) If this succeeds, the new recog replaces the input recog;
+ *          if it fails, the input recog is destroyed.
+ * </pre>
+ */
+l_int32
+recogRemoveOutliers1(L_RECOG   **precog,
+                     l_float32   minscore,
+                     l_int32     mintarget,
+                     PIX       **ppixsave,
+                     PIX       **ppixrem)
+{
+PIXA     *pixa1, *pixa2;
+L_RECOG  *recog;
+
+    PROCNAME("recogRemoveOutliers1");
+
+    if (!precog)
+        return ERROR_INT("&recog not defined", procName, 1);
+    if (*precog == NULL)
+        return ERROR_INT("recog not defined", procName, 1);
+
+        /* Extract the unscaled templates */
+    pixa1 = recogExtractPixa(*precog);
+    recogDestroy(precog);
+
+    pixa2 = pixaRemoveOutliers1(pixa1, minscore, mintarget, ppixsave, ppixrem);
+    pixaDestroy(&pixa1);
+    if (!pixa2)
+        return ERROR_INT("failure to remove outliers", procName, 1);
+
+    recog = recogCreateFromPixa(pixa2, 0, 0, 0, 150, 1);
+    pixaDestroy(&pixa2);
+    if (!recog)
+        return ERROR_INT("failure to make recog from pixa sans outliers",
+                          procName, 1);
+
+    *precog = recog;
+    return 0;
+}
+
+
+/*!
+ * \brief   pixaRemoveOutliers1()
  *
  * \param[in]   pixas        unscaled labeled templates
  * \param[in]   minscore     keep everything with at least this score
@@ -996,7 +1114,7 @@ PTAA      *ptaa;
  *          LOWER_SCORE_THRESHOLD, on the score.  Consequently, with
  *          poor quality templates, we may keep samples with a score
  *          less than %minscore, but never less than LOWER_SCORE_THRESHOLD.
- *          And if the number of samples is less than 3, we do not use any.
+ *          And if the number of samples is less than 2, we do not use any.
  *      (3) This is meant to be used on a BAR, where the templates all
  *          come from the same book; use minscore ~0.75.
  *      (4) Method: make a scaled recog from the input %pixas.  Then,
@@ -1006,11 +1124,11 @@ PTAA      *ptaa;
  * </pre>
  */
 PIXA *
-recogRemoveOutliers1(PIXA      *pixas,
-                     l_float32  minscore,
-                     l_int32    mintarget,
-                     PIX      **ppixsave,
-                     PIX      **ppixrem)
+pixaRemoveOutliers1(PIXA      *pixas,
+                    l_float32  minscore,
+                    l_int32    mintarget,
+                    PIX      **ppixsave,
+                    PIX      **ppixrem)
 {
 l_int32    i, j, debug, n, area1, area2;
 l_float32  x1, y1, x2, y2, minfract, score, rankscore, threshscore;
@@ -1020,7 +1138,7 @@ PIXA      *pixa, *pixarem, *pixad;
 PTA       *pta;
 L_RECOG   *recog;
 
-    PROCNAME("recogRemoveOutliers1");
+    PROCNAME("pixaRemoveOutliers1");
 
     if (ppixsave) *ppixsave = NULL;
     if (ppixrem) *ppixrem = NULL;
@@ -1037,8 +1155,10 @@ L_RECOG   *recog;
     debug = (ppixsave || ppixrem) ? 1 : 0;
     recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
     if (!recog)
-        return (PIXA *)ERROR_PTR("bad pixas; averaging failed", procName, NULL);
+        return (PIXA *)ERROR_PTR("bad pixas; recog not made", procName, NULL);
     recogAverageSamples(&recog, debug);
+    if (!recog)
+        return (PIXA *)ERROR_PTR("bad templates", procName, NULL);
 
     nasave = (ppixsave) ? numaCreate(0) : NULL;
     pixarem = (ppixrem) ? pixaCreate(0) : NULL;
@@ -1086,12 +1206,11 @@ L_RECOG   *recog;
         }
 
             /* Save the templates that are at or above threshold.
-             * If there are less than 3 templates in the class, we
-             * have no ability to identify an 'outlier', so toss them. */
+             * Toss any classes with less than 2 templates. */
         for (j = 0; j < n; j++) {
             numaGetFValue(nascore, j, &score);
             pix1 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
-            if (score >= threshscore && n > 2) {
+            if (score >= threshscore && n > 1) {
                 pixaAddPix(pixad, pix1, L_INSERT);
                 if (nasave) numaAddNumber(nasave, score);
             } else if (debug) {
@@ -1125,6 +1244,59 @@ L_RECOG   *recog;
 /*!
  * \brief   recogRemoveOutliers2()
  *
+ * \param[in]   precog       addr of recog with unscaled labeled templates
+ * \param[in]   minscore     keep everything with at least this score
+ * \param[out]  ppixsave     [optional debug] saved templates, with scores
+ * \param[out]  ppixrem      [optional debug] removed templates, with scores
+ * \return  0 if OK, 1 on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a convenience wrapper when using default parameters
+ *          for the recog.  See pixaRemoveOutliers2() for details.
+ *      (2) If this succeeds, the new recog replaces the input recog;
+ *          if it fails, the input recog is destroyed.
+ * </pre>
+ */
+l_int32
+recogRemoveOutliers2(L_RECOG   **precog,
+                     l_float32   minscore,
+                     PIX       **ppixsave,
+                     PIX       **ppixrem)
+{
+PIXA     *pixa1, *pixa2;
+L_RECOG  *recog;
+
+    PROCNAME("recogRemoveOutliers2");
+
+    if (!precog)
+        return ERROR_INT("&recog not defined", procName, 1);
+    if (*precog == NULL)
+        return ERROR_INT("recog not defined", procName, 1);
+
+        /* Extract the unscaled templates */
+    pixa1 = recogExtractPixa(*precog);
+    recogDestroy(precog);
+
+    pixa2 = pixaRemoveOutliers2(pixa1, minscore, ppixsave, ppixrem);
+    pixaDestroy(&pixa1);
+    if (!pixa2)
+        return ERROR_INT("failure to remove outliers", procName, 1);
+
+    recog = recogCreateFromPixa(pixa2, 0, 0, 0, 150, 1);
+    pixaDestroy(&pixa2);
+    if (!recog)
+        return ERROR_INT("failure to make recog from pixa sans outliers",
+                          procName, 1);
+
+    *precog = recog;
+    return 0;
+}
+
+
+/*!
+ * \brief   pixaRemoveOutliers2()
+ *
  * \param[in]   pixas       unscaled labeled templates
  * \param[in]   minscore    keep everything with at least this score
  * \param[out]  ppixsave    [optional debug] saved templates, with scores
@@ -1147,10 +1319,10 @@ L_RECOG   *recog;
  * </pre>
  */
 PIXA *
-recogRemoveOutliers2(PIXA      *pixas,
-                     l_float32  minscore,
-                     PIX      **ppixsave,
-                     PIX      **ppixrem)
+pixaRemoveOutliers2(PIXA      *pixas,
+                    l_float32  minscore,
+                    PIX      **ppixsave,
+                    PIX      **ppixrem)
 {
 l_int32    i, j, k, n, area1, area2, maxk, debug;
 l_float32  x1, y1, x2, y2, score, maxscore;
@@ -1159,7 +1331,7 @@ PIX       *pix1, *pix2, *pix3;
 PIXA      *pixarem, *pixad;
 L_RECOG   *recog;
 
-    PROCNAME("recogRemoveOutliers2");
+    PROCNAME("pixaRemoveOutliers2");
 
     if (ppixsave) *ppixsave = NULL;
     if (ppixrem) *ppixrem = NULL;
@@ -1173,8 +1345,10 @@ L_RECOG   *recog;
     debug = (ppixsave || ppixrem) ? 1 : 0;
     recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
     if (!recog)
-        return (PIXA *)ERROR_PTR("bad pixas; averaging failed", procName, NULL);
+        return (PIXA *)ERROR_PTR("bad pixas; recog not made", procName, NULL);
     recogAverageSamples(&recog, debug);
+    if (!recog)
+        return (PIXA *)ERROR_PTR("bad templates", procName, NULL);
 
     nasave = (ppixsave) ? numaCreate(0) : NULL;
     pixarem = (ppixrem) ? pixaCreate(0) : NULL;
@@ -1203,7 +1377,7 @@ L_RECOG   *recog;
 
                 /* Is it in the correct class, with high enough score? */
             numaGetMax(nascore, &maxscore, &maxk);
-            if (maxk == i && maxscore >= minscore && n > 2) {  /* save it */
+            if (maxk == i && maxscore >= minscore && n > 1) {  /* save it */
                 pix3 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
                 pixaAddPix(pixad, pix3, L_INSERT);
                 if (nasave) numaAddNumber(nasave, maxscore);
@@ -1843,13 +2017,13 @@ L_RECOG   *recog;
 
     if (!precog)
         return ERROR_INT("&recog not defined", procName, 1);
-    recog = *precog;
-    if (!recog)
+    if ((recog = *precog) == NULL)
         return ERROR_INT("recog not defined", procName, 1);
 
         /* Mark the training as finished if necessary, and make sure
          * that the average templates have been built. */
-    if (recogAverageSamples(precog, 0))
+    recogAverageSamples(&recog, 0);
+    if (!recog)
         return ERROR_INT("averaging failed; recog destroyed", procName, 1);
 
         /* Save a pixa of all the training examples */

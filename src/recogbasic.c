@@ -113,7 +113,7 @@
  *             Pix *pix = ...
  *             recogTrainLabeled(rec, pix, NULL, text[i], 0, 0);
  *         }
- *         recogTrainingFinished(rec, 1);  // required
+ *         recogTrainingFinished(&rec, 1);  // required
  *
  *  It is an error if any function that computes averages, removes
  *  outliers or requests identification of an unlabeled character,
@@ -126,7 +126,7 @@
  *  to do further training on a "finished" recognizer, just set
  *         recog->train_done = FALSE;
  *  add the new training samples, and again call
- *         recogTrainingFinished(rec, 1);  // required
+ *         recogTrainingFinished(&rec, 1);  // required
  *
  *  If not scaling, using the images directly for identification, and
  *  removing outliers, do something like this:
@@ -135,9 +135,10 @@
  *          Pix *pix = ...
  *          recogTrainLabeled(rec, pix, NULL, text[i], 0, 0);
  *      }
- *      recogTrainingFinished(rec, 1);
+ *      recogTrainingFinished(&rec, 1);
+ *      if (!rec) ... [return]
  *      // remove outliers
- *      recogRemoveOutliers1(rec, 0.7, 0.5, 0);
+ *      recogRemoveOutliers1(&rec, 0.7, 2, NULL, NULL);
  *
  *  You can generate a recognizer from a pixa where the text field in
  *  each pix is the character string label for the pix.  For example,
@@ -155,7 +156,7 @@
  *  This can be used to train a new book adapted recognizer (BAC), on
  *  unlabeled data from, e.g., a book.  To do this, the following is required:
  *   (1) the input images from the book must be scaled in the same
- *       way as those in the BSR
+ *       way as those in the BSR, and
  *   (2) both the BSR and the input images must be set up to be either
  *       input scanned images or width-normalized lines.
  *
@@ -179,7 +180,7 @@ static const l_float32  DEFAULT_MAX_HT_RATIO = 2.5;  /* max allowed ratio of
     /* Static functions */
 static l_int32 recogGetCharsetSize(l_int32 type);
 static l_int32 recogAddCharstrLabels(L_RECOG *recog);
-static l_int32 recogAddAllSamples(L_RECOG *recog, PIXAA *paa, l_int32 debug);
+static l_int32 recogAddAllSamples(L_RECOG **precog, PIXAA *paa, l_int32 debug);
 
 
 /*------------------------------------------------------------------------*
@@ -234,7 +235,7 @@ PIXA     *pixa;
  * \param[in]    scalew  scale all widths to this; use 0 otherwise
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
  * \param[in]    linew   width of normalized strokes; use 0 to skip
- * \param[in]    threshold for binarization; typically ~128
+ * \param[in]    threshold for binarization; typically ~150
  * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
  * \return  recog, or NULL on error
  *
@@ -295,7 +296,9 @@ PIX      *pix;
         pixDestroy(&pix);
     }
 
-    recogTrainingFinished(recog, 1);
+    recogTrainingFinished(&recog, 1);
+    if (!recog)
+        return (L_RECOG *)ERROR_PTR("bad templates", procName, NULL);
     return recog;
 }
 
@@ -831,8 +834,10 @@ SARRAY   *sa_text;
         return NULL;
     }
 
-    recogAddAllSamples(recog, paa, 0);  /* this finishes */
+    recogAddAllSamples(&recog, paa, 0);  /* this finishes */
     pixaaDestroy(&paa);
+    if (!recog)
+        return (L_RECOG *)ERROR_PTR("bad templates", procName, NULL);
     return recog;
 }
 
@@ -1060,14 +1065,15 @@ PIXAA   *paa;
 /*!
  * \brief   recogAddAllSamples()
  *
- * \param[in]    recog
- * \param[in]    paa    pixaa from previously trained recog
+ * \param[in]    precog  addr of recog
+ * \param[in]    paa     pixaa from previously trained recog
  * \param[in]    debug
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This is used with the serialization routine recogRead(),
+ *      (1) On error, the input recog is destroyed.
+ *      (2) This is used with the serialization routine recogRead(),
  *          where each pixa in the pixaa represents a set of characters
  *          in a different class.  Before calling this function, we have
  *          verified that the number of character classes, given by the
@@ -1076,21 +1082,26 @@ PIXAA   *paa;
  * </pre>
  */
 static l_int32
-recogAddAllSamples(L_RECOG  *recog,
-                   PIXAA    *paa,
-                   l_int32   debug)
+recogAddAllSamples(L_RECOG  **precog,
+                   PIXAA     *paa,
+                   l_int32    debug)
 {
-char    *text;
-l_int32  i, j, nc, ns;
-PIX     *pix;
-PIXA    *pixa, *pixa1;
+char     *text;
+l_int32   i, j, nc, ns;
+PIX      *pix;
+PIXA     *pixa, *pixa1;
+L_RECOG  *recog;
 
     PROCNAME("recogAddAllSamples");
 
-    if (!recog)
+    if (!precog)
+        return ERROR_INT("&recog not defined", procName, 1);
+    if ((recog = *precog) == NULL)
         return ERROR_INT("recog not defined", procName, 1);
-    if (!paa)
+    if (!paa) {
+        recogDestroy(&recog);
         return ERROR_INT("paa not defined", procName, 1);
+    }
 
     nc = pixaaGetCount(paa, NULL);
     for (i = 0; i < nc; i++) {
@@ -1107,6 +1118,8 @@ PIXA    *pixa, *pixa1;
         pixaDestroy(&pixa);
     }
 
-    recogTrainingFinished(recog, 0);  /* 0: see comment in recogRead() */
+    recogTrainingFinished(&recog, 0);  /* 0: see comment in recogRead() */
+    if (!recog)
+        return ERROR_INT("bad templates; recog destroyed", procName, 1);
     return 0;
 }

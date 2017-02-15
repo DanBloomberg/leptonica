@@ -276,7 +276,7 @@ SARRAY   *sa;
         pixDestroy(&pix);
         boxDestroy(&box);
     }
-    recogTrainingFinished(recog, 1);
+    recogTrainingFinished(&recog, 1);
     sarrayDestroy(&sa);
 
         /* Phase 2: generate pixa consisting of 1 bpp, single character pix */

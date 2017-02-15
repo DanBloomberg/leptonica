@@ -145,7 +145,8 @@ SARRAY   *sa;
         /* Now use minscore = 0.75 to remove the outliers in the BAR,
          * and show what is left. */
     fprintf(stderr, "initial size: %d\n", recog->num_samples);
-    recogRemoveOutliers1(recog, 0.75, 5, &pix1, &pix2);
+    pix1 = pix2 = NULL;
+    recogRemoveOutliers1(&recog, 0.75, 5, &pix1, &pix2);
     pixDisplay(pix1, 500, 0);
     pixDisplay(pix2, 500, 500);
     pixDestroy(&pix1);
