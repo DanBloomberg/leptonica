@@ -41,6 +41,7 @@
  *           PIXA     *pixaSelectByAreaFraction()
  *           PIX      *pixSelectByWidthHeightRatio()
  *           PIXA     *pixaSelectByWidthHeightRatio()
+ *           PIXA     *pixaSelectByNumConnComp()
  *
  *           PIXA     *pixaSelectWithIndicator()
  *           l_int32   pixRemoveWithIndicator()
@@ -932,6 +933,66 @@ PIXA  *pixad;
     pixad = pixaSelectWithIndicator(pixas, nai, pchanged);
 
     numaDestroy(&nai);
+    return pixad;
+}
+
+
+/*!
+ * \brief   pixaSelectByNumConnComp()
+ *
+ * \param[in]    pixas
+ * \param[in]    nmin          minimum number of components
+ * \param[in]    nmax          maximum number of components
+ * \param[in]    connectivity  4 or 8
+ * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Returns a pixa clone if no components are removed.
+ *      (2) Uses pix and box clones in the new pixa.
+ *      (3) This filters by the number of connected components in
+ *          a given range.
+ * </pre>
+ */
+PIXA *
+pixaSelectByNumConnComp(PIXA      *pixas,
+                        l_int32    nmin,
+                        l_int32    nmax,
+                        l_int32    connectivity,
+                        l_int32   *pchanged)
+{
+l_int32  n, i, count;
+NUMA    *na;
+PIX     *pix;
+PIXA    *pixad;
+
+    PROCNAME("pixaSelectByNumConnComp");
+
+    if (pchanged) *pchanged = 0;
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (nmin > nmax)
+        return (PIXA *)ERROR_PTR("nmin > nmax", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PIXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+
+        /* Get indicator array based on number of c.c. */
+    n = pixaGetCount(pixas);
+    na = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixas, i, L_CLONE);
+        pixCountConnComp(pix, connectivity, &count);
+        if (count >= nmin && count <= nmax)
+            numaAddNumber(na, 1);
+        else
+            numaAddNumber(na, 0);
+        pixDestroy(&pix);
+    }
+
+        /* Filter to get output */
+    pixad = pixaSelectWithIndicator(pixas, na, pchanged);
+    numaDestroy(&na);
     return pixad;
 }
 

@@ -50,6 +50,7 @@
  *          NUMA        *numaAddBorder()
  *          NUMA        *numaAddSpecifiedBorder()
  *          NUMA        *numaRemoveBorder()
+ *          l_int32      numaCountNonzeroRuns()
  *          l_int32      numaGetNonzeroRange()
  *          l_int32      numaGetCountRelativeToZero()
  *          NUMA        *numaClipToInterval()
@@ -934,6 +935,41 @@ NUMA       *nad;
         fad[i] = fas[left + i];
 
     return nad;
+}
+
+
+/*!
+ * \brief   numaCountNonzeroRuns()
+ *
+ * \param[in]    na      e.g., of pixel counts in rows or columns
+ * \param[out]   pcount  number of nonzero runs
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+numaCountNonzeroRuns(NUMA     *na,
+                     l_int32  *pcount)
+{
+l_int32  n, i, val, count, inrun;
+
+    PROCNAME("numaCountNonzeroRuns");
+
+    if (pcount) *pcount = 0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    n = numaGetCount(na);
+    count = 0;
+    inrun = FALSE;
+    for (i = 0; i < n; i++) {
+        numaGetIValue(na, i, &val);
+        if (!inrun && val > 0) {
+            count++;
+            inrun = TRUE;
+        } else if (inrun && val == 0) {
+            inrun = FALSE;
+        }
+    }
+    *pcount = count;
+    return 0;
 }
 
 

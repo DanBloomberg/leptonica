@@ -128,10 +128,11 @@ SARRAY    *sa, *satext;
     fprintf(stderr, "Remove outliers\n");
     static const l_float32  MinScore[] = {0.6, 0.7, 0.9};
     static const l_int32  MinTarget[] = {4, 5, 4};
+    static const l_int32  MinSize[] = {3, 2, 3};
     pixa2 = recogExtractPixa(recog1);
     for (i = 0; i < 3; i++) {
         pixa3 = pixaRemoveOutliers1(pixa2, MinScore[i], MinTarget[i],
-                                     &pix1, &pix2);
+                                    MinSize[i],  &pix1, &pix2);
         pixDisplay(pix1, 900, 250 * i);
         pixDisplay(pix2, 1300, 250 * i);
         pixDestroy(&pix1);
@@ -144,7 +145,7 @@ SARRAY    *sa, *satext;
 #if 1
         /* Split touching characters */
     fprintf(stderr, "Split touching\n");
-    pixd = pixRead("recog/bootnums/pagenum.25.png");  /* 25 or 29 */
+    pixd = pixRead("recog/digits/page.590.png");  /* 590 or 306 */
     recogIdentifyMultiple(recog1, pixd, 3, -1, -1, 0,
                           &boxat, &pixa2, &pixdb, 1);
     pixDisplay(pixdb, 800, 800);

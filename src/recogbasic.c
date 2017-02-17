@@ -111,9 +111,9 @@
  *         L_Recog  *rec = recogCreate(0, h, linew, 128, 1);
  *         for (i = 0; i < n; i++) {  // read in n training digits
  *             Pix *pix = ...
- *             recogTrainLabeled(rec, pix, NULL, text[i], 0, 0);
+ *             recogTrainLabeled(rec, pix, NULL, text[i], 0);
  *         }
- *         recogTrainingFinished(&rec, 1);  // required
+ *         recogTrainingFinished(&rec, 1, -1, -1.0);  // required
  *
  *  It is an error if any function that computes averages, removes
  *  outliers or requests identification of an unlabeled character,
@@ -126,16 +126,16 @@
  *  to do further training on a "finished" recognizer, just set
  *         recog->train_done = FALSE;
  *  add the new training samples, and again call
- *         recogTrainingFinished(&rec, 1);  // required
+ *         recogTrainingFinished(&rec, 1, -1, -1.0);  // required
  *
  *  If not scaling, using the images directly for identification, and
  *  removing outliers, do something like this:
  *      L_Recog  *rec = recogCreate(0, 0, 0, 128, 1);
  *      for (i = 0; i < n; i++) {  // read in n training characters
  *          Pix *pix = ...
- *          recogTrainLabeled(rec, pix, NULL, text[i], 0, 0);
+ *          recogTrainLabeled(rec, pix, NULL, text[i], 0);
  *      }
- *      recogTrainingFinished(&rec, 1);
+ *      recogTrainingFinished(&rec, 1, -1, -1.0);
  *      if (!rec) ... [return]
  *      // remove outliers
  *      recogRemoveOutliers1(&rec, 0.7, 2, NULL, NULL);
@@ -171,11 +171,11 @@ static const l_int32  MAX_EXAMPLES_IN_CLASS = 256;
 
     /* Default recog parameters that can be changed */
 static const l_int32    DEFAULT_CHARSET_TYPE = L_ARABIC_NUMERALS;
-static const l_int32    DEFAULT_MIN_NOPAD = 3;
+static const l_int32    DEFAULT_MIN_NOPAD = 1;
 static const l_float32  DEFAULT_MAX_WH_RATIO = 3.0;  /* max allowed w/h
-     ratio for a component to be split  */
-static const l_float32  DEFAULT_MAX_HT_RATIO = 2.5;  /* max allowed ratio of
-     max/min unscaled averaged template heights  */
+                                    ratio for a component to be split  */
+static const l_float32  DEFAULT_MAX_HT_RATIO = 2.6;  /* max allowed ratio of
+                               max/min unscaled averaged template heights  */
 
     /* Static functions */
 static l_int32 recogGetCharsetSize(l_int32 type);
@@ -292,11 +292,11 @@ PIX      *pix;
             pixDestroy(&pix);
             continue;
         }
-        recogTrainLabeled(recog, pix, NULL, text, 0, 0);
+        recogTrainLabeled(recog, pix, NULL, text, 0);
         pixDestroy(&pix);
     }
 
-    recogTrainingFinished(&recog, 1);
+    recogTrainingFinished(&recog, 1, -1, -1.0);
     if (!recog)
         return (L_RECOG *)ERROR_PTR("bad templates", procName, NULL);
     return recog;
@@ -469,7 +469,8 @@ recogGetCount(L_RECOG  *recog)
  * Notes:
  *      (1) This is called when a recog is created.
  *      (2) Default %min_nopad value allows for some padding.
- *          To disable padding, set %min_nopad = 0.
+ *          To disable padding, set %min_nopad = 0.  To pad only when
+ *          no samples are available for the class, set %min_nopad = 1.
  *      (3) The %max_wh_ratio limits the width/height ratio for components
  *          that we attempt to split.  Splitting long components is expensive.
  *      (4) The %max_ht_ratio is a quality requirement on the training data.
@@ -1118,7 +1119,8 @@ L_RECOG  *recog;
         pixaDestroy(&pixa);
     }
 
-    recogTrainingFinished(&recog, 0);  /* 0: see comment in recogRead() */
+    recogTrainingFinished(&recog, 0, -1, -1.0);  /* For second parameter,
+                                             see comment in recogRead() */
     if (!recog)
         return ERROR_INT("bad templates; recog destroyed", procName, 1);
     return 0;

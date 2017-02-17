@@ -146,7 +146,7 @@ SARRAY   *sa;
          * and show what is left. */
     fprintf(stderr, "initial size: %d\n", recog->num_samples);
     pix1 = pix2 = NULL;
-    recogRemoveOutliers1(&recog, 0.75, 5, &pix1, &pix2);
+    recogRemoveOutliers1(&recog, 0.75, 5, 3, &pix1, &pix2);
     pixDisplay(pix1, 500, 0);
     pixDisplay(pix2, 500, 500);
     pixDestroy(&pix1);

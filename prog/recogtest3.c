@@ -136,7 +136,7 @@ L_RECOG   *recog1, *recog2, *recog3;
     recogDestroy(&recog3);
 
         /* Remove outliers: method 1 */
-    pixa4 = pixaRemoveOutliers1(pixa1, 0.8, 5, &pix1, &pix2);
+    pixa4 = pixaRemoveOutliers1(pixa1, 0.8, 4, 3, &pix1, &pix2);
     pixDisplay(pix1, 500, 0);
     pixDisplay(pix2, 500, 500);
     pixDestroy(&pix1);
@@ -158,7 +158,7 @@ L_RECOG   *recog1, *recog2, *recog3;
     pixDestroy(&pix1);
 
         /* Remove outliers: method 2 */
-    pixa4 = pixaRemoveOutliers2(pixa1, 0.65, &pix1, &pix2);
+    pixa4 = pixaRemoveOutliers2(pixa1, 0.65, 3, &pix1, &pix2);
     pixDisplay(pix1, 900, 0);
     pixDisplay(pix2, 900, 500);
     pixDestroy(&pix1);

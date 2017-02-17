@@ -30,9 +30,8 @@
  *
  *      Training on labeled data
  *         l_int32             recogTrainLabeled()
- *         PIX                *recogProcessSingleLabeled()
- *         l_int32             recogProcessMultLabeled()
- *         l_int32             recogAddSamples()
+ *         PIX                *recogProcessLabeled()
+ *         l_int32             recogAddSample()
  *         PIX                *recogModifyTemplate()
  *         l_int32             recogAverageSamples()
  *         l_int32             pixaAccumulateSamples()
@@ -122,7 +121,7 @@
  *
  *  Here are the steps in doing recog training:
  *  A. Generate a BAR from any exising labeled templates
- *    (1) Create a recog and add the templates, using recogAddSamples().
+ *    (1) Create a recog and add the templates, using recogAddSample().
  *        This stores the unscaled templates.
  *        [Note: this can be done in one step if the labeled templates are put
  *         into a pixa:
@@ -164,7 +163,8 @@
 #include "allheaders.h"
 
     /* Static functions */
-static l_int32 recogTemplatesAreOK(L_RECOG *recog, l_int32 *pok);
+static l_int32 recogTemplatesAreOK(L_RECOG *recog, l_int32 minsize,
+                                   l_float32 minfract, l_int32 *pok);
 static SARRAY *recogAddMissingClassStrings(L_RECOG  *recog);
 static l_int32 recogCharsetAvailable(l_int32 type);
 static PIX *pixDisplayOutliers(PIXA *pixas, NUMA *nas);
@@ -172,17 +172,20 @@ static PIX *recogDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
                                 l_int32 maxclass, l_float32 maxscore);
 static char *l_charToString(char byte);
 
-    /* Parameters for using template set size to decide if the set
-     * of templates (before outliers are removed) is valid. */
-static const l_int32    MIN_SAMPLE_SET_SIZE = 2;  /* for valid class */
-static const l_float32  MIN_FRACT_VALID_TEMPLATES = 0.5;  /* required fraction
-                             of valid sets in the charset */
+    /* Default parameters that are used in recogTemplatesAreOK() and
+     * in outlier removal functions, and that use template set size
+     * to decide if the set of templates (before outliers are removed)
+     * is valid.  Values are set to accept most sets of sample templates. */
+static const l_int32    DEFAULT_MIN_SET_SIZE = 1;  /* minimum number of
+                                       samples for a valid class */
+static const l_float32  DEFAULT_MIN_SET_FRACT = 0.4;  /* minimum fraction
+                               of classes required for a valid recog */
 
-    /* Defaults in pixRemoveOutliers1() */
+    /* Defaults in pixaRemoveOutliers1() and pixaRemoveOutliers2() */
 static const l_float32  DEFAULT_MIN_SCORE = 0.75; /* keep everything above */
-static const l_int32    DEFAULT_MIN_TARGET = 5;  /* to be kept */
+static const l_int32    DEFAULT_MIN_TARGET = 3;  /* to be kept if possible */
 static const l_float32  LOWER_SCORE_THRESHOLD = 0.5;  /* templates can be
-                 * kept down to this score to if needed to keep the
+                 * kept down to this score to if needed to retain the
                  * desired minimum number of templates */
 
 
@@ -196,24 +199,15 @@ static const l_float32  LOWER_SCORE_THRESHOLD = 0.5;  /* templates can be
  * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
  * \param[in]    box [optional] cropping box
  * \param[in]    text [optional] if null, use text field in pix
- * \param[in]    multflag 1 if one or more contiguous ascii characters;
- *                        0 for a single arbitrary character
  * \param[in]    debug 1 to display images of samples not captured
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) Training is restricted to the addition of either:
- *          (a) multflag == 0: a single character in an arbitrary
- *              (e.g., UTF8) charset
- *          (b) multflag == 1: one or more ascii characters rendered
- *              contiguously in pixs
- *      (2) If box != null, it should represent the cropped location of
- *          the character image.
- *      (3) If multflag == 1, samples will be rejected if the number of
- *          connected components does not equal to the number of ascii
- *          characters in the textstring.  In that case, if debug == 1,
- *          the rejected samples will be displayed.
+ *      (1) Training is restricted to the addition of a single
+ *          character in an arbitrary (e.g., UTF8) charset
+ *      (2) If box != null, it should represent the location in %pixs
+ *          of the character image.
  * </pre>
  */
 l_int32
@@ -221,11 +215,10 @@ recogTrainLabeled(L_RECOG  *recog,
                   PIX      *pixs,
                   BOX      *box,
                   char     *text,
-                  l_int32   multflag,
                   l_int32   debug)
 {
 l_int32  ret;
-PIXA    *pixa;
+PIX     *pix;
 
     PROCNAME("recogTrainLabeled");
 
@@ -234,27 +227,27 @@ PIXA    *pixa;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-    if (multflag == 0) {
-        ret = recogProcessSingleLabeled(recog, pixs, box, text, &pixa);
-    } else {
-        ret = recogProcessMultLabeled(recog, pixs, box, text, &pixa, debug);
+        /* Prepare the sample to be added */
+    ret = recogProcessLabeled(recog, pixs, box, text, &pix);
+    if (ret) {
+        pixDestroy(&pix);
+        return ERROR_INT("failure to get sample for training", procName, 1);
     }
-    if (ret)
-        return ERROR_INT("failure to add training data", procName, 1);
-    recogAddSamples(recog, pixa, -1, debug);
-    pixaDestroy(&pixa);
+
+    recogAddSample(recog, pix, debug);
+    pixDestroy(&pix);
     return 0;
 }
 
 
 /*!
- * \brief   recogProcessSingleLabeled()
+ * \brief   recogProcessLabeled()
  *
- * \param[in]    recog in training mode
- * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
- * \param[in]    box [optional] cropping box
- * \param[in]    text [optional] if null, use text field in pix
- * \param[out]   ppixa one pix, 1 bpp, labeled
+ * \param[in]    recog   in training mode
+ * \param[in]    pixs    if depth > 1, will be thresholded to 1 bpp
+ * \param[in]    box     [optional] cropping box
+ * \param[in]    text    [optional] if null, use text field in pix
+ * \param[out]   ppix    addr of pix, 1 bpp, labeled
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -264,21 +257,22 @@ PIXA    *pixa;
  * </pre>
  */
 l_int32
-recogProcessSingleLabeled(L_RECOG  *recog,
-                          PIX      *pixs,
-                          BOX      *box,
-                          char     *text,
-                          PIXA    **ppixa)
+recogProcessLabeled(L_RECOG  *recog,
+                    PIX      *pixs,
+                    BOX      *box,
+                    char     *text,
+                    PIX     **ppix)
 {
 char    *textdata;
-l_int32  textinpix, textin;
-PIX     *pixc, *pixb, *pixd;
+l_int32  textinpix, textin, nsets;
+NUMA    *na;
+PIX     *pix1, *pix2, *pix3;
 
-    PROCNAME("recogProcessSingleLabeled");
+    PROCNAME("recogProcessLabeled");
 
-    if (!ppixa)
-        return ERROR_INT("&pixa not defined", procName, 1);
-    *ppixa = NULL;
+    if (!ppix)
+        return ERROR_INT("&pix not defined", procName, 1);
+    *ppix = NULL;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
     if (!pixs)
@@ -295,240 +289,111 @@ PIX     *pixc, *pixb, *pixd;
 
         /* Crop and binarize if necessary */
     if (box)
-        pixc = pixClipRectangle(pixs, box, NULL);
+        pix1 = pixClipRectangle(pixs, box, NULL);
     else
-        pixc = pixClone(pixs);
-    if (pixGetDepth(pixc) > 1)
-        pixb = pixConvertTo1(pixc, recog->threshold);
+        pix1 = pixClone(pixs);
+    if (pixGetDepth(pix1) > 1)
+        pix2 = pixConvertTo1(pix1, recog->threshold);
     else
-        pixb = pixClone(pixc);
-    pixDestroy(&pixc);
+        pix2 = pixClone(pix1);
+    pixDestroy(&pix1);
 
         /* Clip to foreground and save */
-    pixClipToForeground(pixb, &pixd, NULL);
-    pixDestroy(&pixb);
-    if (!pixd)
+    pixClipToForeground(pix2, &pix3, NULL);
+    pixDestroy(&pix2);
+    if (!pix3)
         return ERROR_INT("pixd is empty", procName, 1);
-    pixSetText(pixd, textdata);
-    *ppixa = pixaCreate(1);
-    pixaAddPix(*ppixa, pixd, L_INSERT);
+
+        /* Verify that if there is more than 1 c.c., they all have
+         * horizontal overlap */
+    na = pixCountByColumn(pix3, NULL);
+    numaCountNonzeroRuns(na, &nsets);
+    numaDestroy(&na);
+    if (nsets > 1) {
+        L_WARNING("found %d sets of horizontally separated c.c.; skipping\n",
+                procName, nsets);
+        pixDestroy(&pix3);
+        return 1;
+    }
+
+    pixSetText(pix3, textdata);
+    *ppix = pix3;
     return 0;
 }
 
 
 /*!
- * \brief   recogProcessMultLabeled()
- *
- * \param[in]    recog in training mode
- * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
- * \param[in]    box [optional] cropping box
- * \param[in]    text [optional] if null, use text field in pix
- * \param[out]   ppixa of split and thresholded characters
- * \param[in]    debug 1 to display images of samples not captured
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This crops and segments one or more labeled and contiguous
- *          ascii characters, for input in training.  It is a special case.
- *      (2) The character images are bundled into a pixa with the
- *          character text data embedded in each pix.
- *      (3) Where there is more than one character, this does some
- *          noise reduction and extracts the resulting character images
- *          from left to right.  No scaling is performed.
- * </pre>
- */
-l_int32
-recogProcessMultLabeled(L_RECOG  *recog,
-                        PIX      *pixs,
-                        BOX      *box,
-                        char     *text,
-                        PIXA    **ppixa,
-                        l_int32   debug)
-{
-char      *textdata, *textstr;
-l_int32    textinpix, textin, nchars, ncomp, i;
-BOX       *box2;
-BOXA      *boxa1, *boxa2, *boxa3, *boxa4;
-PIX       *pixc, *pixb, *pix1, *pix2;
-
-    PROCNAME("recogProcessMultLabeled");
-
-    if (!ppixa)
-        return ERROR_INT("&pixa not defined", procName, 1);
-    *ppixa = NULL;
-    if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-
-        /* Find the text; this will be stored with the output images */
-    textin = text && (text[0] != '\0');
-    textinpix = pixs->text && (pixs->text[0] != '\0');
-    if (!textin && !textinpix) {
-        L_ERROR("no text: %d\n", procName, recog->num_samples);
-        return 1;
-    }
-    textdata = (textin) ? text : pixs->text;  /* do not free */
-
-        /* Crop and binarize if necessary */
-    if (box)
-        pixc = pixClipRectangle(pixs, box, NULL);
-    else
-        pixc = pixClone(pixs);
-    if (pixGetDepth(pixc) > 1)
-        pixb = pixConvertTo1(pixc, recog->threshold);
-    else
-        pixb = pixClone(pixc);
-    pixDestroy(&pixc);
-
-        /* We segment the set of characters as follows:
-         * (1) A large vertical closing should consolidate most characters.
-               Do not attempt to split touching characters using openings,
-               because this is likely to break actual characters. */
-    pix1 = pixMorphSequence(pixb, "c1.70", 0);
-
-        /* (2) Include overlapping components and remove small ones */
-    boxa1 = pixConnComp(pix1, NULL, 8);
-    boxa2 = boxaCombineOverlaps(boxa1);
-    boxa3 = boxaSelectBySize(boxa2, 2, 8, L_SELECT_IF_BOTH,
-                             L_SELECT_IF_GT, NULL);
-    pixDestroy(&pix1);
-    boxaDestroy(&boxa1);
-    boxaDestroy(&boxa2);
-
-        /* (3) Make sure the components equal the number of text characters */
-    ncomp = boxaGetCount(boxa3);
-    nchars = strlen(textdata);
-    if (ncomp != nchars) {
-        L_ERROR("ncomp (%d) != nchars (%d); num samples = %d\n",
-                procName, ncomp, nchars, recog->num_samples);
-        if (debug) {
-            pix1 = pixConvertTo32(pixb);
-            pixRenderBoxaArb(pix1, boxa3, 1, 255, 0, 0);
-            pixDisplay(pix1, 10 * recog->num_samples, 100);
-            pixDestroy(&pix1);
-        }
-        pixDestroy(&pixb);
-        boxaDestroy(&boxa3);
-        return 1;
-    }
-
-        /* (4) Sort the components from left to right and extract them */
-    boxa4 = boxaSort(boxa3, L_SORT_BY_X, L_SORT_INCREASING, NULL);
-    boxaDestroy(&boxa3);
-
-        /* Save the results, with one character in each pix */
-    *ppixa = pixaCreate(ncomp);
-    for (i = 0; i < ncomp; i++) {
-        box2 = boxaGetBox(boxa4, i, L_CLONE);
-        pix2 = pixClipRectangle(pixb, box2, NULL);
-        textstr = l_charToString(textdata[i]);
-        pixSetText(pix2, textstr);  /* inserts a copy */
-        pixaAddPix(*ppixa, pix2, L_INSERT);
-        boxDestroy(&box2);
-        LEPT_FREE(textstr);
-    }
-
-    pixDestroy(&pixb);
-    boxaDestroy(&boxa4);
-    return 0;
-}
-
-
-/*!
- * \brief   recogAddSamples()
+ * \brief   recogAddSample()
  *
  * \param[in]    recog
- * \param[in]    pixa 1 or more characters
- * \param[in]    classindex use -1 if not forcing into a specified class
+ * \param[in]    pix         a single character, 1 bpp
  * \param[in]    debug
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) The pix in the pixa are all 1 bpp, and the character string
- *          labels are embedded in the pix.
- *      (2) Note: this function decides what class each pix belongs in.
- *          When input is from a multifont pixaa, with a valid value
- *          for %classindex, the character string label in each pix
- *          is ignored, and %classindex is used as the class index
- *          for all the pix in the pixa.  Thus, for that situation we
- *          use this class index to avoid making the decision through a
- *          lookup based on the character strings embedded in the pix.
- *      (3) When a recog is initially filled with samples, the pixaa_u
- *          array is initialized to accept up to 256 different classes.
- *          When training is finished, the arrays are truncated to the
- *          actual number of classes.  To pad an existing recog from
- *          the boot recognizers, training is started again; if samples
- *          from a new class are added, the pixaa_u array must be
- *          extended by adding a pixa to hold them.
+ *      (1) The pix is 1 bpp, with the character string label embedded.
+ *      (2) The pixaa_u array of the recog is initialized to accept
+ *          up to 256 different classes.  When training is finished,
+ *          the arrays are truncated to the actual number of classes.
+ *          To pad an existing recog from the boot recognizers, training
+ *          is started again; if samples from a new class are added,
+ *          the pixaa_u array is extended by adding a pixa to hold them.
  * </pre>
  */
 l_int32
-recogAddSamples(L_RECOG  *recog,
-                PIXA     *pixa,
-                l_int32   classindex,
-                l_int32   debug)
+recogAddSample(L_RECOG  *recog,
+               PIX      *pix,
+               l_int32   debug)
 {
 char    *text;
 l_int32  i, n, npa, charint, index;
-PIX     *pixb;
 PIXA    *pixa1;
 PIXAA   *paa;
 
-    PROCNAME("recogAddSamples");
+    PROCNAME("recogAddSample");
 
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
-    if (!pixa) {
-        L_ERROR("pixa not defined: %d\n", procName, recog->num_samples);
-        return 1;
-    }
+    if (!pix || pixGetDepth(pix) != 1)
+        return ERROR_INT("pix not defined or not 1 bpp\n", procName, 1);
     if (recog->train_done)
-        return ERROR_INT("training has been completed", procName, 1);
-    if ((n = pixaGetCount(pixa)) == 0)
-        ERROR_INT("no pix in the pixa", procName, 1);
+        return ERROR_INT("not added: training has been completed", procName, 1);
     paa = recog->pixaa_u;
 
-    for (i = 0; i < n; i++) {
-        pixb = pixaGetPix(pixa, i, L_CLONE);
-        if (classindex < 0) {
-                /* Determine the class array index.  Check if the class
-                 * alreadly exists, and if not, add it. */
-            text = pixGetText(pixb);
-            if (l_convertCharstrToInt(text, &charint) == 1) {
-                L_ERROR("invalid text: %s\n", procName, text);
-                pixDestroy(&pixb);
-                continue;
-            }
-            if (recogGetClassIndex(recog, charint, text, &index) == 1) {
-                    /* New class must be added */
-                npa = pixaaGetCount(paa, NULL);
-                if (index > npa)
-                    L_ERROR("index %d > npa %d!!\n", procName, index, npa);
-                if (index == npa) {  /* paa needs to be extended */
-                    L_INFO("Adding new class and pixa: index = %d, text = %s\n",
-                           procName, index, text);
-                    pixa1 = pixaCreate(10);
-                    pixaaAddPixa(paa, pixa1, L_INSERT);
-                }
-            }
-            if (debug) {
-                L_INFO("Identified text label: %s\n", procName, text);
-                L_INFO("Identified: charint = %d, index = %d\n",
-                       procName, charint, index);
-            }
-        } else {
-            index = classindex;
-        }
-
-            /* Insert the unscaled character image into the right pixa.
-             * (Unscaled images are required to split touching characters.) */
-        recog->num_samples++;
-        pixaaAddPix(paa, index, pixb, NULL, L_INSERT);
+        /* Make sure the character is in the set */
+    text = pixGetText(pix);
+    if (l_convertCharstrToInt(text, &charint) == 1) {
+        L_ERROR("invalid text: %s\n", procName, text);
+        return 1;
     }
 
+        /* Determine the class array index.  Check if the class
+         * alreadly exists, and if not, add it. */
+    if (recogGetClassIndex(recog, charint, text, &index) == 1) {
+            /* New class must be added */
+        npa = pixaaGetCount(paa, NULL);
+        if (index > npa) {
+            L_ERROR("oops: bad index %d > npa %d!!\n", procName, index, npa);
+            return 1;
+        }
+        if (index == npa) {  /* paa needs to be extended */
+            L_INFO("Adding new class and pixa: index = %d, text = %s\n",
+                   procName, index, text);
+            pixa1 = pixaCreate(10);
+            pixaaAddPixa(paa, pixa1, L_INSERT);
+        }
+    }
+    if (debug) {
+        L_INFO("Identified text label: %s\n", procName, text);
+        L_INFO("Identified: charint = %d, index = %d\n",
+               procName, charint, index);
+    }
+
+        /* Insert the unscaled character image into the right pixa.
+         * (Unscaled images are required to split touching characters.) */
+    recog->num_samples++;
+    pixaaAddPix(paa, index, pix, NULL, L_COPY);
     return 0;
 }
 
@@ -837,15 +702,17 @@ PTA       *ptac;
     if (py) *py = yave;
 
         /* Place all pix with their centroids located at the average
-         * centroid value, and sum the results */
+         * centroid value, and sum the results.  Make the accumulator
+         * image slightly larger than the largest sample to insure
+         * that all pixels are represented in the accumulator.  */
     pixaSizeRange(pixa, NULL, NULL, &maxw, &maxh);
-    pixsum = pixInitAccumulate(maxw, maxh, 0);
+    pixsum = pixInitAccumulate(maxw + 5, maxh + 5, 0);
     pix1 = pixCreate(maxw, maxh, 1);
     for (i = 0; i < n; i++) {
         pix2 = pixaGetPix(pixa, i, L_CLONE);
         ptaGetPt(ptac, i, &xc, &yc);
-        xdiff = (l_int32)(xc - xave);
-        ydiff = (l_int32)(yc - yave);
+        xdiff = (l_int32)(xave - xc);
+        ydiff = (l_int32)(yave - yc);
         pixClearAll(pix1);
         pixRasterop(pix1, xdiff, ydiff, maxw, maxh, PIX_SRC,
                     pix2, 0, 0);
@@ -866,6 +733,8 @@ PTA       *ptac;
  *
  * \param[in]    precog       addr of recog
  * \param[in]    modifyflag   1 to use recogModifyTemplate(); 0 otherwise
+ * \param[in]    minsize      set to -1 for default
+ * \param[in]    minfract     set to -1.0 for default
  * \return  0 if OK, 1 on error (input recog will be destroyed)
  *
  * <pre>
@@ -878,7 +747,8 @@ PTA       *ptac;
  *          serialized recog: there we want to put the same set of
  *          templates in both the unscaled and modified pixaa.
  *          See recogReadStream() to see why we do this.
- *      (4) The following things are done here:
+ *      (4) See recogTemplatesAreOK() for %minsize and %minfract usage.
+ *      (5) The following things are done here:
  *          (a) Allocate (or reallocate) storage for (possibly) modified
  *              bitmaps, centroids, and fg areas.
  *          (b) Generate the (possibly) modified bitmaps.
@@ -886,15 +756,17 @@ PTA       *ptac;
  *              modified bitmaps.
  *          (d) Truncate the pixaa, ptaa and numaa arrays down from
  *              256 to the actual size.
- *      (5) Putting these operations here makes it simple to recompute
+ *      (6) Putting these operations here makes it simple to recompute
  *          the recog with different modifications on the bitmaps.
- *      (6) Call recogShowContent() to display the templates, both
+ *      (7) Call recogShowContent() to display the templates, both
  *          unscaled and modified.
  * </pre>
  */
 l_int32
 recogTrainingFinished(L_RECOG  **precog,
-                      l_int32    modifyflag)
+                      l_int32    modifyflag,
+                      l_int32    minsize,
+                      l_float32  minfract)
 {
 l_int32    ok, i, j, size, nc, ns, area;
 l_float32  xave, yave;
@@ -914,7 +786,7 @@ L_RECOG   *recog;
     if (recog->train_done) return 0;
 
         /* Test the input templates */
-    recogTemplatesAreOK(recog, &ok);
+    recogTemplatesAreOK(recog, minsize, minfract, &ok);
     if (!ok) {
         recogDestroy(precog);
         return ERROR_INT("bad templates", procName, 1);
@@ -995,18 +867,26 @@ L_RECOG   *recog;
  * \brief   recogTemplatesAreOK()
  *
  * \param[in]    recog
- * \param[out]   pok    &set to 1 if template set is good enough; 0 otherwise
- * \return  1 on error; 0 otherwise.  A bad set of templates is not an error.
+ * \param[in]    minsize     set to -1 for default
+ * \param[in]    minfract    set to -1.0 for default
+ * \param[out]   pok         set to 1 if template set is valid; 0 otherwise
+ * \return  1 on error; 0 otherwise.  An invalid template set is not an error.
  *
  * <pre>
  * Notes:
  *      (1) This is called by recogTrainingFinished().  A return value of 0
  *          will cause recogTrainingFinished() to destroy the recog.
+ *      (2) %minsize is the minimum number of samples required for
+ *          the class; -1 uses the default
+ *      (3) %minfract is the minimum fraction of classes required for
+ *          the recog to be usable; -1.0 uses the default
  * </pre>
  */
 static l_int32
-recogTemplatesAreOK(L_RECOG  *recog,
-                    l_int32  *pok)
+recogTemplatesAreOK(L_RECOG   *recog,
+                    l_int32    minsize,
+                    l_float32  minfract,
+                    l_int32   *pok)
 {
 l_int32    i, n, validsets, nt;
 l_float32  ratio;
@@ -1020,16 +900,18 @@ NUMA      *na;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
 
+    minsize = (minsize < 0) ? DEFAULT_MIN_SET_SIZE : minsize;
+    minfract = (minfract < 0) ? DEFAULT_MIN_SET_FRACT : minfract;
     n = pixaaGetCount(recog->pixaa_u, &na);
     validsets = 0;
     for (i = 0, validsets = 0; i < n; i++) {
         numaGetIValue(na, i, &nt);
-        if (nt >= MIN_SAMPLE_SET_SIZE)
+        if (nt >= minsize)
             validsets++;
     }
     numaDestroy(&na);
-    ratio = (l_float32)(validsets / (l_float32)recog->charset_size);
-    *pok = (ratio >= MIN_FRACT_VALID_TEMPLATES) ? 1 : 0;
+    ratio = (l_float32)validsets / (l_float32)recog->charset_size;
+    *pok = (ratio >= minfract) ? 1 : 0;
     return 0;
 }
 
@@ -1040,6 +922,7 @@ NUMA      *na;
  * \param[in]   precog       addr of recog with unscaled labeled templates
  * \param[in]   minscore     keep everything with at least this score
  * \param[in]   mintarget    minimum desired number to retain if possible
+ * \param[in]   minsize      minimum number of samples required for a class
  * \param[out]  ppixsave     [optional debug] saved templates, with scores
  * \param[out]  ppixrem      [optional debug] removed templates, with scores
  * \return  0 if OK, 1 on error.
@@ -1053,11 +936,12 @@ NUMA      *na;
  * </pre>
  */
 l_int32
-recogRemoveOutliers1(L_RECOG   **precog,
-                     l_float32   minscore,
-                     l_int32     mintarget,
-                     PIX       **ppixsave,
-                     PIX       **ppixrem)
+recogRemoveOutliers1(L_RECOG  **precog,
+                     l_float32  minscore,
+                     l_int32    mintarget,
+                     l_int32    minsize,
+                     PIX      **ppixsave,
+                     PIX      **ppixrem)
 {
 PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
@@ -1073,7 +957,8 @@ L_RECOG  *recog;
     pixa1 = recogExtractPixa(*precog);
     recogDestroy(precog);
 
-    pixa2 = pixaRemoveOutliers1(pixa1, minscore, mintarget, ppixsave, ppixrem);
+    pixa2 = pixaRemoveOutliers1(pixa1, minscore, mintarget, minsize,
+                                ppixsave, ppixrem);
     pixaDestroy(&pixa1);
     if (!pixa2)
         return ERROR_INT("failure to remove outliers", procName, 1);
@@ -1093,8 +978,12 @@ L_RECOG  *recog;
  * \brief   pixaRemoveOutliers1()
  *
  * \param[in]   pixas        unscaled labeled templates
- * \param[in]   minscore     keep everything with at least this score
- * \param[in]   mintarget    minimum desired number to retain if possible
+ * \param[in]   minscore     keep everything with at least this score;
+ *                           use -1.0 for default.
+ * \param[in]   mintarget    minimum desired number to retain if possible;
+ *                           use -1 for default.
+ * \param[in]   minsize      minimum number of samples required for a class;
+ *                           use -1 for default.
  * \param[out]  ppixsave     [optional debug] saved templates, with scores
  * \param[out]  ppixrem      [optional debug] removed templates, with scores
  * \return  pixa   of unscaled templates to be kept, or NULL on error
@@ -1114,7 +1003,8 @@ L_RECOG  *recog;
  *          LOWER_SCORE_THRESHOLD, on the score.  Consequently, with
  *          poor quality templates, we may keep samples with a score
  *          less than %minscore, but never less than LOWER_SCORE_THRESHOLD.
- *          And if the number of samples is less than 2, we do not use any.
+ *          And if the number of samples is less than %minsize, we do
+ *          not use any.
  *      (3) This is meant to be used on a BAR, where the templates all
  *          come from the same book; use minscore ~0.75.
  *      (4) Method: make a scaled recog from the input %pixas.  Then,
@@ -1127,6 +1017,7 @@ PIXA *
 pixaRemoveOutliers1(PIXA      *pixas,
                     l_float32  minscore,
                     l_int32    mintarget,
+                    l_int32    minsize,
                     PIX      **ppixsave,
                     PIX      **ppixrem)
 {
@@ -1147,9 +1038,11 @@ L_RECOG   *recog;
     minscore = L_MIN(minscore, 1.0);
     if (minscore <= 0.0)
         minscore = DEFAULT_MIN_SCORE;
-    mintarget = L_MIN(mintarget, 3.0);
-    if (mintarget <= 0.0)
+    mintarget = L_MIN(mintarget, 3);
+    if (mintarget <= 0)
         mintarget = DEFAULT_MIN_TARGET;
+    if (minsize < 0)
+        minsize = DEFAULT_MIN_SET_SIZE;
 
         /* Make a special height-scaled recognizer with average templates */
     debug = (ppixsave || ppixrem) ? 1 : 0;
@@ -1199,18 +1092,19 @@ L_RECOG   *recog;
              * that at least one template is kept. */
         minfract = (l_float32)mintarget / (l_float32)n;
         numaGetRankValue(nascore, 1.0 - minfract, NULL, 0, &rankscore);
-        threshscore = L_MAX(LOWER_SCORE_THRESHOLD, L_MIN(minscore, rankscore));
+        threshscore = L_MAX(LOWER_SCORE_THRESHOLD,
+                            L_MIN(minscore, rankscore));
         if (debug) {
             L_INFO("minscore = %4.2f, rankscore = %4.2f, threshscore = %4.2f\n",
                    procName, minscore, rankscore, threshscore);
         }
 
-            /* Save the templates that are at or above threshold.
-             * Toss any classes with less than 2 templates. */
+            /* Save templates that are at or above threshold.
+             * Toss any classes with less than %minsize templates. */
         for (j = 0; j < n; j++) {
             numaGetFValue(nascore, j, &score);
             pix1 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
-            if (score >= threshscore && n > 1) {
+            if (score >= threshscore && n >= minsize) {
                 pixaAddPix(pixad, pix1, L_INSERT);
                 if (nasave) numaAddNumber(nasave, score);
             } else if (debug) {
@@ -1246,6 +1140,7 @@ L_RECOG   *recog;
  *
  * \param[in]   precog       addr of recog with unscaled labeled templates
  * \param[in]   minscore     keep everything with at least this score
+ * \param[in]   minsize      minimum number of samples required for a class
  * \param[out]  ppixsave     [optional debug] saved templates, with scores
  * \param[out]  ppixrem      [optional debug] removed templates, with scores
  * \return  0 if OK, 1 on error.
@@ -1259,10 +1154,11 @@ L_RECOG   *recog;
  * </pre>
  */
 l_int32
-recogRemoveOutliers2(L_RECOG   **precog,
-                     l_float32   minscore,
-                     PIX       **ppixsave,
-                     PIX       **ppixrem)
+recogRemoveOutliers2(L_RECOG  **precog,
+                     l_float32  minscore,
+                     l_int32    minsize,
+                     PIX      **ppixsave,
+                     PIX      **ppixrem)
 {
 PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
@@ -1278,7 +1174,7 @@ L_RECOG  *recog;
     pixa1 = recogExtractPixa(*precog);
     recogDestroy(precog);
 
-    pixa2 = pixaRemoveOutliers2(pixa1, minscore, ppixsave, ppixrem);
+    pixa2 = pixaRemoveOutliers2(pixa1, minscore, minsize, ppixsave, ppixrem);
     pixaDestroy(&pixa1);
     if (!pixa2)
         return ERROR_INT("failure to remove outliers", procName, 1);
@@ -1298,7 +1194,10 @@ L_RECOG  *recog;
  * \brief   pixaRemoveOutliers2()
  *
  * \param[in]   pixas       unscaled labeled templates
- * \param[in]   minscore    keep everything with at least this score
+ * \param[in]   minscore    keep everything with at least this score;
+ *                          use -1.0 for default.
+ * \param[in]   minsize     minimum number of samples required for a class;
+ *                          use -1 for default.
  * \param[out]  ppixsave    [optional debug] saved templates, with scores
  * \param[out]  ppixrem     [optional debug] removed templates, with scores
  * \return  pixa   of unscaled templates to be kept, or NULL on error
@@ -1321,6 +1220,7 @@ L_RECOG  *recog;
 PIXA *
 pixaRemoveOutliers2(PIXA      *pixas,
                     l_float32  minscore,
+                    l_int32    minsize,
                     PIX      **ppixsave,
                     PIX      **ppixrem)
 {
@@ -1340,6 +1240,8 @@ L_RECOG   *recog;
     minscore = L_MIN(minscore, 1.0);
     if (minscore <= 0.0)
         minscore = DEFAULT_MIN_SCORE;
+    if (minsize < 0)
+        minsize = DEFAULT_MIN_SET_SIZE;
 
         /* Make a special height-scaled recognizer with average templates */
     debug = (ppixsave || ppixrem) ? 1 : 0;
@@ -1375,9 +1277,12 @@ L_RECOG   *recog;
                 pixDestroy(&pix2);
             }
 
-                /* Is it in the correct class, with high enough score? */
+                /* Save templates that are in the correct class and
+                 * at or above threshold.  Toss any classes with less
+                 * than %minsize templates. */
             numaGetMax(nascore, &maxscore, &maxk);
-            if (maxk == i && maxscore >= minscore && n > 1) {  /* save it */
+            if (maxk == i && maxscore >= minscore && n >= minsize) {
+                    /* save it */
                 pix3 = pixaaGetPix(recog->pixaa_u, i, j, L_COPY);
                 pixaAddPix(pixad, pix3, L_INSERT);
                 if (nasave) numaAddNumber(nasave, maxscore);
@@ -1788,11 +1693,11 @@ l_int32  ret;
     case L_UC_ROMAN_NUMERALS:
     case L_LC_ALPHA:
     case L_UC_ALPHA:
-        L_INFO("charset type %d not available", procName, type);
+        L_INFO("charset type %d not available\n", procName, type);
         ret = FALSE;
         break;
     default:
-        L_INFO("charset type %d is unknown", procName, type);
+        L_INFO("charset type %d is unknown\n", procName, type);
         ret = FALSE;
         break;
     }
