@@ -605,17 +605,31 @@ PTAA     *ptaa;
 /*!
  * \brief   boxaaDisplay()
  *
- * \param[in]    baa
- * \param[in]    linewba line width to display boxa
- * \param[in]    linewb line width to display box
- * \param[in]    colorba color to display boxa
- * \param[in]    colorb color to display box
- * \param[in]    w of pix; use 0 if determined by baa
- * \param[in]    h of pix; use 0 if determined by baa
+ * \param[in]    pixs     [optional] 1 bpp
+ * \param[in]    baa      boxaa, typically from a 2d sort
+ * \param[in]    linewba  line width to display outline of each boxa
+ * \param[in]    linewb   line width to display outline of each box
+ * \param[in]    colorba  color to display boxa
+ * \param[in]    colorb   color to display box
+ * \param[in]    w    width of outupt pix; use 0 if determined by %pixs or %baa
+ * \param[in]    h    height of outupt pix; use 0 if determined by %pixs or %baa
  * \return  0 if OK, 1 on error
+ * 
+ * <pre>
+ * Notes:
+ *      (1) If %pixs exists, this renders the boxes over an 8 bpp version
+ *          of it.  Otherwise, it renders the boxes over an empty image
+ *          with a white background.
+ *      (2) If %pixs exists, the dimensions of %pixd are the same,
+ *          and input values of %w and %h are ignored.
+ *          If %pixs is NULL, the dimensions of %pixd are determined by
+ *            - %w and %h if both are > 0, or
+ *            - the minimum size required using all boxes in %baa.
+ * </pre>
  */
 PIX *
-boxaaDisplay(BOXAA    *baa,
+boxaaDisplay(PIX      *pixs,
+             BOXAA    *baa,
              l_int32   linewba,
              l_int32   linewb,
              l_uint32  colorba,
@@ -626,22 +640,32 @@ boxaaDisplay(BOXAA    *baa,
 l_int32   i, j, n, m, rbox, gbox, bbox, rboxa, gboxa, bboxa;
 BOX      *box;
 BOXA     *boxa;
-PIX      *pix;
+PIX      *pixd;
 PIXCMAP  *cmap;
 
     PROCNAME("boxaaDisplay");
 
     if (!baa)
         return (PIX *)ERROR_PTR("baa not defined", procName, NULL);
-    if (w == 0 || h == 0)
-        boxaaGetExtent(baa, &w, &h, NULL, NULL);
 
-    pix = pixCreate(w, h, 8);
-    cmap = pixcmapCreate(8);
-    pixSetColormap(pix, cmap);
+    if (w <= 0 || h <= 0) {
+        if (pixs)
+            pixGetDimensions(pixs, &w, &h, NULL);
+        else
+            boxaaGetExtent(baa, &w, &h, NULL, NULL);
+    }
+
+    if (pixs) {
+        pixd = pixConvertTo8(pixs, 1);
+        cmap = pixGetColormap(pixd);
+    } else {
+        pixd = pixCreate(w, h, 8);
+        cmap = pixcmapCreate(8);
+        pixSetColormap(pixd, cmap);
+        pixcmapAddColor(cmap, 255, 255, 255);
+    }
     extractRGBValues(colorb, &rbox, &gbox, &bbox);
     extractRGBValues(colorba, &rboxa, &gboxa, &bboxa);
-    pixcmapAddColor(cmap, 255, 255, 255);
     pixcmapAddColor(cmap, rbox, gbox, bbox);
     pixcmapAddColor(cmap, rboxa, gboxa, bboxa);
 
@@ -649,18 +673,18 @@ PIXCMAP  *cmap;
     for (i = 0; i < n; i++) {
         boxa = boxaaGetBoxa(baa, i, L_CLONE);
         boxaGetExtent(boxa, NULL, NULL, &box);
-        pixRenderBoxArb(pix, box, linewba, rboxa, gboxa, bboxa);
+        pixRenderBoxArb(pixd, box, linewba, rboxa, gboxa, bboxa);
         boxDestroy(&box);
         m = boxaGetCount(boxa);
         for (j = 0; j < m; j++) {
             box = boxaGetBox(boxa, j, L_CLONE);
-            pixRenderBoxArb(pix, box, linewb, rbox, gbox, bbox);
+            pixRenderBoxArb(pixd, box, linewb, rbox, gbox, bbox);
             boxDestroy(&box);
         }
         boxaDestroy(&boxa);
     }
 
-    return pix;
+    return pixd;
 }
 
 

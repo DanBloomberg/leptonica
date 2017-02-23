@@ -30,7 +30,7 @@
  *
  *    Build the page disparity model
  *
- *      Build page disparity model
+ *      Build basic page disparity model
  *          l_int32            dewarpBuildPageModel()
  *          l_int32            dewarpFindVertDisparity()
  *          l_int32            dewarpFindHorizDisparity()
@@ -42,6 +42,9 @@
  *          static PTA        *dewarpRemoveBadEndPoints()
  *          static l_int32     dewarpIsLineCoverageValid()
  *          static l_int32     dewarpQuadraticLSF()
+ *
+ *      Build disparity model for slope near binding
+ *          l_int32            dewarpFindHorizSlopeDisparity()
  *
  *      Build the line disparity model
  *          l_int32            dewarpBuildLineModel()
@@ -89,7 +92,7 @@ static const l_float32   L_ALLOWED_W_FRACT = 0.05;  /* no bigger */
 
 
 /*----------------------------------------------------------------------*
- *                      Build page disparity model                      *
+ *                   Build basic page disparity model                   *
  *----------------------------------------------------------------------*/
 /*!
  * \brief   dewarpBuildPageModel()
@@ -1331,6 +1334,104 @@ NUMA      *naerr;
 
 
 /*----------------------------------------------------------------------*
+ *              Build disparity model for slope near binding            *
+ *----------------------------------------------------------------------*/
+/*!
+ * \brief   dewarpFindHorizSlopeDisparity()
+ *
+ * \param[in]    dew
+ * \param[in]    pixb (1 bpp, with vertical and horizontal disparity removed)
+ * \param[in]    parity (0 if even page, 1 if odd page)
+ * \return       0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This takes a 1 bpp %pixb where both vertical and horizontal
+ *          disparity has been applied, so the text lines are straight
+ *          and the line end points are vertically aligned.  It estimates
+ *          the foreshortening of the characters on the binding side, and
+ *          if significant, computes a one-dimensional horizontal
+ *          disparity function to compensate.
+ *      (2) This should work on images where the foreshortening is not
+ *          so large that it causes text characters to be joined.
+ *      (3) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
+ * </pre>
+ */
+l_int32
+dewarpFindHorizSlopeDisparity(L_DEWARP  *dew,
+                              PIX       *pixb,
+                              l_int32    parity)
+{
+l_int32    x, j, n, nba, w, bw;
+l_float32  medval;
+BOX       *box;
+BOXA      *boxa1, *boxa2, *boxa3;
+BOXAA     *baa;
+NUMA      *na, *naw;
+PIX       *pix1;
+PTA       *pta, *ptat, *pta1, *pta2;
+FPIX      *fpix;
+
+    PROCNAME("dewarpFindHorizSlopeDisparity");
+
+    if (!dew)
+        return ERROR_INT("dew not defined", procName, 1);
+    if (!dew->vvalid || !dew->hvalid)
+        return ERROR_INT("invalid vert or horiz disparity model", procName, 1);
+    if (!pixb)
+        return ERROR_INT("pixb not defined", procName, 1);
+
+    if (dew->debug) L_INFO("finding slope horizontal disparity\n", procName);
+
+        /* Find the bounding boxes of the connected components, remove
+         * ones of small height, and sort them into textlines.  The 2D sort
+         * does not need to be accurate but it speeds up the estimation. */
+    boxa1 = pixConnCompBB(pixb, 8);
+    boxa2 = boxaSelectBySize(boxa1, 0, 5, L_SELECT_HEIGHT, L_SELECT_IF_GT,
+                             NULL);
+    baa = boxaSort2d(boxa2, NULL, 0, 0, 7);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+
+        /* Estimate the character width every 10 pixels across the image */
+    na = numaCreate(0);
+    numaSetParameters(na, 0, 10);
+    w = pixGetWidth(pixb);
+    nba = boxaaGetCount(baa);
+    for (x = 0; x < w; x += 10) {
+        naw = numaCreate(nba);
+        for (j = 0; j < nba; j++) {
+            boxa3 = boxaaGetBoxa(baa, j, L_CLONE);
+            box = boxaGetNearestToLine(boxa3, x, -1);
+            boxGetGeometry(box, NULL, NULL, &bw, NULL);
+            numaAddNumber(naw, bw);
+            boxDestroy(&box);
+            boxaDestroy(&boxa3);
+        }
+        numaGetMedian(naw, &medval);
+        numaAddNumber(na, medval);
+        numaDestroy(&naw);
+    }
+    if (dew->debug) {
+        lept_mkdir("lept/dew");
+        gplotSimple1(na, GPLOT_PNG, "/tmp/lept/dew/width", NULL);
+        pix1 = boxaaDisplay(pixb, baa, 2, 1, 0xff000000, 0x00ff0000, 0, 0);
+        pixDisplay(pix1, 800, 0);
+        pixWrite("/tmp/lept/dew/baa.png", pix1, IFF_PNG);
+        pixDestroy(&pix1);
+    }
+
+        /* TODO: Smooth the inverse width curve; estimate the inverse
+         * width for the flat part of the page, normalize to that value,
+         * and integrate from the flat part in toward the binding. */
+
+    numaDestroy(&na);
+    boxaaDestroy(&baa);
+    return 0;
+}
+
+
+/*----------------------------------------------------------------------*
  *                      Build line disparity model                     *
  *----------------------------------------------------------------------*/
 /*!
@@ -1353,7 +1454,7 @@ NUMA      *naerr;
  *          of pre-processing here to insure that.
  *      (3) %opensize is typically about 8.  It must be larger than
  *          the thickness of the lines to be extracted.  This is the
- *          default value, which is applied if %opensize \< 3.
+ *          default value, which is applied if %opensize < 3.
  *      (4) Sets vsuccess = 1 and hsuccess = 1 if the vertical and/or
  *          horizontal disparity arrays build.
  *      (5) Similar to dewarpBuildPageModel(), except here the vertical

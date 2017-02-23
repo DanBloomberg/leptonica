@@ -269,6 +269,7 @@ LEPT_DLL extern BOXA * boxaHandleOverlaps ( BOXA *boxas, l_int32 op, l_int32 ran
 LEPT_DLL extern l_int32 boxSeparationDistance ( BOX *box1, BOX *box2, l_int32 *ph_sep, l_int32 *pv_sep );
 LEPT_DLL extern l_int32 boxContainsPt ( BOX *box, l_float32 x, l_float32 y, l_int32 *pcontains );
 LEPT_DLL extern BOX * boxaGetNearestToPt ( BOXA *boxa, l_int32 x, l_int32 y );
+LEPT_DLL extern BOX * boxaGetNearestToLine ( BOXA *boxa, l_int32 x, l_int32 y );
 LEPT_DLL extern l_int32 boxGetCenter ( BOX *box, l_float32 *pcx, l_float32 *pcy );
 LEPT_DLL extern l_int32 boxIntersectByLine ( BOX *box, l_int32 x, l_int32 y, l_float32 slope, l_int32 *px1, l_int32 *py1, l_int32 *px2, l_int32 *py2, l_int32 *pn );
 LEPT_DLL extern BOX * boxClipToRectangle ( BOX *box, l_int32 wi, l_int32 hi );
@@ -316,7 +317,7 @@ LEPT_DLL extern PIX * pixPaintBoxaRandom ( PIX *pixs, BOXA *boxa );
 LEPT_DLL extern PIX * pixBlendBoxaRandom ( PIX *pixs, BOXA *boxa, l_float32 fract );
 LEPT_DLL extern PIX * pixDrawBoxa ( PIX *pixs, BOXA *boxa, l_int32 width, l_uint32 val );
 LEPT_DLL extern PIX * pixDrawBoxaRandom ( PIX *pixs, BOXA *boxa, l_int32 width );
-LEPT_DLL extern PIX * boxaaDisplay ( BOXAA *baa, l_int32 linewba, l_int32 linewb, l_uint32 colorba, l_uint32 colorb, l_int32 w, l_int32 h );
+LEPT_DLL extern PIX * boxaaDisplay ( PIX *pixs, BOXAA *baa, l_int32 linewba, l_int32 linewb, l_uint32 colorba, l_uint32 colorb, l_int32 w, l_int32 h );
 LEPT_DLL extern PIXA * pixaDisplayBoxaa ( PIXA *pixas, BOXAA *baa, l_int32 colorflag, l_int32 width );
 LEPT_DLL extern BOXA * pixSplitIntoBoxa ( PIX *pixs, l_int32 minsum, l_int32 skipdist, l_int32 delta, l_int32 maxbg, l_int32 maxcomps, l_int32 remainder );
 LEPT_DLL extern BOXA * pixSplitComponentIntoBoxa ( PIX *pix, BOX *box, l_int32 minsum, l_int32 skipdist, l_int32 delta, l_int32 maxbg, l_int32 maxcomps, l_int32 remainder );
@@ -657,6 +658,7 @@ LEPT_DLL extern l_int32 dewarpFindVertDisparity ( L_DEWARP *dew, PTAA *ptaa, l_i
 LEPT_DLL extern l_int32 dewarpFindHorizDisparity ( L_DEWARP *dew, PTAA *ptaa );
 LEPT_DLL extern PTAA * dewarpGetTextlineCenters ( PIX *pixs, l_int32 debugflag );
 LEPT_DLL extern PTAA * dewarpRemoveShortLines ( PIX *pixs, PTAA *ptaas, l_float32 fract, l_int32 debugflag );
+LEPT_DLL extern l_int32 dewarpFindHorizSlopeDisparity ( L_DEWARP *dew, PIX *pixb, l_int32 parity );
 LEPT_DLL extern l_int32 dewarpBuildLineModel ( L_DEWARP *dew, l_int32 opensize, const char *debugfile );
 LEPT_DLL extern l_int32 dewarpaModelStatus ( L_DEWARPA *dewa, l_int32 pageno, l_int32 *pvsuccess, l_int32 *phsuccess );
 LEPT_DLL extern l_int32 dewarpaApplyDisparity ( L_DEWARPA *dewa, l_int32 pageno, PIX *pixs, l_int32 grayin, l_int32 x, l_int32 y, PIX **ppixd, const char *debugfile );

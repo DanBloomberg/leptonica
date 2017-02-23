@@ -808,7 +808,7 @@ BOXA    *boxad;
  *          is overlapping are joined.  After that, the boxes in each
  *          boxa are sorted horizontally, and finally the boxa are
  *          sorted vertically.
- *      (3) If delta1 \< 0, the first pass allows aggregation when
+ *      (3) If delta1 < 0, the first pass allows aggregation when
  *          boxes in the same boxa do not overlap vertically.
  *          The distance by which they can miss and still be aggregated
  *          is the absolute value |delta1|.   Similar for delta2 on
@@ -819,6 +819,10 @@ BOXA    *boxad;
  *          with an existing boxa can start a new one.
  *      (6) This can be used to identify lines of text from
  *          character or word bounding boxes.
+ *      (7) Typical values for the input parameters on 300 ppi text are:
+ *                 delta1 ~ 0
+ *                 delta2 ~ 0
+ *                 minh1 ~ 5
  * </pre>
  */
 BOXAA *
@@ -1458,7 +1462,7 @@ BOXA    *boxa, *boxa1;
  *          where each boxa has either 0 or 1 boxes, and it is necessary
  *          to maintain a 1:1 correspondence between the initial
  *          boxa array and the resulting box array.
- *      (3) If \&naindex is defined, we generate a Numa that gives, for
+ *      (3) If &naindex is defined, we generate a Numa that gives, for
  *          each box in the baa, the index of the boxa to which it belongs.
  * </pre>
  */

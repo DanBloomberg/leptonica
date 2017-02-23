@@ -43,6 +43,7 @@
  *           l_int32   boxSeparationDistance()
  *           l_int32   boxContainsPt()
  *           BOX      *boxaGetNearestToPt()
+ *           BOX      *boxaGetNearestToLine()
  *           l_int32   boxIntersectByLine()
  *           l_int32   boxGetCenter()
  *           BOX      *boxClipToRectangle()
@@ -773,6 +774,63 @@ BOX       *box;
         delx = (l_float32)(cx - x);
         dely = (l_float32)(cy - y);
         dist = delx * delx + dely * dely;
+        if (dist < mindist) {
+            minindex = i;
+            mindist = dist;
+        }
+        boxDestroy(&box);
+    }
+
+    return boxaGetBox(boxa, minindex, L_COPY);
+}
+
+
+/*!
+ * \brief   boxaGetNearestToLine()
+ *
+ * \param[in]    boxa
+ * \param[in]    x, y   (y = -1 for vertical line; x = -1 for horiz line)
+ * \return  box with centroid closest to the given line,
+ *              or NULL if no boxes in boxa
+ *
+ * <pre>
+ * Notes:
+ *      (1) For a horizontal line at some value y, get the minimum of the
+ *          distance |yc - y| from the box centroid yc value to y;
+ *          likewise minimize |xc - x| for a vertical line at x.
+ *      (2) Input y < 0, x >= 0 to indicate a vertical line at x, and
+ *          x < 0, y >= 0 for a horizontal line at y.
+ * </pre>
+ */
+BOX *
+boxaGetNearestToLine(BOXA    *boxa,
+                     l_int32  x,
+                     l_int32  y)
+{
+l_int32    i, n, minindex;
+l_float32  dist, mindist, cx, cy;
+BOX       *box;
+
+    PROCNAME("boxaGetNearestToLine");
+
+    if (!boxa)
+        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return (BOX *)ERROR_PTR("n = 0", procName, NULL);
+    if (y >= 0 && x >= 0)
+        return (BOX *)ERROR_PTR("either x or y must be < 0", procName, NULL);
+    if (y < 0 && x < 0)
+        return (BOX *)ERROR_PTR("either x or y must be >= 0", procName, NULL);
+
+    mindist = 1000000000.;
+    minindex = 0;
+    for (i = 0; i < n; i++) {
+        box = boxaGetBox(boxa, i, L_CLONE);
+        boxGetCenter(box, &cx, &cy);
+        if (x >= 0)
+            dist = L_ABS(cx - (l_float32)x);
+        else  /* y >= 0 */
+            dist = L_ABS(cy - (l_float32)y);
         if (dist < mindist) {
             minindex = i;
             mindist = dist;

@@ -78,7 +78,7 @@ SARRAY   *sa1;
             /* Show the 2d box data in the sample */
         boxa2 = pixConnComp(pix1, NULL, 8);
         baa = boxaSort2d(boxa2, NULL, 6, 6, 5);
-        pix2 = boxaaDisplay(baa, 3, 1, 0xff000000, 0x00ff0000, 0, 0);
+        pix2 = boxaaDisplay(pix1, baa, 3, 1, 0xff000000, 0x00ff0000, 0, 0);
         pixaAddPix(pixa3, pix2, L_INSERT);
         boxaaDestroy(&baa);
         boxaDestroy(&boxa2);
