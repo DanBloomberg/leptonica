@@ -1087,7 +1087,7 @@ numaClipToInterval(NUMA    *nas,
                    l_int32  last)
 {
 l_int32    n, i, truelast;
-l_float32  val;
+l_float32  val, startx, delx;
 NUMA      *nad;
 
     PROCNAME("numaClipToInterval");
@@ -1107,7 +1107,8 @@ NUMA      *nad;
         numaGetFValue(nas, i, &val);
         numaAddNumber(nad, val);
     }
-
+    numaGetParameters(nas, &startx, &delx);
+    numaSetParameters(nad, startx + first * delx, delx);
     return nad;
 }
 

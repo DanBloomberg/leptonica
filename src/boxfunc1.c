@@ -32,7 +32,9 @@
  *           l_int32   boxContains()
  *           l_int32   boxIntersects()
  *           BOXA     *boxaContainedInBox()
+ *           l_int32   boxaContainedInBoxCount()
  *           BOXA     *boxaIntersectsBox()
+ *           l_int32   boxaIntersectsBoxCount()
  *           BOXA     *boxaClipToBox()
  *           BOXA     *boxaCombineOverlaps()
  *           BOX      *boxOverlapRegion()
@@ -184,6 +186,45 @@ BOXA    *boxad;
 
 
 /*!
+ * \brief   boxaContainedInBoxCount()
+ *
+ * \param[in]    boxa
+ * \param[in]    box      for selecting contained boxes in %boxa
+ * \param[out]   pcount   number of boxes intersecting the box
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+boxaContainedInBoxCount(BOXA     *boxa,
+                        BOX      *box,
+                        l_int32  *pcount)
+{
+l_int32  i, n, val;
+BOX     *box1;
+
+    PROCNAME("boxaContainedInBoxCount");
+
+    if (!pcount)
+        return ERROR_INT("&count not defined", procName, 1);
+    *pcount = 0;
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return 0;
+
+    for (i = 0; i < n; i++) {
+        box1 = boxaGetBox(boxa, i, L_CLONE);
+        boxContains(box, box1, &val);
+        if (val == 1)
+            (*pcount)++;
+        boxDestroy(&box1);
+    }
+    return 0;
+}
+
+
+/*!
  * \brief   boxaIntersectsBox()
  *
  * \param[in]    boxas
@@ -224,6 +265,45 @@ BOXA    *boxad;
     }
 
     return boxad;
+}
+
+
+/*!
+ * \brief   boxaIntersectsBoxCount()
+ *
+ * \param[in]    boxa
+ * \param[in]    box      for selecting intersecting boxes in %boxa
+ * \param[out]   pcount   number of boxes intersecting the box
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+boxaIntersectsBoxCount(BOXA     *boxa,
+                       BOX      *box,
+                       l_int32  *pcount)
+{
+l_int32  i, n, val;
+BOX     *box1;
+
+    PROCNAME("boxaIntersectsBoxCount");
+
+    if (!pcount)
+        return ERROR_INT("&count not defined", procName, 1);
+    *pcount = 0;
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    if (!box)
+        return ERROR_INT("box not defined", procName, 1);
+    if ((n = boxaGetCount(boxa)) == 0)
+        return 0;
+
+    for (i = 0; i < n; i++) {
+        box1 = boxaGetBox(boxa, i, L_CLONE);
+        boxIntersects(box, box1, &val);
+        if (val == 1)
+            (*pcount)++;
+        boxDestroy(&box1);
+    }
+    return 0;
 }
 
 

@@ -174,7 +174,7 @@ static const l_int32    DEFAULT_CHARSET_TYPE = L_ARABIC_NUMERALS;
 static const l_int32    DEFAULT_MIN_NOPAD = 1;
 static const l_float32  DEFAULT_MAX_WH_RATIO = 3.0;  /* max allowed w/h
                                     ratio for a component to be split  */
-static const l_float32  DEFAULT_MAX_HT_RATIO = 3.5;  /* max allowed ratio of
+static const l_float32  DEFAULT_MAX_HT_RATIO = 2.6;  /* max allowed ratio of
                                max/min unscaled averaged template heights  */
 
     /* Static functions */

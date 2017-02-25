@@ -1332,7 +1332,6 @@ NUMA      *naerr;
     return 0;
 }
 
-
 /*----------------------------------------------------------------------*
  *              Build disparity model for slope near binding            *
  *----------------------------------------------------------------------*/
@@ -1341,35 +1340,53 @@ NUMA      *naerr;
  *
  * \param[in]    dew
  * \param[in]    pixb (1 bpp, with vertical and horizontal disparity removed)
+ * \param[in]    fractthresh (threshold fractional difference in density)
  * \param[in]    parity (0 if even page, 1 if odd page)
  * \return       0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This takes a 1 bpp %pixb where both vertical and horizontal
- *          disparity has been applied, so the text lines are straight
- *          and the line end points are vertically aligned.  It estimates
- *          the foreshortening of the characters on the binding side, and
- *          if significant, computes a one-dimensional horizontal
- *          disparity function to compensate.
- *      (2) This should work on images where the foreshortening is not
- *          so large that it causes text characters to be joined.
- *      (3) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
+ *      (1) %fractthresh is a threshold on the fractional difference in stroke
+ *          density between between left and right sides.  Process this
+ *          disparity only if the absolute value of the fractional
+ *          difference equals or exceeds this threshold.
+ *      (2) %parity indicates where the binding is: on the left for
+ *          %parity == 0 and on the right for @parity == 1.
+ *      (3) This takes a 1 bpp %pixb where both vertical and horizontal
+ *          disparity has been applied, so the text lines are straight and,
+ *          more importantly, the line end points are vertically aligned.
+ *          It estimates the foreshortening of the characters on the
+ *          binding side, and if significant, computes a one-dimensional
+ *          horizontal disparity function to compensate.
+ *      (4) The first attempt was to use the average width of the
+ *          connected components (c.c.) in vertical slices.  This does not work
+ *          reliably, because the horizontal compression of the text is
+ *          often accompanied by horizontal joining of c.c.
+ *      (5) We use the density of vertical strokes, measured by first using
+ *          a vertical opening, which improves the signal.  The result
+ *          is relatively insensitive to the size of the opening; we use
+ *          a 10-pixel opening.  The relative density is measured by
+ *          finding the number of c.c. in a full height sliding window
+ *          of width 50 pixels, and compute every 25 pixels.  Similar results
+ *          are obtained counting c.c. that either intersect the window
+ *          or are fully contained within it.
+ *      (6) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
  * </pre>
  */
 l_int32
 dewarpFindHorizSlopeDisparity(L_DEWARP  *dew,
                               PIX       *pixb,
+                              l_float32  fractthresh,
                               l_int32    parity)
 {
-l_int32    x, j, n, nba, w, bw;
-l_float32  medval;
+l_int32    i, x, n1, n2, nb, ne, count, w, h, ival, prev;
+l_int32    istart, iend, first, last;
+l_float32  fract, sum, aveval;
 BOX       *box;
-BOXA      *boxa1, *boxa2, *boxa3;
-BOXAA     *baa;
-NUMA      *na, *naw;
+BOXA      *boxa1, *boxa2;
+NUMA      *na1, *na2, *na3, *na4, *na5;
 PIX       *pix1;
-PTA       *pta, *ptat, *pta1, *pta2;
+PTA       *pta1, *pta2;
 FPIX      *fpix;
 
     PROCNAME("dewarpFindHorizSlopeDisparity");
@@ -1378,55 +1395,119 @@ FPIX      *fpix;
         return ERROR_INT("dew not defined", procName, 1);
     if (!dew->vvalid || !dew->hvalid)
         return ERROR_INT("invalid vert or horiz disparity model", procName, 1);
-    if (!pixb)
-        return ERROR_INT("pixb not defined", procName, 1);
+    if (!pixb || pixGetDepth(pixb) != 1)
+        return ERROR_INT("pixb not defined or not 1 bpp", procName, 1);
 
     if (dew->debug) L_INFO("finding slope horizontal disparity\n", procName);
 
-        /* Find the bounding boxes of the connected components, remove
-         * ones of small height, and sort them into textlines.  The 2D sort
-         * does not need to be accurate but it speeds up the estimation. */
-    boxa1 = pixConnCompBB(pixb, 8);
+        /* Find the bounding boxes of the vertical strokes; remove noise */
+    pix1 = pixMorphSequence(pixb, "o1.10", 0);
+    pixDisplay(pix1, 100, 100);
+    boxa1 = pixConnCompBB(pix1, 4);
     boxa2 = boxaSelectBySize(boxa1, 0, 5, L_SELECT_HEIGHT, L_SELECT_IF_GT,
                              NULL);
-    baa = boxaSort2d(boxa2, NULL, 0, 0, 7);
+    nb = boxaGetCount(boxa2);
+    fprintf(stderr, "number of components: %d\n", nb);
     boxaDestroy(&boxa1);
-    boxaDestroy(&boxa2);
 
-        /* Estimate the character width every 10 pixels across the image */
-    na = numaCreate(0);
-    numaSetParameters(na, 0, 10);
-    w = pixGetWidth(pixb);
-    nba = boxaaGetCount(baa);
-    for (x = 0; x < w; x += 10) {
-        naw = numaCreate(nba);
-        for (j = 0; j < nba; j++) {
-            boxa3 = boxaaGetBoxa(baa, j, L_CLONE);
-            box = boxaGetNearestToLine(boxa3, x, -1);
-            boxGetGeometry(box, NULL, NULL, &bw, NULL);
-            numaAddNumber(naw, bw);
-            boxDestroy(&box);
-            boxaDestroy(&boxa3);
-        }
-        numaGetMedian(naw, &medval);
-        numaAddNumber(na, medval);
-        numaDestroy(&naw);
+        /* Estimate the horizontal density of vertical strokes */
+    na1 = numaCreate(0);
+    numaSetParameters(na1, 0, 25);
+    pixGetDimensions(pixb, &w, &h, NULL);
+    for (x = 0; x + 50 < w; x += 25) {
+        box = boxCreate(x, 0, 50, h);
+        boxaContainedInBoxCount(boxa2, box, &count);
+        numaAddNumber(na1, count);
+        boxDestroy(&box);
     }
     if (dew->debug) {
         lept_mkdir("lept/dew");
-        gplotSimple1(na, GPLOT_PNG, "/tmp/lept/dew/width", NULL);
-        pix1 = boxaaDisplay(pixb, baa, 2, 1, 0xff000000, 0x00ff0000, 0, 0);
-        pixDisplay(pix1, 800, 0);
-        pixWrite("/tmp/lept/dew/baa.png", pix1, IFF_PNG);
-        pixDestroy(&pix1);
+        gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/dew/0091", NULL);
+        lept_mv("/tmp/lept/dew/0091.png", "lept/dewmod", NULL, NULL);
+        pixWrite("/tmp/lept/dewmod/0090.png", pix1, IFF_PNG);
+    }
+    pixDestroy(&pix1);
+    boxaDestroy(&boxa2);
+
+        /* Find the left and right end local maxima; if the difference
+         * is small, quit.  */
+    n1 = numaGetCount(na1);
+    prev = 0;
+    for (i = 0; i < n1; i++) {
+        numaGetIValue(na1, i, &ival);
+        if (ival >= prev) {
+            prev = ival;
+            continue;
+        } else {
+            first = prev;
+            istart = i - 1;
+            break;
+        }
+    }
+    prev = 0;
+    for (i = n1 - 1; i >= 0; i--) {
+        numaGetIValue(na1, i, &ival);
+        if (ival >= prev) {
+            prev = ival;
+            continue;
+        } else {
+            last = prev;
+            iend = i + 1;
+            break;
+        }
+    }
+    na2 = numaClipToInterval(na1, istart, iend);
+    numaDestroy(&na1);
+    n2 = numaGetCount(na2);
+    fract = (l_float32)(L_ABS(first - last)) / (l_float32)(L_MIN(first, last));
+    if (dew->debug) {
+        L_INFO("Slope-disparity: first = %d, last = %d, fract = %7.3f\n",
+               procName, first, last, fract);
+        gplotSimple1(na2, GPLOT_PNG, "/tmp/lept/dew/0092", NULL);
+        lept_mv("/tmp/lept/dew/0092.png", "lept/dewmod", NULL, NULL);
+    }
+    if (fract < fractthresh) {
+        L_INFO("Small slope-disparity: first = %d, last = %d, fract = %7.3f\n",
+               procName, first, last, fract);
+        numaDestroy(&na2);
+        return 0;
+    }
+        
+        /* Find the density far from the binding, and normalize to 1.  */
+    ne = n2 - n2 % 2;
+    if (parity == 0)
+        numaGetSumOnInterval(na2, 0, ne / 2 - 1, &sum);
+    else  /* parity == 1 */
+        numaGetSumOnInterval(na2, ne / 2, ne - 1, &sum);
+    aveval = sum / (l_float32)(ne / 2);
+    na3 = numaMakeConstant(aveval, n2);
+    numaArithOp(na2, na2, na3, L_ARITH_DIVIDE);
+    numaDestroy(&na3);
+    if (dew->debug) {
+        L_INFO("Average background density: %5.1f\n", procName, aveval);
+        gplotSimple1(na2, GPLOT_PNG, "/tmp/lept/dew/0093", NULL);
+        lept_mv("/tmp/lept/dew/0093.png", "lept/dewmod", NULL, NULL);
     }
 
-        /* TODO: Smooth the inverse width curve; estimate the inverse
-         * width for the flat part of the page, normalize to that value,
-         * and integrate from the flat part in toward the binding. */
+        /* Fit the normalized density curve to a quartic */
+    pta1 = numaConvertToPta1(na2);
+    ptaWriteStream(stderr, pta1, 0);
+//    ptaGetQuadraticLSF(pta1, NULL, NULL, NULL, &na3);
+    ptaGetQuarticLSF(pta1, NULL, NULL, NULL, NULL, NULL, &na3);
+    if (dew->debug) {
+        ptaGetArrays(pta1, &na4, NULL);
+        gplotSimpleXY1(na4, na3, GPLOT_LINES, GPLOT_PNG,
+                       "/tmp/lept/dew/0094", NULL);
+        lept_mv("/tmp/lept/dew/0094.png", "lept/dewmod", NULL, NULL);
+        numaDestroy(&na4);
+    }
+    ptaDestroy(&pta1);
 
-    numaDestroy(&na);
-    boxaaDestroy(&baa);
+        /* TODO: Integrate from the high point down to 1 to get the disparity
+         * needed to make the density constant. */
+
+    numaDestroy(&na2);
+    numaDestroy(&na3);
     return 0;
 }
 

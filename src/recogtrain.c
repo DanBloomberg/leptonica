@@ -178,7 +178,7 @@ static char *l_charToString(char byte);
      * is valid.  Values are set to accept most sets of sample templates. */
 static const l_int32    DEFAULT_MIN_SET_SIZE = 1;  /* minimum number of
                                        samples for a valid class */
-static const l_float32  DEFAULT_MIN_SET_FRACT = 0.3;  /* minimum fraction
+static const l_float32  DEFAULT_MIN_SET_FRACT = 0.4;  /* minimum fraction
                                of classes required for a valid recog */
 
     /* Defaults in pixaRemoveOutliers1() and pixaRemoveOutliers2() */
