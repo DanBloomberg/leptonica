@@ -1510,11 +1510,11 @@ FPIX      *fpix;
          * disparity needed to make the density constant. */
     nasum = numaMakeConstant(0, w);  /* area under the curve above 1.0 */
     if (parity == 0) {
-        for (i = n2 -1; i >= 0; i--) {
+        for (i = n2 - 1; i >= 0; i--) {
             numaGetFValue(na3, i, &fval);
             if (fval < 1.0) break;
         }
-        numaGetIValue(na4, i, &x0);
+        numaGetIValue(na4, i + 1, &x0);
         numaGetIValue(na4, n2 - 1, &x1);
         numaSetParameters(nasum, x0, 1);
         sum = 0.0;
@@ -1531,7 +1531,7 @@ FPIX      *fpix;
             if (fval < 1.0) break;
         }
         numaGetIValue(na4, 0, &x0);
-        numaGetIValue(na4, i, &x1);
+        numaGetIValue(na4, i - 1, &x1);
         numaSetParameters(nasum, x0, 1);
         sum = 0.0;
         for (x = x1; x >= x0; x--) {

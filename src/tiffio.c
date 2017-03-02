@@ -108,7 +108,7 @@
 #include "tiffio.h"
 
 static const l_int32  DEFAULT_RESOLUTION = 300;   /* ppi */
-static const l_int32  MAX_PAGES_IN_TIFF_FILE = 3000;  /* should be enough */
+static const l_int32  MANY_PAGES_IN_TIFF_FILE = 3000;  /* warn if big */
 
 
     /* All functions with TIFF interfaces are static. */
@@ -1402,9 +1402,13 @@ TIFF    *tif;
     if ((tif = fopenTiff(fp, "r")) == NULL)
         return ERROR_INT("tif not open for read", procName, 1);
 
-    for (i = 1; i < MAX_PAGES_IN_TIFF_FILE; i++) {
+    for (i = 1; ; i++) {
         if (TIFFReadDirectory(tif) == 0)
             break;
+        if (i == MANY_PAGES_IN_TIFF_FILE + 1) {
+            L_WARNING("big file: more than %d pages\n", procName,
+                      MANY_PAGES_IN_TIFF_FILE);
+        }
     }
     *pn = i;
     TIFFCleanup(tif);
@@ -2343,7 +2347,7 @@ TIFF     *tif;
         return (PIX *)ERROR_PTR("tiff stream not opened", procName, NULL);
 
     pix = NULL;
-    for (i = 0; i < MAX_PAGES_IN_TIFF_FILE; i++) {
+    for (i = 0; ; i++) {
         if (i == n) {
             if ((pix = pixReadFromTiffStream(tif)) == NULL) {
                 TIFFClose(tif);
@@ -2354,6 +2358,10 @@ TIFF     *tif;
         }
         if (TIFFReadDirectory(tif) == 0)
             break;
+        if (i == MANY_PAGES_IN_TIFF_FILE + 1) {
+            L_WARNING("big file: more than %d pages\n", procName,
+                      MANY_PAGES_IN_TIFF_FILE);
+        }
     }
 
     TIFFClose(tif);
