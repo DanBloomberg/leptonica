@@ -37,6 +37,8 @@
  *         l_int32             pixaAccumulateSamples()
  *         l_int32             recogTrainingFinished()
  *         static l_int32      recogTemplatesAreOK()
+ *         PIXA               *recogFilterPixaBySize()
+ *         PIXAA              *recogSortPixaByClass()
  *         l_int32             recogRemoveOutliers1()
  *         PIXA               *pixaRemoveOutliers1()
  *         l_int32             recogRemoveOutliers2()
@@ -913,6 +915,107 @@ NUMA      *na;
     ratio = (l_float32)validsets / (l_float32)recog->charset_size;
     *pok = (ratio >= minfract) ? 1 : 0;
     return 0;
+}
+
+
+/*!
+ * \brief   recogFilterPixaBySize()
+ *
+ * \param[in]   pixas         labeled templates
+ * \param[in]   setsize       size of character set (number of classes)
+ * \param[in]   maxkeep       max number of templates to keep in a class
+ * \param[in]   max_ht_ratio  max allowed height ratio (see below)
+ * \return  pixa   filtered templates, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) For each of the %setsize classes, order the templates
+ *          increasingly by height.  Take the rank 0.9 height.  Eliminate
+ *          all templates that are shorter by more than %max_ht_ratio.
+ *          Of the remaining ones, select up to %maxkeep that are closest
+ *          in rank order height to the median template.
+ * </pre>
+ */
+PIXA *
+recogFilterPixaBySize(PIXA      *pixas,
+                      l_int32    setsize,
+                      l_int32    maxkeep,
+                      l_float32  max_ht_ratio)
+{
+l_int32    i, j, h90, hj, j1, j2, j90, n;
+l_float32  ratio;
+PIXA      *pixa1, *pixa2, *pixa3, *pixa4, *pixa5;
+PIXAA     *paa;
+
+    PROCNAME("recogFilterPixaBySize");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+
+    if ((paa = recogSortPixaByClass(pixas, setsize)) == NULL)
+        return (PIXA *)ERROR_PTR("paa not made", procName, NULL);
+    pixa5 = pixaCreate(0);
+    for (i = 0; i < setsize; i++) {
+        pixa1 = pixaaGetPixa(paa, i, L_CLONE);
+        if ((n = pixaGetCount(pixa1)) == 0)
+            continue;
+        pixa2 = pixaSort(pixa1, L_SORT_BY_HEIGHT, L_SORT_INCREASING, NULL,
+                         L_COPY);
+        j90 = (l_int32)(0.9 * n + 0.5);
+        pixaGetPixDimensions(pixa2, j90, NULL, &h90, NULL);
+        pixa3 = pixaCreate(n);
+        for (j = 0; j < n; j++) {
+            pixaGetPixDimensions(pixa2, j, NULL, &hj, NULL);
+            ratio = (l_float32)h90 / (l_float32)hj;
+            if (ratio <= max_ht_ratio)
+                pixaAddPix(pixa3, pixaGetPix(pixa2, j, L_COPY), L_INSERT);
+        }
+        n = pixaGetCount(pixa3);
+        if (n <= maxkeep)
+            pixa4 = pixaCopy(pixa3, L_CLONE);
+        else {
+            j1 = (n - maxkeep) / 2;
+            j2 = j1 + maxkeep - 1;
+            pixa4 = pixaSelectRange(pixa3, j1, j2, L_CLONE);
+        }
+        pixaJoin(pixa5, pixa4, 0, -1);
+        pixaDestroy(&pixa1);
+        pixaDestroy(&pixa2);
+        pixaDestroy(&pixa3);
+        pixaDestroy(&pixa4);
+    }
+
+    pixaaDestroy(&paa);
+    return pixa5;
+}
+
+
+/*!
+ * \brief   recogSortPixaByClass()
+ *
+ * \param[in]   pixa          labeled templates
+ * \param[in]   setsize       size of character set (number of classes)
+ * \return  paa   pixaa where each pixa has templates for one class,
+ *                or null on error
+ */
+PIXAA *
+recogSortPixaByClass(PIXA      *pixa,
+                     l_int32    setsize)
+{
+PIXAA    *paa;
+L_RECOG  *recog;
+
+    PROCNAME("recogSortPixaByClass");
+
+    if (!pixa)
+        return (PIXAA *)ERROR_PTR("pixa not defined", procName, NULL);
+
+    if ((recog = recogCreateFromPixaNoFinish(pixa, 0, 0, 0, 0, 0)) == NULL)
+        return (PIXAA *)ERROR_PTR("recog not made", procName, NULL);
+    paa = recog->pixaa_u;   /* grab the paa of unscaled templates */
+    recog->pixaa_u = NULL;
+    recogDestroy(&recog);
+    return paa;
 }
 
 

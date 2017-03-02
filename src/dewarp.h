@@ -154,8 +154,10 @@ struct L_Dewarp
     struct Pix        *pixs;         /*!< source pix, 1 bpp                  */
     struct FPix       *sampvdispar;  /*!< sampled vert disparity array       */
     struct FPix       *samphdispar;  /*!< sampled horiz disparity array      */
+    struct FPix       *sampydispar;  /*!< sampled slope h-disparity array    */
     struct FPix       *fullvdispar;  /*!< full vert disparity array          */
     struct FPix       *fullhdispar;  /*!< full horiz disparity array         */
+    struct FPix       *fullydispar;  /*!< full slope h-disparity array       */
     struct Numa       *namidys;      /*!< sorted y val of midpoint each line */
     struct Numa       *nacurves;     /*!< sorted curvature of each line      */
     l_int32            w;            /*!< width of source image              */
@@ -177,6 +179,7 @@ struct L_Dewarp
     l_int32            refpage;      /*!< page with disparity model to use   */
     l_int32            vsuccess;     /*!< sets to 1 if vert disparity builds */
     l_int32            hsuccess;     /*!< sets to 1 if horiz disparity builds */
+    l_int32            ysuccess;     /*!< sets to 1 if slope disparity builds */
     l_int32            vvalid;       /*!< sets to 1 if valid vert disparity  */
     l_int32            hvalid;       /*!< sets to 1 if valid horiz disparity */
     l_int32            skip_horiz;   /*!< if 1, skip horiz disparity         */

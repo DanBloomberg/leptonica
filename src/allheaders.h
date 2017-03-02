@@ -1756,6 +1756,7 @@ LEPT_DLL extern l_int32 pixaGetDepthInfo ( PIXA *pixa, l_int32 *pmaxdepth, l_int
 LEPT_DLL extern PIXA * pixaConvertToSameDepth ( PIXA *pixas );
 LEPT_DLL extern l_int32 pixaEqual ( PIXA *pixa1, PIXA *pixa2, l_int32 maxdist, NUMA **pnaindex, l_int32 *psame );
 LEPT_DLL extern PIXA * pixaRotateOrth ( PIXA *pixas, l_int32 rotation );
+LEPT_DLL extern l_int32 pixaSetFullSizeBoxa ( PIXA *pixa );
 LEPT_DLL extern PIX * pixaDisplay ( PIXA *pixa, l_int32 w, l_int32 h );
 LEPT_DLL extern PIX * pixaDisplayOnColor ( PIXA *pixa, l_int32 w, l_int32 h, l_uint32 bgcolor );
 LEPT_DLL extern PIX * pixaDisplayRandomCmap ( PIXA *pixa, l_int32 w, l_int32 h );
@@ -2163,6 +2164,7 @@ LEPT_DLL extern l_int32 writeImageFileInfo ( const char *filename, FILE *fpout, 
 LEPT_DLL extern l_int32 ioFormatTest ( const char *filename );
 LEPT_DLL extern L_RECOG * recogCreateFromRecog ( L_RECOG *recs, l_int32 scalew, l_int32 scaleh, l_int32 linew, l_int32 threshold, l_int32 maxyshift );
 LEPT_DLL extern L_RECOG * recogCreateFromPixa ( PIXA *pixa, l_int32 scalew, l_int32 scaleh, l_int32 linew, l_int32 threshold, l_int32 maxyshift );
+LEPT_DLL extern L_RECOG * recogCreateFromPixaNoFinish ( PIXA *pixa, l_int32 scalew, l_int32 scaleh, l_int32 linew, l_int32 threshold, l_int32 maxyshift );
 LEPT_DLL extern L_RECOG * recogCreate ( l_int32 scalew, l_int32 scaleh, l_int32 linew, l_int32 threshold, l_int32 maxyshift );
 LEPT_DLL extern void recogDestroy ( L_RECOG **precog );
 LEPT_DLL extern l_int32 recogGetCount ( L_RECOG *recog );
@@ -2204,6 +2206,8 @@ LEPT_DLL extern PIX * recogModifyTemplate ( L_RECOG *recog, PIX *pixs );
 LEPT_DLL extern l_int32 recogAverageSamples ( L_RECOG **precog, l_int32 debug );
 LEPT_DLL extern l_int32 pixaAccumulateSamples ( PIXA *pixa, PTA *pta, PIX **ppixd, l_float32 *px, l_float32 *py );
 LEPT_DLL extern l_int32 recogTrainingFinished ( L_RECOG **precog, l_int32 modifyflag, l_int32 minsize, l_float32 minfract );
+LEPT_DLL extern PIXA * recogFilterPixaBySize ( PIXA *pixas, l_int32 setsize, l_int32 maxkeep, l_float32 max_ht_ratio );
+LEPT_DLL extern PIXAA * recogSortPixaByClass ( PIXA *pixa, l_int32 setsize );
 LEPT_DLL extern l_int32 recogRemoveOutliers1 ( L_RECOG **precog, l_float32 minscore, l_int32 mintarget, l_int32 minsize, PIX **ppixsave, PIX **ppixrem );
 LEPT_DLL extern PIXA * pixaRemoveOutliers1 ( PIXA *pixas, l_float32 minscore, l_int32 mintarget, l_int32 minsize, PIX **ppixsave, PIX **ppixrem );
 LEPT_DLL extern l_int32 recogRemoveOutliers2 ( L_RECOG **precog, l_float32 minscore, l_int32 minsize, PIX **ppixsave, PIX **ppixrem );

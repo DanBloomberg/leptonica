@@ -80,6 +80,7 @@
  *           PIXA     *pixaConvertToSameDepth()
  *           l_int32   pixaEqual()
  *           PIXA     *pixaRotateOrth()
+ *           l_int32   pixaSetFullSizeBoxa()
  * </pre>
  */
 
@@ -1312,7 +1313,10 @@ PIX     *pix;
  * Notes:
  *      (1) This sorts based on the data in the boxa.  If the boxa
  *          count is not the same as the pixa count, this returns an error.
- *      (2) The copyflag refers to the pix and box copies that are
+ *      (2) If the boxa is empty, it makes one corresponding to the
+ *          dimensions of each pix, which allows meaningful sorting on
+ *          all types except x and y.
+ *      (3) The copyflag refers to the pix and box copies that are
  *          inserted into the sorted pixa.  These are either L_COPY
  *          or L_CLONE.
  * </pre>
@@ -1324,7 +1328,7 @@ pixaSort(PIXA    *pixas,
          NUMA   **pnaindex,
          l_int32  copyflag)
 {
-l_int32  i, n, x, y, w, h;
+l_int32  i, n, nb, x, y, w, h;
 BOXA    *boxa;
 NUMA    *na, *naindex;
 PIXA    *pixad;
@@ -1347,10 +1351,22 @@ PIXA    *pixad;
     if (copyflag != L_COPY && copyflag != L_CLONE)
         return (PIXA *)ERROR_PTR("invalid copy flag", procName, NULL);
 
+        /* Check the pixa and boxa counts. Make a boxa if required. */
+    if ((n = pixaGetCount(pixas)) == 0) {
+        L_INFO("no pix in pixa\n", procName);
+        return pixaCopy(pixas, copyflag);
+    }
     if ((boxa = pixas->boxa) == NULL)   /* not owned; do not destroy */
-        return (PIXA *)ERROR_PTR("boxa not found", procName, NULL);
-    n = pixaGetCount(pixas);
-    if (boxaGetCount(boxa) != n)
+        return (PIXA *)ERROR_PTR("boxa not found!", procName, NULL);
+    nb = boxaGetCount(boxa);
+    if (nb == 0) {
+        pixaSetFullSizeBoxa(pixas);
+        nb = n;
+        boxa = pixas->boxa;  /* not owned */
+        if (sorttype == L_SORT_BY_X || sorttype == L_SORT_BY_Y)
+            L_WARNING("sort by x or y where all values are 0\n", procName);
+    }
+    if (nb != n)
         return (PIXA *)ERROR_PTR("boxa and pixa counts differ", procName, NULL);
 
         /* Use O(n) binsort if possible */
@@ -2708,3 +2724,47 @@ PIXA    *pixad;
 
     return pixad;
 }
+
+
+/*!
+ * \brief   pixaSetFullSizeBoxa()
+ *
+ * \param[in]    pixa
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Replaces the existing boxa.  Each box gives the dimensions
+ *          of the corresponding pix.  This is needed for functions
+ *          like pixaSort() that sort based on the boxes.
+ * </pre>
+ */
+l_int32
+pixaSetFullSizeBoxa(PIXA  *pixa)
+{
+l_int32  i, n, w, h;
+BOX     *box;
+BOXA    *boxa;
+PIX     *pix;
+
+    PROCNAME("pixaSetFullSizeBoxa");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if ((n = pixaGetCount(pixa)) == 0) {
+        L_INFO("pixa contains no pix\n", procName);
+        return 0;
+    }
+
+    boxa = boxaCreate(n);
+    pixaSetBoxa(pixa, boxa, L_INSERT);
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixa, i, L_CLONE);
+        pixGetDimensions(pix, &w, &h, NULL);
+        box = boxCreate(0, 0, w, h);
+        boxaAddBox(boxa, box, L_INSERT);
+        pixDestroy(&pix);
+    }
+    return 0;
+}
+

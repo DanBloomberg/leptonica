@@ -400,7 +400,7 @@ PIX       *pixd;
  *      (4) If an existing pixd is not the same size as pixs, the
  *          image data will be reallocated.
  *      (5) The pixel access routines allow a trivial implementation.
- *          However, for d \< 8, it is more efficient to right-justify
+ *          However, for d < 8, it is more efficient to right-justify
  *          each line to a 32-bit boundary and then extract bytes and
  *          do pixel reversing.   In those cases, as in the 180 degree
  *          rotation, we right-shift the data (if necessary) to
@@ -409,10 +409,10 @@ PIX       *pixd;
  *          the pixels in each byte using a table.  These functions
  *          for 1, 2 and 4 bpp were tested against the "trivial"
  *          version (shown here for 4 bpp):
- *              for (i = 0; i \< h; i++) {
+ *              for (i = 0; i < h; i++) {
  *                  line = data + i * wpl;
  *                  memcpy(buffer, line, bpl);
- *                    for (j = 0; j \< w; j++) {
+ *                    for (j = 0; j < w; j++) {
  *                      val = GET_DATA_QBIT(buffer, w - 1 - j);
  *                        SET_DATA_QBIT(line, j, val);
  *                  }

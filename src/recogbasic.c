@@ -31,6 +31,7 @@
  *      Recog creation, destruction and access
  *         L_RECOG            *recogCreateFromRecog()
  *         L_RECOG            *recogCreateFromPixa()
+ *         L_RECOG            *recogCreateFromPixaNoFinish()
  *         L_RECOG            *recogCreate()
  *         void                recogDestroy()
  *         l_int32             recogGetCount()
@@ -123,7 +124,7 @@
  *     (3) requesting identification of an unlabeled character:
  *         recogIdentifyPix()
  *  is called before an explicit call to finish training.  Note that
- *  to do further training on a "finished" recognizer, just set
+ *  to do further training on a "finished" recognizer, you can set
  *         recog->train_done = FALSE;
  *  add the new training samples, and again call
  *         recogTrainingFinished(&rec, 1, -1, -1.0);  // required
@@ -146,9 +147,29 @@
  *      L_Recog  *rec = recogCreateFromPixa(pixa, 0, 0, linew, 128, 1);
  *  and in use, it is fed unscaled line images to identify.
  *
- *  A special case is a "bootstrap" recognizer (BSR), containing images
- *  that are scaled to a fixed height (we use 40 in these examples),
- *  and use either the scanned bitmap:
+ *  For the following, assume that you have a pixa of labeled templates.
+ *  If it is likely that some of the input templates are mislabeled,
+ *  there are several things that can be done to remove them.
+ *  The first is to put a size and quantity filter on them; e.g.
+ *       Pixa *pixa2 = recogFilterPixaBySize(pixa1, 10, 15, 2.6);
+ *  Then you can remove outliers; e.g.,
+ *       Pixa *pixa3 = pixaRemoveOutliers2(pixa2, -1.0, -1, NULL, NULL);
+ *
+ *  To this point, all templates are from a single source, so you
+ *  can make a recognizer that uses the unscaled templates and optionally
+ *  attempts to split touching characters:
+ *       L_Recog *recog1 = recogCreateFromPixa(pixa3, ...);
+ *  Alternatively, if you need more templates for some of the classes,
+ *  you can pad with templates from a "bootstrap" recognizer (BSR).
+ *  If you pad, it is necessary to scale the templates and input
+ *  samples to a fixed height, and no attempt will be made to split
+ *  the input sample connected components:
+ *       L_Recog *recog1 = recogCreateFromPixa(pixa3, 0, 40, 0, 128, 0);
+ *       recogPadDigitTrainingSet(&recog1, 40, 0);
+ *
+ *  A special case is a pure BSR, that contains images scaled to a fixed
+ *  height (we use 40 in these examples).
+ *  For this,use either the scanned bitmap:
  *      L_Recog  *recboot = recogCreateFromPixa(pixa, 0, 40, 0, 128, 1);
  *  or width-normalized lines (use width of 5 here):
  *      L_Recog  *recboot = recogCreateFromPixa(pixa, 0, 40, 5, 128, 1);
@@ -176,6 +197,7 @@ static const l_float32  DEFAULT_MAX_WH_RATIO = 3.0;  /* max allowed w/h
                                     ratio for a component to be split  */
 static const l_float32  DEFAULT_MAX_HT_RATIO = 2.6;  /* max allowed ratio of
                                max/min unscaled averaged template heights  */
+static const l_int32    DEFAULT_THRESHOLD = 150;  /* for binarization */
 
     /* Static functions */
 static l_int32 recogGetCharsetSize(l_int32 type);
@@ -251,19 +273,65 @@ PIXA     *pixa;
  * </pre>
  */
 L_RECOG *
-recogCreateFromPixa(PIXA        *pixa,
-                    l_int32      scalew,
-                    l_int32      scaleh,
-                    l_int32      linew,
-                    l_int32      threshold,
-                    l_int32      maxyshift)
+recogCreateFromPixa(PIXA    *pixa,
+                    l_int32  scalew,
+                    l_int32  scaleh,
+                    l_int32  linew,
+                    l_int32  threshold,
+                    l_int32  maxyshift)
+{
+L_RECOG  *recog;
+
+    PROCNAME("recogCreateFromPixa");
+
+    if (!pixa)
+        return (L_RECOG *)ERROR_PTR("pixa not defined", procName, NULL);
+
+    recog = recogCreateFromPixaNoFinish(pixa, scalew, scaleh, linew,
+                                        threshold, maxyshift);
+    if (!recog)
+        return (L_RECOG *)ERROR_PTR("recog not made", procName, NULL);
+
+    recogTrainingFinished(&recog, 1, -1, -1.0);
+    if (!recog)
+        return (L_RECOG *)ERROR_PTR("bad templates", procName, NULL);
+    return recog;
+}
+
+
+/*!
+ * \brief   recogCreateFromPixaNoFinish()
+ *
+ * \param[in]    pixa of labeled, 1 bpp images
+ * \param[in]    scalew  scale all widths to this; use 0 otherwise
+ * \param[in]    scaleh  scale all heights to this; use 0 otherwise
+ * \param[in]    linew   width of normalized strokes; use 0 to skip
+ * \param[in]    threshold for binarization; typically ~150
+ * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
+ * \return  recog, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See recogCreateFromPixa() for details.
+ *      (2) This is also used to generate a pixaa with templates
+ *          in each class within a pixa.  For that, all args except for
+ *          %pixa are ignored.
+ * </pre>
+ */
+L_RECOG *
+recogCreateFromPixaNoFinish(PIXA    *pixa,
+                            l_int32  scalew,
+                            l_int32  scaleh,
+                            l_int32  linew,
+                            l_int32  threshold,
+                            l_int32  maxyshift)
 {
 char     *text;
 l_int32   full, n, i, ntext;
-L_RECOG  *recog;
 PIX      *pix;
+L_RECOG  *recog;
 
-    PROCNAME("recogCreateFromPixa");
+    PROCNAME("recogCreateFromPixaNoFinish");
 
     if (!pixa)
         return (L_RECOG *)ERROR_PTR("pixa not defined", procName, NULL);
@@ -296,9 +364,6 @@ PIX      *pix;
         pixDestroy(&pix);
     }
 
-    recogTrainingFinished(&recog, 1, -1, -1.0);
-    if (!recog)
-        return (L_RECOG *)ERROR_PTR("bad templates", procName, NULL);
     return recog;
 }
 
@@ -309,7 +374,7 @@ PIX      *pix;
  * \param[in]    scalew  scale all widths to this; use 0 otherwise
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
  * \param[in]    linew   width of normalized strokes; use 0 to skip
- * \param[in]    threshold for binarization; typically ~128
+ * \param[in]    threshold for binarization; typically ~128; 0 for default
  * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
  * \return  recog, or NULL on error
  *
@@ -343,8 +408,11 @@ L_RECOG  *recog;
         return (L_RECOG *)ERROR_PTR("invalid scalew or scaleh", procName, NULL);
     if (linew > 10)
         return (L_RECOG *)ERROR_PTR("invalid linew > 10", procName, NULL);
-    if (threshold < 1 || threshold > 255)
-        return (L_RECOG *)ERROR_PTR("invalid threshold", procName, NULL);
+    if (threshold == 0) threshold = DEFAULT_THRESHOLD;
+    if (threshold < 0 || threshold > 255) {
+        L_WARNING("invalid threshold; using default\n", procName);
+        threshold = DEFAULT_THRESHOLD;
+    }
 
     if ((recog = (L_RECOG *)LEPT_CALLOC(1, sizeof(L_RECOG))) == NULL)
         return (L_RECOG *)ERROR_PTR("rec not made", procName, NULL);

@@ -1353,7 +1353,7 @@ NUMA      *naerr;
  *      (2) %parity indicates where the binding is: on the left for
  *          %parity == 0 and on the right for @parity == 1.
  *      (3) This takes a 1 bpp %pixb where both vertical and horizontal
- *          disparity has been applied, so the text lines are straight and,
+ *          disparity have been applied, so the text lines are straight and,
  *          more importantly, the line end points are vertically aligned.
  *          It estimates the foreshortening of the characters on the
  *          binding side, and if significant, computes a one-dimensional
@@ -1379,14 +1379,15 @@ dewarpFindHorizSlopeDisparity(L_DEWARP  *dew,
                               l_float32  fractthresh,
                               l_int32    parity)
 {
-l_int32    i, x, n1, n2, nb, ne, count, w, h, ival, prev;
-l_int32    istart, iend, first, last;
-l_float32  fract, sum, aveval;
+l_int32    i, j, x, n1, n2, nb, ne, count, w, h, ival, prev;
+l_int32    istart, iend, first, last, x0, x1, nx, ny;
+l_float32  fract, delta, sum, aveval, fval, del;
+l_float32  ca, cb, cc, cd, ce, y;
 BOX       *box;
 BOXA      *boxa1, *boxa2;
-NUMA      *na1, *na2, *na3, *na4, *na5;
+NUMA      *na1, *na2, *na3, *na4, *nasum;
 PIX       *pix1;
-PTA       *pta1, *pta2;
+PTA       *pta1;
 FPIX      *fpix;
 
     PROCNAME("dewarpFindHorizSlopeDisparity");
@@ -1433,6 +1434,7 @@ FPIX      *fpix;
          * is small, quit.  */
     n1 = numaGetCount(na1);
     prev = 0;
+    istart = 0;
     for (i = 0; i < n1; i++) {
         numaGetIValue(na1, i, &ival);
         if (ival >= prev) {
@@ -1445,6 +1447,7 @@ FPIX      *fpix;
         }
     }
     prev = 0;
+    iend = n1 - 1;
     for (i = n1 - 1; i >= 0; i--) {
         numaGetIValue(na1, i, &ival);
         if (ival >= prev) {
@@ -1459,7 +1462,8 @@ FPIX      *fpix;
     na2 = numaClipToInterval(na1, istart, iend);
     numaDestroy(&na1);
     n2 = numaGetCount(na2);
-    fract = (l_float32)(L_ABS(first - last)) / (l_float32)(L_MIN(first, last));
+    delta = (parity == 0) ? last - first : first - last;
+    fract = (l_float32)delta / (l_float32)(L_MIN(first, last));
     if (dew->debug) {
         L_INFO("Slope-disparity: first = %d, last = %d, fract = %7.3f\n",
                procName, first, last, fract);
@@ -1472,7 +1476,7 @@ FPIX      *fpix;
         numaDestroy(&na2);
         return 0;
     }
-        
+
         /* Find the density far from the binding, and normalize to 1.  */
     ne = n2 - n2 % 2;
     if (parity == 0)
@@ -1492,22 +1496,72 @@ FPIX      *fpix;
         /* Fit the normalized density curve to a quartic */
     pta1 = numaConvertToPta1(na2);
     ptaWriteStream(stderr, pta1, 0);
-//    ptaGetQuadraticLSF(pta1, NULL, NULL, NULL, &na3);
-    ptaGetQuarticLSF(pta1, NULL, NULL, NULL, NULL, NULL, &na3);
+/*    ptaGetQuadraticLSF(pta1, NULL, NULL, NULL, &na3); */
+    ptaGetQuarticLSF(pta1, &ca, &cb, &cc, &cd, &ce, &na3);
+    ptaGetArrays(pta1, &na4, NULL);
     if (dew->debug) {
-        ptaGetArrays(pta1, &na4, NULL);
         gplotSimpleXY1(na4, na3, GPLOT_LINES, GPLOT_PNG,
                        "/tmp/lept/dew/0094", NULL);
         lept_mv("/tmp/lept/dew/0094.png", "lept/dewmod", NULL, NULL);
-        numaDestroy(&na4);
     }
     ptaDestroy(&pta1);
 
-        /* TODO: Integrate from the high point down to 1 to get the disparity
-         * needed to make the density constant. */
+        /* Integrate from the high point down to 1 (or v.v) to get the
+         * disparity needed to make the density constant. */
+    nasum = numaMakeConstant(0, w);  /* area under the curve above 1.0 */
+    if (parity == 0) {
+        for (i = n2 -1; i >= 0; i--) {
+            numaGetFValue(na3, i, &fval);
+            if (fval < 1.0) break;
+        }
+        numaGetIValue(na4, i, &x0);
+        numaGetIValue(na4, n2 - 1, &x1);
+        numaSetParameters(nasum, x0, 1);
+        sum = 0.0;
+        for (x = x0; x < x1; x++) {
+            applyQuarticFit(ca, cb, cc, cd, ce, (l_float32)x, &y);
+            sum += (y - 1.0);
+            numaReplaceNumber(nasum, x, sum);
+        }
+        for (x = x1; x < w; x++)
+            numaReplaceNumber(nasum, x, sum);
+    } else {  /* parity == 1 */
+        for (i = 0; i < n2; i++) {
+            numaGetFValue(na3, i, &fval);
+            if (fval < 1.0) break;
+        }
+        numaGetIValue(na4, 0, &x0);
+        numaGetIValue(na4, i, &x1);
+        numaSetParameters(nasum, x0, 1);
+        sum = 0.0;
+        for (x = x1; x >= x0; x--) {
+            applyQuarticFit(ca, cb, cc, cd, ce, (l_float32)x, &y);
+            sum += (y - 1.0);
+            numaReplaceNumber(nasum, x, sum);
+        }
+        for (x = x0; x >= 0; x--)
+            numaReplaceNumber(nasum, x, sum);
+    }
+
+        /* Save the result in a fpix at the specified subsampling  */
+    nx = dew->nx;
+    ny = dew->ny;
+    fpix = fpixCreate(nx, ny);
+    del = (l_float32)w / (l_float32)nx;
+    for (i = 0; i < ny; i++) {
+        for (j = 0; j < nx; j++) {
+            x = del * j;
+            numaGetFValue(nasum, x, &fval);
+            fpixSetPixel(fpix, j, i, fval);
+        }
+    }
+    dew->sampydispar = fpix;
+    dew->ysuccess = 1;
 
     numaDestroy(&na2);
     numaDestroy(&na3);
+    numaDestroy(&na4);
+    numaDestroy(&nasum);
     return 0;
 }
 
