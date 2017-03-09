@@ -778,7 +778,7 @@ pixWriteStreamTiff(FILE    *fp,
  * \param[in]    comptype IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
  *                        IFF_TIFF_G3, IFF_TIFF_G4,
  *                        IFF_TIFF_LZW, IFF_TIFF_ZIP
- * \param[in]    modestr  "w" or "a" 
+ * \param[in]    modestr  "w" or "a"
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -1294,7 +1294,7 @@ PIX         *pix1, *pix2;
     n = pixaGetCount(pixa);
     for (i = 0; i < n; i++) {
         modestr = (i == 0) ? "w" : "a";
-        pix1 = pixaGetPix(pixa, i, L_CLONE); 
+        pix1 = pixaGetPix(pixa, i, L_CLONE);
         if (pixGetDepth(pix1) == 1) {
             pixWriteTiff(fname, pix1, IFF_TIFF_G4, modestr);
         } else {
@@ -2553,7 +2553,7 @@ PIXA   *pixa;
     } while (offset != 0);
     return pixa;
 }
-    
+
 
 /*!
  * \brief   pixaWriteMemMultipageTiff()
@@ -2574,7 +2574,7 @@ pixaWriteMemMultipageTiff(l_uint8  **pdata,
                           size_t    *psize,
                           PIXA      *pixa)
 {
-const char  *modestr; 
+const char  *modestr;
 l_int32  i, n;
 FILE    *fp;
 PIX     *pix1, *pix2;
@@ -2597,7 +2597,7 @@ PIX     *pix1, *pix2;
     n = pixaGetCount(pixa);
     for (i = 0; i < n; i++) {
         modestr = (i == 0) ? "w" : "a";
-        pix1 = pixaGetPix(pixa, i, L_CLONE); 
+        pix1 = pixaGetPix(pixa, i, L_CLONE);
         if (pixGetDepth(pix1) == 1) {
             pixWriteStreamTiffWA(fp, pix1, IFF_TIFF_G4, modestr);
         } else {
