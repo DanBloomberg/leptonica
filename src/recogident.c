@@ -1810,7 +1810,8 @@ SARRAY    *satext, *sa, *saout;
         sarrayDestroy(&saout);
         boxaaDestroy(&baa);
         numaaDestroy(&naa);
-        return (SARRAY *)ERROR_PTR("saout has no strings", procName, NULL);
+        L_INFO("saout has no identified text\n", procName);
+        return NULL;
     }
 
     if (pbaa)

@@ -47,12 +47,12 @@ l_uint8     *data;
 char        *fname, *filename;
 const char  *str;
 char         buffer[512];
-l_int32      i, n, npages;
+l_int32      i, n, npages, equal, success;
 size_t       length, offset, size;
 FILE        *fp;
 NUMA        *naflags, *nasizes;
 PIX         *pix, *pix1, *pix2, *pixd;
-PIXA        *pixa;
+PIXA        *pixa, *pixa1, *pixa2, *pixa3;
 PIXCMAP     *cmap;
 SARRAY      *savals, *satypes, *sa;
 static char  mainName[] = "mtifftest";
@@ -118,19 +118,23 @@ static char  mainName[] = "mtifftest";
     pixaDestroy(&pixa);
     lept_free(data);
 
-        /* This makes a 1001 image tiff file and gives timing
-         * for writing and reading.  Reading uses the offset method
-         * and the time is linear in the number of images, but the
-         * writing time is quadratic and the actual wall clock time is
-         * significantly more than the printed value. */
+        /* This makes a 1000 image tiff file and gives timing
+         * for writing and reading.  Reading uses both the offset method
+         * for returning individual pix and atomic pixaReadMultipageTiff()
+         * method for returning a pixa of all the images.  Reading time
+         * is linear in the number of images, but the writing time is
+         *  quadratic, and the actual wall clock time is significantly
+         *  more than the printed value. */
     pix1 = pixRead("char.tif");
     startTimer();
     pixWriteTiff("/tmp/lept/tiff/junkm.tif", pix1, IFF_TIFF_G4, "w");
-    for (i = 0; i < 1000; i++) {
+    for (i = 1; i < 1000; i++) {
         pixWriteTiff("/tmp/lept/tiff/junkm.tif", pix1, IFF_TIFF_G4, "a");
     }
     pixDestroy(&pix1);
-    fprintf(stderr, "Time to write: %7.3f\n", stopTimer());
+    fprintf(stderr, "\n1000 image file: /tmp/lept/tiff/junkm.tif\n");
+    fprintf(stderr, "Time to write 1000 images: %7.3f sec\n", stopTimer());
+
     startTimer();
     offset = 0;
     n = 0;
@@ -142,8 +146,60 @@ static char  mainName[] = "mtifftest";
         pixDestroy(&pix1);
         n++;
     } while (offset != 0);
-    fprintf(stderr, "Time to read: %7.3f\n", stopTimer());
-    fprintf(stderr, "Num images = %d\n", n);
+    fprintf(stderr, "Time to read %d images: %6.3f sec\n", n, stopTimer());
+
+    startTimer();
+    pixa = pixaReadMultipageTiff("/tmp/lept/tiff/junkm.tif");
+    fprintf(stderr, "Time to read %d images and return a pixa: %6.3f sec\n",
+            pixaGetCount(pixa), stopTimer());
+    pixaDestroy(&pixa);
+
+        /* This does the following sequence of operations:
+         * (1) makes pixa1 and writes a multipage tiff file from it
+         * (2) reads that file into memory
+         * (3) generates pixa2 from the data in memory
+         * (4) tiff compresses pixa2 back to memory
+         * (5) generates pixa3 by uncompressing the memory data
+         * (6) compares pixa3 with pixa1
+         */
+    pix1 = pixRead("weasel8.240c.png");  /* (1) */
+    pixa1 = pixaCreate(10);
+    for (i = 0; i < 10; i++)
+        pixaAddPix(pixa1, pix1, L_COPY);
+    pixDestroy(&pix1);
+    pixaWriteMultipageTiff("/tmp/lept/tiff/junkm2.tif", pixa1);
+    data = l_binaryRead("/tmp/lept/tiff/junkm2.tif", &size);  /* (2) */
+    pixa2 = pixaCreate(10);  /* (3) */
+    offset = 0;
+    n = 0;
+    do {
+        pix1 = pixReadMemFromMultipageTiff(data, size, &offset);
+        pixaAddPix(pixa2, pix1, L_INSERT);
+        n++;
+    } while (offset != 0);
+    fprintf(stderr, "\nRead %d images\n", n);
+    lept_free(data);
+    pixaWriteMemMultipageTiff(&data, &size, pixa2);  /* (4) */
+    pixa3 = pixaReadMemMultipageTiff(data, size);  /* (5) */
+    n = pixaGetCount(pixa3);
+    fprintf(stderr, "Write/read %d images\n", n);
+    success = TRUE;
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixa1, i, L_CLONE);
+        pix2 = pixaGetPix(pixa3, i, L_CLONE);
+        pixEqual(pix1, pix2, &equal);
+        if (!equal) success = FALSE;
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+    }
+    if (success)
+        fprintf(stderr, "read/write succeeded\n");
+    else
+        fprintf(stderr, "read/write failed!\n");
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
+    pixaDestroy(&pixa3);
+    lept_free(data);
 #endif
 
 #if 1   /* ------------ Test single-to-multipage I/O  -------------------*/

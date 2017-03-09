@@ -53,8 +53,9 @@
  *           PIXA     *pixaConvertTo8Color()
  *           PIXA     *pixaConvertTo32()
  *
- *      Pixa constrained selection
+ *      Pixa constrained selection and pdf generation
  *           PIXA     *pixaConstrainedSelect()
+ *           l_int32   pixaSelectToPdf()
  *
  *      Pixa display into multiple tiles
  *           PIXA     *pixaDisplayMultiTiled()
@@ -1937,9 +1938,8 @@ PIXA    *pixad;
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
     n = pixaGetCount(pixas);
-    if (last == -1)
-        last = n - 1;
     first = L_MAX(0, first);
+    last = (last < 0) ? n - 1 : L_MIN(n - 1, last);
     if (last < first)
         return (PIXA *)ERROR_PTR("last < first!", procName, NULL);
     if (nmax < 1)
@@ -1955,6 +1955,93 @@ PIXA    *pixad;
     }
     numaDestroy(&na);
     return pixad;
+}
+
+
+/*!
+ * \brief   pixaSelectToPdf()
+ *
+ * \param[in]    pixas
+ * \param[in]    first     first index to choose; >= 0
+ * \param[in]    last      biggest possible index to reach;
+ *                         use -1 to go to the end; otherwise, last >= first
+ * \param[in]    res       override the resolution of each input image, in ppi;
+ *                         use 0 to respect the resolution embedded in the input
+ * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
+ * \param[in]    type      encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
+ *                         L_FLATE_ENCODE, or 0 for default
+ * \param[in]    quality   used for JPEG only; 0 for default (75)
+ * \param[in]    color     of numbers added to each image (e.g., 0xff000000)
+ * \param[in]    fontsize  to print number below each image.  The valid set
+ *                         is {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]    fileout   pdf file of all images
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This writes a pdf of the selected images from %pixas, one to
+ *          a page.  They are optionally scaled and annotated with the
+ *          index printed to the left of the image.
+ *      (2) If the input images are 1 bpp and you want the numbers to be
+ *          in color, first promote each pix to 8 bpp with a colormap:
+ *                pixa1 = pixaConvertTo8(pixas, 1);
+ *          and then call this function with the specified color
+ * </pre>
+ */
+l_int32
+pixaSelectToPdf(PIXA        *pixas,
+                l_int32      first,
+                l_int32      last,
+                l_int32      res,
+                l_float32    scalefactor,
+                l_int32      type,
+                l_int32      quality,
+                l_uint32     color,
+                l_int32      fontsize,
+                const char  *fileout)
+{
+l_int32    n, n1;
+L_BMF     *bmf;
+NUMA      *na;
+PIXA      *pixa1, *pixa2;
+
+    PROCNAME("pixaSelectToPdf");
+
+    if (!pixas)
+        return ERROR_INT("pixas not defined", procName, 1);
+    if (type < 0 || type > L_FLATE_ENCODE) {
+        L_WARNING("invalid compression type; using default\n", procName);
+        type = 0;
+    }
+    if (!fileout)
+        return ERROR_INT("fileout not defined", procName, 1);
+
+        /* Select from given range */
+    n = pixaGetCount(pixas);
+    first = L_MAX(0, first);
+    last = (last < 0) ? n - 1 : L_MIN(n - 1, last);
+    if (first > last) {
+        L_ERROR("first = %d > last = %d\n", procName, first, last);
+        return 1;
+    }
+    pixa1 = pixaSelectRange(pixas, first, last, L_CLONE);
+
+        /* Optionally add index numbers */
+    n1 = pixaGetCount(pixa1);
+    bmf = (fontsize <= 0) ? NULL : bmfCreate(NULL, fontsize);
+    if (bmf) {
+        na = numaMakeSequence(first, 1.0, last - first + 1);
+        pixa2 = pixaAddTextNumber(pixa1, bmf, na, color, L_ADD_LEFT);
+        numaDestroy(&na);
+    } else {
+        pixa2 = pixaCopy(pixa1, L_CLONE);
+    }
+    pixaDestroy(&pixa1);
+    bmfDestroy(&bmf);
+
+    pixaConvertToPdf(pixa2, res, scalefactor, type, quality, NULL, fileout);
+    pixaDestroy(&pixa2);
+    return 0;
 }
 
 

@@ -198,6 +198,7 @@ static const l_float32  DEFAULT_MAX_WH_RATIO = 3.0;  /* max allowed w/h
 static const l_float32  DEFAULT_MAX_HT_RATIO = 2.6;  /* max allowed ratio of
                                max/min unscaled averaged template heights  */
 static const l_int32    DEFAULT_THRESHOLD = 150;  /* for binarization */
+static const l_int32    DEFAULT_MAXYSHIFT = 1;  /* for identification */
 
     /* Static functions */
 static l_int32 recogGetCharsetSize(l_int32 type);
@@ -216,14 +217,15 @@ static l_int32 recogAddAllSamples(L_RECOG **precog, PIXAA *paa, l_int32 debug);
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
  * \param[in]    linew   width of normalized strokes; use 0 to skip
  * \param[in]    threshold for binarization; typically ~128
- * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
+ * \param[in]    maxyshift from nominal centroid alignment; default is 1
  * \return  recd, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) This is a convenience function that generates a recog using
  *          the unscaled training data in an existing recog.
- *      (2) See recogCreate() for use of %scalew, %scaleh and %linew.
+ *      (2) Use %maxyshift = -1 to use the default value of 1 (recommended)
+ *      (3) See recogCreate() for use of %scalew, %scaleh and %linew.
  * </pre>
  */
 L_RECOG *
@@ -258,7 +260,7 @@ PIXA     *pixa;
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
  * \param[in]    linew   width of normalized strokes; use 0 to skip
  * \param[in]    threshold for binarization; typically ~150
- * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
+ * \param[in]    maxyshift from nominal centroid alignment; default is 1
  * \return  recog, or NULL on error
  *
  * <pre>
@@ -267,7 +269,8 @@ PIXA     *pixa;
  *          The pixa can be read from file.
  *      (2) The pixa should contain the unscaled bitmaps used for training.
  *      (3) See recogCreate() for use of %scalew, %scaleh and %linew.
- *      (4) All examples in the same class (i.e., with the same character
+ *      (4) Use %maxyshift = -1 to use the default value of 1 (recommended)
+ *      (5) All examples in the same class (i.e., with the same character
  *          label) should be similar.  They can be made similar by invoking
  *          recogRemoveOutliers[1,2]() on %pixa before calling this function.
  * </pre>
@@ -307,7 +310,7 @@ L_RECOG  *recog;
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
  * \param[in]    linew   width of normalized strokes; use 0 to skip
  * \param[in]    threshold for binarization; typically ~150
- * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
+ * \param[in]    maxyshift from nominal centroid alignment; default is 1
  * \return  recog, or NULL on error
  *
  * <pre>
@@ -375,7 +378,7 @@ L_RECOG  *recog;
  * \param[in]    scaleh  scale all heights to this; use 0 otherwise
  * \param[in]    linew   width of normalized strokes; use 0 to skip
  * \param[in]    threshold for binarization; typically ~128; 0 for default
- * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
+ * \param[in]    maxyshift from nominal centroid alignment; default is 1
  * \return  recog, or NULL on error
  *
  * <pre>
@@ -385,11 +388,12 @@ L_RECOG  *recog;
  *          to the requested size.  We typically do not set both > 0.
  *      (2) Use linew > 0 to convert the templates to images with fixed
  *          width strokes.  linew == 0 skips the conversion.
- *      (3) Scaling is used for finding outliers and for training a
+ *      (3) Use %maxyshift = -1 to use the default value of 1 (recommended)
+ *      (4) Scaling is used for finding outliers and for training a
  *          book-adapted recognizer (BAR) from a bootstrap recognizer (BSR).
  *          Scaling the height to a fixed value and scaling the width
  *          accordingly (e.g., %scaleh = 40, %scalew = 0) is recommended.
- *      (4) The storage for most of the arrays is allocated when training
+ *      (5) The storage for most of the arrays is allocated when training
  *          is finished.
  * </pre>
  */
@@ -413,6 +417,7 @@ L_RECOG  *recog;
         L_WARNING("invalid threshold; using default\n", procName);
         threshold = DEFAULT_THRESHOLD;
     }
+    if (maxyshift < 0) maxyshift = DEFAULT_MAXYSHIFT;
 
     if ((recog = (L_RECOG *)LEPT_CALLOC(1, sizeof(L_RECOG))) == NULL)
         return (L_RECOG *)ERROR_PTR("rec not made", procName, NULL);

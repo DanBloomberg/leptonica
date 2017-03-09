@@ -470,8 +470,7 @@ l_int32
 convertTiffMultipageToPdf(const char  *filein,
                           const char  *fileout)
 {
-l_int32  i, npages, istiff;
-PIX     *pix;
+l_int32  istiff;
 PIXA    *pixa;
 FILE    *fp;
 
@@ -480,21 +479,11 @@ FILE    *fp;
     if ((fp = fopenReadStream(filein)) == NULL)
         return ERROR_INT("file not found", procName, 1);
     istiff = fileFormatIsTiff(fp);
-    if (!istiff) {
-        fclose(fp);
-        return ERROR_INT("file not tiff format", procName, 1);
-    }
-    tiffGetCount(fp, &npages);
     fclose(fp);
+    if (!istiff)
+        return ERROR_INT("file not tiff format", procName, 1);
 
-    pixa = pixaCreate(npages);
-    for (i = 0; i < npages; i++) {
-        if ((pix = pixReadTiff(filein, i)) == NULL) {
-            pixaDestroy(&pixa);
-            return ERROR_INT("pix not made", procName, 1);
-        }
-        pixaAddPix(pixa, pix, L_INSERT);
-    }
+    pixa = pixaReadMultipageTiff(filein);
     pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "weasel2", fileout);
     pixaDestroy(&pixa);
     return 0;

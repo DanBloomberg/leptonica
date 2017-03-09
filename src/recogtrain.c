@@ -942,7 +942,7 @@ recogFilterPixaBySize(PIXA      *pixas,
                       l_int32    maxkeep,
                       l_float32  max_ht_ratio)
 {
-l_int32    i, j, h90, hj, j1, j2, j90, n;
+l_int32    i, j, h90, hj, j1, j2, j90, n, nc;
 l_float32  ratio;
 PIXA      *pixa1, *pixa2, *pixa3, *pixa4, *pixa5;
 PIXAA     *paa;
@@ -954,14 +954,15 @@ PIXAA     *paa;
 
     if ((paa = recogSortPixaByClass(pixas, setsize)) == NULL)
         return (PIXA *)ERROR_PTR("paa not made", procName, NULL);
+    nc = pixaaGetCount(paa, NULL);
     pixa5 = pixaCreate(0);
-    for (i = 0; i < setsize; i++) {
+    for (i = 0; i < nc; i++) {
         pixa1 = pixaaGetPixa(paa, i, L_CLONE);
         if ((n = pixaGetCount(pixa1)) == 0)
             continue;
         pixa2 = pixaSort(pixa1, L_SORT_BY_HEIGHT, L_SORT_INCREASING, NULL,
                          L_COPY);
-        j90 = (l_int32)(0.9 * n + 0.5);
+        j90 = (l_int32)(0.9 * n);
         pixaGetPixDimensions(pixa2, j90, NULL, &h90, NULL);
         pixa3 = pixaCreate(n);
         for (j = 0; j < n; j++) {
