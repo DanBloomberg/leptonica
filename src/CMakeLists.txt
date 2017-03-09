@@ -55,7 +55,14 @@ endif()
 if (NOT CPPAN_BUILD)
     export(TARGETS leptonica FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
 else()
-    target_link_libraries       (leptonica cppan)
+    target_link_libraries       (leptonica
+        pvt.cppan.demo.gif
+        pvt.cppan.demo.jpeg
+        pvt.cppan.demo.png
+        pvt.cppan.demo.tiff
+        pvt.cppan.demo.webp
+        pvt.cppan.demo.openjpeg.openjp2
+    )
     file(WRITE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake "include(${CMAKE_BINARY_DIR}/cppan.cmake)\n")
     export(TARGETS leptonica APPEND FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
 endif()
