@@ -2207,7 +2207,7 @@ LEPT_DLL extern PIX * recogModifyTemplate ( L_RECOG *recog, PIX *pixs );
 LEPT_DLL extern l_int32 recogAverageSamples ( L_RECOG **precog, l_int32 debug );
 LEPT_DLL extern l_int32 pixaAccumulateSamples ( PIXA *pixa, PTA *pta, PIX **ppixd, l_float32 *px, l_float32 *py );
 LEPT_DLL extern l_int32 recogTrainingFinished ( L_RECOG **precog, l_int32 modifyflag, l_int32 minsize, l_float32 minfract );
-LEPT_DLL extern PIXA * recogFilterPixaBySize ( PIXA *pixas, l_int32 setsize, l_int32 maxkeep, l_float32 max_ht_ratio );
+LEPT_DLL extern PIXA * recogFilterPixaBySize ( PIXA *pixas, l_int32 setsize, l_int32 maxkeep, l_float32 max_ht_ratio, NUMA **pna );
 LEPT_DLL extern PIXAA * recogSortPixaByClass ( PIXA *pixa, l_int32 setsize );
 LEPT_DLL extern l_int32 recogRemoveOutliers1 ( L_RECOG **precog, l_float32 minscore, l_int32 mintarget, l_int32 minsize, PIX **ppixsave, PIX **ppixrem );
 LEPT_DLL extern PIXA * pixaRemoveOutliers1 ( PIXA *pixas, l_float32 minscore, l_int32 mintarget, l_int32 minsize, PIX **ppixsave, PIX **ppixrem );

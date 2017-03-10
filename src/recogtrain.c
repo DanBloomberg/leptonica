@@ -229,11 +229,14 @@ PIX     *pix;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-        /* Prepare the sample to be added */
+        /* Prepare the sample to be added. This step also acts
+         * as a filter, and can invalidate pixs as a template. */
     ret = recogProcessLabeled(recog, pixs, box, text, &pix);
     if (ret) {
         pixDestroy(&pix);
-        return ERROR_INT("failure to get sample for training", procName, 1);
+        L_WARNING("failure to get sample '%s' for training\n", procName,
+                  text);
+        return 1;
     }
 
     recogAddSample(recog, pix, debug);
@@ -268,7 +271,7 @@ recogProcessLabeled(L_RECOG  *recog,
 char    *textdata;
 l_int32  textinpix, textin, nsets;
 NUMA    *na;
-PIX     *pix1, *pix2, *pix3;
+PIX     *pix1, *pix2, *pix3, *pix4;
 
     PROCNAME("recogProcessLabeled");
 
@@ -300,26 +303,32 @@ PIX     *pix1, *pix2, *pix3;
         pix2 = pixClone(pix1);
     pixDestroy(&pix1);
 
-        /* Clip to foreground and save */
-    pixClipToForeground(pix2, &pix3, NULL);
+        /* Remove isolated noise, using as a criterion all components
+         * that are removed by a vertical opening of size 3. */
+    pix3 = pixMorphSequence(pix2, "o1.5", 0);  /* seed */
+    pixSeedfillBinary(pix3, pix3, pix2, 8);  /* fill from seed; clip to pix2 */
     pixDestroy(&pix2);
-    if (!pix3)
-        return ERROR_INT("pixd is empty", procName, 1);
+
+        /* Clip to foreground */
+    pixClipToForeground(pix3, &pix4, NULL);
+    pixDestroy(&pix3);
+    if (!pix4)
+        return ERROR_INT("pix4 is empty", procName, 1);
 
         /* Verify that if there is more than 1 c.c., they all have
          * horizontal overlap */
-    na = pixCountByColumn(pix3, NULL);
+    na = pixCountByColumn(pix4, NULL);
     numaCountNonzeroRuns(na, &nsets);
     numaDestroy(&na);
     if (nsets > 1) {
-        L_WARNING("found %d sets of horizontally separated c.c.; skipping\n",
-                procName, nsets);
-        pixDestroy(&pix3);
+        L_WARNING("found %d sets of horiz separated c.c.; skipping\n",
+                  procName, nsets);
+        pixDestroy(&pix4);
         return 1;
     }
 
-    pixSetText(pix3, textdata);
-    *ppix = pix3;
+    pixSetText(pix4, textdata);
+    *ppix = pix4;
     return 0;
 }
 
@@ -925,11 +934,21 @@ NUMA      *na;
  * \param[in]   setsize       size of character set (number of classes)
  * \param[in]   maxkeep       max number of templates to keep in a class
  * \param[in]   max_ht_ratio  max allowed height ratio (see below)
+ * \param[out]  pna     [optional] debug output, giving the number in each
+ *                      class after filtering; use NULL to skip
  * \return  pixa   filtered templates, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) For each of the %setsize classes, order the templates
+ *      (1) The basic assumption is that the most common and larger
+ *          templates in each class are more likely to represent the
+ *          characters we are interested in.  For example, larger digits
+ *          are more likely to represent page numbers, and smaller digits
+ *          could be data in tables.  Therefore, we bias the first
+ *          stage of filtering toward the larger characters by removing
+ *          very small ones, and select based on proximity of the
+ *          remaining characters to median height.
+ *      (2) For each of the %setsize classes, order the templates
  *          increasingly by height.  Take the rank 0.9 height.  Eliminate
  *          all templates that are shorter by more than %max_ht_ratio.
  *          Of the remaining ones, select up to %maxkeep that are closest
@@ -940,21 +959,26 @@ PIXA *
 recogFilterPixaBySize(PIXA      *pixas,
                       l_int32    setsize,
                       l_int32    maxkeep,
-                      l_float32  max_ht_ratio)
+                      l_float32  max_ht_ratio,
+                      NUMA     **pna)
 {
 l_int32    i, j, h90, hj, j1, j2, j90, n, nc;
 l_float32  ratio;
+NUMA      *na;
 PIXA      *pixa1, *pixa2, *pixa3, *pixa4, *pixa5;
 PIXAA     *paa;
 
     PROCNAME("recogFilterPixaBySize");
 
+    if (pna) *pna = NULL;
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
 
     if ((paa = recogSortPixaByClass(pixas, setsize)) == NULL)
         return (PIXA *)ERROR_PTR("paa not made", procName, NULL);
     nc = pixaaGetCount(paa, NULL);
+    na = (pna) ? numaCreate(0) : NULL;
+    if (pna) *pna = na;
     pixa5 = pixaCreate(0);
     for (i = 0; i < nc; i++) {
         pixa1 = pixaaGetPixa(paa, i, L_CLONE);
@@ -972,13 +996,14 @@ PIXAA     *paa;
                 pixaAddPix(pixa3, pixaGetPix(pixa2, j, L_COPY), L_INSERT);
         }
         n = pixaGetCount(pixa3);
-        if (n <= maxkeep)
+        if (n <= maxkeep) {
             pixa4 = pixaCopy(pixa3, L_CLONE);
-        else {
+        } else {
             j1 = (n - maxkeep) / 2;
             j2 = j1 + maxkeep - 1;
             pixa4 = pixaSelectRange(pixa3, j1, j2, L_CLONE);
         }
+        if (na) numaAddNumber(na, pixaGetCount(pixa4));
         pixaJoin(pixa5, pixa4, 0, -1);
         pixaDestroy(&pixa1);
         pixaDestroy(&pixa2);

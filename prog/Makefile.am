@@ -28,7 +28,7 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
 	insert_reg ioformats_reg \
 	jbclass_reg jpegio_reg \
 	kernel_reg label_reg lineremoval_reg \
-	logicops_reg maze_reg multitype_reg \
+	logicops_reg maze_reg mtiff_reg multitype_reg \
 	nearline_reg newspaper_reg \
 	overlap_reg pageseg_reg paint_reg paintmask_reg \
 	pdfseg_reg pixa2_reg pixadisp_reg \
@@ -100,7 +100,7 @@ OTHER_PROGS = adaptmap_dark \
 	livre_makefigs livre_orient \
 	livre_pageseg livre_seedgen livre_tophat \
 	maketile maptest misctest1 \
-	modifyhuesat morphtest1 mtifftest \
+	modifyhuesat morphtest1 \
 	numaranktest otsutest1 otsutest2 \
 	pagesegtest1 pagesegtest2 \
 	partitiontest pdfiotest percolatetest \

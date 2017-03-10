@@ -167,8 +167,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		jbclass_reg.c jp2kio_reg.c jpegio_reg.c kernel_reg.c \
 		label_reg.c lineremoval_reg.c locminmax_reg.c \
 		logicops_reg.c lowaccess_reg.c \
-		maze_reg.c morphseq_reg.c multitype_reg.c \
-		nearline_reg.c newspaper_reg.c \
+		maze_reg.c morphseq_reg.c mtiff_reg.c \
+		multitype_reg.c nearline_reg.c newspaper_reg.c \
 		numa1_reg.c numa2_reg.c \
 		overlap_reg.c pageseg_reg.c paint_reg.c paintmask_reg.c \
 		pdfseg_reg.c pixa1_reg.c pixa2_reg.c \
@@ -220,7 +220,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		livre_makefigs.c livre_orient.c \
 		livre_pageseg.c livre_seedgen.c livre_tophat.c \
 		maketile.c maptest.c misctest1.c \
-		modifyhuesat.c morphtest1.c mtifftest.c \
+		modifyhuesat.c morphtest1.c \
 		numaranktest.c otsutest1.c otsutest2.c \
 		pagesegtest1.c pagesegtest2.c \
 		partitiontest.c pdfiotest.c percolatetest.c \
@@ -530,6 +530,9 @@ maze_reg:	maze_reg.o $(LEPTLIB)
 
 morphseq_reg:	morphseq_reg.o $(LEPTLIB)
 	$(CC) -o morphseq_reg morphseq_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+mtiff_reg:	mtiff_reg.o $(LEPTLIB)
+	$(CC) -o mtiff_reg mtiff_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 multitype_reg:	multitype_reg.o $(LEPTLIB)
 	$(CC) -o multitype_reg multitype_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -932,9 +935,6 @@ modifyhuesat:	modifyhuesat.o $(LEPTLIB)
 
 morphtest1:	morphtest1.o $(LEPTLIB)
 	$(CC) -o morphtest1 morphtest1.o $(ALL_LIBS) $(EXTRALIBS)
-
-mtifftest:	mtifftest.o $(LEPTLIB)
-	$(CC) -o mtifftest mtifftest.o $(ALL_LIBS) $(EXTRALIBS)
 
 numaranktest:	numaranktest.o $(LEPTLIB)
 	$(CC) -o numaranktest numaranktest.o $(ALL_LIBS) $(EXTRALIBS)

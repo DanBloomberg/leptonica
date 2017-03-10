@@ -620,7 +620,7 @@ SARRAY  *sa;
     if (rp->mode != L_REG_COMPARE) return 0;
 
         /* Generate the golden file names */
-    snprintf(namebuf, sizeof(namebuf), "%s_golden.%02d.", rp->testname, index1);
+    snprintf(namebuf, sizeof(namebuf), "%s_golden.%02d", rp->testname, index1);
     sa = getSortedPathnamesInDirectory("/tmp/lept/golden", namebuf, 0, 0);
     if (sarrayGetCount(sa) != 1) {
         sarrayDestroy(&sa);
@@ -631,7 +631,7 @@ SARRAY  *sa;
     name1 = sarrayGetString(sa, 0, L_COPY);
     sarrayDestroy(&sa);
 
-    snprintf(namebuf, sizeof(namebuf), "%s_golden.%02d.", rp->testname, index2);
+    snprintf(namebuf, sizeof(namebuf), "%s_golden.%02d", rp->testname, index2);
     sa = getSortedPathnamesInDirectory("/tmp/lept/golden", namebuf, 0, 0);
     if (sarrayGetCount(sa) != 1) {
         sarrayDestroy(&sa);

@@ -224,7 +224,7 @@ static l_int32 recogAddAllSamples(L_RECOG **precog, PIXAA *paa, l_int32 debug);
  * Notes:
  *      (1) This is a convenience function that generates a recog using
  *          the unscaled training data in an existing recog.
- *      (2) Use %maxyshift = -1 to use the default value of 1 (recommended)
+ *      (2) It is recommended to use %maxyshift = 1 (the default value)
  *      (3) See recogCreate() for use of %scalew, %scaleh and %linew.
  * </pre>
  */
@@ -269,7 +269,7 @@ PIXA     *pixa;
  *          The pixa can be read from file.
  *      (2) The pixa should contain the unscaled bitmaps used for training.
  *      (3) See recogCreate() for use of %scalew, %scaleh and %linew.
- *      (4) Use %maxyshift = -1 to use the default value of 1 (recommended)
+ *      (4) It is recommended to use %maxyshift = 1 (the default value)
  *      (5) All examples in the same class (i.e., with the same character
  *          label) should be similar.  They can be made similar by invoking
  *          recogRemoveOutliers[1,2]() on %pixa before calling this function.
@@ -388,7 +388,11 @@ L_RECOG  *recog;
  *          to the requested size.  We typically do not set both > 0.
  *      (2) Use linew > 0 to convert the templates to images with fixed
  *          width strokes.  linew == 0 skips the conversion.
- *      (3) Use %maxyshift = -1 to use the default value of 1 (recommended)
+ *      (3) The only valid values for %maxyshift are 0, 1 and 2.
+ *          It is recommended to use %maxyshift == 1 (default value).
+ *          Using %maxyshift == 0 is much faster than %maxyshift == 1, but
+ *          it is much less likely to find the template with the best
+ *          correlation.  Use of anything but 1 results in a warning.
  *      (4) Scaling is used for finding outliers and for training a
  *          book-adapted recognizer (BAR) from a bootstrap recognizer (BSR).
  *          Scaling the height to a fixed value and scaling the width
@@ -417,7 +421,15 @@ L_RECOG  *recog;
         L_WARNING("invalid threshold; using default\n", procName);
         threshold = DEFAULT_THRESHOLD;
     }
-    if (maxyshift < 0) maxyshift = DEFAULT_MAXYSHIFT;
+    if (maxyshift < 0 || maxyshift > 2) {
+         L_WARNING("invalid maxyshift; using default value\n", procName);
+         maxyshift = DEFAULT_MAXYSHIFT;
+    } else if (maxyshift == 0) {
+         L_WARNING("Using maxyshift = 0; faster, worse correlation results\n",
+                   procName);
+    } else if (maxyshift == 2) {
+         L_WARNING("Using maxyshift = 2; slower\n", procName);
+    }
 
     if ((recog = (L_RECOG *)LEPT_CALLOC(1, sizeof(L_RECOG))) == NULL)
         return (L_RECOG *)ERROR_PTR("rec not made", procName, NULL);
