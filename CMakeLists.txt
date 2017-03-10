@@ -45,7 +45,7 @@ set(VERSION_MINOR 74)
 set(VERSION_PATCH 1)
 set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/cppan)
+if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.cppan)
     find_package(GIF)
     find_package(JPEG)
     find_package(PNG)
@@ -59,7 +59,7 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/cppan)
     pkg_check_modules(JP2K libopenjp2)
     endif()
 else()
-    add_subdirectory(cppan)
+    add_subdirectory(.cppan)
 
     add_definitions(
         -DHAVE_LIBGIF=1

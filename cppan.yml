@@ -1,6 +1,3 @@
-local_settings:
-    cppan_dir: cppan
-
 files:
     - src/.*\.h
     - src/.*\.c
