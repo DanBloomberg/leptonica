@@ -28,6 +28,12 @@
  * writemtiff.c
  *
  *   Writes all matched files into a multipage tiff
+ *
+ *   Usage:
+ *   (1) To write all files in <dirin>:
+ *         writemtiff <dirin> <fileout>
+ *   (2) To write files in <dirin> matching a given <pattern>:
+ *         writemtiff <dirin> <pattern> <fileout>
  */
 
 #include "allheaders.h"
@@ -35,17 +41,17 @@
 int main(int    argc,
          char **argv)
 {
-char        *dirin, *pattern, *fileout;
 static char  mainName[] = "writemtiff";
 
-    if (argc != 4)
-        return ERROR_INT(" Syntax:  writemtiff dirin pattern fileout",
+    if (argc != 3 && argc != 4)
+        return ERROR_INT(" Syntax:  writemtiff dirin [pattern] fileout",
                          mainName, 1);
 
-    dirin = argv[1];
-    pattern = argv[2];
-    fileout = argv[3];
-    writeMultipageTiff(dirin, pattern, fileout);
+    if (argc == 3)
+        writeMultipageTiff(argv[1], NULL, argv[2]);
+    else  /* argc == 4 */
+        writeMultipageTiff(argv[1], argv[2], argv[3]);
+
     return 0;
 }
 
